@@ -92,6 +92,10 @@ El Resumen va **dentro** de `(dashboard)` para que comparta la navegación
 inferior con el resto de pantallas (si quedara en `app/page.tsx` se vería sin
 navegación).
 
+**Ojo:** hay que **borrar el `app/page.tsx` que trae el scaffold**. Si
+existen `app/page.tsx` y `app/(dashboard)/page.tsx` a la vez, los dos apuntan
+a `/` y Next.js da error de compilación.
+
 ## Cómo se ve `lib/data/` por dentro (hoy)
 
 `lib/types.ts` — los tipos salen directo de `03-modelo-de-datos.md`:
