@@ -131,9 +131,10 @@ No es una pantalla propia — vive dentro del formulario de producto (pantalla 1
 - Al activarlo: simular el retoque (en esta entrega, sin IA real — puede ser
   un efecto visual de "antes/después" con la misma imagen, o un placeholder
   que marque `foto_retocada = true`)
-- Costo por retoque: constante en `lib/config.ts` (por defecto 1 crédito por
-  foto — ver "Decisiones pendientes" en `03-modelo-de-datos.md`). No es
-  editable por el dueño en esta entrega.
+- Costo por retoque: **5 créditos por foto**, constante en `lib/config.ts`
+  (ver "Créditos de retoque" en `03-modelo-de-datos.md` — saldo mensual de 100
+  créditos, equivalente a 20 fotos). No es editable por el dueño en esta
+  entrega.
 - Descuenta de `tiendas.creditos_retoque`; si no hay créditos suficientes, el
   toggle se bloquea con un mensaje breve (tono de marca, no un error técnico)
 - Al publicar el producto con el toggle activo, la tarjeta del producto en el

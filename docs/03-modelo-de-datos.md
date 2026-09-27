@@ -175,9 +175,14 @@ tiendas 1──∞ eventos_aaah ──1 productos
 - `stock = null` significa "no controlo stock de esto" — nunca se descuenta ni
   se marca agotado.
 
-## Decisiones pendientes (no bloquean; usar el valor por defecto)
+## Créditos de retoque (decidido)
 
-| Tema | Valor por defecto para esta entrega |
-|---|---|
-| Créditos de retoque por plan | 20 créditos/mes en todos los planes, 1 crédito por foto. Constantes en un solo archivo (`lib/config.ts`) para cambiarlas fácil. |
-| ¿Los créditos no usados se acumulan? | No; se recargan al valor mensual el día 1. En esta entrega solo se muestra el saldo; la recarga automática llega con Supabase. |
+El cliente puede retocar **20 fotos al mes**; cada retoque cuesta **5
+créditos**. Eso da un saldo mensual de **100 créditos** (`creditos_retoque_mensuales
+= 100`), igual en todos los planes (20/60/100 productos). Ambos números
+(créditos por foto y saldo mensual) son constantes en `lib/config.ts`, no
+están repartidos por el código.
+
+Los créditos no usados **no se acumulan**: se recargan a 100 el día 1 de cada
+mes. En esta entrega solo se muestra el saldo (la recarga automática mensual
+llega con Supabase).
