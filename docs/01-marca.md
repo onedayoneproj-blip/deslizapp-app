@@ -1,0 +1,70 @@
+# Marca
+
+Fuente: guía de marca oficial de Deslizapp ("Presentación de marca", 2026).
+Esto rige todo lo visual y todo el copy del producto.
+
+## Nombre y tagline
+
+- Nombre del producto: **deslizapp** (minúscula, un solo bloque)
+- Tagline: **"Eso que te encanta, aparece."**
+- Frase ancla de marca: **"Deslizaaah…"**
+
+## Tono de voz — "Tony Stark × Charlie Sheen"
+
+Un genio encantador y relajado. Sabe que lo hace bien, lo dice sin pedir
+perdón, se toma la vida con calma. Seguridad, ingenio, un toque de "la vida es
+para disfrutarla".
+
+**Sí:**
+- One-liners con remate (titular corto + segunda línea que lo redondea)
+- Seguridad con gracia
+- Humor de lo cotidiano (el visto, las capturas de pantalla, el lunes)
+- Hablarle a "tú", nunca asumir que hay varias personas leyendo
+
+**Nunca:**
+- Dobles sentidos sexuales
+- Hablar de dinero, precios o pagos en piezas de marketing/anuncios
+- Burlarse de personas (solo de situaciones)
+- Palabras corporativas: "solución", "plataforma", etc.
+- Explicar el chiste
+
+Nota para este proyecto (panel del dueño, no marketing): dentro del producto
+sí se muestran precios, créditos y montos — son datos funcionales del negocio
+del dueño, no publicidad. La regla de "nunca hablar de dinero" aplica a piezas
+de marketing/anuncios, no a la UI operativa donde el dueño necesita ver sus
+propios números.
+
+## Identidad visual
+
+**Colores:**
+| Nombre | Hex | Uso |
+|---|---|---|
+| Verde Bosque | `#174B3A` | Seguridad, estilo — texto principal, fondo de acentos fuertes |
+| Rosa Suave | `#F5C9D6` | El aaah, cercanía — fondos suaves, acentos |
+| Mandarina | `#FF834F` | Chispa, impulso — llamados a la acción, alertas |
+| Papel Cálido | `#FFF9EE` | Calma, respiro — fondo base |
+
+**Tipografía:**
+- **Fredoka** (Bold, ancho 110–125%) — logo y titulares
+- **Figtree** — textos, precios, botones (la tipografía de trabajo de toda la UI)
+- **Caveat** — solo como guiño, notas escritas a mano (nunca para UI funcional)
+
+**Iconografía:** trazo simple, geométrico. Motivos recurrentes: la flecha
+(el desliz), el corazón (el aaah), el globo de chat. Las formas de fondo son
+"blobs" redondeados en los 4 colores de marca.
+
+**Isotipo:** una "d" minúscula con una flecha apuntando hacia arriba integrada
+en el asta — representa el gesto de deslizar hacia arriba.
+
+## Cómo se traduce esto al panel del dueño
+
+El panel es una herramienta de trabajo, no una pieza de marketing — prioriza
+la legibilidad y la velocidad para operar el negocio. Aun así:
+
+- Mismos colores y tipografías de marca (Fredoka en títulos de pantalla,
+  Figtree en el resto).
+- Los mensajes de estado y vacío (ej. "Todo al día. Disfruta el silencio. Dura
+  poco.") sí pueden llevar el tono de marca — son los que el dueño más lee.
+- Los datos (precios, cantidades, nombres de clientes) van siempre en
+  Figtree, sin adornos, porque son información que el dueño necesita leer
+  rápido.
