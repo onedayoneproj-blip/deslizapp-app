@@ -68,15 +68,15 @@ final sienta, sin pensarlo, que todos estos catálogos son de la misma familia.
 
 | Pieza | Siempre así (firma Deslizapp) | Lo que pone el comercio |
 |---|---|---|
-| **El aaah** (corazón / "lo quiero") | Corazón en Mandarina `#FF834F` al marcarlo; al tocarlo, estallido con partículas en los 4 colores de marca y la palabra "aaah" en Fredoka | Nada — este momento es de la plataforma |
-| **Bolsita del pedido** | Círculo Verde Bosque sólido con borde Rosa Suave; contador en Mandarina; al agregar algo, salta hacia arriba (el gesto de deslizar) | Nada |
+| **El aaah** (corazón / "lo quiero") | Corazón en Mandarina `#FF834F` al marcarlo; al tocarlo, estallido con partículas en los 4 colores de marca y la palabra "aaah" en Fredoka. **El aaah crece con el pedido:** 1 producto = "aaah", 2 = "aaaah", 3 = "aaaaah", desde 4 lleva "!" (tope: 8 "a"), y el corazón, las partículas y la palabra se hacen más grandes. En la cuadrícula sale un "aaah" pequeño del corazón | Nada — este momento es de la plataforma |
+| **Bolsita del pedido** | Círculo Verde Bosque sólido con borde Rosa Suave; **el contador es un corazón Mandarina** con el número adentro; al agregar algo, salta hacia arriba (el gesto de deslizar) | Nada |
 | **Barra del pedido** | Píldora Verde Bosque, botón "Enviar" en Mandarina con texto verde. En celular deja libre la bolsita (margen a la derecha) | Nada |
 | **Globito de mensaje del pedido** | Fondo Papel Cálido, borde Rosa Suave, letra Figtree, nombre en Fredoka | El texto: habla el comercio con su propia voz ("¡Ay, qué buena elección!…") |
 | **Sello de agotado** | Sello de tinta en Mandarina, forma de píldora, "AGOTADO" en Fredoka; debajo, "Aaah… dejaste que se lo llevaran ;(" en Fredoka | Nada |
 | **Etiqueta "En tu pedido"** | Píldora Mandarina con texto verde | Nada |
 | **Botón "Enviar" de comentarios** | Píldora Mandarina con texto verde | Nada |
 | **Vista previa del chat de WhatsApp** | Sigue pareciendo WhatsApp (globo de salida verde, hora, "Hoy"), pero: fondo Papel Cálido con corazones y flechas muy suaves, globo de salida en verde menta de marca `#DCEBE2`, etiqueta "Así le llegará tu pedido" en Verde Bosque, botón "Enviar por WhatsApp" en Verde Bosque con el ícono de WhatsApp en su verde | El texto del mensaje y los productos |
-| **Guía "Así funciona"** | Fondo verde oscuro, botón "¡Entendido!" en Mandarina, barra de tiempo en Mandarina | El título ("mi catálogo") |
+| **Guía "Así funciona"** | Un paso a la vez (3 pasos, solo lo esencial: deslizar · dar ♥ · enviar por WhatsApp), cada uno con una animación que usa las piezas reales de la firma (el aaah, la bolsita con su corazón, el botón verde de WhatsApp). Fondo verde oscuro, títulos en Fredoka, botón "Siguiente" / "¡A deslizar!" en Mandarina, puntos de progreso, opción "Saltar" | El título ("mi catálogo") y la voz de los textos |
 | **Página del pedido (enlace de 24 h)** | Botones en Verde Bosque y Rosa Suave; etiqueta de vencimiento en Mandarina | Fotos y productos |
 | **Sello** | "Hecho con deslizapp" al final del catálogo y "Pedido armado con deslizapp" en la hoja del pedido | Nada |
 | Colores de fondo, logo, fotos, títulos, textos de producto, **precios** | — | Todo |
