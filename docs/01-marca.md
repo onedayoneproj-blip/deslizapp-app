@@ -56,6 +56,37 @@ propios números.
 **Isotipo:** una "d" minúscula con una flecha apuntando hacia arriba integrada
 en el asta — representa el gesto de deslizar hacia arriba.
 
+## Qué es de la plataforma y qué es del comercio (catálogos)
+
+El catálogo público es del comercio: debe verse como *su* tienda, no como un
+espacio prestado. Por eso sus colores, su logo, sus fotos, su tipografía de
+títulos y la voz de sus mensajes son 100 % del comercio.
+
+Pero hay una **capa de firma** que es de Deslizapp y se ve igual en todos los
+catálogos, sin importar la marca del comercio. Es lo que hace que un cliente
+final sienta, sin pensarlo, que todos estos catálogos son de la misma familia.
+
+| Pieza | Siempre así (firma Deslizapp) | Lo que pone el comercio |
+|---|---|---|
+| **El aaah** (corazón / "lo quiero") | Corazón en Mandarina `#FF834F` al marcarlo; al tocarlo, estallido con partículas en los 4 colores de marca y la palabra "aaah" en Fredoka | Nada — este momento es de la plataforma |
+| **Bolsita del pedido** | Círculo Verde Bosque sólido con borde Rosa Suave; contador en Mandarina con número en Fredoka; al agregar algo, salta hacia arriba (el gesto de deslizar) | Nada |
+| **Barra del pedido** | Píldora Verde Bosque, conteo y total en Fredoka, botón "Enviar" en Mandarina con texto verde | Nada |
+| **Globito de mensaje del pedido** | Fondo Papel Cálido, borde Rosa Suave, letra Figtree, nombre en Fredoka | El texto: habla el comercio con su propia voz ("¡Ay, qué buena elección!…") |
+| **Precios** | Siempre en Fredoka | El monto |
+| **Etiqueta "En tu pedido"** | Píldora Mandarina con texto verde | Nada |
+| **Sello** | "Hecho con deslizapp" al final del catálogo y "Pedido armado con deslizapp" en la hoja del pedido | Nada |
+| Colores de fondo, logo, fotos, títulos, textos de producto | — | Todo |
+
+Reglas:
+- **Texto oscuro sobre Mandarina** siempre en verde (`#10362A`), nunca blanco.
+- La vista previa del mensaje de WhatsApp imita a WhatsApp: ahí los precios
+  **no** van en Fredoka (es cómo le llegará el mensaje al comercio).
+- **Excepción consciente a la guía:** la guía dice precios en Figtree. En los
+  catálogos los precios van en Fredoka porque es parte de la firma. En el panel
+  del dueño (abajo) los datos siguen en Figtree.
+- Si se agrega una pieza nueva a la firma, se agrega a esta tabla. Si no está
+  en la tabla, es del comercio.
+
 ## Cómo se traduce esto al panel del dueño
 
 El panel es una herramienta de trabajo, no una pieza de marketing — prioriza
