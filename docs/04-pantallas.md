@@ -4,17 +4,29 @@ Spec sacada de los mockups ya validados (el reel animado de Deslizapp
 Tienda). Cada pantalla real de este panel debe poder mostrar exactamente estos
 casos con datos de prueba.
 
-Navegación inferior (mobile-first, como Instagram): **Catálogo · Pedidos ·
-Clientes · Promos**, más **Resumen** como pantalla de inicio. El encabezado de
-cada pantalla muestra: logo de la tienda + nombre + créditos de retoque
+Navegación inferior de 5 íconos (mobile-first, como Instagram), igual que en
+los mockups: **Inicio (Resumen) · Catálogo · Pedidos · Clientes · Promos**. El
+ícono activo se expande en píldora verde con su nombre. El encabezado de cada
+pantalla muestra: logo de la tienda + nombre + créditos de retoque
 disponibles.
+
+**Diseño:** pensado primero para celular (ancho 360–430 px). En computadora,
+la app se muestra centrada con un ancho máximo de ~480 px; no hace falta un
+diseño de escritorio aparte en esta entrega.
+
+**Pedidos "del catálogo" en esta entrega:** el catálogo público todavía no
+está conectado (ver `02-alcance.md`), así que los pedidos con origen
+`catalogo` vienen del seed. Para poder demostrar la notificación de pedido
+nuevo, agrega un botón discreto **"Simular pedido del catálogo"** (en el menú
+de la tienda, junto a "Reiniciar datos de prueba") que crea un pedido de
+prueba con productos al azar de la tienda activa.
 
 ---
 
 ## 1. Catálogo
 
 **Qué muestra:**
-- Medidor: "X de Y productos" + nombre del plan (ej. "10 de 40 productos — Plan Básico")
+- Medidor: "X de Y productos" según `limite_productos` del plan (ej. "10 de 20 productos")
 - Barra de progreso del medidor
 - Grilla de 2 columnas con tarjetas de producto: foto, contador de ❤ (likes)
 - Botón flotante "+ Producto"
@@ -50,7 +62,10 @@ demo, pero sí mostrar el estado).
 
 **Acciones:**
 - Tocar un pedido → abre el Detalle de pedido
-- Botón para crear un pedido manual (para ventas que no llegaron por el catálogo)
+- Botón **"+ Pedido"** para crear un pedido manual (ventas que no llegaron
+  por el catálogo): elegir cliente existente o escribir nombre + WhatsApp de
+  uno nuevo, elegir productos y cantidades, aplicar código de promo opcional.
+  Entra directo en estado `por_despachar`.
 
 ---
 
@@ -65,6 +80,10 @@ demo, pero sí mostrar el estado).
 - Nota de marca: "el stock se actualiza solito"
 
 **Acciones:**
+- Si el pedido está en `nuevo`: el botón principal es **"Confirmar pedido"**
+  (ya hablaste con el cliente y va) → pasa a `por_despachar`. También hay una
+  opción secundaria "Cancelar pedido" → `cancelado`.
+- Si está en `por_despachar`: el botón principal es **"Despachar pedido"**.
 - Al presionar "Despachar pedido":
   - `estado` del pedido pasa a `despachado`, se registra `despachado_en`
   - el `stock` de cada producto del pedido se descuenta según `cantidad`
@@ -112,9 +131,9 @@ No es una pantalla propia — vive dentro del formulario de producto (pantalla 1
 - Al activarlo: simular el retoque (en esta entrega, sin IA real — puede ser
   un efecto visual de "antes/después" con la misma imagen, o un placeholder
   que marque `foto_retocada = true`)
-- Costo fijo por retoque (ej. 5 créditos — el número exacto puede ser una
-  constante configurable, no hace falta que sea editable por el dueño en esta
-  entrega)
+- Costo por retoque: constante en `lib/config.ts` (por defecto 1 crédito por
+  foto — ver "Decisiones pendientes" en `03-modelo-de-datos.md`). No es
+  editable por el dueño en esta entrega.
 - Descuenta de `tiendas.creditos_retoque`; si no hay créditos suficientes, el
   toggle se bloquea con un mensaje breve (tono de marca, no un error técnico)
 - Al publicar el producto con el toggle activo, la tarjeta del producto en el

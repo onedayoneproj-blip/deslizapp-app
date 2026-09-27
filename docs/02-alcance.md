@@ -37,6 +37,8 @@ en todo momento, como si hubiera muchas tiendas reales.
 - **Login con Google real** — para esta entrega puede simularse (una tienda "de sesión" fija, o un selector). El diseño debe dejar el espacio para el login, pero implementarlo no es parte de este alcance.
 - **Catálogo público** (lo que ve el cliente final, tipo Reels) — sigue siendo el HTML independiente que ya existe. No se integra a este proyecto todavía.
 - **Pagos/facturación de Deslizapp a sus clientes** (las tiendas) — no es parte de este panel.
+- **Retoque con IA real** — en esta entrega el retoque es simulado (ver `04-pantallas.md`, pantalla 6). Elegir y conectar el servicio de IA es un proyecto aparte.
+- **Pedidos reales llegando desde el catálogo** — dependen de conectar el catálogo público a la misma base de datos. Aquí se simulan (ver `04-pantallas.md`).
 
 ## Quién es el usuario de esta app
 

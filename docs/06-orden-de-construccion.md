@@ -25,21 +25,26 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 - `lib/data/seed/*.json` con datos de prueba realistas (usar los nombres del
   mock: Esencias Michel, Kiara Pink, Mayar, Shé, Carolina Peña, Luis Marte,
   etc. — ya están validados y le sonarán familiares al dueño)
-- `lib/data/store.ts` y una función por entidad en `lib/data/*.ts` (ver
-  ejemplos completos en `05-arquitectura.md`)
+- `lib/data/provider.tsx` (almacén en el navegador con `localStorage`) y las
+  operaciones por entidad en `lib/data/*.ts`, expuestas con `useData()` (ver
+  `05-arquitectura.md`)
+- `lib/config.ts` con las constantes de negocio (costo de retoque, créditos
+  mensuales, límites por plan)
+- Acciones de demo: "Reiniciar datos de prueba" y "Simular pedido del catálogo"
 
-**Listo cuando:** se puede importar `getProductos('tienda-1')` desde una
-página de prueba y ver los datos de esa tienda en consola, y NO ver los de
-otra tienda de prueba.
+**Listo cuando:** una página de prueba muestra los productos de la tienda
+activa y NO los de otra tienda de prueba; un producto creado sigue ahí
+después de recargar el navegador; y "Reiniciar datos de prueba" lo borra.
 
 ## 3. Layout y navegación
 
-- `app/(dashboard)/layout.tsx`: navegación inferior (Catálogo · Pedidos ·
-  Clientes · Promos) + encabezado con logo/nombre de tienda + créditos
+- `app/(dashboard)/layout.tsx`: navegación inferior de 5 íconos (Inicio ·
+  Catálogo · Pedidos · Clientes · Promos) + encabezado con logo/nombre de
+  tienda + créditos
 - Selector simple de "tienda activa" (dropdown o similar) que determina el
   `tiendaId` usado por toda la app
 
-**Listo cuando:** se puede navegar entre las 4 secciones y cambiar de tienda
+**Listo cuando:** se puede navegar entre las 5 secciones y cambiar de tienda
 de prueba, viendo que cada una trae sus propios datos.
 
 ## 4. Catálogo
@@ -67,9 +72,11 @@ de marca.
 - Botón "Despachar pedido" que actualiza `estado`, `despachado_en`, y el
   `stock` de cada producto involucrado
 
-**Listo cuando:** despachar un pedido con un producto de `stock = 1` deja ese
-producto en `stock = 0` y se refleja como "Agotado" tanto en el detalle del
-pedido como en el Catálogo.
+**Listo cuando:** un pedido nuevo se puede confirmar y luego despachar;
+despachar un pedido con un producto de `stock = 1` deja ese producto en
+`stock = 0` y se refleja como "Agotado" tanto en el detalle del pedido como
+en el Catálogo; e intentar despachar otro pedido con ese mismo producto
+muestra el aviso de falta de stock en vez de dejar el stock en negativo.
 
 ## 7. Clientes
 
@@ -94,8 +101,9 @@ automáticamente, sin que alguien lo marque a mano.
   y likes de prueba con los que calcular algo real
 - Tarjeta de aaahs + gráfico de barras + conversión + top 3 productos
 
-**Listo cuando:** los números del Resumen cambian de verdad si se agregan más
-pedidos de prueba — no son un mockup estático.
+**Listo cuando:** los números del Resumen salen de `eventos_aaah` y
+`pedidos` (no son un mockup estático): usar "Simular pedido del catálogo"
+hace subir el contador de pedidos del Resumen.
 
 ## 10. Repaso final
 

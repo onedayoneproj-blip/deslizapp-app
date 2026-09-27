@@ -8,6 +8,13 @@ finales — no deberían cambiar cuando se conecte Supabase.
 Todas las tablas que pertenecen a una tienda llevan `tienda_id` — es la clave
 de aislamiento multi-tenant. Ninguna consulta debe cruzar tiendas.
 
+**Convenciones:**
+- Moneda: pesos dominicanos (RD$). Los montos se guardan como número entero
+  de pesos (sin centavos) y se muestran como `RD$2,500`.
+- Fechas: ISO 8601 en UTC; se muestran en hora de Santo Domingo (UTC-4).
+- En la base de datos los campos van en `snake_case` (`tienda_id`); en
+  TypeScript, en `camelCase` (`tiendaId`). La conversión vive solo en `lib/data/`.
+
 ## `tiendas`
 
 | Campo | Tipo | Notas |
@@ -16,9 +23,10 @@ de aislamiento multi-tenant. Ninguna consulta debe cruzar tiendas.
 | `slug` | string, único | para la futura URL del catálogo público (`deslizapp.com/tienda/{slug}`) |
 | `nombre` | string | ej. "Esencias Michel" |
 | `logo_url` | string \| null | |
-| `plan` | `'basico' \| 'pro' \| 'custom'` | define `limite_productos` |
-| `limite_productos` | number | ej. 40 — se muestra en el medidor del Catálogo |
-| `creditos_retoque` | number | se descuenta al usar el retoque de fotos |
+| `plan` | `'p20' \| 'p60' \| 'p100' \| 'custom'` | los planes reales del servicio: hasta 20, 60 o 100 productos; más de 100 = a medida |
+| `limite_productos` | number | 20 / 60 / 100, o el número pactado si es `custom`; se muestra en el medidor del Catálogo |
+| `creditos_retoque` | number | saldo actual; se descuenta al usar el retoque de fotos |
+| `creditos_retoque_mensuales` | number | cuántos créditos se recargan cada mes (ver "Decisiones pendientes") |
 | `creado_en` | datetime | |
 
 ## `usuarios`
@@ -116,18 +124,34 @@ cambia después).
 | `fecha_fin` | datetime \| null | |
 | `estado` | `'activa' \| 'programada' \| 'terminada'` | calculable desde las fechas, pero se guarda para poder forzarlo manualmente |
 
+## `eventos_aaah`
+
+Cada vez que un cliente le da ❤ a un producto en el catálogo público. Hace
+falta como tabla aparte porque `productos.likes` es un total acumulado y no
+permite saber cuántos llegaron *esta semana* ni dibujar el gráfico por día
+del Resumen. En esta entrega se llena con datos de prueba repartidos en los
+últimos 14 días (para poder calcular la variación contra la semana anterior).
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | uuid | PK |
+| `tienda_id` | uuid → `tiendas.id` | |
+| `producto_id` | uuid → `productos.id` | |
+| `creado_en` | datetime | |
+
+`productos.likes` se mantiene como contador rápido para las tarjetas del
+Catálogo; debe coincidir con el número de `eventos_aaah` de ese producto.
+
 ## Resumen (no es una tabla — es una consulta agregada)
 
-La pantalla de Resumen no necesita una tabla propia; se calcula a partir de
-`pedidos` y `productos` de los últimos 7 días:
+Se calcula a partir de `eventos_aaah`, `pedidos` y `pedido_items`:
 
-- `aaahs_7dias`: suma de `likes` ganados en la semana (o, si no se trackea
-  el evento de "like" por separado, se puede aproximar con vistas del
-  catálogo — a definir cuando exista analítica real; por ahora puede ser un
-  número de prueba)
-- `pedidos_7dias`: count de `pedidos` con `creado_en` en los últimos 7 días
-- `conversion`: `pedidos_7dias / aaahs_7dias`
-- `top_productos`: top 3 `productos` por `likes` o por cantidad vendida en pedido_items
+- `aaahs_7dias`: count de `eventos_aaah` de los últimos 7 días
+- `variacion`: comparado contra los 7 días anteriores (ej. "+18%")
+- `aaahs_por_dia`: 7 valores, uno por día, para el gráfico de barras
+- `pedidos_7dias`: count de `pedidos` (no cancelados) con `creado_en` en los últimos 7 días
+- `conversion` ("De aaah a pedido"): `pedidos_7dias / aaahs_7dias`, en %
+- `top_productos`: top 3 productos por `eventos_aaah` de la semana
 
 ## Relación entre tablas (resumen visual)
 
@@ -137,4 +161,23 @@ tiendas 1──∞ productos
 tiendas 1──∞ pedidos ──∞ pedido_items ──1 productos
 tiendas 1──∞ clientes 1──∞ pedidos
 tiendas 1──∞ promos
+tiendas 1──∞ eventos_aaah ──1 productos
 ```
+
+## Reglas de negocio de stock
+
+- El stock se descuenta **al despachar**, no cuando entra el pedido (así lo
+  muestran los mockups). Consecuencia: si quedan 1 unidad y entran dos
+  pedidos, ambos se ven como posibles hasta que uno se despache. Al intentar
+  despachar el segundo, si algún producto no tiene stock suficiente, el
+  botón muestra el aviso y no deja despachar hasta que el dueño lo resuelva
+  (editar el pedido o cancelarlo).
+- `stock = null` significa "no controlo stock de esto" — nunca se descuenta ni
+  se marca agotado.
+
+## Decisiones pendientes (no bloquean; usar el valor por defecto)
+
+| Tema | Valor por defecto para esta entrega |
+|---|---|
+| Créditos de retoque por plan | 20 créditos/mes en todos los planes, 1 crédito por foto. Constantes en un solo archivo (`lib/config.ts`) para cambiarlas fácil. |
+| ¿Los créditos no usados se acumulan? | No; se recargan al valor mensual el día 1. En esta entrega solo se muestra el saldo; la recarga automática llega con Supabase. |

@@ -20,21 +20,53 @@ pantalla implique una migración de base de datos. El modelo de datos de
 `03-modelo-de-datos.md` ya está pensado como si fuera Supabase — cuando se
 conecte, el cambio es mecánico, no de diseño.
 
+## Dónde viven los datos de prueba: en el navegador, no en el servidor
+
+**Decisión importante.** El almacén de datos de prueba vive **en el navegador**
+(estado de React + `localStorage`), no en una variable del servidor.
+
+Por qué: una variable en memoria del servidor de Next.js *parece* funcionar en
+`npm run dev`, pero falla en cuanto se publica la demo (por ejemplo en
+Vercel). Ahí el servidor corre en funciones que se apagan y encienden solas,
+cada una con su propia memoria, y además Next.js 16 pre-renderiza al compilar
+las páginas que solo leen módulos importados. Resultado: el dueño crea un
+producto, recarga, y el producto desapareció — o nunca apareció. Guardarlo
+en el navegador evita todo eso: la demo funciona igual en local y publicada,
+y los cambios sobreviven a recargar la página.
+
+Consecuencias para la implementación:
+- Las pantallas del panel son Client Components (`'use client'`) que leen de
+  `lib/data/` a través de un proveedor de React (`DataProvider`) montado en
+  `app/(dashboard)/layout.tsx`.
+- Al cargar por primera vez, el almacén se llena con `lib/data/seed/*.json`;
+  después, cada cambio se guarda en `localStorage`.
+- Debe existir un botón discreto de **"Reiniciar datos de prueba"** (por
+  ejemplo en el menú de la tienda) que borre `localStorage` y vuelva al seed.
+  Sirve para repetir la demo con un cliente desde cero.
+- Fotos subidas en esta etapa: se guardan como data URL reducida (máx. ~800 px
+  de lado, JPEG) para no reventar el límite de `localStorage` (~5 MB). Las
+  fotos del seed viven en `public/seed/`.
+
 ## Estructura de carpetas
 
 ```
 app/
   (dashboard)/
+    page.tsx             ← Resumen (pantalla de inicio, "/")
     catalogo/page.tsx
+    catalogo/nuevo/page.tsx
+    catalogo/[id]/page.tsx
     pedidos/page.tsx
     pedidos/[id]/page.tsx
     clientes/page.tsx
+    clientes/[id]/page.tsx
     promos/page.tsx
-    layout.tsx          ← navegación inferior + encabezado
-  page.tsx               ← Resumen (pantalla de inicio)
-  layout.tsx              ← layout raíz (fuentes, tema)
+    promos/nueva/page.tsx
+    layout.tsx           ← DataProvider + encabezado + navegación inferior
+  layout.tsx             ← layout raíz (fuentes, tema)
 lib/
   data/
+    provider.tsx         ← DataProvider: estado + persistencia en localStorage
     tiendas.ts
     productos.ts
     pedidos.ts
@@ -45,13 +77,20 @@ lib/
       tiendas.json
       productos.json
       pedidos.json
+      pedido_items.json
       clientes.json
       promos.json
-    store.ts             ← simula la "base de datos en memoria" (ver abajo)
-  types.ts                ← los tipos de 03-modelo-de-datos.md, en TypeScript
+      eventos_aaah.json
+  types.ts               ← los tipos de 03-modelo-de-datos.md, en TypeScript
 components/
   ...
+public/
+  seed/                  ← fotos de los productos de prueba
 ```
+
+El Resumen va **dentro** de `(dashboard)` para que comparta la navegación
+inferior con el resto de pantallas (si quedara en `app/page.tsx` se vería sin
+navegación).
 
 ## Cómo se ve `lib/data/` por dentro (hoy)
 
@@ -76,90 +115,68 @@ export type Producto = {
 // ... Tienda, Pedido, PedidoItem, Cliente, Promo igual que en 03-modelo-de-datos.md
 ```
 
-`lib/data/store.ts` — un "almacén" en memoria que arranca desde el JSON de
-prueba y se comporta como si fuera la base de datos durante la sesión (los
-cambios persisten mientras el servidor de desarrollo esté corriendo, no entre
-reinicios — eso está bien para esta entrega):
+`lib/data/provider.tsx` — el "almacén" de prueba. Arranca desde el seed, se
+guarda en `localStorage` en cada cambio y expone un objeto `db` a las
+funciones de `lib/data/` (el detalle de implementación queda a criterio de
+quien construya; lo que importa es que las pantallas nunca lo toquen
+directamente):
 
-```ts
-import productosSeed from "./seed/productos.json";
-import pedidosSeed from "./seed/pedidos.json";
-// ...
+```tsx
+'use client';
+const KEY = "deslizapp-demo-v1";
 
-export const db = {
-  productos: [...productosSeed] as Producto[],
-  pedidos: [...pedidosSeed] as Pedido[],
-  // ...
-};
+function cargarInicial(): DB {
+  const guardado = localStorage.getItem(KEY);
+  return guardado ? JSON.parse(guardado) : construirDesdeSeed();
+}
+// DataProvider guarda `db` en estado de React y hace
+// localStorage.setItem(KEY, JSON.stringify(db)) después de cada cambio.
+// reiniciarDemo() hace localStorage.removeItem(KEY) y vuelve al seed.
 ```
 
-`lib/data/productos.ts` — la interfaz que usan las pantallas:
+`lib/data/productos.ts` — las operaciones sobre productos. Las pantallas no
+las importan sueltas: las reciben ya conectadas al almacén a través del hook
+`useData()`, con una firma que **no menciona de dónde vienen los datos**:
 
 ```ts
-import { db } from "./store";
-import type { Producto } from "../types";
+// Lo que ve una pantalla (hoy y el día de Supabase, idéntico):
+const { getProductos, crearProducto, actualizarProducto } = useData();
+const productos = await getProductos(tiendaId);
+await crearProducto(tiendaId, { nombre: "Kiara Pink", precio: 2500, /* ... */ });
+```
 
-export async function getProductos(tiendaId: string): Promise<Producto[]> {
-  return db.productos.filter((p) => p.tiendaId === tiendaId);
-}
+Por dentro, hoy (almacén del navegador):
 
-export async function crearProducto(
-  tiendaId: string,
-  datos: Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn">
-): Promise<Producto> {
-  const nuevo: Producto = {
-    ...datos,
-    id: crypto.randomUUID(),
-    tiendaId,
-    creadoEn: new Date().toISOString(),
-    actualizadoEn: new Date().toISOString(),
-  };
-  db.productos.push(nuevo);
+```ts
+// dentro de DataProvider
+async function crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto> {
+  const ahora = new Date().toISOString();
+  const nuevo: Producto = { ...datos, id: crypto.randomUUID(), tiendaId, creadoEn: ahora, actualizadoEn: ahora };
+  setDb((db) => ({ ...db, productos: [...db.productos, nuevo] })); // el provider lo guarda en localStorage
   return nuevo;
 }
-
-export async function actualizarProducto(
-  id: string,
-  cambios: Partial<Producto>
-): Promise<Producto> {
-  const producto = db.productos.find((p) => p.id === id);
-  if (!producto) throw new Error("Producto no encontrado");
-  Object.assign(producto, cambios, { actualizadoEn: new Date().toISOString() });
-  return producto;
-}
 ```
 
-Cada pantalla importa de `lib/data/productos.ts`, nunca de `seed/` ni de
-`store.ts` directamente.
+Regla: ninguna pantalla importa de `seed/` ni lee `localStorage` por su
+cuenta. Todo pasa por `useData()`.
 
 ## Cómo se ve el día que se conecta Supabase
 
-Solo cambia el interior de `lib/data/productos.ts` (y los demás archivos de
-`lib/data/`) — la firma de las funciones se mantiene igual:
+Solo cambia el interior de esas funciones — la firma que ven las pantallas
+se mantiene igual:
 
 ```ts
-import { createClient } from "@/lib/supabase/server";
-import type { Producto } from "../types";
+import { createClient } from "@/lib/supabase/client";
 
-export async function getProductos(tiendaId: string): Promise<Producto[]> {
-  const supabase = await createClient();
+async function crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("productos")
-    .select("*")
-    .eq("tienda_id", tiendaId);
-  if (error) throw error;
-  return data.map(mapRowToProducto); // convierte snake_case de Postgres a camelCase de TS
-}
-
-export async function crearProducto(tiendaId: string, datos: /* ... */) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("productos")
-    .insert({ tienda_id: tiendaId, ...mapProductoToRow(datos) })
+    .insert({ tienda_id: tiendaId, ...aFila(datos) }) // camelCase de TS → snake_case de Postgres
     .select()
     .single();
   if (error) throw error;
-  return mapRowToProducto(data);
+  return aProducto(data);
 }
 ```
 
@@ -181,7 +198,7 @@ un `tiendaId` — nunca asume "la única tienda". Para esta entrega:
 
 ## Próximo proyecto (fuera de esta entrega, pero para que quede documentado)
 
-1. Crear el proyecto en Supabase y correr las migraciones con las tablas de `03-modelo-de-datos.md`
+1. Crear el proyecto en Supabase y correr las migraciones con las tablas de `03-modelo-de-datos.md` (incluida `eventos_aaah`)
 2. Activar Row Level Security: cada fila solo visible/editable por su `tienda_id`
 3. Auth con Google (Supabase Auth) — al loguearse, resolver a qué `tienda_id` pertenece el usuario vía la tabla `usuarios`
 4. Reescribir `lib/data/*.ts` para usar Supabase en vez del store en memoria
