@@ -69,21 +69,24 @@ final sienta, sin pensarlo, que todos estos catálogos son de la misma familia.
 | Pieza | Siempre así (firma Deslizapp) | Lo que pone el comercio |
 |---|---|---|
 | **El aaah** (corazón / "lo quiero") | Corazón en Mandarina `#FF834F` al marcarlo; al tocarlo, estallido con partículas en los 4 colores de marca y la palabra "aaah" en Fredoka | Nada — este momento es de la plataforma |
-| **Bolsita del pedido** | Círculo Verde Bosque sólido con borde Rosa Suave; contador en Mandarina con número en Fredoka; al agregar algo, salta hacia arriba (el gesto de deslizar) | Nada |
-| **Barra del pedido** | Píldora Verde Bosque, conteo y total en Fredoka, botón "Enviar" en Mandarina con texto verde | Nada |
+| **Bolsita del pedido** | Círculo Verde Bosque sólido con borde Rosa Suave; contador en Mandarina; al agregar algo, salta hacia arriba (el gesto de deslizar) | Nada |
+| **Barra del pedido** | Píldora Verde Bosque, botón "Enviar" en Mandarina con texto verde. En celular deja libre la bolsita (margen a la derecha) | Nada |
 | **Globito de mensaje del pedido** | Fondo Papel Cálido, borde Rosa Suave, letra Figtree, nombre en Fredoka | El texto: habla el comercio con su propia voz ("¡Ay, qué buena elección!…") |
-| **Precios** | Siempre en Fredoka | El monto |
+| **Sello de agotado** | Sello de tinta en Mandarina, forma de píldora, "AGOTADO" en Fredoka; debajo, "Aaah… dejaste que se lo llevaran ;(" en Fredoka | Nada |
 | **Etiqueta "En tu pedido"** | Píldora Mandarina con texto verde | Nada |
+| **Botón "Enviar" de comentarios** | Píldora Mandarina con texto verde | Nada |
+| **Vista previa del chat de WhatsApp** | Sigue pareciendo WhatsApp (globo de salida verde, hora, "Hoy"), pero: fondo Papel Cálido con corazones y flechas muy suaves, globo de salida en verde menta de marca `#DCEBE2`, etiqueta "Así le llegará tu pedido" en Verde Bosque, botón "Enviar por WhatsApp" en Verde Bosque con el ícono de WhatsApp en su verde | El texto del mensaje y los productos |
+| **Guía "Así funciona"** | Fondo verde oscuro, botón "¡Entendido!" en Mandarina, barra de tiempo en Mandarina | El título ("mi catálogo") |
+| **Página del pedido (enlace de 24 h)** | Botones en Verde Bosque y Rosa Suave; etiqueta de vencimiento en Mandarina | Fotos y productos |
 | **Sello** | "Hecho con deslizapp" al final del catálogo y "Pedido armado con deslizapp" en la hoja del pedido | Nada |
-| Colores de fondo, logo, fotos, títulos, textos de producto | — | Todo |
+| Colores de fondo, logo, fotos, títulos, textos de producto, **precios** | — | Todo |
 
 Reglas:
 - **Texto oscuro sobre Mandarina** siempre en verde (`#10362A`), nunca blanco.
-- La vista previa del mensaje de WhatsApp imita a WhatsApp: ahí los precios
-  **no** van en Fredoka (es cómo le llegará el mensaje al comercio).
-- **Excepción consciente a la guía:** la guía dice precios en Figtree. En los
-  catálogos los precios van en Fredoka porque es parte de la firma. En el panel
-  del dueño (abajo) los datos siguen en Figtree.
+- **Botones en Figtree** (como dice la guía). Fredoka solo en el "aaah", el
+  sello de agotado y nombres/títulos cortos.
+- **Los precios son del comercio:** van con la tipografía del catálogo, no en
+  Fredoka (se probó y no se ve bien).
 - Si se agrega una pieza nueva a la firma, se agrega a esta tabla. Si no está
   en la tabla, es del comercio.
 
