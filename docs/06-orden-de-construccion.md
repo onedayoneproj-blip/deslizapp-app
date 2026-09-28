@@ -6,7 +6,7 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–3 hechos (incluida la hoja de Plan y créditos). Paso 4 en curso.
+**Estado:** pasos 0–4 hechos (incluida la hoja de Plan y créditos). Sigue el paso 5.
 
 ## 0. Preparación
 
