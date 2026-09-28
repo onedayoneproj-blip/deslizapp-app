@@ -7,14 +7,14 @@ export function LogoTienda({ tienda, tamano = 36 }: { tienda: Pick<Tienda, "nomb
   if (tienda.logoUrl) {
     return (
       <span style={estilo} className="shrink-0">
-        <Foto src={tienda.logoUrl} alt={`Logo de ${tienda.nombre}`} className="h-full w-full rounded-full" sizes={`${tamano}px`} />
+        <Foto src={tienda.logoUrl} alt={`Logo de ${tienda.nombre}`} className="h-full w-full rounded-xl" sizes={`${tamano}px`} />
       </span>
     );
   }
   return (
     <span
       style={estilo}
-      className="flex shrink-0 items-center justify-center rounded-full bg-bosque text-sm font-semibold text-papel"
+      className="flex shrink-0 items-center justify-center rounded-xl bg-rosa text-sm font-bold text-bosque"
       aria-hidden="true"
     >
       {iniciales(tienda.nombre)}
