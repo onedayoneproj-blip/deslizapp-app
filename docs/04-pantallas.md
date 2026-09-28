@@ -218,9 +218,12 @@ No es una pantalla propia — vive dentro del formulario de producto (pantalla 1
 - Tarjeta "Retocar foto" · "Luz, fondo y color" con interruptor (apagado por
   defecto al editar; encendido por defecto al subir una foto nueva si hay
   créditos).
-- Al activarlo: simular el retoque (sin IA real en esta entrega): selector
-  **Antes / Después** sobre la foto y etiqueta "Retocada ✦"; al guardar se
-  marca `foto_retocada = true`.
+- Al activarlo: simular el retoque (sin IA real en esta entrega): se aplica
+  a la foto un ajuste de luz, contraste y color (`retocarFoto` en
+  `lib/imagen.ts`), con selector **Antes / Después** sobre la foto y etiqueta
+  "Retocada ✦"; al guardar se guarda la versión retocada y se marca
+  `foto_retocada = true`. Al editar un producto ya retocado, la foto dice "Ya
+  está retocada" y la tarjeta ofrece "Retocar otra vez" (cobra de nuevo).
 - Costo: **5 créditos por foto**, constante en `lib/config.ts` (ver
   "Créditos de retoque" en `03-modelo-de-datos.md`). El subtítulo lo dice:
   "Usa 5 créditos: te quedan 35 → 30."

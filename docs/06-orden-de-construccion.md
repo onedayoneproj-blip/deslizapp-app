@@ -6,7 +6,8 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–4 hechos (incluida la hoja de Plan y créditos). Sigue el paso 5.
+**Estado:** pasos 0–5 hechos (incluidos la hoja de Plan y créditos y la
+publicación en Vercel). Sigue el paso 6.
 
 ## 0. Preparación
 
@@ -56,6 +57,20 @@ después de recargar el navegador; y "Reiniciar datos de prueba" lo borra.
 **Listo cuando:** se puede navegar entre las 5 secciones y cambiar de tienda
 de prueba, viendo que cada una trae sus propios datos; y el botón de créditos
 abre Plan y créditos con el plan y el saldo de la tienda activa.
+
+## 3b. Publicar en Vercel — ✅ hecho
+
+- Repositorio conectado a Vercel: https://deslizapp-app.vercel.app
+- Cada push a `main` publica solo (no hay pasos manuales)
+- Nada lee `localStorage`, `window` ni `document` durante el render del
+  servidor: el `DataProvider` pinta la pantalla de carga en el servidor y en
+  el primer render del cliente, y los datos aparecen después (sin errores de
+  hidratación)
+- Las variables de Supabase se agregarán en Vercel (Settings → Environment
+  Variables) cuando se conecte la base de datos
+
+**Listo cuando:** la app publicada abre en el celular, carga los datos de
+prueba y no muestra errores de hidratación en la consola.
 
 ## 4. Catálogo
 

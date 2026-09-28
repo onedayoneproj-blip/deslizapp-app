@@ -35,11 +35,14 @@ export function Interruptor({
   alCambiar,
   etiqueta,
   deshabilitado = false,
+  alTocarBloqueado,
 }: {
   encendido: boolean;
   alCambiar: (valor: boolean) => void;
   etiqueta: string;
   deshabilitado?: boolean;
+  /** Qué pasa si lo tocan bloqueado (ej. avisar por qué). */
+  alTocarBloqueado?: () => void;
 }) {
   return (
     <button
@@ -48,7 +51,7 @@ export function Interruptor({
       aria-checked={encendido}
       aria-label={etiqueta}
       aria-disabled={deshabilitado}
-      onClick={() => !deshabilitado && alCambiar(!encendido)}
+      onClick={() => (deshabilitado ? alTocarBloqueado?.() : alCambiar(!encendido))}
       className={`flex h-8 w-[54px] shrink-0 rounded-full p-1 transition-colors ${
         deshabilitado ? "bg-[#d9cdb8]" : encendido ? "bg-bosque" : "bg-apagado"
       } ${encendido ? "justify-end" : "justify-start"}`}

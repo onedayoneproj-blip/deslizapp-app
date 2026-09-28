@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { reducirFoto } from "@/lib/imagen";
+import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Producto } from "@/lib/types";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { IconoCamara, IconoMas, IconoMenos } from "../iconos";
+import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 
@@ -64,14 +65,20 @@ function FormularioProducto({
   productos: Producto[];
   alTerminar: () => void;
 }) {
-  const { crearProducto, actualizarProducto } = useData();
+  const { crearProducto, actualizarProducto, usarCreditosRetoque } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirPlan } = usePanelUI();
   const toast = useToast();
   const entradaFoto = useRef<HTMLInputElement>(null);
 
   const [foto, setFoto] = useState<string | null>(producto?.fotos[0] ?? null);
+  const [fotoNueva, setFotoNueva] = useState(false);
   const [procesandoFoto, setProcesandoFoto] = useState(false);
+  // Retoque (simulado): `retocada` es la versión con luz de `foto`, la misma que se guarda.
+  const [retocar, setRetocar] = useState(false);
+  const [vista, setVista] = useState<"antes" | "despues">("despues");
+  const [retocada, setRetocada] = useState<{ de: string; url: string } | null>(null);
+  const [procesandoRetoque, setProcesandoRetoque] = useState(false);
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
   const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
@@ -87,17 +94,51 @@ function FormularioProducto({
 
   const lleno = !producto && tienda != null && productos.length >= tienda.limiteProductos;
 
+  const creditos = tienda?.creditosRetoque ?? 0;
+  const alcanzan = creditos >= CREDITOS_POR_RETOQUE;
+  const retoqueActivo = retocar && alcanzan && Boolean(foto);
+  const retoqueListo = retoqueActivo && retocada !== null && retocada.de === foto;
+  const yaRetocada = Boolean(producto?.fotoRetocada) && !fotoNueva;
+
+  const prepararRetoque = async (src: string) => {
+    setProcesandoRetoque(true);
+    try {
+      setRetocada({ de: src, url: await retocarFoto(src) });
+    } catch {
+      setRetocar(false);
+      toast("Esta foto no se dejó retocar. Prueba con otra.");
+    } finally {
+      setProcesandoRetoque(false);
+    }
+  };
+
   const elegirFoto = async (archivo: File | undefined) => {
     if (!archivo) return;
     setProcesandoFoto(true);
     try {
-      setFoto(await reducirFoto(archivo));
+      const nueva = await reducirFoto(archivo);
+      setFoto(nueva);
+      setFotoNueva(true);
+      // Foto recién subida: el retoque viene prendido si hay créditos (como en el prototipo).
+      setRetocar(alcanzan);
+      setVista("despues");
+      if (alcanzan) void prepararRetoque(nueva);
     } catch {
       toast("Esa foto no quiso cargar. Prueba con otra.");
     } finally {
       setProcesandoFoto(false);
     }
   };
+
+  const alternarRetoque = (prender: boolean) => {
+    setRetocar(prender);
+    if (!prender || !foto) return;
+    setVista("despues");
+    if (retocada?.de !== foto) void prepararRetoque(foto);
+  };
+
+  const retoqueBloqueado = () =>
+    toast(!foto ? "Primero la foto. Después le ponemos la luz." : "Te faltan créditos para retocar. Se recargan el día 1.");
 
   const guardar = async () => {
     const precioNumero = Number(precio);
@@ -111,15 +152,35 @@ function FormularioProducto({
       return;
     }
     setGuardando(true);
+    const usarRetoque = retoqueListo;
+    if (usarRetoque) {
+      try {
+        await usarCreditosRetoque(tiendaId, 1);
+      } catch {
+        toast("Te faltan créditos para retocar. Se recargan el día 1.");
+        setRetocar(false);
+        setGuardando(false);
+        return;
+      }
+    }
     try {
-      const fotos = producto ? [foto, ...producto.fotos.slice(1)] : [foto];
-      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, stock, categoria: coleccion, activo };
+      const fotoFinal = usarRetoque ? retocada!.url : foto;
+      const fotos = producto ? [fotoFinal, ...producto.fotos.slice(1)] : [fotoFinal];
+      const fotoRetocada = usarRetoque || yaRetocada;
+      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo };
+      const menos = `−${CREDITOS_POR_RETOQUE} créditos.`;
       if (producto) {
         await actualizarProducto(tiendaId, producto.id, datos);
-        toast("Guardado. El catálogo ya se enteró.");
+        toast(usarRetoque ? `Guardado y retocado${producto.fotoRetocada ? " otra vez" : ""}. ${menos}` : "Guardado. El catálogo ya se enteró.");
       } else {
-        await crearProducto(tiendaId, { ...datos, fotoRetocada: false, destacado: false, likes: 0 });
-        toast(activo ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
+        await crearProducto(tiendaId, { ...datos, destacado: false, likes: 0 });
+        toast(
+          usarRetoque
+            ? `Publicado y retocado. ${menos}`
+            : activo
+              ? "Publicado. Ya se está deslizando."
+              : "Guardado como oculto. Nadie lo ve hasta que lo prendas.",
+        );
       }
       alTerminar();
     } catch {
@@ -158,14 +219,44 @@ function FormularioProducto({
       />
       {foto ? (
         <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-arena">
-          <Foto src={foto} alt="Foto del producto" className="h-full w-full" sizes="440px" />
+          <Foto
+            src={retoqueListo && vista === "despues" ? retocada!.url : foto}
+            alt={retoqueListo && vista === "despues" ? "Foto del producto, retocada" : "Foto del producto"}
+            className="h-full w-full"
+            sizes="440px"
+          />
+          {retoqueActivo && (
+            <div role="group" aria-label="Comparar foto" className="absolute top-3 left-3 flex gap-0.5 rounded-full bg-papel/90 p-[3px]">
+              {(["antes", "despues"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setVista(v)}
+                  aria-pressed={vista === v}
+                  className={`h-[34px] rounded-full px-3.5 text-[13px] font-extrabold ${vista === v ? "bg-bosque text-papel" : "text-bosque"}`}
+                >
+                  {v === "antes" ? "Antes" : "Después"}
+                </button>
+              ))}
+            </div>
+          )}
+          {procesandoRetoque && (
+            <div className="absolute inset-0 grid place-items-center bg-papel/40">
+              <span className="rounded-full bg-bosque px-4 py-2 text-sm font-extrabold text-papel">Poniéndole la luz…</span>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => entradaFoto.current?.click()}
-            className="absolute right-3 bottom-3 flex h-10 items-center gap-1.5 rounded-full bg-papel/95 px-3.5 text-[13px] font-extrabold"
+            className="absolute bottom-3 left-3 flex h-10 items-center gap-1.5 rounded-full bg-papel/95 px-3.5 text-[13px] font-extrabold"
           >
             <IconoCamara tamano={18} /> Cambiar foto
           </button>
+          {((retoqueListo && vista === "despues") || (!retoqueActivo && yaRetocada)) && (
+            <span className="absolute right-3 bottom-3 rounded-full bg-bosque px-3 py-1.5 text-[12.5px] font-extrabold text-papel">
+              {retoqueActivo ? "Retocada ✦" : "Ya está retocada"}
+            </span>
+          )}
         </div>
       ) : (
         <button
@@ -179,6 +270,41 @@ function FormularioProducto({
           <span className="font-mano text-[19px] font-semibold text-mandarina">nosotros le ponemos la luz</span>
         </button>
       )}
+
+      {/* Retoque */}
+      <div
+        className={`flex flex-col gap-2.5 rounded-[22px] px-4 py-3.5 ${
+          !alcanzan ? "bg-arena" : retoqueActivo ? "bg-mandarina text-bosque-oscuro" : "bg-rosa"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[14px] bg-bosque text-papel">
+            <IconoCreditos tamano={22} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15.5px] font-extrabold">{yaRetocada ? "Retocar otra vez" : "Retocar foto"}</p>
+            <p className="text-[13px] font-semibold">
+              {!alcanzan
+                ? `Te faltan ${CREDITOS_POR_RETOQUE - creditos} créditos (tienes ${creditos}). Se recargan el día 1.`
+                : retoqueActivo
+                  ? `Usa ${CREDITOS_POR_RETOQUE} créditos: te quedan ${creditos} → ${creditos - CREDITOS_POR_RETOQUE}.`
+                  : `Luz, fondo y color de estudio. Usa ${CREDITOS_POR_RETOQUE} créditos.`}
+            </p>
+          </div>
+          <Interruptor
+            encendido={retoqueActivo}
+            alCambiar={alternarRetoque}
+            etiqueta="Retocar foto"
+            deshabilitado={!alcanzan || !foto}
+            alTocarBloqueado={retoqueBloqueado}
+          />
+        </div>
+        {!alcanzan && (
+          <button type="button" onClick={abrirPlan} className="h-11 rounded-full bg-bosque text-[14.5px] font-extrabold text-papel">
+            Ver plan
+          </button>
+        )}
+      </div>
 
       <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
         Nombre
@@ -285,10 +411,14 @@ function FormularioProducto({
       <button
         type="button"
         onClick={guardar}
-        disabled={guardando || procesandoFoto}
+        disabled={guardando || procesandoFoto || procesandoRetoque}
         className="h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel transition active:scale-[0.98] disabled:opacity-60"
       >
-        {producto ? "Guardar cambios" : "Publicar"}
+        {retoqueActivo
+          ? `${producto ? "Guardar" : "Publicar"} · −${CREDITOS_POR_RETOQUE} créditos`
+          : producto
+            ? "Guardar cambios"
+            : "Publicar"}
       </button>
     </div>
   );

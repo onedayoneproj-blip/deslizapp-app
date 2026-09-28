@@ -16,13 +16,14 @@ import type {
   Tienda,
   Usuario,
 } from "../types";
+import { CREDITOS_POR_RETOQUE } from "../config";
 import { clienteDeTienda, clientesDeTienda } from "./clientes";
 import { construirDesdeSeed, esDB, nuevoId, type DB } from "./db";
 import { insertarPedidoSimulado, pedidoDeTienda, pedidosDeTienda } from "./pedidos";
 import { insertarProducto, modificarProducto, productoDeTienda, productosDeTienda } from "./productos";
 import { promosDeTienda } from "./promos";
 import { eventosAaahDeTienda } from "./resumen";
-import { buscarDueno, buscarTienda, listarTiendas } from "./tiendas";
+import { buscarDueno, buscarTienda, descontarCreditos, listarTiendas } from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
 const KEY = "deslizapp-demo-v2";
@@ -131,6 +132,19 @@ const operaciones = {
   },
   async getDueno(tiendaId: string): Promise<Usuario | null> {
     return buscarDueno(leer().db, tiendaId);
+  },
+  /**
+   * Gasta los créditos de retocar `fotos` fotos (CREDITOS_POR_RETOQUE cada una).
+   * Lanza CreditosInsuficientes si no alcanzan. Devuelve la tienda con el saldo nuevo.
+   */
+  async usarCreditosRetoque(tiendaId: string, fotos = 1): Promise<Tienda> {
+    let actualizada!: Tienda;
+    escribir((db) => {
+      const r = descontarCreditos(db, tiendaId, fotos * CREDITOS_POR_RETOQUE);
+      actualizada = r.tienda;
+      return r.db;
+    });
+    return actualizada;
   },
 
   // Productos

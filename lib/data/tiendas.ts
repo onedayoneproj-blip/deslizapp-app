@@ -47,6 +47,24 @@ export function buscarTienda(db: DB, tiendaId: string): Tienda | null {
   return db.tiendas.find((t) => t.id === tiendaId) ?? null;
 }
 
+/** Descuenta créditos de retoque. Falla si no alcanzan (el saldo nunca queda negativo). */
+export function descontarCreditos(db: DB, tiendaId: string, cantidad: number) {
+  const actual = buscarTienda(db, tiendaId);
+  if (!actual) throw new Error("Esa tienda no existe.");
+  if (actual.creditosRetoque < cantidad) throw new CreditosInsuficientes(actual.creditosRetoque, cantidad);
+  const tienda: Tienda = { ...actual, creditosRetoque: actual.creditosRetoque - cantidad };
+  return { db: { ...db, tiendas: db.tiendas.map((t) => (t.id === tiendaId ? tienda : t)) }, tienda };
+}
+
+export class CreditosInsuficientes extends Error {
+  constructor(
+    public disponibles: number,
+    public necesarios: number,
+  ) {
+    super(`Faltan créditos: hay ${disponibles}, se necesitan ${necesarios}.`);
+  }
+}
+
 export function buscarDueno(db: DB, tiendaId: string): Usuario | null {
   return db.usuarios.find((u) => u.tiendaId === tiendaId && u.rol === "dueno") ?? null;
 }

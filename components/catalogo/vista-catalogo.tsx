@@ -152,6 +152,11 @@ function TarjetaProducto({ producto: p, promos }: { producto: Producto; promos: 
             {etiqueta.texto}
           </span>
         )}
+        {p.fotoRetocada && (
+          <span className="absolute bottom-2.5 left-2.5 rounded-full bg-bosque px-2 py-[3px] text-[11px] font-extrabold text-papel">
+            Retocada ✦
+          </span>
+        )}
         <span className="absolute right-2.5 bottom-2.5 rounded-full bg-white px-[9px] py-[3px] text-xs font-extrabold">♥ {p.likes}</span>
       </div>
       <p className="mt-2 text-[14.5px] leading-tight font-extrabold">{p.nombre}</p>
