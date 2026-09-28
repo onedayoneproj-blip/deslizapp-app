@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-09-26T13:30:00Z"},
+  "title": "Deslizapp Tienda — app companion",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "Inicio · resumen (prototipo navegable)", "is_interactive": true, "radius": 40},
+    "Catalogo.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "Catálogo", "is_interactive": true, "radius": 40},
+    "Editor.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "Nuevo producto + retoque", "is_interactive": true, "radius": 40},
+    "Pedidos.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "Pedidos", "is_interactive": true, "radius": 40},
+    "PedidoDetalle.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "Detalle de pedido", "is_interactive": true, "radius": 40},
+    "Clientes.dc.html": {"x": 2350, "y": 0, "w": 390, "h": 844, "title": "Clientes", "is_interactive": true, "radius": 40},
+    "Promos.dc.html": {"x": 2820, "y": 0, "w": 390, "h": 844, "title": "Promos", "is_interactive": true, "radius": 40},
+    "PromoNueva.dc.html": {"x": 3290, "y": 0, "w": 390, "h": 844, "title": "Nueva promo", "is_interactive": true, "radius": 40},
+    "Plan.dc.html": {"x": 3760, "y": 0, "w": 390, "h": 844, "title": "Plan y créditos", "is_interactive": true, "radius": 40}
+  },
+  "order": ["Main.dc.html", "Catalogo.dc.html", "Editor.dc.html", "Pedidos.dc.html", "PedidoDetalle.dc.html", "Clientes.dc.html", "Promos.dc.html", "PromoNueva.dc.html", "Plan.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "deslizapp · la app de tu tienda", "kind": "title1", "maxW": 4150}
+  },
+  "designSystems": []
+}
