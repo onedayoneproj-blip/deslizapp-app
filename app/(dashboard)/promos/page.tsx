@@ -14,7 +14,7 @@ export default function PromosPage() {
 
   return (
     <>
-      <TituloPantalla titulo="Promos" />
+      <TituloPantalla titulo="Promos" subtitulo="Ponle un descuento y mira cómo se deslizan." />
       <EstadoVacio
         icono={<IconoPromos tamano={28} />}
         titulo="Las promos se están poniendo guapas."

@@ -5,7 +5,7 @@ reinterpretación — si algo no está claro, es preferible preguntar que asumir
 
 ## Entra en esta versión
 
-Las 6 pantallas completas, con navegación real entre ellas:
+Las pantallas completas, con navegación real entre ellas:
 
 1. **Catálogo** — crear/editar productos, activar/desactivar, ver contador de plan
 2. **Pedidos** — lista por estado, detalle de pedido, despacho (con efecto sobre stock)
@@ -13,6 +13,7 @@ Las 6 pantallas completas, con navegación real entre ellas:
 4. **Clientes** — mini CRM: quién repite, historial
 5. **Promos** — códigos, por colección o por producto
 6. **Retoque de fotos con IA** — toggle dentro del formulario de producto, con consumo de créditos
+7. **Plan y créditos** — hoja que solo informa el plan actual y el saldo de créditos, con un botón para escribirle a Deslizapp por WhatsApp (sin compras ni cobro; decidido después de ver el prototipo)
 
 Ninguna de estas se recorta ni se deja "para después" — el dueño fue explícito
 en que quiere el paquete completo que ya se validó en los mockups, no un

@@ -6,7 +6,7 @@
     "logo_url": "/seed/tiendas/esencias-michel.svg",
     "plan": "p20",
     "limite_productos": 20,
-    "creditos_retoque": 75,
+    "creditos_retoque": 35,
     "creditos_retoque_mensuales": 100,
     "creado_en": "2026-03-02T16:00:00.000Z"
   },

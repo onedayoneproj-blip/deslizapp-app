@@ -7,7 +7,7 @@ import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
 
-type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number }> };
+type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number; strokeWidth?: number }> };
 
 const SECCIONES: Seccion[] = [
   { href: "/", nombre: "Inicio", Icono: IconoInicio },
@@ -21,6 +21,7 @@ function estaActiva(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Barra inferior flotante: el ícono activo se expande en píldora verde con su nombre. */
 export function NavInferior() {
   const pathname = usePathname();
   const { tiendaActivaId, getPedidos } = useData();
@@ -30,31 +31,29 @@ export function NavInferior() {
   return (
     <nav
       aria-label="Secciones"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-[calc(14px+env(safe-area-inset-bottom))]"
     >
-      <ul className="pointer-events-auto flex items-center justify-between gap-1 rounded-full border border-linea bg-white p-1.5 shadow-[0_12px_24px_-14px_rgba(23,75,58,0.55)]">
+      <ul className="pointer-events-auto flex h-[68px] items-center gap-1 rounded-full border border-linea bg-white p-1.5 shadow-[0_14px_30px_-14px_rgba(23,75,58,0.5)]">
         {SECCIONES.map(({ href, nombre, Icono }) => {
           const activa = estaActiva(pathname, href);
           const badge = href === "/pedidos" && nuevos > 0 ? nuevos : 0;
           return (
-            <li key={href} className={activa ? "shrink-0" : "flex-1"}>
+            <li key={href} className={activa ? "flex-none" : "min-w-11 flex-1 basis-0"}>
               <Link
                 href={href}
                 aria-current={activa ? "page" : undefined}
                 aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "nuevo" : "nuevos"}` : nombre}
-                className={`relative mx-auto flex h-11 items-center justify-center gap-2 rounded-full transition-all duration-200 ${
-                  activa ? "bg-bosque px-4 text-papel" : "w-full text-suave hover:text-bosque"
+                className={`relative flex h-[54px] items-center justify-center gap-[7px] rounded-full text-sm font-extrabold whitespace-nowrap transition-[background-color,padding] duration-300 ${
+                  activa ? "bg-bosque pr-[18px] pl-[15px] text-papel" : "text-suave hover:text-bosque"
                 }`}
               >
-                <span className="relative">
-                  <Icono tamano={22} />
-                  {badge > 0 && (
-                    <span className="absolute -top-2 -right-2.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-mandarina px-1 text-[11px] font-bold leading-none text-bosque-oscuro ring-2 ring-white">
-                      {badge}
-                    </span>
-                  )}
-                </span>
-                {activa && <span className="text-sm font-semibold">{nombre}</span>}
+                <Icono tamano={22} strokeWidth={2.1} />
+                {activa && <span>{nombre}</span>}
+                {badge > 0 && (
+                  <span className="absolute top-1 right-1.5 grid h-5 min-w-5 place-items-center rounded-full border-2 border-white bg-mandarina px-[5px] text-[11.5px] leading-none font-extrabold text-bosque-oscuro">
+                    {badge}
+                  </span>
+                )}
               </Link>
             </li>
           );

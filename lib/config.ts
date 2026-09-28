@@ -15,6 +15,7 @@ export const LIMITE_PRODUCTOS_POR_PLAN: Record<Exclude<Plan, "custom">, number> 
   p100: 100,
 };
 
+/** Nombre visible del plan. */
 export const NOMBRE_PLAN: Record<Plan, string> = {
   p20: "Plan 20",
   p60: "Plan 60",
@@ -27,3 +28,9 @@ export const ZONA_HORARIA = "America/Santo_Domingo";
 
 /** Lado máximo (px) de las fotos subidas en la demo, para no reventar localStorage. */
 export const FOTO_LADO_MAXIMO = 800;
+
+/**
+ * WhatsApp de Deslizapp para cambiar de plan o pedir más créditos, en formato internacional sin "+"
+ * (ej. "18095550000"). Vacío = WhatsApp abre con el mensaje listo y la persona elige el contacto.
+ */
+export const WHATSAPP_DESLIZAPP = "";

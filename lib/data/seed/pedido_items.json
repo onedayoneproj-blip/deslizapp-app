@@ -2,159 +2,103 @@
   {
     "id": "a7000000-0000-4000-8000-000000000001",
     "pedido_id": "a5000000-0000-4000-8000-000000000001",
-    "producto_id": "a3000000-0000-4000-8000-000000000003",
-    "nombre_producto": "Shé",
+    "producto_id": "a3000000-0000-4000-8000-000000000001",
+    "nombre_producto": "Oxana Black",
     "cantidad": 1,
-    "precio_unitario": 3200
+    "precio_unitario": 1300
   },
   {
     "id": "a7000000-0000-4000-8000-000000000002",
     "pedido_id": "a5000000-0000-4000-8000-000000000002",
-    "producto_id": "a3000000-0000-4000-8000-000000000005",
-    "nombre_producto": "Amber Nights",
+    "producto_id": "a3000000-0000-4000-8000-000000000003",
+    "nombre_producto": "Parade",
     "cantidad": 1,
-    "precio_unitario": 3000
+    "precio_unitario": 1800
   },
   {
     "id": "a7000000-0000-4000-8000-000000000003",
-    "pedido_id": "a5000000-0000-4000-8000-000000000002",
+    "pedido_id": "a5000000-0000-4000-8000-000000000003",
     "producto_id": "a3000000-0000-4000-8000-000000000009",
-    "nombre_producto": "Musk Blanc",
+    "nombre_producto": "Mayar Natural Intense",
     "cantidad": 1,
-    "precio_unitario": 2100
+    "precio_unitario": 3200
   },
   {
     "id": "a7000000-0000-4000-8000-000000000004",
     "pedido_id": "a5000000-0000-4000-8000-000000000003",
-    "producto_id": "a3000000-0000-4000-8000-000000000007",
-    "nombre_producto": "Rosa Dunas",
-    "cantidad": 1,
-    "precio_unitario": 2200
+    "producto_id": "a3000000-0000-4000-8000-000000000004",
+    "nombre_producto": "Wild Flower Gold",
+    "cantidad": 2,
+    "precio_unitario": 1100
   },
   {
     "id": "a7000000-0000-4000-8000-000000000005",
-    "pedido_id": "a5000000-0000-4000-8000-000000000003",
-    "producto_id": "a3000000-0000-4000-8000-000000000004",
-    "nombre_producto": "Oud Noir",
+    "pedido_id": "a5000000-0000-4000-8000-000000000004",
+    "producto_id": "a3000000-0000-4000-8000-000000000005",
+    "nombre_producto": "Zakat Z6",
     "cantidad": 1,
-    "precio_unitario": 3500
+    "precio_unitario": 3000
   },
   {
     "id": "a7000000-0000-4000-8000-000000000006",
-    "pedido_id": "a5000000-0000-4000-8000-000000000004",
-    "producto_id": "a3000000-0000-4000-8000-000000000008",
-    "nombre_producto": "Yara",
+    "pedido_id": "a5000000-0000-4000-8000-000000000005",
+    "producto_id": "a3000000-0000-4000-8000-000000000010",
+    "nombre_producto": "Kiara Pink",
     "cantidad": 1,
-    "precio_unitario": 2600
+    "precio_unitario": 935
   },
   {
     "id": "a7000000-0000-4000-8000-000000000007",
     "pedido_id": "a5000000-0000-4000-8000-000000000005",
     "producto_id": "a3000000-0000-4000-8000-000000000006",
-    "nombre_producto": "Vainilla Brisa",
-    "cantidad": 2,
-    "precio_unitario": 1900
+    "nombre_producto": "Shé",
+    "cantidad": 1,
+    "precio_unitario": 1200
   },
   {
     "id": "a7000000-0000-4000-8000-000000000008",
     "pedido_id": "a5000000-0000-4000-8000-000000000006",
-    "producto_id": "a3000000-0000-4000-8000-000000000005",
-    "nombre_producto": "Amber Nights",
-    "cantidad": 1,
-    "precio_unitario": 3000
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000009",
-    "pedido_id": "a5000000-0000-4000-8000-000000000007",
-    "producto_id": "a3000000-0000-4000-8000-000000000002",
-    "nombre_producto": "Mayar",
-    "cantidad": 1,
-    "precio_unitario": 2800
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000010",
-    "pedido_id": "a5000000-0000-4000-8000-000000000007",
-    "producto_id": "a3000000-0000-4000-8000-000000000003",
-    "nombre_producto": "Shé",
-    "cantidad": 1,
-    "precio_unitario": 3200
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000011",
-    "pedido_id": "a5000000-0000-4000-8000-000000000008",
-    "producto_id": "a3000000-0000-4000-8000-000000000001",
-    "nombre_producto": "Kiara Pink",
-    "cantidad": 1,
-    "precio_unitario": 2500
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000012",
-    "pedido_id": "a5000000-0000-4000-8000-000000000008",
-    "producto_id": "a3000000-0000-4000-8000-000000000006",
-    "nombre_producto": "Vainilla Brisa",
-    "cantidad": 1,
-    "precio_unitario": 1900
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000013",
-    "pedido_id": "a5000000-0000-4000-8000-000000000009",
-    "producto_id": "a3000000-0000-4000-8000-000000000001",
-    "nombre_producto": "Kiara Pink",
-    "cantidad": 1,
-    "precio_unitario": 2500
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000014",
-    "pedido_id": "a5000000-0000-4000-8000-000000000009",
-    "producto_id": "a3000000-0000-4000-8000-000000000002",
-    "nombre_producto": "Mayar",
-    "cantidad": 1,
-    "precio_unitario": 2800
-  },
-  {
-    "id": "a7000000-0000-4000-8000-000000000015",
-    "pedido_id": "a5000000-0000-4000-8000-000000000010",
-    "producto_id": "a3000000-0000-4000-8000-000000000011",
+    "producto_id": "a3000000-0000-4000-8000-000000000016",
     "nombre_producto": "Aretes Luna Llena",
     "cantidad": 1,
     "precio_unitario": 850
   },
   {
-    "id": "a7000000-0000-4000-8000-000000000016",
-    "pedido_id": "a5000000-0000-4000-8000-000000000011",
-    "producto_id": "a3000000-0000-4000-8000-000000000013",
+    "id": "a7000000-0000-4000-8000-000000000009",
+    "pedido_id": "a5000000-0000-4000-8000-000000000007",
+    "producto_id": "a3000000-0000-4000-8000-000000000014",
     "nombre_producto": "Pulsera Coral",
     "cantidad": 2,
     "precio_unitario": 650
   },
   {
-    "id": "a7000000-0000-4000-8000-000000000017",
-    "pedido_id": "a5000000-0000-4000-8000-000000000012",
-    "producto_id": "a3000000-0000-4000-8000-000000000015",
+    "id": "a7000000-0000-4000-8000-000000000010",
+    "pedido_id": "a5000000-0000-4000-8000-000000000008",
+    "producto_id": "a3000000-0000-4000-8000-000000000012",
     "nombre_producto": "Anillo Brisa",
     "cantidad": 1,
     "precio_unitario": 500
   },
   {
-    "id": "a7000000-0000-4000-8000-000000000018",
-    "pedido_id": "a5000000-0000-4000-8000-000000000012",
-    "producto_id": "a3000000-0000-4000-8000-000000000016",
-    "nombre_producto": "Tobillera Arena",
+    "id": "a7000000-0000-4000-8000-000000000011",
+    "pedido_id": "a5000000-0000-4000-8000-000000000008",
+    "producto_id": "a3000000-0000-4000-8000-000000000013",
+    "nombre_producto": "Choker Perla",
     "cantidad": 1,
-    "precio_unitario": 450
+    "precio_unitario": 1200
   },
   {
-    "id": "a7000000-0000-4000-8000-000000000019",
-    "pedido_id": "a5000000-0000-4000-8000-000000000013",
-    "producto_id": "a3000000-0000-4000-8000-000000000012",
+    "id": "a7000000-0000-4000-8000-000000000012",
+    "pedido_id": "a5000000-0000-4000-8000-000000000009",
+    "producto_id": "a3000000-0000-4000-8000-000000000015",
     "nombre_producto": "Collar Marea",
     "cantidad": 1,
     "precio_unitario": 1450
   },
   {
-    "id": "a7000000-0000-4000-8000-000000000020",
-    "pedido_id": "a5000000-0000-4000-8000-000000000013",
-    "producto_id": "a3000000-0000-4000-8000-000000000014",
+    "id": "a7000000-0000-4000-8000-000000000013",
+    "pedido_id": "a5000000-0000-4000-8000-000000000009",
+    "producto_id": "a3000000-0000-4000-8000-000000000013",
     "nombre_producto": "Choker Perla",
     "cantidad": 1,
     "precio_unitario": 1200

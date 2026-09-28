@@ -13,7 +13,7 @@ export default function ClientesPage() {
 
   return (
     <>
-      <TituloPantalla titulo="Clientes" />
+      <TituloPantalla titulo="Clientes" subtitulo="Los que ya dijeron aaah. Y los que están por decirlo." />
       <EstadoVacio
         icono={<IconoClientes tamano={28} />}
         titulo="Tu gente, toda en un lugar."

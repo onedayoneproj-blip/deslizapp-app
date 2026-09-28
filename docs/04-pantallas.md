@@ -1,106 +1,180 @@
 # Pantallas
 
-Spec sacada de los mockups ya validados (el reel animado de Deslizapp
-Tienda). Cada pantalla real de este panel debe poder mostrar exactamente estos
-casos con datos de prueba.
+Spec de cada pantalla. La **referencia visual principal** es el prototipo
+interactivo `referencias/prototipo-interactivo/Main.dc.html` (medidas,
+colores, tarjetas y textos). Este documento dice *qué* muestra y hace cada
+pantalla y con qué datos; donde el prototipo trae cosas que no entran en esta
+entrega (compra de créditos, planes "Básico 40 / Pro 100", descuentos en RD$,
+campo "Marca o línea"), manda lo que dice aquí.
 
-Navegación inferior de 5 íconos (mobile-first, como Instagram), igual que en
-los mockups: **Inicio (Resumen) · Catálogo · Pedidos · Clientes · Promos**. El
-ícono activo se expande en píldora verde con su nombre. El encabezado de cada
-pantalla muestra: logo de la tienda + nombre + créditos de retoque
-disponibles.
+## Reglas generales
 
 **Diseño:** pensado primero para celular (ancho 360–430 px). En computadora,
 la app se muestra centrada con un ancho máximo de ~480 px; no hace falta un
 diseño de escritorio aparte en esta entrega.
 
+**Encabezado** (todas las pantallas, se desplaza con el contenido):
+- Izquierda: logo de la tienda en un cuadro redondeado (Rosa Suave si no hay
+  logo) + nombre de la tienda + debajo "Plan 20 · deslizapp". Tocarlo abre el
+  **menú de la tienda** (selector de tienda activa + acciones de demo).
+- Derecha: botón blanco con borde verde "✦ 35 créditos" (créditos de retoque
+  disponibles). Tocarlo abre **Plan y créditos** (pantalla 8).
+
+**Navegación inferior:** barra blanca flotante en forma de píldora con 5
+íconos: **Inicio (Resumen) · Catálogo · Pedidos · Clientes · Promos**. El
+ícono activo se expande en píldora Verde Bosque con su nombre. Sobre
+"Pedidos", un contador Mandarina con el número de pedidos `nuevo`.
+
+**Botón flotante** (Mandarina, abajo a la derecha, encima de la barra): "+
+Producto" en Catálogo, "+ Pedido" en Pedidos, "+ Cliente" en Clientes, "+
+Promo" en Promos.
+
+**Hojas inferiores:** los formularios y detalles (producto, detalle de
+pedido, pedido manual, cliente, nueva promo, Plan y créditos) se ven como
+hojas que suben desde abajo, con fondo verde translúcido, título en Fredoka y
+botón de cerrar redondo. En código pueden ser rutas propias
+(`/catalogo/nuevo`, `/pedidos/[id]`…) con ese aspecto: así tienen URL.
+
+**Avisos (toast):** bajan desde arriba, píldora Verde Bosque con un check en
+círculo Mandarina. Textos cortos en tono de marca ("Publicado. Ya se está
+deslizando.", "Despachado. El stock ya se enteró.").
+
 **Pedidos "del catálogo" en esta entrega:** el catálogo público todavía no
 está conectado (ver `02-alcance.md`), así que los pedidos con origen
-`catalogo` vienen del seed. Para poder demostrar la notificación de pedido
-nuevo, agrega un botón discreto **"Simular pedido del catálogo"** (en el menú
-de la tienda, junto a "Reiniciar datos de prueba") que crea un pedido de
-prueba con productos al azar de la tienda activa.
+`catalogo` vienen del seed. Para demostrar la llegada de un pedido nuevo, en
+el menú de la tienda hay un botón discreto **"Simular pedido del catálogo"**
+(junto a "Reiniciar datos de prueba") que crea un pedido `nuevo` con
+productos al azar de la tienda activa (al precio con promo vigente).
+
+**Números en pantalla:** montos como `RD$2,500`; fechas en hora de Santo
+Domingo con formato corto ("Hace 8 min", "Ayer, 6:12 p. m.", "Jue, 4:05 p.
+m."). Las cifras grandes de las tarjetas de estadísticas van en Fredoka (como
+en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 
 ---
 
 ## 1. Catálogo
 
 **Qué muestra:**
-- Medidor: "X de Y productos" según `limite_productos` del plan (ej. "10 de 20 productos")
-- Barra de progreso del medidor
-- Grilla de 2 columnas con tarjetas de producto: foto, contador de ❤ (likes)
-- Botón flotante "+ Producto"
+- Titular "Tu catálogo" + "Lo que tus clientes deslizan. Tú solo lo mantienes bonito."
+- **Medidor del plan** (tarjeta Rosa Suave, abre Plan y créditos): "10 de 20
+  productos" + "Ver plan", barra de progreso y "Plan 20 · te quedan 10
+  espacios". Si `productos.length >= limite_productos`, la tarjeta pasa a
+  Mandarina: "Catálogo lleno: 20 de 20" · "Subir de plan" · "Lleno… de éxito.
+  Para agregar más, sube de plan."
+- **Buscador** "Busca un producto" (filtra por nombre).
+- **Filtros** en chips con contador: Todos · Visibles (activos con stock) ·
+  Agotados (`stock = 0`) · Ocultos (`activo = false`).
+- **Grilla de 2 columnas**. Cada tarjeta: foto 4:5 con esquinas redondeadas;
+  arriba a la izquierda una etiqueta ("Agotado" verde, "Oculto" papel, o el
+  descuento "−15%" en Mandarina si tiene promo activa); abajo a la derecha
+  "♥ 57" (likes). Debajo: nombre, precio (con el de lista tachado si hay
+  promo), y "3 en stock" / "Sin stock" / "Sin control de stock". Los ocultos
+  se ven atenuados y los agotados en escala de grises.
+- Estado vacío (búsqueda o filtro sin resultados): "Nada por aquí." / "Ni un
+  suspiro. Prueba con otro filtro."
+- Botón flotante "+ Producto".
 
 **Acciones:**
-- Tocar "+ Producto" → abre formulario de producto (crear)
-- Tocar una tarjeta → abre formulario de producto (editar)
-- Activar/desactivar un producto (no aparece en el catálogo público si está inactivo)
+- Tocar "+ Producto" → formulario de producto (crear).
+- Tocar una tarjeta → formulario de producto (editar).
+- Activar/desactivar (interruptor "Visible en el catálogo" del formulario).
 
-**Formulario de producto (crear/editar):**
-- Foto(s) — subir imagen
-- Toggle **"Retocar foto"** con subtítulo "Luz, fondo y color" — ver pantalla 6
-- Nombre
-- Precio
-- Categoría (opcional)
-- Botón "Publicar" / "Guardar"
-- Texto informativo: créditos de retoque disponibles
+**Formulario de producto (crear/editar)** — hoja "Nuevo producto" / "Editar producto":
+- Foto: recuadro punteado "Sube la foto del celular" (+ "nosotros le ponemos
+  la luz" en Caveat). La foto se guarda reducida (máx. 800 px, JPEG). La foto
+  es obligatoria para publicar.
+- Tarjeta **"Retocar foto"** con subtítulo "Luz, fondo y color" — ver pantalla 6.
+- Nombre (ej. "Kiara Pink").
+- Precio (RD$).
+- **En stock**: contador − / + ("Al despachar, baja solito."). Opción de no
+  controlar stock (`stock = null`).
+- **Colección** (`categoria`, opcional): chips con las colecciones que ya usa
+  la tienda + opción de escribir una nueva.
+- Interruptor **"Visible en el catálogo"** ("Apágalo para esconderlo sin borrarlo.").
+- Botón principal "Publicar" (crear) / "Guardar cambios" (editar). Si el
+  retoque está activo: "Publicar · −5 créditos".
+- Validación con tono de marca: "Ponle nombre y precio. Lo demás lo hacemos
+  nosotros." / "Falta la foto. El producto es la estrella."
 
-**Casos vacíos/límite:** si `productos.length >= limite_productos`, el botón
-"+ Producto" debe indicar que se llegó al límite del plan (no bloquear la
-demo, pero sí mostrar el estado).
+**Límite del plan:** si el catálogo está lleno, el botón "+ Producto" y el
+medidor lo indican, pero la demo no se bloquea.
+
+No hay "Marca o línea" ni "Eliminar producto" en esta entrega (esconderlo
+con "Visible" cumple esa función sin romper el historial de pedidos).
 
 ---
 
 ## 2. Pedidos
 
 **Qué muestra:**
-- Pestañas: **Nuevos / Por despachar / Listos** (mapeadas a `estado` — ver `03-modelo-de-datos.md`)
-- Lista de pedidos: número de pedido, "hace cuánto", etiqueta de origen ("Del catálogo" / manual), miniaturas de los productos, nombre del cliente, cantidad de productos
-- Estado vacío: "Todo al día. Disfruta el silencio. Dura poco." (tono de marca)
-- Notificación tipo banner cuando entra un pedido nuevo (mientras se está viendo la pantalla)
-- Badge con el número de pedidos nuevos sobre el ícono de "Pedidos" en la navegación
+- Titular "Pedidos" + "Del suspiro al chat. Y del chat, aquí."
+- Pestañas con contador: **Nuevos · Por despachar · Despachados**
+  (mapeadas a `estado` — ver `03-modelo-de-datos.md`; los `cancelado` no
+  tienen pestaña).
+- Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del
+  catálogo" / "Manual"), nombre del cliente, cantidad de productos,
+  miniaturas de los productos y total.
+- Estado vacío: "Todo al día. Disfruta el silencio. Dura poco."
+- Aviso (toast) cuando entra un pedido nuevo mientras se está viendo la pantalla.
+- Contador de pedidos nuevos sobre el ícono de "Pedidos" en la barra.
 
 **Acciones:**
-- Tocar un pedido → abre el Detalle de pedido
+- Tocar un pedido → Detalle de pedido.
 - Botón **"+ Pedido"** para crear un pedido manual (ventas que no llegaron
   por el catálogo): elegir cliente existente o escribir nombre + WhatsApp de
-  uno nuevo, elegir productos y cantidades, aplicar código de promo opcional.
-  Entra directo en estado `por_despachar`.
+  uno nuevo, elegir productos y cantidades, aplicar código de promo opcional
+  ("¿Usó un código?"). Entra directo en estado `por_despachar` ("Pedido #1043
+  guardado. Está en Por despachar.").
 
 ---
 
 ## 3. Detalle de pedido
 
-**Qué muestra:**
-- Número de pedido + estado actual (chip: "Por despachar" / "Despachado")
-- Cliente: nombre + "Llegó por el catálogo" (o "Pedido manual")
-- Lista de productos del pedido: foto, nombre, cantidad, y estado de stock por ítem (ej. "Queda 1" / "Agotado")
-- Código de promo aplicado, si tiene
-- Botón **"Despachar pedido"**
-- Nota de marca: "el stock se actualiza solito"
+**Qué muestra** (hoja inferior):
+- Fecha y origen ("Ayer, 6:12 p. m. · manual"), "Pedido #1040" + chip de
+  estado ("Nuevo" Mandarina, "Por despachar" Rosa, "Despachado" Verde,
+  "Cancelado" arena).
+- **Línea de avance**: Recibido → Confirmado → Despachado (3 tramos que se
+  pintan de verde según el estado).
+- Cliente: iniciales, nombre, teléfono y botón **"Escribir"** (abre WhatsApp
+  con ese número). "Llegó por el catálogo" / "Pedido manual".
+- Productos: foto, nombre, "cantidad × precio unitario" y estado de stock
+  por ítem ("Quedan 3" / "Queda 1" / "Sin stock"; "Entregado" si ya se despachó).
+- Subtotal, descuento del código de promo (si tiene) y Total.
+- Nota de marca en Caveat: "al despachar, el stock se actualiza solito".
 
 **Acciones:**
-- Si el pedido está en `nuevo`: el botón principal es **"Confirmar pedido"**
-  (ya hablaste con el cliente y va) → pasa a `por_despachar`. También hay una
-  opción secundaria "Cancelar pedido" → `cancelado`.
-- Si está en `por_despachar`: el botón principal es **"Despachar pedido"**.
+- Si el pedido está en `nuevo`: botón principal **"Confirmar pedido"** (ya
+  hablaste con el cliente y va) → pasa a `por_despachar`. Opción secundaria
+  "Cancelar pedido" → `cancelado`.
+- Si está en `por_despachar`: botón principal Mandarina **"Despachar pedido"**.
 - Al presionar "Despachar pedido":
-  - `estado` del pedido pasa a `despachado`, se registra `despachado_en`
+  - `estado` pasa a `despachado`, se registra `despachado_en`
   - el `stock` de cada producto del pedido se descuenta según `cantidad`
   - si el stock de un producto llega a 0, se refleja como "Agotado" ahí mismo
-  - se muestra una confirmación tipo toast: "Despachado. {producto} se agotó." (solo si algo se agotó; si no, un mensaje neutro de éxito)
+  - aviso: "Despachado. {producto} se agotó y ya sale así en el catálogo." (si
+    algo se agotó) o "Despachado. El stock ya se enteró."
+  - si algún producto no tiene stock suficiente, no despacha y avisa: "No
+    alcanza el stock de {producto}."
 
 ---
 
 ## 4. Clientes
 
 **Qué muestra:**
-- 3 contadores: total de clientes, cuántos "repiten" (`pedidos_count >= 2`), cuántos son nuevos/del catálogo
-- Lista de clientes: iniciales/avatar, nombre, cantidad de pedidos, etiqueta "Repite" si aplica
-- Caso "todavía no ha pedido": se muestra igual en la lista con nota tipo "Todavía no pide"
+- Titular "Clientes" + "Los que ya dijeron aaah. Y los que están por decirlo."
+- Buscador "Busca un cliente".
+- 3 contadores: total de clientes, cuántos "repiten" (`pedidos_count >= 2`),
+  cuántos son del catálogo (`origen = 'catalogo'`).
+- Lista: iniciales en círculo, nombre, etiqueta "Repite" si aplica, y "2
+  pedidos · RD$3,721" (total gastado en pedidos no cancelados).
+- Cliente sin pedidos: "Todavía no pide. Todavía."
+- Búsqueda sin resultados: "Nadie con ese nombre. Todavía."
 
 **Acciones:**
-- Tocar un cliente → ver su historial de pedidos (puede ser una vista simple, lista de sus `pedidos`)
+- Tocar un cliente → hoja con su WhatsApp ("Escribir") e historial de pedidos.
+- "+ Cliente": nombre + WhatsApp ("Nombre y WhatsApp. Con eso basta.").
 
 **De dónde salen los clientes:** se crean automáticamente cuando llega un
 pedido del catálogo con datos de contacto, o manualmente desde el panel.
@@ -110,15 +184,29 @@ pedido del catálogo con datos de contacto, o manualmente desde el panel.
 ## 5. Promos
 
 **Qué muestra:**
-- Pestañas: **Activas / Programadas / Terminadas** (derivadas de `estado`)
-- Tarjetas de promo según `tipo`:
-  - **Por colección**: nombre de la promo, colección afectada, rango de fechas, % de descuento
-  - **Código**: nombre, "En todo el pedido", % de descuento, el código en formato destacado (ej. recuadro punteado con "AAAH10")
-  - **Por producto**: la promo se refleja directo en la tarjeta del producto (foto + nombre + precio tachado + "−15%")
+- Titular "Promos" + "Ponle un descuento y mira cómo se deslizan."
+- Pestañas con contador: **Activas · Programadas · Terminadas** (el estado se
+  calcula por fechas — ver `03-modelo-de-datos.md`).
+- Tarjetas según `tipo`:
+  - **Por colección**: "POR COLECCIÓN", nombre, "Colección Dulces", "15%",
+    rango de fechas ("25 sep → 2 oct").
+  - **Código**: "CÓDIGO", el código, "En todo el pedido", "10%", el código en
+    recuadro punteado, rango de fechas y **"Usada en 7 pedidos"** (pedidos
+    no cancelados con ese `codigo_promo`).
+  - **Por producto**: foto + nombre + precio tachado + "−15%".
 
-**Acciones:**
-- Crear promo nueva: elegir tipo (código / colección / producto), valor, fechas de inicio y fin
-- Al llegar `fecha_fin`, la promo pasa a `terminada` (puede ser automático por fecha, o manual)
+**Acciones — "+ Promo"** (hoja "Nueva promo"):
+- Tipo: **En productos** (precio tachado en uno) · **Código** (lo escriben al
+  pedir) · **Por colección** (toda una colección).
+- Descuento en **%** (chips rápidos 10 / 15 / 20 / 30 o valor libre; más de
+  90% no: "Más de 90% ya es regalar. Bájale un poco."). No hay descuento en RD$.
+- Según el tipo: elegir colección (chips con cuántos productos tiene), elegir
+  producto, o escribir el código (mayúsculas y números, máx. 12).
+- Fechas: Empieza / Vence.
+- Vista previa "así se ve en tu catálogo:" con una tarjeta de producto.
+- "Crear promo" → "Promo activa. Ya se ve en tu catálogo." o "Promo
+  programada. Arranca el 3 oct."
+- Al llegar `fecha_fin`, la promo pasa sola a Terminadas.
 
 ---
 
@@ -127,32 +215,72 @@ pedido del catálogo con datos de contacto, o manualmente desde el panel.
 No es una pantalla propia — vive dentro del formulario de producto (pantalla 1).
 
 **Comportamiento:**
-- Toggle "Retocar foto" (apagado por defecto)
-- Al activarlo: simular el retoque (en esta entrega, sin IA real — puede ser
-  un efecto visual de "antes/después" con la misma imagen, o un placeholder
-  que marque `foto_retocada = true`)
-- Costo por retoque: **5 créditos por foto**, constante en `lib/config.ts`
-  (ver "Créditos de retoque" en `03-modelo-de-datos.md` — saldo mensual de 100
-  créditos, equivalente a 20 fotos). No es editable por el dueño en esta
-  entrega.
-- Descuenta de `tiendas.creditos_retoque`; si no hay créditos suficientes, el
-  toggle se bloquea con un mensaje breve (tono de marca, no un error técnico)
-- Al publicar el producto con el toggle activo, la tarjeta del producto en el
-  Catálogo puede mostrar un pequeño indicador "Retocada ✦"
+- Tarjeta "Retocar foto" · "Luz, fondo y color" con interruptor (apagado por
+  defecto al editar; encendido por defecto al subir una foto nueva si hay
+  créditos).
+- Al activarlo: simular el retoque (sin IA real en esta entrega): selector
+  **Antes / Después** sobre la foto y etiqueta "Retocada ✦"; al guardar se
+  marca `foto_retocada = true`.
+- Costo: **5 créditos por foto**, constante en `lib/config.ts` (ver
+  "Créditos de retoque" en `03-modelo-de-datos.md`). El subtítulo lo dice:
+  "Usa 5 créditos: te quedan 35 → 30."
+- Descuenta de `tiendas.creditos_retoque` al publicar/guardar (el botón dice
+  "Publicar · −5 créditos").
+- Sin créditos suficientes: el interruptor se bloquea con un mensaje breve de
+  marca (ej. "Te faltan créditos para retocar. Se recargan el día 1.") y un
+  botón "Ver plan" que abre Plan y créditos. **No hay compra de créditos.**
+- En el Catálogo, la tarjeta del producto puede mostrar "Retocada ✦".
 
 ---
 
 ## 7. Resumen (pantalla de inicio)
 
 **Qué muestra:**
-- Saludo: "Buenos días, {nombre de la tienda o dueño}."
-- Subtítulo: "Así va tu tienda estos 7 días"
-- Tarjeta principal: "Aaahs · 7 días" con el número grande + variación (ej. "+18%") + mini gráfico de barras de los últimos 7 días
-- Dos datos secundarios: "Pedidos" (count) y "De aaah a pedido" (conversión, %)
-- "Lo que más suspiran" — top 3 productos con foto
+- Saludo: "Buenos días, {nombre del dueño}." (con el punto en Mandarina;
+  "Buenas tardes/noches" según la hora de Santo Domingo).
+- Remate: "Esta semana tu tienda sacó 312 aaahs. Nada mal para un {día}."
+- **Tarjeta de pedidos nuevos** (Mandarina, solo si hay): número en cuadro
+  verde, "2 pedidos nuevos" / "Alguien dijo aaah. No lo dejes en visto." →
+  lleva a Pedidos.
+- **Selector de periodo**: Hoy · 7 días · Este mes.
+- **Tarjeta de ventas** (Verde Bosque): "VENTAS · 7 DÍAS", monto grande,
+  variación ("+18%") y contra qué se compara ("vs. la semana pasada" / "vs.
+  el lunes pasado" / "vs. agosto"), y un **gráfico de barras** tocable:
+  - Hoy: barras por franja de 2 horas.
+  - 7 días: una barra por día (la de hoy en Mandarina).
+  - Este mes: una barra por semana.
+  - Encima del gráfico, el valor de la barra elegida ("Hoy: RD$5,370").
+- 4 datos del periodo: **Pedidos**, **Ticket promedio** (ventas / pedidos),
+  **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos / aaahs, en %).
+- **"Lo que más suspiran"** (+ "tu top 3" en Caveat): top 3 productos por
+  aaahs del periodo, con foto, número y barra proporcional.
+- **"Ojo con el stock"**: productos con `stock <= 1` ("Queda 1" Mandarina /
+  "Agotado" verde); tocar uno abre su formulario.
+- **Tarjeta del plan** (rosa, abre Plan y créditos): "Plan 20", "10 de 20
+  productos", barra, "35 créditos · te alcanzan para 7 fotos retocadas".
+- Cierre en Caveat: "tu pulgar tiene buen gusto. déjalo trabajar."
 
-**Esta pantalla es de solo lectura** — no tiene acciones, solo consulta datos
-agregados (ver la sección "Resumen" en `03-modelo-de-datos.md`).
+**Esta pantalla es de solo lectura** — solo consulta datos agregados (ver
+"Resumen" en `03-modelo-de-datos.md`).
+
+---
+
+## 8. Plan y créditos
+
+Hoja "Tu plan", se abre desde el botón de créditos del encabezado, el medidor
+del Catálogo y la tarjeta del plan del Resumen. **Solo informa**: en esta
+entrega no hay compra de paquetes ni cobro (ver `02-alcance.md`).
+
+- Tarjeta Verde Bosque: nombre del plan ("Plan 20"), "10 de 20 productos",
+  barra y "Te quedan 10 espacios. Los cambios de precio, stock y textos son
+  ilimitados." (o "Catálogo lleno…" si no quedan).
+- Tarjeta de créditos: "35 créditos", "Te alcanzan para 7 fotos retocadas" y
+  "Cada foto retocada usa 5 créditos. El día 1 de cada mes vuelves a tener
+  100; los que no uses no se acumulan."
+- Tarjeta rosa "¿Se te quedó chiquito?" + botón **"Escribirle a Deslizapp"**
+  que abre WhatsApp con un mensaje listo (tienda y plan) para cambiar de plan
+  o pedir más créditos. El número está en `WHATSAPP_DESLIZAPP` de
+  `lib/config.ts`.
 
 ---
 
@@ -162,6 +290,5 @@ Todos los estados vacíos deben llevar el tono de marca (ver `01-marca.md`),
 nunca un mensaje técnico genérico tipo "No hay datos". Ejemplo ya validado:
 Pedidos vacío → "Todo al día. Disfruta el silencio. Dura poco."
 
-Si hace falta un estado vacío que no está en los mockups (ej. Clientes vacío,
-Promos vacío), se escribe en el mismo tono — no se deja el texto por defecto
-de un framework de UI.
+Si hace falta un estado vacío que no está en el prototipo, se escribe en el
+mismo tono — no se deja el texto por defecto de un framework de UI.

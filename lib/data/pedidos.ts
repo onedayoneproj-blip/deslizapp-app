@@ -1,9 +1,11 @@
+import { precioConPromo } from "../promos";
 import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem } from "../types";
 import type { AjusteFecha, DB } from "./db";
 
 export type FilaPedido = {
   id: string;
   tienda_id: string;
+  numero: number;
   cliente_id: string | null;
   origen: string;
   estado: string;
@@ -26,6 +28,7 @@ export function aPedido(f: FilaPedido, fecha: AjusteFecha): Pedido {
   return {
     id: f.id,
     tiendaId: f.tienda_id,
+    numero: f.numero,
     clienteId: f.cliente_id,
     origen: f.origen as OrigenPedido,
     estado: f.estado as EstadoPedido,
@@ -62,6 +65,12 @@ export function pedidosDeTienda(db: DB, tiendaId: string): PedidoConItems[] {
 export function pedidoDeTienda(db: DB, tiendaId: string, id: string): PedidoConItems | null {
   const pedido = db.pedidos.find((p) => p.id === id && p.tiendaId === tiendaId);
   return pedido ? conItems(db, pedido) : null;
+}
+
+/** Siguiente número de pedido de la tienda (#1043 después de #1042). En Supabase: secuencia por tienda. */
+export function siguienteNumeroPedido(db: DB, tiendaId: string): number {
+  const numeros = db.pedidos.filter((p) => p.tiendaId === tiendaId).map((p) => p.numero);
+  return numeros.length > 0 ? Math.max(...numeros) + 1 : 1001;
 }
 
 // ---- Simulación de un pedido que "llega del catálogo" (el catálogo real aún no está conectado) ----
@@ -101,7 +110,8 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
     productoId: p.id,
     nombreProducto: p.nombre,
     cantidad: azar() < 0.2 ? 2 : 1,
-    precioUnitario: p.precio,
+    // Snapshot del precio que vio el cliente, ya con la promo de colección/producto vigente
+    precioUnitario: precioConPromo(p, db.promos, new Date(ahora)).precio,
   }));
 
   const delCatalogo = db.clientes.filter((c) => c.tiendaId === tiendaId && c.origen === "catalogo");
@@ -130,6 +140,7 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
   const pedido: Pedido = {
     id: pedidoId,
     tiendaId,
+    numero: siguienteNumeroPedido(db, tiendaId),
     clienteId: cliente.id,
     origen: "catalogo",
     estado: "nuevo",

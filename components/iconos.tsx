@@ -67,6 +67,50 @@ export const IconoChispa = (p: Props) => (
   </Icono>
 );
 
+/** Las dos chispas de "retoque / créditos" del prototipo. */
+export const IconoCreditos = (p: Props) => (
+  <Icono {...p}>
+    <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+    <path d="M19 15.5l.7 1.8 1.8.7-1.8.7L19 20.5l-.7-1.8-1.8-.7 1.8-.7z" />
+  </Icono>
+);
+
+export const IconoBuscar = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="M16 16l4.5 4.5" />
+  </Icono>
+);
+
+export const IconoMas = (p: Props) => (
+  <Icono strokeWidth={2.6} {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Icono>
+);
+
+export const IconoMenos = (p: Props) => (
+  <Icono strokeWidth={2.6} {...p}>
+    <path d="M5 12h14" />
+  </Icono>
+);
+
+export const IconoCamara = (p: Props) => (
+  <Icono strokeWidth={1.8} {...p}>
+    <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Icono>
+);
+
+/** Logo de WhatsApp (relleno, en su verde por defecto). */
+export const IconoWhatsApp = ({ tamano = 24, ...p }: Props) => (
+  <svg width={tamano} height={tamano} viewBox="0 0 24 24" aria-hidden="true" {...p}>
+    <path
+      fill="currentColor"
+      d="M12.04 2a9.9 9.9 0 0 0-8.5 14.98L2 22l5.16-1.5A9.93 9.93 0 1 0 12.04 2zm0 18.1a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.06.89.9-2.98-.2-.31a8.2 8.2 0 1 1 6.84 3.73zm4.5-6.14c-.25-.12-1.46-.72-1.68-.8-.23-.09-.39-.13-.56.12-.16.24-.64.8-.78.96-.15.17-.29.19-.54.06a6.7 6.7 0 0 1-1.97-1.21 7.4 7.4 0 0 1-1.37-1.7c-.14-.25 0-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.42h-.47a.9.9 0 0 0-.66.31 2.77 2.77 0 0 0-.86 2.06c0 1.21.88 2.39 1 2.55.12.17 1.74 2.66 4.22 3.73.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.47-.07 1.46-.6 1.66-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.16-.47-.29z"
+    />
+  </svg>
+);
+
 export const IconoCorazon = (p: Props) => (
   <Icono {...p}>
     <path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" />

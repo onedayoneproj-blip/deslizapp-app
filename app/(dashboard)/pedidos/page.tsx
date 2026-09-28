@@ -15,7 +15,7 @@ export default function PedidosPage() {
 
   return (
     <>
-      <TituloPantalla titulo="Pedidos" />
+      <TituloPantalla titulo="Pedidos" subtitulo="Del suspiro al chat. Y del chat, aquí." />
       {pedidos && nuevos + porDespachar === 0 ? (
         <EstadoVacio icono={<IconoPedidos tamano={28} />} titulo="Todo al día." remate="Disfruta el silencio. Dura poco." />
       ) : (

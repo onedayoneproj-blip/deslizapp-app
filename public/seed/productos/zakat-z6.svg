@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
-  <rect width="400" height="500" fill="#FFE1C2"/>
+  <rect width="400" height="500" fill="#D9D2C5"/>
   <path d="M100 330c-40-60 10-150 90-140s120 80 150 60 110 30 80 120-140 110-220 80-60-60-100-120z" fill="#ffffff" opacity="0.45"/>
   <rect x="172" y="120" width="56" height="44" rx="8" fill="#174B3A"/>
-  <rect x="186" y="160" width="28" height="26" fill="#C9772E" opacity="0.9"/>
-  <rect x="120" y="182" width="160" height="210" rx="42" fill="#C9772E"/>
+  <rect x="186" y="160" width="28" height="26" fill="#3B2F2A" opacity="0.9"/>
+  <rect x="120" y="182" width="160" height="210" rx="42" fill="#3B2F2A"/>
   <rect x="138" y="200" width="30" height="160" rx="15" fill="#ffffff" opacity="0.35"/>
   <rect x="160" y="262" width="80" height="44" rx="10" fill="#FFF9EE" opacity="0.9"/>
   <ellipse cx="200" cy="420" rx="110" ry="14" fill="#174B3A" opacity="0.12"/>

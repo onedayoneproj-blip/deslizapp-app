@@ -23,7 +23,7 @@ de aislamiento multi-tenant. Ninguna consulta debe cruzar tiendas.
 | `slug` | string, único | para la futura URL del catálogo público (`deslizapp.com/tienda/{slug}`) |
 | `nombre` | string | ej. "Esencias Michel" |
 | `logo_url` | string \| null | |
-| `plan` | `'p20' \| 'p60' \| 'p100' \| 'custom'` | los planes reales del servicio: hasta 20, 60 o 100 productos; más de 100 = a medida |
+| `plan` | `'p20' \| 'p60' \| 'p100' \| 'custom'` | los planes reales del servicio: hasta 20, 60 o 100 productos; más de 100 = a medida. Se muestran como "Plan 20", "Plan 60", "Plan 100", "Plan a medida". Los planes "Básico 40 / Pro 100" del prototipo eran datos de muestra y no existen |
 | `limite_productos` | number | 20 / 60 / 100, o el número pactado si es `custom`; se muestra en el medidor del Catálogo |
 | `creditos_retoque` | number | saldo actual; se descuenta al usar el retoque de fotos |
 | `creditos_retoque_mensuales` | number | cuántos créditos se recargan cada mes (ver "Decisiones pendientes") |
@@ -52,7 +52,7 @@ tabla de prueba con un solo usuario "activo".
 | `precio` | number | |
 | `fotos` | string[] | URLs; la primera es la foto de portada |
 | `foto_retocada` | boolean | true si pasó por el toggle de retoque |
-| `categoria` | string \| null | |
+| `categoria` | string \| null | en pantalla se llama **"Colección"** (ej. "Dulces", "Frescos"); las promos por colección apuntan a este valor |
 | `activo` | boolean | si aparece en el catálogo público |
 | `destacado` | boolean | |
 | `stock` | number \| null | `null` = stock ilimitado/no controlado |
@@ -65,19 +65,21 @@ tabla de prueba con un solo usuario "activo".
 |---|---|---|
 | `id` | uuid | PK |
 | `tienda_id` | uuid → `tiendas.id` | |
+| `numero` | number | número visible del pedido ("#1042"). **Autoincremental por tienda**: cada tienda lleva su propia cuenta (el siguiente es el mayor de la tienda + 1; si no tiene pedidos, 1001). Único por (`tienda_id`, `numero`). En Supabase: secuencia o trigger por tienda |
 | `cliente_id` | uuid → `clientes.id`, nullable | null si es un pedido manual sin cliente identificado |
 | `origen` | `'catalogo' \| 'manual'` | de dónde llegó |
 | `estado` | `'nuevo' \| 'por_despachar' \| 'despachado' \| 'cancelado'` | ver mapeo abajo |
-| `total` | number | |
+| `total` | number | subtotal (Σ `cantidad × precio_unitario`) menos el descuento del código de promo, si tiene |
 | `codigo_promo` | string \| null | ej. "AAAH10" |
 | `creado_en` | datetime | |
 | `despachado_en` | datetime \| null | |
 
-Mapeo con las pestañas del mock de Pedidos ("Nuevos / Por despachar /
-Listos"): `nuevo` y `por_despachar` son dos momentos del mismo pedido antes de
+Mapeo con las pestañas de Pedidos ("Nuevos / Por despachar / Despachados"):
+`nuevo` y `por_despachar` son dos momentos del mismo pedido antes de
 despachar — al abrir el detalle de un pedido `nuevo` y confirmarlo, pasa a
-`por_despachar`; al presionar "Despachar pedido" pasa a `despachado` (que es
-lo que la pestaña llama "Listos").
+`por_despachar`; al presionar "Despachar pedido" pasa a `despachado`. La línea
+de avance del detalle muestra lo mismo: Recibido (`nuevo`) → Confirmado
+(`por_despachar`) → Despachado.
 
 ## `pedido_items`
 
@@ -92,7 +94,7 @@ cambia después).
 | `producto_id` | uuid → `productos.id` | |
 | `nombre_producto` | string | snapshot al momento del pedido |
 | `cantidad` | number | |
-| `precio_unitario` | number | snapshot al momento del pedido |
+| `precio_unitario` | number | snapshot al momento del pedido, **ya con la promo de colección o de producto vigente** (el código de promo se descuenta del total, no de aquí) |
 
 ## `clientes`
 
@@ -103,10 +105,11 @@ cambia después).
 | `nombre` | string | |
 | `telefono` | string \| null | número de WhatsApp |
 | `origen` | `'catalogo' \| 'manual'` | |
-| `primer_pedido_en` | datetime | |
-| `pedidos_count` | number | derivado — se puede recalcular o cachear |
+| `primer_pedido_en` | datetime | fecha del primer pedido; si todavía no pide, la fecha en que se creó |
+| `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**; se puede recalcular o cachear |
 
-"Repite" en el mock de Clientes = `pedidos_count >= 2`.
+"Repite" en Clientes = `pedidos_count >= 2`. "Total gastado" = suma de
+`total` de sus pedidos no cancelados (se calcula, no se guarda).
 
 ## `promos`
 
@@ -116,13 +119,24 @@ cambia después).
 | `tienda_id` | uuid → `tiendas.id` | |
 | `tipo` | `'codigo' \| 'coleccion' \| 'producto'` | |
 | `nombre` | string | ej. "Semana del aaah" |
-| `valor_porcentaje` | number \| null | ej. 15 = 15% |
+| `valor_porcentaje` | number \| null | ej. 15 = 15%. **Todas las promos son en porcentaje** (entre 1 y 90); no hay descuento en RD$ en esta entrega |
 | `codigo` | string \| null | solo si `tipo = 'codigo'`, ej. "AAAH10" |
 | `coleccion` | string \| null | solo si `tipo = 'coleccion'` |
 | `producto_id` | uuid \| null | solo si `tipo = 'producto'` |
 | `fecha_inicio` | datetime | |
 | `fecha_fin` | datetime \| null | |
 | `estado` | `'activa' \| 'programada' \| 'terminada'` | calculable desde las fechas, pero se guarda para poder forzarlo manualmente |
+
+Estado que se muestra: si `estado = 'terminada'` guardado, terminada (la
+terminó el dueño); si no, por fechas: `fecha_fin` pasada → terminada,
+`fecha_inicio` futura → programada, si no → activa (`lib/promos.ts`).
+
+Precio con promo de un producto: la mejor promo **activa** por colección (su
+`categoria`) o por producto; los códigos no cambian el precio del producto,
+se aplican al total del pedido.
+
+"Usada en N pedidos" (solo promos de código) = pedidos no cancelados con ese
+`codigo_promo`.
 
 ## `eventos_aaah`
 
@@ -144,14 +158,28 @@ Catálogo; debe coincidir con el número de `eventos_aaah` de ese producto.
 
 ## Resumen (no es una tabla — es una consulta agregada)
 
-Se calcula a partir de `eventos_aaah`, `pedidos` y `pedido_items`:
+Se calcula a partir de `eventos_aaah`, `pedidos`, `pedido_items` y
+`productos`, para el **periodo elegido** (en hora de Santo Domingo):
 
-- `aaahs_7dias`: count de `eventos_aaah` de los últimos 7 días
-- `variacion`: comparado contra los 7 días anteriores (ej. "+18%")
-- `aaahs_por_dia`: 7 valores, uno por día, para el gráfico de barras
-- `pedidos_7dias`: count de `pedidos` (no cancelados) con `creado_en` en los últimos 7 días
-- `conversion` ("De aaah a pedido"): `pedidos_7dias / aaahs_7dias`, en %
-- `top_productos`: top 3 productos por `eventos_aaah` de la semana
+| Periodo | Rango | Se compara contra | Barras del gráfico |
+|---|---|---|---|
+| Hoy | desde las 00:00 de hoy | el mismo día de la semana pasada | franjas de 2 horas |
+| 7 días | los últimos 7 días (hoy incluido) | los 7 días anteriores | una por día |
+| Este mes | desde el día 1 del mes | el mes anterior completo | una por semana del mes |
+
+- `ventas`: suma de `total` de los `pedidos` no cancelados del periodo
+- `variacion`: `ventas` contra el periodo de comparación, en % (ej. "+18%")
+- `ventas_por_barra`: los valores del gráfico
+- `pedidos`: count de `pedidos` no cancelados del periodo
+- `ticket_promedio`: `ventas / pedidos` (RD$, redondeado)
+- `aaahs`: count de `eventos_aaah` del periodo
+- `conversion` ("De aaah a pedido"): `pedidos / aaahs`, en % con un decimal
+- `top_productos`: top 3 productos por `eventos_aaah` del periodo
+- `pedidos_nuevos`: count de `pedidos` con `estado = 'nuevo'` (sin periodo)
+- `stock_bajo` ("Ojo con el stock"): productos con `stock` no null y `<= 1`
+
+Los datos de prueba solo cubren ~14 días de pedidos y aaahs, así que "Este
+mes" y su comparación salen modestos: es esperado.
 
 ## Relación entre tablas (resumen visual)
 
@@ -186,3 +214,22 @@ están repartidos por el código.
 Los créditos no usados **no se acumulan**: se recargan a 100 el día 1 de cada
 mes. En esta entrega solo se muestra el saldo (la recarga automática mensual
 llega con Supabase).
+
+**No se venden paquetes de créditos ni se cobra nada desde el panel** (los
+paquetes del prototipo eran de muestra). Si una tienda necesita más créditos
+o más productos, le escribe a Deslizapp por WhatsApp desde Plan y créditos
+(`WHATSAPP_DESLIZAPP` en `lib/config.ts`) y el cambio se hace a mano.
+
+## Fuera del modelo (decidido)
+
+- Descuentos en RD$ fijos: no. Solo porcentaje.
+- "Marca o línea" del producto: no. El nombre del producto basta.
+
+## Datos de prueba
+
+`lib/data/seed/*.json` se genera con `node scripts/generar-seed.mjs`
+(determinista). Esencias Michel usa los mismos productos, clientes, pedidos
+y promos del prototipo; Luna Bisutería es la segunda tienda para probar el
+aislamiento. Las fechas del seed se desplazan al cargar para que la demo
+siempre sea "de esta semana". Si cambia la forma de los datos, subir la
+versión de la clave de `localStorage` en `lib/data/provider.tsx`.

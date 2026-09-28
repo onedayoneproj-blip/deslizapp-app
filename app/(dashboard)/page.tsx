@@ -5,16 +5,28 @@ import { IconoCorazon } from "@/components/iconos";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { saludo } from "@/lib/formato";
 
 // Resumen (pantalla de inicio). Se construye en el paso 9; por ahora, un estado de espera.
 export default function InicioPage() {
-  const { getEventosAaah } = useData();
+  const { getEventosAaah, getDueno } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { data: eventos } = useConsulta(`eventos:${tiendaId}`, () => getEventosAaah(tiendaId));
+  const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
+  const nombre = dueno?.nombre ?? tienda?.nombre;
 
   return (
     <>
-      <TituloPantalla titulo="Inicio" subtitulo={tienda ? `Así va ${tienda.nombre}` : undefined} />
+      <TituloPantalla
+        titulo={
+          <>
+            {saludo()}
+            {nombre ? `, ${nombre}` : ""}
+            <span className="text-mandarina">.</span>
+          </>
+        }
+        subtitulo="Así va tu tienda estos 7 días."
+      />
       <EstadoVacio
         icono={<IconoCorazon tamano={28} />}
         titulo="Tu resumen viene en camino."

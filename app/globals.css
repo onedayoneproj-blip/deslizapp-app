@@ -12,8 +12,12 @@
   --color-bosque-oscuro: #10362a; /* texto sobre Mandarina, siempre este verde */
   --color-menta: #dcebe2;
   --color-tinta: #174b3a;
-  --color-suave: #5c7a6f; /* texto secundario sobre Papel */
-  --color-linea: #efe4d2; /* bordes y separadores sobre Papel */
+  --color-suave: #4f6a5e; /* texto secundario sobre Papel */
+  --color-linea: #efe4d2; /* bordes de tarjetas */
+  --color-borde: #e7dcc8; /* bordes de campos y chips */
+  --color-arena: #f3ead9; /* rellenos neutros: botón cerrar, fondos de foto */
+  --color-apagado: #cdbfa6; /* interruptor apagado, bordes punteados */
+  --color-peligro: #b4432a; /* acciones destructivas */
   --color-marco: #f3eadb; /* fondo alrededor de la app en pantallas anchas */
 }
 
@@ -27,6 +31,23 @@
 .font-display {
   font-weight: 700;
   font-stretch: 115%;
+}
+
+@keyframes subir-hoja {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes bajar-aviso {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
 }
 
 html {

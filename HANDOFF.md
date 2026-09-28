@@ -39,7 +39,7 @@ ahí está la documentación exacta de esta versión instalada.
 
 ## Qué se espera de esta primera entrega
 
-Construir las 6 pantallas descritas en `docs/04-pantallas.md`, funcionando por
+Construir las pantallas descritas en `docs/04-pantallas.md`, funcionando por
 completo contra datos de prueba (ver `docs/05-arquitectura.md`), con
 navegación real entre ellas, multi-tienda desde el modelo de datos (aunque el
 selector de tienda pueda ser simple al inicio), y fiel a la identidad visual

@@ -3,9 +3,14 @@
 Sugerido, no obligatorio — pero cada paso depende del anterior, así que
 conviene no saltarlos. Cada uno tiene su criterio de "listo".
 
+Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
+es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
+
+**Estado:** pasos 0–3 hechos (incluida la hoja de Plan y créditos). Paso 4 en curso.
+
 ## 0. Preparación
 
-- Leer `01-marca.md`, `02-alcance.md`, `03-modelo-de-datos.md`, `04-pantallas.md`, `05-arquitectura.md`
+- Leer `01-marca.md`, `02-alcance.md`, `03-modelo-de-datos.md`, `04-pantallas.md`, `05-arquitectura.md` y `referencias/LEEME.md`
 - Revisar `node_modules/next/dist/docs/01-app/` para los cambios de esta versión de Next.js
 - `npm run dev` y confirmar que el scaffold corre
 
@@ -22,9 +27,10 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 ## 2. Tipos y capa de datos
 
 - `lib/types.ts` con todos los tipos de `03-modelo-de-datos.md`
-- `lib/data/seed/*.json` con datos de prueba realistas (usar los nombres del
-  mock: Esencias Michel, Kiara Pink, Mayar, Shé, Carolina Peña, Luis Marte,
-  etc. — ya están validados y le sonarán familiares al dueño)
+- `lib/data/seed/*.json` con datos de prueba realistas, generados con
+  `scripts/generar-seed.mjs`: Esencias Michel con los productos, clientes,
+  pedidos (#1038–#1042) y promos del prototipo, más una segunda tienda
+  (Luna Bisutería)
 - `lib/data/provider.tsx` (almacén en el navegador con `localStorage`) y las
   operaciones por entidad en `lib/data/*.ts`, expuestas con `useData()` (ver
   `05-arquitectura.md`)
@@ -38,49 +44,59 @@ después de recargar el navegador; y "Reiniciar datos de prueba" lo borra.
 
 ## 3. Layout y navegación
 
-- `app/(dashboard)/layout.tsx`: navegación inferior de 5 íconos (Inicio ·
+- `app/(dashboard)/layout.tsx`: barra inferior flotante de 5 íconos (Inicio ·
   Catálogo · Pedidos · Clientes · Promos) + encabezado con logo/nombre de
-  tienda + créditos
-- Selector simple de "tienda activa" (dropdown o similar) que determina el
+  tienda + botón de créditos
+- Selector de "tienda activa" (en el menú de la tienda) que determina el
   `tiendaId` usado por toda la app
+- Avisos (toast) arriba y hoja inferior reutilizable
+- Hoja **Plan y créditos** (pantalla 8 de `04-pantallas.md`): plan actual,
+  saldo de créditos y botón "Escribirle a Deslizapp" (WhatsApp). Sin compras.
 
 **Listo cuando:** se puede navegar entre las 5 secciones y cambiar de tienda
-de prueba, viendo que cada una trae sus propios datos.
+de prueba, viendo que cada una trae sus propios datos; y el botón de créditos
+abre Plan y créditos con el plan y el saldo de la tienda activa.
 
 ## 4. Catálogo
 
-- Grilla de productos + medidor de plan
-- Formulario de crear/editar producto (sin el toggle de retoque todavía)
-- Activar/desactivar producto
+- Grilla de productos (con precio de promo y etiquetas Agotado/Oculto/−%) +
+  medidor de plan (abre Plan y créditos)
+- Buscador y filtros Todos / Visibles / Agotados / Ocultos
+- Formulario de crear/editar producto: foto (reducida a 800 px), nombre,
+  precio, stock, colección, "Visible en el catálogo" (sin el retoque todavía)
 
-**Listo cuando:** se puede crear un producto nuevo, verlo aparecer en la
-grilla, editarlo y desactivarlo, sin recargar la página.
+**Listo cuando:** se puede crear un producto nuevo con foto, verlo aparecer
+en la grilla, editarlo y desactivarlo (pasa a "Ocultos"), sin recargar la
+página; y el buscador y los filtros encuentran lo esperado.
 
 ## 5. Retoque de fotos (dentro del formulario de producto)
 
-- Toggle "Retocar foto" con el comportamiento descrito en `04-pantallas.md`
-- Descuento de créditos de la tienda activa
+- Tarjeta "Retocar foto" con Antes/Después y el comportamiento descrito en `04-pantallas.md`
+- Descuento de créditos de la tienda activa al publicar/guardar
 
-**Listo cuando:** activar el toggle descuenta créditos visibles en el
-encabezado, y si los créditos llegan a 0, el toggle se bloquea con un mensaje
-de marca.
+**Listo cuando:** publicar con el retoque activo descuenta 5 créditos visibles
+en el encabezado, y si no alcanzan, el interruptor se bloquea con un mensaje
+de marca y un botón "Ver plan" (no hay compra de créditos).
 
 ## 6. Pedidos + Detalle + Despacho
 
-- Lista de pedidos con pestañas por estado
-- Detalle de pedido
+- Lista de pedidos con pestañas Nuevos / Por despachar / Despachados, "#numero · hace cuánto"
+- Detalle de pedido con línea de avance, "Escribir" (WhatsApp) y totales
 - Botón "Despachar pedido" que actualiza `estado`, `despachado_en`, y el
   `stock` de cada producto involucrado
+- Pedido manual ("+ Pedido"), que toma el siguiente `numero` de la tienda
 
 **Listo cuando:** un pedido nuevo se puede confirmar y luego despachar;
 despachar un pedido con un producto de `stock = 1` deja ese producto en
 `stock = 0` y se refleja como "Agotado" tanto en el detalle del pedido como
 en el Catálogo; e intentar despachar otro pedido con ese mismo producto
-muestra el aviso de falta de stock en vez de dejar el stock en negativo.
+muestra el aviso de falta de stock en vez de dejar el stock en negativo (en
+el seed: Choker Perla de Luna Bisutería está en #1003 y #1004 con stock 1).
 
 ## 7. Clientes
 
-- Lista con los 3 contadores y la etiqueta "Repite"
+- Buscador, los 3 contadores, la etiqueta "Repite" y el total gastado
+- Hoja del cliente con "Escribir" e historial; "+ Cliente"
 - Los clientes deben derivarse de los pedidos de prueba ya creados (no una
   lista aparte sin relación)
 
@@ -89,8 +105,8 @@ automáticamente, sin que alguien lo marque a mano.
 
 ## 8. Promos
 
-- Crear promo por código / colección / producto
-- Pestañas Activas / Programadas / Terminadas según fechas
+- Crear promo por código / colección / producto (solo en %), con vista previa
+- Pestañas Activas / Programadas / Terminadas según fechas; "Usada en N pedidos" en los códigos
 
 **Listo cuando:** una promo con `fecha_fin` en el pasado aparece en
 "Terminadas" sin intervención manual.
@@ -99,15 +115,18 @@ automáticamente, sin que alguien lo marque a mano.
 
 - Se construye al final porque depende de que ya existan pedidos, productos
   y likes de prueba con los que calcular algo real
-- Tarjeta de aaahs + gráfico de barras + conversión + top 3 productos
+- Saludo, tarjeta de pedidos nuevos, selector Hoy / 7 días / Este mes,
+  tarjeta de ventas con variación y barras, Pedidos, Ticket promedio, Aaahs,
+  De aaah a pedido, top 3, "Ojo con el stock" y tarjeta del plan
 
 **Listo cuando:** los números del Resumen salen de `eventos_aaah` y
 `pedidos` (no son un mockup estático): usar "Simular pedido del catálogo"
-hace subir el contador de pedidos del Resumen.
+hace subir los pedidos y las ventas del periodo, y cambiar de periodo cambia
+todas las cifras.
 
 ## 10. Repaso final
 
-- Recorrer las 6 pantallas como si fueras el dueño de la tienda: crear un
+- Recorrer las pantallas como si fueras el dueño de la tienda: crear un
   producto, recibir un pedido de prueba, despacharlo, ver que aparece el
   cliente, crear una promo, revisar el resumen
 - Confirmar que cambiar de tienda de prueba (paso 3) no mezcla datos entre

@@ -24,7 +24,8 @@ import { promosDeTienda } from "./promos";
 import { eventosAaahDeTienda } from "./resumen";
 import { buscarDueno, buscarTienda, listarTiendas } from "./tiendas";
 
-const KEY = "deslizapp-demo-v1";
+// Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
+const KEY = "deslizapp-demo-v2";
 const KEY_SESION = "deslizapp-sesion-v1";
 
 type Estado = {

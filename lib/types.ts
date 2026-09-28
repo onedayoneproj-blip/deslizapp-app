@@ -48,6 +48,8 @@ export type EstadoPedido = "nuevo" | "por_despachar" | "despachado" | "cancelado
 export type Pedido = {
   id: string;
   tiendaId: string;
+  /** Número visible del pedido (#1042). Autoincremental por tienda. */
+  numero: number;
   clienteId: string | null;
   origen: OrigenPedido;
   estado: EstadoPedido;
