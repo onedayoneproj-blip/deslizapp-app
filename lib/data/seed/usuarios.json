@@ -1,0 +1,16 @@
+[
+  {
+    "id": "a2000000-0000-4000-8000-000000000001",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "email": "michel@example.com",
+    "nombre": "Michel",
+    "rol": "dueno"
+  },
+  {
+    "id": "a2000000-0000-4000-8000-000000000002",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "email": "marisol@example.com",
+    "nombre": "Marisol",
+    "rol": "dueno"
+  }
+]

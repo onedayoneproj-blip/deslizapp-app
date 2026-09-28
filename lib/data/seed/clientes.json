@@ -1,0 +1,83 @@
+[
+  {
+    "id": "a4000000-0000-4000-8000-000000000001",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Carolina Peña",
+    "telefono": "+18095551203",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-16T11:00:00.000Z",
+    "pedidos_count": 3
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000002",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Luis Marte",
+    "telefono": "+18295554471",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-19T14:00:00.000Z",
+    "pedidos_count": 2
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000003",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Yohanna Reyes",
+    "telefono": "+18495558812",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-24T13:00:00.000Z",
+    "pedidos_count": 1
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000004",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Miguel Ángel Tavárez",
+    "telefono": "+18095552290",
+    "origen": "manual",
+    "primer_pedido_en": "2026-09-25T15:00:00.000Z",
+    "pedidos_count": 2
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000005",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Rosa Almonte",
+    "telefono": "+18295550917",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-27T14:00:00.000Z",
+    "pedidos_count": 1
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000006",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Paola Guzmán",
+    "telefono": "+18095553348",
+    "origen": "manual",
+    "primer_pedido_en": "2026-09-22T16:00:00.000Z",
+    "pedidos_count": 0
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000007",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Ana Lucía Ferreira",
+    "telefono": "+18095557730",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-20T16:00:00.000Z",
+    "pedidos_count": 2
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000008",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Marcos Peralta",
+    "telefono": "+18295556014",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-09-24T10:00:00.000Z",
+    "pedidos_count": 1
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000009",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Wendy Sosa",
+    "telefono": "+18495552185",
+    "origen": "manual",
+    "primer_pedido_en": "2026-09-27T10:00:00.000Z",
+    "pedidos_count": 1
+  }
+]

@@ -1,0 +1,274 @@
+[
+  {
+    "id": "a3000000-0000-4000-8000-000000000001",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Kiara Pink",
+    "precio": 2500,
+    "fotos": [
+      "/seed/productos/kiara-pink.svg"
+    ],
+    "foto_retocada": true,
+    "categoria": "Para ella",
+    "activo": true,
+    "destacado": true,
+    "stock": 1,
+    "likes": 48,
+    "creado_en": "2026-05-01T16:00:00.000Z",
+    "actualizado_en": "2026-05-21T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000002",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Mayar",
+    "precio": 2800,
+    "fotos": [
+      "/seed/productos/mayar.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Para ella",
+    "activo": true,
+    "destacado": true,
+    "stock": 4,
+    "likes": 37,
+    "creado_en": "2026-05-10T16:00:00.000Z",
+    "actualizado_en": "2026-05-30T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000003",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Shé",
+    "precio": 3200,
+    "fotos": [
+      "/seed/productos/she.svg"
+    ],
+    "foto_retocada": true,
+    "categoria": "Para ella",
+    "activo": true,
+    "destacado": false,
+    "stock": null,
+    "likes": 29,
+    "creado_en": "2026-05-19T16:00:00.000Z",
+    "actualizado_en": "2026-06-08T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000004",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Oud Noir",
+    "precio": 3500,
+    "fotos": [
+      "/seed/productos/oud-noir.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Para él",
+    "activo": true,
+    "destacado": false,
+    "stock": 0,
+    "likes": 22,
+    "creado_en": "2026-05-28T16:00:00.000Z",
+    "actualizado_en": "2026-06-17T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000005",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Amber Nights",
+    "precio": 3000,
+    "fotos": [
+      "/seed/productos/amber-nights.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Para él",
+    "activo": true,
+    "destacado": false,
+    "stock": 6,
+    "likes": 18,
+    "creado_en": "2026-06-06T16:00:00.000Z",
+    "actualizado_en": "2026-06-26T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000006",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Vainilla Brisa",
+    "precio": 1900,
+    "fotos": [
+      "/seed/productos/vainilla-brisa.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Unisex",
+    "activo": true,
+    "destacado": false,
+    "stock": 8,
+    "likes": 15,
+    "creado_en": "2026-06-15T16:00:00.000Z",
+    "actualizado_en": "2026-07-05T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000007",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Rosa Dunas",
+    "precio": 2200,
+    "fotos": [
+      "/seed/productos/rosa-dunas.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Para ella",
+    "activo": true,
+    "destacado": false,
+    "stock": 3,
+    "likes": 12,
+    "creado_en": "2026-06-24T16:00:00.000Z",
+    "actualizado_en": "2026-07-14T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000008",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Yara",
+    "precio": 2600,
+    "fotos": [
+      "/seed/productos/yara.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Para ella",
+    "activo": true,
+    "destacado": false,
+    "stock": 5,
+    "likes": 10,
+    "creado_en": "2026-07-03T16:00:00.000Z",
+    "actualizado_en": "2026-07-23T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000009",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Musk Blanc",
+    "precio": 2100,
+    "fotos": [
+      "/seed/productos/musk-blanc.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Unisex",
+    "activo": true,
+    "destacado": false,
+    "stock": 7,
+    "likes": 6,
+    "creado_en": "2026-07-12T16:00:00.000Z",
+    "actualizado_en": "2026-08-01T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000010",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Cítrico Sol",
+    "precio": 1800,
+    "fotos": [
+      "/seed/productos/citrico-sol.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Unisex",
+    "activo": false,
+    "destacado": false,
+    "stock": 2,
+    "likes": 3,
+    "creado_en": "2026-07-21T16:00:00.000Z",
+    "actualizado_en": "2026-08-10T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000011",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Aretes Luna Llena",
+    "precio": 850,
+    "fotos": [
+      "/seed/productos/aretes-luna-llena.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Aretes",
+    "activo": true,
+    "destacado": true,
+    "stock": 5,
+    "likes": 21,
+    "creado_en": "2026-05-01T16:00:00.000Z",
+    "actualizado_en": "2026-05-21T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000012",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Collar Marea",
+    "precio": 1450,
+    "fotos": [
+      "/seed/productos/collar-marea.svg"
+    ],
+    "foto_retocada": true,
+    "categoria": "Collares",
+    "activo": true,
+    "destacado": true,
+    "stock": 2,
+    "likes": 17,
+    "creado_en": "2026-05-10T16:00:00.000Z",
+    "actualizado_en": "2026-05-30T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000013",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Pulsera Coral",
+    "precio": 650,
+    "fotos": [
+      "/seed/productos/pulsera-coral.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Pulseras",
+    "activo": true,
+    "destacado": false,
+    "stock": 9,
+    "likes": 11,
+    "creado_en": "2026-05-19T16:00:00.000Z",
+    "actualizado_en": "2026-06-08T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000014",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Choker Perla",
+    "precio": 1200,
+    "fotos": [
+      "/seed/productos/choker-perla.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Collares",
+    "activo": true,
+    "destacado": false,
+    "stock": 1,
+    "likes": 9,
+    "creado_en": "2026-05-28T16:00:00.000Z",
+    "actualizado_en": "2026-06-17T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000015",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Anillo Brisa",
+    "precio": 500,
+    "fotos": [
+      "/seed/productos/anillo-brisa.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Anillos",
+    "activo": true,
+    "destacado": false,
+    "stock": null,
+    "likes": 5,
+    "creado_en": "2026-06-06T16:00:00.000Z",
+    "actualizado_en": "2026-06-26T16:00:00.000Z"
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000016",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Tobillera Arena",
+    "precio": 450,
+    "fotos": [
+      "/seed/productos/tobillera-arena.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Pulseras",
+    "activo": true,
+    "destacado": false,
+    "stock": 4,
+    "likes": 2,
+    "creado_en": "2026-06-15T16:00:00.000Z",
+    "actualizado_en": "2026-07-05T16:00:00.000Z"
+  }
+]

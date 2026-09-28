@@ -1,0 +1,145 @@
+[
+  {
+    "id": "a5000000-0000-4000-8000-000000000001",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2026-09-16T11:00:00.000Z",
+    "despachado_en": "2026-09-17T07:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000002",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000002",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 5100,
+    "codigo_promo": null,
+    "creado_en": "2026-09-19T14:00:00.000Z",
+    "despachado_en": "2026-09-20T10:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000003",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 5130,
+    "codigo_promo": "AAAH10",
+    "creado_en": "2026-09-23T09:00:00.000Z",
+    "despachado_en": "2026-09-24T05:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000004",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 2600,
+    "codigo_promo": null,
+    "creado_en": "2026-09-24T13:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000005",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 3800,
+    "codigo_promo": null,
+    "creado_en": "2026-09-25T15:00:00.000Z",
+    "despachado_en": "2026-09-26T11:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000006",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "origen": "manual",
+    "estado": "por_despachar",
+    "total": 3000,
+    "codigo_promo": null,
+    "creado_en": "2026-09-26T12:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000007",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000005",
+    "origen": "catalogo",
+    "estado": "por_despachar",
+    "total": 6000,
+    "codigo_promo": null,
+    "creado_en": "2026-09-27T14:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000008",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000002",
+    "origen": "catalogo",
+    "estado": "nuevo",
+    "total": 4400,
+    "codigo_promo": null,
+    "creado_en": "2026-09-27T20:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000009",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
+    "origen": "catalogo",
+    "estado": "nuevo",
+    "total": 5300,
+    "codigo_promo": null,
+    "creado_en": "2026-09-28T13:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000010",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "cliente_id": "a4000000-0000-4000-8000-000000000007",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-09-20T16:00:00.000Z",
+    "despachado_en": "2026-09-21T12:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000011",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "cliente_id": "a4000000-0000-4000-8000-000000000008",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1300,
+    "codigo_promo": null,
+    "creado_en": "2026-09-24T10:00:00.000Z",
+    "despachado_en": "2026-09-25T06:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000012",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "origen": "manual",
+    "estado": "por_despachar",
+    "total": 950,
+    "codigo_promo": null,
+    "creado_en": "2026-09-27T10:00:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000013",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "cliente_id": "a4000000-0000-4000-8000-000000000007",
+    "origen": "catalogo",
+    "estado": "nuevo",
+    "total": 2120,
+    "codigo_promo": "LUNA20",
+    "creado_en": "2026-09-28T11:00:00.000Z",
+    "despachado_en": null
+  }
+]
