@@ -19,6 +19,8 @@ orden:
 5. `docs/05-arquitectura.md` — cómo se construye esto con datos falsos hoy sin tener que rehacerlo cuando se conecte Supabase.
 6. `docs/06-orden-de-construccion.md` — en qué orden construir, y el criterio de "listo" de cada paso.
 
+Además, en `referencias/` hay un prototipo visual del panel (`panel-de-tienda-prototipo.html`) y otros HTML de referencia. Ábrelos en el navegador para ver el diseño esperado (ver `referencias/LEEME.md`); si contradicen los `docs/`, mandan los `docs/`.
+
 ## Importante sobre esta versión de Next.js
 
 Este proyecto usa **Next.js 16** (App Router), que tiene cambios respecto a
