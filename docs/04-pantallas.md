@@ -52,8 +52,14 @@ px) y contador (18 px); solo en último caso la fila se desplaza.
 **Barra de estado** (hora, batería): detrás va el mismo Papel Cálido de la
 pantalla (`html`, `body`, `themeColor` y el manifiesto en `#FFF9EE`; el marco más
 oscuro solo en pantallas de más de 480 px). Con el scroll arriba no hay franja;
-al desplazar aparece un borde de desplazamiento crema con desenfoque progresivo
-(`components/panel/borde-estado.tsx`, mismas clases `.hoja-borde` que las hojas).
+al desplazar el contenido pasa POR DETRÁS de la barra de estado, difuminado y con
+sus matices (nunca un bloque opaco ni un corte): capa fija de y=0 a
+safe-area-inset-top + 28 px (`components/panel/borde-estado.tsx`), con las mismas
+capas de desenfoque progresivo (1→8 px) de `.hoja-borde` y un velo crema
+translúcido de 0 (abajo) a 0.75 (arriba; `--velo` en `.hoja-borde-estado`; las
+hojas usan 0.94). Su opacidad (`--borde`) sube de 0 a 1 en los primeros 24 px de
+scroll, escrita desde un listener pasivo con `requestAnimationFrame`, sin
+re-render.
 El prototipo (ícono activo expandido en píldora verde con su nombre al lado)
 **ya no aplica**: no volver a ese diseño ni a un selector de ancho fijo.
 

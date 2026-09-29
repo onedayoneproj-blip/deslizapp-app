@@ -82,14 +82,19 @@
 .hoja-borde {
   --rampa: min(100%, 128px);
 }
+/* Borde de la barra de estado de las pantallas (components/panel/borde-estado.tsx): mismas capas, pero con
+   el velo crema más translúcido (--velo arriba del todo) para que el contenido se siga viendo detrás. */
+.hoja-borde-estado {
+  --velo: 0.75;
+}
 .hoja-borde > .hoja-borde-color {
   /* Translúcido: se alcanzan a ver matices del contenido detrás. 0.94 arriba, 0.82 a media rampa, 0 abajo. */
   background: linear-gradient(
     to top,
     rgb(255 249 238 / 0) 0%,
-    rgb(255 249 238 / 0.82) calc(var(--rampa) * 0.45),
-    rgb(255 249 238 / 0.94) var(--rampa),
-    rgb(255 249 238 / 0.94) 100%
+    rgb(255 249 238 / calc(var(--velo, 0.94) * 0.87)) calc(var(--rampa) * 0.45),
+    rgb(255 249 238 / var(--velo, 0.94)) var(--rampa),
+    rgb(255 249 238 / var(--velo, 0.94)) 100%
   );
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
