@@ -40,7 +40,20 @@ variable**: mide el contenido de la pestaña (ícono o nombre, lo más ancho) +
   cápsula (6 px del borde, siguiendo su curva).
 - Con "reducir movimiento": sin resorte ni estiramiento, cambio directo.
 Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
-"Pedidos", un contador Mandarina con el número de pedidos `nuevo`.
+"Pedidos", un contador Mandarina con el número de pedidos `nuevo`
+(`components/contador.tsx`, el mismo de las pastillas de filtro).
+
+**Pastillas de filtro** (`Segmentos`): el número va en ese mismo contador
+Mandarina (círculo; con 2–3 cifras se estira a píldora; desde 100, "99+"), a la
+derecha del nombre y **oculto cuando es 0**. Si las pastillas no caben en el
+ancho, se compactan por pasos: padding y espacios primero, luego letra (hasta 12
+px) y contador (18 px); solo en último caso la fila se desplaza.
+
+**Barra de estado** (hora, batería): detrás va el mismo Papel Cálido de la
+pantalla (`html`, `body`, `themeColor` y el manifiesto en `#FFF9EE`; el marco más
+oscuro solo en pantallas de más de 480 px). Con el scroll arriba no hay franja;
+al desplazar aparece un borde de desplazamiento crema con desenfoque progresivo
+(`components/panel/borde-estado.tsx`, mismas clases `.hoja-borde` que las hojas).
 El prototipo (ícono activo expandido en píldora verde con su nombre al lado)
 **ya no aplica**: no volver a ese diseño ni a un selector de ancho fijo.
 

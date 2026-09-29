@@ -9,7 +9,6 @@ import type { EstadoPromo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
-import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { TarjetaPromo } from "./tarjeta-promo";
@@ -87,11 +86,8 @@ export function VistaPromos({ children }: { children: ReactNode }) {
           alCambiar={setPestana}
           opciones={PESTANAS.map((t) => ({
             id: t.id,
-            texto: (
-              <>
-                {t.nombre} {promos ? <Numero valor={cuentas[t.id]} /> : ""}
-              </>
-            ),
+            texto: t.nombre,
+              cantidad: promos ? cuentas[t.id] : undefined,
           }))}
         />
 

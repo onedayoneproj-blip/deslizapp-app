@@ -269,8 +269,20 @@ html {
   }
 }
 
+/* El fondo de la página es el mismo Papel Cálido de las pantallas: es lo que se ve detrás de la barra
+   de estado (viewport-fit=cover) y en el rebote del scroll. El marco más oscuro solo en pantallas anchas,
+   alrededor de la columna de la app. */
+html,
 body {
-  background: var(--color-marco);
+  background: var(--color-papel);
+}
+@media (min-width: 481px) {
+  html,
+  body {
+    background: var(--color-marco);
+  }
+}
+body {
   color: var(--color-tinta);
   font-family: var(--font-sans);
 }

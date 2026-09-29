@@ -10,7 +10,6 @@ import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
-import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { ChipEstado } from "./comunes";
@@ -74,11 +73,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             alCambiar={setPestana}
             opciones={PESTANAS.map((t) => ({
               id: t.id,
-              texto: (
-                <>
-                  {t.nombre} {pedidos ? <Numero valor={cuentas[t.id]} /> : ""}
-                </>
-              ),
+              texto: t.nombre,
+              cantidad: pedidos ? cuentas[t.id] : undefined,
             }))}
           />
 

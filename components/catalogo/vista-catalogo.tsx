@@ -119,11 +119,8 @@ export function VistaCatalogo() {
             }
             opciones={FILTROS.map((f) => ({
               id: f.id,
-              texto: (
-                <>
-                  {f.nombre} {productos ? <Numero valor={productos.filter(f.cumple).length} /> : ""}
-                </>
-              ),
+              texto: f.nombre,
+              cantidad: productos ? productos.filter(f.cumple).length : undefined,
             }))}
           />
 

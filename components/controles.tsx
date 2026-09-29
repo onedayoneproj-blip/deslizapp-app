@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Contador } from "./contador";
 
 /** Chip seleccionable (colecciones, opciones sueltas): verde lleno si está elegido, blanco con borde si no. */
 export function Chip({
@@ -69,10 +70,21 @@ export function Interruptor({
  * anima el ancho y las puntas no se deforman.
  *
  * Ancho: las opciones se reparten el ancho útil (mismo margen lateral que el resto de la pantalla,
- * sin desplazamiento). Si con números grandes no caben, la fila se desplaza en horizontal SIN
+ * sin desplazamiento). Si no caben, se compactan por pasos (COMPACTO: primero el padding y los
+ * espacios, después la letra y el contador) y solo si aun así no caben, la fila se desplaza en horizontal SIN
  * barra visible y conservando el margen al inicio y al final (el padding va en la fila interior,
  * no en el contenedor que se desplaza: ahí algunos navegadores ignoran el final). Alto táctil: 44 px.
  */
+/** Pasos de compactación de Segmentos, del más holgado al más apretado (el 0 es el normal). */
+const COMPACTO: Record<string, string>[] = [
+  {},
+  { "--seg-px": "5px", "--seg-gap": "4px", "--seg-gi": "5px" },
+  { "--seg-px": "4px", "--seg-gap": "4px", "--seg-gi": "4px", "--seg-letra": "12.5px", "--contador": "20px" },
+  { "--seg-px": "3px", "--seg-gap": "4px", "--seg-gi": "4px", "--seg-letra": "12px", "--contador": "18px", "--contador-letra": "10.5px" },
+  { "--seg-px": "3px", "--seg-gap": "3px", "--seg-gi": "3px", "--seg-letra": "12px", "--contador": "18px", "--contador-letra": "10.5px" },
+];
+const VARIABLES = Object.keys(COMPACTO.at(-1)!);
+
 export function Segmentos<T extends string>({
   opciones,
   valor,
@@ -80,13 +92,15 @@ export function Segmentos<T extends string>({
   etiqueta,
   alto = 44,
 }: {
-  opciones: { id: T; texto: ReactNode }[];
+  /** `cantidad`: número de la opción, en un Contador Mandarina a la derecha del nombre (en 0 no se muestra). */
+  opciones: { id: T; texto: ReactNode; cantidad?: number }[];
   valor: T;
   alCambiar: (id: T) => void;
   etiqueta: string;
   alto?: number;
 }) {
   const botones = useRef<Map<T, HTMLButtonElement>>(new Map());
+  const lista = useRef<HTMLDivElement>(null);
   const [caja, setCaja] = useState<{ x: number; ancho: number } | null>(null);
   // Posición de TODAS las opciones: cada una lleva su relleno blanco en una capa propia debajo del indicador
   // (así el indicador sigue deslizándose por encima) y ninguna pastilla depende de lo que haya detrás.
@@ -95,6 +109,17 @@ export function Segmentos<T extends string>({
 
   useLayoutEffect(() => {
     const medir = () => {
+      // Compactación: se escribe directo en el DOM (variables CSS) y se mide en el mismo paso, sin
+      // estado de React. Siempre desde el paso 0, así al haber más sitio vuelve a lo normal.
+      const l = lista.current;
+      const scroll = l?.parentElement;
+      if (l && scroll) {
+        for (const paso of COMPACTO) {
+          VARIABLES.forEach((v) => l.style.removeProperty(v));
+          Object.entries(paso).forEach(([v, x]) => l.style.setProperty(v, x));
+          if (scroll.scrollWidth <= scroll.clientWidth) break;
+        }
+      }
       const b = botones.current.get(valor);
       if (b) setCaja({ x: b.offsetLeft, ancho: b.offsetWidth });
       setCajas([...botones.current].map(([id, el]) => ({ id, x: el.offsetLeft, ancho: el.offsetWidth })));
@@ -102,6 +127,7 @@ export function Segmentos<T extends string>({
     medir();
     const ro = new ResizeObserver(medir);
     botones.current.forEach((b) => ro.observe(b));
+    if (lista.current?.parentElement) ro.observe(lista.current.parentElement);
     return () => ro.disconnect();
   }, [valor, opciones.length]);
 
@@ -110,7 +136,7 @@ export function Segmentos<T extends string>({
 
   return (
     <div className="-mx-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-    <div role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full gap-1.5 px-5">
+    <div ref={lista} role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full gap-(--seg-gap,6px) px-5">
       {/* Relleno blanco sólido de cada pastilla (sin transparencia, con su borde) */}
       {cajas.map((c) => (
         <span
@@ -133,7 +159,7 @@ export function Segmentos<T extends string>({
           />
         </span>
       )}
-      {opciones.map(({ id, texto }) => {
+      {opciones.map(({ id, texto, cantidad }) => {
         const elegido = id === valor;
         return (
           <button
@@ -147,11 +173,12 @@ export function Segmentos<T extends string>({
               alCambiar(id);
             }}
             style={{ height: alto }}
-            className={`tocable relative z-10 min-w-0 shrink-0 grow rounded-full border-[1.5px] px-2 text-center text-[13px] min-[390px]:text-[13.5px] font-bold tracking-tight whitespace-nowrap ${
+            className={`tocable relative z-10 inline-flex min-w-0 shrink-0 grow items-center justify-center gap-(--seg-gi,6px) rounded-full border-[1.5px] px-(--seg-px,8px) text-center text-[length:var(--seg-letra,13px)] min-[390px]:text-[length:var(--seg-letra,13.5px)] font-bold tracking-tight whitespace-nowrap ${
               elegido ? "border-transparent text-papel" : "border-transparent text-bosque"
             }`}
           >
             {texto}
+            {cantidad !== undefined && <Contador valor={cantidad} tamano="pastilla" />}
           </button>
         );
       })}

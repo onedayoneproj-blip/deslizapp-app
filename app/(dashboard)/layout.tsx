@@ -1,3 +1,4 @@
+import { BordeEstado } from "@/components/panel/borde-estado";
 import { Encabezado } from "@/components/panel/encabezado";
 import { NavInferior } from "@/components/panel/nav-inferior";
 import { PantallaCarga } from "@/components/panel/pantalla-carga";
@@ -14,6 +15,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
             <Encabezado />
             <main className="flex-1 pb-[calc(var(--nav-abajo)+32px)]">{children}</main>
           </div>
+          <BordeEstado />
           <NavInferior />
         </PanelUIProvider>
       </ToastProvider>

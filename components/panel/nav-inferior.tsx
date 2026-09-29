@@ -31,7 +31,7 @@ import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { hayCampoConFoco, RESORTE } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
-import { Numero } from "../numero";
+import { Contador } from "../contador";
 
 type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number; strokeWidth?: number }> };
 
@@ -343,11 +343,7 @@ export function NavInferior() {
                   >
                     <span className="relative">
                       <Icono tamano={22} strokeWidth={marcada ? 2.3 : 2} />
-                      {badge > 0 && (
-                        <span className="mov-aparece absolute -top-1.5 -right-3 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-mandarina px-1 text-[10.5px] leading-none font-extrabold text-bosque-oscuro">
-                          <Numero valor={badge} />
-                        </span>
-                      )}
+                      <Contador valor={badge} tamano="barra" className="mov-aparece absolute -top-1.5 -right-3" />
                     </span>
                     <span className={`max-w-full truncate px-0.5 text-[11.5px] leading-none ${marcada ? "font-extrabold" : "font-semibold"}`}>
                       {nombre}
