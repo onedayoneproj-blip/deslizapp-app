@@ -56,6 +56,20 @@ propios números.
 **Isotipo:** una "d" minúscula con una flecha apuntando hacia arriba integrada
 en el asta — representa el gesto de deslizar hacia arriba.
 
+## Íconos de las apps
+
+Cada app de Deslizapp tiene su propio ícono, la misma "d" con flecha en dos colores.
+Los originales están en `referencias/iconos/`.
+
+| App | Ícono | Archivo |
+|---|---|---|
+| **Panel de tienda** (esta app, para vendedores) | "d" verde bosque sobre crema | `icono-vendedores.png` |
+| **Marketplace** (futura; reunirá los catálogos de todas las tiendas registradas) | "d" verde bosque sobre rosa suave | `icono-marketplace.png` |
+
+Regla: la app de vendedores nunca usa el ícono rosado, y el marketplace nunca usa el crema.
+Los íconos de la PWA (`public/icons/`, `app/icon.png`) se generan con
+`node scripts/generar-iconos.mjs` desde `icono-vendedores.png`.
+
 ## Qué es de la plataforma y qué es del comercio (catálogos)
 
 El catálogo público es del comercio: debe verse como *su* tienda, no como un

@@ -33,8 +33,10 @@ el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
 
 ## App instalable (PWA)
 
-- `app/manifest.ts` + íconos en `public/icons/` (se regeneran con
-  `node scripts/generar-iconos.mjs` a partir del isotipo).
+- `app/manifest.ts` + íconos en `public/icons/` y `app/icon.png` (se regeneran con
+  `node scripts/generar-iconos.mjs` a partir de `referencias/iconos/icono-vendedores.png`,
+  la "d" verde sobre crema). El ícono rosado es de la futura app marketplace: no se usa aquí
+  (ver "Íconos de las apps" en `docs/01-marca.md`).
 - `public/sw.js` (solo en producción): red primero para páginas y código,
   caché para imágenes, fuentes e íconos. Nunca guarda HTML por adelantado.
 - Aviso "Hay una versión nueva": compara el despliegue compilado
