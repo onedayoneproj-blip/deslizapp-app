@@ -172,20 +172,26 @@ try {
     await ctx.close();
   }
 
-  // ---- Hoja "Nuevo pedido" (+ Pedido): cliente nuevo y código
+  // ---- Hoja "Nuevo pedido" (+ Pedido): selector de cliente con buscador y creación rápida
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL + "/pedidos");
     await page.waitForSelector('a[href="/pedidos/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/pedidos/nuevo"]');
-    await page.waitForSelector('[role="dialog"] [role="tab"]');
+    await page.waitForSelector('[role="dialog"] button[aria-label="Elegir cliente"]');
     await page.waitForTimeout(700);
-    await page.tap('[role="dialog"] [role="tab"]:has-text("Cliente nuevo")');
+    // El foco debe estar en el buscador YA en el mismo toque que abre el selector (teclado de iPhone)
+    await page.tap('[role="dialog"] button[aria-label="Elegir cliente"]');
+    const enfocado = await page.evaluate(() => document.activeElement?.getAttribute("type") === "search" && !!document.activeElement.closest('[role="dialog"]'));
+    ok(enfocado, "Selector de cliente: el buscador tiene el foco justo después del toque que lo abre");
+    await probarCampo(page, '[role="dialog"] input[type="search"]', "Selector de cliente · Buscador", "zzqx", { dentroDeHoja: true });
+    await page.tap('[role="dialog"] >> text=Crear cliente «zzqx»');
     await page.waitForSelector('[role="dialog"] input[aria-label="Nombre del cliente"]');
-    await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Nuevo pedido · Cliente", "Marina", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Nuevo pedido · WhatsApp", "8095550123", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: LUNA20"]', "Nuevo pedido · Código", "ABC", { dentroDeHoja: true });
+    await page.fill('[role="dialog"] input[aria-label="Nombre del cliente"]', ""); // viene con lo que se buscó
+    await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Crear cliente · Nombre", "Marina", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Crear cliente · WhatsApp", "8095550123", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] textarea', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
     ok(errores.length === 0, `Nuevo pedido: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -204,6 +210,7 @@ try {
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Paola Jiménez"]', "Cliente nuevo · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[type="tel"]', "Cliente nuevo · WhatsApp", "8095551234", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] textarea', "Cliente nuevo · Nota", "Talla M", { dentroDeHoja: true });
     ok(errores.length === 0, `Clientes: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

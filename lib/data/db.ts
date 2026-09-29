@@ -63,6 +63,14 @@ export function esDB(valor: unknown): valor is DB {
   );
 }
 
+/**
+ * Migración suave de lo guardado en localStorage: datos de versiones anteriores sin campos nuevos
+ * (ej. `nota` de clientes) siguen funcionando, con esos campos en su valor vacío. No hace falta reiniciar.
+ */
+export function migrar(db: DB): DB {
+  return { ...db, clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })) };
+}
+
 /** UUID v4. `crypto.randomUUID` solo existe en contextos seguros (https / localhost). */
 export function nuevoId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();

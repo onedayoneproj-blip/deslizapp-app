@@ -178,10 +178,19 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 **Acciones:**
 - Tocar un pedido → Detalle de pedido.
 - Botón **"+ Pedido"** para crear un pedido manual (ventas que no llegaron
-  por el catálogo): elegir cliente existente o escribir nombre + WhatsApp de
-  uno nuevo, elegir productos y cantidades, aplicar código de promo opcional
-  ("¿Usó un código?"). Entra directo en estado `por_despachar` ("Pedido #1043
-  guardado. Está en Por despachar.").
+  por el catálogo): elegir cliente, elegir productos y cantidades, aplicar
+  código de promo opcional ("¿Usó un código?"). Entra directo en estado
+  `por_despachar` ("Pedido #1043 guardado. Está en Por despachar.").
+- **Elegir cliente** (no es un desplegable): el campo "Cliente" abre, dentro de
+  la misma hoja, un buscador con botón de volver. Sin texto muestra "Recientes"
+  (máx. 8, por último pedido). Al escribir filtra por nombre (sin acentos ni
+  mayúsculas), por teléfono (ignora espacios, guiones, paréntesis y el prefijo
+  1 / +1) y por nota, resaltando en negrita lo que coincide; muestra la nota si
+  coincidió por ella. Sin resultados: "Crear cliente «texto»" (si parece un
+  teléfono llena el WhatsApp; si no, el nombre), con nota opcional; si el
+  WhatsApp ya existe en la tienda, ofrece usar a ese cliente. El elegido se ve
+  como tarjeta con "Cambiar". La misma búsqueda (`lib/buscar-clientes.ts`)
+  se usa en la pantalla Clientes.
 
 ---
 
@@ -236,7 +245,10 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 **Acciones:**
 - Tocar un cliente → hoja con su WhatsApp ("Escribir"), pedidos, total gastado,
   última compra e historial; tocar un pedido del historial abre su detalle.
-- "+ Cliente": nombre + WhatsApp ("Nombre y WhatsApp. Con eso basta."). El
+- **Nota** (opcional, máx. 200 caracteres: "Talla M", "Prefiere entrega en la
+  tarde"): se ve y se edita en la hoja del cliente, y se escribe al crear el
+  cliente. La búsqueda también la encuentra.
+- "+ Cliente": nombre + WhatsApp ("Nombre y WhatsApp. Con eso basta.") y nota. El
   WhatsApp debe ser dominicano (809, 829 o 849 + 7 dígitos; se guarda como
   `+1809…`). Si ya hay un cliente con ese WhatsApp en la tienda, avisa y no lo
   duplica. Un pedido manual con un WhatsApp que ya existe usa a ese cliente.

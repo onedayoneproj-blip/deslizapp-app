@@ -1,7 +1,5 @@
 import { estadoPromo, precioConPromo } from "../promos";
 import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
-import { normalizarTelefonoDO } from "../telefono";
-import { clientePorTelefono } from "./clientes";
 import type { AjusteFecha, DB } from "./db";
 
 export type FilaPedido = {
@@ -132,6 +130,7 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
       telefono: `+1809555${String(Math.floor(azar() * 10000)).padStart(4, "0")}`,
       origen: "catalogo",
       primerPedidoEn: ahora,
+      nota: null,
     };
     clientes = [...clientes, cliente];
   }
@@ -219,10 +218,8 @@ export function despacharPedido(db: DB, tiendaId: string, id: string, ahora: str
 // ---- Pedido manual ----
 
 export type DatosPedidoManual = {
-  /** Cliente que ya existe… */
-  clienteId?: string;
-  /** …o uno nuevo. */
-  clienteNuevo?: { nombre: string; telefono: string };
+  /** Cliente de la tienda (si es nuevo, se crea antes con `crearCliente`). */
+  clienteId: string;
   items: { productoId: string; cantidad: number }[];
   /** Código de promo que usó el cliente (opcional). */
   codigo?: string;
@@ -268,28 +265,8 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
   const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
   const promo = datos.codigo ? buscarCodigoPromo(db.promos, tiendaId, datos.codigo, new Date(ahora)) : null;
 
-  let clientes = db.clientes;
-  let cliente: Cliente;
-  if (datos.clienteId) {
-    const existente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
-    if (!existente) throw new Error("Ese cliente no es de esta tienda.");
-    cliente = existente;
-  } else if (datos.clienteNuevo?.nombre.trim()) {
-    const telefono = normalizarTelefonoDO(datos.clienteNuevo.telefono) ?? (datos.clienteNuevo.telefono.replace(/[^\d+]/g, "") || null);
-    const mismo = clientePorTelefono(db, tiendaId, telefono);
-    // Si ese WhatsApp ya es de un cliente de la tienda, el pedido es de esa persona (no se duplica).
-    cliente = mismo ?? {
-      id: nuevoId(),
-      tiendaId,
-      nombre: datos.clienteNuevo.nombre.trim(),
-      telefono,
-      origen: "manual",
-      primerPedidoEn: ahora,
-    };
-    if (!mismo) clientes = [...clientes, cliente];
-  } else {
-    throw new Error("El pedido necesita un cliente.");
-  }
+  const cliente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
+  if (!cliente) throw new Error("Ese cliente no es de esta tienda.");
 
   const pedido: Pedido = {
     id: pedidoId,
@@ -303,5 +280,5 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
     creadoEn: ahora,
     despachadoEn: null,
   };
-  return { db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], clientes }, pedido: { ...pedido, items } satisfies PedidoConItems, cliente };
+  return { db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items] }, pedido: { ...pedido, items } satisfies PedidoConItems, cliente };
 }

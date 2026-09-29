@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { ClienteConResumen, PedidoConItems } from "@/lib/types";
 import { Hoja } from "../hoja";
+import { useToast } from "../toast";
+import { CampoNota } from "./campo-nota";
 import { IconoWhatsApp } from "../iconos";
 import { ChipEstado } from "../pedidos/comunes";
 import { Avatar, EtiquetaRepite } from "./comunes";
@@ -39,15 +41,32 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
   }
   if (!pedidos) return null;
 
+  // "grande": tiene un campo de texto (la nota) y la hoja no cambia de tamaño con el teclado
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Cliente">
+    <Hoja abierta alCerrar={cerrar} titulo="Cliente" altura="grande">
       <Detalle cliente={cliente} pedidos={pedidos.filter((p) => p.clienteId === cliente.id)} />
     </Hoja>
   );
 }
 
 function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: PedidoConItems[] }) {
-  const { tienda } = useTiendaActiva();
+  const { actualizarNotaCliente } = useData();
+  const { tienda, tiendaId } = useTiendaActiva();
+  const toast = useToast();
+  const [nota, setNota] = useState(cliente.nota ?? "");
+  const [guardando, setGuardando] = useState(false);
+  const cambiada = nota.trim() !== (cliente.nota ?? "");
+  const guardarNota = async () => {
+    setGuardando(true);
+    try {
+      await actualizarNotaCliente(tiendaId, cliente.id, nota);
+      toast(nota.trim() ? "Nota guardada." : "Nota borrada.");
+    } catch {
+      toast("No se pudo guardar. Inténtalo otra vez.");
+    } finally {
+      setGuardando(false);
+    }
+  };
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
   const primerNombre = cliente.nombre.split(" ")[0];
   const mensaje = `Hola ${primerNombre}, te escribo de ${tienda?.nombre ?? "la tienda"}.`;
@@ -87,6 +106,20 @@ function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: Pe
           <div className="font-display text-[22px] leading-tight">{formatearPesos(cliente.totalGastado)}</div>
           <div className="text-xs font-bold">en total{cliente.ultimaCompra ? ` · última compra ${fechaCorta(cliente.ultimaCompra).toLowerCase()}` : ""}</div>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <CampoNota valor={nota} alCambiar={setNota} />
+        {cambiada && (
+          <button
+            type="button"
+            onClick={guardarNota}
+            disabled={guardando}
+            className="tocable h-11 rounded-full bg-bosque text-[14.5px] font-extrabold text-papel disabled:opacity-60"
+          >
+            Guardar nota
+          </button>
+        )}
       </div>
 
       <div>

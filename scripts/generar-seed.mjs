@@ -121,19 +121,19 @@ eventos_aaah.sort((a, b) => a.creado_en.localeCompare(b.creado_en));
 // ---------- clientes ----------
 let nCli = 0;
 const clientes = [];
-function cliente(tiendaId, nombre, telefono, origen, altaMs) {
-  const c = { id: uid("a4000000", ++nCli), tienda_id: tiendaId, nombre, telefono, origen, primer_pedido_en: iso(altaMs), pedidos_count: 0 };
+function cliente(tiendaId, nombre, telefono, origen, altaMs, nota = null) {
+  const c = { id: uid("a4000000", ++nCli), tienda_id: tiendaId, nombre, telefono, origen, primer_pedido_en: iso(altaMs), pedidos_count: 0, nota };
   c._primero = null;
   clientes.push(c);
   return c;
 }
-const carolina = cliente(T_MICHEL, "Carolina Peña", "+18095550142", "catalogo", REF - 30 * D);
-const luis = cliente(T_MICHEL, "Luis Marte", "+18295550178", "catalogo", REF - 30 * D);
-const yeimy = cliente(T_MICHEL, "Yeimy Rosario", "+18495550115", "manual", REF - 30 * D);
+const carolina = cliente(T_MICHEL, "Carolina Peña", "+18095550142", "catalogo", REF - 30 * D, "Talla M. Le encantan los aretes largos");
+const luis = cliente(T_MICHEL, "Luis Marte", "+18295550178", "catalogo", REF - 30 * D, "Prefiere entrega en la tarde");
+const yeimy = cliente(T_MICHEL, "Yeimy Rosario", "+18495550115", "manual", REF - 30 * D, "Compra para regalos: pregunta siempre por la envoltura");
 const anyelo = cliente(T_MICHEL, "Anyelo Brito", "+18095550190", "catalogo", REF - 30 * D);
 cliente(T_MICHEL, "Paola Jiménez", "+18295550163", "manual", REF - 6 * D); // todavía no pide
-const anaLucia = cliente(T_LUNA, "Ana Lucía Ferreira", "+18095557730", "catalogo", REF - 30 * D);
-const marcos = cliente(T_LUNA, "Marcos Peralta", "+18295556014", "catalogo", REF - 30 * D);
+const anaLucia = cliente(T_LUNA, "Ana Lucía Ferreira", "+18095557730", "catalogo", REF - 30 * D, "Alérgica al níquel: solo piezas hipoalergénicas");
+const marcos = cliente(T_LUNA, "Marcos Peralta", "+18295556014", "catalogo", REF - 30 * D, "Talla de anillo 9");
 const wendy = cliente(T_LUNA, "Wendy Sosa", "+18495552185", "manual", REF - 30 * D);
 
 // ---------- promos ----------

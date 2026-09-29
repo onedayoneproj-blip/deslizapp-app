@@ -1,19 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { buscarCodigoPromo, descuentoDeCodigo } from "@/lib/data/pedidos";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
-import { normalizarTelefonoDO } from "@/lib/telefono";
+import { formatearTelefono } from "@/lib/telefono";
 import { precioConPromo } from "@/lib/promos";
 import type { ClienteConResumen, Producto, Promo } from "@/lib/types";
-import { Segmentos } from "../controles";
+import { Avatar } from "../clientes/comunes";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
+import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
 
 const campo =
@@ -54,10 +56,10 @@ function Formulario({
   const elegirPestana = useElegirPestanaPedidos();
   const toast = useToast();
 
-  const [modo, setModo] = useState<"existente" | "nuevo">(clientes.length > 0 ? "existente" : "nuevo");
-  const [clienteId, setClienteId] = useState("");
-  const [nombre, setNombre] = useState("");
-  const [telefono, setTelefono] = useState("");
+  // El selector de cliente es otra vista DENTRO de esta misma hoja (no una segunda hoja).
+  const [vista, setVista] = useState<"pedido" | "cliente">("pedido");
+  const [cliente, setCliente] = useState<ClienteElegido | null>(null);
+  const buscador = useRef<HTMLInputElement>(null);
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [codigo, setCodigo] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -72,19 +74,28 @@ function Formulario({
   const descuento = descuentoDeCodigo(promo, subtotal);
   const codigoMalo = codigo.trim() !== "" && !promo;
 
-  const telefonoMalo = modo === "nuevo" && telefono.trim() !== "" && normalizarTelefonoDO(telefono) === null;
-  const clienteListo = modo === "existente" ? clienteId !== "" : nombre.trim() !== "" && !telefonoMalo;
-  const puedeGuardar = clienteListo && lineas.length > 0 && !codigoMalo && !guardando;
+  const puedeGuardar = cliente !== null && lineas.length > 0 && !codigoMalo && !guardando;
+
+  // El foco va al buscador en el MISMO toque que abre el selector (flushSync pinta la vista ya):
+  // así el teclado del iPhone abre bien. Regla del teclado en HANDOFF.md.
+  const abrirSelector = () => {
+    flushSync(() => setVista("cliente"));
+    buscador.current?.focus({ preventScroll: true });
+  };
+  const elegir = (c: ClienteElegido) => {
+    setCliente(c);
+    setVista("pedido");
+  };
 
   const cambiar = (id: string, delta: number) =>
     setCantidades((c) => ({ ...c, [id]: Math.min(99, Math.max(0, (c[id] ?? 0) + delta)) }));
 
   const guardar = async () => {
-    if (!puedeGuardar) return;
+    if (!puedeGuardar || !cliente) return;
     setGuardando(true);
     try {
       const { pedido } = await crearPedidoManual(tiendaId, {
-        ...(modo === "existente" ? { clienteId } : { clienteNuevo: { nombre, telefono } }),
+        clienteId: cliente.id,
         items: lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
         codigo: promo ? codigo : undefined,
       });
@@ -97,56 +108,36 @@ function Formulario({
     }
   };
 
+  if (vista === "cliente") {
+    return <SelectorCliente clientes={clientes} entrada={buscador} alElegir={elegir} alVolver={() => setVista("pedido")} />;
+  }
+
   return (
     <div className="flex flex-col gap-3.5">
       <p className="text-[13.5px] font-bold">Cliente</p>
-      {clientes.length > 0 && (
-        <Segmentos
-          etiqueta="Tipo de cliente"
-          valor={modo}
-          alCambiar={setModo}
-          opciones={[
-            { id: "existente", texto: "Ya es cliente" },
-            { id: "nuevo", texto: "Cliente nuevo" },
-          ]}
-        />
-      )}
-      {modo === "existente" ? (
-        <select
-          value={clienteId}
-          onChange={(e) => setClienteId(e.target.value)}
-          aria-label="Cliente"
-          className={`${campo} ${clienteId ? "" : "text-suave"}`}
-        >
-          <option value="">Elige un cliente</option>
-          {clientes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
+      {cliente ? (
+        <div className="flex items-center gap-3 rounded-[20px] border border-linea bg-white p-3">
+          <Avatar nombre={cliente.nombre} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-extrabold">{cliente.nombre}</p>
+            {cliente.telefono && <p className="truncate text-[13px] text-suave">{formatearTelefono(cliente.telefono)}</p>}
+          </div>
+          <button type="button" onClick={abrirSelector} className="tocable h-11 shrink-0 rounded-full border-[1.5px] border-bosque px-4 text-sm font-extrabold">
+            Cambiar
+          </button>
+        </div>
       ) : (
-        <>
-          <input
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Nombre del cliente"
-            aria-label="Nombre del cliente"
-            autoComplete="off"
-            className={campo}
-          />
-          <input
-            type="tel"
-            inputMode="tel"
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18))}
-            placeholder="WhatsApp: 809-000-0000"
-            aria-label="WhatsApp del cliente"
-            className={campo}
-          />
-          {telefonoMalo && <span className="-mt-2 text-[12.5px] font-semibold text-[#b4432a]">Escríbelo con 809, 829 o 849 y 7 dígitos más.</span>}
-        </>
+        <button
+          type="button"
+          onClick={abrirSelector}
+          aria-label="Elegir cliente"
+          className={`${campo} tocable flex items-center justify-between text-left text-suave`}
+        >
+          Busca o crea un cliente
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
       )}
 
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>

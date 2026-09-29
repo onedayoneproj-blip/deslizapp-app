@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { startTransition, useMemo, useState, type ReactNode } from "react";
+import { buscarClientes, resaltar, resaltarTelefono, type DondeCoincide } from "@/lib/buscar-clientes";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { formatearTelefono } from "@/lib/telefono";
 import type { ClienteConResumen } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
@@ -13,14 +15,7 @@ import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { Avatar, EtiquetaRepite } from "./comunes";
-
-/** "Shé" → "she": buscar sin que importen tildes ni mayúsculas. */
-const normalizar = (texto: string) =>
-  texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
+import { TextoResaltado } from "./texto-resaltado";
 
 /**
  * Pantalla de Clientes. Vive en el layout de /clientes para que la búsqueda siga ahí al abrir y
@@ -33,17 +28,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const [busqueda, setBusqueda] = useState("");
   const [aplicada, setAplicada] = useState("");
 
-  const visibles = useMemo(() => {
-    const q = normalizar(aplicada);
-    const digitos = aplicada.replace(/\D/g, "");
-    return (clientes ?? []).filter(
-      (c) =>
-        !q ||
-        normalizar(c.nombre).includes(q) ||
-        // El teléfono se busca por dígitos: "809555" o "809-555" encuentran +1 809 555 0142
-        (digitos.length >= 3 && (c.telefono ?? "").replace(/\D/g, "").includes(digitos)),
-    );
-  }, [clientes, aplicada]);
+  const visibles = useMemo(() => buscarClientes(clientes ?? [], aplicada), [clientes, aplicada]);
 
   const total = clientes?.length ?? 0;
   const repiten = clientes?.filter((c) => c.repite).length ?? 0;
@@ -89,9 +74,9 @@ export function VistaClientes({ children }: { children: ReactNode }) {
         )}
         {visibles.length > 0 && (
           <ul className="rounded-[24px] border border-linea bg-white px-3.5">
-            {visibles.map((c) => (
-              <li key={c.id} className="border-b border-arena last:border-b-0">
-                <FilaCliente cliente={c} />
+            {visibles.map(({ cliente, coincide }) => (
+              <li key={cliente.id} className="border-b border-arena last:border-b-0">
+                <FilaCliente cliente={cliente} coincide={coincide} consulta={aplicada} />
               </li>
             ))}
           </ul>
@@ -114,19 +99,28 @@ function Contador({ valor, texto, rosa = false }: { valor: number | null; texto:
   );
 }
 
-function FilaCliente({ cliente: c }: { cliente: ClienteConResumen }) {
+function FilaCliente({ cliente: c, coincide, consulta }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string }) {
   return (
     <Link href={`/clientes/${c.id}`} scroll={false} aria-label={`Cliente ${c.nombre}`} className="tocable flex items-center gap-3 py-3 text-bosque">
       <Avatar nombre={c.nombre} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[15.5px] font-extrabold">
-          <span className="truncate">{c.nombre}</span>
+          <span className="truncate">
+            <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
+          </span>
           {c.repite && <EtiquetaRepite />}
         </span>
         <span className="block truncate text-[13px] text-suave">
-          {c.pedidos > 0
-            ? `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
-            : "Todavía no pide. Todavía."}
+          {/* Si salió por el teléfono o por la nota, se muestra eso para ver por qué coincidió */}
+          {coincide === "telefono" && c.telefono ? (
+            <TextoResaltado trozos={resaltarTelefono(formatearTelefono(c.telefono), consulta)} />
+          ) : coincide === "nota" && c.nota ? (
+            <TextoResaltado trozos={resaltar(c.nota, consulta)} />
+          ) : c.pedidos > 0 ? (
+            `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
+          ) : (
+            "Todavía no pide. Todavía."
+          )}
         </span>
       </span>
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-suave">

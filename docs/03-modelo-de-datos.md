@@ -106,6 +106,7 @@ cambia después).
 | `telefono` | string \| null | número de WhatsApp |
 | `origen` | `'catalogo' \| 'manual'` | |
 | `primer_pedido_en` | datetime | fecha del primer pedido; si todavía no pide, la fecha en que se creó |
+| `nota` | string \| null | nota libre del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. `null` si no tiene |
 | `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**; se puede recalcular o cachear |
 
 "Repite" en Clientes = `pedidos_count >= 2`. "Total gastado" = suma de

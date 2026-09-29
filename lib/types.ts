@@ -75,6 +75,8 @@ export type Cliente = {
   telefono: string | null;
   origen: OrigenPedido;
   primerPedidoEn: string;
+  /** Nota del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. */
+  nota: string | null;
 };
 
 /**

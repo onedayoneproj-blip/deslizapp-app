@@ -18,8 +18,8 @@ import type {
   Usuario,
 } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
-import { clienteDeTienda, clientesDeTienda, insertarCliente } from "./clientes";
-import { construirDesdeSeed, esDB, nuevoId, type DB } from "./db";
+import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarNotaCliente } from "./clientes";
+import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
 import {
   cambiarEstadoPedido,
   despacharPedido,
@@ -67,7 +67,7 @@ function cargarInicial(version = 0): Estado {
   if (guardado) {
     try {
       const parseado: unknown = JSON.parse(guardado);
-      if (esDB(parseado)) db = parseado;
+      if (esDB(parseado)) db = migrar(parseado);
     } catch {
       // Guardado corrupto: se vuelve al seed.
     }
@@ -241,7 +241,7 @@ const operaciones = {
     return clienteDeTienda(leer().db, tiendaId, id);
   },
   /** "+ Cliente". Lanza ClienteDuplicado si el WhatsApp ya es de otro cliente de la tienda. */
-  async crearCliente(tiendaId: string, datos: { nombre: string; telefono: string }): Promise<Cliente> {
+  async crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null }): Promise<Cliente> {
     let creado!: Cliente;
     escribir((db) => {
       const r = insertarCliente(db, tiendaId, datos, nuevoId(), ahora());
@@ -249,6 +249,16 @@ const operaciones = {
       return r.db;
     });
     return creado;
+  },
+  /** Guarda la nota de un cliente (vacía = la borra). */
+  async actualizarNotaCliente(tiendaId: string, id: string, nota: string | null): Promise<Cliente> {
+    let actualizado!: Cliente;
+    escribir((db) => {
+      const r = modificarNotaCliente(db, tiendaId, id, nota);
+      actualizado = r.cliente;
+      return r.db;
+    });
+    return actualizado;
   },
 
   // Promos

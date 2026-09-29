@@ -6,7 +6,8 @@
     "telefono": "+18095550142",
     "origen": "catalogo",
     "primer_pedido_en": "2026-09-27T15:30:00.000Z",
-    "pedidos_count": 2
+    "pedidos_count": 2,
+    "nota": "Talla M. Le encantan los aretes largos"
   },
   {
     "id": "a4000000-0000-4000-8000-000000000002",
@@ -15,7 +16,8 @@
     "telefono": "+18295550178",
     "origen": "catalogo",
     "primer_pedido_en": "2026-09-28T15:20:00.000Z",
-    "pedidos_count": 1
+    "pedidos_count": 1,
+    "nota": "Prefiere entrega en la tarde"
   },
   {
     "id": "a4000000-0000-4000-8000-000000000003",
@@ -24,7 +26,8 @@
     "telefono": "+18495550115",
     "origen": "manual",
     "primer_pedido_en": "2026-09-27T22:12:00.000Z",
-    "pedidos_count": 1
+    "pedidos_count": 1,
+    "nota": "Compra para regalos: pregunta siempre por la envoltura"
   },
   {
     "id": "a4000000-0000-4000-8000-000000000004",
@@ -33,7 +36,8 @@
     "telefono": "+18095550190",
     "origen": "catalogo",
     "primer_pedido_en": "2026-09-24T20:05:00.000Z",
-    "pedidos_count": 1
+    "pedidos_count": 1,
+    "nota": null
   },
   {
     "id": "a4000000-0000-4000-8000-000000000005",
@@ -42,7 +46,8 @@
     "telefono": "+18295550163",
     "origen": "manual",
     "primer_pedido_en": "2026-09-22T16:00:00.000Z",
-    "pedidos_count": 0
+    "pedidos_count": 0,
+    "nota": null
   },
   {
     "id": "a4000000-0000-4000-8000-000000000006",
@@ -51,7 +56,8 @@
     "telefono": "+18095557730",
     "origen": "catalogo",
     "primer_pedido_en": "2026-09-20T19:20:00.000Z",
-    "pedidos_count": 2
+    "pedidos_count": 2,
+    "nota": "Alérgica al níquel: solo piezas hipoalergénicas"
   },
   {
     "id": "a4000000-0000-4000-8000-000000000007",
@@ -60,7 +66,8 @@
     "telefono": "+18295556014",
     "origen": "catalogo",
     "primer_pedido_en": "2026-09-24T14:45:00.000Z",
-    "pedidos_count": 1
+    "pedidos_count": 1,
+    "nota": "Talla de anillo 9"
   },
   {
     "id": "a4000000-0000-4000-8000-000000000008",
@@ -69,6 +76,7 @@
     "telefono": "+18495552185",
     "origen": "manual",
     "primer_pedido_en": "2026-09-27T21:00:00.000Z",
-    "pedidos_count": 1
+    "pedidos_count": 1,
+    "nota": null
   }
 ]

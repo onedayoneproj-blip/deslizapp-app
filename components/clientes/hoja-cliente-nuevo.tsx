@@ -9,6 +9,7 @@ import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
 import { Hoja } from "../hoja";
+import { CampoNota } from "./campo-nota";
 import { useToast } from "../toast";
 
 const campo =
@@ -32,6 +33,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const toast = useToast();
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [nota, setNota] = useState("");
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -44,7 +46,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
     if (!puedeGuardar) return;
     setGuardando(true);
     try {
-      const cliente = await crearCliente(tiendaId, { nombre, telefono });
+      const cliente = await crearCliente(tiendaId, { nombre, telefono, nota });
       toast(`${cliente.nombre} guardado. Ya está en tus clientes.`);
       alTerminar();
     } catch (error) {
@@ -85,6 +87,8 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
         />
         {malo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Escríbelo con 809, 829 o 849 y 7 dígitos más.</span>}
       </label>
+
+      <CampoNota valor={nota} alCambiar={setNota} />
 
       {duplicado && (
         <div role="alert" className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">

@@ -44,6 +44,8 @@ el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
   dependencias que cambien. Si se vuelven a ejecutar con un campo enfocado, su limpieza le quita el foco.
 - Ninguna transición de vista (`ViewTransition`, `startViewTransition`, `addTransitionType`): en iOS
   le quita el foco al campo. Ya no se usan en ninguna parte.
+- Una hoja con campos de texto es `"grande"` (una `"auto"` crece con el `--teclado` y se mueve). Si un toque abre un
+  campo (ej. el selector de cliente), el `focus()` va en el mismo toque: `flushSync` + `focus()`.
 - Toda hoja o pantalla nueva con campos de texto se prueba con `npm run probar:teclado`
   (`scripts/probar-teclado.mjs`, con la app corriendo): agrégale el campo nuevo.
 
