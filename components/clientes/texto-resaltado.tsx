@@ -1,4 +1,4 @@
-import type { Trozo } from "@/lib/buscar-clientes";
+import type { Trozo } from "@/lib/texto";
 
 /** Texto con las coincidencias de la búsqueda en negrita. */
 export function TextoResaltado({ trozos }: { trozos: Trozo[] }) {

@@ -65,6 +65,10 @@ números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 
 ## Hojas inferiores
 
+Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colección) se usa
+`components/selector-busqueda.tsx` (`SelectorBusqueda`, `FilaAccion`, `ListaSeleccion`) y los helpers de `lib/texto.ts`
+y `lib/telefono.ts`: una vista más DENTRO de la misma hoja, nunca una segunda hoja encima.
+
 Toda hoja nueva (detalle de pedido, nuevo pedido, nueva promo…) usa el
 componente `Hoja` de `components/hoja.tsx` y elige su altura con la propiedad
 `altura`: `"auto"` (contenido corto), `"expandible"` (contenido largo: abre a

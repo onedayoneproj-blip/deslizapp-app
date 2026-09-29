@@ -186,12 +186,24 @@ try {
     const enfocado = await page.evaluate(() => document.activeElement?.getAttribute("type") === "search" && !!document.activeElement.closest('[role="dialog"]'));
     ok(enfocado, "Selector de cliente: el buscador tiene el foco justo después del toque que lo abre");
     await probarCampo(page, '[role="dialog"] input[type="search"]', "Selector de cliente · Buscador", "zzqx", { dentroDeHoja: true });
-    await page.tap('[role="dialog"] >> text=Crear cliente «zzqx»');
+    await page.tap('[role="dialog"] >> text=Crear «zzqx»');
     await page.waitForSelector('[role="dialog"] input[aria-label="Nombre del cliente"]');
     await page.fill('[role="dialog"] input[aria-label="Nombre del cliente"]', ""); // viene con lo que se buscó
     await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Crear cliente · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Crear cliente · WhatsApp", "8095550123", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] textarea', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
+    // Selector de productos (misma hoja): el foco también va en el toque que lo abre
+    await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del formulario de cliente al buscador
+    await page.waitForSelector('[role="dialog"] input[type="search"]');
+    await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del buscador al pedido
+    await page.waitForSelector('[role="dialog"] button[aria-label="Elegir cliente"]');
+    await page.tap('[role="dialog"] button[aria-label="Elegir cliente"]');
+    await page.tap('[role="dialog"] ul li button');
+    await page.waitForSelector('[role="dialog"] >> text=Agregar productos');
+    await page.tap('[role="dialog"] >> text=Agregar productos');
+    const enfocadoProd = await page.evaluate(() => document.activeElement?.getAttribute("placeholder") === "Busca un producto");
+    ok(enfocadoProd, "Selector de productos: el buscador tiene el foco justo después del toque que lo abre");
+    await probarCampo(page, '[role="dialog"] input[placeholder="Busca un producto"]', "Selector de productos · Buscador", "kiara", { dentroDeHoja: true });
     ok(errores.length === 0, `Nuevo pedido: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

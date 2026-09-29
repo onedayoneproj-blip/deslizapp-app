@@ -182,15 +182,30 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   código de promo opcional ("¿Usó un código?"). Entra directo en estado
   `por_despachar` ("Pedido #1043 guardado. Está en Por despachar.").
 - **Elegir cliente** (no es un desplegable): el campo "Cliente" abre, dentro de
-  la misma hoja, un buscador con botón de volver. Sin texto muestra "Recientes"
+  la misma hoja, un buscador ("Busca o crea un cliente") con botón de volver.
+  Sin texto, la primera fila es siempre "+ Nuevo cliente" y debajo "Recientes"
   (máx. 8, por último pedido). Al escribir filtra por nombre (sin acentos ni
   mayúsculas), por teléfono (ignora espacios, guiones, paréntesis y el prefijo
   1 / +1) y por nota, resaltando en negrita lo que coincide; muestra la nota si
-  coincidió por ella. Sin resultados: "Crear cliente «texto»" (si parece un
-  teléfono llena el WhatsApp; si no, el nombre), con nota opcional; si el
-  WhatsApp ya existe en la tienda, ofrece usar a ese cliente. El elegido se ve
-  como tarjeta con "Cambiar". La misma búsqueda (`lib/buscar-clientes.ts`)
-  se usa en la pantalla Clientes.
+  coincidió por ella. Con texto, la fila de acción pasa a "+ Crear «texto»":
+  arriba si no hay coincidencias, al final si las hay (así se puede crear otra
+  "Ana" aunque exista "Ana Lucía"). Abre el formulario (nombre, WhatsApp, nota
+  opcional) prellenado con lo escrito (WhatsApp si parece número, nombre si no).
+  Los duplicados se evitan por **teléfono**, no por nombre: si el número ya es
+  de alguien de la tienda, muestra "Este número ya es de «Nombre»" y "Usar ese
+  cliente". El elegido se ve como tarjeta con "Cambiar". La misma búsqueda (`lib/buscar-clientes.ts`)
+  se usa en la pantalla Clientes. "+ Cliente" (pantalla Clientes) aplica el mismo
+  criterio de duplicados.
+- **Elegir productos** (misma mecánica, dentro de la hoja): botón "Agregar
+  productos" → buscador "Busca un producto" (nombre o colección, sin acentos ni
+  mayúsculas, con la coincidencia resaltada) y pastillas de colección. Sin texto:
+  los más vendidos (unidades en pedidos no cancelados) primero, luego por nombre.
+  Cada fila: miniatura, nombre, precio (con el de lista tachado si hay promo) y
+  stock, con − cantidad + (la cantidad nunca supera el stock). Agotados y
+  ocultos van atenuados, con su etiqueta y sin poder agregarse (los agotados
+  después de los disponibles; los ocultos, al final). Arriba, fijo: "3
+  productos · RD$2,450" y "Listo", que vuelve al formulario, donde se siguen
+  ajustando cantidades o quitando productos.
 
 ---
 

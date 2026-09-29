@@ -7,15 +7,17 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { buscarCodigoPromo, descuentoDeCodigo } from "@/lib/data/pedidos";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
 import { precioConPromo } from "@/lib/promos";
-import type { ClienteConResumen, Producto, Promo } from "@/lib/types";
+import type { ClienteConResumen, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Avatar } from "../clientes/comunes";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
+import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
 
 const campo =
@@ -24,18 +26,19 @@ const campo =
 /** Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar. */
 export function HojaPedidoNuevo() {
   const router = useRouter();
-  const { getProductos, getClientes, getPromos } = useData();
+  const { getProductos, getClientes, getPromos, getPedidos } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/pedidos", { scroll: false }), [router]);
 
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  if (!productos || !clientes || !promos) return null;
+  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  if (!productos || !clientes || !promos || !pedidos) return null;
 
   return (
     <Hoja abierta alCerrar={cerrar} titulo="Nuevo pedido" altura="grande">
-      <Formulario productos={productos} clientes={clientes} promos={promos} alTerminar={cerrar} />
+      <Formulario productos={productos} clientes={clientes} promos={promos} pedidos={pedidos} alTerminar={cerrar} />
     </Hoja>
   );
 }
@@ -44,11 +47,13 @@ function Formulario({
   productos,
   clientes,
   promos,
+  pedidos,
   alTerminar,
 }: {
   productos: Producto[];
   clientes: ClienteConResumen[];
   promos: Promo[];
+  pedidos: PedidoConItems[];
   alTerminar: () => void;
 }) {
   const { crearPedidoManual } = useData();
@@ -56,17 +61,16 @@ function Formulario({
   const elegirPestana = useElegirPestanaPedidos();
   const toast = useToast();
 
-  // El selector de cliente es otra vista DENTRO de esta misma hoja (no una segunda hoja).
-  const [vista, setVista] = useState<"pedido" | "cliente">("pedido");
+  // Los selectores (cliente, productos) son otra vista DENTRO de esta misma hoja (no una segunda hoja).
+  const [vista, setVista] = useState<"pedido" | "cliente" | "productos">("pedido");
   const [cliente, setCliente] = useState<ClienteElegido | null>(null);
   const buscador = useRef<HTMLInputElement>(null);
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
   const [codigo, setCodigo] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  // Solo productos que el cliente puede pedir hoy (los ocultos no se venden).
-  const ofrecidos = useMemo(() => productos.filter((p) => p.activo), [productos]);
-  const lineas = ofrecidos
+  const vendidas = useMemo(() => unidadesVendidas(pedidos), [pedidos]);
+  const lineas = productos
     .map((p) => ({ producto: p, cantidad: cantidades[p.id] ?? 0, precio: precioConPromo(p, promos).precio }))
     .filter((l) => l.cantidad > 0);
   const subtotal = lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
@@ -78,17 +82,19 @@ function Formulario({
 
   // El foco va al buscador en el MISMO toque que abre el selector (flushSync pinta la vista ya):
   // así el teclado del iPhone abre bien. Regla del teclado en HANDOFF.md.
-  const abrirSelector = () => {
-    flushSync(() => setVista("cliente"));
+  const abrir = (destino: "cliente" | "productos") => {
+    flushSync(() => setVista(destino));
     buscador.current?.focus({ preventScroll: true });
   };
+  const abrirSelector = () => abrir("cliente");
   const elegir = (c: ClienteElegido) => {
     setCliente(c);
     setVista("pedido");
   };
 
-  const cambiar = (id: string, delta: number) =>
-    setCantidades((c) => ({ ...c, [id]: Math.min(99, Math.max(0, (c[id] ?? 0) + delta)) }));
+  // La cantidad nunca supera el stock (99 si no se lleva la cuenta).
+  const cambiar = (p: Producto, delta: number) =>
+    setCantidades((c) => ({ ...c, [p.id]: Math.min(cantidadMaxima(p), Math.max(0, (c[p.id] ?? 0) + delta)) }));
 
   const guardar = async () => {
     if (!puedeGuardar || !cliente) return;
@@ -107,6 +113,20 @@ function Formulario({
       setGuardando(false);
     }
   };
+
+  if (vista === "productos") {
+    return (
+      <SelectorProducto
+        productos={productos}
+        promos={promos}
+        vendidas={vendidas}
+        cantidades={cantidades}
+        alCambiar={cambiar}
+        entrada={buscador}
+        alTerminar={() => setVista("pedido")}
+      />
+    );
+  }
 
   if (vista === "cliente") {
     return <SelectorCliente clientes={clientes} entrada={buscador} alElegir={elegir} alVolver={() => setVista("pedido")} />;
@@ -141,50 +161,48 @@ function Formulario({
       )}
 
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>
-      {ofrecidos.length === 0 ? (
-        <p className="rounded-[18px] bg-arena p-4 text-center text-suave">Aún no tienes productos visibles. Publica uno en el Catálogo.</p>
-      ) : (
+      {lineas.length > 0 && (
         <ul className="rounded-[20px] border border-linea bg-white px-3.5">
-          {ofrecidos.map((p) => {
-            const n = cantidades[p.id] ?? 0;
-            const precio = precioConPromo(p, promos);
-            return (
-              <li key={p.id} className="flex items-center gap-3 border-b border-arena py-2.5 last:border-b-0">
-                <span className="h-[46px] w-[46px] shrink-0 overflow-hidden rounded-xl bg-arena">
-                  {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="46px" /> : null}
+          {lineas.map(({ producto: p, cantidad, precio }) => (
+            <li key={p.id} className="flex items-center gap-3 border-b border-arena py-2.5 last:border-b-0">
+              <span className="h-[46px] w-[46px] shrink-0 overflow-hidden rounded-xl bg-arena">
+                {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="46px" /> : null}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14.5px] font-extrabold">{p.nombre}</p>
+                <p className="text-[12.5px] text-suave">
+                  {cantidad} × {formatearPesos(precio)}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button type="button" onClick={() => cambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-arena">
+                  <IconoMenos tamano={18} />
+                </button>
+                <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
+                  {cantidad}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14.5px] font-extrabold">{p.nombre}</p>
-                  <p className="text-[12.5px] text-suave">
-                    {formatearPesos(precio.precio)}
-                    {p.stock === 0 ? " · Agotado" : p.stock === null ? "" : ` · ${p.stock} en stock`}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {n > 0 && (
-                    <>
-                      <button type="button" onClick={() => cambiar(p.id, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-arena">
-                        <IconoMenos tamano={18} />
-                      </button>
-                      <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
-                        {n}
-                      </span>
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => cambiar(p.id, 1)}
-                    aria-label={`Agregar ${p.nombre}`}
-                    className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-bosque text-papel"
-                  >
-                    <IconoMas tamano={18} />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+                <button
+                  type="button"
+                  onClick={() => cambiar(p, 1)}
+                  disabled={cantidad >= cantidadMaxima(p)}
+                  aria-label={`Agregar otro ${p.nombre}`}
+                  className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
+                >
+                  <IconoMas tamano={18} />
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
+      <button
+        type="button"
+        onClick={() => abrir("productos")}
+        className="tocable flex h-[52px] items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
+      >
+        <IconoMas tamano={20} />
+        {lineas.length > 0 ? "Agregar más productos" : "Agregar productos"}
+      </button>
 
       <label className="mt-1 flex flex-col gap-1.5 text-[13.5px] font-bold">
         ¿Usó un código? <span className="-mt-1 text-[12.5px] font-semibold text-suave">(opcional)</span>

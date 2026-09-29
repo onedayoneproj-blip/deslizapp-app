@@ -92,9 +92,9 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
 
       {duplicado && (
         <div role="alert" className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-          <b>{duplicado.nombre} ya está en tus clientes con ese WhatsApp.</b> No la duplicamos.{" "}
+          <b>Este número ya es de «{duplicado.nombre}».</b> Dos clientes pueden llamarse igual, pero no compartir número.{" "}
           <Link href={`/clientes/${duplicado.id}`} scroll={false} className="font-extrabold underline">
-            Ver cliente
+            Usar ese cliente
           </Link>
         </div>
       )}

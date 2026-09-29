@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { startTransition, useMemo, useState, type ReactNode } from "react";
-import { buscarClientes, resaltar, resaltarTelefono, type DondeCoincide } from "@/lib/buscar-clientes";
+import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
+import { resaltar } from "@/lib/texto";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
-import { formatearTelefono } from "@/lib/telefono";
+import { formatearTelefono, resaltarTelefono } from "@/lib/telefono";
 import type { ClienteConResumen } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
