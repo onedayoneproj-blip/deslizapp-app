@@ -18,12 +18,20 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.2.5",
+    fecha: "2026-09-29",
+    titulo: "Ahora flotan.",
+    cambios: [
+      "Las hojas cortas flotan sobre la pantalla con sus cuatro esquinas redondeadas. Súbelas y se pegan a los bordes, como en tu iPhone.",
+    ],
+  },
+  {
     version: "0.2.4",
     fecha: "2026-09-29",
     titulo: "Con imán.",
     cambios: [
       "La barra de abajo ahora es una cápsula y el rosado se estira hacia tu dedo. Pásalo de largo y salta solito.",
-      "Las hojas ya no quedan flotando: llegan siempre hasta abajo.",
+      "Arreglamos las hojas que a veces quedaban despegadas del borde sin querer.",
     ],
   },
   {

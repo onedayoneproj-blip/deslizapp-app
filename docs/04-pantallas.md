@@ -53,6 +53,16 @@ Promo" en Promos.
 (producto, detalle de pedido, pedido manual, cliente, nueva promo, Plan y
 créditos) suben desde abajo con fondo verde translúcido, título en Fredoka y
 botón de cerrar redondo. Además:
+- **Flotan o se pegan, como en iOS 26:** las hojas cortas (`"auto"`) y las de
+  media altura **flotan**: quedan separadas ~8 px de los lados y de abajo
+  (abajo: `max(8px, safe area − 24px)`) y tienen las **cuatro esquinas
+  redondeadas** (arriba ~30 px; abajo 32 px, que acompañan la curva de la
+  pantalla del iPhone: ~40 px menos el margen). Al pasar a la altura grande
+  (por scroll o arrastre) **se pegan a los bordes**: margen 0, esquinas de
+  abajo 0 y las de arriba bajan un poco. La transición va ligada al dedo
+  (margen y radios se interpolan), no de golpe. Las hojas `"grande"`
+  (Nuevo/Editar producto) van pegadas desde el inicio. En pantallas anchas la
+  hoja flotante queda centrada con su ancho máximo.
 - **Cabecera fija** (tirador + título + X): solo se desplaza el contenido; una
   línea sutil aparece bajo la cabecera cuando el contenido está desplazado.
 - **Se cierran deslizando hacia abajo** (más de ~30 % o con velocidad), además

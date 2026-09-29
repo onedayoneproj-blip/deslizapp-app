@@ -1,14 +1,23 @@
 "use client";
 
-// Hoja inferior (bottom sheet) al estilo de iOS. Todas las hojas del panel usan este componente.
+// Hoja inferior (bottom sheet) al estilo de iOS 26. Todas las hojas del panel usan este componente.
+// Su comportamiento manda sobre el prototipo (ver docs/04-pantallas.md).
 //
+// - Flota o se pega: las hojas cortas ("auto") y las de media altura FLOTAN, separadas ~8 px de
+//   los lados y de abajo (abajo: max(8px, safe area − 24px)), con las cuatro esquinas redondeadas
+//   (arriba 30 px; abajo 40 − 8 = 32 px, acompañando la curva de la pantalla del iPhone). Al pasar a
+//   la altura grande se PEGAN a los bordes (margen 0, esquinas de abajo 0, las de arriba bajan un
+//   poco). La transición va ligada al gesto: margen y radios se interpolan con el dedo. Las hojas
+//   "grande" van pegadas desde el inicio.
+//   El margen y los radios se dibujan con clip-path (no se cambia el ancho del panel, así el
+//   contenido no se reacomoda en cada cuadro).
 // - Cabecera fija (tirador + título + X); solo se desplaza el contenido.
 // - Se cierra deslizando hacia abajo (más de ~30 % o con velocidad); si no, vuelve a su lugar.
 // - Alturas: "auto" (se ajusta al contenido), "expandible" (media ↔ casi pantalla completa),
 //   "grande" (casi pantalla completa desde el inicio).
 // - El arrastre solo mueve la hoja si el contenido está arriba del todo o si el gesto empieza en la
 //   cabecera: el scroll y el arrastre nunca se pelean (se decide al primer movimiento del dedo).
-// - Solo se anima `transform` (y la opacidad del fondo), siguiendo el dedo sin retraso.
+// - Se anima `transform`, `clip-path` y la opacidad del fondo, siguiendo el dedo sin retraso.
 //
 // Implementación propia: se evaluó `vaul`, pero su repositorio está sin mantenimiento.
 
@@ -29,8 +38,14 @@ type Nivel = "media" | "grande";
 
 const ALTO_GRANDE = 0.93; // fracción de la pantalla visible
 const ALTO_MEDIA = 0.6;
-const RADIO_MAX = 30;
-const RADIO_MIN = 18;
+/** Esquinas de arriba: flotando / pegada (expandible) / pegada (grande). */
+const RADIO_ARRIBA_FLOTA = 30;
+const RADIO_ARRIBA_PEGADA = 18;
+const RADIO_ARRIBA_GRANDE = 20;
+/** Margen lateral de la hoja flotante. */
+const MARGEN_FLOTA = 8;
+/** Radio de las esquinas de la pantalla del iPhone (aprox.): las de abajo de la hoja lo acompañan. */
+const RADIO_PANTALLA = 40;
 const DURACION = 320;
 const CURVA = "cubic-bezier(.2,.8,.3,1)";
 
@@ -91,6 +106,8 @@ function HojaMontada({
   const saliendo = useRef(false);
   const fuera = useRef(false);
   const reducido = useRef(false);
+  /** Margen inferior de la hoja flotante en px: max(8px, safe area − 24px), medido de verdad. */
+  const margenAbajo = useRef(MARGEN_FLOTA);
 
   const altoPanel = () => panel.current?.offsetHeight ?? 0;
   const yMedia = () => Math.max(0, altoPanel() - vista.alto * ALTO_MEDIA);
@@ -107,19 +124,24 @@ function HojaMontada({
       const f = fondo.current;
       if (!p || !f) return;
       y.current = valor;
-      const transicion = animado && !reducido.current ? `transform ${DURACION}ms ${CURVA}` : "none";
+      const transicion = animado && !reducido.current ? `transform ${DURACION}ms ${CURVA}, clip-path ${DURACION}ms ${CURVA}` : "none";
       p.style.transition = transicion;
       p.style.transform = `translate3d(0, ${valor}px, 0)`;
       const alto = p.offsetHeight;
       const media = altura === "expandible" ? Math.max(0, alto - vista.alto * ALTO_MEDIA) : 0;
-      // Esquinas: se reducen un poco al subir hasta arriba (como iOS).
-      const radio =
-        altura === "expandible"
-          ? RADIO_MIN + (RADIO_MAX - RADIO_MIN) * Math.min(1, Math.max(0, media ? valor / media : 1))
-          : altura === "grande"
-            ? RADIO_MIN + 2
-            : RADIO_MAX;
-      p.style.borderTopLeftRadius = p.style.borderTopRightRadius = `${radio}px`;
+      // Cuánto flota (1) o está pegada (0). En "expandible" va con el dedo entre media y grande.
+      const flota =
+        altura === "auto" ? 1 : altura === "grande" ? 0 : media ? Math.min(1, Math.max(0, valor / media)) : 0;
+      const pegadaArriba = altura === "grande" ? RADIO_ARRIBA_GRANDE : RADIO_ARRIBA_PEGADA;
+      const radioArriba = pegadaArriba + (RADIO_ARRIBA_FLOTA - pegadaArriba) * flota;
+      const radioAbajo = (RADIO_PANTALLA - MARGEN_FLOTA) * flota;
+      const lado = MARGEN_FLOTA * flota;
+      // En "expandible" el panel mide 93 % y se empuja hacia abajo: la parte que queda fuera de la
+      // pantalla también se recorta, para que el borde (margen y esquinas) quede a la vista. Por
+      // debajo de "media" (al cerrar), el recorte se mantiene y la hoja baja entera.
+      const fueraDePantalla = altura === "expandible" ? Math.min(Math.max(valor, 0), media) : 0;
+      const abajo = fueraDePantalla + margenAbajo.current * flota;
+      p.style.clipPath = `inset(0px ${lado}px ${abajo}px ${lado}px round ${radioArriba}px ${radioArriba}px ${radioAbajo}px ${radioAbajo}px)`;
       // El fondo pierde opacidad a medida que la hoja baja desde su posición de reposo.
       const base = media;
       const recorrido = Math.max(1, alto + 24 - base);
@@ -155,6 +177,12 @@ function HojaMontada({
   // Entrada: empieza fuera de la pantalla y sube a su nivel.
   useLayoutEffect(() => {
     reducido.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Mide el margen inferior real (depende del safe area del equipo).
+    const sonda = document.createElement("div");
+    sonda.style.cssText = `position:absolute;visibility:hidden;height:max(${MARGEN_FLOTA}px, calc(var(--safe-abajo) - 24px))`;
+    document.body.appendChild(sonda);
+    margenAbajo.current = sonda.offsetHeight || MARGEN_FLOTA;
+    sonda.remove();
     aplicar(yCerrada(), false);
     const raf = requestAnimationFrame(() => aplicar(yDe(nivelRef.current), true));
     return () => cancelAnimationFrame(raf);
@@ -368,12 +396,10 @@ function HojaMontada({
         aria-modal="true"
         aria-labelledby={idTitulo}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel shadow-[0_-10px_40px_-20px_rgba(23,75,58,0.5)] outline-none will-change-transform"
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel outline-none will-change-transform"
         style={{
           ...(altura === "auto" ? { maxHeight: altoPx } : { height: altoPx }),
           transform: "translate3d(0, 100%, 0)",
-          borderTopLeftRadius: RADIO_MAX,
-          borderTopRightRadius: RADIO_MAX,
         }}
       >
         <div
@@ -402,7 +428,7 @@ function HojaMontada({
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="min-h-0 flex-1 overscroll-contain px-5 pt-0.5 pb-[calc(1.75rem+var(--safe-abajo))]"
+          className="min-h-0 flex-1 overscroll-contain px-5 pt-0.5 pb-[calc(1.25rem+var(--safe-abajo))]"
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}

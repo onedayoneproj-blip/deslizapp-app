@@ -22,9 +22,12 @@ se construye en Next.js según `docs/`.
     (se estira con resistencia y salta de pestaña en pestaña). En el prototipo
     el ícono activo se expande en una píldora verde con su nombre: eso **ya no
     aplica**.
-  - **Hojas inferiores:** cabecera fija, alturas "auto" / "expandible" /
+  - **Hojas inferiores:** como en iOS 26, las cortas y las de media altura
+    flotan (margen de ~8 px y cuatro esquinas redondeadas) y se pegan a los
+    bordes al expandirse; cabecera fija, alturas "auto" / "expandible" /
     "grande" y cerrar deslizando hacia abajo (`components/hoja.tsx`). En el
-    prototipo la hoja entera se desplaza: eso **ya no aplica**.
+    prototipo la hoja va pegada abajo y se desplaza entera: eso **ya no
+    aplica**.
   Ver `docs/04-pantallas.md` ("Reglas generales").
 - **Reglas de datos, stock, créditos y arquitectura:** mandan los `docs/`.
 - El prototipo incluye cosas que `docs/04-pantallas.md` describe poco o
