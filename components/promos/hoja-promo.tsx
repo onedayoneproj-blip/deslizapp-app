@@ -8,6 +8,7 @@ import { PromoInvalida } from "@/lib/data/promos";
 import { useData } from "@/lib/data/provider";
 import { diaMesCorto, formatearPesos, rangoFechas } from "@/lib/formato";
 import {
+  diaAIso,
   estadoPromo,
   hoyLocal,
   isoADia,
@@ -24,6 +25,7 @@ import { Chip } from "../controles";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
+import { TarjetaPromo } from "./tarjeta-promo";
 import { useElegirPestanaPromos } from "./vista-promos";
 import { SelectorColeccionPromo, SelectorProductoPromo } from "./selectores";
 
@@ -374,6 +376,31 @@ function Formulario({
       )}
 
       <VistaPrevia datos={datos} pctValido={pctValido} producto={productoElegido} deLaColeccion={productosDeLaColeccion} />
+
+      {/* Cómo se verá la tarjeta en la lista de Promos */}
+      {datos.inicio && (
+        <div>
+          <p className="mb-2 text-[13.5px] font-bold">Así se verá en tu lista:</p>
+          <TarjetaPromo
+            promo={{
+              id: "vista-previa",
+              tiendaId,
+              tipo: datos.tipo,
+              nombre: datos.nombre.trim(),
+              valorPorcentaje: pctValido ? pct : null,
+              codigo: datos.codigo || null,
+              coleccion: datos.coleccion,
+              productoId: datos.productoId,
+              fechaInicio: diaAIso(datos.inicio, "inicio"),
+              fechaFin: datos.fin ? diaAIso(datos.fin, "fin") : null,
+              estado: "activa",
+            }}
+            producto={productoElegido}
+            productosDeColeccion={productosDeLaColeccion.length}
+            usos={0}
+          />
+        </div>
+      )}
 
       <button
         type="button"

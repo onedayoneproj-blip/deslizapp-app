@@ -315,6 +315,17 @@ pedido del catálogo con datos de contacto, o manualmente desde el panel.
   programada. Arranca el 3 oct."
 - Al llegar `fecha_fin`, la promo pasa sola a Terminadas.
 
+**Tarjetas de la lista: estilo cupón** (opción C,
+`referencias/promos-cupon/opcion-c-ticket-verde.dc.html`, **manda sobre el
+prototipo**): 148 px de alto, verde bosque con talón de 116 px (el % en Fredoka
+Mandarina y "DE DESCUENTO"), perforación punteada y muescas recortadas con máscara
+CSS (la sombra va en un contenedor con `drop-shadow` para seguir la forma). Las
+de código muestran el código en caja punteada; las terminadas van en crema
+apagado (#E4DDCC, "TERMINADA"); las programadas, en verde con "PROGRAMADA" y
+"Empieza en N días" si faltan menos de 7. Un solo componente
+(`components/promos/tarjeta-promo.tsx`), también usado en la vista previa de
+"Nueva promo".
+
 **Cómo quedó construida (`components/promos/`):**
 - El estado de cada promo se calcula (`lib/promos.ts`): terminada guardada por el
   dueño → Terminadas; si no, por fechas. Nada se mueve de pestaña a mano.

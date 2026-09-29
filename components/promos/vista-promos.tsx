@@ -1,19 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { formatearPesos, rangoFechas } from "@/lib/formato";
 import { estadoPromo, pedidosConCodigo } from "@/lib/promos";
-import type { EstadoPromo, Producto, Promo } from "@/lib/types";
+import type { EstadoPromo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
-import { Foto } from "../foto";
 import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
+import { TarjetaPromo } from "./tarjeta-promo";
 
 const PESTANAS: { id: EstadoPromo; nombre: string }[] = [
   { id: "activa", nombre: "Activas" },
@@ -93,12 +91,13 @@ export function VistaPromos({ children }: { children: ReactNode }) {
           />
         )}
         {visibles.length > 0 && (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-[18px]">
             {visibles.map(({ promo, estado }) => (
               <li key={promo.id}>
                 <TarjetaPromo
                   promo={promo}
-                  terminada={estado === "terminada"}
+                  estado={estado}
+                  href={`/promos/${promo.id}`}
                   producto={promo.productoId ? productosPorId.get(promo.productoId) : undefined}
                   productosDeColeccion={promo.coleccion ? (productos ?? []).filter((p) => p.categoria === promo.coleccion).length : 0}
                   usos={pedidos ? pedidosConCodigo(pedidos, promo) : null}
@@ -113,71 +112,5 @@ export function VistaPromos({ children }: { children: ReactNode }) {
       {!sinPromos && <BotonFlotante href="/promos/nueva" texto="Promo" />}
       {children}
     </Contexto.Provider>
-  );
-}
-
-const ETIQUETA_TIPO = { codigo: "Código", coleccion: "Por colección", producto: "Por producto" } as const;
-
-function TarjetaPromo({
-  promo,
-  terminada,
-  producto,
-  productosDeColeccion,
-  usos,
-}: {
-  promo: Promo;
-  terminada: boolean;
-  producto?: Producto;
-  productosDeColeccion: number;
-  usos: number | null;
-}) {
-  return (
-    <Link
-      href={`/promos/${promo.id}`}
-      scroll={false}
-      aria-label={`Promo ${promo.nombre}`}
-      className={`tocable block rounded-[22px] border border-linea bg-white px-4 py-3.5 text-bosque ${terminada ? "opacity-65" : ""}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {promo.tipo === "producto" && (
-            <span className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-arena">
-              {producto?.fotos[0] ? <Foto src={producto.fotos[0]} alt="" className="h-full w-full" sizes="56px" /> : null}
-            </span>
-          )}
-          <div className="min-w-0">
-            <p className="text-[11.5px] font-extrabold tracking-wide text-suave uppercase">{ETIQUETA_TIPO[promo.tipo]}</p>
-            <p className="truncate text-[17px] font-extrabold">{promo.nombre}</p>
-            {promo.tipo === "coleccion" && (
-              <p className="truncate text-[13px] text-suave">
-                Colección {promo.coleccion} · {productosDeColeccion} {productosDeColeccion === 1 ? "producto" : "productos"}
-              </p>
-            )}
-            {promo.tipo === "producto" && producto && (
-              <p className="truncate text-[13px] text-suave">
-                {producto.nombre} · <s>{formatearPesos(producto.precio)}</s>{" "}
-                <span className="font-bold text-bosque">{formatearPesos(producto.precio - Math.round((producto.precio * (promo.valorPorcentaje ?? 0)) / 100))}</span>
-              </p>
-            )}
-            {promo.tipo === "codigo" && <p className="text-[13px] text-suave">En todo el pedido</p>}
-          </div>
-        </div>
-        <span className="shrink-0 rounded-full bg-mandarina px-3 py-1 font-display text-lg leading-tight text-bosque-oscuro">
-          {promo.tipo === "producto" ? "−" : ""}
-          {promo.valorPorcentaje}%
-        </span>
-      </div>
-      {promo.tipo === "codigo" && (
-        <p className="mt-2.5 inline-block rounded-xl border-[1.5px] border-dashed border-bosque px-3 py-1 font-display text-lg tracking-wider">{promo.codigo}</p>
-      )}
-      <div className="mt-2.5 flex items-center justify-between gap-2 text-[13px] text-suave">
-        <span>{rangoFechas(promo.fechaInicio, promo.fechaFin)}</span>
-        {promo.tipo === "codigo" && usos !== null && (
-          <span className="font-bold text-bosque">
-            Usada en {usos} {usos === 1 ? "pedido" : "pedidos"}
-          </span>
-        )}
-      </div>
-    </Link>
   );
 }
