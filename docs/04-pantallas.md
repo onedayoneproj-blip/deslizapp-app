@@ -351,10 +351,16 @@ promo activa o programada (las terminadas no) y, al crear una promo, el aviso
 "¡Lista! ¿La compartes ahora?" con "Compartir" / "Después". La hoja (grande, por
 el campo de texto) tiene, de arriba abajo:
 1. **Vista previa** del cupón con la marca de la TIENDA (`CuponTienda`).
-2. **Mensaje** en una línea recortada + "Editar mensaje", que lo abre en un
-   textarea (el foco va en el mismo toque, `flushSync`). El enlace ("Míralo
-   aquí: …") es el `url_catalogo` de Mi marca y solo va si existe; sin él, se
-   quita la frase. Ya no se usa el dominio deslizapp.com.
+2. **Mensaje** como un globo de chat enviado (`components/globo-mensaje.tsx`,
+   `GloboMensaje`, reutilizable): panel beige liso (#EFE7DC, sin papel tapiz ni
+   marca de WhatsApp) con el globo verde claro (#D9FDD3) a la derecha, colita,
+   mensaje COMPLETO (enlace azul y subrayado), hora en 12 h y dos checks azules
+   (SVG propio) abajo a la derecha. "Editar mensaje" (o tocar el globo) lo vuelve
+   editable en el mismo globo (textarea transparente sobre el texto, crece solo;
+   el foco va en el mismo toque, `flushSync`); el link pasa a "Listo". Vacío:
+   aviso y "Enviar" deshabilitado. El enlace ("Míralo aquí: …") es el
+   `url_catalogo` de Mi marca y solo va si existe; sin él, se quita la frase. Ya
+   no se usa el dominio deslizapp.com.
 3. **Enviar** (único botón, Mandarina): `navigator.share` con la imagen PNG + el
    texto; si el navegador no comparte archivos, solo el texto; sin
    `navigator.share` (escritorio) copia el mensaje y avisa "Mensaje copiado".

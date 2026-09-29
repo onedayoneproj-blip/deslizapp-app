@@ -11,6 +11,7 @@ import { pdfDeJpeg } from "@/lib/pdf-imagen";
 import { copiarTexto, guardarArchivo } from "@/lib/portapapeles";
 import { estadoPromo } from "@/lib/promos";
 import type { Producto, Promo, Tienda } from "@/lib/types";
+import { GloboMensaje, horaGlobo } from "../globo-mensaje";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { CuponTienda, marcaDeTienda } from "../marca-tienda/cupon-tienda";
@@ -53,6 +54,8 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
   const estado = estadoPromo(promo);
   const [mensaje, setMensaje] = useState(() => mensajePromo(promo, estado, tienda, producto));
   const [editando, setEditando] = useState(false);
+  const [hora] = useState(() => horaGlobo());
+  const vacio = mensaje.trim() === "";
   const [imagen, setImagen] = useState<ImagenPromo | null>(null);
   const [falloImagen, setFalloImagen] = useState(false);
   const campoMensaje = useRef<HTMLTextAreaElement>(null);
@@ -74,11 +77,15 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
   // El campo aparece con el toque de "Editar mensaje": el foco va en el mismo toque (HANDOFF.md, teclado en iPhone)
   const editar = () => {
     flushSync(() => setEditando(true));
-    campoMensaje.current?.focus();
+    const campo = campoMensaje.current;
+    if (!campo) return;
+    campo.focus();
+    campo.setSelectionRange(campo.value.length, campo.value.length);
   };
 
   // OJO: la API del navegador se llama de inmediato (dentro del toque), sin await antes.
   const enviar = () => {
+    if (vacio) return;
     if (typeof navigator.share !== "function") {
       // Escritorio: sin menú de compartir, se copia el mensaje
       void copiarTexto(mensaje, campoMensaje.current).then((ok) => toast(ok ? "Mensaje copiado" : "No pudimos copiarlo. Inténtalo de nuevo."));
@@ -124,32 +131,19 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3 text-[13.5px] font-bold">
           Mensaje
-          {!editando && (
-            <button type="button" onClick={editar} className={`${enlaceSuave} text-[13.5px]`}>
-              Editar mensaje
-            </button>
-          )}
+          <button type="button" onClick={editando ? () => setEditando(false) : editar} className={`${enlaceSuave} text-[13.5px]`}>
+            {editando ? "Listo" : "Editar mensaje"}
+          </button>
         </div>
-        {editando ? (
-          <textarea
-            ref={campoMensaje}
-            aria-label="Mensaje"
-            value={mensaje}
-            onChange={(e) => setMensaje(e.target.value)}
-            rows={6}
-            className="w-full min-w-0 resize-none rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-base leading-snug font-normal text-bosque outline-none focus:border-bosque"
-          />
-        ) : (
-          <p data-mensaje className="truncate rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-[14.5px] text-suave">
-            {mensaje}
-          </p>
-        )}
+        <GloboMensaje texto={mensaje} hora={hora} editando={editando} alCambiar={setMensaje} alEditar={editar} campoRef={campoMensaje} />
+        {vacio && <p role="alert" className="text-[13px] font-semibold text-peligro">Tu mensaje está vacío. Escribe algo para poder enviarlo.</p>}
       </div>
 
       <button
         type="button"
         onClick={enviar}
-        className="tocable flex h-14 items-center justify-center rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro"
+        disabled={vacio}
+        className="tocable flex h-14 items-center justify-center rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro disabled:opacity-50"
       >
         Enviar
       </button>
