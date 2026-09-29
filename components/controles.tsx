@@ -88,12 +88,16 @@ export function Segmentos<T extends string>({
 }) {
   const botones = useRef<Map<T, HTMLButtonElement>>(new Map());
   const [caja, setCaja] = useState<{ x: number; ancho: number } | null>(null);
+  // Posición de TODAS las opciones: cada una lleva su relleno blanco en una capa propia debajo del indicador
+  // (así el indicador sigue deslizándose por encima) y ninguna pastilla depende de lo que haya detrás.
+  const [cajas, setCajas] = useState<{ id: T; x: number; ancho: number }[]>([]);
   const [animar, setAnimar] = useState(false);
 
   useLayoutEffect(() => {
     const medir = () => {
       const b = botones.current.get(valor);
       if (b) setCaja({ x: b.offsetLeft, ancho: b.offsetWidth });
+      setCajas([...botones.current].map(([id, el]) => ({ id, x: el.offsetLeft, ancho: el.offsetWidth })));
     };
     medir();
     const ro = new ResizeObserver(medir);
@@ -107,6 +111,15 @@ export function Segmentos<T extends string>({
   return (
     <div className="-mx-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     <div role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full gap-1.5 px-5">
+      {/* Relleno blanco sólido de cada pastilla (sin transparencia, con su borde) */}
+      {cajas.map((c) => (
+        <span
+          key={c.id}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 rounded-full border-[1.5px] border-borde bg-white"
+          style={{ left: c.x, width: c.ancho }}
+        />
+      ))}
       {caja && (
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0">
           <span className="absolute inset-y-0 left-0 rounded-l-full bg-bosque" style={{ width: r, transform: `translateX(${caja.x}px)`, transition: transicion }} />
@@ -135,7 +148,7 @@ export function Segmentos<T extends string>({
             }}
             style={{ height: alto }}
             className={`tocable relative z-10 min-w-0 shrink-0 grow rounded-full border-[1.5px] px-2 text-center text-[13px] min-[390px]:text-[13.5px] font-bold tracking-tight whitespace-nowrap ${
-              elegido ? "border-transparent text-papel" : "border-borde bg-transparent text-bosque"
+              elegido ? "border-transparent text-papel" : "border-transparent text-bosque"
             }`}
           >
             {texto}
