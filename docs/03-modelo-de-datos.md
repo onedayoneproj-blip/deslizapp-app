@@ -168,23 +168,32 @@ Se calcula a partir de `eventos_aaah`, `pedidos`, `pedido_items` y
 
 | Periodo | Rango | Se compara contra | Barras del gráfico |
 |---|---|---|---|
-| Hoy | desde las 00:00 de hoy | el mismo día de la semana pasada | franjas de 2 horas |
-| 7 días | los últimos 7 días (hoy incluido) | los 7 días anteriores | una por día |
-| Este mes | desde el día 1 del mes | el mes anterior completo | una por semana del mes |
+| Hoy | desde las 00:00 de hoy hasta ahora | el mismo día de la semana pasada, hasta la misma hora | 12 franjas de 2 horas |
+| 7 días | los últimos 7 días (hoy incluido) hasta ahora | los 7 días anteriores, hasta la misma hora | una por día |
+| Este mes | desde el día 1 del mes hasta ahora | el mes anterior, del día 1 hasta la misma altura (sin pasar de su último día) | una por semana del mes (1–7, 8–14, 15–21, 22–28, 29–fin) |
+
+Decisión (paso 9): cada periodo se compara contra **el mismo tramo de tiempo**
+hacia atrás, no contra un día o un mes completo; si no, un lunes a las 9 a. m.
+o un día 3 de mes siempre saldría en rojo. Sin ventas en el tramo anterior no
+hay variación: la pantalla lo dice con palabras (nunca "-%", NaN ni Infinity).
+Los cálculos viven en `lib/resumen.ts` (funciones puras, pruebas en
+`tests/resumen.test.mjs`, `npm test`); Santo Domingo es UTC−4 fijo.
 
 - `ventas`: suma de `total` de los `pedidos` no cancelados del periodo
-- `variacion`: `ventas` contra el periodo de comparación, en % (ej. "+18%")
+- `variacion`: `ventas` contra el periodo de comparación, en % entero (ej. "+18%"); sin ventas antes, no hay
 - `ventas_por_barra`: los valores del gráfico
 - `pedidos`: count de `pedidos` no cancelados del periodo
-- `ticket_promedio`: `ventas / pedidos` (RD$, redondeado)
+- `ticket_promedio`: `ventas / pedidos` (RD$, redondeado; "—" sin pedidos)
 - `aaahs`: count de `eventos_aaah` del periodo
-- `conversion` ("De aaah a pedido"): `pedidos / aaahs`, en % con un decimal
-- `top_productos`: top 3 productos por `eventos_aaah` del periodo
+- `conversion` ("De aaah a pedido"): `pedidos / aaahs`, en % con un decimal ("—" sin aaahs)
+- `top_productos`: top 3 productos por **unidades vendidas** (`pedido_items.cantidad`) en pedidos no cancelados del periodo (decisión del paso 9)
 - `pedidos_nuevos`: count de `pedidos` con `estado = 'nuevo'` (sin periodo)
-- `stock_bajo` ("Ojo con el stock"): productos con `stock` no null y `<= 1`
+- `stock_bajo` ("Ojo con el stock"): productos con `stock` no null y `<= STOCK_BAJO` (`lib/config.ts`, hoy 2); agotados primero
 
-Los datos de prueba solo cubren ~14 días de pedidos y aaahs, así que "Este
-mes" y su comparación salen modestos: es esperado.
+Los datos de prueba cubren ~14 días de pedidos y aaahs (Esencias Michel tiene
+pedidos #1033–#1036 la semana anterior, uno cancelado, para que "7 días" y
+"Hoy" tengan con qué comparar), así que "Este mes" sale sin comparación contra
+el mes anterior: es esperado.
 
 ## Relación entre tablas (resumen visual)
 

@@ -102,5 +102,37 @@
     "nombre_producto": "Choker Perla",
     "cantidad": 1,
     "precio_unitario": 1200
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000014",
+    "pedido_id": "a5000000-0000-4000-8000-000000000010",
+    "producto_id": "a3000000-0000-4000-8000-000000000006",
+    "nombre_producto": "Shé",
+    "cantidad": 1,
+    "precio_unitario": 1200
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000015",
+    "pedido_id": "a5000000-0000-4000-8000-000000000011",
+    "producto_id": "a3000000-0000-4000-8000-000000000004",
+    "nombre_producto": "Wild Flower Gold",
+    "cantidad": 1,
+    "precio_unitario": 1100
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000016",
+    "pedido_id": "a5000000-0000-4000-8000-000000000012",
+    "producto_id": "a3000000-0000-4000-8000-000000000003",
+    "nombre_producto": "Parade",
+    "cantidad": 1,
+    "precio_unitario": 1800
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000017",
+    "pedido_id": "a5000000-0000-4000-8000-000000000013",
+    "producto_id": "a3000000-0000-4000-8000-000000000010",
+    "nombre_producto": "Kiara Pink",
+    "cantidad": 1,
+    "precio_unitario": 1100
   }
 ]

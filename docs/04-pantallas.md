@@ -472,33 +472,49 @@ No es una pantalla propia — vive dentro del formulario de producto (pantalla 1
 
 ## 7. Resumen (pantalla de inicio)
 
+Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
+"Resumen" en `03-modelo-de-datos.md`). Todo sale de la tienda activa.
+
 **Qué muestra:**
-- Saludo: "Buenos días, {nombre del dueño}." (con el punto en Mandarina;
-  "Buenas tardes/noches" según la hora de Santo Domingo).
-- Remate: "Esta semana tu tienda sacó 312 aaahs. Nada mal para un {día}."
+- Saludo: "Buenas tardes, {nombre de la tienda}." (con el punto en Mandarina;
+  "Buenos días/tardes/noches" según la hora de Santo Domingo).
+- Remate: "Esta semana tu tienda sacó 194 aaahs. Nada mal para un {día}." (aaahs
+  de los últimos 7 días; sin aaahs: "Esta semana todavía no hay aaahs…").
 - **Tarjeta de pedidos nuevos** (Mandarina, solo si hay): número en cuadro
   verde, "2 pedidos nuevos" / "Alguien dijo aaah. No lo dejes en visto." →
-  lleva a Pedidos.
-- **Selector de periodo**: Hoy · 7 días · Este mes.
+  lleva a Pedidos (pestaña Nuevos).
+- **Selector de periodo** (`Segmentos`): Hoy · 7 días (por defecto) · Este mes.
+  Recalcula todas las cifras, el gráfico y el top 3.
 - **Tarjeta de ventas** (Verde Bosque): "VENTAS · 7 DÍAS", monto grande,
-  variación ("+18%") y contra qué se compara ("vs. la semana pasada" / "vs.
-  el lunes pasado" / "vs. agosto"), y un **gráfico de barras** tocable:
-  - Hoy: barras por franja de 2 horas.
-  - 7 días: una barra por día (la de hoy en Mandarina).
-  - Este mes: una barra por semana.
+  variación con signo ("+18%": menta si sube, rosa si baja, sin rojo) y contra
+  qué se compara ("vs. los 7 días anteriores" / "vs. el lunes pasado, a esta
+  hora" / "vs. agosto, a esta altura"; sin datos antes: "Todavía no hay ventas
+  de antes para comparar."), y un **gráfico de barras** tocable (divs, sin
+  librería ni animación de entrada; resumen en texto para lectores de pantalla):
+  - Hoy: 12 franjas de 2 horas (las que aún no llegan, como trazo tenue).
+  - 7 días: una barra por día (la de hoy elegida al entrar, en Mandarina).
+  - Este mes: una barra por semana (1–7, 8–14…).
   - Encima del gráfico, el valor de la barra elegida ("Hoy: RD$5,370").
-- 4 datos del periodo: **Pedidos**, **Ticket promedio** (ventas / pedidos),
-  **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos / aaahs, en %).
-- **"Lo que más suspiran"** (+ "tu top 3" en Caveat): top 3 productos por
-  aaahs del periodo, con foto, número y barra proporcional.
-- **"Ojo con el stock"**: productos con `stock <= 1` ("Queda 1" Mandarina /
-  "Agotado" verde); tocar uno abre su formulario.
-- **Tarjeta del plan** (rosa, abre Plan y créditos): "Plan 20", "10 de 20
-  productos", barra, "35 créditos · te alcanzan para 7 fotos retocadas".
+- 4 datos del periodo: **Pedidos**, **Ticket promedio** (ventas / pedidos;
+  "—" sin pedidos), **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos /
+  aaahs, en % con un decimal; "—" sin aaahs).
+- **"Lo que más se vende"** (+ "tu top 3" en Caveat): top 3 productos por
+  unidades vendidas en pedidos no cancelados del periodo, con foto, "N
+  vendidos" y barra proporcional; tocar uno abre su formulario. (El prototipo
+  lo ordenaba por aaahs: se cambió en el paso 9.)
+- **"Ojo con el stock"**: productos con `stock <= STOCK_BAJO` (2, en
+  `lib/config.ts`): "Agotado" verde / "Queda 1" · "Quedan 2" Mandarina; tocar
+  uno abre su formulario. Sin ninguno: "Todo con stock. Tu vitrina está lista
+  para lo que venga."
+- **Tarjeta del plan** (rosa, abre Plan y créditos): "Plan 20", "Ver plan",
+  "10 de 20 productos", barra, "35 créditos · te alcanzan para 7 fotos retocadas".
+- **Periodo sin pedidos ni aaahs**: en lugar de la tarjeta de ventas, los datos
+  y el top, `EstadoVacio` con la ilustración de inicio ("Una semana
+  calladita." / "Hoy todavía está tranquilo." / "Este mes apenas arranca.").
+  Nunca ceros fríos, NaN, Infinity ni "-%".
 - Cierre en Caveat: "tu pulgar tiene buen gusto. déjalo trabajar."
 
-**Esta pantalla es de solo lectura** — solo consulta datos agregados (ver
-"Resumen" en `03-modelo-de-datos.md`).
+**Esta pantalla es de solo lectura** — solo consulta datos agregados.
 
 ---
 

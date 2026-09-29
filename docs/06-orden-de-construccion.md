@@ -6,9 +6,10 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–8 hechos (incluidos la hoja de Plan y créditos, la
+**Estado:** pasos 0–9 hechos (incluidos la hoja de Plan y créditos, la
 publicación en Vercel, Pedidos con Detalle, Despacho y pedido manual, Clientes
-derivados de los pedidos y Promos con estado por fechas). Sigue el paso 9.
+derivados de los pedidos, Promos con estado por fechas y el Resumen con datos
+reales). Sigue el paso 10 (repaso final).
 
 ## 0. Preparación
 
@@ -130,7 +131,7 @@ automáticamente, sin que alguien lo marque a mano.
 **Listo cuando:** una promo con `fecha_fin` en el pasado aparece en
 "Terminadas" sin intervención manual.
 
-## 9. Resumen
+## 9. Resumen — ✅ hecho
 
 - Se construye al final porque depende de que ya existan pedidos, productos
   y likes de prueba con los que calcular algo real

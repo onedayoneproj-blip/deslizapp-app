@@ -5,8 +5,8 @@
     "nombre": "Carolina Peña",
     "telefono": "+18095550142",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-27T15:30:00.000Z",
-    "pedidos_count": 2,
+    "primer_pedido_en": "2026-09-21T14:15:00.000Z",
+    "pedidos_count": 3,
     "nota": "Talla M. Le encantan los aretes largos"
   },
   {
@@ -25,8 +25,8 @@
     "nombre": "Yeimy Rosario",
     "telefono": "+18495550115",
     "origen": "manual",
-    "primer_pedido_en": "2026-09-27T22:12:00.000Z",
-    "pedidos_count": 1,
+    "primer_pedido_en": "2026-09-18T16:40:00.000Z",
+    "pedidos_count": 2,
     "nota": "Compra para regalos: pregunta siempre por la envoltura"
   },
   {
@@ -35,8 +35,8 @@
     "nombre": "Anyelo Brito",
     "telefono": "+18095550190",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-24T20:05:00.000Z",
-    "pedidos_count": 1,
+    "primer_pedido_en": "2026-09-15T19:10:00.000Z",
+    "pedidos_count": 2,
     "nota": null
   },
   {

@@ -195,6 +195,13 @@ pedido(T_LUNA, { numero: 1002, cli: marcos, origen: "catalogo", estado: "despach
 pedido(T_LUNA, { numero: 1003, cli: wendy, origen: "manual", estado: "por_despachar", creado: local(1, 17, 0), items: [["Anillo Brisa", 1], ["Choker Perla", 1]] });
 pedido(T_LUNA, { numero: 1004, cli: anaLucia, origen: "catalogo", estado: "nuevo", creado: REF - 5 * H, items: [["Collar Marea", 1], ["Choker Perla", 1]], codigo: "LUNA20", porcentaje: 20 });
 
+// Esencias Michel: la semana anterior (para que el Resumen tenga con qué comparar: "vs. los 7 días
+// anteriores" y "vs. el lunes pasado, a esta hora"), con un cancelado que no debe contar.
+pedido(T_MICHEL, { numero: 1033, cli: anyelo, origen: "catalogo", estado: "despachado", creado: local(13, 15, 10), items: [["Shé", 1]] });
+pedido(T_MICHEL, { numero: 1034, cli: yeimy, origen: "manual", estado: "despachado", creado: local(10, 12, 40), items: [["Wild Flower Gold", 1]] });
+pedido(T_MICHEL, { numero: 1035, cli: luis, origen: "catalogo", estado: "cancelado", creado: local(9, 19, 5), items: [["Parade", 1]] });
+pedido(T_MICHEL, { numero: 1036, cli: carolina, origen: "catalogo", estado: "despachado", creado: local(7, 10, 15), items: [["Kiara Pink", 1]] });
+
 for (const c of clientes) {
   if (c._primero) c.primer_pedido_en = iso(c._primero);
   delete c._primero;

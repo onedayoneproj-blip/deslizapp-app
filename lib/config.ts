@@ -23,6 +23,9 @@ export const NOMBRE_PLAN: Record<Plan, string> = {
   custom: "Plan a medida",
 };
 
+/** "Ojo con el stock" del Resumen: productos con stock contado menor o igual a esto (0 = agotado). */
+export const STOCK_BAJO = 2;
+
 /** Zona horaria en la que se muestran las fechas (UTC-4). */
 export const ZONA_HORARIA = "America/Santo_Domingo";
 
