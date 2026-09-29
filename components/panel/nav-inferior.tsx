@@ -31,9 +31,9 @@ export function NavInferior() {
   return (
     <nav
       aria-label="Secciones"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-[calc(14px+env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-(--nav-margen)"
     >
-      <ul className="pointer-events-auto flex h-[68px] items-center gap-1 rounded-full border border-linea bg-white p-1.5 shadow-[0_14px_30px_-14px_rgba(23,75,58,0.5)]">
+      <ul className="pointer-events-auto flex h-(--nav-alto) items-center gap-1 rounded-full border border-linea bg-white p-1.5 shadow-[0_14px_30px_-14px_rgba(23,75,58,0.5)]">
         {SECCIONES.map(({ href, nombre, Icono }) => {
           const activa = estaActiva(pathname, href);
           const badge = href === "/pedidos" && nuevos > 0 ? nuevos : 0;

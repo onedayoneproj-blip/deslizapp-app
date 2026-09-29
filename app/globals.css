@@ -50,6 +50,19 @@
   }
 }
 
+/* Medidas de la barra inferior: se definen aquí una sola vez y las usan la barra, el
+   contenido y el botón flotante, para que no se desincronicen. */
+:root {
+  /* Zona de la línea de inicio del iPhone (0 en Android y escritorio). Para probar otro valor,
+     se sobrescribe solo esta variable. */
+  --safe-abajo: env(safe-area-inset-bottom, 0px);
+  /* Espacio entre la barra y el borde de la pantalla: 10 px sin safe area, ~18 px en iPhone */
+  --nav-margen: max(10px, calc(var(--safe-abajo) - 16px));
+  --nav-alto: 68px;
+  /* Dónde termina la barra por arriba, medido desde el borde inferior de la pantalla */
+  --nav-abajo: calc(var(--nav-margen) + var(--nav-alto));
+}
+
 html {
   -webkit-tap-highlight-color: transparent;
 }
