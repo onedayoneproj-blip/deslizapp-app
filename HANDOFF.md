@@ -124,7 +124,15 @@ ahí está la documentación exacta de esta versión instalada.
 4. **Catálogo público integrado**: el HTML independiente pasa a leer la marca (`marca_*`, `url_catalogo`) y las
    promos de cada tienda; los enlaces de compartir promo dejan de depender del enlace que escribe el dueño.
 5. **Notificaciones** de pedidos nuevos (hoy solo el contador) y **sincronización entre dispositivos**.
-6. Pendientes de diseño y detalle del repaso: `docs/08-repaso-final.md` ("Para decidir" y "Pendiente").
+6. Pendientes del repaso: `docs/08-repaso-final.md` ("Pendiente").
+
+### Interruptores de negocio (`lib/config.ts`)
+
+- `RETOQUE_REAL` (hoy `false`): mientras sea `false`, el retoque de fotos se presenta como demostración (etiqueta "Demo").
+  Al conectar el retoque de verdad, pasar a `true`.
+- `MOSTRAR_MARCA_DESLIZAPP_EN_CUPON` (hoy `true`): el "Hecho con Deslizapp" al pie de la imagen del cupón; pensado
+  para quitarse por plan.
+- `STOCK_BAJO`, `CREDITOS_POR_RETOQUE`, límites y nombres de plan: ver el mismo archivo.
 
 ## Qué se espera de esta primera entrega
 

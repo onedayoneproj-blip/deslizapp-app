@@ -326,7 +326,7 @@ export function NavInferior() {
                     href={href}
                     draggable={false}
                     aria-current={esActiva ? "page" : undefined}
-                    aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "pedido nuevo" : "pedidos nuevos"}` : undefined}
+                    aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "nuevo" : "nuevos"}` : undefined}
                     onClick={(e) => {
                       if (ignorarClic.current) {
                         e.preventDefault();
@@ -343,7 +343,7 @@ export function NavInferior() {
                   >
                     <span className="relative">
                       <Icono tamano={22} strokeWidth={marcada ? 2.3 : 2} />
-                      <Contador valor={badge} tamano="barra" className="mov-aparece absolute -top-1.5 -right-3" />
+                      <Contador valor={badge} tamano="barra" oculto className="mov-aparece absolute -top-1.5 -right-3" />
                     </span>
                     <span className={`max-w-full truncate px-0.5 text-[11.5px] leading-none ${marcada ? "font-extrabold" : "font-semibold"}`}>
                       {nombre}

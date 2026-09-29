@@ -175,38 +175,47 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
         ? { texto: `−${precio.porcentaje}%`, clase: "bg-mandarina text-bosque-oscuro" }
         : null;
   const stock = p.stock === null ? "Sin control de stock" : agotado ? "Sin stock" : `${p.stock} en stock`;
+  // Nombre accesible = el texto visible de la tarjeta en el mismo orden (WCAG 2.5.3: nombre, precio, stock y después las
+  // etiquetas de la foto), separado por comas para que se lea con pausas, y al final la acción.
+  const nombreAccesible = [p.nombre, formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", stock, etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `♥ ${p.likes}`]
+    .filter(Boolean)
+    .join(",") + ". Editar";
 
   return (
     <Link
       href={`/catalogo/${p.id}`}
       scroll={false}
-      aria-label={`Editar ${p.nombre}`}
+      aria-label={nombreAccesible}
       className="tocable block text-bosque"
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
-        {p.fotos[0] ? (
-          <Foto src={p.fotos[0]} alt="" prioridad={prioridad} className={`h-full w-full ${agotado ? "grayscale" : ""} ${p.activo ? "" : "opacity-50"}`} sizes="(max-width: 480px) 50vw, 220px" />
-        ) : (
-          <span className="grid h-full place-items-center font-display text-4xl text-bosque/30">{p.nombre[0]}</span>
-        )}
-        {etiqueta && (
-          <span className={`absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${etiqueta.clase}`}>
-            {etiqueta.texto}
-          </span>
-        )}
-        {p.fotoRetocada && (
-          <span className="absolute bottom-2.5 left-2.5 rounded-full bg-bosque px-2 py-[3px] text-[11px] font-extrabold text-papel">
-            Retocada ✦
-          </span>
-        )}
-        <span className="absolute right-2.5 bottom-2.5 rounded-full bg-white px-[9px] py-[3px] text-xs font-extrabold">♥ {p.likes}</span>
-      </div>
+      <div className="flex flex-col">
+        <div className="order-2">
       <p className="mt-2 text-[14.5px] leading-tight font-extrabold">{p.nombre}</p>
       <p className="mt-0.5 flex items-baseline gap-1.5">
         <span className="text-[14.5px] font-extrabold">{formatearPesos(precio.precio)}</span>
         {precio.precioAntes && <span className="text-[12.5px] text-suave line-through">{formatearPesos(precio.precioAntes)}</span>}
       </p>
       <p className="text-[12.5px] font-semibold text-suave">{stock}</p>
+        </div>
+        <div className="order-1 relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
+        {p.fotos[0] ? (
+          <Foto src={p.fotos[0]} alt="" prioridad={prioridad} className={`h-full w-full ${agotado ? "grayscale" : ""} ${p.activo ? "" : "opacity-50"}`} sizes="(max-width: 480px) 50vw, 220px" />
+        ) : (
+          <span className="grid h-full place-items-center font-display text-4xl text-bosque/30">{p.nombre[0]}</span>
+        )}
+        {etiqueta && (
+          <span aria-hidden="true" className={`absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${etiqueta.clase}`}>
+            {etiqueta.texto}
+          </span>
+        )}
+        {p.fotoRetocada && (
+          <span aria-hidden="true" className="absolute bottom-2.5 left-2.5 rounded-full bg-bosque px-2 py-[3px] text-[11px] font-extrabold text-papel">
+            Retocada ✦
+          </span>
+        )}
+        <span aria-hidden="true" className="absolute right-2.5 bottom-2.5 rounded-full bg-white px-[9px] py-[3px] text-xs font-extrabold">♥ {p.likes}</span>
+      </div>
+      </div>
     </Link>
   );
 }

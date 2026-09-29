@@ -37,3 +37,15 @@ export const FOTO_LADO_MAXIMO = 800;
  * (ej. "18095550000"). Vacío = WhatsApp abre con el mensaje listo y la persona elige el contacto.
  */
 export const WHATSAPP_DESLIZAPP = "";
+
+/**
+ * "Hecho con Deslizapp" al pie de la imagen del cupón que se comparte (lib/imagen-promo.ts). Se deja discreto;
+ * la constante permite quitarlo más adelante por plan.
+ */
+export const MOSTRAR_MARCA_DESLIZAPP_EN_CUPON = true;
+
+/**
+ * ¿El retoque de fotos es real? Mientras sea `false` es una demostración: junto al interruptor de retoque se
+ * muestra la etiqueta "Demo". Al conectar el retoque de verdad (docs/07), pasar a `true` y la etiqueta desaparece.
+ */
+export const RETOQUE_REAL = false;

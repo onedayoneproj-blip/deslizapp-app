@@ -12,6 +12,7 @@ import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
+import { BotonVerMas, useVerMas } from "../ver-mas";
 import { ChipEstado } from "./comunes";
 
 type Pestana = Extract<EstadoPedido, "nuevo" | "por_despachar" | "despachado">;
@@ -62,7 +63,9 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     for (const p of pedidos ?? []) if (p.estado in c) c[p.estado as Pestana]++;
     return c;
   }, [pedidos]);
-  const visibles = (pedidos ?? []).filter((p) => p.estado === pestana);
+  const todos = useMemo(() => (pedidos ?? []).filter((p) => p.estado === pestana), [pedidos, pestana]);
+  // 30 más recientes; "Ver más antiguos" agrega 30 cada vez. Los contadores de las pastillas siguen siendo el total.
+  const { visibles, quedan, mostrados, verMas } = useVerMas(todos, `${tiendaId}:${pestana}`);
   // Sin ningún pedido todavía, el mensaje es uno solo; si no, depende de la pestaña.
   const vacio = pedidos?.length === 0 ? SIN_PEDIDOS : VACIO[pestana];
 
@@ -88,17 +91,20 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             <Esqueleto className="h-[112px] rounded-[22px]" />
           </>
         )}
-        {pedidos && visibles.length === 0 && (
+        {pedidos && todos.length === 0 && (
           <EstadoVacio ilustracion="pedidos" titulo={vacio.titulo} remate={vacio.remate} />
         )}
-        {pedidos && visibles.length > 0 && (
-          <ul className="flex flex-col gap-3">
-            {visibles.map((p) => (
-              <li key={p.id}>
-                <TarjetaPedido pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
-              </li>
-            ))}
-          </ul>
+        {pedidos && todos.length > 0 && (
+          <>
+            <ul className="flex flex-col gap-3">
+              {visibles.map((p) => (
+                <li key={p.id}>
+                  <TarjetaPedido pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
+                </li>
+              ))}
+            </ul>
+            <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
+          </>
         )}
       </div>
 
@@ -114,7 +120,6 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
     <Link
       href={`/pedidos/${p.id}`}
       scroll={false}
-      aria-label={`Pedido ${p.numero}`}
       className="tocable block rounded-[22px] border border-linea bg-white px-4 py-3.5 text-bosque"
     >
       <div className="flex items-center justify-between gap-2">

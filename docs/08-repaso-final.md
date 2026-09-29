@@ -59,23 +59,22 @@ y de las pastillas, mensaje y enlace del cupón compartido — nada se mezcla.
 - **Datos de prueba**: la historia de ~14 meses tenía casi todos los clientes con 8–18 pedidos (18 de 20 "Repite"); ahora hay ~110 clientes en Michel y ~50 en Luna, con clientes fieles y muchos de una sola compra.
 - **Docs**: `03` (los pedidos manuales nacen en `por_despachar`; stock nunca negativo), `06` y `HANDOFF.md`.
 
+## Decisiones tomadas después del repaso
+
+1. **Notas a mano en Mandarina**: ahora usan `--color-mandarina-texto` (`#C24E18`; 4.56:1 sobre Papel Cálido y 4.78:1 sobre blanco; el `#C4501A` propuesto daba 4.44:1 sobre crema, por eso se oscureció un punto). El Mandarina `#FF834F` queda para botones, círculos, sellos y fondos. La nota "lo nuevo" de la pantalla de novedades, que va sobre verde, no cambia.
+2. **Nombres accesibles** alineados con el texto visible (WCAG 2.5.3): el botón de la tienda, la barra de navegación ("Pedidos, 2 nuevos") y las tarjetas de producto ("Kiara Pink,RD$935,RD$1,100,1 en stock,−15%,…. Editar"); las filas de Pedidos y Clientes y las tarjetas de Promos ya no repiten una etiqueta distinta de su texto. El contador de la barra ya no es texto del DOM (se pinta con CSS) para que el nombre visible siga siendo "Pedidos". La regla experimental de axe (`label-content-name-mismatch`) ya no encuentra discordancias.
+3. **Pedidos manuales** siguen entrando a "Por despachar" (razón documentada en `04-pantallas.md`).
+4. **Despachados y otras listas largas** por tramos de 30 con "Ver más antiguos" / "Ver más clientes" (Pedidos ×3, Clientes, Promos ×3). El contador de las pastillas muestra el total.
+5. **"Hecho con Deslizapp"** en la imagen del cupón se queda, controlado por `MOSTRAR_MARCA_DESLIZAPP_EN_CUPON` (`lib/config.ts`).
+6. **Retoque de fotos**: sin cambios de lógica; `RETOQUE_REAL = false` (`lib/config.ts`) muestra la etiqueta "Demo" junto al interruptor.
+
 ## Pendiente (no bloquea la primera entrega)
 
-- **"tu top 3", "nosotros le ponemos la luz", "tu vitrina te espera"** y otras notas a mano en Mandarina (Caveat) sobre blanco o crema: contraste 2.3–2.4:1. Ver "Para decidir".
-- **Etiquetas accesibles que no contienen el texto visible** (Lighthouse "label-content-name-mismatch"): el botón de la tienda, la barra de navegación con contador y las tarjetas de producto (`aria-label="Editar Kiara Pink"` frente a nombre + precio + stock). No afecta el uso, pero conviene alinearlos.
 - **El seed pesa ~900 KB dentro del código que descarga la app** (Rendimiento 85–89, LCP ~3.6 s con red lenta simulada). Se resuelve solo al conectar Supabase; hasta entonces se podría cargar bajo demanda.
 - **Nombres muy largos de cliente** en el detalle: se acomodan en varias líneas y la etiqueta "Repite" queda al lado; se ve bien pero podría ir debajo.
 - WhatsApp en iPhone puede descartar el texto al compartir imagen + texto: no se puede verificar fuera de un iPhone real (ya se copia el mensaje y se avisa).
 - La foto retocada, el catálogo público y el compartir con enlaces reales dependen de las fases siguientes (`HANDOFF.md`).
-
-## Para decidir (cambios de diseño, no se hicieron)
-
-1. **Notas a mano en Mandarina** (contraste 2.4:1, decorativas): dejarlas como están, o usar un naranja más oscuro solo para texto (por ejemplo `#C4501A`, ≈ 4.6:1 sobre crema/blanco).
-2. **Etiquetas accesibles**: ¿que el nombre accesible empiece por el texto visible (por ejemplo "Kiara Pink, RD$935, 1 en stock. Editar")? Cambia lo que leen los lectores de pantalla, no lo que se ve.
-3. **Pedidos manuales**: hoy entran directo a "Por despachar". ¿Prefieres que entren a "Nuevos" para confirmarlos, como los del catálogo?
-4. **Muchos "Despachados"**: con la historia de prueba la pestaña marca "99+" y la lista es larga. ¿Paginar o mostrar solo los últimos 30 días con "Ver anteriores"? (Con Supabase se pagina de todos modos.)
-5. **Cupón con "Hecho con Deslizapp"**: sigue al pie de la imagen (constante `PIE_IMAGEN`); ¿se quita o se deja como marca?
-6. **Retoque de fotos**: hoy es una demostración. Decidir el proveedor y el costo real por foto antes de cobrar 5 créditos.
+- Retoque de fotos: decidir el proveedor y el costo real por foto antes de cobrar 5 créditos.
 
 ## Checklist para probar en el celular
 

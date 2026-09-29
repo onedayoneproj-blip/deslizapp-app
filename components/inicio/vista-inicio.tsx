@@ -367,7 +367,7 @@ function TopProductos({ resumen: r }: { resumen: Resumen }) {
     <section data-top className="rounded-[24px] border border-linea bg-white p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="font-display text-xl">Lo que más se vende</h2>
-        <span className="font-mano text-[19px] text-mandarina">tu top 3</span>
+        <span className="font-mano text-[19px] text-mandarina-texto">tu top 3</span>
       </div>
       {r.top.length === 0 ? (
         <p className="mt-2 text-[14px] text-suave">Todavía no se ha vendido nada en este periodo. Los aaahs ya están llegando.</p>

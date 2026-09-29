@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { CREDITOS_POR_RETOQUE } from "@/lib/config";
+import { CREDITOS_POR_RETOQUE, RETOQUE_REAL } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
@@ -278,7 +278,7 @@ function FormularioProducto({
         >
           <IconoCamara tamano={40} />
           {procesandoFoto ? "Acomodando la foto…" : "Sube la foto del celular"}
-          <span className="font-mano text-[19px] font-semibold text-mandarina">nosotros le ponemos la luz</span>
+          <span className="font-mano text-[19px] font-semibold text-mandarina-texto">nosotros le ponemos la luz</span>
         </button>
       )}
 
@@ -299,7 +299,14 @@ function FormularioProducto({
             <IconoCreditos tamano={22} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[15.5px] font-extrabold">{yaRetocada ? "Retocar otra vez" : "Retocar foto"}</p>
+            <p className="flex items-center gap-2 text-[15.5px] font-extrabold">
+              {yaRetocada ? "Retocar otra vez" : "Retocar foto"}
+              {!RETOQUE_REAL && (
+                <span data-etiqueta-demo className="rounded-full bg-bosque/10 px-2 py-[2px] text-[11px] leading-none font-extrabold tracking-wide text-bosque uppercase">
+                  Demo
+                </span>
+              )}
+            </p>
             <p className="text-[13px] font-semibold">
               {!alcanzan
                 ? `Te faltan ${CREDITOS_POR_RETOQUE - creditos} créditos (tienes ${creditos}). Se recargan el día 1.`

@@ -10,6 +10,7 @@ import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { BotonFlotante } from "../panel/boton-flotante";
+import { BotonVerMas, useVerMas } from "../ver-mas";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { TarjetaPromo } from "./tarjeta-promo";
 
@@ -70,7 +71,8 @@ export function VistaPromos({ children }: { children: ReactNode }) {
     for (const p of conEstado) c[p.estado]++;
     return c;
   }, [conEstado]);
-  const visibles = conEstado.filter((p) => p.estado === pestana);
+  const todas = useMemo(() => conEstado.filter((p) => p.estado === pestana), [conEstado, pestana]);
+  const { visibles, quedan, mostrados, verMas } = useVerMas(todas, `${tiendaId}:${pestana}`);
   const productosPorId = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const sinPromos = promos !== undefined && promos.length === 0;
   const vacio = sinPromos ? { titulo: "Aún no tienes promos.", remate: "Crea la primera y mira cómo se deslizan tus productos." } : VACIO[pestana];
@@ -97,7 +99,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
             <Esqueleto className="h-[120px] rounded-[22px]" />
           </>
         )}
-        {promos && visibles.length === 0 && (
+        {promos && todas.length === 0 && (
           <EstadoVacio
             ilustracion="promos"
             titulo={vacio.titulo}
@@ -105,7 +107,8 @@ export function VistaPromos({ children }: { children: ReactNode }) {
             accion={pestana !== "terminada" || sinPromos ? { texto: "Crear promo", href: "/promos/nueva" } : undefined}
           />
         )}
-        {visibles.length > 0 && (
+        {todas.length > 0 && (
+          <>
           <ul className="flex flex-col gap-[18px]">
             {visibles.map(({ promo, estado }) => (
               <li key={promo.id}>
@@ -120,6 +123,8 @@ export function VistaPromos({ children }: { children: ReactNode }) {
               </li>
             ))}
           </ul>
+          <BotonVerMas quedan={quedan} mostrados={mostrados} total={todas.length} alTocar={verMas} />
+          </>
         )}
       </div>
 

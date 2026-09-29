@@ -28,7 +28,8 @@ export function Encabezado() {
           onClick={() => setMenuAbierto(true)}
           aria-haspopup="dialog"
           aria-expanded={menuAbierto}
-          aria-label={tienda ? `${tienda.nombre}: cambiar de tienda` : "Cambiar de tienda"}
+          // Nombre accesible = el texto visible (nombre y plan) y después la acción, con comas: WCAG 2.5.3 (etiqueta en el nombre)
+          aria-label={tienda ? `${tienda.nombre},${NOMBRE_PLAN[tienda.plan]} · deslizapp. Cambiar de tienda` : "Cambiar de tienda"}
           className="flex min-h-11 min-w-0 items-center gap-2.5 text-left"
         >
           {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />}

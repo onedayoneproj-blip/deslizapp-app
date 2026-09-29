@@ -98,7 +98,7 @@ export function TarjetaPromo({
     );
   }
   return (
-    <Link href={href} scroll={false} aria-label={etiqueta} className={`block active:scale-[0.98] ${contenedor}`} style={{ filter: sombra }}>
+    <Link href={href} scroll={false} className={`block active:scale-[0.98] ${contenedor}`} style={{ filter: sombra }}>
       {tarjeta}
     </Link>
   );

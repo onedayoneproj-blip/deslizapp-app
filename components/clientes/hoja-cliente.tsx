@@ -133,7 +133,6 @@ function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: Pe
                 <Link
                   href={`/pedidos/${p.id}`}
                   scroll={false}
-                  aria-label={`Pedido ${p.numero}`}
                   className="tocable flex items-center justify-between gap-2.5 rounded-[18px] border border-linea bg-white px-3.5 py-3"
                 >
                   <span>

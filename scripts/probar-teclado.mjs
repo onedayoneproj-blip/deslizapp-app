@@ -126,7 +126,7 @@ try {
     await page.waitForTimeout(900);
     await probarCampo(page, 'input[type="search"]', "Buscador del Catálogo", "she");
     const tarjetas = await page.$$eval("main ul li a", (a) => a.map((x) => x.getAttribute("aria-label")));
-    ok(tarjetas.join() === "Editar Shé", `Buscador: la lista responde a lo escrito (${tarjetas.join(", ")})`);
+    ok(tarjetas.length === 1 && tarjetas[0].startsWith("Shé,"), `Buscador: la lista responde a lo escrito (${tarjetas.join(", ")})`);
 
     // Con el teclado abierto, tocar un filtro tampoco inicia una transición de vista
     await page.tap('input[type="search"]');

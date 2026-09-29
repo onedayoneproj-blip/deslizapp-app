@@ -102,7 +102,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
 
       <div className="mt-6 flex items-baseline gap-2">
         <h2 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h2>
-        <span className="font-mano text-lg text-mandarina">nadie se entera</span>
+        <span className="font-mano text-lg text-mandarina-texto">nadie se entera</span>
       </div>
       <div className="mt-2 divide-y divide-linea overflow-hidden rounded-3xl border border-linea bg-white">
         <AccionDemo

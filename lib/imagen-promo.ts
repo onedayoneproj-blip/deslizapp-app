@@ -2,6 +2,7 @@
 // Se dibuja en un <canvas> en el navegador (no hay servidor con los datos). Solo cliente.
 // Lleva la MARCA DE LA TIENDA (colores y fuentes de "Mi marca"), como el componente CuponTienda.
 
+import { MOSTRAR_MARCA_DESLIZAPP_EN_CUPON } from "./config";
 import { datosCupon, type DatosCupon } from "./cupon";
 import { iniciales } from "./formato";
 import { cargarFuentesMarca, familiaTexto, familiaTitulo } from "./fuentes-marca";
@@ -12,8 +13,8 @@ const ANCHO = 1080;
 const ALTO = 1350;
 const PESO_MAXIMO = 400 * 1024;
 
-/** Línea diminuta al pie de la imagen. Vacía ("") para quitarla. */
-export const PIE_IMAGEN = "Hecho con Deslizapp";
+/** Línea diminuta al pie de la imagen; se muestra según `MOSTRAR_MARCA_DESLIZAPP_EN_CUPON` (lib/config.ts). */
+const PIE_IMAGEN = "Hecho con Deslizapp";
 
 /** Fondo de la imagen: el color principal de la marca muy aclarado (mezclado con blanco). */
 export function fondoClaro(principal: string): string {
@@ -229,7 +230,7 @@ export async function generarImagenPromo({ promo, estado, tienda, marca, product
     ctx.fillText(promo.tipo === "codigo" ? "Escribe el código al hacer tu pedido" : "Ya la ves en nuestro catálogo", ANCHO / 2, 1010);
 
     // Pie discreto
-    if (PIE_IMAGEN) {
+    if (MOSTRAR_MARCA_DESLIZAPP_EN_CUPON) {
       ctx.globalAlpha = 0.55;
       ctx.font = `600 30px ${f.texto}`;
       ctx.fillText(PIE_IMAGEN, ANCHO / 2, 1260);

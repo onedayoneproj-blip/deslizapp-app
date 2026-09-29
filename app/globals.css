@@ -6,6 +6,9 @@
   --color-bosque: #174b3a;
   --color-rosa: #f5c9d6;
   --color-mandarina: #ff834f;
+  /* Naranja más oscuro SOLO para texto (notas a mano en Caveat): 4.5:1 sobre crema (4.56) y blanco (4.78). El Mandarina
+     #ff834f queda para botones, círculos, sellos y fondos. */
+  --color-mandarina-texto: #c24e18;
   --color-papel: #fff9ee;
 
   /* Derivados funcionales */

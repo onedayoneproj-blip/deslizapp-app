@@ -43,6 +43,7 @@ propios números.
 | Rosa Suave | `#F5C9D6` | El aaah, cercanía — fondos suaves, acentos |
 | Mandarina | `#FF834F` | Chispa, impulso — llamados a la acción, alertas |
 | Papel Cálido | `#FFF9EE` | Calma, respiro — fondo base |
+| Mandarina para texto | `#C24E18` (`--color-mandarina-texto`) | **Solo texto** en naranja (las notas a mano en Caveat): 4.56:1 sobre Papel Cálido y 4.78:1 sobre blanco. El Mandarina `#FF834F` queda para botones, círculos, sellos y fondos (su contraste como texto es 2.4:1) |
 
 **Tipografía:**
 - **Fredoka** (Bold, ancho 110–125%) — logo y titulares

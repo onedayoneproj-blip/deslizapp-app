@@ -15,6 +15,7 @@ import { IconoBuscar } from "../iconos";
 import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
+import { BotonVerMas, useVerMas } from "../ver-mas";
 import { Avatar, EtiquetaRepite } from "./comunes";
 import { TextoResaltado } from "./texto-resaltado";
 
@@ -29,7 +30,9 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const [busqueda, setBusqueda] = useState("");
   const [aplicada, setAplicada] = useState("");
 
-  const visibles = useMemo(() => buscarClientes(clientes ?? [], aplicada), [clientes, aplicada]);
+  const todos = useMemo(() => buscarClientes(clientes ?? [], aplicada), [clientes, aplicada]);
+  // De 30 en 30 (con ~110 clientes la lista es larga); las tarjetas de arriba siguen contando a todos
+  const { visibles, quedan, mostrados, verMas } = useVerMas(todos, `${tiendaId}:${aplicada}`);
 
   const total = clientes?.length ?? 0;
   const repiten = clientes?.filter((c) => c.repite).length ?? 0;
@@ -70,17 +73,20 @@ export function VistaClientes({ children }: { children: ReactNode }) {
             accion={{ texto: "Agregar cliente", href: "/clientes/nuevo" }}
           />
         )}
-        {clientes && total > 0 && visibles.length === 0 && (
+        {clientes && total > 0 && todos.length === 0 && (
           <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie con ese nombre. Todavía." remate="Prueba con otro nombre o con el WhatsApp." />
         )}
-        {visibles.length > 0 && (
-          <ul className="rounded-[24px] border border-linea bg-white px-3.5">
-            {visibles.map(({ cliente, coincide }) => (
-              <li key={cliente.id} className="border-b border-arena last:border-b-0">
-                <FilaCliente cliente={cliente} coincide={coincide} consulta={aplicada} />
-              </li>
-            ))}
-          </ul>
+        {todos.length > 0 && (
+          <>
+            <ul className="rounded-[24px] border border-linea bg-white px-3.5">
+              {visibles.map(({ cliente, coincide }) => (
+                <li key={cliente.id} className="border-b border-arena last:border-b-0">
+                  <FilaCliente cliente={cliente} coincide={coincide} consulta={aplicada} />
+                </li>
+              ))}
+            </ul>
+            <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} texto="Ver más clientes" />
+          </>
         )}
       </div>
 
@@ -102,7 +108,7 @@ function Contador({ valor, texto, rosa = false }: { valor: number | null; texto:
 
 function FilaCliente({ cliente: c, coincide, consulta }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string }) {
   return (
-    <Link href={`/clientes/${c.id}`} scroll={false} aria-label={`Cliente ${c.nombre}`} className="tocable flex items-center gap-3 py-3 text-bosque">
+    <Link href={`/clientes/${c.id}`} scroll={false} className="tocable flex items-center gap-3 py-3 text-bosque">
       <Avatar nombre={c.nombre} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[15.5px] font-extrabold">

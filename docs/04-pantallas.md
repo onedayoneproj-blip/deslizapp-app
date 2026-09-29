@@ -197,6 +197,15 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 - Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del
   catálogo" / "Manual"), nombre del cliente, cantidad de productos,
   miniaturas de los productos y total.
+- **Listas largas por tramos** (`components/ver-mas.tsx`): cada pestaña muestra
+  los 30 más recientes y, al final, "Ver más antiguos" (con "Mostrando 30 de N")
+  agrega 30 cada vez; desaparece cuando no queda nada. Los contadores de las
+  pastillas siguen mostrando el total. Al cambiar de pestaña o de tienda vuelve a
+  empezar en 30. Sin animación por elemento. La misma lógica se usa en Clientes
+  ("Ver más clientes", ~110 en la demo, también al buscar) y en las pestañas de
+  Promos. Probado con la lista completa cargada (223 despachados): desplazamiento
+  de punta a punta a 3.000 px/s con la CPU 4 veces más lenta, mediana de 16.7 ms
+  por cuadro y 1 de ~590 cuadros por encima de 50 ms.
 - Estado vacío por pestaña: Nuevos "Todo al día. Disfruta el silencio. Dura
   poco."; Por despachar "Nada por despachar."; Despachados "Aún no hay
   despachos."; sin ningún pedido "Aún no tienes pedidos. Cuando alguien pida por
@@ -210,6 +219,10 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   por el catálogo): elegir cliente, elegir productos y cantidades, aplicar
   código de promo opcional ("¿Usó un código?"). Entra directo en estado
   `por_despachar` ("Pedido #1043 guardado. Está en Por despachar.").
+  **Por qué:** "Nuevos" son los pedidos que llegan del catálogo y esperan
+  confirmación del dueño; un pedido manual lo arma el dueño después de hablar
+  con el cliente, así que ya nace confirmado (decisión tras el repaso final:
+  se queda así).
 - **Elegir cliente** (no es un desplegable): el campo "Cliente" abre, dentro de
   la misma hoja, un buscador ("Busca o crea un cliente") con botón de volver.
   Sin texto, la primera fila es siempre "+ Nuevo cliente" y debajo "Recientes"
@@ -377,8 +390,9 @@ el campo de texto) tiene, de arriba abajo:
 - Imagen 1080×1350 dibujada en un canvas (`lib/imagen-promo.ts`): fondo claro
   derivado de la marca (el principal mezclado 90 % con blanco), logo o iniciales
   y nombre arriba, el cupón grande al centro, colores y fuentes del estilo de la
-  tienda (se espera a que carguen) y al pie "Hecho con Deslizapp" (constante
-  `PIE_IMAGEN`; vacía para quitarla); se
+  tienda (se espera a que carguen) y al pie, discreto, "Hecho con Deslizapp" (se
+  queda; lo controla `MOSTRAR_MARCA_DESLIZAPP_EN_CUPON` en `lib/config.ts`, para
+  poder quitarlo por plan más adelante); se
   genera al abrir la hoja y queda en memoria, para que las acciones se ejecuten
   directo dentro del toque. Pesa < 400 KB (si el PNG pasara, JPEG).
 
@@ -445,6 +459,11 @@ colores).
 ---
 
 ## 6. Retoque de fotos con IA
+
+> **Demo:** mientras `RETOQUE_REAL` (`lib/config.ts`) sea `false`, junto al
+> título de la tarjeta de retoque se muestra una etiqueta discreta "Demo". La
+> lógica de créditos no cambia; al conectar el retoque de verdad se pasa a
+> `true` y la etiqueta desaparece.
 
 No es una pantalla propia — vive dentro del formulario de producto (pantalla 1).
 

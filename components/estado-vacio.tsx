@@ -52,7 +52,7 @@ export function EstadoVacio({
       />
       <h2 className={`font-display leading-tight text-bosque ${pequeno ? "text-xl" : "text-2xl"}`}>{titulo}</h2>
       <p className={`mt-2 max-w-xs leading-snug text-suave ${pequeno ? "text-sm" : "text-[15px]"}`}>{remate}</p>
-      {nota && <p className="mt-3 font-mano text-2xl text-mandarina -rotate-2">{nota}</p>}
+      {nota && <p className="mt-3 font-mano text-2xl text-mandarina-texto -rotate-2">{nota}</p>}
       {accion && (
         <Link
           href={accion.href}
