@@ -9,6 +9,7 @@ import { formatearPesos } from "@/lib/formato";
 import { precioConPromo } from "@/lib/promos";
 import type { Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
+import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Numero } from "../numero";
 import { Foto } from "../foto";
@@ -129,10 +130,16 @@ export function VistaCatalogo() {
         </div>
 
         {productos && visibles.length === 0 && (
-          <div className="px-2.5 py-8 text-center text-suave">
-            <p className="font-display text-xl text-bosque">Nada por aquí.</p>
-            <p>{productos.length === 0 ? "Tu vitrina está esperando su primera estrella." : "Ni un suspiro. Prueba con otro filtro."}</p>
-          </div>
+          productos.length === 0 ? (
+            <EstadoVacio
+              ilustracion="catalogo"
+              titulo="Tu vitrina está vacía."
+              remate="Sube tu primera pieza y deja que tu gente diga aaah."
+              accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo" }}
+            />
+          ) : (
+            <EstadoVacio pequeno ilustracion="catalogo" titulo="No encontramos nada con eso." remate="Ni un suspiro. Prueba con otra palabra u otro filtro." />
+          )
         )}
 
         <ul className="grid grid-cols-2 gap-x-3 gap-y-4">
@@ -152,7 +159,8 @@ export function VistaCatalogo() {
         </ul>
       </div>
 
-      <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />
+      {/* Sin productos, el botón del estado vacío ya invita a publicar: no se duplica */}
+      {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />}
     </>
   );
 }

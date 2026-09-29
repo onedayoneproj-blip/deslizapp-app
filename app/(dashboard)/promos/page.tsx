@@ -1,7 +1,6 @@
 "use client";
 
 import { EstadoVacio } from "@/components/estado-vacio";
-import { IconoPromos } from "@/components/iconos";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -16,7 +15,7 @@ export default function PromosPage() {
     <>
       <TituloPantalla titulo="Promos" subtitulo="Ponle un descuento y mira cómo se deslizan." />
       <EstadoVacio
-        icono={<IconoPromos tamano={28} />}
+        ilustracion="promos"
         titulo="Las promos se están poniendo guapas."
         remate={
           promos

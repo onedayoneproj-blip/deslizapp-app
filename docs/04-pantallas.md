@@ -122,8 +122,10 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
   "♥ 57" (likes). Debajo: nombre, precio (con el de lista tachado si hay
   promo), y "3 en stock" / "Sin stock" / "Sin control de stock". Los ocultos
   se ven atenuados y los agotados en escala de grises.
-- Estado vacío (búsqueda o filtro sin resultados): "Nada por aquí." / "Ni un
-  suspiro. Prueba con otro filtro."
+- Estado vacío: sin productos → "Tu vitrina está vacía." + botón "Publicar mi
+  primer producto"; búsqueda o filtro sin resultados (ilustración chica) →
+  "No encontramos nada con eso." / "Ni un suspiro. Prueba con otra palabra u
+  otro filtro."
 - Botón flotante "+ Producto".
 
 **Acciones:**
@@ -166,7 +168,10 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 - Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del
   catálogo" / "Manual"), nombre del cliente, cantidad de productos,
   miniaturas de los productos y total.
-- Estado vacío: "Todo al día. Disfruta el silencio. Dura poco."
+- Estado vacío por pestaña: Nuevos "Todo al día. Disfruta el silencio. Dura
+  poco."; Por despachar "Nada por despachar."; Despachados "Aún no hay
+  despachos."; sin ningún pedido "Aún no tienes pedidos. Cuando alguien pida por
+  tu catálogo, aparece aquí."
 - Aviso (toast) cuando entra un pedido nuevo mientras se está viendo la pantalla.
 - Contador de pedidos nuevos sobre el ícono de "Pedidos" en la barra.
 
@@ -343,6 +348,15 @@ entrega no hay compra de paquetes ni cobro (ver `02-alcance.md`).
 Todos los estados vacíos deben llevar el tono de marca (ver `01-marca.md`),
 nunca un mensaje técnico genérico tipo "No hay datos". Ejemplo ya validado:
 Pedidos vacío → "Todo al día. Disfruta el silencio. Dura poco."
+
+**Ilustraciones** (`components/estado-vacio.tsx`, archivos en
+`public/ilustraciones/*.webp`, originales en `referencias/ilustraciones/`): cada
+sección tiene la suya (`pedidos`, `catalogo`, `clientes`, `promos`, `inicio`).
+Van centradas, ~210 px de ancho (~120 px en búsquedas o filtros sin resultados),
+sin marco ni sombra, decorativas (`alt=""`) y **sin animación**. Debajo: título en
+Fredoka, texto en Figtree y, si aplica, un botón Mandarina. Estas ilustraciones
+**mandan sobre el prototipo**, que usa otras. Si se agrega una nueva, se reduce a
+600 px de ancho, se limpia el borde y se guarda como WebP (< 60 KB).
 
 Si hace falta un estado vacío que no está en el prototipo, se escribe en el
 mismo tono — no se deja el texto por defecto de un framework de UI.

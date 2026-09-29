@@ -30,6 +30,8 @@ se construye en Next.js según `docs/`.
     (`components/hoja.tsx`). El modo flotante de iOS 26 se descartó. En el
     prototipo la hoja se desplaza entera y su tope es otro: eso **ya no
     aplica**.
+  - **Estados vacíos:** llevan las ilustraciones 3D de `referencias/ilustraciones/`
+    (optimizadas en `public/ilustraciones/`); las del prototipo ya no aplican.
   Ver `docs/04-pantallas.md` ("Reglas generales").
 - **Reglas de datos, stock, créditos y arquitectura:** mandan los `docs/`.
 - El prototipo incluye cosas que `docs/04-pantallas.md` describe poco o

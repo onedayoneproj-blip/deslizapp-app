@@ -1,7 +1,6 @@
 "use client";
 
 import { EstadoVacio } from "@/components/estado-vacio";
-import { IconoCorazon } from "@/components/iconos";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -28,7 +27,7 @@ export default function InicioPage() {
         subtitulo="Así va tu tienda estos 7 días."
       />
       <EstadoVacio
-        icono={<IconoCorazon tamano={28} />}
+        ilustracion="inicio"
         titulo="Tu resumen viene en camino."
         remate={
           eventos

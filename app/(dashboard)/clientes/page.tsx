@@ -1,7 +1,6 @@
 "use client";
 
 import { EstadoVacio } from "@/components/estado-vacio";
-import { IconoClientes } from "@/components/iconos";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -15,7 +14,7 @@ export default function ClientesPage() {
     <>
       <TituloPantalla titulo="Clientes" subtitulo="Los que ya dijeron aaah. Y los que están por decirlo." />
       <EstadoVacio
-        icono={<IconoClientes tamano={28} />}
+        ilustracion="clientes"
         titulo="Tu gente, toda en un lugar."
         remate={
           clientes

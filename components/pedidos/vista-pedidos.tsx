@@ -10,7 +10,6 @@ import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
-import { IconoPedidos } from "../iconos";
 import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
@@ -29,6 +28,8 @@ const VACIO: Record<Pestana, { titulo: string; remate: string }> = {
   por_despachar: { titulo: "Nada por despachar.", remate: "Tu mostrador respira. Aprovecha." },
   despachado: { titulo: "Aún no hay despachos.", remate: "Cuando despaches el primero, se guarda aquí." },
 };
+
+const SIN_PEDIDOS = { titulo: "Aún no tienes pedidos.", remate: "Cuando alguien pida por tu catálogo, aparece aquí." };
 
 const Contexto = createContext<((p: Pestana) => void) | null>(null);
 
@@ -60,6 +61,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     return c;
   }, [pedidos]);
   const visibles = (pedidos ?? []).filter((p) => p.estado === pestana);
+  // Sin ningún pedido todavía, el mensaje es uno solo; si no, depende de la pestaña.
+  const vacio = pedidos?.length === 0 ? SIN_PEDIDOS : VACIO[pestana];
 
   return (
     <Contexto.Provider value={setPestana}>
@@ -88,7 +91,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
           </>
         )}
         {pedidos && visibles.length === 0 && (
-          <EstadoVacio icono={<IconoPedidos tamano={28} />} titulo={VACIO[pestana].titulo} remate={VACIO[pestana].remate} />
+          <EstadoVacio ilustracion="pedidos" titulo={vacio.titulo} remate={vacio.remate} />
         )}
         {pedidos && visibles.length > 0 && (
           <ul className="flex flex-col gap-3">

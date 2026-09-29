@@ -1,32 +1,67 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
-import { Blobs } from "./marca";
 
-/** Estado vacío con tono de marca: titular corto + remate (+ nota a mano, opcional). */
+/** Ilustraciones de estados vacíos (public/ilustraciones/*.webp, originales en referencias/ilustraciones/). */
+const ILUSTRACIONES = {
+  pedidos: { alto: 530 },
+  inicio: { alto: 536 },
+  promos: { alto: 494 },
+  clientes: { alto: 543 },
+  catalogo: { alto: 516 },
+} as const;
+const ANCHO_ORIGINAL = 600;
+
+export type Ilustracion = keyof typeof ILUSTRACIONES;
+
+/**
+ * Estado vacío con tono de marca: ilustración (decorativa, sin animación) + título corto en Fredoka
+ * + texto en Figtree (+ botón Mandarina si aplica). `pequeno` es para búsquedas y filtros sin
+ * resultados: la misma ilustración de la sección, más chica y con menos aire.
+ */
 export function EstadoVacio({
-  icono,
+  ilustracion,
   titulo,
   remate,
   nota,
-  children,
+  accion,
+  pequeno = false,
 }: {
-  icono: ReactNode;
+  ilustracion: Ilustracion;
   titulo: string;
   remate: ReactNode;
+  /** Nota a mano (Caveat, Mandarina), opcional. */
   nota?: string;
-  children?: ReactNode;
+  /** Botón Mandarina, opcional. */
+  accion?: { texto: string; href: string };
+  pequeno?: boolean;
 }) {
+  const ancho = pequeno ? 120 : 210;
+  const alto = Math.round((ancho * ILUSTRACIONES[ilustracion].alto) / ANCHO_ORIGINAL);
   return (
-    <div className="flex flex-col items-center px-6 pt-10 pb-6 text-center">
-      <div className="relative mb-6 h-36 w-44">
-        <Blobs className="absolute inset-0 h-full w-full" />
-        <div className="absolute inset-0 flex items-center justify-center text-bosque">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-papel shadow-sm">{icono}</div>
-        </div>
-      </div>
-      <h2 className="font-display text-2xl leading-tight text-bosque">{titulo}</h2>
-      <p className="mt-2 max-w-xs text-[15px] leading-snug text-suave">{remate}</p>
+    <div className={`flex flex-col items-center px-6 text-center ${pequeno ? "py-6" : "pt-8 pb-6"}`}>
+      {/* Con ancho y alto definidos el espacio queda reservado: no salta el diseño al cargar. */}
+      <Image
+        src={`/ilustraciones/${ilustracion}.webp`}
+        alt=""
+        width={ancho}
+        height={alto}
+        unoptimized
+        className="mb-4 select-none"
+        draggable={false}
+      />
+      <h2 className={`font-display leading-tight text-bosque ${pequeno ? "text-xl" : "text-2xl"}`}>{titulo}</h2>
+      <p className={`mt-2 max-w-xs leading-snug text-suave ${pequeno ? "text-sm" : "text-[15px]"}`}>{remate}</p>
       {nota && <p className="mt-3 font-mano text-2xl text-mandarina -rotate-2">{nota}</p>}
-      {children && <div className="mt-6 w-full">{children}</div>}
+      {accion && (
+        <Link
+          href={accion.href}
+          scroll={false}
+          className="tocable mt-5 flex h-[52px] items-center rounded-full bg-mandarina px-6 text-[15.5px] font-extrabold text-bosque-oscuro"
+        >
+          {accion.texto}
+        </Link>
+      )}
     </div>
   );
 }
