@@ -2,10 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { NOVEDADES, VERSION_ACTUAL, novedadesDesde, type Novedad } from "@/lib/novedades";
+import { HojaMiMarca } from "../marca-tienda/hoja-mi-marca";
 import { HojaPlan } from "./hoja-plan";
 import { PantallaNovedades } from "./pantalla-novedades";
 
-type PanelUI = { abrirPlan: () => void; abrirNovedades: () => void };
+type PanelUI = { abrirPlan: () => void; abrirNovedades: () => void; abrirMiMarca: () => void };
 
 const Contexto = createContext<PanelUI | null>(null);
 
@@ -33,9 +34,10 @@ function novedadesPendientes(): Novedad[] {
   }
 }
 
-/** Estado de interfaz compartido por todo el panel: Plan y créditos, y la pantalla de novedades. */
+/** Estado de interfaz compartido por todo el panel: Plan y créditos, Mi marca y la pantalla de novedades. */
 export function PanelUIProvider({ children }: { children: ReactNode }) {
   const [planAbierto, setPlanAbierto] = useState(false);
+  const [marcaAbierta, setMarcaAbierta] = useState(false);
   // Este proveedor solo se monta en el navegador (dentro de DataProvider), así que puede leer localStorage.
   const [novedades, setNovedades] = useState<Novedad[]>(novedadesPendientes);
 
@@ -52,12 +54,15 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
   const cerrarPlan = useCallback(() => setPlanAbierto(false), []);
   const abrirNovedades = useCallback(() => setNovedades(NOVEDADES.slice(0, 1)), []);
   const cerrarNovedades = useCallback(() => setNovedades([]), []);
-  const valor = useMemo(() => ({ abrirPlan, abrirNovedades }), [abrirPlan, abrirNovedades]);
+  const abrirMiMarca = useCallback(() => setMarcaAbierta(true), []);
+  const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
+  const valor = useMemo(() => ({ abrirPlan, abrirNovedades, abrirMiMarca }), [abrirPlan, abrirNovedades, abrirMiMarca]);
 
   return (
     <Contexto.Provider value={valor}>
       {children}
       <HojaPlan abierta={planAbierto} alCerrar={cerrarPlan} />
+      <HojaMiMarca abierta={marcaAbierta} alCerrar={cerrarMiMarca} />
       {novedades.length > 0 && <PantallaNovedades novedades={novedades} alCerrar={cerrarNovedades} />}
     </Contexto.Provider>
   );

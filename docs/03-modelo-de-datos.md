@@ -22,7 +22,11 @@ de aislamiento multi-tenant. Ninguna consulta debe cruzar tiendas.
 | `id` | uuid | PK |
 | `slug` | string, único | para la futura URL del catálogo público (`deslizapp.com/tienda/{slug}`) |
 | `nombre` | string | ej. "Esencias Michel" |
-| `logo_url` | string \| null | |
+| `logo_url` | string \| null | cuadrado, hasta 512 px (WebP con transparencia) |
+| `marca_color_principal` | string (hex `#RRGGBB`) | fondo del cupón de la tienda; se guarda ya ajustado para que el texto se lea (≥ 4.5:1). Nunca el verde Deslizapp: sin marca, paleta neutra `#2E2A27` |
+| `marca_color_acento` | string (hex) | color del % sobre el principal (≥ 3:1); por defecto `#E2B77A` |
+| `marca_estilo` | `'elegante' \| 'moderna' \| 'divertida' \| 'clasica'` | par de tipografías del cupón (`lib/marca.ts`); por defecto `'elegante'` |
+| `url_catalogo` | string \| null | "Enlace de tu catálogo" (Instagram, web…), opcional; se guarda con `https://` |
 | `plan` | `'p20' \| 'p60' \| 'p100' \| 'custom'` | los planes reales del servicio: hasta 20, 60 o 100 productos; más de 100 = a medida. Se muestran como "Plan 20", "Plan 60", "Plan 100", "Plan a medida". Los planes "Básico 40 / Pro 100" del prototipo eran datos de muestra y no existen |
 | `limite_productos` | number | 20 / 60 / 100, o el número pactado si es `custom`; se muestra en el medidor del Catálogo |
 | `creditos_retoque` | number | saldo actual; se descuenta al usar el retoque de fotos |

@@ -77,3 +77,48 @@ export async function retocarFoto(src: string, calidad = 0.85): Promise<string> 
   ctx.putImageData(datos, 0, 0);
   return lienzo.toDataURL("image/jpeg", calidad);
 }
+
+/** Lado máximo del logo de la tienda ("Mi marca"). */
+export const LOGO_LADO_MAXIMO = 512;
+
+/** Reduce un logo a máx. 512 px conservando la transparencia (WebP si el navegador puede; si no, PNG). */
+export async function reducirLogo(archivo: File): Promise<string> {
+  const url = URL.createObjectURL(archivo);
+  try {
+    const img = await cargarImagen(url);
+    const escala = Math.min(1, LOGO_LADO_MAXIMO / Math.max(img.naturalWidth || LOGO_LADO_MAXIMO, img.naturalHeight || LOGO_LADO_MAXIMO));
+    const ancho = Math.max(1, Math.round((img.naturalWidth || LOGO_LADO_MAXIMO) * escala));
+    const alto = Math.max(1, Math.round((img.naturalHeight || LOGO_LADO_MAXIMO) * escala));
+    const lienzo = document.createElement("canvas");
+    lienzo.width = ancho;
+    lienzo.height = alto;
+    const ctx = lienzo.getContext("2d");
+    if (!ctx) throw new Error("Este navegador no deja procesar el logo.");
+    ctx.drawImage(img, 0, 0, ancho, alto);
+    return lienzo.toDataURL("image/webp", 0.9); // sin soporte de WebP, el navegador entrega PNG
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Píxeles (RGBA) de una imagen reducida a `lado` px, para sacarle los colores. null si no se puede leer. */
+export async function pixelesDeImagen(src: string, lado = 64): Promise<Uint8ClampedArray | null> {
+  try {
+    const img = await new Promise<HTMLImageElement>((resolver, rechazar) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => resolver(i);
+      i.onerror = rechazar;
+      i.src = src;
+    });
+    const lienzo = document.createElement("canvas");
+    lienzo.width = lado;
+    lienzo.height = lado;
+    const ctx = lienzo.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, lado, lado);
+    return ctx.getImageData(0, 0, lado, lado).data;
+  } catch {
+    return null; // imagen de otro sitio sin permiso (CORS) o rota
+  }
+}

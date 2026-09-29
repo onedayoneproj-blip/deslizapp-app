@@ -33,7 +33,7 @@ import { insertarProducto, modificarProducto, productoDeTienda, productosDeTiend
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
-import { buscarDueno, buscarTienda, descontarCreditos, listarTiendas } from "./tiendas";
+import { buscarDueno, buscarTienda, descontarCreditos, listarTiendas, modificarMarca, type DatosMarca } from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
 const KEY = "deslizapp-demo-v2";
@@ -151,6 +151,17 @@ const operaciones = {
     let actualizada!: Tienda;
     escribir((db) => {
       const r = descontarCreditos(db, tiendaId, fotos * CREDITOS_POR_RETOQUE);
+      actualizada = r.tienda;
+      return r.db;
+    });
+    return actualizada;
+  },
+
+  /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
+  async actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda> {
+    let actualizada!: Tienda;
+    escribir((db) => {
+      const r = modificarMarca(db, tiendaId, datos);
       actualizada = r.tienda;
       return r.db;
     });

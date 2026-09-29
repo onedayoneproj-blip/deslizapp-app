@@ -12,7 +12,7 @@ import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
-import { TarjetaPromo } from "./tarjeta-promo";
+import { CuponTienda, marcaDeTienda } from "../marca-tienda/cupon-tienda";
 
 /** "Compartir promo": texto, enlace e imagen para mandarle la promo a los clientes. Solo activas o programadas. */
 export function HojaCompartir({ promoId }: { promoId: string }) {
@@ -64,7 +64,7 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
   // La imagen se genera UNA vez al abrir la hoja y queda en memoria: los botones no esperan nada antes del toque
   useEffect(() => {
     let vigente = true;
-    generarImagenPromo({ promo, estado, tienda, producto, productosDeColeccion })
+    generarImagenPromo({ promo, estado, tienda, marca: marcaDeTienda(tienda), producto, productosDeColeccion })
       .then((blob) => vigente && setImagen({ blob, nombre: `promo-${tienda.slug}.${blob.type === "image/jpeg" ? "jpg" : "png"}` }))
       .catch(() => vigente && setFalloImagen(true));
     return () => {
@@ -97,7 +97,11 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
 
   const preparando = !imagen && !falloImagen;
   const boton = "tocable flex h-12 items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque disabled:opacity-50";
-  const previa = useMemo(() => <TarjetaPromo promo={promo} producto={producto} productosDeColeccion={productosDeColeccion} />, [promo, producto, productosDeColeccion]);
+  // Lo que ve el cliente: el cupón con la marca de la tienda (Mi marca), no la del panel
+  const previa = useMemo(
+    () => <CuponTienda promo={promo} marca={marcaDeTienda(tienda)} tienda={tienda} producto={producto} productosDeColeccion={productosDeColeccion} />,
+    [promo, tienda, producto, productosDeColeccion],
+  );
 
   return (
     <div className="flex flex-col gap-4">

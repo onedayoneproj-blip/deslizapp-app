@@ -2,6 +2,8 @@
 // En TypeScript van en camelCase; la conversión desde/hacia snake_case vive solo en lib/data/.
 // Montos: pesos dominicanos enteros. Fechas: ISO 8601 en UTC.
 
+import type { EstiloMarca } from "./marca";
+
 export type Plan = "p20" | "p60" | "p100" | "custom";
 
 export type Tienda = {
@@ -14,6 +16,12 @@ export type Tienda = {
   creditosRetoque: number;
   creditosRetoqueMensuales: number;
   creadoEn: string;
+  /** Mi marca (lo que ve el cliente final: cupones, imágenes, catálogo público). El panel no cambia. */
+  marcaColorPrincipal: string;
+  marcaColorAcento: string;
+  marcaEstilo: EstiloMarca;
+  /** Enlace del catálogo propio de la tienda (opcional). */
+  urlCatalogo: string | null;
 };
 
 export type RolUsuario = "dueno" | "staff";

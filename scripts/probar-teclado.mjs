@@ -263,6 +263,25 @@ try {
     ok(errores.length === 0, `Clientes: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
+
+  // ---- Mi marca (desde el menú de la tienda): enlace del catálogo y código de color
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/catalogo");
+    await page.waitForSelector('header button[aria-haspopup="dialog"]');
+    await page.waitForTimeout(900);
+    await page.tap('header button[aria-haspopup="dialog"]');
+    await page.waitForSelector('[role="dialog"] >> text=Mi marca');
+    await page.waitForTimeout(500);
+    await page.tap('[role="dialog"] >> text=Mi marca');
+    await page.waitForSelector('[role="dialog"] [data-vista-previa]');
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: instagram.com/tutienda"]', "Mi marca · Enlace del catálogo", "instagram.com/mitienda", { dentroDeHoja: true });
+    await page.fill('[role="dialog"] input[aria-label="Código del color principal"]', "");
+    await probarCampo(page, '[role="dialog"] input[aria-label="Código del color principal"]', "Mi marca · Código del color", "5E2750", { dentroDeHoja: true });
+    ok(errores.length === 0, `Mi marca: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
 } finally {
   await navegador.close();
 }

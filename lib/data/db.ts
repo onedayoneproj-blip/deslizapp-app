@@ -1,6 +1,7 @@
 // El "almacén" de la demo: la forma de los datos en memoria y cómo se arma desde el seed.
 // Nada fuera de lib/data/ importa este archivo.
 
+import { MARCA_NEUTRA } from "../marca";
 import type { Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
 import { aCliente, type FilaCliente } from "./clientes";
 import { aPedido, aPedidoItem, type FilaPedido, type FilaPedidoItem } from "./pedidos";
@@ -68,7 +69,18 @@ export function esDB(valor: unknown): valor is DB {
  * (ej. `nota` de clientes) siguen funcionando, con esos campos en su valor vacío. No hace falta reiniciar.
  */
 export function migrar(db: DB): DB {
-  return { ...db, clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })) };
+  return {
+    ...db,
+    clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })),
+    // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
+    tiendas: db.tiendas.map((t) => ({
+      ...t,
+      marcaColorPrincipal: t.marcaColorPrincipal ?? MARCA_NEUTRA.principal,
+      marcaColorAcento: t.marcaColorAcento ?? MARCA_NEUTRA.acento,
+      marcaEstilo: t.marcaEstilo ?? MARCA_NEUTRA.estilo,
+      urlCatalogo: t.urlCatalogo ?? null,
+    })),
+  };
 }
 
 /** UUID v4. `crypto.randomUUID` solo existe en contextos seguros (https / localhost). */

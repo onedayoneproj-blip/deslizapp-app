@@ -364,6 +364,46 @@ el campo de texto) muestra la tarjeta de cupón y:
   total y guarda `codigo_promo`; si no, avisa. El detalle del pedido muestra el
   descuento y "Simular pedido del catálogo" usa los precios con promo vigente.
 
+### Mi marca
+
+Identidad visual de cada tienda: la llevan el cupón que se comparte (tarjeta e
+imagen). **El panel sigue siempre en verde Deslizapp**; las tarjetas de la lista
+de Promos también.
+
+**Entrada:** menú de la tienda (tocar el nombre en el encabezado) → "Mi marca".
+Hoja grande (`components/marca-tienda/hoja-mi-marca.tsx`), de arriba abajo:
+1. **Vista previa en vivo** con `CuponTienda` y la primera promo activa de la
+   tienda (o una de ejemplo).
+2. **Logo**: subir/cambiar; se reduce a 512 px (WebP, conserva transparencia).
+   Sin logo, el cupón muestra las iniciales.
+3. **Colores**: 3 combinaciones propuestas desde el logo (tocables; al subir un
+   logo se aplica la primera) + ajuste manual (selector y código hex) de
+   principal y acento. Si un color no se lee, se ajusta su luminosidad y se avisa
+   "Lo ajustamos un poquito para que se lea bien".
+4. **Estilo**: 4 tarjetas con "Aa" en su tipografía — Elegante (Playfair Display
+   + Figtree), Moderna (Poppins + Inter), Divertida (Fredoka + Nunito), Clásica
+   (Libre Baskerville + Source Sans 3).
+5. **Enlace de tu catálogo** (opcional, validado: dominio con punto, sin espacios).
+6. **Guardar mi marca** → aviso "¡Tu marca quedó lista!".
+
+**Reglas (`lib/marca.ts`, con pruebas en `tests/marca.test.mjs`, `npm test`):**
+- Colores dominantes del logo por *median cut* sobre la imagen reducida a 64 px;
+  blanco, negro y grises no pueden ser principal (sí acento claro/oscuro).
+- Legibilidad: texto sobre el principal ≥ 4.5:1 (crema `#FFF9EE` o tinta
+  `#1D1A17`, el que más contraste dé); el % en acento ≥ 3:1. Si no llega, se
+  mueve solo la luminosidad (el tono se conserva).
+- Sin logo ni colores: paleta neutra elegante (`#2E2A27` + `#E2B77A`), nunca el
+  verde Deslizapp.
+- Fuentes de Google cargadas bajo demanda (`lib/fuentes-marca.ts`): solo el par
+  del estilo en uso (la hoja Mi marca carga los 4 mientras está abierta). La
+  imagen del cupón espera a que estén listas antes de dibujar.
+
+**`CuponTienda`** (`components/marca-tienda/cupon-tienda.tsx`): el cupón
+formato C (perforación y talón) con los colores y tipografías de la tienda, su
+logo o iniciales y su nombre. Recibe `promo` + `marca`. Es la base de la vista
+previa de Compartir y de la imagen PNG (`lib/imagen-promo.ts` usa los mismos
+colores).
+
 ---
 
 ## 6. Retoque de fotos con IA

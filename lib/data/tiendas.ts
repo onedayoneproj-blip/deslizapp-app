@@ -1,3 +1,4 @@
+import type { EstiloMarca } from "../marca";
 import type { Plan, RolUsuario, Tienda, Usuario } from "../types";
 import type { AjusteFecha, DB } from "./db";
 
@@ -11,6 +12,10 @@ export type FilaTienda = {
   creditos_retoque: number;
   creditos_retoque_mensuales: number;
   creado_en: string;
+  marca_color_principal: string;
+  marca_color_acento: string;
+  marca_estilo: string;
+  url_catalogo: string | null;
 };
 
 export type FilaUsuario = {
@@ -32,6 +37,10 @@ export function aTienda(f: FilaTienda, fecha: AjusteFecha): Tienda {
     creditosRetoque: f.creditos_retoque,
     creditosRetoqueMensuales: f.creditos_retoque_mensuales,
     creadoEn: fecha(f.creado_en),
+    marcaColorPrincipal: f.marca_color_principal,
+    marcaColorAcento: f.marca_color_acento,
+    marcaEstilo: f.marca_estilo as EstiloMarca,
+    urlCatalogo: f.url_catalogo,
   };
 }
 
@@ -67,4 +76,27 @@ export class CreditosInsuficientes extends Error {
 
 export function buscarDueno(db: DB, tiendaId: string): Usuario | null {
   return db.usuarios.find((u) => u.tiendaId === tiendaId && u.rol === "dueno") ?? null;
+}
+
+export type DatosMarca = {
+  logoUrl: string | null;
+  principal: string;
+  acento: string;
+  estilo: EstiloMarca;
+  urlCatalogo: string | null;
+};
+
+/** "Mi marca": logo, colores, estilo y enlace del catálogo de la tienda. */
+export function modificarMarca(db: DB, tiendaId: string, datos: DatosMarca) {
+  const actual = buscarTienda(db, tiendaId);
+  if (!actual) throw new Error("Esa tienda no existe.");
+  const tienda: Tienda = {
+    ...actual,
+    logoUrl: datos.logoUrl,
+    marcaColorPrincipal: datos.principal,
+    marcaColorAcento: datos.acento,
+    marcaEstilo: datos.estilo,
+    urlCatalogo: datos.urlCatalogo,
+  };
+  return { db: { ...db, tiendas: db.tiendas.map((t) => (t.id === tiendaId ? tienda : t)) }, tienda };
 }

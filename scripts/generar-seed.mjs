@@ -47,11 +47,13 @@ const tiendas = [
     id: T_MICHEL, slug: "esencias-michel", nombre: "Esencias Michel",
     logo_url: "/seed/tiendas/esencias-michel.svg", plan: "p20", limite_productos: 20,
     creditos_retoque: 35, creditos_retoque_mensuales: 100, creado_en: iso(REF - 210 * D),
+    marca_color_principal: "#5E2750", marca_color_acento: "#E9B949", marca_estilo: "elegante", url_catalogo: null,
   },
   {
     id: T_LUNA, slug: "luna-bisuteria", nombre: "Luna Bisutería",
     logo_url: "/seed/tiendas/luna-bisuteria.svg", plan: "p60", limite_productos: 60,
     creditos_retoque: 100, creditos_retoque_mensuales: 100, creado_en: iso(REF - 95 * D),
+    marca_color_principal: "#2E3F66", marca_color_acento: "#F4A07C", marca_estilo: "moderna", url_catalogo: null,
   },
 ];
 
@@ -210,7 +212,7 @@ escribir("clientes", clientes);
 escribir("promos", promos);
 escribir("eventos_aaah", eventos_aaah);
 
-writeFileSync(join(PUB, "tiendas", "esencias-michel.svg"), svgLogo("#174B3A", "#F5C9D6", "EM"));
+writeFileSync(join(PUB, "tiendas", "esencias-michel.svg"), svgLogo("#5E2750", "#E9B949", "EM"));
 writeFileSync(join(PUB, "tiendas", "luna-bisuteria.svg"), svgLogo("#2E3F66", "#FFF9EE", "LB"));
 
 console.log({ productos: productos.length, eventos: eventos_aaah.length, pedidos: pedidos.length, clientes: clientes.length, promos: promos.length });

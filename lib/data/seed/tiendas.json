@@ -8,7 +8,11 @@
     "limite_productos": 20,
     "creditos_retoque": 35,
     "creditos_retoque_mensuales": 100,
-    "creado_en": "2026-03-02T16:00:00.000Z"
+    "creado_en": "2026-03-02T16:00:00.000Z",
+    "marca_color_principal": "#5E2750",
+    "marca_color_acento": "#E9B949",
+    "marca_estilo": "elegante",
+    "url_catalogo": null
   },
   {
     "id": "a1000000-0000-4000-8000-000000000002",
@@ -19,6 +23,10 @@
     "limite_productos": 60,
     "creditos_retoque": 100,
     "creditos_retoque_mensuales": 100,
-    "creado_en": "2026-06-25T16:00:00.000Z"
+    "creado_en": "2026-06-25T16:00:00.000Z",
+    "marca_color_principal": "#2E3F66",
+    "marca_color_acento": "#F4A07C",
+    "marca_estilo": "moderna",
+    "url_catalogo": null
   }
 ]

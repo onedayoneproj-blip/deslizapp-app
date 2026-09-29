@@ -18,6 +18,12 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.8.0",
+    fecha: "2026-09-29",
+    titulo: "Con tu sello.",
+    cambios: ["Nuevo: Mi marca. Tus cupones ya llevan tu logo y tus colores."],
+  },
+  {
     version: "0.7.0",
     fecha: "2026-09-29",
     titulo: "Que tus promos salgan a pasear.",

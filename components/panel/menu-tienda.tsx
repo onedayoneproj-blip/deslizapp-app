@@ -21,7 +21,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   const { tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, reiniciarDemo } = useData();
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const toast = useToast();
-  const { abrirNovedades } = usePanelUI();
+  const { abrirNovedades, abrirMiMarca } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
 
   const cerrar = () => {
@@ -84,6 +84,21 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           );
         })}
       </ul>
+
+      <button
+        type="button"
+        onClick={() => {
+          cerrar();
+          abrirMiMarca();
+        }}
+        className="tocable mt-3 flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left"
+      >
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rosa text-lg">✦</span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-extrabold">Mi marca</span>
+          <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
+        </span>
+      </button>
 
       <div className="mt-6 flex items-baseline gap-2">
         <h3 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h3>
