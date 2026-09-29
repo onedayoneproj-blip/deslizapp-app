@@ -51,8 +51,20 @@ export function Hoja(props: Props) {
   return <HojaMontada {...props} alDesmontar={() => setMontada(false)} />;
 }
 
-function altoVisible() {
-  return window.visualViewport?.height ?? window.innerHeight;
+/** Diferencia (px) entre la pantalla y el área visible a partir de la cual se considera que hay teclado. */
+const UMBRAL_TECLADO = 120;
+
+/**
+ * Área donde se dibuja la hoja. Normalmente, la pantalla completa (así la hoja siempre llega al
+ * borde de abajo). Solo con el teclado abierto se usa el área visible (visualViewport), para que
+ * el campo enfocado quede encima del teclado. (Usar siempre visualViewport dejaba la hoja
+ * despegada del borde en iPhone cuando ese valor salía más chico que la pantalla.)
+ */
+function medirVista() {
+  const vv = window.visualViewport;
+  const total = window.innerHeight;
+  if (vv && total - vv.height > UMBRAL_TECLADO) return { alto: vv.height, arriba: vv.offsetTop, teclado: true };
+  return { alto: total, arriba: 0, teclado: false };
 }
 
 function HojaMontada({
@@ -70,7 +82,7 @@ function HojaMontada({
   const contenido = useRef<HTMLDivElement>(null);
 
   // Tamaño de la pantalla visible (se achica cuando sale el teclado del iPhone).
-  const [vista, setVista] = useState(() => ({ alto: altoVisible(), arriba: window.visualViewport?.offsetTop ?? 0 }));
+  const [vista, setVista] = useState(medirVista);
   const [nivel, setNivelEstado] = useState<Nivel>(altura === "expandible" ? "media" : "grande");
   const [conSombra, setConSombra] = useState(false);
 
@@ -172,7 +184,7 @@ function HojaMontada({
   useEffect(() => {
     const vv = window.visualViewport;
     const actualizar = () => {
-      setVista({ alto: altoVisible(), arriba: vv?.offsetTop ?? 0 });
+      setVista(medirVista());
       const activo = document.activeElement;
       if (activo instanceof HTMLElement && contenido.current?.contains(activo) && esCampo(activo)) {
         window.setTimeout(() => activo.scrollIntoView({ block: "center", behavior: reducido.current ? "auto" : "smooth" }), 60);
@@ -344,7 +356,11 @@ function HojaMontada({
   const altoPx = vista.alto * ALTO_GRANDE;
 
   return (
-    <div className="fixed inset-x-0 z-50" style={{ top: vista.arriba, height: vista.alto }} role="presentation">
+    <div
+      className="fixed inset-x-0 z-50"
+      style={vista.teclado ? { top: vista.arriba, height: vista.alto } : { top: 0, bottom: 0 }}
+      role="presentation"
+    >
       <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-bosque/50" style={{ opacity: 0 }} />
       <div
         ref={panel}

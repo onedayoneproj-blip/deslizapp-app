@@ -16,10 +16,12 @@ se construye en Next.js según `docs/`.
 
 - **Diseño visual y textos de pantalla:** manda `prototipo-interactivo/`,
   **salvo estas dos decisiones del dueño, que mandan sobre el prototipo**:
-  - **Barra de navegación inferior:** barra de pestañas tradicional (ícono
-    arriba, nombre siempre visible debajo, selector Rosa Suave que se desliza
-    y se puede arrastrar con el dedo). En el prototipo el ícono activo se
-    expande en una píldora verde con su nombre: eso **ya no aplica**.
+  - **Barra de navegación inferior:** barra en cápsula con pestañas
+    tradicionales (ícono arriba, nombre siempre visible debajo) y un selector
+    Rosa Suave en cápsula de ancho variable con "imán" al arrastrar el dedo
+    (se estira con resistencia y salta de pestaña en pestaña). En el prototipo
+    el ícono activo se expande en una píldora verde con su nombre: eso **ya no
+    aplica**.
   - **Hojas inferiores:** cabecera fija, alturas "auto" / "expandible" /
     "grande" y cerrar deslizando hacia abajo (`components/hoja.tsx`). En el
     prototipo la hoja entera se desplaza: eso **ya no aplica**.

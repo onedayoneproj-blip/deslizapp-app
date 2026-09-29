@@ -22,19 +22,27 @@ diseño de escritorio aparte en esta entrega.
 
 **Navegación inferior** (`components/panel/nav-inferior.tsx`) — **decisión del
 dueño que manda sobre el prototipo**: barra de pestañas tradicional, inspirada
-en la de iOS pero **sólida** (fondo blanco, borde de 1 px y sombra suave; sin
-vidrio transparente ni desenfoque), flotando cerca del borde inferior (~10 px;
-~18 px en iPhone). Cinco pestañas, **Inicio (Resumen) · Catálogo · Pedidos ·
-Clientes · Promos**, con el ícono arriba y el **nombre siempre visible debajo**
-en todas (≥ 11 px). La activa va en Verde Bosque con un **selector Rosa Suave**
-detrás que se desliza de una pestaña a otra; las inactivas, en verde grisáceo
-tenue. Se puede **arrastrar el dedo por la barra**: el selector sigue al dedo,
-la pestaña de debajo se resalta en vivo, la pantalla no cambia hasta soltar y
-al soltar se navega a la pestaña más cercana. Un toque navega al instante.
+en la de iOS 26 pero **sólida** (fondo blanco, borde de 1 px y sombra suave; sin
+vidrio transparente ni desenfoque). La barra es una **cápsula completa** que
+flota cerca del borde inferior (~10 px; ~18 px en iPhone). Cinco pestañas del
+mismo ancho, **Inicio (Resumen) · Catálogo · Pedidos · Clientes · Promos**, con
+el ícono arriba y el **nombre siempre visible debajo** en todas (≥ 11 px). La
+activa va en Verde Bosque sobre un **selector Rosa Suave en cápsula de ancho
+variable**: mide el contenido de la pestaña (ícono o nombre, lo más ancho) +
+~14 px por lado. Las inactivas van en verde grisáceo tenue.
+- **Toque:** navega al instante; el selector se desliza y cambia de ancho con
+  un resorte corto.
+- **Arrastre con imán:** al arrastrar el dedo por la barra, el selector se
+  estira hacia el dedo con resistencia (máx. ~28 % de una pestaña) sin dejar su
+  pestaña; cuando el dedo entra más de la mitad en la vecina, **salta** a ella
+  con el resorte (y vibra leve si el equipo lo admite). La pestaña cubierta se
+  resalta en vivo; la pantalla solo cambia al soltar. Nunca se sale de la
+  cápsula (6 px del borde, siguiendo su curva).
+- Con "reducir movimiento": sin resorte ni estiramiento, cambio directo.
 Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
 "Pedidos", un contador Mandarina con el número de pedidos `nuevo`.
 El prototipo (ícono activo expandido en píldora verde con su nombre al lado)
-**ya no aplica**: no volver a ese diseño.
+**ya no aplica**: no volver a ese diseño ni a un selector de ancho fijo.
 
 **Botón flotante** (Mandarina, abajo a la derecha, encima de la barra): "+
 Producto" en Catálogo, "+ Pedido" en Pedidos, "+ Cliente" en Clientes, "+
