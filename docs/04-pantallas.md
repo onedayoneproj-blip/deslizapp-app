@@ -43,9 +43,13 @@ Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
 "Pedidos", un contador Mandarina con el número de pedidos `nuevo`
 (`components/contador.tsx`, el mismo de las pastillas de filtro).
 
-**Pastillas de filtro** (`Segmentos`): el número va en ese mismo contador
-Mandarina (círculo; con 2–3 cifras se estira a píldora; desde 100, "99+"), a la
-derecha del nombre y **oculto cuando es 0**. Si las pastillas no caben en el
+**Pastillas de filtro** (`Segmentos`): el número va en el mismo `Contador`
+(círculo; con 2–3 cifras se estira a píldora; desde 100, "99+"), a la derecha del
+nombre y **oculto cuando es 0**. Es **neutro** por defecto (beige #F1E8D6 con
+número Bosque; en la pastilla activa, crema translúcido con número crema); el
+**naranja Mandarina se reserva para lo que pide acción** (`atencion` en la
+opción de `Segmentos`, constante `PIDEN_ATENCION` en cada pantalla): hoy solo
+Pedidos → "Nuevos" y Catálogo → "Agotados", y solo con número > 0. Si las pastillas no caben en el
 ancho, se compactan por pasos: padding y espacios primero, luego letra (hasta 12
 px) y contador (18 px); solo en último caso la fila se desplaza.
 

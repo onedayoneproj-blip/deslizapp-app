@@ -20,6 +20,9 @@ import { usePanelUI } from "../panel/ui";
 
 type Filtro = "todos" | "visibles" | "agotados" | "ocultos";
 
+/** Filtros cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
+const PIDEN_ATENCION: Filtro[] = ["agotados"];
+
 const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[] = [
   { id: "todos", nombre: "Todos", cumple: () => true },
   { id: "visibles", nombre: "Visibles", cumple: (p) => p.activo && p.stock !== 0 },
@@ -121,6 +124,7 @@ export function VistaCatalogo() {
               id: f.id,
               texto: f.nombre,
               cantidad: productos ? productos.filter(f.cumple).length : undefined,
+              atencion: PIDEN_ATENCION.includes(f.id),
             }))}
           />
 

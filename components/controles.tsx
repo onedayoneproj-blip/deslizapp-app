@@ -92,8 +92,11 @@ export function Segmentos<T extends string>({
   etiqueta,
   alto = 44,
 }: {
-  /** `cantidad`: número de la opción, en un Contador Mandarina a la derecha del nombre (en 0 no se muestra). */
-  opciones: { id: T; texto: ReactNode; cantidad?: number }[];
+  /**
+   * `cantidad`: número de la opción, en un Contador a la derecha del nombre (en 0 no se muestra).
+   * `atencion`: el contador va en Mandarina (pide acción del dueño); si no, neutro. Solo cuenta con cantidad > 0.
+   */
+  opciones: { id: T; texto: ReactNode; cantidad?: number; atencion?: boolean }[];
   valor: T;
   alCambiar: (id: T) => void;
   etiqueta: string;
@@ -159,7 +162,7 @@ export function Segmentos<T extends string>({
           />
         </span>
       )}
-      {opciones.map(({ id, texto, cantidad }) => {
+      {opciones.map(({ id, texto, cantidad, atencion }) => {
         const elegido = id === valor;
         return (
           <button
@@ -178,7 +181,7 @@ export function Segmentos<T extends string>({
             }`}
           >
             {texto}
-            {cantidad !== undefined && <Contador valor={cantidad} tamano="pastilla" />}
+            {cantidad !== undefined && <Contador valor={cantidad} tamano="pastilla" tono={atencion ? "atencion" : "neutro"} sobreActivo={elegido} />}
           </button>
         );
       })}

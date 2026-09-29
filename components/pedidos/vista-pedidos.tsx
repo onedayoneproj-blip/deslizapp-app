@@ -22,6 +22,9 @@ const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: "despachado", nombre: "Despachados" },
 ];
 
+/** Pestañas cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
+const PIDEN_ATENCION: Pestana[] = ["nuevo"];
+
 const VACIO: Record<Pestana, { titulo: string; remate: string }> = {
   nuevo: { titulo: "Todo al día.", remate: "Disfruta el silencio. Dura poco." },
   por_despachar: { titulo: "Nada por despachar.", remate: "Tu mostrador respira. Aprovecha." },
@@ -75,6 +78,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
               id: t.id,
               texto: t.nombre,
               cantidad: pedidos ? cuentas[t.id] : undefined,
+              atencion: PIDEN_ATENCION.includes(t.id),
             }))}
           />
 
