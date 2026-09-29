@@ -15,7 +15,7 @@ Orden sugerido de la fase 2:
 
 ## Estados de la tienda
 
-`pendiente_verificacion` → `activa` → `vencida` (dentro de los días de gracia)
+`pendiente_verificacion` → `activa` → `vencida` (5 días de gracia)
 → `pausada` (el catálogo público deja de mostrarse hasta que se regularice).
 Una tienda solo pasa a `activa` cuando está verificada y tiene la suscripción al día.
 
@@ -70,21 +70,60 @@ registra el administrador. El comerciante solo ve su plan, su saldo y el botón
 "Escribirle a Deslizapp" (WhatsApp) para renovar, cambiar de plan o pedir créditos.
 
 Tablas nuevas:
-- `suscripciones`: `tienda_id`, `plan`, `estado` (`activa | vencida | pausada`), `renovacion_en`, `dias_gracia`.
-- `pagos`: `id`, `tienda_id`, `monto`, `metodo` (`deposito | transferencia | efectivo`), `referencia`, `nota`, `recibido_en`, `registrado_por`.
-- `movimientos_creditos`: `id`, `tienda_id`, `tipo` (`recarga_mensual | compra | uso_retoque | ajuste`), `cantidad` (positiva o negativa), `motivo`, `pago_id` (opcional), `creado_en`.
+- `suscripciones`: `tienda_id`, `plan`, `estado` (`activa | vencida | pausada`), `renovacion_en`, `dias_gracia` (por defecto 5).
+- `pagos`: `id`, `tienda_id`, `monto`, `concepto` (`suscripcion | creditos`), `metodo` (`deposito | transferencia | efectivo`), `referencia`, `nota`, `comprobante_url`, `estado` (`por_revisar | confirmado | rechazado`), `recibido_en`, `registrado_por`.
+- `movimientos_creditos`: `id`, `tienda_id`, `bolsa` (`mensual | comprado`), `tipo` (`recarga_mensual | compra | uso_retoque | vencimiento | ajuste`), `cantidad` (positiva o negativa), `motivo`, `pago_id` (opcional), `creado_en`.
 
-El saldo de créditos es la suma de los movimientos. `tiendas.creditos_retoque`
-queda como copia rápida para el encabezado.
+El saldo de créditos es la suma de los movimientos de cada bolsa.
+`tiendas.creditos_retoque` queda como copia rápida (suma de ambas bolsas) para
+el encabezado.
+
+### Dos bolsas de créditos (decidido)
+
+- **Bolsa mensual:** 100 créditos que se recargan en la fecha de renovación. Lo
+  que sobra **vence** en la siguiente renovación (se registra un movimiento
+  `vencimiento` y se vuelve a 100).
+- **Bolsa comprada:** créditos que el dueño de la tienda compra aparte. **No vencen.**
+- Al retocar una foto se gastan primero los de la bolsa mensual y luego los comprados.
+- El encabezado muestra el total; la pantalla Plan y créditos muestra las dos bolsas por separado.
+
+### Comprobante de pago (decidido)
+
+Se pide foto del comprobante. Flujo:
+1. El comerciante toca "Ya pagué" en Plan y créditos, elige concepto (renovar plan
+   o comprar créditos), sube la foto del comprobante y escribe la referencia si la tiene.
+2. Se crea un pago en estado `por_revisar` y aparece en `/admin`.
+3. Lewis compara con el depósito real en su banco y lo marca `confirmado` (renueva
+   el plan o suma los créditos comprados) o `rechazado` (con motivo que ve el comerciante).
+4. Un pago `por_revisar` **no** renueva nada por sí solo: una foto se puede falsificar.
+
+La foto se guarda en un bucket privado de Supabase Storage: solo la ve el
+administrador y la propia tienda. Se comprime antes de subir y se limita su tamaño.
+El administrador también puede registrar un pago directamente, sin foto (por ejemplo, efectivo).
 
 **Cambio respecto a la primera entrega:** los 100 créditos mensuales se
 recargan en la **fecha de renovación de cada tienda**, no el día 1 de cada mes
 (los pagos entran en fechas distintas). La recarga mensual se registra como un
 movimiento `recarga_mensual`; los créditos mensuales que sobran no se acumulan.
 
-## Decisiones pendientes (las toma Lewis)
+## Vencimiento y pausa (decidido)
 
-- ¿Los créditos comprados aparte vencen? (El prototipo decía que no; los mensuales sí vencen.)
-- ¿Cuántos días de gracia tiene una suscripción vencida antes de pausar el catálogo?
-- ¿Qué ve el comerciante cuando su tienda está pausada?
-- ¿Se pide comprobante de pago (foto) al comerciante, o solo lo registra el administrador?
+- **Gracia:** 5 días después de la fecha de renovación. Durante la gracia todo
+  funciona normal.
+- **Avisos al comerciante:** aviso en la app 3 días antes de vencer ("Tu plan
+  renueva el 12. Escríbele a Deslizapp"), el día que vence, y cada día de gracia
+  con los días que quedan. Todos con el botón "Ya pagué" y "Escribirle a Deslizapp".
+- **Tienda pausada:**
+  - El **catálogo público** muestra una página amable en tono de marca ("Este
+    catálogo está descansando un momentico. Vuelve pronto.") con el enlace al
+    Instagram de la tienda. Nunca un error técnico.
+  - El **panel del comerciante** sigue abierto en modo de solo lectura: puede
+    ver sus pedidos, clientes y productos (hay clientes esperando), pero no crear
+    ni editar productos, promos ni pedidos. Arriba, un aviso fijo: "Tu tienda está
+    en pausa. Reactívala enviando tu pago" con los botones "Ya pagué" y
+    "Escribirle a Deslizapp".
+  - **Nunca se borran datos** por una pausa.
+- **Reactivación:** en cuanto el administrador confirma el pago, la tienda vuelve
+  a `activa` sola y el catálogo público reaparece.
+- Un pago confirmado renueva desde la fecha de vencimiento anterior, no desde el día
+  del pago, para no regalar ni quitar días.
