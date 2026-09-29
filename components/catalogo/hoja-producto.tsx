@@ -50,7 +50,7 @@ export function HojaProducto({ productoId }: { productoId?: string }) {
   if (!productos) return null;
 
   return (
-    <Hoja abierta alCerrar={cerrar} titulo={titulo}>
+    <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande">
       <FormularioProducto key={producto?.id ?? "nuevo"} producto={producto ?? null} productos={productos} alTerminar={cerrar} />
     </Hoja>
   );

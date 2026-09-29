@@ -31,6 +31,14 @@ app después del despliegue, cada persona ve esas novedades una sola vez (la
 primera vez que alguien entra no se le muestran). La versión actual se ve en
 el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
 
+## Hojas inferiores
+
+Toda hoja nueva (detalle de pedido, nuevo pedido, nueva promo…) usa el
+componente `Hoja` de `components/hoja.tsx` y elige su altura con la propiedad
+`altura`: `"auto"` (contenido corto), `"expandible"` (contenido largo: abre a
+media altura) o `"grande"` (formularios largos). La cabecera fija, cerrar
+deslizando, el teclado y la accesibilidad ya vienen resueltos ahí.
+
 ## App instalable (PWA)
 
 - `app/manifest.ts` + íconos en `public/icons/` y `app/icon.png` (se regeneran con

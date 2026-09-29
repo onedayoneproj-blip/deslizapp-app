@@ -16,6 +16,7 @@
   --color-linea: #efe4d2; /* bordes de tarjetas */
   --color-borde: #e7dcc8; /* bordes de campos y chips */
   --color-arena: #f3ead9; /* rellenos neutros: botón cerrar, fondos de foto */
+  --color-tenue: #647d72; /* pestañas inactivas: verde grisáceo tenue, legible sobre blanco */
   --color-apagado: #cdbfa6; /* interruptor apagado, bordes punteados */
   --color-peligro: #b4432a; /* acciones destructivas */
   --color-marco: #f3eadb; /* fondo alrededor de la app en pantallas anchas */
@@ -33,11 +34,6 @@
   font-stretch: 115%;
 }
 
-@keyframes subir-hoja {
-  from {
-    transform: translateY(100%);
-  }
-}
 @keyframes aparecer {
   from {
     opacity: 0;
@@ -58,7 +54,7 @@
   --safe-abajo: env(safe-area-inset-bottom, 0px);
   /* Espacio entre la barra y el borde de la pantalla: 10 px sin safe area, ~18 px en iPhone */
   --nav-margen: max(10px, calc(var(--safe-abajo) - 16px));
-  --nav-alto: 68px;
+  --nav-alto: 70px;
   /* Dónde termina la barra por arriba, medido desde el borde inferior de la pantalla */
   --nav-abajo: calc(var(--nav-margen) + var(--nav-alto));
 }

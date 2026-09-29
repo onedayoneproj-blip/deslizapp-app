@@ -57,7 +57,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   };
 
   return (
-    <Hoja abierta={abierto} alCerrar={cerrar} titulo="Tus tiendas">
+    <Hoja abierta={abierto} alCerrar={cerrar} titulo="Tus tiendas" altura="auto">
       <ul className="space-y-2">
         {tiendas?.map((t) => {
           const activa = t.id === tiendaActivaId;

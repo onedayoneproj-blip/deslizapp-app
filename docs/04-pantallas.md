@@ -20,20 +20,44 @@ diseño de escritorio aparte en esta entrega.
 - Derecha: botón blanco con borde verde "✦ 35 créditos" (créditos de retoque
   disponibles). Tocarlo abre **Plan y créditos** (pantalla 8).
 
-**Navegación inferior:** barra blanca flotante en forma de píldora con 5
-íconos: **Inicio (Resumen) · Catálogo · Pedidos · Clientes · Promos**. El
-ícono activo se expande en píldora Verde Bosque con su nombre. Sobre
+**Navegación inferior** (`components/panel/nav-inferior.tsx`) — **decisión del
+dueño que manda sobre el prototipo**: barra de pestañas tradicional, inspirada
+en la de iOS pero **sólida** (fondo blanco, borde de 1 px y sombra suave; sin
+vidrio transparente ni desenfoque), flotando cerca del borde inferior (~10 px;
+~18 px en iPhone). Cinco pestañas, **Inicio (Resumen) · Catálogo · Pedidos ·
+Clientes · Promos**, con el ícono arriba y el **nombre siempre visible debajo**
+en todas (≥ 11 px). La activa va en Verde Bosque con un **selector Rosa Suave**
+detrás que se desliza de una pestaña a otra; las inactivas, en verde grisáceo
+tenue. Se puede **arrastrar el dedo por la barra**: el selector sigue al dedo,
+la pestaña de debajo se resalta en vivo, la pantalla no cambia hasta soltar y
+al soltar se navega a la pestaña más cercana. Un toque navega al instante.
+Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
 "Pedidos", un contador Mandarina con el número de pedidos `nuevo`.
+El prototipo (ícono activo expandido en píldora verde con su nombre al lado)
+**ya no aplica**: no volver a ese diseño.
 
 **Botón flotante** (Mandarina, abajo a la derecha, encima de la barra): "+
 Producto" en Catálogo, "+ Pedido" en Pedidos, "+ Cliente" en Clientes, "+
 Promo" en Promos.
 
-**Hojas inferiores:** los formularios y detalles (producto, detalle de
-pedido, pedido manual, cliente, nueva promo, Plan y créditos) se ven como
-hojas que suben desde abajo, con fondo verde translúcido, título en Fredoka y
-botón de cerrar redondo. En código pueden ser rutas propias
-(`/catalogo/nuevo`, `/pedidos/[id]`…) con ese aspecto: así tienen URL.
+**Hojas inferiores** (`components/hoja.tsx`, todas usan ese componente) —
+**su comportamiento manda sobre el prototipo**: los formularios y detalles
+(producto, detalle de pedido, pedido manual, cliente, nueva promo, Plan y
+créditos) suben desde abajo con fondo verde translúcido, título en Fredoka y
+botón de cerrar redondo. Además:
+- **Cabecera fija** (tirador + título + X): solo se desplaza el contenido; una
+  línea sutil aparece bajo la cabecera cuando el contenido está desplazado.
+- **Se cierran deslizando hacia abajo** (más de ~30 % o con velocidad), además
+  de con la X, Escape o tocando el fondo. El arrastre solo mueve la hoja si el
+  contenido está arriba del todo o si el gesto empieza en la cabecera.
+- **Altura** (propiedad `altura`): `"auto"` se ajusta al contenido (Tus
+  tiendas, Tu plan); `"expandible"` abre a ~60 % y pasa a ~93 % (para
+  contenido largo, ej. detalle de pedido); `"grande"` abre a ~93 % (formularios
+  largos: producto, nueva promo, pedido manual).
+- Al enfocar un campo, la hoja pasa a grande y el campo queda visible sobre el
+  teclado.
+En código pueden ser rutas propias (`/catalogo/nuevo`, `/pedidos/[id]`…) con
+ese aspecto: así tienen URL.
 
 **Avisos (toast):** bajan desde arriba, píldora Verde Bosque con un check en
 círculo Mandarina. Textos cortos en tono de marca ("Publicado. Ya se está

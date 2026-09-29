@@ -14,7 +14,16 @@ se construye en Next.js según `docs/`.
 
 ## Cómo resolver diferencias
 
-- **Diseño visual y textos de pantalla:** manda `prototipo-interactivo/`.
+- **Diseño visual y textos de pantalla:** manda `prototipo-interactivo/`,
+  **salvo estas dos decisiones del dueño, que mandan sobre el prototipo**:
+  - **Barra de navegación inferior:** barra de pestañas tradicional (ícono
+    arriba, nombre siempre visible debajo, selector Rosa Suave que se desliza
+    y se puede arrastrar con el dedo). En el prototipo el ícono activo se
+    expande en una píldora verde con su nombre: eso **ya no aplica**.
+  - **Hojas inferiores:** cabecera fija, alturas "auto" / "expandible" /
+    "grande" y cerrar deslizando hacia abajo (`components/hoja.tsx`). En el
+    prototipo la hoja entera se desplaza: eso **ya no aplica**.
+  Ver `docs/04-pantallas.md` ("Reglas generales").
 - **Reglas de datos, stock, créditos y arquitectura:** mandan los `docs/`.
 - El prototipo incluye cosas que `docs/04-pantallas.md` describe poco o
   no describe (por ejemplo la tarjeta de ventas del Resumen, el selector

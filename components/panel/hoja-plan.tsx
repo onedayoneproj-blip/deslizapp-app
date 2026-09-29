@@ -26,7 +26,7 @@ export function HojaPlan({ abierta, alCerrar }: { abierta: boolean; alCerrar: ()
   const mensaje = `Hola, Deslizapp. Te escribo de ${tienda.nombre} (${nombrePlan}). Quiero cambiar de plan o pedir más créditos de retoque.`;
 
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu plan">
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu plan" altura="auto">
       <div className="flex flex-col gap-3.5">
         <section className="rounded-[26px] bg-bosque p-[18px] text-papel">
           <p className="font-display text-[30px] leading-tight">{nombrePlan}</p>
