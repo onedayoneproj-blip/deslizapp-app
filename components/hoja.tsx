@@ -1,23 +1,23 @@
 "use client";
 
-// Hoja inferior (bottom sheet) al estilo de iOS 26. Todas las hojas del panel usan este componente.
+// Hoja inferior (bottom sheet). Todas las hojas del panel usan este componente.
 // Su comportamiento manda sobre el prototipo (ver docs/04-pantallas.md).
 //
-// - Flota o se pega: las hojas cortas ("auto") y las de media altura FLOTAN, separadas ~8 px de
-//   los lados y de abajo (abajo: max(8px, safe area − 24px)), con las cuatro esquinas redondeadas
-//   (arriba 30 px; abajo 40 − 8 = 32 px, acompañando la curva de la pantalla del iPhone). Al pasar a
-//   la altura grande se PEGAN a los bordes (margen 0, esquinas de abajo 0, las de arriba bajan un
-//   poco). La transición va ligada al gesto: margen y radios se interpolan con el dedo. Las hojas
-//   "grande" van pegadas desde el inicio.
-//   El margen y los radios se dibujan con clip-path (no se cambia el ancho del panel, así el
-//   contenido no se reacomoda en cada cuadro).
-// - Cabecera fija (tirador + título + X); solo se desplaza el contenido.
+// - Pegada a los bordes izquierdo, derecho e inferior, con solo las esquinas de arriba redondeadas
+//   (30 px, igual en todos los modelos y en todas las alturas). Su fondo llega al borde físico de
+//   abajo (incluido el safe area); el relleno inferior del contenido es
+//   max(1.75rem, safe area + 1rem). En escritorio (> 480 px) va centrada con ancho máximo.
+// - Altura máxima: hasta debajo de la barra de estado (--hoja-tope en globals.css: safe area de
+//   arriba + 10 px, mínimo 20 px; 24 px en escritorio). El fondo oscuro queda visible encima.
+// - Alturas: "auto" (se ajusta al contenido), "expandible" (media ↔ altura máxima), "grande"
+//   (altura máxima desde el inicio). Pasar de media a grande solo cambia la altura visible.
+// - Cabecera fija (tirador + título + X) superpuesta al contenido: el área de scroll ocupa toda la
+//   hoja y pasa por detrás de la cabecera, con un borde de desplazamiento (desenfoque progresivo +
+//   degradado, clases .hoja-borde de globals.css) que aparece en los primeros 24 px de scroll.
 // - Se cierra deslizando hacia abajo (más de ~30 % o con velocidad); si no, vuelve a su lugar.
-// - Alturas: "auto" (se ajusta al contenido), "expandible" (media ↔ casi pantalla completa),
-//   "grande" (casi pantalla completa desde el inicio).
 // - El arrastre solo mueve la hoja si el contenido está arriba del todo o si el gesto empieza en la
 //   cabecera: el scroll y el arrastre nunca se pelean (se decide al primer movimiento del dedo).
-// - Se anima `transform`, `clip-path` y la opacidad del fondo, siguiendo el dedo sin retraso.
+// - Se anima `transform` y la opacidad del fondo, siguiendo el dedo sin retraso.
 // - TECLADO (regla permanente, ver HANDOFF.md): la hoja NO cambia de tamaño, de posición ni de estado
 //   cuando se abre el teclado. Solo escribe una variable CSS (`--teclado`) que da espacio al final del
 //   contenido, y desplaza el contenido para que el campo enfocado quede a la vista. Nada de
@@ -42,16 +42,11 @@ import { IconoCerrar } from "./iconos";
 export type AlturaHoja = "auto" | "expandible" | "grande";
 type Nivel = "media" | "grande";
 
-const ALTO_GRANDE = 0.93; // fracción de la pantalla visible
-const ALTO_MEDIA = 0.6;
-/** Esquinas de arriba: flotando / pegada (expandible) / pegada (grande). */
-const RADIO_ARRIBA_FLOTA = 30;
-const RADIO_ARRIBA_PEGADA = 18;
-const RADIO_ARRIBA_GRANDE = 20;
-/** Margen lateral de la hoja flotante. */
-const MARGEN_FLOTA = 8;
-/** Radio de las esquinas de la pantalla del iPhone (aprox.): las de abajo de la hoja lo acompañan. */
-const RADIO_PANTALLA = 40;
+/** Altura máxima: toda la pantalla menos el tope de arriba (debajo de la barra de estado). */
+const ALTO_MAXIMO = "calc(100dvh - var(--hoja-tope))";
+const ALTO_MEDIA = 0.6; // fracción de la pantalla visible en "expandible" a media altura
+/** Scroll (px) en el que el borde de desplazamiento bajo la cabecera pasa de invisible a completo. */
+const SCROLL_BORDE = 24;
 // Tokens del sistema de movimiento (docs/08-movimiento.md).
 const DURACION = DURACIONES.entrada;
 const CURVA = CURVAS.salida;
@@ -94,9 +89,9 @@ function HojaMontada({
   const fondo = useRef<HTMLDivElement>(null);
   const cabecera = useRef<HTMLDivElement>(null);
   const contenido = useRef<HTMLDivElement>(null);
+  const borde = useRef<HTMLDivElement>(null);
 
   const [nivel, setNivelEstado] = useState<Nivel>(altura === "expandible" ? "media" : "grande");
-  const [conSombra, setConSombra] = useState(false);
 
   const nivelRef = useRef(nivel);
   const y = useRef(0); // desplazamiento vertical actual del panel (0 = arriba del todo)
@@ -112,8 +107,6 @@ function HojaMontada({
     decidido: null | "hoja" | "nativo";
     puntos: { y: number; t: number }[];
   } | null>(null);
-  /** Margen inferior de la hoja flotante en px: max(8px, safe area − 24px), medido de verdad. */
-  const margenAbajo = useRef(MARGEN_FLOTA);
 
   const altoPanel = () => panel.current?.offsetHeight ?? 0;
   const yMedia = () => Math.max(0, altoPanel() - altoPantalla() * ALTO_MEDIA);
@@ -123,15 +116,14 @@ function HojaMontada({
   );
   const yCerrada = () => altoPanel() + 24;
 
-  /** Mueve el panel (y el fondo y las esquinas) a `valor`. */
+  /** Mueve el panel (y la opacidad del fondo) a `valor`. */
   const aplicar = useCallback(
     (valor: number, animado: boolean) => {
       const p = panel.current;
       const f = fondo.current;
       if (!p || !f) return;
       y.current = valor;
-      const transicion = animado && !reducido.current ? `transform ${DURACION}ms ${CURVA}, clip-path ${DURACION}ms ${CURVA}` : "none";
-      p.style.transition = transicion;
+      p.style.transition = animado && !reducido.current ? `transform ${DURACION}ms ${CURVA}` : "none";
       // will-change solo mientras se mueve (arrastre o animación), no todo el tiempo.
       p.style.willChange = "transform";
       window.clearTimeout(quitarWillChange.current);
@@ -147,20 +139,8 @@ function HojaMontada({
       }
       p.style.transform = `translate3d(0, ${valor}px, 0)`;
       const alto = p.offsetHeight;
+      // En "expandible" el panel siempre mide la altura máxima; a media altura se empuja hacia abajo.
       const media = altura === "expandible" ? Math.max(0, alto - altoPantalla() * ALTO_MEDIA) : 0;
-      // Cuánto flota (1) o está pegada (0). En "expandible" va con el dedo entre media y grande.
-      const flota =
-        altura === "auto" ? 1 : altura === "grande" ? 0 : media ? Math.min(1, Math.max(0, valor / media)) : 0;
-      const pegadaArriba = altura === "grande" ? RADIO_ARRIBA_GRANDE : RADIO_ARRIBA_PEGADA;
-      const radioArriba = pegadaArriba + (RADIO_ARRIBA_FLOTA - pegadaArriba) * flota;
-      const radioAbajo = (RADIO_PANTALLA - MARGEN_FLOTA) * flota;
-      const lado = MARGEN_FLOTA * flota;
-      // En "expandible" el panel mide 93 % y se empuja hacia abajo: la parte que queda fuera de la
-      // pantalla también se recorta, para que el borde (margen y esquinas) quede a la vista. Por
-      // debajo de "media" (al cerrar), el recorte se mantiene y la hoja baja entera.
-      const fueraDePantalla = altura === "expandible" ? Math.min(Math.max(valor, 0), media) : 0;
-      const abajo = fueraDePantalla + margenAbajo.current * flota;
-      p.style.clipPath = `inset(0px ${lado}px ${abajo}px ${lado}px round ${radioArriba}px ${radioArriba}px ${radioAbajo}px ${radioAbajo}px)`;
       // El fondo pierde opacidad a medida que la hoja baja desde su posición de reposo.
       const base = media;
       const recorrido = Math.max(1, alto + 24 - base);
@@ -193,15 +173,34 @@ function HojaMontada({
     );
   }, [aplicar, alCerrar]);
 
+  /** El contenido empieza debajo de la cabecera superpuesta: su alto va en --cabecera (directo al DOM). */
+  const medirCabecera = useCallback(() => {
+    const alto = cabecera.current?.offsetHeight;
+    if (alto) panel.current?.style.setProperty("--cabecera", `${alto}px`);
+  }, []);
+  useEffect(() => {
+    const c = cabecera.current;
+    if (!c || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(medirCabecera);
+    observador.observe(c);
+    return () => observador.disconnect();
+  }, [medirCabecera]);
+
+  /** Borde de desplazamiento: invisible arriba del todo, completo a los SCROLL_BORDE px. */
+  const alDesplazar = () => {
+    const c = contenido.current;
+    const b = borde.current;
+    if (!c || !b) return;
+    const v = Math.min(1, Math.max(0, c.scrollTop / SCROLL_BORDE));
+    b.style.setProperty("--borde", String(v));
+    // Oculto del todo en 0: el navegador no calcula el desenfoque mientras no se ve.
+    b.style.visibility = v > 0 ? "visible" : "hidden";
+  };
+
   // Entrada: empieza fuera de la pantalla y sube a su nivel.
   useLayoutEffect(() => {
     reducido.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Mide el margen inferior real (depende del safe area del equipo).
-    const sonda = document.createElement("div");
-    sonda.style.cssText = `position:absolute;visibility:hidden;height:max(${MARGEN_FLOTA}px, calc(var(--safe-abajo) - 24px))`;
-    document.body.appendChild(sonda);
-    margenAbajo.current = sonda.offsetHeight || MARGEN_FLOTA;
-    sonda.remove();
+    medirCabecera();
     aplicar(yCerrada(), false);
     const raf = requestAnimationFrame(() => aplicar(yDe(nivelRef.current), true));
     return () => cancelAnimationFrame(raf);
@@ -241,8 +240,10 @@ function HojaMontada({
       if (tapado > 0 && campo instanceof HTMLElement && c.contains(campo) && esCampo(campo)) {
         const visibleAbajo = vv.offsetTop + vv.height - 16;
         const r = campo.getBoundingClientRect();
+        // El contenido pasa por detrás de la cabecera: lo visible empieza debajo de ella.
+        const visibleArriba = c.getBoundingClientRect().top + (cabecera.current?.offsetHeight ?? 0) + 8;
         if (r.bottom > visibleAbajo) c.scrollTop += r.bottom - visibleAbajo;
-        else if (r.top < c.getBoundingClientRect().top + 8) c.scrollTop -= c.getBoundingClientRect().top + 8 - r.top;
+        else if (r.top < visibleArriba) c.scrollTop -= visibleArriba - r.top;
       }
     };
     const pedir = () => {
@@ -437,27 +438,48 @@ function HojaMontada({
         aria-modal="true"
         aria-labelledby={idTitulo}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel outline-none"
+        // Papel también por debajo del borde inferior (after): si se estira hacia arriba, no se ve un hueco.
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col rounded-t-[30px] bg-papel outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-papel"
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
-          ...(altura === "auto" ? { maxHeight: `${ALTO_GRANDE * 100}dvh` } : { height: `${ALTO_GRANDE * 100}dvh` }),
+          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: ALTO_MAXIMO }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
+        {/* El scroll ocupa toda la hoja (redondeado arriba para recortar lo que pasa por las esquinas) */}
+        <div
+          ref={contenido}
+          onScroll={alDesplazar}
+          onFocus={alEnfocarCampo}
+          onWheel={(e) => {
+            if (expandibleEnMedia && e.deltaY > 0) irA("grande");
+          }}
+          className="min-h-0 flex-1 overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
+          style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
+        >
+          {children}
+        </div>
+        {/* Borde de desplazamiento: 4 capas de desenfoque + degradado, detrás de la cabecera */}
+        <div
+          ref={borde}
+          aria-hidden="true"
+          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
+          style={{ visibility: "hidden" }}
+        >
+          <div className="hoja-borde-desenfoque" />
+          <div className="hoja-borde-desenfoque" />
+          <div className="hoja-borde-desenfoque" />
+          <div className="hoja-borde-desenfoque" />
+          <div className="hoja-borde-color" />
+        </div>
         <div
           ref={cabecera}
           onPointerDown={alApuntar}
           onPointerMove={alMoverPuntero}
           onPointerUp={alSoltarPuntero}
           onPointerCancel={alSoltarPuntero}
-          className="relative shrink-0 touch-none px-5 pt-2.5 pb-3"
+          className="absolute inset-x-0 top-0 touch-none px-5 pt-2.5 pb-3"
         >
-          {/* Línea bajo la cabecera cuando el contenido está desplazado: aparece con un fundido */}
-          <span
-            aria-hidden="true"
-            className="absolute inset-x-0 bottom-0 h-px bg-linea transition-opacity duration-(--mov-rapida)"
-            style={{ opacity: conSombra ? 1 : 0 }}
-          />
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-[#e2d5bf]" />
           <div className="flex items-center justify-between gap-3">
             <h2 id={idTitulo} className="font-display text-2xl text-bosque">
@@ -465,18 +487,6 @@ function HojaMontada({
             </h2>
             <BotonCerrar onClick={cerrar} />
           </div>
-        </div>
-        <div
-          ref={contenido}
-          onScroll={(e) => setConSombra(e.currentTarget.scrollTop > 2)}
-          onFocus={alEnfocarCampo}
-          onWheel={(e) => {
-            if (expandibleEnMedia && e.deltaY > 0) irA("grande");
-          }}
-          className="min-h-0 flex-1 overscroll-contain px-5 pt-0.5 pb-[calc(1.25rem+var(--safe-abajo)+var(--teclado,0px))]"
-          style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
-        >
-          {children}
         </div>
       </div>
     </div>

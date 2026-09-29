@@ -46,6 +46,76 @@
   --nav-alto: 70px;
   /* Dónde termina la barra por arriba, medido desde el borde inferior de la pantalla */
   --nav-abajo: calc(var(--nav-margen) + var(--nav-alto));
+  /* Zona de la barra de estado (hora, batería). Igual que --safe-abajo: para probar, se sobrescribe. */
+  --safe-arriba: env(safe-area-inset-top, 0px);
+  /* Hojas inferiores (docs/04-pantallas.md): distancia mínima entre su borde de arriba y el de la
+     pantalla (debajo de la barra de estado; 20 px sin safe area, 24 px en escritorio). */
+  --hoja-tope: max(20px, calc(var(--safe-arriba) + 10px));
+}
+
+@media (min-width: 481px) {
+  :root {
+    --hoja-tope: 24px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Borde de desplazamiento de las hojas (components/hoja.tsx): el contenido pasa por detrás de la
+   cabecera con un desenfoque progresivo (4 capas: 1, 2, 4 y 8 px, el mayor arriba, cada una en su
+   franja) y un degradado Papel Cálido. La hoja escribe --borde (0 → 1 en los primeros 24 px de
+   scroll). Sin backdrop-filter: solo el degradado. Con menos transparencia: fondo sólido.
+   La opacidad va en cada capa y no en el contenedor: un contenedor con opacidad < 1 corta el
+   desenfoque de sus hijas (backdrop root).
+   -------------------------------------------------------------------------- */
+.hoja-borde > * {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--borde, 0);
+}
+.hoja-borde > .hoja-borde-color {
+  background: linear-gradient(
+    to bottom,
+    rgb(255 249 238 / 0.94) 0%,
+    rgb(255 249 238 / 0.82) 55%,
+    rgb(255 249 238 / 0) 100%
+  );
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .hoja-borde > .hoja-borde-desenfoque {
+    -webkit-backdrop-filter: blur(var(--desenfoque));
+    backdrop-filter: blur(var(--desenfoque));
+    -webkit-mask-image: linear-gradient(to top, var(--franja));
+    mask-image: linear-gradient(to top, var(--franja));
+  }
+}
+/* De abajo (0 %) hacia arriba (100 %): cada capa entra donde la anterior se va. */
+.hoja-borde > :nth-child(1) {
+  --desenfoque: 1px;
+  --franja: transparent 0%, #000 12.5%, #000 37.5%, transparent 50%;
+}
+.hoja-borde > :nth-child(2) {
+  --desenfoque: 2px;
+  --franja: transparent 12.5%, #000 37.5%, #000 62.5%, transparent 75%;
+}
+.hoja-borde > :nth-child(3) {
+  --desenfoque: 4px;
+  --franja: transparent 37.5%, #000 62.5%, #000 87.5%, transparent 100%;
+}
+.hoja-borde > :nth-child(4) {
+  --desenfoque: 8px;
+  --franja: transparent 62.5%, #000 87.5%, #000 100%;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .hoja-borde > .hoja-borde-desenfoque {
+    display: none;
+  }
+  .hoja-borde > .hoja-borde-color {
+    bottom: 16px;
+    background: var(--color-papel);
+    border-bottom: 1px solid var(--color-linea);
+  }
 }
 
 html {

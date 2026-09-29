@@ -63,8 +63,10 @@ números, listas, avisos y cargas usan los componentes base (`tocable`,
 Toda hoja nueva (detalle de pedido, nuevo pedido, nueva promo…) usa el
 componente `Hoja` de `components/hoja.tsx` y elige su altura con la propiedad
 `altura`: `"auto"` (contenido corto), `"expandible"` (contenido largo: abre a
-media altura) o `"grande"` (formularios largos). La cabecera fija, cerrar
-deslizando, el teclado y la accesibilidad ya vienen resueltos ahí.
+media altura) o `"grande"` (formularios largos). La forma (pegada a los bordes,
+esquinas de arriba de 30 px, tope bajo la barra de estado), la cabecera fija con
+borde de desplazamiento, cerrar deslizando, el teclado y la accesibilidad ya
+vienen resueltos ahí (detalle en `docs/04-pantallas.md`).
 
 ## App instalable (PWA)
 

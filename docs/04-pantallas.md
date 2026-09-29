@@ -53,25 +53,34 @@ Promo" en Promos.
 (producto, detalle de pedido, pedido manual, cliente, nueva promo, Plan y
 créditos) suben desde abajo con fondo verde translúcido, título en Fredoka y
 botón de cerrar redondo. Además:
-- **Flotan o se pegan, como en iOS 26:** las hojas cortas (`"auto"`) y las de
-  media altura **flotan**: quedan separadas ~8 px de los lados y de abajo
-  (abajo: `max(8px, safe area − 24px)`) y tienen las **cuatro esquinas
-  redondeadas** (arriba ~30 px; abajo 32 px, que acompañan la curva de la
-  pantalla del iPhone: ~40 px menos el margen). Al pasar a la altura grande
-  (por scroll o arrastre) **se pegan a los bordes**: margen 0, esquinas de
-  abajo 0 y las de arriba bajan un poco. La transición va ligada al dedo
-  (margen y radios se interpolan), no de golpe. Las hojas `"grande"`
-  (Nuevo/Editar producto) van pegadas desde el inicio. En pantallas anchas la
-  hoja flotante queda centrada con su ancho máximo.
-- **Cabecera fija** (tirador + título + X): solo se desplaza el contenido; una
-  línea sutil aparece bajo la cabecera cuando el contenido está desplazado.
+- **Pegadas a los bordes:** izquierdo, derecho e inferior, con **solo las
+  esquinas de arriba redondeadas** (30 px, igual en todos los modelos y en
+  todas las alturas: pasar de media a grande solo cambia la altura). El fondo
+  de la hoja llega al borde físico de abajo (incluido el safe area); el
+  relleno inferior del contenido es `max(1.75rem, safe area + 1rem)`. En
+  pantallas anchas (> 480 px) va centrada con su ancho máximo, pegada abajo.
+  El modo "flotante" de iOS 26 (margen alrededor y cuatro esquinas) se probó y
+  se **descartó**.
+- **Altura máxima:** el borde de arriba queda debajo de la barra de estado, a
+  `safe area de arriba + 10 px` del borde de la pantalla (mínimo 20 px sin
+  safe area; 24 px en escritorio). Altura máxima = `100dvh` menos ese valor
+  (variable `--hoja-tope` en `app/globals.css`). Vale para toda hoja larga,
+  `"expandible"` o `"grande"`; arriba sigue viéndose el fondo oscuro.
+- **Cabecera fija** (tirador + título + X) superpuesta, con fondo
+  transparente: el contenido ocupa toda la hoja y pasa por detrás de ella al
+  desplazarse. **Borde de desplazamiento** (como iOS): bajo la cabecera hay 4
+  capas de desenfoque progresivo (1, 2, 4 y 8 px, el mayor arriba) más un
+  degradado Papel Cálido, muy opaco arriba y transparente abajo; alto =
+  cabecera + 16 px. Es invisible con el contenido arriba del todo y aparece
+  en los primeros 24 px de scroll. Sin `backdrop-filter`: solo el degradado.
+  Con "reducir transparencia": fondo sólido con una línea.
 - **Se cierran deslizando hacia abajo** (más de ~30 % o con velocidad), además
   de con la X, Escape o tocando el fondo. El arrastre solo mueve la hoja si el
   contenido está arriba del todo o si el gesto empieza en la cabecera.
 - **Altura** (propiedad `altura`): `"auto"` se ajusta al contenido (Tus
-  tiendas, Tu plan); `"expandible"` abre a ~60 % y pasa a ~93 % (para
-  contenido largo, ej. detalle de pedido); `"grande"` abre a ~93 % (formularios
-  largos: producto, nueva promo, pedido manual).
+  tiendas, Tu plan); `"expandible"` abre a ~60 % y pasa a la altura máxima
+  (para contenido largo, ej. detalle de pedido); `"grande"` abre a la altura
+  máxima (formularios largos: producto, nueva promo, pedido manual).
 - Al enfocar un campo, la hoja pasa a grande y el campo queda visible sobre el
   teclado.
 En código pueden ser rutas propias (`/catalogo/nuevo`, `/pedidos/[id]`…) con

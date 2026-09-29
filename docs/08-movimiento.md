@@ -28,9 +28,8 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 ## Reglas
 
 1. **Solo se anima `transform` (translate/scale) y `opacity`.** Nada de
-   width, height, top, left, márgenes ni colores. Excepciones justificadas:
-   `clip-path` en las hojas (margen y esquinas flotantes, ver `04-pantallas.md`)
-   y el brillo de los esqueletos. Si algo tiene que cambiar de color con
+   width, height, top, left, márgenes ni colores. Excepción justificada: el
+   brillo de los esqueletos. Si algo tiene que cambiar de color con
    suavidad, se funde una capa encima con `opacity` (ej. la tarjeta "Retocar
    foto" que pasa a Mandarina).
 2. **Nada espera a una animación.** Los toques funcionan durante cualquier
