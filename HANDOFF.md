@@ -42,21 +42,24 @@ el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
   (`--teclado`) y desplazar el contenido para dejar a la vista el campo enfocado (ver `components/hoja.tsx`).
 - Los efectos que manejan foco (bloquear fondo, devolver el foco al cerrar) son **estables**: sin
   dependencias que cambien. Si se vuelven a ejecutar con un campo enfocado, su limpieza le quita el foco.
-- Ninguna transición de vista (`addTransitionType`, `transitionTypes`) mientras haya un campo con
-  foco: usa `tipoDeTransicion()` de `lib/movimiento.ts`. Al escribir, la lista se actualiza sin
-  transición de vista (con un fundido CSS para lo que entra).
+- Ninguna transición de vista (`ViewTransition`, `startViewTransition`, `addTransitionType`): en iOS
+  le quita el foco al campo. Ya no se usan en ninguna parte.
 - Toda hoja o pantalla nueva con campos de texto se prueba con `npm run probar:teclado`
   (`scripts/probar-teclado.mjs`, con la app corriendo): agrégale el campo nuevo.
 
 ## Regla permanente: movimiento
 
-**Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`:** tokens de
-movimiento (`--mov-*`, `--curva-*` en `app/globals.css` y `lib/movimiento.ts`),
-solo `transform` y `opacity`, nada que haga esperar un toque y respeto por
-`prefers-reduced-motion`. Las pantallas envuelven su contenido en `<Pantalla>`
-y las navegaciones llevan su tipo (`TRANSICION`); los elementos tocables,
-números, listas, avisos y cargas usan los componentes base (`tocable`,
-`Numero`, `Segmentos`, `Esqueleto`, `Foto`…). Nada cambia "de corte".
+**Movimiento solo en hojas, barra de navegación y microinteracciones de un solo
+elemento. Prohibido animar la página completa al cambiar de pestaña y prohibido
+animar cada elemento de una lista o grilla al entrar. Solo `transform` y
+`opacity`.** Cambiar de pestaña es instantáneo; las listas y grillas aparecen de
+una vez; las fotos no se funden al cargar; no hay librería de animación.
+
+Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`: tokens
+(`--mov-*`, `--curva-*` en `app/globals.css` y `lib/movimiento.ts`), nada que haga
+esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
+números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
+`Segmentos`, `Esqueleto`…).
 
 ## Hojas inferiores
 

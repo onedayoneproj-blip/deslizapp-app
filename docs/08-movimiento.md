@@ -6,6 +6,13 @@ animación hace esperar al usuario ni bloquea un toque.**
 
 Toda pantalla o componente nuevo sigue estas reglas (ver `HANDOFF.md`).
 
+> **REGLA PERMANENTE:** movimiento solo en hojas, barra de navegación y
+> microinteracciones de un solo elemento. **Prohibido animar la página completa
+> al cambiar de pestaña** y **prohibido animar cada elemento de una lista o
+> grilla al entrar.** Solo `transform` y `opacity`. (En el iPhone las
+> transiciones de página y las de muchos elementos a la vez se sentían pesadas y
+> a veces congelaban la app: por eso se quitaron.)
+
 ## Una sola fuente de verdad
 
 Los tokens viven en `app/globals.css` (`:root`) y, para lo que se usa desde JS,
@@ -15,15 +22,13 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 |---|---|---|
 | `--mov-rapida` / `DURACION.rapida` | 150 ms | Toques (presionar), salidas, desvanecer lo viejo |
 | `--mov-normal` / `DURACION.normal` | 250 ms | Aparecer, indicadores que se deslizan, números, fotos |
-| `--mov-entrada` / `DURACION.entrada` | 350 ms | Entradas de pantalla (detalle) y hojas |
+| `--mov-entrada` / `DURACION.entrada` | 350 ms | Hojas |
 | `--curva-salida` / `CURVA.salida` | `cubic-bezier(.2,.8,.2,1)` | Casi todo: arranca rápido y se posa |
 | `--curva-entrada` / `CURVA.entrada` | `cubic-bezier(.4,0,1,1)` | Lo que se va: acelera hacia afuera |
 | `--curva-resorte` / `RESORTE` | `linear(…)` / rigidez 620, amortiguación 0.8 crítica | Gestos (selector de la barra): un rebote apenas perceptible |
-| `--desplazar-corto` | 8 px | Aparecer, cambio de pestaña, listas |
+| `--desplazar-corto` | 8 px | Aparecer (elementos sueltos) |
 | `--desplazar-aviso` | 12 px | Avisos que bajan desde arriba |
-| `--desplazar-pantalla` | 100 % | Entrar a un detalle (como iOS) |
 | `--mov-presion` | 0.97 | Escala al presionar algo tocable |
-| `--mov-escalon` | 30 ms | Retraso entre elementos de una lista (tope: 8 elementos) |
 
 ## Reglas
 
@@ -33,8 +38,7 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    suavidad, se funde una capa encima con `opacity` (ej. la tarjeta "Retocar
    foto" que pasa a Mandarina).
 2. **Nada espera a una animación.** Los toques funcionan durante cualquier
-   animación; las transiciones de pantalla dejan pasar los toques
-   (`::view-transition { pointer-events: none }`).
+   animación.
 3. **`will-change` solo mientras se anima** (hojas y selector de la barra lo
    ponen al empezar y lo quitan al terminar). Nada de sombras animadas.
 4. **Una sola animación infinita:** el brillo de los esqueletos de carga.
@@ -56,51 +60,24 @@ cierra el teclado y no deja escribir). Por eso:
    toque está bien; un `focus()` con retraso o tras una animación, no).
 3. **No cambiar `key` ni estado de layout por eventos de `resize`/`visualViewport`**, y los efectos
    que manejan foco no dependen de nada que cambie con el teclado (su limpieza devolvería el foco).
-4. **Ninguna transición de vista con un campo enfocado**: una transición reemplaza la página por una
-   captura mientras dura. Usa `tipoDeTransicion()` (`lib/movimiento.ts`); al escribir en el buscador
-   la lista se actualiza sin transición de vista y lo que entra lo hace con un fundido CSS
-   (`mov-aparece`). Al tocar una pestaña de la barra con el teclado abierto se suelta el foco antes.
+4. **Ninguna transición de vista** (`ViewTransition`, `startViewTransition`): reemplaza la página por
+   una captura mientras dura y, en iOS, eso le quita el foco al campo. Ya no se usa en ninguna parte.
+   Al tocar una pestaña de la barra con el teclado abierto se suelta el foco antes.
 5. Se comprueba con `npm run probar:teclado` (simula el `visualViewport` de iOS).
 
 ## Qué se anima y cómo
 
-### Entre pantallas — React `<ViewTransition>`
+### Entre pantallas, listas y grillas: NO se anima
 
-Se usa la integración de View Transitions de React que trae Next 16 (React
-canary incluido, sin configuración; tipos en `@types/react` 19.3). En Safari
-de iPhone funciona desde iOS 18 (clases y tipos de transición desde 18.2); en
-navegadores sin soporte la app funciona igual, sin animar. Se eligió esta vía y
-no la librería `motion` porque es nativa del navegador (anima capturas en el
-compositor, sin JS por cuadro), no agrega dependencias y es la que documenta
-Next para esta versión. **Es la única vía para transiciones de pantalla.**
-
-- Cada pantalla envuelve su contenido en `<Pantalla>` (`components/pantalla.tsx`).
-  Va en la página (o en el layout que la monta, como el Catálogo), nunca en un
-  layout que persiste.
-- Cada navegación lleva un **tipo** (`TRANSICION` en `lib/movimiento.ts`):
-  - `pestana` (barra inferior): lo viejo se desvanece (rápida) y lo nuevo
-    aparece con un leve desplazamiento (normal). `transitionTypes` en `<Link>`
-    y en `router.push`.
-  - `adelante` (entrar a un detalle): lo nuevo entra desde la derecha; lo
-    viejo se corre un 30 % y se atenúa (entrada).
-  - `atras` (volver con un botón de la app): lo viejo sale hacia la derecha
-    por encima; lo de atrás regresa desde la izquierda (entrada).
-  - Sin tipo (atrás del navegador, recargas, abrir una hoja): no se anima.
-- **El encabezado y la barra no se animan:** la raíz no tiene animación y la
-  barra está anclada (`view-transition-name: barra-nav`).
-- Las hojas no son pantallas: tienen su propio movimiento (`components/hoja.tsx`).
-
-### Listas y grillas
-
-- **Primera vez que se muestra la pantalla:** entrada escalonada muy corta
-  (`mov-escalonado` + `--i`), con `usePrimeraVez()` para que no se repita en
-  cada render.
-- **Crear, desactivar, filtrar, buscar:** cada elemento va en un
-  `<ViewTransition name="…">` que solo se anima con los tipos `lista` (filtros
-  y búsqueda, con `addTransitionType` dentro de `startTransition`) o `datos`
-  (lo agrega `useConsulta` cuando cambia la versión de los datos). Lo que entra
-  aparece, lo que sale se desvanece y el resto se reacomoda con suavidad. La
-  primera carga de datos no lleva tipo: no anima ni hace esperar.
+- **Cambio de pestaña:** instantáneo. La pantalla nueva aparece de una vez, sin
+  animar la página ni la anterior. El único movimiento es el selector de la barra.
+- **Entrar a un detalle o volver:** también sin animar (los formularios y detalles
+  son hojas, con el movimiento de `components/hoja.tsx`).
+- **Listas y grillas** (Catálogo, Pedidos, Clientes, Promos, Inicio): aparecen de
+  una vez. Nada de entrada escalonada, `ViewTransition`, `layout` ni animación por
+  tarjeta o fila; filtrar o buscar cambia el resultado directo.
+- **Fotos:** sin fundido ni escala al cargar.
+- No hay librería de animación (`motion`/`framer-motion`): no se agrega.
 
 ### Microinteracciones (en los componentes base)
 
@@ -112,15 +89,14 @@ Next para esta versión. **Es la única vía para transiciones de pantalla.**
 | Antes / Después del retoque | selector que se desliza + fundido entre las dos fotos | `hoja-producto.tsx` |
 | Números que cambian (créditos, contadores, badge) | el valor nuevo sube con un pequeño "pop" (WAAPI, normal); la primera vez no | `Numero` en `components/numero.tsx` |
 | Avisos (toast) y aviso de versión | bajan al entrar (`mov-baja`), suben al salir (`mov-sube-sale`) | `toast.tsx`, `aviso-version.tsx` |
-| Pantalla de novedades | aparece (`mov-aparece`) con líneas escalonadas; sale bajando (`mov-baja-sale`) | `pantalla-novedades.tsx` |
+| Pantalla de novedades | aparece (`mov-aparece`); sale bajando (`mov-baja-sale`) | `pantalla-novedades.tsx` |
 | Carga | esqueletos con brillo (`Esqueleto`), nunca pantalla en blanco | `esqueleto.tsx`, `pantalla-carga.tsx` |
-| Fotos | aparecen con un fundido al cargar | `Foto` en `components/foto.tsx` |
 | Hojas | suben/bajan con transform; se arrastran con el dedo | `components/hoja.tsx` |
 | Barra inferior | selector con resorte e imán (requestAnimationFrame) | `nav-inferior.tsx` |
 
 ## Utilidades CSS disponibles
 
 `mov-aparece`, `mov-desvanece`, `mov-baja`, `mov-sube-sale`, `mov-baja-sale`,
-`mov-escalonado` (con `--i`), `tocable`, `esqueleto`. Úsalas antes de inventar
+`tocable`, `esqueleto`. Úsalas antes de inventar
 una animación nueva; si hace falta una nueva, se define con los tokens de arriba
 y se documenta aquí.

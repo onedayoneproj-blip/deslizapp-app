@@ -2,7 +2,6 @@
 
 import { EstadoVacio } from "@/components/estado-vacio";
 import { IconoCorazon } from "@/components/iconos";
-import { Pantalla } from "@/components/pantalla";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -17,7 +16,7 @@ export default function InicioPage() {
   const nombre = dueno?.nombre ?? tienda?.nombre;
 
   return (
-    <Pantalla>
+    <>
       <TituloPantalla
         titulo={
           <>
@@ -38,6 +37,6 @@ export default function InicioPage() {
         }
         nota="ya casi"
       />
-    </Pantalla>
+    </>
   );
 }

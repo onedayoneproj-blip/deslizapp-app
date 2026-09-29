@@ -130,7 +130,7 @@ html {
 :root {
   --mov-rapida: 150ms; /* toques, colores, salidas */
   --mov-normal: 250ms; /* aparecer, indicadores, números */
-  --mov-entrada: 350ms; /* entradas de pantalla y hojas */
+  --mov-entrada: 350ms; /* hojas */
   --curva-salida: cubic-bezier(0.2, 0.8, 0.2, 1); /* arranca rápido y se posa */
   --curva-entrada: cubic-bezier(0.4, 0, 1, 1); /* lo que se va: acelera hacia afuera */
   /* Resorte corto para gestos, aproximado con linear() (un rebote apenas perceptible) */
@@ -139,7 +139,6 @@ html {
   --desplazar-aviso: 12px; /* avisos que bajan desde arriba */
   --desplazar-pantalla: 100%; /* entrar a un detalle (como iOS) */
   --mov-presion: 0.97; /* escala al presionar */
-  --mov-escalon: 30ms; /* retraso entre elementos de una lista */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -151,7 +150,6 @@ html {
     --desplazar-aviso: 0px;
     --desplazar-pantalla: 0px;
     --mov-presion: 1;
-    --mov-escalon: 0ms;
   }
 }
 
@@ -184,28 +182,6 @@ html {
     translate: 0 calc(var(--desplazar-corto) * 3);
   }
 }
-@keyframes mov-desde-derecha {
-  from {
-    translate: var(--desplazar-pantalla) 0;
-  }
-}
-@keyframes mov-hacia-izquierda {
-  to {
-    translate: calc(var(--desplazar-pantalla) * -0.3) 0;
-    opacity: 0.5;
-  }
-}
-@keyframes mov-desde-izquierda {
-  from {
-    translate: calc(var(--desplazar-pantalla) * -0.3) 0;
-    opacity: 0.5;
-  }
-}
-@keyframes mov-hacia-derecha {
-  to {
-    translate: var(--desplazar-pantalla) 0;
-  }
-}
 @keyframes mov-brillo {
   to {
     transform: translateX(100%);
@@ -227,11 +203,6 @@ html {
 }
 @utility mov-baja-sale {
   animation: mov-baja-sale var(--mov-normal) var(--curva-entrada) both;
-}
-/* Listas: entrada escalonada muy corta (--i = posición, tope en 8) */
-@utility mov-escalonado {
-  animation: mov-aparece var(--mov-normal) var(--curva-salida) backwards;
-  animation-delay: calc(min(var(--i, 0), 8) * var(--mov-escalon));
 }
 
 /* Todo lo que se toca: leve reducción al presionar y vuelta suave al soltar.
@@ -274,74 +245,6 @@ html {
       display: none;
     }
   }
-}
-
-/* --------------------------------------------------------------------------
-   Transiciones entre pantallas (React <ViewTransition>, ver components/pantalla.tsx)
-   Solo se anima el contenido de la pantalla. El resto de la página (encabezado, fondo)
-   queda quieto y tocable; la barra inferior se ancla encima sin animarse.
-   -------------------------------------------------------------------------- */
-::view-transition {
-  pointer-events: none; /* los toques pasan a la página viva */
-}
-::view-transition-old(root) {
-  display: none;
-}
-::view-transition-new(root) {
-  animation: none;
-}
-::view-transition-group(barra-nav) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(barra-nav) {
-  display: none;
-}
-::view-transition-new(barra-nav) {
-  animation: none;
-}
-::view-transition-group(*) {
-  animation-duration: var(--mov-normal);
-  animation-timing-function: var(--curva-salida);
-}
-/* La raíz nunca se anima: si nada más se mueve, la transición termina en el acto. */
-::view-transition-group(root) {
-  animation: none;
-}
-/* Cambio de pestaña: lo viejo se desvanece rápido; lo nuevo aparece con un leve desplazamiento. */
-::view-transition-old(.mov-pestana-sale) {
-  animation: mov-desvanece var(--mov-rapida) var(--curva-entrada) both;
-}
-::view-transition-new(.mov-pestana-entra) {
-  animation: mov-aparece var(--mov-normal) var(--curva-salida) both;
-}
-/* Entrar a un detalle: lo nuevo entra desde la derecha; lo viejo se corre un poco y se atenúa. */
-::view-transition-new(.mov-adelante-entra) {
-  animation: mov-desde-derecha var(--mov-entrada) var(--curva-salida) both;
-}
-::view-transition-old(.mov-adelante-sale) {
-  animation: mov-hacia-izquierda var(--mov-entrada) var(--curva-salida) both;
-}
-/* Volver: lo viejo sale hacia la derecha por encima; lo de atrás regresa desde la izquierda. */
-::view-transition-group(.mov-atras-sale) {
-  z-index: 2;
-}
-::view-transition-old(.mov-atras-sale) {
-  animation: mov-hacia-derecha var(--mov-entrada) var(--curva-salida) both;
-}
-::view-transition-new(.mov-atras-entra) {
-  animation: mov-desde-izquierda var(--mov-entrada) var(--curva-salida) both;
-}
-/* Elementos de lista que entran, salen o se reacomodan (crear, desactivar, filtrar). */
-::view-transition-new(.mov-item-entra) {
-  animation: mov-aparece var(--mov-normal) var(--curva-salida) both;
-}
-::view-transition-old(.mov-item-sale) {
-  animation: mov-desvanece var(--mov-rapida) var(--curva-entrada) both;
-}
-::view-transition-group(.mov-item-mueve) {
-  animation-duration: var(--mov-normal);
-  animation-timing-function: var(--curva-salida);
 }
 
 body {

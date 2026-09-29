@@ -1,7 +1,7 @@
 // Sistema de movimiento: la misma fuente de verdad que los tokens de app/globals.css
 // (--mov-*, --curva-*, --desplazar-*). Reglas en docs/08-movimiento.md.
 //
-// Aquí solo va lo que se usa desde JS (hojas, barra, números, tipos de transición de pantalla).
+// Aquí solo va lo que se usa desde JS (hojas, barra, números).
 // Si cambias un valor, cámbialo también en globals.css.
 
 export const DURACION = {
@@ -26,41 +26,11 @@ export const RESORTE = {
   amortiguacion: 2 * Math.sqrt(620) * 0.8,
 } as const;
 
-/**
- * Tipos de transición (React `addTransitionType`, `transitionTypes` de Next). Una transición
- * SIN tipo no anima nada (así la primera carga de datos o abrir una hoja no esperan a ninguna
- * transición de vista).
- * - pestana: cambio de pestaña de la barra → fundido rápido con leve desplazamiento.
- * - adelante: entrar a un detalle → desliza desde la derecha (como iOS).
- * - atras: volver → desliza hacia la derecha.
- */
-export const TRANSICION = {
-  pestana: "nav-tab",
-  adelante: "nav-forward",
-  atras: "nav-back",
-  /** Cambió un dato (crear, editar, desactivar…): los elementos de las listas entran, salen o se reacomodan. */
-  datos: "data-change",
-  /** Se filtró o buscó en una lista: igual que `datos`. */
-  lista: "list-filter",
-} as const;
-
 /** true si hay un campo de texto con el foco (el teclado está abierto o abriéndose). */
 export function hayCampoConFoco(): boolean {
   if (typeof document === "undefined") return false;
   const a = document.activeElement;
   return a instanceof HTMLElement && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable);
-}
-
-/**
- * Agrega un tipo de transición de vista (`addTransitionType`) SOLO si no hay un campo de texto con
- * el foco. Regla permanente (docs/08-movimiento.md): una transición de vista reemplaza la página
- * por una captura mientras dura y, en iOS, eso le quita el foco al campo y cierra el teclado.
- * Devuelve true si la transición quedó activada. Llamar dentro de `startTransition`.
- */
-export function tipoDeTransicion(agregar: (tipo: string) => void, tipo: string): boolean {
-  if (hayCampoConFoco()) return false;
-  agregar(tipo);
-  return true;
 }
 
 /** true si la persona pidió reducir el movimiento (solo en el navegador). */

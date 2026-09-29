@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Novedad } from "@/lib/novedades";
 import { IconoChispa } from "../iconos";
 import { Isotipo } from "../marca";
@@ -45,8 +45,8 @@ export function PantallaNovedades({ novedades, alCerrar }: { novedades: Novedad[
             </p>
             {n !== novedades[0] && <h2 className="mt-1 font-display text-xl">{n.titulo}</h2>}
             <ul className="mt-3 flex flex-col gap-3">
-              {n.cambios.map((c, i) => (
-                <li key={c} className="mov-escalonado flex gap-3 text-[15.5px] leading-snug" style={{ "--i": i + 2 } as CSSProperties}>
+              {n.cambios.map((c) => (
+                <li key={c} className="flex gap-3 text-[15.5px] leading-snug">
                   <IconoChispa tamano={18} className="mt-0.5 shrink-0 text-mandarina" />
                   <span>{c}</span>
                 </li>

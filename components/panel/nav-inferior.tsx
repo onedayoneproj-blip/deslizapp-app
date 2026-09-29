@@ -29,7 +29,7 @@ import {
 } from "react";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { hayCampoConFoco, RESORTE, TRANSICION } from "@/lib/movimiento";
+import { hayCampoConFoco, RESORTE } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
 import { Numero } from "../numero";
 
@@ -58,7 +58,6 @@ const UMBRAL_SALTO = 0.5;
 const RIGIDEZ = RESORTE.rigidez;
 const AMORTIGUACION = RESORTE.amortiguacion;
 /** Las pestañas navegan con el tipo "pestaña": la pantalla cambia con un fundido corto. */
-const TIPOS_PESTANA = [TRANSICION.pestana];
 
 function indiceDe(pathname: string) {
   const i = SECCIONES.findIndex(({ href }) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`)));
@@ -260,7 +259,7 @@ export function NavInferior() {
     if (g.cubierta !== activa) {
       if (hayCampoConFoco()) (document.activeElement as HTMLElement).blur();
       setTocada({ indice: g.cubierta, desde: pathname });
-      router.push(SECCIONES[g.cubierta]!.href, { transitionTypes: TIPOS_PESTANA });
+      router.push(SECCIONES[g.cubierta]!.href);
     }
   };
 
@@ -275,7 +274,6 @@ export function NavInferior() {
     <nav
       aria-label="Secciones"
       // Anclada durante las transiciones de pantalla: no se mueve (ver globals.css).
-      style={{ viewTransitionName: "barra-nav" }}
       className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-(--nav-margen)"
     >
       <div className="pointer-events-auto h-(--nav-alto) rounded-full border border-linea bg-white p-1.5 shadow-[0_8px_24px_-12px_rgba(23,75,58,0.35)]">
@@ -326,7 +324,6 @@ export function NavInferior() {
                   </span>
                   <Link
                     href={href}
-                    transitionTypes={TIPOS_PESTANA}
                     draggable={false}
                     aria-current={esActiva ? "page" : undefined}
                     aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "pedido nuevo" : "pedidos nuevos"}` : undefined}

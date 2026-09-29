@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { addTransitionType, startTransition, useMemo, useState, ViewTransition, type CSSProperties } from "react";
-import { TRANSICION, tipoDeTransicion } from "@/lib/movimiento";
+import { startTransition, useMemo, useState } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -12,11 +11,9 @@ import type { Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { Esqueleto } from "../esqueleto";
 import { Numero } from "../numero";
-import { usePrimeraVez } from "../primera-vez";
 import { Foto } from "../foto";
 import { IconoBuscar } from "../iconos";
 import { BotonFlotante } from "../panel/boton-flotante";
-import { Pantalla } from "../pantalla";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
 
@@ -28,11 +25,6 @@ const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[
   { id: "agotados", nombre: "Agotados", cumple: (p) => p.stock === 0 },
   { id: "ocultos", nombre: "Ocultos", cumple: (p) => !p.activo },
 ];
-
-// Los productos solo se animan al filtrar o cuando cambian los datos (nunca en la primera carga).
-const ITEM_ENTRA = { [TRANSICION.lista]: "mov-item-entra", [TRANSICION.datos]: "mov-item-entra", default: "none" };
-const ITEM_SALE = { [TRANSICION.lista]: "mov-item-sale", [TRANSICION.datos]: "mov-item-sale", default: "none" };
-const ITEM_MUEVE = { [TRANSICION.lista]: "mov-item-mueve", [TRANSICION.datos]: "mov-item-mueve", default: "none" };
 
 /** "Shé" → "she": para buscar sin que importen tildes ni mayúsculas. */
 const normalizar = (texto: string) =>
@@ -54,10 +46,8 @@ export function VistaCatalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  const escalonar = usePrimeraVez("catalogo");
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
-  const [sinTransicionDeVista, setSinTransicionDeVista] = useState(false);
 
   const visibles = useMemo(() => {
     const cumple = FILTROS.find((f) => f.id === filtro)!.cumple;
@@ -71,7 +61,7 @@ export function VistaCatalogo() {
   const porcentaje = limite ? Math.min(100, Math.round((usados / limite) * 100)) : 0;
 
   return (
-    <Pantalla>
+    <>
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." />
 
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
@@ -111,10 +101,8 @@ export function VistaCatalogo() {
             type="search"
             value={busqueda}
             onChange={(e) => {
-              // Escribiendo el campo tiene el foco: la lista se actualiza sin transición de vista.
               const valor = e.target.value;
               setBusqueda(valor);
-              setSinTransicionDeVista(true);
               startTransition(() => setBusquedaAplicada(valor));
             }}
             placeholder="Busca un producto"
@@ -127,11 +115,7 @@ export function VistaCatalogo() {
             etiqueta="Filtrar productos"
             valor={filtro}
             alCambiar={(id) =>
-              startTransition(() => {
-                // Con el teclado abierto no hay transición de vista (ver tipoDeTransicion).
-                setSinTransicionDeVista(!tipoDeTransicion(addTransitionType, TRANSICION.lista));
-                setFiltro(id);
-              })
+              startTransition(() => setFiltro(id))
             }
             opciones={FILTROS.map((f) => ({
               id: f.id,
@@ -145,7 +129,7 @@ export function VistaCatalogo() {
         </div>
 
         {productos && visibles.length === 0 && (
-          <div className="mov-aparece px-2.5 py-8 text-center text-suave">
+          <div className="px-2.5 py-8 text-center text-suave">
             <p className="font-display text-xl text-bosque">Nada por aquí.</p>
             <p>{productos.length === 0 ? "Tu vitrina está esperando su primera estrella." : "Ni un suspiro. Prueba con otro filtro."}</p>
           </div>
@@ -160,22 +144,16 @@ export function VistaCatalogo() {
                 <Esqueleto className="mt-1.5 h-3.5 w-1/2 rounded-full" />
               </li>
             ))}
-          {visibles.map((p, i) => (
-            // Cada producto entra, sale y se reacomoda con suavidad al crear, desactivar o filtrar.
-            <ViewTransition key={p.id} name={`producto-${p.id}`} enter={ITEM_ENTRA} exit={ITEM_SALE} update={ITEM_MUEVE} default="none">
-              <li
-                className={escalonar ? "mov-escalonado" : sinTransicionDeVista ? "mov-aparece" : undefined}
-                style={escalonar ? ({ "--i": i } as CSSProperties) : undefined}
-              >
-                <TarjetaProducto producto={p} promos={promos ?? []} />
-              </li>
-            </ViewTransition>
+          {visibles.map((p) => (
+            <li key={p.id}>
+              <TarjetaProducto producto={p} promos={promos ?? []} />
+            </li>
           ))}
         </ul>
       </div>
 
       <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />
-    </Pantalla>
+    </>
   );
 }
 
