@@ -72,7 +72,7 @@ export function AvisoVersion() {
         <button
           type="button"
           onClick={actualizar}
-          className="h-10 shrink-0 rounded-full bg-mandarina px-4 text-sm font-extrabold text-bosque-oscuro"
+          className="h-11 shrink-0 rounded-full bg-mandarina px-4 text-sm font-extrabold text-bosque-oscuro"
         >
           Actualizar
         </button>

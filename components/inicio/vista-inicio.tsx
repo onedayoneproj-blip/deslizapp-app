@@ -120,26 +120,34 @@ function Inicio() {
 
   return (
     <>
-      <TituloPantalla
-        titulo={
-          <>
-            {saludo(data ? new Date(data.ahora) : undefined)}
-            {tienda ? `, ${tienda.nombre}` : ""}
-            <span className="text-mandarina">.</span>
-          </>
-        }
-        subtitulo={
-          !data
-            ? " "
-            : aaahsSemana > 0
+      {/* Mientras llegan la tienda y los datos se reserva el alto del saludo (2 líneas + remate): así nada se corre al cargar */}
+      {!data || !tienda ? (
+        <div className="h-[131px] overflow-hidden px-5 pt-2.5" aria-hidden="true">
+          <Esqueleto className="mt-1.5 h-[30px] w-3/4 rounded-full" />
+          <Esqueleto className="mt-2.5 h-[30px] w-1/2 rounded-full" />
+          <Esqueleto className="mt-3 h-4 w-full rounded-full" />
+          <Esqueleto className="mt-2 h-4 w-2/3 rounded-full" />
+        </div>
+      ) : (
+        <TituloPantalla
+          titulo={
+            <>
+              {saludo(new Date(data.ahora))}, {tienda.nombre}
+              <span className="text-mandarina">.</span>
+            </>
+          }
+          subtitulo={
+            aaahsSemana > 0
               ? `Esta semana tu tienda sacó ${aaahsSemana} ${aaahsSemana === 1 ? "aaah" : "aaahs"}. Nada mal para un ${diaDeLaSemana(data.ahora)}.`
               : "Esta semana todavía no hay aaahs. Comparte tu catálogo y que empiecen los suspiros."
-        }
-      />
+          }
+        />
+      )}
 
       <div className="flex flex-col gap-4 px-5 pt-4">
+        {!data && <Esqueleto className="h-[93px] rounded-[22px] min-[420px]:h-[74px]" />}
         {nuevos > 0 && (
-          <Link href="/pedidos" data-tarjeta-nuevos className="tocable flex w-full items-center gap-3.5 rounded-[22px] bg-mandarina px-4 py-3.5 text-left text-bosque">
+          <Link href="/pedidos" data-tarjeta-nuevos className="tocable flex w-full items-center gap-3.5 rounded-[22px] bg-mandarina px-4 py-3.5 text-left text-bosque-oscuro">
             <span className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-[14px] bg-bosque font-display text-[22px] text-papel">
               <Numero valor={nuevos} />
             </span>
@@ -300,14 +308,14 @@ function AvisoFiltro({ resumen: r, aviso, alLimpiar, verMes }: { resumen: Resume
   if (r.seleccion === null) return null;
   const barra = r.barras[r.seleccion]!;
   return (
-    <div role="status" data-filtro className="-mt-1.5 flex items-center gap-1 self-center rounded-full bg-rosa py-1 pr-1 pl-4 text-bosque">
+    <div role="status" data-filtro className="-mt-1.5 flex items-center gap-1 self-center rounded-full bg-rosa py-0 pr-0 pl-4 text-bosque">
       <span className="text-[13.5px] font-extrabold">Mostrando solo {barra.solo}</span>
       {r.vista === "anio" && (
-        <button type="button" onClick={() => verMes(r.seleccion!)} className="tocable ml-1 h-9 rounded-full bg-papel px-3 text-[13px] font-extrabold">
+        <button type="button" onClick={() => verMes(r.seleccion!)} className="tocable ml-1 h-11 rounded-full bg-papel px-3 text-[13px] font-extrabold">
           Ver mes →
         </button>
       )}
-      <button type="button" onClick={alLimpiar} aria-label="Ver todo el periodo" className="tocable grid h-9 w-9 place-items-center rounded-full">
+      <button type="button" onClick={alLimpiar} aria-label="Ver todo el periodo" className="tocable grid h-11 w-11 place-items-center rounded-full">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6 6 18" />
         </svg>

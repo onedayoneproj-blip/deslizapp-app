@@ -6,10 +6,12 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–9 hechos (incluidos la hoja de Plan y créditos, la
-publicación en Vercel, Pedidos con Detalle, Despacho y pedido manual, Clientes
-derivados de los pedidos, Promos con estado por fechas y el Resumen con datos
-reales). Sigue el paso 10 (repaso final).
+**Estado:** pasos 0–10 hechos: **primera entrega cerrada** (incluidos la hoja de
+Plan y créditos, la publicación en Vercel, Pedidos con Detalle, Despacho y
+pedido manual, Clientes derivados de los pedidos, Promos con estado por fechas
+y compartir, Mi marca, el Resumen con meses y año, y el repaso final). El
+resultado del repaso está en `08-repaso-final.md`. Lo que sigue (Supabase,
+cuentas, fotos, catálogo público) está en `HANDOFF.md`.
 
 ## 0. Preparación
 
@@ -144,7 +146,7 @@ automáticamente, sin que alguien lo marque a mano.
 hace subir los pedidos y las ventas del periodo, y cambiar de periodo cambia
 todas las cifras.
 
-## 10. Repaso final
+## 10. Repaso final — ✅ hecho (ver `08-repaso-final.md`)
 
 - Recorrer las pantallas como si fueras el dueño de la tienda: crear un
   producto, recibir un pedido de prueba, despacharlo, ver que aparece el

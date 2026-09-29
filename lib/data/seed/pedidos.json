@@ -2,572 +2,656 @@
   {
     "id": "a5000000-0000-4000-8000-000000000014",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 801,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "numero": 794,
+    "cliente_id": "a4000000-0000-4000-8000-000000000029",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 3200,
+    "total": 1100,
     "codigo_promo": null,
-    "creado_en": "2025-07-26T15:40:00.000Z",
-    "despachado_en": "2025-07-27T11:40:00.000Z"
+    "creado_en": "2025-07-30T02:14:00.000Z",
+    "despachado_en": "2025-07-30T22:14:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000015",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 802,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3000,
-    "codigo_promo": null,
-    "creado_en": "2025-07-27T14:09:00.000Z",
-    "despachado_en": "2025-07-28T10:09:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000016",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 803,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "numero": 795,
+    "cliente_id": "a4000000-0000-4000-8000-000000000021",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4300,
     "codigo_promo": null,
-    "creado_en": "2025-07-29T18:10:00.000Z",
-    "despachado_en": "2025-07-30T14:10:00.000Z"
+    "creado_en": "2025-07-30T15:55:00.000Z",
+    "despachado_en": "2025-07-31T11:55:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000016",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 796,
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3600,
+    "codigo_promo": null,
+    "creado_en": "2025-07-31T01:22:00.000Z",
+    "despachado_en": "2025-07-31T21:22:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000017",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 804,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
-    "origen": "manual",
+    "numero": 797,
+    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "origen": "catalogo",
     "estado": "despachado",
-    "total": 3300,
+    "total": 4000,
     "codigo_promo": null,
-    "creado_en": "2025-07-30T21:49:00.000Z",
-    "despachado_en": "2025-07-31T17:49:00.000Z"
+    "creado_en": "2025-08-02T16:41:00.000Z",
+    "despachado_en": "2025-08-03T12:41:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000018",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 805,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "numero": 798,
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2600,
+    "total": 2900,
     "codigo_promo": null,
-    "creado_en": "2025-07-31T00:50:00.000Z",
-    "despachado_en": "2025-07-31T20:50:00.000Z"
+    "creado_en": "2025-08-06T15:33:00.000Z",
+    "despachado_en": "2025-08-07T11:33:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000019",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 806,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
-    "origen": "catalogo",
+    "numero": 799,
+    "cliente_id": "a4000000-0000-4000-8000-000000000043",
+    "origen": "manual",
     "estado": "despachado",
-    "total": 3000,
+    "total": 3300,
     "codigo_promo": null,
-    "creado_en": "2025-07-31T18:47:00.000Z",
-    "despachado_en": "2025-08-01T14:47:00.000Z"
+    "creado_en": "2025-08-07T20:13:00.000Z",
+    "despachado_en": "2025-08-08T16:13:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000020",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 807,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "numero": 800,
+    "cliente_id": "a4000000-0000-4000-8000-000000000035",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1800,
+    "total": 1300,
     "codigo_promo": null,
-    "creado_en": "2025-08-01T02:18:00.000Z",
-    "despachado_en": "2025-08-01T22:18:00.000Z"
+    "creado_en": "2025-08-08T13:36:00.000Z",
+    "despachado_en": "2025-08-09T09:36:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000021",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 808,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "numero": 801,
+    "cliente_id": "a4000000-0000-4000-8000-000000000037",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 4500,
+    "total": 5400,
     "codigo_promo": null,
-    "creado_en": "2025-08-02T01:05:00.000Z",
-    "despachado_en": "2025-08-02T21:05:00.000Z"
+    "creado_en": "2025-08-09T17:41:00.000Z",
+    "despachado_en": "2025-08-10T13:41:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000022",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 802,
+    "cliente_id": "a4000000-0000-4000-8000-000000000031",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1300,
+    "codigo_promo": null,
+    "creado_en": "2025-08-11T00:09:00.000Z",
+    "despachado_en": "2025-08-11T20:09:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000023",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 803,
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 4100,
+    "codigo_promo": null,
+    "creado_en": "2025-08-15T01:15:00.000Z",
+    "despachado_en": "2025-08-15T21:15:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000024",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 804,
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 1100,
+    "codigo_promo": null,
+    "creado_en": "2025-08-15T17:58:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000025",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 805,
+    "cliente_id": "a4000000-0000-4000-8000-000000000031",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 4200,
+    "codigo_promo": null,
+    "creado_en": "2025-08-16T21:09:00.000Z",
+    "despachado_en": "2025-08-17T17:09:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000026",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 806,
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2025-08-17T20:12:00.000Z",
+    "despachado_en": "2025-08-18T16:12:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000027",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 807,
+    "cliente_id": "a4000000-0000-4000-8000-000000000068",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2600,
+    "codigo_promo": null,
+    "creado_en": "2025-08-25T00:27:00.000Z",
+    "despachado_en": "2025-08-25T20:27:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000028",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 808,
+    "cliente_id": "a4000000-0000-4000-8000-000000000033",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 1800,
+    "codigo_promo": null,
+    "creado_en": "2025-08-26T19:12:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000029",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 809,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2900,
+    "total": 3700,
     "codigo_promo": null,
-    "creado_en": "2025-08-09T15:33:00.000Z",
-    "despachado_en": "2025-08-10T11:33:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000023",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 810,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1100,
-    "codigo_promo": null,
-    "creado_en": "2025-08-10T22:31:00.000Z",
-    "despachado_en": "2025-08-11T18:31:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000024",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 811,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1100,
-    "codigo_promo": null,
-    "creado_en": "2025-08-11T01:06:00.000Z",
-    "despachado_en": "2025-08-11T21:06:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000025",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 812,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1800,
-    "codigo_promo": null,
-    "creado_en": "2025-08-14T18:29:00.000Z",
-    "despachado_en": "2025-08-15T14:29:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000026",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 813,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 7100,
-    "codigo_promo": null,
-    "creado_en": "2025-08-16T00:04:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000027",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 814,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1500,
-    "codigo_promo": null,
-    "creado_en": "2025-08-27T02:33:00.000Z",
-    "despachado_en": "2025-08-27T22:33:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000028",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 815,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2500,
-    "codigo_promo": null,
-    "creado_en": "2025-08-28T23:37:00.000Z",
-    "despachado_en": "2025-08-29T19:37:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000029",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 816,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 4800,
-    "codigo_promo": null,
-    "creado_en": "2025-08-29T15:20:00.000Z",
-    "despachado_en": "2025-08-30T11:20:00.000Z"
+    "creado_en": "2025-08-30T21:58:00.000Z",
+    "despachado_en": "2025-08-31T17:58:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000030",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 817,
-    "cliente_id": "a4000000-0000-4000-8000-000000000002",
+    "numero": 810,
+    "cliente_id": "a4000000-0000-4000-8000-000000000036",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2800,
+    "total": 3000,
     "codigo_promo": null,
-    "creado_en": "2025-08-31T19:10:00.000Z",
-    "despachado_en": "2025-09-01T15:10:00.000Z"
+    "creado_en": "2025-09-07T02:59:00.000Z",
+    "despachado_en": "2025-09-07T22:59:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000031",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 818,
+    "numero": 811,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1100,
+    "total": 3500,
     "codigo_promo": null,
-    "creado_en": "2025-09-01T15:00:00.000Z",
-    "despachado_en": "2025-09-02T11:00:00.000Z"
+    "creado_en": "2025-09-10T20:10:00.000Z",
+    "despachado_en": "2025-09-11T16:10:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000032",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 819,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3600,
-    "codigo_promo": null,
-    "creado_en": "2025-09-01T23:02:00.000Z",
-    "despachado_en": "2025-09-02T19:02:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000033",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 820,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3200,
-    "codigo_promo": null,
-    "creado_en": "2025-09-04T18:46:00.000Z",
-    "despachado_en": "2025-09-05T14:46:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000034",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 821,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2600,
-    "codigo_promo": null,
-    "creado_en": "2025-09-08T02:23:00.000Z",
-    "despachado_en": "2025-09-08T22:23:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000035",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 822,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 4500,
-    "codigo_promo": null,
-    "creado_en": "2025-09-15T14:12:00.000Z",
-    "despachado_en": "2025-09-16T10:12:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000036",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 823,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1200,
-    "codigo_promo": null,
-    "creado_en": "2025-09-15T22:38:00.000Z",
-    "despachado_en": "2025-09-16T18:38:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000037",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 824,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2400,
-    "codigo_promo": null,
-    "creado_en": "2025-09-16T18:49:00.000Z",
-    "despachado_en": "2025-09-17T14:49:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000038",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 825,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3600,
-    "codigo_promo": null,
-    "creado_en": "2025-09-18T02:39:00.000Z",
-    "despachado_en": "2025-09-18T22:39:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000039",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 826,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 6400,
-    "codigo_promo": null,
-    "creado_en": "2025-09-18T16:35:00.000Z",
-    "despachado_en": "2025-09-19T12:35:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000040",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 827,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 2800,
-    "codigo_promo": null,
-    "creado_en": "2025-09-21T19:49:00.000Z",
-    "despachado_en": "2025-09-22T15:49:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000041",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 828,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1200,
-    "codigo_promo": null,
-    "creado_en": "2025-09-26T00:57:00.000Z",
-    "despachado_en": "2025-09-26T20:57:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000042",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 829,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1800,
-    "codigo_promo": null,
-    "creado_en": "2025-09-28T16:22:00.000Z",
-    "despachado_en": "2025-09-29T12:22:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000043",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 830,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 4100,
-    "codigo_promo": null,
-    "creado_en": "2025-10-01T01:14:00.000Z",
-    "despachado_en": "2025-10-01T21:14:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000044",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 831,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 5400,
-    "codigo_promo": null,
-    "creado_en": "2025-10-04T14:37:00.000Z",
-    "despachado_en": "2025-10-05T10:37:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000045",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 832,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 2600,
-    "codigo_promo": null,
-    "creado_en": "2025-10-04T17:33:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000046",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 833,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2200,
-    "codigo_promo": null,
-    "creado_en": "2025-10-08T22:52:00.000Z",
-    "despachado_en": "2025-10-09T18:52:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000047",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 834,
+    "numero": 812,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
     "codigo_promo": null,
-    "creado_en": "2025-10-11T14:08:00.000Z",
-    "despachado_en": "2025-10-12T10:08:00.000Z"
+    "creado_en": "2025-09-10T22:20:00.000Z",
+    "despachado_en": "2025-09-11T18:20:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000048",
+    "id": "a5000000-0000-4000-8000-000000000033",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 835,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2900,
-    "codigo_promo": null,
-    "creado_en": "2025-10-11T20:30:00.000Z",
-    "despachado_en": "2025-10-12T16:30:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000049",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 836,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 4700,
-    "codigo_promo": null,
-    "creado_en": "2025-10-15T17:12:00.000Z",
-    "despachado_en": "2025-10-16T13:12:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000050",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 837,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 3200,
-    "codigo_promo": null,
-    "creado_en": "2025-10-16T02:38:00.000Z",
-    "despachado_en": "2025-10-16T22:38:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000051",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 838,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1500,
-    "codigo_promo": null,
-    "creado_en": "2025-10-16T18:49:00.000Z",
-    "despachado_en": "2025-10-17T14:49:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000052",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 839,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2300,
-    "codigo_promo": null,
-    "creado_en": "2025-10-20T18:39:00.000Z",
-    "despachado_en": "2025-10-21T14:39:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000053",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 840,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1100,
-    "codigo_promo": null,
-    "creado_en": "2025-10-22T22:26:00.000Z",
-    "despachado_en": "2025-10-23T18:26:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000054",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 841,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1300,
-    "codigo_promo": null,
-    "creado_en": "2025-10-25T13:02:00.000Z",
-    "despachado_en": "2025-10-26T09:02:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000055",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 842,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1500,
-    "codigo_promo": null,
-    "creado_en": "2025-10-29T22:43:00.000Z",
-    "despachado_en": "2025-10-30T18:43:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000056",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 843,
+    "numero": 813,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
     "origen": "manual",
     "estado": "despachado",
-    "total": 2900,
+    "total": 1200,
     "codigo_promo": null,
-    "creado_en": "2025-10-30T17:16:00.000Z",
-    "despachado_en": "2025-10-31T13:16:00.000Z"
+    "creado_en": "2025-09-13T17:24:00.000Z",
+    "despachado_en": "2025-09-14T13:24:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000057",
+    "id": "a5000000-0000-4000-8000-000000000034",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 844,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1100,
-    "codigo_promo": null,
-    "creado_en": "2025-10-31T15:16:00.000Z",
-    "despachado_en": "2025-11-01T11:16:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000058",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 845,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1800,
-    "codigo_promo": null,
-    "creado_en": "2025-11-01T18:33:00.000Z",
-    "despachado_en": "2025-11-02T14:33:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000059",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 846,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3600,
-    "codigo_promo": null,
-    "creado_en": "2025-11-08T16:45:00.000Z",
-    "despachado_en": "2025-11-09T12:45:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000060",
-    "tienda_id": "a1000000-0000-4000-8000-000000000001",
-    "numero": 847,
+    "numero": 814,
     "cliente_id": "a4000000-0000-4000-8000-000000000011",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3600,
     "codigo_promo": null,
-    "creado_en": "2025-11-09T00:29:00.000Z",
-    "despachado_en": "2025-11-09T20:29:00.000Z"
+    "creado_en": "2025-09-14T00:04:00.000Z",
+    "despachado_en": "2025-09-14T20:04:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000035",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 815,
+    "cliente_id": "a4000000-0000-4000-8000-000000000045",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 2700,
+    "codigo_promo": null,
+    "creado_en": "2025-09-15T17:59:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000036",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 816,
+    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3300,
+    "codigo_promo": null,
+    "creado_en": "2025-09-16T13:26:00.000Z",
+    "despachado_en": "2025-09-17T09:26:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000037",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 817,
+    "cliente_id": "a4000000-0000-4000-8000-000000000044",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2500,
+    "codigo_promo": null,
+    "creado_en": "2025-09-17T13:06:00.000Z",
+    "despachado_en": "2025-09-18T09:06:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000038",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 818,
+    "cliente_id": "a4000000-0000-4000-8000-000000000088",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1800,
+    "codigo_promo": null,
+    "creado_en": "2025-09-18T23:47:00.000Z",
+    "despachado_en": "2025-09-19T19:47:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000039",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 819,
+    "cliente_id": "a4000000-0000-4000-8000-000000000053",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2025-09-18T23:50:00.000Z",
+    "despachado_en": "2025-09-19T19:50:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000040",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 820,
+    "cliente_id": "a4000000-0000-4000-8000-000000000028",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2025-09-19T13:34:00.000Z",
+    "despachado_en": "2025-09-20T09:34:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000041",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 821,
+    "cliente_id": "a4000000-0000-4000-8000-000000000043",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2200,
+    "codigo_promo": null,
+    "creado_en": "2025-09-19T16:24:00.000Z",
+    "despachado_en": "2025-09-20T12:24:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000042",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 822,
+    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2025-09-22T00:57:00.000Z",
+    "despachado_en": "2025-09-22T20:57:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000043",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 823,
+    "cliente_id": "a4000000-0000-4000-8000-000000000026",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 6000,
+    "codigo_promo": null,
+    "creado_en": "2025-09-23T22:52:00.000Z",
+    "despachado_en": "2025-09-24T18:52:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000044",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 824,
+    "cliente_id": "a4000000-0000-4000-8000-000000000058",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1800,
+    "codigo_promo": null,
+    "creado_en": "2025-09-25T00:26:00.000Z",
+    "despachado_en": "2025-09-25T20:26:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000045",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 825,
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 5400,
+    "codigo_promo": null,
+    "creado_en": "2025-09-25T16:12:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000046",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 826,
+    "cliente_id": "a4000000-0000-4000-8000-000000000044",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 7600,
+    "codigo_promo": null,
+    "creado_en": "2025-09-29T18:12:00.000Z",
+    "despachado_en": "2025-09-30T14:12:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000047",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 827,
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 8900,
+    "codigo_promo": null,
+    "creado_en": "2025-09-30T21:23:00.000Z",
+    "despachado_en": "2025-10-01T17:23:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000048",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 828,
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2025-09-30T23:58:00.000Z",
+    "despachado_en": null
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000049",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 829,
+    "cliente_id": "a4000000-0000-4000-8000-000000000044",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 7500,
+    "codigo_promo": null,
+    "creado_en": "2025-10-01T20:01:00.000Z",
+    "despachado_en": "2025-10-02T16:01:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000050",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 830,
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1100,
+    "codigo_promo": null,
+    "creado_en": "2025-10-06T21:23:00.000Z",
+    "despachado_en": "2025-10-07T17:23:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000051",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 831,
+    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2025-10-08T15:36:00.000Z",
+    "despachado_en": "2025-10-09T11:36:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000052",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 832,
+    "cliente_id": "a4000000-0000-4000-8000-000000000029",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3600,
+    "codigo_promo": null,
+    "creado_en": "2025-10-11T16:18:00.000Z",
+    "despachado_en": "2025-10-12T12:18:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000053",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 833,
+    "cliente_id": "a4000000-0000-4000-8000-000000000100",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1100,
+    "codigo_promo": null,
+    "creado_en": "2025-10-13T17:38:00.000Z",
+    "despachado_en": "2025-10-14T13:38:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000054",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 834,
+    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1100,
+    "codigo_promo": null,
+    "creado_en": "2025-10-13T17:41:00.000Z",
+    "despachado_en": "2025-10-14T13:41:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000055",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 835,
+    "cliente_id": "a4000000-0000-4000-8000-000000000038",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2025-10-14T20:53:00.000Z",
+    "despachado_en": "2025-10-15T16:53:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000056",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 836,
+    "cliente_id": "a4000000-0000-4000-8000-000000000092",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2025-10-16T02:41:00.000Z",
+    "despachado_en": "2025-10-16T22:41:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000057",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 837,
+    "cliente_id": "a4000000-0000-4000-8000-000000000096",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2025-10-16T23:53:00.000Z",
+    "despachado_en": "2025-10-17T19:53:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000058",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 838,
+    "cliente_id": "a4000000-0000-4000-8000-000000000089",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2700,
+    "codigo_promo": null,
+    "creado_en": "2025-10-19T23:53:00.000Z",
+    "despachado_en": "2025-10-20T19:53:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000059",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 839,
+    "cliente_id": "a4000000-0000-4000-8000-000000000035",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3200,
+    "codigo_promo": null,
+    "creado_en": "2025-10-22T13:28:00.000Z",
+    "despachado_en": "2025-10-23T09:28:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000060",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 840,
+    "cliente_id": "a4000000-0000-4000-8000-000000000047",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1300,
+    "codigo_promo": null,
+    "creado_en": "2025-10-25T13:27:00.000Z",
+    "despachado_en": "2025-10-26T09:27:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000061",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 841,
+    "cliente_id": "a4000000-0000-4000-8000-000000000100",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2025-10-26T22:43:00.000Z",
+    "despachado_en": "2025-10-27T18:43:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000062",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 842,
+    "cliente_id": "a4000000-0000-4000-8000-000000000051",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2025-10-27T02:22:00.000Z",
+    "despachado_en": "2025-10-27T22:22:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000063",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 843,
+    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1800,
+    "codigo_promo": null,
+    "creado_en": "2025-10-30T19:33:00.000Z",
+    "despachado_en": "2025-10-31T15:33:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000064",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 844,
+    "cliente_id": "a4000000-0000-4000-8000-000000000069",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1800,
+    "codigo_promo": null,
+    "creado_en": "2025-10-30T22:54:00.000Z",
+    "despachado_en": "2025-10-31T18:54:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000065",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 845,
+    "cliente_id": "a4000000-0000-4000-8000-000000000044",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3600,
+    "codigo_promo": null,
+    "creado_en": "2025-11-01T18:25:00.000Z",
+    "despachado_en": "2025-11-02T14:25:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000066",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 846,
+    "cliente_id": "a4000000-0000-4000-8000-000000000046",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3000,
+    "codigo_promo": null,
+    "creado_en": "2025-11-03T17:17:00.000Z",
+    "despachado_en": "2025-11-04T13:17:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000067",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "numero": 847,
+    "cliente_id": "a4000000-0000-4000-8000-000000000071",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 3600,
+    "codigo_promo": null,
+    "creado_en": "2025-11-06T16:45:00.000Z",
+    "despachado_en": "2025-11-07T12:45:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000068",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 848,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000048",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2500,
@@ -576,10 +660,10 @@
     "despachado_en": "2025-11-14T11:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000062",
+    "id": "a5000000-0000-4000-8000-000000000069",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 849,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "manual",
     "estado": "despachado",
     "total": 2200,
@@ -588,10 +672,10 @@
     "despachado_en": "2025-11-14T11:46:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000063",
+    "id": "a5000000-0000-4000-8000-000000000070",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 850,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000050",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -600,10 +684,10 @@
     "despachado_en": "2025-11-15T12:39:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000064",
+    "id": "a5000000-0000-4000-8000-000000000071",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 851,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000016",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2600,
@@ -612,10 +696,10 @@
     "despachado_en": "2025-11-15T19:47:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000065",
+    "id": "a5000000-0000-4000-8000-000000000072",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 852,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000065",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2300,
@@ -624,10 +708,10 @@
     "despachado_en": "2025-11-16T09:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000066",
+    "id": "a5000000-0000-4000-8000-000000000073",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 853,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000030",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2900,
@@ -636,10 +720,10 @@
     "despachado_en": "2025-11-17T17:15:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000067",
+    "id": "a5000000-0000-4000-8000-000000000074",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 854,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000032",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2500,
@@ -648,10 +732,10 @@
     "despachado_en": "2025-11-17T20:18:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000068",
+    "id": "a5000000-0000-4000-8000-000000000075",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 855,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000113",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -660,10 +744,10 @@
     "despachado_en": "2025-11-20T18:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000069",
+    "id": "a5000000-0000-4000-8000-000000000076",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 856,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000074",
     "origen": "manual",
     "estado": "cancelado",
     "total": 1100,
@@ -672,10 +756,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000070",
+    "id": "a5000000-0000-4000-8000-000000000077",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 857,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -684,10 +768,10 @@
     "despachado_en": "2025-11-23T21:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000071",
+    "id": "a5000000-0000-4000-8000-000000000078",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 858,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000092",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -696,7 +780,7 @@
     "despachado_en": "2025-11-25T10:06:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000072",
+    "id": "a5000000-0000-4000-8000-000000000079",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 859,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
@@ -708,10 +792,10 @@
     "despachado_en": "2025-11-27T10:31:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000073",
+    "id": "a5000000-0000-4000-8000-000000000080",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 860,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000098",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5700,
@@ -720,7 +804,7 @@
     "despachado_en": "2025-12-01T17:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000074",
+    "id": "a5000000-0000-4000-8000-000000000081",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 861,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -732,10 +816,10 @@
     "despachado_en": "2025-12-02T09:30:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000075",
+    "id": "a5000000-0000-4000-8000-000000000082",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 862,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000068",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -744,10 +828,10 @@
     "despachado_en": "2025-12-02T10:28:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000076",
+    "id": "a5000000-0000-4000-8000-000000000083",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 863,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000036",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 3200,
@@ -756,10 +840,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000077",
+    "id": "a5000000-0000-4000-8000-000000000084",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 864,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000039",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -768,10 +852,10 @@
     "despachado_en": "2025-12-02T11:52:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000078",
+    "id": "a5000000-0000-4000-8000-000000000085",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 865,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000089",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -780,10 +864,10 @@
     "despachado_en": "2025-12-02T14:24:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000079",
+    "id": "a5000000-0000-4000-8000-000000000086",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 866,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000025",
     "origen": "manual",
     "estado": "despachado",
     "total": 2400,
@@ -792,10 +876,10 @@
     "despachado_en": "2025-12-09T15:09:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000080",
+    "id": "a5000000-0000-4000-8000-000000000087",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 867,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000022",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4300,
@@ -804,10 +888,10 @@
     "despachado_en": "2025-12-10T13:29:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000081",
+    "id": "a5000000-0000-4000-8000-000000000088",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 868,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "manual",
     "estado": "despachado",
     "total": 6100,
@@ -816,10 +900,10 @@
     "despachado_en": "2025-12-11T10:41:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000082",
+    "id": "a5000000-0000-4000-8000-000000000089",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 869,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000013",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -828,10 +912,10 @@
     "despachado_en": "2025-12-11T14:29:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000083",
+    "id": "a5000000-0000-4000-8000-000000000090",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 870,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "manual",
     "estado": "despachado",
     "total": 1500,
@@ -840,7 +924,7 @@
     "despachado_en": "2025-12-11T22:17:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000084",
+    "id": "a5000000-0000-4000-8000-000000000091",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 871,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -852,10 +936,10 @@
     "despachado_en": "2025-12-14T17:51:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000085",
+    "id": "a5000000-0000-4000-8000-000000000092",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 872,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000070",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -864,10 +948,10 @@
     "despachado_en": "2025-12-15T10:22:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000086",
+    "id": "a5000000-0000-4000-8000-000000000093",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 873,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000084",
     "origen": "manual",
     "estado": "despachado",
     "total": 1200,
@@ -876,10 +960,10 @@
     "despachado_en": "2025-12-15T10:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000087",
+    "id": "a5000000-0000-4000-8000-000000000094",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 874,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000022",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -888,10 +972,10 @@
     "despachado_en": "2025-12-15T12:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000088",
+    "id": "a5000000-0000-4000-8000-000000000095",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 875,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000073",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -900,10 +984,10 @@
     "despachado_en": "2025-12-15T21:13:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000089",
+    "id": "a5000000-0000-4000-8000-000000000096",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 876,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000089",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -912,10 +996,10 @@
     "despachado_en": "2025-12-15T22:16:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000090",
+    "id": "a5000000-0000-4000-8000-000000000097",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 877,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -924,10 +1008,10 @@
     "despachado_en": "2025-12-15T22:52:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000091",
+    "id": "a5000000-0000-4000-8000-000000000098",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 878,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000033",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -936,10 +1020,10 @@
     "despachado_en": "2025-12-16T09:23:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000092",
+    "id": "a5000000-0000-4000-8000-000000000099",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 879,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000027",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -948,10 +1032,10 @@
     "despachado_en": "2025-12-17T10:43:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000093",
+    "id": "a5000000-0000-4000-8000-000000000100",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 880,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000082",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -960,10 +1044,10 @@
     "despachado_en": "2025-12-17T14:11:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000094",
+    "id": "a5000000-0000-4000-8000-000000000101",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 881,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -972,10 +1056,10 @@
     "despachado_en": "2025-12-19T16:47:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000095",
+    "id": "a5000000-0000-4000-8000-000000000102",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 882,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000057",
     "origen": "manual",
     "estado": "despachado",
     "total": 1100,
@@ -984,10 +1068,10 @@
     "despachado_en": "2025-12-19T22:53:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000096",
+    "id": "a5000000-0000-4000-8000-000000000103",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 883,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -996,10 +1080,10 @@
     "despachado_en": "2025-12-21T12:53:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000097",
+    "id": "a5000000-0000-4000-8000-000000000104",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 884,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000040",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5200,
@@ -1008,10 +1092,10 @@
     "despachado_en": "2025-12-21T17:27:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000098",
+    "id": "a5000000-0000-4000-8000-000000000105",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 885,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1020,10 +1104,10 @@
     "despachado_en": "2025-12-22T12:04:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000099",
+    "id": "a5000000-0000-4000-8000-000000000106",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 886,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000065",
     "origen": "manual",
     "estado": "despachado",
     "total": 2500,
@@ -1032,10 +1116,10 @@
     "despachado_en": "2025-12-24T17:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000100",
+    "id": "a5000000-0000-4000-8000-000000000107",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 887,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000047",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2400,
@@ -1044,10 +1128,10 @@
     "despachado_en": "2025-12-24T22:40:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000101",
+    "id": "a5000000-0000-4000-8000-000000000108",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 888,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1056,10 +1140,10 @@
     "despachado_en": "2025-12-25T14:08:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000102",
+    "id": "a5000000-0000-4000-8000-000000000109",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 889,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000036",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -1068,10 +1152,10 @@
     "despachado_en": "2025-12-26T15:23:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000103",
+    "id": "a5000000-0000-4000-8000-000000000110",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 890,
-    "cliente_id": "a4000000-0000-4000-8000-000000000002",
+    "cliente_id": "a4000000-0000-4000-8000-000000000001",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 1300,
@@ -1080,7 +1164,7 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000104",
+    "id": "a5000000-0000-4000-8000-000000000111",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 891,
     "cliente_id": "a4000000-0000-4000-8000-000000000002",
@@ -1092,10 +1176,10 @@
     "despachado_en": "2025-12-29T19:08:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000105",
+    "id": "a5000000-0000-4000-8000-000000000112",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 892,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1104,10 +1188,10 @@
     "despachado_en": "2025-12-30T12:41:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000106",
+    "id": "a5000000-0000-4000-8000-000000000113",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 893,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000066",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5700,
@@ -1116,10 +1200,10 @@
     "despachado_en": "2025-12-30T21:29:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000107",
+    "id": "a5000000-0000-4000-8000-000000000114",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 894,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000026",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2900,
@@ -1128,10 +1212,10 @@
     "despachado_en": "2025-12-31T21:39:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000108",
+    "id": "a5000000-0000-4000-8000-000000000115",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 895,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000053",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1140,10 +1224,10 @@
     "despachado_en": "2026-01-01T14:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000109",
+    "id": "a5000000-0000-4000-8000-000000000116",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 896,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000110",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3400,
@@ -1152,10 +1236,10 @@
     "despachado_en": "2026-01-01T18:05:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000110",
+    "id": "a5000000-0000-4000-8000-000000000117",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 897,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1164,10 +1248,10 @@
     "despachado_en": "2026-01-03T16:18:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000111",
+    "id": "a5000000-0000-4000-8000-000000000118",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 898,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000056",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -1176,10 +1260,10 @@
     "despachado_en": "2026-01-03T18:03:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000112",
+    "id": "a5000000-0000-4000-8000-000000000119",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 899,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000038",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -1188,7 +1272,7 @@
     "despachado_en": "2026-01-04T22:13:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000113",
+    "id": "a5000000-0000-4000-8000-000000000120",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 900,
     "cliente_id": "a4000000-0000-4000-8000-000000000004",
@@ -1200,10 +1284,10 @@
     "despachado_en": "2026-01-07T10:30:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000114",
+    "id": "a5000000-0000-4000-8000-000000000121",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 901,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000096",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6200,
@@ -1212,10 +1296,10 @@
     "despachado_en": "2026-01-11T15:44:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000115",
+    "id": "a5000000-0000-4000-8000-000000000122",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 902,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000015",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1224,7 +1308,7 @@
     "despachado_en": "2026-01-12T18:07:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000116",
+    "id": "a5000000-0000-4000-8000-000000000123",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 903,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -1236,10 +1320,10 @@
     "despachado_en": "2026-01-12T19:41:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000117",
+    "id": "a5000000-0000-4000-8000-000000000124",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 904,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000061",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1248,10 +1332,10 @@
     "despachado_en": "2026-01-15T18:31:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000118",
+    "id": "a5000000-0000-4000-8000-000000000125",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 905,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000019",
     "origen": "manual",
     "estado": "cancelado",
     "total": 2200,
@@ -1260,10 +1344,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000119",
+    "id": "a5000000-0000-4000-8000-000000000126",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 906,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000077",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -1272,10 +1356,10 @@
     "despachado_en": "2026-01-18T13:56:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000120",
+    "id": "a5000000-0000-4000-8000-000000000127",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 907,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000080",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1284,10 +1368,10 @@
     "despachado_en": "2026-01-20T22:20:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000121",
+    "id": "a5000000-0000-4000-8000-000000000128",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 908,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000030",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1296,10 +1380,10 @@
     "despachado_en": "2026-01-24T15:35:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000122",
+    "id": "a5000000-0000-4000-8000-000000000129",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 909,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000010",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -1308,10 +1392,10 @@
     "despachado_en": "2026-01-25T13:23:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000123",
+    "id": "a5000000-0000-4000-8000-000000000130",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 910,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000017",
     "origen": "manual",
     "estado": "despachado",
     "total": 3200,
@@ -1320,10 +1404,10 @@
     "despachado_en": "2026-01-30T13:20:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000124",
+    "id": "a5000000-0000-4000-8000-000000000131",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 911,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000037",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2600,
@@ -1332,10 +1416,10 @@
     "despachado_en": "2026-01-30T15:43:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000125",
+    "id": "a5000000-0000-4000-8000-000000000132",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 912,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000030",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1344,10 +1428,10 @@
     "despachado_en": "2026-01-31T10:09:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000126",
+    "id": "a5000000-0000-4000-8000-000000000133",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 913,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000056",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1356,10 +1440,10 @@
     "despachado_en": "2026-01-31T20:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000127",
+    "id": "a5000000-0000-4000-8000-000000000134",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 914,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000064",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2300,
@@ -1368,10 +1452,10 @@
     "despachado_en": "2026-02-02T17:40:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000128",
+    "id": "a5000000-0000-4000-8000-000000000135",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 915,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000102",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -1380,10 +1464,10 @@
     "despachado_en": "2026-02-07T15:48:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000129",
+    "id": "a5000000-0000-4000-8000-000000000136",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 916,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000035",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1392,10 +1476,10 @@
     "despachado_en": "2026-02-08T22:35:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000130",
+    "id": "a5000000-0000-4000-8000-000000000137",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 917,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000096",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -1404,10 +1488,10 @@
     "despachado_en": "2026-02-10T09:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000131",
+    "id": "a5000000-0000-4000-8000-000000000138",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 918,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000048",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -1416,10 +1500,10 @@
     "despachado_en": "2026-02-11T21:28:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000132",
+    "id": "a5000000-0000-4000-8000-000000000139",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 919,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000016",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1428,10 +1512,10 @@
     "despachado_en": "2026-02-16T16:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000133",
+    "id": "a5000000-0000-4000-8000-000000000140",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 920,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000053",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1440,10 +1524,10 @@
     "despachado_en": "2026-02-19T18:28:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000134",
+    "id": "a5000000-0000-4000-8000-000000000141",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 921,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000029",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -1452,10 +1536,10 @@
     "despachado_en": "2026-02-19T19:05:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000135",
+    "id": "a5000000-0000-4000-8000-000000000142",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 922,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000031",
     "origen": "manual",
     "estado": "despachado",
     "total": 1800,
@@ -1464,10 +1548,10 @@
     "despachado_en": "2026-02-21T14:35:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000136",
+    "id": "a5000000-0000-4000-8000-000000000143",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 923,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000112",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5000,
@@ -1476,10 +1560,10 @@
     "despachado_en": "2026-02-21T21:06:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000137",
+    "id": "a5000000-0000-4000-8000-000000000144",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 924,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000059",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3300,
@@ -1488,10 +1572,10 @@
     "despachado_en": "2026-02-25T21:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000138",
+    "id": "a5000000-0000-4000-8000-000000000145",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 925,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000028",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 3000,
@@ -1500,10 +1584,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000139",
+    "id": "a5000000-0000-4000-8000-000000000146",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 926,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000108",
     "origen": "manual",
     "estado": "despachado",
     "total": 9400,
@@ -1512,10 +1596,10 @@
     "despachado_en": "2026-02-28T17:23:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000140",
+    "id": "a5000000-0000-4000-8000-000000000147",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 927,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000110",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -1524,10 +1608,10 @@
     "despachado_en": "2026-03-02T10:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000141",
+    "id": "a5000000-0000-4000-8000-000000000148",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 928,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000096",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1536,10 +1620,10 @@
     "despachado_en": "2026-03-02T17:43:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000142",
+    "id": "a5000000-0000-4000-8000-000000000149",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 929,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000061",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4200,
@@ -1548,10 +1632,10 @@
     "despachado_en": "2026-03-14T09:04:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000143",
+    "id": "a5000000-0000-4000-8000-000000000150",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 930,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000074",
     "origen": "manual",
     "estado": "despachado",
     "total": 1300,
@@ -1560,10 +1644,10 @@
     "despachado_en": "2026-03-15T16:59:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000144",
+    "id": "a5000000-0000-4000-8000-000000000151",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 931,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000035",
     "origen": "manual",
     "estado": "despachado",
     "total": 1100,
@@ -1572,7 +1656,7 @@
     "despachado_en": "2026-03-17T14:13:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000145",
+    "id": "a5000000-0000-4000-8000-000000000152",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 932,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
@@ -1584,10 +1668,10 @@
     "despachado_en": "2026-03-17T17:30:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000146",
+    "id": "a5000000-0000-4000-8000-000000000153",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 933,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000066",
     "origen": "manual",
     "estado": "despachado",
     "total": 4200,
@@ -1596,10 +1680,10 @@
     "despachado_en": "2026-03-19T14:28:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000147",
+    "id": "a5000000-0000-4000-8000-000000000154",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 934,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000106",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -1608,10 +1692,10 @@
     "despachado_en": "2026-03-21T10:10:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000148",
+    "id": "a5000000-0000-4000-8000-000000000155",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 935,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000064",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -1620,10 +1704,10 @@
     "despachado_en": "2026-03-23T19:01:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000149",
+    "id": "a5000000-0000-4000-8000-000000000156",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 936,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000082",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1632,10 +1716,10 @@
     "despachado_en": "2026-04-01T18:33:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000150",
+    "id": "a5000000-0000-4000-8000-000000000157",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 937,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000076",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -1644,10 +1728,10 @@
     "despachado_en": "2026-04-02T12:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000151",
+    "id": "a5000000-0000-4000-8000-000000000158",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 938,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -1656,10 +1740,10 @@
     "despachado_en": "2026-04-06T19:38:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000152",
+    "id": "a5000000-0000-4000-8000-000000000159",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 939,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000031",
     "origen": "manual",
     "estado": "despachado",
     "total": 3000,
@@ -1668,7 +1752,7 @@
     "despachado_en": "2026-04-15T19:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000153",
+    "id": "a5000000-0000-4000-8000-000000000160",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 940,
     "cliente_id": "a4000000-0000-4000-8000-000000000002",
@@ -1680,10 +1764,10 @@
     "despachado_en": "2026-04-16T11:43:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000154",
+    "id": "a5000000-0000-4000-8000-000000000161",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 941,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -1692,10 +1776,10 @@
     "despachado_en": "2026-04-16T16:33:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000155",
+    "id": "a5000000-0000-4000-8000-000000000162",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 942,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000011",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6400,
@@ -1704,10 +1788,10 @@
     "despachado_en": "2026-04-16T20:12:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000156",
+    "id": "a5000000-0000-4000-8000-000000000163",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 943,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000100",
     "origen": "manual",
     "estado": "despachado",
     "total": 4300,
@@ -1716,7 +1800,7 @@
     "despachado_en": "2026-04-26T11:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000157",
+    "id": "a5000000-0000-4000-8000-000000000164",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 944,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -1728,10 +1812,10 @@
     "despachado_en": "2026-04-27T21:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000158",
+    "id": "a5000000-0000-4000-8000-000000000165",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 945,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000108",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1740,10 +1824,10 @@
     "despachado_en": "2026-05-02T16:33:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000159",
+    "id": "a5000000-0000-4000-8000-000000000166",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 946,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
     "origen": "manual",
     "estado": "despachado",
     "total": 2600,
@@ -1752,10 +1836,10 @@
     "despachado_en": "2026-05-03T10:04:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000160",
+    "id": "a5000000-0000-4000-8000-000000000167",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 947,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3600,
@@ -1764,7 +1848,7 @@
     "despachado_en": "2026-05-03T16:29:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000161",
+    "id": "a5000000-0000-4000-8000-000000000168",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 948,
     "cliente_id": "a4000000-0000-4000-8000-000000000002",
@@ -1776,10 +1860,10 @@
     "despachado_en": "2026-05-05T17:14:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000162",
+    "id": "a5000000-0000-4000-8000-000000000169",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 949,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000021",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -1788,7 +1872,7 @@
     "despachado_en": "2026-05-08T19:38:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000163",
+    "id": "a5000000-0000-4000-8000-000000000170",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 950,
     "cliente_id": "a4000000-0000-4000-8000-000000000004",
@@ -1800,10 +1884,10 @@
     "despachado_en": "2026-05-11T13:12:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000164",
+    "id": "a5000000-0000-4000-8000-000000000171",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 951,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000047",
     "origen": "manual",
     "estado": "despachado",
     "total": 1200,
@@ -1812,7 +1896,7 @@
     "despachado_en": "2026-05-14T16:36:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000165",
+    "id": "a5000000-0000-4000-8000-000000000172",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 952,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
@@ -1824,10 +1908,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000166",
+    "id": "a5000000-0000-4000-8000-000000000173",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 953,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000056",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6400,
@@ -1836,10 +1920,10 @@
     "despachado_en": "2026-05-17T14:12:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000167",
+    "id": "a5000000-0000-4000-8000-000000000174",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 954,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000101",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -1848,10 +1932,10 @@
     "despachado_en": "2026-05-18T09:49:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000168",
+    "id": "a5000000-0000-4000-8000-000000000175",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 955,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000050",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2500,
@@ -1860,10 +1944,10 @@
     "despachado_en": "2026-05-20T15:47:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000169",
+    "id": "a5000000-0000-4000-8000-000000000176",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 956,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000108",
     "origen": "manual",
     "estado": "cancelado",
     "total": 1100,
@@ -1872,10 +1956,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000170",
+    "id": "a5000000-0000-4000-8000-000000000177",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 957,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000079",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1300,
@@ -1884,10 +1968,10 @@
     "despachado_en": "2026-05-21T18:20:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000171",
+    "id": "a5000000-0000-4000-8000-000000000178",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 958,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000076",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2900,
@@ -1896,7 +1980,7 @@
     "despachado_en": "2026-05-22T19:34:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000172",
+    "id": "a5000000-0000-4000-8000-000000000179",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 959,
     "cliente_id": "a4000000-0000-4000-8000-000000000002",
@@ -1908,10 +1992,10 @@
     "despachado_en": "2026-05-22T20:46:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000173",
+    "id": "a5000000-0000-4000-8000-000000000180",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 960,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000037",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -1920,10 +2004,10 @@
     "despachado_en": "2026-05-24T17:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000174",
+    "id": "a5000000-0000-4000-8000-000000000181",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 961,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000016",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -1932,10 +2016,10 @@
     "despachado_en": "2026-05-25T09:14:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000175",
+    "id": "a5000000-0000-4000-8000-000000000182",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 962,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000011",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -1944,10 +2028,10 @@
     "despachado_en": "2026-05-25T13:51:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000176",
+    "id": "a5000000-0000-4000-8000-000000000183",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 963,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6800,
@@ -1956,10 +2040,10 @@
     "despachado_en": "2026-05-25T17:09:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000177",
+    "id": "a5000000-0000-4000-8000-000000000184",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 964,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000042",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -1968,10 +2052,10 @@
     "despachado_en": "2026-05-25T22:41:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000178",
+    "id": "a5000000-0000-4000-8000-000000000185",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 965,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -1980,10 +2064,10 @@
     "despachado_en": "2026-05-27T22:34:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000179",
+    "id": "a5000000-0000-4000-8000-000000000186",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 966,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000095",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2600,
@@ -1992,10 +2076,10 @@
     "despachado_en": "2026-05-28T11:00:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000180",
+    "id": "a5000000-0000-4000-8000-000000000187",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 967,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000077",
     "origen": "manual",
     "estado": "despachado",
     "total": 4200,
@@ -2004,10 +2088,10 @@
     "despachado_en": "2026-05-30T13:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000181",
+    "id": "a5000000-0000-4000-8000-000000000188",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 968,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000032",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -2016,10 +2100,10 @@
     "despachado_en": "2026-05-30T18:27:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000182",
+    "id": "a5000000-0000-4000-8000-000000000189",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 969,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000024",
     "origen": "manual",
     "estado": "despachado",
     "total": 3900,
@@ -2028,10 +2112,10 @@
     "despachado_en": "2026-05-31T09:26:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000183",
+    "id": "a5000000-0000-4000-8000-000000000190",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 970,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000010",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3600,
@@ -2040,10 +2124,10 @@
     "despachado_en": "2026-05-31T10:22:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000184",
+    "id": "a5000000-0000-4000-8000-000000000191",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 971,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000074",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -2052,10 +2136,10 @@
     "despachado_en": "2026-05-31T12:52:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000185",
+    "id": "a5000000-0000-4000-8000-000000000192",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 972,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000034",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4100,
@@ -2064,10 +2148,10 @@
     "despachado_en": "2026-05-31T14:35:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000186",
+    "id": "a5000000-0000-4000-8000-000000000193",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 973,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000095",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4300,
@@ -2076,10 +2160,10 @@
     "despachado_en": "2026-05-31T17:27:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000187",
+    "id": "a5000000-0000-4000-8000-000000000194",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 974,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000077",
     "origen": "manual",
     "estado": "despachado",
     "total": 4200,
@@ -2088,10 +2172,10 @@
     "despachado_en": "2026-05-31T22:27:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000188",
+    "id": "a5000000-0000-4000-8000-000000000195",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 975,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000020",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 3300,
@@ -2100,10 +2184,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000189",
+    "id": "a5000000-0000-4000-8000-000000000196",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 976,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000113",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5000,
@@ -2112,10 +2196,10 @@
     "despachado_en": "2026-06-01T22:10:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000190",
+    "id": "a5000000-0000-4000-8000-000000000197",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 977,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000067",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2500,
@@ -2124,10 +2208,10 @@
     "despachado_en": "2026-06-02T14:26:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000191",
+    "id": "a5000000-0000-4000-8000-000000000198",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 978,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
     "origen": "manual",
     "estado": "despachado",
     "total": 2500,
@@ -2136,10 +2220,10 @@
     "despachado_en": "2026-06-04T14:50:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000192",
+    "id": "a5000000-0000-4000-8000-000000000199",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 979,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2148,10 +2232,10 @@
     "despachado_en": "2026-06-04T20:02:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000193",
+    "id": "a5000000-0000-4000-8000-000000000200",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 980,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000098",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -2160,10 +2244,10 @@
     "despachado_en": "2026-06-07T12:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000194",
+    "id": "a5000000-0000-4000-8000-000000000201",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 981,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000015",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 2500,
@@ -2172,10 +2256,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000195",
+    "id": "a5000000-0000-4000-8000-000000000202",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 982,
-    "cliente_id": "a4000000-0000-4000-8000-000000000021",
+    "cliente_id": "a4000000-0000-4000-8000-000000000090",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -2184,7 +2268,7 @@
     "despachado_en": "2026-06-10T19:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000196",
+    "id": "a5000000-0000-4000-8000-000000000203",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 983,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -2196,10 +2280,10 @@
     "despachado_en": "2026-06-11T10:14:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000197",
+    "id": "a5000000-0000-4000-8000-000000000204",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 984,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000044",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2208,10 +2292,10 @@
     "despachado_en": "2026-06-11T21:00:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000198",
+    "id": "a5000000-0000-4000-8000-000000000205",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 985,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000028",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -2220,10 +2304,10 @@
     "despachado_en": "2026-06-14T10:09:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000199",
+    "id": "a5000000-0000-4000-8000-000000000206",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 986,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000062",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 7500,
@@ -2232,10 +2316,10 @@
     "despachado_en": "2026-06-15T15:54:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000200",
+    "id": "a5000000-0000-4000-8000-000000000207",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 987,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000033",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4700,
@@ -2244,10 +2328,10 @@
     "despachado_en": "2026-06-20T16:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000201",
+    "id": "a5000000-0000-4000-8000-000000000208",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 988,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000033",
     "origen": "manual",
     "estado": "cancelado",
     "total": 1500,
@@ -2256,7 +2340,7 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000202",
+    "id": "a5000000-0000-4000-8000-000000000209",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 989,
     "cliente_id": "a4000000-0000-4000-8000-000000000001",
@@ -2268,10 +2352,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000203",
+    "id": "a5000000-0000-4000-8000-000000000210",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 990,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000015",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -2280,10 +2364,10 @@
     "despachado_en": "2026-06-22T14:57:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000204",
+    "id": "a5000000-0000-4000-8000-000000000211",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 991,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000025",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1300,
@@ -2292,10 +2376,10 @@
     "despachado_en": "2026-06-25T17:05:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000205",
+    "id": "a5000000-0000-4000-8000-000000000212",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 992,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000019",
     "origen": "manual",
     "estado": "despachado",
     "total": 1100,
@@ -2304,10 +2388,10 @@
     "despachado_en": "2026-06-26T15:47:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000206",
+    "id": "a5000000-0000-4000-8000-000000000213",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 993,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000077",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5200,
@@ -2316,10 +2400,10 @@
     "despachado_en": "2026-06-27T10:03:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000207",
+    "id": "a5000000-0000-4000-8000-000000000214",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 994,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -2328,10 +2412,10 @@
     "despachado_en": "2026-06-28T09:27:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000208",
+    "id": "a5000000-0000-4000-8000-000000000215",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 995,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000050",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -2340,10 +2424,10 @@
     "despachado_en": "2026-06-28T19:01:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000209",
+    "id": "a5000000-0000-4000-8000-000000000216",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 996,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000009",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2352,10 +2436,10 @@
     "despachado_en": "2026-07-02T13:49:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000210",
+    "id": "a5000000-0000-4000-8000-000000000217",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 997,
-    "cliente_id": "a4000000-0000-4000-8000-000000000013",
+    "cliente_id": "a4000000-0000-4000-8000-000000000028",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 1200,
@@ -2364,10 +2448,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000211",
+    "id": "a5000000-0000-4000-8000-000000000218",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 998,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000039",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -2376,10 +2460,10 @@
     "despachado_en": "2026-07-08T09:44:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000212",
+    "id": "a5000000-0000-4000-8000-000000000219",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 999,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000052",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 2500,
@@ -2388,7 +2472,7 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000213",
+    "id": "a5000000-0000-4000-8000-000000000220",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1000,
     "cliente_id": "a4000000-0000-4000-8000-000000000002",
@@ -2400,10 +2484,10 @@
     "despachado_en": "2026-07-09T11:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000214",
+    "id": "a5000000-0000-4000-8000-000000000221",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1001,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000046",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -2412,10 +2496,10 @@
     "despachado_en": "2026-07-09T14:51:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000215",
+    "id": "a5000000-0000-4000-8000-000000000222",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1002,
-    "cliente_id": "a4000000-0000-4000-8000-000000000012",
+    "cliente_id": "a4000000-0000-4000-8000-000000000023",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -2424,10 +2508,10 @@
     "despachado_en": "2026-07-13T11:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000216",
+    "id": "a5000000-0000-4000-8000-000000000223",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1003,
-    "cliente_id": "a4000000-0000-4000-8000-000000000011",
+    "cliente_id": "a4000000-0000-4000-8000-000000000018",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -2436,10 +2520,10 @@
     "despachado_en": "2026-07-14T14:19:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000217",
+    "id": "a5000000-0000-4000-8000-000000000224",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1004,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000035",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 4000,
@@ -2448,10 +2532,10 @@
     "despachado_en": "2026-07-15T12:39:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000218",
+    "id": "a5000000-0000-4000-8000-000000000225",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1005,
-    "cliente_id": "a4000000-0000-4000-8000-000000000014",
+    "cliente_id": "a4000000-0000-4000-8000-000000000034",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 2600,
@@ -2460,10 +2544,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000219",
+    "id": "a5000000-0000-4000-8000-000000000226",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1006,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000013",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3600,
@@ -2472,10 +2556,10 @@
     "despachado_en": "2026-07-17T21:16:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000220",
+    "id": "a5000000-0000-4000-8000-000000000227",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1007,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000058",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1500,
@@ -2484,10 +2568,10 @@
     "despachado_en": "2026-07-18T17:48:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000221",
+    "id": "a5000000-0000-4000-8000-000000000228",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1008,
-    "cliente_id": "a4000000-0000-4000-8000-000000000009",
+    "cliente_id": "a4000000-0000-4000-8000-000000000012",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -2496,10 +2580,10 @@
     "despachado_en": "2026-07-22T10:14:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000222",
+    "id": "a5000000-0000-4000-8000-000000000229",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1009,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000065",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6000,
@@ -2508,10 +2592,10 @@
     "despachado_en": "2026-07-29T10:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000223",
+    "id": "a5000000-0000-4000-8000-000000000230",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1010,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000072",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3000,
@@ -2520,10 +2604,10 @@
     "despachado_en": "2026-07-30T11:33:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000224",
+    "id": "a5000000-0000-4000-8000-000000000231",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1011,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000106",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2532,10 +2616,10 @@
     "despachado_en": "2026-08-02T09:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000225",
+    "id": "a5000000-0000-4000-8000-000000000232",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1012,
-    "cliente_id": "a4000000-0000-4000-8000-000000000015",
+    "cliente_id": "a4000000-0000-4000-8000-000000000039",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 6400,
@@ -2544,10 +2628,10 @@
     "despachado_en": "2026-08-02T15:12:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000226",
+    "id": "a5000000-0000-4000-8000-000000000233",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1013,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000083",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2556,10 +2640,10 @@
     "despachado_en": "2026-08-04T12:40:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000227",
+    "id": "a5000000-0000-4000-8000-000000000234",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1014,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -2568,10 +2652,10 @@
     "despachado_en": "2026-08-06T10:03:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000228",
+    "id": "a5000000-0000-4000-8000-000000000235",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1015,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000111",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2580,10 +2664,10 @@
     "despachado_en": "2026-08-08T14:00:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000229",
+    "id": "a5000000-0000-4000-8000-000000000236",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1016,
-    "cliente_id": "a4000000-0000-4000-8000-000000000010",
+    "cliente_id": "a4000000-0000-4000-8000-000000000014",
     "origen": "manual",
     "estado": "despachado",
     "total": 3000,
@@ -2592,10 +2676,10 @@
     "despachado_en": "2026-08-08T15:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000230",
+    "id": "a5000000-0000-4000-8000-000000000237",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1017,
-    "cliente_id": "a4000000-0000-4000-8000-000000000004",
+    "cliente_id": "a4000000-0000-4000-8000-000000000010",
     "origen": "manual",
     "estado": "despachado",
     "total": 1200,
@@ -2604,10 +2688,10 @@
     "despachado_en": "2026-08-11T10:43:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000231",
+    "id": "a5000000-0000-4000-8000-000000000238",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1018,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000057",
     "origen": "manual",
     "estado": "despachado",
     "total": 2900,
@@ -2616,7 +2700,7 @@
     "despachado_en": "2026-08-14T17:10:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000232",
+    "id": "a5000000-0000-4000-8000-000000000239",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1019,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
@@ -2628,7 +2712,7 @@
     "despachado_en": "2026-08-15T18:16:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000233",
+    "id": "a5000000-0000-4000-8000-000000000240",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1020,
     "cliente_id": "a4000000-0000-4000-8000-000000000004",
@@ -2640,10 +2724,10 @@
     "despachado_en": "2026-08-15T22:10:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000234",
+    "id": "a5000000-0000-4000-8000-000000000241",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1021,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000101",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 6400,
@@ -2652,10 +2736,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000235",
+    "id": "a5000000-0000-4000-8000-000000000242",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1022,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000107",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 5200,
@@ -2664,10 +2748,10 @@
     "despachado_en": "2026-08-18T13:58:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000236",
+    "id": "a5000000-0000-4000-8000-000000000243",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1023,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000050",
     "origen": "catalogo",
     "estado": "cancelado",
     "total": 3200,
@@ -2676,10 +2760,10 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000237",
+    "id": "a5000000-0000-4000-8000-000000000244",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1024,
-    "cliente_id": "a4000000-0000-4000-8000-000000000016",
+    "cliente_id": "a4000000-0000-4000-8000-000000000049",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2200,
@@ -2688,10 +2772,10 @@
     "despachado_en": "2026-08-28T13:36:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000238",
+    "id": "a5000000-0000-4000-8000-000000000245",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1025,
-    "cliente_id": "a4000000-0000-4000-8000-000000000022",
+    "cliente_id": "a4000000-0000-4000-8000-000000000113",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1200,
@@ -2700,10 +2784,10 @@
     "despachado_en": "2026-08-29T17:30:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000239",
+    "id": "a5000000-0000-4000-8000-000000000246",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1026,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000058",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1100,
@@ -2712,10 +2796,10 @@
     "despachado_en": "2026-08-30T19:07:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000240",
+    "id": "a5000000-0000-4000-8000-000000000247",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1027,
-    "cliente_id": "a4000000-0000-4000-8000-000000000019",
+    "cliente_id": "a4000000-0000-4000-8000-000000000068",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1800,
@@ -2724,10 +2808,10 @@
     "despachado_en": "2026-09-02T17:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000241",
+    "id": "a5000000-0000-4000-8000-000000000248",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1028,
-    "cliente_id": "a4000000-0000-4000-8000-000000000020",
+    "cliente_id": "a4000000-0000-4000-8000-000000000084",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 3200,
@@ -2736,7 +2820,7 @@
     "despachado_en": "2026-09-02T22:42:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000242",
+    "id": "a5000000-0000-4000-8000-000000000249",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1029,
     "cliente_id": "a4000000-0000-4000-8000-000000000003",
@@ -2748,10 +2832,10 @@
     "despachado_en": "2026-09-03T22:31:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000243",
+    "id": "a5000000-0000-4000-8000-000000000250",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1030,
-    "cliente_id": "a4000000-0000-4000-8000-000000000003",
+    "cliente_id": "a4000000-0000-4000-8000-000000000004",
     "origen": "manual",
     "estado": "despachado",
     "total": 1100,
@@ -2760,10 +2844,10 @@
     "despachado_en": "2026-09-04T20:15:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000244",
+    "id": "a5000000-0000-4000-8000-000000000251",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1031,
-    "cliente_id": "a4000000-0000-4000-8000-000000000017",
+    "cliente_id": "a4000000-0000-4000-8000-000000000055",
     "origen": "manual",
     "estado": "despachado",
     "total": 1800,
@@ -2772,10 +2856,10 @@
     "despachado_en": "2026-09-12T16:51:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000245",
+    "id": "a5000000-0000-4000-8000-000000000252",
     "tienda_id": "a1000000-0000-4000-8000-000000000001",
     "numero": 1032,
-    "cliente_id": "a4000000-0000-4000-8000-000000000018",
+    "cliente_id": "a4000000-0000-4000-8000-000000000065",
     "origen": "manual",
     "estado": "despachado",
     "total": 3000,
@@ -2892,856 +2976,784 @@
     "despachado_en": null
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000246",
+    "id": "a5000000-0000-4000-8000-000000000253",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 930,
+    "numero": 936,
     "cliente_id": "a4000000-0000-4000-8000-000000000007",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 850,
     "codigo_promo": null,
-    "creado_en": "2026-04-07T19:42:00.000Z",
-    "despachado_en": "2026-04-08T15:42:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000247",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 931,
-    "cliente_id": "a4000000-0000-4000-8000-000000000008",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 450,
-    "codigo_promo": null,
-    "creado_en": "2026-04-09T02:59:00.000Z",
-    "despachado_en": "2026-04-09T22:59:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000248",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 932,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-04-11T21:57:00.000Z",
-    "despachado_en": "2026-04-12T17:57:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000249",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 933,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 500,
-    "codigo_promo": null,
-    "creado_en": "2026-04-12T00:33:00.000Z",
-    "despachado_en": "2026-04-12T20:33:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000250",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 934,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-04-13T17:30:00.000Z",
-    "despachado_en": "2026-04-14T13:30:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000251",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 935,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1900,
-    "codigo_promo": null,
-    "creado_en": "2026-04-15T17:22:00.000Z",
-    "despachado_en": "2026-04-16T13:22:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000252",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 936,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 650,
-    "codigo_promo": null,
-    "creado_en": "2026-04-16T14:53:00.000Z",
-    "despachado_en": "2026-04-17T10:53:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000253",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 937,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 650,
-    "codigo_promo": null,
-    "creado_en": "2026-04-17T01:11:00.000Z",
-    "despachado_en": null
+    "creado_en": "2026-04-08T22:22:00.000Z",
+    "despachado_en": "2026-04-09T18:22:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000254",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 937,
+    "cliente_id": "a4000000-0000-4000-8000-000000000123",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-04-12T17:30:00.000Z",
+    "despachado_en": "2026-04-13T13:30:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000255",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
     "numero": 938,
+    "cliente_id": "a4000000-0000-4000-8000-000000000134",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-04-15T23:54:00.000Z",
+    "despachado_en": "2026-04-16T19:54:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000256",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 939,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 900,
+    "codigo_promo": null,
+    "creado_en": "2026-04-17T13:18:00.000Z",
+    "despachado_en": "2026-04-18T09:18:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000257",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 940,
+    "cliente_id": "a4000000-0000-4000-8000-000000000116",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2026-04-19T21:48:00.000Z",
+    "despachado_en": "2026-04-20T17:48:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000258",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 941,
     "cliente_id": "a4000000-0000-4000-8000-000000000008",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 650,
     "codigo_promo": null,
-    "creado_en": "2026-04-22T16:39:00.000Z",
-    "despachado_en": "2026-04-23T12:39:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000255",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 939,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1500,
-    "codigo_promo": null,
-    "creado_en": "2026-04-22T18:23:00.000Z",
-    "despachado_en": "2026-04-23T14:23:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000256",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 940,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-04-25T00:23:00.000Z",
-    "despachado_en": "2026-04-25T20:23:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000257",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 941,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 2050,
-    "codigo_promo": null,
-    "creado_en": "2026-04-25T14:12:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000258",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 942,
-    "cliente_id": "a4000000-0000-4000-8000-000000000008",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2300,
-    "codigo_promo": null,
-    "creado_en": "2026-04-29T23:27:00.000Z",
-    "despachado_en": "2026-04-30T19:27:00.000Z"
+    "creado_en": "2026-04-20T16:39:00.000Z",
+    "despachado_en": "2026-04-21T12:39:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000259",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 943,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
-    "origen": "catalogo",
+    "numero": 942,
+    "cliente_id": "a4000000-0000-4000-8000-000000000128",
+    "origen": "manual",
     "estado": "despachado",
-    "total": 850,
+    "total": 1500,
     "codigo_promo": null,
-    "creado_en": "2026-05-01T19:58:00.000Z",
-    "despachado_en": "2026-05-02T15:58:00.000Z"
+    "creado_en": "2026-04-20T18:23:00.000Z",
+    "despachado_en": "2026-04-21T14:23:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000260",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 944,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "catalogo",
+    "numero": 943,
+    "cliente_id": "a4000000-0000-4000-8000-000000000127",
+    "origen": "manual",
     "estado": "despachado",
-    "total": 500,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-02T01:59:00.000Z",
-    "despachado_en": "2026-05-02T21:59:00.000Z"
+    "creado_en": "2026-04-23T00:23:00.000Z",
+    "despachado_en": "2026-04-23T20:23:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000261",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 945,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "manual",
+    "numero": 944,
+    "cliente_id": "a4000000-0000-4000-8000-000000000119",
+    "origen": "catalogo",
     "estado": "despachado",
-    "total": 2900,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-05T16:43:00.000Z",
-    "despachado_en": "2026-05-06T12:43:00.000Z"
+    "creado_en": "2026-04-29T17:43:00.000Z",
+    "despachado_en": "2026-04-30T13:43:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000262",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 946,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "numero": 945,
+    "cliente_id": "a4000000-0000-4000-8000-000000000119",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1200,
+    "total": 850,
     "codigo_promo": null,
-    "creado_en": "2026-05-05T22:41:00.000Z",
-    "despachado_en": "2026-05-06T18:41:00.000Z"
+    "creado_en": "2026-04-30T19:58:00.000Z",
+    "despachado_en": "2026-05-01T15:58:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000263",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 947,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
+    "numero": 946,
+    "cliente_id": "a4000000-0000-4000-8000-000000000007",
     "origen": "catalogo",
     "estado": "cancelado",
-    "total": 850,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-09T13:15:00.000Z",
+    "creado_en": "2026-05-01T19:12:00.000Z",
     "despachado_en": null
   },
   {
     "id": "a5000000-0000-4000-8000-000000000264",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 948,
-    "cliente_id": "a4000000-0000-4000-8000-000000000029",
-    "origen": "catalogo",
+    "numero": 947,
+    "cliente_id": "a4000000-0000-4000-8000-000000000149",
+    "origen": "manual",
     "estado": "despachado",
-    "total": 850,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-10T13:32:00.000Z",
-    "despachado_en": "2026-05-11T09:32:00.000Z"
+    "creado_en": "2026-05-04T14:48:00.000Z",
+    "despachado_en": "2026-05-05T10:48:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000265",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 949,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "manual",
+    "numero": 948,
+    "cliente_id": "a4000000-0000-4000-8000-000000000132",
+    "origen": "catalogo",
     "estado": "despachado",
-    "total": 1450,
+    "total": 650,
     "codigo_promo": null,
-    "creado_en": "2026-05-11T17:36:00.000Z",
-    "despachado_en": "2026-05-12T13:36:00.000Z"
+    "creado_en": "2026-05-06T13:24:00.000Z",
+    "despachado_en": "2026-05-07T09:24:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000266",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 950,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "numero": 949,
+    "cliente_id": "a4000000-0000-4000-8000-000000000137",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2300,
+    "total": 2650,
     "codigo_promo": null,
-    "creado_en": "2026-05-12T00:53:00.000Z",
-    "despachado_en": "2026-05-12T20:53:00.000Z"
+    "creado_en": "2026-05-08T14:14:00.000Z",
+    "despachado_en": "2026-05-09T10:14:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000267",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 951,
-    "cliente_id": "a4000000-0000-4000-8000-000000000008",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1350,
-    "codigo_promo": null,
-    "creado_en": "2026-05-12T13:08:00.000Z",
-    "despachado_en": "2026-05-13T09:08:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000268",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 952,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-05-13T00:26:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000269",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 953,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
+    "numero": 950,
+    "cliente_id": "a4000000-0000-4000-8000-000000000007",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2900,
     "codigo_promo": null,
-    "creado_en": "2026-05-14T20:10:00.000Z",
-    "despachado_en": "2026-05-15T16:10:00.000Z"
+    "creado_en": "2026-05-16T20:24:00.000Z",
+    "despachado_en": "2026-05-17T16:24:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000268",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 951,
+    "cliente_id": "a4000000-0000-4000-8000-000000000115",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 450,
+    "codigo_promo": null,
+    "creado_en": "2026-05-17T00:00:00.000Z",
+    "despachado_en": "2026-05-17T20:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000269",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 952,
+    "cliente_id": "a4000000-0000-4000-8000-000000000118",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 950,
+    "codigo_promo": null,
+    "creado_en": "2026-05-19T02:56:00.000Z",
+    "despachado_en": "2026-05-19T22:56:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000270",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 954,
-    "cliente_id": "a4000000-0000-4000-8000-000000000008",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 2300,
+    "numero": 953,
+    "cliente_id": "a4000000-0000-4000-8000-000000000148",
+    "origen": "catalogo",
+    "estado": "cancelado",
+    "total": 650,
     "codigo_promo": null,
-    "creado_en": "2026-05-15T17:39:00.000Z",
-    "despachado_en": "2026-05-16T13:39:00.000Z"
+    "creado_en": "2026-05-23T18:02:00.000Z",
+    "despachado_en": null
   },
   {
     "id": "a5000000-0000-4000-8000-000000000271",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 955,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
+    "numero": 954,
+    "cliente_id": "a4000000-0000-4000-8000-000000000146",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1700,
+    "total": 1200,
     "codigo_promo": null,
-    "creado_en": "2026-05-16T13:20:00.000Z",
-    "despachado_en": "2026-05-17T09:20:00.000Z"
+    "creado_en": "2026-05-25T23:44:00.000Z",
+    "despachado_en": "2026-05-26T19:44:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000272",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 956,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
+    "numero": 955,
+    "cliente_id": "a4000000-0000-4000-8000-000000000149",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2300,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-20T02:14:00.000Z",
-    "despachado_en": "2026-05-20T22:14:00.000Z"
+    "creado_en": "2026-05-27T17:44:00.000Z",
+    "despachado_en": "2026-05-28T13:44:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000273",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 957,
-    "cliente_id": "a4000000-0000-4000-8000-000000000029",
+    "numero": 956,
+    "cliente_id": "a4000000-0000-4000-8000-000000000159",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1700,
+    "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-05-22T14:53:00.000Z",
-    "despachado_en": "2026-05-23T10:53:00.000Z"
+    "creado_en": "2026-05-29T18:39:00.000Z",
+    "despachado_en": "2026-05-30T14:39:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000274",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 958,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
+    "numero": 957,
+    "cliente_id": "a4000000-0000-4000-8000-000000000135",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 850,
+    "total": 500,
     "codigo_promo": null,
-    "creado_en": "2026-05-22T18:36:00.000Z",
-    "despachado_en": "2026-05-23T14:36:00.000Z"
+    "creado_en": "2026-05-29T21:17:00.000Z",
+    "despachado_en": "2026-05-30T17:17:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000275",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 959,
-    "cliente_id": "a4000000-0000-4000-8000-000000000008",
+    "numero": 958,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2400,
+    "total": 2100,
     "codigo_promo": null,
-    "creado_en": "2026-05-23T18:23:00.000Z",
-    "despachado_en": "2026-05-24T14:23:00.000Z"
+    "creado_en": "2026-05-30T14:00:00.000Z",
+    "despachado_en": "2026-05-31T10:00:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000276",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 960,
-    "cliente_id": "a4000000-0000-4000-8000-000000000007",
-    "origen": "manual",
+    "numero": 959,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "catalogo",
     "estado": "despachado",
-    "total": 1450,
+    "total": 450,
     "codigo_promo": null,
-    "creado_en": "2026-05-23T23:05:00.000Z",
-    "despachado_en": "2026-05-24T19:05:00.000Z"
+    "creado_en": "2026-05-30T18:39:00.000Z",
+    "despachado_en": "2026-05-31T14:39:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000277",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 961,
-    "cliente_id": "a4000000-0000-4000-8000-000000000007",
+    "numero": 960,
+    "cliente_id": "a4000000-0000-4000-8000-000000000139",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 1700,
+    "total": 1200,
     "codigo_promo": null,
-    "creado_en": "2026-05-26T14:26:00.000Z",
-    "despachado_en": "2026-05-27T10:26:00.000Z"
+    "creado_en": "2026-05-31T15:17:00.000Z",
+    "despachado_en": "2026-06-01T11:17:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000278",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 962,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "manual",
+    "numero": 961,
+    "cliente_id": "a4000000-0000-4000-8000-000000000136",
+    "origen": "catalogo",
     "estado": "despachado",
     "total": 850,
     "codigo_promo": null,
-    "creado_en": "2026-05-26T16:22:00.000Z",
-    "despachado_en": "2026-05-27T12:22:00.000Z"
+    "creado_en": "2026-05-31T18:08:00.000Z",
+    "despachado_en": "2026-06-01T14:08:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000279",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 962,
+    "cliente_id": "a4000000-0000-4000-8000-000000000131",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1700,
+    "codigo_promo": null,
+    "creado_en": "2026-06-01T00:48:00.000Z",
+    "despachado_en": "2026-06-01T20:48:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000280",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
     "numero": 963,
     "cliente_id": "a4000000-0000-4000-8000-000000000006",
     "origen": "manual",
     "estado": "despachado",
-    "total": 1000,
+    "total": 2300,
     "codigo_promo": null,
-    "creado_en": "2026-05-29T13:14:00.000Z",
-    "despachado_en": "2026-05-30T09:14:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000280",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 964,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-05-29T16:59:00.000Z",
-    "despachado_en": "2026-05-30T12:59:00.000Z"
+    "creado_en": "2026-06-01T14:04:00.000Z",
+    "despachado_en": "2026-06-02T10:04:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000281",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 965,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
+    "numero": 964,
+    "cliente_id": "a4000000-0000-4000-8000-000000000124",
     "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
+    "estado": "cancelado",
+    "total": 650,
     "codigo_promo": null,
-    "creado_en": "2026-05-30T19:52:00.000Z",
-    "despachado_en": "2026-05-31T15:52:00.000Z"
+    "creado_en": "2026-06-03T19:17:00.000Z",
+    "despachado_en": null
   },
   {
     "id": "a5000000-0000-4000-8000-000000000282",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 966,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1300,
-    "codigo_promo": null,
-    "creado_en": "2026-05-30T21:21:00.000Z",
-    "despachado_en": "2026-05-31T17:21:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000283",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 967,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1300,
-    "codigo_promo": null,
-    "creado_en": "2026-05-30T22:17:00.000Z",
-    "despachado_en": "2026-05-31T18:17:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000284",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 968,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1200,
-    "codigo_promo": null,
-    "creado_en": "2026-05-31T00:05:00.000Z",
-    "despachado_en": "2026-05-31T20:05:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000285",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 969,
-    "cliente_id": "a4000000-0000-4000-8000-000000000030",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1950,
-    "codigo_promo": null,
-    "creado_en": "2026-06-03T19:10:00.000Z",
-    "despachado_en": "2026-06-04T15:10:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000286",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 970,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 650,
-    "codigo_promo": null,
-    "creado_en": "2026-06-04T13:29:00.000Z",
-    "despachado_en": "2026-06-05T09:29:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000287",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 971,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-06-15T14:10:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000288",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 972,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-06-16T01:58:00.000Z",
-    "despachado_en": "2026-06-16T21:58:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000289",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 973,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 650,
-    "codigo_promo": null,
-    "creado_en": "2026-06-16T17:39:00.000Z",
-    "despachado_en": "2026-06-17T13:39:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000290",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 974,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "manual",
-    "estado": "cancelado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-06-22T21:13:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000291",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 975,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-07-14T01:53:00.000Z",
-    "despachado_en": "2026-07-14T21:53:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000292",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 976,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 3800,
-    "codigo_promo": null,
-    "creado_en": "2026-07-15T16:41:00.000Z",
-    "despachado_en": "2026-07-16T12:41:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000293",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 977,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-07-15T22:28:00.000Z",
-    "despachado_en": "2026-07-16T18:28:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000294",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 978,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 650,
-    "codigo_promo": null,
-    "creado_en": "2026-07-15T23:59:00.000Z",
-    "despachado_en": "2026-07-16T19:59:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000295",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 979,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 2050,
-    "codigo_promo": null,
-    "creado_en": "2026-07-19T19:31:00.000Z",
-    "despachado_en": "2026-07-20T15:31:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000296",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 980,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 450,
-    "codigo_promo": null,
-    "creado_en": "2026-07-20T21:53:00.000Z",
-    "despachado_en": "2026-07-21T17:53:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000297",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 981,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-07-23T02:15:00.000Z",
-    "despachado_en": "2026-07-23T22:15:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000298",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 982,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-07-31T02:32:00.000Z",
-    "despachado_en": "2026-07-31T22:32:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000299",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 983,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1700,
-    "codigo_promo": null,
-    "creado_en": "2026-08-01T14:58:00.000Z",
-    "despachado_en": "2026-08-02T10:58:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000300",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 984,
-    "cliente_id": "a4000000-0000-4000-8000-000000000029",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-08-02T00:13:00.000Z",
-    "despachado_en": "2026-08-02T20:13:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000301",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 985,
-    "cliente_id": "a4000000-0000-4000-8000-000000000030",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-08-04T20:25:00.000Z",
-    "despachado_en": "2026-08-05T16:25:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000302",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 986,
-    "cliente_id": "a4000000-0000-4000-8000-000000000028",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1800,
-    "codigo_promo": null,
-    "creado_en": "2026-08-05T17:48:00.000Z",
-    "despachado_en": "2026-08-06T13:48:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000303",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 987,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-08-12T19:33:00.000Z",
-    "despachado_en": "2026-08-13T15:33:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000304",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 988,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 900,
-    "codigo_promo": null,
-    "creado_en": "2026-08-16T13:27:00.000Z",
-    "despachado_en": "2026-08-17T09:27:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000305",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 989,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 2400,
-    "codigo_promo": null,
-    "creado_en": "2026-08-16T16:18:00.000Z",
-    "despachado_en": "2026-08-17T12:18:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000306",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 990,
-    "cliente_id": "a4000000-0000-4000-8000-000000000024",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1350,
-    "codigo_promo": null,
-    "creado_en": "2026-08-17T01:47:00.000Z",
-    "despachado_en": "2026-08-17T21:47:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000307",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 991,
-    "cliente_id": "a4000000-0000-4000-8000-000000000030",
-    "origen": "catalogo",
-    "estado": "despachado",
-    "total": 1450,
-    "codigo_promo": null,
-    "creado_en": "2026-08-17T16:53:00.000Z",
-    "despachado_en": "2026-08-18T12:53:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000308",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 992,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
+    "numero": 965,
+    "cliente_id": "a4000000-0000-4000-8000-000000000142",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 2100,
     "codigo_promo": null,
-    "creado_en": "2026-08-19T21:58:00.000Z",
-    "despachado_en": "2026-08-20T17:58:00.000Z"
+    "creado_en": "2026-06-06T21:41:00.000Z",
+    "despachado_en": "2026-06-07T17:41:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000309",
+    "id": "a5000000-0000-4000-8000-000000000283",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 993,
+    "numero": 966,
+    "cliente_id": "a4000000-0000-4000-8000-000000000122",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2026-06-08T14:19:00.000Z",
+    "despachado_en": "2026-06-09T10:19:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000284",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 967,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 650,
+    "codigo_promo": null,
+    "creado_en": "2026-06-10T22:39:00.000Z",
+    "despachado_en": "2026-06-11T18:39:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000285",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 968,
+    "cliente_id": "a4000000-0000-4000-8000-000000000125",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 650,
+    "codigo_promo": null,
+    "creado_en": "2026-06-15T18:31:00.000Z",
+    "despachado_en": "2026-06-16T14:31:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000286",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 969,
+    "cliente_id": "a4000000-0000-4000-8000-000000000140",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-06-15T23:03:00.000Z",
+    "despachado_en": "2026-06-16T19:03:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000287",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 970,
     "cliente_id": "a4000000-0000-4000-8000-000000000008",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2300,
+    "total": 1200,
     "codigo_promo": null,
-    "creado_en": "2026-08-23T20:26:00.000Z",
-    "despachado_en": "2026-08-24T16:26:00.000Z"
+    "creado_en": "2026-06-16T21:21:00.000Z",
+    "despachado_en": "2026-06-17T17:21:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000310",
+    "id": "a5000000-0000-4000-8000-000000000288",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 994,
-    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "numero": 971,
+    "cliente_id": "a4000000-0000-4000-8000-000000000114",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2026-06-18T00:31:00.000Z",
+    "despachado_en": "2026-06-18T20:31:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000289",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 972,
+    "cliente_id": "a4000000-0000-4000-8000-000000000128",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 650,
+    "codigo_promo": null,
+    "creado_en": "2026-06-20T01:46:00.000Z",
+    "despachado_en": "2026-06-20T21:46:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000290",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 973,
+    "cliente_id": "a4000000-0000-4000-8000-000000000154",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2050,
+    "codigo_promo": null,
+    "creado_en": "2026-06-21T20:24:00.000Z",
+    "despachado_en": "2026-06-22T16:24:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000291",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 974,
+    "cliente_id": "a4000000-0000-4000-8000-000000000129",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 1450,
     "codigo_promo": null,
-    "creado_en": "2026-08-31T01:12:00.000Z",
-    "despachado_en": "2026-08-31T21:12:00.000Z"
+    "creado_en": "2026-06-29T17:46:00.000Z",
+    "despachado_en": "2026-06-30T13:46:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000311",
+    "id": "a5000000-0000-4000-8000-000000000292",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 995,
-    "cliente_id": "a4000000-0000-4000-8000-000000000027",
-    "origen": "manual",
-    "estado": "cancelado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-09-01T00:38:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000312",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 996,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
-    "origen": "catalogo",
-    "estado": "cancelado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-09-01T02:57:00.000Z",
-    "despachado_en": null
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000313",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 997,
-    "cliente_id": "a4000000-0000-4000-8000-000000000025",
+    "numero": 975,
+    "cliente_id": "a4000000-0000-4000-8000-000000000137",
     "origen": "catalogo",
     "estado": "despachado",
-    "total": 2900,
+    "total": 2400,
     "codigo_promo": null,
-    "creado_en": "2026-09-06T21:32:00.000Z",
-    "despachado_en": "2026-09-07T17:32:00.000Z"
+    "creado_en": "2026-07-01T20:07:00.000Z",
+    "despachado_en": "2026-07-02T16:07:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000314",
+    "id": "a5000000-0000-4000-8000-000000000293",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 998,
-    "cliente_id": "a4000000-0000-4000-8000-000000000023",
-    "origen": "manual",
-    "estado": "despachado",
-    "total": 850,
-    "codigo_promo": null,
-    "creado_en": "2026-09-09T20:37:00.000Z",
-    "despachado_en": "2026-09-10T16:37:00.000Z"
-  },
-  {
-    "id": "a5000000-0000-4000-8000-000000000315",
-    "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 999,
-    "cliente_id": "a4000000-0000-4000-8000-000000000028",
+    "numero": 976,
+    "cliente_id": "a4000000-0000-4000-8000-000000000115",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 500,
     "codigo_promo": null,
-    "creado_en": "2026-09-10T19:16:00.000Z",
-    "despachado_en": "2026-09-11T15:16:00.000Z"
+    "creado_en": "2026-07-08T17:48:00.000Z",
+    "despachado_en": "2026-07-09T13:48:00.000Z"
   },
   {
-    "id": "a5000000-0000-4000-8000-000000000316",
+    "id": "a5000000-0000-4000-8000-000000000294",
     "tienda_id": "a1000000-0000-4000-8000-000000000002",
-    "numero": 1000,
-    "cliente_id": "a4000000-0000-4000-8000-000000000026",
+    "numero": 977,
+    "cliente_id": "a4000000-0000-4000-8000-000000000007",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1500,
+    "codigo_promo": null,
+    "creado_en": "2026-07-08T20:00:00.000Z",
+    "despachado_en": "2026-07-09T16:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000295",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 978,
+    "cliente_id": "a4000000-0000-4000-8000-000000000119",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-07-11T01:28:00.000Z",
+    "despachado_en": "2026-07-11T21:28:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000296",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 979,
+    "cliente_id": "a4000000-0000-4000-8000-000000000161",
     "origen": "catalogo",
     "estado": "despachado",
     "total": 850,
     "codigo_promo": null,
-    "creado_en": "2026-09-13T22:27:00.000Z",
-    "despachado_en": "2026-09-14T18:27:00.000Z"
+    "creado_en": "2026-07-12T18:39:00.000Z",
+    "despachado_en": "2026-07-13T14:39:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000297",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 980,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2400,
+    "codigo_promo": null,
+    "creado_en": "2026-07-14T14:35:00.000Z",
+    "despachado_en": "2026-07-15T10:35:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000298",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 981,
+    "cliente_id": "a4000000-0000-4000-8000-000000000138",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-07-20T16:03:00.000Z",
+    "despachado_en": "2026-07-21T12:03:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000299",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 982,
+    "cliente_id": "a4000000-0000-4000-8000-000000000008",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-07-29T14:14:00.000Z",
+    "despachado_en": "2026-07-30T10:14:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000300",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 983,
+    "cliente_id": "a4000000-0000-4000-8000-000000000123",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 650,
+    "codigo_promo": null,
+    "creado_en": "2026-07-29T20:03:00.000Z",
+    "despachado_en": "2026-07-30T16:03:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000301",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 984,
+    "cliente_id": "a4000000-0000-4000-8000-000000000148",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1000,
+    "codigo_promo": null,
+    "creado_en": "2026-08-01T19:14:00.000Z",
+    "despachado_en": "2026-08-02T15:14:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000302",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 985,
+    "cliente_id": "a4000000-0000-4000-8000-000000000157",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-08-01T20:25:00.000Z",
+    "despachado_en": "2026-08-02T16:25:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000303",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 986,
+    "cliente_id": "a4000000-0000-4000-8000-000000000119",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1550,
+    "codigo_promo": null,
+    "creado_en": "2026-08-02T21:18:00.000Z",
+    "despachado_en": "2026-08-03T17:18:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000304",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 987,
+    "cliente_id": "a4000000-0000-4000-8000-000000000116",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-08-07T19:33:00.000Z",
+    "despachado_en": "2026-08-08T15:33:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000305",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 988,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1850,
+    "codigo_promo": null,
+    "creado_en": "2026-08-15T20:17:00.000Z",
+    "despachado_en": "2026-08-16T16:17:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000306",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 989,
+    "cliente_id": "a4000000-0000-4000-8000-000000000127",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1300,
+    "codigo_promo": null,
+    "creado_en": "2026-08-16T16:46:00.000Z",
+    "despachado_en": "2026-08-17T12:46:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000307",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 990,
+    "cliente_id": "a4000000-0000-4000-8000-000000000121",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 2050,
+    "codigo_promo": null,
+    "creado_en": "2026-08-17T00:20:00.000Z",
+    "despachado_en": "2026-08-17T20:20:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000308",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 991,
+    "cliente_id": "a4000000-0000-4000-8000-000000000141",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-08-19T00:18:00.000Z",
+    "despachado_en": "2026-08-19T20:18:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000309",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 992,
+    "cliente_id": "a4000000-0000-4000-8000-000000000006",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1850,
+    "codigo_promo": null,
+    "creado_en": "2026-08-23T13:41:00.000Z",
+    "despachado_en": "2026-08-24T09:41:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000310",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 993,
+    "cliente_id": "a4000000-0000-4000-8000-000000000152",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1000,
+    "codigo_promo": null,
+    "creado_en": "2026-08-23T21:39:00.000Z",
+    "despachado_en": "2026-08-24T17:39:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000311",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 994,
+    "cliente_id": "a4000000-0000-4000-8000-000000000156",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 1450,
+    "codigo_promo": null,
+    "creado_en": "2026-08-25T00:40:00.000Z",
+    "despachado_en": "2026-08-25T20:40:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000312",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 995,
+    "cliente_id": "a4000000-0000-4000-8000-000000000143",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 500,
+    "codigo_promo": null,
+    "creado_en": "2026-08-26T20:42:00.000Z",
+    "despachado_en": "2026-08-27T16:42:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000313",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 996,
+    "cliente_id": "a4000000-0000-4000-8000-000000000114",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-08-30T00:00:00.000Z",
+    "despachado_en": "2026-08-30T20:00:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000314",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 997,
+    "cliente_id": "a4000000-0000-4000-8000-000000000132",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 500,
+    "codigo_promo": null,
+    "creado_en": "2026-09-01T16:54:00.000Z",
+    "despachado_en": "2026-09-02T12:54:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000315",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 998,
+    "cliente_id": "a4000000-0000-4000-8000-000000000138",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 500,
+    "codigo_promo": null,
+    "creado_en": "2026-09-04T18:30:00.000Z",
+    "despachado_en": "2026-09-05T14:30:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000316",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 999,
+    "cliente_id": "a4000000-0000-4000-8000-000000000147",
+    "origen": "catalogo",
+    "estado": "despachado",
+    "total": 1200,
+    "codigo_promo": null,
+    "creado_en": "2026-09-13T15:24:00.000Z",
+    "despachado_en": "2026-09-14T11:24:00.000Z"
+  },
+  {
+    "id": "a5000000-0000-4000-8000-000000000317",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "numero": 1000,
+    "cliente_id": "a4000000-0000-4000-8000-000000000117",
+    "origen": "manual",
+    "estado": "despachado",
+    "total": 850,
+    "codigo_promo": null,
+    "creado_en": "2026-09-13T20:37:00.000Z",
+    "despachado_en": "2026-09-14T16:37:00.000Z"
   },
   {
     "id": "a5000000-0000-4000-8000-000000000006",

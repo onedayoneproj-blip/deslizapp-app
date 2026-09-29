@@ -136,7 +136,7 @@ function FilaProducto({
         <div className="flex shrink-0 items-center gap-1">
           {cantidad > 0 && (
             <>
-              <button type="button" onClick={() => alCambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-arena">
+              <button type="button" onClick={() => alCambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-arena">
                 <IconoMenos tamano={18} />
               </button>
               <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
@@ -149,7 +149,7 @@ function FilaProducto({
             onClick={() => alCambiar(p, 1)}
             disabled={enTope}
             aria-label={`Agregar ${p.nombre}`}
-            className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
+            className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
           >
             <IconoMas tamano={18} />
           </button>

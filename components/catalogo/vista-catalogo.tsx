@@ -150,9 +150,9 @@ export function VistaCatalogo() {
                 <Esqueleto className="mt-1.5 h-3.5 w-1/2 rounded-full" />
               </li>
             ))}
-          {visibles.map((p) => (
+          {visibles.map((p, i) => (
             <li key={p.id}>
-              <TarjetaProducto producto={p} promos={promos ?? []} />
+              <TarjetaProducto producto={p} promos={promos ?? []} prioridad={i < 4} />
             </li>
           ))}
         </ul>
@@ -164,7 +164,7 @@ export function VistaCatalogo() {
   );
 }
 
-function TarjetaProducto({ producto: p, promos }: { producto: Producto; promos: Promo[] }) {
+function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto: Producto; promos: Promo[]; prioridad?: boolean }) {
   const precio = precioConPromo(p, promos);
   const agotado = p.stock === 0;
   const etiqueta = agotado
@@ -181,11 +181,11 @@ function TarjetaProducto({ producto: p, promos }: { producto: Producto; promos: 
       href={`/catalogo/${p.id}`}
       scroll={false}
       aria-label={`Editar ${p.nombre}`}
-      className={`tocable block text-bosque ${p.activo ? "" : "opacity-60"}`}
+      className="tocable block text-bosque"
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
         {p.fotos[0] ? (
-          <Foto src={p.fotos[0]} alt="" className={`h-full w-full ${agotado ? "grayscale" : ""}`} sizes="(max-width: 480px) 50vw, 220px" />
+          <Foto src={p.fotos[0]} alt="" prioridad={prioridad} className={`h-full w-full ${agotado ? "grayscale" : ""} ${p.activo ? "" : "opacity-50"}`} sizes="(max-width: 480px) 50vw, 220px" />
         ) : (
           <span className="grid h-full place-items-center font-display text-4xl text-bosque/30">{p.nombre[0]}</span>
         )}

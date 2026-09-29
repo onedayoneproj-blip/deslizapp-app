@@ -167,7 +167,7 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
               {procesando ? "Leyendo colores…" : logo ? "Cambiar logo" : "Subir logo"}
             </button>
             {logo && (
-              <button type="button" onClick={() => setLogo(null)} className="self-start px-1 text-[13px] font-bold text-suave underline">
+              <button type="button" onClick={() => setLogo(null)} className="flex min-h-11 items-center self-start px-1 text-[13px] font-bold text-suave underline">
                 Quitar logo (usar iniciales)
               </button>
             )}
@@ -283,7 +283,7 @@ function SelectorColor({ etiqueta, valor, alCambiar }: { etiqueta: string; valor
         value={esHex(valor) ? valor : "#000000"}
         onChange={(e) => alCambiar(e.target.value.toUpperCase())}
         aria-label={`Color ${etiqueta.toLowerCase()}`}
-        className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border-0 bg-transparent p-0"
+        className="h-11 w-11 shrink-0 cursor-pointer rounded-xl border-0 bg-transparent p-0"
       />
       <span className="flex min-w-0 flex-col">
         {etiqueta}

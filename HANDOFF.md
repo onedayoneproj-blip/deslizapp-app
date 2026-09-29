@@ -106,8 +106,25 @@ ahí está la documentación exacta de esta versión instalada.
 - Hechos: tema de marca, capa de datos de prueba (`useData()` + `localStorage`),
   layout con navegación, Plan y créditos, Catálogo, retoque de fotos, Pedidos
   (lista, detalle, despacho con stock y pedido manual), Clientes (derivados de los pedidos), Promos (estado por fechas, compartir), Mi marca (logo, colores y letra de los cupones), Resumen (Inicio, con cálculos en `lib/resumen.ts`) y app instalable con novedades. El avance paso a paso está en `docs/06-orden-de-construccion.md`.
+- **Primera entrega cerrada** (pasos 0–10 de `docs/06-orden-de-construccion.md`). El repaso final, con lo que
+  se probó, lo que se corrigió y lo pendiente, está en `docs/08-repaso-final.md`.
 - No hay Supabase conectado todavía (ver `docs/05-arquitectura.md` para el porqué
   y el cuándo, y `docs/07-fase-2-cuentas-y-cobros.md` para lo que viene después).
+
+### Lo que sigue (en este orden)
+
+1. **Supabase**: tablas y políticas RLS por `tienda_id` (`docs/03`), y cambiar `lib/data/` por consultas reales
+   con la misma forma (`docs/05`). El Resumen ya solo pide rangos y cifras a `lib/resumen.ts`: sus pruebas
+   (`npm test`) son el contrato de las consultas agregadas. Al conectarlo, el seed (~900 KB dentro del código
+   que descarga la app) sale del cliente.
+2. **Cuentas y sesión** (Google, verificación de Instagram, zona de administración, cobros manuales):
+   `docs/07-fase-2-cuentas-y-cobros.md`. Hoy la "tienda activa" la elige el selector de la demo.
+3. **Fotos reales**: subir a Storage (hoy son data URLs en el navegador) y el retoque de fotos con IA de verdad
+   (hoy es un efecto de demostración) con su descuento de créditos en el servidor.
+4. **Catálogo público integrado**: el HTML independiente pasa a leer la marca (`marca_*`, `url_catalogo`) y las
+   promos de cada tienda; los enlaces de compartir promo dejan de depender del enlace que escribe el dueño.
+5. **Notificaciones** de pedidos nuevos (hoy solo el contador) y **sincronización entre dispositivos**.
+6. Pendientes de diseño y detalle del repaso: `docs/08-repaso-final.md` ("Para decidir" y "Pendiente").
 
 ## Qué se espera de esta primera entrega
 

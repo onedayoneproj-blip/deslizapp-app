@@ -284,6 +284,61 @@ try {
     ok(errores.length === 0, `Mi marca: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
+
+  // ---- Repaso final: campos que faltaban (código de promo del pedido, colección nueva, nota de un cliente, selector de producto de una promo)
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/pedidos");
+    await page.waitForSelector('a[href="/pedidos/nuevo"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/pedidos/nuevo"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: LUNA20"]');
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: LUNA20"]', "Pedido nuevo · Código de promo", "AAAH", { dentroDeHoja: true });
+    ok(errores.length === 0, `Pedido nuevo (código): sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/catalogo");
+    await page.waitForSelector('a[href="/catalogo/nuevo"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/catalogo/nuevo"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] button:has-text("+ Nueva")');
+    await page.waitForSelector('[role="dialog"] input[aria-label="Nombre de la colección nueva"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label="Nombre de la colección nueva"]', "Nuevo producto · Colección nueva", "Para él", { dentroDeHoja: true });
+    ok(errores.length === 0, `Colección nueva: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/clientes");
+    await page.waitForSelector("main a[href^='/clientes/']");
+    await page.waitForTimeout(900);
+    await page.tap("main a[href^='/clientes/'] >> nth=0");
+    await page.waitForSelector('[role="dialog"] textarea');
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] textarea', "Detalle de cliente · Nota", " Le gusta el rosa", { dentroDeHoja: true });
+    ok(errores.length === 0, `Detalle de cliente: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/promos");
+    await page.waitForSelector('a[href="/promos/nueva"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/promos/nueva"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Semana del aaah"]');
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] [role="group"] button:has-text("En productos")');
+    await page.tap('[role="dialog"] button[aria-label="Elegir producto"]');
+    ok(await page.evaluate(() => document.activeElement?.getAttribute("placeholder") === "Busca un producto"), "Selector de producto (promo): el buscador tiene el foco justo después del toque que lo abre");
+    await probarCampo(page, '[role="dialog"] input[placeholder="Busca un producto"]', "Selector de producto (promo) · Buscador", "kiara", { dentroDeHoja: true });
+    ok(errores.length === 0, `Promo (producto): sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
 } finally {
   await navegador.close();
 }

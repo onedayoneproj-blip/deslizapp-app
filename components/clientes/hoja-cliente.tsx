@@ -75,10 +75,10 @@ function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: Pe
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-col items-center gap-1 text-center">
         <Avatar nombre={cliente.nombre} tamano={78} />
-        <h3 className="mt-1.5 flex items-center gap-2 font-display text-[26px] leading-tight">
+        <h2 className="mt-1.5 flex items-center gap-2 font-display text-[26px] leading-tight">
           {cliente.nombre}
           {cliente.repite && <EtiquetaRepite />}
-        </h3>
+        </h2>
         <p className="text-sm font-semibold text-suave">
           {cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"} · {cliente.origen === "catalogo" ? "Del catálogo" : "Manual"}
         </p>

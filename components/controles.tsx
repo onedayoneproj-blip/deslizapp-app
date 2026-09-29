@@ -13,7 +13,7 @@ export function Chip({
   elegido: boolean;
   onClick: () => void;
   children: ReactNode;
-  alto?: 38 | 40;
+  alto?: 38 | 40 | 44;
 }) {
   return (
     <button
@@ -53,7 +53,7 @@ export function Interruptor({
       aria-label={etiqueta}
       aria-disabled={deshabilitado}
       onClick={() => (deshabilitado ? alTocarBloqueado?.() : alCambiar(!encendido))}
-      className={`tocable flex h-8 w-[54px] shrink-0 rounded-full p-1 ${deshabilitado ? "bg-[#d9cdb8]" : encendido ? "bg-bosque" : "bg-apagado"}`}
+      className={`tocable relative flex h-8 w-[54px] shrink-0 rounded-full p-1 before:absolute before:-inset-x-1 before:-inset-y-[6px] before:content-[''] ${deshabilitado ? "bg-[#d9cdb8]" : encendido ? "bg-bosque" : "bg-apagado"}`}
     >
       <span
         className="h-6 w-6 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-transform duration-(--mov-normal) ease-(--curva-salida)"

@@ -83,7 +83,9 @@ Mapeo con las pestañas de Pedidos ("Nuevos / Por despachar / Despachados"):
 despachar — al abrir el detalle de un pedido `nuevo` y confirmarlo, pasa a
 `por_despachar`; al presionar "Despachar pedido" pasa a `despachado`. La línea
 de avance del detalle muestra lo mismo: Recibido (`nuevo`) → Confirmado
-(`por_despachar`) → Despachado.
+(`por_despachar`) → Despachado. Un pedido **manual** ("+ Pedido") nace directamente
+en `por_despachar` (el dueño ya habló con el cliente). Al despachar baja el
+stock; si algún producto no alcanza, no se despacha (nunca hay stock negativo).
 
 ## `pedido_items`
 

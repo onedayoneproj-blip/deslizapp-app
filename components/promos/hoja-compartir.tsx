@@ -122,7 +122,7 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
     () => <CuponTienda promo={promo} marca={marcaDeTienda(tienda)} tienda={tienda} producto={producto} productosDeColeccion={productosDeColeccion} />,
     [promo, tienda, producto, productosDeColeccion],
   );
-  const enlaceSuave = "tocable font-extrabold text-bosque underline underline-offset-2 disabled:opacity-50 disabled:no-underline";
+  const enlaceSuave = "tocable inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 font-extrabold text-bosque underline underline-offset-2 disabled:opacity-50 disabled:no-underline";
 
   return (
     <div className="flex flex-col gap-4">
@@ -148,7 +148,7 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
         Enviar
       </button>
 
-      <p className="text-center text-[13.5px] font-semibold text-suave">
+      <p className="-mt-2 text-center text-[13.5px] font-semibold text-suave">
         {falloImagen ? (
           <span className="text-peligro">No pudimos preparar la imagen. Aun así puedes enviar el mensaje.</span>
         ) : (
@@ -156,8 +156,8 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
             Exportar como{" "}
             <button type="button" onClick={() => exportar("imagen")} disabled={!imagen} className={enlaceSuave}>
               imagen
-            </button>{" "}
-            ·{" "}
+            </button>
+            {" · "}
             <button type="button" onClick={() => exportar("pdf")} disabled={!imagen} className={enlaceSuave}>
               PDF
             </button>

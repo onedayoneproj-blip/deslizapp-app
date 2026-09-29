@@ -132,7 +132,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
             <p className="min-w-0 flex-1 text-[14.5px] leading-snug font-bold">
               ¡Lista! ¿La compartes ahora?
             </p>
-            <button type="button" onClick={() => setOferta(null)} className="tocable h-10 shrink-0 rounded-full px-3 text-[14px] font-extrabold text-papel/80">
+            <button type="button" onClick={() => setOferta(null)} className="tocable h-11 shrink-0 rounded-full px-3 text-[14px] font-extrabold text-papel/80">
               Después
             </button>
             <button
@@ -142,7 +142,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
                 setOferta(null);
                 router.push(`/promos/${id}/compartir`, { scroll: false });
               }}
-              className="tocable h-10 shrink-0 rounded-full bg-mandarina px-4 text-[14px] font-extrabold text-bosque-oscuro"
+              className="tocable h-11 shrink-0 rounded-full bg-mandarina px-4 text-[14px] font-extrabold text-bosque-oscuro"
             >
               Compartir
             </button>

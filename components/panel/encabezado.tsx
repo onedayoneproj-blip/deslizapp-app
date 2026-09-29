@@ -29,7 +29,7 @@ export function Encabezado() {
           aria-haspopup="dialog"
           aria-expanded={menuAbierto}
           aria-label={tienda ? `${tienda.nombre}: cambiar de tienda` : "Cambiar de tienda"}
-          className="flex min-w-0 items-center gap-2.5 text-left"
+          className="flex min-h-11 min-w-0 items-center gap-2.5 text-left"
         >
           {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />}
           <span className="min-w-0">
@@ -49,7 +49,7 @@ export function Encabezado() {
             type="button"
             onClick={abrirPlan}
             aria-label={`${tienda.creditosRetoque} créditos. Ver plan y créditos`}
-            className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-bosque bg-white pr-3.5 pl-[11px] text-sm font-extrabold"
+            className="flex h-11 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-bosque bg-white pr-3.5 pl-[11px] text-sm font-extrabold"
           >
             <IconoCreditos tamano={18} className="text-mandarina" />
             <Numero valor={tienda.creditosRetoque} /> créditos

@@ -272,7 +272,7 @@ function Formulario({
           {PORCENTAJES_RAPIDOS.map((n) => (
             <Chip
               key={n}
-              alto={40}
+              alto={44}
               elegido={datos.porcentaje === String(n)}
               onClick={() => {
                 cambiar("porcentaje", String(n));
@@ -366,7 +366,7 @@ function Formulario({
         </label>
       </div>
       {datos.fin && (
-        <button type="button" onClick={() => cambiar("fin", "")} className="-mt-2 self-start px-1 text-[13px] font-extrabold text-suave underline">
+        <button type="button" onClick={() => cambiar("fin", "")} className="-mt-2 flex min-h-11 items-center self-start px-1 text-[13px] font-extrabold text-suave underline">
           Quitar la fecha de fin
         </button>
       )}
@@ -431,7 +431,7 @@ function Formulario({
           <button type="button" onClick={terminar} disabled={guardando} className="tocable h-11 rounded-full bg-[#b4432a] font-extrabold text-white disabled:opacity-60">
             Sí, terminar
           </button>
-          <button type="button" onClick={() => setConfirmando(false)} className="h-10 font-extrabold text-bosque">
+          <button type="button" onClick={() => setConfirmando(false)} className="h-11 font-extrabold text-bosque">
             Mejor no
           </button>
         </div>

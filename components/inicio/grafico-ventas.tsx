@@ -32,10 +32,10 @@ export function GraficoVentas({
   const total = valores.reduce((s, v) => s + v, 0);
   const mejor = maximo > 0 ? barras[valores.indexOf(maximo)] : null;
   const densas = barras.length > 12;
-  const gap = densas ? "gap-[2px]" : barras.length > 7 ? "gap-1" : "gap-2";
+  const gap = densas ? "gap-[2px]" : barras.length > 7 ? "gap-1" : "gap-0";
 
   return (
-    <div data-grafico className="mt-4" onClick={alLimpiar}>
+    <div data-grafico className={`mt-4 ${barras.length <= 7 ? "-mx-3" : ""}`} onClick={alLimpiar}>
       <p className="sr-only">
         {titulo}. Total: {formatearPesos(total)}.{mejor ? ` Lo mejor: ${mejor.nombre}, con ${formatearPesos(maximo)}.` : " Sin ventas todavía."}
       </p>
@@ -72,26 +72,26 @@ export function GraficoVentas({
                   else if (elegida) alLimpiar();
                   else alElegir(i);
                 }}
-                className={`flex h-full min-w-0 flex-1 basis-0 flex-col items-center justify-end gap-1.5 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-papel/70 ${
-                  atenuada ? "opacity-35" : "opacity-100"
-                } transition-opacity duration-150 ease-(--curva-salida)`}
+                className="flex h-full min-w-0 flex-1 basis-0 flex-col items-center justify-end gap-1.5 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-papel/70"
               >
+                {/* Solo la barra se atenúa (transición corta de opacidad): la etiqueta conserva su contraste */}
                 {vacia ? (
                   <span
                     className={`block h-[22px] w-full max-w-[30px] rounded-t-[6px] rounded-b-[3px] border-[1.5px] ${
-                      b.estado === "futura" ? "border-dashed border-papel/35" : "border-dotted border-papel/25"
+                      b.estado === "futura" ? "border-dashed border-papel/45" : "border-dotted border-papel/35"
                     }`}
                   />
                 ) : (
                   <span
                     data-alto={alto}
-                    className={`block w-full max-w-[30px] ${densas ? "rounded-t-[3px] rounded-b-[1px]" : "rounded-t-[7px] rounded-b-[4px]"} ${
-                      b.actual ? "bg-mandarina" : v > 0 ? "bg-rosa" : "bg-rosa/35"
-                    }`}
+                    data-atenuada={atenuada || undefined}
+                    className={`block w-full max-w-[30px] transition-opacity duration-150 ease-(--curva-salida) ${
+                      densas ? "rounded-t-[3px] rounded-b-[1px]" : "rounded-t-[7px] rounded-b-[4px]"
+                    } ${b.actual ? "bg-mandarina" : v > 0 ? "bg-rosa" : "bg-rosa/35"} ${atenuada ? "opacity-35" : "opacity-100"}`}
                     style={{ height: alto }}
                   />
                 )}
-                <span className={`h-[13px] text-[11px] leading-none font-bold whitespace-nowrap ${elegida || (seleccion === null && b.actual) ? "text-mandarina" : "text-[#D9E6DF]"}`}>
+                <span className={`h-[13px] text-[11px] leading-none font-bold whitespace-nowrap ${elegida || (seleccion === null && b.actual) ? "text-[#FFA07A]" : "text-[#D9E6DF]"}`}>
                   {b.etiqueta}
                 </span>
               </button>

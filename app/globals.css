@@ -16,7 +16,7 @@
   --color-linea: #efe4d2; /* bordes de tarjetas */
   --color-borde: #e7dcc8; /* bordes de campos y chips */
   --color-arena: #f3ead9; /* rellenos neutros: botón cerrar, fondos de foto */
-  --color-tenue: #647d72; /* pestañas inactivas: verde grisáceo tenue, legible sobre blanco */
+  --color-tenue: #5d766a; /* pestañas inactivas: verde grisáceo tenue, 4.9:1 sobre blanco */
   --color-apagado: #cdbfa6; /* interruptor apagado, bordes punteados */
   --color-peligro: #b4432a; /* acciones destructivas */
   --color-marco: #f3eadb; /* fondo alrededor de la app en pantallas anchas */

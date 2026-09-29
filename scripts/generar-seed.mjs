@@ -240,16 +240,33 @@ function cuantos(media) {
   }
   return k;
 }
-const elegir = (lista) => lista[Math.floor(rand() * lista.length)];
 function elegirPorPeso(lista, peso) {
-  const total = lista.reduce((s, x) => s + peso(x), 0);
+  const total = lista.reduce((s, x, i) => s + peso(x, i), 0);
   let r = rand() * total;
-  for (const x of lista) if ((r -= peso(x)) <= 0) return x;
+  for (let i = 0; i < lista.length; i++) if ((r -= peso(lista[i], i)) <= 0) return lista[i];
   return lista[lista.length - 1];
 }
-const NOMBRES_MICHEL = ["Rosanna Almonte", "Kelvin Tejada", "Massiel Rodríguez", "Yahaira Núñez", "Franchesca Polanco", "Wilson Abreu",
-  "Nicole Batista", "Scarlet Méndez", "Johanna Reyes", "Pamela Castillo", "Darlenis Féliz", "Katherine Santana", "Ruth Encarnación", "Gabriel Paulino"];
-const NOMBRES_LUNA = ["Estefany Guzmán", "Lisbeth Cabrera", "Mariela Suero", "Yudelka Pimentel", "Hilda Montero", "Nathalie Díaz", "Crismeily Vargas", "Omar Jiménez"];
+// Clientes de la historia: nombres dominicanos de combinar (deterministas). Se eligen con más peso los primeros, así hay
+// clientes fieles con varios pedidos y muchos con uno solo (un "Repite" que significa algo).
+const NOMBRES_PILA = ["Rosanna", "Kelvin", "Massiel", "Yahaira", "Franchesca", "Wilson", "Nicole", "Scarlet", "Johanna", "Pamela", "Darlenis", "Katherine",
+  "Ruth", "Gabriel", "Estefany", "Lisbeth", "Mariela", "Yudelka", "Hilda", "Nathalie", "Crismeily", "Omar", "Rafael", "Yohanna", "Cristian", "Liliana",
+  "Ángel", "Daniela", "Fabio", "Milagros", "Junior", "Rocío", "Elvin", "Génesis"];
+const APELLIDOS = ["Almonte", "Tejada", "Rodríguez", "Núñez", "Polanco", "Abreu", "Batista", "Méndez", "Reyes", "Castillo", "Féliz", "Santana", "Encarnación",
+  "Paulino", "Guzmán", "Cabrera", "Suero", "Pimentel", "Montero", "Díaz", "Vargas", "Jiménez", "Ureña", "Matos", "Cruz", "Peguero", "Lantigua", "Balbuena"];
+function nombresUnicos(cuantos, desplazamiento) {
+  const usados = new Set();
+  const res = [];
+  for (let k = 0; res.length < cuantos; k++) {
+    const n = `${NOMBRES_PILA[(k * 7 + desplazamiento) % NOMBRES_PILA.length]} ${APELLIDOS[(k * 11 + Math.floor(k / NOMBRES_PILA.length) * 3 + desplazamiento) % APELLIDOS.length]}`;
+    if (!usados.has(n)) {
+      usados.add(n);
+      res.push(n);
+    }
+  }
+  return res;
+}
+const NOMBRES_MICHEL = nombresUnicos(105, 0);
+const NOMBRES_LUNA = nombresUnicos(48, 5);
 function historia(tiendaId, { dias, pedidosPorDia, aaahsPorDia, nombres, fijos, numeroFinal, prefijoTel }) {
   const deTienda = productos.filter((p) => p.tienda_id === tiendaId);
   const pool = [...fijos, ...nombres.map((n, i) => cliente(tiendaId, n, `+1${["809", "829", "849"][i % 3]}${prefijoTel}${String(1000 + i * 37).slice(-4)}`, rand() < 0.8 ? "catalogo" : "manual", REF - dias * D))];
@@ -270,7 +287,7 @@ function historia(tiendaId, { dias, pedidosPorDia, aaahsPorDia, nombres, fijos, 
         const p = elegirPorPeso(deTienda, (x) => x.likes + 5);
         if (!items.some((it) => it[0] === p.nombre)) items.push([p.nombre, rand() < 0.2 ? 2 : 1]);
       }
-      nuevos.push({ creado: local(d, 9 + Math.floor(rand() * 14), Math.floor(rand() * 60)), items, cli: elegir(pool), origen: rand() < 0.8 ? "catalogo" : "manual", estado: rand() < 0.06 ? "cancelado" : "despachado" });
+      nuevos.push({ creado: local(d, 9 + Math.floor(rand() * 14), Math.floor(rand() * 60)), items, cli: elegirPorPeso(pool, (_, idx) => 1 / (1 + idx) ** 0.6), origen: rand() < 0.8 ? "catalogo" : "manual", estado: rand() < 0.06 ? "cancelado" : "despachado" });
     }
   }
   nuevos.sort((a, b) => a.creado - b.creado);

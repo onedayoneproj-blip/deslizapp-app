@@ -244,7 +244,7 @@ function FormularioProducto({
                   type="button"
                   onClick={() => setVista(v)}
                   aria-pressed={vista === v}
-                  className={`tocable relative h-[34px] rounded-full px-3.5 text-[13px] font-extrabold ${vista === v ? "text-papel" : "text-bosque"}`}
+                  className={`tocable relative h-[34px] rounded-full px-3.5 before:absolute before:-inset-y-[5px] before:inset-x-0 before:content-[''] text-[13px] font-extrabold ${vista === v ? "text-papel" : "text-bosque"}`}
                 >
                   {v === "antes" ? "Antes" : "Después"}
                 </button>
@@ -259,7 +259,7 @@ function FormularioProducto({
           <button
             type="button"
             onClick={() => entradaFoto.current?.click()}
-            className="absolute bottom-3 left-3 flex h-10 items-center gap-1.5 rounded-full bg-papel/95 px-3.5 text-[13px] font-extrabold"
+            className="absolute bottom-3 left-3 flex h-11 items-center gap-1.5 rounded-full bg-papel/95 px-3.5 text-[13px] font-extrabold"
           >
             <IconoCamara tamano={18} /> Cambiar foto
           </button>
@@ -374,7 +374,7 @@ function FormularioProducto({
         <button
           type="button"
           onClick={() => setStock(stock === null ? 1 : null)}
-          className="mt-1 mb-0.5 text-[12.5px] font-bold text-suave underline"
+          className="-mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave underline"
         >
           {stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}
         </button>
@@ -389,7 +389,7 @@ function FormularioProducto({
           {colecciones.map((c) => (
             <Chip
               key={c}
-              alto={40}
+              alto={44}
               elegido={nuevaColeccion === null && categoria === c}
               onClick={() => {
                 setNuevaColeccion(null);
@@ -399,7 +399,7 @@ function FormularioProducto({
               {c}
             </Chip>
           ))}
-          <Chip alto={40} elegido={nuevaColeccion !== null} onClick={() => setNuevaColeccion(nuevaColeccion === null ? "" : null)}>
+          <Chip alto={44} elegido={nuevaColeccion !== null} onClick={() => setNuevaColeccion(nuevaColeccion === null ? "" : null)}>
             + Nueva
           </Chip>
         </div>

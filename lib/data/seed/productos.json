@@ -12,7 +12,7 @@
     "activo": true,
     "destacado": false,
     "stock": 3,
-    "likes": 128,
+    "likes": 117,
     "creado_en": "2025-07-20T16:00:00.000Z",
     "actualizado_en": "2025-08-09T16:00:00.000Z"
   },
@@ -29,7 +29,7 @@
     "activo": false,
     "destacado": false,
     "stock": 4,
-    "likes": 131,
+    "likes": 140,
     "creado_en": "2025-07-29T16:00:00.000Z",
     "actualizado_en": "2025-08-18T16:00:00.000Z"
   },
@@ -46,7 +46,7 @@
     "activo": true,
     "destacado": false,
     "stock": 2,
-    "likes": 177,
+    "likes": 175,
     "creado_en": "2025-08-07T16:00:00.000Z",
     "actualizado_en": "2025-08-27T16:00:00.000Z"
   },
@@ -63,7 +63,7 @@
     "activo": true,
     "destacado": false,
     "stock": 4,
-    "likes": 182,
+    "likes": 173,
     "creado_en": "2025-08-16T16:00:00.000Z",
     "actualizado_en": "2025-09-05T16:00:00.000Z"
   },
@@ -80,7 +80,7 @@
     "activo": true,
     "destacado": false,
     "stock": 2,
-    "likes": 194,
+    "likes": 193,
     "creado_en": "2025-08-25T16:00:00.000Z",
     "actualizado_en": "2025-09-14T16:00:00.000Z"
   },
@@ -97,7 +97,7 @@
     "activo": true,
     "destacado": false,
     "stock": 6,
-    "likes": 218,
+    "likes": 214,
     "creado_en": "2025-09-03T16:00:00.000Z",
     "actualizado_en": "2025-09-23T16:00:00.000Z"
   },
@@ -114,7 +114,7 @@
     "activo": true,
     "destacado": false,
     "stock": 5,
-    "likes": 226,
+    "likes": 214,
     "creado_en": "2025-09-12T16:00:00.000Z",
     "actualizado_en": "2025-10-02T16:00:00.000Z"
   },
@@ -131,7 +131,7 @@
     "activo": true,
     "destacado": false,
     "stock": 0,
-    "likes": 275,
+    "likes": 271,
     "creado_en": "2025-09-21T16:00:00.000Z",
     "actualizado_en": "2025-10-11T16:00:00.000Z"
   },
@@ -148,7 +148,7 @@
     "activo": true,
     "destacado": true,
     "stock": 3,
-    "likes": 289,
+    "likes": 302,
     "creado_en": "2025-09-30T16:00:00.000Z",
     "actualizado_en": "2025-10-20T16:00:00.000Z"
   },
@@ -165,7 +165,7 @@
     "activo": true,
     "destacado": true,
     "stock": 1,
-    "likes": 334,
+    "likes": 316,
     "creado_en": "2025-10-09T16:00:00.000Z",
     "actualizado_en": "2025-10-29T16:00:00.000Z"
   },
@@ -182,7 +182,7 @@
     "activo": true,
     "destacado": false,
     "stock": 4,
-    "likes": 25,
+    "likes": 21,
     "creado_en": "2026-04-01T16:00:00.000Z",
     "actualizado_en": "2026-04-21T16:00:00.000Z"
   },
@@ -216,7 +216,7 @@
     "activo": true,
     "destacado": false,
     "stock": 1,
-    "likes": 51,
+    "likes": 45,
     "creado_en": "2026-04-19T16:00:00.000Z",
     "actualizado_en": "2026-05-09T16:00:00.000Z"
   },
@@ -233,7 +233,7 @@
     "activo": true,
     "destacado": false,
     "stock": 9,
-    "likes": 75,
+    "likes": 56,
     "creado_en": "2026-04-28T16:00:00.000Z",
     "actualizado_en": "2026-05-18T16:00:00.000Z"
   },
@@ -250,7 +250,7 @@
     "activo": true,
     "destacado": true,
     "stock": 2,
-    "likes": 105,
+    "likes": 107,
     "creado_en": "2026-05-07T16:00:00.000Z",
     "actualizado_en": "2026-05-27T16:00:00.000Z"
   },
@@ -267,7 +267,7 @@
     "activo": true,
     "destacado": true,
     "stock": 5,
-    "likes": 110,
+    "likes": 131,
     "creado_en": "2026-05-16T16:00:00.000Z",
     "actualizado_en": "2026-06-05T16:00:00.000Z"
   }
