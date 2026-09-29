@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { PromoInvalida } from "@/lib/data/promos";
 import { useData } from "@/lib/data/provider";
-import { diaMesCorto, formatearPesos, rangoFechas } from "@/lib/formato";
+import { formatearPesos, rangoFechas } from "@/lib/formato";
 import {
   diaAIso,
   estadoPromo,
@@ -26,7 +26,7 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { TarjetaPromo } from "./tarjeta-promo";
-import { useElegirPestanaPromos } from "./vista-promos";
+import { useElegirPestanaPromos, useOfrecerCompartir } from "./vista-promos";
 import { SelectorColeccionPromo, SelectorProductoPromo } from "./selectores";
 
 const campo =
@@ -107,6 +107,8 @@ function Formulario({
   const { crearPromo, actualizarPromo, terminarPromo } = useData();
   const { tiendaId } = useTiendaActiva();
   const elegirPestana = useElegirPestanaPromos();
+  const ofrecerCompartir = useOfrecerCompartir();
+  const router = useRouter();
   const toast = useToast();
   const editando = Boolean(promo);
 
@@ -181,15 +183,9 @@ function Formulario({
       const guardada = promo ? await actualizarPromo(tiendaId, promo.id, datos) : await crearPromo(tiendaId, datos);
       const estado = estadoPromo(guardada);
       elegirPestana(estado);
-      toast(
-        promo
-          ? "Cambios guardados."
-          : estado === "programada"
-            ? `Promo programada. Arranca el ${diaMesCorto(guardada.fechaInicio)}.`
-            : guardada.tipo === "codigo"
-              ? `Código activo. Ya lo pueden usar al pedir.`
-              : "Promo activa. Ya se ve en tu catálogo.",
-      );
+      if (promo) toast("Cambios guardados.");
+      else if (estado !== "terminada") ofrecerCompartir({ id: guardada.id, programada: estado === "programada" }); // "¡Lista! ¿La compartes ahora?"
+      else toast("Promo guardada. Como ya venció, quedó en Terminadas.");
       alTerminar();
     } catch (e) {
       toast(e instanceof PromoInvalida ? "Revisa los campos marcados." : "No se pudo guardar. Inténtalo otra vez.");
@@ -411,6 +407,16 @@ function Formulario({
         {editando ? "Guardar cambios" : "Crear promo"}
       </button>
       {intento && hayErrores && <p className="-mt-2 text-center text-[13px] font-semibold text-suave">Revisa los campos marcados.</p>}
+
+      {editando && promo && (
+        <button
+          type="button"
+          onClick={() => router.push(`/promos/${promo.id}/compartir`, { scroll: false })}
+          className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
+        >
+          Compartir esta promo
+        </button>
+      )}
 
       {editando && !confirmando && (
         <button type="button" onClick={() => setConfirmando(true)} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">

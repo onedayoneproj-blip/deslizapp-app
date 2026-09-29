@@ -34,3 +34,9 @@ export const FOTO_LADO_MAXIMO = 800;
  * (ej. "18095550000"). Vacío = WhatsApp abre con el mensaje listo y la persona elige el contacto.
  */
 export const WHATSAPP_DESLIZAPP = "";
+
+/**
+ * Base de los enlaces al catálogo público de cada tienda ("{base}/{slug}?promo=CODIGO"). Cambiar aquí
+ * cuando el catálogo público esté integrado.
+ */
+export const URL_CATALOGO_PUBLICO = "https://deslizapp.com/tienda";

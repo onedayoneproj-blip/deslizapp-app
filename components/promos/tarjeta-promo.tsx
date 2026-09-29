@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { diaMesCorto, formatearPesos, rangoFechas } from "@/lib/formato";
+import { datosCupon } from "@/lib/cupon";
+import { diaMesCorto } from "@/lib/formato";
 import { estadoPromo } from "@/lib/promos";
 import type { EstadoPromo, Producto, Promo } from "@/lib/types";
 
@@ -13,9 +14,6 @@ const MASCARA =
 
 /** El diseño usa Fredoka normal; `.font-display` ensancha (font-stretch 115 %) y esta clase no la gana. */
 const SIN_ENSANCHAR = { fontStretch: "100%" } as const;
-
-const ETIQUETA_TIPO = { codigo: "Código", coleccion: "Por colección", producto: "Por producto" } as const;
-const DIA_MS = 24 * 60 * 60 * 1000;
 
 /** "del 25 sept al 3 oct" para lectores de pantalla. */
 const fechasHablado = (inicio: string, fin: string | null) => (fin ? `del ${diaMesCorto(inicio)} al ${diaMesCorto(fin)}` : `desde el ${diaMesCorto(inicio)}`);
@@ -45,24 +43,8 @@ export function TarjetaPromo({
   ahora?: Date;
 }) {
   const terminada = estado === "terminada";
+  const d = datosCupon(promo, estado, { producto, productosDeColeccion, usos, ahora });
   const pct = promo.valorPorcentaje;
-
-  // Detalle de una línea
-  let detalle = "";
-  if (promo.tipo === "coleccion") detalle = `Colección ${promo.coleccion ?? "…"} · ${productosDeColeccion} ${productosDeColeccion === 1 ? "producto" : "productos"}`;
-  else if (promo.tipo === "producto") {
-    const precio = producto ? producto.precio - Math.round((producto.precio * (pct ?? 0)) / 100) : null;
-    detalle = producto ? `${producto.nombre} · ${formatearPesos(precio ?? producto.precio)}` : "Un producto";
-  } else detalle = promo.nombre && promo.nombre !== promo.codigo ? `${promo.nombre} · En todo el pedido` : "En todo el pedido";
-
-  // Lado derecho de la fila de fechas: uso del código, o cuándo empieza si es pronto
-  const diasParaEmpezar = Math.ceil((Date.parse(promo.fechaInicio) - ahora.getTime()) / DIA_MS);
-  const aviso =
-    estado === "programada" && diasParaEmpezar >= 1 && diasParaEmpezar < 7
-      ? `Empieza en ${diasParaEmpezar} ${diasParaEmpezar === 1 ? "día" : "días"}`
-      : promo.tipo === "codigo" && usos !== null && estado !== "programada"
-        ? `Usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}`
-        : null;
 
   const etiqueta = `${promo.tipo === "codigo" ? `Código ${promo.codigo}` : promo.nombre}, ${pct ?? "sin"}% de descuento, ${estado}, ${fechasHablado(promo.fechaInicio, promo.fechaFin)}${
     promo.tipo === "codigo" && usos !== null ? `, usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}` : ""
@@ -75,32 +57,32 @@ export function TarjetaPromo({
     >
       {/* Talón: el porcentaje */}
       <div className="flex w-[116px] flex-none flex-col items-center justify-center gap-0.5">
-        <span style={SIN_ENSANCHAR} className={`font-display text-[44px] leading-none font-bold ${terminada ? "text-bosque/45" : "text-mandarina"}`}>{pct ?? "–"}%</span>
+        <span style={SIN_ENSANCHAR} className={`font-display text-[44px] leading-none font-bold ${terminada ? "text-bosque/45" : "text-mandarina"}`}>{d.porcentaje}%</span>
         <span className={`text-[10px] font-bold tracking-[0.1em] ${terminada ? "text-bosque/60" : "text-papel/75"}`}>
-          {terminada ? "TERMINADA" : estado === "programada" ? "PROGRAMADA" : "DE DESCUENTO"}
+          {d.bajoPorcentaje}
         </span>
       </div>
       {/* Perforación */}
       <div aria-hidden="true" className={`absolute top-[18px] bottom-[18px] left-[115px] border-l-2 border-dashed ${terminada ? "border-bosque/25" : "border-papel/40"}`} />
       {/* Cuerpo */}
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-4 pr-[18px] pl-[26px]">
-        <span className={`text-[11px] font-bold tracking-[0.1em] uppercase ${terminada ? "" : "text-rosa"}`}>{ETIQUETA_TIPO[promo.tipo]}</span>
-        {promo.tipo === "codigo" ? (
+        <span className={`text-[11px] font-bold tracking-[0.1em] uppercase ${terminada ? "" : "text-rosa"}`}>{d.tipo}</span>
+        {d.esCodigo ? (
           <span
             style={SIN_ENSANCHAR}
             className={`max-w-full self-start truncate rounded-[10px] border-2 border-dashed px-3 py-1 font-display text-[20px] leading-[1.2] font-semibold tracking-[0.08em] ${
               terminada ? "border-bosque/65" : "border-rosa text-rosa"
             }`}
           >
-            {promo.codigo || "CÓDIGO"}
+            {d.titulo}
           </span>
         ) : (
-          <span style={SIN_ENSANCHAR} className="truncate font-display text-[21px] leading-[1.15] font-semibold">{promo.nombre || "Nombre de tu promo"}</span>
+          <span style={SIN_ENSANCHAR} className="truncate font-display text-[21px] leading-[1.15] font-semibold">{d.titulo}</span>
         )}
-        <span className={`truncate text-[14px] ${terminada ? "" : "text-papel/80"}`}>{detalle}</span>
+        <span className={`truncate text-[14px] ${terminada ? "" : "text-papel/80"}`}>{d.detalle}</span>
         <div className={`mt-1 flex items-center justify-between gap-2 text-[13px] font-semibold ${terminada ? "" : "text-papel/90"}`}>
-          <span className="truncate">{rangoFechas(promo.fechaInicio, promo.fechaFin)}</span>
-          {aviso && <span className="shrink-0">{aviso}</span>}
+          <span className="truncate">{d.fechas}</span>
+          {d.aviso && <span className="shrink-0">{d.aviso}</span>}
         </div>
       </div>
     </div>

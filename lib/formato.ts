@@ -71,3 +71,8 @@ export function rangoFechas(inicio: string, fin: string | null): string {
 
 /** "3 oct" (día y mes cortos de Santo Domingo). */
 export const diaMesCorto = (iso: string) => diaMes.format(new Date(iso)).replace(".", "");
+
+const diaMesLargo = new Intl.DateTimeFormat("es-DO", { timeZone: ZONA_HORARIA, day: "numeric", month: "long" });
+
+/** "3 de octubre" (para mensajes; día de Santo Domingo). */
+export const fechaLarga = (iso: string) => diaMesLargo.format(new Date(iso));

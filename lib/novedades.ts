@@ -18,6 +18,12 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.7.0",
+    fecha: "2026-09-29",
+    titulo: "Que tus promos salgan a pasear.",
+    cambios: ["Ahora puedes compartir tus promos: texto, enlace o imagen."],
+  },
+  {
     version: "0.6.1",
     fecha: "2026-09-29",
     titulo: "Con su talón y todo.",

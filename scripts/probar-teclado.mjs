@@ -229,6 +229,22 @@ try {
     await ctx.close();
   }
 
+  // ---- Compartir promo: el mensaje editable
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/promos");
+    await page.waitForSelector("ul li a[href^='/promos/']");
+    await page.waitForTimeout(900);
+    const href = await page.$eval("ul li a[href^='/promos/']", (a) => a.getAttribute("href"));
+    await page.goto(URL + href + "/compartir");
+    await page.waitForSelector('[role="dialog"] textarea');
+    await page.waitForTimeout(1200);
+    await page.fill('[role="dialog"] textarea', ""); // trae el mensaje de la plantilla
+    await probarCampo(page, '[role="dialog"] textarea', "Compartir promo · Mensaje", "Gracias", { dentroDeHoja: true });
+    ok(errores.length === 0, `Compartir promo: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Clientes: buscador y hoja "Cliente nuevo"
   {
     const { ctx, page, errores } = await abrir(navegador);

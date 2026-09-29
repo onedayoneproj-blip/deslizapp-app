@@ -326,6 +326,24 @@ apagado (#E4DDCC, "TERMINADA"); las programadas, en verde con "PROGRAMADA" y
 (`components/promos/tarjeta-promo.tsx`), también usado en la vista previa de
 "Nueva promo".
 
+**Compartir promo** (`components/promos/hoja-compartir.tsx`, ruta
+`/promos/[id]/compartir`): botón "Compartir esta promo" en el detalle de cada
+promo activa o programada (las terminadas no) y, al crear una promo, el aviso
+"¡Lista! ¿La compartes ahora?" con "Compartir" / "Después". La hoja (grande, por
+el campo de texto) muestra la tarjeta de cupón y:
+1. **Compartir…** (Mandarina; Web Share API con la imagen PNG y el texto; si no se
+   pueden compartir archivos, solo texto y enlace; sin `navigator.share` se oculta).
+2. **Mensaje** editable + **Copiar texto**; **Copiar enlace**
+   (`URL_CATALOGO_PUBLICO/{slug}?promo=CODIGO` · `?coleccion=` · `?producto=`; la
+   base está en `lib/config.ts`); **Copiar imagen** (si el navegador deja) y
+   **Guardar imagen**; **Enviar por WhatsApp** (`wa.me/?text=`, sin número).
+- Plantillas por tipo en `lib/mensajes-promo.ts` (código, colección, producto; con
+  o sin fecha de fin; programada: "desde/del … al …").
+- Imagen 1080×1350 dibujada en un canvas (`lib/imagen-promo.ts`, tipografías de
+  marca ya cargadas, logo o iniciales de la tienda, "Hecho con Deslizapp"); se
+  genera al abrir la hoja y queda en memoria, para que las acciones se ejecuten
+  directo dentro del toque. Pesa < 400 KB (si el PNG pasara, JPEG).
+
 **Cómo quedó construida (`components/promos/`):**
 - El estado de cada promo se calcula (`lib/promos.ts`): terminada guardada por el
   dueño → Terminadas; si no, por fechas. Nada se mueve de pestaña a mano.

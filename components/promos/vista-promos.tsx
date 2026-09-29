@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { estadoPromo, pedidosConCodigo } from "@/lib/promos";
@@ -26,6 +27,14 @@ const VACIO: Record<EstadoPromo, { titulo: string; remate: string }> = {
 };
 
 const Contexto = createContext<((p: EstadoPromo) => void) | null>(null);
+const ContextoOferta = createContext<((promo: { id: string; programada: boolean }) => void) | null>(null);
+
+/** Tras crear una promo: "¡Lista! ¿La compartes ahora?" con "Compartir" y "Después". */
+export function useOfrecerCompartir() {
+  const ofrecer = useContext(ContextoOferta);
+  if (!ofrecer) throw new Error("useOfrecerCompartir() debe usarse dentro de <VistaPromos>.");
+  return ofrecer;
+}
 
 /** Cambia la pestaña de la lista (ej. al crear una promo, para ver dónde quedó). */
 export function useElegirPestanaPromos() {
@@ -46,6 +55,15 @@ export function VistaPromos({ children }: { children: ReactNode }) {
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const [pestana, setPestana] = useState<EstadoPromo>("activa");
+  const router = useRouter();
+  const [oferta, setOferta] = useState<{ id: string; programada: boolean } | null>(null);
+  const ofrecer = useCallback((p: { id: string; programada: boolean }) => setOferta(p), []);
+  // El aviso se va solo a los 9 s
+  useEffect(() => {
+    if (!oferta) return;
+    const t = setTimeout(() => setOferta(null), 9000);
+    return () => clearTimeout(t);
+  }, [oferta]);
 
   const conEstado = useMemo(() => (promos ?? []).map((p) => ({ promo: p, estado: estadoPromo(p) })), [promos]);
   const cuentas = useMemo(() => {
@@ -59,6 +77,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
   const vacio = sinPromos ? { titulo: "Aún no tienes promos.", remate: "Crea la primera y mira cómo se deslizan tus productos." } : VACIO[pestana];
 
   return (
+    <ContextoOferta.Provider value={ofrecer}>
     <Contexto.Provider value={setPestana}>
       <TituloPantalla titulo="Promos" subtitulo="Ponle un descuento y mira cómo se deslizan." />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
@@ -111,6 +130,30 @@ export function VistaPromos({ children }: { children: ReactNode }) {
       {/* Sin ninguna promo, el botón del estado vacío ya invita a crear: no se duplica */}
       {!sinPromos && <BotonFlotante href="/promos/nueva" texto="Promo" />}
       {children}
+      {oferta && (
+        <div role="status" className="pointer-events-none fixed inset-x-0 top-[calc(14px+env(safe-area-inset-top))] z-[60] mx-auto max-w-[480px] px-4">
+          <div className="mov-baja pointer-events-auto flex items-center gap-3 rounded-[20px] bg-bosque py-2.5 pr-2.5 pl-4 text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.6)]">
+            <p className="min-w-0 flex-1 text-[14.5px] leading-snug font-bold">
+              ¡Lista! ¿La compartes ahora?
+            </p>
+            <button type="button" onClick={() => setOferta(null)} className="tocable h-10 shrink-0 rounded-full px-3 text-[14px] font-extrabold text-papel/80">
+              Después
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const id = oferta.id;
+                setOferta(null);
+                router.push(`/promos/${id}/compartir`, { scroll: false });
+              }}
+              className="tocable h-10 shrink-0 rounded-full bg-mandarina px-4 text-[14px] font-extrabold text-bosque-oscuro"
+            >
+              Compartir
+            </button>
+          </div>
+        </div>
+      )}
     </Contexto.Provider>
+    </ContextoOferta.Provider>
   );
 }
