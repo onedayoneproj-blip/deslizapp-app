@@ -66,7 +66,7 @@ export function AvisoVersion() {
       role="status"
       className="fixed inset-x-0 top-[calc(10px+env(safe-area-inset-top))] z-[62] mx-auto flex max-w-[480px] justify-center px-3"
     >
-      <div className="flex w-full animate-[bajar-aviso_.3s_cubic-bezier(.2,.8,.3,1)] items-center gap-3 rounded-[22px] bg-bosque py-2.5 pr-2.5 pl-4 text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.6)]">
+      <div className="flex w-full mov-baja items-center gap-3 rounded-[22px] bg-bosque py-2.5 pr-2.5 pl-4 text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.6)]">
         <Isotipo tamano={22} className="shrink-0 text-rosa" />
         <p className="min-w-0 flex-1 text-[14.5px] leading-tight font-bold">Hay una versión nueva</p>
         <button

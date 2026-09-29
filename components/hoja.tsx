@@ -31,6 +31,7 @@ import {
   type PointerEvent as EventoPuntero,
   type ReactNode,
 } from "react";
+import { CURVA as CURVAS, DURACION as DURACIONES } from "@/lib/movimiento";
 import { IconoCerrar } from "./iconos";
 
 export type AlturaHoja = "auto" | "expandible" | "grande";
@@ -46,8 +47,9 @@ const RADIO_ARRIBA_GRANDE = 20;
 const MARGEN_FLOTA = 8;
 /** Radio de las esquinas de la pantalla del iPhone (aprox.): las de abajo de la hoja lo acompañan. */
 const RADIO_PANTALLA = 40;
-const DURACION = 320;
-const CURVA = "cubic-bezier(.2,.8,.3,1)";
+// Tokens del sistema de movimiento (docs/08-movimiento.md).
+const DURACION = DURACIONES.entrada;
+const CURVA = CURVAS.salida;
 
 type Props = {
   abierta: boolean;
@@ -106,6 +108,15 @@ function HojaMontada({
   const saliendo = useRef(false);
   const fuera = useRef(false);
   const reducido = useRef(false);
+  const quitarWillChange = useRef(0);
+  const gesto = useRef<{
+    y0: number;
+    x0: number;
+    yIni: number;
+    desde: "cabecera" | "contenido";
+    decidido: null | "hoja" | "nativo";
+    puntos: { y: number; t: number }[];
+  } | null>(null);
   /** Margen inferior de la hoja flotante en px: max(8px, safe area − 24px), medido de verdad. */
   const margenAbajo = useRef(MARGEN_FLOTA);
 
@@ -126,6 +137,10 @@ function HojaMontada({
       y.current = valor;
       const transicion = animado && !reducido.current ? `transform ${DURACION}ms ${CURVA}, clip-path ${DURACION}ms ${CURVA}` : "none";
       p.style.transition = transicion;
+      // will-change solo mientras se mueve (arrastre o animación), no todo el tiempo.
+      p.style.willChange = "transform";
+      window.clearTimeout(quitarWillChange.current);
+      if (!gesto.current) quitarWillChange.current = window.setTimeout(() => (p.style.willChange = ""), animado ? DURACION + 50 : 100);
       p.style.transform = `translate3d(0, ${valor}px, 0)`;
       const alto = p.offsetHeight;
       const media = altura === "expandible" ? Math.max(0, alto - vista.alto * ALTO_MEDIA) : 0;
@@ -203,8 +218,12 @@ function HojaMontada({
     return () => window.clearTimeout(t);
   }, [abierta, aplicar, alDesmontar]);
 
-  // Si cambia el alto visible (teclado, rotación), se reacomoda sin animar.
+  // Si cambia el alto visible (teclado, rotación), se reacomoda sin animar. No al montar: ahí
+  // manda la animación de entrada (si corriera también, la hoja aparecería de golpe).
+  const altoMontado = useRef(vista.alto);
   useLayoutEffect(() => {
+    if (vista.alto === altoMontado.current) return;
+    altoMontado.current = vista.alto;
     if (!saliendo.current) aplicar(yDe(nivelRef.current), false);
   }, [vista.alto, aplicar, yDe]);
 
@@ -265,14 +284,6 @@ function HojaMontada({
   }, [cerrar]);
 
   // ---- Arrastre ----
-  const gesto = useRef<{
-    y0: number;
-    x0: number;
-    yIni: number;
-    desde: "cabecera" | "contenido";
-    decidido: null | "hoja" | "nativo";
-    puntos: { y: number; t: number }[];
-  } | null>(null);
 
   const mover = useCallback(
     (valor: number) => {
@@ -396,7 +407,7 @@ function HojaMontada({
         aria-modal="true"
         aria-labelledby={idTitulo}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel outline-none will-change-transform"
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel outline-none"
         style={{
           ...(altura === "auto" ? { maxHeight: altoPx } : { height: altoPx }),
           transform: "translate3d(0, 100%, 0)",
@@ -408,9 +419,14 @@ function HojaMontada({
           onPointerMove={alMoverPuntero}
           onPointerUp={alSoltarPuntero}
           onPointerCancel={alSoltarPuntero}
-          className={`shrink-0 touch-none px-5 pt-2.5 pb-3 transition-shadow ${conSombra ? "shadow-[0_6px_12px_-10px_rgba(23,75,58,0.45)]" : ""}`}
-          style={{ borderBottom: `1px solid ${conSombra ? "var(--color-linea)" : "transparent"}` }}
+          className="relative shrink-0 touch-none px-5 pt-2.5 pb-3"
         >
+          {/* Línea bajo la cabecera cuando el contenido está desplazado: aparece con un fundido */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-0 bottom-0 h-px bg-linea transition-opacity duration-(--mov-rapida)"
+            style={{ opacity: conSombra ? 1 : 0 }}
+          />
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-[#e2d5bf]" />
           <div className="flex items-center justify-between gap-3">
             <h2 id={idTitulo} className="font-display text-2xl text-bosque">

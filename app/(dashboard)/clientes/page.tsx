@@ -2,6 +2,7 @@
 
 import { EstadoVacio } from "@/components/estado-vacio";
 import { IconoClientes } from "@/components/iconos";
+import { Pantalla } from "@/components/pantalla";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -12,7 +13,7 @@ export default function ClientesPage() {
   const { data: clientes } = useConsulta(`clientes:${tiendaActivaId}`, () => getClientes(tiendaActivaId));
 
   return (
-    <>
+    <Pantalla>
       <TituloPantalla titulo="Clientes" subtitulo="Los que ya dijeron aaah. Y los que están por decirlo." />
       <EstadoVacio
         icono={<IconoClientes tamano={28} />}
@@ -24,6 +25,6 @@ export default function ClientesPage() {
         }
         nota="ya casi"
       />
-    </>
+    </Pantalla>
   );
 }

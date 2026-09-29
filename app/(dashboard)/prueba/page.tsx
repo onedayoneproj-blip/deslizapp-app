@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Foto } from "@/components/foto";
 import { IconoCorazon } from "@/components/iconos";
+import { Pantalla } from "@/components/pantalla";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useToast } from "@/components/toast";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -51,7 +52,7 @@ export default function PruebaPage() {
   };
 
   return (
-    <>
+    <Pantalla>
       <TituloPantalla
         titulo="Laboratorio de datos"
         subtitulo={tienda ? `Solo lo de ${tienda.nombre}. Si aparece algo de otra tienda, algo anda mal.` : undefined}
@@ -79,7 +80,7 @@ export default function PruebaPage() {
           type="button"
           onClick={crearDePrueba}
           disabled={creando}
-          className="w-full rounded-full bg-mandarina px-5 py-3.5 font-semibold text-bosque-oscuro shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+          className="w-full rounded-full bg-mandarina px-5 py-3.5 font-semibold text-bosque-oscuro shadow-sm tocable disabled:opacity-60"
         >
           + Crear producto de prueba
         </button>
@@ -112,6 +113,6 @@ export default function PruebaPage() {
           </li>
         ))}
       </ul>
-    </>
+    </Pantalla>
   );
 }

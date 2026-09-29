@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import type { Novedad } from "@/lib/novedades";
 import { IconoChispa } from "../iconos";
 import { Isotipo } from "../marca";
@@ -9,18 +9,25 @@ const fechaCorta = new Intl.DateTimeFormat("es-DO", { day: "numeric", month: "sh
 
 /** Pantalla de novedades: fondo Verde Bosque, títulos en Fredoka y botón Mandarina (firma de marca). */
 export function PantallaNovedades({ novedades, alCerrar }: { novedades: Novedad[]; alCerrar: () => void }) {
+  // Sale con movimiento (baja y se desvanece) y recién ahí se desmonta.
+  const [saliendo, setSaliendo] = useState(false);
+  const cerrar = useCallback(() => setSaliendo(true), []);
+
   useEffect(() => {
-    const alTeclear = (e: KeyboardEvent) => e.key === "Escape" && alCerrar();
+    const alTeclear = (e: KeyboardEvent) => e.key === "Escape" && cerrar();
     window.addEventListener("keydown", alTeclear);
     return () => window.removeEventListener("keydown", alTeclear);
-  }, [alCerrar]);
+  }, [cerrar]);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="novedades-titulo"
-      className="fixed inset-0 z-[65] mx-auto flex max-w-[480px] animate-[aparecer_.3s_ease] flex-col overflow-y-auto bg-bosque px-6 pt-[calc(40px+env(safe-area-inset-top))] pb-[calc(24px+env(safe-area-inset-bottom))] text-papel"
+      onAnimationEnd={(e) => {
+        if (saliendo && e.target === e.currentTarget) alCerrar();
+      }}
+      className={`${saliendo ? "mov-baja-sale" : "mov-aparece"} fixed inset-0 z-[65] mx-auto flex max-w-[480px] flex-col overflow-y-auto bg-bosque px-6 pt-[calc(40px+env(safe-area-inset-top))] pb-[calc(24px+env(safe-area-inset-bottom))] text-papel`}
     >
       <div className="flex items-center gap-2.5">
         <Isotipo tamano={34} className="text-rosa" />
@@ -38,8 +45,8 @@ export function PantallaNovedades({ novedades, alCerrar }: { novedades: Novedad[
             </p>
             {n !== novedades[0] && <h2 className="mt-1 font-display text-xl">{n.titulo}</h2>}
             <ul className="mt-3 flex flex-col gap-3">
-              {n.cambios.map((c) => (
-                <li key={c} className="flex gap-3 text-[15.5px] leading-snug">
+              {n.cambios.map((c, i) => (
+                <li key={c} className="mov-escalonado flex gap-3 text-[15.5px] leading-snug" style={{ "--i": i + 2 } as CSSProperties}>
                   <IconoChispa tamano={18} className="mt-0.5 shrink-0 text-mandarina" />
                   <span>{c}</span>
                 </li>
@@ -51,9 +58,9 @@ export function PantallaNovedades({ novedades, alCerrar }: { novedades: Novedad[
 
       <button
         type="button"
-        onClick={alCerrar}
+        onClick={cerrar}
         autoFocus
-        className="mt-8 h-14 w-full shrink-0 rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro transition active:scale-[0.98]"
+        className="mt-8 h-14 w-full shrink-0 rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro tocable"
       >
         ¡A deslizar!
       </button>

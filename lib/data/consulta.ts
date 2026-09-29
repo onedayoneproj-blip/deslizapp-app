@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { addTransitionType, startTransition, useEffect, useRef, useState } from "react";
+import { TRANSICION } from "../movimiento";
 import { useData } from "./provider";
 
 /**
@@ -17,10 +18,21 @@ export function useConsulta<T>(clave: string, consulta: () => Promise<T>): { dat
     consultaActual.current = consulta;
   });
 
+  // Última clave respondida: si llega otra versión de la misma consulta, es un cambio de datos.
+  const claveRespondida = useRef<string | null>(null);
+
   useEffect(() => {
     let vigente = true;
     consultaActual.current().then((data) => {
-      if (vigente) setResultado({ clave, version, data });
+      if (!vigente) return;
+      const esCambio = claveRespondida.current === clave;
+      claveRespondida.current = clave;
+      // Un cambio de datos va en una transición con tipo: las listas animan lo que entra, sale o
+      // se mueve (docs/08-movimiento.md). La primera carga no se anima (ni hace esperar).
+      startTransition(() => {
+        if (esCambio) addTransitionType(TRANSICION.datos);
+        setResultado({ clave, version, data });
+      });
     });
     return () => {
       vigente = false;

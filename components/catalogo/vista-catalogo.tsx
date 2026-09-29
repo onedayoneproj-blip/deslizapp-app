@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { addTransitionType, startTransition, useMemo, useState, ViewTransition, type CSSProperties } from "react";
+import { TRANSICION } from "@/lib/movimiento";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { precioConPromo } from "@/lib/promos";
 import type { Producto, Promo } from "@/lib/types";
-import { Chip } from "../controles";
+import { Segmentos } from "../controles";
+import { Esqueleto } from "../esqueleto";
+import { Numero } from "../numero";
+import { usePrimeraVez } from "../primera-vez";
 import { Foto } from "../foto";
 import { IconoBuscar } from "../iconos";
 import { BotonFlotante } from "../panel/boton-flotante";
+import { Pantalla } from "../pantalla";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
 
@@ -23,6 +28,11 @@ const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[
   { id: "agotados", nombre: "Agotados", cumple: (p) => p.stock === 0 },
   { id: "ocultos", nombre: "Ocultos", cumple: (p) => !p.activo },
 ];
+
+// Los productos solo se animan al filtrar o cuando cambian los datos (nunca en la primera carga).
+const ITEM_ENTRA = { [TRANSICION.lista]: "mov-item-entra", [TRANSICION.datos]: "mov-item-entra", default: "none" };
+const ITEM_SALE = { [TRANSICION.lista]: "mov-item-sale", [TRANSICION.datos]: "mov-item-sale", default: "none" };
+const ITEM_MUEVE = { [TRANSICION.lista]: "mov-item-mueve", [TRANSICION.datos]: "mov-item-mueve", default: "none" };
 
 /** "Shé" → "she": para buscar sin que importen tildes ni mayúsculas. */
 const normalizar = (texto: string) =>
@@ -39,14 +49,18 @@ export function VistaCatalogo() {
   const { abrirPlan } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
+  // para que los productos entren, salgan y se reacomoden con suavidad.
   const [busqueda, setBusqueda] = useState("");
+  const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
+  const escalonar = usePrimeraVez("catalogo");
 
   const visibles = useMemo(() => {
     const cumple = FILTROS.find((f) => f.id === filtro)!.cumple;
-    const q = normalizar(busqueda);
+    const q = normalizar(busquedaAplicada);
     return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
-  }, [productos, filtro, busqueda]);
+  }, [productos, filtro, busquedaAplicada]);
 
   const usados = productos?.length ?? 0;
   const limite = tienda?.limiteProductos ?? 0;
@@ -54,10 +68,11 @@ export function VistaCatalogo() {
   const porcentaje = limite ? Math.min(100, Math.round((usados / limite) * 100)) : 0;
 
   return (
-    <>
+    <Pantalla>
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." />
 
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
+        {!(tienda && productos) && <Esqueleto className="h-[92px] rounded-[22px]" />}
         {tienda && productos && (
           <button
             type="button"
@@ -66,12 +81,17 @@ export function VistaCatalogo() {
           >
             <span className="flex items-baseline justify-between gap-2.5">
               <span className="text-[15px] font-extrabold">
-                {lleno ? `Catálogo lleno: ${usados} de ${limite}` : `${usados} de ${limite} productos`}
+                {lleno ? "Catálogo lleno: " : ""}
+                <Numero valor={usados} /> de {limite}
+                {lleno ? "" : " productos"}
               </span>
               <span className="text-[13px] font-bold underline">{lleno ? "Subir de plan" : "Ver plan"}</span>
             </span>
             <span className="mt-2.5 block h-2.5 overflow-hidden rounded-full bg-papel">
-              <span className="block h-2.5 rounded-full bg-bosque" style={{ width: `${porcentaje}%` }} />
+              <span
+                className="block h-2.5 origin-left rounded-full bg-bosque transition-transform duration-(--mov-normal) ease-(--curva-salida)"
+                style={{ transform: `scaleX(${porcentaje / 100})` }}
+              />
             </span>
             <span className="mt-[7px] block text-[13px] font-semibold">
               {lleno
@@ -87,38 +107,69 @@ export function VistaCatalogo() {
           <input
             type="search"
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={(e) => {
+              const valor = e.target.value;
+              setBusqueda(valor);
+              startTransition(() => {
+                addTransitionType(TRANSICION.lista);
+                setBusquedaAplicada(valor);
+              });
+            }}
             placeholder="Busca un producto"
             className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
           />
         </label>
 
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none]">
-          {FILTROS.map((f) => (
-            <Chip key={f.id} elegido={filtro === f.id} onClick={() => setFiltro(f.id)}>
-              {f.nombre} {productos?.filter(f.cumple).length ?? ""}
-            </Chip>
-          ))}
+        <div className="-mx-5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none]">
+          <Segmentos
+            etiqueta="Filtrar productos"
+            valor={filtro}
+            alCambiar={(id) =>
+              startTransition(() => {
+                addTransitionType(TRANSICION.lista);
+                setFiltro(id);
+              })
+            }
+            opciones={FILTROS.map((f) => ({
+              id: f.id,
+              texto: (
+                <>
+                  {f.nombre} {productos ? <Numero valor={productos.filter(f.cumple).length} /> : ""}
+                </>
+              ),
+            }))}
+          />
         </div>
 
         {productos && visibles.length === 0 && (
-          <div className="px-2.5 py-8 text-center text-suave">
+          <div className="mov-aparece px-2.5 py-8 text-center text-suave">
             <p className="font-display text-xl text-bosque">Nada por aquí.</p>
             <p>{productos.length === 0 ? "Tu vitrina está esperando su primera estrella." : "Ni un suspiro. Prueba con otro filtro."}</p>
           </div>
         )}
 
         <ul className="grid grid-cols-2 gap-x-3 gap-y-4">
-          {visibles.map((p) => (
-            <li key={p.id}>
-              <TarjetaProducto producto={p} promos={promos ?? []} />
-            </li>
+          {!productos &&
+            Array.from({ length: 4 }, (_, i) => (
+              <li key={i}>
+                <Esqueleto className="aspect-[4/5] rounded-[20px]" />
+                <Esqueleto className="mt-2 h-3.5 w-3/4 rounded-full" />
+                <Esqueleto className="mt-1.5 h-3.5 w-1/2 rounded-full" />
+              </li>
+            ))}
+          {visibles.map((p, i) => (
+            // Cada producto entra, sale y se reacomoda con suavidad al crear, desactivar o filtrar.
+            <ViewTransition key={p.id} name={`producto-${p.id}`} enter={ITEM_ENTRA} exit={ITEM_SALE} update={ITEM_MUEVE} default="none">
+              <li className={escalonar ? "mov-escalonado" : undefined} style={escalonar ? ({ "--i": i } as CSSProperties) : undefined}>
+                <TarjetaProducto producto={p} promos={promos ?? []} />
+              </li>
+            </ViewTransition>
           ))}
         </ul>
       </div>
 
       <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />
-    </>
+    </Pantalla>
   );
 }
 
@@ -139,7 +190,7 @@ function TarjetaProducto({ producto: p, promos }: { producto: Producto; promos: 
       href={`/catalogo/${p.id}`}
       scroll={false}
       aria-label={`Editar ${p.nombre}`}
-      className={`block text-bosque ${p.activo ? "" : "opacity-60"}`}
+      className={`tocable block text-bosque ${p.activo ? "" : "opacity-60"}`}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
         {p.fotos[0] ? (

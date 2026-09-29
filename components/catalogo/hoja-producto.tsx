@@ -219,21 +219,32 @@ function FormularioProducto({
       />
       {foto ? (
         <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-arena">
-          <Foto
-            src={retoqueListo && vista === "despues" ? retocada!.url : foto}
-            alt={retoqueListo && vista === "despues" ? "Foto del producto, retocada" : "Foto del producto"}
-            className="h-full w-full"
-            sizes="440px"
-          />
+          {/* Antes (abajo) y después (encima): se pasa de una a otra con un fundido, sin corte. */}
+          <Foto src={foto} alt="Foto del producto" className="h-full w-full" sizes="440px" />
+          {retocada?.de === foto && (
+            <span
+              aria-hidden={!(retoqueListo && vista === "despues")}
+              className="absolute inset-0 transition-opacity duration-(--mov-normal) ease-(--curva-salida)"
+              style={{ opacity: retoqueListo && vista === "despues" ? 1 : 0 }}
+            >
+              <Foto src={retocada.url} alt="Foto del producto, retocada" className="h-full w-full" sizes="440px" />
+            </span>
+          )}
           {retoqueActivo && (
-            <div role="group" aria-label="Comparar foto" className="absolute top-3 left-3 flex gap-0.5 rounded-full bg-papel/90 p-[3px]">
+            <div role="group" aria-label="Comparar foto" className="mov-aparece absolute top-3 left-3 grid grid-cols-2 rounded-full bg-papel/90 p-[3px]">
+              {/* Indicador que se desliza entre Antes y Después */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-full bg-bosque transition-transform duration-(--mov-normal) ease-(--curva-salida)"
+                style={{ transform: vista === "despues" ? "translateX(100%)" : "none" }}
+              />
               {(["antes", "despues"] as const).map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => setVista(v)}
                   aria-pressed={vista === v}
-                  className={`h-[34px] rounded-full px-3.5 text-[13px] font-extrabold ${vista === v ? "bg-bosque text-papel" : "text-bosque"}`}
+                  className={`tocable relative h-[34px] rounded-full px-3.5 text-[13px] font-extrabold ${vista === v ? "text-papel" : "text-bosque"}`}
                 >
                   {v === "antes" ? "Antes" : "Después"}
                 </button>
@@ -241,7 +252,7 @@ function FormularioProducto({
             </div>
           )}
           {procesandoRetoque && (
-            <div className="absolute inset-0 grid place-items-center bg-papel/40">
+            <div className="mov-aparece absolute inset-0 grid place-items-center bg-papel/40">
               <span className="rounded-full bg-bosque px-4 py-2 text-sm font-extrabold text-papel">Poniéndole la luz…</span>
             </div>
           )}
@@ -253,7 +264,7 @@ function FormularioProducto({
             <IconoCamara tamano={18} /> Cambiar foto
           </button>
           {((retoqueListo && vista === "despues") || (!retoqueActivo && yaRetocada)) && (
-            <span className="absolute right-3 bottom-3 rounded-full bg-bosque px-3 py-1.5 text-[12.5px] font-extrabold text-papel">
+            <span className="mov-aparece absolute right-3 bottom-3 rounded-full bg-bosque px-3 py-1.5 text-[12.5px] font-extrabold text-papel">
               {retoqueActivo ? "Retocada ✦" : "Ya está retocada"}
             </span>
           )}
@@ -273,10 +284,16 @@ function FormularioProducto({
 
       {/* Retoque */}
       <div
-        className={`flex flex-col gap-2.5 rounded-[22px] px-4 py-3.5 ${
-          !alcanzan ? "bg-arena" : retoqueActivo ? "bg-mandarina text-bosque-oscuro" : "bg-rosa"
+        className={`relative isolate flex flex-col gap-2.5 overflow-hidden rounded-[22px] px-4 py-3.5 ${
+          !alcanzan ? "bg-arena" : retoqueActivo ? "bg-rosa text-bosque-oscuro" : "bg-rosa"
         }`}
       >
+        {/* Al prender el retoque, la tarjeta pasa a Mandarina con un fundido (capa de opacidad). */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-mandarina transition-opacity duration-(--mov-normal) ease-(--curva-salida)"
+          style={{ opacity: retoqueActivo ? 1 : 0 }}
+        />
         <div className="flex items-center gap-3">
           <span className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[14px] bg-bosque text-papel">
             <IconoCreditos tamano={22} />
@@ -412,7 +429,7 @@ function FormularioProducto({
         type="button"
         onClick={guardar}
         disabled={guardando || procesandoFoto || procesandoRetoque}
-        className="h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel transition active:scale-[0.98] disabled:opacity-60"
+        className="h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel tocable disabled:opacity-60"
       >
         {retoqueActivo
           ? `${producto ? "Guardar" : "Publicar"} · −${CREDITOS_POR_RETOQUE} créditos`

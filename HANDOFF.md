@@ -19,6 +19,7 @@ orden:
 5. `docs/05-arquitectura.md` — cómo se construye esto con datos falsos hoy sin tener que rehacerlo cuando se conecte Supabase.
 6. `docs/06-orden-de-construccion.md` — en qué orden construir, y el criterio de "listo" de cada paso.
 7. `docs/07-fase-2-cuentas-y-cobros.md` — **solo lectura por ahora:** decisiones ya tomadas para la fase 2 (verificación de Instagram, zona de administración, cobros manuales). No se construye en la primera entrega.
+8. `docs/08-movimiento.md` — el sistema de movimiento: cómo se anima todo (reglas obligatorias para lo nuevo).
 
 Además, en `referencias/` está el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, ábrelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y créditos (ver `referencias/LEEME.md`).
 
@@ -30,6 +31,16 @@ Si el cambio sale en una versión nueva, se agrega una entrada nueva arriba
 app después del despliegue, cada persona ve esas novedades una sola vez (la
 primera vez que alguien entra no se le muestran). La versión actual se ve en
 el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
+
+## Regla permanente: movimiento
+
+**Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`:** tokens de
+movimiento (`--mov-*`, `--curva-*` en `app/globals.css` y `lib/movimiento.ts`),
+solo `transform` y `opacity`, nada que haga esperar un toque y respeto por
+`prefers-reduced-motion`. Las pantallas envuelven su contenido en `<Pantalla>`
+y las navegaciones llevan su tipo (`TRANSICION`); los elementos tocables,
+números, listas, avisos y cargas usan los componentes base (`tocable`,
+`Numero`, `Segmentos`, `Esqueleto`, `Foto`…). Nada cambia "de corte".
 
 ## Hojas inferiores
 

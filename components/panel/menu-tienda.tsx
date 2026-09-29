@@ -67,7 +67,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
                 type="button"
                 onClick={() => elegirTienda(t.id)}
                 aria-pressed={activa}
-                className={`flex w-full items-center gap-3 rounded-[18px] border-[1.5px] px-3 py-2.5 text-left transition-colors ${
+                className={`flex w-full items-center gap-3 rounded-[18px] border-[1.5px] px-3 py-2.5 text-left ${
                   activa ? "border-bosque bg-white" : "border-borde bg-white/60 hover:border-bosque/40"
                 }`}
               >

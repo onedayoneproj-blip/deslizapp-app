@@ -3,7 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { IconoCheck } from "./iconos";
 
-type Toast = { id: number; texto: string };
+type Toast = { id: number; texto: string; saliendo: boolean };
+
+/** Lo que dura a la vista y lo que tarda en irse (igual a --mov-rapida). */
+const VISIBLE = 3000;
+const SALIDA = 150;
 
 const Contexto = createContext<((texto: string) => void) | null>(null);
 
@@ -14,8 +18,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const mostrar = useCallback((texto: string) => {
     clearTimeout(temporizador.current);
-    setToast({ id: Date.now(), texto });
-    temporizador.current = setTimeout(() => setToast(null), 3000);
+    setToast({ id: Date.now(), texto, saliendo: false });
+    // Primero sale con movimiento; después se quita.
+    temporizador.current = setTimeout(() => {
+      setToast((t) => t && { ...t, saliendo: true });
+      temporizador.current = setTimeout(() => setToast(null), SALIDA);
+    }, VISIBLE);
   }, []);
 
   useEffect(() => () => clearTimeout(temporizador.current), []);
@@ -31,7 +39,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toast && (
           <div
             key={toast.id}
-            className="flex max-w-full animate-[bajar-aviso_.3s_cubic-bezier(.2,.8,.3,1)] items-center gap-2.5 rounded-[20px] bg-bosque px-4 py-3 text-[14.5px] font-bold text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.6)]"
+            className={`${toast.saliendo ? "mov-sube-sale" : "mov-baja"} flex max-w-full items-center gap-2.5 rounded-[20px] bg-bosque px-4 py-3 text-[14.5px] font-bold text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.6)]`}
           >
             <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-mandarina text-bosque-oscuro">
               <IconoCheck tamano={16} strokeWidth={3} />

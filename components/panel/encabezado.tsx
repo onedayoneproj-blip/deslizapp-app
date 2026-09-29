@@ -3,7 +3,9 @@
 import { useCallback, useState } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useTiendaActiva } from "@/lib/data/consulta";
+import { Esqueleto } from "../esqueleto";
 import { IconoChevronAbajo, IconoCreditos } from "../iconos";
+import { Numero } from "../numero";
 import { LogoTienda } from "./logo-tienda";
 import { MenuTienda } from "./menu-tienda";
 import { usePanelUI } from "./ui";
@@ -29,7 +31,7 @@ export function Encabezado() {
           aria-label={tienda ? `${tienda.nombre}: cambiar de tienda` : "Cambiar de tienda"}
           className="flex min-w-0 items-center gap-2.5 text-left"
         >
-          {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <span className="h-[42px] w-[42px] rounded-[13px] bg-rosa" />}
+          {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />}
           <span className="min-w-0">
             <span className="flex items-center gap-1">
               <span className="truncate text-base leading-tight font-extrabold">{tienda?.nombre ?? " "}</span>
@@ -41,6 +43,7 @@ export function Encabezado() {
           </span>
         </button>
 
+        {!tienda && <Esqueleto className="h-10 w-[118px] rounded-full" />}
         {tienda && (
           <button
             type="button"
@@ -49,7 +52,7 @@ export function Encabezado() {
             className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-bosque bg-white pr-3.5 pl-[11px] text-sm font-extrabold"
           >
             <IconoCreditos tamano={18} className="text-mandarina" />
-            <span className="tabular-nums">{tienda.creditosRetoque}</span> créditos
+            <Numero valor={tienda.creditosRetoque} /> créditos
           </button>
         )}
       </header>

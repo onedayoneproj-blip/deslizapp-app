@@ -29,7 +29,9 @@ import {
 } from "react";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { RESORTE, TRANSICION } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
+import { Numero } from "../numero";
 
 type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number; strokeWidth?: number }> };
 
@@ -52,9 +54,11 @@ const RELLENO = 14;
 const ESTIRA_MAX = 0.28;
 /** Cuánto hay que entrar en la pestaña vecina (fracción de su ancho) para que el selector salte. */
 const UMBRAL_SALTO = 0.5;
-/** Resorte: rígido y casi crítico (un rebote apenas perceptible). */
-const RIGIDEZ = 620;
-const AMORTIGUACION = 2 * Math.sqrt(RIGIDEZ) * 0.8;
+/** Resorte del sistema de movimiento (lib/movimiento.ts): rígido y casi crítico. */
+const RIGIDEZ = RESORTE.rigidez;
+const AMORTIGUACION = RESORTE.amortiguacion;
+/** Las pestañas navegan con el tipo "pestaña": la pantalla cambia con un fundido corto. */
+const TIPOS_PESTANA = [TRANSICION.pestana];
 
 function indiceDe(pathname: string) {
   const i = SECCIONES.findIndex(({ href }) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`)));
@@ -135,6 +139,12 @@ export function NavInferior() {
     centro.style.transform = `translate3d(${L + r - 0.5}px,0,0) scaleX(${Math.max(0, ancho - 2 * r + 1)})`;
   }, []);
 
+  /** will-change solo mientras el resorte se mueve. */
+  const marcarWillChange = useCallback((activo: boolean) => {
+    const { izq, centro, der } = piezas.current;
+    for (const el of [izq, centro, der]) if (el) el.style.willChange = activo ? "transform" : "";
+  }, []);
+
   const paso = useCallback(
     (t: number) => {
       const s = resorte.current;
@@ -153,10 +163,11 @@ export function NavInferior() {
         s.vL = s.vR = 0;
         s.raf = 0;
         s.ultimo = 0;
+        marcarWillChange(false);
       } else s.raf = requestAnimationFrame(paso);
       pintar();
     },
-    [pintar],
+    [pintar, marcarWillChange],
   );
 
   /** Lleva el selector a (izq, der): con resorte o directo. */
@@ -171,9 +182,12 @@ export function NavInferior() {
         pintar();
         return;
       }
-      if (!s.raf) s.raf = requestAnimationFrame(paso);
+      if (!s.raf) {
+        marcarWillChange(true);
+        s.raf = requestAnimationFrame(paso);
+      }
     },
-    [paso, pintar],
+    [paso, pintar, marcarWillChange],
   );
 
   useEffect(() => () => cancelAnimationFrame(resorte.current.raf), []);
@@ -245,7 +259,7 @@ export function NavInferior() {
     if (medidas) llevar(reposo(g.cubierta, medidas), true);
     if (g.cubierta !== activa) {
       setTocada({ indice: g.cubierta, desde: pathname });
-      router.push(SECCIONES[g.cubierta]!.href);
+      router.push(SECCIONES[g.cubierta]!.href, { transitionTypes: TIPOS_PESTANA });
     }
   };
 
@@ -257,7 +271,12 @@ export function NavInferior() {
   };
 
   return (
-    <nav aria-label="Secciones" className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-(--nav-margen)">
+    <nav
+      aria-label="Secciones"
+      // Anclada durante las transiciones de pantalla: no se mueve (ver globals.css).
+      style={{ viewTransitionName: "barra-nav" }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-(--nav-margen)"
+    >
       <div className="pointer-events-auto h-(--nav-alto) rounded-full border border-linea bg-white p-1.5 shadow-[0_8px_24px_-12px_rgba(23,75,58,0.35)]">
         <div
           ref={pista}
@@ -276,15 +295,15 @@ export function NavInferior() {
           <span aria-hidden="true" data-selector className={`pointer-events-none absolute inset-0 ${medidas ? "" : "opacity-0"}`}>
             <span
               ref={(el) => void (piezas.current.izq = el)}
-              className="absolute inset-y-0 left-0 rounded-l-full bg-rosa will-change-transform"
+              className="absolute inset-y-0 left-0 rounded-l-full bg-rosa"
             />
             <span
               ref={(el) => void (piezas.current.centro = el)}
-              className="absolute inset-y-0 left-0 w-px origin-left bg-rosa will-change-transform"
+              className="absolute inset-y-0 left-0 w-px origin-left bg-rosa"
             />
             <span
               ref={(el) => void (piezas.current.der = el)}
-              className="absolute inset-y-0 left-0 rounded-r-full bg-rosa will-change-transform"
+              className="absolute inset-y-0 left-0 rounded-r-full bg-rosa"
             />
           </span>
 
@@ -306,6 +325,7 @@ export function NavInferior() {
                   </span>
                   <Link
                     href={href}
+                    transitionTypes={TIPOS_PESTANA}
                     draggable={false}
                     aria-current={esActiva ? "page" : undefined}
                     aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "pedido nuevo" : "pedidos nuevos"}` : undefined}
@@ -316,15 +336,15 @@ export function NavInferior() {
                       }
                       if (i !== activa) setTocada({ indice: i, desde: pathname });
                     }}
-                    className={`flex h-full flex-col items-center justify-center gap-[3px] rounded-full outline-none focus-visible:ring-2 focus-visible:ring-bosque focus-visible:ring-inset motion-safe:transition-colors motion-safe:duration-150 ${
+                    className={`tocable flex h-full flex-col items-center justify-center gap-[3px] rounded-full outline-none focus-visible:ring-2 focus-visible:ring-bosque focus-visible:ring-inset ${
                       marcada ? "text-bosque" : "text-tenue"
                     }`}
                   >
                     <span className="relative">
                       <Icono tamano={22} strokeWidth={marcada ? 2.3 : 2} />
                       {badge > 0 && (
-                        <span className="absolute -top-1.5 -right-3 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-mandarina px-1 text-[10.5px] leading-none font-extrabold text-bosque-oscuro">
-                          {badge}
+                        <span className="mov-aparece absolute -top-1.5 -right-3 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-mandarina px-1 text-[10.5px] leading-none font-extrabold text-bosque-oscuro">
+                          <Numero valor={badge} />
                         </span>
                       )}
                     </span>

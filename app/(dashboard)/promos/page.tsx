@@ -2,6 +2,7 @@
 
 import { EstadoVacio } from "@/components/estado-vacio";
 import { IconoPromos } from "@/components/iconos";
+import { Pantalla } from "@/components/pantalla";
 import { TituloPantalla } from "@/components/panel/titulo-pantalla";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -13,7 +14,7 @@ export default function PromosPage() {
   const activas = promos?.filter((p) => p.estado === "activa").length ?? 0;
 
   return (
-    <>
+    <Pantalla>
       <TituloPantalla titulo="Promos" subtitulo="Ponle un descuento y mira cómo se deslizan." />
       <EstadoVacio
         icono={<IconoPromos tamano={28} />}
@@ -25,6 +26,6 @@ export default function PromosPage() {
         }
         nota="ya casi"
       />
-    </>
+    </Pantalla>
   );
 }
