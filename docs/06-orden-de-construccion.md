@@ -68,6 +68,9 @@ abre Plan y créditos con el plan y el saldo de la tienda activa.
   hidratación)
 - Las variables de Supabase se agregarán en Vercel (Settings → Environment
   Variables) cuando se conecte la base de datos
+- App instalable (PWA): manifiesto, íconos con el isotipo, service worker
+  (red primero; caché solo para imágenes, fuentes e íconos), aviso "Hay una
+  versión nueva" y pantalla de novedades (`lib/novedades.ts`, ver HANDOFF.md)
 
 **Listo cuando:** la app publicada abre en el celular, carga los datos de
 prueba y no muestra errores de hidratación en la consola.

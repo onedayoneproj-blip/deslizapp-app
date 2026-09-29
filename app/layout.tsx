@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Figtree, Fredoka } from "next/font/google";
+import { AvisoVersion } from "@/components/pwa/aviso-version";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -21,10 +22,13 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: "deslizapp · Tu tienda",
   description: "Eso que te encanta, aparece.",
+  applicationName: "deslizapp",
+  appleWebApp: { capable: true, title: "deslizapp", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FFF9EE",
+  themeColor: "#174B3A",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -33,7 +37,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <AvisoVersion />
+      </body>
     </html>
   );
 }

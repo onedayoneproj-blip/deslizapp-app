@@ -5,10 +5,13 @@ import { useState, type ReactNode } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
 import { IconoCheck, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
 import { useToast } from "../toast";
+import { Logotipo } from "../marca";
 import { LogoTienda } from "./logo-tienda";
+import { usePanelUI } from "./ui";
 
 /**
  * Menú de la tienda: selector de tienda activa + acciones de la demo.
@@ -18,6 +21,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   const { tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, reiniciarDemo } = useData();
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const toast = useToast();
+  const { abrirNovedades } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
 
   const cerrar = () => {
@@ -108,6 +112,22 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
             <span className="block text-xs text-suave">Para comprobar que cada tienda ve solo lo suyo.</span>
           </span>
         </Link>
+      </div>
+
+      <div className="mt-5 flex items-center justify-between gap-3 px-1 text-[13px] text-suave">
+        <span>
+          <Logotipo className="text-bosque" /> · versión {VERSION_ACTUAL}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            cerrar();
+            abrirNovedades();
+          }}
+          className="font-extrabold text-bosque underline"
+        >
+          Ver novedades
+        </button>
       </div>
     </Hoja>
   );

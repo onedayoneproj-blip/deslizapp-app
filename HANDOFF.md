@@ -22,6 +22,24 @@ orden:
 
 Además, en `referencias/` está el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, ábrelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y créditos (ver `referencias/LEEME.md`).
 
+## Regla permanente: novedades
+
+**Cada cambio visible para el usuario suma una línea a `lib/novedades.ts`.**
+Si el cambio sale en una versión nueva, se agrega una entrada nueva arriba
+(número mayor, fecha y de 2 a 4 líneas cortas en tono de marca). Al abrir la
+app después del despliegue, cada persona ve esas novedades una sola vez (la
+primera vez que alguien entra no se le muestran). La versión actual se ve en
+el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
+
+## App instalable (PWA)
+
+- `app/manifest.ts` + íconos en `public/icons/` (se regeneran con
+  `node scripts/generar-iconos.mjs` a partir del isotipo).
+- `public/sw.js` (solo en producción): red primero para páginas y código,
+  caché para imágenes, fuentes e íconos. Nunca guarda HTML por adelantado.
+- Aviso "Hay una versión nueva": compara el despliegue compilado
+  (`NEXT_PUBLIC_ID_DESPLIEGUE`, ver `next.config.ts`) con `/api/version`.
+
 ## Importante sobre esta versión de Next.js
 
 Este proyecto usa **Next.js 16** (App Router), que tiene cambios respecto a
@@ -33,10 +51,13 @@ ahí está la documentación exacta de esta versión instalada.
 
 ## Estado actual del repo
 
-- Next.js 16 + TypeScript + Tailwind v4 + App Router, ya creado y funcionando (`npm run dev`).
-- Sin pantallas todavía — `app/page.tsx` es el placeholder por defecto de `create-next-app`.
-- Sin dependencias de datos ni de UI más allá de lo que trae el scaffold.
-- No hay Supabase conectado todavía (ver `docs/05-arquitectura.md` para el porqué y el cuándo).
+- Next.js 16 + TypeScript + Tailwind v4 + App Router, publicado en Vercel
+  (https://deslizapp-app.vercel.app; cada push a `main` publica solo).
+- Hechos: tema de marca, capa de datos de prueba (`useData()` + `localStorage`),
+  layout con navegación, Plan y créditos, Catálogo, retoque de fotos y app
+  instalable con novedades. El avance paso a paso está en `docs/06-orden-de-construccion.md`.
+- No hay Supabase conectado todavía (ver `docs/05-arquitectura.md` para el porqué
+  y el cuándo, y `docs/07-fase-2-cuentas-y-cobros.md` para lo que viene después).
 
 ## Qué se espera de esta primera entrega
 
