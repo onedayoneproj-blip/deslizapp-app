@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -161,48 +162,65 @@ function Formulario({
       )}
 
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>
-      {lineas.length > 0 && (
-        <ul className="rounded-[20px] border border-linea bg-white px-3.5">
-          {lineas.map(({ producto: p, cantidad, precio }) => (
-            <li key={p.id} className="flex items-center gap-3 border-b border-arena py-2.5 last:border-b-0">
-              <span className="h-[46px] w-[46px] shrink-0 overflow-hidden rounded-xl bg-arena">
-                {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="46px" /> : null}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[14.5px] font-extrabold">{p.nombre}</p>
-                <p className="text-[12.5px] text-suave">
-                  {cantidad} × {formatearPesos(precio)}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <button type="button" onClick={() => cambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-arena">
-                  <IconoMenos tamano={18} />
-                </button>
-                <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
-                  {cantidad}
+      {lineas.length === 0 ? (
+        // Sin productos: toda el área invita a agregar (un solo botón, para que sea tocable completa)
+        <button
+          type="button"
+          onClick={() => abrir("productos")}
+          className="tocable flex flex-col items-center rounded-[22px] border border-linea bg-white px-5 pt-4 pb-5 text-center text-bosque"
+        >
+          <Image src="/ilustraciones/pedidos.webp" alt="" width={110} height={97} unoptimized draggable={false} className="select-none" />
+          <span className="mt-2 block font-display text-xl leading-tight">Tu pedido está vacío</span>
+          <span className="mt-1 block max-w-[240px] text-[14px] leading-snug text-suave">Agrega los productos que va a llevar tu cliente.</span>
+          <span className="mt-3.5 flex h-[46px] items-center gap-1.5 rounded-full bg-mandarina pr-5 pl-4 text-[15px] font-extrabold text-bosque-oscuro">
+            <IconoMas tamano={20} />
+            Agregar productos
+          </span>
+        </button>
+      ) : (
+        <>
+          <ul className="rounded-[20px] border border-linea bg-white px-3.5">
+            {lineas.map(({ producto: p, cantidad, precio }) => (
+              <li key={p.id} className="flex items-center gap-3 border-b border-arena py-2.5 last:border-b-0">
+                <span className="h-[46px] w-[46px] shrink-0 overflow-hidden rounded-xl bg-arena">
+                  {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="46px" /> : null}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => cambiar(p, 1)}
-                  disabled={cantidad >= cantidadMaxima(p)}
-                  aria-label={`Agregar otro ${p.nombre}`}
-                  className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
-                >
-                  <IconoMas tamano={18} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14.5px] font-extrabold">{p.nombre}</p>
+                  <p className="text-[12.5px] text-suave">
+                    {cantidad} × {formatearPesos(precio)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button type="button" onClick={() => cambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-arena">
+                    <IconoMenos tamano={18} />
+                  </button>
+                  <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
+                    {cantidad}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => cambiar(p, 1)}
+                    disabled={cantidad >= cantidadMaxima(p)}
+                    aria-label={`Agregar otro ${p.nombre}`}
+                    className="tocable grid h-10 w-10 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
+                  >
+                    <IconoMas tamano={18} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => abrir("productos")}
+            className="tocable flex h-[52px] items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
+          >
+            <IconoMas tamano={20} />
+            Agregar más productos
+          </button>
+        </>
       )}
-      <button
-        type="button"
-        onClick={() => abrir("productos")}
-        className="tocable flex h-[52px] items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
-      >
-        <IconoMas tamano={20} />
-        {lineas.length > 0 ? "Agregar más productos" : "Agregar productos"}
-      </button>
 
       <label className="mt-1 flex flex-col gap-1.5 text-[13.5px] font-bold">
         ¿Usó un código? <span className="-mt-1 text-[12.5px] font-semibold text-suave">(opcional)</span>
@@ -244,6 +262,11 @@ function Formulario({
       >
         Guardar pedido
       </button>
+      {!puedeGuardar && !guardando && !codigoMalo && (
+        <p className="-mt-1.5 text-center text-[13px] font-semibold text-suave">
+          {lineas.length === 0 ? "Agrega al menos un producto" : "Elige un cliente"}
+        </p>
+      )}
     </div>
   );
 }

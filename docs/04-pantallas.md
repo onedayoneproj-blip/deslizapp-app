@@ -196,6 +196,12 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   cliente". El elegido se ve como tarjeta con "Cambiar". La misma búsqueda (`lib/buscar-clientes.ts`)
   se usa en la pantalla Clientes. "+ Cliente" (pantalla Clientes) aplica el mismo
   criterio de duplicados.
+- **Pedido sin productos:** en vez de una zona en blanco, una invitación tocable
+  (toda el área): ilustración de pedidos (~110 px), "Tu pedido está vacío",
+  "Agrega los productos que va a llevar tu cliente." y botón Mandarina "+ Agregar
+  productos". Al agregar el primero aparece la lista y "+ Agregar más productos";
+  si se quitan todos, vuelve. "Guardar pedido" queda desactivado con una ayuda
+  breve ("Agrega al menos un producto" / "Elige un cliente"), sin error rojo.
 - **Elegir productos** (misma mecánica, dentro de la hoja): botón "Agregar
   productos" → buscador "Busca un producto" (nombre o colección, sin acentos ni
   mayúsculas, con la coincidencia resaltada) y pastillas de colección. Sin texto:
