@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { addTransitionType, startTransition, useMemo, useState, ViewTransition, type CSSProperties } from "react";
-import { TRANSICION } from "@/lib/movimiento";
+import { TRANSICION, tipoDeTransicion } from "@/lib/movimiento";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -55,6 +55,9 @@ export function VistaCatalogo() {
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const escalonar = usePrimeraVez("catalogo");
+  // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
+  // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
+  const [sinTransicionDeVista, setSinTransicionDeVista] = useState(false);
 
   const visibles = useMemo(() => {
     const cumple = FILTROS.find((f) => f.id === filtro)!.cumple;
@@ -108,12 +111,11 @@ export function VistaCatalogo() {
             type="search"
             value={busqueda}
             onChange={(e) => {
+              // Escribiendo el campo tiene el foco: la lista se actualiza sin transición de vista.
               const valor = e.target.value;
               setBusqueda(valor);
-              startTransition(() => {
-                addTransitionType(TRANSICION.lista);
-                setBusquedaAplicada(valor);
-              });
+              setSinTransicionDeVista(true);
+              startTransition(() => setBusquedaAplicada(valor));
             }}
             placeholder="Busca un producto"
             className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
@@ -126,7 +128,8 @@ export function VistaCatalogo() {
             valor={filtro}
             alCambiar={(id) =>
               startTransition(() => {
-                addTransitionType(TRANSICION.lista);
+                // Con el teclado abierto no hay transición de vista (ver tipoDeTransicion).
+                setSinTransicionDeVista(!tipoDeTransicion(addTransitionType, TRANSICION.lista));
                 setFiltro(id);
               })
             }
@@ -160,7 +163,10 @@ export function VistaCatalogo() {
           {visibles.map((p, i) => (
             // Cada producto entra, sale y se reacomoda con suavidad al crear, desactivar o filtrar.
             <ViewTransition key={p.id} name={`producto-${p.id}`} enter={ITEM_ENTRA} exit={ITEM_SALE} update={ITEM_MUEVE} default="none">
-              <li className={escalonar ? "mov-escalonado" : undefined} style={escalonar ? ({ "--i": i } as CSSProperties) : undefined}>
+              <li
+                className={escalonar ? "mov-escalonado" : sinTransicionDeVista ? "mov-aparece" : undefined}
+                style={escalonar ? ({ "--i": i } as CSSProperties) : undefined}
+              >
                 <TarjetaProducto producto={p} promos={promos ?? []} />
               </li>
             </ViewTransition>

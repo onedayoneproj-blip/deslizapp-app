@@ -18,6 +18,10 @@
 // - El arrastre solo mueve la hoja si el contenido está arriba del todo o si el gesto empieza en la
 //   cabecera: el scroll y el arrastre nunca se pelean (se decide al primer movimiento del dedo).
 // - Se anima `transform`, `clip-path` y la opacidad del fondo, siguiendo el dedo sin retraso.
+// - TECLADO (regla permanente, ver HANDOFF.md): la hoja NO cambia de tamaño, de posición ni de estado
+//   cuando se abre el teclado. Solo escribe una variable CSS (`--teclado`) que da espacio al final del
+//   contenido, y desplaza el contenido para que el campo enfocado quede a la vista. Nada de
+//   re-renders ni de tocar el foco por eventos de `resize`/`visualViewport`: en iOS eso cierra el teclado.
 //
 // Implementación propia: se evaluó `vaul`, pero su repositorio está sin mantenimiento.
 
@@ -28,6 +32,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type FocusEvent as EventoFoco,
   type PointerEvent as EventoPuntero,
   type ReactNode,
 } from "react";
@@ -68,20 +73,12 @@ export function Hoja(props: Props) {
   return <HojaMontada {...props} alDesmontar={() => setMontada(false)} />;
 }
 
-/** Diferencia (px) entre la pantalla y el área visible a partir de la cual se considera que hay teclado. */
-const UMBRAL_TECLADO = 120;
+/** Alto de la pantalla (la ventana; en iOS no cambia cuando se abre el teclado). */
+const altoPantalla = () => window.innerHeight;
 
-/**
- * Área donde se dibuja la hoja. Normalmente, la pantalla completa (así la hoja siempre llega al
- * borde de abajo). Solo con el teclado abierto se usa el área visible (visualViewport), para que
- * el campo enfocado quede encima del teclado. (Usar siempre visualViewport dejaba la hoja
- * despegada del borde en iPhone cuando ese valor salía más chico que la pantalla.)
- */
-function medirVista() {
-  const vv = window.visualViewport;
-  const total = window.innerHeight;
-  if (vv && total - vv.height > UMBRAL_TECLADO) return { alto: vv.height, arriba: vv.offsetTop, teclado: true };
-  return { alto: total, arriba: 0, teclado: false };
+/** true si el elemento es un campo donde se escribe (abre el teclado). */
+function esCampo(el: EventTarget | null) {
+  return el instanceof HTMLElement && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
 }
 
 function HojaMontada({
@@ -98,8 +95,6 @@ function HojaMontada({
   const cabecera = useRef<HTMLDivElement>(null);
   const contenido = useRef<HTMLDivElement>(null);
 
-  // Tamaño de la pantalla visible (se achica cuando sale el teclado del iPhone).
-  const [vista, setVista] = useState(medirVista);
   const [nivel, setNivelEstado] = useState<Nivel>(altura === "expandible" ? "media" : "grande");
   const [conSombra, setConSombra] = useState(false);
 
@@ -121,10 +116,10 @@ function HojaMontada({
   const margenAbajo = useRef(MARGEN_FLOTA);
 
   const altoPanel = () => panel.current?.offsetHeight ?? 0;
-  const yMedia = () => Math.max(0, altoPanel() - vista.alto * ALTO_MEDIA);
+  const yMedia = () => Math.max(0, altoPanel() - altoPantalla() * ALTO_MEDIA);
   const yDe = useCallback(
-    (n: Nivel) => (altura === "expandible" && n === "media" ? Math.max(0, (panel.current?.offsetHeight ?? 0) - vista.alto * ALTO_MEDIA) : 0),
-    [altura, vista.alto],
+    (n: Nivel) => (altura === "expandible" && n === "media" ? Math.max(0, (panel.current?.offsetHeight ?? 0) - altoPantalla() * ALTO_MEDIA) : 0),
+    [altura],
   );
   const yCerrada = () => altoPanel() + 24;
 
@@ -140,10 +135,19 @@ function HojaMontada({
       // will-change solo mientras se mueve (arrastre o animación), no todo el tiempo.
       p.style.willChange = "transform";
       window.clearTimeout(quitarWillChange.current);
-      if (!gesto.current) quitarWillChange.current = window.setTimeout(() => (p.style.willChange = ""), animado ? DURACION + 50 : 100);
+      if (!gesto.current) {
+        quitarWillChange.current = window.setTimeout(
+          () => {
+            p.style.willChange = "";
+            // En reposo (y = 0) no queda ninguna transformación en el panel, ancestro de los campos de texto.
+            if (y.current === 0 && !saliendo.current) p.style.transform = "none";
+          },
+          animado ? DURACION + 50 : 100,
+        );
+      }
       p.style.transform = `translate3d(0, ${valor}px, 0)`;
       const alto = p.offsetHeight;
-      const media = altura === "expandible" ? Math.max(0, alto - vista.alto * ALTO_MEDIA) : 0;
+      const media = altura === "expandible" ? Math.max(0, alto - altoPantalla() * ALTO_MEDIA) : 0;
       // Cuánto flota (1) o está pegada (0). En "expandible" va con el dedo entre media y grande.
       const flota =
         altura === "auto" ? 1 : altura === "grande" ? 0 : media ? Math.min(1, Math.max(0, valor / media)) : 0;
@@ -163,14 +167,14 @@ function HojaMontada({
       f.style.transition = animado && !reducido.current ? `opacity ${DURACION}ms ${CURVA}` : "none";
       f.style.opacity = String(1 - Math.min(1, Math.max(0, (valor - base) / recorrido)));
     },
-    [altura, vista.alto],
+    [altura],
   );
 
   const irA = useCallback(
-    (n: Nivel) => {
+    (n: Nivel, animado = true) => {
       nivelRef.current = n;
       setNivelEstado(n);
-      aplicar(yDe(n), true);
+      aplicar(yDe(n), animado);
     },
     [aplicar, yDe],
   );
@@ -218,48 +222,79 @@ function HojaMontada({
     return () => window.clearTimeout(t);
   }, [abierta, aplicar, alDesmontar]);
 
-  // Si cambia el alto visible (teclado, rotación), se reacomoda sin animar. No al montar: ahí
-  // manda la animación de entrada (si corriera también, la hoja aparecería de golpe).
-  const altoMontado = useRef(vista.alto);
-  useLayoutEffect(() => {
-    if (vista.alto === altoMontado.current) return;
-    altoMontado.current = vista.alto;
-    if (!saliendo.current) aplicar(yDe(nivelRef.current), false);
-  }, [vista.alto, aplicar, yDe]);
-
-  // Pantalla visible (visualViewport) + campo enfocado siempre a la vista sobre el teclado.
+  // ---- Teclado ----
+  // Regla: el teclado NO toca el estado de React, ni la altura o posición de la hoja, ni el foco.
+  // Solo (1) escribe `--teclado` (px tapados por el teclado) en el contenido, para que pueda
+  // desplazarse hasta el último campo, y (2) desplaza ese contenido para dejar a la vista el campo
+  // enfocado. Se hace con escritura directa al DOM, agrupada por cuadro.
   useEffect(() => {
     const vv = window.visualViewport;
-    const actualizar = () => {
-      setVista(medirVista());
-      const activo = document.activeElement;
-      if (activo instanceof HTMLElement && contenido.current?.contains(activo) && esCampo(activo)) {
-        window.setTimeout(() => activo.scrollIntoView({ block: "center", behavior: reducido.current ? "auto" : "smooth" }), 60);
+    if (!vv) return;
+    let raf = 0;
+    const acomodar = () => {
+      raf = 0;
+      const c = contenido.current;
+      if (!c) return;
+      const tapado = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      c.style.setProperty("--teclado", `${tapado}px`);
+      const campo = document.activeElement;
+      if (tapado > 0 && campo instanceof HTMLElement && c.contains(campo) && esCampo(campo)) {
+        const visibleAbajo = vv.offsetTop + vv.height - 16;
+        const r = campo.getBoundingClientRect();
+        if (r.bottom > visibleAbajo) c.scrollTop += r.bottom - visibleAbajo;
+        else if (r.top < c.getBoundingClientRect().top + 8) c.scrollTop -= c.getBoundingClientRect().top + 8 - r.top;
       }
     };
-    vv?.addEventListener("resize", actualizar);
-    vv?.addEventListener("scroll", actualizar);
-    window.addEventListener("resize", actualizar);
+    const pedir = () => {
+      if (!raf) raf = requestAnimationFrame(acomodar);
+    };
+    vv.addEventListener("resize", pedir);
+    vv.addEventListener("scroll", pedir);
     return () => {
-      vv?.removeEventListener("resize", actualizar);
-      vv?.removeEventListener("scroll", actualizar);
-      window.removeEventListener("resize", actualizar);
+      vv.removeEventListener("resize", pedir);
+      vv.removeEventListener("scroll", pedir);
+      cancelAnimationFrame(raf);
     };
   }, []);
 
-  // Bloquea el fondo mientras está abierta; foco dentro y de vuelta al cerrar; Escape y Tab.
+  // Al enfocar un campo (el teclado tarda un poco en abrirse), se asegura que quede a la vista.
+  const alEnfocarCampo = (e: EventoFoco<HTMLDivElement>) => {
+    if (!esCampo(e.target)) return;
+    // Sin animar y SIN mover la hoja mientras el campo tiene el foco (regla del teclado).
+    if (altura === "expandible" && nivelRef.current === "media") irA("grande", false);
+    const campo = e.target as HTMLElement;
+    window.setTimeout(() => {
+      const vv = window.visualViewport;
+      const c = contenido.current;
+      if (!vv || !c || document.activeElement !== campo) return;
+      const visibleAbajo = vv.offsetTop + vv.height - 16;
+      const r = campo.getBoundingClientRect();
+      if (r.bottom > visibleAbajo) c.scrollTop += r.bottom - visibleAbajo;
+    }, 350);
+  };
+
+  // Lo último que se pidió cerrar: los listeners de abajo lo leen sin volver a montarse.
+  const cerrarRef = useRef(cerrar);
+  useEffect(() => {
+    cerrarRef.current = cerrar;
+  });
+
+  // Bloquea el fondo mientras está abierta; foco dentro al abrir y de vuelta al cerrar; Escape y Tab.
+  // Efecto ESTABLE (sin dependencias): si se volviera a ejecutar mientras se escribe, su limpieza
+  // devolvería el foco al botón que abrió la hoja y el teclado se cerraría.
   useEffect(() => {
     const anterior = document.activeElement as HTMLElement | null;
     const html = document.documentElement;
     const previo = { overflow: document.body.style.overflow, overscroll: html.style.overscrollBehavior };
     document.body.style.overflow = "hidden";
     html.style.overscrollBehavior = "none";
-    panel.current?.focus({ preventScroll: true });
+    // El foco va a la hoja solo si no está ya dentro (un campo con autoFocus, por ejemplo).
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus({ preventScroll: true });
 
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        cerrar();
+        cerrarRef.current();
       } else if (e.key === "Tab" && panel.current) {
         const enfocables = [...panel.current.querySelectorAll<HTMLElement>(ENFOCABLES)].filter((el) => el.offsetParent !== null);
         if (enfocables.length === 0) return;
@@ -281,7 +316,7 @@ function HojaMontada({
       html.style.overscrollBehavior = previo.overscroll;
       if (anterior && document.contains(anterior)) anterior.focus({ preventScroll: true });
     };
-  }, [cerrar]);
+  }, []);
 
   // ---- Arrastre ----
 
@@ -392,14 +427,9 @@ function HojaMontada({
   };
 
   const expandibleEnMedia = altura === "expandible" && nivel === "media";
-  const altoPx = vista.alto * ALTO_GRANDE;
 
   return (
-    <div
-      className="fixed inset-x-0 z-50"
-      style={vista.teclado ? { top: vista.arriba, height: vista.alto } : { top: 0, bottom: 0 }}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50" role="presentation">
       <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-bosque/50" style={{ opacity: 0 }} />
       <div
         ref={panel}
@@ -409,7 +439,8 @@ function HojaMontada({
         tabIndex={-1}
         className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col bg-papel outline-none"
         style={{
-          ...(altura === "auto" ? { maxHeight: altoPx } : { height: altoPx }),
+          // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
+          ...(altura === "auto" ? { maxHeight: `${ALTO_GRANDE * 100}dvh` } : { height: `${ALTO_GRANDE * 100}dvh` }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
@@ -438,13 +469,11 @@ function HojaMontada({
         <div
           ref={contenido}
           onScroll={(e) => setConSombra(e.currentTarget.scrollTop > 2)}
-          onFocus={(e) => {
-            if (altura === "expandible" && nivelRef.current === "media" && esCampo(e.target)) irA("grande");
-          }}
+          onFocus={alEnfocarCampo}
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="min-h-0 flex-1 overscroll-contain px-5 pt-0.5 pb-[calc(1.25rem+var(--safe-abajo))]"
+          className="min-h-0 flex-1 overscroll-contain px-5 pt-0.5 pb-[calc(1.25rem+var(--safe-abajo)+var(--teclado,0px))]"
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}
@@ -455,10 +484,6 @@ function HojaMontada({
 }
 
 const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function esCampo(el: EventTarget | null) {
-  return el instanceof HTMLElement && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
-}
 
 export function BotonCerrar({ onClick }: { onClick: () => void }) {
   return (

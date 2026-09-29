@@ -29,7 +29,7 @@ import {
 } from "react";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { RESORTE, TRANSICION } from "@/lib/movimiento";
+import { hayCampoConFoco, RESORTE, TRANSICION } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
 import { Numero } from "../numero";
 
@@ -258,6 +258,7 @@ export function NavInferior() {
     // El selector ya está sobre una pestaña: vuelve a su reposo y ahí se navega.
     if (medidas) llevar(reposo(g.cubierta, medidas), true);
     if (g.cubierta !== activa) {
+      if (hayCampoConFoco()) (document.activeElement as HTMLElement).blur();
       setTocada({ indice: g.cubierta, desde: pathname });
       router.push(SECCIONES[g.cubierta]!.href, { transitionTypes: TIPOS_PESTANA });
     }
@@ -334,6 +335,9 @@ export function NavInferior() {
                         e.preventDefault();
                         return;
                       }
+                      // Con el teclado abierto se suelta el foco antes de navegar (la transición de
+                      // pantalla no debe correr con un campo enfocado).
+                      if (hayCampoConFoco()) (document.activeElement as HTMLElement).blur();
                       if (i !== activa) setTocada({ indice: i, desde: pathname });
                     }}
                     className={`tocable flex h-full flex-col items-center justify-center gap-[3px] rounded-full outline-none focus-visible:ring-2 focus-visible:ring-bosque focus-visible:ring-inset ${

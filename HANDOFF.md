@@ -32,6 +32,22 @@ app después del despliegue, cada persona ve esas novedades una sola vez (la
 primera vez que alguien entra no se le muestran). La versión actual se ve en
 el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
 
+## Regla permanente: campos de texto y teclado (iPhone)
+
+**Nunca animar ni remontar los ancestros de un campo de texto al enfocarlo o al cambiar el tamaño;
+`focus()` siempre dentro del gesto del usuario; no cambiar `key` ni estado de layout por eventos de
+`resize`/`visualViewport`.** En concreto:
+- Ningún `useEffect` con listeners de `resize`/`visualViewport` cambia estado de React, ni el
+  alto/posición de una hoja, ni llama a `focus()`. El teclado solo puede escribir una variable CSS
+  (`--teclado`) y desplazar el contenido para dejar a la vista el campo enfocado (ver `components/hoja.tsx`).
+- Los efectos que manejan foco (bloquear fondo, devolver el foco al cerrar) son **estables**: sin
+  dependencias que cambien. Si se vuelven a ejecutar con un campo enfocado, su limpieza le quita el foco.
+- Ninguna transición de vista (`addTransitionType`, `transitionTypes`) mientras haya un campo con
+  foco: usa `tipoDeTransicion()` de `lib/movimiento.ts`. Al escribir, la lista se actualiza sin
+  transición de vista (con un fundido CSS para lo que entra).
+- Toda hoja o pantalla nueva con campos de texto se prueba con `npm run probar:teclado`
+  (`scripts/probar-teclado.mjs`, con la app corriendo): agrégale el campo nuevo.
+
 ## Regla permanente: movimiento
 
 **Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`:** tokens de

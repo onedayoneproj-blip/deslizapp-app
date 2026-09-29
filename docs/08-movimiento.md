@@ -44,6 +44,25 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    resorte y el estiramiento de la barra se desactivan (cambio directo); las
    hojas aparecen sin deslizar.
 
+## Campos de texto y teclado (regla permanente)
+
+Un campo de texto **nunca** puede perder el foco por culpa de una animación (en iOS, perder el foco
+cierra el teclado y no deja escribir). Por eso:
+
+1. **Nunca animar ni remontar los ancestros de un campo de texto al enfocar o al cambiar el tamaño.**
+   La hoja no cambia de tamaño, posición ni estado cuando se abre el teclado; solo escribe
+   `--teclado` (espacio al final del contenido) y desplaza el contenido para dejar a la vista el campo.
+   En reposo, el panel de la hoja no lleva `transform`.
+2. **`focus()` siempre dentro del gesto del usuario** (un `autoFocus` en un campo que aparece por un
+   toque está bien; un `focus()` con retraso o tras una animación, no).
+3. **No cambiar `key` ni estado de layout por eventos de `resize`/`visualViewport`**, y los efectos
+   que manejan foco no dependen de nada que cambie con el teclado (su limpieza devolvería el foco).
+4. **Ninguna transición de vista con un campo enfocado**: una transición reemplaza la página por una
+   captura mientras dura. Usa `tipoDeTransicion()` (`lib/movimiento.ts`); al escribir en el buscador
+   la lista se actualiza sin transición de vista y lo que entra lo hace con un fundido CSS
+   (`mov-aparece`). Al tocar una pestaña de la barra con el teclado abierto se suelta el foco antes.
+5. Se comprueba con `npm run probar:teclado` (simula el `visualViewport` de iOS).
+
 ## Qué se anima y cómo
 
 ### Entre pantallas — React `<ViewTransition>`

@@ -44,6 +44,25 @@ export const TRANSICION = {
   lista: "list-filter",
 } as const;
 
+/** true si hay un campo de texto con el foco (el teclado está abierto o abriéndose). */
+export function hayCampoConFoco(): boolean {
+  if (typeof document === "undefined") return false;
+  const a = document.activeElement;
+  return a instanceof HTMLElement && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable);
+}
+
+/**
+ * Agrega un tipo de transición de vista (`addTransitionType`) SOLO si no hay un campo de texto con
+ * el foco. Regla permanente (docs/08-movimiento.md): una transición de vista reemplaza la página
+ * por una captura mientras dura y, en iOS, eso le quita el foco al campo y cierra el teclado.
+ * Devuelve true si la transición quedó activada. Llamar dentro de `startTransition`.
+ */
+export function tipoDeTransicion(agregar: (tipo: string) => void, tipo: string): boolean {
+  if (hayCampoConFoco()) return false;
+  agregar(tipo);
+  return true;
+}
+
 /** true si la persona pidió reducir el movimiento (solo en el navegador). */
 export function menosMovimiento(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

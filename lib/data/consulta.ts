@@ -1,7 +1,7 @@
 "use client";
 
 import { addTransitionType, startTransition, useEffect, useRef, useState } from "react";
-import { TRANSICION } from "../movimiento";
+import { TRANSICION, tipoDeTransicion } from "../movimiento";
 import { useData } from "./provider";
 
 /**
@@ -30,7 +30,7 @@ export function useConsulta<T>(clave: string, consulta: () => Promise<T>): { dat
       // Un cambio de datos va en una transición con tipo: las listas animan lo que entra, sale o
       // se mueve (docs/08-movimiento.md). La primera carga no se anima (ni hace esperar).
       startTransition(() => {
-        if (esCambio) addTransitionType(TRANSICION.datos);
+        if (esCambio) tipoDeTransicion(addTransitionType, TRANSICION.datos);
         setResultado({ clave, version, data });
       });
     });
