@@ -343,17 +343,29 @@ apagado (#E4DDCC, "TERMINADA"); las programadas, en verde con "PROGRAMADA" y
 `/promos/[id]/compartir`): botón "Compartir esta promo" en el detalle de cada
 promo activa o programada (las terminadas no) y, al crear una promo, el aviso
 "¡Lista! ¿La compartes ahora?" con "Compartir" / "Después". La hoja (grande, por
-el campo de texto) muestra la tarjeta de cupón y:
-1. **Compartir…** (Mandarina; Web Share API con la imagen PNG y el texto; si no se
-   pueden compartir archivos, solo texto y enlace; sin `navigator.share` se oculta).
-2. **Mensaje** editable + **Copiar texto**; **Copiar enlace**
-   (`URL_CATALOGO_PUBLICO/{slug}?promo=CODIGO` · `?coleccion=` · `?producto=`; la
-   base está en `lib/config.ts`); **Copiar imagen** (si el navegador deja) y
-   **Guardar imagen**; **Enviar por WhatsApp** (`wa.me/?text=`, sin número).
+el campo de texto) tiene, de arriba abajo:
+1. **Vista previa** del cupón con la marca de la TIENDA (`CuponTienda`).
+2. **Mensaje** en una línea recortada + "Editar mensaje", que lo abre en un
+   textarea (el foco va en el mismo toque, `flushSync`). El enlace ("Míralo
+   aquí: …") es el `url_catalogo` de Mi marca y solo va si existe; sin él, se
+   quita la frase. Ya no se usa el dominio deslizapp.com.
+3. **Enviar** (único botón, Mandarina): `navigator.share` con la imagen PNG + el
+   texto; si el navegador no comparte archivos, solo el texto; sin
+   `navigator.share` (escritorio) copia el mensaje y avisa "Mensaje copiado".
+   Al compartir imagen + texto también copia el mensaje y avisa "Te copiamos el
+   mensaje por si WhatsApp no lo pega": en iOS, WhatsApp puede descartar el
+   texto cuando recibe imagen + texto (comportamiento conocido de WhatsApp; no
+   verificable en el entorno de pruebas, se comprueba en el iPhone).
+4. Discreto, como texto con enlaces: **Exportar como imagen · PDF**. Imagen: el
+   PNG 1080×1350. PDF: una página con el cupón (`lib/pdf-imagen.ts`, PDF mínimo
+   con el JPEG del cupón; sin librerías), para imprimir y pegar en la tienda.
 - Plantillas por tipo en `lib/mensajes-promo.ts` (código, colección, producto; con
   o sin fecha de fin; programada: "desde/del … al …").
-- Imagen 1080×1350 dibujada en un canvas (`lib/imagen-promo.ts`, tipografías de
-  marca ya cargadas, logo o iniciales de la tienda, "Hecho con Deslizapp"); se
+- Imagen 1080×1350 dibujada en un canvas (`lib/imagen-promo.ts`): fondo claro
+  derivado de la marca (el principal mezclado 90 % con blanco), logo o iniciales
+  y nombre arriba, el cupón grande al centro, colores y fuentes del estilo de la
+  tienda (se espera a que carguen) y al pie "Hecho con Deslizapp" (constante
+  `PIE_IMAGEN`; vacía para quitarla); se
   genera al abrir la hoja y queda en memoria, para que las acciones se ejecuten
   directo dentro del toque. Pesa < 400 KB (si el PNG pasara, JPEG).
 

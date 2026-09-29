@@ -5,14 +5,22 @@
 import { datosCupon, type DatosCupon } from "./cupon";
 import { iniciales } from "./formato";
 import { cargarFuentesMarca, familiaTexto, familiaTitulo } from "./fuentes-marca";
-import { coloresCupon, contraste, hexARgb, TEXTO_OSCURO, type Marca } from "./marca";
+import { coloresCupon, contraste, hexARgb, rgbAHex, TEXTO_OSCURO, type Marca } from "./marca";
 import type { EstadoPromo, Producto, Promo, Tienda } from "./types";
 
 const ANCHO = 1080;
 const ALTO = 1350;
 const PESO_MAXIMO = 400 * 1024;
 
-const PAPEL = "#FFF9EE";
+/** Línea diminuta al pie de la imagen. Vacía ("") para quitarla. */
+export const PIE_IMAGEN = "Hecho con Deslizapp";
+
+/** Fondo de la imagen: el color principal de la marca muy aclarado (mezclado con blanco). */
+export function fondoClaro(principal: string): string {
+  const [r, g, b] = hexARgb(principal);
+  const m = (c: number) => Math.round(c * 0.1 + 255 * 0.9);
+  return rgbAHex([m(r), m(g), m(b)]);
+}
 
 type Colores = ReturnType<typeof coloresCupon>;
 type Fuentes = { display: string; texto: string };
@@ -143,14 +151,22 @@ export type EntradaImagenPromo = {
   productosDeColeccion?: number;
 };
 
+export type ImagenPromo = {
+  /** PNG (o JPEG si el PNG pasara de ~400 KB), listo para compartir. */
+  blob: Blob;
+  /** JPEG de alta calidad para el PDF (se pide al exportar, no antes). */
+  jpegParaPdf: () => Promise<Blob>;
+};
+
 /** Genera el PNG (o un JPEG si el PNG pasara de ~400 KB). Espera a las tipografías de marca. */
-export async function generarImagenPromo({ promo, estado, tienda, marca, producto, productosDeColeccion = 0 }: EntradaImagenPromo): Promise<Blob> {
+export async function generarImagenPromo({ promo, estado, tienda, marca, producto, productosDeColeccion = 0 }: EntradaImagenPromo): Promise<ImagenPromo> {
   // Antes de dibujar, las fuentes del estilo de la tienda tienen que estar cargadas (si no, sale letra genérica)
   await cargarFuentesMarca(marca.estilo);
   const f: Fuentes = { display: familiaTitulo(marca.estilo), texto: familiaTexto(marca.estilo) };
   const col = coloresCupon(marca);
   // Textos sobre el fondo crema: el principal si se lee bien; si no, oscuro
-  const tinta = contraste(col.fondo, PAPEL) >= 4.5 ? col.fondo : TEXTO_OSCURO;
+  const papel = fondoClaro(col.fondo);
+  const tinta = contraste(col.fondo, papel) >= 4.5 ? col.fondo : TEXTO_OSCURO;
   const logo = tienda.logoUrl ? await cargarImagen(tienda.logoUrl) : null;
   const d = datosCupon(promo, estado, { producto, productosDeColeccion });
 
@@ -159,15 +175,14 @@ export async function generarImagenPromo({ promo, estado, tienda, marca, product
     lienzo.width = ANCHO;
     lienzo.height = ALTO;
     const ctx = lienzo.getContext("2d")!;
-    // Fondo Papel Cálido con dos manchas suaves de marca
-    ctx.fillStyle = PAPEL;
+    // Fondo claro derivado de la marca, con dos manchas suaves
+    ctx.fillStyle = papel;
     ctx.fillRect(0, 0, ANCHO, ALTO);
     ctx.fillStyle = alfa(col.acento, 0.22);
     ctx.beginPath();
     ctx.arc(1010, 250, 260, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = alfa(col.fondo, 0.1);
-    ctx.globalAlpha = 1;
     ctx.beginPath();
     ctx.arc(60, 1130, 300, 0, Math.PI * 2);
     ctx.fill();
@@ -214,10 +229,12 @@ export async function generarImagenPromo({ promo, estado, tienda, marca, product
     ctx.fillText(promo.tipo === "codigo" ? "Escribe el código al hacer tu pedido" : "Ya la ves en nuestro catálogo", ANCHO / 2, 1010);
 
     // Pie discreto
-    ctx.globalAlpha = 0.55;
-    ctx.font = `600 30px ${f.texto}`;
-    ctx.fillText("Hecho con Deslizapp", ANCHO / 2, 1260);
-    ctx.globalAlpha = 1;
+    if (PIE_IMAGEN) {
+      ctx.globalAlpha = 0.55;
+      ctx.font = `600 30px ${f.texto}`;
+      ctx.fillText(PIE_IMAGEN, ANCHO / 2, 1260);
+      ctx.globalAlpha = 1;
+    }
     return lienzo;
   };
 
@@ -235,5 +252,9 @@ export async function generarImagenPromo({ promo, estado, tienda, marca, product
   }
   if (blob && blob.size > PESO_MAXIMO) blob = (await aBlob(lienzo, "image/jpeg", 0.92)) ?? blob;
   if (!blob) throw new Error("No se pudo generar la imagen.");
-  return blob;
+  const final = lienzo;
+  return {
+    blob,
+    jpegParaPdf: async () => (await aBlob(final, "image/jpeg", 0.95)) ?? blob!,
+  };
 }

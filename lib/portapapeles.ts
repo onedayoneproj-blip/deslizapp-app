@@ -24,17 +24,6 @@ function copiarAntiguo(texto: string, campo?: HTMLTextAreaElement | null): boole
   return ok;
 }
 
-/** ¿Se pueden copiar imágenes (ClipboardItem)? */
-export const puedeCopiarImagen = () => typeof ClipboardItem !== "undefined" && typeof navigator.clipboard?.write === "function";
-
-/** Copia una imagen ya generada (el blob va directo dentro del toque). */
-export function copiarImagen(blob: Blob): Promise<boolean> {
-  return navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).then(
-    () => true,
-    () => false,
-  );
-}
-
 /** Descarga o guarda el archivo (en iPhone abre la hoja de guardar). */
 export function guardarArchivo(blob: Blob, nombre: string) {
   const url = URL.createObjectURL(blob);

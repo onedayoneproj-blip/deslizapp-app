@@ -2,19 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { generarImagenPromo } from "@/lib/imagen-promo";
-import { enlacePromo, enlaceWhatsAppMensaje, mensajePromo } from "@/lib/mensajes-promo";
-import { copiarImagen, copiarTexto, guardarArchivo, puedeCopiarImagen } from "@/lib/portapapeles";
+import { generarImagenPromo, type ImagenPromo } from "@/lib/imagen-promo";
+import { mensajePromo } from "@/lib/mensajes-promo";
+import { pdfDeJpeg } from "@/lib/pdf-imagen";
+import { copiarTexto, guardarArchivo } from "@/lib/portapapeles";
 import { estadoPromo } from "@/lib/promos";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
-import { IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
 import { CuponTienda, marcaDeTienda } from "../marca-tienda/cupon-tienda";
 
-/** "Compartir promo": texto, enlace e imagen para mandarle la promo a los clientes. Solo activas o programadas. */
+/** "Compartir promo": vista previa con la marca de la tienda, mensaje y un solo botón "Enviar" para mandarle la promo a los clientes. Solo activas o programadas. */
 export function HojaCompartir({ promoId }: { promoId: string }) {
   const router = useRouter();
   const { getPromos, getProductos } = useData();
@@ -47,25 +48,21 @@ export function HojaCompartir({ promoId }: { promoId: string }) {
   );
 }
 
-type Imagen = { blob: Blob; nombre: string };
-
 function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: Promo; tienda: Tienda; producto?: Producto; productosDeColeccion: number }) {
   const toast = useToast();
   const estado = estadoPromo(promo);
   const [mensaje, setMensaje] = useState(() => mensajePromo(promo, estado, tienda, producto));
-  const [imagen, setImagen] = useState<Imagen | null>(null);
+  const [editando, setEditando] = useState(false);
+  const [imagen, setImagen] = useState<ImagenPromo | null>(null);
   const [falloImagen, setFalloImagen] = useState(false);
-  // Soporte del navegador: sin navigator.share (escritorio) no hay "Compartir…". Esta hoja solo existe en el
-  // cliente (los datos se leen del navegador), así que se puede mirar directo.
-  const [soporte] = useState(() => ({ compartir: typeof navigator.share === "function", copiarImagen: puedeCopiarImagen() }));
   const campoMensaje = useRef<HTMLTextAreaElement>(null);
-  const enlace = enlacePromo(tienda, promo);
+  const nombreArchivo = `promo-${tienda.slug}`;
 
-  // La imagen se genera UNA vez al abrir la hoja y queda en memoria: los botones no esperan nada antes del toque
+  // La imagen se genera UNA vez al abrir la hoja y queda en memoria: "Enviar" no espera nada antes del toque
   useEffect(() => {
     let vigente = true;
     generarImagenPromo({ promo, estado, tienda, marca: marcaDeTienda(tienda), producto, productosDeColeccion })
-      .then((blob) => vigente && setImagen({ blob, nombre: `promo-${tienda.slug}.${blob.type === "image/jpeg" ? "jpg" : "png"}` }))
+      .then((i) => vigente && setImagen(i))
       .catch(() => vigente && setFalloImagen(true));
     return () => {
       vigente = false;
@@ -74,89 +71,106 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promo.id]);
 
-  const errorCopiar = () => toast("No pudimos copiarlo. Inténtalo de nuevo.");
+  // El campo aparece con el toque de "Editar mensaje": el foco va en el mismo toque (HANDOFF.md, teclado en iPhone)
+  const editar = () => {
+    flushSync(() => setEditando(true));
+    campoMensaje.current?.focus();
+  };
 
-  // OJO: cada acción llama a la API del navegador de inmediato (dentro del toque), sin await antes.
-  const compartir = () => {
-    const archivo = imagen ? new File([imagen.blob], imagen.nombre, { type: imagen.blob.type }) : null;
+  // OJO: la API del navegador se llama de inmediato (dentro del toque), sin await antes.
+  const enviar = () => {
+    if (typeof navigator.share !== "function") {
+      // Escritorio: sin menú de compartir, se copia el mensaje
+      void copiarTexto(mensaje, campoMensaje.current).then((ok) => toast(ok ? "Mensaje copiado" : "No pudimos copiarlo. Inténtalo de nuevo."));
+      return;
+    }
+    const archivo = imagen ? new File([imagen.blob], `${nombreArchivo}.${imagen.blob.type === "image/jpeg" ? "jpg" : "png"}`, { type: imagen.blob.type }) : null;
     const conArchivo = archivo && navigator.canShare?.({ files: [archivo] });
+    if (conArchivo) {
+      // WhatsApp en iPhone a veces descarta el texto al recibir imagen + texto: se deja copiado por si no lo pega
+      void copiarTexto(mensaje).then((ok) => ok && toast("Te copiamos el mensaje por si WhatsApp no lo pega"));
+    }
     navigator
       .share(conArchivo ? { files: [archivo], text: mensaje, title: promo.nombre } : { text: mensaje, title: promo.nombre })
       .catch((e: unknown) => {
         if (!(e instanceof DOMException && e.name === "AbortError")) toast("No pudimos compartirla. Inténtalo de nuevo.");
       });
   };
-  const copiarMensaje = () => void copiarTexto(mensaje, campoMensaje.current).then((ok) => (ok ? toast("Texto copiado") : errorCopiar()));
-  const copiarEnlace = () => void copiarTexto(enlace).then((ok) => (ok ? toast("Enlace copiado") : errorCopiar()));
-  const copiarLaImagen = () => {
-    if (imagen) void copiarImagen(imagen.blob).then((ok) => (ok ? toast("Imagen copiada") : errorCopiar()));
-  };
-  const guardarLaImagen = () => {
-    if (imagen) guardarArchivo(imagen.blob, imagen.nombre);
+
+  const exportar = (formato: "imagen" | "pdf") => {
+    if (!imagen) return;
+    if (formato === "imagen") {
+      guardarArchivo(imagen.blob, `${nombreArchivo}.${imagen.blob.type === "image/jpeg" ? "jpg" : "png"}`);
+      return;
+    }
+    imagen
+      .jpegParaPdf()
+      .then(pdfDeJpeg)
+      .then((pdf) => guardarArchivo(pdf, `${nombreArchivo}.pdf`))
+      .catch(() => toast("No pudimos armar el PDF. Inténtalo de nuevo."));
   };
 
-  const preparando = !imagen && !falloImagen;
-  const boton = "tocable flex h-12 items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque disabled:opacity-50";
   // Lo que ve el cliente: el cupón con la marca de la tienda (Mi marca), no la del panel
   const previa = useMemo(
     () => <CuponTienda promo={promo} marca={marcaDeTienda(tienda)} tienda={tienda} producto={producto} productosDeColeccion={productosDeColeccion} />,
     [promo, tienda, producto, productosDeColeccion],
   );
+  const enlaceSuave = "tocable font-extrabold text-bosque underline underline-offset-2 disabled:opacity-50 disabled:no-underline";
 
   return (
     <div className="flex flex-col gap-4">
       {previa}
 
-      {soporte.compartir && (
-        <button
-          type="button"
-          onClick={compartir}
-          className="tocable flex h-14 items-center justify-center rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro"
-        >
-          Compartir…
-        </button>
-      )}
-
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Mensaje <span className="-mt-1 text-[12.5px] font-semibold text-suave">Puedes ajustarlo antes de copiarlo o enviarlo.</span>
-        <textarea
-          ref={campoMensaje}
-          value={mensaje}
-          onChange={(e) => setMensaje(e.target.value)}
-          rows={6}
-          className="w-full min-w-0 resize-none rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-base leading-snug font-normal text-bosque outline-none focus:border-bosque"
-        />
-      </label>
-
-      <div className="grid grid-cols-2 gap-2.5">
-        <button type="button" onClick={copiarMensaje} className={boton}>
-          Copiar texto
-        </button>
-        <button type="button" onClick={copiarEnlace} className={boton}>
-          Copiar enlace
-        </button>
-        {soporte.copiarImagen && (
-          <button type="button" onClick={copiarLaImagen} disabled={!imagen} className={boton}>
-            Copiar imagen
-          </button>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3 text-[13.5px] font-bold">
+          Mensaje
+          {!editando && (
+            <button type="button" onClick={editar} className={`${enlaceSuave} text-[13.5px]`}>
+              Editar mensaje
+            </button>
+          )}
+        </div>
+        {editando ? (
+          <textarea
+            ref={campoMensaje}
+            aria-label="Mensaje"
+            value={mensaje}
+            onChange={(e) => setMensaje(e.target.value)}
+            rows={6}
+            className="w-full min-w-0 resize-none rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-base leading-snug font-normal text-bosque outline-none focus:border-bosque"
+          />
+        ) : (
+          <p data-mensaje className="truncate rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-[14.5px] text-suave">
+            {mensaje}
+          </p>
         )}
-        <button type="button" onClick={guardarLaImagen} disabled={!imagen} className={`${boton} ${soporte.copiarImagen ? "" : "col-span-2"}`}>
-          Guardar imagen
-        </button>
       </div>
-      {preparando && <p className="-mt-2 text-center text-[13px] font-semibold text-suave">Preparando la imagen…</p>}
-      {falloImagen && <p className="-mt-2 text-center text-[13px] font-semibold text-[#b4432a]">No pudimos preparar la imagen. Puedes compartir el texto y el enlace.</p>}
 
-      <a
-        href={enlaceWhatsAppMensaje(mensaje)}
-        target="_blank"
-        rel="noreferrer"
-        className="tocable flex h-12 items-center justify-center gap-2 rounded-full bg-bosque text-[15px] font-extrabold text-papel"
+      <button
+        type="button"
+        onClick={enviar}
+        className="tocable flex h-14 items-center justify-center rounded-full bg-mandarina text-[16.5px] font-extrabold text-bosque-oscuro"
       >
-        <IconoWhatsApp tamano={20} />
-        Enviar por WhatsApp
-      </a>
-      <p className="-mt-1 truncate text-center text-[12.5px] text-suave">{enlace}</p>
+        Enviar
+      </button>
+
+      <p className="text-center text-[13.5px] font-semibold text-suave">
+        {falloImagen ? (
+          <span className="text-peligro">No pudimos preparar la imagen. Aun así puedes enviar el mensaje.</span>
+        ) : (
+          <>
+            Exportar como{" "}
+            <button type="button" onClick={() => exportar("imagen")} disabled={!imagen} className={enlaceSuave}>
+              imagen
+            </button>{" "}
+            ·{" "}
+            <button type="button" onClick={() => exportar("pdf")} disabled={!imagen} className={enlaceSuave}>
+              PDF
+            </button>
+            {!imagen && <span className="block text-[12.5px]">Preparando la imagen…</span>}
+          </>
+        )}
+      </p>
     </div>
   );
 }
