@@ -62,7 +62,7 @@
 /* --------------------------------------------------------------------------
    Borde de desplazamiento de las hojas (components/hoja.tsx): el contenido pasa por detrás de la
    cabecera con un desenfoque progresivo (4 capas: 1, 2, 4 y 8 px, el mayor arriba, cada una en su
-   franja) y un degradado Papel Cálido. Cubre la zona fija completa (cabecera + buscador/pastillas):
+   franja) y un degradado Papel Cálido translúcido. Cubre la zona fija completa (cabecera + buscador/pastillas):
    su alto es --cabecera + 16 px. La hoja escribe --borde (0 → 1 en los primeros 24 px de
    scroll). Sin backdrop-filter: solo el degradado. Con menos transparencia: fondo sólido.
    La opacidad va en cada capa y no en el contenedor: un contenedor con opacidad < 1 corta el
@@ -75,14 +75,21 @@
   pointer-events: none;
   opacity: var(--borde, 0);
 }
+/* Rampa del efecto, medida desde el borde de ABAJO de la zona: toda la zona si es una cabecera normal
+   (~95 px: queda igual que siempre, con las franjas repartidas a lo alto), y como mucho 128 px si la
+   zona es alta (cabecera + buscador + pastillas). Nunca menos de ~48 px. Por encima de la rampa: 8 px
+   de desenfoque y el crema a 0.94. Los % se resuelven donde se usa la variable (en cada degradado). */
+.hoja-borde {
+  --rampa: min(100%, 128px);
+}
 .hoja-borde > .hoja-borde-color {
-  /* Opaco en toda la zona fija (título, buscador, pastillas…) y se desvanece en los últimos 24 px,
-     justo debajo de su último elemento. */
+  /* Translúcido: se alcanzan a ver matices del contenido detrás. 0.94 arriba, 0.82 a media rampa, 0 abajo. */
   background: linear-gradient(
-    to bottom,
-    rgb(255 249 238 / 0.97) 0%,
-    rgb(255 249 238 / 0.95) calc(100% - 28px),
-    rgb(255 249 238 / 0) 100%
+    to top,
+    rgb(255 249 238 / 0) 0%,
+    rgb(255 249 238 / 0.82) calc(var(--rampa) * 0.45),
+    rgb(255 249 238 / 0.94) var(--rampa),
+    rgb(255 249 238 / 0.94) 100%
   );
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -93,23 +100,24 @@
     mask-image: linear-gradient(to top, var(--franja));
   }
 }
-/* Franjas medidas desde el BORDE DE ABAJO de la zona (no en %): el desenfoque crece de 1 a 8 px en los
-   últimos ~36 px, sea cual sea el alto de la zona fija. Arriba de eso, 8 px. */
+/* De abajo hacia arriba, cada capa entra donde la anterior se va (fracciones de la rampa). */
 .hoja-borde > :nth-child(1) {
   --desenfoque: 1px;
-  --franja: transparent 0px, #000 6px, #000 14px, transparent 20px;
+  --franja: transparent 0%, #000 calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), transparent calc(var(--rampa) * 0.5);
 }
 .hoja-borde > :nth-child(2) {
   --desenfoque: 2px;
-  --franja: transparent 6px, #000 14px, #000 22px, transparent 28px;
+  --franja: transparent calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625),
+    transparent calc(var(--rampa) * 0.75);
 }
 .hoja-borde > :nth-child(3) {
   --desenfoque: 4px;
-  --franja: transparent 14px, #000 22px, #000 30px, transparent 36px;
+  --franja: transparent calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875),
+    transparent var(--rampa);
 }
 .hoja-borde > :nth-child(4) {
   --desenfoque: 8px;
-  --franja: transparent 22px, #000 30px, #000 100%;
+  --franja: transparent calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875), #000 100%;
 }
 /* Zona fija de abajo de las hojas: con el teclado abierto se oculta (en iPhone quedaría detrás del
    teclado o flotando a media pantalla). Vuelve al cerrarlo. */
