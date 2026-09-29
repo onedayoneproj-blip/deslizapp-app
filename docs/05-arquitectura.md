@@ -189,6 +189,18 @@ migración. Ese es el criterio para saber si la capa de datos está bien
 armada: si conectar Supabase implica tocar algo fuera de `lib/data/`, algo se
 diseñó mal.
 
+## Resumen: la interfaz solo pide rangos y cifras
+
+La pantalla Inicio no calcula nada: llama a las funciones puras de
+`lib/resumen.ts` (`rangoPeriodo`, `rangoComparacion`, `barras`,
+`rangoBarra`, `rangoComparacionBarra`, `cifras`, `calcularResumen`,
+`primerMesConDatos`). Hoy reciben los pedidos, aaahs y productos de la tienda
+ya leídos del navegador. Con Supabase, los rangos se quedan igual y
+`cifras`/`calcularResumen` se cambian por consultas agregadas (sumas por día o
+por mes, top por unidades) que devuelvan la misma forma, sin tocar
+`components/inicio/`. Las pruebas de `tests/resumen.test.mjs` sirven de
+contrato para esas consultas.
+
 ## Multi-tenant en la práctica (con datos de prueba)
 
 Aunque hoy no hay login real, cada función de `lib/data/` recibe explícitamente

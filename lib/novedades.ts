@@ -18,6 +18,12 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.11.0",
+    fecha: "2026-09-29",
+    titulo: "Mira para atrás (y para adelante).",
+    cambios: ["Ahora puedes ver tus ventas de meses anteriores y del año completo, y tocar una barra para ver solo ese día o mes."],
+  },
+  {
     version: "0.10.0",
     fecha: "2026-09-29",
     titulo: "Tu tienda, en números que se entienden.",

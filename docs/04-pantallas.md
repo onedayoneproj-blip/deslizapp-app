@@ -483,18 +483,42 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
 - **Tarjeta de pedidos nuevos** (Mandarina, solo si hay): número en cuadro
   verde, "2 pedidos nuevos" / "Alguien dijo aaah. No lo dejes en visto." →
   lleva a Pedidos (pestaña Nuevos).
-- **Selector de periodo** (`Segmentos`): Hoy · 7 días (por defecto) · Este mes.
-  Recalcula todas las cifras, el gráfico y el top 3.
-- **Tarjeta de ventas** (Verde Bosque): "VENTAS · 7 DÍAS", monto grande,
-  variación con signo ("+18%": menta si sube, rosa si baja, sin rojo) y contra
-  qué se compara ("vs. los 7 días anteriores" / "vs. el lunes pasado, a esta
-  hora" / "vs. agosto, a esta altura"; sin datos antes: "Todavía no hay ventas
-  de antes para comparar."), y un **gráfico de barras** tocable (divs, sin
-  librería ni animación de entrada; resumen en texto para lectores de pantalla):
-  - Hoy: 12 franjas de 2 horas (las que aún no llegan, como trazo tenue).
-  - 7 días: una barra por día (la de hoy elegida al entrar, en Mandarina).
-  - Este mes: una barra por semana (1–7, 8–14…).
-  - Encima del gráfico, el valor de la barra elegida ("Hoy: RD$5,370").
+- **Selector de periodo** (`Segmentos`): Hoy · 7 días (por defecto) · Mes ·
+  Año. Se recuerda mientras la app esté abierta (en memoria). Cambiar de
+  pastilla vuelve al periodo actual de esa pastilla.
+- **Navegador** (solo Mes y Año): "‹ Septiembre 2026 ›" / "‹ 2026 ›", botones
+  de 44 px ("Mes anterior", "Mes siguiente"…). › desactivado en el periodo
+  actual; ‹ desactivado en el primer mes/año con datos de la tienda. Fuera del
+  periodo actual: "Volver a este mes" / "Volver a este año".
+- **Tarjeta de ventas** (Verde Bosque): "VENTAS DE SEPTIEMBRE" (o "DE HOY",
+  "DE LOS ÚLTIMOS 7 DÍAS", "DE 2026"; con barra elegida, "DEL 12 DE SEPT"),
+  monto grande, variación con signo ("+18%": menta si sube, rosa si baja, sin
+  rojo) y debajo, en pequeño, contra qué se compara ("vs. 1–5 sept", "vs.
+  agosto", "vs. ene–sept 2025"); sin datos para comparar: "Sin comparación
+  todavía". Reglas en "Resumen" de `03-modelo-de-datos.md`.
+- **Gráfico de barras** (`components/inicio/grafico-ventas.tsx`; divs, sin
+  librería ni animación de entrada; al cambiar de periodo cambia de una vez):
+  - Hoy: 12 franjas de 2 h · 7 días: una por día · Mes: una por día (28–31,
+    etiquetas cada 5 días) · Año: 12 meses (Ene–Dic).
+  - La barra de "ahora" (hoy, este mes) en Mandarina; las futuras en contorno
+    discontinuo y las anteriores al inicio de la tienda en contorno punteado
+    (distintas de un cero, que es una barra mínima).
+  - Eje abreviado arriba ("RD$12k", "RD$1.2M"); texto alternativo con el total
+    y la mejor barra.
+- **Tocar una barra** la ELIGE: queda en su color y las demás se atenúan
+  (opacidad 0.35, transición de 150 ms solo de opacidad). Todo lo que depende
+  del periodo se recalcula para esa barra (ventas, variación, Pedidos, Ticket,
+  Aaahs, De aaah a pedido, top 3); pedidos nuevos, stock y plan no cambian.
+  - Bajo la tarjeta, una píldora rosa "Mostrando solo el 12 de sept" (o "solo
+    agosto", "solo de 2 a 4 p. m.") con ✕ ("Ver todo el periodo"). En Año,
+    además "Ver mes →", que abre la vista Mes de ese mes sin selección.
+  - Se quita al tocar la ✕, la misma barra, el gráfico fuera de las barras, otra
+    pastilla o ‹ ›. Vive en memoria.
+  - Una barra futura o anterior al inicio no se elige: la píldora dice un
+    momento "Aún no hay datos de este mes/día/franja".
+  - Cada barra es un botón (aria-pressed, "12 de septiembre, RD$4,350, 3
+    pedidos") que ocupa toda la altura y el ancho de su columna.
+  - No hay globo flotante con el monto: lo dice la tarjeta.
 - 4 datos del periodo: **Pedidos**, **Ticket promedio** (ventas / pedidos;
   "—" sin pedidos), **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos /
   aaahs, en % con un decimal; "—" sin aaahs).
@@ -510,7 +534,8 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   "10 de 20 productos", barra, "35 créditos · te alcanzan para 7 fotos retocadas".
 - **Periodo sin pedidos ni aaahs**: en lugar de la tarjeta de ventas, los datos
   y el top, `EstadoVacio` con la ilustración de inicio ("Una semana
-  calladita." / "Hoy todavía está tranquilo." / "Este mes apenas arranca.").
+  calladita." / "Hoy todavía está tranquilo." / "Un mes calladito." / "Un año
+  en blanco… por ahora.").
   Nunca ceros fríos, NaN, Infinity ni "-%".
 - Cierre en Caveat: "tu pulgar tiene buen gusto. déjalo trabajar."
 

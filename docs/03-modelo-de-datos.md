@@ -164,20 +164,41 @@ Catálogo; debe coincidir con el número de `eventos_aaah` de ese producto.
 ## Resumen (no es una tabla — es una consulta agregada)
 
 Se calcula a partir de `eventos_aaah`, `pedidos`, `pedido_items` y
-`productos`, para el **periodo elegido** (en hora de Santo Domingo):
+`productos`, para la **vista elegida** (Hoy · 7 días · Mes · Año; en Mes y Año
+se navega con ‹ › por meses y años anteriores), en hora de Santo Domingo:
 
-| Periodo | Rango | Se compara contra | Barras del gráfico |
+| Vista | Rango | Se compara contra | Barras del gráfico |
 |---|---|---|---|
-| Hoy | desde las 00:00 de hoy hasta ahora | el mismo día de la semana pasada, hasta la misma hora | 12 franjas de 2 horas |
-| 7 días | los últimos 7 días (hoy incluido) hasta ahora | los 7 días anteriores, hasta la misma hora | una por día |
-| Este mes | desde el día 1 del mes hasta ahora | el mes anterior, del día 1 hasta la misma altura (sin pasar de su último día) | una por semana del mes (1–7, 8–14, 15–21, 22–28, 29–fin) |
+| Hoy | desde las 00:00 de hoy hasta ahora | el mismo día de la semana pasada, hasta la misma hora ("vs. lun 21 sept, a esta hora") | 12 franjas de 2 horas |
+| 7 días | los últimos 7 días (hoy incluido) | los 7 días anteriores ("vs. 15–21 sept") | una por día |
+| Mes en curso | del día 1 hasta ahora | los mismos días del mes anterior (1 a hoy; si tiene menos días, hasta su último día) ("vs. 1–5 ago") | **una por día** (28–31) |
+| Mes pasado | el mes completo | el mes anterior completo ("vs. agosto") | una por día |
+| Año en curso | del 1 de enero hasta ahora | el mismo tramo del año anterior ("vs. ene–sept 2025") | 12, una por mes |
+| Año pasado | el año completo | el año anterior completo ("vs. 2024") | 12, una por mes |
 
-Decisión (paso 9): cada periodo se compara contra **el mismo tramo de tiempo**
-hacia atrás, no contra un día o un mes completo; si no, un lunes a las 9 a. m.
-o un día 3 de mes siempre saldría en rojo. Sin ventas en el tramo anterior no
-hay variación: la pantalla lo dice con palabras (nunca "-%", NaN ni Infinity).
-Los cálculos viven en `lib/resumen.ts` (funciones puras, pruebas en
-`tests/resumen.test.mjs`, `npm test`); Santo Domingo es UTC−4 fijo.
+**Barra elegida** (tocar una barra filtra toda la pantalla a ella):
+
+| Barra | Se compara contra |
+|---|---|
+| Franja de 2 h (Hoy) | la misma franja del mismo día de la semana pasada |
+| Día (7 días o Mes) | el mismo día de la semana anterior ("vs. jue 5 sept") |
+| Mes (Año) | el mes anterior completo ("vs. julio"); si es el mes en curso, los mismos días del mes anterior |
+
+La barra de "ahora" se compara hasta la misma hora. Barras futuras o anteriores
+al inicio de la tienda (su primer pedido o aaah; si no hay, cuando se creó) no
+tienen valor ni se pueden elegir; ‹ no pasa de ese primer mes/año y › no pasa
+del actual.
+
+**Sin comparación:** si el tramo de comparación no tiene ventas (o el actual
+tampoco), no hay porcentaje: la pantalla dice "Sin comparación todavía" (nunca
+Infinity, NaN, "+∞%" ni un "−100%" engañoso).
+
+Los cálculos viven en `lib/resumen.ts` (funciones puras: `rangoPeriodo`,
+`rangoComparacion`, `barras`, `rangoBarra`, `rangoComparacionBarra`,
+`ventasPorDia`, `ventasPorMes`, `primerMesConDatos`, `cifras`,
+`calcularResumen`; pruebas en `tests/resumen.test.mjs`, `npm test`); Santo
+Domingo es UTC−4 fijo. Los tramos son semiabiertos: un pedido a las 11:30
+p. m. del último día del mes cuenta en ese mes.
 
 - `ventas`: suma de `total` de los `pedidos` no cancelados del periodo
 - `variacion`: `ventas` contra el periodo de comparación, en % entero (ej. "+18%"); sin ventas antes, no hay
@@ -190,10 +211,11 @@ Los cálculos viven en `lib/resumen.ts` (funciones puras, pruebas en
 - `pedidos_nuevos`: count de `pedidos` con `estado = 'nuevo'` (sin periodo)
 - `stock_bajo` ("Ojo con el stock"): productos con `stock` no null y `<= STOCK_BAJO` (`lib/config.ts`, hoy 2); agotados primero
 
-Los datos de prueba cubren ~14 días de pedidos y aaahs (Esencias Michel tiene
-pedidos #1033–#1036 la semana anterior, uno cancelado, para que "7 días" y
-"Hoy" tengan con qué comparar), así que "Este mes" sale sin comparación contra
-el mes anterior: es esperado.
+Los datos de prueba tienen ~14 meses de historia en Esencias Michel (desde
+julio 2025) y ~6 en Luna Bisutería (desde abril 2026, para probar el límite de
+"sin datos"), con temporadas de República Dominicana: diciembre, la semana del
+Día de las Madres (último domingo de mayo) y las quincenas (15 y 30). Ver
+"Datos de prueba".
 
 ## Relación entre tablas (resumen visual)
 
@@ -245,5 +267,12 @@ o más productos, le escribe a Deslizapp por WhatsApp desde Plan y créditos
 (determinista). Esencias Michel usa los mismos productos, clientes, pedidos
 y promos del prototipo; Luna Bisutería es la segunda tienda para probar el
 aislamiento. Las fechas del seed se desplazan al cargar para que la demo
-siempre sea "de esta semana". Si cambia la forma de los datos, subir la
-versión de la clave de `localStorage` en `lib/data/provider.tsx`.
+siempre sea "de esta semana" (por eso, si se carga lejos de la fecha de
+referencia del seed, los picos de temporada se corren unos días o semanas). La
+historia (~14 meses de pedidos y aaahs, anteriores a las últimas dos semanas)
+la genera `historia()` en el script; los pedidos #1033–#1042 de Michel y
+#1001–#1004 de Luna son fijos (los usan otras pruebas), y `productos.likes`
+se recalcula igual al número de `eventos_aaah` de cada producto. "Reiniciar
+datos de prueba" (menú de la tienda) vuelve a cargar el seed con la historia.
+Si cambia la forma de los datos, subir la versión de la clave de
+`localStorage` en `lib/data/provider.tsx`.

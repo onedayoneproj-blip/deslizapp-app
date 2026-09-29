@@ -5,8 +5,8 @@
     "nombre": "Carolina Peña",
     "telefono": "+18095550142",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-21T14:15:00.000Z",
-    "pedidos_count": 3,
+    "primer_pedido_en": "2025-08-09T15:33:00.000Z",
+    "pedidos_count": 10,
     "nota": "Talla M. Le encantan los aretes largos"
   },
   {
@@ -15,8 +15,8 @@
     "nombre": "Luis Marte",
     "telefono": "+18295550178",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-28T15:20:00.000Z",
-    "pedidos_count": 1,
+    "primer_pedido_en": "2025-08-31T19:10:00.000Z",
+    "pedidos_count": 7,
     "nota": "Prefiere entrega en la tarde"
   },
   {
@@ -25,8 +25,8 @@
     "nombre": "Yeimy Rosario",
     "telefono": "+18495550115",
     "origen": "manual",
-    "primer_pedido_en": "2026-09-18T16:40:00.000Z",
-    "pedidos_count": 2,
+    "primer_pedido_en": "2025-08-29T15:20:00.000Z",
+    "pedidos_count": 15,
     "nota": "Compra para regalos: pregunta siempre por la envoltura"
   },
   {
@@ -35,8 +35,8 @@
     "nombre": "Anyelo Brito",
     "telefono": "+18095550190",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-15T19:10:00.000Z",
-    "pedidos_count": 2,
+    "primer_pedido_en": "2025-08-28T23:37:00.000Z",
+    "pedidos_count": 14,
     "nota": null
   },
   {
@@ -55,8 +55,8 @@
     "nombre": "Ana Lucía Ferreira",
     "telefono": "+18095557730",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-20T19:20:00.000Z",
-    "pedidos_count": 2,
+    "primer_pedido_en": "2026-04-12T00:33:00.000Z",
+    "pedidos_count": 10,
     "nota": "Alérgica al níquel: solo piezas hipoalergénicas"
   },
   {
@@ -65,8 +65,8 @@
     "nombre": "Marcos Peralta",
     "telefono": "+18295556014",
     "origen": "catalogo",
-    "primer_pedido_en": "2026-09-24T14:45:00.000Z",
-    "pedidos_count": 1,
+    "primer_pedido_en": "2026-04-07T19:42:00.000Z",
+    "pedidos_count": 4,
     "nota": "Talla de anillo 9"
   },
   {
@@ -75,8 +75,228 @@
     "nombre": "Wendy Sosa",
     "telefono": "+18495552185",
     "origen": "manual",
-    "primer_pedido_en": "2026-09-27T21:00:00.000Z",
-    "pedidos_count": 1,
+    "primer_pedido_en": "2026-04-09T02:59:00.000Z",
+    "pedidos_count": 8,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000009",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Rosanna Almonte",
+    "telefono": "+18095551000",
+    "origen": "manual",
+    "primer_pedido_en": "2025-07-30T21:49:00.000Z",
+    "pedidos_count": 12,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000010",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Kelvin Tejada",
+    "telefono": "+18295551037",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-11-13T15:46:00.000Z",
+    "pedidos_count": 12,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000011",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Massiel Rodríguez",
+    "telefono": "+18495551074",
+    "origen": "manual",
+    "primer_pedido_en": "2025-08-02T01:05:00.000Z",
+    "pedidos_count": 11,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000012",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Yahaira Núñez",
+    "telefono": "+18095551111",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-12-09T17:29:00.000Z",
+    "pedidos_count": 7,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000013",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Franchesca Polanco",
+    "telefono": "+18295551148",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-08-27T02:33:00.000Z",
+    "pedidos_count": 8,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000014",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Wilson Abreu",
+    "telefono": "+18495551185",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-09-04T18:46:00.000Z",
+    "pedidos_count": 17,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000015",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Nicole Batista",
+    "telefono": "+18095551222",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-09-01T23:02:00.000Z",
+    "pedidos_count": 11,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000016",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Scarlet Méndez",
+    "telefono": "+18295551259",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-07-27T14:09:00.000Z",
+    "pedidos_count": 14,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000017",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Johanna Reyes",
+    "telefono": "+18495551296",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-09-15T14:12:00.000Z",
+    "pedidos_count": 11,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000018",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Pamela Castillo",
+    "telefono": "+18095551333",
+    "origen": "manual",
+    "primer_pedido_en": "2025-10-04T14:37:00.000Z",
+    "pedidos_count": 15,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000019",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Darlenis Féliz",
+    "telefono": "+18295551370",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-07-31T00:50:00.000Z",
+    "pedidos_count": 18,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000020",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Katherine Santana",
+    "telefono": "+18495551407",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-07-29T18:10:00.000Z",
+    "pedidos_count": 9,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000021",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Ruth Encarnación",
+    "telefono": "+18095551444",
+    "origen": "catalogo",
+    "primer_pedido_en": "2025-09-08T02:23:00.000Z",
+    "pedidos_count": 15,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000022",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Gabriel Paulino",
+    "telefono": "+18295551481",
+    "origen": "manual",
+    "primer_pedido_en": "2025-07-26T15:40:00.000Z",
+    "pedidos_count": 16,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000023",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Estefany Guzmán",
+    "telefono": "+18095571000",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-04-16T14:53:00.000Z",
+    "pedidos_count": 6,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000024",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Lisbeth Cabrera",
+    "telefono": "+18295571037",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-04-11T21:57:00.000Z",
+    "pedidos_count": 7,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000025",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Mariela Suero",
+    "telefono": "+18495571074",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-04-13T17:30:00.000Z",
+    "pedidos_count": 7,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000026",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Yudelka Pimentel",
+    "telefono": "+18095571111",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-04-15T17:22:00.000Z",
+    "pedidos_count": 8,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000027",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Hilda Montero",
+    "telefono": "+18295571148",
+    "origen": "manual",
+    "primer_pedido_en": "2026-05-02T01:59:00.000Z",
+    "pedidos_count": 9,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000028",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Nathalie Díaz",
+    "telefono": "+18495571185",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-08-05T17:48:00.000Z",
+    "pedidos_count": 2,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000029",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Crismeily Vargas",
+    "telefono": "+18095571222",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-05-10T13:32:00.000Z",
+    "pedidos_count": 3,
+    "nota": null
+  },
+  {
+    "id": "a4000000-0000-4000-8000-000000000030",
+    "tienda_id": "a1000000-0000-4000-8000-000000000002",
+    "nombre": "Omar Jiménez",
+    "telefono": "+18295571259",
+    "origen": "catalogo",
+    "primer_pedido_en": "2026-06-03T19:10:00.000Z",
+    "pedidos_count": 3,
     "nota": null
   }
 ]

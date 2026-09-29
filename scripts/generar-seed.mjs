@@ -39,6 +39,11 @@ const uid = (prefijo, n) => `${prefijo}-0000-4000-8000-${String(n).padStart(12, 
 const slugify = (s) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+// Historia: Esencias Michel vende desde hace ~14 meses; Luna Bisutería empezó más tarde (abril 2026), para
+// probar el límite de "sin datos" en la vista Año del Resumen.
+const DIAS_MICHEL = 430;
+const DIAS_LUNA = 175;
+
 // ---------- tiendas ----------
 const T_MICHEL = uid("a1000000", 1);
 const T_LUNA = uid("a1000000", 2);
@@ -46,13 +51,13 @@ const tiendas = [
   {
     id: T_MICHEL, slug: "esencias-michel", nombre: "Esencias Michel",
     logo_url: "/seed/tiendas/esencias-michel.svg", plan: "p20", limite_productos: 20,
-    creditos_retoque: 35, creditos_retoque_mensuales: 100, creado_en: iso(REF - 210 * D),
+    creditos_retoque: 35, creditos_retoque_mensuales: 100, creado_en: iso(REF - DIAS_MICHEL * D),
     marca_color_principal: "#5E2750", marca_color_acento: "#E9B949", marca_estilo: "elegante", url_catalogo: null,
   },
   {
     id: T_LUNA, slug: "luna-bisuteria", nombre: "Luna Bisutería",
     logo_url: "/seed/tiendas/luna-bisuteria.svg", plan: "p60", limite_productos: 60,
-    creditos_retoque: 100, creditos_retoque_mensuales: 100, creado_en: iso(REF - 95 * D),
+    creditos_retoque: 100, creditos_retoque_mensuales: 100, creado_en: iso(REF - DIAS_LUNA * D),
     marca_color_principal: "#2E3F66", marca_color_acento: "#F4A07C", marca_estilo: "moderna", url_catalogo: null,
   },
 ];
@@ -87,12 +92,12 @@ const defLuna = [
 
 let nProd = 0;
 const productos = [];
-function crearProductos(tiendaId, defs, tipo) {
+function crearProductos(tiendaId, defs, tipo, diasBase) {
   // Se crean del menos al más suspirado, para que "más nuevo primero" deje arriba a los favoritos.
   return [...defs].reverse().map(([nombre, precio, categoria, stock, likes, activo, destacado, retocada, colores], i) => {
     const slug = slugify(nombre);
     writeFileSync(join(PUB, "productos", `${slug}.svg`), tipo === "perfume" ? svgPerfume(colores, i) : svgJoya(colores, i));
-    const creado = REF - (150 - i * 9) * D;
+    const creado = REF - (diasBase - i * 9) * D;
     const p = {
       id: uid("a3000000", ++nProd), tienda_id: tiendaId, nombre, precio,
       fotos: [`/seed/productos/${slug}.svg`], foto_retocada: retocada, categoria, activo, destacado,
@@ -102,8 +107,8 @@ function crearProductos(tiendaId, defs, tipo) {
     return p;
   });
 }
-crearProductos(T_MICHEL, defMichel, "perfume");
-crearProductos(T_LUNA, defLuna, "joya");
+crearProductos(T_MICHEL, defMichel, "perfume", DIAS_MICHEL + 5);
+crearProductos(T_LUNA, defLuna, "joya", DIAS_LUNA + 5);
 const porNombre = Object.fromEntries(productos.map((p) => [p.nombre, p]));
 
 // ---------- eventos_aaah (likes repartidos en los últimos 14 días) ----------
@@ -201,6 +206,85 @@ pedido(T_MICHEL, { numero: 1033, cli: anyelo, origen: "catalogo", estado: "despa
 pedido(T_MICHEL, { numero: 1034, cli: yeimy, origen: "manual", estado: "despachado", creado: local(10, 12, 40), items: [["Wild Flower Gold", 1]] });
 pedido(T_MICHEL, { numero: 1035, cli: luis, origen: "catalogo", estado: "cancelado", creado: local(9, 19, 5), items: [["Parade", 1]] });
 pedido(T_MICHEL, { numero: 1036, cli: carolina, origen: "catalogo", estado: "despachado", creado: local(7, 10, 15), items: [["Kiara Pink", 1]] });
+
+// ---------- historia (~14 meses): pedidos y aaahs anteriores a las últimas dos semanas ----------
+// Temporadas de República Dominicana: diciembre, la semana del Día de las Madres (último domingo de mayo) y las
+// quincenas (15 y 30). Solo hasta hace 15 días: lo reciente queda como arriba (lo usan otras pruebas).
+const fechaSD = (ms) => new Date(ms - 4 * H);
+function ultimoDomingoDeMayo(anio) {
+  const d = new Date(Date.UTC(anio, 4, 31));
+  return 31 - d.getUTCDay();
+}
+function temporada(ms) {
+  const f = fechaSD(ms);
+  const mes = f.getUTCMonth();
+  const dia = f.getUTCDate();
+  let k = 1;
+  if (mes === 11) k *= dia >= 10 && dia <= 24 ? 3 : 2;
+  if (mes === 4) {
+    const madres = ultimoDomingoDeMayo(f.getUTCFullYear());
+    k *= dia > madres - 8 && dia <= madres ? 3.2 : 1.4;
+  }
+  if ([14, 15, 16, 29, 30, 31, 1].includes(dia)) k *= 1.7;
+  if ([0, 6].includes(f.getUTCDay())) k *= 1.2;
+  return k;
+}
+/** Cuántos pasan hoy con media `media` (Poisson, determinista). */
+function cuantos(media) {
+  const l = Math.exp(-media);
+  let k = 0;
+  let p = rand();
+  while (p > l) {
+    k++;
+    p *= rand();
+  }
+  return k;
+}
+const elegir = (lista) => lista[Math.floor(rand() * lista.length)];
+function elegirPorPeso(lista, peso) {
+  const total = lista.reduce((s, x) => s + peso(x), 0);
+  let r = rand() * total;
+  for (const x of lista) if ((r -= peso(x)) <= 0) return x;
+  return lista[lista.length - 1];
+}
+const NOMBRES_MICHEL = ["Rosanna Almonte", "Kelvin Tejada", "Massiel Rodríguez", "Yahaira Núñez", "Franchesca Polanco", "Wilson Abreu",
+  "Nicole Batista", "Scarlet Méndez", "Johanna Reyes", "Pamela Castillo", "Darlenis Féliz", "Katherine Santana", "Ruth Encarnación", "Gabriel Paulino"];
+const NOMBRES_LUNA = ["Estefany Guzmán", "Lisbeth Cabrera", "Mariela Suero", "Yudelka Pimentel", "Hilda Montero", "Nathalie Díaz", "Crismeily Vargas", "Omar Jiménez"];
+function historia(tiendaId, { dias, pedidosPorDia, aaahsPorDia, nombres, fijos, numeroFinal, prefijoTel }) {
+  const deTienda = productos.filter((p) => p.tienda_id === tiendaId);
+  const pool = [...fijos, ...nombres.map((n, i) => cliente(tiendaId, n, `+1${["809", "829", "849"][i % 3]}${prefijoTel}${String(1000 + i * 37).slice(-4)}`, rand() < 0.8 ? "catalogo" : "manual", REF - dias * D))];
+  const nuevos = [];
+  for (let d = dias; d >= 15; d--) {
+    const mediodia = local(d, 12);
+    const k = temporada(mediodia);
+    // aaahs del día
+    for (let n = cuantos(aaahsPorDia * k); n > 0; n--) {
+      const p = elegirPorPeso(deTienda, (x) => x.likes + 3);
+      eventos_aaah.push({ id: "", tienda_id: tiendaId, producto_id: p.id, creado_en: iso(local(d, 8 + Math.floor(rand() * 15), Math.floor(rand() * 60))) });
+    }
+    // pedidos del día
+    for (let n = cuantos(pedidosPorDia * k); n > 0; n--) {
+      const lineas = rand() < 0.3 ? 2 : 1;
+      const items = [];
+      for (let j = 0; j < lineas; j++) {
+        const p = elegirPorPeso(deTienda, (x) => x.likes + 5);
+        if (!items.some((it) => it[0] === p.nombre)) items.push([p.nombre, rand() < 0.2 ? 2 : 1]);
+      }
+      nuevos.push({ creado: local(d, 9 + Math.floor(rand() * 14), Math.floor(rand() * 60)), items, cli: elegir(pool), origen: rand() < 0.8 ? "catalogo" : "manual", estado: rand() < 0.06 ? "cancelado" : "despachado" });
+    }
+  }
+  nuevos.sort((a, b) => a.creado - b.creado);
+  const primero = numeroFinal - nuevos.length + 1;
+  nuevos.forEach((x, i) => pedido(tiendaId, { numero: primero + i, cli: x.cli, origen: x.origen, estado: x.estado, creado: x.creado, items: x.items, despachadoTrasHoras: 20 }));
+}
+historia(T_MICHEL, { dias: DIAS_MICHEL, pedidosPorDia: 0.42, aaahsPorDia: 3, nombres: NOMBRES_MICHEL, fijos: [carolina, luis, yeimy, anyelo], numeroFinal: 1032, prefijoTel: "555" });
+historia(T_LUNA, { dias: DIAS_LUNA, pedidosPorDia: 0.3, aaahsPorDia: 1.5, nombres: NOMBRES_LUNA, fijos: [anaLucia, marcos, wendy], numeroFinal: 1000, prefijoTel: "557" });
+
+// Eventos en orden, con id; y `likes` de cada producto = sus eventos_aaah (docs/03-modelo-de-datos.md)
+eventos_aaah.sort((a, b) => a.creado_en.localeCompare(b.creado_en));
+eventos_aaah.forEach((e, i) => (e.id = uid("a8000000", i + 1)));
+for (const p of productos) p.likes = eventos_aaah.filter((e) => e.producto_id === p.id).length;
+pedidos.sort((a, b) => (a.tienda_id === b.tienda_id ? a.numero - b.numero : a.tienda_id.localeCompare(b.tienda_id)));
 
 for (const c of clientes) {
   if (c._primero) c.primer_pedido_en = iso(c._primero);

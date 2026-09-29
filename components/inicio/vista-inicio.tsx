@@ -1,12 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CREDITOS_POR_RETOQUE, NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, saludo } from "@/lib/formato";
-import { aaahsDeLaSemana, calcularResumen, contarPedidosNuevos, diaDeLaSemana, stockBajo, textoVariacion, type Periodo, type Resumen } from "@/lib/resumen";
+import {
+  aaahsDeLaSemana,
+  anclaDe,
+  calcularResumen,
+  contarPedidosNuevos,
+  diaDeLaSemana,
+  inicioDeDatos,
+  nombreMes,
+  primerMesConDatos,
+  stockBajo,
+  textoVariacion,
+  type Ancla,
+  type BarraConValor,
+  type Resumen,
+  type Vista,
+} from "@/lib/resumen";
 import type { Producto, Tienda } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
@@ -18,36 +33,88 @@ import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
 import { GraficoVentas } from "./grafico-ventas";
 
-const PERIODOS: { id: Periodo; nombre: string }[] = [
+const VISTAS: { id: Vista; nombre: string }[] = [
   { id: "hoy", nombre: "Hoy" },
   { id: "semana", nombre: "7 días" },
-  { id: "mes", nombre: "Este mes" },
+  { id: "mes", nombre: "Mes" },
+  { id: "anio", nombre: "Año" },
 ];
 
-const VACIO: Record<Periodo, string> = {
+const VACIO: Record<Vista, string> = {
   hoy: "Hoy todavía está tranquilo.",
   semana: "Una semana calladita.",
-  mes: "Este mes apenas arranca.",
+  mes: "Un mes calladito.",
+  anio: "Un año en blanco… por ahora.",
 };
 
-const TITULO_GRAFICO: Record<Periodo, string> = {
-  hoy: "Ventas de hoy por franja de 2 horas",
-  semana: "Ventas de los últimos 7 días, por día",
-  mes: "Ventas de este mes, por semana",
+const POR: Record<Vista, string> = { hoy: "por franja de 2 horas", semana: "por día", mes: "por día", anio: "por mes" };
+const SIN_DATOS: Record<Vista, string> = {
+  hoy: "Aún no hay datos de esta franja",
+  semana: "Aún no hay datos de este día",
+  mes: "Aún no hay datos de este día",
+  anio: "Aún no hay datos de este mes",
 };
+
+/** La pastilla elegida se recuerda mientras la app esté abierta (en memoria, no en localStorage). */
+let vistaRecordada: Vista = "semana";
+
+const mismoMes = (a: Ancla, b: Ancla) => a.anio === b.anio && a.mes === b.mes;
 
 /** Resumen (Inicio). Todas las cifras salen de lib/resumen.ts con los datos de la tienda activa. */
 export function VistaInicio() {
+  const { tiendaId } = useTiendaActiva();
+  // Otra tienda empieza de cero (su mes actual, sin barra elegida): nada se mezcla.
+  return <Inicio key={tiendaId} />;
+}
+
+function Inicio() {
   const { getPedidos, getEventosAaah, getProductos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const [periodo, setPeriodo] = useState<Periodo>("semana");
+  const [vista, setVistaEstado] = useState<Vista>(vistaRecordada);
+  /** Mes/año mirado en Mes y Año; `null` = el actual. */
+  const [ancla, setAncla] = useState<Ancla | null>(null);
+  const [seleccion, setSeleccion] = useState<number | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   // "Ahora" se toma al consultar (no al pintar): cada cambio de datos (p. ej. un pedido simulado) lo renueva.
   const { data } = useConsulta(`resumen:${tiendaId}`, async () => {
     const [pedidos, eventos, productos] = await Promise.all([getPedidos(tiendaId), getEventosAaah(tiendaId), getProductos(tiendaId)]);
     return { pedidos, eventos, productos, ahora: Date.now() };
   });
 
-  const resumen = useMemo(() => (data ? calcularResumen(data, periodo, data.ahora) : null), [data, periodo]);
+  const inicio = data && tienda ? inicioDeDatos(data, tienda.creadoEn) : null;
+  const actual = data ? anclaDe(data.ahora) : null;
+  const primero = data && tienda ? primerMesConDatos(data, tienda.creadoEn) : null;
+  const mirado = ancla ?? actual;
+  const resumen = useMemo(
+    () => (data && mirado && inicio !== null ? calcularResumen(data, vista, mirado, data.ahora, { inicio, seleccion }) : null),
+    [data, vista, mirado?.anio, mirado?.mes, inicio, seleccion], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // El aviso "Aún no hay datos…" se va solo
+  useEffect(() => {
+    if (!aviso) return;
+    const t = setTimeout(() => setAviso(null), 2200);
+    return () => clearTimeout(t);
+  }, [aviso]);
+
+  const cambiarVista = (v: Vista) => {
+    vistaRecordada = v;
+    setVistaEstado(v);
+    setAncla(null);
+    setSeleccion(null);
+    setAviso(null);
+  };
+  const irA = (a: Ancla | null) => {
+    setAncla(a && actual && mismoMes(a, actual) ? null : a);
+    setSeleccion(null);
+    setAviso(null);
+  };
+  const verMes = (mes: number) => {
+    if (!mirado) return;
+    vistaRecordada = "mes";
+    setVistaEstado("mes");
+    irA({ anio: mirado.anio, mes });
+  };
   const nuevos = data ? contarPedidosNuevos(data.pedidos) : 0;
   const aaahsSemana = data ? aaahsDeLaSemana(data.eventos, data.ahora) : 0;
 
@@ -86,7 +153,11 @@ export function VistaInicio() {
           </Link>
         )}
 
-        <Segmentos etiqueta="Periodo del resumen" valor={periodo} alCambiar={setPeriodo} opciones={PERIODOS.map((p) => ({ id: p.id, texto: p.nombre }))} />
+        <Segmentos etiqueta="Periodo del resumen" valor={vista} alCambiar={cambiarVista} opciones={VISTAS.map((p) => ({ id: p.id, texto: p.nombre }))} />
+
+        {(vista === "mes" || vista === "anio") && mirado && actual && primero && (
+          <NavegadorPeriodo vista={vista} mirado={mirado} actual={actual} primero={primero} irA={irA} />
+        )}
 
         {!resumen && (
           <>
@@ -99,7 +170,7 @@ export function VistaInicio() {
           <div data-resumen-vacio>
             <EstadoVacio
               ilustracion="inicio"
-              titulo={VACIO[periodo]}
+              titulo={VACIO[vista]}
               remate="Cuando alguien suspire por tu catálogo o te haga un pedido, lo ves aquí primero."
               nota="tu vitrina te espera"
             />
@@ -108,7 +179,16 @@ export function VistaInicio() {
 
         {resumen && !resumen.vacio && (
           <>
-            <TarjetaVentas resumen={resumen} />
+            <TarjetaVentas
+              resumen={resumen}
+              alElegir={(i) => {
+                setAviso(null);
+                setSeleccion(i);
+              }}
+              alLimpiar={() => setSeleccion(null)}
+              alTocarVacia={() => setAviso(SIN_DATOS[vista])}
+            />
+            <AvisoFiltro resumen={resumen} aviso={aviso} alLimpiar={() => setSeleccion(null)} verMes={verMes} />
             <Metricas resumen={resumen} />
             <TopProductos resumen={resumen} />
           </>
@@ -123,27 +203,116 @@ export function VistaInicio() {
   );
 }
 
-function TarjetaVentas({ resumen: r }: { resumen: Resumen }) {
+function NavegadorPeriodo({ vista, mirado, actual, primero, irA }: { vista: "mes" | "anio"; mirado: Ancla; actual: Ancla; primero: Ancla; irA: (a: Ancla | null) => void }) {
+  const esMes = vista === "mes";
+  const enActual = esMes ? mismoMes(mirado, actual) : mirado.anio === actual.anio;
+  const enPrimero = esMes ? mismoMes(mirado, primero) : mirado.anio <= primero.anio;
+  const mover = (paso: number) =>
+    irA(esMes ? anclaDe(Date.UTC(mirado.anio, mirado.mes + paso, 15)) : { anio: mirado.anio + paso, mes: paso > 0 && mirado.anio + 1 === actual.anio ? actual.mes : 0 });
+  const flecha = "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full text-bosque disabled:text-apagado";
+  return (
+    <div data-navegador className="-mt-1.5 flex flex-col items-center">
+      <div className="flex w-full items-center justify-between">
+        <button type="button" onClick={() => mover(-1)} disabled={enPrimero} aria-label={esMes ? "Mes anterior" : "Año anterior"} className={flecha}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+        <p data-periodo className="font-display text-[19px]" aria-live="polite">
+          {esMes ? `${nombreMes(mirado.mes)} ${mirado.anio}` : mirado.anio}
+        </p>
+        <button type="button" onClick={() => mover(1)} disabled={enActual} aria-label={esMes ? "Mes siguiente" : "Año siguiente"} className={flecha}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      {!enActual && (
+        <button type="button" onClick={() => irA(null)} className="tocable -mt-1 text-[13px] font-bold text-suave underline underline-offset-2">
+          {esMes ? "Volver a este mes" : "Volver a este año"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TarjetaVentas({
+  resumen: r,
+  alElegir,
+  alLimpiar,
+  alTocarVacia,
+}: {
+  resumen: Resumen;
+  alElegir: (i: number) => void;
+  alLimpiar: () => void;
+  alTocarVacia: (b: BarraConValor) => void;
+}) {
   const texto = textoVariacion(r.variacion);
   const tono = r.variacion === null ? "" : r.variacion > 0 ? "bg-menta text-bosque" : r.variacion < 0 ? "bg-rosa text-bosque" : "bg-papel/15 text-papel";
   return (
-    <section data-tarjeta-ventas aria-label={`Ventas · ${r.rangos.etiqueta}`} className="rounded-[26px] bg-bosque px-[18px] pt-5 pb-4 text-papel">
+    <section data-tarjeta-ventas aria-label={`Ventas ${r.titulo}`} className="rounded-[26px] bg-bosque px-[18px] pt-5 pb-4 text-papel">
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-[13px] font-bold tracking-[0.08em] text-rosa uppercase">Ventas · {r.rangos.etiqueta}</p>
-          <p data-ventas className="mt-1 font-display text-[38px] leading-[1.05]">
+          <p data-titulo-ventas className="text-[13px] font-bold tracking-[0.08em] text-rosa uppercase">
+            Ventas {r.titulo}
+          </p>
+          <p data-ventas className="mt-1 font-display text-[36px] leading-[1.05]">
             {formatearPesos(r.ventas)}
           </p>
         </div>
-        {texto && (
-          <span data-variacion className={`mt-0.5 shrink-0 rounded-full px-2.5 py-[5px] text-[12.5px] font-extrabold whitespace-nowrap ${tono}`}>
-            {texto}
-          </span>
-        )}
+        <div className="mt-0.5 flex max-w-[132px] shrink-0 flex-col items-end gap-1 text-right">
+          {texto ? (
+            <>
+              <span data-variacion className={`rounded-full px-2.5 py-[5px] text-[12.5px] font-extrabold whitespace-nowrap ${tono}`}>
+                {texto}
+              </span>
+              <span data-contra className="text-[11.5px] leading-tight text-[#D9E6DF]">
+                {r.comparacion.texto}
+              </span>
+            </>
+          ) : (
+            <span data-sin-comparacion className="text-[12px] leading-tight font-semibold text-[#D9E6DF]">
+              Sin comparación todavía
+            </span>
+          )}
+        </div>
       </div>
-      <p className="mt-0.5 text-[13px] text-[#D9E6DF]">{texto ? r.rangos.contra : "Todavía no hay ventas de antes para comparar."}</p>
-      <GraficoVentas key={r.periodo} barras={r.rangos.barras} valores={r.ventasPorBarra} actual={r.rangos.barraActual} titulo={TITULO_GRAFICO[r.periodo]} />
+      <GraficoVentas
+        barras={r.barras}
+        seleccion={r.seleccion}
+        titulo={`Ventas ${r.seleccion === null ? r.titulo : ""} ${POR[r.vista]}`.replace(/\s+/g, " ")}
+        alElegir={alElegir}
+        alLimpiar={alLimpiar}
+        alTocarVacia={alTocarVacia}
+      />
     </section>
+  );
+}
+
+/** Píldora "Mostrando solo el 12 de sept" (con ✕ y, en Año, "Ver mes →"), o el aviso breve de una barra vacía. */
+function AvisoFiltro({ resumen: r, aviso, alLimpiar, verMes }: { resumen: Resumen; aviso: string | null; alLimpiar: () => void; verMes: (mes: number) => void }) {
+  if (aviso)
+    return (
+      <p role="status" data-aviso-vacio className="-mt-1.5 self-center rounded-full bg-arena px-4 py-2 text-[13.5px] font-bold text-suave">
+        {aviso}
+      </p>
+    );
+  if (r.seleccion === null) return null;
+  const barra = r.barras[r.seleccion]!;
+  return (
+    <div role="status" data-filtro className="-mt-1.5 flex items-center gap-1 self-center rounded-full bg-rosa py-1 pr-1 pl-4 text-bosque">
+      <span className="text-[13.5px] font-extrabold">Mostrando solo {barra.solo}</span>
+      {r.vista === "anio" && (
+        <button type="button" onClick={() => verMes(r.seleccion!)} className="tocable ml-1 h-9 rounded-full bg-papel px-3 text-[13px] font-extrabold">
+          Ver mes →
+        </button>
+      )}
+      <button type="button" onClick={alLimpiar} aria-label="Ver todo el periodo" className="tocable grid h-9 w-9 place-items-center rounded-full">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
+      </button>
+    </div>
   );
 }
 

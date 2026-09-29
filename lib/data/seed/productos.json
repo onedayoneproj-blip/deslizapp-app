@@ -12,9 +12,9 @@
     "activo": true,
     "destacado": false,
     "stock": 3,
-    "likes": 18,
-    "creado_en": "2026-05-01T16:00:00.000Z",
-    "actualizado_en": "2026-05-21T16:00:00.000Z"
+    "likes": 128,
+    "creado_en": "2025-07-20T16:00:00.000Z",
+    "actualizado_en": "2025-08-09T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000002",
@@ -29,9 +29,9 @@
     "activo": false,
     "destacado": false,
     "stock": 4,
-    "likes": 22,
-    "creado_en": "2026-05-10T16:00:00.000Z",
-    "actualizado_en": "2026-05-30T16:00:00.000Z"
+    "likes": 131,
+    "creado_en": "2025-07-29T16:00:00.000Z",
+    "actualizado_en": "2025-08-18T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000003",
@@ -46,9 +46,9 @@
     "activo": true,
     "destacado": false,
     "stock": 2,
-    "likes": 27,
-    "creado_en": "2026-05-19T16:00:00.000Z",
-    "actualizado_en": "2026-06-08T16:00:00.000Z"
+    "likes": 177,
+    "creado_en": "2025-08-07T16:00:00.000Z",
+    "actualizado_en": "2025-08-27T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000004",
@@ -63,9 +63,9 @@
     "activo": true,
     "destacado": false,
     "stock": 4,
-    "likes": 29,
-    "creado_en": "2026-05-28T16:00:00.000Z",
-    "actualizado_en": "2026-06-17T16:00:00.000Z"
+    "likes": 182,
+    "creado_en": "2025-08-16T16:00:00.000Z",
+    "actualizado_en": "2025-09-05T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000005",
@@ -80,9 +80,9 @@
     "activo": true,
     "destacado": false,
     "stock": 2,
-    "likes": 31,
-    "creado_en": "2026-06-06T16:00:00.000Z",
-    "actualizado_en": "2026-06-26T16:00:00.000Z"
+    "likes": 194,
+    "creado_en": "2025-08-25T16:00:00.000Z",
+    "actualizado_en": "2025-09-14T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000006",
@@ -97,9 +97,9 @@
     "activo": true,
     "destacado": false,
     "stock": 6,
-    "likes": 35,
-    "creado_en": "2026-06-15T16:00:00.000Z",
-    "actualizado_en": "2026-07-05T16:00:00.000Z"
+    "likes": 218,
+    "creado_en": "2025-09-03T16:00:00.000Z",
+    "actualizado_en": "2025-09-23T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000007",
@@ -114,9 +114,9 @@
     "activo": true,
     "destacado": false,
     "stock": 5,
-    "likes": 39,
-    "creado_en": "2026-06-24T16:00:00.000Z",
-    "actualizado_en": "2026-07-14T16:00:00.000Z"
+    "likes": 226,
+    "creado_en": "2025-09-12T16:00:00.000Z",
+    "actualizado_en": "2025-10-02T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000008",
@@ -131,9 +131,9 @@
     "activo": true,
     "destacado": false,
     "stock": 0,
-    "likes": 44,
-    "creado_en": "2026-07-03T16:00:00.000Z",
-    "actualizado_en": "2026-07-23T16:00:00.000Z"
+    "likes": 275,
+    "creado_en": "2025-09-21T16:00:00.000Z",
+    "actualizado_en": "2025-10-11T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000009",
@@ -148,9 +148,9 @@
     "activo": true,
     "destacado": true,
     "stock": 3,
-    "likes": 48,
-    "creado_en": "2026-07-12T16:00:00.000Z",
-    "actualizado_en": "2026-08-01T16:00:00.000Z"
+    "likes": 289,
+    "creado_en": "2025-09-30T16:00:00.000Z",
+    "actualizado_en": "2025-10-20T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000010",
@@ -165,9 +165,9 @@
     "activo": true,
     "destacado": true,
     "stock": 1,
-    "likes": 57,
-    "creado_en": "2026-07-21T16:00:00.000Z",
-    "actualizado_en": "2026-08-10T16:00:00.000Z"
+    "likes": 334,
+    "creado_en": "2025-10-09T16:00:00.000Z",
+    "actualizado_en": "2025-10-29T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000011",
@@ -182,9 +182,9 @@
     "activo": true,
     "destacado": false,
     "stock": 4,
-    "likes": 2,
-    "creado_en": "2026-05-01T16:00:00.000Z",
-    "actualizado_en": "2026-05-21T16:00:00.000Z"
+    "likes": 25,
+    "creado_en": "2026-04-01T16:00:00.000Z",
+    "actualizado_en": "2026-04-21T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000012",
@@ -199,9 +199,9 @@
     "activo": true,
     "destacado": false,
     "stock": null,
-    "likes": 5,
-    "creado_en": "2026-05-10T16:00:00.000Z",
-    "actualizado_en": "2026-05-30T16:00:00.000Z"
+    "likes": 45,
+    "creado_en": "2026-04-10T16:00:00.000Z",
+    "actualizado_en": "2026-04-30T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000013",
@@ -216,9 +216,9 @@
     "activo": true,
     "destacado": false,
     "stock": 1,
-    "likes": 9,
-    "creado_en": "2026-05-19T16:00:00.000Z",
-    "actualizado_en": "2026-06-08T16:00:00.000Z"
+    "likes": 51,
+    "creado_en": "2026-04-19T16:00:00.000Z",
+    "actualizado_en": "2026-05-09T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000014",
@@ -233,9 +233,9 @@
     "activo": true,
     "destacado": false,
     "stock": 9,
-    "likes": 11,
-    "creado_en": "2026-05-28T16:00:00.000Z",
-    "actualizado_en": "2026-06-17T16:00:00.000Z"
+    "likes": 75,
+    "creado_en": "2026-04-28T16:00:00.000Z",
+    "actualizado_en": "2026-05-18T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000015",
@@ -250,9 +250,9 @@
     "activo": true,
     "destacado": true,
     "stock": 2,
-    "likes": 17,
-    "creado_en": "2026-06-06T16:00:00.000Z",
-    "actualizado_en": "2026-06-26T16:00:00.000Z"
+    "likes": 105,
+    "creado_en": "2026-05-07T16:00:00.000Z",
+    "actualizado_en": "2026-05-27T16:00:00.000Z"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000016",
@@ -267,8 +267,8 @@
     "activo": true,
     "destacado": true,
     "stock": 5,
-    "likes": 21,
-    "creado_en": "2026-06-15T16:00:00.000Z",
-    "actualizado_en": "2026-07-05T16:00:00.000Z"
+    "likes": 110,
+    "creado_en": "2026-05-16T16:00:00.000Z",
+    "actualizado_en": "2026-06-05T16:00:00.000Z"
   }
 ]
