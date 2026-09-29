@@ -14,6 +14,12 @@
 // - Cabecera fija (tirador + título + X) superpuesta al contenido: el área de scroll ocupa toda la
 //   hoja y pasa por detrás de la cabecera, con un borde de desplazamiento (desenfoque progresivo +
 //   degradado, clases .hoja-borde de globals.css) que aparece en los primeros 24 px de scroll.
+// - Zona fija de arriba: todo lo que deba quedarse fijo (buscador, pastillas…) va DENTRO de la cabecera
+//   con <HojaFijoArriba> (o la prop `fijoArriba`). El desenfoque cubre la zona completa porque su alto
+//   sale del alto real de la cabecera (ResizeObserver → --cabecera) y se desvanece justo debajo de su
+//   último elemento. El contenido empieza debajo de toda la zona. Un solo desenfoque por hoja.
+// - Zona fija de abajo: <HojaFijoAbajo> (ej. la píldora de resumen); el contenido suma su alto al relleno
+//   inferior (--fijo-abajo) y se oculta mientras el teclado está abierto.
 // - Se cierra deslizando hacia abajo (más de ~30 % o con velocidad); si no, vuelve a su lugar.
 // - El arrastre solo mueve la hoja si el contenido está arriba del todo o si el gesto empieza en la
 //   cabecera: el scroll y el arrastre nunca se pelean (se decide al primer movimiento del dedo).
@@ -26,16 +32,20 @@
 // Implementación propia: se evaluó `vaul`, pero su repositorio está sin mantenimiento.
 
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type FocusEvent as EventoFoco,
   type PointerEvent as EventoPuntero,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { CURVA as CURVAS, DURACION as DURACIONES } from "@/lib/movimiento";
 import { IconoCerrar } from "./iconos";
 
@@ -51,12 +61,34 @@ const SCROLL_BORDE = 24;
 const DURACION = DURACIONES.entrada;
 const CURVA = CURVAS.salida;
 
+type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void };
+const ContextoHoja = createContext<Ranuras | null>(null);
+
+/** Contenido que se queda fijo debajo del título de la hoja (buscador, pastillas…). Se pinta en la cabecera. */
+export function HojaFijoArriba({ children }: { children: ReactNode }) {
+  const r = useContext(ContextoHoja);
+  return r?.arriba ? createPortal(children, r.arriba) : null;
+}
+
+/** Contenido que flota fijo abajo de la hoja (ej. resumen de selección). Se oculta con el teclado abierto. */
+export function HojaFijoAbajo({ children }: { children: ReactNode }) {
+  const r = useContext(ContextoHoja);
+  return r?.abajo ? createPortal(children, r.abajo) : null;
+}
+
+/** Lleva el contenido de la hoja arriba del todo (ej. al cambiar de vista dentro de la hoja). */
+export function useIrArribaHoja() {
+  return useContext(ContextoHoja)?.irArriba ?? (() => {});
+}
+
 type Props = {
   abierta: boolean;
   alCerrar: () => void;
   titulo: string;
   /** Cómo se comporta la altura (por defecto "auto"). */
   altura?: AlturaHoja;
+  /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
+  fijoArriba?: ReactNode;
   children: ReactNode;
 };
 
@@ -81,6 +113,7 @@ function HojaMontada({
   alCerrar,
   titulo,
   altura = "auto",
+  fijoArriba,
   children,
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
@@ -90,6 +123,9 @@ function HojaMontada({
   const cabecera = useRef<HTMLDivElement>(null);
   const contenido = useRef<HTMLDivElement>(null);
   const borde = useRef<HTMLDivElement>(null);
+  // Ranuras para lo fijo (en estado para que los portales se pinten apenas existen).
+  const [ranuraArriba, setRanuraArriba] = useState<HTMLDivElement | null>(null);
+  const [ranuraAbajo, setRanuraAbajo] = useState<HTMLDivElement | null>(null);
 
   const [nivel, setNivelEstado] = useState<Nivel>(altura === "expandible" ? "media" : "grande");
 
@@ -186,6 +222,24 @@ function HojaMontada({
     return () => observador.disconnect();
   }, [medirCabecera]);
 
+  // Alto de la zona fija de abajo (+12 px de aire): el contenido lo suma a su relleno inferior.
+  useEffect(() => {
+    const r = ranuraAbajo;
+    const p = panel.current;
+    if (!r || !p || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(() => {
+      const alto = r.offsetHeight;
+      p.style.setProperty("--fijo-abajo", alto ? `${alto + 12}px` : "0px");
+    });
+    observador.observe(r);
+    return () => observador.disconnect();
+  }, [ranuraAbajo]);
+
+  const irArriba = useCallback(() => {
+    if (contenido.current) contenido.current.scrollTop = 0;
+  }, []);
+  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba }), [ranuraArriba, ranuraAbajo, irArriba]);
+
   /** Borde de desplazamiento: invisible arriba del todo, completo a los SCROLL_BORDE px. */
   const alDesplazar = () => {
     const c = contenido.current;
@@ -233,9 +287,13 @@ function HojaMontada({
     const acomodar = () => {
       raf = 0;
       const c = contenido.current;
-      if (!c) return;
+      const p = panel.current;
+      if (!c || !p) return;
       const tapado = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-      c.style.setProperty("--teclado", `${tapado}px`);
+      // En el panel: lo usan el contenido (relleno) y la zona fija de abajo (se oculta con el teclado).
+      p.style.setProperty("--teclado", `${tapado}px`);
+      if (tapado > 0) p.dataset.teclado = "";
+      else delete p.dataset.teclado;
       const campo = document.activeElement;
       if (tapado > 0 && campo instanceof HTMLElement && c.contains(campo) && esCampo(campo)) {
         const visibleAbajo = vv.offsetTop + vv.height - 16;
@@ -412,7 +470,8 @@ function HojaMontada({
   // Ratón o lápiz: se arrastra desde la cabecera.
   const alApuntar = (e: EventoPuntero<HTMLDivElement>) => {
     if (e.pointerType === "touch" || e.button !== 0 || saliendo.current) return;
-    if ((e.target as HTMLElement).closest("button")) return;
+    // Botones, campos y filas desplazables de la zona fija no arrastran la hoja con el ratón.
+    if ((e.target as HTMLElement).closest("button, a, input, textarea, select, [role=tablist]")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     gesto.current = { y0: e.clientY, x0: e.clientX, yIni: y.current, desde: "cabecera", decidido: "hoja", puntos: [{ y: e.clientY, t: performance.now() }] };
   };
@@ -430,6 +489,7 @@ function HojaMontada({
   const expandibleEnMedia = altura === "expandible" && nivel === "media";
 
   return (
+    <ContextoHoja.Provider value={ranuras}>
     <div className="fixed inset-0 z-50" role="presentation">
       <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-bosque/50" style={{ opacity: 0 }} />
       <div
@@ -454,7 +514,7 @@ function HojaMontada({
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="min-h-0 flex-1 overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
+          className="min-h-0 flex-1 overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}
@@ -487,9 +547,15 @@ function HojaMontada({
             </h2>
             <BotonCerrar onClick={cerrar} />
           </div>
+          {/* Zona fija bajo el título: forma parte de la cabecera (y de su desenfoque) */}
+          {fijoArriba && <div className="mt-3">{fijoArriba}</div>}
+          <div ref={setRanuraArriba} className="[&:not(:empty)]:mt-3" />
         </div>
+        {/* Zona fija de abajo (píldora de resumen…): se oculta mientras el teclado está abierto */}
+        <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0" />
       </div>
     </div>
+    </ContextoHoja.Provider>
   );
 }
 

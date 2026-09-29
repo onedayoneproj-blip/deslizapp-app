@@ -10,13 +10,13 @@ import { Segmentos } from "../controles";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { Foto } from "../foto";
 import { IconoMas, IconoMenos } from "../iconos";
-import { FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
+import { FilaLista, ListaSeleccion, PildoraSeleccion, SelectorBusqueda } from "../selector-busqueda";
 
 const TODAS = "__todas";
 
 /**
  * Selector de productos de "+ Pedido", dentro de la misma hoja: buscador (nombre o colección), pastillas de
- * colección, y en cada fila − cantidad + para agregar sin salir de la lista. Arriba, fijo: el resumen y "Listo".
+ * colección, y en cada fila − cantidad + para agregar sin salir de la lista. Abajo, flotando: el resumen y "Listo".
  * Sin texto: los más vendidos primero. Agotados y ocultos, atenuados y sin poder agregarse (ocultos al final).
  */
 export function SelectorProducto({
@@ -53,26 +53,20 @@ export function SelectorProducto({
   const unidades = productos.reduce((suma, p) => suma + (cantidades[p.id] ?? 0), 0);
   const total = productos.reduce((suma, p) => suma + (cantidades[p.id] ?? 0) * precioConPromo(p, promos).precio, 0);
 
-  const fijo = (
-    <>
-      {colecciones.length > 0 && (
-        <Segmentos
-          etiqueta="Colección"
-          valor={coleccion}
-          alCambiar={setColeccion}
-          opciones={[{ id: TODAS, texto: "Todas" }, ...colecciones.map((c) => ({ id: c, texto: c }))]}
-        />
-      )}
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[14.5px] font-extrabold" aria-live="polite">
-          {unidades === 0 ? "Ninguno elegido" : `${unidades} ${unidades === 1 ? "producto" : "productos"} · ${formatearPesos(total)}`}
-        </p>
-        <button type="button" onClick={alTerminar} className="tocable h-11 shrink-0 rounded-full bg-bosque px-6 text-[15px] font-extrabold text-papel">
-          Listo
-        </button>
-      </div>
-    </>
-  );
+  const fijo =
+    colecciones.length > 0 ? (
+      <Segmentos
+        etiqueta="Colección"
+        valor={coleccion}
+        alCambiar={setColeccion}
+        opciones={[{ id: TODAS, texto: "Todas" }, ...colecciones.map((c) => ({ id: c, texto: c }))]}
+      />
+    ) : undefined;
+  // Solo con algo elegido: la píldora flotante con el resumen y "Listo"
+  const pildora =
+    unidades > 0 ? (
+      <PildoraSeleccion detalle={`${unidades} ${unidades === 1 ? "producto" : "productos"}`} total={formatearPesos(total)} alListo={alTerminar} />
+    ) : undefined;
 
   return (
     <SelectorBusqueda
@@ -83,6 +77,7 @@ export function SelectorProducto({
       etiqueta="Buscar producto"
       alVolver={alTerminar}
       fijo={fijo}
+      abajo={pildora}
     >
       {resultados.length === 0 ? (
         <p className="rounded-[18px] bg-arena p-4 text-center font-semibold text-suave">
@@ -91,7 +86,7 @@ export function SelectorProducto({
       ) : (
         <ListaSeleccion>
           {resultados.map((p) => (
-            <FilaLista key={p.id} margenSuperior="scroll-mt-44">
+            <FilaLista key={p.id}>
               <FilaProducto producto={p} promos={promos} cantidad={cantidades[p.id] ?? 0} consulta={q} alCambiar={alCambiar} />
             </FilaLista>
           ))}

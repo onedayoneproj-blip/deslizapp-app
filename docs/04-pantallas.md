@@ -74,6 +74,15 @@ botón de cerrar redondo. Además:
   cabecera + 16 px. Es invisible con el contenido arriba del todo y aparece
   en los primeros 24 px de scroll. Sin `backdrop-filter`: solo el degradado.
   Con "reducir transparencia": fondo sólido con una línea.
+- **Zona fija de arriba = una sola zona:** si una hoja necesita algo fijo bajo
+  el título (buscador, pastillas), va DENTRO de la cabecera (`<HojaFijoArriba>`
+  o la prop `fijoArriba` de `Hoja`). El desenfoque cubre toda la zona (su alto
+  sale del alto real, medido) y se desvanece justo debajo de su último elemento;
+  el contenido empieza debajo de toda la zona. Nada de `sticky` aparte.
+- **Zona fija de abajo** (`<HojaFijoAbajo>`): p. ej. la píldora de resumen del
+  selector de productos (verde bosque, "2 productos" + total en Fredoka y
+  "Listo" Mandarina). El contenido suma su alto al relleno inferior, y se oculta
+  mientras el teclado está abierto (vuelve al cerrarlo).
 - **Se cierran deslizando hacia abajo** (más de ~30 % o con velocidad), además
   de con la X, Escape o tocando el fondo. El arrastre solo mueve la hoja si el
   contenido está arriba del todo o si el gesto empieza en la cabecera.

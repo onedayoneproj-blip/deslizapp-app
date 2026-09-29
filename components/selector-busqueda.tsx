@@ -1,12 +1,14 @@
 "use client";
 
-import type { ReactNode, RefObject } from "react";
+import { useLayoutEffect, type ReactNode, type RefObject } from "react";
+import { HojaFijoAbajo, HojaFijoArriba, useIrArribaHoja } from "./hoja";
 import { IconoBuscar, IconoMas } from "./iconos";
 
 /**
- * Selector con búsqueda, para usar DENTRO de una hoja (sin abrir otra encima): botón de volver + buscador,
- * bloque fijo arriba (filtros / resumen opcionales), una fila de acción opcional ("+ Nuevo cliente") y la
- * lista (`children`). Lo usan el selector de clientes y el de productos de "+ Pedido"; el paso 8 (Promos)
+ * Selector con búsqueda, para usar DENTRO de una hoja (sin abrir otra encima): botón de volver + buscador y
+ * filtros opcionales (`fijo`), que van en la zona fija de la cabecera de la hoja (dentro del mismo
+ * desenfoque), una fila de acción opcional ("+ Nuevo cliente"), la lista (`children`) y algo fijo abajo
+ * opcional (`abajo`, ej. <PildoraSeleccion>). Lo usan el selector de clientes y el de productos de "+ Pedido"; el paso 8 (Promos)
  * lo reutiliza para elegir producto o colección.
  *
  * Teclado (HANDOFF.md): quien abre el selector con un toque debe enfocar el buscador en ESE toque
@@ -21,6 +23,7 @@ export function SelectorBusqueda({
   etiqueta,
   alVolver,
   fijo,
+  abajo,
   accionArriba,
   accionAbajo,
   children,
@@ -32,37 +35,45 @@ export function SelectorBusqueda({
   /** Nombre del buscador para lectores de pantalla. */
   etiqueta: string;
   alVolver: () => void;
-  /** Se queda fijo debajo del buscador al desplazar la lista (pastillas de colección, resumen…). */
+  /** Se queda fijo debajo del buscador, en la cabecera de la hoja (pastillas de colección…). */
   fijo?: ReactNode;
+  /** Flota fijo abajo de la hoja (se oculta con el teclado abierto). */
+  abajo?: ReactNode;
   accionArriba?: ReactNode;
   accionAbajo?: ReactNode;
   children: ReactNode;
 }) {
+  // Al entrar a esta vista, la lista empieza arriba del todo.
+  const irArriba = useIrArribaHoja();
+  useLayoutEffect(() => irArriba(), [irArriba]);
+
   return (
     <div className="flex flex-col gap-3">
-      {/* Fijo bajo la cabecera de la hoja (el relleno de arriba del contenido ya deja ese espacio: sticky mide desde ahí); tapa lo que pasa por detrás */}
-      <div className="sticky top-0 z-[5] -mx-5 -mt-0.5 flex flex-col gap-2.5 bg-papel px-5 pt-0.5 pb-2">
-        <div className="flex items-center gap-2">
-          <BotonVolver onClick={alVolver} />
-          <label className="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4 focus-within:border-bosque">
-            <IconoBuscar tamano={20} className="shrink-0 text-suave" />
-            <span className="sr-only">{etiqueta}</span>
-            <input
-              ref={entrada}
-              type="search"
-              value={consulta}
-              onChange={(e) => alCambiarConsulta(e.target.value)}
-              placeholder={placeholder}
-              autoComplete="off"
-              className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
-            />
-          </label>
+      <HojaFijoArriba>
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
+            <BotonVolver onClick={alVolver} />
+            <label className="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4 focus-within:border-bosque">
+              <IconoBuscar tamano={20} className="shrink-0 text-suave" />
+              <span className="sr-only">{etiqueta}</span>
+              <input
+                ref={entrada}
+                type="search"
+                value={consulta}
+                onChange={(e) => alCambiarConsulta(e.target.value)}
+                placeholder={placeholder}
+                autoComplete="off"
+                className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
+              />
+            </label>
+          </div>
+          {fijo}
         </div>
-        {fijo}
-      </div>
+      </HojaFijoArriba>
       {accionArriba}
       {children}
       {accionAbajo}
+      {abajo && <HojaFijoAbajo>{abajo}</HojaFijoAbajo>}
     </div>
   );
 }
@@ -101,13 +112,28 @@ export function ListaSeleccion({ children }: { children: ReactNode }) {
   return <ul className="rounded-[20px] border border-linea bg-white px-3">{children}</ul>;
 }
 
+/** Fila de una lista de selección (separador y `content-visibility` para listas largas). */
+export function FilaLista({ children }: { children: ReactNode }) {
+  return <li className="border-b border-arena [contain-intrinsic-size:auto_64px] [content-visibility:auto] last:border-b-0">{children}</li>;
+}
+
 /**
- * Fila de una lista de selección (separador y `content-visibility` para listas largas).
- * `margenSuperior` es un `scroll-mt-*`: lo que mide el bloque fijo de arriba, para que al llevar una fila
- * a la vista (foco, teclado) no quede tapada por él.
+ * Píldora flotante de resumen de una selección ("3 productos · RD$2,450" + "Listo"), abajo y centrada,
+ * con el margen lateral de la pantalla y respetando el área segura del iPhone. Entra subiendo un poco
+ * (transform + opacidad). Pasar a <SelectorBusqueda abajo={…}> solo cuando hay algo elegido.
  */
-export function FilaLista({ children, margenSuperior = "scroll-mt-16" }: { children: ReactNode; margenSuperior?: string }) {
+export function PildoraSeleccion({ detalle, total, alListo }: { detalle: string; total: string; alListo: () => void }) {
   return (
-    <li className={`border-b border-arena [contain-intrinsic-size:auto_64px] [content-visibility:auto] last:border-b-0 ${margenSuperior}`}>{children}</li>
+    <div className="px-5 pb-[max(16px,calc(var(--safe-abajo)+6px))]">
+      <div className="mov-aparece pointer-events-auto flex h-16 items-center gap-3 rounded-full bg-bosque py-2 pr-2 pl-5 text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.65)]">
+        <p className="min-w-0 flex-1 leading-tight" aria-live="polite">
+          <span className="block truncate text-[12.5px] font-bold text-papel/80">{detalle}</span>
+          <span className="block font-display text-[21px] tabular-nums">{total}</span>
+        </p>
+        <button type="button" onClick={alListo} className="tocable h-12 shrink-0 rounded-full bg-mandarina px-7 text-[16px] font-extrabold text-bosque-oscuro">
+          Listo
+        </button>
+      </div>
+    </div>
   );
 }
