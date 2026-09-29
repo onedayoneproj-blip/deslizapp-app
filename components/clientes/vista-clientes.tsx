@@ -1,0 +1,137 @@
+"use client";
+
+import Link from "next/link";
+import { startTransition, useMemo, useState, type ReactNode } from "react";
+import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { useData } from "@/lib/data/provider";
+import { formatearPesos } from "@/lib/formato";
+import type { ClienteConResumen } from "@/lib/types";
+import { EstadoVacio } from "../estado-vacio";
+import { Esqueleto } from "../esqueleto";
+import { IconoBuscar } from "../iconos";
+import { Numero } from "../numero";
+import { BotonFlotante } from "../panel/boton-flotante";
+import { TituloPantalla } from "../panel/titulo-pantalla";
+import { Avatar, EtiquetaRepite } from "./comunes";
+
+/** "Shé" → "she": buscar sin que importen tildes ni mayúsculas. */
+const normalizar = (texto: string) =>
+  texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+
+/**
+ * Pantalla de Clientes. Vive en el layout de /clientes para que la búsqueda siga ahí al abrir y
+ * cerrar un cliente: /clientes/nuevo y /clientes/[id] solo agregan la hoja encima.
+ */
+export function VistaClientes({ children }: { children: ReactNode }) {
+  const { getClientes } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const [busqueda, setBusqueda] = useState("");
+  const [aplicada, setAplicada] = useState("");
+
+  const visibles = useMemo(() => {
+    const q = normalizar(aplicada);
+    const digitos = aplicada.replace(/\D/g, "");
+    return (clientes ?? []).filter(
+      (c) =>
+        !q ||
+        normalizar(c.nombre).includes(q) ||
+        // El teléfono se busca por dígitos: "809555" o "809-555" encuentran +1 809 555 0142
+        (digitos.length >= 3 && (c.telefono ?? "").replace(/\D/g, "").includes(digitos)),
+    );
+  }, [clientes, aplicada]);
+
+  const total = clientes?.length ?? 0;
+  const repiten = clientes?.filter((c) => c.repite).length ?? 0;
+  const delCatalogo = clientes?.filter((c) => c.origen === "catalogo").length ?? 0;
+
+  return (
+    <>
+      <TituloPantalla titulo="Clientes" subtitulo="Los que ya dijeron aaah. Y los que están por decirlo." />
+      <div className="flex flex-col gap-3.5 px-5 pt-3.5">
+        <label className="flex h-12 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4">
+          <IconoBuscar tamano={20} className="shrink-0 text-suave" />
+          <span className="sr-only">Buscar cliente</span>
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => {
+              const valor = e.target.value;
+              setBusqueda(valor);
+              startTransition(() => setAplicada(valor));
+            }}
+            placeholder="Nombre o WhatsApp"
+            className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
+          />
+        </label>
+
+        <div className="grid grid-cols-3 gap-2">
+          <Contador valor={clientes ? total : null} texto="clientes" />
+          <Contador valor={clientes ? repiten : null} texto="repiten" rosa />
+          <Contador valor={clientes ? delCatalogo : null} texto="del catálogo" />
+        </div>
+
+        {!clientes && <Esqueleto className="h-[210px] rounded-[24px]" />}
+        {clientes && total === 0 && (
+          <EstadoVacio
+            ilustracion="clientes"
+            titulo="Aún no tienes clientes."
+            remate="Cuando alguien pida por tu catálogo, aparece aquí. O agrégalo tú."
+            accion={{ texto: "Agregar cliente", href: "/clientes/nuevo" }}
+          />
+        )}
+        {clientes && total > 0 && visibles.length === 0 && (
+          <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie con ese nombre. Todavía." remate="Prueba con otro nombre o con el WhatsApp." />
+        )}
+        {visibles.length > 0 && (
+          <ul className="rounded-[24px] border border-linea bg-white px-3.5">
+            {visibles.map((c) => (
+              <li key={c.id} className="border-b border-arena last:border-b-0">
+                <FilaCliente cliente={c} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Sin clientes, el botón del estado vacío ya invita a agregar: no se duplica */}
+      {!(clientes && total === 0) && <BotonFlotante href="/clientes/nuevo" texto="Cliente" />}
+      {children}
+    </>
+  );
+}
+
+function Contador({ valor, texto, rosa = false }: { valor: number | null; texto: string; rosa?: boolean }) {
+  return (
+    <div className={`rounded-[18px] px-3 py-2.5 ${rosa ? "bg-rosa" : "border border-linea bg-white"}`}>
+      <div className="font-display text-[22px] leading-tight">{valor === null ? "–" : <Numero valor={valor} />}</div>
+      <div className={`text-xs ${rosa ? "font-bold" : "font-semibold text-suave"}`}>{texto}</div>
+    </div>
+  );
+}
+
+function FilaCliente({ cliente: c }: { cliente: ClienteConResumen }) {
+  return (
+    <Link href={`/clientes/${c.id}`} scroll={false} aria-label={`Cliente ${c.nombre}`} className="tocable flex items-center gap-3 py-3 text-bosque">
+      <Avatar nombre={c.nombre} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5 text-[15.5px] font-extrabold">
+          <span className="truncate">{c.nombre}</span>
+          {c.repite && <EtiquetaRepite />}
+        </span>
+        <span className="block truncate text-[13px] text-suave">
+          {c.pedidos > 0
+            ? `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
+            : "Todavía no pide. Todavía."}
+        </span>
+      </span>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-suave">
+        <path d="M9 6l6 6-6 6" />
+      </svg>
+    </Link>
+  );
+}

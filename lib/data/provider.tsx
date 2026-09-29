@@ -8,6 +8,7 @@ import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNod
 import type {
   CambiosProducto,
   Cliente,
+  ClienteConResumen,
   EventoAaah,
   NuevoProducto,
   PedidoConItems,
@@ -17,7 +18,7 @@ import type {
   Usuario,
 } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
-import { clienteDeTienda, clientesDeTienda } from "./clientes";
+import { clienteDeTienda, clientesDeTienda, insertarCliente } from "./clientes";
 import { construirDesdeSeed, esDB, nuevoId, type DB } from "./db";
 import {
   cambiarEstadoPedido,
@@ -232,11 +233,22 @@ const operaciones = {
   },
 
   // Clientes
-  async getClientes(tiendaId: string): Promise<Cliente[]> {
+  /** Clientes con lo derivado de sus pedidos (cantidad, total gastado, última compra, "repite"). */
+  async getClientes(tiendaId: string): Promise<ClienteConResumen[]> {
     return clientesDeTienda(leer().db, tiendaId);
   },
-  async getCliente(tiendaId: string, id: string): Promise<Cliente | null> {
+  async getCliente(tiendaId: string, id: string): Promise<ClienteConResumen | null> {
     return clienteDeTienda(leer().db, tiendaId, id);
+  },
+  /** "+ Cliente". Lanza ClienteDuplicado si el WhatsApp ya es de otro cliente de la tienda. */
+  async crearCliente(tiendaId: string, datos: { nombre: string; telefono: string }): Promise<Cliente> {
+    let creado!: Cliente;
+    escribir((db) => {
+      const r = insertarCliente(db, tiendaId, datos, nuevoId(), ahora());
+      creado = r.cliente;
+      return r.db;
+    });
+    return creado;
   },
 
   // Promos

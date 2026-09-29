@@ -221,16 +221,25 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 **Qué muestra:**
 - Titular "Clientes" + "Los que ya dijeron aaah. Y los que están por decirlo."
 - Buscador "Busca un cliente".
-- 3 contadores: total de clientes, cuántos "repiten" (`pedidos_count >= 2`),
+- 3 contadores: total de clientes, cuántos "repiten" (2 o más pedidos),
   cuántos son del catálogo (`origen = 'catalogo'`).
 - Lista: iniciales en círculo, nombre, etiqueta "Repite" si aplica, y "2
   pedidos · RD$3,721" (total gastado en pedidos no cancelados).
+- **Todo se deriva de los pedidos** de la tienda activa (no se marca a mano):
+  número de pedidos, total gastado y última compra cuentan solo los pedidos
+  **no cancelados** (los nuevos y por despachar cuentan; los cancelados no).
+  "Repite" aparece sola con 2 o más pedidos y se actualiza al crear un pedido.
+- El buscador filtra por nombre (sin importar tildes) o por WhatsApp (por dígitos).
 - Cliente sin pedidos: "Todavía no pide. Todavía."
 - Búsqueda sin resultados: "Nadie con ese nombre. Todavía."
 
 **Acciones:**
-- Tocar un cliente → hoja con su WhatsApp ("Escribir") e historial de pedidos.
-- "+ Cliente": nombre + WhatsApp ("Nombre y WhatsApp. Con eso basta.").
+- Tocar un cliente → hoja con su WhatsApp ("Escribir"), pedidos, total gastado,
+  última compra e historial; tocar un pedido del historial abre su detalle.
+- "+ Cliente": nombre + WhatsApp ("Nombre y WhatsApp. Con eso basta."). El
+  WhatsApp debe ser dominicano (809, 829 o 849 + 7 dígitos; se guarda como
+  `+1809…`). Si ya hay un cliente con ese WhatsApp en la tienda, avisa y no lo
+  duplica. Un pedido manual con un WhatsApp que ya existe usa a ese cliente.
 
 **De dónde salen los clientes:** se crean automáticamente cuando llega un
 pedido del catálogo con datos de contacto, o manualmente desde el panel.

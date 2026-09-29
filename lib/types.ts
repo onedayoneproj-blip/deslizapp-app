@@ -75,7 +75,19 @@ export type Cliente = {
   telefono: string | null;
   origen: OrigenPedido;
   primerPedidoEn: string;
-  pedidosCount: number;
+};
+
+/**
+ * Cliente con lo que se DERIVA de sus pedidos (no se guarda): docs/03-modelo-de-datos.md.
+ * Cuenta solo los pedidos no cancelados.
+ */
+export type ClienteConResumen = Cliente & {
+  pedidos: number;
+  totalGastado: number;
+  /** Fecha del pedido no cancelado más reciente; null si todavía no pide. */
+  ultimaCompra: string | null;
+  /** 2 o más pedidos. */
+  repite: boolean;
 };
 
 export type TipoPromo = "codigo" | "coleccion" | "producto";

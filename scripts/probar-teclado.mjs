@@ -189,6 +189,24 @@ try {
     ok(errores.length === 0, `Nuevo pedido: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
+
+  // ---- Clientes: buscador y hoja "Cliente nuevo"
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/clientes");
+    await page.waitForSelector('input[type="search"]');
+    await page.waitForTimeout(900);
+    await probarCampo(page, 'input[type="search"]', "Buscador de Clientes", "carol");
+    await page.fill('input[type="search"]', "");
+    await page.evaluate(() => document.activeElement.blur());
+    await page.tap('a[href="/clientes/nuevo"]');
+    await page.waitForSelector('[role="dialog"] input[type="tel"]');
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Paola Jiménez"]', "Cliente nuevo · Nombre", "Marina", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[type="tel"]', "Cliente nuevo · WhatsApp", "8095551234", { dentroDeHoja: true });
+    ok(errores.length === 0, `Clientes: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
 } finally {
   await navegador.close();
 }

@@ -6,8 +6,9 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–6 hechos (incluidos la hoja de Plan y créditos, la
-publicación en Vercel y Pedidos con Detalle, Despacho y pedido manual). Sigue el paso 7.
+**Estado:** pasos 0–7 hechos (incluidos la hoja de Plan y créditos, la
+publicación en Vercel, Pedidos con Detalle, Despacho y pedido manual, y Clientes
+derivados de los pedidos). Sigue el paso 8.
 
 ## 0. Preparación
 
@@ -111,7 +112,7 @@ en el Catálogo; e intentar despachar otro pedido con ese mismo producto
 muestra el aviso de falta de stock en vez de dejar el stock en negativo (en
 el seed: Choker Perla de Luna Bisutería está en #1003 y #1004 con stock 1).
 
-## 7. Clientes
+## 7. Clientes — ✅ hecho
 
 - Buscador, los 3 contadores, la etiqueta "Repite" y el total gastado
 - Hoja del cliente con "Escribir" e historial; "+ Cliente"

@@ -6,8 +6,9 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { buscarCodigoPromo, descuentoDeCodigo } from "@/lib/data/pedidos";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { normalizarTelefonoDO } from "@/lib/telefono";
 import { precioConPromo } from "@/lib/promos";
-import type { Cliente, Producto, Promo } from "@/lib/types";
+import type { ClienteConResumen, Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
@@ -44,7 +45,7 @@ function Formulario({
   alTerminar,
 }: {
   productos: Producto[];
-  clientes: Cliente[];
+  clientes: ClienteConResumen[];
   promos: Promo[];
   alTerminar: () => void;
 }) {
@@ -71,7 +72,8 @@ function Formulario({
   const descuento = descuentoDeCodigo(promo, subtotal);
   const codigoMalo = codigo.trim() !== "" && !promo;
 
-  const clienteListo = modo === "existente" ? clienteId !== "" : nombre.trim() !== "";
+  const telefonoMalo = modo === "nuevo" && telefono.trim() !== "" && normalizarTelefonoDO(telefono) === null;
+  const clienteListo = modo === "existente" ? clienteId !== "" : nombre.trim() !== "" && !telefonoMalo;
   const puedeGuardar = clienteListo && lineas.length > 0 && !codigoMalo && !guardando;
 
   const cambiar = (id: string, delta: number) =>
@@ -139,10 +141,11 @@ function Formulario({
             inputMode="tel"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18))}
-            placeholder="WhatsApp: +1 809 555 0000"
+            placeholder="WhatsApp: 809-000-0000"
             aria-label="WhatsApp del cliente"
             className={campo}
           />
+          {telefonoMalo && <span className="-mt-2 text-[12.5px] font-semibold text-[#b4432a]">Escríbelo con 809, 829 o 849 y 7 dígitos más.</span>}
         </>
       )}
 

@@ -1,5 +1,7 @@
 import { estadoPromo, precioConPromo } from "../promos";
 import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
+import { normalizarTelefonoDO } from "../telefono";
+import { clientePorTelefono } from "./clientes";
 import type { AjusteFecha, DB } from "./db";
 
 export type FilaPedido = {
@@ -118,9 +120,7 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
   let clientes = db.clientes;
   let cliente: Cliente;
   if (delCatalogo.length > 0 && azar() < 0.5) {
-    const existente = elegir(delCatalogo, azar);
-    cliente = { ...existente, pedidosCount: existente.pedidosCount + 1 };
-    clientes = clientes.map((c) => (c.id === cliente.id ? cliente : c));
+    cliente = elegir(delCatalogo, azar);
   } else {
     const usados = new Set(db.clientes.filter((c) => c.tiendaId === tiendaId).map((c) => c.nombre));
     const libres = NOMBRES_NUEVOS.filter((n) => !usados.has(n));
@@ -132,7 +132,6 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
       telefono: `+1809555${String(Math.floor(azar() * 10000)).padStart(4, "0")}`,
       origen: "catalogo",
       primerPedidoEn: ahora,
-      pedidosCount: 1,
     };
     clientes = [...clientes, cliente];
   }
@@ -274,20 +273,20 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
   if (datos.clienteId) {
     const existente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
     if (!existente) throw new Error("Ese cliente no es de esta tienda.");
-    cliente = { ...existente, pedidosCount: existente.pedidosCount + 1 };
-    clientes = clientes.map((c) => (c.id === cliente.id ? cliente : c));
+    cliente = existente;
   } else if (datos.clienteNuevo?.nombre.trim()) {
-    const telefono = datos.clienteNuevo.telefono.replace(/[^\d+]/g, "");
-    cliente = {
+    const telefono = normalizarTelefonoDO(datos.clienteNuevo.telefono) ?? (datos.clienteNuevo.telefono.replace(/[^\d+]/g, "") || null);
+    const mismo = clientePorTelefono(db, tiendaId, telefono);
+    // Si ese WhatsApp ya es de un cliente de la tienda, el pedido es de esa persona (no se duplica).
+    cliente = mismo ?? {
       id: nuevoId(),
       tiendaId,
       nombre: datos.clienteNuevo.nombre.trim(),
-      telefono: telefono || null,
+      telefono,
       origen: "manual",
       primerPedidoEn: ahora,
-      pedidosCount: 1,
     };
-    clientes = [...clientes, cliente];
+    if (!mismo) clientes = [...clientes, cliente];
   } else {
     throw new Error("El pedido necesita un cliente.");
   }

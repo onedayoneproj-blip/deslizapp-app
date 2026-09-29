@@ -6,6 +6,7 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { StockInsuficiente } from "@/lib/data/pedidos";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
+import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
@@ -135,7 +136,7 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-extrabold">{cliente?.nombre ?? "Cliente sin nombre"}</p>
-          <p className="truncate text-[13px] text-suave">{cliente?.telefono ?? "Sin teléfono"}</p>
+          <p className="truncate text-[13px] text-suave">{cliente?.telefono ? formatearTelefono(cliente.telefono) : "Sin teléfono"}</p>
         </div>
         {cliente?.telefono ? (
           <a
