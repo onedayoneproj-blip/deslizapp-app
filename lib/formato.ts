@@ -30,3 +30,35 @@ export function saludo(ahora: Date = new Date()): string {
   if (hora >= 12 && hora < 19) return "Buenas tardes";
   return "Buenas noches";
 }
+
+const dia = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_HORARIA, year: "numeric", month: "2-digit", day: "2-digit" });
+const hora = new Intl.DateTimeFormat("es-DO", { timeZone: ZONA_HORARIA, hour: "numeric", minute: "2-digit", hour12: true });
+const diaSemana = new Intl.DateTimeFormat("es-DO", { timeZone: ZONA_HORARIA, weekday: "short" });
+const diaMes = new Intl.DateTimeFormat("es-DO", { timeZone: ZONA_HORARIA, day: "numeric", month: "short" });
+
+const DIA_MS = 24 * 60 * 60 * 1000;
+const mayuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/** "6:12 p. m." (hora de Santo Domingo; los espacios finos de Intl pasan a espacios normales). */
+const horaCorta = (fecha: Date) => hora.format(fecha).replace(/\s/g, " ").toLowerCase();
+
+/** "Hoy, 6:12 p. m." · "Ayer, 6:12 p. m." · "Jue, 4:05 p. m." · "12 sep, 4:05 p. m." (más de una semana). */
+export function fechaCorta(iso: string, ahora: Date = new Date()): string {
+  const fecha = new Date(iso);
+  const dias = Math.round((Date.parse(dia.format(ahora)) - Date.parse(dia.format(fecha))) / DIA_MS);
+  let cuando: string;
+  if (dias <= 0) cuando = "Hoy";
+  else if (dias === 1) cuando = "Ayer";
+  else if (dias < 7) cuando = mayuscula(diaSemana.format(fecha).replace(".", ""));
+  else cuando = diaMes.format(fecha).replace(".", "");
+  return `${cuando}, ${horaCorta(fecha)}`;
+}
+
+/** "Hace un momento" · "Hace 8 min" · "Hace 3 h" · y pasado el día, la fecha corta ("Ayer, 6:12 p. m."). */
+export function haceCuanto(iso: string, ahora: Date = new Date()): string {
+  const minutos = Math.floor((ahora.getTime() - Date.parse(iso)) / 60000);
+  if (minutos < 1) return "Hace un momento";
+  if (minutos < 60) return `Hace ${minutos} min`;
+  if (minutos < 60 * 12) return `Hace ${Math.floor(minutos / 60)} h`;
+  return fechaCorta(iso, ahora);
+}

@@ -6,7 +6,7 @@
 //
 // Un navegador de escritorio no abre teclado, así que se simula lo que hace iOS: la ventana
 // (innerHeight) NO cambia; solo `visualViewport` achica su alto y dispara "resize" y "scroll".
-// Comprueba, en el buscador del Catálogo y dentro de la hoja "Nuevo producto":
+// Comprueba, en el buscador del Catálogo y dentro de las hojas "Nuevo producto" y "Nuevo pedido":
 //   (a) tras tocar el campo, sigue siendo document.activeElement;
 //   (b) se puede escribir;
 //   (c) al abrir/cerrar el "teclado" varias veces, el campo sigue siendo el MISMO nodo (no se
@@ -169,6 +169,24 @@ try {
     await page.waitForTimeout(700);
     ok(!(await page.$('[role="dialog"]')), "Nuevo producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando");
     ok(errores.length === 0, `Nuevo producto: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
+  // ---- Hoja "Nuevo pedido" (+ Pedido): cliente nuevo y código
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/pedidos");
+    await page.waitForSelector('a[href="/pedidos/nuevo"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/pedidos/nuevo"]');
+    await page.waitForSelector('[role="dialog"] [role="tab"]');
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] [role="tab"]:has-text("Cliente nuevo")');
+    await page.waitForSelector('[role="dialog"] input[aria-label="Nombre del cliente"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Nuevo pedido · Cliente", "Marina", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Nuevo pedido · WhatsApp", "8095550123", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: LUNA20"]', "Nuevo pedido · Código", "ABC", { dentroDeHoja: true });
+    ok(errores.length === 0, `Nuevo pedido: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 } finally {

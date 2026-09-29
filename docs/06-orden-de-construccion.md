@@ -6,8 +6,8 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–5 hechos (incluidos la hoja de Plan y créditos y la
-publicación en Vercel). Sigue el paso 6.
+**Estado:** pasos 0–6 hechos (incluidos la hoja de Plan y créditos, la
+publicación en Vercel y Pedidos con Detalle, Despacho y pedido manual). Sigue el paso 7.
 
 ## 0. Preparación
 
@@ -96,7 +96,7 @@ página; y el buscador y los filtros encuentran lo esperado.
 en el encabezado, y si no alcanzan, el interruptor se bloquea con un mensaje
 de marca y un botón "Ver plan" (no hay compra de créditos).
 
-## 6. Pedidos + Detalle + Despacho
+## 6. Pedidos + Detalle + Despacho — ✅ hecho
 
 - Lista de pedidos con pestañas Nuevos / Por despachar / Despachados, "#numero · hace cuánto"
 - Detalle de pedido con línea de avance, "Escribir" (WhatsApp) y totales

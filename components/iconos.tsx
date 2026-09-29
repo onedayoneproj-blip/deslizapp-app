@@ -161,3 +161,12 @@ export const IconoMatraz = (p: Props) => (
     <path d="M7.5 14.5h9" />
   </Icono>
 );
+
+export const IconoCamion = (p: Props) => (
+  <Icono {...p}>
+    <path d="M3 6h11v10H3z" />
+    <path d="M14 10h4l3 3v3h-7" />
+    <circle cx="7" cy="18" r="1.8" />
+    <circle cx="17" cy="18" r="1.8" />
+  </Icono>
+);

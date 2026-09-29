@@ -1,5 +1,5 @@
-import { precioConPromo } from "../promos";
-import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem } from "../types";
+import { estadoPromo, precioConPromo } from "../promos";
+import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
 import type { AjusteFecha, DB } from "./db";
 
 export type FilaPedido = {
@@ -155,4 +155,154 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
     pedido: { ...pedido, items } satisfies PedidoConItems,
     cliente,
   };
+}
+
+// ---- Cambios de estado ----
+
+/** Un producto del pedido no tiene stock para despacharlo (nunca se deja el stock en negativo). */
+export class StockInsuficiente extends Error {
+  constructor(
+    public productoId: string,
+    public producto: string,
+    public disponibles: number,
+    public necesarios: number,
+  ) {
+    super(`No alcanza el stock de ${producto}: hay ${disponibles}, se necesitan ${necesarios}.`);
+  }
+}
+
+function pedidoParaCambiar(db: DB, tiendaId: string, id: string): Pedido {
+  const pedido = db.pedidos.find((p) => p.id === id && p.tiendaId === tiendaId);
+  if (!pedido) throw new Error("Ese pedido no es de esta tienda.");
+  return pedido;
+}
+
+function reemplazarPedido(db: DB, pedido: Pedido): DB {
+  return { ...db, pedidos: db.pedidos.map((p) => (p.id === pedido.id ? pedido : p)) };
+}
+
+/** Confirmar (nuevo → por_despachar) o cancelar (nuevo / por_despachar → cancelado). */
+export function cambiarEstadoPedido(db: DB, tiendaId: string, id: string, estado: "por_despachar" | "cancelado") {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  const permitido = estado === "por_despachar" ? actual.estado === "nuevo" : actual.estado === "nuevo" || actual.estado === "por_despachar";
+  if (!permitido) throw new Error("Ese pedido ya no puede cambiar a ese estado.");
+  const pedido: Pedido = { ...actual, estado };
+  return { db: reemplazarPedido(db, pedido), pedido: conItems(db, pedido) };
+}
+
+/**
+ * Despacha un pedido por_despachar: registra `despachadoEn` y descuenta el stock de cada producto
+ * según la cantidad. `stock = null` no se descuenta. Si algún producto no alcanza, lanza
+ * StockInsuficiente y no cambia nada. Devuelve los nombres de los productos que quedaron en 0.
+ */
+export function despacharPedido(db: DB, tiendaId: string, id: string, ahora: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (actual.estado !== "por_despachar") throw new Error("Solo se despachan pedidos que están por despachar.");
+  const items = db.pedidoItems.filter((i) => i.pedidoId === id);
+
+  // Suma por producto (un pedido podría repetir el mismo producto en dos líneas).
+  const necesarios = new Map<string, number>();
+  for (const i of items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
+
+  const agotados: string[] = [];
+  const productos = db.productos.map((p) => {
+    const cantidad = necesarios.get(p.id);
+    if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
+    if (p.stock < cantidad) throw new StockInsuficiente(p.id, p.nombre, p.stock, cantidad);
+    if (p.stock - cantidad === 0) agotados.push(p.nombre);
+    return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
+  });
+
+  const pedido: Pedido = { ...actual, estado: "despachado", despachadoEn: ahora };
+  return { db: { ...reemplazarPedido(db, pedido), productos }, pedido: conItems(db, pedido), agotados };
+}
+
+// ---- Pedido manual ----
+
+export type DatosPedidoManual = {
+  /** Cliente que ya existe… */
+  clienteId?: string;
+  /** …o uno nuevo. */
+  clienteNuevo?: { nombre: string; telefono: string };
+  items: { productoId: string; cantidad: number }[];
+  /** Código de promo que usó el cliente (opcional). */
+  codigo?: string;
+};
+
+/** La promo de tipo código vigente que coincide con lo escrito (sin importar mayúsculas), si hay. */
+export function buscarCodigoPromo(promos: Promo[], tiendaId: string, codigo: string, ahora: Date = new Date()): Promo | null {
+  const limpio = codigo.trim().toUpperCase();
+  if (!limpio) return null;
+  return (
+    promos.find(
+      (p) => p.tiendaId === tiendaId && p.tipo === "codigo" && p.codigo?.toUpperCase() === limpio && estadoPromo(p, ahora) === "activa",
+    ) ?? null
+  );
+}
+
+/** Descuento (en pesos) de un código sobre un subtotal. */
+export const descuentoDeCodigo = (promo: Promo | null, subtotal: number) =>
+  promo?.valorPorcentaje ? Math.round((subtotal * promo.valorPorcentaje) / 100) : 0;
+
+/**
+ * Crea un pedido manual directo en `por_despachar`, con el siguiente número de la tienda.
+ * Los precios son los de hoy (con promo de colección o de producto) y el código, si es válido,
+ * se descuenta del total.
+ */
+export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
+  const lineas = datos.items.filter((i) => i.cantidad > 0);
+  if (lineas.length === 0) throw new Error("El pedido necesita al menos un producto.");
+
+  const pedidoId = nuevoId();
+  const items: PedidoItem[] = lineas.map((l) => {
+    const producto = db.productos.find((p) => p.id === l.productoId && p.tiendaId === tiendaId);
+    if (!producto) throw new Error("Ese producto no es de esta tienda.");
+    return {
+      id: nuevoId(),
+      pedidoId,
+      productoId: producto.id,
+      nombreProducto: producto.nombre,
+      cantidad: l.cantidad,
+      precioUnitario: precioConPromo(producto, db.promos, new Date(ahora)).precio,
+    };
+  });
+  const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
+  const promo = datos.codigo ? buscarCodigoPromo(db.promos, tiendaId, datos.codigo, new Date(ahora)) : null;
+
+  let clientes = db.clientes;
+  let cliente: Cliente;
+  if (datos.clienteId) {
+    const existente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
+    if (!existente) throw new Error("Ese cliente no es de esta tienda.");
+    cliente = { ...existente, pedidosCount: existente.pedidosCount + 1 };
+    clientes = clientes.map((c) => (c.id === cliente.id ? cliente : c));
+  } else if (datos.clienteNuevo?.nombre.trim()) {
+    const telefono = datos.clienteNuevo.telefono.replace(/[^\d+]/g, "");
+    cliente = {
+      id: nuevoId(),
+      tiendaId,
+      nombre: datos.clienteNuevo.nombre.trim(),
+      telefono: telefono || null,
+      origen: "manual",
+      primerPedidoEn: ahora,
+      pedidosCount: 1,
+    };
+    clientes = [...clientes, cliente];
+  } else {
+    throw new Error("El pedido necesita un cliente.");
+  }
+
+  const pedido: Pedido = {
+    id: pedidoId,
+    tiendaId,
+    numero: siguienteNumeroPedido(db, tiendaId),
+    clienteId: cliente.id,
+    origen: "manual",
+    estado: "por_despachar",
+    total: subtotal - descuentoDeCodigo(promo, subtotal),
+    codigoPromo: promo?.codigo ?? null,
+    creadoEn: ahora,
+    despachadoEn: null,
+  };
+  return { db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], clientes }, pedido: { ...pedido, items } satisfies PedidoConItems, cliente };
 }

@@ -96,8 +96,8 @@ ahí está la documentación exacta de esta versión instalada.
 - Next.js 16 + TypeScript + Tailwind v4 + App Router, publicado en Vercel
   (https://deslizapp-app.vercel.app; cada push a `main` publica solo).
 - Hechos: tema de marca, capa de datos de prueba (`useData()` + `localStorage`),
-  layout con navegación, Plan y créditos, Catálogo, retoque de fotos y app
-  instalable con novedades. El avance paso a paso está en `docs/06-orden-de-construccion.md`.
+  layout con navegación, Plan y créditos, Catálogo, retoque de fotos, Pedidos
+  (lista, detalle, despacho con stock y pedido manual) y app instalable con novedades. El avance paso a paso está en `docs/06-orden-de-construccion.md`.
 - No hay Supabase conectado todavía (ver `docs/05-arquitectura.md` para el porqué
   y el cuándo, y `docs/07-fase-2-cuentas-y-cobros.md` para lo que viene después).
 

@@ -19,7 +19,15 @@ import type {
 import { CREDITOS_POR_RETOQUE } from "../config";
 import { clienteDeTienda, clientesDeTienda } from "./clientes";
 import { construirDesdeSeed, esDB, nuevoId, type DB } from "./db";
-import { insertarPedidoSimulado, pedidoDeTienda, pedidosDeTienda } from "./pedidos";
+import {
+  cambiarEstadoPedido,
+  despacharPedido,
+  insertarPedidoManual,
+  insertarPedidoSimulado,
+  pedidoDeTienda,
+  pedidosDeTienda,
+  type DatosPedidoManual,
+} from "./pedidos";
 import { insertarProducto, modificarProducto, productoDeTienda, productosDeTienda } from "./productos";
 import { promosDeTienda } from "./promos";
 import { eventosAaahDeTienda } from "./resumen";
@@ -179,6 +187,48 @@ const operaciones = {
   },
   async getPedido(tiendaId: string, id: string): Promise<PedidoConItems | null> {
     return pedidoDeTienda(leer().db, tiendaId, id);
+  },
+  /** Nuevo → Por despachar. */
+  async confirmarPedido(tiendaId: string, id: string): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = cambiarEstadoPedido(db, tiendaId, id, "por_despachar");
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
+  async cancelarPedido(tiendaId: string, id: string): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = cambiarEstadoPedido(db, tiendaId, id, "cancelado");
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
+  /**
+   * Por despachar → Despachado: descuenta el stock de cada producto. Lanza StockInsuficiente
+   * (sin cambiar nada) si algún producto no alcanza. `agotados` = productos que quedaron en 0.
+   */
+  async despacharPedido(tiendaId: string, id: string): Promise<{ pedido: PedidoConItems; agotados: string[] }> {
+    let resultado!: { pedido: PedidoConItems; agotados: string[] };
+    escribir((db) => {
+      const r = despacharPedido(db, tiendaId, id, ahora());
+      resultado = { pedido: r.pedido, agotados: r.agotados };
+      return r.db;
+    });
+    return resultado;
+  },
+  /** Pedido manual: entra directo en Por despachar con el siguiente número de la tienda. */
+  async crearPedidoManual(tiendaId: string, datos: DatosPedidoManual): Promise<{ pedido: PedidoConItems; cliente: Cliente }> {
+    let resultado!: { pedido: PedidoConItems; cliente: Cliente };
+    escribir((db) => {
+      const r = insertarPedidoManual(db, tiendaId, datos, nuevoId, ahora());
+      resultado = { pedido: r.pedido, cliente: r.cliente };
+      return r.db;
+    });
+    return resultado;
   },
 
   // Clientes
