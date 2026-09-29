@@ -6,9 +6,9 @@ conviene no saltarlos. Cada uno tiene su criterio de "listo".
 Antes de cada pantalla, ábrela en `referencias/prototipo-interactivo/Main.dc.html`:
 es la guía visual. Lo que construye cada paso está en `04-pantallas.md`.
 
-**Estado:** pasos 0–7 hechos (incluidos la hoja de Plan y créditos, la
-publicación en Vercel, Pedidos con Detalle, Despacho y pedido manual, y Clientes
-derivados de los pedidos). Sigue el paso 8.
+**Estado:** pasos 0–8 hechos (incluidos la hoja de Plan y créditos, la
+publicación en Vercel, Pedidos con Detalle, Despacho y pedido manual, Clientes
+derivados de los pedidos y Promos con estado por fechas). Sigue el paso 9.
 
 ## 0. Preparación
 
@@ -122,7 +122,7 @@ el seed: Choker Perla de Luna Bisutería está en #1003 y #1004 con stock 1).
 **Listo cuando:** un cliente con 2+ pedidos de prueba muestra "Repite"
 automáticamente, sin que alguien lo marque a mano.
 
-## 8. Promos
+## 8. Promos — ✅ hecho
 
 - Crear promo por código / colección / producto (solo en %), con vista previa
 - Pestañas Activas / Programadas / Terminadas según fechas; "Usada en N pedidos" en los códigos

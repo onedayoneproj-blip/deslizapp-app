@@ -30,7 +30,8 @@ import {
   type DatosPedidoManual,
 } from "./pedidos";
 import { insertarProducto, modificarProducto, productoDeTienda, productosDeTienda } from "./productos";
-import { promosDeTienda } from "./promos";
+import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
+import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
 import { buscarDueno, buscarTienda, descontarCreditos, listarTiendas } from "./tiendas";
 
@@ -264,6 +265,36 @@ const operaciones = {
   // Promos
   async getPromos(tiendaId: string): Promise<Promo[]> {
     return promosDeTienda(leer().db, tiendaId);
+  },
+
+  /** Lanza PromoInvalida (con los errores por campo) si algo no cumple las reglas. */
+  async crearPromo(tiendaId: string, datos: DatosPromo): Promise<Promo> {
+    let creada!: Promo;
+    escribir((db) => {
+      const r = insertarPromo(db, tiendaId, datos, nuevoId(), new Date());
+      creada = r.promo;
+      return r.db;
+    });
+    return creada;
+  },
+  async actualizarPromo(tiendaId: string, id: string, datos: DatosPromo): Promise<Promo> {
+    let actualizada!: Promo;
+    escribir((db) => {
+      const r = modificarPromo(db, tiendaId, id, datos, new Date());
+      actualizada = r.promo;
+      return r.db;
+    });
+    return actualizada;
+  },
+  /** La termina el dueño. No se puede reactivar. */
+  async terminarPromo(tiendaId: string, id: string): Promise<Promo> {
+    let terminada!: Promo;
+    escribir((db) => {
+      const r = terminarPromoDeTienda(db, tiendaId, id, new Date());
+      terminada = r.promo;
+      return r.db;
+    });
+    return terminada;
   },
 
   // Aaahs

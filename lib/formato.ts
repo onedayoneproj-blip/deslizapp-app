@@ -62,3 +62,12 @@ export function haceCuanto(iso: string, ahora: Date = new Date()): string {
   if (minutos < 60 * 12) return `Hace ${Math.floor(minutos / 60)} h`;
   return fechaCorta(iso, ahora);
 }
+
+/** "25 sep → 2 oct" · "Desde el 25 sep" (sin fecha de fin). */
+export function rangoFechas(inicio: string, fin: string | null): string {
+  const d = (iso: string) => diaMes.format(new Date(iso)).replace(".", "");
+  return fin ? `${d(inicio)} → ${d(fin)}` : `Desde el ${d(inicio)}`;
+}
+
+/** "3 oct" (día y mes cortos de Santo Domingo). */
+export const diaMesCorto = (iso: string) => diaMes.format(new Date(iso)).replace(".", "");

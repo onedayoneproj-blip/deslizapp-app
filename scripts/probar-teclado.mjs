@@ -208,6 +208,27 @@ try {
     await ctx.close();
   }
 
+  // ---- Nueva promo: nombre, descuento, código y buscadores de colección / producto
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/promos");
+    await page.waitForSelector('a[href="/promos/nueva"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/promos/nueva"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Semana del aaah"]');
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Semana del aaah"]', "Nueva promo · Nombre", "Semana rosa", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[aria-label="Descuento en porcentaje"]', "Nueva promo · Descuento", "25", { dentroDeHoja: true });
+    await page.tap('[role="dialog"] [role="group"] button:has-text("Código")');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: AAAH10"]', "Nueva promo · Código", "ROSA25", { dentroDeHoja: true });
+    await page.tap('[role="dialog"] [role="group"] button:has-text("Por colección")');
+    await page.tap('[role="dialog"] button[aria-label="Elegir colección"]');
+    ok(await page.evaluate(() => document.activeElement?.getAttribute("placeholder") === "Busca una colección"), "Selector de colección: el buscador tiene el foco justo después del toque que lo abre");
+    await probarCampo(page, '[role="dialog"] input[placeholder="Busca una colección"]', "Selector de colección · Buscador", "dul", { dentroDeHoja: true });
+    ok(errores.length === 0, `Nueva promo: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Clientes: buscador y hoja "Cliente nuevo"
   {
     const { ctx, page, errores } = await abrir(navegador);

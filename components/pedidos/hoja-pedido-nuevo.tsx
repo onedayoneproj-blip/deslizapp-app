@@ -223,7 +223,7 @@ function Formulario({
       )}
 
       <label className="mt-1 flex flex-col gap-1.5 text-[13.5px] font-bold">
-        ¿Usó un código? <span className="-mt-1 text-[12.5px] font-semibold text-suave">(opcional)</span>
+        Código de promo <span className="-mt-1 text-[12.5px] font-semibold text-suave">(opcional)</span>
         <input
           type="text"
           value={codigo}
@@ -233,8 +233,8 @@ function Formulario({
           autoComplete="off"
           className={campo}
         />
-        {promo && <span className="text-[12.5px] font-semibold text-suave">Código {promo.codigo}: {promo.valorPorcentaje}% menos.</span>}
-        {codigoMalo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese código no existe o ya terminó.</span>}
+        {promo && <span className="text-[12.5px] font-semibold text-suave">Código {promo.codigo}: {promo.valorPorcentaje}% menos. Ya va en el total.</span>}
+        {codigoMalo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese código no existe o ya no está activo. Revisa cómo lo escribió.</span>}
       </label>
 
       <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">

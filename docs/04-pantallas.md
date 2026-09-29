@@ -315,6 +315,26 @@ pedido del catálogo con datos de contacto, o manualmente desde el panel.
   programada. Arranca el 3 oct."
 - Al llegar `fecha_fin`, la promo pasa sola a Terminadas.
 
+**Cómo quedó construida (`components/promos/`):**
+- El estado de cada promo se calcula (`lib/promos.ts`): terminada guardada por el
+  dueño → Terminadas; si no, por fechas. Nada se mueve de pestaña a mano.
+- "Usada en N pedidos" cuenta los pedidos no cancelados con ese código **hechos
+  mientras la promo corría** (así un código repetido en una promo vieja y una
+  nueva no cuenta dos veces los mismos pedidos).
+- Validaciones: nombre; descuento entero de 1 a 90 ("Más de 90% ya es regalar.
+  Bájale un poco."); código de 3 a 12 letras/números en mayúsculas y sin
+  espacios, sin repetir el de otra promo **activa o programada** de la tienda
+  (uno terminado se puede reutilizar); colección o producto elegidos con el
+  selector con búsqueda; vence no antes de empezar. Fechas en día de Santo
+  Domingo (empieza a las 00:00, vence a las 23:59).
+- Vista previa en vivo: "Así se ve en tu catálogo" (precio nuevo, tachado y −N%)
+  o, en los códigos, un pedido de ejemplo con el descuento.
+- Editar (el tipo no cambia) y "Terminar promo" con confirmación. Una terminada
+  no se reactiva ni se edita: se **duplica como nueva** (`/promos/nueva?copiar=id`).
+- "+ Pedido" tiene el campo "Código de promo": si está activo aplica el % al
+  total y guarda `codigo_promo`; si no, avisa. El detalle del pedido muestra el
+  descuento y "Simular pedido del catálogo" usa los precios con promo vigente.
+
 ---
 
 ## 6. Retoque de fotos con IA
