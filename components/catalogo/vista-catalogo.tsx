@@ -111,8 +111,7 @@ export function VistaCatalogo() {
           />
         </label>
 
-        <div className="-mx-5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none]">
-          <Segmentos
+        <Segmentos
             etiqueta="Filtrar productos"
             valor={filtro}
             alCambiar={(id) =>
@@ -127,7 +126,6 @@ export function VistaCatalogo() {
               ),
             }))}
           />
-        </div>
 
         {productos && visibles.length === 0 && (
           productos.length === 0 ? (

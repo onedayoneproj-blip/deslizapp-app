@@ -68,8 +68,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     <Contexto.Provider value={setPestana}>
       <TituloPantalla titulo="Pedidos" subtitulo="Del suspiro al chat. Y del chat, aquí." />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
-        <div className="-mx-5 overflow-x-auto px-5 pb-0.5 [scrollbar-width:none]">
-          <Segmentos
+        <Segmentos
             etiqueta="Estado de los pedidos"
             valor={pestana}
             alCambiar={setPestana}
@@ -82,7 +81,6 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
               ),
             }))}
           />
-        </div>
 
         {!pedidos && (
           <>
@@ -127,8 +125,8 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
       </div>
       <p className="mt-1 truncate text-[17px] font-extrabold">{cliente ?? "Cliente sin nombre"}</p>
       <div className="mt-2.5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex shrink-0 -space-x-2">
             {p.items.slice(0, 3).map((i) => {
               const foto = productos.get(i.productoId)?.fotos[0];
               return (
@@ -138,11 +136,11 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
               );
             })}
           </div>
-          <span className="text-[13px] text-suave">
+          <span className="min-w-0 truncate text-[13px] text-suave">
             {unidades} {unidades === 1 ? "producto" : "productos"} · {p.origen === "catalogo" ? "Del catálogo" : "Manual"}
           </span>
         </div>
-        <span className="font-display text-xl">{formatearPesos(p.total)}</span>
+        <span className="shrink-0 font-display text-xl">{formatearPesos(p.total)}</span>
       </div>
     </Link>
   );

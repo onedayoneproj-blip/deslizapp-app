@@ -67,13 +67,18 @@ export function Interruptor({
  * Despachados) con un indicador en cápsula que se DESLIZA de una a otra y cambia de ancho.
  * El indicador son tres piezas movidas con transform (puntas + centro con scaleX), así no se
  * anima el ancho y las puntas no se deforman.
+ *
+ * Ancho: las opciones se reparten el ancho útil (mismo margen lateral que el resto de la pantalla,
+ * sin desplazamiento). Si con números grandes no caben, la fila se desplaza en horizontal SIN
+ * barra visible y conservando el margen al inicio y al final (el padding va en la fila interior,
+ * no en el contenedor que se desplaza: ahí algunos navegadores ignoran el final). Alto táctil: 44 px.
  */
 export function Segmentos<T extends string>({
   opciones,
   valor,
   alCambiar,
   etiqueta,
-  alto = 38,
+  alto = 44,
 }: {
   opciones: { id: T; texto: ReactNode }[];
   valor: T;
@@ -100,7 +105,8 @@ export function Segmentos<T extends string>({
   const transicion = animar ? "transform var(--mov-normal) var(--curva-salida)" : "none";
 
   return (
-    <div role="tablist" aria-label={etiqueta} className="relative isolate flex gap-2">
+    <div className="-mx-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full gap-1.5 px-5">
       {caja && (
         <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0">
           <span className="absolute inset-y-0 left-0 rounded-l-full bg-bosque" style={{ width: r, transform: `translateX(${caja.x}px)`, transition: transicion }} />
@@ -128,7 +134,7 @@ export function Segmentos<T extends string>({
               alCambiar(id);
             }}
             style={{ height: alto }}
-            className={`tocable relative z-10 shrink-0 rounded-full border-[1.5px] px-3.5 text-sm font-bold whitespace-nowrap ${
+            className={`tocable relative z-10 min-w-0 shrink-0 grow rounded-full border-[1.5px] px-2 text-center text-[13px] min-[390px]:text-[13.5px] font-bold tracking-tight whitespace-nowrap ${
               elegido ? "border-transparent text-papel" : "border-borde bg-transparent text-bosque"
             }`}
           >
@@ -136,6 +142,7 @@ export function Segmentos<T extends string>({
           </button>
         );
       })}
+    </div>
     </div>
   );
 }
