@@ -289,3 +289,22 @@ body {
   color: var(--color-tinta);
   font-family: var(--font-sans);
 }
+
+/* Campos de fecha: iOS Safari les da un ancho mínimo propio y se salen de su tarjeta. Aquí se resuelve una sola vez
+   para todos (Nuevo pedido, Promos…): sin apariencia nativa, del ancho de su contenedor y con el texto alineado. */
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 50px;
+  text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.2em;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-inline-start: 0.5rem;
+}

@@ -275,14 +275,14 @@ function Formulario({
         </div>
         {ventaPasada && (
           <div className="mt-2 flex flex-col gap-3 border-t border-arena pt-3 pb-1">
-            <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
+            <label className="flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
               Fecha de la venta
               <input
                 type="date"
                 value={dia}
                 max={diaLocal()}
                 onChange={(e) => setDia(e.target.value)}
-                className={campo}
+                className={`${campo} max-w-full appearance-none`}
               />
               {fechaVenta === null && <span className="text-[12.5px] font-semibold text-[#b4432a]">Elige un día que ya pasó (hoy también vale).</span>}
             </label>
@@ -293,7 +293,7 @@ function Formulario({
                 onChange={(e) => setDescontarStock(e.target.checked)}
                 className="mt-0.5 h-6 w-6 shrink-0 accent-[var(--color-bosque)]"
               />
-              <span className="text-[14.5px]">
+              <span className="min-w-0 text-[14.5px]">
                 <span className="block font-extrabold">Descontar del stock</span>
                 <span className="block text-[12.5px] font-semibold text-suave">Déjala apagada si vendiste esto antes de cargar tu inventario.</span>
               </span>
