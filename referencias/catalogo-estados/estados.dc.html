@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estados de Ver mi catálogo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;700;800&amp;family=Fredoka:wght@500;600&amp;display=swap">
+<style>
+body{margin:0;background:#fff9ee;font-family:Figtree,sans-serif;color:#174b3a}
+button{-webkit-tap-highlight-color:transparent}
+button:active{opacity:.7}
+button:focus-visible{outline:3px solid #ff834f;outline-offset:2px}
+.entrar{animation:entrar .42s cubic-bezier(.2,.8,.2,1) both;transition:background-color .4s}
+@keyframes entrar{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.titilar{animation:titilar 2.4s ease-in-out infinite}
+@keyframes titilar{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(45deg) scale(1.12)}}
+.titilar2{animation:titilar2 1.6s ease-in-out infinite}
+@keyframes titilar2{0%,100%{transform:scale(.6);opacity:.4}50%{transform:scale(1);opacity:1}}
+.cta-latido{animation:ctalat 2.4s ease-in-out infinite}
+@keyframes ctalat{0%,80%,100%{box-shadow:0 0 0 0 rgba(255,131,79,.5)}40%{box-shadow:0 0 0 8px rgba(255,131,79,0)}}
+.nota{animation:nota .6s .2s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes nota{from{opacity:0;transform:rotate(-12deg) scale(.6)}to{opacity:1;transform:rotate(-4deg)}}
+.rebote{animation:rebote 1.8s ease-in-out infinite}
+@keyframes rebote{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.puntos i{width:3px;height:3px;border-radius:2px;background:#174b3a;animation:punto 1.2s infinite}
+.puntos i:nth-child(2){animation-delay:.2s}.puntos i:nth-child(3){animation-delay:.4s}
+@keyframes punto{0%,100%{opacity:.25}50%{opacity:1}}
+.varita{animation:varita 1.8s ease-in-out infinite}
+@keyframes varita{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.14) rotate(14deg)}}
+.brillo{background:linear-gradient(90deg,#ff834f 0%,#ffb08d 45%,#ff834f 90%);background-size:200% 100%;animation:brillo 1.6s linear infinite}
+@keyframes brillo{from{background-position:200% 0}to{background-position:0 0}}
+.latido{animation:latido 1.6s ease-out infinite}
+@keyframes latido{0%{box-shadow:0 0 0 0 rgba(255,131,79,.6)}100%{box-shadow:0 0 0 9px rgba(255,131,79,0)}}
+.indet{animation:indet 1.4s ease-in-out infinite}
+@keyframes indet{from{left:-35%}to{left:100%}}
+.vivo{animation:vivo 2s ease-out infinite}
+@keyframes vivo{0%{box-shadow:0 0 0 0 rgba(46,139,87,.55)}100%{box-shadow:0 0 0 7px rgba(46,139,87,0)}}
+.pop{animation:pop .7s .15s cubic-bezier(.2,1.5,.4,1) both;transform-origin:left center}
+@keyframes pop{from{opacity:0;transform:scale(.5) rotate(-6deg)}to{opacity:1;transform:rotate(-2deg)}}
+.confeti{position:absolute;width:7px;height:7px;border-radius:2px;top:-10px;animation:confeti 2.8s ease-in infinite}
+.c1{left:8%;background:#ff834f;animation-delay:0s}.c2{left:20%;background:#f5c9d6;border-radius:4px;animation-delay:.5s}
+.c3{left:34%;background:#fff9ee;animation-delay:1.1s}.c4{left:48%;background:#ff834f;border-radius:4px;animation-delay:.3s}
+.c5{left:60%;background:#f5c9d6;animation-delay:1.5s}.c6{left:72%;background:#fff9ee;border-radius:4px;animation-delay:.8s}
+.c7{left:84%;background:#ff834f;animation-delay:1.9s}.c8{left:94%;background:#f5c9d6;animation-delay:.1s}
+@keyframes confeti{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(130px) rotate(300deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="width: 1808px; height: 900px; box-sizing: border-box; padding: 64px; background: #f3eadb; display: flex; flex-direction: column; gap: 40px">
+<div>
+<h1 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 44px; color: #174b3a">Ver mi catálogo · estados</h1>
+<p style="margin: 8px 0 0; font-size: 17px; color: #4f6a5e">La fila bajo “Tu catálogo” cambia según dónde va el catálogo de la tienda. Todas las animaciones se apagan con “reducir movimiento”.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 40px; row-gap: 48px">
+<sc-for list="{{estados}}" as="it" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div><p style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 20px; color: #174b3a">{{it.num}} · {{it.nombre}}</p><p style="margin: 4px 0 0; font-size: 14px; color: #4f6a5e">{{it.cuando}}</p></div>
+<div style="background: #fff9ee; border-radius: 28px; padding: 20px; min-height: 150px; box-sizing: border-box; display: flex; align-items: center">
+
+<sc-if value="{{it.sin}}" hint-placeholder-val="{{true}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #fff9ee; border: 1.5px dashed #cdbfa6">
+<span class="nota" style="position: absolute; top: 4px; right: 18px; font-family: Caveat, cursive; font-size: 17px; color: #c24e18; transform: rotate(-4deg)">¡abierto 24/7!</span>
+<div style="display: flex; align-items: center; gap: 12px; padding-top: 8px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: #f5c9d6"><span class="titilar" style="display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.2 2.2M15.5 15.5l2.2 2.2M6.3 17.7l2.2-2.2M15.5 8.5l2.2-2.2"></path></svg></span><span class="titilar2" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; border-radius: 5px; background: #ff834f"></span></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #174b3a">Tu catálogo en línea</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #4f6a5e">Lo armamos por ti con tus fotos. Tú solo lo compartes.</p></div>
+<button type="button" onClick="{{it.avanzar}}" class="cta-latido" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; font-family: Figtree, sans-serif; font-size: 13.5px; font-weight: 800; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: #ff834f; color: #10362a">Pedirlo</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.solicitado}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #dcebe2">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: #ffffff"><span class="rebote" style="display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13l2.5-7h11L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path><path d="M4 13h4.5l1.5 2.5h4l1.5-2.5H20"></path><path d="M9.5 9l2 2 3.5-3.5"></path></svg></span></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #174b3a">¡Pedido recibido!</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #4f6a5e">Te avisamos en cuanto empecemos a armarlo.</p></div>
+<span style="height: 28px; padding: 0 10px; border-radius: 14px; border: 1.5px solid #174b3a; color: #174b3a; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; flex-shrink: 0">En cola<span class="puntos" style="display: inline-flex; gap: 2px"><i></i><i></i><i></i></span></span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.generando}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #174b3a; color: #fff9ee">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: rgba(255, 249, 238, 0.12)"><span class="varita" style="display: flex"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4c.5 3.6 2.4 5.5 6 6-3.6.5-5.5 2.4-6 6-.5-3.6-2.4-5.5-6-6 3.6-.5 5.5-2.4 6-6z"></path><path d="M18.5 15c.25 1.7 1.1 2.55 2.8 2.8-1.7.25-2.55 1.1-2.8 2.8-.25-1.7-1.1-2.55-2.8-2.8 1.7-.25 2.55-1.1 2.8-2.8z"></path></svg></span></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #fff9ee">Armando tu catálogo…</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #dcebe2">Paso 2 de 3 · Diseñando tu portada</p></div>
+</div>
+<div style="margin-top: 12px; height: 6px; border-radius: 3px; background: rgba(255, 249, 238, 0.16); overflow: hidden"><div class="brillo" style="width: 62%; height: 6px; border-radius: 3px"></div></div>
+<div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: #dcebe2"><span style="display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="11" fill="#dcebe2"></circle><path d="M7.4 12.9c1.1.9 2 1.8 2.8 2.9 1.6-2.7 3.6-4.8 6.4-6.5" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Fotos</span><span style="display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="11" fill="#dcebe2"></circle><path d="M7.4 12.9c1.1.9 2 1.8 2.8 2.9 1.6-2.7 3.6-4.8 6.4-6.5" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Textos</span><span style="display: flex; align-items: center; gap: 6px; color: #fff9ee"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="10" fill="none" stroke="#ff834f" stroke-width="2.4"></circle><circle class="latido" cx="12" cy="12" r="4.2" fill="#ff834f"></circle></svg>Diseño</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.revisar}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #f5c9d6">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: #ffffff"><span class="rebote" style="display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></span><span class="latido" style="position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 6px; background: #ff834f; border: 2px solid #f5c9d6"></span></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #174b3a">¡Está listo! Échale un ojo</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #174b3a">Revísalo y publícalo cuando te guste.</p></div>
+<button type="button" onClick="{{it.avanzar}}" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; font-family: Figtree, sans-serif; font-size: 13.5px; font-weight: 800; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: #174b3a; color: #fff9ee">Revisar</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.cambios}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #f3ead9">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: #ffffff"><span class="varita" style="display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="M13.5 6.5l4 4"></path></svg></span></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #174b3a">Aplicando tus cambios</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #4f6a5e">Te lo devolvemos para revisar muy pronto.</p></div>
+</div>
+<div style="margin-top: 12px; height: 4px; border-radius: 2px; background: #e7dcc8; overflow: hidden; position: relative"><div class="indet" style="position: absolute; top: 0; height: 4px; width: 35%; border-radius: 2px; background: #174b3a"></div></div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.recien}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #174b3a; padding-top: 12px">
+<span class="confeti c1"></span><span class="confeti c2"></span><span class="confeti c3"></span><span class="confeti c4"></span><span class="confeti c5"></span><span class="confeti c6"></span><span class="confeti c7"></span><span class="confeti c8"></span>
+<div style="display: flex; align-items: center; gap: 12px; position: relative">
+<div style="flex-grow: 1; min-width: 0"><p class="pop" style="margin: 0; font-family: Caveat, cursive; font-size: 28px; line-height: 1; color: #f5c9d6">¡Ya estás en línea!</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; margin-top: 6px; color: #fff9ee">Compártelo y deja que lleguen los pedidos.</p></div>
+<button type="button" onClick="{{it.avanzar}}" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; font-family: Figtree, sans-serif; font-size: 13.5px; font-weight: 800; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: #ff834f; color: #10362a">Compartir</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.publicado}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #ffffff; border: 1px solid #efe4d2">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="flex-grow: 1; min-width: 0">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 11px; background: #dcebe2; color: #174b3a; font-size: 11.5px; font-weight: 800"><span class="vivo" style="width: 7px; height: 7px; border-radius: 4px; background: #2e8b57"></span>En línea</span>
+<p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #174b3a; margin-top: 6px">Ver mi catálogo en línea</p>
+<p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #4f6a5e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><b style="color: #174b3a">deslizapp-app.vercel.app</b>/catalogos/esencias-michel</p>
+</div>
+<button type="button" aria-label="Compartir catálogo" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"></path><path d="M7.5 7.5L12 3l4.5 4.5"></path><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"></path></svg></button>
+<button type="button" aria-label="Abrir catálogo" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #174b3a; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-9 9"></path><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"></path></svg></button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{it.pausado}}" hint-placeholder-val="{{false}}">
+<div class="entrar" style="box-sizing: border-box; width: 100%; border-radius: 22px; padding: 14px 14px 14px 16px; position: relative; overflow: hidden; background: #ffffff; border: 1.5px dashed #cdbfa6">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; position: relative; background: #f3ead9"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg></div>
+<div style="flex-grow: 1; min-width: 0"><p style="margin: 0; font-family: Figtree, sans-serif; font-size: 15px; font-weight: 800; line-height: 1.25; color: #4f6a5e">Catálogo pausado</p><p style="margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: #4f6a5e">Tus clientes ven un aviso. Actívalo con tu plan.</p></div>
+<button type="button" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; font-family: Figtree, sans-serif; font-size: 13.5px; font-weight: 800; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: transparent; color: #174b3a; border: 1.5px solid #174b3a">Ver plan</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 1808, "height": 900}}'>
+class Component extends DCLogic {
+renderVals() {
+const E = [{"id": "sin", "nombre": "Sin catálogo", "cuando": "La tienda aún no tiene catálogo. Invita a pedirlo."}, {"id": "solicitado", "nombre": "Pedido recibido", "cuando": "Lo pidió y está en cola para que lo armemos."}, {"id": "generando", "nombre": "Armando tu catálogo", "cuando": "Lo estamos haciendo nosotros. Progreso por pasos."}, {"id": "revisar", "nombre": "Listo para revisar", "cuando": "Terminamos. Falta que el dueño lo revise y publique."}, {"id": "cambios", "nombre": "Aplicando cambios", "cuando": "Pidió ajustes en la revisión; los estamos haciendo."}, {"id": "recien", "nombre": "¡Recién publicado!", "cuando": "Celebración, solo la primera vez tras publicar."}, {"id": "publicado", "nombre": "En línea", "cuando": "Estado normal del día a día: ver y compartir."}, {"id": "pausado", "nombre": "Pausado", "cuando": "Tienda en prueba o plan vencido."}];
+return { estados: E.map((e, i) => { const o = { num: i + 1, nombre: e.nombre, cuando: e.cuando, avanzar: () => {} }; E.forEach(x => { o[x.id] = x.id === e.id; }); return o; }) };
+}
+}
+</script>
+</body>
+</html>
