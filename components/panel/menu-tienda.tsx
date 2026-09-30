@@ -162,6 +162,14 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           Ver novedades
         </button>
       </div>
+      <div className="mt-1 flex justify-center gap-5 text-[13px] text-suave">
+        <Link href="/privacidad" onClick={cerrar} className="tocable flex items-center underline">
+          Privacidad
+        </Link>
+        <Link href="/terminos" onClick={cerrar} className="tocable flex items-center underline">
+          Términos
+        </Link>
+      </div>
     </Hoja>
   );
 }

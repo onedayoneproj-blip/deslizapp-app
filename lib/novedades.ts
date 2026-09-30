@@ -18,6 +18,12 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.12.1",
+    fecha: "2026-09-30",
+    titulo: "Las reglas, claras y a la vista.",
+    cambios: ["Ya puedes leer nuestra Política de privacidad y los Términos de servicio, desde la entrada y desde el menú de tu tienda."],
+  },
+  {
     version: "0.12.0",
     fecha: "2026-09-30",
     titulo: "Tu tienda de verdad, con tu cuenta de Google.",

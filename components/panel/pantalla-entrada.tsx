@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useSesion } from "@/lib/data/provider";
 import { comprobarSesion, entrarConGoogle, salir, verDemo } from "@/lib/data/sesion";
@@ -85,6 +86,14 @@ export function PantallaEntrada() {
         <Image src="/ilustraciones/inicio.webp" alt="" width={200} height={179} unoptimized priority className="mb-6 self-center select-none" draggable={false} />
         {contenido}
       </div>
+      <nav aria-label="Información legal" className="flex justify-center gap-5 text-[13px] text-suave">
+        <Link href="/privacidad" className="tocable flex items-center underline">
+          Privacidad
+        </Link>
+        <Link href="/terminos" className="tocable flex items-center underline">
+          Términos
+        </Link>
+      </nav>
     </main>
   );
 }
