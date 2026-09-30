@@ -214,11 +214,11 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     return f ? aPedidoConItems(f) : null;
   };
 
-  /** Resumen de cada cliente desde sus pedidos no cancelados (`pedidos_count` lo mantiene la base). */
+  /** Resumen de cada cliente: `pedidos_count` (recibidos) lo mantiene la base; lo gastado y la última compra cuentan solo despachados. */
   async function conResumen(tiendaId: string, filas: FilaCliente[], soloCliente?: string): Promise<ClienteConResumen[]> {
-    type FilaResumen = { cliente_id: string | null; total: number; creado_en: string };
+    type FilaResumen = { cliente_id: string | null; total: number; creado_en: string; estado: string; despachado_en: string | null };
     const pedidos = await todas<FilaResumen>((d, h) => {
-      let q = supabase.from("pedidos").select("cliente_id, total, creado_en").eq("tienda_id", tiendaId).neq("estado", "cancelado");
+      let q = supabase.from("pedidos").select("cliente_id, total, creado_en, estado, despachado_en").eq("tienda_id", tiendaId).eq("estado", "despachado");
       if (soloCliente) q = q.eq("cliente_id", soloCliente);
       return q.order("creado_en", { ascending: false }).order("id").range(d, h);
     });
@@ -226,8 +226,9 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     for (const p of pedidos) {
       if (!p.cliente_id) continue;
       const r = porCliente.get(p.cliente_id) ?? { total: 0, ultima: null };
+      const fecha = p.despachado_en ?? p.creado_en;
       r.total += p.total;
-      if (r.ultima === null || p.creado_en > r.ultima) r.ultima = p.creado_en;
+      if (r.ultima === null || fecha > r.ultima) r.ultima = fecha;
       porCliente.set(p.cliente_id, r);
     }
     return filas.map((f) => {

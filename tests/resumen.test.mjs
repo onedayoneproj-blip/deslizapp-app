@@ -17,6 +17,9 @@ import {
   stockBajo,
   textoVariacion,
   variacion,
+  pendientesDe,
+  resumenPendientes,
+  ventasDe,
   ventasPorDia,
   ventasPorMes,
 } from "../lib/resumen.ts";
@@ -188,13 +191,76 @@ test("sin datos: nada de NaN ni Infinity, y el resumen queda vacío", () => {
   }
 });
 
-test("un pedido cancelado no cuenta en ventas, pedidos ni top", () => {
-  const items = (cantidad) => [{ productoId: "x", nombreProducto: "X", cantidad }];
-  const t = { desde: REF - 864e5, hasta: REF + 1 };
-  const r = cifras({ pedidos: [ped(iso(REF - 60_000), 1000, "nuevo", items(1)), ped(iso(REF - 60_000), 5000, "cancelado", items(9))], eventos: [], productos: [] }, t, t);
+const items = (cantidad, productoId = "x") => [{ productoId, nombreProducto: productoId.toUpperCase(), cantidad }];
+const T24 = { desde: REF - 864e5, hasta: REF + 1 };
+const datos = (pedidos, eventos = []) => ({ pedidos, eventos, productos: [] });
+
+test("un pedido cancelado no cuenta en nada: ni ventas, ni pedidos recibidos, ni ticket, ni top", () => {
+  const r = cifras(datos([ped(iso(REF - 60_000), 5000, "cancelado", items(9))]), T24, T24);
+  assert.equal(r.ventas, 0);
+  assert.equal(r.ventasCantidad, 0);
+  assert.equal(r.pedidos, 0);
+  assert.equal(r.ticketPromedio, null);
+  assert.deepEqual(r.top, []);
+  assert.deepEqual(pendientesDe([ped(iso(REF), 1, "cancelado")]), []);
+});
+
+test("un pedido nuevo o por despachar no es venta, pero sí pedido recibido y pendiente", () => {
+  const ps = [ped(iso(REF - 60_000), 1000, "nuevo", items(3)), ped(iso(REF - 60_000), 2000, "por_despachar", items(5))];
+  const r = cifras(datos(ps), T24, T24);
+  assert.equal(r.ventas, 0);
+  assert.equal(r.ventasCantidad, 0);
+  assert.equal(r.pedidos, 2);
+  assert.equal(r.ticketPromedio, null);
+  assert.deepEqual(r.top, []);
+  assert.deepEqual(ventasDe(ps), []);
+  assert.equal(pendientesDe(ps).length, 2);
+  assert.deepEqual(resumenPendientes(ps), { cantidad: 2, monto: 3000 });
+});
+
+test("un pedido despachado sí es venta, en la fecha en que se despachó", () => {
+  const creado = iso(REF - 3 * 864e5);
+  const p = { ...ped(creado, 1500, "despachado", items(2)), despachadoEn: iso(REF - 60_000) };
+  const r = cifras(datos([p]), T24, T24);
+  assert.equal(r.ventas, 1500); // se creó hace 3 días pero se vendió hoy
+  assert.equal(r.pedidos, 0); // como pedido recibido pertenece a hace 3 días
+  assert.equal(r.ticketPromedio, 1500);
+  assert.equal(r.top[0].unidades, 2);
+  assert.deepEqual(ventasPorDia([p], T24).reduce((a, b) => a + b, 0), 1500);
+  // sin despachadoEn (dato incompleto) se usa la fecha de creación
+  assert.equal(cifras(datos([ped(iso(REF - 60_000), 700)]), T24, T24).ventas, 700);
+});
+
+test("una venta pasada cuenta en la fecha elegida (creadoEn = despachadoEn)", () => {
+  const fecha = iso(T("2026-08-10T15:00:00.000Z"));
+  const p = { ...ped(fecha, 2500, "despachado"), despachadoEn: fecha };
+  const agosto = calcularResumen(datos([p]), "mes", { anio: 2026, mes: 7 }, REF);
+  assert.equal(agosto.ventas, 2500);
+  assert.equal(agosto.pedidos, 1);
+  assert.equal(calcularResumen(datos([p]), "mes", SEPT, REF).ventas, 0);
+  assert.equal(ventasPorMes([p], 2026)[7], 2500);
+});
+
+test("el ticket promedio ignora pendientes: total despachado ÷ cantidad de despachados", () => {
+  const ps = [ped(iso(REF - 60_000), 1000), ped(iso(REF - 120_000), 2000), ped(iso(REF - 60_000), 9000, "nuevo"), ped(iso(REF - 60_000), 9000, "por_despachar")];
+  const r = cifras(datos(ps), T24, T24);
+  assert.equal(r.ventas, 3000);
+  assert.equal(r.ticketPromedio, 1500);
+  assert.equal(r.pedidos, 4);
+});
+
+test("el top 3 ignora pendientes", () => {
+  const ps = [ped(iso(REF - 60_000), 1000, "despachado", items(1, "a")), ped(iso(REF - 60_000), 1000, "nuevo", items(50, "b")), ped(iso(REF - 60_000), 1000, "por_despachar", items(40, "c"))];
+  assert.deepEqual(cifras(datos(ps), T24, T24).top.map((x) => x.productoId), ["a"]);
+});
+
+test("la comparación usa la misma regla en los dos lados", () => {
+  const antes = REF - 7 * 864e5 - 60_000;
+  const ps = [ped(iso(REF - 60_000), 1000), ped(iso(antes), 500), ped(iso(antes), 9999, "nuevo")];
+  const r = calcularResumen(datos(ps), "hoy", SEPT, REF);
   assert.equal(r.ventas, 1000);
-  assert.equal(r.pedidos, 1);
-  assert.deepEqual(r.top.map((x) => x.unidades), [1]);
+  assert.equal(r.ventasComparacion, 500);
+  assert.equal(r.variacion, 100);
 });
 
 test("stock bajo: con stock contado y <= umbral, agotados primero", () => {
@@ -213,6 +279,7 @@ function datosDe(tiendaId) {
       estado: p.estado,
       total: p.total,
       creadoEn: p.creado_en,
+      despachadoEn: p.despachado_en,
       items: items.filter((i) => i.pedido_id === p.id).map((i) => ({ productoId: i.producto_id, nombreProducto: i.nombre_producto, cantidad: i.cantidad })),
     }));
   const eventos = seed("eventos_aaah").filter((e) => e.tienda_id === tiendaId).map((e) => ({ creadoEn: e.creado_en }));
@@ -223,24 +290,31 @@ const creada = (id) => seed("tiendas").find((t) => t.id === id).creado_en;
 
 test("seed · Esencias Michel · 7 días: la variación coincide con el cálculo a mano", () => {
   const r = calcularResumen(datosDe(MICHEL), "semana", SEPT, REF);
-  // Del martes 22 al lunes 28 a mediodía: #1038 1,300 + #1039 1,800 + #1040 5,400 + #1041 3,000 + #1042 1,921
-  assert.equal(r.ventas, 13421);
+  // Ventas (despachados) del martes 22 al lunes 28 a mediodía: #1038 1,300 + #1039 1,800.
+  // Los pendientes (#1040 por despachar, #1041 y #1042 nuevos) no son ventas, pero sí pedidos recibidos.
+  assert.equal(r.ventas, 3100);
+  assert.equal(r.ventasCantidad, 2);
   assert.equal(r.pedidos, 5);
-  assert.equal(r.ticketPromedio, 2684);
+  assert.equal(r.ticketPromedio, 1550);
   // Del martes 15 al lunes 21: #1033 1,200 + #1034 1,100 + #1036 1,100 (el #1035 está cancelado)
   assert.equal(r.ventasComparacion, 3400);
-  // (13,421 − 3,400) / 3,400 = 2.947… → +295%
-  assert.equal(r.variacion, 295);
-  assert.deepEqual(r.barras.map((b) => b.ventas), [0, 0, 1300, 0, 0, 7200, 4921]);
-  assert.equal(r.top[0].nombre, "Wild Flower Gold");
+  // (3,100 − 3,400) / 3,400 = −0.088… → −9%
+  assert.equal(r.variacion, -9);
+  assert.deepEqual(r.barras.map((b) => b.ventas), [0, 0, 1300, 0, 0, 1800, 0]);
+  assert.deepEqual(r.barras.map((b) => b.pedidos), [0, 0, 1, 0, 0, 2, 2]);
+  // Solo #1038 (Oxana Black) y #1039 (Parade) están despachados: 1 unidad cada uno, gana Oxana por orden alfabético.
+  assert.equal(r.top[0].nombre, "Oxana Black");
   assert.equal(r.aaahs, aaahsDeLaSemana(datosDe(MICHEL).eventos, REF));
 });
 
-test("seed · Esencias Michel · Hoy: contra el lunes pasado hasta mediodía (+347%)", () => {
+test("seed · Esencias Michel · Hoy: los pedidos de hoy siguen sin despachar, así que no hay ventas", () => {
   const r = calcularResumen(datosDe(MICHEL), "hoy", SEPT, REF);
-  assert.equal(r.ventas, 4921);
-  assert.equal(r.ventasComparacion, 1100);
-  assert.equal(r.variacion, 347);
+  assert.equal(r.ventas, 0);
+  assert.equal(r.pedidos, 2);
+  assert.equal(r.ticketPromedio, null);
+  // El lunes pasado se despachó a la 1:15 p. m. (después del mediodía): a esta hora todavía no era venta.
+  assert.equal(r.ventasComparacion, 0);
+  assert.equal(r.variacion, null);
   assert.deepEqual(r.barras.slice(7).map((b) => b.estado), ["futura", "futura", "futura", "futura", "futura"]);
 });
 
@@ -269,8 +343,8 @@ test("seed · historia: ~14 meses en Michel, Luna empieza en abril 2026, y dicie
 test("seed · las dos tiendas dan cifras distintas", () => {
   const m = calcularResumen(datosDe(MICHEL), "semana", SEPT, REF);
   const l = calcularResumen(datosDe(LUNA), "semana", SEPT, REF);
-  // Luna: #1002 1,300 + #1003 1,700 + #1004 2,120 = 5,120 contra #1001 850 → +502%
-  assert.equal(l.ventas, 5120);
-  assert.equal(l.variacion, 502);
+  // Luna: solo #1002 (1,300) está despachado; #1003 y #1004 están pendientes. Contra #1001 850 → +53%
+  assert.equal(l.ventas, 1300);
+  assert.equal(l.variacion, 53);
   assert.notEqual(m.ventas, l.ventas);
 });

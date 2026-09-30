@@ -13,6 +13,7 @@ import {
   anclaDe,
   calcularResumen,
   contarPedidosNuevos,
+  resumenPendientes,
   diaDeLaSemana,
   inicioDeDatos,
   nombreMes,
@@ -119,6 +120,7 @@ function Inicio() {
     irA({ anio: mirado.anio, mes });
   };
   const nuevos = data ? contarPedidosNuevos(data.pedidos) : 0;
+  const pendientes = data ? resumenPendientes(data.pedidos) : { cantidad: 0, monto: 0 };
   const aaahsSemana = data ? aaahsDeLaSemana(data.eventos, data.ahora) : 0;
 
   return (
@@ -209,6 +211,7 @@ function Inicio() {
           <>
             <TarjetaVentas
               resumen={resumen}
+              pendientes={pendientes}
               alElegir={(i) => {
                 setAviso(null);
                 setSeleccion(i);
@@ -266,11 +269,13 @@ function NavegadorPeriodo({ vista, mirado, actual, primero, irA }: { vista: "mes
 
 function TarjetaVentas({
   resumen: r,
+  pendientes,
   alElegir,
   alLimpiar,
   alTocarVacia,
 }: {
   resumen: Resumen;
+  pendientes: { cantidad: number; monto: number };
   alElegir: (i: number) => void;
   alLimpiar: () => void;
   alTocarVacia: (b: BarraConValor) => void;
@@ -305,6 +310,18 @@ function TarjetaVentas({
           )}
         </div>
       </div>
+      {pendientes.cantidad > 0 && (
+        // Pendientes de TODA la tienda (sin importar el periodo): todavía no son ventas. Lleva a Pedidos (abre en "Nuevos").
+        <Link
+          href="/pedidos"
+          data-pendientes
+          className="mov-aparece -mt-0.5 -mb-1.5 flex min-h-11 items-center truncate text-[12.5px] leading-tight font-semibold text-[#D9E6DF]"
+        >
+          <span className="truncate">
+            Por despachar: {pendientes.cantidad} {pendientes.cantidad === 1 ? "pedido" : "pedidos"} · {formatearPesos(pendientes.monto)}
+          </span>
+        </Link>
+      )}
       <GraficoVentas
         barras={r.barras}
         seleccion={r.seleccion}
@@ -351,7 +368,7 @@ function Metricas({ resumen: r }: { resumen: Resumen }) {
   return (
     <div data-metricas className="grid grid-cols-2 gap-2.5">
       <div className={`${tarjeta} border border-linea bg-white`}>
-        <p className={etiqueta}>Pedidos</p>
+        <p className={etiqueta}>Pedidos recibidos</p>
         <p data-metrica="pedidos" className={cifra}>
           <Numero valor={r.pedidos} />
         </p>

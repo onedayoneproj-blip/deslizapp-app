@@ -432,10 +432,11 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 - 3 contadores: total de clientes, cuántos "repiten" (2 o más pedidos),
   cuántos son del catálogo (`origen = 'catalogo'`).
 - Lista: iniciales en círculo, nombre, etiqueta "Repite" si aplica, y "2
-  pedidos · RD$3,721" (total gastado en pedidos no cancelados).
+  pedidos · RD$3,721" (total gastado en pedidos despachados).
 - **Todo se deriva de los pedidos** de la tienda activa (no se marca a mano):
-  número de pedidos, total gastado y última compra cuentan solo los pedidos
-  **no cancelados** (los nuevos y por despachar cuentan; los cancelados no).
+  el número de pedidos cuenta los **recibidos** (no cancelados: los nuevos y por
+  despachar cuentan; los cancelados no); el total gastado y la última compra
+  cuentan solo las **ventas** (pedidos despachados, por su fecha de despacho).
   "Repite" aparece sola con 2 o más pedidos y se actualiza al crear un pedido.
 - El buscador filtra por nombre (sin importar tildes) o por WhatsApp (por dígitos).
 - Cliente sin pedidos: "Todavía no pide. Todavía."
@@ -658,6 +659,13 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   rojo) y debajo, en pequeño, contra qué se compara ("vs. 1–5 sept", "vs.
   agosto", "vs. ene–sept 2025"); sin datos para comparar: "Sin comparación
   todavía". Reglas en "Resumen" de `03-modelo-de-datos.md`.
+  **Una venta es un pedido despachado** (fecha = `despachado_en`, o `creado_en` si
+  viniera nulo; las ventas pasadas ya traen la fecha elegida). Un pedido nuevo o por
+  despachar todavía no es venta.
+  Bajo la cifra, si hay pendientes en TODA la tienda (sin importar el periodo), una línea
+  pequeña "Por despachar: 3 pedidos · RD$10,321" (singular con 1; oculta con 0; entra con
+  `mov-aparece`, que respeta reducir movimiento); al tocarla lleva a Pedidos (que abre en
+  "Nuevos"). Se recorta con "…" antes de desbordar a 360 px.
 - **Gráfico de barras** (`components/inicio/grafico-ventas.tsx`; divs, sin
   librería ni animación de entrada; al cambiar de periodo cambia de una vez):
   - Hoy: 12 franjas de 2 h · 7 días: una por día · Mes: una por día (28–31,
@@ -670,7 +678,7 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
 - **Tocar una barra** la ELIGE: queda en su color y las demás se atenúan
   (opacidad 0.35, transición de 150 ms solo de opacidad). Todo lo que depende
   del periodo se recalcula para esa barra (ventas, variación, Pedidos, Ticket,
-  Aaahs, De aaah a pedido, top 3); pedidos nuevos, stock y plan no cambian.
+  Aaahs, De aaah a pedido, top 3); pedidos nuevos, pendientes, stock y plan no cambian.
   - Bajo la tarjeta, una píldora rosa "Mostrando solo el 12 de sept" (o "solo
     agosto", "solo de 2 a 4 p. m.") con ✕ ("Ver todo el periodo"). En Año,
     además "Ver mes →", que abre la vista Mes de ese mes sin selección.
@@ -679,13 +687,14 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   - Una barra futura o anterior al inicio no se elige: la píldora dice un
     momento "Aún no hay datos de este mes/día/franja".
   - Cada barra es un botón (aria-pressed, "12 de septiembre, RD$4,350, 3
-    pedidos") que ocupa toda la altura y el ancho de su columna.
+    ventas") que ocupa toda la altura y el ancho de su columna.
   - No hay globo flotante con el monto: lo dice la tarjeta.
-- 4 datos del periodo: **Pedidos**, **Ticket promedio** (ventas / pedidos;
-  "—" sin pedidos), **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos /
-  aaahs, en % con un decimal; "—" sin aaahs).
+- 4 datos del periodo: **Pedidos recibidos** (no cancelados, por fecha de creación),
+  **Ticket promedio** (total despachado ÷ cantidad de despachados; "—" sin ventas),
+  **Aaahs** (tarjeta rosa) y **De aaah a pedido** (pedidos recibidos / aaahs, en % con un
+  decimal; "—" sin aaahs).
 - **"Lo que más se vende"** (+ "tu top 3" en Caveat): top 3 productos por
-  unidades vendidas en pedidos no cancelados del periodo, con foto, "N
+  unidades vendidas en pedidos despachados (ventas) del periodo, con foto, "N
   vendidos" y barra proporcional; tocar uno abre su formulario. (El prototipo
   lo ordenaba por aaahs: se cambió en el paso 9.)
 - **"Ojo con el stock"**: productos con `stock <= STOCK_BAJO` (2, en

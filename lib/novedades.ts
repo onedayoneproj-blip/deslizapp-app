@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.21.0",
+    fecha: "2026-09-30",
+    titulo: "Vender es despachar.",
+    cambios: [
+      "Las ventas del Resumen ahora cuentan solo los pedidos que ya despachaste.",
+      "Bajo tus ventas, «Por despachar» te dice cuánto te falta por entregar.",
+      "El ticket promedio y lo más vendido también salen solo de lo despachado.",
+    ],
+  },
+  {
     version: "0.20.0",
     fecha: "2026-09-30",
     titulo: "Tu catálogo, paso a paso.",

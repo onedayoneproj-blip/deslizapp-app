@@ -77,6 +77,14 @@ Un solo componente, `components/promos/ticket-promo.tsx`, con dos tamaños: norm
 compacto (selector de cupón de pedidos, `selector-descuento.tsx`). Colores y forma salen de ahí: no se duplica el ticket.
 Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cupón" o ticket compacto con Cambiar / Quitar).
 
+## Resumen: qué es una venta
+
+Una **venta** es un pedido `despachado` (fecha = `despachado_en`, o `creado_en` si viniera nulo); un **pedido recibido** es cualquier
+no cancelado (por `creado_en`); un **pendiente** es `nuevo` o `por_despachar`. Vive en `lib/resumen.ts` (`ventasDe`, `pendientesDe`,
+`fechaDeVenta`) con pruebas en `tests/resumen.test.mjs`. Ventas, ticket promedio, top 3 y comparación usan solo ventas; "Pedidos
+recibidos" y "De aaah a pedido" usan recibidos; Clientes: "total gastado" y "última compra" son solo despachados. La tarjeta de ventas
+de Inicio muestra "Por despachar: N pedidos · RD$X" (toda la tienda). Detalle en docs/03 y docs/04.
+
 ## Catálogo en línea (enlace)
 
 `tiendas.url_catalogo` (Mi marca) alimenta la tarjeta de la pestaña Catálogo (`components/catalogo/tarjeta-catalogo.tsx`), con 8 estados

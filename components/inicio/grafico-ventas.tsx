@@ -57,7 +57,7 @@ export function GraficoVentas({
             const alto = v > 0 && maximo > 0 ? Math.max(4, Math.round((v / maximo) * ALTO)) : 3;
             const aria = vacia
               ? `${b.nombre}, ${b.estado === "futura" ? "todavía no llega" : "sin datos, antes de que empezara tu tienda"}`
-              : `${b.nombre}, ${formatearPesos(v)}, ${b.pedidos} ${b.pedidos === 1 ? "pedido" : "pedidos"}`;
+              : `${b.nombre}, ${formatearPesos(v)}, ${b.ventasCantidad ?? 0} ${b.ventasCantidad === 1 ? "venta" : "ventas"}`;
             return (
               <button
                 key={b.desde}

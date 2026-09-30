@@ -1,3 +1,4 @@
+import { fechaDeVenta, ventasDe } from "../resumen";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen } from "../types";
 import type { DB } from "./db";
@@ -7,11 +8,13 @@ export { ClienteDuplicado };
 
 function conResumen(db: DB, cliente: Cliente): ClienteConResumen {
   const pedidos = db.pedidos.filter((p) => p.clienteId === cliente.id && p.tiendaId === cliente.tiendaId && p.estado !== "cancelado");
+  const ventas = ventasDe(pedidos);
   return {
     ...cliente,
     pedidos: pedidos.length,
-    totalGastado: pedidos.reduce((suma, p) => suma + p.total, 0),
-    ultimaCompra: pedidos.reduce<string | null>((ultima, p) => (ultima === null || p.creadoEn > ultima ? p.creadoEn : ultima), null),
+    // Pedidos = recibidos (no cancelados). Lo gastado y la última compra cuentan solo las ventas (despachados).
+    totalGastado: ventas.reduce((suma, p) => suma + p.total, 0),
+    ultimaCompra: ventas.reduce<string | null>((ultima, p) => (ultima === null || fechaDeVenta(p) > ultima ? fechaDeVenta(p) : ultima), null),
     repite: pedidos.length >= 2,
   };
 }

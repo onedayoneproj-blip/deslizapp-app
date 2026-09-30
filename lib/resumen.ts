@@ -263,6 +263,8 @@ type PedidoResumen = {
   estado: EstadoPedido;
   total: number;
   creadoEn: string;
+  /** Cuándo se despachó (o la fecha elegida en una venta pasada). Nulo si aún no se despacha. */
+  despachadoEn?: string | null;
   items: { productoId: string; nombreProducto: string; cantidad: number }[];
 };
 type EventoResumen = { creadoEn: string };
@@ -273,7 +275,27 @@ const dentro = (iso: string, t: Tramo) => {
   const ms = Date.parse(iso);
   return ms >= t.desde && ms < t.hasta;
 };
+
+// Reglas del Resumen (un solo lugar):
+// - VENTA: pedido "despachado". Su fecha es `despachadoEn` (si viniera nulo, `creadoEn`).
+// - PEDIDO RECIBIDO: cualquier pedido no cancelado, contado por `creadoEn`.
+// - PEDIDO PENDIENTE: "nuevo" o "por_despachar" (todavía no es venta).
+
+/** Pedidos recibidos: todos los no cancelados. Se cuentan por `creadoEn`. */
 const validos = (pedidos: PedidoResumen[]) => pedidos.filter((p) => p.estado !== "cancelado");
+/** Ventas: solo los pedidos despachados. Se cuentan por `fechaDeVenta`. */
+export const ventasDe = <P extends { estado: EstadoPedido }>(pedidos: P[]): P[] => pedidos.filter((p) => p.estado === "despachado");
+/** Pendientes: pedidos "nuevo" o "por_despachar". */
+export const pendientesDe = <P extends { estado: EstadoPedido }>(pedidos: P[]): P[] =>
+  pedidos.filter((p) => p.estado === "nuevo" || p.estado === "por_despachar");
+/** Fecha de una venta: cuándo se despachó (si viniera nulo por algún motivo, cuándo se creó). */
+export const fechaDeVenta = (p: { creadoEn: string; despachadoEn?: string | null }) => p.despachadoEn ?? p.creadoEn;
+
+/** Cantidad y monto de los pedidos pendientes de toda la tienda (sin importar el periodo). */
+export function resumenPendientes(pedidos: PedidoResumen[]): { cantidad: number; monto: number } {
+  const p = pendientesDe(pedidos);
+  return { cantidad: p.length, monto: p.reduce((s, x) => s + x.total, 0) };
+}
 
 /** Desde cuándo hay datos de la tienda: su primer pedido o aaah; si no hay ninguno, cuando se creó. */
 export function inicioDeDatos(datos: Pick<DatosResumen, "pedidos" | "eventos">, creadaEn: string): number {
@@ -284,20 +306,23 @@ export function inicioDeDatos(datos: Pick<DatosResumen, "pedidos" | "eventos">, 
 /** Primer mes navegable (‹ se desactiva ahí). */
 export const primerMesConDatos = (datos: Pick<DatosResumen, "pedidos" | "eventos">, creadaEn: string): Ancla => anclaDe(inicioDeDatos(datos, creadaEn));
 
-/** Ventas (pedidos no cancelados) de cada día de un tramo, en hora de Santo Domingo. */
+/** Ventas (pedidos despachados, por fecha de venta) de cada día de un tramo, en hora de Santo Domingo. */
 export function ventasPorDia(pedidos: PedidoResumen[], t: Tramo): number[] {
   const primero = inicioDelDia(t.desde);
   const n = Math.max(0, Math.ceil((t.hasta - primero) / DIA_MS));
   const res = Array.from({ length: n }, () => 0);
-  for (const p of validos(pedidos)) if (dentro(p.creadoEn, t)) res[Math.floor((Date.parse(p.creadoEn) - primero) / DIA_MS)]! += p.total;
+  for (const p of ventasDe(pedidos)) {
+    const f = fechaDeVenta(p);
+    if (dentro(f, t)) res[Math.floor((Date.parse(f) - primero) / DIA_MS)]! += p.total;
+  }
   return res;
 }
 
-/** Ventas (pedidos no cancelados) de cada mes de un año (enero = 0), en hora de Santo Domingo. */
+/** Ventas (pedidos despachados, por fecha de venta) de cada mes de un año (enero = 0), en hora de Santo Domingo. */
 export function ventasPorMes(pedidos: PedidoResumen[], anio: number): number[] {
   const res = Array.from({ length: 12 }, () => 0);
-  for (const p of validos(pedidos)) {
-    const l = local(Date.parse(p.creadoEn));
+  for (const p of ventasDe(pedidos)) {
+    const l = local(Date.parse(fechaDeVenta(p)));
     if (l.getUTCFullYear() === anio) res[l.getUTCMonth()]! += p.total;
   }
   return res;
@@ -327,27 +352,31 @@ export function montoCorto(monto: number): string {
 export type ProductoTop = { productoId: string; nombre: string; foto: string | null; unidades: number };
 
 export type Cifras = {
-  /** Suma de `total` de los pedidos no cancelados del tramo. */
+  /** Suma de `total` de los pedidos despachados (ventas) del tramo, por fecha de venta. */
   ventas: number;
+  /** Cantidad de ventas (pedidos despachados) del tramo. */
+  ventasCantidad: number;
   ventasComparacion: number;
   /** % entero; `null` = sin comparación. */
   variacion: number | null;
+  /** Pedidos recibidos (no cancelados) del tramo, por fecha de creación. */
   pedidos: number;
-  /** RD$ redondeado; `null` sin pedidos. */
+  /** Total despachado ÷ cantidad de despachados, RD$ redondeado; `null` sin ventas. */
   ticketPromedio: number | null;
   aaahs: number;
   /** "De aaah a pedido": pedidos ÷ aaahs en %, con un decimal; `null` sin aaahs. */
   conversion: number | null;
-  /** Top 3 por unidades vendidas en pedidos no cancelados. */
+  /** Top 3 por unidades vendidas en pedidos despachados. */
   top: ProductoTop[];
 };
 
 /** Todas las cifras de un tramo contra su comparación. */
 export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifras {
-  const ok = validos(datos.pedidos);
-  const del = ok.filter((p) => dentro(p.creadoEn, t));
+  const recibidos = validos(datos.pedidos).filter((p) => dentro(p.creadoEn, t));
+  const despachados = ventasDe(datos.pedidos);
+  const del = despachados.filter((p) => dentro(fechaDeVenta(p), t));
   const ventas = del.reduce((s, p) => s + p.total, 0);
-  const ventasComparacion = ok.filter((p) => dentro(p.creadoEn, comparacion)).reduce((s, p) => s + p.total, 0);
+  const ventasComparacion = despachados.filter((p) => dentro(fechaDeVenta(p), comparacion)).reduce((s, p) => s + p.total, 0);
   const aaahs = datos.eventos.filter((e) => dentro(e.creadoEn, t)).length;
 
   const unidades = new Map<string, { nombre: string; unidades: number }>();
@@ -368,17 +397,19 @@ export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifra
 
   return {
     ventas,
+    ventasCantidad: del.length,
     ventasComparacion,
     variacion: variacion(ventas, ventasComparacion),
-    pedidos: del.length,
+    pedidos: recibidos.length,
     ticketPromedio: del.length > 0 ? Math.round(ventas / del.length) : null,
     aaahs,
-    conversion: aaahs > 0 ? Math.round((del.length / aaahs) * 1000) / 10 : null,
+    conversion: aaahs > 0 ? Math.round((recibidos.length / aaahs) * 1000) / 10 : null,
     top,
   };
 }
 
-export type BarraConValor = Barra & { ventas: number | null; pedidos: number | null };
+/** `ventas`/`ventasCantidad`: despachados por fecha de venta. `pedidos`: recibidos por fecha de creación. */
+export type BarraConValor = Barra & { ventas: number | null; ventasCantidad: number | null; pedidos: number | null };
 
 export type Resumen = Cifras & {
   vista: Vista;
@@ -417,11 +448,12 @@ export function calcularResumen(
 ): Resumen {
   const periodo = rangoPeriodo(vista, ancla, ahora);
   const bs = barras(vista, ancla, ahora, inicio);
-  const ok = validos(datos.pedidos);
+  const recibidos = validos(datos.pedidos);
+  const despachados = ventasDe(datos.pedidos);
   const conValor: BarraConValor[] = bs.map((b) => {
-    if (b.estado !== "normal") return { ...b, ventas: null, pedidos: null };
-    const del = ok.filter((p) => dentro(p.creadoEn, b));
-    return { ...b, ventas: del.reduce((s, p) => s + p.total, 0), pedidos: del.length };
+    if (b.estado !== "normal") return { ...b, ventas: null, ventasCantidad: null, pedidos: null };
+    const ventas = despachados.filter((p) => dentro(fechaDeVenta(p), b));
+    return { ...b, ventas: ventas.reduce((s, p) => s + p.total, 0), ventasCantidad: ventas.length, pedidos: recibidos.filter((p) => dentro(p.creadoEn, b)).length };
   });
   const elegida = seleccion !== null && bs[seleccion]?.estado === "normal" ? seleccion : null;
   const tramo = elegida === null ? periodo : rangoBarra(vista, elegida, ancla, ahora);
@@ -438,7 +470,7 @@ export function calcularResumen(
     barras: conValor,
     seleccion: elegida,
     ventasDelPeriodo: delPeriodo.ventas,
-    vacio: delPeriodo.pedidos === 0 && delPeriodo.aaahs === 0,
+    vacio: delPeriodo.pedidos === 0 && delPeriodo.ventasCantidad === 0 && delPeriodo.aaahs === 0,
   };
 }
 
