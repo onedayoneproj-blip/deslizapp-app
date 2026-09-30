@@ -393,11 +393,10 @@ function FormularioProducto({
         <p className="mb-2 text-[13.5px] font-bold">
           Colección <span className="font-semibold text-suave">(opcional)</span>
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-x-2 gap-y-3">
           {colecciones.map((c) => (
             <Chip
               key={c}
-              alto={44}
               elegido={nuevaColeccion === null && categoria === c}
               onClick={() => {
                 setNuevaColeccion(null);
@@ -407,7 +406,7 @@ function FormularioProducto({
               {c}
             </Chip>
           ))}
-          <Chip alto={44} elegido={nuevaColeccion !== null} onClick={() => setNuevaColeccion(nuevaColeccion === null ? "" : null)}>
+          <Chip elegido={nuevaColeccion !== null} onClick={() => setNuevaColeccion(nuevaColeccion === null ? "" : null)}>
             + Nueva
           </Chip>
         </div>

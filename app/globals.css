@@ -2,6 +2,24 @@
 
 /* Colores de marca (docs/01-marca.md). Quedan como variables CSS (--color-bosque, etc.)
    y como utilidades de Tailwind (bg-bosque, text-mandarina, border-rosa…). */
+/* Tamaño ÚNICO de las pastillas (Segmentos y Chip, components/controles.tsx). Todo su tamaño sale de estos valores:
+   con 36 px de alto y esa letra quedan ~10 px de aire arriba y abajo del texto y 14 px a los lados. El área de toque
+   sigue siendo de 44 px (pseudo-elemento invisible), sin cambiar lo que se ve. */
+:root {
+  --pastilla-alto: 36px;
+  --pastilla-px: 14px;
+  --pastilla-letra: 13.5px;
+  /* Contador dentro de la pastilla (components/contador.tsx, tamaño "pastilla"): cuadra en 36 px sin tocar el borde. */
+  --pastilla-contador: 20px;
+  --pastilla-contador-letra: 11.5px;
+}
+@media (min-width: 390px) {
+  :root {
+    --pastilla-letra: 14px;
+    --pastilla-contador-letra: 12px;
+  }
+}
+
 @theme {
   --color-bosque: #174b3a;
   --color-rosa: #f5c9d6;

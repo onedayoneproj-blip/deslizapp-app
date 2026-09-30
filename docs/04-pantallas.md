@@ -43,6 +43,13 @@ Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
 "Pedidos", un contador Mandarina con el número de pedidos `nuevo`
 (`components/contador.tsx`, el mismo de las pastillas de filtro).
 
+**Tamaño único de las pastillas** (`Segmentos` y `Chip`, `components/controles.tsx`): salen de los tokens de
+`app/globals.css` — `--pastilla-alto` 36 px, `--pastilla-px` 14 px de relleno lateral, `--pastilla-letra` 13,5 px (14 px
+desde 390 px de ancho) y `--pastilla-contador` 20 px—; con eso queda ~10 px de aire arriba y abajo del texto y 14 px a los
+lados. Para cambiar el tamaño en toda la app se ajusta un solo valor. Toman su ancho natural (texto + relleno) y quedan
+alineadas a la izquierda; el área de toque es de 45 px de alto (pseudo-elemento invisible, sin cambiar lo que se ve). Las filas
+de `Chip` dentro de formularios (colección, porcentaje) pasan a la línea siguiente si no caben; las de `Segmentos` se desplazan.
+
 **Pastillas de filtro** (`Segmentos`): el número va en el mismo `Contador`
 (círculo; con 2–3 cifras se estira a píldora; desde 100, "99+"), a la derecha del
 nombre y **oculto cuando es 0**. Es **neutro** por defecto (beige #F1E8D6 con

@@ -4,25 +4,22 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { menosMovimiento } from "@/lib/movimiento";
 import { Contador } from "./contador";
 
+/**
+ * Tamaño único de toda pastilla (Segmentos y Chip): sale de los tokens --pastilla-* (app/globals.css). La pastilla mide
+ * 36 px, pero su área de toque es de 44 px: el pseudo-elemento invisible suma 5,5 px arriba y abajo (en filas que se
+ * desplazan, el contenedor deja ese espacio con padding (5,5 px) para que no se recorte).
+ */
+const PASTILLA =
+  "tocable relative inline-flex h-(--pastilla-alto) shrink-0 items-center justify-center gap-1.5 rounded-full border-[1.5px] px-(--pastilla-px) text-center text-[length:var(--pastilla-letra)] font-bold tracking-tight whitespace-nowrap before:absolute before:inset-x-0 before:-inset-y-[5.5px] before:content-['']";
+
 /** Chip seleccionable (colecciones, opciones sueltas): verde lleno si está elegido, blanco con borde si no. */
-export function Chip({
-  elegido,
-  onClick,
-  children,
-  alto = 38,
-}: {
-  elegido: boolean;
-  onClick: () => void;
-  children: ReactNode;
-  alto?: 38 | 40 | 44;
-}) {
+export function Chip({ elegido, onClick, children }: { elegido: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={elegido}
-      style={{ height: alto }}
-      className={`tocable shrink-0 rounded-full border-[1.5px] px-3.5 text-sm font-bold whitespace-nowrap ${
+      className={`${PASTILLA} ${
         elegido ? "border-bosque bg-bosque text-papel" : "border-borde bg-white text-bosque"
       }`}
     >
@@ -82,7 +79,6 @@ export function Segmentos<T extends string>({
   valor,
   alCambiar,
   etiqueta,
-  alto = 44,
 }: {
   /**
    * `cantidad`: número de la opción, en un Contador a la derecha del nombre (en 0 no se muestra).
@@ -92,7 +88,6 @@ export function Segmentos<T extends string>({
   valor: T;
   alCambiar: (id: T) => void;
   etiqueta: string;
-  alto?: number;
 }) {
   const botones = useRef<Map<T, HTMLButtonElement>>(new Map());
   const lista = useRef<HTMLDivElement>(null);
@@ -101,10 +96,13 @@ export function Segmentos<T extends string>({
   // (así el indicador sigue deslizándose por encima) y ninguna pastilla depende de lo que haya detrás.
   const [cajas, setCajas] = useState<{ id: T; x: number; ancho: number }[]>([]);
   const [animar, setAnimar] = useState(false);
+  // Radio de los extremos del indicador = la mitad del alto REAL de la pastilla (sale del token --pastilla-alto).
+  const [r, setR] = useState(18);
 
   useLayoutEffect(() => {
     const medir = () => {
       const b = botones.current.get(valor);
+      if (b) setR(b.offsetHeight / 2);
       if (b) setCaja({ x: b.offsetLeft, ancho: b.offsetWidth });
       setCajas([...botones.current].map(([id, el]) => ({ id, x: el.offsetLeft, ancho: el.offsetWidth })));
     };
@@ -121,12 +119,11 @@ export function Segmentos<T extends string>({
     botones.current.get(valor)?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: menosMovimiento() ? "auto" : "smooth" });
   }, [valor]);
 
-  const r = alto / 2;
   const transicion = animar ? "transform var(--mov-normal) var(--curva-salida)" : "none";
 
   return (
-    <div className="-mx-5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-    <div ref={lista} role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full flex-nowrap gap-(--seg-gap,6px) px-5">
+    <div className="-mx-5 -my-[5.5px] overflow-x-auto py-[5.5px] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div ref={lista} role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full flex-nowrap gap-1.5 px-5">
       {/* Relleno blanco sólido de cada pastilla (sin transparencia, con su borde) */}
       {cajas.map((c) => (
         <span
@@ -162,8 +159,7 @@ export function Segmentos<T extends string>({
               setAnimar(true);
               alCambiar(id);
             }}
-            style={{ height: alto }}
-            className={`tocable relative z-10 inline-flex shrink-0 grow scroll-mx-5 items-center justify-center gap-(--seg-gi,6px) rounded-full border-[1.5px] px-(--seg-px,8px) text-center text-[length:var(--seg-letra,13px)] min-[390px]:text-[length:var(--seg-letra,13.5px)] font-bold tracking-tight whitespace-nowrap ${
+            className={`${PASTILLA} z-10 scroll-mx-5 ${
               elegido ? "border-transparent text-papel" : "border-transparent text-bosque"
             }`}
           >

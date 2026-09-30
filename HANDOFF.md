@@ -63,6 +63,14 @@ esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
 números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 `Segmentos`, `Esqueleto`…).
 
+## Pastillas de filtro
+
+Un solo tamaño para todas (`Segmentos` y `Chip` en `components/controles.tsx`): tokens `--pastilla-alto` (36 px),
+`--pastilla-px` (14 px), `--pastilla-letra` (13,5 / 14 px) y `--pastilla-contador` (20 px) en `app/globals.css`. Nadie pasa
+un alto propio: para cambiarlas se edita un valor. Ancho natural, alineadas a la izquierda, y la fila de `Segmentos` se
+desplaza en horizontal si no caben. Área de toque de 44 px o más con un pseudo-elemento invisible. Detalle en
+`docs/04-pantallas.md`.
+
 ## Hojas inferiores
 
 Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colección) se usa

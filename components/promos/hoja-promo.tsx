@@ -269,11 +269,10 @@ function Formulario({
             <span className="font-extrabold text-suave">%</span>
           </span>
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-x-2 gap-y-3">
           {PORCENTAJES_RAPIDOS.map((n) => (
             <Chip
               key={n}
-              alto={44}
               elegido={datos.porcentaje === String(n)}
               onClick={() => {
                 cambiar("porcentaje", String(n));
