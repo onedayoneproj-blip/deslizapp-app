@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.14.0",
+    fecha: "2026-09-30",
+    titulo: "Lo que ya vendiste también cuenta.",
+    cambios: [
+      "En «+ Pedido», el interruptor «Es una venta que ya hice» te deja poner la fecha real.",
+      "Entra como despachada y tu Resumen la cuenta en su día. El stock solo baja si tú lo pides.",
+    ],
+  },
+  {
     version: "0.13.0",
     fecha: "2026-09-30",
     titulo: "Ahora sí puedes echar para atrás.",

@@ -1,7 +1,7 @@
 import { estadoPromo, precioConPromo } from "../promos";
 import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
 import type { DB } from "./db";
-import { PedidoNoDeshacible, StockInsuficiente } from "./errores";
+import { DatosInvalidos, PedidoNoDeshacible, StockInsuficiente } from "./errores";
 
 export { StockInsuficiente };
 
@@ -193,6 +193,11 @@ export type DatosPedidoManual = {
   items: { productoId: string; cantidad: number }[];
   /** Código de promo que usó el cliente (opcional). */
   codigo?: string;
+  /**
+   * "Es una venta que ya hice": entra directo como `despachado` con esta fecha (creación y despacho). El stock solo
+   * baja si `descontarStock` (la venta pudo ser anterior a cargar el inventario).
+   */
+  ventaPasada?: { fecha: string; descontarStock: boolean };
 };
 
 /** La promo de tipo código vigente que coincide con lo escrito (sin importar mayúsculas), si hay. */
@@ -238,17 +243,42 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
   const cliente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
   if (!cliente) throw new Error("Ese cliente no es de esta tienda.");
 
+  const venta = datos.ventaPasada;
+  if (venta && (Number.isNaN(Date.parse(venta.fecha)) || Date.parse(venta.fecha) > Date.parse(ahora))) {
+    throw new DatosInvalidos("Esa fecha no sirve: elige un día que ya pasó.");
+  }
+
+  // Venta pasada con "Descontar del stock": igual que despachar, nunca deja el stock en negativo.
+  let productos = db.productos;
+  if (venta?.descontarStock) {
+    const necesarios = new Map<string, number>();
+    for (const i of items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
+    productos = db.productos.map((p) => {
+      const cantidad = necesarios.get(p.id);
+      if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
+      if (p.stock < cantidad) throw new StockInsuficiente(p.nombre, p.id, p.stock, cantidad);
+      return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
+    });
+  }
+
   const pedido: Pedido = {
     id: pedidoId,
     tiendaId,
     numero: siguienteNumeroPedido(db, tiendaId),
     clienteId: cliente.id,
     origen: "manual",
-    estado: "por_despachar",
+    estado: venta ? "despachado" : "por_despachar",
     total: subtotal - descuentoDeCodigo(promo, subtotal),
     codigoPromo: promo?.codigo ?? null,
-    creadoEn: ahora,
-    despachadoEn: null,
+    creadoEn: venta?.fecha ?? ahora,
+    despachadoEn: venta?.fecha ?? null,
   };
-  return { db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items] }, pedido: { ...pedido, items } satisfies PedidoConItems, cliente };
+  // Si la venta es anterior al primer pedido del cliente, ese es ahora su primer pedido.
+  const clienteFinal: Cliente = venta && venta.fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: venta.fecha } : cliente;
+  const clientes = clienteFinal === cliente ? db.clientes : db.clientes.map((c) => (c.id === cliente.id ? clienteFinal : c));
+  return {
+    db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], productos, clientes },
+    pedido: { ...pedido, items } satisfies PedidoConItems,
+    cliente: clienteFinal,
+  };
 }

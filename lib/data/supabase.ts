@@ -432,6 +432,32 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
       const promo = datos.codigo ? buscarCodigoPromo(promos, tiendaId, datos.codigo, ahora) : null;
 
+      const venta = datos.ventaPasada;
+      if (venta) {
+        // La base valida fecha, stock y pertenencia; entra despachado con esa fecha (RPC registrar_venta_pasada).
+        const total = subtotal - descuentoDeCodigo(promo, subtotal);
+        const creado = await requerido<FilaPedidoConItems>(
+          supabase.rpc("registrar_venta_pasada", {
+            p_tienda_id: tiendaId,
+            p_cliente_id: filaCliente.id,
+            p_fecha: venta.fecha,
+            p_items: items.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad, precio_unitario: i.precioUnitario })),
+            p_codigo_promo: promo?.codigo ?? null,
+            p_descontar_stock: venta.descontarStock,
+          }),
+          () => new Error("La base no devolvió la venta."),
+        );
+        // La RPC suma cantidad × precio y no conoce el descuento del código: se deja el total que vio el dueño.
+        if (creado.total !== total) {
+          const { error } = await supabase.from("pedidos").update({ total }).eq("id", creado.id).eq("tienda_id", tiendaId);
+          if (error) console.warn("No se pudo ajustar el total de la venta con el código", error);
+        }
+        const pedido = await pedidoCrudo(tiendaId, creado.id);
+        if (!pedido) throw new PedidoNoEncontrado();
+        const cliente = aCliente(filaCliente);
+        return cambio({ pedido, cliente: venta.fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: venta.fecha } : cliente });
+      }
+
       // Sin `numero`: lo asigna la base.
       const filaPedido = await requerido<FilaPedidoConItems>(
         supabase

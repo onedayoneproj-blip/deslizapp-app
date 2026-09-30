@@ -238,6 +238,25 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   cliente". El elegido se ve como tarjeta con "Cambiar". La misma búsqueda (`lib/buscar-clientes.ts`)
   se usa en la pantalla Clientes. "+ Cliente" (pantalla Clientes) aplica el mismo
   criterio de duplicados.
+- **Venta que ya hice** (registrar el pasado): arriba de "Guardar", el interruptor
+  **"Es una venta que ya hice"**. Al activarlo aparecen **"Fecha de la venta"**
+  (`<input type="date">`, por defecto hoy, máximo hoy: no hay fechas futuras; se
+  guarda a mediodía hora local, o "ahora" si es hoy antes del mediodía) y la
+  casilla **"Descontar del stock"**, apagada por defecto ("Déjala apagada si vendiste
+  esto antes de cargar tu inventario."). El botón pasa a **"Guardar venta"** y el
+  aviso es "Venta #N guardada con fecha 10 de septiembre." La venta entra directo
+  como `despachado` con esa fecha en `creado_en` y `despachado_en`, y la app abre
+  la pestaña Despachados. El stock solo baja si la casilla está marcada (y nunca
+  queda negativo). Si la fecha es anterior al primer pedido del cliente, esa pasa
+  a ser su "primer pedido". Con el interruptor apagado todo funciona como antes.
+  Los precios son los que muestra el formulario (con promo de colección o producto);
+  el Resumen, "Repite" y los más vendidos usan la fecha del pedido, así que la venta
+  cae en su periodo real. En modo real llama a la RPC `registrar_venta_pasada`
+  (errores `fecha_invalida`, `sin_productos`, `items_invalidos`, `producto_no_encontrado`,
+  `cliente_no_encontrado`, `tienda_no_encontrada` y `stock_insuficiente: <producto>`
+  salen en español); como la RPC suma cantidad × precio sin el código de promo, la app
+  ajusta después el `total` para que coincida con el que se vio. En la demo se hace lo
+  mismo en `lib/data/pedidos.ts`.
 - **Pedido sin productos:** en vez de una zona en blanco, una invitación tocable
   (toda el área): ilustración de pedidos (~110 px), "Tu pedido está vacío",
   "Agrega los productos que va a llevar tu cliente." y botón Mandarina "+ Agregar

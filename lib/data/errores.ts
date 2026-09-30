@@ -160,6 +160,13 @@ export function traducirErrorSupabase(e: unknown): Error {
   const stock = /stock_insuficiente:\s*([^]+)$/.exec(mensaje);
   if (stock) return new StockInsuficiente(stock[1]!.trim());
   if (mensaje.includes("pedido_no_encontrado")) return new PedidoNoEncontrado();
+  // RPC registrar_venta_pasada
+  if (mensaje.includes("fecha_invalida")) return new DatosInvalidos("Esa fecha no sirve: elige un día que ya pasó.");
+  if (mensaje.includes("sin_productos")) return new DatosInvalidos("La venta necesita al menos un producto.");
+  if (mensaje.includes("items_invalidos")) return new DatosInvalidos("Algún producto trae una cantidad o un precio que no sirve.");
+  if (mensaje.includes("producto_no_encontrado")) return new DatosInvalidos("Un producto de la venta ya no existe en tu tienda.");
+  if (mensaje.includes("cliente_no_encontrado")) return new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+  if (mensaje.includes("tienda_no_encontrada")) return new DatosInvalidos("No encontramos tu tienda. Vuelve a entrar.");
   if (mensaje.includes("pedido_no_deshacible")) return new PedidoNoDeshacible();
   if (mensaje.includes("pedido_no_despachable")) return new PedidoNoDespachable();
   // RPC gastar_creditos
