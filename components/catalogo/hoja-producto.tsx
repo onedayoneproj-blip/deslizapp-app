@@ -382,7 +382,7 @@ function FormularioProducto({
         <button
           type="button"
           onClick={() => setStock(stock === null ? 1 : null)}
-          className="-mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave underline"
+          className="tocable -mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave"
         >
           {stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}
         </button>

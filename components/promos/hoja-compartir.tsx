@@ -122,7 +122,7 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
     () => <CuponTienda promo={promo} marca={marcaDeTienda(tienda)} tienda={tienda} producto={producto} productosDeColeccion={productosDeColeccion} />,
     [promo, tienda, producto, productosDeColeccion],
   );
-  const enlaceSuave = "tocable inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 font-extrabold text-bosque underline underline-offset-2 disabled:opacity-50 disabled:no-underline";
+  const enlaceSuave = "tocable inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 font-extrabold text-bosque disabled:opacity-50";
 
   return (
     <div className="flex flex-col gap-4">

@@ -82,7 +82,7 @@ export function VistaCatalogo() {
                 <Numero valor={usados} /> de {limite}
                 {lleno ? "" : " productos"}
               </span>
-              <span className="text-[13px] font-bold underline">{lleno ? "Subir de plan" : "Ver plan"}</span>
+              <span className="text-[13px] font-bold">{lleno ? "Subir de plan" : "Ver plan"}</span>
             </span>
             <span className="mt-2.5 block h-2.5 overflow-hidden rounded-full bg-papel">
               <span

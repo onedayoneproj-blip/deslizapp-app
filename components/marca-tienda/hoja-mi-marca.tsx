@@ -168,7 +168,7 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
               {procesando ? "Leyendo colores…" : logo ? "Cambiar logo" : "Subir logo"}
             </button>
             {logo && (
-              <button type="button" onClick={() => setLogo(null)} className="flex min-h-11 items-center self-start px-1 text-[13px] font-bold text-suave underline">
+              <button type="button" onClick={() => setLogo(null)} className="tocable flex min-h-11 items-center self-start px-1 text-[13px] font-bold text-suave">
                 Quitar logo (usar iniciales)
               </button>
             )}

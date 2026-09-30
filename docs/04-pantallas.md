@@ -323,7 +323,7 @@ cambia nada. En `despachado` y `cancelado` el código no se edita (solo se muest
 `por_despachar` desde la barra de pasos. Esta fila rápida y "Editar pedido" usan la misma validación y el mismo cálculo
 (`calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido` en `lib/data/pedidos.ts`).
 
-**Editar pedido** (acción secundaria, texto subrayado debajo del botón principal; en `nuevo`, `por_despachar` y
+**Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— debajo del botón principal; en `nuevo`, `por_despachar` y
 `despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
 `/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
 Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
@@ -342,7 +342,7 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 
 **Volver a un paso previo** = tocar un paso ANTERIOR de la línea de avance (no hay botón de texto aparte):
 - Cada paso anterior es un botón ("Volver a Confirmado") con área de 44 px de alto que incluye barra y etiqueta (la barra sigue
-  delgada) y la etiqueta subrayada como señal. El paso actual y los futuros no son botones (avanzar es con el botón principal).
+  delgada); se distinguen solo por el color (verde fuerte de los pasos ya alcanzados) y por el feedback al tocar, sin subrayado. El paso actual y los futuros no son botones (avanzar es con el botón principal).
 - Desde `por_despachar` → Recibido (`nuevo`): directo. Aviso: "Pedido #N volvió a Recibido."
 - Desde `despachado` (a cualquier paso anterior): confirmación breve en la misma hoja ("Se devolverá el stock de los
   productos. ¿Volver a Confirmado?", "Sí, volver" / "Mejor no"); devuelve el stock de cada producto según `cantidad` (los de

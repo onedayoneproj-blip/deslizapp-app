@@ -367,7 +367,7 @@ function Formulario({
         </label>
       </div>
       {datos.fin && (
-        <button type="button" onClick={() => cambiar("fin", "")} className="-mt-2 flex min-h-11 items-center self-start px-1 text-[13px] font-extrabold text-suave underline">
+        <button type="button" onClick={() => cambiar("fin", "")} className="tocable -mt-2 flex min-h-11 items-center self-start px-1 text-[13px] font-extrabold text-suave">
           Quitar la fecha de fin
         </button>
       )}

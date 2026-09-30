@@ -157,7 +157,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
             cerrar();
             abrirNovedades();
           }}
-          className="font-extrabold text-bosque underline"
+          className="tocable font-extrabold text-bosque"
         >
           Ver novedades
         </button>

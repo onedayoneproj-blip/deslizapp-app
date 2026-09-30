@@ -20,8 +20,8 @@ import { CampoCodigo } from "./campo-codigo";
 import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
-/** Acción discreta para volver a un paso previo (texto, no botón principal). */
-const ACCION_ATRAS = "h-11 text-[14.5px] font-extrabold text-bosque underline disabled:opacity-60";
+/** "Editar pedido": botón secundario de contorno (píldora, borde fino, sin relleno), de la altura táctil de la app. */
+const ACCION_EDITAR = "tocable flex h-11 items-center justify-center rounded-full border-[1.5px] border-borde text-[14.5px] font-semibold text-bosque disabled:opacity-60";
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
@@ -196,7 +196,7 @@ function Detalle({
 
   // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
   const botonEditar = (
-    <Link href={`/pedidos/${pedido.id}/editar`} scroll={false} className={`${ACCION_ATRAS} flex items-center justify-center`}>
+    <Link href={`/pedidos/${pedido.id}/editar`} scroll={false} className={ACCION_EDITAR}>
       Editar pedido
     </Link>
   );
@@ -219,7 +219,7 @@ function Detalle({
           const barra = (
             <>
               <span className={`block h-1.5 rounded-[3px] ${i <= paso ? (i === 2 ? "bg-mandarina" : "bg-bosque") : "bg-borde"}`} />
-              <span className={`mt-[5px] block text-xs font-extrabold ${i <= paso ? "text-bosque" : "text-tenue"} ${i < paso ? "underline underline-offset-2" : ""}`}>
+              <span className={`mt-[5px] block text-xs font-extrabold ${i <= paso ? "text-bosque" : "text-tenue"} `}>
                 {nombre}
               </span>
             </>
@@ -304,10 +304,10 @@ function Detalle({
           <div className="flex min-h-11 items-center justify-between gap-3 border-b border-arena">
             <span className="min-w-0 truncate rounded-full bg-rosa px-3 py-1 text-[13px] font-extrabold">Código {pedido.codigoPromo}</span>
             <span className="flex shrink-0 items-center">
-              <button type="button" onClick={() => abrirCodigo(pedido.codigoPromo ?? "")} disabled={ocupado} className="h-11 px-2.5 text-[14px] font-extrabold text-bosque underline">
+              <button type="button" onClick={() => abrirCodigo(pedido.codigoPromo ?? "")} disabled={ocupado} className="tocable h-11 px-2.5 text-[14px] font-extrabold text-bosque">
                 Cambiar
               </button>
-              <button type="button" onClick={quitarCodigo} disabled={ocupado} className="h-11 pl-2.5 text-[14px] font-extrabold text-[#b4432a]">
+              <button type="button" onClick={quitarCodigo} disabled={ocupado} className="tocable h-11 pl-2.5 text-[14px] font-extrabold text-[#b4432a]">
                 Quitar
               </button>
             </span>

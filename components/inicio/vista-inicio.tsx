@@ -236,7 +236,7 @@ function NavegadorPeriodo({ vista, mirado, actual, primero, irA }: { vista: "mes
         </button>
       </div>
       {!enActual && (
-        <button type="button" onClick={() => irA(null)} className="tocable -mt-1 text-[13px] font-bold text-suave underline underline-offset-2">
+        <button type="button" onClick={() => irA(null)} className="tocable -mt-1 text-[13px] font-bold text-suave">
           {esMes ? "Volver a este mes" : "Volver a este año"}
         </button>
       )}
@@ -436,7 +436,7 @@ function TarjetaPlan({ tienda, productos }: { tienda: Tienda; productos: number 
     <button type="button" onClick={abrirPlan} className="tocable block w-full rounded-[24px] bg-rosa p-4 text-left text-bosque">
       <span className="flex items-baseline justify-between gap-2">
         <span className="font-display text-xl">{NOMBRE_PLAN[tienda.plan]}</span>
-        <span className="text-[13px] font-bold underline">Ver plan</span>
+        <span className="text-[13px] font-bold">Ver plan</span>
       </span>
       <span className="mt-1 block text-[14px] font-extrabold">
         {productos} de {limite} productos
