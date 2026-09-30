@@ -563,3 +563,74 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   Ventas a crédito y abonos (components/credito/). Del diseño aprobado (referencias/credito-abonos/), pasado a solo transform /
+   opacity: la barra de pago crece con scaleX (no con width), el latido de "atrasado" es un aro que crece y se desvanece (no
+   box-shadow) y el sello y el confeti solo mueven y giran. Todo se apaga con "reducir movimiento".
+   ========================================================================== */
+.cre-barra {
+  transform-origin: left center;
+  transition: transform 600ms var(--curva-salida);
+}
+@keyframes cre-latido {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+.cre-latido {
+  position: relative;
+}
+.cre-latido::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-mandarina);
+  animation: cre-latido 1.8s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes cre-sello {
+  from {
+    opacity: 0;
+    transform: scale(1.8) rotate(-24deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-10deg);
+  }
+}
+.cre-sello {
+  animation: cre-sello 0.7s 0.2s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes cre-confeti {
+  0% {
+    transform: translateY(0) rotate(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(190px) rotate(320deg);
+    opacity: 0;
+  }
+}
+.cre-confeti {
+  animation: cre-confeti 3s ease-in infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cre-barra {
+    transition: none;
+  }
+  .cre-latido::after,
+  .cre-sello,
+  .cre-confeti {
+    animation: none !important;
+  }
+}

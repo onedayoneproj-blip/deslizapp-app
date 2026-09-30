@@ -6,6 +6,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDITOS_POR_RETOQUE } from "../config";
+import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
 import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
@@ -19,6 +20,8 @@ import {
   CreditosInsuficientes,
   DatosInvalidos,
   FormatoNoPermitido,
+  mensajeDeError,
+  PedidoNoEditable,
   PedidoNoEncontrado,
   PromoInvalida,
   SoloDemo,
@@ -26,9 +29,10 @@ import {
   traducirErrorSupabase,
 } from "./errores";
 import {
+  aAbono,
   aCliente,
   aEventoAaah,
-  aPedidoConItems,
+  aPedidoConItems as aPedidoBase,
   aProducto,
   aPromo,
   aTienda,
@@ -40,6 +44,7 @@ import {
   filaPedidoNuevo,
   filaProductoNuevo,
   filaPromo,
+  type FilaAbono,
   type FilaCliente,
   type FilaEventoAaah,
   type FilaPedidoConItems,
@@ -50,8 +55,14 @@ import {
   type FilaUsuario,
 } from "./filas";
 import type { FuenteDatos } from "./fuente";
-import { calcularLineas, descuentoDeCodigo, MENSAJE_CODIGO_MALO, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
+import { calcularLineas, descuentoDeCodigo, MENSAJE_CODIGO_MALO, pagoAlEditar, pagoDelPedido, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
 import { desdeFormulario, promoTerminada } from "./promos";
+
+/** Pedido con sus productos y su estado de pago (`pagado` y `saldo` salen de los abonos, con la misma cuenta de la demo). */
+function aPedidoConItems(f: FilaPedidoConItems): PedidoConItems {
+  const p = aPedidoBase(f);
+  return conPago(p, p.abonos);
+}
 
 /** Lo que devuelve cualquier consulta de supabase-js. */
 type Respuesta<T> = { data: T | null; error: unknown };
@@ -155,7 +166,7 @@ async function subirLogo(storage: Almacen, tiendaId: string, logo: string | null
 // La fuente
 // ---------------------------------------------------------------------------
 
-const PEDIDO_CON_ITEMS = "*, pedido_items(*)";
+const PEDIDO_CON_ITEMS = "*, pedido_items(*), abonos(*)";
 
 /**
  * `alCambiar` se llama después de cada escritura que salió bien: el provider sube la versión y las
@@ -203,6 +214,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     todas<FilaPedidoConItems>((d, h) =>
       supabase.from("pedidos").select(PEDIDO_CON_ITEMS).eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
     ).then((filas) => filas.map(aPedidoConItems));
+
+  const pedidosEnCache = (tiendaId: string) => leer(`pedidos:${tiendaId}`, () => pedidosCrudos(tiendaId));
+  const clientesBasicos = (tiendaId: string) =>
+    leer(`clientes-basicos:${tiendaId}`, async () => {
+      const filas = await todas<FilaCliente>((d, h) => supabase.from("clientes").select("*").eq("tienda_id", tiendaId).order("id").range(d, h));
+      return filas.map((f) => aCliente(f));
+    });
 
   const tiendaCruda = async (tiendaId: string) => {
     const f = await dato<FilaTienda>(supabase.from("tiendas").select("*").eq("id", tiendaId).maybeSingle());
@@ -253,6 +271,25 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       throw new DatosInvalidos("Ese pedido ya cambió de estado. Actualiza la lista.");
     }
     return cambio(aPedidoConItems(f));
+  }
+
+  /** Abono inicial de un pedido a crédito (RPC registrar_abono con el pedido fijo). Si falla, el pedido ya existe: se avisa claro. */
+  async function abonoInicialDe(tiendaId: string, clienteId: string, pedidoId: string, abono: { monto: number; metodo: string }, fecha: string | null) {
+    try {
+      await dato(
+        supabase.rpc("registrar_abono", {
+          p_tienda_id: tiendaId,
+          p_cliente_id: clienteId,
+          p_monto: abono.monto,
+          p_metodo: abono.metodo,
+          p_fecha: fecha ?? new Date().toISOString(),
+          p_nota: null,
+          p_pedido_id: pedidoId,
+        }),
+      );
+    } catch (e) {
+      throw new DatosInvalidos(`El pedido se guardó, pero no se pudo registrar lo que te dio ahora (${mensajeDeError(e, "error desconocido")}). Regístralo como abono desde el pedido.`);
+    }
   }
 
   /**
@@ -402,7 +439,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     },
 
     // ---- Pedidos ----
-    getPedidos: (tiendaId) => leer(`pedidos:${tiendaId}`, () => pedidosCrudos(tiendaId)),
+    getPedidos: (tiendaId) => pedidosEnCache(tiendaId),
     getPedido: (tiendaId, id) => leer(`pedido:${tiendaId}:${id}`, () => pedidoCrudo(tiendaId, id)),
     confirmarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo"], "por_despachar"),
     cancelarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo", "por_despachar"], "cancelado"),
@@ -426,6 +463,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         codigo = c.promo?.codigo ?? null;
       }
       const venta = datos.ventaPasada;
+      // Cómo queda el pago (crédito, fecha acordada y, si hay, lo que dio ahora): se decide antes de tocar nada.
+      const pago = pagoAlEditar(actual, total, actual.abonos.length > 0, datos);
       // La base valida estado, fecha, cliente, productos y stock (RPC editar_pedido).
       const editado = await requerido<FilaPedidoConItems>(
         supabase.rpc("editar_pedido", {
@@ -444,11 +483,30 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const { error } = await supabase.from("pedidos").update({ total }).eq("id", id).eq("tienda_id", tiendaId);
         if (error) console.warn("No se pudo ajustar el total del pedido con el código", error);
       }
+      // Modo de pago y fecha acordada (la base no deja pasar a "contado" un pedido con abonos: pedido_con_abonos).
+      if (pago.pagoModo !== actual.pagoModo || pago.pagoFechaAcordada !== actual.pagoFechaAcordada) {
+        await dato(supabase.from("pedidos").update({ pago_modo: pago.pagoModo, pago_fecha_acordada: pago.pagoFechaAcordada }).eq("id", id).eq("tienda_id", tiendaId).select("id").maybeSingle());
+      }
+      const fecha = despachado ? datos.fecha : venta?.fecha;
+      if (pago.abono) await abonoInicialDe(tiendaId, filaCliente.id, id, pago.abono, fecha ?? null);
       const pedido = await pedidoCrudo(tiendaId, id);
       if (!pedido) throw new PedidoNoEncontrado();
       const cliente = aCliente(filaCliente);
-      const fecha = despachado ? datos.fecha : venta?.fecha;
       return cambio({ pedido, cliente: fecha && fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: fecha } : cliente });
+    },
+    async cambiarPagoPedido(tiendaId, id, datos) {
+      const actual = await pedidoCrudo(tiendaId, id);
+      if (!actual) throw new PedidoNoEncontrado();
+      if (actual.estado === "cancelado") throw new PedidoNoEditable();
+      const pago = pagoAlEditar(actual, actual.total, actual.abonos.length > 0, datos);
+      // La base no deja pasar a "contado" un pedido con abonos (pedido_con_abonos).
+      await dato(
+        supabase.from("pedidos").update({ pago_modo: pago.pagoModo, pago_fecha_acordada: pago.pagoFechaAcordada }).eq("id", id).eq("tienda_id", tiendaId).select("id").maybeSingle(),
+      );
+      if (pago.abono && actual.clienteId) await abonoInicialDe(tiendaId, actual.clienteId, id, pago.abono, null);
+      const pedido = await pedidoCrudo(tiendaId, id);
+      if (!pedido) throw new PedidoNoEncontrado();
+      return cambio(pedido);
     },
     async eliminarPedido(_tiendaId, id) {
       await dato(supabase.rpc("eliminar_pedido", { p_pedido_id: id }));
@@ -528,9 +586,11 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos });
 
       const venta = datos.ventaPasada;
+      const total = subtotal - descuentoDeCodigo(promo, subtotal);
+      // Cómo paga (contado o crédito con su fecha y lo que dio ahora); un abono inicial igual al total deja el pedido de contado.
+      const pago = pagoDelPedido(total, datos);
       if (venta) {
         // La base valida fecha, stock y pertenencia; entra despachado con esa fecha (RPC registrar_venta_pasada).
-        const total = subtotal - descuentoDeCodigo(promo, subtotal);
         const creado = await requerido<FilaPedidoConItems>(
           supabase.rpc("registrar_venta_pasada", {
             p_tienda_id: tiendaId,
@@ -547,6 +607,17 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
           const { error } = await supabase.from("pedidos").update({ total }).eq("id", creado.id).eq("tienda_id", tiendaId);
           if (error) console.warn("No se pudo ajustar el total de la venta con el código", error);
         }
+        // La RPC crea la venta de contado: si fue a crédito, se marca y se registra lo que dio ahora (con la fecha de la venta).
+        if (pago.pagoModo === "credito") {
+          try {
+            await dato(
+              supabase.from("pedidos").update({ pago_modo: "credito", pago_fecha_acordada: pago.pagoFechaAcordada }).eq("id", creado.id).eq("tienda_id", tiendaId).select("id").maybeSingle(),
+            );
+          } catch (e) {
+            throw new DatosInvalidos(`La venta se guardó, pero no se pudo dejar a crédito (${mensajeDeError(e, "error desconocido")}). Ábrela y cámbiala a crédito.`);
+          }
+          if (pago.abono) await abonoInicialDe(tiendaId, filaCliente.id, creado.id, pago.abono, venta.fecha);
+        }
         const pedido = await pedidoCrudo(tiendaId, creado.id);
         if (!pedido) throw new PedidoNoEncontrado();
         const cliente = aCliente(filaCliente);
@@ -562,8 +633,10 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
               clienteId: filaCliente.id,
               origen: "manual",
               estado: "por_despachar",
-              total: subtotal - descuentoDeCodigo(promo, subtotal),
+              total,
               codigoPromo: promo?.codigo ?? null,
+              pagoModo: pago.pagoModo,
+              pagoFechaAcordada: pago.pagoFechaAcordada,
             }),
           )
           .select("*")
@@ -584,8 +657,40 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         await supabase.from("pedidos").delete().eq("id", filaPedido.id);
         throw e;
       }
-      const pedido: PedidoConItems = aPedidoConItems({ ...filaPedido, pedido_items: filasItems });
+      // Primero se creó el pedido a crédito; ahora, si hay, lo que dio ahora.
+      if (pago.abono) await abonoInicialDe(tiendaId, filaCliente.id, filaPedido.id, pago.abono, null);
+      const pedido: PedidoConItems = pago.abono
+        ? ((await pedidoCrudo(tiendaId, filaPedido.id)) ?? aPedidoConItems({ ...filaPedido, pedido_items: filasItems }))
+        : aPedidoConItems({ ...filaPedido, pedido_items: filasItems });
       return cambio({ pedido, cliente: aCliente(filaCliente) });
+    },
+
+    // ---- Ventas a crédito y abonos (RPC: la tabla abonos es solo lectura para la app) ----
+    async registrarAbono(d) {
+      const filas =
+        (await dato<FilaAbono[]>(
+          supabase.rpc("registrar_abono", {
+            p_tienda_id: d.tiendaId,
+            p_cliente_id: d.clienteId,
+            p_monto: d.monto,
+            p_metodo: d.metodo,
+            p_fecha: d.fecha ?? new Date().toISOString(),
+            p_nota: d.nota?.trim() ? d.nota.trim() : null,
+            p_pedido_id: d.pedidoId ?? null,
+          }),
+        )) ?? [];
+      return cambio(filas.map((f) => aAbono(f)));
+    },
+    async eliminarAbono(_tiendaId, abonoId) {
+      await dato(supabase.rpc("eliminar_abono", { p_abono_id: abonoId }));
+      cambio(undefined);
+    },
+    async getCuentasPorCobrar(tiendaId) {
+      const [pedidos, clientes] = await Promise.all([pedidosEnCache(tiendaId), clientesBasicos(tiendaId)]);
+      return cuentasPorCobrar(pedidos, clientes, Date.now());
+    },
+    async getCuentaCliente(tiendaId, clienteId) {
+      return cuentaDeCliente(await pedidosEnCache(tiendaId), clienteId, Date.now());
     },
 
     // ---- Clientes ----

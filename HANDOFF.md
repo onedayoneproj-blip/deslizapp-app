@@ -85,6 +85,17 @@ no cancelado (por `creado_en`); un **pendiente** es `nuevo` o `por_despachar`. V
 recibidos" y "De aaah a pedido" usan recibidos; Clientes: "total gastado" y "última compra" son solo despachados. La tarjeta de ventas
 de Inicio muestra "Por despachar: N pedidos · RD$X" (toda la tienda). Detalle en docs/03 y docs/04.
 
+## Ventas a crédito y abonos
+
+Un pedido puede ser `contado` o `credito` (columnas `pago_modo` y `pago_fecha_acordada` de `pedidos`, que la app sí escribe) y los abonos
+viven en la tabla `abonos` (solo lectura: se crean con la RPC `registrar_abono`, se borran con `eliminar_abono`). Todas las cuentas
+(saldo, reparto del más viejo al más nuevo, "Atrasado N días" en hora de Santo Domingo, cuentas por cobrar, recordatorio) están en
+`lib/credito.ts` con pruebas en `tests/credito.test.mjs`; la demo las usa en `lib/data/creditos.ts` y `lib/data/pedidos.ts` (la demo
+reparte igual que la RPC y trae tres clientes que compraron fiado). Pantallas en `components/credito/` y detalle en docs/03 y docs/04.
+Un pedido cancelado no genera deuda; las ventas del Resumen no cambian (cuentan al despachar, esté pagado o no). El recordatorio por
+WhatsApp lo abre siempre el dueño. Las RPC de abonos aún no se probaron contra Supabase real. Al cambiar la forma de los datos de la
+demo, su clave de almacenamiento pasó a `deslizapp-demo-v3` (los datos de prueba anteriores se reinician una vez).
+
 ## Catálogo en línea (enlace)
 
 `tiendas.url_catalogo` (Mi marca) alimenta la tarjeta de la pestaña Catálogo (`components/catalogo/tarjeta-catalogo.tsx`), con 8 estados

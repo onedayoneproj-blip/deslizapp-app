@@ -329,6 +329,47 @@ try {
     ok(errores.length === 0, `Promo (producto): sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
+
+  // ---- Ventas a crédito: "Te dio ahora" de + Pedido, y "Registrar abono" (monto y nota) desde la cuenta de un cliente
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/pedidos");
+    await page.waitForSelector('a[href="/pedidos/nuevo"]');
+    await page.waitForTimeout(900);
+    await page.tap('a[href="/pedidos/nuevo"]');
+    await page.waitForSelector('[role="dialog"] button[aria-label="Elegir cliente"]');
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] button[aria-label="Elegir cliente"]');
+    await page.tap('[role="dialog"] ul li button');
+    await page.tap('[role="dialog"] >> text=Agregar productos');
+    await page.tap('[role="dialog"] button[aria-label^="Agregar "]');
+    await page.tap('[role="dialog"] button[aria-label="Volver"]');
+    await page.waitForSelector('[role="dialog"] [role="tab"]:has-text("A crédito")');
+    await page.tap('[role="dialog"] [role="tab"]:has-text("A crédito")');
+    await page.waitForSelector('[role="dialog"] input[aria-label^="Te dio ahora"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label^="Te dio ahora"]', "Nuevo pedido a crédito · Te dio ahora", "500", { dentroDeHoja: true });
+    ok(errores.length === 0, `Pedido a crédito: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/clientes");
+    await page.waitForSelector('[role="tab"]:has-text("Deben")');
+    await page.waitForTimeout(900);
+    await page.tap('[role="tab"]:has-text("Deben")');
+    await page.waitForSelector("main a[href^='/clientes/'] >> nth=0");
+    await page.tap("main a[href^='/clientes/'] >> nth=0");
+    await page.waitForSelector("section[aria-label='Lo que te debe']");
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] button:has-text("Abono")');
+    await page.waitForSelector('input[aria-label^="Monto del abono"]');
+    await page.waitForTimeout(700);
+    // Dos hojas (cliente + abono): el chequeo de la hoja usa la primera; aquí solo se mira el campo
+    await probarCampo(page, 'input[aria-label^="Monto del abono"]', "Registrar abono · Monto", "500");
+    await probarCampo(page, 'input[placeholder="Ej. le di cambio"]', "Registrar abono · Nota", "le di cambio");
+    ok(errores.length === 0, `Registrar abono: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
 } finally {
   await navegador.close();
 }

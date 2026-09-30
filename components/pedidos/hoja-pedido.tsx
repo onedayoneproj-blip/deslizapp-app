@@ -17,6 +17,7 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
+import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { ChipEstado } from "./comunes";
 
@@ -343,6 +344,9 @@ function Detalle({
           <span>{formatearPesos(pedido.total)}</span>
         </div>
       </div>
+
+      {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
+      <PagoDelPedido pedido={pedido} cliente={cliente} />
 
       {/* Acciones */}
       {pedido.estado === "nuevo" && (

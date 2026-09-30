@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useMemo, useState, type ReactNode } from "react";
+import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
 import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
 import { resaltar } from "@/lib/texto";
+import { mensajeRecordatorio } from "@/lib/credito";
+import { consumirClientesQueDeben, hayClientesQueDeben } from "@/lib/destello";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
@@ -16,6 +18,8 @@ import { Numero } from "../numero";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
+import { Segmentos } from "../controles";
+import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
 import { Avatar, EtiquetaRepite } from "./comunes";
 import { TextoResaltado } from "./texto-resaltado";
 
@@ -24,15 +28,32 @@ import { TextoResaltado } from "./texto-resaltado";
  * cerrar un cliente: /clientes/nuevo y /clientes/[id] solo agregan la hoja encima.
  */
 export function VistaClientes({ children }: { children: ReactNode }) {
-  const { getClientes } = useData();
-  const { tiendaId } = useTiendaActiva();
+  const { getClientes, getCuentasPorCobrar, getDueno } = useData();
+  const { tiendaId, tienda } = useTiendaActiva();
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const { data: cuentas } = useConsulta(`cuentas:${tiendaId}`, () => getCuentasPorCobrar(tiendaId));
+  const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
   const [busqueda, setBusqueda] = useState("");
   const [aplicada, setAplicada] = useState("");
+  // "Todos" o "Deben" (los que tienen un pedido a crédito con saldo). Inicio puede pedir abrir directo en "Deben".
+  const [filtro, setFiltro] = useState<"todos" | "deben">(() => (hayClientesQueDeben() ? "deben" : "todos"));
+  useEffect(() => {
+    consumirClientesQueDeben();
+  }, []);
 
   const todos = useMemo(() => buscarClientes(clientes ?? [], aplicada), [clientes, aplicada]);
+  // "Deben": las cuentas en su orden (atrasados, con fecha, sin fecha), filtradas por lo que se busca
+  const deben = useMemo(() => {
+    const lista = cuentas?.cuentas ?? [];
+    if (aplicada.trim() === "") return lista;
+    const ids = new Set(todos.map((r) => r.cliente.id));
+    return lista.filter((c) => ids.has(c.clienteId));
+  }, [cuentas, todos, aplicada]);
   // De 30 en 30 (con ~110 clientes la lista es larga); las tarjetas de arriba siguen contando a todos
   const { visibles, quedan, mostrados, verMas } = useVerMas(todos, `${tiendaId}:${aplicada}`);
+  const debenPaginados = useVerMas(deben, `${tiendaId}:${aplicada}:deben`);
+  const mensajeDe = (nombre: string, deuda: number) =>
+    mensajeRecordatorio({ cliente: nombre, vendedora: dueno?.nombre ?? "", tienda: tienda?.nombre ?? "la tienda", deuda });
 
   const total = clientes?.length ?? 0;
   const repiten = clientes?.filter((c) => c.repite).length ?? 0;
@@ -58,14 +79,55 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           />
         </label>
 
-        <div className="grid grid-cols-3 gap-2">
-          <Contador valor={clientes ? total : null} texto="clientes" />
-          <Contador valor={clientes ? repiten : null} texto="repiten" rosa />
-          <Contador valor={clientes ? delCatalogo : null} texto="del catálogo" />
-        </div>
+        <Segmentos
+          etiqueta="Qué clientes ver"
+          valor={filtro}
+          alCambiar={setFiltro}
+          opciones={[
+            { id: "todos", texto: "Todos" },
+            { id: "deben", texto: "Deben", cantidad: cuentas?.clientes },
+          ]}
+        />
 
-        {!clientes && <Esqueleto className="h-[210px] rounded-[24px]" />}
-        {clientes && total === 0 && (
+        {filtro === "todos" && (
+          <div className="grid grid-cols-3 gap-2">
+            <Contador valor={clientes ? total : null} texto="clientes" />
+            <Contador valor={clientes ? repiten : null} texto="repiten" rosa />
+            <Contador valor={clientes ? delCatalogo : null} texto="del catálogo" />
+          </div>
+        )}
+
+        {filtro === "deben" && (
+          <>
+            {!cuentas && <Esqueleto className="h-[210px] rounded-[24px]" />}
+            {cuentas && cuentas.clientes === 0 && (
+              <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie te debe." remate="Cuando vendas a crédito, aquí ves quién falta por pagar." />
+            )}
+            {cuentas && cuentas.clientes > 0 && (
+              <>
+                <TarjetaPorCobrar datos={cuentas} />
+                {deben.length === 0 && (
+                  <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie con ese nombre debe." remate="Prueba con otro nombre o con el WhatsApp." />
+                )}
+                {deben.length > 0 && (
+                  <>
+                    <ul className="flex flex-col gap-3">
+                      {debenPaginados.visibles.map((c) => (
+                        <li key={c.clienteId}>
+                          <FilaPorCobrar cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} />
+                        </li>
+                      ))}
+                    </ul>
+                    <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} texto="Ver más clientes" />
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {filtro === "todos" && !clientes && <Esqueleto className="h-[210px] rounded-[24px]" />}
+        {filtro === "todos" && clientes && total === 0 && (
           <EstadoVacio
             ilustracion="clientes"
             titulo="Aún no tienes clientes."
@@ -73,10 +135,10 @@ export function VistaClientes({ children }: { children: ReactNode }) {
             accion={{ texto: "Agregar cliente", href: "/clientes/nuevo" }}
           />
         )}
-        {clientes && total > 0 && todos.length === 0 && (
+        {filtro === "todos" && clientes && total > 0 && todos.length === 0 && (
           <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie con ese nombre. Todavía." remate="Prueba con otro nombre o con el WhatsApp." />
         )}
-        {todos.length > 0 && (
+        {filtro === "todos" && todos.length > 0 && (
           <>
             <ul className="rounded-[24px] border border-linea bg-white px-3.5">
               {visibles.map(({ cliente, coincide }) => (

@@ -3,12 +3,15 @@
 
 import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
+import type { Abono } from "../types";
+import { cuentaDelCliente, cuentasDeTienda, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarNotaCliente } from "./clientes";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
-import type { FuenteDatos } from "./fuente";
+import type { DatosAbonoNuevo, DatosPago, FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
   aplicarCodigoAlPedido,
+  cambiarPagoDePedido,
   despacharPedido,
   modificarPedido,
   quitarPedido,
@@ -38,7 +41,7 @@ import {
 } from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
-const KEY = "deslizapp-demo-v2";
+const KEY = "deslizapp-demo-v3";
 const KEY_SESION = "deslizapp-sesion-v1";
 
 export type EstadoDemo = {
@@ -282,6 +285,15 @@ export const fuenteDemo: FuenteDatos = {
     });
     return resultado;
   },
+  async cambiarPagoPedido(tiendaId: string, id: string, datos: DatosPago): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = cambiarPagoDePedido(db, tiendaId, id, datos, nuevoId, ahora());
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
   async eliminarPedido(tiendaId: string, id: string): Promise<void> {
     escribir((db) => quitarPedido(db, tiendaId, id));
   },
@@ -330,6 +342,26 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return resultado;
+  },
+
+  // Ventas a crédito y abonos
+  async registrarAbono(datos: DatosAbonoNuevo): Promise<Abono[]> {
+    let creados!: Abono[];
+    escribir((db) => {
+      const r = registrarAbonoDemo(db, datos, nuevoId, ahora());
+      creados = r.abonos;
+      return r.db;
+    });
+    return creados;
+  },
+  async eliminarAbono(tiendaId: string, abonoId: string): Promise<void> {
+    escribir((db) => quitarAbonoDemo(db, tiendaId, abonoId));
+  },
+  async getCuentasPorCobrar(tiendaId: string) {
+    return cuentasDeTienda(leerDemo().db, tiendaId, Date.now());
+  },
+  async getCuentaCliente(tiendaId: string, clienteId: string) {
+    return cuentaDelCliente(leerDemo().db, tiendaId, clienteId, Date.now());
   },
 
   // Clientes

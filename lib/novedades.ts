@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.22.0",
+    fecha: "2026-09-30",
+    titulo: "Fiar ya no es enredo.",
+    cambios: [
+      "Al crear un pedido, elige «A crédito»: cuánto te dio, cuándo quedó en pagar y cuánto te debe.",
+      "Registra abonos, mira la barra llenarse y celebra cuando alguien termina de pagar.",
+      "En Clientes, «Deben» te dice quién falta por pagar; un toque y le recuerdas por WhatsApp.",
+    ],
+  },
+  {
     version: "0.21.0",
     fecha: "2026-09-30",
     titulo: "Vender es despachar.",

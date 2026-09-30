@@ -8,23 +8,27 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
+import type { CuentaCliente } from "@/lib/credito";
 import type { ClienteConResumen, PedidoConItems } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { IconoWhatsApp } from "../iconos";
 import { ChipEstado } from "../pedidos/comunes";
+import { CuentaDelCliente } from "../credito/cuenta-cliente";
 import { Avatar, EtiquetaRepite } from "./comunes";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
 export function HojaCliente({ clienteId }: { clienteId: string }) {
   const router = useRouter();
-  const { getCliente, getPedidos } = useData();
+  const { getCliente, getPedidos, getCuentaCliente, getDueno } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/clientes", { scroll: false }), [router]);
 
   const { data: cliente, cargando } = useConsulta(`cliente:${tiendaId}:${clienteId}`, () => getCliente(tiendaId, clienteId));
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const { data: cuenta } = useConsulta(`cuenta:${tiendaId}:${clienteId}`, () => getCuentaCliente(tiendaId, clienteId));
+  const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
 
   if (cliente === undefined && cargando) return null;
   if (!cliente) {
@@ -40,17 +44,17 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
       </Hoja>
     );
   }
-  if (!pedidos) return null;
+  if (!pedidos || !cuenta) return null;
 
   // "grande": tiene un campo de texto (la nota) y la hoja no cambia de tamaño con el teclado
   return (
     <Hoja abierta alCerrar={cerrar} titulo="Cliente" altura="grande">
-      <Detalle cliente={cliente} pedidos={pedidos.filter((p) => p.clienteId === cliente.id)} />
+      <Detalle cliente={cliente} pedidos={pedidos.filter((p) => p.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} />
     </Hoja>
   );
 }
 
-function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: PedidoConItems[] }) {
+function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string }) {
   const { actualizarNotaCliente } = useData();
   const { tienda, tiendaId } = useTiendaActiva();
   const toast = useToast();
@@ -108,6 +112,8 @@ function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: Pe
           <div className="text-xs font-bold">en total{cliente.ultimaCompra ? ` · última compra ${fechaCorta(cliente.ultimaCompra).toLowerCase()}` : ""}</div>
         </div>
       </div>
+
+      <CuentaDelCliente cliente={cliente} cuenta={cuenta} vendedora={vendedora} tienda={tienda?.nombre ?? "la tienda"} />
 
       <div className="flex flex-col gap-2">
         <CampoNota valor={nota} alCambiar={setNota} />

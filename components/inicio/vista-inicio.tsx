@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CREDITOS_POR_RETOQUE, NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useRouter } from "next/navigation";
-import { pedirRevisionDelCatalogo } from "@/lib/destello";
+import { pedirClientesQueDeben, pedirRevisionDelCatalogo } from "@/lib/destello";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, saludo } from "@/lib/formato";
 import {
@@ -71,7 +71,7 @@ export function VistaInicio() {
 }
 
 function Inicio() {
-  const { getPedidos, getEventosAaah, getProductos } = useData();
+  const { getPedidos, getEventosAaah, getProductos, getCuentasPorCobrar } = useData();
   const router = useRouter();
   const { tiendaId, tienda } = useTiendaActiva();
   const [vista, setVistaEstado] = useState<Vista>(vistaRecordada);
@@ -84,6 +84,8 @@ function Inicio() {
     const [pedidos, eventos, productos] = await Promise.all([getPedidos(tiendaId), getEventosAaah(tiendaId), getProductos(tiendaId)]);
     return { pedidos, eventos, productos, ahora: Date.now() };
   });
+
+  const { data: cuentas } = useConsulta(`cuentas:${tiendaId}`, () => getCuentasPorCobrar(tiendaId));
 
   const inicio = data && tienda ? inicioDeDatos(data, tienda.creadoEn) : null;
   const actual = data ? anclaDe(data.ahora) : null;
@@ -121,6 +123,7 @@ function Inicio() {
   };
   const nuevos = data ? contarPedidosNuevos(data.pedidos) : 0;
   const pendientes = data ? resumenPendientes(data.pedidos) : { cantidad: 0, monto: 0 };
+  const porCobrar = { total: cuentas?.total ?? 0, clientes: cuentas?.clientes ?? 0 };
   const aaahsSemana = data ? aaahsDeLaSemana(data.eventos, data.ahora) : 0;
 
   return (
@@ -212,6 +215,7 @@ function Inicio() {
             <TarjetaVentas
               resumen={resumen}
               pendientes={pendientes}
+              porCobrar={porCobrar}
               alElegir={(i) => {
                 setAviso(null);
                 setSeleccion(i);
@@ -267,15 +271,21 @@ function NavegadorPeriodo({ vista, mirado, actual, primero, irA }: { vista: "mes
   );
 }
 
+/** Línea pequeña bajo la cifra de ventas: 32 px de alto y 44 px de área de toque (pseudo-elemento invisible). Entra con la aparición habitual. */
+const LINEA_TARJETA =
+  "mov-aparece tocable relative -mt-0.5 flex h-8 items-center truncate text-[12.5px] leading-tight font-semibold text-[#D9E6DF] before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']";
+
 function TarjetaVentas({
   resumen: r,
   pendientes,
+  porCobrar,
   alElegir,
   alLimpiar,
   alTocarVacia,
 }: {
   resumen: Resumen;
   pendientes: { cantidad: number; monto: number };
+  porCobrar: { total: number; clientes: number };
   alElegir: (i: number) => void;
   alLimpiar: () => void;
   alTocarVacia: (b: BarraConValor) => void;
@@ -310,15 +320,20 @@ function TarjetaVentas({
           )}
         </div>
       </div>
+      {/* Líneas discretas de TODA la tienda (sin importar el periodo). Cada una mide 32 px y tiene 44 px de área de toque. */}
       {pendientes.cantidad > 0 && (
-        // Pendientes de TODA la tienda (sin importar el periodo): todavía no son ventas. Lleva a Pedidos (abre en "Nuevos").
-        <Link
-          href="/pedidos"
-          data-pendientes
-          className="mov-aparece -mt-0.5 -mb-1.5 flex min-h-11 items-center truncate text-[12.5px] leading-tight font-semibold text-[#D9E6DF]"
-        >
+        // Todavía no son ventas. Lleva a Pedidos (abre en "Nuevos").
+        <Link href="/pedidos" data-pendientes className={LINEA_TARJETA}>
           <span className="truncate">
             Por despachar: {pendientes.cantidad} {pendientes.cantidad === 1 ? "pedido" : "pedidos"} · {formatearPesos(pendientes.monto)}
+          </span>
+        </Link>
+      )}
+      {porCobrar.total > 0 && (
+        // Lo que te deben de ventas a crédito (no cambia el cálculo de ventas). Lleva a Clientes con el filtro "Deben".
+        <Link href="/clientes" data-por-cobrar onClick={pedirClientesQueDeben} className={LINEA_TARJETA}>
+          <span className="truncate">
+            Por cobrar: {formatearPesos(porCobrar.total)} · {porCobrar.clientes} {porCobrar.clientes === 1 ? "cliente" : "clientes"}
           </span>
         </Link>
       )}

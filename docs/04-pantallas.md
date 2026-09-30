@@ -404,6 +404,38 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×
   precio sin el descuento del código, la app ajusta después el `total`. Demo: `modificarPedido` en `lib/data/pedidos.ts`.
 
+**Pago (ventas a crédito)** (`components/credito/pago-del-pedido.tsx`, entre los productos y las acciones; diseño en
+`referencias/credito-abonos/`). Los abonos y saldos vienen con el pedido (`pagado`, `saldo`, `abonos`).
+- **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"** (pregunta "¿Dejar
+  este pedido a crédito? Quedará debiendo RD$X.", con las pastillas de fecha y "Sí, dejarlo a crédito" / "Mejor no").
+- **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),
+  "Pagó RD$X de RD$Y", barra de progreso (crece con `scaleX`, 600 ms), la fecha acordada ("Quedó en pagar el 15 oct · faltan 15 días";
+  atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).
+  Cada abono tiene **"Borrar"** con confirmación ("¿Borrar este abono? La deuda vuelve a subir RD$X."). Botones **"+ Registrar abono"**
+  (principal) y **"Recordarle por WhatsApp"** (contorno; solo con teléfono y deuda). Los cambios de saldo se anuncian con `aria-live`.
+- **Hoja "Registrar abono"** (`hoja-abono.tsx`, una hoja encima del detalle): "<Cliente> debe RD$X del pedido #N" (o "en N pedidos"
+  desde la cuenta del cliente), monto grande con teclado numérico (solo enteros), botones rápidos "Todo · RD$X", "Mitad · RD$X",
+  RD$500 y RD$1,000 (solo los que no superan la deuda), método (Efectivo / Transferencia / Otro), fecha (hoy; una pasada si hace falta),
+  nota opcional (200) y el aviso en vivo "Después de este abono debe RD$X" o "Con este abono queda saldado". "Guardar abono" queda
+  deshabilitado con monto 0 o mayor que la deuda ("Te debe RD$X; no puedes abonar más que eso."). Al guardar: aviso "Abono guardado".
+- **Saldado** (`tarjeta-saldado.tsx`): cuando un abono deja el saldo en 0, el detalle muestra por única vez la tarjeta verde con
+  confeti, el sello "SALDADO", el texto a mano "¡Terminó de pagar!", "<Nombre> pagó los RD$X en N abonos, en N días." y "Darle las gracias
+  por WhatsApp". "Una vez" = una marca en este dispositivo por pedido (`deslizapp-saldado-visto-{pedido}`); al abrir un pedido ya
+  saldado solo se celebra si el último abono se registró hace menos de 3 días y no se vio. Después queda como pedido pagado ("Pagado")
+  con su historial. Sin movimiento (reducir movimiento) queda quieta.
+- Un pedido **cancelado** no genera deuda (saldo 0) y no muestra "Debe".
+- **+ Pedido, venta pasada y Editar pedido** llevan la tarjeta **"¿Cómo te paga?"** (`campos-pago.tsx`): "Pagó todo" / "A crédito"
+  (`Segmentos`). A crédito: **"Te dio ahora (opcional)"** (teclado numérico; no puede superar el total), método en pastillas,
+  **"¿Cuándo quedó en pagar?"** ("En 1 semana", "Fin de mes", "Elegir fecha" con campo de fecha, "Sin fecha") y el aviso "Queda debiendo
+  RD$X. Te aviso el <fecha> si no ha pagado.". Si lo que dio iguala el total, el pedido se guarda como "Pagó todo" y no registra abono.
+  Al crear a crédito, primero se crea el pedido con `pago_modo = 'credito'` y su fecha, y después se registra el abono inicial
+  (`registrar_abono` con el pedido fijo; en la venta pasada, con la fecha de la venta). En **Editar pedido**, con abonos no se puede
+  volver a "Pagó todo" (se explica por qué; hay que borrar los abonos) y sí se puede cambiar la fecha acordada.
+- En la **lista de Pedidos**, un pedido a crédito con saldo muestra la etiqueta **"Debe RD$X"** (mandarina suave); el saldado, nada.
+- Lógica en `lib/credito.ts` (reparto, saldo, atraso en hora de Santo Domingo, cuentas por cobrar, recordatorio; con pruebas en
+  `tests/credito.test.mjs`); demo en `lib/data/creditos.ts` y `lib/data/pedidos.ts`; real: RPC `registrar_abono` / `eliminar_abono`
+  y el modo de pago con UPDATE de `pago_modo` y `pago_fecha_acordada` (`lib/data/supabase.ts`).
+
 **Volver a un paso previo** = tocar un paso ANTERIOR de la línea de avance (no hay botón de texto aparte):
 - Cada paso anterior es un botón ("Volver a Confirmado") con área de 44 px de alto que incluye barra y etiqueta (la barra sigue
   delgada); se distinguen solo por el color (verde fuerte de los pasos ya alcanzados) y por el feedback al tocar, sin subrayado. El paso actual y los futuros no son botones (avanzar es con el botón principal).
@@ -425,6 +457,24 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 ---
 
 ## 4. Clientes
+
+**Filtro "Deben"** (ventas a crédito): bajo el buscador, `Segmentos` "Todos" · **"Deben"** con contador (mismo estilo que Cancelados en
+Pedidos). En "Deben" desaparecen los 3 contadores y aparece la tarjeta Verde Bosque **"Por cobrar"** (total, "N clientes · N pedidos"
+y "Cobrado este mes: RD$X" = abonos del mes en hora de Santo Domingo) y la lista, **una fila por cliente** ordenada: primero los
+atrasados (más días primero), luego los que tienen fecha (la más próxima primero), luego los sin fecha (la deuda más vieja primero).
+Cada fila: inicial en círculo rosa, nombre, "Pedido #N · pagó RD$X de Y" o "N pedidos · el más viejo hace N días", etiqueta
+("Atrasado N días" mandarina suave, "Paga el 15 oct" menta, "Sin fecha acordada" arena), lo que debe en Mandarina texto y un botón
+redondo de WhatsApp de 44 px (solo con teléfono; abre el recordatorio). Tocar la fila abre la cuenta del cliente. El buscador también
+filtra esta lista. Inicio abre directo en "Deben" con su línea "Por cobrar".
+
+**Cuenta del cliente** (`components/credito/cuenta-cliente.tsx`, en el detalle del cliente, solo si debe algo): tarjeta "Te debe" con
+el total y su estado, "En N pedidos. Los abonos se aplican primero al más viejo." y el historial mezclado de compras a crédito y abonos
+(del más reciente al más viejo; cada renglón abre su pedido); vista previa del recordatorio y botones **"Recordarle"** (WhatsApp) y
+**"+ Abono"** (hoja de abono sin pedido fijo: reparte del más viejo al más nuevo).
+
+**Recordatorio por WhatsApp**: `https://wa.me/<teléfono en dígitos, con 1 delante si tiene 10>` con "¡Hola, Marleny! Te escribe
+<nombre de quien vende>, de <tienda>. Te recuerdo con cariño que quedó pendiente RD$X. Cuando puedas me avisas. ¡Gracias!". **Nunca se
+envía solo**: siempre lo abre el dueño desde su teléfono.
 
 **Qué muestra:**
 - Titular "Clientes" + "Los que ya dijeron aaah. Y los que están por decirlo."
@@ -646,6 +696,9 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
 - **Tarjeta de pedidos nuevos** (Mandarina, solo si hay): número en cuadro
   verde, "2 pedidos nuevos" / "Alguien dijo aaah. No lo dejes en visto." →
   lleva a Pedidos (pestaña Nuevos).
+- **Por cobrar**: bajo la línea "Por despachar" de la tarjeta de ventas, otra igual de discreta, **"Por cobrar: RD$X · N clientes"**
+  (solo si hay deuda; toda la tienda; lleva a Clientes con el filtro "Deben"). No cambia el cálculo de ventas: un pedido a crédito
+  despachado es venta aunque no esté pagado.
 - **Selector de periodo** (`Segmentos`): Hoy · 7 días (por defecto) · Mes ·
   Año. Se recuerda mientras la app esté abierta (en memoria). Cambiar de
   pastilla vuelve al periodo actual de esa pastilla.

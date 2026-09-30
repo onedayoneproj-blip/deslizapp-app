@@ -68,6 +68,10 @@ export type Producto = {
 export type OrigenPedido = "catalogo" | "manual";
 export type EstadoPedido = "nuevo" | "por_despachar" | "despachado" | "cancelado";
 
+/** Cómo paga el cliente: todo de una vez ("contado") o en abonos ("credito"). */
+export type PagoModo = "contado" | "credito";
+export type MetodoAbono = "efectivo" | "transferencia" | "otro";
+
 export type Pedido = {
   id: string;
   tiendaId: string;
@@ -80,6 +84,22 @@ export type Pedido = {
   codigoPromo: string | null;
   creadoEn: string;
   despachadoEn: string | null;
+  pagoModo: PagoModo;
+  /** Día ("AAAA-MM-DD") en que el cliente quedó en pagar. Solo a crédito; null = sin fecha. */
+  pagoFechaAcordada: string | null;
+};
+
+/** Un pago parcial de un pedido a crédito. Solo se crea y se borra con las funciones de la capa de datos. */
+export type Abono = {
+  id: string;
+  tiendaId: string;
+  pedidoId: string;
+  /** Pesos enteros, > 0. */
+  monto: number;
+  metodo: MetodoAbono;
+  fecha: string;
+  nota: string | null;
+  creadoEn: string;
 };
 
 export type PedidoItem = {
@@ -148,4 +168,8 @@ export type EventoAaah = {
 export type NuevoProducto = Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn">;
 export type CambiosProducto = Partial<NuevoProducto>;
 
-export type PedidoConItems = Pedido & { items: PedidoItem[] };
+/**
+ * Un pedido con sus productos y su estado de pago. Contado: pagado = total y saldo = 0. Crédito: pagado = suma de los abonos
+ * y saldo = total − pagado (0 si está cancelado). `abonos` va del más viejo al más nuevo.
+ */
+export type PedidoConItems = Pedido & { items: PedidoItem[]; pagado: number; saldo: number; abonos: Abono[] };

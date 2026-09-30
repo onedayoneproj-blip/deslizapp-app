@@ -2,7 +2,8 @@
 // Nada fuera de lib/data/ importa este archivo.
 
 import { MARCA_NEUTRA } from "../marca";
-import type { Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
+import { diaDeSantoDomingo, sumarDias } from "../credito";
+import type { Abono, Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
 import {
   aCliente,
   aEventoAaah,
@@ -39,6 +40,8 @@ export type DB = {
   productos: Producto[];
   pedidos: Pedido[];
   pedidoItems: PedidoItem[];
+  /** Pagos parciales de los pedidos a crédito (solo se crean y se borran con las operaciones de abonos). */
+  abonos: Abono[];
   clientes: Cliente[];
   promos: Promo[];
   eventosAaah: EventoAaah[];
@@ -53,16 +56,57 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
   const desfase = ahora - Date.parse(seedMeta.fecha_referencia);
   const fecha: AjusteFecha = (iso) => new Date(Date.parse(iso) + desfase).toISOString();
 
+  const credito = ventasACreditoDeLaDemo((seedPedidos as FilaPedido[]).map((f) => aPedido(f, fecha)), ahora);
+
   return {
     tiendas: (seedTiendas as FilaTienda[]).map((f) => aTienda(f, fecha)),
     usuarios: (seedUsuarios as FilaUsuario[]).map(aUsuario),
     productos: (seedProductos as FilaProducto[]).map((f) => aProducto(f, fecha)),
-    pedidos: (seedPedidos as FilaPedido[]).map((f) => aPedido(f, fecha)),
+    pedidos: credito.pedidos,
     pedidoItems: (seedPedidoItems as FilaPedidoItem[]).map(aPedidoItem),
+    abonos: credito.abonos,
     clientes: (seedClientes as FilaCliente[]).map((f) => aCliente(f, fecha)),
     promos: (seedPromos as FilaPromo[]).map((f) => aPromo(f, fecha)),
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
   };
+}
+
+/**
+ * Tres clientes de Esencias Michel que compraron fiado, para que las pantallas de crédito se vean llenas: uno atrasado (con dos
+ * pedidos y un abono), uno con fecha para pagar en el futuro y uno sin fecha. Se marcan sobre pedidos que ya estaban despachados
+ * en el seed (números de pedido de esa tienda), con las fechas relativas a "ahora".
+ */
+function ventasACreditoDeLaDemo(pedidos: Pedido[], ahora: number): { pedidos: Pedido[]; abonos: Abono[] } {
+  const hoy = diaDeSantoDomingo(ahora);
+  const tienda = "a1000000-0000-4000-8000-000000000001";
+  const dia = 24 * 60 * 60 * 1000;
+  // numero → cómo se pagó: fecha acordada (o null) y abonos (días después del pedido, monto, método, nota)
+  const plan: Record<number, { fecha: string | null; abonos: { dias: number; monto: number; metodo: Abono["metodo"]; nota?: string }[] }> = {
+    1030: { fecha: sumarDias(hoy, -6), abonos: [{ dias: 2, monto: 400, metodo: "efectivo", nota: "Al entregar" }] },
+    1033: { fecha: sumarDias(hoy, 3), abonos: [] },
+    1036: { fecha: sumarDias(hoy, 9), abonos: [{ dias: 2, monto: 300, metodo: "transferencia" }] },
+    1034: { fecha: null, abonos: [{ dias: 2, monto: 500, metodo: "efectivo" }] },
+  };
+  const abonos: Abono[] = [];
+  const marcados = pedidos.map((p) => {
+    const cuenta = p.tiendaId === tienda ? plan[p.numero] : undefined;
+    if (!cuenta) return p;
+    cuenta.abonos.forEach((a, i) => {
+      const fecha = new Date(Math.min(Date.parse(p.creadoEn) + a.dias * dia, ahora)).toISOString();
+      abonos.push({
+        id: `a9000000-0000-4000-8000-${String(p.numero).padStart(9, "0")}${String(i).padStart(3, "0")}`,
+        tiendaId: p.tiendaId,
+        pedidoId: p.id,
+        monto: a.monto,
+        metodo: a.metodo,
+        fecha,
+        nota: a.nota ?? null,
+        creadoEn: fecha,
+      });
+    });
+    return { ...p, pagoModo: "credito" as const, pagoFechaAcordada: cuenta.fecha };
+  });
+  return { pedidos: marcados, abonos };
 }
 
 /** Comprobación mínima de que lo guardado en localStorage tiene la forma esperada. */
@@ -81,6 +125,9 @@ export function esDB(valor: unknown): valor is DB {
 export function migrar(db: DB): DB {
   return {
     ...db,
+    // Pedidos guardados antes de las ventas a crédito: todos de contado y sin abonos
+    pedidos: db.pedidos.map((p) => ({ ...p, pagoModo: p.pagoModo ?? "contado", pagoFechaAcordada: p.pagoFechaAcordada ?? null })),
+    abonos: db.abonos ?? [],
     clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })),
     // Promos guardadas antes del límite de usos y la pausa
     promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false })),

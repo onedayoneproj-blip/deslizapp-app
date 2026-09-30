@@ -42,6 +42,22 @@ export class PedidoNoEditable extends ErrorClaro {
   }
 }
 
+/** Un abono mayor que lo que se debe. `deuda` es lo que falta por pagar. */
+export class MontoMayorQueDeuda extends ErrorClaro {
+  deuda: number;
+  constructor(deuda: number) {
+    super(`Te debe RD$${deuda.toLocaleString("en-US")}; no puedes abonar más que eso.`);
+    this.deuda = deuda;
+  }
+}
+
+/** Un pedido con abonos no puede pasar a "Pagó todo" (primero se borran los abonos). */
+export class PedidoConAbonos extends ErrorClaro {
+  constructor() {
+    super("Este pedido ya tiene abonos, así que no puede pasar a «Pagó todo». Borra primero sus abonos.");
+  }
+}
+
 export class SoloCancelados extends ErrorClaro {
   constructor() {
     super("Solo se pueden eliminar pedidos cancelados.");
@@ -178,6 +194,16 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("items_invalidos")) return new DatosInvalidos("Algún producto trae una cantidad o un precio que no sirve.");
   if (mensaje.includes("producto_no_encontrado")) return new DatosInvalidos("Un producto de la venta ya no existe en tu tienda.");
   if (mensaje.includes("cliente_no_encontrado")) return new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+  // RPC registrar_abono y eliminar_abono, y el pago de un pedido
+  const mayor = /monto_mayor_que_deuda:\s*(\d+)/.exec(mensaje);
+  if (mayor) return new MontoMayorQueDeuda(Number(mayor[1]));
+  if (mensaje.includes("monto_mayor_que_deuda")) return new DatosInvalidos("Ese abono es más de lo que se debe.");
+  if (mensaje.includes("monto_invalido")) return new DatosInvalidos("El monto del abono no es válido: escribe un número entero mayor que cero.");
+  if (mensaje.includes("metodo_invalido")) return new DatosInvalidos("Elige cómo te pagó: efectivo, transferencia u otro.");
+  if (mensaje.includes("nota_invalida")) return new DatosInvalidos("La nota es muy larga (máximo 200 caracteres).");
+  if (mensaje.includes("sin_deuda")) return new DatosInvalidos("No hay nada pendiente por abonar: ya está al día.");
+  if (mensaje.includes("abono_no_encontrado")) return new DatosInvalidos("Ese abono ya no existe. Actualiza la pantalla.");
+  if (mensaje.includes("pedido_con_abonos")) return new PedidoConAbonos();
   // RPC del catálogo en línea
   if (mensaje.includes("catalogo_estado_invalido")) return new DatosInvalidos("Tu catálogo ya cambió de estado. Actualiza la pantalla para ver dónde va.");
   if (mensaje.includes("notas_invalidas")) return new DatosInvalidos("Cuéntanos qué quieres cambiar (hasta 500 caracteres).");

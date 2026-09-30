@@ -1,12 +1,17 @@
+import { conPago, resolverPago, type AbonoInicial, type DatosPago } from "../credito";
 import { buscarCodigoPromo, precioConPromo, type ContextoCodigo } from "../promos";
-import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
+import type { Abono, Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
 import { nuevoId as nuevoIdItem, type DB } from "./db";
-import { DatosInvalidos, PedidoNoDeshacible, PedidoNoEditable, SoloCancelados, StockInsuficiente } from "./errores";
+import { DatosInvalidos, PedidoConAbonos, PedidoNoDeshacible, PedidoNoEditable, SoloCancelados, StockInsuficiente } from "./errores";
+import { ordenarAbonos } from "./filas";
 
 export { StockInsuficiente };
 
+/** Los abonos de un pedido, del más viejo al más nuevo. */
+export const abonosDePedido = (db: DB, pedidoId: string): Abono[] => ordenarAbonos(db.abonos.filter((a) => a.pedidoId === pedidoId));
+
 function conItems(db: DB, pedido: Pedido): PedidoConItems {
-  return { ...pedido, items: db.pedidoItems.filter((i) => i.pedidoId === pedido.id) };
+  return { ...conPago(pedido, abonosDePedido(db, pedido.id)), items: db.pedidoItems.filter((i) => i.pedidoId === pedido.id) };
 }
 
 /** Pedidos de una tienda con sus ítems, del más reciente al más viejo. */
@@ -101,11 +106,13 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
     codigoPromo: null,
     creadoEn: ahora,
     despachadoEn: null,
+    pagoModo: "contado",
+    pagoFechaAcordada: null,
   };
 
   return {
     db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], clientes },
-    pedido: { ...pedido, items } satisfies PedidoConItems,
+    pedido: { ...conPago(pedido, []), items } satisfies PedidoConItems,
     cliente,
   };
 }
@@ -233,7 +240,7 @@ export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codi
   const porId = new Map(r.items.map((i) => [i.id, i]));
   return {
     db: { ...reemplazarPedido(db, pedido), pedidoItems: db.pedidoItems.map((i) => porId.get(i.id) ?? i) },
-    pedido: { ...pedido, items: r.items } satisfies PedidoConItems,
+    pedido: { ...conPago(pedido, abonosDePedido(db, id)), items: r.items } satisfies PedidoConItems,
   };
 }
 
@@ -250,7 +257,7 @@ export type DatosPedidoManual = {
    * baja si `descontarStock` (la venta pudo ser anterior a cargar el inventario).
    */
   ventaPasada?: { fecha: string; descontarStock: boolean };
-};
+} & DatosPago;
 
 /** Descuento (en pesos) de un código sobre un subtotal. */
 export const descuentoDeCodigo = (promo: Promo | null, subtotal: number) =>
@@ -300,6 +307,21 @@ export function descontarStockDeLineas(productos: Producto[], tiendaId: string, 
   });
 }
 
+/**
+ * Cómo queda el pago de un pedido de `total` (misma cuenta en la demo y en Supabase: `resolverPago`). Lanza DatosInvalidos si lo
+ * que dio ahora no sirve. Un abono inicial igual al total deja el pedido de contado y no registra ningún abono.
+ */
+export function pagoDelPedido(total: number, datos: DatosPago) {
+  const r = resolverPago(total, datos);
+  if (r.error !== null) throw new DatosInvalidos(r.error);
+  return r.resuelto;
+}
+
+/** El abono inicial de un pedido recién creado o pasado a crédito. */
+function abonoInicial(pedido: Pedido, a: AbonoInicial, id: string, fecha: string): Abono {
+  return { id, tiendaId: pedido.tiendaId, pedidoId: pedido.id, monto: a.monto, metodo: a.metodo, fecha, nota: null, creadoEn: fecha };
+}
+
 function fechaNoFutura(fecha: string, ahora: string) {
   if (Number.isNaN(Date.parse(fecha)) || Date.parse(fecha) > Date.parse(ahora)) throw new DatosInvalidos("Esa fecha no sirve: elige un día que ya pasó.");
 }
@@ -323,6 +345,8 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
   // Venta pasada con "Descontar del stock": igual que despachar, nunca deja el stock en negativo.
   const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
 
+  const pago = pagoDelPedido(c.total, datos);
+
   const pedidoId = nuevoId();
   const items: PedidoItem[] = c.items.map((i) => ({ id: nuevoId(), pedidoId, ...i }));
   const pedido: Pedido = {
@@ -336,14 +360,32 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
     codigoPromo: c.promo?.codigo ?? null,
     creadoEn: venta?.fecha ?? ahora,
     despachadoEn: venta?.fecha ?? null,
+    pagoModo: pago.pagoModo,
+    pagoFechaAcordada: pago.pagoFechaAcordada,
   };
+  // Primero se crea el pedido a crédito y después el abono inicial (si hay), con la fecha de la venta.
+  const abonos = pago.abono ? [abonoInicial(pedido, pago.abono, nuevoId(), venta?.fecha ?? ahora)] : [];
   const clienteFinal = conPrimerPedido(cliente, venta?.fecha);
   const clientes = clienteFinal === cliente ? db.clientes : db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x));
   return {
-    db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], productos, clientes },
-    pedido: { ...pedido, items } satisfies PedidoConItems,
+    db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], abonos: [...db.abonos, ...abonos], productos, clientes },
+    pedido: { ...conPago(pedido, abonos), items } satisfies PedidoConItems,
     cliente: clienteFinal,
   };
+}
+
+/**
+ * Cambia solo el pago de un pedido (por ejemplo "Cambiar a crédito" desde el detalle): modo, fecha acordada y, si hay, lo que
+ * dio ahora. Un cancelado no se toca. Con abonos, no puede pasar a contado (`PedidoConAbonos`).
+ */
+export function cambiarPagoDePedido(db: DB, tiendaId: string, id: string, datos: DatosPago, nuevoId: () => string, ahora: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (actual.estado === "cancelado") throw new PedidoNoEditable();
+  const pago = pagoAlEditar(actual, actual.total, db.abonos.some((a) => a.pedidoId === id), datos);
+  const pedido: Pedido = { ...actual, pagoModo: pago.pagoModo, pagoFechaAcordada: pago.pagoFechaAcordada };
+  const nuevos = pago.abono ? [abonoInicial(pedido, pago.abono, nuevoId(), ahora)] : [];
+  const dbFinal: DB = { ...reemplazarPedido(db, pedido), abonos: [...db.abonos, ...nuevos] };
+  return { db: dbFinal, pedido: conItems(dbFinal, pedido) };
 }
 
 export type DatosEdicionPedido = {
@@ -355,7 +397,21 @@ export type DatosEdicionPedido = {
   ventaPasada?: { fecha: string; descontarStock: boolean };
   /** `despachado`: la nueva fecha de la venta (creación y despacho). */
   fecha?: string;
-};
+} & DatosPago;
+
+/**
+ * Cómo queda el pago al editar. Sin `pagoModo` no cambia nada. Con abonos, no puede pasar a contado (`PedidoConAbonos`) y no se
+ * registra otro abono inicial (solo cambia la fecha acordada). Sin abonos, igual que al crear.
+ */
+export function pagoAlEditar(actual: Pedido, total: number, tieneAbonos: boolean, datos: DatosPago) {
+  if (datos.pagoModo === undefined) return { pagoModo: actual.pagoModo, pagoFechaAcordada: actual.pagoFechaAcordada, abono: null };
+  if (tieneAbonos) {
+    if (datos.pagoModo !== "credito") throw new PedidoConAbonos();
+    const r = pagoDelPedido(total, { pagoModo: "credito", pagoFechaAcordada: datos.pagoFechaAcordada });
+    return { pagoModo: "credito" as const, pagoFechaAcordada: r.pagoFechaAcordada, abono: null };
+  }
+  return pagoDelPedido(total, datos);
+}
 
 /**
  * Edita un pedido (mismo id y número), igual que la RPC `editar_pedido`: en `despachado` solo cliente y fecha; en `nuevo` y
@@ -366,15 +422,22 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
   if (actual.estado === "cancelado") throw new PedidoNoEditable();
   const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
 
+  const tieneAbonos = db.abonos.some((a) => a.pedidoId === id);
+
   if (actual.estado === "despachado") {
     if (datos.fecha) fechaNoFutura(datos.fecha, ahora);
-    const pedido: Pedido = { ...actual, clienteId: cliente.id, ...(datos.fecha ? { creadoEn: datos.fecha, despachadoEn: datos.fecha } : {}) };
-    const clienteFinal = conPrimerPedido(cliente, datos.fecha);
-    return {
-      db: { ...reemplazarPedido(db, pedido), clientes: db.clientes.map((c) => (c.id === cliente.id ? clienteFinal : c)) },
-      pedido: conItems(db, pedido),
-      cliente: clienteFinal,
+    const pago = pagoAlEditar(actual, actual.total, tieneAbonos, datos);
+    const pedido: Pedido = {
+      ...actual,
+      clienteId: cliente.id,
+      ...(datos.fecha ? { creadoEn: datos.fecha, despachadoEn: datos.fecha } : {}),
+      pagoModo: pago.pagoModo,
+      pagoFechaAcordada: pago.pagoFechaAcordada,
     };
+    const nuevos = pago.abono ? [abonoInicial(pedido, pago.abono, nuevoIdItem(), datos.fecha ?? ahora)] : [];
+    const clienteFinal = conPrimerPedido(cliente, datos.fecha);
+    const dbFinal = { ...reemplazarPedido(db, pedido), abonos: [...db.abonos, ...nuevos], clientes: db.clientes.map((c) => (c.id === cliente.id ? clienteFinal : c)) };
+    return { db: dbFinal, pedido: conItems(dbFinal, pedido), cliente: clienteFinal };
   }
 
   const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual });
@@ -383,25 +446,27 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
   if (venta) fechaNoFutura(venta.fecha, ahora);
   const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
 
+  const pago = pagoAlEditar(actual, c.total, tieneAbonos, datos);
   const items: PedidoItem[] = c.items.map((i) => ({ id: nuevoIdItem(), pedidoId: id, ...i }));
   const pedido: Pedido = {
     ...actual,
     clienteId: cliente.id,
     total: c.total,
     codigoPromo: c.promo?.codigo ?? null,
+    pagoModo: pago.pagoModo,
+    pagoFechaAcordada: pago.pagoFechaAcordada,
     ...(venta ? { estado: "despachado" as const, creadoEn: venta.fecha, despachadoEn: venta.fecha } : {}),
   };
+  const nuevos = pago.abono ? [abonoInicial(pedido, pago.abono, nuevoIdItem(), venta?.fecha ?? ahora)] : [];
   const clienteFinal = conPrimerPedido(cliente, venta?.fecha);
-  return {
-    db: {
-      ...reemplazarPedido(db, pedido),
-      pedidoItems: [...db.pedidoItems.filter((i) => i.pedidoId !== id), ...items],
-      productos,
-      clientes: db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x)),
-    },
-    pedido: { ...pedido, items } satisfies PedidoConItems,
-    cliente: clienteFinal,
+  const dbFinal: DB = {
+    ...reemplazarPedido(db, pedido),
+    pedidoItems: [...db.pedidoItems.filter((i) => i.pedidoId !== id), ...items],
+    abonos: [...db.abonos, ...nuevos],
+    productos,
+    clientes: db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x)),
   };
+  return { db: dbFinal, pedido: conItems(dbFinal, pedido), cliente: clienteFinal };
 }
 
 /** Borra un pedido cancelado (y sus productos). Los números no se reutilizan: quedan huecos. */

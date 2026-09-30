@@ -130,7 +130,12 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
         </span>
         <ChipEstado estado={p.estado} />
       </div>
-      <p className="mt-1 truncate text-[17px] font-extrabold">{cliente ?? "Cliente sin nombre"}</p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-[17px] font-extrabold">{cliente ?? "Cliente sin nombre"}</p>
+        {p.pagoModo === "credito" && p.saldo > 0 && (
+          <span className="shrink-0 rounded-full bg-mandarina/20 px-2.5 py-[3px] text-xs font-extrabold whitespace-nowrap text-mandarina-texto">Debe {formatearPesos(p.saldo)}</span>
+        )}
+      </div>
       <div className="mt-2.5 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex shrink-0 -space-x-2">

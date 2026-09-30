@@ -15,7 +15,9 @@ import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
 import { buscarCodigoPromo, precioConPromo } from "@/lib/promos";
 import type { ClienteConResumen, PedidoConItems, Producto, Promo } from "@/lib/types";
+import { montoDeTexto } from "@/lib/credito";
 import { Avatar } from "../clientes/comunes";
+import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type EstadoPago } from "../credito/campos-pago";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { Interruptor } from "../controles";
@@ -127,6 +129,11 @@ function Formulario({
   const diaOriginal = pedido ? diaLocal(new Date(pedido.creadoEn)) : null;
   const [dia, setDia] = useState(() => diaOriginal ?? diaLocal());
   const [descontarStock, setDescontarStock] = useState(false);
+  // ¿Cómo te paga?: de contado o a crédito (con lo que dio ahora, cuándo quedó en pagar). Al editar, lo que ya tiene el pedido.
+  const [pago, setPago] = useState<EstadoPago>(() => (pedido ? { ...PAGO_INICIAL, modo: pedido.pagoModo, fecha: fechaDeDia(pedido.pagoFechaAcordada) } : PAGO_INICIAL));
+  const conAbonos = (pedido?.abonos.length ?? 0) > 0;
+  // Lo que ya pagó (solo cuenta si el pedido es a crédito: uno de contado pasa a crédito sin abonos)
+  const yaPagado = pedido?.pagoModo === "credito" ? pedido.pagado : 0;
 
   const vendidas = useMemo(() => unidadesVendidas(pedidos), [pedidos]);
   // Despachado: se muestra lo que se vendió (precios de ese momento). Si no, la cuenta de hoy, igual que al crear.
@@ -147,7 +154,9 @@ function Formulario({
 
   const pideFecha = bloqueado || ventaPasada;
   const fechaVenta = pideFecha ? fechaDeVenta(dia) : null;
-  const puedeGuardar = cliente !== null && lineas.length > 0 && !codigoMalo && !guardando && (!pideFecha || fechaVenta !== null);
+  const pagoMalo =
+    pago.modo === "credito" && ((!conAbonos && montoDeTexto(pago.dio) > totalFinal) || (pago.fecha.opcion === "otra" && diaDeOpcion("otra", pago.fecha.dia) === null));
+  const puedeGuardar = cliente !== null && lineas.length > 0 && !codigoMalo && !pagoMalo && !guardando && (!pideFecha || fechaVenta !== null);
 
   // El foco va al buscador en el MISMO toque que abre el selector (flushSync pinta la vista ya):
   // así el teclado del iPhone abre bien. Regla del teclado en HANDOFF.md.
@@ -185,12 +194,13 @@ function Formulario({
           tiendaId,
           pedido.id,
           bloqueado
-            ? { clienteId: cliente.id, fecha: dia !== diaOriginal && fechaVenta ? fechaVenta : undefined }
+            ? { clienteId: cliente.id, fecha: dia !== diaOriginal && fechaVenta ? fechaVenta : undefined, ...datosDePago(pago, !conAbonos) }
             : {
                 clienteId: cliente.id,
                 items: lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
                 codigo: promo ? codigo : undefined,
                 ventaPasada: conVenta,
+                ...datosDePago(pago, !conAbonos),
               },
         );
         elegirPestana(r.pedido.estado);
@@ -203,13 +213,15 @@ function Formulario({
         items: lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
         codigo: promo ? codigo : undefined,
         ventaPasada: conVenta,
+        ...datosDePago(pago),
       });
+      const debe = creado.saldo > 0 ? ` Queda debiendo ${formatearPesos(creado.saldo)}.` : "";
       if (conVenta) {
         elegirPestana("despachado");
-        toast(`Venta #${creado.numero} guardada con fecha ${diaEnPalabras(dia)}.`);
+        toast(`Venta #${creado.numero} guardada con fecha ${diaEnPalabras(dia)}.${debe}`);
       } else {
         elegirPestana("por_despachar");
-        toast(`Pedido #${creado.numero} guardado. Está en Por despachar.`);
+        toast(`Pedido #${creado.numero} guardado. Está en Por despachar.${debe}`);
       }
       alTerminar();
     } catch (e) {
@@ -428,6 +440,8 @@ function Formulario({
           <span>{formatearPesos(totalFinal)}</span>
         </div>
       </div>
+
+      <CamposPago valor={pago} alCambiar={setPago} total={totalFinal} pagado={yaPagado} conAbonos={conAbonos} />
 
       {bloqueado ? (
         <div className="rounded-[20px] border border-linea bg-white px-3.5 py-3">

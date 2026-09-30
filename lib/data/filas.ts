@@ -5,14 +5,17 @@
 import type { EstiloMarca } from "../marca";
 import type {
   CambiosProducto,
+  Abono,
   Cliente,
   EstadoCatalogo,
   EstadoPedido,
   EstadoPromo,
   EstadoTienda,
   EventoAaah,
+  MetodoAbono,
   NuevoProducto,
   OrigenPedido,
+  PagoModo,
   Pedido,
   PedidoItem,
   Plan,
@@ -95,6 +98,20 @@ export type FilaPedido = {
   codigo_promo: string | null;
   creado_en: string;
   despachado_en: string | null;
+  /** Ventas a crédito. Pueden faltar en el seed viejo (= contado). */
+  pago_modo?: string;
+  pago_fecha_acordada?: string | null;
+};
+
+export type FilaAbono = {
+  id: string;
+  tienda_id: string;
+  pedido_id: string;
+  monto: number;
+  metodo: string;
+  fecha: string;
+  nota: string | null;
+  creado_en: string;
 };
 
 export type FilaPedidoItem = {
@@ -106,8 +123,8 @@ export type FilaPedidoItem = {
   precio_unitario: number;
 };
 
-/** Pedido con sus ítems embebidos (`select("*, pedido_items(*)")`). */
-export type FilaPedidoConItems = FilaPedido & { pedido_items?: FilaPedidoItem[] | null };
+/** Pedido con sus ítems y abonos embebidos (`select("*, pedido_items(*), abonos(*)")`). */
+export type FilaPedidoConItems = FilaPedido & { pedido_items?: FilaPedidoItem[] | null; abonos?: FilaAbono[] | null };
 
 export type FilaPromo = {
   id: string;
@@ -203,8 +220,26 @@ export function aPedido(f: FilaPedido, fecha: AjusteFecha = igual): Pedido {
     codigoPromo: f.codigo_promo,
     creadoEn: fecha(f.creado_en),
     despachadoEn: f.despachado_en == null ? null : fecha(f.despachado_en),
+    pagoModo: f.pago_modo === "credito" ? "credito" : "contado",
+    pagoFechaAcordada: f.pago_fecha_acordada ?? null,
   };
 }
+
+export function aAbono(f: FilaAbono, fecha: AjusteFecha = igual): Abono {
+  return {
+    id: f.id,
+    tiendaId: f.tienda_id,
+    pedidoId: f.pedido_id,
+    monto: f.monto,
+    metodo: f.metodo as MetodoAbono,
+    fecha: fecha(f.fecha),
+    nota: f.nota,
+    creadoEn: fecha(f.creado_en),
+  };
+}
+
+/** Los abonos de más viejo a más nuevo. */
+export const ordenarAbonos = (abonos: Abono[]) => [...abonos].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.creadoEn.localeCompare(b.creadoEn));
 
 export function aPedidoItem(f: FilaPedidoItem): PedidoItem {
   return {
@@ -217,8 +252,12 @@ export function aPedidoItem(f: FilaPedidoItem): PedidoItem {
   };
 }
 
+/**
+ * Pedido con sus ítems y abonos. El estado de pago (`pagado`, `saldo`) lo agrega `conPago` de lib/credito.ts (la única cuenta,
+ * igual en la demo y en Supabase); aquí no se importa para que este archivo siga sin imports de valores.
+ */
 export function aPedidoConItems(f: FilaPedidoConItems) {
-  return { ...aPedido(f), items: (f.pedido_items ?? []).map(aPedidoItem) };
+  return { ...aPedido(f), items: (f.pedido_items ?? []).map(aPedidoItem), abonos: ordenarAbonos((f.abonos ?? []).map((a) => aAbono(a))) };
 }
 
 export function aPromo(f: FilaPromo, fecha: AjusteFecha = igual): Promo {
@@ -296,9 +335,26 @@ export function filaClienteNuevo(tiendaId: string, d: { nombre: string; telefono
 /** Pedido nuevo: SIN `numero` (lo asigna la base: el mayor de la tienda + 1). */
 export function filaPedidoNuevo(
   tiendaId: string,
-  d: { clienteId: string | null; origen: OrigenPedido; estado: EstadoPedido; total: number; codigoPromo: string | null },
+  d: {
+    clienteId: string | null;
+    origen: OrigenPedido;
+    estado: EstadoPedido;
+    total: number;
+    codigoPromo: string | null;
+    pagoModo?: PagoModo;
+    pagoFechaAcordada?: string | null;
+  },
 ) {
-  return { tienda_id: tiendaId, cliente_id: d.clienteId, origen: d.origen, estado: d.estado, total: d.total, codigo_promo: d.codigoPromo };
+  return {
+    tienda_id: tiendaId,
+    cliente_id: d.clienteId,
+    origen: d.origen,
+    estado: d.estado,
+    total: d.total,
+    codigo_promo: d.codigoPromo,
+    pago_modo: d.pagoModo ?? "contado",
+    pago_fecha_acordada: d.pagoModo === "credito" ? (d.pagoFechaAcordada ?? null) : null,
+  };
 }
 
 export function filaPedidoItem(pedidoId: string, i: { productoId: string; nombreProducto: string; cantidad: number; precioUnitario: number }) {

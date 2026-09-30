@@ -77,6 +77,24 @@ tabla de prueba con un solo usuario "activo".
 | `codigo_promo` | string \| null | ej. "AAAH10" |
 | `creado_en` | datetime | |
 | `despachado_en` | datetime \| null | |
+| `pago_modo` | `'contado' \| 'credito'` | por defecto `contado` (pagó todo). A `credito` se paga en abonos. **La app escribe este campo** al crear y al editar; un trigger impide pasar a `contado` un pedido que ya tiene abonos (`pedido_con_abonos`) |
+| `pago_fecha_acordada` | date \| null | el día en que el cliente quedó en pagar (solo a crédito; la base la limpia al pasar a contado) |
+
+### Ventas a crédito y abonos
+
+- **`abonos`** (solo lectura para la app; se crean y borran con las funciones de abajo): `id`, `tienda_id`, `pedido_id`
+  (se borran solos con el pedido), `monto` (entero RD$ > 0), `metodo` (`efectivo` \| `transferencia` \| `otro`), `fecha`
+  (cuándo pagó), `nota` (≤ 200), `creado_en`, `creado_por`.
+- **Vista `pedidos_saldo`** (lectura): `pagado` y `saldo` de cada pedido. De contado: `pagado = total`, `saldo = 0`. A crédito:
+  `pagado` = suma de abonos y `saldo = total − pagado` (0 si el pedido está cancelado: **un pedido cancelado no genera deuda**).
+  La app calcula lo mismo con `lib/credito.ts` a partir de los abonos que trae cada pedido (`abonos(*)` embebido), para no
+  pedir la vista aparte; las dos cuentas son la misma.
+- **RPC `registrar_abono(p_tienda_id, p_cliente_id, p_monto, p_metodo, p_fecha, p_nota, p_pedido_id)`**: con `p_pedido_id` abona a
+  ese pedido; sin él, reparte entre los pedidos a crédito del cliente con saldo, **del más viejo al más nuevo**. Devuelve los
+  abonos creados. Errores: `tienda_no_encontrada`, `monto_invalido`, `metodo_invalido`, `nota_invalida`, `fecha_invalida`,
+  `pedido_no_encontrado`, `cliente_no_encontrado`, `sin_deuda`, `monto_mayor_que_deuda: <deuda>`.
+- **RPC `eliminar_abono(p_abono_id)`** (error `abono_no_encontrado`).
+- Todos los errores se traducen a español en `lib/data/errores.ts`.
 
 Mapeo con las pestañas de Pedidos ("Nuevos / Por despachar / Despachados"):
 `nuevo` y `por_despachar` son dos momentos del mismo pedido antes de

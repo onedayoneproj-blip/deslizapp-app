@@ -42,9 +42,10 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    animación.
 3. **`will-change` solo mientras se anima** (hojas y selector de la barra lo
    ponen al empezar y lo quitan al terminar). Nada de sombras animadas.
-4. **Una sola animación infinita:** el brillo de los esqueletos de carga. Excepción aprobada: los microdetalles de la tarjeta del
-   catálogo (`cat-anim-*` en `app/globals.css`: punto que late, destellos, ondas, confeti), solo transform/opacity y apagados con
-   `prefers-reduced-motion`.
+4. **Una sola animación infinita:** el brillo de los esqueletos de carga. Excepciones aprobadas, solo transform/opacity y apagadas con
+   `prefers-reduced-motion`: los microdetalles de la tarjeta del catálogo (`cat-anim-*` en `app/globals.css`: punto que late,
+   destellos, ondas, confeti) y los de "Saldado" en crédito y abonos (`cre-*`: sello, confeti y el punto que late de "atrasado"; la
+   barra de pago crece con `scaleX`, no con el ancho).
 5. **`prefers-reduced-motion`:** los tokens pasan a fundidos cortos (150 ms)
    sin desplazamientos ni escalas (`--desplazar-*: 0`, `--mov-presion: 1`); el
    resorte y el estiramiento de la barra se desactivan (cambio directo); las

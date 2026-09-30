@@ -2,12 +2,26 @@
 // y Supabase (lib/data/supabase.ts). Las pantallas solo ven esto a través de `useData()`; nunca una fila.
 // Los errores que lanza (con mensaje para el dueño) están en lib/data/errores.ts.
 
+import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
-import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
+import type { MetodoAbono } from "../types";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
 
-export type { DatosEdicionPedido, DatosMarca, DatosPedidoManual };
+export type { DatosEdicionPedido, DatosMarca, DatosPago, DatosPedidoManual };
+
+/** Un abono a registrar. Con `pedidoId` va a ese pedido; sin él se reparte entre los pedidos a crédito del cliente, del más viejo al más nuevo. */
+export type DatosAbonoNuevo = {
+  tiendaId: string;
+  clienteId: string;
+  monto: number;
+  metodo: MetodoAbono;
+  /** Cuándo pagó (ISO); por defecto, ahora. No puede ser futura. */
+  fecha?: string;
+  nota?: string | null;
+  pedidoId?: string;
+};
 
 export type FuenteDatos = {
   // Tiendas
@@ -57,6 +71,11 @@ export type FuenteDatos = {
    * código, y "ya hecho" con su fecha). Real: RPC `editar_pedido`. Un cancelado no se edita.
    */
   editarPedido(tiendaId: string, id: string, datos: DatosEdicionPedido): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
+  /**
+   * Cambia solo el pago de un pedido: a crédito (con su fecha acordada y lo que dio ahora) o de vuelta a contado. Con abonos no
+   * puede pasar a contado (PedidoConAbonos). Un cancelado no se toca.
+   */
+  cambiarPagoPedido(tiendaId: string, id: string, datos: DatosPago): Promise<PedidoConItems>;
   /** Borra para siempre un pedido cancelado (real: RPC `eliminar_pedido`). */
   eliminarPedido(tiendaId: string, id: string): Promise<void>;
   /** Por despachar → Recibido (`nuevo`). */
@@ -72,6 +91,19 @@ export type FuenteDatos = {
   despacharPedido(tiendaId: string, id: string): Promise<{ pedido: PedidoConItems; agotados: string[] }>;
   /** Pedido manual: entra directo en Por despachar; el número lo asigna la base. */
   crearPedidoManual(tiendaId: string, datos: DatosPedidoManual): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
+
+  // Ventas a crédito y abonos
+  /**
+   * Registra un abono (real: RPC `registrar_abono`). Devuelve los abonos creados (uno por pedido al que se aplicó). Lanza
+   * MontoMayorQueDeuda si supera lo que se debe.
+   */
+  registrarAbono(datos: DatosAbonoNuevo): Promise<Abono[]>;
+  /** Borra un abono registrado por error; la deuda vuelve a subir (real: RPC `eliminar_abono`). */
+  eliminarAbono(tiendaId: string, abonoId: string): Promise<void>;
+  /** Los clientes que deben (uno por cliente, ordenados: atrasados, con fecha, sin fecha), el total por cobrar y lo cobrado este mes. */
+  getCuentasPorCobrar(tiendaId: string): Promise<CuentasPorCobrar>;
+  /** La cuenta de un cliente: lo que debe, sus pedidos con saldo y el historial de compras a crédito y abonos. */
+  getCuentaCliente(tiendaId: string, clienteId: string): Promise<CuentaCliente>;
 
   // Clientes
   /** Clientes con lo derivado de sus pedidos (cantidad, total gastado, última compra, "repite"). */

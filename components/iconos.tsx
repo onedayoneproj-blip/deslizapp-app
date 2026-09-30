@@ -184,3 +184,19 @@ export const IconoCamion = (p: Props) => (
     <circle cx="17" cy="18" r="1.8" />
   </Icono>
 );
+
+/** Moneda con signo de pesos: un abono (icono del diseño de crédito y abonos). */
+export const IconoMoneda = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2s1.2 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.8 2c-1.3 0-2.3-.4-2.8-1.2M12 6.5V8m0 8v1.5" />
+  </Icono>
+);
+
+/** Check curvo en círculo relleno (queda saldado). El relleno toma el color actual con `fill`. */
+export const IconoCheckCirculo = ({ tamano = 18, ...p }: Props) => (
+  <svg width={tamano} height={tamano} viewBox="0 0 24 24" aria-hidden="true" {...p}>
+    <circle cx="12" cy="12" r="11" fill="var(--color-menta)" />
+    <path d="M7.4 12.9c1.1.9 2 1.8 2.8 2.9 1.6-2.7 3.6-4.8 6.4-6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

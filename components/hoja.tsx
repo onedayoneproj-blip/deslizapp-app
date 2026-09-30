@@ -61,6 +61,9 @@ const SCROLL_BORDE = 24;
 const DURACION = DURACIONES.entrada;
 const CURVA = CURVAS.salida;
 
+/** Hojas abiertas, de la más vieja a la más nueva: si hay una encima de otra (ej. "Registrar abono" sobre el detalle), solo la de arriba responde a Escape y Tab. */
+const PILA_DE_HOJAS: symbol[] = [];
+
 type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void };
 const ContextoHoja = createContext<Ranuras | null>(null);
 
@@ -118,6 +121,7 @@ function HojaMontada({
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
   const idTitulo = useId();
+  const miTurno = useRef(Symbol("hoja"));
   const panel = useRef<HTMLDivElement>(null);
   const fondo = useRef<HTMLDivElement>(null);
   const cabecera = useRef<HTMLDivElement>(null);
@@ -350,7 +354,10 @@ function HojaMontada({
     // El foco va a la hoja solo si no está ya dentro (un campo con autoFocus, por ejemplo).
     if (!panel.current?.contains(document.activeElement)) panel.current?.focus({ preventScroll: true });
 
+    const turno = miTurno.current;
+    PILA_DE_HOJAS.push(turno);
     const alTeclear = (e: KeyboardEvent) => {
+      if (PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         cerrarRef.current();
@@ -371,6 +378,8 @@ function HojaMontada({
     window.addEventListener("keydown", alTeclear);
     return () => {
       window.removeEventListener("keydown", alTeclear);
+      const posicion = PILA_DE_HOJAS.indexOf(turno);
+      if (posicion >= 0) PILA_DE_HOJAS.splice(posicion, 1);
       document.body.style.overflow = previo.overflow;
       html.style.overscrollBehavior = previo.overscroll;
       if (anterior && document.contains(anterior)) anterior.focus({ preventScroll: true });
