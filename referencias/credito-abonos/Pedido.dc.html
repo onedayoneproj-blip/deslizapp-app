@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>2 · Pedido con abonos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;700;800&amp;family=Fredoka:wght@500;600&amp;display=swap">
+<style>body{margin:0;background:#f3eadb;font-family:Figtree,sans-serif;color:#174b3a}
+button{font-family:Figtree,sans-serif;-webkit-tap-highlight-color:transparent;cursor:pointer}
+button:active{opacity:.7}button:focus-visible,input:focus-visible{outline:3px solid #ff834f;outline-offset:2px}
+.entrar{animation:entrar .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entrar{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.barra{transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.sello{animation:sello .7s .2s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes sello{from{opacity:0;transform:scale(1.8) rotate(-24deg)}to{opacity:1;transform:rotate(-10deg)}}
+.confeti{position:absolute;width:8px;height:8px;border-radius:2px;top:-12px;animation:confeti 3s ease-in infinite}
+@keyframes confeti{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(300px) rotate(320deg);opacity:0}}
+.latido{animation:latido 1.8s ease-out infinite}
+@keyframes latido{0%{box-shadow:0 0 0 0 rgba(255,131,79,.55)}100%{box-shadow:0 0 0 8px rgba(255,131,79,0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #fff9ee; position: relative; overflow: hidden; display: flex; flex-direction: column">
+<div style="padding: 44px 20px 12px; display: flex; align-items: center; gap: 12px"><button type="button" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><div style="flex-grow: 1"><h1 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">Pedido #1006</h1><p style="margin: 2px 0 0; font-size: 13px; color: #4f6a5e">Yahaira Rosario · 22 sep</p></div><span style="height: 28px; padding: 0 10px; border-radius: 14px; background: #dcebe2; font-size: 12px; font-weight: 800; display: flex; align-items: center">Despachado</span></div>
+<div style="padding: 0 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 14px"><span>Majestic Kurt</span><span style="font-weight: 700">RD$2,500</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 14px"><span>Parade</span><span style="font-weight: 700">RD$1,800</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; padding-top: 8px; border-top: 1px dashed #e7dcc8"><span>Total</span><span>RD$4,300</span></div>
+</div>
+<div style="background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">Pago</h2><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #f5c9d6; font-size: 12px; font-weight: 800; display: flex; align-items: center">A crédito</span></div>
+<div style="margin-top: 12px; display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 13px; color: #4f6a5e">Debe</span><span style="font-size: 13px; color: #4f6a5e">Pagó RD$1,500 de RD$4,300</span></div>
+<p style="margin: 2px 0 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 38px; color: #c24e18; line-height: 1.1">RD$2,800</p>
+<div style="margin-top: 10px; height: 10px; border-radius: 5px; background: #f3ead9; overflow: hidden"><div class="barra" style="width: 35%; height: 10px; border-radius: 5px; background: #174b3a"></div></div>
+<div style="margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px"><span class="latido" style="width: 8px; height: 8px; border-radius: 4px; background: #ff834f"></span><span>Quedó en pagar el <b>15 oct</b> · faltan 15 días</span></div>
+<div style="margin-top: 12px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #efe4d2"><div style="width: 36px; height: 36px; border-radius: 18px; background: #dcebe2; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2s1.2 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.8 2c-1.3 0-2.3-.4-2.8-1.2M12 6.5V8m0 8v1.5"></path></svg></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">Abono · Efectivo</span><span style="font-size: 12.5px; color: #4f6a5e">22 sep · al entregar</span></div><span style="font-size: 15px; font-weight: 800">RD$1,000</span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #efe4d2"><div style="width: 36px; height: 36px; border-radius: 18px; background: #dcebe2; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2s1.2 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.8 2c-1.3 0-2.3-.4-2.8-1.2M12 6.5V8m0 8v1.5"></path></svg></div><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">Abono · Transferencia</span><span style="font-size: 12.5px; color: #4f6a5e">29 sep</span></div><span style="font-size: 15px; font-weight: 800">RD$500</span></div>
+</div>
+</div>
+<button type="button" style="height: 48px; border-radius: 24px; border: none; background: #174b3a; color: #fff9ee; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Registrar abono</button>
+<button type="button" style="height: 48px; border-radius: 24px; border: 1.5px solid #174b3a; background: transparent; color: #174b3a; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.6a8.2 8.2 0 0 1-12 7.2L4 20l1.3-3.8A8.2 8.2 0 1 1 20 11.6z"></path><path d="M9 9.5c.3 2 2.3 4.2 4.6 4.8l1.2-1.2 1.8.9"></path></svg>Recordarle por WhatsApp</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

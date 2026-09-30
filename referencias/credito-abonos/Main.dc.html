@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>1 · Nuevo pedido a crédito</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;700;800&amp;family=Fredoka:wght@500;600&amp;display=swap">
+<style>body{margin:0;background:#f3eadb;font-family:Figtree,sans-serif;color:#174b3a}
+button{font-family:Figtree,sans-serif;-webkit-tap-highlight-color:transparent;cursor:pointer}
+button:active{opacity:.7}button:focus-visible,input:focus-visible{outline:3px solid #ff834f;outline-offset:2px}
+.entrar{animation:entrar .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entrar{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.barra{transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.sello{animation:sello .7s .2s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes sello{from{opacity:0;transform:scale(1.8) rotate(-24deg)}to{opacity:1;transform:rotate(-10deg)}}
+.confeti{position:absolute;width:8px;height:8px;border-radius:2px;top:-12px;animation:confeti 3s ease-in infinite}
+@keyframes confeti{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(300px) rotate(320deg);opacity:0}}
+.latido{animation:latido 1.8s ease-out infinite}
+@keyframes latido{0%{box-shadow:0 0 0 0 rgba(255,131,79,.55)}100%{box-shadow:0 0 0 8px rgba(255,131,79,0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #fff9ee; position: relative; overflow: hidden; display: flex; flex-direction: column">
+<div style="padding: 44px 20px 12px; display: flex; align-items: center; gap: 12px"><button type="button" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><h1 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">Nuevo pedido</h1></div>
+<div style="padding: 0 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px"><b>Yahaira Rosario</b> · 2 productos</span><span style="font-size: 16px; font-weight: 800">RD$4,300</span></div>
+<div style="background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 19px">¿Cómo te paga?</h2>
+<div style="display: flex; gap: 4px; padding: 4px; border-radius: 24px; background: #f3ead9"><button type="button" style="flex-grow: 1; height: 40px; border-radius: 20px; border: none; font-size: 14px; font-weight: 800; background: transparent; color: #174b3a">Pagó todo</button><button type="button" aria-pressed="true" style="flex-grow: 1; height: 40px; border-radius: 20px; border: none; font-size: 14px; font-weight: 800; background: #174b3a; color: #fff9ee">A crédito</button></div>
+<div style="background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 10px 14px"><label style="font-size: 12.5px; color: #4f6a5e">Te dio ahora (opcional)</label><p style="margin: 2px 0 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 28px">RD$1,000</p></div>
+<div><p style="margin: 0 0 8px; font-size: 13px; color: #4f6a5e">¿Cuándo quedó en pagar?</p><div style="display: flex; gap: 8px; flex-wrap: wrap"><span style="height: 36px; padding: 0 14px; border-radius: 18px; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; box-sizing: border-box; border: 1.5px solid #e7dcc8">En 1 semana</span><span style="height: 36px; padding: 0 14px; border-radius: 18px; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; box-sizing: border-box; background: #174b3a; color: #fff9ee">15 oct</span><span style="height: 36px; padding: 0 14px; border-radius: 18px; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; box-sizing: border-box; border: 1.5px solid #e7dcc8">Fin de mes</span><span style="height: 36px; padding: 0 14px; border-radius: 18px; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; box-sizing: border-box; border: 1.5px solid #e7dcc8">Sin fecha</span></div></div>
+<div style="border-radius: 16px; background: #fff0e8; padding: 12px 14px; font-size: 14px; line-height: 1.4">Queda debiendo <b style="color: #c24e18">RD$3,300</b>. Te aviso el 15 oct si no ha pagado.</div>
+</div>
+<button type="button" style="height: 48px; border-radius: 24px; border: none; background: #174b3a; color: #fff9ee; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px">Crear pedido</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
