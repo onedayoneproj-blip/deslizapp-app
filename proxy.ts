@@ -7,7 +7,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Todo menos archivos estáticos, imágenes, el service worker y el manifiesto.
-    "/((?!_next/static|_next/image|favicon.ico|icon.png|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|json|woff2?)$).*)",
+    // Todo menos archivos estáticos, imágenes, el service worker, el manifiesto y los catálogos públicos (/catalogos/: páginas
+    // estáticas sin sesión; el proxy no tiene nada que hacer ahí).
+    "/((?!_next/static|_next/image|catalogos/|favicon.ico|icon.png|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|json|woff2?)$).*)",
   ],
 };

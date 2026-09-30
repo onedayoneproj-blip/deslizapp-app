@@ -198,6 +198,11 @@ medidor lo indican, pero la demo no se bloquea.
 No hay "Marca o línea" ni "Eliminar producto" en esta entrega (esconderlo
 con "Visible" cumple esa función sin romper el historial de pedidos).
 
+**Catálogo público de Esencias Michel (provisional):** página estática en `/catalogos/esencias-michel.html`
+(`public/catalogos/`; el original queda en `referencias/`), sin sesión (el matcher de `proxy.ts` excluye `/catalogos/`),
+`noindex, nofollow` y caché de 5 minutos (`next.config.ts`). Se enlaza guardando esa dirección en `tiendas.url_catalogo`. Es
+provisional hasta que exista la plantilla `/tienda/[slug]`.
+
 ---
 
 ## 2. Pedidos

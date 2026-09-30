@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Catálogos públicos estáticos (sin sesión). Por ahora no se indexan; se revalidan cada 5 minutos.
+        source: "/catalogos/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+        ],
+      },
+      {
         // El service worker nunca se guarda en caché: así cada visita trae el más reciente.
         source: "/sw.js",
         headers: [
