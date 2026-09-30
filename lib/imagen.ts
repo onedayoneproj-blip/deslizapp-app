@@ -1,3 +1,4 @@
+import { CALIDAD_SUBIDA, LADO_MAXIMO_SUBIDA } from "./data/almacen";
 import { FOTO_LADO_MAXIMO } from "./config";
 
 /**
@@ -121,4 +122,29 @@ export async function pixelesDeImagen(src: string, lado = 64): Promise<Uint8Clam
   } catch {
     return null; // imagen de otro sitio sin permiso (CORS) o rota
   }
+}
+
+/**
+ * Comprime una imagen (data URL) para subirla a Storage: lado mayor LADO_MAXIMO_SUBIDA (nunca la agranda) y WebP
+ * ~0.82. Safari en iPhone no sabe crear WebP y devuelve otra cosa: en ese caso se usa JPEG (mismo criterio).
+ */
+export async function comprimirParaSubir(src: string): Promise<Blob> {
+  const img = await cargarImagen(src);
+  const escala = Math.min(1, LADO_MAXIMO_SUBIDA / Math.max(img.naturalWidth, img.naturalHeight));
+  const ancho = Math.max(1, Math.round(img.naturalWidth * escala));
+  const alto = Math.max(1, Math.round(img.naturalHeight * escala));
+  const lienzo = document.createElement("canvas");
+  lienzo.width = ancho;
+  lienzo.height = alto;
+  const ctx = lienzo.getContext("2d");
+  if (!ctx) throw new Error("Este navegador no deja procesar la foto.");
+  ctx.fillStyle = "#ffffff"; // por si trae transparencia (el JPEG no la tiene)
+  ctx.fillRect(0, 0, ancho, alto);
+  ctx.drawImage(img, 0, 0, ancho, alto);
+  const aBlob = (tipo: string) => new Promise<Blob | null>((ok) => lienzo.toBlob(ok, tipo, CALIDAD_SUBIDA));
+  const webp = await aBlob("image/webp");
+  if (webp && webp.type === "image/webp") return webp;
+  const jpeg = await aBlob("image/jpeg");
+  if (!jpeg) throw new Error("No pudimos preparar la foto.");
+  return jpeg;
 }

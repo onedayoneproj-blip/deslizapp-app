@@ -96,6 +96,18 @@ export class ErrorDeRed extends ErrorClaro {
   }
 }
 
+export class ArchivoMuyGrande extends ErrorClaro {
+  constructor() {
+    super("Esa foto pesa demasiado (máximo 5 MB). Prueba con otra o más chica.");
+  }
+}
+
+export class FormatoNoPermitido extends ErrorClaro {
+  constructor() {
+    super("Ese formato no sirve. Usa una foto JPG, PNG o WebP.");
+  }
+}
+
 /** Algo que solo existe en la demo (simular un pedido, reiniciar los datos). */
 export class SoloDemo extends ErrorClaro {
   constructor() {
@@ -161,6 +173,10 @@ export function traducirErrorSupabase(e: unknown): Error {
     return new DatosInvalidos("Algún dato no es válido. Revísalo e inténtalo otra vez.");
   }
   if (codigo.startsWith("22")) return new DatosInvalidos("Algún dato no es válido. Revísalo e inténtalo otra vez.");
+
+  // Storage (tamaño y formato del archivo)
+  if (c.status === 413 || c.status === "413" || /maximum allowed size|payload too large|exceeded/i.test(mensaje)) return new ArchivoMuyGrande();
+  if (c.status === 415 || c.status === "415" || /mime type|not supported|invalid.*type/i.test(mensaje)) return new FormatoNoPermitido();
 
   // Permisos y sesión
   if (codigo === "42501" || /permission denied|row-level security/i.test(mensaje)) return new SinPermiso();

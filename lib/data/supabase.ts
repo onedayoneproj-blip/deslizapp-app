@@ -6,14 +6,19 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDITOS_POR_RETOQUE } from "../config";
+import { comprimirParaSubir } from "../imagen";
 import { precioConPromo, validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, PedidoConItems, Promo } from "../types";
+import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
 import { limpiarNota } from "./clientes";
+import { nuevoId } from "./db";
 import {
+  ArchivoMuyGrande,
   ClienteDuplicado,
   CreditosInsuficientes,
   DatosInvalidos,
+  FormatoNoPermitido,
   PedidoNoEncontrado,
   PromoInvalida,
   SoloDemo,
@@ -81,23 +86,69 @@ async function todas<T>(consulta: (desde: number, hasta: number) => PromiseLike<
 }
 
 // ---------------------------------------------------------------------------
-// Fotos y logo
+// Fotos y logo (Supabase Storage, bucket "productos")
 // ---------------------------------------------------------------------------
 
-/**
- * AQUÍ se conecta Supabase Storage: subir cada foto nueva (hoy llega como data URL ya reducida a
- * FOTO_LADO_MAXIMO) a un bucket de la tienda y devolver su URL pública. Mientras no exista el bucket
- * se guarda lo mismo que en la demo (la data URL), que funciona igual en el catálogo y en el panel.
- */
-async function subirFotos(tiendaId: string, fotos: string[]): Promise<string[]> {
-  void tiendaId;
-  return fotos;
+type Almacen = SupabaseClient["storage"];
+
+/** Comprime en el navegador y sube UNA imagen nueva (data URL). Devuelve la URL pública. */
+async function subirImagen(storage: Almacen, dataUrl: string, ruta: (tipo: string) => string): Promise<{ url: string; ruta: string }> {
+  const tipoOriginal = tipoDeDataUrl(dataUrl);
+  if (problemaDeArchivo(tipoOriginal, 0) === "formato") throw new FormatoNoPermitido();
+  let blob: Blob;
+  try {
+    blob = await comprimirParaSubir(dataUrl);
+  } catch {
+    throw new FormatoNoPermitido();
+  }
+  if (problemaDeArchivo(blob.type, blob.size) === "grande") throw new ArchivoMuyGrande();
+  const destino = ruta(blob.type);
+  let error: unknown;
+  try {
+    ({ error } = await storage.from(BUCKET).upload(destino, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false }));
+  } catch (e) {
+    error = e;
+  }
+  if (error) throw traducirErrorSupabase(error);
+  return { url: storage.from(BUCKET).getPublicUrl(destino).data.publicUrl, ruta: destino };
 }
 
-/** AQUÍ se conecta Supabase Storage para el logo (igual que las fotos). */
-async function subirLogo(tiendaId: string, logo: string | null): Promise<string | null> {
-  void tiendaId;
-  return logo;
+/** Borra archivos del bucket sin bloquear a nadie: si falla, solo queda un aviso en la consola. */
+async function borrarArchivos(storage: Almacen, rutas: string[]) {
+  if (rutas.length === 0) return;
+  try {
+    const { error } = await storage.from(BUCKET).remove(rutas);
+    if (error) console.warn("No se pudieron borrar archivos viejos", error);
+  } catch (e) {
+    console.warn("No se pudieron borrar archivos viejos", e);
+  }
+}
+
+/**
+ * Sube las fotos nuevas (data URL) y deja las que ya son URL como están (no se vuelven a subir). Si alguna falla,
+ * borra las que alcanzó a subir en esta llamada y lanza el error claro.
+ */
+async function subirFotos(storage: Almacen, tiendaId: string, fotos: string[]): Promise<string[]> {
+  const subidas: string[] = [];
+  try {
+    return await Promise.all(
+      fotos.map(async (foto) => {
+        if (!esDataUrl(foto)) return foto; // ya es una URL (o una foto del seed)
+        const r = await subirImagen(storage, foto, (tipo) => rutaFoto(tiendaId, nuevoId(), tipo));
+        subidas.push(r.ruta);
+        return r.url;
+      }),
+    );
+  } catch (e) {
+    await borrarArchivos(storage, subidas);
+    throw e;
+  }
+}
+
+/** Igual para el logo, en "<tienda_id>/logo/". */
+async function subirLogo(storage: Almacen, tiendaId: string, logo: string | null): Promise<string | null> {
+  if (!logo || !esDataUrl(logo)) return logo;
+  return (await subirImagen(storage, logo, (tipo) => rutaLogo(tiendaId, nuevoId(), tipo))).url;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,13 +201,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
 
   const pedidosCrudos = (tiendaId: string) =>
     todas<FilaPedidoConItems>((d, h) =>
-      supabase
-        .from("pedidos")
-        .select(PEDIDO_CON_ITEMS)
-        .eq("tienda_id", tiendaId)
-        .order("creado_en", { ascending: false })
-        .order("id")
-        .range(d, h),
+      supabase.from("pedidos").select(PEDIDO_CON_ITEMS).eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
     ).then((filas) => filas.map(aPedidoConItems));
 
   const tiendaCruda = async (tiendaId: string) => {
@@ -216,7 +261,12 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
    */
   async function guardarVencidas(tiendaId: string) {
     await dato(
-      supabase.from("promos").update({ estado: "terminada" }).eq("tienda_id", tiendaId).neq("estado", "terminada").lt("fecha_fin", new Date().toISOString()),
+      supabase
+        .from("promos")
+        .update({ estado: "terminada" })
+        .eq("tienda_id", tiendaId)
+        .neq("estado", "terminada")
+        .lt("fecha_fin", new Date().toISOString()),
     );
   }
 
@@ -251,11 +301,26 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(tienda);
     },
     async actualizarMarca(tiendaId, datos) {
-      const logoUrl = await subirLogo(tiendaId, datos.logoUrl);
-      const f = await requerido<FilaTienda>(
-        supabase.from("tiendas").update(filaMarca({ ...datos, logoUrl })).eq("id", tiendaId).select("*").maybeSingle(),
-        () => new DatosInvalidos("No encontramos tu tienda."),
-      );
+      const antes = await tiendaCruda(tiendaId);
+      const logoUrl = await subirLogo(supabase.storage, tiendaId, datos.logoUrl);
+      let f: FilaTienda;
+      try {
+        f = await requerido<FilaTienda>(
+          supabase
+            .from("tiendas")
+            .update(filaMarca({ ...datos, logoUrl }))
+            .eq("id", tiendaId)
+            .select("*")
+            .maybeSingle(),
+          () => new DatosInvalidos("No encontramos tu tienda."),
+        );
+      } catch (e) {
+        // No se guardó: el logo recién subido queda huérfano.
+        await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [logoUrl], [antes?.logoUrl]));
+        throw e;
+      }
+      // El logo anterior ya no se usa.
+      await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [antes?.logoUrl], [logoUrl]));
       return cambio(aTienda(f));
     },
 
@@ -267,25 +332,48 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         return f ? aProducto(f) : null;
       }),
     async crearProducto(tiendaId, datos) {
-      const fotos = await subirFotos(tiendaId, datos.fotos);
-      const f = await requerido<FilaProducto>(
-        supabase.from("productos").insert(filaProductoNuevo(tiendaId, { ...datos, fotos })).select("*").single(),
-        () => new Error("La base no devolvió el producto."),
-      );
+      const fotos = await subirFotos(supabase.storage, tiendaId, datos.fotos);
+      let f: FilaProducto;
+      try {
+        f = await requerido<FilaProducto>(
+          supabase
+            .from("productos")
+            .insert(filaProductoNuevo(tiendaId, { ...datos, fotos }))
+            .select("*")
+            .single(),
+          () => new Error("La base no devolvió el producto."),
+        );
+      } catch (e) {
+        await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, fotos, datos.fotos));
+        throw e;
+      }
       return cambio(aProducto(f));
     },
     async actualizarProducto(tiendaId, id, cambios) {
-      const fotos = cambios.fotos ? await subirFotos(tiendaId, cambios.fotos) : undefined;
-      const f = await requerido<FilaProducto>(
-        supabase
-          .from("productos")
-          .update(filaCambiosProducto(fotos ? { ...cambios, fotos } : cambios))
-          .eq("tienda_id", tiendaId)
-          .eq("id", id)
-          .select("*")
-          .maybeSingle(),
-        () => new DatosInvalidos("Ese producto ya no existe en tu tienda."),
-      );
+      const antes = cambios.fotos
+        ? ((await dato<{ fotos: string[] }>(supabase.from("productos").select("fotos").eq("tienda_id", tiendaId).eq("id", id).maybeSingle()))
+            ?.fotos ?? [])
+        : [];
+      const fotos = cambios.fotos ? await subirFotos(supabase.storage, tiendaId, cambios.fotos) : undefined;
+      let f: FilaProducto;
+      try {
+        f = await requerido<FilaProducto>(
+          supabase
+            .from("productos")
+            .update(filaCambiosProducto(fotos ? { ...cambios, fotos } : cambios))
+            .eq("tienda_id", tiendaId)
+            .eq("id", id)
+            .select("*")
+            .maybeSingle(),
+          () => new DatosInvalidos("Ese producto ya no existe en tu tienda."),
+        );
+      } catch (e) {
+        // No se guardó: lo recién subido queda huérfano.
+        if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, fotos, antes));
+        throw e;
+      }
+      // Las fotos que se quitaron ya no se usan.
+      if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, antes, fotos));
       return cambio(aProducto(f));
     },
 
@@ -303,9 +391,11 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const agotados =
         ids.length === 0
           ? []
-          : ((await dato<{ nombre: string }[]>(supabase.from("productos").select("nombre").eq("tienda_id", tiendaId).in("id", ids).eq("stock", 0))) ?? []).map(
-              (p) => p.nombre,
-            );
+          : (
+              (await dato<{ nombre: string }[]>(
+                supabase.from("productos").select("nombre").eq("tienda_id", tiendaId).in("id", ids).eq("stock", 0),
+              )) ?? []
+            ).map((p) => p.nombre);
       return cambio({ pedido, agotados });
     },
     async crearPedidoManual(tiendaId, datos) {
@@ -323,7 +413,12 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const items = lineas.map((l) => {
         const producto = productos.find((p) => p.id === l.productoId);
         if (!producto) throw new DatosInvalidos("Un producto del pedido ya no existe en tu tienda.");
-        return { productoId: producto.id, nombreProducto: producto.nombre, cantidad: l.cantidad, precioUnitario: precioConPromo(producto, promos, ahora).precio };
+        return {
+          productoId: producto.id,
+          nombreProducto: producto.nombre,
+          cantidad: l.cantidad,
+          precioUnitario: precioConPromo(producto, promos, ahora).precio,
+        };
       });
       const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
       const promo = datos.codigo ? buscarCodigoPromo(promos, tiendaId, datos.codigo, ahora) : null;
@@ -381,20 +476,32 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!telefono) throw new DatosInvalidos("Ese WhatsApp no es un número dominicano válido.");
       try {
         const f = await requerido<FilaCliente>(
-          supabase.from("clientes").insert(filaClienteNuevo(tiendaId, { nombre, telefono, nota: limpiarNota(datos.nota), origen: "manual" })).select("*").single(),
+          supabase
+            .from("clientes")
+            .insert(filaClienteNuevo(tiendaId, { nombre, telefono, nota: limpiarNota(datos.nota), origen: "manual" }))
+            .select("*")
+            .single(),
           () => new Error("La base no devolvió el cliente."),
         );
         return cambio(aCliente(f));
       } catch (e) {
         if (!(e instanceof TelefonoDuplicado)) throw e;
         // El teléfono es único por tienda: se muestra quién lo tiene.
-        const existente = await dato<FilaCliente>(supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("telefono", telefono).maybeSingle());
+        const existente = await dato<FilaCliente>(
+          supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("telefono", telefono).maybeSingle(),
+        );
         throw existente ? new ClienteDuplicado(aCliente(existente)) : e;
       }
     },
     async actualizarNotaCliente(tiendaId, id, nota) {
       const f = await requerido<FilaCliente>(
-        supabase.from("clientes").update({ nota: limpiarNota(nota) }).eq("tienda_id", tiendaId).eq("id", id).select("*").maybeSingle(),
+        supabase
+          .from("clientes")
+          .update({ nota: limpiarNota(nota) })
+          .eq("tienda_id", tiendaId)
+          .eq("id", id)
+          .select("*")
+          .maybeSingle(),
         () => new DatosInvalidos("Ese cliente ya no existe en tu tienda."),
       );
       return cambio(aCliente(f) satisfies Cliente);
@@ -408,7 +515,10 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (Object.keys(errores).length) throw new PromoInvalida(errores);
       if (datos.tipo === "codigo") await guardarVencidas(tiendaId);
       const promo = desdeFormulario(tiendaId, datos, "", new Date());
-      const f = await requerido<FilaPromo>(supabase.from("promos").insert(filaPromo(tiendaId, promo)).select("*").single(), () => new Error("La base no devolvió la promo."));
+      const f = await requerido<FilaPromo>(
+        supabase.from("promos").insert(filaPromo(tiendaId, promo)).select("*").single(),
+        () => new Error("La base no devolvió la promo."),
+      );
       return cambio(aPromo(f));
     },
     async actualizarPromo(tiendaId, id, datos) {
@@ -432,7 +542,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!f0) throw new DatosInvalidos("Esa promo ya no existe en tu tienda.");
       const promo: Promo = promoTerminada(aPromo(f0), new Date());
       const f = await requerido<FilaPromo>(
-        supabase.from("promos").update({ estado: promo.estado, fecha_fin: promo.fechaFin }).eq("tienda_id", tiendaId).eq("id", id).select("*").maybeSingle(),
+        supabase
+          .from("promos")
+          .update({ estado: promo.estado, fecha_fin: promo.fechaFin })
+          .eq("tienda_id", tiendaId)
+          .eq("id", id)
+          .select("*")
+          .maybeSingle(),
         () => new DatosInvalidos("Esa promo ya no existe en tu tienda."),
       );
       return cambio(aPromo(f));
@@ -442,7 +558,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     getEventosAaah: (tiendaId) =>
       leer(`aaah:${tiendaId}`, async (): Promise<EventoAaah[]> => {
         const filas = await todas<FilaEventoAaah>((d, h) =>
-          supabase.from("eventos_aaah").select("id, tienda_id, producto_id, creado_en").eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
+          supabase
+            .from("eventos_aaah")
+            .select("id, tienda_id, producto_id, creado_en")
+            .eq("tienda_id", tiendaId)
+            .order("creado_en", { ascending: false })
+            .order("id")
+            .range(d, h),
         );
         return filas.map((f) => aEventoAaah(f));
       }),

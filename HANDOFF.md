@@ -112,17 +112,19 @@ ahí está la documentación exacta de esta versión instalada.
   `localStorage`, sin login) y **real** (Supabase con Google; una cuenta = una tienda vía `usuarios`). El esquema
   vive en `supabase/migrations/` (manda sobre los docs). Cómo está armado: `docs/05-arquitectura.md`; reglas que
   pone la base y errores: `docs/03-modelo-de-datos.md`. Variables: `.env.example` (solo la llave publicable;
-  nunca una secreta ni `service_role`).
+  nunca una secreta ni `service_role`). **Fotos y logos**: en modo real se comprimen en el navegador y se suben al
+  bucket `productos` de Storage (`<tienda_id>/<uuid>.webp`, logo en `<tienda_id>/logo/`; JPEG en iPhone porque
+  Safari no crea WebP); la base guarda solo la URL pública. Reglas en `lib/data/almacen.ts`. La demo sigue con data URLs.
 
 ### Lo que sigue (en este orden)
 
-1. **Terminar Supabase**: fotos y logos a Storage (marcado en `lib/data/supabase.ts`), recarga mensual de
-   créditos en la base, y el Resumen con consultas agregadas cuando el historial crezca (sus pruebas, `npm test`,
-   son el contrato). El seed (~900 KB) sigue dentro del código de la app por la demo: se puede cargar bajo demanda.
+1. **Terminar Supabase**: recarga mensual de créditos en la base, y el Resumen con consultas agregadas cuando el
+   historial crezca (sus pruebas, `npm test`, son el contrato). El seed (~900 KB) sigue dentro del código de la
+   app por la demo: se puede cargar bajo demanda. Borrar un producto entero (hoy no existe en la app) deberá
+   borrar también sus fotos del bucket (`rutasParaBorrar` en `lib/data/almacen.ts`).
 2. **Cuentas** (verificación de Instagram, zona de administración para crear tiendas y filas de `usuarios`,
    cobros manuales): `docs/07-fase-2-cuentas-y-cobros.md`. Hoy las filas de `usuarios` se crean a mano en Supabase.
-3. **Fotos reales**: subir a Storage (hoy son data URLs en el navegador) y el retoque de fotos con IA de verdad
-   (hoy es un efecto de demostración) con su descuento de créditos en el servidor.
+3. **Retoque de fotos con IA de verdad** (hoy es un efecto de demostración) con su descuento de créditos en el servidor.
 4. **Catálogo público integrado**: el HTML independiente pasa a leer la marca (`marca_*`, `url_catalogo`) y las
    promos de cada tienda; los enlaces de compartir promo dejan de depender del enlace que escribe el dueño.
 5. **Notificaciones** de pedidos nuevos (hoy solo el contador) y **sincronización entre dispositivos**.

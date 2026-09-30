@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.12.2",
+    fecha: "2026-09-30",
+    titulo: "Fotos guardadas donde deben.",
+    cambios: [
+      "En tu tienda real, las fotos y el logo se guardan aparte y ligeros: tu catálogo carga más rápido.",
+      "Si una foto pesa mucho o no es JPG, PNG o WebP, te lo decimos claro.",
+    ],
+  },
+  {
     version: "0.12.1",
     fecha: "2026-09-30",
     titulo: "Las reglas, claras y a la vista.",

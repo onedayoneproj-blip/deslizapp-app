@@ -142,8 +142,10 @@ Reglas:
 - Lecturas: PostgREST devuelve máx. 1000 filas por consulta, así que se piden
   por tramos (`todas()`); las lecturas iguales que llegan a la vez comparten
   la petición.
-- Fotos y logo: por ahora se guardan como data URL (igual que la demo).
-  `subirFotos` / `subirLogo` en `supabase.ts` marcan dónde se conecta Storage.
+- Fotos y logo: en modo real se comprimen en el navegador (lado mayor 1600 px, WebP ~0.82; JPEG si el navegador
+  no crea WebP) y se suben al bucket `productos` (`<tienda_id>/<uuid>.webp`; logo en `<tienda_id>/logo/`). La fila
+  guarda la URL pública. Las que ya son URL no se vuelven a subir; las que se quitan se borran del bucket sin
+  bloquear si falla. Reglas puras en `lib/data/almacen.ts`. La demo sigue con data URL.
 
 ## Resumen: la interfaz solo pide rangos y cifras
 
@@ -167,8 +169,7 @@ se equivocara de `tiendaId`).
 
 ## Pendiente
 
-1. Subida de fotos y logos a Supabase Storage (hoy: data URL en la fila).
-2. Recarga mensual automática de créditos (en la base).
-3. Resumen con consultas agregadas en la base cuando haya mucho historial (hoy
+1. Recarga mensual automática de créditos (en la base).
+2. Resumen con consultas agregadas en la base cuando haya mucho historial (hoy
    se leen los pedidos y aaahs de la tienda y se calcula en el navegador).
-4. Catálogo público conectado a la misma base (fase 5).
+3. Catálogo público conectado a la misma base (fase 5).
