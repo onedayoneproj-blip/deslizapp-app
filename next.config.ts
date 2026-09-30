@@ -11,11 +11,21 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Catálogos públicos estáticos (sin sesión). Por ahora no se indexan; se revalidan cada 5 minutos.
+        // Catálogos públicos estáticos (sin sesión). Por ahora no se indexan; las páginas se revalidan en cada visita
+        // para que las ediciones se vean enseguida.
         source: "/catalogos/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
-          { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        // Fotos del catálogo: nunca se reemplazan con el mismo nombre (si cambian, se suben con otro nombre).
+        // Va después de la regla general para que su Cache-Control prevalezca.
+        source: "/catalogos/esencias-michel/fotos/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
       {
