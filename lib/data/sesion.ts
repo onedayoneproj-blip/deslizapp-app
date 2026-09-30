@@ -6,6 +6,7 @@ import { HAY_SUPABASE, SUPABASE_LLAVE, SUPABASE_URL } from "../supabase/config";
 import { createClient } from "../supabase/client";
 import { esErrorDeRed, traducirErrorSupabase } from "./errores";
 import { aUsuario, type FilaUsuario } from "./filas";
+import { debeComprobarSesion } from "../auth/canje";
 import { elegirModo, KEY_MODO, type Modo } from "./modo";
 
 export type EstadoSesion =
@@ -64,11 +65,21 @@ function avisoDeLaUrl(): string | null {
   }
 }
 
+function hayCookieDeSesion(): boolean {
+  try {
+    return /(^|;\s*)sb-[^=]*auth-token/.test(document.cookie);
+  } catch {
+    return false;
+  }
+}
+
 function inicial(): EstadoSesion {
+  const hayErrorLogin = new URL(window.location.href).searchParams.has("error_login");
   const aviso = avisoDeLaUrl();
   const modo = elegirModo(leerLocal(KEY_MODO), HAY_SUPABASE);
   if (modo === "demo") return { tipo: "demo" };
-  if (modo === "real") {
+  // Aunque el login haya avisado de un error (la vuelta de Google pudo repetirse), si ya hay sesión válida se entra.
+  if (debeComprobarSesion(modo, HAY_SUPABASE, hayErrorLogin, hayCookieDeSesion())) {
     queueMicrotask(() => void comprobarSesion(aviso));
     return { tipo: "cargando" };
   }
@@ -109,9 +120,11 @@ export async function comprobarSesion(aviso: string | null = null) {
     const r = await supabase.from("usuarios").select("*").eq("id", claims.sub).maybeSingle();
     if (r.error) throw traducirErrorSupabase(r.error);
     if (!r.data) {
+      guardarModo("real");
       poner({ tipo: "sin-tienda", email: typeof claims.email === "string" ? claims.email : "" });
       return;
     }
+    guardarModo("real"); // por si el login terminó en un contexto sin modo guardado
     poner({ tipo: "lista", usuario: aUsuario(r.data as FilaUsuario) });
   } catch (e) {
     poner({ tipo: "error", mensaje: esErrorDeRed(e) ? AVISO_SIN_RED : "No pudimos abrir tu tienda. Inténtalo otra vez." });
