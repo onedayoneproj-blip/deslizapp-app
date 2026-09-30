@@ -342,9 +342,12 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   enciende y se guarda, el pedido pasa a `despachado` con esa fecha ("Venta #N guardada con fecha …"); apagado, conserva su
   estado.
 - `despachado`: solo se cambian el cliente y la fecha (el campo de fecha se ve siempre, con el mismo tope de "no futura").
-  Los productos, cantidades y el código se ven atenuados y sin poder tocarse, con este aviso fijo sobre la lista: "Este
-  pedido ya se despachó, así que los productos no se pueden cambiar aquí. Para cambiarlos: toca «Por despachar» en la
-  barra de pasos (el stock se devuelve), edita el pedido y vuelve a despacharlo." No aparece el interruptor.
+  Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto: "¿Quieres
+  cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido." con el botón de contorno **"Ir a los pasos
+  del pedido"**. Al tocarlo se cierra el editor SIN guardar y se vuelve al detalle de ese pedido, donde el paso anterior de la
+  barra (el que sirve para retroceder) hace un destello breve, una sola vez (~600 ms; con movimiento reducido, solo un resalte
+  fijo). Si el cliente o la fecha ya cambiaron, antes pide confirmación: "Tienes cambios sin guardar. ¿Salir de todos modos?"
+  ("Seguir editando" / "Salir"). No aparece el interruptor de "venta que ya hice".
 - Real: RPC `editar_pedido(p_pedido_id, p_cliente_id, p_items, p_codigo_promo, p_fecha, p_ya_hecho, p_descontar_stock)`; sus
   errores (`pedido_no_encontrado`, `pedido_no_editable`, `fecha_invalida`, `cliente_no_encontrado`, `sin_productos`,
   `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×

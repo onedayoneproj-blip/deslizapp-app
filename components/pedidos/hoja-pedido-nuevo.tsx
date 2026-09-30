@@ -9,6 +9,7 @@ import { descuentoDeCodigo } from "@/lib/data/pedidos";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { pedirDestelloDePasos } from "@/lib/destello";
 import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
@@ -117,6 +118,8 @@ function Formulario({
   });
   const [codigo, setCodigo] = useState(pedido?.codigoPromo ?? "");
   const [guardando, setGuardando] = useState(false);
+  // Despachado: salir hacia los pasos del pedido, con confirmación si hay cambios sin guardar.
+  const [confirmandoSalir, setConfirmandoSalir] = useState(false);
   // "Es una venta que ya hice": entra despachada con la fecha elegida.
   const [ventaPasada, setVentaPasada] = useState(false);
   const diaOriginal = pedido ? diaLocal(new Date(pedido.creadoEn)) : null;
@@ -159,6 +162,15 @@ function Formulario({
   // La cantidad nunca supera el stock (99 si no se lleva la cuenta).
   const cambiar = (p: Producto, delta: number) =>
     setCantidades((c) => ({ ...c, [p.id]: Math.min(cantidadMaxima(p), Math.max(0, (c[p.id] ?? 0) + delta)) }));
+
+  // Sin guardar: el cliente o la fecha ya no son los del pedido.
+  const hayCambios = Boolean(pedido) && (cliente?.id !== (pedido?.clienteId ?? undefined) || dia !== diaOriginal);
+  /** Sale del editor SIN guardar y vuelve al detalle, que señala los pasos con un destello. */
+  const irALosPasos = () => {
+    if (!pedido) return;
+    pedirDestelloDePasos(pedido.id);
+    alTerminar();
+  };
 
   const guardar = async () => {
     if (!puedeGuardar || !cliente) return;
@@ -282,10 +294,34 @@ function Formulario({
 
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>
       {bloqueado && (
-        <p className="rounded-[18px] bg-arena px-4 py-3 text-[14px] leading-snug font-semibold">
-          Este pedido ya se despachó, así que los productos no se pueden cambiar aquí. Para cambiarlos: toca «Por despachar» en la barra de pasos (el
-          stock se devuelve), edita el pedido y vuelve a despacharlo.
-        </p>
+        <div className="rounded-[18px] bg-arena px-4 py-3">
+          <p className="text-[14px] leading-snug font-semibold">¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.</p>
+          {confirmandoSalir ? (
+            <div role="alertdialog" aria-label="Salir sin guardar" className="mt-2.5">
+              <p className="text-[14px] font-bold">Tienes cambios sin guardar. ¿Salir de todos modos?</p>
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={irALosPasos} className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel">
+                  Salir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoSalir(false)}
+                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
+                >
+                  Seguir editando
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => (hayCambios ? setConfirmandoSalir(true) : irALosPasos())}
+              className="tocable mt-2.5 flex h-11 w-full items-center justify-center rounded-full border-[1.5px] border-bosque/35 bg-transparent text-[14.5px] font-semibold text-bosque"
+            >
+              Ir a los pasos del pedido
+            </button>
+          )}
+        </div>
       )}
       {lineas.length === 0 ? (
         // Sin productos: toda el área invita a agregar (un solo botón, para que sea tocable completa)
