@@ -13,9 +13,8 @@ import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Numero } from "../numero";
 import { Foto } from "../foto";
-import { IconoBuscar, IconoEnlaceExterno, IconoMas } from "../iconos";
-import { enlaceCatalogo } from "@/lib/enlace-catalogo";
-import { HojaCatalogoEnLinea } from "./hoja-catalogo-en-linea";
+import { IconoBuscar } from "../iconos";
+import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
@@ -44,9 +43,7 @@ const normalizar = (texto: string) =>
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan, abrirMiMarca } = usePanelUI();
-  const [enLineaAbierta, setEnLineaAbierta] = useState(false);
-  const tieneEnlace = enlaceCatalogo(tienda?.urlCatalogo) !== null;
+  const { abrirPlan } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
@@ -73,18 +70,7 @@ export function VistaCatalogo() {
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." />
 
       <div className="flex flex-col gap-3.5 px-5 pt-1">
-        {/* Fila de enlace: discreta, sin caja. Con enlace válido abre "Tu catálogo en línea"; sin él, Mi marca en el campo del enlace. */}
-        {tienda && (
-          <button
-            type="button"
-            onClick={() => (tieneEnlace ? setEnLineaAbierta(true) : abrirMiMarca("enlace"))}
-            aria-label={tieneEnlace ? "Ver mi catálogo en línea" : "Conectar mi catálogo"}
-            className="tocable -mb-0.5 flex min-h-11 items-center gap-2 self-start rounded-lg text-[13.5px] font-extrabold text-bosque focus-visible:outline-2 focus-visible:outline-bosque"
-          >
-            {tieneEnlace ? <IconoEnlaceExterno tamano={17} /> : <IconoMas tamano={17} />}
-            {tieneEnlace ? "Ver mi catálogo en línea" : "Conectar mi catálogo"}
-          </button>
-        )}
+        {tienda ? <SeccionCatalogo tienda={tienda} /> : <Esqueleto className="h-[76px] rounded-[22px]" />}
         {!(tienda && productos) && <Esqueleto className="h-[92px] rounded-[22px]" />}
         {tienda && productos && (
           <button
@@ -176,17 +162,6 @@ export function VistaCatalogo() {
 
       {/* Sin productos, el botón del estado vacío ya invita a publicar: no se duplica */}
       {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />}
-      {tienda && (
-        <HojaCatalogoEnLinea
-          abierta={enLineaAbierta && tieneEnlace}
-          alCerrar={() => setEnLineaAbierta(false)}
-          tienda={tienda}
-          alCambiarEnlace={() => {
-            setEnLineaAbierta(false);
-            abrirMiMarca("enlace");
-          }}
-        />
-      )}
     </>
   );
 }

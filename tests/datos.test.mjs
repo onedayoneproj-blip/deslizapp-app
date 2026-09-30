@@ -71,6 +71,12 @@ test("tienda: de fila a la app", () => {
     marcaColorAcento: "#E2B77A",
     marcaEstilo: "elegante",
     urlCatalogo: "https://ejemplo.com",
+    estado: "activa",
+    catalogoEstado: "sin",
+    catalogoPaso: null,
+    catalogoNotasCambios: null,
+    catalogoSolicitadoEn: null,
+    catalogoPublicadoEn: null,
   });
 });
 

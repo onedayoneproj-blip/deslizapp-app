@@ -178,6 +178,10 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("items_invalidos")) return new DatosInvalidos("Algún producto trae una cantidad o un precio que no sirve.");
   if (mensaje.includes("producto_no_encontrado")) return new DatosInvalidos("Un producto de la venta ya no existe en tu tienda.");
   if (mensaje.includes("cliente_no_encontrado")) return new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+  // RPC del catálogo en línea
+  if (mensaje.includes("catalogo_estado_invalido")) return new DatosInvalidos("Tu catálogo ya cambió de estado. Actualiza la pantalla para ver dónde va.");
+  if (mensaje.includes("notas_invalidas")) return new DatosInvalidos("Cuéntanos qué quieres cambiar (hasta 500 caracteres).");
+  if (mensaje.includes("catalogo_sin_enlace")) return new DatosInvalidos("Todavía no tenemos el enlace de tu catálogo. Escríbenos y lo conectamos.");
   if (mensaje.includes("tienda_no_encontrada")) return new DatosInvalidos("No encontramos tu tienda. Vuelve a entrar.");
   if (mensaje.includes("pedido_no_editable")) return new PedidoNoEditable();
   if (mensaje.includes("solo_cancelados")) return new SoloCancelados();

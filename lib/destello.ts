@@ -14,3 +14,17 @@ export function consumirDestelloDePasos(pedidoId: string): boolean {
   pedidoPendiente = null;
   return true;
 }
+
+let revisionPendiente = false;
+
+/** Inicio pide abrir la revisión del catálogo al llegar a la pestaña Catálogo. */
+export function pedirRevisionDelCatalogo() {
+  revisionPendiente = true;
+}
+
+/** La pestaña Catálogo lo consume al abrirse: true una sola vez. */
+export function consumirRevisionDelCatalogo(): boolean {
+  const pedida = revisionPendiente;
+  revisionPendiente = false;
+  return pedida;
+}

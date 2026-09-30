@@ -198,17 +198,38 @@ medidor lo indican, pero la demo no se bloquea.
 No hay "Marca o línea" ni "Eliminar producto" en esta entrega (esconderlo
 con "Visible" cumple esa función sin romper el historial de pedidos).
 
-**Fila del catálogo en línea** (bajo el titular y el subtítulo, encima del medidor del plan y de los filtros; no toca
-"+ Producto"): un enlace discreto, sin caja ni subrayado, en Verde Bosque con icono a la izquierda, feedback de toque y 44 px de
-área. Con `tienda.urlCatalogo` válido (https, comprobado con `new URL`; si no, cuenta como sin enlace): icono de enlace externo y
-**"Ver mi catálogo en línea"**, que abre la hoja **"Tu catálogo en línea"** (`components/catalogo/hoja-catalogo-en-linea.tsx`). Sin
-enlace válido: icono "+" y **"Conectar mi catálogo"**, que abre Mi marca acercando el campo del enlace (se resalta un momento;
-no se enfoca, para no romper el teclado del iPhone; no hay un segundo campo). La hoja muestra el enlace (dominio destacado, truncado
-con "…") y tres acciones: **Abrir catálogo** (pestaña nueva, `rel="noopener noreferrer"`), **Copiar enlace** (aviso "Enlace copiado",
-con método de respaldo si el portapapeles falla) y **Compartir por WhatsApp** (`wa.me/?text=` con "Mira el catálogo de {tienda}:
-{enlace}"), más **Cambiar enlace** (abre Mi marca) y un pie honesto: "Por ahora tu catálogo se conecta por enlace. Pronto se
-actualizará solo con lo que cargues aquí." El enlace nunca se pinta como HTML. Lógica pura en `lib/enlace-catalogo.ts`. En la demo,
-Esencias Michel trae un enlace de ejemplo (`https://example.com/catalogo`) y Luna Bisutería no (para ver los dos casos).
+**Tarjeta del catálogo en línea** (`components/catalogo/tarjeta-catalogo.tsx`, montada por `seccion-catalogo.tsx`; bajo el titular y el
+subtítulo, encima del medidor del plan y de los filtros). Reemplaza a la antigua fila de enlace. El estado visible sale de un solo
+lugar, `vistaCatalogo()` en `lib/catalogo-estado.ts` (con tests): la tienda pausada manda sobre todo; después `tiendas.catalogo_estado`.
+Ocho estados:
+
+1. **Sin catálogo**: "Pedirlo" abre la hoja "¿Pedimos tu catálogo?" → "Sí, pedirlo" (`solicitar_catalogo`); aviso "¡Listo! Lo pedimos por ti".
+2. **Pedido recibido**: solo informa.
+3. **Armando tu catálogo**: icono de destellos, "Paso N de 3 · nombre" (Reuniendo tus fotos / Diseñando tu portada / Últimos detalles),
+   barra 33 / 62 / 90 %, fila de tres pasos (hecho / en curso / pendiente). Si `catalogo_paso` viene vacío se toma el paso 1.
+4. **Listo para revisar**: "Revisar" abre la hoja "Revisa tu catálogo": vista previa, **Publicar mi catálogo** (`publicar_catalogo`) o
+   **Pedir cambios** (texto de 1 a 500 con contador, "Enviar cambios" → `pedir_cambios_catalogo`).
+5. **Aplicando cambios**: muestra las notas enviadas (2 líneas como máximo).
+6. **¡Recién publicado!**: confeti, texto en Caveat y "Compartir" (abre la hoja del catálogo en línea). Solo si se publicó hace menos de 3
+   días y no se vio aún en este dispositivo (`localStorage`, clave `deslizapp-catalogo-visto-{tienda}`); se marca visto al tocar
+   "Compartir" o a los 6 s en pantalla.
+7. **En línea**: chip verde (#2e8b57), enlace con el dominio en negrita, botones redondos compartir y abrir; tocar el cuerpo abre la hoja
+   "Tu catálogo en línea" (`hoja-catalogo-en-linea.tsx`: abrir, copiar, WhatsApp, cambiar enlace).
+8. **Pausado**: "Ver plan" abre lo mismo que el bloque del plan.
+
+Publicado sin `url_catalogo` https válido (comprobado con `new URL`) se muestra como **Sin catálogo** con "Conectar mi catálogo" (abre Mi
+marca acercando el campo del enlace, sin enfocarlo, por el teclado del iPhone). En la demo las tiendas arrancan en "Sin catálogo".
+
+Transiciones: cada estado entra con "entrar" (fade + 10 px hacia arriba + escala .97→1, ~420 ms); si el estado cambia con la pantalla
+abierta, la tarjeta vieja se desvanece y entra la nueva. Todo el movimiento se apaga con `prefers-reduced-motion`.
+
+Quién cambia el estado: el **dueño** solo pide (sin→solicitado), pide cambios (revisar→cambios) y publica (revisar→publicado), siempre por
+las tres funciones de base de datos, nunca con UPDATE directo. El **equipo** hace solicitado→generando (paso 1→2→3)→revisar y
+cambios→revisar, fuera de la app. En la demo, el menú de la tienda trae "Simular avance del catálogo" que hace de equipo.
+
+Actualización en vivo: la tienda se relee al volver a la app (`visibilitychange`) y cada 60 s en solicitado / generando / cambios. Al llegar
+a "revisar" con la pantalla abierta sale el aviso "¡Tu catálogo está listo para revisar!"; en Inicio, con el catálogo en revisar, hay un
+aviso rosa compacto "¡Tu catálogo está listo!" con "Revisar", que lleva a Catálogo y abre la hoja de revisión.
 
 **Catálogo público de Esencias Michel (provisional):** página estática en `/catalogos/esencias-michel.html`
 (`public/catalogos/`; el original queda en `referencias/`), sin sesión (el matcher de `proxy.ts` excluye `/catalogos/`),

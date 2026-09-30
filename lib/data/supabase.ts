@@ -324,6 +324,29 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aTienda(f));
     },
 
+    // ---- Catálogo en línea (RPC: los campos catalogo_* nunca se escriben por UPDATE) ----
+    async solicitarCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("solicitar_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
+    async pedirCambiosCatalogo(tiendaId, notas) {
+      const f = await requerido<FilaTienda>(
+        supabase.rpc("pedir_cambios_catalogo", { p_tienda_id: tiendaId, p_notas: notas }),
+        () => new DatosInvalidos("No encontramos tu tienda."),
+      );
+      return cambio(aTienda(f));
+    },
+    async publicarCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("publicar_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
+    async releerTienda(tiendaId) {
+      // Solo se olvida lo de la tienda (el resto sigue en caché) y las pantallas vuelven a leer.
+      enVuelo.delete(`tienda:${tiendaId}`);
+      enVuelo.delete("tiendas");
+      alCambiar();
+    },
+
     // ---- Productos ----
     getProductos: (tiendaId) => leer(`productos:${tiendaId}`, () => productosCrudos(tiendaId)),
     getProducto: (tiendaId, id) =>
@@ -676,6 +699,9 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       }),
 
     // ---- Solo demo ----
+    async simularAvanceCatalogo() {
+      throw new SoloDemo();
+    },
     async simularPedidoCatalogo() {
       throw new SoloDemo();
     },

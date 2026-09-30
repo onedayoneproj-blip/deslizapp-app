@@ -340,3 +340,226 @@ input[type="date"]::-webkit-date-and-time-value {
 input[type="date"]::-webkit-calendar-picker-indicator {
   margin-inline-start: 0.5rem;
 }
+
+/* ==========================================================================
+   Tarjeta del catálogo en línea (components/catalogo/tarjeta-catalogo.tsx). Keyframes del diseño aprobado
+   (referencias/catalogo-estados/estados.dc.html), pasados a solo transform / opacity (sin box-shadow ni left ni
+   background-position animados). Son microanimaciones de UN elemento que solo corren mientras la tarjeta está a la vista; con
+   "reducir movimiento" se apagan todas.
+   ========================================================================== */
+@keyframes cat-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+@keyframes cat-salir {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes cat-titilar {
+  0%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.12);
+  }
+}
+@keyframes cat-titilar2 {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes cat-onda-cta {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  40%,
+  100% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+@keyframes cat-onda {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+}
+@keyframes cat-nota {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-4deg);
+  }
+}
+@keyframes cat-rebote {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes cat-punto {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes cat-destellos {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  50% {
+    transform: scale(1.14) rotate(14deg);
+  }
+}
+@keyframes cat-brillo-pasa {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes cat-va-y-viene {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(285%);
+  }
+}
+@keyframes cat-late {
+  0%,
+  100% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+@keyframes cat-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-2deg);
+  }
+}
+@keyframes cat-confeti {
+  0% {
+    transform: translateY(0) rotate(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(130px) rotate(300deg);
+    opacity: 0;
+  }
+}
+.cat-anim-entrar {
+  animation: cat-entrar 420ms var(--curva-salida) both;
+}
+.cat-anim-salir {
+  animation: cat-salir var(--mov-rapida) var(--curva-entrada) forwards;
+}
+.cat-anim-titilar {
+  animation: cat-titilar 2.4s ease-in-out infinite;
+}
+.cat-anim-titilar2 {
+  animation: cat-titilar2 1.6s ease-in-out infinite;
+}
+.cat-anim-nota {
+  animation: cat-nota 0.6s 0.2s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.cat-anim-rebote {
+  animation: cat-rebote 1.8s ease-in-out infinite;
+}
+.cat-anim-punto {
+  animation: cat-punto 1.2s infinite;
+}
+.cat-anim-destellos {
+  animation: cat-destellos 1.8s ease-in-out infinite;
+}
+.cat-anim-va-y-viene {
+  animation: cat-va-y-viene 1.4s ease-in-out infinite;
+}
+.cat-anim-late {
+  animation: cat-late 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.cat-anim-pop {
+  animation: cat-pop 0.7s 0.15s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  transform-origin: left center;
+}
+.cat-anim-confeti {
+  animation: cat-confeti 2.8s ease-in infinite;
+}
+/* Ondas: un círculo detrás que crece y se desvanece (en lugar de animar box-shadow) */
+.cat-anim-onda-cta::before,
+.cat-anim-onda::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--onda, var(--color-mandarina));
+  z-index: -1;
+}
+.cat-anim-onda-cta::before {
+  animation: cat-onda-cta 2.4s ease-out infinite;
+}
+.cat-anim-onda::after {
+  animation: cat-onda 1.6s ease-out infinite;
+}
+.cat-anim-onda-lenta::after {
+  animation-duration: 2s;
+}
+/* Brillo de la barra de progreso: una franja clara que pasa por encima */
+.cat-anim-brillo {
+  position: relative;
+  overflow: hidden;
+}
+.cat-anim-brillo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent);
+  animation: cat-brillo-pasa 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="cat-anim-"],
+  [class*="cat-anim-"]::before,
+  [class*="cat-anim-"]::after {
+    animation: none !important;
+  }
+}

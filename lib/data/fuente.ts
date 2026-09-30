@@ -23,6 +23,17 @@ export type FuenteDatos = {
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
   actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda>;
 
+  // Catálogo en línea del dueño (RPC en Supabase; lo arma el equipo). Devuelven la tienda con su estado nuevo. Estos campos NO se
+  // escriben por UPDATE directo: solo por estas funciones.
+  /** sin → solicitado. */
+  solicitarCatalogo(tiendaId: string): Promise<Tienda>;
+  /** revisar → cambios (notas de 1 a 500 caracteres). */
+  pedirCambiosCatalogo(tiendaId: string, notas: string): Promise<Tienda>;
+  /** revisar → publicado (exige el enlace). */
+  publicarCatalogo(tiendaId: string): Promise<Tienda>;
+  /** Vuelve a leer la tienda (el equipo cambia el estado desde fuera de la app). En la demo no hace nada. */
+  releerTienda(tiendaId: string): Promise<void>;
+
   // Productos
   getProductos(tiendaId: string): Promise<Producto[]>;
   getProducto(tiendaId: string, id: string): Promise<Producto | null>;
@@ -83,6 +94,8 @@ export type FuenteDatos = {
   getEventosAaah(tiendaId: string): Promise<EventoAaah[]>;
 
   // Solo demo (en modo real lanzan SoloDemo)
+  /** Hace de "el equipo": avanza el estado del catálogo un paso (solicitado → generando → … → revisar; cambios → revisar). */
+  simularAvanceCatalogo(tiendaId: string): Promise<Tienda>;
   simularPedidoCatalogo(tiendaId: string): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
   reiniciarDemo(): Promise<void>;
 };

@@ -24,7 +24,18 @@ import { insertarProducto, modificarProducto, productoDeTienda, productosDeTiend
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
-import { buscarDueno, buscarTienda, descontarCreditos, listarTiendas, modificarMarca, type DatosMarca } from "./tiendas";
+import {
+  avanzarCatalogoDemo,
+  buscarDueno,
+  buscarTienda,
+  descontarCreditos,
+  listarTiendas,
+  modificarMarca,
+  pedirCambiosDelCatalogo,
+  pedirCatalogo,
+  publicarElCatalogo,
+  type DatosMarca,
+} from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
 const KEY = "deslizapp-demo-v2";
@@ -154,6 +165,47 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizada;
+  },
+
+  // Catálogo en línea
+  async solicitarCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = pedirCatalogo(db, tiendaId, ahora());
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async pedirCambiosCatalogo(tiendaId: string, notas: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = pedirCambiosDelCatalogo(db, tiendaId, notas);
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async publicarCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = publicarElCatalogo(db, tiendaId, ahora());
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async releerTienda(): Promise<void> {
+    // La demo vive en el navegador: no hay nadie más que cambie el estado.
+  },
+  async simularAvanceCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = avanzarCatalogoDemo(db, tiendaId);
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
   },
 
   // Productos

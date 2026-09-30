@@ -79,10 +79,12 @@ Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cupón" o ticket co
 
 ## Catálogo en línea (enlace)
 
-`tiendas.url_catalogo` (Mi marca) se usa en la pestaña Catálogo: fila "Ver mi catálogo en línea" / "Conectar mi catálogo" y la hoja
-`components/catalogo/hoja-catalogo-en-linea.tsx` (abrir, copiar, WhatsApp). El enlace se valida con `lib/enlace-catalogo.ts` (solo
-https) y nunca se pinta como HTML. El catálogo todavía no se alimenta solo de los productos del panel: se conecta por enlace. El
-de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
+`tiendas.url_catalogo` (Mi marca) alimenta la tarjeta de la pestaña Catálogo (`components/catalogo/tarjeta-catalogo.tsx`), con 8 estados
+que salen de `tiendas.catalogo_estado` (+ `catalogo_paso`, `catalogo_notas_cambios`, fechas) vía `lib/catalogo-estado.ts` (puro, con tests).
+El dueño solo cambia el estado con las RPC `solicitar_catalogo`, `pedir_cambios_catalogo` y `publicar_catalogo` (nunca UPDATE directo);
+el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catálogo" en el menú de la tienda. Las RPC aún no se probaron
+contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
+HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
 
 ## Hojas inferiores
 

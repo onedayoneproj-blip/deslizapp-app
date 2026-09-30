@@ -91,6 +91,12 @@ export function migrar(db: DB): DB {
       marcaColorAcento: t.marcaColorAcento ?? MARCA_NEUTRA.acento,
       marcaEstilo: t.marcaEstilo ?? MARCA_NEUTRA.estilo,
       urlCatalogo: t.urlCatalogo ?? null,
+      estado: t.estado ?? "activa",
+      catalogoEstado: t.catalogoEstado ?? "sin",
+      catalogoPaso: t.catalogoPaso ?? null,
+      catalogoNotasCambios: t.catalogoNotasCambios ?? null,
+      catalogoSolicitadoEn: t.catalogoSolicitadoEn ?? null,
+      catalogoPublicadoEn: t.catalogoPublicadoEn ?? null,
     })),
   };
 }

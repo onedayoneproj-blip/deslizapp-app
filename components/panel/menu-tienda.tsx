@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta } from "@/lib/data/consulta";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
@@ -13,12 +14,21 @@ import { Logotipo } from "../marca";
 import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
 
+const NOMBRE_ESTADO_CATALOGO = {
+  sin: "sin catálogo",
+  solicitado: "pedido recibido",
+  generando: "armando",
+  revisar: "listo para revisar",
+  cambios: "aplicando cambios",
+  publicado: "en línea",
+} as const;
+
 /**
  * Menú de la tienda (hace de Ajustes): Mi marca, novedades y cerrar sesión.
  * En la demo, además, el selector de tienda activa y las acciones de prueba.
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const toast = useToast();
@@ -45,6 +55,15 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
       toast("Sin productos visibles no hay pedido que simular.");
     }
     cerrar();
+  };
+
+  const avanzarCatalogo = async () => {
+    try {
+      const t = await simularAvanceCatalogo(tiendaActivaId);
+      toast(t.catalogoEstado === "generando" ? `Catálogo: armando (paso ${t.catalogoPaso ?? 1} de 3).` : `Catálogo: ${NOMBRE_ESTADO_CATALOGO[t.catalogoEstado]}.`);
+    } catch (e) {
+      toast(mensajeDeError(e));
+    }
   };
 
   const reiniciar = async () => {
@@ -115,6 +134,12 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
               titulo="Simular pedido del catálogo"
               detalle="Entra un pedido nuevo con productos al azar."
               onClick={simular}
+            />
+            <AccionDemo
+              icono={<IconoPedidos tamano={20} />}
+              titulo="Simular avance del catálogo"
+              detalle="Hace de equipo: pedido → armando → listo para revisar."
+              onClick={avanzarCatalogo}
             />
             <AccionDemo
               icono={<IconoReiniciar tamano={20} />}

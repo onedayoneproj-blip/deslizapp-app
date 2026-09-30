@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { CREDITOS_POR_RETOQUE, NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { useRouter } from "next/navigation";
+import { pedirRevisionDelCatalogo } from "@/lib/destello";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, saludo } from "@/lib/formato";
 import {
@@ -69,6 +71,7 @@ export function VistaInicio() {
 
 function Inicio() {
   const { getPedidos, getEventosAaah, getProductos } = useData();
+  const router = useRouter();
   const { tiendaId, tienda } = useTiendaActiva();
   const [vista, setVistaEstado] = useState<Vista>(vistaRecordada);
   /** Mes/año mirado en Mes y Año; `null` = el actual. */
@@ -159,6 +162,23 @@ function Inicio() {
               <path d="M7 17 17 7M8 7h9v9" />
             </svg>
           </Link>
+        )}
+
+        {/* Aviso: el catálogo en línea ya está listo para revisar (tarjeta compacta rosa, como la de pedidos nuevos) */}
+        {tienda?.catalogoEstado === "revisar" && tienda.estado !== "pausada" && (
+          <div data-aviso-catalogo className="flex w-full items-center gap-3 rounded-[22px] bg-rosa py-3 pr-3 pl-4 text-bosque">
+            <span className="min-w-0 grow text-[15px] leading-tight font-extrabold">¡Tu catálogo está listo!</span>
+            <button
+              type="button"
+              onClick={() => {
+                pedirRevisionDelCatalogo();
+                router.push("/catalogo");
+              }}
+              className="tocable relative h-9 shrink-0 rounded-full bg-bosque px-3.5 text-[13.5px] font-extrabold text-papel after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']"
+            >
+              Revisar
+            </button>
+          </div>
         )}
 
         <Segmentos etiqueta="Periodo del resumen" valor={vista} alCambiar={cambiarVista} opciones={VISTAS.map((p) => ({ id: p.id, texto: p.nombre }))} />

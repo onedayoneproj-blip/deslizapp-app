@@ -6,8 +6,10 @@ import type { EstiloMarca } from "../marca";
 import type {
   CambiosProducto,
   Cliente,
+  EstadoCatalogo,
   EstadoPedido,
   EstadoPromo,
+  EstadoTienda,
   EventoAaah,
   NuevoProducto,
   OrigenPedido,
@@ -44,6 +46,13 @@ export type FilaTienda = {
   marca_color_acento: string;
   marca_estilo: string;
   url_catalogo: string | null;
+  // Pueden faltar en el seed viejo (defectos: 'activa' y 'sin')
+  estado?: string;
+  catalogo_estado?: string;
+  catalogo_paso?: number | null;
+  catalogo_notas_cambios?: string | null;
+  catalogo_solicitado_en?: string | null;
+  catalogo_publicado_en?: string | null;
 };
 
 export type FilaUsuario = { id: string; tienda_id: string; email: string; nombre: string; rol: string };
@@ -139,6 +148,12 @@ export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
     marcaColorAcento: f.marca_color_acento,
     marcaEstilo: f.marca_estilo as EstiloMarca,
     urlCatalogo: f.url_catalogo,
+    estado: (f.estado ?? "activa") as EstadoTienda,
+    catalogoEstado: (f.catalogo_estado ?? "sin") as EstadoCatalogo,
+    catalogoPaso: f.catalogo_paso ?? null,
+    catalogoNotasCambios: f.catalogo_notas_cambios ?? null,
+    catalogoSolicitadoEn: f.catalogo_solicitado_en ?? null,
+    catalogoPublicadoEn: f.catalogo_publicado_en ?? null,
   };
 }
 

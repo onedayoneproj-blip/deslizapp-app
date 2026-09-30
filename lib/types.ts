@@ -4,6 +4,9 @@
 
 import type { EstiloMarca } from "./marca";
 
+import type { EstadoCatalogo } from "./catalogo-estado";
+export type { EstadoCatalogo };
+
 export type Plan = "p20" | "p60" | "p100" | "custom";
 
 export type Tienda = {
@@ -22,7 +25,19 @@ export type Tienda = {
   marcaEstilo: EstiloMarca;
   /** Enlace del catálogo propio de la tienda (opcional). */
   urlCatalogo: string | null;
+  /** Estado de la tienda en Deslizapp ("pausada": el catálogo se ve pausado). */
+  estado: EstadoTienda;
+  /** Catálogo en línea: lo pide, revisa y publica el dueño; lo arma el equipo. Solo cambia con las RPC (nunca por UPDATE directo). */
+  catalogoEstado: EstadoCatalogo;
+  /** 1–3: el paso en que va mientras se arma. */
+  catalogoPaso: number | null;
+  /** Lo que el dueño pidió cambiar en la revisión. */
+  catalogoNotasCambios: string | null;
+  catalogoSolicitadoEn: string | null;
+  catalogoPublicadoEn: string | null;
 };
+
+export type EstadoTienda = "en_prueba" | "activa" | "pausada" | "eliminada";
 
 export type RolUsuario = "dueno" | "staff";
 
