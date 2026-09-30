@@ -113,6 +113,9 @@ export type FilaPromo = {
   fecha_inicio: string;
   fecha_fin: string | null;
   estado: string;
+  /** Solo promos de código; null = sin límite. Puede faltar en el seed viejo. */
+  limite_usos?: number | null;
+  pausada?: boolean;
 };
 
 export type FilaEventoAaah = { id: string; tienda_id: string; producto_id: string; creado_en: string };
@@ -216,6 +219,8 @@ export function aPromo(f: FilaPromo, fecha: AjusteFecha = igual): Promo {
     fechaInicio: fecha(f.fecha_inicio),
     fechaFin: f.fecha_fin == null ? null : fecha(f.fecha_fin),
     estado: f.estado as EstadoPromo,
+    limiteUsos: f.limite_usos ?? null,
+    pausada: f.pausada ?? false,
   };
 }
 
@@ -298,5 +303,7 @@ export function filaPromo(tiendaId: string, p: Omit<Promo, "id" | "tiendaId">) {
     fecha_inicio: p.fechaInicio,
     fecha_fin: p.fechaFin,
     estado: p.estado,
+    limite_usos: p.tipo === "codigo" ? p.limiteUsos : null,
+    pausada: p.pausada,
   };
 }

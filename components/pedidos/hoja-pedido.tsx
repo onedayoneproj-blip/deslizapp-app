@@ -2,21 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useCallback, useMemo, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
-import { buscarCodigoPromo } from "@/lib/data/pedidos";
 import { puedeEditarCodigo } from "@/lib/data/pedidos";
+import { buscarCodigoPromo } from "@/lib/promos";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { IconoCamion, IconoCheck, IconoMas, IconoWhatsApp } from "../iconos";
+import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
-import { CampoCodigo } from "./campo-codigo";
+import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
@@ -27,7 +26,7 @@ const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
 export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   const router = useRouter();
-  const { getPedido, getProductos, getClientes, getPromos } = useData();
+  const { getPedido, getPedidos, getProductos, getClientes, getPromos } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/pedidos", { scroll: false }), [router]);
   // Al eliminar el pedido, la hoja se retira ya (si no, un instante mostraría "Este pedido no vive aquí").
@@ -37,6 +36,7 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
 
   if (saliendo || (pedido === undefined && cargando)) return null;
   if (!pedido) {
@@ -52,11 +52,11 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
       </Hoja>
     );
   }
-  if (!productos || !clientes || !promos) return null;
+  if (!productos || !clientes || !promos || !pedidos) return null;
 
   return (
     <Hoja abierta alCerrar={cerrar} titulo={`Pedido #${pedido.numero}`}>
-      <Detalle pedido={pedido} productos={productos} promos={promos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
+      <Detalle pedido={pedido} productos={productos} promos={promos} pedidos={pedidos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
     </Hoja>
   );
 }
@@ -65,6 +65,7 @@ function Detalle({
   pedido,
   productos,
   promos,
+  pedidos,
   cliente,
   alSalir,
   alEliminado,
@@ -72,6 +73,7 @@ function Detalle({
   pedido: PedidoConItems;
   productos: Producto[];
   promos: Promo[];
+  pedidos: PedidoConItems[];
   cliente: Cliente | null;
   alSalir: (saliendo: boolean) => void;
   alEliminado: () => void;
@@ -83,9 +85,8 @@ function Detalle({
   // Paso al que se quiere volver desde Despachado, esperando confirmación (0 = Recibido, 1 = Confirmado).
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
-  const [editandoCodigo, setEditandoCodigo] = useState(false);
-  const [codigo, setCodigo] = useState("");
-  const campoCodigo = useRef<HTMLInputElement>(null);
+  // El selector de descuento es otra vista DENTRO de esta misma hoja (como los selectores de cliente y de producto).
+  const [vista, setVista] = useState<"detalle" | "descuento">("detalle");
 
   const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const subtotal = pedido.items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
@@ -172,26 +173,15 @@ function Detalle({
     });
   const irAlPaso = (destino: 0 | 1) => (paso === 2 ? setConfirmando(destino) : void retroceder(destino));
 
-  // Código de descuento (solo mientras el pedido no se despacha ni se cancela)
+  // Descuento (solo mientras el pedido no se despacha ni se cancela). La regla de qué códigos se pueden usar vive en lib/promos.ts.
   const puedeCodigo = puedeEditarCodigo(pedido.estado);
-  const promoEscrita = buscarCodigoPromo(promos, tiendaId, codigo);
-  // El foco va al campo en el MISMO toque que lo abre (flushSync): así el teclado del iPhone abre bien (HANDOFF.md).
-  const abrirCodigo = (inicial: string) => {
-    setCodigo(inicial);
-    flushSync(() => setEditandoCodigo(true));
-    campoCodigo.current?.focus({ preventScroll: true });
-  };
-  const aplicarCodigo = () =>
+  const contexto = useMemo(() => ({ pedidos, pedido }), [pedidos, pedido]);
+  const promoAplicada = pedido.codigoPromo ? buscarCodigoPromo(promos, tiendaId, pedido.codigoPromo, contexto) : null;
+  const elegirDescuento = (nuevo: string | null) =>
     correr(async () => {
-      if (!promoEscrita) return;
-      await aplicarCodigoPedido(tiendaId, pedido.id, codigo);
-      setEditandoCodigo(false);
-      toast(`Código ${promoEscrita.codigo} aplicado. El total ya cambió.`);
-    });
-  const quitarCodigo = () =>
-    correr(async () => {
-      await aplicarCodigoPedido(tiendaId, pedido.id, null);
-      toast("Código quitado. El total ya cambió.");
+      await aplicarCodigoPedido(tiendaId, pedido.id, nuevo);
+      setVista("detalle");
+      toast(nuevo ? `Descuento ${nuevo} aplicado. El total ya cambió.` : "Descuento quitado. El total ya cambió.");
     });
 
   // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
@@ -200,6 +190,19 @@ function Detalle({
       Editar pedido
     </Link>
   );
+
+  if (vista === "descuento") {
+    return (
+      <SelectorDescuento
+        promos={promos}
+        tiendaId={tiendaId}
+        contexto={contexto}
+        elegido={pedido.codigoPromo ?? ""}
+        alElegir={(c) => void elegirDescuento(c)}
+        alVolver={() => setVista("detalle")}
+      />
+    );
+  }
 
   const primerNombre = cliente?.nombre.split(" ")[0] ?? "";
   const mensaje = `Hola ${primerNombre}, te escribo de ${tienda?.nombre ?? "la tienda"} por tu pedido #${pedido.numero}.`;
@@ -289,52 +292,15 @@ function Detalle({
             </div>
           );
         })}
-        {puedeCodigo && !editandoCodigo && !pedido.codigoPromo && (
-          <button
-            type="button"
-            onClick={() => abrirCodigo("")}
-            disabled={ocupado}
-            className="tocable flex min-h-11 w-full items-center justify-between gap-3 border-b border-arena text-left text-[14.5px] font-extrabold"
-          >
-            Agregar código de descuento
-            <IconoMas tamano={18} />
-          </button>
-        )}
-        {puedeCodigo && !editandoCodigo && pedido.codigoPromo && (
-          <div className="flex min-h-11 items-center justify-between gap-3 border-b border-arena">
-            <span className="min-w-0 truncate rounded-full bg-rosa px-3 py-1 text-[13px] font-extrabold">Código {pedido.codigoPromo}</span>
-            <span className="flex shrink-0 items-center">
-              <button type="button" onClick={() => abrirCodigo(pedido.codigoPromo ?? "")} disabled={ocupado} className="tocable h-11 px-2.5 text-[14px] font-extrabold text-bosque">
-                Cambiar
-              </button>
-              <button type="button" onClick={quitarCodigo} disabled={ocupado} className="tocable h-11 pl-2.5 text-[14px] font-extrabold text-[#b4432a]">
-                Quitar
-              </button>
-            </span>
-          </div>
-        )}
-        {puedeCodigo && editandoCodigo && (
-          <div className="border-b border-arena pb-3">
-            <CampoCodigo valor={codigo} alCambiar={setCodigo} promo={promoEscrita} opcional={false} entrada={campoCodigo} />
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={aplicarCodigo}
-                disabled={ocupado || !promoEscrita}
-                className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-50"
-              >
-                Aplicar código
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditandoCodigo(false)}
-                disabled={ocupado}
-                className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+        {puedeCodigo && (
+          <FilaDescuento
+            codigo={pedido.codigoPromo ?? ""}
+            promo={promoAplicada}
+            alAbrir={() => setVista("descuento")}
+            alQuitar={() => void elegirDescuento(null)}
+            deshabilitado={ocupado}
+            conBorde
+          />
         )}
         <div className="flex justify-between pt-2.5 pb-0.5 text-sm font-semibold text-suave">
           <span>Subtotal</span>

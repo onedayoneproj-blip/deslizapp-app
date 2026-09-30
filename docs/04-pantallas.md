@@ -230,7 +230,7 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 - Tocar un pedido → Detalle de pedido.
 - Botón **"+ Pedido"** para crear un pedido manual (ventas que no llegaron
   por el catálogo): elegir cliente, elegir productos y cantidades, aplicar
-  código de promo opcional ("¿Usó un código?"). Entra directo en estado
+  descuento opcional (fila "Agregar descuento" que abre una lista de códigos, en vez de escribirlo). Entra directo en estado
   `por_despachar` ("Pedido #1043 guardado. Está en Por despachar.").
   **Por qué:** "Nuevos" son los pedidos que llegan del catálogo y esperan
   confirmación del dueño; un pedido manual lo arma el dueño después de hablar
@@ -318,17 +318,20 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   - si algún producto no tiene stock suficiente, no despacha y avisa: "No
     alcanza el stock de {producto}."
 
-**Código de descuento en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila
-tocable **"Agregar código de descuento"** o, si ya tiene, un chip "Código AAAH10" con **"Cambiar"** y **"Quitar"**. Al tocarla se
-abre en la misma hoja el mismo campo de "+ Pedido" (`components/pedidos/campo-codigo.tsx`, con su misma validación:
-código de una promo de código activa de la tienda, sin importar mayúsculas) y "Aplicar código" / "Cancelar". Al aplicar,
-cambiar o quitar se recalculan los precios unitarios de los productos (`precioConPromo`, la misma función de
-"+ Pedido") y el total (subtotal menos el descuento del código); se guardan `pedido_items.precio_unitario`,
-`pedidos.total` y `pedidos.codigo_promo`. El Subtotal nunca incluye el código: entre Subtotal y Total aparece la línea
-"Descuento · CÓDIGO". Si el código no existe o no está activo, avisa ("Ese código no existe o ya no está activo…") y no
-cambia nada. En `despachado` y `cancelado` el código no se edita (solo se muestra si tenía): primero hay que volver a
-`por_despachar` desde la barra de pasos. Esta fila rápida y "Editar pedido" usan la misma validación y el mismo cálculo
-(`calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido` en `lib/data/pedidos.ts`).
+**Descuento en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila tocable
+**"Agregar descuento"** o, si ya tiene, **"Descuento: AAAH10 · 10 %"** con **"Cambiar"** y **"Quitar"**. Tocarla abre, dentro de
+la misma hoja, la vista **"Elige un descuento"** (`components/pedidos/selector-descuento.tsx`, con botón de volver, como los
+selectores de cliente y de producto): arriba "Sin descuento"; luego los códigos que se pueden usar; y al final, atenuados y sin
+poder elegirse, los que no, con su razón ("Pausado", "Vencido", "Terminado", "Programado", "Agotado: 10 de 10"). Cada fila
+muestra nombre, código, porcentaje y el uso ("usada 3 de 10" / "usada 3 veces"). Sin códigos creados, estado vacío con el botón
+"Crear un código en Promos". Elegir uno (o quitarlo) recalcula los precios unitarios (`precioConPromo`, la misma función de
+"+ Pedido") y el total (subtotal menos el descuento); se guardan `pedido_items.precio_unitario`, `pedidos.total` y
+`pedidos.codigo_promo`. El Subtotal nunca incluye el código: entre Subtotal y Total aparece "Descuento · CÓDIGO". Un pedido que ya
+usa un código lo **conserva** aunque el cupo se haya llenado (ya cuenta en los usos), pero ningún otro pedido puede elegirlo. En
+`despachado` y `cancelado` el descuento solo se muestra: primero hay que volver a `por_despachar` desde la barra de pasos. La
+misma fila y la misma vista sirven en "+ Pedido", "Editar pedido" y el detalle, con la misma regla y el mismo cálculo
+(`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`; `calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`).
+En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
 
 **Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— debajo del botón principal; en `nuevo`, `por_despachar` y
 `despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
@@ -404,8 +407,15 @@ pedido del catálogo con datos de contacto, o manualmente desde el panel.
 
 **Qué muestra:**
 - Titular "Promos" + "Ponle un descuento y mira cómo se deslizan."
-- Pestañas con contador: **Activas · Programadas · Terminadas** (el estado se
-  calcula por fechas — ver `03-modelo-de-datos.md`).
+- Pestañas con contador: **Activas · Programadas · Terminadas** (la pestaña sale
+  del estado por fechas — ver `03-modelo-de-datos.md`). La tarjeta muestra el estado visible: si la promo está
+  **pausada**, "PAUSADA"; si es un código con límite y sus usos (pedidos no cancelados) llegaron al límite, "AGOTADA"; en los
+  demás casos, el de las fechas. Una terminada sigue terminada. Pausada y agotada se ven apagadas (crema) y siguen en su pestaña.
+  Los códigos con límite muestran "Usada N de L pedidos"; sin límite, "Usada N pedidos".
+- En el formulario de una promo de **código**: campo opcional **"¿Cuántas veces se puede usar?"** (entero ≥ 1; vacío = sin
+  límite) y, en todas las promos, el interruptor **"Pausar promo"**. Una promo pausada o agotada **nunca** se aplica a un pedido
+  nuevo ni al precio de un producto (regla central en `lib/promos.ts`; el límite se controla en la app, la base solo guarda
+  `limite_usos` y `pausada`).
 - Tarjetas según `tipo`:
   - **Por colección**: "POR COLECCIÓN", nombre, "Colección Dulces", "15%",
     rango de fechas ("25 sep → 2 oct").
@@ -491,8 +501,8 @@ el campo de texto) tiene, de arriba abajo:
   o, en los códigos, un pedido de ejemplo con el descuento.
 - Editar (el tipo no cambia) y "Terminar promo" con confirmación. Una terminada
   no se reactiva ni se edita: se **duplica como nueva** (`/promos/nueva?copiar=id`).
-- "+ Pedido" tiene el campo "Código de promo": si está activo aplica el % al
-  total y guarda `codigo_promo`; si no, avisa. El detalle del pedido muestra el
+- "+ Pedido" tiene la fila "Agregar descuento": elige un código de la lista (solo los que se pueden usar), aplica el % al
+  total y guarda `codigo_promo`. El detalle del pedido muestra el
   descuento y "Simular pedido del catálogo" usa los precios con promo vigente.
 
 ### Mi marca

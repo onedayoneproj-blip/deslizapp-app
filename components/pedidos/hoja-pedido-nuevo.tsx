@@ -5,14 +5,14 @@ import Image from "next/image";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { buscarCodigoPromo, descuentoDeCodigo } from "@/lib/data/pedidos";
+import { descuentoDeCodigo } from "@/lib/data/pedidos";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
-import { precioConPromo } from "@/lib/promos";
+import { buscarCodigoPromo, precioConPromo } from "@/lib/promos";
 import type { ClienteConResumen, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Avatar } from "../clientes/comunes";
 import { Foto } from "../foto";
@@ -20,7 +20,7 @@ import { Hoja } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
-import { CampoCodigo, CLASE_CAMPO } from "./campo-codigo";
+import { CLASE_CAMPO, FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
@@ -102,7 +102,7 @@ function Formulario({
   const toast = useToast();
 
   // Los selectores (cliente, productos) son otra vista DENTRO de esta misma hoja (no una segunda hoja).
-  const [vista, setVista] = useState<"pedido" | "cliente" | "productos">("pedido");
+  const [vista, setVista] = useState<"pedido" | "cliente" | "productos" | "descuento">("pedido");
   const [cliente, setCliente] = useState<ClienteElegido | null>(() => {
     const c = pedido?.clienteId ? clientes.find((x) => x.id === pedido.clienteId) : undefined;
     return c ? { id: c.id, nombre: c.nombre, telefono: c.telefono } : null;
@@ -134,7 +134,8 @@ function Formulario({
         .map((p) => ({ producto: p, cantidad: cantidades[p.id] ?? 0, precio: precioConPromo(p, promos).precio }))
         .filter((l) => l.cantidad > 0);
   const subtotal = lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
-  const promo = buscarCodigoPromo(promos, tiendaId, codigo);
+  const contexto = useMemo(() => ({ pedidos, pedido }), [pedidos, pedido]);
+  const promo = buscarCodigoPromo(promos, tiendaId, codigo, contexto);
   const descuento = bloqueado ? Math.max(0, subtotal - (pedido?.total ?? 0)) : descuentoDeCodigo(promo, subtotal);
   const totalFinal = bloqueado ? (pedido?.total ?? 0) : subtotal - descuento;
   const codigoMalo = !bloqueado && codigo.trim() !== "" && !promo;
@@ -213,6 +214,22 @@ function Formulario({
         alCambiar={cambiar}
         entrada={buscador}
         alTerminar={() => setVista("pedido")}
+      />
+    );
+  }
+
+  if (vista === "descuento") {
+    return (
+      <SelectorDescuento
+        promos={promos}
+        tiendaId={tiendaId}
+        contexto={contexto}
+        elegido={codigo}
+        alElegir={(c) => {
+          setCodigo(c ?? "");
+          setVista("pedido");
+        }}
+        alVolver={() => setVista("pedido")}
       />
     );
   }
@@ -341,8 +358,8 @@ function Formulario({
         </>
       )}
 
-      <div inert={bloqueado} className={bloqueado ? "opacity-55" : ""}>
-        <CampoCodigo valor={codigo} alCambiar={setCodigo} promo={promo} />
+      <div inert={bloqueado} className={`rounded-[20px] border border-linea bg-white px-3.5 ${bloqueado ? "opacity-55" : ""}`}>
+        <FilaDescuento codigo={codigo} promo={promo ?? (bloqueado ? promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null : null)} alAbrir={() => setVista("descuento")} alQuitar={() => setCodigo("")} />
       </div>
 
       <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">

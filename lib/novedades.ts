@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.17.0",
+    fecha: "2026-09-30",
+    titulo: "Descuentos sin escribir.",
+    cambios: [
+      "En un pedido eliges el descuento de una lista: ves cuáles sirven y cuáles están pausados, vencidos o agotados.",
+      "En Promos, un código puede tener límite de usos y se puede pausar.",
+    ],
+  },
+  {
     version: "0.16.0",
     fecha: "2026-09-30",
     titulo: "Pedidos que se dejan corregir.",

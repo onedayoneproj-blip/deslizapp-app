@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { estadoPromo, pedidosConCodigo } from "@/lib/promos";
+import { estadoPromo, estadoVisible, pedidosConCodigo } from "@/lib/promos";
 import type { EstadoPromo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
@@ -65,13 +65,21 @@ export function VistaPromos({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [oferta]);
 
-  const conEstado = useMemo(() => (promos ?? []).map((p) => ({ promo: p, estado: estadoPromo(p) })), [promos]);
+  // La pestaña sale del estado por fechas (una pausada o agotada sigue en su pestaña); la tarjeta muestra el estado visible.
+  const conEstado = useMemo(
+    () =>
+      (promos ?? []).map((p) => {
+        const usos = pedidos ? pedidosConCodigo(pedidos, p) : null;
+        return { promo: p, pestana: estadoPromo(p), estado: estadoVisible(p, usos), usos };
+      }),
+    [promos, pedidos],
+  );
   const cuentas = useMemo(() => {
     const c: Record<EstadoPromo, number> = { activa: 0, programada: 0, terminada: 0 };
-    for (const p of conEstado) c[p.estado]++;
+    for (const p of conEstado) c[p.pestana]++;
     return c;
   }, [conEstado]);
-  const todas = useMemo(() => conEstado.filter((p) => p.estado === pestana), [conEstado, pestana]);
+  const todas = useMemo(() => conEstado.filter((p) => p.pestana === pestana), [conEstado, pestana]);
   const { visibles, quedan, mostrados, verMas } = useVerMas(todas, `${tiendaId}:${pestana}`);
   const productosPorId = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const sinPromos = promos !== undefined && promos.length === 0;
@@ -110,7 +118,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
         {todas.length > 0 && (
           <>
           <ul className="flex flex-col gap-[18px]">
-            {visibles.map(({ promo, estado }) => (
+            {visibles.map(({ promo, estado, usos }) => (
               <li key={promo.id}>
                 <TarjetaPromo
                   promo={promo}
@@ -118,7 +126,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
                   href={`/promos/${promo.id}`}
                   producto={promo.productoId ? productosPorId.get(promo.productoId) : undefined}
                   productosDeColeccion={promo.coleccion ? (productos ?? []).filter((p) => p.categoria === promo.coleccion).length : 0}
-                  usos={pedidos ? pedidosConCodigo(pedidos, promo) : null}
+                  usos={usos}
                 />
               </li>
             ))}

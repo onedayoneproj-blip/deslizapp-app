@@ -1,7 +1,8 @@
 // Lo que muestra un cupón de promo (la tarjeta de la lista y la imagen para compartir), en un solo lugar.
 
 import { formatearPesos, rangoFechas } from "./formato";
-import type { EstadoPromo, Producto, Promo } from "./types";
+import type { EstadoVisiblePromo } from "./promos";
+import type { Producto, Promo } from "./types";
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
@@ -10,7 +11,7 @@ export const ETIQUETA_TIPO = { codigo: "Código", coleccion: "Por colección", p
 export type DatosCupon = {
   /** Porcentaje o "–" si todavía no hay uno válido. */
   porcentaje: string;
-  /** Lo que va bajo el %: DE DESCUENTO / PROGRAMADA / TERMINADA. */
+  /** Lo que va bajo el %: DE DESCUENTO / PROGRAMADA / TERMINADA / PAUSADA / AGOTADA. */
   bajoPorcentaje: string;
   tipo: string;
   /** El nombre, o el código (que va en caja punteada). */
@@ -24,7 +25,7 @@ export type DatosCupon = {
 
 export function datosCupon(
   promo: Promo,
-  estado: EstadoPromo,
+  estado: EstadoVisiblePromo,
   {
     producto,
     productosDeColeccion = 0,
@@ -45,12 +46,14 @@ export function datosCupon(
     estado === "programada" && dias >= 1 && dias < 7
       ? `Empieza en ${dias} ${dias === 1 ? "día" : "días"}`
       : promo.tipo === "codigo" && usos !== null && estado !== "programada"
-        ? `Usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}`
+        ? promo.limiteUsos !== null
+          ? `Usada ${usos} de ${promo.limiteUsos} pedidos`
+          : `Usada ${usos} ${usos === 1 ? "pedido" : "pedidos"}`
         : null;
 
   return {
     porcentaje: pct === null ? "–" : String(pct),
-    bajoPorcentaje: estado === "terminada" ? "TERMINADA" : estado === "programada" ? "PROGRAMADA" : "DE DESCUENTO",
+    bajoPorcentaje: { terminada: "TERMINADA", programada: "PROGRAMADA", pausada: "PAUSADA", agotada: "AGOTADA", activa: "DE DESCUENTO" }[estado],
     tipo: ETIQUETA_TIPO[promo.tipo],
     titulo: promo.tipo === "codigo" ? promo.codigo || "CÓDIGO" : promo.nombre || "Nombre de tu promo",
     esCodigo: promo.tipo === "codigo",

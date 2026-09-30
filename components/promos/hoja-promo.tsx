@@ -22,7 +22,7 @@ import {
   type ErroresPromo,
 } from "@/lib/promos";
 import type { PedidoConItems, Producto, Promo, TipoPromo } from "@/lib/types";
-import { Chip } from "../controles";
+import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
@@ -123,6 +123,9 @@ function Formulario({
     // Duplicar: empieza hoy y sin fecha de fin. Editar: las fechas que ya tiene.
     inicio: promo ? isoADia(promo.fechaInicio) : hoyLocal(),
     fin: promo?.fechaFin ? isoADia(promo.fechaFin) : "",
+    limite: base?.limiteUsos ? String(base.limiteUsos) : "",
+    // Duplicar no hereda la pausa
+    pausada: promo ? promo.pausada : false,
   }));
   const [vista, setVista] = useState<"promo" | "producto" | "coleccion">("promo");
   const [tocados, setTocados] = useState<Set<string>>(new Set());
@@ -307,6 +310,26 @@ function Formulario({
           <Mensaje texto={error("codigo")} />
         </label>
       )}
+      {datos.tipo === "codigo" && (
+        <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
+          <span>
+            ¿Cuántas veces se puede usar? <span className="font-semibold text-suave">(opcional)</span>
+          </span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={datos.limite}
+            onChange={(e) => cambiar("limite", e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onBlur={() => tocar("limite")}
+            placeholder="Sin límite"
+            autoComplete="off"
+            aria-invalid={Boolean(error("limite")) || undefined}
+            className={`${campo} ${error("limite") ? "border-[#b4432a]" : ""}`}
+          />
+          <span className="text-[12.5px] font-semibold text-suave">Cuenta los pedidos (sin los cancelados). Al llegar al límite, el código queda agotado. Vacío = sin límite.</span>
+          <Mensaje texto={error("limite")} />
+        </label>
+      )}
       {datos.tipo === "coleccion" && (
         <div className="flex flex-col gap-1.5">
           <p className="text-[13.5px] font-bold">¿A qué colección?</p>
@@ -371,6 +394,15 @@ function Formulario({
         </button>
       )}
 
+      {/* Pausa: la promo deja de aplicarse sin perder su historial */}
+      <div className="flex items-center justify-between gap-3 rounded-[20px] border border-linea bg-white px-3.5 py-2.5">
+        <span className="min-w-0">
+          <span className="block text-[15px] font-extrabold">Pausar promo</span>
+          <span className="block text-[12.5px] font-semibold text-suave">Mientras esté pausada no se aplica a ningún pedido ni precio.</span>
+        </span>
+        <Interruptor encendido={datos.pausada} alCambiar={(v) => cambiar("pausada", v)} etiqueta="Pausar promo" />
+      </div>
+
       <VistaPrevia datos={datos} pctValido={pctValido} producto={productoElegido} deLaColeccion={productosDeLaColeccion} />
 
       {/* Cómo se verá la tarjeta en la lista de Promos */}
@@ -390,7 +422,10 @@ function Formulario({
               fechaInicio: diaAIso(datos.inicio, "inicio"),
               fechaFin: datos.fin ? diaAIso(datos.fin, "fin") : null,
               estado: "activa",
+              limiteUsos: datos.tipo === "codigo" && datos.limite ? Number(datos.limite) || null : null,
+              pausada: datos.pausada,
             }}
+            estado={datos.pausada ? "pausada" : undefined}
             producto={productoElegido}
             productosDeColeccion={productosDeLaColeccion.length}
             usos={0}

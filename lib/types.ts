@@ -115,6 +115,10 @@ export type Promo = {
   fechaInicio: string;
   fechaFin: string | null;
   estado: EstadoPromo;
+  /** Solo promos de código: máximo de pedidos (no cancelados) que pueden usarla. null = sin límite. */
+  limiteUsos: number | null;
+  /** Pausa manual: deja de aplicarse sin perder su historial. */
+  pausada: boolean;
 };
 
 export type EventoAaah = {

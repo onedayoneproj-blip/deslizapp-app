@@ -394,8 +394,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       let total = actual.total;
       let codigo: string | null = actual.codigoPromo;
       if (!despachado && actual.estado !== "cancelado") {
-        const [productos, promos] = await Promise.all([productosCrudos(tiendaId), promosCrudas(tiendaId)]);
-        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date());
+        const [productos, promos, pedidos] = await Promise.all([productosCrudos(tiendaId), promosCrudas(tiendaId), pedidosCrudos(tiendaId)]);
+        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date(), { pedidos, pedido: actual });
         if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
         items = c.items;
         total = c.total;
@@ -431,10 +431,15 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       cambio(undefined);
     },
     async aplicarCodigoPedido(tiendaId, id, codigo) {
-      const [actual, productos, promos] = await Promise.all([pedidoCrudo(tiendaId, id), productosCrudos(tiendaId), promosCrudas(tiendaId)]);
+      const [actual, productos, promos, pedidos] = await Promise.all([
+        pedidoCrudo(tiendaId, id),
+        productosCrudos(tiendaId),
+        promosCrudas(tiendaId),
+        pedidosCrudos(tiendaId),
+      ]);
       if (!actual) throw new PedidoNoEncontrado();
       if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos("El código solo se cambia antes de despachar. Usa «Volver al paso anterior» y luego edítalo.");
-      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date());
+      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date(), { pedidos, pedido: actual });
       // Primero los precios de los productos que cambiaron, luego el pedido (con el estado como guarda).
       const cambiados = r.items.filter((n) => n.precioUnitario !== actual.items.find((i) => i.id === n.id)?.precioUnitario);
       const ponerPrecios = (lista: { id: string; precioUnitario: number }[]) =>
@@ -487,15 +492,16 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio({ pedido, agotados });
     },
     async crearPedidoManual(tiendaId, datos) {
-      const [productos, promos, filaCliente] = await Promise.all([
+      const [productos, promos, pedidos, filaCliente] = await Promise.all([
         productosCrudos(tiendaId),
         promosCrudas(tiendaId),
+        pedidosCrudos(tiendaId),
         dato<FilaCliente>(supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("id", datos.clienteId).maybeSingle()),
       ]);
       if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
 
       // Precios de hoy (con la promo de colección o de producto vigente) y el código, si es válido: la misma cuenta de la demo.
-      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date());
+      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos });
 
       const venta = datos.ventaPasada;
       if (venta) {

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { datosCupon } from "@/lib/cupon";
 import { diaMesCorto } from "@/lib/formato";
-import { estadoPromo } from "@/lib/promos";
-import type { EstadoPromo, Producto, Promo } from "@/lib/types";
+import { estadoVisible, type EstadoVisiblePromo } from "@/lib/promos";
+import type { Producto, Promo } from "@/lib/types";
 
 // Tarjeta de promo estilo CUPÓN (opción C del diseño: referencias/promos-cupon/opcion-c-ticket-verde.dc.html).
 // Medidas y colores copiados de esa referencia. La sombra va en el contenedor con `filter: drop-shadow` para
@@ -25,7 +25,7 @@ const fechasHablado = (inicio: string, fin: string | null) => (fin ? `del ${diaM
  */
 export function TarjetaPromo({
   promo,
-  estado = estadoPromo(promo),
+  estado: estadoProp,
   producto,
   productosDeColeccion = 0,
   usos = null,
@@ -33,7 +33,7 @@ export function TarjetaPromo({
   ahora = new Date(),
 }: {
   promo: Promo;
-  estado?: EstadoPromo;
+  estado?: EstadoVisiblePromo;
   /** El producto de una promo "por producto" (para el detalle). */
   producto?: Producto;
   productosDeColeccion?: number;
@@ -42,12 +42,18 @@ export function TarjetaPromo({
   href?: string;
   ahora?: Date;
 }) {
-  const terminada = estado === "terminada";
+  const estado = estadoProp ?? estadoVisible(promo, usos, ahora);
+  // Terminada, pausada y agotada se ven apagadas (crema): ya no se aplican.
+  const terminada = estado === "terminada" || estado === "pausada" || estado === "agotada";
   const d = datosCupon(promo, estado, { producto, productosDeColeccion, usos, ahora });
   const pct = promo.valorPorcentaje;
 
   const etiqueta = `${promo.tipo === "codigo" ? `Código ${promo.codigo}` : promo.nombre}, ${pct ?? "sin"}% de descuento, ${estado}, ${fechasHablado(promo.fechaInicio, promo.fechaFin)}${
-    promo.tipo === "codigo" && usos !== null ? `, usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}` : ""
+    promo.tipo === "codigo" && usos !== null
+      ? promo.limiteUsos !== null
+        ? `, usada ${usos} de ${promo.limiteUsos} pedidos`
+        : `, usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}`
+      : ""
   }`;
 
   const tarjeta = (

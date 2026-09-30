@@ -132,6 +132,8 @@ cambia después).
 | `producto_id` | uuid \| null | solo si `tipo = 'producto'` |
 | `fecha_inicio` | datetime | |
 | `fecha_fin` | datetime \| null | |
+| `limite_usos` | number \| null | solo códigos: máximo de pedidos (no cancelados) que pueden usarlo; mínimo 1; `null` = sin límite. Lo controla la app (la base no lo impone) |
+| `pausada` | boolean | pausa manual (por defecto `false`): la promo no se aplica a ningún pedido ni precio, sin perder su historial |
 | `estado` | `'activa' \| 'programada' \| 'terminada'` | calculable desde las fechas, pero se guarda para poder forzarlo manualmente |
 
 Estado que se muestra: si `estado = 'terminada'` guardado, terminada (la

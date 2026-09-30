@@ -136,7 +136,7 @@ test("cliente: pedidos_count no pasa a la app como campo propio", () => {
 });
 
 test("promo: código en MAYÚSCULAS, porcentaje numérico y solo el campo de su tipo", () => {
-  const base = { nombre: "Otoño", valorPorcentaje: 10, codigo: " aaah10 ", coleccion: "Perfumes", productoId: "p1", fechaInicio: "i", fechaFin: null, estado: "activa" };
+  const base = { nombre: "Otoño", valorPorcentaje: 10, codigo: " aaah10 ", coleccion: "Perfumes", productoId: "p1", fechaInicio: "i", fechaFin: null, estado: "activa", limiteUsos: 10, pausada: true };
   assert.deepEqual(filaPromo("t1", { ...base, tipo: "codigo" }), {
     tienda_id: "t1",
     tipo: "codigo",
@@ -148,11 +148,14 @@ test("promo: código en MAYÚSCULAS, porcentaje numérico y solo el campo de su 
     fecha_inicio: "i",
     fecha_fin: null,
     estado: "activa",
+    limite_usos: 10,
+    pausada: true,
   });
   const col = filaPromo("t1", { ...base, tipo: "coleccion" });
   assert.equal(col.codigo, null);
   assert.equal(col.coleccion, "Perfumes");
   assert.equal(col.producto_id, null);
+  assert.equal(col.limite_usos, null); // el límite solo existe en los códigos
   const pro = filaPromo("t1", { ...base, tipo: "producto", valorPorcentaje: "15" });
   assert.equal(pro.producto_id, "p1");
   assert.equal(pro.valor_porcentaje, 15);
@@ -160,6 +163,12 @@ test("promo: código en MAYÚSCULAS, porcentaje numérico y solo el campo de su 
   const leida = aPromo({ ...col, id: "pr1" });
   assert.equal(leida.tiendaId, "t1");
   assert.equal(leida.valorPorcentaje, 10);
+  assert.equal(leida.limiteUsos, null);
+  assert.equal(leida.pausada, true);
+  // filas del seed viejo, sin las columnas nuevas
+  const vieja = aPromo({ ...col, id: "pr2", limite_usos: undefined, pausada: undefined });
+  assert.equal(vieja.limiteUsos, null);
+  assert.equal(vieja.pausada, false);
 });
 
 // ---------------------------------------------------------------------------

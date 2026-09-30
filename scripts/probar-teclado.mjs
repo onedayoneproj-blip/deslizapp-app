@@ -286,19 +286,7 @@ try {
     await ctx.close();
   }
 
-  // ---- Repaso final: campos que faltaban (código de promo del pedido, colección nueva, nota de un cliente, selector de producto de una promo)
-  {
-    const { ctx, page, errores } = await abrir(navegador);
-    await page.goto(URL + "/pedidos");
-    await page.waitForSelector('a[href="/pedidos/nuevo"]');
-    await page.waitForTimeout(900);
-    await page.tap('a[href="/pedidos/nuevo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: LUNA20"]');
-    await page.waitForTimeout(700);
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: LUNA20"]', "Pedido nuevo · Código de promo", "AAAH", { dentroDeHoja: true });
-    ok(errores.length === 0, `Pedido nuevo (código): sin errores de página (${JSON.stringify(errores)})`);
-    await ctx.close();
-  }
+  // ---- Repaso final: campos que faltaban (colección nueva, nota de un cliente, selector de producto de una promo). El código del pedido ya no se escribe: se elige de una lista.
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL + "/catalogo");

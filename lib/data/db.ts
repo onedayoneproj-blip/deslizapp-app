@@ -82,6 +82,8 @@ export function migrar(db: DB): DB {
   return {
     ...db,
     clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })),
+    // Promos guardadas antes del límite de usos y la pausa
+    promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false })),
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,

@@ -1,4 +1,4 @@
-import { estadoPromo, precioConPromo } from "../promos";
+import { buscarCodigoPromo, precioConPromo, type ContextoCodigo } from "../promos";
 import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
 import { nuevoId as nuevoIdItem, type DB } from "./db";
 import { DatosInvalidos, PedidoNoDeshacible, PedidoNoEditable, SoloCancelados, StockInsuficiente } from "./errores";
@@ -187,7 +187,7 @@ export function deshacerDespacho(db: DB, tiendaId: string, id: string, ahora: st
 
 // ---- Código de descuento de un pedido abierto ----
 
-export const MENSAJE_CODIGO_MALO = "Ese código no existe o ya no está activo. Revisa cómo lo escribió.";
+export const MENSAJE_CODIGO_MALO = "Ese descuento ya no se puede usar (no existe, está pausado, vencido o agotado). Elige otro o quítalo.";
 
 /**
  * Recalcula un pedido con `codigo` (o sin código, con null): los precios unitarios salen de `precioConPromo` (la misma
@@ -201,9 +201,10 @@ export function recalcularConCodigo(
   tiendaId: string,
   codigo: string | null,
   ahora: Date,
+  ctx: ContextoCodigo,
 ) {
   const limpio = codigo?.trim() ?? "";
-  const promo = limpio ? buscarCodigoPromo(promos, tiendaId, limpio, ahora) : null;
+  const promo = limpio ? buscarCodigoPromo(promos, tiendaId, limpio, ctx, ahora) : null;
   if (limpio && !promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
   const nuevos = items.map((i) => {
     const producto = productos.find((p) => p.id === i.productoId && p.tiendaId === tiendaId);
@@ -224,7 +225,10 @@ const MENSAJE_CODIGO_BLOQUEADO = "El código solo se cambia antes de despachar. 
 export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codigo: string | null, ahora: string) {
   const actual = pedidoParaCambiar(db, tiendaId, id);
   if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos(MENSAJE_CODIGO_BLOQUEADO);
-  const r = recalcularConCodigo(db.pedidoItems.filter((i) => i.pedidoId === id), db.productos, db.promos, tiendaId, codigo, new Date(ahora));
+  const r = recalcularConCodigo(db.pedidoItems.filter((i) => i.pedidoId === id), db.productos, db.promos, tiendaId, codigo, new Date(ahora), {
+    pedidos: db.pedidos,
+    pedido: actual,
+  });
   const pedido: Pedido = { ...actual, total: r.total, codigoPromo: r.codigoPromo };
   const porId = new Map(r.items.map((i) => [i.id, i]));
   return {
@@ -248,17 +252,6 @@ export type DatosPedidoManual = {
   ventaPasada?: { fecha: string; descontarStock: boolean };
 };
 
-/** La promo de tipo código vigente que coincide con lo escrito (sin importar mayúsculas), si hay. */
-export function buscarCodigoPromo(promos: Promo[], tiendaId: string, codigo: string, ahora: Date = new Date()): Promo | null {
-  const limpio = codigo.trim().toUpperCase();
-  if (!limpio) return null;
-  return (
-    promos.find(
-      (p) => p.tiendaId === tiendaId && p.tipo === "codigo" && p.codigo?.toUpperCase() === limpio && estadoPromo(p, ahora) === "activa",
-    ) ?? null
-  );
-}
-
 /** Descuento (en pesos) de un código sobre un subtotal. */
 export const descuentoDeCodigo = (promo: Promo | null, subtotal: number) =>
   promo?.valorPorcentaje ? Math.round((subtotal * promo.valorPorcentaje) / 100) : 0;
@@ -281,6 +274,7 @@ export function calcularLineas(
   pedidas: { productoId: string; cantidad: number }[],
   codigo: string | undefined,
   ahora: Date,
+  ctx: ContextoCodigo,
 ) {
   const lineas = pedidas.filter((i) => i.cantidad > 0);
   if (lineas.length === 0) throw new DatosInvalidos("El pedido necesita al menos un producto.");
@@ -290,7 +284,7 @@ export function calcularLineas(
     return { productoId: producto.id, nombreProducto: producto.nombre, cantidad: l.cantidad, precioUnitario: precioConPromo(producto, promos, ahora).precio };
   });
   const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
-  const promo = codigo ? buscarCodigoPromo(promos, tiendaId, codigo, ahora) : null;
+  const promo = codigo ? buscarCodigoPromo(promos, tiendaId, codigo, ctx, ahora) : null;
   return { items, subtotal, promo, total: subtotal - descuentoDeCodigo(promo, subtotal) };
 }
 
@@ -322,7 +316,7 @@ function clienteDeLaTienda(db: DB, tiendaId: string, id: string): Cliente {
 }
 
 export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora));
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora), { pedidos: db.pedidos });
   const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);
@@ -383,7 +377,7 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
     };
   }
 
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora));
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual });
   if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);

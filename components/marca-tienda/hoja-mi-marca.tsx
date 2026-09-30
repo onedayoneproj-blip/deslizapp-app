@@ -40,7 +40,7 @@ export function HojaMiMarca({ abierta, alCerrar }: { abierta: boolean; alCerrar:
 
 /** Promo de ejemplo para la vista previa (la primera activa de la tienda, o una inventada). */
 function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
-  const activa = promos?.find((p) => estadoPromo(p) === "activa");
+  const activa = promos?.find((p) => !p.pausada && estadoPromo(p) === "activa");
   if (activa) return activa;
   const hoy = new Date();
   return {
@@ -55,6 +55,8 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
     fechaInicio: hoy.toISOString(),
     fechaFin: new Date(hoy.getTime() + 7 * 86400000).toISOString(),
     estado: "activa",
+    limiteUsos: null,
+    pausada: false,
   };
 }
 

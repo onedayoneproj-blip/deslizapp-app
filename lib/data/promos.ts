@@ -24,6 +24,8 @@ export function desdeFormulario(tiendaId: string, datos: DatosPromo, id: string,
     fechaFin: datos.fin ? diaAIso(datos.fin, "fin") : null,
     // Se guarda lo que es hoy; el estado que se muestra siempre se calcula por fechas (lib/promos.ts)
     estado: Date.parse(fechaInicio) > ahora.getTime() ? "programada" : "activa",
+    limiteUsos: datos.tipo === "codigo" && datos.limite.trim() !== "" ? Number(datos.limite) : null,
+    pausada: datos.pausada,
   };
 }
 
