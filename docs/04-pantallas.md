@@ -198,6 +198,18 @@ medidor lo indican, pero la demo no se bloquea.
 No hay "Marca o línea" ni "Eliminar producto" en esta entrega (esconderlo
 con "Visible" cumple esa función sin romper el historial de pedidos).
 
+**Fila del catálogo en línea** (bajo el titular y el subtítulo, encima del medidor del plan y de los filtros; no toca
+"+ Producto"): un enlace discreto, sin caja ni subrayado, en Verde Bosque con icono a la izquierda, feedback de toque y 44 px de
+área. Con `tienda.urlCatalogo` válido (https, comprobado con `new URL`; si no, cuenta como sin enlace): icono de enlace externo y
+**"Ver mi catálogo en línea"**, que abre la hoja **"Tu catálogo en línea"** (`components/catalogo/hoja-catalogo-en-linea.tsx`). Sin
+enlace válido: icono "+" y **"Conectar mi catálogo"**, que abre Mi marca acercando el campo del enlace (se resalta un momento;
+no se enfoca, para no romper el teclado del iPhone; no hay un segundo campo). La hoja muestra el enlace (dominio destacado, truncado
+con "…") y tres acciones: **Abrir catálogo** (pestaña nueva, `rel="noopener noreferrer"`), **Copiar enlace** (aviso "Enlace copiado",
+con método de respaldo si el portapapeles falla) y **Compartir por WhatsApp** (`wa.me/?text=` con "Mira el catálogo de {tienda}:
+{enlace}"), más **Cambiar enlace** (abre Mi marca) y un pie honesto: "Por ahora tu catálogo se conecta por enlace. Pronto se
+actualizará solo con lo que cargues aquí." El enlace nunca se pinta como HTML. Lógica pura en `lib/enlace-catalogo.ts`. En la demo,
+Esencias Michel trae un enlace de ejemplo (`https://example.com/catalogo`) y Luna Bisutería no (para ver los dos casos).
+
 **Catálogo público de Esencias Michel (provisional):** página estática en `/catalogos/esencias-michel.html`
 (`public/catalogos/`; el original queda en `referencias/`), sin sesión (el matcher de `proxy.ts` excluye `/catalogos/`),
 `noindex, nofollow` y caché de 5 minutos (`next.config.ts`). Se enlaza guardando esa dirección en `tiendas.url_catalogo`. Es

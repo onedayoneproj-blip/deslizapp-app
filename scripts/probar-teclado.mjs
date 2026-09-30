@@ -279,6 +279,7 @@ try {
     await page.tap('[role="dialog"] >> text=Mi marca');
     await page.waitForSelector('[role="dialog"] [data-vista-previa]');
     await page.waitForTimeout(700);
+    await page.fill('[role="dialog"] input[placeholder="Ej: instagram.com/tutienda"]', ""); // la demo trae un enlace de ejemplo
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: instagram.com/tutienda"]', "Mi marca · Enlace del catálogo", "instagram.com/mitienda", { dentroDeHoja: true });
     await page.fill('[role="dialog"] input[aria-label="Código del color principal"]', "");
     await probarCampo(page, '[role="dialog"] input[aria-label="Código del color principal"]', "Mi marca · Código del color", "5E2750", { dentroDeHoja: true });

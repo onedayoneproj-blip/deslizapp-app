@@ -52,7 +52,7 @@ const tiendas = [
     id: T_MICHEL, slug: "esencias-michel", nombre: "Esencias Michel",
     logo_url: "/seed/tiendas/esencias-michel.svg", plan: "p20", limite_productos: 20,
     creditos_retoque: 35, creditos_retoque_mensuales: 100, creado_en: iso(REF - DIAS_MICHEL * D),
-    marca_color_principal: "#5E2750", marca_color_acento: "#E9B949", marca_estilo: "elegante", url_catalogo: null,
+    marca_color_principal: "#5E2750", marca_color_acento: "#E9B949", marca_estilo: "elegante", url_catalogo: "https://example.com/catalogo",
   },
   {
     id: T_LUNA, slug: "luna-bisuteria", nombre: "Luna Bisutería",

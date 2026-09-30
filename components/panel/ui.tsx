@@ -6,7 +6,9 @@ import { HojaMiMarca } from "../marca-tienda/hoja-mi-marca";
 import { HojaPlan } from "./hoja-plan";
 import { PantallaNovedades } from "./pantalla-novedades";
 
-type PanelUI = { abrirPlan: () => void; abrirNovedades: () => void; abrirMiMarca: () => void };
+/** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
+type CampoMarca = "enlace";
+type PanelUI = { abrirPlan: () => void; abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void };
 
 const Contexto = createContext<PanelUI | null>(null);
 
@@ -38,6 +40,7 @@ function novedadesPendientes(): Novedad[] {
 export function PanelUIProvider({ children }: { children: ReactNode }) {
   const [planAbierto, setPlanAbierto] = useState(false);
   const [marcaAbierta, setMarcaAbierta] = useState(false);
+  const [campoMarca, setCampoMarca] = useState<CampoMarca | undefined>(undefined);
   // Este proveedor solo se monta en el navegador (dentro de DataProvider), así que puede leer localStorage.
   const [novedades, setNovedades] = useState<Novedad[]>(novedadesPendientes);
 
@@ -54,7 +57,10 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
   const cerrarPlan = useCallback(() => setPlanAbierto(false), []);
   const abrirNovedades = useCallback(() => setNovedades(NOVEDADES.slice(0, 1)), []);
   const cerrarNovedades = useCallback(() => setNovedades([]), []);
-  const abrirMiMarca = useCallback(() => setMarcaAbierta(true), []);
+  const abrirMiMarca = useCallback((campo?: CampoMarca) => {
+    setCampoMarca(campo);
+    setMarcaAbierta(true);
+  }, []);
   const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
   const valor = useMemo(() => ({ abrirPlan, abrirNovedades, abrirMiMarca }), [abrirPlan, abrirNovedades, abrirMiMarca]);
 
@@ -62,7 +68,7 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     <Contexto.Provider value={valor}>
       {children}
       <HojaPlan abierta={planAbierto} alCerrar={cerrarPlan} />
-      <HojaMiMarca abierta={marcaAbierta} alCerrar={cerrarMiMarca} />
+      <HojaMiMarca abierta={marcaAbierta} alCerrar={cerrarMiMarca} campo={campoMarca} />
       {novedades.length > 0 && <PantallaNovedades novedades={novedades} alCerrar={cerrarNovedades} />}
     </Contexto.Provider>
   );

@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.19.0",
+    fecha: "2026-09-30",
+    titulo: "Tu catálogo en línea, a un toque.",
+    cambios: [
+      "En Catálogo, «Ver mi catálogo en línea»: ábrelo, copia el enlace o compártelo por WhatsApp.",
+      "¿Aún no lo conectas? «Conectar mi catálogo» te lleva a Mi marca.",
+    ],
+  },
+  {
     version: "0.18.0",
     fecha: "2026-09-30",
     titulo: "Tus cupones, como cupones.",

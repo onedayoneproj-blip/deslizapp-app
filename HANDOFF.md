@@ -77,6 +77,13 @@ Un solo componente, `components/promos/ticket-promo.tsx`, con dos tamaños: norm
 compacto (selector de cupón de pedidos, `selector-descuento.tsx`). Colores y forma salen de ahí: no se duplica el ticket.
 Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cupón" o ticket compacto con Cambiar / Quitar).
 
+## Catálogo en línea (enlace)
+
+`tiendas.url_catalogo` (Mi marca) se usa en la pestaña Catálogo: fila "Ver mi catálogo en línea" / "Conectar mi catálogo" y la hoja
+`components/catalogo/hoja-catalogo-en-linea.tsx` (abrir, copiar, WhatsApp). El enlace se valida con `lib/enlace-catalogo.ts` (solo
+https) y nunca se pinta como HTML. El catálogo todavía no se alimenta solo de los productos del panel: se conecta por enlace. El
+de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
+
 ## Hojas inferiores
 
 Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colección) se usa

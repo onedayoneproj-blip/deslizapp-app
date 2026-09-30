@@ -28,12 +28,12 @@ import { CuponTienda, marcaDeTienda } from "./cupon-tienda";
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];
 
 /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo de la tienda activa. */
-export function HojaMiMarca({ abierta, alCerrar }: { abierta: boolean; alCerrar: () => void }) {
+export function HojaMiMarca({ abierta, alCerrar, campo }: { abierta: boolean; alCerrar: () => void; campo?: "enlace" }) {
   const { tienda } = useTiendaActiva();
   // "grande": tiene campos (enlace, colores) y la hoja no cambia de tamaño con el teclado (HANDOFF.md)
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Mi marca" altura="grande">
-      {tienda && <Formulario key={tienda.id} tienda={tienda} alTerminar={alCerrar} />}
+      {tienda && <Formulario key={`${tienda.id}:${campo ?? ""}`} tienda={tienda} alTerminar={alCerrar} mostrarEnlace={campo === "enlace"} />}
     </Hoja>
   );
 }
@@ -60,7 +60,7 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
   };
 }
 
-function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => void }) {
+function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alTerminar: () => void; mostrarEnlace: boolean }) {
   const { actualizarMarca, getPromos, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
@@ -72,6 +72,16 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
   const [combos, setCombos] = useState<Marca[]>([]);
   const [url, setUrl] = useState(tienda.urlCatalogo ?? "");
   const [urlTocada, setUrlTocada] = useState(false);
+  // Viniendo de "Conectar mi catálogo" / "Cambiar enlace": el campo se acerca a la vista y se resalta un momento. No se enfoca
+  // (el teclado del iPhone solo abre bien si el foco sale de un toque; HANDOFF.md): la persona toca el campo y escribe.
+  const campoEnlace = useRef<HTMLLabelElement>(null);
+  const [resaltar, setResaltar] = useState(mostrarEnlace);
+  useEffect(() => {
+    if (!mostrarEnlace) return;
+    campoEnlace.current?.scrollIntoView({ block: "center" });
+    const t = setTimeout(() => setResaltar(false), 1600);
+    return () => clearTimeout(t);
+  }, [mostrarEnlace]);
   const [procesando, setProcesando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const entradaLogo = useRef<HTMLInputElement>(null);
@@ -244,7 +254,7 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
       </div>
 
       {/* Enlace */}
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
+      <label ref={campoEnlace} className="flex flex-col gap-1.5 text-[13.5px] font-bold">
         <span>
           Enlace de tu catálogo <span className="font-semibold text-suave">(opcional)</span>
         </span>
@@ -258,7 +268,7 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
           autoCapitalize="none"
           autoComplete="off"
           aria-invalid={(urlTocada && urlMala) || undefined}
-          className={`h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] bg-white px-3.5 text-base font-normal text-bosque outline-none focus:border-bosque ${urlTocada && urlMala ? "border-[#b4432a]" : "border-borde"}`}
+          className={`h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] bg-white px-3.5 text-base font-normal text-bosque outline-none focus:border-bosque ${urlTocada && urlMala ? "border-[#b4432a]" : resaltar ? "border-mandarina" : "border-borde"}`}
         />
         {urlTocada && urlMala && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese enlace no se ve bien. Ej: tutienda.com o instagram.com/tutienda</span>}
       </label>

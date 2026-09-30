@@ -82,6 +82,20 @@ export const IconoBuscar = (p: Props) => (
   </Icono>
 );
 
+export const IconoEnlaceExterno = (p: Props) => (
+  <Icono {...p}>
+    <path d="M14 4h6v6M20 4l-9 9" />
+    <path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" />
+  </Icono>
+);
+
+export const IconoCopiar = (p: Props) => (
+  <Icono {...p}>
+    <rect x="9" y="9" width="11" height="11" rx="2.5" />
+    <path d="M15 9V6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15H9" />
+  </Icono>
+);
+
 export const IconoMas = (p: Props) => (
   <Icono strokeWidth={2.6} {...p}>
     <path d="M12 5v14M5 12h14" />
