@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { mensajeDeError } from "@/lib/data/errores";
 import { PromoInvalida } from "@/lib/data/promos";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, rangoFechas } from "@/lib/formato";
@@ -188,7 +189,7 @@ function Formulario({
       else toast("Promo guardada. Como ya venció, quedó en Terminadas.");
       alTerminar();
     } catch (e) {
-      toast(e instanceof PromoInvalida ? "Revisa los campos marcados." : "No se pudo guardar. Inténtalo otra vez.");
+      toast(e instanceof PromoInvalida ? e.message : mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };
@@ -201,8 +202,8 @@ function Formulario({
       elegirPestana("terminada");
       toast("Promo terminada. Los precios vuelven a la normalidad.");
       alTerminar();
-    } catch {
-      toast("No se pudo terminar. Inténtalo otra vez.");
+    } catch (e) {
+      toast(mensajeDeError(e, "No se pudo terminar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };

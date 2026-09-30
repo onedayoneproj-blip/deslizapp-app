@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { useTiendaActiva } from "@/lib/data/consulta";
+import { useData } from "@/lib/data/provider";
 import { Esqueleto } from "../esqueleto";
 import { IconoChevronAbajo, IconoCreditos } from "../iconos";
 import { Numero } from "../numero";
@@ -16,6 +17,8 @@ import { usePanelUI } from "./ui";
  */
 export function Encabezado() {
   const { tienda } = useTiendaActiva();
+  // En la demo el menú cambia de tienda; en modo real es el menú de tu tienda (Ajustes).
+  const accion = useData().modo === "demo" ? "Cambiar de tienda" : "Menú de la tienda";
   const { abrirPlan } = usePanelUI();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
@@ -29,7 +32,7 @@ export function Encabezado() {
           aria-haspopup="dialog"
           aria-expanded={menuAbierto}
           // Nombre accesible = el texto visible (nombre y plan) y después la acción, con comas: WCAG 2.5.3 (etiqueta en el nombre)
-          aria-label={tienda ? `${tienda.nombre},${NOMBRE_PLAN[tienda.plan]} · deslizapp. Cambiar de tienda` : "Cambiar de tienda"}
+          aria-label={tienda ? `${tienda.nombre},${NOMBRE_PLAN[tienda.plan]} · deslizapp. ${accion}` : accion}
           className="flex min-h-11 min-w-0 items-center gap-2.5 text-left"
         >
           {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />}

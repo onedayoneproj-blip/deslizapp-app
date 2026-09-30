@@ -154,3 +154,22 @@ todas las cifras.
 - Confirmar que cambiar de tienda de prueba (paso 3) no mezcla datos entre
   tiendas en ninguna pantalla
 - Confirmar que los estados vacíos tienen el tono de marca, no texto genérico
+
+## 11. Conectar Supabase (modo real) — ✅ hecho
+
+- La base ya existe (`supabase/migrations/` es el contrato; no se modifica desde la app).
+- Una **interfaz única** de datos (`lib/data/fuente.ts`) con dos implementaciones: demo (`demo.ts`) y
+  Supabase (`supabase.ts`). La conversión snake_case ↔ camelCase vive solo en `lib/data/filas.ts`.
+- Lo que decide la base no se duplica: número de pedido, `pedidos_count`, `likes`, despacho (RPC
+  `despachar_pedido`) y créditos (RPC `gastar_creditos`). Sus errores se muestran en español claro
+  (`lib/data/errores.ts`, tabla en `03-modelo-de-datos.md`).
+- Pantalla de entrada: "Entrar con Google" / "Ver demo" (se recuerda el modo). "Cerrar sesión" / "Salir de
+  la demo" en el menú de la tienda; el selector de tiendas y las acciones de prueba solo en demo. Cuenta sin
+  fila en `usuarios`: "Tu cuenta aún no está activada. Escríbenos y la activamos".
+- Sin conexión: esqueletos + aviso arriba con "Reintentar". Fotos: siguen como data URL (Storage marcado).
+- Pruebas: `tests/datos.test.mjs` (conversión de nombres, errores de las RPC, elección de modo), sin tocar
+  la base real.
+
+**Listo cuando:** con las variables puestas, una cuenta de Google con fila en `usuarios` entra a su tienda y
+ve solo sus datos; despachar sin stock dice "No hay stock suficiente de …"; sin variables (o en "Ver demo") la
+app funciona igual que antes.

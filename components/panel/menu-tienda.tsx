@@ -14,11 +14,12 @@ import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
 
 /**
- * Menú de la tienda: selector de tienda activa + acciones de la demo.
- * Mientras no hay login real, aquí se "cambia de sesión".
+ * Menú de la tienda (hace de Ajustes): Mi marca, novedades y cerrar sesión.
+ * En la demo, además, el selector de tienda activa y las acciones de prueba.
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, reiniciarDemo } = useData();
+  const { modo, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, reiniciarDemo, salir } = useData();
+  const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const toast = useToast();
   const { abrirNovedades, abrirMiMarca } = usePanelUI();
@@ -57,33 +58,35 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   };
 
   return (
-    <Hoja abierta={abierto} alCerrar={cerrar} titulo="Tus tiendas" altura="auto">
-      <ul className="space-y-2">
-        {tiendas?.map((t) => {
-          const activa = t.id === tiendaActivaId;
-          return (
-            <li key={t.id}>
-              <button
-                type="button"
-                onClick={() => elegirTienda(t.id)}
-                aria-pressed={activa}
-                className={`flex w-full items-center gap-3 rounded-[18px] border-[1.5px] px-3 py-2.5 text-left ${
-                  activa ? "border-bosque bg-white" : "border-borde bg-white/60 hover:border-bosque/40"
-                }`}
-              >
-                <LogoTienda tienda={t} tamano={40} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-extrabold">{t.nombre}</span>
-                  <span className="block text-[13px] text-suave">
-                    {NOMBRE_PLAN[t.plan]} · {t.creditosRetoque} créditos
+    <Hoja abierta={abierto} alCerrar={cerrar} titulo={demo ? "Tus tiendas" : "Tu tienda"} altura="auto">
+      {demo && (
+        <ul className="space-y-2">
+          {tiendas?.map((t) => {
+            const activa = t.id === tiendaActivaId;
+            return (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  onClick={() => elegirTienda(t.id)}
+                  aria-pressed={activa}
+                  className={`flex w-full items-center gap-3 rounded-[18px] border-[1.5px] px-3 py-2.5 text-left ${
+                    activa ? "border-bosque bg-white" : "border-borde bg-white/60 hover:border-bosque/40"
+                  }`}
+                >
+                  <LogoTienda tienda={t} tamano={40} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-extrabold">{t.nombre}</span>
+                    <span className="block text-[13px] text-suave">
+                      {NOMBRE_PLAN[t.plan]} · {t.creditosRetoque} créditos
+                    </span>
                   </span>
-                </span>
-                {activa && <IconoCheck tamano={20} className="text-bosque" />}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  {activa && <IconoCheck tamano={20} className="text-bosque" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <button
         type="button"
@@ -91,7 +94,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           cerrar();
           abrirMiMarca();
         }}
-        className="tocable mt-3 flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left"
+        className={`tocable flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left ${demo ? "mt-3" : ""}`}
       >
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rosa text-lg">✦</span>
         <span className="min-w-0 flex-1">
@@ -100,34 +103,49 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         </span>
       </button>
 
-      <div className="mt-6 flex items-baseline gap-2">
-        <h2 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h2>
-        <span className="font-mano text-lg text-mandarina-texto">nadie se entera</span>
-      </div>
-      <div className="mt-2 divide-y divide-linea overflow-hidden rounded-3xl border border-linea bg-white">
-        <AccionDemo
-          icono={<IconoPedidos tamano={20} />}
-          titulo="Simular pedido del catálogo"
-          detalle="Entra un pedido nuevo con productos al azar."
-          onClick={simular}
-        />
-        <AccionDemo
-          icono={<IconoReiniciar tamano={20} />}
-          titulo={confirmarReinicio ? "¿Seguro? Toca otra vez para reiniciar" : "Reiniciar datos de prueba"}
-          detalle="Todo vuelve a como estaba. Como si nada."
-          onClick={reiniciar}
-          alerta={confirmarReinicio}
-        />
-        <Link href="/prueba" onClick={cerrar} className="flex items-center gap-3 px-4 py-3 text-left hover:bg-menta/40">
-          <span className="text-bosque">
-            <IconoMatraz tamano={20} />
-          </span>
-          <span>
-            <span className="block text-sm font-extrabold">Laboratorio de datos</span>
-            <span className="block text-xs text-suave">Para comprobar que cada tienda ve solo lo suyo.</span>
-          </span>
-        </Link>
-      </div>
+      {demo && (
+        <>
+          <div className="mt-6 flex items-baseline gap-2">
+            <h2 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h2>
+            <span className="font-mano text-lg text-mandarina-texto">nadie se entera</span>
+          </div>
+          <div className="mt-2 divide-y divide-linea overflow-hidden rounded-3xl border border-linea bg-white">
+            <AccionDemo
+              icono={<IconoPedidos tamano={20} />}
+              titulo="Simular pedido del catálogo"
+              detalle="Entra un pedido nuevo con productos al azar."
+              onClick={simular}
+            />
+            <AccionDemo
+              icono={<IconoReiniciar tamano={20} />}
+              titulo={confirmarReinicio ? "¿Seguro? Toca otra vez para reiniciar" : "Reiniciar datos de prueba"}
+              detalle="Todo vuelve a como estaba. Como si nada."
+              onClick={reiniciar}
+              alerta={confirmarReinicio}
+            />
+            <Link href="/prueba" onClick={cerrar} className="flex items-center gap-3 px-4 py-3 text-left hover:bg-menta/40">
+              <span className="text-bosque">
+                <IconoMatraz tamano={20} />
+              </span>
+              <span>
+                <span className="block text-sm font-extrabold">Laboratorio de datos</span>
+                <span className="block text-xs text-suave">Para comprobar que cada tienda ve solo lo suyo.</span>
+              </span>
+            </Link>
+          </div>
+        </>
+      )}
+
+      <button
+        type="button"
+        onClick={() => {
+          cerrar();
+          void salir();
+        }}
+        className="tocable mt-5 flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-borde bg-white px-5 text-[15px] font-extrabold text-bosque"
+      >
+        {demo ? "Salir de la demo" : "Cerrar sesión"}
+      </button>
 
       <div className="mt-5 flex items-center justify-between gap-3 px-1 text-[13px] text-suave">
         <span>

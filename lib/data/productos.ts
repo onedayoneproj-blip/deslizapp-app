@@ -1,39 +1,5 @@
 import type { CambiosProducto, NuevoProducto, Producto } from "../types";
-import type { AjusteFecha, DB } from "./db";
-
-export type FilaProducto = {
-  id: string;
-  tienda_id: string;
-  nombre: string;
-  precio: number;
-  fotos: string[];
-  foto_retocada: boolean;
-  categoria: string | null;
-  activo: boolean;
-  destacado: boolean;
-  stock: number | null;
-  likes: number;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export function aProducto(f: FilaProducto, fecha: AjusteFecha): Producto {
-  return {
-    id: f.id,
-    tiendaId: f.tienda_id,
-    nombre: f.nombre,
-    precio: f.precio,
-    fotos: f.fotos,
-    fotoRetocada: f.foto_retocada,
-    categoria: f.categoria,
-    activo: f.activo,
-    destacado: f.destacado,
-    stock: f.stock,
-    likes: f.likes,
-    creadoEn: fecha(f.creado_en),
-    actualizadoEn: fecha(f.actualizado_en),
-  };
-}
+import type { DB } from "./db";
 
 /** Productos de una tienda, del más nuevo al más viejo. */
 export function productosDeTienda(db: DB, tiendaId: string): Producto[] {

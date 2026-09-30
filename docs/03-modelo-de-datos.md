@@ -1,9 +1,9 @@
 # Modelo de datos
 
-Estas tablas están diseñadas ya con la forma que tendrán en Supabase
-(Postgres). Hoy se implementan como datos de prueba (ver
-`05-arquitectura.md`), pero los nombres de campos, tipos y relaciones son
-finales — no deberían cambiar cuando se conecte Supabase.
+Estas tablas existen en Supabase (Postgres). **El contrato es el SQL de
+`supabase/migrations/`: si este documento y el SQL difieren, manda el SQL.**
+La demo (datos de prueba en el navegador, ver `05-arquitectura.md`) usa la
+misma forma.
 
 Todas las tablas que pertenecen a una tienda llevan `tienda_id` — es la clave
 de aislamiento multi-tenant. Ninguna consulta debe cruzar tiendas.
@@ -60,7 +60,7 @@ tabla de prueba con un solo usuario "activo".
 | `activo` | boolean | si aparece en el catálogo público |
 | `destacado` | boolean | |
 | `stock` | number \| null | `null` = stock ilimitado/no controlado |
-| `likes` | number | viene del catálogo público (❤ en los mockups) |
+| `likes` | number | viene del catálogo público (❤ en los mockups). **Lo mantiene la base** desde `eventos_aaah` (trigger); la app solo lo lee |
 | `creado_en` / `actualizado_en` | datetime | |
 
 ## `pedidos`
@@ -69,7 +69,7 @@ tabla de prueba con un solo usuario "activo".
 |---|---|---|
 | `id` | uuid | PK |
 | `tienda_id` | uuid → `tiendas.id` | |
-| `numero` | number | número visible del pedido ("#1042"). **Autoincremental por tienda**: cada tienda lleva su propia cuenta (el siguiente es el mayor de la tienda + 1; si no tiene pedidos, 1001). Único por (`tienda_id`, `numero`). En Supabase: secuencia o trigger por tienda |
+| `numero` | number | número visible del pedido ("#1042"). **Autoincremental por tienda**: cada tienda lleva su propia cuenta (el siguiente es el mayor de la tienda + 1; si no tiene pedidos, 1001). Único por (`tienda_id`, `numero`). **Lo asigna la base** (trigger `pedidos_numero`): la app nunca lo envía |
 | `cliente_id` | uuid → `clientes.id`, nullable | null si es un pedido manual sin cliente identificado |
 | `origen` | `'catalogo' \| 'manual'` | de dónde llegó |
 | `estado` | `'nuevo' \| 'por_despachar' \| 'despachado' \| 'cancelado'` | ver mapeo abajo |
@@ -109,11 +109,11 @@ cambia después).
 | `id` | uuid | PK |
 | `tienda_id` | uuid → `tiendas.id` | |
 | `nombre` | string | |
-| `telefono` | string \| null | número de WhatsApp |
+| `telefono` | string \| null | número de WhatsApp, **guardado ya normalizado** (`+18095550142`). **Único por tienda** (índice `clientes_telefono_unico`) |
 | `origen` | `'catalogo' \| 'manual'` | |
 | `primer_pedido_en` | datetime | fecha del primer pedido; si todavía no pide, la fecha en que se creó |
 | `nota` | string \| null | nota libre del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. `null` si no tiene |
-| `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**; se puede recalcular o cachear |
+| `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**. Lo mantiene la base (trigger); la app solo lo lee |
 
 "Repite" en Clientes = `pedidos_count >= 2`. "Total gastado" = suma de
 `total` de sus pedidos no cancelados (se calcula, no se guarda).
@@ -126,8 +126,8 @@ cambia después).
 | `tienda_id` | uuid → `tiendas.id` | |
 | `tipo` | `'codigo' \| 'coleccion' \| 'producto'` | |
 | `nombre` | string | ej. "Semana del aaah" |
-| `valor_porcentaje` | number \| null | ej. 15 = 15%. **Todas las promos son en porcentaje** (entre 1 y 90); no hay descuento en RD$ en esta entrega |
-| `codigo` | string \| null | solo si `tipo = 'codigo'`, ej. "AAAH10" |
+| `valor_porcentaje` | number | **NOT NULL**, entre 1 y 90 (ej. 15 = 15%). Todas las promos son en porcentaje; no hay descuento en RD$ |
+| `codigo` | string \| null | solo si `tipo = 'codigo'`, ej. "AAAH10". **Siempre en MAYÚSCULAS** y único entre las promos **no terminadas** de la tienda (índice `promos_codigo_vigente`) |
 | `coleccion` | string \| null | solo si `tipo = 'coleccion'` |
 | `producto_id` | uuid \| null | solo si `tipo = 'producto'` |
 | `fecha_inicio` | datetime | |
@@ -230,6 +230,38 @@ tiendas 1──∞ promos
 tiendas 1──∞ eventos_aaah ──1 productos
 ```
 
+## Reglas que pone la base (la app no las duplica)
+
+Están en `supabase/migrations/20260929000002_reglas_de_negocio.sql` y
+`…03_seguridad_rls.sql`. La app las respeta así (`lib/data/supabase.ts`):
+
+| Regla | Cómo |
+|---|---|
+| Cada cuenta solo ve y edita **su** tienda | RLS con `mi_tienda_id()` (la tienda de la fila de `usuarios` de quien entró). Sin sesión no se ve nada |
+| Número del pedido | trigger al insertar; la app no envía `numero` |
+| `pedidos_count`, `likes` | triggers; la app no los escribe |
+| Despachar | **solo** con la RPC `despachar_pedido(p_pedido_id)`: todo o nada (revisa y descuenta el stock y marca `despachado` + `despachado_en`) |
+| Créditos de retoque | **solo** con la RPC `gastar_creditos(p_cantidad)` (devuelve el saldo nuevo). La app no puede editar `creditos_retoque` |
+| Qué edita la tienda de sí misma | solo `nombre`, `logo_url`, `marca_color_principal`, `marca_color_acento`, `marca_estilo`, `url_catalogo` (permiso por columna). Plan, límite y créditos los cambia Deslizapp |
+| `url_catalogo` | debe empezar con `https://` |
+| Código de promo | MAYÚSCULAS y único entre promos no terminadas. Antes de guardar una promo de código, la app marca como `terminada` las que ya vencieron por fecha, para que el índice coincida con lo que ve el dueño |
+| Teléfono del cliente | normalizado y único por tienda |
+| `usuarios` | la crea Deslizapp a mano (una cuenta de Google = una tienda); la app solo la lee |
+
+Errores de las RPC y de las reglas → mensaje claro (`lib/data/errores.ts`):
+
+| Error de la base | Lo que ve el dueño |
+|---|---|
+| `stock_insuficiente: <producto>` | "No hay stock suficiente de <producto>." |
+| `pedido_no_encontrado` | "Ese pedido ya no existe en tu tienda." |
+| `pedido_no_despachable` | "Ese pedido ya no está por despachar. Actualiza la lista." |
+| `creditos_insuficientes` | "Te faltan créditos para retocar. Se recargan el día 1." |
+| `cantidad_invalida` | "La cantidad de créditos no es válida." |
+| único `promos_codigo_vigente` | "Ya tienes ese código en una promo activa o programada." |
+| único `clientes_telefono_unico` | "<Nombre> ya está en tus clientes con ese WhatsApp." (la app busca a ese cliente) |
+| check de `url_catalogo` | "El enlace del catálogo debe empezar con https://." |
+| sin permiso / sesión vencida / sin conexión | mensajes propios, con "Reintentar" en las lecturas |
+
 ## Reglas de negocio de stock
 
 - El stock se descuenta **al despachar**, no cuando entra el pedido (así lo
@@ -250,8 +282,8 @@ créditos**. Eso da un saldo mensual de **100 créditos** (`creditos_retoque_men
 están repartidos por el código.
 
 Los créditos no usados **no se acumulan**: se recargan a 100 el día 1 de cada
-mes. En esta entrega solo se muestra el saldo (la recarga automática mensual
-llega con Supabase).
+mes. El panel solo muestra el saldo y gasta con la RPC `gastar_creditos`; la
+recarga mensual automática todavía no está programada en la base.
 
 **No se venden paquetes de créditos ni se cobra nada desde el panel** (los
 paquetes del prototipo eran de muestra). Si una tienda necesita más créditos
@@ -277,4 +309,4 @@ la genera `historia()` en el script; los pedidos #1033–#1042 de Michel y
 se recalcula igual al número de `eventos_aaah` de cada producto. "Reiniciar
 datos de prueba" (menú de la tienda) vuelve a cargar el seed con la historia.
 Si cambia la forma de los datos, subir la versión de la clave de
-`localStorage` en `lib/data/provider.tsx`.
+`localStorage` en `lib/data/demo.ts`.

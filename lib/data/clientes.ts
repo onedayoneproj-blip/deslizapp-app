@@ -1,29 +1,9 @@
 import { normalizarTelefonoDO } from "../telefono";
-import type { Cliente, ClienteConResumen, OrigenPedido } from "../types";
-import type { AjusteFecha, DB } from "./db";
+import type { Cliente, ClienteConResumen } from "../types";
+import type { DB } from "./db";
+import { ClienteDuplicado } from "./errores";
 
-export type FilaCliente = {
-  id: string;
-  tienda_id: string;
-  nombre: string;
-  telefono: string | null;
-  origen: string;
-  primer_pedido_en: string;
-  pedidos_count: number;
-  nota: string | null;
-};
-
-export function aCliente(f: FilaCliente, fecha: AjusteFecha): Cliente {
-  return {
-    id: f.id,
-    tiendaId: f.tienda_id,
-    nombre: f.nombre,
-    telefono: f.telefono,
-    origen: f.origen as OrigenPedido,
-    primerPedidoEn: fecha(f.primer_pedido_en),
-    nota: f.nota,
-  };
-}
+export { ClienteDuplicado };
 
 function conResumen(db: DB, cliente: Cliente): ClienteConResumen {
   const pedidos = db.pedidos.filter((p) => p.clienteId === cliente.id && p.tiendaId === cliente.tiendaId && p.estado !== "cancelado");
@@ -54,13 +34,6 @@ export function clientePorTelefono(db: DB, tiendaId: string, telefono: string | 
   const buscado = telefono ? normalizarTelefonoDO(telefono) ?? telefono : null;
   if (!buscado) return null;
   return db.clientes.find((c) => c.tiendaId === tiendaId && c.telefono && (normalizarTelefonoDO(c.telefono) ?? c.telefono) === buscado) ?? null;
-}
-
-/** Ya hay un cliente con ese WhatsApp en la tienda. */
-export class ClienteDuplicado extends Error {
-  constructor(public existente: Cliente) {
-    super(`${existente.nombre} ya está en tus clientes con ese WhatsApp.`);
-  }
 }
 
 export const MAX_NOTA = 200;

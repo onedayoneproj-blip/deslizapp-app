@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.12.0",
+    fecha: "2026-09-30",
+    titulo: "Tu tienda de verdad, con tu cuenta de Google.",
+    cambios: [
+      "Al abrir la app eliges: «Entrar con Google» para tu tienda real, o «Ver demo» para jugar con datos de prueba.",
+      "En el menú de tu tienda está «Cerrar sesión» (o «Salir de la demo»).",
+      "Si se cae el internet te avisamos arriba, con «Reintentar».",
+    ],
+  },
+  {
     version: "0.11.2",
     fecha: "2026-09-29",
     titulo: "Listas largas, sin cansancio.",

@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import { buscarClientes, recientes } from "@/lib/buscar-clientes";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { ClienteDuplicado } from "@/lib/data/clientes";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearTelefono, normalizarTelefonoDO, pareceTelefono, resaltarTelefono } from "@/lib/telefono";
 import { resaltar } from "@/lib/texto";
@@ -147,7 +148,7 @@ function FormularioNuevo({
       alElegir({ id: c.id, nombre: c.nombre, telefono: c.telefono });
     } catch (error) {
       if (error instanceof ClienteDuplicado) setDuplicado({ id: error.existente.id, nombre: error.existente.nombre, telefono: error.existente.telefono });
-      else toast("No se pudo guardar. Inténtalo otra vez.");
+      else toast(mensajeDeError(error, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };

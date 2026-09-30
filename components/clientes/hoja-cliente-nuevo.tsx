@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { ClienteDuplicado } from "@/lib/data/clientes";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
@@ -51,7 +52,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
       alTerminar();
     } catch (error) {
       if (error instanceof ClienteDuplicado) setDuplicado(error.existente);
-      else toast("No se pudo guardar. Inténtalo otra vez.");
+      else toast(mensajeDeError(error, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };

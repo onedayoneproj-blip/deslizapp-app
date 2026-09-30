@@ -108,17 +108,19 @@ ahí está la documentación exacta de esta versión instalada.
   (lista, detalle, despacho con stock y pedido manual), Clientes (derivados de los pedidos), Promos (estado por fechas, compartir), Mi marca (logo, colores y letra de los cupones), Resumen (Inicio, con cálculos en `lib/resumen.ts`) y app instalable con novedades. El avance paso a paso está en `docs/06-orden-de-construccion.md`.
 - **Primera entrega cerrada** (pasos 0–10 de `docs/06-orden-de-construccion.md`). El repaso final, con lo que
   se probó, lo que se corrigió y lo pendiente, está en `docs/08-repaso-final.md`.
-- No hay Supabase conectado todavía (ver `docs/05-arquitectura.md` para el porqué
-  y el cuándo, y `docs/07-fase-2-cuentas-y-cobros.md` para lo que viene después).
+- **Supabase conectado (paso 11)**: dos modos detrás de la misma interfaz de datos — **demo** (seed +
+  `localStorage`, sin login) y **real** (Supabase con Google; una cuenta = una tienda vía `usuarios`). El esquema
+  vive en `supabase/migrations/` (manda sobre los docs). Cómo está armado: `docs/05-arquitectura.md`; reglas que
+  pone la base y errores: `docs/03-modelo-de-datos.md`. Variables: `.env.example` (solo la llave publicable;
+  nunca una secreta ni `service_role`).
 
 ### Lo que sigue (en este orden)
 
-1. **Supabase**: tablas y políticas RLS por `tienda_id` (`docs/03`), y cambiar `lib/data/` por consultas reales
-   con la misma forma (`docs/05`). El Resumen ya solo pide rangos y cifras a `lib/resumen.ts`: sus pruebas
-   (`npm test`) son el contrato de las consultas agregadas. Al conectarlo, el seed (~900 KB dentro del código
-   que descarga la app) sale del cliente.
-2. **Cuentas y sesión** (Google, verificación de Instagram, zona de administración, cobros manuales):
-   `docs/07-fase-2-cuentas-y-cobros.md`. Hoy la "tienda activa" la elige el selector de la demo.
+1. **Terminar Supabase**: fotos y logos a Storage (marcado en `lib/data/supabase.ts`), recarga mensual de
+   créditos en la base, y el Resumen con consultas agregadas cuando el historial crezca (sus pruebas, `npm test`,
+   son el contrato). El seed (~900 KB) sigue dentro del código de la app por la demo: se puede cargar bajo demanda.
+2. **Cuentas** (verificación de Instagram, zona de administración para crear tiendas y filas de `usuarios`,
+   cobros manuales): `docs/07-fase-2-cuentas-y-cobros.md`. Hoy las filas de `usuarios` se crean a mano en Supabase.
 3. **Fotos reales**: subir a Storage (hoy son data URLs en el navegador) y el retoque de fotos con IA de verdad
    (hoy es un efecto de demostración) con su descuento de créditos en el servidor.
 4. **Catálogo público integrado**: el HTML independiente pasa a leer la marca (`marca_*`, `url_catalogo`) y las
@@ -145,7 +147,7 @@ la app, ver su catálogo, recibir y despachar un pedido, crear una promo y ver
 su resumen semanal — todo con datos falsos pero con la sensación de producto
 terminado.
 
-Supabase, autenticación real con Google, y el catálogo público integrado
-quedan fuera de esta entrega (están detallados como próximos pasos en
+El catálogo público integrado queda fuera de esta entrega (Supabase y el
+acceso con Google llegaron en el paso 11) (están detallados como próximos pasos en
 `docs/05-arquitectura.md` y `docs/06-orden-de-construccion.md`, para que quien
 retome sepa exactamente qué sigue).

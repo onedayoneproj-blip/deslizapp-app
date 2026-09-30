@@ -3,12 +3,25 @@
 
 import { MARCA_NEUTRA } from "../marca";
 import type { Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
-import { aCliente, type FilaCliente } from "./clientes";
-import { aPedido, aPedidoItem, type FilaPedido, type FilaPedidoItem } from "./pedidos";
-import { aProducto, type FilaProducto } from "./productos";
-import { aPromo, type FilaPromo } from "./promos";
-import { aEventoAaah, type FilaEventoAaah } from "./resumen";
-import { aTienda, aUsuario, type FilaTienda, type FilaUsuario } from "./tiendas";
+import {
+  aCliente,
+  aEventoAaah,
+  aPedido,
+  aPedidoItem,
+  aProducto,
+  aPromo,
+  aTienda,
+  aUsuario,
+  type AjusteFecha,
+  type FilaCliente,
+  type FilaEventoAaah,
+  type FilaPedido,
+  type FilaPedidoItem,
+  type FilaProducto,
+  type FilaPromo,
+  type FilaTienda,
+  type FilaUsuario,
+} from "./filas";
 
 import seedClientes from "./seed/clientes.json";
 import seedEventos from "./seed/eventos_aaah.json";
@@ -30,9 +43,6 @@ export type DB = {
   promos: Promo[];
   eventosAaah: EventoAaah[];
 };
-
-/** Corrige una fecha del seed para que la demo siempre se sienta "de esta semana". */
-export type AjusteFecha = (iso: string) => string;
 
 /**
  * Arma la base de la demo desde lib/data/seed/*.json.

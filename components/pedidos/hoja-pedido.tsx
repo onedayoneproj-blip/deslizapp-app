@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { StockInsuficiente } from "@/lib/data/pedidos";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
@@ -79,7 +79,7 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
     try {
       await accion();
     } catch (error) {
-      toast(error instanceof StockInsuficiente ? `No alcanza el stock de ${error.producto}.` : "No se pudo. Inténtalo otra vez.");
+      toast(mensajeDeError(error, "No se pudo. Inténtalo otra vez."));
     } finally {
       setOcupado(false);
     }

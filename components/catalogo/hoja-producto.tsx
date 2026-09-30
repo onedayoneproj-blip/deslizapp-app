@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { CREDITOS_POR_RETOQUE, RETOQUE_REAL } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { CreditosInsuficientes, mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Producto } from "@/lib/types";
@@ -156,8 +157,8 @@ function FormularioProducto({
     if (usarRetoque) {
       try {
         await usarCreditosRetoque(tiendaId, 1);
-      } catch {
-        toast("Te faltan créditos para retocar. Se recargan el día 1.");
+      } catch (e) {
+        toast(e instanceof CreditosInsuficientes ? "Te faltan créditos para retocar. Se recargan el día 1." : mensajeDeError(e));
         setRetocar(false);
         setGuardando(false);
         return;
@@ -183,8 +184,8 @@ function FormularioProducto({
         );
       }
       alTerminar();
-    } catch {
-      toast("No se pudo guardar. Inténtalo otra vez.");
+    } catch (e) {
+      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };

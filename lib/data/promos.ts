@@ -1,49 +1,15 @@
-import { diaAIso, validarPromo, type DatosPromo, type ErroresPromo } from "../promos";
-import type { EstadoPromo, Promo, TipoPromo } from "../types";
-import type { AjusteFecha, DB } from "./db";
+import { diaAIso, validarPromo, type DatosPromo } from "../promos";
+import type { Promo } from "../types";
+import type { DB } from "./db";
+import { PromoInvalida } from "./errores";
 
-export type FilaPromo = {
-  id: string;
-  tienda_id: string;
-  tipo: string;
-  nombre: string;
-  valor_porcentaje: number | null;
-  codigo: string | null;
-  coleccion: string | null;
-  producto_id: string | null;
-  fecha_inicio: string;
-  fecha_fin: string | null;
-  estado: string;
-};
-
-export function aPromo(f: FilaPromo, fecha: AjusteFecha): Promo {
-  return {
-    id: f.id,
-    tiendaId: f.tienda_id,
-    tipo: f.tipo as TipoPromo,
-    nombre: f.nombre,
-    valorPorcentaje: f.valor_porcentaje,
-    codigo: f.codigo,
-    coleccion: f.coleccion,
-    productoId: f.producto_id,
-    fechaInicio: fecha(f.fecha_inicio),
-    fechaFin: f.fecha_fin == null ? null : fecha(f.fecha_fin),
-    estado: f.estado as EstadoPromo,
-  };
-}
+export { PromoInvalida };
 
 export function promosDeTienda(db: DB, tiendaId: string): Promo[] {
   return db.promos.filter((p) => p.tiendaId === tiendaId).sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio));
 }
 
-/** El formulario de la promo tiene errores (los mismos que ve el dueño). */
-export class PromoInvalida extends Error {
-  constructor(public errores: ErroresPromo) {
-    super("La promo tiene datos por corregir.");
-  }
-}
-
-function desdeFormulario(tiendaId: string, datos: DatosPromo, id: string, ahora: Date): Promo {
+export function desdeFormulario(tiendaId: string, datos: DatosPromo, id: string, ahora: Date): Promo {
   const fechaInicio = diaAIso(datos.inicio, "inicio");
   return {
     id,
@@ -80,14 +46,18 @@ export function modificarPromo(db: DB, tiendaId: string, id: string, datos: Dato
 }
 
 /** La termina el dueño: queda `terminada` guardada (no se reactiva) y, si estaba corriendo, vence ahora. */
-export function terminarPromoDeTienda(db: DB, tiendaId: string, id: string, ahora: Date) {
-  const actual = db.promos.find((p) => p.id === id && p.tiendaId === tiendaId);
-  if (!actual) throw new Error("Esa promo no es de esta tienda.");
+export function promoTerminada(actual: Promo, ahora: Date): Promo {
   const corriendo = Date.parse(actual.fechaInicio) <= ahora.getTime();
-  const promo: Promo = {
+  return {
     ...actual,
     estado: "terminada",
     fechaFin: corriendo && (actual.fechaFin === null || Date.parse(actual.fechaFin) > ahora.getTime()) ? ahora.toISOString() : actual.fechaFin,
   };
+}
+
+export function terminarPromoDeTienda(db: DB, tiendaId: string, id: string, ahora: Date) {
+  const actual = db.promos.find((p) => p.id === id && p.tiendaId === tiendaId);
+  if (!actual) throw new Error("Esa promo no es de esta tienda.");
+  const promo = promoTerminada(actual, ahora);
   return { db: { ...db, promos: db.promos.map((p) => (p.id === id ? promo : p)) }, promo };
 }

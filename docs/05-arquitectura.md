@@ -1,24 +1,49 @@
-# Arquitectura: datos de prueba hoy, Supabase después
+# Arquitectura: demo y Supabase detrás de la misma interfaz
 
 ## La idea en una frase
 
-Ninguna pantalla toca datos directamente — todas pasan por una capa de
-funciones (`lib/data/`). Hoy esas funciones leen/escriben datos de prueba.
-Cuando se conecte Supabase, se reescribe el *interior* de esas funciones para
-que hablen con la base real. Las pantallas no cambian ni una línea.
+Ninguna pantalla toca datos directamente — todas pasan por `useData()`, que
+da una **interfaz única** (`lib/data/fuente.ts`). Esa interfaz tiene **dos
+implementaciones** y la app elige cuál usar según el modo activo:
+
+| Modo | Implementación | Datos | Entrada |
+|---|---|---|---|
+| **demo** | `lib/data/demo.ts` | seed + `localStorage` del navegador | "Ver demo". Sin login; selector de tienda en el menú |
+| **real** | `lib/data/supabase.ts` | Supabase (Postgres + RLS) | "Entrar con Google". Una cuenta de Google = una tienda (tabla `usuarios`) |
 
 Esto se llama patrón *repository*: la UI depende de una interfaz estable
-("dame los productos de esta tienda"), no de dónde vienen los datos.
+("dame los productos de esta tienda"), no de dónde vienen los datos. Al
+conectar Supabase (paso 11) las pantallas no cambiaron: solo la pantalla de
+entrada, el menú de la tienda (cerrar sesión; el selector solo en demo) y los
+mensajes de error.
 
-## Por qué no usar Supabase desde ya
+## Modos, sesión y pantalla de entrada
 
-No es una limitación técnica — Supabase se puede conectar en minutos. La
-razón es de secuencia de trabajo: construir las 6 pantallas contra datos
-falsos permite validar todo el flujo visual e interacción sin esperar a tener
-el esquema de base de datos 100% definido, y sin que un cambio de idea en una
-pantalla implique una migración de base de datos. El modelo de datos de
-`03-modelo-de-datos.md` ya está pensado como si fuera Supabase — cuando se
-conecte, el cambio es mecánico, no de diseño.
+- `lib/data/modo.ts` — `elegirModo()`: el modo elegido se recuerda en
+  `localStorage` (`deslizapp-modo-v1`). Sin elección → pantalla de entrada
+  (`components/panel/pantalla-entrada.tsx`).
+- `lib/data/sesion.ts` — almacén de la sesión: `entrada | demo | cargando |
+  sin-tienda | lista | error`. `entrarConGoogle()` revisa primero que Google
+  esté activado en Supabase (si no, avisa y no sale de la app) y luego llama a
+  `signInWithOAuth({ provider: "google", redirectTo: <origen>/auth/callback })`.
+- `app/auth/callback/route.ts` — cambia el `code` por la sesión (PKCE, cookies)
+  y vuelve a `/`; si falla, a `/?error_login=1` (la entrada muestra el aviso).
+- `proxy.ts` + `lib/supabase/proxy.ts` — renuevan la sesión en cada petición
+  (guía oficial de `@supabase/ssr` para Next.js 16).
+- Sesión lista → `usuarios` (fila de quien entró) da la `tienda_id`. Sin fila:
+  "Tu cuenta aún no está activada. Escríbenos y la activamos", con "Cerrar
+  sesión".
+- `lib/data/provider.tsx` — `DataProvider` monta la fuente del modo activo. En
+  modo real, cada escritura sube `version` (las pantallas vuelven a leer) y al
+  volver a la app se leen los datos de nuevo. Si una lectura falla,
+  `useConsulta` lo avisa y `components/panel/aviso-red.tsx` muestra el mensaje
+  con "Reintentar".
+
+Variables (`.env.local`, y las mismas en Vercel; ver `.env.example`):
+`NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. **Solo la
+llave publicable**: nunca una llave secreta ni `service_role` en la app (el RLS
+protege los datos). Sin variables, la app funciona en demo y "Entrar con
+Google" avisa que no está activado.
 
 ## Dónde viven los datos de prueba: en el navegador, no en el servidor
 
@@ -51,39 +76,28 @@ Consecuencias para la implementación:
 
 ```
 app/
-  (dashboard)/
-    page.tsx             ← Resumen (pantalla de inicio, "/")
-    catalogo/page.tsx
-    catalogo/nuevo/page.tsx
-    catalogo/[id]/page.tsx
-    pedidos/page.tsx
-    pedidos/[id]/page.tsx
-    clientes/page.tsx
-    clientes/[id]/page.tsx
-    promos/page.tsx
-    promos/nueva/page.tsx
-    layout.tsx           ← DataProvider + encabezado + navegación inferior
+  (dashboard)/           ← pantallas del panel (Resumen en "/")
+    layout.tsx           ← DataProvider (+ entrada, carga y aviso de red) + encabezado + navegación
+  auth/callback/route.ts ← vuelta de Google
   layout.tsx             ← layout raíz (fuentes, tema)
+proxy.ts                 ← renueva la sesión de Supabase
 lib/
   data/
-    provider.tsx         ← DataProvider: estado + persistencia en localStorage
-    tiendas.ts
-    productos.ts
-    pedidos.ts
-    clientes.ts
-    promos.ts
-    resumen.ts
-    seed/                ← los datos de prueba en sí
-      tiendas.json
-      productos.json
-      pedidos.json
-      pedido_items.json
-      clientes.json
-      promos.json
-      eventos_aaah.json
+    fuente.ts            ← LA interfaz de datos (FuenteDatos)
+    demo.ts              ← implementación demo (almacén del navegador)
+    supabase.ts          ← implementación real (Supabase)
+    filas.ts             ← conversión fila (snake_case) ↔ app (camelCase): SOLO aquí
+    errores.ts           ← errores con mensaje claro + traducción de errores de Supabase
+    modo.ts, sesion.ts   ← modo elegido y sesión de Google
+    provider.tsx         ← DataProvider / useData()
+    consulta.ts          ← useConsulta / useTiendaActiva
+    tiendas.ts, productos.ts, pedidos.ts, clientes.ts, promos.ts, resumen.ts, db.ts
+                         ← lógica de la demo sobre su almacén (y reglas compartidas)
+    seed/                ← los datos de prueba
+  supabase/              ← clientes de Supabase (navegador, servidor, proxy) y variables
   types.ts               ← los tipos de 03-modelo-de-datos.md, en TypeScript
+supabase/migrations/     ← el esquema real (el contrato)
 components/
-  ...
 public/
   seed/                  ← fotos de los productos de prueba
 ```
@@ -96,98 +110,40 @@ navegación).
 existen `app/page.tsx` y `app/(dashboard)/page.tsx` a la vez, los dos apuntan
 a `/` y Next.js da error de compilación.
 
-## Cómo se ve `lib/data/` por dentro (hoy)
+## Cómo se ve `lib/data/` por dentro
 
-`lib/types.ts` — los tipos salen directo de `03-modelo-de-datos.md`:
-
-```ts
-export type Producto = {
-  id: string;
-  tiendaId: string;
-  nombre: string;
-  precio: number;
-  fotos: string[];
-  fotoRetocada: boolean;
-  categoria: string | null;
-  activo: boolean;
-  destacado: boolean;
-  stock: number | null;
-  likes: number;
-  creadoEn: string;
-  actualizadoEn: string;
-};
-// ... Tienda, Pedido, PedidoItem, Cliente, Promo igual que en 03-modelo-de-datos.md
-```
-
-`lib/data/provider.tsx` — el "almacén" de prueba. Arranca desde el seed, se
-guarda en `localStorage` en cada cambio y expone un objeto `db` a las
-funciones de `lib/data/` (el detalle de implementación queda a criterio de
-quien construya; lo que importa es que las pantallas nunca lo toquen
-directamente):
-
-```tsx
-'use client';
-const KEY = "deslizapp-demo-v1";
-
-function cargarInicial(): DB {
-  const guardado = localStorage.getItem(KEY);
-  return guardado ? JSON.parse(guardado) : construirDesdeSeed();
-}
-// DataProvider guarda `db` en estado de React y hace
-// localStorage.setItem(KEY, JSON.stringify(db)) después de cada cambio.
-// reiniciarDemo() hace localStorage.removeItem(KEY) y vuelve al seed.
-```
-
-`lib/data/productos.ts` — las operaciones sobre productos. Las pantallas no
-las importan sueltas: las reciben ya conectadas al almacén a través del hook
-`useData()`, con una firma que **no menciona de dónde vienen los datos**:
+Lo que ve una pantalla (en demo y en real, idéntico):
 
 ```ts
-// Lo que ve una pantalla (hoy y el día de Supabase, idéntico):
-const { getProductos, crearProducto, actualizarProducto } = useData();
+const { getProductos, crearProducto } = useData();
 const productos = await getProductos(tiendaId);
 await crearProducto(tiendaId, { nombre: "Kiara Pink", precio: 2500, /* ... */ });
 ```
 
-Por dentro, hoy (almacén del navegador):
+En la demo (`lib/data/demo.ts`) eso cambia el almacén del navegador y lo
+guarda en `localStorage`. En modo real (`lib/data/supabase.ts`):
 
 ```ts
-// dentro de DataProvider
-async function crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto> {
-  const ahora = new Date().toISOString();
-  const nuevo: Producto = { ...datos, id: crypto.randomUUID(), tiendaId, creadoEn: ahora, actualizadoEn: ahora };
-  setDb((db) => ({ ...db, productos: [...db.productos, nuevo] })); // el provider lo guarda en localStorage
-  return nuevo;
+async crearProducto(tiendaId, datos) {
+  const fotos = await subirFotos(tiendaId, datos.fotos); // AQUÍ se conecta Supabase Storage
+  const f = await requerido(supabase.from("productos").insert(filaProductoNuevo(tiendaId, { ...datos, fotos })).select("*").single(), …);
+  return cambio(aProducto(f)); // fila → app (lib/data/filas.ts) y avisa que hubo un cambio
 }
 ```
 
-Regla: ninguna pantalla importa de `seed/` ni lee `localStorage` por su
-cuenta. Todo pasa por `useData()`.
-
-## Cómo se ve el día que se conecta Supabase
-
-Solo cambia el interior de esas funciones — la firma que ven las pantallas
-se mantiene igual:
-
-```ts
-import { createClient } from "@/lib/supabase/client";
-
-async function crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("productos")
-    .insert({ tienda_id: tiendaId, ...aFila(datos) }) // camelCase de TS → snake_case de Postgres
-    .select()
-    .single();
-  if (error) throw error;
-  return aProducto(data);
-}
-```
-
-Ninguna pantalla, ningún componente, ningún formulario se toca en esta
-migración. Ese es el criterio para saber si la capa de datos está bien
-armada: si conectar Supabase implica tocar algo fuera de `lib/data/`, algo se
-diseñó mal.
+Reglas:
+- Ninguna pantalla importa de `seed/`, lee `localStorage` ni habla con
+  Supabase por su cuenta. Todo pasa por `useData()`.
+- Las filas nunca salen de `lib/data/`: la conversión vive en `filas.ts`.
+- Lo que decide la base no se repite en la app (número de pedido, contadores,
+  despacho, créditos): ver "Reglas que pone la base" en `03-modelo-de-datos.md`.
+- Los errores se lanzan como clases de `errores.ts` con el mensaje para el
+  dueño; las hojas lo muestran con `mensajeDeError()`.
+- Lecturas: PostgREST devuelve máx. 1000 filas por consulta, así que se piden
+  por tramos (`todas()`); las lecturas iguales que llegan a la vez comparten
+  la petición.
+- Fotos y logo: por ahora se guardan como data URL (igual que la demo).
+  `subirFotos` / `subirLogo` en `supabase.ts` marcan dónde se conecta Storage.
 
 ## Resumen: la interfaz solo pide rangos y cifras
 
@@ -201,22 +157,18 @@ por mes, top por unidades) que devuelvan la misma forma, sin tocar
 `components/inicio/`. Las pruebas de `tests/resumen.test.mjs` sirven de
 contrato para esas consultas.
 
-## Multi-tenant en la práctica (con datos de prueba)
+## Multi-tenant en la práctica
 
-Aunque hoy no hay login real, cada función de `lib/data/` recibe explícitamente
-un `tiendaId` — nunca asume "la única tienda". Para esta entrega:
+Cada función de `lib/data/` recibe explícitamente un `tiendaId` — nunca asume
+"la única tienda". En la demo hay 2 tiendas de prueba y el selector del menú
+elige la activa. En modo real la tienda es la de la fila de `usuarios` de la
+cuenta que entró, y el RLS de Supabase impide ver o editar otra (aunque la app
+se equivocara de `tiendaId`).
 
-- `lib/data/seed/tiendas.json` puede tener 2 o 3 tiendas de prueba (para
-  poder demostrar que el aislamiento funciona)
-- Un mecanismo simple (contexto de React, o incluso una constante que se
-  pueda cambiar) simula "la tienda con sesión activa" — no hace falta login
-  real, pero sí que el resto del código ya filtre por ese id.
+## Pendiente
 
-## Próximo proyecto (fuera de esta entrega, pero para que quede documentado)
-
-1. Crear el proyecto en Supabase y correr las migraciones con las tablas de `03-modelo-de-datos.md` (incluida `eventos_aaah`)
-2. Activar Row Level Security: cada fila solo visible/editable por su `tienda_id`
-3. Auth con Google (Supabase Auth) — al loguearse, resolver a qué `tienda_id` pertenece el usuario vía la tabla `usuarios`
-4. Reescribir `lib/data/*.ts` para usar Supabase en vez del store en memoria
-5. Subida de fotos a Supabase Storage (hoy pueden ser URLs de placeholder o imágenes subidas a `public/`)
-6. Integrar o conectar el catálogo público a la misma base de datos, para que un despacho de pedido o un cambio de stock se refleje ahí en tiempo real
+1. Subida de fotos y logos a Supabase Storage (hoy: data URL en la fila).
+2. Recarga mensual automática de créditos (en la base).
+3. Resumen con consultas agregadas en la base cuando haya mucho historial (hoy
+   se leen los pedidos y aaahs de la tienda y se calcula en el navegador).
+4. Catálogo público conectado a la misma base (fase 5).

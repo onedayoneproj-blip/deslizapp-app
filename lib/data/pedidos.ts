@@ -1,54 +1,9 @@
 import { estadoPromo, precioConPromo } from "../promos";
-import type { Cliente, EstadoPedido, OrigenPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
-import type { AjusteFecha, DB } from "./db";
+import type { Cliente, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
+import type { DB } from "./db";
+import { StockInsuficiente } from "./errores";
 
-export type FilaPedido = {
-  id: string;
-  tienda_id: string;
-  numero: number;
-  cliente_id: string | null;
-  origen: string;
-  estado: string;
-  total: number;
-  codigo_promo: string | null;
-  creado_en: string;
-  despachado_en: string | null;
-};
-
-export type FilaPedidoItem = {
-  id: string;
-  pedido_id: string;
-  producto_id: string;
-  nombre_producto: string;
-  cantidad: number;
-  precio_unitario: number;
-};
-
-export function aPedido(f: FilaPedido, fecha: AjusteFecha): Pedido {
-  return {
-    id: f.id,
-    tiendaId: f.tienda_id,
-    numero: f.numero,
-    clienteId: f.cliente_id,
-    origen: f.origen as OrigenPedido,
-    estado: f.estado as EstadoPedido,
-    total: f.total,
-    codigoPromo: f.codigo_promo,
-    creadoEn: fecha(f.creado_en),
-    despachadoEn: f.despachado_en == null ? null : fecha(f.despachado_en),
-  };
-}
-
-export function aPedidoItem(f: FilaPedidoItem): PedidoItem {
-  return {
-    id: f.id,
-    pedidoId: f.pedido_id,
-    productoId: f.producto_id,
-    nombreProducto: f.nombre_producto,
-    cantidad: f.cantidad,
-    precioUnitario: f.precio_unitario,
-  };
-}
+export { StockInsuficiente };
 
 function conItems(db: DB, pedido: Pedido): PedidoConItems {
   return { ...pedido, items: db.pedidoItems.filter((i) => i.pedidoId === pedido.id) };
@@ -157,18 +112,6 @@ export function insertarPedidoSimulado(db: DB, tiendaId: string, azar: Azar, nue
 
 // ---- Cambios de estado ----
 
-/** Un producto del pedido no tiene stock para despacharlo (nunca se deja el stock en negativo). */
-export class StockInsuficiente extends Error {
-  constructor(
-    public productoId: string,
-    public producto: string,
-    public disponibles: number,
-    public necesarios: number,
-  ) {
-    super(`No alcanza el stock de ${producto}: hay ${disponibles}, se necesitan ${necesarios}.`);
-  }
-}
-
 function pedidoParaCambiar(db: DB, tiendaId: string, id: string): Pedido {
   const pedido = db.pedidos.find((p) => p.id === id && p.tiendaId === tiendaId);
   if (!pedido) throw new Error("Ese pedido no es de esta tienda.");
@@ -206,7 +149,7 @@ export function despacharPedido(db: DB, tiendaId: string, id: string, ahora: str
   const productos = db.productos.map((p) => {
     const cantidad = necesarios.get(p.id);
     if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
-    if (p.stock < cantidad) throw new StockInsuficiente(p.id, p.nombre, p.stock, cantidad);
+    if (p.stock < cantidad) throw new StockInsuficiente(p.nombre, p.id, p.stock, cantidad);
     if (p.stock - cantidad === 0) agotados.push(p.nombre);
     return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
   });

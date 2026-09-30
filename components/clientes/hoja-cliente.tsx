@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
@@ -61,8 +62,8 @@ function Detalle({ cliente, pedidos }: { cliente: ClienteConResumen; pedidos: Pe
     try {
       await actualizarNotaCliente(tiendaId, cliente.id, nota);
       toast(nota.trim() ? "Nota guardada." : "Nota borrada.");
-    } catch {
-      toast("No se pudo guardar. Inténtalo otra vez.");
+    } catch (e) {
+      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
     } finally {
       setGuardando(false);
     }

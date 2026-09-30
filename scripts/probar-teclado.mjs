@@ -41,6 +41,7 @@ async function abrir(browser) {
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript((alto) => {
     localStorage.setItem("deslizapp-version-vista", "9.9.9"); // sin pantalla de novedades
+    if (!localStorage.getItem("deslizapp-modo-v1")) localStorage.setItem("deslizapp-modo-v1", "demo"); // directo a la demo
     // Teclado de iPhone simulado: solo cambia visualViewport, no la ventana.
     const vv = window.visualViewport;
     let abierto = false;

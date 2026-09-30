@@ -6,6 +6,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { buscarCodigoPromo, descuentoDeCodigo } from "@/lib/data/pedidos";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
@@ -109,8 +110,8 @@ function Formulario({
       elegirPestana("por_despachar");
       toast(`Pedido #${pedido.numero} guardado. Está en Por despachar.`);
       alTerminar();
-    } catch {
-      toast("No se pudo guardar. Inténtalo otra vez.");
+    } catch (e) {
+      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };

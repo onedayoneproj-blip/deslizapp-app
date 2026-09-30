@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { cargarFuentesMarca, familiaTexto, familiaTitulo } from "@/lib/fuentes-marca";
 import { iniciales } from "@/lib/formato";
@@ -127,8 +128,8 @@ function Formulario({ tienda, alTerminar }: { tienda: Tienda; alTerminar: () => 
       await actualizarMarca(tiendaId, { logoUrl: logo, principal: legible.principal, acento: legible.acento, estilo: marca.estilo, urlCatalogo: urlNormal });
       toast("¡Tu marca quedó lista!");
       alTerminar();
-    } catch {
-      toast("No se pudo guardar. Inténtalo otra vez.");
+    } catch (e) {
+      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
   };
