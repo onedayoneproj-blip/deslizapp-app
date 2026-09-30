@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.18.0",
+    fecha: "2026-09-30",
+    titulo: "Tus cupones, como cupones.",
+    cambios: [
+      "Al elegir un cupón en un pedido ves los tickets en pequeño, con su porcentaje y cuántas veces se usó.",
+      "El botón ahora dice «+ Agregar cupón», y al elegir uno el ticket se acomoda en el pedido.",
+    ],
+  },
+  {
     version: "0.17.0",
     fecha: "2026-09-30",
     titulo: "Descuentos sin escribir.",

@@ -230,7 +230,7 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 - Tocar un pedido → Detalle de pedido.
 - Botón **"+ Pedido"** para crear un pedido manual (ventas que no llegaron
   por el catálogo): elegir cliente, elegir productos y cantidades, aplicar
-  descuento opcional (fila "Agregar descuento" que abre una lista de códigos, en vez de escribirlo). Entra directo en estado
+  descuento opcional (botón "+ Agregar cupón" que abre una lista de cupones, en vez de escribir el código). Entra directo en estado
   `por_despachar` ("Pedido #1043 guardado. Está en Por despachar.").
   **Por qué:** "Nuevos" son los pedidos que llegan del catálogo y esperan
   confirmación del dueño; un pedido manual lo arma el dueño después de hablar
@@ -318,20 +318,33 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   - si algún producto no tiene stock suficiente, no despacha y avisa: "No
     alcanza el stock de {producto}."
 
-**Descuento en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila tocable
-**"Agregar descuento"** o, si ya tiene, **"Descuento: AAAH10 · 10 %"** con **"Cambiar"** y **"Quitar"**. Tocarla abre, dentro de
-la misma hoja, la vista **"Elige un descuento"** (`components/pedidos/selector-descuento.tsx`, con botón de volver, como los
-selectores de cliente y de producto): arriba "Sin descuento"; luego los códigos que se pueden usar; y al final, atenuados y sin
-poder elegirse, los que no, con su razón ("Pausado", "Vencido", "Terminado", "Programado", "Agotado: 10 de 10"). Cada fila
-muestra nombre, código, porcentaje y el uso ("usada 3 de 10" / "usada 3 veces"). Sin códigos creados, estado vacío con el botón
-"Crear un código en Promos". Elegir uno (o quitarlo) recalcula los precios unitarios (`precioConPromo`, la misma función de
-"+ Pedido") y el total (subtotal menos el descuento); se guardan `pedido_items.precio_unitario`, `pedidos.total` y
-`pedidos.codigo_promo`. El Subtotal nunca incluye el código: entre Subtotal y Total aparece "Descuento · CÓDIGO". Un pedido que ya
-usa un código lo **conserva** aunque el cupo se haya llenado (ya cuenta en los usos), pero ningún otro pedido puede elegirlo. En
-`despachado` y `cancelado` el descuento solo se muestra: primero hay que volver a `por_despachar` desde la barra de pasos. La
-misma fila y la misma vista sirven en "+ Pedido", "Editar pedido" y el detalle, con la misma regla y el mismo cálculo
-(`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`; `calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`).
-En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
+**Cupón en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila con el botón **"+ Agregar cupón"**
+(un círculo pequeño con "+" en Verde Bosque a la izquierda del texto; no hay otro "+" a la derecha) o, si ya tiene uno, el
+**ticket compacto** del cupón elegido con **"Cambiar"** y **"Quitar"**. Tocar el botón (o "Cambiar") abre, dentro de la misma
+hoja, la vista **"Elige un cupón"** (`components/pedidos/selector-descuento.tsx`, con botón de volver, como los selectores de
+cliente y de producto):
+- Primero **"Sin descuento"**: fila simple con borde punteado y sin muescas.
+- Luego los cupones que se pueden usar, cada uno como **ticket compacto** (76 px de alto): el mismo ticket de la pestaña Promos
+  (`components/promos/ticket-promo.tsx`, que usan `TarjetaPromo` —tamaño normal— y este selector —compacto—: forma con muescas,
+  línea punteada, porcentaje grande en el talón, mismos colores) con el nombre, el código en caja punteada y "usada 3 de 10" /
+  "usada 3 veces". Cada ticket es un botón (`aria-label` "Descuento AAAH10, 10 por ciento, usada 1 vez", `aria-pressed`, 86 px de
+  área tocable con su marco).
+- Al final, atenuados y sin poder tocarse, los que no se pueden usar, con una etiqueta corta (Pausado, Vencido, Programado,
+  Agotado). La regla de "se puede usar" es `razonNoUsable` (`lib/promos.ts`).
+- El elegido se marca con borde Verde Bosque y un check dentro de un círculo (sin sombras nuevas). Sin cupones creados: estado
+  vacío con el botón "Crear un código en Promos".
+- **Al elegir**: el ticket hace un pop (escala 1 → 1,03 → 1, 200 ms), su check aparece con escala y fundido, los demás se
+  atenúan y, pasado el pop (~220 ms), la vista se cierra. En la pantalla de origen, la fila pasa de "+ Agregar cupón" al
+  ticket (y al revés al quitarlo) con fundido y un desplazamiento de 8 px; la altura de la fila cambia de una vez, porque la regla
+  de movimiento prohíbe animar el layout (`docs/08-movimiento.md`). Con movimiento reducido no hay escala ni desplazamiento, solo
+  opacidad, y la vista se cierra sin espera.
+Elegir (o quitar) recalcula los precios unitarios (`precioConPromo`, la misma función de "+ Pedido") y el total (subtotal menos el
+descuento); se guardan `pedido_items.precio_unitario`, `pedidos.total` y `pedidos.codigo_promo`. El Subtotal nunca incluye el
+cupón: entre Subtotal y Total aparece "Descuento · CÓDIGO". Un pedido que ya usa un cupón lo **conserva** aunque el cupo se haya
+llenado (ya cuenta en los usos), pero ningún otro pedido puede elegirlo. En `despachado` y `cancelado` el cupón solo se muestra:
+primero hay que volver a `por_despachar` desde la barra de pasos. La misma fila y la misma vista sirven en "+ Pedido", "Editar
+pedido" y el detalle, con la misma regla y el mismo cálculo (`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`;
+`calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
 
 **Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— debajo del botón principal; en `nuevo`, `por_despachar` y
 `despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
@@ -504,7 +517,7 @@ el campo de texto) tiene, de arriba abajo:
   o, en los códigos, un pedido de ejemplo con el descuento.
 - Editar (el tipo no cambia) y "Terminar promo" con confirmación. Una terminada
   no se reactiva ni se edita: se **duplica como nueva** (`/promos/nueva?copiar=id`).
-- "+ Pedido" tiene la fila "Agregar descuento": elige un código de la lista (solo los que se pueden usar), aplica el % al
+- "+ Pedido" tiene el botón "+ Agregar cupón": elige un cupón de la lista (solo los que se pueden usar), aplica el % al
   total y guarda `codigo_promo`. El detalle del pedido muestra el
   descuento y "Simular pedido del catálogo" usa los precios con promo vigente.
 

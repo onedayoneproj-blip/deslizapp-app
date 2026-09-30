@@ -71,6 +71,12 @@ un alto propio: para cambiarlas se edita un valor. Ancho natural, alineadas a la
 desplaza en horizontal si no caben. Área de toque de 44 px o más con un pseudo-elemento invisible. Detalle en
 `docs/04-pantallas.md`.
 
+## Ticket de promo (Promos y selector de cupón)
+
+Un solo componente, `components/promos/ticket-promo.tsx`, con dos tamaños: normal (lista de Promos, vía `tarjeta-promo.tsx`) y
+compacto (selector de cupón de pedidos, `selector-descuento.tsx`). Colores y forma salen de ahí: no se duplica el ticket.
+Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cupón" o ticket compacto con Cambiar / Quitar).
+
 ## Hojas inferiores
 
 Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colección) se usa

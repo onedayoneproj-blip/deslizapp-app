@@ -27,6 +27,7 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 | `--curva-entrada` / `CURVA.entrada` | `cubic-bezier(.4,0,1,1)` | Lo que se va: acelera hacia afuera |
 | `--curva-resorte` / `RESORTE` | `linear(…)` / rigidez 620, amortiguación 0.8 crítica | Gestos (selector de la barra): un rebote apenas perceptible |
 | `--desplazar-corto` | 8 px | Aparecer (elementos sueltos) |
+| `--mov-pop` / `--mov-pop-inicio` | 1,03 / 0,6 | "Pop" al elegir algo (sube y vuelve) y de dónde crece el check que aparece (`mov-pop-aparece`). Con movimiento reducido valen 1 |
 | `--desplazar-aviso` | 12 px | Avisos que bajan desde arriba |
 | `--mov-presion` | 0.97 | Escala al presionar algo tocable |
 

@@ -182,6 +182,8 @@ html {
   --desplazar-aviso: 12px; /* avisos que bajan desde arriba */
   --desplazar-pantalla: 100%; /* entrar a un detalle (como iOS) */
   --mov-presion: 0.97; /* escala al presionar */
+  --mov-pop: 1.03; /* "pop" al elegir algo (sube y vuelve) */
+  --mov-pop-inicio: 0.6; /* de dónde crece el check que aparece */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -193,6 +195,8 @@ html {
     --desplazar-aviso: 0px;
     --desplazar-pantalla: 0px;
     --mov-presion: 1;
+    --mov-pop: 1;
+    --mov-pop-inicio: 1;
   }
 }
 
@@ -225,6 +229,12 @@ html {
     translate: 0 calc(var(--desplazar-corto) * 3);
   }
 }
+@keyframes mov-pop-aparece {
+  from {
+    opacity: 0;
+    scale: var(--mov-pop-inicio);
+  }
+}
 @keyframes mov-brillo {
   to {
     transform: translateX(100%);
@@ -234,6 +244,10 @@ html {
 /* Aparecer (contenido nuevo) y salidas de avisos */
 @utility mov-aparece {
   animation: mov-aparece var(--mov-normal) var(--curva-salida) backwards;
+}
+/* Algo pequeño que aparece con escala + fundido (el check de lo elegido) */
+@utility mov-pop-aparece {
+  animation: mov-pop-aparece var(--mov-normal) var(--curva-salida) backwards;
 }
 @utility mov-desvanece {
   animation: mov-desvanece var(--mov-rapida) var(--curva-entrada) both;

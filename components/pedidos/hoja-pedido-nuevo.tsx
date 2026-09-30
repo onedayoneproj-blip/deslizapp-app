@@ -120,6 +120,8 @@ function Formulario({
   const [guardando, setGuardando] = useState(false);
   // Despachado: salir hacia los pasos del pedido, con confirmación si hay cambios sin guardar.
   const [confirmandoSalir, setConfirmandoSalir] = useState(false);
+  // El cupón que había al abrir el selector: la fila lo usa para animar el cambio al volver.
+  const [cuponAlAbrir, setCuponAlAbrir] = useState<string | null>(null);
   // "Es una venta que ya hice": entra despachada con la fecha elegida.
   const [ventaPasada, setVentaPasada] = useState(false);
   const diaOriginal = pedido ? diaLocal(new Date(pedido.creadoEn)) : null;
@@ -295,7 +297,9 @@ function Formulario({
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>
       {bloqueado && (
         <div className="rounded-[18px] bg-mandarina/20 px-4 py-3">
-          <p className="text-[14px] leading-snug font-semibold">¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.</p>
+          <p className="text-[14px] leading-snug font-semibold">
+            ¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.
+          </p>
           {confirmandoSalir ? (
             <div role="alertdialog" aria-label="Salir sin guardar" className="mt-2.5">
               <p className="text-[14px] font-bold">Tienes cambios sin guardar. ¿Salir de todos modos?</p>
@@ -395,7 +399,17 @@ function Formulario({
       )}
 
       <div inert={bloqueado} className={`rounded-[20px] border border-linea bg-white px-3.5 ${bloqueado ? "opacity-55" : ""}`}>
-        <FilaDescuento codigo={codigo} promo={promo ?? (bloqueado ? promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null : null)} alAbrir={() => setVista("descuento")} alQuitar={() => setCodigo("")} />
+        <FilaDescuento
+          codigo={codigo}
+          promo={promo ?? (bloqueado ? (promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null) : null)}
+          pedidos={pedidos}
+          desde={cuponAlAbrir}
+          alAbrir={() => {
+            setCuponAlAbrir(codigo);
+            setVista("descuento");
+          }}
+          alQuitar={() => setCodigo("")}
+        />
       </div>
 
       <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">
