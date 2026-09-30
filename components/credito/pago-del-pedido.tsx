@@ -198,7 +198,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
                   <div role="alertdialog" aria-label="Borrar abono" className="my-2.5 rounded-[18px] bg-arena px-4 py-3">
                     <p className="text-sm font-bold">¿Borrar este abono? La deuda vuelve a subir {formatearPesos(a.monto)}.</p>
                     <div className="mt-2 flex gap-2">
-                      <button type="button" onClick={() => borrar(a)} disabled={ocupado} className="tocable h-11 flex-1 rounded-full bg-peligro text-sm font-extrabold text-white disabled:opacity-60">
+                      <button type="button" onClick={() => borrar(a)} disabled={ocupado} className="tocable h-11 flex-1 rounded-full border-[1.5px] border-peligro bg-transparent text-sm font-extrabold text-peligro disabled:opacity-60">
                         Sí, borrar
                       </button>
                       <button

@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { menosMovimiento } from "@/lib/movimiento";
 import { Contador } from "./contador";
+import { IconoCheckCirculo } from "./iconos";
 
 /**
  * Tamaño único de toda pastilla (Segmentos y Chip): sale de los tokens --pastilla-* (app/globals.css). La pastilla mide
@@ -12,8 +13,32 @@ import { Contador } from "./contador";
 const PASTILLA =
   "tocable relative inline-flex h-(--pastilla-alto) shrink-0 items-center justify-center gap-1.5 rounded-full border-[1.5px] px-(--pastilla-px) text-center text-[length:var(--pastilla-letra)] font-bold tracking-tight whitespace-nowrap before:absolute before:inset-x-0 before:-inset-y-[5.5px] before:content-['']";
 
-/** Chip seleccionable (colecciones, opciones sueltas): verde lleno si está elegido, blanco con borde si no. */
-export function Chip({ elegido, onClick, children }: { elegido: boolean; onClick: () => void; children: ReactNode }) {
+/**
+ * Tono de una pastilla:
+ * - "filtro" (por defecto): filtros y pestañas (Pedidos, Clientes, Catálogo, Promos…): la elegida va en Verde Bosque lleno.
+ * - "opcion": una OPCIÓN dentro de un formulario (¿Cómo te paga?, método, fecha, monto rápido). La elegida va en Rosa Suave con
+ *   borde Verde Bosque de 1,5 px y un check en círculo a la izquierda (no depende solo del color); la libre, blanca con borde.
+ *   Así no se confunde con una acción (que es Verde Bosque lleno o de contorno). Es una opción de un grupo: role="radio" dentro de
+ *   un <GrupoOpciones>. Mismo alto y padding que el resto (tokens --pastilla-*).
+ */
+export type TonoPastilla = "filtro" | "opcion";
+
+/** Chip seleccionable (colecciones, opciones sueltas): verde lleno si está elegido, blanco con borde si no. Con tono="opcion", ver arriba. */
+export function Chip({ elegido, onClick, children, tono = "filtro" }: { elegido: boolean; onClick: () => void; children: ReactNode; tono?: TonoPastilla }) {
+  if (tono === "opcion") {
+    return (
+      <button
+        type="button"
+        role="radio"
+        aria-checked={elegido}
+        onClick={onClick}
+        className={`${PASTILLA} ${elegido ? "border-bosque bg-rosa pl-2.5 text-bosque" : "border-borde bg-white text-bosque"}`}
+      >
+        {elegido && <IconoCheckCirculo tamano={18} className="mov-pop-aparece shrink-0 text-bosque" />}
+        {children}
+      </button>
+    );
+  }
   return (
     <button
       type="button"
@@ -25,6 +50,15 @@ export function Chip({ elegido, onClick, children }: { elegido: boolean; onClick
     >
       {children}
     </button>
+  );
+}
+
+/** Grupo de opciones de un formulario (radiogrupo): las pastillas con tono="opcion" van dentro. Se acomodan en varias filas si no caben. */
+export function GrupoOpciones({ etiqueta, children, className = "" }: { etiqueta: string; children: ReactNode; className?: string }) {
+  return (
+    <div role="radiogroup" aria-label={etiqueta} className={`flex flex-wrap gap-2 ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -74,12 +108,12 @@ export function Interruptor({
  * el margen. La elegida se acerca a la vista con scrollIntoView (suave, salvo movimiento reducido). Alto táctil: 44 px.
  * Lo usan Inicio (periodo), Pedidos, Catálogo, Promos y el selector de productos de "+ Pedido".
  */
-export function Segmentos<T extends string>({
-  opciones,
-  valor,
-  alCambiar,
-  etiqueta,
-}: {
+export function Segmentos<T extends string>(props: SegmentosProps<T>) {
+  // Dentro de un formulario: opciones (rosa + check), no la barra de filtros con indicador deslizante
+  return props.tono === "opcion" ? <OpcionesDeFormulario {...props} /> : <SegmentosConIndicador {...props} />;
+}
+
+type SegmentosProps<T extends string> = {
   /**
    * `cantidad`: número de la opción, en un Contador a la derecha del nombre (en 0 no se muestra).
    * `atencion`: el contador va en Mandarina (pide acción del dueño); si no, neutro. Solo cuenta con cantidad > 0.
@@ -88,7 +122,24 @@ export function Segmentos<T extends string>({
   valor: T;
   alCambiar: (id: T) => void;
   etiqueta: string;
-}) {
+  /** "opcion": las opciones de un formulario (rosa + check, varias filas si no caben). Por defecto, la barra de filtros. */
+  tono?: TonoPastilla;
+};
+
+/** Las opciones de un formulario con dos o más pastillas (ej. "Pagó todo" / "A crédito"): un radiogrupo de pastillas con tono="opcion". */
+function OpcionesDeFormulario<T extends string>({ opciones, valor, alCambiar, etiqueta }: SegmentosProps<T>) {
+  return (
+    <GrupoOpciones etiqueta={etiqueta}>
+      {opciones.map((o) => (
+        <Chip key={o.id} tono="opcion" elegido={o.id === valor} onClick={() => alCambiar(o.id)}>
+          {o.texto}
+        </Chip>
+      ))}
+    </GrupoOpciones>
+  );
+}
+
+function SegmentosConIndicador<T extends string>({ opciones, valor, alCambiar, etiqueta }: SegmentosProps<T>) {
   const botones = useRef<Map<T, HTMLButtonElement>>(new Map());
   const lista = useRef<HTMLDivElement>(null);
   const [caja, setCaja] = useState<{ x: number; ancho: number } | null>(null);

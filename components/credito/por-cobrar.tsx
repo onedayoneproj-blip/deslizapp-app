@@ -39,35 +39,39 @@ function linea(c: CuentaPorCobrar): string {
 
 /**
  * Una fila de "Deben": inicial en círculo rosa, nombre, línea con el pedido, etiqueta de estado, lo que debe y el botón de WhatsApp
- * (solo si tiene teléfono). Tocar la fila abre la cuenta del cliente (el enlace se estira sobre toda la fila; el botón queda encima).
+ * (solo si tiene teléfono). Toda la tarjeta es UN enlace real a la cuenta del cliente (tocar en cualquier parte la abre); el botón de
+ * WhatsApp es otro enlace que va encima, en la esquina (un enlace no puede ir dentro de otro). Antes el enlace era solo el nombre y se
+ * estiraba con un pseudo-elemento, pero el `overflow: hidden` del nombre recortaba el toque y la tarjeta no respondía fuera del texto.
  */
 export function FilaPorCobrar({ cuenta: c, mensaje }: { cuenta: CuentaPorCobrar; mensaje: string }) {
   return (
-    <div className="tocable relative flex items-center gap-3 rounded-[22px] border border-linea bg-white py-3 pr-3 pl-3.5">
-      <span aria-hidden="true" className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full bg-rosa font-display text-[17px]">
-        {c.nombre.trim().charAt(0).toUpperCase()}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-        <Link href={`/clientes/${c.clienteId}`} scroll={false} className="truncate text-[15px] font-extrabold after:absolute after:inset-0 after:rounded-[22px] after:content-['']">
-          {c.nombre}
-        </Link>
-        <span className="text-[12.5px] leading-snug text-suave">{linea(c)}</span>
-        <EtiquetaDeuda fecha={c.fechaAcordada} atrasoDias={c.atrasoDias} />
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-1.5">
-        <span className="text-[16px] font-extrabold text-mandarina-texto">{formatearPesos(c.deuda)}</span>
-        {c.telefono ? (
-          <a
-            href={enlaceWhatsAppCliente(c.telefono, mensaje)}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Recordarle a ${c.nombre} por WhatsApp`}
-            className="tocable relative z-10 grid h-11 w-11 place-items-center rounded-full bg-menta text-bosque"
-          >
-            <IconoWhatsApp tamano={18} />
-          </a>
-        ) : null}
-      </span>
+    <div className="relative">
+      <Link
+        href={`/clientes/${c.clienteId}`}
+        scroll={false}
+        className="tocable flex items-center gap-3 rounded-[22px] border border-linea bg-white py-3 pr-[88px] pl-3.5 text-bosque"
+      >
+        <span aria-hidden="true" className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full bg-rosa font-display text-[17px]">
+          {c.nombre.trim().charAt(0).toUpperCase()}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
+          <span className="truncate text-[15px] font-extrabold">{c.nombre}</span>
+          <span className="text-[12.5px] leading-snug text-suave">{linea(c)}</span>
+          <EtiquetaDeuda fecha={c.fechaAcordada} atrasoDias={c.atrasoDias} />
+        </span>
+        <span className="absolute top-3 right-3.5 text-[16px] font-extrabold text-mandarina-texto">{formatearPesos(c.deuda)}</span>
+      </Link>
+      {c.telefono ? (
+        <a
+          href={enlaceWhatsAppCliente(c.telefono, mensaje)}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Recordarle a ${c.nombre} por WhatsApp`}
+          className="tocable absolute right-3 bottom-3 grid h-11 w-11 place-items-center rounded-full bg-menta text-bosque"
+        >
+          <IconoWhatsApp tamano={18} />
+        </a>
+      ) : null}
     </div>
   );
 }

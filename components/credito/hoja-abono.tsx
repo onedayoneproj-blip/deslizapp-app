@@ -8,8 +8,8 @@ import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import type { Abono, MetodoAbono } from "@/lib/types";
-import { Chip } from "../controles";
-import { Hoja } from "../hoja";
+import { Chip, GrupoOpciones } from "../controles";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCheckCirculo } from "../iconos";
 import { useToast } from "../toast";
 import { CLASE_CAMPO } from "../pedidos/selector-descuento";
@@ -95,6 +95,8 @@ function Formulario({
   const resta = deuda - monto;
   const fecha = fechaDeVenta(dia);
   const puedeGuardar = monto > 0 && !pasaDeLaDeuda && fecha !== null && !guardando;
+  // Con un monto o una nota escritos y sin guardar, cerrar la hoja pregunta
+  useAvisarAlSalir(monto > 0 || nota.trim() !== "");
   const primerNombre = nombreCliente.split(" ")[0] ?? nombreCliente;
 
   // Botones rápidos: solo los que no superan lo que se debe, sin repetir (Todo, Mitad y montos fijos)
@@ -160,23 +162,23 @@ function Formulario({
         </p>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <GrupoOpciones etiqueta="Monto rápido">
         {rapidos.map((r) => (
-          <Chip key={r.texto} elegido={monto === r.monto} onClick={() => setTexto(String(r.monto))}>
+          <Chip key={r.texto} tono="opcion" elegido={monto === r.monto} onClick={() => setTexto(String(r.monto))}>
             {r.texto}
           </Chip>
         ))}
-      </div>
+      </GrupoOpciones>
 
       <div>
         <p className="mb-2 text-[13px] text-suave">¿Cómo te pagó?</p>
-        <div className="flex flex-wrap gap-2">
+        <GrupoOpciones etiqueta="Cómo te pagó">
           {METODOS.map((m) => (
-            <Chip key={m.id} elegido={metodo === m.id} onClick={() => setMetodo(m.id)}>
+            <Chip key={m.id} tono="opcion" elegido={metodo === m.id} onClick={() => setMetodo(m.id)}>
               {m.texto}
             </Chip>
           ))}
-        </div>
+        </GrupoOpciones>
       </div>
 
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">

@@ -105,6 +105,18 @@ el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catá
 contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
 HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
 
+## Hojas apiladas, aviso al salir y color de opciones
+
+- `Hoja` se pinta en un portal en `<body>`: una hoja sobre otra (ej. "Registrar abono" sobre el detalle del pedido) no comparte gestos con la
+  de abajo; solo la de arriba responde a deslizar, fondo, Escape, X y "atrás". Con cambios sin guardar (`avisarAlSalir` o `useAvisarAlSalir`)
+  cerrar pregunta "¿Salir sin guardar?". Se prueba con `npm run probar:hojas` (con la app corriendo; igual que `probar:teclado`).
+  Límite conocido: en hojas de RUTA con cambios sin guardar (pedido nuevo, cliente nuevo…) el botón atrás del teléfono sale directo con la
+  ruta (interceptarlo obligaría a meter entradas de historial que romperían el "atrás" tras guardar); deslizar, fondo, Escape y X sí preguntan.
+- Las opciones de un formulario (`Chip` / `Segmentos` con `tono="opcion"`) van en Rosa con check; las acciones, en Verde Bosque (principal) o
+  contorno (secundaria); ver docs/04-pantallas.md. No cambia las pastillas de filtro.
+- Las hojas de cliente y de pedido nunca quedan en blanco (esqueleto, o error con "Reintentar"): `components/hoja-estado.tsx`, y
+  `useConsulta` devuelve también `error` y `reintentar`.
+
 ## Hojas inferiores
 
 Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colección) se usa

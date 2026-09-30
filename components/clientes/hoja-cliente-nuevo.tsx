@@ -9,7 +9,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { CampoNota } from "./campo-nota";
 import { useToast } from "../toast";
 
@@ -42,6 +42,8 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const valido = normalizarTelefonoDO(telefono) !== null;
   const malo = tocado && telefono.trim() !== "" && !valido;
   const puedeGuardar = nombre.trim() !== "" && valido && !guardando;
+  // Con algún campo lleno y sin guardar, cerrar la hoja pregunta
+  useAvisarAlSalir(nombre.trim() !== "" || telefono.trim() !== "" || nota.trim() !== "");
 
   const guardar = async () => {
     if (!puedeGuardar) return;

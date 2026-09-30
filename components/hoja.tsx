@@ -29,6 +29,13 @@
 //   contenido, y desplaza el contenido para que el campo enfocado quede a la vista. Nada de
 //   re-renders ni de tocar el foco por eventos de `resize`/`visualViewport`: en iOS eso cierra el teclado.
 //
+// - HOJAS APILADAS: la hoja se pinta en un portal en <body> (no dentro de la que está debajo), así los gestos táctiles, el
+//   toque en el fondo y los eventos de la de arriba nunca llegan a la de abajo. Además solo la de arriba responde a Escape, Tab
+//   y al botón atrás del teléfono (una hoja apilada guarda una entrada de historial que "atrás" consume).
+// - AVISO AL SALIR: con `avisarAlSalir` (o el hook `useAvisarAlSalir`) y cambios sin guardar, cerrar (deslizar, fondo, Escape, X o
+//   atrás) no cierra: la hoja rebota a su lugar y sale el diálogo "¿Salir sin guardar?". Cerrar desde el padre (guardar con éxito,
+//   cambiar de ruta) nunca pregunta.
+//
 // Implementación propia: se evaluó `vaul`, pero su repositorio está sin mantenimiento.
 
 import {
@@ -41,6 +48,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type FocusEvent as EventoFoco,
   type PointerEvent as EventoPuntero,
   type ReactNode,
@@ -64,7 +72,12 @@ const CURVA = CURVAS.salida;
 /** Hojas abiertas, de la más vieja a la más nueva: si hay una encima de otra (ej. "Registrar abono" sobre el detalle), solo la de arriba responde a Escape y Tab. */
 const PILA_DE_HOJAS: symbol[] = [];
 
-type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void };
+/** Popstates que provoca la propia hoja al quitar su entrada de historial: no cierran ninguna hoja. */
+const IGNORAR_ATRAS = { n: 0 };
+/** Marca de la entrada de historial de una hoja apilada. Conserva el estado de Next (`__NA`…) para no confundir al router. */
+const estadoDeHoja = () => ({ ...(window.history.state ?? {}), deslizappHoja: true });
+
+type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean) => void };
 const ContextoHoja = createContext<Ranuras | null>(null);
 
 /** Contenido que se queda fijo debajo del título de la hoja (buscador, pastillas…). Se pinta en la cabecera. */
@@ -77,6 +90,18 @@ export function HojaFijoArriba({ children }: { children: ReactNode }) {
 export function HojaFijoAbajo({ children }: { children: ReactNode }) {
   const r = useContext(ContextoHoja);
   return r?.abajo ? createPortal(children, r.abajo) : null;
+}
+
+/**
+ * El contenido de una hoja avisa si hay cambios sin guardar: mientras `cambios` sea true, cerrar la hoja pide confirmación.
+ * Para formularios cuyo estado vive dentro de la hoja.
+ */
+export function useAvisarAlSalir(cambios: boolean) {
+  const avisar = useContext(ContextoHoja)?.avisar;
+  useEffect(() => {
+    avisar?.(cambios);
+    return () => avisar?.(false);
+  }, [avisar, cambios]);
 }
 
 /** Lleva el contenido de la hoja arriba del todo (ej. al cambiar de vista dentro de la hoja). */
@@ -92,15 +117,25 @@ type Props = {
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
   fijoArriba?: ReactNode;
+  /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
+  avisarAlSalir?: boolean;
+  /** Textos del aviso al salir. */
+  avisoTitulo?: string;
+  avisoTexto?: string;
   children: ReactNode;
 };
+
+const sinSuscripcion = () => () => {};
 
 export function Hoja(props: Props) {
   // Queda montada mientras dura la animación de salida.
   const [montada, setMontada] = useState(props.abierta);
   if (props.abierta && !montada) setMontada(true);
-  if (!montada) return null;
-  return <HojaMontada {...props} alDesmontar={() => setMontada(false)} />;
+  // Solo en el navegador (el portal necesita `document`)
+  const enNavegador = useSyncExternalStore(sinSuscripcion, () => true, () => false);
+  if (!montada || !enNavegador) return null;
+  // Portal en <body>: una hoja sobre otra no queda DENTRO de la de abajo (si no, sus toques subirían por el DOM hasta ella).
+  return createPortal(<HojaMontada {...props} alDesmontar={() => setMontada(false)} />, document.body);
 }
 
 /** Alto de la pantalla (la ventana; en iOS no cambia cuando se abre el teclado). */
@@ -117,10 +152,31 @@ function HojaMontada({
   titulo,
   altura = "auto",
   fijoArriba,
+  avisarAlSalir = false,
+  avisoTitulo = "¿Salir sin guardar?",
+  avisoTexto = "Lo que escribiste se va a perder.",
   children,
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
   const idTitulo = useId();
+  const idAviso = useId();
+  const idAvisoTexto = useId();
+  // Aviso al salir: lo pide la prop o el contenido (`useAvisarAlSalir`); se lee al cerrar, sin volver a pintar.
+  const avisoDeProp = useRef(avisarAlSalir);
+  const avisoDeHijo = useRef(false);
+  const [avisando, setAvisando] = useState(false);
+  const avisandoRef = useRef(false);
+  const dialogoAviso = useRef<HTMLDivElement>(null);
+  const seguirAqui = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    avisoDeProp.current = avisarAlSalir;
+  }, [avisarAlSalir]);
+  useEffect(() => {
+    avisandoRef.current = avisando;
+  }, [avisando]);
+  const avisar = useCallback((cambios: boolean) => {
+    avisoDeHijo.current = cambios;
+  }, []);
   const miTurno = useRef(Symbol("hoja"));
   const panel = useRef<HTMLDivElement>(null);
   const fondo = useRef<HTMLDivElement>(null);
@@ -199,8 +255,8 @@ function HojaMontada({
     [aplicar, yDe],
   );
 
-  /** Cierre iniciado desde la hoja (X, Escape, fondo, deslizar): anima y luego avisa. */
-  const cerrar = useCallback(() => {
+  /** Cierre de verdad: anima la salida y luego avisa al padre. */
+  const cerrarDeVerdad = useCallback(() => {
     if (saliendo.current) return;
     saliendo.current = true;
     aplicar((panel.current?.offsetHeight ?? 0) + 24, true);
@@ -212,6 +268,35 @@ function HojaMontada({
       reducido.current ? 0 : DURACION,
     );
   }, [aplicar, alCerrar]);
+
+  /** Vuelve a su lugar con un pequeño rebote (sin rebote con movimiento reducido). */
+  const rebotar = useCallback(() => {
+    const p = panel.current;
+    if (!p) return;
+    aplicar(yDe(nivelRef.current), true);
+    if (!reducido.current) p.style.transition = "transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+  }, [aplicar, yDe]);
+
+  /**
+   * Cierre iniciado desde la hoja (X, Escape, fondo, deslizar, atrás). Con cambios sin guardar no cierra: rebota y pregunta.
+   * Devuelve true si cerró.
+   */
+  const cerrar = useCallback((): boolean => {
+    if (saliendo.current) return true;
+    if (avisoDeProp.current || avisoDeHijo.current) {
+      rebotar();
+      setAvisando(true);
+      return false;
+    }
+    cerrarDeVerdad();
+    return true;
+  }, [cerrarDeVerdad, rebotar]);
+
+  const seguirAqui_ = useCallback(() => setAvisando(false), []);
+  const salirDeVerdad = useCallback(() => {
+    setAvisando(false);
+    cerrarDeVerdad();
+  }, [cerrarDeVerdad]);
 
   /** El contenido empieza debajo de la cabecera superpuesta: su alto va en --cabecera (directo al DOM). */
   const medirCabecera = useCallback(() => {
@@ -242,7 +327,7 @@ function HojaMontada({
   const irArriba = useCallback(() => {
     if (contenido.current) contenido.current.scrollTop = 0;
   }, []);
-  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba }), [ranuraArriba, ranuraAbajo, irArriba]);
+  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba, avisar }), [ranuraArriba, ranuraAbajo, irArriba, avisar]);
 
   /** Borde de desplazamiento: invisible arriba del todo, completo a los SCROLL_BORDE px. */
   const alDesplazar = () => {
@@ -322,7 +407,8 @@ function HojaMontada({
 
   // Al enfocar un campo (el teclado tarda un poco en abrirse), se asegura que quede a la vista.
   const alEnfocarCampo = (e: EventoFoco<HTMLDivElement>) => {
-    if (!esCampo(e.target)) return;
+    // Un campo de OTRA hoja apilada (el evento de React sube por el árbol aunque el DOM sea otro) no es de esta
+    if (!esCampo(e.target) || !contenido.current?.contains(e.target as Node)) return;
     // Sin animar y SIN mover la hoja mientras el campo tiene el foco (regla del teclado).
     if (altura === "expandible" && nivelRef.current === "media") irA("grande", false);
     const campo = e.target as HTMLElement;
@@ -338,9 +424,21 @@ function HojaMontada({
 
   // Lo último que se pidió cerrar: los listeners de abajo lo leen sin volver a montarse.
   const cerrarRef = useRef(cerrar);
+  const seguirRef = useRef(seguirAqui_);
   useEffect(() => {
     cerrarRef.current = cerrar;
+    seguirRef.current = seguirAqui_;
   });
+
+  // El foco entra al diálogo de "¿Salir sin guardar?" y, al irse, vuelve a donde estaba
+  useEffect(() => {
+    if (!avisando) return;
+    const previo = document.activeElement as HTMLElement | null;
+    seguirAqui.current?.focus({ preventScroll: true });
+    return () => {
+      if (previo && document.contains(previo)) previo.focus({ preventScroll: true });
+    };
+  }, [avisando]);
 
   // Bloquea el fondo mientras está abierta; foco dentro al abrir y de vuelta al cerrar; Escape y Tab.
   // Efecto ESTABLE (sin dependencias): si se volviera a ejecutar mientras se escribe, su limpieza
@@ -356,8 +454,44 @@ function HojaMontada({
 
     const turno = miTurno.current;
     PILA_DE_HOJAS.push(turno);
+    // Hoja apilada: guarda una entrada de historial para que "atrás" cierre solo esta (las de ruta ya se cierran con su ruta)
+    let entrada = PILA_DE_HOJAS.length > 1;
+    if (entrada) window.history.pushState(estadoDeHoja(), "");
+    const alAtras = () => {
+      if (IGNORAR_ATRAS.n > 0) {
+        IGNORAR_ATRAS.n--;
+        return;
+      }
+      if (!entrada || PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
+      entrada = false; // el navegador ya la quitó
+      if (!cerrarRef.current()) {
+        // Con cambios sin guardar no se cierra: vuelve a guardar su entrada
+        window.history.pushState(estadoDeHoja(), "");
+        entrada = true;
+      }
+    };
+    window.addEventListener("popstate", alAtras);
     const alTeclear = (e: KeyboardEvent) => {
       if (PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
+      if (avisandoRef.current) {
+        // El diálogo de "¿Salir sin guardar?" manda: Escape = "Seguir aquí"; Tab no sale de él
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          seguirRef.current();
+        } else if (e.key === "Tab" && dialogoAviso.current) {
+          const botones = [...dialogoAviso.current.querySelectorAll<HTMLElement>("button")];
+          const primero = botones[0]!;
+          const ultimo = botones[botones.length - 1]!;
+          if (e.shiftKey && document.activeElement === primero) {
+            e.preventDefault();
+            ultimo.focus();
+          } else if (!e.shiftKey && document.activeElement === ultimo) {
+            e.preventDefault();
+            primero.focus();
+          }
+        }
+        return;
+      }
       if (e.key === "Escape") {
         e.stopPropagation();
         cerrarRef.current();
@@ -378,6 +512,12 @@ function HojaMontada({
     window.addEventListener("keydown", alTeclear);
     return () => {
       window.removeEventListener("keydown", alTeclear);
+      window.removeEventListener("popstate", alAtras);
+      if (entrada) {
+        entrada = false;
+        IGNORAR_ATRAS.n++;
+        window.history.back();
+      }
       const posicion = PILA_DE_HOJAS.indexOf(turno);
       if (posicion >= 0) PILA_DE_HOJAS.splice(posicion, 1);
       document.body.style.overflow = previo.overflow;
@@ -563,6 +703,33 @@ function HojaMontada({
         {/* Zona fija de abajo (píldora de resumen…): se oculta mientras el teclado está abierto */}
         <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0" />
       </div>
+      {avisando && (
+        <div className="absolute inset-0 z-10 grid place-items-center bg-bosque/45 px-6">
+          <div
+            ref={dialogoAviso}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={idAviso}
+            aria-describedby={idAvisoTexto}
+            className="mov-aparece w-full max-w-[340px] rounded-[26px] bg-papel p-5 shadow-[0_18px_40px_-14px_rgba(16,54,42,0.6)]"
+          >
+            <h3 id={idAviso} className="font-display text-[22px] leading-tight text-bosque">
+              {avisoTitulo}
+            </h3>
+            <p id={idAvisoTexto} className="mt-1.5 text-[14.5px] leading-snug text-suave">
+              {avisoTexto}
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <button ref={seguirAqui} type="button" onClick={seguirAqui_} className="tocable h-12 rounded-full bg-bosque text-[15px] font-extrabold text-papel">
+                Seguir aquí
+              </button>
+              <button type="button" onClick={salirDeVerdad} className="tocable h-12 rounded-full border-[1.5px] border-bosque text-[15px] font-extrabold text-bosque">
+                Salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </ContextoHoja.Provider>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { consumirDestelloDePasos } from "@/lib/destello";
 import { CURVA, menosMovimiento } from "@/lib/movimiento";
@@ -15,6 +15,7 @@ import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
+import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
@@ -35,31 +36,46 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   // Al eliminar el pedido, la hoja se retira ya (si no, un instante mostraría "Este pedido no vive aquí").
   const [saliendo, setSaliendo] = useState(false);
 
-  const { data: pedido, cargando } = useConsulta(`pedido:${tiendaId}:${pedidoId}`, () => getPedido(tiendaId, pedidoId));
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
-  const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
-  const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const q1 = useConsulta(`pedido:${tiendaId}:${pedidoId}`, () => getPedido(tiendaId, pedidoId));
+  const q2 = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const q3 = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const q4 = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const q5 = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const { data: pedido } = q1;
+  const { data: productos } = q2;
+  const { data: clientes } = q3;
+  const { data: promos } = q4;
+  const { data: pedidos } = q5;
 
-  if (saliendo || (pedido === undefined && cargando)) return null;
-  if (!pedido) {
-    return (
-      <Hoja abierta alCerrar={cerrar} titulo="Pedido">
-        <div className="py-6 text-center">
-          <p className="font-display text-xl">Este pedido no vive aquí.</p>
-          <p className="mt-1 text-suave">Quizá es de otra tienda. Los pedidos no se mezclan.</p>
-          <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
-            Volver a pedidos
-          </button>
-        </div>
-      </Hoja>
+  if (saliendo) return null;
+  // Nunca en blanco: siempre la misma hoja con su contenido: el esqueleto mientras carga, "Reintentar" si una lectura falla,
+  // "no vive aquí" o el detalle (una sola hoja: entra una vez, sin parpadeo)
+  let cuerpo: ReactNode;
+  if (q1.error || q2.error || q3.error || q4.error || q5.error) {
+    cuerpo = (
+      <CuerpoConError alCerrar={cerrar} alReintentar={() => [q1, q2, q3, q4, q5].forEach((q) => q.reintentar())} textoVolver="Volver a pedidos" />
+    );
+  } else if (pedido === undefined || (pedido && (!productos || !clientes || !promos || !pedidos))) {
+    cuerpo = <CuerpoCargando titulo="Pedido" />;
+  } else if (!pedido) {
+    cuerpo = (
+      <div className="py-6 text-center">
+        <p className="font-display text-xl">Este pedido no vive aquí.</p>
+        <p className="mt-1 text-suave">Quizá es de otra tienda. Los pedidos no se mezclan.</p>
+        <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+          Volver a pedidos
+        </button>
+      </div>
+    );
+  } else if (productos && clientes && promos && pedidos) {
+    cuerpo = (
+      <Detalle pedido={pedido} productos={productos} promos={promos} pedidos={pedidos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
     );
   }
-  if (!productos || !clientes || !promos || !pedidos) return null;
 
   return (
-    <Hoja abierta alCerrar={cerrar} titulo={`Pedido #${pedido.numero}`}>
-      <Detalle pedido={pedido} productos={productos} promos={promos} pedidos={pedidos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
+    <Hoja abierta alCerrar={cerrar} titulo={pedido ? `Pedido #${pedido.numero}` : "Pedido"}>
+      {cuerpo}
     </Hoja>
   );
 }

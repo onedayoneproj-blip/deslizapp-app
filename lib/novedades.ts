@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.23.0",
+    fecha: "2026-09-30",
+    titulo: "Menos sustos al cerrar.",
+    cambios: [
+      "En «Deben», tocar la tarjeta de un cliente ya la abre, la toques donde la toques.",
+      "Si cierras una hoja con algo escrito, te preguntamos antes de tirarlo. Y «atrás» solo cierra la de arriba.",
+      "Lo que eliges en los formularios de crédito se ve en rosa, con su check; los botones, en verde.",
+    ],
+  },
+  {
     version: "0.22.0",
     fecha: "2026-09-30",
     titulo: "Fiar ya no es enredo.",

@@ -86,6 +86,20 @@ Promo" en Promos.
 (producto, detalle de pedido, pedido manual, cliente, nueva promo, Plan y
 créditos) suben desde abajo con fondo verde translúcido, título en Fredoka y
 botón de cerrar redondo. Además:
+- **Hojas apiladas** (ej. "Registrar abono" sobre el detalle del pedido): cada hoja se pinta en un portal en `<body>`, no dentro de la
+  de abajo (antes iba anidada en el DOM y los toques de la de arriba subían hasta la de abajo, así que un deslizar cerraba las dos y
+  se perdía lo escrito). Solo la de arriba responde a deslizar, tocar el fondo, Escape (y Tab), la X y **"atrás"** del teléfono: una
+  hoja apilada guarda una entrada de historial que "atrás" consume, sin tocar la ruta. (Las hojas de ruta —pedido, cliente, promo…—
+  siguen cerrándose con su ruta; el resto de las hojas de selección son vistas dentro de la misma hoja.)
+- **Aviso al salir:** con cambios sin guardar (`avisarAlSalir` de `Hoja`, o `useAvisarAlSalir(bool)` desde el formulario) cerrar
+  (deslizar, fondo, Escape, X o atrás) no cierra: la hoja vuelve a su lugar con un rebote (sin rebote con movimiento reducido) y sale
+  un diálogo pequeño `role="alertdialog"`: **"¿Salir sin guardar?"** / "Lo que escribiste se va a perder." con **"Seguir aquí"**
+  (principal) y **"Salir"** (contorno). Solo "Salir" cierra; Escape dentro del diálogo = "Seguir aquí"; el foco entra al diálogo y no
+  sale con Tab. Guardar con éxito, cerrar desde el padre o cambiar de ruta nunca preguntan. Activo en: Registrar abono (monto o nota),
+  + Pedido / venta pasada / Editar pedido (cualquier cambio respecto a como se abrió), Cliente nuevo (algún campo lleno), nota del
+  cliente (texto cambiado), producto y promo (cambios respecto al original). No en hojas de solo lectura ni de selección.
+- **Nunca en blanco:** las hojas de cliente y de pedido muestran, dentro de la misma hoja, un esqueleto mientras cargan y, si una
+  lectura falla, "No pudimos abrir esto." con **"Reintentar"** y **"Volver a clientes / pedidos"**.
 - **Pegadas a los bordes:** izquierdo, derecho e inferior, con **solo las
   esquinas de arriba redondeadas** (30 px, igual en todos los modelos y en
   todas las alturas: pasar de media a grande solo cambia la altura). El fondo
@@ -413,6 +427,13 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).
   Cada abono tiene **"Borrar"** con confirmación ("¿Borrar este abono? La deuda vuelve a subir RD$X."). Botones **"+ Registrar abono"**
   (principal) y **"Recordarle por WhatsApp"** (contorno; solo con teléfono y deuda). Los cambios de saldo se anuncian con `aria-live`.
+- **Colores en el flujo de crédito** (+ Pedido / venta pasada / Editar pedido, "Registrar abono" y "Cambiar a crédito"; las pastillas de
+  filtro de Pedidos, Clientes, Catálogo y Promos no cambian): una **opción elegida** (`tono="opcion"` de `Chip` y `Segmentos`,
+  `role="radio"` dentro de `GrupoOpciones`) va en **Rosa Suave con borde Verde Bosque de 1,5 px y un check en círculo a la izquierda**
+  (no depende solo del color); la libre, blanca con el borde de las pastillas. La **acción principal** (una por pantalla) va en Verde
+  Bosque lleno con texto Papel Cálido; la **secundaria** ("Mejor no", "Recordarle por WhatsApp") en contorno Verde Bosque; la que
+  **borra** ("Sí, borrar" el abono) en contorno y texto de peligro. Mandarina queda para llamar la atención (deuda, "Atrasado", botón
+  flotante), nunca en pastillas ni botones de estos formularios.
 - **Hoja "Registrar abono"** (`hoja-abono.tsx`, una hoja encima del detalle): "<Cliente> debe RD$X del pedido #N" (o "en N pedidos"
   desde la cuenta del cliente), monto grande con teclado numérico (solo enteros), botones rápidos "Todo · RD$X", "Mitad · RD$X",
   RD$500 y RD$1,000 (solo los que no superan la deuda), método (Efectivo / Transferencia / Otro), fecha (hoy; una pasada si hace falta),
@@ -464,7 +485,8 @@ y "Cobrado este mes: RD$X" = abonos del mes en hora de Santo Domingo) y la lista
 atrasados (más días primero), luego los que tienen fecha (la más próxima primero), luego los sin fecha (la deuda más vieja primero).
 Cada fila: inicial en círculo rosa, nombre, "Pedido #N · pagó RD$X de Y" o "N pedidos · el más viejo hace N días", etiqueta
 ("Atrasado N días" mandarina suave, "Paga el 15 oct" menta, "Sin fecha acordada" arena), lo que debe en Mandarina texto y un botón
-redondo de WhatsApp de 44 px (solo con teléfono; abre el recordatorio). Tocar la fila abre la cuenta del cliente. El buscador también
+redondo de WhatsApp de 44 px (solo con teléfono; abre el recordatorio). Tocar la fila (en cualquier parte) abre la cuenta del cliente: toda la tarjeta es un enlace real (el botón de WhatsApp es otro enlace
+en su esquina). El buscador también
 filtra esta lista. Inicio abre directo en "Deben" con su línea "Por cobrar".
 
 **Cuenta del cliente** (`components/credito/cuenta-cliente.tsx`, en el detalle del cliente, solo si debe algo): tarjeta "Te debe" con

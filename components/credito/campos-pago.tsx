@@ -5,7 +5,7 @@ import { diaCorto, diaDeSantoDomingo, esDiaValido, finDeMes, METODOS, montoDeTex
 import type { DatosPago } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import type { MetodoAbono, PagoModo } from "@/lib/types";
-import { Chip, Segmentos } from "../controles";
+import { Chip, GrupoOpciones, Segmentos } from "../controles";
 import { CLASE_CAMPO } from "../pedidos/selector-descuento";
 
 /** Cuándo quedó en pagar: una de las pastillas o un día elegido. */
@@ -69,20 +69,20 @@ export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago; alCa
   return (
     <div>
       <p className="mb-2 text-[13px] text-suave">¿Cuándo quedó en pagar?</p>
-      <div className="flex flex-wrap gap-2">
-        <Chip elegido={valor.opcion === "semana"} onClick={() => elegir("semana")}>
+      <GrupoOpciones etiqueta="Cuándo quedó en pagar">
+        <Chip tono="opcion" elegido={valor.opcion === "semana"} onClick={() => elegir("semana")}>
           {texto("semana", "En 1 semana")}
         </Chip>
-        <Chip elegido={valor.opcion === "mes"} onClick={() => elegir("mes")}>
+        <Chip tono="opcion" elegido={valor.opcion === "mes"} onClick={() => elegir("mes")}>
           {texto("mes", "Fin de mes")}
         </Chip>
-        <Chip elegido={valor.opcion === "otra"} onClick={() => elegir("otra")}>
+        <Chip tono="opcion" elegido={valor.opcion === "otra"} onClick={() => elegir("otra")}>
           {texto("otra", "Elegir fecha")}
         </Chip>
-        <Chip elegido={valor.opcion === "sin"} onClick={() => alCambiar({ opcion: "sin", dia: null })}>
+        <Chip tono="opcion" elegido={valor.opcion === "sin"} onClick={() => alCambiar({ opcion: "sin", dia: null })}>
           Sin fecha
         </Chip>
-      </div>
+      </GrupoOpciones>
       {valor.opcion === "otra" && (
         <label className="mt-3 flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
           Día para pagar
@@ -131,6 +131,7 @@ export function CamposPago({
       <h2 className="font-display text-[19px]">¿Cómo te paga?</h2>
       <Segmentos
         etiqueta="Cómo paga el cliente"
+        tono="opcion"
         valor={valor.modo}
         alCambiar={(modo) => {
           if (modo === "contado" && conAbonos) {
@@ -177,13 +178,13 @@ export function CamposPago({
               {dio > 0 && !pasaDelTotal && (
                 <div className="mov-aparece">
                   <p className="mb-2 text-[13px] text-suave">¿Cómo te lo dio?</p>
-                  <div className="flex flex-wrap gap-2">
+                  <GrupoOpciones etiqueta="Cómo te lo dio">
                     {METODOS.map((m) => (
-                      <Chip key={m.id} elegido={valor.metodo === m.id} onClick={() => alCambiar({ ...valor, metodo: m.id })}>
+                      <Chip key={m.id} tono="opcion" elegido={valor.metodo === m.id} onClick={() => alCambiar({ ...valor, metodo: m.id })}>
                         {m.texto}
                       </Chip>
                     ))}
-                  </div>
+                  </GrupoOpciones>
                 </div>
               )}
             </>

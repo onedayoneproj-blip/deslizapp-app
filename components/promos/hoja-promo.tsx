@@ -24,7 +24,7 @@ import {
 import type { PedidoConItems, Producto, Promo, TipoPromo } from "@/lib/types";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { useToast } from "../toast";
 import { TarjetaPromo } from "./tarjeta-promo";
 import { useElegirPestanaPromos, useOfrecerCompartir } from "./vista-promos";
@@ -127,6 +127,10 @@ function Formulario({
     // Duplicar no hereda la pausa
     pausada: promo ? promo.pausada : false,
   }));
+  // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta
+  const firma = JSON.stringify(datos);
+  const [firmaInicial] = useState(firma);
+  useAvisarAlSalir(firma !== firmaInicial);
   const [vista, setVista] = useState<"promo" | "producto" | "coleccion">("promo");
   const [tocados, setTocados] = useState<Set<string>>(new Set());
   const [intento, setIntento] = useState(false);

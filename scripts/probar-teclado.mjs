@@ -168,7 +168,11 @@ try {
     }
     await t("touchEnd");
     await page.waitForTimeout(700);
-    ok(!(await page.$('[role="dialog"]')), "Nuevo producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando");
+    // Con lo escrito sin guardar, deslizar pregunta "¿Salir sin guardar?" (components/hoja.tsx); "Salir" cierra
+    ok(!!(await page.$('[role="alertdialog"]')), "Nuevo producto: tras escribir, deslizar para cerrar pregunta «¿Salir sin guardar?»");
+    await page.tap('[role="alertdialog"] button:has-text("Salir")');
+    await page.waitForTimeout(1200);
+    ok(!(await page.$('[role="dialog"]')), "Nuevo producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Salir»)");
     ok(errores.length === 0, `Nuevo producto: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -344,8 +348,8 @@ try {
     await page.tap('[role="dialog"] >> text=Agregar productos');
     await page.tap('[role="dialog"] button[aria-label^="Agregar "]');
     await page.tap('[role="dialog"] button[aria-label="Volver"]');
-    await page.waitForSelector('[role="dialog"] [role="tab"]:has-text("A crédito")');
-    await page.tap('[role="dialog"] [role="tab"]:has-text("A crédito")');
+    await page.waitForSelector('[role="dialog"] [role="radio"]:has-text("A crédito")');
+    await page.tap('[role="dialog"] [role="radio"]:has-text("A crédito")');
     await page.waitForSelector('[role="dialog"] input[aria-label^="Te dio ahora"]');
     await probarCampo(page, '[role="dialog"] input[aria-label^="Te dio ahora"]', "Nuevo pedido a crédito · Te dio ahora", "500", { dentroDeHoja: true });
     ok(errores.length === 0, `Pedido a crédito: sin errores de página (${JSON.stringify(errores)})`);

@@ -10,7 +10,7 @@ import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Producto } from "@/lib/types";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
@@ -87,6 +87,10 @@ function FormularioProducto({
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
   const [activo, setActivo] = useState(producto?.activo ?? true);
   const [guardando, setGuardando] = useState(false);
+  // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta (de la foto solo importa si cambió, no su contenido)
+  const firma = JSON.stringify({ hayFoto: foto !== null, fotoNueva, retocar, nombre, precio, stock, categoria, nuevaColeccion, activo });
+  const [firmaInicial] = useState(firma);
+  useAvisarAlSalir(firma !== firmaInicial);
 
   const colecciones = useMemo(() => {
     const todas = new Set(productos.map((p) => p.categoria).filter((c): c is string => Boolean(c)));

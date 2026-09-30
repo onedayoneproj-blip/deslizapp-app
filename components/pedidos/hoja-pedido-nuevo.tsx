@@ -19,7 +19,7 @@ import { montoDeTexto } from "@/lib/credito";
 import { Avatar } from "../clientes/comunes";
 import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type EstadoPago } from "../credito/campos-pago";
 import { Foto } from "../foto";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
@@ -151,6 +151,20 @@ function Formulario({
   const descuento = bloqueado ? Math.max(0, subtotal - (pedido?.total ?? 0)) : descuentoDeCodigo(promo, subtotal);
   const totalFinal = bloqueado ? (pedido?.total ?? 0) : subtotal - descuento;
   const codigoMalo = !bloqueado && codigo.trim() !== "" && !promo;
+
+  // Con cualquier cambio respecto a como se abrió (cliente, productos, código, venta pasada, fecha, pago) y sin guardar, cerrar
+  // la hoja pregunta. La "firma" es el estado que se guarda; la inicial se toma al abrir.
+  const firma = JSON.stringify({
+    cliente: cliente?.id ?? null,
+    lineas: Object.entries(cantidades).filter(([, n]) => n > 0).sort(([a], [b]) => a.localeCompare(b)),
+    codigo: codigo.trim(),
+    ventaPasada,
+    dia: ventaPasada || bloqueado ? dia : null,
+    descontarStock: ventaPasada ? descontarStock : false,
+    pago: pago.modo === "credito" ? pago : { modo: "contado" },
+  });
+  const [firmaInicial] = useState(firma);
+  useAvisarAlSalir(firma !== firmaInicial);
 
   const pideFecha = bloqueado || ventaPasada;
   const fechaVenta = pideFecha ? fechaDeVenta(dia) : null;

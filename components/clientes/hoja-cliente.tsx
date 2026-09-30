@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { cuentaDeCliente } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -10,7 +11,8 @@ import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { CuentaCliente } from "@/lib/credito";
 import type { ClienteConResumen, PedidoConItems } from "@/lib/types";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
+import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { IconoWhatsApp } from "../iconos";
@@ -21,35 +23,54 @@ import { Avatar, EtiquetaRepite } from "./comunes";
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
 export function HojaCliente({ clienteId }: { clienteId: string }) {
   const router = useRouter();
-  const { getCliente, getPedidos, getCuentaCliente, getDueno } = useData();
+  const { getCliente, getPedidos, getDueno } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/clientes", { scroll: false }), [router]);
 
-  const { data: cliente, cargando } = useConsulta(`cliente:${tiendaId}:${clienteId}`, () => getCliente(tiendaId, clienteId));
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
-  const { data: cuenta } = useConsulta(`cuenta:${tiendaId}:${clienteId}`, () => getCuentaCliente(tiendaId, clienteId));
+  const c = useConsulta(`cliente:${tiendaId}:${clienteId}`, () => getCliente(tiendaId, clienteId));
+  const p = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
+  const { data: cliente } = c;
+  const { data: pedidos } = p;
+  // La cuenta ("Te debe") se arma aquí, con los pedidos (que ya traen sus abonos): así la hoja no depende de una lectura más.
+  // "Ahora" se toma al abrir la hoja (para el atraso).
+  const [ahora] = useState(Date.now);
+  const cuenta = useMemo(() => (pedidos ? cuentaDeCliente(pedidos, clienteId, ahora) : null), [pedidos, clienteId, ahora]);
 
-  if (cliente === undefined && cargando) return null;
-  if (!cliente) {
-    return (
-      <Hoja abierta alCerrar={cerrar} titulo="Cliente">
-        <div className="py-6 text-center">
-          <p className="font-display text-xl">Esta persona no vive aquí.</p>
-          <p className="mt-1 text-suave">Quizá es cliente de otra tienda. Los clientes no se mezclan.</p>
-          <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
-            Volver a clientes
-          </button>
-        </div>
-      </Hoja>
+  // Nunca en blanco: siempre la misma hoja "Cliente" con su contenido: el esqueleto mientras carga, "Reintentar" si una lectura
+  // falla, "no vive aquí" si no es de esta tienda, o el detalle. (Una sola hoja: entra una vez, sin parpadeo.)
+  let cuerpo: ReactNode;
+  if (c.error || p.error) {
+    cuerpo = (
+      <CuerpoConError
+        alCerrar={cerrar}
+        alReintentar={() => {
+          c.reintentar();
+          p.reintentar();
+        }}
+        textoVolver="Volver a clientes"
+      />
     );
+  } else if (cliente === undefined || (cliente && (!pedidos || !cuenta))) {
+    cuerpo = <CuerpoCargando titulo="Cliente" />;
+  } else if (!cliente) {
+    cuerpo = (
+      <div className="py-6 text-center">
+        <p className="font-display text-xl">Esta persona no vive aquí.</p>
+        <p className="mt-1 text-suave">Quizá es cliente de otra tienda. Los clientes no se mezclan.</p>
+        <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+          Volver a clientes
+        </button>
+      </div>
+    );
+  } else if (pedidos && cuenta) {
+    cuerpo = <Detalle cliente={cliente} pedidos={pedidos.filter((x) => x.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} />;
   }
-  if (!pedidos || !cuenta) return null;
 
   // "grande": tiene un campo de texto (la nota) y la hoja no cambia de tamaño con el teclado
   return (
     <Hoja abierta alCerrar={cerrar} titulo="Cliente" altura="grande">
-      <Detalle cliente={cliente} pedidos={pedidos.filter((p) => p.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} />
+      {cuerpo}
     </Hoja>
   );
 }
@@ -61,6 +82,8 @@ function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConR
   const [nota, setNota] = useState(cliente.nota ?? "");
   const [guardando, setGuardando] = useState(false);
   const cambiada = nota.trim() !== (cliente.nota ?? "");
+  // Con la nota cambiada y sin guardar, cerrar la hoja pregunta
+  useAvisarAlSalir(cambiada);
   const guardarNota = async () => {
     setGuardando(true);
     try {
