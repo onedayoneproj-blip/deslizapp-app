@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Estados de la dona del plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;700;800&amp;family=Fredoka:wght@500;600&amp;display=swap">
+<style>body{margin:0;background:#f3eadb;font-family:Figtree,sans-serif;color:#174b3a}
+button{font-family:Figtree,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}button:active{opacity:.7}
+button:focus-visible{outline:3px solid #ff834f;outline-offset:2px}
+.arco{animation:arco 1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes arco{from{stroke-dashoffset:var(--c)}}
+.entrar{animation:entrar .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entrar{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+</helmet>
+<div style="width: 760px; height: 360px; box-sizing: border-box; padding: 40px; background: #f3eadb; display: flex; flex-direction: column; gap: 24px">
+<h2 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 26px">La dona según cuánto queda</h2>
+<div style="display: flex; gap: 20px">
+<div style="background: #fff9ee; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 200px; box-sizing: border-box"><span style="position: relative; width: 76px; height: 76px; display: block; flex-shrink: 0"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#f5c9d6" stroke-width="9"></circle><circle class="arco" cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#174b3a" stroke-width="9" stroke-linecap="round" stroke-dasharray="94.72 210.49" stroke-dashoffset="0.00" style="--c: 94.72px" transform="rotate(-90 38.0 38.0)"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 22px; color: #174b3a">11</b><span style="font-size: 9.5px; font-weight: 800; color: #4f6a5e; margin-top: 2px; letter-spacing: .02em">LIBRES</span></span></span><b style="font-size: 15px">Con espacio</b><span style="font-size: 13px; color: #4f6a5e; text-align: center">Verde Bosque sobre rosa</span></div>
+<div style="background: #fff9ee; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 200px; box-sizing: border-box"><span style="position: relative; width: 76px; height: 76px; display: block; flex-shrink: 0"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#f5c9d6" stroke-width="9"></circle><circle class="arco" cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#ff834f" stroke-width="9" stroke-linecap="round" stroke-dasharray="178.91 210.49" stroke-dashoffset="0.00" style="--c: 178.91px" transform="rotate(-90 38.0 38.0)"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 22px; color: #c24e18">3</b><span style="font-size: 9.5px; font-weight: 800; color: #4f6a5e; margin-top: 2px; letter-spacing: .02em">LIBRES</span></span></span><b style="font-size: 15px">Casi lleno (≥ 80 %)</b><span style="font-size: 13px; color: #4f6a5e; text-align: center">Pasa a Mandarina y late una vez</span></div>
+<div style="background: #fff9ee; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 200px; box-sizing: border-box"><span style="position: relative; width: 76px; height: 76px; display: block; flex-shrink: 0"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#f5c9d6" stroke-width="9"></circle><circle class="arco" cx="38.0" cy="38.0" r="33.50" fill="none" stroke="#ff834f" stroke-width="9" stroke-linecap="round" stroke-dasharray="210.49 210.49" stroke-dashoffset="0.00" style="--c: 210.49px" transform="rotate(-90 38.0 38.0)"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 17px; color: #c24e18">Lleno</b></span></span><b style="font-size: 15px">Lleno</b><span style="font-size: 13px; color: #4f6a5e; text-align: center">Aro completo; al tocar, subir de plan</span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":360}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

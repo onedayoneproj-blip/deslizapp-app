@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Clientes · hoja de detalle al tocar la dona</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;700;800&amp;family=Fredoka:wght@500;600&amp;display=swap">
+<style>body{margin:0;background:#f3eadb;font-family:Figtree,sans-serif;color:#174b3a}
+button{font-family:Figtree,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}button:active{opacity:.7}
+button:focus-visible{outline:3px solid #ff834f;outline-offset:2px}
+.arco{animation:arco 1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes arco{from{stroke-dashoffset:var(--c)}}
+.entrar{animation:entrar .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entrar{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #fff9ee; position: relative; overflow: hidden; display: flex; flex-direction: column; background: rgba(16, 54, 42, 0.45)">
+<div style="height: 70px; flex-shrink: 0"></div>
+<div class="entrar" style="flex-grow: 1; background: #fff9ee; border-radius: 28px 28px 0 0; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="width: 40px; height: 5px; border-radius: 3px; background: #cdbfa6; align-self: center"></div>
+<div style="display: flex; align-items: center; justify-content: space-between"><h2 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 26px">Tus clientes</h2><button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #f3ead9; font-size: 20px; color: #174b3a">×</button></div>
+<div style="display: flex; align-items: center; gap: 18px"><span style="position: relative; width: 148px; height: 148px; display: block; flex-shrink: 0"><svg width="148" height="148" viewBox="0 0 148 148" aria-hidden="true" style="position: absolute; inset: 0"><circle cx="74.0" cy="74.0" r="66.00" fill="none" stroke="#f3ead9" stroke-width="16"></circle><circle class="arco" cx="74.0" cy="74.0" r="66.00" fill="none" stroke="#174b3a" stroke-width="16" stroke-linecap="butt" stroke-dasharray="101.67 414.69" stroke-dashoffset="0.00" style="--c: 103.67px" transform="rotate(-90 74.0 74.0)"></circle><circle class="arco" cx="74.0" cy="74.0" r="66.00" fill="none" stroke="#ff834f" stroke-width="16" stroke-linecap="butt" stroke-dasharray="231.26 414.69" stroke-dashoffset="-103.67" style="--c: 233.26px" transform="rotate(-90 74.0 74.0)"></circle><circle class="arco" cx="74.0" cy="74.0" r="66.00" fill="none" stroke="#e7dcc8" stroke-width="16" stroke-linecap="butt" stroke-dasharray="75.75 414.69" stroke-dashoffset="-336.94" style="--c: 77.75px" transform="rotate(-90 74.0 74.0)"></circle></svg><span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 38px">48</b><span style="font-size: 9px; font-weight: 800; color: #4f6a5e; margin-top: 2px; letter-spacing: .02em">CLIENTES</span></span></span><div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.35"><span><b>1 de cada 4</b> vuelve a comprar.</span><span style="color: #4f6a5e">Los que repiten dejan el <b style="color: #174b3a">58 %</b> de tus ventas.</span></div></div>
+<div>
+<button type="button" style="height: 52px; border: none; border-bottom: 1px solid #efe4d2; background: transparent; display: flex; align-items: center; gap: 12px; padding: 0; text-align: left; width: 100%"><span style="width: 14px; height: 14px; border-radius: 7px; background: #174b3a; flex-shrink: 0"></span><span style="flex-grow: 1; font-size: 15px; font-weight: 700; color: #174b3a">Repiten</span><span style="font-size: 13px; color: #4f6a5e">25 %</span><b style="font-size: 16px; color: #174b3a; width: 32px; text-align: right">12</b></button>
+<button type="button" style="height: 52px; border: none; border-bottom: 1px solid #efe4d2; background: transparent; display: flex; align-items: center; gap: 12px; padding: 0; text-align: left; width: 100%"><span style="width: 14px; height: 14px; border-radius: 7px; background: #ff834f; flex-shrink: 0"></span><span style="flex-grow: 1; font-size: 15px; font-weight: 700; color: #174b3a">Compraron una vez</span><span style="font-size: 13px; color: #4f6a5e">56 %</span><b style="font-size: 16px; color: #174b3a; width: 32px; text-align: right">27</b></button>
+<button type="button" style="height: 52px; border: none; border-bottom: 1px solid #efe4d2; background: transparent; display: flex; align-items: center; gap: 12px; padding: 0; text-align: left; width: 100%"><span style="width: 14px; height: 14px; border-radius: 7px; background: #e7dcc8; border: 1.5px solid #cdbfa6; flex-shrink: 0"></span><span style="flex-grow: 1; font-size: 15px; font-weight: 700; color: #174b3a">Sin comprar todavía</span><span style="font-size: 13px; color: #4f6a5e">19 %</span><b style="font-size: 16px; color: #174b3a; width: 32px; text-align: right">9</b></button>
+</div>
+<div style="display: flex; gap: 10px"><div style="flex-grow: 1; flex-basis: 0; background: #ffffff; border: 1px solid #efe4d2; border-radius: 18px; padding: 12px 14px"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">5</b><p style="margin: 2px 0 0; font-size: 13px; font-weight: 700">Nuevos</p><p style="margin: 2px 0 0; font-size: 12px; color: #4f6a5e">primer pedido en 30 días</p></div><div style="flex-grow: 1; flex-basis: 0; background: #ffffff; border: 1px solid #efe4d2; border-radius: 18px; padding: 12px 14px"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">9</b><p style="margin: 2px 0 0; font-size: 13px; font-weight: 700">Dormidos</p><p style="margin: 2px 0 0; font-size: 12px; color: #4f6a5e">sin comprar hace 60+ días</p></div></div>
+<div style="display: flex; gap: 10px"><div style="flex-grow: 1; flex-basis: 0; background: #ffffff; border: 1px solid #efe4d2; border-radius: 18px; padding: 12px 14px"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">14</b><p style="margin: 2px 0 0; font-size: 13px; font-weight: 700">Del catálogo</p><p style="margin: 2px 0 0; font-size: 12px; color: #4f6a5e">llegaron por el enlace</p></div><div style="flex-grow: 1; flex-basis: 0; background: #ffffff; border: 1px solid #efe4d2; border-radius: 18px; padding: 12px 14px"><b style="font-family: Fredoka, sans-serif; font-weight: 600; font-size: 24px">34</b><p style="margin: 2px 0 0; font-size: 13px; font-weight: 700">A mano</p><p style="margin: 2px 0 0; font-size: 12px; color: #4f6a5e">los agregaste tú</p></div></div>
+<button type="button" style="height: 48px; border-radius: 24px; border: 1.5px solid #174b3a; background: transparent; color: #174b3a; font-size: 15px; font-weight: 800">Escribirle a los dormidos</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
