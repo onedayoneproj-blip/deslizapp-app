@@ -8,6 +8,7 @@ import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
 import type { FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
+  aplicarCodigoAlPedido,
   despacharPedido,
   deshacerDespacho as deshacerDespachoDemo,
   insertarPedidoManual,
@@ -208,6 +209,15 @@ export const fuenteDemo: FuenteDatos = {
    * Por despachar → Despachado: descuenta el stock de cada producto. Lanza StockInsuficiente
    * (sin cambiar nada) si algún producto no alcanza. `agotados` = productos que quedaron en 0.
    */
+  async aplicarCodigoPedido(tiendaId: string, id: string, codigo: string | null): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = aplicarCodigoAlPedido(db, tiendaId, id, codigo, ahora());
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
   async volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems> {
     let resultado!: PedidoConItems;
     escribir((db) => {

@@ -305,15 +305,30 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   - si algún producto no tiene stock suficiente, no despacha y avisa: "No
     alcanza el stock de {producto}."
 
-**Volver a un paso previo** (acción secundaria discreta: texto subrayado bajo los botones, nunca botón principal):
-- `por_despachar` → **"Volver a Recibido"**: pasa a `nuevo`, sin diálogo. Aviso: "Pedido #N volvió a Recibido."
-- `despachado` → **"Deshacer despacho"**: pide confirmación breve dentro de la misma hoja ("Se devolverá el stock
-  de los productos y el pedido volverá a Por despachar. ¿Deshacer?" con "Sí, deshacer" / "Mejor no"). Devuelve el
-  stock de cada producto según `cantidad` (los de `stock = null` no cambian), pone el pedido en `por_despachar` y
-  quita `despachado_en`. Aviso: "Despacho deshecho. El stock se devolvió." En modo real llama a la RPC
-  `deshacer_despacho(p_pedido_id)`; sus errores `pedido_no_deshacible` ("Ese pedido ya no está despachado.
-  Actualiza la lista.") y `pedido_no_encontrado` salen en español. En la demo se hace lo mismo en `lib/data/pedidos.ts`.
+**Código de descuento en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila
+tocable **"¿Usó un código?"** o, si ya tiene, un chip "Código AAAH10" con **"Cambiar"** y **"Quitar"**. Al tocarla se
+abre en la misma hoja el mismo campo de "+ Pedido" (`components/pedidos/campo-codigo.tsx`, con su misma validación:
+código de una promo de código activa de la tienda, sin importar mayúsculas) y "Aplicar código" / "Cancelar". Al aplicar,
+cambiar o quitar se recalculan los precios unitarios de los productos (`precioConPromo`, la misma función de
+"+ Pedido") y el total (subtotal menos el descuento del código); se guardan `pedido_items.precio_unitario`,
+`pedidos.total` y `pedidos.codigo_promo`. El Subtotal nunca incluye el código: entre Subtotal y Total aparece la línea
+"Descuento · CÓDIGO". Si el código no existe o no está activo, avisa ("Ese código no existe o ya no está activo…") y no
+cambia nada. En `despachado` y `cancelado` el código no se edita (solo se muestra si tenía): primero hay que usar
+"Volver al paso anterior". En la demo se hace lo mismo (`aplicarCodigoAlPedido` en `lib/data/pedidos.ts`).
+
+**Volver al paso anterior** (acción secundaria discreta, texto subrayado bajo los botones; en `nuevo` no aparece):
+- `por_despachar` → **"Volver al paso anterior"**: pasa a `nuevo`, sin diálogo. Aviso: "Pedido #N volvió a Recibido."
+- `despachado` → **"Volver al paso anterior"**: pide confirmación breve dentro de la misma hoja ("Se devolverá el
+  stock de los productos. ¿Volver a Confirmado?", con "Sí, volver" / "Mejor no"), devuelve el stock de cada producto
+  según `cantidad` (los de `stock = null` no cambian), pone el pedido en `por_despachar` y quita `despachado_en`. En modo
+  real llama a la RPC `deshacer_despacho(p_pedido_id)`; sus errores `pedido_no_deshacible` y `pedido_no_encontrado`
+  salen en español. En la demo se hace lo mismo en `lib/data/pedidos.ts`.
 - `cancelado` → **"Reabrir pedido"**: pasa a `nuevo`. Aviso: "Pedido #N reabierto."
+- **Los pasos anteriores de la línea de avance se tocan** (Recibido / Confirmado / Despachado): cada uno es un botón
+  ("Volver a Confirmado") con área de 44 px de alto que incluye barra y etiqueta (la barra sigue delgada) y la etiqueta
+  subrayada como señal. El paso actual y los futuros no son botones (avanzar es con el botón principal). Tocar un paso
+  lleva el pedido a ese paso: desde `despachado` siempre pide la confirmación y usa `deshacer_despacho`; si el destino
+  es Recibido, después cambia el estado a `nuevo`. Los demás retrocesos son directos. Aviso: "Pedido #N volvió a <paso>."
 - La línea de avance, las pastillas de Pedidos, el número de la barra, "Repite" y los totales del Resumen se calculan
   desde el estado, así que se actualizan solos (un pedido reabierto vuelve a contar; en Supabase, `pedidos_count`
   lo recalcula el trigger de la base al cambiar `estado`).

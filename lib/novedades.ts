@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.15.0",
+    fecha: "2026-09-30",
+    titulo: "Códigos y pasos, a tu ritmo.",
+    cambios: [
+      "En el detalle de un pedido abierto puedes poner, cambiar o quitar el código de descuento: el total se acomoda solo.",
+      "Toca un paso anterior de la línea de avance para volver a él. Si ya estaba despachado, el stock regresa.",
+    ],
+  },
+  {
     version: "0.14.0",
     fecha: "2026-09-30",
     titulo: "Lo que ya vendiste también cuenta.",

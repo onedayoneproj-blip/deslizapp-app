@@ -1,5 +1,5 @@
 import { estadoPromo, precioConPromo } from "../promos";
-import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
+import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos, PedidoNoDeshacible, StockInsuficiente } from "./errores";
 
@@ -183,6 +183,54 @@ export function deshacerDespacho(db: DB, tiendaId: string, id: string, ahora: st
   });
   const pedido: Pedido = { ...actual, estado: "por_despachar", despachadoEn: null };
   return { db: { ...reemplazarPedido(db, pedido), productos }, pedido: conItems(db, pedido) };
+}
+
+// ---- Código de descuento de un pedido abierto ----
+
+export const MENSAJE_CODIGO_MALO = "Ese código no existe o ya no está activo. Revisa cómo lo escribió.";
+
+/**
+ * Recalcula un pedido con `codigo` (o sin código, con null): los precios unitarios salen de `precioConPromo` (la misma
+ * función que usa "+ Pedido", con la promo de colección o de producto vigente) y el total es el subtotal menos el
+ * descuento del código. El subtotal NO incluye el código. Lanza DatosInvalidos si el código no existe o no está activo.
+ */
+export function recalcularConCodigo(
+  items: PedidoItem[],
+  productos: Producto[],
+  promos: Promo[],
+  tiendaId: string,
+  codigo: string | null,
+  ahora: Date,
+) {
+  const limpio = codigo?.trim() ?? "";
+  const promo = limpio ? buscarCodigoPromo(promos, tiendaId, limpio, ahora) : null;
+  if (limpio && !promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
+  const nuevos = items.map((i) => {
+    const producto = productos.find((p) => p.id === i.productoId && p.tiendaId === tiendaId);
+    return producto ? { ...i, precioUnitario: precioConPromo(producto, promos, ahora).precio } : i;
+  });
+  const subtotal = nuevos.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
+  return { items: nuevos, total: subtotal - descuentoDeCodigo(promo, subtotal), codigoPromo: promo?.codigo ?? null };
+}
+
+/** Solo mientras el pedido no está despachado ni cancelado. */
+export function puedeEditarCodigo(estado: EstadoPedido) {
+  return estado === "nuevo" || estado === "por_despachar";
+}
+
+const MENSAJE_CODIGO_BLOQUEADO = "El código solo se cambia antes de despachar. Usa «Volver al paso anterior» y luego edítalo.";
+
+/** Aplica, cambia (o quita, con null) el código de un pedido `nuevo` o `por_despachar`. */
+export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codigo: string | null, ahora: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos(MENSAJE_CODIGO_BLOQUEADO);
+  const r = recalcularConCodigo(db.pedidoItems.filter((i) => i.pedidoId === id), db.productos, db.promos, tiendaId, codigo, new Date(ahora));
+  const pedido: Pedido = { ...actual, total: r.total, codigoPromo: r.codigoPromo };
+  const porId = new Map(r.items.map((i) => [i.id, i]));
+  return {
+    db: { ...reemplazarPedido(db, pedido), pedidoItems: db.pedidoItems.map((i) => porId.get(i.id) ?? i) },
+    pedido: { ...pedido, items: r.items } satisfies PedidoConItems,
+  };
 }
 
 // ---- Pedido manual ----

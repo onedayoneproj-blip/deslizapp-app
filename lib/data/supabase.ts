@@ -50,7 +50,7 @@ import {
   type FilaUsuario,
 } from "./filas";
 import type { FuenteDatos } from "./fuente";
-import { buscarCodigoPromo, descuentoDeCodigo } from "./pedidos";
+import { buscarCodigoPromo, descuentoDeCodigo, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
 import { desdeFormulario, promoTerminada } from "./promos";
 
 /** Lo que devuelve cualquier consulta de supabase-js. */
@@ -382,6 +382,37 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     getPedido: (tiendaId, id) => leer(`pedido:${tiendaId}:${id}`, () => pedidoCrudo(tiendaId, id)),
     confirmarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo"], "por_despachar"),
     cancelarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo", "por_despachar"], "cancelado"),
+    async aplicarCodigoPedido(tiendaId, id, codigo) {
+      const [actual, productos, promos] = await Promise.all([pedidoCrudo(tiendaId, id), productosCrudos(tiendaId), promosCrudas(tiendaId)]);
+      if (!actual) throw new PedidoNoEncontrado();
+      if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos("El código solo se cambia antes de despachar. Usa «Volver al paso anterior» y luego edítalo.");
+      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date());
+      // Primero los precios de los productos que cambiaron, luego el pedido (con el estado como guarda).
+      const cambiados = r.items.filter((n) => n.precioUnitario !== actual.items.find((i) => i.id === n.id)?.precioUnitario);
+      const ponerPrecios = (lista: { id: string; precioUnitario: number }[]) =>
+        Promise.all(lista.map((i) => dato(supabase.from("pedido_items").update({ precio_unitario: i.precioUnitario }).eq("id", i.id).eq("pedido_id", id))));
+      await ponerPrecios(cambiados);
+      try {
+        const f = await dato<{ id: string }>(
+          supabase
+            .from("pedidos")
+            .update({ total: r.total, codigo_promo: r.codigoPromo })
+            .eq("tienda_id", tiendaId)
+            .eq("id", id)
+            .in("estado", ["nuevo", "por_despachar"])
+            .select("id")
+            .maybeSingle(),
+        );
+        if (!f) throw new DatosInvalidos("Ese pedido ya cambió de estado. Actualiza la lista.");
+      } catch (e) {
+        // No se guardó el pedido: se devuelven los precios de antes.
+        await ponerPrecios(cambiados.map((n) => ({ id: n.id, precioUnitario: actual.items.find((i) => i.id === n.id)!.precioUnitario }))).catch(() => undefined);
+        throw e;
+      }
+      const pedido = await pedidoCrudo(tiendaId, id);
+      if (!pedido) throw new PedidoNoEncontrado();
+      return cambio(pedido);
+    },
     volverPedidoARecibido: (tiendaId, id) => moverPedido(tiendaId, id, ["por_despachar"], "nuevo"),
     reabrirPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["cancelado"], "nuevo"),
     async deshacerDespacho(tiendaId, id) {

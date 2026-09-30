@@ -35,6 +35,12 @@ export type FuenteDatos = {
   /** Nuevo → Por despachar. */
   confirmarPedido(tiendaId: string, id: string): Promise<PedidoConItems>;
   cancelarPedido(tiendaId: string, id: string): Promise<PedidoConItems>;
+  /**
+   * Aplica, cambia (o quita, con null) el código de descuento de un pedido `nuevo` o `por_despachar`: recalcula los precios
+   * unitarios y el total. Lanza DatosInvalidos (sin cambiar nada) si el código no existe, no está activo o el pedido ya
+   * se despachó o canceló.
+   */
+  aplicarCodigoPedido(tiendaId: string, id: string, codigo: string | null): Promise<PedidoConItems>;
   /** Por despachar → Recibido (`nuevo`). */
   volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems>;
   /** Cancelado → Recibido (`nuevo`). */

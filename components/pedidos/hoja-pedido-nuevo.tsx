@@ -20,12 +20,12 @@ import { Hoja } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
+import { CampoCodigo, CLASE_CAMPO } from "./campo-codigo";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
 
-const campo =
-  "h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] border-borde bg-white px-3.5 text-base text-bosque outline-none focus:border-bosque";
+const campo = CLASE_CAMPO;
 
 /** Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar. */
 export function HojaPedidoNuevo() {
@@ -236,20 +236,7 @@ function Formulario({
         </>
       )}
 
-      <label className="mt-1 flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Código de promo <span className="-mt-1 text-[12.5px] font-semibold text-suave">(opcional)</span>
-        <input
-          type="text"
-          value={codigo}
-          onChange={(e) => setCodigo(e.target.value.toUpperCase().slice(0, 20))}
-          placeholder="Ej: LUNA20"
-          autoCapitalize="characters"
-          autoComplete="off"
-          className={campo}
-        />
-        {promo && <span className="text-[12.5px] font-semibold text-suave">Código {promo.codigo}: {promo.valorPorcentaje}% menos. Ya va en el total.</span>}
-        {codigoMalo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese código no existe o ya no está activo. Revisa cómo lo escribió.</span>}
-      </label>
+      <CampoCodigo valor={codigo} alCambiar={setCodigo} promo={promo} />
 
       <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">
         <div className="flex justify-between py-0.5 text-sm font-semibold text-suave">

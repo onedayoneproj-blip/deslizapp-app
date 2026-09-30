@@ -1,17 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
+import { buscarCodigoPromo } from "@/lib/data/pedidos";
+import { puedeEditarCodigo } from "@/lib/data/pedidos";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
-import type { Cliente, PedidoConItems, Producto } from "@/lib/types";
+import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
+import { IconoCamion, IconoCheck, IconoMas, IconoWhatsApp } from "../iconos";
 import { useToast } from "../toast";
+import { CampoCodigo } from "./campo-codigo";
 import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
@@ -22,13 +26,14 @@ const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
 export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   const router = useRouter();
-  const { getPedido, getProductos, getClientes } = useData();
+  const { getPedido, getProductos, getClientes, getPromos } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/pedidos", { scroll: false }), [router]);
 
   const { data: pedido, cargando } = useConsulta(`pedido:${tiendaId}:${pedidoId}`, () => getPedido(tiendaId, pedidoId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
 
   if (pedido === undefined && cargando) return null;
   if (!pedido) {
@@ -44,21 +49,25 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
       </Hoja>
     );
   }
-  if (!productos || !clientes) return null;
+  if (!productos || !clientes || !promos) return null;
 
   return (
     <Hoja abierta alCerrar={cerrar} titulo={`Pedido #${pedido.numero}`}>
-      <Detalle pedido={pedido} productos={productos} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
+      <Detalle pedido={pedido} productos={productos} promos={promos} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
     </Hoja>
   );
 }
 
-function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; productos: Producto[]; cliente: Cliente | null }) {
-  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho } = useData();
+function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItems; productos: Producto[]; promos: Promo[]; cliente: Cliente | null }) {
+  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const toast = useToast();
   const [ocupado, setOcupado] = useState(false);
-  const [confirmandoDeshacer, setConfirmandoDeshacer] = useState(false);
+  // Paso al que se quiere volver desde Despachado, esperando confirmación (0 = Recibido, 1 = Confirmado).
+  const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
+  const [editandoCodigo, setEditandoCodigo] = useState(false);
+  const [codigo, setCodigo] = useState("");
+  const campoCodigo = useRef<HTMLInputElement>(null);
 
   const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const subtotal = pedido.items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
@@ -110,24 +119,45 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
       );
     });
 
-  const volverARecibido = () =>
-    correr(async () => {
-      await volverPedidoARecibido(tiendaId, pedido.id);
-      toast(`Pedido #${pedido.numero} volvió a Recibido.`);
-    });
   const reabrir = () =>
     correr(async () => {
       await reabrirPedido(tiendaId, pedido.id);
       toast(`Pedido #${pedido.numero} reabierto.`);
     });
-  const deshacer = () =>
+
+  /** Vuelve a un paso anterior. Salir de Despachado devuelve el stock (deshacer_despacho); volver a Recibido cambia luego el estado a `nuevo`. */
+  const retroceder = (destino: 0 | 1) =>
     correr(async () => {
       try {
-        await deshacerDespacho(tiendaId, pedido.id);
-        toast("Despacho deshecho. El stock se devolvió.");
+        if (paso === 2) await deshacerDespacho(tiendaId, pedido.id);
+        if (destino === 0) await volverPedidoARecibido(tiendaId, pedido.id);
+        toast(`Pedido #${pedido.numero} volvió a ${PASOS[destino]}.`);
       } finally {
-        setConfirmandoDeshacer(false);
+        setConfirmando(null);
       }
+    });
+  const irAlPaso = (destino: 0 | 1) => (paso === 2 ? setConfirmando(destino) : void retroceder(destino));
+
+  // Código de descuento (solo mientras el pedido no se despacha ni se cancela)
+  const puedeCodigo = puedeEditarCodigo(pedido.estado);
+  const promoEscrita = buscarCodigoPromo(promos, tiendaId, codigo);
+  // El foco va al campo en el MISMO toque que lo abre (flushSync): así el teclado del iPhone abre bien (HANDOFF.md).
+  const abrirCodigo = (inicial: string) => {
+    setCodigo(inicial);
+    flushSync(() => setEditandoCodigo(true));
+    campoCodigo.current?.focus({ preventScroll: true });
+  };
+  const aplicarCodigo = () =>
+    correr(async () => {
+      if (!promoEscrita) return;
+      await aplicarCodigoPedido(tiendaId, pedido.id, codigo);
+      setEditandoCodigo(false);
+      toast(`Código ${promoEscrita.codigo} aplicado. El total ya cambió.`);
+    });
+  const quitarCodigo = () =>
+    correr(async () => {
+      await aplicarCodigoPedido(tiendaId, pedido.id, null);
+      toast("Código quitado. El total ya cambió.");
     });
 
   const primerNombre = cliente?.nombre.split(" ")[0] ?? "";
@@ -142,14 +172,35 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
         <ChipEstado estado={pedido.estado} />
       </div>
 
-      {/* Línea de avance */}
-      <div className="flex items-center gap-2.5" aria-label={paso >= 0 ? `Va en: ${PASOS[paso]}` : "Pedido cancelado"}>
-        {PASOS.map((nombre, i) => (
-          <div key={nombre} className="flex-1">
-            <div className={`h-1.5 rounded-[3px] ${i <= paso ? (i === 2 ? "bg-mandarina" : "bg-bosque") : "bg-borde"}`} />
-            <p className={`mt-[5px] text-xs font-extrabold ${i <= paso ? "text-bosque" : "text-tenue"}`}>{nombre}</p>
-          </div>
-        ))}
+      {/* Línea de avance: los pasos ANTERIORES al actual se tocan para volver a ellos (área de 44 px, barra delgada). */}
+      <div className="flex items-center gap-2.5" role="group" aria-label={paso >= 0 ? `Va en: ${PASOS[paso]}` : "Pedido cancelado"}>
+        {PASOS.map((nombre, i) => {
+          const barra = (
+            <>
+              <span className={`block h-1.5 rounded-[3px] ${i <= paso ? (i === 2 ? "bg-mandarina" : "bg-bosque") : "bg-borde"}`} />
+              <span className={`mt-[5px] block text-xs font-extrabold ${i <= paso ? "text-bosque" : "text-tenue"} ${i < paso ? "underline underline-offset-2" : ""}`}>
+                {nombre}
+              </span>
+            </>
+          );
+          const caja = "flex min-h-11 min-w-0 flex-1 flex-col justify-center text-left";
+          return i < paso ? (
+            <button
+              key={nombre}
+              type="button"
+              onClick={() => irAlPaso(i as 0 | 1)}
+              disabled={ocupado}
+              aria-label={`Volver a ${nombre}`}
+              className={`tocable ${caja} disabled:opacity-60`}
+            >
+              {barra}
+            </button>
+          ) : (
+            <div key={nombre} className={caja}>
+              {barra}
+            </div>
+          );
+        })}
       </div>
 
       {/* Cliente */}
@@ -197,13 +248,60 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
             </div>
           );
         })}
+        {puedeCodigo && !editandoCodigo && !pedido.codigoPromo && (
+          <button
+            type="button"
+            onClick={() => abrirCodigo("")}
+            disabled={ocupado}
+            className="tocable flex min-h-11 w-full items-center justify-between gap-3 border-b border-arena text-left text-[14.5px] font-extrabold"
+          >
+            ¿Usó un código?
+            <IconoMas tamano={18} />
+          </button>
+        )}
+        {puedeCodigo && !editandoCodigo && pedido.codigoPromo && (
+          <div className="flex min-h-11 items-center justify-between gap-3 border-b border-arena">
+            <span className="min-w-0 truncate rounded-full bg-rosa px-3 py-1 text-[13px] font-extrabold">Código {pedido.codigoPromo}</span>
+            <span className="flex shrink-0 items-center">
+              <button type="button" onClick={() => abrirCodigo(pedido.codigoPromo ?? "")} disabled={ocupado} className="h-11 px-2.5 text-[14px] font-extrabold text-bosque underline">
+                Cambiar
+              </button>
+              <button type="button" onClick={quitarCodigo} disabled={ocupado} className="h-11 pl-2.5 text-[14px] font-extrabold text-[#b4432a]">
+                Quitar
+              </button>
+            </span>
+          </div>
+        )}
+        {puedeCodigo && editandoCodigo && (
+          <div className="border-b border-arena pb-3">
+            <CampoCodigo valor={codigo} alCambiar={setCodigo} promo={promoEscrita} opcional={false} entrada={campoCodigo} />
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={aplicarCodigo}
+                disabled={ocupado || !promoEscrita}
+                className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-50"
+              >
+                Aplicar código
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditandoCodigo(false)}
+                disabled={ocupado}
+                className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-between pt-2.5 pb-0.5 text-sm font-semibold text-suave">
           <span>Subtotal</span>
           <span>{formatearPesos(subtotal)}</span>
         </div>
         {descuento > 0 && (
           <div className="flex justify-between py-1 text-sm font-bold">
-            <span>Código {pedido.codigoPromo ?? ""}</span>
+            <span>Descuento{pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}</span>
             <span>−{formatearPesos(descuento)}</span>
           </div>
         )}
@@ -246,8 +344,8 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
           <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
             Cancelar pedido
           </button>
-          <button type="button" onClick={volverARecibido} disabled={ocupado} className={ACCION_ATRAS}>
-            Volver a Recibido
+          <button type="button" onClick={() => irAlPaso(0)} disabled={ocupado} className={ACCION_ATRAS}>
+            Volver al paso anterior
           </button>
         </div>
       )}
@@ -257,16 +355,21 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
             <IconoCheck tamano={20} strokeWidth={2.6} />
             Despachado. Final feliz.
           </div>
-          {confirmandoDeshacer ? (
-            <div role="alertdialog" aria-label="Deshacer despacho" className="rounded-[18px] bg-arena px-4 py-3">
-              <p className="text-sm font-bold">Se devolverá el stock de los productos y el pedido volverá a Por despachar. ¿Deshacer?</p>
+          {confirmando !== null ? (
+            <div role="alertdialog" aria-label="Volver al paso anterior" className="rounded-[18px] bg-arena px-4 py-3">
+              <p className="text-sm font-bold">Se devolverá el stock de los productos. ¿Volver a {PASOS[confirmando]}?</p>
               <div className="mt-2 flex gap-2">
-                <button type="button" onClick={deshacer} disabled={ocupado} className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-60">
-                  Sí, deshacer
+                <button
+                  type="button"
+                  onClick={() => retroceder(confirmando)}
+                  disabled={ocupado}
+                  className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-60"
+                >
+                  Sí, volver
                 </button>
                 <button
                   type="button"
-                  onClick={() => setConfirmandoDeshacer(false)}
+                  onClick={() => setConfirmando(null)}
                   disabled={ocupado}
                   className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
                 >
@@ -275,8 +378,8 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
               </div>
             </div>
           ) : (
-            <button type="button" onClick={() => setConfirmandoDeshacer(true)} disabled={ocupado} className={ACCION_ATRAS}>
-              Deshacer despacho
+            <button type="button" onClick={() => irAlPaso(1)} disabled={ocupado} className={ACCION_ATRAS}>
+              Volver al paso anterior
             </button>
           )}
         </div>
