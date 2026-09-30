@@ -1,7 +1,7 @@
 import { estadoPromo, precioConPromo } from "../promos";
 import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
-import type { DB } from "./db";
-import { DatosInvalidos, PedidoNoDeshacible, StockInsuficiente } from "./errores";
+import { nuevoId as nuevoIdItem, type DB } from "./db";
+import { DatosInvalidos, PedidoNoDeshacible, PedidoNoEditable, SoloCancelados, StockInsuficiente } from "./errores";
 
 export { StockInsuficiente };
 
@@ -268,47 +268,69 @@ export const descuentoDeCodigo = (promo: Promo | null, subtotal: number) =>
  * Los precios son los de hoy (con promo de colección o de producto) y el código, si es válido,
  * se descuenta del total.
  */
-export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
-  const lineas = datos.items.filter((i) => i.cantidad > 0);
-  if (lineas.length === 0) throw new Error("El pedido necesita al menos un producto.");
+export type LineaCalculada = { productoId: string; nombreProducto: string; cantidad: number; precioUnitario: number };
 
-  const pedidoId = nuevoId();
-  const items: PedidoItem[] = lineas.map((l) => {
-    const producto = db.productos.find((p) => p.id === l.productoId && p.tiendaId === tiendaId);
-    if (!producto) throw new Error("Ese producto no es de esta tienda.");
-    return {
-      id: nuevoId(),
-      pedidoId,
-      productoId: producto.id,
-      nombreProducto: producto.nombre,
-      cantidad: l.cantidad,
-      precioUnitario: precioConPromo(producto, db.promos, new Date(ahora)).precio,
-    };
+/**
+ * Las líneas de un pedido con los precios de hoy (`precioConPromo`: promo de colección o de producto vigente) y el total
+ * con el código, si es válido. Es la única cuenta de "+ Pedido" y de "Editar pedido", en la demo y en Supabase.
+ */
+export function calcularLineas(
+  productos: Producto[],
+  promos: Promo[],
+  tiendaId: string,
+  pedidas: { productoId: string; cantidad: number }[],
+  codigo: string | undefined,
+  ahora: Date,
+) {
+  const lineas = pedidas.filter((i) => i.cantidad > 0);
+  if (lineas.length === 0) throw new DatosInvalidos("El pedido necesita al menos un producto.");
+  const items: LineaCalculada[] = lineas.map((l) => {
+    const producto = productos.find((p) => p.id === l.productoId && p.tiendaId === tiendaId);
+    if (!producto) throw new DatosInvalidos("Un producto del pedido ya no existe en tu tienda.");
+    return { productoId: producto.id, nombreProducto: producto.nombre, cantidad: l.cantidad, precioUnitario: precioConPromo(producto, promos, ahora).precio };
   });
   const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
-  const promo = datos.codigo ? buscarCodigoPromo(db.promos, tiendaId, datos.codigo, new Date(ahora)) : null;
+  const promo = codigo ? buscarCodigoPromo(promos, tiendaId, codigo, ahora) : null;
+  return { items, subtotal, promo, total: subtotal - descuentoDeCodigo(promo, subtotal) };
+}
 
-  const cliente = db.clientes.find((c) => c.id === datos.clienteId && c.tiendaId === tiendaId);
-  if (!cliente) throw new Error("Ese cliente no es de esta tienda.");
+/** Descuenta del stock lo vendido (igual que despachar); lanza StockInsuficiente si algún producto no alcanza. */
+export function descontarStockDeLineas(productos: Producto[], tiendaId: string, items: { productoId: string; cantidad: number }[], ahora: string): Producto[] {
+  const necesarios = new Map<string, number>();
+  for (const i of items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
+  return productos.map((p) => {
+    const cantidad = necesarios.get(p.id);
+    if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
+    if (p.stock < cantidad) throw new StockInsuficiente(p.nombre, p.id, p.stock, cantidad);
+    return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
+  });
+}
 
+function fechaNoFutura(fecha: string, ahora: string) {
+  if (Number.isNaN(Date.parse(fecha)) || Date.parse(fecha) > Date.parse(ahora)) throw new DatosInvalidos("Esa fecha no sirve: elige un día que ya pasó.");
+}
+
+/** Si la fecha es anterior al primer pedido del cliente, ese es ahora su primer pedido. */
+function conPrimerPedido(cliente: Cliente, fecha: string | undefined): Cliente {
+  return fecha && fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: fecha } : cliente;
+}
+
+function clienteDeLaTienda(db: DB, tiendaId: string, id: string): Cliente {
+  const cliente = db.clientes.find((c) => c.id === id && c.tiendaId === tiendaId);
+  if (!cliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+  return cliente;
+}
+
+export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora));
+  const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
   const venta = datos.ventaPasada;
-  if (venta && (Number.isNaN(Date.parse(venta.fecha)) || Date.parse(venta.fecha) > Date.parse(ahora))) {
-    throw new DatosInvalidos("Esa fecha no sirve: elige un día que ya pasó.");
-  }
-
+  if (venta) fechaNoFutura(venta.fecha, ahora);
   // Venta pasada con "Descontar del stock": igual que despachar, nunca deja el stock en negativo.
-  let productos = db.productos;
-  if (venta?.descontarStock) {
-    const necesarios = new Map<string, number>();
-    for (const i of items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
-    productos = db.productos.map((p) => {
-      const cantidad = necesarios.get(p.id);
-      if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
-      if (p.stock < cantidad) throw new StockInsuficiente(p.nombre, p.id, p.stock, cantidad);
-      return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
-    });
-  }
+  const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
 
+  const pedidoId = nuevoId();
+  const items: PedidoItem[] = c.items.map((i) => ({ id: nuevoId(), pedidoId, ...i }));
   const pedido: Pedido = {
     id: pedidoId,
     tiendaId,
@@ -316,17 +338,81 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
     clienteId: cliente.id,
     origen: "manual",
     estado: venta ? "despachado" : "por_despachar",
-    total: subtotal - descuentoDeCodigo(promo, subtotal),
-    codigoPromo: promo?.codigo ?? null,
+    total: c.total,
+    codigoPromo: c.promo?.codigo ?? null,
     creadoEn: venta?.fecha ?? ahora,
     despachadoEn: venta?.fecha ?? null,
   };
-  // Si la venta es anterior al primer pedido del cliente, ese es ahora su primer pedido.
-  const clienteFinal: Cliente = venta && venta.fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: venta.fecha } : cliente;
-  const clientes = clienteFinal === cliente ? db.clientes : db.clientes.map((c) => (c.id === cliente.id ? clienteFinal : c));
+  const clienteFinal = conPrimerPedido(cliente, venta?.fecha);
+  const clientes = clienteFinal === cliente ? db.clientes : db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x));
   return {
     db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], productos, clientes },
     pedido: { ...pedido, items } satisfies PedidoConItems,
     cliente: clienteFinal,
   };
+}
+
+export type DatosEdicionPedido = {
+  clienteId: string;
+  /** Solo `nuevo` y `por_despachar`: reemplazan los productos (los precios se recalculan). */
+  items?: { productoId: string; cantidad: number }[];
+  codigo?: string;
+  /** `nuevo` / `por_despachar`: "Es una venta que ya hice" (pasa a despachado con esa fecha). */
+  ventaPasada?: { fecha: string; descontarStock: boolean };
+  /** `despachado`: la nueva fecha de la venta (creación y despacho). */
+  fecha?: string;
+};
+
+/**
+ * Edita un pedido (mismo id y número), igual que la RPC `editar_pedido`: en `despachado` solo cliente y fecha; en `nuevo` y
+ * `por_despachar` todo (ítems, total, código, y "ya hecho" con su fecha y stock opcional); un cancelado no se edita.
+ */
+export function modificarPedido(db: DB, tiendaId: string, id: string, datos: DatosEdicionPedido, ahora: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (actual.estado === "cancelado") throw new PedidoNoEditable();
+  const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
+
+  if (actual.estado === "despachado") {
+    if (datos.fecha) fechaNoFutura(datos.fecha, ahora);
+    const pedido: Pedido = { ...actual, clienteId: cliente.id, ...(datos.fecha ? { creadoEn: datos.fecha, despachadoEn: datos.fecha } : {}) };
+    const clienteFinal = conPrimerPedido(cliente, datos.fecha);
+    return {
+      db: { ...reemplazarPedido(db, pedido), clientes: db.clientes.map((c) => (c.id === cliente.id ? clienteFinal : c)) },
+      pedido: conItems(db, pedido),
+      cliente: clienteFinal,
+    };
+  }
+
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora));
+  if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
+  const venta = datos.ventaPasada;
+  if (venta) fechaNoFutura(venta.fecha, ahora);
+  const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
+
+  const items: PedidoItem[] = c.items.map((i) => ({ id: nuevoIdItem(), pedidoId: id, ...i }));
+  const pedido: Pedido = {
+    ...actual,
+    clienteId: cliente.id,
+    total: c.total,
+    codigoPromo: c.promo?.codigo ?? null,
+    ...(venta ? { estado: "despachado" as const, creadoEn: venta.fecha, despachadoEn: venta.fecha } : {}),
+  };
+  const clienteFinal = conPrimerPedido(cliente, venta?.fecha);
+  return {
+    db: {
+      ...reemplazarPedido(db, pedido),
+      pedidoItems: [...db.pedidoItems.filter((i) => i.pedidoId !== id), ...items],
+      productos,
+      clientes: db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x)),
+    },
+    pedido: { ...pedido, items } satisfies PedidoConItems,
+    cliente: clienteFinal,
+  };
+}
+
+/** Borra un pedido cancelado (y sus productos). Los números no se reutilizan: quedan huecos. */
+export function quitarPedido(db: DB, tiendaId: string, id: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (actual.estado !== "cancelado") throw new SoloCancelados();
+  return { ...db, pedidos: db.pedidos.filter((p) => p.id !== id), pedidoItems: db.pedidoItems.filter((i) => i.pedidoId !== id) };
 }

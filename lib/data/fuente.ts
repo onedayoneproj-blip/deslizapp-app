@@ -4,10 +4,10 @@
 
 import type { DatosPromo } from "../promos";
 import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
-import type { DatosPedidoManual } from "./pedidos";
+import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
 
-export type { DatosMarca, DatosPedidoManual };
+export type { DatosEdicionPedido, DatosMarca, DatosPedidoManual };
 
 export type FuenteDatos = {
   // Tiendas
@@ -41,6 +41,13 @@ export type FuenteDatos = {
    * se despachó o canceló.
    */
   aplicarCodigoPedido(tiendaId: string, id: string, codigo: string | null): Promise<PedidoConItems>;
+  /**
+   * Edita un pedido (mismo número): en `despachado` solo cliente y fecha; en `nuevo` y `por_despachar` todo (productos,
+   * código, y "ya hecho" con su fecha). Real: RPC `editar_pedido`. Un cancelado no se edita.
+   */
+  editarPedido(tiendaId: string, id: string, datos: DatosEdicionPedido): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
+  /** Borra para siempre un pedido cancelado (real: RPC `eliminar_pedido`). */
+  eliminarPedido(tiendaId: string, id: string): Promise<void>;
   /** Por despachar → Recibido (`nuevo`). */
   volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems>;
   /** Cancelado → Recibido (`nuevo`). */

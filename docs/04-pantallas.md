@@ -191,7 +191,7 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 
 **Qué muestra:**
 - Titular "Pedidos" + "Del suspiro al chat. Y del chat, aquí."
-- Pestañas con contador: **Nuevos · Por despachar · Despachados**
+- Pestañas: **Nuevos · Por despachar · Despachados** (con contador) y **Cancelados** (sin contador ni color de alerta: es archivo). Si las cuatro no caben, la fila se desplaza en horizontal y la elegida queda a la vista
   (mapeadas a `estado` — ver `03-modelo-de-datos.md`; los `cancelado` no
   tienen pestaña).
 - Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del
@@ -207,7 +207,7 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   de punta a punta a 3.000 px/s con la CPU 4 veces más lenta, mediana de 16.7 ms
   por cuadro y 1 de ~590 cuadros por encima de 50 ms.
 - Estado vacío por pestaña: Nuevos "Todo al día. Disfruta el silencio. Dura
-  poco."; Por despachar "Nada por despachar."; Despachados "Aún no hay
+  poco."; Cancelados "No tienes pedidos cancelados."; Por despachar "Nada por despachar."; Despachados "Aún no hay
   despachos."; sin ningún pedido "Aún no tienes pedidos. Cuando alguien pida por
   tu catálogo, aparece aquí."
 - Aviso (toast) cuando entra un pedido nuevo mientras se está viendo la pantalla.
@@ -306,29 +306,48 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
     alcanza el stock de {producto}."
 
 **Código de descuento en el detalle** (solo en `nuevo` y `por_despachar`): arriba del Subtotal hay una fila
-tocable **"¿Usó un código?"** o, si ya tiene, un chip "Código AAAH10" con **"Cambiar"** y **"Quitar"**. Al tocarla se
+tocable **"Agregar código de descuento"** o, si ya tiene, un chip "Código AAAH10" con **"Cambiar"** y **"Quitar"**. Al tocarla se
 abre en la misma hoja el mismo campo de "+ Pedido" (`components/pedidos/campo-codigo.tsx`, con su misma validación:
 código de una promo de código activa de la tienda, sin importar mayúsculas) y "Aplicar código" / "Cancelar". Al aplicar,
 cambiar o quitar se recalculan los precios unitarios de los productos (`precioConPromo`, la misma función de
 "+ Pedido") y el total (subtotal menos el descuento del código); se guardan `pedido_items.precio_unitario`,
 `pedidos.total` y `pedidos.codigo_promo`. El Subtotal nunca incluye el código: entre Subtotal y Total aparece la línea
 "Descuento · CÓDIGO". Si el código no existe o no está activo, avisa ("Ese código no existe o ya no está activo…") y no
-cambia nada. En `despachado` y `cancelado` el código no se edita (solo se muestra si tenía): primero hay que usar
-"Volver al paso anterior". En la demo se hace lo mismo (`aplicarCodigoAlPedido` en `lib/data/pedidos.ts`).
+cambia nada. En `despachado` y `cancelado` el código no se edita (solo se muestra si tenía): primero hay que volver a
+`por_despachar` desde la barra de pasos. Esta fila rápida y "Editar pedido" usan la misma validación y el mismo cálculo
+(`calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido` en `lib/data/pedidos.ts`).
 
-**Volver al paso anterior** (acción secundaria discreta, texto subrayado bajo los botones; en `nuevo` no aparece):
-- `por_despachar` → **"Volver al paso anterior"**: pasa a `nuevo`, sin diálogo. Aviso: "Pedido #N volvió a Recibido."
-- `despachado` → **"Volver al paso anterior"**: pide confirmación breve dentro de la misma hoja ("Se devolverá el
-  stock de los productos. ¿Volver a Confirmado?", con "Sí, volver" / "Mejor no"), devuelve el stock de cada producto
-  según `cantidad` (los de `stock = null` no cambian), pone el pedido en `por_despachar` y quita `despachado_en`. En modo
-  real llama a la RPC `deshacer_despacho(p_pedido_id)`; sus errores `pedido_no_deshacible` y `pedido_no_encontrado`
-  salen en español. En la demo se hace lo mismo en `lib/data/pedidos.ts`.
-- `cancelado` → **"Reabrir pedido"**: pasa a `nuevo`. Aviso: "Pedido #N reabierto."
-- **Los pasos anteriores de la línea de avance se tocan** (Recibido / Confirmado / Despachado): cada uno es un botón
-  ("Volver a Confirmado") con área de 44 px de alto que incluye barra y etiqueta (la barra sigue delgada) y la etiqueta
-  subrayada como señal. El paso actual y los futuros no son botones (avanzar es con el botón principal). Tocar un paso
-  lleva el pedido a ese paso: desde `despachado` siempre pide la confirmación y usa `deshacer_despacho`; si el destino
-  es Recibido, después cambia el estado a `nuevo`. Los demás retrocesos son directos. Aviso: "Pedido #N volvió a <paso>."
+**Editar pedido** (acción secundaria, texto subrayado debajo del botón principal; en `nuevo`, `por_despachar` y
+`despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
+`/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
+Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
+- `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". El interruptor
+  **"Es una venta que ya hice"** funciona igual que al crear (fecha máx. hoy + "Descontar del stock", apagada): si se
+  enciende y se guarda, el pedido pasa a `despachado` con esa fecha ("Venta #N guardada con fecha …"); apagado, conserva su
+  estado.
+- `despachado`: solo se cambian el cliente y la fecha (el campo de fecha se ve siempre, con el mismo tope de "no futura").
+  Los productos, cantidades y el código se ven atenuados y sin poder tocarse, con este aviso fijo sobre la lista: "Este
+  pedido ya se despachó, así que los productos no se pueden cambiar aquí. Para cambiarlos: toca «Por despachar» en la
+  barra de pasos (el stock se devuelve), edita el pedido y vuelve a despacharlo." No aparece el interruptor.
+- Real: RPC `editar_pedido(p_pedido_id, p_cliente_id, p_items, p_codigo_promo, p_fecha, p_ya_hecho, p_descontar_stock)`; sus
+  errores (`pedido_no_encontrado`, `pedido_no_editable`, `fecha_invalida`, `cliente_no_encontrado`, `sin_productos`,
+  `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×
+  precio sin el descuento del código, la app ajusta después el `total`. Demo: `modificarPedido` en `lib/data/pedidos.ts`.
+
+**Volver a un paso previo** = tocar un paso ANTERIOR de la línea de avance (no hay botón de texto aparte):
+- Cada paso anterior es un botón ("Volver a Confirmado") con área de 44 px de alto que incluye barra y etiqueta (la barra sigue
+  delgada) y la etiqueta subrayada como señal. El paso actual y los futuros no son botones (avanzar es con el botón principal).
+- Desde `por_despachar` → Recibido (`nuevo`): directo. Aviso: "Pedido #N volvió a Recibido."
+- Desde `despachado` (a cualquier paso anterior): confirmación breve en la misma hoja ("Se devolverá el stock de los
+  productos. ¿Volver a Confirmado?", "Sí, volver" / "Mejor no"); devuelve el stock de cada producto según `cantidad` (los de
+  `stock = null` no cambian), quita `despachado_en` y deja el pedido en `por_despachar`; si el destino es Recibido, después lo
+  pasa a `nuevo`. Real: RPC `deshacer_despacho(p_pedido_id)` (errores `pedido_no_deshacible` y `pedido_no_encontrado` en
+  español). Demo: lo mismo en `lib/data/pedidos.ts`.
+- `cancelado`: botón principal **"Reabrir pedido"** (pasa a `nuevo`; "Pedido #N reabierto.") y, debajo, en rojo,
+  **"Eliminar pedido"**: confirmación "Se borrará para siempre y no se puede recuperar. ¿Eliminar el pedido #N?" (Sí, eliminar
+  / Mejor no); al terminar cierra el detalle y avisa "Pedido #N eliminado." Real: RPC `eliminar_pedido` (solo cancelados;
+  errores `pedido_no_encontrado`, `solo_cancelados`). Demo: se borra del almacenamiento local con sus productos. Los números
+  de pedido no se reutilizan: quedan huecos.
 - La línea de avance, las pastillas de Pedidos, el número de la barra, "Repite" y los totales del Resumen se calculan
   desde el estado, así que se actualizan solos (un pedido reabierto vuelve a contar; en Supabase, `pedidos_count`
   lo recalcula el trigger de la base al cambiar `estado`).

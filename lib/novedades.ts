@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.16.0",
+    fecha: "2026-09-30",
+    titulo: "Pedidos que se dejan corregir.",
+    cambios: [
+      "«Editar pedido»: cambia cliente, productos, código o fecha sin perder el número. Si ya se despachó, cambias cliente y fecha.",
+      "Nueva pastilla «Cancelados», y ahí puedes reabrir o eliminar un pedido.",
+    ],
+  },
+  {
     version: "0.15.0",
     fecha: "2026-09-30",
     titulo: "Códigos y pasos, a tu ritmo.",

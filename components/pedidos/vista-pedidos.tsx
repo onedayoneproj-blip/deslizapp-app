@@ -15,21 +15,25 @@ import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
 import { ChipEstado } from "./comunes";
 
-type Pestana = Extract<EstadoPedido, "nuevo" | "por_despachar" | "despachado">;
+type Pestana = EstadoPedido;
 
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: "nuevo", nombre: "Nuevos" },
   { id: "por_despachar", nombre: "Por despachar" },
   { id: "despachado", nombre: "Despachados" },
+  { id: "cancelado", nombre: "Cancelados" },
 ];
 
 /** Pestañas cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Pestana[] = ["nuevo"];
+/** Pestañas sin contador (no hay nada que atender: son archivo). */
+const SIN_CONTADOR: Pestana[] = ["cancelado"];
 
 const VACIO: Record<Pestana, { titulo: string; remate: string }> = {
   nuevo: { titulo: "Todo al día.", remate: "Disfruta el silencio. Dura poco." },
   por_despachar: { titulo: "Nada por despachar.", remate: "Tu mostrador respira. Aprovecha." },
   despachado: { titulo: "Aún no hay despachos.", remate: "Cuando despaches el primero, se guarda aquí." },
+  cancelado: { titulo: "No tienes pedidos cancelados.", remate: "Los que canceles se guardan aquí, por si te arrepientes." },
 };
 
 const SIN_PEDIDOS = { titulo: "Aún no tienes pedidos.", remate: "Cuando alguien pida por tu catálogo, aparece aquí." };
@@ -59,8 +63,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   const nombres = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c.nombre])), [clientes]);
   const fotos = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const cuentas = useMemo(() => {
-    const c: Record<Pestana, number> = { nuevo: 0, por_despachar: 0, despachado: 0 };
-    for (const p of pedidos ?? []) if (p.estado in c) c[p.estado as Pestana]++;
+    const c: Record<Pestana, number> = { nuevo: 0, por_despachar: 0, despachado: 0, cancelado: 0 };
+    for (const p of pedidos ?? []) c[p.estado]++;
     return c;
   }, [pedidos]);
   const todos = useMemo(() => (pedidos ?? []).filter((p) => p.estado === pestana), [pedidos, pestana]);
@@ -80,7 +84,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             opciones={PESTANAS.map((t) => ({
               id: t.id,
               texto: t.nombre,
-              cantidad: pedidos ? cuentas[t.id] : undefined,
+              cantidad: pedidos && !SIN_CONTADOR.includes(t.id) ? cuentas[t.id] : undefined,
               atencion: PIDEN_ATENCION.includes(t.id),
             }))}
           />

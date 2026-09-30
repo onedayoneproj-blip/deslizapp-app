@@ -10,6 +10,9 @@ import {
   cambiarEstadoPedido,
   aplicarCodigoAlPedido,
   despacharPedido,
+  modificarPedido,
+  quitarPedido,
+  type DatosEdicionPedido,
   deshacerDespacho as deshacerDespachoDemo,
   insertarPedidoManual,
   insertarPedidoSimulado,
@@ -217,6 +220,18 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return resultado;
+  },
+  async editarPedido(tiendaId: string, id: string, datos: DatosEdicionPedido): Promise<{ pedido: PedidoConItems; cliente: Cliente }> {
+    let resultado!: { pedido: PedidoConItems; cliente: Cliente };
+    escribir((db) => {
+      const r = modificarPedido(db, tiendaId, id, datos, ahora());
+      resultado = { pedido: r.pedido, cliente: r.cliente };
+      return r.db;
+    });
+    return resultado;
+  },
+  async eliminarPedido(tiendaId: string, id: string): Promise<void> {
+    escribir((db) => quitarPedido(db, tiendaId, id));
   },
   async volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems> {
     let resultado!: PedidoConItems;

@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDITOS_POR_RETOQUE } from "../config";
 import { comprimirParaSubir } from "../imagen";
-import { precioConPromo, validarPromo } from "../promos";
+import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, PedidoConItems, Promo } from "../types";
 import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
@@ -50,7 +50,7 @@ import {
   type FilaUsuario,
 } from "./filas";
 import type { FuenteDatos } from "./fuente";
-import { buscarCodigoPromo, descuentoDeCodigo, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
+import { calcularLineas, descuentoDeCodigo, MENSAJE_CODIGO_MALO, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
 import { desdeFormulario, promoTerminada } from "./promos";
 
 /** Lo que devuelve cualquier consulta de supabase-js. */
@@ -382,6 +382,54 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     getPedido: (tiendaId, id) => leer(`pedido:${tiendaId}:${id}`, () => pedidoCrudo(tiendaId, id)),
     confirmarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo"], "por_despachar"),
     cancelarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo", "por_despachar"], "cancelado"),
+    async editarPedido(tiendaId, id, datos) {
+      const [actual, filaCliente] = await Promise.all([
+        pedidoCrudo(tiendaId, id),
+        dato<FilaCliente>(supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("id", datos.clienteId).maybeSingle()),
+      ]);
+      if (!actual) throw new PedidoNoEncontrado();
+      if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+      const despachado = actual.estado === "despachado";
+      let items: { productoId: string; cantidad: number; precioUnitario: number }[] | null = null;
+      let total = actual.total;
+      let codigo: string | null = actual.codigoPromo;
+      if (!despachado && actual.estado !== "cancelado") {
+        const [productos, promos] = await Promise.all([productosCrudos(tiendaId), promosCrudas(tiendaId)]);
+        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date());
+        if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
+        items = c.items;
+        total = c.total;
+        codigo = c.promo?.codigo ?? null;
+      }
+      const venta = datos.ventaPasada;
+      // La base valida estado, fecha, cliente, productos y stock (RPC editar_pedido).
+      const editado = await requerido<FilaPedidoConItems>(
+        supabase.rpc("editar_pedido", {
+          p_pedido_id: id,
+          p_cliente_id: filaCliente.id,
+          p_items: items?.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad, precio_unitario: i.precioUnitario })) ?? null,
+          p_codigo_promo: codigo,
+          p_fecha: (despachado ? datos.fecha : venta?.fecha) ?? null,
+          p_ya_hecho: !despachado && !!venta,
+          p_descontar_stock: !despachado && !!venta?.descontarStock,
+        }),
+        () => new PedidoNoEncontrado(),
+      );
+      // La RPC suma cantidad × precio y no conoce el descuento del código: se deja el total que vio el dueño.
+      if (!despachado && editado.total !== total) {
+        const { error } = await supabase.from("pedidos").update({ total }).eq("id", id).eq("tienda_id", tiendaId);
+        if (error) console.warn("No se pudo ajustar el total del pedido con el código", error);
+      }
+      const pedido = await pedidoCrudo(tiendaId, id);
+      if (!pedido) throw new PedidoNoEncontrado();
+      const cliente = aCliente(filaCliente);
+      const fecha = despachado ? datos.fecha : venta?.fecha;
+      return cambio({ pedido, cliente: fecha && fecha < cliente.primerPedidoEn ? { ...cliente, primerPedidoEn: fecha } : cliente });
+    },
+    async eliminarPedido(_tiendaId, id) {
+      await dato(supabase.rpc("eliminar_pedido", { p_pedido_id: id }));
+      cambio(undefined);
+    },
     async aplicarCodigoPedido(tiendaId, id, codigo) {
       const [actual, productos, promos] = await Promise.all([pedidoCrudo(tiendaId, id), productosCrudos(tiendaId), promosCrudas(tiendaId)]);
       if (!actual) throw new PedidoNoEncontrado();
@@ -439,8 +487,6 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio({ pedido, agotados });
     },
     async crearPedidoManual(tiendaId, datos) {
-      const lineas = datos.items.filter((i) => i.cantidad > 0);
-      if (lineas.length === 0) throw new DatosInvalidos("El pedido necesita al menos un producto.");
       const [productos, promos, filaCliente] = await Promise.all([
         productosCrudos(tiendaId),
         promosCrudas(tiendaId),
@@ -448,20 +494,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       ]);
       if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
 
-      // Precios de hoy (con la promo de colección o de producto vigente) y el código, si es válido.
-      const ahora = new Date();
-      const items = lineas.map((l) => {
-        const producto = productos.find((p) => p.id === l.productoId);
-        if (!producto) throw new DatosInvalidos("Un producto del pedido ya no existe en tu tienda.");
-        return {
-          productoId: producto.id,
-          nombreProducto: producto.nombre,
-          cantidad: l.cantidad,
-          precioUnitario: precioConPromo(producto, promos, ahora).precio,
-        };
-      });
-      const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
-      const promo = datos.codigo ? buscarCodigoPromo(promos, tiendaId, datos.codigo, ahora) : null;
+      // Precios de hoy (con la promo de colección o de producto vigente) y el código, si es válido: la misma cuenta de la demo.
+      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date());
 
       const venta = datos.ventaPasada;
       if (venta) {

@@ -9,6 +9,8 @@ import {
   ErrorClaro,
   ErrorDeRed,
   PedidoNoDeshacible,
+  PedidoNoEditable,
+  SoloCancelados,
   PedidoNoDespachable,
   PedidoNoEncontrado,
   PromoInvalida,
@@ -182,6 +184,15 @@ test("deshacer_despacho: pedido_no_deshacible y pedido_no_encontrado en español
   assert.ok(e instanceof PedidoNoDeshacible);
   assert.equal(mensajeDeError(e), "Ese pedido ya no está despachado. Actualiza la lista.");
   assert.ok(traducirErrorSupabase({ code: "P0002", message: "pedido_no_encontrado" }) instanceof PedidoNoEncontrado);
+});
+
+test("editar_pedido y eliminar_pedido: errores en español", () => {
+  const ed = traducirErrorSupabase({ code: "P0001", message: "pedido_no_editable" });
+  assert.ok(ed instanceof PedidoNoEditable);
+  assert.match(mensajeDeError(ed), /cancelado no se edita/);
+  const el = traducirErrorSupabase({ code: "P0001", message: "solo_cancelados" });
+  assert.ok(el instanceof SoloCancelados);
+  assert.match(mensajeDeError(el), /Solo se pueden eliminar pedidos cancelados/);
 });
 
 test("gastar_creditos: créditos insuficientes y cantidad inválida", () => {

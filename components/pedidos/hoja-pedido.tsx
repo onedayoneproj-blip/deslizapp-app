@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -29,13 +30,15 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   const { getPedido, getProductos, getClientes, getPromos } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => router.push("/pedidos", { scroll: false }), [router]);
+  // Al eliminar el pedido, la hoja se retira ya (si no, un instante mostraría "Este pedido no vive aquí").
+  const [saliendo, setSaliendo] = useState(false);
 
   const { data: pedido, cargando } = useConsulta(`pedido:${tiendaId}:${pedidoId}`, () => getPedido(tiendaId, pedidoId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
 
-  if (pedido === undefined && cargando) return null;
+  if (saliendo || (pedido === undefined && cargando)) return null;
   if (!pedido) {
     return (
       <Hoja abierta alCerrar={cerrar} titulo="Pedido">
@@ -53,18 +56,33 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
 
   return (
     <Hoja abierta alCerrar={cerrar} titulo={`Pedido #${pedido.numero}`}>
-      <Detalle pedido={pedido} productos={productos} promos={promos} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
+      <Detalle pedido={pedido} productos={productos} promos={promos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
     </Hoja>
   );
 }
 
-function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItems; productos: Producto[]; promos: Promo[]; cliente: Cliente | null }) {
-  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido } = useData();
+function Detalle({
+  pedido,
+  productos,
+  promos,
+  cliente,
+  alSalir,
+  alEliminado,
+}: {
+  pedido: PedidoConItems;
+  productos: Producto[];
+  promos: Promo[];
+  cliente: Cliente | null;
+  alSalir: (saliendo: boolean) => void;
+  alEliminado: () => void;
+}) {
+  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido, eliminarPedido } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const toast = useToast();
   const [ocupado, setOcupado] = useState(false);
   // Paso al que se quiere volver desde Despachado, esperando confirmación (0 = Recibido, 1 = Confirmado).
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
+  const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
   const [editandoCodigo, setEditandoCodigo] = useState(false);
   const [codigo, setCodigo] = useState("");
   const campoCodigo = useRef<HTMLInputElement>(null);
@@ -125,6 +143,22 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
       toast(`Pedido #${pedido.numero} reabierto.`);
     });
 
+  const eliminar = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    alSalir(true);
+    try {
+      await eliminarPedido(tiendaId, pedido.id);
+      alEliminado();
+      toast(`Pedido #${pedido.numero} eliminado.`);
+    } catch (error) {
+      alSalir(false);
+      setOcupado(false);
+      setConfirmandoEliminar(false);
+      toast(mensajeDeError(error, "No se pudo eliminar. Inténtalo otra vez."));
+    }
+  };
+
   /** Vuelve a un paso anterior. Salir de Despachado devuelve el stock (deshacer_despacho); volver a Recibido cambia luego el estado a `nuevo`. */
   const retroceder = (destino: 0 | 1) =>
     correr(async () => {
@@ -159,6 +193,13 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
       await aplicarCodigoPedido(tiendaId, pedido.id, null);
       toast("Código quitado. El total ya cambió.");
     });
+
+  // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
+  const botonEditar = (
+    <Link href={`/pedidos/${pedido.id}/editar`} scroll={false} className={`${ACCION_ATRAS} flex items-center justify-center`}>
+      Editar pedido
+    </Link>
+  );
 
   const primerNombre = cliente?.nombre.split(" ")[0] ?? "";
   const mensaje = `Hola ${primerNombre}, te escribo de ${tienda?.nombre ?? "la tienda"} por tu pedido #${pedido.numero}.`;
@@ -255,7 +296,7 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
             disabled={ocupado}
             className="tocable flex min-h-11 w-full items-center justify-between gap-3 border-b border-arena text-left text-[14.5px] font-extrabold"
           >
-            ¿Usó un código?
+            Agregar código de descuento
             <IconoMas tamano={18} />
           </button>
         )}
@@ -317,6 +358,7 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
           <button type="button" onClick={confirmar} disabled={ocupado} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
             Confirmar pedido
           </button>
+          {botonEditar}
           <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
             Cancelar pedido
           </button>
@@ -341,11 +383,9 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
             Despachar pedido
           </button>
           <p className="text-center font-mano text-xl text-suave">al despachar, el stock se actualiza solito</p>
+          {botonEditar}
           <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
             Cancelar pedido
-          </button>
-          <button type="button" onClick={() => irAlPaso(0)} disabled={ocupado} className={ACCION_ATRAS}>
-            Volver al paso anterior
           </button>
         </div>
       )}
@@ -378,18 +418,38 @@ function Detalle({ pedido, productos, promos, cliente }: { pedido: PedidoConItem
               </div>
             </div>
           ) : (
-            <button type="button" onClick={() => irAlPaso(1)} disabled={ocupado} className={ACCION_ATRAS}>
-              Volver al paso anterior
-            </button>
+            botonEditar
           )}
         </div>
       )}
       {pedido.estado === "cancelado" && (
         <div className="flex flex-col gap-2">
           <p className="rounded-[18px] bg-arena p-3 text-center font-bold text-suave">Pedido cancelado. Pasa hasta en las mejores tiendas.</p>
-          <button type="button" onClick={reabrir} disabled={ocupado} className={ACCION_ATRAS}>
+          <button type="button" onClick={reabrir} disabled={ocupado} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
             Reabrir pedido
           </button>
+          {confirmandoEliminar ? (
+            <div role="alertdialog" aria-label="Eliminar pedido" className="rounded-[18px] bg-arena px-4 py-3">
+              <p className="text-sm font-bold">Se borrará para siempre y no se puede recuperar. ¿Eliminar el pedido #{pedido.numero}?</p>
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={eliminar} disabled={ocupado} className="tocable h-11 flex-1 rounded-full bg-[#b4432a] text-sm font-extrabold text-white disabled:opacity-60">
+                  Sí, eliminar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoEliminar(false)}
+                  disabled={ocupado}
+                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
+                >
+                  Mejor no
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setConfirmandoEliminar(true)} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
+              Eliminar pedido
+            </button>
+          )}
         </div>
       )}
     </div>

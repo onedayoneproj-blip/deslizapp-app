@@ -36,6 +36,18 @@ export class PedidoNoDespachable extends ErrorClaro {
   }
 }
 
+export class PedidoNoEditable extends ErrorClaro {
+  constructor() {
+    super("Un pedido cancelado no se edita. Reábrelo primero.");
+  }
+}
+
+export class SoloCancelados extends ErrorClaro {
+  constructor() {
+    super("Solo se pueden eliminar pedidos cancelados.");
+  }
+}
+
 export class PedidoNoDeshacible extends ErrorClaro {
   constructor() {
     super("Ese pedido ya no está despachado. Actualiza la lista.");
@@ -167,6 +179,8 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("producto_no_encontrado")) return new DatosInvalidos("Un producto de la venta ya no existe en tu tienda.");
   if (mensaje.includes("cliente_no_encontrado")) return new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
   if (mensaje.includes("tienda_no_encontrada")) return new DatosInvalidos("No encontramos tu tienda. Vuelve a entrar.");
+  if (mensaje.includes("pedido_no_editable")) return new PedidoNoEditable();
+  if (mensaje.includes("solo_cancelados")) return new SoloCancelados();
   if (mensaje.includes("pedido_no_deshacible")) return new PedidoNoDeshacible();
   if (mensaje.includes("pedido_no_despachable")) return new PedidoNoDespachable();
   // RPC gastar_creditos

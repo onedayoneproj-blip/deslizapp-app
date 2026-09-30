@@ -124,6 +124,13 @@ export function Segmentos<T extends string>({
         }
       }
       const b = botones.current.get(valor);
+      // Si la fila se desplaza (no caben todas), la opción elegida queda a la vista (sin tocar el scroll de la página).
+      if (b && scroll) {
+        const izq = b.offsetLeft - 20;
+        const der = b.offsetLeft + b.offsetWidth + 20 - scroll.clientWidth;
+        if (scroll.scrollLeft > izq) scroll.scrollLeft = Math.max(0, izq);
+        else if (scroll.scrollLeft < der) scroll.scrollLeft = der;
+      }
       if (b) setCaja({ x: b.offsetLeft, ancho: b.offsetWidth });
       setCajas([...botones.current].map(([id, el]) => ({ id, x: el.offsetLeft, ancho: el.offsetWidth })));
     };
