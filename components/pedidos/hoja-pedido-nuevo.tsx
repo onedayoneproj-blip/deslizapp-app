@@ -294,7 +294,7 @@ function Formulario({
 
       <p className="mt-1 text-[13.5px] font-bold">Productos</p>
       {bloqueado && (
-        <div className="rounded-[18px] bg-arena px-4 py-3">
+        <div className="rounded-[18px] bg-mandarina/20 px-4 py-3">
           <p className="text-[14px] leading-snug font-semibold">¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.</p>
           {confirmandoSalir ? (
             <div role="alertdialog" aria-label="Salir sin guardar" className="mt-2.5">
@@ -316,7 +316,7 @@ function Formulario({
             <button
               type="button"
               onClick={() => (hayCambios ? setConfirmandoSalir(true) : irALosPasos())}
-              className="tocable mt-2.5 flex h-11 w-full items-center justify-center rounded-full border-[1.5px] border-bosque/35 bg-transparent text-[14.5px] font-semibold text-bosque"
+              className="tocable mt-2.5 flex h-11 w-full items-center justify-center rounded-full border-[1.5px] border-bosque/45 bg-transparent text-[14.5px] font-semibold text-bosque"
             >
               Ir a los pasos del pedido
             </button>

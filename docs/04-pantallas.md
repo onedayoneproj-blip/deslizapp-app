@@ -342,7 +342,7 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   enciende y se guarda, el pedido pasa a `despachado` con esa fecha ("Venta #N guardada con fecha …"); apagado, conserva su
   estado.
 - `despachado`: solo se cambian el cliente y la fecha (el campo de fecha se ve siempre, con el mismo tope de "no futura").
-  Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto: "¿Quieres
+  Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto, en un recuadro naranja suave (Mandarina): "¿Quieres
   cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido." con el botón de contorno **"Ir a los pasos
   del pedido"**. Al tocarlo se cierra el editor SIN guardar y se vuelve al detalle de ese pedido, donde el paso anterior de la
   barra (el que sirve para retroceder) hace un destello breve, una sola vez (~600 ms; con movimiento reducido, solo un resalte
