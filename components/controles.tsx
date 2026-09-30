@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { menosMovimiento } from "@/lib/movimiento";
 import { Contador } from "./contador";
 
 /** Chip seleccionable (colecciones, opciones sueltas): verde lleno si está elegido, blanco con borde si no. */
@@ -69,22 +70,13 @@ export function Interruptor({
  * El indicador son tres piezas movidas con transform (puntas + centro con scaleX), así no se
  * anima el ancho y las puntas no se deforman.
  *
- * Ancho: las opciones se reparten el ancho útil (mismo margen lateral que el resto de la pantalla,
- * sin desplazamiento). Si no caben, se compactan por pasos (COMPACTO: primero el padding y los
- * espacios, después la letra y el contador) y solo si aun así no caben, la fila se desplaza en horizontal SIN
- * barra visible y conservando el margen al inicio y al final (el padding va en la fila interior,
- * no en el contenedor que se desplaza: ahí algunos navegadores ignoran el final). Alto táctil: 44 px.
+ * Ancho: si todas caben, se reparten el ancho útil (mismo margen lateral que el resto de la pantalla). Si no caben, las
+ * pastillas conservan su tamaño y la fila se DESPLAZA en horizontal, sin barra visible: el contenedor sangra hasta los bordes
+ * de la pantalla (-mx-5) y el margen va como padding de la fila interior (al inicio y al final; en el contenedor que se
+ * desplaza algunos navegadores ignoran el final), así las pastillas se deslizan por debajo del borde en vez de cortarse en
+ * el margen. La elegida se acerca a la vista con scrollIntoView (suave, salvo movimiento reducido). Alto táctil: 44 px.
+ * Lo usan Inicio (periodo), Pedidos, Catálogo, Promos y el selector de productos de "+ Pedido".
  */
-/** Pasos de compactación de Segmentos, del más holgado al más apretado (el 0 es el normal). */
-const COMPACTO: Record<string, string>[] = [
-  {},
-  { "--seg-px": "5px", "--seg-gap": "4px", "--seg-gi": "5px" },
-  { "--seg-px": "4px", "--seg-gap": "4px", "--seg-gi": "4px", "--seg-letra": "12.5px", "--contador": "20px" },
-  { "--seg-px": "3px", "--seg-gap": "4px", "--seg-gi": "4px", "--seg-letra": "12px", "--contador": "18px", "--contador-letra": "10.5px" },
-  { "--seg-px": "3px", "--seg-gap": "3px", "--seg-gi": "3px", "--seg-letra": "12px", "--contador": "18px", "--contador-letra": "10.5px" },
-];
-const VARIABLES = Object.keys(COMPACTO.at(-1)!);
-
 export function Segmentos<T extends string>({
   opciones,
   valor,
@@ -112,25 +104,7 @@ export function Segmentos<T extends string>({
 
   useLayoutEffect(() => {
     const medir = () => {
-      // Compactación: se escribe directo en el DOM (variables CSS) y se mide en el mismo paso, sin
-      // estado de React. Siempre desde el paso 0, así al haber más sitio vuelve a lo normal.
-      const l = lista.current;
-      const scroll = l?.parentElement;
-      if (l && scroll) {
-        for (const paso of COMPACTO) {
-          VARIABLES.forEach((v) => l.style.removeProperty(v));
-          Object.entries(paso).forEach(([v, x]) => l.style.setProperty(v, x));
-          if (scroll.scrollWidth <= scroll.clientWidth) break;
-        }
-      }
       const b = botones.current.get(valor);
-      // Si la fila se desplaza (no caben todas), la opción elegida queda a la vista (sin tocar el scroll de la página).
-      if (b && scroll) {
-        const izq = b.offsetLeft - 20;
-        const der = b.offsetLeft + b.offsetWidth + 20 - scroll.clientWidth;
-        if (scroll.scrollLeft > izq) scroll.scrollLeft = Math.max(0, izq);
-        else if (scroll.scrollLeft < der) scroll.scrollLeft = der;
-      }
       if (b) setCaja({ x: b.offsetLeft, ancho: b.offsetWidth });
       setCajas([...botones.current].map(([id, el]) => ({ id, x: el.offsetLeft, ancho: el.offsetWidth })));
     };
@@ -141,12 +115,18 @@ export function Segmentos<T extends string>({
     return () => ro.disconnect();
   }, [valor, opciones.length]);
 
+  // La elegida se ve completa: al cambiar de opción (o al abrir la pantalla con una ya elegida) se acerca a la vista.
+  // `scroll-mx-5` en cada pastilla deja el margen lateral al llegar al borde.
+  useEffect(() => {
+    botones.current.get(valor)?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: menosMovimiento() ? "auto" : "smooth" });
+  }, [valor]);
+
   const r = alto / 2;
   const transicion = animar ? "transform var(--mov-normal) var(--curva-salida)" : "none";
 
   return (
-    <div className="-mx-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-    <div ref={lista} role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full gap-(--seg-gap,6px) px-5">
+    <div className="-mx-5 overflow-x-auto [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div ref={lista} role="tablist" aria-label={etiqueta} className="relative isolate flex w-max min-w-full flex-nowrap gap-(--seg-gap,6px) px-5">
       {/* Relleno blanco sólido de cada pastilla (sin transparencia, con su borde) */}
       {cajas.map((c) => (
         <span
@@ -183,7 +163,7 @@ export function Segmentos<T extends string>({
               alCambiar(id);
             }}
             style={{ height: alto }}
-            className={`tocable relative z-10 inline-flex min-w-0 shrink-0 grow items-center justify-center gap-(--seg-gi,6px) rounded-full border-[1.5px] px-(--seg-px,8px) text-center text-[length:var(--seg-letra,13px)] min-[390px]:text-[length:var(--seg-letra,13.5px)] font-bold tracking-tight whitespace-nowrap ${
+            className={`tocable relative z-10 inline-flex shrink-0 grow scroll-mx-5 items-center justify-center gap-(--seg-gi,6px) rounded-full border-[1.5px] px-(--seg-px,8px) text-center text-[length:var(--seg-letra,13px)] min-[390px]:text-[length:var(--seg-letra,13.5px)] font-bold tracking-tight whitespace-nowrap ${
               elegido ? "border-transparent text-papel" : "border-transparent text-bosque"
             }`}
           >

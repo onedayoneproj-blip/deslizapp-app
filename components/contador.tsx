@@ -16,7 +16,7 @@ export function textoContador(valor: number): string {
  *   con número crema. Mismo tamaño y forma: cambiar de tono no cambia el ancho.
  * - "barra": 18 px, con aro blanco (va encima del ícono).
  * - "pastilla": 20 px (21 px desde 390 px de ancho), al lado del nombre. Segmentos lo achica con las
- *   variables --contador / --contador-letra cuando las pastillas no caben.
+ *   variables --contador / --contador-letra (hoy no se usan: si no caben, la fila se desplaza).
  */
 export function Contador({
   valor,

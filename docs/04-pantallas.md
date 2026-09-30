@@ -49,9 +49,15 @@ nombre y **oculto cuando es 0**. Es **neutro** por defecto (beige #F1E8D6 con
 número Bosque; en la pastilla activa, crema translúcido con número crema); el
 **naranja Mandarina se reserva para lo que pide acción** (`atencion` en la
 opción de `Segmentos`, constante `PIDEN_ATENCION` en cada pantalla): hoy solo
-Pedidos → "Nuevos" y Catálogo → "Agotados", y solo con número > 0. Si las pastillas no caben en el
-ancho, se compactan por pasos: padding y espacios primero, luego letra (hasta 12
-px) y contador (18 px); solo en último caso la fila se desplaza.
+Pedidos → "Nuevos" y Catálogo → "Agotados", y solo con número > 0. Las demás (por ejemplo Pedidos →
+"Cancelados", con el total de cancelados) llevan el contador neutro, y en 0 no muestran número.
+Si todas las pastillas caben, se reparten el ancho útil; si no caben **conservan su tamaño y la fila se desplaza en
+horizontal** (sin barra visible, con inercia en iPhone): el contenedor sangra hasta los bordes de la pantalla y el
+margen lateral va como padding de la fila, así la primera pastilla empieza alineada con el contenido, la última
+termina con el mismo margen y las demás se deslizan por debajo del borde en vez de cortarse en el margen. La pastilla
+elegida se acerca a la vista con `scrollIntoView` (suave, salvo movimiento reducido) al cambiar de pestaña y al abrir la
+pantalla. Aplica a todas las pantallas que usan `Segmentos` (Inicio, Pedidos, Catálogo, Promos y el selector de productos
+de "+ Pedido"). Sigue siendo `role="tablist"` con pestañas navegables con teclado.
 
 **Barra de estado** (hora, batería): detrás va el mismo Papel Cálido de la
 pantalla (`html`, `body`, `themeColor` y el manifiesto en `#FFF9EE`; el marco más
@@ -191,7 +197,7 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
 
 **Qué muestra:**
 - Titular "Pedidos" + "Del suspiro al chat. Y del chat, aquí."
-- Pestañas: **Nuevos · Por despachar · Despachados** (con contador) y **Cancelados** (sin contador ni color de alerta: es archivo). Si las cuatro no caben, la fila se desplaza en horizontal y la elegida queda a la vista
+- Pestañas: **Nuevos · Por despachar · Despachados** (con contador) y **Cancelados** (contador neutro con el total; no pide acción). Si no caben, la fila se desplaza en horizontal y la elegida queda a la vista
   (mapeadas a `estado` — ver `03-modelo-de-datos.md`; los `cancelado` no
   tienen pestaña).
 - Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del

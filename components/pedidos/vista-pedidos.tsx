@@ -26,8 +26,6 @@ const PESTANAS: { id: Pestana; nombre: string }[] = [
 
 /** Pestañas cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Pestana[] = ["nuevo"];
-/** Pestañas sin contador (no hay nada que atender: son archivo). */
-const SIN_CONTADOR: Pestana[] = ["cancelado"];
 
 const VACIO: Record<Pestana, { titulo: string; remate: string }> = {
   nuevo: { titulo: "Todo al día.", remate: "Disfruta el silencio. Dura poco." },
@@ -84,7 +82,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             opciones={PESTANAS.map((t) => ({
               id: t.id,
               texto: t.nombre,
-              cantidad: pedidos && !SIN_CONTADOR.includes(t.id) ? cuentas[t.id] : undefined,
+              cantidad: pedidos ? cuentas[t.id] : undefined,
               atencion: PIDEN_ATENCION.includes(t.id),
             }))}
           />
