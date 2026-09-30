@@ -9,6 +9,7 @@ import type { FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
   despacharPedido,
+  deshacerDespacho as deshacerDespachoDemo,
   insertarPedidoManual,
   insertarPedidoSimulado,
   pedidoDeTienda,
@@ -207,6 +208,33 @@ export const fuenteDemo: FuenteDatos = {
    * Por despachar → Despachado: descuenta el stock de cada producto. Lanza StockInsuficiente
    * (sin cambiar nada) si algún producto no alcanza. `agotados` = productos que quedaron en 0.
    */
+  async volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = cambiarEstadoPedido(db, tiendaId, id, "nuevo");
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
+  async reabrirPedido(tiendaId: string, id: string): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = cambiarEstadoPedido(db, tiendaId, id, "nuevo");
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
+  async deshacerDespacho(tiendaId: string, id: string): Promise<PedidoConItems> {
+    let resultado!: PedidoConItems;
+    escribir((db) => {
+      const r = deshacerDespachoDemo(db, tiendaId, id, ahora());
+      resultado = r.pedido;
+      return r.db;
+    });
+    return resultado;
+  },
   async despacharPedido(tiendaId: string, id: string): Promise<{ pedido: PedidoConItems; agotados: string[] }> {
     let resultado!: { pedido: PedidoConItems; agotados: string[] };
     escribir((db) => {

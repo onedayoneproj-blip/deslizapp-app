@@ -35,6 +35,12 @@ export type FuenteDatos = {
   /** Nuevo → Por despachar. */
   confirmarPedido(tiendaId: string, id: string): Promise<PedidoConItems>;
   cancelarPedido(tiendaId: string, id: string): Promise<PedidoConItems>;
+  /** Por despachar → Recibido (`nuevo`). */
+  volverPedidoARecibido(tiendaId: string, id: string): Promise<PedidoConItems>;
+  /** Cancelado → Recibido (`nuevo`). */
+  reabrirPedido(tiendaId: string, id: string): Promise<PedidoConItems>;
+  /** Despachado → Por despachar: devuelve el stock de cada producto (RPC `deshacer_despacho` en real). */
+  deshacerDespacho(tiendaId: string, id: string): Promise<PedidoConItems>;
   /**
    * Por despachar → Despachado: descuenta el stock. Lanza StockInsuficiente (sin cambiar nada) si algún
    * producto no alcanza. `agotados` = nombres de los productos que quedaron en 0.

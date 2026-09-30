@@ -8,6 +8,7 @@ import {
   DatosInvalidos,
   ErrorClaro,
   ErrorDeRed,
+  PedidoNoDeshacible,
   PedidoNoDespachable,
   PedidoNoEncontrado,
   PromoInvalida,
@@ -174,6 +175,13 @@ test("despachar_pedido: stock insuficiente con el nombre del producto", () => {
 test("despachar_pedido: no encontrado y no despachable", () => {
   assert.ok(traducirErrorSupabase({ code: "P0002", message: "pedido_no_encontrado" }) instanceof PedidoNoEncontrado);
   assert.ok(traducirErrorSupabase({ code: "P0001", message: "pedido_no_despachable" }) instanceof PedidoNoDespachable);
+});
+
+test("deshacer_despacho: pedido_no_deshacible y pedido_no_encontrado en español", () => {
+  const e = traducirErrorSupabase({ code: "P0001", message: "pedido_no_deshacible" });
+  assert.ok(e instanceof PedidoNoDeshacible);
+  assert.equal(mensajeDeError(e), "Ese pedido ya no está despachado. Actualiza la lista.");
+  assert.ok(traducirErrorSupabase({ code: "P0002", message: "pedido_no_encontrado" }) instanceof PedidoNoEncontrado);
 });
 
 test("gastar_creditos: créditos insuficientes y cantidad inválida", () => {

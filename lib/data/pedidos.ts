@@ -1,7 +1,7 @@
 import { estadoPromo, precioConPromo } from "../promos";
-import type { Cliente, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
+import type { Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Promo } from "../types";
 import type { DB } from "./db";
-import { StockInsuficiente } from "./errores";
+import { PedidoNoDeshacible, StockInsuficiente } from "./errores";
 
 export { StockInsuficiente };
 
@@ -122,11 +122,20 @@ function reemplazarPedido(db: DB, pedido: Pedido): DB {
   return { ...db, pedidos: db.pedidos.map((p) => (p.id === pedido.id ? pedido : p)) };
 }
 
-/** Confirmar (nuevo → por_despachar) o cancelar (nuevo / por_despachar → cancelado). */
-export function cambiarEstadoPedido(db: DB, tiendaId: string, id: string, estado: "por_despachar" | "cancelado") {
+/**
+ * Cambios de estado que no tocan el stock, con los estados desde los que se permiten. Hacia adelante: confirmar
+ * (nuevo → por_despachar) y cancelar (nuevo / por_despachar → cancelado). Hacia atrás: volver a Recibido
+ * (por_despachar → nuevo) y reabrir (cancelado → nuevo). Despachar y deshacer el despacho mueven stock y van aparte.
+ */
+export const DESDE_PARA: Record<"nuevo" | "por_despachar" | "cancelado", EstadoPedido[]> = {
+  nuevo: ["por_despachar", "cancelado"],
+  por_despachar: ["nuevo"],
+  cancelado: ["nuevo", "por_despachar"],
+};
+
+export function cambiarEstadoPedido(db: DB, tiendaId: string, id: string, estado: "nuevo" | "por_despachar" | "cancelado") {
   const actual = pedidoParaCambiar(db, tiendaId, id);
-  const permitido = estado === "por_despachar" ? actual.estado === "nuevo" : actual.estado === "nuevo" || actual.estado === "por_despachar";
-  if (!permitido) throw new Error("Ese pedido ya no puede cambiar a ese estado.");
+  if (!DESDE_PARA[estado].includes(actual.estado)) throw new Error("Ese pedido ya no puede cambiar a ese estado.");
   const pedido: Pedido = { ...actual, estado };
   return { db: reemplazarPedido(db, pedido), pedido: conItems(db, pedido) };
 }
@@ -156,6 +165,24 @@ export function despacharPedido(db: DB, tiendaId: string, id: string, ahora: str
 
   const pedido: Pedido = { ...actual, estado: "despachado", despachadoEn: ahora };
   return { db: { ...reemplazarPedido(db, pedido), productos }, pedido: conItems(db, pedido), agotados };
+}
+
+/**
+ * Deshace un despacho: el pedido vuelve a por_despachar sin `despachadoEn` y cada producto con stock controlado
+ * recupera lo que se descontó (según `cantidad`). Lo mismo que hace la RPC `deshacer_despacho` en Supabase.
+ */
+export function deshacerDespacho(db: DB, tiendaId: string, id: string, ahora: string) {
+  const actual = pedidoParaCambiar(db, tiendaId, id);
+  if (actual.estado !== "despachado") throw new PedidoNoDeshacible();
+  const devueltos = new Map<string, number>();
+  for (const i of db.pedidoItems.filter((x) => x.pedidoId === id)) devueltos.set(i.productoId, (devueltos.get(i.productoId) ?? 0) + i.cantidad);
+  const productos = db.productos.map((p) => {
+    const cantidad = devueltos.get(p.id);
+    if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
+    return { ...p, stock: p.stock + cantidad, actualizadoEn: ahora };
+  });
+  const pedido: Pedido = { ...actual, estado: "por_despachar", despachadoEn: null };
+  return { db: { ...reemplazarPedido(db, pedido), productos }, pedido: conItems(db, pedido) };
 }
 
 // ---- Pedido manual ----

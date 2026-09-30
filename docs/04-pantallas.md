@@ -286,6 +286,19 @@ con "Visible" cumple esa función sin romper el historial de pedidos).
   - si algún producto no tiene stock suficiente, no despacha y avisa: "No
     alcanza el stock de {producto}."
 
+**Volver a un paso previo** (acción secundaria discreta: texto subrayado bajo los botones, nunca botón principal):
+- `por_despachar` → **"Volver a Recibido"**: pasa a `nuevo`, sin diálogo. Aviso: "Pedido #N volvió a Recibido."
+- `despachado` → **"Deshacer despacho"**: pide confirmación breve dentro de la misma hoja ("Se devolverá el stock
+  de los productos y el pedido volverá a Por despachar. ¿Deshacer?" con "Sí, deshacer" / "Mejor no"). Devuelve el
+  stock de cada producto según `cantidad` (los de `stock = null` no cambian), pone el pedido en `por_despachar` y
+  quita `despachado_en`. Aviso: "Despacho deshecho. El stock se devolvió." En modo real llama a la RPC
+  `deshacer_despacho(p_pedido_id)`; sus errores `pedido_no_deshacible` ("Ese pedido ya no está despachado.
+  Actualiza la lista.") y `pedido_no_encontrado` salen en español. En la demo se hace lo mismo en `lib/data/pedidos.ts`.
+- `cancelado` → **"Reabrir pedido"**: pasa a `nuevo`. Aviso: "Pedido #N reabierto."
+- La línea de avance, las pastillas de Pedidos, el número de la barra, "Repite" y los totales del Resumen se calculan
+  desde el estado, así que se actualizan solos (un pedido reabierto vuelve a contar; en Supabase, `pedidos_count`
+  lo recalcula el trigger de la base al cambiar `estado`).
+
 ---
 
 ## 4. Clientes

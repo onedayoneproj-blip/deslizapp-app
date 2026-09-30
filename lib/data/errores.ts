@@ -36,6 +36,12 @@ export class PedidoNoDespachable extends ErrorClaro {
   }
 }
 
+export class PedidoNoDeshacible extends ErrorClaro {
+  constructor() {
+    super("Ese pedido ya no está despachado. Actualiza la lista.");
+  }
+}
+
 export class CreditosInsuficientes extends ErrorClaro {
   /** null si no se sabe (la RPC solo dice que no alcanzan). */
   disponibles: number | null;
@@ -154,6 +160,7 @@ export function traducirErrorSupabase(e: unknown): Error {
   const stock = /stock_insuficiente:\s*([^]+)$/.exec(mensaje);
   if (stock) return new StockInsuficiente(stock[1]!.trim());
   if (mensaje.includes("pedido_no_encontrado")) return new PedidoNoEncontrado();
+  if (mensaje.includes("pedido_no_deshacible")) return new PedidoNoDeshacible();
   if (mensaje.includes("pedido_no_despachable")) return new PedidoNoDespachable();
   // RPC gastar_creditos
   if (mensaje.includes("creditos_insuficientes")) return new CreditosInsuficientes(null, 0);

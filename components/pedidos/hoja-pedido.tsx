@@ -15,6 +15,8 @@ import { useToast } from "../toast";
 import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
+/** Acción discreta para volver a un paso previo (texto, no botón principal). */
+const ACCION_ATRAS = "h-11 text-[14.5px] font-extrabold text-bosque underline disabled:opacity-60";
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
@@ -52,10 +54,11 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
 }
 
 function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; productos: Producto[]; cliente: Cliente | null }) {
-  const { confirmarPedido, cancelarPedido, despacharPedido } = useData();
+  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const toast = useToast();
   const [ocupado, setOcupado] = useState(false);
+  const [confirmandoDeshacer, setConfirmandoDeshacer] = useState(false);
 
   const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const subtotal = pedido.items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
@@ -105,6 +108,26 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
             ? `Despachado. ${agotados[0]} se agotó y ya sale así en el catálogo.`
             : `Despachado. ${agotados.join(" y ")} se agotaron y ya salen así en el catálogo.`,
       );
+    });
+
+  const volverARecibido = () =>
+    correr(async () => {
+      await volverPedidoARecibido(tiendaId, pedido.id);
+      toast(`Pedido #${pedido.numero} volvió a Recibido.`);
+    });
+  const reabrir = () =>
+    correr(async () => {
+      await reabrirPedido(tiendaId, pedido.id);
+      toast(`Pedido #${pedido.numero} reabierto.`);
+    });
+  const deshacer = () =>
+    correr(async () => {
+      try {
+        await deshacerDespacho(tiendaId, pedido.id);
+        toast("Despacho deshecho. El stock se devolvió.");
+      } finally {
+        setConfirmandoDeshacer(false);
+      }
     });
 
   const primerNombre = cliente?.nombre.split(" ")[0] ?? "";
@@ -223,16 +246,48 @@ function Detalle({ pedido, productos, cliente }: { pedido: PedidoConItems; produ
           <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
             Cancelar pedido
           </button>
+          <button type="button" onClick={volverARecibido} disabled={ocupado} className={ACCION_ATRAS}>
+            Volver a Recibido
+          </button>
         </div>
       )}
       {pedido.estado === "despachado" && (
-        <div className="flex h-[54px] items-center justify-center gap-2 rounded-full bg-rosa font-extrabold">
-          <IconoCheck tamano={20} strokeWidth={2.6} />
-          Despachado. Final feliz.
+        <div className="flex flex-col gap-2">
+          <div className="flex h-[54px] items-center justify-center gap-2 rounded-full bg-rosa font-extrabold">
+            <IconoCheck tamano={20} strokeWidth={2.6} />
+            Despachado. Final feliz.
+          </div>
+          {confirmandoDeshacer ? (
+            <div role="alertdialog" aria-label="Deshacer despacho" className="rounded-[18px] bg-arena px-4 py-3">
+              <p className="text-sm font-bold">Se devolverá el stock de los productos y el pedido volverá a Por despachar. ¿Deshacer?</p>
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={deshacer} disabled={ocupado} className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-60">
+                  Sí, deshacer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoDeshacer(false)}
+                  disabled={ocupado}
+                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
+                >
+                  Mejor no
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setConfirmandoDeshacer(true)} disabled={ocupado} className={ACCION_ATRAS}>
+              Deshacer despacho
+            </button>
+          )}
         </div>
       )}
       {pedido.estado === "cancelado" && (
-        <p className="rounded-[18px] bg-arena p-3 text-center font-bold text-suave">Pedido cancelado. Pasa hasta en las mejores tiendas.</p>
+        <div className="flex flex-col gap-2">
+          <p className="rounded-[18px] bg-arena p-3 text-center font-bold text-suave">Pedido cancelado. Pasa hasta en las mejores tiendas.</p>
+          <button type="button" onClick={reabrir} disabled={ocupado} className={ACCION_ATRAS}>
+            Reabrir pedido
+          </button>
+        </div>
       )}
     </div>
   );

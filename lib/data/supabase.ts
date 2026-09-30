@@ -243,7 +243,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
   }
 
   /** Cambia el estado solo si el pedido sigue en uno de los estados `desde` (dos teléfonos a la vez no se pisan). */
-  async function moverPedido(tiendaId: string, id: string, desde: string[], estado: "por_despachar" | "cancelado") {
+  async function moverPedido(tiendaId: string, id: string, desde: string[], estado: "nuevo" | "por_despachar" | "cancelado") {
     const f = await dato<FilaPedidoConItems>(
       supabase.from("pedidos").update({ estado }).eq("tienda_id", tiendaId).eq("id", id).in("estado", desde).select(PEDIDO_CON_ITEMS).maybeSingle(),
     );
@@ -382,6 +382,15 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     getPedido: (tiendaId, id) => leer(`pedido:${tiendaId}:${id}`, () => pedidoCrudo(tiendaId, id)),
     confirmarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo"], "por_despachar"),
     cancelarPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["nuevo", "por_despachar"], "cancelado"),
+    volverPedidoARecibido: (tiendaId, id) => moverPedido(tiendaId, id, ["por_despachar"], "nuevo"),
+    reabrirPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["cancelado"], "nuevo"),
+    async deshacerDespacho(tiendaId, id) {
+      // Todo o nada en la base: devuelve el stock y regresa el pedido a por_despachar (sin despachado_en).
+      await dato(supabase.rpc("deshacer_despacho", { p_pedido_id: id }));
+      const pedido = await pedidoCrudo(tiendaId, id);
+      if (!pedido) throw new PedidoNoEncontrado();
+      return cambio(pedido);
+    },
     async despacharPedido(tiendaId, id) {
       // Todo o nada en la base: revisa y descuenta el stock y marca el pedido.
       await dato(supabase.rpc("despachar_pedido", { p_pedido_id: id }));
