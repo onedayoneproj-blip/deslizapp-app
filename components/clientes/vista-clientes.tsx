@@ -177,7 +177,9 @@ export function VistaClientes({ children }: { children: ReactNode }) {
 
       {/* Sin clientes, el botón del estado vacío ya invita a agregar: no se duplica */}
       {!(clientes && total === 0) && <BotonFlotante href="/clientes/nuevo" texto="Cliente" />}
-      {hoja && listo && <HojaResumenClientes resumen={resumen} alCerrar={() => setHoja(false)} alFiltrar={setFiltro} />}
+      {hoja && listo && <HojaResumenClientes resumen={resumen} clientes={clientes!} pedidos={pedidos!} tiendaId={tiendaId}
+        tienda={tienda?.nombre ?? "la tienda"} vendedora={dueno?.nombre ?? ""} urlCatalogo={tienda?.urlCatalogo ?? null}
+        ahora={ahora} alCerrar={() => setHoja(false)} alFiltrar={setFiltro} />}
       {children}
     </>
   );
