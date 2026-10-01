@@ -9,7 +9,7 @@ export function PantallaCarga() {
     <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-papel" aria-busy="true" aria-label="Cargando tu tienda">
       <div className="flex items-center justify-between gap-3 px-5 pt-[calc(22px+env(safe-area-inset-top))] pb-1.5">
         <div className="flex items-center gap-2.5">
-          <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />
+          <Esqueleto className="h-[42px] w-[42px] rounded-full" />
           <div className="space-y-1.5">
             <Esqueleto className="h-4 w-32 rounded-full" />
             <Esqueleto className="h-3 w-24 rounded-full" />

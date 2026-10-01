@@ -142,7 +142,7 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
             {p.items.slice(0, 3).map((i) => {
               const foto = productos.get(i.productoId)?.fotos[0];
               return (
-                <span key={i.id} className="h-9 w-9 overflow-hidden rounded-full border-2 border-white bg-arena">
+                <span key={i.id} className="h-9 w-9 overflow-hidden rounded-[10px] border-2 border-white bg-arena">
                   {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="36px" /> : null}
                 </span>
               );

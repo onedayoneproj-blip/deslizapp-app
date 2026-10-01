@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.27.0",
+    fecha: "2026-10-01",
+    titulo: "Cada foto en su lugar.",
+    cambios: [
+      "La foto de tu tienda ahora es redonda en la cabecera.",
+      "Las miniaturas de productos en Pedidos se ven cuadradas, con las esquinas suaves.",
+    ],
+  },
+  {
     version: "0.26.0",
     fecha: "2026-10-01",
     titulo: "Tu gente, de un vistazo.",

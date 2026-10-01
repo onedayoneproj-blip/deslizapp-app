@@ -14,8 +14,8 @@ la app se muestra centrada con un ancho máximo de ~480 px; no hace falta un
 diseño de escritorio aparte en esta entrega.
 
 **Encabezado** (todas las pantallas, se desplaza con el contenido):
-- Izquierda: logo de la tienda en un cuadro redondeado (Rosa Suave si no hay
-  logo) + nombre de la tienda + debajo "Plan 20 · deslizapp". Tocarlo abre el
+- Izquierda: foto de la tienda circular de 42 px (iniciales sobre Rosa Suave si no hay
+  foto) + nombre de la tienda + debajo "Plan 20 · deslizapp". Tocarlo abre el
   **menú de la tienda** (selector de tienda activa + acciones de demo).
 - Derecha: botón blanco con borde verde "✦ 35 créditos" (créditos de retoque
   disponibles). Tocarlo abre **Plan y créditos** (pantalla 8).
@@ -263,7 +263,9 @@ provisional hasta que exista la plantilla `/tienda/[slug]`.
   tienen pestaña).
 - Tarjeta de pedido: "#1042 · Hace 8 min", etiqueta de origen ("Del
   catálogo" / "Manual"), nombre del cliente, cantidad de productos,
-  miniaturas de los productos y total.
+  miniaturas de los productos y total. Las miniaturas de la tarjeta son cuadrados
+  de 36 px con esquinas redondeadas, también cuando falta la foto. Conservan el
+  recorte centrado de la imagen; los avatares de clientes mantienen su forma.
 - **Listas largas por tramos** (`components/ver-mas.tsx`): cada pestaña muestra
   los 30 más recientes y, al final, "Ver más antiguos" (con "Mostrando 30 de N")
   agrega 30 cada vez; desaparece cuando no queda nada. Los contadores de las

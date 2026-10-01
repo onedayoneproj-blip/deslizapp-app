@@ -35,7 +35,7 @@ export function Encabezado() {
           aria-label={tienda ? `${tienda.nombre},${NOMBRE_PLAN[tienda.plan]} · deslizapp. ${accion}` : accion}
           className="flex min-h-11 min-w-0 items-center gap-2.5 text-left"
         >
-          {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-[13px]" />}
+          {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-full" />}
           <span className="min-w-0">
             <span className="flex items-center gap-1">
               <span className="truncate text-base leading-tight font-extrabold">{tienda?.nombre ?? " "}</span>
