@@ -12,7 +12,7 @@ import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, PedidoConItems, Promo } from "../types";
 import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
-import { limpiarNota } from "./clientes";
+import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
 import {
   ArchivoMuyGrande,
@@ -724,6 +724,28 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         // El teléfono es único por tienda: se muestra quién lo tiene.
         const existente = await dato<FilaCliente>(
           supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("telefono", telefono).maybeSingle(),
+        );
+        throw existente ? new ClienteDuplicado(aCliente(existente)) : e;
+      }
+    },
+    async actualizarCliente(tiendaId, id, datos) {
+      const limpios = limpiarDatosCliente(datos);
+      try {
+        const f = await requerido<FilaCliente>(
+          supabase
+            .from("clientes")
+            .update({ nombre: limpios.nombre, telefono: limpios.telefono })
+            .eq("tienda_id", tiendaId)
+            .eq("id", id)
+            .select("*")
+            .maybeSingle(),
+          () => new DatosInvalidos("Ese cliente ya no existe en tu tienda."),
+        );
+        return cambio(aCliente(f) satisfies Cliente);
+      } catch (e) {
+        if (!(e instanceof TelefonoDuplicado) || !limpios.telefono) throw e;
+        const existente = await dato<FilaCliente>(
+          supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("telefono", limpios.telefono).maybeSingle(),
         );
         throw existente ? new ClienteDuplicado(aCliente(existente)) : e;
       }

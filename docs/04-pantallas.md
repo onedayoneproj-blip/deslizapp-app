@@ -517,6 +517,9 @@ envía solo**: siempre lo abre el dueño desde su teléfono.
 **Acciones:**
 - Tocar un cliente → hoja con su WhatsApp ("Escribir"), pedidos, total gastado,
   última compra e historial; tocar un pedido del historial abre su detalle.
+- **"Editar datos"** en esa hoja abre otra hoja apilada con nombre y WhatsApp ya llenos. El nombre es obligatorio; el WhatsApp
+  puede quedar vacío, pero si se escribe debe ser dominicano y no puede pertenecer a otro cliente de la tienda. Al guardar vuelve
+  al detalle y muestra "Datos actualizados."; cerrar con cambios sin guardar pide confirmación.
 - **Nota** (opcional, máx. 200 caracteres: "Talla M", "Prefiere entrega en la
   tarde"): se ve y se edita en la hoja del cliente, y se escribe al crear el
   cliente. La búsqueda también la encuentra.

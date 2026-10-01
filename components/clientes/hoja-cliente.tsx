@@ -15,10 +15,11 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
-import { IconoWhatsApp } from "../iconos";
+import { IconoEditar, IconoWhatsApp } from "../iconos";
 import { ChipEstado } from "../pedidos/comunes";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
 import { Avatar, EtiquetaRepite } from "./comunes";
+import { HojaClienteEditar } from "./hoja-cliente-editar";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
 export function HojaCliente({ clienteId }: { clienteId: string }) {
@@ -80,6 +81,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConR
   const { tienda, tiendaId } = useTiendaActiva();
   const toast = useToast();
   const [nota, setNota] = useState(cliente.nota ?? "");
+  const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const cambiada = nota.trim() !== (cliente.nota ?? "");
   // Con la nota cambiada y sin guardar, cerrar la hoja pregunta
@@ -124,6 +126,15 @@ function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConR
           Escribir
         </a>
       )}
+
+      <button
+        type="button"
+        onClick={() => setEditando(true)}
+        className="tocable flex h-12 items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque text-[14.5px] font-extrabold text-bosque"
+      >
+        <IconoEditar tamano={18} />
+        Editar datos
+      </button>
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-[18px] border border-linea bg-white px-3 py-2.5">
@@ -179,6 +190,8 @@ function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConR
           </ul>
         )}
       </div>
+
+      <HojaClienteEditar cliente={cliente} abierta={editando} alCerrar={() => setEditando(false)} />
     </div>
   );
 }

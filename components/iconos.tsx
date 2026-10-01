@@ -96,6 +96,13 @@ export const IconoCopiar = (p: Props) => (
   </Icono>
 );
 
+export const IconoEditar = (p: Props) => (
+  <Icono {...p}>
+    <path d="M4 20l4.2-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.2 16z" />
+    <path d="m14.8 6.4 2.8 2.8M4 20l1.2-4" />
+  </Icono>
+);
+
 export const IconoMas = (p: Props) => (
   <Icono strokeWidth={2.6} {...p}>
     <path d="M12 5v14M5 12h14" />
