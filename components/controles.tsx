@@ -118,7 +118,7 @@ type SegmentosProps<T extends string> = {
    * `cantidad`: número de la opción, en un Contador a la derecha del nombre (en 0 no se muestra).
    * `atencion`: el contador va en Mandarina (pide acción del dueño); si no, neutro. Solo cuenta con cantidad > 0.
    */
-  opciones: { id: T; texto: ReactNode; cantidad?: number; atencion?: boolean }[];
+  opciones: { id: T; texto: ReactNode; cantidad?: number; atencion?: boolean; divisorAntes?: boolean }[];
   valor: T;
   alCambiar: (id: T) => void;
   etiqueta: string;
@@ -197,7 +197,7 @@ function SegmentosConIndicador<T extends string>({ opciones, valor, alCambiar, e
           />
         </span>
       )}
-      {opciones.map(({ id, texto, cantidad, atencion }) => {
+      {opciones.map(({ id, texto, cantidad, atencion, divisorAntes }) => {
         const elegido = id === valor;
         return (
           <button
@@ -206,14 +206,25 @@ function SegmentosConIndicador<T extends string>({ opciones, valor, alCambiar, e
             type="button"
             role="tab"
             aria-selected={elegido}
+            aria-label={typeof texto === "string" && cantidad !== undefined ? `${texto}, ${cantidad}` : undefined}
+            onKeyDown={(e) => {
+              const teclas = ["ArrowRight", "ArrowLeft", "Home", "End"];
+              if (!teclas.includes(e.key)) return;
+              e.preventDefault();
+              const i = opciones.findIndex((o) => o.id === id);
+              const siguiente = e.key === "Home" ? 0 : e.key === "End" ? opciones.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + opciones.length) % opciones.length;
+              botones.current.get(opciones[siguiente].id)?.focus();
+              alCambiar(opciones[siguiente].id);
+            }}
             onClick={() => {
               setAnimar(true);
               alCambiar(id);
             }}
-            className={`${PASTILLA} z-10 scroll-mx-5 ${
+            className={`${PASTILLA} z-10 scroll-mx-5 ${divisorAntes ? "ml-2" : ""} ${
               elegido ? "border-transparent text-papel" : "border-transparent text-bosque"
             }`}
           >
+            {divisorAntes && <span aria-hidden="true" className="pointer-events-none absolute top-1/2 -left-[7px] h-6 w-[1.5px] -translate-y-1/2 rounded-full bg-apagado" />}
             {texto}
             {cantidad !== undefined && <Contador valor={cantidad} tamano="pastilla" tono={atencion ? "atencion" : "neutro"} sobreActivo={elegido} />}
           </button>

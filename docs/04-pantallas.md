@@ -164,11 +164,13 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 
 **Qué muestra:**
 - Titular "Tu catálogo" + "Lo que tus clientes deslizan. Tú solo lo mantienes bonito."
-- **Medidor del plan** (tarjeta Rosa Suave, abre Plan y créditos): "10 de 20
-  productos" + "Ver plan", barra de progreso y "Plan 20 · te quedan 10
-  espacios". Si `productos.length >= limite_productos`, la tarjeta pasa a
-  Mandarina: "Catálogo lleno: 20 de 20" · "Subir de plan" · "Lleno… de éxito.
-  Para agregar más, sube de plan."
+- **Dona del plan en la cabecera** (botón de 76 px, 64 px si la pantalla es estrecha):
+  pista Rosa Suave, arco de productos usados sobre el límite, espacios libres y
+  «LIBRES» en el centro, «N de L» debajo. Abre Plan y créditos, igual que el
+  anterior «Ver plan». Antes del 80 % el arco es Verde Bosque; desde el 80 %
+  es Mandarina y el número da un latido suave al aparecer. Al llenarse, el
+  aro es completo y dice «Lleno»; tocarlo abre el plan para subirlo. El SVG
+  es decorativo y el botón anuncia los números y la acción.
 - **Buscador** "Busca un producto" (filtra por nombre).
 - **Filtros** en chips con contador: Todos · Visibles (activos con stock) ·
   Agotados (`stock = 0`) · Ocultos (`activo = false`).
@@ -213,7 +215,7 @@ No hay "Marca o línea" ni "Eliminar producto" en esta entrega (esconderlo
 con "Visible" cumple esa función sin romper el historial de pedidos).
 
 **Tarjeta del catálogo en línea** (`components/catalogo/tarjeta-catalogo.tsx`, montada por `seccion-catalogo.tsx`; bajo el titular y el
-subtítulo, encima del medidor del plan y de los filtros). Reemplaza a la antigua fila de enlace. El estado visible sale de un solo
+subtítulo y la dona del plan, encima de los filtros). Reemplaza a la antigua fila de enlace. El estado visible sale de un solo
 lugar, `vistaCatalogo()` en `lib/catalogo-estado.ts` (con tests): la tienda pausada manda sobre todo; después `tiendas.catalogo_estado`.
 Ocho estados:
 
@@ -471,16 +473,17 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   / Mejor no); al terminar cierra el detalle y avisa "Pedido #N eliminado." Real: RPC `eliminar_pedido` (solo cancelados;
   errores `pedido_no_encontrado`, `solo_cancelados`). Demo: se borra del almacenamiento local con sus productos. Los números
   de pedido no se reutilizan: quedan huecos.
-- La línea de avance, las pastillas de Pedidos, el número de la barra, "Repite" y los totales del Resumen se calculan
-  desde el estado, así que se actualizan solos (un pedido reabierto vuelve a contar; en Supabase, `pedidos_count`
-  lo recalcula el trigger de la base al cambiar `estado`).
+- La línea de avance, las pastillas de Pedidos, el número de la barra y los totales del Resumen se calculan
+  desde el estado, así que se actualizan solos. «Repite» cuenta solo los despachados:
+  un pedido reabierto deja de contar para esa etiqueta. En Supabase, el trigger
+  de la base también recalcula `pedidos_count` al cambiar `estado`.
 
 ---
 
 ## 4. Clientes
 
 **Filtro "Deben"** (ventas a crédito): bajo el buscador, `Segmentos` "Todos" · **"Deben"** con contador (mismo estilo que Cancelados en
-Pedidos). En "Deben" desaparecen los 3 contadores y aparece la tarjeta Verde Bosque **"Por cobrar"** (total, "N clientes · N pedidos"
+Pedidos). En "Deben" aparece la tarjeta Verde Bosque **"Por cobrar"** (total, "N clientes · N pedidos"
 y "Cobrado este mes: RD$X" = abonos del mes en hora de Santo Domingo) y la lista, **una fila por cliente** ordenada: primero los
 atrasados (más días primero), luego los que tienen fecha (la más próxima primero), luego los sin fecha (la deuda más vieja primero).
 Cada fila: inicial en círculo rosa, nombre, "Pedido #N · pagó RD$X de Y" o "N pedidos · el más viejo hace N días", etiqueta
@@ -501,15 +504,38 @@ envía solo**: siempre lo abre el dueño desde su teléfono.
 **Qué muestra:**
 - Titular "Clientes" + "Los que ya dijeron aaah. Y los que están por decirlo."
 - Buscador "Busca un cliente".
-- 3 contadores: total de clientes, cuántos "repiten" (2 o más pedidos),
-  cuántos son del catálogo (`origen = 'catalogo'`).
+- Dona de 76 px en la cabecera (64 px en pantallas estrechas), con total en el
+  hueco y «N repiten» debajo. Tres partes: **Repiten** (Verde Bosque),
+  **Compraron una vez** (Mandarina) y **Sin comprar todavía** (arena, con borde
+  en la leyenda). Si no hay clientes, solo se ve la pista y el 0. Tocar la
+  dona abre la hoja «Tus clientes»; el botón anuncia los tres números.
+- Pastillas: **Todos** | divisor decorativo | **Deben**, **Repiten**, **Nuevos**,
+  **Dormidos**, **Del catálogo**. Cada una muestra su contador; si es 0 se
+  oculta salvo que esté elegida. Buscador y filtro actúan juntos. Dormidos
+  ordena por más tiempo sin comprar; Nuevos por primera compra más reciente;
+  Repiten por mayor número de compras. Cada filtro tiene un vacío amable.
+- Definiciones, calculadas solo con pedidos **despachados** de la tienda:
+  Repiten, 2 o más; Compraron una vez, 1; Sin comprar todavía, 0. Nuevos:
+  primera venta en los últimos 30 días civiles de Santo Domingo. Dormidos:
+  al menos una venta y última hace 60 días civiles o más. Del catálogo:
+  `origen = 'catalogo'`; A mano: `origen = 'manual'`. «Deben» conserva su
+  cálculo de cuentas por cobrar y su tarjeta verde.
+- Hoja **«Tus clientes»**: dona de 148 px, «1 de cada N vuelve a comprar» o
+  «Nadie repite todavía» y porcentaje de ventas despachadas que dejaron los
+  clientes que repiten (se omite si no hay ventas). Su leyenda abre los filtros
+  Repiten, Compraron una vez y Sin comprar; los dos últimos son temporales,
+  sin pastilla fija. Cuatro cuadros abren Nuevos, Dormidos, Del catálogo y A
+  mano; el botón «Escribirle a los dormidos» abre Dormidos. En ese filtro,
+  cada cliente con teléfono tiene un botón de WhatsApp con mensaje preparado,
+  vendedora, tienda y enlace del catálogo en línea si existe. Nunca se envía
+  automáticamente.
 - Lista: iniciales en círculo, nombre, etiqueta "Repite" si aplica, y "2
   pedidos · RD$3,721" (total gastado en pedidos despachados).
 - **Todo se deriva de los pedidos** de la tienda activa (no se marca a mano):
   el número de pedidos cuenta los **recibidos** (no cancelados: los nuevos y por
   despachar cuentan; los cancelados no); el total gastado y la última compra
   cuentan solo las **ventas** (pedidos despachados, por su fecha de despacho).
-  "Repite" aparece sola con 2 o más pedidos y se actualiza al crear un pedido.
+  «Repite» aparece con 2 o más ventas despachadas y se actualiza al despachar.
 - El buscador filtra por nombre (sin importar tildes) o por WhatsApp (por dígitos).
 - Cliente sin pedidos: "Todavía no pide. Todavía."
 - Búsqueda sin resultados: "Nadie con ese nombre. Todavía."

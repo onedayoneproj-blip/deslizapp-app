@@ -15,7 +15,7 @@ function conResumen(db: DB, cliente: Cliente): ClienteConResumen {
     // Pedidos = recibidos (no cancelados). Lo gastado y la última compra cuentan solo las ventas (despachados).
     totalGastado: ventas.reduce((suma, p) => suma + p.total, 0),
     ultimaCompra: ventas.reduce<string | null>((ultima, p) => (ultima === null || fechaDeVenta(p) > ultima ? fechaDeVenta(p) : ultima), null),
-    repite: pedidos.length >= 2,
+    repite: ventas.length >= 2,
   };
 }
 

@@ -54,7 +54,8 @@ el menú de la tienda. Cambios internos sin efecto visible no llevan línea.
 **Movimiento solo en hojas, barra de navegación y microinteracciones de un solo
 elemento. Prohibido animar la página completa al cambiar de pestaña y prohibido
 animar cada elemento de una lista o grilla al entrar. Solo `transform` y
-`opacity`.** Cambiar de pestaña es instantáneo; las listas y grillas aparecen de
+`opacity`, con la excepción aprobada de `stroke-dashoffset` en el SVG de las
+donas de Catálogo y Clientes.** Cambiar de pestaña es instantáneo; las listas y grillas aparecen de
 una vez; las fotos no se funden al cargar; no hay librería de animación.
 
 Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`: tokens
@@ -96,6 +97,17 @@ no cancelado (por `creado_en`); un **pendiente** es `nuevo` o `por_despachar`. V
 `fechaDeVenta`) con pruebas en `tests/resumen.test.mjs`. Ventas, ticket promedio, top 3 y comparación usan solo ventas; "Pedidos
 recibidos" y "De aaah a pedido" usan recibidos; Clientes: "total gastado" y "última compra" son solo despachados. La tarjeta de ventas
 de Inicio muestra "Por despachar: N pedidos · RD$X" (toda la tienda). Detalle en docs/03 y docs/04.
+
+## Donas de Catálogo y Clientes
+
+`components/dona.tsx` pinta el SVG reutilizable. Catálogo muestra en su cabecera
+los espacios libres del plan y abre Plan y créditos. Clientes muestra la mezcla
+de quienes repiten, compraron una vez y no han comprado; su hoja «Tus clientes»
+abre filtros y el mensaje de WhatsApp para Dormidos. Todos esos grupos usan solo
+pedidos despachados; «Nuevos» y «Dormidos» usan días civiles de Santo Domingo.
+«Deben» sigue usando cuentas por cobrar. Cálculo puro en
+`lib/clientes-resumen.ts`; detalles en docs/04-pantallas.md. La demo ya contiene
+los tres segmentos, nuevos y dormidos. No requiere migraciones.
 
 ## Ventas a crédito y abonos
 

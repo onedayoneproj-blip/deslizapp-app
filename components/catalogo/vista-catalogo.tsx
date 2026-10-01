@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { startTransition, useMemo, useState } from "react";
-import { NOMBRE_PLAN } from "@/lib/config";
+import { Dona } from "../dona";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
@@ -11,7 +11,6 @@ import type { Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
-import { Numero } from "../numero";
 import { Foto } from "../foto";
 import { IconoBuscar } from "../iconos";
 import { SeccionCatalogo } from "./seccion-catalogo";
@@ -63,43 +62,26 @@ export function VistaCatalogo() {
   const usados = productos?.length ?? 0;
   const limite = tienda?.limiteProductos ?? 0;
   const lleno = limite > 0 && usados >= limite;
-  const porcentaje = limite ? Math.min(100, Math.round((usados / limite) * 100)) : 0;
+  const libres = Math.max(0, limite - usados);
+  const casiLleno = limite > 0 && usados / limite >= 0.8;
 
   return (
     <>
-      <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." />
+      <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." derecha={
+        tienda && productos ? <button type="button" onClick={abrirPlan}
+          aria-label={lleno ? `Catálogo lleno: ${usados} de ${limite} productos. Subir de plan` : `Te quedan ${libres} de ${limite} espacios. Ver plan`}
+          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-xl">
+          <Dona className={`dona-cabecera ${casiLleno && !lleno ? "dona-latido" : ""}`} total={limite}
+            pista="#f5c9d6" segmentos={[{ valor: usados, color: casiLleno ? "#ff834f" : "#174b3a" }]}>
+            <b className={`font-display ${lleno ? "text-[17px]" : "text-[22px]"} ${casiLleno ? "text-mandarina-texto" : "text-bosque"}`}>{lleno ? "Lleno" : libres}</b>
+            {!lleno && <span className="mt-0.5 text-[9.5px] font-extrabold text-suave">LIBRES</span>}
+          </Dona>
+          <span className="text-[11.5px] font-bold text-suave">{usados} de {limite}</span>
+        </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
+      } />
 
       <div className="flex flex-col gap-3.5 px-5 pt-1">
         {tienda ? <SeccionCatalogo tienda={tienda} /> : <Esqueleto className="h-[76px] rounded-[22px]" />}
-        {!(tienda && productos) && <Esqueleto className="h-[92px] rounded-[22px]" />}
-        {tienda && productos && (
-          <button
-            type="button"
-            onClick={abrirPlan}
-            className={`block w-full rounded-[22px] px-4 py-3.5 text-left text-bosque ${lleno ? "bg-mandarina" : "bg-rosa"}`}
-          >
-            <span className="flex items-baseline justify-between gap-2.5">
-              <span className="text-[15px] font-extrabold">
-                {lleno ? "Catálogo lleno: " : ""}
-                <Numero valor={usados} /> de {limite}
-                {lleno ? "" : " productos"}
-              </span>
-              <span className="text-[13px] font-bold">{lleno ? "Subir de plan" : "Ver plan"}</span>
-            </span>
-            <span className="mt-2.5 block h-2.5 overflow-hidden rounded-full bg-papel">
-              <span
-                className="block h-2.5 origin-left rounded-full bg-bosque transition-transform duration-(--mov-normal) ease-(--curva-salida)"
-                style={{ transform: `scaleX(${porcentaje / 100})` }}
-              />
-            </span>
-            <span className="mt-[7px] block text-[13px] font-semibold">
-              {lleno
-                ? "Lleno… de éxito. Para agregar más, sube de plan."
-                : `${NOMBRE_PLAN[tienda.plan]} · te quedan ${limite - usados} ${limite - usados === 1 ? "espacio" : "espacios"}`}
-            </span>
-          </button>
-        )}
-
         <label className="flex h-12 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4">
           <IconoBuscar tamano={20} className="shrink-0 text-suave" />
           <span className="sr-only">Buscar producto</span>

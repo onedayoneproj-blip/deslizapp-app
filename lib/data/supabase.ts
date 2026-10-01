@@ -240,12 +240,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (soloCliente) q = q.eq("cliente_id", soloCliente);
       return q.order("creado_en", { ascending: false }).order("id").range(d, h);
     });
-    const porCliente = new Map<string, { total: number; ultima: string | null }>();
+    const porCliente = new Map<string, { total: number; ultima: string | null; cantidad: number }>();
     for (const p of pedidos) {
       if (!p.cliente_id) continue;
-      const r = porCliente.get(p.cliente_id) ?? { total: 0, ultima: null };
+      const r = porCliente.get(p.cliente_id) ?? { total: 0, ultima: null, cantidad: 0 };
       const fecha = p.despachado_en ?? p.creado_en;
       r.total += p.total;
+      r.cantidad += 1;
       if (r.ultima === null || fecha > r.ultima) r.ultima = fecha;
       porCliente.set(p.cliente_id, r);
     }
@@ -256,7 +257,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         pedidos: f.pedidos_count,
         totalGastado: r?.total ?? 0,
         ultimaCompra: r?.ultima ?? null,
-        repite: f.pedidos_count >= 2,
+        repite: (r?.cantidad ?? 0) >= 2,
       };
     });
   }

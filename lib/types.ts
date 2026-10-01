@@ -131,7 +131,7 @@ export type ClienteConResumen = Cliente & {
   totalGastado: number;
   /** Fecha del pedido no cancelado más reciente; null si todavía no pide. */
   ultimaCompra: string | null;
-  /** 2 o más pedidos. */
+  /** 2 o más pedidos despachados (compras), aunque pedidos cuente recibidos. */
   repite: boolean;
 };
 

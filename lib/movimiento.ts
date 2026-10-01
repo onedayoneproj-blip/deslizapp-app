@@ -5,6 +5,8 @@
 // Si cambias un valor, cámbialo también en globals.css.
 
 export const DURACION = {
+  /** Arco de dona al aparecer (referencias/donas). */
+  dona: 1000,
   /** Toques, cambios de color, salidas. */
   rapida: 150,
   /** Casi todo: aparecer, deslizar indicadores, números. */

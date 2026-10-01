@@ -133,8 +133,9 @@ cambia después).
 | `nota` | string \| null | nota libre del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. `null` si no tiene |
 | `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**. Lo mantiene la base (trigger); la app solo lo lee |
 
-"Repite" en Clientes = `pedidos_count >= 2`. "Total gastado" = suma de
-`total` de sus pedidos no cancelados (se calcula, no se guarda).
+`pedidos_count` sigue contando pedidos recibidos para el historial. «Repite»
+en Clientes = 2 o más pedidos **despachados**; «Total gastado» = suma de `total`
+de esos pedidos. Ambas cifras se calculan a partir de las ventas, no se guardan.
 
 ## `promos`
 

@@ -117,12 +117,12 @@ el seed: Choker Perla de Luna Bisutería está en #1003 y #1004 con stock 1).
 
 ## 7. Clientes — ✅ hecho
 
-- Buscador, los 3 contadores, la etiqueta "Repite" y el total gastado
+- Buscador, dona con tres segmentos y filtros, la etiqueta «Repite» y el total gastado
 - Hoja del cliente con "Escribir" e historial; "+ Cliente"
 - Los clientes deben derivarse de los pedidos de prueba ya creados (no una
   lista aparte sin relación)
 
-**Listo cuando:** un cliente con 2+ pedidos de prueba muestra "Repite"
+**Listo cuando:** un cliente con 2+ pedidos despachados de prueba muestra «Repite»
 automáticamente, sin que alguien lo marque a mano.
 
 ## 8. Promos — ✅ hecho

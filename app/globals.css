@@ -634,3 +634,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     animation: none !important;
   }
 }
+
+/* Donas: excepción SVG aprobada; el layout nunca se anima. */
+:root { --mov-dona: 1000ms; }
+.dona-latido { animation: dona-latido var(--mov-dona) var(--curva-salida) 1; }
+@keyframes dona-latido { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.04); } }
+@media (max-width: 374px) { .dona-cabecera { width: 64px !important; height: 64px !important; } }
+@media (prefers-reduced-motion: reduce) { .dona-latido { animation: none; } }

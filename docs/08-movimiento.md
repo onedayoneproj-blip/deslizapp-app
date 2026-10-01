@@ -9,7 +9,8 @@ Toda pantalla o componente nuevo sigue estas reglas (ver `HANDOFF.md`).
 > **REGLA PERMANENTE:** movimiento solo en hojas, barra de navegación y
 > microinteracciones de un solo elemento. **Prohibido animar la página completa
 > al cambiar de pestaña** y **prohibido animar cada elemento de una lista o
-> grilla al entrar.** Solo `transform` y `opacity`. (En el iPhone las
+> grilla al entrar.** Solo `transform` y `opacity`, salvo el arco SVG de las
+> donas de Catálogo y Clientes. (En el iPhone las
 > transiciones de página y las de muchos elementos a la vez se sentían pesadas y
 > a veces congelaban la app: por eso se quitaron.)
 
@@ -23,6 +24,7 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 | `--mov-rapida` / `DURACION.rapida` | 150 ms | Toques (presionar), salidas, desvanecer lo viejo |
 | `--mov-normal` / `DURACION.normal` | 250 ms | Aparecer, indicadores que se deslizan, números, fotos |
 | `--mov-entrada` / `DURACION.entrada` | 350 ms | Hojas |
+| `--mov-dona` / `DURACION.dona` | 1000 ms | Arco SVG de las donas al aparecer; al cambiar usa 250 ms |
 | `--curva-salida` / `CURVA.salida` | `cubic-bezier(.2,.8,.2,1)` | Casi todo: arranca rápido y se posa |
 | `--curva-entrada` / `CURVA.entrada` | `cubic-bezier(.4,0,1,1)` | Lo que se va: acelera hacia afuera |
 | `--curva-resorte` / `RESORTE` | `linear(…)` / rigidez 620, amortiguación 0.8 crítica | Gestos (selector de la barra): un rebote apenas perceptible |
@@ -35,7 +37,8 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 
 1. **Solo se anima `transform` (translate/scale) y `opacity`.** Nada de
    width, height, top, left, márgenes ni colores. Excepción justificada: el
-   brillo de los esqueletos. Si algo tiene que cambiar de color con
+   brillo de los esqueletos y `stroke-dashoffset` del arco de las donas
+   (un solo elemento SVG, sin mover el layout ni bloquear toques). Si algo tiene que cambiar de color con
    suavidad, se funde una capa encima con `opacity` (ej. la tarjeta "Retocar
    foto" que pasa a Mandarina).
 2. **Nada espera a una animación.** Los toques funcionan durante cualquier
@@ -99,6 +102,7 @@ cierra el teclado y no deja escribir). Por eso:
 | Pantalla de novedades | aparece (`mov-aparece`); sale bajando (`mov-baja-sale`) | `pantalla-novedades.tsx` |
 | Carga | esqueletos con brillo (`Esqueleto`), nunca pantalla en blanco | `esqueleto.tsx`, `pantalla-carga.tsx` |
 | Hojas | suben/bajan con transform; se arrastran con el dedo | `components/hoja.tsx` |
+| Donas de Catálogo y Clientes | arco `stroke-dashoffset` al aparecer y al cambiar; sin animación con movimiento reducido | `components/dona.tsx` |
 | Barra inferior | selector con resorte e imán (requestAnimationFrame) | `nav-inferior.tsx` |
 
 ## Utilidades CSS disponibles
