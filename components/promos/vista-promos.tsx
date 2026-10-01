@@ -123,7 +123,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
                 <TarjetaPromo
                   promo={promo}
                   estado={estado}
-                  href={`/promos/${promo.id}`}
+                  href={`/promos/${promo.id}?desde=lista`}
                   producto={promo.productoId ? productosPorId.get(promo.productoId) : undefined}
                   productosDeColeccion={promo.coleccion ? (productos ?? []).filter((p) => p.categoria === promo.coleccion).length : 0}
                   usos={usos}
@@ -153,7 +153,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
               onClick={() => {
                 const id = oferta.id;
                 setOferta(null);
-                router.push(`/promos/${id}/compartir`, { scroll: false });
+                router.push(`/promos/${id}/compartir?desde=lista`, { scroll: false });
               }}
               className="tocable h-11 shrink-0 rounded-full bg-mandarina px-4 text-[14px] font-extrabold text-bosque-oscuro"
             >

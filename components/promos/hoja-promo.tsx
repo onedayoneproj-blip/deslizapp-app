@@ -7,7 +7,7 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { PromoInvalida } from "@/lib/data/promos";
 import { useData } from "@/lib/data/provider";
-import { formatearPesos, rangoFechas } from "@/lib/formato";
+import { formatearPesos } from "@/lib/formato";
 import {
   diaAIso,
   estadoPromo,
@@ -15,7 +15,6 @@ import {
   limpiarCodigo,
   MAX_CODIGO,
   MAX_PORCENTAJE,
-  pedidosConCodigo,
   validarPromo,
   type DatosPromo,
   type ErroresPromo,
@@ -24,6 +23,7 @@ import type { PedidoConItems, Producto, Promo, TipoPromo } from "@/lib/types";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { TarjetaPromo } from "./tarjeta-promo";
 import { useElegirPestanaPromos, useOfrecerCompartir } from "./vista-promos";
@@ -38,22 +38,31 @@ const TIPOS: { id: TipoPromo; titulo: string; detalle: string }[] = [
   { id: "coleccion", titulo: "Por colección", detalle: "Toda una colección" },
 ];
 
-const ETIQUETA_TIPO = { codigo: "Código", coleccion: "Por colección", producto: "Por producto" } as const;
-
 /**
- * Nueva promo, editar una que no ha terminado, o ver una terminada (con "Duplicar como nueva").
- * Al cerrar vuelve a /promos sin perder la pestaña (la guarda el layout).
+ * Nueva promo o edición; el detalle de solo lectura vive en /promos/[id].
  */
-export function HojaPromo({ promoId, copiarDe, otroTipo }: { promoId?: string; copiarDe?: string; otroTipo?: TipoPromo }) {
+export function HojaPromo({ promoId, copiarDe, otroTipo, desdeDetalle = false }: { promoId?: string; copiarDe?: string; otroTipo?: TipoPromo; desdeDetalle?: boolean }) {
   const router = useRouter();
   const { getPromos, getProductos, getPedidos } = useData();
   const { tiendaId } = useTiendaActiva();
-  const cerrar = useCallback(() => router.push("/promos", { scroll: false }), [router]);
+  const cerrar = useCallback(() => {
+    if (promoId) {
+      if (desdeDetalle) router.back();
+      else router.replace(`/promos/${promoId}`, { scroll: false });
+    } else router.push("/promos", { scroll: false });
+  }, [router, promoId, desdeDetalle]);
 
-  const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
-  if (!promos || !productos || !pedidos) return null;
+  const consultaPromos = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const consultaProductos = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const consultaPedidos = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const { data: promos } = consultaPromos;
+  const { data: productos } = consultaProductos;
+  const { data: pedidos } = consultaPedidos;
+  if (!promos || !productos || !pedidos) return <Hoja abierta alCerrar={cerrar} titulo={promoId ? "Editar promo" : "Nueva promo"} altura="grande">
+    {consultaPromos.error || consultaProductos.error || consultaPedidos.error
+      ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { consultaPromos.reintentar(); consultaProductos.reintentar(); consultaPedidos.reintentar(); }} textoVolver="Volver a promos" />
+      : <CuerpoCargando titulo="promo" />}
+  </Hoja>;
 
   const promo = promoId ? promos.find((p) => p.id === promoId) : undefined;
   const copia = copiarDe ? promos.find((p) => p.id === copiarDe) : undefined;
@@ -72,8 +81,8 @@ export function HojaPromo({ promoId, copiarDe, otroTipo }: { promoId?: string; c
   }
   if (promo && estadoPromo(promo) === "terminada") {
     return (
-      <Hoja abierta alCerrar={cerrar} titulo="Promo terminada" altura="grande">
-        <DetalleTerminada promo={promo} productos={productos} pedidos={pedidos} />
+      <Hoja abierta alCerrar={cerrar} titulo="Promo terminada">
+        <p className="py-4 text-center font-semibold text-suave">Esta promo ya terminó. Puedes duplicarla desde su detalle.</p>
       </Hoja>
     );
   }
@@ -118,6 +127,7 @@ function Formulario({
   const [datos, setDatos] = useState<DatosPromo>(() => datosFormularioPromo(base, editando, otroTipo));
   const confirmarSalida = useConfirmarSalida();
   const [tipoIntentado, setTipoIntentado] = useState<TipoPromo | null>(null);
+  const tipoPendiente = useRef<TipoPromo | null>(null);
   const [nuevaGuardada, setNuevaGuardada] = useState<Promo | null>(null);
   const reemplazando = !promo && Boolean(base && otroTipo && base.tipo !== otroTipo);
   const anterior = reemplazando ? promos.find((p) => p.id === base?.id) : undefined;
@@ -287,15 +297,26 @@ function Formulario({
         })}
       </div>
 
-      {tipoIntentado && <div role="alertdialog" aria-label="El tipo queda fijo" className="flex flex-col gap-3 rounded-[18px] bg-menta/60 p-4">
-          <p className="text-[15px] text-suave">El tipo no cambia después de crear la promo. Crea una copia con el tipo que quieras.</p>
+      <Hoja
+        abierta={tipoIntentado !== null}
+        alCerrar={() => setTipoIntentado(null)}
+        alSalir={() => {
+          const tipo = tipoPendiente.current;
+          tipoPendiente.current = null;
+          if (promo && tipo) confirmarSalida(() => router.push(`/promos/nueva?${new URLSearchParams({ copiar: promo.id, tipo })}`, { scroll: false }));
+        }}
+        titulo="Nah, ah… así no."
+        altura="auto"
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-[15px] leading-relaxed text-suave">Cambiar el tipo cambia cómo se aplica el descuento. Para mantener el historial en orden, crea otra promo. Te dejamos la copia lista.</p>
           <button type="button" onClick={() => {
-            const tipo = tipoIntentado;
+            tipoPendiente.current = tipoIntentado;
             setTipoIntentado(null);
-            if (promo && tipo) confirmarSalida(() => router.push(`/promos/nueva?${new URLSearchParams({ copiar: promo.id, tipo })}`, { scroll: false }));
-          }} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">Crear con otro tipo</button>
-          <button type="button" onClick={() => setTipoIntentado(null)} className="tocable h-12 rounded-full border-[1.5px] border-bosque font-extrabold">Seguir editando</button>
-      </div>}
+          }} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">Sí, crear otra promo</button>
+          <button type="button" onClick={() => setTipoIntentado(null)} className="tocable h-12 rounded-full border-[1.5px] border-bosque font-extrabold">Me quedo con esta</button>
+        </div>
+      </Hoja>
 
       <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
         Nombre
@@ -502,16 +523,6 @@ function Formulario({
       </button>
       {intento && hayErrores && <p className="-mt-2 text-center text-[13px] font-semibold text-suave">Revisa los campos marcados.</p>}
 
-      {editando && promo && (
-        <button
-          type="button"
-          onClick={() => router.push(`/promos/${promo.id}/compartir`, { scroll: false })}
-          className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
-        >
-          Compartir esta promo
-        </button>
-      )}
-
       {editando && !confirmando && (
         <button type="button" onClick={() => setConfirmando(true)} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
           Terminar promo
@@ -616,41 +627,6 @@ function VistaPrevia({ datos, pctValido, producto, deLaColeccion }: { datos: Dat
           {!pctValido && <p className="text-[12.5px] text-suave">Pon un descuento para ver el cambio.</p>}
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Una promo que ya terminó: no se reactiva, se puede duplicar como nueva. */
-function DetalleTerminada({ promo, productos, pedidos }: { promo: Promo; productos: Producto[]; pedidos: PedidoConItems[] }) {
-  const router = useRouter();
-  const producto = promo.productoId ? productos.find((p) => p.id === promo.productoId) : undefined;
-  const usos = pedidosConCodigo(pedidos, promo);
-  return (
-    <div className="flex flex-col gap-3.5">
-      <div className="rounded-[20px] border border-linea bg-white p-4">
-        <p className="text-[11.5px] font-extrabold tracking-wide text-suave uppercase">{ETIQUETA_TIPO[promo.tipo]}</p>
-        <p className="font-display text-2xl leading-tight">{promo.nombre}</p>
-        <p className="mt-1 text-sm text-suave">
-          {promo.valorPorcentaje}% menos
-          {promo.tipo === "coleccion" ? ` · Colección ${promo.coleccion}` : ""}
-          {promo.tipo === "producto" && producto ? ` · ${producto.nombre}` : ""}
-          {promo.tipo === "codigo" ? ` · Código ${promo.codigo}` : ""}
-        </p>
-        <p className="mt-1 text-sm text-suave">{rangoFechas(promo.fechaInicio, promo.fechaFin)}</p>
-        {promo.tipo === "codigo" && (
-          <p className="mt-2 font-bold">
-            Usada en {usos} {usos === 1 ? "pedido" : "pedidos"}
-          </p>
-        )}
-      </div>
-      <p className="rounded-[18px] bg-arena p-3.5 text-center font-semibold text-suave">Esta promo ya terminó y no se reactiva. Pero puedes duplicarla.</p>
-      <button
-        type="button"
-        onClick={() => router.push(`/promos/nueva?copiar=${promo.id}`, { scroll: false })}
-        className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel"
-      >
-        Duplicar como nueva
-      </button>
     </div>
   );
 }

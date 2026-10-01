@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.25.0",
+    fecha: "2026-10-01",
+    titulo: "Tus promos, de un vistazo.",
+    cambios: [
+      "Toca una promo para ver su cupón, estado, fechas y usos antes de editarla o compartirla.",
+      "Si pruebas otro tipo al editar, te explicamos cómo crear una copia en una hoja, sin perder tu borrador.",
+    ],
+  },
+  {
     version: "0.24.0",
     fecha: "2026-10-01",
     titulo: "Otro tipo, una nueva promo.",

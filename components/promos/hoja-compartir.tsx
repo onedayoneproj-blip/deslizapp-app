@@ -13,20 +13,30 @@ import { estadoPromo } from "@/lib/promos";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { GloboMensaje, horaGlobo } from "../globo-mensaje";
 import { Hoja } from "../hoja";
+import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CuponTienda, marcaDeTienda } from "../marca-tienda/cupon-tienda";
 
 /** "Compartir promo": vista previa con la marca de la tienda, mensaje y un solo botón "Enviar" para mandarle la promo a los clientes. Solo activas o programadas. */
-export function HojaCompartir({ promoId }: { promoId: string }) {
+export function HojaCompartir({ promoId, desde }: { promoId: string; desde?: "detalle" | "lista" }) {
   const router = useRouter();
   const { getPromos, getProductos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const cerrar = useCallback(() => router.push("/promos", { scroll: false }), [router]);
-  const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
-  if (!promos || !productos || !tienda) return null;
+  const cerrar = useCallback(() => {
+    if (desde) router.back();
+    else router.replace(`/promos/${promoId}`, { scroll: false });
+  }, [router, promoId, desde]);
+  const consultaPromos = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const consultaProductos = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const { data: promos } = consultaPromos;
+  const { data: productos } = consultaProductos;
+  if (!promos || !productos || !tienda) return <Hoja abierta alCerrar={cerrar} titulo="Compartir promo" altura="grande">
+    {consultaPromos.error || consultaProductos.error
+      ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { consultaPromos.reintentar(); consultaProductos.reintentar(); }} textoVolver="Volver a promos" />
+      : <CuerpoCargando titulo="promo" />}
+  </Hoja>;
 
-  const promo = promos.find((p) => p.id === promoId);
+  const promo = promos.find((p) => p.id === promoId && p.tiendaId === tiendaId);
   if (!promo || estadoPromo(promo) === "terminada") {
     return (
       <Hoja abierta alCerrar={cerrar} titulo="Compartir promo">

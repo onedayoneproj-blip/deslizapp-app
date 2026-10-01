@@ -1,9 +1,10 @@
 "use client";
 
 import { use } from "react";
-import { HojaPromo } from "@/components/promos/hoja-promo";
+import { HojaDetallePromo } from "@/components/promos/hoja-detalle-promo";
 
-export default function PromoPage({ params }: PageProps<"/promos/[id]">) {
+export default function PromoPage({ params, searchParams }: PageProps<"/promos/[id]">) {
   const { id } = use(params);
-  return <HojaPromo promoId={id} />;
+  const { desde } = use(searchParams);
+  return <HojaDetallePromo promoId={id} desdeLista={desde === "lista"} />;
 }

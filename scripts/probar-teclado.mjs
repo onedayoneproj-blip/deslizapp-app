@@ -238,9 +238,9 @@ try {
   // ---- Copia con otro tipo: el mismo formulario, prellenado y protegido.
   {
     const { ctx, page, errores } = await abrir(navegador);
-    await page.goto(URL + "/promos/a6000000-0000-4000-8000-000000000001");
+    await page.goto(URL + "/promos/a6000000-0000-4000-8000-000000000001/editar");
     await page.getByRole("group", { name: "Tipo de promo" }).getByRole("button", { name: /^Código/ }).tap();
-    await page.getByRole("button", { name: "Crear con otro tipo" }).tap();
+    await page.getByRole("button", { name: "Sí, crear otra promo" }).tap();
     await page.waitForURL("**/promos/nueva?*");
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Semana del aaah"]', "Copia de promo · Nombre", "Otra semana", { dentroDeHoja: true, reemplazar: true });
@@ -257,7 +257,7 @@ try {
     await page.waitForSelector("ul li a[href^='/promos/']");
     await page.waitForTimeout(900);
     const href = await page.$eval("ul li a[href^='/promos/']", (a) => a.getAttribute("href"));
-    await page.goto(URL + href + "/compartir");
+    await page.goto(URL + new globalThis.URL(href, URL).pathname + "/compartir");
     await page.waitForSelector('[role="dialog"] >> text=Editar mensaje');
     await page.waitForTimeout(1200);
     await page.tap('[role="dialog"] >> text=Editar mensaje');
