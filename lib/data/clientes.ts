@@ -2,7 +2,7 @@ import { fechaDeVenta, ventasDe } from "../resumen";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen } from "../types";
 import type { DB } from "./db";
-import { ClienteDuplicado } from "./errores";
+import { ClienteDuplicado, DatosInvalidos } from "./errores";
 
 export { ClienteDuplicado };
 
@@ -40,6 +40,21 @@ export function clientePorTelefono(db: DB, tiendaId: string, telefono: string | 
 }
 
 export const MAX_NOTA = 200;
+export const MAX_NOMBRE_CLIENTE = 120;
+
+export type DatosClienteEditables = { nombre: string; telefono: string | null };
+
+/** Nombre limpio y WhatsApp opcional ya normalizado para guardar. */
+export function limpiarDatosCliente(datos: DatosClienteEditables): DatosClienteEditables {
+  const nombre = datos.nombre.trim();
+  if (!nombre) throw new DatosInvalidos("El cliente necesita un nombre.");
+  if (nombre.length > MAX_NOMBRE_CLIENTE) throw new DatosInvalidos(`El nombre puede tener hasta ${MAX_NOMBRE_CLIENTE} caracteres.`);
+
+  const escrito = datos.telefono?.trim() ?? "";
+  const telefono = escrito === "" ? null : normalizarTelefonoDO(escrito);
+  if (escrito && !telefono) throw new DatosInvalidos("Ese WhatsApp no es un número dominicano válido.");
+  return { nombre, telefono };
+}
 
 /** Nota limpia: sin espacios de sobra, máx. MAX_NOTA caracteres, null si queda vacía. */
 export function limpiarNota(nota: string | null | undefined): string | null {
@@ -71,4 +86,20 @@ export function modificarNotaCliente(db: DB, tiendaId: string, id: string, nota:
   if (!actual) throw new Error("Ese cliente no es de esta tienda.");
   const cliente: Cliente = { ...actual, nota: limpiarNota(nota) };
   return { db: { ...db, clientes: db.clientes.map((c) => (c.id === id ? cliente : c)) }, cliente };
+}
+
+/** Cambia nombre y WhatsApp. El WhatsApp vacío se borra y uno repetido no se guarda. */
+export function modificarCliente(db: DB, tiendaId: string, id: string, datos: DatosClienteEditables) {
+  const actual = db.clientes.find((c) => c.id === id && c.tiendaId === tiendaId);
+  if (!actual) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
+
+  const limpios = limpiarDatosCliente(datos);
+  const existente = clientePorTelefono(db, tiendaId, limpios.telefono);
+  if (existente && existente.id !== id) throw new ClienteDuplicado(existente);
+
+  const cliente: Cliente = { ...actual, ...limpios };
+  return {
+    db: { ...db, clientes: db.clientes.map((c) => (c.id === id && c.tiendaId === tiendaId ? cliente : c)) },
+    cliente,
+  };
 }

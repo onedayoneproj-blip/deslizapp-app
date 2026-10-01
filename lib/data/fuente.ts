@@ -6,10 +6,11 @@ import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
 import type { Abono, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { MetodoAbono } from "../types";
+import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
 
-export type { DatosEdicionPedido, DatosMarca, DatosPago, DatosPedidoManual };
+export type { DatosClienteEditables, DatosEdicionPedido, DatosMarca, DatosPago, DatosPedidoManual };
 
 /** Un abono a registrar. Con `pedidoId` va a ese pedido; sin él se reparte entre los pedidos a crédito del cliente, del más viejo al más nuevo. */
 export type DatosAbonoNuevo = {
@@ -111,6 +112,8 @@ export type FuenteDatos = {
   getCliente(tiendaId: string, id: string): Promise<ClienteConResumen | null>;
   /** "+ Cliente". Lanza ClienteDuplicado si el WhatsApp ya es de otro cliente de la tienda. */
   crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null }): Promise<Cliente>;
+  /** Cambia nombre y WhatsApp (vacío = sin WhatsApp). Lanza ClienteDuplicado si ya lo usa otra persona. */
+  actualizarCliente(tiendaId: string, id: string, datos: DatosClienteEditables): Promise<Cliente>;
   /** Guarda la nota de un cliente (vacía = la borra). */
   actualizarNotaCliente(tiendaId: string, id: string, nota: string | null): Promise<Cliente>;
 

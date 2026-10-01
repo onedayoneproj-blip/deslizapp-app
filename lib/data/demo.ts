@@ -5,7 +5,7 @@ import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProd
 import { CREDITOS_POR_RETOQUE } from "../config";
 import type { Abono } from "../types";
 import { cuentaDelCliente, cuentasDeTienda, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
-import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarNotaCliente } from "./clientes";
+import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
 import type { DatosAbonoNuevo, DatosPago, FuenteDatos } from "./fuente";
 import {
@@ -381,6 +381,16 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return creado;
+  },
+  /** Cambia nombre y WhatsApp; conserva pedidos, origen y nota. */
+  async actualizarCliente(tiendaId, id, datos) {
+    let actualizado!: Cliente;
+    escribir((db) => {
+      const r = modificarCliente(db, tiendaId, id, datos);
+      actualizado = r.cliente;
+      return r.db;
+    });
+    return actualizado;
   },
   /** Guarda la nota de un cliente (vacía = la borra). */
   async actualizarNotaCliente(tiendaId: string, id: string, nota: string | null): Promise<Cliente> {
