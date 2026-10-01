@@ -259,8 +259,8 @@ tiendas 1──∞ eventos_aaah ──1 productos
 
 ## Reglas que pone la base (la app no las duplica)
 
-Están en `supabase/migrations/20260929000002_reglas_de_negocio.sql` y
-`…03_seguridad_rls.sql`. La app las respeta así (`lib/data/supabase.ts`):
+Están en `supabase/migrations/20260929225916_reglas_de_negocio.sql` y
+`supabase/migrations/20260929225923_seguridad_rls.sql`. La app las respeta así (`lib/data/supabase.ts`):
 
 | Regla | Cómo |
 |---|---|

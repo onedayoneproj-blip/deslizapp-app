@@ -1,7 +1,7 @@
 // Ventas a crédito y abonos: las cuentas, sin pantallas ni base de datos. Las usan igual la demo y Supabase.
 // Sin imports de valores (solo tipos): se prueba directo con Node (tests/credito.test.mjs).
 //
-// Reglas (las mismas de la base, supabase/migrations/20260930000014_credito_y_abonos.sql):
+// Reglas (las mismas de la base, supabase/migrations/20260930150901_credito_y_abonos.sql):
 // - Un pedido es "contado" (pagado = total, saldo = 0) o "credito" (pagado = suma de sus abonos, saldo = total − pagado).
 // - Un pedido cancelado no genera deuda (saldo = 0).
 // - Un abono sin pedido fijo se reparte entre los pedidos a crédito del cliente con saldo, del más viejo al más nuevo.

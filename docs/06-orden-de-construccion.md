@@ -1,5 +1,8 @@
 # Orden de construcción
 
+Antes de trabajo de base de datos, consultar el [mapa de migraciones reconciliadas](./09-reconciliacion-migraciones.md).
+No volver a aplicar las versiones históricas ya instaladas en producción.
+
 Sugerido, no obligatorio — pero cada paso depende del anterior, así que
 conviene no saltarlos. Cada uno tiene su criterio de "listo".
 

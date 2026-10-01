@@ -1,0 +1,4 @@
+-- Consulta de lectura: permisos efectivos de anon/authenticated en objetos públicos.
+select jsonb_agg(to_jsonb(p) order by tipo,objeto,rolname) as permisos from (
+select 'tabla' as tipo,c.relname as objeto,r.rolname,array(select v from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) v where has_table_privilege(r.oid,c.oid,v)) as permisos from pg_class c join pg_namespace n on n.oid=c.relnamespace cross join pg_roles r where n.nspname='public' and c.relkind in ('r','v') and r.rolname in ('anon','authenticated') union all select 'funcion',p.proname||'('||pg_get_function_identity_arguments(p.oid)||')',r.rolname,case when has_function_privilege(r.oid,p.oid,'EXECUTE') then array['EXECUTE'] else array[]::text[] end from pg_proc p join pg_namespace n on n.oid=p.pronamespace cross join pg_roles r where n.nspname='public' and r.rolname in ('anon','authenticated')
+) p;
