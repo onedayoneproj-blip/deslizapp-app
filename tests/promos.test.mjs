@@ -75,3 +75,45 @@ test("texto de uso y validación del límite", () => {
   assert.ok(validarPromo({ ...base, limite: "2.5" }, [], T).limite);
   assert.equal(validarPromo({ ...base, tipo: "coleccion", coleccion: "P", codigo: "", limite: "0" }, [], T).limite, undefined);
 });
+
+test("copia para otro tipo: conserva solo detalles compatibles, no identidad ni historial", async () => {
+  const { datosFormularioPromo } = await import("../lib/promos.ts");
+  for (const origen of ["codigo", "producto", "coleccion"]) {
+    for (const destino of ["codigo", "producto", "coleccion"]) {
+      if (origen === destino) continue;
+      const original = promo({ tipo: origen, codigo: "LUNA20", productoId: "producto-1", coleccion: "Dulces", limiteUsos: 10, pausada: true });
+      const antes = structuredClone(original);
+      const datos = datosFormularioPromo(original, false, destino);
+      assert.equal(datos.tipo, destino);
+      assert.equal(datos.nombre, original.nombre);
+      assert.equal(datos.porcentaje, "20");
+      assert.equal(datos.codigo, "");
+      assert.equal(datos.productoId, null);
+      assert.equal(datos.coleccion, null);
+      assert.equal(datos.limite, "");
+      assert.equal(datos.fin, "");
+      assert.equal(datos.pausada, false);
+      assert.equal("id" in datos, false);
+      assert.equal("estado" in datos, false);
+      assert.deepEqual(original, antes);
+      const errores = validarPromo(datos, [original], T);
+      assert.ok(errores[destino === "codigo" ? "codigo" : destino === "producto" ? "productoId" : "coleccion"]);
+      assert.ok(validarPromo({ ...datos, inicio: "2026-10-02", fin: "2026-10-01" }, [original], T).fin);
+    }
+  }
+});
+
+test("duplicación existente y edición conservan sus valores compatibles", async () => {
+  const { datosFormularioPromo, isoADia, hoyLocal } = await import("../lib/promos.ts");
+  const original = promo({ fechaFin: "2026-10-20T03:59:59Z", limiteUsos: 8, pausada: true });
+  const editando = datosFormularioPromo(original, true);
+  assert.equal(editando.inicio, isoADia(original.fechaInicio));
+  assert.equal(editando.fin, isoADia(original.fechaFin));
+  assert.equal(editando.pausada, true);
+  const copia = datosFormularioPromo(original);
+  assert.equal(copia.codigo, "LUNA20");
+  assert.equal(copia.limite, "8");
+  assert.equal(copia.inicio, hoyLocal());
+  assert.equal(copia.fin, "");
+  assert.equal(copia.pausada, false);
+});

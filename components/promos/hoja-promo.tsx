@@ -11,8 +11,7 @@ import { formatearPesos, rangoFechas } from "@/lib/formato";
 import {
   diaAIso,
   estadoPromo,
-  hoyLocal,
-  isoADia,
+  datosFormularioPromo,
   limpiarCodigo,
   MAX_CODIGO,
   MAX_PORCENTAJE,
@@ -24,7 +23,7 @@ import {
 import type { PedidoConItems, Producto, Promo, TipoPromo } from "@/lib/types";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
-import { Hoja, useAvisarAlSalir } from "../hoja";
+import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { TarjetaPromo } from "./tarjeta-promo";
 import { useElegirPestanaPromos, useOfrecerCompartir } from "./vista-promos";
@@ -45,7 +44,7 @@ const ETIQUETA_TIPO = { codigo: "Código", coleccion: "Por colección", producto
  * Nueva promo, editar una que no ha terminado, o ver una terminada (con "Duplicar como nueva").
  * Al cerrar vuelve a /promos sin perder la pestaña (la guarda el layout).
  */
-export function HojaPromo({ promoId, copiarDe }: { promoId?: string; copiarDe?: string }) {
+export function HojaPromo({ promoId, copiarDe, otroTipo }: { promoId?: string; copiarDe?: string; otroTipo?: TipoPromo }) {
   const router = useRouter();
   const { getPromos, getProductos, getPedidos } = useData();
   const { tiendaId } = useTiendaActiva();
@@ -57,7 +56,8 @@ export function HojaPromo({ promoId, copiarDe }: { promoId?: string; copiarDe?: 
   if (!promos || !productos || !pedidos) return null;
 
   const promo = promoId ? promos.find((p) => p.id === promoId) : undefined;
-  if (promoId && !promo) {
+  const copia = copiarDe ? promos.find((p) => p.id === copiarDe) : undefined;
+  if ((promoId && !promo) || (copiarDe && !copia)) {
     return (
       <Hoja abierta alCerrar={cerrar} titulo="Promo">
         <div className="py-6 text-center">
@@ -78,11 +78,11 @@ export function HojaPromo({ promoId, copiarDe }: { promoId?: string; copiarDe?: 
     );
   }
 
-  const base = promo ?? (copiarDe ? promos.find((p) => p.id === copiarDe) : undefined);
+  const base = promo ?? copia;
   return (
     // "grande": tiene campos de texto y la hoja no cambia de tamaño con el teclado (HANDOFF.md)
     <Hoja abierta alCerrar={cerrar} titulo={promo ? "Editar promo" : "Nueva promo"} altura="grande">
-      <Formulario key={promo?.id ?? copiarDe ?? "nueva"} promo={promo} base={base} promos={promos} productos={productos} pedidos={pedidos} alTerminar={cerrar} />
+      <Formulario key={`${tiendaId}:${promo?.id ?? copiarDe ?? "nueva"}:${otroTipo ?? ""}`} promo={promo} base={base} otroTipo={otroTipo} promos={promos} productos={productos} pedidos={pedidos} alTerminar={cerrar} />
     </Hoja>
   );
 }
@@ -92,6 +92,7 @@ const PORCENTAJES_RAPIDOS = [10, 15, 20, 30];
 function Formulario({
   promo,
   base,
+  otroTipo,
   promos,
   productos,
   pedidos,
@@ -100,6 +101,7 @@ function Formulario({
   promo?: Promo;
   /** Promo de la que se parte (la que se edita, o la que se duplica). */
   base?: Promo;
+  otroTipo?: TipoPromo;
   promos: Promo[];
   productos: Producto[];
   pedidos: PedidoConItems[];
@@ -113,24 +115,16 @@ function Formulario({
   const toast = useToast();
   const editando = Boolean(promo);
 
-  const [datos, setDatos] = useState<DatosPromo>(() => ({
-    tipo: base?.tipo ?? "coleccion",
-    nombre: base?.nombre ?? "",
-    porcentaje: base?.valorPorcentaje ? String(base.valorPorcentaje) : "",
-    codigo: base?.codigo ?? "",
-    coleccion: base?.coleccion ?? null,
-    productoId: base?.productoId ?? null,
-    // Duplicar: empieza hoy y sin fecha de fin. Editar: las fechas que ya tiene.
-    inicio: promo ? isoADia(promo.fechaInicio) : hoyLocal(),
-    fin: promo?.fechaFin ? isoADia(promo.fechaFin) : "",
-    limite: base?.limiteUsos ? String(base.limiteUsos) : "",
-    // Duplicar no hereda la pausa
-    pausada: promo ? promo.pausada : false,
-  }));
+  const [datos, setDatos] = useState<DatosPromo>(() => datosFormularioPromo(base, editando, otroTipo));
+  const confirmarSalida = useConfirmarSalida();
+  const [tipoIntentado, setTipoIntentado] = useState<TipoPromo | null>(null);
+  const [nuevaGuardada, setNuevaGuardada] = useState<Promo | null>(null);
+  const reemplazando = !promo && Boolean(base && otroTipo && base.tipo !== otroTipo);
+  const anterior = reemplazando ? promos.find((p) => p.id === base?.id) : undefined;
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta
   const firma = JSON.stringify(datos);
   const [firmaInicial] = useState(firma);
-  useAvisarAlSalir(firma !== firmaInicial);
+  useAvisarAlSalir(!nuevaGuardada && firma !== firmaInicial);
   const [vista, setVista] = useState<"promo" | "producto" | "coleccion">("promo");
   const [tocados, setTocados] = useState<Set<string>>(new Set());
   const [intento, setIntento] = useState(false);
@@ -191,6 +185,11 @@ function Formulario({
       const guardada = promo ? await actualizarPromo(tiendaId, promo.id, datos) : await crearPromo(tiendaId, datos);
       const estado = estadoPromo(guardada);
       elegirPestana(estado);
+      if (reemplazando && anterior && estadoPromo(anterior) !== "terminada") {
+        setNuevaGuardada(guardada);
+        setGuardando(false);
+        return;
+      }
       if (promo) toast("Cambios guardados.");
       else if (estado !== "terminada") ofrecerCompartir({ id: guardada.id, programada: estado === "programada" }); // "¡Lista! ¿La compartes ahora?"
       else toast("Promo guardada. Como ya venció, quedó en Terminadas.");
@@ -215,11 +214,54 @@ function Formulario({
     }
   };
 
+  const salirTrasCrear = () => {
+    if (nuevaGuardada && estadoPromo(nuevaGuardada) !== "terminada") {
+      ofrecerCompartir({ id: nuevaGuardada.id, programada: estadoPromo(nuevaGuardada) === "programada" });
+    }
+    alTerminar();
+  };
+
+  const terminarAnterior = async () => {
+    if (!anterior || guardando) return;
+    if (estadoPromo(anterior) === "terminada") return salirTrasCrear();
+    setGuardando(true);
+    try {
+      await terminarPromo(tiendaId, anterior.id);
+      toast("La anterior terminó. Tu nueva promo está guardada.");
+      salirTrasCrear();
+    } catch (e) {
+      toast(mensajeDeError(e, "La nueva está guardada, pero no se pudo terminar la anterior. Inténtalo otra vez."));
+      setGuardando(false);
+    }
+  };
+
+  if (nuevaGuardada) {
+    const puedeTerminar = anterior && estadoPromo(anterior) !== "terminada";
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="font-display text-xl">Tu nueva promo está guardada.</p>
+        {puedeTerminar ? <>
+          <p className="text-sm text-suave">«{anterior.nombre}» sigue como estaba. Tú decides si la terminas o dejas ambas.</p>
+          {confirmando ? (
+            <ConfirmarFinPromo promo={anterior} guardando={guardando} alConfirmar={terminarAnterior} alCancelar={() => setConfirmando(false)} />
+          ) : <>
+            <button type="button" onClick={() => setConfirmando(true)} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">Terminar la anterior</button>
+            <button type="button" onClick={salirTrasCrear} className="tocable h-12 rounded-full border-[1.5px] border-bosque font-extrabold">Dejar ambas</button>
+          </>}
+        </> : <>
+          <p className="text-sm text-suave">La anterior ya terminó o no está disponible. Su historial sigue intacto.</p>
+          <button type="button" onClick={salirTrasCrear} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">Volver a promos</button>
+        </>}
+      </div>
+    );
+  }
+
   const pct = Number(datos.porcentaje);
   const pctValido = Number.isInteger(pct) && pct >= 1 && pct <= MAX_PORCENTAJE;
 
   return (
     <div className="flex flex-col gap-4">
+      {reemplazando && <p className="rounded-[18px] bg-menta/60 p-3 text-sm text-bosque">Vas a crear una promo nueva. La anterior y su historial siguen intactos. La copia empieza hoy, sin vencimiento ni pausa.</p>}
       {/* Tipo (no cambia al editar) */}
       <div role="group" aria-label="Tipo de promo" className="grid grid-cols-3 gap-2">
         {TIPOS.map((t) => {
@@ -229,8 +271,11 @@ function Formulario({
               key={t.id}
               type="button"
               aria-pressed={elegido}
-              disabled={editando && !elegido}
-              onClick={() => cambiar("tipo", t.id)}
+              disabled={guardando}
+              onClick={() => {
+                if (editando && !elegido) setTipoIntentado(t.id);
+                else if (!editando && !elegido) setDatos((d) => ({ ...d, tipo: t.id, codigo: "", productoId: null, coleccion: null, limite: "" }));
+              }}
               className={`tocable flex min-h-[84px] flex-col justify-between rounded-[18px] border-[1.5px] px-2.5 py-3 text-left disabled:opacity-40 ${
                 elegido ? "border-bosque bg-bosque text-papel" : "border-borde bg-white text-bosque"
               }`}
@@ -241,6 +286,16 @@ function Formulario({
           );
         })}
       </div>
+
+      {tipoIntentado && <div role="alertdialog" aria-label="El tipo queda fijo" className="flex flex-col gap-3 rounded-[18px] bg-menta/60 p-4">
+          <p className="text-[15px] text-suave">El tipo no cambia después de crear la promo. Crea una copia con el tipo que quieras.</p>
+          <button type="button" onClick={() => {
+            const tipo = tipoIntentado;
+            setTipoIntentado(null);
+            if (promo && tipo) confirmarSalida(() => router.push(`/promos/nueva?${new URLSearchParams({ copiar: promo.id, tipo })}`, { scroll: false }));
+          }} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">Crear con otro tipo</button>
+          <button type="button" onClick={() => setTipoIntentado(null)} className="tocable h-12 rounded-full border-[1.5px] border-bosque font-extrabold">Seguir editando</button>
+      </div>}
 
       <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
         Nombre
@@ -462,19 +517,23 @@ function Formulario({
           Terminar promo
         </button>
       )}
-      {editando && confirmando && (
-        <div role="alertdialog" aria-label="Confirmar" className="flex flex-col gap-2 rounded-[18px] bg-mandarina/20 p-4">
-          <p className="text-sm">
-            <b>¿Terminar «{promo?.nombre}»?</b> Los precios vuelven a la normalidad y no se puede reactivar (solo duplicarla como nueva).
-          </p>
-          <button type="button" onClick={terminar} disabled={guardando} className="tocable h-11 rounded-full bg-[#b4432a] font-extrabold text-white disabled:opacity-60">
-            Sí, terminar
-          </button>
-          <button type="button" onClick={() => setConfirmando(false)} className="h-11 font-extrabold text-bosque">
-            Mejor no
-          </button>
-        </div>
+      {editando && confirmando && promo && (
+        <ConfirmarFinPromo promo={promo} guardando={guardando} alConfirmar={terminar} alCancelar={() => setConfirmando(false)} />
       )}
+
+    </div>
+  );
+}
+
+/** La misma confirmación explícita al terminar desde edición o tras crear una copia. */
+function ConfirmarFinPromo({ promo, guardando, alConfirmar, alCancelar }: {
+  promo: Promo; guardando: boolean; alConfirmar: () => void; alCancelar: () => void;
+}) {
+  return (
+    <div role="alertdialog" aria-label="Confirmar" className="flex flex-col gap-2 rounded-[18px] bg-mandarina/20 p-4">
+      <p className="text-sm"><b>¿Terminar «{promo.nombre}»?</b> Los precios vuelven a la normalidad y no se puede reactivar (solo duplicarla como nueva).</p>
+      <button type="button" onClick={alConfirmar} disabled={guardando} className="tocable h-11 rounded-full bg-[#b4432a] font-extrabold text-white disabled:opacity-60">Sí, terminar</button>
+      <button type="button" onClick={alCancelar} disabled={guardando} className="tocable h-11 font-extrabold text-bosque disabled:opacity-60">Mejor no</button>
     </div>
   );
 }

@@ -631,6 +631,18 @@ el campo de texto) tiene, de arriba abajo:
   o, en los códigos, un pedido de ejemplo con el descuento.
 - Editar (el tipo no cambia) y "Terminar promo" con confirmación. Una terminada
   no se reactiva ni se edita: se **duplica como nueva** (`/promos/nueva?copiar=id`).
+  Al tocar otro tipo en edición se explica: «El tipo no cambia después de crear la promo.
+  Crea una copia con el tipo que quieras.» Acciones: «Crear con otro tipo» y «Seguir editando».
+  La primera abre el mismo formulario nuevo (`?copiar=id&tipo=...`) con el tipo elegido desbloqueado.
+  Copia nombre y porcentaje guardados, limpia campos incompatibles (código, producto, colección y
+  límite de usos exclusivo de código), y empieza hoy sin vencimiento ni pausa, como la duplicación.
+  Con cambios sin guardar se usa «¿Salir sin guardar?»: «Seguir aquí» conserva el borrador;
+  «Salir» autoriza descartarlo para partir de los datos guardados. La creación usa la validación existente.
+  No se copian usos, pedidos ni identidad. Cancelar no modifica la original.
+  Tras guardar, si la original no terminó, se ofrecen «Terminar la anterior» y «Dejar ambas».
+  Terminar requiere además la confirmación existente «Sí, terminar»; «Mejor no» conserva ambas.
+  Cerrar esta elección también deja ambas. Una original ya terminada no recibe esta elección.
+  No se implementa una nueva hoja de detalle de promos. Comprobación local: `node scripts/probar-reemplazo-promos.mjs`.
 - "+ Pedido" tiene el botón "+ Agregar cupón": elige un cupón de la lista (solo los que se pueden usar), aplica el % al
   total y guarda `codigo_promo`. El detalle del pedido muestra el
   descuento y "Simular pedido del catálogo" usa los precios con promo vigente.
