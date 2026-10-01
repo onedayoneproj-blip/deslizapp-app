@@ -119,6 +119,8 @@ export function useIrArribaHoja() {
 type Props = {
   abierta: boolean;
   alCerrar: () => void;
+  /** Se llama después de que la hoja terminó de salir y se retiró del portal. */
+  alSalir?: () => void;
   titulo: string;
   /** Cómo se comporta la altura (por defecto "auto"). */
   altura?: AlturaHoja;
@@ -156,6 +158,7 @@ function esCampo(el: EventTarget | null) {
 function HojaMontada({
   abierta,
   alCerrar,
+  alSalir,
   titulo,
   altura = "auto",
   fijoArriba,
@@ -447,9 +450,11 @@ function HojaMontada({
   // Lo último que se pidió cerrar: los listeners de abajo lo leen sin volver a montarse.
   const cerrarRef = useRef(cerrar);
   const seguirRef = useRef(seguirAqui_);
+  const alSalirRef = useRef(alSalir);
   useEffect(() => {
     cerrarRef.current = cerrar;
     seguirRef.current = seguirAqui_;
+    alSalirRef.current = alSalir;
   });
 
   // El foco entra al diálogo de "¿Salir sin guardar?" y, al irse, vuelve a donde estaba
@@ -538,8 +543,11 @@ function HojaMontada({
       if (entrada) {
         entrada = false;
         IGNORAR_ATRAS.n++;
+        // La continuación de una hoja apilada espera a que el navegador consuma
+        // su entrada; navegar antes puede ser deshecho por este history.back().
+        if (alSalirRef.current) window.addEventListener("popstate", () => alSalirRef.current?.(), { once: true });
         window.history.back();
-      }
+      } else if (alSalirRef.current) window.setTimeout(() => alSalirRef.current?.(), 0);
       const posicion = PILA_DE_HOJAS.indexOf(turno);
       if (posicion >= 0) PILA_DE_HOJAS.splice(posicion, 1);
       document.body.style.overflow = previo.overflow;

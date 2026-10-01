@@ -74,11 +74,15 @@ desplaza en horizontal si no caben. Área de toque de 44 px o más con un pseudo
 ## Ticket de promo (Promos y selector de cupón)
 
 **Cambiar de tipo mediante copia:** al tocar un tipo distinto en edición se explica la restricción
-y se abre el formulario nuevo con el tipo elegido. Reutiliza la duplicación y sus fechas (hoy,
+y se abre una hoja compacta sobre el editor; «Sí, crear otra promo» abre el formulario nuevo
+con el tipo elegido después de cerrar esa hoja. Reutiliza la duplicación y sus fechas (hoy,
 sin vencimiento ni pausa); no copia usos. Los cambios sin guardar piden el aviso existente antes
 de salir. La original solo termina al elegir «Terminar la anterior» y confirmar «Sí, terminar».
 Cancelar o «Dejar ambas» conserva la original. Detalles y límites en docs/04; comprobación de
 demo local con `node scripts/probar-reemplazo-promos.mjs` y foco con `npm run probar:teclado`.
+La tarjeta abre el detalle de solo lectura en `/promos/[id]`; la edición tiene su propia ruta
+`/promos/[id]/editar`. La hoja de compartir vuelve al detalle cuando salió de él.
+`node scripts/probar-detalle-promos.mjs` comprueba las rutas, hojas y capturas reales.
 No necesita migraciones; PR #2 de reconciliación sigue separado y pendiente de revisión.
 
 Un solo componente, `components/promos/ticket-promo.tsx`, con dos tamaños: normal (lista de Promos, vía `tarjeta-promo.tsx`) y

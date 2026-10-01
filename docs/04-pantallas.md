@@ -579,7 +579,7 @@ apagado (#E4DDCC, "TERMINADA"); las programadas, en verde con "PROGRAMADA" y
 "Nueva promo".
 
 **Compartir promo** (`components/promos/hoja-compartir.tsx`, ruta
-`/promos/[id]/compartir`): botón "Compartir esta promo" en el detalle de cada
+`/promos/[id]/compartir`): botón "Compartir promo" en el detalle de cada
 promo activa o programada (las terminadas no) y, al crear una promo, el aviso
 "¡Lista! ¿La compartes ahora?" con "Compartir" / "Después". La hoja (grande, por
 el campo de texto) tiene, de arriba abajo:
@@ -629,10 +629,24 @@ el campo de texto) tiene, de arriba abajo:
   Domingo (empieza a las 00:00, vence a las 23:59).
 - Vista previa en vivo: "Así se ve en tu catálogo" (precio nuevo, tachado y −N%)
   o, en los códigos, un pedido de ejemplo con el descuento.
+- Tocar una tarjeta abre `/promos/[id]`, una hoja de solo lectura que conserva la
+  pestaña elegida. El cupón existente es protagonista; debajo se ven nombre,
+  porcentaje, estado visible calculado (incluidas pausada y agotada), tipo,
+  destino, inicio y vencimiento o «Sin fecha de fin». En códigos se muestran
+  pedidos no cancelados que lo usaron, límite o «Sin límite» y usos restantes
+  nunca negativos. La hoja tiene carga, error con reintento y estado de promo
+  inexistente; una promo de otra tienda no se revela. «Editar promo» abre
+  `/promos/[id]/editar`; «Compartir promo» abre la hoja existente. Al cerrar
+  edición o compartir se vuelve al detalle, también con el botón atrás.
+  En terminadas solo está «Duplicar promo».
 - Editar (el tipo no cambia) y "Terminar promo" con confirmación. Una terminada
   no se reactiva ni se edita: se **duplica como nueva** (`/promos/nueva?copiar=id`).
-  Al tocar otro tipo en edición se explica: «El tipo no cambia después de crear la promo.
-  Crea una copia con el tipo que quieras.» Acciones: «Crear con otro tipo» y «Seguir editando».
+  Al tocar otro tipo en edición, una hoja `Hoja` compacta se superpone al editor
+  con el título «Nah, ah… así no.» y la explicación «Cambiar el tipo cambia cómo
+  se aplica el descuento. Para mantener el historial en orden, crea otra promo.
+  Te dejamos la copia lista.». Acciones: «Sí, crear otra promo» y «Me quedo con esta».
+  Cerrar el aviso conserva el borrador y el foco vuelve al botón del tipo intentado.
+  Solo la hoja superior responde a fondo, gestos, Escape y atrás. No hay aviso inline.
   La primera abre el mismo formulario nuevo (`?copiar=id&tipo=...`) con el tipo elegido desbloqueado.
   Copia nombre y porcentaje guardados, limpia campos incompatibles (código, producto, colección y
   límite de usos exclusivo de código), y empieza hoy sin vencimiento ni pausa, como la duplicación.
@@ -642,7 +656,7 @@ el campo de texto) tiene, de arriba abajo:
   Tras guardar, si la original no terminó, se ofrecen «Terminar la anterior» y «Dejar ambas».
   Terminar requiere además la confirmación existente «Sí, terminar»; «Mejor no» conserva ambas.
   Cerrar esta elección también deja ambas. Una original ya terminada no recibe esta elección.
-  No se implementa una nueva hoja de detalle de promos. Comprobación local: `node scripts/probar-reemplazo-promos.mjs`.
+  Comprobación local: `node scripts/probar-reemplazo-promos.mjs` y `node scripts/probar-detalle-promos.mjs`.
 - "+ Pedido" tiene el botón "+ Agregar cupón": elige un cupón de la lista (solo los que se pueden usar), aplica el % al
   total y guarda `codigo_promo`. El detalle del pedido muestra el
   descuento y "Simular pedido del catálogo" usa los precios con promo vigente.

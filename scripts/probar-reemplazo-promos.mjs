@@ -29,15 +29,15 @@ async function abrir(id = originalId) {
   await page.getByRole("button", { name: /Reiniciar datos de prueba/ }).click();
   await page.getByRole("button", { name: /¿Seguro\? Toca otra vez/ }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
-  await page.goto(`${url}/promos/${id}`);
+  await page.goto(`${url}/promos/${id}/editar`);
   await page.getByRole("dialog").waitFor();
   await page.waitForTimeout(500);
   return { ctx, page, errores };
 }
 async function crearCopia(page, nombreTipo = /^Código/) {
   await tipo(page, nombreTipo).click();
-  await page.getByText("El tipo no cambia después de crear la promo. Crea una copia con el tipo que quieras.").waitFor();
-  await page.getByRole("button", { name: "Crear con otro tipo" }).click();
+  await page.getByText("Cambiar el tipo cambia cómo se aplica el descuento. Para mantener el historial en orden, crea otra promo. Te dejamos la copia lista.").waitFor();
+  await page.getByRole("button", { name: "Sí, crear otra promo" }).click();
   await page.waitForURL("**/promos/nueva?*");
   await page.getByText(/Vas a crear una promo nueva/).waitFor();
   await page.waitForTimeout(500);
@@ -57,21 +57,21 @@ try {
     await page.getByLabel("Nombre", { exact: true }).fill("Borrador sin guardar");
     await tipo(page, /^Código/).click();
     assert.equal(await tipo(page, /^Por colección/).getAttribute("aria-pressed"), "true");
-    await page.getByRole("button", { name: "Seguir editando" }).click();
+    await page.getByRole("button", { name: "Me quedo con esta" }).click();
     assert.equal(await page.getByLabel("Nombre", { exact: true }).inputValue(), "Borrador sin guardar");
     await tipo(page, /^Código/).click();
-    await page.getByRole("button", { name: "Crear con otro tipo" }).click();
+    await page.getByRole("button", { name: "Sí, crear otra promo" }).click();
     await page.getByRole("alertdialog", { name: "¿Salir sin guardar?" }).waitFor();
     await page.getByRole("button", { name: "Seguir aquí" }).click();
     assert.equal(await page.getByLabel("Nombre", { exact: true }).inputValue(), "Borrador sin guardar");
     await tipo(page, /^Código/).click();
-    await page.getByRole("button", { name: "Crear con otro tipo" }).click();
+    await page.getByRole("button", { name: "Sí, crear otra promo" }).click();
     await page.getByRole("button", { name: "Salir", exact: true }).click();
     await page.waitForURL("**/promos/nueva?*");
     assert.equal(await page.getByLabel("Nombre", { exact: true }).inputValue(), "Semana del aaah");
     assert.equal(await page.getByPlaceholder("Ej: AAAH10").inputValue(), "");
     await page.getByLabel("Nombre", { exact: true }).fill("Cancelar copia");
-    await page.getByRole("button", { name: "Cerrar", exact: true }).click();
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Salir", exact: true }).click();
     await page.waitForURL("**/promos");
     assert.deepEqual(await db(page), antes);
