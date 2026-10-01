@@ -20,9 +20,12 @@ Abre [http://localhost:3000](http://localhost:3000).
 El repositorio está conectado a Vercel: **https://deslizapp-app.vercel.app**.
 Cada push a `main` publica solo; no hay que hacer nada más.
 
-Hoy la app no necesita variables de entorno (los datos de prueba viven en el
-navegador). Cuando se conecte Supabase, sus variables (URL y llave pública
-del proyecto) se agregarán en Vercel, en *Settings → Environment Variables*.
+El modo demo funciona sin variables de entorno. El modo real con Supabase usa
+las variables públicas de `.env.example`, también configuradas en Vercel.
+
+Antes de trabajar con la base, lee el [mapa de migraciones y sus límites de
+validación](./docs/09-reconciliacion-migraciones.md). Las bases locales de otras
+sesiones de Claude Code/Codex todavía no están inventariadas.
 
 ## Notas
 

@@ -1,5 +1,9 @@
 # Arquitectura: demo y Supabase detrás de la misma interfaz
 
+Para versiones de migraciones, replay y entornos desconocidos, consultar
+[09-reconciliacion-migraciones.md](./09-reconciliacion-migraciones.md).
+El cambio de identificadores conserva las dos implementaciones de datos.
+
 ## La idea en una frase
 
 Ninguna pantalla toca datos directamente — todas pasan por `useData()`, que

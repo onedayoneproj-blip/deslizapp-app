@@ -20,6 +20,14 @@ orden:
 6. `docs/06-orden-de-construccion.md` — en qué orden construir, y el criterio de "listo" de cada paso.
 7. `docs/07-fase-2-cuentas-y-cobros.md` — **solo lectura por ahora:** decisiones ya tomadas para la fase 2 (verificación de Instagram, zona de administración, cobros manuales). No se construye en la primera entrega.
 8. `docs/08-movimiento.md` — el sistema de movimiento: cómo se anima todo (reglas obligatorias para lo nuevo).
+9. `docs/08-repaso-final.md` — comprobaciones del repaso y límites de lo verificado.
+10. `docs/09-reconciliacion-migraciones.md` — mapa de identificadores, replay y pendientes antes de fusionar.
+
+**Coordinación Claude Code/Codex:** solo producción es accesible en la reconciliación.
+Las bases locales de otras sesiones siguen desconocidas. Antes de aplicar migraciones
+renombradas a una base existente, comparar su historial; no reparar ni reproducir
+automáticamente versiones antiguas. El dry run CLI de producción sigue bloqueado
+por falta de credenciales. Ver el documento 09 para resultados y siguiente paso.
 
 Además, en `referencias/` está el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, ábrelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y créditos (ver `referencias/LEEME.md`).
 

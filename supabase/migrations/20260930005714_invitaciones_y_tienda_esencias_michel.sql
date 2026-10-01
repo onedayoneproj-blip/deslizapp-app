@@ -33,4 +33,7 @@ create trigger auth_aplicar_invitacion
   after insert on auth.users
   for each row execute function public.aplicar_invitacion();
 
--- (Los datos de tiendas e invitaciones reales no van en el repositorio: se crean en la base.)
+-- Diferencia intencional con el SQL histórico de producción de esta misma versión:
+-- allí también se crearon Esencias Michel y una invitación para un correo real.
+-- Aquí solo se reproduce el esquema; esos datos de producción no se copian ni se vuelven a insertar.
+-- Ver docs/09-reconciliacion-migraciones.md para el mapa y la validación.

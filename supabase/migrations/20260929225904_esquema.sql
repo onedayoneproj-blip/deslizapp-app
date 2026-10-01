@@ -1,4 +1,4 @@
--- Deslizapp — esquema base (docs/03-modelo-de-datos.md es el contrato).
+-- Deslizapp — esquema base (supabase/migrations/ es el contrato; docs/03-modelo-de-datos.md lo describe).
 -- Moneda: pesos dominicanos enteros. Fechas: timestamptz (UTC); se muestran en hora de Santo Domingo.
 -- Toda tabla de una tienda lleva tienda_id (aislamiento multi-tenant). Las claves compuestas (id, tienda_id)
 -- impiden que una fila apunte a algo de OTRA tienda.
