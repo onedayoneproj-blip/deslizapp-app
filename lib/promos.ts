@@ -86,6 +86,23 @@ export type DatosPromo = {
 
 export type ErroresPromo = Partial<Record<"nombre" | "porcentaje" | "codigo" | "limite" | "coleccion" | "productoId" | "inicio" | "fin", string>>;
 
+/** Una copia empieza hoy, sin vencimiento ni pausa; nunca lleva identidad o historial. */
+export function datosFormularioPromo(base?: Promo, editando = false, otroTipo?: TipoPromo): DatosPromo {
+  const tipo = otroTipo ?? base?.tipo ?? "coleccion";
+  return {
+    tipo,
+    nombre: base?.nombre ?? "",
+    porcentaje: base?.valorPorcentaje ? String(base.valorPorcentaje) : "",
+    codigo: tipo === "codigo" && base?.tipo === "codigo" ? base.codigo ?? "" : "",
+    coleccion: tipo === "coleccion" && base?.tipo === "coleccion" ? base.coleccion : null,
+    productoId: tipo === "producto" && base?.tipo === "producto" ? base.productoId : null,
+    inicio: editando && base ? isoADia(base.fechaInicio) : hoyLocal(),
+    fin: editando && base?.fechaFin ? isoADia(base.fechaFin) : "",
+    limite: tipo === "codigo" && base?.tipo === "codigo" && base.limiteUsos ? String(base.limiteUsos) : "",
+    pausada: editando && base ? base.pausada : false,
+  };
+}
+
 const dia = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA, year: "numeric", month: "2-digit", day: "2-digit" });
 
 /** Hoy en Santo Domingo, "AAAA-MM-DD". */

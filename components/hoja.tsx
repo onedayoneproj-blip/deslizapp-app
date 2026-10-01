@@ -77,7 +77,7 @@ const IGNORAR_ATRAS = { n: 0 };
 /** Marca de la entrada de historial de una hoja apilada. Conserva el estado de Next (`__NA`…) para no confundir al router. */
 const estadoDeHoja = () => ({ ...(window.history.state ?? {}), deslizappHoja: true });
 
-type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean) => void };
+type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean) => void; confirmarSalida: (accion: () => void) => void };
 const ContextoHoja = createContext<Ranuras | null>(null);
 
 /** Contenido que se queda fijo debajo del título de la hoja (buscador, pastillas…). Se pinta en la cabecera. */
@@ -102,6 +102,13 @@ export function useAvisarAlSalir(cambios: boolean) {
     avisar?.(cambios);
     return () => avisar?.(false);
   }, [avisar, cambios]);
+}
+
+/** Reutiliza el aviso de cambios sin guardar antes de salir hacia otro formulario. */
+export function useConfirmarSalida() {
+  const confirmar = useContext(ContextoHoja)?.confirmarSalida;
+  if (!confirmar) throw new Error("useConfirmarSalida() necesita una Hoja.");
+  return confirmar;
 }
 
 /** Lleva el contenido de la hoja arriba del todo (ej. al cambiar de vista dentro de la hoja). */
@@ -168,6 +175,7 @@ function HojaMontada({
   const avisandoRef = useRef(false);
   const dialogoAviso = useRef<HTMLDivElement>(null);
   const seguirAqui = useRef<HTMLButtonElement>(null);
+  const accionAlSalir = useRef<(() => void) | null>(null);
   useEffect(() => {
     avisoDeProp.current = avisarAlSalir;
   }, [avisarAlSalir]);
@@ -283,6 +291,7 @@ function HojaMontada({
    */
   const cerrar = useCallback((): boolean => {
     if (saliendo.current) return true;
+    accionAlSalir.current = null;
     if (avisoDeProp.current || avisoDeHijo.current) {
       rebotar();
       setAvisando(true);
@@ -292,10 +301,23 @@ function HojaMontada({
     return true;
   }, [cerrarDeVerdad, rebotar]);
 
-  const seguirAqui_ = useCallback(() => setAvisando(false), []);
+  const confirmarSalida = useCallback((accion: () => void) => {
+    if (avisoDeProp.current || avisoDeHijo.current) {
+      accionAlSalir.current = accion;
+      rebotar();
+      setAvisando(true);
+    } else accion();
+  }, [rebotar]);
+  const seguirAqui_ = useCallback(() => {
+    accionAlSalir.current = null;
+    setAvisando(false);
+  }, []);
   const salirDeVerdad = useCallback(() => {
     setAvisando(false);
-    cerrarDeVerdad();
+    const accion = accionAlSalir.current;
+    accionAlSalir.current = null;
+    if (accion) accion();
+    else cerrarDeVerdad();
   }, [cerrarDeVerdad]);
 
   /** El contenido empieza debajo de la cabecera superpuesta: su alto va en --cabecera (directo al DOM). */
@@ -327,7 +349,7 @@ function HojaMontada({
   const irArriba = useCallback(() => {
     if (contenido.current) contenido.current.scrollTop = 0;
   }, []);
-  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba, avisar }), [ranuraArriba, ranuraAbajo, irArriba, avisar]);
+  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba, avisar, confirmarSalida }), [ranuraArriba, ranuraAbajo, irArriba, avisar, confirmarSalida]);
 
   /** Borde de desplazamiento: invisible arriba del todo, completo a los SCROLL_BORDE px. */
   const alDesplazar = () => {

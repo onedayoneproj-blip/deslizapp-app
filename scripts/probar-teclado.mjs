@@ -65,7 +65,7 @@ async function abrir(browser) {
 }
 
 /** Toca un campo, abre/cierra el "teclado" varias veces y escribe. */
-async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false } = {}) {
+async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false, reemplazar = false } = {}) {
   await page.evaluate((s) => {
     document.querySelector(s).__marca = "mismo-nodo";
     window.__foco = [];
@@ -107,6 +107,7 @@ async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false
     ok(r <= 844 - ALTO_TECLADO, `${nombre}: (e) el campo queda a la vista sobre el teclado (parte baja en ${Math.round(r)}px ≤ ${844 - ALTO_TECLADO}px)`);
   }
 
+  if (reemplazar) await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.type(texto);
   const valor = await page.$eval(selector, (el) => el.value);
   ok(valor === texto, `${nombre}: (b) se puede escribir (${JSON.stringify(valor)})`);
@@ -231,6 +232,21 @@ try {
     ok(await page.evaluate(() => document.activeElement?.getAttribute("placeholder") === "Busca una colección"), "Selector de colección: el buscador tiene el foco justo después del toque que lo abre");
     await probarCampo(page, '[role="dialog"] input[placeholder="Busca una colección"]', "Selector de colección · Buscador", "dul", { dentroDeHoja: true });
     ok(errores.length === 0, `Nueva promo: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
+  // ---- Copia con otro tipo: el mismo formulario, prellenado y protegido.
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/promos/a6000000-0000-4000-8000-000000000001");
+    await page.getByRole("group", { name: "Tipo de promo" }).getByRole("button", { name: /^Código/ }).tap();
+    await page.getByRole("button", { name: "Crear con otro tipo" }).tap();
+    await page.waitForURL("**/promos/nueva?*");
+    await page.waitForTimeout(700);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Semana del aaah"]', "Copia de promo · Nombre", "Otra semana", { dentroDeHoja: true, reemplazar: true });
+    await probarCampo(page, '[role="dialog"] input[aria-label="Descuento en porcentaje"]', "Copia de promo · Descuento", "25", { dentroDeHoja: true, reemplazar: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: AAAH10"]', "Copia de promo · Código", "COPIA25", { dentroDeHoja: true });
+    ok(errores.length === 0, `Copia de promo: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 
