@@ -49,6 +49,7 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    `prefers-reduced-motion`: los microdetalles de la tarjeta del catálogo (`cat-anim-*` en `app/globals.css`: punto que late,
    destellos, ondas, confeti) y los de "Saldado" en crédito y abonos (`cre-*`: sello, confeti y el punto que late de "atrasado"; la
    barra de pago crece con `scaleX`, no con el ancho).
+   **Excepción concreta para «Tu próxima jugada»:** el resplandor granulado fijo al pie de la Hoja, visible desde que se abre la galería o un detalle (`jugada-resplandor-*`), se mueve suavemente de forma continua. Solo anima `transform` y `opacity` de capas decorativas, queda detrás del contenido desplazable, no intercepta toques y se detiene con `prefers-reduced-motion`. No habilita animaciones continuas en otras pantallas ni entradas escalonadas de tarjetas o filas.
 4b. **Hojas: rebote y diálogo de salida.** Si una hoja con cambios sin guardar se intenta cerrar, vuelve a su lugar con un rebote de
    `transform` (380 ms, `cubic-bezier(0.34, 1.56, 0.64, 1)`) y el diálogo "¿Salir sin guardar?" entra con `mov-aparece`. Con
    `prefers-reduced-motion` no hay rebote: solo aparece el diálogo. Una pastilla de opción elegida muestra su check con `mov-pop-aparece`.

@@ -64,6 +64,8 @@ esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
 números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 `Segmentos`, `Esqueleto`…).
 
+**Excepción concreta de movimiento para «Tu próxima jugada»:** el resplandor granulado fijo al pie de su Hoja, visible desde que se abre la galería o un detalle, puede moverse continuamente con `transform` y `opacity`. Es decorativo, queda detrás del contenido, no bloquea toques y queda estático con movimiento reducido. Las reglas generales siguen vigentes: nada de transiciones de página ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
+
 ## Pastillas de filtro
 
 Un solo tamaño para todas (`Segmentos` y `Chip` en `components/controles.tsx`): tokens `--pastilla-alto` (36 px),
@@ -108,6 +110,8 @@ pedidos despachados; «Nuevos» y «Dormidos» usan días civiles de Santo Domin
 «Deben» sigue usando cuentas por cobrar. Cálculo puro en
 `lib/clientes-resumen.ts`; detalles en docs/04-pantallas.md. La demo ya contiene
 los tres segmentos, nuevos y dormidos. No requiere migraciones.
+
+La hoja «Tus clientes» tiene la tarjeta «Tu próxima jugada»: galería y cuatro detalles dentro de la misma hoja, con mensajes editables que solo abren WhatsApp. `lib/proxima-jugada.ts` reutiliza el análisis de compras despachadas, excluye clientes con pedidos en curso y respeta la tienda activa; los grupos se recalculan al cambiar los datos o el día de Santo Domingo. Los datos de ejemplo del mockup no se copian al código. Ver `docs/04-pantallas.md` y `tests/proxima-jugada.test.mjs`.
 
 ## Ventas a crédito y abonos
 

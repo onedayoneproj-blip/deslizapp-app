@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "feature/promo-type-replacement": false,
-      "feature/promo-details-and-advice": false
+      "feature/promo-details-and-advice": false,
+      "feature/proxima-jugada": false
     }
   }
 }

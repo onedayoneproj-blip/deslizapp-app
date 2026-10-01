@@ -78,9 +78,9 @@ export function SelectorBusqueda({
   );
 }
 
-export function BotonVolver({ onClick }: { onClick: () => void }) {
+export function BotonVolver({ onClick, etiqueta = "Volver" }: { onClick: () => void; etiqueta?: string }) {
   return (
-    <button type="button" onClick={onClick} aria-label="Volver" className="tocable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque">
+    <button type="button" onClick={onClick} aria-label={etiqueta} className="tocable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M15 6l-6 6 6 6" />
       </svg>
