@@ -64,7 +64,7 @@ esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
 números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 `Segmentos`, `Esqueleto`…).
 
-**Excepción concreta de movimiento para «Tu próxima jugada»:** el resplandor granulado al pie de su galería y sus detalles puede moverse continuamente con `transform` y `opacity`. Es decorativo, no bloquea toques y queda estático con movimiento reducido. Las reglas generales siguen vigentes: nada de transiciones de página ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
+**Excepción concreta de movimiento para «Tu próxima jugada»:** el resplandor granulado fijo al pie de su Hoja, visible desde que se abre la galería o un detalle, puede moverse continuamente con `transform` y `opacity`. Es decorativo, queda detrás del contenido, no bloquea toques y queda estático con movimiento reducido. Las reglas generales siguen vigentes: nada de transiciones de página ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
 
 ## Pastillas de filtro
 

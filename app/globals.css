@@ -643,11 +643,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (prefers-reduced-motion: reduce) { .dona-latido { animation: none; } }
 /* Tu próxima jugada: cuatro cartas y resplandor ambiental, sin alterar el layout. */
 .jugada-mini { position:absolute; width:56px; height:77px; overflow:hidden; border:2px solid #fff9ee; border-radius:11px; box-shadow:0 5px 10px #174b3a35; }
-.jugada-mini-0 { left:0; top:46px; transform:rotate(-22deg); background:#e3eee6; }
-.jugada-mini-1 { left:22px; top:18px; transform:rotate(-9deg); background:#f9e1e9; }
-.jugada-mini-2 { left:48px; top:16px; transform:rotate(9deg); background:#f2e5d3; }
-.jugada-mini-3 { left:70px; top:44px; transform:rotate(22deg); background:#f8ded0; }
-.jugada-resplandor { position:absolute; z-index:0; left:-20px; right:-20px; bottom:-28px; height:180px; overflow:hidden; opacity:.7; pointer-events:none; mask-image:linear-gradient(to bottom,transparent,#000 65%); }
+.jugada-mini-0 { left:-4px; top:46px; transform:rotate(-22deg); background:#e3eee6; }
+.jugada-mini-1 { left:16px; top:18px; transform:rotate(-9deg); background:#f9e1e9; }
+.jugada-mini-2 { left:39px; top:16px; transform:rotate(9deg); background:#f2e5d3; }
+.jugada-mini-3 { left:59px; top:44px; transform:rotate(22deg); background:#f8ded0; }
+.jugada-tarjeta-degradado { background:linear-gradient(to bottom,transparent 33%,#fff9ee24 49%,#fff9eeed 69%,#fff9ee 100%); }
+.jugada-resplandor { position:relative; width:100%; height:220px; overflow:hidden; opacity:.8; pointer-events:none; mask-image:linear-gradient(to bottom,transparent,#000 58%); }
 .jugada-resplandor-color { position:absolute; inset:-30px; background:radial-gradient(ellipse 45% 80% at 12% 105%,#f5c9d6,transparent),radial-gradient(ellipse 45% 80% at 54% 105%,#ff834f99,transparent),radial-gradient(ellipse 48% 80% at 92% 105%,#a9d8bd,transparent); animation:jugada-aurora 9s ease-in-out infinite; }
 .jugada-resplandor-grano { position:absolute; inset:-30px; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.45; mix-blend-mode:multiply; animation:jugada-grano 2.4s steps(5,end) infinite; }
 @keyframes jugada-aurora { 0%,100% { transform:translate3d(-2%,0,0) scale(1); opacity:.8; } 50% { transform:translate3d(2%,-5%,0) scale(1.06); opacity:1; } }

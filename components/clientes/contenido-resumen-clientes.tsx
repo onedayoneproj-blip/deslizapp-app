@@ -53,17 +53,17 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
       </div>
       <button type="button" onClick={alAbrirJugadas}
         aria-label={`Tu próxima jugada. ${destacada ? `${destacada.nombre}: ${destacada.cantidad} clientes, ${destacada.porcentaje} por ciento.` : "Aún no hay jugadas disponibles."} Ver tus jugadas`}
-        className="tocable relative min-h-[148px] overflow-hidden rounded-[20px] border-[1.5px] border-[#a7c6ad] bg-[#eef4e9] px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">
-        <span aria-hidden="true" className="absolute inset-y-0 right-0 w-[126px]">
-          {(["volver-a-saludar", "segundo-aaah", "gracias-por-volver", "primer-hola"] as const).map((id, i) => <span key={id} className={`jugada-mini jugada-mini-${i}`}>
-            <Image src={`/ilustraciones/proxima-jugada/${id}.webp`} alt="" fill sizes="70px" className="object-contain" />
-          </span>)}
-        </span>
-        <span className="relative z-10 block max-w-[68%]">
+        className="tocable grid min-h-[148px] grid-cols-[minmax(0,1fr)_112px] items-start gap-2 overflow-hidden rounded-[20px] border-[1.5px] border-[#a7c6ad] bg-[#eef4e9] px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">
+        <span data-jugada-texto className="min-w-0">
           <span className="text-[10px] font-black uppercase tracking-wide text-[#426c4a]">Tu próxima jugada</span>
           <span className="mt-1 block font-display text-[21px] leading-[1.05] text-bosque">{destacada ? `${destacada.porcentaje} % ${destacada.id === "volver" ? "lleva tiempo sin comprar." : destacada.id === "segundo" ? "compró una sola vez." : destacada.id === "gracias" ? "volvió por más." : "espera su primer hola."}` : "La próxima conversación empieza aquí."}</span>
           <span className="mt-1.5 block text-[11.5px] leading-[1.3] text-[#3e6350]">{destacada ? `${destacada.cantidad} de tus ${c.todos} clientes. ${destacada.descripcion}` : "Cuando haya clientes disponibles, verás ideas para escribirles."}</span>
           <span className="mt-2 inline-flex min-h-11 items-center rounded-full bg-bosque px-4 text-[12px] font-extrabold text-white">Ver tus jugadas</span>
+        </span>
+        <span data-jugada-baraja aria-hidden="true" className="relative block h-[130px] w-[112px]">
+          {(["volver-a-saludar", "segundo-aaah", "gracias-por-volver", "primer-hola"] as const).map((id, i) => <span key={id} className={`jugada-mini jugada-mini-${i}`}>
+            <Image src={`/ilustraciones/proxima-jugada/${id}.webp`} alt="" fill sizes="70px" className="object-contain" />
+          </span>)}
         </span>
       </button>
     </div>

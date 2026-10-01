@@ -25,6 +25,7 @@ export const NOVEDADES: Novedad[] = [
       "En Tus clientes, descubre a quién podrías volver a saludar o conocer mejor.",
       "Cada jugada muestra su dato y un mensaje listo para editar en WhatsApp.",
       "Tú eliges a quién escribirle. La app nunca envía el mensaje sola.",
+      "Las cartas se leen mejor y el brillo acompaña cada detalle desde que lo abres.",
     ],
   },
   {

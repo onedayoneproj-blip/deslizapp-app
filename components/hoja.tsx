@@ -126,6 +126,8 @@ type Props = {
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
   fijoArriba?: ReactNode;
+  /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
+  decoracionAbajo?: ReactNode;
   /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
   avisarAlSalir?: boolean;
   /** Textos del aviso al salir. */
@@ -162,6 +164,7 @@ function HojaMontada({
   titulo,
   altura = "auto",
   fijoArriba,
+  decoracionAbajo,
   avisarAlSalir = false,
   avisoTitulo = "¿Salir sin guardar?",
   avisoTexto = "Lo que escribiste se va a perder.",
@@ -685,6 +688,7 @@ function HojaMontada({
           transform: "translate3d(0, 100%, 0)",
         }}
       >
+        {decoracionAbajo && <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 overflow-hidden">{decoracionAbajo}</div>}
         {/* El scroll ocupa toda la hoja (redondeado arriba para recortar lo que pasa por las esquinas) */}
         <div
           ref={contenido}

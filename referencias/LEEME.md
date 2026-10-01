@@ -10,6 +10,7 @@ se construye en Next.js según `docs/`.
 | `panel-de-tienda-prototipo.html` | Reel animado del panel de tienda con las pantallas validadas (Resumen, Catálogo, retoque, Pedidos, Detalle, Clientes, Promos) | Ver cómo debe verse y sentirse cada pantalla: espaciado, tarjetas, navegación inferior, colores, tono de los textos |
 | `catalogo-esencias-michel.html` | Catálogo público de ejemplo con la capa de firma Deslizapp | Referencia del catálogo (vive en otro proyecto; no se construye aquí) |
 | `catalogo-y-app-conectados.html` | Video que muestra cómo se conectan el catálogo y el panel | Entender el flujo completo: aaah, pedido, despacho, agotado, promo |
+| `proxima-jugada/mockup-aprobado.png` | Mockup aprobado de «Tu próxima jugada» | Comparar la tarjeta en «Tus clientes», galería, detalles, ilustraciones y resplandor con las [capturas reales](../docs/capturas/proxima-jugada/LEEME.md). Sus cifras y nombres son solo ejemplos |
 
 
 ## Cómo resolver diferencias

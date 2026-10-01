@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Hoja, useIrArribaHoja } from "../hoja";
 import { Avatar } from "./comunes";
 import { BotonVerMas, useVerMas } from "../ver-mas";
 import { ContenidoResumenClientes } from "./contenido-resumen-clientes";
+import { BotonVolver } from "../selector-busqueda";
 import { enlaceWhatsApp } from "@/lib/formato";
 import { calcularJugadas, diasDesde, mensajeJugada, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
 import type { ClienteAnalizado, FiltroClientes, ResumenClientes } from "@/lib/clientes-resumen";
@@ -20,6 +21,7 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   tienda: string; vendedora: string; urlCatalogo: string | null; ahora: number;
   alCerrar: () => void; alFiltrar: (filtro: FiltroClientes) => void;
 }) {
+  const router = useRouter();
   const [vista, setVista] = useState<Vista>("resumen");
   const profundidad = useRef(0);
   const { jugadas, destacada, total } = calcularJugadas(clientes, pedidos, tiendaId, ahora);
@@ -47,54 +49,60 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     if (profundidad.current > 0) window.history.go(-profundidad.current);
     alCerrar();
   };
+  const irADatos = (clienteId: string) => {
+    const destino = `/clientes/${encodeURIComponent(clienteId)}`;
+    if (profundidad.current > 0) {
+      window.addEventListener("popstate", () => router.push(destino, { scroll: false }), { once: true });
+      window.history.go(-profundidad.current);
+    } else router.push(destino, { scroll: false });
+    alCerrar();
+  };
   const elegir = (f: FiltroClientes) => { cerrar(); alFiltrar(f); };
   const titulo = vista === "resumen" ? "Tus clientes" : vista === "galeria" ? "Tu próxima jugada" : seleccionada?.nombre ?? "Tu próxima jugada";
 
   return <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande"
-    fijoArriba={vista !== "resumen" ? <button type="button" onClick={volver}
-      className="tocable flex min-h-11 items-center gap-2 rounded-full text-sm font-extrabold text-bosque focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque"
-      aria-label={`Volver a ${vista === "galeria" ? "Tus clientes" : "Tu próxima jugada"}`}>
-      <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full border border-borde bg-white text-xl">‹</span>
-      {vista === "galeria" ? "Tus clientes" : "Todas las jugadas"}
-    </button> : undefined}>
+    decoracionAbajo={vista !== "resumen" ? <Resplandor /> : undefined}
+    fijoArriba={vista !== "resumen" ? <div className="flex items-center gap-2 text-sm font-extrabold text-bosque">
+      <BotonVolver onClick={volver} etiqueta={`Volver a ${vista === "galeria" ? "Tus clientes" : "Tu próxima jugada"}`} />
+      <span aria-hidden="true">{vista === "galeria" ? "Tus clientes" : "Todas las jugadas"}</span>
+    </div> : undefined}>
     <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total}
       seleccionada={seleccionada} ahora={ahora} tienda={tienda} vendedora={vendedora} urlCatalogo={urlCatalogo}
-      tiendaId={tiendaId} navegar={navegar} elegir={elegir} cerrar={cerrar} />
+      tiendaId={tiendaId} navegar={navegar} elegir={elegir} irADatos={irADatos} />
   </Hoja>;
 }
 
-function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tienda, vendedora, urlCatalogo, tiendaId, navegar, elegir, cerrar }: {
+function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tienda, vendedora, urlCatalogo, tiendaId, navegar, elegir, irADatos }: {
   vista: Vista; resumen: ResumenClientes; jugadas: Jugada[]; destacada: Jugada | null; total: number;
   seleccionada?: Jugada; ahora: number; tienda: string; vendedora: string; urlCatalogo: string | null;
-  tiendaId: string; navegar: (vista: Vista) => void; elegir: (f: FiltroClientes) => void; cerrar: () => void;
+  tiendaId: string; navegar: (vista: Vista) => void; elegir: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void;
 }) {
   const irArriba = useIrArribaHoja();
   useEffect(() => { irArriba(); }, [vista, irArriba]);
   const paginadas = useVerMas(seleccionada?.clientes ?? [], `${tiendaId}:${vista}`, 5);
   if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alFiltrar={elegir} alAbrirJugadas={() => navegar("galeria")} destacada={destacada} />;
-  return <div className="relative isolate min-h-full pb-6">
-    <Resplandor />
-    <div className="relative z-10">
+  return <div className="relative min-h-full pb-6">
     {vista === "galeria" ? <>
       <p className="mb-4 text-[14px] leading-[1.45] text-suave">Cuatro maneras de acercarte a tu gente. Los números salen de tus pedidos.</p>
       {jugadas.length ? <div className="grid grid-cols-2 gap-2.5">{jugadas.map((j) => <button key={j.id} type="button" onClick={() => navegar(j.id)}
         aria-label={`${j.nombre}: ${j.cantidad} ${j.cantidad === 1 ? "cliente" : "clientes"}. Ver jugada`}
         className="tocable relative flex min-h-[250px] flex-col overflow-hidden rounded-[22px] p-3.5 text-left text-bosque focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque" style={{ backgroundColor: j.color }}>
         <Image src={j.imagen} alt="" width={180} height={180} sizes="(max-width: 430px) 42vw, 180px" className="pointer-events-none absolute inset-x-0 top-3 mx-auto h-[140px] w-[140px] object-contain" />
+        <span aria-hidden="true" className="jugada-tarjeta-degradado absolute inset-0" />
         <span className="relative z-10 ml-auto rounded-full bg-papel/90 px-2.5 py-1 text-[11px] font-extrabold">{j.cantidad} {j.cantidad === 1 ? "cliente" : "clientes"}</span>
-        <span className="relative z-10 mt-auto block"><b className="block font-display text-[22px] leading-[1.05]">{j.nombre}</b><span className="mt-1.5 block text-[11.5px] leading-[1.3]">{j.descripcion}</span></span>
+        <span className="relative z-10 mt-auto block"><b className="block font-display text-[22px] leading-[1.05]">{j.nombre}</b><span className="mt-1.5 block pr-5 text-[11.5px] leading-[1.3]">{j.descripcion}</span></span>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="absolute bottom-3 right-2.5 z-10 text-bosque"><path d="M9 6l6 6-6 6" /></svg>
       </button>)}</div> : <div className="rounded-[22px] bg-white p-6 text-center"><b className="font-display text-xl">Por ahora, todo tranquilo.</b><p className="mt-2 text-sm text-suave">Cuando haya clientes sin pedidos en curso, aquí encontrarás ideas para conversar.</p></div>}
       <p className="mt-5 text-center text-[12px] text-suave">Toca una jugada para ver a quién podrías escribir.</p>
       <p className="mt-3 rounded-2xl bg-white/85 p-3.5 text-[12px] leading-[1.4] text-bosque">Una persona puede encajar en más de una jugada. Tú eliges con quién conversar.</p>
     </> : seleccionada ? <Detalle jugada={seleccionada} total={total} ahora={ahora} tienda={tienda}
-      vendedora={vendedora} urlCatalogo={urlCatalogo} cerrar={cerrar} paginadas={paginadas} /> : null}
-    </div>
+      vendedora={vendedora} urlCatalogo={urlCatalogo} irADatos={irADatos} paginadas={paginadas} /> : null}
   </div>;
 }
 
-function Detalle({ jugada: j, total, ahora, tienda, vendedora, urlCatalogo, cerrar, paginadas }: {
+function Detalle({ jugada: j, total, ahora, tienda, vendedora, urlCatalogo, irADatos, paginadas }: {
   jugada: Jugada; total: number; ahora: number; tienda: string; vendedora: string; urlCatalogo: string | null;
-  cerrar: () => void; paginadas: ReturnType<typeof useVerMas<ClienteAnalizado>>;
+  irADatos: (clienteId: string) => void; paginadas: ReturnType<typeof useVerMas<ClienteAnalizado>>;
 }) {
   return <>
     <div className="relative min-h-[164px] overflow-hidden rounded-[22px] p-4" style={{ backgroundColor: j.color }}>
@@ -115,8 +123,8 @@ function Detalle({ jugada: j, total, ahora, tienda, vendedora, urlCatalogo, cerr
         {c.telefono ? <a href={enlaceWhatsApp(c.telefono, mensajeJugada(j.id, c.nombre, vendedora, tienda, urlCatalogo))} target="_blank" rel="noreferrer"
           aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}
           className="tocable inline-flex min-h-11 items-center rounded-full bg-bosque px-3 text-[12px] font-extrabold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">Escribir</a> :
-          <Link href={`/clientes/${c.id}`} scroll={false} onClick={cerrar} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}
-            className="tocable inline-flex min-h-11 items-center rounded-full border border-bosque px-2.5 text-[11px] font-extrabold text-bosque focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">Sin WhatsApp · Ver datos</Link>}
+          <button type="button" onClick={() => irADatos(c.id)} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}
+            className="tocable inline-flex min-h-11 items-center rounded-full border border-bosque px-2.5 text-[11px] font-extrabold text-bosque focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">Sin WhatsApp · Ver datos</button>}
       </li>;
     })}</ul>
     <BotonVerMas quedan={paginadas.quedan} mostrados={paginadas.mostrados} total={j.cantidad} alTocar={paginadas.verMas} texto="Ver más clientes" />
