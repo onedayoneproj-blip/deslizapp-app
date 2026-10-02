@@ -543,6 +543,7 @@ envía solo**: siempre lo abre el dueño desde su teléfono.
   «Repite» aparece con 2 o más ventas despachadas y se actualiza al despachar.
 - El buscador filtra por nombre (sin importar tildes) o por WhatsApp (por dígitos).
 - Cliente sin pedidos: "Todavía no pide. Todavía."
+- **Editar cliente**: al final de la hoja aparece **«Borrar contacto»**. Si tiene pedidos, abre una hoja con dos opciones: conservar los pedidos y abonos en el historial sin nombre asociado, o borrarlos también con el detalle de productos; borrar el historial pide una segunda confirmación. Sin pedidos, confirma el borrado del contacto. En demo y Supabase se conserva el mismo comportamiento; la RPC `borrar_cliente` aplica el cambio de forma atómica y aislada por tienda. Borrar el historial no cambia el stock: se elimina el registro, no se revierte una venta real.
 - Búsqueda sin resultados: "Nadie con ese nombre. Todavía."
 
 **Acciones:**
@@ -788,15 +789,19 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   de 44 px ("Mes anterior", "Mes siguiente"…). › desactivado en el periodo
   actual; ‹ desactivado en el primer mes/año con datos de la tienda. Fuera del
   periodo actual: "Volver a este mes" / "Volver a este año".
-- **Tarjeta de ventas** (Verde Bosque): "VENTAS DE SEPTIEMBRE" (o "DE HOY",
+- **Tarjeta de ventas y pedidos por despachar** (Verde Bosque): "VENTAS + POR DESPACHAR DE SEPTIEMBRE" (o "DE HOY",
   "DE LOS ÚLTIMOS 7 DÍAS", "DE 2026"; con barra elegida, "DEL 12 DE SEPT"),
   monto grande, variación con signo ("+18%": menta si sube, rosa si baja, sin
   rojo) y debajo, en pequeño, contra qué se compara ("vs. 1–5 sept", "vs.
   agosto", "vs. ene–sept 2025"); sin datos para comparar: "Sin comparación
-  todavía". Reglas en "Resumen" de `03-modelo-de-datos.md`.
-  **Una venta es un pedido despachado** (fecha = `despachado_en`, o `creado_en` si
-  viniera nulo; las ventas pasadas ya traen la fecha elegida). Un pedido nuevo o por
-  despachar todavía no es venta.
+  todavía". El monto y la comparación incluyen pedidos despachados más pedidos
+  **por despachar** del periodo; debajo se aclara cuánto corresponde a estos
+  últimos. Los pedidos nuevos y cancelados no se suman. Reglas en "Resumen" de
+  `03-modelo-de-datos.md`.
+  **Una venta confirmada sigue siendo un pedido despachado** (fecha = `despachado_en`, o `creado_en` si
+  viniera nulo; las ventas pasadas ya traen la fecha elegida). El gráfico agrega
+  por separado los pedidos por despachar según `creado_en`; no los presenta como
+  ventas confirmadas.
   Bajo la cifra, si hay pendientes en TODA la tienda (sin importar el periodo), una línea
   pequeña "Por despachar: 3 pedidos · RD$10,321" (singular con 1; oculta con 0; entra con
   `mov-aparece`, que respeta reducir movimiento); al tocarla lleva a Pedidos (que abre en
@@ -805,11 +810,13 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   librería ni animación de entrada; al cambiar de periodo cambia de una vez):
   - Hoy: 12 franjas de 2 h · 7 días: una por día · Mes: una por día (28–31,
     etiquetas cada 5 días) · Año: 12 meses (Ene–Dic).
-  - La barra de "ahora" (hoy, este mes) en Mandarina; las futuras en contorno
+  - La etiqueta de "ahora" (hoy, este mes) en Mandarina; las futuras en contorno
     discontinuo y las anteriores al inicio de la tienda en contorno punteado
     (distintas de un cero, que es una barra mínima).
-  - Eje abreviado arriba ("RD$12k", "RD$1.2M"); texto alternativo con el total
-    y la mejor barra.
+  - El tramo rosa representa pedidos despachados y el mandarina, pedidos por
+    despachar; el alto y el eje suman ambos importes. Eje abreviado arriba
+    ("RD$12k", "RD$1.2M"); texto alternativo con el total, ambas partes y la
+    mejor barra.
 - **Tocar una barra** la ELIGE: queda en su color y las demás se atenúan
   (opacidad 0.35, transición de 150 ms solo de opacidad). Todo lo que depende
   del periodo se recalcula para esa barra (ventas, variación, Pedidos, Ticket,
@@ -821,8 +828,8 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
     pastilla o ‹ ›. Vive en memoria.
   - Una barra futura o anterior al inicio no se elige: la píldora dice un
     momento "Aún no hay datos de este mes/día/franja".
-  - Cada barra es un botón (aria-pressed, "12 de septiembre, RD$4,350, 3
-    ventas") que ocupa toda la altura y el ancho de su columna.
+  - Cada barra es un botón (aria-pressed) que anuncia el total y separa cuánto
+    está despachado y cuánto sigue por despachar.
   - No hay globo flotante con el monto: lo dice la tarjeta.
 - 4 datos del periodo: **Pedidos recibidos** (no cancelados, por fecha de creación),
   **Ticket promedio** (total despachado ÷ cantidad de despachados; "—" sin ventas),

@@ -65,7 +65,7 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
       </div>
     );
   } else if (pedidos && cuenta) {
-    cuerpo = <Detalle cliente={cliente} pedidos={pedidos.filter((x) => x.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} />;
+    cuerpo = <Detalle cliente={cliente} pedidos={pedidos.filter((x) => x.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} alEliminar={cerrar} />;
   }
 
   // "grande": tiene un campo de texto (la nota) y la hoja no cambia de tamaño con el teclado
@@ -76,7 +76,7 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
   );
 }
 
-function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string }) {
+function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string; alEliminar: () => void }) {
   const { actualizarNotaCliente } = useData();
   const { tienda, tiendaId } = useTiendaActiva();
   const toast = useToast();
@@ -191,7 +191,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora }: { cliente: ClienteConR
         )}
       </div>
 
-      <HojaClienteEditar cliente={cliente} abierta={editando} alCerrar={() => setEditando(false)} />
+      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => setEditando(false)} alEliminar={alEliminar} />
     </div>
   );
 }

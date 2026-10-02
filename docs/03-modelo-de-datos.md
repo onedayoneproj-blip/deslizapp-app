@@ -200,11 +200,13 @@ se navega con ‹ › por meses y años anteriores), en hora de Santo Domingo:
 | Año pasado | el año completo | el año anterior completo ("vs. 2024") | 12, una por mes |
 
 **Qué cuenta como qué** (`lib/resumen.ts`: `ventasDe`, `pendientesDe`, `validos`):
-- **Venta** = pedido `despachado`. Su fecha es `despachado_en` (si viniera nulo, `creado_en`); una venta pasada ya trae
-  `despachado_en` igual a la fecha elegida. Las ventas (suma, barras, gráfica), el ticket promedio (total despachado ÷
-  cantidad de despachados), "Lo que más se vende" y la comparación con el periodo anterior usan solo ventas.
+- **Venta confirmada** = pedido `despachado`. Su fecha es `despachado_en` (si viniera nulo, `creado_en`); una venta pasada ya trae
+  `despachado_en` igual a la fecha elegida. El ticket promedio (total despachado ÷ cantidad de despachados), "Lo que más se vende"
+  y los datos de clientes usan solo ventas confirmadas.
 - **Pedido recibido** = cualquier pedido no cancelado, contado por `creado_en` (tarjeta "Pedidos recibidos" y "De aaah a pedido").
 - **Pedido pendiente** = `nuevo` o `por_despachar`: todavía no es venta. Los cancelados no cuentan en nada.
+- **Importe principal del gráfico del Resumen** = pedidos despachados por fecha de despacho + pedidos `por_despachar` por fecha de creación. Los `nuevo` y cancelados no se suman. La barra distingue ambos estados y la comparación usa la misma regla. Ticket promedio, ventas por cliente y productos más vendidos siguen contando solo pedidos despachados.
+- **Borrar un contacto** (`borrar_cliente`): la dueña elige conservar los pedidos (quedan con `cliente_id = null`) o borrarlos junto con sus renglones y abonos. La operación se ejecuta en una transacción y solo sobre la tienda de la sesión. Borrar el historial no modifica stock, porque no deshace una venta ocurrida.
 
 **Barra elegida** (tocar una barra filtra toda la pantalla a ella):
 
