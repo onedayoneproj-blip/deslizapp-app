@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useData } from "@/lib/data/provider";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { ErrorClaro, ErrorDeRed, InventarioCambio, mensajeDeError } from "@/lib/data/errores";
@@ -9,6 +10,7 @@ import type { CambiosProducto, MotivoAjusteInventario, Producto } from "@/lib/ty
 import { Hoja } from "../hoja";
 import { Chip, GrupoOpciones } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
+import { BotonVerMas } from "../ver-mas";
 
 /** Un solo borrador para ambos recorridos: tocar cantidades nunca llama a la fuente. */
 export function useInventarioPendiente(producto: Producto | null, alConfirmado?: () => void) {
@@ -105,24 +107,61 @@ export function useInventarioPendiente(producto: Producto | null, alConfirmado?:
 }
 
 type Borrador = ReturnType<typeof useInventarioPendiente>;
-export function ControlInventario({ inventario, nombre }: { inventario: Borrador; nombre: string }) {
+/** Navegación de una sola hoja; conserva el DOM de la ficha, su scroll y el foco del botón. */
+export function useHistorialInventario() {
+  const [abierto, setAbierto] = useState(false);
+  const [visitado, setVisitado] = useState(false);
+  const abiertoRef = useRef(false);
+  const scroll = useRef<HTMLElement | null>(null);
+  const posicion = useRef(0);
+  const origen = useRef<HTMLButtonElement | null>(null);
+  const abrir = (boton: HTMLButtonElement) => {
+    origen.current = boton;
+    scroll.current = boton.closest<HTMLElement>("[data-hoja-contenido]");
+    posicion.current = scroll.current?.scrollTop ?? 0;
+    abiertoRef.current = true;
+    flushSync(() => { setVisitado(true); setAbierto(true); });
+    if (scroll.current) scroll.current.scrollTop = 0;
+    // Foco de botón dentro del gesto: no se enfoca un campo ni se abre teclado.
+    scroll.current?.closest('[role="dialog"]')?.querySelector<HTMLElement>('[data-volver-historial] button')?.focus({ preventScroll: true });
+  };
+  const volver = () => {
+    if (!abiertoRef.current) return false;
+    abiertoRef.current = false;
+    flushSync(() => setAbierto(false));
+    if (scroll.current) scroll.current.scrollTop = posicion.current;
+    origen.current?.focus({ preventScroll: true });
+    return true;
+  };
+  return { abierto, visitado, abrir, volver };
+}
+
+export function ControlInventario({ inventario, nombre, alGuardar, alVerHistorial, guardarBloqueado = false }: {
+  inventario: Borrador; nombre: string; alGuardar: () => void;
+  alVerHistorial: (boton: HTMLButtonElement) => void; guardarBloqueado?: boolean;
+}) {
   const i = inventario;
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
   return <section aria-label="Inventario" className="rounded-[18px] border-[1.5px] border-borde bg-white p-4 text-bosque">
     <p className="text-[13px] font-bold text-suave">Inventario</p>
     {i.base === null ? <p className="mt-1 font-extrabold">Sin control de stock</p> : <>
-      <p className="mt-1 text-sm text-suave">Guardado: {i.base} {i.base === 1 ? "unidad" : "unidades"}</p>
+      <p className="mt-1 text-sm text-suave">Stock actual: {i.base}</p>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <p aria-live="polite" className="min-w-0 break-all font-display text-[27px] leading-tight tabular-nums">{i.propuesta} <span className="text-base">{i.pendiente ? "propuestas" : "disponibles"}</span></p>
+        <p aria-live="polite" className="min-w-0 break-all font-display text-[27px] leading-tight tabular-nums">{i.propuesta} <span className="text-base">{i.propuesta === 1 ? "unidad" : "unidades"}</span></p>
         <div className="flex shrink-0 gap-2">
           <button type="button" disabled={i.propuesta === 0 || i.guardando || i.incierto} onClick={() => i.cambiar(-1)} aria-label={`Disminuir stock de ${nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-arena disabled:opacity-45"><IconoMenos tamano={20}/></button>
           <button type="button" disabled={i.guardando || i.incierto || i.propuesta === 2147483647} onClick={() => i.cambiar(1)} aria-label={`Aumentar stock de ${nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel disabled:opacity-45"><IconoMas tamano={20}/></button>
         </div>
       </div>
-      {i.pendiente && <p className="mt-2 text-sm font-bold">{delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}. Se registra al guardar.</p>}
-      {i.pendiente && <button type="button" disabled={i.guardando || i.incierto} onClick={i.recuperar} className="tocable mt-1 min-h-11 text-sm font-extrabold underline">Descartar ajuste</button>}
-      <p className="mt-2 text-[12.5px] leading-snug text-suave">Los ajustes manuales no son ventas. Para vender, crea un pedido.</p>
+      {i.pendiente && <>
+        <p className="mt-2 text-sm font-bold">{delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}</p>
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+          <button type="button" disabled={i.guardando || i.incierto || guardarBloqueado} onClick={alGuardar} className="tocable min-h-12 rounded-full bg-bosque px-3 py-2 text-sm font-extrabold text-papel disabled:opacity-55">{i.guardando ? "Guardando…" : "Guardar cambios"}</button>
+          <button type="button" disabled={i.guardando || i.incierto} onClick={i.recuperar} className="tocable min-h-12 rounded-full border-[1.5px] border-bosque bg-white px-3 py-2 text-sm font-extrabold disabled:opacity-55">Descartar</button>
+        </div>
+      </>}
     </>}
+    <BotonVerMas texto="Ver historial" alTocar={alVerHistorial} disabled={i.guardando}/>
   </section>;
 }
 
@@ -130,7 +169,7 @@ export function ConfirmacionInventario({ inventario }: { inventario: Borrador })
   const i = inventario;
   return <Hoja abierta={i.confirmar} alCerrar={i.cerrarConfirmacion} alSalir={i.alSalirConfirmacion} titulo="Ajustar inventario" altura="grande">
     <div className="flex flex-col gap-4 text-bosque">
-      <div><h2 className="font-display text-[23px]">¿Por qué baja el stock?</h2><p className="mt-1 text-sm text-suave">Retirarás {(i.base ?? 0) - (i.propuesta ?? 0)} unidades. Se guardará como ajuste, no como venta.</p></div>
+      <div><h2 className="font-display text-[23px]">¿Por qué baja el stock?</h2><p className="mt-1 text-sm text-suave">Retirarás {(i.base ?? 0) - (i.propuesta ?? 0)} {(i.base ?? 0) - (i.propuesta ?? 0) === 1 ? "unidad" : "unidades"}. Se guardará como ajuste, no como venta.</p></div>
       <GrupoOpciones etiqueta="Motivo del ajuste">{(["dano","perdida","correccion_inventario","otro"] as const).map(m => <Chip key={m} elegido={i.motivo === m} tono="opcion" onClick={() => i.setMotivo(m)}>{MOTIVOS_INVENTARIO[m]}</Chip>)}</GrupoOpciones>
       {i.motivo === "otro" && <label className="flex flex-col gap-1.5 text-sm font-bold">Cuéntanos el motivo<textarea value={i.nota} onChange={e => i.setNota(e.target.value)} maxLength={200} rows={3} className="w-full rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-base font-normal outline-none focus:border-bosque"/></label>}
       {i.error && <p role="alert" className="rounded-2xl bg-rosa p-4 text-sm">{i.error}</p>}

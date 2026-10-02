@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.31.6",
+    fecha: "2026-10-02",
+    titulo: "El inventario, más a mano.",
+    cambios: [
+      "Guarda o descarta la cantidad desde el mismo bloque de inventario.",
+      "Abre su historial y vuelve sin perder lo que estabas editando.",
+    ],
+  },
+  {
     version: "0.31.5",
     fecha: "2026-10-02",
     titulo: "Cuenta primero. Guarda después.",

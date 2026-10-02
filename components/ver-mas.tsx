@@ -24,21 +24,22 @@ export function useVerMas<T>(lista: T[], clave: string, paso = PASO_LISTA) {
 }
 
 /** Botón al final de la lista: "Ver más antiguos". Desaparece cuando no queda nada por mostrar. Sin animación por elemento. */
-export function BotonVerMas({ quedan, mostrados, total, alTocar, texto = "Ver más antiguos" }: { quedan: number; mostrados: number; total: number; alTocar: () => void; texto?: string }) {
-  if (quedan <= 0) return null;
+export function BotonVerMas({ quedan, mostrados, total, alTocar, texto = "Ver más antiguos", disabled = false }: { quedan?: number; mostrados?: number; total?: number; alTocar: (boton: HTMLButtonElement) => void; texto?: string; disabled?: boolean }) {
+  if (quedan !== undefined && quedan <= 0) return null;
   return (
     <div className="flex flex-col items-center gap-1.5 pt-1 pb-2">
       <button
         type="button"
         data-ver-mas
-        onClick={alTocar}
-        className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-bosque bg-white px-6 text-[15px] font-extrabold text-bosque"
+        onClick={e => alTocar(e.currentTarget)}
+        disabled={disabled}
+        className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-bosque bg-white px-6 text-[15px] font-extrabold text-bosque disabled:opacity-55"
       >
         {texto}
       </button>
-      <p className="text-[12.5px] font-semibold text-suave">
+      {mostrados !== undefined && total !== undefined && <p className="text-[12.5px] font-semibold text-suave">
         Mostrando {mostrados} de {total}
-      </p>
+      </p>}
     </div>
   );
 }

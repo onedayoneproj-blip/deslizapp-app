@@ -8,6 +8,7 @@ import { CreditosInsuficientes, mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Producto } from "@/lib/types";
+import { BotonVolver } from "../selector-busqueda";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
@@ -18,7 +19,7 @@ import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
 import { precioConPromo } from "@/lib/promos";
 
-import { ControlInventario, ConfirmacionInventario, HistorialInventario, useInventarioPendiente } from "./inventario-producto";
+import { ControlInventario, ConfirmacionInventario, HistorialInventario, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
 /**
  * Hoja de producto sobre el Catálogo. Sin `productoId` crea; con `productoId` edita.
@@ -26,6 +27,7 @@ import { ControlInventario, ConfirmacionInventario, HistorialInventario, useInve
  */
 export function HojaProducto({ productoId, desdeVistaPrevia = false }: { productoId?: string; desdeVistaPrevia?: boolean }) {
   const router = useRouter();
+  const historial = useHistorialInventario();
   const { getProducto, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
@@ -39,7 +41,8 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   const { data: productos, error: errorProductos, reintentar: reintentarProductos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
 
   const editando = Boolean(productoId);
-  const titulo = editando ? "Editar producto" : "Nuevo producto";
+  const tituloFicha = editando ? "Editar producto" : "Nuevo producto";
+  const titulo = historial.abierto ? "Historial de ajustes" : tituloFicha;
 
   // Editar: esperar a tener el producto (y avisar si no es de esta tienda).
   if (editando && producto === undefined && cargando) {
@@ -67,8 +70,12 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   if (!productos) return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoCargando titulo="productos" /></Hoja>;
 
   return (
-    <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo} altura="grande">
-      <FormularioProducto key={producto?.id ?? "nuevo"} producto={producto ?? null} productos={productos} alTerminar={cerrar} />
+    <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} altura="grande"
+      fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta={`Volver a ${tituloFicha}`} /><span aria-hidden="true">{tituloFicha}</span></div> : undefined}>
+      <div className={historial.abierto ? "hidden" : "contents"}>
+        <FormularioProducto key={producto?.id ?? "nuevo"} producto={producto ?? null} productos={productos} alTerminar={cerrar} alVerHistorial={historial.abrir} />
+      </div>
+      {productoId && historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
     </Hoja>
   );
 }
@@ -76,6 +83,7 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
 /** Lectura compacta; el inventario mantiene un borrador independiente. */
 export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const router = useRouter();
+  const historial = useHistorialInventario();
   const { getProducto, getPromos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
@@ -85,12 +93,16 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const navegar = (ruta: string) => { destino.current = ruta; setAbierta(false); };
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Vista previa del producto" altura="auto">
-    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} alNavegar={navegar}/>}
+  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? "Historial de ajustes" : "Vista previa del producto"} altura="auto"
+    fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">Producto</span></div> : undefined}>
+    <div className={historial.abierto ? "hidden" : "contents"}>
+    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} alNavegar={navegar} alVerHistorial={historial.abrir}/>}
+    </div>
+    {historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
   </Hoja>;
 }
 
-function ContenidoVistaProducto({ producto, precio, alNavegar }: { producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void }) {
+function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }: { producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const toast = useToast();
   const inventario = useInventarioPendiente(producto);
   useAvisarAlSalir(inventario.pendiente || inventario.incierto);
@@ -109,11 +121,10 @@ function ContenidoVistaProducto({ producto, precio, alNavegar }: { producto: Pro
         {producto.categoria && <p className="mt-1 break-words text-sm text-suave">{producto.categoria}</p>}
       </div>
     </div>
-    <ControlInventario inventario={inventario} nombre={producto.nombre}/>
+    <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+      alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
     {inventario.error && <p role="alert" className="rounded-2xl bg-rosa p-4 text-sm">{inventario.error}</p>}
     {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
-    {inventario.pendiente && <button type="button" disabled={inventario.guardando || inventario.incierto} onClick={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })} className="tocable h-14 rounded-full bg-bosque font-extrabold text-papel disabled:opacity-55">{inventario.guardando ? "Guardando…" : "Guardar cambios"}</button>}
-    <HistorialInventario productoId={producto.id}/>
     <button type="button" disabled={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)} className="tocable h-14 rounded-full bg-bosque font-extrabold text-papel">Crear pedido</button>
     <button type="button" disabled={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)} className="tocable h-12 rounded-full border-[1.5px] border-bosque bg-white font-extrabold">Editar</button>
     <ConfirmacionInventario inventario={inventario}/>
@@ -124,10 +135,12 @@ function FormularioProducto({
   producto,
   productos,
   alTerminar,
+  alVerHistorial,
 }: {
   producto: Producto | null;
   productos: Producto[];
   alTerminar: () => void;
+  alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
   const { crearProducto, usarCreditosRetoque } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
@@ -427,7 +440,8 @@ function FormularioProducto({
       {/* Stock */}
       <div className={producto ? "" : "rounded-[18px] border-[1.5px] border-borde bg-white p-4"}>
         {producto ? (
-          <ControlInventario inventario={inventario} nombre={producto.nombre}/>
+          <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+            alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || procesandoFoto || procesandoRetoque}/>
         ) : (
           <>
             <div className="flex items-center justify-between gap-3">
@@ -492,7 +506,7 @@ function FormularioProducto({
         <Interruptor encendido={activo} alCambiar={setActivo} etiqueta="Visible en el catálogo" />
       </div>
 
-      <button
+      {(!producto || !inventario.pendiente) && <button
         type="button"
         onClick={() => producto ? inventario.pedirGuardar(guardar) : void guardar()}
         disabled={guardando || inventario.guardando || inventario.incierto || procesandoFoto || procesandoRetoque}
@@ -503,7 +517,7 @@ function FormularioProducto({
           : producto
             ? "Guardar cambios"
             : "Publicar"}
-      </button>
+      </button>}
       {inventario.error && <p role="alert" className="rounded-2xl bg-rosa p-4 text-sm">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
       <ConfirmacionInventario inventario={inventario}/>

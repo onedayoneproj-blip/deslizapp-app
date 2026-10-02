@@ -134,6 +134,8 @@ type Props = {
   avisarAlSalir?: boolean;
   /** Hojas de ruta que consumen su entrada antes de navegar mediante alSalir. */
   protegerAtras?: boolean;
+  /** Regresa a una vista interna sin cerrar ni descartar el borrador; true consume Atrás. */
+  alVolverInterno?: () => boolean;
   /** Textos del aviso al salir. */
   avisoTitulo?: string;
   avisoTexto?: string;
@@ -172,6 +174,7 @@ function HojaMontada({
   decoracionEncima,
   avisarAlSalir = false,
   protegerAtras = false,
+  alVolverInterno,
   avisoTitulo = "¿Salir sin guardar?",
   avisoTexto = "Lo que escribiste se va a perder.",
   children,
@@ -478,6 +481,8 @@ function HojaMontada({
   }, [avisando]);
 
   const protegerAtrasInicial = useRef(protegerAtras);
+  const volverInternoRef = useRef(alVolverInterno);
+  useLayoutEffect(() => { volverInternoRef.current = alVolverInterno; }, [alVolverInterno]);
 
   // Bloquea el fondo mientras está abierta; foco dentro al abrir y de vuelta al cerrar; Escape y Tab.
   // Efecto ESTABLE (sin dependencias): si se volviera a ejecutar mientras se escribe, su limpieza
@@ -505,6 +510,10 @@ function HojaMontada({
         return;
       }
       if (!entrada || PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
+      if (volverInternoRef.current?.()) {
+        window.history.pushState(estadoDeHoja(), "");
+        return;
+      }
       entrada = false; // el navegador ya la quitó
       if (!cerrarRef.current()) {
         // Con cambios sin guardar no se cierra: vuelve a guardar su entrada
