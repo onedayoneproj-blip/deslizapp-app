@@ -201,6 +201,23 @@ export const IconoMoneda = (p: Props) => (
 );
 
 /** Check curvo en círculo relleno (queda saldado). El relleno toma el color actual con `fill`. */
+/** Flecha hacia la bandeja para descargar un archivo. */
+export const IconoDescargar = (p: Props) => (
+  <Icono {...p}>
+    <path d="M12 3v12m-5-5 5 5 5-5M5 20h14" />
+  </Icono>
+);
+
+/** Tres puntos conectados para compartir un archivo o enlace. */
+export const IconoCompartir = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="18" cy="5" r="3" />
+    <circle cx="6" cy="12" r="3" />
+    <circle cx="18" cy="19" r="3" />
+    <path d="m8.7 10.6 6.6-4.1M8.7 13.4l6.6 4.1" />
+  </Icono>
+);
+
 export const IconoCheckCirculo = ({ tamano = 18, ...p }: Props) => (
   <svg width={tamano} height={tamano} viewBox="0 0 24 24" aria-hidden="true" {...p}>
     <circle cx="12" cy="12" r="11" fill="var(--color-menta)" />

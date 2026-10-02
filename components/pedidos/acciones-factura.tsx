@@ -7,8 +7,9 @@ import { generarImagenFactura, type ImagenFactura } from "@/lib/imagen-factura";
 import type { Cliente, PedidoConItems, Producto, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
+import { IconoDescargar, IconoCompartir } from "../iconos";
 
-const ACCION = "tocable flex h-11 min-w-0 flex-1 items-center justify-center rounded-full border-[1.5px] border-borde px-2 text-[13px] font-semibold text-bosque disabled:opacity-55";
+const ACCION_CIRCULAR = "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque disabled:opacity-45";
 
 export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido: PedidoConItems; cliente: Cliente | null; tienda: Tienda; productos: Producto[] }) {
   const toast = useToast();
@@ -66,13 +67,16 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
 
   return (
     <>
-      <div className="flex gap-2">
-        <button type="button" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura} className={ACCION}>
-          Descargar factura
-        </button>
-        <button type="button" onClick={compartir} disabled={preparando || !factura} className={ACCION}>
-          Compartir
-        </button>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-extrabold text-bosque">Factura</p>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura} aria-label="Descargar factura" title="Descargar factura" className={ACCION_CIRCULAR}>
+            <IconoDescargar tamano={20} />
+          </button>
+          <button type="button" onClick={compartir} disabled={preparando || !factura} aria-label="Compartir factura" title="Compartir factura" className={ACCION_CIRCULAR}>
+            <IconoCompartir tamano={20} />
+          </button>
+        </div>
       </div>
       {preparando && <p role="status" className="text-center text-xs text-suave">Preparamos tu factura para descargarla o compartirla.</p>}
       <Hoja abierta={descargaAbierta} alCerrar={() => setDescargaAbierta(false)} titulo="Descargar factura" altura="auto">
