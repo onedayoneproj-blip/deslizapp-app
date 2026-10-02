@@ -1,5 +1,6 @@
 "use client";
 
+import { LuzJugada } from "./luz-jugada";
 import { useState } from "react";
 import { Hoja } from "../hoja";
 import { enlaceWhatsApp } from "@/lib/formato";
@@ -13,14 +14,14 @@ export function HojaBorradoresJugada({ id, nombreJugada, cliente, telefono, vend
   const opciones = borradoresJugada(id, cliente, vendedora, tienda, urlCatalogo);
   const [elegido, setElegido] = useState<number | null>(null);
   const [texto, setTexto] = useState("");
-  const [pulso, setPulso] = useState(0);
+  const [pulso, setPulso] = useState(1);
   const elegir = (indice: number) => {
     setElegido(indice);
     setTexto(opciones[indice].texto);
     setPulso((n) => n + 1);
   };
   return <Hoja abierta alCerrar={alCerrar} altura="grande" titulo={`Escribir a ${cliente}`}
-    decoracionAbajo={<div className="jugada-resplandor" aria-hidden="true"><div className="jugada-resplandor-color" /><div className="jugada-resplandor-grano" />{pulso > 0 && <div key={pulso} className="jugada-resplandor-pulso" />}</div>}>
+    decoracionAbajo={<LuzJugada pulso={pulso} />}>
     <p className="mb-4 text-[14px] leading-[1.45] text-suave">{nombreJugada}. Elige un tono y cambia lo que quieras antes de abrir WhatsApp.</p>
     <div className="space-y-2" role="group" aria-label="Borradores de mensaje">
       {opciones.map((opcion, indice) => <button key={opcion.tono} type="button" onClick={() => elegir(indice)}

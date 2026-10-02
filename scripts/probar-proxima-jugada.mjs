@@ -99,8 +99,8 @@ try {
       await page.getByRole('heading',{name:'Tu próxima jugada'}).waitFor();
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`sin overflow galería ${ancho}px`);
-    const animacion=await page.locator('.jugada-resplandor-color').evaluate(el=>getComputedStyle(el).animationName);
-    assert.equal(animacion,ancho===430?'none':'jugada-aurora');
+    const animacion=await page.locator('.jugada-resplandor .jugada-luz-rosa').evaluate(el=>getComputedStyle(el).animationName);
+    assert.equal(animacion,ancho===430?'none':'jugada-rosa');
     await page.getByRole('button',{name:/^Volver a saludar:.*Ver jugada$/}).click();
     await page.goBack();
     await page.getByRole('heading',{name:'Tu próxima jugada'}).waitFor();

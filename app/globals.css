@@ -648,26 +648,38 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .jugada-mini-2 { left:39px; top:16px; transform:rotate(9deg); background:#f2e5d3; }
 .jugada-mini-3 { left:59px; top:44px; transform:rotate(22deg); background:#f8ded0; }
 .jugada-tarjeta-degradado { background:linear-gradient(to bottom,transparent 33%,#fff9ee24 49%,#fff9eeed 69%,#fff9ee 100%); }
-.jugada-resplandor { position:relative; width:100%; height:220px; overflow:hidden; opacity:.8; pointer-events:none; mask-image:linear-gradient(to bottom,transparent,#000 58%); }
-.jugada-resplandor-color { position:absolute; inset:-30px; background:radial-gradient(ellipse 45% 80% at 12% 105%,#f5c9d6,transparent),radial-gradient(ellipse 45% 80% at 54% 105%,#ff834f99,transparent),radial-gradient(ellipse 48% 80% at 92% 105%,#a9d8bd,transparent); animation:jugada-aurora 9s ease-in-out infinite; }
-.jugada-resplandor-grano { position:absolute; inset:-30px; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.45; mix-blend-mode:multiply; animation:jugada-grano 2.4s steps(5,end) infinite; }
-@keyframes jugada-aurora { 0%,100% { transform:translate3d(-2%,0,0) scale(1); opacity:.8; } 50% { transform:translate3d(2%,-5%,0) scale(1.06); opacity:1; } }
-@keyframes jugada-grano { 0%,100% { transform:translate3d(0,0,0); } 25% { transform:translate3d(18px,-11px,0); } 50% { transform:translate3d(-13px,17px,0); } 75% { transform:translate3d(12px,8px,0); } }
-@media (prefers-reduced-motion:reduce) { .jugada-resplandor-color,.jugada-resplandor-grano { animation:none; } }
-
-/* Tu próxima jugada: capas decorativas aisladas del contenido y de la cabecera. */
-.jugada-invitacion-brillo { pointer-events:none; background:radial-gradient(ellipse 72% 75% at 8% 92%,#f5c9d688,transparent 75%),radial-gradient(ellipse 75% 85% at 95% 8%,#ff834f55,transparent 72%),radial-gradient(ellipse 95% 85% at 55% 115%,#a9d8bd99,transparent 72%); animation:jugada-aurora 9s ease-in-out infinite; }
-.jugada-invitacion-grano { pointer-events:none; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.16; animation:jugada-grano 2.4s steps(5,end) infinite; }
-.jugada-resplandor { opacity:.91; }
-.jugada-resplandor-pulso { position:absolute; inset:-30px; background:radial-gradient(ellipse 60% 90% at 55% 105%,#ff834fbb,transparent 80%),radial-gradient(ellipse 60% 90% at 15% 100%,#f5c9d6,transparent 80%); opacity:0; animation:jugada-pulso var(--mov-entrada) ease-out both; }
-@keyframes jugada-pulso { 0%,100% { opacity:0; transform:scale(1); } 45% { opacity:.78; transform:scale(1.05); } }
-.jugada-transicion { position:absolute; inset:0; background:radial-gradient(ellipse 80% 85% at 8% 40%,#f5c9d6ee,transparent),radial-gradient(ellipse 80% 85% at 95% 70%,#ff834fcc,transparent),radial-gradient(ellipse 110% 85% at 50% 95%,#a9d8bddd,transparent),#fff9ee; transform-origin:50% 90%; will-change:transform,opacity; }
-.jugada-transicion::after { content:""; position:absolute; inset:0; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.3; }
-.jugada-transicion-galeria { animation:jugada-morph 500ms var(--curva-salida) both; }
-.jugada-transicion-detalle { animation:jugada-revelar 450ms var(--curva-salida) both; }
-@keyframes jugada-morph { 0% { transform:scale(.25,.15); opacity:.8; } 52% { transform:scale(1); opacity:.9; } 68% { transform:scale(1.03); opacity:1; } 100% { transform:scale(1.03); opacity:0; } }
-@keyframes jugada-revelar { 0% { transform:translate3d(0,0,0); opacity:.96; } 100% { transform:translate3d(0,105%,0); opacity:0; } }
+/* Excepción de Tu próxima jugada: el recorte no se anima; las manchas no tienen fondo rectangular. */
+.jugada-luz {
+  --mov-jugada-ciclo: 8s;
+  position:relative; display:block; overflow:hidden; isolation:isolate; pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 60%);
+  mask-image:linear-gradient(to bottom,transparent,#000 60%);
+}
+.jugada-resplandor { width:100%; height:250px; }
+.jugada-luz-tarjeta { position:absolute; inset:0; z:-1; border-radius:inherit; mask-image:none; -webkit-mask-image:none; }
+.jugada-luz-color { position:absolute; width:180%; height:220%; left:-40%; top:-35%; opacity:.64; background:radial-gradient(ellipse at center,var(--luz-color) 0%,transparent 66%); }
+.jugada-luz-rosa { --luz-color:#f5c9d6; animation:jugada-rosa var(--mov-jugada-ciclo) ease-in-out infinite; }
+.jugada-luz-naranja { --luz-color:#ff834fb8; animation:jugada-naranja var(--mov-jugada-ciclo) ease-in-out infinite; }
+.jugada-luz-verde { --luz-color:#a9d8bd; animation:jugada-verde var(--mov-jugada-ciclo) ease-in-out infinite; }
+.jugada-luz-tarjeta .jugada-luz-color { opacity:.6; }
+.jugada-luz-grano { position:absolute; inset:0; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.16; mix-blend-mode:multiply; }
+.jugada-luz-pulso { position:absolute; inset:-40%; opacity:0; background:radial-gradient(ellipse at 30% 60%,#ff834fcc,transparent 58%),radial-gradient(ellipse at 70% 70%,#f5a9c2,transparent 64%),radial-gradient(ellipse at 80% 60%,#8bbda6,transparent 60%); }
+@keyframes jugada-rosa { 0%,100% { transform:translate3d(-18%,8%,0) scale(.95,1.05); } 50% { transform:translate3d(16%,-12%,0) scale(1.2,.85); } }
+@keyframes jugada-naranja { 0%,100% { transform:translate3d(20%,15%,0) scale(.85,1); } 50% { transform:translate3d(-14%,-10%,0) scale(1.05,1.15); } }
+@keyframes jugada-verde { 0%,100% { transform:translate3d(10%,-10%,0) scale(1.1,.85); } 50% { transform:translate3d(-20%,18%,0) scale(.85,1.2); } }
+/* Contenedor fijo bajo la cabecera: solo las tres manchas interiores se transforman mediante WAAPI. */
+[data-hoja-decoracion]:has(.jugada-velo) { mix-blend-mode:multiply; }
+.jugada-velo { position:absolute; inset:var(--cabecera,79px) 0 0; overflow:hidden; pointer-events:none; -webkit-mask-image:linear-gradient(to bottom,transparent,#000 8%,#000 90%,transparent); mask-image:linear-gradient(to bottom,transparent,#000 8%,#000 90%,transparent); }
+.jugada-velo-mancha { position:absolute; inset:-30%; opacity:0; background:radial-gradient(ellipse at center,var(--velo-color) 0%,transparent 67%); }
+.jugada-velo-rosa { --velo-color:#f5c9d6; }
+.jugada-velo-naranja { --velo-color:#ff834f; }
+.jugada-velo-verde { --velo-color:#b0d1bd; }
+/* El foco de teclado permanece visible incluso si llega durante los 480 ms del velo. */
+[role="dialog"]:has([data-hoja-contenido] :focus-visible) .jugada-velo { visibility:hidden; }
 @media (prefers-reduced-motion:reduce) {
-  .jugada-invitacion-brillo,.jugada-invitacion-grano,.jugada-resplandor-pulso,.jugada-transicion { animation:none; }
-  .jugada-transicion { display:none; }
+  .jugada-luz-color { animation:none; }
+  .jugada-luz-rosa { transform:translate(-18%,8%); }
+  .jugada-luz-naranja { transform:translate(20%,15%); }
+  .jugada-luz-verde { transform:translate(10%,-10%); }
+  .jugada-luz-pulso,.jugada-velo { display:none; }
 }

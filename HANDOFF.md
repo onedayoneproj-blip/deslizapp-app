@@ -64,7 +64,14 @@ esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
 números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 `Segmentos`, `Esqueleto`…).
 
-**Excepción concreta de movimiento para «Tu próxima jugada»:** el resplandor granulado fijo al pie de su Hoja, visible desde que se abre la galería o un detalle, puede moverse continuamente con `transform` y `opacity`. Es decorativo, queda detrás del contenido, no bloquea toques y queda estático con movimiento reducido. La tarjeta inicial comparte ese brillo; al abrir galería o detalle hay una capa breve de morph o barrido y un pulso, y al elegir un borrador otro pulso. Todo usa solo transform y opacidad; con movimiento reducido no hay transición. Cabecera y desenfoque de `Hoja` siempre quedan encima del contenido desplazable y de las capas decorativas. Las reglas generales siguen vigentes: nada de transiciones de página ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
+**Excepción concreta de movimiento para «Tu próxima jugada»:** el resplandor granulado fijo al pie de su Hoja, visible desde que se abre la galería o un detalle, puede moverse continuamente con `transform` y `opacity`. Es decorativo, queda detrás del contenido, no bloquea toques y queda estático con movimiento reducido. La tarjeta inicial comparte ese brillo; al abrir galería o detalle hay una capa breve de morph o barrido y un pulso, y al abrir o elegir un borrador y al tocar «Ver más clientes» otro pulso. `LuzJugada` mantiene quietos el recorte y el grano; tres manchas independientes completan ciclos suaves de 8 s. Pulsos de 520 ms sustituibles y transiciones difusas de 480 ms; nunca se escala o desplaza un fondo rectangular. Todo usa solo transform y opacidad; con movimiento reducido no hay transición. Cabecera y desenfoque de `Hoja` siempre quedan encima del contenido desplazable y de las capas decorativas. Las reglas generales siguen vigentes: nada de transiciones de página ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
+
+**Regresión de historial detectada al validar las animaciones:** al cerrar los borradores,
+el guard de Strict Mode impedía retirar su entrada también en producción. Ese guard
+solo corresponde a desarrollo. La salida vuelve a consumir la entrada de la hoja
+apilada; el siguiente «atrás» regresa a la galería sin necesitar un segundo toque.
+La mezcla de color del velo se aplica en la capa decorativa de `Hoja`, bajo el blur
+y la cabecera, para conservar el contraste del texto.
 
 ## Pastillas de filtro
 

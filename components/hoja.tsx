@@ -555,7 +555,7 @@ function HojaMontada({
         const quitarEntrada = () => {
           // React Strict Mode desmonta y monta los efectos en el mismo turno de desarrollo.
           // Si esta hoja volvió a la pila, su entrada todavía le pertenece.
-          if (PILA_DE_HOJAS.includes(turno)) return;
+          if (process.env.NODE_ENV === "development" && PILA_DE_HOJAS.includes(turno)) return;
           entradaDeHistorial.current = false;
           IGNORAR_ATRAS.n++;
           if (alSalirRef.current) window.addEventListener("popstate", () => alSalirRef.current?.(), { once: true });
@@ -716,7 +716,7 @@ function HojaMontada({
         >
           {children}
         </div>
-        {decoracionEncima && <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[15] overflow-hidden rounded-t-[30px]">{decoracionEncima}</div>}
+        {decoracionEncima && <div data-hoja-decoracion aria-hidden="true" className="pointer-events-none absolute inset-0 z-[15] overflow-hidden rounded-t-[30px]">{decoracionEncima}</div>}
         {/* Borde de desplazamiento: 4 capas de desenfoque + degradado, detrás de la cabecera */}
         <div
           ref={borde}

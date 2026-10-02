@@ -1,5 +1,6 @@
 "use client";
 
+import { LuzJugada } from "./luz-jugada";
 import { Dona } from "../dona";
 import type { FiltroClientes, ResumenClientes } from "@/lib/clientes-resumen";
 import type { Jugada } from "@/lib/proxima-jugada";
@@ -12,7 +13,7 @@ export const SEGMENTOS_CLIENTES = [
 ] as const;
 
 export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, destacada }: {
-  resumen: ResumenClientes; alFiltrar: (filtro: FiltroClientes) => void; alAbrirJugadas: () => void; destacada: Jugada | null;
+  resumen: ResumenClientes; alFiltrar: (filtro: FiltroClientes) => void; alAbrirJugadas: (elemento: HTMLElement) => void; destacada: Jugada | null;
 }) {
   const { cuentas: c, totalVendido, porcentajeRepiten } = resumen;
   const elegir = (f: FiltroClientes) => alFiltrar(f);
@@ -25,11 +26,10 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
   ] as const;
   return <>
     <div className="flex flex-col gap-[18px]">
-      <button type="button" onClick={alAbrirJugadas}
+      <button type="button" onClick={(e) => alAbrirJugadas(e.currentTarget)}
         aria-label={`Tu próxima jugada. ${destacada ? `${destacada.nombre}: ${destacada.cantidad} clientes, ${destacada.porcentaje} por ciento.` : "Aún no hay jugadas disponibles."} Ver tus jugadas`}
         className="tocable relative isolate grid min-h-[148px] grid-cols-[minmax(0,1fr)_112px] items-start gap-2 overflow-hidden rounded-[20px] border-[1.5px] border-[#a7c6ad] bg-[#eef4e9] px-4 py-3.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">
-        <span aria-hidden="true" className="jugada-invitacion-brillo absolute inset-0 -z-10" />
-        <span aria-hidden="true" className="jugada-invitacion-grano absolute inset-0 -z-10" />
+        <LuzJugada tarjeta />
         <span data-jugada-texto className="relative z-10 min-w-0">
           <span className="text-[10px] font-black uppercase tracking-wide text-[#426c4a]">Tu próxima jugada</span>
           <span className="mt-1 block font-display text-[21px] leading-[1.05] text-bosque">{destacada ? `${destacada.porcentaje} % ${destacada.id === "volver" ? "lleva tiempo sin comprar." : destacada.id === "segundo" ? "compró una sola vez." : destacada.id === "gracias" ? "volvió por más." : "espera su primer hola."}` : "La próxima conversación empieza aquí."}</span>
