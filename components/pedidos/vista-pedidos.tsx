@@ -52,7 +52,7 @@ export function useElegirPestanaPedidos() {
 export function VistaPedidos({ children }: { children: ReactNode }) {
   const { getPedidos, getProductos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
-  const [pestana, setPestana] = useState<Pestana>("nuevo");
+  const [pestanaElegida, setPestanaElegida] = useState<Pestana | null>(null);
 
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -65,6 +65,9 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     for (const p of pedidos ?? []) c[p.estado]++;
     return c;
   }, [pedidos]);
+  // Al entrar: primero muestra los pedidos nuevos; si no hay, lleva a los que esperan despacho. Mientras carga, conserva "Nuevos".
+  const pestana = pestanaElegida ?? (pedidos && cuentas.nuevo === 0 ? "por_despachar" : "nuevo");
+  const elegirPestana = (nueva: Pestana) => setPestanaElegida(nueva);
   const todos = useMemo(() => (pedidos ?? []).filter((p) => p.estado === pestana), [pedidos, pestana]);
   // 30 más recientes; "Ver más antiguos" agrega 30 cada vez. Los contadores de las pastillas siguen siendo el total.
   const { visibles, quedan, mostrados, verMas } = useVerMas(todos, `${tiendaId}:${pestana}`);
@@ -72,13 +75,13 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   const vacio = pedidos?.length === 0 ? SIN_PEDIDOS : VACIO[pestana];
 
   return (
-    <Contexto.Provider value={setPestana}>
+    <Contexto.Provider value={elegirPestana}>
       <TituloPantalla titulo="Pedidos" subtitulo="Del suspiro al chat. Y del chat, aquí." />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
         <Segmentos
             etiqueta="Estado de los pedidos"
             valor={pestana}
-            alCambiar={setPestana}
+            alCambiar={elegirPestana}
             opciones={PESTANAS.map((t) => ({
               id: t.id,
               texto: t.nombre,
