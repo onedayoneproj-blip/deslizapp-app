@@ -323,3 +323,10 @@ En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inic
 ### Aplicación coordinada del inventario
 
 No aplicar esta migración separada de una versión compatible de la app: restringe UPDATE directo de stock, y el editor publicado anteriormente lo incluía en su escritura. Una aplicación anticipada puede impedir guardar productos en esa versión. La PR sigue sin desplegar; la migración no está aplicada. En productos existentes, activar/desactivar el control de stock queda pendiente de una operación auditada específica; crear productos conserva esa elección inicial. El registro persiste sin añadir una pantalla de historial.
+
+## Fotos de Demo (2026-10-02)
+
+Productos y tiendas usan WebP fotográficos con fondos de color. Ocho contactos
+ficticios tienen retrato solo en Demo; en modo real siguen las iniciales.
+La actualización de rutas SVG conserva la demo guardada y las fotos personalizadas.
+Ver `docs/fotos-demo.md` para assets, límites y validación; no requiere Supabase.

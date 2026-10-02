@@ -1,5 +1,5 @@
 // Uso: node scripts/generar-seed.mjs
-// Genera lib/data/seed/*.json y public/seed/**/*.svg de forma determinista.
+// Genera lib/data/seed/*.json de forma determinista; reutiliza las fotos WebP versionadas.
 // Nombres y cifras de Esencias Michel tomados de referencias/prototipo-interactivo/.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -50,13 +50,13 @@ const T_LUNA = uid("a1000000", 2);
 const tiendas = [
   {
     id: T_MICHEL, slug: "esencias-michel", nombre: "Esencias Michel",
-    logo_url: "/seed/tiendas/esencias-michel.svg", plan: "p20", limite_productos: 20,
+    logo_url: "/seed/tiendas/esencias-michel.webp", plan: "p20", limite_productos: 20,
     creditos_retoque: 35, creditos_retoque_mensuales: 100, creado_en: iso(REF - DIAS_MICHEL * D),
     marca_color_principal: "#5E2750", marca_color_acento: "#E9B949", marca_estilo: "elegante", url_catalogo: "https://example.com/catalogo",
   },
   {
     id: T_LUNA, slug: "luna-bisuteria", nombre: "Luna Bisutería",
-    logo_url: "/seed/tiendas/luna-bisuteria.svg", plan: "p60", limite_productos: 60,
+    logo_url: "/seed/tiendas/luna-bisuteria.webp", plan: "p60", limite_productos: 60,
     creditos_retoque: 100, creditos_retoque_mensuales: 100, creado_en: iso(REF - DIAS_LUNA * D),
     marca_color_principal: "#2E3F66", marca_color_acento: "#F4A07C", marca_estilo: "moderna", url_catalogo: null,
   },
@@ -92,23 +92,22 @@ const defLuna = [
 
 let nProd = 0;
 const productos = [];
-function crearProductos(tiendaId, defs, tipo, diasBase) {
+function crearProductos(tiendaId, defs, diasBase) {
   // Se crean del menos al más suspirado, para que "más nuevo primero" deje arriba a los favoritos.
-  return [...defs].reverse().map(([nombre, precio, categoria, stock, likes, activo, destacado, retocada, colores], i) => {
+  return [...defs].reverse().map(([nombre, precio, categoria, stock, likes, activo, destacado, retocada], i) => {
     const slug = slugify(nombre);
-    writeFileSync(join(PUB, "productos", `${slug}.svg`), tipo === "perfume" ? svgPerfume(colores, i) : svgJoya(colores, i));
     const creado = REF - (diasBase - i * 9) * D;
     const p = {
       id: uid("a3000000", ++nProd), tienda_id: tiendaId, nombre, precio,
-      fotos: [`/seed/productos/${slug}.svg`], foto_retocada: retocada, categoria, activo, destacado,
+      fotos: [`/seed/productos/${slug}.webp`], foto_retocada: retocada, categoria, activo, destacado,
       stock, likes, creado_en: iso(creado), actualizado_en: iso(creado + 20 * D),
     };
     productos.push(p);
     return p;
   });
 }
-crearProductos(T_MICHEL, defMichel, "perfume", DIAS_MICHEL + 5);
-crearProductos(T_LUNA, defLuna, "joya", DIAS_LUNA + 5);
+crearProductos(T_MICHEL, defMichel, DIAS_MICHEL + 5);
+crearProductos(T_LUNA, defLuna, DIAS_LUNA + 5);
 const porNombre = Object.fromEntries(productos.map((p) => [p.nombre, p]));
 
 // ---------- eventos_aaah (likes repartidos en los últimos 14 días) ----------
@@ -320,43 +319,7 @@ escribir("clientes", clientes);
 escribir("promos", promos);
 escribir("eventos_aaah", eventos_aaah);
 
-writeFileSync(join(PUB, "tiendas", "esencias-michel.svg"), svgLogo("#5E2750", "#E9B949", "EM"));
-writeFileSync(join(PUB, "tiendas", "luna-bisuteria.svg"), svgLogo("#2E3F66", "#FFF9EE", "LB"));
 
 console.log({ productos: productos.length, eventos: eventos_aaah.length, pedidos: pedidos.length, clientes: clientes.length, promos: promos.length });
 console.log(pedidos.map((p) => `${p.numero} ${p.total}`).join(", "));
 
-// ---------- ilustraciones ----------
-function svgPerfume([fondo, frasco], i) {
-  const blobX = 40 + (i % 3) * 60;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
-  <rect width="400" height="500" fill="${fondo}"/>
-  <path d="M${blobX} 330c-40-60 10-150 90-140s120 80 150 60 110 30 80 120-140 110-220 80-60-60-100-120z" fill="#ffffff" opacity="0.45"/>
-  <rect x="172" y="120" width="56" height="44" rx="8" fill="#174B3A"/>
-  <rect x="186" y="160" width="28" height="26" fill="${frasco}" opacity="0.9"/>
-  <rect x="120" y="182" width="160" height="210" rx="${28 + (i % 3) * 14}" fill="${frasco}"/>
-  <rect x="138" y="200" width="30" height="160" rx="15" fill="#ffffff" opacity="0.35"/>
-  <rect x="160" y="262" width="80" height="44" rx="10" fill="#FFF9EE" opacity="0.9"/>
-  <ellipse cx="200" cy="420" rx="110" ry="14" fill="#174B3A" opacity="0.12"/>
-</svg>
-`;
-}
-function svgJoya([fondo, joya], i) {
-  const r = 70 + (i % 3) * 10;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
-  <rect width="400" height="500" fill="${fondo}"/>
-  <path d="M60 300c-30-80 40-170 130-150s150 60 160 150-90 150-170 130S80 360 60 300z" fill="#ffffff" opacity="0.5"/>
-  <circle cx="200" cy="250" r="${r}" fill="none" stroke="${joya}" stroke-width="18"/>
-  <circle cx="200" cy="${250 - r}" r="22" fill="${joya}"/>
-  <circle cx="193" cy="${243 - r}" r="7" fill="#ffffff" opacity="0.7"/>
-  <ellipse cx="200" cy="420" rx="100" ry="12" fill="#174B3A" opacity="0.12"/>
-</svg>
-`;
-}
-function svgLogo(fondo, texto, iniciales) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
-  <rect width="120" height="120" rx="30" fill="${fondo}"/>
-  <text x="60" y="74" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-style="italic" fill="${texto}">${iniciales}</text>
-</svg>
-`;
-}
