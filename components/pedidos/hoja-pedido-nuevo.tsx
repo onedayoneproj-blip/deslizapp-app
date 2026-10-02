@@ -34,7 +34,7 @@ const campo = CLASE_CAMPO;
  * Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar.
  * Con `pedidoId` es el MISMO formulario en modo edición ("Editar pedido #N"): ya lleno y guarda sobre el mismo pedido.
  */
-export function HojaPedidoNuevo({ pedidoId }: { pedidoId?: string }) {
+export function HojaPedidoNuevo({ pedidoId, productoInicialId }: { pedidoId?: string; productoInicialId?: string }) {
   const router = useRouter();
   const { getProductos, getClientes, getPromos, getPedidos } = useData();
   const { tiendaId } = useTiendaActiva();
@@ -77,6 +77,7 @@ export function HojaPedidoNuevo({ pedidoId }: { pedidoId?: string }) {
         promos={promos}
         pedidos={pedidos}
         pedido={pedido}
+        productoInicialId={!pedidoId ? productoInicialId : undefined}
         alTerminar={cerrar}
       />
     </Hoja>
@@ -89,6 +90,7 @@ function Formulario({
   promos,
   pedidos,
   pedido,
+  productoInicialId,
   alTerminar,
 }: {
   productos: Producto[];
@@ -97,6 +99,8 @@ function Formulario({
   pedidos: PedidoConItems[];
   /** Si viene, es una edición de ese pedido (nunca cancelado). */
   pedido?: PedidoConItems;
+  /** Producto elegido desde su vista previa; solo se acepta si pertenece a la tienda activa. */
+  productoInicialId?: string;
   alTerminar: () => void;
 }) {
   const { crearPedidoManual, editarPedido } = useData();
@@ -116,6 +120,8 @@ function Formulario({
   const [cantidades, setCantidades] = useState<Record<string, number>>(() => {
     const c: Record<string, number> = {};
     for (const i of pedido?.items ?? []) c[i.productoId] = (c[i.productoId] ?? 0) + i.cantidad;
+    const productoInicial = productos.find((p) => p.id === productoInicialId);
+    if (!pedido && productoInicial) c[productoInicial.id] = productoInicial.stock === 0 ? 0 : Math.min(1, cantidadMaxima(productoInicial));
     return c;
   });
   const [codigo, setCodigo] = useState(pedido?.codigoPromo ?? "");

@@ -3,7 +3,8 @@
 
 import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
-import type { Abono } from "../types";
+import type { Abono, MotivoAjusteInventario } from "../types";
+import { DatosInvalidos } from "./errores";
 import { cuentaDelCliente, cuentasDeTienda, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
@@ -28,6 +29,7 @@ import { insertarProducto, modificarProducto, productoDeTienda, productosDeTiend
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
+import { ajustarStockEnDB } from "./inventario";
 import {
   avanzarCatalogoDemo,
   buscarDueno,
@@ -231,7 +233,25 @@ export const fuenteDemo: FuenteDatos = {
   async actualizarProducto(tiendaId: string, id: string, cambios: CambiosProducto): Promise<Producto> {
     let actualizado!: Producto;
     escribir((db) => {
-      const r = modificarProducto(db, tiendaId, id, cambios, ahora());
+      const actual = productoDeTienda(db, tiendaId, id);
+      if (!actual) throw new DatosInvalidos("Ese producto ya no existe en esta tienda.");
+      if (cambios.stock !== undefined && cambios.stock !== actual.stock) {
+        throw new DatosInvalidos("Para ajustar el inventario, vuelve a la vista previa del producto.");
+      }
+      const soloFicha = { ...cambios };
+      delete soloFicha.stock;
+      const r = modificarProducto(db, tiendaId, id, soloFicha, ahora());
+      actualizado = r.producto;
+      return r.db;
+    });
+    return actualizado;
+  },
+  async ajustarStock(tiendaId, productoId, variacion, motivo, nota = null) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const actor = db.usuarios.find((u) => u.tiendaId === tiendaId);
+      if (!actor) throw new Error("No hay una cuenta asociada a esta tienda.");
+      const r = ajustarStockEnDB(db, tiendaId, productoId, variacion, motivo as MotivoAjusteInventario, nota, actor.id, nuevoId(), ahora());
       actualizado = r.producto;
       return r.db;
     });

@@ -3,7 +3,7 @@
 
 import { MARCA_NEUTRA } from "../marca";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
-import type { Abono, Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, AjusteInventario, Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
 import {
   aCliente,
   aEventoAaah,
@@ -42,6 +42,8 @@ export type DB = {
   pedidoItems: PedidoItem[];
   /** Pagos parciales de los pedidos a crédito (solo se crean y se borran con las operaciones de abonos). */
   abonos: Abono[];
+  /** Ajustes manuales de inventario; separados de pedidos y ventas. */
+  ajustesInventario: AjusteInventario[];
   clientes: Cliente[];
   promos: Promo[];
   eventosAaah: EventoAaah[];
@@ -65,6 +67,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     pedidos: credito.pedidos,
     pedidoItems: (seedPedidoItems as FilaPedidoItem[]).map(aPedidoItem),
     abonos: credito.abonos,
+    ajustesInventario: [],
     clientes: (seedClientes as FilaCliente[]).map((f) => aCliente(f, fecha)),
     promos: (seedPromos as FilaPromo[]).map((f) => aPromo(f, fecha)),
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
@@ -128,6 +131,7 @@ export function migrar(db: DB): DB {
     // Pedidos guardados antes de las ventas a crédito: todos de contado y sin abonos
     pedidos: db.pedidos.map((p) => ({ ...p, pagoModo: p.pagoModo ?? "contado", pagoFechaAcordada: p.pagoFechaAcordada ?? null })),
     abonos: db.abonos ?? [],
+    ajustesInventario: db.ajustesInventario ?? [],
     clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })),
     // Promos guardadas antes del límite de usos y la pausa
     promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false })),

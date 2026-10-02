@@ -10,10 +10,11 @@ import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
 import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
-import type { Cliente, ClienteConResumen, EventoAaah, PedidoConItems, Promo } from "../types";
+import type { Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
 import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
+import { validarAjusteInventario } from "./inventario";
 import {
   ArchivoMuyGrande,
   ClienteDuplicado,
@@ -412,6 +413,14 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aProducto(f));
     },
     async actualizarProducto(tiendaId, id, cambios) {
+      const { stock, ...cambiosFicha } = cambios;
+      if (stock !== undefined) {
+        const actual = await dato<{ stock: number | null }>(
+          supabase.from("productos").select("stock").eq("tienda_id", tiendaId).eq("id", id).maybeSingle(),
+        );
+        if (!actual) throw new DatosInvalidos("Ese producto ya no existe en esta tienda.");
+        if (actual.stock !== stock) throw new DatosInvalidos("Para ajustar el inventario, vuelve a la vista previa del producto.");
+      }
       const antes = cambios.fotos
         ? ((await dato<{ fotos: string[] }>(supabase.from("productos").select("fotos").eq("tienda_id", tiendaId).eq("id", id).maybeSingle()))
             ?.fotos ?? [])
@@ -422,7 +431,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         f = await requerido<FilaProducto>(
           supabase
             .from("productos")
-            .update(filaCambiosProducto(fotos ? { ...cambios, fotos } : cambios))
+            .update(filaCambiosProducto(fotos ? { ...cambiosFicha, fotos } : cambiosFicha))
             .eq("tienda_id", tiendaId)
             .eq("id", id)
             .select("*")
@@ -436,6 +445,25 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       }
       // Las fotos que se quitaron ya no se usan.
       if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, antes, fotos));
+      return cambio(aProducto(f));
+    },
+    async ajustarStock(tiendaId, productoId, variacion, motivo: MotivoAjusteInventario, nota = null) {
+      // Validación rápida para dar un mensaje claro; la RPC repite las reglas bajo bloqueo de fila.
+      const actual = await dato<FilaProducto>(
+        supabase.from("productos").select("*").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle(),
+      );
+      if (!actual) throw new DatosInvalidos("Ese producto no existe en esta tienda.");
+      validarAjusteInventario(actual.stock, variacion, motivo, nota);
+      const f = await requerido<FilaProducto>(
+        supabase.rpc("ajustar_stock", {
+          p_tienda_id: tiendaId,
+          p_producto_id: productoId,
+          p_variacion: variacion,
+          p_motivo: motivo,
+          p_nota: nota?.trim() || null,
+        }),
+        () => new Error("La base no devolvió el producto actualizado."),
+      );
       return cambio(aProducto(f));
     },
 

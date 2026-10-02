@@ -163,7 +163,7 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
   // etiquetas de la foto), separado por comas para que se lea con pausas, y al final la acción.
   const nombreAccesible = [p.nombre, formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", stock, etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `♥ ${p.likes}`]
     .filter(Boolean)
-    .join(",") + ". Editar";
+    .join(",") + ". Ver producto";
 
   return (
     <Link

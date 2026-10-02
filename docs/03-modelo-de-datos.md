@@ -63,6 +63,16 @@ tabla de prueba con un solo usuario "activo".
 | `likes` | number | viene del catálogo público (❤ en los mockups). **Lo mantiene la base** desde `eventos_aaah` (trigger); la app solo lo lee |
 | `creado_en` / `actualizado_en` | datetime | |
 
+## `ajustes_inventario`
+
+Un ajuste manual (reposición, daño, pérdida, corrección u otro) se guarda separado de los pedidos. Incluye tienda, producto, variación, stock antes y después, motivo, nota opcional, persona que lo hizo y fecha. La app solo puede consultar los registros de su tienda; no puede insertarlos o modificarlos directamente.
+
+- La RPC `ajustar_stock(p_tienda_id, p_producto_id, p_variacion, p_motivo, p_nota)` bloquea el producto, verifica que la persona pertenezca a la tienda, rechaza stock sin control y valores negativos, y actualiza el producto e inserta el registro en una única transacción.
+- Un aumento usa el motivo `reposicion`. Una disminución requiere `dano`, `perdida`, `correccion_inventario` u `otro`; este último requiere una nota.
+- La operación usa la identidad de `auth.uid()` (nunca `user_metadata`) y `SECURITY DEFINER` con `search_path` vacío. Su ejecución se limita a `authenticated`; la tabla tiene RLS por tienda.
+- Los permisos de edición directa de `productos.stock` se retiran para la app real. El formulario sigue permitiendo definir el stock inicial al crear un producto; en uno existente se ajusta desde la vista previa.
+- Estos registros no aparecen en pedidos, ventas, Resumen ni el historial de pedidos. Las ventas siguen descontándose al despachar; deshacer el despacho devuelve esas unidades según las RPC actuales.
+
 ## `pedidos`
 
 | Campo | Tipo | Notas |

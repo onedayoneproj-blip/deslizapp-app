@@ -184,6 +184,15 @@ export function traducirErrorSupabase(e: unknown): Error {
   const codigo = texto(c.code);
   const todo = `${mensaje} ${texto(c.details)} ${texto(c.hint)}`;
 
+  // RPC ajustar_stock
+  if (mensaje.includes("stock_negativo")) return new DatosInvalidos("El stock no puede quedar en negativo.");
+  if (mensaje.includes("stock_sin_control")) return new DatosInvalidos("Este producto no lleva control de stock.");
+  if (mensaje.includes("motivo_ajuste_invalido")) return new DatosInvalidos("El motivo no corresponde a este ajuste.");
+  if (mensaje.includes("nota_ajuste_invalida")) return new DatosInvalidos("Escribe un motivo breve (máximo 200 caracteres).");
+  if (mensaje.includes("stock_fuera_de_rango")) return new DatosInvalidos("Esa cantidad supera el límite permitido.");
+  if (mensaje.includes("ajuste_producto_no_encontrado")) return new DatosInvalidos("Ese producto ya no existe en esta tienda.");
+  if (mensaje.includes("ajuste_invalido")) return new DatosInvalidos("El ajuste debe cambiar al menos una unidad.");
+
   // RPC despachar_pedido
   const stock = /stock_insuficiente:\s*([^]+)$/.exec(mensaje);
   if (stock) return new StockInsuficiente(stock[1]!.trim());
