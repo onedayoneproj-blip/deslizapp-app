@@ -5,13 +5,13 @@ Base revisada: main `a1ce8b3fdb53ccd5ad186644df19b01576dc25d4` y PR `52067cb7d96
 
 ## Resultado y límites
 
-La implementación está disponible para revisar en demo. La migración `20261002190000_ajustes_inventario.sql` **no está aplicada** en producción. No se cambiaron existencias, esquema ni historial de producción. PR #2 sigue separado y sin fusionar.
+La implementación se publicó en producción después de fusionar PR #20 en main `3daf0ee10cd292205445de70b5d32436effcab47`. La migración `20261002203414_ajustes_inventario.sql` **está aplicada** en Supabase. Se añadieron la tabla/RPC/permisos y una entrada de migración; las existencias se conservaron. PR #2 sigue separado y sin fusionar.
 
 Solo producción (`euihaeyfdlpvmbtfzvnt`) es accesible mediante el conector. Otros entornos y las bases locales de Claude Code/Codex siguen desconocidos. La base PostgreSQL de estas pruebas es desechable, no una tienda real.
 
-`supabase db push --dry-run` dirigido a producción quedó bloqueado: faltan CLI/credenciales de conexión CLI, y persiste la divergencia de identificadores cubierta por PR #2. No se sustituyó por un push real ni se reparó el historial. Antes de aplicar, es necesario comprobar que se propone únicamente esta migración, sin reaplicar las anteriores.
+`supabase db push --dry-run` dirigido a producción no se ejecutó: faltan CLI/credenciales y persiste la divergencia antigua cubierta por PR #2. Con autorización del usuario se comprobó el SQL de esta única migración en una transacción con ROLLBACK, y después se aplicó mediante el conector; no se reaplicó la cadena anterior. Esa comprobación no equivale al dry-run del CLI. Supabase generó la versión `20261002203414`; se renombró el archivo desde `20261002190000` para coincidir. La revisión automática rechazó renumerar la entrada nueva del historial por considerar esa operación adicional no explícitamente autorizada. Se completó la alineación cambiando el archivo del repositorio; ninguna entrada de historial fue alterada.
 
-Además, la migración retira UPDATE directo de `productos.stock`, conservando los permisos anteriores sobre las demás columnas. **No aplicarla anticipadamente a la app antigua**: su editor incluía stock en la escritura y puede dejar de guardar. Hay que coordinar una versión compatible de la app y la migración cuando se autorice publicar. Los controles reales necesitan la RPC; sin ella, muestran error, sin inventar éxito.
+Además, la migración retira UPDATE directo de `productos.stock`, conservando los permisos anteriores sobre las demás columnas. El editor antiguo incluía stock en la escritura. Por eso primero se publicó la app compatible (Vercel READY) y luego se aplicó la migración. Los usuarios que mantengan una versión antigua abierta deben actualizar la app antes de editar productos.
 
 ## Comprobaciones ejecutadas
 
@@ -30,7 +30,7 @@ Además, la migración retira UPDATE directo de `productos.stock`, conservando l
 | Fallo al insertar registro | Pasó: un trigger de prueba forzó un fallo y la transacción dejó stock e historial intactos. El trigger solo existió en la base desechable y se eliminó después. |
 | Dos conexiones concurrentes | Pasó: +1 y +2 desde stock 1 terminaron en 4, con ambos registros y cantidades anterior/posterior encadenadas. |
 | Pedidos + ajustes | Pasó en replay: despachar descuenta una vez, segundo despacho rechazado, deshacer devuelve unidades; ninguna operación creó un ajuste manual. |
-| Producción, solo lectura | Se revisaron historial, columnas y permisos. La tabla/RPC de ajustes siguen ausentes. |
+| Producción antes de publicar, solo lectura | Se revisaron historial, columnas y permisos; tabla/RPC todavía ausentes en ese momento. |
 
 La comparación de columnas públicas (nombre, orden, tipo y nulabilidad), excluyendo la nueva tabla, coincide entre replay y producción: firma MD5 `e108b49b86b65a89de1b42fc74127c60`. **No es una comparación completa de todas las funciones, políticas, índices y triggers mediante pg_dump.**
 
@@ -38,11 +38,23 @@ Los primeros intentos del nuevo script de navegador tuvieron errores del propio 
 
 ## No verificado / pendiente
 
-- Dry run de producción y aplicación de migración; comprobación posterior de historial/tabla/RPC.
+- Dry run del CLI en producción; la aplicación individual y la comprobación transaccional ya se completaron.
 - Ajustes, edición y pedidos mediante una sesión Supabase real en navegador. No se crearon datos de prueba en producción.
 - Fallos de red del navegador durante la llamada real, incluidos resultados ambiguos si se corta la conexión después de confirmar la base. No repetir un ajuste a ciegas: actualizar el producto y revisar antes de reintentar. El rollback SQL sí se probó, pero no equivale a esta prueba de red.
 - Safari/teclado de iPhone físico y revisión visual manual de fotos.
 - Activar o desactivar control de stock en productos ya creados queda pendiente de una operación auditada específica. Los nuevos conservan la elección inicial; no se añadió una pantalla de historial.
+
+
+## Publicación y comprobaciones de producción — 2026-10-02
+
+- PR #20 fusionado; Vercel confirmó READY para main `3daf0ee10cd292205445de70b5d32436effcab47`, despliegue `dpl_4AjDRMgVTagVzUGP9jpwoHjhLHBk`.
+- Antes de aplicar se ejecutó el SQL completo en una transacción revertida: tabla, RPC, RLS, permiso de editar nombre, stock directo bloqueado y acceso solo autenticado pasaron.
+- Aplicación individual de la migración mediante Supabase: pasó. Identificador registrado `20261002203414`; historial anterior sin cambios.
+- Comprobación posterior: tabla y RPC presentes, RLS habilitado, acceso anónimo a RPC rechazado y escritura directa del registro bloqueada.
+- En producción, con rol authenticated y membresía existente, una transacción con ROLLBACK comprobó +1, −1, registro de cantidades/actor, stock negativo rechazado, UPDATE directo rechazado y otra tienda rechazada. No se dejaron cambios de prueba.
+- Inventario: 15 productos; firma de id/stock anterior y posterior `5f2c1e4029397d3d8a7edb11abe3456b`. Registros de prueba persistidos: 0.
+- Asesores de seguridad: la RPC genera el aviso de SECURITY DEFINER ejecutable por authenticated; es deliberado para las dos escrituras atómicas y se validaron auth.uid(), membresía, search_path vacío y EXECUTE restringido. Referencia: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable . Los demás avisos históricos quedan fuera de esta entrega.
+- Esta verificación de SQL no acredita un recorrido de navegador con tienda real ni Safari físico.
 
 ## Repetir la prueba demo
 

@@ -134,7 +134,7 @@ que se complete el pedido y se despache. «Editar» conserva el formulario y la
 confirmación de cambios sin guardar. `stock = null` sigue significando «Sin
 control de stock».
 
-La migración aditiva `20261002190000_ajustes_inventario.sql` añade
+La migración aditiva `20261002203414_ajustes_inventario.sql` añade
 `ajustes_inventario` con tienda, producto, variación, stock anterior/nuevo,
 motivo, actor y fecha. La RPC `ajustar_stock` bloquea el producto y guarda
 stock e historial dentro de una sola transacción. Revisa la membresía con
@@ -151,13 +151,22 @@ control de stock» y no muestra controles. La demo guarda registros locales en
 `ajustesInventario`. Los ajustes no crean pedidos ni ventas. Despachar continúa
 descontando stock una vez; deshacer el despacho lo devuelve.
 
-**Estado de producción:** la migración no se aplicó. PR #2 de reconciliación
-sigue abierto, por lo que los identificadores locales aún difieren de la
-historia aplicada en Supabase. `supabase db push --dry-run` no está disponible:
-no hay CLI ni credenciales CLI. La cadena completa sí se reprodujo en
-PostgreSQL 17.6 desechable y se comprobaron RPC, RLS, rollback y concurrencia.
-Como falta el dry-run dirigido a producción, la migración queda bloqueada antes
-de producción. No se cambiaron datos, esquema ni historial de producción.
+**Estado de producción (2026-10-02):** PR #20 fusionado en main
+`3daf0ee10cd292205445de70b5d32436effcab47` y publicado en Vercel antes de
+aplicar la migración mediante el conector Supabase. La versión aplicada es
+`20261002203414`; el archivo se renombró desde `20261002190000` para coincidir
+con el identificador generado por Supabase. No se alteraron entradas históricas.
+La RPC, RLS y los permisos se comprobaron en producción; incrementos,
+disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
+tienda pasaron dentro de una transacción revertida. Las existencias quedaron
+intactas y no persistieron ajustes de prueba. Ver `docs/validacion-inventario-pr20.md`.
+
+PR #2 de reconciliación sigue separado: los identificadores antiguos todavía
+difieren del historial de Supabase. No ejecutar un `db push` general a ciegas.
+El dry-run del CLI continúa sin ejecutarse por falta de CLI/credenciales;
+la comprobación transaccional del SQL y la aplicación individual no equivalen
+a ese dry-run. Navegador con tienda real, fallos de red e iPhone físico siguen
+pendientes.
 
 ## Ventas a crédito y abonos
 
