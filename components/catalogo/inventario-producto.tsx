@@ -10,7 +10,6 @@ import type { CambiosProducto, MotivoAjusteInventario, Producto } from "@/lib/ty
 import { Hoja } from "../hoja";
 import { Chip, GrupoOpciones } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
-import { BotonVerMas } from "../ver-mas";
 
 /** Un solo borrador para ambos recorridos: tocar cantidades nunca llama a la fuente. */
 export function useInventarioPendiente(producto: Producto | null, alConfirmado?: () => void) {
@@ -155,13 +154,16 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
       </div>
       {i.pendiente && <>
         <p className="mt-2 text-sm font-bold">{delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}</p>
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" disabled={i.guardando || i.incierto || guardarBloqueado} onClick={alGuardar} className="tocable min-h-12 rounded-full bg-bosque px-3 py-2 text-sm font-extrabold text-papel disabled:opacity-55">{i.guardando ? "Guardando…" : "Guardar cambios"}</button>
           <button type="button" disabled={i.guardando || i.incierto} onClick={i.recuperar} className="tocable min-h-12 rounded-full border-[1.5px] border-bosque bg-white px-3 py-2 text-sm font-extrabold disabled:opacity-55">Descartar</button>
         </div>
       </>}
     </>}
-    <BotonVerMas texto="Ver historial" alTocar={alVerHistorial} disabled={i.guardando}/>
+    <button type="button" onClick={e => alVerHistorial(e.currentTarget)} disabled={i.guardando} className="tocable mt-4 flex min-h-14 w-full items-center justify-between gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left text-base text-suave disabled:opacity-55">
+      <span>Ver historial</span>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0"><path d="M9 6l6 6-6 6" /></svg>
+    </button>
   </section>;
 }
 

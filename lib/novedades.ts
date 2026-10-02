@@ -18,15 +18,23 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    "version": "0.31.8",
+    "fecha": "2026-10-02",
+    "titulo": "La demo se pone bonita.",
+    "cambios": [
+      "Perfumes y joyas con fotos llenas de color.",
+      "Las tiendas y algunos contactos de Demo ahora tienen su propia foto."
+    ]
+  },
+  {
     version: "0.31.7",
     fecha: "2026-10-02",
-    titulo: "La demo se pone bonita.",
+    titulo: "Todo en su sitio.",
     cambios: [
-      "Perfumes y joyas con fotos llenas de color.",
-      "Las tiendas y algunos contactos de Demo ahora tienen su propia foto.",
+      "Guardar y Descartar tienen el mismo espacio en Inventario.",
+      "El historial se abre desde una fila clara, con flecha para seguir.",
     ],
   },
-
   {
     version: "0.31.6",
     fecha: "2026-10-02",

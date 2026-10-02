@@ -141,10 +141,11 @@ actor y fecha de Santo Domingo, por tramos de diez y con error/reintento.
 `stock = null` sigue sin control; no se habilita/deshabilita en productos existentes.
 
 **Contenedor y navegación interna:** Guardar cambios y Descartar viven dentro de
-Inventario y aparecen solo con diferencia. Descartar afecta únicamente la cantidad;
+Inventario, tienen el mismo ancho y aparecen solo con diferencia. Descartar afecta únicamente la cantidad;
 el Guardar del editor sigue usando la operación conjunta de ficha e inventario.
 No duplicar ese botón con el Guardar general mientras haya ajuste pendiente.
-«Ver historial» abre una vista de la misma Hoja, conserva la ficha/formulario
+«Ver historial» es una fila de ancho completo con borde y chevron existente;
+abre una vista de la misma Hoja, conserva la ficha/formulario
 montados y restaura scroll y foco al volver. `Hoja.alVolverInterno` consume Atrás
 solo en esa vista antes de evaluar la salida con cambios; no crea otra hoja ni
 otra entrada al abrir el historial. X/Escape mantienen la protección de salida.

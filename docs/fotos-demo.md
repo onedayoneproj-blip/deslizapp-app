@@ -24,8 +24,8 @@ fotografías de clientes reales ni una garantía del aspecto de productos comerc
 ## Coordinación
 
 Rama feature/demo-fotos-color, basada en main 8f82222d058531dcc7463fa647a86a35f8b70853.
-Actualizada con main cbc4a9191fc3f017aa38f99136da6eee6b1de5b3 (PR #22).
-Conserva su inventario compacto e historial interno; las fotos usan novedades 0.31.7.
+Actualizada con main df324132942eff8bc54fc8489bb5d6838a941539 (PR #22 y #24).
+Conserva su inventario compacto e historial interno; las fotos usan novedades 0.31.8.
 No modifica hojas, controles ni operaciones de inventario. Antes de integrar una
 rama concurrente, conservar ambas novedades y asignar números distintos si coinciden.
 Sin cambios en Supabase, Storage, migraciones o datos reales.
