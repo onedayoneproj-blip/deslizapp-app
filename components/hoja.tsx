@@ -128,6 +128,8 @@ type Props = {
   fijoArriba?: ReactNode;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
   decoracionAbajo?: ReactNode;
+  /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
+  decoracionEncima?: ReactNode;
   /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
   avisarAlSalir?: boolean;
   /** Textos del aviso al salir. */
@@ -165,6 +167,7 @@ function HojaMontada({
   altura = "auto",
   fijoArriba,
   decoracionAbajo,
+  decoracionEncima,
   avisarAlSalir = false,
   avisoTitulo = "¿Salir sin guardar?",
   avisoTexto = "Lo que escribiste se va a perder.",
@@ -192,6 +195,7 @@ function HojaMontada({
     avisoDeHijo.current = cambios;
   }, []);
   const miTurno = useRef(Symbol("hoja"));
+  const entradaDeHistorial = useRef(false);
   const panel = useRef<HTMLDivElement>(null);
   const fondo = useRef<HTMLDivElement>(null);
   const cabecera = useRef<HTMLDivElement>(null);
@@ -486,7 +490,10 @@ function HojaMontada({
     PILA_DE_HOJAS.push(turno);
     // Hoja apilada: guarda una entrada de historial para que "atrás" cierre solo esta (las de ruta ya se cierran con su ruta)
     let entrada = PILA_DE_HOJAS.length > 1;
-    if (entrada) window.history.pushState(estadoDeHoja(), "");
+    if (entrada && !entradaDeHistorial.current) {
+      window.history.pushState(estadoDeHoja(), "");
+      entradaDeHistorial.current = true;
+    }
     const alAtras = () => {
       if (IGNORAR_ATRAS.n > 0) {
         IGNORAR_ATRAS.n--;
@@ -545,11 +552,17 @@ function HojaMontada({
       window.removeEventListener("popstate", alAtras);
       if (entrada) {
         entrada = false;
-        IGNORAR_ATRAS.n++;
-        // La continuación de una hoja apilada espera a que el navegador consuma
-        // su entrada; navegar antes puede ser deshecho por este history.back().
-        if (alSalirRef.current) window.addEventListener("popstate", () => alSalirRef.current?.(), { once: true });
-        window.history.back();
+        const quitarEntrada = () => {
+          // React Strict Mode desmonta y monta los efectos en el mismo turno de desarrollo.
+          // Si esta hoja volvió a la pila, su entrada todavía le pertenece.
+          if (PILA_DE_HOJAS.includes(turno)) return;
+          entradaDeHistorial.current = false;
+          IGNORAR_ATRAS.n++;
+          if (alSalirRef.current) window.addEventListener("popstate", () => alSalirRef.current?.(), { once: true });
+          window.history.back();
+        };
+        if (process.env.NODE_ENV === "development") queueMicrotask(quitarEntrada);
+        else quitarEntrada();
       } else if (alSalirRef.current) window.setTimeout(() => alSalirRef.current?.(), 0);
       const posicion = PILA_DE_HOJAS.indexOf(turno);
       if (posicion >= 0) PILA_DE_HOJAS.splice(posicion, 1);
@@ -681,32 +694,34 @@ function HojaMontada({
         aria-labelledby={idTitulo}
         tabIndex={-1}
         // Papel también por debajo del borde inferior (after): si se estira hacia arriba, no se ve un hueco.
-        className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[480px] flex-col rounded-t-[30px] bg-papel outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-papel"
+        className="absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col rounded-t-[30px] bg-papel outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-papel"
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
           ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: ALTO_MAXIMO }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
-        {decoracionAbajo && <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 overflow-hidden">{decoracionAbajo}</div>}
+        {decoracionAbajo && <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-0 overflow-hidden">{decoracionAbajo}</div>}
         {/* El scroll ocupa toda la hoja (redondeado arriba para recortar lo que pasa por las esquinas) */}
         <div
           ref={contenido}
+          data-hoja-contenido
           onScroll={alDesplazar}
           onFocus={alEnfocarCampo}
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="min-h-0 flex-1 overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
+          className="relative z-10 min-h-0 flex-1 isolate overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}
         </div>
+        {decoracionEncima && <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[15] overflow-hidden rounded-t-[30px]">{decoracionEncima}</div>}
         {/* Borde de desplazamiento: 4 capas de desenfoque + degradado, detrás de la cabecera */}
         <div
           ref={borde}
           aria-hidden="true"
-          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
+          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
           style={{ visibility: "hidden" }}
         >
           <div className="hoja-borde-desenfoque" />
@@ -717,11 +732,12 @@ function HojaMontada({
         </div>
         <div
           ref={cabecera}
+          data-hoja-cabecera
           onPointerDown={alApuntar}
           onPointerMove={alMoverPuntero}
           onPointerUp={alSoltarPuntero}
           onPointerCancel={alSoltarPuntero}
-          className="absolute inset-x-0 top-0 touch-none px-5 pt-2.5 pb-3"
+          className="absolute inset-x-0 top-0 z-30 touch-none px-5 pt-2.5 pb-3"
         >
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-[#e2d5bf]" />
           <div className="flex items-center justify-between gap-3">
@@ -735,7 +751,7 @@ function HojaMontada({
           <div ref={setRanuraArriba} className="[&:not(:empty)]:mt-3" />
         </div>
         {/* Zona fija de abajo (píldora de resumen…): se oculta mientras el teclado está abierto */}
-        <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0" />
+        <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0 z-30" />
       </div>
       {avisando && (
         <div className="absolute inset-0 z-10 grid place-items-center bg-bosque/45 px-6">

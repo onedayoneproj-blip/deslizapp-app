@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.29.0",
+    fecha: "2026-10-01",
+    titulo: "Una jugada más a tu manera.",
+    cambios: [
+      "Tu próxima jugada aparece primero en Tus clientes, con cartas más claras y fáciles de abrir.",
+      "Elige entre tres mensajes y edítalos antes de abrir WhatsApp.",
+      "El brillo acompaña el recorrido sin tapar tus datos ni tus controles.",
+    ],
+  },
+  {
     version: "0.28.0",
     fecha: "2026-10-01",
     titulo: "Tu próxima jugada.",
