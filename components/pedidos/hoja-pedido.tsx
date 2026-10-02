@@ -9,6 +9,7 @@ import { CURVA, menosMovimiento } from "@/lib/movimiento";
 import { mensajeDeError } from "@/lib/data/errores";
 import { puedeEditarCodigo } from "@/lib/data/pedidos";
 import { buscarCodigoPromo } from "@/lib/promos";
+import { descargarComprobantePedido } from "@/lib/comprobante-pedido";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
@@ -17,7 +18,6 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
-import { FacturaPedido } from "./factura-pedido";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
@@ -221,6 +221,20 @@ function Detalle({
       setVista("detalle");
       toast(nuevo ? `Descuento ${nuevo} aplicado. El total ya cambió.` : "Descuento quitado. El total ya cambió.");
     });
+
+  const descargarComprobante = async (formato: "pdf" | "png") => {
+    try {
+      await descargarComprobantePedido({
+        pedido,
+        cliente,
+        tiendaNombre: tienda?.nombre ?? "Deslizapp",
+        formato,
+      });
+      toast(formato === "pdf" ? "Comprobante PDF descargado." : "Comprobante como imagen descargado.");
+    } catch {
+      toast("No pudimos preparar el comprobante. Inténtalo otra vez.");
+    }
+  };
 
   // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
   const botonEditar = (
@@ -435,12 +449,26 @@ function Detalle({
           ) : (
             <>
               {botonEditar}
-              <button type="button" onClick={() => window.print()} className={ACCION_EDITAR}>
-                Descargar factura (PDF)
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void descargarComprobante("pdf")}
+                  aria-label="Descargar comprobante en PDF"
+                  className={`${ACCION_EDITAR} min-w-0 flex-1 px-2 text-[13px]`}
+                >
+                  Descargar PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void descargarComprobante("png")}
+                  aria-label="Descargar comprobante como imagen PNG"
+                  className={`${ACCION_EDITAR} min-w-0 flex-1 px-2 text-[13px]`}
+                >
+                  Descargar imagen
+                </button>
+              </div>
             </>
           )}
-          <FacturaPedido pedido={pedido} cliente={cliente} tiendaNombre={tienda?.nombre ?? "Deslizapp"} />
         </div>
       )}
       {pedido.estado === "cancelado" && (
