@@ -147,3 +147,12 @@ y se documenta aquí.
 - Validación reproducible: `scripts/probar-movimiento-jugada.mjs` graba ciclos
   completos y recorridos en 360/390/430 px. Los videos, no las capturas aisladas,
   son la evidencia de la revisión de movimiento.
+
+### Inventario: historial como vista interna
+
+Ficha ↔ historial de ajustes cambia directamente dentro de la misma Hoja, sin
+transición de página ni entradas de filas. La ficha queda montada y oculta mientras
+se consulta el historial; volver restaura scroll y foco al botón «Ver historial».
+No se vuelve a ejecutar el efecto de apertura/foco de Hoja ni se reabre el teclado.
+Atrás regresa a la ficha; X/Escape conservan la confirmación de salida con cambios.
+La navegación es igual con movimiento reducido; no introduce otra excepción.

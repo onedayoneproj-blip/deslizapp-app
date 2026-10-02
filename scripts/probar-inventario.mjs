@@ -45,6 +45,13 @@ try {
   ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "Vista previa sin overflow horizontal");
   const inicial = await numeroStock(page);
   const nombre = producto.nombre;
+  const revisarHistorial=async texto=>{
+    await page.getByRole("button",{name:"Ver historial",exact:true}).click();
+    await page.getByRole("region",{name:"Ajustes de inventario"}).getByText(texto,{exact:true}).waitFor();
+    ok(await page.locator('[role="dialog"]').count()===1,"Historial se abre en la misma hoja");
+    await page.getByRole("button",{name:/^Volver a/}).click();
+  };
+
 
   const mas=()=>page.getByRole("button", { name: "Aumentar stock de " + nombre });
   const menos=()=>page.getByRole("button", { name: "Disminuir stock de " + nombre });
@@ -57,7 +64,7 @@ try {
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v3")??"{}").ajustesInventario?.length===1);
   ok((await registros(page))[0].variacion===3,"Guardar varios toques crea una única reposición final");
-  await page.getByRole("region",{name:"Ajustes de inventario"}).getByText("+3",{exact:true}).waitFor();
+  await revisarHistorial("+3");
   const pedidoAntes=JSON.parse(await persistido(page)).pedidos.length;
   await menos().click();await menos().click();
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();
@@ -70,7 +77,7 @@ try {
   await page.getByRole("textbox",{name:"Cuéntanos el motivo"}).fill("Recuento de prueba demo");
   await page.getByRole("button",{name:"Guardar ajuste",exact:true}).click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v3")).ajustesInventario.length===2);
-  await page.getByRole("region",{name:"Ajustes de inventario"}).getByText("Recuento de prueba demo",{exact:true}).waitFor();
+  await revisarHistorial("Recuento de prueba demo");
   ok((await registros(page))[1].variacion===-2 && JSON.parse(await persistido(page)).pedidos.length===pedidoAntes,"Una disminución final con nota actualiza historial sin pedidos");
   await mas().click();await page.getByRole("button",{name:"Editar",exact:true}).click();
   await page.getByRole("alertdialog").getByRole("button",{name:"Seguir aquí",exact:true}).click();
@@ -90,19 +97,19 @@ try {
   await page.locator('button[aria-label^="Aumentar stock"]').click();await page.locator('button[aria-label^="Aumentar stock"]').click();
   ok((await registros(page)).length===2,"Editar tampoco escribe al tocar cantidades");
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();await page.waitForURL(URL+producto.href);
-  await page.getByRole("region",{name:"Ajustes de inventario"}).getByText("+2",{exact:true}).waitFor();
+  await revisarHistorial("+2");
   ok((await registros(page)).length===3 && JSON.parse(await persistido(page)).productos.find(p=>p.id===producto.href.split('/').at(-1)).nombre===nuevoNombre,"Guardar edición confirma ficha y ajuste; historial actualizado");
   await page.getByRole("button",{name:"Editar",exact:true}).click();await page.waitForURL("**/editar");
   await page.locator('button[aria-label^="Disminuir stock"]').click();await page.locator('button[aria-label^="Disminuir stock"]').click();
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();await page.getByRole("radio",{name:"Daño",exact:true}).click();
   await page.getByRole("button",{name:"Guardar ajuste",exact:true}).click();await page.waitForURL(URL+producto.href);
-  await page.getByRole("region",{name:"Ajustes de inventario"}).getByText("Daño",{exact:true}).waitFor();
+  await revisarHistorial("Daño");
   ok((await registros(page)).length===4 && (await registros(page))[3].variacion===-2,"Disminuir desde edición confirma motivo y un único delta final");
   await page.locator('button[aria-label^="Aumentar stock"]').click();
   await page.goBack();await page.getByRole("alertdialog").waitFor();
   await page.getByRole("alertdialog").getByRole("button",{name:"Seguir aquí",exact:true}).click();
   ok(await page.locator('section[aria-label="Inventario"]').count()===1,"Atrás del navegador respeta cambios pendientes");
-  await page.getByRole("button",{name:"Descartar ajuste",exact:true}).click();
+  await page.getByRole("button",{name:"Descartar",exact:true}).click();
   await page.getByRole("button",{name:"Crear pedido",exact:true}).click();await page.waitForURL("**/pedidos/nuevo?producto=*");
   ok(new globalThis.URL(page.url()).searchParams.get("producto")===producto.href.split("/").at(-1),"Crear pedido abre el formulario preseleccionado sin guardarlo");
   ok(JSON.parse(await persistido(page)).pedidos.length===pedidoAntes,"Abrir pedido no crea una venta ni cambia stock");

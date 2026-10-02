@@ -140,6 +140,17 @@ El historial visible muestra solo ajustes reales, con antes/después, motivo, no
 actor y fecha de Santo Domingo, por tramos de diez y con error/reintento.
 `stock = null` sigue sin control; no se habilita/deshabilita en productos existentes.
 
+**Contenedor y navegación interna:** Guardar cambios y Descartar viven dentro de
+Inventario y aparecen solo con diferencia. Descartar afecta únicamente la cantidad;
+el Guardar del editor sigue usando la operación conjunta de ficha e inventario.
+No duplicar ese botón con el Guardar general mientras haya ajuste pendiente.
+«Ver historial» abre una vista de la misma Hoja, conserva la ficha/formulario
+montados y restaura scroll y foco al volver. `Hoja.alVolverInterno` consume Atrás
+solo en esa vista antes de evaluar la salida con cambios; no crea otra hoja ni
+otra entrada al abrir el historial. X/Escape mantienen la protección de salida.
+No se cambiaron operaciones de datos, Supabase ni migraciones para esta mejora.
+Ver `docs/validacion-historial-interno.md`.
+
 `20261002203414_ajustes_inventario.sql` **está aplicada**: tabla `ajustes_inventario`,
 RLS y RPC `ajustar_stock`. La nueva migración
 `20261002223718_guardar_producto_inventario.sql` **está aplicada en producción**. Añade una RPC
