@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.29.1",
+    fecha: "2026-10-02",
+    titulo: "La jugada fluye.",
+    cambios: [
+      "La luz de Tus clientes se mueve con suavidad, sin bordes que se asomen.",
+      "El brillo responde al elegir jugadas, abrir mensajes y ver más clientes.",
+      "Con movimiento reducido, todo aparece directamente y la luz queda quieta.",
+    ],
+  },
+  {
     version: "0.29.0",
     fecha: "2026-10-01",
     titulo: "Una jugada más a tu manera.",

@@ -24,6 +24,8 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
 | `--mov-rapida` / `DURACION.rapida` | 150 ms | Toques (presionar), salidas, desvanecer lo viejo |
 | `--mov-normal` / `DURACION.normal` | 250 ms | Aparecer, indicadores que se deslizan, números, fotos |
 | `--mov-entrada` / `DURACION.entrada` | 350 ms | Hojas |
+| `DURACION.jugadaPulso` / `DURACION.jugadaTransicion` (WAAPI) | 520 / 480 ms | Excepción de luz de Tu próxima jugada |
+| `--mov-jugada-ciclo` (CSS local) | 8 s | Ciclo ambiental de sus tres manchas |
 | `--mov-dona` / `DURACION.dona` | 1000 ms | Arco SVG de las donas al aparecer; al cambiar usa 250 ms |
 | `--curva-salida` / `CURVA.salida` | `cubic-bezier(.2,.8,.2,1)` | Casi todo: arranca rápido y se posa |
 | `--curva-entrada` / `CURVA.entrada` | `cubic-bezier(.4,0,1,1)` | Lo que se va: acelera hacia afuera |
@@ -49,7 +51,12 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    `prefers-reduced-motion`: los microdetalles de la tarjeta del catálogo (`cat-anim-*` en `app/globals.css`: punto que late,
    destellos, ondas, confeti) y los de "Saldado" en crédito y abonos (`cre-*`: sello, confeti y el punto que late de "atrasado"; la
    barra de pago crece con `scaleX`, no con el ancho).
-   **Excepción concreta para «Tu próxima jugada»:** el resplandor granulado fijo al pie de la Hoja, visible desde que se abre la galería o un detalle (`jugada-resplandor-*`), se mueve suavemente de forma continua. Solo anima `transform` y `opacity` de capas decorativas, queda detrás del contenido desplazable, no intercepta toques y se detiene con `prefers-reduced-motion`. La tarjeta de invitación usa las mismas capas suaves. Al abrir galería o detalle, una sola capa granulada hace un morph o barrido breve y el resplandor pulsa una vez; al elegir un borrador, también pulsa una vez. Esas capas animan solo `transform` y `opacity`, no interceptan toques, quedan debajo de título, controles y foco, y se apagan con `prefers-reduced-motion`. No habilita animaciones continuas en otras pantallas ni entradas escalonadas de tarjetas o filas.
+   **Excepción concreta para «Tu próxima jugada»:** luz ambiental en tarjeta y pies
+   de Hoja, morph y barrido decorativos al navegar dentro de la hoja, y pulsos al
+   interactuar. Solo transform/opacity, sin bloquear toques y estáticos con
+   movimiento reducido. La implementación y sus límites están en la excepción
+   detallada al final de este documento; no habilita animaciones en otras pantallas
+   ni entradas escalonadas de tarjetas o filas.
 4b. **Hojas: rebote y diálogo de salida.** Si una hoja con cambios sin guardar se intenta cerrar, vuelve a su lugar con un rebote de
    `transform` (380 ms, `cubic-bezier(0.34, 1.56, 0.64, 1)`) y el diálogo "¿Salir sin guardar?" entra con `mov-aparece`. Con
    `prefers-reduced-motion` no hay rebote: solo aparece el diálogo. Una pastilla de opción elegida muestra su check con `mov-pop-aparece`.
@@ -112,3 +119,31 @@ cierra el teclado y no deja escribir). Por eso:
 `tocable`, `esqueleto`. Úsalas antes de inventar
 una animación nueva; si hace falta una nueva, se define con los tokens de arriba
 y se documenta aquí.
+
+
+### Excepción aprobada: luz de «Tu próxima jugada» (corrección de PR #6)
+
+- `LuzJugada` comparte el efecto entre la tarjeta inicial y los pies de galería,
+  detalles y borradores. El contenedor de recorte y su máscara quedan **quietos**.
+  Tres manchas radiales sobredimensionadas, transparentes antes de sus límites,
+  se desplazan y deforman de forma independiente; cada ciclo de 8 s comienza y
+  termina en el mismo estado con velocidad cero. No se mueve una imagen rectangular.
+- La textura granulada queda estática. No usa `steps`, desplazamientos ni cambios
+  de ruido: evita saltos y no delata un segundo rectángulo.
+- Pulso de intensidad de **520 ms** al entrar en galería, elegir estrategia,
+  abrir borradores, elegir un borrador y «Ver más clientes». Un toque nuevo cancela
+  el pulso anterior y lo sustituye; el scroll no pulsa.
+- Tarjeta → galería: manchas que parten del centro real de la tarjeta, se expanden,
+  cambian su proporción, suben de intensidad y se desvanecen en **480 ms**.
+  Galería → detalle: un velo radial recorre de arriba abajo el contenido en **480 ms**.
+  No hay fondo rectangular opaco ni transformación del contenedor. El velo se mezcla
+  con las superficies manteniendo oscuras las letras; desaparece si un control del
+  contenido recibe foco visible. La cabecera y su blur quedan siempre por encima.
+- Solo se animan `transform` y `opacity` de decoración. La navegación ocurre al
+  tocar, sin esperar el efecto. No se animan filas, hoja ni ancestros del editor.
+  Atrás/Escape/cerrar y los toques funcionan durante la transición.
+- Movimiento reducido: manchas estáticas; no se montan morph ni barrido y no se
+  reproduce ningún pulso. La excepción se limita a esta función.
+- Validación reproducible: `scripts/probar-movimiento-jugada.mjs` graba ciclos
+  completos y recorridos en 360/390/430 px. Los videos, no las capturas aisladas,
+  son la evidencia de la revisión de movimiento.
