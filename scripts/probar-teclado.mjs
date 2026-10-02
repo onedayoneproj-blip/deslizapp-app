@@ -194,6 +194,7 @@ try {
       await page.waitForSelector('[role="dialog"] section[aria-label="Inventario"]');
       await page.waitForTimeout(500);
       await page.tap('[role="dialog"] button[aria-label^="Disminuir stock"]');
+      await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
       await page.getByRole("radio", { name: "Otro", exact: true }).click();
       await page.waitForSelector('[role="dialog"] textarea');
       await probarCampo(page, '[role="dialog"] textarea', "Ajuste de inventario · Motivo", "Conteo corregido");

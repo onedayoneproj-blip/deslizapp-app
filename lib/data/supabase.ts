@@ -10,7 +10,7 @@ import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
 import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
-import type { Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
+import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
 import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
@@ -20,6 +20,8 @@ import {
   ClienteDuplicado,
   CreditosInsuficientes,
   DatosInvalidos,
+  ErrorClaro,
+  ErrorDeRed,
   FormatoNoPermitido,
   mensajeDeError,
   PedidoNoEditable,
@@ -162,6 +164,15 @@ async function subirLogo(storage: Almacen, tiendaId: string, logo: string | null
   if (!logo || !esDataUrl(logo)) return logo;
   return (await subirImagen(storage, logo, (tipo) => rutaLogo(tiendaId, nuevoId(), tipo))).url;
 }
+
+type FilaAjusteInventario = {
+  id: string; tienda_id: string; producto_id: string; variacion: number; stock_anterior: number; stock_nuevo: number;
+  motivo: MotivoAjusteInventario; nota: string | null; creado_por: string; creado_en: string;
+};
+const aAjusteInventario = (f: FilaAjusteInventario): AjusteInventario => ({
+  id: f.id, tiendaId: f.tienda_id, productoId: f.producto_id, variacion: f.variacion, stockAnterior: f.stock_anterior,
+  stockNuevo: f.stock_nuevo, motivo: f.motivo, nota: f.nota, actorId: f.creado_por, creadoEn: f.creado_en,
+});
 
 // ---------------------------------------------------------------------------
 // La fuente
@@ -465,6 +476,51 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         () => new Error("La base no devolvió el producto actualizado."),
       );
       return cambio(aProducto(f));
+    },
+
+    async guardarProductoConInventario(tiendaId, productoId, cambios, propuesta, retocar = false) {
+      if ("stock" in cambios) throw new DatosInvalidos("El stock necesita un ajuste registrado.");
+      if (propuesta) validarAjusteInventario(propuesta.stockBase, propuesta.stockPropuesto - propuesta.stockBase, propuesta.motivo, propuesta.nota);
+      const antes = cambios.fotos
+        ? (await dato<{ fotos: string[] }>(supabase.from("productos").select("fotos").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()))?.fotos ?? [] : [];
+      const fotos = cambios.fotos ? await subirFotos(supabase.storage, tiendaId, cambios.fotos) : undefined;
+      let f: FilaProducto;
+      try {
+        f = await requerido<FilaProducto>(supabase.rpc("guardar_producto_inventario", {
+          p_tienda_id: tiendaId, p_producto_id: productoId,
+          p_cambios: filaCambiosProducto(fotos ? { ...cambios, fotos } : cambios),
+          p_stock_base: propuesta?.stockBase ?? null, p_stock_nuevo: propuesta?.stockPropuesto ?? null,
+          p_motivo: propuesta?.motivo ?? null, p_nota: propuesta?.nota ?? null,
+          p_ajuste_id: propuesta?.id ?? null, p_retocar: retocar,
+        }), () => new Error("No pudimos confirmar el producto guardado."));
+      } catch (e) {
+        // Un resultado de red incierto podría haber guardado esas URLs: no borrar sus archivos.
+        if (fotos && e instanceof ErrorClaro && !(e instanceof ErrorDeRed)) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, fotos, antes));
+        throw e;
+      }
+      if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [...antes, ...fotos], f.fotos));
+      return cambio(aProducto(f));
+    },
+    async getAjustesInventario(tiendaId, productoId, desde = 0, limite = 10) {
+      const filas: FilaAjusteInventario[] = [];
+      // PostgREST limita cada respuesta: Ver más no debe cortar el historial al llegar a 1000.
+      for (let i = 0; i <= limite; i += TRAMO) {
+        const cantidad = Math.min(TRAMO, limite + 1 - i);
+        const pagina = await dato<FilaAjusteInventario[]>(supabase.from("ajustes_inventario").select("*").eq("tienda_id", tiendaId).eq("producto_id", productoId)
+          .order("creado_en", { ascending: false }).order("id", { ascending: false }).range(desde + i, desde + i + cantidad - 1));
+        filas.push(...pagina ?? []);
+        if ((pagina?.length ?? 0) < cantidad) break;
+      }
+      const ids = [...new Set((filas ?? []).slice(0, limite).map(a => a.creado_por))];
+      const actores = ids.length ? await dato<{id: string; nombre: string}[]>(supabase.from("usuarios").select("id,nombre").in("id", ids)) : [];
+      return { ajustes: (filas ?? []).slice(0, limite).map(a => ({ ...aAjusteInventario(a), actorNombre: actores?.find(u => u.id === a.creado_por)?.nombre || "Cuenta de la tienda" })), hayMas: (filas?.length ?? 0) > limite };
+    },
+    async revisarGuardadoInventario(tiendaId, productoId, ajusteId) {
+      // Primero el registro: si confirma la operación, el producto se lee después de ese commit.
+      const a = ajusteId ? await dato<FilaAjusteInventario>(supabase.from("ajustes_inventario").select("*").eq("tienda_id", tiendaId).eq("producto_id", productoId).eq("id", ajusteId).maybeSingle()) : null;
+      if (!ajusteId) await dato(supabase.from("ajustes_inventario").select("id").eq("tienda_id", tiendaId).eq("producto_id", productoId).limit(1));
+      const f = await dato<FilaProducto>(supabase.from("productos").select("*").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle());
+      return cambio({ producto: f ? aProducto(f) : null, ajuste: a ? aAjusteInventario(a) : null });
     },
 
     // ---- Pedidos ----

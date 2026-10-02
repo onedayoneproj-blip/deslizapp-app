@@ -13,6 +13,7 @@ import { useData } from "./provider";
 export function useConsulta<T>(
   clave: string,
   consulta: () => Promise<T>,
+  errorConDatos = false,
 ): {
   data: T | undefined;
   cargando: boolean;
@@ -61,7 +62,7 @@ export function useConsulta<T>(
   return {
     data: mismaClave ? resultado.data : undefined,
     cargando: !mismaClave || resultado.version !== version,
-    error: fallo?.clave === clave && !mismaClave,
+    error: fallo?.clave === clave && (errorConDatos || !mismaClave),
     reintentar,
   };
 }

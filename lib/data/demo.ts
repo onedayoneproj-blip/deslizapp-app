@@ -29,7 +29,7 @@ import { insertarProducto, modificarProducto, productoDeTienda, productosDeTiend
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
-import { ajustarStockEnDB } from "./inventario";
+import { ajustarStockEnDB, guardarProductoEnDB } from "./inventario";
 import {
   avanzarCatalogoDemo,
   buscarDueno,
@@ -256,6 +256,30 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizado;
+  },
+
+  async guardarProductoConInventario(tiendaId, productoId, cambios, propuesta, retocar = false) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const actor = db.usuarios.find(u => u.tiendaId === tiendaId);
+      if (!actor) throw new DatosInvalidos("No hay una cuenta asociada a esta tienda.");
+      const r = guardarProductoEnDB(db, tiendaId, productoId, cambios, propuesta, actor.id, ahora());
+      // Créditos, ficha y ajuste se confirman juntos en la misma escritura local.
+      actualizado = r.producto;
+      return retocar && !(propuesta && db.ajustesInventario.some(a => a.id === propuesta.id))
+        ? descontarCreditos(r.db, tiendaId, CREDITOS_POR_RETOQUE).db : r.db;
+    });
+    return actualizado;
+  },
+  async getAjustesInventario(tiendaId, productoId, desde = 0, limite = 10) {
+    const db = leerDemo().db;
+    const todos = db.ajustesInventario.filter(a => a.tiendaId === tiendaId && a.productoId === productoId)
+      .sort((a,b) => b.creadoEn.localeCompare(a.creadoEn) || b.id.localeCompare(a.id));
+    return { ajustes: todos.slice(desde, desde + limite).map(a => ({ ...a, actorNombre: db.usuarios.find(u => u.id === a.actorId && u.tiendaId === tiendaId)?.nombre || "Cuenta de la tienda" })), hayMas: todos.length > desde + limite };
+  },
+  async revisarGuardadoInventario(tiendaId, productoId, ajusteId) {
+    const db = leerDemo().db;
+    return { producto: productoDeTienda(db, tiendaId, productoId), ajuste: db.ajustesInventario.find(a => a.id === ajusteId && a.tiendaId === tiendaId && a.productoId === productoId) ?? null };
   },
 
   // Pedidos

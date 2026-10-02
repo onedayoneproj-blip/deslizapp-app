@@ -68,6 +68,17 @@ export type Producto = {
 /** Motivos que se guardan junto con cada ajuste manual de inventario. */
 export type MotivoAjusteInventario = "reposicion" | "dano" | "perdida" | "correccion_inventario" | "otro";
 
+/** Propuesta que solo se aplica al guardar, con comprobación del stock base. */
+export type PropuestaInventario = {
+  id: string;
+  stockBase: number;
+  stockPropuesto: number;
+  motivo: MotivoAjusteInventario;
+  nota: string | null;
+};
+export type AjusteInventarioVisible = AjusteInventario & { actorNombre: string };
+export type PaginaAjustesInventario = { ajustes: AjusteInventarioVisible[]; hayMas: boolean };
+
 /** Registro auditable de un cambio manual; no representa una venta ni un pedido. */
 export type AjusteInventario = {
   id: string;

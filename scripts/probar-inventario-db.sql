@@ -1,8 +1,8 @@
--- Solo para el replay desechable llamado replay_final. Nunca ejecutar en producción.
+-- Solo para los replays desechables replay_final o replay_provisional. Nunca ejecutar en producción.
 -- Requiere la cadena completa de supabase/migrations y fixtures mínimos de Auth/Storage.
 -- La concurrencia se comprueba aparte con dos conexiones a esta misma base desechable.
 do $$ begin
-  if current_database() <> 'replay_final' then raise exception 'Solo se permite la base desechable replay_final'; end if;
+  if current_database() not in ('replay_final','replay_provisional') then raise exception 'Solo se permite la base desechable replay_final'; end if;
 end $$;
 insert into auth.users(id,email) values
  ('11111111-1111-4111-8111-111111111111','inventario-uno@example.invalid'),

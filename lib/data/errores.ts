@@ -112,6 +112,10 @@ export class PromoInvalida extends ErrorClaro {
 
 export class DatosInvalidos extends ErrorClaro {}
 
+export class InventarioCambio extends ErrorClaro {
+  constructor() { super("El stock cambió mientras ajustabas. Revisa la cantidad actual antes de guardar."); }
+}
+
 export class SinPermiso extends ErrorClaro {
   constructor() {
     super("Tu cuenta no tiene permiso para hacer eso.");
@@ -184,6 +188,7 @@ export function traducirErrorSupabase(e: unknown): Error {
   const codigo = texto(c.code);
   const todo = `${mensaje} ${texto(c.details)} ${texto(c.hint)}`;
 
+  if (mensaje.includes("stock_base_cambio")) return new InventarioCambio();
   // RPC ajustar_stock
   if (mensaje.includes("stock_negativo")) return new DatosInvalidos("El stock no puede quedar en negativo.");
   if (mensaje.includes("stock_sin_control")) return new DatosInvalidos("Este producto no lleva control de stock.");
