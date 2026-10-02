@@ -233,7 +233,7 @@ se navega con ‹ › por meses y años anteriores), en hora de Santo Domingo:
   y los datos de clientes usan solo ventas confirmadas.
 - **Pedido recibido** = cualquier pedido no cancelado, contado por `creado_en` (tarjeta "Pedidos recibidos" y "De aaah a pedido").
 - **Pedido pendiente** = `nuevo` o `por_despachar`: todavía no es venta. Los cancelados no cuentan en nada.
-- **Importe principal del gráfico del Resumen** = pedidos despachados por fecha de despacho + pedidos `por_despachar` por fecha de creación. Los `nuevo` y cancelados no se suman. La barra distingue ambos estados y la comparación usa la misma regla. Ticket promedio, ventas por cliente y productos más vendidos siguen contando solo pedidos despachados.
+- **Importe principal del gráfico del Resumen** = pedidos despachados por fecha de despacho + pedidos `por_despachar` por fecha de creación. Los `nuevo` y cancelados no se suman. La barra divide ese mismo total en **Pagado** (rosa) y **Por cobrar** (mandarina), usando el estado de pago actual de cada pedido. Los abonos parciales participan en ambos colores; no se agrupan por fecha de abono. La comparación usa la misma regla de total. Ticket promedio, ventas por cliente y productos más vendidos siguen contando solo pedidos despachados.
 - **Borrar un contacto** (`borrar_cliente`): la dueña elige conservar los pedidos (quedan con `cliente_id = null`) o borrarlos junto con sus renglones y abonos. La operación se ejecuta en una transacción y solo sobre la tienda de la sesión. Borrar el historial no modifica stock, porque no deshace una venta ocurrida.
 
 **Barra elegida** (tocar una barra filtra toda la pantalla a ella):

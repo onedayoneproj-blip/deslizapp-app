@@ -27,7 +27,7 @@ export function GraficoVentas({
   alLimpiar: () => void;
   alTocarVacia: (barra: BarraConValor) => void;
 }) {
-  const valores = barras.map((b) => (b.ventas ?? 0) + (b.porDespachar ?? 0));
+  const valores = barras.map((b) => (b.pagado ?? 0) + (b.porCobrar ?? 0));
   const maximo = Math.max(0, ...valores);
   const total = valores.reduce((s, v) => s + v, 0);
   const mejor = maximo > 0 ? barras[valores.indexOf(maximo)] : null;
@@ -37,7 +37,7 @@ export function GraficoVentas({
   return (
     <div data-grafico className={`mt-4 ${barras.length <= 7 ? "-mx-3" : ""}`} onClick={alLimpiar}>
       <p className="sr-only">
-        {titulo}. Total: {formatearPesos(total)}, suma de pedidos despachados y por despachar.
+        {titulo}. Total: {formatearPesos(total)}, dividido entre pagado y por cobrar.
         {mejor ? ` Lo mejor: ${mejor.nombre}, con ${formatearPesos(maximo)}.` : " Sin actividad todavía."}
       </p>
       <div className="relative">
@@ -54,15 +54,15 @@ export function GraficoVentas({
             const vacia = b.estado !== "normal";
             const elegida = seleccion === i;
             const atenuada = seleccion !== null && !elegida;
-            const ventas = b.ventas ?? 0;
-            const porDespachar = b.porDespachar ?? 0;
-            const v = ventas + porDespachar;
+            const pagado = b.pagado ?? 0;
+            const porCobrar = b.porCobrar ?? 0;
+            const v = pagado + porCobrar;
             const alto = v > 0 && maximo > 0 ? Math.max(4, Math.round((v / maximo) * ALTO)) : 3;
-            const altoPendiente = porDespachar > 0 && ventas > 0 ? Math.min(alto - 1, Math.max(1, Math.round((porDespachar / v) * alto))) : porDespachar > 0 ? alto : 0;
-            const altoVentas = alto - altoPendiente;
+            const altoPendiente = porCobrar > 0 && pagado > 0 ? Math.min(alto - 1, Math.max(1, Math.round((porCobrar / v) * alto))) : porCobrar > 0 ? alto : 0;
+            const altoPagado = alto - altoPendiente;
             const aria = vacia
               ? `${b.nombre}, ${b.estado === "futura" ? "todavía no llega" : "sin datos, antes de que empezara tu tienda"}`
-              : `${b.nombre}, total ${formatearPesos(v)}; ${formatearPesos(ventas)} en ${b.ventasCantidad ?? 0} pedidos despachados y ${formatearPesos(porDespachar)} en ${b.porDespacharCantidad ?? 0} por despachar`;
+              : `${b.nombre}, total ${formatearPesos(v)}; ${formatearPesos(pagado)} pagado y ${formatearPesos(porCobrar)} por cobrar`;
             return (
               <button
                 key={b.desde}
@@ -95,9 +95,9 @@ export function GraficoVentas({
                     } ${atenuada ? "opacity-35" : "opacity-100"}`}
                     style={{ height: alto }}
                   >
-                    {altoVentas > 0 && <span className="block w-full bg-rosa" style={{ height: altoVentas }} />}
+                    {altoPagado > 0 && <span className="block w-full bg-rosa" style={{ height: altoPagado }} />}
                     {altoPendiente > 0 && <span className="block w-full bg-[#FF834F]" style={{ height: altoPendiente }} />}
-                    {altoVentas === 0 && altoPendiente === 0 && <span className="block h-full w-full bg-rosa/35" />}
+                    {altoPagado === 0 && altoPendiente === 0 && <span className="block h-full w-full bg-rosa/35" />}
                   </span>
                 )}
                 <span className={`h-[13px] text-[11px] leading-none font-bold whitespace-nowrap ${elegida || (seleccion === null && b.actual) ? "text-[#FFA07A]" : "text-[#D9E6DF]"}`}>
@@ -109,8 +109,8 @@ export function GraficoVentas({
         </div>
       </div>
       <div aria-hidden="true" className="mt-1.5 flex justify-center gap-3 text-[10.5px] font-semibold text-[#D9E6DF]">
-        <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-sm bg-rosa" />Despachados</span>
-        <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-sm bg-[#FF834F]" />Por despachar</span>
+        <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-sm bg-rosa" />Pagado</span>
+        <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-sm bg-[#FF834F]" />Por cobrar</span>
       </div>
     </div>
   );

@@ -825,8 +825,10 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   - La etiqueta de "ahora" (hoy, este mes) en Mandarina; las futuras en contorno
     discontinuo y las anteriores al inicio de la tienda en contorno punteado
     (distintas de un cero, que es una barra mínima).
-  - El tramo rosa representa pedidos despachados y el mandarina, pedidos por
-    despachar; el alto y el eje suman ambos importes. Eje abreviado arriba
+  - El tramo rosa representa lo **Pagado** y el mandarina lo **Por cobrar**.
+    Los abonos parciales reparten un pedido entre ambos colores. El alto y el eje
+    conservan el total de despachados más por despachar; se usan sus fechas actuales
+    (despacho/creación), no la fecha de los abonos. El reparto refleja el pago actual. Eje abreviado arriba
     ("RD$12k", "RD$1.2M"); texto alternativo con el total, ambas partes y la
     mejor barra.
 - **Tocar una barra** la ELIGE: queda en su color y las demás se atenúan
@@ -841,7 +843,7 @@ Construida en `components/inicio/` con los cálculos de `lib/resumen.ts` (ver
   - Una barra futura o anterior al inicio no se elige: la píldora dice un
     momento "Aún no hay datos de este mes/día/franja".
   - Cada barra es un botón (aria-pressed) que anuncia el total y separa cuánto
-    está despachado y cuánto sigue por despachar.
+    está pagado y cuánto queda por cobrar.
   - No hay globo flotante con el monto: lo dice la tarjeta.
 - 4 datos del periodo: **Pedidos recibidos** (no cancelados, por fecha de creación),
   **Ticket promedio** (total despachado ÷ cantidad de despachados; "—" sin ventas),

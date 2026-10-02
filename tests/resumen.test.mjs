@@ -367,3 +367,43 @@ test("seed · las dos tiendas dan cifras distintas", () => {
   assert.equal(l.variacion, 53);
   assert.notEqual(m.ventas, l.ventas);
 });
+
+test("colores del gráfico: pagado y por cobrar incluyen abonos parciales de ambos estados", () => {
+  const fecha = iso(REF - 60_000);
+  const r = calcularResumen(datos([
+    { ...ped(fecha, 1000), pagado: 1000, saldo: 0 },
+    { ...ped(fecha, 600), pagado: 200, saldo: 400 },
+    { ...ped(fecha, 400, "por_despachar"), pagado: 100, saldo: 300 },
+    { ...ped(fecha, 900, "nuevo"), pagado: 900, saldo: 0 },
+    { ...ped(fecha, 800, "cancelado"), pagado: 200, saldo: 0 },
+  ]), "hoy", SEPT, REF);
+  assert.equal(r.totalGrafico, 2000);
+  assert.equal(r.barras.reduce((s, b) => s + (b.pagado ?? 0), 0), 1300);
+  assert.equal(r.barras.reduce((s, b) => s + (b.porCobrar ?? 0), 0), 700);
+  for (const b of r.barras.filter(b => b.estado === "normal")) {
+    assert.equal(b.pagado + b.porCobrar, b.ventas + b.porDespachar);
+  }
+  const elegida = r.barras.findIndex(b => b.pagado > 0);
+  assert.equal(calcularResumen(datos([
+    { ...ped(fecha, 1000), pagado: 300, saldo: 700 },
+  ]), "hoy", SEPT, REF, { seleccion: elegida }).totalGrafico, 1000);
+});
+
+test("reparto de pago usa fecha del pedido, se actualiza al abonar y respeta límites", () => {
+  const fecha = iso(REF - 60_000);
+  const antes = { ...ped(fecha, 1000), pagado: 0, saldo: 1000 };
+  const leer = p => calcularResumen(datos([p]), "hoy", SEPT, REF).barras.find(b => b.ventas > 0);
+  assert.equal(leer(antes).porCobrar, 1000);
+  assert.equal(leer({ ...antes, pagado: 400, saldo: 600 }).pagado, 400);
+  assert.equal(leer({ ...antes, pagado: 1000, saldo: 0 }).porCobrar, 0);
+  assert.equal(leer({ ...antes, pagado: 1200 }).pagado, 1000);
+  assert.equal(leer({ ...antes, pagado: -50 }).porCobrar, 1000);
+  assert.equal(leer({ ...ped(fecha, 1000), saldo: 700 }).pagado, 300);
+  assert.equal(leer(ped(fecha, 1000)).pagado, 1000); // históricos sin crédito
+  const r = calcularResumen(datos([{ ...antes, creadoEn: iso(REF + 3 * 3600e3) }]), "hoy", SEPT, REF);
+  assert.equal(r.barras.reduce((s, b) => s + (b.pagado ?? 0) + (b.porCobrar ?? 0), 0), 0);
+  for (const b of r.barras.filter(b => b.estado !== "normal")) {
+    assert.equal(b.pagado, null);
+    assert.equal(b.porCobrar, null);
+  }
+});

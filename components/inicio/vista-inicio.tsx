@@ -341,7 +341,7 @@ function TarjetaVentas({
       <GraficoVentas
         barras={r.barras}
         seleccion={r.seleccion}
-        titulo={`Ventas y por despachar ${r.seleccion === null ? r.titulo : ""} ${POR[r.vista]}`.replace(/\s+/g, " ")}
+        titulo={`Importes pagados y por cobrar ${r.seleccion === null ? r.titulo : ""} ${POR[r.vista]}`.replace(/\s+/g, " ")}
         alElegir={alElegir}
         alLimpiar={alLimpiar}
         alTocarVacia={alTocarVacia}

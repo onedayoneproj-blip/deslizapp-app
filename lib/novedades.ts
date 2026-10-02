@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.31.8",
+    fecha: "2026-10-02",
+    titulo: "Tus ventas, con las cuentas claras.",
+    cambios: [
+      "El gráfico distingue lo pagado y lo que falta por cobrar, incluidos los abonos parciales.",
+      "Conserva los mismos pedidos y períodos para revisar tus importes.",
+    ],
+  },
+  {
     version: "0.31.7",
     fecha: "2026-10-02",
     titulo: "Todo en su sitio.",
