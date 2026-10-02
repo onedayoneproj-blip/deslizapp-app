@@ -158,8 +158,8 @@ aplicar la migración mediante el conector Supabase. La versión aplicada es
 con el identificador generado por Supabase. No se alteraron entradas históricas.
 La RPC, RLS y los permisos se comprobaron en producción; incrementos,
 disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
-tienda pasaron dentro de una transacción revertida. Las existencias quedaron
-intactas y no persistieron ajustes de prueba. Ver `docs/validacion-inventario-pr20.md`.
+tienda pasaron dentro de una transacción revertida. No persistieron ajustes de prueba; después se observaron dos reposiciones
++1 registradas a las 20:36:30/20:36:36 UTC, posteriores a la verificación. Ver `docs/validacion-inventario-pr20.md`.
 
 PR #2 de reconciliación sigue separado: los identificadores antiguos todavía
 difieren del historial de Supabase. No ejecutar un `db push` general a ciegas.

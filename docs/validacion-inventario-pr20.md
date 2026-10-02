@@ -5,7 +5,7 @@ Base revisada: main `a1ce8b3fdb53ccd5ad186644df19b01576dc25d4` y PR `52067cb7d96
 
 ## Resultado y límites
 
-La implementación se publicó en producción después de fusionar PR #20 en main `3daf0ee10cd292205445de70b5d32436effcab47`. La migración `20261002203414_ajustes_inventario.sql` **está aplicada** en Supabase. Se añadieron la tabla/RPC/permisos y una entrada de migración; las existencias se conservaron. PR #2 sigue separado y sin fusionar.
+La implementación se publicó en producción después de fusionar PR #20 en main `3daf0ee10cd292205445de70b5d32436effcab47`. La migración `20261002203414_ajustes_inventario.sql` **está aplicada** en Supabase. Se añadieron la tabla/RPC/permisos y una entrada de migración; la aplicación del esquema no modifica las existencias. PR #2 sigue separado y sin fusionar.
 
 Solo producción (`euihaeyfdlpvmbtfzvnt`) es accesible mediante el conector. Otros entornos y las bases locales de Claude Code/Codex siguen desconocidos. La base PostgreSQL de estas pruebas es desechable, no una tienda real.
 
@@ -52,7 +52,7 @@ Los primeros intentos del nuevo script de navegador tuvieron errores del propio 
 - Aplicación individual de la migración mediante Supabase: pasó. Identificador registrado `20261002203414`; historial anterior sin cambios.
 - Comprobación posterior: tabla y RPC presentes, RLS habilitado, acceso anónimo a RPC rechazado y escritura directa del registro bloqueada.
 - En producción, con rol authenticated y membresía existente, una transacción con ROLLBACK comprobó +1, −1, registro de cantidades/actor, stock negativo rechazado, UPDATE directo rechazado y otra tienda rechazada. No se dejaron cambios de prueba.
-- Inventario: 15 productos; firma de id/stock anterior y posterior `5f2c1e4029397d3d8a7edb11abe3456b`. Registros de prueba persistidos: 0.
+- Antes de aplicar: 15 productos, firma id/stock `5f2c1e4029397d3d8a7edb11abe3456b`. La lectura inmediata tras el ROLLBACK confirmó 0 ajustes. Después se observaron dos reposiciones +1 guardadas a las 20:36:30 y 20:36:36 UTC, posteriores a las pruebas; el stock pasó 1→2→3. La lectura posterior dio firma `ceb226b52e3817d96a47053faf962d60`. Estas reposiciones no proceden de la transacción de prueba revertida; no se eliminaron ni se revirtieron acciones posteriores.
 - Asesores de seguridad: la RPC genera el aviso de SECURITY DEFINER ejecutable por authenticated; es deliberado para las dos escrituras atómicas y se validaron auth.uid(), membresía, search_path vacío y EXECUTE restringido. Referencia: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable . Los demás avisos históricos quedan fuera de esta entrega.
 - Esta verificación de SQL no acredita un recorrido de navegador con tienda real ni Safari físico.
 
