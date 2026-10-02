@@ -45,3 +45,26 @@ export function mensajeJugada(id: IdJugada, cliente: string, vendedora: string, 
   const enlace = enlaceCatalogo(urlCatalogo)?.href;
   return `${saludo} ${textos[id]}${enlace ? ` Puedes ver el catálogo aquí: ${enlace}` : ""}`;
 }
+
+/** Tres textos locales para revisar antes de abrir WhatsApp; ningún envío ocurre aquí. */
+export function borradoresJugada(id: IdJugada, cliente: string, vendedora: string, tienda: string, urlCatalogo?: string | null) {
+  const nombre = cliente.trim() || "¡Hola!";
+  const firma = vendedora.trim() ? `Soy ${vendedora.trim()} de ${tienda.trim() || "la tienda"}.` : `Te escribo de ${tienda.trim() || "la tienda"}.`;
+  const inicio = `¡Hola, ${nombre}! ${firma}`;
+  const frases: Record<IdJugada, [string, string, string]> = {
+    volver: ["Hace tiempo que no conversamos y me dieron ganas de saludarte. ¿Cómo estás?", "Quería saber si puedo ayudarte con algo de la tienda.", "Si quieres echar un vistazo a nuestro catálogo, te lo dejo por aquí."],
+    segundo: ["Gracias por tu primera compra. Quería saludarte y saber cómo estás.", "Gracias por comprar en nuestra tienda. Si necesitas algo más, puedes escribirme.", "Si te apetece mirar el catálogo otra vez, aquí lo tienes."],
+    gracias: ["Gracias por volver a elegirnos. Quería saludarte y agradecerte la confianza.", "Gracias por comprar de nuevo en nuestra tienda. Aquí estoy si necesitas algo.", "Agradezco que vuelvas. Si quieres mirar nuestro catálogo, te lo comparto."],
+    primer: ["Quería saludarte y presentarte nuestra tienda. ¿Cómo estás?", "Te escribo para presentarme. Si necesitas ayuda con la tienda, aquí estoy.", "Si quieres conocer lo que tenemos, te comparto el catálogo."],
+  };
+  const enlace = enlaceCatalogo(urlCatalogo)?.href;
+  const sinEnlace: Record<IdJugada, string> = {
+    volver: "Si quieres ver lo que tenemos en la tienda, dime y te ayudo.",
+    segundo: "Si quieres conocer más de la tienda, escríbeme y te ayudo.",
+    gracias: "Si algún día quieres mirar lo que tenemos, estaré aquí para ayudarte.",
+    primer: "Si quieres conocer nuestra tienda, dime y te cuento más.",
+  };
+  return (["Cercano", "Directo", enlace ? "Mirar el catálogo" : "Conocer la tienda"] as const).map((tono, i) => ({
+    tono, texto: `${inicio} ${i === 2 && !enlace ? sinEnlace[id] : frases[id][i]}${i === 2 && enlace ? ` ${enlace}` : ""}`,
+  }));
+}

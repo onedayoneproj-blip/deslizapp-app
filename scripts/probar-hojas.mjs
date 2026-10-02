@@ -68,7 +68,7 @@ async function conAbono(page) {
   await page.waitForTimeout(600);
 }
 
-const navegador = await playwright.chromium.launch();
+const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH,args:["--no-sandbox"]} : {});
 try {
   // ---- 1. Sin cambios: cada gesto cierra SOLO la hoja de arriba
   for (const gesto of ["deslizar", "fondo", "escape", "equis", "atras"]) {

@@ -118,7 +118,7 @@ async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false
   await page.waitForTimeout(300);
 }
 
-const navegador = await playwright.chromium.launch();
+const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH,args:["--no-sandbox"]} : {});
 try {
   // ---- Buscador del Catálogo
   {

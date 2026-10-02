@@ -74,3 +74,22 @@ test('mensajes editables sin promesas ni enlaces inseguros', () => {
   assert.doesNotMatch(m,/descuento|premio|producto favorito/i);
   assert.doesNotMatch(mensajeJugada('primer','Ana','','T','javascript:alert(1)'),/javascript:/);
 });
+
+test('tres borradores distintos por jugada, con enlace HTTPS solo cuando es válido', async () => {
+  const { borradoresJugada } = await import('../lib/proxima-jugada.ts');
+  for (const id of ['volver', 'segundo', 'gracias', 'primer']) {
+    const conEnlace = borradoresJugada(id, 'Ana', 'Michel', 'Esencias', 'https://ejemplo.com/catalogo');
+    assert.deepEqual(conEnlace.map((b) => b.tono), ['Cercano', 'Directo', 'Mirar el catálogo']);
+    assert.equal(new Set(conEnlace.map((b) => b.texto)).size, 3);
+    for (const b of conEnlace) {
+      assert.match(b.texto, /Ana/); assert.match(b.texto, /Michel/); assert.match(b.texto, /Esencias/);
+      assert.doesNotMatch(b.texto, /descuento|premio|producto favorito|novedad/i);
+    }
+    assert.doesNotMatch(conEnlace[0].texto + conEnlace[1].texto, /https:\/\//);
+    assert.match(conEnlace[2].texto, /https:\/\/ejemplo.com\/catalogo/);
+    const sinEnlace = borradoresJugada(id, 'Ana', '', 'Esencias', 'javascript:alert(1)');
+    assert.equal(sinEnlace.length, 3);
+    assert.equal(sinEnlace[2].tono, 'Conocer la tienda');
+    assert.doesNotMatch(sinEnlace.map((b) => b.texto).join(' '), /javascript:|https:\/\//);
+  }
+});
