@@ -247,12 +247,6 @@ function Detalle({
 
   return (
     <div className="flex flex-col gap-3.5">
-      {pedido.estado === "despachado" && (
-        <p role="status" className="flex items-center gap-2 text-sm font-semibold text-bosque">
-          <IconoCheck tamano={18} strokeWidth={2.6} />
-          Despachado. Final feliz.
-        </p>
-      )}
       <div className="flex items-center justify-between gap-2">
         <p className="text-[13px] font-bold text-suave">
           {fechaCorta(pedido.creadoEn)} · {pedido.origen === "catalogo" ? "desde el catálogo" : "manual"}
@@ -291,6 +285,16 @@ function Detalle({
           );
         })}
       </div>
+
+      {pedido.estado === "despachado" && (
+        <>
+          <p role="status" className="flex items-center gap-2 text-sm font-semibold text-bosque">
+            <IconoCheck tamano={18} strokeWidth={2.6} />
+            Despachado. Final feliz.
+          </p>
+          {tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
+        </>
+      )}
 
       {/* Cliente */}
       <div className="flex items-center gap-3 rounded-[20px] border border-linea bg-white p-3">
@@ -435,7 +439,6 @@ function Detalle({
           ) : (
             <>
               {botonEditar}
-              {tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
             </>
           )}
         </div>
