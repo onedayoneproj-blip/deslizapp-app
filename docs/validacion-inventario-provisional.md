@@ -24,7 +24,7 @@ y luego el editor, evitando competir por el historial. Los efectos de foco perma
 ## SQL y estado de producción
 
 - Aplicada previamente: `20261002203414_ajustes_inventario.sql`.
-- Preparada, **NO aplicada**: `20261002205119_guardar_producto_inventario.sql`.
+- **Aplicada en producción tras autorización del usuario**: `20261002223718_guardar_producto_inventario.sql`.
 - Nueva RPC `guardar_producto_inventario`, sin sobrecargas: conserva intacta la
   firma/comportamiento de `ajustar_stock`, `despachar_pedido`, `deshacer_despacho`.
   El índice añadido corresponde a la consulta por tienda/producto/fecha/ID.
@@ -36,8 +36,8 @@ y luego el editor, evitando competir por el historial. Los efectos de foco perma
   Las fotos se suben antes: Storage no forma parte de la transacción SQL. Ante
   error conocido se limpian archivos nuevos; ante respuesta incierta se conservan
   para no borrar una foto posiblemente guardada (pueden quedar archivos sin usar).
-- Producción se consultó **solo en lectura**: historial de 17 migraciones,
-  RLS del historial y firmas actuales de RPC. La nueva función no existe aún.
+- Durante la implementación, producción se consultó **solo en lectura**: historial de 17 migraciones,
+  RLS del historial y firmas actuales de RPC. La nueva función todavía no existía en esa revisión previa.
   No se aplicó SQL, no se cambiaron cantidades ni historial en producción.
 - Solo producción es accesible. Staging/desarrollo y bases locales de otras
   sesiones de Claude Code/Codex siguen desconocidos; deben revisar la nueva
@@ -47,8 +47,18 @@ y luego el editor, evitando competir por el historial. Los efectos de foco perma
   Nunca sustituirlo por un push general ni reaplicar migraciones anteriores.
 - Compatibilidad: aplicar esta migración no modifica filas actuales y permite
   seguir usando la app publicada. **La nueva app necesita la nueva RPC para
-  guardar desde la vista previa/editor en modo real.** Revisar y autorizar la
-  aplicación en otra tarea antes de publicar; no probar escrituras reales ahora.
+  guardar desde la vista previa/editor en modo real.** El usuario autorizó aplicar la
+  migración y fusionar PR #21; la migración se aplicó antes de publicar la app.
+
+
+## Aplicación autorizada en producción — 2026-10-02
+
+- SQL completo comprobado en una transacción revertida antes de aplicar: función e índice presentes, RPC anterior conservada, EXECUTE permitido a authenticated y bloqueado a anon.
+- Aplicada exclusivamente esta migración mediante el conector Supabase. Versión generada `20261002223718`; archivo renombrado desde `20261002205119` para coincidir, sin alterar entradas del historial interno ni mezclar PR #2.
+- Verificación autenticada en producción con ROLLBACK: guardado conjunto de ficha+stock, registro de actor/cantidades, ID repetido sin duplicado, conflicto de stock sin ficha parcial y rechazo de otra tienda pasaron.
+- Después de revertir: 15 productos, 2 ajustes originales y firma de stock `338ecaf4cc10f82a36acf78d275e6596`, igual que antes. Sin datos de prueba persistidos.
+- Dependencia real `gastar_creditos(uuid,integer)` confirmada; no se ejercitó un retoque de Storage real.
+- El `db push --dry-run` del CLI sigue sin ejecutarse. La comprobación transaccional y la aplicación individual no equivalen a ese comando. No se reaplicaron migraciones anteriores.
 
 ## Comprobaciones ejecutadas
 
@@ -82,7 +92,7 @@ Capturas reales de Chromium local, demo con nombre largo y stock cero:
 [390](capturas/inventario-provisional/sin-foto-390.png),
 [430](capturas/inventario-provisional/sin-foto-430.png).
 
-Pendientes: iPhone/Safari físico, VoiceOver, lecturas y escrituras autenticadas de
+Pendientes: iPhone/Safari físico, VoiceOver, recorrido de navegador autenticado de
 esta rama en una tienda real, red real incierta, subida/retoque/borrado de fotos
 contra Storage real y reconciliación antigua de migraciones. No se anuncian como
 aprobadas. El modo real requiere primero la migración nueva; no hay fallback a
@@ -102,6 +112,5 @@ escrituras directas de stock ni al ajuste inmediato anterior.
    con borrador también pregunta. No cambia stock hasta confirmar el guardado.
 7. Revisar stock cero (− deshabilitado), sin control (sin controles), teclado de
    nota y nombres largos; repetir con Reducir movimiento activado en iPhone.
-8. Tienda real: esperar revisión y aplicación autorizada de la nueva migración.
-   Después repetir en un producto destinado a validación con la dueña presente;
+8. Tienda real: la migración ya está aplicada. Tras publicar PR #21, repetir en un producto destinado a validación con la dueña presente;
    no crear ajustes ni pedidos de prueba automáticamente en producción.

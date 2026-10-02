@@ -132,7 +132,7 @@ Las tarjetas de Catálogo abren `/catalogo/[id]`: ficha de solo lectura con mini
 estado y stock. «Crear pedido» abre el formulario preseleccionado; solo despachar
 el pedido descuenta inventario. «Editar» conserva el formulario y sus fotos.
 
-**Implementación de esta rama, pendiente de publicar:** vista previa y edición
+**Inventario provisional de PR #21:** vista previa y edición
 comparten un borrador de cantidad mediante `useData()`. +/− no escribe; guardar
 confirma un único delta final. Disminuir pide motivo al guardar («Otro» requiere
 nota); aumentar usa reposición. Descartar o volver al stock base no crea registros.
@@ -142,13 +142,18 @@ actor y fecha de Santo Domingo, por tramos de diez y con error/reintento.
 
 `20261002203414_ajustes_inventario.sql` **está aplicada**: tabla `ajustes_inventario`,
 RLS y RPC `ajustar_stock`. La nueva migración
-`20261002205119_guardar_producto_inventario.sql` **NO está aplicada**. Añade una RPC
+`20261002223718_guardar_producto_inventario.sql` **está aplicada en producción**. Añade una RPC
 con nombre distinto (sin sobrecarga), conserva la anterior e incorpora índice del
 historial. Bloquea el producto, verifica base/membresía/actor y guarda ficha, stock,
 ajuste y créditos de retoque juntos. El ID del ajuste evita repetir una operación
 confirmada. El cliente no puede escribir stock ni historial directamente.
-**Antes de usar esta rama en modo real deberá revisarse y autorizarse la aplicación de esa migración
-en una tarea posterior; no publicar la app antes de coordinarla.**
+El usuario autorizó aplicar esta migración y después fusionar PR #21. Se aplicó
+mediante el conector, con la versión `20261002223718` generada por Supabase.
+El archivo se renombró desde `20261002205119`; no se alteró el historial interno.
+En producción se comprobó ficha+stock, registro/actor, repetición sin duplicar,
+conflicto sin ficha parcial y aislamiento mediante una transacción revertida.
+La lectura posterior conservó 15 productos, 2 ajustes y la firma de stock
+`338ecaf4cc10f82a36acf78d275e6596`. No equivale al recorrido de navegador real.
 
 Si cambia el stock, se relee el producto/historial y se conserva la propuesta para
 revisarla. Ante resultado de red incierto, se bloquea el reenvío hasta releer; no hay
@@ -162,7 +167,7 @@ antes de navegar mediante `alSalir`; las otras hojas mantienen su comportamiento
 Los efectos de foco siguen estables, sin cambios por teclado/resize. No se añaden
 animaciones ni entradas de filas. Ver `docs/validacion-inventario-provisional.md`.
 
-**Histórico de PR #20 (no describe la interacción pendiente de esta rama):**
+**Histórico de PR #20 (interacción anterior al inventario provisional):**
 La RPC, RLS y los permisos se comprobaron en producción; incrementos,
 disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
 tienda pasaron dentro de una transacción revertida. No persistieron ajustes de prueba; después se observaron dos reposiciones

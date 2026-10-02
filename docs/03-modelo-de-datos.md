@@ -75,7 +75,7 @@ Un ajuste manual (reposición, daño, pérdida, corrección u otro) se guarda se
 
 ### Guardado coordinado (pendiente de aplicar)
 
-`20261002205119_guardar_producto_inventario.sql` añade
+`20261002223718_guardar_producto_inventario.sql` añade
 `guardar_producto_inventario(tienda_id, producto_id, cambios, stock_base,
 stock_nuevo, motivo, nota, ajuste_id, retocar)` (parámetros SQL con prefijo `p_`).
 La ficha admite solo nombre/precio/fotos/foto_retocada/categoria/activo/destacado.
