@@ -262,6 +262,9 @@ export function rangoComparacionBarra(vista: Vista, indice: number, ancla: Ancla
 type PedidoResumen = {
   estado: EstadoPedido;
   total: number;
+  /** Estado de pago calculado por la fuente compartida; opcional para datos históricos sin crédito. */
+  pagado?: number;
+  saldo?: number;
   creadoEn: string;
   /** Cuándo se despachó (o la fecha elegida en una venta pasada). Nulo si aún no se despacha. */
   despachadoEn?: string | null;
@@ -427,8 +430,19 @@ export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifra
   };
 }
 
-/** Ventas confirmadas y pedidos por despachar agrupados por fecha de creación. */
+/** Reparto actual de pago, conservando el total y sin importes negativos. */
+function partesPago(p: PedidoResumen): { pagado: number; porCobrar: number } {
+  const total = Math.max(0, p.total);
+  const conocido = p.pagado !== undefined && Number.isFinite(p.pagado) ? p.pagado
+    : p.saldo !== undefined && Number.isFinite(p.saldo) ? total - p.saldo : total;
+  const pagado = Math.min(total, Math.max(0, conocido));
+  return { pagado, porCobrar: total - pagado };
+}
+
+/** Ventas por fecha de despacho y pendientes por creación; colores según su pago actual. */
 export type BarraConValor = Barra & {
+  pagado: number | null;
+  porCobrar: number | null;
   ventas: number | null;
   ventasCantidad: number | null;
   porDespachar: number | null;
@@ -477,11 +491,14 @@ export function calcularResumen(
   const despachados = ventasDe(datos.pedidos);
   const porDespachar = datos.pedidos.filter((p) => p.estado === "por_despachar");
   const conValor: BarraConValor[] = bs.map((b) => {
-    if (b.estado !== "normal") return { ...b, ventas: null, ventasCantidad: null, porDespachar: null, porDespacharCantidad: null, pedidos: null };
+    if (b.estado !== "normal") return { ...b, pagado: null, porCobrar: null, ventas: null, ventasCantidad: null, porDespachar: null, porDespacharCantidad: null, pedidos: null };
     const ventas = despachados.filter((p) => dentro(fechaDeVenta(p), b));
     const pendientes = porDespachar.filter((p) => dentro(p.creadoEn, b));
+    const pagos = [...ventas, ...pendientes].map(partesPago);
     return {
       ...b,
+      pagado: pagos.reduce((s, p) => s + p.pagado, 0),
+      porCobrar: pagos.reduce((s, p) => s + p.porCobrar, 0),
       ventas: ventas.reduce((s, p) => s + p.total, 0),
       ventasCantidad: ventas.length,
       porDespachar: pendientes.reduce((s, p) => s + p.total, 0),

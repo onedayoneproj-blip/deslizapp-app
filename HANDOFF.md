@@ -104,9 +104,11 @@ Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cupón" o ticket co
 Una **venta confirmada** es un pedido `despachado` (fecha = `despachado_en`, o `creado_en` si viniera nulo); un **pedido recibido** es
 cualquier no cancelado (por `creado_en`); un **pendiente** es `nuevo` o `por_despachar`. Vive en `lib/resumen.ts` (`ventasDe`,
 `pendientesDe`, `fechaDeVenta`) con pruebas en `tests/resumen.test.mjs`. La cifra y las barras principales del Resumen suman ventas
-confirmadas más pedidos `por_despachar` del tramo (no los `nuevo`); barras rosas = despachados, mandarina = por despachar. La variación
+confirmadas más pedidos `por_despachar` del tramo (no los `nuevo`); barras rosas = pagado, mandarina = por cobrar, según los importes actuales de `getPedidos`
+(incluye abonos parciales; no agrupa cobros por fecha de abono). El total no cambia. La variación
 compara ambos grupos. Ticket promedio, top 3 y Clientes continúan usando solo pedidos despachados; "Pedidos recibidos" y "De aaah a
-pedido" usan recibidos. La tarjeta conserva la línea con el total global por despachar. Detalle en docs/03 y docs/04.
+pedido" usan recibidos. La tarjeta conserva la línea con el total global por despachar. Detalle en docs/03 y docs/04; validación de los colores de pago en
+`docs/validacion-grafico-pagos.md`.
 
 **Borrar contacto:** la edición ofrece conservar los pedidos y abonos sin asociarlos al contacto, o borrar también todo ese historial.
 La segunda opción exige confirmación. Demo y Supabase comparten la regla; la RPC `borrar_cliente` en `20261002161112_borrar_cliente.sql`
