@@ -14,27 +14,41 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
+import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
+import { formatearPesos } from "@/lib/formato";
+import { precioConPromo } from "@/lib/promos";
 
 /**
  * Hoja de producto sobre el Catálogo. Sin `productoId` crea; con `productoId` edita.
  * Al cerrar vuelve a /catalogo sin perder la búsqueda ni el filtro (los guarda el layout).
  */
-export function HojaProducto({ productoId }: { productoId?: string }) {
+export function HojaProducto({ productoId, desdeVistaPrevia = false }: { productoId?: string; desdeVistaPrevia?: boolean }) {
   const router = useRouter();
   const { getProducto, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
-  const cerrar = useCallback(() => router.push("/catalogo", { scroll: false }), [router]);
+  const cerrar = useCallback(
+    () => router.push(desdeVistaPrevia && productoId ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }),
+    [router, desdeVistaPrevia, productoId],
+  );
 
-  const { data: producto, cargando } = useConsulta(`producto:${tiendaId}:${productoId ?? "nuevo"}`, () =>
+  const { data: producto, cargando, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId ?? "nuevo"}`, () =>
     productoId ? getProducto(tiendaId, productoId) : Promise.resolve(null),
   );
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const { data: productos, error: errorProductos, reintentar: reintentarProductos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
 
   const editando = Boolean(productoId);
   const titulo = editando ? "Editar producto" : "Nuevo producto";
 
   // Editar: esperar a tener el producto (y avisar si no es de esta tienda).
-  if (editando && producto === undefined && cargando) return null;
+  if (editando && producto === undefined && cargando) {
+    return <Hoja abierta alCerrar={cerrar} titulo={titulo}><CuerpoCargando titulo="producto" /></Hoja>;
+  }
+  if (editando && error) {
+    return <Hoja abierta alCerrar={cerrar} titulo={titulo}><CuerpoConError alCerrar={cerrar} alReintentar={reintentar} textoVolver="Volver al catálogo" /></Hoja>;
+  }
+  if (errorProductos) {
+    return <Hoja abierta alCerrar={cerrar} titulo={titulo}><CuerpoConError alCerrar={cerrar} alReintentar={reintentarProductos} textoVolver={desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"} /></Hoja>;
+  }
   if (editando && !producto) {
     return (
       <Hoja abierta alCerrar={cerrar} titulo={titulo}>
@@ -42,17 +56,64 @@ export function HojaProducto({ productoId }: { productoId?: string }) {
           <p className="font-display text-xl">Este producto no vive aquí.</p>
           <p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p>
           <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
-            Volver al catálogo
+            {desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"}
           </button>
         </div>
       </Hoja>
     );
   }
-  if (!productos) return null;
+  if (!productos) return <Hoja abierta alCerrar={cerrar} titulo={titulo}><CuerpoCargando titulo="productos" /></Hoja>;
 
   return (
     <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande">
       <FormularioProducto key={producto?.id ?? "nuevo"} producto={producto ?? null} productos={productos} alTerminar={cerrar} />
+    </Hoja>
+  );
+}
+
+/** Vista de solo lectura del catálogo. Los ajustes de stock quedan pendientes hasta contar con un registro persistente. */
+export function HojaVistaProducto({ productoId }: { productoId: string }) {
+  const router = useRouter();
+  const { getProducto, getPromos } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const cerrar = useCallback(() => router.push("/catalogo", { scroll: false }), [router]);
+  const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
+  const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+
+  if (error || errorPromos) return <Hoja abierta alCerrar={cerrar} titulo="Producto"><CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo" /></Hoja>;
+  if (producto === undefined || promos === undefined) return <Hoja abierta alCerrar={cerrar} titulo="Producto"><CuerpoCargando titulo="producto" /></Hoja>;
+  if (!producto) {
+    return <Hoja abierta alCerrar={cerrar} titulo="Producto"><div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p><button type="button" onClick={cerrar} className="tocable mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">Volver al catálogo</button></div></Hoja>;
+  }
+
+  const precio = precioConPromo(producto, promos);
+  const estado = producto.stock === 0 ? "Agotado" : !producto.activo ? "Oculto" : "Visible en el catálogo";
+  return (
+    <Hoja abierta alCerrar={cerrar} titulo="Vista previa del producto" altura="auto">
+      <div className="flex flex-col gap-4 text-bosque">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[22px] bg-arena">
+          {producto.fotos[0] ? <Foto src={producto.fotos[0]} alt={`Foto de ${producto.nombre}`} className="h-full w-full" sizes="440px" /> : <div className="grid h-full place-items-center font-display text-5xl text-bosque/30">{producto.nombre[0]}</div>}
+          <span className={`absolute top-3 left-3 rounded-full px-3 py-1.5 text-sm font-extrabold ${producto.stock === 0 ? "bg-bosque text-papel" : !producto.activo ? "bg-papel text-bosque" : "bg-menta text-bosque"}`}>{estado}</span>
+        </div>
+        <div>
+          <h2 className="font-display text-[25px] leading-tight">{producto.nombre}</h2>
+          <p className="mt-1 flex items-baseline gap-2"><span className="text-[19px] font-extrabold">{formatearPesos(precio.precio)}</span>{precio.precioAntes && <span className="text-[14px] text-suave line-through">{formatearPesos(precio.precioAntes)}</span>}</p>
+          {producto.categoria && <p className="mt-1 text-[14px] text-suave">{producto.categoria}</p>}
+        </div>
+
+        <section aria-label="Inventario" className="rounded-[18px] border-[1.5px] border-borde bg-white p-4">
+          <p className="text-[13px] font-bold text-suave">Inventario</p>
+          {producto.stock === null ? (
+            <p className="mt-1 font-extrabold">Sin control de stock</p>
+          ) : (
+            <p className="mt-1 font-display text-[27px] leading-tight">{producto.stock} {producto.stock === 1 ? "unidad disponible" : "unidades disponibles"}</p>
+          )}
+          {producto.stock !== null && <p className="mt-1 text-[13px] leading-snug text-suave">Los ajustes de cantidad necesitan un registro de inventario. Esa operación aún no está disponible.</p>}
+        </section>
+
+        <button type="button" onClick={() => router.push(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`, { scroll: false })} className="tocable h-14 rounded-full bg-bosque text-[16px] font-extrabold text-papel">Crear pedido</button>
+        <button type="button" onClick={() => router.push(`/catalogo/${producto.id}/editar`, { scroll: false })} className="tocable h-12 rounded-full border-[1.5px] border-bosque bg-white font-extrabold text-bosque">Editar</button>
+      </div>
     </Hoja>
   );
 }

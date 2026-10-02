@@ -125,6 +125,25 @@ los tres segmentos, nuevos y dormidos. No requiere migraciones.
 
 La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galería y cuatro detalles dentro de la misma hoja. «Escribir» abre una hoja apilada con tres borradores locales; el elegido se puede editar antes de abrir WhatsApp, sin envío automático. `lib/proxima-jugada.ts` reutiliza el análisis de compras despachadas, excluye clientes con pedidos en curso y respeta la tienda activa; los grupos se recalculan al cambiar los datos o el día de Santo Domingo. Los datos de ejemplo del mockup no se copian al código. Ver `docs/04-pantallas.md` y `tests/proxima-jugada.test.mjs`.
 
+## Vista previa de producto e inventario
+
+Las tarjetas de Catálogo abren `/catalogo/[id]`, una hoja de solo lectura con el
+producto, precio vigente, estado y stock. «Crear pedido» abre el formulario
+actual con el producto preseleccionado; no guarda ni descuenta unidades hasta
+que se complete el pedido y se despache. «Editar» conserva el formulario y la
+confirmación de cambios sin guardar. `stock = null` sigue significando «Sin
+control de stock».
+
+No hay una operación persistente para ajustar inventario por daño, pérdida o
+corrección. Producción solo tiene `productos.stock` y las operaciones de
+despachar/deshacer despacho; `actualizarProducto` reemplaza el campo sin
+historial. Por eso la vista previa no cambia cantidades todavía. Antes de
+habilitar aumentar/disminuir hace falta aprobar una migración con registro
+tenant-scoped del delta/motivo/actor/fecha y una operación atómica en ambas
+implementaciones de `FuenteDatos` que aplique el ajuste sin permitir stock
+negativo. No escribir directamente a Supabase ni reutilizar `actualizarProducto`
+para simular ese registro.
+
 ## Ventas a crédito y abonos
 
 Un pedido puede ser `contado` o `credito` (columnas `pago_modo` y `pago_fecha_acordada` de `pedidos`, que la app sí escribe) y los abonos
