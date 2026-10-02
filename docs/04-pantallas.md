@@ -348,9 +348,9 @@ provisional hasta que exista la plantilla `/tienda/[slug]`.
 ## 3. Detalle de pedido
 
 **Qué muestra** (hoja inferior):
-- Fecha y origen ("Ayer, 6:12 p. m. · manual"), "Pedido #1040" + chip de
-  estado ("Nuevo" Mandarina, "Por despachar" Rosa, "Despachado" Verde,
-  "Cancelado" arena).
+- Fecha y origen ("Ayer, 6:12 p. m. · manual"), "Pedido #1040" y estado.
+  En despachados, "Despachado. Final feliz." aparece arriba como texto con check,
+  sin fondo ni apariencia de botón. Los demás estados mantienen su chip.
 - **Línea de avance**: Recibido → Confirmado → Despachado (3 tramos que se
   pintan de verde según el estado).
 - Cliente: iniciales, nombre, teléfono y botón **"Escribir"** (abre WhatsApp
@@ -365,6 +365,9 @@ provisional hasta que exista la plantilla `/tienda/[slug]`.
   hablaste con el cliente y va) → pasa a `por_despachar`. Opción secundaria
   "Cancelar pedido" → `cancelado`.
 - Si está en `por_despachar`: botón principal Mandarina **"Despachar pedido"**.
+- Si está `despachado`: debajo de **"Editar pedido"** aparece **"Descargar factura (PDF)"**.
+  Abre el diálogo del dispositivo para imprimir o guardar el comprobante de venta como PDF.
+  Es un comprobante sencillo; no incluye datos fiscales NCF/RNC.
 - Al presionar "Despachar pedido":
   - `estado` pasa a `despachado`, se registra `despachado_en`
   - el `stock` de cada producto del pedido se descuenta según `cantidad`

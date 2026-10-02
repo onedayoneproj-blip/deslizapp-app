@@ -247,3 +247,7 @@ El catálogo público integrado queda fuera de esta entrega (Supabase y el
 acceso con Google llegaron en el paso 11) (están detallados como próximos pasos en
 `docs/05-arquitectura.md` y `docs/06-orden-de-construccion.md`, para que quien
 retome sepa exactamente qué sigue).
+
+
+## Pedido despachado: estado y comprobante
+En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» está «Descargar factura (PDF)»; abre la impresión del dispositivo para guardar el comprobante como PDF. Es un comprobante sencillo, no una factura fiscal: la app aún no guarda RNC ni NCF.
