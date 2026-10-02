@@ -296,7 +296,7 @@ function TarjetaVentas({
     <section data-tarjeta-ventas aria-label={`Ventas ${r.titulo}`} className="rounded-[26px] bg-bosque px-[18px] pt-5 pb-4 text-papel">
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p data-titulo-ventas className="text-[13px] font-bold tracking-[0.08em] text-rosa uppercase">
+          <p data-titulo-ventas className="text-[12px] font-bold tracking-normal text-rosa">
             Ventas + por despachar {r.titulo}
           </p>
           <p data-ventas className="mt-1 font-display text-[36px] leading-[1.05]">
