@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.31.2",
+    fecha: "2026-10-02",
+    titulo: "Tu pedido también se puede compartir.",
+    cambios: [
+      "Elige PDF o imagen al descargar el recibo de una venta.",
+      "Compártelo desde la hoja de tu teléfono con un mensaje listo para enviar.",
+    ],
+  },
+  {
     version: "0.31.1",
     fecha: "2026-10-02",
     titulo: "Tu pedido, listo para llevar.",
