@@ -10,7 +10,8 @@ solo si cambia la cantidad. Descartar conserva el resto de la ficha. El editor u
 el guardado conjunto existente y no duplica el botón general con ajuste pendiente.
 El texto distingue stock actual, unidades propuestas y delta, con singular/plural.
 
-Ver historial usa BotonVerMas y abre una vista interna de la misma Hoja. El
+Ver historial usa una fila de ancho completo con el borde y chevron del selector
+de cliente y abre una vista interna de la misma Hoja. El
 formulario sigue montado, oculto; volver restaura scroll y foco. Atrás vuelve a la
 ficha sin descartar ni preguntar; X/Escape mantienen el aviso de salida real.
 No se modificaron useData, fuentes demo/real, operaciones SQL ni migraciones.
@@ -58,3 +59,17 @@ Descartar cantidad debe conservar el nombre; Guardar con ajuste confirma ambos.
 Prueba también cero, sin control, salir sin guardar y el teclado del iPhone.
 En una tienda real, revisa primero lectura/navegación; confirma un ajuste únicamente
 si es un movimiento de inventario que necesitas registrar de verdad.
+
+## Pulido posterior: botones equilibrados
+
+Guardar cambios y Descartar usan dos columnas iguales. Ver historial sustituye la
+píldora centrada por una fila rectangular redondeada, de ancho completo, con el
+chevron existente (decorativo). La operación y navegación no cambian.
+
+Validación ejecutada para el pulido: lint, 122 tests y build Webpack con TypeScript
+pasaron. La prueba de navegación interna pasó a 360/390/430 px y 390 px con
+movimiento reducido; verifica ahora también que los dos botones tienen exactamente
+el mismo ancho. Capturas reales inspeccionadas: sin overflow y texto legible.
+No se repitieron los scripts generales de teclado/hojas: este pulido no modifica
+sus eventos ni efectos, y la prueba específica comprobó foco, Atrás y Escape.
+Safari físico y tienda real siguen pendientes; sin cambios de Supabase.

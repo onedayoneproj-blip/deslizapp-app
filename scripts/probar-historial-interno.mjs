@@ -17,7 +17,7 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  ok(await inventario.getByText('Añadirás 1 unidad',{exact:true}).count()===1,`${ancho}: delta singular sin texto redundante`);
  const guardar=inventario.getByRole('button',{name:'Guardar cambios',exact:true});const descartar=inventario.getByRole('button',{name:'Descartar',exact:true});
  if(process.env.CAPTURAS&&!reducido)await page.screenshot({path:`${process.env.CAPTURAS}/inventario-${ancho}.png`});
- const g=await guardar.boundingBox(),d=await descartar.boundingBox();ok(g.height>=44&&d.height>=44&&Math.abs(g.y-d.y)<2,`${ancho}: Guardar/Descartar dentro del contenedor y uno junto al otro`);
+ const g=await guardar.boundingBox(),d=await descartar.boundingBox();ok(g.height>=44&&d.height>=44&&Math.abs(g.y-d.y)<2&&Math.abs(g.width-d.width)<1,`${ancho}: Guardar/Descartar dentro del contenedor, juntos y del mismo ancho`);
  const scroll=page.locator('[data-hoja-contenido]');await scroll.evaluate(el=>{el.scrollTop=1000;});await page.waitForTimeout(150);const posicion=await scroll.evaluate(el=>el.scrollTop);
  await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.getByRole('heading',{name:'Historial de ajustes',exact:true}).waitFor();
  ok(await page.locator('[role="dialog"]').count()===1&&await page.getByRole('alertdialog').count()===0,`${ancho}: historial interno sin apilar ni avisar de salida`);

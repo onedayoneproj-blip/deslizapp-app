@@ -18,6 +18,15 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.31.7",
+    fecha: "2026-10-02",
+    titulo: "Todo en su sitio.",
+    cambios: [
+      "Guardar y Descartar tienen el mismo espacio en Inventario.",
+      "El historial se abre desde una fila clara, con flecha para seguir.",
+    ],
+  },
+  {
     version: "0.31.6",
     fecha: "2026-10-02",
     titulo: "El inventario, más a mano.",
