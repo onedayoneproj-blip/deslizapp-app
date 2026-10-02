@@ -17,6 +17,7 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
+import { FacturaPedido } from "./factura-pedido";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
@@ -246,11 +247,17 @@ function Detalle({
 
   return (
     <div className="flex flex-col gap-3.5">
+      {pedido.estado === "despachado" && (
+        <p role="status" className="flex items-center gap-2 text-sm font-semibold text-bosque">
+          <IconoCheck tamano={18} strokeWidth={2.6} />
+          Despachado. Final feliz.
+        </p>
+      )}
       <div className="flex items-center justify-between gap-2">
         <p className="text-[13px] font-bold text-suave">
           {fechaCorta(pedido.creadoEn)} · {pedido.origen === "catalogo" ? "desde el catálogo" : "manual"}
         </p>
-        <ChipEstado estado={pedido.estado} />
+        {pedido.estado !== "despachado" && <ChipEstado estado={pedido.estado} />}
       </div>
 
       {/* Línea de avance: los pasos ANTERIORES al actual se tocan para volver a ellos (área de 44 px, barra delgada). */}
@@ -403,10 +410,6 @@ function Detalle({
       )}
       {pedido.estado === "despachado" && (
         <div className="flex flex-col gap-2">
-          <div className="flex h-[54px] items-center justify-center gap-2 rounded-full bg-rosa font-extrabold">
-            <IconoCheck tamano={20} strokeWidth={2.6} />
-            Despachado. Final feliz.
-          </div>
           {confirmando !== null ? (
             <div role="alertdialog" aria-label="Volver al paso anterior" className="rounded-[18px] bg-arena px-4 py-3">
               <p className="text-sm font-bold">Se devolverá el stock de los productos. ¿Volver a {PASOS[confirmando]}?</p>
@@ -430,8 +433,14 @@ function Detalle({
               </div>
             </div>
           ) : (
-            botonEditar
+            <>
+              {botonEditar}
+              <button type="button" onClick={() => window.print()} className={ACCION_EDITAR}>
+                Descargar factura (PDF)
+              </button>
+            </>
           )}
+          <FacturaPedido pedido={pedido} cliente={cliente} tiendaNombre={tienda?.nombre ?? "Deslizapp"} />
         </div>
       )}
       {pedido.estado === "cancelado" && (
