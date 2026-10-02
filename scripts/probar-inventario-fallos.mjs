@@ -43,7 +43,7 @@ try{
  await page.waitForTimeout(400);ok(await page.evaluate(()=>window.__intentos)===1,'Sin reintento automático');
  await page.getByRole('button',{name:'Revisar producto e historial'}).click();
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).waitFor({state:'visible'});
- await page.getByRole('button',{name:'Descartar ajuste',exact:true}).click();
+ await page.getByRole('button',{name:'Descartar',exact:true}).click();
  await simular('lento');await page.locator('button[aria-label^="Aumentar stock"]').click();
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).evaluate(b=>{b.click();b.click();});
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v3')??'{}').ajustesInventario?.length===1);
@@ -55,7 +55,7 @@ try{
  await abrir();const base=await cantidad();await simular('concurrente');await page.locator('button[aria-label^="Aumentar stock"]').click();await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();
  await page.getByText(/El stock cambió mientras ajustabas/).waitFor();
  ok(await cantidad()===base+1&&(await auditar()).length===3,'Conflicto conserva propuesta y solo registra la escritura concurrente');
- await page.getByRole('button',{name:'Descartar ajuste',exact:true}).click();ok(await cantidad()===base+2,'Descartar recupera el nuevo stock confirmado');
+ await page.getByRole('button',{name:'Descartar',exact:true}).click();await page.waitForFunction(n=>Number(document.querySelector('section[aria-label="Inventario"] p[aria-live]').textContent.match(/^\d+/)[0])===n,base+2);ok(await cantidad()===base+2,'Descartar recupera el nuevo stock confirmado');
  // Error de ajuste en edición: nombre, stock y nota deben conservarse en el borrador.
  await page.getByRole('button',{name:'Editar',exact:true}).click();await page.waitForURL('**/editar');await page.locator('section[aria-label="Inventario"]').waitFor();
  const antes=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'));
@@ -63,7 +63,7 @@ try{
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.getByRole('radio',{name:'Otro',exact:true}).click();
  await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).fill('Nota conservada');await page.getByRole('button',{name:'Guardar ajuste',exact:true}).click();await page.locator('[role="dialog"]').last().getByRole('alert').waitFor();
  ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'))===antes,'Error de validación conserva motivo y no guarda ficha ni stock');
- await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.waitForTimeout(400);await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Salir',exact:true}).click();await page.waitForURL(URL+href);
+ await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.getByRole('heading',{name:'Ajustar inventario',exact:true}).waitFor({state:'detached'});await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Salir',exact:true}).click();await page.waitForURL(URL+href);
  ok((await auditar()).length===3,'Cancelar edición fallida no altera el historial');
  await page.locator('section[aria-label="Inventario"]').waitFor();
  await page.evaluate(async()=>{
@@ -73,10 +73,11 @@ try{
   for(let n=0;n<9;n++){const p=await d.getProducto(d.tiendaActivaId,id);await d.guardarProductoConInventario(d.tiendaActivaId,id,{}, {id:crypto.randomUUID(),stockBase:p.stock,stockPropuesto:p.stock+1,motivo:'reposicion',nota:null},false);}
   const ajenos=await d.getAjustesInventario('otra-tienda',id);if(ajenos.ajustes.length)throw Error('Historial cruzó tiendas');
  });
+ await page.getByRole('button',{name:'Ver historial',exact:true}).click();
  const historial=page.getByRole('region',{name:'Ajustes de inventario'});
  await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').count()===10,'Historial carga inicialmente diez filas e identifica al actor');
  await page.evaluate(()=>{
-  const el=document.querySelector('section[aria-label="Inventario"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.getAjustesInventario)f=f.return;
+  const el=document.querySelector('section[aria-label="Ajustes de inventario"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.getAjustesInventario)f=f.return;
   window.__datosHistorial=f.memoizedProps.value;window.__leerHistorial=window.__datosHistorial.getAjustesInventario;
   window.__datosHistorial.getAjustesInventario=async()=>{throw Error('Lectura de historial fallida (doble)');};
  });
