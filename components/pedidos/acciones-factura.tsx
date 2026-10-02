@@ -68,7 +68,10 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-extrabold text-bosque">Factura</p>
+        <div className="flex min-w-0 items-baseline gap-2">
+          <p className="text-lg font-extrabold text-bosque">Factura</p>
+          <span className="text-[13px] font-semibold text-suave">{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</span>
+        </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura} aria-label="Descargar factura" title="Descargar factura" className={ACCION_CIRCULAR}>
             <IconoDescargar tamano={20} />
