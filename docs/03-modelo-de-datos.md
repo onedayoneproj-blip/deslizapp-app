@@ -70,8 +70,26 @@ Un ajuste manual (reposición, daño, pérdida, corrección u otro) se guarda se
 - La RPC `ajustar_stock(p_tienda_id, p_producto_id, p_variacion, p_motivo, p_nota)` bloquea el producto, verifica que la persona pertenezca a la tienda, rechaza stock sin control y valores negativos, y actualiza el producto e inserta el registro en una única transacción.
 - Un aumento usa el motivo `reposicion`. Una disminución requiere `dano`, `perdida`, `correccion_inventario` u `otro`; este último requiere una nota.
 - La operación usa la identidad de `auth.uid()` (nunca `user_metadata`) y `SECURITY DEFINER` con `search_path` vacío. Su ejecución se limita a `authenticated`; la tabla tiene RLS por tienda.
-- Los permisos de edición directa de `productos.stock` se retiran para la app real. El formulario sigue permitiendo definir el stock inicial al crear un producto; en uno existente se ajusta desde la vista previa.
+- Los permisos de edición directa de `productos.stock` se retiran para la app real. El formulario sigue permitiendo definir el stock inicial al crear un producto; en uno existente se propone y confirma desde la vista previa o el editor, siempre con registro.
 - Estos registros no aparecen en pedidos, ventas, Resumen ni el historial de pedidos. Las ventas siguen descontándose al despachar; deshacer el despacho devuelve esas unidades según las RPC actuales.
+
+### Guardado coordinado (pendiente de aplicar)
+
+`20261002205119_guardar_producto_inventario.sql` añade
+`guardar_producto_inventario(tienda_id, producto_id, cambios, stock_base,
+stock_nuevo, motivo, nota, ajuste_id, retocar)` (parámetros SQL con prefijo `p_`).
+La ficha admite solo nombre/precio/fotos/foto_retocada/categoria/activo/destacado.
+Con ajuste, compara base bajo `FOR UPDATE` y guarda delta/antes/después/actor en
+la misma transacción que la ficha y los créditos de retoque. Sin ajuste, mantiene
+stock y no inserta historial. Un ID confirmado idéntico retorna el producto actual
+sin repetir escritura; reutilizarlo con otro ajuste se rechaza. Nunca autoriza con
+metadata. `SECURITY DEFINER`, `search_path` vacío y ejecución solo autenticada,
+con membresía comprobada; RLS existente del historial se conserva.
+
+No altera `ajustar_stock`, despacho ni devolución. Índice de historial por tienda,
+producto, fecha descendente e ID; lecturas a través de `useData()` con límite.
+No crea datos ni cambia stock al aplicar la migración. En demo una sola escritura
+confirma ficha y ajuste, con la misma protección de base e identidad.
 
 ## `pedidos`
 

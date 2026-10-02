@@ -127,35 +127,42 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
 
 ## Vista previa de producto e inventario
 
-Las tarjetas de Catálogo abren `/catalogo/[id]`, una hoja de solo lectura con el
-producto, precio vigente, estado y stock. «Crear pedido» abre el formulario
-actual con el producto preseleccionado; no guarda ni descuenta unidades hasta
-que se complete el pedido y se despache. «Editar» conserva el formulario y la
-confirmación de cambios sin guardar. `stock = null` sigue significando «Sin
-control de stock».
+Las tarjetas de Catálogo abren `/catalogo/[id]`: ficha de solo lectura con miniatura
+112 px, nombre (hasta tres líneas visibles; nombre completo accesible), precio vigente,
+estado y stock. «Crear pedido» abre el formulario preseleccionado; solo despachar
+el pedido descuenta inventario. «Editar» conserva el formulario y sus fotos.
 
-La migración aditiva `20261002203414_ajustes_inventario.sql` añade
-`ajustes_inventario` con tienda, producto, variación, stock anterior/nuevo,
-motivo, actor y fecha. La RPC `ajustar_stock` bloquea el producto y guarda
-stock e historial dentro de una sola transacción. Revisa la membresía con
-`mis_tiendas()` y la identidad de `auth.uid()` (también admite las tiendas compartidas), usa `search_path` vacío y solo la ejecutan cuentas
-autenticadas. La tabla solo permite leer registros de la tienda propia; la app
-no puede escribir el historial directamente. También se quita el permiso de
-actualizar `productos.stock` desde el cliente. El formulario deja ese campo en
-solo lectura al editar; los productos nuevos aún permiten definir su stock
-inicial.
+**Implementación de esta rama, pendiente de publicar:** vista previa y edición
+comparten un borrador de cantidad mediante `useData()`. +/− no escribe; guardar
+confirma un único delta final. Disminuir pide motivo al guardar («Otro» requiere
+nota); aumentar usa reposición. Descartar o volver al stock base no crea registros.
+El historial visible muestra solo ajustes reales, con antes/después, motivo, nota,
+actor y fecha de Santo Domingo, por tramos de diez y con error/reintento.
+`stock = null` sigue sin control; no se habilita/deshabilita en productos existentes.
 
-En la vista previa, aumentar guarda una reposición y disminuir pide confirmar
-daño, pérdida, corrección u otro (con nota). `stock = null` conserva «Sin
-control de stock» y no muestra controles. La demo guarda registros locales en
-`ajustesInventario`. Los ajustes no crean pedidos ni ventas. Despachar continúa
-descontando stock una vez; deshacer el despacho lo devuelve.
+`20261002203414_ajustes_inventario.sql` **está aplicada**: tabla `ajustes_inventario`,
+RLS y RPC `ajustar_stock`. La nueva migración
+`20261002205119_guardar_producto_inventario.sql` **NO está aplicada**. Añade una RPC
+con nombre distinto (sin sobrecarga), conserva la anterior e incorpora índice del
+historial. Bloquea el producto, verifica base/membresía/actor y guarda ficha, stock,
+ajuste y créditos de retoque juntos. El ID del ajuste evita repetir una operación
+confirmada. El cliente no puede escribir stock ni historial directamente.
+**Antes de usar esta rama en modo real deberá revisarse y autorizarse la aplicación de esa migración
+en una tarea posterior; no publicar la app antes de coordinarla.**
 
-**Estado de producción (2026-10-02):** PR #20 fusionado en main
-`3daf0ee10cd292205445de70b5d32436effcab47` y publicado en Vercel antes de
-aplicar la migración mediante el conector Supabase. La versión aplicada es
-`20261002203414`; el archivo se renombró desde `20261002190000` para coincidir
-con el identificador generado por Supabase. No se alteraron entradas históricas.
+Si cambia el stock, se relee el producto/historial y se conserva la propuesta para
+revisarla. Ante resultado de red incierto, se bloquea el reenvío hasta releer; no hay
+reintento automático. Con respuesta perdida pero ajuste confirmado, se reconoce
+por ID. Fotos se suben antes de la transacción: errores conocidos limpian las nuevas;
+una respuesta incierta las conserva para no borrar fotos posiblemente guardadas.
+
+Las dos hojas de ruta optan por `Hoja.protegerAtras`: misma confirmación existente
+antes de Atrás, X, Escape, gesto o navegación a edición/pedido. Retiran su marcador
+antes de navegar mediante `alSalir`; las otras hojas mantienen su comportamiento.
+Los efectos de foco siguen estables, sin cambios por teclado/resize. No se añaden
+animaciones ni entradas de filas. Ver `docs/validacion-inventario-provisional.md`.
+
+**Histórico de PR #20 (no describe la interacción pendiente de esta rama):**
 La RPC, RLS y los permisos se comprobaron en producción; incrementos,
 disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
 tienda pasaron dentro de una transacción revertida. No persistieron ajustes de prueba; después se observaron dos reposiciones
@@ -163,9 +170,10 @@ tienda pasaron dentro de una transacción revertida. No persistieron ajustes de 
 
 PR #2 de reconciliación sigue separado: los identificadores antiguos todavía
 difieren del historial de Supabase. No ejecutar un `db push` general a ciegas.
-El dry-run del CLI continúa sin ejecutarse por falta de CLI/credenciales;
+El CLI ya está instalado; el dry-run dirigido a producción sigue sin ejecutarse
+por falta de credenciales y la divergencia pendiente;
 la comprobación transaccional del SQL y la aplicación individual no equivalen
-a ese dry-run. Navegador con tienda real, fallos de red e iPhone físico siguen
+a ese dry-run. Navegador con tienda real, fallos de red reales e iPhone físico siguen
 pendientes.
 
 ## Ventas a crédito y abonos
@@ -194,7 +202,7 @@ HTML. El catálogo todavía no se alimenta solo de los productos del panel. El d
   de abajo; solo la de arriba responde a deslizar, fondo, Escape, X y "atrás". Con cambios sin guardar (`avisarAlSalir` o `useAvisarAlSalir`)
   cerrar pregunta "¿Salir sin guardar?". Se prueba con `npm run probar:hojas` (con la app corriendo; igual que `probar:teclado`).
   Límite conocido: en hojas de RUTA con cambios sin guardar (pedido nuevo, cliente nuevo…) el botón atrás del teléfono sale directo con la
-  ruta (interceptarlo obligaría a meter entradas de historial que romperían el "atrás" tras guardar); deslizar, fondo, Escape y X sí preguntan.
+  ruta; deslizar, fondo, Escape y X sí preguntan. Excepción optativa de esta rama: vista previa y formulario de producto usan `protegerAtras` y coordinan `alSalir` después de retirar el marcador; sus cambios pendientes sí se protegen al volver. No se extiende a las otras rutas.
 - Las opciones de un formulario (`Chip` / `Segmentos` con `tono="opcion"`) van en Rosa con check; las acciones, en Verde Bosque (principal) o
   contorno (secundaria); ver docs/04-pantallas.md. No cambia las pastillas de filtro.
 - Las hojas de cliente y de pedido nunca quedan en blanco (esqueleto, o error con "Reintentar"): `components/hoja-estado.tsx`, y

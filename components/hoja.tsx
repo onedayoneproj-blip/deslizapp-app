@@ -132,6 +132,8 @@ type Props = {
   decoracionEncima?: ReactNode;
   /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
   avisarAlSalir?: boolean;
+  /** Hojas de ruta que consumen su entrada antes de navegar mediante alSalir. */
+  protegerAtras?: boolean;
   /** Textos del aviso al salir. */
   avisoTitulo?: string;
   avisoTexto?: string;
@@ -169,6 +171,7 @@ function HojaMontada({
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
+  protegerAtras = false,
   avisoTitulo = "¿Salir sin guardar?",
   avisoTexto = "Lo que escribiste se va a perder.",
   children,
@@ -474,6 +477,8 @@ function HojaMontada({
     };
   }, [avisando]);
 
+  const protegerAtrasInicial = useRef(protegerAtras);
+
   // Bloquea el fondo mientras está abierta; foco dentro al abrir y de vuelta al cerrar; Escape y Tab.
   // Efecto ESTABLE (sin dependencias): si se volviera a ejecutar mientras se escribe, su limpieza
   // devolvería el foco al botón que abrió la hoja y el teclado se cerraría.
@@ -489,7 +494,7 @@ function HojaMontada({
     const turno = miTurno.current;
     PILA_DE_HOJAS.push(turno);
     // Hoja apilada: guarda una entrada de historial para que "atrás" cierre solo esta (las de ruta ya se cierran con su ruta)
-    let entrada = PILA_DE_HOJAS.length > 1;
+    let entrada = PILA_DE_HOJAS.length > 1 || protegerAtrasInicial.current;
     if (entrada && !entradaDeHistorial.current) {
       window.history.pushState(estadoDeHoja(), "");
       entradaDeHistorial.current = true;
@@ -557,7 +562,9 @@ function HojaMontada({
           // Si esta hoja volvió a la pila, su entrada todavía le pertenece.
           if (process.env.NODE_ENV === "development" && PILA_DE_HOJAS.includes(turno)) return;
           entradaDeHistorial.current = false;
-          IGNORAR_ATRAS.n++;
+          // Solo otra hoja montada necesita ignorar este popstate.
+          // Sin ella, dejar un contador pendiente ignoraría el siguiente Atrás real.
+          if (PILA_DE_HOJAS.some(t => t !== turno)) IGNORAR_ATRAS.n++;
           if (alSalirRef.current) window.addEventListener("popstate", () => alSalirRef.current?.(), { once: true });
           window.history.back();
         };

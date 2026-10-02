@@ -46,3 +46,36 @@ test('dos ajustes sucesivos parten del último stock y la operación no cruza ti
   assert.equal(b.db.productos.find(p=>p.tiendaId==='otra').stock,8);
   assert.deepEqual(b.db.ajustesInventario.map(x=>[x.stockAnterior,x.stockNuevo]),[[1,0],[0,1]]);
 });
+
+test('guardar ficha y propuesta final crea un ajuste; sin diferencia no crea ninguno', async () => {
+  const {guardarProductoEnDB}=await import('../lib/data/inventario.ts');
+  const inicial=db();
+  const a=guardarProductoEnDB(inicial,'t','p',{nombre:'Nuevo'}, {id:'final',stockBase:2,stockPropuesto:5,motivo:'reposicion',nota:null},'duena','ahora');
+  assert.equal(a.producto.nombre,'Nuevo');assert.equal(a.producto.stock,5);assert.equal(a.db.ajustesInventario.length,1);assert.equal(a.db.ajustesInventario[0].variacion,3);
+  assert.deepEqual(a.db.pedidos,inicial.pedidos);assert.equal(inicial.productos[0].stock,2);
+  const b=guardarProductoEnDB(a.db,'t','p',{precio:150},null,'duena','despues');
+  assert.equal(b.producto.precio,150);assert.equal(b.db.ajustesInventario.length,1);
+  const c=guardarProductoEnDB(b.db,'t','p',{}, {id:'igual',stockBase:5,stockPropuesto:5,motivo:'reposicion',nota:null},'duena','despues');
+  assert.equal(c.db.ajustesInventario.length,1);
+});
+
+test('conflicto, motivo o ficha inválidos no dejan un guardado parcial',async()=>{
+  const {guardarProductoEnDB}=await import('../lib/data/inventario.ts');const inicial=db();
+  for(const propuesta of [
+    {id:'a',stockBase:1,stockPropuesto:3,motivo:'reposicion',nota:null},
+    {id:'b',stockBase:2,stockPropuesto:1,motivo:'otro',nota:'  '},
+    {id:'c',stockBase:2,stockPropuesto:-1,motivo:'dano',nota:null},
+  ])assert.throws(()=>guardarProductoEnDB(inicial,'t','p',{nombre:'No guardar'},propuesta,'duena','ahora'));
+  assert.throws(()=>guardarProductoEnDB(inicial,'t','p',{nombre:''},{id:'a',stockBase:2,stockPropuesto:3,motivo:'reposicion',nota:null},'duena','ahora'));
+  assert.equal(inicial.productos[0].nombre,'p');assert.equal(inicial.productos[0].stock,2);assert.equal(inicial.ajustesInventario.length,0);
+});
+
+test('base compartida: solo el primero se guarda; repetir su identidad no duplica el ajuste',async()=>{
+  const {guardarProductoEnDB}=await import('../lib/data/inventario.ts');const propuesta={id:'a',stockBase:2,stockPropuesto:4,motivo:'reposicion',nota:null};
+  const a=guardarProductoEnDB(db(),'t','p',{},propuesta,'duena','ahora');
+  assert.throws(()=>guardarProductoEnDB(a.db,'t','p',{nombre:'Segundo'},{...propuesta,id:'b'},'duena','ahora'),/stock cambió/);
+  const repetido=guardarProductoEnDB(a.db,'t','p',{},propuesta,'duena','ahora');
+  assert.equal(repetido.db.ajustesInventario.length,1);assert.equal(repetido.producto.stock,4);
+  assert.throws(()=>guardarProductoEnDB(a.db,'t','p',{}, {...propuesta,stockPropuesto:6},'duena','ahora'),/otro guardado/);
+  assert.throws(()=>guardarProductoEnDB(a.db,'otra','p',{},propuesta,'duena','ahora'));
+});

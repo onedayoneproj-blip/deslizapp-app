@@ -4,7 +4,7 @@
 
 import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
-import type { Abono, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, PropuestaInventario, PaginaAjustesInventario, AjusteInventario, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { MetodoAbono } from "../types";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
@@ -56,6 +56,10 @@ export type FuenteDatos = {
   actualizarProducto(tiendaId: string, id: string, cambios: CambiosProducto): Promise<Producto>;
   /** Ajusta manualmente el inventario y guarda un registro atómico separado de pedidos/ventas. */
   ajustarStock(tiendaId: string, productoId: string, variacion: number, motivo: MotivoAjusteInventario, nota?: string | null): Promise<Producto>;
+
+  guardarProductoConInventario(tiendaId: string, productoId: string, cambios: Omit<CambiosProducto, "stock">, propuesta: PropuestaInventario | null, retocar?: boolean): Promise<Producto>;
+  getAjustesInventario(tiendaId: string, productoId: string, desde?: number, limite?: number): Promise<PaginaAjustesInventario>;
+  revisarGuardadoInventario(tiendaId: string, productoId: string, ajusteId: string | null): Promise<{ producto: Producto | null; ajuste: AjusteInventario | null }>;
 
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;
