@@ -250,4 +250,4 @@ retome sepa exactamente qué sigue).
 
 
 ## Pedido despachado: estado y comprobante
-En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» está «Descargar factura (PDF)»; abre la impresión del dispositivo para guardar el comprobante como PDF. Es un comprobante sencillo, no una factura fiscal: la app aún no guarda RNC ni NCF.
+En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» aparecen «Descargar PDF» y «Descargar imagen»; generan archivos directamente con los datos del pedido y el pago, sin abrir la ventana de impresión. Es un comprobante sencillo, no una factura fiscal: la app aún no guarda RNC ni NCF.

@@ -683,31 +683,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .jugada-luz-verde { transform:translate(10%,-10%); }
   .jugada-luz-pulso,.jugada-velo { display:none; }
 }
-
-/* El comprobante solo se muestra al imprimir desde el detalle de un pedido despachado. */
-[data-factura-pedido] { display: none; }
-@media print {
-  @page { margin: 16mm; }
-  html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
-  body > *:not([data-factura-pedido]) { display: none !important; }
-  body > [data-factura-pedido] {
-    display: block !important; width: 100%; color: #174b3a; background: #fff;
-    font: 12pt/1.45 Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  .factura-pedido-cabecera { padding-bottom: 14pt; border-bottom: 2pt solid #174b3a; }
-  .factura-pedido-cabecera p { margin: 0 0 4pt; color: #4f6a5e; font-size: 10pt; }
-  .factura-pedido-cabecera h1 { margin: 8pt 0 3pt; font-size: 20pt; }
-  .factura-pedido-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt 20pt; margin: 18pt 0; }
-  .factura-pedido-datos div, .factura-pedido-totales p, .factura-pedido-pago p { display: flex; justify-content: space-between; gap: 16pt; }
-  .factura-pedido-datos span, .factura-pedido-totales span, .factura-pedido-pago span { color: #4f6a5e; }
-  .factura-pedido-tabla { width: 100%; border-collapse: collapse; margin: 14pt 0; }
-  .factura-pedido-tabla th, .factura-pedido-tabla td { padding: 8pt 5pt; border-bottom: 1px solid #efe4d2; text-align: left; }
-  .factura-pedido-tabla th { color: #4f6a5e; font-size: 9pt; }
-  .factura-pedido-tabla th:not(:first-child), .factura-pedido-tabla td:not(:first-child) { text-align: right; white-space: nowrap; }
-  .factura-pedido-totales { margin: 12pt 0 18pt auto; max-width: 280pt; }
-  .factura-pedido-totales p, .factura-pedido-pago p { margin: 6pt 0; }
-  .factura-pedido-total { padding-top: 8pt; border-top: 1px solid #174b3a; font-size: 15pt; }
-  .factura-pedido-pago { padding-top: 10pt; border-top: 1px solid #efe4d2; }
-  .factura-pedido-pago h2 { margin: 0 0 8pt; font-size: 12pt; }
-  .factura-pedido-pie { margin-top: 28pt; text-align: center; color: #4f6a5e; font-size: 10pt; }
-}

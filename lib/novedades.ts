@@ -18,11 +18,11 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
-    version: "0.31.0",
+    version: "0.31.1",
     fecha: "2026-10-02",
     titulo: "Tu pedido, listo para llevar.",
     cambios: [
-      "Guarda en PDF un comprobante desde cada pedido despachado.",
+      "Descarga en PDF o imagen un comprobante desde cada pedido despachado.",
       "El estado final ahora aparece al inicio de su hoja.",
     ],
   },
