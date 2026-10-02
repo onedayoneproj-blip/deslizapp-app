@@ -109,9 +109,8 @@ compara ambos grupos. Ticket promedio, top 3 y Clientes continúan usando solo p
 pedido" usan recibidos. La tarjeta conserva la línea con el total global por despachar. Detalle en docs/03 y docs/04.
 
 **Borrar contacto:** la edición ofrece conservar los pedidos y abonos sin asociarlos al contacto, o borrar también todo ese historial.
-La segunda opción exige confirmación. Demo y Supabase comparten la regla; la RPC `borrar_cliente` en `20261002000015_borrar_cliente.sql`
-opera solo en la tienda de sesión. Borrar pedidos históricos no restaura stock. La migración se incluye en esta rama; no se ha aplicado a
-ninguna base de datos.
+La segunda opción exige confirmación. Demo y Supabase comparten la regla; la RPC `borrar_cliente` en `20261002161112_borrar_cliente.sql`
+opera solo en la tienda de sesión. Borrar pedidos históricos no restaura stock. La migración se aplicó a producción en Supabase con el identificador `20261002161112`. El historial previo de migraciones del repositorio y producción aún está pendiente de reconciliarse (PR #2).
 
 ## Donas de Catálogo y Clientes
 
