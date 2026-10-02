@@ -211,10 +211,8 @@ export const IconoDescargar = (p: Props) => (
 /** Tres puntos conectados para compartir un archivo o enlace. */
 export const IconoCompartir = (p: Props) => (
   <Icono {...p}>
-    <circle cx="18" cy="5" r="3" />
-    <circle cx="6" cy="12" r="3" />
-    <circle cx="18" cy="19" r="3" />
-    <path d="m8.7 10.6 6.6-4.1M8.7 13.4l6.6 4.1" />
+    <path d="M12 15V3m-5 5 5-5 5 5" />
+    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
   </Icono>
 );
 
