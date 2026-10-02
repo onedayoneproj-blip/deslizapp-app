@@ -250,4 +250,4 @@ retome sepa exactamente qué sigue).
 
 
 ## Pedido despachado: estado y comprobante
-En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» aparecen «Descargar PDF» y «Descargar imagen»; generan archivos directamente con los datos del pedido y el pago, sin abrir la ventana de impresión. Es un comprobante sencillo, no una factura fiscal: la app aún no guarda RNC ni NCF.
+En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» aparecen «Descargar factura» y «Compartir». Descargar abre una hoja para elegir PDF o imagen; el PNG y el PDF salen del recibo visual de `referencias/catalogo-esencias-michel.html` (ticket con logo, artículos, totales y pago). Compartir invoca la hoja nativa con el PNG y el texto: «¡Hola, {cliente}! Te comparto el comprobante de tu pedido #{número} de {tienda}. ¡Gracias por tu compra!». Si el navegador no admite compartir archivos, guarda el PNG y copia el texto. El comprobante no tiene valor fiscal; la app aún no guarda RNC ni NCF.

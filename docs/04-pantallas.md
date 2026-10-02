@@ -365,9 +365,10 @@ provisional hasta que exista la plantilla `/tienda/[slug]`.
   hablaste con el cliente y va) → pasa a `por_despachar`. Opción secundaria
   "Cancelar pedido" → `cancelado`.
 - Si está en `por_despachar`: botón principal Mandarina **"Despachar pedido"**.
-- Si está `despachado`: debajo de **"Editar pedido"** aparecen **"Descargar PDF"** y
-  **"Descargar imagen"**. Guardan directamente un comprobante de venta con los datos
-  del pedido y el pago. Es un comprobante sencillo; no incluye datos fiscales NCF/RNC.
+- Si está `despachado`: debajo de **"Editar pedido"** aparecen **"Descargar factura"** y
+  **"Compartir"**. Descargar abre una hoja con las opciones PDF e imagen; usa el recibo
+  visual del catálogo en línea. Compartir abre el selector nativo del teléfono con la imagen
+  y un texto listo para enviar. Es un comprobante sencillo, sin valor fiscal NCF/RNC.
 - Al presionar "Despachar pedido":
   - `estado` pasa a `despachado`, se registra `despachado_en`
   - el `stock` de cada producto del pedido se descuenta según `cantidad`
