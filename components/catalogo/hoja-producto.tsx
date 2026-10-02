@@ -7,8 +7,8 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { CreditosInsuficientes, mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
-import type { Producto } from "@/lib/types";
-import { Chip, Interruptor } from "../controles";
+import type { MotivoAjusteInventario, Producto } from "@/lib/types";
+import { Chip, GrupoOpciones, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
@@ -71,14 +71,43 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   );
 }
 
-/** Vista de solo lectura del catálogo. Los ajustes de stock quedan pendientes hasta contar con un registro persistente. */
+/** Vista de solo lectura del catálogo, con ajustes de inventario registrados por la capa de datos. */
 export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const router = useRouter();
-  const { getProducto, getPromos } = useData();
+  const { getProducto, getPromos, ajustarStock } = useData();
   const { tiendaId } = useTiendaActiva();
+  const toast = useToast();
   const cerrar = useCallback(() => router.push("/catalogo", { scroll: false }), [router]);
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const [confirmarBaja, setConfirmarBaja] = useState(false);
+  const [motivo, setMotivo] = useState<MotivoAjusteInventario | null>(null);
+  const [notaAjuste, setNotaAjuste] = useState("");
+  const [guardandoAjuste, setGuardandoAjuste] = useState(false);
+  const ajusteEnCurso = useRef(false);
+  const [errorAjuste, setErrorAjuste] = useState<string | null>(null);
+
+  const guardarAjuste = async (variacion: number, razon: MotivoAjusteInventario, nota: string | null = null) => {
+    if (ajusteEnCurso.current) return;
+    ajusteEnCurso.current = true;
+    setGuardandoAjuste(true);
+    setErrorAjuste(null);
+    try {
+      await ajustarStock(tiendaId, productoId, variacion, razon, nota);
+      if (variacion < 0) {
+        setConfirmarBaja(false);
+        setNotaAjuste("");
+      }
+      toast(variacion > 0 ? "Reposición guardada. El inventario ya se actualizó." : "Ajuste guardado. No cuenta como venta.");
+    } catch (e) {
+      const mensaje = mensajeDeError(e, "No pudimos confirmar el ajuste. Actualiza el producto antes de volver a intentarlo.");
+      if (variacion < 0) setErrorAjuste(mensaje);
+      else toast(mensaje);
+    } finally {
+      ajusteEnCurso.current = false;
+      setGuardandoAjuste(false);
+    }
+  };
 
   if (error || errorPromos) return <Hoja abierta alCerrar={cerrar} titulo="Producto"><CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo" /></Hoja>;
   if (producto === undefined || promos === undefined) return <Hoja abierta alCerrar={cerrar} titulo="Producto"><CuerpoCargando titulo="producto" /></Hoja>;
@@ -89,6 +118,7 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const precio = precioConPromo(producto, promos);
   const estado = producto.stock === 0 ? "Agotado" : !producto.activo ? "Oculto" : "Visible en el catálogo";
   return (
+    <>
     <Hoja abierta alCerrar={cerrar} titulo="Vista previa del producto" altura="auto">
       <div className="flex flex-col gap-4 text-bosque">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[22px] bg-arena">
@@ -106,15 +136,53 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
           {producto.stock === null ? (
             <p className="mt-1 font-extrabold">Sin control de stock</p>
           ) : (
-            <p className="mt-1 font-display text-[27px] leading-tight">{producto.stock} {producto.stock === 1 ? "unidad disponible" : "unidades disponibles"}</p>
+            <>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="font-display text-[27px] leading-tight" aria-live="polite">{producto.stock} {producto.stock === 1 ? "unidad disponible" : "unidades disponibles"}</p>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button type="button" disabled={producto.stock === 0 || guardandoAjuste} onClick={() => { setErrorAjuste(null); setMotivo(null); setNotaAjuste(""); setConfirmarBaja(true); }} aria-label={`Disminuir stock de ${producto.nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-arena text-bosque disabled:cursor-not-allowed disabled:opacity-45">
+                    <IconoMenos tamano={20} />
+                  </button>
+                  <button type="button" disabled={guardandoAjuste} onClick={() => void guardarAjuste(1, "reposicion")} aria-label={`Aumentar stock de ${producto.nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel disabled:opacity-60">
+                    <IconoMas tamano={20} />
+                  </button>
+                </div>
+              </div>
+              <p className="mt-2 text-[12.5px] leading-snug text-suave">Usa estos botones para ajustes. Las ventas se registran con un pedido.</p>
+            </>
           )}
-          {producto.stock !== null && <p className="mt-1 text-[13px] leading-snug text-suave">Los ajustes de cantidad necesitan un registro de inventario. Esa operación aún no está disponible.</p>}
         </section>
 
         <button type="button" onClick={() => router.push(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`, { scroll: false })} className="tocable h-14 rounded-full bg-bosque text-[16px] font-extrabold text-papel">Crear pedido</button>
         <button type="button" onClick={() => router.push(`/catalogo/${producto.id}/editar`, { scroll: false })} className="tocable h-12 rounded-full border-[1.5px] border-bosque bg-white font-extrabold text-bosque">Editar</button>
       </div>
     </Hoja>
+    <Hoja abierta={confirmarBaja} alCerrar={() => setConfirmarBaja(false)} titulo="Ajustar inventario" altura="grande">
+      <div className="flex flex-col gap-4 text-bosque">
+        <div>
+          <h2 className="font-display text-[23px] leading-tight">¿Por qué baja el stock?</h2>
+          <p className="mt-1 text-[14px] leading-snug text-suave">Se guardará como ajuste de inventario, no como venta. Para vender, crea un pedido y despáchalo.</p>
+        </div>
+        <GrupoOpciones etiqueta="Motivo del ajuste">
+          <Chip elegido={motivo === "dano"} tono="opcion" onClick={() => setMotivo("dano")}>Daño</Chip>
+          <Chip elegido={motivo === "perdida"} tono="opcion" onClick={() => setMotivo("perdida")}>Pérdida</Chip>
+          <Chip elegido={motivo === "correccion_inventario"} tono="opcion" onClick={() => setMotivo("correccion_inventario")}>Corrección de inventario</Chip>
+          <Chip elegido={motivo === "otro"} tono="opcion" onClick={() => setMotivo("otro")}>Otro</Chip>
+        </GrupoOpciones>
+        {motivo === "otro" && (
+          <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
+            Cuéntanos el motivo
+            <textarea value={notaAjuste} onChange={(e) => setNotaAjuste(e.target.value.slice(0, 200))} maxLength={200} rows={3} className="w-full rounded-2xl border-[1.5px] border-borde bg-white px-3.5 py-3 text-base font-normal text-bosque outline-none focus:border-bosque" />
+          </label>
+        )}
+        {errorAjuste && <p role="alert" className="rounded-2xl bg-rosa px-4 py-3 text-[14px] font-bold">{errorAjuste}</p>}
+        <div className="flex flex-col gap-2">
+          <button type="button" disabled={guardandoAjuste || !motivo || (motivo === "otro" && !notaAjuste.trim())} onClick={() => { if (motivo) void guardarAjuste(-1, motivo, motivo === "otro" ? notaAjuste : null); }} className="tocable h-14 rounded-full bg-bosque text-[16px] font-extrabold text-papel disabled:opacity-55">{guardandoAjuste ? "Guardando…" : "Guardar ajuste"}</button>
+          <button type="button" disabled={guardandoAjuste} onClick={() => { setConfirmarBaja(false); setNotaAjuste(""); setErrorAjuste(null); }} className="tocable h-12 rounded-full border-[1.5px] border-bosque bg-white font-extrabold text-bosque disabled:opacity-55">Cancelar</button>
+        </div>
+      </div>
+    </Hoja>
+    </>
   );
 }
 
@@ -236,7 +304,15 @@ function FormularioProducto({
       const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo };
       const menos = `−${CREDITOS_POR_RETOQUE} créditos.`;
       if (producto) {
-        await actualizarProducto(tiendaId, producto.id, datos);
+        // El stock existente solo cambia desde la vista previa, donde cada ajuste queda registrado.
+        await actualizarProducto(tiendaId, producto.id, {
+          nombre: datos.nombre,
+          precio: datos.precio,
+          fotos: datos.fotos,
+          fotoRetocada: datos.fotoRetocada,
+          categoria: datos.categoria,
+          activo: datos.activo,
+        });
         toast(usarRetoque ? `Guardado y retocado${producto.fotoRetocada ? " otra vez" : ""}. ${menos}` : "Guardado. El catálogo ya se enteró.");
       } else {
         await crearProducto(tiendaId, { ...datos, destacado: false, likes: 0 });
@@ -414,43 +490,31 @@ function FormularioProducto({
       </label>
 
       {/* Stock */}
-      <div className="rounded-[18px] border-[1.5px] border-borde bg-white py-2 pr-2 pl-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
+      <div className="rounded-[18px] border-[1.5px] border-borde bg-white p-4">
+        {producto ? (
+          <>
             <p className="font-extrabold">En stock</p>
-            <p className="text-[12.5px] text-suave">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
-          </div>
-          {stock !== null && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setStock(Math.max(0, stock - 1))}
-                aria-label="Quitar uno"
-                className="grid h-11 w-11 place-items-center rounded-[14px] bg-arena"
-              >
-                <IconoMenos tamano={20} />
-              </button>
-              <span className="min-w-[34px] text-center font-display text-[22px] tabular-nums" aria-live="polite">
-                {stock}
-              </span>
-              <button
-                type="button"
-                onClick={() => setStock(stock + 1)}
-                aria-label="Agregar uno"
-                className="grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel"
-              >
-                <IconoMas tamano={20} />
-              </button>
+            <p className="mt-1 font-display text-[22px]">{stock === null ? "Sin control de stock" : `${stock} ${stock === 1 ? "unidad disponible" : "unidades disponibles"}`}</p>
+            <p className="mt-1 text-[12.5px] leading-snug text-suave">Para registrar un cambio, vuelve a la vista previa del producto. Así queda guardado como ajuste.</p>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-extrabold">En stock</p>
+                <p className="text-[12.5px] text-suave">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
+              </div>
+              {stock !== null && (
+                <div className="flex items-center gap-1.5">
+                  <button type="button" onClick={() => setStock(Math.max(0, stock - 1))} aria-label="Quitar uno" className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-arena"><IconoMenos tamano={20} /></button>
+                  <span className="min-w-[34px] text-center font-display text-[22px] tabular-nums" aria-live="polite">{stock}</span>
+                  <button type="button" onClick={() => setStock(stock + 1)} aria-label="Agregar uno" className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel"><IconoMas tamano={20} /></button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setStock(stock === null ? 1 : null)}
-          className="tocable -mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave"
-        >
-          {stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}
-        </button>
+            <button type="button" onClick={() => setStock(stock === null ? 1 : null)} className="tocable -mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave">{stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}</button>
+          </>
+        )}
       </div>
 
       {/* Colección */}

@@ -178,6 +178,33 @@ try {
     await ctx.close();
   }
 
+  // ---- Hoja apilada de disminución: el motivo "Otro" muestra una nota con teclado.
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/catalogo");
+    await page.waitForSelector("main ul li a");
+    await page.waitForTimeout(700);
+    const href = await page.locator("main ul li a").evaluateAll((enlaces) => {
+      const valido = enlaces.find((a) => /^\/catalogo\/[^/]+$/.test(a.getAttribute("href") ?? "") && /\b[1-9][0-9]* en stock\b/.test(a.getAttribute("aria-label") ?? ""));
+      return valido?.getAttribute("href") ?? null;
+    });
+    ok(Boolean(href), "Catálogo: hay un producto con stock controlado para probar la hoja de ajuste");
+    if (href) {
+      await page.goto(URL + href);
+      await page.waitForSelector('[role="dialog"] section[aria-label="Inventario"]');
+      await page.waitForTimeout(500);
+      await page.tap('[role="dialog"] button[aria-label^="Disminuir stock"]');
+      await page.getByRole("radio", { name: "Otro", exact: true }).click();
+      await page.waitForSelector('[role="dialog"] textarea');
+      await probarCampo(page, '[role="dialog"] textarea', "Ajuste de inventario · Motivo", "Conteo corregido");
+      await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+      await page.waitForTimeout(500);
+      ok((await page.locator('[role="dialog"]').count()) === 1, "Ajuste: cancelar cierra solo la confirmación y vuelve al producto");
+      ok(errores.length === 0, "Ajuste de inventario: sin errores de página " + JSON.stringify(errores));
+    }
+    await ctx.close();
+  }
+
   // ---- Hoja "Nuevo pedido" (+ Pedido): selector de cliente con buscador y creación rápida
   {
     const { ctx, page, errores } = await abrir(navegador);

@@ -18,6 +18,16 @@ export type Novedad = {
 
 export const NOVEDADES: Novedad[] = [
   {
+    version: "0.31.4",
+    fecha: "2026-10-02",
+    titulo: "El inventario, con su historia.",
+    cambios: [
+      "Ajusta unidades por reposición, daño, pérdida o corrección desde la vista previa.",
+      "Cada cambio queda registrado y separado de tus pedidos y ventas.",
+      "Las ventas siguen descontando existencias al despachar el pedido.",
+    ],
+  },
+  {
     version: "0.31.3",
     fecha: "2026-10-02",
     titulo: "Mira el producto antes de editarlo.",

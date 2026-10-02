@@ -190,8 +190,11 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 - Tocar "+ Producto" → formulario de producto (crear).
 - Tocar una tarjeta → hoja de vista previa de solo lectura con foto, nombre, precio vigente con promos, colección, estado y stock. «Editar» abre el formulario existente en `/catalogo/[id]/editar`; cerrar vuelve a la vista previa y conserva Catálogo debajo.
 - «Crear pedido» abre el formulario manual existente con ese producto y una unidad preseleccionados si hay stock. El pedido no se guarda ni descuenta stock hasta completar el flujo; al crearlo queda «Por despachar» y el inventario baja una sola vez al despacharlo. Cancelar un pedido por despachar no toca el stock; deshacer un despacho devuelve las unidades.
-- `stock = null` muestra «Sin control de stock» sin una cantidad disponible.
-- La vista previa muestra el total disponible para los productos que controlan stock. Los botones de ajuste todavía no están habilitados: producción solo tiene `productos.stock` y las RPC de despacho/devolución; no existe un historial persistente de ajustes. No cambiar stock desde la vista previa ni tratar una merma/corrección como venta hasta aprobar y añadir una operación auditable y atómica en la capa de datos.
+- `stock = null` muestra «Sin control de stock», sin cantidad ni botones de ajuste.
+- Para productos con control, la vista previa muestra las unidades disponibles y botones para aumentar o disminuir. El aumento se guarda como reposición. Antes de disminuir, se confirma el motivo (daño, pérdida, corrección de inventario u otro; «otro» pide una nota). La disminución no puede superar las unidades disponibles.
+- Cada cambio manual se guarda con tienda, producto, variación, stock anterior y nuevo, motivo, actor y fecha en `ajustes_inventario`; la operación real actualiza el stock y añade el registro atómicamente. Si falla, la vista conserva el stock anterior y muestra el error.
+- Un ajuste nunca crea un pedido ni se cuenta como venta. Las ventas siguen el flujo de pedido y descuentan stock al despacharse; deshacer un despacho lo devuelve. «Crear pedido» solo abre el formulario actual con el producto preseleccionado.
+- Al editar un producto existente, el stock se muestra como solo lectura: cualquier cambio se hace desde la vista previa para que quede registrado. En un producto nuevo puedes definir el inventario inicial.
 - Activar/desactivar (interruptor "Visible en el catálogo" del formulario).
 
 **Formulario de producto (crear/editar)** — hoja "Nuevo producto" / "Editar producto":
@@ -201,8 +204,7 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 - Tarjeta **"Retocar foto"** con subtítulo "Luz, fondo y color" — ver pantalla 6.
 - Nombre (ej. "Kiara Pink").
 - Precio (RD$).
-- **En stock**: contador − / + ("Al despachar, baja solito."). Opción de no
-  controlar stock (`stock = null`).
+- **En stock**: al crear, contador − / + ("Al despachar, baja solito.") y opción de no controlar stock (`stock = null`). Al editar, cantidad de solo lectura: los cambios se registran desde la vista previa. Activar/desactivar el control en productos existentes queda pendiente de una operación auditada específica.
 - **Colección** (`categoria`, opcional): chips con las colecciones que ya usa
   la tienda + opción de escribir una nueva.
 - Interruptor **"Visible en el catálogo"** ("Apágalo para esconderlo sin borrarlo.").

@@ -4,7 +4,7 @@
 
 import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
-import type { Abono, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { MetodoAbono } from "../types";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
@@ -54,6 +54,8 @@ export type FuenteDatos = {
   getProducto(tiendaId: string, id: string): Promise<Producto | null>;
   crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto>;
   actualizarProducto(tiendaId: string, id: string, cambios: CambiosProducto): Promise<Producto>;
+  /** Ajusta manualmente el inventario y guarda un registro atómico separado de pedidos/ventas. */
+  ajustarStock(tiendaId: string, productoId: string, variacion: number, motivo: MotivoAjusteInventario, nota?: string | null): Promise<Producto>;
 
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;

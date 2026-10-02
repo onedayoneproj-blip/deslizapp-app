@@ -65,6 +65,23 @@ export type Producto = {
   actualizadoEn: string;
 };
 
+/** Motivos que se guardan junto con cada ajuste manual de inventario. */
+export type MotivoAjusteInventario = "reposicion" | "dano" | "perdida" | "correccion_inventario" | "otro";
+
+/** Registro auditable de un cambio manual; no representa una venta ni un pedido. */
+export type AjusteInventario = {
+  id: string;
+  tiendaId: string;
+  productoId: string;
+  variacion: number;
+  stockAnterior: number;
+  stockNuevo: number;
+  motivo: MotivoAjusteInventario;
+  nota: string | null;
+  actorId: string;
+  creadoEn: string;
+};
+
 export type OrigenPedido = "catalogo" | "manual";
 export type EstadoPedido = "nuevo" | "por_despachar" | "despachado" | "cancelado";
 

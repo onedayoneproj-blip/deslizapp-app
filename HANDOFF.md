@@ -134,15 +134,30 @@ que se complete el pedido y se despache. «Editar» conserva el formulario y la
 confirmación de cambios sin guardar. `stock = null` sigue significando «Sin
 control de stock».
 
-No hay una operación persistente para ajustar inventario por daño, pérdida o
-corrección. Producción solo tiene `productos.stock` y las operaciones de
-despachar/deshacer despacho; `actualizarProducto` reemplaza el campo sin
-historial. Por eso la vista previa no cambia cantidades todavía. Antes de
-habilitar aumentar/disminuir hace falta aprobar una migración con registro
-tenant-scoped del delta/motivo/actor/fecha y una operación atómica en ambas
-implementaciones de `FuenteDatos` que aplique el ajuste sin permitir stock
-negativo. No escribir directamente a Supabase ni reutilizar `actualizarProducto`
-para simular ese registro.
+La migración aditiva `20261002190000_ajustes_inventario.sql` añade
+`ajustes_inventario` con tienda, producto, variación, stock anterior/nuevo,
+motivo, actor y fecha. La RPC `ajustar_stock` bloquea el producto y guarda
+stock e historial dentro de una sola transacción. Revisa la membresía con
+`mis_tiendas()` y la identidad de `auth.uid()` (también admite las tiendas compartidas), usa `search_path` vacío y solo la ejecutan cuentas
+autenticadas. La tabla solo permite leer registros de la tienda propia; la app
+no puede escribir el historial directamente. También se quita el permiso de
+actualizar `productos.stock` desde el cliente. El formulario deja ese campo en
+solo lectura al editar; los productos nuevos aún permiten definir su stock
+inicial.
+
+En la vista previa, aumentar guarda una reposición y disminuir pide confirmar
+daño, pérdida, corrección u otro (con nota). `stock = null` conserva «Sin
+control de stock» y no muestra controles. La demo guarda registros locales en
+`ajustesInventario`. Los ajustes no crean pedidos ni ventas. Despachar continúa
+descontando stock una vez; deshacer el despacho lo devuelve.
+
+**Estado de producción:** la migración no se aplicó. PR #2 de reconciliación
+sigue abierto, por lo que los identificadores locales aún difieren de la
+historia aplicada en Supabase. `supabase db push --dry-run` no está disponible:
+no hay CLI ni credenciales CLI. La cadena completa sí se reprodujo en
+PostgreSQL 17.6 desechable y se comprobaron RPC, RLS, rollback y concurrencia.
+Como falta el dry-run dirigido a producción, la migración queda bloqueada antes
+de producción. No se cambiaron datos, esquema ni historial de producción.
 
 ## Ventas a crédito y abonos
 
@@ -270,3 +285,7 @@ retome sepa exactamente qué sigue).
 
 ## Pedido despachado: estado y comprobante
 En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inicio como texto con check, sin fondo ni estilo de botón. Debajo de «Editar pedido» aparecen «Descargar factura» y «Compartir». Descargar abre una hoja para elegir PDF o imagen; el PNG y el PDF salen del recibo visual de `referencias/catalogo-esencias-michel.html` (ticket con logo, artículos, totales y pago). Compartir invoca la hoja nativa con el PNG y el texto: «¡Hola, {cliente}! Te comparto el comprobante de tu pedido #{número} de {tienda}. ¡Gracias por tu compra!». Si el navegador no admite compartir archivos, guarda el PNG y copia el texto. El comprobante no tiene valor fiscal; la app aún no guarda RNC ni NCF.
+
+### Aplicación coordinada del inventario
+
+No aplicar esta migración separada de una versión compatible de la app: restringe UPDATE directo de stock, y el editor publicado anteriormente lo incluía en su escritura. Una aplicación anticipada puede impedir guardar productos en esa versión. La PR sigue sin desplegar; la migración no está aplicada. En productos existentes, activar/desactivar el control de stock queda pendiente de una operación auditada específica; crear productos conserva esa elección inicial. El registro persiste sin añadir una pantalla de historial.
