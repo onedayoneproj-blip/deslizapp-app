@@ -140,7 +140,7 @@ function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, alPulsar, pagi
       const dias = diasDesde(c.ultimaVenta, ahora);
       const detalle = j.id === "volver" ? `Última compra hace ${dias} días` : j.id === "segundo" ? `Compró hace ${dias} días` : j.id === "gracias" ? `${c.compras} compras despachadas` : "Aún no compra";
       return <li key={c.id} className="flex min-h-[66px] items-center gap-2 rounded-[17px] border border-linea bg-white px-2.5 py-2">
-        <Avatar nombre={c.nombre} /><span className="min-w-0 flex-1"><b className="block truncate text-[13.5px]">{c.nombre}</b><span className="block text-[11px] text-suave">{detalle}</span></span>
+        <Avatar clienteId={c.id} nombre={c.nombre} /><span className="min-w-0 flex-1"><b className="block truncate text-[13.5px]">{c.nombre}</b><span className="block text-[11px] text-suave">{detalle}</span></span>
         {c.telefono ? <button type="button" onClick={() => alEscribir(j.id, j.nombre, c)}
           aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}
           className="tocable inline-flex min-h-11 items-center rounded-full bg-bosque px-3 text-[12px] font-extrabold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">Escribir</button> :

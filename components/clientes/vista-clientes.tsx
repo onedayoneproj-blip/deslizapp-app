@@ -188,7 +188,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
 function FilaCliente({ cliente: c, coincide, consulta, dormido = false }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; dormido?: boolean }) {
   return (
     <Link href={`/clientes/${c.id}`} scroll={false} className={`tocable flex items-center gap-3 py-3 text-bosque ${dormido ? "pr-12" : ""}`}>
-      <Avatar nombre={c.nombre} />
+      <Avatar clienteId={c.id} nombre={c.nombre} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[15.5px] font-extrabold">
           <span className="truncate">

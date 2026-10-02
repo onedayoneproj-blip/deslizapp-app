@@ -289,7 +289,7 @@ function Formulario({
       <p className="text-[13.5px] font-bold">Cliente</p>
       {cliente ? (
         <div className="flex items-center gap-3 rounded-[20px] border border-linea bg-white p-3">
-          <Avatar nombre={cliente.nombre} />
+          <Avatar clienteId={cliente.id} nombre={cliente.nombre} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-extrabold">{cliente.nombre}</p>
             {cliente.telefono && <p className="truncate text-[13px] text-suave">{formatearTelefono(cliente.telefono)}</p>}

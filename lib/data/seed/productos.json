@@ -5,7 +5,7 @@
     "nombre": "Oxana Black",
     "precio": 1300,
     "fotos": [
-      "/seed/productos/oxana-black.svg"
+      "/seed/productos/oxana-black.webp"
     ],
     "foto_retocada": false,
     "categoria": "Unisex",
@@ -22,7 +22,7 @@
     "nombre": "Majestic Kurt",
     "precio": 2500,
     "fotos": [
-      "/seed/productos/majestic-kurt.svg"
+      "/seed/productos/majestic-kurt.webp"
     ],
     "foto_retocada": false,
     "categoria": "Unisex",
@@ -39,7 +39,7 @@
     "nombre": "Parade",
     "precio": 1800,
     "fotos": [
-      "/seed/productos/parade.svg"
+      "/seed/productos/parade.webp"
     ],
     "foto_retocada": false,
     "categoria": "Para ella",
@@ -56,7 +56,7 @@
     "nombre": "Wild Flower Gold",
     "precio": 1100,
     "fotos": [
-      "/seed/productos/wild-flower-gold.svg"
+      "/seed/productos/wild-flower-gold.webp"
     ],
     "foto_retocada": false,
     "categoria": "Frescos",
@@ -73,7 +73,7 @@
     "nombre": "Zakat Z6",
     "precio": 3000,
     "fotos": [
-      "/seed/productos/zakat-z6.svg"
+      "/seed/productos/zakat-z6.webp"
     ],
     "foto_retocada": false,
     "categoria": "Unisex",
@@ -90,7 +90,7 @@
     "nombre": "Shé",
     "precio": 1200,
     "fotos": [
-      "/seed/productos/she.svg"
+      "/seed/productos/she.webp"
     ],
     "foto_retocada": false,
     "categoria": "Para ella",
@@ -107,7 +107,7 @@
     "nombre": "Intense Vanille",
     "precio": 1800,
     "fotos": [
-      "/seed/productos/intense-vanille.svg"
+      "/seed/productos/intense-vanille.webp"
     ],
     "foto_retocada": true,
     "categoria": "Dulces",
@@ -124,7 +124,7 @@
     "nombre": "Urban Toy Bubble Gum",
     "precio": 1500,
     "fotos": [
-      "/seed/productos/urban-toy-bubble-gum.svg"
+      "/seed/productos/urban-toy-bubble-gum.webp"
     ],
     "foto_retocada": false,
     "categoria": "Dulces",
@@ -141,7 +141,7 @@
     "nombre": "Mayar Natural Intense",
     "precio": 3200,
     "fotos": [
-      "/seed/productos/mayar-natural-intense.svg"
+      "/seed/productos/mayar-natural-intense.webp"
     ],
     "foto_retocada": false,
     "categoria": "Frescos",
@@ -158,7 +158,7 @@
     "nombre": "Kiara Pink",
     "precio": 1100,
     "fotos": [
-      "/seed/productos/kiara-pink.svg"
+      "/seed/productos/kiara-pink.webp"
     ],
     "foto_retocada": true,
     "categoria": "Dulces",
@@ -175,7 +175,7 @@
     "nombre": "Tobillera Arena",
     "precio": 450,
     "fotos": [
-      "/seed/productos/tobillera-arena.svg"
+      "/seed/productos/tobillera-arena.webp"
     ],
     "foto_retocada": false,
     "categoria": "Pulseras",
@@ -192,7 +192,7 @@
     "nombre": "Anillo Brisa",
     "precio": 500,
     "fotos": [
-      "/seed/productos/anillo-brisa.svg"
+      "/seed/productos/anillo-brisa.webp"
     ],
     "foto_retocada": false,
     "categoria": "Anillos",
@@ -209,7 +209,7 @@
     "nombre": "Choker Perla",
     "precio": 1200,
     "fotos": [
-      "/seed/productos/choker-perla.svg"
+      "/seed/productos/choker-perla.webp"
     ],
     "foto_retocada": false,
     "categoria": "Collares",
@@ -226,7 +226,7 @@
     "nombre": "Pulsera Coral",
     "precio": 650,
     "fotos": [
-      "/seed/productos/pulsera-coral.svg"
+      "/seed/productos/pulsera-coral.webp"
     ],
     "foto_retocada": false,
     "categoria": "Pulseras",
@@ -243,7 +243,7 @@
     "nombre": "Collar Marea",
     "precio": 1450,
     "fotos": [
-      "/seed/productos/collar-marea.svg"
+      "/seed/productos/collar-marea.webp"
     ],
     "foto_retocada": true,
     "categoria": "Collares",
@@ -260,7 +260,7 @@
     "nombre": "Aretes Luna Llena",
     "precio": 850,
     "fotos": [
-      "/seed/productos/aretes-luna-llena.svg"
+      "/seed/productos/aretes-luna-llena.webp"
     ],
     "foto_retocada": false,
     "categoria": "Aretes",

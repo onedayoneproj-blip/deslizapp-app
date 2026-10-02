@@ -104,7 +104,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-col items-center gap-1 text-center">
-        <Avatar nombre={cliente.nombre} tamano={78} />
+        <Avatar clienteId={cliente.id} nombre={cliente.nombre} tamano={78} />
         <h2 className="mt-1.5 flex items-center gap-2 font-display text-[26px] leading-tight">
           {cliente.nombre}
           {cliente.repite && <EtiquetaRepite />}

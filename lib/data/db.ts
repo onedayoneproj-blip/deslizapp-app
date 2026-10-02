@@ -1,6 +1,7 @@
 // El "almacén" de la demo: la forma de los datos en memoria y cómo se arma desde el seed.
 // Nada fuera de lib/data/ importa este archivo.
 
+import { actualizarFotoDemo } from "../fotos-demo";
 import { MARCA_NEUTRA } from "../marca";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
 import type { Abono, AjusteInventario, Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
@@ -128,6 +129,7 @@ export function esDB(valor: unknown): valor is DB {
 export function migrar(db: DB): DB {
   return {
     ...db,
+    productos: db.productos.map((p) => ({ ...p, fotos: p.fotos.map(actualizarFotoDemo) })),
     // Pedidos guardados antes de las ventas a crédito: todos de contado y sin abonos
     pedidos: db.pedidos.map((p) => ({ ...p, pagoModo: p.pagoModo ?? "contado", pagoFechaAcordada: p.pagoFechaAcordada ?? null })),
     abonos: db.abonos ?? [],
@@ -138,6 +140,7 @@ export function migrar(db: DB): DB {
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,
+      logoUrl: actualizarFotoDemo(t.logoUrl),
       marcaColorPrincipal: t.marcaColorPrincipal ?? MARCA_NEUTRA.principal,
       marcaColorAcento: t.marcaColorAcento ?? MARCA_NEUTRA.acento,
       marcaEstilo: t.marcaEstilo ?? MARCA_NEUTRA.estilo,
