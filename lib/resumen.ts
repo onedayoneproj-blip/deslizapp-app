@@ -357,6 +357,14 @@ export type Cifras = {
   /** Cantidad de ventas (pedidos despachados) del tramo. */
   ventasCantidad: number;
   ventasComparacion: number;
+  /** Suma de pedidos `por_despachar` del tramo (no son ventas confirmadas). */
+  porDespachar: number;
+  /** Suma de pedidos `por_despachar` del tramo de comparación. */
+  porDespacharComparacion: number;
+  /** Total que representa la tarjeta y el gráfico: despachados + por despachar. */
+  totalGrafico: number;
+  totalGraficoComparacion: number;
+  variacionGrafico: number | null;
   /** % entero; `null` = sin comparación. */
   variacion: number | null;
   /** Pedidos recibidos (no cancelados) del tramo, por fecha de creación. */
@@ -377,6 +385,12 @@ export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifra
   const del = despachados.filter((p) => dentro(fechaDeVenta(p), t));
   const ventas = del.reduce((s, p) => s + p.total, 0);
   const ventasComparacion = despachados.filter((p) => dentro(fechaDeVenta(p), comparacion)).reduce((s, p) => s + p.total, 0);
+  const porDespachar = datos.pedidos.filter((p) => p.estado === "por_despachar" && dentro(p.creadoEn, t)).reduce((s, p) => s + p.total, 0);
+  const porDespacharComparacion = datos.pedidos
+    .filter((p) => p.estado === "por_despachar" && dentro(p.creadoEn, comparacion))
+    .reduce((s, p) => s + p.total, 0);
+  const totalGrafico = ventas + porDespachar;
+  const totalGraficoComparacion = ventasComparacion + porDespacharComparacion;
   const aaahs = datos.eventos.filter((e) => dentro(e.creadoEn, t)).length;
 
   const unidades = new Map<string, { nombre: string; unidades: number }>();
@@ -399,6 +413,11 @@ export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifra
     ventas,
     ventasCantidad: del.length,
     ventasComparacion,
+    porDespachar,
+    porDespacharComparacion,
+    totalGrafico,
+    totalGraficoComparacion,
+    variacionGrafico: variacion(totalGrafico, totalGraficoComparacion),
     variacion: variacion(ventas, ventasComparacion),
     pedidos: recibidos.length,
     ticketPromedio: del.length > 0 ? Math.round(ventas / del.length) : null,
@@ -408,8 +427,14 @@ export function cifras(datos: DatosResumen, t: Tramo, comparacion: Tramo): Cifra
   };
 }
 
-/** `ventas`/`ventasCantidad`: despachados por fecha de venta. `pedidos`: recibidos por fecha de creación. */
-export type BarraConValor = Barra & { ventas: number | null; ventasCantidad: number | null; pedidos: number | null };
+/** Ventas confirmadas y pedidos por despachar agrupados por fecha de creación. */
+export type BarraConValor = Barra & {
+  ventas: number | null;
+  ventasCantidad: number | null;
+  porDespachar: number | null;
+  porDespacharCantidad: number | null;
+  pedidos: number | null;
+};
 
 export type Resumen = Cifras & {
   vista: Vista;
@@ -422,7 +447,7 @@ export type Resumen = Cifras & {
   barras: BarraConValor[];
   /** Barra elegida (`null` = todo el periodo). */
   seleccion: number | null;
-  /** Ventas del periodo completo (la suma de las barras). */
+  /** Total del gráfico del periodo completo: despachados + por despachar. */
   ventasDelPeriodo: number;
   /** Sin pedidos ni aaahs en todo el periodo: la pantalla muestra el estado vacío. */
   vacio: boolean;
@@ -450,10 +475,19 @@ export function calcularResumen(
   const bs = barras(vista, ancla, ahora, inicio);
   const recibidos = validos(datos.pedidos);
   const despachados = ventasDe(datos.pedidos);
+  const porDespachar = datos.pedidos.filter((p) => p.estado === "por_despachar");
   const conValor: BarraConValor[] = bs.map((b) => {
-    if (b.estado !== "normal") return { ...b, ventas: null, ventasCantidad: null, pedidos: null };
+    if (b.estado !== "normal") return { ...b, ventas: null, ventasCantidad: null, porDespachar: null, porDespacharCantidad: null, pedidos: null };
     const ventas = despachados.filter((p) => dentro(fechaDeVenta(p), b));
-    return { ...b, ventas: ventas.reduce((s, p) => s + p.total, 0), ventasCantidad: ventas.length, pedidos: recibidos.filter((p) => dentro(p.creadoEn, b)).length };
+    const pendientes = porDespachar.filter((p) => dentro(p.creadoEn, b));
+    return {
+      ...b,
+      ventas: ventas.reduce((s, p) => s + p.total, 0),
+      ventasCantidad: ventas.length,
+      porDespachar: pendientes.reduce((s, p) => s + p.total, 0),
+      porDespacharCantidad: pendientes.length,
+      pedidos: recibidos.filter((p) => dentro(p.creadoEn, b)).length,
+    };
   });
   const elegida = seleccion !== null && bs[seleccion]?.estado === "normal" ? seleccion : null;
   const tramo = elegida === null ? periodo : rangoBarra(vista, elegida, ancla, ahora);
@@ -469,7 +503,7 @@ export function calcularResumen(
     titulo: elegida === null ? tituloPeriodo(vista, ancla, ahora) : bs[elegida]!.de,
     barras: conValor,
     seleccion: elegida,
-    ventasDelPeriodo: delPeriodo.ventas,
+    ventasDelPeriodo: delPeriodo.totalGrafico,
     vacio: delPeriodo.pedidos === 0 && delPeriodo.ventasCantidad === 0 && delPeriodo.aaahs === 0,
   };
 }

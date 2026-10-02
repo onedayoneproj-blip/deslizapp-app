@@ -114,6 +114,8 @@ export type FuenteDatos = {
   crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null }): Promise<Cliente>;
   /** Cambia nombre y WhatsApp (vacío = sin WhatsApp). Lanza ClienteDuplicado si ya lo usa otra persona. */
   actualizarCliente(tiendaId: string, id: string, datos: DatosClienteEditables): Promise<Cliente>;
+  /** Borra el contacto y conserva sus pedidos en el historial, ya sin nombre asociado. */
+  eliminarCliente(tiendaId: string, id: string, borrarPedidos?: boolean): Promise<void>;
   /** Guarda la nota de un cliente (vacía = la borra). */
   actualizarNotaCliente(tiendaId: string, id: string, nota: string | null): Promise<Cliente>;
 

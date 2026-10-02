@@ -751,6 +751,10 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         throw existente ? new ClienteDuplicado(aCliente(existente)) : e;
       }
     },
+    async eliminarCliente(_tiendaId, id, borrarPedidos = false) {
+      await dato(supabase.rpc("borrar_cliente", { p_cliente_id: id, p_borrar_pedidos: borrarPedidos }));
+      cambio(undefined);
+    },
     async actualizarNotaCliente(tiendaId, id, nota) {
       const f = await requerido<FilaCliente>(
         supabase

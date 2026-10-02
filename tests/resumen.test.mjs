@@ -212,10 +212,29 @@ test("un pedido nuevo o por despachar no es venta, pero sí pedido recibido y pe
   assert.equal(r.ventasCantidad, 0);
   assert.equal(r.pedidos, 2);
   assert.equal(r.ticketPromedio, null);
+  assert.equal(r.porDespachar, 2000);
+  assert.equal(r.totalGrafico, 2000); // el nuevo no entra; el por despachar sí
+  assert.equal(r.ventas, 0); // los indicadores de ventas confirmadas se conservan
   assert.deepEqual(r.top, []);
   assert.deepEqual(ventasDe(ps), []);
   assert.equal(pendientesDe(ps).length, 2);
   assert.deepEqual(resumenPendientes(ps), { cantidad: 2, monto: 3000 });
+});
+
+test("el gráfico suma solo pedidos por despachar al valor despachado y los agrupa por creación", () => {
+  const pedidos = [
+    ped(iso(REF - 60_000), 1200, "despachado"),
+    ped(iso(REF - 60_000), 800, "por_despachar"),
+    ped(iso(REF - 60_000), 700, "nuevo"),
+    ped(iso(REF - 60_000), 4000, "cancelado"),
+  ];
+  const r = calcularResumen(datos(pedidos), "semana", SEPT, REF);
+  assert.equal(r.totalGrafico, 2000);
+  assert.equal(r.porDespachar, 800);
+  assert.equal(r.variacionGrafico, null);
+  assert.equal(r.barras.reduce((s, b) => s + (b.ventas ?? 0) + (b.porDespachar ?? 0), 0), 2000);
+  const barra = r.barras.find((b) => b.porDespachar === 800);
+  assert.equal(barra?.porDespacharCantidad, 1);
 });
 
 test("un pedido despachado sí es venta, en la fecha en que se despachó", () => {

@@ -290,18 +290,19 @@ function TarjetaVentas({
   alLimpiar: () => void;
   alTocarVacia: (b: BarraConValor) => void;
 }) {
-  const texto = textoVariacion(r.variacion);
-  const tono = r.variacion === null ? "" : r.variacion > 0 ? "bg-menta text-bosque" : r.variacion < 0 ? "bg-rosa text-bosque" : "bg-papel/15 text-papel";
+  const texto = textoVariacion(r.variacionGrafico);
+  const tono = r.variacionGrafico === null ? "" : r.variacionGrafico > 0 ? "bg-menta text-bosque" : r.variacionGrafico < 0 ? "bg-rosa text-bosque" : "bg-papel/15 text-papel";
   return (
     <section data-tarjeta-ventas aria-label={`Ventas ${r.titulo}`} className="rounded-[26px] bg-bosque px-[18px] pt-5 pb-4 text-papel">
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <p data-titulo-ventas className="text-[13px] font-bold tracking-[0.08em] text-rosa uppercase">
-            Ventas {r.titulo}
+            Ventas + por despachar {r.titulo}
           </p>
           <p data-ventas className="mt-1 font-display text-[36px] leading-[1.05]">
-            {formatearPesos(r.ventas)}
+            {formatearPesos(r.totalGrafico)}
           </p>
+          {r.porDespachar > 0 && <p data-incluye-pendientes className="mt-1 text-[11.5px] font-semibold text-[#D9E6DF]">Incluye {formatearPesos(r.porDespachar)} por despachar</p>}
         </div>
         <div className="mt-0.5 flex max-w-[132px] shrink-0 flex-col items-end gap-1 text-right">
           {texto ? (
@@ -340,7 +341,7 @@ function TarjetaVentas({
       <GraficoVentas
         barras={r.barras}
         seleccion={r.seleccion}
-        titulo={`Ventas ${r.seleccion === null ? r.titulo : ""} ${POR[r.vista]}`.replace(/\s+/g, " ")}
+        titulo={`Ventas y por despachar ${r.seleccion === null ? r.titulo : ""} ${POR[r.vista]}`.replace(/\s+/g, " ")}
         alElegir={alElegir}
         alLimpiar={alLimpiar}
         alTocarVacia={alTocarVacia}
