@@ -80,6 +80,9 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   await cargarFuentesMarca(tienda.marcaEstilo);
   const colores = coloresCupon({ principal: tienda.marcaColorPrincipal, acento: tienda.marcaColorAcento, estilo: tienda.marcaEstilo });
   const textoClaro = contraste(TEXTO_CLARO, colores.fondo) >= 4.5 ? TEXTO_CLARO : TEXTO_OSCURO;
+  // El recibo se dibuja sobre papel blanco: no uses los tonos claros de marca como tinta.
+  const tintaTexto = TEXTO_OSCURO;
+  const tintaAcento = contraste(colores.acento, "#ffffff") >= 4.5 ? colores.acento : TEXTO_OSCURO;
   const titulo = familiaTitulo(tienda.marcaEstilo);
   const cuerpo = familiaTexto(tienda.marcaEstilo);
   const productosPorId = new Map(productos.map((producto) => [producto.id, producto]));
@@ -130,8 +133,8 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   }
   ctx.restore();
 
-  dibujarLinea(ctx, tienda.nombre, CENTRO, 305, `700 56px ${titulo}`, colores.fondo, "center");
-  dibujarLinea(ctx, "RECIBO DE PEDIDO", CENTRO, 350, `700 19px ${cuerpo}`, colores.acento, "center");
+  dibujarLinea(ctx, tienda.nombre, CENTRO, 305, `700 56px ${titulo}`, tintaAcento, "center");
+  dibujarLinea(ctx, "RECIBO DE PEDIDO", CENTRO, 350, `700 19px ${cuerpo}`, tintaAcento, "center");
 
   const fecha = new Intl.DateTimeFormat("es-DO", { timeZone: ZONA_HORARIA, day: "numeric", month: "short", year: "numeric" }).format(
     new Date(pedido.despachadoEn ?? pedido.creadoEn),
@@ -147,9 +150,9 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   if (cliente?.telefono) detalles.push(["WhatsApp", cliente.telefono]);
   let y = 410;
   for (const [etiqueta, valor] of detalles) {
-    dibujarLinea(ctx, etiqueta, IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
+    dibujarLinea(ctx, etiqueta, IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
     ctx.font = `700 23px ${cuerpo}`;
-    dibujarLinea(ctx, ajustarTexto(ctx, valor, 430), DERECHA, y, `700 23px ${cuerpo}`, colores.fondo, "right");
+    dibujarLinea(ctx, ajustarTexto(ctx, valor, 430), DERECHA, y, `700 23px ${cuerpo}`, tintaTexto, "right");
     y += 42;
   }
   y += 18;
@@ -166,7 +169,7 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
     } else {
       ctx.fillStyle = "#f7ede9";
       ctx.fillRect(IZQUIERDA, y + 12, 74, 74);
-      dibujarLinea(ctx, iniciales(item.nombreProducto), IZQUIERDA + 37, y + 57, `700 19px ${cuerpo}`, colores.fondo, "center");
+      dibujarLinea(ctx, iniciales(item.nombreProducto), IZQUIERDA + 37, y + 57, `700 19px ${cuerpo}`, tintaTexto, "center");
     }
     ctx.restore();
     const inicioTexto = IZQUIERDA + 94;
@@ -174,9 +177,9 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
     ctx.font = `600 33px ${titulo}`;
     let nombre = item.nombreProducto;
     while (ctx.measureText(nombre).width > espacioTexto && nombre.length > 4) nombre = `${nombre.slice(0, -2)}…`;
-    dibujarLinea(ctx, nombre, inicioTexto, y + 44, `600 33px ${titulo}`, colores.fondo);
-    dibujarLinea(ctx, `${item.cantidad} × ${formatearPesos(item.precioUnitario)}`, inicioTexto, y + 76, `500 20px ${cuerpo}`, colores.fondo);
-    dibujarLinea(ctx, formatearPesos(item.cantidad * item.precioUnitario), DERECHA, y + 58, `700 25px ${cuerpo}`, colores.fondo, "right");
+    dibujarLinea(ctx, nombre, inicioTexto, y + 44, `600 33px ${titulo}`, tintaTexto);
+    dibujarLinea(ctx, `${item.cantidad} × ${formatearPesos(item.precioUnitario)}`, inicioTexto, y + 76, `500 20px ${cuerpo}`, tintaTexto);
+    dibujarLinea(ctx, formatearPesos(item.cantidad * item.precioUnitario), DERECHA, y + 58, `700 25px ${cuerpo}`, tintaTexto, "right");
     y += 112;
   }
 
@@ -185,40 +188,40 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   const subtotal = pedido.items.reduce((total, item) => total + item.precioUnitario * item.cantidad, 0);
   const descuento = Math.max(0, subtotal - pedido.total);
   y += 58;
-  dibujarLinea(ctx, `Subtotal · ${filas.length} ${filas.length === 1 ? "producto" : "productos"}`, IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
-  dibujarLinea(ctx, formatearPesos(subtotal), DERECHA, y, `500 23px ${cuerpo}`, colores.fondo, "right");
+  dibujarLinea(ctx, `Subtotal · ${filas.length} ${filas.length === 1 ? "producto" : "productos"}`, IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
+  dibujarLinea(ctx, formatearPesos(subtotal), DERECHA, y, `500 23px ${cuerpo}`, tintaTexto, "right");
   if (descuento > 0) {
     y += 44;
-    dibujarLinea(ctx, `Descuento${pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}`, IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
-    dibujarLinea(ctx, `-${formatearPesos(descuento)}`, DERECHA, y, `500 23px ${cuerpo}`, colores.fondo, "right");
+    dibujarLinea(ctx, `Descuento${pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}`, IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
+    dibujarLinea(ctx, `-${formatearPesos(descuento)}`, DERECHA, y, `500 23px ${cuerpo}`, tintaTexto, "right");
   }
   y += 80;
-  dibujarLinea(ctx, "TOTAL", IZQUIERDA, y - 8, `800 21px ${cuerpo}`, colores.fondo);
-  dibujarLinea(ctx, formatearPesos(pedido.total), DERECHA, y, `800 56px ${cuerpo}`, colores.fondo, "right");
+  dibujarLinea(ctx, "TOTAL", IZQUIERDA, y - 8, `800 21px ${cuerpo}`, tintaTexto);
+  dibujarLinea(ctx, formatearPesos(pedido.total), DERECHA, y, `800 56px ${cuerpo}`, tintaTexto, "right");
   y += 46;
   dibujarLineaSeparadora(ctx, IZQUIERDA, DERECHA, y, "#e6d5cf");
 
   y += 78;
-  dibujarLinea(ctx, "PAGO", IZQUIERDA, y, `700 19px ${cuerpo}`, colores.acento);
+  dibujarLinea(ctx, "PAGO", IZQUIERDA, y, `700 19px ${cuerpo}`, tintaAcento);
   y += 42;
-  dibujarLinea(ctx, "Forma de pago", IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
-  dibujarLinea(ctx, pedido.pagoModo === "credito" ? "A crédito" : "Contado", DERECHA, y, `700 23px ${cuerpo}`, colores.fondo, "right");
+  dibujarLinea(ctx, "Forma de pago", IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
+  dibujarLinea(ctx, pedido.pagoModo === "credito" ? "A crédito" : "Contado", DERECHA, y, `700 23px ${cuerpo}`, tintaTexto, "right");
   y += 42;
-  dibujarLinea(ctx, "Abonado", IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
-  dibujarLinea(ctx, formatearPesos(pedido.pagado), DERECHA, y, `700 23px ${cuerpo}`, colores.fondo, "right");
+  dibujarLinea(ctx, "Abonado", IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
+  dibujarLinea(ctx, formatearPesos(pedido.pagado), DERECHA, y, `700 23px ${cuerpo}`, tintaTexto, "right");
   y += 42;
-  dibujarLinea(ctx, "Saldo pendiente", IZQUIERDA, y, `500 23px ${cuerpo}`, colores.fondo);
-  dibujarLinea(ctx, formatearPesos(pedido.saldo), DERECHA, y, `700 23px ${cuerpo}`, colores.fondo, "right");
+  dibujarLinea(ctx, "Saldo pendiente", IZQUIERDA, y, `500 23px ${cuerpo}`, tintaTexto);
+  dibujarLinea(ctx, formatearPesos(pedido.saldo), DERECHA, y, `700 23px ${cuerpo}`, tintaTexto, "right");
 
   y += 88;
-  dibujarLinea(ctx, "¡Gracias por tu compra!", CENTRO, y, `italic 500 52px ${titulo}`, colores.acento, "center");
+  dibujarLinea(ctx, "¡Gracias por tu compra!", CENTRO, y, `italic 500 52px ${titulo}`, tintaAcento, "center");
   y += 52;
-  dibujarLinea(ctx, "Comprobante sin valor fiscal", CENTRO, y, `500 20px ${cuerpo}`, colores.fondo, "center");
+  dibujarLinea(ctx, "Comprobante sin valor fiscal", CENTRO, y, `500 20px ${cuerpo}`, tintaTexto, "center");
   y += 50;
   const codigo = `PEDIDO${pedido.numero}`;
-  codigoBarras(ctx, codigo, CENTRO, y, colores.fondo);
+  codigoBarras(ctx, codigo, CENTRO, y, tintaTexto);
   y += 94;
-  dibujarLinea(ctx, codigo, CENTRO, y, `700 20px ${cuerpo}`, colores.fondo, "center");
+  dibujarLinea(ctx, codigo, CENTRO, y, `700 20px ${cuerpo}`, tintaTexto, "center");
 
   const blob = await blobDe(lienzo, "image/png");
   return {
