@@ -15,13 +15,17 @@ import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorr
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
 import { validarAjusteInventario, validarReposicion } from "./inventario";
+import { DIAS_ENVIOS } from "./jugadas";
+import { PATRON_CODIGO } from "../jugada-codigo";
 import {
   ArchivoMuyGrande,
   ClienteDuplicado,
   CreditosInsuficientes,
   DatosInvalidos,
   ErrorClaro,
+  CodigoNoValido,
   ErrorDeRed,
+  MENSAJE_CODIGO_FORMATO,
   FormatoNoPermitido,
   mensajeDeError,
   PedidoNoEditable,
@@ -37,6 +41,7 @@ import {
   aEventoAaah,
   aPedidoConItems as aPedidoBase,
   aProducto,
+  aEnvioJugada,
   aPromo,
   aTienda,
   aUsuario,
@@ -53,6 +58,7 @@ import {
   type FilaPedidoConItems,
   type FilaPedidoItem,
   type FilaProducto,
+  type FilaEnvioJugada,
   type FilaPromo,
   type FilaTienda,
   type FilaUsuario,
@@ -930,6 +936,42 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       );
       return cambio(aPromo(f));
     },
+
+    // ---- Tu próxima jugada ----
+    async crearCodigoCliente(tiendaId, clienteId, porcentaje, dias, codigo = null) {
+      const escrito = codigo?.trim() ? codigo.trim().toUpperCase() : null;
+      // Validación rápida para dar el mensaje en el campo; la RPC repite las reglas.
+      if (escrito && !PATRON_CODIGO.test(escrito)) throw new CodigoNoValido(MENSAJE_CODIGO_FORMATO);
+      // Que un código vencido sin marcar no bloquee el nombre (el índice único es solo entre no terminadas)
+      await guardarVencidas(tiendaId);
+      const f = await requerido<FilaPromo>(
+        supabase.rpc("crear_codigo_cliente", { p_tienda_id: tiendaId, p_cliente_id: clienteId, p_porcentaje: porcentaje, p_dias: dias, p_codigo: escrito }),
+        () => new Error("La base no devolvió el código."),
+      );
+      return cambio(aPromo(f));
+    },
+    async registrarEnvioJugada(tiendaId, datos) {
+      const f = await requerido<FilaEnvioJugada>(
+        supabase.rpc("registrar_envio_jugada", {
+          p_tienda_id: tiendaId,
+          p_cliente_id: datos.clienteId,
+          p_jugada: datos.jugada,
+          p_tipo: datos.tipo,
+          p_promo_id: datos.promoId ?? null,
+          p_producto_ids: datos.productoIds ?? [],
+        }),
+        () => new Error("La base no devolvió el envío."),
+      );
+      return cambio(aEnvioJugada(f));
+    },
+    enviosJugada: (tiendaId) =>
+      leer(`envios:${tiendaId}`, async () => {
+        const desde = new Date(Date.now() - DIAS_ENVIOS * 86_400_000).toISOString();
+        const filas = await dato<FilaEnvioJugada[]>(
+          supabase.from("jugada_envios").select("*").eq("tienda_id", tiendaId).gte("enviado_en", desde).order("enviado_en", { ascending: false }),
+        );
+        return (filas ?? []).map(aEnvioJugada);
+      }),
 
     // ---- Aaahs (solo lectura) ----
     getEventosAaah: (tiendaId) =>

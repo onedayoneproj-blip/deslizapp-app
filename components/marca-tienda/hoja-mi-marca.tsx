@@ -57,6 +57,7 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
     estado: "activa",
     limiteUsos: null,
     pausada: false,
+    clienteId: null,
   };
 }
 

@@ -182,6 +182,23 @@ export type Promo = {
   limiteUsos: number | null;
   /** Pausa manual: deja de aplicarse sin perder su historial. */
   pausada: boolean;
+  /** Código personal: solo vale en pedidos de este cliente (creado desde Tu próxima jugada). null = para todos. */
+  clienteId: string | null;
+};
+
+/** Qué se le mandó a un cliente desde Tu próxima jugada. */
+export type TipoEnvioJugada = "saludo" | "codigo" | "productos";
+
+/** Cada vez que se abre WhatsApp desde una jugada (tabla `jugada_envios`). */
+export type EnvioJugada = {
+  id: string;
+  tiendaId: string;
+  clienteId: string;
+  jugada: "volver" | "segundo" | "gracias" | "primer";
+  tipo: TipoEnvioJugada;
+  promoId: string | null;
+  productoIds: string[];
+  enviadoEn: string;
 };
 
 export type EventoAaah = {

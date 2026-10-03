@@ -26,6 +26,8 @@ export function desdeFormulario(tiendaId: string, datos: DatosPromo, id: string,
     estado: Date.parse(fechaInicio) > ahora.getTime() ? "programada" : "activa",
     limiteUsos: datos.tipo === "codigo" && datos.limite.trim() !== "" ? Number(datos.limite) : null,
     pausada: datos.pausada,
+    // Las promos que se crean o editan desde Promos son para todos; el código personal lo crea crearCodigoCliente.
+    clienteId: null,
   };
 }
 
@@ -43,7 +45,8 @@ export function modificarPromo(db: DB, tiendaId: string, id: string, datos: Dato
   if (actual.estado === "terminada") throw new Error("Una promo terminada no se puede editar: duplícala como nueva.");
   const errores = validarPromo({ ...datos, tipo: actual.tipo }, db.promos, tiendaId, id);
   if (Object.keys(errores).length) throw new PromoInvalida(errores);
-  const promo = desdeFormulario(tiendaId, { ...datos, tipo: actual.tipo }, id, ahora);
+  // Editar desde Promos nunca cambia a quién es el código personal
+  const promo = { ...desdeFormulario(tiendaId, { ...datos, tipo: actual.tipo }, id, ahora), clienteId: actual.clienteId };
   return { db: { ...db, promos: db.promos.map((p) => (p.id === id ? promo : p)) }, promo };
 }
 

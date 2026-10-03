@@ -9,6 +9,7 @@ import type {
   Cliente,
   EstadoCatalogo,
   EstadoPedido,
+  EnvioJugada,
   EstadoPromo,
   EstadoTienda,
   EventoAaah,
@@ -142,6 +143,19 @@ export type FilaPromo = {
   /** Solo promos de código; null = sin límite. Puede faltar en el seed viejo. */
   limite_usos?: number | null;
   pausada?: boolean;
+  /** Código personal (solo para ese cliente). Puede faltar en el seed viejo. */
+  cliente_id?: string | null;
+};
+
+export type FilaEnvioJugada = {
+  id: string;
+  tienda_id: string;
+  cliente_id: string;
+  jugada: string;
+  tipo: string;
+  promo_id: string | null;
+  producto_ids: string[] | null;
+  enviado_en: string;
 };
 
 export type FilaEventoAaah = { id: string; tienda_id: string; producto_id: string; creado_en: string };
@@ -275,6 +289,20 @@ export function aPromo(f: FilaPromo, fecha: AjusteFecha = igual): Promo {
     estado: f.estado as EstadoPromo,
     limiteUsos: f.limite_usos ?? null,
     pausada: f.pausada ?? false,
+    clienteId: f.cliente_id ?? null,
+  };
+}
+
+export function aEnvioJugada(f: FilaEnvioJugada): EnvioJugada {
+  return {
+    id: f.id,
+    tiendaId: f.tienda_id,
+    clienteId: f.cliente_id,
+    jugada: f.jugada as EnvioJugada["jugada"],
+    tipo: f.tipo as EnvioJugada["tipo"],
+    promoId: f.promo_id,
+    productoIds: f.producto_ids ?? [],
+    enviadoEn: f.enviado_en,
   };
 }
 
@@ -361,7 +389,10 @@ export function filaPedidoItem(pedidoId: string, i: { productoId: string; nombre
   return { pedido_id: pedidoId, producto_id: i.productoId, nombre_producto: i.nombreProducto, cantidad: i.cantidad, precio_unitario: i.precioUnitario };
 }
 
-/** Promo (nueva o editada). `valor_porcentaje` es NOT NULL y el código va en MAYÚSCULAS (así lo exige la base). */
+/**
+ * Promo (nueva o editada). `valor_porcentaje` es NOT NULL y el código va en MAYÚSCULAS (así lo exige la base). `cliente_id` NO va aquí:
+ * solo lo pone `crear_codigo_cliente`, y editar una promo desde Promos nunca lo cambia ni lo borra.
+ */
 export function filaPromo(tiendaId: string, p: Omit<Promo, "id" | "tiendaId">) {
   return {
     tienda_id: tiendaId,

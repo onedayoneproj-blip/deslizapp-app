@@ -504,6 +504,7 @@ function Formulario({
               estado: "activa",
               limiteUsos: datos.tipo === "codigo" && datos.limite ? Number(datos.limite) || null : null,
               pausada: datos.pausada,
+              clienteId: null,
             }}
             estado={datos.pausada ? "pausada" : undefined}
             producto={productoElegido}

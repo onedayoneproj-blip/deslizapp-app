@@ -1,7 +1,7 @@
 // La demo: un almacén en el navegador (memoria + localStorage), sin login, con selector de tienda.
 // Implementa la misma interfaz que Supabase (lib/data/fuente.ts). Ver docs/05-arquitectura.md.
 
-import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
+import type { CambiosProducto, Cliente, ClienteConResumen, EnvioJugada, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
 import type { CambiosAbono } from "../credito";
 import type { Abono, MotivoAjusteInventario } from "../types";
@@ -28,6 +28,7 @@ import {
 } from "./pedidos";
 import { insertarProducto, modificarProducto, productoDeTienda, productosDeTienda } from "./productos";
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
+import { crearCodigoClienteEnDB, enviosDeTienda, registrarEnvioEnDB } from "./jugadas";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
 import { ajustarStockEnDB, guardarProductoEnDB, validarReposicion } from "./inventario";
@@ -514,6 +515,27 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizada;
+  },
+  async crearCodigoCliente(tiendaId, clienteId, porcentaje, dias, codigo) {
+    let creada!: Promo;
+    escribir((db) => {
+      const r = crearCodigoClienteEnDB(db, tiendaId, clienteId, porcentaje, dias, codigo, nuevoId(), Date.now());
+      creada = r.promo;
+      return r.db;
+    });
+    return creada;
+  },
+  async registrarEnvioJugada(tiendaId, datos) {
+    let envio!: EnvioJugada;
+    escribir((db) => {
+      const r = registrarEnvioEnDB(db, tiendaId, datos, nuevoId(), Date.now());
+      envio = r.envio;
+      return r.db;
+    });
+    return envio;
+  },
+  async enviosJugada(tiendaId) {
+    return enviosDeTienda(leerDemo().db, tiendaId, Date.now());
   },
   /** La termina el dueño. No se puede reactivar. */
   async terminarPromo(tiendaId: string, id: string): Promise<Promo> {
