@@ -503,6 +503,43 @@ export function mensajeRecordatorio(datos: { cliente: string; vendedora: string;
   return `¡Hola, ${primerNombre(datos.cliente)}! Te escribe ${de}. Te recuerdo con cariño que quedó pendiente ${pesos(datos.deuda)}. Cuando puedas me avisas. ¡Gracias!`;
 }
 
+export type IdMensajeRecordatorio = "carino" | "fecha" | "corto" | "vencido";
+export type MensajeRecordatorio = { id: IdMensajeRecordatorio; titulo: string; texto: string };
+
+/**
+ * Los mensajes para recordarle a un cliente lo que debe (detalle del cliente, "Elige el mensaje"). "Con la fecha" solo si hay fecha
+ * acordada; "Si ya pasó la fecha" solo si está vencida. Sin vendedora, los mensajes no dicen "Te escribe…". `elegido` es el que va
+ * por defecto: "Si ya pasó la fecha" si está vencida; si no, "Con cariño".
+ */
+export function mensajesRecordatorio(datos: { cliente: string; vendedora: string; tienda: string; deuda: number; fecha: string | null; ahora: number }): {
+  mensajes: MensajeRecordatorio[];
+  elegido: IdMensajeRecordatorio;
+} {
+  const nombre = primerNombre(datos.cliente);
+  const monto = pesos(datos.deuda);
+  const vendedora = datos.vendedora.trim();
+  const teEscribe = vendedora ? ` Te escribe ${vendedora}, de ${datos.tienda}.` : "";
+  const dias = diasParaPagar(datos.fecha, datos.ahora);
+  const vencida = dias !== null && dias < 0;
+  const mensajes: MensajeRecordatorio[] = [
+    { id: "carino", titulo: "Con cariño", texto: mensajeRecordatorio({ cliente: datos.cliente, vendedora: datos.vendedora, tienda: datos.tienda, deuda: datos.deuda }) },
+  ];
+  if (datos.fecha && esDiaValido(datos.fecha))
+    mensajes.push({
+      id: "fecha",
+      titulo: "Con la fecha",
+      texto: `¡Hola, ${nombre}!${teEscribe} Te recuerdo que quedamos en el pago de ${monto} para el ${diaLargo(datos.fecha, datos.ahora)}. ¡Gracias!`,
+    });
+  mensajes.push({ id: "corto", titulo: "Corto", texto: `Hola, ${nombre}. Te recuerdo el pendiente de ${monto} con ${datos.tienda}. ¡Gracias!` });
+  if (vencida && datos.fecha)
+    mensajes.push({
+      id: "vencido",
+      titulo: "Si ya pasó la fecha",
+      texto: `¡Hola, ${nombre}!${teEscribe} El pago de ${monto} quedó para el ${diaLargo(datos.fecha, datos.ahora)} y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!`,
+    });
+  return { mensajes, elegido: vencida ? "vencido" : "carino" };
+}
+
 /** Mensaje de gracias al saldar. */
 export function mensajeGracias(datos: { cliente: string; vendedora: string; tienda: string; total: number }): string {
   const de = datos.vendedora && datos.vendedora !== datos.tienda ? `${datos.vendedora}, de ${datos.tienda}` : datos.tienda;

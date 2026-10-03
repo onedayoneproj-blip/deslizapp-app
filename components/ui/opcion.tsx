@@ -54,6 +54,55 @@ export function Opcion({
   );
 }
 
+/**
+ * Opción con su texto completo debajo (elegir un mensaje): tarjeta `radio-m` a todo lo ancho con el título en `destacado` y el texto
+ * en `secundario` `texto-secundario`. Elegida: relleno `accion-suave` con el check en círculo a la izquierda (como `Opcion`).
+ */
+function OpcionDetallada({
+  elegida,
+  onClick,
+  titulo,
+  descripcion,
+  tabIndex,
+  onKeyDown,
+  refBoton,
+}: {
+  elegida: boolean;
+  onClick: () => void;
+  titulo: ReactNode;
+  descripcion: ReactNode;
+  tabIndex?: number;
+  onKeyDown?: (e: KeyboardEvent<HTMLButtonElement>) => void;
+  refBoton?: (el: HTMLButtonElement | null) => void;
+}) {
+  return (
+    <button
+      ref={refBoton}
+      type="button"
+      role="radio"
+      aria-checked={elegida}
+      tabIndex={tabIndex}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      className={clases(
+        "tocable flex w-full items-start gap-2.5 rounded-radio-m border-[1.5px] px-4 py-3 text-left text-texto",
+        FOCO,
+        elegida ? "border-accion-suave bg-accion-suave" : "border-borde-pastilla bg-superficie",
+      )}
+    >
+      {elegida && (
+        <span className="mt-0.5">
+          <CheckCirculo />
+        </span>
+      )}
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-destacado">{titulo}</span>
+        <span className="text-secundario text-texto-secundario">{descripcion}</span>
+      </span>
+    </button>
+  );
+}
+
 /** Teclado de un radiogrupo: flechas y Inicio/Fin mueven el foco y eligen. Devuelve lo que necesita cada botón. */
 export function useRadiogrupo<T extends string>(ids: T[], valor: T | null, alCambiar: (id: T) => void) {
   const botones = useRef(new Map<T, HTMLButtonElement>());
@@ -93,13 +142,15 @@ export function GrupoOpciones<T extends string>({
   titulo,
   etiqueta,
 }: {
-  opciones: { id: T; texto: ReactNode }[];
+  /** Con `descripcion`, cada opción es una tarjeta con su texto completo debajo (una debajo de la otra). */
+  opciones: { id: T; texto: ReactNode; descripcion?: ReactNode }[];
   valor: T | null;
   alCambiar: (id: T) => void;
   titulo?: string;
   etiqueta?: string;
 }) {
   const id = useId();
+  const detalladas = opciones.some((o) => o.descripcion !== undefined);
   const props = useRadiogrupo(
     opciones.map((o) => o.id),
     valor,
@@ -112,12 +163,16 @@ export function GrupoOpciones<T extends string>({
           {titulo}
         </p>
       )}
-      <div role="radiogroup" aria-labelledby={titulo ? id : undefined} aria-label={titulo ? undefined : etiqueta} className="flex flex-wrap gap-2">
-        {opciones.map((o) => (
-          <Opcion key={o.id} elegida={o.id === valor} onClick={() => alCambiar(o.id)} {...props(o.id)}>
-            {o.texto}
-          </Opcion>
-        ))}
+      <div role="radiogroup" aria-labelledby={titulo ? id : undefined} aria-label={titulo ? undefined : etiqueta} className={detalladas ? "flex flex-col gap-2" : "flex flex-wrap gap-2"}>
+        {opciones.map((o) =>
+          detalladas ? (
+            <OpcionDetallada key={o.id} elegida={o.id === valor} onClick={() => alCambiar(o.id)} titulo={o.texto} descripcion={o.descripcion} {...props(o.id)} />
+          ) : (
+            <Opcion key={o.id} elegida={o.id === valor} onClick={() => alCambiar(o.id)} {...props(o.id)}>
+              {o.texto}
+            </Opcion>
+          ),
+        )}
       </div>
     </div>
   );

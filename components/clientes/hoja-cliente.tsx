@@ -14,7 +14,7 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
-import { IconoEditar, IconoWhatsApp } from "../iconos";
+import { IconoEditar } from "../iconos";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
 import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
@@ -108,28 +108,18 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
           {cliente.nombre}
           {cliente.repite && <span className="sr-only">, repite</span>}
         </h2>
-        <p className="text-secundario font-bold text-texto-secundario">
-          {cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"} · {cliente.origen === "catalogo" ? "Del catálogo" : "Manual"}
-        </p>
+        <p className="text-secundario font-bold text-texto-secundario">{cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"}</p>
+        <div className="mt-2 flex items-center gap-2">
+          {cliente.telefono && (
+            <Boton whatsapp href={enlaceWhatsApp(cliente.telefono, mensaje)} target="_blank" rel="noreferrer" aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}>
+              Escribir
+            </Boton>
+          )}
+          <Boton jerarquia="secundario" tamano="compacto" icono={<IconoEditar tamano={16} />} onClick={() => setEditando(true)}>
+            Editar
+          </Boton>
+        </div>
       </div>
-
-      {cliente.telefono && (
-        <Boton
-          tamano="grande"
-          anchoCompleto
-          icono={<IconoWhatsApp tamano={20} />}
-          href={enlaceWhatsApp(cliente.telefono, mensaje)}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}
-        >
-          Escribir
-        </Boton>
-      )}
-
-      <Boton jerarquia="secundario" tamano="grande" anchoCompleto icono={<IconoEditar tamano={20} />} onClick={() => setEditando(true)}>
-        Editar datos
-      </Boton>
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-radio-m border border-linea bg-superficie px-3 py-2.5">

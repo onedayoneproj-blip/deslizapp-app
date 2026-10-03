@@ -10,6 +10,7 @@ import {
   enlaceWhatsAppCliente,
   finDeMes,
   mensajeRecordatorio,
+  mensajesRecordatorio,
   montoDeTexto,
   planearAbono,
   planearEdicionAbono,
@@ -299,4 +300,25 @@ test("bloque de deuda de un cliente: suma el total y lo abonado de TODOS sus ped
   const c = cuentaDeCliente([a, b], "c1", AHORA);
   assert.equal(c.totalPedidos, 2500);
   assert.equal(c.abonado, 800);
+});
+
+test("mensajes de recordatorio: cuatro tonos con los datos reales y el elegido por defecto", () => {
+  const base = { cliente: "Luisanna Pérez", vendedora: "Michel", tienda: "Esencias Michel", deuda: 2425, ahora: AHORA };
+  // Con fecha futura (vie 9 oct): Con cariño, Con la fecha y Corto; por defecto Con cariño
+  const futura = mensajesRecordatorio({ ...base, fecha: "2026-10-09" });
+  assert.deepEqual(futura.mensajes.map((m) => m.id), ["carino", "fecha", "corto"]);
+  assert.equal(futura.elegido, "carino");
+  assert.equal(futura.mensajes[1].texto, "¡Hola, Luisanna! Te escribe Michel, de Esencias Michel. Te recuerdo que quedamos en el pago de RD$2,425 para el viernes 9 de octubre. ¡Gracias!");
+  assert.equal(futura.mensajes[2].texto, "Hola, Luisanna. Te recuerdo el pendiente de RD$2,425 con Esencias Michel. ¡Gracias!");
+  // Vencida: aparece "Si ya pasó la fecha" y va por defecto
+  const vencida = mensajesRecordatorio({ ...base, fecha: "2026-09-24" });
+  assert.deepEqual(vencida.mensajes.map((m) => m.id), ["carino", "fecha", "corto", "vencido"]);
+  assert.equal(vencida.elegido, "vencido");
+  assert.equal(vencida.mensajes[3].texto, "¡Hola, Luisanna! Te escribe Michel, de Esencias Michel. El pago de RD$2,425 quedó para el jueves 24 de septiembre y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!");
+  // Sin fecha: sin "Con la fecha" ni "Si ya pasó"; sin vendedora, sin "Te escribe…"
+  const sinFecha = mensajesRecordatorio({ ...base, vendedora: "", fecha: null });
+  assert.deepEqual(sinFecha.mensajes.map((m) => m.id), ["carino", "corto"]);
+  const sinVendedora = mensajesRecordatorio({ ...base, vendedora: " ", fecha: "2026-09-24" });
+  assert.ok(!sinVendedora.mensajes[3].texto.includes("Te escribe"));
+  assert.equal(sinVendedora.mensajes[3].texto, "¡Hola, Luisanna! El pago de RD$2,425 quedó para el jueves 24 de septiembre y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!");
 });
