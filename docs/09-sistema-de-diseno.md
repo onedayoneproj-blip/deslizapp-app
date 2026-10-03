@@ -93,8 +93,8 @@ Todos son píldora, letra extrabold, sin subrayado.
 
 | Jerarquía | Aspecto | Para |
 |---|---|---|
-| **Principal** | Relleno `accion` | La acción que la persona vino a hacer: Guardar, Crear pedido, Registrar abono |
-| **Secundario** | Contorno 1.5 px `accion` con relleno `superficie` (nunca transparente sobre el fondo crema) | La alternativa: Editar, Agregar más productos, Recordarle. En compacto (36 px), las acciones dentro de tarjetas y filas: Cambiar, Ver historial |
+| **Principal** | Relleno `accion` | La acción que la persona vino a hacer: Guardar, Crear pedido, Recordarle por WhatsApp |
+| **Secundario** | Contorno 1.5 px `accion` con relleno `superficie` (nunca transparente sobre el fondo crema) | La alternativa: Editar, Agregar más productos, Registrar abono (en el detalle del cliente, junto a "Recordarle"). En compacto (36 px), las acciones dentro de tarjetas y filas: Cambiar, Ver historial |
 | **Terciario** | Solo texto, sin borde ni subrayado | Casi nunca: la acción destructiva al final de una pila ("Cancelar pedido", en `peligro`) y "Reintentar" dentro de un aviso. Una acción dentro de una tarjeta va como secundario compacto, para que se vea que es un botón |
 | **Peligro** | Contorno y texto `peligro`; relleno `peligro` solo dentro de una alerta | Borrar, eliminar, terminar |
 | **Resalte** | Relleno `resalte` | Botón flotante (+) y una llamada emocional por pantalla |
