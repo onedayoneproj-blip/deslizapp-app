@@ -7,7 +7,7 @@ import { Dona } from "../dona";
 export const COLOR_STOCK = {
   conStock: "var(--accion)",
   quedan: "var(--resalte)",
-  agotados: "var(--atencion-suave)",
+  agotados: "var(--peligro)",
 } as const;
 
 /** Anillo de la salud del inventario (solo productos visibles). Dentro, la cifra de disponibles. */
