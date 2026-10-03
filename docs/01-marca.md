@@ -34,6 +34,8 @@ del dueño, no publicidad. La regla de "nunca hablar de dinero" aplica a piezas
 de marketing/anuncios, no a la UI operativa donde el dueño necesita ver sus
 propios números.
 
+Frases reales del material de marketing, rasgos de la voz y banco de ejemplos para la app: `docs/11-voz-y-frases.md`.
+
 ## Identidad visual
 
 **Colores:**
