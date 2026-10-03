@@ -17,7 +17,9 @@ import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
+import { useToastUI } from "../ui";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
@@ -145,8 +147,9 @@ function FormularioProducto({
   const { crearProducto, usarCreditosRetoque } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan } = usePanelUI();
+  const { abrirPlan, abrirInventario } = usePanelUI();
   const toast = useToast();
+  const { mostrarToast: mostrarToastUI } = useToastUI();
   const entradaFoto = useRef<HTMLInputElement>(null);
 
   const [foto, setFoto] = useState<string | null>(producto?.fotos[0] ?? null);
@@ -174,7 +177,16 @@ function FormularioProducto({
     return [...todas].sort((a, b) => a.localeCompare(b, "es"));
   }, [productos]);
 
-  const lleno = !producto && tienda != null && productos.length >= tienda.limiteProductos;
+  // El plan cuenta solo los visibles. Con el plan lleno no se puede mostrar otro producto: uno nuevo se guarda oculto y
+  // uno oculto no se vuelve visible hasta hacer espacio.
+  const llenoPlan = tienda != null && resumenDelPlan(productos, tienda.limiteProductos).estado === "lleno";
+  const bloqueaVisible = llenoPlan && !(producto?.activo ?? false);
+  const cambiarVisible = (valor: boolean) => {
+    if (valor && bloqueaVisible) return;
+    setActivo(valor);
+  };
+  const avisarLleno = () =>
+    mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: abrirInventario } });
 
   const creditos = tienda?.creditosRetoque ?? 0;
   const alcanzan = creditos >= CREDITOS_POR_RETOQUE;
@@ -250,7 +262,7 @@ function FormularioProducto({
       const fotoFinal = usarRetoque ? retocada!.url : foto;
       const fotos = producto ? [fotoFinal, ...producto.fotos.slice(1)] : [fotoFinal];
       const fotoRetocada = usarRetoque || yaRetocada;
-      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo };
+      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo: activo && !bloqueaVisible };
       const menos = `−${CREDITOS_POR_RETOQUE} créditos.`;
       if (producto) {
         const bien = await inventario.guardar({
@@ -264,7 +276,7 @@ function FormularioProducto({
         toast(
           usarRetoque
             ? `Publicado y retocado. ${menos}`
-            : activo
+            : activo && !bloqueaVisible
               ? "Publicado. Ya se está deslizando."
               : "Guardado como oculto. Nadie lo ve hasta que lo prendas.",
         );
@@ -284,16 +296,6 @@ function FormularioProducto({
 
   return (
     <div className="flex flex-col gap-3.5">
-      {lleno && tienda && (
-        <div className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-          <b>Tu plan está lleno ({productos.length} de {tienda.limiteProductos}).</b> En la demo puedes seguir; en la vida real, toca
-          subir de plan.{" "}
-          <button type="button" onClick={abrirPlan} className="font-extrabold underline">
-            Ver plan
-          </button>
-        </div>
-      )}
-
       {/* Foto */}
       <input
         ref={entradaFoto}
@@ -503,8 +505,11 @@ function FormularioProducto({
           <p className="font-extrabold">Visible en el catálogo</p>
           <p className="text-[12.5px] text-suave">Apágalo para esconderlo sin borrarlo.</p>
         </div>
-        <Interruptor encendido={activo} alCambiar={setActivo} etiqueta="Visible en el catálogo" />
+        <Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />
       </div>
+      {bloqueaVisible && !producto && (
+        <p className="-mt-1.5 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
+      )}
 
       {(!producto || !inventario.pendiente) && <button
         type="button"

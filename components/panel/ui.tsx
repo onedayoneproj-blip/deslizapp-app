@@ -8,7 +8,7 @@ import { PantallaNovedades } from "./pantalla-novedades";
 
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
 type CampoMarca = "enlace";
-type PanelUI = { abrirPlan: () => void; abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void };
+type PanelUI = { abrirPlan: () => void; abrirInventario: () => void; abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void };
 
 const Contexto = createContext<PanelUI | null>(null);
 
@@ -55,6 +55,8 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
 
   const abrirPlan = useCallback(() => setPlanAbierto(true), []);
   const cerrarPlan = useCallback(() => setPlanAbierto(false), []);
+  // Mientras llega la hoja "Tu inventario" (punto 2), "Hacer espacio" lleva a Tu plan.
+  const abrirInventario = useCallback(() => setPlanAbierto(true), []);
   const abrirNovedades = useCallback(() => setNovedades(NOVEDADES.slice(0, 1)), []);
   const cerrarNovedades = useCallback(() => setNovedades([]), []);
   const abrirMiMarca = useCallback((campo?: CampoMarca) => {
@@ -62,7 +64,7 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     setMarcaAbierta(true);
   }, []);
   const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
-  const valor = useMemo(() => ({ abrirPlan, abrirNovedades, abrirMiMarca }), [abrirPlan, abrirNovedades, abrirMiMarca]);
+  const valor = useMemo(() => ({ abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca }), [abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca]);
 
   return (
     <Contexto.Provider value={valor}>

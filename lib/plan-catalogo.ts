@@ -1,0 +1,39 @@
+// Espacio del plan: el límite de la tienda se mide contra los productos VISIBLES (activo = true).
+// Los ocultos no cuentan. Puro, con pruebas en tests/plan-catalogo.test.mjs.
+
+export type EstadoPlan = "sobra" | "quedan" | "casi" | "lleno";
+
+export type ResumenPlan = {
+  /** Productos visibles en el catálogo: lo que ocupa el plan. */
+  usados: number;
+  limite: number;
+  /** Lugares que quedan (nunca negativo). */
+  libres: number;
+  /** Fracción usada, de 0 a 1 (0 si el límite es 0). */
+  uso: number;
+  estado: EstadoPlan;
+};
+
+type ConActivo = { activo: boolean };
+
+/** Estado del plan según qué tanto se usó: < 70 % sobra, 70–89 % quedan, 90–99 % casi, 100 % lleno. */
+export function estadoDelPlan(usados: number, limite: number): EstadoPlan {
+  if (limite <= 0) return usados > 0 ? "lleno" : "sobra";
+  if (usados >= limite) return "lleno";
+  const uso = usados / limite;
+  if (uso >= 0.9) return "casi";
+  if (uso >= 0.7) return "quedan";
+  return "sobra";
+}
+
+/** Cuenta del plan a partir de los productos: solo los visibles ocupan lugar. */
+export function resumenDelPlan(productos: ConActivo[], limite: number): ResumenPlan {
+  const usados = productos.filter((p) => p.activo).length;
+  return {
+    usados,
+    limite,
+    libres: Math.max(0, limite - usados),
+    uso: limite > 0 ? Math.min(1, usados / limite) : 0,
+    estado: estadoDelPlan(usados, limite),
+  };
+}

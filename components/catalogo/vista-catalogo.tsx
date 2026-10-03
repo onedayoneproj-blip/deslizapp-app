@@ -6,6 +6,7 @@ import { Dona } from "../dona";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import type { Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
@@ -59,11 +60,10 @@ export function VistaCatalogo() {
     return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
   }, [productos, filtro, busquedaAplicada]);
 
-  const usados = productos?.length ?? 0;
-  const limite = tienda?.limiteProductos ?? 0;
-  const lleno = limite > 0 && usados >= limite;
-  const libres = Math.max(0, limite - usados);
-  const casiLleno = limite > 0 && usados / limite >= 0.8;
+  // El plan cuenta solo los productos visibles; los ocultos no ocupan lugar.
+  const { usados, limite, libres, estado } = resumenDelPlan(productos ?? [], tienda?.limiteProductos ?? 0);
+  const lleno = estado === "lleno";
+  const casiLleno = estado === "casi" || estado === "lleno";
 
   return (
     <>
