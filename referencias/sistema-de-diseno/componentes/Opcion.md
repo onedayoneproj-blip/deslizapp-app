@@ -11,7 +11,8 @@ Opción de formulario: elige un dato que se va a guardar (método de pago, fecha
 
 **Segmentos**
 
-- Para 2 o 3 opciones excluyentes que siempre se ven ("Pagó todo / A crédito").
+- Para cambiar la **vista o el modo** de la pantalla, con 2 o 3 opciones ("Día / Semana / Mes", "Claro / Oscuro").
+- No para datos que se guardan: "¿Cómo te paga? Pagó todo / A crédito" usa Opcion aunque sean dos.
 - Pista `superficie-hundida`; el segmento elegido en `superficie` con letra extrabold, como en iOS.
 - Más de 3 opciones: usar Opcion.
 
