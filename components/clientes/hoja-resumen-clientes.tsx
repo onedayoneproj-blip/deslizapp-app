@@ -142,8 +142,9 @@ function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, alPulsar, pagi
       return <FilaLista key={c.id} inicio={<Avatar nombre={c.nombre} />} titulo={c.nombre} detalle={detalle}
         accion={c.telefono ? <Boton tamano="compacto" onClick={() => alEscribir(j.id, j.nombre, c)} aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}>Escribir</Boton> :
           <Boton jerarquia="secundario" tamano="compacto" onClick={() => irADatos(c.id)} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}>Sin WhatsApp · Ver datos</Boton>} />;
-    })}</ListaAgrupada>
-    <BotonVerMas quedan={paginadas.quedan} mostrados={paginadas.mostrados} total={j.cantidad} alTocar={() => { paginadas.verMas(); alPulsar(); }} texto="Ver más clientes" />
+    })}
+      <BotonVerMas forma="fila" pagina={5} quedan={paginadas.quedan} mostrados={paginadas.mostrados} total={j.cantidad} alTocar={() => { paginadas.verMas(); alPulsar(); }} />
+    </ListaAgrupada>
     <p className="mt-4 text-etiqueta text-texto-secundario">La cifra incluye a todos los clientes elegibles, incluso si no tienen WhatsApp. Ningún mensaje se envía solo.</p>
   </>;
 }

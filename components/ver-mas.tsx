@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { IconoChevronAbajo } from "./iconos";
 
-/** Cuántos elementos se muestran de una vez en las listas largas (y cuántos más trae cada "Ver más"). */
-export const PASO_LISTA = 30;
+import { PASO_LISTA, textoVerMas } from "@/lib/ver-mas";
+
+export { PASO_LISTA };
 
 /**
  * Listas largas por tramos: muestra los primeros `paso` y, con "Ver más", `paso` más cada vez. Vuelve a empezar
@@ -23,23 +25,61 @@ export function useVerMas<T>(lista: T[], clave: string, paso = PASO_LISTA) {
   };
 }
 
-/** Botón al final de la lista: "Ver más antiguos". Desaparece cuando no queda nada por mostrar. Sin animación por elemento. */
-export function BotonVerMas({ quedan, mostrados, total, alTocar, texto = "Ver más antiguos", disabled = false }: { quedan?: number; mostrados?: number; total?: number; alTocar: (boton: HTMLButtonElement) => void; texto?: string; disabled?: boolean }) {
-  if (quedan !== undefined && quedan <= 0) return null;
+/**
+ * "Ver N más" (docs/09 §7): lo que falta de una lista se pide desde SU ÚLTIMA FILA, no con un botón suelto debajo. Es un `<li>`:
+ * `forma="fila"` en una lista agrupada (misma línea separadora que las demás filas) o `forma="tarjeta"` en tarjetas sueltas (una
+ * tarjeta más, del mismo ancho). 52 px de alto, "Ver N más" en `accion` con un chevron hacia abajo, y "5 de 69" a la derecha. Toda la
+ * fila es el botón. Al tocarla aparecen los siguientes y el foco pasa al primer elemento nuevo. Sin nada que mostrar, no se pinta.
+ */
+export function BotonVerMas({
+  quedan,
+  mostrados,
+  total,
+  pagina = PASO_LISTA,
+  alTocar,
+  forma = "tarjeta",
+  disabled = false,
+}: {
+  quedan: number;
+  mostrados: number;
+  total: number;
+  /** Cuántos trae cada toque (el mismo que se le dio a `useVerMas`). */
+  pagina?: number;
+  alTocar: (boton: HTMLButtonElement) => void;
+  forma?: "fila" | "tarjeta";
+  disabled?: boolean;
+}) {
+  if (quedan <= 0) return null;
+  const tocar = (boton: HTMLButtonElement) => {
+    const item = boton.closest("li");
+    const lista = item?.parentElement;
+    const antes = lista ? lista.children.length : 0;
+    alTocar(boton);
+    // El foco pasa al primer elemento nuevo (los nuevos se pintan justo antes de esta fila)
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const primero = lista?.children[antes - 1];
+        primero?.querySelector<HTMLElement>("a, button")?.focus({ preventScroll: false });
+      }),
+    );
+  };
   return (
-    <div className="flex flex-col items-center gap-1.5 pt-1 pb-2">
+    <li className={forma === "fila" ? "border-t border-linea" : "overflow-hidden rounded-radio-l border border-linea bg-superficie"}>
       <button
         type="button"
         data-ver-mas
-        onClick={e => alTocar(e.currentTarget)}
+        onClick={(e) => tocar(e.currentTarget)}
         disabled={disabled}
-        className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-accion bg-superficie px-6 text-cuerpo font-extrabold text-accion outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:opacity-40"
+        className="tocable flex h-13 w-full items-center justify-between gap-3 px-4 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-40"
       >
-        {texto}
+        <span className="flex items-center gap-1 text-destacado text-accion">
+          {textoVerMas(quedan, pagina)}
+          <IconoChevronAbajo tamano={20} strokeWidth={2.2} />
+        </span>
+        <span className="text-secundario text-texto-secundario">
+          {mostrados} de {total}
+        </span>
       </button>
-      {mostrados !== undefined && total !== undefined && <p className="text-etiqueta text-texto-secundario">
-        Mostrando {mostrados} de {total}
-      </p>}
-    </div>
+    </li>
   );
 }

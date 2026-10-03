@@ -108,8 +108,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
                   <TarjetaPedido ahora={ahora} pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
                 </li>
               ))}
+              <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
             </ul>
-            <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
           </>
         )}
       </div>

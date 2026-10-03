@@ -124,8 +124,8 @@ export function VistaClientes({ children }: { children: ReactNode }) {
                       {debenPaginados.visibles.map((c) => (
                         <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} ahora={ahora} />
                       ))}
+                      <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} />
                     </ul>
-                    <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} texto="Ver más clientes" />
                   </>
                 )}
               </>
@@ -152,8 +152,8 @@ export function VistaClientes({ children }: { children: ReactNode }) {
                 <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} deuda={deudas.get(cliente.id) ?? 0}
                   escribir={filtro === "dormidos" && cliente.telefono ? { href: enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null)), nombre: cliente.nombre } : undefined} />
               ))}
+              <BotonVerMas forma="fila" quedan={quedan} mostrados={mostrados} total={filtrados.length} alTocar={verMas} />
             </ListaAgrupada>
-            <BotonVerMas quedan={quedan} mostrados={mostrados} total={filtrados.length} alTocar={verMas} texto="Ver más clientes" />
           </>
         )}
       </div>
