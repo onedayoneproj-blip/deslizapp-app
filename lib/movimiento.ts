@@ -5,9 +5,7 @@
 // Si cambias un valor, cámbialo también en globals.css.
 
 export const DURACION = {
-  /** Excepción aprobada: luz de Tu próxima jugada; no afecta a hojas ni formularios. */
-  jugadaPulso: 520,
-  jugadaTransicion: 480,
+  /** Excepción aprobada (docs/09 §13): animaciones de Tu próxima jugada; no afectan a hojas ni formularios. */
   /** Tu próxima jugada: la tarjeta se agranda y las cartas vuelan a la galería. */
   jugadaEntrada: 950,
   /** Tu próxima jugada: barrido de arriba abajo al elegir una jugada. */

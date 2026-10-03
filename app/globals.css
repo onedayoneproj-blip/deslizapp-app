@@ -812,41 +812,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (prefers-reduced-motion: reduce) { .dona-latido { animation: none; } }
 /* Tu próxima jugada: cuatro cartas y resplandor ambiental, sin alterar el layout. */
 .jugada-tarjeta-degradado { background:linear-gradient(to bottom,transparent 33%,#fff9ee24 49%,#fff9eeed 69%,#fff9ee 100%); }
-/* Excepción de Tu próxima jugada: el recorte no se anima; las manchas no tienen fondo rectangular. */
-.jugada-luz {
-  --mov-jugada-ciclo: 8s;
-  position:relative; display:block; overflow:hidden; isolation:isolate; pointer-events:none;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 60%);
-  mask-image:linear-gradient(to bottom,transparent,#000 60%);
-}
-.jugada-resplandor { width:100%; height:250px; }
-.jugada-luz-tarjeta { position:absolute; inset:0; z:-1; border-radius:inherit; mask-image:none; -webkit-mask-image:none; }
-.jugada-luz-color { position:absolute; width:180%; height:220%; left:-40%; top:-35%; opacity:.64; background:radial-gradient(ellipse at center,var(--luz-color) 0%,transparent 66%); }
-.jugada-luz-rosa { --luz-color:#f5c9d6; animation:jugada-rosa var(--mov-jugada-ciclo) ease-in-out infinite; }
-.jugada-luz-naranja { --luz-color:#ff834fb8; animation:jugada-naranja var(--mov-jugada-ciclo) ease-in-out infinite; }
-.jugada-luz-verde { --luz-color:#a9d8bd; animation:jugada-verde var(--mov-jugada-ciclo) ease-in-out infinite; }
-.jugada-luz-tarjeta .jugada-luz-color { opacity:.6; }
-.jugada-luz-grano { position:absolute; inset:0; background:url('/ilustraciones/proxima-jugada/grano.svg') repeat; opacity:.16; mix-blend-mode:multiply; }
-.jugada-luz-pulso { position:absolute; inset:-40%; opacity:0; background:radial-gradient(ellipse at 30% 60%,#ff834fcc,transparent 58%),radial-gradient(ellipse at 70% 70%,#f5a9c2,transparent 64%),radial-gradient(ellipse at 80% 60%,#8bbda6,transparent 60%); }
-@keyframes jugada-rosa { 0%,100% { transform:translate3d(-18%,8%,0) scale(.95,1.05); } 50% { transform:translate3d(16%,-12%,0) scale(1.2,.85); } }
-@keyframes jugada-naranja { 0%,100% { transform:translate3d(20%,15%,0) scale(.85,1); } 50% { transform:translate3d(-14%,-10%,0) scale(1.05,1.15); } }
-@keyframes jugada-verde { 0%,100% { transform:translate3d(10%,-10%,0) scale(1.1,.85); } 50% { transform:translate3d(-20%,18%,0) scale(.85,1.2); } }
-/* Contenedor fijo bajo la cabecera: solo las tres manchas interiores se transforman mediante WAAPI. */
-[data-hoja-decoracion]:has(.jugada-velo) { mix-blend-mode:multiply; }
-.jugada-velo { position:absolute; inset:var(--cabecera,79px) 0 0; overflow:hidden; pointer-events:none; -webkit-mask-image:linear-gradient(to bottom,transparent,#000 8%,#000 90%,transparent); mask-image:linear-gradient(to bottom,transparent,#000 8%,#000 90%,transparent); }
-.jugada-velo-mancha { position:absolute; inset:-30%; opacity:0; background:radial-gradient(ellipse at center,var(--velo-color) 0%,transparent 67%); }
-.jugada-velo-rosa { --velo-color:#f5c9d6; }
-.jugada-velo-naranja { --velo-color:#ff834f; }
-.jugada-velo-verde { --velo-color:#b0d1bd; }
-/* El foco de teclado permanece visible incluso si llega durante los 480 ms del velo. */
-[role="dialog"]:has([data-hoja-contenido] :focus-visible) .jugada-velo { visibility:hidden; }
-@media (prefers-reduced-motion:reduce) {
-  .jugada-luz-color { animation:none; }
-  .jugada-luz-rosa { transform:translate(-18%,8%); }
-  .jugada-luz-naranja { transform:translate(20%,15%); }
-  .jugada-luz-verde { transform:translate(10%,-10%); }
-  .jugada-luz-pulso,.jugada-velo { display:none; }
-}
+
 
 /* ==========================================================================
    Componentes base del sistema de diseño (components/ui/). Solo transform / opacity; todo se apaga con "reducir movimiento".
@@ -1003,3 +969,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Brillo de la malla arriba de la hoja de jugadas: la misma malla, suave y desvanecida hacia abajo. */
 .brillo-jugada { opacity: .55; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%); }
 .brillo-jugada .malla { border-radius: 0; }
+
+/* Barrido al elegir una jugada (components/clientes/transiciones-jugada.tsx): máscara con borde difuminado + franja del degradado. */
+@property --barrido-y { syntax: "<length>"; inherits: false; initial-value: 100000px; }
+.barrido-nuevo {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(var(--barrido-y) - var(--barrido-borde, 60px)), transparent calc(var(--barrido-y) + var(--barrido-borde, 60px)));
+  mask-image: linear-gradient(180deg, #000 calc(var(--barrido-y) - var(--barrido-borde, 60px)), transparent calc(var(--barrido-y) + var(--barrido-borde, 60px)));
+}
+.barrido-franja { position: absolute; left: -40px; right: -40px; top: 0; will-change: transform; color: var(--fondo); }
+.barrido-franja i { position: absolute; inset: 0; }
+.barrido-franja-color { filter: blur(16px); background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--jugada-menta) 85%, transparent) 24%, color-mix(in srgb, var(--jugada-sol) 90%, transparent) 42%, color-mix(in srgb, var(--jugada-mandarina) 90%, transparent) 56%, color-mix(in srgb, var(--jugada-rosa) 90%, transparent) 74%, transparent 100%); }
+.barrido-franja-brillo { filter: blur(10px); background: radial-gradient(30% 22% at 22% 52%, color-mix(in srgb, var(--fondo) 90%, transparent), transparent 70%), radial-gradient(26% 20% at 72% 46%, color-mix(in srgb, var(--fondo) 75%, transparent), transparent 70%); }
+.barrido-franja-grano { background: url('/ilustraciones/proxima-jugada/grano.svg') repeat; background-size: 180px 180px; opacity: .35; mix-blend-mode: overlay; -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); }
+.barrido-chispa { position: absolute; width: 14px; height: 14px; animation: barrido-titila 900ms ease-in-out infinite; }
+@keyframes barrido-titila { 0%,100% { transform: scale(.5) rotate(0deg); opacity: .5; } 50% { transform: scale(1.15) rotate(45deg); opacity: 1; } }

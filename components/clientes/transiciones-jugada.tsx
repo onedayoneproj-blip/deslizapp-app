@@ -3,7 +3,7 @@
 // Transiciones de Tu próxima jugada (excepción de movimiento aprobada, docs/09 §13). Son decoración encima de la navegación real:
 // no la retrasan, no mueven el foco y no tocan el historial. Con "reducir movimiento" no se montan.
 
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { DURACION } from "@/lib/movimiento";
 import { MallaViva } from "../ui";
@@ -112,6 +112,99 @@ export function BrilloJugada() {
   return (
     <div aria-hidden="true" className="brillo-jugada pointer-events-none absolute -inset-x-5 top-[calc(-1*var(--cabecera,79px)-2px)] -z-10 h-80">
       <MallaViva dedo={null} />
+    </div>
+  );
+}
+
+const CURVA_BARRIDO = "cubic-bezier(.65,0,.35,1)";
+/** Alto de la franja del degradado. */
+const FRANJA = 300;
+/** Posiciones de las chispas dentro de la franja: [izquierda %, arriba px, retraso ms]. */
+const CHISPAS: [number, number, number][] = [
+  [18, 150, 0],
+  [46, 120, 220],
+  [70, 165, 420],
+  [86, 128, 140],
+  [32, 182, 600],
+];
+
+/**
+ * La franja del barrido (va en `decoracionEncima`, recortada a la forma de la hoja): los cuatro colores en vertical, dos brillos
+ * crema, el grano y cinco chispas. Baja de arriba abajo en 1300 ms; su centro va de −0,72·H a 1,28·H (H = alto de la hoja), igual que el
+ * borde de la máscara de `BarridoContenido`, así el borde difuminado siempre queda escondido debajo de la franja.
+ */
+export function BarridoFranja({ alTerminar }: { alTerminar: () => void }) {
+  const franja = useRef<HTMLDivElement>(null);
+  const terminar = useRef(alTerminar);
+  useLayoutEffect(() => {
+    terminar.current = alTerminar;
+  });
+  useLayoutEffect(() => {
+    const el = franja.current;
+    const alto = el?.parentElement?.clientHeight ?? 0;
+    if (!el || !alto) return;
+    const a = el.animate(
+      [{ transform: `translateY(${-0.72 * alto - FRANJA / 2}px)` }, { transform: `translateY(${1.28 * alto - FRANJA / 2}px)` }],
+      { duration: DURACION.jugadaBarrido, easing: CURVA_BARRIDO, fill: "both" },
+    );
+    void a.finished.then(() => terminar.current(), () => {});
+    return () => a.cancel();
+  }, []);
+  return (
+    <div ref={franja} className="barrido-franja" style={{ height: FRANJA }}>
+      <i className="barrido-franja-color" />
+      <i className="barrido-franja-brillo" />
+      <i className="barrido-franja-grano" />
+      {CHISPAS.map(([x, y, d]) => (
+        <svg key={x} className="barrido-chispa" style={{ left: `${x}%`, top: y, animationDelay: `${d}ms` }} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * La página nueva se descubre con una máscara (no con clip-path) cuyo borde difuminado va donde está la franja: de −0,72·H a 1,28·H
+ * desde el borde de arriba de la hoja, en 1300 ms. Mientras tanto, lo de atrás (`atras`) baja a opacidad .45 con blur(4px) y
+ * scale(.97), y el contenido nuevo sube 28 px.
+ */
+export function BarridoContenido({ atras, children }: { atras: ReactNode; children: ReactNode }) {
+  const nuevo = useRef<HTMLDivElement>(null);
+  const viejo = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = nuevo.current;
+    const hoja = el?.closest<HTMLElement>("[role='dialog']");
+    if (!el || !hoja) return;
+    const h = hoja.getBoundingClientRect();
+    const desde = el.getBoundingClientRect().top - h.top;
+    el.style.setProperty("--barrido-borde", `${0.08 * h.height}px`);
+    const animaciones = [
+      el.animate([{ "--barrido-y": `${-0.72 * h.height - desde}px` }, { "--barrido-y": `${1.28 * h.height - desde}px` }] as Keyframe[], {
+        duration: DURACION.jugadaBarrido,
+        easing: CURVA_BARRIDO,
+        fill: "both",
+      }),
+      el.animate([{ transform: "translateY(28px)" }, { transform: "translateY(0)" }], { duration: DURACION.jugadaBarrido, easing: CURVA_BARRIDO, fill: "both" }),
+    ];
+    if (viejo.current)
+      animaciones.push(
+        viejo.current.animate([{ opacity: 1, filter: "none", transform: "scale(1)" }, { opacity: 0.45, filter: "blur(4px)", transform: "scale(.97)" }], {
+          duration: 900,
+          easing: "ease",
+          fill: "both",
+        }),
+      );
+    return () => animaciones.forEach((a) => a.cancel());
+  }, []);
+  return (
+    <div className="relative">
+      <div ref={viejo} aria-hidden="true" inert className="pointer-events-none absolute inset-x-0 top-0 origin-top">
+        {atras}
+      </div>
+      <div ref={nuevo} className="barrido-nuevo relative">
+        {children}
+      </div>
     </div>
   );
 }
