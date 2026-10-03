@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
 import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
 import { resaltar } from "@/lib/texto";
-import { mensajeRecordatorio } from "@/lib/credito";
+import { mensajeRecordatorio, type CuentaPorCobrar } from "@/lib/credito";
 import { consumirClientesQueDeben, hayClientesQueDeben } from "@/lib/destello";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -19,7 +19,7 @@ import { enlaceWhatsApp } from "@/lib/formato";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Boton, Buscador, Etiqueta, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
+import { BloqueDeuda, Boton, Buscador, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
 import { Avatar } from "../ui";
 import { EtiquetaRepite } from "./comunes";
@@ -69,15 +69,16 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const mensajeDe = (nombre: string, deuda: number) =>
     mensajeRecordatorio({ cliente: nombre, vendedora: dueno?.nombre ?? "", tienda: tienda?.nombre ?? "la tienda", deuda });
 
-  // Lo que debe cada cliente (suma de sus pedidos con saldo), para la etiqueta "Debe" de las filas
-  const deudas = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c.deuda])), [cuentas]);
+  // La cuenta de cada cliente que debe (suma de TODOS sus pedidos con saldo, el mismo cálculo de "Deben"), para el bloque de deuda de las filas
+  const cuentasPorCliente = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c])), [cuentas]);
   const total = resumen.cuentas.todos;
   const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos", catalogo: "Del catálogo", manual: "A mano", una: "Compraron una vez", sin: "Sin comprar" };
-  const fijos: FiltroClientes[] = ["todos", "deben", "repiten", "nuevos", "dormidos", "catalogo"];
-  const ids = fijos.includes(filtro) ? fijos : [...fijos, filtro];
+  // Fijos (siempre visibles, aunque estén en 0) | condicionales (solo con algo o activos) | los que llegan del resumen (solo activos)
+  const fijos: FiltroClientes[] = ["todos", "repiten", "nuevos", "catalogo"];
+  const condicionales: FiltroClientes[] = ["deben", "dormidos"];
+  const ids = [...fijos, ...condicionales, ...(fijos.includes(filtro) || condicionales.includes(filtro) ? [] : [filtro])];
   const cantidad = (id: FiltroClientes) => id === "deben" ? cuentas?.clientes ?? 0 : resumen.cuentas[id];
-  const opciones = ids.filter((id) => id === "todos" || id === filtro || cantidad(id) > 0)
-    .map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben", condicional: id !== "todos" }));
+  const opciones = ids.map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben", condicional: !fijos.includes(id), sinDivisor: !fijos.includes(id) && !condicionales.includes(id) }));
   const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah.", una: "Nadie con una sola compra.", sin: "Todos han dicho aaah. Y han comprado.", catalogo: "Todavía no llegan por el catálogo.", manual: "Todavía no agregas clientes a mano." };
   const listo = Boolean(clientes && pedidos);
 
@@ -149,7 +150,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           <>
             <ListaAgrupada etiqueta="Clientes">
               {visibles.map(({ cliente, coincide }) => (
-                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} deuda={deudas.get(cliente.id) ?? 0}
+                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} cuenta={cuentasPorCliente.get(cliente.id)} ahora={ahora}
                   escribir={filtro === "dormidos" && cliente.telefono ? { href: enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null)), nombre: cliente.nombre } : undefined} />
               ))}
               <BotonVerMas forma="fila" quedan={quedan} mostrados={mostrados} total={filtrados.length} alTocar={verMas} />
@@ -168,7 +169,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   );
 }
 
-function FilaCliente({ cliente: c, coincide, consulta, deuda, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; deuda: number; escribir?: { href: string; nombre: string } }) {
+function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; cuenta?: CuentaPorCobrar; ahora: number; escribir?: { href: string; nombre: string } }) {
   return (
     <FilaLista
       href={`/clientes/${c.id}`}
@@ -193,7 +194,7 @@ function FilaCliente({ cliente: c, coincide, consulta, deuda, escribir }: { clie
           "Todavía no pide. Todavía."
         )
       }
-      fin={deuda > 0 ? <Etiqueta tono="atencion">Debe {formatearPesos(deuda)}</Etiqueta> : undefined}
+      pie={cuenta && cuenta.deuda > 0 ? <BloqueDeuda tamano="mini" separado={false} saldo={cuenta.deuda} total={cuenta.totalPedidos} fecha={cuenta.fechaAcordada} ahora={ahora} className="pr-0" /> : undefined}
       accion={escribir && <Boton whatsapp href={escribir.href} target="_blank" rel="noreferrer" aria-label={`Escribirle a ${escribir.nombre} por WhatsApp`}>Escribir</Boton>}
     />
   );
