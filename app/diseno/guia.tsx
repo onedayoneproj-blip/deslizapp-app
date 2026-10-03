@@ -21,6 +21,9 @@ import {
   BotonIcono,
   Buscador,
   Campo,
+  CampoMonto,
+  Cantidad,
+  FilaAgregar,
   Contador,
   ControlSegmentado,
   Etiqueta,
@@ -30,6 +33,7 @@ import {
   ListaAgrupada,
   ProveedorToast,
   Tarjeta,
+  TarjetaDocumento,
   useToastUI,
   VistaToast,
   type JerarquiaBoton,
@@ -203,6 +207,7 @@ const TAMANOS: TamanoBoton[] = ["grande", "normal", "compacto"];
 
 function Botones() {
   const [contador, setContador] = useState(0);
+  const [cantidadEj, setCantidadEj] = useState(2);
   return (
     <Seccion numero="5" titulo="Botones" nota="Píldora, extrabold. Una sola acción principal por vista; destruir nunca es principal.">
       {JERARQUIAS.map((j) => (
@@ -224,14 +229,17 @@ function Botones() {
         </div>
       ))}
       <div className="flex flex-col gap-2">
-        <Rotulo>con icono · enlace · peligro relleno (solo en Alerta) · de solo icono</Rotulo>
+        <Rotulo>Escribir por WhatsApp (compacto, relleno accion) · enlace · terciario peligro (pila de acciones, filas) · peligro relleno (solo en Alerta) · de solo icono</Rotulo>
         <Fila>
           <Boton icono={<IconoMas tamano={20} strokeWidth={2.4} />}>Crear pedido</Boton>
-          <Boton jerarquia="secundario" icono={<IconoWhatsApp tamano={20} />} href="https://wa.me/" target="_blank" rel="noreferrer">
-            Recordarle
+          <Boton whatsapp href="https://wa.me/" target="_blank" rel="noreferrer">
+            Escribir
           </Boton>
-          <Boton jerarquia="terciario" href="/diseno#s-5">
+          <Boton jerarquia="secundario" tamano="compacto" href="/diseno#s-5">
             Ver historial
+          </Boton>
+          <Boton jerarquia="terciario" tono="peligro">
+            Cancelar pedido
           </Boton>
           <Boton jerarquia="peligro" relleno>
             Sí, borrar
@@ -239,6 +247,34 @@ function Botones() {
           <BotonIcono etiqueta="Cerrar">
             <IconoCerrar tamano={20} strokeWidth={2.2} />
           </BotonIcono>
+          <BotonIcono etiqueta="Agregar otro" tono="accion">
+            <IconoMas tamano={18} />
+          </BotonIcono>
+        </Fila>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>secundario con relleno `superficie` · compacto dentro de una tarjeta · fila «Agregar …»</Rotulo>
+        <div className="flex max-w-90 flex-col gap-3">
+          <Boton jerarquia="secundario" anchoCompleto>
+            Agregar más productos
+          </Boton>
+          <Tarjeta>
+            <div className="flex items-center gap-3">
+              <Avatar nombre="Carolina Peña" />
+              <p className="min-w-0 flex-1 truncate text-destacado">Carolina Peña</p>
+              <Boton jerarquia="secundario" tamano="compacto">
+                Cambiar
+              </Boton>
+            </div>
+            <FilaAgregar texto="Agregar cupón" alTocar={() => undefined} className="mt-2" />
+          </Tarjeta>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>cantidad (− 1 +): cuadrados de 36 · − hundido, + verde · cada uno se apaga (40 %) en el mínimo o en el tope del stock</Rotulo>
+        <Fila>
+          <Cantidad valor={cantidadEj} max={4} alCambiar={setCantidadEj} />
+          <Cantidad valor={4} max={4} alCambiar={() => {}} />
         </Fila>
       </div>
       <div className="flex flex-col gap-2">
@@ -261,7 +297,7 @@ function Botones() {
 function Elegir() {
   const [filtro, setFiltro] = useState<"todos" | "repiten" | "nuevos" | "deben" | "dormidos">("todos");
   const [metodo, setMetodo] = useState<"efectivo" | "transferencia" | "otro">("efectivo");
-  const [pago, setPago] = useState<"todo" | "credito">("todo");
+  const [vistaVentas, setVistaVentas] = useState<"dia" | "semana" | "mes">("semana");
   const [vista, setVista] = useState<"hoy" | "semana" | "mes">("semana");
   return (
     <Seccion numero="6" titulo="Elegir: pastillas, opciones y controles" nota="Filtro (verde lleno), opción de formulario (menta con check) y control segmentado.">
@@ -302,14 +338,15 @@ function Elegir() {
         ]}
       />
       <div className="flex max-w-90 flex-col gap-2">
-        <Rotulo>control segmentado</Rotulo>
+        <Rotulo>control segmentado: solo cambia la vista o el modo, no guarda un dato</Rotulo>
         <ControlSegmentado
-          etiqueta="¿Cómo te paga?"
-          valor={pago}
-          alCambiar={setPago}
+          etiqueta="Ver ventas por"
+          valor={vistaVentas}
+          alCambiar={setVistaVentas}
           opciones={[
-            { id: "todo", texto: "Pagó todo" },
-            { id: "credito", texto: "A crédito" },
+            { id: "dia", texto: "Día" },
+            { id: "semana", texto: "Semana" },
+            { id: "mes", texto: "Mes" },
           ]}
         />
       </div>
@@ -385,7 +422,7 @@ function Avisos() {
         <Boton jerarquia="secundario" tamano="compacto" onClick={() => mostrarToast("Sin conexión", { persistente: true, accion: { texto: "Reintentar", alTocar: () => undefined } })}>
           Toast persistente
         </Boton>
-        <Boton jerarquia="terciario" tamano="compacto" onClick={() => ocultarToast()}>
+        <Boton jerarquia="secundario" tamano="compacto" onClick={() => ocultarToast()}>
           Ocultar
         </Boton>
       </Fila>
@@ -463,6 +500,11 @@ function Tarjetas() {
           <p className="text-cuerpo">12 de 20 productos</p>
         </Tarjeta>
       </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>tarjeta de documento (factura, recibo): miniatura, título, etiqueta y dos botones con texto</Rotulo>
+        <TarjetaDocumento titulo="Factura #1039" etiqueta={{ texto: "Al contado", tono: "exito" }} alDescargar={() => undefined} alCompartir={() => undefined} />
+        <TarjetaDocumento titulo="Factura #1036" etiqueta={{ texto: "A crédito", tono: "atencion" }} alDescargar={() => undefined} alCompartir={() => undefined} />
+      </div>
     </Seccion>
   );
 }
@@ -506,6 +548,7 @@ function EtiquetasYAvatares() {
 function Campos() {
   const [busqueda, setBusqueda] = useState("");
   const [telefono, setTelefono] = useState("80955");
+  const [monto, setMonto] = useState("1500");
   return (
     <Seccion numero="12" titulo="Campos" nota="Rótulo arriba, ayuda o error abajo. Alto 50, letra 16 (iOS no hace zoom).">
       <Buscador etiqueta="Buscar cliente" valor={busqueda} alCambiar={setBusqueda} placeholder="Nombre o WhatsApp" />
@@ -520,6 +563,10 @@ function Campos() {
           error={telefono.replace(/\D/g, "").length === 10 ? undefined : "Escríbelo con 809, 829 o 849 y 7 dígitos más."}
         />
         <Campo etiqueta="Código" value="AAAH10" disabled readOnly />
+        <Campo etiqueta="Con foco (cursor dentro): contorno verde de 2 px" defaultValue="Paola" className="[&_input]:border-accion" />
+        <Campo etiqueta="Con error: contorno rojo de 2 px" defaultValue="809" error="Escríbelo con 809, 829 o 849 y 7 dígitos más." />
+        <CampoMonto etiqueta="Te dio ahora (opcional)" valor={monto} alCambiar={setMonto} />
+        <CampoMonto etiqueta="¿Cuánto te pagó?" tamano="grande" valor={monto} alCambiar={setMonto} error={Number(monto) > 1000 ? "Te debe RD$1,000; no puedes abonar más que eso." : undefined} />
       </div>
     </Seccion>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -10,13 +9,15 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { puedeEditarCodigo } from "@/lib/data/pedidos";
 import { buscarCodigoPromo } from "@/lib/promos";
 import { useData } from "@/lib/data/provider";
-import { enlaceWhatsApp, fechaCorta, formatearPesos, iniciales } from "@/lib/formato";
+import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
+import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada, type TonoEtiqueta } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
+import { IconoCamion, IconoCheck } from "../iconos";
+import { HojaDespachado } from "./hoja-despachado";
 import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
@@ -24,8 +25,6 @@ import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
-/** "Editar pedido": botón secundario de contorno (píldora, borde fino, sin relleno), de la altura táctil de la app. */
-const ACCION_EDITAR = "tocable flex h-11 items-center justify-center rounded-full border-[1.5px] border-borde text-[14.5px] font-semibold text-bosque disabled:opacity-60";
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
@@ -61,11 +60,11 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   } else if (!pedido) {
     cuerpo = (
       <div className="py-6 text-center">
-        <p className="font-display text-xl">Este pedido no vive aquí.</p>
-        <p className="mt-1 text-suave">Quizá es de otra tienda. Los pedidos no se mezclan.</p>
-        <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+        <p className="font-display text-titulo-seccion">Este pedido no vive aquí.</p>
+        <p className="mt-1 text-texto-secundario">Quizá es de otra tienda. Los pedidos no se mezclan.</p>
+        <Boton anchoCompleto className="mt-5" onClick={cerrar}>
           Volver a pedidos
-        </button>
+        </Boton>
       </div>
     );
   } else if (productos && clientes && promos && pedidos) {
@@ -105,6 +104,7 @@ function Detalle({
   // Paso al que se quiere volver desde Despachado, esperando confirmación (0 = Recibido, 1 = Confirmado).
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+  const [celebrando, setCelebrando] = useState(false);
   // Viniendo de "Ir a los pasos del pedido" (Editar pedido de un despachado): un destello breve, una sola vez, en el paso
   // anterior de la barra (el que sirve para retroceder): resalte fijo de ~600 ms y, salvo movimiento reducido, un pulso de
   // opacidad. Se hace directo sobre el elemento (sin estado de React).
@@ -166,14 +166,9 @@ function Detalle({
     });
   const despachar = () =>
     correr(async () => {
-      const { agotados } = await despacharPedido(tiendaId, pedido.id);
-      toast(
-        agotados.length === 0
-          ? "Despachado. El stock ya se enteró."
-          : agotados.length === 1
-            ? `Despachado. ${agotados[0]} se agotó y ya sale así en el catálogo.`
-            : `Despachado. ${agotados.join(" y ")} se agotaron y ya salen así en el catálogo.`,
-      );
+      await despacharPedido(tiendaId, pedido.id);
+      // Solo después de que el servidor respondió OK: la celebración reemplaza al aviso de antes
+      setCelebrando(true);
     });
 
   const reabrir = () =>
@@ -224,9 +219,9 @@ function Detalle({
 
   // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
   const botonEditar = (
-    <Link href={`/pedidos/${pedido.id}/editar`} scroll={false} className={ACCION_EDITAR}>
+    <Boton jerarquia="secundario" anchoCompleto href={`/pedidos/${pedido.id}/editar`} scroll={false} deshabilitado={ocupado}>
       Editar pedido
-    </Link>
+    </Boton>
   );
 
   if (vista === "descuento") {
@@ -248,7 +243,7 @@ function Detalle({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-bold text-suave">
+        <p className="text-secundario font-bold text-texto-secundario">
           {fechaCorta(pedido.creadoEn)} · {pedido.origen === "catalogo" ? "desde el catálogo" : "manual"}
         </p>
         {pedido.estado !== "despachado" && <ChipEstado estado={pedido.estado} />}
@@ -259,8 +254,8 @@ function Detalle({
         {PASOS.map((nombre, i) => {
           const barra = (
             <>
-              <span className={`block h-1.5 rounded-[3px] ${i <= paso ? (i === 2 ? "bg-mandarina" : "bg-bosque") : "bg-borde"}`} />
-              <span className={`mt-[5px] block text-xs font-extrabold ${i <= paso ? "text-bosque" : "text-tenue"} `}>
+              <span className={`block h-1.5 rounded-full ${i <= paso ? "bg-accion" : "bg-borde-pastilla"}`} />
+              <span className={`mt-[5px] block text-etiqueta ${i <= paso ? "text-texto" : "text-texto-secundario"} `}>
                 {nombre}
               </span>
             </>
@@ -274,7 +269,7 @@ function Detalle({
               onClick={() => irAlPaso(i as 0 | 1)}
               disabled={ocupado}
               aria-label={`Volver a ${nombre}`}
-              className={`tocable ${caja} rounded-xl disabled:opacity-60`}
+              className={`tocable ${caja} rounded-radio-s outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:opacity-40`}
             >
               {barra}
             </button>
@@ -288,211 +283,173 @@ function Detalle({
 
       {pedido.estado === "despachado" && (
         <>
-          <p role="status" className="flex items-center gap-2 text-sm font-semibold text-bosque">
+          <p role="status" className="flex items-center gap-2 text-secundario font-bold text-texto">
             <IconoCheck tamano={18} strokeWidth={2.6} />
             Despachado. Final feliz.
           </p>
-          {tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
         </>
       )}
 
       {/* Cliente */}
-      <div className="flex items-center gap-3 rounded-[20px] border border-linea bg-white p-3">
-        <span className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-rosa font-display text-[17px]">
-          {cliente ? iniciales(cliente.nombre) : "?"}
-        </span>
+      <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
+        {cliente ? <Avatar nombre={cliente.nombre} /> : <span aria-hidden="true" className="grid size-(--alto-avatar) shrink-0 place-items-center rounded-full bg-marca-rosa font-display text-cuerpo text-texto">?</span>}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-extrabold">{cliente?.nombre ?? "Cliente sin nombre"}</p>
-          <p className="truncate text-[13px] text-suave">{cliente?.telefono ? formatearTelefono(cliente.telefono) : "Sin teléfono"}</p>
+          <p className="truncate text-destacado">{cliente?.nombre ?? "Cliente sin nombre"}</p>
+          <p className="truncate text-secundario text-texto-secundario">{cliente?.telefono ? formatearTelefono(cliente.telefono) : "Sin teléfono"}</p>
         </div>
         {cliente?.telefono ? (
-          <a
+          <Boton
+            whatsapp
             href={enlaceWhatsApp(cliente.telefono, mensaje)}
             target="_blank"
             rel="noreferrer"
             aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}
-            className="tocable flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-bosque px-3.5 text-sm font-extrabold text-papel"
           >
-            <IconoWhatsApp tamano={18} />
             Escribir
-          </a>
+          </Boton>
         ) : null}
       </div>
 
-      {/* Productos y totales */}
-      <div className="rounded-[20px] border border-linea bg-white px-3.5 pt-1.5">
+      {/* Productos y totales: lista agrupada (filas sencillas del mismo tipo en una tarjeta) */}
+      <ListaAgrupada etiqueta="Productos del pedido">
         {pedido.items.map((i) => {
           const producto = porId.get(i.productoId);
           const foto = producto?.fotos[0];
           return (
-            <div key={i.id} className="flex items-center gap-3 border-b border-arena py-2.5">
-              <span className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-[14px] bg-arena">
-                {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="52px" /> : null}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-extrabold">{i.nombreProducto}</p>
-                <p className="text-[13px] text-suave">
-                  {i.cantidad} × {formatearPesos(i.precioUnitario)}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <EtiquetasStock estado={pedido.estado} producto={producto} cantidad={i.cantidad} />
-              </div>
-            </div>
+            <FilaLista
+              key={i.id}
+              inicio={<span className="block size-11 overflow-hidden rounded-radio-s bg-superficie-hundida">{foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="44px" /> : null}</span>}
+              titulo={i.nombreProducto}
+              detalle={`${i.cantidad} × ${formatearPesos(i.precioUnitario)}`}
+              fin={
+                <span className="flex flex-col items-end gap-1">
+                  <EtiquetasStock estado={pedido.estado} producto={producto} cantidad={i.cantidad} />
+                </span>
+              }
+            />
           );
         })}
         {puedeCodigo && (
-          <FilaDescuento
-            codigo={pedido.codigoPromo ?? ""}
-            promo={promoAplicada}
-            pedidos={pedidos}
-            desde={cuponAlAbrir}
-            alAbrir={() => {
-              setCuponAlAbrir(pedido.codigoPromo ?? "");
-              setVista("descuento");
-            }}
-            alQuitar={() => void elegirDescuento(null)}
-            deshabilitado={ocupado}
-            conBorde
-          />
+          <li className="border-t border-linea px-4">
+            <FilaDescuento
+              codigo={pedido.codigoPromo ?? ""}
+              promo={promoAplicada}
+              pedidos={pedidos}
+              desde={cuponAlAbrir}
+              alAbrir={() => {
+                setCuponAlAbrir(pedido.codigoPromo ?? "");
+                setVista("descuento");
+              }}
+              alQuitar={() => void elegirDescuento(null)}
+              deshabilitado={ocupado}
+            />
+          </li>
         )}
-        <div className="flex justify-between pt-2.5 pb-0.5 text-sm font-semibold text-suave">
-          <span>Subtotal</span>
-          <span>{formatearPesos(subtotal)}</span>
-        </div>
-        {descuento > 0 && (
-          <div className="flex justify-between py-1 text-sm font-bold">
-            <span>Descuento{pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}</span>
-            <span>−{formatearPesos(descuento)}</span>
+        <li className="border-t border-linea px-4 pt-2.5 pb-3">
+          <div className="flex justify-between text-secundario font-bold text-texto-secundario">
+            <span>Subtotal</span>
+            <span>{formatearPesos(subtotal)}</span>
           </div>
-        )}
-        <div className="flex justify-between pt-1.5 pb-2.5 font-display text-[22px]">
-          <span>Total</span>
-          <span>{formatearPesos(pedido.total)}</span>
-        </div>
-      </div>
+          {descuento > 0 && (
+            <div className="flex justify-between py-1 text-secundario font-bold">
+              <span>Descuento{pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}</span>
+              <span>−{formatearPesos(descuento)}</span>
+            </div>
+          )}
+          <div className="flex justify-between pt-1.5 font-display text-titulo-seccion">
+            <span>Total</span>
+            <span>{formatearPesos(pedido.total)}</span>
+          </div>
+        </li>
+      </ListaAgrupada>
+
+      {/* Factura: tarjeta de documento, justo después de los productos y antes del pago */}
+      {pedido.estado === "despachado" && tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
 
       {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
       <PagoDelPedido pedido={pedido} cliente={cliente} />
 
-      {/* Acciones */}
+      {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta */}
       {pedido.estado === "nuevo" && (
         <div className="flex flex-col gap-2">
-          <button type="button" onClick={confirmar} disabled={ocupado} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
+          <Boton tamano="grande" anchoCompleto onClick={confirmar} deshabilitado={ocupado}>
             Confirmar pedido
-          </button>
+          </Boton>
           {botonEditar}
-          <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido
-          </button>
+          </Boton>
         </div>
       )}
       {pedido.estado === "por_despachar" && (
         <div className="flex flex-col gap-2">
           {faltantes.length > 0 && (
-            <div role="alert" className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-              <b>No alcanza el stock de {faltantes.join(" ni de ")}.</b> Sube el stock desde el Catálogo o cancela el pedido: no
-              dejamos el stock en negativo.
+            <div role="alert">
+              <Aviso tono="atencion">
+                <b>No alcanza el stock de {faltantes.join(" ni de ")}.</b> Sube el stock desde el Catálogo o cancela el pedido: no dejamos el stock en negativo.
+              </Aviso>
             </div>
           )}
-          <button
-            type="button"
-            onClick={despachar}
-            aria-disabled={faltantes.length > 0 || undefined}
-            disabled={ocupado}
-            className={`tocable flex h-[58px] items-center justify-center gap-2.5 rounded-full bg-mandarina text-[17px] font-extrabold text-bosque-oscuro disabled:opacity-60 ${faltantes.length > 0 ? "opacity-60" : ""}`}
-          >
-            <IconoCamion tamano={24} />
+          <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
             Despachar pedido
-          </button>
-          <p className="text-center font-mano text-xl text-suave">al despachar, el stock se actualiza solito</p>
+          </Boton>
+          <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
           {botonEditar}
-          <button type="button" onClick={cancelar} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido
-          </button>
+          </Boton>
         </div>
       )}
-      {pedido.estado === "despachado" && (
-        <div className="flex flex-col gap-2">
-          {confirmando !== null ? (
-            <div role="alertdialog" aria-label="Volver al paso anterior" className="rounded-[18px] bg-arena px-4 py-3">
-              <p className="text-sm font-bold">Se devolverá el stock de los productos. ¿Volver a {PASOS[confirmando]}?</p>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => retroceder(confirmando)}
-                  disabled={ocupado}
-                  className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-60"
-                >
-                  Sí, volver
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmando(null)}
-                  disabled={ocupado}
-                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-                >
-                  Mejor no
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {botonEditar}
-            </>
-          )}
-        </div>
-      )}
+      {pedido.estado === "despachado" && <div className="flex flex-col gap-2">{botonEditar}</div>}
       {pedido.estado === "cancelado" && (
         <div className="flex flex-col gap-2">
-          <p className="rounded-[18px] bg-arena p-3 text-center font-bold text-suave">Pedido cancelado. Pasa hasta en las mejores tiendas.</p>
-          <button type="button" onClick={reabrir} disabled={ocupado} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
+          <Aviso tono="neutro" className="justify-center text-center font-bold text-texto-secundario">
+            Pedido cancelado. Pasa hasta en las mejores tiendas.
+          </Aviso>
+          <Boton tamano="grande" anchoCompleto onClick={reabrir} deshabilitado={ocupado}>
             Reabrir pedido
-          </button>
-          {confirmandoEliminar ? (
-            <div role="alertdialog" aria-label="Eliminar pedido" className="rounded-[18px] bg-arena px-4 py-3">
-              <p className="text-sm font-bold">Se borrará para siempre y no se puede recuperar. ¿Eliminar el pedido #{pedido.numero}?</p>
-              <div className="mt-2 flex gap-2">
-                <button type="button" onClick={eliminar} disabled={ocupado} className="tocable h-11 flex-1 rounded-full bg-[#b4432a] text-sm font-extrabold text-white disabled:opacity-60">
-                  Sí, eliminar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmandoEliminar(false)}
-                  disabled={ocupado}
-                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-                >
-                  Mejor no
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button type="button" onClick={() => setConfirmandoEliminar(true)} disabled={ocupado} className="h-11 text-[14.5px] font-extrabold text-[#b4432a]">
-              Eliminar pedido
-            </button>
-          )}
+          </Boton>
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={() => setConfirmandoEliminar(true)} deshabilitado={ocupado}>
+            Eliminar pedido
+          </Boton>
         </div>
       )}
+
+      <HojaDespachado abierta={celebrando} alCerrar={() => setCelebrando(false)} pedido={pedido} cliente={cliente} productos={productos} />
+
+      <Alerta
+        abierta={confirmando !== null}
+        titulo={`¿Volver a ${confirmando !== null ? PASOS[confirmando] : ""}?`}
+        descripcion="Se devolverá el stock de los productos."
+        accion={{ texto: "Sí, volver", tono: "accion", alConfirmar: () => (confirmando !== null ? retroceder(confirmando) : undefined) }}
+        alCancelar={() => setConfirmando(null)}
+      />
+      <Alerta
+        abierta={confirmandoEliminar}
+        titulo={`¿Eliminar el pedido #${pedido.numero}?`}
+        descripcion="Se borrará para siempre y no se puede recuperar."
+        accion={{ texto: "Sí, eliminar", tono: "peligro", alConfirmar: eliminar }}
+        alCancelar={() => setConfirmandoEliminar(false)}
+      />
     </div>
   );
 }
 
 /** Estado del stock de un producto del pedido. Ya despachado: "Entregado" y, si se acabó, "Agotado". */
 function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems["estado"]; producto: Producto | undefined; cantidad: number }) {
-  const chip = "rounded-full px-[9px] py-[3px] text-xs font-extrabold whitespace-nowrap";
   if (estado === "cancelado") return null;
   const stock = producto?.stock;
   if (estado === "despachado") {
     return (
       <>
-        <span className={`${chip} bg-arena text-bosque`}>Entregado</span>
-        {stock === 0 && <span className={`${chip} bg-bosque text-papel`}>Agotado</span>}
+        <Etiqueta tono="exito">Entregado</Etiqueta>
+        {stock === 0 && <Etiqueta tono="fuerte">Agotado</Etiqueta>}
       </>
     );
   }
-  if (stock === undefined || stock === null) return <span className={`${chip} bg-arena text-suave`}>Sin control</span>;
-  if (stock === 0) return <span className={`${chip} bg-bosque text-papel`}>Sin stock</span>;
+  if (stock === undefined || stock === null) return <Etiqueta>Sin control</Etiqueta>;
+  if (stock === 0) return <Etiqueta tono="fuerte">Sin stock</Etiqueta>;
   const texto = stock === 1 ? "Queda 1" : `Quedan ${stock}`;
-  if (stock < cantidad) return <span className={`${chip} bg-bosque text-papel`}>{texto}</span>;
-  return <span className={`${chip} ${stock - cantidad === 0 ? "bg-mandarina text-bosque-oscuro" : "bg-rosa text-bosque"}`}>{texto}</span>;
+  const tono: TonoEtiqueta = stock < cantidad ? "fuerte" : "atencion";
+  return <Etiqueta tono={tono}>{texto}</Etiqueta>;
 }

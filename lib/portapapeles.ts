@@ -33,3 +33,26 @@ export function guardarArchivo(blob: Blob, nombre: string) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
+
+/**
+ * Descarga para el dueño que tocó "PDF" o "Imagen". Normal: `guardarArchivo`. En la app instalada en iPhone/iPad (PWA), donde la
+ * descarga directa de un blob no siempre funciona, usa la hoja de compartir con el archivo (mismo recurso que "Compartir").
+ * Devuelve false si la persona cerró la hoja de compartir sin elegir nada.
+ */
+export async function descargarArchivo(blob: Blob, nombre: string): Promise<boolean> {
+  const enIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const instalada = window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  if (enIos && instalada && typeof navigator.share === "function") {
+    const archivo = new File([blob], nombre, { type: blob.type });
+    if (navigator.canShare?.({ files: [archivo] })) {
+      try {
+        await navigator.share({ files: [archivo], title: nombre });
+        return true;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return false;
+      }
+    }
+  }
+  guardarArchivo(blob, nombre);
+  return true;
+}

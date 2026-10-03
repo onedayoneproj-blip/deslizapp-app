@@ -16,19 +16,17 @@ import { formatearTelefono } from "@/lib/telefono";
 import { buscarCodigoPromo, precioConPromo } from "@/lib/promos";
 import type { ClienteConResumen, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { montoDeTexto } from "@/lib/credito";
-import { Avatar } from "../clientes/comunes";
 import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type EstadoPago } from "../credito/campos-pago";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
-import { IconoMas, IconoMenos } from "../iconos";
+import { IconoChevronDerecha, IconoMas } from "../iconos";
+import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad } from "../ui";
 import { useToast } from "../toast";
-import { CLASE_CAMPO, FilaDescuento, SelectorDescuento } from "./selector-descuento";
+import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
-
-const campo = CLASE_CAMPO;
 
 /**
  * Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar.
@@ -52,17 +50,13 @@ export function HojaPedidoNuevo({ pedidoId, productoInicialId }: { pedidoId?: st
     return (
       <Hoja abierta alCerrar={cerrar} titulo="Editar pedido">
         <div className="py-6 text-center">
-          <p className="font-display text-xl">{pedido ? "Este pedido está cancelado." : "Este pedido no vive aquí."}</p>
-          <p className="mt-1 text-suave">
+          <p className="font-display text-titulo-seccion">{pedido ? "Este pedido está cancelado." : "Este pedido no vive aquí."}</p>
+          <p className="mt-1 text-texto-secundario">
             {pedido ? "Reábrelo primero para poder editarlo." : "Quizá es de otra tienda. Los pedidos no se mezclan."}
           </p>
-          <button
-            type="button"
-            onClick={() => router.push("/pedidos", { scroll: false })}
-            className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel"
-          >
+          <Boton anchoCompleto className="mt-5" onClick={() => router.push("/pedidos", { scroll: false })}>
             Volver a pedidos
-          </button>
+          </Boton>
         </div>
       </Hoja>
     );
@@ -286,151 +280,104 @@ function Formulario({
 
   return (
     <div className="flex flex-col gap-3.5">
-      <p className="text-[13.5px] font-bold">Cliente</p>
+      <p className="text-secundario font-extrabold">Cliente</p>
       {cliente ? (
-        <div className="flex items-center gap-3 rounded-[20px] border border-linea bg-white p-3">
+        <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
           <Avatar nombre={cliente.nombre} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-extrabold">{cliente.nombre}</p>
-            {cliente.telefono && <p className="truncate text-[13px] text-suave">{formatearTelefono(cliente.telefono)}</p>}
+            <p className="truncate text-destacado">{cliente.nombre}</p>
+            {cliente.telefono && <p className="truncate text-secundario text-texto-secundario">{formatearTelefono(cliente.telefono)}</p>}
           </div>
-          <button
-            type="button"
-            onClick={abrirSelector}
-            className="tocable h-11 shrink-0 rounded-full border-[1.5px] border-bosque px-4 text-sm font-extrabold"
-          >
+          <Boton jerarquia="secundario" tamano="compacto" onClick={abrirSelector}>
             Cambiar
-          </button>
+          </Boton>
         </div>
       ) : (
         <button
           type="button"
           onClick={abrirSelector}
           aria-label="Elegir cliente"
-          className={`${campo} tocable flex items-center justify-between text-left text-suave`}
+          className="tocable flex h-(--alto-campo) w-full min-w-0 items-center justify-between rounded-radio-m border-[1.5px] border-borde-campo bg-superficie px-3.5 text-left text-cuerpo text-texto-secundario outline-none focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-foco"
         >
           Busca o crea un cliente
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M9 6l6 6-6 6" />
-          </svg>
+          <IconoChevronDerecha tamano={20} />
         </button>
       )}
 
-      <p className="mt-1 text-[13.5px] font-bold">Productos</p>
+      <p className="mt-1 text-secundario font-extrabold">Productos</p>
       {bloqueado && (
-        <div className="rounded-[18px] bg-mandarina/20 px-4 py-3">
-          <p className="text-[14px] leading-snug font-semibold">
-            ¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.
-          </p>
-          {confirmandoSalir ? (
-            <div role="alertdialog" aria-label="Salir sin guardar" className="mt-2.5">
-              <p className="text-[14px] font-bold">Tienes cambios sin guardar. ¿Salir de todos modos?</p>
-              <div className="mt-2 flex gap-2">
-                <button type="button" onClick={irALosPasos} className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel">
-                  Salir
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmandoSalir(false)}
-                  className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-                >
-                  Seguir editando
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => (hayCambios ? setConfirmandoSalir(true) : irALosPasos())}
-              className="tocable mt-2.5 flex h-11 w-full items-center justify-center rounded-full border-[1.5px] border-bosque/45 bg-transparent text-[14.5px] font-semibold text-bosque"
-            >
-              Ir a los pasos del pedido
-            </button>
-          )}
-        </div>
+        <Aviso tono="atencion">
+          <p className="text-secundario font-bold">¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.</p>
+          <Boton
+            jerarquia="secundario"
+            tamano="compacto"
+            anchoCompleto
+            className="mt-2.5"
+            onClick={() => (hayCambios ? setConfirmandoSalir(true) : irALosPasos())}
+          >
+            Ir a los pasos del pedido
+          </Boton>
+        </Aviso>
       )}
+      <Alerta
+        abierta={confirmandoSalir}
+        titulo="¿Salir sin guardar?"
+        descripcion="Tienes cambios sin guardar."
+        accion={{ texto: "Salir", tono: "peligro", alConfirmar: irALosPasos }}
+        alCancelar={() => setConfirmandoSalir(false)}
+      />
       {lineas.length === 0 ? (
         // Sin productos: toda el área invita a agregar (un solo botón, para que sea tocable completa)
         <button
           type="button"
           onClick={() => abrir("productos")}
-          className="tocable flex flex-col items-center rounded-[22px] border border-linea bg-white px-5 pt-4 pb-5 text-center text-bosque"
+          className="tocable flex flex-col items-center rounded-radio-l border border-linea bg-superficie px-5 pt-4 pb-5 text-center text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
         >
           <Image src="/ilustraciones/pedidos.webp" alt="" width={110} height={97} unoptimized draggable={false} className="select-none" />
-          <span className="mt-2 block font-display text-xl leading-tight">Tu pedido está vacío</span>
-          <span className="mt-1 block max-w-[240px] text-[14px] leading-snug text-suave">Agrega los productos que va a llevar tu cliente.</span>
-          <span className="mt-3.5 flex h-[46px] items-center gap-1.5 rounded-full bg-mandarina pr-5 pl-4 text-[15px] font-extrabold text-bosque-oscuro">
+          <span className="mt-2 block font-display text-titulo-seccion">Tu pedido está vacío</span>
+          <span className="mt-1 block max-w-[240px] text-secundario text-texto-secundario">Agrega los productos que va a llevar tu cliente.</span>
+          <span className="mt-3.5 flex h-(--alto-control) items-center gap-1.5 rounded-full bg-accion pr-5 pl-4 text-cuerpo font-extrabold text-sobre-accion">
             <IconoMas tamano={20} />
             Agregar productos
           </span>
         </button>
       ) : (
         <>
-          <ul inert={bloqueado} className={`rounded-[20px] border border-linea bg-white px-3.5 ${bloqueado ? "opacity-55" : ""}`}>
+          <ul inert={bloqueado} className={`overflow-hidden rounded-radio-l border border-linea bg-superficie ${bloqueado ? "opacity-55" : ""}`}>
             {lineas.map(({ producto: p, cantidad, precio }) => (
-              <li key={p.id} className="flex items-center gap-3 border-b border-arena py-2.5 last:border-b-0">
-                <span className="h-[46px] w-[46px] shrink-0 overflow-hidden rounded-xl bg-arena">
-                  {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="46px" /> : null}
+              <li key={p.id} className="flex items-center gap-3 border-t border-linea px-4 py-2.5 first:border-t-0">
+                <span className="size-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida">
+                  {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="44px" /> : null}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14.5px] font-extrabold">{p.nombre}</p>
-                  <p className="text-[12.5px] text-suave">
+                  <p className="truncate text-destacado">{p.nombre}</p>
+                  <p className="text-secundario text-texto-secundario">
                     {cantidad} × {formatearPesos(precio)}
                   </p>
                 </div>
                 {bloqueado ? (
-                  <span className="shrink-0 font-display text-xl tabular-nums">{cantidad}</span>
+                  <span className="shrink-0 font-display text-titulo-seccion tabular-nums">{cantidad}</span>
                 ) : (
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => cambiar(p, -1)}
-                      aria-label={`Quitar uno de ${p.nombre}`}
-                      className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-arena"
-                    >
-                      <IconoMenos tamano={18} />
-                    </button>
-                    <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
-                      {cantidad}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => cambiar(p, 1)}
-                      disabled={cantidad >= cantidadMaxima(p)}
-                      aria-label={`Agregar otro ${p.nombre}`}
-                      className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
-                    >
-                      <IconoMas tamano={18} />
-                    </button>
-                  </div>
+                  <Cantidad
+                    valor={cantidad}
+                    max={cantidadMaxima(p)}
+                    alCambiar={(v) => cambiar(p, v - cantidad)}
+                    etiquetaQuitar={`Quitar uno de ${p.nombre}`}
+                    etiquetaAgregar={`Agregar otro ${p.nombre}`}
+                  />
                 )}
               </li>
             ))}
           </ul>
           {!bloqueado && (
-            <button
-              type="button"
-              onClick={() => abrir("productos")}
-              className="tocable flex h-[52px] items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque bg-white text-[15px] font-extrabold text-bosque"
-            >
-              <IconoMas tamano={20} />
+            <Boton jerarquia="secundario" tamano="grande" anchoCompleto icono={<IconoMas tamano={20} />} onClick={() => abrir("productos")}>
               Agregar más productos
-            </button>
+            </Boton>
           )}
         </>
       )}
 
-      <div inert={bloqueado} className={`rounded-[20px] border border-linea bg-white px-3.5 ${bloqueado ? "opacity-55" : ""}`}>
+      <div inert={bloqueado} className={`rounded-radio-l border border-linea bg-superficie px-4 ${bloqueado ? "opacity-55" : ""}`}>
         <FilaDescuento
           codigo={codigo}
           promo={promo ?? (bloqueado ? (promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null) : null)}
@@ -444,18 +391,18 @@ function Formulario({
         />
       </div>
 
-      <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">
-        <div className="flex justify-between py-0.5 text-sm font-semibold text-suave">
+      <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2.5">
+        <div className="flex justify-between py-0.5 text-secundario font-bold text-texto-secundario">
           <span>Subtotal</span>
           <span>{formatearPesos(subtotal)}</span>
         </div>
         {descuento > 0 && (
-          <div className="flex justify-between py-0.5 text-sm font-bold">
+          <div className="flex justify-between py-0.5 text-secundario font-bold">
             <span>Descuento{(bloqueado ? pedido?.codigoPromo : promo?.codigo) ? ` · ${bloqueado ? pedido?.codigoPromo : promo?.codigo}` : ""}</span>
             <span>−{formatearPesos(descuento)}</span>
           </div>
         )}
-        <div className="flex justify-between pt-1 font-display text-[22px]">
+        <div className="flex justify-between pt-1 font-display text-titulo-seccion">
           <span>Total</span>
           <span>{formatearPesos(totalFinal)}</span>
         </div>
@@ -464,50 +411,44 @@ function Formulario({
       <CamposPago valor={pago} alCambiar={setPago} total={totalFinal} pagado={yaPagado} conAbonos={conAbonos} />
 
       {bloqueado ? (
-        <div className="rounded-[20px] border border-linea bg-white px-3.5 py-3">
-          <label className="flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
-            Fecha de la venta
-            <input
-              type="date"
-              value={dia}
-              max={diaLocal()}
-              onChange={(e) => setDia(e.target.value)}
-              className={`${campo} max-w-full appearance-none`}
-            />
-            {fechaVenta === null && <span className="text-[12.5px] font-semibold text-[#b4432a]">Elige un día que ya pasó (hoy también vale).</span>}
-          </label>
+        <div className="rounded-radio-l border border-linea bg-superficie px-4 py-3">
+          <Campo
+            etiqueta="Fecha de la venta"
+            type="date"
+            value={dia}
+            max={diaLocal()}
+            onChange={(e) => setDia(e.target.value)}
+            className="[&_input]:max-w-full [&_input]:appearance-none"
+            error={fechaVenta === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
+          />
         </div>
       ) : (
-        <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2.5">
+        <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2.5">
           <div className="flex min-h-11 items-center justify-between gap-3">
-            <span className="text-[15px] font-extrabold">Es una venta que ya hice</span>
+            <span className="text-cuerpo font-extrabold">Es una venta que ya hice</span>
             <Interruptor encendido={ventaPasada} alCambiar={setVentaPasada} etiqueta="Es una venta que ya hice" />
           </div>
           {ventaPasada && (
-            <div className="mt-2 flex flex-col gap-3 border-t border-arena pt-3 pb-1">
-              <label className="flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
-                Fecha de la venta
-                <input
-                  type="date"
-                  value={dia}
-                  max={diaLocal()}
-                  onChange={(e) => setDia(e.target.value)}
-                  className={`${campo} max-w-full appearance-none`}
-                />
-                {fechaVenta === null && (
-                  <span className="text-[12.5px] font-semibold text-[#b4432a]">Elige un día que ya pasó (hoy también vale).</span>
-                )}
-              </label>
+            <div className="mt-2 flex flex-col gap-3 border-t border-linea pt-3 pb-1">
+              <Campo
+                etiqueta="Fecha de la venta"
+                type="date"
+                value={dia}
+                max={diaLocal()}
+                onChange={(e) => setDia(e.target.value)}
+                className="[&_input]:max-w-full [&_input]:appearance-none"
+                error={fechaVenta === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
+              />
               <label className="flex items-start gap-3">
                 <input
                   type="checkbox"
                   checked={descontarStock}
                   onChange={(e) => setDescontarStock(e.target.checked)}
-                  className="mt-0.5 h-6 w-6 shrink-0 accent-[var(--color-bosque)]"
+                  className="mt-0.5 size-6 shrink-0 accent-accion"
                 />
-                <span className="min-w-0 text-[14.5px]">
+                <span className="min-w-0 text-cuerpo">
                   <span className="block font-extrabold">Descontar del stock</span>
-                  <span className="block text-[12.5px] font-semibold text-suave">Déjala apagada si vendiste esto antes de cargar tu inventario.</span>
+                  <span className="block text-secundario text-texto-secundario">Déjala apagada si vendiste esto antes de cargar tu inventario.</span>
                 </span>
               </label>
             </div>
@@ -515,16 +456,11 @@ function Formulario({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={guardar}
-        disabled={!puedeGuardar}
-        className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-50"
-      >
+      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         {ventaPasada ? "Guardar venta" : pedido ? "Guardar cambios" : "Guardar pedido"}
-      </button>
+      </Boton>
       {!puedeGuardar && !guardando && !codigoMalo && (
-        <p className="-mt-1.5 text-center text-[13px] font-semibold text-suave">
+        <p className="-mt-1.5 text-center text-secundario text-texto-secundario">
           {lineas.length === 0 ? "Agrega al menos un producto" : "Elige un cliente"}
         </p>
       )}

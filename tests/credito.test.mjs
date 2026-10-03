@@ -12,6 +12,7 @@ import {
   mensajeRecordatorio,
   montoDeTexto,
   planearAbono,
+  planearEdicionAbono,
   repartirAbono,
   resolverPago,
   resumenDeSaldado,
@@ -232,4 +233,36 @@ test("errores de la base: mensajes amables en español", () => {
   assert.ok(e("tienda_no_encontrada").message.includes("tienda"));
   assert.ok(e("pedido_con_abonos") instanceof PedidoConAbonos);
   assert.ok(e("pedido_con_abonos").message.includes("abonos"));
+});
+
+test("editar un abono: cambia el monto y el método, y el pedido recalcula su saldo", () => {
+  // Pedido de 2,000 con dos abonos (800 y 500): debe 700
+  const p = pedido(1, "2026-09-04T15:00:00Z", 2000, [800, 500]);
+  const [a1, a2] = p.abonos;
+  const r = planearEdicionAbono(p, a1, { monto: 1000, metodo: "transferencia", fecha: "2026-09-05T15:00:00.000Z", nota: "  le di cambio " }, AHORA);
+  assert.deepEqual(r, { monto: 1000, metodo: "transferencia", fecha: "2026-09-05T15:00:00.000Z", nota: "le di cambio" });
+  // Con el abono editado (mismo pedido, el otro intacto) la deuda baja a 500
+  const editados = [{ ...a1, ...r }, a2];
+  const despues = conPago(p, editados);
+  assert.equal(despues.pagado, 1500);
+  assert.equal(despues.saldo, 500);
+});
+
+test("editar un abono: no puede pasar de lo que el pedido debía antes de ese abono", () => {
+  const p = pedido(1, "2026-09-04T15:00:00Z", 2000, [800, 500]); // saldo 700; el abono de 800 puede valer hasta 1,500
+  const cambios = (monto) => ({ monto, metodo: "efectivo", fecha: "2026-09-05T15:00:00.000Z" });
+  assert.equal(planearEdicionAbono(p, { monto: 800 }, cambios(1500), AHORA).monto, 1500);
+  const r = planearEdicionAbono(p, { monto: 800 }, cambios(1501), AHORA);
+  assert.deepEqual(r, { error: "monto_mayor_que_deuda", deuda: 1500 });
+  assert.equal(traducirErrorSupabase({ message: "monto_mayor_que_deuda: 1500" }).deuda, 1500);
+});
+
+test("editar un abono: valida método, nota, fecha y monto como la base", () => {
+  const p = pedido(1, "2026-09-04T15:00:00Z", 2000, [800]);
+  const ok = { monto: 100, metodo: "otro", fecha: "2026-09-05T15:00:00.000Z" };
+  assert.equal(planearEdicionAbono(p, { monto: 800 }, { ...ok, nota: "" }, AHORA).nota, null);
+  assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, monto: 0 }, AHORA), { error: "monto_invalido" });
+  assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, metodo: "cheque" }, AHORA), { error: "metodo_invalido" });
+  assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, nota: "x".repeat(201) }, AHORA), { error: "nota_invalida" });
+  assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, fecha: "2026-12-01T00:00:00.000Z" }, AHORA), { error: "fecha_invalida" });
 });

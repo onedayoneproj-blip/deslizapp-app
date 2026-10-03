@@ -1,6 +1,7 @@
 "use client";
 
 import { Esqueleto } from "./esqueleto";
+import { Boton } from "./ui";
 
 // Contenido para una hoja que todavía no tiene sus datos o cuya lectura falló. Se pone DENTRO de la misma <Hoja> que luego
 // muestra el contenido real (no es otra hoja): así la hoja entra una sola vez y nunca queda en blanco.
@@ -17,14 +18,14 @@ export function CuerpoCargando({ titulo, forma = "ficha" }: { titulo: string; fo
               <Esqueleto className="h-4 w-1/2 rounded-full" />
             </div>
             <Esqueleto className="h-12 rounded-full" />
-            <Esqueleto className="h-[72px] rounded-[18px]" />
-            <Esqueleto className="h-[150px] rounded-[22px]" />
+            <Esqueleto className="h-[72px] rounded-radio-m" />
+            <Esqueleto className="h-[150px] rounded-radio-l" />
           </>
         ) : (
           <>
-            <Esqueleto className="h-[72px] rounded-[20px]" />
-            <Esqueleto className="h-[72px] rounded-[20px]" />
-            <Esqueleto className="h-[72px] rounded-[20px]" />
+            <Esqueleto className="h-[72px] rounded-radio-l" />
+            <Esqueleto className="h-[72px] rounded-radio-l" />
+            <Esqueleto className="h-[72px] rounded-radio-l" />
           </>
         )}
       </div>
@@ -35,15 +36,15 @@ export function CuerpoCargando({ titulo, forma = "ficha" }: { titulo: string; fo
 export function CuerpoConError({ alCerrar, alReintentar, textoVolver }: { alCerrar: () => void; alReintentar: () => void; textoVolver: string }) {
   return (
       <div role="alert" className="py-4 text-center">
-        <p className="font-display text-xl">No pudimos abrir esto.</p>
-        <p className="mt-1 text-suave">Puede ser tu conexión. Inténtalo otra vez.</p>
+        <p className="font-display text-titulo-seccion">No pudimos abrir esto.</p>
+        <p className="mt-1 text-texto-secundario">Puede ser tu conexión. Inténtalo otra vez.</p>
         <div className="mt-5 flex flex-col gap-2">
-          <button type="button" onClick={alReintentar} className="tocable h-12 rounded-full bg-bosque font-extrabold text-papel">
+          <Boton anchoCompleto onClick={alReintentar}>
             Reintentar
-          </button>
-          <button type="button" onClick={alCerrar} className="tocable h-12 rounded-full border-[1.5px] border-bosque font-extrabold text-bosque">
+          </Boton>
+          <Boton jerarquia="secundario" anchoCompleto onClick={alCerrar}>
             {textoVolver}
-          </button>
+          </Boton>
         </div>
       </div>
   );

@@ -62,6 +62,7 @@ import {
 import { createPortal } from "react-dom";
 import { CURVA as CURVAS, DURACION as DURACIONES } from "@/lib/movimiento";
 import { IconoCerrar } from "./iconos";
+import { Boton } from "./ui";
 
 export type AlturaHoja = "auto" | "expandible" | "grande";
 type Nivel = "media" | "grande";
@@ -128,6 +129,8 @@ type Props = {
   /** Se llama después de que la hoja terminó de salir y se retiró del portal. */
   alSalir?: () => void;
   titulo: string;
+  /** El título solo lo leen los lectores de pantalla (la hoja trae su propio encabezado en el contenido). */
+  tituloOculto?: boolean;
   /** Cómo se comporta la altura (por defecto "auto"). */
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
@@ -174,6 +177,7 @@ function HojaMontada({
   alCerrar,
   alSalir,
   titulo,
+  tituloOculto = false,
   altura = "auto",
   fijoArriba,
   decoracionAbajo,
@@ -708,7 +712,7 @@ function HojaMontada({
   return (
     <ContextoHoja.Provider value={ranuras}>
     <div className="fixed inset-0 z-50" role="presentation">
-      <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-bosque/50" style={{ opacity: 0 }} />
+      <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-velo" style={{ opacity: 0 }} />
       <div
         ref={panel}
         role="dialog"
@@ -761,9 +765,9 @@ function HojaMontada({
           onPointerCancel={alSoltarPuntero}
           className="absolute inset-x-0 top-0 z-30 touch-none px-5 pt-2.5 pb-3"
         >
-          <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-[#e2d5bf]" />
+          <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
           <div className="flex items-center justify-between gap-3">
-            <h2 id={idTitulo} className="font-display text-2xl text-bosque">
+            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
             <BotonCerrar onClick={cerrar} />
@@ -776,28 +780,28 @@ function HojaMontada({
         <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0 z-30" />
       </div>
       {avisando && (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-bosque/45 px-6">
+        <div className="absolute inset-0 z-10 grid place-items-center bg-velo px-6">
           <div
             ref={dialogoAviso}
             role="alertdialog"
             aria-modal="true"
             aria-labelledby={idAviso}
             aria-describedby={idAvisoTexto}
-            className="mov-aparece w-full max-w-[340px] rounded-[26px] bg-papel p-5 shadow-[0_18px_40px_-14px_rgba(16,54,42,0.6)]"
+            className="mov-aparece w-full max-w-[340px] rounded-radio-xl bg-superficie p-5 text-texto shadow-hoja"
           >
-            <h3 id={idAviso} className="font-display text-[22px] leading-tight text-bosque">
+            <h3 id={idAviso} className="font-display text-titulo-hoja">
               {avisoTitulo}
             </h3>
-            <p id={idAvisoTexto} className="mt-1.5 text-[14.5px] leading-snug text-suave">
+            <p id={idAvisoTexto} className="mt-1.5 text-cuerpo text-texto-secundario">
               {avisoTexto}
             </p>
             <div className="mt-4 flex flex-col gap-2">
-              <button ref={seguirAqui} type="button" onClick={seguirAqui_} className="tocable h-12 rounded-full bg-bosque text-[15px] font-extrabold text-papel">
+              <Boton ref={seguirAqui} anchoCompleto onClick={seguirAqui_}>
                 Seguir aquí
-              </button>
-              <button type="button" onClick={salirDeVerdad} className="tocable h-12 rounded-full border-[1.5px] border-bosque text-[15px] font-extrabold text-bosque">
+              </Boton>
+              <Boton jerarquia="secundario" anchoCompleto onClick={salirDeVerdad}>
                 Salir
-              </button>
+              </Boton>
             </div>
           </div>
         </div>
@@ -811,7 +815,7 @@ const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), sele
 
 export function BotonCerrar({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-superficie-hundida text-bosque">
+    <button type="button" onClick={onClick} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto">
       <IconoCerrar tamano={20} />
     </button>
   );

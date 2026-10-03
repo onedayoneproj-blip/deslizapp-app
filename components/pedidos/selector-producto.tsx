@@ -6,11 +6,10 @@ import { formatearPesos } from "@/lib/formato";
 import { precioConPromo } from "@/lib/promos";
 import { resaltar } from "@/lib/texto";
 import type { Producto, Promo } from "@/lib/types";
-import { Segmentos } from "../controles";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { Foto } from "../foto";
-import { IconoMas, IconoMenos } from "../iconos";
 import { FilaLista, ListaSeleccion, PildoraSeleccion, SelectorBusqueda } from "../selector-busqueda";
+import { BotonCantidad, Cantidad, Etiqueta, FilaPastillas } from "../ui";
 
 const TODAS = "__todas";
 
@@ -55,7 +54,7 @@ export function SelectorProducto({
 
   const fijo =
     colecciones.length > 0 ? (
-      <Segmentos
+      <FilaPastillas
         etiqueta="Colección"
         valor={coleccion}
         alCambiar={setColeccion}
@@ -80,7 +79,7 @@ export function SelectorProducto({
       abajo={pildora}
     >
       {resultados.length === 0 ? (
-        <p className="rounded-[18px] bg-arena p-4 text-center font-semibold text-suave">
+        <p className="rounded-radio-m bg-superficie-hundida p-4 text-center font-bold text-texto-secundario">
           {productos.length === 0 ? "Aún no tienes productos. Publica uno en el Catálogo." : "Ni un suspiro con ese nombre. Prueba con otra palabra u otra colección."}
         </p>
       ) : (
@@ -116,44 +115,26 @@ function FilaProducto({
   const enTope = cantidad >= tope;
   return (
     <div className={`flex items-center gap-3 py-2.5 ${bloqueado ? "opacity-55" : ""}`}>
-      <span className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-arena ${p.stock === 0 ? "grayscale" : ""}`}>
+      <span className={`size-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida ${p.stock === 0 ? "grayscale" : ""}`}>
         {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="44px" /> : null}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[14.5px] leading-tight font-extrabold text-bosque">
+        <p className="truncate text-cuerpo leading-tight font-extrabold text-texto">
           <TextoResaltado trozos={resaltar(p.nombre, consulta)} />
         </p>
-        <p className="mt-0.5 truncate text-[12.5px] text-suave">
-          <span className="font-bold text-bosque">{formatearPesos(precio.precio)}</span>
+        <p className="mt-0.5 truncate text-etiqueta font-normal text-texto-secundario">
+          <span className="font-bold text-texto">{formatearPesos(precio.precio)}</span>
           {precio.precioAntes && <s className="ml-1">{formatearPesos(precio.precioAntes)}</s>}
           {" · "}
           {p.stock === null ? "Sin control de stock" : p.stock === 0 ? "Sin stock" : `${p.stock} en stock`}
         </p>
       </div>
       {etiqueta ? (
-        <span className="shrink-0 rounded-full bg-bosque px-2.5 py-[3px] text-xs font-extrabold text-papel">{etiqueta}</span>
+        <Etiqueta tono="fuerte">{etiqueta}</Etiqueta>
+      ) : cantidad > 0 ? (
+          <Cantidad valor={cantidad} max={enTope ? cantidad : undefined} alCambiar={(v) => alCambiar(p, v - cantidad)} etiquetaQuitar={`Quitar uno de ${p.nombre}`} etiquetaAgregar={`Agregar ${p.nombre}`} />
       ) : (
-        <div className="flex shrink-0 items-center gap-1">
-          {cantidad > 0 && (
-            <>
-              <button type="button" onClick={() => alCambiar(p, -1)} aria-label={`Quitar uno de ${p.nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-arena">
-                <IconoMenos tamano={18} />
-              </button>
-              <span className="min-w-[26px] text-center font-display text-xl tabular-nums" aria-live="polite">
-                {cantidad}
-              </span>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => alCambiar(p, 1)}
-            disabled={enTope}
-            aria-label={`Agregar ${p.nombre}`}
-            className="tocable grid h-11 w-11 place-items-center rounded-[13px] bg-bosque text-papel disabled:opacity-35"
-          >
-            <IconoMas tamano={18} />
-          </button>
-        </div>
+        <BotonCantidad tipo="mas" etiqueta={`Agregar ${p.nombre}`} onClick={() => alCambiar(p, 1)} deshabilitado={enTope} />
       )}
     </div>
   );

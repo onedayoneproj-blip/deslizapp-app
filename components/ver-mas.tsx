@@ -33,11 +33,11 @@ export function BotonVerMas({ quedan, mostrados, total, alTocar, texto = "Ver mÃ
         data-ver-mas
         onClick={e => alTocar(e.currentTarget)}
         disabled={disabled}
-        className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-bosque bg-white px-6 text-[15px] font-extrabold text-bosque disabled:opacity-55"
+        className="tocable flex h-12 items-center justify-center rounded-full border-[1.5px] border-accion bg-superficie px-6 text-cuerpo font-extrabold text-accion outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:opacity-40"
       >
         {texto}
       </button>
-      {mostrados !== undefined && total !== undefined && <p className="text-[12.5px] font-semibold text-suave">
+      {mostrados !== undefined && total !== undefined && <p className="text-etiqueta text-texto-secundario">
         Mostrando {mostrados} de {total}
       </p>}
     </div>

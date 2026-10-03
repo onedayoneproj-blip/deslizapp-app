@@ -2,7 +2,8 @@
 
 import { useLayoutEffect, type ReactNode, type RefObject } from "react";
 import { HojaFijoAbajo, HojaFijoArriba, useIrArribaHoja } from "./hoja";
-import { IconoBuscar, IconoMas } from "./iconos";
+import { IconoMas } from "./iconos";
+import { Buscador } from "./ui";
 
 /**
  * Selector con búsqueda, para usar DENTRO de una hoja (sin abrir otra encima): botón de volver + buscador y
@@ -53,19 +54,7 @@ export function SelectorBusqueda({
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <BotonVolver onClick={alVolver} />
-            <label className="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4 focus-within:border-bosque">
-              <IconoBuscar tamano={20} className="shrink-0 text-suave" />
-              <span className="sr-only">{etiqueta}</span>
-              <input
-                ref={entrada}
-                type="search"
-                value={consulta}
-                onChange={(e) => alCambiarConsulta(e.target.value)}
-                placeholder={placeholder}
-                autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
-              />
-            </label>
+            <Buscador className="min-w-0 flex-1" entrada={entrada} valor={consulta} alCambiar={alCambiarConsulta} placeholder={placeholder} etiqueta={etiqueta} />
           </div>
           {fijo}
         </div>
@@ -80,7 +69,12 @@ export function SelectorBusqueda({
 
 export function BotonVolver({ onClick, etiqueta = "Volver" }: { onClick: () => void; etiqueta?: string }) {
   return (
-    <button type="button" onClick={onClick} aria-label={etiqueta} className="tocable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={etiqueta}
+      className="tocable grid size-(--alto-control) shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+    >
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M15 6l-6 6 6 6" />
       </svg>
@@ -94,14 +88,14 @@ export function FilaAccion({ texto, detalle, onClick }: { texto: string; detalle
     <button
       type="button"
       onClick={onClick}
-      className="tocable flex w-full items-center gap-3 rounded-[20px] border-[1.5px] border-bosque bg-white px-3 py-2.5 text-left text-bosque"
+      className="tocable flex w-full items-center gap-3 rounded-radio-l border-[1.5px] border-accion bg-superficie px-3 py-2.5 text-left text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-bosque text-papel">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accion text-sobre-accion">
         <IconoMas tamano={20} />
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-extrabold">{texto}</span>
-        {detalle && <span className="block truncate text-[12.5px] text-suave">{detalle}</span>}
+        <span className="block truncate text-cuerpo font-extrabold">{texto}</span>
+        {detalle && <span className="block truncate text-secundario text-texto-secundario">{detalle}</span>}
       </span>
     </button>
   );
@@ -109,12 +103,12 @@ export function FilaAccion({ texto, detalle, onClick }: { texto: string; detalle
 
 /** Contenedor de filas de una lista de selección. */
 export function ListaSeleccion({ children }: { children: ReactNode }) {
-  return <ul className="rounded-[20px] border border-linea bg-white px-3">{children}</ul>;
+  return <ul className="rounded-radio-l border border-linea bg-superficie px-3">{children}</ul>;
 }
 
 /** Fila de una lista de selección (separador y `content-visibility` para listas largas). */
 export function FilaLista({ children }: { children: ReactNode }) {
-  return <li className="border-b border-arena [contain-intrinsic-size:auto_64px] [content-visibility:auto] last:border-b-0">{children}</li>;
+  return <li className="border-b border-linea [contain-intrinsic-size:auto_64px] [content-visibility:auto] last:border-b-0">{children}</li>;
 }
 
 /**
@@ -125,12 +119,16 @@ export function FilaLista({ children }: { children: ReactNode }) {
 export function PildoraSeleccion({ detalle, total, alListo }: { detalle: string; total: string; alListo: () => void }) {
   return (
     <div className="px-5 pb-[max(16px,calc(var(--safe-abajo)+6px))]">
-      <div className="mov-aparece pointer-events-auto flex h-16 items-center gap-3 rounded-full bg-bosque py-2 pr-2 pl-5 text-papel shadow-[0_14px_30px_-12px_rgba(23,75,58,0.65)]">
+      <div className="mov-aparece pointer-events-auto flex h-16 items-center gap-3 rounded-full bg-accion py-2 pr-2 pl-5 text-sobre-accion shadow-flotante">
         <p className="min-w-0 flex-1 leading-tight" aria-live="polite">
-          <span className="block truncate text-[12.5px] font-bold text-papel/80">{detalle}</span>
-          <span className="block font-display text-[21px] tabular-nums">{total}</span>
+          <span className="block truncate text-etiqueta opacity-80">{detalle}</span>
+          <span className="block font-display text-titulo-seccion tabular-nums">{total}</span>
         </p>
-        <button type="button" onClick={alListo} className="tocable h-12 shrink-0 rounded-full bg-mandarina px-7 text-[16px] font-extrabold text-bosque-oscuro">
+        <button
+          type="button"
+          onClick={alListo}
+          className="tocable h-12 shrink-0 rounded-full bg-sobre-accion px-7 text-cuerpo font-extrabold text-accion outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+        >
           Listo
         </button>
       </div>

@@ -1,18 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, haceCuanto } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
-import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
+import { Etiqueta, FilaPastillas, Tarjeta } from "../ui";
 import { ChipEstado } from "./comunes";
 
 type Pestana = EstadoPedido;
@@ -24,7 +23,7 @@ const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: "cancelado", nombre: "Cancelados" },
 ];
 
-/** Pestañas cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
+/** Pestañas cuyo contador va en `resalte` (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Pestana[] = ["nuevo"];
 
 const VACIO: Record<Pestana, { titulo: string; remate: string }> = {
@@ -78,22 +77,22 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     <Contexto.Provider value={elegirPestana}>
       <TituloPantalla titulo="Pedidos" subtitulo="Del suspiro al chat. Y del chat, aquí." />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
-        <Segmentos
-            etiqueta="Estado de los pedidos"
-            valor={pestana}
-            alCambiar={elegirPestana}
-            opciones={PESTANAS.map((t) => ({
-              id: t.id,
-              texto: t.nombre,
-              cantidad: pedidos ? cuentas[t.id] : undefined,
-              atencion: PIDEN_ATENCION.includes(t.id),
-            }))}
-          />
+        <FilaPastillas
+          etiqueta="Estado de los pedidos"
+          valor={pestana}
+          alCambiar={elegirPestana}
+          opciones={PESTANAS.map((t) => ({
+            id: t.id,
+            texto: t.nombre,
+            cantidad: pedidos ? cuentas[t.id] : undefined,
+            atencion: PIDEN_ATENCION.includes(t.id),
+          }))}
+        />
 
         {!pedidos && (
           <>
-            <Esqueleto className="h-[112px] rounded-[22px]" />
-            <Esqueleto className="h-[112px] rounded-[22px]" />
+            <Esqueleto className="h-[112px] rounded-radio-l" />
+            <Esqueleto className="h-[112px] rounded-radio-l" />
           </>
         )}
         {pedidos && todos.length === 0 && (
@@ -122,21 +121,17 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
 function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
   return (
-    <Link
-      href={`/pedidos/${p.id}`}
-      scroll={false}
-      className="tocable block rounded-[22px] border border-linea bg-white px-4 py-3.5 text-bosque"
-    >
+    <Tarjeta href={`/pedidos/${p.id}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13.5px] font-bold text-suave">
+        <span className="text-secundario font-bold text-texto-secundario">
           #{p.numero} · {haceCuanto(p.creadoEn)}
         </span>
         <ChipEstado estado={p.estado} />
       </div>
       <div className="mt-1 flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-[17px] font-extrabold">{cliente ?? "Cliente sin nombre"}</p>
+        <p className="min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
         {p.pagoModo === "credito" && p.saldo > 0 && (
-          <span className="shrink-0 rounded-full bg-mandarina/20 px-2.5 py-[3px] text-xs font-extrabold whitespace-nowrap text-mandarina-texto">Debe {formatearPesos(p.saldo)}</span>
+          <Etiqueta tono="atencion">Debe {formatearPesos(p.saldo)}</Etiqueta>
         )}
       </div>
       <div className="mt-2.5 flex items-center justify-between gap-3">
@@ -145,18 +140,18 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
             {p.items.slice(0, 3).map((i) => {
               const foto = productos.get(i.productoId)?.fotos[0];
               return (
-                <span key={i.id} className="h-9 w-9 overflow-hidden rounded-[10px] border-2 border-white bg-arena">
+                <span key={i.id} className="size-9 overflow-hidden rounded-radio-s border-2 border-superficie bg-superficie-hundida">
                   {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="36px" /> : null}
                 </span>
               );
             })}
           </div>
-          <span className="min-w-0 truncate text-[13px] text-suave">
+          <span className="min-w-0 truncate text-secundario text-texto-secundario">
             {unidades} {unidades === 1 ? "producto" : "productos"} · {p.origen === "catalogo" ? "Del catálogo" : "Manual"}
           </span>
         </div>
-        <span className="shrink-0 font-display text-xl">{formatearPesos(p.total)}</span>
+        <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
       </div>
-    </Link>
+    </Tarjeta>
   );
 }

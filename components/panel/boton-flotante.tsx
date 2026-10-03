@@ -19,12 +19,12 @@ export function BotonFlotante({
         <Link
           href={href}
           scroll={false}
-          className="pointer-events-auto flex h-[54px] items-center gap-2 rounded-full bg-mandarina pr-5 pl-4 text-[15.5px] font-extrabold text-bosque-oscuro shadow-[0_10px_24px_-10px_rgba(23,75,58,0.6)] tocable"
+          className="pointer-events-auto flex h-[54px] items-center gap-2 rounded-full bg-resalte pr-5 pl-4 text-cuerpo font-extrabold text-sobre-resalte shadow-flotante tocable outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
         >
           <IconoMas tamano={22} />
           {texto}
           {detalle && (
-            <span className="text-[12.5px] font-bold opacity-80">
+            <span className="text-etiqueta opacity-80">
               · {detalle}
             </span>
           )}

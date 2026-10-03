@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
+import { IconoWhatsApp } from "../iconos";
 import { clases, FOCO, TOQUE_44 } from "./comunes";
 
 export type JerarquiaBoton = "principal" | "secundario" | "terciario" | "peligro" | "resalte";
@@ -9,7 +10,7 @@ export type TamanoBoton = "grande" | "normal" | "compacto";
 
 const JERARQUIA: Record<JerarquiaBoton, string> = {
   principal: "border-accion bg-accion text-sobre-accion",
-  secundario: "border-accion bg-transparent text-accion",
+  secundario: "border-accion bg-superficie text-accion",
   terciario: "border-transparent bg-transparent text-accion",
   peligro: "border-peligro bg-transparent text-peligro",
   resalte: "border-resalte bg-resalte text-sobre-resalte",
@@ -18,11 +19,13 @@ const JERARQUIA: Record<JerarquiaBoton, string> = {
 const PELIGRO_RELLENO = "border-peligro bg-peligro text-sobre-peligro";
 
 const TAMANO: Record<TamanoBoton, string> = {
-  grande: "h-(--alto-boton-grande) px-6 text-destacado",
-  normal: "h-(--alto-control) px-5 text-cuerpo font-extrabold",
-  compacto: `h-(--alto-compacto) px-3.5 text-secundario font-extrabold ${TOQUE_44}`,
+  grande: "h-(--alto-boton-grande) text-destacado",
+  normal: "h-(--alto-control) text-cuerpo font-extrabold",
+  compacto: `h-(--alto-compacto) text-secundario font-extrabold ${TOQUE_44}`,
 };
-const TERCIARIO_PX: Record<TamanoBoton, string> = { grande: "px-3", normal: "px-2", compacto: "px-2" };
+// El relleno horizontal va aparte (uno solo por botón: dos clases px-* a la vez no se pisan de forma fiable)
+const PX: Record<TamanoBoton, string> = { grande: "px-6", normal: "px-5", compacto: "px-3.5" };
+const PX_TERCIARIO: Record<TamanoBoton, string> = { grande: "px-3", normal: "px-2", compacto: "px-2" };
 
 type Comun = {
   jerarquia?: JerarquiaBoton;
@@ -33,6 +36,10 @@ type Comun = {
   /** Muestra tres puntos y no responde a toques (evita el doble envío). */
   cargando?: boolean;
   deshabilitado?: boolean;
+  /** Solo con jerarquia="terciario": "peligro" pone el texto en `peligro` (Cancelar pedido, Borrar abono), sin contorno. */
+  tono?: "neutro" | "peligro";
+  /** "Escribir por WhatsApp": siempre compacto, relleno `accion` y con el icono de WhatsApp (docs/09 §5). */
+  whatsapp?: boolean;
   /** Solo con jerarquia="peligro" dentro de una Alerta: relleno de peligro. */
   relleno?: boolean;
   className?: string;
@@ -40,7 +47,11 @@ type Comun = {
 };
 
 type ComoBoton = Comun & Omit<ComponentProps<"button">, "children" | "className" | "disabled"> & { href?: undefined };
-type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "href"> & { href: string };
+type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "href"> & {
+  href: string;
+  /** Solo rutas internas: false para abrir hojas sin volver arriba de la página (como el resto de enlaces de hojas de la app). */
+  scroll?: boolean;
+};
 
 /**
  * Botón píldora del sistema (docs/09 §5, referencias/sistema-de-diseno/componentes/Boton.md).
@@ -48,7 +59,10 @@ type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "
  * promesa, el botón se bloquea hasta que termine: un segundo toque no repite la acción.
  */
 export function Boton(props: ComoBoton | ComoEnlace) {
-  const { jerarquia = "principal", tamano = "normal", icono, anchoCompleto, cargando = false, deshabilitado = false, relleno, className, children, ...resto } = props;
+  const { jerarquia: jerarquiaPedida = "principal", tamano: tamanoPedido = "normal", tono = "neutro", whatsapp = false, icono: iconoPedido, anchoCompleto, cargando = false, deshabilitado = false, relleno, className, children, ...resto } = props;
+  const jerarquia = whatsapp ? "principal" : jerarquiaPedida;
+  const tamano = whatsapp ? "compacto" : tamanoPedido;
+  const icono = whatsapp ? <IconoWhatsApp tamano={18} /> : iconoPedido;
   const [ocupado, setOcupado] = useState(false);
   // Candado síncrono: un segundo toque antes de volver a pintar tampoco pasa
   const enCurso = useRef(false);
@@ -59,8 +73,8 @@ export function Boton(props: ComoBoton | ComoEnlace) {
     "tocable relative inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-[1.5px] whitespace-nowrap select-none",
     FOCO,
     TAMANO[tamano],
-    jerarquia === "terciario" && TERCIARIO_PX[tamano],
-    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : JERARQUIA[jerarquia],
+    jerarquia === "terciario" ? PX_TERCIARIO[tamano] : PX[tamano],
+    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : jerarquia === "terciario" && tono === "peligro" ? "border-transparent bg-transparent text-peligro" : JERARQUIA[jerarquia],
     anchoCompleto && "w-full",
     deshabilitado && "opacity-40",
     bloqueado ? "cursor-not-allowed" : "cursor-pointer",
@@ -84,7 +98,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
   );
 
   if (resto.href !== undefined) {
-    const { href, onClick, ...a } = resto as ComoEnlace;
+    const { href, onClick, scroll, ...a } = resto as ComoEnlace;
     const alTocar = (e: MouseEvent<HTMLAnchorElement>) => {
       if (bloqueado) {
         e.preventDefault();
@@ -100,7 +114,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
         </a>
       );
     return (
-      <Link {...a} href={href} onClick={alTocar} aria-disabled={bloqueado || undefined} className={cls}>
+      <Link {...a} href={href} scroll={scroll} onClick={alTocar} aria-disabled={bloqueado || undefined} className={cls}>
         {contenido}
       </Link>
     );
@@ -135,13 +149,28 @@ export function Boton(props: ComoBoton | ComoEnlace) {
 }
 
 /** Botón redondo de solo icono (44 px, superficie-hundida): cerrar, volver. Siempre con etiqueta accesible. */
-export function BotonIcono({ etiqueta, children, className, ...resto }: Omit<ComponentProps<"button">, "aria-label"> & { etiqueta: string }) {
+export function BotonIcono({
+  etiqueta,
+  tono = "neutro",
+  children,
+  className,
+  ...resto
+}: Omit<ComponentProps<"button">, "aria-label"> & {
+  etiqueta: string;
+  /** "accion": relleno `accion` (el + de un contador de cantidad); "neutro": `superficie-hundida`. */
+  tono?: "neutro" | "accion";
+}) {
   return (
     <button
       type="button"
       aria-label={etiqueta}
       {...resto}
-      className={clases("tocable grid size-(--alto-control) shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto disabled:opacity-40", FOCO, className)}
+      className={clases(
+        "tocable grid size-(--alto-control) shrink-0 place-items-center rounded-full disabled:opacity-40",
+        tono === "accion" ? "bg-accion text-sobre-accion" : "bg-superficie-hundida text-texto",
+        FOCO,
+        className,
+      )}
     >
       {children}
     </button>

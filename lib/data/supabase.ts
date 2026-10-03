@@ -766,6 +766,18 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         )) ?? [];
       return cambio(filas.map((f) => aAbono(f)));
     },
+    async editarAbono(_tiendaId, abonoId, c) {
+      const fila = await dato<FilaAbono>(
+        supabase.rpc("editar_abono", {
+          p_abono_id: abonoId,
+          p_monto: c.monto,
+          p_metodo: c.metodo,
+          p_fecha: c.fecha,
+          p_nota: c.nota?.trim() ? c.nota.trim() : null,
+        }),
+      );
+      return cambio(aAbono(fila as FilaAbono));
+    },
     async eliminarAbono(_tiendaId, abonoId) {
       await dato(supabase.rpc("eliminar_abono", { p_abono_id: abonoId }));
       cambio(undefined);

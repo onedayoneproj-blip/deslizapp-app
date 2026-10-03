@@ -10,16 +10,13 @@ import { useData } from "@/lib/data/provider";
 import { formatearTelefono, normalizarTelefonoDO, pareceTelefono, resaltarTelefono } from "@/lib/telefono";
 import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
-import { Avatar, EtiquetaRepite } from "../clientes/comunes";
 import { CampoNota } from "../clientes/campo-nota";
+import { Aviso, Avatar, Boton, Campo, Etiqueta } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { BotonVolver, FilaAccion, FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
 import { useToast } from "../toast";
 
 export type ClienteElegido = { id: string; nombre: string; telefono: string | null };
-
-const campo =
-  "h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] border-borde bg-white px-3.5 text-base text-bosque outline-none focus:border-bosque";
 
 /**
  * Selector de cliente para "+ Pedido", DENTRO de la misma hoja (sin segunda hoja): buscador, recientes,
@@ -73,7 +70,7 @@ export function SelectorCliente({
       accionArriba={!q || mostrados.length === 0 ? accion : undefined}
       accionAbajo={q && mostrados.length > 0 ? accion : undefined}
     >
-      {!q && mostrados.length > 0 && <p className="text-[13.5px] font-bold">Recientes</p>}
+      {!q && mostrados.length > 0 && <p className="text-secundario font-extrabold">Recientes</p>}
       {mostrados.length > 0 && (
         <ListaSeleccion>
           {mostrados.map(({ cliente: c, coincide }) => (
@@ -81,23 +78,23 @@ export function SelectorCliente({
               <button
                 type="button"
                 onClick={() => alElegir({ id: c.id, nombre: c.nombre, telefono: c.telefono })}
-                className="tocable flex w-full items-center gap-3 py-2.5 text-left text-bosque"
+                className="tocable flex w-full items-center gap-3 py-2.5 text-left text-texto outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco"
               >
-                <Avatar nombre={c.nombre} tamano={40} />
+                <Avatar nombre={c.nombre} />
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5 text-[15px] font-extrabold">
+                  <span className="flex items-center gap-1.5 text-cuerpo font-extrabold">
                     <span className="truncate">
                       <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? q : "")} />
                     </span>
-                    {c.repite && <EtiquetaRepite />}
+                    {c.repite && <Etiqueta tono="exito">Repite</Etiqueta>}
                   </span>
                   {c.telefono && (
-                    <span className="block truncate text-[13px] text-suave">
+                    <span className="block truncate text-secundario text-texto-secundario">
                       <TextoResaltado trozos={resaltarTelefono(formatearTelefono(c.telefono), coincide === "telefono" ? q : "")} />
                     </span>
                   )}
                   {coincide === "nota" && c.nota && (
-                    <span className="block truncate text-[12.5px] text-suave">
+                    <span className="block truncate text-etiqueta text-texto-secundario">
                       <TextoResaltado trozos={resaltar(c.nota, q)} />
                     </span>
                   )}
@@ -157,59 +154,49 @@ function FormularioNuevo({
     <div className="flex flex-col gap-3.5">
       <div className="flex items-center gap-2">
         <BotonVolver onClick={alVolver} />
-        <p className="font-display text-xl">Cliente nuevo</p>
+        <p className="font-display text-titulo-seccion">Cliente nuevo</p>
       </div>
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Nombre
-        <input
-          ref={nombreRef}
-          type="text"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Ej: Paola Jiménez"
-          autoComplete="off"
-          aria-label="Nombre del cliente"
-          className={campo}
-        />
-      </label>
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        WhatsApp
-        <input
-          ref={telefonoRef}
-          type="tel"
-          inputMode="tel"
-          value={telefono}
-          onChange={(e) => {
-            setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18));
-            setDuplicado(null);
-          }}
-          onBlur={() => setTocado(true)}
-          placeholder="809-000-0000"
-          aria-label="WhatsApp del cliente"
-          aria-invalid={malo || undefined}
-          className={`${campo} ${malo ? "border-[#b4432a]" : ""}`}
-        />
-        {malo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Escríbelo con 809, 829 o 849 y 7 dígitos más.</span>}
-      </label>
+      <Campo
+        etiqueta="Nombre"
+        ref={nombreRef}
+        type="text"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        placeholder="Ej: Paola Jiménez"
+        autoComplete="off"
+        aria-label="Nombre del cliente"
+      />
+      <Campo
+        etiqueta="WhatsApp"
+        ref={telefonoRef}
+        type="tel"
+        inputMode="tel"
+        value={telefono}
+        onChange={(e) => {
+          setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18));
+          setDuplicado(null);
+        }}
+        onBlur={() => setTocado(true)}
+        placeholder="809-000-0000"
+        aria-label="WhatsApp del cliente"
+        error={malo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
+      />
       <CampoNota valor={nota} alCambiar={setNota} />
 
       {duplicado && (
-        <div role="alert" className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-          <b>Este número ya es de «{duplicado.nombre}».</b> Dos clientes pueden llamarse igual, pero no compartir número.
-          <button type="button" onClick={() => alElegir(duplicado)} className="mt-2 block h-11 w-full rounded-full bg-bosque font-extrabold text-papel">
-            Usar ese cliente
-          </button>
+        <div role="alert">
+          <Aviso tono="atencion">
+            <b>Este número ya es de «{duplicado.nombre}».</b> Dos clientes pueden llamarse igual, pero no compartir número.
+            <Boton anchoCompleto className="mt-2" onClick={() => alElegir(duplicado)}>
+              Usar ese cliente
+            </Boton>
+          </Aviso>
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={guardar}
-        disabled={!puedeGuardar}
-        className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-50"
-      >
+      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         Crear y elegir
-      </button>
+      </Boton>
     </div>
   );
 }

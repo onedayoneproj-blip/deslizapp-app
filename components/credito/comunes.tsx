@@ -8,7 +8,7 @@ import { formatearPesos } from "@/lib/formato";
  * Barra de lo pagado: crece con transform (scaleX), no con el ancho. Empieza vacía y llega a su valor al aparecer; cuando
  * cambia (un abono nuevo o borrado), se anima de un valor al otro (referencias/credito-abonos/Pedido.dc.html).
  */
-export function BarraPago({ pagado, total, saldado = false }: { pagado: number; total: number; saldado?: boolean }) {
+export function BarraPago({ pagado, total }: { pagado: number; total: number }) {
   const meta = total > 0 ? Math.min(1, Math.max(0, pagado / total)) : 0;
   const [valor, setValor] = useState(0);
   useEffect(() => {
@@ -22,9 +22,9 @@ export function BarraPago({ pagado, total, saldado = false }: { pagado: number; 
       aria-valuemin={0}
       aria-valuemax={total}
       aria-valuenow={pagado}
-      className="h-2.5 overflow-hidden rounded-[5px] bg-arena"
+      className="h-2.5 overflow-hidden rounded-full bg-superficie-hundida"
     >
-      <div className={`cre-barra h-full w-full rounded-[5px] ${saldado ? "bg-mandarina" : "bg-bosque"}`} style={{ transform: `scaleX(${valor})` }} />
+      <div className={`cre-barra h-full w-full rounded-full bg-accion`} style={{ transform: `scaleX(${valor})` }} />
     </div>
   );
 }
@@ -36,14 +36,14 @@ export function BarraPago({ pagado, total, saldado = false }: { pagado: number; 
 export function LineaFecha({ fecha }: { fecha: string | null }) {
   // "Ahora" se toma al mostrarse (no en cada pintado)
   const [ahora] = useState(Date.now);
-  if (!fecha) return <p className="text-[13px] font-semibold text-suave">Sin fecha acordada</p>;
+  if (!fecha) return <p className="text-secundario font-bold text-texto-secundario">Sin fecha acordada</p>;
   const atraso = diasDeAtraso(fecha, ahora);
   const faltan = diasParaPagar(fecha, ahora) ?? 0;
   return (
-    <p className="flex items-center gap-2 text-[13px]">
-      <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full bg-mandarina ${atraso > 0 ? "cre-latido" : ""}`} />
+    <p className="flex items-center gap-2 text-secundario">
+      <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full bg-atencion-texto ${atraso > 0 ? "cre-latido" : ""}`} />
       <span>
-        Quedó en pagar el <b>{diaCorto(fecha)}</b> · {atraso > 0 ? <b className="text-mandarina-texto">{textoAtraso(atraso)}</b> : textoFaltan(faltan).toLowerCase()}
+        Quedó en pagar el <b>{diaCorto(fecha)}</b> · {atraso > 0 ? <b className="text-atencion-texto">{textoAtraso(atraso)}</b> : textoFaltan(faltan).toLowerCase()}
       </span>
     </p>
   );

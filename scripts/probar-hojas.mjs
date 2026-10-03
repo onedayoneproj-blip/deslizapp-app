@@ -58,8 +58,8 @@ async function deslizar(ctx, page, distancia = 420) {
 /** Abre el detalle de un pedido a crédito con deuda y, encima, "Registrar abono". */
 async function conAbono(page) {
   await page.goto(URL + "/pedidos");
-  await page.waitForSelector('[role="tab"]');
-  await page.getByRole("tab", { name: /^Despachados/ }).click();
+  await page.waitForSelector("button[aria-pressed]");
+  await page.getByRole("button", { name: /^Despachados/ }).click();
   await page.getByRole("link", { name: /#1036/ }).click();
   await page.waitForSelector("section[aria-label='Pago del pedido']");
   await page.waitForTimeout(600);
