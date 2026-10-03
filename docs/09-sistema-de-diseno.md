@@ -131,7 +131,7 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 **Fila "Agregar …"** (Agregar cupón, Agregar producto): fila tocable con un **círculo relleno `accion` de 24 px con un + en `sobre-accion`** y el texto en `destacado`. El círculo relleno es lo que la distingue de un texto suelto.
 
-**Cupón aplicado:** cuando ya hay un cupón, la fila "Agregar cupón" se convierte en el ticket compacto del cupón **con un chevron**, y todo el ticket es un solo toque que abre el selector de cupones. En el selector, el cupón aplicado aparece marcado con su check; tocarlo otra vez lo **quita** (queda sin cupón) y tocar otro lo **cambia**. No hay botones "Cambiar" ni "Quitar". En el ticket, el nombre solo se muestra si es distinto del código (nunca el código dos veces).
+**Cupón aplicado:** dentro de un pedido el cupón es una fila más de la lista, no el ticket. Sin cupón: la fila "Agregar cupón" (círculo + ). Con cupón: fila con icono de etiqueta de precio en `accion-suave`, título "Cupón", subtítulo "AHHH · 15 %" y chevron; toda la fila abre el selector, donde el cupón aplicado aparece marcado: tocarlo otra vez lo **quita** y tocar otro lo **cambia**. Sin botones "Cambiar" ni "Quitar". El monto descontado va en los totales ("Descuento · AHHH −RD$270"). El ticket grande es para la pantalla de Promos, no para el pedido.
 
 **Interruptor:** solo para encender o apagar algo que se aplica al instante (Visible en el catálogo). Si hay que pulsar Guardar después, es una opción de formulario.
 
