@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Referencia · Pedido despachado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+.b-camion{opacity:0;animation:bCamion 1.5s cubic-bezier(.45,0,.2,1) 0.45s both}
+.b-lineas{animation:bLineas 1.5s linear 0.45s both}
+.b-llena{transform-origin:left center;animation:bLlena 1.5s cubic-bezier(.45,0,.2,1) 0.45s both}
+.b-sello{animation:bPop .45s cubic-bezier(.34,1.56,.64,1) 1.65s both}
+.b-rotulo{animation:bAparece .3s ease 1.65s both}
+.b-sube1{animation:bSube .5s cubic-bezier(.22,1,.36,1) 1.85s both}
+.b-sube2{animation:bSube .5s cubic-bezier(.22,1,.36,1) 1.95s both}
+.b-sube3{animation:bSube .5s cubic-bezier(.22,1,.36,1) 2.10s both}
+.b-icono{animation:bFlota 7s ease-in-out infinite}
+.b-icono2{animation:bFlota 8s ease-in-out -2s infinite}
+.b-icono3{animation:bFlota 6.5s ease-in-out -4s infinite}
+
+.b-hoja{animation:bHoja .45s cubic-bezier(.32,.72,0,1) both}
+@keyframes bHoja{from{transform:translateY(100%)}to{transform:none}}
+@keyframes bFlota{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.b-sube4{animation:bSube .5s cubic-bezier(.22,1,.36,1) 2.25s both}
+@keyframes bCamion{0%{transform:translateX(150px);opacity:0}12%{opacity:1}70%{transform:translateX(300px);opacity:1}100%{transform:translateX(430px);opacity:0}}
+@keyframes bLineas{0%,55%{opacity:0}65%,90%{opacity:1}100%{opacity:0}}
+@keyframes bLlena{0%{transform:scaleX(0);background:#ff834f}70%{transform:scaleX(1);background:#ff834f}100%{transform:scaleX(1);background:#174b3a}}
+@keyframes bPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes bAparece{from{opacity:0}to{opacity:1}}
+@keyframes bSube{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+
+html,body{background:#e9e1d2;font-family:'Figtree',sans-serif}
+.marco{position:relative;width:390px;height:844px;margin:0 auto;background:#93a89c;color:#174b3a;overflow:hidden}
+.repetir{display:block;margin:16px auto;height:40px;padding:0 18px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;color:#174b3a;font:800 14px Figtree,sans-serif}
+</style></head>
+<body>
+<!-- Referencia visual de la animación de "Pedido despachado" (diseño B elegido por Lewis).
+     Maqueta estática: colores en hex sólo aquí; en la app usar SIEMPRE tokens de components/ui y globals.css.
+     El fondo #93a89c imita el velo de la app detrás del sheet. Las fotos son vacías: en la app van las miniaturas reales. -->
+<div class="marco" id="marco">
+<div class="b-hoja" style="position: absolute; left: 0; right: 0; bottom: 0; box-sizing: border-box; padding: 10px 24px 34px; border-radius: 28px 28px 0 0; background: #fff9ee; box-shadow: 0 -8px 30px rgba(16, 54, 42, 0.16); overflow: hidden;">
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 300px; -webkit-mask-image: linear-gradient(transparent, #000 45%); mask-image: linear-gradient(transparent, #000 45%);">
+<svg class="b-icono" style="position: absolute; left: 20px; top: 34px;" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ebe1d0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"></path></svg>
+<svg class="b-icono2" style="position: absolute; left: 304px; top: 26px;" width="48" height="48" viewBox="0 0 24 24" fill="#ebe1d0"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C6.4 16.2 3 13.2 3 9.3 3 6.4 5.2 4.2 7.9 4.2c1.6 0 3.1.8 4.1 2.1 1-1.3 2.5-2.1 4.1-2.1 2.7 0 4.9 2.2 4.9 5.1 0 3.9-3.4 6.9-8.2 10.9-.2.2-.5.3-.8.3z"></path></svg>
+<svg class="b-icono3" style="position: absolute; left: 156px; top: 6px;" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ebe1d0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5c-1.2 0-2.4-.3-3.4-.8L4.5 19.5l1.2-4a7.5 7.5 0 1 1 14.3-4z"></path></svg>
+<svg class="b-icono3" style="position: absolute; left: 70px; top: 104px;" width="34" height="34" viewBox="0 0 24 24" fill="#ebe1d0"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C6.4 16.2 3 13.2 3 9.3 3 6.4 5.2 4.2 7.9 4.2c1.6 0 3.1.8 4.1 2.1 1-1.3 2.5-2.1 4.1-2.1 2.7 0 4.9 2.2 4.9 5.1 0 3.9-3.4 6.9-8.2 10.9-.2.2-.5.3-.8.3z"></path></svg>
+<svg class="b-icono" style="position: absolute; left: 252px; top: 96px;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ebe1d0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5c-1.2 0-2.4-.3-3.4-.8L4.5 19.5l1.2-4a7.5 7.5 0 1 1 14.3-4z"></path></svg>
+<svg class="b-icono2" style="position: absolute; left: 4px; top: 250px;" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ebe1d0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"></path></svg>
+<svg class="b-icono" style="position: absolute; left: 346px; top: 262px;" width="34" height="34" viewBox="0 0 24 24" fill="#ebe1d0"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C6.4 16.2 3 13.2 3 9.3 3 6.4 5.2 4.2 7.9 4.2c1.6 0 3.1.8 4.1 2.1 1-1.3 2.5-2.1 4.1-2.1 2.7 0 4.9 2.2 4.9 5.1 0 3.9-3.4 6.9-8.2 10.9-.2.2-.5.3-.8.3z"></path></svg>
+</div>
+<div style="position: relative; display: flex; justify-content: center; height: 34px;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+<button type="button" aria-label="Cerrar" style="position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border: none; border-radius: 999px; background: #f3ead9; color: #174b3a; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px;">
+<div style="position: relative; width: 342px; height: 150px;">
+<div class="b-camion" style="position: absolute; left: -60px; top: 28px; display: flex; align-items: center; gap: 4px;">
+<svg class="b-lineas" width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><g stroke="#ff834f" stroke-width="4" stroke-linecap="round"><path d="M4 10h22"></path><path d="M10 20h22"></path><path d="M4 30h22"></path></g></svg>
+<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.5h11v10h-11z" fill="#dcebe2"></path><path d="M13.5 9.5h4l3 3.5v3.5h-7z" fill="#dcebe2"></path><circle cx="6.5" cy="17.5" r="2" fill="#fff9ee"></circle><circle cx="17" cy="17.5" r="2" fill="#fff9ee"></circle></svg>
+</div>
+<div style="position: absolute; left: 0; right: 50px; top: 102px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+<div style="height: 8px; border-radius: 999px; background: #174b3a;"></div>
+<div style="height: 8px; border-radius: 999px; background: #174b3a;"></div>
+<div style="height: 8px; border-radius: 999px; background: #efe4d2; overflow: hidden;"><div class="b-llena" style="height: 8px; border-radius: 999px; background: #174b3a;"></div></div>
+</div>
+<div class="b-sello" style="position: absolute; right: 0; top: 88px; width: 36px; height: 36px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5c1.6 1.6 3 3 4.5 4.5C12.5 13 15.5 9.5 19 6.5"></path></svg></div>
+<div style="position: absolute; left: 0; right: 50px; top: 124px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; font-weight: 800; color: #4f6a5e;">
+<span>Recibido</span><span>Confirmado</span><span class="b-rotulo" style="color: #174b3a;">Despachado</span>
+</div>
+</div>
+<div class="b-sube1" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;">
+<h1 style="margin: 0; font-family: 'Fredoka', sans-serif; font-weight: 700; font-stretch: 115%; font-size: 32px; line-height: 36px;">Pedido despachado</h1>
+<p style="margin: 0; font-size: 16px; color: #4f6a5e;">#1040 · Yeimy Rosario</p>
+</div>
+<div class="b-sube2" style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-stretch: 115%; font-size: 36px; line-height: 40px;"><span id="monto">RD$0</span></div>
+<div class="b-sube3" style="width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #efe4d2; border-radius: 22px; padding: 0 16px;">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 64px; border-bottom: 1px solid #efe4d2;">
+<span aria-hidden="true" style="display:block;width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: #f3ead9; flex: none;"></span>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mayar Natural Intense</span><span style="font-size: 14px; color: #4f6a5e;">1 × RD$3,200</span></div>
+<span style="flex: none; height: 24px; padding: 0 10px; border-radius: 999px; background: #ffe3d6; color: #a8410f; font-size: 12px; font-weight: 800; display: flex; align-items: center;">Quedan 3</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 64px;">
+<span aria-hidden="true" style="display:block;width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: #f3ead9; flex: none;"></span>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Wild Flower Gold</span><span style="font-size: 14px; color: #4f6a5e;">2 × RD$1,100</span></div>
+<span style="flex: none; height: 24px; padding: 0 10px; border-radius: 999px; background: #ffe3d6; color: #a8410f; font-size: 12px; font-weight: 800; display: flex; align-items: center;">Quedan 4</span>
+</div>
+</div>
+<p class="b-sube3" style="margin: -16px 0 0; font-size: 14px; color: #4f6a5e;">El stock ya se actualizó.</p>
+</div>
+<div class="b-sube4" style="position: relative; margin-top: 28px; display: flex; flex-direction: column; gap: 12px;">
+<button type="button" style="height: 52px; border: none; border-radius: 999px; background: #174b3a; color: #fff9ee; font-family: 'Figtree', sans-serif; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5c-1.2 0-2.4-.3-3.4-.8L4.5 19.5l1.2-4a7.5 7.5 0 1 1 14.3-4z"></path></svg>Avisarle a Yeimy</button>
+<button type="button" style="height: 52px; border: 1.5px solid #174b3a; border-radius: 999px; background: #ffffff; color: #174b3a; font-family: 'Figtree', sans-serif; font-size: 17px; font-weight: 800; cursor: pointer;">Volver a pedidos</button>
+</div>
+</div>
+</div>
+<button class="repetir" onclick="repetir()">Repetir animación</button>
+<script>
+var total=5400,raf;
+function contar(){cancelAnimationFrame(raf);var el=document.getElementById('monto');
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent='RD$'+total.toLocaleString('en-US');return}
+ var t0=performance.now(),espera=1950,dura=800;
+ (function paso(t){var p=Math.min(Math.max((t-t0-espera)/dura,0),1),e=1-Math.pow(1-p,3);
+  el.textContent='RD$'+Math.round(total*e).toLocaleString('en-US');if(p<1)raf=requestAnimationFrame(paso)})(t0)}
+var plantilla=document.getElementById('marco').innerHTML;
+function repetir(){var m=document.getElementById('marco');m.innerHTML='';requestAnimationFrame(function(){m.innerHTML=plantilla;contar()})}
+contar();
+</script></body></html>
