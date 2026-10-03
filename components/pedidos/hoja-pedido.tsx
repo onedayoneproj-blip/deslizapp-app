@@ -124,7 +124,6 @@ function Detalle({
   }, [pedido.id]);
   // El selector de descuento es otra vista DENTRO de esta misma hoja (como los selectores de cliente y de producto).
   const [vista, setVista] = useState<"detalle" | "descuento">("detalle");
-  const [cuponAlAbrir, setCuponAlAbrir] = useState<string | null>(null);
 
   const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const subtotal = pedido.items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
@@ -321,19 +320,12 @@ function Detalle({
           );
         })}
         {puedeCodigo && (
-          <li className="border-t border-linea px-4">
-            <FilaDescuento
-              codigo={pedido.codigoPromo ?? ""}
-              promo={promoAplicada}
-              pedidos={pedidos}
-              desde={cuponAlAbrir}
-              alAbrir={() => {
-                setCuponAlAbrir(pedido.codigoPromo ?? "");
-                setVista("descuento");
-              }}
-              deshabilitado={ocupado}
-            />
-          </li>
+          <FilaDescuento
+            codigo={pedido.codigoPromo ?? ""}
+            promo={promoAplicada}
+            alAbrir={() => setVista("descuento")}
+            deshabilitado={ocupado}
+          />
         )}
         <li className="border-t border-linea px-4 pt-2.5 pb-3">
           <div className="flex justify-between text-secundario font-bold text-texto-secundario">

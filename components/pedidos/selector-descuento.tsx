@@ -3,15 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { datosCupon } from "@/lib/cupon";
-import { CURVA, DURACION, menosMovimiento } from "@/lib/movimiento";
+import { CURVA, menosMovimiento } from "@/lib/movimiento";
 import { pedidosConCodigo, razonNoUsable, textoUso, type ContextoCodigo } from "@/lib/promos";
-import type { Pedido, Promo } from "@/lib/types";
+import type { Promo } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { HojaFijoArriba, useIrArribaHoja } from "../hoja";
-import { IconoCheck, IconoChevronDerecha } from "../iconos";
+import { IconoCheck, IconoPromos } from "../iconos";
 import { TicketPromo } from "../promos/ticket-promo";
 import { BotonVolver } from "../selector-busqueda";
-import { Boton, FilaAgregar } from "../ui";
+import { Boton, FilaAgregar, FilaLista } from "../ui";
 
 /** Etiqueta corta de por qué un cupón no se puede usar. */
 const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "Programado", agotada: "Agotado" } as const;
@@ -25,101 +25,51 @@ function Check({ nuevo = false, sobreVerde = false }: { nuevo?: boolean; sobreVe
   );
 }
 
+/** "15 %" (o "RD$200" si algún día hay cupones de monto fijo): el valor del descuento de un cupón. */
+export function valorCupon(promo: Pick<Promo, "valorPorcentaje">): string {
+  return promo.valorPorcentaje !== null ? `${promo.valorPorcentaje} %` : "";
+}
+
 /**
- * La fila de descuento de un pedido, en "+ Pedido", "Editar pedido" y el detalle. Sin cupón: el botón "+ Agregar cupón". Con cupón
- * (que todavía se puede usar): el ticket compacto entero como UN botón con chevron que abre el selector (sin "Cambiar" ni "Quitar"). Al cambiar de uno a otro, el contenido aparece con
- * un fundido y un desplazamiento corto (la altura de la fila cambia de una vez: nada anima el layout, regla de movimiento).
- * `desde` = el cupón que había al abrir el selector (para animar al volver, cuando la fila se vuelve a montar).
+ * La fila de descuento de un pedido ("+ Pedido", "Editar pedido" y el detalle), dentro de la misma lista agrupada: es un `<li>`.
+ * Sin cupón: la fila "Agregar cupón". Con cupón: una FilaLista con la etiqueta de precio en `accion-suave`, "Cupón" y "AHHH · 15 %";
+ * toda la fila abre el selector (donde el aplicado sale marcado: tocarlo lo quita, tocar otro lo cambia). Sin el nombre de la promo
+ * ni sus usos: eso es de Promos. Con `deshabilitado`, la fila no se toca y no lleva chevron.
  */
 export function FilaDescuento({
   codigo,
   promo,
-  pedidos,
-  desde = null,
   alAbrir,
   deshabilitado = false,
-  conBorde = false,
 }: {
   codigo: string;
   promo: Promo | null;
-  pedidos: Pedido[];
-  desde?: string | null;
   alAbrir: () => void;
   deshabilitado?: boolean;
-  conBorde?: boolean;
 }) {
-  const contenido = useRef<HTMLDivElement>(null);
-  const primera = useRef(true);
   const actual = codigo.trim().toUpperCase();
-  useEffect(() => {
-    const cambioAlVolver = primera.current && desde !== null && desde.trim().toUpperCase() !== actual;
-    const cambioAhora = !primera.current;
-    primera.current = false;
-    if (!cambioAlVolver && !cambioAhora) return;
-    const el = contenido.current;
-    if (!el?.animate) return;
-    const corto = menosMovimiento();
-    el.animate(
-      corto
-        ? [{ opacity: 0 }, { opacity: 1 }]
-        : [
-            { opacity: 0, transform: "translateY(8px)" },
-            { opacity: 1, transform: "none" },
-          ],
-      {
-        duration: corto ? DURACION.rapida : DURACION.normal,
-        easing: CURVA.salida,
-      },
-    );
-  }, [actual, desde]);
-
-  const borde = conBorde ? "border-b border-linea" : "";
   if (!actual) {
     return (
-      <div className={borde}>
-        <div ref={contenido}>
-          <FilaAgregar texto="Agregar cupón" alTocar={alAbrir} deshabilitado={deshabilitado} />
-        </div>
-      </div>
+      <li className="border-t border-linea px-4 first:border-t-0">
+        <FilaAgregar texto="Agregar cupón" alTocar={alAbrir} deshabilitado={deshabilitado} />
+      </li>
     );
   }
-  const usos = promo ? pedidosConCodigo(pedidos, promo) : 0;
-  const etiqueta = `Cupón ${actual} aplicado. Cambiar o quitar`;
-  const chevron = <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0" />;
-  // El ticket entero es UN solo botón (con chevron) que abre el selector; sin cupón usable se avisa debajo
+  const valor = promo ? valorCupon(promo) : "";
+  const detalle = valor ? `${actual} · ${valor}` : actual;
   return (
-    <div className={`py-2 ${borde}`}>
-      <div ref={contenido}>
-        {promo ? (
-          <button
-            type="button"
-            onClick={alAbrir}
-            disabled={deshabilitado}
-            aria-label={etiqueta}
-            className="tocable block w-full rounded-radio-m text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:cursor-default"
-          >
-            <TicketPromo
-              tamano="compacto"
-              apagado={false}
-              d={datosCupon(promo, "activa", { usos })}
-              compacto={{ nombre: promo.nombre, codigo: promo.codigo ?? actual, uso: textoUso(usos, promo.limiteUsos), extra: deshabilitado ? undefined : chevron }}
-            />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={alAbrir}
-            disabled={deshabilitado}
-            aria-label={etiqueta}
-            className="tocable flex min-h-11 w-full items-center justify-between gap-2 rounded-radio-m text-left text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:cursor-default"
-          >
-            <span className="min-w-0 truncate text-cuerpo font-extrabold">Cupón: {actual}</span>
-            {!deshabilitado && chevron}
-          </button>
-        )}
-        {!promo && <p className="pb-1 text-etiqueta text-peligro">Ese cupón ya no se puede usar. Elige otro o quítalo.</p>}
-      </div>
-    </div>
+    <FilaLista
+      onClick={deshabilitado ? undefined : alAbrir}
+      etiqueta={`Cupón ${actual} aplicado${valor ? `, ${valor}` : ""}. Cambiar o quitar`}
+      inicio={
+        <span className="grid size-10 place-items-center rounded-full bg-accion-suave text-texto">
+          <IconoPromos tamano={20} strokeWidth={2.2} />
+        </span>
+      }
+      titulo="Cupón"
+      detalle={detalle}
+      pie={promo ? undefined : <span className="text-etiqueta text-peligro">Ese cupón ya no se puede usar. Elige otro o quítalo.</span>}
+    />
   );
 }
 

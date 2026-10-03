@@ -28,6 +28,7 @@ export function FilaLista({
   onClick,
   accion,
   pie,
+  etiqueta,
 }: {
   titulo: ReactNode;
   detalle?: ReactNode;
@@ -42,6 +43,8 @@ export function FilaLista({
   accion?: ReactNode;
   /** Algo más debajo del detalle (una etiqueta de estado); no se recorta. */
   pie?: ReactNode;
+  /** Nombre accesible de la fila tocable si su texto no basta. */
+  etiqueta?: string;
 }) {
   const tocable = Boolean(href || onClick);
   const cuerpo = (
@@ -80,11 +83,11 @@ export function FilaLista({
   return (
     <li className="border-t border-linea first:border-t-0">
       {href ? (
-        <Link href={href} scroll={false} className={clases("tocable", fila, foco)}>
+        <Link href={href} scroll={false} aria-label={etiqueta} className={clases("tocable", fila, foco)}>
           {cuerpo}
         </Link>
       ) : onClick ? (
-        <button type="button" onClick={onClick} className={clases("tocable", fila, foco)}>
+        <button type="button" onClick={onClick} aria-label={etiqueta} className={clases("tocable", fila, foco)}>
           {cuerpo}
         </button>
       ) : (
