@@ -59,7 +59,7 @@ export function FilaLista({
         {pie && <span className="mt-1 block">{pie}</span>}
       </span>
       {fin !== undefined && <span className="shrink-0 text-destacado text-texto tabular-nums">{fin}</span>}
-      {tocable && !accion && <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="-mr-1 shrink-0 text-texto-secundario" />}
+      {tocable && !accion && marcada === undefined && <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="-mr-1 shrink-0 text-texto-secundario" />}
     </>
   );
   const fila = "flex min-h-15 w-full items-center gap-3 px-4 text-left";

@@ -344,9 +344,12 @@ try {
     await page.tap('a[href="/catalogo/nuevo"]');
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
     await page.waitForTimeout(700);
-    await page.tap('[role="dialog"] button:has-text("+ Nueva")');
-    await page.waitForSelector('[role="dialog"] input[aria-label="Nombre de la colección nueva"]');
-    await probarCampo(page, '[role="dialog"] input[aria-label="Nombre de la colección nueva"]', "Nuevo producto · Colección nueva", "Para él", { dentroDeHoja: true });
+    // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
+    await page.tap('[role="dialog"] button:has-text("Sin colección")');
+    await page.waitForSelector('[role="dialog"] button:has-text("Agregar colección")');
+    await page.tap('[role="dialog"] button:has-text("Agregar colección")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Para él"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Para él"]', "Nuevo producto · Colección nueva", "Para él", { dentroDeHoja: true });
     ok(errores.length === 0, `Colección nueva: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

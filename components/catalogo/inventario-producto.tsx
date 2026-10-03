@@ -176,8 +176,8 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
   const ocupado = i.guardando || i.incierto;
   return (
-    <div className="flex flex-col gap-3">
-      <ListaAgrupada etiqueta="Inventario">
+    <section aria-label="Inventario" className="flex flex-col gap-3">
+      <ListaAgrupada etiqueta="Stock e historial">
         {i.base === null || i.propuesta === null ? (
           <FilaLista titulo="Sin control de stock" />
         ) : (
@@ -199,7 +199,7 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
       </ListaAgrupada>
       {i.pendiente && (
         <div className="flex flex-col gap-3">
-          <p aria-live="polite" className="text-secundario text-texto-secundario">
+          <p role="status" className="text-secundario text-texto-secundario">
             {delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -212,7 +212,7 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

@@ -135,7 +135,7 @@ export function VistaHacerEspacio({
         <div className="flex flex-col gap-3">
           <p className="text-center text-secundario text-texto-secundario">{n === 0 ? "Marca lo que quieras ocultar" : `Liberas ${lugares(n)} · los vuelves a mostrar cuando quieras`}</p>
           <Boton tamano="grande" anchoCompleto deshabilitado={n === 0} cargando={ocultando} onClick={() => void ocultar()}>
-            Ocultar {n} del catálogo
+            {n === 0 ? "Ocultar del catálogo" : `Ocultar ${n} del catálogo`}
           </Boton>
         </div>
       )}
