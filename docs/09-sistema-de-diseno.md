@@ -26,15 +26,15 @@ Los colores se nombran por su **función**, no por su marca. Así el modo oscuro
 
 | Función | Token | Claro | Oscuro |
 |---|---|---|---|
-| Fondo de pantalla | `fondo` | Papel Cálido #fff9ee | #0e1d17 |
-| Tarjetas, listas, campos, hojas | `superficie` | #ffffff | #16281f |
-| Rellenos neutros | `superficie-hundida` | Arena #f3ead9 | #1d3329 |
-| Texto | `texto` / `texto-secundario` | Verde Bosque / #4f6a5e | #f1ebdf / #a8bcb1 |
+| Fondo de pantalla | `fondo` | Papel Cálido #fff9ee | #0d0f0e |
+| Tarjetas, listas, campos, hojas | `superficie` | #ffffff | #1a1d1b |
+| Rellenos neutros | `superficie-hundida` | Arena #f3ead9 | #242826 |
+| Texto | `texto` / `texto-secundario` | Verde Bosque / #4f6a5e | #f1ebdf / #a8b0ab |
 | Seguir adelante, elegido en filtros | `accion` + `sobre-accion` | Verde Bosque | #9ed3b8 |
-| Elegido en formularios, éxito | `accion-suave` | Menta #dcebe2 | #24443a |
+| Elegido en formularios, éxito | `accion-suave` | Menta #dcebe2 | #233a2e |
 | Llamar la atención | `resalte` + `sobre-resalte` | Mandarina #ff834f | igual |
 | Decoración de marca | `marca-rosa` | Rosa Suave #f5c9d6 | #5b3343 |
-| Debe, atrasado, cuidado | `atencion-suave` + `atencion-texto` | #ffe3d6 / #a8410f | #4a2618 / #ffa47e |
+| Debe, atrasado, cuidado | `atencion-suave` + `atencion-texto` | #ffe3d6 / #a8410f | #3d2519 / #ffa47e |
 | Borrar, eliminar | `peligro` + `sobre-peligro` | #b4432a | #ff8a70 |
 
 **Reglas de color**
@@ -181,6 +181,7 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 
 - Tres opciones en el menú de la tienda: Automático (como el teléfono), Claro y Oscuro.
 - Solo cambian los valores de los tokens de color y sombra; ningún componente lleva colores propios.
+- **Neutro, no verde.** Fondo y superficies son negros y grises casi neutros (con un toque cálido), cada capa un poco más clara que la de abajo, como en iOS. Teñir todo de verde se parecía al estilo tonal de Android. El verde de marca queda solo en los acentos: botones, paso activo, check y enlaces (`accion` #9ed3b8), que sobre neutro se ven más intensos. Contrastes validados: texto 14:1, texto secundario 7.7:1, `accion` 10:1, campo 4.3:1.
 - Mandarina se mantiene igual en ambos modos: es el color que más identifica a la marca y funciona sobre el fondo oscuro.
 - Verde Bosque como botón pasa a un verde claro (#9ed3b8) con texto oscuro, porque un verde oscuro sobre fondo oscuro desaparece.
 - Las fotos de producto no se oscurecen. Las ilustraciones que tengan fondo crema llevan su versión oscura o un marco `superficie`.
