@@ -159,7 +159,7 @@ En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de
 2. Debajo, la leyenda como **lista agrupada**: punto de color · nombre · subtítulo con el porcentaje · número a la derecha · chevron. Todas las filas que tienen algo (número > 0) se tocan y llevan chevron; las que están en 0 no se tocan ni llevan chevron.
 3. Los demás grupos (Nuevos, Dormidos, Del catálogo, A mano…) van en **cuadros** de 2 × 2, porque no son partes de la dona sino atajos. Cada cuadro empieza con una fila: el **ícono de línea** suelto (24 px, color `texto`, esquinas redondeadas, sin círculo de fondo) al lado de la cifra en Fredoka; debajo, el nombre y la explicación corta y, si se toca, el chevron a la derecha de ese texto (no arriba). Íconos: Nuevos = brote, Dormidos = luna, Del catálogo = enlace, A mano = lápiz. Punto = tramo de la dona; ícono = atajo. Los cuadros con algo (> 0) se tocan y llevan chevron; los que están en 0 no se tocan, no llevan chevron y la cifra va en `texto-secundario`.
 4. Tocar una fila de la **leyenda** abre, dentro de la misma hoja (con Volver), la lista de esos clientes o productos. Tocar un **cuadro** cierra la hoja y deja la pantalla de atrás filtrada por ese grupo: si el filtro ya existe (Nuevos, Dormidos), se elige; si no existe (Del catálogo, A mano), aparece su pastilla al final de la fila, ya elegida, y se va en cuanto se elige otra.
-5. Después vienen las acciones de la hoja ("Tu próxima jugada" en Clientes, "Necesita tu atención" en Catálogo).
+5. Las acciones de la hoja: "Necesita tu atención" en Catálogo va después de los cuadros. En Clientes, la tarjeta "Tu próxima jugada" va **arriba de todo**, antes de la dona: lo primero que se ve es qué hacer hoy, y la dona explica el porqué.
 
 ## 8. Avisos y confirmaciones
 
@@ -190,6 +190,8 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 - **Tarjeta destacada:** `accion` (Verde Bosque) con texto `sobre-accion`, para la cifra principal de una pantalla (Ventas, Por cobrar). Máximo una por pantalla.
 - **Tarjeta de marca:** `marca-rosa` para el plan y novedades de la marca.
 - No se usan Mandarina ni Rosa como fondo de aviso (para eso está el aviso en línea con sus tonos).
+- **Tarjeta de jugada** (solo "Tu próxima jugada"): fondo de **malla viva**, con cuatro manchas de color de marca bien separadas (rosa `#f59bbb`, mandarina `resalte`, menta `#5fc79a`, sol `#ffb36b`), difuminadas, cada una moviéndose sin parar en su zona y nunca mezcladas en el mismo punto, que es lo que vuelve el color lodo. Lleva un velo crema a la izquierda para que el texto se lea y grano encima (ruido en `overlay`, nunca `multiply`, que ensucia). Al tocar o arrastrar, los colores se van hacia el dedo, cada uno a su ritmo, y vuelven al soltar; no hay ondas. Texto: "Tu próxima jugada" en Caveat (su momento de voz), el nombre de la jugada en Fredoka, una línea con quiénes y qué hacer (sin repetir los porcentajes de la dona) y el botón. A la derecha, el mazo de las cuatro cartas de jugadas.
+- **Vista previa de WhatsApp** (un solo componente en toda la app): una ventanita de chat que nunca se confunde con la app. Recuadro `superficie` con borde `borde-pastilla`, `radio-m` y sombra suave; arriba, una cabecera con el avatar y el nombre de quien la recibe ("Luisanna"; si aún no se sabe, el ícono de WhatsApp y "Tu proveedor" con "Eliges a quién al enviar"); debajo, el fondo de chat en un beige más oscuro que la app (`chat-fondo` #efe5d3) con el patrón de corazones, y la burbuja enviada en menta (`chat-burbuja` #cfeedd) con su piquito, la hora y ✓✓. Nunca el fondo crema de la app: sobre crema desaparece y sobre una tarjeta verde parece un hueco.
 
 ## 11. Etiquetas, contadores y avatares
 
@@ -208,6 +210,13 @@ Trazo de 2.2 px, puntas y uniones redondeadas, sin relleno, para que combinen co
 ## 13. Movimiento
 
 Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las hojas suben, los toasts entran desde abajo, la selección hace un pequeño "pop". Todo se apaga con "reducir movimiento" del teléfono. Nunca se anima para decorar algo que la persona está leyendo.
+
+**Excepción aprobada: Tu próxima jugada.** Es el único lugar con movimiento continuo, para que se sienta "inteligente" y llame la atención:
+- La malla de la tarjeta se mueve siempre y reacciona al dedo (ver Tarjeta de jugada).
+- Las cartas siguen un ciclo de 14 s: quietas en abanico, la carta de la jugada destacada se asoma y saluda, el mazo se recoge, se baraja con dos golpes y se vuelve a abrir con un rebote. El ciclo corre solo mientras la tarjeta se ve y se detiene después de que la persona la toca.
+- Al tocar la tarjeta, se agranda hasta llenar la hoja y las cuatro cartas vuelan a ser los cuatro cuadros de la galería (unos 950 ms).
+- Al elegir una jugada, un **barrido** con el degradado y el grano baja de arriba abajo (1300 ms) y descubre la página con un borde difuminado que va escondido debajo de la franja: nunca se ve un corte. La pantalla de atrás se desenfoca y se aleja un poco.
+- Con "reducir movimiento": la malla y las cartas quedan quietas y las transiciones son un cambio directo.
 
 ## 14. Modo oscuro
 
@@ -238,5 +247,6 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 2. Los componentes se construyen en React en `components/ui/` con los mismos nombres de este sistema (Boton, Pastilla, Opcion, Segmentos, Lista, Tarjeta, Aviso, Alerta, Hoja, Etiqueta, Campo, Avatar, Toast).
 3. Una página interna `/diseno` muestra todos los componentes reales con sus variantes: es la guía viva.
 4. Las pantallas se migran una por una.
+5. **Siempre con los componentes de `components/ui/`.** Antes de escribir una pieza nueva se busca la que ya existe (Boton, Opcion, GrupoOpciones, ListaAgrupada, FilaLista, CheckSeleccion, Campo, Cantidad, Tarjeta, Hoja, VistaPreviaWhatsApp…). Si no existe, se crea en `components/ui/` siguiendo esta guía (tokens, radios, alturas, estados, accesibilidad), se exporta en su `index.ts` y se agrega a `/diseno`. Nunca estilos sueltos ni piezas copiadas de un prototipo o de un tablero de diseño: esos muestran cómo se ve y cómo se mueve, no son código.
 
 Las vistas de los componentes en este sistema son representaciones estáticas de cómo deben verse; la fuente de verdad del código serán los componentes de `components/ui/`.

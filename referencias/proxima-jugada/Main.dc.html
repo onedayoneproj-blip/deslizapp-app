@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Malla viva</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{color:#174b3a;font-family:'Figtree',sans-serif}
+.hoja{position:relative;width:390px;background:#93a89c;overflow:hidden}
+.hoja-cuerpo{position:absolute;left:0;right:0;bottom:0;top:56px;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:#fff9ee;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between}
+.cab h2{margin:0;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:115%;font-size:28px}
+.cerrar{width:44px;height:44px;border:none;border-radius:999px;background:#f3ead9;color:#174b3a;display:flex;align-items:center;justify-content:center}
+.tj{position:relative;isolation:isolate;border-radius:24px;min-height:184px;overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+.tj-txt{position:relative;z-index:3;width:56%;padding:16px 0 16px 18px;display:flex;flex-direction:column;gap:4px}
+.tj-kicker{font-family:'Caveat',cursive;font-weight:700;font-size:22px;line-height:22px;color:#a8410f}
+.tj-titulo{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:110%;font-size:25px;line-height:27px}
+.tj-linea{font-size:14px;line-height:19px;font-weight:600;color:#36584a}
+.tj-btn{margin-top:8px;align-self:flex-start;height:40px;padding:0 16px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.baraja{position:absolute;z-index:3;right:10px;top:50%;width:150px;height:132px;margin-top:-62px}
+.carta{position:absolute;left:46px;top:26px;width:58px;height:80px;border:2.5px solid #fff9ee;border-radius:13px;overflow:hidden;box-shadow:0 8px 16px -6px rgba(23,75,58,.35);transform-origin:50% 100%}
+.carta img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.c0{background:#e3eee6;transform:translate(-38px,16px) rotate(-20deg)}
+.c1{background:#f9e1e9;transform:translate(-15px,-2px) rotate(-7deg)}
+.c2{background:#f2e5d3;transform:translate(13px,-2px) rotate(7deg)}
+.c3{background:#f8ded0;transform:translate(36px,16px) rotate(20deg)}
+.grano{position:absolute;inset:0;z-index:2;pointer-events:none;background:url('img/grano.svg') repeat;background-size:180px 180px;opacity:.32;mix-blend-mode:overlay}
+.nota{font-size:13px;line-height:18px;color:#4f6a5e}
+/* Las tres: un ciclo de 14 s — se asoma, se recoge, baraja y se vuelve a abrir */
+.m-tres .carta{animation:14s ease-in-out infinite}
+.m-tres .c0{animation-name:tres0}
+@keyframes tres0{0%,20%{transform:translate(-38px,16px) rotate(-20deg)}24%,27.5%{transform:translate(-46px,19px) rotate(-24deg)}31%,55%{transform:translate(-38px,16px) rotate(-20deg)}61%{transform:translate(-3px,4px) rotate(-3deg)}64%{transform:translate(-24px,2px) rotate(-8deg)}66.5%{transform:translate(-3px,4px) rotate(-3deg)}69%{transform:translate(24px,2px) rotate(8deg)}71.5%{transform:translate(-3px,4px) rotate(-3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-38px,16px) rotate(-20deg)}}
+.m-tres .c1{animation-name:tres1}
+@keyframes tres1{0%,20%{transform:translate(-15px,-2px) rotate(-7deg);z-index:0}21%{z-index:5}24%,27.5%{transform:translate(-11px,-24px) rotate(-2deg) scale(1.14);z-index:5}25.2%{transform:translate(-11px,-24px) rotate(-6deg) scale(1.14);z-index:5}26.4%{transform:translate(-11px,-24px) rotate(2deg) scale(1.14);z-index:5}30.5%{z-index:5}31%{z-index:0}31%,55%{transform:translate(-15px,-2px) rotate(-7deg)}61%{transform:translate(-1px,2px) rotate(-1deg)}64%{transform:translate(20px,-2px) rotate(6deg)}66.5%{transform:translate(-1px,2px) rotate(-1deg)}69%{transform:translate(-20px,-2px) rotate(-6deg)}71.5%{transform:translate(-1px,2px) rotate(-1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-15px,-2px) rotate(-7deg)}}
+.m-tres .c2{animation-name:tres2}
+@keyframes tres2{0%,20%{transform:translate(13px,-2px) rotate(7deg)}24%,27.5%{transform:translate(20px,1px) rotate(10deg)}31%,55%{transform:translate(13px,-2px) rotate(7deg)}61%{transform:translate(1px,0px) rotate(1deg)}64%{transform:translate(-20px,0px) rotate(-5deg)}66.5%{transform:translate(1px,0px) rotate(1deg)}69%{transform:translate(20px,0px) rotate(5deg)}71.5%{transform:translate(1px,0px) rotate(1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(13px,-2px) rotate(7deg)}}
+.m-tres .c3{animation-name:tres3}
+@keyframes tres3{0%,20%{transform:translate(36px,16px) rotate(20deg)}31%,55%{transform:translate(36px,16px) rotate(20deg)}61%{transform:translate(3px,-2px) rotate(3deg)}64%{transform:translate(24px,2px) rotate(8deg)}66.5%{transform:translate(3px,-2px) rotate(3deg)}69%{transform:translate(-24px,2px) rotate(-8deg)}71.5%{transform:translate(3px,-2px) rotate(3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(36px,16px) rotate(20deg)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.mallaB{background:#fff9ee}
+.mBw{position:absolute;z-index:0;will-change:transform}
+.mB{display:block;border-radius:999px;filter:blur(24px);opacity:.92;will-change:transform}
+.w-rosa{right:-40px;top:-60px;transition:transform 700ms cubic-bezier(.2,.8,.2,1)}
+.w-mand{right:50px;bottom:-80px;transition:transform 950ms cubic-bezier(.2,.8,.2,1)}
+.w-menta{left:-70px;bottom:-90px;transition:transform 1200ms cubic-bezier(.2,.8,.2,1)}
+.w-sol{left:40%;top:-70px;transition:transform 1100ms cubic-bezier(.2,.8,.2,1)}
+.mB-rosa{width:190px;height:170px;background:#f59bbb;animation:mB-a 6s ease-in-out infinite}
+.mB-mand{width:170px;height:150px;background:#ff834f;animation:mB-b 7s ease-in-out infinite}
+.mB-menta{width:190px;height:170px;background:#5fc79a;animation:mB-c 8s ease-in-out infinite}
+.mB-sol{width:130px;height:120px;background:#ffb36b;opacity:.75;animation:mB-d 9s ease-in-out infinite}
+.mB-velo{position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(255,249,238,.78) 0%,rgba(255,249,238,.45) 50%,rgba(255,249,238,0) 70%);transition:opacity .6s ease}
+.tocando .mB{filter:blur(20px) saturate(1.25)}
+.tocando .mB-velo{opacity:.82}
+@keyframes mB-a{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-70px,40px) scale(1.2,.9)}66%{transform:translate(-20px,70px) scale(.9,1.15)}}
+@keyframes mB-b{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(70px,-50px) scale(.9,1.2)}66%{transform:translate(-60px,-30px) scale(1.15,.95)}}
+@keyframes mB-c{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(90px,-40px) scale(1.2,.95)}66%{transform:translate(40px,-80px) scale(.95,1.1)}}
+@keyframes mB-d{0%,100%{transform:translate(0,0)}50%{transform:translate(-90px,80px)}}
+</style>
+</helmet>
+<div class="raiz hoja" style="height: 560px;"><div class="hoja-cuerpo"><div class="agarre"><span></span></div><div class="cab"><h2>Tus clientes</h2><span class="cerrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></span></div><div class="tj mallaB {{estado}}" onPointerMove="{{mover}}" onPointerDown="{{bajar}}" onPointerUp="{{soltar}}" onPointerLeave="{{soltar}}" style="margin-top: 18px;"><span class="mBw w-rosa" style="transform: {{tR}};"><span class="mB mB-rosa"></span></span><span class="mBw w-sol" style="transform: {{tS}};"><span class="mB mB-sol"></span></span><span class="mBw w-mand" style="transform: {{tM}};"><span class="mB mB-mand"></span></span><span class="mBw w-menta" style="transform: {{tV}};"><span class="mB mB-menta"></span></span><span class="mB-velo"></span><span class="grano"></span><div class="tj-txt"><span class="tj-kicker">Tu próxima jugada</span><span class="tj-titulo">Segundo aaah</span><span class="tj-linea">4 clientes compraron una vez. Invítalos a volver.</span><span class="tj-btn">Ver tus jugadas<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></div><div class="baraja m-tres" aria-hidden="true"><span class="carta c0"><img src="img/volver-a-saludar.webp" alt=""></span><span class="carta c1"><img src="img/segundo-aaah.webp" alt=""></span><span class="carta c2"><img src="img/gracias-por-volver.webp" alt=""></span><span class="carta c3"><img src="img/primer-hola.webp" alt=""></span></div></div>
+<span class="nota">La luz se mueve sola todo el tiempo. Toca y arrastra: los colores se van hacia tu dedo, cada uno a su ritmo, y vuelven a su lugar al soltar.</span></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 560}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { x: 0, y: 0, on: false }; }
+  renderVals() {
+    var self = this, s = this.state;
+    var pos = function (e) { var r = e.currentTarget.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    var C = { R: [290, 25], S: [205, 0], M: [210, 175], V: [25, 170] }, k = { R: .55, S: .4, M: .5, V: .35 };
+    var t = function (id) { if (!s.on) return 'translate(0px,0px) scale(1)'; var c = C[id]; return 'translate(' + ((s.x - c[0]) * k[id]).toFixed(1) + 'px,' + ((s.y - c[1]) * k[id]).toFixed(1) + 'px) scale(1.12)'; };
+    return {
+      estado: s.on ? 'tocando' : '', tR: t('R'), tS: t('S'), tM: t('M'), tV: t('V'),
+      mover: function (e) { if (!self.state.on && e.pointerType !== 'mouse') return; var p = pos(e); self.setState({ x: p.x, y: p.y, on: true }); },
+      bajar: function (e) { var p = pos(e); self.setState({ x: p.x, y: p.y, on: true }); },
+      soltar: function () { self.setState({ on: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

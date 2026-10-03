@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Barrido mágico</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{color:#174b3a;font-family:'Figtree',sans-serif}
+.hoja{position:relative;width:390px;background:#93a89c;overflow:hidden}
+.hoja-cuerpo{position:absolute;left:0;right:0;bottom:0;top:56px;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:#fff9ee;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between}
+.cab h2{margin:0;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:115%;font-size:28px}
+.cerrar{width:44px;height:44px;border:none;border-radius:999px;background:#f3ead9;color:#174b3a;display:flex;align-items:center;justify-content:center}
+.tj{position:relative;isolation:isolate;border-radius:24px;min-height:184px;overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+.tj-txt{position:relative;z-index:3;width:56%;padding:16px 0 16px 18px;display:flex;flex-direction:column;gap:4px}
+.tj-kicker{font-family:'Caveat',cursive;font-weight:700;font-size:22px;line-height:22px;color:#a8410f}
+.tj-titulo{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:110%;font-size:25px;line-height:27px}
+.tj-linea{font-size:14px;line-height:19px;font-weight:600;color:#36584a}
+.tj-btn{margin-top:8px;align-self:flex-start;height:40px;padding:0 16px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.baraja{position:absolute;z-index:3;right:10px;top:50%;width:150px;height:132px;margin-top:-62px}
+.carta{position:absolute;left:46px;top:26px;width:58px;height:80px;border:2.5px solid #fff9ee;border-radius:13px;overflow:hidden;box-shadow:0 8px 16px -6px rgba(23,75,58,.35);transform-origin:50% 100%}
+.carta img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.c0{background:#e3eee6;transform:translate(-38px,16px) rotate(-20deg)}
+.c1{background:#f9e1e9;transform:translate(-15px,-2px) rotate(-7deg)}
+.c2{background:#f2e5d3;transform:translate(13px,-2px) rotate(7deg)}
+.c3{background:#f8ded0;transform:translate(36px,16px) rotate(20deg)}
+.grano{position:absolute;inset:0;z-index:2;pointer-events:none;background:url('img/grano.svg') repeat;background-size:180px 180px;opacity:.32;mix-blend-mode:overlay}
+.nota{font-size:13px;line-height:18px;color:#4f6a5e}
+/* Las tres: un ciclo de 14 s — se asoma, se recoge, baraja y se vuelve a abrir */
+.m-tres .carta{animation:14s ease-in-out infinite}
+.m-tres .c0{animation-name:tres0}
+@keyframes tres0{0%,20%{transform:translate(-38px,16px) rotate(-20deg)}24%,27.5%{transform:translate(-46px,19px) rotate(-24deg)}31%,55%{transform:translate(-38px,16px) rotate(-20deg)}61%{transform:translate(-3px,4px) rotate(-3deg)}64%{transform:translate(-24px,2px) rotate(-8deg)}66.5%{transform:translate(-3px,4px) rotate(-3deg)}69%{transform:translate(24px,2px) rotate(8deg)}71.5%{transform:translate(-3px,4px) rotate(-3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-38px,16px) rotate(-20deg)}}
+.m-tres .c1{animation-name:tres1}
+@keyframes tres1{0%,20%{transform:translate(-15px,-2px) rotate(-7deg);z-index:0}21%{z-index:5}24%,27.5%{transform:translate(-11px,-24px) rotate(-2deg) scale(1.14);z-index:5}25.2%{transform:translate(-11px,-24px) rotate(-6deg) scale(1.14);z-index:5}26.4%{transform:translate(-11px,-24px) rotate(2deg) scale(1.14);z-index:5}30.5%{z-index:5}31%{z-index:0}31%,55%{transform:translate(-15px,-2px) rotate(-7deg)}61%{transform:translate(-1px,2px) rotate(-1deg)}64%{transform:translate(20px,-2px) rotate(6deg)}66.5%{transform:translate(-1px,2px) rotate(-1deg)}69%{transform:translate(-20px,-2px) rotate(-6deg)}71.5%{transform:translate(-1px,2px) rotate(-1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-15px,-2px) rotate(-7deg)}}
+.m-tres .c2{animation-name:tres2}
+@keyframes tres2{0%,20%{transform:translate(13px,-2px) rotate(7deg)}24%,27.5%{transform:translate(20px,1px) rotate(10deg)}31%,55%{transform:translate(13px,-2px) rotate(7deg)}61%{transform:translate(1px,0px) rotate(1deg)}64%{transform:translate(-20px,0px) rotate(-5deg)}66.5%{transform:translate(1px,0px) rotate(1deg)}69%{transform:translate(20px,0px) rotate(5deg)}71.5%{transform:translate(1px,0px) rotate(1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(13px,-2px) rotate(7deg)}}
+.m-tres .c3{animation-name:tres3}
+@keyframes tres3{0%,20%{transform:translate(36px,16px) rotate(20deg)}31%,55%{transform:translate(36px,16px) rotate(20deg)}61%{transform:translate(3px,-2px) rotate(3deg)}64%{transform:translate(24px,2px) rotate(8deg)}66.5%{transform:translate(3px,-2px) rotate(3deg)}69%{transform:translate(-24px,2px) rotate(-8deg)}71.5%{transform:translate(3px,-2px) rotate(3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(36px,16px) rotate(20deg)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.esc{position:relative;width:390px;height:844px;background:#93a89c;overflow:hidden}
+.pag{position:absolute;inset:56px 0 0;border-radius:28px 28px 0 0;background:#fff9ee;padding:10px 20px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.volver{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800}
+.volver span.b{width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center}
+.h2{margin:0;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:115%;font-size:28px}
+.tile{position:relative;height:214px;border:none;border-radius:22px;padding:12px;text-align:left;color:#174b3a;font-family:'Figtree',sans-serif;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.tile img{position:absolute;left:50%;top:12px;width:120px;transform:translateX(-50%)}
+.tile .cnt{align-self:flex-end;position:relative;padding:4px 10px;border-radius:999px;background:rgba(255,249,238,.9);font-size:12px;font-weight:800}
+.tile b{position:relative;margin-top:auto;font-family:'Fredoka',sans-serif;font-size:19px;line-height:21px}
+.det{z-index:5}
+.galeria{background:transparent!important;transition:opacity 900ms ease,filter 900ms ease,transform 1300ms cubic-bezier(.65,0,.35,1);transform-origin:50% 0}
+.det{-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 40%,transparent 45.3%);mask-image:linear-gradient(180deg,#000 0%,#000 40%,transparent 45.3%);-webkit-mask-size:100% 300%;mask-size:100% 300%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.det-in{display:flex;flex-direction:column;gap:14px}
+.banda-clip{position:absolute;inset:56px 0 0;overflow:hidden;border-radius:28px 28px 0 0;z-index:9;pointer-events:none}
+.banda{position:absolute;left:-40px;right:-40px;top:0;height:300px}
+.banda i{position:absolute;inset:0;filter:blur(16px);background:linear-gradient(180deg,rgba(255,249,238,0) 0%,rgba(95,199,154,.85) 24%,rgba(255,179,107,.9) 42%,rgba(255,131,79,.9) 56%,rgba(245,155,187,.9) 74%,rgba(255,249,238,0) 100%)}
+.banda u{position:absolute;inset:0;filter:blur(10px);background:radial-gradient(30% 22% at 22% 52%,rgba(255,249,238,.9),transparent 70%),radial-gradient(26% 20% at 72% 46%,rgba(255,249,238,.75),transparent 70%)}
+.banda b{position:absolute;inset:0;background:url('img/grano.svg') repeat;background-size:180px 180px;opacity:.35;mix-blend-mode:overlay;-webkit-mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent)}
+.chispa{position:absolute;width:14px;height:14px;color:#fff9ee;animation:titila 900ms ease-in-out infinite}
+@keyframes titila{0%,100%{transform:scale(.5) rotate(0deg);opacity:.5}50%{transform:scale(1.15) rotate(45deg);opacity:1}}
+.resplandor{position:absolute;inset:56px 0 auto;height:260px;z-index:6;pointer-events:none;border-radius:28px 28px 0 0;background:radial-gradient(70% 60% at 85% 0%,rgba(245,155,187,.45),transparent 70%),radial-gradient(60% 60% at 10% 0%,rgba(95,199,154,.35),transparent 70%),radial-gradient(50% 50% at 50% 0%,rgba(255,179,107,.35),transparent 70%)}
+.heroJ{position:relative;min-height:160px;border-radius:22px;padding:16px;overflow:hidden}
+.heroJ img{position:absolute;right:-6px;top:0;width:150px}
+.filaC{display:flex;align-items:center;gap:12px;min-height:64px;padding:0 14px;border-top:1px solid #efe4d2}
+.av{width:44px;height:44px;border-radius:999px;background:#f5c9d6;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:700;flex:none}
+.esc-btn{height:36px;padding:0 14px;border-radius:999px;border:1.5px solid #174b3a;font-size:14px;font-weight:800;display:flex;align-items:center}
+</style>
+</helmet>
+<div class="raiz esc">
+<div class="pag"></div>
+<div class="pag galeria" style="opacity: {{galO}}; filter: {{galF}}; transform: {{galT}};">
+<div style="display: flex; justify-content: center;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+<div class="volver"><span class="b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></span>Tus clientes</div>
+<h2 class="h2">Tu próxima jugada</h2>
+<span style="font-size: 15px; color: #36584a; margin-top: -6px;">Toca una jugada.</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;"><button type="button" class="tile" style="background: #e3eee6;" onClick="{{t0}}"><img src="img/volver-a-saludar.webp" alt=""><span class="cnt">1 cliente</span><b>Volver a saludar</b></button><button type="button" class="tile" style="background: #f9e1e9;" onClick="{{t1}}"><img src="img/segundo-aaah.webp" alt=""><span class="cnt">4 clientes</span><b>Segundo aaah</b></button><button type="button" class="tile" style="background: #f2e5d3;" onClick="{{t2}}"><img src="img/gracias-por-volver.webp" alt=""><span class="cnt">1 cliente</span><b>Gracias por volver</b></button><button type="button" class="tile" style="background: #f8ded0;" onClick="{{t3}}"><img src="img/primer-hola.webp" alt=""><span class="cnt">1 cliente</span><b>El primer hola</b></button></div>
+</div>
+<div class="pag det" style="-webkit-mask-position: {{mP}}; mask-position: {{mP}}; transition: {{mT}};"><div class="det-in" style="transform: {{inT}}; transition: {{inTr}};">
+<div style="display: flex; justify-content: center;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+<button type="button" class="volver" onClick="{{volver}}" style="border: none; background: transparent; padding: 0; color: #174b3a; font-family: 'Figtree', sans-serif; cursor: pointer;"><span class="b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></span>Todas las jugadas</button>
+<h2 class="h2">{{nombre}}</h2>
+<div class="heroJ" style="background: {{fondo}};"><img src="{{img}}" alt=""><div style="position: relative; max-width: 60%;"><b style="font-family: 'Fredoka', sans-serif; font-size: 34px;">80 %</b><p style="margin: 6px 0 0; font-size: 15px; font-weight: 700;">de tus clientes hizo una sola compra.</p></div></div>
+<p style="margin: 2px 0; font-size: 15px;"><b>Un saludo cercano abre la puerta.</b> Puede ser su segunda compra.</p>
+<span style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 20px;">Empieza con estos 4</span>
+<div style="background: #fff; border: 1px solid #efe4d2; border-radius: 22px; overflow: hidden;"><div class="filaC" style="border-top: none;"><span class="av">L</span><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Luisanna</b><span style="font-size: 14px; color: #4f6a5e;">Compró hace 12 días</span></span><span class="esc-btn">Escribir</span></div><div class="filaC"><span class="av">M</span><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Mariela</b><span style="font-size: 14px; color: #4f6a5e;">Compró hace 20 días</span></span><span class="esc-btn">Escribir</span></div><div class="filaC"><span class="av">Y</span><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Yokasta</b><span style="font-size: 14px; color: #4f6a5e;">Compró hace 33 días</span></span><span class="esc-btn">Escribir</span></div><div class="filaC"><span class="av">A</span><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Ana</b><span style="font-size: 14px; color: #4f6a5e;">Compró hace 41 días</span></span><span class="esc-btn">Escribir</span></div></div>
+</div></div>
+<div class="resplandor" style="opacity: {{glow}}; transition: {{glowT}};"></div>
+<div class="banda-clip"><div class="banda" style="transform: {{bT}}; transition: {{bTr}}; opacity: {{bO}};"><i></i><u></u><b></b><svg class="chispa" style="left: 18%; top: 150px; animation-delay: 0ms;" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z"></path></svg><svg class="chispa" style="left: 46%; top: 120px; animation-delay: 220ms;" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z"></path></svg><svg class="chispa" style="left: 70%; top: 165px; animation-delay: 420ms;" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z"></path></svg><svg class="chispa" style="left: 86%; top: 128px; animation-delay: 140ms;" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z"></path></svg><svg class="chispa" style="left: 32%; top: 182px; animation-delay: 600ms;" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3c.6 4.6 1.9 6.9 4.4 7.9.8.3.8 1.5 0 1.8-2.5 1-3.8 3.3-4.4 7.9-.6-4.6-1.9-6.9-4.4-7.9-.8-.3-.8-1.5 0-1.8C10.1 9.9 11.4 7.6 12 3z"></path></svg></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { f: 0, sel: 1 }; this.t = []; }
+  componentWillUnmount() { this.t.forEach(clearTimeout); }
+  renderVals() {
+    var self = this, f = this.state.f, sel = this.state.sel;
+    var N = ["Volver a saludar", "Segundo aaah", "Gracias por volver", "El primer hola"], F = ["#e3eee6", "#f9e1e9", "#f2e5d3", "#f8ded0"], I = ["volver-a-saludar", "segundo-aaah", "gracias-por-volver", "primer-hola"];
+    var D = 1300, E = 'cubic-bezier(.65,0,.35,1)';
+    var ir = function (i) { return function () { self.t.forEach(clearTimeout); self.t = []; self.setState({ f: 1, sel: i }); self.t.push(setTimeout(function () { self.setState({ f: 2 }); }, D + 50)); }; };
+    var on = f > 0;
+    return {
+      t0: ir(0), t1: ir(1), t2: ir(2), t3: ir(3),
+      nombre: N[sel], fondo: F[sel], img: 'img/' + I[sel] + '.webp',
+      mP: on ? '0 0%' : '0 100%', mT: on ? '-webkit-mask-position ' + D + 'ms ' + E + ', mask-position ' + D + 'ms ' + E : 'none',
+      inT: on ? 'translateY(0px)' : 'translateY(28px)', inTr: on ? 'transform ' + D + 'ms ' + E : 'none',
+      bT: on ? 'translateY(859px)' : 'translateY(-717px)', bTr: on ? 'transform ' + D + 'ms ' + E : 'none', bO: f === 1 ? '1' : '0',
+      galO: on ? '.45' : '1', galF: on ? 'blur(4px)' : 'none', galT: on ? 'scale(.97)' : 'scale(1)',
+      glow: on ? '1' : '0', glowT: on ? 'opacity 900ms ease 250ms' : 'none',
+      volver: function () { self.t.forEach(clearTimeout); self.t = []; self.setState({ f: 0 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

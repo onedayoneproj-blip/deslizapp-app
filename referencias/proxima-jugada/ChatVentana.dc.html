@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ventana de chat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{color:#174b3a;font-family:'Figtree',sans-serif}
+.hoja{position:relative;width:390px;background:#93a89c;overflow:hidden}
+.hoja-cuerpo{position:absolute;left:0;right:0;bottom:0;top:56px;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:#fff9ee;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between}
+.cab h2{margin:0;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:115%;font-size:28px}
+.cerrar{width:44px;height:44px;border:none;border-radius:999px;background:#f3ead9;color:#174b3a;display:flex;align-items:center;justify-content:center}
+.tj{position:relative;isolation:isolate;border-radius:24px;min-height:184px;overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+.tj-txt{position:relative;z-index:3;width:56%;padding:16px 0 16px 18px;display:flex;flex-direction:column;gap:4px}
+.tj-kicker{font-family:'Caveat',cursive;font-weight:700;font-size:22px;line-height:22px;color:#a8410f}
+.tj-titulo{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:110%;font-size:25px;line-height:27px}
+.tj-linea{font-size:14px;line-height:19px;font-weight:600;color:#36584a}
+.tj-btn{margin-top:8px;align-self:flex-start;height:40px;padding:0 16px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.baraja{position:absolute;z-index:3;right:10px;top:50%;width:150px;height:132px;margin-top:-62px}
+.carta{position:absolute;left:46px;top:26px;width:58px;height:80px;border:2.5px solid #fff9ee;border-radius:13px;overflow:hidden;box-shadow:0 8px 16px -6px rgba(23,75,58,.35);transform-origin:50% 100%}
+.carta img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.c0{background:#e3eee6;transform:translate(-38px,16px) rotate(-20deg)}
+.c1{background:#f9e1e9;transform:translate(-15px,-2px) rotate(-7deg)}
+.c2{background:#f2e5d3;transform:translate(13px,-2px) rotate(7deg)}
+.c3{background:#f8ded0;transform:translate(36px,16px) rotate(20deg)}
+.grano{position:absolute;inset:0;z-index:2;pointer-events:none;background:url('img/grano.svg') repeat;background-size:180px 180px;opacity:.32;mix-blend-mode:overlay}
+.nota{font-size:13px;line-height:18px;color:#4f6a5e}
+/* Las tres: un ciclo de 14 s — se asoma, se recoge, baraja y se vuelve a abrir */
+.m-tres .carta{animation:14s ease-in-out infinite}
+.m-tres .c0{animation-name:tres0}
+@keyframes tres0{0%,20%{transform:translate(-38px,16px) rotate(-20deg)}24%,27.5%{transform:translate(-46px,19px) rotate(-24deg)}31%,55%{transform:translate(-38px,16px) rotate(-20deg)}61%{transform:translate(-3px,4px) rotate(-3deg)}64%{transform:translate(-24px,2px) rotate(-8deg)}66.5%{transform:translate(-3px,4px) rotate(-3deg)}69%{transform:translate(24px,2px) rotate(8deg)}71.5%{transform:translate(-3px,4px) rotate(-3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-38px,16px) rotate(-20deg)}}
+.m-tres .c1{animation-name:tres1}
+@keyframes tres1{0%,20%{transform:translate(-15px,-2px) rotate(-7deg);z-index:0}21%{z-index:5}24%,27.5%{transform:translate(-11px,-24px) rotate(-2deg) scale(1.14);z-index:5}25.2%{transform:translate(-11px,-24px) rotate(-6deg) scale(1.14);z-index:5}26.4%{transform:translate(-11px,-24px) rotate(2deg) scale(1.14);z-index:5}30.5%{z-index:5}31%{z-index:0}31%,55%{transform:translate(-15px,-2px) rotate(-7deg)}61%{transform:translate(-1px,2px) rotate(-1deg)}64%{transform:translate(20px,-2px) rotate(6deg)}66.5%{transform:translate(-1px,2px) rotate(-1deg)}69%{transform:translate(-20px,-2px) rotate(-6deg)}71.5%{transform:translate(-1px,2px) rotate(-1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-15px,-2px) rotate(-7deg)}}
+.m-tres .c2{animation-name:tres2}
+@keyframes tres2{0%,20%{transform:translate(13px,-2px) rotate(7deg)}24%,27.5%{transform:translate(20px,1px) rotate(10deg)}31%,55%{transform:translate(13px,-2px) rotate(7deg)}61%{transform:translate(1px,0px) rotate(1deg)}64%{transform:translate(-20px,0px) rotate(-5deg)}66.5%{transform:translate(1px,0px) rotate(1deg)}69%{transform:translate(20px,0px) rotate(5deg)}71.5%{transform:translate(1px,0px) rotate(1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(13px,-2px) rotate(7deg)}}
+.m-tres .c3{animation-name:tres3}
+@keyframes tres3{0%,20%{transform:translate(36px,16px) rotate(20deg)}31%,55%{transform:translate(36px,16px) rotate(20deg)}61%{transform:translate(3px,-2px) rotate(3deg)}64%{transform:translate(24px,2px) rotate(8deg)}66.5%{transform:translate(3px,-2px) rotate(3deg)}69%{transform:translate(-24px,2px) rotate(-8deg)}71.5%{transform:translate(3px,-2px) rotate(3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(36px,16px) rotate(20deg)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.ctx{display:flex;flex-direction:column;gap:12px}
+.cardV{background:#dcebe2;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.lab{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:800}
+.sel{white-space:nowrap;flex:none;height:40px;padding:0 14px;border-radius:999px;background:#fff;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800}
+.btnP{height:52px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:800}
+.opc{display:flex;gap:8px}.opc>span{height:44px;padding:0 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800}
+.burb{position:relative;margin-left:auto;width:fit-content;max-width:84%;border-radius:14px 4px 14px 14px;padding:8px 10px 20px;font-size:15px;line-height:21px;white-space:pre-line}
+.burb .hora{position:absolute;right:8px;bottom:4px;font-size:11px;opacity:.7}
+.burb:after{content:'';position:absolute;right:-7px;top:0;border-left:8px solid var(--b);border-bottom:10px solid transparent}
+.etq{font-size:13px;font-weight:700;color:#4f6a5e;display:flex;align-items:center;gap:6px}
+</style>
+</helmet>
+<div class="raiz" style="width: 390px; height: 880px; padding: 20px; background: #fff9ee; display: flex; flex-direction: column; gap: 22px;">
+<div class="cardV"><div class="lab">Así le llega el recordatorio<span class="sel">Con cariño<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></div><figure style="margin: 0; border-radius: 18px; overflow: hidden; background: #ffffff; border: 1px solid #e7dcc8; box-shadow: 0 6px 16px -10px rgba(16,54,42,.35);"><div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #efe4d2;"><span style="width: 34px; height: 34px; border-radius: 999px; background: #f5c9d6; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 15px; flex: none;">L</span><span style="display: flex; flex-direction: column; line-height: 17px;"><b style="font-size: 15px;">Luisanna</b><span style="font-size: 12px; color: #4f6a5e;">WhatsApp</span></span></div><div style="padding: 12px; background: #efe5d3 url('img/patron-medio.svg'); background-size: 120px;"><div class="burb" style="--b: #cfeedd; background: #cfeedd; color: #174b3a;">¡Hola, Luisanna! Te escribe Lewis, de Esencias Michel. Te recuerdo con cariño que quedó pendiente RD$2,425. Cuando puedas me avisas. ¡Gracias!<span class="hora">3:15 p. m. ✓✓</span></div></div></figure><div class="btnP"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5l1.2-3.8A8 8 0 1 1 8.6 18.6z"></path><path d="M9.2 8.8c.3 2.4 2.4 4.9 5.6 6l1-1.4-1.9-1-.9.8c-1-.5-1.9-1.4-2.4-2.4l.8-.9-1-1.9z"></path></svg>Recordarle por WhatsApp</div></div>
+<div class="ctx"><span style="font-size: 19px; font-weight: 800;">¿Ya tienes la mercancía en tus manos?</span><div class="opc"><span style="background: #dcebe2;"><span style="width: 22px; height: 22px; border-radius: 999px; background: #174b3a; color: #fff9ee; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>Todavía viene</span><span style="border: 1.5px solid #e7dcc8; background: #fff;">¡Ya la tengo!</span></div><figure style="margin: 0; border-radius: 18px; overflow: hidden; background: #ffffff; border: 1px solid #e7dcc8; box-shadow: 0 6px 16px -10px rgba(16,54,42,.35);"><div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #efe4d2;"><span style="width: 34px; height: 34px; border-radius: 999px; background: #f3ead9; display: flex; align-items: center; justify-content: center; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5l1.2-3.8A8 8 0 1 1 8.6 18.6z"></path><path d="M9.2 8.8c.3 2.4 2.4 4.9 5.6 6l1-1.4-1.9-1-.9.8c-1-.5-1.9-1.4-2.4-2.4l.8-.9-1-1.9z"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 17px;"><b style="font-size: 15px;">Tu proveedor</b><span style="font-size: 12px; color: #4f6a5e;">Eliges a quién al enviar</span></span></div><div style="padding: 12px; background: #efe5d3 url('img/patron-medio.svg'); background-size: 120px;"><div class="burb" style="--b: #cfeedd; background: #cfeedd; color: #174b3a;">¡Hola! Para reponer:
+• 1 Orientica Pistache Absolu
+• 1 Lattafa Asad Bourbon
+• 1 Oxana Black
+¿Me confirmas precio y cuándo llegan?<span class="hora">3:15 p. m. ✓✓</span></div></div></figure><div class="btnP"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4"></path><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12"></path></svg>Enviar lista</div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 880}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
