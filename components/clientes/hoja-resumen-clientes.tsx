@@ -6,22 +6,24 @@ import { useEffect, useRef, useState } from "react";
 import { Hoja, useIrArribaHoja } from "../hoja";
 import { Avatar, Boton, FilaLista, ListaAgrupada } from "../ui";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { ContenidoResumenClientes } from "./contenido-resumen-clientes";
+import { ContenidoResumenClientes, NOMBRE_GRUPO_CLIENTES } from "./contenido-resumen-clientes";
+import { FilaCliente } from "./fila-cliente";
 import { BotonVolver } from "../selector-busqueda";
 import { menosMovimiento } from "@/lib/movimiento";
 import { LuzJugada, TransicionJugada, type OrigenLuz } from "./luz-jugada";
 import { HojaBorradoresJugada } from "./hoja-borradores-jugada";
 import { calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
-import type { ClienteAnalizado, FiltroClientes, ResumenClientes } from "@/lib/clientes-resumen";
+import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import type { ClienteConResumen, Pedido } from "@/lib/types";
 export { SEGMENTOS_CLIENTES } from "./contenido-resumen-clientes";
 
-type Vista = "resumen" | "galeria" | IdJugada;
+type Vista = "resumen" | "galeria" | IdJugada | `grupo:${GrupoClientes}`;
+const esGrupo = (v: Vista): v is `grupo:${GrupoClientes}` => v.startsWith("grupo:");
 
-export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tienda, vendedora, urlCatalogo, ahora, alCerrar, alFiltrar }: {
+export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tienda, vendedora, urlCatalogo, ahora, alCerrar }: {
   resumen: ResumenClientes; clientes: ClienteConResumen[]; pedidos: Pedido[]; tiendaId: string;
   tienda: string; vendedora: string; urlCatalogo: string | null; ahora: number;
-  alCerrar: () => void; alFiltrar: (filtro: FiltroClientes) => void;
+  alCerrar: () => void;
 }) {
   const router = useRouter();
   const [vista, setVista] = useState<Vista>("resumen");
@@ -75,34 +77,34 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     } else router.push(destino, { scroll: false });
     alCerrar();
   };
-  const elegir = (f: FiltroClientes) => { cerrar(); alFiltrar(f); };
-  const titulo = vista === "resumen" ? "Tus clientes" : vista === "galeria" ? "Tu próxima jugada" : seleccionada?.nombre ?? "Tu próxima jugada";
+  const titulo = vista === "resumen" ? "Tus clientes" : vista === "galeria" ? "Tu próxima jugada" : esGrupo(vista) ? `${NOMBRE_GRUPO_CLIENTES[vista.slice(6) as GrupoClientes]}\u00a0·\u00a0${resumen.cuentas[vista.slice(6) as GrupoClientes]}` : seleccionada?.nombre ?? "Tu próxima jugada";
 
   return <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande"
-    decoracionAbajo={vista !== "resumen" ? <LuzJugada pulso={pulso} /> : undefined}
+    decoracionAbajo={vista !== "resumen" && !esGrupo(vista) ? <LuzJugada pulso={pulso} /> : undefined}
     decoracionEncima={transicion ? <TransicionJugada key={transicion.id} tipo={transicion.tipo} origen={transicion.origen} alTerminar={() => setTransicion(null)} /> : undefined}
     fijoArriba={vista !== "resumen" ? <div className="flex items-center gap-2 text-secundario font-extrabold text-texto">
-      <BotonVolver onClick={volver} etiqueta={`Volver a ${vista === "galeria" ? "Tus clientes" : "Tu próxima jugada"}`} />
-      <span aria-hidden="true">{vista === "galeria" ? "Tus clientes" : "Todas las jugadas"}</span>
+      <BotonVolver onClick={volver} etiqueta={`Volver a ${vista === "galeria" || esGrupo(vista) ? "Tus clientes" : "Tu próxima jugada"}`} />
+      <span aria-hidden="true">{vista === "galeria" || esGrupo(vista) ? "Tus clientes" : "Todas las jugadas"}</span>
     </div> : undefined}>
     <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total}
       seleccionada={seleccionada} ahora={ahora}
-      tiendaId={tiendaId} navegar={navegar} elegir={elegir} irADatos={irADatos} alPulsar={() => setPulso((n) => n + 1)} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
+      tiendaId={tiendaId} navegar={navegar} irADatos={irADatos} alPulsar={() => setPulso((n) => n + 1)} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
     {borrador && <HojaBorradoresJugada key={`${borrador.id}:${borrador.cliente.id}`} id={borrador.id} nombreJugada={borrador.nombre}
       cliente={borrador.cliente.nombre} telefono={borrador.cliente.telefono!} vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo}
       alCerrar={() => setBorrador(null)} />}
   </Hoja>;
 }
 
-function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tiendaId, navegar, elegir, irADatos, alEscribir, alPulsar }: {
+function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tiendaId, navegar, irADatos, alEscribir, alPulsar }: {
   vista: Vista; resumen: ResumenClientes; jugadas: Jugada[]; destacada: Jugada | null; total: number;
   seleccionada?: Jugada; ahora: number;
-  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; alPulsar: () => void; elegir: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
+  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; alPulsar: () => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
 }) {
   const irArriba = useIrArribaHoja();
   useEffect(() => { irArriba(); }, [vista, irArriba]);
   const paginadas = useVerMas(seleccionada?.clientes ?? [], `${tiendaId}:${vista}`, 5);
-  if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alFiltrar={elegir} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
+  if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alAbrirGrupo={(g) => navegar(`grupo:${g}`)} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
+  if (esGrupo(vista)) return <VistaGrupoClientes grupo={vista.slice(6) as GrupoClientes} resumen={resumen} ahora={ahora} tiendaId={tiendaId} irADatos={irADatos} />;
   return <div className="relative min-h-full pb-6">
     {vista === "galeria" ? <>
       <p className="mb-4 text-secundario text-texto-secundario">Cuatro maneras de acercarte a tu gente. Los números salen de tus pedidos.</p>
@@ -147,4 +149,16 @@ function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, alPulsar, pagi
     </ListaAgrupada>
     <p className="mt-4 text-etiqueta text-texto-secundario">La cifra incluye a todos los clientes elegibles, incluso si no tienen WhatsApp. Ningún mensaje se envía solo.</p>
   </>;
+}
+
+/** Vista interna de un grupo del resumen: sus clientes (el mismo FilaCliente de la lista) en tramos de 30; tocar uno abre su ficha. */
+function VistaGrupoClientes({ grupo, resumen, ahora, tiendaId, irADatos }: { grupo: GrupoClientes; resumen: ResumenClientes; ahora: number; tiendaId: string; irADatos: (clienteId: string) => void }) {
+  const lista = resumen.lista.filter((c) => cumpleFiltroCliente(c, grupo)).sort((a, b) => ordenarClientes(a, b, grupo === "repiten" || grupo === "nuevos" || grupo === "dormidos" ? grupo : "todos"));
+  const paginada = useVerMas(lista, `${tiendaId}:grupo:${grupo}`);
+  return <div className="pb-6">
+    <ListaAgrupada etiqueta={NOMBRE_GRUPO_CLIENTES[grupo]}>
+      {paginada.visibles.map((c) => <FilaCliente key={c.id} cliente={c} ahora={ahora} senalRepite={grupo !== "repiten"} alAbrir={() => irADatos(c.id)} />)}
+      <BotonVerMas forma="fila" quedan={paginada.quedan} mostrados={paginada.mostrados} total={lista.length} alTocar={paginada.verMas} />
+    </ListaAgrupada>
+  </div>;
 }

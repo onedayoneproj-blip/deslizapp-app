@@ -1,15 +1,11 @@
 "use client";
 
 import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
-import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
-import { resaltar } from "@/lib/texto";
-import { mensajeRecordatorio, textoFechaDeudaAccesible, type CuentaPorCobrar } from "@/lib/credito";
+import { buscarClientes } from "@/lib/buscar-clientes";
+import { mensajeRecordatorio } from "@/lib/credito";
 import { consumirClientesQueDeben, hayClientesQueDeben } from "@/lib/destello";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { formatearPesos } from "@/lib/formato";
-import { formatearTelefono, resaltarTelefono } from "@/lib/telefono";
-import type { ClienteConResumen } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Dona } from "../dona";
@@ -19,10 +15,9 @@ import { enlaceWhatsApp } from "@/lib/formato";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { BarraAbonado, Boton, Buscador, FilaLista, MontoDeuda, FilaPastillas, ListaAgrupada } from "../ui";
+import { Buscador, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
-import { Avatar } from "../ui";
-import { TextoResaltado } from "./texto-resaltado";
+import { FilaCliente } from "./fila-cliente";
 
 /**
  * Pantalla de Clientes. Vive en el layout de /clientes para que la búsqueda siga ahí al abrir y
@@ -161,39 +156,8 @@ export function VistaClientes({ children }: { children: ReactNode }) {
       {!(clientes && total === 0) && <BotonFlotante href="/clientes/nuevo" texto="Cliente" />}
       {hoja && listo && <HojaResumenClientes resumen={resumen} clientes={clientes!} pedidos={pedidos!} tiendaId={tiendaId}
         tienda={tienda?.nombre ?? "la tienda"} vendedora={dueno?.nombre ?? ""} urlCatalogo={tienda?.urlCatalogo ?? null}
-        ahora={ahora} alCerrar={() => setHoja(false)} alFiltrar={setFiltro} />}
+        ahora={ahora} alCerrar={() => setHoja(false)} />}
       {children}
     </>
-  );
-}
-
-function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, senalRepite, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; cuenta?: CuentaPorCobrar; ahora: number; /** En el filtro "Repiten" no se muestra (ya lo dice el filtro). */ senalRepite: boolean; escribir?: { href: string; nombre: string } }) {
-  return (
-    <FilaLista
-      href={`/clientes/${c.id}`}
-      inicio={<Avatar nombre={c.nombre} repite={c.repite && senalRepite} />}
-      titulo={
-        <>
-          <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
-          {c.repite && senalRepite && <span className="sr-only">, repite</span>}
-          {cuenta && cuenta.deuda > 0 && <span className="sr-only">, debe {formatearPesos(cuenta.deuda)}, {textoFechaDeudaAccesible(cuenta.fechaAcordada, ahora)}</span>}
-        </>
-      }
-      detalle={
-        // Si salió por el teléfono o por la nota, se muestra eso para ver por qué coincidió
-        coincide === "telefono" && c.telefono ? (
-          <TextoResaltado trozos={resaltarTelefono(formatearTelefono(c.telefono), consulta)} />
-        ) : coincide === "nota" && c.nota ? (
-          <TextoResaltado trozos={resaltar(c.nota, consulta)} />
-        ) : c.pedidos > 0 ? (
-          `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
-        ) : (
-          "Todavía no pide. Todavía."
-        )
-      }
-      fin={cuenta && cuenta.deuda > 0 ? <MontoDeuda saldo={cuenta.deuda} fecha={cuenta.fechaAcordada} ahora={ahora} /> : undefined}
-      pie={cuenta && cuenta.deuda > 0 ? <BarraAbonado mini abonado={cuenta.abonado} total={cuenta.totalPedidos} /> : undefined}
-      accion={escribir && <Boton whatsapp href={escribir.href} target="_blank" rel="noreferrer" aria-label={`Escribirle a ${escribir.nombre} por WhatsApp`}>Escribir</Boton>}
-    />
   );
 }

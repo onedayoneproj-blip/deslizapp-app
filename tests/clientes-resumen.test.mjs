@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { analizarClientes, ordenarClientes, mensajeDormido } from '../lib/clientes-resumen.ts';
+import { analizarClientes, ordenarClientes, mensajeDormido, lecturaClientes } from '../lib/clientes-resumen.ts';
 const ahora = Date.parse('2026-10-01T15:00:00Z');
 const cliente = (id, origen = 'manual', tiendaId = 't') => ({ id, tiendaId, nombre: id, origen, pedidos: 99, repite: true, totalGastado: 0 });
 const pedido = (clienteId, fecha, total = 100, estado = 'despachado', tiendaId = 't') => ({ clienteId, tiendaId, estado, total, despachadoEn: fecha, creadoEn: fecha });
@@ -29,4 +29,9 @@ test('sin ventas no hay NaN y las compras se ordenan según el filtro',()=>{
   assert.ok(ordenarClientes(a,b,'dormidos')<0); assert.ok(ordenarClientes(a,b,'nuevos')>0); assert.ok(ordenarClientes(a,b,'repiten')>0);
   assert.ok(!mensajeDormido('Ana','','Tienda','javascript:alert(1)').includes('javascript:'));
   assert.ok(mensajeDormido('Ana','Michel','Tienda','https://ejemplo.com').endsWith('https://ejemplo.com'));
+});
+test('lectura de la dona de clientes: título y línea', () => {
+  assert.deepEqual(lecturaClientes({ cuentas: { todos: 10, repiten: 0 }, totalVendido: 0, porcentajeRepiten: 0 }), { titulo: 'Nadie repite todavía.', linea: null });
+  assert.deepEqual(lecturaClientes({ cuentas: { todos: 110, repiten: 59 }, totalVendido: 500, porcentajeRepiten: 80 }), { titulo: '1 de cada 2 vuelve a comprar.', linea: 'Los que repiten dejan el 80 % de tus ventas.' });
+  assert.equal(lecturaClientes({ cuentas: { todos: 4, repiten: 0 }, totalVendido: 100, porcentajeRepiten: 0 }).linea, 'Los que repiten dejan el 0 % de tus ventas.');
 });

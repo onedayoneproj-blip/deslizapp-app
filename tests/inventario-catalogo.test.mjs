@@ -119,3 +119,13 @@ test("Por reponer: viene marcado lo vendido y agotado, con lo vendido en 30 día
   const r = porReponer([prod("a", 0), prod("b", 0), prod("c", 1)], ventas);
   assert.deepEqual(seleccionInicial(r), { a: 3 });
 });
+
+import { lecturaInventario, porcentajeDe } from "../lib/inventario-catalogo.ts";
+
+test("hoja de resumen: lectura del inventario y porcentajes", () => {
+  assert.deepEqual(lecturaInventario({ quedan: 9, agotados: 6 }), { titulo: "9 se están acabando", linea: "6 ya se agotaron" });
+  assert.deepEqual(lecturaInventario({ quedan: 1, agotados: 1 }), { titulo: "1 se está acabando", linea: "1 ya se agotó" });
+  assert.deepEqual(lecturaInventario({ quedan: 0, agotados: 0 }), { titulo: "Todo con buen stock", linea: null });
+  assert.equal(porcentajeDe(1, 3), 33);
+  assert.equal(porcentajeDe(0, 0), 0);
+});

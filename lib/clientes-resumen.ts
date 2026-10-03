@@ -60,3 +60,12 @@ export function mensajeDormido(nombre: string, vendedora: string, tienda: string
   try { if (enlace && new URL(enlace).protocol === "https:") url = enlace; } catch { /* Enlace opcional. */ }
   return `¡Hola, ${nombre}! Te escribe ${vendedora.trim() || "el equipo"} de ${tienda}. Hace tiempo no te veo por aquí; tengo perfumes nuevos que te van a encantar${url ? `: ${url}` : "."}`;
 }
+
+/** La lectura del momento junto a la dona de "Tus clientes": título y línea secundaria (la línea puede faltar). */
+export function lecturaClientes(r: Pick<ResumenClientes, "cuentas" | "totalVendido" | "porcentajeRepiten">): { titulo: string; linea: string | null } {
+  const { todos, repiten } = r.cuentas;
+  return {
+    titulo: repiten ? `1 de cada ${Math.max(1, Math.round(todos / repiten))} vuelve a comprar.` : "Nadie repite todavía.",
+    linea: r.totalVendido > 0 ? `Los que repiten dejan el ${r.porcentajeRepiten} % de tus ventas.` : null,
+  };
+}

@@ -28,7 +28,7 @@ try {
     const invitacion=page.getByRole('button',{name:/Tu próxima jugada.*Ver tus jugadas/});
     assert.match(await invitacion.innerText(),/Ver tus jugadas/);
     assert.equal(await page.locator('[role=dialog] > div > div').count() > 0,true);
-    assert.equal(await invitacion.evaluate(el=>el.parentElement.firstElementChild===el),true,'tarjeta al inicio');
+    assert.equal(await invitacion.evaluate(el=>el.parentElement.lastElementChild===el),true,'la tarjeta de jugada va debajo de la dona y las leyendas');
     const separadas=await invitacion.evaluate(el=>{
       const texto=el.querySelector('[data-jugada-texto]').getBoundingClientRect();
       const baraja=el.querySelector('[data-jugada-baraja]').getBoundingClientRect();

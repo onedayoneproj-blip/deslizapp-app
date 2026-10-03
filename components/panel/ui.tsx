@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { NOVEDADES, VERSION_ACTUAL, novedadesDesde, type Novedad } from "@/lib/novedades";
 import { HojaInventario, type VistaInventario } from "../catalogo/hoja-inventario";
@@ -10,15 +9,10 @@ import { PantallaNovedades } from "./pantalla-novedades";
 
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
 type CampoMarca = "enlace";
-/** Filtros de la lista del Catálogo que se pueden pedir desde fuera (la leyenda de "Tu inventario"). */
-export type FiltroCatalogo = "visibles" | "por_agotarse" | "agotados";
 type PanelUI = {
   abrirPlan: () => void;
   /** Abre "Tu inventario"; con "espacio" entra directo a "Hacer espacio". */
   abrirInventario: (vista?: Extract<VistaInventario, "espacio">) => void;
-  /** Pide la lista del Catálogo con ese filtro (y lleva a ella si no se está ahí). `n` cambia en cada pedido. */
-  filtrarCatalogo: (filtro: FiltroCatalogo) => void;
-  filtroPedido: { filtro: FiltroCatalogo; n: number } | null;
   abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void };
 
 const Contexto = createContext<PanelUI | null>(null);
@@ -49,13 +43,10 @@ function novedadesPendientes(): Novedad[] {
 
 /** Estado de interfaz compartido por todo el panel: Plan y créditos, Mi marca y la pantalla de novedades. */
 export function PanelUIProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const ruta = usePathname();
   const [planAbierto, setPlanAbierto] = useState(false);
   const [inventarioAbierto, setInventarioAbierto] = useState(false);
   const [vistaInventario, setVistaInventario] = useState<VistaInventario>("resumen");
   const [inventarioAbiertoEn, setInventarioAbiertoEn] = useState(0);
-  const [filtroPedido, setFiltroPedido] = useState<PanelUI["filtroPedido"]>(null);
   const [marcaAbierta, setMarcaAbierta] = useState(false);
   const [campoMarca, setCampoMarca] = useState<CampoMarca | undefined>(undefined);
   // Este proveedor solo se monta en el navegador (dentro de DataProvider), así que puede leer localStorage.
@@ -78,13 +69,6 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     setInventarioAbierto(true);
   }, []);
   const cerrarInventario = useCallback(() => setInventarioAbierto(false), []);
-  const filtrarCatalogo = useCallback(
-    (filtro: FiltroCatalogo) => {
-      setFiltroPedido((anterior) => ({ filtro, n: (anterior?.n ?? 0) + 1 }));
-      if (ruta !== "/catalogo") router.push("/catalogo", { scroll: false });
-    },
-    [ruta, router],
-  );
   const abrirNovedades = useCallback(() => setNovedades(NOVEDADES.slice(0, 1)), []);
   const cerrarNovedades = useCallback(() => setNovedades([]), []);
   const abrirMiMarca = useCallback((campo?: CampoMarca) => {
@@ -92,8 +76,8 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     setMarcaAbierta(true);
   }, []);
   const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
-  const valor = useMemo(() => ({ abrirPlan, abrirInventario, filtrarCatalogo, filtroPedido, abrirNovedades, abrirMiMarca }),
-    [abrirPlan, abrirInventario, filtrarCatalogo, filtroPedido, abrirNovedades, abrirMiMarca],);
+  const valor = useMemo(() => ({ abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca }),
+    [abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca],);
 
   return (
     <Contexto.Provider value={valor}>

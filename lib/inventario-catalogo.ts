@@ -186,3 +186,13 @@ export function seleccionInicial(r: PorReponer<{ id: string }>): Record<string, 
   }
   return marcados;
 }
+
+/** La lectura del momento junto a la dona de "Tu inventario": título y línea secundaria (la línea puede faltar). */
+export function lecturaInventario(s: Pick<SaludInventario, "quedan" | "agotados">): { titulo: string; linea: string | null } {
+  const titulo = s.quedan === 0 ? "Todo con buen stock" : s.quedan === 1 ? "1 se está acabando" : `${s.quedan} se están acabando`;
+  const linea = s.agotados === 0 ? null : s.agotados === 1 ? "1 ya se agotó" : `${s.agotados} ya se agotaron`;
+  return { titulo, linea };
+}
+
+/** Porcentaje entero de `parte` sobre `total` (0 si no hay total). */
+export const porcentajeDe = (parte: number, total: number) => (total > 0 ? Math.round((100 * parte) / total) : 0);

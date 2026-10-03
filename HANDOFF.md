@@ -152,6 +152,10 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
   plan y `BarraAbonado` llevan extremos de píldora y un mínimo de ancho igual a su alto. En la barra y la leyenda del plan el tramo
   verde se llama «Disponibles» (igual que la dona). En la vista previa del producto, «Guardar/Descartar» van encima de la tarjeta de
   stock y «Editar/Crear pedido» se ocultan mientras haya cambios sin guardar.
+- **Hoja de resumen con dona unificada** (`components/ui/resumen-dona.tsx`, docs/09): «Tus clientes» y «Tu inventario» usan el mismo
+  `ResumenDona` (dona 112 + título Fredoka y línea; leyenda y «otros grupos» como `ListaAgrupada`, filas con número > 0 tocables con
+  chevron). Tocar una fila abre dentro de la hoja la lista del grupo (clientes con `FilaCliente`, productos). La leyenda del inventario ya no
+  filtra la lista de atrás (se quitó `filtrarCatalogo`; la pastilla «Por agotarse» sigue). Lecturas puras: `lecturaClientes`, `lecturaInventario`.
 - Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patrón `public/chat/patron-whatsapp.svg`; también en el
   recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
 
