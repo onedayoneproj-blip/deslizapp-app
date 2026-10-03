@@ -21,7 +21,7 @@ import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoChevronDerecha, IconoMas } from "../iconos";
-import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad } from "../ui";
+import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
@@ -123,7 +123,6 @@ function Formulario({
   // Despachado: salir hacia los pasos del pedido, con confirmación si hay cambios sin guardar.
   const [confirmandoSalir, setConfirmandoSalir] = useState(false);
   // El cupón que había al abrir el selector: la fila lo usa para animar el cambio al volver.
-  const [cuponAlAbrir, setCuponAlAbrir] = useState<string | null>(null);
   // "Es una venta que ya hice": entra despachada con la fecha elegida.
   const [ventaPasada, setVentaPasada] = useState(false);
   const diaOriginal = pedido ? diaLocal(new Date(pedido.creadoEn)) : null;
@@ -379,17 +378,15 @@ function Formulario({
         </>
       )}
 
-      <div inert={bloqueado} className={`rounded-radio-l border border-linea bg-superficie px-4 ${bloqueado ? "opacity-55" : ""}`}>
-        <FilaDescuento
-          codigo={codigo}
-          promo={promo ?? (bloqueado ? (promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null) : null)}
-          pedidos={pedidos}
-          desde={cuponAlAbrir}
-          alAbrir={() => {
-            setCuponAlAbrir(codigo);
-            setVista("descuento");
-          }}
-        />
+      <div inert={bloqueado} className={bloqueado ? "opacity-55" : undefined}>
+        <ListaAgrupada etiqueta="Descuento">
+          <FilaDescuento
+            codigo={codigo}
+            promo={promo ?? (bloqueado ? (promos.find((p) => p.tipo === "codigo" && p.codigo?.toUpperCase() === codigo.toUpperCase()) ?? null) : null)}
+            alAbrir={() => setVista("descuento")}
+            deshabilitado={bloqueado}
+          />
+        </ListaAgrupada>
       </div>
 
       <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2.5">
