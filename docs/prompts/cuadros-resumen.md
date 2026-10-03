@@ -31,8 +31,8 @@ Usa el mismo `Icono` base (24, trazo 2, puntas y uniones redondeadas, sin rellen
 
 - Cambia la prop `otros` para que se pinte como una cuadrícula de 2 columnas (`grid grid-cols-2 gap-2.5`), no como `ListaAgrupada`. Cada elemento lleva `id`, `nombre`, `subtitulo`, `valor`, `icono: ReactNode` y `alTocar?`.
 - Cada cuadro es una `Tarjeta`:
-  - Arriba, en una fila: el ícono a la izquierda (suelto, color `texto`, **sin círculo ni fondo**). A la derecha, `IconoChevronDerecha` en `texto-secundario`, solo si se toca.
-  - Debajo: la cifra en `font-display text-titulo-hoja`, el nombre en `text-secundario font-bold` y la explicación en `text-etiqueta text-texto-secundario`. Es lo mismo que tenían los cuadros antes del #35, más el ícono y el chevron.
+  - Primera fila (`flex items-center gap-2`): el ícono (suelto, color `texto`, **sin círculo ni fondo**) **al lado de la cifra**. La cifra va en `font-display text-titulo-hoja` y ocupa el resto (`flex-1`). Al final de esa fila va `IconoChevronDerecha` en `texto-secundario`, solo si se toca. El ícono no va solo arriba: va junto a la cantidad.
+  - Debajo: el nombre en `text-secundario font-bold` y la explicación en `text-etiqueta text-texto-secundario`. Es lo mismo que tenían los cuadros antes del #35, más el ícono y el chevron en la fila de la cifra.
 - **Tocable solo si `valor > 0` y hay `alTocar`.** En 0: no es botón, no lleva chevron y la cifra va en `text-texto-secundario`.
 - Etiqueta accesible del cuadro tocable: `"{nombre}: {valor} clientes, {subtitulo}. Ver en la lista"`. El ícono y el chevron son `aria-hidden`.
 - Actualiza el comentario del componente: leyenda = lista con punto y vista interna; `otros` = cuadros con ícono que llevan a la pantalla de atrás.
