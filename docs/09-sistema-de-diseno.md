@@ -154,6 +154,13 @@ Regla rápida: si la fila tiene etiqueta de estado o un botón propio, va suelta
 3. La leyenda "Abonó RD$2,425 de RD$4,850" o "Sin abonos todavía" (`secundario`, `texto-secundario`).
 En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de una lista agrupada (historial de pedidos, la lista "Todos" de Clientes) va la versión mini: el monto a la derecha de la fila (16 extrabold, `atencion-texto`), con el reloj `resalte` delante si está atrasado, y la barra de 6 px debajo del texto de la fila. Sin fecha ni frases: eso está en "Deben" y en el detalle. Si no debe nada, no hay bloque.
 
+**Hoja de resumen con dona** ("Tus clientes", "Tu inventario" y las que vengan): una sola forma para todas.
+1. Arriba, la dona grande (112 px) a la izquierda y, a su derecha, la lectura del momento: un título dinámico en Fredoka 24 ("Nadie repite todavía", "9 se están acabando") y una línea secundaria debajo. Nada más junto a la dona: la leyenda va abajo.
+2. Debajo, la leyenda como **lista agrupada**: punto de color · nombre · subtítulo con el porcentaje · número a la derecha · chevron. Todas las filas que tienen algo (número > 0) se tocan y llevan chevron; las que están en 0 no se tocan ni llevan chevron.
+3. Los demás grupos (Nuevos, Dormidos, Del catálogo, A mano…) van en otra lista agrupada igual, nunca en cuadros sueltos de 2 × 2.
+4. Tocar una fila abre, dentro de la misma hoja (con Volver), la lista de esos clientes o productos. No agrega pastillas a la pantalla de atrás.
+5. Después vienen las acciones de la hoja ("Tu próxima jugada" en Clientes, "Necesita tu atención" en Catálogo).
+
 ## 8. Avisos y confirmaciones
 
 Cada tipo de mensaje tiene un solo formato:
