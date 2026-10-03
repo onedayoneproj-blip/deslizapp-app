@@ -39,7 +39,8 @@ export function clientePorTelefono(db: DB, tiendaId: string, telefono: string | 
   return db.clientes.find((c) => c.tiendaId === tiendaId && c.telefono && (normalizarTelefonoDO(c.telefono) ?? c.telefono) === buscado) ?? null;
 }
 
-export const MAX_NOTA = 200;
+/** La nota del cliente se ve como burbuja en su detalle: máx. 60 (restricción `clientes_nota_largo` en la base). */
+export const MAX_NOTA = 60;
 export const MAX_NOMBRE_CLIENTE = 120;
 
 export type DatosClienteEditables = { nombre: string; telefono: string | null };

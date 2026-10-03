@@ -3,28 +3,31 @@
 import { useState } from "react";
 import { MAX_NOMBRE_CLIENTE } from "@/lib/data/clientes";
 import { useTiendaActiva } from "@/lib/data/consulta";
-import { ClienteDuplicado, mensajeDeError } from "@/lib/data/errores";
+import { ClienteDuplicado, mensajeDeError, NotaClienteLarga } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearTelefono, normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente, PedidoConItems } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { useToast } from "../toast";
+import { CampoNota } from "./campo-nota";
 import { Alerta, Aviso, Boton, Campo, GrupoOpciones } from "../ui";
 
-export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void }) {
+export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** id del campo de la nota (para enfocarlo al tocar la burbuja). */ idNota?: string }) {
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Editar cliente" altura="grande">
-      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} />
+      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}:${cliente.nota ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} idNota={idNota} />
     </Hoja>
   );
 }
 
-function Formulario({ cliente, pedidos, alTerminar, alEliminar }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void }) {
-  const { actualizarCliente, eliminarCliente } = useData();
+function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void; idNota?: string }) {
+  const { actualizarCliente, actualizarNotaCliente, eliminarCliente } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
   const [nombre, setNombre] = useState(cliente.nombre);
   const [telefono, setTelefono] = useState(cliente.telefono ? formatearTelefono(cliente.telefono) : "");
+  const [nota, setNota] = useState(cliente.nota ?? "");
+  const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -36,7 +39,9 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar }: { cliente: Cli
   const telefonoNormalizado = escrito === "" ? null : normalizarTelefonoDO(escrito);
   const telefonoValido = escrito === "" || telefonoNormalizado !== null;
   const nombreLimpio = nombre.trim();
-  const cambiado = nombreLimpio !== cliente.nombre || (telefonoValido ? telefonoNormalizado !== cliente.telefono : true);
+  const notaCambiada = nota.trim() !== (cliente.nota ?? "");
+  const datosCambiados = nombreLimpio !== cliente.nombre || (telefonoValido ? telefonoNormalizado !== cliente.telefono : true);
+  const cambiado = datosCambiados || notaCambiada;
   const puedeGuardar = nombreLimpio !== "" && nombreLimpio.length <= MAX_NOMBRE_CLIENTE && telefonoValido && cambiado && !guardando;
   const telefonoMalo = tocado && !telefonoValido;
   useAvisarAlSalir(cambiado);
@@ -46,11 +51,13 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar }: { cliente: Cli
     setGuardando(true);
     setDuplicado(null);
     try {
-      await actualizarCliente(tiendaId, cliente.id, { nombre, telefono });
+      if (datosCambiados) await actualizarCliente(tiendaId, cliente.id, { nombre, telefono });
+      if (notaCambiada) await actualizarNotaCliente(tiendaId, cliente.id, nota);
       toast("Datos actualizados.");
       alTerminar();
     } catch (error) {
       if (error instanceof ClienteDuplicado) setDuplicado(error.existente);
+      else if (error instanceof NotaClienteLarga) setErrorNota(error.message);
       else toast(mensajeDeError(error, "No se pudieron guardar los cambios. Inténtalo otra vez."));
       setGuardando(false);
     }
@@ -101,6 +108,8 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar }: { cliente: Cli
         error={telefonoMalo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
         ayuda="Usa 809, 829 o 849 y 7 dígitos más. Déjalo vacío si no usa WhatsApp."
       />
+
+      <CampoNota id={idNota} valor={nota} alCambiar={(v) => { setNota(v); setErrorNota(undefined); }} error={errorNota} />
 
       {duplicado && (
         <div role="alert">

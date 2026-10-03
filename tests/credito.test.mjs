@@ -26,7 +26,7 @@ import {
   diaLargo,
   textoFaltan,
 } from "../lib/credito.ts";
-import { traducirErrorSupabase, MontoMayorQueDeuda, PedidoConAbonos } from "../lib/data/errores.ts";
+import { traducirErrorSupabase, MontoMayorQueDeuda, NotaClienteLarga, PedidoConAbonos } from "../lib/data/errores.ts";
 
 const AHORA = Date.parse("2026-09-30T16:00:00.000Z"); // 30 sep, mediodía en Santo Domingo
 let n = 0;
@@ -230,6 +230,10 @@ test("errores de la base: mensajes amables en español", () => {
   assert.ok(e("monto_invalido").message.includes("monto"));
   assert.ok(e("metodo_invalido").message.includes("efectivo"));
   assert.ok(e("nota_invalida").message.includes("200"));
+  // La nota del cliente (60, restricción clientes_nota_largo) no se confunde con la del abono
+  const nota = e('new row for relation "clientes" violates check constraint "clientes_nota_largo"');
+  assert.ok(nota instanceof NotaClienteLarga);
+  assert.ok(nota.message.includes("60"));
   assert.ok(e("sin_deuda").message.includes("nada pendiente"));
   assert.ok(e("abono_no_encontrado").message.includes("abono"));
   assert.ok(e("pedido_no_encontrado").message.includes("pedido"));
