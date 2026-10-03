@@ -15,13 +15,17 @@ import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorr
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
 import { validarAjusteInventario, validarReposicion } from "./inventario";
+import { DIAS_ENVIOS } from "./jugadas";
+import { PATRON_CODIGO } from "../jugada-codigo";
 import {
   ArchivoMuyGrande,
   ClienteDuplicado,
   CreditosInsuficientes,
   DatosInvalidos,
   ErrorClaro,
+  CodigoNoValido,
   ErrorDeRed,
+  MENSAJE_CODIGO_FORMATO,
   FormatoNoPermitido,
   mensajeDeError,
   PedidoNoEditable,
@@ -37,6 +41,7 @@ import {
   aEventoAaah,
   aPedidoConItems as aPedidoBase,
   aProducto,
+  aEnvioJugada,
   aPromo,
   aTienda,
   aUsuario,
@@ -53,6 +58,7 @@ import {
   type FilaPedidoConItems,
   type FilaPedidoItem,
   type FilaProducto,
+  type FilaEnvioJugada,
   type FilaPromo,
   type FilaTienda,
   type FilaUsuario,
@@ -560,7 +566,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       let codigo: string | null = actual.codigoPromo;
       if (!despachado && actual.estado !== "cancelado") {
         const [productos, promos, pedidos] = await Promise.all([productosCrudos(tiendaId), promosCrudas(tiendaId), pedidosCrudos(tiendaId)]);
-        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date(), { pedidos, pedido: actual });
+        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date(), { pedidos, pedido: actual, clienteId: datos.clienteId ?? actual.clienteId });
         if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
         items = c.items;
         total = c.total;
@@ -625,7 +631,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       ]);
       if (!actual) throw new PedidoNoEncontrado();
       if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos("El código solo se cambia antes de despachar. Usa «Volver al paso anterior» y luego edítalo.");
-      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date(), { pedidos, pedido: actual });
+      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date(), { pedidos, pedido: actual, clienteId: actual.clienteId });
       // Primero los precios de los productos que cambiaron, luego el pedido (con el estado como guarda).
       const cambiados = r.items.filter((n) => n.precioUnitario !== actual.items.find((i) => i.id === n.id)?.precioUnitario);
       const ponerPrecios = (lista: { id: string; precioUnitario: number }[]) =>
@@ -687,7 +693,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
 
       // Precios de hoy (con la promo de colección o de producto vigente) y el código, si es válido: la misma cuenta de la demo.
-      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos });
+      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos, clienteId: datos.clienteId });
 
       const venta = datos.ventaPasada;
       const total = subtotal - descuentoDeCodigo(promo, subtotal);
@@ -930,6 +936,42 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       );
       return cambio(aPromo(f));
     },
+
+    // ---- Tu próxima jugada ----
+    async crearCodigoCliente(tiendaId, clienteId, porcentaje, dias, codigo = null) {
+      const escrito = codigo?.trim() ? codigo.trim().toUpperCase() : null;
+      // Validación rápida para dar el mensaje en el campo; la RPC repite las reglas.
+      if (escrito && !PATRON_CODIGO.test(escrito)) throw new CodigoNoValido(MENSAJE_CODIGO_FORMATO);
+      // Que un código vencido sin marcar no bloquee el nombre (el índice único es solo entre no terminadas)
+      await guardarVencidas(tiendaId);
+      const f = await requerido<FilaPromo>(
+        supabase.rpc("crear_codigo_cliente", { p_tienda_id: tiendaId, p_cliente_id: clienteId, p_porcentaje: porcentaje, p_dias: dias, p_codigo: escrito }),
+        () => new Error("La base no devolvió el código."),
+      );
+      return cambio(aPromo(f));
+    },
+    async registrarEnvioJugada(tiendaId, datos) {
+      const f = await requerido<FilaEnvioJugada>(
+        supabase.rpc("registrar_envio_jugada", {
+          p_tienda_id: tiendaId,
+          p_cliente_id: datos.clienteId,
+          p_jugada: datos.jugada,
+          p_tipo: datos.tipo,
+          p_promo_id: datos.promoId ?? null,
+          p_producto_ids: datos.productoIds ?? [],
+        }),
+        () => new Error("La base no devolvió el envío."),
+      );
+      return cambio(aEnvioJugada(f));
+    },
+    enviosJugada: (tiendaId) =>
+      leer(`envios:${tiendaId}`, async () => {
+        const desde = new Date(Date.now() - DIAS_ENVIOS * 86_400_000).toISOString();
+        const filas = await dato<FilaEnvioJugada[]>(
+          supabase.from("jugada_envios").select("*").eq("tienda_id", tiendaId).gte("enviado_en", desde).order("enviado_en", { ascending: false }),
+        );
+        return (filas ?? []).map(aEnvioJugada);
+      }),
 
     // ---- Aaahs (solo lectura) ----
     getEventosAaah: (tiendaId) =>

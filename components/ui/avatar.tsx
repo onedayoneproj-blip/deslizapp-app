@@ -3,12 +3,12 @@ import { Foto } from "../foto";
 import { IconoCorazon } from "../iconos";
 import { clases } from "./comunes";
 
-const TAMANO = { normal: "size-(--alto-avatar) text-cuerpo", grande: "size-16 text-titulo-hoja", nota: "size-22 text-titulo-pantalla" } as const;
-const FOTO = { normal: "44px", grande: "64px", nota: "88px" } as const;
+const TAMANO = { chat: "size-8.5 text-secundario", normal: "size-(--alto-avatar) text-cuerpo", grande: "size-16 text-titulo-hoja", nota: "size-22 text-titulo-pantalla" } as const;
+const FOTO = { chat: "34px", normal: "44px", grande: "64px", nota: "88px" } as const;
 
 /**
  * Avatar (docs/09 §11): persona = redondo `marca-rosa` con iniciales en Fredoka; tienda = cuadrado `radio-m` `accion` con
- * iniciales o su logo. 44 px en filas, 64 en la cabecera de un detalle (88 cuando lleva la nota encima). Junto al nombre es
+ * iniciales o su logo. 34 en la cabecera de la vista previa de WhatsApp, 44 px en filas, 64 en la cabecera de un detalle (88 cuando lleva la nota encima). Junto al nombre es
  * decorativo (aria-hidden); con `solo`, lleva el nombre como etiqueta accesible.
  * `repite`: la señal de cliente que repite (en vez de la etiqueta "Repite"): círculo `accion` de 20 px con un corazón relleno
  * `sobre-accion` y borde `superficie` de 2 px en la esquina inferior derecha. La palabra va en el aria-label de quien lo usa.
@@ -24,7 +24,7 @@ export function Avatar({
 }: {
   nombre: string;
   tipo?: "persona" | "tienda";
-  tamano?: "normal" | "grande" | "nota";
+  tamano?: "chat" | "normal" | "grande" | "nota";
   foto?: string | null;
   /** Va sin el nombre al lado: se anuncia con el nombre. */
   solo?: boolean;

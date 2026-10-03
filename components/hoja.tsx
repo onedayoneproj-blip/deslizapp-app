@@ -518,11 +518,14 @@ function HojaMontada({
       entradaDeHistorial.current = true;
     }
     const alAtras = () => {
+      // Solo la hoja de arriba atiende "atrás" (y consume el aviso de ignorarlo): si lo consumiera otra, la de arriba se
+      // cerraría con el mismo popstate (cerrar una hoja apilada dentro de otra apilada cerraba las dos).
+      if (PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
       if (IGNORAR_ATRAS.n > 0) {
         IGNORAR_ATRAS.n--;
         return;
       }
-      if (!entrada || PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
+      if (!entrada) return;
       if (volverInternoRef.current?.()) {
         window.history.pushState(estadoDeHoja(), "");
         return;

@@ -34,6 +34,7 @@ export function Cantidad({
   etiquetaQuitar = "Quitar uno",
   etiquetaAgregar = "Agregar uno",
   deshabilitado = false,
+  paso = 1,
   className,
 }: {
   valor: number;
@@ -44,15 +45,17 @@ export function Cantidad({
   etiquetaAgregar?: string;
   /** Apaga los dos botones (mientras se guarda). */
   deshabilitado?: boolean;
+  /** De cuánto en cuánto sube o baja (5 en 5 para un porcentaje). */
+  paso?: number;
   className?: string;
 }) {
   return (
     <div className={clases("flex shrink-0 items-center gap-1", className)}>
-      <BotonCantidad tipo="menos" etiqueta={etiquetaQuitar} onClick={() => alCambiar(Math.max(min, valor - 1))} deshabilitado={deshabilitado || valor <= min} />
+      <BotonCantidad tipo="menos" etiqueta={etiquetaQuitar} onClick={() => alCambiar(Math.max(min, valor - paso))} deshabilitado={deshabilitado || valor <= min} />
       <span className="min-w-7 text-center text-destacado tabular-nums" aria-live="polite">
         {valor}
       </span>
-      <BotonCantidad tipo="mas" etiqueta={etiquetaAgregar} onClick={() => alCambiar(max === undefined ? valor + 1 : Math.min(max, valor + 1))} deshabilitado={deshabilitado || (max !== undefined && valor >= max)} />
+      <BotonCantidad tipo="mas" etiqueta={etiquetaAgregar} onClick={() => alCambiar(max === undefined ? valor + paso : Math.min(max, valor + paso))} deshabilitado={deshabilitado || (max !== undefined && valor >= max)} />
     </div>
   );
 }

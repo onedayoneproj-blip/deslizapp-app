@@ -171,9 +171,11 @@ export type ContextoCodigo = {
   pedidos: Pedido[];
   /** El pedido que se está editando o mirando: puede CONSERVAR su código aunque el cupo se haya llenado. */
   pedido?: { id: string; codigoPromo: string | null } | null;
+  /** El cliente del pedido: un código personal solo vale para el suyo. */
+  clienteId?: string | null;
 };
 
-export type RazonNoUsable = "terminada" | "programada" | "pausada" | "agotada";
+export type RazonNoUsable = "terminada" | "programada" | "pausada" | "agotada" | "otro_cliente";
 
 /** "usada 3 de 10" · "usada 3 veces" (la fila de la lista de descuentos). */
 export function textoUso(usos: number, limite: number | null): string {
@@ -182,6 +184,8 @@ export function textoUso(usos: number, limite: number | null): string {
 
 /** Por qué un código no se puede aplicar a un pedido (null = se puede). Es la regla que usan "+ Pedido", "Editar pedido" y el detalle. */
 export function razonNoUsable(promo: Promo, ctx: ContextoCodigo, ahora: Date = new Date()): { razon: RazonNoUsable; texto: string } | null {
+  // Código personal (Tu próxima jugada): solo en pedidos de ese cliente
+  if (promo.clienteId && promo.clienteId !== (ctx.clienteId ?? null)) return { razon: "otro_cliente", texto: "De otro cliente" };
   const porFechas = estadoPromo(promo, ahora);
   if (porFechas === "terminada") return { razon: "terminada", texto: promo.estado === "terminada" ? "Terminado" : "Vencido" };
   if (promo.pausada) return { razon: "pausada", texto: "Pausado" };
@@ -197,7 +201,7 @@ export function razonNoUsable(promo: Promo, ctx: ContextoCodigo, ahora: Date = n
 
 /**
  * La promo de tipo código que coincide con lo escrito (sin importar mayúsculas) y que SE PUEDE USAR ahora: no terminada, no
- * programada, no pausada y con cupo. Nunca devuelve una pausada o agotada para un pedido nuevo.
+ * programada, no pausada, con cupo y, si es personal, del cliente del pedido. Nunca devuelve una pausada, agotada o de otro cliente.
  */
 export function buscarCodigoPromo(promos: Promo[], tiendaId: string, codigo: string, ctx: ContextoCodigo, ahora: Date = new Date()): Promo | null {
   const limpio = codigo.trim().toUpperCase();

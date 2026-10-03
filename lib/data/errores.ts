@@ -119,6 +119,12 @@ export class PromoInvalida extends ErrorClaro {
 
 export class DatosInvalidos extends ErrorClaro {}
 
+/** El código personal escrito a mano no sirve (formato o ya en uso): se muestra en el campo "Código". */
+export class CodigoNoValido extends ErrorClaro {}
+
+export const MENSAJE_CODIGO_EN_USO = "Ese código ya existe. Prueba otro.";
+export const MENSAJE_CODIGO_FORMATO = "Usa de 3 a 15 letras o números, sin espacios.";
+
 export class InventarioCambio extends ErrorClaro {
   constructor() { super("El stock cambió mientras ajustabas. Revisa la cantidad actual antes de guardar."); }
 }
@@ -204,6 +210,18 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("stock_fuera_de_rango")) return new DatosInvalidos("Esa cantidad supera el límite permitido.");
   if (mensaje.includes("ajuste_producto_no_encontrado")) return new DatosInvalidos("Ese producto ya no existe en esta tienda.");
   if (mensaje.includes("ajuste_invalido")) return new DatosInvalidos("El ajuste debe cambiar al menos una unidad.");
+
+  // RPC crear_codigo_cliente y registrar_envio_jugada
+  if (mensaje.includes("codigo_en_uso")) return new CodigoNoValido(MENSAJE_CODIGO_EN_USO);
+  if (mensaje.includes("codigo_formato_invalido")) return new CodigoNoValido(MENSAJE_CODIGO_FORMATO);
+  if (mensaje.includes("codigo_porcentaje_invalido")) return new DatosInvalidos("El descuento va de 1 % a 90 %.");
+  if (mensaje.includes("codigo_dias_invalidos")) return new DatosInvalidos("El código puede durar de 1 a 90 días.");
+  if (mensaje.includes("codigo_cliente_no_encontrado") || mensaje.includes("envio_cliente_no_encontrado")) return new DatosInvalidos("Ese cliente ya no está en tu tienda.");
+  if (mensaje.includes("codigo_sin_nombre_libre")) return new CodigoNoValido("No encontramos un código libre con ese nombre. Escribe uno tú.");
+  if (mensaje.includes("envio_codigo_invalido")) return new DatosInvalidos("Ese código no sirve para este cliente.");
+  if (mensaje.includes("envio_productos_invalidos")) return new DatosInvalidos("Elige de 1 a 3 productos de tu tienda.");
+  if (mensaje.includes("codigo_sin_sesion") || mensaje.includes("envio_sin_sesion")) return new SesionVencida();
+  if (mensaje.includes("codigo_sin_permiso") || mensaje.includes("envio_sin_permiso")) return new SinPermiso();
 
   // RPC reponer_stock
   if (mensaje.includes("reposicion_vacia")) return new DatosInvalidos("Marca al menos un producto para sumar al stock.");

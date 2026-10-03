@@ -117,3 +117,22 @@ test("duplicación existente y edición conservan sus valores compatibles", asyn
   assert.equal(copia.fin, "");
   assert.equal(copia.pausada, false);
 });
+
+test("código personal: solo vale para su cliente", () => {
+  const personal = promo({ id: "pp", codigo: "LUISAN10", clienteId: "lu", limiteUsos: 1 });
+  const general = promo({ id: "pg", codigo: "LUNA20", clienteId: null });
+  // Pedido de Luisanna: se puede usar
+  assert.equal(razonNoUsable(personal, { pedidos: [], clienteId: "lu" }, ahora), null);
+  assert.equal(buscarCodigoPromo([personal], T, "luisan10", { pedidos: [], clienteId: "lu" }, ahora)?.id, "pp");
+  // Pedido de otro cliente: no se puede y nunca se encuentra
+  assert.equal(razonNoUsable(personal, { pedidos: [], clienteId: "otra" }, ahora)?.razon, "otro_cliente");
+  assert.equal(buscarCodigoPromo([personal], T, "LUISAN10", { pedidos: [], clienteId: "otra" }, ahora), null);
+  // Sin cliente todavía (pedido sin elegir cliente): tampoco
+  assert.equal(razonNoUsable(personal, { pedidos: [] }, ahora)?.razon, "otro_cliente");
+  // Los generales siguen valiendo para todos
+  assert.equal(razonNoUsable(general, { pedidos: [], clienteId: "otra" }, ahora), null);
+  // Un solo uso: usado por su cliente, se agota (salvo para el pedido que ya lo tiene)
+  const usado = [pedido("x", "LUISAN10")];
+  assert.equal(razonNoUsable(personal, { pedidos: usado, clienteId: "lu" }, ahora)?.razon, "agotada");
+  assert.equal(razonNoUsable(personal, { pedidos: usado, clienteId: "lu", pedido: { id: "x", codigoPromo: "LUISAN10" } }, ahora), null);
+});

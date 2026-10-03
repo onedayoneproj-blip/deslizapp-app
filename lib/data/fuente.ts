@@ -5,7 +5,7 @@
 import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
 import type { Abono, PropuestaInventario, PaginaAjustesInventario, AjusteInventario, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
-import type { MetodoAbono } from "../types";
+import type { EnvioJugada, MetodoAbono, TipoEnvioJugada } from "../types";
 import type { CambiosAbono } from "../credito";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
@@ -23,6 +23,17 @@ export type DatosAbonoNuevo = {
   fecha?: string;
   nota?: string | null;
   pedidoId?: string;
+};
+
+/** Lo que se registra al escribirle a un cliente desde una jugada. */
+export type DatosEnvioJugada = {
+  clienteId: string;
+  jugada: EnvioJugada["jugada"];
+  tipo: TipoEnvioJugada;
+  /** Solo con tipo "codigo". */
+  promoId?: string | null;
+  /** Solo con tipo "productos": de 1 a 3. */
+  productoIds?: string[];
 };
 
 export type FuenteDatos = {
@@ -146,6 +157,17 @@ export type FuenteDatos = {
   actualizarPromo(tiendaId: string, id: string, datos: DatosPromo): Promise<Promo>;
   /** La termina el dueño. No se puede reactivar. */
   terminarPromo(tiendaId: string, id: string): Promise<Promo>;
+
+  // Tu próxima jugada (real: RPC crear_codigo_cliente y registrar_envio_jugada)
+  /**
+   * Código de un solo uso solo para ese cliente, que vence al final del día (Santo Domingo) dentro de `dias`. Sin `codigo` se arma
+   * con su nombre y el porcentaje (LUISAN10; si existe, con 2 dígitos más). Lanza CodigoNoValido si el código escrito no sirve o ya existe.
+   */
+  crearCodigoCliente(tiendaId: string, clienteId: string, porcentaje: number, dias: number, codigo?: string | null): Promise<Promo>;
+  /** Guarda que se abrió WhatsApp desde una jugada (a quién, qué jugada y con qué). */
+  registrarEnvioJugada(tiendaId: string, datos: DatosEnvioJugada): Promise<EnvioJugada>;
+  /** Lo enviado desde las jugadas en los últimos 30 días, del más nuevo al más viejo. */
+  enviosJugada(tiendaId: string): Promise<EnvioJugada[]>;
 
   // Aaahs (solo lectura: los escribe el catálogo)
   getEventosAaah(tiendaId: string): Promise<EventoAaah[]>;

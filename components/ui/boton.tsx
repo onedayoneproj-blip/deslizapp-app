@@ -42,6 +42,11 @@ type Comun = {
   whatsapp?: boolean;
   /** Solo con jerarquia="peligro" dentro de una Alerta: relleno de peligro. */
   relleno?: boolean;
+  /**
+   * Se ve como botón pero no lo es: un <span> decorativo para cuando todo lo que lo rodea ya es el botón (la Tarjeta de jugada). Sin
+   * foco ni toque propios; el nombre accesible lo lleva el contenedor.
+   */
+  soloVista?: boolean;
   className?: string;
   children: ReactNode;
 };
@@ -59,7 +64,7 @@ type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "
  * promesa, el botón se bloquea hasta que termine: un segundo toque no repite la acción.
  */
 export function Boton(props: ComoBoton | ComoEnlace) {
-  const { jerarquia: jerarquiaPedida = "principal", tamano: tamanoPedido = "normal", tono = "neutro", whatsapp = false, icono: iconoPedido, anchoCompleto, cargando = false, deshabilitado = false, relleno, className, children, ...resto } = props;
+  const { jerarquia: jerarquiaPedida = "principal", tamano: tamanoPedido = "normal", tono = "neutro", whatsapp = false, icono: iconoPedido, anchoCompleto, cargando = false, deshabilitado = false, relleno, soloVista = false, className, children, ...resto } = props;
   const jerarquia = whatsapp ? "principal" : jerarquiaPedida;
   const tamano = whatsapp ? "compacto" : tamanoPedido;
   const icono = whatsapp ? <IconoWhatsApp tamano={18} /> : iconoPedido;
@@ -96,6 +101,14 @@ export function Boton(props: ComoBoton | ComoEnlace) {
       )}
     </>
   );
+
+  if (soloVista) {
+    return (
+      <span aria-hidden="true" className={cls}>
+        {contenido}
+      </span>
+    );
+  }
 
   if (resto.href !== undefined) {
     const { href, onClick, scroll, ...a } = resto as ComoEnlace;

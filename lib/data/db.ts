@@ -3,7 +3,7 @@
 
 import { MARCA_NEUTRA } from "../marca";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
-import type { Abono, AjusteInventario, Cliente, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, AjusteInventario, Cliente, EnvioJugada, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
 import {
   aCliente,
   aEventoAaah,
@@ -47,6 +47,8 @@ export type DB = {
   clientes: Cliente[];
   promos: Promo[];
   eventosAaah: EventoAaah[];
+  /** Lo enviado desde Tu próxima jugada. */
+  jugadaEnvios: EnvioJugada[];
 };
 
 /**
@@ -68,6 +70,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     pedidoItems: (seedPedidoItems as FilaPedidoItem[]).map(aPedidoItem),
     abonos: credito.abonos,
     ajustesInventario: [],
+    jugadaEnvios: [],
     clientes: (seedClientes as FilaCliente[]).map((f) => aCliente(f, fecha)),
     promos: (seedPromos as FilaPromo[]).map((f) => aPromo(f, fecha)),
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
@@ -134,7 +137,8 @@ export function migrar(db: DB): DB {
     ajustesInventario: db.ajustesInventario ?? [],
     clientes: db.clientes.map((c) => ({ ...c, nota: c.nota ?? null })),
     // Promos guardadas antes del límite de usos y la pausa
-    promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false })),
+    promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false, clienteId: p.clienteId ?? null })),
+    jugadaEnvios: db.jugadaEnvios ?? [],
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,

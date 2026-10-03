@@ -145,7 +145,8 @@ function Formulario({
         .map((p) => ({ producto: p, cantidad: cantidades[p.id] ?? 0, precio: precioConPromo(p, promos).precio }))
         .filter((l) => l.cantidad > 0);
   const subtotal = lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
-  const contexto = useMemo(() => ({ pedidos, pedido }), [pedidos, pedido]);
+  const clienteId = cliente?.id ?? null;
+  const contexto = useMemo(() => ({ pedidos, pedido, clienteId }), [pedidos, pedido, clienteId]);
   const promo = buscarCodigoPromo(promos, tiendaId, codigo, contexto);
   const descuento = bloqueado ? Math.max(0, subtotal - (pedido?.total ?? 0)) : descuentoDeCodigo(promo, subtotal);
   const totalFinal = bloqueado ? (pedido?.total ?? 0) : subtotal - descuento;
@@ -263,6 +264,7 @@ function Formulario({
         promos={promos}
         tiendaId={tiendaId}
         contexto={contexto}
+        nombreCliente={cliente?.nombre}
         elegido={codigo}
         alElegir={(c) => {
           if (c === null && codigo) toast("Cupón quitado");

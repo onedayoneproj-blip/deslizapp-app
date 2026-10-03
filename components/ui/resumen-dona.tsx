@@ -82,6 +82,7 @@ function Fila({ fila: f }: { fila: FilaResumen }) {
  * pantalla de atrás (solo se tocan con valor > 0) y, al final, las acciones de la hoja (`children`).
  */
 export function ResumenDona({
+  encabezado,
   dona,
   etiquetaDona,
   titulo,
@@ -92,6 +93,8 @@ export function ResumenDona({
   unidadOtros = "elementos",
   children,
 }: {
+  /** Lo que va arriba de todo, antes de la dona (la Tarjeta de jugada en Clientes). */
+  encabezado?: ReactNode;
   dona: ReactNode;
   /** Lo que dice la dona a los lectores de pantalla. */
   etiquetaDona: string;
@@ -106,6 +109,7 @@ export function ResumenDona({
 }) {
   return (
     <div className="flex flex-col gap-5">
+      {encabezado}
       <div className="flex items-center gap-5">
         <div role="img" aria-label={etiquetaDona} className="shrink-0">
           {dona}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import tokens from "@/referencias/sistema-de-diseno/tokens.json";
+import { CARTAS_JUGADAS, lineaJugada } from "@/lib/proxima-jugada";
 import {
   IconoBuscar,
   IconoCamion,
@@ -32,9 +33,12 @@ import {
   GrupoOpciones,
   ListaAgrupada,
   CheckSeleccion,
+  CuadriculaSeleccion,
+  ElegirMensaje,
   ProveedorToast,
   Tarjeta,
   TarjetaDocumento,
+  TarjetaJugada,
   VistaPreviaWhatsApp,
   useToastUI,
   VistaToast,
@@ -301,6 +305,9 @@ function Elegir() {
   const [metodo, setMetodo] = useState<"efectivo" | "transferencia" | "otro">("efectivo");
   const [vistaVentas, setVistaVentas] = useState<"dia" | "semana" | "mes">("semana");
   const [vista, setVista] = useState<"hoy" | "semana" | "mes">("semana");
+  const [mensaje, setMensaje] = useState<"amable" | "directo">("amable");
+  const [acercar, setAcercar] = useState<"saludo" | "codigo" | "productos">("saludo");
+  const [productos, setProductos] = useState<string[]>(["oxana"]);
   return (
     <Seccion numero="6" titulo="Elegir: pastillas, opciones y controles" nota="Filtro (verde lleno), opción de formulario (menta con check) y control segmentado.">
       <div className="flex flex-col gap-2">
@@ -341,6 +348,47 @@ function Elegir() {
         ]}
       />
       <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>compacta: tres opciones cortas en una fila</Rotulo>
+        <GrupoOpciones
+          compacta
+          titulo="¿Con qué te acercas?"
+          valor={acercar}
+          alCambiar={setAcercar}
+          opciones={[
+            { id: "saludo", texto: "Un saludo" },
+            { id: "codigo", texto: "Un código" },
+            { id: "productos", texto: "Productos" },
+          ]}
+        />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>elegir el mensaje: botón compacto que abre la hoja &quot;Elige el mensaje&quot;</Rotulo>
+        <ElegirMensaje
+          etiqueta="Mensaje del recordatorio"
+          elegido={mensaje}
+          alElegir={setMensaje}
+          className="self-start"
+          opciones={[
+            { id: "amable", titulo: "Amable", texto: "¡Hola, Marleny! Te recuerdo con cariño el saldo de RD$1,300. ¡Gracias!" },
+            { id: "directo", titulo: "Directo", texto: "Hola, Marleny. Tienes un saldo pendiente de RD$1,300." },
+          ]}
+        />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>cuadrícula seleccionable: 3 columnas, hasta N (las demás se apagan)</Rotulo>
+        <CuadriculaSeleccion
+          etiqueta="Productos para el mensaje"
+          maximo={2}
+          elegidos={productos}
+          alCambiar={setProductos}
+          elementos={[
+            { id: "oxana", titulo: "Oxana Black", detalle: "RD$1,200", imagen: <span className="block size-full bg-marca-rosa" /> },
+            { id: "zakat", titulo: "Zakat", detalle: "RD$950", imagen: <span className="block size-full bg-accion-suave" /> },
+            { id: "amber", titulo: "Amber Oud", detalle: "RD$1,450", imagen: <span className="block size-full bg-superficie-hundida" /> },
+          ]}
+        />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
         <Rotulo>control segmentado: solo cambia la vista o el modo, no guarda un dato</Rotulo>
         <ControlSegmentado
           etiqueta="Ver ventas por"
@@ -371,7 +419,8 @@ function Listas() {
         <FilaLista marcada onClick={() => undefined} inicio={<CheckSeleccion marcado />} titulo="Oxana Black" detalle="Vendido 30 sep" />
         <FilaLista marcada={false} onClick={() => undefined} inicio={<CheckSeleccion marcado={false} />} titulo="Zakat" detalle="Nunca se vendió" />
       </ListaAgrupada>
-      <VistaPreviaWhatsApp texto={"¡Hola! Para reponer:\n• 2 Oxana Black\n• 1 Zakat\n¿Me confirmas precio y cuándo llegan? ¡Gracias!"} hora="9:41 a. m." />
+      <VistaPreviaWhatsApp nombre="Luisanna Peña" texto={"¡Hola, Luisanna! Te recuerdo con cariño que quedó pendiente RD$2,425. ¡Gracias!"} hora="9:41 a. m." />
+      <VistaPreviaWhatsApp sinDestinatario texto={"¡Hola! Para reponer:\n• 2 Oxana Black\n• 1 Zakat\n¿Me confirmas precio y cuándo llegan? ¡Gracias!"} hora="9:41 a. m." />
       <ul className="flex flex-col gap-3">
         <li>
           <Tarjeta href="/diseno#s-7">
@@ -512,6 +561,18 @@ function Tarjetas() {
         <Rotulo>tarjeta de documento (factura, recibo): miniatura, título, etiqueta y dos botones con texto</Rotulo>
         <TarjetaDocumento titulo="Factura #1039" etiqueta={{ texto: "Al contado", tono: "exito" }} alDescargar={() => undefined} alCompartir={() => undefined} />
         <TarjetaDocumento titulo="Factura #1036" etiqueta={{ texto: "A crédito", tono: "atencion" }} alDescargar={() => undefined} alCompartir={() => undefined} />
+      </div>
+      <div className="flex max-w-100 flex-col gap-2">
+        <Rotulo>tarjeta de jugada (solo Tu próxima jugada): malla viva que sigue al dedo, Caveat, Fredoka y el mazo con su ciclo de 14 s</Rotulo>
+        <TarjetaJugada
+          titulo="Segundo aaah"
+          linea={lineaJugada("segundo", 4)}
+          cartas={CARTAS_JUGADAS}
+          destacada="segundo"
+          etiqueta="Tu próxima jugada: Segundo aaah, 4 clientes. Ver tus jugadas"
+          alTocar={() => undefined}
+        />
+        <TarjetaJugada titulo={null} cartas={CARTAS_JUGADAS} etiqueta="Tu próxima jugada: la próxima conversación empieza aquí" alTocar={() => undefined} />
       </div>
     </Seccion>
   );

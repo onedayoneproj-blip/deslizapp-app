@@ -1,13 +1,11 @@
 "use client";
 
-import { LuzJugada } from "./luz-jugada";
 import { Dona } from "../dona";
 import { lecturaClientes, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import { porcentajeDe } from "@/lib/inventario-catalogo";
-import type { Jugada } from "@/lib/proxima-jugada";
-import Image from "next/image";
+import { CARTAS_JUGADAS, lineaJugada, type Jugada } from "@/lib/proxima-jugada";
 import { IconoBrote, IconoEditar, IconoEnlace, IconoLuna } from "../iconos";
-import { ResumenDona, type CuadroResumen, type FilaResumen } from "../ui";
+import { ResumenDona, TarjetaJugada, type CuadroResumen, type FilaResumen } from "../ui";
 
 export const SEGMENTOS_CLIENTES = [
   { id: "repiten", nombre: "Repiten", color: "var(--accion)" },
@@ -39,6 +37,17 @@ export function ContenidoResumenClientes({ resumen, alAbrirGrupo, alFiltrar, alA
   ];
   return (
     <ResumenDona
+      encabezado={
+        // Lo primero que se ve es qué hacer hoy; la dona de abajo explica el porqué (docs/09 §7, punto 5)
+        <TarjetaJugada
+          titulo={destacada?.nombre ?? null}
+          linea={destacada ? lineaJugada(destacada.id, destacada.cantidad) : null}
+          cartas={CARTAS_JUGADAS}
+          destacada={destacada?.id}
+          etiqueta={destacada ? `Tu próxima jugada: ${destacada.nombre}, ${destacada.cantidad} ${destacada.cantidad === 1 ? "cliente" : "clientes"}. Ver tus jugadas` : "Tu próxima jugada: la próxima conversación empieza aquí. Ver tus jugadas"}
+          alTocar={alAbrirJugadas}
+        />
+      }
       dona={
         <Dona tamano={112} grosor={12} pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((s) => ({ valor: c[s.id], color: s.color }))}>
           <b className="font-display text-cifra">{c.todos}</b>
@@ -52,22 +61,6 @@ export function ContenidoResumenClientes({ resumen, alAbrirGrupo, alFiltrar, alA
       otros={otros}
       unidadOtros="clientes"
     >
-      <button type="button" onClick={(e) => alAbrirJugadas(e.currentTarget)}
-        aria-label={`Tu próxima jugada. ${destacada ? `${destacada.nombre}: ${destacada.cantidad} clientes, ${destacada.porcentaje} por ciento.` : "Aún no hay jugadas disponibles."} Ver tus jugadas`}
-        className="tocable relative isolate grid min-h-37 grid-cols-[minmax(0,1fr)_7rem] items-start gap-2 overflow-hidden rounded-radio-l border-[1.5px] border-borde-pastilla bg-accion-suave px-4 py-3.5 text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco">
-        <LuzJugada tarjeta />
-        <span data-jugada-texto className="relative z-10 min-w-0">
-          <span className="text-etiqueta font-extrabold uppercase tracking-wide text-exito-texto">Tu próxima jugada</span>
-          <span className="mt-1 block font-display text-titulo-seccion text-texto">{destacada ? `${destacada.porcentaje} % ${destacada.id === "volver" ? "lleva tiempo sin comprar." : destacada.id === "segundo" ? "compró una sola vez." : destacada.id === "gracias" ? "volvió por más." : "espera su primer hola."}` : "La próxima conversación empieza aquí."}</span>
-          <span className="mt-1.5 block text-etiqueta text-texto-secundario">{destacada ? `${destacada.cantidad} de tus ${c.todos} clientes. ${destacada.descripcion}` : "Cuando haya clientes disponibles, verás ideas para escribirles."}</span>
-          <span className="mt-2 inline-flex min-h-11 items-center rounded-full bg-accion px-4 text-etiqueta font-extrabold text-sobre-accion">Ver tus jugadas</span>
-        </span>
-        <span data-jugada-baraja aria-hidden="true" className="relative z-10 block h-32 w-28">
-          {(["volver-a-saludar", "segundo-aaah", "gracias-por-volver", "primer-hola"] as const).map((id, i) => <span key={id} className={`jugada-mini jugada-mini-${i}`}>
-            <Image src={`/ilustraciones/proxima-jugada/${id}.webp`} alt="" fill sizes="70px" className="object-contain" />
-          </span>)}
-        </span>
-      </button>
     </ResumenDona>
   );
 }

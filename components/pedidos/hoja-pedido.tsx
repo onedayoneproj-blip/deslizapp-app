@@ -207,7 +207,7 @@ function Detalle({
 
   // Descuento (solo mientras el pedido no se despacha ni se cancela). La regla de qué códigos se pueden usar vive en lib/promos.ts.
   const puedeCodigo = puedeEditarCodigo(pedido.estado);
-  const contexto = useMemo(() => ({ pedidos, pedido }), [pedidos, pedido]);
+  const contexto = useMemo(() => ({ pedidos, pedido, clienteId: pedido.clienteId }), [pedidos, pedido]);
   const promoAplicada = pedido.codigoPromo ? buscarCodigoPromo(promos, tiendaId, pedido.codigoPromo, contexto) : null;
   const elegirDescuento = (nuevo: string | null) =>
     correr(async () => {
@@ -230,6 +230,7 @@ function Detalle({
         promos={promos}
         tiendaId={tiendaId}
         contexto={contexto}
+        nombreCliente={cliente?.nombre}
         elegido={pedido.codigoPromo ?? ""}
         alElegir={(c) => void elegirDescuento(c)}
         alVolver={() => setVista("detalle")}

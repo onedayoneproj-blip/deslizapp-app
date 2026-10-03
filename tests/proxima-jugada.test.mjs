@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { calcularJugadas, diasDesde, mensajeJugada } from '../lib/proxima-jugada.ts';
+import { calcularJugadas, diasDesde, mensajeJugada, lineaJugada } from '../lib/proxima-jugada.ts';
 
 const ahora = Date.parse('2026-10-01T04:00:01Z'); // 00:00:01 en Santo Domingo
 const cliente = (id, tiendaId='t') => ({id, tiendaId, nombre:id, telefono:null, origen:'manual', pedidos:0, repite:false, totalGastado:0});
@@ -92,4 +92,12 @@ test('tres borradores distintos por jugada, con enlace HTTPS solo cuando es vál
     assert.equal(sinEnlace[2].tono, 'Conocer la tienda');
     assert.doesNotMatch(sinEnlace.map((b) => b.texto).join(' '), /javascript:|https:\/\//);
   }
+});
+test('línea de la tarjeta: quiénes y qué hacer, sin porcentajes', () => {
+  assert.equal(lineaJugada('segundo', 4), '4 clientes compraron una vez. Invítalos a volver.');
+  assert.equal(lineaJugada('segundo', 1), '1 cliente compró una vez. Invítalo a volver.');
+  assert.equal(lineaJugada('volver', 69), '69 clientes llevan tiempo sin comprar. Salúdalos de nuevo.');
+  assert.equal(lineaJugada('gracias', 2), '2 clientes volvieron por más. Dales las gracias.');
+  assert.equal(lineaJugada('primer', 1), '1 cliente espera su primer hola. Escríbele sin presión.');
+  for (const id of ['volver', 'segundo', 'gracias', 'primer']) assert.doesNotMatch(lineaJugada(id, 7), /%/);
 });
