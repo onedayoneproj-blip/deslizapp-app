@@ -2,10 +2,11 @@
 
 import { LuzJugada } from "./luz-jugada";
 import { Dona } from "../dona";
-import type { FiltroClientes, ResumenClientes } from "@/lib/clientes-resumen";
+import { lecturaClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
+import { porcentajeDe } from "@/lib/inventario-catalogo";
 import type { Jugada } from "@/lib/proxima-jugada";
 import Image from "next/image";
-import { FilaLista, ListaAgrupada, Tarjeta } from "../ui";
+import { ResumenDona, type FilaResumen } from "../ui";
 
 export const SEGMENTOS_CLIENTES = [
   { id: "repiten", nombre: "Repiten", color: "var(--accion)" },
@@ -13,20 +14,42 @@ export const SEGMENTOS_CLIENTES = [
   { id: "sin", nombre: "Sin comprar todavía", color: "var(--borde-pastilla)" },
 ] as const;
 
-export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, destacada }: {
-  resumen: ResumenClientes; alFiltrar: (filtro: FiltroClientes) => void; alAbrirJugadas: (elemento: HTMLElement) => void; destacada: Jugada | null;
+/** Nombre de cada grupo (leyenda, título de su vista interna). */
+export const NOMBRE_GRUPO_CLIENTES: Record<GrupoClientes, string> = {
+  todos: "Todos", repiten: "Repiten", una: "Compraron una vez", sin: "Sin comprar todavía",
+  nuevos: "Nuevos", dormidos: "Dormidos", catalogo: "Del catálogo", manual: "A mano",
+};
+
+export function ContenidoResumenClientes({ resumen, alAbrirGrupo, alAbrirJugadas, destacada }: {
+  resumen: ResumenClientes; alAbrirGrupo: (grupo: GrupoClientes) => void; alAbrirJugadas: (elemento: HTMLElement) => void; destacada: Jugada | null;
 }) {
-  const { cuentas: c, totalVendido, porcentajeRepiten } = resumen;
-  const elegir = (f: FiltroClientes) => alFiltrar(f);
-  const porcentaje = (n: number) => c.todos ? Math.round(n * 100 / c.todos) : 0;
-  const cuadros = [
-    { id: "nuevos", nombre: "Nuevos", detalle: "primer pedido en 30 días", filtro: "nuevos" },
-    { id: "dormidos", nombre: "Dormidos", detalle: "sin comprar hace 60+ días", filtro: "dormidos" },
-    { id: "catalogo", nombre: "Del catálogo", detalle: "llegaron por el enlace", filtro: null },
-    { id: "manual", nombre: "A mano", detalle: "los agregaste tú", filtro: null },
-  ] as const satisfies readonly { id: string; nombre: string; detalle: string; filtro: FiltroClientes | null }[];
-  return <>
-    <div className="flex flex-col gap-4.5">
+  const { cuentas: c, totalVendido } = resumen;
+  const { titulo, linea } = lecturaClientes(resumen);
+  const fila = (id: GrupoClientes, nombre: string, extra: Partial<FilaResumen>): FilaResumen => ({ id, nombre, valor: c[id as keyof typeof c], alTocar: () => alAbrirGrupo(id), ...extra });
+  // Leyenda: la mezcla de la dona, con el porcentaje del total
+  const leyenda = SEGMENTOS_CLIENTES.map((s) => fila(s.id, s.nombre, { color: s.color, aro: s.id === "sin", subtitulo: `${porcentajeDe(c[s.id], c.todos)} %` }));
+  // Los demás grupos: la explicación corta como subtítulo
+  const otros = [
+    fila("nuevos", "Nuevos", { subtitulo: "primer pedido en 30 días" }),
+    fila("dormidos", "Dormidos", { subtitulo: "sin comprar hace 60+ días" }),
+    fila("catalogo", "Del catálogo", { subtitulo: "llegaron por el enlace" }),
+    fila("manual", "A mano", { subtitulo: "los agregaste tú" }),
+  ];
+  return (
+    <ResumenDona
+      dona={
+        <Dona tamano={112} grosor={12} pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((s) => ({ valor: c[s.id], color: s.color }))}>
+          <b className="font-display text-cifra">{c.todos}</b>
+        </Dona>
+      }
+      etiquetaDona={`${c.todos} clientes; ${c.repiten} repiten, ${c.una} compraron una vez, ${c.sin} sin comprar. ${totalVendido > 0 ? `Los que repiten dejan el ${resumen.porcentajeRepiten} por ciento de tus ventas.` : "Sin ventas todavía."}`}
+      titulo={titulo}
+      linea={linea}
+      leyenda={leyenda}
+      etiquetaLeyenda="Tus clientes por tipo"
+      otros={otros}
+      etiquetaOtros="Más grupos de clientes"
+    >
       <button type="button" onClick={(e) => alAbrirJugadas(e.currentTarget)}
         aria-label={`Tu próxima jugada. ${destacada ? `${destacada.nombre}: ${destacada.cantidad} clientes, ${destacada.porcentaje} por ciento.` : "Aún no hay jugadas disponibles."} Ver tus jugadas`}
         className="tocable relative isolate grid min-h-37 grid-cols-[minmax(0,1fr)_7rem] items-start gap-2 overflow-hidden rounded-radio-l border-[1.5px] border-borde-pastilla bg-accion-suave px-4 py-3.5 text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco">
@@ -43,29 +66,6 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
           </span>)}
         </span>
       </button>
-      <div className="flex items-center gap-4.5" aria-label={`${c.todos} clientes; ${c.repiten} repiten, ${c.una} compraron una vez, ${c.sin} sin comprar. ${totalVendido > 0 ? `Los que repiten dejan el ${porcentajeRepiten} por ciento de tus ventas.` : "Sin ventas todavía."}`}>
-        <Dona tamano={148} grosor={16} pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((s) => ({ valor: c[s.id], color: s.color }))}>
-          <b className="font-display text-cifra">{c.todos}</b>
-        </Dona>
-        <div className="min-w-0 flex-1 text-secundario">
-          <p>{c.repiten ? <><b>1 de cada {Math.max(1, Math.round(c.todos / c.repiten))}</b> vuelve a comprar.</> : "Nadie repite todavía."}</p>
-          {totalVendido > 0 && <p className="mt-2 text-texto-secundario">Los que repiten dejan el <b className="text-texto">{porcentajeRepiten} %</b> de tus ventas.</p>}
-        </div>
-      </div>
-      <ListaAgrupada etiqueta="Tus clientes por tipo">
-        {/* Solo "Repiten" tiene filtro propio; los demás tipos quedan como dato (sin toque ni chevron) */}
-        {SEGMENTOS_CLIENTES.map((s) => <FilaLista key={s.id} onClick={s.id === "repiten" ? () => elegir("repiten") : undefined}
-          inicio={<span aria-hidden="true" className={`block size-3.5 rounded-full ${s.id === "sin" ? "border-[1.5px] border-borde-campo" : ""}`} style={{ background: s.color }} />}
-          titulo={s.nombre}
-          detalle={`${porcentaje(c[s.id])} %`}
-          fin={c[s.id]} />)}
-      </ListaAgrupada>
-      <div className="grid grid-cols-2 gap-2.5">
-        {cuadros.map((q) => <Tarjeta key={q.id} onClick={q.filtro ? () => elegir(q.filtro!) : undefined} etiqueta={q.filtro ? `${q.nombre}: ${c[q.id]} clientes. ${q.detalle}. Ver clientes` : undefined}>
-          <b className="font-display text-titulo-hoja">{c[q.id]}</b><span className="mt-0.5 block text-secundario font-bold">{q.nombre}</span>
-          <span className="mt-0.5 block text-etiqueta text-texto-secundario">{q.detalle}</span>
-        </Tarjeta>)}
-      </div>
-    </div>
-  </>;
+    </ResumenDona>
+  );
 }

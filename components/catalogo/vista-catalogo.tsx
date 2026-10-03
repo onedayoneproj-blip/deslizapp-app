@@ -46,7 +46,7 @@ const normalizar = (texto: string) =>
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirInventario, filtroPedido } = usePanelUI();
+  const { abrirInventario } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
@@ -54,12 +54,6 @@ export function VistaCatalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  // Un filtro pedido desde "Tu inventario" (ajuste de estado durante el render, sin efecto).
-  const [pedidoVisto, setPedidoVisto] = useState(filtroPedido?.n ?? 0);
-  if (filtroPedido && filtroPedido.n !== pedidoVisto) {
-    setPedidoVisto(filtroPedido.n);
-    setFiltro(filtroPedido.filtro);
-  }
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 

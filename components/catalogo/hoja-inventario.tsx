@@ -2,30 +2,34 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { NOMBRE_PLAN } from "@/lib/config";
+import { NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
+import { BotonVerMas, useVerMas } from "../ver-mas";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { DIAS_SIN_MOVIMIENTO, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, ventasPorProducto } from "@/lib/inventario-catalogo";
+import { DIAS_SIN_MOVIMIENTO, etiquetaSalud, lecturaInventario, porcentajeDe, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, ventasPorProducto } from "@/lib/inventario-catalogo";
 import { resumenDelPlan, textosDelPlan } from "@/lib/plan-catalogo";
 import type { Producto } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha, IconoPedidos, IconoReloj } from "../iconos";
 import { BotonVolver } from "../selector-busqueda";
-import { usePanelUI, type FiltroCatalogo } from "../panel/ui";
-import { Boton, FilaLista, ListaAgrupada, Tarjeta, useToastUI } from "../ui";
+import { usePanelUI } from "../panel/ui";
+import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, useToastUI } from "../ui";
 import { COLOR_STOCK, DonaInventario } from "./dona-inventario";
 import { MiniaturaProducto } from "./miniatura-producto";
 import { VistaHacerEspacio } from "./vista-hacer-espacio";
 import { VistaPorReponer } from "./vista-por-reponer";
 
-export type VistaInventario = "resumen" | "porReponer" | "sinMovimiento" | "espacio";
+export type VistaInventario = "resumen" | "porReponer" | "sinMovimiento" | "espacio" | "grupo";
+type GrupoInventario = "conStock" | "quedan" | "agotados";
+const NOMBRE_GRUPO: Record<GrupoInventario, string> = { conStock: "Con stock", quedan: "Queda 1 o 2", agotados: "Agotados" };
 
 const TITULO: Record<VistaInventario, string> = {
   resumen: "Tu inventario",
   porReponer: "Por reponer",
   sinMovimiento: "Sin movimiento",
   espacio: "Hacer espacio",
+  grupo: "Tu inventario",
 };
 
 /** El Ojo (icono suelto de "agotados a la vista"): la app aún no tiene IconoOjo, se dibuja aquí con el mismo trazo. */
@@ -51,6 +55,7 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
 
   // Vista actual y lo marcado en "Por reponer" (cantidad por producto): duran lo que la hoja esté abierta. Se reinician al abrir.
   const [vista, setVista] = useState<VistaInventario>(vistaAlAbrir);
+  const [grupo, setGrupo] = useState<GrupoInventario>("conStock");
   const [marcados, setMarcados] = useState<Record<string, number> | null>(null);
   const [estabaAbierta, setEstabaAbierta] = useState(abierta);
   if (abierta !== estabaAbierta) {
@@ -75,7 +80,7 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
     <Hoja
       abierta={abierta}
       alCerrar={alCerrar}
-      titulo={TITULO[vista]}
+      titulo={vista === "grupo" ? `${NOMBRE_GRUPO[grupo]}\u00a0·\u00a0${saludDelInventario(productos ?? [])[grupo]}` : TITULO[vista]}
             alVolverInterno={() => {
         if (vista === "resumen") return false;
         setVista("resumen");
@@ -100,8 +105,13 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
           ventas={ventas}
           ahora={ahora}
           alAbrir={abrirVista}
-          alCerrarHoja={alCerrar}
+          alAbrirGrupo={(g) => {
+            setGrupo(g);
+            setVista("grupo");
+          }}
         />
+      ) : vista === "grupo" ? (
+        <VistaGrupoInventario productos={productos} grupo={grupo} alCerrarHoja={alCerrar} />
       ) : vista === "porReponer" ? (
         <VistaPorReponer productos={productos} ventas={ventas} marcados={marcados} alCambiarMarcados={setMarcados} alTerminar={alVolver} />
       ) : vista === "sinMovimiento" ? (
@@ -115,27 +125,23 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
 
 type VentasMapa = ReturnType<typeof ventasPorProducto>;
 
-function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { productos: Producto[]; ventas: VentasMapa; ahora: number; alAbrir: (v: VistaInventario) => void; alCerrarHoja: () => void }) {
+function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { productos: Producto[]; ventas: VentasMapa; ahora: number; alAbrir: (v: VistaInventario) => void; alAbrirGrupo: (g: GrupoInventario) => void }) {
   const { tienda } = useTiendaActiva();
   const { mostrarToast } = useToastUI();
   const { cambiarVisibilidad } = useData();
-  const { abrirPlan, filtrarCatalogo } = usePanelUI();
+  const { abrirPlan } = usePanelUI();
   const [ocultando, setOcultando] = useState(false);
 
   const limite = tienda?.limiteProductos ?? 0;
   const plan = resumenDelPlan(productos, limite);
   const salud = saludDelInventario(productos);
+  const lectura = lecturaInventario(salud);
   const textos = textosDelPlan(plan);
   const reponer = porReponer(productos, ventas);
   const agotadosAVista = productos.filter((p) => p.activo && p.stock === 0);
   const quietos = sinMovimiento(productos, ventas, ahora);
   const vendidosAgotados = reponer.vendidos.length;
   const paraReponer = [...reponer.vendidos, ...reponer.sinVentas];
-
-  const filtrar = (f: FiltroCatalogo) => {
-    alCerrarHoja();
-    filtrarCatalogo(f);
-  };
 
   const ocultarAgotados = async () => {
     if (ocultando) return;
@@ -162,33 +168,20 @@ function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { producto
   const etiquetaBarra = `Plan de ${plan.limite} productos: ${salud.disponibles} disponibles, ${salud.agotados} agotados y ${libre} libres`;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Resumen: dona y leyenda tocable */}
-      <section aria-label="Salud del inventario" className="flex items-center gap-5">
-        <DonaInventario salud={salud} tamano={112} grosor={12} cifra="text-cifra" />
-        <ul className="min-w-0 flex-1">
-          {(
-            [
-              { nombre: "Con stock", valor: salud.conStock, color: COLOR_STOCK.conStock, filtro: "visibles" },
-              { nombre: "Queda 1 o 2", valor: salud.quedan, color: COLOR_STOCK.quedan, filtro: "por_agotarse" },
-              { nombre: "Agotados", valor: salud.agotados, color: COLOR_STOCK.agotados, filtro: "agotados" },
-            ] as const
-          ).map((fila) => (
-            <li key={fila.nombre}>
-              <button
-                type="button"
-                onClick={() => filtrar(fila.filtro)}
-                className="tocable flex h-(--alto-control) w-full items-center gap-2.5 rounded-radio-s text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
-              >
-                <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: fila.color }} />
-                <span className="min-w-0 flex-1 truncate text-cuerpo text-texto">{fila.nombre}</span>
-                <span className="text-destacado text-texto tabular-nums">{fila.valor}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-
+    <ResumenDona
+      dona={<DonaInventario salud={salud} tamano={112} grosor={12} cifra="text-cifra" />}
+      etiquetaDona={etiquetaSalud(salud)}
+      titulo={lectura.titulo}
+      linea={lectura.linea}
+      leyenda={(
+        [
+          { id: "conStock", nombre: "Con stock", color: COLOR_STOCK.conStock, valor: salud.conStock },
+          { id: "quedan", nombre: "Queda 1 o 2", color: COLOR_STOCK.quedan, valor: salud.quedan },
+          { id: "agotados", nombre: "Agotados", color: COLOR_STOCK.agotados, valor: salud.agotados },
+        ] as const
+      ).map((f) => ({ ...f, subtitulo: `${porcentajeDe(f.valor, salud.total)} %`, alTocar: () => alAbrirGrupo(f.id) }))}
+      etiquetaLeyenda="Salud del inventario"
+    >
       {hayAtencion && (
         <section aria-labelledby="atencion-inventario" className="flex flex-col gap-3">
           <h3 id="atencion-inventario" className="text-destacado text-texto">
@@ -303,7 +296,7 @@ function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { producto
           </div>
         </Tarjeta>
       </section>
-    </div>
+    </ResumenDona>
   );
 }
 
@@ -331,6 +324,33 @@ function VistaSinMovimiento({ productos, ventas, ahora, alCerrarHoja }: { produc
       >
         Crear promo
       </Boton>
+    </div>
+  );
+}
+
+/** Vista interna de un grupo de la leyenda: sus productos visibles; tocar uno abre su hoja. */
+function VistaGrupoInventario({ productos, grupo, alCerrarHoja }: { productos: Producto[]; grupo: GrupoInventario; alCerrarHoja: () => void }) {
+  const router = useRouter();
+  const cumple = (p: Producto) => p.activo && (grupo === "agotados" ? p.stock === 0 : grupo === "quedan" ? p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO : p.stock === null || p.stock > STOCK_BAJO);
+  const lista = productos.filter(cumple).sort((a, b) => (a.stock ?? Infinity) - (b.stock ?? Infinity) || a.nombre.localeCompare(b.nombre, "es"));
+  const paginada = useVerMas(lista, `grupo:${grupo}`);
+  return (
+    <div className="pb-6">
+      <ListaAgrupada etiqueta={NOMBRE_GRUPO[grupo]}>
+        {paginada.visibles.map((p) => (
+          <FilaLista
+            key={p.id}
+            inicio={<MiniaturaProducto producto={p} atenuada={p.stock === 0} />}
+            titulo={p.nombre}
+            detalle={p.stock === null ? "Sin control de stock" : p.stock === 0 ? "Agotado" : p.stock === 1 ? "Queda 1" : `${p.stock} en stock`}
+            onClick={() => {
+              alCerrarHoja();
+              router.push(`/catalogo/${p.id}`, { scroll: false });
+            }}
+          />
+        ))}
+        <BotonVerMas forma="fila" quedan={paginada.quedan} mostrados={paginada.mostrados} total={lista.length} alTocar={paginada.verMas} />
+      </ListaAgrupada>
     </div>
   );
 }
