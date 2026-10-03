@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Referencia · Factura que sale del slot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+body{margin:0}
+.empuja{animation:empuja 3.2s ease-in-out 1.4s infinite}
+.flecha{animation:flecha 1.6s ease-in-out infinite}
+.arranca{animation:arranca .55s cubic-bezier(.34,1.56,.64,1) both}
+.sube{animation:sube .45s cubic-bezier(.22,1,.36,1) .2s both}
+@keyframes empuja{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-16px)}90%{transform:translateY(0)}}
+@keyframes flecha{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes arranca{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-18px) rotate(-2.5deg)}100%{transform:translateY(-10px) rotate(0)}}
+@keyframes sube{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.empuja,.flecha,.arranca,.sube{animation:none !important}}
+
+html,body{background:#e9e1d2}body>div{margin:0 auto}[hidden]{display:none!important}
+#ranura{transition:opacity .3s ease}
+</style></head>
+<body>
+<!-- Referencia de interacción: sheet "Factura #N" al tocar Descargar o Compartir en la TarjetaDocumento.
+     La factura sale de la ranura (se asoma ~100px) y HAY QUE arrastrarla hacia arriba para sacarla; solo entonces aparecen los botones PDF / Imagen.
+     Colores en hex solo en esta maqueta: en la app, tokens. La hoja de la factura es BLANCA (#ffffff), igual que el PDF y la imagen. -->
+
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #93a89c; color: #174b3a; font-family: 'Figtree', sans-serif;">
+<div style="position: absolute; top: 72px; left: 0; right: 0; display: flex; justify-content: center;">
+<button type="button" id="repetir" style="height: 40px; padding: 0 18px; border: 1.5px solid #174b3a; border-radius: 999px; background: #ffffff; color: #174b3a; font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer;">Repetir</button>
+</div>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 664px; box-sizing: border-box; padding: 10px 24px 34px; border-radius: 28px 28px 0 0; background: #fff9ee; box-shadow: 0 -8px 30px rgba(16, 54, 42, 0.16); display: flex; flex-direction: column;">
+<div style="display: flex; justify-content: center; height: 24px;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<h2 style="margin: 0; font-family: 'Fredoka', sans-serif; font-weight: 700; font-stretch: 115%; font-size: 24px; line-height: 28px;">Factura #1039</h2>
+<button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border: none; border-radius: 999px; background: #f3ead9; color: #174b3a; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+
+<div style="position: relative; margin-top: 12px; height: 364px; overflow: hidden;">
+<div id="arrastre" style="position: absolute; left: 50%; top: 24px; width: 264px; margin-left: -132px; touch-action: none; cursor: grab; transform: translateY(340px);">
+<div id="hoja" style="filter: drop-shadow(0 8px 14px rgba(16, 54, 42, 0.18));">
+<button type="button" aria-label="Sacar la factura" id="papel" style="display: flex; flex-direction: column; gap: 9px; width: 264px; height: 316px; box-sizing: border-box; padding: 20px 18px 16px; border: none; border-radius: 10px 10px 0 0; background: #ffffff; color: #174b3a; font-family: 'Figtree', sans-serif; text-align: left; cursor: inherit;">
+<span style="display: flex; justify-content: space-between; align-items: baseline;"><b style="font-family: 'Fredoka', sans-serif; font-size: 17px;">Esencias Michel</b><span style="font-size: 13px; color: #4f6a5e;">#1039</span></span>
+<span style="font-size: 12px; color: #4f6a5e;">3 oct 2026</span>
+<span style="font-size: 12px; color: #4f6a5e;">Carolina Peña · 809-555-0142</span>
+<span style="height: 1px; background: #efe4d2;"></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px;"><span>Parade × 1</span><span>RD$1,800</span></span>
+<span style="height: 1px; background: #efe4d2;"></span>
+<span style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800;"><span>Total</span><span>RD$1,800</span></span>
+<span style="margin-top: auto; font-size: 12px; color: #4f6a5e;">Pagado al contado</span>
+<span style="font-size: 11px; color: #4f6a5e;">¡Gracias por tu compra!</span>
+</button>
+<svg width="264" height="10" viewBox="0 0 264 10" preserveAspectRatio="none" aria-hidden="true" style="display: block; margin-top: -1px;"><path d="M0 0H264V2L258 10L252 2L246 10L240 2L234 10L228 2L222 10L216 2L210 10L204 2L198 10L192 2L186 10L180 2L174 10L168 2L162 10L156 2L150 10L144 2L138 10L132 2L126 10L120 2L114 10L108 2L102 10L96 2L90 10L84 2L78 10L72 2L66 10L60 2L54 10L48 2L42 10L36 2L30 10L24 2L18 10L12 2L6 10L0 2Z" fill="#ffffff"></path></svg>
+</div>
+</div>
+</div>
+
+<div aria-hidden="true" style="position: relative; z-index: 2; align-self: center; width: 316px; height: 16px; margin-top: -8px; border-radius: 999px; background: #174b3a; box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.45); opacity: 1; transition: opacity .3s ease;" id="ranura"></div>
+
+<div id="pista" style="margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #4f6a5e;">
+<svg class="flecha" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"></path></svg>
+<span style="font-size: 15px; font-weight: 700;">Desliza hacia arriba para sacarla</span>
+</div>
+<div id="botones" hidden class="sube" style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+<span style="text-align: center; font-size: 15px; font-weight: 700; color: #4f6a5e;">¿En qué formato la quieres?</span>
+<div style="display: flex; gap: 12px;">
+<button type="button" style="flex: 1; height: 52px; border: none; border-radius: 999px; background: #174b3a; color: #fff9ee; font-family: 'Figtree', sans-serif; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7.5 10.5 12 15l4.5-4.5"></path><path d="M5 20h14"></path></svg>PDF</button>
+<button type="button" style="flex: 1; height: 52px; border: 1.5px solid #174b3a; border-radius: 999px; background: #ffffff; color: #174b3a; font-family: 'Figtree', sans-serif; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7.5 10.5 12 15l4.5-4.5"></path><path d="M5 20h14"></path></svg>Imagen</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+var OCULTA=340,ASOMA=236,y=OCULTA,fase='imprime',arr=false,y0=0,base=0,movio=false,t,t2;
+var w=document.getElementById('arrastre'),hoja=document.getElementById('hoja'),ranura=document.getElementById('ranura'),
+ pista=document.getElementById('pista'),botones=document.getElementById('botones');
+function pon(ny,tr){y=ny;w.style.transition=tr||'none';w.style.transform='translateY('+y+'px)'}
+function clase(){hoja.className=fase==='asoma'?'empuja':(fase==='fuera'&&hoja.dataset.arranca?'arranca':'')}
+function imprimir(){clearTimeout(t);t=setTimeout(function(){fase='asoma';pon(ASOMA,'transform .7s cubic-bezier(.22,1,.36,1)');clase()},350)}
+function sacar(){arr=false;fase='fuera';pon(0,'transform .3s cubic-bezier(.22,1,.36,1)');delete hoja.dataset.arranca;clase();
+ ranura.style.opacity=0;pista.hidden=true;botones.hidden=false;
+ clearTimeout(t2);t2=setTimeout(function(){hoja.dataset.arranca=1;clase()},280)}
+w.addEventListener('pointerdown',function(e){if(fase!=='asoma')return;w.setPointerCapture(e.pointerId);arr=true;y0=e.clientY;base=y;movio=false;pon(y)});
+w.addEventListener('pointermove',function(e){if(!arr)return;var dy=e.clientY-y0;if(Math.abs(dy)>4)movio=true;var ny=base+dy;
+ if(ny>ASOMA)ny=ASOMA+(ny-ASOMA)*.25;if(ny<0)ny*=.25;pon(ny)});
+function soltar(){if(!arr)return;arr=false;if(y<ASOMA*.45){sacar();return}
+ if(!movio){pon(ASOMA-34,'transform .18s ease-out');clearTimeout(t);t=setTimeout(function(){pon(ASOMA,'transform .45s cubic-bezier(.34,1.56,.64,1)')},180);return}
+ pon(ASOMA,'transform .45s cubic-bezier(.34,1.56,.64,1)')}
+w.addEventListener('pointerup',soltar);w.addEventListener('pointercancel',soltar);
+document.getElementById('papel').addEventListener('click',function(e){if(e.detail===0&&fase==='asoma')sacar()});
+document.getElementById('repetir').addEventListener('click',function(){clearTimeout(t);clearTimeout(t2);fase='imprime';delete hoja.dataset.arranca;clase();
+ pon(OCULTA);ranura.style.opacity=1;pista.hidden=false;botones.hidden=true;imprimir()});
+imprimir();
+</script>
+</body></html>
