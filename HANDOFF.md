@@ -215,6 +215,10 @@ el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catá
 contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
 HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
 
+## Icono de la app
+
+Fondo Menta, isotipo Verde Bosque con borde Menta (fuente: `public/icons/isotipo-app.svg`; se regenera con `npm run iconos`, que usa sharp). Para ver el icono nuevo en iPhone hay que borrar la app de la pantalla de inicio y volver a agregarla desde Safari (iOS guarda el icono al instalar).
+
 ## Hojas apiladas, aviso al salir y color de opciones
 
 - `Hoja` se pinta en un portal en `<body>`: una hoja sobre otra (ej. "Registrar abono" sobre el detalle del pedido) no comparte gestos con la

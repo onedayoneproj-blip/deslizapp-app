@@ -1,50 +1,40 @@
-// Uso: node scripts/generar-iconos.mjs
-// Genera los íconos de la app de vendedores (public/icons/*.png y app/icon.png)
-// a partir del ícono oficial: referencias/iconos/icono-vendedores.png
-// (la "d" verde sobre crema). El ícono rosado (icono-marketplace.png) es de la
-// futura app "marketplace" y NO se usa aquí.
-// Necesita Playwright con Chromium (npx playwright install chromium, si no lo tienes).
+// Uso: npm run iconos   (node scripts/generar-iconos.mjs)
+// Genera los íconos de la app de vendedores (public/icons/*.png y app/icon.png) desde public/icons/isotipo-app.svg:
+// isotipo Verde Bosque con borde Menta, sobre fondo Menta OPACO (iOS rellena con negro lo transparente). En modo oscuro de iOS
+// el fondo pasa a negro y el borde menta dibuja el contorno del isotipo (docs/10-marca-ilustracion-y-fondos.md).
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { execSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const require = createRequire(import.meta.url);
-let playwright;
-try {
-  playwright = require("playwright");
-} catch {
-  playwright = require(join(execSync("npm root -g").toString().trim(), "playwright"));
-}
+const FONDO = "#dcebe2";
+const svg = readFileSync(join(ROOT, "public/icons/isotipo-app.svg"), "utf8");
 
-const FONDO = "#FEF9EF"; // el crema exacto del ícono, para que no se note costura al reducir la "d"
-const origen = "data:image/png;base64," + readFileSync(join(ROOT, "referencias/iconos/icono-vendedores.png")).toString("base64");
+// Caja del isotipo (sin borde) en el viewBox de 2048, y su centro
+const CAJA = { x0: 330, x1: 1811, y0: 181, y1: 1966 };
+const ALTO = CAJA.y1 - CAJA.y0;
+const CX = (CAJA.x0 + CAJA.x1) / 2;
+const CY = (CAJA.y0 + CAJA.y1) / 2;
 
-/** @param escala fracción del lado que ocupa el ícono original (1 = a sangre) */
-const html = (lado, escala) => {
-  const t = lado * escala;
-  return `<html><body style="margin:0;background:${FONDO}"><div style="width:${lado}px;height:${lado}px;background:${FONDO};position:relative;overflow:hidden"><img src="${origen}" style="position:absolute;left:${(lado - t) / 2}px;top:${(lado - t) / 2}px;width:${t}px;height:${t}px"></div></body></html>`;
-};
-
-const ICONOS = [
-  { archivo: "public/icons/icon-192.png", lado: 192, escala: 1 },
-  { archivo: "public/icons/icon-512.png", lado: 512, escala: 1 },
-  // "maskable": Android recorta en círculo; la "d" debe quedar dentro de la zona segura (80 %)
-  { archivo: "public/icons/icon-maskable-512.png", lado: 512, escala: 0.86 },
-  // iOS pone sus propias esquinas
-  { archivo: "public/icons/apple-touch-icon.png", lado: 180, escala: 1 },
-  // favicon (Next.js lo toma de app/icon.png)
-  { archivo: "app/icon.png", lado: 512, escala: 1 },
-];
-
-const navegador = await playwright.chromium.launch();
-const pagina = await navegador.newPage();
-for (const { archivo, lado, escala } of ICONOS) {
-  await pagina.setViewportSize({ width: lado, height: lado });
-  await pagina.setContent(html(lado, escala));
-  await pagina.screenshot({ path: join(ROOT, archivo) });
+/** @param alto fracción del lado que ocupa el isotipo (sin borde) */
+async function icono(archivo, lado, alto) {
+  const unidades = (ALTO / alto); // unidades del viewBox que caben en el lado
+  const vb = `${CX - unidades / 2} ${CY - unidades / 2} ${unidades} ${unidades}`;
+  const centrado = svg.replace(/viewBox="[^"]+"/, `viewBox="${vb}"`);
+  const png = await sharp(Buffer.from(centrado), { density: 72 * Math.max(1, (lado / unidades) * 4) })
+    .resize(lado, lado)
+    .flatten({ background: FONDO })
+    .png()
+    .toBuffer();
+  await sharp(png).toFile(join(ROOT, archivo));
   console.log("✓", archivo);
 }
-await navegador.close();
+
+// "any": el isotipo mide lo mismo que en el ícono anterior (68 % del lado de alto)
+await icono("public/icons/apple-touch-icon.png", 180, 0.68);
+await icono("public/icons/icon-192.png", 192, 0.68);
+await icono("public/icons/icon-512.png", 512, 0.68);
+await icono("app/icon.png", 512, 0.68);
+// "maskable": Android recorta en círculo; isotipo + borde dentro de la zona segura del 80 % (ocupa ~50 % del lado)
+await icono("public/icons/icon-maskable-512.png", 512, 0.5);
