@@ -201,7 +201,13 @@ function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { producto
                 <IconoPedidos tamano={26} className="shrink-0 text-texto" />
                 <div className="min-w-0 flex-1">
                   <p className="text-destacado text-texto">Por reponer</p>
-                  <p className="text-secundario text-texto-secundario">{vendidosAgotados > 0 ? `${vendidosAgotados} se fueron volando` : `${paraReponer.length} agotados`}</p>
+                  <p className="text-secundario text-texto-secundario">{vendidosAgotados > 0
+                      ? vendidosAgotados === 1
+                        ? "1 se fue volando"
+                        : `${vendidosAgotados} se fueron volando`
+                      : paraReponer.length === 1
+                        ? "1 agotado"
+                        : `${paraReponer.length} agotados`}</p>
                 </div>
                 <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
               </div>
