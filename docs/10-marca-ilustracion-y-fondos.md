@@ -19,6 +19,22 @@ Deslizapp se resume en **Desliza, Encuentra, Escribe**: el recorrido del comprad
 
 ![Desliza, Encuentra, Escribe](../referencias/sistema-de-diseno/marca/desliza-encuentra-escribe.jpg)
 
+## El concepto: varias apps en una
+
+Deslizapp mezcla, a nivel de idea, lo mejor de varias apps que la gente ya usa todos los días. Cada una se asocia con un color de la marca, y por eso los colores no son arbitrarios:
+
+| Referencia | Color | Qué aporta a Deslizapp | Dónde se nota |
+|---|---|---|---|
+| **Instagram** | Rosa | Descubrir: mirar productos como un feed, que gusten y que se quiera | Fondos y piezas para compradores, corazón de "Lo quiero", "aaah" |
+| **WhatsApp** | Verde Bosque | Conversar y confiar: el pedido se cierra hablando con la tienda | Color principal y de acción, burbuja de chat, "Escribe/Pide" |
+| **Amazon** | Mandarina | Comprar: la acción que cierra la compra, con precio y llamada clara | Botón flotante, contadores de atención, una llamada emocional por pantalla |
+| **TikTok** | (el gesto, no un color) | Deslizar: pasar de un producto a otro con el pulgar | La flecha del isotipo y el catálogo en reel |
+
+- Es un **concepto que guía**, no una licencia para copiar: de cada app se toma la sensación (descubrir, conversar, comprar, deslizar), nunca su logo, su tipografía ni su diseño.
+- Encaja con el recorrido **Desliza, Encuentra, Escribe**: desliza (TikTok) → encuentra, "aaah" (Instagram, rosa) → escribe y pide (WhatsApp y Amazon, verde y mandarina). Por eso el círculo de "Escribe" es Mandarina con la burbuja en Verde Bosque: comprar (Amazon) conversando (WhatsApp).
+- Encaja con las reglas de color de la app: **verde = seguir adelante** (confianza de WhatsApp), **Mandarina = una sola llamada por pantalla** (el botón de comprar de Amazon, no se reparte), **rosa = marca y decoración, no estado** (el ambiente de Instagram).
+- Al decidir un color nuevo o una pieza nueva, la pregunta es: ¿esto es descubrir (rosa), conversar (verde) o comprar (mandarina)?
+
 ## Logo según el público
 
 El isotipo es una "d" redondeada con una flecha hacia arriba (deslizar), dentro de un cuadrado de esquinas suaves. El logotipo "deslizapp" va en Fredoka, en minúsculas.
