@@ -3,7 +3,11 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { CURVA, DURACION, menosMovimiento } from "@/lib/movimiento";
 
-/** Arcos SVG: excepción de movimiento aprobada para las donas, sin animar el layout. */
+/**
+ * Arcos SVG: excepción de movimiento aprobada para las donas, sin animar el layout. Sin anillo de fondo (docs/09, "Barras y anillos"):
+ * con datos solo se ven los arcos, con su separación; `pista` pinta el anillo entero únicamente en el estado vacío (suma 0), para que
+ * la dona no desaparezca.
+ */
 export function Dona({ segmentos, total, tamano = 76, grosor = 9, pista = "#f3ead9", children, className = "" }: {
   segmentos: { valor: number; color: string }[]; total?: number; tamano?: number; grosor?: number;
   pista?: string; children?: ReactNode; className?: string;
@@ -43,7 +47,7 @@ export function Dona({ segmentos, total, tamano = 76, grosor = 9, pista = "#f3ea
   }, [firma, circunferencia]);
   return <span className={`relative block shrink-0 ${className}`} style={{ width: tamano, height: tamano }}>
     <svg ref={svg} viewBox={`0 0 ${tamano} ${tamano}`} aria-hidden="true" className="absolute inset-0 h-full w-full">
-      <circle cx={tamano / 2} cy={tamano / 2} r={radio} fill="none" stroke={pista} strokeWidth={grosor} />
+      {suma === 0 && <circle cx={tamano / 2} cy={tamano / 2} r={radio} fill="none" stroke={pista} strokeWidth={grosor} />}
       {arcos.map((a, i) => <circle key={i} data-arco data-largo={a.largo} cx={tamano / 2} cy={tamano / 2} r={radio}
         fill="none" stroke={a.color} strokeWidth={grosor} strokeLinecap="round"
         opacity={a.largo > 0 ? 1 : 0} strokeDasharray={`${circunferencia} ${circunferencia}`}

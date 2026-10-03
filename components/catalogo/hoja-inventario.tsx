@@ -262,23 +262,23 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
           </p>
           <div role="img" aria-label={etiquetaBarra} className="mt-3 flex h-3 gap-[3px]">
             {[
-              { valor: salud.disponibles, clase: "bg-accion" },
-              { valor: salud.agotados, clase: "bg-resalte" },
-              { valor: libre, clase: "bg-superficie-hundida" },
+              { valor: salud.disponibles, color: COLOR_STOCK.conStock },
+              { valor: salud.agotados, color: COLOR_STOCK.agotados },
+              { valor: libre, color: "var(--superficie-hundida)" },
             ]
               .filter((t) => t.valor > 0)
               .map((t) => (
-                <span key={t.clase} className={`block min-w-3 rounded-full transition-[flex-grow] duration-(--mov-normal) ease-(--curva-salida) ${t.clase}`} style={{ flexGrow: t.valor / base, flexBasis: 0 }} />
+                <span key={t.color} className="block min-w-3 rounded-full transition-[flex-grow] duration-(--mov-normal) ease-(--curva-salida)" style={{ flexGrow: t.valor / base, flexBasis: 0, backgroundColor: t.color }} />
               ))}
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
             {[
-              { nombre: "Disponibles", valor: salud.disponibles, clase: "bg-accion" },
-              { nombre: "Agotados", valor: salud.agotados, clase: "bg-resalte" },
-              { nombre: "Libres", valor: libre, clase: "bg-superficie-hundida" },
+              { nombre: "Disponibles", valor: salud.disponibles, color: COLOR_STOCK.conStock },
+              { nombre: "Agotados", valor: salud.agotados, color: COLOR_STOCK.agotados },
+              { nombre: "Libres", valor: libre, color: "var(--superficie-hundida)" },
             ].map((l) => (
               <div key={l.nombre} className="flex items-center gap-2 text-secundario">
-                <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-full ${l.clase}`} />
+                <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: l.color }} />
                 <dt className="min-w-0 flex-1 truncate text-texto-secundario">{l.nombre}</dt>
                 <dd className="text-texto tabular-nums">{l.valor}</dd>
               </div>

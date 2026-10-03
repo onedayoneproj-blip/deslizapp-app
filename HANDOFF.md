@@ -156,6 +156,8 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
   `ResumenDona` (dona 112 + título Fredoka y línea; leyenda y «otros grupos» como `ListaAgrupada`, filas con número > 0 tocables con
   chevron). Tocar una fila abre dentro de la hoja la lista del grupo (clientes con `FilaCliente`, productos). La leyenda del inventario ya no
   filtra la lista de atrás (se quitó `filtrarCatalogo`; la pastilla «Por agotarse» sigue). Lecturas puras: `lecturaClientes`, `lecturaInventario`.
+- Donas sin anillo de fondo: `Dona` solo dibuja la `pista` cuando la suma de los segmentos es 0 (estado vacío). `COLOR_STOCK.agotados` es
+  `var(--peligro)` y lo usan la dona, la leyenda y la barra del plan (no se tocó el modo oscuro).
 - Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patrón `public/chat/patron-whatsapp.svg`; también en el
   recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
 
