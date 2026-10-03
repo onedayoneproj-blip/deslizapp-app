@@ -999,3 +999,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .malla-mancha, .mazo-ciclo .mazo-carta { animation: none; }
   .malla-zona { transition: none; }
 }
+
+/* Brillo de la malla arriba de la hoja de jugadas: la misma malla, suave y desvanecida hacia abajo. */
+.brillo-jugada { opacity: .55; -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%); }
+.brillo-jugada .malla { border-radius: 0; }

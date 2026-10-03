@@ -10,9 +10,10 @@ import { ContenidoResumenClientes, NOMBRE_GRUPO_CLIENTES } from "./contenido-res
 import { FilaCliente } from "./fila-cliente";
 import { BotonVolver } from "../selector-busqueda";
 import { menosMovimiento } from "@/lib/movimiento";
-import { LuzJugada, TransicionJugada, type OrigenLuz } from "./luz-jugada";
+import { TransicionJugada, type OrigenLuz } from "./luz-jugada";
+import { BrilloJugada, EntradaJugada, medirEntrada, type OrigenEntrada } from "./transiciones-jugada";
 import { HojaBorradoresJugada } from "./hoja-borradores-jugada";
-import { calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
+import { CARTAS_JUGADAS, calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
 import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import type { ClienteConResumen, Pedido } from "@/lib/types";
 export { SEGMENTOS_CLIENTES } from "./contenido-resumen-clientes";
@@ -30,8 +31,9 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   const profundidad = useRef(0);
   const vistaActual = useRef<Vista>("resumen");
   const [borrador, setBorrador] = useState<{ id: IdJugada; nombre: string; cliente: ClienteAnalizado } | null>(null);
-  const [pulso, setPulso] = useState(0);
   const [transicion, setTransicion] = useState<{ tipo: "galeria" | "detalle"; origen?: OrigenLuz; id: number } | null>(null);
+  // Entrada a la galería: mientras las cartas vuelan, los cuadros de la galería esperan invisibles
+  const [entrada, setEntrada] = useState<{ origen: OrigenEntrada; id: number } | null>(null);
   const secuencia = useRef(0);
   const { jugadas, destacada, total } = calcularJugadas(clientes, pedidos, tiendaId, ahora);
   const seleccionada = jugadas.find((j) => j.id === vista);
@@ -43,6 +45,7 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
       profundidad.current--;
       vistaActual.current = siguiente;
       setTransicion(null);
+      setEntrada(null);
       setVista(siguiente);
     };
     window.addEventListener("popstate", atras);
@@ -50,10 +53,11 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   }, []);
   const navegar = (siguiente: Vista, elemento?: HTMLElement) => {
     if (siguiente === vistaActual.current) return;
-    const efecto = vista === "resumen" && siguiente === "galeria" ? "galeria" : vista === "galeria" && siguiente !== "resumen" ? "detalle" : null;
+    const efecto = vista === "galeria" && siguiente !== "resumen" ? "detalle" : null;
     const r = elemento?.getBoundingClientRect();
     setTransicion(efecto && !menosMovimiento() ? { tipo: efecto, origen: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined, id: ++secuencia.current } : null);
-    if (efecto) setPulso((n) => n + 1);
+    const origenEntrada = vista === "resumen" && siguiente === "galeria" && elemento && !menosMovimiento() ? medirEntrada(elemento, CARTAS_JUGADAS) : null;
+    setEntrada(origenEntrada ? { origen: origenEntrada, id: ++secuencia.current } : null);
     window.history.pushState({ ...(window.history.state ?? {}), deslizappJugada: siguiente }, "");
     profundidad.current++;
     vistaActual.current = siguiente;
@@ -61,11 +65,13 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   };
   const volver = () => {
     setTransicion(null);
+    setEntrada(null);
     if (profundidad.current > 0) window.history.back();
     else setVista("resumen");
   };
   const cerrar = () => {
     setTransicion(null);
+    setEntrada(null);
     if (profundidad.current > 0) window.history.go(-profundidad.current);
     alCerrar();
   };
@@ -81,25 +87,27 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   const titulo = vista === "resumen" ? "Tus clientes" : vista === "galeria" ? "Tu próxima jugada" : esGrupo(vista) ? `${NOMBRE_GRUPO_CLIENTES[vista.slice(6) as GrupoClientes]}\u00a0·\u00a0${resumen.cuentas[vista.slice(6) as GrupoClientes]}` : seleccionada?.nombre ?? "Tu próxima jugada";
 
   return <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande"
-    decoracionAbajo={vista !== "resumen" && !esGrupo(vista) ? <LuzJugada pulso={pulso} /> : undefined}
     decoracionEncima={transicion ? <TransicionJugada key={transicion.id} tipo={transicion.tipo} origen={transicion.origen} alTerminar={() => setTransicion(null)} /> : undefined}
     fijoArriba={vista !== "resumen" ? <div className="flex items-center gap-2 text-secundario font-extrabold text-texto">
       <BotonVolver onClick={volver} etiqueta={`Volver a ${vista === "galeria" || esGrupo(vista) ? "Tus clientes" : "Tu próxima jugada"}`} />
       <span aria-hidden="true">{vista === "galeria" || esGrupo(vista) ? "Tus clientes" : "Todas las jugadas"}</span>
     </div> : undefined}>
-    <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total}
+    {entrada && <EntradaJugada key={entrada.id} origen={entrada.origen} alTerminar={() => setEntrada(null)} />}
+    <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total} cuadrosOcultos={entrada !== null}
       seleccionada={seleccionada} ahora={ahora}
-      tiendaId={tiendaId} navegar={navegar} filtrar={filtrar} irADatos={irADatos} alPulsar={() => setPulso((n) => n + 1)} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
+      tiendaId={tiendaId} navegar={navegar} filtrar={filtrar} irADatos={irADatos} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
     {borrador && <HojaBorradoresJugada key={`${borrador.id}:${borrador.cliente.id}`} id={borrador.id} nombreJugada={borrador.nombre}
       cliente={borrador.cliente.nombre} telefono={borrador.cliente.telefono!} vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo}
       alCerrar={() => setBorrador(null)} />}
   </Hoja>;
 }
 
-function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tiendaId, navegar, filtrar, irADatos, alEscribir, alPulsar }: {
+function Contenido({ vista, resumen, jugadas, destacada, total, cuadrosOcultos, seleccionada, ahora, tiendaId, navegar, filtrar, irADatos, alEscribir }: {
   vista: Vista; resumen: ResumenClientes; jugadas: Jugada[]; destacada: Jugada | null; total: number;
+  /** Mientras vuelan las cartas de la entrada, los cuadros esperan invisibles y aparecen al terminar. */
+  cuadrosOcultos: boolean;
   seleccionada?: Jugada; ahora: number;
-  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; alPulsar: () => void; filtrar: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
+  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; filtrar: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
 }) {
   const irArriba = useIrArribaHoja();
   useEffect(() => { irArriba(); }, [vista, irArriba]);
@@ -107,11 +115,12 @@ function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ah
   if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alAbrirGrupo={(g) => navegar(`grupo:${g}`)} alFiltrar={filtrar} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
   if (esGrupo(vista)) return <VistaGrupoClientes grupo={vista.slice(6) as GrupoClientes} resumen={resumen} ahora={ahora} tiendaId={tiendaId} irADatos={irADatos} />;
   return <div className="relative min-h-full pb-6">
+    <BrilloJugada />
     {vista === "galeria" ? <>
       <p className="mb-4 text-secundario text-texto-secundario">Cuatro maneras de acercarte a tu gente. Los números salen de tus pedidos.</p>
-      {jugadas.length ? <div className="grid grid-cols-2 gap-2.5">{jugadas.map((j) => <button key={j.id} type="button" onClick={() => navegar(j.id)}
+      {jugadas.length ? <div className="grid grid-cols-2 gap-2.5">{jugadas.map((j) => <button key={j.id} type="button" data-jugada-cuadro={j.id} onClick={() => navegar(j.id)}
         aria-label={`${j.nombre}: ${j.cantidad} ${j.cantidad === 1 ? "cliente" : "clientes"}. Ver jugada`}
-        className="tocable relative isolate flex min-h-62 flex-col overflow-hidden rounded-radio-l border border-borde-campo p-3.5 text-left text-marca-bosque outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco" style={{ backgroundColor: j.color }}>
+        className="tocable relative isolate flex min-h-62 flex-col overflow-hidden rounded-radio-l border border-borde-campo p-3.5 text-left text-marca-bosque outline-none transition-opacity duration-(--mov-normal) focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco" style={{ backgroundColor: j.color, opacity: cuadrosOcultos ? 0 : 1 }}>
         <Image src={j.imagen} alt="" width={180} height={180} sizes="(max-width: 430px) 42vw, 180px" className="pointer-events-none absolute inset-x-0 top-3 mx-auto size-35 object-contain" />
         <span aria-hidden="true" className="jugada-tarjeta-degradado absolute inset-0" />
         <span className="relative z-10 ml-auto rounded-full bg-marca-papel/90 px-2.5 py-1 text-etiqueta font-extrabold">{j.cantidad} {j.cantidad === 1 ? "cliente" : "clientes"}</span>
@@ -120,12 +129,12 @@ function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ah
       </button>)}</div> : <div className="rounded-radio-l bg-superficie p-6 text-center"><b className="font-display text-titulo-seccion">Por ahora, todo tranquilo.</b><p className="mt-2 text-secundario text-texto-secundario">Cuando haya clientes sin pedidos en curso, aquí encontrarás ideas para conversar.</p></div>}
       <p className="mt-5 text-center text-etiqueta text-texto-secundario">Toca una jugada para ver a quién podrías escribir.</p>
       <p className="mt-3 rounded-radio-m bg-superficie p-3.5 text-etiqueta text-texto">Una persona puede encajar en más de una jugada. Tú eliges con quién conversar.</p>
-    </> : seleccionada ? <Detalle jugada={seleccionada} total={total} ahora={ahora} irADatos={irADatos} alEscribir={alEscribir} alPulsar={alPulsar} paginadas={paginadas} /> : null}
+    </> : seleccionada ? <Detalle jugada={seleccionada} total={total} ahora={ahora} irADatos={irADatos} alEscribir={alEscribir} paginadas={paginadas} /> : null}
   </div>;
 }
 
-function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, alPulsar, paginadas }: {
-  jugada: Jugada; total: number; ahora: number; alPulsar: () => void;
+function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, paginadas }: {
+  jugada: Jugada; total: number; ahora: number;
   alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void; irADatos: (clienteId: string) => void; paginadas: ReturnType<typeof useVerMas<ClienteAnalizado>>;
 }) {
   return <>
@@ -146,7 +155,7 @@ function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, alPulsar, pagi
         accion={c.telefono ? <Boton tamano="compacto" onClick={() => alEscribir(j.id, j.nombre, c)} aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}>Escribir</Boton> :
           <Boton jerarquia="secundario" tamano="compacto" onClick={() => irADatos(c.id)} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}>Sin WhatsApp · Ver datos</Boton>} />;
     })}
-      <BotonVerMas forma="fila" pagina={5} quedan={paginadas.quedan} mostrados={paginadas.mostrados} total={j.cantidad} alTocar={() => { paginadas.verMas(); alPulsar(); }} />
+      <BotonVerMas forma="fila" pagina={5} quedan={paginadas.quedan} mostrados={paginadas.mostrados} total={j.cantidad} alTocar={paginadas.verMas} />
     </ListaAgrupada>
     <p className="mt-4 text-etiqueta text-texto-secundario">La cifra incluye a todos los clientes elegibles, incluso si no tienen WhatsApp. Ningún mensaje se envía solo.</p>
   </>;
