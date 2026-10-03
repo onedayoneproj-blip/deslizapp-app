@@ -73,7 +73,7 @@
   --en-linea: #2e8b57;
   --peligro: #b4432a;
   --sobre-peligro: #ffffff;
-  --foco: #c24e18;
+  --foco: #174b3a;
   --velo: rgba(16, 54, 42, 0.5);
   --marco: #f3eadb;
   /* Fijos de marca (piezas de identidad; no cambian en oscuro y no van en controles) */
@@ -124,7 +124,7 @@
   --en-linea: #5fc58e;
   --peligro: #ff8a70;
   --sobre-peligro: #2a0e08;
-  --foco: #ffa47e;
+  --foco: #9ed3b8;
   --velo: rgba(0, 0, 0, 0.6);
   --marco: #09140f;
   --sombra-flotante: 0 10px 24px -10px rgba(0, 0, 0, 0.6);

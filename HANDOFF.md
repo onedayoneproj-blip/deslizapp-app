@@ -242,6 +242,9 @@ HTML. El catálogo todavía no se alimenta solo de los productos del panel. El d
   pantalla: `selector-busqueda`, `ver-mas`, `hoja-estado`, `boton-flotante`, `titulo-pantalla`, `Interruptor`, `estado-vacio`, el esqueleto,
   el fondo del `body` y de `(dashboard)/layout`, y los colores de `hoja.tsx` (solo tokens, sin reescribirla). Pendiente de Pedidos: el encabezado y
   la barra inferior (shell), `TicketPromo` (Promos) y la hoja `Hoja` completa (radio 28, sombra).
+- **Foco verde, nunca naranja:** `--foco` es #174b3a (claro) / #9ed3b8 (oscuro). Campo, CampoMonto y Buscador no llevan anillo: con el cursor dentro el contorno de 2 px pasa a `accion` (con error, `peligro`); el borde es siempre de 2 px para que no salte. Botones, opciones, pastillas y filas tocables usan el anillo `foco` de 3 px solo con `:focus-visible`.
+- **Secundario con relleno:** `Boton jerarquia="secundario"` lleva relleno `superficie` (nunca transparente). Las acciones dentro de tarjetas y filas (Cambiar, Quitar, Cambiar a crédito) son secundario `compacto`; el terciario queda solo para Cancelar/Eliminar pedido y Borrar abono (peligro) y Reintentar en un aviso.
+- **Cantidad:** − en `superficie-hundida`, + en `accion` con icono `sobre-accion`; cada uno se apaga al llegar al mínimo o al tope. **`FilaAgregar`** (`components/ui/fila-agregar.tsx`): círculo `accion` de 24 px con +, texto `destacado` (Agregar cupón).
 - **Regla Opcion vs segmentado:** `ControlSegmentado` solo cambia una vista o modo (Día / Semana / Mes); un dato que se guarda va con `GrupoOpciones` / `Opcion` aunque sean dos opciones (por eso "¿Cómo te paga?" ya no es segmentado).
 - **Guía viva:** `/diseno` (pública, noindex, sin enlace desde la app), con todos los componentes y sus estados, en claro y oscuro.
 - **Regla:** en código nuevo no se escriben colores ni tamaños a mano (ni hex, ni `bg-white`, ni `text-[Npx]` fuera de la escala, ni

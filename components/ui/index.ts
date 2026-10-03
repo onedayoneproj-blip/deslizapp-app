@@ -8,6 +8,7 @@ export { BotonCantidad, Cantidad } from "./cantidad";
 export { Buscador, Campo, CampoMonto, soloDigitos } from "./campo";
 export { ControlSegmentado } from "./control-segmentado";
 export { Contador, Etiqueta, type TonoEtiqueta } from "./etiqueta";
+export { FilaAgregar } from "./fila-agregar";
 export { FilaLista, ListaAgrupada } from "./lista";
 export { GrupoOpciones, Opcion } from "./opcion";
 export { FilaPastillas, Pastilla, type OpcionFiltro } from "./pastilla";

@@ -10,7 +10,7 @@ export type TamanoBoton = "grande" | "normal" | "compacto";
 
 const JERARQUIA: Record<JerarquiaBoton, string> = {
   principal: "border-accion bg-accion text-sobre-accion",
-  secundario: "border-accion bg-transparent text-accion",
+  secundario: "border-accion bg-superficie text-accion",
   terciario: "border-transparent bg-transparent text-accion",
   peligro: "border-peligro bg-transparent text-peligro",
   resalte: "border-resalte bg-resalte text-sobre-resalte",

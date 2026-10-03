@@ -12,7 +12,8 @@ export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado }: { tipo
       onClick={onClick}
       disabled={deshabilitado}
       className={clases(
-        "tocable relative grid size-(--alto-compacto) shrink-0 place-items-center rounded-radio-s bg-superficie-hundida text-texto after:absolute after:-inset-1 after:content-[''] disabled:opacity-40",
+        "tocable relative grid size-(--alto-compacto) shrink-0 place-items-center rounded-radio-s after:absolute after:-inset-1 after:content-[''] disabled:opacity-40",
+        tipo === "mas" ? "bg-accion text-sobre-accion" : "bg-superficie-hundida text-texto",
         FOCO,
       )}
     >

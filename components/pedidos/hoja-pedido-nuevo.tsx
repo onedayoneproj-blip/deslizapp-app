@@ -288,7 +288,7 @@ function Formulario({
             <p className="truncate text-destacado">{cliente.nombre}</p>
             {cliente.telefono && <p className="truncate text-secundario text-texto-secundario">{formatearTelefono(cliente.telefono)}</p>}
           </div>
-          <Boton jerarquia="terciario" tamano="compacto" onClick={abrirSelector}>
+          <Boton jerarquia="secundario" tamano="compacto" onClick={abrirSelector}>
             Cambiar
           </Boton>
         </div>

@@ -105,7 +105,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
             Pagado
           </p>
           {!cambiando && (
-            <Boton jerarquia="terciario" tamano="compacto" className="-mr-2" onClick={() => setCambiando(true)}>
+            <Boton jerarquia="secundario" tamano="compacto" onClick={() => setCambiando(true)}>
               Cambiar a crédito
             </Boton>
           )}

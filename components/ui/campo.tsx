@@ -4,11 +4,12 @@ import { useId, type ComponentProps, type ReactNode, type Ref } from "react";
 import { IconoBuscar } from "../iconos";
 import { clases } from "./comunes";
 
-const FOCO_CAMPO = "focus:border-accion focus:outline-3 focus:outline-offset-1 focus:outline-foco";
+// Foco = contorno de 2 px `accion` (nunca anillo ni naranja). El borde es siempre de 2 px: el campo no cambia de tamaño al enfocarlo.
+const FOCO_CAMPO = "outline-none";
 
 /**
  * Campo de texto (docs/09, Campo.md): rótulo siempre visible arriba, ayuda o error abajo (aria-describedby, aria-invalid).
- * Alto 50, `radio-m`, contorno 1.5 px `borde-campo` (3:1: se ve dónde escribir), letra 16 (iOS no hace zoom).
+ * Alto 50, `radio-m`, contorno `borde-campo` (2 px; con el cursor dentro pasa a `accion`, con error a `peligro`, sin anillo) (3:1: se ve dónde escribir), letra 16 (iOS no hace zoom).
  * El teclado según el dato va en los atributos (inputMode="numeric", type="tel"…).
  */
 export function Campo({
@@ -34,9 +35,9 @@ export function Campo({
         aria-invalid={error ? true : undefined}
         aria-describedby={nota ? idNota : undefined}
         className={clases(
-          "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-[1.5px] bg-superficie px-3.5 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
+          "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
           FOCO_CAMPO,
-          error ? "border-peligro" : "border-borde-campo",
+          error ? "border-peligro" : "border-borde-campo focus:border-accion",
         )}
       />
       {nota && (
@@ -82,8 +83,8 @@ export function CampoMonto({
       <label
         htmlFor={id}
         className={clases(
-          "block rounded-radio-l border-[1.5px] bg-superficie px-4 py-2.5 focus-within:border-accion focus-within:outline-3 focus-within:outline-offset-1 focus-within:outline-foco",
-          error ? "border-peligro" : "border-borde-campo",
+          "block rounded-radio-l border-2 bg-superficie px-4 py-2.5",
+          error ? "border-peligro" : "border-borde-campo focus-within:border-accion",
         )}
       >
         <span className="block text-secundario text-texto-secundario">{etiqueta}</span>
@@ -138,7 +139,7 @@ export function Buscador({
   return (
     <label
       className={clases(
-        "flex h-(--alto-campo) items-center gap-2.5 rounded-full border-[1.5px] border-borde-pastilla bg-superficie px-4.5 text-texto-secundario has-[input:focus-visible]:outline-3 has-[input:focus-visible]:outline-offset-1 has-[input:focus-visible]:outline-foco",
+        "flex h-(--alto-campo) items-center gap-2.5 rounded-full border-2 border-borde-pastilla bg-superficie px-4.5 text-texto-secundario focus-within:border-accion",
         className,
       )}
     >

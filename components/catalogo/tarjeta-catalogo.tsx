@@ -103,7 +103,7 @@ function Boton({ children, alTocar, clase, latido = false }: { children: ReactNo
     <button
       type="button"
       onClick={alTocar}
-      className={`tocable relative isolate flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-extrabold after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-mandarina ${clase} ${latido ? "cat-anim-onda-cta" : ""}`}
+      className={`tocable relative isolate flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-extrabold after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${clase} ${latido ? "cat-anim-onda-cta" : ""}`}
     >
       {children}
     </button>
@@ -336,7 +336,7 @@ function Recien({ alTocar }: { alTocar: () => void }) {
 function Publicado({ tienda, alVer }: { tienda: Tienda; alVer: () => void }) {
   const enlace = enlaceCatalogo(tienda.urlCatalogo);
   const redondo =
-    "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-mandarina";
+    "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco";
   return (
     <div className={`${CAJA} border border-linea bg-white`}>
       <div className={FILA}>
@@ -344,7 +344,7 @@ function Publicado({ tienda, alVer }: { tienda: Tienda; alVer: () => void }) {
           type="button"
           onClick={alVer}
           aria-label="Ver mi catálogo en línea"
-          className="tocable min-w-0 grow rounded-lg text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-mandarina"
+          className="tocable min-w-0 grow rounded-lg text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
         >
           <span className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-menta px-[9px] text-[11.5px] font-extrabold text-bosque">
             <span aria-hidden="true" className="cat-anim-onda cat-anim-onda-lenta relative isolate h-[7px] w-[7px] rounded-full bg-[#2e8b57]" style={{ ["--onda" as string]: "#2e8b57" }} />

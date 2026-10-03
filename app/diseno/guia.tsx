@@ -23,6 +23,7 @@ import {
   Campo,
   CampoMonto,
   Cantidad,
+  FilaAgregar,
   Contador,
   ControlSegmentado,
   Etiqueta,
@@ -233,7 +234,7 @@ function Botones() {
           <Boton whatsapp href="https://wa.me/" target="_blank" rel="noreferrer">
             Escribir
           </Boton>
-          <Boton jerarquia="terciario" href="/diseno#s-5">
+          <Boton jerarquia="secundario" tamano="compacto" href="/diseno#s-5">
             Ver historial
           </Boton>
           <Boton jerarquia="terciario" tono="peligro">
@@ -251,7 +252,25 @@ function Botones() {
         </Fila>
       </div>
       <div className="flex flex-col gap-2">
-        <Rotulo>cantidad (− 1 +): cuadrados de 36 · el + se apaga en el tope del stock</Rotulo>
+        <Rotulo>secundario con relleno `superficie` · compacto dentro de una tarjeta · fila «Agregar …»</Rotulo>
+        <div className="flex max-w-90 flex-col gap-3">
+          <Boton jerarquia="secundario" anchoCompleto>
+            Agregar más productos
+          </Boton>
+          <Tarjeta>
+            <div className="flex items-center gap-3">
+              <Avatar nombre="Carolina Peña" />
+              <p className="min-w-0 flex-1 truncate text-destacado">Carolina Peña</p>
+              <Boton jerarquia="secundario" tamano="compacto">
+                Cambiar
+              </Boton>
+            </div>
+            <FilaAgregar texto="Agregar cupón" alTocar={() => undefined} className="mt-2" />
+          </Tarjeta>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>cantidad (− 1 +): cuadrados de 36 · − hundido, + verde · cada uno se apaga (40 %) en el mínimo o en el tope del stock</Rotulo>
         <Fila>
           <Cantidad valor={cantidadEj} max={4} alCambiar={setCantidadEj} />
           <Cantidad valor={4} max={4} alCambiar={() => {}} />
@@ -402,7 +421,7 @@ function Avisos() {
         <Boton jerarquia="secundario" tamano="compacto" onClick={() => mostrarToast("Sin conexión", { persistente: true, accion: { texto: "Reintentar", alTocar: () => undefined } })}>
           Toast persistente
         </Boton>
-        <Boton jerarquia="terciario" tamano="compacto" onClick={() => ocultarToast()}>
+        <Boton jerarquia="secundario" tamano="compacto" onClick={() => ocultarToast()}>
           Ocultar
         </Boton>
       </Fila>
@@ -538,6 +557,8 @@ function Campos() {
           error={telefono.replace(/\D/g, "").length === 10 ? undefined : "Escríbelo con 809, 829 o 849 y 7 dígitos más."}
         />
         <Campo etiqueta="Código" value="AAAH10" disabled readOnly />
+        <Campo etiqueta="Con foco (cursor dentro): contorno verde de 2 px" defaultValue="Paola" className="[&_input]:border-accion" />
+        <Campo etiqueta="Con error: contorno rojo de 2 px" defaultValue="809" error="Escríbelo con 809, 829 o 849 y 7 dígitos más." />
         <CampoMonto etiqueta="Te dio ahora (opcional)" valor={monto} alCambiar={setMonto} />
         <CampoMonto etiqueta="¿Cuánto te pagó?" tamano="grande" valor={monto} alCambiar={setMonto} error={Number(monto) > 1000 ? "Te debe RD$1,000; no puedes abonar más que eso." : undefined} />
       </div>

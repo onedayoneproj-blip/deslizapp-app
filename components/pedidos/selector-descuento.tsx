@@ -8,10 +8,10 @@ import { pedidosConCodigo, razonNoUsable, textoUso, type ContextoCodigo } from "
 import type { Pedido, Promo } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { HojaFijoArriba, useIrArribaHoja } from "../hoja";
-import { IconoCheck, IconoMas } from "../iconos";
+import { IconoCheck } from "../iconos";
 import { TicketPromo } from "../promos/ticket-promo";
 import { BotonVolver } from "../selector-busqueda";
-import { Boton } from "../ui";
+import { Boton, FilaAgregar } from "../ui";
 
 /** Etiqueta corta de por qué un cupón no se puede usar. */
 const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "Programado", agotada: "Agotado" } as const;
@@ -80,9 +80,7 @@ export function FilaDescuento({
     return (
       <div className={borde}>
         <div ref={contenido}>
-          <Boton jerarquia="terciario" icono={<IconoMas tamano={18} strokeWidth={2.4} />} onClick={alAbrir} deshabilitado={deshabilitado} className="-ml-2">
-            Agregar cupón
-          </Boton>
+          <FilaAgregar texto="Agregar cupón" alTocar={alAbrir} deshabilitado={deshabilitado} />
         </div>
       </div>
     );
@@ -105,11 +103,11 @@ export function FilaDescuento({
         )}
         <div className="flex items-center justify-between gap-3">
           <p className="min-w-0 text-etiqueta text-peligro">{promo ? "" : "Ese cupón ya no se puede usar. Elige otro o quítalo."}</p>
-          <span className="flex shrink-0 items-center">
-            <Boton jerarquia="terciario" tamano="compacto" onClick={alAbrir} deshabilitado={deshabilitado}>
+          <span className="flex shrink-0 items-center gap-2">
+            <Boton jerarquia="secundario" tamano="compacto" onClick={alAbrir} deshabilitado={deshabilitado}>
               Cambiar
             </Boton>
-            <Boton jerarquia="terciario" tamano="compacto" onClick={alQuitar} deshabilitado={deshabilitado} className="-mr-2">
+            <Boton jerarquia="secundario" tamano="compacto" onClick={alQuitar} deshabilitado={deshabilitado}>
               Quitar
             </Boton>
           </span>
