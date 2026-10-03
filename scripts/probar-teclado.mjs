@@ -225,7 +225,7 @@ try {
     await page.fill('[role="dialog"] input[aria-label="Nombre del cliente"]', ""); // viene con lo que se buscó
     await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Crear cliente · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Crear cliente · WhatsApp", "8095550123", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] textarea', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
     // Selector de productos (misma hoja): el foco también va en el toque que lo abre
     await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del formulario de cliente al buscador
     await page.waitForSelector('[role="dialog"] input[type="search"]');
@@ -310,7 +310,7 @@ try {
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Paola Jiménez"]', "Cliente nuevo · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[type="tel"]', "Cliente nuevo · WhatsApp", "8095551234", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] textarea', "Cliente nuevo · Nota", "Talla M", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Cliente nuevo · Nota", "Talla M", { dentroDeHoja: true });
     ok(errores.length === 0, `Clientes: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -356,10 +356,15 @@ try {
     await page.waitForSelector("main a[href^='/clientes/']");
     await page.waitForTimeout(900);
     await page.tap("main a[href^='/clientes/'] >> nth=0");
-    await page.waitForSelector('[role="dialog"] textarea');
+    // La nota ya no se escribe en el detalle: se edita en "Editar cliente" (hoja apilada)
+    await page.waitForSelector('[role="dialog"] button:has-text("Editar")');
     await page.waitForTimeout(700);
-    await probarCampo(page, '[role="dialog"] textarea', "Detalle de cliente · Nota", " Le gusta el rosa", { dentroDeHoja: true });
-    ok(errores.length === 0, `Detalle de cliente: sin errores de página (${JSON.stringify(errores)})`);
+    await page.tap('[role="dialog"] button:has-text("Editar")');
+    await page.waitForSelector('[role="dialog"] input[placeholder^="Talla"]');
+    await page.waitForTimeout(700);
+    // Dos hojas (cliente + editar): el chequeo de la hoja usa la primera; aquí solo se mira el campo (como en "Registrar abono")
+    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Editar cliente · Nota", " Le gusta el rosa");
+    ok(errores.length === 0, `Editar cliente: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
   {
