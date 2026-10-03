@@ -19,3 +19,4 @@ export { Tarjeta, type TonoTarjeta } from "./tarjeta";
 export { ProveedorToast, useToastUI, VistaToast, type OpcionesToast } from "./toast";
 export { VistaPreviaWhatsApp } from "./vista-previa-whatsapp";
 export { ResumenDona, type CuadroResumen, type FilaResumen } from "./resumen-dona";
+export { MallaViva, MazoJugadas, TarjetaJugada, type CartaJugada } from "./tarjeta-jugada";

@@ -11,6 +11,8 @@ const DEFINICIONES: Omit<Jugada, "clientes" | "cantidad" | "porcentaje">[] = [
   { id: "gracias", nombre: "Gracias por volver", descripcion: "Reconoce a quienes vuelven por más.", consejo: "Agradece su preferencia. A veces eso basta para seguir conversando.", explicacion: "ha comprado dos veces o más.", imagen: "/ilustraciones/proxima-jugada/gracias-por-volver.webp", color: "#f2e5d3" },
   { id: "primer", nombre: "El primer hola", descripcion: "Acércate a quienes aún no compran.", consejo: "Preséntate sin presión y deja que conozcan tu tienda.", explicacion: "todavía no ha comprado.", imagen: "/ilustraciones/proxima-jugada/primer-hola.webp", color: "#f8ded0" },
 ];
+/** Las cuatro cartas del mazo, siempre en el mismo orden (aunque una jugada no tenga clientes). */
+export const CARTAS_JUGADAS = DEFINICIONES.map((d) => ({ id: d.id, imagen: d.imagen, color: d.color }));
 const PRIORIDAD: IdJugada[] = ["volver", "primer", "segundo", "gracias"];
 const DIA = 86400000;
 export const diasDesde = (fecha: number | null, ahora: number) => fecha === null ? null :
@@ -67,4 +69,20 @@ export function borradoresJugada(id: IdJugada, cliente: string, vendedora: strin
   return (["Cercano", "Directo", enlace ? "Mirar el catálogo" : "Conocer la tienda"] as const).map((tono, i) => ({
     tono, texto: `${inicio} ${i === 2 && !enlace ? sinEnlace[id] : frases[id][i]}${i === 2 && enlace ? ` ${enlace}` : ""}`,
   }));
+}
+
+/** La línea de la Tarjeta de jugada: quiénes y qué hacer, sin porcentajes ("4 clientes compraron una vez. Invítalos a volver."). */
+export function lineaJugada(id: IdJugada, cantidad: number): string {
+  const uno = cantidad === 1;
+  const n = `${cantidad} ${uno ? "cliente" : "clientes"}`;
+  switch (id) {
+    case "volver":
+      return `${n} ${uno ? "lleva" : "llevan"} tiempo sin comprar. ${uno ? "Salúdalo" : "Salúdalos"} de nuevo.`;
+    case "segundo":
+      return `${n} ${uno ? "compró" : "compraron"} una vez. ${uno ? "Invítalo" : "Invítalos"} a volver.`;
+    case "gracias":
+      return `${n} ${uno ? "volvió" : "volvieron"} por más. Dales las gracias.`;
+    case "primer":
+      return `${n} ${uno ? "espera" : "esperan"} su primer hola. ${uno ? "Escríbele" : "Escríbeles"} sin presión.`;
+  }
 }

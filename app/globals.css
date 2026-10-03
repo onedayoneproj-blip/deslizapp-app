@@ -71,6 +71,11 @@
   --atencion-texto: #a8410f;
   --exito-texto: #1f6b47;
   --en-linea: #2e8b57;
+  /* Malla viva de Tu próxima jugada (docs/09 §10, Tarjeta de jugada). TODO modo oscuro: se revisan en ese paso. */
+  --jugada-rosa: #f59bbb;
+  --jugada-sol: #ffb36b;
+  --jugada-mandarina: var(--resalte);
+  --jugada-menta: #5fc79a;
   --peligro: #b4432a;
   --sobre-peligro: #ffffff;
   --foco: #174b3a;
@@ -806,11 +811,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (max-width: 374px) { .dona-cabecera { width: 64px !important; height: 64px !important; } .dona-cabecera .dona-cifra { font-size: var(--text-cuerpo); } .dona-cabecera .dona-cifra-larga { font-size: var(--text-secundario); } }
 @media (prefers-reduced-motion: reduce) { .dona-latido { animation: none; } }
 /* Tu próxima jugada: cuatro cartas y resplandor ambiental, sin alterar el layout. */
-.jugada-mini { position:absolute; width:56px; height:77px; overflow:hidden; border:2px solid #fff9ee; border-radius:11px; box-shadow:0 5px 10px #174b3a35; }
-.jugada-mini-0 { left:-4px; top:46px; transform:rotate(-22deg); background:#e3eee6; }
-.jugada-mini-1 { left:16px; top:18px; transform:rotate(-9deg); background:#f9e1e9; }
-.jugada-mini-2 { left:39px; top:16px; transform:rotate(9deg); background:#f2e5d3; }
-.jugada-mini-3 { left:59px; top:44px; transform:rotate(22deg); background:#f8ded0; }
 .jugada-tarjeta-degradado { background:linear-gradient(to bottom,transparent 33%,#fff9ee24 49%,#fff9eeed 69%,#fff9ee 100%); }
 /* Excepción de Tu próxima jugada: el recorte no se anima; las manchas no tienen fondo rectangular. */
 .jugada-luz {
@@ -826,7 +826,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .jugada-luz-naranja { --luz-color:#ff834fb8; animation:jugada-naranja var(--mov-jugada-ciclo) ease-in-out infinite; }
 .jugada-luz-verde { --luz-color:#a9d8bd; animation:jugada-verde var(--mov-jugada-ciclo) ease-in-out infinite; }
 .jugada-luz-tarjeta .jugada-luz-color { opacity:.6; }
-.jugada-luz-grano { position:absolute; inset:0; background:url('/ilustraciones/proxima-jugada/grain.svg') repeat; opacity:.16; mix-blend-mode:multiply; }
+.jugada-luz-grano { position:absolute; inset:0; background:url('/ilustraciones/proxima-jugada/grano.svg') repeat; opacity:.16; mix-blend-mode:multiply; }
 .jugada-luz-pulso { position:absolute; inset:-40%; opacity:0; background:radial-gradient(ellipse at 30% 60%,#ff834fcc,transparent 58%),radial-gradient(ellipse at 70% 70%,#f5a9c2,transparent 64%),radial-gradient(ellipse at 80% 60%,#8bbda6,transparent 60%); }
 @keyframes jugada-rosa { 0%,100% { transform:translate3d(-18%,8%,0) scale(.95,1.05); } 50% { transform:translate3d(16%,-12%,0) scale(1.2,.85); } }
 @keyframes jugada-naranja { 0%,100% { transform:translate3d(20%,15%,0) scale(.85,1); } 50% { transform:translate3d(-14%,-10%,0) scale(1.05,1.15); } }
@@ -953,3 +953,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   border-color: transparent transparent transparent var(--accion-suave);
 }
 .text-cuerpo-chat { font-size: 0.90625rem; line-height: 1.38; }
+
+/* ==========================================================================
+   Tu próxima jugada · Tarjeta de jugada (components/ui/tarjeta-jugada.tsx). Excepción de movimiento aprobada (docs/09 §13).
+   Malla viva: cuatro manchas, cada una en su zona, moviéndose siempre (6, 7, 8 y 9 s); el contenedor (.malla-zona) es el que
+   va hacia el dedo con su propia transición. Velo crema a la izquierda y grano en overlay (nunca multiply).
+   ========================================================================== */
+.malla { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; background: var(--fondo); }
+.malla-zona { position: absolute; z-index: 0; will-change: transform; transition: transform var(--malla-t) cubic-bezier(.2,.8,.2,1); }
+.malla-zona-rosa { --malla-t: 700ms; right: -40px; top: -60px; }
+.malla-zona-sol { --malla-t: 1100ms; left: 40%; top: -70px; }
+.malla-zona-mandarina { --malla-t: 950ms; right: 50px; bottom: -80px; }
+.malla-zona-menta { --malla-t: 1200ms; left: -70px; bottom: -90px; }
+.malla-mancha { display: block; border-radius: 999px; filter: blur(24px); opacity: .9; will-change: transform; transition: filter .6s ease; }
+.malla-mancha-rosa { width: 190px; height: 170px; background: var(--jugada-rosa); animation: malla-a 6s ease-in-out infinite; }
+.malla-mancha-sol { width: 130px; height: 120px; background: var(--jugada-sol); opacity: .75; animation: malla-d 9s ease-in-out infinite; }
+.malla-mancha-mandarina { width: 170px; height: 150px; background: var(--jugada-mandarina); animation: malla-b 7s ease-in-out infinite; }
+.malla-mancha-menta { width: 190px; height: 170px; background: var(--jugada-menta); animation: malla-c 8s ease-in-out infinite; }
+.malla-velo { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(255,249,238,.78) 0%, rgba(255,249,238,.45) 50%, rgba(255,249,238,0) 70%); transition: opacity .6s ease; }
+.malla-grano { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: url('/ilustraciones/proxima-jugada/grano.svg') repeat; background-size: 180px 180px; opacity: .32; mix-blend-mode: overlay; }
+.malla[data-tocando] .malla-mancha { filter: blur(20px) saturate(1.25); }
+.malla[data-tocando] .malla-velo { opacity: .82; }
+@keyframes malla-a { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-70px,40px) scale(1.2,.9); } 66% { transform: translate(-20px,70px) scale(.9,1.15); } }
+@keyframes malla-b { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(70px,-50px) scale(.9,1.2); } 66% { transform: translate(-60px,-30px) scale(1.15,.95); } }
+@keyframes malla-c { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(90px,-40px) scale(1.2,.95); } 66% { transform: translate(40px,-80px) scale(.95,1.1); } }
+@keyframes malla-d { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-90px,80px); } }
+
+/* Mazo de las cuatro cartas: abanico quieto; con .mazo-ciclo, el ciclo "Las tres" de 14 s (la carta del lugar 1 es la que se asoma). */
+.mazo { position: relative; width: 150px; height: 132px; }
+.mazo-carta { position: absolute; left: 46px; top: 26px; width: 58px; height: 80px; overflow: hidden; border: 2.5px solid var(--fondo); border-radius: 13px; box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--texto) 35%, transparent); transform-origin: 50% 100%; }
+.mazo-carta-0 { transform: translate(-38px,16px) rotate(-20deg); }
+.mazo-carta-1 { transform: translate(-15px,-2px) rotate(-7deg); }
+.mazo-carta-2 { transform: translate(13px,-2px) rotate(7deg); }
+.mazo-carta-3 { transform: translate(36px,16px) rotate(20deg); }
+.mazo-ciclo .mazo-carta { animation: var(--mov-jugada-cartas, 14s) ease-in-out infinite; }
+.mazo-ciclo .mazo-carta-0 { animation-name: tres0; }
+.mazo-ciclo .mazo-carta-1 { animation-name: tres1; }
+.mazo-ciclo .mazo-carta-2 { animation-name: tres2; }
+.mazo-ciclo .mazo-carta-3 { animation-name: tres3; }
+@keyframes tres0{0%,20%{transform:translate(-38px,16px) rotate(-20deg)}24%,27.5%{transform:translate(-46px,19px) rotate(-24deg)}31%,55%{transform:translate(-38px,16px) rotate(-20deg)}61%{transform:translate(-3px,4px) rotate(-3deg)}64%{transform:translate(-24px,2px) rotate(-8deg)}66.5%{transform:translate(-3px,4px) rotate(-3deg)}69%{transform:translate(24px,2px) rotate(8deg)}71.5%{transform:translate(-3px,4px) rotate(-3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-38px,16px) rotate(-20deg)}}
+@keyframes tres1{0%,20%{transform:translate(-15px,-2px) rotate(-7deg);z-index:0}21%{z-index:5}24%,27.5%{transform:translate(-11px,-24px) rotate(-2deg) scale(1.14);z-index:5}25.2%{transform:translate(-11px,-24px) rotate(-6deg) scale(1.14);z-index:5}26.4%{transform:translate(-11px,-24px) rotate(2deg) scale(1.14);z-index:5}30.5%{z-index:5}31%{z-index:0}31%,55%{transform:translate(-15px,-2px) rotate(-7deg)}61%{transform:translate(-1px,2px) rotate(-1deg)}64%{transform:translate(20px,-2px) rotate(6deg)}66.5%{transform:translate(-1px,2px) rotate(-1deg)}69%{transform:translate(-20px,-2px) rotate(-6deg)}71.5%{transform:translate(-1px,2px) rotate(-1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(-15px,-2px) rotate(-7deg)}}
+@keyframes tres2{0%,20%{transform:translate(13px,-2px) rotate(7deg)}24%,27.5%{transform:translate(20px,1px) rotate(10deg)}31%,55%{transform:translate(13px,-2px) rotate(7deg)}61%{transform:translate(1px,0px) rotate(1deg)}64%{transform:translate(-20px,0px) rotate(-5deg)}66.5%{transform:translate(1px,0px) rotate(1deg)}69%{transform:translate(20px,0px) rotate(5deg)}71.5%{transform:translate(1px,0px) rotate(1deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(13px,-2px) rotate(7deg)}}
+@keyframes tres3{0%,20%{transform:translate(36px,16px) rotate(20deg)}31%,55%{transform:translate(36px,16px) rotate(20deg)}61%{transform:translate(3px,-2px) rotate(3deg)}64%{transform:translate(24px,2px) rotate(8deg)}66.5%{transform:translate(3px,-2px) rotate(3deg)}69%{transform:translate(-24px,2px) rotate(-8deg)}71.5%{transform:translate(3px,-2px) rotate(3deg);animation-timing-function:cubic-bezier(.3,1.45,.5,1)}80%,100%{transform:translate(36px,16px) rotate(20deg)}}
+@media (prefers-reduced-motion: reduce) {
+  .malla-mancha, .mazo-ciclo .mazo-carta { animation: none; }
+  .malla-zona { transition: none; }
+}

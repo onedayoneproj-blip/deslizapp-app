@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import tokens from "@/referencias/sistema-de-diseno/tokens.json";
+import { CARTAS_JUGADAS, lineaJugada } from "@/lib/proxima-jugada";
 import {
   IconoBuscar,
   IconoCamion,
@@ -35,6 +36,7 @@ import {
   ProveedorToast,
   Tarjeta,
   TarjetaDocumento,
+  TarjetaJugada,
   VistaPreviaWhatsApp,
   useToastUI,
   VistaToast,
@@ -512,6 +514,18 @@ function Tarjetas() {
         <Rotulo>tarjeta de documento (factura, recibo): miniatura, título, etiqueta y dos botones con texto</Rotulo>
         <TarjetaDocumento titulo="Factura #1039" etiqueta={{ texto: "Al contado", tono: "exito" }} alDescargar={() => undefined} alCompartir={() => undefined} />
         <TarjetaDocumento titulo="Factura #1036" etiqueta={{ texto: "A crédito", tono: "atencion" }} alDescargar={() => undefined} alCompartir={() => undefined} />
+      </div>
+      <div className="flex max-w-100 flex-col gap-2">
+        <Rotulo>tarjeta de jugada (solo Tu próxima jugada): malla viva que sigue al dedo, Caveat, Fredoka y el mazo con su ciclo de 14 s</Rotulo>
+        <TarjetaJugada
+          titulo="Segundo aaah"
+          linea={lineaJugada("segundo", 4)}
+          cartas={CARTAS_JUGADAS}
+          destacada="segundo"
+          etiqueta="Tu próxima jugada: Segundo aaah, 4 clientes. Ver tus jugadas"
+          alTocar={() => undefined}
+        />
+        <TarjetaJugada titulo={null} cartas={CARTAS_JUGADAS} etiqueta="Tu próxima jugada: la próxima conversación empieza aquí" alTocar={() => undefined} />
       </div>
     </Seccion>
   );

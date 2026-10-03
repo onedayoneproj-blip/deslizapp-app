@@ -8,6 +8,12 @@ export const DURACION = {
   /** Excepción aprobada: luz de Tu próxima jugada; no afecta a hojas ni formularios. */
   jugadaPulso: 520,
   jugadaTransicion: 480,
+  /** Tu próxima jugada: la tarjeta se agranda y las cartas vuelan a la galería. */
+  jugadaEntrada: 950,
+  /** Tu próxima jugada: barrido de arriba abajo al elegir una jugada. */
+  jugadaBarrido: 1300,
+  /** Tu próxima jugada: ciclo de las cartas del mazo. */
+  jugadaCartas: 14000,
   /** Arco de dona al aparecer (referencias/donas). */
   dona: 1000,
   /** Toques, cambios de color, salidas. */
