@@ -194,7 +194,7 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 
 ## 12. Iconos
 
-Trazo de 2.2 px, puntas y uniones redondeadas, sin relleno, para que combinen con Fredoka. **Ninguna esquina en punta:** las formas (casa, etiqueta, bolsa, camión, cámara, tarjetas) llevan esquinas redondeadas de radio 1.5 a 2 sobre 24 px, como Fredoka. La única excepción es la chispa (créditos, retoque), que es un destello y conserva sus puntas. Pedido se dibuja siempre con la bolsa del catálogo (base redondeada y asa que entra en la bolsa). Tamaños: 20 px normal, 24 px en la barra inferior, 16 px dentro de etiquetas. El icono solo nunca es la única explicación de un botón importante; los botones de solo icono llevan `aria-label`.
+Trazo de 2.2 px, puntas y uniones redondeadas, sin relleno, para que combinen con Fredoka. **Los iconos van sueltos:** nunca dentro de un círculo o cuadro de relleno pálido (menta, arena, rosa, naranja suave) solo para adornar; ese "icono en ficha tonal" se siente Android. Un icono lleva fondo solo cuando ES un botón (relleno `accion` sólido, como el + o la bolsa del catálogo) o un control de selección (el check de una opción elegida). **Ninguna esquina en punta:** las formas (casa, etiqueta, bolsa, camión, cámara, tarjetas) llevan esquinas redondeadas de radio 1.5 a 2 sobre 24 px, como Fredoka. La única excepción es la chispa (créditos, retoque), que es un destello y conserva sus puntas. Pedido se dibuja siempre con la bolsa del catálogo (base redondeada y asa que entra en la bolsa). Tamaños: 20 px normal, 24 px en la barra inferior, 16 px dentro de etiquetas. El icono solo nunca es la única explicación de un botón importante; los botones de solo icono llevan `aria-label`.
 
 ## 13. Movimiento
 
