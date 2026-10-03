@@ -4,9 +4,8 @@ import { useState } from "react";
 import { diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajeRecordatorio, nombreMetodo, type CuentaCliente } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import type { Cliente } from "@/lib/types";
-import { IconoMas } from "../iconos";
-import { Boton, FilaLista, ListaAgrupada, Tarjeta } from "../ui";
-import { EtiquetaDeuda } from "./comunes";
+import { IconoMas, IconoWhatsApp } from "../iconos";
+import { BarraAbonado, Boton, FechaDeuda, FilaLista, ListaAgrupada, Tarjeta } from "../ui";
 import { HojaAbono } from "./hoja-abono";
 
 /**
@@ -15,6 +14,7 @@ import { HojaAbono } from "./hoja-abono";
  */
 export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { cliente: Cliente; cuenta: CuentaCliente; vendedora: string; tienda: string }) {
   const [abonando, setAbonando] = useState(false);
+  const [ahora] = useState(Date.now);
   if (cuenta.deuda <= 0) return null;
 
   const mensaje = mensajeRecordatorio({ cliente: cliente.nombre, vendedora, tienda, deuda: cuenta.deuda });
@@ -27,14 +27,17 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
         <Tarjeta>
           <div className="flex items-center justify-between gap-2">
             <span className="text-secundario text-texto-secundario">Te debe</span>
-            <EtiquetaDeuda fecha={cuenta.fechaAcordada} atrasoDias={cuenta.atrasoDias} grande />
+            <FechaDeuda fecha={cuenta.fechaAcordada} ahora={ahora} />
           </div>
           <p aria-live="polite" className="font-display text-cifra text-atencion-texto">
             {formatearPesos(cuenta.deuda)}
           </p>
-          <p className="text-secundario text-texto-secundario">
-            En {n} {n === 1 ? "pedido" : "pedidos"}. Los abonos se aplican primero al más viejo.
-          </p>
+          <div className="mt-2 flex flex-col gap-2">
+            <BarraAbonado abonado={cuenta.abonado} total={cuenta.totalPedidos} />
+            <p className="text-secundario text-texto-secundario">
+              {cuenta.abonado > 0 ? `Abonó ${formatearPesos(cuenta.abonado)} de ${formatearPesos(cuenta.totalPedidos)}` : "Sin abonos todavía"} · En {n} {n === 1 ? "pedido" : "pedidos"}. Los abonos se aplican primero al más viejo.
+            </p>
+          </div>
         </Tarjeta>
         <ListaAgrupada etiqueta="Compras a crédito y abonos" className="mt-2">
           {cuenta.historial.map((m) => (
@@ -43,7 +46,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
               href={`/pedidos/${m.pedidoId}`}
               titulo={m.tipo === "compra" ? `Compra · pedido #${m.numero}` : `Abono · ${nombreMetodo(m.metodo)}`}
               detalle={`${dia(m.fecha)}${m.tipo === "compra" && m.pagoFechaAcordada ? ` · quedó en pagar el ${diaCorto(m.pagoFechaAcordada)}` : ""}${m.tipo === "abono" && m.nota ? ` · ${m.nota}` : ""}`}
-              fin={`${m.tipo === "abono" ? "– " : ""}${formatearPesos(m.monto)}`}
+              fin={m.tipo === "abono" ? <span className="text-exito-texto">– {formatearPesos(m.monto)}</span> : formatearPesos(m.monto)}
             />
           ))}
         </ListaAgrupada>
@@ -56,11 +59,11 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
 
       <div className="flex gap-2.5">
         {cliente.telefono && (
-          <Boton whatsapp href={enlaceWhatsAppCliente(cliente.telefono, mensaje)} target="_blank" rel="noreferrer" className="flex-1">
+          <Boton tamano="grande" icono={<IconoWhatsApp tamano={20} />} href={enlaceWhatsAppCliente(cliente.telefono, mensaje)} target="_blank" rel="noreferrer" className="flex-1">
             Recordarle
           </Boton>
         )}
-        <Boton icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)} className="flex-1">
+        <Boton jerarquia="secundario" tamano="grande" icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)} className="flex-1">
           Abono
         </Boton>
       </div>

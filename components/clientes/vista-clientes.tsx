@@ -19,7 +19,7 @@ import { enlaceWhatsApp } from "@/lib/formato";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Boton, Buscador, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
+import { Boton, Buscador, Etiqueta, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
 import { Avatar } from "../ui";
 import { EtiquetaRepite } from "./comunes";
@@ -69,6 +69,8 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const mensajeDe = (nombre: string, deuda: number) =>
     mensajeRecordatorio({ cliente: nombre, vendedora: dueno?.nombre ?? "", tienda: tienda?.nombre ?? "la tienda", deuda });
 
+  // Lo que debe cada cliente (suma de sus pedidos con saldo), para la etiqueta "Debe" de las filas
+  const deudas = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c.deuda])), [cuentas]);
   const total = resumen.cuentas.todos;
   const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos", catalogo: "Del catálogo", manual: "A mano", una: "Compraron una vez", sin: "Sin comprar" };
   const fijos: FiltroClientes[] = ["todos", "deben", "repiten", "nuevos", "dormidos", "catalogo"];
@@ -118,11 +120,11 @@ export function VistaClientes({ children }: { children: ReactNode }) {
                 )}
                 {deben.length > 0 && (
                   <>
-                    <ListaAgrupada etiqueta="Clientes que deben">
+                    <ul aria-label="Clientes que deben" className="flex flex-col gap-3">
                       {debenPaginados.visibles.map((c) => (
-                        <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} />
+                        <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} ahora={ahora} />
                       ))}
-                    </ListaAgrupada>
+                    </ul>
                     <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} texto="Ver más clientes" />
                   </>
                 )}
@@ -147,7 +149,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           <>
             <ListaAgrupada etiqueta="Clientes">
               {visibles.map(({ cliente, coincide }) => (
-                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada}
+                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} deuda={deudas.get(cliente.id) ?? 0}
                   escribir={filtro === "dormidos" && cliente.telefono ? { href: enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null)), nombre: cliente.nombre } : undefined} />
               ))}
             </ListaAgrupada>
@@ -166,7 +168,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   );
 }
 
-function FilaCliente({ cliente: c, coincide, consulta, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; escribir?: { href: string; nombre: string } }) {
+function FilaCliente({ cliente: c, coincide, consulta, deuda, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; deuda: number; escribir?: { href: string; nombre: string } }) {
   return (
     <FilaLista
       href={`/clientes/${c.id}`}
@@ -191,6 +193,7 @@ function FilaCliente({ cliente: c, coincide, consulta, escribir }: { cliente: Cl
           "Todavía no pide. Todavía."
         )
       }
+      fin={deuda > 0 ? <Etiqueta tono="atencion">Debe {formatearPesos(deuda)}</Etiqueta> : undefined}
       accion={escribir && <Boton whatsapp href={escribir.href} target="_blank" rel="noreferrer" aria-label={`Escribirle a ${escribir.nombre} por WhatsApp`}>Escribir</Boton>}
     />
   );

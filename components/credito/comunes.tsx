@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { diaCorto, diasDeAtraso, diasParaPagar, textoAtraso, textoFaltan } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
-import { Etiqueta } from "../ui";
 
 /**
  * Barra de lo pagado: crece con transform (scaleX), no con el ancho. Empieza vacía y llega a su valor al aparecer; cuando
@@ -48,11 +47,4 @@ export function LineaFecha({ fecha }: { fecha: string | null }) {
       </span>
     </p>
   );
-}
-
-/** Etiqueta de estado de una cuenta (lista "Deben" y cuenta del cliente): atrasada y con fecha en atención; sin fecha, neutra. */
-export function EtiquetaDeuda({ fecha, atrasoDias, genero = "o" }: { fecha: string | null; atrasoDias: number; genero?: "o" | "a"; grande?: boolean }) {
-  if (atrasoDias > 0) return <Etiqueta tono="atencion" className="self-start">{textoAtraso(atrasoDias, genero)}</Etiqueta>;
-  if (fecha) return <Etiqueta tono="atencion" className="self-start">Paga el {diaCorto(fecha)}</Etiqueta>;
-  return <Etiqueta className="self-start">Sin fecha acordada</Etiqueta>;
 }

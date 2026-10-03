@@ -15,9 +15,9 @@ import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { IconoEditar, IconoWhatsApp } from "../iconos";
-import { ChipEstado } from "../pedidos/comunes";
+import { EtiquetaPago } from "../pedidos/comunes";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, Boton, FilaLista, ListaAgrupada } from "../ui";
+import { Avatar, BloqueDeuda, Boton, FilaLista, ListaAgrupada } from "../ui";
 import { EtiquetaRepite } from "./comunes";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 
@@ -97,6 +97,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
       setGuardando(false);
     }
   };
+  const [ahora] = useState(Date.now);
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
   const primerNombre = cliente.nombre.split(" ")[0];
   const mensaje = `Hola ${primerNombre}, te escribo de ${tienda?.nombre ?? "la tienda"}.`;
@@ -168,10 +169,12 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
                 detalle={fechaCorta(p.creadoEn)}
                 fin={
                   <span className="flex items-center gap-2">
-                    <ChipEstado estado={p.estado} />
+                    {/* Nunca el estado del pedido (regla "No repetir el filtro"): la forma de pago */}
+                    <EtiquetaPago pedido={p} />
                     {formatearPesos(p.total)}
                   </span>
                 }
+                pie={p.pagoModo === "credito" && p.estado !== "cancelado" ? <BloqueDeuda tamano="mini" separado={false} saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} /> : undefined}
               />
             ))}
           </ListaAgrupada>

@@ -1,9 +1,8 @@
 "use client";
 
-import { enlaceWhatsAppCliente, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
+import { enlaceWhatsAppCliente, textoFechaDeuda, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
-import { Avatar, Boton, FilaLista, Tarjeta } from "../ui";
-import { EtiquetaDeuda } from "./comunes";
+import { Avatar, BloqueDeuda, Boton, Tarjeta } from "../ui";
 
 /** Tarjeta destacada "Por cobrar": el total, cuántos clientes y pedidos, y lo cobrado este mes (referencias/credito-abonos/PorCobrar.dc.html). */
 export function TarjetaPorCobrar({ datos }: { datos: CuentasPorCobrar }) {
@@ -37,32 +36,30 @@ function linea(c: CuentaPorCobrar): string {
 }
 
 /**
- * Una fila de "Deben": avatar, nombre, línea con el pedido, etiqueta de estado, lo que debe y, si tiene teléfono, el botón "Escribir"
- * de WhatsApp. Toda la fila lleva a la cuenta del cliente; el botón va fuera del enlace (un enlace no puede ir dentro de otro).
- * Va dentro de una `ListaAgrupada`.
+ * Una cuenta de "Deben": tarjeta suelta con Avatar, nombre, la línea del pedido y el bloque de deuda (suma TODOS los pedidos con
+ * saldo del cliente). Toda la tarjeta lleva a la cuenta del cliente; el botón "Escribir" va encima, en la esquina (un enlace no puede
+ * ir dentro de otro).
  */
-export function FilaPorCobrar({ cuenta: c, mensaje }: { cuenta: CuentaPorCobrar; mensaje: string }) {
+export function FilaPorCobrar({ cuenta: c, mensaje, ahora }: { cuenta: CuentaPorCobrar; mensaje: string; ahora: number }) {
   return (
-    <FilaLista
-      href={`/clientes/${c.clienteId}`}
-      inicio={<Avatar nombre={c.nombre} />}
-      titulo={c.nombre}
-      pie={
-        <span className="flex flex-col gap-1">
-          <span className="text-secundario text-texto-secundario">{linea(c)}</span>
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <b className="text-destacado text-atencion-texto">{formatearPesos(c.deuda)}</b>
-            <EtiquetaDeuda fecha={c.fechaAcordada} atrasoDias={c.atrasoDias} />
-          </span>
-        </span>
-      }
-      accion={
-        c.telefono ? (
+    <li className="relative">
+      <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}. ${textoFechaDeuda(c.fechaAcordada, ahora)}`}>
+        <div className={`flex items-center gap-3 ${c.telefono ? "pr-28" : ""}`}>
+          <Avatar nombre={c.nombre} />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-destacado text-texto">{c.nombre}</span>
+            <span className="text-secundario text-texto-secundario">{linea(c)}</span>
+          </div>
+        </div>
+        <BloqueDeuda saldo={c.deuda} total={c.totalPedidos} fecha={c.fechaAcordada} ahora={ahora} />
+      </Tarjeta>
+      {c.telefono && (
+        <div className="absolute top-4 right-4">
           <Boton whatsapp href={enlaceWhatsAppCliente(c.telefono, mensaje)} target="_blank" rel="noreferrer" aria-label={`Recordarle a ${c.nombre} por WhatsApp`}>
             Escribir
           </Boton>
-        ) : undefined
-      }
-    />
+        </div>
+      )}
+    </li>
   );
 }
