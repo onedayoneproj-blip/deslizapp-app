@@ -8,6 +8,13 @@ El lenguaje de diseño del panel de Deslizapp: la app donde una persona que vend
 
 **Cómo se usa este documento:** cada regla nombra el token o componente que la cumple. Si algo no está aquí, se resuelve con lo que ya existe antes de inventar una variante nueva. Si de verdad hace falta una variante, se agrega primero aquí.
 
+**Principio que manda sobre todo: menos texto, nada repetido.** Cada palabra en pantalla es algo más que leer con una mano y de pie. Antes de poner un texto, una etiqueta o una línea de ayuda:
+1. **¿Ya lo dice el contexto?** El filtro activo, la pestaña, el título de la hoja o la sección ya informan. Si ya se sabe, no se escribe. En el filtro "Repiten" ninguna fila dice "Repite"; en "Deben" ninguna dice "Debe"; en la pestaña "Despachados" ninguna tarjeta dice "Despachado"; dentro de "Te debe" el monto no repite "Debe".
+2. **¿Se puede mostrar en vez de decir?** Primero una señal visual: un ícono, una forma con color, una barra, una miniatura. Texto solo cuando la señal no alcanza o cuando el texto ES el dato (un monto, una fecha, un nombre). Ejemplos: cliente que repite = un corazón pequeño relleno en la esquina de su avatar, no la etiqueta "Repite"; cliente que debe = su monto en `atencion-texto` con la barra de abonos, no una etiqueta "Debe".
+3. **Una sola etiqueta por fila o tarjeta, y solo si aporta algo que no está en otro lado.**
+4. **Una línea.** Subtítulos, leyendas y textos de ayuda caben en una línea; si necesitan dos, sobra la mitad. "Abonó RD$2,425 de RD$4,850", no "Abonó RD$2,425 de RD$4,850 · En 1 pedido. Los abonos se aplican primero al más viejo."
+5. **Lo que se quita de la vista no se pierde para el lector de pantalla:** la palabra va en el `aria-label` ("Luisanna, repite, debe RD$2,425, paga el viernes 9").
+
 ---
 
 ## 1. Voz y contenido
@@ -45,7 +52,7 @@ Los colores se nombran por su **función**, no por su marca. Así el modo oscuro
 4. **El rojo es solo para destruir.** `peligro` aparece en botones que borran o terminan algo, y en errores de campo. Nunca se escribe el color a mano.
 5. **El foco es verde, no naranja.** Un campo con el cursor dentro cambia su contorno a 2 px `accion`, sin anillo extra. Los botones muestran un anillo `foco` (el mismo verde) solo al navegar con teclado. Un campo con error lleva contorno 2 px `peligro` y su mensaje debajo, sin anillo encima.
 6. **Nada blanco fijo.** Todo fondo claro usa `superficie` o `fondo`, para que funcione en oscuro.
-7. **El estado nunca depende solo del color.** Elegido lleva check, atrasado lleva texto ("Atrasado 6 días"), en línea lleva la palabra.
+7. **El estado nunca depende solo del color.** Además del color lleva una forma: un check, un ícono, una barra o, si nada de eso alcanza, una palabra ("Atrasado 6 días"). Una forma basta; no hace falta escribirlo (ver el principio "menos texto").
 8. **WhatsApp es verde y relleno.** "Escribir" (abrir el chat del cliente) va siempre como botón compacto relleno `accion` con el icono de WhatsApp: saca a la persona de la app hacia una conversación, que es el verde del concepto de marca.
 
 ## 3. Tipografía
@@ -141,7 +148,7 @@ Regla rápida: si la fila tiene etiqueta de estado o un botón propio, va suelta
 **Ver más:** cuando una lista se muestra por partes, lo que falta se pide desde **la última fila de la misma lista**, no con un botón suelto debajo. En una lista agrupada es su última fila; en tarjetas sueltas es una tarjeta más, del mismo ancho, de 52 px de alto. Lleva a la izquierda "Ver N más" en `destacado` color `accion` con un chevron hacia abajo, y a la derecha "5 de 69" en `secundario` `texto-secundario`. Al tocarla aparecen los siguientes y la fila baja. Cuando ya no quedan, desaparece. No lleva contorno de botón.
 
 **Bloque de deuda:** todo lo que se debe se muestra igual en Pedidos y en Clientes. Va al final de su tarjeta, separado por una `linea`, con tres partes:
-1. Una fila con "Debe RD$2,425" (`destacado`, `atencion-texto`) a la izquierda y la fecha a la derecha: icono de calendario de 16 px + "Paga el sáb 10 oct", "Paga hoy", "Paga mañana" o "Sin fecha de pago" (14 extrabold, `atencion-texto`). Si ya pasó la fecha, en lugar del texto va la etiqueta urgente "Atrasado N días".
+1. Una fila con el monto, "RD$2,425" (`destacado`, `atencion-texto`), a la izquierda (con la palabra "Debe" delante solo en la tarjeta de pedido, donde convive con el total; en Clientes el naranja y la barra ya lo dicen) y la fecha a la derecha: icono de calendario de 16 px + "Paga el sáb 10 oct", "Paga hoy", "Paga mañana" o "Sin fecha de pago" (14 extrabold, `atencion-texto`). Si ya pasó la fecha, en lugar del texto va la etiqueta urgente "Atrasado N días".
 2. Una barra de 8 px, pista `linea` y relleno `accion`, con lo que ya abonó sobre el total. Verde porque lo abonado es avance.
 3. La leyenda "Abonó RD$2,425 de RD$4,850" o "Sin abonos todavía" (`secundario`, `texto-secundario`).
 En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de una lista agrupada (historial de pedidos, la lista "Todos" de Clientes) va la versión mini debajo del texto de la fila (sin leyenda, barra de 6 px), nunca como etiqueta "Debe" a la derecha. Si no debe nada, no hay bloque.
