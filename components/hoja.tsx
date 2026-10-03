@@ -129,6 +129,8 @@ type Props = {
   /** Se llama después de que la hoja terminó de salir y se retiró del portal. */
   alSalir?: () => void;
   titulo: string;
+  /** El título solo lo leen los lectores de pantalla (la hoja trae su propio encabezado en el contenido). */
+  tituloOculto?: boolean;
   /** Cómo se comporta la altura (por defecto "auto"). */
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
@@ -175,6 +177,7 @@ function HojaMontada({
   alCerrar,
   alSalir,
   titulo,
+  tituloOculto = false,
   altura = "auto",
   fijoArriba,
   decoracionAbajo,
@@ -764,7 +767,7 @@ function HojaMontada({
         >
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
           <div className="flex items-center justify-between gap-3">
-            <h2 id={idTitulo} className="font-display text-titulo-hoja text-texto">
+            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
             <BotonCerrar onClick={cerrar} />

@@ -17,6 +17,7 @@ import { Hoja } from "../hoja";
 import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada, type TonoEtiqueta } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion, IconoCheck } from "../iconos";
+import { HojaDespachado } from "./hoja-despachado";
 import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
@@ -103,6 +104,7 @@ function Detalle({
   // Paso al que se quiere volver desde Despachado, esperando confirmación (0 = Recibido, 1 = Confirmado).
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
+  const [celebrando, setCelebrando] = useState(false);
   // Viniendo de "Ir a los pasos del pedido" (Editar pedido de un despachado): un destello breve, una sola vez, en el paso
   // anterior de la barra (el que sirve para retroceder): resalte fijo de ~600 ms y, salvo movimiento reducido, un pulso de
   // opacidad. Se hace directo sobre el elemento (sin estado de React).
@@ -164,14 +166,9 @@ function Detalle({
     });
   const despachar = () =>
     correr(async () => {
-      const { agotados } = await despacharPedido(tiendaId, pedido.id);
-      toast(
-        agotados.length === 0
-          ? "Despachado. El stock ya se enteró."
-          : agotados.length === 1
-            ? `Despachado. ${agotados[0]} se agotó y ya sale así en el catálogo.`
-            : `Despachado. ${agotados.join(" y ")} se agotaron y ya salen así en el catálogo.`,
-      );
+      await despacharPedido(tiendaId, pedido.id);
+      // Solo después de que el servidor respondió OK: la celebración reemplaza al aviso de antes
+      setCelebrando(true);
     });
 
   const reabrir = () =>
@@ -417,6 +414,8 @@ function Detalle({
           </Boton>
         </div>
       )}
+
+      <HojaDespachado abierta={celebrando} alCerrar={() => setCelebrando(false)} pedido={pedido} cliente={cliente} productos={productos} />
 
       <Alerta
         abierta={confirmando !== null}

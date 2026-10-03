@@ -75,6 +75,7 @@
   --sobre-peligro: #ffffff;
   --foco: #174b3a;
   --velo: rgba(16, 54, 42, 0.5);
+  --patron: #ebe1d0; /* íconos de fondo neutros (celebración de despacho) */
   --marco: #f3eadb;
   /* Fijos de marca (piezas de identidad; no cambian en oscuro y no van en controles) */
   --marca-bosque: #174b3a;
@@ -126,6 +127,7 @@
   --sobre-peligro: #2a0e08;
   --foco: #9ed3b8;
   --velo: rgba(0, 0, 0, 0.6);
+  --patron: #1c3027;
   --marco: #09140f;
   --sombra-flotante: 0 10px 24px -10px rgba(0, 0, 0, 0.6);
   --sombra-hoja: 0 -8px 30px rgba(0, 0, 0, 0.5);
@@ -154,6 +156,7 @@
   --color-sobre-peligro: var(--sobre-peligro);
   --color-foco: var(--foco);
   --color-velo: var(--velo);
+  --color-patron: var(--patron);
   --color-marco: var(--marco);
   --color-marca-bosque: var(--marca-bosque);
   --color-marca-rosa-fija: var(--marca-rosa-fija);
@@ -885,4 +888,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     animation: none;
     opacity: 0.7;
   }
+}
+
+/* ---- Pedido despachado (components/pedidos/hoja-despachado.tsx; referencia: referencias/animacion-despacho/pedido-despachado.html) ----
+   Solo transform y opacity. Los estilos base son el ESTADO FINAL: con prefers-reduced-motion no hay animaciones y se ve ya todo. */
+.desp-escena { container-type: inline-size; }
+.desp-camion { opacity: 0; animation: desp-camion 1.5s cubic-bezier(0.45, 0, 0.2, 1) 0.45s both; }
+.desp-lineas { animation: desp-lineas 1.5s linear 0.45s both; }
+.desp-llena { transform-origin: left center; animation: desp-llena 1.5s cubic-bezier(0.45, 0, 0.2, 1) 0.45s both; }
+.desp-llena-fin { animation: desp-llena-fin 1.5s linear 0.45s both; }
+.desp-sello { animation: desp-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 1.65s both; }
+.desp-rotulo { animation: desp-aparece 0.3s ease 1.65s both; }
+.desp-sube-1 { animation: desp-sube 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.85s both; }
+.desp-sube-2 { animation: desp-sube 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.95s both; }
+.desp-sube-3 { animation: desp-sube 0.5s cubic-bezier(0.22, 1, 0.36, 1) 2.1s both; }
+.desp-sube-4 { animation: desp-sube 0.5s cubic-bezier(0.22, 1, 0.36, 1) 2.25s both; }
+.desp-icono { position: absolute; animation: desp-flota 7s ease-in-out infinite; }
+.desp-icono-2 { animation-duration: 8s; animation-delay: -2s; }
+.desp-icono-3 { animation-duration: 6.5s; animation-delay: -4s; }
+/* Íconos del patrón: posición (porcentaje del ancho) y tamaño */
+.desp-p1 { left: 5%; top: 34px; width: 44px; height: 44px; }
+.desp-p2 { left: 78%; top: 26px; width: 48px; height: 48px; }
+.desp-p3 { left: 40%; top: 6px; width: 40px; height: 40px; }
+.desp-p4 { left: 18%; top: 104px; width: 34px; height: 34px; }
+.desp-p5 { left: 65%; top: 96px; width: 36px; height: 36px; }
+.desp-p6 { left: 1%; top: 250px; width: 36px; height: 36px; }
+.desp-p7 { left: 89%; top: 262px; width: 34px; height: 34px; }
+.desp-camion svg path:nth-child(-n+2) { fill: var(--accion-suave); }
+.desp-camion svg circle { fill: var(--fondo); }
+.desp-mascara { -webkit-mask-image: linear-gradient(transparent, black 45%); mask-image: linear-gradient(transparent, black 45%); }
+@keyframes desp-hoja { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes desp-flota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes desp-camion {
+  0% { transform: translateX(44cqw); opacity: 0; }
+  12% { opacity: 1; }
+  70% { transform: translateX(88cqw); opacity: 1; }
+  100% { transform: translateX(126cqw); opacity: 0; }
+}
+@keyframes desp-lineas { 0%, 55% { opacity: 0; } 65%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes desp-llena { 0% { transform: scaleX(0); } 70%, 100% { transform: scaleX(1); } }
+@keyframes desp-llena-fin { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes desp-pop { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes desp-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes desp-sube { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .desp-camion, .desp-lineas, .desp-llena, .desp-llena-fin, .desp-sello, .desp-rotulo, .desp-sube-1, .desp-sube-2, .desp-sube-3, .desp-sube-4, .desp-icono { animation: none; }
 }
