@@ -26,11 +26,12 @@ El isotipo es una "d" redondeada con una flecha hacia arriba (deslizar), dentro 
 | Público | Fondo del isotipo | Isotipo | Dónde |
 |---|---|---|---|
 | **Compradores** (catálogo público, publicaciones para clientes) | Rosa Suave | Verde Bosque | Catálogos, piezas "Tu pulgar tiene buen gusto", "¿Estoy comprando o haciendo diligencias?" |
-| **Vendedores** (la app del panel, publicaciones para tiendas) | Verde Bosque | Color claro de la marca (por confirmar: Rosa Suave o Papel) | App, icono instalado, piezas "Tu tienda merece su aaah" |
+| **Vendedores** (la app del panel, publicaciones para tiendas) | Verde pálido (Menta #dcebe2) | Verde Bosque | Icono de la app instalada, cabecera de la app, piezas para tiendas |
 
-- Sobre fondo rosa, el logotipo va en Verde Bosque. Sobre fondo verde, en Papel Cálido.
+- El isotipo siempre es Verde Bosque; lo que cambia según el público es el fondo pálido: rosa para compradores, menta para vendedores.
+- El logotipo "deslizapp" va en Verde Bosque sobre fondos claros y en Papel Cálido sobre fondos Verde Bosque.
 - Nunca se deforma, se gira ni se le cambia la flecha. Nunca sobre una foto sin un fondo sólido detrás.
-- **Pendiente detectado:** hoy la cabecera de la app y algunas piezas para vendedores usan el isotipo de compradores (fondo rosa). Al aplicar esta regla, la app (y su icono instalado) pasa al isotipo de vendedores.
+- **Pendiente detectado:** en el repo, el icono de la app (`app/icon.png` y `public/icons/`) tiene fondo crema (#fdf8ef), no menta; y algunas piezas para vendedores usan el fondo rosa. Al aplicar la regla, pasan al fondo menta.
 
 ## Fondos con patrón
 
