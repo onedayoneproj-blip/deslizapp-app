@@ -157,7 +157,7 @@ En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de
 **Hoja de resumen con dona** ("Tus clientes", "Tu inventario" y las que vengan): una sola forma para todas.
 1. Arriba, la dona grande (112 px) a la izquierda y, a su derecha, la lectura del momento: un título dinámico en Fredoka 24 ("Nadie repite todavía", "9 se están acabando") y una línea secundaria debajo. Nada más junto a la dona: la leyenda va abajo.
 2. Debajo, la leyenda como **lista agrupada**: punto de color · nombre · subtítulo con el porcentaje · número a la derecha · chevron. Todas las filas que tienen algo (número > 0) se tocan y llevan chevron; las que están en 0 no se tocan ni llevan chevron.
-3. Los demás grupos (Nuevos, Dormidos, Del catálogo, A mano…) van en otra lista agrupada igual, nunca en cuadros sueltos de 2 × 2.
+3. Los demás grupos (Nuevos, Dormidos, Del catálogo, A mano…) van en otra lista agrupada igual, nunca en cuadros sueltos de 2 × 2. Como no son tramos de la dona, no llevan punto de color sino un **ícono de línea** suelto (24 px, color `texto`, esquinas redondeadas, sin círculo de fondo) que dice qué es el grupo: Nuevos = brote, Dormidos = luna, Del catálogo = enlace, A mano = lápiz. Punto = tramo de la dona; ícono = otro grupo. Punto e ícono van en la misma ranura de 24 px, así los nombres de las dos listas quedan en la misma columna.
 4. Tocar una fila abre, dentro de la misma hoja (con Volver), la lista de esos clientes o productos. No agrega pastillas a la pantalla de atrás.
 5. Después vienen las acciones de la hoja ("Tu próxima jugada" en Clientes, "Necesita tu atención" en Catálogo).
 
