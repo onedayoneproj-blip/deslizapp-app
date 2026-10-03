@@ -25,7 +25,7 @@ function Icono({ tamano = 24, children, ...props }: Props) {
 
 export const IconoInicio = (p: Props) => (
   <Icono {...p}>
-    <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" />
+    <path d="M4 10.4c0-.6.3-1.2.7-1.5l6-4.9a2 2 0 0 1 2.6 0l6 4.9c.4.3.7.9.7 1.5V18a2 2 0 0 1-2 2h-3.5v-4.5a1.5 1.5 0 0 0-1.5-1.5h-2a1.5 1.5 0 0 0-1.5 1.5V20H6a2 2 0 0 1-2-2z" />
   </Icono>
 );
 
@@ -40,8 +40,8 @@ export const IconoCatalogo = (p: Props) => (
 
 export const IconoPedidos = (p: Props) => (
   <Icono {...p}>
-    <path d="M5.5 8h13l-1 12h-11z" />
-    <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+    <path d="M5 8h14l-1.1 12.1a1 1 0 0 1-.9.9H7.1a1 1 0 0 1-1-.9z" />
+    <path d="M9 10.5V7a3 3 0 0 1 6 0v3.5" />
   </Icono>
 );
 
@@ -57,7 +57,7 @@ export const IconoClientes = (p: Props) => (
 /** Etiqueta de precio: Promos en la barra y el cupón aplicado de un pedido. */
 export const IconoPromos = (p: Props) => (
   <Icono {...p}>
-    <path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8.5 8.5-9 9z" />
+    <path d="M3.5 5.5a2 2 0 0 1 2-2h6.2c.5 0 1 .2 1.4.6l7.3 7.3a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0l-7.3-7.3c-.4-.4-.6-.9-.6-1.4z" />
     <circle cx="8.5" cy="8.5" r="1.5" />
   </Icono>
 );
@@ -118,7 +118,7 @@ export const IconoMenos = (p: Props) => (
 
 export const IconoCamara = (p: Props) => (
   <Icono strokeWidth={1.8} {...p}>
-    <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+    <path d="M4 9.5A1.5 1.5 0 0 1 5.5 8H7l1.2-1.6c.3-.4.8-.6 1.2-.6h5.2c.5 0 .9.2 1.2.6L17 8h1.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" />
     <circle cx="12" cy="13" r="3.5" />
   </Icono>
 );
@@ -192,8 +192,8 @@ export const IconoMatraz = (p: Props) => (
 
 export const IconoCamion = (p: Props) => (
   <Icono {...p}>
-    <path d="M3 6h11v10H3z" />
-    <path d="M14 10h4l3 3v3h-7" />
+    <rect x="3" y="6" width="11" height="10" rx="2" />
+    <path d="M14 10h3.2c.5 0 1 .2 1.4.6l1.8 1.8c.4.4.6.9.6 1.4V15a1 1 0 0 1-1 1h-6" />
     <circle cx="7" cy="18" r="1.8" />
     <circle cx="17" cy="18" r="1.8" />
   </Icono>
@@ -211,13 +211,6 @@ export const IconoReloj = (p: Props) => (
   <Icono {...p}>
     <circle cx="12" cy="12" r="8.5" />
     <path d="M12 7.5V12l3 2" />
-  </Icono>
-);
-
-export const IconoBolsa = (p: Props) => (
-  <Icono {...p}>
-    <path d="M5.5 8h13l-1 12h-11z" />
-    <path d="M9 10V7a3 3 0 0 1 6 0v3" />
   </Icono>
 );
 

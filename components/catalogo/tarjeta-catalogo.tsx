@@ -169,7 +169,7 @@ function Solicitado() {
         <Insignia fondo="bg-white">
           <span className="cat-anim-rebote flex">
             <Icono>
-              <path d="M4 13l2.5-7h11L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+              <path d="M4 13l2.2-6.2A1 1 0 0 1 7.1 6h9.8a1 1 0 0 1 .9.8L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
               <path d="M4 13h4.5l1.5 2.5h4l1.5-2.5H20" />
               <path d="M9.5 9l2 2 3.5-3.5" />
             </Icono>
@@ -287,7 +287,7 @@ function Cambios({ notas }: { notas: string | null }) {
         <Insignia fondo="bg-white">
           <span className="cat-anim-destellos flex">
             <Icono>
-              <path d="M4 20h4L19 9l-4-4L4 16z" />
+              <path d="M4 18.5v-2.1c0-.4.2-.8.4-1L15 5a1.5 1.5 0 0 1 2.1 0L19 6.9a1.5 1.5 0 0 1 0 2.1L8.6 19.6c-.3.3-.6.4-1 .4H5.5A1.5 1.5 0 0 1 4 18.5z" />
               <path d="M13.5 6.5l4 4" />
             </Icono>
           </span>

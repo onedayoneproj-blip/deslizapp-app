@@ -5,7 +5,7 @@ import { diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajesRecordatori
 import { formatearPesos } from "@/lib/formato";
 import type { Cliente } from "@/lib/types";
 import { Hoja } from "../hoja";
-import { IconoBolsa, IconoChevronAbajo, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
+import { IconoPedidos, IconoChevronAbajo, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
 import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
 import { HojaAbono } from "./hoja-abono";
 
@@ -51,7 +51,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
               href={`/pedidos/${m.pedidoId}`}
               inicio={
                 <span className={`grid size-10 place-items-center rounded-full ${m.tipo === "abono" ? "bg-accion-suave" : "bg-superficie-hundida"} text-texto`}>
-                  {m.tipo === "abono" ? <IconoMoneda tamano={20} /> : <IconoBolsa tamano={20} strokeWidth={2.2} />}
+                  {m.tipo === "abono" ? <IconoMoneda tamano={20} /> : <IconoPedidos tamano={20} strokeWidth={2.2} />}
                 </span>
               }
               titulo={m.tipo === "compra" ? `Compra · pedido #${m.numero}` : `Abono · ${nombreMetodo(m.metodo)}`}
