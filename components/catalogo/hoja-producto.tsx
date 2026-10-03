@@ -125,10 +125,11 @@ function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }:
       alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
     {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
     {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
-    <div className="grid grid-cols-2 gap-3">
+    {/* Con cambios de stock sin guardar, "Guardar cambios" es el único botón principal a la vista */}
+    {!inventario.pendiente && <div className="grid grid-cols-2 gap-3">
       <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
       <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
-    </div>
+    </div>}
     <ConfirmacionInventario inventario={inventario}/>
   </div>;
 }

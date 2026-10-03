@@ -79,11 +79,13 @@ try {
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v3")).ajustesInventario.length===2);
   await revisarHistorial("Recuento de prueba demo");
   ok((await registros(page))[1].variacion===-2 && JSON.parse(await persistido(page)).pedidos.length===pedidoAntes,"Una disminución final con nota actualiza historial sin pedidos");
-  await mas().click();await page.getByRole("button",{name:"Editar",exact:true}).click();
-  await page.getByRole("alertdialog").getByRole("button",{name:"Seguir aquí",exact:true}).click();
-  ok(await numeroStock(page)===inicial+2,"Seguir ajustando conserva la propuesta");
+  await mas().click();
+  ok(await page.getByRole("button",{name:"Editar",exact:true}).count()===0 && await page.getByRole("button",{name:"Crear pedido",exact:true}).count()===0,"Con cambios sin guardar se ocultan Editar y Crear pedido");
+  const guardarY=(await page.getByRole("button",{name:"Guardar cambios",exact:true}).boundingBox()).y, tarjetaY=(await page.locator('section[aria-label="Inventario"] ul').boundingBox()).y;
+  ok(guardarY<tarjetaY,"Guardar cambios y Descartar aparecen encima de la tarjeta de stock");
+  await page.getByRole("button",{name:"Descartar",exact:true}).click();
+  ok(await numeroStock(page)===inicial+1 && await page.getByRole("button",{name:"Editar",exact:true}).count()===1,"Descartar recupera el stock y devuelve Editar / Crear pedido");
   await page.getByRole("button",{name:"Editar",exact:true}).click();
-  await page.getByRole("alertdialog").getByRole("button",{name:"Salir",exact:true}).click();
   await page.waitForURL("**/editar");await page.locator('section[aria-label="Inventario"]').waitFor();
   ok(await numeroStock(page)===inicial+1 && (await registros(page)).length===2,"Descartar y editar recupera el stock guardado");
   const nombreInput=page.getByRole("textbox",{name:"Nombre",exact:true});

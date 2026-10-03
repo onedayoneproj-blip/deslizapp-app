@@ -34,7 +34,8 @@ export function BarraAbonado({ abonado, total, mini = false }: { abonado: number
       aria-valuenow={abonado}
       className={clases("overflow-hidden rounded-full bg-linea", mini ? "h-1.5" : "h-2")}
     >
-      <div className="h-full rounded-full bg-accion" style={{ width: `${porcentaje}%` }} />
+      {/* Extremos redondeados siempre: un relleno muy corto conserva al menos su alto como ancho */}
+      <div className={clases("h-full rounded-full bg-accion", porcentaje > 0 && (mini ? "min-w-1.5" : "min-w-2"))} style={{ width: `${porcentaje}%` }} />
     </div>
   );
 }
