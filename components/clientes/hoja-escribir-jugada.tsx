@@ -213,7 +213,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
           {modo === "saludo" && <ElegirMensaje etiqueta="Mensaje del saludo" opciones={saludos} elegido={tono} alElegir={setTono} />}
         </div>
         {texto
-          ? <VistaPreviaWhatsApp texto={texto} />
+          ? <VistaPreviaWhatsApp texto={texto} nombre={cliente.nombre} />
           : <p className="rounded-radio-m bg-superficie p-4 text-secundario text-texto-secundario">Elige al menos un producto para armar el mensaje.</p>}
         {texto && (editando
           ? <CampoMultilinea etiqueta="Tu mensaje" id="jugada-mensaje" value={texto} filas={6} onChange={(e) => setEditado({ base, texto: e.target.value })} />

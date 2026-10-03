@@ -66,7 +66,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
           <p className="text-secundario font-extrabold text-texto">Así le llega el recordatorio</p>
           <ElegirMensaje etiqueta="Mensaje del recordatorio" opciones={mensajes} elegido={mensaje.id} alElegir={setElegidoId} />
         </div>
-        <VistaPreviaWhatsApp texto={mensaje.texto} />
+        <VistaPreviaWhatsApp texto={mensaje.texto} nombre={cliente.nombre} />
         {cliente.telefono && (
           <Boton tamano="grande" anchoCompleto icono={<IconoWhatsApp tamano={20} />} href={enlaceWhatsAppCliente(cliente.telefono, mensaje.texto)} target="_blank" rel="noreferrer">
             Recordarle por WhatsApp

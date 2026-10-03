@@ -76,6 +76,9 @@
   --jugada-sol: #ffb36b;
   --jugada-mandarina: var(--resalte);
   --jugada-menta: #5fc79a;
+  /* Ventana de chat de la vista previa de WhatsApp (docs/09 §10). TODO modo oscuro: se revisan en ese paso. */
+  --chat-fondo: #efe5d3;
+  --chat-burbuja: #cfeedd;
   --peligro: #b4432a;
   --sobre-peligro: #ffffff;
   --foco: #174b3a;
@@ -153,6 +156,8 @@
   --color-resalte: var(--resalte);
   --color-sobre-resalte: var(--sobre-resalte);
   --color-marca-rosa: var(--marca-rosa);
+  --color-chat-fondo: var(--chat-fondo);
+  --color-chat-burbuja: var(--chat-burbuja);
   --color-atencion-suave: var(--atencion-suave);
   --color-atencion-texto: var(--atencion-texto);
   --color-exito-texto: var(--exito-texto);
@@ -903,6 +908,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Vista previa de WhatsApp (components/ui/vista-previa-whatsapp.tsx): patrón de fondo y piquito de la burbuja. Solo tokens. */
 .vista-whatsapp {
+  box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--texto) 55%, transparent);
+}
+.vista-whatsapp-chat {
   background-image: url("/chat/patron-whatsapp.svg");
   background-size: 120px 120px;
 }
@@ -916,7 +924,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   right: -8px;
   border-style: solid;
   border-width: 0 0 10px 9px;
-  border-color: transparent transparent transparent var(--accion-suave);
+  border-color: transparent transparent transparent var(--chat-burbuja);
 }
 .text-cuerpo-chat { font-size: 0.90625rem; line-height: 1.38; }
 

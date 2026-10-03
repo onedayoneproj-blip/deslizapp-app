@@ -419,7 +419,8 @@ function Listas() {
         <FilaLista marcada onClick={() => undefined} inicio={<CheckSeleccion marcado />} titulo="Oxana Black" detalle="Vendido 30 sep" />
         <FilaLista marcada={false} onClick={() => undefined} inicio={<CheckSeleccion marcado={false} />} titulo="Zakat" detalle="Nunca se vendió" />
       </ListaAgrupada>
-      <VistaPreviaWhatsApp texto={"¡Hola! Para reponer:\n• 2 Oxana Black\n• 1 Zakat\n¿Me confirmas precio y cuándo llegan? ¡Gracias!"} hora="9:41 a. m." />
+      <VistaPreviaWhatsApp nombre="Luisanna Peña" texto={"¡Hola, Luisanna! Te recuerdo con cariño que quedó pendiente RD$2,425. ¡Gracias!"} hora="9:41 a. m." />
+      <VistaPreviaWhatsApp sinDestinatario texto={"¡Hola! Para reponer:\n• 2 Oxana Black\n• 1 Zakat\n¿Me confirmas precio y cuándo llegan? ¡Gracias!"} hora="9:41 a. m." />
       <ul className="flex flex-col gap-3">
         <li>
           <Tarjeta href="/diseno#s-7">

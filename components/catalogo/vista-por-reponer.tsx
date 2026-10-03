@@ -155,7 +155,7 @@ export function VistaPorReponer({
 
       {modo === "viene" ? (
         <div className="flex flex-col gap-3">
-          {elegidas.length > 0 ? <VistaPreviaWhatsApp texto={texto} /> : <p className="text-secundario text-texto-secundario">Marca lo que quieres pedir y te armamos la lista.</p>}
+          {elegidas.length > 0 ? <VistaPreviaWhatsApp texto={texto} sinDestinatario /> : <p className="text-secundario text-texto-secundario">Marca lo que quieres pedir y te armamos la lista.</p>}
           <Boton tamano="grande" anchoCompleto icono={<IconoCompartir tamano={20} />} deshabilitado={elegidas.length === 0} onClick={() => void enviar()}>
             Enviar lista
           </Boton>
