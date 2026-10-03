@@ -39,12 +39,13 @@ Los colores se nombran por su **función**, no por su marca. Así el modo oscuro
 
 **Reglas de color**
 
-1. **Verde es seguir adelante.** Guardar, confirmar, crear y avanzar usan siempre `accion`. Nunca Mandarina ni otro color para algo parecido a guardar.
-2. **Mandarina se gana su lugar.** `resalte` solo va en el botón flotante (+), en contadores que piden atención (Agotados, Nuevos) y como máximo en UNA llamada emocional por pantalla ("Compartir", "¡A deslizar!"). Si una pantalla ya tiene botón flotante, no lleva otra Mandarina.
+1. **Verde es seguir adelante.** Guardar, confirmar, crear y avanzar usan siempre `accion`. Nunca Mandarina ni otro color para algo parecido a guardar. La única excepción es el momento que cierra una venta ("Despachar pedido"), que es la llamada emocional de su pantalla (regla 2).
+2. **Mandarina se gana su lugar.** `resalte` solo va en el botón flotante (+), en contadores que piden atención (Agotados, Nuevos) y como máximo en UNA llamada emocional por pantalla ("Despachar pedido", "Compartir", "¡A deslizar!"): el momento que da alegría, como el botón de comprar. Si una pantalla ya tiene botón flotante, no lleva otra Mandarina.
 3. **Rosa es marca, no estado.** `marca-rosa` decora (tarjeta del plan, avatar de persona, pestaña activa de la barra). No se usa para marcar selección ni avisos.
 4. **El rojo es solo para destruir.** `peligro` aparece en botones que borran o terminan algo, y en errores de campo. Nunca se escribe el color a mano.
 5. **Nada blanco fijo.** Todo fondo claro usa `superficie` o `fondo`, para que funcione en oscuro.
 6. **El estado nunca depende solo del color.** Elegido lleva check, atrasado lleva texto ("Atrasado 6 días"), en línea lleva la palabra.
+7. **WhatsApp es verde y relleno.** "Escribir" (abrir el chat del cliente) va siempre como botón compacto relleno `accion` con el icono de WhatsApp: saca a la persona de la app hacia una conversación, que es el verde del concepto de marca.
 
 ## 3. Tipografía
 
@@ -103,9 +104,10 @@ Todos son píldora, letra extrabold, sin subrayado.
 
 1. **Una sola acción principal por vista.** Si hay dos botones juntos, uno es principal y el otro secundario. Nunca dos rellenos iguales lado a lado.
 2. **Lado a lado:** cuando caben, el secundario va a la izquierda y el principal a la derecha, del mismo ancho. Si no caben, uno debajo del otro y el principal arriba.
-3. **Destruir nunca es principal.** "Terminar la anterior" o "Eliminar" van como peligro, aunque sean la acción más probable, y piden confirmación.
+3. **Destruir nunca es principal.** "Terminar la anterior" o "Eliminar" van como peligro, aunque sean la acción más probable, y piden confirmación. En una pila de acciones debajo de la principal ("Editar pedido", "Cancelar pedido"), la destructiva va como **terciario en `peligro`** (solo texto rojo), no con contorno, para no competir con la principal.
 4. **Deshabilitado:** opacidad 40 %, siempre la misma. Mejor aún: explicar con una línea qué falta en vez de deshabilitar sin decir por qué.
 5. **El subrayado no es un botón.** Se subraya solo un **enlace dentro de una frase** que lleva a otra página (Privacidad, Términos, "ya existe Marleny Peña"). Cualquier acción va como terciario.
+6. **Las filas no llevan botón de borrar.** Una fila de historial (un abono, un movimiento de inventario) termina en chevron y abre una hoja con su detalle y sus acciones ("Borrar abono", con confirmación). Un botón de borrar en cada fila pesa más que el dato y abarata la pantalla.
 
 ## 6. Elegir: pastillas, opciones y controles
 
@@ -113,9 +115,11 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 1. **Pastilla de filtro** (cambia lo que se ve en una lista): elegida = relleno `accion` con texto `sobre-accion`; sin elegir = `superficie` con contorno `borde-pastilla`. Alto 36, letra 14, contador opcional.
 2. **Opción de formulario** (un dato que se va a guardar: método de pago, fecha acordada): elegida = relleno `accion-suave`, texto `texto` y un **check en círculo** a la izquierda; sin elegir = `superficie` con contorno `borde-pastilla`. **Sin contorno verde y sin rosa.** Así nunca se confunde con el botón principal verde.
-3. **Control segmentado** (dos o tres opciones excluyentes y siempre visibles: "Pagó todo / A crédito"): una pista `superficie-hundida` con el segmento elegido en `superficie` y texto extrabold, como en iOS.
+3. **Control segmentado** (cambia la **vista o el modo** dentro de la misma pantalla: "Día / Semana / Mes", "Claro / Oscuro"): una pista `superficie-hundida` con el segmento elegido en `superficie` y texto extrabold, como en iOS. **No es para datos que se guardan:** "¿Cómo te paga? Pagó todo / A crédito" es una opción de formulario aunque sean solo dos.
 
 **El divisor entre pastillas** (una línea vertical) tiene un solo significado: separa los filtros **fijos** (siempre están) de los **condicionales** (solo aparecen cuando tienen algo). Ejemplo en Clientes: `Todos · Repiten · Nuevos | Deben · Dormidos`. Si una pantalla no tiene filtros condicionales, no lleva divisor. Los condicionales se ocultan cuando su contador es 0.
+
+**Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, relleno `superficie-hundida` e icono `texto`, con el número en `destacado` entre ellos. Al llegar al límite del stock, el + se deshabilita (40 %). No son círculos.
 
 **Interruptor:** solo para encender o apagar algo que se aplica al instante (Visible en el catálogo). Si hay que pulsar Guardar después, es una opción de formulario.
 
@@ -161,7 +165,7 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 
 ## 11. Etiquetas, contadores y avatares
 
-- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas. Cuatro tonos: neutro (`superficie-hundida`), éxito (`accion-suave` + `exito-texto`), atención (`atencion-suave` + `atencion-texto`) y fuerte (`accion` + `sobre-accion`, solo para "Agotado"). Con punto opcional delante para estados vivos ("En línea").
+- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas. Cuatro tonos: neutro (`superficie-hundida`), éxito (`accion-suave` + `exito-texto`), atención (`atencion-suave` + `atencion-texto`) y fuerte (`accion` + `sobre-accion`, solo para "Agotado"). Con punto opcional delante para estados vivos ("En línea"). Atención se usa para lo que pide cuidado: "Quedan 3" (stock que queda tras el pedido), "A crédito", "Debe", "Atrasado".
 - **Contador:** círculo de 20 px con número `contador`; `resalte` cuando pide atención, `accion-suave` cuando solo informa.
 - **Avatar:** redondo para personas (`marca-rosa` con iniciales en Fredoka), cuadrado `radio-m` para la tienda (`accion` con iniciales o su logo). Siempre 44 px en filas y 64 px en la cabecera de un detalle.
 

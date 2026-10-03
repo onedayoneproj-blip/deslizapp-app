@@ -4,7 +4,7 @@ Dos formas de listar, cada una con su trabajo: agrupada (filas en una sola tarje
 
 **Agrupada** (`superficie`, borde `linea`, `radio-l`, filas de 60 px separadas por `linea`)
 
-Para filas del mismo tipo, sencillas, que se recorren de corrido: clientes, productos de un pedido, ajustes, menú de la tienda, historial de abonos e inventario. Cada fila: avatar o icono opcional, nombre en `destacado`, una línea `secundario`, y chevron si abre algo. Toda la fila es tocable.
+Para filas del mismo tipo, sencillas, que se recorren de corrido: clientes, productos de un pedido, ajustes, menú de la tienda, historial de abonos e inventario. Cada fila: avatar o icono opcional, nombre en `destacado`, una línea `secundario`, y chevron si abre algo. Toda la fila es tocable. Las filas no llevan botón de borrar: una fila de historial (abono, movimiento) abre una hoja con su detalle y sus acciones.
 
 **Tarjetas sueltas** (una tarjeta por elemento, `espacio-3` entre ellas)
 
