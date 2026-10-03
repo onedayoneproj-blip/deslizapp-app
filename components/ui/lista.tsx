@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { IconoChevronDerecha } from "../iconos";
 import { clases } from "./comunes";
 
@@ -36,7 +36,7 @@ export function FilaLista({
   inicio?: ReactNode;
   fin?: ReactNode;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Un botón propio al final de la fila ("Escribir"). Ocupa el lugar del chevron: la fila sigue llevando a `href`, y el botón
    * va FUERA del enlace (no se anidan controles).
