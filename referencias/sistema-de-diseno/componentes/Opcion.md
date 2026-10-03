@@ -4,7 +4,7 @@ Opción de formulario: elige un dato que se va a guardar (método de pago, fecha
 
 **Opcion (pastilla de formulario)**
 
-- Alto 44, letra 15 extrabold, píldora.
+- Alto 44, letra 16 extrabold, píldora.
 - Elegida: relleno `accion-suave`, texto `texto` y un check en círculo `accion` a la izquierda. **Sin contorno verde y sin rosa**: así no se confunde con el botón principal ni con un filtro.
 - Sin elegir: `superficie` con contorno `borde-pastilla`.
 - Van en grupo con `role="radiogroup"` y su pregunta como título ("¿Cómo te pagó?").

@@ -36,11 +36,11 @@
 .dz-pastilla { height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--borde-pastilla); background: var(--superficie); color: var(--texto); font-family: var(--font-sans); font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
 .dz-pastilla[aria-pressed="true"] { background: var(--accion); border-color: var(--accion); color: var(--sobre-accion); }
 .dz-divisor { width: 1.5px; height: 24px; border-radius: 1px; background: var(--borde-campo); align-self: center; }
-.dz-opcion { height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--borde-pastilla); background: var(--superficie); color: var(--texto); font-family: var(--font-sans); font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; }
+.dz-opcion { height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--borde-pastilla); background: var(--superficie); color: var(--texto); font-family: var(--font-sans); font-size: 16px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; }
 .dz-opcion[aria-checked="true"] { background: var(--accion-suave); border-color: var(--accion-suave); padding-left: 10px; }
 .dz-check { width: 20px; height: 20px; border-radius: 10px; background: var(--accion); color: var(--sobre-accion); display: inline-flex; align-items: center; justify-content: center; }
 .dz-segmentos { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--superficie-hundida); }
-.dz-segmentos button { flex: 1; height: 40px; border: none; border-radius: 999px; background: transparent; color: var(--texto-secundario); font-family: var(--font-sans); font-size: 15px; font-weight: 700; }
+.dz-segmentos button { flex: 1; height: 40px; border: none; border-radius: 999px; background: transparent; color: var(--texto-secundario); font-family: var(--font-sans); font-size: 16px; font-weight: 700; }
 .dz-segmentos button[aria-checked="true"] { background: var(--superficie); color: var(--texto); font-weight: 800; box-shadow: 0 1px 3px rgba(16, 54, 42, .14); }
 .dz-contador { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; background: var(--accion-suave); color: var(--texto); }
 .dz-contador--resalte { background: var(--resalte); color: var(--sobre-resalte); }
@@ -71,11 +71,11 @@
 .dz-punto { width: 7px; height: 7px; border-radius: 4px; background: var(--en-linea); }
 
 /* Avisos, toast, alerta, hoja */
-.dz-aviso { border-radius: 16px; padding: 12px 16px; font-size: 15px; line-height: 22px; background: var(--superficie-hundida); color: var(--texto); display: flex; gap: 10px; align-items: flex-start; }
+.dz-aviso { border-radius: 16px; padding: 12px 16px; font-size: 16px; line-height: 22px; background: var(--superficie-hundida); color: var(--texto); display: flex; gap: 10px; align-items: flex-start; }
 .dz-aviso--atencion { background: var(--atencion-suave); }
 .dz-aviso--exito { background: var(--accion-suave); }
 .dz-aviso--peligro { background: var(--atencion-suave); color: var(--peligro); font-weight: 700; }
-.dz-toast { border-radius: 22px; padding: 12px 12px 12px 18px; background: var(--accion); color: var(--sobre-accion); box-shadow: var(--sombra-flotante); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 700; }
+.dz-toast { border-radius: 22px; padding: 12px 12px 12px 18px; background: var(--accion); color: var(--sobre-accion); box-shadow: var(--sombra-flotante); display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; }
 .dz-toast .dz-boton { color: var(--sobre-accion); height: 36px; }
 .dz-velo { background: var(--velo); border-radius: 22px; padding: 24px; display: flex; align-items: center; justify-content: center; }
 .dz-alerta { width: 300px; background: var(--superficie); border-radius: 28px; padding: 22px 20px 18px; box-shadow: var(--sombra-hoja); display: flex; flex-direction: column; gap: 8px; }

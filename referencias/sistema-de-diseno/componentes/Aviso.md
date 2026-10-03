@@ -2,7 +2,7 @@
 
 Mensaje en línea dentro de una pantalla u hoja, ligado a lo que se está viendo; no flota ni se va solo.
 
-- `radio-m`, relleno 12 × 16, letra 15.
+- `radio-m`, relleno 12 × 16, letra 16.
 - Cuatro tonos: **neutro** (`superficie-hundida`, información), **atención** (`atencion-suave`, deuda, límites, algo que revisar), **éxito** (`accion-suave`) y **peligro** (error al guardar o cargar, texto `peligro`).
 - Si necesita acción, lleva un botón terciario al final ("Reintentar"), nunca un texto subrayado.
 
