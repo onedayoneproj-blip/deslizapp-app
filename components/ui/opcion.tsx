@@ -83,7 +83,7 @@ export function useRadiogrupo<T extends string>(ids: T[], valor: T | null, alCam
 }
 
 /**
- * Grupo de opciones de formulario con su pregunta como título ("¿Cómo te pagó?"). Se acomoda en varias filas si no caben.
+ * Grupo de opciones de formulario con su pregunta como subtítulo (`destacado`, negrita, `texto`: "¿Cómo te pagó?"). Se acomoda en varias filas si no caben.
  * Sin `titulo` visible, `etiqueta` la dice a los lectores de pantalla.
  */
 export function GrupoOpciones<T extends string>({
@@ -108,7 +108,7 @@ export function GrupoOpciones<T extends string>({
   return (
     <div className="flex flex-col gap-2">
       {titulo && (
-        <p id={id} className="text-secundario text-texto-secundario">
+        <p id={id} className="text-destacado text-texto">
           {titulo}
         </p>
       )}

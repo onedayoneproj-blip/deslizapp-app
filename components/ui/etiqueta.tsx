@@ -4,7 +4,7 @@ import { clases } from "./comunes";
 export type TonoEtiqueta = "neutro" | "exito" | "atencion" | "fuerte";
 
 const TONO: Record<TonoEtiqueta, string> = {
-  neutro: "bg-superficie-hundida text-texto",
+  neutro: "bg-borde-pastilla text-texto",
   exito: "bg-accion-suave text-exito-texto",
   atencion: "bg-atencion-suave text-atencion-texto",
   fuerte: "bg-accion text-sobre-accion",

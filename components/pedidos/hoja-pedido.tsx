@@ -441,7 +441,7 @@ function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems
   if (estado === "despachado") {
     return (
       <>
-        <Etiqueta>Entregado</Etiqueta>
+        <Etiqueta tono="exito">Entregado</Etiqueta>
         {stock === 0 && <Etiqueta tono="fuerte">Agotado</Etiqueta>}
       </>
     );

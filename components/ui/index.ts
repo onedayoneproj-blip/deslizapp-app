@@ -11,6 +11,6 @@ export { Contador, Etiqueta, type TonoEtiqueta } from "./etiqueta";
 export { FilaAgregar } from "./fila-agregar";
 export { FilaLista, ListaAgrupada } from "./lista";
 export { GrupoOpciones, Opcion } from "./opcion";
-export { FilaPastillas, Pastilla, type OpcionFiltro } from "./pastilla";
+export { FilaPastillas, type OpcionFiltro } from "./pastilla";
 export { Tarjeta, type TonoTarjeta } from "./tarjeta";
 export { ProveedorToast, useToastUI, VistaToast, type OpcionesToast } from "./toast";

@@ -19,7 +19,7 @@ const RAPIDOS = [500, 1000];
 /**
  * Hoja "Registrar abono" (referencias/credito-abonos/Abono.dc.html). Con `pedidoId` el abono va a ese pedido; sin él (desde la
  * cuenta del cliente) se reparte entre sus pedidos a crédito, del más viejo al más nuevo. `deuda` es lo que se debe en ese
- * alcance (el pedido o todo el cliente). Lleva un campo de texto: hoja "grande" (la hoja no cambia con el teclado).
+ * alcance (el pedido o todo el cliente). Altura automática: mide su contenido (corto, con scroll si no cabe).
  */
 export function HojaAbono({
   abierta,
@@ -52,7 +52,7 @@ export function HojaAbono({
   abono?: Abono;
 }) {
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo={abono ? "Editar abono" : "Registrar abono"} altura="grande">
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo={abono ? "Editar abono" : "Registrar abono"} altura="auto">
       <Formulario
         clienteId={clienteId}
         nombreCliente={nombreCliente}
