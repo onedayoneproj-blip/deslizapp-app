@@ -21,16 +21,16 @@ Referencia visual: el canvas "Cliente: cobro y recordatorio", tableros "Detalle 
 
 - Etiqueta: quita el tono `urgente`. Lo atrasado ya no lleva píldora en ninguna parte.
 - BloqueDeuda (texto de la fecha, reutiliza la función que ya tienes):
-  · futura: icono calendario + "Paga el sáb 10 oct"; hoy: "Paga hoy"; mañana: "Paga mañana"; sin fecha: "Sin fecha de pago";
-  · vencida: icono de RELOJ en `resalte` (16px) + "Quedó de pagar el 27 sep" (texto `atencion-texto`, 14 extrabold). Nada de "Atrasado N días".
-  · Prefijo del monto: "Debe RD$X" en Pedidos y "Te debe RD$X" en Clientes (prop del componente).
+  · futura: icono calendario + "Vie 9 oct"; hoy: "Hoy"; mañana: "Mañana"; sin fecha: "Sin fecha";
+  · vencida: icono de RELOJ en `resalte` (16px) + "Atrasado 6 días" como TEXTO (`atencion-texto`, 14 extrabold), sin píldora.
+  · Prefijo del monto: "Debe RD$X" en Pedidos; en Clientes solo "RD$X" (prop del componente).
 - Tamaño normal (tarjeta de pedido, tarjeta de "Deben"): fila con el monto y la fecha + barra de 8px. Quita la leyenda "Abonó X de Y" en estas dos tarjetas: la barra ya lo muestra y el número exacto está en el detalle.
-- Tamaño mini (filas de lista agrupada: Todos/Repiten/Nuevos/Dormidos de Clientes e Historial del cliente): debajo del subtítulo, UNA línea con icono: "Te debe RD$1,900 · quedó de pagar el 27 sep" o "Te debe RD$2,425 · paga el vie 9 oct" (o "· sin fecha de pago"), en `atencion-texto` 14 extrabold, y debajo la barra de 6px. Nada a la derecha de la fila salvo el chevron. Verifica que no se trunque a 360px; si no cabe, la línea puede partirse en dos, pero nunca cortarse con "…".
+- Tamaño mini (filas de lista agrupada: Todos/Repiten/Nuevos/Dormidos de Clientes e Historial del cliente): el monto va a la DERECHA de la fila, antes del chevron (16 extrabold, `atencion-texto`), con el reloj `resalte` de 16px delante si está atrasado. Debajo del nombre y del subtítulo, la barra de 6px (ancho de la columna de texto). Sin fecha, sin frases, sin etiquetas. Verifica a 360px que el nombre y el subtítulo no choquen con el monto (el texto se trunca con "…" antes que el monto).
 
 ## 4. Lista de Clientes
 
 - "Todavía no pide. Todavía." pasa a "Sin pedidos".
-- Fila: Avatar (con señal repite) · nombre · subtítulo ("11 pedidos · RD$28,700") · línea mini de deuda si debe · chevron. Ninguna etiqueta.
+- Fila: Avatar (con señal repite) · nombre · subtítulo ("11 pedidos · RD$28,700") y, si debe, la barra mini debajo · el monto en naranja (con reloj si está atrasado) · chevron. Ninguna etiqueta.
 
 ## 5. Filtro "Deben" (FilaPorCobrar)
 
@@ -58,7 +58,7 @@ Referencia visual: el canvas "Cliente: cobro y recordatorio", tableros "Detalle 
   · "Corto": "Hola, {nombre}. Te recuerdo el pendiente de {monto} con {tienda}. ¡Gracias!";
   · "Si ya pasó la fecha": "¡Hola, {nombre}! Te escribe {vendedora}, de {tienda}. El pago de {monto} quedó para el {fecha} y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!" (solo si está vencido).
   Mensaje elegido por defecto: "Si ya pasó la fecha" cuando está vencido; si no, "Con cariño". Si falta la vendedora, usa la versión sin "Te escribe…".
-- Historial de pedidos: cada fila lleva "#N", la fecha, el total y el chevron, SIN etiqueta (ni de pago ni de estado). Si el pedido tiene saldo, la línea mini de deuda del punto 3 va debajo.
+- Historial de pedidos: cada fila lleva "#N", la fecha y el chevron, SIN etiqueta (ni de pago ni de estado); a la derecha el total, o el saldo en naranja si debe. Si el pedido tiene saldo, la versión mini del punto 3 (monto a la derecha en naranja y barra de 6px).
 - Nota: sin cambios.
 
 ## 7. Tarjeta de pedido (vista-pedidos)
