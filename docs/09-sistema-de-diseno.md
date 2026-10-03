@@ -124,6 +124,8 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 **Fila "Agregar …"** (Agregar cupón, Agregar producto): fila tocable con un **círculo relleno `accion` de 24 px con un + en `sobre-accion`** y el texto en `destacado`. El círculo relleno es lo que la distingue de un texto suelto.
 
+**Cupón aplicado:** cuando ya hay un cupón, la fila "Agregar cupón" se convierte en el ticket compacto del cupón **con un chevron**, y todo el ticket es un solo toque que abre el selector de cupones. En el selector, el cupón aplicado aparece marcado con su check; tocarlo otra vez lo **quita** (queda sin cupón) y tocar otro lo **cambia**. No hay botones "Cambiar" ni "Quitar". En el ticket, el nombre solo se muestra si es distinto del código (nunca el código dos veces).
+
 **Interruptor:** solo para encender o apagar algo que se aplica al instante (Visible en el catálogo). Si hay que pulsar Guardar después, es una opción de formulario.
 
 ## 7. Listas
@@ -135,6 +137,14 @@ Dos formas, cada una con su trabajo:
 **Tarjetas sueltas:** cada elemento en su propia tarjeta, con `espacio-3` entre ellas. Se usa cuando cada elemento **tiene estado propio, varias líneas de información o acciones propias**: pedidos, cuentas por cobrar, promos (ticket), productos del catálogo (cuadrícula).
 
 Regla rápida: si la fila tiene etiqueta de estado o un botón propio, va suelta. Si solo tiene texto y chevron, va agrupada. Una misma lista nunca mezcla las dos formas.
+
+**Ver más:** cuando una lista se muestra por partes, lo que falta se pide desde **la última fila de la misma lista**, no con un botón suelto debajo. En una lista agrupada es su última fila; en tarjetas sueltas es una tarjeta más, del mismo ancho, de 52 px de alto. Lleva a la izquierda "Ver N más" en `destacado` color `accion` con un chevron hacia abajo, y a la derecha "5 de 69" en `secundario` `texto-secundario`. Al tocarla aparecen los siguientes y la fila baja. Cuando ya no quedan, desaparece. No lleva contorno de botón.
+
+**Bloque de deuda:** todo lo que se debe se muestra igual en Pedidos y en Clientes. Va al final de su tarjeta, separado por una `linea`, con tres partes:
+1. Una fila con "Debe RD$2,425" (`destacado`, `atencion-texto`) a la izquierda y la fecha a la derecha: icono de calendario de 16 px + "Paga el sáb 10 oct", "Paga hoy", "Paga mañana" o "Sin fecha de pago" (14 extrabold, `atencion-texto`). Si ya pasó la fecha, en lugar del texto va la etiqueta urgente "Atrasado N días".
+2. Una barra de 8 px, pista `linea` y relleno `accion`, con lo que ya abonó sobre el total. Verde porque lo abonado es avance.
+3. La leyenda "Abonó RD$2,425 de RD$4,850" o "Sin abonos todavía" (`secundario`, `texto-secundario`).
+En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de historial va la versión mini (sin leyenda, barra de 6 px). Si no debe nada, no hay bloque.
 
 ## 8. Avisos y confirmaciones
 
@@ -168,7 +178,9 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 
 ## 11. Etiquetas, contadores y avatares
 
-- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas, **siempre con relleno visible** (sobre el fondo crema y sobre tarjetas blancas). Cuatro tonos: **éxito** (`accion-suave` + `exito-texto`) para lo que ya está bien: "Entregado", "Pagado", "Al contado", "Despachado"; **atención** (`atencion-suave` + `atencion-texto`) para lo que pide cuidado: "Quedan 3", "A crédito", "Debe", "Atrasado"; **neutro** (relleno `borde-pastilla` + `texto`) para lo que está en curso: "Por despachar", "Confirmado"; y **fuerte** (`accion` + `sobre-accion`) solo para "Agotado". Con punto opcional delante para estados vivos ("En línea").
+- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas, **siempre con relleno visible** (sobre el fondo crema y sobre tarjetas blancas). Cinco tonos: **éxito** (`accion-suave` + `exito-texto`) para lo que ya está bien: "Entregado", "Pagado", "Al contado", "Despachado"; **atención** (`atencion-suave` + `atencion-texto`) para lo que pide cuidado: "Quedan 3", "A crédito", "Debe", "Atrasado"; **neutro** (relleno `borde-pastilla` + `texto`) para lo que está en curso: "Por despachar", "Confirmado"; **fuerte** (`accion` + `sobre-accion`) solo para "Agotado"; y **urgente** (`resalte` + `sobre-resalte`) solo para "Atrasado N días". Con punto opcional delante para estados vivos ("En línea").
+- **No repetir el filtro:** una etiqueta nunca dice lo que ya dice el filtro o la pestaña en la que estás. En la lista de Pedidos (cada pestaña es un estado) la tarjeta no lleva el estado; lleva la forma de pago: "Al contado" (éxito) o "A crédito" (atención). Dentro del detalle de un pedido, los productos no llevan "Entregado": eso ya lo dice la barra de pasos.
+- **Dona:** dentro del anillo va solo la cifra (Fredoka). Lo que significa la cifra ("clientes", "productos") va debajo, fuera del anillo, junto al dato secundario ("110 clientes · 59 repiten"). Nada de texto pequeño en mayúsculas apretado dentro del anillo.
 - **Contador:** círculo de 20 px con número `contador`; `resalte` cuando pide atención, `accion-suave` cuando solo informa.
 - **Avatar:** redondo para personas (`marca-rosa` con iniciales en Fredoka), cuadrado `radio-m` para la tienda (`accion` con iniciales o su logo). Siempre 44 px en filas y 64 px en la cabecera de un detalle.
 
