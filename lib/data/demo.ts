@@ -5,7 +5,8 @@ import type { CambiosProducto, Cliente, ClienteConResumen, EnvioJugada, EventoAa
 import { CREDITOS_POR_RETOQUE } from "../config";
 import type { CambiosAbono } from "../credito";
 import type { Abono, MotivoAjusteInventario } from "../types";
-import { DatosInvalidos } from "./errores";
+import { DatosInvalidos, FuncionApagada } from "./errores";
+import { FUNCIONES } from "../funciones";
 import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
@@ -517,6 +518,7 @@ export const fuenteDemo: FuenteDatos = {
     return actualizada;
   },
   async crearCodigoCliente(tiendaId, clienteId, porcentaje, dias, codigo) {
+    if (!FUNCIONES.proximaJugada) throw new FuncionApagada();
     let creada!: Promo;
     escribir((db) => {
       const r = crearCodigoClienteEnDB(db, tiendaId, clienteId, porcentaje, dias, codigo, nuevoId(), Date.now());
@@ -526,6 +528,7 @@ export const fuenteDemo: FuenteDatos = {
     return creada;
   },
   async registrarEnvioJugada(tiendaId, datos) {
+    if (!FUNCIONES.proximaJugada) throw new FuncionApagada();
     let envio!: EnvioJugada;
     escribir((db) => {
       const r = registrarEnvioEnDB(db, tiendaId, datos, nuevoId(), Date.now());
@@ -535,6 +538,7 @@ export const fuenteDemo: FuenteDatos = {
     return envio;
   },
   async enviosJugada(tiendaId) {
+    if (!FUNCIONES.proximaJugada) return [];
     return enviosDeTienda(leerDemo().db, tiendaId, Date.now());
   },
   /** La termina el dueño. No se puede reactivar. */

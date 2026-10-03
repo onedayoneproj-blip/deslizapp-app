@@ -1,4 +1,6 @@
-// Con la app compilada y corriendo: URL=http://localhost:3000 node scripts/probar-proxima-jugada.mjs
+// Con Tu próxima jugada ENCENDIDA (lib/funciones.ts: proximaJugada: true), la app compilada y corriendo:
+//   URL=http://localhost:3000 node scripts/probar-proxima-jugada.mjs
+// Apagada, la prueba es scripts/probar-proximamente.mjs.
 // Solo modo demo (localStorage del navegador de prueba). Intercepta wa.me: nunca abre ni envía un mensaje.
 // Recorre Tu próxima jugada a 360, 390 y 430 (430 con reducir movimiento): la tarjeta arriba de Tus clientes, la entrada a la
 // galería, el barrido al elegir una jugada, "Escribirle a…" con saludo, código y productos, el envío (código personal + registro)
@@ -32,6 +34,7 @@ try {
     await page.goto(base+'/clientes');
     await page.getByRole('button',{name:/clientes:.*Ver detalle/}).click();
     await page.getByRole('heading',{name:'Tus clientes'}).waitFor();
+    if(await page.getByRole('button',{name:/^Próximamente/}).count()) throw new Error('Tu próxima jugada está apagada (lib/funciones.ts). Enciéndela y compila, o usa scripts/probar-proximamente.mjs.');
 
     // La tarjeta va arriba, antes de la dona
     const tarjeta=page.getByRole('button',{name:/^Tu próxima jugada/});

@@ -1,3 +1,5 @@
+import { FUNCIONES } from "./funciones";
+
 // Novedades de cada versión del panel, de la más nueva a la más vieja.
 //
 // REGLA (ver HANDOFF.md): cada cambio visible para el dueño de la tienda suma una línea aquí.
@@ -14,9 +16,11 @@ export type Novedad = {
   titulo: string;
   /** De 2 a 4 líneas cortas. */
   cambios: string[];
+  /** Habla de una función que puede estar apagada (lib/funciones.ts): solo se muestra con la función encendida. */
+  funcion?: keyof typeof FUNCIONES;
 };
 
-export const NOVEDADES: Novedad[] = [
+const TODAS: Novedad[] = [
   {
     version: "0.31.8",
     fecha: "2026-10-02",
@@ -102,6 +106,7 @@ export const NOVEDADES: Novedad[] = [
   },
   {
     version: "0.29.1",
+    funcion: "proximaJugada",
     fecha: "2026-10-02",
     titulo: "La jugada fluye.",
     cambios: [
@@ -112,6 +117,7 @@ export const NOVEDADES: Novedad[] = [
   },
   {
     version: "0.29.0",
+    funcion: "proximaJugada",
     fecha: "2026-10-01",
     titulo: "Una jugada más a tu manera.",
     cambios: [
@@ -122,6 +128,7 @@ export const NOVEDADES: Novedad[] = [
   },
   {
     version: "0.28.0",
+    funcion: "proximaJugada",
     fecha: "2026-10-01",
     titulo: "Tu próxima jugada.",
     cambios: [
@@ -495,7 +502,11 @@ export const NOVEDADES: Novedad[] = [
   },
 ];
 
-export const VERSION_ACTUAL = NOVEDADES[0]!.version;
+/** Las que se muestran: sin las de funciones apagadas. */
+export const NOVEDADES: Novedad[] = TODAS.filter((n) => !n.funcion || FUNCIONES[n.funcion]);
+
+/** La versión sale de todas las entradas, aunque la más nueva hable de una función apagada. */
+export const VERSION_ACTUAL = TODAS[0]!.version;
 
 /** Compara "0.10.0" con "0.9.2" como números, no como texto. */
 export function compararVersiones(a: string, b: string): number {

@@ -39,6 +39,8 @@ import {
   Tarjeta,
   TarjetaDocumento,
   TarjetaJugada,
+  TarjetaProximamente,
+  HojaProximamente,
   VistaPreviaWhatsApp,
   useToastUI,
   VistaToast,
@@ -540,6 +542,7 @@ function Hojas() {
 // ---- 10. Tarjetas ----
 
 function Tarjetas() {
+  const [proximamente, setProximamente] = useState(false);
   return (
     <Seccion numero="10" titulo="Tarjetas" nota="Sin sombra. Destacada: una por pantalla. De marca: plan y novedades.">
       <div className="grid grid-cols-1 gap-3 min-[560px]:grid-cols-3">
@@ -573,6 +576,22 @@ function Tarjetas() {
           alTocar={() => undefined}
         />
         <TarjetaJugada titulo={null} cartas={CARTAS_JUGADAS} etiqueta="Tu próxima jugada: la próxima conversación empieza aquí" alTocar={() => undefined} />
+      </div>
+      <div className="flex max-w-100 flex-col gap-2">
+        <Rotulo>función en preparación: malla apagada y lenta tras un velo, pastilla &quot;Próximamente&quot;; toca para ver su hoja (se enciende en lib/funciones.ts)</Rotulo>
+        <TarjetaProximamente
+          voz="Tu próxima jugada"
+          titulo="Algo se está cocinando"
+          linea="Pronto te diré a quién escribirle hoy."
+          etiqueta="Próximamente: Tu próxima jugada. Algo se está cocinando. Ver más"
+          alTocar={() => setProximamente(true)}
+        />
+        {proximamente && (
+          <HojaProximamente abierta alCerrar={() => setProximamente(false)} titulo="Tu próxima jugada" imagen="/ilustraciones/proxima-jugada/volver-a-saludar.webp">
+            <p>Estamos afinando algo que te va a encantar. Cada día te va a decir a quién escribirle y qué decirle para que esa venta no se enfríe. Ya casi, ya casi.</p>
+            <p className="text-secundario text-texto-secundario">Mientras tanto, sigue vendiendo. Aquí te aviso cuando esté lista.</p>
+          </HojaProximamente>
+        )}
       </div>
     </Seccion>
   );

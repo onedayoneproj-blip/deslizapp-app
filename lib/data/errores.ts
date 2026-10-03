@@ -122,6 +122,13 @@ export class DatosInvalidos extends ErrorClaro {}
 /** El código personal escrito a mano no sirve (formato o ya en uso): se muestra en el campo "Código". */
 export class CodigoNoValido extends ErrorClaro {}
 
+/** La función está apagada en lib/funciones.ts: no se llama a la base. */
+export class FuncionApagada extends ErrorClaro {
+  constructor() {
+    super("Esto todavía no está disponible.");
+  }
+}
+
 export const MENSAJE_CODIGO_EN_USO = "Ese código ya existe. Prueba otro.";
 export const MENSAJE_CODIGO_FORMATO = "Usa de 3 a 15 letras o números, sin espacios.";
 

@@ -12,6 +12,7 @@ import { ContenidoResumenClientes, NOMBRE_GRUPO_CLIENTES } from "./contenido-res
 import { FilaCliente } from "./fila-cliente";
 import { BotonVolver } from "../selector-busqueda";
 import { menosMovimiento } from "@/lib/movimiento";
+import { FUNCIONES } from "@/lib/funciones";
 import { BarridoContenido, BarridoFranja, BrilloJugada, CruceTexto, EntradaCapas, medirEntrada, posicionAtras, type OrigenEntrada } from "./transiciones-jugada";
 import { HojaEscribirJugada } from "./hoja-escribir-jugada";
 import { useConsulta } from "@/lib/data/consulta";
@@ -24,6 +25,9 @@ export { SEGMENTOS_CLIENTES } from "./contenido-resumen-clientes";
 
 type Vista = "resumen" | "galeria" | IdJugada | `grupo:${GrupoClientes}`;
 const esGrupo = (v: Vista): v is `grupo:${GrupoClientes}` => v.startsWith("grupo:");
+/** Con Tu próxima jugada apagada (lib/funciones.ts) solo existen el resumen y los grupos: la galería y las jugadas no se alcanzan. */
+const vistaPermitida = (v: Vista) => FUNCIONES.proximaJugada || v === "resumen" || esGrupo(v);
+const SIN_JUGADAS: { jugadas: Jugada[]; destacada: Jugada | null; total: number } = { jugadas: [], destacada: null, total: 0 };
 
 export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tienda, vendedora, urlCatalogo, ahora, alCerrar, alFiltrar }: {
   resumen: ResumenClientes; clientes: ClienteConResumen[]; pedidos: Pedido[]; tiendaId: string;
@@ -40,15 +44,17 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   // Entrada a la galería: la vista anterior se queda detrás mientras la malla crece y los cuadros vuelan desde el mazo
   const [entrada, setEntrada] = useState<{ origen: OrigenEntrada; id: number } | null>(null);
   const secuencia = useRef(0);
-  const { jugadas, destacada, total } = calcularJugadas(clientes, pedidos, tiendaId, ahora);
+  const { jugadas, destacada, total } = FUNCIONES.proximaJugada ? calcularJugadas(clientes, pedidos, tiendaId, ahora) : SIN_JUGADAS;
   const seleccionada = jugadas.find((j) => j.id === vista);
   const { enviosJugada } = useData();
-  const { data: envios } = useConsulta(`envios:${tiendaId}`, () => enviosJugada(tiendaId));
+  // Apagada: no se pide nada (la clave distinta evita mezclar con la caché de la función encendida)
+  const { data: envios } = useConsulta(FUNCIONES.proximaJugada ? `envios:${tiendaId}` : "envios:apagado", () => (FUNCIONES.proximaJugada ? enviosJugada(tiendaId) : Promise.resolve([])));
   // Los que ya recibieron un mensaje de una jugada en los últimos 7 días van al final, con "Le escribiste…"
   const porEnvio = ordenarPorEnvio(seleccionada?.clientes ?? [], envios ?? [], ahora);
   const cerrarBorrador = useCallback(() => setBorrador(null), []);
   // Las ilustraciones de la galería y del detalle se piden al abrir "Tus clientes": al volver ya están
   useEffect(() => {
+    if (!FUNCIONES.proximaJugada) return;
     for (const c of CARTAS_JUGADAS) for (const p of [IMAGEN_CUADRO, IMAGEN_DETALLE]) {
       const { props } = getImageProps({ src: c.imagen, alt: "", ...p });
       preload(props.src, { as: "image", imageSrcSet: props.srcSet, imageSizes: props.sizes, fetchPriority: "high" });
@@ -56,7 +62,8 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   }, []);
   useEffect(() => {
     const atras = (e: PopStateEvent) => {
-      const siguiente = (e.state?.deslizappJugada as Vista | undefined) ?? "resumen";
+      const guardada = (e.state?.deslizappJugada as Vista | undefined) ?? "resumen";
+      const siguiente = vistaPermitida(guardada) ? guardada : "resumen";
       // Cerrar una hoja apilada también emite popstate; si la vista no cambió, no consume un nivel.
       if (profundidad.current === 0 || siguiente === vistaActual.current) return;
       profundidad.current--;
@@ -69,7 +76,7 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     return () => window.removeEventListener("popstate", atras);
   }, []);
   const navegar = (siguiente: Vista, elemento?: HTMLElement) => {
-    if (siguiente === vistaActual.current) return;
+    if (siguiente === vistaActual.current || !vistaPermitida(siguiente)) return;
     setBarrido(vista === "galeria" && siguiente !== "resumen" && !menosMovimiento() ? ++secuencia.current : null);
     const origenEntrada = vista === "resumen" && siguiente === "galeria" && elemento && !menosMovimiento() ? medirEntrada(elemento) : null;
     setEntrada(origenEntrada ? { origen: origenEntrada, id: ++secuencia.current } : null);

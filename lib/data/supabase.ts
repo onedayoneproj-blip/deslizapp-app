@@ -34,7 +34,9 @@ import {
   SoloDemo,
   TelefonoDuplicado,
   traducirErrorSupabase,
+  FuncionApagada,
 } from "./errores";
+import { FUNCIONES } from "../funciones";
 import {
   aAbono,
   aCliente,
@@ -939,6 +941,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
 
     // ---- Tu próxima jugada ----
     async crearCodigoCliente(tiendaId, clienteId, porcentaje, dias, codigo = null) {
+      if (!FUNCIONES.proximaJugada) throw new FuncionApagada();
       const escrito = codigo?.trim() ? codigo.trim().toUpperCase() : null;
       // Validación rápida para dar el mensaje en el campo; la RPC repite las reglas.
       if (escrito && !PATRON_CODIGO.test(escrito)) throw new CodigoNoValido(MENSAJE_CODIGO_FORMATO);
@@ -951,6 +954,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aPromo(f));
     },
     async registrarEnvioJugada(tiendaId, datos) {
+      if (!FUNCIONES.proximaJugada) throw new FuncionApagada();
       const f = await requerido<FilaEnvioJugada>(
         supabase.rpc("registrar_envio_jugada", {
           p_tienda_id: tiendaId,
@@ -965,7 +969,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aEnvioJugada(f));
     },
     enviosJugada: (tiendaId) =>
-      leer(`envios:${tiendaId}`, async () => {
+      !FUNCIONES.proximaJugada ? Promise.resolve([]) : leer(`envios:${tiendaId}`, async () => {
         const desde = new Date(Date.now() - DIAS_ENVIOS * 86_400_000).toISOString();
         const filas = await dato<FilaEnvioJugada[]>(
           supabase.from("jugada_envios").select("*").eq("tienda_id", tiendaId).gte("enviado_en", desde).order("enviado_en", { ascending: false }),

@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Dona } from "../dona";
+import { FUNCIONES } from "@/lib/funciones";
 import { lecturaClientes, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import { porcentajeDe } from "@/lib/inventario-catalogo";
 import { CARTAS_JUGADAS, lineaJugada, type Jugada } from "@/lib/proxima-jugada";
 import { IconoBrote, IconoEditar, IconoEnlace, IconoLuna } from "../iconos";
-import { ResumenDona, TarjetaJugada, type CuadroResumen, type FilaResumen } from "../ui";
+import { HojaProximamente, ResumenDona, TarjetaJugada, TarjetaProximamente, type CuadroResumen, type FilaResumen } from "../ui";
 
 export const SEGMENTOS_CLIENTES = [
   { id: "repiten", nombre: "Repiten", color: "var(--accion)" },
@@ -35,11 +37,22 @@ export function ContenidoResumenClientes({ resumen, alAbrirGrupo, alFiltrar, alA
     cuadro("catalogo", "Del catálogo", "llegaron por el enlace", <IconoEnlace />),
     cuadro("manual", "A mano", "los agregaste tú", <IconoEditar />),
   ];
+  const [proximamente, setProximamente] = useState(false);
   return (
+    <>
     <ResumenDona
       encabezado={
-        // Lo primero que se ve es qué hacer hoy; la dona de abajo explica el porqué (docs/09 §7, punto 5)
-        <TarjetaJugada
+        // Lo primero que se ve es qué hacer hoy; la dona de abajo explica el porqué (docs/09 §7, punto 5).
+        // Apagada (lib/funciones.ts): en su lugar, la tarjeta Próximamente; nada de la función real se monta.
+        !FUNCIONES.proximaJugada ? (
+          <TarjetaProximamente
+            voz="Tu próxima jugada"
+            titulo="Algo se está cocinando"
+            linea="Pronto te diré a quién escribirle hoy."
+            etiqueta="Próximamente: Tu próxima jugada. Algo se está cocinando. Ver más"
+            alTocar={() => setProximamente(true)}
+          />
+        ) : <TarjetaJugada
           titulo={destacada?.nombre ?? null}
           linea={destacada ? lineaJugada(destacada.id, destacada.cantidad) : null}
           cartas={CARTAS_JUGADAS}
@@ -62,5 +75,12 @@ export function ContenidoResumenClientes({ resumen, alAbrirGrupo, alFiltrar, alA
       unidadOtros="clientes"
     >
     </ResumenDona>
+    {proximamente && (
+      <HojaProximamente abierta alCerrar={() => setProximamente(false)} titulo="Tu próxima jugada" imagen="/ilustraciones/proxima-jugada/volver-a-saludar.webp">
+        <p>Estamos afinando algo que te va a encantar. Cada día te va a decir a quién escribirle y qué decirle para que esa venta no se enfríe. Ya casi, ya casi.</p>
+        <p className="text-secundario text-texto-secundario">Mientras tanto, sigue vendiendo. Aquí te aviso cuando esté lista.</p>
+      </HojaProximamente>
+    )}
+    </>
   );
 }
