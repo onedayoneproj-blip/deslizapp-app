@@ -118,7 +118,7 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 2. **Opción de formulario** (un dato que se va a guardar: método de pago, fecha acordada): elegida = relleno `accion-suave`, texto `texto` y un **check en círculo** a la izquierda; sin elegir = `superficie` con contorno `borde-pastilla`. **Sin contorno verde y sin rosa.** Así nunca se confunde con el botón principal verde.
 3. **Control segmentado** (cambia la **vista o el modo** dentro de la misma pantalla: "Día / Semana / Mes", "Claro / Oscuro"): una pista `superficie-hundida` con el segmento elegido en `superficie` y texto extrabold, como en iOS. **No es para datos que se guardan:** "¿Cómo te paga? Pagó todo / A crédito" es una opción de formulario aunque sean solo dos.
 
-**El divisor entre pastillas** (una línea vertical) tiene un solo significado: separa los filtros **fijos** (siempre están) de los **condicionales** (solo aparecen cuando tienen algo). Ejemplo en Clientes: `Todos · Repiten · Nuevos | Deben · Dormidos`. Si una pantalla no tiene filtros condicionales, no lleva divisor. Los condicionales se ocultan cuando su contador es 0.
+**El divisor entre pastillas** (una línea vertical) tiene un solo significado: separa los filtros **fijos** (siempre están) de los **condicionales** (solo aparecen cuando tienen algo). Ejemplo en Clientes: `Todos · Repiten · Nuevos · Del catálogo | Deben · Dormidos`. Los fijos siempre se ven, aunque estén en 0 (sin contador cuando es 0); el divisor va siempre después del último fijo, nunca después de "Todos". Si una pantalla no tiene filtros condicionales, no lleva divisor. Los condicionales se ocultan cuando su contador es 0.
 
 **Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, con el número en `destacado` entre ellos. **−** en `superficie-hundida` con icono `texto`; **+** en relleno `accion` con icono `sobre-accion`, porque agregar es seguir adelante. Al llegar al mínimo o al límite del stock, ese botón se deshabilita (40 %). No son círculos.
 
@@ -144,7 +144,7 @@ Regla rápida: si la fila tiene etiqueta de estado o un botón propio, va suelta
 1. Una fila con "Debe RD$2,425" (`destacado`, `atencion-texto`) a la izquierda y la fecha a la derecha: icono de calendario de 16 px + "Paga el sáb 10 oct", "Paga hoy", "Paga mañana" o "Sin fecha de pago" (14 extrabold, `atencion-texto`). Si ya pasó la fecha, en lugar del texto va la etiqueta urgente "Atrasado N días".
 2. Una barra de 8 px, pista `linea` y relleno `accion`, con lo que ya abonó sobre el total. Verde porque lo abonado es avance.
 3. La leyenda "Abonó RD$2,425 de RD$4,850" o "Sin abonos todavía" (`secundario`, `texto-secundario`).
-En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de historial va la versión mini (sin leyenda, barra de 6 px). Si no debe nada, no hay bloque.
+En el detalle del cliente ("Te debe") el monto va grande en Fredoka; en filas de una lista agrupada (historial de pedidos, la lista "Todos" de Clientes) va la versión mini debajo del texto de la fila (sin leyenda, barra de 6 px), nunca como etiqueta "Debe" a la derecha. Si no debe nada, no hay bloque.
 
 ## 8. Avisos y confirmaciones
 
