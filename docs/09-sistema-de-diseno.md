@@ -4,6 +4,8 @@ El lenguaje de diseño del panel de Deslizapp: la app donde una persona que vend
 
 **Para quién es:** dueñas y dueños de tienda pequeña en República Dominicana que usan la app con una mano, de pie, entre cliente y cliente. Todo se decide pensando en eso: se lee de un vistazo, se toca sin apuntar y nunca hace dudar entre dos botones.
 
+**La idea en tres palabras:** Desliza (flecha), Encuentra (corazón) y Escribe (burbuja de chat). El logo, los fondos con patrón, las ilustraciones de plastilina y las fotos están en la sección **Marca, ilustración y fondos**. Regla de público: rosa le habla al comprador, Verde Bosque le habla al vendedor.
+
 **Cómo se usa este documento:** cada regla nombra el token o componente que la cumple. Si algo no está aquí, se resuelve con lo que ya existe antes de inventar una variante nueva. Si de verdad hace falta una variante, se agrega primero aquí.
 
 ---
