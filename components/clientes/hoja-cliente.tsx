@@ -15,9 +15,8 @@ import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { IconoEditar, IconoWhatsApp } from "../iconos";
-import { EtiquetaPago } from "../pedidos/comunes";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, BloqueDeuda, Boton, FilaLista, ListaAgrupada } from "../ui";
+import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
@@ -166,14 +165,9 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
                 href={`/pedidos/${p.id}`}
                 titulo={`#${p.numero}`}
                 detalle={fechaCorta(p.creadoEn)}
-                fin={
-                  <span className="flex items-center gap-2">
-                    {/* Nunca el estado del pedido (regla "No repetir el filtro"): la forma de pago */}
-                    <EtiquetaPago pedido={p} />
-                    {formatearPesos(p.total)}
-                  </span>
-                }
-                pie={p.pagoModo === "credito" && p.estado !== "cancelado" ? <BloqueDeuda tamano="mini" separado={false} saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} /> : undefined}
+                // Sin etiquetas: el total, o lo que debe en naranja (con reloj si está atrasado) y su barra mini
+                fin={p.saldo > 0 ? <MontoDeuda saldo={p.saldo} fecha={p.pagoFechaAcordada} ahora={ahora} /> : formatearPesos(p.total)}
+                pie={p.saldo > 0 ? <BarraAbonado mini abonado={p.total - p.saldo} total={p.total} /> : undefined}
               />
             ))}
           </ListaAgrupada>

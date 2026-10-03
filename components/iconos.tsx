@@ -206,6 +206,20 @@ export const IconoCalendario = (p: Props) => (
   </Icono>
 );
 
+export const IconoReloj = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </Icono>
+);
+
+export const IconoBolsa = (p: Props) => (
+  <Icono {...p}>
+    <path d="M5.5 8h13l-1 12h-11z" />
+    <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+  </Icono>
+);
+
 export const IconoMoneda = (p: Props) => (
   <Icono {...p}>
     <circle cx="12" cy="12" r="9" />

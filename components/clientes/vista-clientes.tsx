@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
 import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
 import { resaltar } from "@/lib/texto";
-import { mensajeRecordatorio, type CuentaPorCobrar } from "@/lib/credito";
+import { mensajeRecordatorio, textoFechaDeudaAccesible, type CuentaPorCobrar } from "@/lib/credito";
 import { consumirClientesQueDeben, hayClientesQueDeben } from "@/lib/destello";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -19,7 +19,7 @@ import { enlaceWhatsApp } from "@/lib/formato";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { BloqueDeuda, Boton, Buscador, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
+import { BarraAbonado, Boton, Buscador, FilaLista, MontoDeuda, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
 import { Avatar } from "../ui";
 import { TextoResaltado } from "./texto-resaltado";
@@ -176,6 +176,7 @@ function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, senalRepit
         <>
           <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
           {c.repite && senalRepite && <span className="sr-only">, repite</span>}
+          {cuenta && cuenta.deuda > 0 && <span className="sr-only">, debe {formatearPesos(cuenta.deuda)}, {textoFechaDeudaAccesible(cuenta.fechaAcordada, ahora)}</span>}
         </>
       }
       detalle={
@@ -190,7 +191,8 @@ function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, senalRepit
           "Todavía no pide. Todavía."
         )
       }
-      pie={cuenta && cuenta.deuda > 0 ? <BloqueDeuda tamano="mini" separado={false} saldo={cuenta.deuda} total={cuenta.totalPedidos} fecha={cuenta.fechaAcordada} ahora={ahora} className="pr-0" /> : undefined}
+      fin={cuenta && cuenta.deuda > 0 ? <MontoDeuda saldo={cuenta.deuda} fecha={cuenta.fechaAcordada} ahora={ahora} /> : undefined}
+      pie={cuenta && cuenta.deuda > 0 ? <BarraAbonado mini abonado={cuenta.abonado} total={cuenta.totalPedidos} /> : undefined}
       accion={escribir && <Boton whatsapp href={escribir.href} target="_blank" rel="noreferrer" aria-label={`Escribirle a ${escribir.nombre} por WhatsApp`}>Escribir</Boton>}
     />
   );

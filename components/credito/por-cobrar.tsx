@@ -1,6 +1,6 @@
 "use client";
 
-import { enlaceWhatsAppCliente, textoFechaDeuda, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
+import { enlaceWhatsAppCliente, textoFechaDeudaAccesible, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import { Avatar, BloqueDeuda, Boton, Tarjeta } from "../ui";
 
@@ -43,7 +43,7 @@ function linea(c: CuentaPorCobrar): string {
 export function FilaPorCobrar({ cuenta: c, mensaje, ahora, repite = false }: { cuenta: CuentaPorCobrar; mensaje: string; ahora: number; repite?: boolean }) {
   return (
     <li className="relative">
-      <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}${repite ? ", repite" : ""}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}. ${textoFechaDeuda(c.fechaAcordada, ahora)}`}>
+      <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}${repite ? ", repite" : ""}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}. ${textoFechaDeudaAccesible(c.fechaAcordada, ahora)}`}>
         <div className={`flex items-center gap-3 ${c.telefono ? "pr-28" : ""}`}>
           <Avatar nombre={c.nombre} repite={repite} />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -51,7 +51,7 @@ export function FilaPorCobrar({ cuenta: c, mensaje, ahora, repite = false }: { c
             <span className="text-secundario text-texto-secundario">{linea(c)}</span>
           </div>
         </div>
-        <BloqueDeuda saldo={c.deuda} total={c.totalPedidos} fecha={c.fechaAcordada} ahora={ahora} />
+        <BloqueDeuda prefijo={false} saldo={c.deuda} total={c.totalPedidos} fecha={c.fechaAcordada} ahora={ahora} />
       </Tarjeta>
       {c.telefono && (
         <div className="absolute top-4 right-4">

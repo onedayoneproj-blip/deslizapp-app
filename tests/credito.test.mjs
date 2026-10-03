@@ -21,6 +21,8 @@ import {
   textoAtraso,
   totalYAbonado,
   textoFechaDeuda,
+  textoFechaDeudaAccesible,
+  diaLargo,
   textoFaltan,
 } from "../lib/credito.ts";
 import { traducirErrorSupabase, MontoMayorQueDeuda, PedidoConAbonos } from "../lib/data/errores.ts";
@@ -271,13 +273,18 @@ test("editar un abono: valida método, nota, fecha y monto como la base", () => 
 
 test("texto de fecha del bloque de deuda", () => {
   // AHORA = miércoles 30 sep 2026 (mediodía en Santo Domingo)
-  assert.equal(textoFechaDeuda("2026-09-30", AHORA), "Paga hoy");
-  assert.equal(textoFechaDeuda("2026-10-01", AHORA), "Paga mañana");
-  assert.equal(textoFechaDeuda("2026-10-10", AHORA), "Paga el sáb 10 oct");
-  assert.equal(textoFechaDeuda("2027-01-05", AHORA), "Paga el mar 5 ene 2027");
+  assert.equal(textoFechaDeuda("2026-09-30", AHORA), "Hoy");
+  assert.equal(textoFechaDeuda("2026-10-01", AHORA), "Mañana");
+  assert.equal(textoFechaDeuda("2026-10-10", AHORA), "Sáb 10 oct");
+  assert.equal(textoFechaDeuda("2026-10-09", AHORA), "Vie 9 oct");
+  assert.equal(textoFechaDeuda("2027-01-05", AHORA), "Mar 5 ene 2027");
   assert.equal(textoFechaDeuda("2026-09-29", AHORA), "Atrasado 1 día");
   assert.equal(textoFechaDeuda("2026-09-24", AHORA), "Atrasado 6 días");
-  assert.equal(textoFechaDeuda(null, AHORA), "Sin fecha de pago");
+  assert.equal(textoFechaDeuda(null, AHORA), "Sin fecha");
+  assert.equal(textoFechaDeudaAccesible("2026-10-09", AHORA), "paga el viernes 9 de octubre");
+  assert.equal(textoFechaDeudaAccesible("2026-09-24", AHORA), "atrasado 6 días");
+  assert.equal(textoFechaDeudaAccesible(null, AHORA), "sin fecha de pago");
+  assert.equal(diaLargo("2027-01-05", AHORA), "martes 5 de enero de 2027");
 });
 
 test("bloque de deuda de un cliente: suma el total y lo abonado de TODOS sus pedidos con saldo", () => {

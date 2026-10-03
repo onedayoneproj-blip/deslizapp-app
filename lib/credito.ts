@@ -77,20 +77,46 @@ export function diaCorto(dia: string): string {
 
 const DIAS_SEMANA_CORTOS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
+const DIAS_SEMANA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+const partesDia = (fecha: string) => fecha.split("-").map(Number) as [number, number, number];
+const diaSemana = (fecha: string) => {
+  const [anio, mes, dia] = partesDia(fecha);
+  return new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay();
+};
+
+/** "2026-10-09" → "viernes 9 de octubre" (con el año si no es el de `ahora`). Para los mensajes y lo que lee el lector de pantalla. */
+export function diaLargo(fecha: string, ahora: number): string {
+  const [anio, mes, dia] = partesDia(fecha);
+  const conAnio = anio !== Number(diaDeSantoDomingo(ahora).slice(0, 4)) ? ` de ${anio}` : "";
+  return `${DIAS_SEMANA[diaSemana(fecha)]} ${dia} de ${MESES[mes - 1]}${conAnio}`;
+}
+
 /**
- * El texto de fecha del bloque de deuda (tarjeta de pedido, Deben y detalle del cliente): "Paga hoy", "Paga mañana", "Paga el sáb 10 oct" (con año si no es
- * el actual), "Atrasado N días" o "Sin fecha de pago". `fecha` es un día sin hora; se compara con hoy en Santo Domingo.
+ * El texto de fecha del bloque de deuda (docs/09 §7): "Vie 9 oct" (con el año si no es el actual), "Hoy", "Mañana", "Sin fecha" o,
+ * si ya pasó, "Atrasado N días" (va con el reloj, sin píldora). `fecha` es un día sin hora; se compara con hoy en Santo Domingo.
  */
 export function textoFechaDeuda(fecha: string | null, ahora: number): string {
   const dias = diasParaPagar(fecha, ahora);
-  if (fecha === null || dias === null) return "Sin fecha de pago";
+  if (fecha === null || dias === null) return "Sin fecha";
   if (dias < 0) return textoAtraso(-dias);
-  if (dias === 0) return "Paga hoy";
-  if (dias === 1) return "Paga mañana";
-  const [anio, mes, dia] = fecha.split("-").map(Number) as [number, number, number];
-  const semana = DIAS_SEMANA_CORTOS[new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()];
+  if (dias === 0) return "Hoy";
+  if (dias === 1) return "Mañana";
+  const [anio, mes, dia] = partesDia(fecha);
+  const semana = DIAS_SEMANA_CORTOS[diaSemana(fecha)]!;
   const conAnio = anio !== Number(diaDeSantoDomingo(ahora).slice(0, 4)) ? ` ${anio}` : "";
-  return `Paga el ${semana} ${dia} ${MESES_CORTOS[mes - 1]}${conAnio}`;
+  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)} ${dia} ${MESES_CORTOS[mes - 1]}${conAnio}`;
+}
+
+/** Lo mismo, dicho completo para el lector de pantalla: "paga el viernes 9 de octubre", "paga hoy", "atrasado 6 días", "sin fecha de pago". */
+export function textoFechaDeudaAccesible(fecha: string | null, ahora: number): string {
+  const dias = diasParaPagar(fecha, ahora);
+  if (fecha === null || dias === null) return "sin fecha de pago";
+  if (dias < 0) return textoAtraso(-dias).toLowerCase();
+  if (dias === 0) return "paga hoy";
+  if (dias === 1) return "paga mañana";
+  return `paga el ${diaLargo(fecha, ahora)}`;
 }
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;

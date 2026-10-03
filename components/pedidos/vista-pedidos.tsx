@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { textoFechaDeuda } from "@/lib/credito";
+import { textoFechaDeudaAccesible } from "@/lib/credito";
 import { formatearPesos, haceCuanto } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
@@ -127,7 +127,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
   return (
     <Tarjeta
       href={`/pedidos/${p.id}`}
-      etiqueta={conDeuda ? `Pedido #${p.numero} de ${cliente ?? "cliente sin nombre"}. Debe ${formatearPesos(p.saldo)}. ${textoFechaDeuda(p.pagoFechaAcordada, ahora)}` : undefined}
+      etiqueta={conDeuda ? `Pedido #${p.numero} de ${cliente ?? "cliente sin nombre"}. Debe ${formatearPesos(p.saldo)}. ${textoFechaDeudaAccesible(p.pagoFechaAcordada, ahora)}` : undefined}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-secundario font-bold text-texto-secundario">
