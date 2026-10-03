@@ -158,6 +158,9 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
   filtra la lista de atrás (se quitó `filtrarCatalogo`; la pastilla «Por agotarse» sigue). Lecturas puras: `lecturaClientes`, `lecturaInventario`.
 - Donas sin anillo de fondo: `Dona` solo dibuja la `pista` cuando la suma de los segmentos es 0 (estado vacío). `COLOR_STOCK.agotados` es
   `var(--peligro)` y lo usan la dona, la leyenda y la barra del plan (no se tocó el modo oscuro).
+- Cuadros del resumen de Clientes: en `ResumenDona` los `otros` son cuadros 2×2 (ícono suelto junto a la cifra; nombre y explicación con
+  el chevron a su derecha). Con valor > 0 cierran la hoja y filtran la pantalla de Clientes; `FiltroClientes` suma `catalogo` y `manual`,
+  cuyas pastillas solo aparecen mientras están elegidas (`pastillasClientes`). La leyenda de la dona mantiene su vista interna con Volver.
 - Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patrón `public/chat/patron-whatsapp.svg`; también en el
   recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
 

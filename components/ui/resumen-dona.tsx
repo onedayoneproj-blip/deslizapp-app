@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { IconoChevronDerecha } from "../iconos";
 import { FilaLista, ListaAgrupada } from "./lista";
+import { Tarjeta } from "./tarjeta";
 
 /** Una fila de la leyenda de un resumen con dona. Con `valor` > 0 y `alTocar` se toca (y lleva chevron); en 0 no. */
 export type FilaResumen = {
@@ -14,6 +16,45 @@ export type FilaResumen = {
   aro?: boolean;
   alTocar?: () => void;
 };
+
+/** Un cuadro de los "otros grupos": atajos con ícono que llevan a la pantalla de atrás. */
+export type CuadroResumen = {
+  id: string;
+  nombre: string;
+  subtitulo: string;
+  valor: number;
+  /** Ícono de línea suelto (sin círculo ni fondo), junto a la cifra. */
+  icono: ReactNode;
+  alTocar?: () => void;
+};
+
+function Cuadro({ cuadro: q, unidad }: { cuadro: CuadroResumen; unidad: string }) {
+  const tocable = q.valor > 0 && Boolean(q.alTocar);
+  const contenido = (
+    <>
+      <span className="flex items-center gap-2">
+        <span aria-hidden="true" className="text-texto">
+          {q.icono}
+        </span>
+        <b className={`font-display text-titulo-hoja ${tocable ? "" : "text-texto-secundario"}`}>{q.valor}</b>
+      </span>
+      <span className="mt-1 flex items-center gap-2">
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-secundario font-bold">{q.nombre}</span>
+          <span className="text-etiqueta text-texto-secundario">{q.subtitulo}</span>
+        </span>
+        {tocable && <IconoChevronDerecha aria-hidden="true" tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />}
+      </span>
+    </>
+  );
+  return tocable ? (
+    <Tarjeta onClick={q.alTocar} etiqueta={`${q.nombre}: ${q.valor} ${unidad}, ${q.subtitulo}. Ver en la lista`}>
+      {contenido}
+    </Tarjeta>
+  ) : (
+    <Tarjeta>{contenido}</Tarjeta>
+  );
+}
 
 function Fila({ fila: f }: { fila: FilaResumen }) {
   const tocable = f.valor > 0 && Boolean(f.alTocar);
@@ -36,8 +77,9 @@ function Fila({ fila: f }: { fila: FilaResumen }) {
 /**
  * Hoja de resumen con dona (docs/09 §7, "Hoja de resumen con dona"): una sola forma para "Tus clientes", "Tu inventario" y las que
  * vengan. Arriba la dona (112 px, la pone quien la usa) con, a su derecha, un título dinámico en Fredoka y una línea secundaria; debajo
- * la leyenda como lista agrupada (punto · nombre · porcentaje · número · chevron: tocables solo las filas con algo), después otros
- * grupos en una segunda lista igual (`otros`, sin punto) y, al final, las acciones de la hoja (`children`).
+ * la leyenda como lista agrupada con punto de color (punto · nombre · porcentaje · número · chevron: tocables solo las filas con algo; su
+ * vista interna la maneja quien la usa), después los `otros` grupos como cuadros de 2 × 2 con ícono suelto junto a la cifra, que llevan a la
+ * pantalla de atrás (solo se tocan con valor > 0) y, al final, las acciones de la hoja (`children`).
  */
 export function ResumenDona({
   dona,
@@ -47,7 +89,7 @@ export function ResumenDona({
   leyenda,
   etiquetaLeyenda,
   otros,
-  etiquetaOtros,
+  unidadOtros = "elementos",
   children,
 }: {
   dona: ReactNode;
@@ -57,8 +99,9 @@ export function ResumenDona({
   linea?: ReactNode;
   leyenda: FilaResumen[];
   etiquetaLeyenda: string;
-  otros?: FilaResumen[];
-  etiquetaOtros?: string;
+  otros?: CuadroResumen[];
+  /** Plural de lo que cuentan los cuadros ("clientes"), para su nombre accesible. */
+  unidadOtros?: string;
   children?: ReactNode;
 }) {
   return (
@@ -78,11 +121,11 @@ export function ResumenDona({
         ))}
       </ListaAgrupada>
       {otros && otros.length > 0 && (
-        <ListaAgrupada etiqueta={etiquetaOtros}>
-          {otros.map((f) => (
-            <Fila key={f.id} fila={f} />
+        <div className="grid grid-cols-2 gap-2.5">
+          {otros.map((q) => (
+            <Cuadro key={q.id} cuadro={q} unidad={unidadOtros} />
           ))}
-        </ListaAgrupada>
+        </div>
       )}
       {children}
     </div>

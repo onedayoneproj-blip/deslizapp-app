@@ -1,9 +1,9 @@
 import type { ClienteConResumen, Pedido } from "./types";
 
 /** Los filtros de la lista de Clientes (las pastillas). */
-export type FiltroClientes = "todos" | "deben" | "repiten" | "nuevos" | "dormidos";
+export type FiltroClientes = "todos" | "deben" | "repiten" | "nuevos" | "dormidos" | "catalogo" | "manual";
 /** Grupos que se cuentan en el resumen; los que no son filtro ("una", "sin", "catalogo", "manual") solo se muestran como dato. */
-export type GrupoClientes = Exclude<FiltroClientes, "deben"> | "una" | "sin" | "catalogo" | "manual";
+export type GrupoClientes = Exclude<FiltroClientes, "deben"> | "una" | "sin";
 export type ClienteAnalizado = ClienteConResumen & { compras: number; primeraVenta: number | null; ultimaVenta: number | null; nuevo: boolean; dormido: boolean };
 const DIA = 86400000;
 /** Día civil de Santo Domingo (UTC−4), sin depender de la zona horaria del dispositivo. */
@@ -68,4 +68,13 @@ export function lecturaClientes(r: Pick<ResumenClientes, "cuentas" | "totalVendi
     titulo: repiten ? `1 de cada ${Math.max(1, Math.round(todos / repiten))} vuelve a comprar.` : "Nadie repite todavía.",
     linea: r.totalVendido > 0 ? `Los que repiten dejan el ${r.porcentajeRepiten} % de tus ventas.` : null,
   };
+}
+
+/**
+ * Las pastillas de la pantalla de Clientes. "Del catálogo" y "A mano" no están en la fila: solo aparecen, al final, mientras son el
+ * filtro elegido (se llega desde los cuadros de la hoja de resumen) y se van al elegir otro.
+ */
+export function pastillasClientes(filtro: FiltroClientes): FiltroClientes[] {
+  const base: FiltroClientes[] = ["todos", "deben", "repiten", "nuevos", "dormidos"];
+  return filtro === "catalogo" || filtro === "manual" ? [...base, filtro] : base;
 }
