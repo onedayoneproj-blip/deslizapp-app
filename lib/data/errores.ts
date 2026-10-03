@@ -86,6 +86,13 @@ export class CreditosInsuficientes extends ErrorClaro {
 }
 
 /** Ya hay un cliente con ese WhatsApp en la tienda. */
+/** La nota del cliente pasa de 60 caracteres (restricción `clientes_nota_largo`). */
+export class NotaClienteLarga extends ErrorClaro {
+  constructor() {
+    super("La nota puede tener hasta 60 caracteres.");
+  }
+}
+
 export class ClienteDuplicado extends ErrorClaro {
   existente: Cliente;
   constructor(existente: Cliente) {
@@ -214,6 +221,7 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("monto_mayor_que_deuda")) return new DatosInvalidos("Ese abono es más de lo que se debe.");
   if (mensaje.includes("monto_invalido")) return new DatosInvalidos("El monto del abono no es válido: escribe un número entero mayor que cero.");
   if (mensaje.includes("metodo_invalido")) return new DatosInvalidos("Elige cómo te pagó: efectivo, transferencia u otro.");
+  if (mensaje.includes("clientes_nota_largo")) return new NotaClienteLarga();
   if (mensaje.includes("nota_invalida")) return new DatosInvalidos("La nota es muy larga (máximo 200 caracteres).");
   if (mensaje.includes("sin_deuda")) return new DatosInvalidos("No hay nada pendiente por abonar: ya está al día.");
   if (mensaje.includes("abono_no_encontrado")) return new DatosInvalidos("Ese abono ya no existe. Actualiza la pantalla.");

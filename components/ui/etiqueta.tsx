@@ -1,15 +1,13 @@
 import type { ReactNode } from "react";
 import { clases } from "./comunes";
 
-export type TonoEtiqueta = "neutro" | "exito" | "atencion" | "fuerte" | "urgente";
+export type TonoEtiqueta = "neutro" | "exito" | "atencion" | "fuerte";
 
 const TONO: Record<TonoEtiqueta, string> = {
   neutro: "bg-borde-pastilla text-texto",
   exito: "bg-accion-suave text-exito-texto",
   atencion: "bg-atencion-suave text-atencion-texto",
   fuerte: "bg-accion text-sobre-accion",
-  // Solo para "Atrasado N días" (docs/09 §11)
-  urgente: "bg-resalte text-sobre-resalte",
 };
 
 /**

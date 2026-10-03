@@ -10,6 +10,7 @@ import {
   enlaceWhatsAppCliente,
   finDeMes,
   mensajeRecordatorio,
+  mensajesRecordatorio,
   montoDeTexto,
   planearAbono,
   planearEdicionAbono,
@@ -21,9 +22,11 @@ import {
   textoAtraso,
   totalYAbonado,
   textoFechaDeuda,
+  textoFechaDeudaAccesible,
+  diaLargo,
   textoFaltan,
 } from "../lib/credito.ts";
-import { traducirErrorSupabase, MontoMayorQueDeuda, PedidoConAbonos } from "../lib/data/errores.ts";
+import { traducirErrorSupabase, MontoMayorQueDeuda, NotaClienteLarga, PedidoConAbonos } from "../lib/data/errores.ts";
 
 const AHORA = Date.parse("2026-09-30T16:00:00.000Z"); // 30 sep, mediodía en Santo Domingo
 let n = 0;
@@ -227,6 +230,10 @@ test("errores de la base: mensajes amables en español", () => {
   assert.ok(e("monto_invalido").message.includes("monto"));
   assert.ok(e("metodo_invalido").message.includes("efectivo"));
   assert.ok(e("nota_invalida").message.includes("200"));
+  // La nota del cliente (60, restricción clientes_nota_largo) no se confunde con la del abono
+  const nota = e('new row for relation "clientes" violates check constraint "clientes_nota_largo"');
+  assert.ok(nota instanceof NotaClienteLarga);
+  assert.ok(nota.message.includes("60"));
   assert.ok(e("sin_deuda").message.includes("nada pendiente"));
   assert.ok(e("abono_no_encontrado").message.includes("abono"));
   assert.ok(e("pedido_no_encontrado").message.includes("pedido"));
@@ -271,13 +278,18 @@ test("editar un abono: valida método, nota, fecha y monto como la base", () => 
 
 test("texto de fecha del bloque de deuda", () => {
   // AHORA = miércoles 30 sep 2026 (mediodía en Santo Domingo)
-  assert.equal(textoFechaDeuda("2026-09-30", AHORA), "Paga hoy");
-  assert.equal(textoFechaDeuda("2026-10-01", AHORA), "Paga mañana");
-  assert.equal(textoFechaDeuda("2026-10-10", AHORA), "Paga el sáb 10 oct");
-  assert.equal(textoFechaDeuda("2027-01-05", AHORA), "Paga el mar 5 ene 2027");
+  assert.equal(textoFechaDeuda("2026-09-30", AHORA), "Hoy");
+  assert.equal(textoFechaDeuda("2026-10-01", AHORA), "Mañana");
+  assert.equal(textoFechaDeuda("2026-10-10", AHORA), "Sáb 10 oct");
+  assert.equal(textoFechaDeuda("2026-10-09", AHORA), "Vie 9 oct");
+  assert.equal(textoFechaDeuda("2027-01-05", AHORA), "Mar 5 ene 2027");
   assert.equal(textoFechaDeuda("2026-09-29", AHORA), "Atrasado 1 día");
   assert.equal(textoFechaDeuda("2026-09-24", AHORA), "Atrasado 6 días");
-  assert.equal(textoFechaDeuda(null, AHORA), "Sin fecha de pago");
+  assert.equal(textoFechaDeuda(null, AHORA), "Sin fecha");
+  assert.equal(textoFechaDeudaAccesible("2026-10-09", AHORA), "paga el viernes 9 de octubre");
+  assert.equal(textoFechaDeudaAccesible("2026-09-24", AHORA), "atrasado 6 días");
+  assert.equal(textoFechaDeudaAccesible(null, AHORA), "sin fecha de pago");
+  assert.equal(diaLargo("2027-01-05", AHORA), "martes 5 de enero de 2027");
 });
 
 test("bloque de deuda de un cliente: suma el total y lo abonado de TODOS sus pedidos con saldo", () => {
@@ -292,4 +304,25 @@ test("bloque de deuda de un cliente: suma el total y lo abonado de TODOS sus ped
   const c = cuentaDeCliente([a, b], "c1", AHORA);
   assert.equal(c.totalPedidos, 2500);
   assert.equal(c.abonado, 800);
+});
+
+test("mensajes de recordatorio: cuatro tonos con los datos reales y el elegido por defecto", () => {
+  const base = { cliente: "Luisanna Pérez", vendedora: "Michel", tienda: "Esencias Michel", deuda: 2425, ahora: AHORA };
+  // Con fecha futura (vie 9 oct): Con cariño, Con la fecha y Corto; por defecto Con cariño
+  const futura = mensajesRecordatorio({ ...base, fecha: "2026-10-09" });
+  assert.deepEqual(futura.mensajes.map((m) => m.id), ["carino", "fecha", "corto"]);
+  assert.equal(futura.elegido, "carino");
+  assert.equal(futura.mensajes[1].texto, "¡Hola, Luisanna! Te escribe Michel, de Esencias Michel. Te recuerdo que quedamos en el pago de RD$2,425 para el viernes 9 de octubre. ¡Gracias!");
+  assert.equal(futura.mensajes[2].texto, "Hola, Luisanna. Te recuerdo el pendiente de RD$2,425 con Esencias Michel. ¡Gracias!");
+  // Vencida: aparece "Si ya pasó la fecha" y va por defecto
+  const vencida = mensajesRecordatorio({ ...base, fecha: "2026-09-24" });
+  assert.deepEqual(vencida.mensajes.map((m) => m.id), ["carino", "fecha", "corto", "vencido"]);
+  assert.equal(vencida.elegido, "vencido");
+  assert.equal(vencida.mensajes[3].texto, "¡Hola, Luisanna! Te escribe Michel, de Esencias Michel. El pago de RD$2,425 quedó para el jueves 24 de septiembre y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!");
+  // Sin fecha: sin "Con la fecha" ni "Si ya pasó"; sin vendedora, sin "Te escribe…"
+  const sinFecha = mensajesRecordatorio({ ...base, vendedora: "", fecha: null });
+  assert.deepEqual(sinFecha.mensajes.map((m) => m.id), ["carino", "corto"]);
+  const sinVendedora = mensajesRecordatorio({ ...base, vendedora: " ", fecha: "2026-09-24" });
+  assert.ok(!sinVendedora.mensajes[3].texto.includes("Te escribe"));
+  assert.equal(sinVendedora.mensajes[3].texto, "¡Hola, Luisanna! El pago de RD$2,425 quedó para el jueves 24 de septiembre y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!");
 });

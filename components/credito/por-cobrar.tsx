@@ -1,6 +1,6 @@
 "use client";
 
-import { enlaceWhatsAppCliente, textoFechaDeuda, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
+import { enlaceWhatsAppCliente, textoFechaDeudaAccesible, type CuentaPorCobrar, type CuentasPorCobrar } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import { Avatar, BloqueDeuda, Boton, Tarjeta } from "../ui";
 
@@ -24,34 +24,26 @@ export function TarjetaPorCobrar({ datos }: { datos: CuentasPorCobrar }) {
   );
 }
 
-/** "Pedido #1006 · pagó RD$1,500 de 4,300" · "Pedido #1008 · sin abonos todavía" · "2 pedidos · el más viejo hace 26 días". */
-function linea(c: CuentaPorCobrar): string {
-  if (c.unico) {
-    return c.unico.pagado > 0
-      ? `Pedido #${c.unico.numero} · pagó ${formatearPesos(c.unico.pagado)} de ${c.unico.total.toLocaleString("en-US")}`
-      : `Pedido #${c.unico.numero} · sin abonos todavía`;
-  }
-  const dias = c.pedidoMasViejo.dias;
-  return `${c.pedidos} pedidos · el más viejo ${dias === 0 ? "es de hoy" : `hace ${dias} ${dias === 1 ? "día" : "días"}`}`;
-}
+/** "1 pedido" · "2 pedidos": la barra y la fecha ya cuentan el resto. */
+const linea = (c: CuentaPorCobrar) => `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"}`;
 
 /**
  * Una cuenta de "Deben": tarjeta suelta con Avatar, nombre, la línea del pedido y el bloque de deuda (suma TODOS los pedidos con
  * saldo del cliente). Toda la tarjeta lleva a la cuenta del cliente; el botón "Escribir" va encima, en la esquina (un enlace no puede
  * ir dentro de otro).
  */
-export function FilaPorCobrar({ cuenta: c, mensaje, ahora }: { cuenta: CuentaPorCobrar; mensaje: string; ahora: number }) {
+export function FilaPorCobrar({ cuenta: c, mensaje, ahora, repite = false }: { cuenta: CuentaPorCobrar; mensaje: string; ahora: number; repite?: boolean }) {
   return (
     <li className="relative">
-      <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}. ${textoFechaDeuda(c.fechaAcordada, ahora)}`}>
+      <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}${repite ? ", repite" : ""}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}, abonó ${formatearPesos(c.abonado)} de ${formatearPesos(c.totalPedidos)}, ${textoFechaDeudaAccesible(c.fechaAcordada, ahora)}`}>
         <div className={`flex items-center gap-3 ${c.telefono ? "pr-28" : ""}`}>
-          <Avatar nombre={c.nombre} />
+          <Avatar nombre={c.nombre} repite={repite} />
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-destacado text-texto">{c.nombre}</span>
             <span className="text-secundario text-texto-secundario">{linea(c)}</span>
           </div>
         </div>
-        <BloqueDeuda saldo={c.deuda} total={c.totalPedidos} fecha={c.fechaAcordada} ahora={ahora} />
+        <BloqueDeuda prefijo={false} saldo={c.deuda} total={c.totalPedidos} fecha={c.fechaAcordada} ahora={ahora} />
       </Tarjeta>
       {c.telefono && (
         <div className="absolute top-4 right-4">

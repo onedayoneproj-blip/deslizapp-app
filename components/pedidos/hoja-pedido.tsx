@@ -9,20 +9,20 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { puedeEditarCodigo } from "@/lib/data/pedidos";
 import { buscarCodigoPromo } from "@/lib/promos";
 import { useData } from "@/lib/data/provider";
-import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
+import { enlaceWhatsApp, fechaYHora, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada, type TonoEtiqueta } from "../ui";
+import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { IconoCamion, IconoCheck } from "../iconos";
+import { IconoCamion } from "../iconos";
 import { HojaDespachado } from "./hoja-despachado";
 import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { ChipEstado, EtiquetaPago } from "./comunes";
+import { ChipEstado } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
@@ -244,10 +244,9 @@ function Detalle({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-secundario font-bold text-texto-secundario">
-          {fechaCorta(pedido.creadoEn)} · {pedido.origen === "catalogo" ? "desde el catálogo" : "manual"}
-        </p>
-        {pedido.estado !== "despachado" && <ChipEstado estado={pedido.estado} />}
+        <p className="text-secundario font-bold text-texto-secundario">{fechaYHora(pedido.creadoEn)}</p>
+        {/* La barra de pasos ya dice el estado; solo "Cancelado" no lo puede mostrar */}
+        {pedido.estado === "cancelado" && <ChipEstado estado={pedido.estado} />}
       </div>
 
       {/* Línea de avance: los pasos ANTERIORES al actual se tocan para volver a ellos (área de 44 px, barra delgada). */}
@@ -281,15 +280,6 @@ function Detalle({
           );
         })}
       </div>
-
-      {pedido.estado === "despachado" && (
-        <>
-          <p role="status" className="flex items-center gap-2 text-secundario font-bold text-texto">
-            <IconoCheck tamano={18} strokeWidth={2.6} />
-            Despachado. Final feliz.
-          </p>
-        </>
-      )}
 
       {/* Cliente */}
       <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
@@ -357,10 +347,7 @@ function Detalle({
             </div>
           )}
           <div className="flex justify-between pt-1.5 font-display text-titulo-seccion">
-            <span className="flex items-center gap-2">
-              Total
-              {pedido.estado !== "cancelado" && <EtiquetaPago pedido={pedido} />}
-            </span>
+            <span>Total</span>
             <span>{formatearPesos(pedido.total)}</span>
           </div>
         </li>
@@ -396,7 +383,6 @@ function Detalle({
           <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
             Despachar pedido
           </Boton>
-          <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
           {botonEditar}
           <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido
@@ -406,9 +392,6 @@ function Detalle({
       {pedido.estado === "despachado" && <div className="flex flex-col gap-2">{botonEditar}</div>}
       {pedido.estado === "cancelado" && (
         <div className="flex flex-col gap-2">
-          <Aviso tono="neutro" className="justify-center text-center font-bold text-texto-secundario">
-            Pedido cancelado. Pasa hasta en las mejores tiendas.
-          </Aviso>
           <Boton tamano="grande" anchoCompleto onClick={reabrir} deshabilitado={ocupado}>
             Reabrir pedido
           </Boton>
@@ -444,9 +427,8 @@ function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems
   const stock = producto?.stock;
   // Despachado: la barra de pasos ya lo dice; solo importa si se agotó
   if (estado === "despachado") return stock === 0 ? <Etiqueta tono="fuerte">Agotado</Etiqueta> : null;
-  if (stock === undefined || stock === null) return <Etiqueta>Sin control</Etiqueta>;
+  // Sin despachar: etiqueta SOLO si el stock no alcanza para la cantidad
+  if (stock === undefined || stock === null || stock >= cantidad) return null;
   if (stock === 0) return <Etiqueta tono="fuerte">Sin stock</Etiqueta>;
-  const texto = stock === 1 ? "Queda 1" : `Quedan ${stock}`;
-  const tono: TonoEtiqueta = stock < cantidad ? "fuerte" : "atencion";
-  return <Etiqueta tono={tono}>{texto}</Etiqueta>;
+  return <Etiqueta tono="atencion">{stock === 1 ? "Queda 1" : `Quedan ${stock}`}</Etiqueta>;
 }

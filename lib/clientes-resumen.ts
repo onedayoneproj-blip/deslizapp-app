@@ -1,6 +1,9 @@
 import type { ClienteConResumen, Pedido } from "./types";
 
-export type FiltroClientes = "todos" | "deben" | "repiten" | "una" | "sin" | "nuevos" | "dormidos" | "catalogo" | "manual";
+/** Los filtros de la lista de Clientes (las pastillas). */
+export type FiltroClientes = "todos" | "deben" | "repiten" | "nuevos" | "dormidos";
+/** Grupos que se cuentan en el resumen; los que no son filtro ("una", "sin", "catalogo", "manual") solo se muestran como dato. */
+export type GrupoClientes = Exclude<FiltroClientes, "deben"> | "una" | "sin" | "catalogo" | "manual";
 export type ClienteAnalizado = ClienteConResumen & { compras: number; primeraVenta: number | null; ultimaVenta: number | null; nuevo: boolean; dormido: boolean };
 const DIA = 86400000;
 /** Día civil de Santo Domingo (UTC−4), sin depender de la zona horaria del dispositivo. */
@@ -27,14 +30,14 @@ export function analizarClientes(clientes: ClienteConResumen[], pedidos: Pedido[
       nuevo: Boolean(v && dia(ahora) - dia(v.primera) < 30),
       dormido: Boolean(v && dia(ahora) - dia(v.ultima) >= 60) };
   });
-  const contar = (f: FiltroClientes) => lista.filter((c) => cumpleFiltroCliente(c, f)).length;
+  const contar = (f: GrupoClientes) => lista.filter((c) => cumpleFiltroCliente(c, f)).length;
   const cuentas = { todos: lista.length, repiten: contar("repiten"), una: contar("una"), sin: contar("sin"),
     nuevos: contar("nuevos"), dormidos: contar("dormidos"), catalogo: contar("catalogo"), manual: contar("manual") };
   const ventaRepiten = lista.filter((c) => c.repite).reduce((s, c) => s + c.totalGastado, 0);
   return { lista, cuentas, totalVendido, porcentajeRepiten: totalVendido > 0 ? Math.round(100 * ventaRepiten / totalVendido) : 0 };
 }
 export type ResumenClientes = ReturnType<typeof analizarClientes>;
-export function cumpleFiltroCliente(c: ClienteAnalizado, filtro: FiltroClientes) {
+export function cumpleFiltroCliente(c: ClienteAnalizado, filtro: GrupoClientes | FiltroClientes) {
   switch (filtro) {
     case "repiten": return c.compras >= 2;
     case "una": return c.compras === 1;

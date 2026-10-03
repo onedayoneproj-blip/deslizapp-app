@@ -302,20 +302,21 @@ function Elegir() {
   return (
     <Seccion numero="6" titulo="Elegir: pastillas, opciones y controles" nota="Filtro (verde lleno), opción de formulario (menta con check) y control segmentado.">
       <div className="flex flex-col gap-2">
-        <Rotulo>pastillas de filtro · fijos | condicionales (Dormidos tiene 0 y se oculta)</Rotulo>
+        <Rotulo>pastillas de filtro · Todos, el que pide acción y los demás; sin divisor (Dormidos tiene 0 y se oculta)</Rotulo>
         <FilaPastillas
           etiqueta="Filtrar clientes"
           valor={filtro}
           alCambiar={setFiltro}
+          ocultarVacios
           opciones={[
-            { id: "todos", texto: "Todos", cantidad: 112 },
+            { id: "todos", texto: "Todos" },
+            { id: "deben", texto: "Deben", cantidad: 4, atencion: true },
             { id: "repiten", texto: "Repiten", cantidad: 34 },
-            { id: "nuevos", texto: "Nuevos", cantidad: 3, atencion: true },
-            { id: "deben", texto: "Deben", cantidad: 4, condicional: true, atencion: true },
-            { id: "dormidos", texto: "Dormidos", cantidad: 0, condicional: true },
+            { id: "nuevos", texto: "Nuevos", cantidad: 3 },
+            { id: "dormidos", texto: "Dormidos", cantidad: 0 },
           ]}
         />
-        <Rotulo>sin filtros condicionales: sin divisor</Rotulo>
+        <Rotulo>sin contador</Rotulo>
         <FilaPastillas
           etiqueta="Periodo"
           valor={vista}
@@ -536,7 +537,8 @@ function EtiquetasYAvatares() {
       <Fila>
         <Avatar nombre="Marleny Peña" />
         <Avatar nombre="Esencias Michel" tipo="tienda" />
-        <Avatar nombre="Marleny Peña" tamano="grande" solo />
+        <Avatar nombre="Marleny Peña" repite />
+        <Avatar nombre="Marleny Peña" tamano="grande" solo repite />
         <Avatar nombre="Esencias Michel" tipo="tienda" tamano="grande" solo />
       </Fila>
     </Seccion>

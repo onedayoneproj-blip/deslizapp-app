@@ -8,9 +8,8 @@ import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import type { Abono, Cliente, PedidoConItems } from "@/lib/types";
 import { IconoCheck, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
-import { Boton, Etiqueta, FilaLista, Tarjeta } from "../ui";
+import { BarraAbonado, BloqueDeuda, Boton, Etiqueta, FilaLista, Tarjeta } from "../ui";
 import { useToast } from "../toast";
-import { BarraPago, LineaFecha } from "./comunes";
 import { diaDeOpcion, SelectorFechaPago, type FechaPago } from "./campos-pago";
 import { HojaAbono } from "./hoja-abono";
 import { HojaDetalleAbono } from "./hoja-detalle-abono";
@@ -49,6 +48,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
   const [abonando, setAbonando] = useState(false);
   const [viendo, setViendo] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [ahora] = useState(Date.now);
   const [cambiando, setCambiando] = useState(false);
   const [fecha, setFecha] = useState<FechaPago>({ opcion: "sin", dia: null });
 
@@ -154,23 +154,19 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
             )}
           </div>
 
-          <div aria-live="polite" className="mt-3">
-            <div className="flex items-baseline justify-between gap-3 text-secundario text-texto-secundario">
-              <span>{cancelado ? "Cancelado: no genera deuda" : "Debe"}</span>
-              <span className="text-right">
-                Pagó {formatearPesos(pedido.pagado)} de {formatearPesos(pedido.total)}
-              </span>
-            </div>
-            <p className={`font-display text-cifra ${pedido.saldo > 0 ? "text-atencion-texto" : "text-texto"}`}>{formatearPesos(pedido.saldo)}</p>
+          <div aria-live="polite">
+            {cancelado ? (
+              <p className="mt-3 text-secundario text-texto-secundario">Cancelado: no genera deuda</p>
+            ) : pedido.saldo > 0 ? (
+              // El detalle: monto con "Debe", la fecha (o "Atrasado N días" con el reloj), la barra y "Abonó X de Y"
+              <BloqueDeuda saldo={pedido.saldo} total={pedido.total} fecha={pedido.pagoFechaAcordada} ahora={ahora} leyenda />
+            ) : (
+              <div className="mt-3 flex flex-col gap-2">
+                <BarraAbonado abonado={pedido.pagado} total={pedido.total} />
+                <p className="text-secundario text-texto-secundario">Abonó {formatearPesos(pedido.pagado)} de {formatearPesos(pedido.total)}</p>
+              </div>
+            )}
           </div>
-          <div className="mt-2.5">
-            <BarraPago pagado={pedido.pagado} total={pedido.total} />
-          </div>
-          {!saldado && !cancelado && (
-            <div className="mt-2.5">
-              <LineaFecha fecha={pedido.pagoFechaAcordada} />
-            </div>
-          )}
 
           {pedido.abonos.length > 0 && (
             <ul aria-label="Abonos" className="-mx-4 mt-3 border-t border-linea">
@@ -193,14 +189,14 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
 
           {!cancelado && pedido.saldo > 0 && (
             <div className="mt-3 flex flex-col gap-2">
-              <Boton anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
-                Registrar abono
-              </Boton>
               {recordatorio && (
-                <Boton jerarquia="secundario" anchoCompleto icono={<IconoWhatsApp tamano={18} />} href={recordatorio} target="_blank" rel="noreferrer">
+                <Boton anchoCompleto icono={<IconoWhatsApp tamano={18} />} href={recordatorio} target="_blank" rel="noreferrer">
                   Recordarle por WhatsApp
                 </Boton>
               )}
+              <Boton jerarquia="secundario" anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
+                Registrar abono
+              </Boton>
             </div>
           )}
         </Tarjeta>

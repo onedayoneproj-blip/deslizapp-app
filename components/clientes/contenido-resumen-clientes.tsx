@@ -20,11 +20,11 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
   const elegir = (f: FiltroClientes) => alFiltrar(f);
   const porcentaje = (n: number) => c.todos ? Math.round(n * 100 / c.todos) : 0;
   const cuadros = [
-    { id: "nuevos", nombre: "Nuevos", detalle: "primer pedido en 30 días" },
-    { id: "dormidos", nombre: "Dormidos", detalle: "sin comprar hace 60+ días" },
-    { id: "catalogo", nombre: "Del catálogo", detalle: "llegaron por el enlace" },
-    { id: "manual", nombre: "A mano", detalle: "los agregaste tú" },
-  ] as const;
+    { id: "nuevos", nombre: "Nuevos", detalle: "primer pedido en 30 días", filtro: "nuevos" },
+    { id: "dormidos", nombre: "Dormidos", detalle: "sin comprar hace 60+ días", filtro: "dormidos" },
+    { id: "catalogo", nombre: "Del catálogo", detalle: "llegaron por el enlace", filtro: null },
+    { id: "manual", nombre: "A mano", detalle: "los agregaste tú", filtro: null },
+  ] as const satisfies readonly { id: string; nombre: string; detalle: string; filtro: FiltroClientes | null }[];
   return <>
     <div className="flex flex-col gap-4.5">
       <button type="button" onClick={(e) => alAbrirJugadas(e.currentTarget)}
@@ -53,14 +53,15 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
         </div>
       </div>
       <ListaAgrupada etiqueta="Tus clientes por tipo">
-        {SEGMENTOS_CLIENTES.map((s) => <FilaLista key={s.id} onClick={() => elegir(s.id)}
+        {/* Solo "Repiten" tiene filtro propio; los demás tipos quedan como dato (sin toque ni chevron) */}
+        {SEGMENTOS_CLIENTES.map((s) => <FilaLista key={s.id} onClick={s.id === "repiten" ? () => elegir("repiten") : undefined}
           inicio={<span aria-hidden="true" className={`block size-3.5 rounded-full ${s.id === "sin" ? "border-[1.5px] border-borde-campo" : ""}`} style={{ background: s.color }} />}
           titulo={s.nombre}
           detalle={`${porcentaje(c[s.id])} %`}
           fin={c[s.id]} />)}
       </ListaAgrupada>
       <div className="grid grid-cols-2 gap-2.5">
-        {cuadros.map((q) => <Tarjeta key={q.id} onClick={() => elegir(q.id)} etiqueta={`${q.nombre}: ${c[q.id]} clientes. ${q.detalle}. Ver clientes`}>
+        {cuadros.map((q) => <Tarjeta key={q.id} onClick={q.filtro ? () => elegir(q.filtro!) : undefined} etiqueta={q.filtro ? `${q.nombre}: ${c[q.id]} clientes. ${q.detalle}. Ver clientes` : undefined}>
           <b className="font-display text-titulo-hoja">{c[q.id]}</b><span className="mt-0.5 block text-secundario font-bold">{q.nombre}</span>
           <span className="mt-0.5 block text-etiqueta text-texto-secundario">{q.detalle}</span>
         </Tarjeta>)}

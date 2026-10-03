@@ -1,24 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { cuentaDeCliente } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaCorta, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
 import type { CuentaCliente } from "@/lib/credito";
 import type { ClienteConResumen, PedidoConItems } from "@/lib/types";
-import { Hoja, useAvisarAlSalir } from "../hoja";
+import { Hoja } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { useToast } from "../toast";
-import { CampoNota } from "./campo-nota";
-import { IconoEditar, IconoWhatsApp } from "../iconos";
-import { EtiquetaPago } from "../pedidos/comunes";
+import { IconoEditar } from "../iconos";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, BloqueDeuda, Boton, FilaLista, ListaAgrupada } from "../ui";
-import { EtiquetaRepite } from "./comunes";
+import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
@@ -68,34 +64,22 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
     cuerpo = <Detalle cliente={cliente} pedidos={pedidos.filter((x) => x.clienteId === cliente.id)} cuenta={cuenta} vendedora={dueno?.nombre ?? ""} alEliminar={cerrar} />;
   }
 
-  // "grande": tiene un campo de texto (la nota) y la hoja no cambia de tamaño con el teclado
+  // Sin campos de texto (la nota se edita en "Editar cliente"): altura automática
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Cliente" altura="grande">
+    <Hoja abierta alCerrar={cerrar} titulo="Cliente">
       {cuerpo}
     </Hoja>
   );
 }
 
 function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string; alEliminar: () => void }) {
-  const { actualizarNotaCliente } = useData();
-  const { tienda, tiendaId } = useTiendaActiva();
-  const toast = useToast();
-  const [nota, setNota] = useState(cliente.nota ?? "");
+  const { tienda } = useTiendaActiva();
   const [editando, setEditando] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const cambiada = nota.trim() !== (cliente.nota ?? "");
-  // Con la nota cambiada y sin guardar, cerrar la hoja pregunta
-  useAvisarAlSalir(cambiada);
-  const guardarNota = async () => {
-    setGuardando(true);
-    try {
-      await actualizarNotaCliente(tiendaId, cliente.id, nota);
-      toast(nota.trim() ? "Nota guardada." : "Nota borrada.");
-    } catch (e) {
-      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
-    } finally {
-      setGuardando(false);
-    }
+  const idNota = useId();
+  // Tocar la burbuja abre "Editar cliente" con el foco en la nota, en el MISMO toque (regla del teclado de iPhone)
+  const editarNota = () => {
+    flushSync(() => setEditando(true));
+    document.getElementById(idNota)?.focus();
   };
   const [ahora] = useState(Date.now);
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
@@ -104,34 +88,42 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <Avatar nombre={cliente.nombre} tamano="grande" />
+      <div className={`flex flex-col items-center gap-1 text-center ${cliente.nota ? "pt-12" : ""}`}>
+        {cliente.nota ? (
+          // La nota como las notas de Instagram: el avatar crece a 88 y la burbuja se apoya sobre su borde superior izquierdo
+          <div className="relative">
+            <Avatar nombre={cliente.nombre} tamano="nota" repite={cliente.repite} />
+            <button
+              type="button"
+              onClick={editarNota}
+              aria-label={`Nota: ${cliente.nota}. Editar la nota`}
+              className="tocable absolute right-9 bottom-17 z-10 w-max max-w-37.5 rounded-radio-l bg-superficie px-3 py-2 text-center text-secundario font-semibold text-texto shadow-flotante outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+            >
+              <span className="line-clamp-2 break-words">{cliente.nota}</span>
+              {/* Cola de pensamiento: dos circulitos que bajan hacia el avatar */}
+              <span aria-hidden="true" className="absolute -right-1 -bottom-3 size-3 rounded-full bg-superficie shadow-flotante" />
+              <span aria-hidden="true" className="absolute -right-3 -bottom-5.5 size-1.5 rounded-full bg-superficie shadow-flotante" />
+            </button>
+          </div>
+        ) : (
+          <Avatar nombre={cliente.nombre} tamano="grande" repite={cliente.repite} />
+        )}
         <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
           {cliente.nombre}
-          {cliente.repite && <EtiquetaRepite />}
+          {cliente.repite && <span className="sr-only">, repite</span>}
         </h2>
-        <p className="text-secundario font-bold text-texto-secundario">
-          {cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"} · {cliente.origen === "catalogo" ? "Del catálogo" : "Manual"}
-        </p>
+        <p className="text-secundario font-bold text-texto-secundario">{cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"}</p>
+        <div className="mt-2 flex items-center gap-2">
+          {cliente.telefono && (
+            <Boton whatsapp href={enlaceWhatsApp(cliente.telefono, mensaje)} target="_blank" rel="noreferrer" aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}>
+              Escribir
+            </Boton>
+          )}
+          <Boton jerarquia="secundario" tamano="compacto" icono={<IconoEditar tamano={16} />} onClick={() => setEditando(true)}>
+            Editar
+          </Boton>
+        </div>
       </div>
-
-      {cliente.telefono && (
-        <Boton
-          tamano="grande"
-          anchoCompleto
-          icono={<IconoWhatsApp tamano={20} />}
-          href={enlaceWhatsApp(cliente.telefono, mensaje)}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}
-        >
-          Escribir
-        </Boton>
-      )}
-
-      <Boton jerarquia="secundario" tamano="grande" anchoCompleto icono={<IconoEditar tamano={20} />} onClick={() => setEditando(true)}>
-        Editar datos
-      </Boton>
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-radio-m border border-linea bg-superficie px-3 py-2.5">
@@ -147,15 +139,6 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
       <CuentaDelCliente cliente={cliente} cuenta={cuenta} vendedora={vendedora} tienda={tienda?.nombre ?? "la tienda"} />
 
       <div className="flex flex-col gap-2">
-        <CampoNota valor={nota} alCambiar={setNota} />
-        {cambiada && (
-          <Boton tamano="compacto" className="self-start" onClick={guardarNota} cargando={guardando}>
-            Guardar nota
-          </Boton>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
         <p className="text-secundario font-extrabold">Historial</p>
         {historial.length === 0 ? (
           <p className="rounded-radio-m bg-superficie-hundida p-3.5 text-center font-bold text-texto-secundario">Todavía no pide. Todavía.</p>
@@ -167,21 +150,16 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
                 href={`/pedidos/${p.id}`}
                 titulo={`#${p.numero}`}
                 detalle={fechaCorta(p.creadoEn)}
-                fin={
-                  <span className="flex items-center gap-2">
-                    {/* Nunca el estado del pedido (regla "No repetir el filtro"): la forma de pago */}
-                    <EtiquetaPago pedido={p} />
-                    {formatearPesos(p.total)}
-                  </span>
-                }
-                pie={p.pagoModo === "credito" && p.estado !== "cancelado" ? <BloqueDeuda tamano="mini" separado={false} saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} /> : undefined}
+                // Sin etiquetas: el total, o lo que debe en naranja (con reloj si está atrasado) y su barra mini
+                fin={p.saldo > 0 ? <MontoDeuda saldo={p.saldo} fecha={p.pagoFechaAcordada} ahora={ahora} /> : formatearPesos(p.total)}
+                pie={p.saldo > 0 ? <BarraAbonado mini abonado={p.total - p.saldo} total={p.total} /> : undefined}
               />
             ))}
           </ListaAgrupada>
         )}
       </div>
 
-      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => setEditando(false)} alEliminar={alEliminar} />
+      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => setEditando(false)} alEliminar={alEliminar} idNota={idNota} />
     </div>
   );
 }

@@ -54,6 +54,21 @@ export function fechaCorta(iso: string, ahora: Date = new Date()): string {
   return `${cuando}, ${horaCorta(fecha)}`;
 }
 
+/** "3 oct, 10:18 a. m." (fecha y hora de Santo Domingo, siempre absoluta: la fila de arriba del detalle de un pedido). */
+export const fechaYHora = (iso: string) => `${diaMes.format(new Date(iso)).replace(".", "")}, ${horaCorta(new Date(iso))}`;
+
+/** "Hoy" · "Ayer" · "Jue" · "12 sep": el día, sin la hora (la hora queda en el detalle). */
+export function diaRelativo(iso: string, ahora: Date = new Date()): string {
+  return fechaCorta(iso, ahora).split(",")[0]!;
+}
+
+/** "Hace un momento" · "Hace 8 min" · "Hace 3 h" y, pasado eso, el día sin la hora ("Ayer", "Jue", "12 sep"). */
+export function haceCuantoSinHora(iso: string, ahora: Date = new Date()): string {
+  const minutos = Math.floor((ahora.getTime() - Date.parse(iso)) / 60000);
+  if (minutos < 60 * 12) return haceCuanto(iso, ahora);
+  return diaRelativo(iso, ahora);
+}
+
 /** "Hace un momento" · "Hace 8 min" · "Hace 3 h" · y pasado el día, la fecha corta ("Ayer, 6:12 p. m."). */
 export function haceCuanto(iso: string, ahora: Date = new Date()): string {
   const minutos = Math.floor((ahora.getTime() - Date.parse(iso)) / 60000);

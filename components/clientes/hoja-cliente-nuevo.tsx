@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { ClienteDuplicado } from "@/lib/data/clientes";
-import { mensajeDeError } from "@/lib/data/errores";
+import { mensajeDeError, NotaClienteLarga } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
@@ -33,6 +33,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [nota, setNota] = useState("");
+  const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -52,6 +53,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
       alTerminar();
     } catch (error) {
       if (error instanceof ClienteDuplicado) setDuplicado(error.existente);
+      else if (error instanceof NotaClienteLarga) setErrorNota(error.message);
       else toast(mensajeDeError(error, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }
@@ -75,7 +77,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
         error={malo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
       />
 
-      <CampoNota valor={nota} alCambiar={setNota} />
+      <CampoNota valor={nota} alCambiar={(v) => { setNota(v); setErrorNota(undefined); }} error={errorNota} />
 
       {duplicado && (
         <Aviso tono="atencion" accion={{ texto: "Usar ese cliente", alTocar: () => router.push(`/clientes/${duplicado.id}`, { scroll: false }) }}>

@@ -3,8 +3,8 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
-import { textoFechaDeuda } from "@/lib/credito";
-import { formatearPesos, haceCuanto } from "@/lib/formato";
+import { textoFechaDeudaAccesible } from "@/lib/credito";
+import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
@@ -12,7 +12,7 @@ import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { BloqueDeuda, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
+import { Avatar, BloqueDeuda, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
 import { EtiquetaPago } from "./comunes";
 
 type Pestana = EstadoPedido;
@@ -59,7 +59,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
 
-  const nombres = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c.nombre])), [clientes]);
+  const porCliente = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, { nombre: c.nombre, repite: c.repite }])), [clientes]);
   const fotos = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const cuentas = useMemo(() => {
     const c: Record<Pestana, number> = { nuevo: 0, por_despachar: 0, despachado: 0, cancelado: 0 };
@@ -105,7 +105,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             <ul className="flex flex-col gap-3">
               {visibles.map((p) => (
                 <li key={p.id}>
-                  <TarjetaPedido ahora={ahora} pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
+                  <TarjetaPedido ahora={ahora} pedido={p} cliente={p.clienteId ? porCliente.get(p.clienteId) : undefined} productos={fotos} />
                 </li>
               ))}
               <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
@@ -120,27 +120,29 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   );
 }
 
-function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
+function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean }; productos: Map<string, Producto> }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
   const aCredito = p.pagoModo === "credito" && p.estado !== "cancelado";
   const conDeuda = aCredito && p.saldo > 0;
+  const nombre = cliente?.nombre ?? "Cliente sin nombre";
   return (
     <Tarjeta
       href={`/pedidos/${p.id}`}
-      etiqueta={conDeuda ? `Pedido #${p.numero} de ${cliente ?? "cliente sin nombre"}. Debe ${formatearPesos(p.saldo)}. ${textoFechaDeuda(p.pagoFechaAcordada, ahora)}` : undefined}
+      etiqueta={`Pedido #${p.numero} de ${nombre}${cliente?.repite ? ", repite" : ""}${conDeuda ? `. Debe ${formatearPesos(p.saldo)}, ${textoFechaDeudaAccesible(p.pagoFechaAcordada, ahora)}` : ""}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-secundario font-bold text-texto-secundario">
-          #{p.numero} · {haceCuanto(p.creadoEn)}
-        </span>
-        {/* Cada pestaña ya es un estado: la tarjeta lleva la forma de pago, no el estado */}
-        <span className="flex items-center gap-1.5">
-          <EtiquetaPago pedido={p} />
-          {aCredito && p.saldo === 0 && <Etiqueta tono="exito">Pagado</Etiqueta>}
-        </span>
+      {/* El cliente primero: avatar, nombre y "#N · Ayer"; a la derecha, la forma de pago (cada pestaña ya es un estado) */}
+      <div className="flex items-center gap-3">
+        <Avatar nombre={nombre} repite={cliente?.repite} vacio={!cliente} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-destacado text-texto">{nombre}</span>
+          <span className="truncate text-secundario text-texto-secundario">
+            #{p.numero} · {haceCuantoSinHora(p.creadoEn)}
+          </span>
+        </div>
+        {/* Una sola etiqueta: en crédito saldado, "Pagado" en lugar de "A crédito" */}
+        {aCredito && p.saldo === 0 ? <Etiqueta tono="exito">Pagado</Etiqueta> : <EtiquetaPago pedido={p} />}
       </div>
-      <p className="mt-1 min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
-      <div className="mt-2.5 flex items-center justify-between gap-3">
+      <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex shrink-0 -space-x-2">
             {p.items.slice(0, 3).map((i) => {
@@ -153,7 +155,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
             })}
           </div>
           <span className="min-w-0 truncate text-secundario text-texto-secundario">
-            {unidades} {unidades === 1 ? "producto" : "productos"} · {p.origen === "catalogo" ? "Del catálogo" : "Manual"}
+            {unidades} {unidades === 1 ? "producto" : "productos"}
           </span>
         </div>
         <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
