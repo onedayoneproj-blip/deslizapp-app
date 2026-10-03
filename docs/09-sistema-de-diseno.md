@@ -215,7 +215,7 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 - La malla de la tarjeta se mueve siempre y reacciona al dedo (ver Tarjeta de jugada).
 - Las cartas siguen un ciclo de 14 s: quietas en abanico, la carta de la jugada destacada se asoma y saluda, el mazo se recoge, se baraja con dos golpes y se vuelve a abrir con un rebote. El ciclo corre solo mientras la tarjeta se ve y se detiene después de que la persona la toca.
 - Al tocar la tarjeta, se agranda hasta llenar la hoja y las cuatro cartas vuelan a ser los cuatro cuadros de la galería (unos 950 ms).
-- Al elegir una jugada, un **barrido** con el degradado y el grano baja de arriba abajo (1300 ms) y descubre la página con un borde difuminado que va escondido debajo de la franja: nunca se ve un corte. La pantalla de atrás se desenfoca y se aleja un poco.
+- Al elegir una jugada, un **barrido** con el degradado y el grano baja de arriba abajo (1100 ms, entra desde el primer cuadro) y descubre la página con un borde difuminado que va escondido debajo de la franja: nunca se ve un corte. La pantalla de atrás se desenfoca y se aleja un poco.
 - Con "reducir movimiento": la malla y las cartas quedan quietas y las transiciones son un cambio directo.
 
 ## 14. Modo oscuro
