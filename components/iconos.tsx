@@ -243,3 +243,27 @@ export const IconoCheckCirculo = ({ tamano = 18, ...p }: Props) => (
     <path d="M7.4 12.9c1.1.9 2 1.8 2.8 2.9 1.6-2.7 3.6-4.8 6.4-6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+/** Brote (Nuevos). */
+export const IconoBrote = (p: Props) => (
+  <Icono {...p}>
+    <path d="M12 20v-7.5" />
+    <path d="M12 12.5C12 8.9 9.6 6.5 5.5 6.5c0 3.6 2.4 6 6.5 6z" />
+    <path d="M12 14.5c0-3 2.1-5 5.5-5 0 3-2.1 5-5.5 5z" />
+  </Icono>
+);
+
+/** Luna (Dormidos). */
+export const IconoLuna = (p: Props) => (
+  <Icono {...p}>
+    <path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z" />
+  </Icono>
+);
+
+/** Enlace (Del catálogo). */
+export const IconoEnlace = (p: Props) => (
+  <Icono {...p}>
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+    <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+  </Icono>
+);

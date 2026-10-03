@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { analizarClientes, ordenarClientes, mensajeDormido, lecturaClientes } from '../lib/clientes-resumen.ts';
+import { analizarClientes, ordenarClientes, mensajeDormido, lecturaClientes, cumpleFiltroCliente, pastillasClientes } from '../lib/clientes-resumen.ts';
 const ahora = Date.parse('2026-10-01T15:00:00Z');
 const cliente = (id, origen = 'manual', tiendaId = 't') => ({ id, tiendaId, nombre: id, origen, pedidos: 99, repite: true, totalGastado: 0 });
 const pedido = (clienteId, fecha, total = 100, estado = 'despachado', tiendaId = 't') => ({ clienteId, tiendaId, estado, total, despachadoEn: fecha, creadoEn: fecha });
@@ -34,4 +34,16 @@ test('lectura de la dona de clientes: título y línea', () => {
   assert.deepEqual(lecturaClientes({ cuentas: { todos: 10, repiten: 0 }, totalVendido: 0, porcentajeRepiten: 0 }), { titulo: 'Nadie repite todavía.', linea: null });
   assert.deepEqual(lecturaClientes({ cuentas: { todos: 110, repiten: 59 }, totalVendido: 500, porcentajeRepiten: 80 }), { titulo: '1 de cada 2 vuelve a comprar.', linea: 'Los que repiten dejan el 80 % de tus ventas.' });
   assert.equal(lecturaClientes({ cuentas: { todos: 4, repiten: 0 }, totalVendido: 100, porcentajeRepiten: 0 }).linea, 'Los que repiten dejan el 0 % de tus ventas.');
+});
+test('filtros "catalogo" y "manual" por origen', () => {
+  const lista = [cliente('a', 'catalogo'), cliente('b', 'manual'), cliente('c', 'catalogo')];
+  assert.deepEqual(lista.filter((c) => cumpleFiltroCliente(c, 'catalogo')).map((c) => c.id), ['a', 'c']);
+  assert.deepEqual(lista.filter((c) => cumpleFiltroCliente(c, 'manual')).map((c) => c.id), ['b']);
+});
+test('la pastilla temporal solo aparece mientras es el filtro elegido, al final', () => {
+  const base = ['todos', 'deben', 'repiten', 'nuevos', 'dormidos'];
+  assert.deepEqual(pastillasClientes('todos'), base);
+  assert.deepEqual(pastillasClientes('dormidos'), base);
+  assert.deepEqual(pastillasClientes('catalogo'), [...base, 'catalogo']);
+  assert.deepEqual(pastillasClientes('manual'), [...base, 'manual']);
 });

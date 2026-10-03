@@ -10,7 +10,7 @@ import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Dona } from "../dona";
 import { HojaResumenClientes, SEGMENTOS_CLIENTES } from "./hoja-resumen-clientes";
-import { analizarClientes, cumpleFiltroCliente, ordenarClientes, mensajeDormido, type FiltroClientes, type ClienteAnalizado } from "@/lib/clientes-resumen";
+import { analizarClientes, cumpleFiltroCliente, ordenarClientes, mensajeDormido, pastillasClientes, type FiltroClientes, type ClienteAnalizado } from "@/lib/clientes-resumen";
 import { enlaceWhatsApp } from "@/lib/formato";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
@@ -67,12 +67,12 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const repiten = useMemo(() => new Set(resumen.lista.filter((c) => c.repite).map((c) => c.id)), [resumen]);
   const cuentasPorCliente = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c])), [cuentas]);
   const total = resumen.cuentas.todos;
-  const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos" };
+  const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos", catalogo: "Del catálogo", manual: "A mano" };
   // Orden de la guía: Todos, el que pide acción (Deben), los demás. Sin divisor; los que están en 0 se ocultan (salvo Todos y el elegido)
-  const ids: FiltroClientes[] = ["todos", "deben", "repiten", "nuevos", "dormidos"];
+  const ids = pastillasClientes(filtro);
   const cantidad = (id: FiltroClientes) => id === "deben" ? cuentas?.clientes ?? 0 : resumen.cuentas[id];
   const opciones = ids.map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben" }));
-  const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah." };
+  const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah.", catalogo: "Todavía no llega nadie por aquí.", manual: "Todavía no llega nadie por aquí." };
   const listo = Boolean(clientes && pedidos);
 
   return (
@@ -156,7 +156,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
       {!(clientes && total === 0) && <BotonFlotante href="/clientes/nuevo" texto="Cliente" />}
       {hoja && listo && <HojaResumenClientes resumen={resumen} clientes={clientes!} pedidos={pedidos!} tiendaId={tiendaId}
         tienda={tienda?.nombre ?? "la tienda"} vendedora={dueno?.nombre ?? ""} urlCatalogo={tienda?.urlCatalogo ?? null}
-        ahora={ahora} alCerrar={() => setHoja(false)} />}
+        ahora={ahora} alCerrar={() => setHoja(false)} alFiltrar={(f) => { setFiltro(f); window.scrollTo({ top: 0 }); }} />}
       {children}
     </>
   );

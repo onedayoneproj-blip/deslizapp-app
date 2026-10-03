@@ -13,17 +13,17 @@ import { menosMovimiento } from "@/lib/movimiento";
 import { LuzJugada, TransicionJugada, type OrigenLuz } from "./luz-jugada";
 import { HojaBorradoresJugada } from "./hoja-borradores-jugada";
 import { calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
-import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
+import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import type { ClienteConResumen, Pedido } from "@/lib/types";
 export { SEGMENTOS_CLIENTES } from "./contenido-resumen-clientes";
 
 type Vista = "resumen" | "galeria" | IdJugada | `grupo:${GrupoClientes}`;
 const esGrupo = (v: Vista): v is `grupo:${GrupoClientes}` => v.startsWith("grupo:");
 
-export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tienda, vendedora, urlCatalogo, ahora, alCerrar }: {
+export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tienda, vendedora, urlCatalogo, ahora, alCerrar, alFiltrar }: {
   resumen: ResumenClientes; clientes: ClienteConResumen[]; pedidos: Pedido[]; tiendaId: string;
   tienda: string; vendedora: string; urlCatalogo: string | null; ahora: number;
-  alCerrar: () => void;
+  alCerrar: () => void; alFiltrar: (filtro: FiltroClientes) => void;
 }) {
   const router = useRouter();
   const [vista, setVista] = useState<Vista>("resumen");
@@ -77,6 +77,7 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     } else router.push(destino, { scroll: false });
     alCerrar();
   };
+  const filtrar = (f: FiltroClientes) => { cerrar(); alFiltrar(f); };
   const titulo = vista === "resumen" ? "Tus clientes" : vista === "galeria" ? "Tu próxima jugada" : esGrupo(vista) ? `${NOMBRE_GRUPO_CLIENTES[vista.slice(6) as GrupoClientes]}\u00a0·\u00a0${resumen.cuentas[vista.slice(6) as GrupoClientes]}` : seleccionada?.nombre ?? "Tu próxima jugada";
 
   return <Hoja abierta alCerrar={cerrar} titulo={titulo} altura="grande"
@@ -88,22 +89,22 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     </div> : undefined}>
     <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total}
       seleccionada={seleccionada} ahora={ahora}
-      tiendaId={tiendaId} navegar={navegar} irADatos={irADatos} alPulsar={() => setPulso((n) => n + 1)} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
+      tiendaId={tiendaId} navegar={navegar} filtrar={filtrar} irADatos={irADatos} alPulsar={() => setPulso((n) => n + 1)} alEscribir={(id, nombre, cliente) => { setTransicion(null); setBorrador({ id, nombre, cliente }); }} />
     {borrador && <HojaBorradoresJugada key={`${borrador.id}:${borrador.cliente.id}`} id={borrador.id} nombreJugada={borrador.nombre}
       cliente={borrador.cliente.nombre} telefono={borrador.cliente.telefono!} vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo}
       alCerrar={() => setBorrador(null)} />}
   </Hoja>;
 }
 
-function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tiendaId, navegar, irADatos, alEscribir, alPulsar }: {
+function Contenido({ vista, resumen, jugadas, destacada, total, seleccionada, ahora, tiendaId, navegar, filtrar, irADatos, alEscribir, alPulsar }: {
   vista: Vista; resumen: ResumenClientes; jugadas: Jugada[]; destacada: Jugada | null; total: number;
   seleccionada?: Jugada; ahora: number;
-  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; alPulsar: () => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
+  tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; alPulsar: () => void; filtrar: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
 }) {
   const irArriba = useIrArribaHoja();
   useEffect(() => { irArriba(); }, [vista, irArriba]);
   const paginadas = useVerMas(seleccionada?.clientes ?? [], `${tiendaId}:${vista}`, 5);
-  if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alAbrirGrupo={(g) => navegar(`grupo:${g}`)} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
+  if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alAbrirGrupo={(g) => navegar(`grupo:${g}`)} alFiltrar={filtrar} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
   if (esGrupo(vista)) return <VistaGrupoClientes grupo={vista.slice(6) as GrupoClientes} resumen={resumen} ahora={ahora} tiendaId={tiendaId} irADatos={irADatos} />;
   return <div className="relative min-h-full pb-6">
     {vista === "galeria" ? <>
