@@ -159,8 +159,7 @@ function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { producto
   const hayAtencion = paraReponer.length > 0 || agotadosAVista.length > 0 || quietos.length > 0;
   const libre = Math.max(0, plan.limite - plan.usados);
   const base = Math.max(plan.limite, plan.usados, 1);
-  const conStock = salud.conStock + salud.quedan;
-  const etiquetaBarra = `Plan de ${plan.limite} productos: ${conStock} visibles con stock, ${salud.agotados} agotados y ${libre} libres`;
+  const etiquetaBarra = `Plan de ${plan.limite} productos: ${salud.disponibles} disponibles, ${salud.agotados} agotados y ${libre} libres`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -268,20 +267,20 @@ function Resumen({ productos, ventas, ahora, alAbrir, alCerrarHoja }: { producto
           <p className="text-secundario text-texto-secundario">
             {plan.usados} visibles de {plan.limite}
           </p>
-          <div role="img" aria-label={etiquetaBarra} className="mt-3 flex h-3 gap-[3px] overflow-hidden rounded-full">
+          <div role="img" aria-label={etiquetaBarra} className="mt-3 flex h-3 gap-[3px]">
             {[
-              { valor: conStock, clase: "bg-accion" },
+              { valor: salud.disponibles, clase: "bg-accion" },
               { valor: salud.agotados, clase: "bg-resalte" },
               { valor: libre, clase: "bg-superficie-hundida" },
             ]
               .filter((t) => t.valor > 0)
               .map((t) => (
-                <span key={t.clase} className={`block min-w-1 rounded-full transition-[flex-grow] duration-(--mov-normal) ease-(--curva-salida) ${t.clase}`} style={{ flexGrow: t.valor / base, flexBasis: 0 }} />
+                <span key={t.clase} className={`block min-w-3 rounded-full transition-[flex-grow] duration-(--mov-normal) ease-(--curva-salida) ${t.clase}`} style={{ flexGrow: t.valor / base, flexBasis: 0 }} />
               ))}
           </div>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
             {[
-              { nombre: "Con stock", valor: conStock, clase: "bg-accion" },
+              { nombre: "Disponibles", valor: salud.disponibles, clase: "bg-accion" },
               { nombre: "Agotados", valor: salud.agotados, clase: "bg-resalte" },
               { nombre: "Libres", valor: libre, clase: "bg-superficie-hundida" },
             ].map((l) => (

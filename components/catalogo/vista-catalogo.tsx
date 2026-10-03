@@ -6,7 +6,7 @@ import { DonaInventario } from "./dona-inventario";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
-import { etiquetaSalud, saludDelInventario, textoSalud } from "@/lib/inventario-catalogo";
+import { etiquetaSalud, saludDelInventario } from "@/lib/inventario-catalogo";
 import { STOCK_BAJO } from "@/lib/config";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
@@ -77,9 +77,17 @@ export function VistaCatalogo() {
     <>
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." derecha={
         tienda && productos ? <button type="button" onClick={() => abrirInventario()} aria-label={etiquetaSalud(salud)}
-          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-radio-m">
+          className="tocable flex w-20 shrink-0 flex-col items-center gap-1 rounded-radio-m">
           <DonaInventario className="dona-cabecera" salud={salud} cifra={String(salud.disponibles).length > 3 ? "dona-cifra-larga text-secundario" : "text-titulo-seccion"} />
-          <span className="text-etiqueta text-texto-secundario">{textoSalud(salud)}</span>
+          <span className="text-center text-etiqueta whitespace-nowrap text-texto-secundario">
+            {salud.disponibles} {salud.disponibles === 1 ? "disponible" : "disponibles"}
+            {salud.agotados > 0 && (
+              <>
+                <br />
+                {salud.agotados} {salud.agotados === 1 ? "agotado" : "agotados"}
+              </>
+            )}
+          </span>
         </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
       } />
 

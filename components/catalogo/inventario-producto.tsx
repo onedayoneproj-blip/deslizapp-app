@@ -170,13 +170,28 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
 
 /**
  * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si el producto no
- * lleva stock, la primera fila dice "Sin control de stock". Los cambios son un borrador: aparecen "Guardar" y "Descartar" debajo.
+ * lleva stock, la primera fila dice "Sin control de stock". Los cambios son un borrador: aparecen "Guardar" y "Descartar" ENCIMA de la lista.
  */
 export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
   const ocupado = i.guardando || i.incierto;
   return (
     <section aria-label="Inventario" className="flex flex-col gap-3">
+      {i.pendiente && (
+        <div className="flex flex-col gap-3">
+          <p role="status" className="text-secundario text-texto-secundario">
+            {delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <Boton jerarquia="secundario" deshabilitado={ocupado} onClick={i.recuperar}>
+              Descartar
+            </Boton>
+            <Boton cargando={i.guardando} deshabilitado={i.incierto} onClick={alGuardar}>
+              Guardar cambios
+            </Boton>
+          </div>
+        </div>
+      )}
       <ListaAgrupada etiqueta="Stock e historial">
         {i.base === null || i.propuesta === null ? (
           <FilaLista titulo="Sin control de stock" />
@@ -197,21 +212,6 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
         )}
         <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
       </ListaAgrupada>
-      {i.pendiente && (
-        <div className="flex flex-col gap-3">
-          <p role="status" className="text-secundario text-texto-secundario">
-            {delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Boton jerarquia="secundario" deshabilitado={ocupado} onClick={i.recuperar}>
-              Descartar
-            </Boton>
-            <Boton cargando={i.guardando} deshabilitado={i.incierto} onClick={alGuardar}>
-              Guardar cambios
-            </Boton>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

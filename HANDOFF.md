@@ -148,6 +148,10 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
   `usePanelUI().filtrarCatalogo()` pide el filtro a la lista aunque se esté en otra ruta.
 - El Toast con acción es `components/ui/toast.tsx` (`useToastUI`), montado junto al antiguo `components/toast.tsx` en el layout del
   panel (el antiguo sigue para el resto de la app hasta migrarlo).
+- Gráficos redondeados (docs/09 «Barras y anillos»): `Dona` dibuja cada segmento con punta redonda y 3 px de separación; la barra del
+  plan y `BarraAbonado` llevan extremos de píldora y un mínimo de ancho igual a su alto. En la barra y la leyenda del plan el tramo
+  verde se llama «Disponibles» (igual que la dona). En la vista previa del producto, «Guardar/Descartar» van encima de la tarjeta de
+  stock y «Editar/Crear pedido» se ocultan mientras haya cambios sin guardar.
 - Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patrón `public/chat/patron-whatsapp.svg`; también en el
   recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
 
