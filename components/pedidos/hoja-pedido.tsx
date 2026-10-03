@@ -214,7 +214,8 @@ function Detalle({
     correr(async () => {
       await aplicarCodigoPedido(tiendaId, pedido.id, nuevo);
       setVista("detalle");
-      toast(nuevo ? `Descuento ${nuevo} aplicado. El total ya cambió.` : "Descuento quitado. El total ya cambió.");
+      const habia = Boolean(pedido.codigoPromo);
+      toast(nuevo === null ? "Cupón quitado" : habia ? "Cupón cambiado" : `Descuento ${nuevo} aplicado. El total ya cambió.`);
     });
 
   // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
@@ -340,7 +341,6 @@ function Detalle({
                 setCuponAlAbrir(pedido.codigoPromo ?? "");
                 setVista("descuento");
               }}
-              alQuitar={() => void elegirDescuento(null)}
               deshabilitado={ocupado}
             />
           </li>

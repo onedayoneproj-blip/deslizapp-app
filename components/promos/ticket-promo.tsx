@@ -102,7 +102,8 @@ function Compacto({ d, apagado, c }: { d: DatosCupon; apagado: boolean; c: Cuerp
         className={`absolute top-[11px] bottom-[11px] left-[71px] border-l-2 border-dashed ${apagado ? "border-bosque/25" : "border-papel/40"}`}
       />
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-[3px] py-2 pr-3 pl-[18px]">
-        <span className="truncate text-[13.5px] leading-tight font-bold">{c.nombre}</span>
+        {/* El nombre solo si es distinto del código: nunca el código dos veces */}
+        {c.nombre.trim() !== "" && c.nombre.trim().toUpperCase() !== c.codigo.trim().toUpperCase() && <span className="truncate text-[13.5px] leading-tight font-bold">{c.nombre}</span>}
         <span
           style={SIN_ENSANCHAR}
           className={`max-w-full self-start truncate rounded-[8px] border-[1.5px] border-dashed px-2 font-display text-[14px] leading-[1.35] font-semibold tracking-[0.08em] ${
