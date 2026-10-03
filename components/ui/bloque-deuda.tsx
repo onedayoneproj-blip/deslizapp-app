@@ -10,7 +10,7 @@ export function FechaDeuda({ fecha, ahora, tamano = "normal" }: { fecha: string 
   const atraso = dias !== null && dias < 0 ? -dias : 0;
   if (atraso > 0) return <Etiqueta tono="urgente">{textoAtraso(atraso)}</Etiqueta>;
   return (
-    <span className={clases("flex items-center gap-1.5 font-extrabold text-atencion-texto", tamano === "mini" ? "text-etiqueta" : "text-secundario")}>
+    <span className={clases("flex items-center gap-1.5 font-extrabold whitespace-nowrap text-atencion-texto", tamano === "mini" ? "text-etiqueta" : "text-secundario")}>
       <IconoCalendario tamano={16} strokeWidth={2.2} />
       {textoFechaDeuda(fecha, ahora)}
     </span>
@@ -62,8 +62,8 @@ export function BloqueDeuda({
   const abonado = Math.max(0, total - saldo);
   return (
     <div className={clases("flex flex-col gap-2", separado && "mt-3 border-t border-linea pt-3", className)}>
-      <div className="flex items-center justify-between gap-3">
-        <span className={clases("font-extrabold text-atencion-texto", mini ? "text-cuerpo" : "text-destacado")}>Debe {formatearPesos(saldo)}</span>
+      <div className={clases("flex items-center justify-between gap-x-3 gap-y-1", mini && "flex-wrap")}>
+        <span className={clases("font-extrabold whitespace-nowrap text-atencion-texto", mini ? "text-cuerpo" : "text-destacado")}>Debe {formatearPesos(saldo)}</span>
         <FechaDeuda fecha={fecha} ahora={ahora} tamano={tamano} />
       </div>
       <BarraAbonado abonado={abonado} total={total} mini={mini} />

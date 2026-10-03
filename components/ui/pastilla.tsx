@@ -12,6 +12,8 @@ export type OpcionFiltro<T extends string> = {
   /** Filtro condicional: solo aparece cuando tiene algo (cantidad > 0) o está elegido. */
   condicional?: boolean;
   atencion?: boolean;
+  /** Un condicional que no abre el divisor (los filtros que llegan de otra pantalla y se agregan al final). */
+  sinDivisor?: boolean;
 };
 
 /**
@@ -38,7 +40,7 @@ export function FilaPastillas<T extends string>({
   etiqueta: string;
 }) {
   const visibles = opciones.filter((o) => !o.condicional || (o.cantidad ?? 0) > 0 || o.id === valor);
-  const primerCondicional = visibles.find((o) => o.condicional)?.id;
+  const primerCondicional = visibles.find((o) => o.condicional && !o.sinDivisor)?.id;
   const botones = useRef(new Map<T, HTMLButtonElement>());
   const lista = useRef<HTMLDivElement>(null);
   const [caja, setCaja] = useState<{ x: number; ancho: number } | null>(null);
