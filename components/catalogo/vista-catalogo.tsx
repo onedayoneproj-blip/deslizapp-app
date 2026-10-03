@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { startTransition, useMemo, useState } from "react";
-import { Dona } from "../dona";
+import { DonaInventario } from "./dona-inventario";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { etiquetaSalud, saludDelInventario, textoSalud } from "@/lib/inventario-catalogo";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import type { Producto, Promo } from "@/lib/types";
@@ -43,7 +44,7 @@ const normalizar = (texto: string) =>
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan } = usePanelUI();
+  const { abrirInventario } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
@@ -60,22 +61,17 @@ export function VistaCatalogo() {
     return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
   }, [productos, filtro, busquedaAplicada]);
 
-  // El plan cuenta solo los productos visibles; los ocultos no ocupan lugar.
-  const { usados, limite, libres, estado } = resumenDelPlan(productos ?? [], tienda?.limiteProductos ?? 0);
-  const lleno = estado === "lleno";
-  const casiLleno = estado === "casi" || estado === "lleno";
+  // Salud del inventario (solo visibles) y estado del plan (los ocultos no ocupan lugar).
+  const salud = saludDelInventario(productos ?? []);
+  const lleno = resumenDelPlan(productos ?? [], tienda?.limiteProductos ?? 0).estado === "lleno";
 
   return (
     <>
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." derecha={
-        tienda && productos ? <button type="button" onClick={abrirPlan}
-          aria-label={lleno ? `Catálogo lleno: ${usados} de ${limite} productos. Subir de plan` : `Te quedan ${libres} de ${limite} espacios. Ver plan`}
-          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-xl">
-          <Dona className={`dona-cabecera ${casiLleno && !lleno ? "dona-latido" : ""}`} total={limite}
-            pista="#f5c9d6" segmentos={[{ valor: usados, color: casiLleno ? "#ff834f" : "#174b3a" }]}>
-            <b className={`dona-cifra font-display ${lleno ? "text-[17px]" : String(libres).length > 3 ? "dona-cifra-larga text-[16px]" : "text-[22px]"} ${casiLleno ? "text-mandarina-texto" : "text-bosque"}`}>{lleno ? "Lleno" : libres.toLocaleString("en-US")}</b>
-          </Dona>
-          <span className="text-[11.5px] font-bold text-suave">{lleno ? `${usados} de ${limite}` : `${libres.toLocaleString("en-US")} libres · ${usados} de ${limite}`}</span>
+        tienda && productos ? <button type="button" onClick={abrirInventario} aria-label={etiquetaSalud(salud)}
+          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-radio-m">
+          <DonaInventario className="dona-cabecera" salud={salud} cifra={String(salud.disponibles).length > 3 ? "dona-cifra-larga text-secundario" : "text-titulo-seccion"} />
+          <span className="text-etiqueta text-texto-secundario">{textoSalud(salud)}</span>
         </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
       } />
 

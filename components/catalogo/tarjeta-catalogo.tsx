@@ -5,6 +5,8 @@ import { enlaceCatalogo } from "@/lib/enlace-catalogo";
 import { ETIQUETAS_PASOS, NOMBRES_PASOS, PROGRESO_PASOS, pasoActual, type VistaCatalogo } from "@/lib/catalogo-estado";
 import { menosMovimiento } from "@/lib/movimiento";
 import type { Tienda } from "@/lib/types";
+import { IconoCompartir } from "../iconos";
+import { Boton as BotonUI, Tarjeta } from "../ui";
 
 // La tarjeta del catálogo en línea (pestaña Catálogo): 8 estados dinámicos, del diseño aprobado en
 // referencias/catalogo-estados/estados.dc.html. Colores y medidas de esa referencia con los tokens de la app; los keyframes están
@@ -13,8 +15,8 @@ import type { Tienda } from "@/lib/types";
 export type AccionesTarjeta = {
   alPedir: () => void;
   alRevisar: () => void;
-  /** Abre "Tu catálogo en línea". */
-  alVerEnLinea: () => void;
+  /** Comparte el enlace del catálogo (hoja nativa de compartir o, si no hay, lo copia). */
+  alCompartir: () => void;
   /** Compartir desde la celebración: abre la hoja y da por vista la celebración. */
   alCompartirReciente: () => void;
   alConectar: () => void;
@@ -71,7 +73,7 @@ function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tie
     case "recien":
       return <Recien alTocar={acciones.alCompartirReciente} />;
     case "publicado":
-      return <Publicado tienda={tienda} alVer={acciones.alVerEnLinea} />;
+      return <Publicado tienda={tienda} alCompartir={acciones.alCompartir} />;
     case "pausado":
       return <Pausado alTocar={acciones.alVerPlan} />;
   }
@@ -332,50 +334,41 @@ function Recien({ alTocar }: { alTocar: () => void }) {
   );
 }
 
-/** 7 · En línea: el estado del día a día. */
-function Publicado({ tienda, alVer }: { tienda: Tienda; alVer: () => void }) {
+/** 7 · En línea: el estado del día a día. Una fila: punto verde · "En línea" y el enlace · "Compartir". Tocar la tarjeta abre el catálogo. */
+function Publicado({ tienda, alCompartir }: { tienda: Tienda; alCompartir: () => void }) {
   const enlace = enlaceCatalogo(tienda.urlCatalogo);
-  const redondo =
-    "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco";
   return (
-    <div className={`${CAJA} border border-linea bg-white`}>
+    <Tarjeta className="relative">
       <div className={FILA}>
-        <button
-          type="button"
-          onClick={alVer}
-          aria-label="Ver mi catálogo en línea"
-          className="tocable min-w-0 grow rounded-lg text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
-        >
-          <span className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-menta px-[9px] text-[11.5px] font-extrabold text-bosque">
-            <span aria-hidden="true" className="cat-anim-onda cat-anim-onda-lenta relative isolate h-[7px] w-[7px] rounded-full bg-[#2e8b57]" style={{ ["--onda" as string]: "#2e8b57" }} />
-            En línea
-          </span>
-          <span className="mt-1.5 block text-[15px] leading-tight font-extrabold text-bosque">Ver mi catálogo en línea</span>
+        <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-en-linea" />
+        <div className="min-w-0 grow">
+          <p className="text-destacado text-texto">
+            {enlace ? (
+              <a
+                href={enlace.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-radio-s after:absolute after:inset-0 after:rounded-radio-l after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+              >
+                En línea
+                <span className="sr-only"> · abrir el catálogo</span>
+              </a>
+            ) : (
+              "En línea"
+            )}
+          </p>
           {enlace && (
-            <span className="mt-[3px] block truncate text-[13px] leading-[1.35] text-suave">
-              <b className="text-bosque">{enlace.dominio}</b>
+            <p className="truncate text-secundario text-texto-secundario">
+              {enlace.dominio}
               {enlace.resto}
-            </span>
+            </p>
           )}
-        </button>
-        <button type="button" onClick={alVer} aria-label="Compartir catálogo" className={`${redondo} bg-arena`}>
-          <Icono tamano={18} grosor={2.2}>
-            <path d="M12 15V3" />
-            <path d="M7.5 7.5L12 3l4.5 4.5" />
-            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
-          </Icono>
-        </button>
-        {enlace && (
-          <a href={enlace.href} target="_blank" rel="noopener noreferrer" aria-label="Abrir catálogo" className={`${redondo} bg-bosque`}>
-            <Icono tamano={18} trazo="#fff9ee" grosor={2.2}>
-              <path d="M14 4h6v6" />
-              <path d="M20 4l-9 9" />
-              <path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" />
-            </Icono>
-          </a>
-        )}
+        </div>
+        <BotonUI tamano="compacto" icono={<IconoCompartir tamano={18} />} onClick={alCompartir} className="relative z-10">
+          Compartir
+        </BotonUI>
       </div>
-    </div>
+    </Tarjeta>
   );
 }
 
