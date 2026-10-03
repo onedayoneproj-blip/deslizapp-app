@@ -25,6 +25,7 @@ export function TarjetaPromo({
   usos = null,
   href,
   ahora = new Date(),
+  paraCliente,
 }: {
   promo: Promo;
   estado?: EstadoVisiblePromo;
@@ -35,6 +36,8 @@ export function TarjetaPromo({
   usos?: number | null;
   href?: string;
   ahora?: Date;
+  /** Código personal: el nombre del cliente ("Solo para Luisanna" debajo del ticket). */
+  paraCliente?: string | null;
 }) {
   const estado = estadoProp ?? estadoVisible(promo, usos, ahora);
   // Terminada, pausada y agotada se ven apagadas (crema): ya no se aplican.
@@ -48,9 +51,14 @@ export function TarjetaPromo({
         ? `, usada ${usos} de ${promo.limiteUsos} pedidos`
         : `, usada en ${usos} ${usos === 1 ? "pedido" : "pedidos"}`
       : ""
-  }`;
+  }${paraCliente ? `, solo para ${paraCliente}` : ""}`;
 
-  const tarjeta = <TicketPromo d={d} apagado={terminada} />;
+  const tarjeta = (
+    <>
+      <TicketPromo d={d} apagado={terminada} />
+      {paraCliente && <span className="mt-1.5 block px-1 text-secundario text-texto-secundario">Solo para {paraCliente}</span>}
+    </>
+  );
 
   const sombra = terminada ? "drop-shadow(0 4px 8px rgba(23,75,58,0.1))" : "drop-shadow(0 8px 12px rgba(23,75,58,0.22))";
   const contenedor = "transition-[scale] duration-(--mov-rapida) ease-(--curva-salida)";

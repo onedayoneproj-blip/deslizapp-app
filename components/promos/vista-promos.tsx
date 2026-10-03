@@ -49,8 +49,9 @@ export function useElegirPestanaPromos() {
  * El estado de cada promo se CALCULA (lib/promos.ts): nada se mueve de pestaña a mano.
  */
 export function VistaPromos({ children }: { children: ReactNode }) {
-  const { getPromos, getProductos, getPedidos } = useData();
+  const { getPromos, getProductos, getPedidos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
+  const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
@@ -127,6 +128,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
                   producto={promo.productoId ? productosPorId.get(promo.productoId) : undefined}
                   productosDeColeccion={promo.coleccion ? (productos ?? []).filter((p) => p.categoria === promo.coleccion).length : 0}
                   usos={usos}
+                  paraCliente={promo.clienteId ? (clientes?.find((c) => c.id === promo.clienteId)?.nombre ?? "un cliente") : null}
                 />
               </li>
             ))}

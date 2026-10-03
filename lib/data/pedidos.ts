@@ -235,6 +235,7 @@ export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codi
   const r = recalcularConCodigo(db.pedidoItems.filter((i) => i.pedidoId === id), db.productos, db.promos, tiendaId, codigo, new Date(ahora), {
     pedidos: db.pedidos,
     pedido: actual,
+    clienteId: actual.clienteId,
   });
   const pedido: Pedido = { ...actual, total: r.total, codigoPromo: r.codigoPromo };
   const porId = new Map(r.items.map((i) => [i.id, i]));
@@ -338,7 +339,7 @@ function clienteDeLaTienda(db: DB, tiendaId: string, id: string): Cliente {
 }
 
 export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora), { pedidos: db.pedidos });
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora), { pedidos: db.pedidos, clienteId: datos.clienteId });
   const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);
@@ -440,7 +441,7 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
     return { db: dbFinal, pedido: conItems(dbFinal, pedido), cliente: clienteFinal };
   }
 
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual });
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual, clienteId: datos.clienteId ?? actual.clienteId });
   if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);

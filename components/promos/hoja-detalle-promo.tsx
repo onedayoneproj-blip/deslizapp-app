@@ -18,7 +18,7 @@ const boton = "tocable flex h-12 items-center justify-center rounded-full text-[
 /** Detalle consultable por URL; la lista de Promos permanece montada debajo. */
 export function HojaDetallePromo({ promoId, desdeLista = false }: { promoId: string; desdeLista?: boolean }) {
   const router = useRouter();
-  const { getPromos, getProductos, getPedidos } = useData();
+  const { getPromos, getProductos, getPedidos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const cerrar = useCallback(() => {
     if (desdeLista) router.back();
@@ -33,6 +33,8 @@ export function HojaDetallePromo({ promoId, desdeLista = false }: { promoId: str
   const error = consultaPromos.error || consultaProductos.error || consultaPedidos.error;
   const cargando = !promos || !productos || !pedidos;
   const promo = promos?.find((p) => p.id === promoId && p.tiendaId === tiendaId);
+  const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const paraCliente = promo?.clienteId ? (clientes?.find((c) => c.id === promo.clienteId)?.nombre ?? "un cliente") : null;
 
   return <Hoja abierta alCerrar={cerrar} titulo="Detalle de promo" altura="grande">
     {cargando ? error
@@ -44,12 +46,14 @@ export function HojaDetallePromo({ promoId, desdeLista = false }: { promoId: str
           <p className="mt-1 text-suave">Quizá es de otra tienda. Las promos no se mezclan.</p>
           <button type="button" onClick={cerrar} className={`${boton} mt-5 w-full bg-bosque text-papel`}>Volver a promos</button>
         </div>
-        : <Detalle promo={promo} productos={productos} pedidos={pedidos} alEditar={() => router.push(`/promos/${promo.id}/editar?desde=detalle`, { scroll: false })} alCompartir={() => router.push(`/promos/${promo.id}/compartir?desde=detalle`, { scroll: false })} alDuplicar={() => router.push(`/promos/nueva?copiar=${promo.id}`, { scroll: false })} />}
+        : <Detalle promo={promo} paraCliente={paraCliente} productos={productos} pedidos={pedidos} alEditar={() => router.push(`/promos/${promo.id}/editar?desde=detalle`, { scroll: false })} alCompartir={() => router.push(`/promos/${promo.id}/compartir?desde=detalle`, { scroll: false })} alDuplicar={() => router.push(`/promos/nueva?copiar=${promo.id}`, { scroll: false })} />}
   </Hoja>;
 }
 
-function Detalle({ promo, productos, pedidos, alEditar, alCompartir, alDuplicar }: {
+function Detalle({ promo, paraCliente, productos, pedidos, alEditar, alCompartir, alDuplicar }: {
   promo: Promo;
+  /** Código personal: a quién es (no se puede cambiar). */
+  paraCliente: string | null;
   productos: Producto[];
   pedidos: Parameters<typeof pedidosConCodigo>[0];
   alEditar: () => void;
@@ -74,7 +78,7 @@ function Detalle({ promo, productos, pedidos, alEditar, alCompartir, alDuplicar 
       </div>
       <dl className="mt-4 flex flex-col gap-3 border-t border-linea pt-4 text-sm">
         <Dato titulo="Tipo" valor={promo.tipo === "codigo" ? "Código" : promo.tipo === "producto" ? "Por producto" : "Por colección"} />
-        {promo.tipo === "codigo" && <><Dato titulo="Destino" valor="Todo el pedido" /><Dato titulo="Código" valor={promo.codigo ?? "—"} /></>}
+        {promo.tipo === "codigo" && <><Dato titulo="Destino" valor="Todo el pedido" /><Dato titulo="Código" valor={promo.codigo ?? "—"} />{paraCliente && <Dato titulo="Para" valor={`Solo para ${paraCliente}`} />}</>}
         {promo.tipo === "producto" && <div className="flex items-center justify-between gap-3">
           <dt className="font-semibold text-suave">Producto</dt>
           <dd className="flex min-w-0 items-center gap-2 text-right font-bold">

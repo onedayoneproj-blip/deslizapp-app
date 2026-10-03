@@ -566,7 +566,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       let codigo: string | null = actual.codigoPromo;
       if (!despachado && actual.estado !== "cancelado") {
         const [productos, promos, pedidos] = await Promise.all([productosCrudos(tiendaId), promosCrudas(tiendaId), pedidosCrudos(tiendaId)]);
-        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date(), { pedidos, pedido: actual });
+        const c = calcularLineas(productos, promos, tiendaId, datos.items ?? [], datos.codigo, new Date(), { pedidos, pedido: actual, clienteId: datos.clienteId ?? actual.clienteId });
         if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
         items = c.items;
         total = c.total;
@@ -631,7 +631,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       ]);
       if (!actual) throw new PedidoNoEncontrado();
       if (!puedeEditarCodigo(actual.estado)) throw new DatosInvalidos("El código solo se cambia antes de despachar. Usa «Volver al paso anterior» y luego edítalo.");
-      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date(), { pedidos, pedido: actual });
+      const r = recalcularConCodigo(actual.items, productos, promos, tiendaId, codigo, new Date(), { pedidos, pedido: actual, clienteId: actual.clienteId });
       // Primero los precios de los productos que cambiaron, luego el pedido (con el estado como guarda).
       const cambiados = r.items.filter((n) => n.precioUnitario !== actual.items.find((i) => i.id === n.id)?.precioUnitario);
       const ponerPrecios = (lista: { id: string; precioUnitario: number }[]) =>
@@ -693,7 +693,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
 
       // Precios de hoy (con la promo de colección o de producto vigente) y el código, si es válido: la misma cuenta de la demo.
-      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos });
+      const { items, subtotal, promo } = calcularLineas(productos, promos, tiendaId, datos.items, datos.codigo, new Date(), { pedidos, clienteId: datos.clienteId });
 
       const venta = datos.ventaPasada;
       const total = subtotal - descuentoDeCodigo(promo, subtotal);

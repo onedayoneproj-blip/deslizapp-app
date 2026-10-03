@@ -14,7 +14,7 @@ import { BotonVolver } from "../selector-busqueda";
 import { Boton, FilaAgregar, FilaLista } from "../ui";
 
 /** Etiqueta corta de por qué un cupón no se puede usar. */
-const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "Programado", agotada: "Agotado" } as const;
+const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "Programado", agotada: "Agotado", otro_cliente: "De otro cliente" } as const;
 
 /** El círculo con el check de lo elegido. */
 function Check({ nuevo = false, sobreVerde = false }: { nuevo?: boolean; sobreVerde?: boolean }) {
@@ -87,10 +87,13 @@ export function SelectorDescuento({
   elegido,
   alElegir,
   alVolver,
+  nombreCliente,
 }: {
   promos: Promo[];
   tiendaId: string;
   contexto: ContextoCodigo;
+  /** Nombre del cliente del pedido: su código personal sale primero con "Solo para {nombre}". */
+  nombreCliente?: string | null;
   /** El código aplicado ahora ("" = sin descuento). */
   elegido: string;
   /** null = sin descuento. */
@@ -103,7 +106,10 @@ export function SelectorDescuento({
 
   const ahora = useMemo(() => new Date(), []);
   const filas = useMemo(() => {
-    const codigos = promos.filter((p) => p.tiendaId === tiendaId && p.tipo === "codigo" && p.codigo);
+    // Los códigos personales de otros clientes ni aparecen; el del cliente del pedido va primero
+    const codigos = promos
+      .filter((p) => p.tiendaId === tiendaId && p.tipo === "codigo" && p.codigo && (!p.clienteId || p.clienteId === contexto.clienteId))
+      .sort((a, b) => Number(Boolean(b.clienteId)) - Number(Boolean(a.clienteId)));
     const con = codigos.map((p) => ({ promo: p, razon: razonNoUsable(p, contexto, ahora), usos: pedidosConCodigo(contexto.pedidos, p) }));
     return { usables: con.filter((f) => !f.razon), noUsables: con.filter((f) => f.razon), hay: codigos.length > 0 };
   }, [promos, tiendaId, contexto, ahora]);
@@ -153,7 +159,7 @@ export function SelectorDescuento({
         {filas.usables.map(({ promo, usos }) => {
           const cod = promo.codigo!.toUpperCase();
           const sel = marcado === cod;
-          const uso = textoUso(usos, promo.limiteUsos);
+          const uso = promo.clienteId ? `Solo para ${nombreCliente?.trim().split(/\s+/)[0] || "este cliente"}` : textoUso(usos, promo.limiteUsos);
           return (
             <li key={promo.id}>
               <button
