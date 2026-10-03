@@ -20,27 +20,188 @@
   }
 }
 
+/* ==========================================================================
+   COLORES HEREDADOS: se reemplazan al migrar cada pantalla al sistema de diseño (docs/09-sistema-de-diseno.md).
+   No se usan en código nuevo. linea, peligro y marco se definen más abajo como tokens por función (mismo valor en claro).
+   ========================================================================== */
 @theme {
+  /* heredado: se reemplaza al migrar la pantalla */
   --color-bosque: #174b3a;
   --color-rosa: #f5c9d6;
   --color-mandarina: #ff834f;
   /* Naranja más oscuro SOLO para texto (notas a mano en Caveat): 4.5:1 sobre crema (4.56) y blanco (4.78). El Mandarina
-     #ff834f queda para botones, círculos, sellos y fondos. */
+     #ff834f queda para botones, círculos, sellos y fondos. heredado: se reemplaza al migrar la pantalla */
   --color-mandarina-texto: #c24e18;
   --color-papel: #fff9ee;
 
-  /* Derivados funcionales */
+  /* Derivados funcionales (heredado: se reemplaza al migrar la pantalla) */
   --color-bosque-oscuro: #10362a; /* texto sobre Mandarina, siempre este verde */
   --color-menta: #dcebe2;
   --color-tinta: #174b3a;
   --color-suave: #4f6a5e; /* texto secundario sobre Papel */
-  --color-linea: #efe4d2; /* bordes de tarjetas */
   --color-borde: #e7dcc8; /* bordes de campos y chips */
   --color-arena: #f3ead9; /* rellenos neutros: botón cerrar, fondos de foto */
   --color-tenue: #5d766a; /* pestañas inactivas: verde grisáceo tenue, 4.9:1 sobre blanco */
   --color-apagado: #cdbfa6; /* interruptor apagado, bordes punteados */
-  --color-peligro: #b4432a; /* acciones destructivas */
-  --color-marco: #f3eadb; /* fondo alrededor de la app en pantallas anchas */
+}
+
+/* ==========================================================================
+   SISTEMA DE DISEÑO (docs/09-sistema-de-diseno.md, referencias/sistema-de-diseno/tokens.json)
+   Colores por FUNCIÓN: claro en :root; oscuro SOLO bajo [data-theme="dark"] (en <html> o en cualquier contenedor).
+   Todavía no se usa prefers-color-scheme: el oscuro automático se activa cuando las pantallas estén migradas.
+   Tailwind: bg-superficie, text-texto-secundario, border-linea, bg-accion text-sobre-accion… (sin prefijo; los únicos
+   nombres que coinciden con heredados —linea, peligro, marco— tienen el mismo valor en claro, así que nada cambia).
+   ========================================================================== */
+:root {
+  --fondo: #fff9ee;
+  --superficie: #ffffff;
+  --superficie-hundida: #f3ead9;
+  --texto: #174b3a;
+  --texto-secundario: #4f6a5e;
+  --linea: #efe4d2;
+  --borde-pastilla: #e7dcc8;
+  --borde-campo: #9c8b6e;
+  --accion: #174b3a;
+  --sobre-accion: #fff9ee;
+  --accion-suave: #dcebe2;
+  --resalte: #ff834f;
+  --sobre-resalte: #10362a;
+  --marca-rosa: #f5c9d6;
+  --atencion-suave: #ffe3d6;
+  --atencion-texto: #a8410f;
+  --exito-texto: #1f6b47;
+  --en-linea: #2e8b57;
+  --peligro: #b4432a;
+  --sobre-peligro: #ffffff;
+  --foco: #c24e18;
+  --velo: rgba(16, 54, 42, 0.5);
+  --marco: #f3eadb;
+  /* Fijos de marca (piezas de identidad; no cambian en oscuro y no van en controles) */
+  --marca-bosque: #174b3a;
+  --marca-rosa-fija: #f5c9d6;
+  --marca-mandarina: #ff834f;
+  --marca-papel: #fff9ee;
+  --marca-menta-apagada: #9ec7b4;
+
+  /* Sombras (solo dos) */
+  --sombra-flotante: 0 10px 24px -10px rgba(16, 54, 42, 0.45);
+  --sombra-hoja: 0 -8px 30px rgba(16, 54, 42, 0.16);
+
+  /* Radios (las píldoras siguen con rounded-full) */
+  --radio-s: 10px;
+  --radio-m: 16px;
+  --radio-l: 22px;
+  --radio-xl: 28px;
+
+  /* Alturas de control (todo lo tocable mide al menos 44 px de área) */
+  --alto-boton-grande: 52px;
+  --alto-control: 44px;
+  --alto-compacto: 36px;
+  --alto-campo: 50px;
+  --alto-etiqueta: 24px;
+  --alto-avatar: 44px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --fondo: #0e1d17;
+  --superficie: #16281f;
+  --superficie-hundida: #1d3329;
+  --texto: #f1ebdf;
+  --texto-secundario: #a8bcb1;
+  --linea: #2a3d33;
+  --borde-pastilla: #36493f;
+  --borde-campo: #6f8579;
+  --accion: #9ed3b8;
+  --sobre-accion: #0e2a1f;
+  --accion-suave: #24443a;
+  --resalte: #ff834f;
+  --sobre-resalte: #10362a;
+  --marca-rosa: #5b3343;
+  --atencion-suave: #4a2618;
+  --atencion-texto: #ffa47e;
+  --exito-texto: #9ed3b8;
+  --en-linea: #5fc58e;
+  --peligro: #ff8a70;
+  --sobre-peligro: #2a0e08;
+  --foco: #ffa47e;
+  --velo: rgba(0, 0, 0, 0.6);
+  --marco: #09140f;
+  --sombra-flotante: 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+  --sombra-hoja: 0 -8px 30px rgba(0, 0, 0, 0.5);
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-hundida: var(--superficie-hundida);
+  --color-texto: var(--texto);
+  --color-texto-secundario: var(--texto-secundario);
+  --color-linea: var(--linea);
+  --color-borde-pastilla: var(--borde-pastilla);
+  --color-borde-campo: var(--borde-campo);
+  --color-accion: var(--accion);
+  --color-sobre-accion: var(--sobre-accion);
+  --color-accion-suave: var(--accion-suave);
+  --color-resalte: var(--resalte);
+  --color-sobre-resalte: var(--sobre-resalte);
+  --color-marca-rosa: var(--marca-rosa);
+  --color-atencion-suave: var(--atencion-suave);
+  --color-atencion-texto: var(--atencion-texto);
+  --color-exito-texto: var(--exito-texto);
+  --color-en-linea: var(--en-linea);
+  --color-peligro: var(--peligro);
+  --color-sobre-peligro: var(--sobre-peligro);
+  --color-foco: var(--foco);
+  --color-velo: var(--velo);
+  --color-marco: var(--marco);
+  --color-marca-bosque: var(--marca-bosque);
+  --color-marca-rosa-fija: var(--marca-rosa-fija);
+  --color-marca-mandarina: var(--marca-mandarina);
+  --color-marca-papel: var(--marca-papel);
+  --color-marca-menta-apagada: var(--marca-menta-apagada);
+
+  /* Sombras: shadow-flotante, shadow-hoja */
+  --shadow-flotante: var(--sombra-flotante);
+  --shadow-hoja: var(--sombra-hoja);
+
+  /* Radios: rounded-radio-s/m/l/xl (no "rounded-s/l": chocarían con los lados lógicos de Tailwind, rounded-s-*, rounded-l-*) */
+  --radius-radio-s: var(--radio-s);
+  --radius-radio-m: var(--radio-m);
+  --radius-radio-l: var(--radio-l);
+  --radius-radio-xl: var(--radio-xl);
+}
+
+/* Escala de texto cerrada (10 tamaños, en rem para respetar la letra del teléfono). Los cuatro primeros van en Fredoka:
+   úsalos con font-display (que pone 700 y 115 % de ancho): "font-display text-cifra". mano y mano-celebracion van con font-mano. */
+@theme {
+  --text-cifra: 2.25rem;
+  --text-cifra--line-height: 2.375rem;
+  --text-titulo-pantalla: 2rem;
+  --text-titulo-pantalla--line-height: 2.125rem;
+  --text-titulo-hoja: 1.5rem;
+  --text-titulo-hoja--line-height: 1.75rem;
+  --text-titulo-seccion: 1.25rem;
+  --text-titulo-seccion--line-height: 1.5rem;
+  --text-destacado: 1.0625rem;
+  --text-destacado--line-height: 1.5rem;
+  --text-destacado--font-weight: 800;
+  --text-cuerpo: 1rem;
+  --text-cuerpo--line-height: 1.5rem;
+  --text-secundario: 0.875rem;
+  --text-secundario--line-height: 1.25rem;
+  --text-etiqueta: 0.75rem;
+  --text-etiqueta--line-height: 1rem;
+  --text-etiqueta--font-weight: 800;
+  --text-contador: 0.6875rem;
+  --text-contador--line-height: 0.875rem;
+  --text-contador--font-weight: 800;
+  --text-mano: 1.375rem;
+  --text-mano--line-height: 1.5rem;
+  --text-mano--font-weight: 600;
+  --text-mano-celebracion: 2rem;
+  --text-mano-celebracion--line-height: 2rem;
+  --text-mano-celebracion--font-weight: 600;
 }
 
 @theme inline {
@@ -682,4 +843,46 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .jugada-luz-naranja { transform:translate(20%,15%); }
   .jugada-luz-verde { transform:translate(10%,-10%); }
   .jugada-luz-pulso,.jugada-velo { display:none; }
+}
+
+/* ==========================================================================
+   Componentes base del sistema de diseño (components/ui/). Solo transform / opacity; todo se apaga con "reducir movimiento".
+   ========================================================================== */
+/* Toast: entra desde abajo */
+@keyframes ui-sube-entra {
+  from {
+    opacity: 0;
+    translate: 0 var(--desplazar-aviso);
+  }
+}
+@utility mov-sube-entra {
+  animation: ui-sube-entra var(--mov-normal) var(--curva-salida) backwards;
+}
+/* Botón cargando: tres puntos que laten */
+@keyframes ui-punto {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.ui-puntos > span {
+  animation: ui-punto 1s ease-in-out infinite;
+}
+.ui-puntos > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ui-puntos > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-puntos > span {
+    animation: none;
+    opacity: 0.7;
+  }
 }

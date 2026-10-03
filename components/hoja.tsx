@@ -36,6 +36,12 @@
 //   atrás) no cierra: la hoja rebota a su lugar y sale el diálogo "¿Salir sin guardar?". Cerrar desde el padre (guardar con éxito,
 //   cambiar de ruta) nunca pregunta.
 //
+// - ALTURA (regla del sistema de diseño, docs/09 §9): AUTOMÁTICA por defecto ("auto": mide su contenido hasta el alto máximo y
+//   hace scroll dentro). COMPLETA ("grande") SOLO si hay teclado (escribir haría saltar la altura) o una lista que crece mientras
+//   se usa (buscar cliente, elegir productos). Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Máximo dos
+//   hojas apiladas. (Al migrar: fondo `fondo`, radio-xl, sombra-hoja; hoy el radio es 30 px y no lleva sombra, así que esos
+//   dos cambios visibles quedan para la migración. Fondo y botón cerrar ya usan los tokens, con el mismo valor en claro.)
+//
 // Implementación propia: se evaluó `vaul`, pero su repositorio está sin mantenimiento.
 
 import {
@@ -710,7 +716,7 @@ function HojaMontada({
         aria-labelledby={idTitulo}
         tabIndex={-1}
         // Papel también por debajo del borde inferior (after): si se estira hacia arriba, no se ve un hueco.
-        className="absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col rounded-t-[30px] bg-papel outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-papel"
+        className="absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col rounded-t-[30px] bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo"
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
           ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: ALTO_MAXIMO }),
@@ -805,7 +811,7 @@ const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), sele
 
 export function BotonCerrar({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque">
+    <button type="button" onClick={onClick} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-superficie-hundida text-bosque">
       <IconoCerrar tamano={20} />
     </button>
   );

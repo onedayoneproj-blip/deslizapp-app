@@ -215,6 +215,30 @@ el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catá
 contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
 HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
 
+## Sistema de diseño (tokens, components/ui y /diseno)
+
+- **Reglas:** `docs/09-sistema-de-diseno.md` (y `docs/10-marca-ilustracion-y-fondos.md`). Valores en `referencias/sistema-de-diseno/tokens.json`.
+- **Tokens** en `app/globals.css`: colores por FUNCIÓN (`--fondo`, `--superficie`, `--texto`, `--accion`, `--atencion-texto`, `--peligro`…) con
+  el valor claro en `:root` y el oscuro SOLO bajo `[data-theme="dark"]` (en `<html>` o en cualquier contenedor; todavía sin
+  `prefers-color-scheme`: el oscuro automático se activa cuando las pantallas estén migradas). Utilidades de Tailwind sin prefijo:
+  `bg-superficie`, `bg-superficie-hundida`, `text-texto`, `text-texto-secundario`, `border-linea`, `border-borde-campo`, `bg-accion
+  text-sobre-accion`, `bg-accion-suave`, `bg-atencion-suave text-atencion-texto`, `text-peligro`, `outline-foco`, `bg-velo`…
+  (`linea`, `peligro` y `marco` coinciden con los nombres viejos y tienen el mismo valor en claro).
+- **Texto:** `text-cifra`, `text-titulo-pantalla`, `text-titulo-hoja`, `text-titulo-seccion` (con `font-display`), `text-destacado`,
+  `text-cuerpo`, `text-secundario`, `text-etiqueta`, `text-contador`, `text-mano` / `text-mano-celebracion` (con `font-mano`). En rem.
+- **Radios:** `rounded-radio-s/m/l/xl` (10/16/22/28; las píldoras, `rounded-full`). **Sombras:** `shadow-flotante`, `shadow-hoja`.
+  **Alturas:** `h-(--alto-boton-grande)`, `h-(--alto-control)`, `h-(--alto-compacto)`, `h-(--alto-campo)`, `h-(--alto-etiqueta)`,
+  `size-(--alto-avatar)`.
+- **Colores heredados** (`bosque`, `rosa`, `mandarina`, `papel`, `menta`, `arena`, `suave`, `borde`, `tenue`, `apagado`, `tinta`,
+  `bosque-oscuro`, `mandarina-texto`): siguen igual mientras dura la migración; se reemplazan al migrar cada pantalla.
+- **`components/ui/` es la fuente de verdad para todo lo nuevo:** Boton (+ BotonIcono), Pastilla / FilaPastillas, Opcion /
+  GrupoOpciones, ControlSegmentado, ListaAgrupada / FilaLista, Tarjeta, Aviso, Alerta, Etiqueta / Contador, Campo / Buscador, Avatar
+  y el Toast nuevo (ProveedorToast + useToastUI). Se importan desde `@/components/ui`. Los componentes viejos (`controles.tsx`,
+  `toast.tsx`…) siguen en las pantallas que aún no se migran.
+- **Guía viva:** `/diseno` (pública, noindex, sin enlace desde la app), con todos los componentes y sus estados, en claro y oscuro.
+- **Regla:** en código nuevo no se escriben colores ni tamaños a mano (ni hex, ni `bg-white`, ni `text-[Npx]` fuera de la escala, ni
+  `rounded-[Npx]`, ni `shadow-[…]`). `npm run revisar-estilos` cuenta lo que queda a mano en las pantallas viejas (solo informa).
+
 ## Icono de la app
 
 Fondo Menta, isotipo Verde Bosque con borde Menta (fuente: `public/icons/isotipo-app.svg`; se regenera con `npm run iconos`, que usa sharp). Para ver el icono nuevo en iPhone hay que borrar la app de la pantalla de inicio y volver a agregarla desde Safari (iOS guarda el icono al instalar).
