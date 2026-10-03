@@ -59,7 +59,7 @@ Referencia visual: el canvas "Cliente: cobro y recordatorio", tableros "Detalle 
   · "Si ya pasó la fecha": "¡Hola, {nombre}! Te escribe {vendedora}, de {tienda}. El pago de {monto} quedó para el {fecha} y todavía aparece pendiente. ¿Me confirmas cuándo puedes? ¡Gracias!" (solo si está vencido).
   Mensaje elegido por defecto: "Si ya pasó la fecha" cuando está vencido; si no, "Con cariño". Si falta la vendedora, usa la versión sin "Te escribe…".
 - Historial de pedidos: cada fila lleva "#N", la fecha y el chevron, SIN etiqueta (ni de pago ni de estado); a la derecha el total, o el saldo en naranja si debe. Si el pedido tiene saldo, la versión mini del punto 3 (monto a la derecha en naranja y barra de 6px).
-- Nota: sin cambios.
+- Nota: ver punto 10.
 
 ## 7. Tarjeta de pedido (vista-pedidos)
 
@@ -80,10 +80,21 @@ Referencia visual: el canvas "Cliente: cobro y recordatorio", tableros "Detalle 
 - Tarjeta de Pago, a crédito: título "Pago" con UNA etiqueta ("A crédito" o, si está saldado, "Pagado"). Debajo, el BloqueDeuda normal con prefijo "Debe" y CON la leyenda "Abonó X de Y" (aquí sí, es el detalle). Quita la fila "Debe … Pagó X de Y" y la LineaFecha aparte (ya van dentro del bloque). Abonos con IconoMoneda como hoy.
 - Botones de la tarjeta de Pago: "Recordarle por WhatsApp" como PRINCIPAL (relleno, con icono) y "Registrar abono" como SECUNDARIO, en ese orden (el principal arriba, o a la derecha si van lado a lado).
 
+## 9. Avatar en la tarjeta de pedido (vista-pedidos)
+
+El cliente va primero. Nueva fila de arriba: Avatar 44 (con la señal "repite" si aplica; si no hay cliente, un avatar `superficie-hundida` con "?") · a su lado el nombre (destacado) y debajo "#1007 · Ayer" (secundario, texto-secundario) · a la derecha la etiqueta de pago. Debajo, la fila de miniaturas + "N productos" + total, y el bloque de deuda si aplica. Ya no hay una fila aparte para "#N · fecha" ni otra para el nombre.
+
+## 10. Nota del cliente: se escribe en Editar, se ve como burbuja
+
+- Quita el campo "Nota (opcional)" y el botón "Guardar nota" del detalle del cliente.
+- La nota se edita en la hoja "Editar cliente" (y en "Nuevo cliente"): Campo de una línea "Nota", máximo 60 caracteres (maxLength y contador "12/60" a la derecha de la ayuda), con la ayuda "Solo tú la ves. Te ayuda a encontrarla en el buscador." La base de datos ya tiene la restricción de 60 (`clientes_nota_largo`): muestra el error del campo si algo la rompe.
+- En la cabecera del detalle, si hay nota, va encima del avatar como burbuja estilo "notas" de Instagram: fondo `superficie`, radio 18, sombra suave (`sombra-flotante` o la más suave que exista), texto 14 bold, máximo 2 líneas y ancho máximo ~200px, con un piquito hacia el avatar. Sin nota, no hay burbuja ni espacio vacío. Tocarla abre "Editar cliente" con el foco en la nota.
+- En la lista de Clientes la nota NO se muestra, salvo cuando el cliente aparece en la búsqueda por su nota: entonces el subtítulo muestra la nota con lo buscado resaltado (eso ya existe; verifica que siga funcionando).
+
 ## Verificación
 
 - lint, typecheck, tests y build sin errores; revisar-estilos en 0. Actualiza o agrega los tests de los textos de fecha ("Quedó de pagar el…") y de los mensajes de recordatorio.
-- En la vista previa, con datos reales y a 360px y 390px: los filtros (Deben segundo, sin divisor, sin pastillas extra al tocar la hoja "Tus clientes"); la lista de Clientes con alguien que repite y debe atrasado (sin píldoras); Deben; el detalle del cliente (cabecera, Te debe, movimientos con iconos, Registrar abono, recordatorio con los 4 mensajes); las tarjetas de pedido; y la hoja del pedido (nuevo, por despachar con y sin stock, despachado, cancelado, contado, crédito con abono y saldado).
+- En la vista previa, con datos reales y a 360px y 390px: los filtros (Deben segundo, sin divisor, sin pastillas extra al tocar la hoja "Tus clientes"); la lista de Clientes con alguien que repite y debe atrasado (sin píldoras); Deben; el detalle del cliente (cabecera, Te debe, movimientos con iconos, Registrar abono, recordatorio con los 4 mensajes); las tarjetas de pedido; y la hoja del pedido (nuevo, por despachar con y sin stock, despachado, cancelado, contado, crédito con abono y saldado); las tarjetas de pedido con avatar (con y sin cliente); la nota (burbuja, editar con contador, búsqueda por nota).
 - Capturas antes y después en docs/capturas/menos-texto/.
 
 ## Entrega (incluye el merge)
