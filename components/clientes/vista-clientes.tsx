@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
 import { buscarClientes, type DondeCoincide } from "@/lib/buscar-clientes";
 import { resaltar } from "@/lib/texto";
@@ -13,18 +12,17 @@ import { formatearTelefono, resaltarTelefono } from "@/lib/telefono";
 import type { ClienteConResumen } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
-import { IconoBuscar } from "../iconos";
 import { Dona } from "../dona";
 import { HojaResumenClientes, SEGMENTOS_CLIENTES } from "./hoja-resumen-clientes";
 import { analizarClientes, cumpleFiltroCliente, ordenarClientes, mensajeDormido, type FiltroClientes, type ClienteAnalizado } from "@/lib/clientes-resumen";
 import { enlaceWhatsApp } from "@/lib/formato";
-import { IconoWhatsApp } from "../iconos";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Segmentos } from "../controles";
+import { Boton, Buscador, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
-import { Avatar, EtiquetaRepite } from "./comunes";
+import { Avatar } from "../ui";
+import { EtiquetaRepite } from "./comunes";
 import { TextoResaltado } from "./texto-resaltado";
 
 /**
@@ -77,7 +75,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   const ids = fijos.includes(filtro) ? fijos : [...fijos, filtro];
   const cantidad = (id: FiltroClientes) => id === "deben" ? cuentas?.clientes ?? 0 : resumen.cuentas[id];
   const opciones = ids.filter((id) => id === "todos" || id === filtro || cantidad(id) > 0)
-    .map((id, i) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben", divisorAntes: i === 1 }));
+    .map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben", condicional: id !== "todos" }));
   const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah.", una: "Nadie con una sola compra.", sin: "Todos han dicho aaah. Y han comprado.", catalogo: "Todavía no llegan por el catálogo.", manual: "Todavía no agregas clientes a mano." };
   const listo = Boolean(clientes && pedidos);
 
@@ -86,40 +84,29 @@ export function VistaClientes({ children }: { children: ReactNode }) {
       <TituloPantalla titulo="Clientes" subtitulo="Los que ya dijeron aaah. Y los que están por decirlo." derecha={
         listo ? <button type="button" onClick={() => setHoja(true)}
           aria-label={`${total} clientes: ${resumen.cuentas.repiten} repiten, ${resumen.cuentas.una} compraron una vez, ${resumen.cuentas.sin} sin comprar. Ver detalle`}
-          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-xl">
-          <Dona className="dona-cabecera" segmentos={SEGMENTOS_CLIENTES.map((x) => ({ valor: resumen.cuentas[x.id], color: x.color }))}>
-            <b className="font-display text-[22px]">{total}</b><span className="mt-0.5 text-[9px] font-extrabold text-suave">CLIENTES</span>
+          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-radio-m">
+          <Dona className="dona-cabecera" pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((x) => ({ valor: resumen.cuentas[x.id], color: x.color }))}>
+            <b className="font-display text-titulo-seccion">{total}</b><span className="mt-0.5 text-contador text-texto-secundario">CLIENTES</span>
           </Dona>
-          <span className="text-[11.5px] font-bold text-suave">{resumen.cuentas.repiten} repiten</span>
-        </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
+          <span className="text-etiqueta font-bold text-texto-secundario">{resumen.cuentas.repiten} repiten</span>
+        </button> : <Esqueleto className="h-24 w-19 shrink-0 rounded-full" />
       } />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
-        <label className="flex h-12 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4">
-          <IconoBuscar tamano={20} className="shrink-0 text-suave" />
-          <span className="sr-only">Buscar cliente</span>
-          <input
-            type="search"
-            value={busqueda}
-            onChange={(e) => {
-              const valor = e.target.value;
-              setBusqueda(valor);
-              startTransition(() => setAplicada(valor));
-            }}
-            placeholder="Nombre o WhatsApp"
-            className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
-          />
-        </label>
-
-        <Segmentos
-          etiqueta="Qué clientes ver"
-          valor={filtro}
-          alCambiar={setFiltro}
-          opciones={opciones}
+        <Buscador
+          etiqueta="Buscar cliente"
+          valor={busqueda}
+          alCambiar={(valor) => {
+            setBusqueda(valor);
+            startTransition(() => setAplicada(valor));
+          }}
+          placeholder="Nombre o WhatsApp"
         />
+
+        <FilaPastillas etiqueta="Qué clientes ver" valor={filtro} alCambiar={setFiltro} opciones={opciones} />
 
         {filtro === "deben" && (
           <>
-            {!cuentas && <Esqueleto className="h-[210px] rounded-[24px]" />}
+            {!cuentas && <Esqueleto className="h-52 rounded-radio-l" />}
             {cuentas && cuentas.clientes === 0 && (
               <EstadoVacio pequeno ilustracion="clientes" titulo="Nadie te debe." remate="Cuando vendas a crédito, aquí ves quién falta por pagar." />
             )}
@@ -131,13 +118,11 @@ export function VistaClientes({ children }: { children: ReactNode }) {
                 )}
                 {deben.length > 0 && (
                   <>
-                    <ul className="flex flex-col gap-3">
+                    <ListaAgrupada etiqueta="Clientes que deben">
                       {debenPaginados.visibles.map((c) => (
-                        <li key={c.clienteId}>
-                          <FilaPorCobrar cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} />
-                        </li>
+                        <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} />
                       ))}
-                    </ul>
+                    </ListaAgrupada>
                     <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} texto="Ver más clientes" />
                   </>
                 )}
@@ -146,7 +131,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           </>
         )}
 
-        {filtro !== "deben" && !listo && <Esqueleto className="h-[210px] rounded-[24px]" />}
+        {filtro !== "deben" && !listo && <Esqueleto className="h-52 rounded-radio-l" />}
         {filtro !== "deben" && listo && total === 0 && (
           <EstadoVacio
             ilustracion="clientes"
@@ -160,16 +145,12 @@ export function VistaClientes({ children }: { children: ReactNode }) {
         )}
         {filtro !== "deben" && listo && filtrados.length > 0 && (
           <>
-            <ul className="rounded-[24px] border border-linea bg-white px-3.5">
+            <ListaAgrupada etiqueta="Clientes">
               {visibles.map(({ cliente, coincide }) => (
-                <li key={cliente.id} className="relative border-b border-arena last:border-b-0">
-                  <FilaCliente cliente={cliente} coincide={coincide} consulta={aplicada} dormido={filtro === "dormidos" && Boolean(cliente.telefono)} />
-                  {filtro === "dormidos" && cliente.telefono && <a href={enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null))}
-                    target="_blank" rel="noreferrer" aria-label={`Escribirle a ${cliente.nombre} por WhatsApp`}
-                    className="tocable absolute right-0 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-menta text-bosque"><IconoWhatsApp tamano={20} /></a>}
-                </li>
+                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada}
+                  escribir={filtro === "dormidos" && cliente.telefono ? { href: enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null)), nombre: cliente.nombre } : undefined} />
               ))}
-            </ul>
+            </ListaAgrupada>
             <BotonVerMas quedan={quedan} mostrados={mostrados} total={filtrados.length} alTocar={verMas} texto="Ver más clientes" />
           </>
         )}
@@ -185,33 +166,32 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   );
 }
 
-function FilaCliente({ cliente: c, coincide, consulta, dormido = false }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; dormido?: boolean }) {
+function FilaCliente({ cliente: c, coincide, consulta, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; escribir?: { href: string; nombre: string } }) {
   return (
-    <Link href={`/clientes/${c.id}`} scroll={false} className={`tocable flex items-center gap-3 py-3 text-bosque ${dormido ? "pr-12" : ""}`}>
-      <Avatar nombre={c.nombre} />
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5 text-[15.5px] font-extrabold">
+    <FilaLista
+      href={`/clientes/${c.id}`}
+      inicio={<Avatar nombre={c.nombre} />}
+      titulo={
+        <span className="flex items-center gap-1.5">
           <span className="truncate">
             <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
           </span>
           {c.repite && <EtiquetaRepite />}
         </span>
-        <span className="block truncate text-[13px] text-suave">
-          {/* Si salió por el teléfono o por la nota, se muestra eso para ver por qué coincidió */}
-          {coincide === "telefono" && c.telefono ? (
-            <TextoResaltado trozos={resaltarTelefono(formatearTelefono(c.telefono), consulta)} />
-          ) : coincide === "nota" && c.nota ? (
-            <TextoResaltado trozos={resaltar(c.nota, consulta)} />
-          ) : c.pedidos > 0 ? (
-            `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
-          ) : (
-            "Todavía no pide. Todavía."
-          )}
-        </span>
-      </span>
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-suave">
-        <path d="M9 6l6 6-6 6" />
-      </svg>
-    </Link>
+      }
+      detalle={
+        // Si salió por el teléfono o por la nota, se muestra eso para ver por qué coincidió
+        coincide === "telefono" && c.telefono ? (
+          <TextoResaltado trozos={resaltarTelefono(formatearTelefono(c.telefono), consulta)} />
+        ) : coincide === "nota" && c.nota ? (
+          <TextoResaltado trozos={resaltar(c.nota, consulta)} />
+        ) : c.pedidos > 0 ? (
+          `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
+        ) : (
+          "Todavía no pide. Todavía."
+        )
+      }
+      accion={escribir && <Boton whatsapp href={escribir.href} target="_blank" rel="noreferrer" aria-label={`Escribirle a ${escribir.nombre} por WhatsApp`}>Escribir</Boton>}
+    />
   );
 }

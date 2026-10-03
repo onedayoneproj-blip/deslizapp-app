@@ -49,6 +49,49 @@ export function Campo({
   );
 }
 
+/**
+ * Campo de texto de varias líneas (la nota de un cliente): mismo rótulo, contorno 2 px y mensajes que `Campo`; crece con
+ * `filas`, no se estira a mano. El contador o la ayuda van abajo en `ayuda`.
+ */
+export function CampoMultilinea({
+  etiqueta,
+  ayuda,
+  error,
+  id,
+  className,
+  filas = 2,
+  ...area
+}: Omit<ComponentProps<"textarea">, "className" | "rows"> & { etiqueta: ReactNode; ayuda?: ReactNode; error?: ReactNode; className?: string; filas?: number }) {
+  const propio = useId();
+  const idCampo = id ?? propio;
+  const idNota = `${idCampo}-nota`;
+  const nota = error ?? ayuda;
+  return (
+    <div className={clases("flex min-w-0 flex-col gap-1.5", className)}>
+      <label htmlFor={idCampo} className="text-secundario font-extrabold text-texto">
+        {etiqueta}
+      </label>
+      <textarea
+        id={idCampo}
+        rows={filas}
+        {...area}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={nota ? idNota : undefined}
+        className={clases(
+          "w-full min-w-0 resize-none rounded-radio-m border-2 bg-superficie px-3.5 py-3 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
+          FOCO_CAMPO,
+          error ? "border-peligro" : "border-borde-campo focus:border-accion",
+        )}
+      />
+      {nota && (
+        <p id={idNota} className={clases("text-secundario", error ? "font-bold text-peligro" : "text-texto-secundario")}>
+          {nota}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Lo escrito en un monto, solo dígitos: sin comas, decimales ni negativos, sin ceros a la izquierda, hasta 8 cifras. */
 export const soloDigitos = (texto: string) => texto.replace(/\D/g, "").replace(/^0+/, "").slice(0, 8);
 

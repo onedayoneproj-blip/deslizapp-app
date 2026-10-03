@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
@@ -11,10 +10,8 @@ import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { CampoNota } from "./campo-nota";
+import { Aviso, Boton, Campo } from "../ui";
 import { useToast } from "../toast";
-
-const campo =
-  "h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] border-borde bg-white px-3.5 text-base text-bosque outline-none focus:border-bosque";
 
 /** "+ Cliente": nombre y WhatsApp dominicano. No duplica un WhatsApp que ya está en la tienda. */
 export function HojaClienteNuevo() {
@@ -29,6 +26,7 @@ export function HojaClienteNuevo() {
 }
 
 function Formulario({ alTerminar }: { alTerminar: () => void }) {
+  const router = useRouter();
   const { crearCliente } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
@@ -61,55 +59,35 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <p className="text-suave">Nombre y WhatsApp. Con eso basta.</p>
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Nombre
-        <input
-          type="text"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Ej: Paola Jiménez"
-          autoComplete="off"
-          className={campo}
-        />
-      </label>
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        WhatsApp
-        <input
-          type="tel"
-          inputMode="tel"
-          value={telefono}
-          onChange={(e) => {
-            setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18));
-            setDuplicado(null);
-          }}
-          onBlur={() => setTocado(true)}
-          placeholder="809-000-0000"
-          aria-invalid={malo || undefined}
-          className={`${campo} ${malo ? "border-[#b4432a]" : ""}`}
-        />
-        {malo && <span className="text-[12.5px] font-semibold text-[#b4432a]">Escríbelo con 809, 829 o 849 y 7 dígitos más.</span>}
-      </label>
+      <p className="text-texto-secundario">Nombre y WhatsApp. Con eso basta.</p>
+      <Campo etiqueta="Nombre" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Paola Jiménez" autoComplete="off" />
+      <Campo
+        etiqueta="WhatsApp"
+        type="tel"
+        inputMode="tel"
+        value={telefono}
+        onChange={(e) => {
+          setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18));
+          setDuplicado(null);
+        }}
+        onBlur={() => setTocado(true)}
+        placeholder="809-000-0000"
+        error={malo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
+      />
 
       <CampoNota valor={nota} alCambiar={setNota} />
 
       {duplicado && (
-        <div role="alert" className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-          <b>Este número ya es de «{duplicado.nombre}».</b> Dos clientes pueden llamarse igual, pero no compartir número.{" "}
-          <Link href={`/clientes/${duplicado.id}`} scroll={false} className="font-extrabold underline">
-            Usar ese cliente
-          </Link>
-        </div>
+        <Aviso tono="atencion" accion={{ texto: "Usar ese cliente", alTocar: () => router.push(`/clientes/${duplicado.id}`, { scroll: false }) }}>
+          <div role="alert">
+            <b>Este número ya es de «{duplicado.nombre}».</b> Dos clientes pueden llamarse igual, pero no compartir número.
+          </div>
+        </Aviso>
       )}
 
-      <button
-        type="button"
-        onClick={guardar}
-        disabled={!puedeGuardar}
-        className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-50"
-      >
+      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         Guardar cliente
-      </button>
+      </Boton>
     </div>
   );
 }

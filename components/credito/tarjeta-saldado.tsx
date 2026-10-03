@@ -39,7 +39,7 @@ export function TarjetaSaldado({
     <section aria-label="Pedido saldado" className="mov-aparece relative min-h-[190px] overflow-hidden rounded-radio-l bg-marca-bosque px-[18px] py-5 text-marca-papel">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         {CONFETI.map((c, i) => (
-          <span key={i} className={`cre-confeti absolute -top-3 h-2 w-2 rounded-[2px] ${c.color}`} style={{ left: c.izq, animationDelay: c.retraso }} />
+          <span key={i} className={`cre-confeti absolute -top-3 h-2 w-2 rounded-xs ${c.color}`} style={{ left: c.izq, animationDelay: c.retraso }} />
         ))}
       </div>
       <div
