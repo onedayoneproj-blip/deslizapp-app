@@ -75,6 +75,24 @@ export function diaCorto(dia: string): string {
   return m && d ? `${Number(d)} ${MESES_CORTOS[Number(m) - 1]}` : dia;
 }
 
+const DIAS_SEMANA_CORTOS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+
+/**
+ * El texto de fecha del "chin" de deuda de la tarjeta de pedido: "Paga hoy", "Paga mañana", "Paga el sáb 10 oct" (con año si no es
+ * el actual), "Atrasado N días" o "Sin fecha de pago". `fecha` es un día sin hora; se compara con hoy en Santo Domingo.
+ */
+export function textoFechaChin(fecha: string | null, ahora: number): string {
+  const dias = diasParaPagar(fecha, ahora);
+  if (fecha === null || dias === null) return "Sin fecha de pago";
+  if (dias < 0) return textoAtraso(-dias);
+  if (dias === 0) return "Paga hoy";
+  if (dias === 1) return "Paga mañana";
+  const [anio, mes, dia] = fecha.split("-").map(Number) as [number, number, number];
+  const semana = DIAS_SEMANA_CORTOS[new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()];
+  const conAnio = anio !== Number(diaDeSantoDomingo(ahora).slice(0, 4)) ? ` ${anio}` : "";
+  return `Paga el ${semana} ${dia} ${MESES_CORTOS[mes - 1]}${conAnio}`;
+}
+
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
 /** "Atrasado 6 días" / "Atrasada 6 días" según `genero`. */

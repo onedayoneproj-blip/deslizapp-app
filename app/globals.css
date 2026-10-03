@@ -69,6 +69,7 @@
   --marca-rosa: #f5c9d6;
   --atencion-suave: #ffe3d6;
   --atencion-texto: #a8410f;
+  --atencion-borde: #f4c9b3;
   --exito-texto: #1f6b47;
   --en-linea: #2e8b57;
   --peligro: #b4432a;
@@ -121,6 +122,7 @@
   --marca-rosa: #5b3343;
   --atencion-suave: #4a2618;
   --atencion-texto: #ffa47e;
+  --atencion-borde: #5a3a28;
   --exito-texto: #9ed3b8;
   --en-linea: #5fc58e;
   --peligro: #ff8a70;
@@ -150,6 +152,7 @@
   --color-marca-rosa: var(--marca-rosa);
   --color-atencion-suave: var(--atencion-suave);
   --color-atencion-texto: var(--atencion-texto);
+  --color-atencion-borde: var(--atencion-borde);
   --color-exito-texto: var(--exito-texto);
   --color-en-linea: var(--en-linea);
   --color-peligro: var(--peligro);

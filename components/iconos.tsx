@@ -199,6 +199,13 @@ export const IconoCamion = (p: Props) => (
 );
 
 /** Moneda con signo de pesos: un abono (icono del diseño de crédito y abonos). */
+export const IconoCalendario = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="3" />
+    <path d="M8 3v4M16 3v4M3.5 10h17" />
+  </Icono>
+);
+
 export const IconoMoneda = (p: Props) => (
   <Icono {...p}>
     <circle cx="12" cy="12" r="9" />

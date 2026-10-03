@@ -3,11 +3,13 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { textoFechaChin } from "@/lib/credito";
 import { formatearPesos, haceCuanto } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
+import { IconoCalendario } from "../iconos";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
@@ -52,6 +54,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   const { getPedidos, getProductos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const [pestanaElegida, setPestanaElegida] = useState<Pestana | null>(null);
+  const [ahora] = useState(() => Date.now());
 
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -100,10 +103,11 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
         )}
         {pedidos && todos.length > 0 && (
           <>
+            {/* Con chin la tarjeta deja 22 px más abajo para que la pestaña no choque con la siguiente */}
             <ul className="flex flex-col gap-3">
               {visibles.map((p) => (
-                <li key={p.id}>
-                  <TarjetaPedido pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
+                <li key={p.id} className={p.estado !== "cancelado" && p.pagoModo === "credito" && p.saldo > 0 ? "mb-5.5" : undefined}>
+                  <TarjetaPedido ahora={ahora} pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
                 </li>
               ))}
             </ul>
@@ -118,10 +122,28 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   );
 }
 
-function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
+function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
+  const vigente = p.estado !== "cancelado" && p.pagoModo === "credito";
+  const conChin = vigente && p.saldo > 0;
+  const pagadoACredito = vigente && p.saldo === 0;
+  const fechaChin = conChin ? textoFechaChin(p.pagoFechaAcordada, ahora) : "";
   return (
-    <Tarjeta href={`/pedidos/${p.id}`}>
+    <Tarjeta
+      href={`/pedidos/${p.id}`}
+      etiqueta={conChin ? `Pedido #${p.numero} de ${cliente ?? "cliente sin nombre"}. Debe ${formatearPesos(p.saldo)}. ${fechaChin}` : undefined}
+      chin={
+        conChin && (
+          <>
+            <span className="text-destacado">Debe {formatearPesos(p.saldo)}</span>
+            <span className="flex items-center gap-1.5 text-secundario font-extrabold">
+              <IconoCalendario tamano={18} strokeWidth={2.2} />
+              {fechaChin}
+            </span>
+          </>
+        )
+      }
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-secundario font-bold text-texto-secundario">
           #{p.numero} · {haceCuanto(p.creadoEn)}
@@ -130,9 +152,7 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
       </div>
       <div className="mt-1 flex items-center justify-between gap-2">
         <p className="min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
-        {p.pagoModo === "credito" && p.saldo > 0 && (
-          <Etiqueta tono="atencion">Debe {formatearPesos(p.saldo)}</Etiqueta>
-        )}
+        {pagadoACredito && <Etiqueta tono="exito">Pagado</Etiqueta>}
       </div>
       <div className="mt-2.5 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">

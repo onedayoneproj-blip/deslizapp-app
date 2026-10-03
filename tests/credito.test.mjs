@@ -19,6 +19,7 @@ import {
   saldoDe,
   sumarDias,
   textoAtraso,
+  textoFechaChin,
   textoFaltan,
 } from "../lib/credito.ts";
 import { traducirErrorSupabase, MontoMayorQueDeuda, PedidoConAbonos } from "../lib/data/errores.ts";
@@ -265,4 +266,15 @@ test("editar un abono: valida método, nota, fecha y monto como la base", () => 
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, metodo: "cheque" }, AHORA), { error: "metodo_invalido" });
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, nota: "x".repeat(201) }, AHORA), { error: "nota_invalida" });
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, fecha: "2026-12-01T00:00:00.000Z" }, AHORA), { error: "fecha_invalida" });
+});
+
+test("texto de fecha del chin de deuda", () => {
+  // AHORA = miércoles 30 sep 2026 (mediodía en Santo Domingo)
+  assert.equal(textoFechaChin("2026-09-30", AHORA), "Paga hoy");
+  assert.equal(textoFechaChin("2026-10-01", AHORA), "Paga mañana");
+  assert.equal(textoFechaChin("2026-10-10", AHORA), "Paga el sáb 10 oct");
+  assert.equal(textoFechaChin("2027-01-05", AHORA), "Paga el mar 5 ene 2027");
+  assert.equal(textoFechaChin("2026-09-29", AHORA), "Atrasado 1 día");
+  assert.equal(textoFechaChin("2026-09-24", AHORA), "Atrasado 6 días");
+  assert.equal(textoFechaChin(null, AHORA), "Sin fecha de pago");
 });

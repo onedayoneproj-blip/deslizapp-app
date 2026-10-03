@@ -8,7 +8,8 @@ import type { Cliente, PedidoConItems, Producto, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { IconoDescargar } from "../iconos";
-import { Aviso, Boton, TarjetaDocumento, type TonoEtiqueta } from "../ui";
+import { Aviso, Boton, TarjetaDocumento } from "../ui";
+import { etiquetaDePago } from "./comunes";
 
 export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido: PedidoConItems; cliente: Cliente | null; tienda: Tienda; productos: Producto[] }) {
   const toast = useToast();
@@ -81,9 +82,8 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     });
   };
 
-  // "Al contado" y "Pagado" en éxito; "A crédito" (con deuda) en atención
-  const etiqueta: { texto: string; tono: TonoEtiqueta } =
-    pedido.pagoModo !== "credito" ? { texto: "Al contado", tono: "exito" } : pedido.saldo > 0 ? { texto: "A crédito", tono: "atencion" } : { texto: "Pagado", tono: "exito" };
+  // La misma etiqueta de pago que la hoja del pedido; aquí un pedido a crédito sin saldo se llama "Pagado"
+  const etiqueta = etiquetaDePago(pedido, true);
 
   return (
     <>

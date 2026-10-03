@@ -22,7 +22,7 @@ import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { ChipEstado } from "./comunes";
+import { ChipEstado, EtiquetaPago } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
@@ -357,7 +357,10 @@ function Detalle({
             </div>
           )}
           <div className="flex justify-between pt-1.5 font-display text-titulo-seccion">
-            <span>Total</span>
+            <span className="flex items-center gap-2">
+              Total
+              {pedido.estado !== "cancelado" && <EtiquetaPago pedido={pedido} />}
+            </span>
             <span>{formatearPesos(pedido.total)}</span>
           </div>
         </li>
@@ -435,18 +438,12 @@ function Detalle({
   );
 }
 
-/** Estado del stock de un producto del pedido. Ya despachado: "Entregado" y, si se acabó, "Agotado". */
+/** Estado del stock de un producto del pedido. Ya despachado: solo "Agotado" si se acabó (la barra de pasos ya dice Despachado). */
 function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems["estado"]; producto: Producto | undefined; cantidad: number }) {
   if (estado === "cancelado") return null;
   const stock = producto?.stock;
-  if (estado === "despachado") {
-    return (
-      <>
-        <Etiqueta tono="exito">Entregado</Etiqueta>
-        {stock === 0 && <Etiqueta tono="fuerte">Agotado</Etiqueta>}
-      </>
-    );
-  }
+  // Despachado: la barra de pasos ya lo dice; solo importa si se agotó
+  if (estado === "despachado") return stock === 0 ? <Etiqueta tono="fuerte">Agotado</Etiqueta> : null;
   if (stock === undefined || stock === null) return <Etiqueta>Sin control</Etiqueta>;
   if (stock === 0) return <Etiqueta tono="fuerte">Sin stock</Etiqueta>;
   const texto = stock === 1 ? "Queda 1" : `Quedan ${stock}`;
