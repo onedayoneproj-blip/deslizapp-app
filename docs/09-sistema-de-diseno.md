@@ -43,9 +43,10 @@ Los colores se nombran por su **función**, no por su marca. Así el modo oscuro
 2. **Mandarina se gana su lugar.** `resalte` solo va en el botón flotante (+), en contadores que piden atención (Agotados, Nuevos) y como máximo en UNA llamada emocional por pantalla ("Despachar pedido", "Compartir", "¡A deslizar!"): el momento que da alegría, como el botón de comprar. Si una pantalla ya tiene botón flotante, no lleva otra Mandarina.
 3. **Rosa es marca, no estado.** `marca-rosa` decora (tarjeta del plan, avatar de persona, pestaña activa de la barra). No se usa para marcar selección ni avisos.
 4. **El rojo es solo para destruir.** `peligro` aparece en botones que borran o terminan algo, y en errores de campo. Nunca se escribe el color a mano.
-5. **Nada blanco fijo.** Todo fondo claro usa `superficie` o `fondo`, para que funcione en oscuro.
-6. **El estado nunca depende solo del color.** Elegido lleva check, atrasado lleva texto ("Atrasado 6 días"), en línea lleva la palabra.
-7. **WhatsApp es verde y relleno.** "Escribir" (abrir el chat del cliente) va siempre como botón compacto relleno `accion` con el icono de WhatsApp: saca a la persona de la app hacia una conversación, que es el verde del concepto de marca.
+5. **El foco es verde, no naranja.** Un campo con el cursor dentro cambia su contorno a 2 px `accion`, sin anillo extra. Los botones muestran un anillo `foco` (el mismo verde) solo al navegar con teclado. Un campo con error lleva contorno 2 px `peligro` y su mensaje debajo, sin anillo encima.
+6. **Nada blanco fijo.** Todo fondo claro usa `superficie` o `fondo`, para que funcione en oscuro.
+7. **El estado nunca depende solo del color.** Elegido lleva check, atrasado lleva texto ("Atrasado 6 días"), en línea lleva la palabra.
+8. **WhatsApp es verde y relleno.** "Escribir" (abrir el chat del cliente) va siempre como botón compacto relleno `accion` con el icono de WhatsApp: saca a la persona de la app hacia una conversación, que es el verde del concepto de marca.
 
 ## 3. Tipografía
 
@@ -93,8 +94,8 @@ Todos son píldora, letra extrabold, sin subrayado.
 | Jerarquía | Aspecto | Para |
 |---|---|---|
 | **Principal** | Relleno `accion` | La acción que la persona vino a hacer: Guardar, Crear pedido, Registrar abono |
-| **Secundario** | Contorno 1.5 px `accion`, fondo transparente | La alternativa: Editar, Ver lo que pedí, Recordarle |
-| **Terciario** | Solo texto `accion`, sin borde ni subrayado | Acciones menores dentro de una tarjeta o fila: Cambiar, Ver historial, Reintentar |
+| **Secundario** | Contorno 1.5 px `accion` con relleno `superficie` (nunca transparente sobre el fondo crema) | La alternativa: Editar, Agregar más productos, Recordarle. En compacto (36 px), las acciones dentro de tarjetas y filas: Cambiar, Ver historial |
+| **Terciario** | Solo texto, sin borde ni subrayado | Casi nunca: la acción destructiva al final de una pila ("Cancelar pedido", en `peligro`) y "Reintentar" dentro de un aviso. Una acción dentro de una tarjeta va como secundario compacto, para que se vea que es un botón |
 | **Peligro** | Contorno y texto `peligro`; relleno `peligro` solo dentro de una alerta | Borrar, eliminar, terminar |
 | **Resalte** | Relleno `resalte` | Botón flotante (+) y una llamada emocional por pantalla |
 
@@ -119,7 +120,9 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 **El divisor entre pastillas** (una línea vertical) tiene un solo significado: separa los filtros **fijos** (siempre están) de los **condicionales** (solo aparecen cuando tienen algo). Ejemplo en Clientes: `Todos · Repiten · Nuevos | Deben · Dormidos`. Si una pantalla no tiene filtros condicionales, no lleva divisor. Los condicionales se ocultan cuando su contador es 0.
 
-**Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, relleno `superficie-hundida` e icono `texto`, con el número en `destacado` entre ellos. Al llegar al límite del stock, el + se deshabilita (40 %). No son círculos.
+**Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, con el número en `destacado` entre ellos. **−** en `superficie-hundida` con icono `texto`; **+** en relleno `accion` con icono `sobre-accion`, porque agregar es seguir adelante. Al llegar al mínimo o al límite del stock, ese botón se deshabilita (40 %). No son círculos.
+
+**Fila "Agregar …"** (Agregar cupón, Agregar producto): fila tocable con un **círculo relleno `accion` de 24 px con un + en `sobre-accion`** y el texto en `destacado`. El círculo relleno es lo que la distingue de un texto suelto.
 
 **Interruptor:** solo para encender o apagar algo que se aplica al instante (Visible en el catálogo). Si hay que pulsar Guardar después, es una opción de formulario.
 
