@@ -87,8 +87,8 @@
 .dz-campo { display: flex; flex-direction: column; gap: 6px; }
 .dz-campo label { font-size: 14px; font-weight: 800; }
 .dz-campo input { height: 50px; border-radius: 16px; border: 1.5px solid var(--borde-campo); background: var(--superficie); color: var(--texto); padding: 0 14px; font-family: var(--font-sans); font-size: 16px; }
-.dz-campo input:focus { outline: 3px solid var(--foco); outline-offset: 1px; border-color: var(--accion); }
-.dz-campo--error input { border-color: var(--peligro); }
+.dz-campo input:focus { outline: none; border: 2px solid var(--accion); }
+.dz-campo--error input, .dz-campo--error input:focus { border: 2px solid var(--peligro); outline: none; }
 .dz-campo small { font-size: 14px; color: var(--texto-secundario); }
 .dz-campo--error small { color: var(--peligro); font-weight: 700; }
 .dz-buscador { height: 50px; border-radius: 999px; border: 1.5px solid var(--borde-pastilla); background: var(--superficie); display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--texto-secundario); font-size: 16px; }

@@ -56,11 +56,11 @@ Las piezas de marca usan un fondo plano de un solo color de marca, con uno o dos
 
 Patrones disponibles (máximo dos por pieza):
 
-1. **Cinta ondulada con isotipos:** una banda ancha que cruza la pieza de lado a lado con una curva suave, en el color contrario al fondo (verde sobre rosa, rosa sobre verde), con el isotipo repetido dentro en el color del fondo. Representa el feed que se desliza. Pasa por detrás del teléfono o del objeto principal, nunca por encima del texto.
-2. **Burbujas de chat en contorno:** burbujas con tres puntos, de trazo grueso y sin relleno, en un tono apagado del fondo (menta grisáceo sobre verde, rosa más intenso sobre rosa), agrupadas en una o dos esquinas y cortadas por el borde.
-3. **Corazones grandes:** corazones planos en un tono un poco más intenso que el fondo, cortados por el borde. Solo en piezas para compradores.
-4. **Destellos:** tres trazos cortos que salen de un objeto o palabra para darle énfasis (como un "¡pum!"), en Mandarina, o en Papel Cálido sobre verde. Máximo tres grupos por pieza.
-5. **Flecha curva gruesa:** en Mandarina, para conectar dos cosas (catálogo → app, "lo quiero" → "pedido recibido"). Una por pieza.
+1. **Iconos regados (el patrón principal):** los tres símbolos de la filosofía, la flecha (Desliza), el corazón (Encuentra) y la burbuja de chat (Escribe), repetidos por toda la pieza en distintos tamaños y ligeramente girados, como un papel tapiz. Van en un tono apenas distinto del fondo: rosa más intenso sobre rosa (#eeb0c5), verde un poco más claro sobre Verde Bosque (#2b6550). Detrás del texto se desvanecen o quedan tan suaves que no bajan el contraste.
+2. **Destellos:** tres trazos cortos que salen de un objeto o palabra para darle énfasis (como un "¡pum!"), en Mandarina. Máximo tres grupos por pieza.
+3. **Flecha curva gruesa:** en Mandarina, para conectar dos cosas (catálogo → app, "lo quiero" → "pedido recibido"). Una por pieza.
+
+El logo en las piezas es siempre el isotipo real (`public/icons/isotipo.svg`), nunca uno redibujado, sobre su cuadro pálido (rosa para compradores, menta para vendedores) y junto al logotipo "deslizapp" en Fredoka.
 
 **Reglas**
 
