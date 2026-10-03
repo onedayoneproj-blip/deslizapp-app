@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { cuentaDeCliente } from "@/lib/credito";
@@ -16,9 +15,10 @@ import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { IconoEditar, IconoWhatsApp } from "../iconos";
-import { ChipEstado } from "../pedidos/comunes";
+import { EtiquetaPago } from "../pedidos/comunes";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, EtiquetaRepite } from "./comunes";
+import { Avatar, BloqueDeuda, Boton, FilaLista, ListaAgrupada } from "../ui";
+import { EtiquetaRepite } from "./comunes";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
@@ -57,11 +57,11 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
   } else if (!cliente) {
     cuerpo = (
       <div className="py-6 text-center">
-        <p className="font-display text-xl">Esta persona no vive aquí.</p>
-        <p className="mt-1 text-suave">Quizá es cliente de otra tienda. Los clientes no se mezclan.</p>
-        <button type="button" onClick={cerrar} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+        <p className="font-display text-titulo-seccion">Esta persona no vive aquí.</p>
+        <p className="mt-1 text-texto-secundario">Quizá es cliente de otra tienda. Los clientes no se mezclan.</p>
+        <Boton tamano="grande" anchoCompleto onClick={cerrar} className="mt-5">
           Volver a clientes
-        </button>
+        </Boton>
       </div>
     );
   } else if (pedidos && cuenta) {
@@ -97,6 +97,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
       setGuardando(false);
     }
   };
+  const [ahora] = useState(Date.now);
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
   const primerNombre = cliente.nombre.split(" ")[0];
   const mensaje = `Hola ${primerNombre}, te escribo de ${tienda?.nombre ?? "la tienda"}.`;
@@ -104,46 +105,42 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-col items-center gap-1 text-center">
-        <Avatar nombre={cliente.nombre} tamano={78} />
-        <h2 className="mt-1.5 flex items-center gap-2 font-display text-[26px] leading-tight">
+        <Avatar nombre={cliente.nombre} tamano="grande" />
+        <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
           {cliente.nombre}
           {cliente.repite && <EtiquetaRepite />}
         </h2>
-        <p className="text-sm font-semibold text-suave">
+        <p className="text-secundario font-bold text-texto-secundario">
           {cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"} · {cliente.origen === "catalogo" ? "Del catálogo" : "Manual"}
         </p>
       </div>
 
       {cliente.telefono && (
-        <a
+        <Boton
+          tamano="grande"
+          anchoCompleto
+          icono={<IconoWhatsApp tamano={20} />}
           href={enlaceWhatsApp(cliente.telefono, mensaje)}
           target="_blank"
           rel="noreferrer"
           aria-label={`Escribir a ${cliente.nombre} por WhatsApp`}
-          className="tocable flex h-12 items-center justify-center gap-2 rounded-full bg-bosque text-[14.5px] font-extrabold text-papel"
         >
-          <IconoWhatsApp tamano={18} />
           Escribir
-        </a>
+        </Boton>
       )}
 
-      <button
-        type="button"
-        onClick={() => setEditando(true)}
-        className="tocable flex h-12 items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque text-[14.5px] font-extrabold text-bosque"
-      >
-        <IconoEditar tamano={18} />
+      <Boton jerarquia="secundario" tamano="grande" anchoCompleto icono={<IconoEditar tamano={20} />} onClick={() => setEditando(true)}>
         Editar datos
-      </button>
+      </Boton>
 
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-[18px] border border-linea bg-white px-3 py-2.5">
-          <div className="font-display text-[22px] leading-tight">{cliente.pedidos}</div>
-          <div className="text-xs font-semibold text-suave">{cliente.pedidos === 1 ? "pedido" : "pedidos"}</div>
+        <div className="rounded-radio-m border border-linea bg-superficie px-3 py-2.5">
+          <div className="font-display text-titulo-seccion">{cliente.pedidos}</div>
+          <div className="text-etiqueta font-bold text-texto-secundario">{cliente.pedidos === 1 ? "pedido" : "pedidos"}</div>
         </div>
-        <div className="col-span-2 rounded-[18px] bg-rosa px-3 py-2.5">
-          <div className="font-display text-[22px] leading-tight">{formatearPesos(cliente.totalGastado)}</div>
-          <div className="text-xs font-bold">en total{cliente.ultimaCompra ? ` · última compra ${fechaCorta(cliente.ultimaCompra).toLowerCase()}` : ""}</div>
+        <div className="col-span-2 rounded-radio-m bg-marca-rosa px-3 py-2.5 text-texto">
+          <div className="font-display text-titulo-seccion">{formatearPesos(cliente.totalGastado)}</div>
+          <div className="text-etiqueta font-bold">en total{cliente.ultimaCompra ? ` · última compra ${fechaCorta(cliente.ultimaCompra).toLowerCase()}` : ""}</div>
         </div>
       </div>
 
@@ -152,42 +149,35 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
       <div className="flex flex-col gap-2">
         <CampoNota valor={nota} alCambiar={setNota} />
         {cambiada && (
-          <button
-            type="button"
-            onClick={guardarNota}
-            disabled={guardando}
-            className="tocable h-11 rounded-full bg-bosque text-[14.5px] font-extrabold text-papel disabled:opacity-60"
-          >
+          <Boton tamano="compacto" className="self-start" onClick={guardarNota} cargando={guardando}>
             Guardar nota
-          </button>
+          </Boton>
         )}
       </div>
 
-      <div>
-        <p className="mb-1.5 text-[13.5px] font-bold">Historial</p>
+      <div className="flex flex-col gap-2">
+        <p className="text-secundario font-extrabold">Historial</p>
         {historial.length === 0 ? (
-          <p className="rounded-[18px] bg-arena p-3.5 text-center font-semibold text-suave">Todavía no pide. Todavía.</p>
+          <p className="rounded-radio-m bg-superficie-hundida p-3.5 text-center font-bold text-texto-secundario">Todavía no pide. Todavía.</p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ListaAgrupada etiqueta="Historial de pedidos">
             {historial.map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={`/pedidos/${p.id}`}
-                  scroll={false}
-                  className="tocable flex items-center justify-between gap-2.5 rounded-[18px] border border-linea bg-white px-3.5 py-3"
-                >
-                  <span>
-                    <span className="block font-extrabold">#{p.numero}</span>
-                    <span className="block text-[12.5px] text-suave">{fechaCorta(p.creadoEn)}</span>
-                  </span>
+              <FilaLista
+                key={p.id}
+                href={`/pedidos/${p.id}`}
+                titulo={`#${p.numero}`}
+                detalle={fechaCorta(p.creadoEn)}
+                fin={
                   <span className="flex items-center gap-2">
-                    <ChipEstado estado={p.estado} />
-                    <span className="font-extrabold">{formatearPesos(p.total)}</span>
+                    {/* Nunca el estado del pedido (regla "No repetir el filtro"): la forma de pago */}
+                    <EtiquetaPago pedido={p} />
+                    {formatearPesos(p.total)}
                   </span>
-                </Link>
-              </li>
+                }
+                pie={p.pagoModo === "credito" && p.estado !== "cancelado" ? <BloqueDeuda tamano="mini" separado={false} saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} /> : undefined}
+              />
             ))}
-          </ul>
+          </ListaAgrupada>
         )}
       </div>
 

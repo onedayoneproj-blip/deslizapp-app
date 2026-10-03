@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { textoFechaDeuda } from "@/lib/credito";
 import { formatearPesos, haceCuanto } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
@@ -11,8 +12,8 @@ import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Etiqueta, FilaPastillas, Tarjeta } from "../ui";
-import { ChipEstado } from "./comunes";
+import { BloqueDeuda, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
+import { EtiquetaPago } from "./comunes";
 
 type Pestana = EstadoPedido;
 
@@ -52,6 +53,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   const { getPedidos, getProductos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const [pestanaElegida, setPestanaElegida] = useState<Pestana | null>(null);
+  const [ahora] = useState(() => Date.now());
 
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -103,11 +105,11 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             <ul className="flex flex-col gap-3">
               {visibles.map((p) => (
                 <li key={p.id}>
-                  <TarjetaPedido pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
+                  <TarjetaPedido ahora={ahora} pedido={p} cliente={p.clienteId ? nombres.get(p.clienteId) : undefined} productos={fotos} />
                 </li>
               ))}
+              <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
             </ul>
-            <BotonVerMas quedan={quedan} mostrados={mostrados} total={todos.length} alTocar={verMas} />
           </>
         )}
       </div>
@@ -118,22 +120,26 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   );
 }
 
-function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
+function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: string; productos: Map<string, Producto> }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
+  const aCredito = p.pagoModo === "credito" && p.estado !== "cancelado";
+  const conDeuda = aCredito && p.saldo > 0;
   return (
-    <Tarjeta href={`/pedidos/${p.id}`}>
+    <Tarjeta
+      href={`/pedidos/${p.id}`}
+      etiqueta={conDeuda ? `Pedido #${p.numero} de ${cliente ?? "cliente sin nombre"}. Debe ${formatearPesos(p.saldo)}. ${textoFechaDeuda(p.pagoFechaAcordada, ahora)}` : undefined}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-secundario font-bold text-texto-secundario">
           #{p.numero} · {haceCuanto(p.creadoEn)}
         </span>
-        <ChipEstado estado={p.estado} />
+        {/* Cada pestaña ya es un estado: la tarjeta lleva la forma de pago, no el estado */}
+        <span className="flex items-center gap-1.5">
+          <EtiquetaPago pedido={p} />
+          {aCredito && p.saldo === 0 && <Etiqueta tono="exito">Pagado</Etiqueta>}
+        </span>
       </div>
-      <div className="mt-1 flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
-        {p.pagoModo === "credito" && p.saldo > 0 && (
-          <Etiqueta tono="atencion">Debe {formatearPesos(p.saldo)}</Etiqueta>
-        )}
-      </div>
+      <p className="mt-1 min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
       <div className="mt-2.5 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex shrink-0 -space-x-2">
@@ -152,6 +158,7 @@ function TarjetaPedido({ pedido: p, cliente, productos }: { pedido: PedidoConIte
         </div>
         <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
       </div>
+      {conDeuda && <BloqueDeuda saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} />}
     </Tarjeta>
   );
 }

@@ -266,6 +266,8 @@ function Formulario({
         contexto={contexto}
         elegido={codigo}
         alElegir={(c) => {
+          if (c === null && codigo) toast("Cupón quitado");
+          else if (c !== null && codigo) toast("Cupón cambiado");
           setCodigo(c ?? "");
           setVista("pedido");
         }}
@@ -387,7 +389,6 @@ function Formulario({
             setCuponAlAbrir(codigo);
             setVista("descuento");
           }}
-          alQuitar={() => setCodigo("")}
         />
       </div>
 

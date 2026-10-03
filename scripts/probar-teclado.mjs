@@ -402,9 +402,9 @@ try {
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL + "/clientes");
-    await page.waitForSelector('[role="tab"]:has-text("Deben")');
+    await page.waitForSelector('button[aria-pressed]:has-text("Deben")');
     await page.waitForTimeout(900);
-    await page.tap('[role="tab"]:has-text("Deben")');
+    await page.tap('button[aria-pressed]:has-text("Deben")');
     await page.waitForSelector("main a[href^='/clientes/'] >> nth=0");
     await page.tap("main a[href^='/clientes/'] >> nth=0");
     await page.waitForSelector("section[aria-label='Lo que te debe']");

@@ -803,7 +803,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 :root { --mov-dona: 1000ms; }
 .dona-latido { animation: dona-latido var(--mov-dona) var(--curva-salida) 1; }
 @keyframes dona-latido { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.04); } }
-@media (max-width: 374px) { .dona-cabecera { width: 64px !important; height: 64px !important; } }
+@media (max-width: 374px) { .dona-cabecera { width: 64px !important; height: 64px !important; } .dona-cabecera .dona-cifra { font-size: var(--text-cuerpo); } .dona-cabecera .dona-cifra-larga { font-size: var(--text-secundario); } }
 @media (prefers-reduced-motion: reduce) { .dona-latido { animation: none; } }
 /* Tu próxima jugada: cuatro cartas y resplandor ambiental, sin alterar el layout. */
 .jugada-mini { position:absolute; width:56px; height:77px; overflow:hidden; border:2px solid #fff9ee; border-radius:11px; box-shadow:0 5px 10px #174b3a35; }

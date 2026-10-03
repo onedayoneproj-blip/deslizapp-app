@@ -19,6 +19,8 @@ import {
   saldoDe,
   sumarDias,
   textoAtraso,
+  totalYAbonado,
+  textoFechaDeuda,
   textoFaltan,
 } from "../lib/credito.ts";
 import { traducirErrorSupabase, MontoMayorQueDeuda, PedidoConAbonos } from "../lib/data/errores.ts";
@@ -265,4 +267,29 @@ test("editar un abono: valida método, nota, fecha y monto como la base", () => 
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, metodo: "cheque" }, AHORA), { error: "metodo_invalido" });
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, nota: "x".repeat(201) }, AHORA), { error: "nota_invalida" });
   assert.deepEqual(planearEdicionAbono(p, { monto: 800 }, { ...ok, fecha: "2026-12-01T00:00:00.000Z" }, AHORA), { error: "fecha_invalida" });
+});
+
+test("texto de fecha del bloque de deuda", () => {
+  // AHORA = miércoles 30 sep 2026 (mediodía en Santo Domingo)
+  assert.equal(textoFechaDeuda("2026-09-30", AHORA), "Paga hoy");
+  assert.equal(textoFechaDeuda("2026-10-01", AHORA), "Paga mañana");
+  assert.equal(textoFechaDeuda("2026-10-10", AHORA), "Paga el sáb 10 oct");
+  assert.equal(textoFechaDeuda("2027-01-05", AHORA), "Paga el mar 5 ene 2027");
+  assert.equal(textoFechaDeuda("2026-09-29", AHORA), "Atrasado 1 día");
+  assert.equal(textoFechaDeuda("2026-09-24", AHORA), "Atrasado 6 días");
+  assert.equal(textoFechaDeuda(null, AHORA), "Sin fecha de pago");
+});
+
+test("bloque de deuda de un cliente: suma el total y lo abonado de TODOS sus pedidos con saldo", () => {
+  const a = pedido(1, "2026-09-04T15:00:00Z", 2000, [800]); // saldo 1,200
+  const b = pedido(2, "2026-09-12T15:00:00Z", 500); // saldo 500, sin abonos
+  assert.deepEqual(totalYAbonado([a, b]), { totalPedidos: 2500, abonado: 800 });
+  assert.deepEqual(totalYAbonado([]), { totalPedidos: 0, abonado: 0 });
+  const [cuenta] = cuentasPorCobrar([a, b], [{ id: "c1", nombre: "Ana", telefono: null }], AHORA).cuentas;
+  assert.equal(cuenta.deuda, 1700);
+  assert.equal(cuenta.totalPedidos, 2500);
+  assert.equal(cuenta.abonado, 800);
+  const c = cuentaDeCliente([a, b], "c1", AHORA);
+  assert.equal(c.totalPedidos, 2500);
+  assert.equal(c.abonado, 800);
 });

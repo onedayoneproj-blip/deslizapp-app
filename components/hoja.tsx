@@ -131,6 +131,8 @@ type Props = {
   titulo: string;
   /** El título solo lo leen los lectores de pantalla (la hoja trae su propio encabezado en el contenido). */
   tituloOculto?: boolean;
+  /** Capa decorativa por ENCIMA de todo (también de la cabecera y la X): sin toques, no ocupa espacio. Empieza donde empieza el contenido. */
+  capaSuperior?: ReactNode;
   /** Cómo se comporta la altura (por defecto "auto"). */
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
@@ -178,6 +180,7 @@ function HojaMontada({
   alSalir,
   titulo,
   tituloOculto = false,
+  capaSuperior,
   altura = "auto",
   fijoArriba,
   decoracionAbajo,
@@ -766,7 +769,7 @@ function HojaMontada({
           className="absolute inset-x-0 top-0 z-30 touch-none px-5 pt-2.5 pb-3"
         >
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
-          <div className="flex items-center justify-between gap-3">
+          <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
             <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
@@ -776,6 +779,11 @@ function HojaMontada({
           {fijoArriba && <div className="mt-3">{fijoArriba}</div>}
           <div ref={setRanuraArriba} className="[&:not(:empty)]:mt-3" />
         </div>
+        {capaSuperior && (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[calc(var(--cabecera,79px)+2px)] z-40 overflow-x-clip px-5">
+            {capaSuperior}
+          </div>
+        )}
         {/* Zona fija de abajo (píldora de resumen…): se oculta mientras el teclado está abierto */}
         <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0 z-30" />
       </div>

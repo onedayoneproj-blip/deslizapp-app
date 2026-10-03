@@ -75,6 +75,24 @@ export function diaCorto(dia: string): string {
   return m && d ? `${Number(d)} ${MESES_CORTOS[Number(m) - 1]}` : dia;
 }
 
+const DIAS_SEMANA_CORTOS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+
+/**
+ * El texto de fecha del bloque de deuda (tarjeta de pedido, Deben y detalle del cliente): "Paga hoy", "Paga mañana", "Paga el sáb 10 oct" (con año si no es
+ * el actual), "Atrasado N días" o "Sin fecha de pago". `fecha` es un día sin hora; se compara con hoy en Santo Domingo.
+ */
+export function textoFechaDeuda(fecha: string | null, ahora: number): string {
+  const dias = diasParaPagar(fecha, ahora);
+  if (fecha === null || dias === null) return "Sin fecha de pago";
+  if (dias < 0) return textoAtraso(-dias);
+  if (dias === 0) return "Paga hoy";
+  if (dias === 1) return "Paga mañana";
+  const [anio, mes, dia] = fecha.split("-").map(Number) as [number, number, number];
+  const semana = DIAS_SEMANA_CORTOS[new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()];
+  const conAnio = anio !== Number(diaDeSantoDomingo(ahora).slice(0, 4)) ? ` ${anio}` : "";
+  return `Paga el ${semana} ${dia} ${MESES_CORTOS[mes - 1]}${conAnio}`;
+}
+
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
 /** "Atrasado 6 días" / "Atrasada 6 días" según `genero`. */
@@ -308,6 +326,9 @@ export type CuentaPorCobrar = EstadoDeuda & {
   telefono: string | null;
   /** Lo que debe en total. */
   deuda: number;
+  /** Lo que valen en total sus pedidos con saldo, y lo ya abonado de ellos (para la barra del bloque de deuda). */
+  totalPedidos: number;
+  abonado: number;
   /** Cuántos pedidos tienen saldo. */
   pedidos: number;
   /** El pedido con saldo más viejo. */
@@ -325,6 +346,15 @@ export type CuentasPorCobrar = {
   /** Suma de los abonos de este mes (hora de Santo Domingo). */
   cobradoEsteMes: number;
 };
+
+/**
+ * Lo que valen en total los pedidos con saldo y cuánto se ha abonado de ellos (total − saldo). Para el bloque de deuda de un
+ * cliente: suma TODOS sus pedidos con saldo, no solo el más viejo.
+ */
+export function totalYAbonado(pedidosConSaldo: { total: number; saldo: number }[]): { totalPedidos: number; abonado: number } {
+  const totalPedidos = pedidosConSaldo.reduce((suma, p) => suma + p.total, 0);
+  return { totalPedidos, abonado: totalPedidos - pedidosConSaldo.reduce((suma, p) => suma + p.saldo, 0) };
+}
 
 /** Primero atrasados (más días primero), luego con fecha (la más próxima primero), luego sin fecha (la deuda más vieja primero). */
 export function ordenarCuentas(a: CuentaPorCobrar, b: CuentaPorCobrar): number {
@@ -354,6 +384,7 @@ export function cuentasPorCobrar(pedidos: PedidoPago[], clientes: ClienteBasico[
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       deuda: deudaDe(lista),
+      ...totalYAbonado(lista),
       pedidos: lista.length,
       pedidoMasViejo: {
         id: viejo.id,
@@ -389,6 +420,9 @@ export type CuentaCliente = EstadoDeuda & {
   clienteId: string;
   /** Lo que debe en total (0 si está al día). */
   deuda: number;
+  /** Lo que valen en total los pedidos con saldo y lo ya abonado de ellos. */
+  totalPedidos: number;
+  abonado: number;
   /** Los pedidos a crédito con saldo, del más viejo al más nuevo. */
   pedidos: { id: string; numero: number; creadoEn: string; total: number; pagado: number; saldo: number; pagoFechaAcordada: string | null }[];
   /** Compras a crédito y abonos mezclados, del más reciente al más viejo. */
@@ -417,6 +451,7 @@ export function cuentaDeCliente(pedidos: PedidoPago[], clienteId: string, ahora:
   return {
     clienteId,
     deuda: deudaDe(pendientes),
+    ...totalYAbonado(pendientes),
     pedidos: pendientes.map((p) => ({ id: p.id, numero: p.numero, creadoEn: p.creadoEn, total: p.total, pagado: p.pagado, saldo: p.saldo, pagoFechaAcordada: p.pagoFechaAcordada })),
     historial,
     ...estadoDeDeuda(pendientes, ahora),

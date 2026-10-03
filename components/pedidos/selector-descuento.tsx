@@ -8,7 +8,7 @@ import { pedidosConCodigo, razonNoUsable, textoUso, type ContextoCodigo } from "
 import type { Pedido, Promo } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { HojaFijoArriba, useIrArribaHoja } from "../hoja";
-import { IconoCheck } from "../iconos";
+import { IconoCheck, IconoChevronDerecha } from "../iconos";
 import { TicketPromo } from "../promos/ticket-promo";
 import { BotonVolver } from "../selector-busqueda";
 import { Boton, FilaAgregar } from "../ui";
@@ -27,7 +27,7 @@ function Check({ nuevo = false, sobreVerde = false }: { nuevo?: boolean; sobreVe
 
 /**
  * La fila de descuento de un pedido, en "+ Pedido", "Editar pedido" y el detalle. Sin cupón: el botón "+ Agregar cupón". Con cupón
- * (que todavía se puede usar): el ticket compacto con "Cambiar" y "Quitar". Al cambiar de uno a otro, el contenido aparece con
+ * (que todavía se puede usar): el ticket compacto entero como UN botón con chevron que abre el selector (sin "Cambiar" ni "Quitar"). Al cambiar de uno a otro, el contenido aparece con
  * un fundido y un desplazamiento corto (la altura de la fila cambia de una vez: nada anima el layout, regla de movimiento).
  * `desde` = el cupón que había al abrir el selector (para animar al volver, cuando la fila se vuelve a montar).
  */
@@ -37,7 +37,6 @@ export function FilaDescuento({
   pedidos,
   desde = null,
   alAbrir,
-  alQuitar,
   deshabilitado = false,
   conBorde = false,
 }: {
@@ -46,7 +45,6 @@ export function FilaDescuento({
   pedidos: Pedido[];
   desde?: string | null;
   alAbrir: () => void;
-  alQuitar: () => void;
   deshabilitado?: boolean;
   conBorde?: boolean;
 }) {
@@ -86,32 +84,40 @@ export function FilaDescuento({
     );
   }
   const usos = promo ? pedidosConCodigo(pedidos, promo) : 0;
+  const etiqueta = `Cupón ${actual} aplicado. Cambiar o quitar`;
+  const chevron = <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0" />;
+  // El ticket entero es UN solo botón (con chevron) que abre el selector; sin cupón usable se avisa debajo
   return (
     <div className={`py-2 ${borde}`}>
       <div ref={contenido}>
         {promo ? (
-          <TicketPromo
-            tamano="compacto"
-            apagado={false}
-            d={datosCupon(promo, "activa", { usos })}
-            compacto={{ nombre: promo.nombre, codigo: promo.codigo ?? actual, uso: textoUso(usos, promo.limiteUsos) }}
-          />
+          <button
+            type="button"
+            onClick={alAbrir}
+            disabled={deshabilitado}
+            aria-label={etiqueta}
+            className="tocable block w-full rounded-radio-m text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:cursor-default"
+          >
+            <TicketPromo
+              tamano="compacto"
+              apagado={false}
+              d={datosCupon(promo, "activa", { usos })}
+              compacto={{ nombre: promo.nombre, codigo: promo.codigo ?? actual, uso: textoUso(usos, promo.limiteUsos), extra: deshabilitado ? undefined : chevron }}
+            />
+          </button>
         ) : (
-          <div className="flex min-h-11 items-center">
+          <button
+            type="button"
+            onClick={alAbrir}
+            disabled={deshabilitado}
+            aria-label={etiqueta}
+            className="tocable flex min-h-11 w-full items-center justify-between gap-2 rounded-radio-m text-left text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco disabled:cursor-default"
+          >
             <span className="min-w-0 truncate text-cuerpo font-extrabold">Cupón: {actual}</span>
-          </div>
+            {!deshabilitado && chevron}
+          </button>
         )}
-        <div className="flex items-center justify-between gap-3">
-          <p className="min-w-0 text-etiqueta text-peligro">{promo ? "" : "Ese cupón ya no se puede usar. Elige otro o quítalo."}</p>
-          <span className="flex shrink-0 items-center gap-2">
-            <Boton jerarquia="secundario" tamano="compacto" onClick={alAbrir} deshabilitado={deshabilitado}>
-              Cambiar
-            </Boton>
-            <Boton jerarquia="secundario" tamano="compacto" onClick={alQuitar} deshabilitado={deshabilitado}>
-              Quitar
-            </Boton>
-          </span>
-        </div>
+        {!promo && <p className="pb-1 text-etiqueta text-peligro">Ese cupón ya no se puede usar. Elige otro o quítalo.</p>}
       </div>
     </div>
   );
@@ -204,7 +210,8 @@ export function SelectorDescuento({
             <li key={promo.id}>
               <button
                 type="button"
-                onClick={(e) => elegir(promo.codigo!, e)}
+                // Tocar el cupón aplicado lo QUITA; tocar otro lo CAMBIA
+                onClick={(e) => elegir(cod === actual ? null : promo.codigo!, e)}
                 aria-pressed={sel}
                 aria-label={`Descuento ${promo.nombre}, ${promo.valorPorcentaje} por ciento, ${uso}`}
                 className={`tocable block w-full rounded-radio-l border-2 p-[3px] text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco transition-opacity duration-(--mov-rapida) ${sel ? "border-accion" : "border-transparent"} ${atenuar(cod)}`}

@@ -130,8 +130,8 @@ export function VistaPromos({ children }: { children: ReactNode }) {
                 />
               </li>
             ))}
+            <BotonVerMas quedan={quedan} mostrados={mostrados} total={todas.length} alTocar={verMas} />
           </ul>
-          <BotonVerMas quedan={quedan} mostrados={mostrados} total={todas.length} alTocar={verMas} />
           </>
         )}
       </div>

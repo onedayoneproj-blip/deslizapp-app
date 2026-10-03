@@ -3,6 +3,7 @@
 import { LuzJugada } from "./luz-jugada";
 import { useState } from "react";
 import { Hoja } from "../hoja";
+import { Boton, CampoMultilinea } from "../ui";
 import { enlaceWhatsApp } from "@/lib/formato";
 import { borradoresJugada, type IdJugada } from "@/lib/proxima-jugada";
 
@@ -22,26 +23,22 @@ export function HojaBorradoresJugada({ id, nombreJugada, cliente, telefono, vend
   };
   return <Hoja abierta alCerrar={alCerrar} altura="grande" titulo={`Escribir a ${cliente}`}
     decoracionAbajo={<LuzJugada pulso={pulso} />}>
-    <p className="mb-4 text-[14px] leading-[1.45] text-suave">{nombreJugada}. Elige un tono y cambia lo que quieras antes de abrir WhatsApp.</p>
-    <div className="space-y-2" role="group" aria-label="Borradores de mensaje">
-      {opciones.map((opcion, indice) => <button key={opcion.tono} type="button" onClick={() => elegir(indice)}
-        aria-pressed={elegido === indice}
+    <p className="mb-4 text-secundario text-texto-secundario">{nombreJugada}. Elige un tono y cambia lo que quieras antes de abrir WhatsApp.</p>
+    <div className="flex flex-col gap-2" role="radiogroup" aria-label="Borradores de mensaje">
+      {opciones.map((opcion, indice) => <button key={opcion.tono} type="button" role="radio" onClick={() => elegir(indice)}
+        aria-checked={elegido === indice}
         aria-label={`Elegir borrador ${opcion.tono.toLowerCase()} para ${cliente}`}
-        className={`tocable min-h-11 w-full rounded-[18px] border p-3.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque ${elegido === indice ? "border-bosque bg-[#e3eee6]" : "border-linea bg-white"}`}>
-        <b className="block text-[13px] text-bosque">{opcion.tono}</b>
-        <span className="mt-1 block text-[12px] leading-[1.4] text-suave">{opcion.texto}</span>
+        className={`tocable min-h-11 w-full rounded-radio-m border-[1.5px] p-3.5 text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${elegido === indice ? "border-accion-suave bg-accion-suave" : "border-borde-pastilla bg-superficie"}`}>
+        <b className="block text-secundario text-texto">{opcion.tono}</b>
+        <span className="mt-1 block text-etiqueta text-texto-secundario">{opcion.texto}</span>
       </button>)}
     </div>
-    {elegido !== null && <div className="mt-5">
-      <label htmlFor="jugada-mensaje" className="mb-2 block text-[13px] font-extrabold text-bosque">Revisa y edita tu mensaje</label>
-      <textarea id="jugada-mensaje" value={texto} onChange={(e) => setTexto(e.target.value)} rows={5}
-        className="w-full resize-y rounded-[18px] border border-linea bg-white p-3.5 text-[14px] leading-[1.5] text-bosque outline-none focus-visible:border-bosque focus-visible:ring-2 focus-visible:ring-bosque/25" />
-      <a href={enlaceWhatsApp(telefono, texto)} target="_blank" rel="noreferrer" aria-disabled={!texto.trim()}
-        onClick={(e) => { if (!texto.trim()) e.preventDefault(); }}
-        className="tocable mt-3 flex min-h-12 items-center justify-center rounded-full bg-bosque px-4 text-[14px] font-extrabold text-papel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bosque">
+    {elegido !== null && <div className="mt-5 flex flex-col gap-3">
+      <CampoMultilinea etiqueta="Revisa y edita tu mensaje" id="jugada-mensaje" value={texto} onChange={(e) => setTexto(e.target.value)} filas={5} />
+      <Boton tamano="grande" anchoCompleto href={enlaceWhatsApp(telefono, texto)} target="_blank" rel="noreferrer" deshabilitado={!texto.trim()}>
         Abrir WhatsApp
-      </a>
-      <p className="mt-2 text-[12px] text-suave">WhatsApp abre el texto para que lo revises. No se envía solo.</p>
+      </Boton>
+      <p className="text-etiqueta text-texto-secundario">WhatsApp abre el texto para que lo revises. No se envía solo.</p>
     </div>}
   </Hoja>;
 }

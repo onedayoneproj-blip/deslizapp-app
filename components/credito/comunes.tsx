@@ -48,12 +48,3 @@ export function LineaFecha({ fecha }: { fecha: string | null }) {
     </p>
   );
 }
-
-/** Etiqueta de estado de una cuenta (lista "Deben" y cuenta del cliente): atrasada en mandarina suave, con fecha en menta, sin fecha en arena. */
-export function EtiquetaDeuda({ fecha, atrasoDias, genero = "o", grande = false }: { fecha: string | null; atrasoDias: number; genero?: "o" | "a"; grande?: boolean }) {
-  const tamano = grande ? "h-6 px-[9px]" : "h-[22px] px-2";
-  const base = `inline-flex ${tamano} shrink-0 items-center self-start rounded-full text-[11.5px] font-extrabold whitespace-nowrap`;
-  if (atrasoDias > 0) return <span className={`${base} bg-mandarina/20 text-mandarina-texto`}>{textoAtraso(atrasoDias, genero)}</span>;
-  if (fecha) return <span className={`${base} bg-menta text-bosque`}>Paga el {diaCorto(fecha)}</span>;
-  return <span className={`${base} bg-arena text-suave`}>Sin fecha acordada</span>;
-}

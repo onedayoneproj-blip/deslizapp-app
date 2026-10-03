@@ -6,7 +6,7 @@ export function TextoResaltado({ trozos }: { trozos: Trozo[] }) {
     <>
       {trozos.map((t, i) =>
         t.negrita ? (
-          <b key={i} className="font-extrabold text-bosque">
+          <b key={i} className="font-extrabold text-texto">
             {t.texto}
           </b>
         ) : (
