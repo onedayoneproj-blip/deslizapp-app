@@ -114,7 +114,7 @@ Todos son píldora, letra extrabold, sin subrayado.
 
 Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un botón:
 
-1. **Pastilla de filtro** (cambia lo que se ve en una lista): elegida = relleno `accion` con texto `sobre-accion`; sin elegir = `superficie` con contorno `borde-pastilla`. Alto 36, letra 14, contador opcional.
+1. **Pastilla de filtro** (cambia lo que se ve en una lista): elegida = relleno `accion` con texto `sobre-accion`, que llega con una **cápsula que se desliza** de la pastilla anterior a la nueva y cambia de ancho; sin elegir = `superficie` con contorno `borde-pastilla`. Alto 36, letra 14, contador opcional.
 2. **Opción de formulario** (un dato que se va a guardar: método de pago, fecha acordada): elegida = relleno `accion-suave`, texto `texto` y un **check en círculo** a la izquierda; sin elegir = `superficie` con contorno `borde-pastilla`. **Sin contorno verde y sin rosa.** Así nunca se confunde con el botón principal verde.
 3. **Control segmentado** (cambia la **vista o el modo** dentro de la misma pantalla: "Día / Semana / Mes", "Claro / Oscuro"): una pista `superficie-hundida` con el segmento elegido en `superficie` y texto extrabold, como en iOS. **No es para datos que se guardan:** "¿Cómo te paga? Pagó todo / A crédito" es una opción de formulario aunque sean solo dos.
 
@@ -168,7 +168,7 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 
 ## 11. Etiquetas, contadores y avatares
 
-- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas. Cuatro tonos: neutro (`superficie-hundida`), éxito (`accion-suave` + `exito-texto`), atención (`atencion-suave` + `atencion-texto`) y fuerte (`accion` + `sobre-accion`, solo para "Agotado"). Con punto opcional delante para estados vivos ("En línea"). Atención se usa para lo que pide cuidado: "Quedan 3" (stock que queda tras el pedido), "A crédito", "Debe", "Atrasado".
+- **Etiqueta de estado:** un solo tamaño, alto 24, letra `etiqueta` (12 extrabold), píldora, sin mayúsculas, **siempre con relleno visible** (sobre el fondo crema y sobre tarjetas blancas). Cuatro tonos: **éxito** (`accion-suave` + `exito-texto`) para lo que ya está bien: "Entregado", "Pagado", "Al contado", "Despachado"; **atención** (`atencion-suave` + `atencion-texto`) para lo que pide cuidado: "Quedan 3", "A crédito", "Debe", "Atrasado"; **neutro** (relleno `borde-pastilla` + `texto`) para lo que está en curso: "Por despachar", "Confirmado"; y **fuerte** (`accion` + `sobre-accion`) solo para "Agotado". Con punto opcional delante para estados vivos ("En línea").
 - **Contador:** círculo de 20 px con número `contador`; `resalte` cuando pide atención, `accion-suave` cuando solo informa.
 - **Avatar:** redondo para personas (`marca-rosa` con iniciales en Fredoka), cuadrado `radio-m` para la tienda (`accion` con iniciales o su logo). Siempre 44 px en filas y 64 px en la cabecera de un detalle.
 
