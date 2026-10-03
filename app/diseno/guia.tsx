@@ -537,7 +537,8 @@ function EtiquetasYAvatares() {
       <Fila>
         <Avatar nombre="Marleny Peña" />
         <Avatar nombre="Esencias Michel" tipo="tienda" />
-        <Avatar nombre="Marleny Peña" tamano="grande" solo />
+        <Avatar nombre="Marleny Peña" repite />
+        <Avatar nombre="Marleny Peña" tamano="grande" solo repite />
         <Avatar nombre="Esencias Michel" tipo="tienda" tamano="grande" solo />
       </Fila>
     </Seccion>

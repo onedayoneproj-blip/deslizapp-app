@@ -18,7 +18,6 @@ import { IconoEditar, IconoWhatsApp } from "../iconos";
 import { EtiquetaPago } from "../pedidos/comunes";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
 import { Avatar, BloqueDeuda, Boton, FilaLista, ListaAgrupada } from "../ui";
-import { EtiquetaRepite } from "./comunes";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
@@ -105,10 +104,10 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-col items-center gap-1 text-center">
-        <Avatar nombre={cliente.nombre} tamano="grande" />
+        <Avatar nombre={cliente.nombre} tamano="grande" repite={cliente.repite} />
         <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
           {cliente.nombre}
-          {cliente.repite && <EtiquetaRepite />}
+          {cliente.repite && <span className="sr-only">, repite</span>}
         </h2>
         <p className="text-secundario font-bold text-texto-secundario">
           {cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"} · {cliente.origen === "catalogo" ? "Del catálogo" : "Manual"}

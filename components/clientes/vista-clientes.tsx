@@ -22,7 +22,6 @@ import { BotonVerMas, useVerMas } from "../ver-mas";
 import { BloqueDeuda, Boton, Buscador, FilaLista, FilaPastillas, ListaAgrupada } from "../ui";
 import { FilaPorCobrar, TarjetaPorCobrar } from "../credito/por-cobrar";
 import { Avatar } from "../ui";
-import { EtiquetaRepite } from "./comunes";
 import { TextoResaltado } from "./texto-resaltado";
 
 /**
@@ -70,6 +69,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
     mensajeRecordatorio({ cliente: nombre, vendedora: dueno?.nombre ?? "", tienda: tienda?.nombre ?? "la tienda", deuda });
 
   // La cuenta de cada cliente que debe (suma de TODOS sus pedidos con saldo, el mismo cálculo de "Deben"), para el bloque de deuda de las filas
+  const repiten = useMemo(() => new Set(resumen.lista.filter((c) => c.repite).map((c) => c.id)), [resumen]);
   const cuentasPorCliente = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c])), [cuentas]);
   const total = resumen.cuentas.todos;
   const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos" };
@@ -121,7 +121,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
                   <>
                     <ul aria-label="Clientes que deben" className="flex flex-col gap-3">
                       {debenPaginados.visibles.map((c) => (
-                        <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} ahora={ahora} />
+                        <FilaPorCobrar key={c.clienteId} cuenta={c} mensaje={mensajeDe(c.nombre, c.deuda)} ahora={ahora} repite={repiten.has(c.clienteId)} />
                       ))}
                       <BotonVerMas quedan={debenPaginados.quedan} mostrados={debenPaginados.mostrados} total={deben.length} alTocar={debenPaginados.verMas} />
                     </ul>
@@ -148,7 +148,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           <>
             <ListaAgrupada etiqueta="Clientes">
               {visibles.map(({ cliente, coincide }) => (
-                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} cuenta={cuentasPorCliente.get(cliente.id)} ahora={ahora}
+                <FilaCliente key={cliente.id} cliente={cliente} coincide={coincide} consulta={aplicada} cuenta={cuentasPorCliente.get(cliente.id)} ahora={ahora} senalRepite={filtro !== "repiten"}
                   escribir={filtro === "dormidos" && cliente.telefono ? { href: enlaceWhatsApp(cliente.telefono, mensajeDormido(cliente.nombre, dueno?.nombre ?? "", tienda?.nombre ?? "la tienda", tienda?.urlCatalogo ?? null)), nombre: cliente.nombre } : undefined} />
               ))}
               <BotonVerMas forma="fila" quedan={quedan} mostrados={mostrados} total={filtrados.length} alTocar={verMas} />
@@ -167,18 +167,16 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   );
 }
 
-function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; cuenta?: CuentaPorCobrar; ahora: number; escribir?: { href: string; nombre: string } }) {
+function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, senalRepite, escribir }: { cliente: ClienteConResumen; coincide: DondeCoincide; consulta: string; cuenta?: CuentaPorCobrar; ahora: number; /** En el filtro "Repiten" no se muestra (ya lo dice el filtro). */ senalRepite: boolean; escribir?: { href: string; nombre: string } }) {
   return (
     <FilaLista
       href={`/clientes/${c.id}`}
-      inicio={<Avatar nombre={c.nombre} />}
+      inicio={<Avatar nombre={c.nombre} repite={c.repite && senalRepite} />}
       titulo={
-        <span className="flex items-center gap-1.5">
-          <span className="truncate">
-            <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
-          </span>
-          {c.repite && <EtiquetaRepite />}
-        </span>
+        <>
+          <TextoResaltado trozos={resaltar(c.nombre, coincide === "nombre" ? consulta : "")} />
+          {c.repite && senalRepite && <span className="sr-only">, repite</span>}
+        </>
       }
       detalle={
         // Si salió por el teléfono o por la nota, se muestra eso para ver por qué coincidió
