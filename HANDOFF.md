@@ -143,8 +143,8 @@ La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galerí
   `reponerStock` → RPC `reponer_stock` (todo o nada, motivo `reposicion` en el historial). **Hacer espacio**: `cambiarVisibilidad`
   (un solo UPDATE) oculta; Deshacer vuelve a mostrar. No hay «eliminar para siempre» (pedidos e historial apuntan a los productos).
 - Ventas de «30 días» salen de los pedidos **despachados** (`ventasPorProducto`). «Sin movimiento» = visibles con stock y sin
-  ventas en 30 días (productos recién creados también entran). Los que no llevan stock no se reponen.
-- La leyenda de la dona filtra la lista; para «Queda 1 o 2» se creó la pastilla **«Por agotarse»** (stock 1 o 2, visibles).
+  ventas en 30 días, y solo productos creados hace más de 30 días (`creadoEn`). Los que no llevan stock no se reponen.
+- La leyenda de la dona filtra la lista; para «Queda 1 o 2» se creó la pastilla **«Por agotarse»** (stock 1 o 2, visibles), después de «Agotados» y oculta en 0.
   `usePanelUI().filtrarCatalogo()` pide el filtro a la lista aunque se esté en otra ruta.
 - El Toast con acción es `components/ui/toast.tsx` (`useToastUI`), montado junto al antiguo `components/toast.tsx` en el layout del
   panel (el antiguo sigue para el resto de la app hasta migrarlo).

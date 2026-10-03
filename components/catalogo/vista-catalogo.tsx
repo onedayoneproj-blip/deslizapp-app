@@ -26,11 +26,14 @@ type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos";
 /** Filtros cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Filtro[] = ["agotados"];
 
+/** Filtros condicionales: en 0 se ocultan (salvo si es el elegido), como `ocultarVacios` de FilaPastillas. */
+const CONDICIONALES: Filtro[] = ["por_agotarse"];
+
 const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[] = [
   { id: "todos", nombre: "Todos", cumple: () => true },
   { id: "visibles", nombre: "Visibles", cumple: (p) => p.activo && p.stock !== 0 },
-  { id: "por_agotarse", nombre: "Por agotarse", cumple: (p) => p.activo && p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO },
   { id: "agotados", nombre: "Agotados", cumple: (p) => p.stock === 0 },
+  { id: "por_agotarse", nombre: "Por agotarse", cumple: (p) => p.activo && p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO },
   { id: "ocultos", nombre: "Ocultos", cumple: (p) => !p.activo },
 ];
 
@@ -107,7 +110,9 @@ export function VistaCatalogo() {
             alCambiar={(id) =>
               startTransition(() => setFiltro(id))
             }
-            opciones={FILTROS.map((f) => ({
+            opciones={FILTROS.filter(
+              (f) => !CONDICIONALES.includes(f.id) || f.id === filtro || (productos ?? []).some(f.cumple),
+            ).map((f) => ({
               id: f.id,
               texto: f.nombre,
               cantidad: productos ? productos.filter(f.cumple).length : undefined,

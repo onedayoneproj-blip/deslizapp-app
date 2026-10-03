@@ -25,7 +25,7 @@ import { candidatosAEspacio, mensajeReposicion, porReponer, sinMovimiento, venta
 
 const AHORA = Date.parse("2026-10-03T15:00:00Z");
 const dia = (n) => new Date(AHORA - n * 86_400_000).toISOString();
-const prod = (id, stock, extra = {}) => ({ id, nombre: id, activo: true, stock, ...extra });
+const prod = (id, stock, extra = {}) => ({ id, nombre: id, activo: true, stock, creadoEn: dia(90), ...extra });
 const pedido = (cuando, items, estado = "despachado") => ({ estado, despachadoEn: cuando, creadoEn: cuando, items });
 
 test("ventas: solo pedidos despachados; última venta y unidades de los últimos 30 días", () => {
@@ -84,7 +84,7 @@ test("mensaje de reposición", () => {
   );
 });
 
-test("Hacer espacio: agotados marcados (menos los que se van a reponer) y sin moverse 30 días", () => {
+test("Hacer espacio: agotados marcados (menos los que se van a reponer) y sin moverse 30 días (solo productos con más de 30 días)", () => {
   const productos = [
     prod("vendido", 0),
     prod("reponer", 0),
@@ -93,6 +93,8 @@ test("Hacer espacio: agotados marcados (menos los que se van a reponer) y sin mo
     prod("quieto", 1),
     prod("quieto-viejo", 5),
     prod("sin-control", null),
+    prod("recien-creado", 4, { creadoEn: dia(10) }),
+    prod("justo-30", 2, { creadoEn: dia(30) }),
   ];
   const ventas = ventasPorProducto(
     [
@@ -107,6 +109,7 @@ test("Hacer espacio: agotados marcados (menos los que se van a reponer) y sin mo
     ["reponer", false, true],
   ]);
   assert.equal(c.agotados[0].ultimaVenta, dia(5));
+  // "recien-creado" (10 días) y "justo-30" (creado hace exactamente 30 días) no entran: solo los de más de 30 días
   assert.deepEqual(c.sinMoverse.map((s) => s.producto.id), ["quieto", "quieto-viejo"]);
   assert.equal(c.sinMoverse[1].ultimaVenta, dia(45));
   assert.equal(sinMovimiento(productos, ventas, AHORA).length, 2);

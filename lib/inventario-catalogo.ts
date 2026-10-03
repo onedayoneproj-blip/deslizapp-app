@@ -90,7 +90,7 @@ const alfabetico = (a: { nombre: string }, b: { nombre: string }) => a.nombre.lo
 /** Más reciente primero; sin ventas al final. */
 const porUltimaVenta = (a: VentasProducto, b: VentasProducto) => (b.ultima ? Date.parse(b.ultima) : 0) - (a.ultima ? Date.parse(a.ultima) : 0);
 
-type ProductoBase = ProductoInventario & { id: string; nombre: string };
+type ProductoBase = ProductoInventario & { id: string; nombre: string; creadoEn: string };
 
 export type LineaPorReponer<P> = {
   producto: P;
@@ -145,7 +145,7 @@ export function mensajeReposicion(lineas: { cantidad: number; nombre: string }[]
 export type CandidatosEspacio<P> = {
   /** Visibles con stock 0: se ocultan de entrada, salvo los que se van a reponer. */
   agotados: { producto: P; ultimaVenta: string | null; marcado: boolean; porReponer: boolean }[];
-  /** Visibles con stock que no se venden hace 30 días (o nunca): sin marcar. */
+  /** Visibles con stock, creados hace más de 30 días y sin ventas en los últimos 30: sin marcar. */
   sinMoverse: { producto: P; ultimaVenta: string | null }[];
 };
 
@@ -168,13 +168,14 @@ export function candidatosAEspacio<P extends ProductoBase>(
       porReponer: enReposicion.has(producto.id),
     }));
   const sinMoverse = visibles
-    .filter((p) => p.stock !== null && p.stock > 0 && !(Date.parse(ventas.get(p.id)?.ultima ?? "") >= corte))
+    // Solo productos con más de 30 días en el catálogo: los recién creados no han tenido tiempo de venderse.
+    .filter((p) => p.stock !== null && p.stock > 0 && Date.parse(p.creadoEn) < corte && !(Date.parse(ventas.get(p.id)?.ultima ?? "") >= corte))
     .sort((a, b) => a.stock! - b.stock! || alfabetico(a, b))
     .map((producto) => ({ producto, ultimaVenta: ventas.get(producto.id)?.ultima ?? null }));
   return { agotados, sinMoverse };
 }
 
-/** Productos "sin movimiento" para la tarjeta de atención (visibles con stock y sin ventas en 30 días). */
+/** Productos "sin movimiento" para la tarjeta de atención (visibles con stock, con más de 30 días y sin ventas en 30 días). */
 export const sinMovimiento = <P extends ProductoBase>(productos: P[], ventas: Map<string, VentasProducto>, ahora: number) =>
   candidatosAEspacio(productos, ventas, ahora).sinMoverse;
 
