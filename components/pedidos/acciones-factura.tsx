@@ -7,8 +7,7 @@ import { generarImagenFactura, type ImagenFactura } from "@/lib/imagen-factura";
 import type { Cliente, PedidoConItems, Producto, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
-import { IconoDescargar, IconoCompartir } from "../iconos";
-import { Boton, BotonIcono, Etiqueta } from "../ui";
+import { Boton, TarjetaDocumento, type TonoEtiqueta } from "../ui";
 
 export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido: PedidoConItems; cliente: Cliente | null; tienda: Tienda; productos: Producto[] }) {
   const toast = useToast();
@@ -64,22 +63,20 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     });
   };
 
+  // "Al contado" y "Pagado" en éxito; "A crédito" (con deuda) en atención
+  const etiqueta: { texto: string; tono: TonoEtiqueta } =
+    pedido.pagoModo !== "credito" ? { texto: "Al contado", tono: "exito" } : pedido.saldo > 0 ? { texto: "A crédito", tono: "atencion" } : { texto: "Pagado", tono: "exito" };
+
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex h-11 min-w-0 items-center gap-2.5">
-          <p className="font-display text-titulo-seccion text-texto">Factura</p>
-          <Etiqueta tono={pedido.pagoModo === "credito" ? "atencion" : "exito"}>{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</Etiqueta>
-        </div>
-        <div className="flex gap-2">
-          <BotonIcono etiqueta="Descargar factura" title="Descargar factura" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura}>
-            <IconoDescargar tamano={20} />
-          </BotonIcono>
-          <BotonIcono etiqueta="Compartir factura" title="Compartir factura" onClick={compartir} disabled={preparando || !factura}>
-            <IconoCompartir tamano={20} />
-          </BotonIcono>
-        </div>
-      </div>
+      <TarjetaDocumento
+        titulo={`Factura #${pedido.numero}`}
+        etiqueta={etiqueta}
+        alDescargar={() => setDescargaAbierta(true)}
+        alCompartir={compartir}
+        descargando={preparando || !factura}
+        compartiendo={preparando || !factura}
+      />
       {preparando && <p role="status" className="text-center text-etiqueta font-normal text-texto-secundario">Preparamos tu factura para descargarla o compartirla.</p>}
       <Hoja abierta={descargaAbierta} alCerrar={() => setDescargaAbierta(false)} titulo="Descargar factura" altura="auto">
         <div className="flex flex-col gap-3">

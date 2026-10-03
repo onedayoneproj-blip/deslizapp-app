@@ -33,6 +33,7 @@ import {
   ListaAgrupada,
   ProveedorToast,
   Tarjeta,
+  TarjetaDocumento,
   useToastUI,
   VistaToast,
   type JerarquiaBoton,
@@ -498,6 +499,11 @@ function Tarjetas() {
           <p className="text-secundario font-extrabold">Plan 20</p>
           <p className="text-cuerpo">12 de 20 productos</p>
         </Tarjeta>
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>tarjeta de documento (factura, recibo): miniatura, título, etiqueta y dos botones con texto</Rotulo>
+        <TarjetaDocumento titulo="Factura #1039" etiqueta={{ texto: "Al contado", tono: "exito" }} alDescargar={() => undefined} alCompartir={() => undefined} />
+        <TarjetaDocumento titulo="Factura #1036" etiqueta={{ texto: "A crédito", tono: "atencion" }} alDescargar={() => undefined} alCompartir={() => undefined} />
       </div>
     </Seccion>
   );

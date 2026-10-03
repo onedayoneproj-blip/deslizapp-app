@@ -12,5 +12,6 @@ export { FilaAgregar } from "./fila-agregar";
 export { FilaLista, ListaAgrupada } from "./lista";
 export { GrupoOpciones, Opcion } from "./opcion";
 export { FilaPastillas, type OpcionFiltro } from "./pastilla";
+export { TarjetaDocumento } from "./tarjeta-documento";
 export { Tarjeta, type TonoTarjeta } from "./tarjeta";
 export { ProveedorToast, useToastUI, VistaToast, type OpcionesToast } from "./toast";

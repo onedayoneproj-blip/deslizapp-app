@@ -290,7 +290,6 @@ function Detalle({
             <IconoCheck tamano={18} strokeWidth={2.6} />
             Despachado. Final feliz.
           </p>
-          {tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
         </>
       )}
 
@@ -366,6 +365,9 @@ function Detalle({
           </div>
         </li>
       </ListaAgrupada>
+
+      {/* Factura: tarjeta de documento, justo después de los productos y antes del pago */}
+      {pedido.estado === "despachado" && tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
 
       {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
       <PagoDelPedido pedido={pedido} cliente={cliente} />
