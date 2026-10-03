@@ -8,12 +8,10 @@ import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import type { Abono, MetodoAbono } from "@/lib/types";
-import { Chip, GrupoOpciones } from "../controles";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCheckCirculo } from "../iconos";
 import { useToast } from "../toast";
-import { CLASE_CAMPO } from "../pedidos/selector-descuento";
-import { soloDigitos } from "./campos-pago";
+import { Aviso, Boton, Campo, CampoMonto, GrupoOpciones } from "../ui";
 
 const NOTA_MAX = 200;
 const RAPIDOS = [500, 1000];
@@ -133,96 +131,66 @@ function Formulario({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[14px] text-suave">
-        {primerNombre} debe <b className="text-bosque">{formatearPesos(deuda)}</b>{" "}
+      <p className="text-secundario text-texto-secundario">
+        {primerNombre} debe <b className="text-texto">{formatearPesos(deuda)}</b>{" "}
         {pedidoId ? `del pedido #${numeroPedido}` : pedidos === 1 ? "en 1 pedido" : `en ${pedidos} pedidos`}
       </p>
 
-      <label className="block rounded-[22px] border-[1.5px] border-borde bg-white px-4 py-3.5 focus-within:border-bosque">
-        <span className="text-[13px] text-suave">¿Cuánto te pagó?</span>
-        <span className="mt-0.5 flex items-baseline gap-1.5">
-          <span className="font-display text-[26px] text-suave">RD$</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            enterKeyHint="done"
-            placeholder="0"
-            value={texto === "" ? "" : Number(texto).toLocaleString("en-US")}
-            onChange={(e) => setTexto(soloDigitos(e.target.value))}
-            aria-label="Monto del abono, en pesos"
-            aria-invalid={pasaDeLaDeuda || undefined}
-            className="min-w-0 flex-1 bg-transparent font-display text-[44px] leading-tight text-bosque outline-none placeholder:text-apagado"
-          />
-        </span>
-      </label>
-      {pasaDeLaDeuda && (
-        <p role="alert" className="-mt-2 text-[13px] font-semibold text-peligro">
-          Te debe {formatearPesos(deuda)}; no puedes abonar más que eso.
-        </p>
-      )}
+      <CampoMonto
+        tamano="grande"
+        etiqueta="¿Cuánto te pagó?"
+        etiquetaAccesible="Monto del abono, en pesos"
+        valor={texto}
+        alCambiar={setTexto}
+        error={pasaDeLaDeuda ? `Te debe ${formatearPesos(deuda)}; no puedes abonar más que eso.` : undefined}
+      />
 
-      <GrupoOpciones etiqueta="Monto rápido">
-        {rapidos.map((r) => (
-          <Chip key={r.texto} tono="opcion" elegido={monto === r.monto} onClick={() => setTexto(String(r.monto))}>
-            {r.texto}
-          </Chip>
-        ))}
-      </GrupoOpciones>
+      <GrupoOpciones
+        etiqueta="Monto rápido"
+        valor={rapidos.find((r) => r.monto === monto)?.texto ?? null}
+        alCambiar={(t) => setTexto(String(rapidos.find((r) => r.texto === t)?.monto ?? ""))}
+        opciones={rapidos.map((r) => ({ id: r.texto, texto: r.texto }))}
+      />
 
-      <div>
-        <p className="mb-2 text-[13px] text-suave">¿Cómo te pagó?</p>
-        <GrupoOpciones etiqueta="Cómo te pagó">
-          {METODOS.map((m) => (
-            <Chip key={m.id} tono="opcion" elegido={metodo === m.id} onClick={() => setMetodo(m.id)}>
-              {m.texto}
-            </Chip>
-          ))}
-        </GrupoOpciones>
-      </div>
+      <GrupoOpciones titulo="¿Cómo te pagó?" valor={metodo} alCambiar={setMetodo} opciones={METODOS.map((m) => ({ id: m.id, texto: m.texto }))} />
 
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
-        <label className="flex min-w-0 flex-col gap-1.5 text-[13px] font-bold text-suave">
-          Fecha
-          <input type="date" value={dia} max={diaLocal()} onChange={(e) => setDia(e.target.value)} className={`${CLASE_CAMPO} max-w-full appearance-none font-normal`} />
-          {fecha === null && <span className="text-[12.5px] font-semibold text-peligro">Elige un día que ya pasó (hoy también vale).</span>}
-        </label>
-        <label className="flex min-w-0 flex-col gap-1.5 text-[13px] font-bold text-suave">
-          Nota (opcional)
-          <input
-            type="text"
-            value={nota}
-            maxLength={NOTA_MAX}
-            onChange={(e) => setNota(e.target.value.slice(0, NOTA_MAX))}
-            placeholder="Ej. le di cambio"
-            enterKeyHint="done"
-            className={`${CLASE_CAMPO} font-normal placeholder:text-apagado`}
-          />
-        </label>
+        <Campo
+          etiqueta="Fecha"
+          type="date"
+          value={dia}
+          max={diaLocal()}
+          onChange={(e) => setDia(e.target.value)}
+          className="[&_input]:max-w-full [&_input]:appearance-none"
+          error={fecha === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
+        />
+        <Campo
+          etiqueta="Nota (opcional)"
+          type="text"
+          value={nota}
+          maxLength={NOTA_MAX}
+          onChange={(e) => setNota(e.target.value.slice(0, NOTA_MAX))}
+          placeholder="Ej. le di cambio"
+          enterKeyHint="done"
+        />
       </div>
 
-      <div aria-live="polite" className="empty:-mt-4">
+      <div aria-live="polite" className="empty:hidden">
         {monto > 0 && !pasaDeLaDeuda && resta === 0 && (
-          <p className="mov-aparece flex items-center gap-2.5 rounded-2xl bg-menta px-3.5 py-3 text-[14px] font-bold">
-            <IconoCheckCirculo tamano={18} className="shrink-0 text-bosque" />
+          <Aviso tono="exito" icono={<IconoCheckCirculo tamano={18} className="text-texto" />} className="mov-aparece font-bold">
             Con este abono queda saldado
-          </p>
+          </Aviso>
         )}
         {monto > 0 && !pasaDeLaDeuda && resta > 0 && (
-          <p className="mov-aparece rounded-2xl bg-arena px-3.5 py-3 text-[14px]">
+          <Aviso tono="neutro" className="mov-aparece">
             Después de este abono debe <b>{formatearPesos(resta)}</b>
-          </p>
+          </Aviso>
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={guardar}
-        disabled={!puedeGuardar}
-        className="tocable flex h-14 items-center justify-center rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-50"
-      >
+      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         Guardar abono
-      </button>
+      </Boton>
     </div>
   );
 }

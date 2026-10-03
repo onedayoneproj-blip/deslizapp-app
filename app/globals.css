@@ -268,10 +268,10 @@
   /* Translúcido: se alcanzan a ver matices del contenido detrás. 0.94 arriba, 0.82 a media rampa, 0 abajo. */
   background: linear-gradient(
     to top,
-    rgb(255 249 238 / 0) 0%,
-    rgb(255 249 238 / 0.82) calc(var(--rampa) * 0.45),
-    rgb(255 249 238 / 0.94) var(--rampa),
-    rgb(255 249 238 / 0.94) 100%
+    color-mix(in srgb, var(--fondo) 0%, transparent) 0%,
+    color-mix(in srgb, var(--fondo) 82%, transparent) calc(var(--rampa) * 0.45),
+    color-mix(in srgb, var(--fondo) 94%, transparent) var(--rampa),
+    color-mix(in srgb, var(--fondo) 94%, transparent) 100%
   );
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -317,8 +317,8 @@
   }
   .hoja-borde > .hoja-borde-color {
     bottom: 16px;
-    background: var(--color-papel);
-    border-bottom: 1px solid var(--color-linea);
+    background: var(--fondo);
+    border-bottom: 1px solid var(--linea);
   }
 }
 
@@ -448,13 +448,13 @@ html {
 @utility esqueleto {
   position: relative;
   overflow: hidden;
-  background-color: #efe5d4;
+  background-color: var(--superficie-hundida);
   &::after {
     content: "";
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--superficie) 55%, transparent), transparent);
     animation: mov-brillo 1.4s ease-in-out infinite;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -470,16 +470,16 @@ html {
    alrededor de la columna de la app. */
 html,
 body {
-  background: var(--color-papel);
+  background: var(--fondo);
 }
 @media (min-width: 481px) {
   html,
   body {
-    background: var(--color-marco);
+    background: var(--marco);
   }
 }
 body {
-  color: var(--color-tinta);
+  color: var(--texto);
   font-family: var(--font-sans);
 }
 
@@ -752,7 +752,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--color-mandarina);
+  background: var(--atencion-texto);
   animation: cre-latido 1.8s ease-out infinite;
   pointer-events: none;
 }

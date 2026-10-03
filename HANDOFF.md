@@ -235,6 +235,13 @@ HTML. El catálogo todavía no se alimenta solo de los productos del panel. El d
   GrupoOpciones, ControlSegmentado, ListaAgrupada / FilaLista, Tarjeta, Aviso, Alerta, Etiqueta / Contador, Campo / Buscador, Avatar
   y el Toast nuevo (ProveedorToast + useToastUI). Se importan desde `@/components/ui`. Los componentes viejos (`controles.tsx`,
   `toast.tsx`…) siguen en las pantallas que aún no se migran.
+- **Pantallas migradas al sistema:** **Pedidos** (lista, detalle, "+ Pedido"/venta pasada/Editar, selectores de cliente, producto y cupón, y el
+  pago y los abonos: `components/pedidos/*`, `components/credito/{pago-del-pedido,campos-pago,hoja-abono,tarjeta-saldado,comunes}`). Variantes
+  nuevas en `components/ui/`: `CampoMonto` (monto en pesos, normal o grande), `BotonIcono tono="accion"`, `Buscador entrada=` (ref para el
+  teclado de iPhone), `Boton scroll=` (para enlaces que abren hojas) y `soloDigitos`. Quedó con tokens también lo compartido que usa la
+  pantalla: `selector-busqueda`, `ver-mas`, `hoja-estado`, `boton-flotante`, `titulo-pantalla`, `Interruptor`, `estado-vacio`, el esqueleto,
+  el fondo del `body` y de `(dashboard)/layout`, y los colores de `hoja.tsx` (solo tokens, sin reescribirla). Pendiente de Pedidos: el encabezado y
+  la barra inferior (shell), `TicketPromo` (Promos) y la hoja `Hoja` completa (radio 28, sombra).
 - **Guía viva:** `/diseno` (pública, noindex, sin enlace desde la app), con todos los componentes y sus estados, en claro y oscuro.
 - **Regla:** en código nuevo no se escriben colores ni tamaños a mano (ni hex, ni `bg-white`, ni `text-[Npx]` fuera de la escala, ni
   `rounded-[Npx]`, ni `shadow-[…]`). `npm run revisar-estilos` cuenta lo que queda a mano en las pantallas viejas (solo informa).

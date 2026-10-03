@@ -18,11 +18,13 @@ const JERARQUIA: Record<JerarquiaBoton, string> = {
 const PELIGRO_RELLENO = "border-peligro bg-peligro text-sobre-peligro";
 
 const TAMANO: Record<TamanoBoton, string> = {
-  grande: "h-(--alto-boton-grande) px-6 text-destacado",
-  normal: "h-(--alto-control) px-5 text-cuerpo font-extrabold",
-  compacto: `h-(--alto-compacto) px-3.5 text-secundario font-extrabold ${TOQUE_44}`,
+  grande: "h-(--alto-boton-grande) text-destacado",
+  normal: "h-(--alto-control) text-cuerpo font-extrabold",
+  compacto: `h-(--alto-compacto) text-secundario font-extrabold ${TOQUE_44}`,
 };
-const TERCIARIO_PX: Record<TamanoBoton, string> = { grande: "px-3", normal: "px-2", compacto: "px-2" };
+// El relleno horizontal va aparte (uno solo por botón: dos clases px-* a la vez no se pisan de forma fiable)
+const PX: Record<TamanoBoton, string> = { grande: "px-6", normal: "px-5", compacto: "px-3.5" };
+const PX_TERCIARIO: Record<TamanoBoton, string> = { grande: "px-3", normal: "px-2", compacto: "px-2" };
 
 type Comun = {
   jerarquia?: JerarquiaBoton;
@@ -40,7 +42,11 @@ type Comun = {
 };
 
 type ComoBoton = Comun & Omit<ComponentProps<"button">, "children" | "className" | "disabled"> & { href?: undefined };
-type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "href"> & { href: string };
+type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "href"> & {
+  href: string;
+  /** Solo rutas internas: false para abrir hojas sin volver arriba de la página (como el resto de enlaces de hojas de la app). */
+  scroll?: boolean;
+};
 
 /**
  * Botón píldora del sistema (docs/09 §5, referencias/sistema-de-diseno/componentes/Boton.md).
@@ -59,7 +65,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
     "tocable relative inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-[1.5px] whitespace-nowrap select-none",
     FOCO,
     TAMANO[tamano],
-    jerarquia === "terciario" && TERCIARIO_PX[tamano],
+    jerarquia === "terciario" ? PX_TERCIARIO[tamano] : PX[tamano],
     jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : JERARQUIA[jerarquia],
     anchoCompleto && "w-full",
     deshabilitado && "opacity-40",
@@ -84,7 +90,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
   );
 
   if (resto.href !== undefined) {
-    const { href, onClick, ...a } = resto as ComoEnlace;
+    const { href, onClick, scroll, ...a } = resto as ComoEnlace;
     const alTocar = (e: MouseEvent<HTMLAnchorElement>) => {
       if (bloqueado) {
         e.preventDefault();
@@ -100,7 +106,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
         </a>
       );
     return (
-      <Link {...a} href={href} onClick={alTocar} aria-disabled={bloqueado || undefined} className={cls}>
+      <Link {...a} href={href} scroll={scroll} onClick={alTocar} aria-disabled={bloqueado || undefined} className={cls}>
         {contenido}
       </Link>
     );
@@ -135,13 +141,28 @@ export function Boton(props: ComoBoton | ComoEnlace) {
 }
 
 /** Botón redondo de solo icono (44 px, superficie-hundida): cerrar, volver. Siempre con etiqueta accesible. */
-export function BotonIcono({ etiqueta, children, className, ...resto }: Omit<ComponentProps<"button">, "aria-label"> & { etiqueta: string }) {
+export function BotonIcono({
+  etiqueta,
+  tono = "neutro",
+  children,
+  className,
+  ...resto
+}: Omit<ComponentProps<"button">, "aria-label"> & {
+  etiqueta: string;
+  /** "accion": relleno `accion` (el + de un contador de cantidad); "neutro": `superficie-hundida`. */
+  tono?: "neutro" | "accion";
+}) {
   return (
     <button
       type="button"
       aria-label={etiqueta}
       {...resto}
-      className={clases("tocable grid size-(--alto-control) shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto disabled:opacity-40", FOCO, className)}
+      className={clases(
+        "tocable grid size-(--alto-control) shrink-0 place-items-center rounded-full disabled:opacity-40",
+        tono === "accion" ? "bg-accion text-sobre-accion" : "bg-superficie-hundida text-texto",
+        FOCO,
+        className,
+      )}
     >
       {children}
     </button>

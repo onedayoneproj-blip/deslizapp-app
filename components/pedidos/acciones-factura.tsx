@@ -8,8 +8,7 @@ import type { Cliente, PedidoConItems, Producto, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { IconoDescargar, IconoCompartir } from "../iconos";
-
-const ACCION_CIRCULAR = "tocable grid h-11 w-11 shrink-0 place-items-center rounded-full bg-arena text-bosque disabled:opacity-45";
+import { Boton, BotonIcono, Etiqueta } from "../ui";
 
 export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido: PedidoConItems; cliente: Cliente | null; tienda: Tienda; productos: Producto[] }) {
   const toast = useToast();
@@ -69,29 +68,29 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     <>
       <div className="flex items-center justify-between gap-3">
         <div className="flex h-11 min-w-0 items-center gap-2.5">
-          <p className="font-display text-[22px] font-bold leading-none text-bosque">Factura</p>
-          <span className="rounded-full bg-arena px-2.5 py-1 text-xs font-bold text-bosque">{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</span>
+          <p className="font-display text-titulo-seccion text-texto">Factura</p>
+          <Etiqueta>{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</Etiqueta>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura} aria-label="Descargar factura" title="Descargar factura" className={ACCION_CIRCULAR}>
+          <BotonIcono etiqueta="Descargar factura" title="Descargar factura" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura}>
             <IconoDescargar tamano={20} />
-          </button>
-          <button type="button" onClick={compartir} disabled={preparando || !factura} aria-label="Compartir factura" title="Compartir factura" className={ACCION_CIRCULAR}>
+          </BotonIcono>
+          <BotonIcono etiqueta="Compartir factura" title="Compartir factura" onClick={compartir} disabled={preparando || !factura}>
             <IconoCompartir tamano={20} />
-          </button>
+          </BotonIcono>
         </div>
       </div>
-      {preparando && <p role="status" className="text-center text-xs text-suave">Preparamos tu factura para descargarla o compartirla.</p>}
+      {preparando && <p role="status" className="text-center text-etiqueta font-normal text-texto-secundario">Preparamos tu factura para descargarla o compartirla.</p>}
       <Hoja abierta={descargaAbierta} alCerrar={() => setDescargaAbierta(false)} titulo="Descargar factura" altura="auto">
         <div className="flex flex-col gap-3">
-          <p className="text-center text-sm text-suave">Elige cómo quieres guardarla.</p>
-          <button type="button" onClick={descargarPdf} disabled={!factura} className="tocable h-12 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-50">
+          <p className="text-center text-secundario text-texto-secundario">Elige cómo quieres guardarla.</p>
+          <Boton tamano="grande" anchoCompleto onClick={descargarPdf} deshabilitado={!factura}>
             Descargar como PDF
-          </button>
-          <button type="button" onClick={descargarPng} disabled={!factura} className="tocable h-12 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque disabled:opacity-50">
+          </Boton>
+          <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={descargarPng} deshabilitado={!factura}>
             Descargar como imagen
-          </button>
-          <p className="text-center text-xs text-suave">Es un comprobante de venta; no tiene valor fiscal.</p>
+          </Boton>
+          <p className="text-center text-etiqueta font-normal text-texto-secundario">Es un comprobante de venta; no tiene valor fiscal.</p>
         </div>
       </Hoja>
     </>

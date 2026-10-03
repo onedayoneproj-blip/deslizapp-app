@@ -8,6 +8,7 @@ import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import type { Abono, Cliente, PedidoConItems } from "@/lib/types";
 import { IconoCheck, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
+import { Alerta, Boton, Etiqueta, Tarjeta } from "../ui";
 import { useToast } from "../toast";
 import { BarraPago, LineaFecha } from "./comunes";
 import { diaDeOpcion, SelectorFechaPago, type FechaPago } from "./campos-pago";
@@ -33,9 +34,6 @@ function marcarVisto(pedidoId: string) {
     // Sin almacenamiento, la tarjeta puede repetirse: no pasa nada.
   }
 }
-
-const ACCION_PRINCIPAL = "tocable flex h-12 items-center justify-center gap-2 rounded-full bg-bosque text-[15px] font-extrabold text-papel disabled:opacity-60";
-const ACCION_SECUNDARIA = "tocable flex h-12 items-center justify-center gap-2 rounded-full border-[1.5px] border-bosque text-[15px] font-extrabold text-bosque disabled:opacity-60";
 
 /**
  * "Pago" del detalle del pedido (referencias/credito-abonos/Pedido.dc.html). A crédito: "Debe" en grande, lo pagado, la barra,
@@ -106,39 +104,29 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
   if (!credito) {
     if (cancelado) return null;
     return (
-      <div className="rounded-[20px] border border-linea bg-white px-3.5 py-2">
+      <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2">
         <div className="flex min-h-11 items-center justify-between gap-3">
-          <p className="flex items-center gap-1.5 text-[13.5px] font-bold text-suave">
-            <IconoCheck tamano={16} strokeWidth={2.6} className="text-bosque" />
+          <p className="flex items-center gap-1.5 text-secundario font-bold text-texto-secundario">
+            <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
             Pagado
           </p>
           {!cambiando && (
-            <button type="button" onClick={() => setCambiando(true)} className="tocable flex h-11 items-center px-1 text-[13.5px] font-extrabold text-bosque">
+            <Boton jerarquia="terciario" tamano="compacto" className="-mr-2" onClick={() => setCambiando(true)}>
               Cambiar a crédito
-            </button>
+            </Boton>
           )}
         </div>
         {cambiando && (
-          <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-arena pt-3 pb-1">
-            <p className="text-[14px] font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
+          <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-linea pt-3 pb-1">
+            <p className="text-secundario font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
             <SelectorFechaPago valor={fecha} alCambiar={setFecha} />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={pasarACredito}
-                disabled={ocupado || (fecha.opcion === "otra" && diaDeOpcion("otra", fecha.dia) === null)}
-                className="tocable h-11 flex-1 rounded-full bg-bosque text-sm font-extrabold text-papel disabled:opacity-60"
-              >
-                Sí, dejarlo a crédito
-              </button>
-              <button
-                type="button"
-                onClick={() => setCambiando(false)}
-                disabled={ocupado}
-                className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-              >
-                Mejor no
-              </button>
+            <div className="grid grid-cols-2 gap-3">
+              <Boton jerarquia="secundario" anchoCompleto onClick={() => setCambiando(false)} deshabilitado={ocupado}>
+                Cancelar
+              </Boton>
+              <Boton anchoCompleto onClick={pasarACredito} deshabilitado={ocupado || (fecha.opcion === "otra" && diaDeOpcion("otra", fecha.dia) === null)}>
+                A crédito
+              </Boton>
             </div>
           </div>
         )}
@@ -159,103 +147,89 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
         <TarjetaSaldado pedido={pedido} nombreCliente={cliente?.nombre ?? ""} telefono={cliente?.telefono ?? null} vendedora={vendedora} tienda={nombreTienda} />
       )}
 
-      <section aria-label="Pago del pedido" className="rounded-[20px] border border-linea bg-white px-4 py-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-display text-[19px]">Pago</h2>
-          {saldado ? (
-            <span className="flex h-[26px] items-center gap-1 rounded-full bg-menta px-2.5 text-xs font-extrabold">
-              <IconoCheck tamano={13} strokeWidth={3} />
-              Pagado
-            </span>
-          ) : (
-            <span className="flex h-[26px] items-center rounded-full bg-rosa px-2.5 text-xs font-extrabold">A crédito</span>
-          )}
-        </div>
-
-        <div aria-live="polite" className="mt-3">
-          <div className="flex items-baseline justify-between gap-3 text-[13px] text-suave">
-            <span>{cancelado ? "Cancelado: no genera deuda" : "Debe"}</span>
-            <span className="text-right">
-              Pagó {formatearPesos(pedido.pagado)} de {formatearPesos(pedido.total)}
-            </span>
-          </div>
-          <p className={`font-display text-[38px] leading-[1.1] ${pedido.saldo > 0 ? "text-mandarina-texto" : "text-bosque"}`}>{formatearPesos(pedido.saldo)}</p>
-        </div>
-        <div className="mt-2.5">
-          <BarraPago pagado={pedido.pagado} total={pedido.total} saldado={saldado} />
-        </div>
-        {!saldado && !cancelado && (
-          <div className="mt-2.5">
-            <LineaFecha fecha={pedido.pagoFechaAcordada} />
-          </div>
-        )}
-
-        {pedido.abonos.length > 0 && (
-          <ul className="mt-3">
-            {pedido.abonos.map((a) => (
-              <li key={a.id} className="border-t border-linea">
-                {borrando === a.id ? (
-                  <div role="alertdialog" aria-label="Borrar abono" className="my-2.5 rounded-[18px] bg-arena px-4 py-3">
-                    <p className="text-sm font-bold">¿Borrar este abono? La deuda vuelve a subir {formatearPesos(a.monto)}.</p>
-                    <div className="mt-2 flex gap-2">
-                      <button type="button" onClick={() => borrar(a)} disabled={ocupado} className="tocable h-11 flex-1 rounded-full border-[1.5px] border-peligro bg-transparent text-sm font-extrabold text-peligro disabled:opacity-60">
-                        Sí, borrar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBorrando(null)}
-                        disabled={ocupado}
-                        className="tocable h-11 flex-1 rounded-full border-[1.5px] border-bosque text-sm font-extrabold text-bosque"
-                      >
-                        Mejor no
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 py-2.5">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-menta text-bosque">
-                      <IconoMoneda tamano={18} />
-                    </span>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="text-[14px] font-bold">Abono · {nombreMetodo(a.metodo)}</span>
-                      <span className="text-[12.5px] text-suave">
-                        {fechaDelAbono(a)}
-                        {a.nota ? ` · ${a.nota}` : ""}
-                      </span>
-                    </div>
-                    <span className="flex shrink-0 flex-col items-end">
-                      <span className="text-[15px] font-extrabold">{formatearPesos(a.monto)}</span>
-                      <button
-                        type="button"
-                        onClick={() => setBorrando(a.id)}
-                        aria-label={`Borrar el abono de ${formatearPesos(a.monto)} del ${fechaDelAbono(a)}`}
-                        className="tocable relative flex h-5 items-center text-[12.5px] font-bold text-suave before:absolute before:-inset-x-3 before:-inset-y-3 before:content-['']"
-                      >
-                        Borrar
-                      </button>
-                    </span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {!cancelado && pedido.saldo > 0 && (
-          <div className="mt-3 flex flex-col gap-2">
-            <button type="button" onClick={() => setAbonando(true)} className={ACCION_PRINCIPAL}>
-              <IconoMas tamano={18} strokeWidth={2.6} />
-              Registrar abono
-            </button>
-            {recordatorio && (
-              <a href={recordatorio} target="_blank" rel="noreferrer" className={ACCION_SECUNDARIA}>
-                <IconoWhatsApp tamano={18} />
-                Recordarle por WhatsApp
-              </a>
+      <section aria-label="Pago del pedido">
+        <Tarjeta>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-display text-titulo-seccion">Pago</h2>
+            {saldado ? (
+              <Etiqueta tono="exito" icono={<IconoCheck tamano={14} strokeWidth={3} />}>
+                Pagado
+              </Etiqueta>
+            ) : (
+              <Etiqueta>A crédito</Etiqueta>
             )}
           </div>
-        )}
+
+          <div aria-live="polite" className="mt-3">
+            <div className="flex items-baseline justify-between gap-3 text-secundario text-texto-secundario">
+              <span>{cancelado ? "Cancelado: no genera deuda" : "Debe"}</span>
+              <span className="text-right">
+                Pagó {formatearPesos(pedido.pagado)} de {formatearPesos(pedido.total)}
+              </span>
+            </div>
+            <p className={`font-display text-cifra ${pedido.saldo > 0 ? "text-atencion-texto" : "text-texto"}`}>{formatearPesos(pedido.saldo)}</p>
+          </div>
+          <div className="mt-2.5">
+            <BarraPago pagado={pedido.pagado} total={pedido.total} />
+          </div>
+          {!saldado && !cancelado && (
+            <div className="mt-2.5">
+              <LineaFecha fecha={pedido.pagoFechaAcordada} />
+            </div>
+          )}
+
+          {pedido.abonos.length > 0 && (
+            <ul className="mt-3">
+              {pedido.abonos.map((a) => (
+                <li key={a.id} className="flex items-center gap-3 border-t border-linea py-2.5">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accion-suave text-texto">
+                    <IconoMoneda tamano={18} />
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-secundario font-bold">Abono · {nombreMetodo(a.metodo)}</span>
+                    <span className="text-etiqueta font-normal text-texto-secundario">
+                      {fechaDelAbono(a)}
+                      {a.nota ? ` · ${a.nota}` : ""}
+                    </span>
+                  </div>
+                  <span className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="text-cuerpo font-extrabold">{formatearPesos(a.monto)}</span>
+                    <Boton
+                      jerarquia="peligro"
+                      tamano="compacto"
+                      aria-label={`Borrar el abono de ${formatearPesos(a.monto)} del ${fechaDelAbono(a)}`}
+                      onClick={() => setBorrando(a.id)}
+                    >
+                      Borrar
+                    </Boton>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {!cancelado && pedido.saldo > 0 && (
+            <div className="mt-3 flex flex-col gap-2">
+              <Boton anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
+                Registrar abono
+              </Boton>
+              {recordatorio && (
+                <Boton jerarquia="secundario" anchoCompleto icono={<IconoWhatsApp tamano={18} />} href={recordatorio} target="_blank" rel="noreferrer">
+                  Recordarle por WhatsApp
+                </Boton>
+              )}
+            </div>
+          )}
+        </Tarjeta>
       </section>
+
+      <Alerta
+        abierta={borrando !== null}
+        titulo="¿Borrar este abono?"
+        descripcion={`La deuda vuelve a subir ${formatearPesos(pedido.abonos.find((x) => x.id === borrando)?.monto ?? 0)}.`}
+        accion={{ texto: "Borrar abono", tono: "peligro", alConfirmar: () => { const a = pedido.abonos.find((x) => x.id === borrando); return a ? borrar(a) : undefined; } }}
+        alCancelar={() => setBorrando(null)}
+      />
 
       {pedido.clienteId && (
         <HojaAbono

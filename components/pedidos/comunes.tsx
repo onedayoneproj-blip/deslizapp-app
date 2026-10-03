@@ -1,14 +1,15 @@
 import type { EstadoPedido } from "@/lib/types";
+import { Etiqueta, type TonoEtiqueta } from "../ui";
 
-/** Etiqueta de estado (docs/04-pantallas.md): Nuevo Mandarina, Por despachar Rosa, Despachado Verde, Cancelado arena. */
-export const ESTADO_PEDIDO: Record<EstadoPedido, { texto: string; clase: string }> = {
-  nuevo: { texto: "Nuevo", clase: "bg-mandarina text-bosque-oscuro" },
-  por_despachar: { texto: "Por despachar", clase: "bg-rosa text-bosque" },
-  despachado: { texto: "Despachado", clase: "bg-bosque text-papel" },
-  cancelado: { texto: "Cancelado", clase: "bg-arena text-suave" },
+/** Etiqueta de estado (docs/09 §11): Nuevo = atención (pide acción), Despachado = éxito; Por despachar y Cancelado, neutras (los distingue el texto). */
+export const ESTADO_PEDIDO: Record<EstadoPedido, { texto: string; tono: TonoEtiqueta }> = {
+  nuevo: { texto: "Nuevo", tono: "atencion" },
+  por_despachar: { texto: "Por despachar", tono: "neutro" },
+  despachado: { texto: "Despachado", tono: "exito" },
+  cancelado: { texto: "Cancelado", tono: "neutro" },
 };
 
 export function ChipEstado({ estado }: { estado: EstadoPedido }) {
-  const { texto, clase } = ESTADO_PEDIDO[estado];
-  return <span className={`shrink-0 rounded-full px-2.5 py-[3px] text-xs font-extrabold ${clase}`}>{texto}</span>;
+  const { texto, tono } = ESTADO_PEDIDO[estado];
+  return <Etiqueta tono={tono}>{texto}</Etiqueta>;
 }

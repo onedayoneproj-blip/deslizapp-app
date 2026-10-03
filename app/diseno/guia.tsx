@@ -21,6 +21,7 @@ import {
   BotonIcono,
   Buscador,
   Campo,
+  CampoMonto,
   Contador,
   ControlSegmentado,
   Etiqueta,
@@ -238,6 +239,9 @@ function Botones() {
           </Boton>
           <BotonIcono etiqueta="Cerrar">
             <IconoCerrar tamano={20} strokeWidth={2.2} />
+          </BotonIcono>
+          <BotonIcono etiqueta="Agregar otro" tono="accion">
+            <IconoMas tamano={18} />
           </BotonIcono>
         </Fila>
       </div>
@@ -506,6 +510,7 @@ function EtiquetasYAvatares() {
 function Campos() {
   const [busqueda, setBusqueda] = useState("");
   const [telefono, setTelefono] = useState("80955");
+  const [monto, setMonto] = useState("1500");
   return (
     <Seccion numero="12" titulo="Campos" nota="Rótulo arriba, ayuda o error abajo. Alto 50, letra 16 (iOS no hace zoom).">
       <Buscador etiqueta="Buscar cliente" valor={busqueda} alCambiar={setBusqueda} placeholder="Nombre o WhatsApp" />
@@ -520,6 +525,8 @@ function Campos() {
           error={telefono.replace(/\D/g, "").length === 10 ? undefined : "Escríbelo con 809, 829 o 849 y 7 dígitos más."}
         />
         <Campo etiqueta="Código" value="AAAH10" disabled readOnly />
+        <CampoMonto etiqueta="Te dio ahora (opcional)" valor={monto} alCambiar={setMonto} />
+        <CampoMonto etiqueta="¿Cuánto te pagó?" tamano="grande" valor={monto} alCambiar={setMonto} error={Number(monto) > 1000 ? "Te debe RD$1,000; no puedes abonar más que eso." : undefined} />
       </div>
     </Seccion>
   );

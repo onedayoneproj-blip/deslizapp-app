@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
     <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}>
       <ToastProvider>
         <PanelUIProvider>
-          <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-papel min-[481px]:shadow-[0_0_40px_rgba(23,75,58,0.08)]">
+          <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-fondo min-[481px]:shadow-[0_0_40px_rgba(23,75,58,0.08)]">
             <Encabezado />
             <main className="flex-1 pb-[calc(var(--nav-abajo)+32px)]">{children}</main>
           </div>

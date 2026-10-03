@@ -85,10 +85,10 @@ export function Interruptor({
       aria-label={etiqueta}
       aria-disabled={deshabilitado}
       onClick={() => (deshabilitado ? alTocarBloqueado?.() : alCambiar(!encendido))}
-      className={`tocable relative flex h-8 w-[54px] shrink-0 rounded-full p-1 before:absolute before:-inset-x-1 before:-inset-y-[6px] before:content-[''] ${deshabilitado ? "bg-[#d9cdb8]" : encendido ? "bg-bosque" : "bg-apagado"}`}
+      className={`tocable relative flex h-8 w-[54px] outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco shrink-0 rounded-full p-1 before:absolute before:-inset-x-1 before:-inset-y-[6px] before:content-[''] ${encendido ? "bg-accion" : "bg-borde-campo"} ${deshabilitado ? "opacity-40" : ""}`}
     >
       <span
-        className="h-6 w-6 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-transform duration-(--mov-normal) ease-(--curva-salida)"
+        className="h-6 w-6 rounded-full bg-superficie ring-1 ring-linea transition-transform duration-(--mov-normal) ease-(--curva-salida)"
         style={{ transform: encendido ? "translateX(22px)" : "none" }}
       />
     </button>

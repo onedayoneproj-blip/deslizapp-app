@@ -11,10 +11,7 @@ import { HojaFijoArriba, useIrArribaHoja } from "../hoja";
 import { IconoCheck, IconoMas } from "../iconos";
 import { TicketPromo } from "../promos/ticket-promo";
 import { BotonVolver } from "../selector-busqueda";
-
-/** Estilo del campo de las hojas de pedidos (alto 50 px, borde fino). */
-export const CLASE_CAMPO =
-  "h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] border-borde bg-white px-3.5 text-base text-bosque outline-none focus:border-bosque";
+import { Boton } from "../ui";
 
 /** Etiqueta corta de por qué un cupón no se puede usar. */
 const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "Programado", agotada: "Agotado" } as const;
@@ -22,7 +19,7 @@ const ETIQUETA_RAZON = { terminada: "Vencido", pausada: "Pausado", programada: "
 /** El círculo con el check de lo elegido. */
 function Check({ nuevo = false, sobreVerde = false }: { nuevo?: boolean; sobreVerde?: boolean }) {
   return (
-    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${sobreVerde ? "bg-papel text-bosque" : "bg-bosque text-papel"} ${nuevo ? "mov-pop-aparece" : ""}`}>
+    <span className={`grid size-6 shrink-0 place-items-center rounded-full ${sobreVerde ? "bg-marca-papel text-marca-bosque" : "bg-accion text-sobre-accion"} ${nuevo ? "mov-pop-aparece" : ""}`}>
       <IconoCheck tamano={15} strokeWidth={2.8} />
     </span>
   );
@@ -78,22 +75,14 @@ export function FilaDescuento({
     );
   }, [actual, desde]);
 
-  const borde = conBorde ? "border-b border-arena" : "";
+  const borde = conBorde ? "border-b border-linea" : "";
   if (!actual) {
     return (
       <div className={borde}>
         <div ref={contenido}>
-          <button
-            type="button"
-            onClick={alAbrir}
-            disabled={deshabilitado}
-            className="tocable flex min-h-11 w-full items-center gap-2.5 text-left text-[14.5px] font-extrabold text-bosque disabled:opacity-60"
-          >
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-bosque text-papel">
-              <IconoMas tamano={14} />
-            </span>
+          <Boton jerarquia="terciario" icono={<IconoMas tamano={18} strokeWidth={2.4} />} onClick={alAbrir} deshabilitado={deshabilitado} className="-ml-2">
             Agregar cupón
-          </button>
+          </Boton>
         </div>
       </div>
     );
@@ -111,28 +100,18 @@ export function FilaDescuento({
           />
         ) : (
           <div className="flex min-h-11 items-center">
-            <span className="min-w-0 truncate text-[14.5px] font-extrabold">Cupón: {actual}</span>
+            <span className="min-w-0 truncate text-cuerpo font-extrabold">Cupón: {actual}</span>
           </div>
         )}
         <div className="flex items-center justify-between gap-3">
-          <p className="min-w-0 text-[12.5px] font-semibold text-[#b4432a]">{promo ? "" : "Ese cupón ya no se puede usar. Elige otro o quítalo."}</p>
+          <p className="min-w-0 text-etiqueta text-peligro">{promo ? "" : "Ese cupón ya no se puede usar. Elige otro o quítalo."}</p>
           <span className="flex shrink-0 items-center">
-            <button
-              type="button"
-              onClick={alAbrir}
-              disabled={deshabilitado}
-              className="tocable h-11 px-2.5 text-[14px] font-extrabold text-bosque disabled:opacity-60"
-            >
+            <Boton jerarquia="terciario" tamano="compacto" onClick={alAbrir} deshabilitado={deshabilitado}>
               Cambiar
-            </button>
-            <button
-              type="button"
-              onClick={alQuitar}
-              disabled={deshabilitado}
-              className="tocable h-11 pl-2.5 text-[14px] font-extrabold text-[#b4432a] disabled:opacity-60"
-            >
+            </Boton>
+            <Boton jerarquia="terciario" tamano="compacto" onClick={alQuitar} deshabilitado={deshabilitado} className="-mr-2">
               Quitar
-            </button>
+            </Boton>
           </span>
         </div>
       </div>
@@ -200,7 +179,7 @@ export function SelectorDescuento({
       <HojaFijoArriba>
         <div className="flex items-center gap-2">
           <BotonVolver onClick={alVolver} />
-          <p className="min-w-0 flex-1 truncate font-display text-xl">Elige un cupón</p>
+          <p className="min-w-0 flex-1 truncate font-display text-titulo-seccion">Elige un cupón</p>
         </div>
       </HojaFijoArriba>
 
@@ -211,11 +190,11 @@ export function SelectorDescuento({
             type="button"
             onClick={(e) => elegir(null, e)}
             aria-pressed={marcado === ""}
-            className={`tocable flex min-h-14 w-full items-center gap-3 rounded-[18px] border-2 px-4 text-left text-bosque transition-opacity duration-(--mov-rapida) ${
-              marcado === "" ? "border-solid border-bosque" : "border-dashed border-bosque/35"
+            className={`tocable flex min-h-14 w-full items-center gap-3 rounded-radio-m border-2 px-4 text-left text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco transition-opacity duration-(--mov-rapida) ${
+              marcado === "" ? "border-solid border-accion" : "border-dashed border-accion/35"
             } ${atenuar("")}`}
           >
-            <span className="min-w-0 flex-1 text-[15px] font-extrabold">Sin descuento</span>
+            <span className="min-w-0 flex-1 text-cuerpo font-extrabold">Sin descuento</span>
             {marcado === "" && <Check nuevo={tocado === ""} />}
           </button>
         </li>
@@ -230,7 +209,7 @@ export function SelectorDescuento({
                 onClick={(e) => elegir(promo.codigo!, e)}
                 aria-pressed={sel}
                 aria-label={`Descuento ${promo.nombre}, ${promo.valorPorcentaje} por ciento, ${uso}`}
-                className={`tocable block w-full rounded-[20px] border-2 p-[3px] text-left transition-opacity duration-(--mov-rapida) ${sel ? "border-bosque" : "border-transparent"} ${atenuar(cod)}`}
+                className={`tocable block w-full rounded-radio-l border-2 p-[3px] text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco transition-opacity duration-(--mov-rapida) ${sel ? "border-accion" : "border-transparent"} ${atenuar(cod)}`}
               >
                 <TicketPromo
                   tamano="compacto"
@@ -250,7 +229,7 @@ export function SelectorDescuento({
                 role="group"
                 aria-disabled="true"
                 aria-label={`Descuento ${promo.nombre}, ${promo.valorPorcentaje} por ciento, ${uso}, ${ETIQUETA_RAZON[razon!.razon].toLowerCase()}, no se puede elegir`}
-                className={`rounded-[20px] border-2 border-transparent p-[3px] opacity-55 ${tocado !== null ? "opacity-35" : ""}`}
+                className={`rounded-radio-l border-2 border-transparent p-[3px] opacity-55 ${tocado !== null ? "opacity-35" : ""}`}
               >
                 <TicketPromo
                   tamano="compacto"
@@ -268,13 +247,9 @@ export function SelectorDescuento({
         <EstadoVacio pequeno ilustracion="promos" titulo="Aún no tienes cupones." remate="Crea un código en Promos y aquí aparece para elegirlo." />
       )}
       {!filas.hay && (
-        <button
-          type="button"
-          onClick={() => router.push("/promos/nueva", { scroll: false })}
-          className="tocable flex h-12 items-center justify-center rounded-full bg-mandarina text-[15px] font-extrabold text-bosque-oscuro"
-        >
+        <Boton anchoCompleto onClick={() => router.push("/promos/nueva", { scroll: false })}>
           Crear un código en Promos
-        </button>
+        </Boton>
       )}
     </div>
   );

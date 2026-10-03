@@ -50,14 +50,14 @@ export function EstadoVacio({
         className="mb-4 select-none"
         draggable={false}
       />
-      <h2 className={`font-display leading-tight text-bosque ${pequeno ? "text-xl" : "text-2xl"}`}>{titulo}</h2>
-      <p className={`mt-2 max-w-xs leading-snug text-suave ${pequeno ? "text-sm" : "text-[15px]"}`}>{remate}</p>
-      {nota && <p className="mt-3 font-mano text-2xl text-mandarina-texto -rotate-2">{nota}</p>}
+      <h2 className={`font-display text-texto ${pequeno ? "text-titulo-seccion" : "text-titulo-hoja"}`}>{titulo}</h2>
+      <p className={`mt-2 max-w-xs text-texto-secundario ${pequeno ? "text-secundario" : "text-cuerpo"}`}>{remate}</p>
+      {nota && <p className="mt-3 font-mano text-mano text-atencion-texto -rotate-2">{nota}</p>}
       {accion && (
         <Link
           href={accion.href}
           scroll={false}
-          className="tocable mt-5 flex h-[52px] items-center rounded-full bg-mandarina px-6 text-[15.5px] font-extrabold text-bosque-oscuro"
+          className="tocable mt-5 flex h-[52px] items-center rounded-full bg-resalte px-6 text-cuerpo font-extrabold text-sobre-resalte outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
         >
           {accion.texto}
         </Link>

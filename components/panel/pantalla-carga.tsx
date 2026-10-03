@@ -6,7 +6,7 @@ import { Esqueleto } from "../esqueleto";
  */
 export function PantallaCarga() {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-papel" aria-busy="true" aria-label="Cargando tu tienda">
+    <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-fondo" aria-busy="true" aria-label="Cargando tu tienda">
       <div className="flex items-center justify-between gap-3 px-5 pt-[calc(22px+env(safe-area-inset-top))] pb-1.5">
         <div className="flex items-center gap-2.5">
           <Esqueleto className="h-[42px] w-[42px] rounded-full" />

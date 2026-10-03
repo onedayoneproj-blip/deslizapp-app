@@ -224,7 +224,7 @@ export const IconoCompartir = (p: Props) => (
 
 export const IconoCheckCirculo = ({ tamano = 18, ...p }: Props) => (
   <svg width={tamano} height={tamano} viewBox="0 0 24 24" aria-hidden="true" {...p}>
-    <circle cx="12" cy="12" r="11" fill="var(--color-menta)" />
+    <circle cx="12" cy="12" r="11" fill="var(--accion-suave)" />
     <path d="M7.4 12.9c1.1.9 2 1.8 2.8 2.9 1.6-2.7 3.6-4.8 6.4-6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
