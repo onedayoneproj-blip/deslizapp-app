@@ -31,7 +31,7 @@ El isotipo es una "d" redondeada con una flecha hacia arriba (deslizar), dentro 
 - El isotipo siempre es Verde Bosque; lo que cambia según el público es el fondo pálido: rosa para compradores, menta para vendedores.
 - El logotipo "deslizapp" va en Verde Bosque sobre fondos claros y en Papel Cálido sobre fondos Verde Bosque.
 - Nunca se deforma, se gira ni se le cambia la flecha. Nunca sobre una foto sin un fondo sólido detrás.
-- **Icono de la app instalada (excepción):** fondo verde pálido (Menta #dcebe2) con el isotipo en **verde medio #2f8560** (`marca-icono-app`), no en Verde Bosque. Motivo: iOS no deja que una app web tenga icono oscuro propio y, en modo oscuro, cambia el fondo por negro; el verde medio se lee sobre menta (3.7:1) y sobre negro (3.8:1), mientras Verde Bosque sobre negro desaparece (1.7:1). En todo lo demás (cabecera, piezas, catálogo) el isotipo sigue en Verde Bosque.
+- **Icono de la app instalada:** fondo verde pálido (Menta #dcebe2) con el isotipo Verde Bosque y un **borde Menta** alrededor del isotipo (90 de 2048 unidades, unos 8 px en un icono de 180). En claro el borde se confunde con el fondo y no se ve. En modo oscuro, iOS cambia el fondo por negro (las apps web no pueden tener icono oscuro propio) y ese borde dibuja el contorno del isotipo, que sin él desaparece (Verde Bosque sobre negro es 1.7:1).
 - **Pendiente detectado:** algunas piezas para vendedores usan el fondo rosa; al aplicar la regla pasan al fondo menta.
 
 ## Fondos con patrón
