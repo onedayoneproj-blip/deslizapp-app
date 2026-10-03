@@ -45,7 +45,7 @@ export function ContenidoResumenClientes({ resumen, alFiltrar, alAbrirJugadas, d
       </button>
       <div className="flex items-center gap-4.5" aria-label={`${c.todos} clientes; ${c.repiten} repiten, ${c.una} compraron una vez, ${c.sin} sin comprar. ${totalVendido > 0 ? `Los que repiten dejan el ${porcentajeRepiten} por ciento de tus ventas.` : "Sin ventas todavía."}`}>
         <Dona tamano={148} grosor={16} pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((s) => ({ valor: c[s.id], color: s.color }))}>
-          <b className="font-display text-cifra">{c.todos}</b><span className="mt-1 text-contador text-texto-secundario">CLIENTES</span>
+          <b className="font-display text-cifra">{c.todos}</b>
         </Dona>
         <div className="min-w-0 flex-1 text-secundario">
           <p>{c.repiten ? <><b>1 de cada {Math.max(1, Math.round(c.todos / c.repiten))}</b> vuelve a comprar.</> : "Nadie repite todavía."}</p>

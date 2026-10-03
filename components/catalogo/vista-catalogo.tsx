@@ -73,10 +73,9 @@ export function VistaCatalogo() {
           className="tocable flex shrink-0 flex-col items-center gap-1 rounded-xl">
           <Dona className={`dona-cabecera ${casiLleno && !lleno ? "dona-latido" : ""}`} total={limite}
             pista="#f5c9d6" segmentos={[{ valor: usados, color: casiLleno ? "#ff834f" : "#174b3a" }]}>
-            <b className={`font-display ${lleno ? "text-[17px]" : "text-[22px]"} ${casiLleno ? "text-mandarina-texto" : "text-bosque"}`}>{lleno ? "Lleno" : libres}</b>
-            {!lleno && <span className="mt-0.5 text-[9.5px] font-extrabold text-suave">LIBRES</span>}
+            <b className={`dona-cifra font-display ${lleno ? "text-[17px]" : String(libres).length > 3 ? "dona-cifra-larga text-[16px]" : "text-[22px]"} ${casiLleno ? "text-mandarina-texto" : "text-bosque"}`}>{lleno ? "Lleno" : libres.toLocaleString("en-US")}</b>
           </Dona>
-          <span className="text-[11.5px] font-bold text-suave">{usados} de {limite}</span>
+          <span className="text-[11.5px] font-bold text-suave">{lleno ? `${usados} de ${limite}` : `${libres.toLocaleString("en-US")} libres · ${usados} de ${limite}`}</span>
         </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
       } />
 

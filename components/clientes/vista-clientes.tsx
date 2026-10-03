@@ -88,9 +88,9 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           aria-label={`${total} clientes: ${resumen.cuentas.repiten} repiten, ${resumen.cuentas.una} compraron una vez, ${resumen.cuentas.sin} sin comprar. Ver detalle`}
           className="tocable flex shrink-0 flex-col items-center gap-1 rounded-radio-m">
           <Dona className="dona-cabecera" pista="var(--superficie-hundida)" segmentos={SEGMENTOS_CLIENTES.map((x) => ({ valor: resumen.cuentas[x.id], color: x.color }))}>
-            <b className="font-display text-titulo-seccion">{total}</b><span className="mt-0.5 text-contador text-texto-secundario">CLIENTES</span>
+            <b className={`dona-cifra font-display ${String(total).length > 3 ? "dona-cifra-larga text-cuerpo" : "text-titulo-seccion"}`}>{total.toLocaleString("en-US")}</b>
           </Dona>
-          <span className="text-etiqueta font-bold text-texto-secundario">{resumen.cuentas.repiten} repiten</span>
+          <span className="text-etiqueta font-bold text-texto-secundario">{total.toLocaleString("en-US")} clientes · {resumen.cuentas.repiten} repiten</span>
         </button> : <Esqueleto className="h-24 w-19 shrink-0 rounded-full" />
       } />
       <div className="flex flex-col gap-3.5 px-5 pt-3.5">
