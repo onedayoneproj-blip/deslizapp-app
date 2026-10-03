@@ -44,12 +44,18 @@ try {
     // Entrada a la galería: el vuelo termina y no deja nada encima
     await tarjeta.click();
     await page.getByRole('heading',{name:'Tu próxima jugada'}).waitFor();
-    if(reducido) assert.equal(await finitas(page),0,'sin entrada con reducir movimiento');
+    if(reducido) {
+      assert.equal(await finitas(page),0,'sin entrada con reducir movimiento');
+      assert.equal(await page.locator('.entrada-malla, [data-entrada-atras]').count(),0,'reducir movimiento: cambio directo, sin capas');
+    }
     await page.waitForTimeout(2000);
     const cuadros=page.locator('[data-jugada-cuadro]');
     assert.equal(await cuadros.count(),4);
     assert.ok(await cuadros.first().evaluate(el=>getComputedStyle(el).opacity==='1'),'los cuadros quedan visibles tras la entrada');
     assert.equal(await finitas(page),0,'la entrada terminó');
+    assert.equal(await page.locator('.entrada-malla, [data-entrada-atras], [data-cruce]').count(),0,'sin capas de la entrada al terminar');
+    assert.ok(await page.locator('[data-jugada-cuadro] img').evaluateAll(i=>i.every(x=>x.complete&&x.naturalWidth>0)),'ilustraciones cargadas');
+    assert.ok(await page.evaluate(()=>document.querySelectorAll('link[rel=preload][as=image][imagesrcset*="proxima-jugada"]').length>=4),'ilustraciones precargadas al abrir Tus clientes');
 
     // Barrido al elegir una jugada: termina sin restos
     await page.getByRole('button',{name:/^Segundo aaah:.*Ver jugada$/}).click();
@@ -58,6 +64,7 @@ try {
     await page.waitForTimeout(2000);
     assert.equal(await page.locator('.barrido-franja').count(),0,'la franja se fue');
     assert.equal(await page.locator('[role=dialog] [inert]').count(),0,'la galería de atrás se fue');
+    assert.equal(await page.locator('.barrido-nuevo, [data-cruce]').count(),0,'sin capas del barrido al terminar');
     assert.ok(await sinDesborde(page),`sin desborde en el detalle a ${ancho}px`);
 
     // Escribirle a…: las tres opciones

@@ -979,10 +979,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .brillo-jugada .malla { border-radius: 0; }
 
 /* Barrido al elegir una jugada (components/clientes/transiciones-jugada.tsx): máscara con borde difuminado + franja del degradado. */
+/* Entrada a la galería: la malla se apaga hacia abajo como .brillo-jugada (negro hasta --entrada-a, transparente en --entrada-b) */
+@property --entrada-a { syntax: "<length>"; inherits: false; initial-value: 100000px; }
+@property --entrada-b { syntax: "<length>"; inherits: false; initial-value: 100001px; }
+.entrada-malla { -webkit-mask-image: linear-gradient(to bottom, #000 var(--entrada-a), transparent var(--entrada-b)); mask-image: linear-gradient(to bottom, #000 var(--entrada-a), transparent var(--entrada-b)); }
+.entrada-malla .malla { border-radius: 0; }
 @property --barrido-y { syntax: "<length>"; inherits: false; initial-value: 100000px; }
 .barrido-nuevo {
   -webkit-mask-image: linear-gradient(180deg, #000 calc(var(--barrido-y) - var(--barrido-borde, 60px)), transparent calc(var(--barrido-y) + var(--barrido-borde, 60px)));
   mask-image: linear-gradient(180deg, #000 calc(var(--barrido-y) - var(--barrido-borde, 60px)), transparent calc(var(--barrido-y) + var(--barrido-borde, 60px)));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .barrido-franja { position: absolute; left: -40px; right: -40px; top: 0; will-change: transform; color: var(--fondo); }
 .barrido-franja i { position: absolute; inset: 0; }

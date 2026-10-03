@@ -1,107 +1,223 @@
 "use client";
 
 // Transiciones de Tu próxima jugada (excepción de movimiento aprobada, docs/09 §13). Son decoración encima de la navegación real:
-// no la retrasan, no mueven el foco y no tocan el historial. Con "reducir movimiento" no se montan.
+// no la retrasan, no mueven el foco y no tocan el historial. Con "reducir movimiento" no se montan (cambio directo).
 
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { DURACION } from "@/lib/movimiento";
 import { MallaViva } from "../ui";
 
 type Rect = { left: number; top: number; width: number; height: number };
-/** Una carta del mazo al momento de tocar: su centro en pantalla, su giro y cómo se ve. */
-export type CartaEnVuelo = { id: string; x: number; y: number; giro: number; imagen: string; color: string };
+/** Una carta del mazo al momento de tocar: su centro en pantalla, su giro y su tamaño visible. */
+export type CartaEnVuelo = { id: string; x: number; y: number; giro: number; ancho: number; alto: number };
 /** Lo que se mide al tocar la tarjeta, antes de navegar. */
-export type OrigenEntrada = { tarjeta: Rect; hoja: Rect; cartas: CartaEnVuelo[] };
+export type OrigenEntrada = {
+  /** La tarjeta, relativa a la superficie de la hoja. */
+  tarjeta: Rect;
+  /** La superficie de la hoja (`data-hoja-panel`). */
+  hoja: { width: number; height: number };
+  cartas: CartaEnVuelo[];
+  /** Alto de la cabecera y scroll del contenido al tocar: la vista anterior se queda exactamente donde estaba. */
+  cabecera: number;
+  scroll: number;
+};
 
-const rect = (r: DOMRect): Rect => ({ left: r.left, top: r.top, width: r.width, height: r.height });
-
-/** Mide la tarjeta, la hoja y las cartas del mazo (con el giro que tienen en ese instante del ciclo). */
-export function medirEntrada(tarjeta: HTMLElement, cartas: { id: string; imagen: string; color: string }[]): OrigenEntrada | null {
-  const hoja = tarjeta.closest<HTMLElement>("[role='dialog']");
+/** Mide la tarjeta (relativa a la hoja), la hoja, la cabecera, el scroll y las cartas del mazo (con su giro y escala de ese instante). */
+export function medirEntrada(tarjeta: HTMLElement): OrigenEntrada | null {
+  const hoja = tarjeta.closest<HTMLElement>("[data-hoja-panel]");
   if (!hoja) return null;
-  const enVuelo = [...tarjeta.querySelectorAll<HTMLElement>("[data-carta]")].flatMap((el) => {
-    const c = cartas.find((x) => x.id === el.dataset.carta);
-    if (!c) return [];
+  const h = hoja.getBoundingClientRect();
+  const t = tarjeta.getBoundingClientRect();
+  const cartas = [...tarjeta.querySelectorAll<HTMLElement>("[data-carta]")].map((el) => {
     const r = el.getBoundingClientRect();
-    const m = new DOMMatrixReadOnly(getComputedStyle(el).transform === "none" ? undefined : getComputedStyle(el).transform);
-    return [{ ...c, x: r.left + r.width / 2, y: r.top + r.height / 2, giro: (Math.atan2(m.b, m.a) * 180) / Math.PI }];
+    const estilo = getComputedStyle(el).transform;
+    const m = new DOMMatrixReadOnly(estilo === "none" ? undefined : estilo);
+    const escala = Math.hypot(m.a, m.b) || 1;
+    return { id: el.dataset.carta!, x: r.left + r.width / 2, y: r.top + r.height / 2, giro: (Math.atan2(m.b, m.a) * 180) / Math.PI, ancho: el.offsetWidth * escala, alto: el.offsetHeight * escala };
   });
-  return { tarjeta: rect(tarjeta.getBoundingClientRect()), hoja: rect(hoja.getBoundingClientRect()), cartas: enVuelo };
+  const contenido = hoja.querySelector<HTMLElement>("[data-hoja-contenido]");
+  return {
+    tarjeta: { left: t.left - h.left, top: t.top - h.top, width: t.width, height: t.height },
+    hoja: { width: h.width, height: h.height },
+    cartas,
+    cabecera: parseFloat(hoja.style.getPropertyValue("--cabecera")) || 79,
+    scroll: contenido?.scrollTop ?? 0,
+  };
 }
 
 const CURVA_TARJETA = "cubic-bezier(.65,0,.25,1)";
 const CURVA_CARTAS = "cubic-bezier(.5,0,.15,1.08)";
 const ESCALON = 70;
+/** La malla llega a llenar la hoja en 900 ms; en los 250 ms siguientes se vuelve el brillo de arriba. */
+const MALLA = 900;
+const MALLA_FIN = 250;
+/** Radio de la superficie de la hoja (rounded-t-[30px] en Hoja). */
+const RADIO_HOJA = 30;
+
+/** Doble requestAnimationFrame: la vista nueva ya se pintó una vez y el layout está quieto. */
+function despuesDeUnCuadro(fn: () => void) {
+  let b = 0;
+  const a = requestAnimationFrame(() => {
+    b = requestAnimationFrame(fn);
+  });
+  return () => {
+    cancelAnimationFrame(a);
+    cancelAnimationFrame(b);
+  };
+}
+
+/** Cruce de un texto a otro (título de la hoja, fila de arriba). Lo anima quien orquesta la transición (`cruzarTextos`). */
+export function CruceTexto({ antes, despues }: { antes: ReactNode; despues: ReactNode }) {
+  return (
+    <span className="inline-grid">
+      <span data-cruce="antes" aria-hidden="true" className="col-start-1 row-start-1">
+        {antes}
+      </span>
+      <span data-cruce="despues" className="col-start-1 row-start-1" style={{ opacity: 0 }}>
+        {despues}
+      </span>
+    </span>
+  );
+}
+
+function cruzarTextos(raiz: HTMLElement, retraso: number, duracion: number): Animation[] {
+  const t = { duration: duracion, delay: retraso, easing: "ease", fill: "both" } as const;
+  return [
+    ...[...raiz.querySelectorAll<HTMLElement>("[data-cruce='antes']")].map((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], t)),
+    ...[...raiz.querySelectorAll<HTMLElement>("[data-cruce='despues']")].map((el) => el.animate([{ opacity: 0 }, { opacity: 1 }], t)),
+  ];
+}
 
 /**
- * Entrada a la galería: la tarjeta se agranda hasta llenar la hoja (900 ms) y se desvanece al final; su velo se apaga en los
- * primeros 260 ms. Las cuatro cartas vuelan desde el mazo a su cuadro de la galería (950 ms, escalonadas 70 ms), se enderezan y
- * crecen (FLIP: rect de origen y rect de destino). Al terminar avisa para que aparezcan los textos de los cuadros.
+ * Capas de la entrada a la galería (van dentro del contenedor `relative` del contenido, como hermanas de la galería):
+ * - La malla, del tamaño de la superficie de la hoja desde el principio, debajo de la cabecera y encima de la vista anterior. Solo se
+ *   anima su `clip-path`: del rect de la tarjeta (radio 22) a la hoja entera (900 ms). En los últimos 250 ms se apaga hacia abajo como
+ *   el `BrilloJugada` de la galería, que ya está debajo: al quitarla no hay salto.
+ * - La vista anterior (`[data-entrada-atras]`, montada por quien llama) se desvanece en 300 ms. Las cartas que no tienen cuadro se
+ *   quedan en el mazo y se apagan en 180 ms; las que sí, se ocultan porque su cuadro despega de ahí.
+ * - FLIP de los cuadros reales de la galería (`[data-jugada-cuadro]`): cada uno vuela desde el rect y el giro de su carta hasta su
+ *   lugar (950 ms, escalonados 70 ms). Mientras vuela solo se ve su color y su imagen (centrada como en la carta); al aterrizar entra el
+ *   texto en 200 ms.
+ * - El título cruza al 35 % (200 ms) y lo demás de la galería (`[data-entrada-resto]`) entra al 60 % de la malla (300 ms).
+ * Todo empieza después de un cuadro (doble rAF), con la galería ya montada y quieta.
  */
-export function EntradaJugada({ origen, alTerminar }: { origen: OrigenEntrada; alTerminar: () => void }) {
-  const capa = useRef<HTMLDivElement>(null);
+export function EntradaCapas({ origen, alTerminar }: { origen: OrigenEntrada; alTerminar: () => void }) {
+  const malla = useRef<HTMLDivElement>(null);
   const terminar = useRef(alTerminar);
   useLayoutEffect(() => {
     terminar.current = alTerminar;
   });
 
   useLayoutEffect(() => {
-    const el = capa.current;
-    if (!el) return;
+    const el = malla.current;
+    const hoja = el?.closest<HTMLElement>("[data-hoja-panel]");
+    if (!el || !hoja) return;
     const animaciones: Animation[] = [];
-    const { tarjeta, hoja } = origen;
-
-    const malla = el.querySelector<HTMLElement>("[data-entrada-malla]");
-    if (malla) {
+    const { tarjeta: t, hoja: h } = origen;
+    const cancelar = despuesDeUnCuadro(() => {
+      // Malla: solo clip-path; al final se apaga hacia abajo (como el brillo) y se va
+      const desde = `inset(${t.top}px ${h.width - t.left - t.width}px ${h.height - t.top - t.height}px ${t.left}px round 22px)`;
+      const hasta = `inset(0px 0px 0px 0px round ${RADIO_HOJA}px ${RADIO_HOJA}px 0px 0px)`;
+      animaciones.push(el.animate([{ clipPath: desde }, { clipPath: hasta }], { duration: MALLA, easing: CURVA_TARJETA, fill: "both" }));
       animaciones.push(
-        malla.animate(
+        el.animate(
           [
-            { left: `${tarjeta.left}px`, top: `${tarjeta.top}px`, width: `${tarjeta.width}px`, height: `${tarjeta.height}px`, borderRadius: "22px", opacity: 1 },
-            { left: `${hoja.left}px`, top: `${hoja.top}px`, width: `${hoja.width}px`, height: `${hoja.height}px`, borderRadius: "28px 28px 0 0", opacity: 1, offset: 0.78 },
-            { left: `${hoja.left}px`, top: `${hoja.top}px`, width: `${hoja.width}px`, height: `${hoja.height}px`, borderRadius: "28px 28px 0 0", opacity: 0 },
-          ],
-          { duration: 1150, easing: CURVA_TARJETA, fill: "both" },
+            { "--entrada-a": `${h.height}px`, "--entrada-b": `${h.height + 1}px`, opacity: 1 },
+            { "--entrada-a": "112px", "--entrada-b": "320px", opacity: 0 },
+          ] as Keyframe[],
+          { duration: MALLA_FIN, delay: MALLA, easing: "ease", fill: "both" },
         ),
       );
-      const velo = malla.querySelector<HTMLElement>(".malla-velo");
-      if (velo) animaciones.push(velo.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: "ease", fill: "both" }));
-    }
 
-    // Destino de cada carta: su cuadro en la galería (ya está montada debajo, invisible hasta que terminemos)
-    el.querySelectorAll<HTMLElement>("[data-vuelo]").forEach((carta, i) => {
-      const destino = document.querySelector<HTMLElement>(`[data-jugada-cuadro="${carta.dataset.vuelo}"]`)?.getBoundingClientRect();
-      const o = origen.cartas[i]!;
-      const desde: Keyframe = { left: `${o.x - 29}px`, top: `${o.y - 40}px`, width: "58px", height: "80px", transform: `rotate(${o.giro}deg)`, borderRadius: "13px" };
-      const hasta: Keyframe = destino
-        ? { left: `${destino.left}px`, top: `${destino.top}px`, width: `${destino.width}px`, height: `${destino.height}px`, transform: "rotate(0deg)", borderRadius: "22px" }
-        : { ...desde, opacity: 0 };
-      animaciones.push(carta.animate([desde, hasta], { duration: DURACION.jugadaEntrada, delay: i * ESCALON, easing: CURVA_CARTAS, fill: "both" }));
+      // Vista anterior: se desvanece; las cartas del mazo no viajan
+      const atras = hoja.querySelector<HTMLElement>("[data-entrada-atras]");
+      const cuadros = [...hoja.querySelectorAll<HTMLElement>("[data-jugada-cuadro]")];
+      const conCuadro = new Set(cuadros.map((c) => c.dataset.jugadaCuadro));
+      if (atras) {
+        animaciones.push(atras.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: "ease", fill: "both" }));
+        atras.querySelectorAll<HTMLElement>("[data-carta]").forEach((carta) => {
+          animaciones.push(
+            conCuadro.has(carta.dataset.carta)
+              ? carta.animate([{ opacity: 0 }, { opacity: 0 }], { duration: 300, fill: "both" })
+              : carta.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: "ease", fill: "both" }),
+          );
+        });
+      }
+
+      // FLIP: cada cuadro despega desde su carta
+      cuadros.forEach((cuadro, i) => {
+        const carta = origen.cartas.find((c) => c.id === cuadro.dataset.jugadaCuadro);
+        const r = cuadro.getBoundingClientRect();
+        const retraso = i * ESCALON;
+        const vuelo = { duration: DURACION.jugadaEntrada, delay: retraso, easing: CURVA_CARTAS, fill: "both" } as const;
+        if (!carta || !r.width) {
+          animaciones.push(cuadro.animate([{ opacity: 1 }, { opacity: 1 }], vuelo));
+          return;
+        }
+        const sx = carta.ancho / r.width;
+        const sy = carta.alto / r.height;
+        const g = (carta.giro * Math.PI) / 180;
+        // Con origen arriba a la izquierda: el centro local (ancho/2, alto/2) escalado y girado debe caer en el centro de la carta
+        const cx = (carta.ancho / 2) * Math.cos(g) - (carta.alto / 2) * Math.sin(g);
+        const cy = (carta.ancho / 2) * Math.sin(g) + (carta.alto / 2) * Math.cos(g);
+        const tx = carta.x - r.left - cx;
+        const ty = carta.y - r.top - cy;
+        animaciones.push(
+          cuadro.animate(
+            [
+              { transformOrigin: "0 0", transform: `translate(${tx}px, ${ty}px) rotate(${carta.giro}deg) scale(${sx}, ${sy})`, opacity: 1 },
+              { transformOrigin: "0 0", transform: "translate(0px, 0px) rotate(0deg) scale(1, 1)", opacity: 1 },
+            ],
+            vuelo,
+          ),
+        );
+        // La imagen, centrada y del ancho de la carta, como en el mazo
+        const imagen = cuadro.querySelector<HTMLElement>("[data-cuadro-imagen]");
+        if (imagen) {
+          const k = r.width / imagen.offsetWidth;
+          const dy = r.height / 2 - (imagen.offsetTop + imagen.offsetHeight / 2);
+          animaciones.push(imagen.animate([{ transform: `translateY(${dy}px) scale(${k})` }, { transform: "translateY(0px) scale(1)" }], vuelo));
+        }
+        // El texto, la cantidad y el chevron entran al aterrizar
+        cuadro.querySelectorAll<HTMLElement>("[data-cuadro-detalle]").forEach((d) =>
+          animaciones.push(d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: retraso + DURACION.jugadaEntrada, easing: "ease", fill: "both" })),
+        );
+      });
+
+      // Título al 35 %; la fila de arriba, el párrafo y las notas al 60 % de la malla
+      animaciones.push(...cruzarTextos(hoja, Math.round(MALLA * 0.35), 200));
+      hoja.querySelectorAll<HTMLElement>("[data-entrada-resto]").forEach((r) =>
+        animaciones.push(r.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: Math.round(MALLA * 0.6), easing: "ease", fill: "both" })),
+      );
+
+      void Promise.all(animaciones.map((a) => a.finished)).then(() => terminar.current(), () => {});
     });
-
-    void Promise.all(animaciones.map((a) => a.finished)).then(() => terminar.current(), () => {});
-    return () => animaciones.forEach((a) => a.cancel());
+    return () => {
+      cancelar();
+      animaciones.forEach((a) => a.cancel());
+    };
   }, [origen]);
 
-  return createPortal(
-    <div ref={capa} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] overflow-hidden">
-      <div data-entrada-malla className="absolute overflow-hidden" style={{ left: origen.tarjeta.left, top: origen.tarjeta.top, width: origen.tarjeta.width, height: origen.tarjeta.height }}>
-        <MallaViva dedo={null} />
-      </div>
-      {origen.cartas.map((c) => (
-        <span
-          key={c.id}
-          data-vuelo={c.id}
-          className="absolute overflow-hidden border-[2.5px] border-fondo shadow-flotante"
-          style={{ backgroundColor: c.color, left: c.x - 29, top: c.y - 40, width: 58, height: 80, transform: `rotate(${c.giro}deg)` } as CSSProperties}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- pieza decorativa en vuelo; la foto real está en el cuadro */}
-          <img src={c.imagen} alt="" className="absolute top-2.5 left-1/2 h-auto max-h-[70%] w-[84%] -translate-x-1/2 object-contain" />
-        </span>
-      ))}
-    </div>,
-    document.body,
+  return (
+    <div
+      ref={malla}
+      aria-hidden="true"
+      className="entrada-malla pointer-events-none absolute -left-5 z-[1]"
+      style={{
+        top: "calc(-1 * var(--cabecera, 79px) - 2px)",
+        width: origen.hoja.width,
+        height: origen.hoja.height,
+        clipPath: `inset(${origen.tarjeta.top}px ${origen.hoja.width - origen.tarjeta.left - origen.tarjeta.width}px ${origen.hoja.height - origen.tarjeta.top - origen.tarjeta.height}px ${origen.tarjeta.left}px round 22px)`,
+      }}
+    >
+      <MallaViva dedo={null} />
+    </div>
   );
+}
+
+/** Dónde va la vista anterior durante la entrada: exactamente donde estaba al tocar, aunque la cabecera haya crecido. */
+export function posicionAtras(origen: OrigenEntrada): CSSProperties {
+  return { top: `calc(${origen.cabecera - origen.scroll}px - var(--cabecera, 79px))` };
 }
 
 /**
@@ -119,6 +235,8 @@ export function BrilloJugada() {
 const CURVA_BARRIDO = "cubic-bezier(.65,0,.35,1)";
 /** Alto de la franja del degradado. */
 const FRANJA = 300;
+/** El centro de la franja (y el borde de la máscara) va de 150 px arriba de la hoja a 150 px debajo de su borde de abajo. */
+const MARGEN_BARRIDO = 150;
 /** Posiciones de las chispas dentro de la franja: [izquierda %, arriba px, retraso ms]. */
 const CHISPAS: [number, number, number][] = [
   [18, 150, 0],
@@ -130,8 +248,8 @@ const CHISPAS: [number, number, number][] = [
 
 /**
  * La franja del barrido (va en `decoracionEncima`, recortada a la forma de la hoja): los cuatro colores en vertical, dos brillos
- * crema, el grano y cinco chispas. Baja de arriba abajo en 1300 ms; su centro va de −0,72·H a 1,28·H (H = alto de la hoja), igual que el
- * borde de la máscara de `BarridoContenido`, así el borde difuminado siempre queda escondido debajo de la franja.
+ * crema, el grano y cinco chispas. Su centro va de −150 px a H + 150 px (H = alto de la hoja) en 1100 ms, igual que el borde de la
+ * máscara de `BarridoContenido`: entra en el primer cuadro y el borde difuminado siempre queda escondido debajo.
  */
 export function BarridoFranja({ alTerminar }: { alTerminar: () => void }) {
   const franja = useRef<HTMLDivElement>(null);
@@ -144,14 +262,14 @@ export function BarridoFranja({ alTerminar }: { alTerminar: () => void }) {
     const alto = el?.parentElement?.clientHeight ?? 0;
     if (!el || !alto) return;
     const a = el.animate(
-      [{ transform: `translateY(${-0.72 * alto - FRANJA / 2}px)` }, { transform: `translateY(${1.28 * alto - FRANJA / 2}px)` }],
+      [{ transform: `translateY(${-MARGEN_BARRIDO - FRANJA / 2}px)` }, { transform: `translateY(${alto + MARGEN_BARRIDO - FRANJA / 2}px)` }],
       { duration: DURACION.jugadaBarrido, easing: CURVA_BARRIDO, fill: "both" },
     );
     void a.finished.then(() => terminar.current(), () => {});
     return () => a.cancel();
   }, []);
   return (
-    <div ref={franja} className="barrido-franja" style={{ height: FRANJA }}>
+    <div ref={franja} className="barrido-franja" style={{ height: FRANJA, transform: `translateY(${-MARGEN_BARRIDO - FRANJA / 2}px)` }}>
       <i className="barrido-franja-color" />
       <i className="barrido-franja-brillo" />
       <i className="barrido-franja-grano" />
@@ -165,44 +283,48 @@ export function BarridoFranja({ alTerminar }: { alTerminar: () => void }) {
 }
 
 /**
- * La página nueva se descubre con una máscara (no con clip-path) cuyo borde difuminado va donde está la franja: de −0,72·H a 1,28·H
- * desde el borde de arriba de la hoja, en 1300 ms. Mientras tanto, lo de atrás (`atras`) baja a opacidad .45 con blur(4px) y
- * scale(.97), y el contenido nuevo sube 28 px.
+ * El detalle de una jugada, con o sin barrido. Siempre la misma estructura (así el detalle no se vuelve a montar al terminar).
+ * Con `activo`: la página nueva se descubre con una máscara cuyo borde difuminado (±0,08·H) va donde está la franja (de −150 px a
+ * H + 150 px desde el borde de arriba de la hoja, 1100 ms), sube 28 px, y lleva fondo opaco (con su propio brillo) hasta abajo de la
+ * hoja para que lo de atrás no se transparente. Lo de atrás (`atras`) baja a opacidad .45 con blur(4px) y scale(.97) con la misma
+ * curva, y se desmonta cuando termina la máscara. El título y la fila de arriba cruzan al 12 % (150 ms).
  */
-export function BarridoContenido({ atras, children }: { atras: ReactNode; children: ReactNode }) {
+export function BarridoContenido({ activo, atras, children }: { activo: number | null; atras: ReactNode; children: ReactNode }) {
   const nuevo = useRef<HTMLDivElement>(null);
   const viejo = useRef<HTMLDivElement>(null);
+  const [terminado, setTerminado] = useState<number | null>(null);
+  const conAtras = activo !== null && terminado !== activo;
   useLayoutEffect(() => {
     const el = nuevo.current;
-    const hoja = el?.closest<HTMLElement>("[role='dialog']");
-    if (!el || !hoja) return;
+    const hoja = el?.closest<HTMLElement>("[data-hoja-panel]");
+    if (activo === null || !el || !hoja) return;
     const h = hoja.getBoundingClientRect();
     const desde = el.getBoundingClientRect().top - h.top;
     el.style.setProperty("--barrido-borde", `${0.08 * h.height}px`);
-    const animaciones = [
-      el.animate([{ "--barrido-y": `${-0.72 * h.height - desde}px` }, { "--barrido-y": `${1.28 * h.height - desde}px` }] as Keyframe[], {
-        duration: DURACION.jugadaBarrido,
-        easing: CURVA_BARRIDO,
-        fill: "both",
-      }),
-      el.animate([{ transform: "translateY(28px)" }, { transform: "translateY(0)" }], { duration: DURACION.jugadaBarrido, easing: CURVA_BARRIDO, fill: "both" }),
-    ];
+    el.style.minHeight = `${h.height - desde}px`;
+    const tiempo = { duration: DURACION.jugadaBarrido, easing: CURVA_BARRIDO, fill: "both" } as const;
+    const mascara = el.animate(
+      [{ "--barrido-y": `${-MARGEN_BARRIDO - desde}px` }, { "--barrido-y": `${h.height + MARGEN_BARRIDO - desde}px` }] as Keyframe[],
+      tiempo,
+    );
+    const animaciones = [mascara, el.animate([{ transform: "translateY(28px)" }, { transform: "translateY(0)" }], tiempo), ...cruzarTextos(hoja, Math.round(DURACION.jugadaBarrido * 0.12), 150)];
     if (viejo.current)
-      animaciones.push(
-        viejo.current.animate([{ opacity: 1, filter: "none", transform: "scale(1)" }, { opacity: 0.45, filter: "blur(4px)", transform: "scale(.97)" }], {
-          duration: 900,
-          easing: "ease",
-          fill: "both",
-        }),
-      );
-    return () => animaciones.forEach((a) => a.cancel());
-  }, []);
+      animaciones.push(viejo.current.animate([{ opacity: 1, filter: "blur(0px)", transform: "scale(1)" }, { opacity: 0.45, filter: "blur(4px)", transform: "scale(.97)" }], tiempo));
+    void mascara.finished.then(() => setTerminado(activo), () => {});
+    return () => {
+      animaciones.forEach((a) => a.cancel());
+      el.style.removeProperty("min-height");
+    };
+  }, [activo]);
   return (
     <div className="relative">
-      <div ref={viejo} aria-hidden="true" inert className="pointer-events-none absolute inset-x-0 top-0 origin-top">
-        {atras}
-      </div>
-      <div ref={nuevo} className="barrido-nuevo relative">
+      {conAtras && (
+        <div ref={viejo} aria-hidden="true" inert className="pointer-events-none absolute inset-x-0 top-0 origin-top">
+          {atras}
+        </div>
+      )}
+      <div ref={nuevo} className={conAtras ? "barrido-nuevo relative isolate bg-fondo" : "relative"}>
+        {conAtras && <BrilloJugada />}
         {children}
       </div>
     </div>
