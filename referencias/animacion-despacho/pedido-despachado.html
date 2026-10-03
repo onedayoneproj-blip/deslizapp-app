@@ -33,7 +33,8 @@ html,body{background:#e9e1d2;font-family:'Figtree',sans-serif}
 .repetir{display:block;margin:16px auto;height:40px;padding:0 18px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;color:#174b3a;font:800 14px Figtree,sans-serif}
 </style></head>
 <body>
-<!-- Referencia visual de la animación de "Pedido despachado" (diseño B elegido por Lewis).
+<!-- Camión en capa superior: rueda sobre la barra y puede pasar por encima del asa y la X; no reserva espacio arriba de la barra.
+     Referencia visual de la animación de "Pedido despachado" (diseño B elegido por Lewis).
      Maqueta estática: colores en hex sólo aquí; en la app usar SIEMPRE tokens de components/ui y globals.css.
      El fondo #93a89c imita el velo de la app detrás del sheet. Las fotos son vacías: en la app van las miniaturas reales. -->
 <div class="marco" id="marco">
@@ -50,18 +51,18 @@ html,body{background:#e9e1d2;font-family:'Figtree',sans-serif}
 <div style="position: relative; display: flex; justify-content: center; height: 34px;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
 <button type="button" aria-label="Cerrar" style="position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border: none; border-radius: 999px; background: #f3ead9; color: #174b3a; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
 <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px;">
-<div style="position: relative; width: 342px; height: 150px;">
-<div class="b-camion" style="position: absolute; left: -60px; top: 28px; display: flex; align-items: center; gap: 4px;">
+<div style="position: relative; width: 342px; height: 48px; margin-top: 44px;">
+<div class="b-camion" style="position: absolute; left: -60px; top: -44px; z-index: 5; pointer-events: none; display: flex; align-items: center; gap: 4px;">
 <svg class="b-lineas" width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><g stroke="#ff834f" stroke-width="4" stroke-linecap="round"><path d="M4 10h22"></path><path d="M10 20h22"></path><path d="M4 30h22"></path></g></svg>
 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.5h11v10h-11z" fill="#dcebe2"></path><path d="M13.5 9.5h4l3 3.5v3.5h-7z" fill="#dcebe2"></path><circle cx="6.5" cy="17.5" r="2" fill="#fff9ee"></circle><circle cx="17" cy="17.5" r="2" fill="#fff9ee"></circle></svg>
 </div>
-<div style="position: absolute; left: 0; right: 50px; top: 102px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+<div style="position: absolute; left: 0; right: 50px; top: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
 <div style="height: 8px; border-radius: 999px; background: #174b3a;"></div>
 <div style="height: 8px; border-radius: 999px; background: #174b3a;"></div>
 <div style="height: 8px; border-radius: 999px; background: #efe4d2; overflow: hidden;"><div class="b-llena" style="height: 8px; border-radius: 999px; background: #174b3a;"></div></div>
 </div>
-<div class="b-sello" style="position: absolute; right: 0; top: 88px; width: 36px; height: 36px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5c1.6 1.6 3 3 4.5 4.5C12.5 13 15.5 9.5 19 6.5"></path></svg></div>
-<div style="position: absolute; left: 0; right: 50px; top: 124px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; font-weight: 800; color: #4f6a5e;">
+<div class="b-sello" style="position: absolute; right: 0; top: -6px; width: 36px; height: 36px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5c1.6 1.6 3 3 4.5 4.5C12.5 13 15.5 9.5 19 6.5"></path></svg></div>
+<div style="position: absolute; left: 0; right: 50px; top: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; font-weight: 800; color: #4f6a5e;">
 <span>Recibido</span><span>Confirmado</span><span class="b-rotulo" style="color: #174b3a;">Despachado</span>
 </div>
 </div>
