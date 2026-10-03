@@ -115,7 +115,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         }}
         className={`tocable flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left ${demo ? "mt-3" : ""}`}
       >
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rosa text-lg">✦</span>
+        <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center text-destacado text-texto">✦</span>
         <span className="min-w-0 flex-1">
           <span className="block font-extrabold">Mi marca</span>
           <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>

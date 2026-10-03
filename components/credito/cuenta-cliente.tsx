@@ -50,9 +50,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
               key={m.tipo === "abono" ? m.abonoId : `compra-${m.pedidoId}`}
               href={`/pedidos/${m.pedidoId}`}
               inicio={
-                <span className={`grid size-10 place-items-center rounded-full ${m.tipo === "abono" ? "bg-accion-suave" : "bg-superficie-hundida"} text-texto`}>
-                  {m.tipo === "abono" ? <IconoMoneda tamano={20} /> : <IconoPedidos tamano={20} strokeWidth={2.2} />}
-                </span>
+                m.tipo === "abono" ? <IconoMoneda tamano={24} className="text-exito-texto" /> : <IconoPedidos tamano={24} className="text-texto" />
               }
               titulo={m.tipo === "compra" ? `Compra · pedido #${m.numero}` : `Abono · ${nombreMetodo(m.metodo)}`}
               detalle={`${dia(m.fecha)}${m.tipo === "compra" && m.pagoFechaAcordada ? ` · quedó en pagar el ${diaCorto(m.pagoFechaAcordada)}` : ""}${m.tipo === "abono" && m.nota ? ` · ${m.nota}` : ""}`}
