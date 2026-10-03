@@ -4,7 +4,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { textoFechaDeudaAccesible } from "@/lib/credito";
-import { formatearPesos, haceCuanto } from "@/lib/formato";
+import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
@@ -131,12 +131,12 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-secundario font-bold text-texto-secundario">
-          #{p.numero} · {haceCuanto(p.creadoEn)}
+          #{p.numero} · {haceCuantoSinHora(p.creadoEn)}
         </span>
         {/* Cada pestaña ya es un estado: la tarjeta lleva la forma de pago, no el estado */}
         <span className="flex items-center gap-1.5">
-          <EtiquetaPago pedido={p} />
-          {aCredito && p.saldo === 0 && <Etiqueta tono="exito">Pagado</Etiqueta>}
+          {/* Una sola etiqueta: en crédito saldado, "Pagado" en lugar de "A crédito" */}
+          {aCredito && p.saldo === 0 ? <Etiqueta tono="exito">Pagado</Etiqueta> : <EtiquetaPago pedido={p} />}
         </span>
       </div>
       <p className="mt-1 min-w-0 truncate text-destacado">{cliente ?? "Cliente sin nombre"}</p>
@@ -153,7 +153,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
             })}
           </div>
           <span className="min-w-0 truncate text-secundario text-texto-secundario">
-            {unidades} {unidades === 1 ? "producto" : "productos"} · {p.origen === "catalogo" ? "Del catálogo" : "Manual"}
+            {unidades} {unidades === 1 ? "producto" : "productos"}
           </span>
         </div>
         <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
