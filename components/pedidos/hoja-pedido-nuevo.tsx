@@ -20,8 +20,8 @@ import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type Es
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
-import { IconoChevronDerecha, IconoMas, IconoMenos } from "../iconos";
-import { Alerta, Aviso, Avatar, Boton, BotonIcono, Campo } from "../ui";
+import { IconoChevronDerecha, IconoMas } from "../iconos";
+import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
@@ -358,17 +358,13 @@ function Formulario({
                 {bloqueado ? (
                   <span className="shrink-0 font-display text-titulo-seccion tabular-nums">{cantidad}</span>
                 ) : (
-                  <div className="flex shrink-0 items-center gap-1">
-                    <BotonIcono etiqueta={`Quitar uno de ${p.nombre}`} onClick={() => cambiar(p, -1)}>
-                      <IconoMenos tamano={18} />
-                    </BotonIcono>
-                    <span className="min-w-[26px] text-center font-display text-titulo-seccion tabular-nums" aria-live="polite">
-                      {cantidad}
-                    </span>
-                    <BotonIcono tono="accion" etiqueta={`Agregar otro ${p.nombre}`} onClick={() => cambiar(p, 1)} disabled={cantidad >= cantidadMaxima(p)}>
-                      <IconoMas tamano={18} />
-                    </BotonIcono>
-                  </div>
+                  <Cantidad
+                    valor={cantidad}
+                    max={cantidadMaxima(p)}
+                    alCambiar={(v) => cambiar(p, v - cantidad)}
+                    etiquetaQuitar={`Quitar uno de ${p.nombre}`}
+                    etiquetaAgregar={`Agregar otro ${p.nombre}`}
+                  />
                 )}
               </li>
             ))}

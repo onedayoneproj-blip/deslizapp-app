@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
+import { IconoWhatsApp } from "../iconos";
 import { clases, FOCO, TOQUE_44 } from "./comunes";
 
 export type JerarquiaBoton = "principal" | "secundario" | "terciario" | "peligro" | "resalte";
@@ -35,6 +36,10 @@ type Comun = {
   /** Muestra tres puntos y no responde a toques (evita el doble envío). */
   cargando?: boolean;
   deshabilitado?: boolean;
+  /** Solo con jerarquia="terciario": "peligro" pone el texto en `peligro` (Cancelar pedido, Borrar abono), sin contorno. */
+  tono?: "neutro" | "peligro";
+  /** "Escribir por WhatsApp": siempre compacto, relleno `accion` y con el icono de WhatsApp (docs/09 §5). */
+  whatsapp?: boolean;
   /** Solo con jerarquia="peligro" dentro de una Alerta: relleno de peligro. */
   relleno?: boolean;
   className?: string;
@@ -54,7 +59,10 @@ type ComoEnlace = Comun & Omit<ComponentProps<"a">, "children" | "className" | "
  * promesa, el botón se bloquea hasta que termine: un segundo toque no repite la acción.
  */
 export function Boton(props: ComoBoton | ComoEnlace) {
-  const { jerarquia = "principal", tamano = "normal", icono, anchoCompleto, cargando = false, deshabilitado = false, relleno, className, children, ...resto } = props;
+  const { jerarquia: jerarquiaPedida = "principal", tamano: tamanoPedido = "normal", tono = "neutro", whatsapp = false, icono: iconoPedido, anchoCompleto, cargando = false, deshabilitado = false, relleno, className, children, ...resto } = props;
+  const jerarquia = whatsapp ? "principal" : jerarquiaPedida;
+  const tamano = whatsapp ? "compacto" : tamanoPedido;
+  const icono = whatsapp ? <IconoWhatsApp tamano={18} /> : iconoPedido;
   const [ocupado, setOcupado] = useState(false);
   // Candado síncrono: un segundo toque antes de volver a pintar tampoco pasa
   const enCurso = useRef(false);
@@ -66,7 +74,7 @@ export function Boton(props: ComoBoton | ComoEnlace) {
     FOCO,
     TAMANO[tamano],
     jerarquia === "terciario" ? PX_TERCIARIO[tamano] : PX[tamano],
-    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : JERARQUIA[jerarquia],
+    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : jerarquia === "terciario" && tono === "peligro" ? "border-transparent bg-transparent text-peligro" : JERARQUIA[jerarquia],
     anchoCompleto && "w-full",
     deshabilitado && "opacity-40",
     bloqueado ? "cursor-not-allowed" : "cursor-pointer",

@@ -6,6 +6,7 @@ import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
 import type { Abono, PropuestaInventario, PaginaAjustesInventario, AjusteInventario, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { MetodoAbono } from "../types";
+import type { CambiosAbono } from "../credito";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
@@ -105,6 +106,11 @@ export type FuenteDatos = {
    * MontoMayorQueDeuda si supera lo que se debe.
    */
   registrarAbono(datos: DatosAbonoNuevo): Promise<Abono[]>;
+  /**
+   * Edita un abono (monto, método, fecha y nota; real: RPC `editar_abono`). Sigue en el mismo pedido. Si el monto pasa de lo que ese
+   * pedido debía antes del abono lanza MontoMayorQueDeuda con `deuda` = el máximo permitido.
+   */
+  editarAbono(tiendaId: string, abonoId: string, cambios: CambiosAbono): Promise<Abono>;
   /** Borra un abono registrado por error; la deuda vuelve a subir (real: RPC `eliminar_abono`). */
   eliminarAbono(tiendaId: string, abonoId: string): Promise<void>;
   /** Los clientes que deben (uno por cliente, ordenados: atrasados, con fecha, sin fecha), el total por cobrar y lo cobrado este mes. */

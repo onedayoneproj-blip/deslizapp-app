@@ -22,6 +22,7 @@ import {
   Buscador,
   Campo,
   CampoMonto,
+  Cantidad,
   Contador,
   ControlSegmentado,
   Etiqueta,
@@ -204,6 +205,7 @@ const TAMANOS: TamanoBoton[] = ["grande", "normal", "compacto"];
 
 function Botones() {
   const [contador, setContador] = useState(0);
+  const [cantidadEj, setCantidadEj] = useState(2);
   return (
     <Seccion numero="5" titulo="Botones" nota="Píldora, extrabold. Una sola acción principal por vista; destruir nunca es principal.">
       {JERARQUIAS.map((j) => (
@@ -225,14 +227,17 @@ function Botones() {
         </div>
       ))}
       <div className="flex flex-col gap-2">
-        <Rotulo>con icono · enlace · peligro relleno (solo en Alerta) · de solo icono</Rotulo>
+        <Rotulo>Escribir por WhatsApp (compacto, relleno accion) · enlace · terciario peligro (pila de acciones, filas) · peligro relleno (solo en Alerta) · de solo icono</Rotulo>
         <Fila>
           <Boton icono={<IconoMas tamano={20} strokeWidth={2.4} />}>Crear pedido</Boton>
-          <Boton jerarquia="secundario" icono={<IconoWhatsApp tamano={20} />} href="https://wa.me/" target="_blank" rel="noreferrer">
-            Recordarle
+          <Boton whatsapp href="https://wa.me/" target="_blank" rel="noreferrer">
+            Escribir
           </Boton>
           <Boton jerarquia="terciario" href="/diseno#s-5">
             Ver historial
+          </Boton>
+          <Boton jerarquia="terciario" tono="peligro">
+            Cancelar pedido
           </Boton>
           <Boton jerarquia="peligro" relleno>
             Sí, borrar
@@ -243,6 +248,13 @@ function Botones() {
           <BotonIcono etiqueta="Agregar otro" tono="accion">
             <IconoMas tamano={18} />
           </BotonIcono>
+        </Fila>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>cantidad (− 1 +): cuadrados de 36 · el + se apaga en el tope del stock</Rotulo>
+        <Fila>
+          <Cantidad valor={cantidadEj} max={4} alCambiar={setCantidadEj} />
+          <Cantidad valor={4} max={4} alCambiar={() => {}} />
         </Fila>
       </div>
       <div className="flex flex-col gap-2">
@@ -265,7 +277,7 @@ function Botones() {
 function Elegir() {
   const [filtro, setFiltro] = useState<"todos" | "repiten" | "nuevos" | "deben" | "dormidos">("todos");
   const [metodo, setMetodo] = useState<"efectivo" | "transferencia" | "otro">("efectivo");
-  const [pago, setPago] = useState<"todo" | "credito">("todo");
+  const [vistaVentas, setVistaVentas] = useState<"dia" | "semana" | "mes">("semana");
   const [vista, setVista] = useState<"hoy" | "semana" | "mes">("semana");
   return (
     <Seccion numero="6" titulo="Elegir: pastillas, opciones y controles" nota="Filtro (verde lleno), opción de formulario (menta con check) y control segmentado.">
@@ -306,14 +318,15 @@ function Elegir() {
         ]}
       />
       <div className="flex max-w-90 flex-col gap-2">
-        <Rotulo>control segmentado</Rotulo>
+        <Rotulo>control segmentado: solo cambia la vista o el modo, no guarda un dato</Rotulo>
         <ControlSegmentado
-          etiqueta="¿Cómo te paga?"
-          valor={pago}
-          alCambiar={setPago}
+          etiqueta="Ver ventas por"
+          valor={vistaVentas}
+          alCambiar={setVistaVentas}
           opciones={[
-            { id: "todo", texto: "Pagó todo" },
-            { id: "credito", texto: "A crédito" },
+            { id: "dia", texto: "Día" },
+            { id: "semana", texto: "Semana" },
+            { id: "mes", texto: "Mes" },
           ]}
         />
       </div>

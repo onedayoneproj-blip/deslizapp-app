@@ -1,7 +1,7 @@
 // Ventas a crédito y abonos en la demo (la misma regla que las RPC registrar_abono y eliminar_abono de Supabase).
 // Las cuentas (repartir, deuda, atraso) viven en lib/credito.ts; aquí solo se aplican sobre la base en memoria.
 
-import { conPago, cuentaDeCliente, cuentasPorCobrar, planearAbono, type CuentaCliente, type CuentasPorCobrar, type DatosAbono, type ErrorAbono, type PedidoPago } from "../credito";
+import { conPago, cuentaDeCliente, cuentasPorCobrar, planearAbono, planearEdicionAbono, type CambiosAbono, type CuentaCliente, type CuentasPorCobrar, type DatosAbono, type ErrorAbono, type PedidoPago } from "../credito";
 import type { Abono } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos, MontoMayorQueDeuda, PedidoConAbonos } from "./errores";
@@ -47,6 +47,17 @@ export function registrarAbonoDemo(db: DB, datos: NuevoAbono, nuevoId: () => str
     creadoEn: ahora,
   }));
   return { db: { ...db, abonos: [...db.abonos, ...abonos] }, abonos };
+}
+
+/** Edita un abono (monto, método, fecha y nota); sigue en el mismo pedido. Como la RPC editar_abono. */
+export function editarAbonoDemo(db: DB, tiendaId: string, abonoId: string, cambios: CambiosAbono, ahora: number): { db: DB; abono: Abono } {
+  const actual = db.abonos.find((a) => a.id === abonoId && a.tiendaId === tiendaId);
+  if (!actual) throw new DatosInvalidos("Ese abono ya no existe. Actualiza la pantalla.");
+  const pedido = pedidosConPago(db, tiendaId).find((p) => p.id === actual.pedidoId);
+  const plan = planearEdicionAbono(pedido ?? { saldo: 0 }, actual, cambios, ahora);
+  if ("error" in plan) throw errorDeAbono(plan);
+  const abono: Abono = { ...actual, ...plan };
+  return { db: { ...db, abonos: db.abonos.map((a) => (a.id === abonoId ? abono : a)) }, abono };
 }
 
 /** Borra un abono registrado por error (la deuda vuelve a subir). */

@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { METODOS, montoDeTexto } from "@/lib/credito";
+import { diaDeSantoDomingo, METODOS, montoDeTexto } from "@/lib/credito";
 import { useTiendaActiva } from "@/lib/data/consulta";
-import { mensajeDeError } from "@/lib/data/errores";
+import { MontoMayorQueDeuda, mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
@@ -31,6 +31,7 @@ export function HojaAbono({
   pedidos = 1,
   deuda,
   alGuardar,
+  abono,
 }: {
   abierta: boolean;
   alCerrar: () => void;
@@ -43,9 +44,15 @@ export function HojaAbono({
   deuda: number;
   /** Los abonos creados (uno por pedido al que se aplicó). */
   alGuardar?: (abonos: Abono[]) => void;
+  /**
+   * Para EDITAR un abono ya registrado (RPC editar_abono): la hoja trae sus datos, el título es "Editar abono" y el botón
+   * "Guardar cambios". Se queda en su pedido (no hay reparto entre pedidos). Aquí `deuda` es lo máximo que puede valer (el saldo
+   * del pedido + el monto actual del abono).
+   */
+  abono?: Abono;
 }) {
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Registrar abono" altura="grande">
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo={abono ? "Editar abono" : "Registrar abono"} altura="grande">
       <Formulario
         clienteId={clienteId}
         nombreCliente={nombreCliente}
@@ -55,6 +62,7 @@ export function HojaAbono({
         deuda={deuda}
         alGuardar={alGuardar}
         alCerrar={alCerrar}
+        abono={abono}
       />
     </Hoja>
   );
@@ -69,6 +77,7 @@ function Formulario({
   deuda,
   alGuardar,
   alCerrar,
+  abono,
 }: {
   clienteId: string;
   nombreCliente: string;
@@ -78,23 +87,31 @@ function Formulario({
   deuda: number;
   alGuardar?: (abonos: Abono[]) => void;
   alCerrar: () => void;
+  abono?: Abono;
 }) {
-  const { registrarAbono } = useData();
+  const { registrarAbono, editarAbono } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
-  const [texto, setTexto] = useState("");
-  const [metodo, setMetodo] = useState<MetodoAbono>("efectivo");
-  const [dia, setDia] = useState(() => diaLocal());
-  const [nota, setNota] = useState("");
+  const [texto, setTexto] = useState(abono ? String(abono.monto) : "");
+  const [metodo, setMetodo] = useState<MetodoAbono>(abono?.metodo ?? "efectivo");
+  const [dia, setDia] = useState(() => (abono ? diaDeSantoDomingo(Date.parse(abono.fecha)) : diaLocal()));
+  const [nota, setNota] = useState(abono?.nota ?? "");
   const [guardando, setGuardando] = useState(false);
+  // Lo máximo que dijo la base al editar (por si el saldo cambió mientras tanto)
+  const [maximoBase, setMaximoBase] = useState<number | null>(null);
 
   const monto = montoDeTexto(texto);
-  const pasaDeLaDeuda = monto > deuda;
+  const tope = maximoBase ?? deuda;
+  const pasaDeLaDeuda = monto > tope;
   const resta = deuda - monto;
   const fecha = fechaDeVenta(dia);
   const puedeGuardar = monto > 0 && !pasaDeLaDeuda && fecha !== null && !guardando;
-  // Con un monto o una nota escritos y sin guardar, cerrar la hoja pregunta
-  useAvisarAlSalir(monto > 0 || nota.trim() !== "");
+  // Con un monto o una nota escritos y sin guardar (al editar: con algo distinto a lo guardado), cerrar la hoja pregunta
+  const diaOriginal = abono ? diaDeSantoDomingo(Date.parse(abono.fecha)) : null;
+  const hayCambios = abono
+    ? monto !== abono.monto || metodo !== abono.metodo || dia !== diaOriginal || nota.trim() !== (abono.nota ?? "")
+    : monto > 0 || nota.trim() !== "";
+  useAvisarAlSalir(hayCambios && !guardando);
   const primerNombre = nombreCliente.split(" ")[0] ?? nombreCliente;
 
   // Botones rápidos: solo los que no superan lo que se debe, sin repetir (Todo, Mitad y montos fijos)
@@ -110,6 +127,18 @@ function Formulario({
     if (!puedeGuardar || fecha === null) return;
     setGuardando(true);
     try {
+      if (abono) {
+        // Un día que no se tocó conserva su hora; otro día = mediodía de ese día (nunca futuro)
+        await editarAbono(tiendaId, abono.id, {
+          monto,
+          metodo,
+          fecha: dia === diaOriginal ? abono.fecha : dia === diaLocal() ? new Date().toISOString() : fecha,
+          nota: nota.trim() || null,
+        });
+        toast("Abono actualizado");
+        alCerrar();
+        return;
+      }
       // Hoy = ahora; un día pasado = mediodía de ese día (nunca una fecha futura)
       const abonos = await registrarAbono({
         tiendaId,
@@ -124,6 +153,11 @@ function Formulario({
       alGuardar?.(abonos);
       alCerrar();
     } catch (e) {
+      if (abono && e instanceof MontoMayorQueDeuda) {
+        setMaximoBase(e.deuda);
+        setGuardando(false);
+        return;
+      }
       toast(mensajeDeError(e, "No se pudo guardar el abono. Inténtalo otra vez."));
       setGuardando(false);
     }
@@ -131,10 +165,16 @@ function Formulario({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-secundario text-texto-secundario">
-        {primerNombre} debe <b className="text-texto">{formatearPesos(deuda)}</b>{" "}
-        {pedidoId ? `del pedido #${numeroPedido}` : pedidos === 1 ? "en 1 pedido" : `en ${pedidos} pedidos`}
-      </p>
+      {abono ? (
+        <p className="text-secundario text-texto-secundario">
+          Abono de {primerNombre} al pedido #{numeroPedido}
+        </p>
+      ) : (
+        <p className="text-secundario text-texto-secundario">
+          {primerNombre} debe <b className="text-texto">{formatearPesos(deuda)}</b>{" "}
+          {pedidoId ? `del pedido #${numeroPedido}` : pedidos === 1 ? "en 1 pedido" : `en ${pedidos} pedidos`}
+        </p>
+      )}
 
       <CampoMonto
         tamano="grande"
@@ -142,15 +182,17 @@ function Formulario({
         etiquetaAccesible="Monto del abono, en pesos"
         valor={texto}
         alCambiar={setTexto}
-        error={pasaDeLaDeuda ? `Te debe ${formatearPesos(deuda)}; no puedes abonar más que eso.` : undefined}
+        error={pasaDeLaDeuda ? (abono ? `Lo máximo para este abono es ${formatearPesos(tope)}` : `Te debe ${formatearPesos(deuda)}; no puedes abonar más que eso.`) : undefined}
       />
 
+      {!abono && (
       <GrupoOpciones
         etiqueta="Monto rápido"
         valor={rapidos.find((r) => r.monto === monto)?.texto ?? null}
         alCambiar={(t) => setTexto(String(rapidos.find((r) => r.texto === t)?.monto ?? ""))}
         opciones={rapidos.map((r) => ({ id: r.texto, texto: r.texto }))}
       />
+      )}
 
       <GrupoOpciones titulo="¿Cómo te pagó?" valor={metodo} alCambiar={setMetodo} opciones={METODOS.map((m) => ({ id: m.id, texto: m.texto }))} />
 
@@ -176,12 +218,12 @@ function Formulario({
       </div>
 
       <div aria-live="polite" className="empty:hidden">
-        {monto > 0 && !pasaDeLaDeuda && resta === 0 && (
+        {!abono && monto > 0 && !pasaDeLaDeuda && resta === 0 && (
           <Aviso tono="exito" icono={<IconoCheckCirculo tamano={18} className="text-texto" />} className="mov-aparece font-bold">
             Con este abono queda saldado
           </Aviso>
         )}
-        {monto > 0 && !pasaDeLaDeuda && resta > 0 && (
+        {!abono && monto > 0 && !pasaDeLaDeuda && resta > 0 && (
           <Aviso tono="neutro" className="mov-aparece">
             Después de este abono debe <b>{formatearPesos(resta)}</b>
           </Aviso>
@@ -189,7 +231,7 @@ function Formulario({
       </div>
 
       <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
-        Guardar abono
+        {abono ? "Guardar cambios" : "Guardar abono"}
       </Boton>
     </div>
   );

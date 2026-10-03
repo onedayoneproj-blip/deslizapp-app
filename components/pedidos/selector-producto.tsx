@@ -8,9 +8,8 @@ import { resaltar } from "@/lib/texto";
 import type { Producto, Promo } from "@/lib/types";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { Foto } from "../foto";
-import { IconoMas, IconoMenos } from "../iconos";
 import { FilaLista, ListaSeleccion, PildoraSeleccion, SelectorBusqueda } from "../selector-busqueda";
-import { BotonIcono, Etiqueta, FilaPastillas } from "../ui";
+import { BotonCantidad, Cantidad, Etiqueta, FilaPastillas } from "../ui";
 
 const TODAS = "__todas";
 
@@ -132,22 +131,10 @@ function FilaProducto({
       </div>
       {etiqueta ? (
         <Etiqueta tono="fuerte">{etiqueta}</Etiqueta>
+      ) : cantidad > 0 ? (
+          <Cantidad valor={cantidad} max={enTope ? cantidad : undefined} alCambiar={(v) => alCambiar(p, v - cantidad)} etiquetaQuitar={`Quitar uno de ${p.nombre}`} etiquetaAgregar={`Agregar ${p.nombre}`} />
       ) : (
-        <div className="flex shrink-0 items-center gap-1">
-          {cantidad > 0 && (
-            <>
-              <BotonIcono etiqueta={`Quitar uno de ${p.nombre}`} onClick={() => alCambiar(p, -1)}>
-                <IconoMenos tamano={18} />
-              </BotonIcono>
-              <span className="min-w-[26px] text-center font-display text-titulo-seccion tabular-nums" aria-live="polite">
-                {cantidad}
-              </span>
-            </>
-          )}
-          <BotonIcono tono="accion" etiqueta={`Agregar ${p.nombre}`} onClick={() => alCambiar(p, 1)} disabled={enTope}>
-            <IconoMas tamano={18} />
-          </BotonIcono>
-        </div>
+        <BotonCantidad tipo="mas" etiqueta={`Agregar ${p.nombre}`} onClick={() => alCambiar(p, 1)} deshabilitado={enTope} />
       )}
     </div>
   );

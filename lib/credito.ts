@@ -254,6 +254,33 @@ export function planearAbono(
 }
 
 // ---------------------------------------------------------------------------
+// Editar un abono (la misma regla de la RPC editar_abono; la demo la usa tal cual)
+// ---------------------------------------------------------------------------
+
+export type CambiosAbono = { monto: number; metodo: MetodoAbono; fecha: string; nota?: string | null };
+
+/**
+ * Valida la edición de un abono. Se queda en su pedido; el monto nuevo no puede pasar de lo que el pedido debía antes de ese
+ * abono (su saldo actual + el monto viejo). En `monto_mayor_que_deuda`, `deuda` es ese máximo.
+ */
+export function planearEdicionAbono(
+  pedido: Pick<PedidoPago, "saldo">,
+  abono: { monto: number },
+  cambios: CambiosAbono,
+  ahora: number,
+): { monto: number; metodo: MetodoAbono; fecha: string; nota: string | null } | ErrorAbono {
+  const nota = (cambios.nota ?? "").trim() || null;
+  if (!esMontoValido(cambios.monto)) return { error: "monto_invalido" };
+  if (!METODOS.some((m) => m.id === cambios.metodo)) return { error: "metodo_invalido" };
+  if (nota !== null && nota.length > NOTA_ABONO_MAX) return { error: "nota_invalida" };
+  const ms = Date.parse(cambios.fecha);
+  if (Number.isNaN(ms) || ms > ahora + DIA_MS) return { error: "fecha_invalida" };
+  const maximo = pedido.saldo + abono.monto;
+  if (cambios.monto > maximo) return { error: "monto_mayor_que_deuda", deuda: maximo };
+  return { monto: cambios.monto, metodo: cambios.metodo, fecha: new Date(ms).toISOString(), nota };
+}
+
+// ---------------------------------------------------------------------------
 // Cuentas por cobrar
 // ---------------------------------------------------------------------------
 

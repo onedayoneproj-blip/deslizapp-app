@@ -69,7 +69,7 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
       <div className="flex items-center justify-between gap-3">
         <div className="flex h-11 min-w-0 items-center gap-2.5">
           <p className="font-display text-titulo-seccion text-texto">Factura</p>
-          <Etiqueta>{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</Etiqueta>
+          <Etiqueta tono={pedido.pagoModo === "credito" ? "atencion" : "neutro"}>{pedido.pagoModo === "credito" ? "A crédito" : "Al contado"}</Etiqueta>
         </div>
         <div className="flex gap-2">
           <BotonIcono etiqueta="Descargar factura" title="Descargar factura" onClick={() => setDescargaAbierta(true)} disabled={preparando || !factura}>

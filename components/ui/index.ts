@@ -4,6 +4,7 @@ export { Alerta } from "./alerta";
 export { Avatar } from "./avatar";
 export { Aviso, type TonoAviso } from "./aviso";
 export { Boton, BotonIcono, type JerarquiaBoton, type TamanoBoton } from "./boton";
+export { BotonCantidad, Cantidad } from "./cantidad";
 export { Buscador, Campo, CampoMonto, soloDigitos } from "./campo";
 export { ControlSegmentado } from "./control-segmentado";
 export { Contador, Etiqueta, type TonoEtiqueta } from "./etiqueta";

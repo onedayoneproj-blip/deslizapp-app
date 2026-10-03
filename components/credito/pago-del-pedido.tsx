@@ -8,11 +8,12 @@ import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import type { Abono, Cliente, PedidoConItems } from "@/lib/types";
 import { IconoCheck, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
-import { Alerta, Boton, Etiqueta, Tarjeta } from "../ui";
+import { Boton, Etiqueta, FilaLista, Tarjeta } from "../ui";
 import { useToast } from "../toast";
 import { BarraPago, LineaFecha } from "./comunes";
 import { diaDeOpcion, SelectorFechaPago, type FechaPago } from "./campos-pago";
 import { HojaAbono } from "./hoja-abono";
+import { HojaDetalleAbono } from "./hoja-detalle-abono";
 import { TarjetaSaldado } from "./tarjeta-saldado";
 
 const DIA_MS = 24 * 60 * 60 * 1000;
@@ -37,16 +38,16 @@ function marcarVisto(pedidoId: string) {
 
 /**
  * "Pago" del detalle del pedido (referencias/credito-abonos/Pedido.dc.html). A crédito: "Debe" en grande, lo pagado, la barra,
- * cuándo quedó en pagar y la lista de abonos (cada uno se puede borrar con confirmación), con "+ Registrar abono" y "Recordarle
+ * cuándo quedó en pagar y la lista de abonos (cada fila abre su hoja con Editar y Borrar), con "+ Registrar abono" y "Recordarle
  * por WhatsApp". De contado: una línea "Pagado" y "Cambiar a crédito". Al saldarse, la tarjeta verde con confeti (una sola vez).
  */
 export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cliente: Cliente | null }) {
-  const { eliminarAbono, cambiarPagoPedido, getDueno } = useData();
+  const { cambiarPagoPedido, getDueno } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
   const toast = useToast();
   const [abonando, setAbonando] = useState(false);
-  const [borrando, setBorrando] = useState<string | null>(null);
+  const [viendo, setViendo] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [cambiando, setCambiando] = useState(false);
   const [fecha, setFecha] = useState<FechaPago>({ opcion: "sin", dia: null });
@@ -82,13 +83,6 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
       setOcupado(false);
     }
   };
-
-  const borrar = (a: Abono) =>
-    correr(async () => {
-      await eliminarAbono(tiendaId, a.id);
-      setBorrando(null);
-      toast(`Abono borrado. La deuda subió ${formatearPesos(a.monto)}.`);
-    }, "No se pudo borrar el abono. Inténtalo otra vez.");
 
   const pasarACredito = () =>
     correr(async () => {
@@ -156,7 +150,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
                 Pagado
               </Etiqueta>
             ) : (
-              <Etiqueta>A crédito</Etiqueta>
+              <Etiqueta tono="atencion">A crédito</Etiqueta>
             )}
           </div>
 
@@ -179,31 +173,20 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
           )}
 
           {pedido.abonos.length > 0 && (
-            <ul className="mt-3">
+            <ul aria-label="Abonos" className="-mx-4 mt-3 border-t border-linea">
               {pedido.abonos.map((a) => (
-                <li key={a.id} className="flex items-center gap-3 border-t border-linea py-2.5">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accion-suave text-texto">
-                    <IconoMoneda tamano={18} />
-                  </span>
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-secundario font-bold">Abono · {nombreMetodo(a.metodo)}</span>
-                    <span className="text-etiqueta font-normal text-texto-secundario">
-                      {fechaDelAbono(a)}
-                      {a.nota ? ` · ${a.nota}` : ""}
+                <FilaLista
+                  key={a.id}
+                  inicio={
+                    <span className="grid size-9 place-items-center rounded-full bg-accion-suave text-texto">
+                      <IconoMoneda tamano={18} />
                     </span>
-                  </div>
-                  <span className="flex shrink-0 flex-col items-end gap-1">
-                    <span className="text-cuerpo font-extrabold">{formatearPesos(a.monto)}</span>
-                    <Boton
-                      jerarquia="peligro"
-                      tamano="compacto"
-                      aria-label={`Borrar el abono de ${formatearPesos(a.monto)} del ${fechaDelAbono(a)}`}
-                      onClick={() => setBorrando(a.id)}
-                    >
-                      Borrar
-                    </Boton>
-                  </span>
-                </li>
+                  }
+                  titulo={`Abono · ${nombreMetodo(a.metodo)}`}
+                  detalle={`${fechaDelAbono(a)}${a.nota ? ` · ${a.nota}` : ""}`}
+                  fin={formatearPesos(a.monto)}
+                  onClick={() => setViendo(a.id)}
+                />
               ))}
             </ul>
           )}
@@ -223,14 +206,6 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
         </Tarjeta>
       </section>
 
-      <Alerta
-        abierta={borrando !== null}
-        titulo="¿Borrar este abono?"
-        descripcion={`La deuda vuelve a subir ${formatearPesos(pedido.abonos.find((x) => x.id === borrando)?.monto ?? 0)}.`}
-        accion={{ texto: "Borrar abono", tono: "peligro", alConfirmar: () => { const a = pedido.abonos.find((x) => x.id === borrando); return a ? borrar(a) : undefined; } }}
-        alCancelar={() => setBorrando(null)}
-      />
-
       {pedido.clienteId && (
         <HojaAbono
           abierta={abonando}
@@ -240,6 +215,16 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
           pedidoId={pedido.id}
           numeroPedido={pedido.numero}
           deuda={pedido.saldo}
+        />
+      )}
+      {pedido.clienteId && (
+        <HojaDetalleAbono
+          abono={pedido.abonos.find((x) => x.id === viendo) ?? null}
+          alCerrar={() => setViendo(null)}
+          numeroPedido={pedido.numero}
+          clienteId={pedido.clienteId}
+          nombreCliente={cliente?.nombre ?? "El cliente"}
+          saldoPedido={pedido.saldo}
         />
       )}
     </>

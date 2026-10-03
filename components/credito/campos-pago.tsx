@@ -5,7 +5,7 @@ import { diaCorto, diaDeSantoDomingo, esDiaValido, finDeMes, METODOS, montoDeTex
 import type { DatosPago } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import type { MetodoAbono, PagoModo } from "@/lib/types";
-import { Aviso, Campo, CampoMonto, ControlSegmentado, GrupoOpciones, soloDigitos, Tarjeta } from "../ui";
+import { Aviso, Campo, CampoMonto, GrupoOpciones, soloDigitos, Tarjeta } from "../ui";
 
 /** Cuándo quedó en pagar: una de las pastillas o un día elegido. */
 export type OpcionFecha = "semana" | "mes" | "otra" | "sin";
@@ -118,9 +118,8 @@ export function CamposPago({
   return (
     <Tarjeta>
       <div className="flex flex-col gap-3.5">
-        <h2 className="font-display text-titulo-seccion">¿Cómo te paga?</h2>
-        <ControlSegmentado
-          etiqueta="Cómo paga el cliente"
+        <GrupoOpciones
+          titulo="¿Cómo te paga?"
           valor={valor.modo}
           alCambiar={(modo) => {
             if (modo === "contado" && conAbonos) {

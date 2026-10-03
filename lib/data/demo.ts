@@ -3,9 +3,10 @@
 
 import type { CambiosProducto, Cliente, ClienteConResumen, EventoAaah, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import { CREDITOS_POR_RETOQUE } from "../config";
+import type { CambiosAbono } from "../credito";
 import type { Abono, MotivoAjusteInventario } from "../types";
 import { DatosInvalidos } from "./errores";
-import { cuentaDelCliente, cuentasDeTienda, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
+import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
@@ -398,6 +399,15 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return creados;
+  },
+  async editarAbono(tiendaId: string, abonoId: string, cambios: CambiosAbono): Promise<Abono> {
+    let editado!: Abono;
+    escribir((db) => {
+      const r = editarAbonoDemo(db, tiendaId, abonoId, cambios, Date.parse(ahora()));
+      editado = r.abono;
+      return r.db;
+    });
+    return editado;
   },
   async eliminarAbono(tiendaId: string, abonoId: string): Promise<void> {
     escribir((db) => quitarAbonoDemo(db, tiendaId, abonoId));

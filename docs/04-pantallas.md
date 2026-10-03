@@ -441,7 +441,10 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 - **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),
   "Pagó RD$X de RD$Y", barra de progreso (crece con `scaleX`, 600 ms), la fecha acordada ("Quedó en pagar el 15 oct · faltan 15 días";
   atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).
-  Cada abono tiene **"Borrar"** con confirmación ("¿Borrar este abono? La deuda vuelve a subir RD$X."). Botones **"+ Registrar abono"**
+  Cada abono es una **fila** (`FilaLista`: icono, "Abono · Transferencia" con puntos suspensivos, fecha debajo, monto y flecha) y TODA la
+  fila abre la hoja **"Abono"** (`hoja-detalle-abono.tsx`, apilada sobre el detalle): monto en grande, cómo pagó, fecha, a qué pedido se
+  aplicó y la nota si hay; abajo **"Editar abono"** (secundario, ancho completo) y **"Borrar abono"** (terciario peligro, abre la Alerta
+  "¿Borrar este abono? La deuda vuelve a subir RD$X."; al borrar se cierra la hoja). No hay "Borrar" en cada fila. Botones **"+ Registrar abono"**
   (principal) y **"Recordarle por WhatsApp"** (contorno; solo con teléfono y deuda). Los cambios de saldo se anuncian con `aria-live`.
 - **Colores en el flujo de crédito** (+ Pedido / venta pasada / Editar pedido, "Registrar abono" y "Cambiar a crédito"; las pastillas de
   filtro de Pedidos, Clientes, Catálogo y Promos no cambian): una **opción elegida** (`tono="opcion"` de `Chip` y `Segmentos`,
@@ -450,6 +453,12 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   Bosque lleno con texto Papel Cálido; la **secundaria** ("Mejor no", "Recordarle por WhatsApp") en contorno Verde Bosque; la que
   **borra** ("Sí, borrar" el abono) en contorno y texto de peligro. Mandarina queda para llamar la atención (deuda, "Atrasado", botón
   flotante), nunca en pastillas ni botones de estos formularios.
+- **Editar abono** (`hoja-abono.tsx` con `abono=`; RPC `editar_abono`): la MISMA hoja de registrar, apilada sobre la hoja "Abono", con
+  título "Editar abono", monto, método, fecha y nota ya llenos, sin botones rápidos ni reparto entre pedidos, y "Guardar cambios".
+  El abono sigue en su pedido. El monto no puede pasar de lo que el pedido debía antes de ese abono (su saldo + el monto viejo): el campo
+  dice "Lo máximo para este abono es RD$N". Con cambios sin guardar, salir pregunta "¿Salir sin guardar?". Al guardar: aviso "Abono
+  actualizado", se cierra la hoja de edición, y se refrescan la hoja "Abono", la tarjeta Pago (pagado, saldo, barra) y las listas
+  Clientes / Por cobrar / Inicio (derivan de los pedidos, así que se recalculan solas). Misma firma en demo y Supabase (`editarAbono`).
 - **Hoja "Registrar abono"** (`hoja-abono.tsx`, una hoja encima del detalle): "<Cliente> debe RD$X del pedido #N" (o "en N pedidos"
   desde la cuenta del cliente), monto grande con teclado numérico (solo enteros), botones rápidos "Todo · RD$X", "Mitad · RD$X",
   RD$500 y RD$1,000 (solo los que no superan la deuda), método (Efectivo / Transferencia / Otro), fecha (hoy; una pasada si hace falta),

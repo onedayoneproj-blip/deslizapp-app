@@ -16,7 +16,7 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada, type TonoEtiqueta } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { IconoCamion, IconoCheck, IconoWhatsApp } from "../iconos";
+import { IconoCamion, IconoCheck } from "../iconos";
 import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
@@ -303,9 +303,7 @@ function Detalle({
         </div>
         {cliente?.telefono ? (
           <Boton
-            jerarquia="secundario"
-            tamano="compacto"
-            icono={<IconoWhatsApp tamano={18} />}
+            whatsapp
             href={enlaceWhatsApp(cliente.telefono, mensaje)}
             target="_blank"
             rel="noreferrer"
@@ -379,7 +377,7 @@ function Detalle({
             Confirmar pedido
           </Boton>
           {botonEditar}
-          <Boton jerarquia="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido
           </Boton>
         </div>
@@ -393,12 +391,12 @@ function Detalle({
               </Aviso>
             </div>
           )}
-          <Boton tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
+          <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
             Despachar pedido
           </Boton>
           <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
           {botonEditar}
-          <Boton jerarquia="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido
           </Boton>
         </div>
@@ -412,7 +410,7 @@ function Detalle({
           <Boton tamano="grande" anchoCompleto onClick={reabrir} deshabilitado={ocupado}>
             Reabrir pedido
           </Boton>
-          <Boton jerarquia="peligro" anchoCompleto onClick={() => setConfirmandoEliminar(true)} deshabilitado={ocupado}>
+          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={() => setConfirmandoEliminar(true)} deshabilitado={ocupado}>
             Eliminar pedido
           </Boton>
         </div>
@@ -451,6 +449,6 @@ function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems
   if (stock === undefined || stock === null) return <Etiqueta>Sin control</Etiqueta>;
   if (stock === 0) return <Etiqueta tono="fuerte">Sin stock</Etiqueta>;
   const texto = stock === 1 ? "Queda 1" : `Quedan ${stock}`;
-  const tono: TonoEtiqueta = stock < cantidad ? "fuerte" : stock - cantidad === 0 ? "atencion" : "neutro";
+  const tono: TonoEtiqueta = stock < cantidad ? "fuerte" : "atencion";
   return <Etiqueta tono={tono}>{texto}</Etiqueta>;
 }

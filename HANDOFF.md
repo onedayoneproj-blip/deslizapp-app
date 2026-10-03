@@ -198,12 +198,12 @@ pendientes.
 ## Ventas a crédito y abonos
 
 Un pedido puede ser `contado` o `credito` (columnas `pago_modo` y `pago_fecha_acordada` de `pedidos`, que la app sí escribe) y los abonos
-viven en la tabla `abonos` (solo lectura: se crean con la RPC `registrar_abono`, se borran con `eliminar_abono`). Todas las cuentas
+viven en la tabla `abonos` (solo lectura: se crean con la RPC `registrar_abono`, se editan con `editar_abono` —monto, método, fecha y nota; el monto máximo es el saldo del pedido + el monto viejo— y se borran con `eliminar_abono`). Todas las cuentas
 (saldo, reparto del más viejo al más nuevo, "Atrasado N días" en hora de Santo Domingo, cuentas por cobrar, recordatorio) están en
 `lib/credito.ts` con pruebas en `tests/credito.test.mjs`; la demo las usa en `lib/data/creditos.ts` y `lib/data/pedidos.ts` (la demo
 reparte igual que la RPC y trae tres clientes que compraron fiado). Pantallas en `components/credito/` y detalle en docs/03 y docs/04.
 Un pedido cancelado no genera deuda; las ventas del Resumen no cambian (cuentan al despachar, esté pagado o no). El recordatorio por
-WhatsApp lo abre siempre el dueño. Las RPC de abonos aún no se probaron contra Supabase real. Al cambiar la forma de los datos de la
+WhatsApp lo abre siempre el dueño. Las RPC de abonos (incluida `editar_abono`) aún no se probaron contra Supabase real; la demo tiene `editarAbono` con la misma firma (`planearEdicionAbono` en `lib/credito.ts`, con tests). Al cambiar la forma de los datos de la
 demo, su clave de almacenamiento pasó a `deslizapp-demo-v3` (los datos de prueba anteriores se reinician una vez).
 
 ## Catálogo en línea (enlace)
@@ -236,12 +236,13 @@ HTML. El catálogo todavía no se alimenta solo de los productos del panel. El d
   y el Toast nuevo (ProveedorToast + useToastUI). Se importan desde `@/components/ui`. Los componentes viejos (`controles.tsx`,
   `toast.tsx`…) siguen en las pantallas que aún no se migran.
 - **Pantallas migradas al sistema:** **Pedidos** (lista, detalle, "+ Pedido"/venta pasada/Editar, selectores de cliente, producto y cupón, y el
-  pago y los abonos: `components/pedidos/*`, `components/credito/{pago-del-pedido,campos-pago,hoja-abono,tarjeta-saldado,comunes}`). Variantes
-  nuevas en `components/ui/`: `CampoMonto` (monto en pesos, normal o grande), `BotonIcono tono="accion"`, `Buscador entrada=` (ref para el
+  pago y los abonos: `components/pedidos/*`, `components/credito/{pago-del-pedido,campos-pago,hoja-abono,hoja-detalle-abono,tarjeta-saldado,comunes}`). Variantes
+  nuevas en `components/ui/`: `Cantidad` (− 1 +, cuadrados de 36, `radio-s`; `BotonCantidad` suelto), `Boton jerarquia="terciario" tono="peligro"` (texto rojo sin contorno: Cancelar / Eliminar pedido, Borrar abono), `Boton whatsapp` (Escribir: compacto, relleno `accion`, icono WhatsApp), `Boton jerarquia="resalte"` (Despachar pedido, la llamada emocional de la pantalla), `CampoMonto` (monto en pesos, normal o grande), `BotonIcono tono="accion"`, `Buscador entrada=` (ref para el
   teclado de iPhone), `Boton scroll=` (para enlaces que abren hojas) y `soloDigitos`. Quedó con tokens también lo compartido que usa la
   pantalla: `selector-busqueda`, `ver-mas`, `hoja-estado`, `boton-flotante`, `titulo-pantalla`, `Interruptor`, `estado-vacio`, el esqueleto,
   el fondo del `body` y de `(dashboard)/layout`, y los colores de `hoja.tsx` (solo tokens, sin reescribirla). Pendiente de Pedidos: el encabezado y
   la barra inferior (shell), `TicketPromo` (Promos) y la hoja `Hoja` completa (radio 28, sombra).
+- **Regla Opcion vs segmentado:** `ControlSegmentado` solo cambia una vista o modo (Día / Semana / Mes); un dato que se guarda va con `GrupoOpciones` / `Opcion` aunque sean dos opciones (por eso "¿Cómo te paga?" ya no es segmentado).
 - **Guía viva:** `/diseno` (pública, noindex, sin enlace desde la app), con todos los componentes y sus estados, en claro y oscuro.
 - **Regla:** en código nuevo no se escriben colores ni tamaños a mano (ni hex, ni `bg-white`, ni `text-[Npx]` fuera de la escala, ni
   `rounded-[Npx]`, ni `shadow-[…]`). `npm run revisar-estilos` cuenta lo que queda a mano en las pantallas viejas (solo informa).
