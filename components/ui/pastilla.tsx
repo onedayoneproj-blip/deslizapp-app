@@ -9,11 +9,7 @@ export type OpcionFiltro<T extends string> = {
   id: T;
   texto: ReactNode;
   cantidad?: number;
-  /** Filtro condicional: solo aparece cuando tiene algo (cantidad > 0) o está elegido. */
-  condicional?: boolean;
   atencion?: boolean;
-  /** Un condicional que no abre el divisor (los filtros que llegan de otra pantalla y se agregan al final). */
-  sinDivisor?: boolean;
 };
 
 /**
@@ -23,24 +19,27 @@ export type OpcionFiltro<T extends string> = {
  * punta derecha), con `--mov-normal` y `--curva-salida`; con "reducir movimiento" no hay transición. Cada pastilla lleva su
  * relleno `superficie` y contorno `borde-pastilla` en una capa propia DEBAJO del indicador (así el indicador pasa por encima).
  *
- * Hace scroll horizontal (sin barra) y sangra hasta el borde de la pantalla (-mx-5); la elegida se acerca a la vista. El divisor
- * vertical aparece SOLO antes del primer filtro condicional visible (Deben, Dormidos…); los condicionales se ocultan con
- * contador 0, salvo que estén elegidos. Flechas, Inicio y Fin del teclado mueven la selección.
+ * Hace scroll horizontal (sin barra) y sangra hasta el borde de la pantalla (-mx-5); la elegida se acerca a la vista. Sin divisor.
+ * Con `ocultarVacios`, los filtros con contador en 0 se ocultan, salvo los que no llevan contador ("Todos") y el elegido.
+ * Flechas, Inicio y Fin del teclado mueven la selección.
  */
 export function FilaPastillas<T extends string>({
   opciones,
   valor,
   alCambiar,
   etiqueta,
+  ocultarVacios = false,
 }: {
   opciones: OpcionFiltro<T>[];
   valor: T;
   alCambiar: (id: T) => void;
   /** Qué se filtra (para lectores de pantalla). */
   etiqueta: string;
+  /** Oculta los filtros con contador en 0 (salvo "Todos" y el elegido). */
+  ocultarVacios?: boolean;
 }) {
-  const visibles = opciones.filter((o) => !o.condicional || (o.cantidad ?? 0) > 0 || o.id === valor);
-  const primerCondicional = visibles.find((o) => o.condicional && !o.sinDivisor)?.id;
+  // Se ocultan los que no tienen nada (contador en 0), salvo los que no llevan contador ("Todos") y el elegido (docs/09 §6)
+  const visibles = ocultarVacios ? opciones.filter((o) => o.cantidad === undefined || o.cantidad > 0 || o.id === valor) : opciones;
   const botones = useRef(new Map<T, HTMLButtonElement>());
   const lista = useRef<HTMLDivElement>(null);
   const [caja, setCaja] = useState<{ x: number; ancho: number } | null>(null);
@@ -95,7 +94,6 @@ export function FilaPastillas<T extends string>({
         )}
         {visibles.map((o) => {
           const elegida = o.id === valor;
-          const divisor = o.id === primerCondicional;
           return (
             <button
               key={o.id}
@@ -120,11 +118,9 @@ export function FilaPastillas<T extends string>({
                 "tocable relative z-10 inline-flex h-(--pastilla-alto) shrink-0 scroll-mx-5 items-center gap-1.5 rounded-full border-[1.5px] border-transparent px-(--pastilla-px) text-(length:--pastilla-letra) font-bold whitespace-nowrap",
                 TOQUE_44,
                 FOCO,
-                divisor && "ml-2",
                 elegida ? "text-sobre-accion" : "text-texto",
               )}
             >
-              {divisor && <span aria-hidden="true" className="pointer-events-none absolute top-1/2 -left-[7px] h-6 w-[1.5px] -translate-y-1/2 rounded-full bg-borde-campo" />}
               {o.texto}
               {o.cantidad !== undefined && <Contador valor={o.cantidad} atencion={o.atencion} sobreAccion={elegida} />}
             </button>

@@ -72,14 +72,12 @@ export function VistaClientes({ children }: { children: ReactNode }) {
   // La cuenta de cada cliente que debe (suma de TODOS sus pedidos con saldo, el mismo cálculo de "Deben"), para el bloque de deuda de las filas
   const cuentasPorCliente = useMemo(() => new Map((cuentas?.cuentas ?? []).map((c) => [c.clienteId, c])), [cuentas]);
   const total = resumen.cuentas.todos;
-  const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos", catalogo: "Del catálogo", manual: "A mano", una: "Compraron una vez", sin: "Sin comprar" };
-  // Fijos (siempre visibles, aunque estén en 0) | condicionales (solo con algo o activos) | los que llegan del resumen (solo activos)
-  const fijos: FiltroClientes[] = ["todos", "repiten", "nuevos", "catalogo"];
-  const condicionales: FiltroClientes[] = ["deben", "dormidos"];
-  const ids = [...fijos, ...condicionales, ...(fijos.includes(filtro) || condicionales.includes(filtro) ? [] : [filtro])];
+  const etiquetas: Record<FiltroClientes, string> = { todos: "Todos", deben: "Deben", repiten: "Repiten", nuevos: "Nuevos", dormidos: "Dormidos" };
+  // Orden de la guía: Todos, el que pide acción (Deben), los demás. Sin divisor; los que están en 0 se ocultan (salvo Todos y el elegido)
+  const ids: FiltroClientes[] = ["todos", "deben", "repiten", "nuevos", "dormidos"];
   const cantidad = (id: FiltroClientes) => id === "deben" ? cuentas?.clientes ?? 0 : resumen.cuentas[id];
-  const opciones = ids.map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben", condicional: !fijos.includes(id), sinDivisor: !fijos.includes(id) && !condicionales.includes(id) }));
-  const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah.", una: "Nadie con una sola compra.", sin: "Todos han dicho aaah. Y han comprado.", catalogo: "Todavía no llegan por el catálogo.", manual: "Todavía no agregas clientes a mano." };
+  const opciones = ids.map((id) => ({ id, texto: etiquetas[id], cantidad: id === "todos" ? undefined : cantidad(id), atencion: id === "deben" }));
+  const vacios: Partial<Record<FiltroClientes, string>> = { dormidos: "Nadie dormido. Tus clientes están despiertos.", nuevos: "Los nuevos están por llegar.", repiten: "Todavía no vuelven. Dales otro aaah." };
   const listo = Boolean(clientes && pedidos);
 
   return (
@@ -105,7 +103,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           placeholder="Nombre o WhatsApp"
         />
 
-        <FilaPastillas etiqueta="Qué clientes ver" valor={filtro} alCambiar={setFiltro} opciones={opciones} />
+        <FilaPastillas etiqueta="Qué clientes ver" valor={filtro} alCambiar={setFiltro} opciones={opciones} ocultarVacios />
 
         {filtro === "deben" && (
           <>
