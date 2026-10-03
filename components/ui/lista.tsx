@@ -30,6 +30,7 @@ export function FilaLista({
   pie,
   etiqueta,
   marcada,
+  radio = false,
 }: {
   titulo: ReactNode;
   detalle?: ReactNode;
@@ -48,6 +49,8 @@ export function FilaLista({
   etiqueta?: string;
   /** La fila es una casilla de selección (con su check en `inicio`): `marcada` dice si lo está. */
   marcada?: boolean;
+  /** Con `marcada`: la fila es una opción de un grupo de radio (una sola elegida) en vez de una casilla. */
+  radio?: boolean;
 }) {
   const tocable = Boolean(href || onClick);
   const cuerpo = (
@@ -73,7 +76,7 @@ export function FilaLista({
             {cuerpo}
           </Link>
         ) : onClick ? (
-          <button type="button" onClick={onClick} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={dentro}>
+          <button type="button" onClick={onClick} role={marcada === undefined ? undefined : radio ? "radio" : "checkbox"} aria-checked={marcada} className={dentro}>
             {cuerpo}
           </button>
         ) : (
@@ -90,7 +93,7 @@ export function FilaLista({
           {cuerpo}
         </Link>
       ) : onClick ? (
-        <button type="button" onClick={onClick} aria-label={etiqueta} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={clases("tocable", fila, foco)}>
+        <button type="button" onClick={onClick} aria-label={etiqueta} role={marcada === undefined ? undefined : radio ? "radio" : "checkbox"} aria-checked={marcada} className={clases("tocable", fila, foco)}>
           {cuerpo}
         </button>
       ) : (

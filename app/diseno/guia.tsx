@@ -33,6 +33,8 @@ import {
   GrupoOpciones,
   ListaAgrupada,
   CheckSeleccion,
+  CuadriculaSeleccion,
+  ElegirMensaje,
   ProveedorToast,
   Tarjeta,
   TarjetaDocumento,
@@ -303,6 +305,9 @@ function Elegir() {
   const [metodo, setMetodo] = useState<"efectivo" | "transferencia" | "otro">("efectivo");
   const [vistaVentas, setVistaVentas] = useState<"dia" | "semana" | "mes">("semana");
   const [vista, setVista] = useState<"hoy" | "semana" | "mes">("semana");
+  const [mensaje, setMensaje] = useState<"amable" | "directo">("amable");
+  const [acercar, setAcercar] = useState<"saludo" | "codigo" | "productos">("saludo");
+  const [productos, setProductos] = useState<string[]>(["oxana"]);
   return (
     <Seccion numero="6" titulo="Elegir: pastillas, opciones y controles" nota="Filtro (verde lleno), opción de formulario (menta con check) y control segmentado.">
       <div className="flex flex-col gap-2">
@@ -342,6 +347,47 @@ function Elegir() {
           { id: "otro", texto: "Otro" },
         ]}
       />
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>compacta: tres opciones cortas en una fila</Rotulo>
+        <GrupoOpciones
+          compacta
+          titulo="¿Con qué te acercas?"
+          valor={acercar}
+          alCambiar={setAcercar}
+          opciones={[
+            { id: "saludo", texto: "Un saludo" },
+            { id: "codigo", texto: "Un código" },
+            { id: "productos", texto: "Productos" },
+          ]}
+        />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>elegir el mensaje: botón compacto que abre la hoja &quot;Elige el mensaje&quot;</Rotulo>
+        <ElegirMensaje
+          etiqueta="Mensaje del recordatorio"
+          elegido={mensaje}
+          alElegir={setMensaje}
+          className="self-start"
+          opciones={[
+            { id: "amable", titulo: "Amable", texto: "¡Hola, Marleny! Te recuerdo con cariño el saldo de RD$1,300. ¡Gracias!" },
+            { id: "directo", titulo: "Directo", texto: "Hola, Marleny. Tienes un saldo pendiente de RD$1,300." },
+          ]}
+        />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>cuadrícula seleccionable: 3 columnas, hasta N (las demás se apagan)</Rotulo>
+        <CuadriculaSeleccion
+          etiqueta="Productos para el mensaje"
+          maximo={2}
+          elegidos={productos}
+          alCambiar={setProductos}
+          elementos={[
+            { id: "oxana", titulo: "Oxana Black", detalle: "RD$1,200", imagen: <span className="block size-full bg-marca-rosa" /> },
+            { id: "zakat", titulo: "Zakat", detalle: "RD$950", imagen: <span className="block size-full bg-accion-suave" /> },
+            { id: "amber", titulo: "Amber Oud", detalle: "RD$1,450", imagen: <span className="block size-full bg-superficie-hundida" /> },
+          ]}
+        />
+      </div>
       <div className="flex max-w-90 flex-col gap-2">
         <Rotulo>control segmentado: solo cambia la vista o el modo, no guarda un dato</Rotulo>
         <ControlSegmentado

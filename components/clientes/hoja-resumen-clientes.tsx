@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Hoja, useIrArribaHoja } from "../hoja";
 import { Avatar, Boton, FilaLista, ListaAgrupada } from "../ui";
 import { BotonVerMas, useVerMas } from "../ver-mas";
@@ -11,7 +11,10 @@ import { FilaCliente } from "./fila-cliente";
 import { BotonVolver } from "../selector-busqueda";
 import { menosMovimiento } from "@/lib/movimiento";
 import { BarridoContenido, BarridoFranja, BrilloJugada, EntradaJugada, medirEntrada, type OrigenEntrada } from "./transiciones-jugada";
-import { HojaBorradoresJugada } from "./hoja-borradores-jugada";
+import { HojaEscribirJugada } from "./hoja-escribir-jugada";
+import { useConsulta } from "@/lib/data/consulta";
+import { useData } from "@/lib/data/provider";
+import { ordenarPorEnvio } from "@/lib/jugada-envios";
 import { CARTAS_JUGADAS, calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
 import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import type { ClienteConResumen, Pedido } from "@/lib/types";
@@ -37,6 +40,11 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
   const secuencia = useRef(0);
   const { jugadas, destacada, total } = calcularJugadas(clientes, pedidos, tiendaId, ahora);
   const seleccionada = jugadas.find((j) => j.id === vista);
+  const { enviosJugada } = useData();
+  const { data: envios } = useConsulta(`envios:${tiendaId}`, () => enviosJugada(tiendaId));
+  // Los que ya recibieron un mensaje de una jugada en los últimos 7 días van al final, con "Le escribiste…"
+  const porEnvio = ordenarPorEnvio(seleccionada?.clientes ?? [], envios ?? [], ahora);
+  const cerrarBorrador = useCallback(() => setBorrador(null), []);
   useEffect(() => {
     const atras = (e: PopStateEvent) => {
       const siguiente = (e.state?.deslizappJugada as Vista | undefined) ?? "resumen";
@@ -92,29 +100,29 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
     </div> : undefined}>
     {entrada && <EntradaJugada key={entrada.id} origen={entrada.origen} alTerminar={() => setEntrada(null)} />}
     <Contenido vista={vista} resumen={resumen} jugadas={jugadas} destacada={destacada} total={total} cuadrosOcultos={entrada !== null} barrido={barrido}
-      seleccionada={seleccionada} ahora={ahora}
+      seleccionada={seleccionada} porEnvio={porEnvio} ahora={ahora}
       tiendaId={tiendaId} navegar={navegar} filtrar={filtrar} irADatos={irADatos} alEscribir={(id, nombre, cliente) => { setBarrido(null); setBorrador({ id, nombre, cliente }); }} />
-    {borrador && <HojaBorradoresJugada key={`${borrador.id}:${borrador.cliente.id}`} id={borrador.id} nombreJugada={borrador.nombre}
-      cliente={borrador.cliente.nombre} telefono={borrador.cliente.telefono!} vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo}
-      alCerrar={() => setBorrador(null)} />}
+    {borrador && <HojaEscribirJugada key={`${borrador.id}:${borrador.cliente.id}`} jugada={borrador.id}
+      cliente={{ id: borrador.cliente.id, nombre: borrador.cliente.nombre, telefono: borrador.cliente.telefono! }} tiendaId={tiendaId}
+      vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo} alCerrar={cerrarBorrador} />}
   </Hoja>;
 }
 
-function Contenido({ vista, resumen, jugadas, destacada, total, cuadrosOcultos, barrido, seleccionada, ahora, tiendaId, navegar, filtrar, irADatos, alEscribir }: {
+function Contenido({ vista, resumen, jugadas, destacada, total, cuadrosOcultos, barrido, seleccionada, porEnvio, ahora, tiendaId, navegar, filtrar, irADatos, alEscribir }: {
   vista: Vista; resumen: ResumenClientes; jugadas: Jugada[]; destacada: Jugada | null; total: number;
   /** Mientras vuelan las cartas de la entrada, los cuadros esperan invisibles y aparecen al terminar. */
   cuadrosOcultos: boolean;
   /** Mientras dura el barrido, la galería sigue detrás (atenuada) y el detalle se descubre con la máscara. */
   barrido: number | null;
-  seleccionada?: Jugada; ahora: number;
+  seleccionada?: Jugada; porEnvio: ReturnType<typeof ordenarPorEnvio<ClienteAnalizado>>; ahora: number;
   tiendaId: string; navegar: (vista: Vista, elemento?: HTMLElement) => void; filtrar: (f: FiltroClientes) => void; irADatos: (clienteId: string) => void; alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void;
 }) {
   const irArriba = useIrArribaHoja();
   useEffect(() => { irArriba(); }, [vista, irArriba]);
-  const paginadas = useVerMas(seleccionada?.clientes ?? [], `${tiendaId}:${vista}`, 5);
+  const paginadas = useVerMas(porEnvio.lista, `${tiendaId}:${vista}`, 5);
   if (vista === "resumen") return <ContenidoResumenClientes resumen={resumen} alAbrirGrupo={(g) => navegar(`grupo:${g}`)} alFiltrar={filtrar} alAbrirJugadas={(el) => navegar("galeria", el)} destacada={destacada} />;
   if (esGrupo(vista)) return <VistaGrupoClientes grupo={vista.slice(6) as GrupoClientes} resumen={resumen} ahora={ahora} tiendaId={tiendaId} irADatos={irADatos} />;
-  const detalle = (j: Jugada) => <Detalle jugada={j} total={total} ahora={ahora} irADatos={irADatos} alEscribir={alEscribir} paginadas={paginadas} />;
+  const detalle = (j: Jugada) => <Detalle jugada={j} total={total} recientes={porEnvio.recientes} ahora={ahora} irADatos={irADatos} alEscribir={alEscribir} paginadas={paginadas} />;
   return <div className="relative min-h-full pb-6">
     <BrilloJugada />
     {vista === "galeria" ? <Galeria jugadas={jugadas} navegar={navegar} cuadrosOcultos={cuadrosOcultos} />
@@ -140,8 +148,8 @@ function Galeria({ jugadas, navegar, cuadrosOcultos }: { jugadas: Jugada[]; nave
       <p className="mt-3 rounded-radio-m bg-superficie p-3.5 text-etiqueta text-texto">Una persona puede encajar en más de una jugada. Tú eliges con quién conversar.</p>
   </>;
 }
-function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, paginadas }: {
-  jugada: Jugada; total: number; ahora: number;
+function Detalle({ jugada: j, total, recientes, ahora, irADatos, alEscribir, paginadas }: {
+  jugada: Jugada; total: number; recientes: Map<string, string>; ahora: number;
   alEscribir: (id: IdJugada, nombre: string, cliente: ClienteAnalizado) => void; irADatos: (clienteId: string) => void; paginadas: ReturnType<typeof useVerMas<ClienteAnalizado>>;
 }) {
   return <>
@@ -154,10 +162,10 @@ function Detalle({ jugada: j, total, ahora, irADatos, alEscribir, paginadas }: {
     </div>
     <p className="my-5 text-secundario"><b>{j.consejo.split(".")[0]}.</b>{j.consejo.slice(j.consejo.indexOf(".") + 1)}</p>
     <h3 className="font-display text-titulo-seccion">{j.cantidad > 5 ? "Empieza con estos 5" : "Clientes para esta jugada"}</h3>
-    <p className="mb-3 text-etiqueta text-texto-secundario">Escribir te deja elegir y editar un borrador antes de abrir WhatsApp.</p>
+    <p className="mb-3 text-etiqueta text-texto-secundario">Escribir te deja mandar un saludo, un código o productos. Tú revisas el mensaje antes de enviarlo.</p>
     <ListaAgrupada etiqueta="Clientes para esta jugada">{paginadas.visibles.map((c) => {
       const dias = diasDesde(c.ultimaVenta, ahora);
-      const detalle = j.id === "volver" ? `Última compra hace ${dias} días` : j.id === "segundo" ? `Compró hace ${dias} días` : j.id === "gracias" ? `${c.compras} compras despachadas` : "Aún no compra";
+      const detalle = recientes.get(c.id) ?? (j.id === "volver" ? `Última compra hace ${dias} días` : j.id === "segundo" ? `Compró hace ${dias} días` : j.id === "gracias" ? `${c.compras} compras despachadas` : "Aún no compra");
       return <FilaLista key={c.id} inicio={<Avatar nombre={c.nombre} />} titulo={c.nombre} detalle={detalle}
         accion={c.telefono ? <Boton tamano="compacto" onClick={() => alEscribir(j.id, j.nombre, c)} aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}>Escribir</Boton> :
           <Boton jerarquia="secundario" tamano="compacto" onClick={() => irADatos(c.id)} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}>Sin WhatsApp · Ver datos</Boton>} />;

@@ -4,9 +4,8 @@ import { useState } from "react";
 import { diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajesRecordatorio, nombreMetodo, type CuentaCliente, type IdMensajeRecordatorio } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import type { Cliente } from "@/lib/types";
-import { Hoja } from "../hoja";
-import { IconoPedidos, IconoChevronAbajo, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
-import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta, VistaPreviaWhatsApp } from "../ui";
+import { IconoPedidos, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
+import { BarraAbonado, Boton, ElegirMensaje, FechaDeuda, FilaLista, ListaAgrupada, Tarjeta, VistaPreviaWhatsApp } from "../ui";
 import { HojaAbono } from "./hoja-abono";
 
 /**
@@ -16,7 +15,6 @@ import { HojaAbono } from "./hoja-abono";
  */
 export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { cliente: Cliente; cuenta: CuentaCliente; vendedora: string; tienda: string }) {
   const [abonando, setAbonando] = useState(false);
-  const [eligiendo, setEligiendo] = useState(false);
   const [ahora] = useState(Date.now);
   const { mensajes, elegido: porDefecto } = mensajesRecordatorio({ cliente: cliente.nombre, vendedora, tienda, deuda: cuenta.deuda, fecha: cuenta.fechaAcordada, ahora });
   const [elegidoId, setElegidoId] = useState<IdMensajeRecordatorio | null>(null);
@@ -66,15 +64,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
       <section aria-label="Recordatorio" className="flex flex-col gap-3 rounded-radio-l bg-accion-suave p-3.5">
         <div className="flex items-center justify-between gap-2">
           <p className="text-secundario font-extrabold text-texto">Así le llega el recordatorio</p>
-          <button
-            type="button"
-            onClick={() => setEligiendo(true)}
-            aria-label={`Cambiar el mensaje. Ahora: ${mensaje.titulo}`}
-            className="tocable relative flex h-(--alto-compacto) shrink-0 items-center gap-1 rounded-full bg-superficie px-3 text-secundario font-extrabold whitespace-nowrap text-texto outline-none after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
-          >
-            {mensaje.titulo}
-            <IconoChevronAbajo tamano={18} strokeWidth={2.2} />
-          </button>
+          <ElegirMensaje etiqueta="Mensaje del recordatorio" opciones={mensajes} elegido={mensaje.id} alElegir={setElegidoId} />
         </div>
         <VistaPreviaWhatsApp texto={mensaje.texto} />
         {cliente.telefono && (
@@ -84,17 +74,6 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
         )}
       </section>
 
-      <Hoja abierta={eligiendo} alCerrar={() => setEligiendo(false)} titulo="Elige el mensaje">
-        <GrupoOpciones
-          etiqueta="Mensaje del recordatorio"
-          valor={mensaje.id}
-          alCambiar={(id) => {
-            setElegidoId(id);
-            setEligiendo(false);
-          }}
-          opciones={mensajes.map((m) => ({ id: m.id, texto: m.titulo, descripcion: m.texto }))}
-        />
-      </Hoja>
 
       <HojaAbono
         abierta={abonando}

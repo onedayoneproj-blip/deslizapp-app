@@ -14,7 +14,7 @@ export function VistaPreviaWhatsApp({ texto, hora, className }: { texto: string;
   return (
     <figure aria-label="Vista previa del mensaje" className={clases("vista-whatsapp rounded-radio-l border border-linea bg-fondo p-3", className)}>
       <div className="vista-whatsapp-burbuja relative ml-auto w-fit max-w-[86%] rounded-radio-s rounded-tr-none bg-accion-suave px-2.5 pt-1.5 pb-5 text-texto">
-        <p className="text-cuerpo-chat whitespace-pre-line">{texto}</p>
+        <p className="text-cuerpo-chat whitespace-pre-line wrap-anywhere">{texto}</p>
         <span className="absolute right-2 bottom-1 flex items-center gap-1 text-contador font-normal text-texto-secundario">
           {hora ?? ahora}
           <span aria-hidden="true">✓✓</span>
