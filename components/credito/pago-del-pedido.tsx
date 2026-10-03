@@ -174,9 +174,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
                 <FilaLista
                   key={a.id}
                   inicio={
-                    <span className="grid size-9 place-items-center rounded-full bg-accion-suave text-texto">
-                      <IconoMoneda tamano={18} />
-                    </span>
+                    <IconoMoneda tamano={24} className="text-exito-texto" />
                   }
                   titulo={`Abono · ${nombreMetodo(a.metodo)}`}
                   detalle={`${fechaDelAbono(a)}${a.nota ? ` · ${a.nota}` : ""}`}

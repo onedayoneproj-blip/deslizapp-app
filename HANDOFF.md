@@ -117,7 +117,7 @@ opera solo en la tienda de sesión. Borrar pedidos históricos no restaura stock
 ## Donas de Catálogo y Clientes
 
 `components/dona.tsx` pinta el SVG reutilizable. Catálogo muestra en su cabecera
-los espacios libres del plan y abre Plan y créditos. Clientes muestra la mezcla
+la salud del inventario y abre «Tu inventario» (ver la sección de arriba; antes mostraba los espacios libres del plan). Clientes muestra la mezcla
 de quienes repiten, compraron una vez y no han comprado; su hoja «Tus clientes»
 abre filtros y el mensaje de WhatsApp para Dormidos. Todos esos grupos usan solo
 pedidos despachados; «Nuevos» y «Dormidos» usan días civiles de Santo Domingo.
@@ -127,11 +127,34 @@ los tres segmentos, nuevos y dormidos. No requiere migraciones.
 
 La hoja «Tus clientes» comienza con la tarjeta «Tu próxima jugada»: galería y cuatro detalles dentro de la misma hoja. «Escribir» abre una hoja apilada con tres borradores locales; el elegido se puede editar antes de abrir WhatsApp, sin envío automático. `lib/proxima-jugada.ts` reutiliza el análisis de compras despachadas, excluye clientes con pedidos en curso y respeta la tienda activa; los grupos se recalculan al cambiar los datos o el día de Santo Domingo. Los datos de ejemplo del mockup no se copian al código. Ver `docs/04-pantallas.md` y `tests/proxima-jugada.test.mjs`.
 
+## Catálogo: inventario, Por reponer y Hacer espacio
+
+- **El plan cuenta solo los productos VISIBLES** (`activo = true`; los ocultos no ocupan lugar). Helper único: `lib/plan-catalogo.ts`
+  (`resumenDelPlan`, estados `sobra` < 70 % · `quedan` 70–89 % · `casi` 90–99 % · `lleno`, y `textosDelPlan`). Lo usan la lista del
+  Catálogo, la hoja del producto, «Tu plan» y la tarjeta del Inicio. Con el plan lleno, un producto nuevo se guarda oculto
+  (interruptor apagado y deshabilitado) y volver visible uno oculto no cambia nada y avisa con un Toast con «Hacer espacio».
+  No hay restricción en la base para esto (a propósito).
+- **La dona del Catálogo es la salud del inventario** (visibles: con stock ≥ 3 o sin control · queda 1 o 2 · agotados;
+  `lib/inventario-catalogo.ts`) y abre la hoja **«Tu inventario»** (`components/catalogo/hoja-inventario.tsx`, montada en
+  `PanelUIProvider`; se abre con `usePanelUI().abrirInventario()`, o `abrirInventario("espacio")` para ir directo a «Hacer espacio»).
+  Vistas internas con Volver: **Por reponer** (`vista-por-reponer.tsx`), **Sin movimiento** y **Hacer espacio**
+  (`vista-hacer-espacio.tsx`). Lo marcado en Por reponer vive en la hoja mientras está abierta.
+- **Por reponer**: «Todavía viene» comparte el mensaje (`mensajeReposicion`, `navigator.share` o `wa.me`); «¡Ya la tengo!» llama a
+  `reponerStock` → RPC `reponer_stock` (todo o nada, motivo `reposicion` en el historial). **Hacer espacio**: `cambiarVisibilidad`
+  (un solo UPDATE) oculta; Deshacer vuelve a mostrar. No hay «eliminar para siempre» (pedidos e historial apuntan a los productos).
+- Ventas de «30 días» salen de los pedidos **despachados** (`ventasPorProducto`). «Sin movimiento» = visibles con stock y sin
+  ventas en 30 días (productos recién creados también entran). Los que no llevan stock no se reponen.
+- La leyenda de la dona filtra la lista; para «Queda 1 o 2» se creó la pastilla **«Por agotarse»** (stock 1 o 2, visibles).
+  `usePanelUI().filtrarCatalogo()` pide el filtro a la lista aunque se esté en otra ruta.
+- El Toast con acción es `components/ui/toast.tsx` (`useToastUI`), montado junto al antiguo `components/toast.tsx` en el layout del
+  panel (el antiguo sigue para el resto de la app hasta migrarlo).
+- Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patrón `public/chat/patron-whatsapp.svg`; también en el
+  recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
+
 ## Vista previa de producto e inventario
 
-Las tarjetas de Catálogo abren `/catalogo/[id]`: ficha de solo lectura con miniatura
-112 px, nombre (hasta tres líneas visibles; nombre completo accesible), precio vigente,
-estado y stock. «Crear pedido» abre el formulario preseleccionado; solo despachar
+Las tarjetas de Catálogo abren `/catalogo/[id]`: ficha de solo lectura: el título de la hoja es el nombre del producto, foto de 120 px, precio vigente, colección,
+etiqueta «Oculto» solo si lo está, e inventario en lista agrupada («En stock» con Cantidad e «Historial»). «Crear pedido» abre el formulario preseleccionado; solo despachar
 el pedido descuenta inventario. «Editar» conserva el formulario y sus fotos.
 
 **Inventario provisional de PR #21:** vista previa y edición

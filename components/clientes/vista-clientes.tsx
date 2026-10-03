@@ -188,7 +188,7 @@ function FilaCliente({ cliente: c, coincide, consulta, cuenta, ahora, senalRepit
         ) : c.pedidos > 0 ? (
           `${c.pedidos} ${c.pedidos === 1 ? "pedido" : "pedidos"} · ${formatearPesos(c.totalGastado)}`
         ) : (
-          "Sin pedidos"
+          "Todavía no pide. Todavía."
         )
       }
       fin={cuenta && cuenta.deuda > 0 ? <MontoDeuda saldo={cuenta.deuda} fecha={cuenta.fechaAcordada} ahora={ahora} /> : undefined}

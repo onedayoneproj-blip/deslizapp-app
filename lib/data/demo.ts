@@ -30,7 +30,7 @@ import { insertarProducto, modificarProducto, productoDeTienda, productosDeTiend
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
-import { ajustarStockEnDB, guardarProductoEnDB } from "./inventario";
+import { ajustarStockEnDB, guardarProductoEnDB, validarReposicion } from "./inventario";
 import {
   avanzarCatalogoDemo,
   buscarDueno,
@@ -257,6 +257,36 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizado;
+  },
+  async reponerStock(tiendaId, items, nota = null) {
+    validarReposicion(items);
+    const actualizados: Producto[] = [];
+    escribir((db) => {
+      const actor = db.usuarios.find((u) => u.tiendaId === tiendaId);
+      if (!actor) throw new Error("No hay una cuenta asociada a esta tienda.");
+      // Todo o nada: si una línea falla, `escribir` no guarda nada.
+      let siguiente = db;
+      for (const { productoId, cantidad } of items) {
+        const r = ajustarStockEnDB(siguiente, tiendaId, productoId, cantidad, "reposicion", nota, actor.id, nuevoId(), ahora());
+        siguiente = r.db;
+        actualizados.push(r.producto);
+      }
+      return siguiente;
+    });
+    return actualizados;
+  },
+  async cambiarVisibilidad(tiendaId, ids, activo) {
+    const actualizados: Producto[] = [];
+    escribir((db) => {
+      let siguiente = db;
+      for (const id of ids) {
+        const r = modificarProducto(siguiente, tiendaId, id, { activo }, ahora());
+        siguiente = r.db;
+        actualizados.push(r.producto);
+      }
+      return siguiente;
+    });
+    return actualizados;
   },
 
   async guardarProductoConInventario(tiendaId, productoId, cambios, propuesta, retocar = false) {

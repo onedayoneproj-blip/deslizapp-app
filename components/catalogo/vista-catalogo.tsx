@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { startTransition, useMemo, useState } from "react";
-import { Dona } from "../dona";
+import { DonaInventario } from "./dona-inventario";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
+import { etiquetaSalud, saludDelInventario, textoSalud } from "@/lib/inventario-catalogo";
+import { STOCK_BAJO } from "@/lib/config";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import type { Producto, Promo } from "@/lib/types";
 import { Segmentos } from "../controles";
@@ -18,7 +21,7 @@ import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
 
-type Filtro = "todos" | "visibles" | "agotados" | "ocultos";
+type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos";
 
 /** Filtros cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Filtro[] = ["agotados"];
@@ -26,6 +29,7 @@ const PIDEN_ATENCION: Filtro[] = ["agotados"];
 const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[] = [
   { id: "todos", nombre: "Todos", cumple: () => true },
   { id: "visibles", nombre: "Visibles", cumple: (p) => p.activo && p.stock !== 0 },
+  { id: "por_agotarse", nombre: "Por agotarse", cumple: (p) => p.activo && p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO },
   { id: "agotados", nombre: "Agotados", cumple: (p) => p.stock === 0 },
   { id: "ocultos", nombre: "Ocultos", cumple: (p) => !p.activo },
 ];
@@ -42,7 +46,7 @@ const normalizar = (texto: string) =>
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan } = usePanelUI();
+  const { abrirInventario, filtroPedido } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
@@ -50,6 +54,12 @@ export function VistaCatalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
+  // Un filtro pedido desde "Tu inventario" (ajuste de estado durante el render, sin efecto).
+  const [pedidoVisto, setPedidoVisto] = useState(filtroPedido?.n ?? 0);
+  if (filtroPedido && filtroPedido.n !== pedidoVisto) {
+    setPedidoVisto(filtroPedido.n);
+    setFiltro(filtroPedido.filtro);
+  }
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 
@@ -59,23 +69,17 @@ export function VistaCatalogo() {
     return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
   }, [productos, filtro, busquedaAplicada]);
 
-  const usados = productos?.length ?? 0;
-  const limite = tienda?.limiteProductos ?? 0;
-  const lleno = limite > 0 && usados >= limite;
-  const libres = Math.max(0, limite - usados);
-  const casiLleno = limite > 0 && usados / limite >= 0.8;
+  // Salud del inventario (solo visibles) y estado del plan (los ocultos no ocupan lugar).
+  const salud = saludDelInventario(productos ?? []);
+  const lleno = resumenDelPlan(productos ?? [], tienda?.limiteProductos ?? 0).estado === "lleno";
 
   return (
     <>
       <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." derecha={
-        tienda && productos ? <button type="button" onClick={abrirPlan}
-          aria-label={lleno ? `Catálogo lleno: ${usados} de ${limite} productos. Subir de plan` : `Te quedan ${libres} de ${limite} espacios. Ver plan`}
-          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-xl">
-          <Dona className={`dona-cabecera ${casiLleno && !lleno ? "dona-latido" : ""}`} total={limite}
-            pista="#f5c9d6" segmentos={[{ valor: usados, color: casiLleno ? "#ff834f" : "#174b3a" }]}>
-            <b className={`dona-cifra font-display ${lleno ? "text-[17px]" : String(libres).length > 3 ? "dona-cifra-larga text-[16px]" : "text-[22px]"} ${casiLleno ? "text-mandarina-texto" : "text-bosque"}`}>{lleno ? "Lleno" : libres.toLocaleString("en-US")}</b>
-          </Dona>
-          <span className="text-[11.5px] font-bold text-suave">{lleno ? `${usados} de ${limite}` : `${libres.toLocaleString("en-US")} libres · ${usados} de ${limite}`}</span>
+        tienda && productos ? <button type="button" onClick={() => abrirInventario()} aria-label={etiquetaSalud(salud)}
+          className="tocable flex shrink-0 flex-col items-center gap-1 rounded-radio-m">
+          <DonaInventario className="dona-cabecera" salud={salud} cifra={String(salud.disponibles).length > 3 ? "dona-cifra-larga text-secundario" : "text-titulo-seccion"} />
+          <span className="text-etiqueta text-texto-secundario">{textoSalud(salud)}</span>
         </button> : <Esqueleto className="h-[96px] w-[76px] shrink-0 rounded-full" />
       } />
 

@@ -10,7 +10,7 @@ const ok=(x,m)=>{console.log((x?'✅ ':'❌ ')+m);if(!x)throw Error(m);};
 const browser=await pw.chromium.launch({executablePath:process.env.CHROMIUM_PATH??'/usr/bin/chromium',args:['--no-sandbox']});
 const ctx=await browser.newContext({viewport:{width:390,height:844}});const page=await ctx.newPage();
 await page.addInitScript(()=>{localStorage.setItem('deslizapp-modo-v1','demo');localStorage.setItem('deslizapp-version-vista','9.9.9');});
-const cantidad=async()=>Number((await page.locator('section[aria-label="Inventario"] p[aria-live]').innerText()).match(/^\d+/)[0]);
+const cantidad=async()=>Number((await page.locator('section[aria-label="Inventario"] [aria-live="polite"]').innerText()).match(/^\d+/)[0]);
 const auditar=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v3')??'{}').ajustesInventario??[]);
 const simular=async modo=>page.evaluate(modo=>{
  const el=document.querySelector('section[aria-label="Inventario"]');
@@ -55,7 +55,7 @@ try{
  await abrir();const base=await cantidad();await simular('concurrente');await page.locator('button[aria-label^="Aumentar stock"]').click();await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();
  await page.getByText(/El stock cambió mientras ajustabas/).waitFor();
  ok(await cantidad()===base+1&&(await auditar()).length===3,'Conflicto conserva propuesta y solo registra la escritura concurrente');
- await page.getByRole('button',{name:'Descartar',exact:true}).click();await page.waitForFunction(n=>Number(document.querySelector('section[aria-label="Inventario"] p[aria-live]').textContent.match(/^\d+/)[0])===n,base+2);ok(await cantidad()===base+2,'Descartar recupera el nuevo stock confirmado');
+ await page.getByRole('button',{name:'Descartar',exact:true}).click();await page.waitForFunction(n=>Number(document.querySelector('section[aria-label="Inventario"] [aria-live="polite"]').textContent.match(/^\d+/)[0])===n,base+2);ok(await cantidad()===base+2,'Descartar recupera el nuevo stock confirmado');
  // Error de ajuste en edición: nombre, stock y nota deben conservarse en el borrador.
  await page.getByRole('button',{name:'Editar',exact:true}).click();await page.waitForURL('**/editar');await page.locator('section[aria-label="Inventario"]').waitFor();
  const antes=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'));
@@ -73,7 +73,7 @@ try{
   for(let n=0;n<9;n++){const p=await d.getProducto(d.tiendaActivaId,id);await d.guardarProductoConInventario(d.tiendaActivaId,id,{}, {id:crypto.randomUUID(),stockBase:p.stock,stockPropuesto:p.stock+1,motivo:'reposicion',nota:null},false);}
   const ajenos=await d.getAjustesInventario('otra-tienda',id);if(ajenos.ajustes.length)throw Error('Historial cruzó tiendas');
  });
- await page.getByRole('button',{name:'Ver historial',exact:true}).click();
+ await page.getByRole('button',{name:'Historial',exact:true}).click();
  const historial=page.getByRole('region',{name:'Ajustes de inventario'});
  await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').count()===10,'Historial carga inicialmente diez filas e identifica al actor');
  await page.evaluate(()=>{

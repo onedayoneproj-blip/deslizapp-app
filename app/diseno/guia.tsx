@@ -31,9 +31,11 @@ import {
   FilaPastillas,
   GrupoOpciones,
   ListaAgrupada,
+  CheckSeleccion,
   ProveedorToast,
   Tarjeta,
   TarjetaDocumento,
+  VistaPreviaWhatsApp,
   useToastUI,
   VistaToast,
   type JerarquiaBoton,
@@ -363,8 +365,13 @@ function Listas() {
       <ListaAgrupada etiqueta="Clientes de ejemplo">
         <FilaLista titulo="Marleny Peña" detalle="2 pedidos · hace 26 días" inicio={<Avatar nombre="Marleny Peña" />} href="/diseno#s-7" />
         <FilaLista titulo="Yahaira Rosario" detalle="1 pedido · ayer" inicio={<Avatar nombre="Yahaira Rosario" />} fin="RD$4,300" onClick={() => undefined} />
-        <FilaLista titulo="Abono · Efectivo" detalle="22 sep · al entregar" inicio={<span className="grid size-9 place-items-center rounded-full bg-accion-suave"><IconoMoneda tamano={18} /></span>} fin="RD$1,000" />
+        <FilaLista titulo="Abono · Efectivo" detalle="22 sep · al entregar" inicio={<IconoMoneda tamano={24} className="text-exito-texto" />} fin="RD$1,000" />
       </ListaAgrupada>
+      <ListaAgrupada etiqueta="Filas con casilla de selección">
+        <FilaLista marcada onClick={() => undefined} inicio={<CheckSeleccion marcado />} titulo="Oxana Black" detalle="Vendido 30 sep" />
+        <FilaLista marcada={false} onClick={() => undefined} inicio={<CheckSeleccion marcado={false} />} titulo="Zakat" detalle="Nunca se vendió" />
+      </ListaAgrupada>
+      <VistaPreviaWhatsApp texto={"¡Hola! Para reponer:\n• 2 Oxana Black\n• 1 Zakat\n¿Me confirmas precio y cuándo llegan? ¡Gracias!"} hora="9:41 a. m." />
       <ul className="flex flex-col gap-3">
         <li>
           <Tarjeta href="/diseno#s-7">

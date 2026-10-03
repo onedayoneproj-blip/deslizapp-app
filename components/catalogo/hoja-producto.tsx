@@ -9,7 +9,7 @@ import { useData } from "@/lib/data/provider";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Producto } from "@/lib/types";
 import { BotonVolver } from "../selector-busqueda";
-import { Chip, Interruptor } from "../controles";
+import { Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
@@ -17,9 +17,11 @@ import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
+import { Boton, Campo, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, ListaAgrupada, useToastUI } from "../ui";
 
-import { ControlInventario, ConfirmacionInventario, HistorialInventario, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
+import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
 /**
  * Hoja de producto sobre el Catálogo. Sin `productoId` crea; con `productoId` edita.
@@ -93,8 +95,8 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const navegar = (ruta: string) => { destino.current = ruta; setAbierta(false); };
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? "Historial de ajustes" : "Vista previa del producto"} altura="auto"
-    fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">Producto</span></div> : undefined}>
+  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? "Historial de ajustes" : producto?.nombre ?? "Producto"} altura="auto"
+    fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">{producto?.nombre ?? "Producto"}</span></div> : undefined}>
     <div className={historial.abierto ? "hidden" : "contents"}>
     {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} alNavegar={navegar} alVerHistorial={historial.abrir}/>}
     </div>
@@ -107,26 +109,26 @@ function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }:
   const inventario = useInventarioPendiente(producto);
   useAvisarAlSalir(inventario.pendiente || inventario.incierto);
   const confirmarSalida = useConfirmarSalida();
-  const estado = producto.stock === 0 ? "Agotado" : !producto.activo ? "Oculto" : "Visible en el catálogo";
   const navegar = (ruta: string) => confirmarSalida(() => alNavegar(ruta));
-  return <div className="flex flex-col gap-4 text-bosque">
+  return <div className="flex flex-col gap-4 text-texto">
     <div className="flex items-start gap-4">
-      <div className="h-28 w-28 shrink-0 overflow-hidden rounded-[18px] bg-arena">
-        {producto.fotos[0] ? <Foto src={producto.fotos[0]} alt={`Foto de ${producto.nombre}`} className="h-full w-full" sizes="112px"/> : <div className="grid h-full place-items-center font-display text-4xl text-bosque/30">{producto.nombre[0]}</div>}
+      <div className="size-30 shrink-0 overflow-hidden rounded-radio-m bg-superficie-hundida">
+        {producto.fotos[0] ? <Foto src={producto.fotos[0]} alt={`Foto de ${producto.nombre}`} className="h-full w-full" sizes="120px"/> : <div className="grid h-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>}
       </div>
-      <div className="min-w-0 flex-1">
-        <h2 title={producto.nombre} className="line-clamp-3 break-words font-display text-[23px] leading-tight">{producto.nombre}</h2>
-        <p className="mt-1 flex flex-wrap items-baseline gap-x-2"><b className="text-[18px]">{formatearPesos(precio.precio)}</b>{precio.precioAntes && <span className="text-sm text-suave line-through">{formatearPesos(precio.precioAntes)}</span>}</p>
-        <span className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-extrabold ${producto.stock === 0 ? "bg-bosque text-papel" : !producto.activo ? "bg-arena" : "bg-menta"}`}>{estado}</span>
-        {producto.categoria && <p className="mt-1 break-words text-sm text-suave">{producto.categoria}</p>}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <p className="flex flex-wrap items-baseline gap-x-2 text-destacado"><span>{formatearPesos(precio.precio)}</span>{precio.precioAntes && <span className="text-secundario font-normal text-texto-secundario line-through">{formatearPesos(precio.precioAntes)}</span>}</p>
+        {producto.categoria && <p className="break-words text-secundario text-texto-secundario">{producto.categoria}</p>}
+        {!producto.activo && <Etiqueta className="mt-1 self-start">Oculto</Etiqueta>}
       </div>
     </div>
-    <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+    <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
       alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
-    {inventario.error && <p role="alert" className="rounded-2xl bg-rosa p-4 text-sm">{inventario.error}</p>}
-    {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
-    <button type="button" disabled={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)} className="tocable h-14 rounded-full bg-bosque font-extrabold text-papel">Crear pedido</button>
-    <button type="button" disabled={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)} className="tocable h-12 rounded-full border-[1.5px] border-bosque bg-white font-extrabold">Editar</button>
+    {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
+    {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
+    <div className="grid grid-cols-2 gap-3">
+      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
+      <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
+    </div>
     <ConfirmacionInventario inventario={inventario}/>
   </div>;
 }
@@ -145,8 +147,9 @@ function FormularioProducto({
   const { crearProducto, usarCreditosRetoque } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan } = usePanelUI();
+  const { abrirPlan, abrirInventario } = usePanelUI();
   const toast = useToast();
+  const { mostrarToast: mostrarToastUI } = useToastUI();
   const entradaFoto = useRef<HTMLInputElement>(null);
 
   const [foto, setFoto] = useState<string | null>(producto?.fotos[0] ?? null);
@@ -162,6 +165,7 @@ function FormularioProducto({
   const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
   const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
+  const [eligiendoColeccion, setEligiendoColeccion] = useState(false);
   const [activo, setActivo] = useState(producto?.activo ?? true);
   const [guardando, setGuardando] = useState(false);
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta (de la foto solo importa si cambió, no su contenido)
@@ -174,7 +178,18 @@ function FormularioProducto({
     return [...todas].sort((a, b) => a.localeCompare(b, "es"));
   }, [productos]);
 
-  const lleno = !producto && tienda != null && productos.length >= tienda.limiteProductos;
+  const coleccionElegida = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
+
+  // El plan cuenta solo los visibles. Con el plan lleno no se puede mostrar otro producto: uno nuevo se guarda oculto y
+  // uno oculto no se vuelve visible hasta hacer espacio.
+  const llenoPlan = tienda != null && resumenDelPlan(productos, tienda.limiteProductos).estado === "lleno";
+  const bloqueaVisible = llenoPlan && !(producto?.activo ?? false);
+  const cambiarVisible = (valor: boolean) => {
+    if (valor && bloqueaVisible) return;
+    setActivo(valor);
+  };
+  const avisarLleno = () =>
+    mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
   const creditos = tienda?.creditosRetoque ?? 0;
   const alcanzan = creditos >= CREDITOS_POR_RETOQUE;
@@ -250,7 +265,7 @@ function FormularioProducto({
       const fotoFinal = usarRetoque ? retocada!.url : foto;
       const fotos = producto ? [fotoFinal, ...producto.fotos.slice(1)] : [fotoFinal];
       const fotoRetocada = usarRetoque || yaRetocada;
-      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo };
+      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo: activo && !bloqueaVisible };
       const menos = `−${CREDITOS_POR_RETOQUE} créditos.`;
       if (producto) {
         const bien = await inventario.guardar({
@@ -264,7 +279,7 @@ function FormularioProducto({
         toast(
           usarRetoque
             ? `Publicado y retocado. ${menos}`
-            : activo
+            : activo && !bloqueaVisible
               ? "Publicado. Ya se está deslizando."
               : "Guardado como oculto. Nadie lo ve hasta que lo prendas.",
         );
@@ -284,16 +299,6 @@ function FormularioProducto({
 
   return (
     <div className="flex flex-col gap-3.5">
-      {lleno && tienda && (
-        <div className="rounded-[18px] bg-mandarina/20 px-4 py-3 text-sm">
-          <b>Tu plan está lleno ({productos.length} de {tienda.limiteProductos}).</b> En la demo puedes seguir; en la vida real, toca
-          subir de plan.{" "}
-          <button type="button" onClick={abrirPlan} className="font-extrabold underline">
-            Ver plan
-          </button>
-        </div>
-      )}
-
       {/* Foto */}
       <input
         ref={entradaFoto}
@@ -462,49 +467,32 @@ function FormularioProducto({
         )}
       </div>
 
-      {/* Colección */}
-      <div>
-        <p className="mb-2 text-[13.5px] font-bold">
-          Colección <span className="font-semibold text-suave">(opcional)</span>
-        </p>
-        <div className="flex flex-wrap gap-x-2 gap-y-3">
-          {colecciones.map((c) => (
-            <Chip
-              key={c}
-              elegido={nuevaColeccion === null && categoria === c}
-              onClick={() => {
-                setNuevaColeccion(null);
-                setCategoria(categoria === c ? null : c);
-              }}
-            >
-              {c}
-            </Chip>
-          ))}
-          <Chip elegido={nuevaColeccion !== null} onClick={() => setNuevaColeccion(nuevaColeccion === null ? "" : null)}>
-            + Nueva
-          </Chip>
-        </div>
-        {nuevaColeccion !== null && (
-          <input
-            type="text"
-            autoFocus
-            value={nuevaColeccion}
-            onChange={(e) => setNuevaColeccion(e.target.value)}
-            placeholder="Ej: Para él"
-            aria-label="Nombre de la colección nueva"
-            className={`${campo} mt-2`}
-          />
-        )}
-      </div>
-
-      {/* Visible */}
-      <div className="flex items-center justify-between gap-3 rounded-[18px] border-[1.5px] border-borde bg-white py-3 pr-3 pl-4">
-        <div>
-          <p className="font-extrabold">Visible en el catálogo</p>
-          <p className="text-[12.5px] text-suave">Apágalo para esconderlo sin borrarlo.</p>
-        </div>
-        <Interruptor encendido={activo} alCambiar={setActivo} etiqueta="Visible en el catálogo" />
-      </div>
+      {/* Colección y visibilidad: una sola lista agrupada */}
+      <ListaAgrupada etiqueta="Colección y visibilidad">
+        <FilaLista
+          titulo="Colección"
+          fin={<span className="text-secundario font-normal text-texto-secundario">{coleccionElegida ?? "Sin colección"}</span>}
+          onClick={() => setEligiendoColeccion(true)}
+        />
+        <FilaLista
+          titulo="Visible en el catálogo"
+          accion={<Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />}
+        />
+      </ListaAgrupada>
+      {bloqueaVisible && !producto && (
+        <p className="-mt-1.5 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
+      )}
+      <HojaColeccion
+        abierta={eligiendoColeccion}
+        alCerrar={() => setEligiendoColeccion(false)}
+        colecciones={colecciones}
+        elegida={coleccionElegida}
+        alElegir={(nombre, esNueva) => {
+          setNuevaColeccion(esNueva ? nombre : null);
+          setCategoria(esNueva ? categoria : nombre);
+          setEligiendoColeccion(false);
+        }}
+      />
 
       {(!producto || !inventario.pendiente) && <button
         type="button"
@@ -522,5 +510,60 @@ function FormularioProducto({
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
       <ConfirmacionInventario inventario={inventario}/>
     </div>
+  );
+}
+
+const SIN_COLECCION = "\u0000sin-coleccion";
+
+/** Selector de colección: las colecciones como Opción, "Sin colección" y "Agregar colección" (pide el nombre). */
+function HojaColeccion({
+  abierta,
+  alCerrar,
+  colecciones,
+  elegida,
+  alElegir,
+}: {
+  abierta: boolean;
+  alCerrar: () => void;
+  colecciones: string[];
+  elegida: string | null;
+  /** `esNueva`: el nombre no existía todavía (se crea al guardar el producto). */
+  alElegir: (nombre: string | null, esNueva: boolean) => void;
+}) {
+  const [agregando, setAgregando] = useState(false);
+  const [nombre, setNombre] = useState("");
+  // La colección nueva que aún no existe en la tienda sigue apareciendo como opción mientras no se guarde.
+  const todas = elegida && !colecciones.includes(elegida) ? [...colecciones, elegida] : colecciones;
+  const limpio = nombre.trim();
+  const agregar = () => {
+    if (!limpio) return;
+    const existente = colecciones.find((c) => c.localeCompare(limpio, "es", { sensitivity: "accent" }) === 0);
+    setAgregando(false);
+    setNombre("");
+    alElegir(existente ?? limpio, existente === undefined);
+  };
+  return (
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Colección">
+      <div className="flex flex-col gap-4">
+        <GrupoOpciones
+          etiqueta="Colección del producto"
+          valor={elegida ?? SIN_COLECCION}
+          alCambiar={(id) => alElegir(id === SIN_COLECCION ? null : id, id !== SIN_COLECCION && !colecciones.includes(id))}
+          opciones={[{ id: SIN_COLECCION, texto: "Sin colección" }, ...todas.map((c) => ({ id: c, texto: c }))]}
+        />
+        {agregando ? (
+          <div className="flex flex-col gap-3">
+            <Campo etiqueta="Nombre de la colección" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Para él" maxLength={60} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); agregar(); } }} />
+            <Boton anchoCompleto deshabilitado={!limpio} onClick={agregar}>Agregar colección</Boton>
+          </div>
+        ) : (
+          <ListaAgrupada>
+            <li className="px-4">
+              <FilaAgregar texto="Agregar colección" alTocar={() => setAgregando(true)} />
+            </li>
+          </ListaAgrupada>
+        )}
+      </div>
+    </Hoja>
   );
 }

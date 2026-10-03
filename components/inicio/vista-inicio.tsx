@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { pedirClientesQueDeben, pedirRevisionDelCatalogo } from "@/lib/destello";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, saludo } from "@/lib/formato";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import {
   aaahsDeLaSemana,
   anclaDe,
@@ -230,7 +231,7 @@ function Inicio() {
         )}
 
         {data && <OjoConElStock productos={data.productos} />}
-        {data && tienda && <TarjetaPlan tienda={tienda} productos={data.productos.length} />}
+        {data && tienda && <TarjetaPlan tienda={tienda} productos={resumenDelPlan(data.productos, tienda.limiteProductos).usados} />}
 
         <p className="mt-0.5 text-center font-mano text-[21px] text-suave">tu pulgar tiene buen gusto. déjalo trabajar.</p>
       </div>
@@ -492,7 +493,7 @@ function TarjetaPlan({ tienda, productos }: { tienda: Tienda; productos: number 
         <span className="text-[13px] font-bold">Ver plan</span>
       </span>
       <span className="mt-1 block text-[14px] font-extrabold">
-        {productos} de {limite} productos
+        {productos} visibles de {limite}
       </span>
       <span className="mt-2 block h-2.5 overflow-hidden rounded-full bg-papel">
         <span className="block h-2.5 origin-left rounded-full bg-bosque" style={{ transform: `scaleX(${limite ? Math.min(1, productos / limite) : 0})` }} />

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { IconoChevronDerecha } from "../iconos";
 import { clases } from "./comunes";
 
@@ -29,13 +29,14 @@ export function FilaLista({
   accion,
   pie,
   etiqueta,
+  marcada,
 }: {
   titulo: ReactNode;
   detalle?: ReactNode;
   inicio?: ReactNode;
   fin?: ReactNode;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Un botón propio al final de la fila ("Escribir"). Ocupa el lugar del chevron: la fila sigue llevando a `href`, y el botón
    * va FUERA del enlace (no se anidan controles).
@@ -45,6 +46,8 @@ export function FilaLista({
   pie?: ReactNode;
   /** Nombre accesible de la fila tocable si su texto no basta. */
   etiqueta?: string;
+  /** La fila es una casilla de selección (con su check en `inicio`): `marcada` dice si lo está. */
+  marcada?: boolean;
 }) {
   const tocable = Boolean(href || onClick);
   const cuerpo = (
@@ -56,7 +59,7 @@ export function FilaLista({
         {pie && <span className="mt-1 block">{pie}</span>}
       </span>
       {fin !== undefined && <span className="shrink-0 text-destacado text-texto tabular-nums">{fin}</span>}
-      {tocable && !accion && <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="-mr-1 shrink-0 text-texto-secundario" />}
+      {tocable && !accion && marcada === undefined && <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="-mr-1 shrink-0 text-texto-secundario" />}
     </>
   );
   const fila = "flex min-h-15 w-full items-center gap-3 px-4 text-left";
@@ -70,7 +73,7 @@ export function FilaLista({
             {cuerpo}
           </Link>
         ) : onClick ? (
-          <button type="button" onClick={onClick} className={dentro}>
+          <button type="button" onClick={onClick} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={dentro}>
             {cuerpo}
           </button>
         ) : (
@@ -87,7 +90,7 @@ export function FilaLista({
           {cuerpo}
         </Link>
       ) : onClick ? (
-        <button type="button" onClick={onClick} aria-label={etiqueta} className={clases("tocable", fila, foco)}>
+        <button type="button" onClick={onClick} aria-label={etiqueta} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={clases("tocable", fila, foco)}>
           {cuerpo}
         </button>
       ) : (

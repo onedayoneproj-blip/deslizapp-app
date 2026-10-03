@@ -5,12 +5,14 @@ import { PantallaCarga } from "@/components/panel/pantalla-carga";
 import { PantallaEntrada } from "@/components/panel/pantalla-entrada";
 import { PanelUIProvider } from "@/components/panel/ui";
 import { ToastProvider } from "@/components/toast";
+import { ProveedorToast } from "@/components/ui";
 import { DataProvider } from "@/lib/data/provider";
 
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
     <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}>
       <ToastProvider>
+        <ProveedorToast>
         <PanelUIProvider>
           <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-fondo min-[481px]:shadow-[0_0_40px_rgba(23,75,58,0.08)]">
             <Encabezado />
@@ -19,6 +21,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
           <NavInferior />
           <AvisoRed />
         </PanelUIProvider>
+        </ProveedorToast>
       </ToastProvider>
     </DataProvider>
   );

@@ -62,9 +62,7 @@ export function FilaDescuento({
       onClick={deshabilitado ? undefined : alAbrir}
       etiqueta={`Cupón ${actual} aplicado${valor ? `, ${valor}` : ""}. Cambiar o quitar`}
       inicio={
-        <span className="grid size-10 place-items-center rounded-full bg-accion-suave text-texto">
-          <IconoPromos tamano={20} strokeWidth={2.2} />
-        </span>
+        <IconoPromos tamano={24} className="text-texto" />
       }
       titulo="Cupón"
       detalle={detalle}

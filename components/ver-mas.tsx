@@ -39,6 +39,7 @@ export function BotonVerMas({
   alTocar,
   forma = "tarjeta",
   disabled = false,
+  sufijo,
 }: {
   quedan: number;
   mostrados: number;
@@ -48,6 +49,8 @@ export function BotonVerMas({
   alTocar: (boton: HTMLButtonElement) => void;
   forma?: "fila" | "tarjeta";
   disabled?: boolean;
+  /** Lo que sigue a "Ver N más" ("que se están acabando"). */
+  sufijo?: string;
 }) {
   if (quedan <= 0) return null;
   const tocar = (boton: HTMLButtonElement) => {
@@ -73,10 +76,10 @@ export function BotonVerMas({
         className="tocable flex h-13 w-full items-center justify-between gap-3 px-4 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-40"
       >
         <span className="flex items-center gap-1 text-destacado text-accion">
-          {textoVerMas(quedan, pagina)}
+          {textoVerMas(quedan, pagina)}{sufijo ? ` ${sufijo}` : ""}
           <IconoChevronAbajo tamano={20} strokeWidth={2.2} />
         </span>
-        <span className="text-secundario text-texto-secundario">
+        <span className="shrink-0 text-secundario whitespace-nowrap text-texto-secundario">
           {mostrados} de {total}
         </span>
       </button>

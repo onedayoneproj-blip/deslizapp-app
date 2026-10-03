@@ -7,6 +7,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
 import type { Tienda } from "@/lib/types";
+import { copiarTexto } from "@/lib/portapapeles";
 import { usePanelUI } from "../panel/ui";
 import { useToast } from "../toast";
 import { HojaCatalogoEnLinea } from "./hoja-catalogo-en-linea";
@@ -113,6 +114,19 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
     }
   };
 
+  // Compartir desde la tarjeta "En línea": hoja nativa con el enlace; si no existe, lo copia. Sin `await` antes de copiar (iPhone).
+  const compartir = () => {
+    const enlace = enlaceCatalogo(tienda.urlCatalogo);
+    if (!enlace) return;
+    if (typeof navigator.share === "function") {
+      navigator.share({ title: tienda.nombre, url: enlace.href }).catch(() => {
+        // Cerrar la hoja de compartir sin elegir nada no es un error.
+      });
+      return;
+    }
+    void copiarTexto(enlace.href).then((ok) => toast(ok ? "Enlace copiado" : "No se pudo copiar. Ábrelo y copia el enlace desde ahí."));
+  };
+
   return (
     <>
       <TarjetaCatalogo
@@ -121,7 +135,7 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
         acciones={{
           alPedir: () => setPedir(true),
           alRevisar: () => setRevisar(true),
-          alVerEnLinea: () => setEnLinea(true),
+          alCompartir: compartir,
           alCompartirReciente: () => {
             marcarVisto(tienda.id);
             setEnLinea(true);

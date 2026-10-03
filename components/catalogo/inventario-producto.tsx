@@ -10,6 +10,7 @@ import type { CambiosProducto, MotivoAjusteInventario, Producto } from "@/lib/ty
 import { Hoja } from "../hoja";
 import { Chip, GrupoOpciones } from "../controles";
 import { IconoMas, IconoMenos } from "../iconos";
+import { Boton, Cantidad, FilaLista, ListaAgrupada } from "../ui";
 
 /** Un solo borrador para ambos recorridos: tocar cantidades nunca llama a la fuente. */
 export function useInventarioPendiente(producto: Producto | null, alConfirmado?: () => void) {
@@ -165,6 +166,54 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0"><path d="M9 6l6 6-6 6" /></svg>
     </button>
   </section>;
+}
+
+/**
+ * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si el producto no
+ * lleva stock, la primera fila dice "Sin control de stock". Los cambios son un borrador: aparecen "Guardar" y "Descartar" debajo.
+ */
+export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
+  const delta = (i.propuesta ?? 0) - (i.base ?? 0);
+  const ocupado = i.guardando || i.incierto;
+  return (
+    <section aria-label="Inventario" className="flex flex-col gap-3">
+      <ListaAgrupada etiqueta="Stock e historial">
+        {i.base === null || i.propuesta === null ? (
+          <FilaLista titulo="Sin control de stock" />
+        ) : (
+          <FilaLista
+            titulo="En stock"
+            accion={
+              <Cantidad
+                valor={i.propuesta}
+                max={2147483647}
+                deshabilitado={ocupado}
+                alCambiar={(valor) => i.cambiar(valor - (i.propuesta ?? 0))}
+                etiquetaQuitar={`Disminuir stock de ${nombre}`}
+                etiquetaAgregar={`Aumentar stock de ${nombre}`}
+              />
+            }
+          />
+        )}
+        <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
+      </ListaAgrupada>
+      {i.pendiente && (
+        <div className="flex flex-col gap-3">
+          <p role="status" className="text-secundario text-texto-secundario">
+            {delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <Boton jerarquia="secundario" deshabilitado={ocupado} onClick={i.recuperar}>
+              Descartar
+            </Boton>
+            <Boton cargando={i.guardando} deshabilitado={i.incierto} onClick={alGuardar}>
+              Guardar cambios
+            </Boton>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function ConfirmacionInventario({ inventario }: { inventario: Borrador }) {

@@ -242,10 +242,15 @@ function Detalle({
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <p className="text-secundario font-bold text-texto-secundario">{fechaYHora(pedido.creadoEn)}</p>
         {/* La barra de pasos ya dice el estado; solo "Cancelado" no lo puede mostrar */}
-        {pedido.estado === "cancelado" && <ChipEstado estado={pedido.estado} />}
+        {pedido.estado === "cancelado" && (
+          <div className="flex items-center gap-2">
+            <span className="font-mano text-mano text-atencion-texto">pasa hasta en las mejores tiendas</span>
+            <ChipEstado estado={pedido.estado} />
+          </div>
+        )}
       </div>
 
       {/* Línea de avance: los pasos ANTERIORES al actual se tocan para volver a ellos (área de 44 px, barra delgada). */}
@@ -375,6 +380,7 @@ function Detalle({
           <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
             Despachar pedido
           </Boton>
+          <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
           {botonEditar}
           <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
             Cancelar pedido

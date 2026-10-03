@@ -16,7 +16,7 @@ const ok = (cond, msg) => {
   console.log((cond ? "✅ " : "❌ ") + msg);
   if (!cond) throw new Error(msg);
 };
-const numeroStock = async (page) => Number((await page.locator('section[aria-label="Inventario"] p[aria-live="polite"]').innerText()).match(/^\d+/)?.[0]);
+const numeroStock = async (page) => Number((await page.locator('section[aria-label="Inventario"] [aria-live="polite"]').innerText()).match(/^\d+/)?.[0]);
 const persistido = page => page.evaluate(() => localStorage.getItem("deslizapp-demo-v3"));
 const registros = async page => JSON.parse(await persistido(page) ?? "{}").ajustesInventario ?? [];
 
@@ -46,7 +46,7 @@ try {
   const inicial = await numeroStock(page);
   const nombre = producto.nombre;
   const revisarHistorial=async texto=>{
-    await page.getByRole("button",{name:"Ver historial",exact:true}).click();
+    await page.getByRole("button",{name:"Historial",exact:true}).click();
     await page.getByRole("region",{name:"Ajustes de inventario"}).getByText(texto,{exact:true}).waitFor();
     ok(await page.locator('[role="dialog"]').count()===1,"Historial se abre en la misma hoja");
     await page.getByRole("button",{name:/^Volver a/}).click();
@@ -136,7 +136,7 @@ try {
   ok((await page.locator('[role="dialog"] button[aria-label^="Aumentar stock"], [role="dialog"] button[aria-label^="Disminuir stock"]').count()) === 0, "Stock null no muestra controles de cantidad");
   await page.evaluate(id=>{const db=JSON.parse(localStorage.getItem("deslizapp-demo-v3"));db.productos.find(p=>p.id===id).fotos=[];localStorage.setItem("deslizapp-demo-v3",JSON.stringify(db));},id);
   await page.reload();await page.locator('section[aria-label="Inventario"]').waitFor();
-  ok(await page.locator('[role="dialog"] .h-28').getByText("P",{exact:true}).count()===1 && await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),"Miniatura sin foto conserva la forma y no desborda");
+  ok(await page.locator('[role="dialog"] .size-30').getByText("P",{exact:true}).count()===1 && await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),"Miniatura sin foto conserva la forma y no desborda");
   if(process.env.CAPTURAS)await page.screenshot({path:process.env.CAPTURAS+"/sin-foto-"+(process.env.ANCHO??390)+".png"});
   ok(errores.length === 0, "Sin errores de página: " + JSON.stringify(errores));
 } finally {

@@ -58,6 +58,14 @@ export type FuenteDatos = {
   /** Ajusta manualmente el inventario y guarda un registro atómico separado de pedidos/ventas. */
   ajustarStock(tiendaId: string, productoId: string, variacion: number, motivo: MotivoAjusteInventario, nota?: string | null): Promise<Producto>;
 
+  /**
+   * "Ya la tengo": suma la reposición de varios productos de una vez, todo o nada (real: RPC `reponer_stock`). Cada línea queda
+   * en el historial como reposición. Devuelve los productos con el stock nuevo.
+   */
+  reponerStock(tiendaId: string, items: { productoId: string; cantidad: number }[], nota?: string | null): Promise<Producto[]>;
+  /** Muestra u oculta varios productos en una sola operación (ocultar con "Hacer espacio" y su Deshacer). */
+  cambiarVisibilidad(tiendaId: string, ids: string[], activo: boolean): Promise<Producto[]>;
+
   guardarProductoConInventario(tiendaId: string, productoId: string, cambios: Omit<CambiosProducto, "stock">, propuesta: PropuestaInventario | null, retocar?: boolean): Promise<Producto>;
   getAjustesInventario(tiendaId: string, productoId: string, desde?: number, limite?: number): Promise<PaginaAjustesInventario>;
   revisarGuardadoInventario(tiendaId: string, productoId: string, ajusteId: string | null): Promise<{ producto: Producto | null; ajuste: AjusteInventario | null }>;

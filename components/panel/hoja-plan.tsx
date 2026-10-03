@@ -4,6 +4,7 @@ import { CREDITOS_POR_RETOQUE, CREDITOS_RETOQUE_MENSUALES, NOMBRE_PLAN, WHATSAPP
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp } from "@/lib/formato";
+import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { Hoja } from "../hoja";
 import { IconoCreditos, IconoWhatsApp } from "../iconos";
 
@@ -17,10 +18,9 @@ export function HojaPlan({ abierta, alCerrar }: { abierta: boolean; alCerrar: ()
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
 
   if (!tienda) return null;
-  const usados = productos?.length ?? 0;
-  const limite = tienda.limiteProductos;
-  const lleno = usados >= limite;
-  const porcentaje = Math.min(100, Math.round((usados / limite) * 100));
+  const { usados, limite, uso, estado } = resumenDelPlan(productos ?? [], tienda.limiteProductos);
+  const lleno = estado === "lleno";
+  const porcentaje = Math.round(uso * 100);
   const fotos = Math.floor(tienda.creditosRetoque / CREDITOS_POR_RETOQUE);
   const nombrePlan = NOMBRE_PLAN[tienda.plan];
   const mensaje = `Hola, Deslizapp. Te escribo de ${tienda.nombre} (${nombrePlan}). Quiero cambiar de plan o pedir más créditos de retoque.`;

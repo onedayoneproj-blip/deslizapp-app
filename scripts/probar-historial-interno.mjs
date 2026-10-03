@@ -10,8 +10,8 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  const href=await page.locator('main ul li a').evaluateAll(es=>es.find(a=>/^\/catalogo\/[^/]+$/.test(a.getAttribute('href')??'')&&/\b[1-9][0-9]* en stock\b/.test(a.getAttribute('aria-label')??''))?.getAttribute('href'));
  await page.goto(URL+href);const inventario=page.getByRole('region',{name:'Inventario'});await inventario.waitFor();
  const sinCambios=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'));
- const actual=await inventario.getByText(/^Stock actual:/).innerText();const inicial=Number(actual.match(/\d+/)[0]);
- const unidad=inventario.locator('[aria-live="polite"]');ok((await unidad.innerText()).trim()===`${inicial} ${inicial===1?'unidad':'unidades'}`,`${ancho}: singular/plural sin cambios`);
+ const unidad=inventario.locator('[aria-live="polite"]');const inicial=Number((await unidad.innerText()).match(/\d+/)[0]);
+ ok(Number.isInteger(inicial)&&inicial>0,`${ancho}: la fila En stock muestra la cantidad (${inicial})`);
  ok(await inventario.getByRole('button',{name:'Guardar cambios',exact:true}).count()===0&&await inventario.getByRole('button',{name:'Descartar',exact:true}).count()===0,`${ancho}: acciones pendientes ausentes sin cambio`);
  await inventario.locator('button[aria-label^="Aumentar stock"]').click();
  ok(await inventario.getByText('Añadirás 1 unidad',{exact:true}).count()===1,`${ancho}: delta singular sin texto redundante`);
@@ -19,14 +19,14 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  if(process.env.CAPTURAS&&!reducido)await page.screenshot({path:`${process.env.CAPTURAS}/inventario-${ancho}.png`});
  const g=await guardar.boundingBox(),d=await descartar.boundingBox();ok(g.height>=44&&d.height>=44&&Math.abs(g.y-d.y)<2&&Math.abs(g.width-d.width)<1,`${ancho}: Guardar/Descartar dentro del contenedor, juntos y del mismo ancho`);
  const scroll=page.locator('[data-hoja-contenido]');await scroll.evaluate(el=>{el.scrollTop=1000;});await page.waitForTimeout(150);const posicion=await scroll.evaluate(el=>el.scrollTop);
- await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.getByRole('heading',{name:'Historial de ajustes',exact:true}).waitFor();
+ await inventario.getByRole('button',{name:'Historial',exact:true}).click();await page.getByRole('heading',{name:'Historial de ajustes',exact:true}).waitFor();
  ok(await page.locator('[role="dialog"]').count()===1&&await page.getByRole('alertdialog').count()===0,`${ancho}: historial interno sin apilar ni avisar de salida`);
  if(process.env.CAPTURAS&&!reducido)await page.screenshot({path:`${process.env.CAPTURAS}/historial-${ancho}.png`});
  await page.getByText('Todavía no hay ajustes.',{exact:true}).waitFor();ok(await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'))===sinCambios,`${ancho}: historial no muestra ni guarda propuesta`);
  await page.getByRole('button',{name:/^Volver a/}).click();await page.waitForTimeout(150);
  ok((await unidad.innerText()).startsWith(String(inicial+1))&&Math.abs(await scroll.evaluate(el=>el.scrollTop)-posicion)<=2,`${ancho}: volver conserva cantidad y scroll (${posicion})`);
- ok(await page.evaluate(()=>document.activeElement?.textContent==='Ver historial'),`${ancho}: foco vuelve al botón del historial`);
- await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.goBack();await inventario.waitFor();
+ ok(await page.evaluate(()=>document.activeElement?.textContent==='Historial'),`${ancho}: foco vuelve al botón del historial`);
+ await inventario.getByRole('button',{name:'Historial',exact:true}).click();await page.goBack();await inventario.waitFor();
  ok(await page.getByRole('alertdialog').count()===0&&(await unidad.innerText()).startsWith(String(inicial+1)),`${ancho}: Atrás del teléfono vuelve sin descartar ni preguntar`);
  await inventario.getByRole('button',{name:'Descartar',exact:true}).click();
  await inventario.locator('button[aria-label^="Disminuir stock"]').click();ok(await inventario.getByText('Retirarás 1 unidad',{exact:true}).count()===1,`${ancho}: disminución singular`);

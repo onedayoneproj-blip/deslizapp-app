@@ -6,7 +6,7 @@ import { formatearPesos } from "@/lib/formato";
 import type { Cliente } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { IconoPedidos, IconoChevronAbajo, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
-import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
+import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta, VistaPreviaWhatsApp } from "../ui";
 import { HojaAbono } from "./hoja-abono";
 
 /**
@@ -50,9 +50,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
               key={m.tipo === "abono" ? m.abonoId : `compra-${m.pedidoId}`}
               href={`/pedidos/${m.pedidoId}`}
               inicio={
-                <span className={`grid size-10 place-items-center rounded-full ${m.tipo === "abono" ? "bg-accion-suave" : "bg-superficie-hundida"} text-texto`}>
-                  {m.tipo === "abono" ? <IconoMoneda tamano={20} /> : <IconoPedidos tamano={20} strokeWidth={2.2} />}
-                </span>
+                m.tipo === "abono" ? <IconoMoneda tamano={24} className="text-exito-texto" /> : <IconoPedidos tamano={24} className="text-texto" />
               }
               titulo={m.tipo === "compra" ? `Compra · pedido #${m.numero}` : `Abono · ${nombreMetodo(m.metodo)}`}
               detalle={`${dia(m.fecha)}${m.tipo === "compra" && m.pagoFechaAcordada ? ` · quedó en pagar el ${diaCorto(m.pagoFechaAcordada)}` : ""}${m.tipo === "abono" && m.nota ? ` · ${m.nota}` : ""}`}
@@ -78,7 +76,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
             <IconoChevronAbajo tamano={18} strokeWidth={2.2} />
           </button>
         </div>
-        <p className="rounded-radio-m rounded-bl-sm bg-superficie px-3 py-2.5 text-secundario text-texto">{mensaje.texto}</p>
+        <VistaPreviaWhatsApp texto={mensaje.texto} />
         {cliente.telefono && (
           <Boton tamano="grande" anchoCompleto icono={<IconoWhatsApp tamano={20} />} href={enlaceWhatsAppCliente(cliente.telefono, mensaje.texto)} target="_blank" rel="noreferrer">
             Recordarle por WhatsApp

@@ -14,7 +14,7 @@ import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, MotivoAj
 import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
-import { validarAjusteInventario } from "./inventario";
+import { validarAjusteInventario, validarReposicion } from "./inventario";
 import {
   ArchivoMuyGrande,
   ClienteDuplicado,
@@ -476,6 +476,25 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         () => new Error("La base no devolvió el producto actualizado."),
       );
       return cambio(aProducto(f));
+    },
+    async reponerStock(tiendaId, items, nota = null) {
+      validarReposicion(items);
+      const filas = await dato<FilaProducto[]>(
+        supabase.rpc("reponer_stock", {
+          p_tienda_id: tiendaId,
+          p_items: items.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad })),
+          p_nota: nota?.trim() || null,
+        }),
+      );
+      return cambio((filas ?? []).map((f) => aProducto(f)));
+    },
+    async cambiarVisibilidad(tiendaId, ids, activo) {
+      if (ids.length === 0) return [];
+      // Una sola sentencia: se cambian todos o ninguno.
+      const filas = await dato<FilaProducto[]>(
+        supabase.from("productos").update(filaCambiosProducto({ activo })).eq("tienda_id", tiendaId).in("id", ids).select("*"),
+      );
+      return cambio((filas ?? []).map((f) => aProducto(f)));
     },
 
     async guardarProductoConInventario(tiendaId, productoId, cambios, propuesta, retocar = false) {
