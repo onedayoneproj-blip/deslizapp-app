@@ -7,6 +7,7 @@ export { Boton, BotonIcono, type JerarquiaBoton, type TamanoBoton } from "./boto
 export { BotonCantidad, Cantidad } from "./cantidad";
 export { BarraAbonado, BloqueDeuda, FechaDeuda, MontoDeuda } from "./bloque-deuda";
 export { Buscador, Campo, CampoMonto, CampoMultilinea, soloDigitos } from "./campo";
+export { CheckSeleccion } from "./check-seleccion";
 export { ControlSegmentado } from "./control-segmentado";
 export { Contador, Etiqueta, type TonoEtiqueta } from "./etiqueta";
 export { FilaAgregar } from "./fila-agregar";

@@ -186,7 +186,7 @@ function FormularioProducto({
     setActivo(valor);
   };
   const avisarLleno = () =>
-    mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: abrirInventario } });
+    mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
   const creditos = tienda?.creditosRetoque ?? 0;
   const alcanzan = creditos >= CREDITOS_POR_RETOQUE;

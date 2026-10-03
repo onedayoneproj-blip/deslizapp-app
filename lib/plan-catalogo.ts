@@ -37,3 +37,18 @@ export function resumenDelPlan(productos: ConActivo[], limite: number): ResumenP
     estado: estadoDelPlan(usados, limite),
   };
 }
+
+/** Título y subtítulo de la hoja "Tu inventario" según el estado del plan. */
+export function textosDelPlan(r: Pick<ResumenPlan, "estado" | "libres">): { titulo: string; subtitulo: string } {
+  const lugares = r.libres === 1 ? "Te queda 1 lugar" : `Te quedan ${r.libres} lugares`;
+  switch (r.estado) {
+    case "sobra":
+      return { titulo: "Tienes espacio de sobra", subtitulo: "Sube lo que quieras, aquí cabe." };
+    case "quedan":
+      return { titulo: lugares, subtitulo: "Haz espacio con lo que ya no se mueve o sube de plan." };
+    case "casi":
+      return { titulo: "Ya casi no te cabe nada", subtitulo: `${lugares}. Libera los agotados o sube de plan.` };
+    case "lleno":
+      return { titulo: "Tu catálogo está lleno", subtitulo: "Para subir otro producto, haz espacio o sube de plan." };
+  }
+}

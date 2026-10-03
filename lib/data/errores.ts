@@ -205,6 +205,12 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("ajuste_producto_no_encontrado")) return new DatosInvalidos("Ese producto ya no existe en esta tienda.");
   if (mensaje.includes("ajuste_invalido")) return new DatosInvalidos("El ajuste debe cambiar al menos una unidad.");
 
+  // RPC reponer_stock
+  if (mensaje.includes("reposicion_vacia")) return new DatosInvalidos("Marca al menos un producto para sumar al stock.");
+  if (mensaje.includes("reposicion_muy_grande")) return new DatosInvalidos("Son demasiados productos de una vez. Hazlo en dos tandas.");
+  if (mensaje.includes("reposicion_invalida")) return new DatosInvalidos("Cada cantidad debe ser de 1 o más.");
+  if (mensaje.includes("reposicion_repetida")) return new DatosInvalidos("Un producto aparece repetido en la lista.");
+
   // RPC despachar_pedido
   const stock = /stock_insuficiente:\s*([^]+)$/.exec(mensaje);
   if (stock) return new StockInsuficiente(stock[1]!.trim());

@@ -29,6 +29,7 @@ export function FilaLista({
   accion,
   pie,
   etiqueta,
+  marcada,
 }: {
   titulo: ReactNode;
   detalle?: ReactNode;
@@ -45,6 +46,8 @@ export function FilaLista({
   pie?: ReactNode;
   /** Nombre accesible de la fila tocable si su texto no basta. */
   etiqueta?: string;
+  /** La fila es una casilla de selección (con su check en `inicio`): `marcada` dice si lo está. */
+  marcada?: boolean;
 }) {
   const tocable = Boolean(href || onClick);
   const cuerpo = (
@@ -70,7 +73,7 @@ export function FilaLista({
             {cuerpo}
           </Link>
         ) : onClick ? (
-          <button type="button" onClick={onClick} className={dentro}>
+          <button type="button" onClick={onClick} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={dentro}>
             {cuerpo}
           </button>
         ) : (
@@ -87,7 +90,7 @@ export function FilaLista({
           {cuerpo}
         </Link>
       ) : onClick ? (
-        <button type="button" onClick={onClick} aria-label={etiqueta} className={clases("tocable", fila, foco)}>
+        <button type="button" onClick={onClick} aria-label={etiqueta} role={marcada === undefined ? undefined : "checkbox"} aria-checked={marcada} className={clases("tocable", fila, foco)}>
           {cuerpo}
         </button>
       ) : (

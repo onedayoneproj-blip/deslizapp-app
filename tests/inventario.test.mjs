@@ -79,3 +79,14 @@ test('base compartida: solo el primero se guarda; repetir su identidad no duplic
   assert.throws(()=>guardarProductoEnDB(a.db,'t','p',{}, {...propuesta,stockPropuesto:6},'duena','ahora'),/otro guardado/);
   assert.throws(()=>guardarProductoEnDB(a.db,'otra','p',{},propuesta,'duena','ahora'));
 });
+
+import { validarReposicion } from "../lib/data/inventario.ts";
+
+test("reposición: mismas reglas que la RPC reponer_stock", () => {
+  assert.doesNotThrow(() => validarReposicion([{ productoId: "a", cantidad: 2 }, { productoId: "b", cantidad: 1 }]));
+  assert.throws(() => validarReposicion([]), /al menos un producto/);
+  assert.throws(() => validarReposicion([{ productoId: "a", cantidad: 0 }]), /1 o más/);
+  assert.throws(() => validarReposicion([{ productoId: "a", cantidad: 1.5 }]), /1 o más/);
+  assert.throws(() => validarReposicion([{ productoId: "a", cantidad: 1 }, { productoId: "a", cantidad: 2 }]), /repetido/);
+  assert.throws(() => validarReposicion(Array.from({ length: 201 }, (_, i) => ({ productoId: `p${i}`, cantidad: 1 }))), /demasiados/);
+});

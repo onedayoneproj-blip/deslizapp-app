@@ -24,6 +24,23 @@ export function validarAjusteInventario(
   return { stockNuevo, nota: limpio };
 }
 
+/** Lo máximo que acepta `reponer_stock` en una sola llamada (igual que la RPC). */
+export const MAX_LINEAS_REPOSICION = 200;
+
+export type LineaReposicion = { productoId: string; cantidad: number };
+
+/** Las mismas reglas de la RPC `reponer_stock`, para avisar con claridad antes de llamarla (y en la demo). */
+export function validarReposicion(items: LineaReposicion[]): void {
+  if (items.length === 0) throw new DatosInvalidos("Marca al menos un producto para sumar al stock.");
+  if (items.length > MAX_LINEAS_REPOSICION) throw new DatosInvalidos("Son demasiados productos de una vez. Hazlo en dos tandas.");
+  const vistos = new Set<string>();
+  for (const { productoId, cantidad } of items) {
+    if (!Number.isSafeInteger(cantidad) || cantidad <= 0) throw new DatosInvalidos("Cada cantidad debe ser de 1 o más.");
+    if (vistos.has(productoId)) throw new DatosInvalidos("Un producto aparece repetido en la lista.");
+    vistos.add(productoId);
+  }
+}
+
 /** Actualiza stock y registro juntos dentro de una escritura de la demo. */
 export function ajustarStockEnDB(
   db: DB,

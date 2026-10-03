@@ -47,3 +47,13 @@ test("libres nunca es negativo si hay más visibles que el límite", () => {
   assert.equal(r.libres, 0);
   assert.equal(r.uso, 1);
 });
+
+import { textosDelPlan } from "../lib/plan-catalogo.ts";
+
+test("título y subtítulo del plan según el estado", () => {
+  assert.deepEqual(textosDelPlan({ estado: "sobra", libres: 15 }), { titulo: "Tienes espacio de sobra", subtitulo: "Sube lo que quieras, aquí cabe." });
+  assert.equal(textosDelPlan({ estado: "quedan", libres: 6 }).titulo, "Te quedan 6 lugares");
+  assert.equal(textosDelPlan({ estado: "casi", libres: 2 }).subtitulo, "Te quedan 2 lugares. Libera los agotados o sube de plan.");
+  assert.equal(textosDelPlan({ estado: "casi", libres: 1 }).subtitulo, "Te queda 1 lugar. Libera los agotados o sube de plan.");
+  assert.equal(textosDelPlan({ estado: "lleno", libres: 0 }).titulo, "Tu catálogo está lleno");
+});
