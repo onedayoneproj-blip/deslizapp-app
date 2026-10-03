@@ -934,3 +934,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (prefers-reduced-motion: reduce) {
   .desp-camion, .desp-lineas, .desp-llena, .desp-llena-fin, .desp-sello, .desp-rotulo, .desp-sube-1, .desp-sube-2, .desp-sube-3, .desp-sube-4, .desp-icono { animation: none; }
 }
+
+/* Vista previa de WhatsApp (components/ui/vista-previa-whatsapp.tsx): patrón de fondo y piquito de la burbuja. Solo tokens. */
+.vista-whatsapp {
+  background-image: url("/chat/patron-whatsapp.svg");
+  background-size: 120px 120px;
+}
+.vista-whatsapp-burbuja {
+  box-shadow: 0 1px 0.5px color-mix(in srgb, var(--texto) 14%, transparent);
+}
+.vista-whatsapp-burbuja::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -8px;
+  border-style: solid;
+  border-width: 0 0 10px 9px;
+  border-color: transparent transparent transparent var(--accion-suave);
+}
+.text-cuerpo-chat { font-size: 0.90625rem; line-height: 1.38; }

@@ -79,7 +79,7 @@ export function BotonVerMas({
           {textoVerMas(quedan, pagina)}{sufijo ? ` ${sufijo}` : ""}
           <IconoChevronAbajo tamano={20} strokeWidth={2.2} />
         </span>
-        <span className="text-secundario text-texto-secundario">
+        <span className="shrink-0 text-secundario whitespace-nowrap text-texto-secundario">
           {mostrados} de {total}
         </span>
       </button>

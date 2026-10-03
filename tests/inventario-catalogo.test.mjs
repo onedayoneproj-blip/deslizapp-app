@@ -111,3 +111,11 @@ test("Hacer espacio: agotados marcados (menos los que se van a reponer) y sin mo
   assert.equal(c.sinMoverse[1].ultimaVenta, dia(45));
   assert.equal(sinMovimiento(productos, ventas, AHORA).length, 2);
 });
+
+import { seleccionInicial } from "../lib/inventario-catalogo.ts";
+
+test("Por reponer: viene marcado lo vendido y agotado, con lo vendido en 30 días", () => {
+  const ventas = ventasPorProducto([pedido(dia(3), [{ productoId: "a", cantidad: 3 }])], AHORA);
+  const r = porReponer([prod("a", 0), prod("b", 0), prod("c", 1)], ventas);
+  assert.deepEqual(seleccionInicial(r), { a: 3 });
+});

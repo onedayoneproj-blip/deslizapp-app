@@ -6,7 +6,7 @@ import { formatearPesos } from "@/lib/formato";
 import type { Cliente } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { IconoPedidos, IconoChevronAbajo, IconoMas, IconoMoneda, IconoWhatsApp } from "../iconos";
-import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
+import { BarraAbonado, Boton, FechaDeuda, FilaLista, GrupoOpciones, ListaAgrupada, Tarjeta, VistaPreviaWhatsApp } from "../ui";
 import { HojaAbono } from "./hoja-abono";
 
 /**
@@ -78,7 +78,7 @@ export function CuentaDelCliente({ cliente, cuenta, vendedora, tienda }: { clien
             <IconoChevronAbajo tamano={18} strokeWidth={2.2} />
           </button>
         </div>
-        <p className="rounded-radio-m rounded-bl-sm bg-superficie px-3 py-2.5 text-secundario text-texto">{mensaje.texto}</p>
+        <VistaPreviaWhatsApp texto={mensaje.texto} />
         {cliente.telefono && (
           <Boton tamano="grande" anchoCompleto icono={<IconoWhatsApp tamano={20} />} href={enlaceWhatsAppCliente(cliente.telefono, mensaje.texto)} target="_blank" rel="noreferrer">
             Recordarle por WhatsApp

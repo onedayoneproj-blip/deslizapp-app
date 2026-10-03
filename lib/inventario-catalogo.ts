@@ -177,3 +177,12 @@ export function candidatosAEspacio<P extends ProductoBase>(
 /** Productos "sin movimiento" para la tarjeta de atención (visibles con stock y sin ventas en 30 días). */
 export const sinMovimiento = <P extends ProductoBase>(productos: P[], ventas: Map<string, VentasProducto>, ahora: number) =>
   candidatosAEspacio(productos, ventas, ahora).sinMoverse;
+
+/** Lo que viene marcado al abrir "Por reponer": los vendidos y agotados, con su cantidad sugerida. */
+export function seleccionInicial(r: PorReponer<{ id: string }>): Record<string, number> {
+  const marcados: Record<string, number> = {};
+  for (const l of [...r.vendidos, ...r.sinVentas, ...r.seAcaban]) {
+    if (l.preseleccionado) marcados[l.producto.id] = l.sugerida;
+  }
+  return marcados;
+}

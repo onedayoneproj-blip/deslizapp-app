@@ -6,7 +6,7 @@ import { NOMBRE_PLAN } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { DIAS_SIN_MOVIMIENTO, porReponer, saludDelInventario, sinMovimiento, ventasPorProducto } from "@/lib/inventario-catalogo";
+import { DIAS_SIN_MOVIMIENTO, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, ventasPorProducto } from "@/lib/inventario-catalogo";
 import { resumenDelPlan, textosDelPlan } from "@/lib/plan-catalogo";
 import type { Producto } from "@/lib/types";
 import { Hoja } from "../hoja";
@@ -63,6 +63,11 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
 
   const ventas = useMemo(() => ventasPorProducto(pedidos ?? [], ahora), [pedidos, ahora]);
   const alVolver = () => setVista("resumen");
+  // Al entrar a "Por reponer" por primera vez, vienen marcados los vendidos y agotados (y "Hacer espacio" ya sabe cuáles).
+  const abrirVista = (v: VistaInventario) => {
+    if (v === "porReponer" && marcados === null && productos) setMarcados(seleccionInicial(porReponer(productos, ventas)));
+    setVista(v);
+  };
 
   if (!tienda) return null;
 
@@ -71,8 +76,7 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
       abierta={abierta}
       alCerrar={alCerrar}
       titulo={TITULO[vista]}
-      altura={vista === "resumen" ? "auto" : "grande"}
-      alVolverInterno={() => {
+            alVolverInterno={() => {
         if (vista === "resumen") return false;
         setVista("resumen");
         return true;
@@ -95,7 +99,7 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
           productos={productos}
           ventas={ventas}
           ahora={ahora}
-          alAbrir={setVista}
+          alAbrir={abrirVista}
           alCerrarHoja={alCerrar}
         />
       ) : vista === "porReponer" ? (

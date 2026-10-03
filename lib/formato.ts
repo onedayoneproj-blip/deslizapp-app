@@ -40,7 +40,7 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 const mayuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** "6:12 p. m." (hora de Santo Domingo; los espacios finos de Intl pasan a espacios normales). */
-const horaCorta = (fecha: Date) => hora.format(fecha).replace(/\s/g, " ").toLowerCase();
+export const horaCorta = (fecha: Date) => hora.format(fecha).replace(/\s/g, " ").toLowerCase();
 
 /** "Hoy, 6:12 p. m." · "Ayer, 6:12 p. m." · "Jue, 4:05 p. m." · "12 sep, 4:05 p. m." (más de una semana). */
 export function fechaCorta(iso: string, ahora: Date = new Date()): string {

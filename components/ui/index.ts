@@ -17,3 +17,4 @@ export { FilaPastillas, type OpcionFiltro } from "./pastilla";
 export { TarjetaDocumento } from "./tarjeta-documento";
 export { Tarjeta, type TonoTarjeta } from "./tarjeta";
 export { ProveedorToast, useToastUI, VistaToast, type OpcionesToast } from "./toast";
+export { VistaPreviaWhatsApp } from "./vista-previa-whatsapp";
