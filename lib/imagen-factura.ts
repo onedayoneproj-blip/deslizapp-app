@@ -4,6 +4,8 @@ import { coloresCupon, contraste, TEXTO_OSCURO, TEXTO_CLARO } from "./marca";
 import { ZONA_HORARIA } from "./config";
 import type { Cliente, PedidoConItems, Producto, Tienda } from "./types";
 
+/** Papel de documento: la factura es SIEMPRE blanca y opaca (también con la app en modo oscuro), por eso no usa un token de tema. */
+const PAPEL_DOCUMENTO = "#ffffff";
 const ANCHO = 1080;
 const MARGEN_TICKET = 130;
 const ANCHO_TICKET = 820;
@@ -102,7 +104,7 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   lienzo.height = ALTO;
 
   // Fondo y papel con bordes recortados como el recibo del catálogo.
-  ctx.fillStyle = "#f7ede9";
+  ctx.fillStyle = PAPEL_DOCUMENTO;
   ctx.fillRect(0, 0, ANCHO, ALTO);
   ctx.save();
   ctx.shadowColor = "rgba(42,26,34,.12)";
@@ -111,7 +113,7 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
   ctx.fillStyle = "#fff";
   ctx.fillRect(MARGEN_TICKET, 70, ANCHO_TICKET, ALTO - 140);
   ctx.restore();
-  ctx.fillStyle = "#f7ede9";
+  ctx.fillStyle = PAPEL_DOCUMENTO;
   for (let x = MARGEN_TICKET + 18; x < MARGEN_TICKET + ANCHO_TICKET; x += 36) {
     ctx.beginPath(); ctx.arc(x, 70, 14, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(x, ALTO - 70, 14, 0, Math.PI * 2); ctx.fill();

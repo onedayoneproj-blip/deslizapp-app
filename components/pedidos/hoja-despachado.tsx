@@ -67,6 +67,16 @@ export function HojaDespachado({
       titulo="Pedido despachado"
       tituloOculto
       altura="auto"
+      capaSuperior={
+        <div className="desp-escena relative h-12">
+          <div className="desp-camion absolute -top-11 -left-15 flex items-center gap-1">
+            <svg className="desp-lineas h-10 w-8.5 text-resalte" viewBox="0 0 34 40" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">
+              <path d="M4 10h22M10 20h22M4 30h22" />
+            </svg>
+            <IconoCamion tamano={64} strokeWidth={1.8} className="text-accion" />
+          </div>
+        </div>
+      }
       decoracionAbajo={
         <div className="desp-mascara relative h-75 w-full">
           <IconoFlechaArriba className="desp-icono desp-p1 text-patron" strokeWidth={3} />
@@ -83,15 +93,9 @@ export function HojaDespachado({
         Pedido #{pedido.numero} despachado
       </p>
       <div className="flex flex-col items-center gap-5.5">
-        {/* Barra de 3 pasos, camión y sello */}
-        <div className="desp-escena relative h-37.5 w-full">
-          <div className="desp-camion absolute top-7 -left-15 flex items-center gap-1" aria-hidden="true">
-            <svg className="desp-lineas h-10 w-8.5 text-resalte" viewBox="0 0 34 40" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">
-              <path d="M4 10h22M10 20h22M4 30h22" />
-            </svg>
-            <IconoCamion tamano={64} strokeWidth={1.8} className="text-accion" />
-          </div>
-          <div className="absolute top-25.5 right-12.5 left-0 grid grid-cols-3 gap-2" aria-hidden="true">
+        {/* Barra de 3 pasos y sello (el camión va en la capa superior de la hoja) */}
+        <div className="relative h-12 w-full">
+          <div className="absolute top-2 right-12.5 left-0 grid grid-cols-3 gap-2" aria-hidden="true">
             <div className="h-2 rounded-full bg-accion" />
             <div className="h-2 rounded-full bg-accion" />
             <div className="relative h-2 overflow-hidden rounded-full bg-linea">
@@ -99,10 +103,10 @@ export function HojaDespachado({
               <div className="desp-llena-fin absolute inset-0 rounded-full bg-accion" />
             </div>
           </div>
-          <div className="desp-sello absolute top-22 right-0 grid size-9 place-items-center rounded-full bg-accion text-sobre-accion" aria-hidden="true">
+          <div className="desp-sello absolute -top-1.5 right-0 grid size-9 place-items-center rounded-full bg-accion text-sobre-accion" aria-hidden="true">
             <IconoCheck tamano={20} strokeWidth={3} />
           </div>
-          <div className="absolute top-31 right-12.5 left-0 grid grid-cols-3 gap-2 text-etiqueta text-texto-secundario" aria-hidden="true">
+          <div className="absolute top-7.5 right-12.5 left-0 grid grid-cols-3 gap-2 text-etiqueta text-texto-secundario" aria-hidden="true">
             {PASOS.map((p, i) =>
               i < 2 ? (
                 <span key={p}>{p}</span>
@@ -153,7 +157,7 @@ export function HojaDespachado({
         <p className="desp-sube-3 -mt-2 text-secundario text-texto-secundario">El stock ya se actualizó.</p>
       </div>
 
-      <div className="desp-sube-4 relative mt-7 flex flex-col gap-3">
+      <div className="desp-sube-4 relative mt-7 flex flex-col gap-3 pb-[env(safe-area-inset-bottom)]">
         {cliente?.telefono && (
           <Boton
             tamano="grande"
