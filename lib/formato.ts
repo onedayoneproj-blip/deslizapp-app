@@ -54,6 +54,9 @@ export function fechaCorta(iso: string, ahora: Date = new Date()): string {
   return `${cuando}, ${horaCorta(fecha)}`;
 }
 
+/** "3 oct, 10:18 a. m." (fecha y hora de Santo Domingo, siempre absoluta: la fila de arriba del detalle de un pedido). */
+export const fechaYHora = (iso: string) => `${diaMes.format(new Date(iso)).replace(".", "")}, ${horaCorta(new Date(iso))}`;
+
 /** "Hoy" · "Ayer" · "Jue" · "12 sep": el día, sin la hora (la hora queda en el detalle). */
 export function diaRelativo(iso: string, ahora: Date = new Date()): string {
   return fechaCorta(iso, ahora).split(",")[0]!;
