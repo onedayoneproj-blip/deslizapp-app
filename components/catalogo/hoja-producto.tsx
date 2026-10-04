@@ -319,7 +319,7 @@ function FormularioProducto({
       <Campo
         etiqueta="Precio (RD$)"
         inputMode="numeric"
-        value={precio === "" ? "" : Number(precio).toLocaleString("en-US")}
+        value={precio}
         onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
         placeholder="0"
         className="[&_input]:font-extrabold"
@@ -410,7 +410,7 @@ function FormularioProducto({
           {retoquesPendientes(medios) > 0
             ? `${producto ? "Guardar" : "Publicar"} · −${retoquesPendientes(medios) * CREDITOS_POR_RETOQUE} créditos`
             : producto
-              ? "Guardar"
+              ? "Guardar cambios"
               : "Publicar"}
         </Boton>
       )}

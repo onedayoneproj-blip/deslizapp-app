@@ -161,7 +161,7 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: "Listo", exact: true }).click();
     ok(await sinDesborde(page), "Formulario de perfume sin desborde");
     await capturar(page, "formulario-perfume", ancho, tema);
-    await page.getByRole("button", { name: "Guardar", exact: true }).click();
+    await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo/${MAJESTIC}`);
     const d = (await db(page)).productos.find((p) => p.id === MAJESTIC).detalles;
     ok(d.marca === "Maison Prueba" && d.tamano_ml === 75 && d.concentracion === "edt", "Se guardan Marca y Tamaño (75 ml · EDT)");
@@ -249,7 +249,7 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/${MAJESTIC}/editar`);
     await page.getByRole("switch", { name: "Por encargo" }).click();
     await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
-    await page.getByRole("button", { name: "Guardar", exact: true }).click();
+    await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo/${MAJESTIC}`);
     const p = (await db(page)).productos.find((x) => x.id === MAJESTIC);
     ok(p.porEncargo === true && p.encargoTexto === "Llega en 8 días", "Se guarda Por encargo con su tiempo");

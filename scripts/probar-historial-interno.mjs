@@ -33,7 +33,7 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  await inventario.getByRole('button',{name:'Descartar',exact:true}).click();await page.getByRole('button',{name:'Editar',exact:true}).click();await page.waitForURL('**/editar');await inventario.waitFor();
  const campo=page.getByRole('textbox',{name:'Nombre',exact:true});await campo.fill('Nombre pendiente');await campo.evaluate(el=>{el.dataset.pruebaNodo='mismo';});
  await inventario.locator('button[aria-label^="Aumentar stock"]').click();ok(await page.getByRole('button',{name:'Guardar cambios',exact:true}).count()===1,`${ancho}: edición tiene un único Guardar conjunto`);
- await scroll.evaluate(el=>{el.scrollTop=1000;});await page.waitForTimeout(150);const posEdicion=await scroll.evaluate(el=>el.scrollTop);
+ await scroll.evaluate(el=>{el.scrollTop=1000;});await page.waitForTimeout(150);/* El botón puede quedar bajo la cabecera fija: se trae a la vista antes de medir (el clic lo haría igual). */await inventario.getByRole('button',{name:'Ver historial',exact:true}).scrollIntoViewIfNeeded();await page.waitForTimeout(150);const posEdicion=await scroll.evaluate(el=>el.scrollTop);
  await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.getByText('Todavía no hay ajustes.',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Volver a Editar producto',exact:true}).click();await page.waitForTimeout(150);
  ok(await campo.inputValue()==='Nombre pendiente'&&await campo.getAttribute('data-prueba-nodo')==='mismo'&&Math.abs(await scroll.evaluate(el=>el.scrollTop)-posEdicion)<=2,`${ancho}: edición conserva campos, nodo y scroll (${posEdicion})`);
