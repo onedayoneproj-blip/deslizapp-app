@@ -351,7 +351,7 @@ o más productos, le escribe a Deslizapp por WhatsApp desde Plan y créditos
 ## Fuera del modelo (decidido)
 
 - Descuentos en RD$ fijos: no. Solo porcentaje.
-- "Marca o línea" del producto: no. El nombre del producto basta.
+- "Marca o línea" del producto: no en el alcance original. El catálogo conectado ya incorpora `detalles.marca` por rubro (migraciones y `docs/12-catalogo-conectado.md`); no interpretar esta decisión histórica como una prohibición actual.
 
 ## Datos de prueba
 
@@ -368,3 +368,7 @@ se recalcula igual al número de `eventos_aaah` de cada producto. "Reiniciar
 datos de prueba" (menú de la tienda) vuelve a cargar el seed con la historia.
 Si cambia la forma de los datos, subir la versión de la clave de
 `localStorage` en `lib/data/demo.ts`.
+
+## Ampliación catálogo React (aplicada)
+
+`20261004184134_catalogo_react.sql`: productos suma `orden integer null` y `opiniones jsonb not null default []`. Hasta 20 opiniones con seis llaves obligatorias, texto hasta 600, URL HTTPS, estrellas enteras 1–5/null y traducida bool. Validador + CHECK; el contrato exacto está en la migración. `catalogo_publico` ordena nuevos sin orden primero por creación descendente; luego `orden` ascendente. Añade desde y número de pedidos despachados solo desde 10, sin datos de clientes. Los datos de Michel van en SQL generado fuera de migraciones. `scripts/cargar-catalogo-esencias-michel.mjs` se ejecuta después del generador general si se regenera el seed del panel.

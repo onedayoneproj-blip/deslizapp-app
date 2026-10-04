@@ -7,7 +7,7 @@ ve sus pedidos, los despacha, arma promos y revisa cómo le va.
 **No confundir con:** el catálogo público que ven los clientes finales (el que
 se desliza tipo Instagram Reels y pide por WhatsApp). Ese ya existe como un HTML
 independiente y **se mantenía separado** de este proyecto; desde octubre de 2026 se conecta y se pasa a React aquí (ver `docs/12-catalogo-conectado.md`). Este repo
-es solo el lado del dueño de la tienda.
+incluye el panel y las rutas públicas nuevas; el cambio del enlace público se hará después de comparar ambas superficies.
 
 **Primero lee `docs/00-contexto-del-proyecto.md`**: qué es el proyecto, cómo se trabaja (Planning y Coding), dónde va el trabajo y dónde está cada cosa. Lo que sigue en este documento es la base del panel.
 
@@ -412,3 +412,11 @@ En la hoja de un pedido despachado, «Despachado. Final feliz.» aparece al inic
 ### Aplicación coordinada del inventario
 
 No aplicar esta migración separada de una versión compatible de la app: restringe UPDATE directo de stock, y el editor publicado anteriormente lo incluía en su escritura. Una aplicación anticipada puede impedir guardar productos en esa versión. La PR sigue sin desplegar; la migración no está aplicada. En productos existentes, activar/desactivar el control de stock queda pendiente de una operación auditada específica; crear productos conserva esa elección inicial. El registro persiste sin añadir una pantalla de historial.
+
+## Catálogo React (PR #44, abierto para revisión)
+
+Rutas públicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin sesión del panel. Superficie propia en `components/tienda/` / `app/tienda/catalogo.css`, fiel al HTML; no aplica `components/ui` del panel. Usa las operaciones públicas de `FuenteDatos` mediante `lib/data/publica.ts`; `?demo` conserva la fuente demo, carrito y coach por tienda. El despacho y registro de pedidos no cambia: enviar crea una solicitud, no una venta.
+
+Migración **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, catálogo público ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
+
+La excepción visual de la superficie pública está en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios públicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona automáticamente: Lewis prueba el preview.**

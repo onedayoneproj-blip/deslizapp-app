@@ -915,3 +915,11 @@ Fredoka, texto en Figtree y, si aplica, un botón Mandarina. Estas ilustraciones
 
 Si hace falta un estado vacío que no está en el prototipo, se escribe en el
 mismo tono — no se deja el texto por defecto de un framework de UI.
+
+## Catálogo público React — revisión PR #44
+
+`/tienda/{slug}` replica el catálogo HTML con la marca de cada tienda: reels, perfil/cuadrícula, colecciones calculadas, búsqueda, panel «más», coach, opiniones y hoja de pedido. Medio horizontal con puntos, video mudo en línea con sonido opcional, opciones y precio/disponibilidad por variante, promo automática y Por encargo. Agotados conservan sello y abren «Te aviso cuando llegue»; el teléfono se guarda para ese aviso. La fuente pública no expone stock exacto por encima de tres.
+
+El corazón mantiene pedido local y registra el aaah. Enviar crea solicitud con precios de la base y abre WhatsApp en la misma pestaña; no envía automáticamente. Agotado y límite de intentos mantienen el carrito; fallo de red permite texto sin enlace. Opiniones respeta `false` / `pronto`; el resto de secciones respeta personalización.
+
+`/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». No muestra todavía estado/registro de la parte 3. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.

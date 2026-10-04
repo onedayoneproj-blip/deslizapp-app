@@ -1,0 +1,44 @@
+{
+  "origen": "http://localhost:3220",
+  "fecha": "2026-10-04T20:11:57.499Z",
+  "ancho": 390,
+  "red": "4G simulada: 1.6 Mbps / 150 ms",
+  "primerReelMs": 7086,
+  "bytesTransferidos": 1158100,
+  "solicitudes": 28,
+  "recursos": [
+    {
+      "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/14b2cebe-bd98-4a33-a3e2-89fcea2d8b93.jpg",
+      "bytes": 220097
+    },
+    {
+      "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/06fc13c4-3888-4c89-9c7c-1f1bc7c1d353.jpg",
+      "bytes": 171362
+    },
+    {
+      "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg",
+      "bytes": 125506
+    },
+    {
+      "url": "http://localhost:3220/_next/static/chunks/0gbyin0y25t08.js",
+      "bytes": 77386
+    },
+    {
+      "url": "http://localhost:3220/_next/static/chunks/1m88r00_bhao5.js",
+      "bytes": 72579
+    },
+    {
+      "url": "http://localhost:3220/_next/static/chunks/3rtbe05ruxs_i.js",
+      "bytes": 72015
+    },
+    {
+      "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/logo/e5abbe3d-caf3-44d6-9bcd-8cc4408bb7f1.jpg",
+      "bytes": 57463
+    },
+    {
+      "url": "https://deslizapp-app.vercel.app/catalogos/esencias-michel/fotos/mayar.webp",
+      "bytes": 45604
+    }
+  ],
+  "nota": "Build local, caché vacía, sin compresión de Vercel. No es Safari físico ni una prueba de cobertura móvil."
+}

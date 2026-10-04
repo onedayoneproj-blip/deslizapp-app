@@ -156,3 +156,9 @@ se consulta el historial; volver restaura scroll y foco al botón «Ver historia
 No se vuelve a ejecutar el efecto de apertura/foco de Hoja ni se reabre el teclado.
 Atrás regresa a la ficha; X/Escape conservan la confirmación de salida con cambios.
 La navegación es igual con movimiento reducido; no introduce otra excepción.
+
+## Excepción: catálogo público React, copia del HTML aprobado
+
+Solo en `components/tienda/` y `app/tienda/catalogo.css`, PR #44: se conservan las entradas de reels, estallido aaah, sello agotado, vuelo de la barra a la bolsa, transformación bolsa → pedido, coach y historias con barras/pulsación mantenida del HTML. Es otra superficie, con la marca de la tienda. No autoriza transiciones de páginas ni listas escalonadas del panel. Las capas y SVG decorativos portados quedan separados del estado y del foco.
+
+`prefers-reduced-motion` elimina transformaciones/movimientos no esenciales y conserva acceso inmediato. Atrás, Escape y cierre siguen disponibles. La geometría de una hoja pública no se recalcula cuando cambia el viewport por el teclado; los formularios conservan su altura y desplazan únicamente el contenido para mantener visible el campo. No se aplica una animación de entrada a campos enfocados ni se recrean al escribir.
