@@ -288,17 +288,32 @@ export type SolicitudPedido = {
   descartadaEn: string | null;
 };
 
-/** Lo que devuelve `verSolicitud` (la página del pedido del cliente). `id` solo si es de tu tienda. */
+/**
+ * Lo que devuelve `verSolicitud` (la página del pedido del cliente). `id` solo si es de tu tienda. Ya registrada, `items`,
+ * `descuento` y `total` son los del pedido (con lo quitado, lo pasado a encargo y lo editado después), no la foto inicial.
+ */
 export type VistaSolicitud = {
   id: string | null;
   codigo: string;
-  tienda: { nombre: string; slug: string; logoUrl: string | null; fotoPerfilUrl: string | null; whatsapp: string | null };
+  tienda: {
+    nombre: string;
+    slug: string;
+    logoUrl: string | null;
+    fotoPerfilUrl: string | null;
+    whatsapp: string | null;
+    /** "Michel": para "Le llegó a Michel". null si la tienda no lo puso. */
+    nombreVendedora: string | null;
+    /** Para decir "3 perfumes" / "3 prendas". */
+    rubro: Rubro | null;
+  };
   items: ItemSolicitud[];
   descuento: number;
   total: number;
   creadaEn: string;
   venceEn: string;
   estado: EstadoSolicitud;
+  /** Cuándo salió (solo despachado). */
+  despachadoEn: string | null;
   esMiTienda: boolean;
 };
 

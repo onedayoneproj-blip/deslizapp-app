@@ -44,6 +44,7 @@ import {
   registrarAaahEnDB,
   registrarSolicitudEnDB,
   solicitudesPendientesDeDB,
+  solicitudPorCodigoDeDB,
   verSolicitudDeDB,
 } from "./catalogo";
 import {
@@ -616,6 +617,10 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return resultado;
+  },
+  async solicitudPorCodigo(codigo) {
+    const e = leerDemo();
+    return solicitudPorCodigoDeDB(e.db, codigo, e.tiendaActivaId);
   },
   async descartarSolicitud(tiendaId, solicitudId) {
     escribir((db) => descartarSolicitudEnDB(db, tiendaId, solicitudId, ahora()));

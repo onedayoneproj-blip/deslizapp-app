@@ -342,24 +342,73 @@ function estadoSolicitud(db: DB, s: SolicitudPedido, ahora: number): VistaSolici
   return s.descartadaEn || Date.parse(s.venceEn) < ahora ? "vencido" : "enviado";
 }
 
+/**
+ * Como `ver_solicitud`: ya registrada, las líneas y el total son los del pedido (con lo quitado, lo pasado a encargo y lo
+ * editado después); la foto de cada línea, la de la solicitud o la del producto.
+ */
 export function verSolicitudDeDB(db: DB, codigo: string, tiendaActivaId: string, ahora: number): VistaSolicitud | null {
   const s = db.solicitudes.find((s) => s.codigo === codigo.trim().toUpperCase());
   if (!s) return null;
   const t = db.tiendas.find((t) => t.id === s.tiendaId);
   if (!t) return null;
   const mia = t.id === tiendaActivaId;
+  const pedido = s.pedidoId ? db.pedidos.find((p) => p.id === s.pedidoId) : undefined;
+  let items = s.items;
+  let total = s.total;
+  let descuento = s.descuento;
+  if (pedido) {
+    const suyos = db.pedidoItems.filter((i) => i.pedidoId === pedido.id);
+    if (suyos.length > 0) {
+      const posicion = (i: PedidoItem) => {
+        const n = s.items.findIndex((x) => x.productoId === i.productoId && (x.varianteId ?? null) === (i.varianteId ?? null));
+        return n < 0 ? 1000 : n;
+      };
+      items = [...suyos]
+        .sort((a, b) => posicion(a) - posicion(b) || a.nombreProducto.localeCompare(b.nombreProducto, "es"))
+        .map((i) => ({
+          productoId: i.productoId,
+          varianteId: i.varianteId ?? null,
+          nombre: i.nombreProducto,
+          varianteTexto: i.varianteTexto ?? null,
+          foto: s.items[posicion(i)]?.foto ?? db.productos.find((p) => p.id === i.productoId)?.fotos[0] ?? null,
+          precioUnitario: i.precioUnitario,
+          cantidad: i.cantidad,
+          porEncargo: Boolean(i.porEncargo),
+        }));
+      const subtotal = items.reduce((t, i) => t + i.precioUnitario * i.cantidad, 0);
+      total = pedido.total;
+      descuento = Math.max(0, subtotal - pedido.total);
+    }
+  }
   return {
     id: mia ? s.id : null,
     codigo: s.codigo,
-    tienda: { nombre: t.nombre, slug: t.slug, logoUrl: t.logoUrl, fotoPerfilUrl: t.fotoPerfilUrl ?? null, whatsapp: t.whatsapp ?? null },
-    items: s.items,
-    descuento: s.descuento,
-    total: s.total,
+    tienda: {
+      nombre: t.nombre,
+      slug: t.slug,
+      logoUrl: t.logoUrl,
+      fotoPerfilUrl: t.fotoPerfilUrl ?? null,
+      whatsapp: t.whatsapp ?? null,
+      nombreVendedora: t.nombreVendedora ?? null,
+      rubro: t.rubro ?? null,
+    },
+    items,
+    descuento,
+    total,
     creadaEn: s.creadaEn,
     venceEn: s.venceEn,
     estado: estadoSolicitud(db, s, ahora),
+    despachadoEn: pedido?.estado === "despachado" ? pedido.despachadoEn : null,
     esMiTienda: mia,
   };
+}
+
+/** La solicitud de ese código si es de la tienda activa (en cualquier estado), como la lectura con sesión. */
+export function solicitudPorCodigoDeDB(db: DB, codigo: string, tiendaActivaId: string): SolicitudPedido | null {
+  const s = db.solicitudes.find((s) => s.codigo === codigo.trim().toUpperCase() && s.tiendaId === tiendaActivaId);
+  if (!s) return null;
+  const { id, tiendaId, items, codigoPromo, descuento, total, creadaEn, venceEn, pedidoId, descartadaEn } = s;
+  return { id, tiendaId, codigo: s.codigo, items, codigoPromo, descuento, total, creadaEn, venceEn, pedidoId, descartadaEn };
 }
 
 export function solicitudesPendientesDeDB(db: DB, tiendaId: string, ahora: number): SolicitudPedido[] {
@@ -393,10 +442,13 @@ export function registrarSolicitudEnDB(db: DB, tiendaId: string, solicitudId: st
     const nombre = nuevo.nombre.trim();
     const escrito = nuevo.telefono?.trim() || null;
     const telefono = escrito ? normalizarTelefonoDO(escrito) : null;
-    if (nombre.length < 1 || nombre.length > 120 || (escrito && !telefono)) throw new DatosInvalidos("Revisa el nombre y el WhatsApp del cliente.");
+    const nota = nuevo.nota?.trim() || null;
+    if (nombre.length < 1 || nombre.length > 120 || (escrito && !telefono) || (nota && nota.length > 60)) {
+      throw new DatosInvalidos("Revisa el nombre y el WhatsApp del cliente.");
+    }
     const existente = telefono ? db.clientes.find((c) => c.tiendaId === tiendaId && c.telefono === telefono) : undefined;
     if (existente) throw new ClienteDuplicado(existente);
-    cliente = { id: nuevoId(), tiendaId, nombre, telefono, origen: "catalogo", primerPedidoEn: ahora, nota: null };
+    cliente = { id: nuevoId(), tiendaId, nombre, telefono, origen: "catalogo", primerPedidoEn: ahora, nota };
     clientes = [...clientes, cliente];
   }
   const quitar = new Set(d.quitar ?? []);
@@ -406,6 +458,13 @@ export function registrarSolicitudEnDB(db: DB, tiendaId: string, solicitudId: st
     .filter((i) => !quitar.has(i.productoId) && !(i.varianteId && quitar.has(i.varianteId)))
     .map((i) => (encargo.has(i.productoId) || (i.varianteId && encargo.has(i.varianteId)) ? { ...i, porEncargo: true } : i));
   if (quedan.length === 0) throw new DatosInvalidos("Quitaste todo. El pedido necesita al menos un producto.");
+  // Un producto o variante que ya no existe en la tienda no se registra (ni como encargo), como `producto_no_disponible`.
+  const fantasma = quedan.find(
+    (i) =>
+      !db.productos.some((p) => p.id === i.productoId && p.tiendaId === tiendaId) ||
+      (i.varianteId && !db.variantes.some((v) => v.id === i.varianteId && v.productoId === i.productoId)),
+  );
+  if (fantasma) throw new DatosInvalidos(`${fantasma.nombre} ya no está en tu catálogo. Quítalo para registrar el pedido.`);
   const subtotal = quedan.reduce((t, i) => t + i.precioUnitario * i.cantidad, 0);
   const descuento = subtotalAntes > 0 ? Math.round((s.descuento * subtotal) / subtotalAntes) : 0;
 

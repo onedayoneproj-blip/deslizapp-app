@@ -52,9 +52,9 @@ export type DatosVariante = {
 /** Cómo registrar una solicitud del catálogo: con un cliente de la tienda o con uno nuevo. */
 export type DatosRegistrarSolicitud = (
   | { clienteId: string; clienteNuevo?: undefined }
-  | { clienteId?: undefined; clienteNuevo: { nombre: string; telefono: string | null } }
+  | { clienteId?: undefined; clienteNuevo: { nombre: string; telefono: string | null; nota?: string | null } }
 ) & {
-  /** Productos o variantes (por id) que ya no van. */
+  /** Productos o variantes (por id) que ya no van. Con variante, el id de la variante (el del producto quitaría todas). */
   quitar?: string[];
   /** Productos o variantes (por id) que pasan a encargo (no mueven stock al despachar). */
   encargo?: string[];
@@ -236,6 +236,11 @@ export type FuenteDatos = {
   /** Crea el pedido (`nuevo`, origen catálogo) y une o crea el cliente. Lanza ClienteDuplicado si el WhatsApp nuevo ya es de otro. */
   registrarSolicitud(tiendaId: string, solicitudId: string, datos: DatosRegistrarSolicitud): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
   descartarSolicitud(tiendaId: string, solicitudId: string): Promise<void>;
+  /**
+   * La solicitud de ese código si es de una de tus tiendas (registrada, descartada o vencida también), con `pedidoId`; null si
+   * no existe o es de otra tienda. Real: lectura con sesión (RLS), nunca para anon.
+   */
+  solicitudPorCodigo(codigo: string): Promise<SolicitudPedido | null>;
 
   // Avísame cuando llegue
   /** Todos los avisos pendientes de la tienda (para contar "N esperan" en el inventario), del más viejo al más nuevo. */
