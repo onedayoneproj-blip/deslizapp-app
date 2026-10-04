@@ -12,5 +12,12 @@
     "email": "marisol@example.com",
     "nombre": "Marisol",
     "rol": "dueno"
+  },
+  {
+    "id": "a2000000-0000-4000-8000-000000000003",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "email": "rosa@example.com",
+    "nombre": "Rosa",
+    "rol": "dueno"
   }
 ]

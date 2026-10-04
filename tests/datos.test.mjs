@@ -77,6 +77,7 @@ test("tienda: de fila a la app", () => {
     catalogoNotasCambios: null,
     catalogoSolicitadoEn: null,
     catalogoPublicadoEn: null,
+    rubro: "general",
   });
 });
 
@@ -132,7 +133,7 @@ test("pedido nuevo: sin número (lo asigna la base) y con sus ítems al leerlo",
   assert.equal(leido.numero, 1043);
   assert.equal(leido.clienteId, "c1");
   assert.equal(leido.despachadoEn, null);
-  assert.deepEqual(leido.items[0], { id: "i1", pedidoId: "pe1", productoId: "p1", nombreProducto: "Kiara", cantidad: 2, precioUnitario: 935 });
+  assert.deepEqual(leido.items[0], { id: "i1", pedidoId: "pe1", productoId: "p1", nombreProducto: "Kiara", cantidad: 2, precioUnitario: 935, varianteId: null, varianteTexto: null, porEncargo: false });
   assert.deepEqual(aPedidoConItems({ ...leido, tienda_id: "t1", cliente_id: null, codigo_promo: null, creado_en: "x", despachado_en: null }).items, []);
 });
 

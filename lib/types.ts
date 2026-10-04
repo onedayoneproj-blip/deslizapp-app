@@ -3,6 +3,7 @@
 // Montos: pesos dominicanos enteros. Fechas: ISO 8601 en UTC.
 
 import type { EstiloMarca } from "./marca";
+import type { Detalles, Rubro } from "./rubros";
 
 import type { EstadoCatalogo } from "./catalogo-estado";
 export type { EstadoCatalogo };
@@ -35,6 +36,8 @@ export type Tienda = {
   catalogoNotasCambios: string | null;
   catalogoSolicitadoEn: string | null;
   catalogoPublicadoEn: string | null;
+  /** Qué vende (define los detalles de sus productos, lib/rubros.ts). */
+  rubro: Rubro;
 };
 
 export type EstadoTienda = "en_prueba" | "activa" | "pausada" | "eliminada";
@@ -63,7 +66,45 @@ export type Producto = {
   likes: number;
   creadoEn: string;
   actualizadoEn: string;
+  /** Corto y único en la tienda: el enlace del producto en el catálogo (/tienda/producto). */
+  slug: string;
+  tipo: TipoProducto;
+  /** Fotos y videos en orden. La base lo mantiene igual a `fotos` mientras la app escriba `fotos`. */
+  medios: Medio[];
+  /** Detalles del rubro (marca, notas, talla…), más `descripcion`. */
+  detalles: Detalles;
+  /** Ejes de las variantes (Talla, Color…); vacío = sin variantes. */
+  opciones: OpcionProducto[];
+  /** Agotado, todavía se puede pedir. */
+  porEncargo: boolean;
+  /** "Llega en 5 días" (≤ 40). */
+  encargoTexto: string | null;
+  /** Solo cuando se leen con el producto. Con variantes activas, `stock` es la suma de ellas. */
+  variantes?: Variante[];
 };
+
+export type TipoProducto = "producto" | "servicio";
+
+export type Medio =
+  | { tipo: "foto"; url: string; retocada: boolean }
+  | { tipo: "video"; url: string; portada: string | null; duracionS: number };
+
+export type OpcionProducto = { nombre: string; valores: string[] };
+
+export type Variante = {
+  id: string;
+  productoId: string;
+  /** Un valor por eje: { Talla: "M", Color: "Arena" }. */
+  valores: Record<string, string>;
+  stock: number | null;
+  /** null = el precio del producto. */
+  precio: number | null;
+  activa: boolean;
+  orden: number;
+};
+
+/** Lo que ve el público (nunca el stock exacto si pasa de 3). */
+export type Disponibilidad = "hay" | "quedan" | "agotado" | "por_encargo";
 
 /** Motivos que se guardan junto con cada ajuste manual de inventario. */
 export type MotivoAjusteInventario = "reposicion" | "dano" | "perdida" | "correccion_inventario" | "otro";
@@ -84,6 +125,8 @@ export type AjusteInventario = {
   id: string;
   tiendaId: string;
   productoId: string;
+  /** El ajuste de una variante (null: del producto entero). */
+  varianteId?: string | null;
   variacion: number;
   stockAnterior: number;
   stockNuevo: number;
@@ -137,6 +180,11 @@ export type PedidoItem = {
   nombreProducto: string;
   cantidad: number;
   precioUnitario: number;
+  varianteId: string | null;
+  /** "M · Arena": lo pone la base y no cambia aunque cambie la variante. */
+  varianteTexto: string | null;
+  /** No mueve stock al despachar. */
+  porEncargo: boolean;
 };
 
 export type Cliente = {
@@ -201,16 +249,124 @@ export type EnvioJugada = {
   enviadoEn: string;
 };
 
+/** Una línea de una solicitud del catálogo (foto fija de lo que pidió el cliente). */
+export type ItemSolicitud = {
+  productoId: string;
+  varianteId: string | null;
+  nombre: string;
+  varianteTexto: string | null;
+  foto: string | null;
+  precioUnitario: number;
+  cantidad: number;
+  porEncargo: boolean;
+};
+
+export type EstadoSolicitud = "enviado" | "confirmado" | "despachado" | "cancelado" | "vencido";
+
+/** El pedido que manda el cliente desde el catálogo, antes de que la tienda lo registre. */
+export type SolicitudPedido = {
+  id: string;
+  tiendaId: string;
+  codigo: string;
+  items: ItemSolicitud[];
+  codigoPromo: string | null;
+  descuento: number;
+  total: number;
+  creadaEn: string;
+  venceEn: string;
+  pedidoId: string | null;
+  descartadaEn: string | null;
+};
+
+/** Lo que devuelve `verSolicitud` (la página del pedido del cliente). `id` solo si es de tu tienda. */
+export type VistaSolicitud = {
+  id: string | null;
+  codigo: string;
+  tienda: { nombre: string; slug: string; logoUrl: string | null; fotoPerfilUrl: string | null; whatsapp: string | null };
+  items: ItemSolicitud[];
+  descuento: number;
+  total: number;
+  creadaEn: string;
+  venceEn: string;
+  estado: EstadoSolicitud;
+  esMiTienda: boolean;
+};
+
+/** "Avísame cuando llegue". `telefono`: solo dígitos con código de país (18095550123). */
+export type AvisoLlegada = {
+  id: string;
+  tiendaId: string;
+  productoId: string;
+  varianteId: string | null;
+  telefono: string;
+  nombre: string | null;
+  creadoEn: string;
+  avisadoEn: string | null;
+};
+
+/** Un producto como lo ve el público. */
+export type ProductoPublico = {
+  id: string;
+  slug: string;
+  nombre: string;
+  tipo: TipoProducto;
+  categoria: string | null;
+  precio: number;
+  /** El precio con la promo automática vigente; null si no hay. */
+  precioPromo: number | null;
+  promo: { nombre: string; porcentaje: number } | null;
+  medios: Medio[];
+  detalles: Detalles;
+  opciones: OpcionProducto[];
+  likes: number;
+  disponibilidad: Disponibilidad;
+  /** Solo con disponibilidad "quedan" (1 a 3). */
+  quedan: number | null;
+  encargoTexto: string | null;
+  variantes: {
+    id: string;
+    valores: Record<string, string>;
+    precio: number;
+    precioPromo: number | null;
+    disponibilidad: Disponibilidad;
+    quedan: number | null;
+  }[];
+};
+
+export type CatalogoPublico = {
+  tienda: {
+    slug: string;
+    nombre: string;
+    logoUrl: string | null;
+    fotoPerfilUrl: string | null;
+    marcaColorPrincipal: string;
+    marcaColorAcento: string;
+    marcaEstilo: EstiloMarca;
+    personalizacion: Record<string, unknown>;
+    whatsapp: string | null;
+    instagram: string | null;
+    descripcion: string | null;
+    nombreVendedora: string | null;
+    rubro: Rubro;
+  };
+  productos: ProductoPublico[];
+};
+
 export type EventoAaah = {
   id: string;
   tiendaId: string;
   productoId: string;
   creadoEn: string;
+  /** El dispositivo que lo dio desde el catálogo (uno por producto). */
+  dispositivo?: string | null;
 };
 
 // ---- Formas de entrada para crear/editar ----
 
-export type NuevoProducto = Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn">;
+/** Lo nuevo del catálogo conectado es opcional al crear: la base pone slug, tipo y medios (desde `fotos`). */
+type CamposCatalogo = "slug" | "tipo" | "medios" | "detalles" | "opciones" | "porEncargo" | "encargoTexto" | "variantes";
+export type NuevoProducto = Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn" | CamposCatalogo> &
+  Partial<Omit<Pick<Producto, CamposCatalogo>, "variantes">>;
 export type CambiosProducto = Partial<NuevoProducto>;
 
 /**

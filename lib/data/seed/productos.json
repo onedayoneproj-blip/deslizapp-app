@@ -14,7 +14,36 @@
     "stock": 3,
     "likes": 117,
     "creado_en": "2025-07-20T16:00:00.000Z",
-    "actualizado_en": "2025-08-09T16:00:00.000Z"
+    "actualizado_en": "2025-08-09T16:00:00.000Z",
+    "slug": "oxana-black",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/oxana-black.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Amaran",
+      "para": "unisex",
+      "tamano_ml": 100,
+      "concentracion": "edp",
+      "familia": "Oriental floral con café",
+      "ocasiones": [
+        "Noche",
+        "Fiestas",
+        "Citas"
+      ],
+      "notas_corazon": [
+        "Jazmín",
+        "café"
+      ],
+      "descripcion": "Café con vainilla y flores blancas. Pa' la noche."
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000002",
@@ -31,7 +60,29 @@
     "stock": 4,
     "likes": 140,
     "creado_en": "2025-07-29T16:00:00.000Z",
-    "actualizado_en": "2025-08-18T16:00:00.000Z"
+    "actualizado_en": "2025-08-18T16:00:00.000Z",
+    "slug": "majestic-kurt",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/majestic-kurt.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Le Falcone",
+      "para": "unisex",
+      "tamano_ml": 100,
+      "concentracion": "edp",
+      "ocasiones": [
+        "Citas",
+        "Cenas"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000003",
@@ -48,7 +99,29 @@
     "stock": 2,
     "likes": 175,
     "creado_en": "2025-08-07T16:00:00.000Z",
-    "actualizado_en": "2025-08-27T16:00:00.000Z"
+    "actualizado_en": "2025-08-27T16:00:00.000Z",
+    "slug": "parade",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/parade.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Urban Collection",
+      "para": "ella",
+      "tamano_ml": 100,
+      "concentracion": "edp",
+      "ocasiones": [
+        "Oficina",
+        "Cenas"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000004",
@@ -65,7 +138,28 @@
     "stock": 4,
     "likes": 173,
     "creado_en": "2025-08-16T16:00:00.000Z",
-    "actualizado_en": "2025-09-05T16:00:00.000Z"
+    "actualizado_en": "2025-09-05T16:00:00.000Z",
+    "slug": "wild-flower-gold",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/wild-flower-gold.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Fragrance Couture",
+      "para": "ella",
+      "tamano_ml": 100,
+      "ocasiones": [
+        "Día",
+        "Primavera y verano"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000005",
@@ -82,7 +176,28 @@
     "stock": 2,
     "likes": 193,
     "creado_en": "2025-08-25T16:00:00.000Z",
-    "actualizado_en": "2025-09-14T16:00:00.000Z"
+    "actualizado_en": "2025-09-14T16:00:00.000Z",
+    "slug": "zakat-z6",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/zakat-z6.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Zakat",
+      "para": "unisex",
+      "tamano_ml": 100,
+      "ocasiones": [
+        "Oficina",
+        "Todo el año"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000006",
@@ -99,7 +214,28 @@
     "stock": 6,
     "likes": 214,
     "creado_en": "2025-09-03T16:00:00.000Z",
-    "actualizado_en": "2025-09-23T16:00:00.000Z"
+    "actualizado_en": "2025-09-23T16:00:00.000Z",
+    "slug": "she",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/she.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Fragrance Couture",
+      "para": "ella",
+      "tamano_ml": 100,
+      "ocasiones": [
+        "Oficina",
+        "Cenas"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000007",
@@ -116,7 +252,26 @@
     "stock": 5,
     "likes": 214,
     "creado_en": "2025-09-12T16:00:00.000Z",
-    "actualizado_en": "2025-10-02T16:00:00.000Z"
+    "actualizado_en": "2025-10-02T16:00:00.000Z",
+    "slug": "intense-vanille",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/intense-vanille.svg",
+        "retocada": true
+      }
+    ],
+    "detalles": {
+      "para": "ella",
+      "familia": "Gourmand",
+      "ocasiones": [
+        "Noche"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000008",
@@ -133,7 +288,28 @@
     "stock": 0,
     "likes": 271,
     "creado_en": "2025-09-21T16:00:00.000Z",
-    "actualizado_en": "2025-10-11T16:00:00.000Z"
+    "actualizado_en": "2025-10-11T16:00:00.000Z",
+    "slug": "urban-toy-bubble-gum",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/urban-toy-bubble-gum.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Urban Collection",
+      "para": "ella",
+      "tamano_ml": 96,
+      "ocasiones": [
+        "Día",
+        "Regalo"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000009",
@@ -150,7 +326,36 @@
     "stock": 3,
     "likes": 302,
     "creado_en": "2025-09-30T16:00:00.000Z",
-    "actualizado_en": "2025-10-20T16:00:00.000Z"
+    "actualizado_en": "2025-10-20T16:00:00.000Z",
+    "slug": "mayar-natural-intense",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/mayar-natural-intense.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Lattafa",
+      "para": "ella",
+      "tamano_ml": 100,
+      "concentracion": "edp",
+      "familia": "Floral frutal fresca",
+      "ocasiones": [
+        "Día",
+        "Oficina",
+        "Verano"
+      ],
+      "notas_salida": [
+        "Higo",
+        "mandarina verde"
+      ],
+      "descripcion": "Fresquito y limpio, como acabadita de bañar."
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000010",
@@ -167,7 +372,28 @@
     "stock": 1,
     "likes": 316,
     "creado_en": "2025-10-09T16:00:00.000Z",
-    "actualizado_en": "2025-10-29T16:00:00.000Z"
+    "actualizado_en": "2025-10-29T16:00:00.000Z",
+    "slug": "kiara-pink",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/kiara-pink.svg",
+        "retocada": true
+      }
+    ],
+    "detalles": {
+      "marca": "Fragrance Couture",
+      "para": "ella",
+      "tamano_ml": 100,
+      "ocasiones": [
+        "Día",
+        "Universidad"
+      ]
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000011",
@@ -184,7 +410,23 @@
     "stock": 4,
     "likes": 21,
     "creado_en": "2026-04-01T16:00:00.000Z",
-    "actualizado_en": "2026-04-21T16:00:00.000Z"
+    "actualizado_en": "2026-04-21T16:00:00.000Z",
+    "slug": "tobillera-arena",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/tobillera-arena.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Hilo encerado y conchas",
+      "para": "ella"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000012",
@@ -201,7 +443,24 @@
     "stock": null,
     "likes": 45,
     "creado_en": "2026-04-10T16:00:00.000Z",
-    "actualizado_en": "2026-04-30T16:00:00.000Z"
+    "actualizado_en": "2026-04-30T16:00:00.000Z",
+    "slug": "anillo-brisa",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/anillo-brisa.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Acero inoxidable",
+      "medidas": "Ajustable",
+      "para": "unisex"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000013",
@@ -218,7 +477,24 @@
     "stock": 1,
     "likes": 45,
     "creado_en": "2026-04-19T16:00:00.000Z",
-    "actualizado_en": "2026-05-09T16:00:00.000Z"
+    "actualizado_en": "2026-05-09T16:00:00.000Z",
+    "slug": "choker-perla",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/choker-perla.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Perlas de río",
+      "medidas": "35 cm + extensión",
+      "para": "ella"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000014",
@@ -235,7 +511,23 @@
     "stock": 9,
     "likes": 56,
     "creado_en": "2026-04-28T16:00:00.000Z",
-    "actualizado_en": "2026-05-18T16:00:00.000Z"
+    "actualizado_en": "2026-05-18T16:00:00.000Z",
+    "slug": "pulsera-coral",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/pulsera-coral.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Coral y elástico",
+      "para": "ella"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000015",
@@ -252,7 +544,24 @@
     "stock": 2,
     "likes": 107,
     "creado_en": "2026-05-07T16:00:00.000Z",
-    "actualizado_en": "2026-05-27T16:00:00.000Z"
+    "actualizado_en": "2026-05-27T16:00:00.000Z",
+    "slug": "collar-marea",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/collar-marea.svg",
+        "retocada": true
+      }
+    ],
+    "detalles": {
+      "material": "Baño de oro",
+      "medidas": "45 cm",
+      "para": "ella"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
   },
   {
     "id": "a3000000-0000-4000-8000-000000000016",
@@ -269,6 +578,74 @@
     "stock": 5,
     "likes": 131,
     "creado_en": "2026-05-16T16:00:00.000Z",
-    "actualizado_en": "2026-06-05T16:00:00.000Z"
+    "actualizado_en": "2026-06-05T16:00:00.000Z",
+    "slug": "aretes-luna-llena",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/aretes-luna-llena.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Plata 925",
+      "para": "ella"
+    },
+    "opciones": [],
+    "por_encargo": false,
+    "encargo_texto": null
+  },
+  {
+    "id": "a3000000-0000-4000-8000-000000000017",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "nombre": "Camisa de lino",
+    "precio": 1850,
+    "fotos": [
+      "/seed/productos/camisa-de-lino.svg"
+    ],
+    "foto_retocada": false,
+    "categoria": "Camisas",
+    "activo": true,
+    "destacado": true,
+    "stock": 11,
+    "likes": 23,
+    "creado_en": "2026-09-20T16:00:00.000Z",
+    "actualizado_en": "2026-09-25T16:00:00.000Z",
+    "slug": "camisa-de-lino",
+    "tipo": "producto",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/camisa-de-lino.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "100 % lino",
+      "corte": "Recto, manga larga",
+      "cuidado": "Lavar en frío, secar a la sombra",
+      "para": "unisex",
+      "descripcion": "Fresca pa'l calor. Se arruga bonito."
+    },
+    "opciones": [
+      {
+        "nombre": "Talla",
+        "valores": [
+          "S",
+          "M",
+          "L"
+        ]
+      },
+      {
+        "nombre": "Color",
+        "valores": [
+          "Arena",
+          "Blanco"
+        ]
+      }
+    ],
+    "por_encargo": true,
+    "encargo_texto": "Llega en 5 días"
   }
 ]

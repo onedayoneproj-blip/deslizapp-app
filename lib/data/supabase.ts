@@ -35,10 +35,22 @@ import {
   TelefonoDuplicado,
   traducirErrorSupabase,
   FuncionApagada,
+  CatalogoNoDisponible,
+  UsarVariante,
 } from "./errores";
 import { FUNCIONES } from "../funciones";
 import {
   aAbono,
+  aAviso,
+  aCatalogoPublico,
+  aItemSolicitud,
+  aSolicitud,
+  aVistaSolicitud,
+  type FilaAviso,
+  type FilaCatalogoPublico,
+  type FilaItemSolicitud,
+  type FilaSolicitud,
+  type FilaVistaSolicitud,
   aCliente,
   aEventoAaah,
   aPedidoConItems as aPedidoBase,
@@ -187,6 +199,8 @@ const aAjusteInventario = (f: FilaAjusteInventario): AjusteInventario => ({
 // ---------------------------------------------------------------------------
 
 const PEDIDO_CON_ITEMS = "*, pedido_items(*), abonos(*)";
+/** El producto con sus variantes (todas: activas e inactivas). */
+const PRODUCTO_CON_VARIANTES = "*, producto_variantes(*)";
 
 /**
  * `alCambiar` se llama después de cada escritura que salió bien: el provider sube la versión y las
@@ -222,7 +236,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
 
   const productosCrudos = (tiendaId: string) =>
     todas<FilaProducto>((d, h) =>
-      supabase.from("productos").select("*").eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
+      supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
     ).then((filas) => filas.map((f) => aProducto(f)));
 
   const promosCrudas = (tiendaId: string) =>
@@ -410,7 +424,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     getProductos: (tiendaId) => leer(`productos:${tiendaId}`, () => productosCrudos(tiendaId)),
     getProducto: (tiendaId, id) =>
       leer(`producto:${tiendaId}:${id}`, async () => {
-        const f = await dato<FilaProducto>(supabase.from("productos").select("*").eq("tienda_id", tiendaId).eq("id", id).maybeSingle());
+        const f = await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", id).maybeSingle());
         return f ? aProducto(f) : null;
       }),
     async crearProducto(tiendaId, datos) {
@@ -466,13 +480,16 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, antes, fotos));
       return cambio(aProducto(f));
     },
-    async ajustarStock(tiendaId, productoId, variacion, motivo: MotivoAjusteInventario, nota = null) {
+    async ajustarStock(tiendaId, productoId, variacion, motivo: MotivoAjusteInventario, nota = null, varianteId = null) {
       // Validación rápida para dar un mensaje claro; la RPC repite las reglas bajo bloqueo de fila.
       const actual = await dato<FilaProducto>(
-        supabase.from("productos").select("*").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle(),
+        supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle(),
       );
       if (!actual) throw new DatosInvalidos("Ese producto no existe en esta tienda.");
-      validarAjusteInventario(actual.stock, variacion, motivo, nota);
+      const variante = varianteId ? actual.producto_variantes?.find((v) => v.id === varianteId && v.activa) : undefined;
+      if (varianteId && !variante) throw new DatosInvalidos("Esa variante ya no existe. Actualiza la pantalla.");
+      if (!varianteId && actual.producto_variantes?.some((v) => v.activa)) throw new UsarVariante();
+      validarAjusteInventario(variante ? variante.stock : actual.stock, variacion, motivo, nota);
       const f = await requerido<FilaProducto>(
         supabase.rpc("ajustar_stock", {
           p_tienda_id: tiendaId,
@@ -480,6 +497,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
           p_variacion: variacion,
           p_motivo: motivo,
           p_nota: nota?.trim() || null,
+          ...(varianteId ? { p_variante_id: varianteId } : {}),
         }),
         () => new Error("La base no devolvió el producto actualizado."),
       );
@@ -490,7 +508,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const filas = await dato<FilaProducto[]>(
         supabase.rpc("reponer_stock", {
           p_tienda_id: tiendaId,
-          p_items: items.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad })),
+          p_items: items.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad, ...(i.varianteId ? { variante_id: i.varianteId } : {}) })),
           p_nota: nota?.trim() || null,
         }),
       );
@@ -991,6 +1009,148 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         );
         return filas.map((f) => aEventoAaah(f));
       }),
+
+    // ---- Variantes ----
+    async guardarVariantes(tiendaId, productoId, opciones, variantes) {
+      await dato(
+        supabase.rpc("guardar_variantes", {
+          p_tienda_id: tiendaId,
+          p_producto_id: productoId,
+          p_opciones: opciones,
+          p_variantes: variantes.map((v, orden) => ({ valores: v.valores, stock: v.stock, precio: v.precio ?? null, activa: v.activa ?? true, orden })),
+        }),
+      );
+      const f = await requerido<FilaProducto>(
+        supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle(),
+        () => new DatosInvalidos("Ese producto ya no existe en esta tienda."),
+      );
+      return cambio(aProducto(f));
+    },
+
+    // ---- Solicitudes del catálogo ----
+    solicitudesPendientes: (tiendaId) =>
+      leer(`solicitudes:${tiendaId}`, async () => {
+        const filas = await dato<FilaSolicitud[]>(
+          supabase
+            .from("solicitudes_pedido")
+            .select("*")
+            .eq("tienda_id", tiendaId)
+            .is("pedido_id", null)
+            .is("registrada_en", null)
+            .is("descartada_en", null)
+            .gt("vence_en", new Date().toISOString())
+            .order("creada_en", { ascending: false }),
+        );
+        return (filas ?? []).map(aSolicitud);
+      }),
+    async registrarSolicitud(tiendaId, solicitudId, d) {
+      const nuevo = d.clienteNuevo
+        ? { nombre: d.clienteNuevo.nombre.trim(), telefono: d.clienteNuevo.telefono?.trim() ? d.clienteNuevo.telefono.trim() : null }
+        : null;
+      let creado: { id: string; cliente_id: string | null };
+      try {
+        creado = await requerido<{ id: string; cliente_id: string | null }>(
+          supabase.rpc("registrar_solicitud", {
+            p_solicitud_id: solicitudId,
+            p_cliente_id: d.clienteId ?? null,
+            p_cliente_nuevo: nuevo,
+            p_quitar: d.quitar ?? [],
+            p_encargo: d.encargo ?? [],
+          }),
+          () => new Error("La base no devolvió el pedido."),
+        );
+      } catch (e) {
+        // El WhatsApp nuevo ya es de un cliente de la tienda: se le muestra quién es
+        const telefono = nuevo?.telefono ? normalizarTelefonoDO(nuevo.telefono) : null;
+        if (e instanceof TelefonoDuplicado && telefono) {
+          const f = await dato<FilaCliente>(supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("telefono", telefono).maybeSingle());
+          if (f) throw new ClienteDuplicado(aCliente(f));
+        }
+        throw e;
+      }
+      const [pedido, filaCliente] = await Promise.all([
+        pedidoCrudo(tiendaId, creado.id),
+        creado.cliente_id ? dato<FilaCliente>(supabase.from("clientes").select("*").eq("tienda_id", tiendaId).eq("id", creado.cliente_id).maybeSingle()) : null,
+      ]);
+      if (!pedido || !filaCliente) throw new PedidoNoEncontrado();
+      return cambio({ pedido, cliente: aCliente(filaCliente) });
+    },
+    async descartarSolicitud(_tiendaId, solicitudId) {
+      await dato(supabase.rpc("descartar_solicitud", { p_solicitud_id: solicitudId }));
+      cambio(undefined);
+    },
+
+    // ---- Avísame cuando llegue ----
+    avisosDeProducto: (tiendaId, productoId) =>
+      leer(`avisos:${tiendaId}:${productoId}`, async () => {
+        const filas = await dato<FilaAviso[]>(
+          supabase
+            .from("avisos_llegada")
+            .select("id, tienda_id, producto_id, variante_id, telefono, nombre, creado_en, avisado_en")
+            .eq("tienda_id", tiendaId)
+            .eq("producto_id", productoId)
+            .is("avisado_en", null)
+            .order("creado_en"),
+        );
+        return (filas ?? []).map(aAviso);
+      }),
+    async marcarAvisado(_tiendaId, avisoIds) {
+      if (avisoIds.length === 0) return 0;
+      const n = await dato<number>(supabase.rpc("marcar_avisado", { p_aviso_ids: avisoIds }));
+      return cambio(n ?? 0);
+    },
+
+    // ---- Catálogo público (anon) ----
+    async catalogoPublico(slug) {
+      const f = await requerido<FilaCatalogoPublico>(supabase.rpc("catalogo_publico", { p_slug: slug }), () => new CatalogoNoDisponible());
+      return aCatalogoPublico(f);
+    },
+    async crearSolicitudPedido(slug, items, codigoPromo, dispositivo) {
+      type FilaCreada = { codigo: string; subtotal: number; descuento: number; total: number; codigo_promo: string | null; items: FilaItemSolicitud[]; vence_en: string };
+      const f = await requerido<FilaCreada>(
+        supabase.rpc("crear_solicitud_pedido", {
+          p_slug: slug,
+          p_items: items.map((i) => ({ producto_id: i.productoId, variante_id: i.varianteId ?? null, cantidad: i.cantidad })),
+          p_codigo_promo: codigoPromo?.trim() ? codigoPromo.trim() : null,
+          p_dispositivo: dispositivo,
+        }),
+        () => new Error("La base no devolvió el pedido."),
+      );
+      return {
+        codigo: f.codigo,
+        subtotal: f.subtotal,
+        descuento: f.descuento,
+        total: f.total,
+        codigoPromo: f.codigo_promo,
+        items: f.items.map(aItemSolicitud),
+        venceEn: f.vence_en,
+      };
+    },
+    async verSolicitud(codigo) {
+      try {
+        const f = await dato<FilaVistaSolicitud>(supabase.rpc("ver_solicitud", { p_codigo: codigo }));
+        return f ? aVistaSolicitud(f) : null;
+      } catch (e) {
+        if (e instanceof DatosInvalidos && /no encontramos ese pedido/i.test(e.message)) return null;
+        throw e;
+      }
+    },
+    async registrarAaah(slug, productoSlug, dispositivo, on) {
+      const n = await dato<number>(supabase.rpc("registrar_aaah", { p_slug: slug, p_producto_slug: productoSlug, p_dispositivo: dispositivo, p_on: on }));
+      return n ?? 0;
+    },
+    async pedirAviso(slug, productoSlug, varianteId, telefono, nombre, dispositivo) {
+      await dato(
+        supabase.rpc("pedir_aviso", {
+          p_slug: slug,
+          p_producto_slug: productoSlug,
+          p_variante_id: varianteId,
+          p_telefono: telefono,
+          p_nombre: nombre?.trim() || null,
+          p_dispositivo: dispositivo,
+        }),
+      );
+    },
 
     // ---- Solo demo ----
     async simularAvanceCatalogo() {

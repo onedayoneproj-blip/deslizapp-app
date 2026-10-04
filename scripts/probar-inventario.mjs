@@ -17,7 +17,7 @@ const ok = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
 const numeroStock = async (page) => Number((await page.locator('section[aria-label="Inventario"] [aria-live="polite"]').innerText()).match(/^\d+/)?.[0]);
-const persistido = page => page.evaluate(() => localStorage.getItem("deslizapp-demo-v3"));
+const persistido = page => page.evaluate(() => localStorage.getItem("deslizapp-demo-v4"));
 const registros = async page => JSON.parse(await persistido(page) ?? "{}").ajustesInventario ?? [];
 
 const navegador = await playwright.chromium.launch(
@@ -62,7 +62,7 @@ try {
   ok(await numeroStock(page)===inicial && await persistido(page)===antes && await page.getByRole("button",{name:"Guardar cambios",exact:true}).count()===0,"Volver al stock original no crea ajustes");
   await mas().click();await mas().click();await mas().click();
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v3")??"{}").ajustesInventario?.length===1);
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v4")??"{}").ajustesInventario?.length===1);
   ok((await registros(page))[0].variacion===3,"Guardar varios toques crea una única reposición final");
   await revisarHistorial("+3");
   const pedidoAntes=JSON.parse(await persistido(page)).pedidos.length;
@@ -76,7 +76,7 @@ try {
   ok(await page.getByRole("button",{name:"Guardar ajuste",exact:true}).isDisabled(),"Otro exige nota");
   await page.getByRole("textbox",{name:"Cuéntanos el motivo"}).fill("Recuento de prueba demo");
   await page.getByRole("button",{name:"Guardar ajuste",exact:true}).click();
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v3")).ajustesInventario.length===2);
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v4")).ajustesInventario.length===2);
   await revisarHistorial("Recuento de prueba demo");
   ok((await registros(page))[1].variacion===-2 && JSON.parse(await persistido(page)).pedidos.length===pedidoAntes,"Una disminución final con nota actualiza historial sin pedidos");
   await mas().click();
@@ -120,10 +120,10 @@ try {
   const ponerStock=async stock=>{
     await page.goto(URL+"/catalogo");
     await page.evaluate(({id,stock})=>{
-      const db=JSON.parse(localStorage.getItem("deslizapp-demo-v3"));
+      const db=JSON.parse(localStorage.getItem("deslizapp-demo-v4"));
       const p=db.productos.find(p=>p.id===id);p.stock=stock;
       p.nombre="Producto con un nombre muy largo para comprobar que la miniatura compacta conserva la lectura en pantallas pequeñas";
-      localStorage.setItem("deslizapp-demo-v3",JSON.stringify(db));
+      localStorage.setItem("deslizapp-demo-v4",JSON.stringify(db));
     },{id,stock});
     await page.reload();await page.goto(URL+"/catalogo/"+id);
     await page.locator('section[aria-label="Inventario"]').waitFor();
@@ -136,7 +136,7 @@ try {
   await ponerStock(null);
   ok((await page.locator('section[aria-label="Inventario"]').getByText("Sin control de stock", { exact: true }).count()) === 1, "Stock null muestra Sin control de stock");
   ok((await page.locator('[role="dialog"] button[aria-label^="Aumentar stock"], [role="dialog"] button[aria-label^="Disminuir stock"]').count()) === 0, "Stock null no muestra controles de cantidad");
-  await page.evaluate(id=>{const db=JSON.parse(localStorage.getItem("deslizapp-demo-v3"));db.productos.find(p=>p.id===id).fotos=[];localStorage.setItem("deslizapp-demo-v3",JSON.stringify(db));},id);
+  await page.evaluate(id=>{const db=JSON.parse(localStorage.getItem("deslizapp-demo-v4"));db.productos.find(p=>p.id===id).fotos=[];localStorage.setItem("deslizapp-demo-v4",JSON.stringify(db));},id);
   await page.reload();await page.locator('section[aria-label="Inventario"]').waitFor();
   ok(await page.locator('[role="dialog"] .size-30').getByText("P",{exact:true}).count()===1 && await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),"Miniatura sin foto conserva la forma y no desborda");
   if(process.env.CAPTURAS)await page.screenshot({path:process.env.CAPTURAS+"/sin-foto-"+(process.env.ANCHO??390)+".png"});

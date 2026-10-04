@@ -34,6 +34,19 @@ import type { DatosPromo } from "../promos";
 import { eventosAaahDeTienda } from "./resumen";
 import { ajustarStockEnDB, guardarProductoEnDB, validarReposicion } from "./inventario";
 import {
+  avisosDeProductoDeDB,
+  catalogoPublicoDeDB,
+  crearSolicitudEnDB,
+  descartarSolicitudEnDB,
+  guardarVariantesEnDB,
+  marcarAvisadoEnDB,
+  pedirAvisoEnDB,
+  registrarAaahEnDB,
+  registrarSolicitudEnDB,
+  solicitudesPendientesDeDB,
+  verSolicitudDeDB,
+} from "./catalogo";
+import {
   avanzarCatalogoDemo,
   buscarDueno,
   buscarTienda,
@@ -47,7 +60,7 @@ import {
 } from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
-const KEY = "deslizapp-demo-v3";
+const KEY = "deslizapp-demo-v4";
 const KEY_SESION = "deslizapp-sesion-v1";
 
 export type EstadoDemo = {
@@ -249,13 +262,13 @@ export const fuenteDemo: FuenteDatos = {
     });
     return actualizado;
   },
-  async ajustarStock(tiendaId, productoId, variacion, motivo, nota = null) {
+  async ajustarStock(tiendaId, productoId, variacion, motivo, nota = null, varianteId = null) {
     let actualizado!: Producto;
     escribir((db) => {
       const actor = db.usuarios.find((u) => u.tiendaId === tiendaId);
       if (!actor) throw new Error("No hay una cuenta asociada a esta tienda.");
-      const r = ajustarStockEnDB(db, tiendaId, productoId, variacion, motivo as MotivoAjusteInventario, nota, actor.id, nuevoId(), ahora());
-      actualizado = r.producto;
+      const r = ajustarStockEnDB(db, tiendaId, productoId, variacion, motivo as MotivoAjusteInventario, nota, actor.id, nuevoId(), ahora(), varianteId);
+      actualizado = productoDeTienda(r.db, tiendaId, productoId) ?? r.producto;
       return r.db;
     });
     return actualizado;
@@ -268,10 +281,14 @@ export const fuenteDemo: FuenteDatos = {
       if (!actor) throw new Error("No hay una cuenta asociada a esta tienda.");
       // Todo o nada: si una línea falla, `escribir` no guarda nada.
       let siguiente = db;
-      for (const { productoId, cantidad } of items) {
-        const r = ajustarStockEnDB(siguiente, tiendaId, productoId, cantidad, "reposicion", nota, actor.id, nuevoId(), ahora());
+      for (const { productoId, cantidad, varianteId } of items) {
+        const r = ajustarStockEnDB(siguiente, tiendaId, productoId, cantidad, "reposicion", nota, actor.id, nuevoId(), ahora(), varianteId ?? null);
         siguiente = r.db;
-        actualizados.push(r.producto);
+      }
+      // Uno por producto, con su stock final (como la RPC)
+      for (const id of new Set(items.map((i) => i.productoId))) {
+        const p = productoDeTienda(siguiente, tiendaId, id);
+        if (p) actualizados.push(p);
       }
       return siguiente;
     });
@@ -313,6 +330,19 @@ export const fuenteDemo: FuenteDatos = {
   async revisarGuardadoInventario(tiendaId, productoId, ajusteId) {
     const db = leerDemo().db;
     return { producto: productoDeTienda(db, tiendaId, productoId), ajuste: db.ajustesInventario.find(a => a.id === ajusteId && a.tiendaId === tiendaId && a.productoId === productoId) ?? null };
+  },
+
+  // Variantes
+  async guardarVariantes(tiendaId, productoId, opciones, variantes) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const actor = db.usuarios.find((u) => u.tiendaId === tiendaId);
+      if (!actor) throw new DatosInvalidos("No hay una cuenta asociada a esta tienda.");
+      const r = guardarVariantesEnDB(db, tiendaId, productoId, opciones, variantes, actor.id, nuevoId, ahora());
+      actualizado = r.producto;
+      return r.db;
+    });
+    return actualizado;
   },
 
   // Pedidos
@@ -555,6 +585,67 @@ export const fuenteDemo: FuenteDatos = {
   // Aaahs
   async getEventosAaah(tiendaId: string): Promise<EventoAaah[]> {
     return eventosAaahDeTienda(leerDemo().db, tiendaId);
+  },
+
+  // Solicitudes del catálogo
+  async solicitudesPendientes(tiendaId) {
+    return solicitudesPendientesDeDB(leerDemo().db, tiendaId, Date.now());
+  },
+  async registrarSolicitud(tiendaId, solicitudId, datos) {
+    let resultado!: { pedido: PedidoConItems; cliente: Cliente };
+    escribir((db) => {
+      const r = registrarSolicitudEnDB(db, tiendaId, solicitudId, datos, nuevoId, ahora());
+      resultado = { pedido: r.pedido, cliente: r.cliente };
+      return r.db;
+    });
+    return resultado;
+  },
+  async descartarSolicitud(tiendaId, solicitudId) {
+    escribir((db) => descartarSolicitudEnDB(db, tiendaId, solicitudId, ahora()));
+  },
+
+  // Avísame cuando llegue
+  async avisosDeProducto(tiendaId, productoId) {
+    return avisosDeProductoDeDB(leerDemo().db, tiendaId, productoId);
+  },
+  async marcarAvisado(tiendaId, avisoIds) {
+    let n = 0;
+    escribir((db) => {
+      const r = marcarAvisadoEnDB(db, tiendaId, avisoIds, ahora());
+      n = r.n;
+      return r.db;
+    });
+    return n;
+  },
+
+  // Catálogo público
+  async catalogoPublico(slug) {
+    return catalogoPublicoDeDB(leerDemo().db, slug, new Date());
+  },
+  async crearSolicitudPedido(slug, items, codigoPromo, dispositivo) {
+    let creada!: Awaited<ReturnType<FuenteDatos["crearSolicitudPedido"]>>;
+    escribir((db) => {
+      const r = crearSolicitudEnDB(db, slug, items, codigoPromo, dispositivo, nuevoId, new Date());
+      creada = r.creada;
+      return r.db;
+    });
+    return creada;
+  },
+  async verSolicitud(codigo) {
+    const e = leerDemo();
+    return verSolicitudDeDB(e.db, codigo, e.tiendaActivaId, Date.now());
+  },
+  async registrarAaah(slug, productoSlug, dispositivo, on) {
+    let likes = 0;
+    escribir((db) => {
+      const r = registrarAaahEnDB(db, slug, productoSlug, dispositivo, on, nuevoId, new Date());
+      likes = r.likes;
+      return r.db;
+    });
+    return likes;
+  },
+  async pedirAviso(slug, productoSlug, varianteId, telefono, nombre, dispositivo) {
+    escribir((db) => pedirAvisoEnDB(db, slug, productoSlug, varianteId, telefono, nombre, dispositivo, nuevoId, new Date()));
   },
 
   // Acciones de demo

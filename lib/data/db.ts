@@ -3,7 +3,7 @@
 
 import { MARCA_NEUTRA } from "../marca";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
-import type { Abono, AjusteInventario, Cliente, EnvioJugada, EventoAaah, Pedido, PedidoItem, Producto, Promo, Tienda, Usuario } from "../types";
+import type { Abono, AjusteInventario, AvisoLlegada, Cliente, EnvioJugada, EventoAaah, Pedido, PedidoItem, Producto, Promo, SolicitudPedido, Tienda, Usuario, Variante } from "../types";
 import {
   aCliente,
   aEventoAaah,
@@ -13,7 +13,10 @@ import {
   aPromo,
   aTienda,
   aUsuario,
+  aVariante,
+  slugDesdeTexto,
   type AjusteFecha,
+  type FilaVariante,
   type FilaCliente,
   type FilaEventoAaah,
   type FilaPedido,
@@ -33,6 +36,7 @@ import seedProductos from "./seed/productos.json";
 import seedPromos from "./seed/promos.json";
 import seedTiendas from "./seed/tiendas.json";
 import seedUsuarios from "./seed/usuarios.json";
+import seedVariantes from "./seed/producto_variantes.json";
 
 export type DB = {
   tiendas: Tienda[];
@@ -49,6 +53,12 @@ export type DB = {
   eventosAaah: EventoAaah[];
   /** Lo enviado desde Tu próxima jugada. */
   jugadaEnvios: EnvioJugada[];
+  /** Variantes de los productos (el `stock` del producto es la suma de las activas). */
+  variantes: Variante[];
+  /** Pedidos del catálogo que la tienda todavía no registra. */
+  solicitudes: (SolicitudPedido & { dispositivo?: string })[];
+  /** "Avísame cuando llegue". */
+  avisos: (AvisoLlegada & { dispositivo?: string })[];
 };
 
 /**
@@ -65,7 +75,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
   return {
     tiendas: (seedTiendas as FilaTienda[]).map((f) => aTienda(f, fecha)),
     usuarios: (seedUsuarios as FilaUsuario[]).map(aUsuario),
-    productos: (seedProductos as FilaProducto[]).map((f) => aProducto(f, fecha)),
+    productos: (seedProductos as unknown as FilaProducto[]).map((f) => aProducto(f, fecha)),
     pedidos: credito.pedidos,
     pedidoItems: (seedPedidoItems as FilaPedidoItem[]).map(aPedidoItem),
     abonos: credito.abonos,
@@ -74,6 +84,9 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     clientes: (seedClientes as FilaCliente[]).map((f) => aCliente(f, fecha)),
     promos: (seedPromos as FilaPromo[]).map((f) => aPromo(f, fecha)),
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
+    variantes: (seedVariantes as FilaVariante[]).map(aVariante),
+    solicitudes: [],
+    avisos: [],
   };
 }
 
@@ -139,6 +152,12 @@ export function migrar(db: DB): DB {
     // Promos guardadas antes del límite de usos y la pausa
     promos: db.promos.map((p) => ({ ...p, limiteUsos: p.limiteUsos ?? null, pausada: p.pausada ?? false, clienteId: p.clienteId ?? null })),
     jugadaEnvios: db.jugadaEnvios ?? [],
+    // Catálogo conectado: productos guardados antes de slug, medios, detalles y variantes
+    productos: conCamposDelCatalogo(db.productos),
+    pedidoItems: db.pedidoItems.map((i) => ({ ...i, varianteId: i.varianteId ?? null, varianteTexto: i.varianteTexto ?? null, porEncargo: i.porEncargo ?? false })),
+    variantes: db.variantes ?? [],
+    solicitudes: db.solicitudes ?? [],
+    avisos: db.avisos ?? [],
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,
@@ -152,8 +171,33 @@ export function migrar(db: DB): DB {
       catalogoNotasCambios: t.catalogoNotasCambios ?? null,
       catalogoSolicitadoEn: t.catalogoSolicitadoEn ?? null,
       catalogoPublicadoEn: t.catalogoPublicadoEn ?? null,
+      rubro: t.rubro ?? "general",
     })),
   };
+}
+
+/** Rellena slug (único por tienda), tipo, medios (desde fotos), detalles, opciones y encargo donde falten. */
+function conCamposDelCatalogo(productos: Producto[]): Producto[] {
+  const usados = new Set(productos.filter((p) => p.slug).map((p) => `${p.tiendaId}:${p.slug}`));
+  return productos.map((p) => {
+    let slug = p.slug;
+    if (!slug) {
+      const base = slugDesdeTexto(p.nombre);
+      slug = base;
+      for (let n = 2; usados.has(`${p.tiendaId}:${slug}`); n++) slug = `${base}-${n}`;
+      usados.add(`${p.tiendaId}:${slug}`);
+    }
+    return {
+      ...p,
+      slug,
+      tipo: p.tipo ?? "producto",
+      medios: p.medios ?? p.fotos.map((url, i) => ({ tipo: "foto" as const, url, retocada: i === 0 && p.fotoRetocada })),
+      detalles: p.detalles ?? {},
+      opciones: p.opciones ?? [],
+      porEncargo: p.porEncargo ?? false,
+      encargoTexto: p.encargoTexto ?? null,
+    };
+  });
 }
 
 /** UUID v4. `crypto.randomUUID` solo existe en contextos seguros (https / localhost). */
