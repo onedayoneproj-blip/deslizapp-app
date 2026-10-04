@@ -8645,3 +8645,6 @@ html.catalogo-html,
 }
 .catalogo-publico .tile{position:relative}
 .catalogo-publico .tile>.tlike{position:absolute;top:8px;right:8px}
+
+/* El corazón del estallido conserva el relleno del HTML aprobado. */
+.catalogo-publico .burst > svg path { fill: currentColor; }

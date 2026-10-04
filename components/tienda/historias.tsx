@@ -112,9 +112,11 @@ export function Historias({
 export function Coach({
   cerrar,
   productos,
+  siguienteProducto = "el siguiente producto",
 }: {
   cerrar: () => void;
   productos: { foto: string; nombre: string }[];
+  siguienteProducto?: string;
 }) {
   const [step, setStep] = useState(0);
   return (
@@ -206,7 +208,7 @@ export function Coach({
               </h3>
               <p>
                 {i === 0
-                  ? "y va apareciendo el siguiente producto."
+                  ? `y va apareciendo ${siguienteProducto}.`
                   : i === 1
                     ? "o toca dos veces la foto. Se va directo a tu pedido."
                     : "Me llega por WhatsApp, ya escrito. Tú solo le das a enviar."}

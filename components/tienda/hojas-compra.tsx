@@ -1,4 +1,5 @@
 "use client";
+import { NOMBRE_PRODUCTO } from "@/lib/rubros";
 import { useState } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import type { LineaLocal } from "@/lib/tienda/carrito";
@@ -45,7 +46,7 @@ export function HojaPedido({
           {!lineas.length ? (
             <div className="wamsg in">
               <p>
-                Todavía no has elegido ningún producto. Dale ♥ a los que te
+                Todavía no has elegido {t.rubro === "ropa" ? "ninguna" : "ningún"} {NOMBRE_PRODUCTO[t.rubro].singular}. Dale ♥ a los que te
                 gusten y aparecen aquí 😉
               </p>
             </div>
@@ -126,7 +127,7 @@ export function HojaPedido({
             </button>
           ) : (
             <button className="wasend soft" onClick={cerrar}>
-              Ver productos
+              Ver {NOMBRE_PRODUCTO[t.rubro].plural}
             </button>
           )}
           <p className="hint2">
@@ -185,7 +186,7 @@ export function HojaOpiniones({
                 {t.nombre} <span>· Fijado</span>
               </div>
               <p>
-                ¿Tienes alguna duda de este producto? Escríbeme aquí abajo y te
+                ¿Tienes alguna duda de {t.rubro === "ropa" ? "esta" : "este"} {NOMBRE_PRODUCTO[t.rubro].singular}? Escríbeme aquí abajo y te
                 contesto por WhatsApp.
               </p>
             </div>
@@ -236,7 +237,7 @@ export function HojaOpiniones({
                 ))
               ) : (
                 <p className="none">
-                  Todavía no hay opiniones publicadas de este producto en
+                  Todavía no hay opiniones publicadas de {t.rubro === "ropa" ? "esta" : "este"} {NOMBRE_PRODUCTO[t.rubro].singular} en
                   internet. Si tienes una pregunta, escríbeme y te cuento.
                 </p>
               )}

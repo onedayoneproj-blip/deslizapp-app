@@ -167,7 +167,7 @@ export function Catalogo({
           const hash = decodeURIComponent(location.hash.slice(1));
           if (hash.startsWith("planes")) setVista("planes");
           else if (hash === "como-funciona") setVista("historia");
-          else if (!hash && !vioCoach(slug)) setVista("coach");
+          else if (!hash && datos.productos.length > 0 && !vioCoach(slug)) setVista("coach");
         }
       })
       .catch((e) => {
@@ -1253,10 +1253,11 @@ export function Catalogo({
       {vista === "coach" && (
         <Coach
           cerrar={cerrar}
+          siguienteProducto={(t.rubro === "ropa" ? "la siguiente " : "el siguiente ")+nombres.singular}
           productos={(t.slug === "esencias-michel" ? ["mayar","majestic","wildflower"].map(slug=>c.productos.find(p=>p.slug===slug)).filter((p): p is CatalogoPublico["productos"][number]=>!!p) : c.productos.slice(0,3)).map((p) => ({ foto: portada(p), nombre: p.nombre }))}
         />
       )}
-      {vista === "historia" && (
+      {vista === "historia" && secciones?.como_funciona !== false && (
         <Historias
           cerrar={cerrar}
           planes={() => abrir("planes", "#planes")}

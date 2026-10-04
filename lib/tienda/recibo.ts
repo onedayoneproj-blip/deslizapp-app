@@ -111,7 +111,7 @@ export async function invoiceCanvas(o: VistaSolicitud, tema?: TemaCatalogo) {
   }
   // marca
   const iso = await loadImg(
-    o.tienda.fotoPerfilUrl ?? o.tienda.logoUrl ?? "/tienda/original-0.jpg",
+    o.tienda.fotoPerfilUrl || o.tienda.logoUrl || "",
   );
   x.save();
   x.beginPath();
@@ -120,6 +120,7 @@ export async function invoiceCanvas(o: VistaSolicitud, tema?: TemaCatalogo) {
   x.fill();
   x.clip();
   if (iso) x.drawImage(iso, CX - 48, 140, 96, 96);
+  else txt(o.tienda.nombre.charAt(0).toUpperCase(),CX,202,`700 46px ${BODY}`,"#FFFFFF","center");
   x.restore();
   x.font = `500 62px ${DSP}`;
   const w1 = x.measureText("Esencias ").width;
