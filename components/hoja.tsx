@@ -128,7 +128,8 @@ type Props = {
   alCerrar: () => void;
   /** Se llama después de que la hoja terminó de salir y se retiró del portal. */
   alSalir?: () => void;
-  titulo: string;
+  /** Texto del título (puede llevar un cruce animado de un título a otro, ver Tu próxima jugada). */
+  titulo: ReactNode;
   /** El título solo lo leen los lectores de pantalla (la hoja trae su propio encabezado en el contenido). */
   tituloOculto?: boolean;
   /** Capa decorativa por ENCIMA de todo (también de la cabecera y la X): sin toques, no ocupa espacio. Empieza donde empieza el contenido. */
@@ -721,6 +722,7 @@ function HojaMontada({
       <div ref={fondo} aria-hidden="true" onClick={cerrar} className="absolute inset-0 touch-none bg-velo" style={{ opacity: 0 }} />
       <div
         ref={panel}
+        data-hoja-panel
         role="dialog"
         aria-modal="true"
         aria-labelledby={idTitulo}

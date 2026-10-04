@@ -1,4 +1,6 @@
-// Con la app compilada y corriendo: URL=http://localhost:3000 node scripts/probar-proxima-jugada.mjs
+// Con Tu próxima jugada ENCENDIDA (lib/funciones.ts: proximaJugada: true), la app compilada y corriendo:
+//   URL=http://localhost:3000 node scripts/probar-proxima-jugada.mjs
+// Apagada, la prueba es scripts/probar-proximamente.mjs.
 // Solo modo demo (localStorage del navegador de prueba). Intercepta wa.me: nunca abre ni envía un mensaje.
 // Recorre Tu próxima jugada a 360, 390 y 430 (430 con reducir movimiento): la tarjeta arriba de Tus clientes, la entrada a la
 // galería, el barrido al elegir una jugada, "Escribirle a…" con saludo, código y productos, el envío (código personal + registro)
@@ -32,6 +34,7 @@ try {
     await page.goto(base+'/clientes');
     await page.getByRole('button',{name:/clientes:.*Ver detalle/}).click();
     await page.getByRole('heading',{name:'Tus clientes'}).waitFor();
+    if(await page.getByRole('button',{name:/^Próximamente/}).count()) throw new Error('Tu próxima jugada está apagada (lib/funciones.ts). Enciéndela y compila, o usa scripts/probar-proximamente.mjs.');
 
     // La tarjeta va arriba, antes de la dona
     const tarjeta=page.getByRole('button',{name:/^Tu próxima jugada/});
@@ -44,12 +47,18 @@ try {
     // Entrada a la galería: el vuelo termina y no deja nada encima
     await tarjeta.click();
     await page.getByRole('heading',{name:'Tu próxima jugada'}).waitFor();
-    if(reducido) assert.equal(await finitas(page),0,'sin entrada con reducir movimiento');
+    if(reducido) {
+      assert.equal(await finitas(page),0,'sin entrada con reducir movimiento');
+      assert.equal(await page.locator('.entrada-malla, [data-entrada-atras]').count(),0,'reducir movimiento: cambio directo, sin capas');
+    }
     await page.waitForTimeout(2000);
     const cuadros=page.locator('[data-jugada-cuadro]');
     assert.equal(await cuadros.count(),4);
     assert.ok(await cuadros.first().evaluate(el=>getComputedStyle(el).opacity==='1'),'los cuadros quedan visibles tras la entrada');
     assert.equal(await finitas(page),0,'la entrada terminó');
+    assert.equal(await page.locator('.entrada-malla, [data-entrada-atras], [data-cruce]').count(),0,'sin capas de la entrada al terminar');
+    assert.ok(await page.locator('[data-jugada-cuadro] img').evaluateAll(i=>i.every(x=>x.complete&&x.naturalWidth>0)),'ilustraciones cargadas');
+    assert.ok(await page.evaluate(()=>document.querySelectorAll('link[rel=preload][as=image][imagesrcset*="proxima-jugada"]').length>=4),'ilustraciones precargadas al abrir Tus clientes');
 
     // Barrido al elegir una jugada: termina sin restos
     await page.getByRole('button',{name:/^Segundo aaah:.*Ver jugada$/}).click();
@@ -58,6 +67,7 @@ try {
     await page.waitForTimeout(2000);
     assert.equal(await page.locator('.barrido-franja').count(),0,'la franja se fue');
     assert.equal(await page.locator('[role=dialog] [inert]').count(),0,'la galería de atrás se fue');
+    assert.equal(await page.locator('.barrido-nuevo, [data-cruce]').count(),0,'sin capas del barrido al terminar');
     assert.ok(await sinDesborde(page),`sin desborde en el detalle a ${ancho}px`);
 
     // Escribirle a…: las tres opciones

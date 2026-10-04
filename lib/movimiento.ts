@@ -9,7 +9,7 @@ export const DURACION = {
   /** Tu próxima jugada: la tarjeta se agranda y las cartas vuelan a la galería. */
   jugadaEntrada: 950,
   /** Tu próxima jugada: barrido de arriba abajo al elegir una jugada. */
-  jugadaBarrido: 1300,
+  jugadaBarrido: 1100,
   /** Tu próxima jugada: ciclo de las cartas del mazo. */
   jugadaCartas: 14000,
   /** Arco de dona al aparecer (referencias/donas). */

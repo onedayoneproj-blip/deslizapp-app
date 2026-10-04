@@ -22,3 +22,4 @@ export { ResumenDona, type CuadroResumen, type FilaResumen } from "./resumen-don
 export { MallaViva, MazoJugadas, TarjetaJugada, type CartaJugada } from "./tarjeta-jugada";
 export { CuadriculaSeleccion, type ElementoCuadricula } from "./cuadricula-seleccion";
 export { ElegirMensaje, type MensajeElegible } from "./elegir-mensaje";
+export { HojaProximamente, TarjetaProximamente } from "./funcion-en-preparacion";
