@@ -1,0 +1,12 @@
+[
+  { "caso": "vigente de producto", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 20, "inicioDias": -5, "finDias": 5 }], "esperado": 800 },
+  { "caso": "programada", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 20, "inicioDias": 2, "finDias": null }], "esperado": 1000 },
+  { "caso": "terminada por fecha", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 20, "inicioDias": -10, "finDias": -1 }], "esperado": 1000 },
+  { "caso": "terminada a mano", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 20, "inicioDias": -10, "finDias": null, "estado": "terminada" }], "esperado": 1000 },
+  { "caso": "pausada", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 20, "inicioDias": -10, "finDias": null, "pausada": true }], "esperado": 1000 },
+  { "caso": "dos a la vez: gana la mayor", "precio": 1000, "categoria": "Dulces", "promos": [{ "tipo": "producto", "porcentaje": 10, "inicioDias": -3, "finDias": null }, { "tipo": "coleccion", "coleccion": "Dulces", "porcentaje": 25, "inicioDias": -3, "finDias": null }], "esperado": 750 },
+  { "caso": "colección, redondeo al peso", "precio": 1250, "categoria": "Florales", "promos": [{ "tipo": "coleccion", "coleccion": "Florales", "porcentaje": 15, "inicioDias": -1, "finDias": 30 }], "esperado": 1062 },
+  { "caso": "colección de otra categoría", "precio": 1250, "categoria": "Florales", "promos": [{ "tipo": "coleccion", "coleccion": "Dulces", "porcentaje": 15, "inicioDias": -1, "finDias": null }], "esperado": 1250 },
+  { "caso": "promo de otro producto", "precio": 900, "categoria": "Dulces", "promos": [{ "tipo": "producto", "otroProducto": true, "porcentaje": 30, "inicioDias": -1, "finDias": null }], "esperado": 900 },
+  { "caso": "un código no cambia el precio", "precio": 900, "categoria": "Dulces", "promos": [{ "tipo": "codigo", "codigo": "LUNA20", "porcentaje": 20, "inicioDias": -1, "finDias": null }], "esperado": 900 }
+]
