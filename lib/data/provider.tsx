@@ -95,8 +95,8 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
     setErrorLectura(mensajeDeError(e, "No pudimos cargar tus datos. Inténtalo otra vez."));
   }, []);
 
-  // Al volver a la app (otra pestaña, el teléfono bloqueado) se leen los datos de nuevo: pudieron llegar
-  // pedidos del catálogo mientras tanto.
+  // Al volver a la app (otra pestaña, el teléfono bloqueado, de WhatsApp o del link de un pedido) se leen los datos de
+  // nuevo: pudieron llegar pedidos del catálogo mientras tanto. Visibilidad y foco comparten el mismo freno de 15 s.
   useEffect(() => {
     let ultima = Date.now();
     const alVolver = () => {
@@ -105,7 +105,11 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
       refrescar();
     };
     document.addEventListener("visibilitychange", alVolver);
-    return () => document.removeEventListener("visibilitychange", alVolver);
+    window.addEventListener("focus", alVolver);
+    return () => {
+      document.removeEventListener("visibilitychange", alVolver);
+      window.removeEventListener("focus", alVolver);
+    };
   }, [refrescar]);
 
   const valor = useMemo<DataContexto>(

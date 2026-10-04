@@ -50,7 +50,8 @@ async function pagina(ancho, tema, tienda) {
       window.__abiertos = [];
       window.open = (url) => {
         window.__abiertos.push(String(url));
-        return null;
+        // Como un navegador real: devuelve la ventana (null = no se abrió, y entonces no se marca nada).
+        return { opener: null };
       };
     },
     { tienda },

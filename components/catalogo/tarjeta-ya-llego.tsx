@@ -14,25 +14,53 @@ import { Avatar, Boton, Etiqueta, Tarjeta, useToastUI } from "../ui";
 /** "18095550142" → "+18095550142" (como lo entiende formatearTelefono). */
 const conMas = (t: string) => (t.startsWith("+") ? t : `+${t}`);
 
+type EstadoFila = "abriendo" | "marcando" | "avisado" | "fallo";
+
 /**
- * "Ya llegó" (tablero Producto «Inventario»): al reponer algo que alguien esperaba, una fila por persona con "Avisar" (abre
- * WhatsApp con el mensaje y el enlace al producto). Al volver de WhatsApp la fila pasa a "Avisado" y se marca en la base.
+ * "Ya llegó" (tablero Producto «Inventario»): una fila por persona que espera, con "Avisar" (abre WhatsApp con el mensaje y
+ * el enlace al producto). `modo`: "llego" al reponer; "espera" desde "N esperan" (la lista de espera).
+ * - Solo se ofrece "Avisar" si ESA variante (o el producto) tiene stock: reponer M · Negro no avisa a quien espera S · Blanco.
+ * - Se marca como avisado al VOLVER de WhatsApp (abrirlo no prueba que se envió: por eso dice "Avisado", nunca "Entregado").
+ *   Si WhatsApp no se abrió, no se marca nada. Si marcar falla, la fila queda pendiente con "Reintentar", que solo vuelve a
+ *   marcar (no reabre WhatsApp).
+ * - Sin enlace del catálogo publicado, lo dice: el mensaje va sin enlace (nunca uno inventado).
  */
-export function TarjetaYaLlego({ producto, avisos }: { producto: Producto; avisos: AvisoLlegada[] }) {
+export function TarjetaYaLlego({ producto, avisos, modo = "llego" }: { producto: Producto; avisos: AvisoLlegada[]; modo?: "llego" | "espera" }) {
   const { marcarAvisado } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { mostrarToast } = useToastUI();
-  const [avisados, setAvisados] = useState<Set<string>>(new Set());
+  const [estados, setEstados] = useState<Map<string, EstadoFila>>(new Map());
   const [enCamino, setEnCamino] = useState<string | null>(null);
-  const marcando = useRef(false);
+  const poner = (id: string, e: EstadoFila | null) =>
+    setEstados((m) => {
+      const n = new Map(m);
+      if (e) n.set(id, e);
+      else n.delete(id);
+      return n;
+    });
 
-  // Al volver de WhatsApp (la pestaña vuelve a verse o recupera el foco), la fila queda como avisada.
+  const marcar = async (id: string) => {
+    poner(id, "marcando");
+    try {
+      await marcarAvisado(tiendaId, [id]);
+      poner(id, "avisado");
+    } catch (e) {
+      poner(id, "fallo");
+      mostrarToast(mensajeDeError(e, "No pudimos marcarlo como avisado. Toca Reintentar."));
+    }
+  };
+  const marcarRef = useRef(marcar);
+  useEffect(() => {
+    marcarRef.current = marcar;
+  });
+
+  // Al volver de WhatsApp (la pestaña vuelve a verse o recupera el foco), se marca como avisado.
   useEffect(() => {
     if (!enCamino) return;
     const volver = () => {
       if (document.visibilityState !== "visible") return;
-      setAvisados((s) => new Set(s).add(enCamino));
       setEnCamino(null);
+      void marcarRef.current(enCamino);
     };
     const tiempo = window.setTimeout(volver, 1500);
     window.addEventListener("focus", volver);
@@ -50,34 +78,41 @@ export function TarjetaYaLlego({ producto, avisos }: { producto: Producto; aviso
     const v = id ? producto.variantes?.find((x) => x.id === id) : undefined;
     return v ? textoDeVariante(producto.opciones, v.valores) : null;
   };
+  const hayDe = (varianteId: string | null) => {
+    const stock = varianteId ? producto.variantes?.find((v) => v.id === varianteId)?.stock : producto.stock;
+    return stock === null || (stock ?? 0) > 0;
+  };
   const que = unaVariante ? `${producto.nombre} ${varianteDe(unaVariante)}` : producto.nombre;
   const n = avisos.length;
+  const urlCatalogo = tienda?.urlCatalogo ?? null;
 
-  const avisar = async (a: AvisoLlegada) => {
-    const texto = mensajeYaLlego({ nombre: a.nombre, producto: producto.nombre, variante: varianteDe(a.varianteId), urlCatalogo: tienda?.urlCatalogo ?? null, slug: producto.slug });
-    window.open(enlaceAviso(a.telefono, texto), "_blank", "noopener,noreferrer");
-    setEnCamino(a.id);
-    if (marcando.current) return;
-    marcando.current = true;
-    try {
-      await marcarAvisado(tiendaId, [a.id]);
-    } catch (e) {
-      mostrarToast(mensajeDeError(e, "No pudimos marcarlo como avisado. Inténtalo otra vez."));
-      setEnCamino(null);
-    } finally {
-      marcando.current = false;
+  const avisar = (a: AvisoLlegada) => {
+    const texto = mensajeYaLlego({ nombre: a.nombre, producto: producto.nombre, variante: varianteDe(a.varianteId), urlCatalogo, slug: producto.slug });
+    // Sin "noopener" en las opciones para poder saber si se abrió (con él window.open siempre da null); se corta igual.
+    const ventana = window.open(enlaceAviso(a.telefono, texto), "_blank");
+    if (!ventana) {
+      mostrarToast("No se pudo abrir WhatsApp. Inténtalo otra vez.");
+      return;
     }
+    ventana.opener = null;
+    poner(a.id, "abriendo");
+    setEnCamino(a.id);
   };
 
   return (
     <Tarjeta>
-      <p className="font-mano text-mano text-atencion-texto">Ya llegó</p>
+      <p className="font-mano text-mano text-atencion-texto">{modo === "llego" ? "Ya llegó" : "Lista de espera"}</p>
       <p className="mt-1 font-display text-titulo-seccion text-texto">
-        Repusiste {que}. {n === 1 ? "1 persona lo espera." : `${n} personas lo esperan.`}
+        {modo === "llego" ? `Repusiste ${que}. ` : ""}
+        {n === 1 ? `1 persona espera ${modo === "llego" ? "" : que}`.trim() + "." : `${n} personas esperan${modo === "llego" ? "" : ` ${que}`}.`}
       </p>
+      {!urlCatalogo && (
+        <p className="mt-2 text-secundario text-texto-secundario">Tu catálogo todavía no tiene enlace publicado: el mensaje va sin el enlace al producto.</p>
+      )}
       <ul className="mt-3 flex flex-col">
         {avisos.map((a) => {
-          const listo = avisados.has(a.id);
+          const estado = estados.get(a.id);
+          const hay = hayDe(a.varianteId);
           const telefono = formatearTelefono(conMas(a.telefono));
           return (
             <li key={a.id} className="flex min-h-15 items-center gap-3 border-t border-linea py-2 first:border-t-0">
@@ -95,12 +130,18 @@ export function TarjetaYaLlego({ producto, avisos }: { producto: Producto; aviso
                   {!unaVariante && varianteDe(a.varianteId) ? ` · ${varianteDe(a.varianteId)}` : ""}
                 </span>
               </span>
-              {listo ? (
+              {estado === "avisado" ? (
                 <Etiqueta tono="exito" icono={<IconoCheck tamano={14} strokeWidth={3} />}>
                   Avisado
                 </Etiqueta>
+              ) : estado === "fallo" || estado === "marcando" ? (
+                <Boton jerarquia="secundario" tamano="compacto" cargando={estado === "marcando"} onClick={() => void marcar(a.id)} aria-label={`Reintentar marcar como avisado a ${a.nombre ?? telefono}`}>
+                  {estado === "marcando" ? "Marcando" : "Reintentar"}
+                </Boton>
+              ) : !hay ? (
+                <Etiqueta>Sigue agotado</Etiqueta>
               ) : (
-                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={enCamino === a.id} onClick={() => void avisar(a)}>
+                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={estado === "abriendo"} onClick={() => avisar(a)}>
                   Avisar
                 </Boton>
               )}

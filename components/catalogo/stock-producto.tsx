@@ -35,7 +35,7 @@ export function Esperan({ producto, avisos }: { producto: Producto; avisos: Avis
         <Etiqueta tono="marca">{avisos.length} esperan</Etiqueta>
       </button>
       <Hoja abierta={abiertos !== null} alCerrar={() => setAbiertos(null)} titulo={producto.nombre}>
-        {abiertos && <TarjetaYaLlego producto={producto} avisos={abiertos} />}
+        {abiertos && <TarjetaYaLlego producto={producto} avisos={abiertos} modo="espera" />}
       </Hoja>
     </>
   );
