@@ -23,7 +23,7 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 
 ## Cómo se trabaja
 
-- **Prompts:** completos y que se pueden pegar tal cual, sin "reemplaza el punto 2 del anterior" ni nada que obligue a Lewis a mezclar a mano. Los largos viven en `docs/prompts/*.md` en `main`, y a Coding se le pega un prompt corto que apunta al archivo.
+- **Prompts:** completos y que se pueden pegar tal cual, sin "reemplaza el punto 2 del anterior" ni nada que obligue a Lewis a mezclar a mano. Los largos viven en `docs/prompts/*.md` en `main`, y a Coding se le pega un prompt corto que apunta al archivo. **Cada prompt para Coding indica el modelo recomendado en Codex, su razonamiento y la alternativa equivalente para la tarea en Claude Code.**
 - **Cierre de un PR:** Coding hace merge (squash) si todo pasa; si algo falla o decidió algo que no estaba en el prompt, deja el PR abierto y lo explica. Cuando Lewis lo pide, Planning mergea: `gh api -X PUT repos/onedayoneproj-blip/deslizapp-app/pulls/N/merge -f merge_method=squash`.
 - **Ramas:** Coding borra su rama al mergear. Si no puede, Lewis la borra (la API no deja borrar ramas a Planning).
 - **Diseño:** las opciones de diseño se hacen en lienzos de Claude Design (artifacts de claude.ai) y se aprueban ahí; después se copian al repo en `referencias/` y se documentan. Quien construye usa `components/ui/` y crea los que falten según `docs/09-sistema-de-diseno.md` §16.5. **Nunca copia el HTML de una referencia.**
@@ -54,7 +54,7 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 1. Base de datos y capa de datos. **Hecho** (PR #40).
 2. Panel: producto con detalles por rubro, opciones con stock por variante, fotos y video, Por encargo, "Ya llegó". **Hecho** (PR #42).
 3. **Catálogo en React** en `/tienda/{slug}` y la página del pedido del comprador `/pedido/{codigo}`, como copia fiel del HTML. **Sigue**: `docs/prompts/catalogo-react.md`.
-4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Prompt por escribir; los tableros están en `referencias/pedido-catalogo/`.
+4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Prompt listo: `docs/prompts/pedido-catalogo-panel.md`; los tableros están en `referencias/pedido-catalogo/`. Se ejecuta después de fusionar y validar el catálogo React (parte 4); la implementación de esta parte todavía no está hecha.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)
 
