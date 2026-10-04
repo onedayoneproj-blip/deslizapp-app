@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { CREDITOS_POR_RETOQUE, RETOQUE_REAL } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
 import { nuevoId } from "@/lib/data/db";
 import { reducirFoto, retocarFoto } from "@/lib/imagen";
 import type { Medio, Producto } from "@/lib/types";
-import { cuadrosDelVideo, leerVideo, prepararVideo, VIDEO_MAX_S, type VideoElegido } from "@/lib/video";
+import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, VIDEO_MAX_S, type PasoVideo, type VideoElegido } from "@/lib/video";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { Boton, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, duracionCorta } from "../ui";
@@ -150,6 +150,7 @@ export function SeccionMedios({
         bloqueo={bloqueo}
         nota={preparando ? "Lo dejamos liviano para que cargue rápido." : `Hasta ${MAX_MEDIOS}. Mantén presionado para ordenar.`}
       />
+      <DepuracionVideo />
       <HojaMedio
         medio={elegido}
         indice={indice}
@@ -368,7 +369,37 @@ function HojaTramo({ tramo, alCerrar, alElegir }: { tramo: { video: VideoElegido
         <Boton tamano="grande" anchoCompleto onClick={() => alElegir(inicio)}>
           Usar este tramo
         </Boton>
+        <DepuracionVideo />
       </div>
     </Hoja>
+  );
+}
+
+const SIN_PASOS: PasoVideo[] = [];
+const nada = () => () => {};
+
+/**
+ * Solo con ?depurar=video en la URL: los pasos del último video (abrió, metadatos, primer cuadro, miniaturas, grabando %,
+ * terminó o falló y por qué), para saber dónde se detiene en un teléfono. Sin el parámetro no se pinta nada.
+ */
+function DepuracionVideo() {
+  const activo = useSyncExternalStore(nada, () => new URLSearchParams(window.location.search).get("depurar") === "video", () => false);
+  const lista = useSyncExternalStore(oirPasosVideo, pasosVideo, () => SIN_PASOS);
+  if (!activo) return null;
+  return (
+    <section aria-label="Pasos del video (depuración)" className="rounded-radio-m bg-superficie-hundida px-3 py-2">
+      <p className="text-etiqueta font-extrabold text-texto-secundario">Depuración del video</p>
+      {lista.length === 0 ? (
+        <p className="text-etiqueta text-texto-secundario">Elige un video para ver los pasos.</p>
+      ) : (
+        <ol className="flex flex-col font-mono text-etiqueta">
+          {lista.map((p) => (
+            <li key={p.id} className={p.mal ? "text-peligro" : "text-texto"}>
+              <span className="text-texto-secundario tabular-nums">{(p.ms / 1000).toFixed(1)} s</span> {p.texto}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }
