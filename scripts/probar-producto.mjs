@@ -159,6 +159,8 @@ const ESCENARIOS = {
     await escribirEtiqueta(page, "Fondo", ["Vainilla", "Ámbar"]);
     await capturar(page, "notas", ancho, tema);
     await page.getByRole("button", { name: "Listo", exact: true }).click();
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+    await page.waitForTimeout(400);
     ok(await sinDesborde(page), "Formulario de perfume sin desborde");
     await capturar(page, "formulario-perfume", ancho, tema);
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
