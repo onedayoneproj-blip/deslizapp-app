@@ -83,7 +83,7 @@ Tres familias, cada una con un trabajo:
 
 - Es un guiño, no información: un remate corto (máximo 6 palabras) junto a un título o una cifra ("tu top 3", "¡abierto 24/7!"), o el titular de una celebración ("¡Terminó de pagar!", "¡Ya estás en línea!").
 - **Una vez por pantalla, y cada pantalla debería tener la suya** cuando haya un momento que lo merezca: subir una foto, despachar, un pedido cancelado, una lista vacía, una celebración.
-- Nunca en botones, montos, fechas, errores, ni en nada que la persona necesite leer para decidir. Si se borra la nota a mano, la pantalla tiene que seguir diciendo todo.
+- Nunca en botones, montos, fechas, números de pedido, códigos, errores, ni en nada que la persona necesite leer para decidir. Si se borra la nota a mano, la pantalla tiene que seguir diciendo todo.
 - Color `atencion-texto` sobre fondos claros; `marca-rosa` sobre superficies Verde Bosque.
 
 **Tamaños y Apple:** iOS usa 17 pt para el texto normal y 11 pt como mínimo legible. Aquí el cuerpo sube de 13–14 px a 16 px y nada baja de 11 px. Los tamaños se escriben en `rem` para respetar el tamaño de letra del teléfono.
