@@ -127,6 +127,7 @@ export function Reel({
           nombre={p.nombre}
           activo={activo}
           siguiente={siguiente}
+          anterior={anterior}
           prioridad={i < 2}
           dobleToque={aaah}
         />

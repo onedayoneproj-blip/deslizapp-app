@@ -112,7 +112,7 @@ export function PedidoComprador({
     setPreparando(true);
     setError("");
     try {
-      await descargarRecibo(s, tipo);
+      await descargarRecibo(s, tipo, tema ?? undefined);
     } catch {
       setError("No pudimos preparar el recibo. Inténtalo otra vez.");
     } finally {

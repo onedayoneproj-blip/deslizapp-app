@@ -1,3 +1,4 @@
+import type { TemaCatalogo } from "./tema";
 import type { VistaSolicitud } from "../types";
 import { dinero } from "./carrito";
 const loadImg = (src: string): Promise<HTMLImageElement | null> =>
@@ -9,7 +10,7 @@ const loadImg = (src: string): Promise<HTMLImageElement | null> =>
     i.onerror = () => resolve(null);
     i.src = src;
   });
-export async function invoiceCanvas(o: VistaSolicitud) {
+export async function invoiceCanvas(o: VistaSolicitud, tema?: TemaCatalogo) {
   // factura estilo "ticket": recibo de papel con bordes recortados
   await Promise.all(
     [
@@ -22,14 +23,16 @@ export async function invoiceCanvas(o: VistaSolicitud) {
   );
   const it = o.items,
     total = o.total;
-  const INK = "#2A1A22",
-    INK2 = "#4A3841",
-    MUT = "#7C6770",
-    ACC = "#A3325C",
-    LINE = "#E6D5CF",
-    BG = "#F7EDE9";
-  const DSP = '"Cormorant Garamond",Georgia,serif',
-    BODY = 'Manrope,system-ui,-apple-system,"Segoe UI",sans-serif';
+  const INK = tema?.colores.ink ?? "#2A1A22",
+    INK2 = tema?.colores.ink2 ?? "#4A3841",
+    MUT = tema?.colores.muted ?? "#7C6770",
+    ACC = tema?.colores.accent ?? "#A3325C",
+    LINE = tema?.colores.line ?? "#E6D5CF",
+    BG = tema?.colores.bg ?? "#F7EDE9";
+  const fuente = (f: string) => f === "Figtree" ? "DZ Figtree" : f === "Fredoka" ? "DZ Fredoka" : f;
+  const DSP = `"${fuente(tema?.fuentes.display ?? "Cormorant Garamond")}",Georgia,serif`,
+    BODY = `"${fuente(tema?.fuentes.body ?? "Manrope")}",system-ui,sans-serif`;
+  await Promise.all([document.fonts.load("500 62px "+DSP),document.fonts.load("700 25px "+BODY)]);
   const W = 1080,
     PX = 160,
     PW = 760,
@@ -306,8 +309,8 @@ export function pdfFromJpeg(
   return new Blob(parts, { type: "application/pdf" });
 }
 
-export async function descargarRecibo(o: VistaSolicitud, tipo: "png" | "pdf") {
-  const c = await invoiceCanvas(o);
+export async function descargarRecibo(o: VistaSolicitud, tipo: "png" | "pdf", tema?: TemaCatalogo) {
+  const c = await invoiceCanvas(o, tema);
   const imagen = await new Promise<Blob>((resolve, reject) =>
     c.toBlob(
       (b) =>

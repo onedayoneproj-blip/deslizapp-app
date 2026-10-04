@@ -88,6 +88,7 @@ export function Medios({
   nombre,
   activo,
   siguiente,
+  anterior,
   prioridad,
   dobleToque,
 }: {
@@ -95,6 +96,7 @@ export function Medios({
   nombre: string;
   activo: boolean;
   siguiente: boolean;
+  anterior: boolean;
   prioridad: boolean;
   dobleToque: () => void;
 }) {
@@ -130,7 +132,7 @@ export function Medios({
           <div className="medio" key={m.url}>
             {m.tipo === "foto" ? (
               <img
-                src={m.url}
+                src={prioridad || activo || siguiente || anterior ? m.url : "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
                 alt={nombre}
                 loading={prioridad && i === 0 ? "eager" : "lazy"}
                 draggable={false}
