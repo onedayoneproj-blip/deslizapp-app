@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Editar producto · perfumes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{position:relative;width:390px;color:#174b3a;font-family:'Figtree',sans-serif;overflow:hidden;background:#fff9ee}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.sec{color:#4f6a5e}
+.t-hoja{font-size:24px;line-height:28px;margin:0}
+.t-pant{font-size:32px;line-height:34px;margin:0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.mini{width:48px;height:48px;border-radius:10px;background:#f3ead9;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover}
+.nom{font-size:16px;font-weight:800;line-height:20px}
+.sub{font-size:14px;line-height:18px;color:#4f6a5e}
+.pre{font-size:16px;font-weight:800;white-space:nowrap}
+.btn{height:52px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer}
+.b1{background:#174b3a;color:#fff9ee}
+.b2{background:transparent;color:#174b3a;border:2px solid #174b3a}
+.b3{background:transparent;color:#4f6a5e;height:44px}
+.bp{background:transparent;color:#b4432a;height:44px}
+.bc{height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;border:2px solid #174b3a;background:transparent;color:#174b3a;cursor:pointer;font-family:'Figtree',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.et{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800}
+.et-at{background:#ffe3d6;color:#a8410f}
+.et-ok{background:#dcebe2;color:#1f6b47}
+.et-rosa{background:#f5c9d6;color:#174b3a}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:14px;font-weight:800}
+.campo .in{height:50px;border:2px solid #9c8b6e;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:16px}
+.ph{color:#4f6a5e}
+.velo{position:absolute;inset:0;background:#93a89c}
+.hoja{position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:#fff9ee;padding:10px 20px 30px;display:flex;flex-direction:column;gap:18px}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.x{width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex:none}
+.av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.check{width:24px;height:24px;border-radius:999px;border:2px solid #e7dcc8;flex:none;display:flex;align-items:center;justify-content:center}
+.check.on{background:#174b3a;border-color:#174b3a}
+.mas{width:24px;height:24px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex:none}
+.pasos{display:flex;align-items:flex-start}
+.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-size:13px;font-weight:800;text-align:center}
+.paso .pt{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;z-index:1}
+.paso .ln{position:absolute;top:13px;height:3px;left:calc(50% + 18px);right:calc(-50% + 18px);border-radius:3px}
+.chat{background:#efe5d3 url('img/patron-medio.svg');background-size:120px}
+.burb{background:#cfeedd;border-radius:14px 4px 14px 14px;padding:6px 8px 6px 8px;box-shadow:0 1px 1px rgba(0,0,0,.08);font-size:14.5px;line-height:20px;color:#111b21;position:relative}
+.firma{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:#4f6a5e}
+
+.sec-t{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%;font-size:20px;line-height:24px;margin:0}
+.ayuda{font-size:14px;line-height:19px;color:#4f6a5e}
+.tira{display:flex;gap:8px}
+.med{position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;flex:none;background:#f3ead9}
+.med img{width:100%;height:100%;object-fit:cover}
+.med .port{position:absolute;left:6px;bottom:6px;height:20px;padding:0 7px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:11px;font-weight:800;display:flex;align-items:center}
+.med .dur{position:absolute;right:6px;bottom:6px;height:20px;padding:0 6px;border-radius:999px;background:rgba(16,54,42,.75);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;gap:3px}
+.med.agregar{border:2px dashed #9c8b6e;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11.5px;line-height:13px;text-align:center;font-weight:800;color:#174b3a;padding:0 6px}
+.fl{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;border-top:1px solid #efe4d2}
+.fl:first-child{border-top:none}
+.fl .k{font-size:16px;font-weight:800;flex:none}
+.fl .v{flex:1;text-align:right;font-size:15px;color:#4f6a5e;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl .v.vacio{color:#a8410f;font-weight:700}
+.cant{display:flex;align-items:center;gap:6px;flex:none}
+.cant .m{width:36px;height:36px;border-radius:10px;background:#f3ead9;display:flex;align-items:center;justify-content:center}
+.cant .p{width:36px;height:36px;border-radius:10px;background:#174b3a;display:flex;align-items:center;justify-content:center}
+.cant .n{min-width:28px;text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;font-size:14px;font-weight:800;color:#174b3a}
+.chip.on{background:#174b3a;border-color:#174b3a;color:#fff9ee}
+.chip.cx{padding-right:8px}
+.sw{width:22px;height:22px;border-radius:999px;border:1.5px solid rgba(16,54,42,.15);flex:none}
+.inter{width:51px;height:31px;border-radius:999px;background:#e7dcc8;position:relative;flex:none}
+.inter::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:999px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.inter.on{background:#174b3a}.inter.on::after{left:22px}
+/* catálogo (marca de la tienda) */
+.reel{position:absolute;inset:0;background:#1d1418;color:#fff;overflow:hidden;font-family:'Figtree',sans-serif}
+.reel .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel .sh{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 46%,rgba(0,0,0,.78) 82%)}
+.reel .cab-c{position:absolute;left:0;right:0;top:14px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:24px}
+.reel .meta{position:absolute;left:16px;top:58px;font-size:11.5px;font-weight:800;letter-spacing:.14em}
+.puntos{position:absolute;left:0;right:0;top:84px;display:flex;justify-content:center;gap:6px}
+.puntos i{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.5);display:block}
+.puntos i.on{width:18px;background:#fff}
+.reel .cap-c{position:absolute;left:16px;right:84px;bottom:28px;display:flex;flex-direction:column;gap:8px}
+.reel .who{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.reel .who span{width:26px;height:26px;border-radius:999px;background:#f5c9d6;color:#174b3a;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic}
+.reel h2{margin:0;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;line-height:36px}
+.reel .pr{font-size:13px;font-weight:700}.reel .pr b{font-size:19px;font-weight:800;margin-right:8px}
+.reel .txt{font-size:14.5px;line-height:20px;opacity:.95}
+.op{display:inline-flex;align-items:center;height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);font-size:13.5px;font-weight:800;color:#fff;gap:6px}
+.op.on{background:#fff;color:#1d1418;border-color:#fff}
+.op.ag{opacity:.75;text-decoration:line-through}
+.acts{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;align-items:center;gap:16px;font-size:12px;font-weight:800}
+.acts span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.pedido-b{position:absolute;right:12px;bottom:28px;width:58px;height:58px;border-radius:999px;background:#174b3a;border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center}
+.vid{position:absolute;left:50%;top:44%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:999px;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.sheet-c{position:absolute;left:0;right:0;bottom:0;background:#fff9f5;color:#2a1a22;border-radius:28px 28px 0 0;padding:12px 20px 28px;display:flex;flex-direction:column;gap:14px;font-family:'Figtree',sans-serif}
+.btn-c{height:50px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:16px}
+</style>
+</helmet>
+<div class="raiz" style="width: 390px; height: 1260px;">
+<div class="velo"></div>
+<div class="hoja" style="top:44px">
+  <div class="agarre"><span></span></div>
+  <div class="cab"><h2 class="f t-hoja">Editar producto</h2><span class="x"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+  
+  <div class="tira">
+    <div class="med"><img src="img/mayar.webp" alt=""><span class="port">Portada</span></div>
+    <div class="med"><img src="img/mayar-2.webp" alt=""><span class="dur"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>0:18</span></div>
+    <div class="med"><img src="img/mayar-3.webp" alt=""></div>
+    <div class="med agregar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>Foto o<br>video</div>
+  </div>
+  <span class="ayuda" style="margin-top:-8px">Hasta 10. Mantén presionado para ordenar.</span>
+  <div class="campo"><label>Nombre</label><span class="in">Mayar Natural Intense</span></div>
+  <div class="campo"><label>Precio (RD$)</label><span class="in" style="font-weight:800">3,200</span></div>
+  <div class="lista" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between"><span style="display:flex;flex-direction:column;gap:2px"><span class="nom">En stock</span><span class="sub">Al despachar, baja solito.</span></span><span class="cant"><span class="m" style="opacity:1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12h12"/></svg></span><span class="n">1</span><span class="p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></span></span></div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between"><h3 class="sec-t">Detalles</h3><span class="ayuda">Opcionales</span></div>
+    <div class="lista">
+      <div class="fl"><span class="k">Marca</span><span class="v">Lattafa</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="fl"><span class="k">Para</span><span class="v">Ella</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="fl"><span class="k">Tamaño</span><span class="v">100 ml · EDP</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="fl"><span class="k">Familia</span><span class="v">Floral frutal fresca</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="fl"><span class="k">Ideal para</span><span class="v">Día · Verano · Oficina</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="fl"><span class="k">Notas</span><span class="v vacio">Agregar</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+  <div class="lista">
+    <div class="fl" style="border-top:none"><span class="k">Colección</span><span class="v">Para ella</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="fl"><span class="k" style="flex:1">Visible en el catálogo</span><span class="inter on"></span></div>
+    <div class="fl" style="flex-wrap:wrap"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="nom">Por encargo</span><span class="sub">Se puede pedir aunque no haya.</span></span><span class="inter on"></span>
+      <div class="campo" style="width:100%;padding:4px 0 6px"><span class="in" style="height:44px">Llega en 7 a 10 días</span></div></div>
+  </div>
+  <button class="btn b1">Guardar</button>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1260}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

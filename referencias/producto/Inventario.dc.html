@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inventario: agotados por opción y la lista de espera al reponer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{position:relative;width:390px;color:#174b3a;font-family:'Figtree',sans-serif;overflow:hidden;background:#fff9ee}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.sec{color:#4f6a5e}
+.t-hoja{font-size:24px;line-height:28px;margin:0}
+.t-pant{font-size:32px;line-height:34px;margin:0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.mini{width:48px;height:48px;border-radius:10px;background:#f3ead9;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover}
+.nom{font-size:16px;font-weight:800;line-height:20px}
+.sub{font-size:14px;line-height:18px;color:#4f6a5e}
+.pre{font-size:16px;font-weight:800;white-space:nowrap}
+.btn{height:52px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer}
+.b1{background:#174b3a;color:#fff9ee}
+.b2{background:transparent;color:#174b3a;border:2px solid #174b3a}
+.b3{background:transparent;color:#4f6a5e;height:44px}
+.bp{background:transparent;color:#b4432a;height:44px}
+.bc{height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;border:2px solid #174b3a;background:transparent;color:#174b3a;cursor:pointer;font-family:'Figtree',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.et{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800}
+.et-at{background:#ffe3d6;color:#a8410f}
+.et-ok{background:#dcebe2;color:#1f6b47}
+.et-rosa{background:#f5c9d6;color:#174b3a}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:14px;font-weight:800}
+.campo .in{height:50px;border:2px solid #9c8b6e;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:16px}
+.ph{color:#4f6a5e}
+.velo{position:absolute;inset:0;background:#93a89c}
+.hoja{position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:#fff9ee;padding:10px 20px 30px;display:flex;flex-direction:column;gap:18px}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.x{width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex:none}
+.av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.check{width:24px;height:24px;border-radius:999px;border:2px solid #e7dcc8;flex:none;display:flex;align-items:center;justify-content:center}
+.check.on{background:#174b3a;border-color:#174b3a}
+.mas{width:24px;height:24px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex:none}
+.pasos{display:flex;align-items:flex-start}
+.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-size:13px;font-weight:800;text-align:center}
+.paso .pt{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;z-index:1}
+.paso .ln{position:absolute;top:13px;height:3px;left:calc(50% + 18px);right:calc(-50% + 18px);border-radius:3px}
+.chat{background:#efe5d3 url('img/patron-medio.svg');background-size:120px}
+.burb{background:#cfeedd;border-radius:14px 4px 14px 14px;padding:6px 8px 6px 8px;box-shadow:0 1px 1px rgba(0,0,0,.08);font-size:14.5px;line-height:20px;color:#111b21;position:relative}
+.firma{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:#4f6a5e}
+
+.sec-t{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%;font-size:20px;line-height:24px;margin:0}
+.ayuda{font-size:14px;line-height:19px;color:#4f6a5e}
+.tira{display:flex;gap:8px}
+.med{position:relative;width:76px;height:76px;border-radius:14px;overflow:hidden;flex:none;background:#f3ead9}
+.med img{width:100%;height:100%;object-fit:cover}
+.med .port{position:absolute;left:6px;bottom:6px;height:20px;padding:0 7px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:11px;font-weight:800;display:flex;align-items:center}
+.med .dur{position:absolute;right:6px;bottom:6px;height:20px;padding:0 6px;border-radius:999px;background:rgba(16,54,42,.75);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;gap:3px}
+.med.agregar{border:2px dashed #9c8b6e;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11.5px;line-height:13px;text-align:center;font-weight:800;color:#174b3a;padding:0 6px}
+.fl{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;border-top:1px solid #efe4d2}
+.fl:first-child{border-top:none}
+.fl .k{font-size:16px;font-weight:800;flex:none}
+.fl .v{flex:1;text-align:right;font-size:15px;color:#4f6a5e;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl .v.vacio{color:#a8410f;font-weight:700}
+.cant{display:flex;align-items:center;gap:6px;flex:none}
+.cant .m{width:36px;height:36px;border-radius:10px;background:#f3ead9;display:flex;align-items:center;justify-content:center}
+.cant .p{width:36px;height:36px;border-radius:10px;background:#174b3a;display:flex;align-items:center;justify-content:center}
+.cant .n{min-width:28px;text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;font-size:14px;font-weight:800;color:#174b3a}
+.chip.on{background:#174b3a;border-color:#174b3a;color:#fff9ee}
+.chip.cx{padding-right:8px}
+.sw{width:22px;height:22px;border-radius:999px;border:1.5px solid rgba(16,54,42,.15);flex:none}
+.inter{width:51px;height:31px;border-radius:999px;background:#e7dcc8;position:relative;flex:none}
+.inter::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:999px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.inter.on{background:#174b3a}.inter.on::after{left:22px}
+/* catálogo (marca de la tienda) */
+.reel{position:absolute;inset:0;background:#1d1418;color:#fff;overflow:hidden;font-family:'Figtree',sans-serif}
+.reel .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel .sh{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 46%,rgba(0,0,0,.78) 82%)}
+.reel .cab-c{position:absolute;left:0;right:0;top:14px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:24px}
+.reel .meta{position:absolute;left:16px;top:58px;font-size:11.5px;font-weight:800;letter-spacing:.14em}
+.puntos{position:absolute;left:0;right:0;top:84px;display:flex;justify-content:center;gap:6px}
+.puntos i{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.5);display:block}
+.puntos i.on{width:18px;background:#fff}
+.reel .cap-c{position:absolute;left:16px;right:84px;bottom:28px;display:flex;flex-direction:column;gap:8px}
+.reel .who{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.reel .who span{width:26px;height:26px;border-radius:999px;background:#f5c9d6;color:#174b3a;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic}
+.reel h2{margin:0;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;line-height:36px}
+.reel .pr{font-size:13px;font-weight:700}.reel .pr b{font-size:19px;font-weight:800;margin-right:8px}
+.reel .txt{font-size:14.5px;line-height:20px;opacity:.95}
+.op{display:inline-flex;align-items:center;height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);font-size:13.5px;font-weight:800;color:#fff;gap:6px}
+.op.on{background:#fff;color:#1d1418;border-color:#fff}
+.op.ag{opacity:.75;text-decoration:line-through}
+.acts{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;align-items:center;gap:16px;font-size:12px;font-weight:800}
+.acts span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.pedido-b{position:absolute;right:12px;bottom:28px;width:58px;height:58px;border-radius:999px;background:#174b3a;border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center}
+.vid{position:absolute;left:50%;top:44%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:999px;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.sheet-c{position:absolute;left:0;right:0;bottom:0;background:#fff9f5;color:#2a1a22;border-radius:28px 28px 0 0;padding:12px 20px 28px;display:flex;flex-direction:column;gap:14px;font-family:'Figtree',sans-serif}
+.btn-c{height:50px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:16px}
+</style>
+</helmet>
+<div class="raiz" style="width: 390px; height: 660px;">
+<div style="position:absolute;inset:0;padding:22px 20px;display:flex;flex-direction:column;gap:14px">
+  <h1 class="f t-pant">Inventario</h1>
+  <div class="lista">
+    <div class="fila"><span class="mini"><img src="img/mayar.webp" alt=""></span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="nom">Mayar Natural Intense</span><span class="sub"><b style="color:#a8410f">50 ml agotado</b> · queda 1 de 100 ml</span></span><span class="et et-rosa">2 esperan</span></div>
+    <div class="fila"><span class="mini" style="background:#e9dccb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4l3 2 3-2 4.5 2.5-1.8 4-1.7-.8V20H8V9.7l-1.7.8-1.8-4z"/></svg></span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="nom">Camisa de lino</span><span class="sub"><b style="color:#a8410f">L · Arena agotada</b> · 11 en total</span></span></div>
+  </div>
+  <div class="lista" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+    <span class="cav" style="font-size:22px;color:#a8410f;line-height:22px">Ya llegó</span>
+    <span class="f" style="font-size:20px;line-height:24px">Repusiste Mayar 50 ml. 2 personas lo esperan.</span>
+    <div class="fila" style="padding:8px 0;border-top:none"><span class="av" style="background:#dcebe2">CP</span><span style="flex:1;display:flex;flex-direction:column"><span class="nom">Carolina Peña</span><span class="sub">809-555-0142</span></span><span class="bc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 19.5l1.2-3.6A7.8 7.8 0 1 1 8.6 18.4z"/><path d="M9.3 9.2c.3 2.4 2.2 4.6 5.4 5.4l1-1.2-1.8-1-.9.8c-1-.4-1.9-1.3-2.3-2.3l.8-.9-1-1.8z"/></svg> Avisar</span></div>
+    <div class="fila" style="padding:8px 0"><span class="av" style="background:#f3ead9"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5"/></svg></span><span style="flex:1;display:flex;flex-direction:column"><span class="nom">829-555-0311</span><span class="sub">Sin nombre</span></span><span class="bc" style="background:#dcebe2;border-color:#dcebe2;color:#1f6b47"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1f6b47" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> Avisado</span></div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 660}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
