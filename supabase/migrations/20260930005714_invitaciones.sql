@@ -1,3 +1,5 @@
+-- Nota: en producción esta migración (versión 20260930005714, "invitaciones_y_tienda_esencias_michel") también creó la
+-- tienda `esencias-michel` y una invitación. Esos datos reales a propósito no viven en el repo.
 -- Invitaciones: al entrar por primera vez con Google, si el correo está invitado, la persona queda
 -- enlazada a su tienda automáticamente. Solo administración escribe aquí (sin permisos para la app).
 create table public.invitaciones (
