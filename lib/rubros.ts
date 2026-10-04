@@ -35,6 +35,9 @@ export const OCASIONES_PERFUME = [
   "Regalo",
 ] as const;
 
+/** Ocasiones del filtro Día del catálogo HTML aprobado (Regalo/Todo el año no son horarios). */
+export const OCASIONES_DIA: readonly string[] = ["Día", "Oficina", "Universidad", "Verano", "Primavera y verano", "Salidas casuales"];
+
 /** Las ocasiones que cuentan como "Noche" en el filtro del catálogo; las demás, como "Día". */
 export const OCASIONES_NOCHE: readonly string[] = ["Noche", "Citas", "Cenas", "Fiestas", "Noches casuales", "Ocasiones especiales"];
 

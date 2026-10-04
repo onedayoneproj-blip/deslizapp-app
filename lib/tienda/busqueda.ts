@@ -1,5 +1,5 @@
 import type { CatalogoPublico, ProductoPublico } from "../types";
-import { OCASIONES_NOCHE } from "../rubros";
+import { OCASIONES_NOCHE, OCASIONES_DIA } from "../rubros";
 const norm = (s: string) =>
   s
     .normalize("NFD")
@@ -148,7 +148,7 @@ export function buscarCatalogo(
         [5,p.nombre], [4,String(p.detalles.marca ?? "")], [3,String(p.detalles.familia ?? "")],
         [3,p.detalles.para === "ella" ? "mujer ella" : p.detalles.para === "unisex" ? "unisex hombre mujer ambos" : p.detalles.para === "el" ? "hombre el" : "perfume"],
         [2,[p.detalles.notas_salida,p.detalles.notas_corazon,p.detalles.notas_fondo].flat().filter(Boolean).join(" ")],
-        [2,ocasiones.join(" ") + (ocasiones.some(o=>!OCASIONES_NOCHE.includes(o)) ? " dia" : "") + (ocasiones.some(o=>OCASIONES_NOCHE.includes(o)) ? " noche" : "")],
+        [2,ocasiones.join(" ") + (ocasiones.some(o=>OCASIONES_DIA.includes(o)) ? " dia" : "") + (ocasiones.some(o=>OCASIONES_NOCHE.includes(o)) ? " noche" : "")],
         [1,String(p.detalles.descripcion ?? "")], [1,[p.detalles.concentracion,p.detalles.tamano_ml,"ml"].filter(Boolean).join(" ")]
       ] : [[5,p.nombre],[4,String(p.detalles.marca ?? "")],[3,p.categoria ?? ""],[2,Object.values(p.detalles).flat().join(" ")]];
       let hit = 0,

@@ -1,4 +1,4 @@
-import { CAMPOS_POR_RUBRO, NOMBRE_VALOR, OCASIONES_NOCHE } from "../rubros";
+import { CAMPOS_POR_RUBRO, NOMBRE_VALOR, OCASIONES_NOCHE, OCASIONES_DIA } from "../rubros";
 import type { CatalogoPublico, ProductoPublico } from "../types";
 export const portada = (p: ProductoPublico) =>
   p.medios[0]?.tipo === "video"
@@ -72,7 +72,7 @@ export function coleccionesDe(c: CatalogoPublico): Coleccion[] {
             p.detalles.ocasiones.some((o) =>
               id === "noche"
                 ? OCASIONES_NOCHE.includes(o)
-                : !OCASIONES_NOCHE.includes(o),
+                : OCASIONES_DIA.includes(o),
             ),
         ),
       });

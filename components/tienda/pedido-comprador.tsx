@@ -214,7 +214,7 @@ export function PedidoComprador({
                 <span className="pvacts">
                   <a
                     className="pvgo"
-                    href={enlace + "#p/" + item.productoId}
+                    href={enlace + (producto ? "#p/" + producto.slug : "")}
                     onClick={async (e) => {
                       e.preventDefault();
                       try {

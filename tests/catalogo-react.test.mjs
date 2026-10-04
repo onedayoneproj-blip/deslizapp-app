@@ -106,3 +106,15 @@ test("búsqueda de perfumes conserva pesos, sinónimos y presupuesto del HTML",(
   assert.ok(buscarCatalogo(c,"mayr").some(p=>p.slug==="mayar"));
   assert.ok(buscarCatalogo(c,"noche").length>0);
 });
+
+test("ventas públicas empiezan en diez y no exponen pedidos ni clientes",()=>{
+ const db=construirDesdeSeed(),t=db.tiendas[0],ejemplo=db.pedidos.find(p=>p.tiendaId===t.id&&p.estado==="despachado");db.promos=[];
+ db.pedidos=Array.from({length:9},(_,i)=>({...ejemplo,id:"venta-"+i}));
+ assert.equal(catalogoPublicoDeDB(db,t.slug,new Date()).tienda.ventas,null);
+ db.pedidos.push({...ejemplo,id:"venta-10"});
+ const c=catalogoPublicoDeDB(db,t.slug,new Date());assert.equal(c.tienda.ventas,10);assert.equal(c.tienda.desde,t.creadoEn);assert.equal("pedidos" in c.tienda,false);assert.equal("clientes" in c.tienda,false);
+ db.pedidos[0].estado="cancelado";assert.equal(catalogoPublicoDeDB(db,t.slug,new Date()).tienda.ventas,null);
+});
+test("Regalo y Todo el año no inventan horario Día en las colecciones",async()=>{
+ const {coleccionesDe}=await import("../lib/tienda/catalogo.ts");const db=construirDesdeSeed(),c=catalogoPublicoDeDB(db,db.tiendas[0].slug,new Date());c.productos=[{...c.productos[0],detalles:{ocasiones:["Regalo","Todo el año"]}}];assert.ok(!coleccionesDe(c).some(x=>x.id==="dia"||x.id==="noche"));
+});
