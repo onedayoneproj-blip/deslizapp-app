@@ -30,3 +30,21 @@ export function debeComprobarSesion(modo: "demo" | "real" | null, hayConfiguraci
   if (!hayConfiguracion || modo === "demo") return false;
   return modo === "real" || hayErrorLogin || hayCookieSesion;
 }
+
+/** La cookie que recuerda a dónde volver después de Google (solo el link de un pedido del catálogo). */
+export const COOKIE_VOLVER = "dz_volver";
+
+/**
+ * A dónde se puede volver después de Google: solo rutas locales permitidas (hoy, `/pedido/CODIGO`). Cualquier otra cosa
+ * (otro dominio, `//x`, rutas con `..`, un código que no es de solicitud) vuelve al panel: nunca se redirige afuera.
+ */
+export function vueltaPermitida(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  let ruta = valor;
+  try {
+    ruta = decodeURIComponent(valor);
+  } catch {
+    return null;
+  }
+  return /^\/pedido\/[A-HJ-NP-Z2-9]{10}$/.test(ruta) ? ruta : null;
+}

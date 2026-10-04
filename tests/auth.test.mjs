@@ -35,3 +35,12 @@ test("al abrir: se comprueba la sesión con modo real, o sin modo si hay señal 
   assert.equal(debeComprobarSesion("demo", true, true, true), false);
   assert.equal(debeComprobarSesion("real", false, false, false), false);
 });
+
+test("vuelta después de Google: solo /pedido/CODIGO; nada externo ni raro", async () => {
+  const { vueltaPermitida } = await import("../lib/auth/canje.ts");
+  assert.equal(vueltaPermitida("/pedido/4DCQ2PZ28F"), "/pedido/4DCQ2PZ28F");
+  assert.equal(vueltaPermitida(encodeURIComponent("/pedido/4DCQ2PZ28F")), "/pedido/4DCQ2PZ28F");
+  for (const malo of [null, "", "/", "//evil.com", "https://evil.com/pedido/4DCQ2PZ28F", "/pedido/4dcq2pz28f", "/pedido/4DCQ2PZ28F/../../x", "/pedido/4DCQ2PZ28I", "/pedido/4DCQ2PZ28F?x=1", "%E0%A4%A"]) {
+    assert.equal(vueltaPermitida(malo), null, String(malo));
+  }
+});

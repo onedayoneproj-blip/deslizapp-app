@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import dynamic from "next/dynamic";
+import { estadoComprador } from "@/lib/pedido-catalogo";
 import type { VistaSolicitud, CatalogoPublico } from "@/lib/types";
 import { fuentePublica } from "@/lib/data/publica";
 import { lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
@@ -9,6 +11,20 @@ import { NOMBRE_PRODUCTO } from "@/lib/rubros";
 import { dinero } from "@/lib/tienda/carrito";
 import { descargarRecibo } from "@/lib/tienda/recibo";
 import { Icono } from "./iconos";
+
+// La vista de la tienda (Registrar) solo se carga si hay sesión o la piden: el comprador no la descarga.
+const TiendaEnPedido = dynamic(() => import("../pedido-catalogo/tienda-en-pedido").then((m) => m.TiendaEnPedido), { ssr: false });
+
+/** Sin sesión de Supabase (cookie) no se carga nada de la tienda al abrir. */
+function hayCookieDeSesion(): boolean {
+  try {
+    return /(^|;\s*)sb-[^=]*auth-token/.test(document.cookie);
+  } catch {
+    return false;
+  }
+}
+
+const FINALES = new Set(["cancelado", "vencido"]);
 export function PedidoComprador({
   codigo,
   demo,
@@ -57,6 +73,41 @@ export function PedidoComprador({
       if (hold.current) clearTimeout(hold.current);
     };
   }, [codigo, demo]);
+  // El estado cambia cuando la tienda lo registra o lo despacha: se vuelve a leer al volver a la pestaña, al recuperar el foco
+  // y, mientras se ve la página, cada 45 s (sin Realtime ni anillo). Lo ya final (cancelado o vencido) no se sigue leyendo.
+  const estadoActual = s?.estado;
+  useEffect(() => {
+    if (estadoActual && FINALES.has(estadoActual)) return;
+    let vivo = true;
+    let ultima = Date.now();
+    const releer = () => {
+      if (document.visibilityState !== "visible" || Date.now() - ultima < 5_000) return;
+      ultima = Date.now();
+      fuentePublica(demo)
+        .then((f) => f.verSolicitud(codigo))
+        .then((nueva) => {
+          if (vivo && nueva) setS(nueva);
+        })
+        .catch(() => {});
+    };
+    const reloj = window.setInterval(releer, 45_000);
+    document.addEventListener("visibilitychange", releer);
+    window.addEventListener("focus", releer);
+    return () => {
+      vivo = false;
+      window.clearInterval(reloj);
+      document.removeEventListener("visibilitychange", releer);
+      window.removeEventListener("focus", releer);
+    };
+  }, [codigo, demo, estadoActual]);
+
+  // ¿Es la tienda? Solo con sesión (o en la demo, si lo pide): la vista de la tienda se monta encima, sin frenar al comprador.
+  const [tienda, setTienda] = useState<"no" | "comprobar" | "entrar">("no");
+  useEffect(() => {
+    if (demo) return;
+    if (hayCookieDeSesion() || new URLSearchParams(location.search).has("error_login")) queueMicrotask(() => setTienda("comprobar"));
+  }, [demo]);
+
   const enlace = s
     ? `/tienda/${s.tienda.slug}${demo ? "?demo" : ""}`
     : catalogoAnterior;
@@ -66,6 +117,8 @@ export function PedidoComprador({
   };
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
+      // Con la hoja de la tienda abierta, las teclas son de la hoja.
+      if (document.querySelector('[role="dialog"]')) return;
       if (e.key === "Escape") {
         if (enlace) location.href = enlace;
         else history.back();
@@ -250,26 +303,8 @@ export function PedidoComprador({
                   </button>
                 </span>
               </div>
-              <section className="pvsheet">
-                <div className="pvt">
-                  <span>
-                    Total · {s.items.length}{" "}
-                    {s.items.length === 1 ? "producto" : "productos"}
-                  </span>
-                  <b>{dinero(s.total)}</b>
-                </div>
-                <p className="pvmeta">
-                  Pedido #{s.codigo} ·{" "}
-                  {new Date(s.creadaEn).toLocaleString("es-DO", {
-                    timeZone: "America/Santo_Domingo",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="pvsec">Descargar recibo</p>
+              <section className="pvsheet" aria-labelledby="pvest-titulo">
+                <EstadoDelPedido vista={s} />
                 <div className="pvrow">
                   <button
                     className="pvbtn soft"
@@ -292,6 +327,12 @@ export function PedidoComprador({
                 <button className="pvbtn pri wide" onClick={volver}>
                   Seguir explorando {s.tienda.nombre}
                 </button>
+                <p className="pvest-tienda">
+                  ¿Eres la tienda?{" "}
+                  <button type="button" onClick={() => setTienda("entrar")}>
+                    Entra para registrarlo
+                  </button>
+                </p>
               </section>
             </>
           ) : (
@@ -306,9 +347,11 @@ export function PedidoComprador({
                 </h2>
                 <p className="pvgonep">
                   {!cargando &&
-                    (s
-                      ? "Puedes volver al catálogo y armarlo otra vez."
-                      : "Revisa el enlace o pídele a quien te lo mandó que lo envíe de nuevo.")}
+                    (s?.estado === "vencido"
+                      ? "Nadie lo registró en 7 días. Si todavía te interesa, vuélvelo a armar."
+                      : s
+                        ? "Puedes volver al catálogo y armarlo otra vez."
+                        : "Revisa el enlace o pídele a quien te lo mandó que lo envíe de nuevo.")}
                 </p>
               </div>
               <div className="pvsheet">
@@ -322,6 +365,43 @@ export function PedidoComprador({
           )}
         </main>
       </div>
+      {tienda !== "no" && s && (
+        <TiendaEnPedido
+          codigo={s.codigo}
+          demo={demo}
+          pedirEntrar={tienda === "entrar"}
+          alCerrar={() => setTienda("no")}
+          alCambiarEstado={(nueva) => setS(nueva)}
+        />
+      )}
+    </div>
+  );
+}
+
+const PASOS = ["Enviado", "Confirmado", "Despachado"] as const;
+
+/** La cabecera de la hoja: punto y estado como título, total, la línea corta y la barra de tres tramos (Estados). */
+function EstadoDelPedido({ vista }: { vista: VistaSolicitud }) {
+  const e = estadoComprador(vista);
+  const cancelado = e.estado === "cancelado";
+  return (
+    <div className={"pvest " + e.estado}>
+      <div className="pvest-fila">
+        <h2 id="pvest-titulo">{e.titulo}</h2>
+        <b className="pvest-total">{dinero(vista.total)}</b>
+      </div>
+      <p className="pvest-linea">{e.linea}</p>
+      <ol className="pvest-pasos" aria-label={cancelado ? "Pedido cancelado" : `Paso ${e.paso} de 3: ${PASOS[e.paso - 1]}`}>
+        {PASOS.map((paso, n) => (
+          <li
+            key={paso}
+            className={(n < e.paso ? "lleno" : "") + (n === e.paso - 1 ? " actual" : "")}
+            aria-current={n === e.paso - 1 ? "step" : undefined}
+          >
+            {cancelado ? <span className="sr-only">{paso}</span> : paso}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

@@ -1,38 +1,51 @@
 "use client";
 
-import { useRef, useState, type RefObject } from "react";
+import { useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { buscarClientes, recientes } from "@/lib/buscar-clientes";
 import { useTiendaActiva } from "@/lib/data/consulta";
-import { ClienteDuplicado } from "@/lib/data/clientes";
+import { ClienteDuplicado, MAX_NOTA } from "@/lib/data/clientes";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
+import { clienteDelTelefono } from "@/lib/pedido-catalogo";
 import { formatearTelefono, normalizarTelefonoDO, pareceTelefono, resaltarTelefono } from "@/lib/telefono";
 import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
 import { CampoNota } from "../clientes/campo-nota";
-import { Aviso, Avatar, Boton, Campo, Etiqueta } from "../ui";
+import { IconoPersona } from "../iconos";
+import { Aviso, Avatar, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { BotonVolver, FilaAccion, FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
 import { useToast } from "../toast";
 
-export type ClienteElegido = { id: string; nombre: string; telefono: string | null };
+/** Un cliente de la tienda (`id`), o uno nuevo todavía sin guardar (`nuevo`: se crea al registrar, en la misma operación). */
+export type ClienteElegido = ClienteGuardado | ClienteProvisional;
+export type ClienteGuardado = { id: string; nombre: string; telefono: string | null; nuevo?: undefined };
+export type ClienteProvisional = { id?: undefined; nombre: string; telefono: string | null; nota: string | null; nuevo: true };
 
 /**
- * Selector de cliente para "+ Pedido", DENTRO de la misma hoja (sin segunda hoja): buscador, recientes,
- * resultados y "Crear cliente «…»". El buscador recibe el foco en el mismo toque que lo abre (lo hace
- * la hoja con `entrada`), para que el teclado del iPhone abra bien.
+ * Selector de cliente, DENTRO de la misma hoja (sin segunda hoja), el mismo en "+ Pedido" y en "Registrar pedido" del
+ * catálogo: buscador, "Nuevo cliente" (o "Crear «…»") SIEMPRE primero (dos clientes pueden llamarse igual: no se deduce
+ * quién es por el nombre), y después Recientes o las coincidencias. Única excepción: lo escrito es un WhatsApp completo y
+ * válido que ya es de un cliente; entonces solo aparece ese cliente (crear sería un duplicado).
+ * `modo`: "guardar" (+ Pedido: el cliente nuevo se guarda al elegirlo) o "provisional" (Registrar: se devuelve sin guardar y
+ * se crea con el pedido). El buscador recibe el foco en el mismo toque que lo abre (lo hace la hoja con `entrada`).
  */
 export function SelectorCliente({
   clientes,
   entrada,
   alElegir,
   alVolver,
+  modo = "guardar",
+  titulo,
 }: {
   clientes: ClienteConResumen[];
   entrada: RefObject<HTMLInputElement | null>;
   alElegir: (cliente: ClienteElegido) => void;
   alVolver: () => void;
+  modo?: "guardar" | "provisional";
+  /** Encabezado opcional sobre la lista ("¿Quién te escribió?"). */
+  titulo?: string;
 }) {
   const [consulta, setConsulta] = useState("");
   const [creando, setCreando] = useState<{ nombre: string; telefono: string } | null>(null);
@@ -42,11 +55,24 @@ export function SelectorCliente({
 
   if (creando) {
     return (
-      <FormularioNuevo inicial={creando} nombreRef={nombreNuevo} telefonoRef={telefonoNuevo} alElegir={alElegir} alVolver={() => setCreando(null)} />
+      <FormularioNuevo
+        inicial={creando}
+        nombreRef={nombreNuevo}
+        telefonoRef={telefonoNuevo}
+        clientes={clientes}
+        modo={modo}
+        alElegir={alElegir}
+        alVolver={() => setCreando(null)}
+      />
     );
   }
 
-  const resultados = q ? buscarClientes(clientes, q) : recientes(clientes).map((cliente) => ({ cliente, coincide: "nombre" as const }));
+  const exacto = q ? clienteDelTelefono(clientes, q) : null;
+  const resultados = exacto
+    ? [{ cliente: exacto, coincide: "telefono" as const }]
+    : q
+      ? buscarClientes(clientes, q)
+      : recientes(clientes).map((cliente) => ({ cliente, coincide: "nombre" as const }));
   const mostrados = resultados.slice(0, q ? 20 : 8);
 
   // Abre el formulario con lo escrito (teléfono si parece número, nombre si no) y enfoca el campo que falta
@@ -56,8 +82,10 @@ export function SelectorCliente({
     flushSync(() => setCreando(inicial));
     (inicial.nombre ? telefonoNuevo : nombreNuevo).current?.focus({ preventScroll: true });
   };
-  // Siempre disponible: "+ Nuevo cliente" sin texto; "+ Crear «texto»" con texto (arriba si no hay coincidencias, al final si las hay)
-  const accion = <FilaAccion texto={q ? `Crear «${q}»` : "Nuevo cliente"} detalle={q ? (pareceTelefono(q) ? "Con ese WhatsApp" : "Con ese nombre") : "Nombre, WhatsApp y nota"} onClick={crear} />;
+  // Siempre arriba: "+ Nuevo cliente" sin texto; "+ Crear «texto»" con texto. Solo se omite con un WhatsApp completo que ya existe.
+  const accion = exacto ? undefined : (
+    <FilaAccion texto={q ? `Crear «${q}»` : "Nuevo cliente"} detalle={q ? (pareceTelefono(q) ? "Con ese WhatsApp" : "Con ese nombre") : "Nombre, WhatsApp y nota"} onClick={crear} />
+  );
 
   return (
     <SelectorBusqueda
@@ -67,10 +95,20 @@ export function SelectorCliente({
       placeholder="Busca o crea un cliente"
       etiqueta="Buscar cliente"
       alVolver={alVolver}
-      accionArriba={!q || mostrados.length === 0 ? accion : undefined}
-      accionAbajo={q && mostrados.length > 0 ? accion : undefined}
+      accionArriba={
+        <>
+          {titulo && <p className="font-display text-titulo-seccion">{titulo}</p>}
+          {accion}
+        </>
+      }
     >
-      {!q && mostrados.length > 0 && <p className="text-secundario font-extrabold">Recientes</p>}
+      {exacto && <p className="text-secundario font-extrabold">Ese WhatsApp ya es de un cliente</p>}
+      {!exacto && !q && mostrados.length > 0 && <p className="text-secundario font-extrabold">Recientes</p>}
+      {!exacto && q && mostrados.length > 0 && (
+        <p className="text-secundario font-extrabold">
+          {mostrados.length === 1 ? "Coincide 1" : `Coinciden ${mostrados.length}`}
+        </p>
+      )}
       {mostrados.length > 0 && (
         <ListaSeleccion>
           {mostrados.map(({ cliente: c, coincide }) => (
@@ -108,17 +146,34 @@ export function SelectorCliente({
   );
 }
 
-/** Creación rápida: nombre, WhatsApp dominicano y nota opcional. El cliente queda guardado y elegido. */
+// ---- Contactos del teléfono (Contact Picker: Android con Chrome; en iPhone no existe) ----
+
+type ContactoElegido = { name?: string[]; tel?: string[] };
+type SelectorContactos = { select: (props: string[], opciones?: { multiple?: boolean }) => Promise<ContactoElegido[]> };
+const contactosDelNavegador = () =>
+  typeof window !== "undefined" && window.isSecureContext && "contacts" in navigator && "ContactsManager" in window
+    ? ((navigator as Navigator & { contacts: SelectorContactos }).contacts ?? null)
+    : null;
+const nada = () => () => {};
+
+/**
+ * Creación rápida: nombre, WhatsApp dominicano y nota opcional. "guardar": el cliente queda guardado y elegido. "provisional":
+ * se devuelve sin guardar (se crea al registrar el pedido); si el WhatsApp ya es de un cliente, se ofrece ese.
+ */
 function FormularioNuevo({
   inicial,
   nombreRef,
   telefonoRef,
+  clientes,
+  modo,
   alElegir,
   alVolver,
 }: {
   inicial: { nombre: string; telefono: string };
   nombreRef: RefObject<HTMLInputElement | null>;
   telefonoRef: RefObject<HTMLInputElement | null>;
+  clientes: ClienteConResumen[];
+  modo: "guardar" | "provisional";
   alElegir: (cliente: ClienteElegido) => void;
   alVolver: () => void;
 }) {
@@ -131,13 +186,49 @@ function FormularioNuevo({
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<ClienteElegido | null>(null);
   const [guardando, setGuardando] = useState(false);
+  // Varios teléfonos en el contacto elegido: se elige uno.
+  const [telefonosContacto, setTelefonosContacto] = useState<string[] | null>(null);
+  const hayContactos = useSyncExternalStore(nada, () => contactosDelNavegador() !== null, () => false);
 
   const valido = normalizarTelefonoDO(telefono) !== null;
   const malo = tocado && telefono.trim() !== "" && !valido;
   const puedeGuardar = nombre.trim() !== "" && valido && !guardando;
 
+  const ponerTelefono = (t: string) => {
+    setTelefono(t.replace(/[^\d+\-() ]/g, "").slice(0, 18));
+    setDuplicado(null);
+  };
+
+  // Por gesto directo: un solo contacto, solo nombre y teléfono. Cancelar no borra lo escrito.
+  const elegirContacto = async () => {
+    const api = contactosDelNavegador();
+    if (!api) return;
+    try {
+      const [c] = await api.select(["name", "tel"], { multiple: false });
+      if (!c) return;
+      const nombreContacto = c.name?.find((n) => n.trim())?.trim();
+      if (nombreContacto) setNombre(nombreContacto.slice(0, 120));
+      const tels = [...new Set((c.tel ?? []).map((t) => t.trim()).filter(Boolean))];
+      if (tels.length === 1) ponerTelefono(tels[0]!);
+      else if (tels.length > 1) setTelefonosContacto(tels);
+      setTocado(true);
+    } catch {
+      // Canceló o el navegador no dejó: queda lo que había.
+    }
+  };
+
   const guardar = async () => {
     if (!puedeGuardar) return;
+    if (modo === "provisional") {
+      const numero = normalizarTelefonoDO(telefono);
+      const existente = numero ? clientes.find((c) => c.telefono !== null && normalizarTelefonoDO(c.telefono) === numero) : undefined;
+      if (existente) {
+        setDuplicado({ id: existente.id, nombre: existente.nombre, telefono: existente.telefono });
+        return;
+      }
+      alElegir({ nombre: nombre.trim(), telefono: numero, nota: nota.trim() || null, nuevo: true });
+      return;
+    }
     setGuardando(true);
     try {
       const c = await crearCliente(tiendaId, { nombre, telefono, nota });
@@ -164,6 +255,7 @@ function FormularioNuevo({
         onChange={(e) => setNombre(e.target.value)}
         placeholder="Ej: Paola Jiménez"
         autoComplete="off"
+        maxLength={120}
         aria-label="Nombre del cliente"
       />
       <Campo
@@ -172,16 +264,29 @@ function FormularioNuevo({
         type="tel"
         inputMode="tel"
         value={telefono}
-        onChange={(e) => {
-          setTelefono(e.target.value.replace(/[^\d+\-() ]/g, "").slice(0, 18));
-          setDuplicado(null);
-        }}
+        onChange={(e) => ponerTelefono(e.target.value)}
         onBlur={() => setTocado(true)}
         placeholder="809-000-0000"
         aria-label="WhatsApp del cliente"
         error={malo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
       />
-      <CampoNota valor={nota} alCambiar={setNota} />
+      {hayContactos && (
+        <Boton jerarquia="secundario" tamano="compacto" icono={<IconoPersona tamano={18} />} onClick={() => void elegirContacto()} className="self-start">
+          Elegir de mis contactos
+        </Boton>
+      )}
+      {telefonosContacto && (
+        <GrupoOpciones
+          titulo="¿Cuál es su WhatsApp?"
+          valor={null}
+          alCambiar={(t) => {
+            ponerTelefono(t);
+            setTelefonosContacto(null);
+          }}
+          opciones={telefonosContacto.map((t) => ({ id: t, texto: formatearTelefono(t) }))}
+        />
+      )}
+      <CampoNota valor={nota} alCambiar={(v) => setNota(v.slice(0, MAX_NOTA))} />
 
       {duplicado && (
         <div role="alert">
@@ -195,7 +300,7 @@ function FormularioNuevo({
       )}
 
       <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
-        Crear y elegir
+        {modo === "provisional" ? "Usar este cliente" : "Crear y elegir"}
       </Boton>
     </div>
   );

@@ -58,7 +58,7 @@ export function DataProvider({ children, cargando, entrada }: { children: ReactN
   return entrada;
 }
 
-function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: ReactNode }) {
+export function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: ReactNode }) {
   const e = useSyncExternalStore(suscribirDemo, leerDemo, nadaEnServidor);
   const valor = useMemo<DataContexto | null>(
     () =>
@@ -79,7 +79,7 @@ function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
-function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Usuario }) {
+export function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Usuario }) {
   const [version, setVersion] = useState(0);
   const [errorLectura, setErrorLectura] = useState<string | null>(null);
   const [fuente] = useState(() => crearFuenteSupabase(createClient(), () => setVersion((v) => v + 1)));
