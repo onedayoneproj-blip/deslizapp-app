@@ -27,3 +27,4 @@ export { Interruptor } from "./interruptor";
 export { EditorEtiquetas } from "./editor-etiquetas";
 export { TiraMedios, duracionCorta, type ElementoTira } from "./tira-medios";
 export { FilaVariante } from "./fila-variante";
+export { VideoProducto } from "./video-producto";

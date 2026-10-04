@@ -9,7 +9,7 @@ import type { Medio, Producto } from "@/lib/types";
 import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, VIDEO_MAX_S, type PasoVideo, type VideoElegido } from "@/lib/video";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Boton, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, duracionCorta } from "../ui";
+import { Boton, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
 
 export const MAX_MEDIOS = 10;
 export const MAX_VIDEOS = 2;
@@ -244,11 +244,21 @@ function HojaMedio({
   return (
     <Hoja abierta={medio !== null} alCerrar={alCerrar} titulo={m.tipo === "video" ? "Video" : indice === 0 ? "Portada" : "Foto"}>
       <div className="flex flex-col gap-4">
-        <div className="relative mx-auto aspect-square w-full max-w-60 overflow-hidden rounded-radio-m bg-superficie-hundida">
-          {imagen && <Foto src={imagen} alt={m.tipo === "video" ? "Portada del video" : "Foto del producto"} className="h-full w-full" sizes="240px" />}
-          {m.tipo === "video" && <span className="absolute right-2 bottom-2"><Etiqueta tono="fuerte">{duracionCorta(m.duracionS)}</Etiqueta></span>}
-          {retocando && <span className="absolute inset-0 grid place-items-center bg-[rgb(0_0_0/0.35)]"><Etiqueta tono="fuerte">Poniéndole la luz…</Etiqueta></span>}
-        </div>
+        {m.tipo === "video" && m.url ? (
+          // El video mismo (recién preparado, en URL local, o ya subido): solo, mudo y en bucle; tocarlo activa el sonido.
+          <VideoProducto
+            src={m.url}
+            portada={m.portada}
+            className="mx-auto aspect-square w-full max-w-60 rounded-radio-m"
+            esquina={<span className="pointer-events-none absolute right-2 bottom-2"><Etiqueta tono="fuerte">{duracionCorta(m.duracionS)}</Etiqueta></span>}
+          />
+        ) : (
+          <div className="relative mx-auto aspect-square w-full max-w-60 overflow-hidden rounded-radio-m bg-superficie-hundida">
+            {imagen && <Foto src={imagen} alt={m.tipo === "video" ? "Portada del video" : "Foto del producto"} className="h-full w-full" sizes="240px" />}
+            {m.tipo === "video" && <span className="absolute right-2 bottom-2"><Etiqueta tono="fuerte">{duracionCorta(m.duracionS)}</Etiqueta></span>}
+            {retocando && <span className="absolute inset-0 grid place-items-center bg-[rgb(0_0_0/0.35)]"><Etiqueta tono="fuerte">Poniéndole la luz…</Etiqueta></span>}
+          </div>
+        )}
         {foto?.retoquePendiente && (
           <ControlSegmentado
             etiqueta="Comparar foto"
@@ -288,11 +298,13 @@ function HojaMedio({
             />
           </ListaAgrupada>
         )}
-        <ListaAgrupada etiqueta="Acciones">
-          {indice > 0 && <FilaLista titulo="Hacer portada" onClick={() => { alMover(0); alCerrar(); }} />}
-          {indice > 0 && <FilaLista titulo="Mover a la izquierda" onClick={() => alMover(indice - 1)} />}
-          {indice < total - 1 && <FilaLista titulo="Mover a la derecha" onClick={() => alMover(indice + 1)} />}
-        </ListaAgrupada>
+        {total > 1 && (
+          <ListaAgrupada etiqueta="Acciones">
+            {indice > 0 && <FilaLista titulo="Hacer portada" onClick={() => { alMover(0); alCerrar(); }} />}
+            {indice > 0 && <FilaLista titulo="Mover a la izquierda" onClick={() => alMover(indice - 1)} />}
+            {indice < total - 1 && <FilaLista titulo="Mover a la derecha" onClick={() => alMover(indice + 1)} />}
+          </ListaAgrupada>
+        )}
         <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={alQuitar}>
           {m.tipo === "video" ? "Quitar video" : "Quitar foto"}
         </Boton>

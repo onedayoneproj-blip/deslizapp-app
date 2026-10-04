@@ -246,6 +246,24 @@ const ESCENARIOS = {
     await capturar(page, "video-subiendo", ancho, tema);
     await page.waitForFunction(() => document.querySelector('[aria-label^="Video 3 de 3"]') && !/%/.test(document.querySelector('[aria-label^="Video 3 de 3"]').getAttribute("aria-label")), null, { timeout: 30_000 });
     ok(true, "El video se preparó (sin anillo de progreso)");
+    // La hoja del video muestra el video mismo: solo, mudo y en bucle; tocarlo activa el sonido.
+    await page.getByRole("button", { name: /^Video 3 de 3/ }).click();
+    await hoja(page).locator("video").waitFor();
+    await page.waitForTimeout(700);
+    const enHoja = () =>
+      hoja(page).locator("video").evaluate(async (v) => {
+        const t = v.currentTime;
+        await new Promise((r) => setTimeout(r, 500));
+        return { paused: v.paused, muted: v.muted, loop: v.loop, inline: v.playsInline, avanza: v.currentTime !== t, local: v.currentSrc.startsWith("blob:") };
+      });
+    const e1 = await enHoja();
+    ok(e1.local && !e1.paused && e1.muted && e1.loop && e1.inline && e1.avanza, "Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle");
+    await page.getByRole("button", { name: "Activar el sonido del video" }).click();
+    const e2 = await enHoja();
+    ok(!e2.muted && !e2.paused && (await page.getByRole("button", { name: "Quitar el sonido del video" }).count()) === 1, "Tocar el video activa el sonido");
+    await capturar(page, "video-en-hoja", ancho, tema);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
     const imagenes = async () => page.locator('[aria-label="Fotos y video"] li img').evaluateAll((l) => l.map((i) => i.getAttribute("src")));
     const antes = await imagenes();
     await page.getByRole("button", { name: /^Foto 2 de 3/ }).click();

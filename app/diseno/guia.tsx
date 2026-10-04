@@ -37,6 +37,7 @@ import {
   ElegirMensaje,
   EditorEtiquetas,
   FilaVariante,
+  VideoProducto,
   Interruptor,
   ProveedorToast,
   TiraMedios,
@@ -681,8 +682,9 @@ function Producto() {
     { id: "c", tipo: "foto" as const, imagen: "/seed/productos/parade.svg", progreso: 62 },
   ]);
   const [stock, setStock] = useState({ s: 2, m: 1, l: 0 });
+  const video = useVideoDeMuestra();
   return (
-    <Seccion numero="14" titulo="Producto" nota="Tira de fotos y video, etiquetas editables, interruptor y stock por variante.">
+    <Seccion numero="14" titulo="Producto" nota="Tira de fotos y video, etiquetas editables, interruptor, stock por variante y el video del producto.">
       <div className="flex max-w-90 flex-col gap-2">
         <Rotulo>tira de medios · 76 px, portada primero, video con su duración, subiendo con anillo; mantén presionado para ordenar</Rotulo>
         <TiraMedios
@@ -722,8 +724,55 @@ function Producto() {
           <FilaVariante texto="L · Negro" color="#2b2b2b" stock={stock.l} alCambiar={(v) => setStock((s) => ({ ...s, l: v }))} />
         </ListaAgrupada>
       </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>video del producto · solo, mudo y en bucle; tocarlo activa el sonido (bocina en la esquina)</Rotulo>
+        {video ? <VideoProducto src={video} portada={null} className="aspect-square w-full max-w-60 rounded-radio-m" /> : <p className="text-secundario text-texto-secundario">Armando un video de muestra…</p>}
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>video que no se puede reproducir: queda la portada con una línea</Rotulo>
+        <VideoProducto src="/no-existe.mp4" portada="/seed/productos/kiara-pink.svg" className="aspect-square w-full max-w-60 rounded-radio-m" />
+      </div>
     </Seccion>
   );
+}
+
+/** Un video corto armado en el navegador (canvas + MediaRecorder) para mostrar VideoProducto sin un archivo en el repo. */
+function useVideoDeMuestra() {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof MediaRecorder === "undefined") return;
+    const lienzo = document.createElement("canvas");
+    lienzo.width = 240;
+    lienzo.height = 240;
+    const ctx = lienzo.getContext("2d")!;
+    const grabadora = new MediaRecorder(lienzo.captureStream(24));
+    const trozos: Blob[] = [];
+    let creada: string | null = null;
+    grabadora.ondataavailable = (e) => trozos.push(e.data);
+    grabadora.onstop = () => {
+      creada = URL.createObjectURL(new Blob(trozos, { type: grabadora.mimeType }));
+      setUrl(creada);
+    };
+    let n = 0;
+    const reloj = window.setInterval(() => {
+      ctx.fillStyle = `hsl(${(n * 6) % 360} 60% 70%)`;
+      ctx.fillRect(0, 0, 240, 240);
+      ctx.fillStyle = "#10362a";
+      ctx.beginPath();
+      ctx.arc(120 + Math.sin(n / 6) * 70, 120, 26, 0, Math.PI * 2);
+      ctx.fill();
+      n++;
+    }, 40);
+    grabadora.start();
+    const fin = window.setTimeout(() => grabadora.state !== "inactive" && grabadora.stop(), 2000);
+    return () => {
+      window.clearInterval(reloj);
+      window.clearTimeout(fin);
+      if (grabadora.state !== "inactive") grabadora.stop();
+      if (creada) URL.revokeObjectURL(creada);
+    };
+  }, []);
+  return url;
 }
 
 // ---- Iconos ----

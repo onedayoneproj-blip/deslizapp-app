@@ -143,6 +143,8 @@ Componente: `Interruptor` (`components/ui/interruptor.tsx`), 54 × 32, encendido
 
 **Fila de variante** (`FilaVariante`): una combinación de opciones con su stock dentro de una lista agrupada: círculo con el color si un eje es Color y el nombre se conoce (`lib/colores.ts`; si no, nada), el texto ("S · Arena") en `destacado` y debajo "Queda 1" o "Agotado" en `atencion-texto` solo cuando aplica, y la Cantidad a la derecha (el − se apaga en 0). Se ven las primeras 5 y "Ver las N".
 
+**Video del producto** (`VideoProducto`): el video mismo, no su portada. Se reproduce solo, sin sonido y en bucle (`muted` como atributo, `playsinline`, `loop`, `autoplay`), con la portada como póster mientras carga. Tocarlo activa o quita el sonido; una bocina pequeña en la esquina (tachada si va mudo) lo dice. Sirve con la URL local de un video recién preparado y con la de Supabase. Si no se puede reproducir, queda la portada con una línea corta ("Este video no arrancó aquí. Si en el catálogo tampoco, súbelo otra vez."). El tamaño y el radio los pone quien lo usa.
+
 ## 7. Listas
 
 Dos formas, cada una con su trabajo:
@@ -255,6 +257,6 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 2. Los componentes se construyen en React en `components/ui/` con los mismos nombres de este sistema (Boton, Pastilla, Opcion, Segmentos, Lista, Tarjeta, Aviso, Alerta, Hoja, Etiqueta, Campo, Avatar, Toast).
 3. Una página interna `/diseno` muestra todos los componentes reales con sus variantes: es la guía viva.
 4. Las pantallas se migran una por una.
-5. **Siempre con los componentes de `components/ui/`.** Antes de escribir una pieza nueva se busca la que ya existe (Boton, Opcion, GrupoOpciones, ListaAgrupada, FilaLista, CheckSeleccion, Campo, Cantidad, Tarjeta, Hoja, VistaPreviaWhatsApp, Interruptor, EditorEtiquetas, TiraMedios, FilaVariante…). Si no existe, se crea en `components/ui/` siguiendo esta guía (tokens, radios, alturas, estados, accesibilidad), se exporta en su `index.ts` y se agrega a `/diseno`. Nunca estilos sueltos ni piezas copiadas de un prototipo o de un tablero de diseño: esos muestran cómo se ve y cómo se mueve, no son código.
+5. **Siempre con los componentes de `components/ui/`.** Antes de escribir una pieza nueva se busca la que ya existe (Boton, Opcion, GrupoOpciones, ListaAgrupada, FilaLista, CheckSeleccion, Campo, Cantidad, Tarjeta, Hoja, VistaPreviaWhatsApp, Interruptor, EditorEtiquetas, TiraMedios, FilaVariante, VideoProducto…). Si no existe, se crea en `components/ui/` siguiendo esta guía (tokens, radios, alturas, estados, accesibilidad), se exporta en su `index.ts` y se agrega a `/diseno`. Nunca estilos sueltos ni piezas copiadas de un prototipo o de un tablero de diseño: esos muestran cómo se ve y cómo se mueve, no son código.
 
 Las vistas de los componentes en este sistema son representaciones estáticas de cómo deben verse; la fuente de verdad del código serán los componentes de `components/ui/`.
