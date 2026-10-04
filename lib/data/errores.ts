@@ -226,7 +226,7 @@ export function esErrorDeRed(e: unknown): boolean {
 
 /**
  * Traduce un error de Supabase (RPC, tabla o auth) a un error de la app con un mensaje en español claro.
- * Los mensajes de las RPC vienen de supabase/migrations/20260929000002_reglas_de_negocio.sql.
+ * Los mensajes de las RPC vienen de supabase/migrations/20260929225916_reglas_de_negocio.sql.
  */
 export function traducirErrorSupabase(e: unknown): Error {
   if (e instanceof ErrorClaro) return e;

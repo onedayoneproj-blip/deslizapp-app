@@ -7,3 +7,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Migraciones de Supabase
+
+- Toda migración nueva se aplica en Supabase (proyecto `euihaeyfdlpvmbtfzvnt`) y el archivo de `supabase/migrations/` lleva **la versión que Supabase le puso** (verla con `list_migrations`). Nunca un número inventado.
+- No se edita una migración ya aplicada: se crea otra.
+- Los datos reales de tiendas (crear una tienda, invitar a alguien) no van en migraciones del repo.
+- Para comprobar que el repo y Supabase coinciden: `npm run revisar:migraciones -- lista.json` (el JSON de `list_migrations`), o con `SUPABASE_ACCESS_TOKEN` definido, sin argumentos. Tiene que dar cero diferencias.
