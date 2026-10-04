@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { VistaSolicitud } from "@/lib/types";
+import type { VistaSolicitud, CatalogoPublico } from "@/lib/types";
 import { fuentePublica } from "@/lib/data/publica";
+import { lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
+import { temaDeTienda } from "@/lib/tienda/tema";
+import { NOMBRE_PRODUCTO } from "@/lib/rubros";
 import { dinero } from "@/lib/tienda/carrito";
 import { descargarRecibo } from "@/lib/tienda/recibo";
 import { Icono } from "./iconos";
@@ -10,12 +13,15 @@ export function PedidoComprador({
   codigo,
   demo,
   inicial,
+  inicialCatalogo = null,
 }: {
   codigo: string;
   demo: boolean;
   inicial: VistaSolicitud | null;
+  inicialCatalogo?: CatalogoPublico | null;
 }) {
   const [s, setS] = useState(inicial);
+  const [catalogo, setCatalogo] = useState(inicialCatalogo);
   const [cargando, setCargando] = useState(demo);
   const [i, setI] = useState(0);
   const [pausa, setPausa] = useState(false);
@@ -33,6 +39,7 @@ export function PedidoComprador({
           if (valido) {
             setS(s);
             setCargando(false);
+            if(s) fuentePublica(true).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
           }
         })
         .catch(() => {
@@ -113,12 +120,17 @@ export function PedidoComprador({
     }
   };
   const item = s?.items[i];
+  const producto = catalogo?.productos.find(p=>p.id===item?.productoId);
+  const nombres = NOMBRE_PRODUCTO[catalogo?.tienda.rubro ?? "general"];
+  const tema = catalogo ? temaDeTienda(catalogo.tienda) : null;
   const valido = s && s.estado !== "vencido" && s.items.length > 0;
   return (
     <div
       className="catalogo-publico pedido-publico"
       style={
         {
+          ...(tema ? Object.fromEntries(Object.entries(tema.colores).map(([k,v])=>["--"+k,v])) : {}),
+          ...(tema ? {"--display":`"${tema.fuentes.display === "Figtree" ? "DZ Figtree" : tema.fuentes.display === "Fredoka" ? "DZ Fredoka" : tema.fuentes.display}",Georgia,serif`,"--body":`"${tema.fuentes.body === "Figtree" ? "DZ Figtree" : tema.fuentes.body}",sans-serif`} : {}),
           "--iso": `url("${s?.tienda.fotoPerfilUrl ?? s?.tienda.logoUrl ?? ""}")`,
         } as CSSProperties
       }
@@ -193,7 +205,7 @@ export function PedidoComprador({
                 <h2>{item.nombre}</h2>
                 <span className="pvpr">
                   <b>{dinero(item.precioUnitario * item.cantidad)}</b>
-                  {item.varianteTexto}
+                  {item.varianteTexto ?? (producto && catalogo ? [mostrarDetalle(producto.detalles.marca),lineaCorta(producto,catalogo.tienda.rubro)].filter(Boolean).join(" · ") : "")}
                   {item.porEncargo ? " · Por encargo" : ""}
                 </span>
                 <span className="pvtag">
@@ -218,7 +230,7 @@ export function PedidoComprador({
                       }
                     }}
                   >
-                    Ver producto <Icono nombre="back" />
+                    Ver {nombres.singular} <Icono nombre="back" />
                   </a>
                   <button
                     className="pvgo pvsh"

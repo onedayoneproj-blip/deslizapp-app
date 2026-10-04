@@ -33,7 +33,7 @@ export async function generateMetadata({
     robots: { index: false, follow: false },
     openGraph: {
       title,
-      description: `${s.items.length} productos · ${dinero(s.total)}`,
+      description: `${s.items.length} ${s.items.length === 1 ? "producto" : "productos"} · ${dinero(s.total)}`,
       ...(s.items[0]?.foto ? { images: [s.items[0].foto] } : {}),
     },
   };
@@ -41,11 +41,14 @@ export async function generateMetadata({
 export default async function Pagina({ params, searchParams }: Props) {
   const { codigo } = await params;
   const demo = "demo" in (await searchParams);
+  const s = demo ? null : await leer(codigo);
+  const catalogo = s ? await fuentePublicaReal().catalogoPublico(s.tienda.slug).catch(()=>null) : null;
   return (
     <PedidoComprador
       codigo={codigo}
       demo={demo}
-      inicial={demo ? null : await leer(codigo)}
+      inicial={s}
+      inicialCatalogo={catalogo}
     />
   );
 }

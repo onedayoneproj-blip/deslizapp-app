@@ -74,6 +74,7 @@ export function Catalogo({
 }) {
   const [ahora] = useState(() => Date.now());
   const [c, setC] = useState(inicial);
+  const [tinteOscuro,setTinteOscuro] = useState(false);
   const [error, setError] = useState(errorInicial ?? "");
   const [intento, setIntento] = useState(0);
   const fuente = useRef<FuentePublica | null>(null);
@@ -304,7 +305,7 @@ export function Catalogo({
     const p = c.productos.find((p) => p.slug === actual);
     if (p)
       colorDePortada(portada(p)).then((t) => {
-        if (t && vigente) el?.style.setProperty("--tint", t.c);
+        if (t && vigente) { el?.style.setProperty("--tint", t.c);setTinteOscuro(t.dark); }
       });
     return () => { vigente = false; };
   }, [actual, c]);
@@ -567,7 +568,7 @@ export function Catalogo({
   return (
     <div
       className={
-        "catalogo-publico " +
+        "catalogo-publico " + ((tema.tintes[actual]?.dark ?? tinteOscuro) ? "tint-dark " : "") +
         (perfil ? "view-grid" : "view-reels") +
         (vista === "colecciones" ? " co-open" : "") +
         (secciones?.como_funciona === false ? " sin-historia" : "")
