@@ -9,7 +9,11 @@ import {
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
 import type { CatalogoPublico } from "@/lib/types";
-import { fuentePublica, type FuentePublica } from "@/lib/data/publica";
+import {
+  fuentePublica,
+  observarFuentePublicaDemo,
+  type FuentePublica,
+} from "@/lib/data/publica";
 import {
   ProductoNoDisponible,
   DemasiadosIntentos,
@@ -132,6 +136,19 @@ export function Catalogo({
       );
     }
   };
+  useEffect(() => {
+    let activa = true;
+    let cancelar: (() => void) | undefined;
+    if (demo)
+      observarFuentePublicaDemo().then((fn) => {
+        if (activa) cancelar = fn;
+        else fn();
+      });
+    return () => {
+      activa = false;
+      cancelar?.();
+    };
+  }, [demo]);
   useEffect(() => {
     let vigente = true;
     fuentePublica(demo)
@@ -283,11 +300,13 @@ export function Catalogo({
       el?.style.setProperty("--tint", t.c);
       return;
     }
+    let vigente = true;
     const p = c.productos.find((p) => p.slug === actual);
     if (p)
       colorDePortada(portada(p)).then((t) => {
-        if (t) el?.style.setProperty("--tint", t.c);
+        if (t && vigente) el?.style.setProperty("--tint", t.c);
       });
+    return () => { vigente = false; };
   }, [actual, c]);
   useLayoutEffect(() => {
     document.documentElement.classList.toggle("snap", !perfil);
@@ -300,6 +319,19 @@ export function Catalogo({
     },
     [],
   );
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if(vista || perfil || (e.target as HTMLElement).closest("input,textarea,select,[contenteditable]")) return;
+      if(e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const reels = [...document.querySelectorAll<HTMLElement>("#reels [data-id]")];
+        const i = reels.findIndex(el=>el.dataset.id === actual);
+        reels[Math.max(0,Math.min(reels.length-1,i+(e.key === "ArrowDown" ? 1 : -1)))]?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"});
+      }
+    };
+    window.addEventListener("keydown",tecla);
+    return ()=>window.removeEventListener("keydown",tecla);
+  },[actual,vista,perfil]);
   if (!c)
     return (
       <div className="catalogo-publico catalogo-vacio">
@@ -325,7 +357,12 @@ export function Catalogo({
   const nombres = NOMBRE_PRODUCTO[t.rubro];
   const cols = coleccionesDe(c);
   const lista = cols.find((col) => col.id === filter)?.productos ?? c.productos;
-  const index = lista.findIndex((p) => p.slug === actual);
+  const index =
+    actual === "fin"
+      ? lista.length
+      : actual === "deslizapp"
+        ? lista.length + 1
+        : lista.findIndex((p) => p.slug === actual);
   const producto = c.productos.find((p) => p.slug === elegido?.slug);
   const total = cart.reduce((s, l) => s + l.precioUnitario * l.cantidad, 0);
   const contacto =
@@ -337,8 +374,8 @@ export function Catalogo({
     ...Object.fromEntries(
       Object.entries(tema.colores).map(([k, v]) => ["--" + k, v]),
     ),
-    "--display": `"${tema.fuentes.display}",Georgia,serif`,
-    "--body": `"${tema.fuentes.body}",system-ui,sans-serif`,
+    "--display": `"${tema.fuentes.display === "Figtree" ? "DZ Figtree" : tema.fuentes.display === "Fredoka" ? "DZ Fredoka" : tema.fuentes.display}",Georgia,serif`,
+    "--body": `"${tema.fuentes.body === "Figtree" ? "DZ Figtree" : tema.fuentes.body}",system-ui,sans-serif`,
     "--iso": `url("${t.fotoPerfilUrl ?? t.logoUrl ?? ""}")`,
   } as CSSProperties;
   const compartir = async (slugProducto?: string) => {
@@ -676,7 +713,7 @@ export function Catalogo({
                   .filter((c) => c.id !== "all")
                   .slice(0, 3)
                   .map((col) => (
-                    <img key={col.id} src={portada(col.productos[0])} alt="" />
+                    <img loading="lazy" key={col.id} src={portada(col.productos[0])} alt="" />
                   ))}
               </span>
             </button>
@@ -691,7 +728,7 @@ export function Catalogo({
       >
         {lista.length > 0 && (
           <div className="glow" aria-hidden="true">
-            <img src={portada(lista[0])} alt="" />
+            <img loading="lazy" src={portada(lista[0])} alt="" />
           </div>
         )}
         {lista.map((p, i) => (
@@ -721,7 +758,16 @@ export function Catalogo({
           <p className="empty">Aaah… todavía no hay productos aquí.</p>
         )}
         <article
-          className={"reel fin" + (actual === "fin" ? " on" : "")}
+          className={
+            "reel fin" +
+            (actual === "fin"
+              ? " on"
+              : actual === "deslizapp"
+                ? " prev"
+                : index === lista.length - 1
+                  ? " next"
+                  : "")
+          }
           id="r-fin"
           data-id="fin"
         >
@@ -800,6 +846,11 @@ export function Catalogo({
           <ArteFinal contacto={contacto} activo={actual === "deslizapp"} />
         </div>
       </main>
+      {!perfil && <div className="navbtns">
+        {[-1,1].map(d=><button key={d} aria-label={nombres.singular+(d<0?" anterior":" siguiente")} disabled={d<0?index<=0:index>=lista.length+1} onClick={()=>window.dispatchEvent(new KeyboardEvent("keydown",{key:d<0?"ArrowUp":"ArrowDown"}))}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={d<0?"M6 15l6-6 6 6":"M6 9l6 6 6-6"}/></svg>
+        </button>)}
+      </div>}
       <div
         className={
           "acts" + (actual === "fin" || actual === "deslizapp" ? " off" : "")
@@ -901,14 +952,14 @@ export function Catalogo({
                 onClick={() => setFilter(col.id)}
               >
                 <span className="ring">
-                  <img src={portada(col.productos[0])} alt="" />
+                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
                 </span>
                 {col.nombre}
               </button>
             ))}
           </div>
         )}
-        <div className="gridtabs">{nombres.plural}</div>
+        <div className="gridtabs"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>{nombres.plural}</div>
         <div className="grid" id="grid">
           {lista.map((p) => (
             <article
@@ -939,6 +990,16 @@ export function Catalogo({
                   </span>
                 )}
               </div>
+              {p.disponibilidad !== "agotado" && (
+                <button
+                  className="tlike"
+                  aria-label={"Lo quiero: " + p.nombre}
+                  aria-pressed={cart.some((l) => l.productoId === p.id)}
+                  onClick={() => elegir(p.slug, p.variantes[0]?.id ?? null)}
+                >
+                  <Icono nombre="heart" />
+                </button>
+              )}
               <div className="tname">{p.nombre}</div>
               <div className="tsub">
                 {mostrarDetalle(p.detalles.familia ?? p.categoria)}
@@ -1042,7 +1103,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <img src={portada(col.productos[0])} alt="" />
+                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>
@@ -1190,9 +1251,7 @@ export function Catalogo({
       {vista === "coach" && (
         <Coach
           cerrar={cerrar}
-          productos={c.productos
-            .slice(0, 3)
-            .map((p) => ({ foto: portada(p), nombre: p.nombre }))}
+          productos={(t.slug === "esencias-michel" ? ["mayar","majestic","wildflower"].map(slug=>c.productos.find(p=>p.slug===slug)).filter((p): p is CatalogoPublico["productos"][number]=>!!p) : c.productos.slice(0,3)).map((p) => ({ foto: portada(p), nombre: p.nombre }))}
         />
       )}
       {vista === "historia" && (

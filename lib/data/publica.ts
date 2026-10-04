@@ -32,3 +32,8 @@ export async function fuentePublica(demo: boolean): Promise<FuentePublica> {
   if (demo) return (await import("./demo")).fuenteDemo;
   return fuentePublicaReal();
 }
+
+export async function observarFuentePublicaDemo(): Promise<() => void> {
+  const { suscribirDemo } = await import("./demo");
+  return suscribirDemo(() => {});
+}

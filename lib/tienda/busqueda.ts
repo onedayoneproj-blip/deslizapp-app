@@ -1,4 +1,5 @@
 import type { CatalogoPublico, ProductoPublico } from "../types";
+import { OCASIONES_NOCHE } from "../rubros";
 const norm = (s: string) =>
   s
     .normalize("NFD")
@@ -131,7 +132,8 @@ export function buscarCatalogo(
         return " ";
       },
     )
-    .replace(/\b(barato|baratos|economico|economicos)\b/g, () => {
+    .replace(/\b(\d[\d.,]{2,})\b/g, (_, v) => { const x = +v.replace(/[.,]/g, ""); if(x >= 300){max=x;return " ";} return " " + v + " "; })
+    .replace(/\b(barato|baratos|barata|baratas|economico|economicos|economica|precio bajo)\b/g, () => {
       cheap = true;
       return " ";
     });
@@ -141,31 +143,23 @@ export function buscarCatalogo(
   const perfume = c.tienda.rubro === "perfumes";
   const rows = c.productos
     .map((p) => {
-      const fields: [number, string][] = [
-        [5, p.nombre],
-        [4, String(p.detalles.marca ?? "")],
-        [3, p.categoria ?? ""],
-        [3, perfume ? String(p.detalles.familia ?? "") : ""],
-        [
-          3,
-          p.detalles.para === "ella"
-            ? "mujer ella"
-            : p.detalles.para === "el"
-              ? "hombre el"
-              : p.detalles.para === "unisex"
-                ? "unisex hombre mujer ambos"
-                : "",
-        ],
-        [2, Object.values(p.detalles).flat().join(" ")],
-      ];
+      const ocasiones = Array.isArray(p.detalles.ocasiones) ? p.detalles.ocasiones : [];
+      const fields: [number, string][] = perfume ? [
+        [5,p.nombre], [4,String(p.detalles.marca ?? "")], [3,String(p.detalles.familia ?? "")],
+        [3,p.detalles.para === "ella" ? "mujer ella" : p.detalles.para === "unisex" ? "unisex hombre mujer ambos" : p.detalles.para === "el" ? "hombre el" : "perfume"],
+        [2,[p.detalles.notas_salida,p.detalles.notas_corazon,p.detalles.notas_fondo].flat().filter(Boolean).join(" ")],
+        [2,ocasiones.join(" ") + (ocasiones.some(o=>!OCASIONES_NOCHE.includes(o)) ? " dia" : "") + (ocasiones.some(o=>OCASIONES_NOCHE.includes(o)) ? " noche" : "")],
+        [1,String(p.detalles.descripcion ?? "")], [1,[p.detalles.concentracion,p.detalles.tamano_ml,"ml"].filter(Boolean).join(" ")]
+      ] : [[5,p.nombre],[4,String(p.detalles.marca ?? "")],[3,p.categoria ?? ""],[2,Object.values(p.detalles).flat().join(" ")]];
       let hit = 0,
         score = 0;
       for (const term of terms) {
         const bases = [
           term,
+          ...(term.length > 4 && term.endsWith("es") ? [term.slice(0,-2)] : []),
           ...(term.length > 3 && term.endsWith("s") ? [term.slice(0, -1)] : []),
         ];
-        const syns = perfume ? bases.flatMap((b) => SYN[b] ?? []) : [];
+        const syns = perfume ? [...new Set(bases.flatMap((b) => SYN[b] ?? []))].filter(x=>!bases.includes(x)) : [];
         let best = 0;
         for (const [weight, text] of fields)
           for (const d of words(text))
@@ -175,11 +169,12 @@ export function buscarCatalogo(
                   ? 1
                   : t.length >= 3 && d.startsWith(t)
                     ? 0.85
+                    : t.length === 2 && weight >= 4 && d.startsWith(t) ? 0.6
                     : t.length >= 4 &&
                         d.length >= 4 &&
                         distancia(t, d, t.length >= 7 ? 2 : 1) <=
                           (t.length >= 7 ? 2 : 1)
-                      ? 0.6
+                      ? 0.7 - distancia(t,d,t.length>=7?2:1)*0.1
                       : 0;
               best = Math.max(best, s * weight * (syns.includes(t) ? 0.7 : 1));
             }

@@ -47,7 +47,10 @@ export function DialogoCatalogo({
         ].filter((el) => el.getClientRects().length);
         const first = elems[0],
           last = elems.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
+        if (!ref.current?.contains(document.activeElement)) {
+          e.preventDefault();
+          (e.shiftKey ? last : first)?.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last?.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -120,6 +123,9 @@ export function PanelCatalogo({
   return (
     <div
       className={clase + (full ? " full" : "")}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest(".wagrab")) setFull(!full);
+      }}
       onPointerDown={(e) => {
         if (
           !(e.target as HTMLElement).closest(".grab,.wahead,.shead,.wagrab") ||

@@ -165,6 +165,12 @@ const ESCENARIOS = {
     }
     await page.getByRole("button", { name: "Listo", exact: true }).click();
     await fila(page, "Notas").click();
+    // El catálogo importado trae notas: este caso comprueba una sustitución, no acumularlas.
+    if(await page.getByRole("button",{name:"Quitar notas",exact:true}).count()) {
+      await page.getByRole("button",{name:"Quitar notas",exact:true}).click();
+      await page.waitForTimeout(400);
+      await fila(page,"Notas").click();
+    }
     await escribirEtiqueta(page, "Salida", ["Bergamota", "Pimienta rosa"]);
     await escribirEtiqueta(page, "Corazón", ["Jazmín"]);
     await escribirEtiqueta(page, "Fondo", ["Vainilla", "Ámbar"]);

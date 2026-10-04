@@ -160,6 +160,13 @@ for (const [i, p] of fixture.productos.entries()) {
     },
   });
 }
+// El contrato de detalles omite valores vacíos; las ocasiones del HTML que no
+// existen en el selector actual quedan fuera del seed, sin ampliar el esquema.
+const ocasionesPermitidas = new Set(["Día","Oficina","Universidad","Verano","Primavera y verano","Salidas casuales","Noche","Citas","Cenas","Fiestas","Noches casuales","Ocasiones especiales","Todo el año","Regalo"]);
+for(const p of productos.filter(p=>p.tienda_id===t.id)) {
+  if(Array.isArray(p.detalles?.ocasiones))p.detalles.ocasiones=p.detalles.ocasiones.filter(o=>ocasionesPermitidas.has(o));
+  for(const [k,v] of Object.entries(p.detalles??{}))if(v==="" || (Array.isArray(v)&&v.length===0))delete p.detalles[k];
+}
 Object.assign(t, {
   personalizacion: { ...t.personalizacion, tema: fixture.tema },
   whatsapp: "18496503269",

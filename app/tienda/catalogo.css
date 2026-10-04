@@ -8643,3 +8643,5 @@ html.catalogo-html,
 .catalogo-publico #avisoBg .sbody {
   padding-bottom: calc(24px + var(--teclado, 0px));
 }
+.catalogo-publico .tile{position:relative}
+.catalogo-publico .tile>.tlike{position:absolute;top:8px;right:8px}

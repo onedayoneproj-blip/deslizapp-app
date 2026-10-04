@@ -91,3 +91,18 @@ test("línea conserva identidad de variante, precio y sin stock exacto", () => {
     porEncargo: true,
   });
 });
+
+const { detallesValidos } = await import("../lib/rubros.ts");
+const { buscarCatalogo } = await import("../lib/tienda/busqueda.ts");
+test("el seed importado respeta el contrato del formulario y permite ajustar inventario",()=>{
+  const db=construirDesdeSeed();
+  for(const p of db.productos)assert.ok(detallesValidos(db.tiendas.find(t=>t.id===p.tiendaId).rubro,p.detalles,p.tipo==="servicio"),p.slug);
+});
+test("búsqueda de perfumes conserva pesos, sinónimos y presupuesto del HTML",()=>{
+  const db=construirDesdeSeed();db.promos=[];
+  const c=catalogoPublicoDeDB(db,"esencias-michel",new Date());
+  assert.equal(buscarCatalogo(c,"dulce")[0].slug,"urbantoy");
+  assert.ok(buscarCatalogo(c,"2000").every(p=>p.precio<=2000));
+  assert.ok(buscarCatalogo(c,"mayr").some(p=>p.slug==="mayar"));
+  assert.ok(buscarCatalogo(c,"noche").length>0);
+});
