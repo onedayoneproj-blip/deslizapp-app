@@ -14,6 +14,7 @@ import type {
   ItemSolicitud,
   Medio,
   OpcionProducto,
+  OpinionProducto,
   SolicitudPedido,
   Variante,
   VistaSolicitud,
@@ -47,6 +48,12 @@ const igual: AjusteFecha = (iso) => iso;
 // ---------------------------------------------------------------------------
 
 export type FilaTienda = {
+  personalizacion?: Record<string, unknown>;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  descripcion?: string | null;
+  nombre_vendedora?: string | null;
+  foto_perfil_url?: string | null;
   id: string;
   slug: string;
   nombre: string;
@@ -73,6 +80,8 @@ export type FilaTienda = {
 export type FilaUsuario = { id: string; tienda_id: string; email: string; nombre: string; rol: string };
 
 export type FilaProducto = {
+  orden?: number | null;
+  opiniones?: OpinionProducto[];
   id: string;
   tienda_id: string;
   nombre: string;
@@ -242,6 +251,12 @@ export type FilaEventoAaah = { id: string; tienda_id: string; producto_id: strin
 
 export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
   return {
+    personalizacion: f.personalizacion ?? {},
+    whatsapp: f.whatsapp ?? null,
+    instagram: f.instagram ?? null,
+    descripcion: f.descripcion ?? null,
+    nombreVendedora: f.nombre_vendedora ?? null,
+    fotoPerfilUrl: f.foto_perfil_url ?? null,
     id: f.id,
     slug: f.slug,
     nombre: f.nombre,
@@ -284,6 +299,8 @@ export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto
     likes: f.likes,
     creadoEn: fecha(f.creado_en),
     actualizadoEn: fecha(f.actualizado_en),
+    orden: f.orden ?? null,
+    opiniones: f.opiniones ?? [],
     slug: f.slug ?? slugDesdeTexto(f.nombre),
     tipo: f.tipo === "servicio" ? "servicio" : "producto",
     medios: f.medios ? f.medios.map(aMedio) : (f.fotos ?? []).map((url, i) => ({ tipo: "foto" as const, url, retocada: i === 0 && f.foto_retocada })),
@@ -402,6 +419,8 @@ export function aAviso(f: FilaAviso): AvisoLlegada {
 /** La respuesta de `catalogo_publico`. */
 export type FilaCatalogoPublico = {
   tienda: {
+    desde: string;
+    ventas: number | null;
     slug: string;
     nombre: string;
     logo_url: string | null;
@@ -417,6 +436,8 @@ export type FilaCatalogoPublico = {
     rubro: string;
   };
   productos: {
+    orden: number | null;
+    opiniones: OpinionProducto[];
     id: string;
     slug: string;
     nombre: string;
@@ -440,6 +461,8 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
   const t = f.tienda;
   return {
     tienda: {
+      desde: t.desde,
+      ventas: t.ventas ?? null,
       slug: t.slug,
       nombre: t.nombre,
       logoUrl: t.logo_url,
@@ -455,6 +478,8 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       rubro: (t.rubro ?? "general") as Rubro,
     },
     productos: (f.productos ?? []).map((p) => ({
+      orden: p.orden ?? null,
+      opiniones: p.opiniones ?? [],
       id: p.id,
       slug: p.slug,
       nombre: p.nombre,

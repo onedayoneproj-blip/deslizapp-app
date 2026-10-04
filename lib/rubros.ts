@@ -185,3 +185,8 @@ export function camposComoEnLaBase(): Record<string, Record<string, unknown>> {
   }
   return res;
 }
+
+/** Sustantivo del catálogo público; no presupone perfumes en otras tiendas. */
+export const NOMBRE_PRODUCTO: Record<Rubro,{singular:string;plural:string}> = {
+ perfumes:{singular:'perfume',plural:'perfumes'},ropa:{singular:'prenda',plural:'prendas'},accesorios:{singular:'accesorio',plural:'accesorios'},belleza:{singular:'producto',plural:'productos'},comida:{singular:'producto',plural:'productos'},hogar:{singular:'producto',plural:'productos'},general:{singular:'producto',plural:'productos'},
+};
