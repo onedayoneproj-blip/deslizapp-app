@@ -16,8 +16,8 @@ Antes de empezar lee:
 
 ## 0. Alcance y punto de partida
 
-1. Parte de **main actual**, revisa cambios y PRs activos y crea la rama indicada. No pises trabajo de otra sesión.
-2. Si la parte 4 no está fusionada o no existe la página pública, deja documentada la dependencia y no publiques una implementación incompleta. Puedes revisar contratos y preparar pruebas sin duplicar esa página.
+1. Primero completa la corrección de rendimiento de `docs/prompts/catalogo-rendimiento.md`, solicitada por Lewis tras la medición de 7,1 s en 4G simulada. No mezcles esa corrección con esta etapa.
+2. Revisa main y PR #44 actuales. Si #44 sigue abierto, crea `feature/pedido-catalogo-panel` desde su head actualizado y abre un PR dependiente contra `feature/catalogo-react`; documenta SHA y dependencia. Si ya está fusionado, parte de main actualizado y abre contra main. No dupliques las páginas públicas. Cuando #44 se fusione, traslada únicamente los commits de esta etapa a main actualizado y retargetea el PR, verificando regresiones. No fusiones ninguna rama ni publiques sin autorización de Lewis.
 3. Las solicitudes son borradores: crear una solicitud **no** crea pedido, cliente, venta ni reserva/descuento de stock. Solo registrar crea un pedido `nuevo` de origen `catalogo`; solo despachar descuenta stock según las reglas existentes.
 4. No cambies el HTML publicado, `url_catalogo`, el enlace antiguo de 24 h, el diseño del feed ni el envío de WhatsApp de la parte 4. No implementes pagos, notificaciones automáticas, reservas de stock ni envío automático de mensajes.
 5. En las vistas **del panel**, reutiliza `components/ui/` y `Hoja` con tokens, claro/oscuro y las reglas de foco. Busca antes de crear componentes; si falta uno, sigue docs/09 §16, expórtalo, muéstralo en `/diseno` y documéntalo.
@@ -41,7 +41,7 @@ Extiende `app/pedido/[codigo]/page.tsx`; no hagas otra URL para el mismo enlace.
 - Cancelación o error de login conserva el enlace y ofrece reintentar. Otra tienda no recibe datos privados ni puede registrar/descartar.
 - iPhone: explica solo cuando haga falta que el enlace se abrió en Safari y la sesión de la PWA puede no estar allí. Android: revisa `scope`/rutas del manifest sin excluir el panel; abrir la PWA depende del navegador, no lo prometas como garantía ni fuerces instalaciones.
 
-Demo: conserva `?demo` en los enlaces y usa la fuente demo. Distingue explícitamente vista comprador y tienda demo con los mecanismos existentes de la parte 4; ese mecanismo nunca autoriza operaciones reales.
+Demo: usa la fuente demo y conserva `?demo` en navegación interna de pruebas cuando corresponda. El PR #44 guarda solicitudes demo en el contexto local y no añade `?demo` al enlace de WhatsApp: ese enlace no garantiza acceso a la solicitud demo desde otro navegador/dispositivo. Documenta la limitación y facilita el recorrido en el mismo contexto; no presentes datos locales como solicitudes reales. Distingue vista comprador/tienda demo sin autorizar operaciones reales.
 
 ## 2. Estado en la vista del comprador (Comprador y Estados)
 
@@ -200,7 +200,7 @@ Capturas en `docs/capturas/pedido-catalogo-panel/`: comprador en los cinco estad
 
 Actualiza `docs/04-pantallas.md`, `docs/05-arquitectura.md` si cambia sesión/lecturas, `docs/12-catalogo-conectado.md` si hay una aclaración técnica necesaria (sin cambiar decisiones de producto sin explicarlo), `HANDOFF.md`, novedades y «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md`.
 
-PR contra main con:
+PR contra la base que corresponda según §0, con:
 - Qué cambió y cómo se enlaza con la parte 4.
 - Rama/commit, modelo usado, migraciones/versiones y aplicación real.
 - Resultados de cada comprobación, fallos previos frente a regresiones y límites.
@@ -208,7 +208,7 @@ PR contra main con:
 - Capturas, preview READY y enlace; datos de prueba/limpieza.
 - Handoff copiable para Planning: cambios, validaciones realizadas, pendientes, estado de Supabase y despliegue.
 
-Si todo pasa y no tomaste decisiones de producto fuera de este prompt, haz merge **squash** y borra la rama según el flujo del repo. Si algo requerido está bloqueado/falla o decidiste algo no previsto, deja el PR abierto, explica y entrega la preview; no llames aprobado a lo no ejecutado. El HTML y `url_catalogo` siguen sin cambiar.
+Deja el PR abierto y sin fusionar para que Lewis pruebe el preview. No hagas merge ni publiques producción aunque pasen las pruebas. Si algo requerido está bloqueado/falla o decidiste algo no previsto, explícalo; no llames aprobado a lo no ejecutado. El HTML y `url_catalogo` siguen sin cambiar.
 
 **Al final dile a Lewis cómo validar en su teléfono**, con pasos concretos y resultado esperado:
 1. Desde el catálogo React de prueba, arma dos productos (uno con variante si aplica), envía y abre el enlace: Enviado y recibo correctos.
