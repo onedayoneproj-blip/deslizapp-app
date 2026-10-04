@@ -6,8 +6,10 @@ ve sus pedidos, los despacha, arma promos y revisa cómo le va.
 
 **No confundir con:** el catálogo público que ven los clientes finales (el que
 se desliza tipo Instagram Reels y pide por WhatsApp). Ese ya existe como un HTML
-independiente y **por ahora se mantiene separado** de este proyecto. Este repo
+independiente y **se mantenía separado** de este proyecto; desde octubre de 2026 se conecta y se pasa a React aquí (ver `docs/12-catalogo-conectado.md`). Este repo
 es solo el lado del dueño de la tienda.
+
+**Primero lee `docs/00-contexto-del-proyecto.md`**: qué es el proyecto, cómo se trabaja (Planning y Coding), dónde va el trabajo y dónde está cada cosa. Lo que sigue en este documento es la base del panel.
 
 Este documento es el punto de entrada. Antes de escribir código, lee en este
 orden:

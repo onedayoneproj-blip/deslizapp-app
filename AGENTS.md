@@ -14,3 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - No se edita una migración ya aplicada: se crea otra.
 - Los datos reales de tiendas (crear una tienda, invitar a alguien) no van en migraciones del repo.
 - Para comprobar que el repo y Supabase coinciden: `npm run revisar:migraciones -- lista.json` (el JSON de `list_migrations`), o con `SUPABASE_ACCESS_TOKEN` definido, sin argumentos. Tiene que dar cero diferencias.
+
+# Contexto y forma de trabajo
+
+- Antes de empezar, lee `docs/00-contexto-del-proyecto.md` (qué es el proyecto, los puestos Planning y Coding, cómo se cierran los PR, dónde está la marca y el sistema de diseño, y dónde va el trabajo).
