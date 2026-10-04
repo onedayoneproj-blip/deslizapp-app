@@ -95,7 +95,7 @@ demo local con `node scripts/probar-reemplazo-promos.mjs` y foco con `npm run pr
 La tarjeta abre el detalle de solo lectura en `/promos/[id]`; la edición tiene su propia ruta
 `/promos/[id]/editar`. La hoja de compartir vuelve al detalle cuando salió de él.
 `node scripts/probar-detalle-promos.mjs` comprueba las rutas, hojas y capturas reales.
-No necesita migraciones; PR #2 de reconciliación sigue separado y pendiente de revisión.
+No necesita migraciones. (La reconciliación de migraciones ya se hizo: PR #41.)
 
 Un solo componente, `components/promos/ticket-promo.tsx`, con dos tamaños: normal (lista de Promos, vía `tarjeta-promo.tsx`) y
 compacto (selector de cupón de pedidos, `selector-descuento.tsx`). Colores y forma salen de ahí: no se duplica el ticket.
@@ -114,7 +114,7 @@ pedido" usan recibidos. La tarjeta conserva la línea con el total global por de
 
 **Borrar contacto:** la edición ofrece conservar los pedidos y abonos sin asociarlos al contacto, o borrar también todo ese historial.
 La segunda opción exige confirmación. Demo y Supabase comparten la regla; la RPC `borrar_cliente` en `20261002161112_borrar_cliente.sql`
-opera solo en la tienda de sesión. Borrar pedidos históricos no restaura stock. La migración se aplicó a producción en Supabase con el identificador `20261002161112`. El historial previo de migraciones del repositorio y producción aún está pendiente de reconciliarse (PR #2).
+opera solo en la tienda de sesión. Borrar pedidos históricos no restaura stock. La migración se aplicó a producción en Supabase con el identificador `20261002161112`. El historial de migraciones del repositorio y de Supabase ya está reconciliado (PR #41).
 
 ## Donas de Catálogo y Clientes
 
@@ -225,8 +225,7 @@ disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
 tienda pasaron dentro de una transacción revertida. No persistieron ajustes de prueba; después se observaron dos reposiciones
 +1 registradas a las 20:36:30/20:36:36 UTC, posteriores a la verificación. Ver `docs/validacion-inventario-pr20.md`.
 
-PR #2 de reconciliación sigue separado: los identificadores antiguos todavía
-difieren del historial de Supabase. No ejecutar un `db push` general a ciegas.
+Nota histórica: la reconciliación de identificadores ya se hizo (PR #41); hoy el repo y Supabase coinciden (`npm run revisar:migraciones`). Aun así, no ejecutar un `db push` general a ciegas.
 El CLI ya está instalado; el dry-run dirigido a producción sigue sin ejecutarse
 por falta de credenciales y la divergencia pendiente;
 la comprobación transaccional del SQL y la aplicación individual no equivalen
