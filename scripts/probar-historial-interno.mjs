@@ -9,7 +9,7 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  await page.goto(URL+'/catalogo');await page.locator('main ul li a').first().waitFor();
  const href=await page.locator('main ul li a').evaluateAll(es=>es.find(a=>/^\/catalogo\/[^/]+$/.test(a.getAttribute('href')??'')&&/\b[1-9][0-9]* en stock\b/.test(a.getAttribute('aria-label')??''))?.getAttribute('href'));
  await page.goto(URL+href);const inventario=page.getByRole('region',{name:'Inventario'});await inventario.waitFor();
- const sinCambios=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'));
+ const sinCambios=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v4'));
  const unidad=inventario.locator('[aria-live="polite"]');const inicial=Number((await unidad.innerText()).match(/\d+/)[0]);
  ok(Number.isInteger(inicial)&&inicial>0,`${ancho}: la fila En stock muestra la cantidad (${inicial})`);
  ok(await inventario.getByRole('button',{name:'Guardar cambios',exact:true}).count()===0&&await inventario.getByRole('button',{name:'Descartar',exact:true}).count()===0,`${ancho}: acciones pendientes ausentes sin cambio`);
@@ -22,7 +22,7 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  await inventario.getByRole('button',{name:'Historial',exact:true}).click();await page.getByRole('heading',{name:'Historial de ajustes',exact:true}).waitFor();
  ok(await page.locator('[role="dialog"]').count()===1&&await page.getByRole('alertdialog').count()===0,`${ancho}: historial interno sin apilar ni avisar de salida`);
  if(process.env.CAPTURAS&&!reducido)await page.screenshot({path:`${process.env.CAPTURAS}/historial-${ancho}.png`});
- await page.getByText('Todavía no hay ajustes.',{exact:true}).waitFor();ok(await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'))===sinCambios,`${ancho}: historial no muestra ni guarda propuesta`);
+ await page.getByText('Todavía no hay ajustes.',{exact:true}).waitFor();ok(await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v4'))===sinCambios,`${ancho}: historial no muestra ni guarda propuesta`);
  await page.getByRole('button',{name:/^Volver a/}).click();await page.waitForTimeout(150);
  ok((await unidad.innerText()).startsWith(String(inicial+1))&&Math.abs(await scroll.evaluate(el=>el.scrollTop)-posicion)<=2,`${ancho}: volver conserva cantidad y scroll (${posicion})`);
  ok(await page.evaluate(()=>document.activeElement?.textContent==='Historial'),`${ancho}: foco vuelve al botón del historial`);

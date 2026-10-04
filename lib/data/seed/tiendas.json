@@ -12,7 +12,8 @@
     "marca_color_principal": "#5E2750",
     "marca_color_acento": "#E9B949",
     "marca_estilo": "elegante",
-    "url_catalogo": "https://example.com/catalogo"
+    "url_catalogo": "https://example.com/catalogo",
+    "rubro": "perfumes"
   },
   {
     "id": "a1000000-0000-4000-8000-000000000002",
@@ -27,6 +28,23 @@
     "marca_color_principal": "#2E3F66",
     "marca_color_acento": "#F4A07C",
     "marca_estilo": "moderna",
-    "url_catalogo": null
+    "url_catalogo": null,
+    "rubro": "accesorios"
+  },
+  {
+    "id": "a1000000-0000-4000-8000-000000000003",
+    "slug": "lino-y-algodon",
+    "nombre": "Lino & Algodón",
+    "logo_url": null,
+    "plan": "p20",
+    "limite_productos": 20,
+    "creditos_retoque": 40,
+    "creditos_retoque_mensuales": 100,
+    "creado_en": "2026-09-15T16:00:00.000Z",
+    "marca_color_principal": "#4A5D4F",
+    "marca_color_acento": "#D9B98C",
+    "marca_estilo": "moderna",
+    "url_catalogo": null,
+    "rubro": "ropa"
   }
 ]

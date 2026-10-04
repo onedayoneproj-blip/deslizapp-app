@@ -3,10 +3,20 @@
 // Sin imports de valores (solo tipos): se prueba directo con Node (tests/datos.test.mjs).
 
 import type { EstiloMarca } from "../marca";
+import type { Detalles, Rubro } from "../rubros";
 import type {
   CambiosProducto,
   Abono,
+  AvisoLlegada,
+  CatalogoPublico,
   Cliente,
+  Disponibilidad,
+  ItemSolicitud,
+  Medio,
+  OpcionProducto,
+  SolicitudPedido,
+  Variante,
+  VistaSolicitud,
   EstadoCatalogo,
   EstadoPedido,
   EnvioJugada,
@@ -57,6 +67,7 @@ export type FilaTienda = {
   catalogo_notas_cambios?: string | null;
   catalogo_solicitado_en?: string | null;
   catalogo_publicado_en?: string | null;
+  rubro?: string;
 };
 
 export type FilaUsuario = { id: string; tienda_id: string; email: string; nombre: string; rol: string };
@@ -75,6 +86,67 @@ export type FilaProducto = {
   likes: number;
   creado_en: string;
   actualizado_en: string;
+  // Catálogo conectado. Pueden faltar en el seed viejo (se derivan de nombre y fotos).
+  slug?: string;
+  tipo?: string;
+  medios?: FilaMedio[];
+  detalles?: Detalles;
+  opciones?: OpcionProducto[];
+  por_encargo?: boolean;
+  encargo_texto?: string | null;
+  /** Embebidas con `select("*, producto_variantes(*)")`. */
+  producto_variantes?: FilaVariante[] | null;
+};
+
+export type FilaMedio =
+  | { tipo: "foto"; url: string; retocada: boolean }
+  | { tipo: "video"; url: string; portada?: string | null; duracion_s: number };
+
+export type FilaVariante = {
+  id: string;
+  tienda_id: string;
+  producto_id: string;
+  valores: Record<string, string>;
+  stock: number | null;
+  precio: number | null;
+  activa: boolean;
+  orden: number;
+};
+
+export type FilaItemSolicitud = {
+  producto_id: string;
+  variante_id: string | null;
+  nombre: string;
+  variante_texto: string | null;
+  foto: string | null;
+  precio_unitario: number;
+  cantidad: number;
+  por_encargo: boolean;
+};
+
+export type FilaSolicitud = {
+  id: string;
+  tienda_id: string;
+  codigo: string;
+  items: FilaItemSolicitud[];
+  codigo_promo: string | null;
+  descuento: number;
+  total: number;
+  creada_en: string;
+  vence_en: string;
+  pedido_id: string | null;
+  descartada_en: string | null;
+};
+
+export type FilaAviso = {
+  id: string;
+  tienda_id: string;
+  producto_id: string;
+  variante_id: string | null;
+  telefono: string;
+  nombre: string | null;
+  creado_en: string;
+  avisado_en: string | null;
 };
 
 export type FilaCliente = {
@@ -122,6 +194,10 @@ export type FilaPedidoItem = {
   nombre_producto: string;
   cantidad: number;
   precio_unitario: number;
+  // Variantes y encargos. Pueden faltar en el seed viejo.
+  variante_id?: string | null;
+  variante_texto?: string | null;
+  por_encargo?: boolean;
 };
 
 /** Pedido con sus ítems y abonos embebidos (`select("*, pedido_items(*), abonos(*)")`). */
@@ -185,6 +261,7 @@ export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
     catalogoNotasCambios: f.catalogo_notas_cambios ?? null,
     catalogoSolicitadoEn: f.catalogo_solicitado_en ?? null,
     catalogoPublicadoEn: f.catalogo_publicado_en ?? null,
+    rubro: (f.rubro ?? "general") as Rubro,
   };
 }
 
@@ -207,6 +284,201 @@ export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto
     likes: f.likes,
     creadoEn: fecha(f.creado_en),
     actualizadoEn: fecha(f.actualizado_en),
+    slug: f.slug ?? slugDesdeTexto(f.nombre),
+    tipo: f.tipo === "servicio" ? "servicio" : "producto",
+    medios: f.medios ? f.medios.map(aMedio) : (f.fotos ?? []).map((url, i) => ({ tipo: "foto" as const, url, retocada: i === 0 && f.foto_retocada })),
+    detalles: f.detalles ?? {},
+    opciones: f.opciones ?? [],
+    porEncargo: f.por_encargo ?? false,
+    encargoTexto: f.encargo_texto ?? null,
+    ...(f.producto_variantes ? { variantes: ordenarVariantes(f.producto_variantes.map(aVariante)) } : {}),
+  };
+}
+
+/** La misma regla que `public.slug_desde_texto`: minúsculas, sin tildes, guiones, ≤ 40. */
+export function slugDesdeTexto(texto: string): string {
+  const base = texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+    .replace(/-+$/g, "");
+  return base || "producto";
+}
+
+export function aMedio(m: FilaMedio): Medio {
+  return m.tipo === "video" ? { tipo: "video", url: m.url, portada: m.portada ?? null, duracionS: m.duracion_s } : { tipo: "foto", url: m.url, retocada: m.retocada };
+}
+
+export function filaMedio(m: Medio): FilaMedio {
+  return m.tipo === "video" ? { tipo: "video", url: m.url, portada: m.portada, duracion_s: m.duracionS } : { tipo: "foto", url: m.url, retocada: m.retocada };
+}
+
+export function aVariante(f: FilaVariante): Variante {
+  return { id: f.id, productoId: f.producto_id, valores: f.valores, stock: f.stock, precio: f.precio, activa: f.activa, orden: f.orden };
+}
+
+export const ordenarVariantes = (v: Variante[]) => [...v].sort((a, b) => a.orden - b.orden);
+
+export function aItemSolicitud(f: FilaItemSolicitud): ItemSolicitud {
+  return {
+    productoId: f.producto_id,
+    varianteId: f.variante_id ?? null,
+    nombre: f.nombre,
+    varianteTexto: f.variante_texto ?? null,
+    foto: f.foto ?? null,
+    precioUnitario: f.precio_unitario,
+    cantidad: f.cantidad,
+    porEncargo: f.por_encargo ?? false,
+  };
+}
+
+export function aSolicitud(f: FilaSolicitud): SolicitudPedido {
+  return {
+    id: f.id,
+    tiendaId: f.tienda_id,
+    codigo: f.codigo,
+    items: (f.items ?? []).map(aItemSolicitud),
+    codigoPromo: f.codigo_promo,
+    descuento: f.descuento,
+    total: f.total,
+    creadaEn: f.creada_en,
+    venceEn: f.vence_en,
+    pedidoId: f.pedido_id,
+    descartadaEn: f.descartada_en,
+  };
+}
+
+/** La respuesta de `ver_solicitud`. */
+export type FilaVistaSolicitud = {
+  id: string | null;
+  codigo: string;
+  tienda: { nombre: string; slug: string; logo_url: string | null; foto_perfil_url: string | null; whatsapp: string | null };
+  items: FilaItemSolicitud[];
+  descuento: number;
+  total: number;
+  creada_en: string;
+  vence_en: string;
+  estado: string;
+  es_mi_tienda: boolean;
+};
+
+export function aVistaSolicitud(f: FilaVistaSolicitud): VistaSolicitud {
+  return {
+    id: f.id ?? null,
+    codigo: f.codigo,
+    tienda: {
+      nombre: f.tienda.nombre,
+      slug: f.tienda.slug,
+      logoUrl: f.tienda.logo_url,
+      fotoPerfilUrl: f.tienda.foto_perfil_url,
+      whatsapp: f.tienda.whatsapp,
+    },
+    items: (f.items ?? []).map(aItemSolicitud),
+    descuento: f.descuento,
+    total: f.total,
+    creadaEn: f.creada_en,
+    venceEn: f.vence_en,
+    estado: f.estado as VistaSolicitud["estado"],
+    esMiTienda: f.es_mi_tienda,
+  };
+}
+
+export function aAviso(f: FilaAviso): AvisoLlegada {
+  return {
+    id: f.id,
+    tiendaId: f.tienda_id,
+    productoId: f.producto_id,
+    varianteId: f.variante_id,
+    telefono: f.telefono,
+    nombre: f.nombre,
+    creadoEn: f.creado_en,
+    avisadoEn: f.avisado_en,
+  };
+}
+
+/** La respuesta de `catalogo_publico`. */
+export type FilaCatalogoPublico = {
+  tienda: {
+    slug: string;
+    nombre: string;
+    logo_url: string | null;
+    foto_perfil_url: string | null;
+    marca_color_principal: string;
+    marca_color_acento: string;
+    marca_estilo: string;
+    personalizacion: Record<string, unknown> | null;
+    whatsapp: string | null;
+    instagram: string | null;
+    descripcion: string | null;
+    nombre_vendedora: string | null;
+    rubro: string;
+  };
+  productos: {
+    id: string;
+    slug: string;
+    nombre: string;
+    tipo: string;
+    categoria: string | null;
+    precio: number;
+    precio_promo: number | null;
+    promo: { nombre: string; porcentaje: number } | null;
+    medios: FilaMedio[];
+    detalles: Detalles;
+    opciones: OpcionProducto[];
+    likes: number;
+    disponibilidad: string;
+    quedan: number | null;
+    encargo_texto: string | null;
+    variantes: { id: string; valores: Record<string, string>; precio: number; precio_promo: number | null; disponibilidad: string; quedan: number | null }[];
+  }[];
+};
+
+export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
+  const t = f.tienda;
+  return {
+    tienda: {
+      slug: t.slug,
+      nombre: t.nombre,
+      logoUrl: t.logo_url,
+      fotoPerfilUrl: t.foto_perfil_url,
+      marcaColorPrincipal: t.marca_color_principal,
+      marcaColorAcento: t.marca_color_acento,
+      marcaEstilo: t.marca_estilo as EstiloMarca,
+      personalizacion: t.personalizacion ?? {},
+      whatsapp: t.whatsapp,
+      instagram: t.instagram,
+      descripcion: t.descripcion,
+      nombreVendedora: t.nombre_vendedora,
+      rubro: (t.rubro ?? "general") as Rubro,
+    },
+    productos: (f.productos ?? []).map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      nombre: p.nombre,
+      tipo: p.tipo === "servicio" ? "servicio" : "producto",
+      categoria: p.categoria,
+      precio: p.precio,
+      precioPromo: p.precio_promo ?? null,
+      promo: p.promo ?? null,
+      medios: (p.medios ?? []).map(aMedio),
+      detalles: p.detalles ?? {},
+      opciones: p.opciones ?? [],
+      likes: p.likes,
+      disponibilidad: p.disponibilidad as Disponibilidad,
+      quedan: p.quedan ?? null,
+      encargoTexto: p.encargo_texto ?? null,
+      variantes: (p.variantes ?? []).map((v) => ({
+        id: v.id,
+        valores: v.valores,
+        precio: v.precio,
+        precioPromo: v.precio_promo ?? null,
+        disponibilidad: v.disponibilidad as Disponibilidad,
+        quedan: v.quedan ?? null,
+      })),
+    })),
   };
 }
 
@@ -263,6 +535,9 @@ export function aPedidoItem(f: FilaPedidoItem): PedidoItem {
     nombreProducto: f.nombre_producto,
     cantidad: f.cantidad,
     precioUnitario: f.precio_unitario,
+    varianteId: f.variante_id ?? null,
+    varianteTexto: f.variante_texto ?? null,
+    porEncargo: f.por_encargo ?? false,
   };
 }
 
@@ -327,12 +602,20 @@ export function filaProductoNuevo(tiendaId: string, d: NuevoProducto) {
     activo: d.activo,
     destacado: d.destacado,
     stock: d.stock,
+    // Lo del catálogo conectado solo si viene: si no, la base pone slug, tipo y medios (desde fotos)
+    ...(d.slug !== undefined ? { slug: d.slug } : {}),
+    ...(d.tipo !== undefined ? { tipo: d.tipo } : {}),
+    ...(d.medios !== undefined ? { medios: d.medios.map(filaMedio) } : {}),
+    ...(d.detalles !== undefined ? { detalles: d.detalles } : {}),
+    ...(d.porEncargo !== undefined ? { por_encargo: d.porEncargo } : {}),
+    ...(d.encargoTexto !== undefined ? { encargo_texto: d.encargoTexto } : {}),
   };
 }
 
 /** Solo las columnas que llegan en `cambios` (un `update` parcial). `likes` nunca se escribe. */
 export function filaCambiosProducto(c: CambiosProducto) {
-  const fila: Partial<Record<"nombre" | "precio" | "fotos" | "foto_retocada" | "categoria" | "activo" | "destacado" | "stock", unknown>> = {};
+  type Columna = "nombre" | "precio" | "fotos" | "foto_retocada" | "categoria" | "activo" | "destacado" | "stock" | "slug" | "tipo" | "medios" | "detalles" | "por_encargo" | "encargo_texto";
+  const fila: Partial<Record<Columna, unknown>> = {};
   if (c.nombre !== undefined) fila.nombre = c.nombre;
   if (c.precio !== undefined) fila.precio = c.precio;
   if (c.fotos !== undefined) fila.fotos = c.fotos;
@@ -341,6 +624,13 @@ export function filaCambiosProducto(c: CambiosProducto) {
   if (c.activo !== undefined) fila.activo = c.activo;
   if (c.destacado !== undefined) fila.destacado = c.destacado;
   if (c.stock !== undefined) fila.stock = c.stock;
+  // Las opciones (ejes de variantes) solo cambian con guardarVariantes
+  if (c.slug !== undefined) fila.slug = c.slug;
+  if (c.tipo !== undefined) fila.tipo = c.tipo;
+  if (c.medios !== undefined) fila.medios = c.medios.map(filaMedio);
+  if (c.detalles !== undefined) fila.detalles = c.detalles;
+  if (c.porEncargo !== undefined) fila.por_encargo = c.porEncargo;
+  if (c.encargoTexto !== undefined) fila.encargo_texto = c.encargoTexto;
   return fila;
 }
 
@@ -385,8 +675,20 @@ export function filaPedidoNuevo(
   };
 }
 
-export function filaPedidoItem(pedidoId: string, i: { productoId: string; nombreProducto: string; cantidad: number; precioUnitario: number }) {
-  return { pedido_id: pedidoId, producto_id: i.productoId, nombre_producto: i.nombreProducto, cantidad: i.cantidad, precio_unitario: i.precioUnitario };
+export function filaPedidoItem(
+  pedidoId: string,
+  i: { productoId: string; nombreProducto: string; cantidad: number; precioUnitario: number; varianteId?: string | null; porEncargo?: boolean },
+) {
+  return {
+    pedido_id: pedidoId,
+    producto_id: i.productoId,
+    nombre_producto: i.nombreProducto,
+    cantidad: i.cantidad,
+    precio_unitario: i.precioUnitario,
+    // variante_texto lo pone la base
+    ...(i.varianteId ? { variante_id: i.varianteId } : {}),
+    ...(i.porEncargo ? { por_encargo: true } : {}),
+  };
 }
 
 /**

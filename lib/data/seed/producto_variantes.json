@@ -1,0 +1,80 @@
+[
+  {
+    "id": "a7000000-0000-4000-8000-000000000001",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "S",
+      "Color": "Arena"
+    },
+    "stock": 2,
+    "precio": null,
+    "activa": true,
+    "orden": 0
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000002",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "M",
+      "Color": "Arena"
+    },
+    "stock": 0,
+    "precio": null,
+    "activa": true,
+    "orden": 1
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000003",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "L",
+      "Color": "Arena"
+    },
+    "stock": 1,
+    "precio": null,
+    "activa": true,
+    "orden": 2
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000004",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "S",
+      "Color": "Blanco"
+    },
+    "stock": 3,
+    "precio": null,
+    "activa": true,
+    "orden": 3
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000005",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "M",
+      "Color": "Blanco"
+    },
+    "stock": 5,
+    "precio": null,
+    "activa": true,
+    "orden": 4
+  },
+  {
+    "id": "a7000000-0000-4000-8000-000000000006",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "producto_id": "a3000000-0000-4000-8000-000000000017",
+    "valores": {
+      "Talla": "L",
+      "Color": "Blanco"
+    },
+    "stock": 0,
+    "precio": null,
+    "activa": true,
+    "orden": 5
+  }
+]

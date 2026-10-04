@@ -166,6 +166,36 @@ export class FormatoNoPermitido extends ErrorClaro {
   }
 }
 
+/** Un producto con variantes se mueve por variante (talla, color…), no entero. */
+export class UsarVariante extends ErrorClaro {
+  constructor() {
+    super("Este producto tiene variantes. Elige cuál: talla, color o la que sea.");
+  }
+}
+
+/** Algo del catálogo ya no se puede pedir. `producto` = su nombre, si la base lo dijo. */
+export class ProductoNoDisponible extends ErrorClaro {
+  producto: string | null;
+  constructor(producto: string | null = null) {
+    super(producto ? `${producto} se acaba de ir. Quítalo y sigue con lo demás.` : "Eso ya no está disponible.");
+    this.producto = producto;
+  }
+}
+
+/** El catálogo de la tienda no está publicado (o la tienda está pausada). */
+export class CatalogoNoDisponible extends ErrorClaro {
+  constructor() {
+    super("Este catálogo no está disponible ahora mismo.");
+  }
+}
+
+/** Demasiados pedidos, aaahs o avisos seguidos desde el mismo lugar. */
+export class DemasiadosIntentos extends ErrorClaro {
+  constructor() {
+    super("Ajá, muchos seguidos. Espera un ratito y vuelve a intentarlo.");
+  }
+}
+
 /** Algo que solo existe en la demo (simular un pedido, reiniciar los datos). */
 export class SoloDemo extends ErrorClaro {
   constructor() {
@@ -236,6 +266,26 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("reposicion_invalida")) return new DatosInvalidos("Cada cantidad debe ser de 1 o más.");
   if (mensaje.includes("reposicion_repetida")) return new DatosInvalidos("Un producto aparece repetido en la lista.");
 
+  // Catálogo conectado (migraciones 20261004…): variantes, catálogo público, solicitudes, aaahs y avisos
+  if (mensaje.includes("usar_variante")) return new UsarVariante();
+  if (mensaje.includes("variante_invalida")) return new DatosInvalidos("Esa variante no corresponde a este producto. Revisa las opciones.");
+  if (mensaje.includes("variantes_sin_permiso")) return new SinPermiso();
+  if (mensaje.includes("detalles_invalidos")) return new DatosInvalidos("Algún detalle no sirve para este tipo de producto. Revísalo.");
+  if (mensaje.includes("catalogo_no_disponible")) return new CatalogoNoDisponible();
+  const noDisponible = /producto_no_disponible(?::\s*([^]+))?$/.exec(mensaje);
+  if (noDisponible) return new ProductoNoDisponible(noDisponible[1]?.trim() || null);
+  if (mensaje.includes("codigo_no_valido")) return new CodigoNoValido("Ese código no existe o ya no está activo.");
+  if (mensaje.includes("demasiadas_solicitudes") || mensaje.includes("demasiados_aaah") || mensaje.includes("demasiados_avisos")) return new DemasiadosIntentos();
+  if (mensaje.includes("solicitud_no_encontrada")) return new DatosInvalidos("No encontramos ese pedido. Revisa el enlace.");
+  if (mensaje.includes("solicitud_no_registrable")) return new DatosInvalidos("Ese pedido ya se registró, se descartó o venció.");
+  if (mensaje.includes("solicitud_sin_permiso") || mensaje.includes("aviso_sin_permiso")) return new SesionVencida();
+  if (mensaje.includes("pedido_vacio")) return new DatosInvalidos("Quitaste todo. El pedido necesita al menos un producto.");
+  if (mensaje.includes("aviso_no_disponible")) return new DatosInvalidos("Eso todavía está disponible: se puede pedir ya.");
+  if (mensaje.includes("telefono_invalido")) return new DatosInvalidos("Escribe un WhatsApp dominicano: 809, 829 o 849 y siete números.");
+  if (mensaje.includes("cliente_invalido")) return new DatosInvalidos("Revisa el nombre y el WhatsApp del cliente.");
+  if (mensaje.includes("nombre_invalido")) return new DatosInvalidos("El nombre puede tener hasta 60 caracteres.");
+  if (mensaje.includes("dispositivo_invalido")) return new DatosInvalidos("Algo falló de este lado. Recarga la página e inténtalo otra vez.");
+
   // RPC despachar_pedido
   const stock = /stock_insuficiente:\s*([^]+)$/.exec(mensaje);
   if (stock) return new StockInsuficiente(stock[1]!.trim());
@@ -273,13 +323,17 @@ export function traducirErrorSupabase(e: unknown): Error {
   // Únicos (23505)
   if (codigo === "23505") {
     if (todo.includes("promos_codigo_vigente")) return new PromoInvalida({ codigo: "Ya tienes ese código en una promo activa o programada." });
-    if (todo.includes("clientes_telefono_unico")) return new TelefonoDuplicado();
+    if (todo.includes("clientes_telefono_unico") || mensaje.includes("cliente_duplicado")) return new TelefonoDuplicado();
+    if (todo.includes("productos_tienda_slug_unico")) return new DatosInvalidos("Ese enlace ya lo usa otro de tus productos. Prueba otro.");
     return new DatosInvalidos("Eso ya existe en tu tienda.");
   }
   // Reglas de la tabla (23514) y datos mal formados (22xxx)
   if (codigo === "23514") {
     if (todo.includes("url_catalogo")) return new DatosInvalidos("El enlace del catálogo debe empezar con https://.");
     if (todo.includes("marca_color")) return new DatosInvalidos("Ese color no es válido.");
+    if (todo.includes("productos_slug_formato")) return new DatosInvalidos("El enlace va en minúsculas, números y guiones (hasta 40).");
+    if (todo.includes("productos_medios_validos")) return new DatosInvalidos("Hasta 10 fotos y videos, y máximo 2 videos de 30 segundos.");
+    if (todo.includes("productos_servicio_sin_stock")) return new DatosInvalidos("Un servicio no lleva stock.");
     if (todo.includes("stock")) return new DatosInvalidos("El stock no puede quedar en negativo.");
     return new DatosInvalidos("Algún dato no es válido. Revísalo e inténtalo otra vez.");
   }

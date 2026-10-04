@@ -6,6 +6,7 @@ import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
 import type { DatosPromo } from "../promos";
 import type { Abono, PropuestaInventario, PaginaAjustesInventario, AjusteInventario, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { EnvioJugada, MetodoAbono, TipoEnvioJugada } from "../types";
+import type { AvisoLlegada, CatalogoPublico, ItemSolicitud, OpcionProducto, SolicitudPedido, VistaSolicitud } from "../types";
 import type { CambiosAbono } from "../credito";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
@@ -34,6 +35,40 @@ export type DatosEnvioJugada = {
   promoId?: string | null;
   /** Solo con tipo "productos": de 1 a 3. */
   productoIds?: string[];
+};
+
+/** Una variante a guardar. Se reconoce por `valores`: si ya existía conserva su id. */
+export type DatosVariante = {
+  valores: Record<string, string>;
+  stock: number | null;
+  /** null = el precio del producto. */
+  precio?: number | null;
+  activa?: boolean;
+};
+
+/** Cómo registrar una solicitud del catálogo: con un cliente de la tienda o con uno nuevo. */
+export type DatosRegistrarSolicitud = (
+  | { clienteId: string; clienteNuevo?: undefined }
+  | { clienteId?: undefined; clienteNuevo: { nombre: string; telefono: string | null } }
+) & {
+  /** Productos o variantes (por id) que ya no van. */
+  quitar?: string[];
+  /** Productos o variantes (por id) que pasan a encargo (no mueven stock al despachar). */
+  encargo?: string[];
+};
+
+/** Una línea del carrito del catálogo. El precio lo pone la base. */
+export type LineaCarrito = { productoId: string; varianteId?: string | null; cantidad: number };
+
+/** Lo que devuelve crear una solicitud: el código para la página del pedido y lo que cobró la base. */
+export type SolicitudCreada = {
+  codigo: string;
+  subtotal: number;
+  descuento: number;
+  total: number;
+  codigoPromo: string | null;
+  items: ItemSolicitud[];
+  venceEn: string;
 };
 
 export type FuenteDatos = {
@@ -67,19 +102,35 @@ export type FuenteDatos = {
   crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto>;
   actualizarProducto(tiendaId: string, id: string, cambios: CambiosProducto): Promise<Producto>;
   /** Ajusta manualmente el inventario y guarda un registro atómico separado de pedidos/ventas. */
-  ajustarStock(tiendaId: string, productoId: string, variacion: number, motivo: MotivoAjusteInventario, nota?: string | null): Promise<Producto>;
+  /** Con `varianteId`, ajusta esa variante (un producto con variantes activas no se ajusta entero: UsarVariante). */
+  ajustarStock(
+    tiendaId: string,
+    productoId: string,
+    variacion: number,
+    motivo: MotivoAjusteInventario,
+    nota?: string | null,
+    varianteId?: string | null,
+  ): Promise<Producto>;
 
   /**
    * "Ya la tengo": suma la reposición de varios productos de una vez, todo o nada (real: RPC `reponer_stock`). Cada línea queda
    * en el historial como reposición. Devuelve los productos con el stock nuevo.
    */
-  reponerStock(tiendaId: string, items: { productoId: string; cantidad: number }[], nota?: string | null): Promise<Producto[]>;
+  reponerStock(tiendaId: string, items: { productoId: string; cantidad: number; varianteId?: string | null }[], nota?: string | null): Promise<Producto[]>;
   /** Muestra u oculta varios productos en una sola operación (ocultar con "Hacer espacio" y su Deshacer). */
   cambiarVisibilidad(tiendaId: string, ids: string[], activo: boolean): Promise<Producto[]>;
 
   guardarProductoConInventario(tiendaId: string, productoId: string, cambios: Omit<CambiosProducto, "stock">, propuesta: PropuestaInventario | null, retocar?: boolean): Promise<Producto>;
   getAjustesInventario(tiendaId: string, productoId: string, desde?: number, limite?: number): Promise<PaginaAjustesInventario>;
   revisarGuardadoInventario(tiendaId: string, productoId: string, ajusteId: string | null): Promise<{ producto: Producto | null; ajuste: AjusteInventario | null }>;
+
+  // Variantes (real: RPC guardar_variantes)
+  /**
+   * Guarda los ejes (Talla, Color…) y deja exactamente estas variantes: las que desaparecen se borran, o quedan inactivas si
+   * ya tienen pedidos. Cada cambio de stock queda en el historial. Con `opciones = []` el producto vuelve a stock simple.
+   * Devuelve el producto con sus variantes (su `stock` es la suma de las activas).
+   */
+  guardarVariantes(tiendaId: string, productoId: string, opciones: OpcionProducto[], variantes: DatosVariante[]): Promise<Producto>;
 
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;
@@ -171,6 +222,31 @@ export type FuenteDatos = {
 
   // Aaahs (solo lectura: los escribe el catálogo)
   getEventosAaah(tiendaId: string): Promise<EventoAaah[]>;
+
+  // Solicitudes del catálogo (el pedido antes de que la tienda lo registre)
+  /** Las que esperan a la tienda (sin registrar, sin descartar y sin vencer), de la más nueva a la más vieja. */
+  solicitudesPendientes(tiendaId: string): Promise<SolicitudPedido[]>;
+  /** Crea el pedido (`nuevo`, origen catálogo) y une o crea el cliente. Lanza ClienteDuplicado si el WhatsApp nuevo ya es de otro. */
+  registrarSolicitud(tiendaId: string, solicitudId: string, datos: DatosRegistrarSolicitud): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
+  descartarSolicitud(tiendaId: string, solicitudId: string): Promise<void>;
+
+  // Avísame cuando llegue
+  /** Los avisos pendientes de un producto (de cualquiera de sus variantes), del más viejo al más nuevo. */
+  avisosDeProducto(tiendaId: string, productoId: string): Promise<AvisoLlegada[]>;
+  /** Marca que ya se les avisó. Devuelve cuántos cerró. */
+  marcarAvisado(tiendaId: string, avisoIds: string[]): Promise<number>;
+
+  // Catálogo público (sin sesión; real: RPC para anon)
+  /** Lanza CatalogoNoDisponible si la tienda no está activa o su catálogo no está publicado. */
+  catalogoPublico(slug: string): Promise<CatalogoPublico>;
+  /** El precio lo pone la base, no el navegador. Lanza ProductoNoDisponible, CodigoNoValido o DemasiadosIntentos. */
+  crearSolicitudPedido(slug: string, items: LineaCarrito[], codigoPromo: string | null, dispositivo: string): Promise<SolicitudCreada>;
+  /** null si no existe. */
+  verSolicitud(codigo: string): Promise<VistaSolicitud | null>;
+  /** Enciende o apaga el aaah de este dispositivo. Devuelve los likes del producto. */
+  registrarAaah(slug: string, productoSlug: string, dispositivo: string, on: boolean): Promise<number>;
+  /** Solo en algo agotado o por encargo; un aviso pendiente igual no se repite. */
+  pedirAviso(slug: string, productoSlug: string, varianteId: string | null, telefono: string, nombre: string | null, dispositivo: string): Promise<void>;
 
   // Solo demo (en modo real lanzan SoloDemo)
   /** Hace de "el equipo": avanza el estado del catálogo un paso (solicitado → generando → … → revisar; cambios → revisar). */

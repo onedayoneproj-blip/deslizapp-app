@@ -11,7 +11,7 @@ const browser=await pw.chromium.launch({executablePath:process.env.CHROMIUM_PATH
 const ctx=await browser.newContext({viewport:{width:390,height:844}});const page=await ctx.newPage();
 await page.addInitScript(()=>{localStorage.setItem('deslizapp-modo-v1','demo');localStorage.setItem('deslizapp-version-vista','9.9.9');});
 const cantidad=async()=>Number((await page.locator('section[aria-label="Inventario"] [aria-live="polite"]').innerText()).match(/^\d+/)[0]);
-const auditar=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v3')??'{}').ajustesInventario??[]);
+const auditar=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v4')??'{}').ajustesInventario??[]);
 const simular=async modo=>page.evaluate(modo=>{
  const el=document.querySelector('section[aria-label="Inventario"]');
  let fiber=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];
@@ -46,7 +46,7 @@ try{
  await page.getByRole('button',{name:'Descartar',exact:true}).click();
  await simular('lento');await page.locator('button[aria-label^="Aumentar stock"]').click();
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).evaluate(b=>{b.click();b.click();});
- await page.waitForFunction(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v3')??'{}').ajustesInventario?.length===1);
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('deslizapp-demo-v4')??'{}').ajustesInventario?.length===1);
  ok(await page.evaluate(()=>window.__intentos)===1,'Dos pulsaciones rápidas envían una operación');
  await abrir();await simular('confirmado');await page.locator('button[aria-label^="Aumentar stock"]').click();await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();
  await page.getByRole('button',{name:'Revisar producto e historial'}).waitFor();await page.getByRole('button',{name:'Revisar producto e historial'}).click();
@@ -58,11 +58,11 @@ try{
  await page.getByRole('button',{name:'Descartar',exact:true}).click();await page.waitForFunction(n=>Number(document.querySelector('section[aria-label="Inventario"] [aria-live="polite"]').textContent.match(/^\d+/)[0])===n,base+2);ok(await cantidad()===base+2,'Descartar recupera el nuevo stock confirmado');
  // Error de ajuste en edición: nombre, stock y nota deben conservarse en el borrador.
  await page.getByRole('button',{name:'Editar',exact:true}).click();await page.waitForURL('**/editar');await page.locator('section[aria-label="Inventario"]').waitFor();
- const antes=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'));
+ const antes=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v4'));
  await simular('validacion');await page.getByRole('textbox',{name:'Nombre',exact:true}).fill('No guardar parcialmente');await page.locator('button[aria-label^="Disminuir stock"]').click();
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.getByRole('radio',{name:'Otro',exact:true}).click();
  await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).fill('Nota conservada');await page.getByRole('button',{name:'Guardar ajuste',exact:true}).click();await page.locator('[role="dialog"]').last().getByRole('alert').waitFor();
- ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v3'))===antes,'Error de validación conserva motivo y no guarda ficha ni stock');
+ ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v4'))===antes,'Error de validación conserva motivo y no guarda ficha ni stock');
  await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.getByRole('heading',{name:'Ajustar inventario',exact:true}).waitFor({state:'detached'});await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Salir',exact:true}).click();await page.waitForURL(URL+href);
  ok((await auditar()).length===3,'Cancelar edición fallida no altera el historial');
  await page.locator('section[aria-label="Inventario"]').waitFor();

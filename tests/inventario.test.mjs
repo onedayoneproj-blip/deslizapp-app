@@ -8,14 +8,14 @@ const producto = (id='p', tiendaId='t', stock=2) => ({
 });
 const db = (productos=[producto()]) => ({
   tiendas:[], usuarios:[], productos, pedidos:[{id:'pedido', estado:'por_despachar'}], pedidoItems:[], abonos:[],
-  ajustesInventario:[], clientes:[], promos:[], eventosAaah:[],
+  ajustesInventario:[], clientes:[], promos:[], eventosAaah:[], variantes:[], solicitudes:[], avisos:[],
 });
 
 test('un aumento y una disminución guardan variación, antes/después, motivo y actor; no tocan pedidos', () => {
   const inicial=db();
   const uno=ajustarStockEnDB(inicial,'t','p',1,'reposicion',null,'duena','a1','2026-10-02T12:00:00Z');
   assert.equal(uno.producto.stock,3);
-  assert.deepEqual(uno.ajuste,{id:'a1',tiendaId:'t',productoId:'p',variacion:1,stockAnterior:2,stockNuevo:3,motivo:'reposicion',nota:null,actorId:'duena',creadoEn:'2026-10-02T12:00:00Z'});
+  assert.deepEqual(uno.ajuste,{id:'a1',tiendaId:'t',productoId:'p',varianteId:null,variacion:1,stockAnterior:2,stockNuevo:3,motivo:'reposicion',nota:null,actorId:'duena',creadoEn:'2026-10-02T12:00:00Z'});
   const dos=ajustarStockEnDB(uno.db,'t','p',-1,'perdida',null,'duena','a2','2026-10-02T12:01:00Z');
   assert.equal(dos.producto.stock,2);
   assert.deepEqual(dos.db.ajustesInventario.map(a=>[a.variacion,a.motivo]),[[1,'reposicion'],[-1,'perdida']]);
