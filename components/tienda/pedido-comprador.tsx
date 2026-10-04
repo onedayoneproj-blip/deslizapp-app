@@ -230,7 +230,7 @@ export function PedidoComprador({
                       }
                     }}
                   >
-                    Ver {nombres.singular} <Icono nombre="back" />
+                    Ver {nombres.singular} <span style={{ display: "inline-flex", transform: "scaleX(-1)" }}><Icono nombre="back" /></span>
                   </a>
                   <button
                     className="pvgo pvsh"
