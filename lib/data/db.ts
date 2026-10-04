@@ -86,8 +86,23 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
     variantes: (seedVariantes as FilaVariante[]).map(aVariante),
     solicitudes: [],
-    avisos: [],
+    avisos: avisosDeLaDemo(ahora),
   };
+}
+
+/**
+ * Personas que pidieron "Avísame cuando llegue" (en la demo no hay catálogo público todavía): dos esperan Urban Toy (agotado) en
+ * Esencias Michel y una la camisa de lino M · Arena (agotada) en Lino & Algodón.
+ */
+function avisosDeLaDemo(ahora: number): DB["avisos"] {
+  const hace = (dias: number) => new Date(ahora - dias * 86_400_000).toISOString();
+  const michel = "a1000000-0000-4000-8000-000000000001";
+  const lino = "a1000000-0000-4000-8000-000000000003";
+  return [
+    { id: "a8000000-0000-4000-8000-000000000001", tiendaId: michel, productoId: "a3000000-0000-4000-8000-000000000008", varianteId: null, telefono: "18095550142", nombre: "Carolina Peña", creadoEn: hace(3), avisadoEn: null },
+    { id: "a8000000-0000-4000-8000-000000000002", tiendaId: michel, productoId: "a3000000-0000-4000-8000-000000000008", varianteId: null, telefono: "18295550311", nombre: null, creadoEn: hace(1), avisadoEn: null },
+    { id: "a8000000-0000-4000-8000-000000000003", tiendaId: lino, productoId: "a3000000-0000-4000-8000-000000000017", varianteId: "a7000000-0000-4000-8000-000000000002", telefono: "18495550177", nombre: "Mariela Cruz", creadoEn: hace(2), avisadoEn: null },
+  ];
 }
 
 /**

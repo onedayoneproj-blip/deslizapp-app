@@ -8,20 +8,21 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { descuentoDeCodigo } from "@/lib/data/pedidos";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
+import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
 import { pedirDestelloDePasos } from "@/lib/destello";
 import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
-import { cantidadMaxima, unidadesVendidas } from "@/lib/buscar-productos";
+import { cantidadMaxima, claveLinea, deClaveLinea, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
-import { buscarCodigoPromo, precioConPromo } from "@/lib/promos";
-import type { ClienteConResumen, PedidoConItems, Producto, Promo } from "@/lib/types";
+import { buscarCodigoPromo } from "@/lib/promos";
+import type { ClienteConResumen, PedidoConItems, Producto, Promo, Variante } from "@/lib/types";
 import { montoDeTexto } from "@/lib/credito";
 import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type EstadoPago } from "../credito/campos-pago";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoChevronDerecha, IconoMas } from "../iconos";
-import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, ListaAgrupada } from "../ui";
+import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
@@ -78,6 +79,8 @@ export function HojaPedidoNuevo({ pedidoId, productoInicialId }: { pedidoId?: st
   );
 }
 
+type Linea = { clave: string; producto: Producto; variante: Variante | null; texto: string | null; porEncargo: boolean; cantidad: number; precio: number };
+
 function Formulario({
   productos,
   clientes,
@@ -111,13 +114,20 @@ function Formulario({
   // Despachado: solo cliente y fecha. Los productos y el código se ven atenuados y no se tocan.
   const bloqueado = pedido?.estado === "despachado";
   const buscador = useRef<HTMLInputElement>(null);
+  // Por llave de línea: el producto, o "producto:variante" (claveLinea).
   const [cantidades, setCantidades] = useState<Record<string, number>>(() => {
     const c: Record<string, number> = {};
-    for (const i of pedido?.items ?? []) c[i.productoId] = (c[i.productoId] ?? 0) + i.cantidad;
+    for (const i of pedido?.items ?? []) {
+      const k = claveLinea(i.productoId, i.varianteId);
+      c[k] = (c[k] ?? 0) + i.cantidad;
+    }
+    // Uno con opciones no se agrega solo: falta elegir cuál.
     const productoInicial = productos.find((p) => p.id === productoInicialId);
-    if (!pedido && productoInicial) c[productoInicial.id] = productoInicial.stock === 0 ? 0 : Math.min(1, cantidadMaxima(productoInicial));
+    if (!pedido && productoInicial && variantesActivas(productoInicial).length === 0) c[productoInicial.id] = Math.min(1, cantidadMaxima(productoInicial));
     return c;
   });
+  // Lo que llegó por encargo desde el catálogo sigue por encargo al editar (no descuenta stock). Desde aquí, lo agotado no se agrega.
+  const [encargos] = useState(() => new Set((pedido?.items ?? []).filter((i) => i.porEncargo).map((i) => claveLinea(i.productoId, i.varianteId))));
   const [codigo, setCodigo] = useState(pedido?.codigoPromo ?? "");
   const [guardando, setGuardando] = useState(false);
   // Despachado: salir hacia los pasos del pedido, con confirmación si hay cambios sin guardar.
@@ -136,14 +146,19 @@ function Formulario({
 
   const vendidas = useMemo(() => unidadesVendidas(pedidos), [pedidos]);
   // Despachado: se muestra lo que se vendió (precios de ese momento). Si no, la cuenta de hoy, igual que al crear.
-  const lineas = bloqueado
+  const lineas: Linea[] = bloqueado
     ? (pedido?.items ?? []).flatMap((i) => {
         const p = productos.find((x) => x.id === i.productoId);
-        return p ? [{ producto: p, cantidad: i.cantidad, precio: i.precioUnitario }] : [];
+        const v = i.varianteId ? (p?.variantes?.find((x) => x.id === i.varianteId) ?? null) : null;
+        return p ? [{ clave: i.id, producto: p, variante: v, texto: i.varianteTexto, porEncargo: i.porEncargo, cantidad: i.cantidad, precio: i.precioUnitario }] : [];
       })
-    : productos
-        .map((p) => ({ producto: p, cantidad: cantidades[p.id] ?? 0, precio: precioConPromo(p, promos).precio }))
-        .filter((l) => l.cantidad > 0);
+    : Object.entries(cantidades).flatMap(([clave, cantidad]) => {
+        const l = cantidad > 0 ? deClaveLinea(productos, clave) : null;
+        if (!l) return [];
+        const { producto, variante } = l;
+        const texto = variante ? textoVariante(producto.opciones, variante.valores) : null;
+        return [{ clave, producto, variante, texto, porEncargo: encargos.has(clave), cantidad, precio: precioDeLinea(producto, variante, promos).precio }];
+      });
   const subtotal = lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
   const clienteId = cliente?.id ?? null;
   const contexto = useMemo(() => ({ pedidos, pedido, clienteId }), [pedidos, pedido, clienteId]);
@@ -184,9 +199,12 @@ function Formulario({
     setVista("pedido");
   };
 
-  // La cantidad nunca supera el stock (99 si no se lleva la cuenta).
-  const cambiar = (p: Producto, delta: number) =>
-    setCantidades((c) => ({ ...c, [p.id]: Math.min(cantidadMaxima(p), Math.max(0, (c[p.id] ?? 0) + delta)) }));
+  // La cantidad nunca supera el stock (99 si no se lleva la cuenta o llegó por encargo).
+  const cambiar = (p: Producto, v: Variante | null, delta: number) => {
+    const k = claveLinea(p.id, v?.id);
+    setCantidades((c) => ({ ...c, [k]: Math.min(cantidadMaxima(p, v, encargos.has(k)), Math.max(0, (c[k] ?? 0) + delta)) }));
+  };
+  const aItems = () => lineas.map((l) => ({ productoId: l.producto.id, varianteId: l.variante?.id ?? null, cantidad: l.cantidad, porEncargo: l.porEncargo }));
 
   // Sin guardar: el cliente o la fecha ya no son los del pedido.
   const hayCambios = Boolean(pedido) && (cliente?.id !== (pedido?.clienteId ?? undefined) || dia !== diaOriginal);
@@ -211,7 +229,7 @@ function Formulario({
             ? { clienteId: cliente.id, fecha: dia !== diaOriginal && fechaVenta ? fechaVenta : undefined, ...datosDePago(pago, !conAbonos) }
             : {
                 clienteId: cliente.id,
-                items: lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
+                items: aItems(),
                 codigo: promo ? codigo : undefined,
                 ventaPasada: conVenta,
                 ...datosDePago(pago, !conAbonos),
@@ -224,7 +242,7 @@ function Formulario({
       }
       const { pedido: creado } = await crearPedidoManual(tiendaId, {
         clienteId: cliente.id,
-        items: lineas.map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
+        items: aItems(),
         codigo: promo ? codigo : undefined,
         ventaPasada: conVenta,
         ...datosDePago(pago),
@@ -251,6 +269,7 @@ function Formulario({
         promos={promos}
         vendidas={vendidas}
         cantidades={cantidades}
+        encargos={encargos}
         alCambiar={cambiar}
         entrada={buscador}
         alTerminar={() => setVista("pedido")}
@@ -347,15 +366,17 @@ function Formulario({
       ) : (
         <>
           <ul inert={bloqueado} className={`overflow-hidden rounded-radio-l border border-linea bg-superficie ${bloqueado ? "opacity-55" : ""}`}>
-            {lineas.map(({ producto: p, cantidad, precio }) => (
-              <li key={p.id} className="flex items-center gap-3 border-t border-linea px-4 py-2.5 first:border-t-0">
+            {lineas.map(({ clave, producto: p, variante, texto, porEncargo, cantidad, precio }) => (
+              <li key={clave} className="flex items-center gap-3 border-t border-linea px-4 py-2.5 first:border-t-0">
                 <span className="size-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida">
                   {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="44px" /> : null}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-destacado">{p.nombre}</p>
-                  <p className="text-secundario text-texto-secundario">
+                  {texto && <p className="truncate text-secundario text-texto">{texto}</p>}
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-secundario text-texto-secundario">
                     {cantidad} × {formatearPesos(precio)}
+                    {porEncargo && <Etiqueta tono="atencion">Por encargo</Etiqueta>}
                   </p>
                 </div>
                 {bloqueado ? (
@@ -363,10 +384,10 @@ function Formulario({
                 ) : (
                   <Cantidad
                     valor={cantidad}
-                    max={cantidadMaxima(p)}
-                    alCambiar={(v) => cambiar(p, v - cantidad)}
-                    etiquetaQuitar={`Quitar uno de ${p.nombre}`}
-                    etiquetaAgregar={`Agregar otro ${p.nombre}`}
+                    max={cantidadMaxima(p, variante, porEncargo)}
+                    alCambiar={(v) => cambiar(p, variante, v - cantidad)}
+                    etiquetaQuitar={`Quitar uno de ${p.nombre}${texto ? ` ${texto}` : ""}`}
+                    etiquetaAgregar={`Agregar otro ${p.nombre}${texto ? ` ${texto}` : ""}`}
                   />
                 )}
               </li>

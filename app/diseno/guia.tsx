@@ -35,7 +35,11 @@ import {
   CheckSeleccion,
   CuadriculaSeleccion,
   ElegirMensaje,
+  EditorEtiquetas,
+  FilaVariante,
+  Interruptor,
   ProveedorToast,
+  TiraMedios,
   Tarjeta,
   TarjetaDocumento,
   TarjetaJugada,
@@ -99,6 +103,7 @@ export function GuiaDiseno() {
           <Tarjetas />
           <EtiquetasYAvatares />
           <Campos />
+          <Producto />
           <Iconos />
         </div>
       </ProveedorToast>
@@ -661,6 +666,66 @@ function Campos() {
   );
 }
 
+// ---- Producto: medios, etiquetas, interruptor y variantes ----
+
+const FOTO_GUIA = "/seed/productos/mayar-natural-intense.svg";
+
+function Producto() {
+  const [visible, setVisible] = useState(true);
+  const [encargo, setEncargo] = useState(false);
+  const [tallas, setTallas] = useState(["S", "M", "L"]);
+  const [ocasiones, setOcasiones] = useState(["Día", "Oficina"]);
+  const [medios, setMedios] = useState([
+    { id: "a", tipo: "foto" as const, imagen: FOTO_GUIA },
+    { id: "b", tipo: "video" as const, imagen: "/seed/productos/kiara-pink.svg", duracionS: 18 },
+    { id: "c", tipo: "foto" as const, imagen: "/seed/productos/parade.svg", progreso: 62 },
+  ]);
+  const [stock, setStock] = useState({ s: 2, m: 1, l: 0 });
+  return (
+    <Seccion numero="14" titulo="Producto" nota="Tira de fotos y video, etiquetas editables, interruptor y stock por variante.">
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>tira de medios · 76 px, portada primero, video con su duración, subiendo con anillo; mantén presionado para ordenar</Rotulo>
+        <TiraMedios
+          elementos={medios}
+          alTocar={() => undefined}
+          alAgregar={() => undefined}
+          alMover={(desde, hasta) =>
+            setMedios((l) => {
+              const copia = [...l];
+              const [m] = copia.splice(desde, 1);
+              copia.splice(hasta, 0, m!);
+              return copia;
+            })
+          }
+          nota="Hasta 10. Mantén presionado para ordenar."
+        />
+        <Rotulo>al llegar al límite, la casilla se apaga con su motivo</Rotulo>
+        <TiraMedios elementos={medios.slice(0, 2)} alTocar={() => undefined} alAgregar={() => undefined} alMover={() => undefined} bloqueo="Ya tiene 10. Quita uno para agregar otro." />
+      </div>
+      <div className="flex max-w-90 flex-col gap-4">
+        <EditorEtiquetas etiqueta="Valores" valores={tallas} alCambiar={setTallas} sugerencias={["XS", "S", "M", "L", "XL"]} largoMaximo={20} />
+        <EditorEtiquetas etiqueta="Ideal para (con valores fijos: casillas)" valores={ocasiones} alCambiar={setOcasiones} permitidos={["Día", "Oficina", "Noche", "Citas", "Regalo"]} />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>interruptor: encender o apagar algo; con su texto en la fila</Rotulo>
+        <ListaAgrupada>
+          <FilaLista titulo="Visible en el catálogo" accion={<Interruptor encendido={visible} alCambiar={setVisible} etiqueta="Visible en el catálogo" />} />
+          <FilaLista titulo="Por encargo" detalle="Se puede pedir aunque no haya." accion={<Interruptor encendido={encargo} alCambiar={setEncargo} etiqueta="Por encargo" />} />
+          <FilaLista titulo="Bloqueado (40 %)" accion={<Interruptor encendido={false} alCambiar={() => undefined} etiqueta="Bloqueado" deshabilitado />} />
+        </ListaAgrupada>
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>fila de variante: color conocido, &quot;Queda 1&quot; o &quot;Agotado&quot; en atención, y la cantidad</Rotulo>
+        <ListaAgrupada etiqueta="Stock por variante">
+          <FilaVariante texto="S · Arena" color="#e8d9c4" stock={stock.s} alCambiar={(v) => setStock((s) => ({ ...s, s: v }))} />
+          <FilaVariante texto="M · Arena" color="#e8d9c4" stock={stock.m} alCambiar={(v) => setStock((s) => ({ ...s, m: v }))} />
+          <FilaVariante texto="L · Negro" color="#2b2b2b" stock={stock.l} alCambiar={(v) => setStock((s) => ({ ...s, l: v }))} />
+        </ListaAgrupada>
+      </div>
+    </Seccion>
+  );
+}
+
 // ---- Iconos ----
 
 function Iconos() {
@@ -674,7 +739,7 @@ function Iconos() {
     ["Abrir", <IconoChevronDerecha key="a" tamano={20} strokeWidth={2.2} />],
   ];
   return (
-    <Seccion numero="13" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">
+    <Seccion numero="15" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">
       <Fila>
         {lista.map(([n, i]) => (
           <span key={n} className="flex w-20 flex-col items-center gap-1.5 rounded-radio-m bg-superficie-hundida py-2.5">

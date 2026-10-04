@@ -22,7 +22,7 @@ import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { ChipEstado } from "./comunes";
+import { ChipEstado, detalleDeItem, pieDeItem, stockDeItem } from "./comunes";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
@@ -133,12 +133,16 @@ function Detalle({
   // Productos a los que no les alcanza el stock (solo importa mientras el pedido espera despacho).
   const faltantes = useMemo(() => {
     if (pedido.estado !== "por_despachar") return [];
-    const necesarios = new Map<string, number>();
-    for (const i of pedido.items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
-    return [...necesarios]
-      .map(([id, n]) => ({ producto: porId.get(id), n }))
-      .filter((f): f is { producto: Producto; n: number } => f.producto != null && f.producto.stock !== null && f.producto.stock < f.n)
-      .map((f) => f.producto.nombre);
+    // Por variante cuando la línea la trae ("Camisa · M · Arena"); lo que va por encargo no descuenta.
+    const necesarios = new Map<string, { nombre: string; stock: number | null | undefined; n: number }>();
+    for (const i of pedido.items) {
+      const stock = stockDeItem(porId.get(i.productoId), i);
+      if (stock === undefined) continue;
+      const k = i.varianteId ?? i.productoId;
+      const nombre = i.varianteTexto ? `${i.nombreProducto} · ${i.varianteTexto}` : (porId.get(i.productoId)?.nombre ?? i.nombreProducto);
+      necesarios.set(k, { nombre, stock, n: (necesarios.get(k)?.n ?? 0) + i.cantidad });
+    }
+    return [...necesarios.values()].filter((f) => f.stock !== null && f.stock !== undefined && f.stock < f.n).map((f) => f.nombre);
   }, [pedido, porId]);
 
   const correr = async (accion: () => Promise<void>) => {
@@ -316,10 +320,11 @@ function Detalle({
               key={i.id}
               inicio={<span className="block size-11 overflow-hidden rounded-radio-s bg-superficie-hundida">{foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="44px" /> : null}</span>}
               titulo={i.nombreProducto}
-              detalle={`${i.cantidad} × ${formatearPesos(i.precioUnitario)}`}
+              detalle={detalleDeItem(i)}
+              pie={pieDeItem(i)}
               fin={
                 <span className="flex flex-col items-end gap-1">
-                  <EtiquetasStock estado={pedido.estado} producto={producto} cantidad={i.cantidad} />
+                  <EtiquetasStock estado={pedido.estado} stock={stockDeItem(producto, i)} cantidad={i.cantidad} />
                 </span>
               }
             />
@@ -421,9 +426,8 @@ function Detalle({
 }
 
 /** Estado del stock de un producto del pedido. Ya despachado: solo "Agotado" si se acabó (la barra de pasos ya dice Despachado). */
-function EtiquetasStock({ estado, producto, cantidad }: { estado: PedidoConItems["estado"]; producto: Producto | undefined; cantidad: number }) {
+function EtiquetasStock({ estado, stock, cantidad }: { estado: PedidoConItems["estado"]; stock: number | null | undefined; cantidad: number }) {
   if (estado === "cancelado") return null;
-  const stock = producto?.stock;
   // Despachado: la barra de pasos ya lo dice; solo importa si se agotó
   if (estado === "despachado") return stock === 0 ? <Etiqueta tono="fuerte">Agotado</Etiqueta> : null;
   // Sin despachar: etiqueta SOLO si el stock no alcanza para la cantidad

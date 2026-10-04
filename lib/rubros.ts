@@ -45,7 +45,7 @@ export const CAMPOS_POR_RUBRO: Record<Rubro, readonly CampoDetalle[]> = {
     { llave: "tamano_ml", nombre: "Tamaño (ml)", tipo: "numero" },
     { llave: "concentracion", nombre: "Concentración", tipo: "elegir", valores: ["edp", "edt", "parfum", "extrait", "colonia"] },
     { llave: "familia", nombre: "Familia", tipo: "texto" },
-    { llave: "ocasiones", nombre: "Ocasiones", tipo: "lista", valores: OCASIONES_PERFUME },
+    { llave: "ocasiones", nombre: "Ideal para", tipo: "lista", valores: OCASIONES_PERFUME },
     { llave: "notas_salida", nombre: "Notas de salida", tipo: "lista" },
     { llave: "notas_corazon", nombre: "Notas de corazón", tipo: "lista" },
     { llave: "notas_fondo", nombre: "Notas de fondo", tipo: "lista" },
@@ -83,6 +83,43 @@ export const CAMPOS_POR_RUBRO: Record<Rubro, readonly CampoDetalle[]> = {
     { llave: "tamano", nombre: "Tamaño", tipo: "texto" },
   ],
 };
+
+/** Cómo se ve cada valor de un campo "elegir" ("ella" → "Ella", "edp" → "EDP"). */
+export const NOMBRE_VALOR: Record<string, string> = {
+  ...NOMBRE_PARA,
+  edp: "EDP",
+  edt: "EDT",
+  parfum: "Parfum",
+  extrait: "Extrait",
+  colonia: "Colonia",
+};
+
+export const nombreValor = (v: string) => NOMBRE_VALOR[v] ?? v;
+
+/**
+ * El problema de un valor para un campo (las mismas reglas que `detallesValidos` y la base), con el mensaje para la dueña; null si
+ * está bien. Un valor vacío (borrar el detalle) siempre está bien: todos los detalles son opcionales.
+ */
+export function errorDeDetalle(campo: CampoDetalle | "descripcion", valor: string | number | string[] | undefined): string | null {
+  if (valor === undefined || valor === "" || (Array.isArray(valor) && valor.length === 0)) return null;
+  if (campo === "descripcion") {
+    return typeof valor === "string" && valor.length <= LARGO_DESCRIPCION ? null : `Hasta ${LARGO_DESCRIPCION} caracteres.`;
+  }
+  switch (campo.tipo) {
+    case "texto":
+      return typeof valor === "string" && valor.length <= LARGO_TEXTO ? null : `Hasta ${LARGO_TEXTO} caracteres.`;
+    case "numero":
+      return typeof valor === "number" && Number.isInteger(valor) && valor > 0 && valor <= 2147483647 ? null : "Escribe un número entero mayor que cero.";
+    case "elegir":
+      return typeof valor === "string" && campo.valores.includes(valor) ? null : "Elige una de las opciones.";
+    case "lista":
+      if (!Array.isArray(valor)) return "Agrega al menos uno.";
+      if (valor.length > MAX_ITEMS_LISTA) return `Hasta ${MAX_ITEMS_LISTA}.`;
+      if (valor.some((v) => v.length < 1 || v.length > LARGO_ITEM_LISTA)) return `Cada uno, hasta ${LARGO_ITEM_LISTA} caracteres.`;
+      if (campo.valores && valor.some((v) => !campo.valores!.includes(v))) return "Elige de la lista.";
+      return null;
+  }
+}
 
 /** Opciones típicas de cada rubro: sugerencias del formulario, no obligación ("general": la tienda las nombra). */
 export const OPCIONES_TIPICAS: Record<Rubro, readonly string[]> = {

@@ -60,7 +60,7 @@ import {
 } from "./tiendas";
 
 // Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
-const KEY = "deslizapp-demo-v4";
+const KEY = "deslizapp-demo-v5";
 const KEY_SESION = "deslizapp-sesion-v1";
 
 export type EstadoDemo = {
@@ -605,6 +605,10 @@ export const fuenteDemo: FuenteDatos = {
   },
 
   // Avísame cuando llegue
+  async avisosPendientes(tiendaId) {
+    const db = leerDemo().db;
+    return db.productos.filter((p) => p.tiendaId === tiendaId).flatMap((p) => avisosDeProductoDeDB(db, tiendaId, p.id)).sort((a, b) => a.creadoEn.localeCompare(b.creadoEn));
+  },
   async avisosDeProducto(tiendaId, productoId) {
     return avisosDeProductoDeDB(leerDemo().db, tiendaId, productoId);
   },

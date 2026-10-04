@@ -10,6 +10,7 @@ import { Hoja } from "../hoja";
 import { IconoCamion, IconoChat, IconoCheck, IconoCorazon, IconoFlechaArriba, IconoWhatsApp } from "../iconos";
 import { Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
 import { menosMovimiento } from "@/lib/movimiento";
+import { detalleDeItem, pieDeItem, stockDeItem } from "./comunes";
 
 const ESPERA_MONTO_MS = 1950;
 const DURACION_MONTO_MS = 800;
@@ -134,14 +135,15 @@ export function HojaDespachado({
         <ListaAgrupada etiqueta="Productos despachados" className="desp-sube-3 w-full">
           {visibles.map((i) => {
             const producto = porId.get(i.productoId);
-            const stock = producto?.stock;
+            const stock = stockDeItem(producto, i);
             const foto = producto?.fotos[0];
             return (
               <FilaLista
                 key={i.id}
                 inicio={<span className="block size-11 overflow-hidden rounded-radio-s bg-superficie-hundida">{foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="44px" /> : null}</span>}
                 titulo={i.nombreProducto}
-                detalle={`${i.cantidad} × ${formatearPesos(i.precioUnitario)}`}
+                detalle={detalleDeItem(i)}
+                pie={pieDeItem(i)}
                 fin={
                   stock === 0 ? (
                     <Etiqueta tono="fuerte">Agotado</Etiqueta>

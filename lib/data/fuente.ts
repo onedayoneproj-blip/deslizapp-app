@@ -231,6 +231,8 @@ export type FuenteDatos = {
   descartarSolicitud(tiendaId: string, solicitudId: string): Promise<void>;
 
   // Avísame cuando llegue
+  /** Todos los avisos pendientes de la tienda (para contar "N esperan" en el inventario), del más viejo al más nuevo. */
+  avisosPendientes(tiendaId: string): Promise<AvisoLlegada[]>;
   /** Los avisos pendientes de un producto (de cualquiera de sus variantes), del más viejo al más nuevo. */
   avisosDeProducto(tiendaId: string, productoId: string): Promise<AvisoLlegada[]>;
   /** Marca que ya se les avisó. Devuelve cuántos cerró. */

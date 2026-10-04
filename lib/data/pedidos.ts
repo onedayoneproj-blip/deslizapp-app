@@ -1,6 +1,6 @@
 import { conPago, resolverPago, type AbonoInicial, type DatosPago } from "../credito";
 import { buscarCodigoPromo, precioConPromo, type ContextoCodigo } from "../promos";
-import type { Abono, Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo } from "../types";
+import type { Abono, Cliente, EstadoPedido, Pedido, PedidoConItems, PedidoItem, Producto, Promo, Variante } from "../types";
 import { nuevoId as nuevoIdItem, type DB } from "./db";
 import { DatosInvalidos, UsarVariante, PedidoConAbonos, PedidoNoDeshacible, PedidoNoEditable, SoloCancelados, StockInsuficiente } from "./errores";
 import { ordenarAbonos } from "./filas";
@@ -222,11 +222,6 @@ export function moverStockDemo(db: DB, tiendaId: string, lineas: LineaStock[], s
   return { productos, variantes, agotados };
 }
 
-/** Un producto con variantes activas no entra a un pedido manual sin variante (como el trigger `pedido_items_validar`). */
-export function exigirSinVariantes(db: DB, items: { productoId: string }[]) {
-  if (items.some((i) => db.variantes.some((v) => v.productoId === i.productoId && v.activa))) throw new UsarVariante();
-}
-
 // ---- Código de descuento de un pedido abierto ----
 
 export const MENSAJE_CODIGO_MALO = "Ese descuento ya no se puede usar (no existe, está pausado, vencido o agotado). Elige otro o quítalo.";
@@ -244,13 +239,17 @@ export function recalcularConCodigo(
   codigo: string | null,
   ahora: Date,
   ctx: ContextoCodigo,
+  /** Las variantes de la tienda (la demo las guarda aparte); si no, las de cada producto. */
+  variantes?: Variante[],
 ) {
   const limpio = codigo?.trim() ?? "";
   const promo = limpio ? buscarCodigoPromo(promos, tiendaId, limpio, ctx, ahora) : null;
   if (limpio && !promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
   const nuevos = items.map((i) => {
     const producto = productos.find((p) => p.id === i.productoId && p.tiendaId === tiendaId);
-    return producto ? { ...i, precioUnitario: precioConPromo(producto, promos, ahora).precio } : i;
+    if (!producto) return i;
+    const variante = i.varianteId ? (variantes ?? producto.variantes ?? []).find((v) => v.id === i.varianteId) : undefined;
+    return { ...i, precioUnitario: precioConPromo({ ...producto, precio: variante?.precio ?? producto.precio }, promos, ahora).precio };
   });
   const subtotal = nuevos.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
   return { items: nuevos, total: subtotal - descuentoDeCodigo(promo, subtotal), codigoPromo: promo?.codigo ?? null };
@@ -271,7 +270,7 @@ export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codi
     pedidos: db.pedidos,
     pedido: actual,
     clienteId: actual.clienteId,
-  });
+  }, db.variantes);
   const pedido: Pedido = { ...actual, total: r.total, codigoPromo: r.codigoPromo };
   const porId = new Map(r.items.map((i) => [i.id, i]));
   return {
@@ -285,7 +284,7 @@ export function aplicarCodigoAlPedido(db: DB, tiendaId: string, id: string, codi
 export type DatosPedidoManual = {
   /** Cliente de la tienda (si es nuevo, se crea antes con `crearCliente`). */
   clienteId: string;
-  items: { productoId: string; cantidad: number }[];
+  items: LineaPedida[];
   /** Código de promo que usó el cliente (opcional). */
   codigo?: string;
   /**
@@ -306,6 +305,9 @@ export const descuentoDeCodigo = (promo: Promo | null, subtotal: number) =>
  */
 export type LineaCalculada = Omit<PedidoItem, "id" | "pedidoId">;
 
+/** Lo que se pide de un producto: con variantes, cuál ("Talla M · Negro"); `porEncargo` no mueve stock al despachar. */
+export type LineaPedida = { productoId: string; cantidad: number; varianteId?: string | null; porEncargo?: boolean };
+
 /**
  * Las líneas de un pedido con los precios de hoy (`precioConPromo`: promo de colección o de producto vigente) y el total
  * con el código, si es válido. Es la única cuenta de "+ Pedido" y de "Editar pedido", en la demo y en Supabase.
@@ -314,41 +316,36 @@ export function calcularLineas(
   productos: Producto[],
   promos: Promo[],
   tiendaId: string,
-  pedidas: { productoId: string; cantidad: number }[],
+  pedidas: LineaPedida[],
   codigo: string | undefined,
   ahora: Date,
   ctx: ContextoCodigo,
+  /** Las variantes de la tienda (la demo las guarda aparte); si no, las de cada producto. */
+  variantes?: Variante[],
 ) {
   const lineas = pedidas.filter((i) => i.cantidad > 0);
   if (lineas.length === 0) throw new DatosInvalidos("El pedido necesita al menos un producto.");
   const items: LineaCalculada[] = lineas.map((l) => {
     const producto = productos.find((p) => p.id === l.productoId && p.tiendaId === tiendaId);
     if (!producto) throw new DatosInvalidos("Un producto del pedido ya no existe en tu tienda.");
+    const suyas = (variantes ?? producto.variantes ?? []).filter((v) => v.productoId === producto.id);
+    const variante = l.varianteId ? suyas.find((v) => v.id === l.varianteId) : undefined;
+    if (l.varianteId && !variante) throw new DatosInvalidos("Esa opción ya no existe. Elige otra.");
+    // Un producto con opciones entra con la suya (como el trigger pedido_items_validar).
+    if (!variante && suyas.some((v) => v.activa)) throw new UsarVariante();
     return {
       productoId: producto.id,
       nombreProducto: producto.nombre,
       cantidad: l.cantidad,
-      precioUnitario: precioConPromo(producto, promos, ahora).precio,
-      varianteId: null,
-      varianteTexto: null,
-      porEncargo: false,
+      precioUnitario: precioConPromo({ ...producto, precio: variante?.precio ?? producto.precio }, promos, ahora).precio,
+      varianteId: variante?.id ?? null,
+      varianteTexto: variante ? textoVariante(producto.opciones, variante.valores) : null,
+      porEncargo: Boolean(l.porEncargo),
     };
   });
   const subtotal = items.reduce((suma, i) => suma + i.precioUnitario * i.cantidad, 0);
   const promo = codigo ? buscarCodigoPromo(promos, tiendaId, codigo, ctx, ahora) : null;
   return { items, subtotal, promo, total: subtotal - descuentoDeCodigo(promo, subtotal) };
-}
-
-/** Descuenta del stock lo vendido (igual que despachar); lanza StockInsuficiente si algún producto no alcanza. */
-export function descontarStockDeLineas(productos: Producto[], tiendaId: string, items: { productoId: string; cantidad: number }[], ahora: string): Producto[] {
-  const necesarios = new Map<string, number>();
-  for (const i of items) necesarios.set(i.productoId, (necesarios.get(i.productoId) ?? 0) + i.cantidad);
-  return productos.map((p) => {
-    const cantidad = necesarios.get(p.id);
-    if (cantidad === undefined || p.tiendaId !== tiendaId || p.stock === null) return p;
-    if (p.stock < cantidad) throw new StockInsuficiente(p.nombre, p.id, p.stock, cantidad);
-    return { ...p, stock: p.stock - cantidad, actualizadoEn: ahora };
-  });
 }
 
 /**
@@ -382,13 +379,12 @@ function clienteDeLaTienda(db: DB, tiendaId: string, id: string): Cliente {
 }
 
 export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedidoManual, nuevoId: () => string, ahora: string) {
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora), { pedidos: db.pedidos, clienteId: datos.clienteId });
-  exigirSinVariantes(db, c.items);
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items, datos.codigo, new Date(ahora), { pedidos: db.pedidos, clienteId: datos.clienteId }, db.variantes);
   const cliente = clienteDeLaTienda(db, tiendaId, datos.clienteId);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);
   // Venta pasada con "Descontar del stock": igual que despachar, nunca deja el stock en negativo.
-  const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
+  const { productos, variantes } = venta?.descontarStock ? moverStockDemo(db, tiendaId, c.items, -1, ahora) : db;
 
   const pago = pagoDelPedido(c.total, datos);
 
@@ -413,7 +409,7 @@ export function insertarPedidoManual(db: DB, tiendaId: string, datos: DatosPedid
   const clienteFinal = conPrimerPedido(cliente, venta?.fecha);
   const clientes = clienteFinal === cliente ? db.clientes : db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x));
   return {
-    db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], abonos: [...db.abonos, ...abonos], productos, clientes },
+    db: { ...db, pedidos: [...db.pedidos, pedido], pedidoItems: [...db.pedidoItems, ...items], abonos: [...db.abonos, ...abonos], productos, variantes, clientes },
     pedido: { ...conPago(pedido, abonos), items } satisfies PedidoConItems,
     cliente: clienteFinal,
   };
@@ -436,7 +432,7 @@ export function cambiarPagoDePedido(db: DB, tiendaId: string, id: string, datos:
 export type DatosEdicionPedido = {
   clienteId: string;
   /** Solo `nuevo` y `por_despachar`: reemplazan los productos (los precios se recalculan). */
-  items?: { productoId: string; cantidad: number }[];
+  items?: LineaPedida[];
   codigo?: string;
   /** `nuevo` / `por_despachar`: "Es una venta que ya hice" (pasa a despachado con esa fecha). */
   ventaPasada?: { fecha: string; descontarStock: boolean };
@@ -485,12 +481,11 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
     return { db: dbFinal, pedido: conItems(dbFinal, pedido), cliente: clienteFinal };
   }
 
-  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual, clienteId: datos.clienteId ?? actual.clienteId });
+  const c = calcularLineas(db.productos, db.promos, tiendaId, datos.items ?? [], datos.codigo, new Date(ahora), { pedidos: db.pedidos, pedido: actual, clienteId: datos.clienteId ?? actual.clienteId }, db.variantes);
   if (datos.codigo?.trim() && !c.promo) throw new DatosInvalidos(MENSAJE_CODIGO_MALO);
-  exigirSinVariantes(db, c.items);
   const venta = datos.ventaPasada;
   if (venta) fechaNoFutura(venta.fecha, ahora);
-  const productos = venta?.descontarStock ? descontarStockDeLineas(db.productos, tiendaId, c.items, ahora) : db.productos;
+  const { productos, variantes } = venta?.descontarStock ? moverStockDemo(db, tiendaId, c.items, -1, ahora) : db;
 
   const pago = pagoAlEditar(actual, c.total, tieneAbonos, datos);
   const items: PedidoItem[] = c.items.map((i) => ({ id: nuevoIdItem(), pedidoId: id, ...i }));
@@ -510,6 +505,7 @@ export function modificarPedido(db: DB, tiendaId: string, id: string, datos: Dat
     pedidoItems: [...db.pedidoItems.filter((i) => i.pedidoId !== id), ...items],
     abonos: [...db.abonos, ...nuevos],
     productos,
+    variantes,
     clientes: db.clientes.map((x) => (x.id === cliente.id ? clienteFinal : x)),
   };
   return { db: dbFinal, pedido: conItems(dbFinal, pedido), cliente: clienteFinal };

@@ -180,7 +180,10 @@ export async function generarImagenFactura({ pedido, cliente, tienda, productos 
     let nombre = item.nombreProducto;
     while (ctx.measureText(nombre).width > espacioTexto && nombre.length > 4) nombre = `${nombre.slice(0, -2)}…`;
     dibujarLinea(ctx, nombre, inicioTexto, y + 44, `600 33px ${titulo}`, tintaTexto);
-    dibujarLinea(ctx, `${item.cantidad} × ${formatearPesos(item.precioUnitario)}`, inicioTexto, y + 76, `500 20px ${cuerpo}`, tintaTexto);
+    // Debajo del nombre: la variante ("M · Negro"), cuántos a qué precio y si va por encargo.
+    const partes = [item.varianteTexto, `${item.cantidad} × ${formatearPesos(item.precioUnitario)}`, item.porEncargo ? "Por encargo" : null].filter(Boolean).join(" · ");
+    ctx.font = `500 20px ${cuerpo}`;
+    dibujarLinea(ctx, ajustarTexto(ctx, partes, espacioTexto), inicioTexto, y + 76, `500 20px ${cuerpo}`, tintaTexto);
     dibujarLinea(ctx, formatearPesos(item.cantidad * item.precioUnitario), DERECHA, y + 58, `700 25px ${cuerpo}`, tintaTexto, "right");
     y += 112;
   }

@@ -1,4 +1,5 @@
-import type { EstadoPedido, PedidoConItems } from "@/lib/types";
+import { formatearPesos } from "@/lib/formato";
+import type { EstadoPedido, PedidoConItems, PedidoItem, Producto } from "@/lib/types";
 import { Etiqueta, type TonoEtiqueta } from "../ui";
 
 /** Etiqueta de estado (docs/09 §11): Nuevo = atención (pide acción), Despachado = éxito; Por despachar y Cancelado, neutras (los distingue el texto). */
@@ -27,4 +28,18 @@ export function etiquetaDePago(pedido: Pick<PedidoConItems, "pagoModo" | "saldo"
 export function EtiquetaPago({ pedido }: { pedido: Pick<PedidoConItems, "pagoModo" | "saldo"> }) {
   const { texto, tono } = etiquetaDePago(pedido);
   return <Etiqueta tono={tono}>{texto}</Etiqueta>;
+}
+
+/** Debajo del nombre de un producto del pedido: la variante ("M · Negro"), y cuántos a qué precio. */
+export const detalleDeItem = (i: Pick<PedidoItem, "varianteTexto" | "cantidad" | "precioUnitario">) =>
+  `${i.varianteTexto ? `${i.varianteTexto} · ` : ""}${i.cantidad} × ${formatearPesos(i.precioUnitario)}`;
+
+/** "Por encargo" bajo un producto del pedido que no descuenta stock (docs/12). */
+export const pieDeItem = (i: Pick<PedidoItem, "porEncargo">) => (i.porEncargo ? <Etiqueta tono="atencion">Por encargo</Etiqueta> : undefined);
+
+/** El stock que le toca a un producto del pedido: el de su variante si la tiene; undefined si va por encargo o ya no existe. */
+export function stockDeItem(producto: Producto | undefined, i: Pick<PedidoItem, "varianteId" | "porEncargo">): number | null | undefined {
+  if (!producto || i.porEncargo) return undefined;
+  if (!i.varianteId) return producto.stock;
+  return producto.variantes?.find((v) => v.id === i.varianteId)?.stock;
 }

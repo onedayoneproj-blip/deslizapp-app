@@ -129,3 +129,46 @@ test("hoja de resumen: lectura del inventario y porcentajes", () => {
   assert.equal(porcentajeDe(1, 3), 33);
   assert.equal(porcentajeDe(0, 0), 0);
 });
+
+// ---- Variantes (docs/12 §2; tablero Producto «Inventario») ----
+import { lineasDeReposicion, situacionVariantes, stockParaSalud } from "../lib/inventario-catalogo.ts";
+
+const camisa = (stocks) => ({
+  id: "c",
+  activo: true,
+  stock: stocks.reduce((s, x) => s + (x ?? 0), 0),
+  opciones: [
+    { nombre: "Talla", valores: ["S", "M", "L"] },
+    { nombre: "Color", valores: ["Arena"] },
+  ],
+  variantes: ["S", "M", "L"].map((t, i) => ({ id: `v${i}`, valores: { Talla: t, Color: "Arena" }, stock: stocks[i], activa: true })),
+});
+
+test("stockParaSalud: agotado si todas en 0, la menor si queda 1 o 2, si no la suma; sin control, null", () => {
+  assert.equal(stockParaSalud(camisa([0, 0, 0])), 0);
+  assert.equal(stockParaSalud(camisa([5, 2, 0])), 2);
+  assert.equal(stockParaSalud(camisa([5, 4, 0])), 9);
+  assert.equal(stockParaSalud(camisa([5, null, 0])), null);
+  assert.equal(stockParaSalud({ activo: true, stock: 7 }), 7);
+});
+
+test("situacionVariantes: la agotada resaltada (femenino con Talla) y lo que queda", () => {
+  assert.deepEqual(situacionVariantes(camisa([2, 0, 6])), { resaltado: "M · Arena agotada", resto: "quedan 2 de S · Arena" });
+  assert.deepEqual(situacionVariantes(camisa([4, 5, 6])), { resaltado: null, resto: "15 en total" });
+  assert.equal(situacionVariantes({ activo: true, stock: 3 }), null);
+});
+
+test("lineasDeReposicion: una fila por variante agotada o con 1 o 2 (agotadas primero); sin variantes, una por producto", () => {
+  const filas = lineasDeReposicion([
+    { producto: camisa([2, 0, 6]), sugerida: 3, preseleccionado: true },
+    { producto: { id: "x", activo: true, stock: 0 }, sugerida: 2, preseleccionado: true },
+  ]);
+  assert.deepEqual(
+    filas.map((f) => [f.clave, f.varianteTexto, f.stock, f.sugerida, f.preseleccionado]),
+    [
+      ["c:v1", "M · Arena", 0, 1, true],
+      ["c:v0", "S · Arena", 2, 1, false],
+      ["x", null, 0, 2, true],
+    ],
+  );
+});

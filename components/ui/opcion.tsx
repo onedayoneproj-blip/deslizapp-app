@@ -26,10 +26,16 @@ export function Opcion({
   onKeyDown,
   refBoton,
   compacta = false,
+  casilla = false,
+  deshabilitada = false,
 }: {
   elegida: boolean;
   onClick: () => void;
   children: ReactNode;
+  /** Se puede elegir más de una (role="checkbox"): "Ideal para". Se ve igual. */
+  casilla?: boolean;
+  /** No se puede elegir (una talla agotada): 40 %, sin toque. Lo que explica el porqué va dentro (`children`). */
+  deshabilitada?: boolean;
   /** Letra `secundario` y menos relleno: para que tres opciones cortas quepan en una fila ("Un saludo · Un código · Productos"). */
   compacta?: boolean;
   tabIndex?: number;
@@ -40,13 +46,14 @@ export function Opcion({
     <button
       ref={refBoton}
       type="button"
-      role="radio"
+      role={casilla ? "checkbox" : "radio"}
       aria-checked={elegida}
+      disabled={deshabilitada}
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={onKeyDown}
       className={clases(
-        "tocable inline-flex h-(--alto-control) shrink-0 items-center rounded-full border-[1.5px] font-extrabold whitespace-nowrap text-texto",
+        "tocable inline-flex h-(--alto-control) shrink-0 items-center rounded-full border-[1.5px] font-extrabold whitespace-nowrap text-texto disabled:opacity-40",
         compacta ? "gap-1.5 text-secundario" : "gap-2 text-cuerpo",
         FOCO,
         elegida ? clases("border-accion-suave bg-accion-suave", compacta ? "pr-2.5 pl-1.5" : "pr-4 pl-2.5") : clases("border-borde-pastilla bg-superficie", compacta ? "px-2.5" : "px-4"),
@@ -147,8 +154,11 @@ export function GrupoOpciones<T extends string>({
   etiqueta,
   compacta = false,
 }: {
-  /** Con `descripcion`, cada opción es una tarjeta con su texto completo debajo (una debajo de la otra). */
-  opciones: { id: T; texto: ReactNode; descripcion?: ReactNode }[];
+  /**
+   * Con `descripcion`, cada opción es una tarjeta con su texto completo debajo (una debajo de la otra). `deshabilitada`: no se
+   * puede elegir (una variante agotada) y el texto dice por qué.
+   */
+  opciones: { id: T; texto: ReactNode; descripcion?: ReactNode; deshabilitada?: boolean }[];
   valor: T | null;
   alCambiar: (id: T) => void;
   titulo?: string;
@@ -159,7 +169,7 @@ export function GrupoOpciones<T extends string>({
   const id = useId();
   const detalladas = opciones.some((o) => o.descripcion !== undefined);
   const props = useRadiogrupo(
-    opciones.map((o) => o.id),
+    opciones.filter((o) => !o.deshabilitada).map((o) => o.id),
     valor,
     alCambiar,
   );
@@ -175,7 +185,7 @@ export function GrupoOpciones<T extends string>({
           detalladas ? (
             <OpcionDetallada key={o.id} elegida={o.id === valor} onClick={() => alCambiar(o.id)} titulo={o.texto} descripcion={o.descripcion} {...props(o.id)} />
           ) : (
-            <Opcion key={o.id} elegida={o.id === valor} compacta={compacta} onClick={() => alCambiar(o.id)} {...props(o.id)}>
+            <Opcion key={o.id} elegida={o.id === valor} compacta={compacta} deshabilitada={o.deshabilitada} onClick={() => alCambiar(o.id)} {...props(o.id)}>
               {o.texto}
             </Opcion>
           ),
