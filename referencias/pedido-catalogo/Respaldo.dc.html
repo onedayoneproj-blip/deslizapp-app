@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Respaldo en Pedidos › Nuevos: los que nadie abrió</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{position:relative;width:390px;color:#174b3a;font-family:'Figtree',sans-serif;overflow:hidden;background:#fff9ee}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.sec{color:#4f6a5e}
+.t-hoja{font-size:24px;line-height:28px;margin:0}
+.t-pant{font-size:32px;line-height:34px;margin:0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.mini{width:48px;height:48px;border-radius:10px;background:#f3ead9;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover}
+.nom{font-size:16px;font-weight:800;line-height:20px}
+.sub{font-size:14px;line-height:18px;color:#4f6a5e}
+.pre{font-size:16px;font-weight:800;white-space:nowrap}
+.btn{height:52px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer}
+.b1{background:#174b3a;color:#fff9ee}
+.b2{background:transparent;color:#174b3a;border:2px solid #174b3a}
+.b3{background:transparent;color:#4f6a5e;height:44px}
+.bp{background:transparent;color:#b4432a;height:44px}
+.bc{height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;border:2px solid #174b3a;background:transparent;color:#174b3a;cursor:pointer;font-family:'Figtree',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.et{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800}
+.et-at{background:#ffe3d6;color:#a8410f}
+.et-ok{background:#dcebe2;color:#1f6b47}
+.et-rosa{background:#f5c9d6;color:#174b3a}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:14px;font-weight:800}
+.campo .in{height:50px;border:2px solid #9c8b6e;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:16px}
+.ph{color:#4f6a5e}
+.velo{position:absolute;inset:0;background:#93a89c}
+.hoja{position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:#fff9ee;padding:10px 20px 30px;display:flex;flex-direction:column;gap:18px}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.x{width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex:none}
+.av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.check{width:24px;height:24px;border-radius:999px;border:2px solid #e7dcc8;flex:none;display:flex;align-items:center;justify-content:center}
+.check.on{background:#174b3a;border-color:#174b3a}
+.mas{width:24px;height:24px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex:none}
+.pasos{display:flex;align-items:flex-start}
+.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-size:13px;font-weight:800;text-align:center}
+.paso .pt{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;z-index:1}
+.paso .ln{position:absolute;top:13px;height:3px;left:calc(50% + 18px);right:calc(-50% + 18px);border-radius:3px}
+.chat{background:#efe5d3 url('img/patron-medio.svg');background-size:120px}
+.burb{background:#cfeedd;border-radius:14px 4px 14px 14px;padding:6px 8px 6px 8px;box-shadow:0 1px 1px rgba(0,0,0,.08);font-size:14.5px;line-height:20px;color:#111b21;position:relative}
+.firma{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:#4f6a5e}
+</style>
+</helmet>
+<div class="raiz" style="width: 390px; height: 520px;">
+
+<div style="position:absolute;inset:0;padding:22px 20px;display:flex;flex-direction:column;gap:16px">
+  <h1 class="f t-pant">Pedidos</h1>
+  <div style="display:flex;gap:8px">
+    <span style="height:36px;padding:0 14px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:800">Nuevos <span style="background:#fff9ee;color:#174b3a;border-radius:999px;padding:0 7px;font-size:12px">2</span></span>
+    <span style="height:36px;padding:0 12px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;display:flex;align-items:center;font-size:14px;font-weight:800;white-space:nowrap">Por despachar</span>
+    <span style="height:36px;padding:0 12px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;display:flex;align-items:center;font-size:14px;font-weight:800;white-space:nowrap">Despachados</span>
+  </div>
+  <div class="lista" style="background:#dcebe2;border-color:#dcebe2;padding:14px 14px 14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer">
+    <span style="width:44px;height:44px;border-radius:999px;background:#fff9ee;display:flex;align-items:center;justify-content:center;flex:none;position:relative"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8.5h13l-1 11a1.5 1.5 0 0 1-1.5 1.4H8a1.5 1.5 0 0 1-1.5-1.4z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg><span style="position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:999px;background:#ff834f;color:#10362a;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">2</span></span>
+    <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="nom">2 del catálogo por registrar</span><span class="sub" style="color:#36584a">Llegaron por WhatsApp. Tócalos y dile quién es.</span></span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+  </div>
+  <div class="lista" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:center"><span class="sub">#1043 · Ahora</span><span class="et et-rosa">Del catálogo</span></div><div style="display:flex;gap:12px;align-items:center"><span class="mini" style="width:56px;height:56px"><img src="img/kiara.webp" alt=""></span><span style="display:flex;flex-direction:column;gap:2px"><span class="f" style="font-size:20px">Carolina Peña</span><span class="sub">3 productos</span></span></div></div>
+  <div class="lista" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:center"><span class="sub">#1042 · Hace 2 h</span><span class="et et-rosa">A mano</span></div><div style="display:flex;gap:12px;align-items:center"><span class="mini" style="width:56px;height:56px"><img src="img/parade.webp" alt=""></span><span style="display:flex;flex-direction:column;gap:2px"><span class="f" style="font-size:20px">Luis Marte</span><span class="sub">1 producto</span></span></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 520}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

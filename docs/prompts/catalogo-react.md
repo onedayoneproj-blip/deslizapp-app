@@ -10,6 +10,7 @@ Antes de empezar lee:
 - `docs/12-catalogo-conectado.md` §0–§9, y sobre todo §5, §6, §7, §8 y §9.
 - **El HTML completo**: `public/catalogos/esencias-michel.html` (casi la mitad del peso son imágenes en base64; para leerlo, quítalas primero). Esa es la referencia de cómo se ve, cómo se mueve y qué dice cada pantalla.
 - `referencias/producto/img/real-*.jpg`: el HTML real con **solo lo nuevo** agregado (carrusel, video, opciones, opción agotada, Avísame, Por encargo, panel «más»). `referencias/producto/LEEME.md` los explica.
+- `referencias/pedido-catalogo/LEEME.md` (tableros `WhatsApp` y `Comprador`: el mensaje y la página del pedido).
 - `docs/11-voz-y-frases.md` para cualquier texto nuevo.
 - `lib/rubros.ts` (campos por rubro, `OCASIONES_NOCHE`, `NOMBRE_PARA`).
 
@@ -156,7 +157,7 @@ En esta parte el comprador ya manda el enlace nuevo. **El registro en el panel y
 1. **Carrito y hoja del pedido**: iguales al HTML, con variantes y "Por encargo" en cada línea.
 2. **"Enviar pedido"**:
    - Llama a `crearSolicitudPedido(slug, líneas, null, dispositivo)`. El precio lo pone la base; si difiere del que se mostraba, se usa el de la base.
-   - Con el `codigo`, abre WhatsApp con el mensaje del tablero 1 del canvas "Pedido del catálogo": saludo de `personalizacion`, una línea por producto ("• Kiara Pink (RD$1,100)", con la variante si la hay), "Total: …", cierre, línea en blanco, "Mi pedido #K7F2QX:" y el enlace `{origen}/pedido/K7F2QX`.
+   - Con el `codigo`, abre WhatsApp con el mensaje del tablero `referencias/pedido-catalogo/capturas/WhatsApp.png`: saludo de `personalizacion`, una línea por producto ("• Kiara Pink (RD$1,100)", con la variante si la hay), "Total: …", cierre, línea en blanco, "Mi pedido #K7F2QX:" y el enlace `{origen}/pedido/K7F2QX`.
    - El enlace usa el origen real de la app, no un dominio inventado.
    - **iPhone**: abrir una pestaña después de un `await` lo bloquea Safari. Abre WhatsApp en la misma pestaña (`location.href`) o deja la pestaña abierta antes del `await`. Elige lo que funcione y pruébalo en la vista de iPhone.
    - **`ProductoNoDisponible`**: tostada con la voz de la marca ("Aaah… alguien se llevó {producto} antes que tú."). Ese producto pasa a agotado en el carrito, se recarga el catálogo y no se envía nada.
@@ -172,7 +173,7 @@ En esta parte el comprador ya manda el enlace nuevo. **El registro en el panel y
      - La etiqueta "1 de 3" ya no dice "vence en 24 h".
    - **Vencido**: si `estado` es `vencido`, una pantalla corta "Este pedido venció" con el mismo botón.
    - **No existe**: lo mismo, con otro texto.
-   - **Vista previa en WhatsApp**: `generateMetadata` arma la tarjeta del tablero 1: "Tu pedido con {tienda}", "3 productos · RD$5,600" y la foto del primero.
+   - **Vista previa en WhatsApp**: `generateMetadata` arma la tarjeta de ese mismo tablero: "Tu pedido con {tienda}", "3 productos · RD$5,600" y la foto del primero.
 4. **No toques todavía**:
    - `url_catalogo`.
    - `public/catalogos/esencias-michel.html`.

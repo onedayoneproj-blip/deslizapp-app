@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tienda: Registrar pedido</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&family=Figtree:wght@400;600;700;800&family=Caveat:wght@600;700&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.raiz{position:relative;width:390px;color:#174b3a;font-family:'Figtree',sans-serif;overflow:hidden;background:#fff9ee}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.sec{color:#4f6a5e}
+.t-hoja{font-size:24px;line-height:28px;margin:0}
+.t-pant{font-size:32px;line-height:34px;margin:0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.mini{width:48px;height:48px;border-radius:10px;background:#f3ead9;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover}
+.nom{font-size:16px;font-weight:800;line-height:20px}
+.sub{font-size:14px;line-height:18px;color:#4f6a5e}
+.pre{font-size:16px;font-weight:800;white-space:nowrap}
+.btn{height:52px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer}
+.b1{background:#174b3a;color:#fff9ee}
+.b2{background:transparent;color:#174b3a;border:2px solid #174b3a}
+.b3{background:transparent;color:#4f6a5e;height:44px}
+.bp{background:transparent;color:#b4432a;height:44px}
+.bc{height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;border:2px solid #174b3a;background:transparent;color:#174b3a;cursor:pointer;font-family:'Figtree',sans-serif;display:inline-flex;align-items:center;gap:6px}
+.et{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800}
+.et-at{background:#ffe3d6;color:#a8410f}
+.et-ok{background:#dcebe2;color:#1f6b47}
+.et-rosa{background:#f5c9d6;color:#174b3a}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:14px;font-weight:800}
+.campo .in{height:50px;border:2px solid #9c8b6e;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:16px}
+.ph{color:#4f6a5e}
+.velo{position:absolute;inset:0;background:#93a89c}
+.hoja{position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:#fff9ee;padding:10px 20px 30px;display:flex;flex-direction:column;gap:18px}
+.agarre{display:flex;justify-content:center}.agarre span{width:40px;height:5px;border-radius:999px;background:#e7dcc8}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.x{width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex:none}
+.av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.check{width:24px;height:24px;border-radius:999px;border:2px solid #e7dcc8;flex:none;display:flex;align-items:center;justify-content:center}
+.check.on{background:#174b3a;border-color:#174b3a}
+.mas{width:24px;height:24px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex:none}
+.pasos{display:flex;align-items:flex-start}
+.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-size:13px;font-weight:800;text-align:center}
+.paso .pt{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;z-index:1}
+.paso .ln{position:absolute;top:13px;height:3px;left:calc(50% + 18px);right:calc(-50% + 18px);border-radius:3px}
+.chat{background:#efe5d3 url('img/patron-medio.svg');background-size:120px}
+.burb{background:#cfeedd;border-radius:14px 4px 14px 14px;padding:6px 8px 6px 8px;box-shadow:0 1px 1px rgba(0,0,0,.08);font-size:14.5px;line-height:20px;color:#111b21;position:relative}
+.firma{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:#4f6a5e}
+</style>
+</helmet>
+<div class="raiz" style="width: 390px; height: 1260px;">
+
+<div class="velo"></div>
+<div class="hoja" style="top:44px">
+  <div class="agarre"><span></span></div>
+  <sc-if value="{{ abierto }}" hint-placeholder-val="{{ true }}">
+    <div class="cab"><div style="display:flex;flex-direction:column;gap:2px"><h2 class="f t-hoja">Pedido del catálogo</h2><span class="sub">#K7F2QX · hace 5 min</span></div><span class="x"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+    <div class="lista">
+      <div class="fila"><span class="mini"><img src="img/kiara.webp" alt=""></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="nom">Kiara Pink</span><span class="sub">EDP 100 ml</span></span><span class="pre">RD$1,100</span></div><div class="fila"><span class="mini"><img src="img/mayar.webp" alt=""></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="nom">Mayar Natural Intense</span><span class="sub">EDP 100 ml</span></span><span class="pre">RD$3,200</span></div>
+      <div class="fila" style="align-items:flex-start;flex-wrap:wrap;opacity:{{ oxOpac }}">
+        <span class="mini"><img src="img/oxana.webp" alt=""></span>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+          <span class="nom" style="text-decoration:{{ oxTachado }}">Oxana Black</span>
+          <sc-if value="{{ oxPendiente }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;color:#a8410f"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a8410f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg> Se agotó después de que lo pidió</span></sc-if>
+          <sc-if value="{{ oxEncargo }}" hint-placeholder-val="{{ false }}"><span><span class="et et-rosa">Por encargo · 7 a 10 días</span></span></sc-if>
+          <sc-if value="{{ oxQuitado }}" hint-placeholder-val="{{ false }}"><span class="sub">Quitado del pedido</span></sc-if>
+        </span>
+        <span class="pre" style="text-decoration:{{ oxTachado }}">RD$1,300</span>
+        <sc-if value="{{ oxPendiente }}" hint-placeholder-val="{{ true }}">
+          <div style="width:100%;display:flex;gap:8px;padding-left:60px"><button class="bc" onClick="{{ quitar }}">Quitar</button><button class="bc" onClick="{{ encargo }}">Por encargo</button></div>
+        </sc-if>
+        <sc-if value="{{ oxResuelto }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;padding-left:60px"><button class="bc" style="border:none;padding:0;height:28px;color:#4f6a5e" onClick="{{ deshacer }}">Deshacer</button></div>
+        </sc-if>
+      </div>
+      <div class="fila" style="justify-content:space-between"><span class="nom">Total</span><span class="f" style="font-size:22px">{{ total }}</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="f" style="font-size:20px">¿Quién te escribió?</span>
+      <div class="campo"><span class="in" style="border-color:#e7dcc8"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span class="ph">Busca o crea un cliente</span></span></div>
+      <div class="lista"><div class="fila" style="cursor:pointer" onClick="{{ elegirNuevo }}"><span class="mas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span class="nom">Nuevo cliente</span><span class="sub">Nombre, WhatsApp y nota</span></span><span class="{{ nuevoCheck }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div></div>
+      <span class="sub" style="font-weight:800;color:#174b3a">Recientes</span>
+      <div class="lista">
+        <sc-for list="{{ clientes }}" as="c" hint-placeholder-count="2">
+          <div class="fila" style="cursor:pointer" onClick="{{ c.elegir }}">
+            <span class="av" style="background:{{ c.color }}">{{ c.ini }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="nom">{{ c.nombre }}</span><span class="sub">{{ c.sub }}</span></span>
+            <span class="{{ c.checkClase }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+          </div>
+        </sc-for>
+        
+      </div>
+      <sc-if value="{{ esNuevo }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="campo"><label>Nombre</label><span class="in" style="border-color:#174b3a">Paola Reyes</span></div>
+          <div class="campo"><label>WhatsApp</label><span class="in"><span class="ph">809 000 0000</span></span></div>
+          <button class="bc" style="align-self:flex-start;border-color:#e7dcc8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5"/></svg> Elegir de mis contactos</button>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <button class="btn b1" style="opacity:{{ regOpac }}" onClick="{{ registrar }}">Registrar pedido</button>
+      <button class="btn bp">No es un pedido</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ registrado }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding-bottom:60px">
+      <span style="width:72px;height:72px;border-radius:999px;background:#174b3a;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="f" style="font-size:28px">Registrado.</span>
+      <span class="sub" style="font-size:16px;line-height:22px;max-width:280px">Ya está en Nuevos. {{ quien }} ya lo ve confirmado.</span>
+      <span class="cav" style="font-size:22px;color:#a8410f">Del chat a tu lista, sin capturas.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn b1">Ver pedido</button>
+      <button class="btn b3" onClick="{{ reiniciar }}">Volver a empezar (solo en el tablero)</button>
+    </div>
+  </sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1260}}'>
+class Component extends DCLogic {
+  
+  state = { ox: 'pendiente', cliente: null, registrado: false };
+  renderVals() {
+    const s = this.state;
+    const nombres = { carolina: 'Carolina', carla: 'Carla', nuevo: 'Paola' };
+    const clientes = [["carolina", "Carolina Peña", "809-555-0142 · 3 pedidos", "#dcebe2"], ["carla", "Carla Méndez", "829-555-0198 · 1 pedido", "#f5c9d6"]].map(([id, nombre, sub, color]) => ({
+      nombre, sub, color, ini: nombre.split(' ').map(p => p[0]).join(''),
+      checkClase: s.cliente === id ? 'check on' : 'check',
+      elegir: () => this.setState({ cliente: id }),
+    }));
+    const total = s.ox === 'quitado' ? 'RD$4,300' : 'RD$5,600';
+    const listo = s.cliente && s.ox !== 'pendiente';
+    return {
+      abierto: !s.registrado, registrado: s.registrado,
+      oxPendiente: s.ox === 'pendiente', oxEncargo: s.ox === 'encargo', oxQuitado: s.ox === 'quitado',
+      oxResuelto: s.ox !== 'pendiente',
+      oxOpac: s.ox === 'quitado' ? '.55' : '1', oxTachado: s.ox === 'quitado' ? 'line-through' : 'none',
+      total, clientes,
+      nuevoCheck: s.cliente === 'nuevo' ? 'check on' : 'check', esNuevo: s.cliente === 'nuevo',
+      regOpac: listo ? '1' : '.4',
+      quien: nombres[s.cliente] || '',
+      quitar: () => this.setState({ ox: 'quitado' }),
+      encargo: () => this.setState({ ox: 'encargo' }),
+      deshacer: () => this.setState({ ox: 'pendiente' }),
+      elegirNuevo: () => this.setState({ cliente: 'nuevo' }),
+      registrar: () => { if (listo) this.setState({ registrado: true }); },
+      reiniciar: () => this.setState({ ox: 'pendiente', cliente: null, registrado: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>
