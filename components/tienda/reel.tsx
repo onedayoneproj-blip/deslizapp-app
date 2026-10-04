@@ -296,6 +296,7 @@ export function Reel({
           }
         >
           <Icono nombre={agotado ? "wa" : "heart"} />
+          {!agotado && p.likes > 0 && <i className="cnt">{p.likes}</i>}
           <span>{agotado ? "Avísame" : "Lo quiero"}</span>
         </button>
         {(t.personalizacion.secciones as Record<string, unknown> | undefined)

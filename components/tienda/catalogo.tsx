@@ -463,6 +463,7 @@ export function Catalogo({
     if (teniaProducto !== tieneProducto)
       fuente.current
         ?.registrarAaah(slug, p.slug, dispositivo(), tieneProducto)
+        .then(likes=>{if(typeof likes === "number")setC(datos=>datos?.tienda.slug===slug ? {...datos,productos:datos.productos.map(x=>x.id===p.id?{...x,likes}:x)} : datos);})
         .catch(() => {
           /* El pedido local sigue disponible aunque falle el contador. */
         });

@@ -6,17 +6,23 @@ import "./globals.css";
 const fredoka = Fredoka({
   variable: "--font-fredoka",
   subsets: ["latin"],
+  // Las rutas públicas usan la marca de la tienda; carga esta fuente solo si se usa.
+  preload: false,
   axes: ["wdth"],
 });
 
 const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
+  // Las rutas públicas usan la marca de la tienda; carga esta fuente solo si se usa.
+  preload: false,
 });
 
 const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
+  // Las rutas públicas usan la marca de la tienda; carga esta fuente solo si se usa.
+  preload: false,
 });
 
 export const metadata: Metadata = {
