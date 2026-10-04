@@ -6,6 +6,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { diaMesCorto } from "@/lib/formato";
 import { candidatosAEspacio, DIAS_SIN_MOVIMIENTO, type VentasProducto } from "@/lib/inventario-catalogo";
+import { productoDeClave } from "@/lib/inventario-catalogo";
 import type { Producto } from "@/lib/types";
 import { BotonVerMas, useVerMas } from "../ver-mas";
 import { Boton, CheckSeleccion, FilaLista, ListaAgrupada, useToastUI } from "../ui";
@@ -37,7 +38,7 @@ export function VistaHacerEspacio({
   const { mostrarToast } = useToastUI();
   const [ahora] = useState(() => Date.now());
   const candidatos = useMemo(
-    () => candidatosAEspacio(productos, ventas, ahora, new Set(Object.keys(enReposicion ?? {}))),
+    () => candidatosAEspacio(productos, ventas, ahora, new Set(Object.keys(enReposicion ?? {}).map(productoDeClave))),
     [productos, ventas, ahora, enReposicion],
   );
   const [elegidos, setElegidos] = useState<Set<string>>(() => new Set(candidatos.agotados.filter((a) => a.marcado).map((a) => a.producto.id)));

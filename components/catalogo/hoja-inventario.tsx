@@ -7,7 +7,7 @@ import { BotonVerMas, useVerMas } from "../ver-mas";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { DIAS_SIN_MOVIMIENTO, etiquetaSalud, lecturaInventario, porcentajeDe, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, ventasPorProducto } from "@/lib/inventario-catalogo";
+import { DIAS_SIN_MOVIMIENTO, etiquetaSalud, lecturaInventario, porcentajeDe, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, stockParaSalud, ventasPorProducto } from "@/lib/inventario-catalogo";
 import { resumenDelPlan, textosDelPlan } from "@/lib/plan-catalogo";
 import type { Producto } from "@/lib/types";
 import { Hoja } from "../hoja";
@@ -15,6 +15,7 @@ import { IconoChevronDerecha, IconoPedidos, IconoReloj } from "../iconos";
 import { BotonVolver } from "../selector-busqueda";
 import { usePanelUI } from "../panel/ui";
 import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, useToastUI } from "../ui";
+import { DetalleStock, Esperan } from "./stock-producto";
 import { COLOR_STOCK, DonaInventario } from "./dona-inventario";
 import { MiniaturaProducto } from "./miniatura-producto";
 import { VistaHacerEspacio } from "./vista-hacer-espacio";
@@ -141,7 +142,9 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
   const agotadosAVista = productos.filter((p) => p.activo && p.stock === 0);
   const quietos = sinMovimiento(productos, ventas, ahora);
   const vendidosAgotados = reponer.vendidos.length;
-  const paraReponer = [...reponer.vendidos, ...reponer.sinVentas];
+  // También cuentan los productos con alguna opción agotada aunque queden de otras (se reponen por variante).
+  const conOpcionAgotada = reponer.seAcaban.filter((l) => (l.producto.variantes ?? []).some((v) => v.activa && v.stock === 0));
+  const paraReponer = [...reponer.vendidos, ...reponer.sinVentas, ...conOpcionAgotada];
 
   const ocultarAgotados = async () => {
     if (ocultando) return;
@@ -310,7 +313,7 @@ function VistaSinMovimiento({ productos, ventas, ahora, alCerrarHoja }: { produc
       </p>
       <ListaAgrupada etiqueta="Productos sin movimiento">
         {quietos.map(({ producto: p }) => (
-          <FilaLista key={p.id} inicio={<MiniaturaProducto producto={p} />} titulo={p.nombre} detalle={p.stock === 1 ? "Queda 1" : `${p.stock} en stock`} />
+          <FilaLista key={p.id} inicio={<MiniaturaProducto producto={p} />} titulo={p.nombre} detalle={<DetalleStock producto={p} />} />
         ))}
       </ListaAgrupada>
       <Boton
@@ -331,8 +334,14 @@ function VistaSinMovimiento({ productos, ventas, ahora, alCerrarHoja }: { produc
 /** Vista interna de un grupo de la leyenda: sus productos visibles; tocar uno abre su hoja. */
 function VistaGrupoInventario({ productos, grupo, alCerrarHoja }: { productos: Producto[]; grupo: GrupoInventario; alCerrarHoja: () => void }) {
   const router = useRouter();
-  const cumple = (p: Producto) => p.activo && (grupo === "agotados" ? p.stock === 0 : grupo === "quedan" ? p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO : p.stock === null || p.stock > STOCK_BAJO);
-  const lista = productos.filter(cumple).sort((a, b) => (a.stock ?? Infinity) - (b.stock ?? Infinity) || a.nombre.localeCompare(b.nombre, "es"));
+  const { avisosPendientes } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const { data: avisos } = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId));
+  const cumple = (p: Producto) => {
+    const stock = stockParaSalud(p);
+    return p.activo && (grupo === "agotados" ? stock === 0 : grupo === "quedan" ? stock !== null && stock > 0 && stock <= STOCK_BAJO : stock === null || stock > STOCK_BAJO);
+  };
+  const lista = productos.filter(cumple).sort((a, b) => (stockParaSalud(a) ?? Infinity) - (stockParaSalud(b) ?? Infinity) || a.nombre.localeCompare(b.nombre, "es"));
   const paginada = useVerMas(lista, `grupo:${grupo}`);
   return (
     <div className="pb-6">
@@ -342,7 +351,8 @@ function VistaGrupoInventario({ productos, grupo, alCerrarHoja }: { productos: P
             key={p.id}
             inicio={<MiniaturaProducto producto={p} atenuada={p.stock === 0} />}
             titulo={p.nombre}
-            detalle={p.stock === null ? "Sin control de stock" : p.stock === 0 ? "Agotado" : p.stock === 1 ? "Queda 1" : `${p.stock} en stock`}
+            detalle={<DetalleStock producto={p} />}
+            accion={(avisos ?? []).some((a) => a.productoId === p.id) ? <Esperan producto={p} avisos={(avisos ?? []).filter((a) => a.productoId === p.id)} /> : undefined}
             onClick={() => {
               alCerrarHoja();
               router.push(`/catalogo/${p.id}`, { scroll: false });

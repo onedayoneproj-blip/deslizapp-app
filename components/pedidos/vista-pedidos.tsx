@@ -157,6 +157,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
           <span className="min-w-0 truncate text-secundario text-texto-secundario">
             {unidades} {unidades === 1 ? "producto" : "productos"}
           </span>
+          {p.items.some((i) => i.porEncargo) && <Etiqueta tono="atencion">Por encargo</Etiqueta>}
         </div>
         <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
       </div>

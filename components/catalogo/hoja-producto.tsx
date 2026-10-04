@@ -2,24 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { CREDITOS_POR_RETOQUE, RETOQUE_REAL } from "@/lib/config";
+import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { CreditosInsuficientes, mensajeDeError } from "@/lib/data/errores";
+import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { reducirFoto, retocarFoto } from "@/lib/imagen";
-import type { Producto } from "@/lib/types";
+import type { Detalles } from "@/lib/rubros";
+import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/types";
 import { BotonVolver } from "../selector-busqueda";
-import { Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
-import { IconoCamara, IconoCreditos, IconoMas, IconoMenos } from "../iconos";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
-import { Boton, Campo, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, ListaAgrupada, useToastUI } from "../ui";
+import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
+import { mediosIniciales, mediosParaGuardar, retoquesPendientes, SeccionMedios, type MedioBorrador } from "./ficha-medios";
+import { claveVariante, combinaciones, HojaMotivoVariantes, SeccionOpciones, variantesBase } from "./ficha-opciones";
+import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
@@ -110,6 +111,7 @@ function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }:
   useAvisarAlSalir(inventario.pendiente || inventario.incierto);
   const confirmarSalida = useConfirmarSalida();
   const navegar = (ruta: string) => confirmarSalida(() => alNavegar(ruta));
+  const activas = (producto.variantes ?? []).filter((v) => v.activa);
   return <div className="flex flex-col gap-4 text-texto">
     <div className="flex items-start gap-4">
       <div className="size-30 shrink-0 overflow-hidden rounded-radio-m bg-superficie-hundida">
@@ -121,8 +123,16 @@ function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }:
         {!producto.activo && <Etiqueta className="mt-1 self-start">Oculto</Etiqueta>}
       </div>
     </div>
-    <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
-      alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
+    {activas.length > 0 ? (
+      // Con opciones, el stock es por combinación: se cambia en la ficha.
+      <ListaAgrupada etiqueta="Stock e historial">
+        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={() => navegar(`/catalogo/${producto.id}/editar`)} />
+        <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
+      </ListaAgrupada>
+    ) : (
+      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+        alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
+    )}
     {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
     {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
     {/* Con cambios de stock sin guardar, "Guardar cambios" es el único botón principal a la vista */}
@@ -145,32 +155,47 @@ function FormularioProducto({
   alTerminar: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
-  const { crearProducto, usarCreditosRetoque } = useData();
+  const { crearProducto, usarCreditosRetoque, guardarVariantes, ajustarStock } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirPlan, abrirInventario } = usePanelUI();
+  const { abrirInventario } = usePanelUI();
   const toast = useToast();
   const { mostrarToast: mostrarToastUI } = useToastUI();
-  const entradaFoto = useRef<HTMLInputElement>(null);
+  const rubro = tienda?.rubro ?? "general";
 
-  const [foto, setFoto] = useState<string | null>(producto?.fotos[0] ?? null);
-  const [fotoNueva, setFotoNueva] = useState(false);
-  const [procesandoFoto, setProcesandoFoto] = useState(false);
-  // Retoque (simulado): `retocada` es la versión con luz de `foto`, la misma que se guarda.
-  const [retocar, setRetocar] = useState(false);
-  const [vista, setVista] = useState<"antes" | "despues">("despues");
-  const [retocada, setRetocada] = useState<{ de: string; url: string } | null>(null);
-  const [procesandoRetoque, setProcesandoRetoque] = useState(false);
+  const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
   const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
+  const [opciones, setOpciones] = useState<OpcionProducto[]>(producto?.opciones ?? []);
+  const base = useMemo(() => variantesBase(producto), [producto]);
+  const [stockVariantes, setStockVariantes] = useState<Record<string, number>>(() =>
+    Object.fromEntries([...base.entries()].map(([k, v]) => [k, v.stock ?? 0])),
+  );
+  const [detalles, setDetalles] = useState<Detalles>(producto?.detalles ?? {});
   const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
   const [eligiendoColeccion, setEligiendoColeccion] = useState(false);
   const [activo, setActivo] = useState(producto?.activo ?? true);
+  const [porEncargo, setPorEncargo] = useState(producto?.porEncargo ?? false);
+  const [encargoTexto, setEncargoTexto] = useState(producto?.encargoTexto ?? "");
   const [guardando, setGuardando] = useState(false);
-  // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta (de la foto solo importa si cambió, no su contenido)
-  const firma = JSON.stringify({ hayFoto: foto !== null, fotoNueva, retocar, nombre, precio, stock: producto ? null : stock, categoria, nuevaColeccion, activo });
+  const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
+
+  const tieneOpciones = opciones.length > 0;
+  const combos = useMemo(() => combinaciones(opciones), [opciones]);
+  // Lo que baja en variantes que ya existían pide motivo (como el stock del producto); lo que sube es reposición.
+  const bajadas = combos.reduce((s, c) => {
+    const b = base.get(claveVariante(c));
+    const quiere = stockVariantes[claveVariante(c)] ?? 0;
+    return b && b.stock !== null && quiere < b.stock ? s + (b.stock - quiere) : s;
+  }, 0);
+
+  // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
+  const firma = JSON.stringify({
+    medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40)]),
+    nombre, precio, stock: producto ? null : stock, opciones, stockVariantes, detalles, categoria, nuevaColeccion, activo, porEncargo, encargoTexto,
+  });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(firma !== firmaInicial || inventario.pendiente || inventario.incierto);
 
@@ -178,6 +203,7 @@ function FormularioProducto({
     const todas = new Set(productos.map((p) => p.categoria).filter((c): c is string => Boolean(c)));
     return [...todas].sort((a, b) => a.localeCompare(b, "es"));
   }, [productos]);
+  const sugerencias = useMemo(() => sugerenciasDeDetalles(productos.filter((p) => p.id !== producto?.id).map((p) => p.detalles)), [productos, producto?.id]);
 
   const coleccionElegida = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
 
@@ -192,53 +218,20 @@ function FormularioProducto({
   const avisarLleno = () =>
     mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
-  const creditos = tienda?.creditosRetoque ?? 0;
-  const alcanzan = creditos >= CREDITOS_POR_RETOQUE;
-  const retoqueActivo = retocar && alcanzan && Boolean(foto);
-  const retoqueListo = retoqueActivo && retocada !== null && retocada.de === foto;
-  const yaRetocada = Boolean(producto?.fotoRetocada) && !fotoNueva;
-
-  const prepararRetoque = async (src: string) => {
-    setProcesandoRetoque(true);
-    try {
-      setRetocada({ de: src, url: await retocarFoto(src) });
-    } catch {
-      setRetocar(false);
-      toast("Esta foto no se dejó retocar. Prueba con otra.");
-    } finally {
-      setProcesandoRetoque(false);
-    }
+  const cambiarOpciones = (nuevas: OpcionProducto[]) => {
+    // Al pasar a opciones, el stock vive en cada combinación: un ajuste suelto del producto se descarta.
+    if (nuevas.length > 0 && opciones.length === 0 && inventario.pendiente) inventario.recuperar();
+    setOpciones(nuevas);
   };
 
-  const elegirFoto = async (archivo: File | undefined) => {
-    if (!archivo) return;
-    setProcesandoFoto(true);
-    try {
-      const nueva = await reducirFoto(archivo);
-      setFoto(nueva);
-      setFotoNueva(true);
-      // Foto recién subida: el retoque viene prendido si hay créditos (como en el prototipo).
-      setRetocar(alcanzan);
-      setVista("despues");
-      if (alcanzan) void prepararRetoque(nueva);
-    } catch {
-      toast("Esa foto no quiso cargar. Prueba con otra.");
-    } finally {
-      setProcesandoFoto(false);
-    }
-  };
+  const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
 
-  const alternarRetoque = (prender: boolean) => {
-    setRetocar(prender);
-    if (!prender || !foto) return;
-    setVista("despues");
-    if (retocada?.de !== foto) void prepararRetoque(foto);
-  };
-
-  const retoqueBloqueado = () =>
-    toast(!foto ? "Primero la foto. Después le ponemos la luz." : "Te faltan créditos para retocar. Se recargan el día 1.");
-
-  const guardar = async (motivo: import("@/lib/types").MotivoAjusteInventario = "reposicion", nota: string | null = null): Promise<boolean> => {
+  const guardar = async (
+    motivo: MotivoAjusteInventario = "reposicion",
+    nota: string | null = null,
+    motivoVariantes: MotivoAjusteInventario = "correccion_inventario",
+    notaVariantes: string | null = null,
+  ): Promise<boolean> => {
     if (guardando || inventario.guardando || inventario.incierto) return false;
     const precioNumero = Number(precio);
     const coleccion = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
@@ -246,47 +239,67 @@ function FormularioProducto({
       toast("Ponle nombre y precio. Lo demás lo hacemos nosotros.");
       return false;
     }
-    if (!foto) {
+    if (preparando) {
+      toast("Espera a que el video termine de prepararse.");
+      return false;
+    }
+    const final = mediosParaGuardar(medios);
+    const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
+    if (fotos.length === 0) {
       toast("Falta la foto. El producto es la estrella.");
       return false;
     }
-    setGuardando(true);
-    const usarRetoque = retoqueListo;
-    if (usarRetoque && !producto) {
-      try {
-        await usarCreditosRetoque(tiendaId, 1);
-      } catch (e) {
-        toast(e instanceof CreditosInsuficientes ? "Te faltan créditos para retocar. Se recargan el día 1." : mensajeDeError(e));
-        setRetocar(false);
-        setGuardando(false);
-        return false;
-      }
+    const retoques = retoquesPendientes(medios);
+    if (retoques > 0 && (tienda?.creditosRetoque ?? 0) < retoques * CREDITOS_POR_RETOQUE) {
+      toast("Te faltan créditos para retocar. Se recargan el día 1.");
+      return false;
     }
+    setGuardando(true);
+    const fotoRetocada = final.find((m) => m.tipo === "foto")?.tipo === "foto" ? (final.find((m) => m.tipo === "foto") as { retocada: boolean }).retocada : false;
+    const catalogo = { medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null) };
+    const variantes = combos.map((c) => {
+      const k = claveVariante(c);
+      const b = base.get(k);
+      // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
+      return { valores: c, stock: b ? b.stock : (stockVariantes[k] ?? 0), precio: b?.precio ?? null };
+    });
     try {
-      const fotoFinal = usarRetoque ? retocada!.url : foto;
-      const fotos = producto ? [fotoFinal, ...producto.fotos.slice(1)] : [fotoFinal];
-      const fotoRetocada = usarRetoque || yaRetocada;
-      const datos = { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock, categoria: coleccion, activo: activo && !bloqueaVisible };
-      const menos = `−${CREDITOS_POR_RETOQUE} créditos.`;
-      if (producto) {
-        const bien = await inventario.guardar({
-          nombre: datos.nombre, precio: datos.precio, fotos: datos.fotos,
-          fotoRetocada: datos.fotoRetocada, categoria: datos.categoria, activo: datos.activo,
-        }, usarRetoque, motivo, nota);
-        if (!bien) { setGuardando(false); return false; }
-        toast(usarRetoque ? `Guardado y retocado${producto.fotoRetocada ? " otra vez" : ""}. ${menos}` : "Guardado. El catálogo ya se enteró.");
-      } else {
-        await crearProducto(tiendaId, { ...datos, destacado: false, likes: 0 });
-        toast(
-          usarRetoque
-            ? `Publicado y retocado. ${menos}`
-            : activo && !bloqueaVisible
-              ? "Publicado. Ya se está deslizando."
-              : "Guardado como oculto. Nadie lo ve hasta que lo prendas.",
+      if (!producto) {
+        // Una sola llamada: la ficha, el retoque y las variantes (si algo falla, no queda nada a medias).
+        await crearProducto(
+          tiendaId,
+          {
+            nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
+            activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
+          },
+          { retoques, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
+        toast(retoques > 0 ? `Publicado y retocado. −${retoques * CREDITOS_POR_RETOQUE} créditos.` : activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
+        alTerminar();
+        return true;
       }
-      if (producto) inventario.finalizar(alTerminar);
-      else alTerminar();
+      // Más de un retoque: el último lo cobra el guardado (junto con la ficha), los demás antes.
+      if (retoques > 1) await usarCreditosRetoque(tiendaId, retoques - 1);
+      const bien = await inventario.guardar(
+        { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, activo: activo && !bloqueaVisible, ...catalogo },
+        retoques > 0, motivo, nota,
+      );
+      if (!bien) { setGuardando(false); return false; }
+      const antes = [...base.keys()].sort().join(",");
+      const ahora = combos.map(claveVariante).sort().join(",");
+      if (JSON.stringify(opciones) !== JSON.stringify(producto.opciones) || antes !== ahora) {
+        await guardarVariantes(tiendaId, producto.id, opciones, variantes);
+      }
+      for (const c of combos) {
+        const k = claveVariante(c);
+        const b = base.get(k);
+        const quiere = stockVariantes[k] ?? 0;
+        if (!b || b.stock === null || quiere === b.stock) continue;
+        const delta = quiere - b.stock;
+        await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
+      }
+      toast(retoques > 0 ? `Guardado y retocado. −${retoques * CREDITOS_POR_RETOQUE} créditos.` : "Guardado. El catálogo ya se enteró.");
+      inventario.finalizar(alTerminar);
       return true;
     } catch (e) {
       toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
@@ -295,180 +308,62 @@ function FormularioProducto({
     }
   };
 
-  const campo =
-    "h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] border-borde bg-white px-3.5 text-base text-bosque outline-none focus:border-bosque";
+  const alGuardar = () => {
+    if (producto && tieneOpciones && bajadas > 0) setPidiendoMotivo(true);
+    else if (producto) inventario.pedirGuardar(guardar);
+    else void guardar();
+  };
 
   return (
-    <div className="flex flex-col gap-3.5">
-      {/* Foto */}
-      <input
-        ref={entradaFoto}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(e) => {
-          void elegirFoto(e.target.files?.[0]);
-          e.target.value = "";
-        }}
+    <div className="flex flex-col gap-5">
+      <SeccionMedios medios={medios} alCambiar={setMedios} creditos={tienda?.creditosRetoque ?? 0} avisar={toast} />
+
+      <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Kiara Pink" maxLength={120} />
+      <Campo
+        etiqueta="Precio (RD$)"
+        inputMode="numeric"
+        value={precio}
+        onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
+        placeholder="0"
+        className="[&_input]:font-extrabold"
       />
-      {foto ? (
-        <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-arena">
-          {/* Antes (abajo) y después (encima): se pasa de una a otra con un fundido, sin corte. */}
-          <Foto src={foto} alt="Foto del producto" className="h-full w-full" sizes="440px" />
-          {retocada?.de === foto && (
-            <span
-              aria-hidden={!(retoqueListo && vista === "despues")}
-              className="absolute inset-0 transition-opacity duration-(--mov-normal) ease-(--curva-salida)"
-              style={{ opacity: retoqueListo && vista === "despues" ? 1 : 0 }}
-            >
-              <Foto src={retocada.url} alt="Foto del producto, retocada" className="h-full w-full" sizes="440px" />
-            </span>
-          )}
-          {retoqueActivo && (
-            <div role="group" aria-label="Comparar foto" className="mov-aparece absolute top-3 left-3 grid grid-cols-2 rounded-full bg-papel/90 p-[3px]">
-              {/* Indicador que se desliza entre Antes y Después */}
-              <span
-                aria-hidden="true"
-                className="absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-full bg-bosque transition-transform duration-(--mov-normal) ease-(--curva-salida)"
-                style={{ transform: vista === "despues" ? "translateX(100%)" : "none" }}
-              />
-              {(["antes", "despues"] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setVista(v)}
-                  aria-pressed={vista === v}
-                  className={`tocable relative h-[34px] rounded-full px-3.5 before:absolute before:-inset-y-[5px] before:inset-x-0 before:content-[''] text-[13px] font-extrabold ${vista === v ? "text-papel" : "text-bosque"}`}
-                >
-                  {v === "antes" ? "Antes" : "Después"}
-                </button>
-              ))}
-            </div>
-          )}
-          {procesandoRetoque && (
-            <div className="mov-aparece absolute inset-0 grid place-items-center bg-papel/40">
-              <span className="rounded-full bg-bosque px-4 py-2 text-sm font-extrabold text-papel">Poniéndole la luz…</span>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => entradaFoto.current?.click()}
-            className="absolute bottom-3 left-3 flex h-11 items-center gap-1.5 rounded-full bg-papel/95 px-3.5 text-[13px] font-extrabold"
-          >
-            <IconoCamara tamano={18} /> Cambiar foto
-          </button>
-          {((retoqueListo && vista === "despues") || (!retoqueActivo && yaRetocada)) && (
-            <span className="mov-aparece absolute right-3 bottom-3 rounded-full bg-bosque px-3 py-1.5 text-[12.5px] font-extrabold text-papel">
-              {retoqueActivo ? "Retocada ✦" : "Ya está retocada"}
-            </span>
-          )}
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => entradaFoto.current?.click()}
-          disabled={procesandoFoto}
-          className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-apagado bg-white text-[15px] font-bold text-suave"
-        >
-          <IconoCamara tamano={40} />
-          {procesandoFoto ? "Acomodando la foto…" : "Sube la foto del celular"}
-          <span className="font-mano text-[19px] font-semibold text-mandarina-texto">nosotros le ponemos la luz</span>
-        </button>
+
+      {(producto?.tipo ?? "producto") === "producto" && (
+        <SeccionOpciones
+          rubro={rubro}
+          opciones={opciones}
+          alCambiarOpciones={cambiarOpciones}
+          stock={Object.fromEntries(combos.map((c) => [claveVariante(c), stockVariantes[claveVariante(c)] ?? 0]))}
+          alCambiarStock={(k, v) => setStockVariantes((s) => ({ ...s, [k]: v }))}
+          deshabilitado={guardando}
+        />
       )}
 
-      {/* Retoque */}
-      <div
-        className={`relative isolate flex flex-col gap-2.5 overflow-hidden rounded-[22px] px-4 py-3.5 ${
-          !alcanzan ? "bg-arena" : retoqueActivo ? "bg-rosa text-bosque-oscuro" : "bg-rosa"
-        }`}
-      >
-        {/* Al prender el retoque, la tarjeta pasa a Mandarina con un fundido (capa de opacidad). */}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-mandarina transition-opacity duration-(--mov-normal) ease-(--curva-salida)"
-          style={{ opacity: retoqueActivo ? 1 : 0 }}
-        />
-        <div className="flex items-center gap-3">
-          <span className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[14px] bg-bosque text-papel">
-            <IconoCreditos tamano={22} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-2 text-[15.5px] font-extrabold">
-              {yaRetocada ? "Retocar otra vez" : "Retocar foto"}
-              {!RETOQUE_REAL && (
-                <span data-etiqueta-demo className="rounded-full bg-bosque/10 px-2 py-[2px] text-[11px] leading-none font-extrabold tracking-wide text-bosque uppercase">
-                  Demo
-                </span>
-              )}
-            </p>
-            <p className="text-[13px] font-semibold">
-              {!alcanzan
-                ? `Te faltan ${CREDITOS_POR_RETOQUE - creditos} créditos (tienes ${creditos}). Se recargan el día 1.`
-                : retoqueActivo
-                  ? `Usa ${CREDITOS_POR_RETOQUE} créditos: te quedan ${creditos} → ${creditos - CREDITOS_POR_RETOQUE}.`
-                  : `Luz, fondo y color de estudio. Usa ${CREDITOS_POR_RETOQUE} créditos.`}
-            </p>
-          </div>
-          <Interruptor
-            encendido={retoqueActivo}
-            alCambiar={alternarRetoque}
-            etiqueta="Retocar foto"
-            deshabilitado={!alcanzan || !foto}
-            alTocarBloqueado={retoqueBloqueado}
-          />
-        </div>
-        {!alcanzan && (
-          <button type="button" onClick={abrirPlan} className="h-11 rounded-full bg-bosque text-[14.5px] font-extrabold text-papel">
-            Ver plan
-          </button>
-        )}
-      </div>
-
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Nombre
-        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Kiara Pink" className={campo} />
-      </label>
-
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Precio (RD$)
-        <input
-          type="text"
-          inputMode="numeric"
-          value={precio}
-          onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
-          placeholder="0"
-          className={`${campo} font-bold`}
-        />
-      </label>
-
-      {/* Stock */}
-      <div className={producto ? "" : "rounded-[18px] border-[1.5px] border-borde bg-white p-4"}>
-        {producto ? (
-          <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
-            alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || procesandoFoto || procesandoRetoque}/>
-        ) : (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-extrabold">En stock</p>
-                <p className="text-[12.5px] text-suave">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
-              </div>
-              {stock !== null && (
-                <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => setStock(Math.max(0, stock - 1))} aria-label="Quitar uno" className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-arena"><IconoMenos tamano={20} /></button>
-                  <span className="min-w-[34px] text-center font-display text-[22px] tabular-nums" aria-live="polite">{stock}</span>
-                  <button type="button" onClick={() => setStock(stock + 1)} aria-label="Agregar uno" className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel"><IconoMas tamano={20} /></button>
+      {/* Stock sin opciones: como siempre */}
+      {!tieneOpciones && (
+        <div className={producto ? "" : "rounded-radio-l border border-linea bg-superficie p-4"}>
+          {producto ? (
+            <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+              alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || preparando}/>
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-destacado text-texto">En stock</p>
+                  <p className="text-secundario text-texto-secundario">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
                 </div>
-              )}
-            </div>
-            <button type="button" onClick={() => setStock(stock === null ? 1 : null)} className="tocable -mb-1 flex min-h-11 items-center text-[12.5px] font-bold text-suave">{stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}</button>
-          </>
-        )}
-      </div>
+                {stock !== null && <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />}
+              </div>
+              <button type="button" onClick={() => setStock(stock === null ? 1 : null)} className="tocable -mb-1 flex min-h-11 items-center text-secundario font-extrabold text-texto-secundario">{stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}</button>
+            </>
+          )}
+        </div>
+      )}
 
-      {/* Colección y visibilidad: una sola lista agrupada */}
+      {/* Sin la tienda todavía no se sabe el rubro: Detalles espera para no mostrar los campos de otro. */}
+      {tienda && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
+
+      {/* Colección, visibilidad y por encargo: una sola lista agrupada */}
       <ListaAgrupada etiqueta="Colección y visibilidad">
         <FilaLista
           titulo="Colección"
@@ -479,9 +374,27 @@ function FormularioProducto({
           titulo="Visible en el catálogo"
           accion={<Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />}
         />
+        {(producto?.tipo ?? "producto") === "producto" && (
+          <FilaLista
+            titulo="Por encargo"
+            detalle="Se puede pedir aunque no haya."
+            accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />}
+          />
+        )}
+        {porEncargo && (
+          <li className="px-4 pb-4">
+            <Campo
+              etiqueta={<span className="sr-only">Cuándo llega</span>}
+              value={encargoTexto}
+              maxLength={40}
+              onChange={(e) => setEncargoTexto(e.target.value)}
+              placeholder="Llega en 7 a 10 días"
+            />
+          </li>
+        )}
       </ListaAgrupada>
       {bloqueaVisible && !producto && (
-        <p className="-mt-1.5 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
+        <p className="-mt-3 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
       )}
       <HojaColeccion
         abierta={eligiendoColeccion}
@@ -495,21 +408,28 @@ function FormularioProducto({
         }}
       />
 
-      {(!producto || !inventario.pendiente) && <button
-        type="button"
-        onClick={() => producto ? inventario.pedirGuardar(guardar) : void guardar()}
-        disabled={guardando || inventario.guardando || inventario.incierto || procesandoFoto || procesandoRetoque}
-        className="h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel tocable disabled:opacity-60"
-      >
-        {retoqueActivo
-          ? `${producto ? "Guardar" : "Publicar"} · −${CREDITOS_POR_RETOQUE} créditos`
-          : producto
-            ? "Guardar cambios"
-            : "Publicar"}
-      </button>}
-      {inventario.error && <p role="alert" className="rounded-2xl bg-rosa p-4 text-sm">{inventario.error}</p>}
+      {(!producto || !inventario.pendiente || tieneOpciones) && (
+        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando} onClick={alGuardar}>
+          {retoquesPendientes(medios) > 0
+            ? `${producto ? "Guardar" : "Publicar"} · −${retoquesPendientes(medios) * CREDITOS_POR_RETOQUE} créditos`
+            : producto
+              ? "Guardar cambios"
+              : "Publicar"}
+        </Boton>
+      )}
+      {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
       <ConfirmacionInventario inventario={inventario}/>
+      <HojaMotivoVariantes
+        abierta={pidiendoMotivo}
+        unidades={bajadas}
+        guardando={guardando}
+        alCerrar={() => setPidiendoMotivo(false)}
+        alConfirmar={async (motivo, nota) => {
+          const bien = await guardar("reposicion", null, motivo, nota);
+          if (bien) setPidiendoMotivo(false);
+        }}
+      />
     </div>
   );
 }

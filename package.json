@@ -12,6 +12,7 @@
     "revisar-estilos": "node scripts/revisar-estilos.mjs",
     "probar:hojas": "node scripts/probar-hojas.mjs",
     "probar:inventario": "node scripts/probar-inventario.mjs",
+    "probar:producto": "node scripts/probar-producto.mjs",
     "revisar:migraciones": "node scripts/revisar-migraciones.mjs",
     "test": "node --test tests/*.test.mjs"
   },

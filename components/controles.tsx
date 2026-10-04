@@ -62,38 +62,8 @@ export function GrupoOpciones({ etiqueta, children, className = "" }: { etiqueta
   );
 }
 
-/** Interruptor (switch) de 54×32 como el del prototipo; la perilla se desliza (transform). */
-export function Interruptor({
-  encendido,
-  alCambiar,
-  etiqueta,
-  deshabilitado = false,
-  alTocarBloqueado,
-}: {
-  encendido: boolean;
-  alCambiar: (valor: boolean) => void;
-  etiqueta: string;
-  deshabilitado?: boolean;
-  /** Qué pasa si lo tocan bloqueado (ej. avisar por qué). */
-  alTocarBloqueado?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={encendido}
-      aria-label={etiqueta}
-      aria-disabled={deshabilitado}
-      onClick={() => (deshabilitado ? alTocarBloqueado?.() : alCambiar(!encendido))}
-      className={`tocable relative flex h-8 w-[54px] outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco shrink-0 rounded-full p-1 before:absolute before:-inset-x-1 before:-inset-y-[6px] before:content-[''] ${encendido ? "bg-accion" : "bg-borde-campo"} ${deshabilitado ? "opacity-40" : ""}`}
-    >
-      <span
-        className="h-6 w-6 rounded-full bg-superficie ring-1 ring-linea transition-transform duration-(--mov-normal) ease-(--curva-salida)"
-        style={{ transform: encendido ? "translateX(22px)" : "none" }}
-      />
-    </button>
-  );
-}
+/** El Interruptor vive en components/ui (docs/09 §6); se reexporta aquí para quien lo importa de antes. */
+export { Interruptor } from "./ui/interruptor";
 
 /**
  * Grupo de opciones excluyentes (filtros, pestañas internas como Nuevos / Por despachar /

@@ -9,7 +9,26 @@ export const CALIDAD_SUBIDA = 0.82;
 export const MAX_BYTES = 5 * 1024 * 1024;
 export const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp"];
 
-const EXTENSION: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png" };
+const EXTENSION: Record<string, string> = {
+  "image/webp": "webp",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
+/** Videos: el bucket acepta estos tipos hasta 15 MB (migración 20261004132336). */
+export const TIPOS_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+export const MAX_BYTES_VIDEO = 15 * 1024 * 1024;
+
+/** ¿Es un archivo del navegador (blob:)? Así llega un video recién preparado. */
+export const esBlobUrl = (s: string) => s.startsWith("blob:");
+
+/** Ruta de un video de producto: "<tienda_id>/<id>.mp4" (o .webm / .mov). */
+export function rutaVideo(tiendaId: string, id: string, tipo = "video/mp4"): string {
+  return `${tiendaId}/${id}.${EXTENSION[tipo] ?? "mp4"}`;
+}
 
 /** ¿Ya es una dirección (http/https)? Esas no se vuelven a subir. */
 export const esUrlHttp = (s: string) => /^https?:\/\//i.test(s);

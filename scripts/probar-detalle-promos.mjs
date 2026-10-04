@@ -129,7 +129,7 @@ try {
   await page.goto(`${base}/promos/${codigo}`);
   await page.getByText("Sin límite", { exact: true }).first().waitFor();
   await page.evaluate((promoId) => {
-    const key = "deslizapp-demo-v4";
+    const key = "deslizapp-demo-v5";
     const db = JSON.parse(localStorage.getItem(key));
     const promo = db.promos.find((p) => p.id === promoId);
     promo.limiteUsos = 1;
@@ -139,7 +139,7 @@ try {
   await page.getByText("Agotada", { exact: true }).waitFor();
   assert.equal(await page.getByText("Usos restantes").locator("..").innerText().then((t) => t.includes("0")), true);
   await page.evaluate((promoId) => {
-    const key = "deslizapp-demo-v4";
+    const key = "deslizapp-demo-v5";
     const db = JSON.parse(localStorage.getItem(key));
     const promo = db.promos.find((p) => p.id === promoId);
     promo.pausada = true;

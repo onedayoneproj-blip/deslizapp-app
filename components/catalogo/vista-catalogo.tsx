@@ -6,7 +6,7 @@ import { DonaInventario } from "./dona-inventario";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
-import { etiquetaSalud, saludDelInventario } from "@/lib/inventario-catalogo";
+import { etiquetaSalud, saludDelInventario, stockParaSalud } from "@/lib/inventario-catalogo";
 import { STOCK_BAJO } from "@/lib/config";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
@@ -29,7 +29,8 @@ const PIDEN_ATENCION: Filtro[] = ["agotados"];
 const FILTROS: { id: Filtro; nombre: string; cumple: (p: Producto) => boolean }[] = [
   { id: "todos", nombre: "Todos", cumple: () => true },
   { id: "visibles", nombre: "Visibles", cumple: (p) => p.activo && p.stock !== 0 },
-  { id: "por_agotarse", nombre: "Por agotarse", cumple: (p) => p.activo && p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO },
+  // Con variantes: se está agotando si a alguna le queda 1 o 2 (docs/12 §2).
+  { id: "por_agotarse", nombre: "Por agotarse", cumple: (p) => { const s = stockParaSalud(p); return p.activo && s !== null && s > 0 && s <= STOCK_BAJO; } },
   { id: "agotados", nombre: "Agotados", cumple: (p) => p.stock === 0 },
   { id: "ocultos", nombre: "Ocultos", cumple: (p) => !p.activo },
 ];

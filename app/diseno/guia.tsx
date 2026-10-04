@@ -35,7 +35,12 @@ import {
   CheckSeleccion,
   CuadriculaSeleccion,
   ElegirMensaje,
+  EditorEtiquetas,
+  FilaVariante,
+  VideoProducto,
+  Interruptor,
   ProveedorToast,
+  TiraMedios,
   Tarjeta,
   TarjetaDocumento,
   TarjetaJugada,
@@ -99,6 +104,7 @@ export function GuiaDiseno() {
           <Tarjetas />
           <EtiquetasYAvatares />
           <Campos />
+          <Producto />
           <Iconos />
         </div>
       </ProveedorToast>
@@ -661,6 +667,114 @@ function Campos() {
   );
 }
 
+// ---- Producto: medios, etiquetas, interruptor y variantes ----
+
+const FOTO_GUIA = "/seed/productos/mayar-natural-intense.svg";
+
+function Producto() {
+  const [visible, setVisible] = useState(true);
+  const [encargo, setEncargo] = useState(false);
+  const [tallas, setTallas] = useState(["S", "M", "L"]);
+  const [ocasiones, setOcasiones] = useState(["Día", "Oficina"]);
+  const [medios, setMedios] = useState([
+    { id: "a", tipo: "foto" as const, imagen: FOTO_GUIA },
+    { id: "b", tipo: "video" as const, imagen: "/seed/productos/kiara-pink.svg", duracionS: 18 },
+    { id: "c", tipo: "foto" as const, imagen: "/seed/productos/parade.svg", progreso: 62 },
+  ]);
+  const [stock, setStock] = useState({ s: 2, m: 1, l: 0 });
+  const video = useVideoDeMuestra();
+  return (
+    <Seccion numero="14" titulo="Producto" nota="Tira de fotos y video, etiquetas editables, interruptor, stock por variante y el video del producto.">
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>tira de medios · 76 px, portada primero, video con su duración, subiendo con anillo; mantén presionado para ordenar</Rotulo>
+        <TiraMedios
+          elementos={medios}
+          alTocar={() => undefined}
+          alAgregar={() => undefined}
+          alMover={(desde, hasta) =>
+            setMedios((l) => {
+              const copia = [...l];
+              const [m] = copia.splice(desde, 1);
+              copia.splice(hasta, 0, m!);
+              return copia;
+            })
+          }
+          nota="Hasta 10. Mantén presionado para ordenar."
+        />
+        <Rotulo>al llegar al límite, la casilla se apaga con su motivo</Rotulo>
+        <TiraMedios elementos={medios.slice(0, 2)} alTocar={() => undefined} alAgregar={() => undefined} alMover={() => undefined} bloqueo="Ya tiene 10. Quita uno para agregar otro." />
+      </div>
+      <div className="flex max-w-90 flex-col gap-4">
+        <EditorEtiquetas etiqueta="Valores" valores={tallas} alCambiar={setTallas} sugerencias={["XS", "S", "M", "L", "XL"]} largoMaximo={20} />
+        <EditorEtiquetas etiqueta="Ideal para (con valores fijos: casillas)" valores={ocasiones} alCambiar={setOcasiones} permitidos={["Día", "Oficina", "Noche", "Citas", "Regalo"]} />
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>interruptor: encender o apagar algo; con su texto en la fila</Rotulo>
+        <ListaAgrupada>
+          <FilaLista titulo="Visible en el catálogo" accion={<Interruptor encendido={visible} alCambiar={setVisible} etiqueta="Visible en el catálogo" />} />
+          <FilaLista titulo="Por encargo" detalle="Se puede pedir aunque no haya." accion={<Interruptor encendido={encargo} alCambiar={setEncargo} etiqueta="Por encargo" />} />
+          <FilaLista titulo="Bloqueado (40 %)" accion={<Interruptor encendido={false} alCambiar={() => undefined} etiqueta="Bloqueado" deshabilitado />} />
+        </ListaAgrupada>
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>fila de variante: color conocido, &quot;Queda 1&quot; o &quot;Agotado&quot; en atención, y la cantidad</Rotulo>
+        <ListaAgrupada etiqueta="Stock por variante">
+          <FilaVariante texto="S · Arena" color="#e8d9c4" stock={stock.s} alCambiar={(v) => setStock((s) => ({ ...s, s: v }))} />
+          <FilaVariante texto="M · Arena" color="#e8d9c4" stock={stock.m} alCambiar={(v) => setStock((s) => ({ ...s, m: v }))} />
+          <FilaVariante texto="L · Negro" color="#2b2b2b" stock={stock.l} alCambiar={(v) => setStock((s) => ({ ...s, l: v }))} />
+        </ListaAgrupada>
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>video del producto · solo, mudo y en bucle; tocarlo activa el sonido (bocina en la esquina)</Rotulo>
+        {video ? <VideoProducto src={video} portada={null} className="aspect-square w-full max-w-60 rounded-radio-m" /> : <p className="text-secundario text-texto-secundario">Armando un video de muestra…</p>}
+      </div>
+      <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>video que no se puede reproducir: queda la portada con una línea</Rotulo>
+        <VideoProducto src="/no-existe.mp4" portada="/seed/productos/kiara-pink.svg" className="aspect-square w-full max-w-60 rounded-radio-m" />
+      </div>
+    </Seccion>
+  );
+}
+
+/** Un video corto armado en el navegador (canvas + MediaRecorder) para mostrar VideoProducto sin un archivo en el repo. */
+function useVideoDeMuestra() {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof MediaRecorder === "undefined") return;
+    const lienzo = document.createElement("canvas");
+    lienzo.width = 240;
+    lienzo.height = 240;
+    const ctx = lienzo.getContext("2d")!;
+    const grabadora = new MediaRecorder(lienzo.captureStream(24));
+    const trozos: Blob[] = [];
+    let creada: string | null = null;
+    grabadora.ondataavailable = (e) => trozos.push(e.data);
+    grabadora.onstop = () => {
+      creada = URL.createObjectURL(new Blob(trozos, { type: grabadora.mimeType }));
+      setUrl(creada);
+    };
+    let n = 0;
+    const reloj = window.setInterval(() => {
+      ctx.fillStyle = `hsl(${(n * 6) % 360} 60% 70%)`;
+      ctx.fillRect(0, 0, 240, 240);
+      ctx.fillStyle = "#10362a";
+      ctx.beginPath();
+      ctx.arc(120 + Math.sin(n / 6) * 70, 120, 26, 0, Math.PI * 2);
+      ctx.fill();
+      n++;
+    }, 40);
+    grabadora.start();
+    const fin = window.setTimeout(() => grabadora.state !== "inactive" && grabadora.stop(), 2000);
+    return () => {
+      window.clearInterval(reloj);
+      window.clearTimeout(fin);
+      if (grabadora.state !== "inactive") grabadora.stop();
+      if (creada) URL.revokeObjectURL(creada);
+    };
+  }, []);
+  return url;
+}
+
 // ---- Iconos ----
 
 function Iconos() {
@@ -674,7 +788,7 @@ function Iconos() {
     ["Abrir", <IconoChevronDerecha key="a" tamano={20} strokeWidth={2.2} />],
   ];
   return (
-    <Seccion numero="13" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">
+    <Seccion numero="15" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">
       <Fila>
         {lista.map(([n, i]) => (
           <span key={n} className="flex w-20 flex-col items-center gap-1.5 rounded-radio-m bg-superficie-hundida py-2.5">

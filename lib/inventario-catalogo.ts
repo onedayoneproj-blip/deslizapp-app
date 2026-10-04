@@ -3,7 +3,59 @@
 
 import { STOCK_BAJO } from "./config.ts";
 
-export type ProductoInventario = { activo: boolean; stock: number | null };
+export type ProductoInventario = {
+  activo: boolean;
+  stock: number | null;
+  /** Con opciones: los ejes y las variantes (el stock vive en ellas; `stock` es la suma). */
+  opciones?: { nombre: string; valores: string[] }[];
+  variantes?: { id?: string; valores: Record<string, string>; stock: number | null; activa: boolean }[];
+};
+
+const activasDe = (p: ProductoInventario) => (p.variantes ?? []).filter((v) => v.activa);
+
+/**
+ * El stock que cuenta para la salud (docs/12 §2): sin variantes, el del producto. Con variantes: 0 (agotado) si todas están en 0;
+ * el menor entre 1 y 2 (queda 1 o 2) si alguna tiene 1 o 2; si no, la suma. Si alguna variante no lleva control, null.
+ */
+export function stockParaSalud(p: ProductoInventario): number | null {
+  const activas = activasDe(p);
+  if (activas.length === 0) return p.stock;
+  if (activas.some((v) => v.stock === null)) return null;
+  if (activas.every((v) => v.stock === 0)) return 0;
+  const bajas = activas.filter((v) => v.stock! > 0 && v.stock! <= STOCK_BAJO).map((v) => v.stock!);
+  if (bajas.length > 0) return Math.min(...bajas);
+  return activas.reduce((s, v) => s + v.stock!, 0);
+}
+
+/** El texto de una variante en el orden de los ejes ("L · Arena"). */
+export const textoDeVariante = (opciones: { nombre: string }[] | undefined, valores: Record<string, string>) =>
+  (opciones ?? []).map((o) => valores[o.nombre]).filter(Boolean).join(" · ") || Object.values(valores).join(" · ");
+
+/**
+ * La situación corta de las variantes, para la segunda línea del inventario (tablero «Inventario»): lo agotado va resaltado
+ * ("50 ml agotado", "L · Arena agotada", "3 agotadas") y después "queda 1 de 100 ml" o "11 en total". null si no tiene variantes
+ * o si no hay nada que contar (sin control de stock).
+ */
+export function situacionVariantes(p: ProductoInventario): { resaltado: string | null; resto: string } | null {
+  const activas = activasDe(p);
+  if (activas.length === 0 || activas.some((v) => v.stock === null)) return null;
+  const total = activas.reduce((s, v) => s + v.stock!, 0);
+  const agotadas = activas.filter((v) => v.stock === 0);
+  const quedan = activas.filter((v) => v.stock! > 0 && v.stock! <= STOCK_BAJO);
+  // "Talla" es femenino (L agotada); "Tamaño", "Color", "Sabor"… masculinos (50 ml agotado).
+  const femenino = /a$/i.test(p.opciones?.[0]?.nombre ?? "");
+  const resaltado =
+    agotadas.length === 0
+      ? null
+      : agotadas.length > 2
+        ? `${agotadas.length} agotadas`
+        : `${agotadas.map((v) => textoDeVariante(p.opciones, v.valores)).join(" y ")} ${agotadas.length === 1 ? (femenino ? "agotada" : "agotado") : femenino ? "agotadas" : "agotados"}`;
+  const resto =
+    quedan.length === 1 && agotadas.length <= 1
+      ? `queda${quedan[0]!.stock === 1 ? "" : "n"} ${quedan[0]!.stock} de ${textoDeVariante(p.opciones, quedan[0]!.valores)}`
+      : `${total} en total`;
+  return { resaltado, resto };
+}
 
 export type SaludInventario = {
   /** Con 3 o más unidades, o sin control de stock. */
@@ -25,8 +77,9 @@ export function saludDelInventario(productos: ProductoInventario[]): SaludInvent
   let agotados = 0;
   for (const p of productos) {
     if (!p.activo) continue;
-    if (p.stock === null || p.stock > STOCK_BAJO) conStock++;
-    else if (p.stock > 0) quedan++;
+    const stock = stockParaSalud(p);
+    if (stock === null || stock > STOCK_BAJO) conStock++;
+    else if (stock > 0) quedan++;
     else agotados++;
   }
   return { conStock, quedan, agotados, disponibles: conStock + quedan, total: conStock + quedan + agotados };
@@ -120,7 +173,7 @@ export function porReponer<P extends ProductoBase>(productos: P[], ventas: Map<s
     const v = ventas.get(producto.id) ?? SIN_VENTAS;
     return { producto, ultimaVenta: v.ultima, sugerida: Math.max(1, v.vendidas30), preseleccionado };
   };
-  const agotados = productos.filter((p) => p.stock === 0);
+  const agotados = productos.filter((p) => stockParaSalud(p) === 0);
   const vendidos = agotados
     .filter((p) => ventas.get(p.id)?.ultima)
     .sort((a, b) => porUltimaVenta(ventas.get(a.id)!, ventas.get(b.id)!) || alfabetico(a, b))
@@ -129,9 +182,14 @@ export function porReponer<P extends ProductoBase>(productos: P[], ventas: Map<s
     .filter((p) => !ventas.get(p.id)?.ultima)
     .sort(alfabetico)
     .map((p) => linea(p, false));
+  // Se están acabando: les queda 1 o 2, o (con variantes) alguna ya se agotó aunque haya de otras.
+  const parcial = (p: P) => activasDe(p).some((v) => v.stock === 0) && stockParaSalud(p) !== 0;
   const seAcaban = productos
-    .filter((p) => p.activo && p.stock !== null && p.stock > 0 && p.stock <= STOCK_BAJO)
-    .sort((a, b) => a.stock! - b.stock! || alfabetico(a, b))
+    .filter((p) => {
+      const s = stockParaSalud(p);
+      return p.activo && s !== null && ((s > 0 && s <= STOCK_BAJO) || parcial(p));
+    })
+    .sort((a, b) => (stockParaSalud(a) ?? 0) - (stockParaSalud(b) ?? 0) || alfabetico(a, b))
     .map((p) => linea(p, false));
   return { vendidos, sinVentas, seAcaban };
 }
@@ -178,14 +236,51 @@ export function candidatosAEspacio<P extends ProductoBase>(
 export const sinMovimiento = <P extends ProductoBase>(productos: P[], ventas: Map<string, VentasProducto>, ahora: number) =>
   candidatosAEspacio(productos, ventas, ahora).sinMoverse;
 
-/** Lo que viene marcado al abrir "Por reponer": los vendidos y agotados, con su cantidad sugerida. */
-export function seleccionInicial(r: PorReponer<{ id: string }>): Record<string, number> {
+/** Una fila de "Por reponer": el producto, o una de sus variantes (con variantes, se repone por variante). */
+export type LineaReponer<P> = LineaPorReponer<P> & {
+  /** Lo que identifica la fila (y lo marcado): el id del producto, o "producto:variante". */
+  clave: string;
+  varianteId: string | null;
+  varianteTexto: string | null;
+  /** El stock de la fila (el de la variante, si la hay). */
+  stock: number | null;
+};
+
+/**
+ * Las filas para reponer: un producto sin variantes es una fila; uno con variantes, una fila por cada variante agotada o con 1
+ * o 2 (las agotadas primero). Una variante agotada de un producto preseleccionado viene marcada, de a 1.
+ */
+export function lineasDeReposicion<P extends ProductoBase>(lineas: LineaPorReponer<P>[]): LineaReponer<P>[] {
+  return lineas.flatMap((l): LineaReponer<P>[] => {
+    const activas = activasDe(l.producto).filter((v) => v.stock !== null && v.stock <= STOCK_BAJO && v.id);
+    if (activasDe(l.producto).length === 0 || activas.length === 0) {
+      return [{ ...l, clave: l.producto.id, varianteId: null, varianteTexto: null, stock: l.producto.stock }];
+    }
+    return activas
+      .sort((a, b) => a.stock! - b.stock!)
+      .map((v) => ({
+        ...l,
+        clave: `${l.producto.id}:${v.id}`,
+        varianteId: v.id!,
+        varianteTexto: textoDeVariante(l.producto.opciones, v.valores),
+        stock: v.stock,
+        sugerida: 1,
+        preseleccionado: l.preseleccionado && v.stock === 0,
+      }));
+  });
+}
+
+/** Lo que viene marcado al abrir "Por reponer" (por clave de fila): los vendidos y agotados, con su cantidad sugerida. */
+export function seleccionInicial<P extends ProductoBase>(r: PorReponer<P>): Record<string, number> {
   const marcados: Record<string, number> = {};
-  for (const l of [...r.vendidos, ...r.sinVentas, ...r.seAcaban]) {
-    if (l.preseleccionado) marcados[l.producto.id] = l.sugerida;
+  for (const l of lineasDeReposicion([...r.vendidos, ...r.sinVentas, ...r.seAcaban])) {
+    if (l.preseleccionado) marcados[l.clave] = l.sugerida;
   }
   return marcados;
 }
+
+/** El producto de una clave de "Por reponer" ("producto:variante" → "producto"). */
+export const productoDeClave = (clave: string) => clave.split(":")[0]!;
 
 /** La lectura del momento junto a la dona de "Tu inventario": título y línea secundaria (la línea puede faltar). */
 export function lecturaInventario(s: Pick<SaludInventario, "quedan" | "agotados">): { titulo: string; linea: string | null } {

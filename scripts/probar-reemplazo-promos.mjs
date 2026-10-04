@@ -12,7 +12,7 @@ const url = process.env.URL ?? "http://localhost:3000";
 const originalId = "a6000000-0000-4000-8000-000000000001";
 const codigoId = "a6000000-0000-4000-8000-000000000002";
 const terminadaId = "a6000000-0000-4000-8000-000000000004";
-const db = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-demo-v4")));
+const db = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-demo-v5")));
 const tipo = (page, nombre) => page.getByRole("group", { name: "Tipo de promo" }).getByRole("button", { name: nombre });
 const browser = await playwright.chromium.launch();
 async function abrir(id = originalId) {

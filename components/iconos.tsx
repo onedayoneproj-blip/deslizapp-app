@@ -267,3 +267,36 @@ export const IconoEnlace = (p: Props) => (
     <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
   </Icono>
 );
+
+/** Una persona sola (aviso sin nombre). */
+export const IconoPersona = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="8.5" r="3.5" />
+    <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+  </Icono>
+);
+
+/** Reproducir (un video en la tira de medios): triángulo de puntas redondeadas, relleno. */
+export const IconoReproducir = (p: Props) => (
+  <Icono {...p}>
+    <path d="M8 6.2v11.6a1 1 0 0 0 1.5.9l9.2-5.8a1 1 0 0 0 0-1.7L9.5 5.3A1 1 0 0 0 8 6.2z" fill="currentColor" />
+  </Icono>
+);
+
+/** Bocina con ondas: el video suena. */
+export const IconoBocina = (p: Props) => (
+  <Icono {...p}>
+    <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" />
+    <path d="M15.5 9a4 4 0 0 1 0 6" />
+    <path d="M18 6.5a7.5 7.5 0 0 1 0 11" />
+  </Icono>
+);
+
+/** Bocina tachada: el video va sin sonido. */
+export const IconoBocinaApagada = (p: Props) => (
+  <Icono {...p}>
+    <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" />
+    <path d="m16 9.5 5 5" />
+    <path d="m21 9.5-5 5" />
+  </Icono>
+);

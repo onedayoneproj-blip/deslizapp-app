@@ -10,8 +10,8 @@ import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
 import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
-import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
-import { BUCKET, esDataUrl, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, tipoDeDataUrl } from "./almacen";
+import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
+import { BUCKET, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
 import { nuevoId } from "./db";
 import { validarAjusteInventario, validarReposicion } from "./inventario";
@@ -42,6 +42,7 @@ import { FUNCIONES } from "../funciones";
 import {
   aAbono,
   aAviso,
+  aMedio,
   aCatalogoPublico,
   aItemSolicitud,
   aSolicitud,
@@ -171,6 +172,65 @@ async function subirFotos(storage: Almacen, tiendaId: string, fotos: string[]): 
         const r = await subirImagen(storage, foto, (tipo) => rutaFoto(tiendaId, nuevoId(), tipo));
         subidas.push(r.ruta);
         return r.url;
+      }),
+    );
+  } catch (e) {
+    await borrarArchivos(storage, subidas);
+    throw e;
+  }
+}
+
+/** Sube un video recién preparado en el navegador (URL blob:) tal cual: ya viene aligerado (lib/video.ts). */
+async function subirVideo(storage: Almacen, tiendaId: string, url: string): Promise<{ url: string; ruta: string }> {
+  let blob: Blob;
+  try {
+    blob = await fetch(url).then((r) => r.blob());
+  } catch {
+    throw new ErrorClaro("Ese video ya no está en el teléfono. Vuelve a elegirlo.");
+  }
+  const tipo = (blob.type || "video/mp4").split(";")[0]!;
+  if (!TIPOS_VIDEO.includes(tipo)) throw new ErrorClaro("Ese formato de video no sirve. Prueba con un MP4.");
+  if (blob.size > MAX_BYTES_VIDEO) throw new ErrorClaro("Ese video pesa más de 15 MB. Prueba con uno más corto.");
+  const ruta = rutaVideo(tiendaId, nuevoId(), tipo);
+  let error: unknown;
+  try {
+    ({ error } = await storage.from(BUCKET).upload(ruta, blob, { contentType: tipo, cacheControl: "31536000", upsert: false }));
+  } catch (e) {
+    error = e;
+  }
+  if (error) throw traducirErrorSupabase(error);
+  return { url: storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl, ruta };
+}
+
+/** Las URLs de unos medios (fotos, videos y sus portadas), para saber qué archivos se dejan de usar. */
+const urlsDeMedios = (medios: Medio[]) => medios.flatMap((m) => (m.tipo === "video" ? [m.url, m.portada] : [m.url]));
+
+/** Las fotos de unos medios, como las guarda `fotos` (y `foto_retocada` = la primera foto retocada). */
+const fotosDeMedios = (medios: Medio[]) => {
+  const fotos = medios.filter((m): m is Extract<Medio, { tipo: "foto" }> => m.tipo === "foto");
+  return { fotos: fotos.map((m) => m.url), fotoRetocada: fotos[0]?.retocada ?? false };
+};
+
+/** Sube lo nuevo de unos medios (fotos en data URL, videos en blob: y sus portadas). Si algo falla, borra lo que alcanzó a subir. */
+async function subirMedios(storage: Almacen, tiendaId: string, medios: Medio[]): Promise<Medio[]> {
+  const subidas: string[] = [];
+  const foto = async (src: string | null) => {
+    if (!src || !esDataUrl(src)) return src;
+    const r = await subirImagen(storage, src, (tipo) => rutaFoto(tiendaId, nuevoId(), tipo));
+    subidas.push(r.ruta);
+    return r.url;
+  };
+  try {
+    return await Promise.all(
+      medios.map(async (m): Promise<Medio> => {
+        if (m.tipo === "foto") return { ...m, url: (await foto(m.url))! };
+        let url = m.url;
+        if (esBlobUrl(url)) {
+          const r = await subirVideo(storage, tiendaId, url);
+          subidas.push(r.ruta);
+          url = r.url;
+        }
+        return { ...m, url, portada: await foto(m.portada) };
       }),
     );
   } catch (e) {
@@ -427,23 +487,41 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const f = await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", id).maybeSingle());
         return f ? aProducto(f) : null;
       }),
-    async crearProducto(tiendaId, datos) {
-      const fotos = await subirFotos(supabase.storage, tiendaId, datos.fotos);
+    async crearProducto(tiendaId, datos, extra) {
+      // Con `medios` (fotos y video), `fotos` sale de ellos; sin `medios`, como siempre.
+      const medios = datos.medios ? await subirMedios(supabase.storage, tiendaId, datos.medios) : undefined;
+      const fotos = medios ? fotosDeMedios(medios).fotos : await subirFotos(supabase.storage, tiendaId, datos.fotos);
+      const nuevo = medios ? { ...datos, ...fotosDeMedios(medios), medios } : { ...datos, fotos };
+      const { tienda_id: _t, ...fila } = filaProductoNuevo(tiendaId, { ...nuevo, opciones: undefined });
+      void _t;
       let f: FilaProducto;
       try {
+        // Una sola llamada (atómica): la ficha con lo del catálogo, el cobro del retoque y las variantes.
         f = await requerido<FilaProducto>(
-          supabase
-            .from("productos")
-            .insert(filaProductoNuevo(tiendaId, { ...datos, fotos }))
-            .select("*")
-            .single(),
+          supabase.rpc("crear_producto", {
+            p_tienda_id: tiendaId,
+            p_producto: fila,
+            p_creditos: (extra?.retoques ?? 0) * CREDITOS_POR_RETOQUE,
+            p_opciones: extra?.opciones ?? [],
+            p_variantes: (extra?.variantes ?? []).map((v, orden) => ({ valores: v.valores, stock: v.stock, precio: v.precio ?? null, activa: v.activa ?? true, orden })),
+          }),
           () => new Error("La base no devolvió el producto."),
         );
       } catch (e) {
-        await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, fotos, datos.fotos));
+        await borrarArchivos(
+          supabase.storage,
+          rutasParaBorrar(tiendaId, medios ? urlsDeMedios(medios) : fotos, datos.medios ? urlsDeMedios(datos.medios) : datos.fotos),
+        );
+        if (e instanceof CreditosInsuficientes) {
+          const t = await tiendaCruda(tiendaId).catch(() => null);
+          throw new CreditosInsuficientes(t?.creditosRetoque ?? null, (extra?.retoques ?? 0) * CREDITOS_POR_RETOQUE);
+        }
         throw e;
       }
-      return cambio(aProducto(f));
+      const conVariantes = extra?.opciones?.length
+        ? ((await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", f.id).maybeSingle()).catch(() => null)) ?? f)
+        : f;
+      return cambio(aProducto(conVariantes));
     },
     async actualizarProducto(tiendaId, id, cambios) {
       const { stock, ...cambiosFicha } = cambios;
@@ -523,27 +601,42 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio((filas ?? []).map((f) => aProducto(f)));
     },
 
-    async guardarProductoConInventario(tiendaId, productoId, cambios, propuesta, retocar = false) {
-      if ("stock" in cambios) throw new DatosInvalidos("El stock necesita un ajuste registrado.");
+    async guardarProductoConInventario(tiendaId, productoId, cambiosTodos, propuesta, retocar = false) {
+      if ("stock" in cambiosTodos) throw new DatosInvalidos("El stock necesita un ajuste registrado.");
       if (propuesta) validarAjusteInventario(propuesta.stockBase, propuesta.stockPropuesto - propuesta.stockBase, propuesta.motivo, propuesta.nota);
-      const antes = cambios.fotos
-        ? (await dato<{ fotos: string[] }>(supabase.from("productos").select("fotos").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()))?.fotos ?? [] : [];
-      const fotos = cambios.fotos ? await subirFotos(supabase.storage, tiendaId, cambios.fotos) : undefined;
+      // Una sola llamada (atómica): ficha, lo del catálogo conectado (medios, detalles, encargo), stock y retoque. Las opciones
+      // solo cambian con guardarVariantes.
+      const { medios: mediosNuevos, opciones: _opciones, ...cambios } = cambiosTodos;
+      void _opciones;
+      const conMedios = mediosNuevos !== undefined;
+      const anterior = cambios.fotos || conMedios
+        ? await dato<{ fotos: string[]; medios: FilaProducto["medios"] }>(supabase.from("productos").select("fotos, medios").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle())
+        : null;
+      const antes = anterior ? [...(anterior.fotos ?? []), ...urlsDeMedios((anterior.medios ?? []).map(aMedio))] : [];
+      const medios = conMedios ? await subirMedios(supabase.storage, tiendaId, mediosNuevos) : undefined;
+      const fotos = medios ? fotosDeMedios(medios).fotos : cambios.fotos ? await subirFotos(supabase.storage, tiendaId, cambios.fotos) : undefined;
+      const ficha = medios ? { ...cambios, ...fotosDeMedios(medios), medios } : fotos ? { ...cambios, fotos } : cambios;
+      const nuevas = [...(fotos ?? []), ...(medios ? urlsDeMedios(medios) : [])];
       let f: FilaProducto;
       try {
         f = await requerido<FilaProducto>(supabase.rpc("guardar_producto_inventario", {
           p_tienda_id: tiendaId, p_producto_id: productoId,
-          p_cambios: filaCambiosProducto(fotos ? { ...cambios, fotos } : cambios),
+          p_cambios: filaCambiosProducto(ficha),
           p_stock_base: propuesta?.stockBase ?? null, p_stock_nuevo: propuesta?.stockPropuesto ?? null,
           p_motivo: propuesta?.motivo ?? null, p_nota: propuesta?.nota ?? null,
           p_ajuste_id: propuesta?.id ?? null, p_retocar: retocar,
         }), () => new Error("No pudimos confirmar el producto guardado."));
       } catch (e) {
         // Un resultado de red incierto podría haber guardado esas URLs: no borrar sus archivos.
-        if (fotos && e instanceof ErrorClaro && !(e instanceof ErrorDeRed)) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, fotos, antes));
+        if (nuevas.length && e instanceof ErrorClaro && !(e instanceof ErrorDeRed)) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, nuevas, antes));
         throw e;
       }
-      if (fotos) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [...antes, ...fotos], f.fotos));
+      // La RPC devuelve la fila sin variantes: se lee con ellas (solo lectura; si falla, vale la fila de la RPC).
+      f = (await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()).catch(() => null)) ?? f;
+      if (nuevas.length || antes.length) {
+        const quedan = [...(f.fotos ?? []), ...urlsDeMedios((f.medios ?? []).map(aMedio))];
+        await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [...antes, ...nuevas], quedan));
+      }
       return cambio(aProducto(f));
     },
     async getAjustesInventario(tiendaId, productoId, desde = 0, limite = 10) {
@@ -581,7 +674,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!actual) throw new PedidoNoEncontrado();
       if (!filaCliente) throw new DatosInvalidos("Ese cliente ya no existe en tu tienda.");
       const despachado = actual.estado === "despachado";
-      let items: { productoId: string; cantidad: number; precioUnitario: number }[] | null = null;
+      let items: { productoId: string; cantidad: number; precioUnitario: number; varianteId: string | null; porEncargo: boolean }[] | null = null;
       let total = actual.total;
       let codigo: string | null = actual.codigoPromo;
       if (!despachado && actual.estado !== "cancelado") {
@@ -600,7 +693,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         supabase.rpc("editar_pedido", {
           p_pedido_id: id,
           p_cliente_id: filaCliente.id,
-          p_items: items?.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad, precio_unitario: i.precioUnitario })) ?? null,
+          p_items: items?.map((i) => ({ producto_id: i.productoId, variante_id: i.varianteId ?? null, cantidad: i.cantidad, precio_unitario: i.precioUnitario, por_encargo: Boolean(i.porEncargo) })) ?? null,
           p_codigo_promo: codigo,
           p_fecha: (despachado ? datos.fecha : venta?.fecha) ?? null,
           p_ya_hecho: !despachado && !!venta,
@@ -692,15 +785,19 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       await dato(supabase.rpc("despachar_pedido", { p_pedido_id: id }));
       const pedido = await pedidoCrudo(tiendaId, id);
       if (!pedido) throw new PedidoNoEncontrado();
-      const ids = [...new Set(pedido.items.map((i) => i.productoId))];
-      const agotados =
-        ids.length === 0
-          ? []
-          : (
-              (await dato<{ nombre: string }[]>(
-                supabase.from("productos").select("nombre").eq("tienda_id", tiendaId).in("id", ids).eq("stock", 0),
-              )) ?? []
-            ).map((p) => p.nombre);
+      // Lo que quedó en 0: los productos sin opciones y, de los que tienen, la variante ("Camisa · M · Arena").
+      const conVariante = pedido.items.filter((i) => i.varianteId && !i.porEncargo);
+      const ids = [...new Set(pedido.items.filter((i) => !i.varianteId && !i.porEncargo).map((i) => i.productoId))];
+      const vids = [...new Set(conVariante.map((i) => i.varianteId!))];
+      const [productosEnCero, variantesEnCero] = await Promise.all([
+        ids.length === 0 ? [] : dato<{ nombre: string }[]>(supabase.from("productos").select("nombre").eq("tienda_id", tiendaId).in("id", ids).eq("stock", 0)),
+        vids.length === 0 ? [] : dato<{ id: string }[]>(supabase.from("producto_variantes").select("id").eq("tienda_id", tiendaId).in("id", vids).eq("stock", 0)),
+      ]);
+      const enCero = new Set((variantesEnCero ?? []).map((v) => v.id));
+      const agotados = [
+        ...(productosEnCero ?? []).map((p) => p.nombre),
+        ...new Set(conVariante.filter((i) => enCero.has(i.varianteId!)).map((i) => `${i.nombreProducto} · ${i.varianteTexto ?? ""}`)),
+      ];
       return cambio({ pedido, agotados });
     },
     async crearPedidoManual(tiendaId, datos) {
@@ -726,7 +823,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
             p_tienda_id: tiendaId,
             p_cliente_id: filaCliente.id,
             p_fecha: venta.fecha,
-            p_items: items.map((i) => ({ producto_id: i.productoId, cantidad: i.cantidad, precio_unitario: i.precioUnitario })),
+            p_items: items.map((i) => ({ producto_id: i.productoId, variante_id: i.varianteId ?? null, cantidad: i.cantidad, precio_unitario: i.precioUnitario, por_encargo: Boolean(i.porEncargo) })),
             p_codigo_promo: promo?.codigo ?? null,
             p_descontar_stock: venta.descontarStock,
           }),
@@ -1081,6 +1178,18 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     },
 
     // ---- Avísame cuando llegue ----
+    avisosPendientes: (tiendaId) =>
+      leer(`avisos:${tiendaId}`, async () => {
+        const filas = await dato<FilaAviso[]>(
+          supabase
+            .from("avisos_llegada")
+            .select("id, tienda_id, producto_id, variante_id, telefono, nombre, creado_en, avisado_en")
+            .eq("tienda_id", tiendaId)
+            .is("avisado_en", null)
+            .order("creado_en"),
+        );
+        return (filas ?? []).map(aAviso);
+      }),
     avisosDeProducto: (tiendaId, productoId) =>
       leer(`avisos:${tiendaId}:${productoId}`, async () => {
         const filas = await dato<FilaAviso[]>(

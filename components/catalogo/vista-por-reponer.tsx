@@ -5,20 +5,27 @@ import { useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { diaMesCorto } from "@/lib/formato";
-import { mensajeReposicion, porReponer, type LineaPorReponer, type VentasProducto } from "@/lib/inventario-catalogo";
+import { lineasDeReposicion, mensajeReposicion, porReponer, type LineaReponer, type VentasProducto } from "@/lib/inventario-catalogo";
 import { copiarTexto } from "@/lib/portapapeles";
-import type { Producto } from "@/lib/types";
+import type { AvisoLlegada, Producto } from "@/lib/types";
+import { useConsulta } from "@/lib/data/consulta";
 import { IconoCompartir } from "../iconos";
 import { BotonVerMas } from "../ver-mas";
 import { Boton, Cantidad, CheckSeleccion, FilaLista, GrupoOpciones, ListaAgrupada, useToastUI, VistaPreviaWhatsApp } from "../ui";
 import { MiniaturaProducto } from "./miniatura-producto";
+import { Esperan } from "./stock-producto";
+import { TarjetaYaLlego } from "./tarjeta-ya-llego";
 
 type Modo = "viene" | "tengo";
 
-function subtitulo(l: LineaPorReponer<Producto>, agotado: boolean): string {
-  if (!agotado) return l.producto.stock === 1 ? "Queda 1" : `Quedan ${l.producto.stock}`;
-  return l.ultimaVenta ? `Vendido ${diaMesCorto(l.ultimaVenta)}` : "Nunca se vendió";
+function subtitulo(l: LineaReponer<Producto>): string {
+  const agotado = l.stock === 0;
+  const estado = !agotado ? (l.stock === 1 ? "Queda 1" : `Quedan ${l.stock}`) : l.varianteTexto ? "Agotado" : l.ultimaVenta ? `Vendido ${diaMesCorto(l.ultimaVenta)}` : "Nunca se vendió";
+  return l.varianteTexto ? `${l.varianteTexto} · ${estado}` : estado;
 }
+
+/** El nombre en la lista para el proveedor: con la variante si la hay ("Camisa de lino L · Arena"). */
+const nombreLinea = (l: LineaReponer<Producto>) => (l.varianteTexto ? `${l.producto.nombre} ${l.varianteTexto}` : l.producto.nombre);
 
 /**
  * "Por reponer": lo agotado (vendidos primero) y lo que se está acabando, para pedirlo al proveedor o, si ya llegó, sumarlo al stock.
@@ -38,10 +45,14 @@ export function VistaPorReponer({
   alTerminar: () => void;
 }) {
   const { tiendaId } = useTiendaActiva();
-  const { reponerStock } = useData();
+  const { reponerStock, avisosPendientes } = useData();
   const { mostrarToast } = useToastUI();
+  const { data: avisos } = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId));
   const reponer = useMemo(() => porReponer(productos, ventas), [productos, ventas]);
-  const agotados = useMemo(() => [...reponer.vendidos, ...reponer.sinVentas], [reponer]);
+  const agotados = useMemo(() => lineasDeReposicion([...reponer.vendidos, ...reponer.sinVentas]), [reponer]);
+  const seAcaban = useMemo(() => lineasDeReposicion(reponer.seAcaban), [reponer]);
+  // Después de sumar: lo repuesto que alguien esperaba ("Ya llegó"), tomado en ese momento.
+  const [llegaron, setLlegaron] = useState<{ producto: Producto; avisos: AvisoLlegada[] }[] | null>(null);
   const sel = marcados ?? {};
 
   const [modo, setModo] = useState<Modo>("viene");
@@ -50,17 +61,17 @@ export function VistaPorReponer({
   const [sumando, setSumando] = useState(false);
   const mostrarAcaban = verAcaban || agotados.length === 0;
 
-  const lineas = [...agotados, ...(mostrarAcaban ? reponer.seAcaban : [])];
-  const todas = [...agotados, ...reponer.seAcaban];
-  const elegidas = todas.filter((l) => sel[l.producto.id] !== undefined);
-  const unidades = elegidas.reduce((suma, l) => suma + sel[l.producto.id]!, 0);
-  const texto = mensajeReposicion(elegidas.map((l) => ({ cantidad: sel[l.producto.id]!, nombre: l.producto.nombre })));
+  const lineas = [...agotados, ...(mostrarAcaban ? seAcaban : [])];
+  const todas = [...agotados, ...seAcaban];
+  const elegidas = todas.filter((l) => sel[l.clave] !== undefined);
+  const unidades = elegidas.reduce((suma, l) => suma + sel[l.clave]!, 0);
+  const texto = mensajeReposicion(elegidas.map((l) => ({ cantidad: sel[l.clave]!, nombre: nombreLinea(l) })));
   const hayShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
-  const alternar = (l: LineaPorReponer<Producto>) => {
-    const { [l.producto.id]: _quitado, ...resto } = sel;
+  const alternar = (l: LineaReponer<Producto>) => {
+    const { [l.clave]: _quitado, ...resto } = sel;
     void _quitado;
-    alCambiarMarcados(sel[l.producto.id] === undefined ? { ...sel, [l.producto.id]: l.sugerida } : resto);
+    alCambiarMarcados(sel[l.clave] === undefined ? { ...sel, [l.clave]: l.sugerida } : resto);
   };
 
   const enviar = async () => {
@@ -83,11 +94,20 @@ export function VistaPorReponer({
     try {
       await reponerStock(
         tiendaId,
-        elegidas.map((l) => ({ productoId: l.producto.id, cantidad: sel[l.producto.id]! })),
+        elegidas.map((l) => ({ productoId: l.producto.id, cantidad: sel[l.clave]!, varianteId: l.varianteId })),
       );
+      // ¿Alguien esperaba algo de lo repuesto? (un aviso de variante cuenta si se repuso esa variante; uno sin variante, con el producto)
+      const repuestas = new Set(elegidas.map((l) => l.clave));
+      const esperando = productos
+        .map((producto) => ({
+          producto,
+          avisos: (avisos ?? []).filter((a) => a.productoId === producto.id && (repuestas.has(a.varianteId ? `${producto.id}:${a.varianteId}` : producto.id) || (!a.varianteId && [...repuestas].some((c) => c.startsWith(`${producto.id}:`))))),
+        }))
+        .filter((x) => x.avisos.length > 0);
       alCambiarMarcados(null);
       mostrarToast(`Sumaste ${unidades} al stock`);
-      alTerminar();
+      if (esperando.length > 0) setLlegaron(esperando);
+      else alTerminar();
     } catch (e) {
       mostrarToast(mensajeDeError(e, "No se pudo sumar al stock. Inténtalo otra vez."));
     } finally {
@@ -95,17 +115,30 @@ export function VistaPorReponer({
     }
   };
 
+  if (llegaron) {
+    return (
+      <div className="flex flex-col gap-4">
+        {llegaron.map((x) => (
+          <TarjetaYaLlego key={x.producto.id} producto={x.producto} avisos={x.avisos} />
+        ))}
+        <Boton tamano="grande" anchoCompleto onClick={alTerminar}>
+          Listo
+        </Boton>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <p className="font-mano text-mano text-atencion-texto">Que vuelva lo que se fue volando</p>
 
       <ListaAgrupada etiqueta="Productos por reponer">
         {lineas.map((l) => {
-          const agotado = l.producto.stock === 0;
-          const cantidad = sel[l.producto.id];
+          const cantidad = sel[l.clave];
+          const esperan = (avisos ?? []).filter((a) => a.productoId === l.producto.id && (!l.varianteId || a.varianteId === l.varianteId || !a.varianteId));
           return (
             <FilaLista
-              key={l.producto.id}
+              key={l.clave}
               marcada={cantidad !== undefined}
               onClick={() => alternar(l)}
               inicio={
@@ -115,16 +148,18 @@ export function VistaPorReponer({
                 </span>
               }
               titulo={l.producto.nombre}
-              detalle={subtitulo(l, agotado)}
+              detalle={subtitulo(l)}
               accion={
                 cantidad !== undefined ? (
                   <Cantidad
                     valor={cantidad}
                     min={1}
-                    alCambiar={(v) => alCambiarMarcados({ ...sel, [l.producto.id]: v })}
-                    etiquetaQuitar={`Quitar uno de ${l.producto.nombre}`}
-                    etiquetaAgregar={`Agregar uno de ${l.producto.nombre}`}
+                    alCambiar={(v) => alCambiarMarcados({ ...sel, [l.clave]: v })}
+                    etiquetaQuitar={`Quitar uno de ${nombreLinea(l)}`}
+                    etiquetaAgregar={`Agregar uno de ${nombreLinea(l)}`}
                   />
+                ) : esperan.length > 0 ? (
+                  <Esperan producto={l.producto} avisos={esperan} />
                 ) : undefined
               }
             />
@@ -133,10 +168,10 @@ export function VistaPorReponer({
         {!mostrarAcaban && (
           <BotonVerMas
             forma="fila"
-            quedan={reponer.seAcaban.length}
-            pagina={reponer.seAcaban.length}
+            quedan={seAcaban.length}
+            pagina={seAcaban.length}
             mostrados={agotados.length}
-            total={agotados.length + reponer.seAcaban.length}
+            total={agotados.length + seAcaban.length}
             sufijo="que se están acabando"
             alTocar={() => setVerAcaban(true)}
           />
