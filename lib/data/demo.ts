@@ -11,7 +11,7 @@ import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, re
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
-import type { DatosAbonoNuevo, DatosPago, FuenteDatos } from "./fuente";
+import type { DatosAbonoNuevo, DatosPago, ExtraNuevoProducto, FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
   aplicarCodigoAlPedido,
@@ -27,7 +27,7 @@ import {
   pedidosDeTienda,
   type DatosPedidoManual,
 } from "./pedidos";
-import { insertarProducto, modificarProducto, productoDeTienda, productosDeTienda } from "./productos";
+import { conVariantes, fotosDesdeMedios, insertarProducto, mediosDesdeFotos, modificarProducto, productoDeTienda, productosDeTienda, validarCatalogo } from "./productos";
 import { insertarPromo, modificarPromo, promosDeTienda, terminarPromoDeTienda } from "./promos";
 import { crearCodigoClienteEnDB, enviosDeTienda, registrarEnvioEnDB } from "./jugadas";
 import type { DatosPromo } from "../promos";
@@ -237,12 +237,22 @@ export const fuenteDemo: FuenteDatos = {
   async getProducto(tiendaId: string, id: string): Promise<Producto | null> {
     return productoDeTienda(leerDemo().db, tiendaId, id);
   },
-  async crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto> {
+  async crearProducto(tiendaId: string, datos: NuevoProducto, extra?: ExtraNuevoProducto): Promise<Producto> {
     let creado!: Producto;
+    // Todo en una sola escritura, como la RPC crear_producto: si algo falla, no queda nada.
     escribir((db) => {
-      const r = insertarProducto(db, tiendaId, datos, nuevoId(), ahora());
+      let d = extra?.retoques ? descontarCreditos(db, tiendaId, extra.retoques * CREDITOS_POR_RETOQUE).db : db;
+      const r = insertarProducto(d, tiendaId, datos, nuevoId(), ahora());
+      d = r.db;
       creado = r.producto;
-      return r.db;
+      if (extra?.opciones?.length) {
+        const actor = d.usuarios.find((u) => u.tiendaId === tiendaId);
+        if (!actor) throw new DatosInvalidos("No hay una cuenta asociada a esta tienda.");
+        const v = guardarVariantesEnDB(d, tiendaId, creado.id, extra.opciones, extra.variantes ?? [], actor.id, nuevoId, ahora());
+        d = v.db;
+        creado = v.producto;
+      }
+      return d;
     });
     return creado;
   },
@@ -314,10 +324,17 @@ export const fuenteDemo: FuenteDatos = {
       const actor = db.usuarios.find(u => u.tiendaId === tiendaId);
       if (!actor) throw new DatosInvalidos("No hay una cuenta asociada a esta tienda.");
       const r = guardarProductoEnDB(db, tiendaId, productoId, cambios, propuesta, actor.id, ahora());
-      // Créditos, ficha y ajuste se confirman juntos en la misma escritura local.
-      actualizado = r.producto;
+      // Ficha, catálogo (medios, detalles, encargo), créditos y ajuste se confirman juntos en la misma escritura local, con la
+      // sincronía medios ↔ fotos y las mismas reglas que la base (como guardar_producto_inventario).
+      const antes = db.productos.find((p) => p.id === productoId)!;
+      let producto: Producto = r.producto;
+      if (cambios.medios) producto = { ...producto, ...fotosDesdeMedios(cambios.medios) };
+      else if (cambios.fotos || cambios.fotoRetocada !== undefined) producto = { ...producto, medios: mediosDesdeFotos(producto.fotos, producto.fotoRetocada, antes.medios) };
+      validarCatalogo(r.db, producto);
+      const d = { ...r.db, productos: r.db.productos.map((p) => (p.id === productoId ? producto : p)) };
+      actualizado = conVariantes(d, producto);
       return retocar && !(propuesta && db.ajustesInventario.some(a => a.id === propuesta.id))
-        ? descontarCreditos(r.db, tiendaId, CREDITOS_POR_RETOQUE).db : r.db;
+        ? descontarCreditos(d, tiendaId, CREDITOS_POR_RETOQUE).db : d;
     });
     return actualizado;
   },

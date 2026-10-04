@@ -487,15 +487,24 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const f = await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", id).maybeSingle());
         return f ? aProducto(f) : null;
       }),
-    async crearProducto(tiendaId, datos) {
+    async crearProducto(tiendaId, datos, extra) {
       // Con `medios` (fotos y video), `fotos` sale de ellos; sin `medios`, como siempre.
       const medios = datos.medios ? await subirMedios(supabase.storage, tiendaId, datos.medios) : undefined;
       const fotos = medios ? fotosDeMedios(medios).fotos : await subirFotos(supabase.storage, tiendaId, datos.fotos);
       const nuevo = medios ? { ...datos, ...fotosDeMedios(medios), medios } : { ...datos, fotos };
+      const { tienda_id: _t, ...fila } = filaProductoNuevo(tiendaId, { ...nuevo, opciones: undefined });
+      void _t;
       let f: FilaProducto;
       try {
+        // Una sola llamada (atómica): la ficha con lo del catálogo, el cobro del retoque y las variantes.
         f = await requerido<FilaProducto>(
-          supabase.from("productos").insert(filaProductoNuevo(tiendaId, nuevo)).select("*").single(),
+          supabase.rpc("crear_producto", {
+            p_tienda_id: tiendaId,
+            p_producto: fila,
+            p_creditos: (extra?.retoques ?? 0) * CREDITOS_POR_RETOQUE,
+            p_opciones: extra?.opciones ?? [],
+            p_variantes: (extra?.variantes ?? []).map((v, orden) => ({ valores: v.valores, stock: v.stock, precio: v.precio ?? null, activa: v.activa ?? true, orden })),
+          }),
           () => new Error("La base no devolvió el producto."),
         );
       } catch (e) {
@@ -503,9 +512,16 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
           supabase.storage,
           rutasParaBorrar(tiendaId, medios ? urlsDeMedios(medios) : fotos, datos.medios ? urlsDeMedios(datos.medios) : datos.fotos),
         );
+        if (e instanceof CreditosInsuficientes) {
+          const t = await tiendaCruda(tiendaId).catch(() => null);
+          throw new CreditosInsuficientes(t?.creditosRetoque ?? null, (extra?.retoques ?? 0) * CREDITOS_POR_RETOQUE);
+        }
         throw e;
       }
-      return cambio(aProducto(f));
+      const conVariantes = extra?.opciones?.length
+        ? ((await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", f.id).maybeSingle()).catch(() => null)) ?? f)
+        : f;
+      return cambio(aProducto(conVariantes));
     },
     async actualizarProducto(tiendaId, id, cambios) {
       const { stock, ...cambiosFicha } = cambios;
@@ -588,9 +604,9 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     async guardarProductoConInventario(tiendaId, productoId, cambiosTodos, propuesta, retocar = false) {
       if ("stock" in cambiosTodos) throw new DatosInvalidos("El stock necesita un ajuste registrado.");
       if (propuesta) validarAjusteInventario(propuesta.stockBase, propuesta.stockPropuesto - propuesta.stockBase, propuesta.motivo, propuesta.nota);
-      // La RPC guarda la ficha y el stock juntos (atómico); lo del catálogo conectado (medios, detalles, encargo) va después, en
-      // una actualización aparte (las opciones solo cambian con guardarVariantes).
-      const { medios: mediosNuevos, detalles, porEncargo, encargoTexto, slug, tipo, opciones: _opciones, ...cambios } = cambiosTodos;
+      // Una sola llamada (atómica): ficha, lo del catálogo conectado (medios, detalles, encargo), stock y retoque. Las opciones
+      // solo cambian con guardarVariantes.
+      const { medios: mediosNuevos, opciones: _opciones, ...cambios } = cambiosTodos;
       void _opciones;
       const conMedios = mediosNuevos !== undefined;
       const anterior = cambios.fotos || conMedios
@@ -599,7 +615,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const antes = anterior ? [...(anterior.fotos ?? []), ...urlsDeMedios((anterior.medios ?? []).map(aMedio))] : [];
       const medios = conMedios ? await subirMedios(supabase.storage, tiendaId, mediosNuevos) : undefined;
       const fotos = medios ? fotosDeMedios(medios).fotos : cambios.fotos ? await subirFotos(supabase.storage, tiendaId, cambios.fotos) : undefined;
-      const ficha = medios ? { ...cambios, ...fotosDeMedios(medios) } : fotos ? { ...cambios, fotos } : cambios;
+      const ficha = medios ? { ...cambios, ...fotosDeMedios(medios), medios } : fotos ? { ...cambios, fotos } : cambios;
       const nuevas = [...(fotos ?? []), ...(medios ? urlsDeMedios(medios) : [])];
       let f: FilaProducto;
       try {
@@ -615,13 +631,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         if (nuevas.length && e instanceof ErrorClaro && !(e instanceof ErrorDeRed)) await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, nuevas, antes));
         throw e;
       }
-      const catalogo = filaCambiosProducto({ medios, detalles, porEncargo, encargoTexto, slug, tipo });
-      if (Object.keys(catalogo).length > 0) {
-        f = await requerido<FilaProducto>(
-          supabase.from("productos").update(catalogo).eq("tienda_id", tiendaId).eq("id", productoId).select(PRODUCTO_CON_VARIANTES).maybeSingle(),
-          () => new DatosInvalidos("Ese producto ya no existe en tu tienda."),
-        );
-      }
+      // La RPC devuelve la fila sin variantes: se lee con ellas (solo lectura; si falla, vale la fila de la RPC).
+      f = (await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()).catch(() => null)) ?? f;
       if (nuevas.length || antes.length) {
         const quedan = [...(f.fotos ?? []), ...urlsDeMedios((f.medios ?? []).map(aMedio))];
         await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [...antes, ...nuevas], quedan));

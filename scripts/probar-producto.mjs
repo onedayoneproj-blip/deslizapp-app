@@ -1,6 +1,6 @@
 // Prueba del producto en el panel (docs/prompts/producto-panel.md §6), en la demo: Detalles de un perfume, opciones y stock por
 // variante, fotos y video, Por encargo, + Pedido con variante y "Ya llegó". A 360, 390 y 430, claro y oscuro. Nunca toca Supabase.
-//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390] [TEMAS=claro] [CAPTURAS=docs/capturas/producto-panel] node scripts/probar-producto.mjs
+//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390] [TEMAS=claro] [SOLO=pedido,ropa] [CAPTURAS=docs/capturas/producto-panel] node scripts/probar-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -19,11 +19,13 @@ const URL = (process.env.URL ?? "http://localhost:3000").replace(/\/$/, "");
 const ANCHOS = (process.env.ANCHOS ?? "360,390,430").split(",").map(Number);
 const TEMAS = (process.env.TEMAS ?? "claro,oscuro").split(",");
 const CAPTURAS = process.env.CAPTURAS ?? null;
+const SOLO = process.env.SOLO ? process.env.SOLO.split(",") : null;
 if (CAPTURAS) mkdirSync(CAPTURAS, { recursive: true });
 
 const MICHEL = "a1000000-0000-4000-8000-000000000001";
 const LINO = "a1000000-0000-4000-8000-000000000003";
 const MAJESTIC = "a3000000-0000-4000-8000-000000000002";
+const CAMISA = "a3000000-0000-4000-8000-000000000017";
 const CLAVE = "deslizapp-demo-v5";
 
 let fallas = 0;
@@ -87,6 +89,15 @@ async function escribirEtiqueta(page, rotulo, valores) {
     await caja.fill(v);
     await caja.press("Enter");
   }
+}
+
+/** "+ Pedido": crea un cliente nuevo y lo elige. */
+async function nuevoCliente(page, nombre, telefono) {
+  await page.getByRole("button", { name: "Elegir cliente" }).click();
+  await page.getByRole("button", { name: "Nuevo cliente" }).click();
+  await page.getByRole("textbox", { name: "Nombre del cliente" }).fill(nombre);
+  await page.getByRole("textbox", { name: "WhatsApp del cliente" }).fill(telefono);
+  await page.getByRole("button", { name: "Crear y elegir", exact: true }).click();
 }
 
 /** Fotos PNG y un video WebM corto, hechos en el navegador. */
@@ -205,6 +216,17 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: "Quitar Blanco", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
     ok((await page.getByRole("list", { name: "Stock por opción" }).locator("li").count()) === 5, "Al quitar un color quedan 5");
+    // Publicar: producto y variantes en una sola llamada.
+    const a = await archivosDePrueba(page);
+    await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);
+    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+    await page.getByRole("button", { name: "Publicar", exact: true }).click();
+    await page.waitForURL(`${URL}/catalogo`);
+    const d = await db(page);
+    const blusa = d.productos.find((p) => p.nombre === "Blusa de prueba");
+    const suyas = d.variantes.filter((v) => v.productoId === blusa?.id);
+    ok(blusa && suyas.length === 5 && blusa.opciones.map((o) => o.nombre).join() === "Talla,Color", "Publicar crea la blusa con sus 5 variantes");
+    ok(blusa.stock === 3 && suyas.find((v) => v.valores.Talla === "S").stock === 2, "…y su stock por variante (3 en total)");
   },
 
   /** 3. Medios: 2 fotos y 1 video corto; cambiar la portada, ordenar, quitar; el tercer video no se deja. */
@@ -244,6 +266,13 @@ const ESCENARIOS = {
     await page.getByText("Hasta 2 videos por producto. Quita uno para agregar otro.").waitFor();
     ok((await page.locator('[aria-label^="Video "]').count()) === 2, "El tercer video no se deja");
     ok(await sinDesborde(page), "Tira de medios sin desborde");
+    // Publicar: la ficha con sus medios (foto y videos) en una sola llamada.
+    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Video de prueba");
+    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("900");
+    await page.getByRole("button", { name: "Publicar", exact: true }).click();
+    await page.waitForURL(`${URL}/catalogo`);
+    const nuevo = (await db(page)).productos.find((p) => p.nombre === "Video de prueba");
+    ok(nuevo && nuevo.medios.length === 3 && nuevo.medios.filter((m) => m.tipo === "video").length === 2 && nuevo.fotos.length === 1, "Publicar guarda la foto y los 2 videos");
   },
 
   /** 4. Por encargo: encender, escribir el tiempo, guardar. */
@@ -259,12 +288,14 @@ const ESCENARIOS = {
 
   /** 5. + Pedido con la camisa: obliga a elegir talla y color; el agotado está apagado; "M · Blanco"; despachar baja esa variante. */
   async pedido(page, ancho, tema) {
+    // La camisa de la demo viene con "Por encargo": se apaga para ver lo agotado apagado.
+    await page.goto(`${URL}/catalogo/${CAMISA}/editar`);
+    await page.getByRole("switch", { name: "Por encargo" }).click();
+    await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
+    await page.waitForURL(`${URL}/catalogo/${CAMISA}`);
+    ok((await db(page)).productos.find((p) => p.id === CAMISA).porEncargo === false, "Por encargo apagado en la camisa");
     await page.goto(`${URL}/pedidos/nuevo`);
-    await page.getByRole("button", { name: "Elegir cliente" }).click();
-    await page.getByRole("button", { name: "Nuevo cliente" }).click();
-    await page.getByRole("textbox", { name: "Nombre del cliente" }).fill("Ana Prueba");
-    await page.getByRole("textbox", { name: "WhatsApp del cliente" }).fill("809-555-0101");
-    await page.getByRole("button", { name: "Crear y elegir", exact: true }).click();
+    await nuevoCliente(page, "Ana Prueba", "809-555-0101");
     await page.getByRole("button", { name: /Agregar productos/ }).click();
     ok((await page.getByRole("button", { name: "Agregar Camisa de lino", exact: true }).count()) === 0, "La camisa no se agrega sin elegir");
     await page.getByRole("button", { name: /^Elegir talla y color de Camisa de lino/ }).click();
@@ -295,6 +326,59 @@ const ESCENARIOS = {
     ok(true, "Despachar baja M · Blanco de 5 a 4");
   },
 
+  /**
+   * 7. Por encargo en + Pedido (la camisa viene con "Por encargo · Llega en 5 días"): M · Arena agotada se puede elegir, dice
+   * "Por encargo" y entra así; despachar no toca su stock; Editar la conserva; una venta pasada con "Descontar del stock" tampoco.
+   */
+  async pedidoEncargo(page, ancho, tema) {
+    const ARENA_M = "a7000000-0000-4000-8000-000000000002";
+    const stockArenaM = async () => (await db(page)).variantes.find((v) => v.id === ARENA_M).stock;
+    const elegirArenaM = async () => {
+      await page.getByRole("button", { name: /Agregar productos|Agregar más productos/ }).click();
+      await page.getByRole("button", { name: /^Elegir talla y color de Camisa de lino/ }).click();
+      await page.getByRole("radio", { name: "Arena", exact: true }).click();
+      const m = page.getByRole("radio", { name: /^M/ });
+      ok(!(await m.isDisabled()) && (await m.innerText()).includes("Por encargo"), "M · Arena agotada se puede elegir y dice Por encargo");
+      await m.click();
+      ok((await hoja(page).innerText()).includes("Por encargo · Llega en 5 días"), "La variante dice Por encargo · Llega en 5 días");
+      await page.getByRole("button", { name: "Agregar Camisa de lino M · Arena" }).click();
+    };
+    await page.goto(`${URL}/pedidos/nuevo`);
+    await nuevoCliente(page, "Bea Encargo", "809-555-0102");
+    ok((await stockArenaM()) === 0, "M · Arena empieza agotada");
+    await elegirArenaM();
+    await capturar(page, "pedido-encargo", ancho, tema);
+    ok(await sinDesborde(page), "Selector con encargo sin desborde");
+    await page.getByRole("button", { name: "Listo", exact: true }).last().click();
+    const texto = await hoja(page).innerText();
+    ok(texto.includes("M · Arena") && texto.includes("Por encargo"), "El pedido muestra M · Arena y Por encargo");
+    await page.getByRole("button", { name: "Guardar pedido", exact: true }).click();
+    await page.waitForURL(`${URL}/pedidos`);
+    const item = (await db(page)).pedidoItems.find((i) => i.varianteId === ARENA_M);
+    ok(item && item.porEncargo === true && item.varianteTexto === "M · Arena", "La línea entra con por_encargo = true");
+    await page.goto(`${URL}/pedidos/${item.pedidoId}/editar`);
+    await hoja(page).getByText("Por encargo", { exact: true }).first().waitFor();
+    ok(true, "Editar pedido conserva Por encargo");
+    await page.goto(`${URL}/pedidos/${item.pedidoId}`);
+    await hoja(page).getByText("Por encargo", { exact: true }).first().waitFor();
+    await page.getByRole("button", { name: "Despachar pedido", exact: true }).click();
+    await page.waitForFunction(([k, id]) => JSON.parse(localStorage.getItem(k)).pedidos.find((p) => p.id === id).estado === "despachado", [CLAVE, item.pedidoId], { timeout: 10_000 });
+    ok((await stockArenaM()) === 0, "Despachar no toca el stock de M · Arena (sigue en 0)");
+    // Venta pasada con "Descontar del stock": la línea por encargo tampoco descuenta.
+    await page.goto(`${URL}/pedidos/nuevo`);
+    await page.getByRole("button", { name: "Elegir cliente" }).click();
+    await page.getByRole("button", { name: /Bea Encargo/ }).first().click();
+    await elegirArenaM();
+    await page.getByRole("button", { name: "Listo", exact: true }).last().click();
+    await page.getByRole("switch", { name: "Es una venta que ya hice" }).click();
+    await page.getByRole("checkbox", { name: /Descontar del stock/ }).check();
+    await page.getByRole("button", { name: "Guardar venta", exact: true }).click();
+    await page.waitForURL(`${URL}/pedidos`);
+    const items = (await db(page)).pedidoItems.filter((i) => i.varianteId === ARENA_M);
+    ok(items.length === 2 && items.every((i) => i.porEncargo), "La venta pasada entra por encargo");
+    ok((await stockArenaM()) === 0, "…y no descuenta M · Arena");
+  },
+
   /** 6. Reponer una variante con avisos: "Ya llegó", "Avisar" arma el enlace con #p/{slug} y la fila pasa a "Avisado". */
   async yaLlego(page, ancho, tema) {
     await page.goto(`${URL}/catalogo`);
@@ -323,11 +407,12 @@ const ESCENARIOS = {
   },
 };
 
-const TIENDA = { perfume: MICHEL, ropa: LINO, medios: LINO, encargo: MICHEL, pedido: LINO, yaLlego: LINO };
+const TIENDA = { perfume: MICHEL, ropa: LINO, medios: LINO, encargo: MICHEL, pedido: LINO, pedidoEncargo: LINO, yaLlego: LINO };
 
 for (const tema of TEMAS) {
   for (const ancho of ANCHOS) {
     for (const [nombre, correr] of Object.entries(ESCENARIOS)) {
+      if (SOLO && !SOLO.includes(nombre)) continue;
       console.log(`${nombre} · ${ancho} · ${tema}`);
       const { ctx, page, errores } = await pagina(ancho, tema, TIENDA[nombre]);
       try {

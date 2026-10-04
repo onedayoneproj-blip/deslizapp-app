@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type RefObject } from "react";
-import { buscarProductos, cantidadMaxima, claveLinea, deClaveLinea, precioDeLinea, sePuedeAgregar, variantesActivas } from "@/lib/buscar-productos";
+import { buscarProductos, cantidadMaxima, claveLinea, deClaveLinea, esEncargo, precioDeLinea, sePuedeAgregar, textoEncargo, variantesActivas } from "@/lib/buscar-productos";
 import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
 import { resaltar } from "@/lib/texto";
@@ -18,6 +18,7 @@ const TODAS = "__todas";
  * colección, y en cada fila − cantidad + para agregar sin salir de la lista. Abajo, flotando: el resumen y "Listo".
  * Sin texto: los más vendidos primero. Agotados y ocultos, atenuados y sin poder agregarse (ocultos al final).
  * Un producto con opciones se abre en su fila: se elige cada eje (las agotadas, apagadas) y la cantidad de esa variante.
+ * Con "Por encargo" encendido, lo agotado no se apaga: dice "Por encargo" y entra al pedido así (no toca el stock).
  */
 export function SelectorProducto({
   productos,
@@ -114,7 +115,7 @@ export function SelectorProducto({
 function Cabeza({ producto: p, consulta, precio, precioAntes, detalle }: { producto: Producto; consulta: string; precio: string; precioAntes?: string | null; detalle: string }) {
   return (
     <>
-      <span className={`size-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida ${p.stock === 0 ? "grayscale" : ""}`}>
+      <span className={`size-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida ${p.stock === 0 && !p.porEncargo ? "grayscale" : ""}`}>
         {p.fotos[0] ? <Foto src={p.fotos[0]} alt="" className="h-full w-full" sizes="44px" /> : null}
       </span>
       <div className="min-w-0 flex-1">
@@ -150,9 +151,10 @@ function FilaProducto({
   alCambiar: (producto: Producto, variante: Variante | null, delta: number) => void;
 }) {
   const precio = precioDeLinea(p, null, promos);
+  const porEncargo = encargo || esEncargo(p);
   const bloqueado = !sePuedeAgregar(p) && !(encargo && cantidad > 0);
   const etiqueta = !p.activo ? "Oculto" : bloqueado ? "Agotado" : null;
-  const tope = cantidadMaxima(p, null, encargo);
+  const tope = cantidadMaxima(p, null, porEncargo);
   const enTope = cantidad >= tope;
   return (
     <div className={`flex items-center gap-3 py-2.5 ${bloqueado ? "opacity-55" : ""}`}>
@@ -161,7 +163,7 @@ function FilaProducto({
         consulta={consulta}
         precio={formatearPesos(precio.precio)}
         precioAntes={precio.precioAntes ? formatearPesos(precio.precioAntes) : null}
-        detalle={textoStock(p.stock)}
+        detalle={porEncargo ? textoEncargo(p) : textoStock(p.stock)}
       />
       {etiqueta ? (
         <Etiqueta tono="fuerte">{etiqueta}</Etiqueta>
@@ -174,13 +176,20 @@ function FilaProducto({
   );
 }
 
-/** ¿Hay alguna variante que se pueda pedir con estos valores (los ejes que faltan, cualquiera)? */
+const coincide = (v: Variante, valores: Record<string, string>) => Object.entries(valores).every(([eje, valor]) => v.valores[eje] === valor);
+
+/** ¿Hay alguna variante que se pueda pedir con estos valores (los ejes que faltan, cualquiera)? Por encargo también cuenta. */
 const hayCon = (p: Producto, activas: Variante[], valores: Record<string, string>) =>
-  activas.some((v) => Object.entries(valores).every(([eje, valor]) => v.valores[eje] === valor) && cantidadMaxima(p, v) > 0);
+  activas.some((v) => coincide(v, valores) && cantidadMaxima(p, v) > 0);
+
+/** ¿Y con stock de verdad (no por encargo)? */
+const hayConStock = (p: Producto, activas: Variante[], valores: Record<string, string>) =>
+  activas.some((v) => coincide(v, valores) && cantidadMaxima(p, v, false) > 0);
 
 /**
  * Un producto con opciones: al tocar "+" se abre debajo la elección de cada eje (`GrupoOpciones`, docs/09 §6). Un valor sin
- * ninguna variante que se pueda pedir (con lo ya elegido en los otros ejes) queda apagado con "Agotado". Con todo elegido, la
+ * ninguna variante que se pueda pedir (con lo ya elegido en los otros ejes) queda apagado con "Agotado"; si el producto va por
+ * encargo, sigue elegible y dice "Por encargo". Con todo elegido, la
  * cantidad de esa variante, a su precio. Lo que ya está en el pedido se lista debajo, cada variante con su cantidad.
  */
 function FilaConVariantes({
@@ -228,7 +237,7 @@ function FilaConVariantes({
           producto={p}
           consulta={consulta}
           precio={`${distintos ? "Desde " : ""}${formatearPesos(desde)}`}
-          detalle={bloqueado ? "Sin stock" : textoStock(stockTotal)}
+          detalle={bloqueado ? "Sin stock" : stockTotal === 0 && p.porEncargo ? textoEncargo(p) : textoStock(stockTotal)}
         />
         {!p.activo ? (
           <Etiqueta tono="fuerte">Oculto</Etiqueta>
@@ -260,13 +269,14 @@ function FilaConVariantes({
                 .map((valor) => {
                   const otros = Object.fromEntries(Object.entries(elegidos).filter(([k]) => k !== eje.nombre));
                   const puede = hayCon(p, activas, { ...otros, [eje.nombre]: valor });
+                  const conStock = puede && hayConStock(p, activas, { ...otros, [eje.nombre]: valor });
                   return {
                     id: valor,
                     deshabilitada: !puede,
-                    texto: puede ? valor : (
+                    texto: conStock ? valor : (
                       <>
                         {valor}
-                        <span className="text-etiqueta font-bold text-texto-secundario">Agotado</span>
+                        <span className={`text-etiqueta font-bold ${puede ? "text-atencion-texto" : "text-texto-secundario"}`}>{puede ? "Por encargo" : "Agotado"}</span>
                       </>
                     ),
                   };
@@ -296,7 +306,7 @@ function FilaConVariantes({
   );
 }
 
-/** Una variante con su precio, su stock (o "Por encargo", si así llegó del catálogo) y la cantidad en el pedido. */
+/** Una variante con su precio, su stock (o "Por encargo", con el tiempo de llegada si lo hay) y la cantidad en el pedido. */
 function LineaVariante({
   producto: p,
   variante: v,
@@ -314,7 +324,8 @@ function LineaVariante({
 }) {
   const texto = textoVariante(p.opciones, v.valores);
   const precio = precioDeLinea(p, v, promos);
-  const tope = cantidadMaxima(p, v, encargo);
+  const porEncargo = encargo || esEncargo(p, v);
+  const tope = cantidadMaxima(p, v, porEncargo);
   const nombre = `${p.nombre} ${texto}`;
   return (
     <div className="flex items-center gap-3">
@@ -322,8 +333,9 @@ function LineaVariante({
         <p className="truncate text-destacado text-texto">{texto}</p>
         <p className="flex items-center gap-1.5 text-etiqueta text-texto-secundario">
           <span className="font-bold text-texto">{formatearPesos(precio.precio)}</span>
-          {encargo ? <Etiqueta tono="atencion">Por encargo</Etiqueta> : v.stock !== null && <span>· {v.stock === 1 ? "Queda 1" : `Quedan ${v.stock}`}</span>}
+          {!porEncargo && v.stock !== null && <span>· {v.stock === 1 ? "Queda 1" : `Quedan ${v.stock}`}</span>}
         </p>
+        {porEncargo && <p className="truncate text-etiqueta font-bold text-atencion-texto">{textoEncargo(p)}</p>}
       </div>
       {cantidad > 0 ? (
         <Cantidad valor={cantidad} max={cantidad >= tope ? cantidad : undefined} alCambiar={(n) => alCambiar(p, v, n - cantidad)} etiquetaQuitar={`Quitar uno de ${nombre}`} etiquetaAgregar={`Agregar ${nombre}`} />

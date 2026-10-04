@@ -37,6 +37,9 @@ export type DatosEnvioJugada = {
   productoIds?: string[];
 };
 
+/** Lo que se crea junto con un producto nuevo (ver `crearProducto`). */
+export type ExtraNuevoProducto = { retoques?: number; opciones?: OpcionProducto[]; variantes?: DatosVariante[] };
+
 /** Una variante a guardar. Se reconoce por `valores`: si ya existía conserva su id. */
 export type DatosVariante = {
   valores: Record<string, string>;
@@ -99,7 +102,11 @@ export type FuenteDatos = {
   // Productos
   getProductos(tiendaId: string): Promise<Producto[]>;
   getProducto(tiendaId: string, id: string): Promise<Producto | null>;
-  crearProducto(tiendaId: string, datos: NuevoProducto): Promise<Producto>;
+  /**
+   * Crea el producto en una sola vez (RPC `crear_producto`): la ficha con medios, detalles y encargo, el cobro de `retoques`
+   * fotos retocadas y, si trae `opciones`, sus variantes. Si algo falla no queda nada.
+   */
+  crearProducto(tiendaId: string, datos: NuevoProducto, extra?: ExtraNuevoProducto): Promise<Producto>;
   actualizarProducto(tiendaId: string, id: string, cambios: CambiosProducto): Promise<Producto>;
   /** Ajusta manualmente el inventario y guarda un registro atómico separado de pedidos/ventas. */
   /** Con `varianteId`, ajusta esa variante (un producto con variantes activas no se ajusta entero: UsarVariante). */

@@ -17,11 +17,17 @@ export function unidadesVendidas(pedidos: PedidoConItems[]): Map<string, number>
 /** Las variantes que se pueden pedir de un producto (activas); vacío si no tiene opciones. */
 export const variantesActivas = (p: Producto): Variante[] => (p.variantes ?? []).filter((v) => v.activa);
 
+/** Agotado (el producto o esa variante) con "Por encargo" encendido: se puede pedir y no descuenta stock (docs/12). */
+export const esEncargo = (p: Producto, v: Variante | null = null) => p.porEncargo && (v ? v.stock : p.stock) === 0;
+
+/** "Por encargo · Llega en 5 días" (o solo "Por encargo"). */
+export const textoEncargo = (p: Producto) => `Por encargo${p.encargoTexto ? ` · ${p.encargoTexto}` : ""}`;
+
 /**
- * Cuánto se puede agregar de un producto (o de una de sus variantes) a un pedido: su stock, o 99 si no se lleva la cuenta. Una
- * línea que llegó por encargo (desde el catálogo, docs/12) no mira el stock.
+ * Cuánto se puede agregar de un producto (o de una de sus variantes) a un pedido: su stock, o 99 si no se lleva la cuenta o va
+ * por encargo (agotado con "Por encargo" encendido, o una línea que llegó así del catálogo).
  */
-export function cantidadMaxima(p: Producto, v: Variante | null = null, porEncargo = false) {
+export function cantidadMaxima(p: Producto, v: Variante | null = null, porEncargo = esEncargo(p, v)) {
   const stock = v ? v.stock : p.stock;
   return stock === null || porEncargo ? 99 : Math.max(0, stock);
 }

@@ -12,7 +12,7 @@ import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
 import { pedirDestelloDePasos } from "@/lib/destello";
 import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
-import { cantidadMaxima, claveLinea, deClaveLinea, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
+import { cantidadMaxima, claveLinea, deClaveLinea, esEncargo, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
 import { buscarCodigoPromo } from "@/lib/promos";
 import type { ClienteConResumen, PedidoConItems, Producto, Promo, Variante } from "@/lib/types";
@@ -126,7 +126,8 @@ function Formulario({
     if (!pedido && productoInicial && variantesActivas(productoInicial).length === 0) c[productoInicial.id] = Math.min(1, cantidadMaxima(productoInicial));
     return c;
   });
-  // Lo que llegó por encargo desde el catálogo sigue por encargo al editar (no descuenta stock). Desde aquí, lo agotado no se agrega.
+  // Lo que llegó por encargo desde el catálogo sigue por encargo al editar (no descuenta stock). Desde aquí, lo agotado de un
+  // producto con "Por encargo" encendido también entra así (esEncargo); si está apagado, lo agotado no se agrega.
   const [encargos] = useState(() => new Set((pedido?.items ?? []).filter((i) => i.porEncargo).map((i) => claveLinea(i.productoId, i.varianteId))));
   const [codigo, setCodigo] = useState(pedido?.codigoPromo ?? "");
   const [guardando, setGuardando] = useState(false);
@@ -157,7 +158,7 @@ function Formulario({
         if (!l) return [];
         const { producto, variante } = l;
         const texto = variante ? textoVariante(producto.opciones, variante.valores) : null;
-        return [{ clave, producto, variante, texto, porEncargo: encargos.has(clave), cantidad, precio: precioDeLinea(producto, variante, promos).precio }];
+        return [{ clave, producto, variante, texto, porEncargo: encargos.has(clave) || esEncargo(producto, variante), cantidad, precio: precioDeLinea(producto, variante, promos).precio }];
       });
   const subtotal = lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
   const clienteId = cliente?.id ?? null;
@@ -202,7 +203,7 @@ function Formulario({
   // La cantidad nunca supera el stock (99 si no se lleva la cuenta o llegó por encargo).
   const cambiar = (p: Producto, v: Variante | null, delta: number) => {
     const k = claveLinea(p.id, v?.id);
-    setCantidades((c) => ({ ...c, [k]: Math.min(cantidadMaxima(p, v, encargos.has(k)), Math.max(0, (c[k] ?? 0) + delta)) }));
+    setCantidades((c) => ({ ...c, [k]: Math.min(cantidadMaxima(p, v, encargos.has(k) || esEncargo(p, v)), Math.max(0, (c[k] ?? 0) + delta)) }));
   };
   const aItems = () => lineas.map((l) => ({ productoId: l.producto.id, varianteId: l.variante?.id ?? null, cantidad: l.cantidad, porEncargo: l.porEncargo }));
 

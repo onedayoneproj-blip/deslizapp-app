@@ -1,6 +1,7 @@
 import type { CambiosProducto, Medio, NuevoProducto, OpcionProducto, Producto, Variante } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos } from "./errores";
+import { detallesValidos } from "../rubros";
 export { sumarStock } from "./inventario";
 import { ordenarVariantes, slugDesdeTexto } from "./filas";
 
@@ -9,6 +10,23 @@ export const variantesDe = (db: DB, productoId: string): Variante[] => ordenarVa
 
 /** El producto con sus variantes, como lo devuelve Supabase. */
 export const conVariantes = (db: DB, p: Producto): Producto => ({ ...p, variantes: variantesDe(db, p.id) });
+
+/**
+ * Las reglas de la base para lo del catálogo conectado (constraints de productos y triggers productos_medios /
+ * productos_detalles), con el mismo mensaje que da la app cuando la base lo rechaza. Lanza DatosInvalidos.
+ */
+export function validarCatalogo(db: DB, p: Producto) {
+  const videos = p.medios.filter((m) => m.tipo === "video");
+  // (El largo de la URL no se mira: en la demo las fotos viven como data: URL; en Supabase se suben y la URL es corta.)
+  const medioMalo = p.medios.some((m) => !m.url || (m.tipo === "video" && (!Number.isInteger(m.duracionS) || m.duracionS < 1 || m.duracionS > 30)));
+  if (p.medios.length > 10 || videos.length > 2 || medioMalo) throw new DatosInvalidos("Hasta 10 fotos y videos, y máximo 2 videos de 30 segundos.");
+  const rubro = db.tiendas.find((t) => t.id === p.tiendaId)?.rubro;
+  if (!rubro || !detallesValidos(rubro, p.detalles, p.tipo === "servicio")) throw new DatosInvalidos("Algún detalle no sirve para este tipo de producto. Revísalo.");
+  if (p.encargoTexto !== null && (p.encargoTexto.length < 1 || p.encargoTexto.length > 40)) throw new DatosInvalidos("El tiempo de encargo va en hasta 40 caracteres.");
+  if (p.tipo === "servicio" && (p.stock !== null || p.porEncargo)) throw new DatosInvalidos("Un servicio no lleva stock.");
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug) || p.slug.length > 40) throw new DatosInvalidos("El enlace va en minúsculas, números y guiones (hasta 40).");
+  if (db.productos.some((x) => x.tiendaId === p.tiendaId && x.id !== p.id && x.slug === p.slug)) throw new DatosInvalidos("Ese enlace ya lo usa otro de tus productos. Prueba otro.");
+}
 
 /** Productos de una tienda, del más nuevo al más viejo. */
 export function productosDeTienda(db: DB, tiendaId: string): Producto[] {
@@ -67,6 +85,7 @@ export function insertarProducto(db: DB, tiendaId: string, datos: NuevoProducto,
     porEncargo: datos.porEncargo ?? false,
     encargoTexto: datos.encargoTexto ?? null,
   };
+  validarCatalogo(db, producto);
   return { db: { ...db, productos: [...db.productos, producto] }, producto: conVariantes(db, producto) };
 }
 

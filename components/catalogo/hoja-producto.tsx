@@ -265,12 +265,15 @@ function FormularioProducto({
     });
     try {
       if (!producto) {
-        if (retoques > 0) await usarCreditosRetoque(tiendaId, retoques);
-        const creado = await crearProducto(tiendaId, {
-          nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
-          activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
-        });
-        if (tieneOpciones) await guardarVariantes(tiendaId, creado.id, opciones, variantes);
+        // Una sola llamada: la ficha, el retoque y las variantes (si algo falla, no queda nada a medias).
+        await crearProducto(
+          tiendaId,
+          {
+            nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
+            activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
+          },
+          { retoques, ...(tieneOpciones ? { opciones, variantes } : {}) },
+        );
         toast(retoques > 0 ? `Publicado y retocado. −${retoques * CREDITOS_POR_RETOQUE} créditos.` : activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
         alTerminar();
         return true;
