@@ -14,6 +14,7 @@ Proyecto de Supabase: `euihaeyfdlpvmbtfzvnt`. Sigue las reglas de siempre en las
   3. `20261004030000_catalogo_publico.sql`
   4. `20261004040000_datos_esencias_michel.sql`
 - Cada una tiene que ser **compatible con la app que está hoy en producción** (main): la app vieja sigue leyendo y escribiendo `fotos`, `foto_retocada`, `stock`, y llamando a `ajustar_stock`, `reponer_stock`, `guardar_producto_inventario`, `despachar_pedido`, `deshacer_despacho`, `editar_pedido`, `eliminar_pedido` y `registrar_venta_pasada` con los argumentos de hoy. Nada de eso puede romperse.
+- **El número de cada archivo tiene que ser el mismo que Supabase guarda.** Hoy hay archivos del repo con un número distinto al que tiene Supabase en su historial (ver `docs/prompts/reconciliar-migraciones.md`). Para no sumar más: aplica cada migración, mira con `list_migrations` qué `version` le puso Supabase, y **renombra el archivo a esa versión** antes del commit (por ejemplo, si Supabase la guardó como `20261004023117`, el archivo es `20261004023117_productos_slug_tipo_medios_detalles.sql`). En el PR pon la tabla archivo ↔ versión de Supabase de las cuatro. No toques los archivos viejos: eso va en otra tarea.
 - Aplícalas una por una en Supabase. Después de cada una corre su parte del script de verificación (§7). **Si una falla, para**, no apliques la siguiente, deja el PR abierto y explica qué pasó.
 
 ## 1. Migración 1: productos (slug, tipo, medios, detalles, por encargo)
