@@ -57,6 +57,7 @@ export function ajustarStockEnDB(
 ): { db: DB; producto: Producto; ajuste: AjusteInventario } {
   const producto = db.productos.find((p) => p.id === productoId && p.tiendaId === tiendaId);
   if (!producto) throw new DatosInvalidos("Ese producto no existe en esta tienda.");
+  if (producto.eliminadoEn) throw new DatosInvalidos("Ese producto ya no está disponible en esta tienda.");
   const activas = db.variantes.filter((v) => v.productoId === productoId && v.activa);
   if (varianteId) return ajustarVarianteEnDB(db, producto, varianteId, variacion, motivo, nota, actorId, id, creadoEn);
   if (activas.length > 0) throw new UsarVariante();

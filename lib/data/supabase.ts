@@ -294,10 +294,10 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
 
   // ---- lecturas crudas (sin caché), para usarlas dentro de las escrituras ----
 
-  const productosCrudos = (tiendaId: string) =>
+  const productosCrudos = (tiendaId: string, incluirEliminados = false) =>
     todas<FilaProducto>((d, h) =>
       supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).order("creado_en", { ascending: false }).order("id").range(d, h),
-    ).then((filas) => filas.map((f) => aProducto(f)));
+    ).then((filas) => filas.map((f) => aProducto(f)).filter(p => incluirEliminados || !p.eliminadoEn));
 
   const promosCrudas = (tiendaId: string) =>
     todas<FilaPromo>((d, h) =>
@@ -481,7 +481,16 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     },
 
     // ---- Productos ----
-    getProductos: (tiendaId) => leer(`productos:${tiendaId}`, () => productosCrudos(tiendaId)),
+    getProductos: (tiendaId, incluirEliminados = false) => leer(`productos:${tiendaId}:${incluirEliminados}`, () => productosCrudos(tiendaId, incluirEliminados)),
+    async revisarEliminacionProducto(tiendaId, id) {
+      const { data, error } = await supabase.rpc("revisar_eliminacion_producto", { p_tienda_id: tiendaId, p_producto_id: id });
+      if (error) throw new Error(error.code === "PGRST202" ? "La eliminación todavía no está disponible en esta tienda. Puedes ocultar el producto." : "No pudimos revisar los pendientes. Inténtalo otra vez.");
+      return data;
+    },
+    async eliminarProducto(tiendaId, id) {
+      await dato(supabase.rpc("eliminar_producto", { p_tienda_id: tiendaId, p_producto_id: id }));
+      cambio(undefined);
+    },
     getProducto: (tiendaId, id) =>
       leer(`producto:${tiendaId}:${id}`, async () => {
         const f = await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", id).maybeSingle());

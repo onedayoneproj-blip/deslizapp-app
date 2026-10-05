@@ -29,9 +29,9 @@ export function validarCatalogo(db: DB, p: Producto) {
 }
 
 /** Productos de una tienda, del más nuevo al más viejo. */
-export function productosDeTienda(db: DB, tiendaId: string): Producto[] {
+export function productosDeTienda(db: DB, tiendaId: string, incluirEliminados = false): Producto[] {
   return db.productos
-    .filter((p) => p.tiendaId === tiendaId)
+    .filter((p) => p.tiendaId === tiendaId && (incluirEliminados || !p.eliminadoEn))
     .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn))
     .map((p) => conVariantes(db, p));
 }
@@ -92,6 +92,7 @@ export function insertarProducto(db: DB, tiendaId: string, datos: NuevoProducto,
 export function modificarProducto(db: DB, tiendaId: string, id: string, cambios: CambiosProducto, ahora: string) {
   const actual = db.productos.find((p) => p.id === id && p.tiendaId === tiendaId);
   if (!actual) throw new Error("Ese producto no es de esta tienda.");
+  if (actual.eliminadoEn) throw new DatosInvalidos("Este producto fue eliminado. Su historial se conserva.");
   let producto: Producto = { ...actual, ...cambios, actualizadoEn: ahora } as Producto;
   delete producto.variantes;
   if (cambios.medios) producto = { ...producto, ...fotosDesdeMedios(cambios.medios) };

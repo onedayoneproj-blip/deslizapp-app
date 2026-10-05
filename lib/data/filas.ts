@@ -80,6 +80,7 @@ export type FilaTienda = {
 export type FilaUsuario = { id: string; tienda_id: string; email: string; nombre: string; rol: string };
 
 export type FilaProducto = {
+  eliminado_en?: string | null;
   orden?: number | null;
   opiniones?: OpinionProducto[];
   id: string;
@@ -286,6 +287,7 @@ export function aUsuario(f: FilaUsuario): Usuario {
 
 export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto {
   return {
+    eliminadoEn: f.eliminado_en ?? null,
     id: f.id,
     tiendaId: f.tienda_id,
     nombre: f.nombre,
