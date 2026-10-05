@@ -228,6 +228,10 @@ try {
     await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
     // Selector de productos (misma hoja): el foco también va en el toque que lo abre
     await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del formulario de cliente al buscador
+    // El selector compartido ahora protege también este borrador: comprueba el aviso antes de descartarlo.
+    await page.getByRole("alertdialog").waitFor();
+    ok(await page.getByRole("alertdialog").isVisible(), "Crear cliente: Volver protege los cambios sin guardar");
+    await page.getByRole("alertdialog").getByRole("button", { name: "Salir", exact: true }).click();
     await page.waitForSelector('[role="dialog"] input[type="search"]');
     await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del buscador al pedido
     await page.waitForSelector('[role="dialog"] button[aria-label="Elegir cliente"]');

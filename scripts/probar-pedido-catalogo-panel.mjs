@@ -117,7 +117,7 @@ const escenarios = [
   await boton(p,"Avisar").click();assert.equal(await p.evaluate(()=>window.__abiertos.length),1);assert.equal((await datos(p)).avisos.find(a=>a.id==="aviso-prueba-panel").avisadoEn,null);await p.evaluate(()=>window.dispatchEvent(new Event("focus")));await p.getByText("Avisado",{exact:true}).waitFor();const despues=await datos(p);assert(despues.avisos.find(a=>a.id==="aviso-prueba-panel").avisadoEn);assert.equal(despues.avisos.find(a=>a.id==="aviso-otra-variante").avisadoEn,null);assert.equal(despues.pedidos.length,0);
  }],
  ["13 aislamiento al cambiar tienda",async(p)=>{
-  await tienda(p);await p.evaluate(id=>{localStorage.setItem("deslizapp-sesion-v1",id);window.dispatchEvent(new StorageEvent("storage",{key:"deslizapp-sesion-v1"}));},lino.id);await p.getByText("Esta cuenta no es de esa tienda.",{exact:true}).waitFor();assert.equal(await boton(p,"Registrar pedido").count(),0);assert.equal((await datos(p)).pedidos.length,0);
+  await tienda(p);await p.evaluate(id=>{localStorage.setItem("deslizapp-sesion-v1",id);window.dispatchEvent(new StorageEvent("storage",{key:"deslizapp-sesion-v1"}));},lino.id);await p.getByText("Este pedido no es de tu tienda.",{exact:true}).waitFor();assert.equal(await boton(p,"Registrar pedido").count(),0);assert.equal((await datos(p)).pedidos.length,0);
  }],
 ];
 const configuraciones=[];for(const ancho of (process.env.ANCHOS??"360,390,430").split(",").map(Number))for(const tema of (process.env.TEMAS??"claro,oscuro").split(","))configuraciones.push({ancho,tema,reducido:process.env.REDUCIDO==="solo"});
