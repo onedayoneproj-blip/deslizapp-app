@@ -8,6 +8,9 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import type { Detalles } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/types";
+import { textoEspera } from "@/lib/avisos";
+import { ListaEsperaProducto } from "./hoja-espera";
+import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
@@ -87,6 +90,8 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
 export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const router = useRouter();
   const historial = useHistorialInventario();
+  const [vistaInterna, setVistaInterna] = useState<"historial" | "espera">("historial");
+  const verInterna = (boton: HTMLButtonElement, vista: "historial" | "espera") => { flushSync(() => setVistaInterna(vista)); historial.abrir(boton); };
   const { getProducto, getPromos, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
@@ -97,20 +102,20 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const lista = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId), true);
-  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? "Historial de ajustes" : producto?.nombre ?? "Producto"} altura="auto"
+  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? (vistaInterna === "espera" ? "Lista de espera" : "Historial de ajustes") : producto?.nombre ?? "Producto"} altura="auto"
     fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">{producto?.nombre ?? "Producto"}</span></div> : undefined}>
     <div className={historial.abierto ? "hidden" : "contents"}>
-    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={historial.abrir}/>}
+    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={boton => verInterna(boton, "historial")} alVerEspera={boton => verInterna(boton, "espera")}/>}
     </div>
-    {historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
+    {historial.visitado && <div className={historial.abierto ? "" : "hidden"}>{vistaInterna === "espera" && producto ? <ListaEsperaProducto key={`${tiendaId}:${productoId}`} producto={producto}/> : <HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/>}</div>}
   </Hoja>;
 }
 
-function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
+function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerEspera: (boton: HTMLButtonElement) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const toast = useToast();
   const { actualizarProducto } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirInventario } = usePanelUI();
+  const { abrirInventario, espera } = usePanelUI();
   const { mostrarToast: mostrarToastUI } = useToastUI();
   const [guardandoVisible, setGuardandoVisible] = useState(false);
   const enviandoVisible = useRef(false);
@@ -148,7 +153,9 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     <ListaAgrupada>
       <FilaLista titulo="Visible en el catálogo" detalle={visible ? "Visible" : "Oculto del catálogo"}
         accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
+      {!espera.error && !espera.cargando && (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) > 0 && <FilaLista titulo={textoEspera(espera.resumen!.personasPorProducto.get(producto.id)!)} onClick={e => alVerEspera(e.currentTarget)}/>}
     </ListaAgrupada>
+    {espera.error ? <ListaAgrupada><FilaLista titulo="No pudimos leer la lista de espera" onClick={() => espera.reintentar()} fin={<span>Reintentar</span>}/></ListaAgrupada> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
     {activas.length > 0 ? (
       // Con opciones, el stock es por combinación: se cambia en la ficha.
       <ListaAgrupada etiqueta="Stock e historial">

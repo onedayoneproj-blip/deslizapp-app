@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { resumenEspera, textoEspera } from "@/lib/avisos";
 import { situacionVariantes } from "@/lib/inventario-catalogo";
 import type { AvisoLlegada, Producto } from "@/lib/types";
-import { Hoja } from "../hoja";
+import { usePanelUI } from "../panel/ui";
+import { IconoChevronDerecha } from "../iconos";
 import { Etiqueta } from "../ui";
-import { TarjetaYaLlego } from "./tarjeta-ya-llego";
 
 /** La segunda línea de un producto: con variantes, su situación corta ("L · Arena agotada · 11 en total"); si no, el stock. */
 export function DetalleStock({ producto: p }: { producto: Producto }) {
@@ -24,20 +24,17 @@ export function DetalleStock({ producto: p }: { producto: Producto }) {
 
 /**
  * "N esperan" (Etiqueta rosa): quienes pidieron "Avísame cuando llegue". Se toca y abre la tarjeta "Ya llegó" con un "Avisar"
- * por persona. Los avisos se toman al abrir (marcar uno como avisado no lo saca de la lista mientras está abierta).
+ * por solicitud/variante. Comparte la lectura de pendientes y su invalidación con el resto del panel.
  */
-export function Esperan({ producto, avisos }: { producto: Producto; avisos: AvisoLlegada[] }) {
-  const [abiertos, setAbiertos] = useState<AvisoLlegada[] | null>(null);
-  if (avisos.length === 0) return null;
+export function Esperan({ producto, avisos, forma = "etiqueta" }: { producto: Producto; avisos: AvisoLlegada[]; forma?: "etiqueta" | "fila" }) {
+  const { abrirEspera } = usePanelUI();
+  const n = resumenEspera(avisos, producto.tiendaId).personas;
+  if (n === 0) return null;
   return (
     <>
-      <button type="button" onClick={() => setAbiertos(avisos)} className="tocable relative shrink-0 rounded-full after:absolute after:-inset-2.5 after:content-['']" aria-label={`${avisos.length} esperan que llegue ${producto.nombre}. Ver quiénes`}>
-        <Etiqueta tono="marca">{avisos.length} esperan</Etiqueta>
+      <button type="button" onClick={() => abrirEspera(producto)} className={`tocable flex min-h-11 items-center gap-1 rounded-radio-s text-left text-etiqueta font-extrabold text-accion outline-none focus-visible:outline-3 focus-visible:outline-foco ${forma === "fila" ? "mt-1 w-full justify-between" : "shrink-0"}`} aria-label={`${textoEspera(n)} ${producto.nombre}. Ver quiénes`}>
+        {forma === "fila" ? <><span>{textoEspera(n)}</span><IconoChevronDerecha tamano={18}/></> : <Etiqueta tono="marca">{n} esperan</Etiqueta>}
       </button>
-      <Hoja abierta={abiertos !== null} alCerrar={() => setAbiertos(null)} titulo={producto.nombre}>
-        {abiertos && <TarjetaYaLlego producto={producto} avisos={abiertos} modo="espera" />}
-      </Hoja>
     </>
   );
 }
-

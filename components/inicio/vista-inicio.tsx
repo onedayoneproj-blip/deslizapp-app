@@ -35,6 +35,9 @@ import { IconoCorazon } from "../iconos";
 import { Numero } from "../numero";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
+import { textoEspera } from "@/lib/avisos";
+import { IconoChevronDerecha } from "../iconos";
+import { Aviso } from "../ui";
 import { GraficoVentas } from "./grafico-ventas";
 
 const VISTAS: { id: Vista; nombre: string }[] = [
@@ -74,6 +77,7 @@ export function VistaInicio() {
 function Inicio() {
   const { getPedidos, getEventosAaah, getProductos, getCuentasPorCobrar } = useData();
   const router = useRouter();
+  const { espera, abrirEspera } = usePanelUI();
   const { tiendaId, tienda } = useTiendaActiva();
   const [vista, setVistaEstado] = useState<Vista>(vistaRecordada);
   /** Mes/año mirado en Mes y Año; `null` = el actual. */
@@ -168,6 +172,14 @@ function Inicio() {
               <path d="M7 17 17 7M8 7h9v9" />
             </svg>
           </Link>
+        )}
+
+        {espera.error ? <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: espera.reintentar }}>No pudimos leer las personas en espera.</Aviso> : !espera.resumen ? <Esqueleto className="h-20 rounded-radio-l"/> : espera.resumen.personas > 0 && (
+          <button type="button" data-tarjeta-espera onClick={() => abrirEspera()} className="tocable flex min-h-15 w-full items-center gap-3.5 rounded-radio-l bg-marca-rosa px-4 py-3.5 text-left text-bosque outline-none focus-visible:outline-3 focus-visible:outline-foco">
+            <span className="grid size-12 shrink-0 place-items-center rounded-radio-m bg-bosque font-display text-titulo-seccion text-papel"><Numero valor={espera.resumen.personas}/></span>
+            <span className="min-w-0 grow"><span className="block text-destacado">{textoEspera(espera.resumen.personas)} una reposición</span><span className="block text-secundario">En {espera.resumen.productos} {espera.resumen.productos === 1 ? "producto" : "productos"}</span></span>
+            <IconoChevronDerecha tamano={22} className="shrink-0"/>
+          </button>
         )}
 
         {/* Aviso: el catálogo en línea ya está listo para revisar (tarjeta compacta rosa, como la de pedidos nuevos) */}

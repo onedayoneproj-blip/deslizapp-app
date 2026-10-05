@@ -1,4 +1,24 @@
-// "Avísame cuando llegue" en el panel (docs/12 §9; tablero Producto «Inventario»). Sin dependencias: tests/avisos.test.mjs.
+// "Avísame cuando llegue" en el panel (docs/12 §9; tablero Producto «Inventario»).
+import { normalizarTelefonoDO } from "./telefono";
+import type { AvisoLlegada } from "./types";
+
+/** Pendientes de una sola tienda. Las filas por variante se conservan; los contadores son personas. */
+export function resumenEspera(avisos: AvisoLlegada[], tiendaId: string) {
+  const porProducto = new Map<string, AvisoLlegada[]>();
+  const personas = new Set<string>();
+  const personasPorProducto = new Map<string, number>();
+  const identidad = (a: AvisoLlegada) => normalizarTelefonoDO(a.telefono) ?? a.telefono.replace(/\D/g, "");
+  for (const a of avisos) {
+    if (a.tiendaId !== tiendaId || a.avisadoEn !== null) continue;
+    personas.add(identidad(a));
+    const filas = porProducto.get(a.productoId) ?? [];
+    filas.push(a); porProducto.set(a.productoId, filas);
+  }
+  for (const [id, filas] of porProducto) personasPorProducto.set(id, new Set(filas.map(identidad)).size);
+  return { porProducto, personasPorProducto, personas: personas.size, productos: porProducto.size };
+}
+
+export const textoEspera = (n: number) => n === 1 ? "1 persona espera" : `${n} personas esperan`;
 
 /** Solo un catálogo HTTPS publicado; nunca enlaces inventados o ejecutables. */
 export function catalogoParaAviso(url: string | null): string | null {

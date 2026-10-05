@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { catalogoParaAviso, enlaceAviso, mensajeYaLlego } from "@/lib/avisos";
+import { catalogoParaAviso, enlaceAviso, mensajeYaLlego, resumenEspera } from "@/lib/avisos";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -41,6 +41,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
   const { mostrarToast } = useToastUI();
   const [estados, setEstados] = useState<Map<string, EstadoFila>>(new Map());
   const [enCamino, setEnCamino] = useState<string | null>(null);
+  const marcando = useRef(new Set<string>());
   const poner = (id: string, e: EstadoFila | null) =>
     setEstados((m) => {
       const n = new Map(m);
@@ -50,6 +51,8 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
     });
 
   const marcar = async (id: string) => {
+    if (marcando.current.has(id)) return;
+    marcando.current.add(id);
     poner(id, "marcando");
     try {
       await marcarAvisado(tiendaId, [id]);
@@ -57,7 +60,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
     } catch (e) {
       poner(id, "fallo");
       mostrarToast(mensajeDeError(e, "No pudimos marcarlo como avisado. Toca Reintentar."));
-    }
+    } finally { marcando.current.delete(id); }
   };
   const marcarRef = useRef(marcar);
   useEffect(() => {
@@ -96,7 +99,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
     return stock === null || (stock ?? 0) > 0;
   };
   const que = unaVariante ? `${producto.nombre} ${varianteDe(unaVariante)}` : producto.nombre;
-  const n = avisos.length;
+  const n = resumenEspera(avisos, tiendaId).personas;
   const urlCatalogo = catalogoParaAviso(tienda?.urlCatalogo ?? null);
 
   const avisar = (a: AvisoLlegada) => {
@@ -152,9 +155,9 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
                   {estado === "marcando" ? "Marcando" : "Reintentar"}
                 </Boton>
               ) : !hay ? (
-                <Etiqueta>Sigue agotado</Etiqueta>
+                <Etiqueta>{!producto.activo ? "Oculto del catálogo" : "Sigue agotado"}</Etiqueta>
               ) : (
-                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={estado === "abriendo"} onClick={() => avisar(a)}>
+                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={enCamino !== null || estado === "abriendo"} onClick={() => avisar(a)}>
                   Avisar
                 </Boton>
               )}

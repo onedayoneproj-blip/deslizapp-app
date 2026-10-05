@@ -7,6 +7,9 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
 import { etiquetaSalud, saludDelInventario, stockParaSalud, etiquetaStock } from "@/lib/inventario-catalogo";
+import { Esperan } from "./stock-producto";
+import { Aviso } from "../ui";
+import type { AvisoLlegada } from "@/lib/types";
 import { STOCK_BAJO } from "@/lib/config";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
@@ -22,7 +25,7 @@ import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
 
-type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos";
+type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos" | "en_espera";
 
 /** Filtros cuyo contador va en Mandarina (piden acción del dueño). Fácil de cambiar aquí. */
 const PIDEN_ATENCION: Filtro[] = ["agotados"];
@@ -48,7 +51,7 @@ const normalizar = (texto: string) =>
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirInventario } = usePanelUI();
+  const { abrirInventario, espera } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   // El texto del buscador responde al instante; la grilla se actualiza dentro de una transición
@@ -60,10 +63,10 @@ export function VistaCatalogo() {
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 
   const visibles = useMemo(() => {
-    const cumple = FILTROS.find((f) => f.id === filtro)!.cumple;
+    const cumple = filtro === "en_espera" ? (p: Producto) => Boolean(espera.resumen?.porProducto.has(p.id)) : FILTROS.find((f) => f.id === filtro)!.cumple;
     const q = normalizar(busquedaAplicada);
     return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
-  }, [productos, filtro, busquedaAplicada]);
+  }, [productos, filtro, busquedaAplicada, espera.resumen]);
 
   // Salud del inventario (solo visibles) y estado del plan (los ocultos no ocupan lugar).
   const salud = saludDelInventario(productos ?? []);
@@ -111,15 +114,16 @@ export function VistaCatalogo() {
             alCambiar={(id) =>
               startTransition(() => setFiltro(id))
             }
-            opciones={FILTROS.map((f) => ({
+            opciones={[...FILTROS.map((f) => ({
               id: f.id,
               texto: f.nombre,
               cantidad: productos ? productos.filter(f.cumple).length : undefined,
               atencion: PIDEN_ATENCION.includes(f.id),
-            }))}
+            })), ...((espera.resumen?.productos || filtro === "en_espera" || espera.error || !espera.resumen) ? [{ id: "en_espera" as const, texto: "En espera", cantidad: espera.error || espera.cargando ? undefined : espera.resumen?.productos, atencion: true }] : [])]}
           />
 
-        {productos && visibles.length === 0 && (
+        {espera.error ? <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: espera.reintentar }}>No pudimos leer las personas en espera.</Aviso> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
+        {productos && visibles.length === 0 && !(filtro === "en_espera" && (espera.error || espera.cargando)) && (
           productos.length === 0 ? (
             <EstadoVacio
               ilustracion="catalogo"
@@ -128,7 +132,7 @@ export function VistaCatalogo() {
               accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo" }}
             />
           ) : (
-            <EstadoVacio pequeno ilustracion="catalogo" titulo="No encontramos nada con eso." remate="Ni un suspiro. Prueba con otra palabra u otro filtro." />
+            <EstadoVacio pequeno ilustracion="catalogo" titulo={filtro === "en_espera" && espera.resumen?.productos === 0 ? "Nadie esperando por ahora." : "No encontramos nada con eso."} remate={filtro === "en_espera" && espera.resumen?.productos === 0 ? undefined : "Ni un suspiro. Prueba con otra palabra u otro filtro."} />
           )
         )}
 
@@ -143,7 +147,7 @@ export function VistaCatalogo() {
             ))}
           {visibles.map((p, i) => (
             <li key={p.id}>
-              <TarjetaProducto producto={p} promos={promos ?? []} prioridad={i < 4} />
+              <TarjetaProducto producto={p} promos={promos ?? []} prioridad={i < 4} avisos={espera.error || espera.cargando ? [] : espera.resumen?.porProducto.get(p.id) ?? []}/>
             </li>
           ))}
         </ul>
@@ -155,7 +159,7 @@ export function VistaCatalogo() {
   );
 }
 
-function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto: Producto; promos: Promo[]; prioridad?: boolean }) {
+function TarjetaProducto({ producto: p, promos, prioridad = false, avisos }: { producto: Producto; promos: Promo[]; prioridad?: boolean; avisos: AvisoLlegada[] }) {
   const precio = precioConPromo(p, promos);
   const agotado = p.stock === 0;
   const stock = etiquetaStock(p);
@@ -167,6 +171,7 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
     .join(",") + ". Ver producto";
 
   return (
+    <div className="min-w-0">
     <Link
       href={`/catalogo/${p.id}`}
       scroll={false}
@@ -177,10 +182,7 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
         <div className="order-2">
       <div className="mt-2 flex items-start gap-2">
         <p className="min-w-0 flex-1 break-words text-secundario font-extrabold">{p.nombre}</p>
-        <span aria-hidden="true" data-likes-panel className="flex shrink-0 flex-col items-center gap-1 text-etiqueta tabular-nums">
-          <span className="grid size-8 place-items-center rounded-full border border-linea bg-marca-papel text-marca-mandarina"><IconoCorazon tamano={20} fill="currentColor"/></span>
-          <span>{p.likes}</span>
-        </span>
+
       </div>
       <p className="mt-0.5 flex items-baseline gap-1.5">
         <span className="text-[14.5px] font-extrabold">{formatearPesos(precio.precio)}</span>
@@ -194,18 +196,24 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
         ) : (
           <span className="grid h-full place-items-center font-display text-4xl text-bosque/30">{p.nombre[0]}</span>
         )}
+        <span aria-hidden="true" data-likes-panel className="absolute right-2.5 bottom-2.5 flex max-w-2/5 flex-col items-center gap-1 text-etiqueta tabular-nums">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full border border-linea bg-marca-papel text-marca-mandarina"><IconoCorazon tamano={20} fill="currentColor"/></span>
+          <span className="max-w-full rounded-radio-s bg-marca-papel px-1.5 py-0.5 text-center font-extrabold break-all text-bosque">{p.likes}</span>
+        </span>
         {etiqueta && (
           <span aria-hidden="true" className={`absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${etiqueta.clase}`}>
             {etiqueta.texto}
           </span>
         )}
         {p.fotoRetocada && (
-          <span aria-hidden="true" className="absolute bottom-2.5 left-2.5 rounded-full bg-bosque px-2 py-[3px] text-[11px] font-extrabold text-papel">
+          <span aria-hidden="true" className="absolute bottom-2.5 left-2.5 max-w-1/2 rounded-full bg-bosque px-2 py-[3px] text-[11px] font-extrabold text-papel">
             Retocada ✦
           </span>
         )}
       </div>
       </div>
     </Link>
+    {avisos.length > 0 && <Esperan producto={p} avisos={avisos} forma="fila"/>}
+    </div>
   );
 }
