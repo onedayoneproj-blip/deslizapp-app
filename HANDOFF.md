@@ -25,6 +25,10 @@ orden:
 
 Además, en `referencias/` está el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, ábrelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y créditos (ver `referencias/LEEME.md`).
 
+## Publicación autorizada del catálogo conectado
+
+PR #44 y #46 fusionados y publicados en producción. Esencias Michel abre el catálogo React desde `tiendas.url_catalogo`. PR #45 de rendimiento queda fuera. El código original de Claude está incluido mediante #46; no retomar su rama para publicarla por separado. Estado, comprobaciones y límites: `docs/handoffs/publicacion-catalogo-conectado.md`. Las notas de implementación anteriores son históricas; no asumir que las previews antiguas tienen la versión actual.
+
 ## Regla permanente: novedades
 
 **Cada cambio visible para el usuario suma una línea a `lib/novedades.ts`.**

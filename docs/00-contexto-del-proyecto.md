@@ -7,7 +7,7 @@ Este es el documento que pone al día a cualquier sesión nueva (Claude o Codex,
 **Deslizapp** es un panel PWA (Next.js 16, React 19, TypeScript, Tailwind v4, Supabase) para dueños de tiendas dominicanas, más el **catálogo público** de cada tienda (se desliza como Reels y pide por WhatsApp). Es multi-tienda.
 
 - **Repo:** `onedayoneproj-blip/deslizapp-app`. Producción: https://deslizapp-app.vercel.app (se despliega sola desde `main`).
-- **Preview de cada rama:** `https://deslizapp-app-git-<rama-con-guiones>-onedayone.vercel.app`. Supabase Auth ya acepta ese patrón, así que se puede entrar con Google en los previews.
+- **Preview de cada rama:** `https://deslizapp-app-git-<rama-con-guiones>-onedayone.vercel.app`. Las URLs únicas de despliegue pueden necesitar un callback adicional permitido en Supabase; no asumir que un patrón de alias de rama cubre todos los hosts. En producción se usa el dominio estable.
 - **Supabase:** proyecto `euihaeyfdlpvmbtfzvnt`.
 - **Tienda real de prueba:** Esencias Michel (perfumes, de la prima de Lewis). Hay además tiendas demo en el modo demo (por ejemplo Lino & Algodón, ropa con variantes).
 - **Quién:** Lewis (dueño del producto, habla español dominicano; todo el texto del producto va en español).
@@ -44,7 +44,8 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 | **Catálogo conectado** (el plan en curso) | `docs/12-catalogo-conectado.md`, prompts en `docs/prompts/` |
 | Diseños aprobados | `referencias/` (cada carpeta tiene su `LEEME.md`) |
 | Capturas de PRs anteriores | `docs/capturas/` |
-| Catálogo HTML actual de Esencias Michel | `public/catalogos/esencias-michel.html` (fijo, no lee la base) |
+| Catálogo conectado publicado de Esencias Michel | `/tienda/esencias-michel` (React, datos de Supabase) |
+| Catálogo HTML anterior | `public/catalogos/esencias-michel.html` (histórico; el enlace de la tienda ya apunta a React) |
 
 El sistema de diseño completo vive también como un artifact de Claude (no accesible desde otras herramientas); su copia en el repo es `docs/09-sistema-de-diseno.md`, y los tokens están en el código. Si algo no coincide, manda el repo.
 
@@ -53,8 +54,11 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 **El catálogo conectado** (`docs/12-catalogo-conectado.md` §10), en este orden:
 1. Base de datos y capa de datos. **Hecho** (PR #40).
 2. Panel: producto con detalles por rubro, opciones con stock por variante, fotos y video, Por encargo, "Ya llegó". **Hecho** (PR #42).
-3. **Catálogo en React** en `/tienda/{slug}` y la página del pedido del comprador `/pedido/{codigo}`, como copia fiel del HTML. **Implementado en PR #44, pendiente de revisión en preview y fusión autorizada**: `docs/prompts/catalogo-react.md`. Migración y SQL de Michel aplicados; el enlace público sigue apuntando al HTML antiguo.
-4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Implementado inicialmente por Claude y completado en `feature/pedido-catalogo-panel-continuacion`, pendiente de revisión y fusión. Prompt en la rama documental `docs/pedido-catalogo-panel`; tableros en `referencias/pedido-catalogo/`. Antes de retomar, leer `docs/handoffs/pedido-catalogo-panel-continuacion.md`. PR #46 incluye el seguimiento de likes (singular/plural), contadores de trabajo pendiente y retorno de Google al código elegido; ver su handoff para pruebas y límites de OAuth real. PR #45 de rendimiento sigue separado.
+3. **Catálogo en React** en `/tienda/{slug}` y comprador `/pedido/{codigo}`: **publicado**, PR #44 fusionado por autorización de Lewis.
+4. **Pedido del catálogo en el panel**: **publicado**, PR #46 fusionado después de #44. Incluye el trabajo original de Claude y su continuación; no se fusionó su rama por separado. Likes, contadores y retorno al código incluidos. Leer `docs/handoffs/publicacion-catalogo-conectado.md` y el informe de continuación.
+5. **Rendimiento, PR #45:** separado y sin fusionar, excluido de esta publicación por decisión de Lewis. No dar su precarga ni métricas como comportamiento de producción.
+
+El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.app/tienda/esencias-michel después de verificar producción READY. No se reaplicaron migraciones ni modificaron pedidos/existencias para publicar. Google real al pedido específico en producción y compartir nativo siguen requiriendo comprobación; las pruebas simuladas y el reporte previo de Lewis están diferenciados en los handoffs.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)
 
