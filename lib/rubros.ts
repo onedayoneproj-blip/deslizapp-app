@@ -35,6 +35,9 @@ export const OCASIONES_PERFUME = [
   "Regalo",
 ] as const;
 
+/** Ocasiones del filtro Día del catálogo HTML aprobado (Regalo/Todo el año no son horarios). */
+export const OCASIONES_DIA: readonly string[] = ["Día", "Oficina", "Universidad", "Verano", "Primavera y verano", "Salidas casuales"];
+
 /** Las ocasiones que cuentan como "Noche" en el filtro del catálogo; las demás, como "Día". */
 export const OCASIONES_NOCHE: readonly string[] = ["Noche", "Citas", "Cenas", "Fiestas", "Noches casuales", "Ocasiones especiales"];
 
@@ -185,3 +188,8 @@ export function camposComoEnLaBase(): Record<string, Record<string, unknown>> {
   }
   return res;
 }
+
+/** Sustantivo del catálogo público; no presupone perfumes en otras tiendas. */
+export const NOMBRE_PRODUCTO: Record<Rubro,{singular:string;plural:string}> = {
+ perfumes:{singular:'perfume',plural:'perfumes'},ropa:{singular:'prenda',plural:'prendas'},accesorios:{singular:'accesorio',plural:'accesorios'},belleza:{singular:'producto',plural:'productos'},comida:{singular:'producto',plural:'productos'},hogar:{singular:'producto',plural:'productos'},general:{singular:'producto',plural:'productos'},
+};

@@ -53,7 +53,7 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 **El catálogo conectado** (`docs/12-catalogo-conectado.md` §10), en este orden:
 1. Base de datos y capa de datos. **Hecho** (PR #40).
 2. Panel: producto con detalles por rubro, opciones con stock por variante, fotos y video, Por encargo, "Ya llegó". **Hecho** (PR #42).
-3. **Catálogo en React** en `/tienda/{slug}` y la página del pedido del comprador `/pedido/{codigo}`, como copia fiel del HTML. **Sigue**: `docs/prompts/catalogo-react.md`.
+3. **Catálogo en React** en `/tienda/{slug}` y la página del pedido del comprador `/pedido/{codigo}`, como copia fiel del HTML. **Implementado en PR #44, pendiente de revisión en preview y fusión autorizada**: `docs/prompts/catalogo-react.md`. Migración y SQL de Michel aplicados; el enlace público sigue apuntando al HTML antiguo.
 4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Prompt por escribir; los tableros están en `referencias/pedido-catalogo/`.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)

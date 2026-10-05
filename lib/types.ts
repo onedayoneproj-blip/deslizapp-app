@@ -11,6 +11,12 @@ export type { EstadoCatalogo };
 export type Plan = "p20" | "p60" | "p100" | "custom";
 
 export type Tienda = {
+  personalizacion?: Record<string, unknown>;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  descripcion?: string | null;
+  nombreVendedora?: string | null;
+  fotoPerfilUrl?: string | null;
   id: string;
   slug: string;
   nombre: string;
@@ -52,7 +58,11 @@ export type Usuario = {
   rol: RolUsuario;
 };
 
+export type OpinionProducto = { usuario: string; fuente: string; url: string; texto: string; estrellas: number | null; traducida: boolean };
+
 export type Producto = {
+  orden?: number | null;
+  opiniones?: OpinionProducto[];
   id: string;
   tiendaId: string;
   nombre: string;
@@ -306,6 +316,8 @@ export type AvisoLlegada = {
 
 /** Un producto como lo ve el público. */
 export type ProductoPublico = {
+  orden: number | null;
+  opiniones: OpinionProducto[];
   id: string;
   slug: string;
   nombre: string;
@@ -335,6 +347,8 @@ export type ProductoPublico = {
 
 export type CatalogoPublico = {
   tienda: {
+    desde: string;
+    ventas: number | null;
     slug: string;
     nombre: string;
     logoUrl: string | null;

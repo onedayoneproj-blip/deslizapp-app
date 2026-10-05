@@ -1,0 +1,41 @@
+// Node no resuelve imports sin extensión del código Next. Solo para estas pruebas de lib/data.
+import { registerHooks } from "node:module";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+registerHooks({
+  resolve(spec, ctx, next) {
+    try {
+      return next(spec, ctx);
+    } catch (e) {
+      if (spec.startsWith(".") && ctx.parentURL) {
+        for (const ext of [".ts", ".json"]) {
+          const url = new URL(spec + ext, ctx.parentURL);
+          if (existsSync(url)) return { url: url.href, shortCircuit: true };
+        }
+      }
+      throw e;
+    }
+  },
+  load(url, ctx, next) {
+    if(url.includes("/node_modules/"))return next(url,ctx);
+    if (url.endsWith(".ts"))
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: ts.transpileModule(readFileSync(fileURLToPath(url), "utf8"), {
+          compilerOptions: {
+            target: ts.ScriptTarget.ES2022,
+            module: ts.ModuleKind.ESNext,
+          },
+        }).outputText,
+      };
+    if (url.endsWith(".json"))
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: "export default " + readFileSync(fileURLToPath(url), "utf8"),
+      };
+    return next(url, ctx);
+  },
+});

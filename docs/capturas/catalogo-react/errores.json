@@ -1,0 +1,10 @@
+[
+  {
+    "caso": "sin-red",
+    "paso": true
+  },
+  {
+    "caso": "limite",
+    "paso": true
+  }
+]

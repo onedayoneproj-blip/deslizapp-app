@@ -189,13 +189,15 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
   const t = tiendaPublica(db, slug);
   const productos = db.productos
     .filter((p) => p.tiendaId === t.id && p.activo)
-    .sort((a, b) => Number(b.destacado) - Number(a.destacado) || b.creadoEn.localeCompare(a.creadoEn) || a.id.localeCompare(b.id))
+    .sort((a, b) => (a.orden == null ? (b.orden == null ? 0 : -1) : b.orden == null ? 1 : a.orden - b.orden) || b.creadoEn.localeCompare(a.creadoEn) || a.id.localeCompare(b.id))
     .map((p) => {
       const promo = promoAutomatica(p, db.promos, ahora);
       const variantes = variantesDe(db, p.id).filter((v) => v.activa);
       const stock = stockPublico(p, variantes);
       const disp = disponibilidad(stock, p.porEncargo);
       return {
+        orden: p.orden ?? null,
+        opiniones: p.opiniones ?? [],
         id: p.id,
         slug: p.slug,
         nombre: p.nombre,
@@ -227,18 +229,20 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
     });
   return {
     tienda: {
+      desde: t.creadoEn,
+      ventas: db.pedidos.filter(p => p.tiendaId === t.id && p.estado === "despachado").length >= 10 ? db.pedidos.filter(p => p.tiendaId === t.id && p.estado === "despachado").length : null,
       slug: t.slug,
       nombre: t.nombre,
       logoUrl: t.logoUrl,
-      fotoPerfilUrl: null,
+      fotoPerfilUrl: t.fotoPerfilUrl ?? null,
       marcaColorPrincipal: t.marcaColorPrincipal,
       marcaColorAcento: t.marcaColorAcento,
       marcaEstilo: t.marcaEstilo,
-      personalizacion: {},
-      whatsapp: null,
-      instagram: null,
-      descripcion: null,
-      nombreVendedora: null,
+      personalizacion: t.personalizacion ?? {},
+      whatsapp: t.whatsapp ?? null,
+      instagram: t.instagram ?? null,
+      descripcion: t.descripcion ?? null,
+      nombreVendedora: t.nombreVendedora ?? null,
       rubro: t.rubro,
     },
     productos,
@@ -347,7 +351,7 @@ export function verSolicitudDeDB(db: DB, codigo: string, tiendaActivaId: string,
   return {
     id: mia ? s.id : null,
     codigo: s.codigo,
-    tienda: { nombre: t.nombre, slug: t.slug, logoUrl: t.logoUrl, fotoPerfilUrl: null, whatsapp: null },
+    tienda: { nombre: t.nombre, slug: t.slug, logoUrl: t.logoUrl, fotoPerfilUrl: t.fotoPerfilUrl ?? null, whatsapp: t.whatsapp ?? null },
     items: s.items,
     descuento: s.descuento,
     total: s.total,

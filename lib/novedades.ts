@@ -22,6 +22,16 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.32.0",
+    fecha: "2026-10-04",
+    titulo: "Tu catálogo, conectado.",
+    cambios: [
+      "El catálogo nuevo refleja tus productos, opciones, precios y disponibilidad.",
+      "Tus clientes pueden pedir por WhatsApp, recibir su enlace y avisarte qué esperan.",
+      "El enlace público actual se conserva hasta revisar el catálogo nuevo.",
+    ],
+  },
+  {
     version: "0.31.8",
     fecha: "2026-10-02",
     titulo: "Tus ventas, con las cuentas claras.",

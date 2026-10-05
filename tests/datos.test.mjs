@@ -58,6 +58,7 @@ const filaTienda = {
 
 test("tienda: de fila a la app", () => {
   assert.deepEqual(aTienda(filaTienda), {
+    personalizacion: {}, whatsapp: null, instagram: null, descripcion: null, nombreVendedora: null, fotoPerfilUrl: null,
     id: "t1",
     slug: "esencias-michel",
     nombre: "Esencias Michel",

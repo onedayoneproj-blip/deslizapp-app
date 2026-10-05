@@ -173,3 +173,7 @@ se equivocara de `tiendaId`).
 2. Resumen con consultas agregadas en la base cuando haya mucho historial (hoy
    se leen los pedidos y aaahs de la tienda y se calcula en el navegador).
 3. Catálogo público conectado a la misma base (fase 5).
+
+## Rutas públicas del catálogo
+
+El panel conserva `useData()` y sus dos implementaciones. `/tienda/{slug}` y `/pedido/{codigo}` están fuera del dashboard: usan `FuentePublica` (Pick de las cinco operaciones ya existentes de `FuenteDatos`) mediante `lib/data/publica.ts`, sin montar sesión ni DataProvider. SSR real usa un cliente Supabase **anon**, sin cookies ni persistencia de sesión y `cache: no-store`; `?demo` lee el almacén del navegador y se suscribe a cambios entre pestañas. La UI pública no consulta tablas directamente. La revisión y el contrato aditivo están en `validacion-catalogo-react.md`.
