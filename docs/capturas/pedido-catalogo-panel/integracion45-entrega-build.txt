@@ -1,0 +1,56 @@
+
+> deslizapp-app@0.1.0 build
+> next build
+
+▲ Next.js 16.3.6 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 96ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 18.5s
+  Running TypeScript ...
+  Finished TypeScript in 13.5s ...
+  Collecting page data using 2 workers ...
+  Generating static pages using 2 workers (0/21) ...
+  Generating static pages using 2 workers (5/21)
+  Generating static pages using 2 workers (10/21)
+  Generating static pages using 2 workers (15/21)
+✓ Generating static pages using 2 workers (21/21) in 811ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/version
+├ ƒ /auth/callback
+├ ○ /catalogo
+├ ƒ /catalogo/[id]
+├ ƒ /catalogo/[id]/editar
+├ ○ /catalogo/nuevo
+├ ○ /clientes
+├ ƒ /clientes/[id]
+├ ○ /clientes/nuevo
+├ ○ /diseno
+├ ○ /icon.png
+├ ○ /manifest.webmanifest
+├ ƒ /pedido/[codigo]
+├ ○ /pedidos
+├ ƒ /pedidos/[id]
+├ ƒ /pedidos/[id]/editar
+├ ○ /pedidos/nuevo
+├ ○ /pedidos/por-registrar
+├ ○ /privacidad
+├ ○ /promos
+├ ƒ /promos/[id]
+├ ƒ /promos/[id]/compartir
+├ ƒ /promos/[id]/editar
+├ ○ /promos/nueva
+├ ○ /prueba
+├ ○ /terminos
+└ ƒ /tienda/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

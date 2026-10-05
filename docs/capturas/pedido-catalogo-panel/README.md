@@ -7,3 +7,5 @@ Capturas reales de Chromium, demo aislada, build local final. `registrar-{360,39
 `comparacion-recibos.jpg`: PNG, PDF rasterizado, PNG con #45 y PDF con #45. Misma estructura/producto/total; códigos, hora, barcode y puerto varían legítimamente entre fixtures. `recibo-local.pdf` conserva un archivo efectivamente descargado. No demuestra compartir nativo, fidelidad completa de todos los recibos al HTML ni Safari físico.
 
 Informe completo: [handoff](../../handoffs/pedido-catalogo-panel-continuacion.md).
+
+La entrega completa también se combinó con #45 después de resolver manualmente tres conflictos de documentación: `integracion45-entrega-resultados.json` (13/13), `integracion45-entrega-build.txt` y `integracion45-entrega-tests.txt` (206/206). Código y ambas entradas de novedades preservados; ninguna integración temporal se publicó.

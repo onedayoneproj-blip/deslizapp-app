@@ -8,7 +8,7 @@
 - Catálogo React #44: `a56553756e6c4e5ad2b25a52c2e67962dc73e8f6`, abierto/borrador.
 - Trabajo inicial publicado de Claude: `4307a1416d0364b116a875361ecf7d7e1f44cac3`. Se conservan sus cuatro commits; no se reinició la implementación ni se empujó a su rama.
 - Rendimiento #45: `ddd0057cd1047db679eb155e16c9a7a8be2b2927`, abierto/borrador. Se volvieron a consultar los tres heads y main al cierre: sin nuevos commits.
-- Worktree propio `/workspace/deslizapp-pedido-panel`; integración temporal propia `/workspace/deslizapp-panel-integracion`. No se modificaron rama, archivos ni servidor de `/workspace/deslizapp-rendimiento`.
+- Worktree propio `/workspace/deslizapp-pedido-panel`; integraciones temporales propias `/workspace/deslizapp-panel-integracion` (código funcional) y `/workspace/deslizapp-panel-integracion-final` (entrega completa). No se modificaron rama, archivos ni servidor de `/workspace/deslizapp-rendimiento`.
 - El script local de 13 escenarios y las últimas correcciones/documentación locales de Claude no estaban accesibles. Se reconstruyó el script desde el código publicado y el prompt documental; **no** se afirma haber recuperado esos archivos ni su resultado 12/13.
 - Publicación por conector GitHub porque `git push` devolvió HTTP 401. Se verificó que los árboles de cada commit publicado coinciden con los locales; las SHA cambian por los metadatos del conector. Commits publicados iniciales: `539106c` (local `6adc698`), `615085f` (local `fb35005`), `b75562b` (local `a1e4d28`). El head definitivo se consulta en el PR.
 
@@ -68,9 +68,11 @@ La primera matriz de aislamiento esperaba el texto del aviso previo; el contenid
 
 ## Combinación temporal con #45
 
-Merge solo en el worktree temporal, sin conflictos Git. Revisión manual de archivos comunes confirmó: import SSR `publica-real`, delegación pública con SDK bajo demanda, descarga de recibo lazy, medios/imágenes responsivos de #45; estados, error público, guardas del índice, carga privada lazy y registro de esta rama. Ninguna optimización se duplicó en la continuación.
+Primera mezcla del código funcional (`fb35005`) solo en el worktree temporal, sin conflictos Git. Revisión manual de archivos comunes confirmó: import SSR `publica-real`, delegación pública con SDK bajo demanda, descarga de recibo lazy, medios/imágenes responsivos de #45; estados, error público, guardas del índice, carga privada lazy y registro de esta rama. Ninguna optimización se duplicó en la continuación.
 
-Build conjunto pasó; catálogo conjunto **9/9** (incluidos PNG/PDF); 13 escenarios a 390 px normal/reducido **26/26**, con 24 en la primera corrida y los dos casos de aislamiento repetidos tras corregir la expectativa textual. Se guardaron JSON y comparación visual de recibos. No se publicó ni fusionó la integración temporal. Esto prueba esos recorridos, **no** rendimiento Vercel/4G ni Safari físico.
+Build conjunto pasó; catálogo conjunto **9/9** (incluidos PNG/PDF); 13 escenarios a 390 px normal/reducido **26/26**, con 24 en la primera corrida y los dos casos de aislamiento repetidos tras corregir la expectativa textual.
+
+También se combinó la entrega completa (`5002c7d`, equivalente a `00cfcb3`) con #45 en otro worktree temporal. Hubo tres conflictos **documentales**: HANDOFF, contexto y pantallas. Se leyeron ambas versiones y se conservaron ambos handoffs, el estado actualizado del panel y la sección de rendimiento; se retiraron las frases obsoletas «Prompt por escribir» / «No muestra estado». Código y novedades se unieron sin conflictos, conservando 0.33.0 y la mejora de carga de 0.32.0. Tras resolver: **build pasó, 206/206 tests, catálogo 9/9 y los 13 casos de comprador/registro/navegación 13/13 a 390 px**. Patch de integración resuelto conservado localmente, sin publicar. Se guardaron JSON y comparación visual de recibos. No se publicó ni fusionó la integración temporal. Esto prueba esos recorridos, **no** rendimiento Vercel/4G ni Safari físico.
 
 ## Límites, diferencias y decisiones
 
