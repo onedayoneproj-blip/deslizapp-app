@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Medio } from "@/lib/types";
 import { Icono } from "./iconos";
+import { imagenCatalogo, imagenParaColor, imagenFija } from "@/lib/tienda/imagenes";
 const tintes = new Map<string, { c: string; dark: boolean }>();
 export function colorDePortada(
   url: string,
@@ -38,7 +39,7 @@ export function colorDePortada(
       }
     };
     img.onerror = () => resolve(null);
-    img.src = url;
+    img.src = imagenParaColor(url);
   });
 }
 function Video({
@@ -64,12 +65,12 @@ function Video({
       <video
         ref={ref}
         src={cargar ? medio.url : undefined}
-        poster={medio.portada ?? undefined}
+        poster={cargar && medio.portada ? imagenFija(medio.portada, 1080) : undefined}
         autoPlay={visible}
         muted={mudo}
         playsInline
         loop
-        preload={cargar ? "metadata" : "none"}
+        preload={visible ? "metadata" : "none"}
       />
       {visible && (
         <button
@@ -90,6 +91,7 @@ export function Medios({
   siguiente,
   anterior,
   prioridad,
+  precargar,
   dobleToque,
 }: {
   medios: Medio[];
@@ -98,6 +100,7 @@ export function Medios({
   siguiente: boolean;
   anterior: boolean;
   prioridad: boolean;
+  precargar: boolean;
   dobleToque: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -132,16 +135,19 @@ export function Medios({
           <div className="medio" key={m.url}>
             {m.tipo === "foto" ? (
               <img
-                src={prioridad || activo || siguiente || anterior ? m.url : "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
+                {...((activo && (i === indice || (precargar && Math.abs(i - indice) === 1))) || ((siguiente || anterior) && i === 0) ? imagenCatalogo(m.url) : { src: "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" })}
                 alt={nombre}
                 loading={prioridad && i === 0 ? "eager" : "lazy"}
+                fetchPriority={prioridad && i === indice ? "high" : "low"}
+                decoding="async"
+                crossOrigin="anonymous"
                 draggable={false}
               />
             ) : (
               <Video
                 medio={m}
                 visible={activo && indice === i}
-                cargar={activo || siguiente}
+                cargar={activo && indice === i}
               />
             )}
           </div>

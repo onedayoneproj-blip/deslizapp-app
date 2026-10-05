@@ -8,6 +8,7 @@ import {
 } from "./artes-deslizapp";
 import { DialogoCatalogo } from "./dialogo";
 import { Icono } from "./iconos";
+import { imagenCatalogo } from "@/lib/tienda/imagenes";
 export { ArteFinal };
 export function Historias({
   cerrar,
@@ -150,7 +151,7 @@ export function Coach({
                         {[0, 1, 2, 0].map((n, k) => (
                           <img
                             key={k}
-                            src={productos[n % productos.length]?.foto}
+                            {...imagenCatalogo(productos[n % productos.length]?.foto ?? "", "200px")}
                             alt=""
                           />
                         ))}
@@ -161,7 +162,7 @@ export function Coach({
                 ) : i === 1 ? (
                   <>
                     <div className="cph">
-                      <img src={productos[0]?.foto} alt="" />
+                      <img {...imagenCatalogo(productos[0]?.foto ?? "", "200px")} alt="" />
                     </div>
                     <span className="cbst">
                       <Icono nombre="heart" />

@@ -1,3 +1,5 @@
+import { dato, requerido, type Respuesta } from "./supabase-resultado";
+import { crearOperacionesPublicas } from "./supabase-publica";
 // Implementación REAL de la interfaz de datos (lib/data/fuente.ts) sobre Supabase.
 // - El contrato es supabase/migrations/ (si el doc y el SQL difieren, manda el SQL).
 // - Lo que decide la base NO se repite aquí: el número del pedido, `pedidos_count`, `likes`, el stock al
@@ -35,7 +37,6 @@ import {
   TelefonoDuplicado,
   traducirErrorSupabase,
   FuncionApagada,
-  CatalogoNoDisponible,
   UsarVariante,
 } from "./errores";
 import { FUNCIONES } from "../funciones";
@@ -43,15 +44,9 @@ import {
   aAbono,
   aAviso,
   aMedio,
-  aCatalogoPublico,
-  aItemSolicitud,
   aSolicitud,
-  aVistaSolicitud,
   type FilaAviso,
-  type FilaCatalogoPublico,
-  type FilaItemSolicitud,
   type FilaSolicitud,
-  type FilaVistaSolicitud,
   aCliente,
   aEventoAaah,
   aPedidoConItems as aPedidoBase,
@@ -86,27 +81,6 @@ import { desdeFormulario, promoTerminada } from "./promos";
 function aPedidoConItems(f: FilaPedidoConItems): PedidoConItems {
   const p = aPedidoBase(f);
   return conPago(p, p.abonos);
-}
-
-/** Lo que devuelve cualquier consulta de supabase-js. */
-type Respuesta<T> = { data: T | null; error: unknown };
-
-/** Da la fila (o null) o lanza el error ya traducido para el dueño. */
-async function dato<T>(consulta: PromiseLike<Respuesta<T>>): Promise<T | null> {
-  let r: Respuesta<T>;
-  try {
-    r = await consulta;
-  } catch (e) {
-    throw traducirErrorSupabase(e);
-  }
-  if (r.error) throw traducirErrorSupabase(r.error);
-  return r.data;
-}
-
-async function requerido<T>(consulta: PromiseLike<Respuesta<T>>, siFalta: () => Error): Promise<T> {
-  const d = await dato(consulta);
-  if (d === null) throw siFalta();
-  return d;
 }
 
 /** PostgREST devuelve como mucho 1000 filas por consulta: se piden por tramos hasta tenerlas todas. */
@@ -1209,57 +1183,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(n ?? 0);
     },
 
-    // ---- Catálogo público (anon) ----
-    async catalogoPublico(slug) {
-      const f = await requerido<FilaCatalogoPublico>(supabase.rpc("catalogo_publico", { p_slug: slug }), () => new CatalogoNoDisponible());
-      return aCatalogoPublico(f);
-    },
-    async crearSolicitudPedido(slug, items, codigoPromo, dispositivo) {
-      type FilaCreada = { codigo: string; subtotal: number; descuento: number; total: number; codigo_promo: string | null; items: FilaItemSolicitud[]; vence_en: string };
-      const f = await requerido<FilaCreada>(
-        supabase.rpc("crear_solicitud_pedido", {
-          p_slug: slug,
-          p_items: items.map((i) => ({ producto_id: i.productoId, variante_id: i.varianteId ?? null, cantidad: i.cantidad })),
-          p_codigo_promo: codigoPromo?.trim() ? codigoPromo.trim() : null,
-          p_dispositivo: dispositivo,
-        }),
-        () => new Error("La base no devolvió el pedido."),
-      );
-      return {
-        codigo: f.codigo,
-        subtotal: f.subtotal,
-        descuento: f.descuento,
-        total: f.total,
-        codigoPromo: f.codigo_promo,
-        items: f.items.map(aItemSolicitud),
-        venceEn: f.vence_en,
-      };
-    },
-    async verSolicitud(codigo) {
-      try {
-        const f = await dato<FilaVistaSolicitud>(supabase.rpc("ver_solicitud", { p_codigo: codigo }));
-        return f ? aVistaSolicitud(f) : null;
-      } catch (e) {
-        if (e instanceof DatosInvalidos && /no encontramos ese pedido/i.test(e.message)) return null;
-        throw e;
-      }
-    },
-    async registrarAaah(slug, productoSlug, dispositivo, on) {
-      const n = await dato<number>(supabase.rpc("registrar_aaah", { p_slug: slug, p_producto_slug: productoSlug, p_dispositivo: dispositivo, p_on: on }));
-      return n ?? 0;
-    },
-    async pedirAviso(slug, productoSlug, varianteId, telefono, nombre, dispositivo) {
-      await dato(
-        supabase.rpc("pedir_aviso", {
-          p_slug: slug,
-          p_producto_slug: productoSlug,
-          p_variante_id: varianteId,
-          p_telefono: telefono,
-          p_nombre: nombre?.trim() || null,
-          p_dispositivo: dispositivo,
-        }),
-      );
-    },
+    ...crearOperacionesPublicas(supabase),
 
     // ---- Solo demo ----
     async simularAvanceCatalogo() {

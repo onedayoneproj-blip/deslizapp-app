@@ -39,10 +39,14 @@ import { Icono, SelloAgotado } from "./iconos";
 import { colorDePortada } from "./medios";
 import { DialogoCatalogo } from "./dialogo";
 import { HojaPedido, HojaOpiniones, HojaAviso } from "./hojas-compra";
-import { Coach, Historias, ArteFinal } from "./historias";
-import { Planes } from "./planes";
+import dynamic from "next/dynamic";
+import { ArteFinal } from "./artes-deslizapp";
+const Coach = dynamic(() => import("./historias").then(m => m.Coach));
+const Historias = dynamic(() => import("./historias").then(m => m.Historias));
+const Planes = dynamic(() => import("./planes").then(m => m.Planes));
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
 import { MarcaDeslizapp } from "./artes-deslizapp";
+import { imagenFija, imagenCatalogo } from "@/lib/tienda/imagenes";
 const abrirWhatsApp = (telefono: string, texto: string) => {
   window.location.assign(
     "https://wa.me/" +
@@ -95,11 +99,21 @@ export function Catalogo({
   } | null>(null);
   const [toast, setToast] = useState("");
   const [bar, setBar] = useState(false);
+  const [precargar, setPrecargar] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const envio = useRef(false);
   const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entrada = useRef(false);
+  useEffect(() => {
+    setPrecargar(false);
+    let timer: ReturnType<typeof setTimeout>;
+    const imagen = root.current?.querySelector<HTMLImageElement>(".reel.on .medio img");
+    const lista = () => { timer = setTimeout(() => setPrecargar(true), 500); };
+    if (imagen?.complete && imagen.naturalWidth > 1) lista();
+    else imagen?.addEventListener("load", lista, { once: true });
+    return () => { clearTimeout(timer); imagen?.removeEventListener("load", lista); };
+  }, [actual, c?.tienda.slug]);
   const posicion = useRef(72);
   const trasCerrar = useRef<(() => void) | null>(null);
   const avisar = useCallback((msg: string) => {
@@ -160,7 +174,8 @@ export function Catalogo({
         if (!vigente) return;
         setC(datos);
         setError("");
-        setActual(datos.productos[0]?.slug ?? "");
+        const destino = location.hash.startsWith("#p/") ? decodeURIComponent(location.hash.slice(3)) : "";
+        setActual(datos.productos.some(p => p.slug === destino) ? destino : (datos.productos[0]?.slug ?? ""));
         setCart(leerCarrito(slug, datos.productos));
         if (!entrada.current) {
           entrada.current = true;
@@ -377,7 +392,7 @@ export function Catalogo({
     ),
     "--display": `"${tema.fuentes.display === "Figtree" ? "DZ Figtree" : tema.fuentes.display === "Fredoka" ? "DZ Fredoka" : tema.fuentes.display}",Georgia,serif`,
     "--body": `"${tema.fuentes.body === "Figtree" ? "DZ Figtree" : tema.fuentes.body}",system-ui,sans-serif`,
-    "--iso": `url("${t.fotoPerfilUrl ?? t.logoUrl ?? ""}")`,
+    "--iso": `url("${imagenFija(t.fotoPerfilUrl ?? t.logoUrl ?? "", 96)}")`,
   } as CSSProperties;
   const compartir = async (slugProducto?: string) => {
     const p = c.productos.find((p) => p.slug === slugProducto);
@@ -715,7 +730,7 @@ export function Catalogo({
                   .filter((c) => c.id !== "all")
                   .slice(0, 3)
                   .map((col) => (
-                    <img loading="lazy" key={col.id} src={portada(col.productos[0])} alt="" />
+                    <img loading="lazy" key={col.id} {...imagenCatalogo(portada(col.productos[0]), "80px")} alt="" />
                   ))}
               </span>
             </button>
@@ -730,7 +745,7 @@ export function Catalogo({
       >
         {lista.length > 0 && (
           <div className="glow" aria-hidden="true">
-            <img loading="lazy" src={portada(lista[0])} alt="" />
+            <img loading="lazy" {...imagenCatalogo(portada(lista[0]))} crossOrigin="anonymous" alt="" />
           </div>
         )}
         {lista.map((p, i) => (
@@ -744,6 +759,7 @@ export function Catalogo({
             anterior={i === index - 1}
             cantidadPedido={cart.length}
             siguiente={i === index + 1}
+            precargar={precargar}
             seleccionado={(vid) =>
               cart.some((l) => l.productoId === p.id && l.varianteId === vid)
             }
@@ -800,7 +816,7 @@ export function Catalogo({
                           l.foto && (
                             <img
                               key={l.productoId + (l.varianteId ?? "")}
-                              src={l.foto}
+                              {...imagenCatalogo(l.foto, "36px")}
                               alt=""
                             />
                           ),
@@ -954,7 +970,7 @@ export function Catalogo({
                 onClick={() => setFilter(col.id)}
               >
                 <span className="ring">
-                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                  <img loading="lazy" {...imagenCatalogo(portada(col.productos[0]), "80px")} alt="" />
                 </span>
                 {col.nombre}
               </button>
@@ -983,7 +999,7 @@ export function Catalogo({
                   }
                 }}
               >
-                <img src={portada(p)} alt="" loading="lazy" />
+                <img {...imagenCatalogo(portada(p), "(max-width: 608px) 50vw, 304px")} alt="" loading="lazy" />
                 {p.disponibilidad === "agotado" ? (
                   <SelloAgotado />
                 ) : (
@@ -1105,7 +1121,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                      <img loading="lazy" {...imagenCatalogo(portada(col.productos[0]), "80px")} alt="" />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>
@@ -1195,7 +1211,7 @@ export function Catalogo({
                   key={p.id}
                   onClick={() => go(p.slug)}
                 >
-                  <img src={portada(p)} alt="" />
+                  <img {...imagenCatalogo(portada(p), "(max-width: 608px) 50vw, 304px")} alt="" />
                   <span>
                     <b>{p.nombre}</b>
                     <small>

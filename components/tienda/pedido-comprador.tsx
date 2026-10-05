@@ -7,7 +7,6 @@ import { lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
 import { temaDeTienda } from "@/lib/tienda/tema";
 import { NOMBRE_PRODUCTO } from "@/lib/rubros";
 import { dinero } from "@/lib/tienda/carrito";
-import { descargarRecibo } from "@/lib/tienda/recibo";
 import { Icono } from "./iconos";
 export function PedidoComprador({
   codigo,
@@ -112,6 +111,7 @@ export function PedidoComprador({
     setPreparando(true);
     setError("");
     try {
+      const { descargarRecibo } = await import("@/lib/tienda/recibo");
       await descargarRecibo(s, tipo, tema ?? undefined);
     } catch {
       setError("No pudimos preparar el recibo. Inténtalo otra vez.");

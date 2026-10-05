@@ -1,6 +1,6 @@
 // Entrada pública a la misma capa de datos. Sin sesión, cookies ni DataProvider del panel.
 import { createClient } from "@supabase/supabase-js";
-import { crearFuenteSupabase } from "./supabase";
+import { crearOperacionesPublicas } from "./supabase-publica";
 import { SUPABASE_URL, SUPABASE_LLAVE } from "../supabase/config";
 import type { FuenteDatos } from "./fuente";
 export type FuentePublica = Pick<
@@ -14,7 +14,7 @@ export type FuentePublica = Pick<
 export function fuentePublicaReal(): FuentePublica {
   if (!SUPABASE_URL || !SUPABASE_LLAVE)
     throw new Error("El catálogo no está disponible ahora.");
-  return crearFuenteSupabase(
+  return crearOperacionesPublicas(
     createClient(SUPABASE_URL, SUPABASE_LLAVE, {
       auth: {
         persistSession: false,
@@ -25,7 +25,6 @@ export function fuentePublicaReal(): FuentePublica {
         fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
       },
     }),
-    () => {},
   );
 }
 export async function fuentePublica(demo: boolean): Promise<FuentePublica> {

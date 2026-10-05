@@ -19,12 +19,23 @@
   --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
   --iso: url("/tienda/original-0.jpg");
   --hdr: 54px;
-  --vh: 100vh;
-  --W: 390px;
-  --H: 488px;
-  --pt: 200px;
-  --pb: 200px;
+  /* Reserva la misma geometría que layout() antes de descargar/hidratar JS. */
+  --vh: 100svh;
+  --peek: 52px;
+  --top: calc(104px + var(--peek));
+  --H: max(260px, min(125vw, calc(var(--vh) - var(--top) - var(--peek)), 760px));
+  --W: min(100vw, calc(var(--H) * 0.8));
+  --extra: max(0px, calc(var(--vh) - var(--top) - var(--peek) - var(--H)));
+  --pt: calc(var(--top) + var(--extra) / 2 + 72px);
+  --pb: calc(var(--peek) + var(--extra) / 2 + 160px);
+  --bagR: calc((100vw - var(--W)) / 2 + 6px);
+  --bagT: calc(var(--pt) - 72px + var(--H) - 82px);
+  --glowH: calc(var(--pt) + var(--H) * 0.35);
   --gap: 14px;
+}
+@media (max-height: 699px) { .catalogo-publico { --peek: 36px; } }
+@media (min-width: 900px) {
+  .catalogo-publico { --bagR: calc((100vw - var(--W)) / 2 - 80px); --bagT: calc(var(--pt) - 72px + var(--H) - 70px); }
 }
 :where(.catalogo-publico) * {
   box-sizing: border-box;
