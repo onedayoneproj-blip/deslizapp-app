@@ -1,6 +1,6 @@
 # Handoff — selección de agotados, historial y likes del panel
 
-Estado inicial: `main` en `b46d5ecd24f4591e5e8f0cfbe85c57033bcb8905` (#48). Rama de trabajo: `fix/catalogo-agotados-visibles`; PR/preview se completan después de publicar la rama. PR #45 no se incorporó. No hubo cambios de Supabase ni migraciones.
+Estado: PR [#49](https://github.com/onedayoneproj-blip/deslizapp-app/pull/49) abierto desde `fix/catalogo-agotados-visibles`, sobre `main` `b46d5ecd24f4591e5e8f0cfbe85c57033bcb8905` (#48). Vercel preview: [despliegue exacto](https://deslizapp-p0bl3h2dw-onedayone.vercel.app) (READY) y [alias estable de la rama](https://deslizapp-app-git-fix-catalogo-agotados-visibles-onedayone.vercel.app). Vercel exige iniciar sesión en el equipo para abrirlo; el fetch autenticado de `/catalogo` devolvió HTTP 200. PR #45 no se incorporó. No hubo cambios de Supabase ni migraciones.
 
 ## Cambios
 
