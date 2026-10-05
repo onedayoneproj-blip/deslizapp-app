@@ -62,6 +62,8 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)
 
+**Seguimiento en revisión:** `feature/catalogo-visibilidad-og`, desde main publicado sin #45: interruptor en vista previa, likes del panel/feed, etiquetas de stock e imagen compuesta del pedido. No fusionar automáticamente. Pruebas y límites en `docs/validacion-catalogo-visibilidad-og.md`; handoff en `docs/handoffs/catalogo-visibilidad-og.md`.
+
 **Pendientes sueltos:**
 - Pasar Promos al sistema de diseño (`components/ui`).
 - Inicio y el esqueleto de la app.
@@ -76,3 +78,4 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 ## Para Lewis, al cambiar de herramienta
 
 Para que una sesión nueva sepa todo esto, empieza con: "Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md` y `HANDOFF.md`, y dime cuál es tu puesto (Planning o Coding)". Cuando termine algo importante, que se actualice la sección "Dónde va el trabajo" de este documento en el mismo PR.
+Seguimiento dentro de PR #47: visibilidad de «Avísame» en Inicio/Catálogo/vista previa, filtro En espera y likes dentro de foto. Conserva los cambios anteriores de la misma rama. No incorpora #45 ni cambios de Supabase. Handoff adicional: docs/handoffs/espera-catalogo.md; validación: docs/validacion-espera-catalogo.md.

@@ -8,7 +8,8 @@ import { diaMesCorto } from "@/lib/formato";
 import { lineasDeReposicion, mensajeReposicion, porReponer, type LineaReponer, type VentasProducto } from "@/lib/inventario-catalogo";
 import { copiarTexto } from "@/lib/portapapeles";
 import type { AvisoLlegada, Producto } from "@/lib/types";
-import { useConsulta } from "@/lib/data/consulta";
+import { usePanelUI } from "../panel/ui";
+import { Aviso } from "../ui";
 import { IconoCompartir } from "../iconos";
 import { BotonVerMas } from "../ver-mas";
 import { Boton, Cantidad, CheckSeleccion, FilaLista, GrupoOpciones, ListaAgrupada, useToastUI, VistaPreviaWhatsApp } from "../ui";
@@ -45,9 +46,10 @@ export function VistaPorReponer({
   alTerminar: () => void;
 }) {
   const { tiendaId } = useTiendaActiva();
-  const { reponerStock, avisosPendientes } = useData();
+  const { reponerStock } = useData();
   const { mostrarToast } = useToastUI();
-  const { data: avisos } = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId));
+  const { espera } = usePanelUI();
+  const avisos = espera.error || espera.cargando ? undefined : espera.data;
   const reponer = useMemo(() => porReponer(productos, ventas), [productos, ventas]);
   const agotados = useMemo(() => lineasDeReposicion([...reponer.vendidos, ...reponer.sinVentas]), [reponer]);
   const seAcaban = useMemo(() => lineasDeReposicion(reponer.seAcaban), [reponer]);
@@ -130,6 +132,7 @@ export function VistaPorReponer({
 
   return (
     <div className="flex flex-col gap-5">
+      {espera.error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: espera.reintentar }}>No pudimos leer quiénes esperan.</Aviso>}
       <p className="font-mano text-mano text-atencion-texto">Que vuelva lo que se fue volando</p>
 
       <ListaAgrupada etiqueta="Productos por reponer">

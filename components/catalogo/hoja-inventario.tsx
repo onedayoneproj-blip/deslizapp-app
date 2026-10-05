@@ -14,7 +14,7 @@ import { Hoja } from "../hoja";
 import { IconoChevronDerecha, IconoPedidos, IconoReloj } from "../iconos";
 import { BotonVolver } from "../selector-busqueda";
 import { usePanelUI } from "../panel/ui";
-import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, useToastUI } from "../ui";
+import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, Aviso, useToastUI } from "../ui";
 import { DetalleStock, Esperan } from "./stock-producto";
 import { COLOR_STOCK, DonaInventario } from "./dona-inventario";
 import { MiniaturaProducto } from "./miniatura-producto";
@@ -334,9 +334,8 @@ function VistaSinMovimiento({ productos, ventas, ahora, alCerrarHoja }: { produc
 /** Vista interna de un grupo de la leyenda: sus productos visibles; tocar uno abre su hoja. */
 function VistaGrupoInventario({ productos, grupo, alCerrarHoja }: { productos: Producto[]; grupo: GrupoInventario; alCerrarHoja: () => void }) {
   const router = useRouter();
-  const { avisosPendientes } = useData();
-  const { tiendaId } = useTiendaActiva();
-  const { data: avisos } = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId));
+  const { espera } = usePanelUI();
+  const avisos = espera.error || espera.cargando ? undefined : espera.data;
   const cumple = (p: Producto) => {
     const stock = stockParaSalud(p);
     return p.activo && (grupo === "agotados" ? stock === 0 : grupo === "quedan" ? stock !== null && stock > 0 && stock <= STOCK_BAJO : stock === null || stock > STOCK_BAJO);
@@ -345,6 +344,7 @@ function VistaGrupoInventario({ productos, grupo, alCerrarHoja }: { productos: P
   const paginada = useVerMas(lista, `grupo:${grupo}`);
   return (
     <div className="pb-6">
+      {espera.error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: espera.reintentar }}>No pudimos leer quiénes esperan.</Aviso>}
       <ListaAgrupada etiqueta={NOMBRE_GRUPO[grupo]}>
         {paginada.visibles.map((p) => (
           <FilaLista

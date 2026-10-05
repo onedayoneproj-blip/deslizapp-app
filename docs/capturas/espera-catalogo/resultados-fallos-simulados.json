@@ -1,0 +1,23 @@
+[
+  {
+    "width": 360,
+    "passed": true,
+    "readError": true,
+    "markErrorRetry": true,
+    "deduplicated": true
+  },
+  {
+    "width": 390,
+    "passed": true,
+    "readError": true,
+    "markErrorRetry": true,
+    "deduplicated": true
+  },
+  {
+    "width": 430,
+    "passed": true,
+    "readError": true,
+    "markErrorRetry": true,
+    "deduplicated": true
+  }
+]

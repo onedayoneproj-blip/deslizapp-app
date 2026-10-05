@@ -1,11 +1,14 @@
 import { cache } from "react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { codigoPedidoValido, TAMANO_IMAGEN_PEDIDO, urlImagenPedido } from "@/lib/tienda/imagen-pedido";
 import { fuentePublicaReal } from "@/lib/data/publica";
 import { PedidoComprador } from "@/components/tienda/pedido-comprador";
 import { dinero } from "@/lib/tienda/carrito";
 import "../../tienda/catalogo.css";
 export const dynamic = "force-dynamic";
 const leer = cache(async (codigo: string) => {
+  if (!codigoPedidoValido(codigo)) return { solicitud: null, error: false };
   try {
     return { solicitud: await fuentePublicaReal().verSolicitud(codigo), error: false };
   } catch {
@@ -28,13 +31,19 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   const title = "Tu pedido con " + s.tienda.nombre;
+  const h = await headers();
+  const host = h.get("host") ?? "";
+  const origen = process.env.VERCEL_ENV === "production" ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "deslizapp-app.vercel.app"}`
+    : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}`
+    : /^localhost(?::\d+)?$/.test(host) ? `http://${host}` : "https://deslizapp-app.vercel.app";
+  const imagen = urlImagenPedido(codigo, origen)!;
   return {
     title,
     robots: { index: false, follow: false },
     openGraph: {
       title,
       description: `${s.items.length} ${s.items.length === 1 ? "producto" : "productos"} · ${dinero(s.total)}`,
-      ...(s.items[0]?.foto ? { images: [s.items[0].foto] } : {}),
+      images: [{ url: imagen, ...TAMANO_IMAGEN_PEDIDO, type: "image/png", alt: `Productos de tu pedido con ${s.tienda.nombre}` }],
     },
   };
 }

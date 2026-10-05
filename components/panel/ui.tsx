@@ -6,10 +6,17 @@ import { HojaInventario, type VistaInventario } from "../catalogo/hoja-inventari
 import { HojaMiMarca } from "../marca-tienda/hoja-mi-marca";
 import { HojaPlan } from "./hoja-plan";
 import { PantallaNovedades } from "./pantalla-novedades";
+import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { useData } from "@/lib/data/provider";
+import { resumenEspera } from "@/lib/avisos";
+import type { AvisoLlegada, Producto } from "@/lib/types";
+import { HojaEspera } from "../catalogo/hoja-espera";
 
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
 type CampoMarca = "enlace";
 type PanelUI = {
+  espera: ReturnType<typeof useConsulta<AvisoLlegada[]>> & { resumen: ReturnType<typeof resumenEspera> | undefined };
+  abrirEspera: (producto?: Producto) => void;
   abrirPlan: () => void;
   /** Abre "Tu inventario"; con "espacio" entra directo a "Hacer espacio". */
   abrirInventario: (vista?: Extract<VistaInventario, "espacio">) => void;
@@ -43,6 +50,13 @@ function novedadesPendientes(): Novedad[] {
 
 /** Estado de interfaz compartido por todo el panel: Plan y créditos, Mi marca y la pantalla de novedades. */
 export function PanelUIProvider({ children }: { children: ReactNode }) {
+  const { avisosPendientes } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const consultaEspera = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId), true);
+  const resumen = useMemo(() => consultaEspera.data === undefined ? undefined : resumenEspera(consultaEspera.data, tiendaId), [consultaEspera.data, tiendaId]);
+  const [vistaEspera, setVistaEspera] = useState<{ tiendaId: string; abierta: boolean; producto?: Producto }>({ tiendaId, abierta: false });
+  if (vistaEspera.tiendaId !== tiendaId) setVistaEspera({ tiendaId, abierta: false });
+  const abrirEspera = useCallback((producto?: Producto) => setVistaEspera({ tiendaId, abierta: true, producto }), [tiendaId]);
   const [planAbierto, setPlanAbierto] = useState(false);
   const [inventarioAbierto, setInventarioAbierto] = useState(false);
   const [vistaInventario, setVistaInventario] = useState<VistaInventario>("resumen");
@@ -76,12 +90,12 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     setMarcaAbierta(true);
   }, []);
   const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
-  const valor = useMemo(() => ({ abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca }),
-    [abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca],);
+  const valor = { abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEspera, espera: { ...consultaEspera, resumen } };
 
   return (
     <Contexto.Provider value={valor}>
       {children}
+      {vistaEspera.tiendaId === tiendaId && vistaEspera.abierta && <HojaEspera key={tiendaId} productoInicial={vistaEspera.producto} alSalir={() => setVistaEspera(v => ({ ...v, abierta: false }))} />}
       <HojaInventario abierta={inventarioAbierto} alCerrar={cerrarInventario} vistaAlAbrir={vistaInventario} ahora={inventarioAbiertoEn} />
       <HojaPlan abierta={planAbierto} alCerrar={cerrarPlan} />
       <HojaMiMarca abierta={marcaAbierta} alCerrar={cerrarMiMarca} campo={campoMarca} />

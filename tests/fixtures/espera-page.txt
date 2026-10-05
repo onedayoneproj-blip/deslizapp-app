@@ -1,0 +1,15 @@
+"use client";
+import {useSyncExternalStore} from "react";
+import {fuenteDemo} from "@/lib/data/demo";
+import {ProveedorDemo} from "@/lib/data/provider";
+import {PanelUIProvider} from "@/components/panel/ui";
+import {ToastProvider} from "@/components/toast";
+import {ProveedorToast} from "@/components/ui";
+import {VistaCatalogo} from "@/components/catalogo/vista-catalogo";
+import {ErrorClaro} from "@/lib/data/errores";
+const leer=fuenteDemo.avisosPendientes,marcar=fuenteDemo.marcarAvisado;
+const w=()=>window as typeof window & {__leerFalla?:boolean;__marcarFalla?:boolean;__lecturas?:number;__marcas?:number};
+fuenteDemo.avisosPendientes=async(...args)=>{w().__lecturas=(w().__lecturas??0)+1;await new Promise(r=>setTimeout(r,300));if(w().__leerFalla)throw new ErrorClaro("No pudimos leer quiénes esperan.");return leer(...args);};
+fuenteDemo.marcarAvisado=async(...args)=>{w().__marcas=(w().__marcas??0)+1;await new Promise(r=>setTimeout(r,300));if(w().__marcarFalla)throw new ErrorClaro("No pudimos marcar el aviso.");return marcar(...args);};
+const subscribe=()=>()=>{};
+export default function Fixture(){const ready=useSyncExternalStore(subscribe,()=>true,()=>false);if(!ready)return null;return <ToastProvider><ProveedorToast><ProveedorDemo cargando={null}><PanelUIProvider><VistaCatalogo/></PanelUIProvider></ProveedorDemo></ProveedorToast></ToastProvider>}

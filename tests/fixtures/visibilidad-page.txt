@@ -1,0 +1,15 @@
+"use client";
+import {useSyncExternalStore} from "react";
+import {fuenteDemo} from "@/lib/data/demo";
+import {ProveedorDemo} from "@/lib/data/provider";
+import {PanelUIProvider} from "@/components/panel/ui";
+import {ToastProvider} from "@/components/toast";
+import {ProveedorToast} from "@/components/ui";
+import {HojaVistaProducto,HojaProducto} from "@/components/catalogo/hoja-producto";
+import {ErrorClaro} from "@/lib/data/errores";
+const original=fuenteDemo.actualizarProducto;
+const w=()=>window as typeof window & {__fallo?:boolean;__llamadas?:number;__espera?:number;__ocultar?:()=>Promise<unknown>};
+fuenteDemo.actualizarProducto=async(...a)=>{w().__llamadas=(w().__llamadas??0)+1;await new Promise(r=>setTimeout(r,w().__espera??0));if(w().__fallo)throw new ErrorClaro("No se pudo cambiar la visibilidad. Inténtalo otra vez.");return original(...a);};
+const id="a3000000-0000-4000-8000-000000000001",tienda="a1000000-0000-4000-8000-000000000001";
+const subscribe=()=>()=>{};
+export default function Fixture(){const ready=useSyncExternalStore(subscribe,()=>true,()=>false);if(!ready)return null;w().__ocultar=()=>original(tienda,id,{activo:false});return <ToastProvider><ProveedorToast><ProveedorDemo cargando={null}><PanelUIProvider>{location.search.includes("editar")?<HojaProducto productoId={id}/>:<HojaVistaProducto productoId={id}/>}</PanelUIProvider></ProveedorDemo></ProveedorToast></ToastProvider>}
