@@ -7,6 +7,7 @@ Estado: PR [#49](https://github.com/onedayoneproj-blip/deslizapp-app/pull/49) ab
 - La acción «Ocultarlos» del aviso de agotados lleva a una selección interna dentro de la misma Hoja. Empieza vacía. El buscador limita el alcance de «Seleccionar todos los resultados», con la cantidad de resultados indicada. Sin selección el botón «Ocultar del catálogo» está deshabilitado; con selección el nombre incluye el total. Cancelar, volver o cerrar no cambia productos.
 - La lista usa `stockParaSalud`: incluye productos visibles sin variantes con stock cero y productos cuyas variantes activas están todas en cero; excluye variantes disponibles, stock sin control y productos ocultos.
 - Al confirmar, cada producto se vuelve a leer dentro de la tienda activa. Solo se actualiza `activo: false`. Los que dejaron de ser elegibles se omiten. Los fallos parciales indican cuántos fallaron y sus nombres; quedan seleccionados solo los pendientes para reintentar. Se impide doble envío. Stock, historial, precios, pedidos, variantes y avisos de llegada se conservan.
+- En respuesta a la revisión de PR, la confirmación ahora llama `refrescar()` antes de volver a leer los productos; así invalida la caché de lecturas reales antes de la comprobación. El chequeo afectado de TypeScript, elegibilidad y lint volvió a pasar. Esto no modifica la base ni las cantidades.
 - El historial usa `ListaAgrupada` y `FilaLista`; muestra primero lo más nuevo, variación, anterior → posterior, motivo, nota, fecha/hora dominicana y nombre del actor o el respaldo del contrato. Conserva carga, error/reintento, vacío y «Ver más».
 - El indicador de likes del panel es una cápsula horizontal mandarina de corazón+cifra, dentro de la foto, sin acción separada. La lista pública y el contador de la bolsa no cambian.
 - Actualicé `docs/04-pantallas.md`, este handoff y `lib/novedades.ts`. Capturas demo están en `docs/capturas/catalogo-agotados-visibles/`.
@@ -27,6 +28,6 @@ Estado: PR [#49](https://github.com/onedayoneproj-blip/deslizapp-app/pull/49) ab
 ## Pendiente
 
 - Revisión manual en Safari/iPhone físico, incluido el teclado real.
-- Preview de Vercel/PR: completar los enlaces y SHA al publicar la rama.
+- Preview del HEAD anterior: `https://deslizapp-p0bl3h2dw-onedayone.vercel.app` (READY). La revisión con invalidación de caché tiene una construcción nueva pendiente de READY.
 - La UI de error parcial/reintento no se forzó en navegador; la función pura está cubierta por test unitario, incluido que el reintento solo recibe los pendientes.
 - Supabase real/RLS no se validó con escrituras; no se modificó ninguna tienda real.

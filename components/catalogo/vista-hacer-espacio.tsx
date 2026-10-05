@@ -154,7 +154,7 @@ const normalizarBusqueda = (texto: string) => texto.normalize("NFD").replace(/[\
 /** Selección reversible hasta la acción final; vuelve a comprobar la elegibilidad justo antes de cada cambio. */
 function SeleccionarAgotadosVisibles({ productos, alTerminar }: { productos: Producto[]; alTerminar: () => void }) {
   const { tiendaId } = useTiendaActiva();
-  const { getProducto, actualizarProducto } = useData();
+  const { getProducto, actualizarProducto, refrescar } = useData();
   const [busqueda, setBusqueda] = useState("");
   const [elegidos, setElegidos] = useState<Set<string>>(() => new Set());
   const [ocupado, setOcupado] = useState(false);
@@ -180,6 +180,9 @@ function SeleccionarAgotadosVisibles({ productos, alTerminar }: { productos: Pro
   const ocultar = async (ids: string[]) => {
     if (enCurso.current || ids.length === 0) return;
     enCurso.current = true; setOcupado(true); setMensaje("");
+    // En modo real, getProducto puede devolver una promesa ya resuelta en caché.
+    // Invalida antes de releer para comprobar stock y visibilidad recientes.
+    refrescar();
     const intento = await ocultarAgotadosElegibles(tiendaId, ids, getProducto, actualizarProducto);
     const ocultados = intento.ocultados.map(id => elegibles.find(p => p.id === id)?.nombre ?? "Producto");
     const obsoletos = intento.yaNoElegibles.map(id => elegibles.find(p => p.id === id)?.nombre ?? "Producto");
