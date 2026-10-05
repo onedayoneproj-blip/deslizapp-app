@@ -79,3 +79,8 @@ La comparación congela animaciones: no certifica equivalencia temporal de las t
 6. Prueba un pedido real solo si deseas que exista esa solicitud de prueba: no es una venta ni descuenta stock, pero crea un borrador real. Esta PR ya comprobó una solicitud y la eliminó; no necesitas enviar WhatsApp para revisar la UI.
 
 **No cambiar el enlace público ni fusionar antes de la comparación de Lewis.**
+
+
+## Revisión posterior de rendimiento (sin fusionar PR #44)
+
+El resultado histórico anterior permanece intacto. La rama dependiente `feature/catalogo-rendimiento` repite la versión `a565537` con el criterio corregido y cinco contextos fríos por versión; la comparación válida, trazas y regresiones están en [validacion-catalogo-rendimiento.md](validacion-catalogo-rendimiento.md). No mezclar los 7,086 s históricos con esa comparación. No cambia los SQL ya aplicados ni incorpora el panel de solicitudes.

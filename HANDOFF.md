@@ -420,3 +420,14 @@ Rutas públicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin s
 Migración **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, catálogo público ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
 
 La excepción visual de la superficie pública está en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios públicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona automáticamente: Lewis prueba el preview.**
+
+
+## Rendimiento del catálogo — rama dependiente, sin publicar
+
+`feature/catalogo-rendimiento` parte del head de PR #44 (`a565537`). Usa el worktree separado `/workspace/deslizapp-rendimiento`; no altera la carpeta, rama ni archivos pendientes de otra sesión. El PR apunta a `feature/catalogo-react`, que sigue pendiente de revisión. No empezar el panel de solicitudes en esta tarea. Reglas de convivencia en `AGENTS.md`, incluida la solicitud reservada `4DCQ2PZ28F`.
+
+Portadas adaptadas a viewport/DPR por el optimizador de Next, prioridad solo para el medio activo, vecinos después de la primera foto, color de borde desde 32 px y SDK público/vistas/recibos bajo demanda. Conserva las cinco operaciones públicas de FuenteDatos, demo/real, originales, stock/precios, HTML anterior y `url_catalogo`. Geometría CSS inicial igual a la definitiva para evitar el salto al hidratar. No cambia movimiento, formularios ni contratos SQL; no hubo cambios en Supabase.
+
+Cinco cargas frías por versión, Chrome/390 px/DPR 1/1,6 Mbps/150 ms: mediana utilizable **5,24 → 2,72 s**, foto **5,24 → 1,33 s**, LCP **5,26 → 1,50 s**, CLS **0,848 → 0,000053**, transferencia en 12 s **1,28 → 0,48 MB**. Son resultados locales, no iPhone ni Vercel. El resultado histórico de 7,086 s sigue intacto y no es comparable por su criterio de medición. Informe y evidencias: `docs/validacion-catalogo-rendimiento.md`.
+
+Preview generado por GitHub → Vercel, sin fusión ni publicación de producción. Medición interactiva del preview y Safari físico pendientes; la revisión automática rechazó generar un acceso temporal al preview protegido. No sustituirlo por otro método que eluda la protección sin autorización.
