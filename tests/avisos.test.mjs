@@ -1,6 +1,7 @@
+import "./cargar-ts.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { catalogoParaAviso, enlaceAviso, esperanPorProducto, mensajeYaLlego } from "../lib/avisos.ts";
+const { catalogoParaAviso, enlaceAviso, esperanPorProducto, mensajeYaLlego } = await import("../lib/avisos.ts");
 
 test("Ya llegó omite enlaces inválidos y ejecutables", () => {
   for (const url of [null, "no es un enlace", "javascript:alert(1)", "http://example.com", "https://usuario:clave@example.com"]) {

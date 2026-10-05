@@ -1,0 +1,32 @@
+[
+  {
+    "width": 360,
+    "theme": "claro",
+    "passed": true
+  },
+  {
+    "width": 360,
+    "theme": "oscuro",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "theme": "claro",
+    "passed": true
+  },
+  {
+    "width": 390,
+    "theme": "oscuro",
+    "passed": true
+  },
+  {
+    "width": 430,
+    "theme": "claro",
+    "passed": true
+  },
+  {
+    "width": 430,
+    "theme": "oscuro",
+    "passed": true
+  }
+]
