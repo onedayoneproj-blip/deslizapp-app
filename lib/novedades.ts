@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.35.1", fecha: "2026-10-05", titulo: "Likes, sin vueltas.",
+    cambios: [
+      "Los likes de tu catálogo se ven sin pastilla, debajo del corazón.",
+      "La cifra sigue dentro de la foto, clara sobre fondos claros y oscuros.",
+    ],
+  },
+  {
     version: "0.35.0", fecha: "2026-10-05", titulo: "Tu gente está esperando.",
     cambios: [
       "Avísame se ve en Inicio, en tu catálogo y en la vista previa del producto.",
