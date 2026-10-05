@@ -28,6 +28,7 @@ const TODAS: Novedad[] = [
     cambios: [
       "Registra lo que te pidieron con quien te escribió, sin perder el borrador.",
       "Los pedidos del catálogo por registrar también aparecen en Nuevos.",
+      "Los me gusta se leen debajo del corazón, separados de la bolsita del pedido.",
       "Cuando repones una opción, puedes avisar a quienes la esperan.",
     ],
   },

@@ -1227,6 +1227,13 @@ html.catalogo-html,
 :where(.catalogo-publico) .act.like[aria-pressed="true"] svg path {
   fill: currentColor;
 }
+/* Likes: texto en el flujo del botón, independiente de la insignia de la bolsa. */
+:where(.catalogo-publico) .act.like .likes-count {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
 :where(.catalogo-publico) .cnt {
   position: absolute;
   top: -4px;

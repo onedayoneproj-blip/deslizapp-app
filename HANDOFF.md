@@ -431,3 +431,10 @@ Estado/registro del comprador, respaldo en Nuevos y Avísame implementados, pend
 `20261004223008` estaba aplicada; no se reaplicó/editó. Adicional `20261005013157_registrar_solicitud_disponibilidad.sql` aplicada después de replay completo y pruebas de RLS/concurrencia en base desechable: misma firma, stock validado y bloqueos compatibles, sin reservas ni modificaciones de existencias de producción. Solo producción accesible; otras bases locales siguen desconocidas. Historial: 32 versiones en repo y producción, cero diferencias; el nombre histórico de `20260930005714` difiere intencionalmente.
 
 Las secciones de primera entrega y «Aplicación coordinada del inventario» son históricas: no describen el catálogo/stock actual. `supabase/migrations/` manda. No se ejecutó limpieza ni una operación de prueba sobre datos reales. Safari/iPhone físico, login Google real, Contact Picker, retorno físico de WhatsApp y rendimiento Vercel/4G requieren validación de Lewis. No asumir que una captura o respuesta HTTP verifica esos recorridos.
+
+
+### Seguimiento PR #46: likes y validación reportada
+
+Los likes del reel utilizan `.likes-count` (texto bajo el corazón), separados de `.cnt` de la bolsa; contador positivo incluido en el nombre accesible, cero oculto. No cambia cálculos, inventario ni aaah. Resultados y capturas en `docs/handoffs/pedido-catalogo-panel-continuacion.md`.
+
+**Reporte de Lewis, no pruebas de Coding:** Google funcionó tras permitir el callback de la preview; solicitud visible en el panel, enlace con estados actualizados y producto agotado tras despachar. Coding no cambió ese callback ni repitió escrituras reales. Los pendientes de Safari físico/cobertura completa se conservan; distinguir este reporte del navegador automatizado.

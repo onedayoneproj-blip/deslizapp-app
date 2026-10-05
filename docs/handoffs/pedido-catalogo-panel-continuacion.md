@@ -79,7 +79,7 @@ También se combinó la entrega completa (`5002c7d`, equivalente a `00cfcb3`) co
 - Demo: solicitudes/carrito/avisos viven en el navegador. El WhatsApp demo existente no añade `?demo`; por tanto el enlace enviado no transporta una solicitud local a otro dispositivo. Para probarla, reabrir en el mismo contexto con `?demo`. No se presenta eso como registro real.
 - Los códigos del tablero de seis caracteres son ejemplos: se conserva el contrato de diez. Nombres, cantidades, precios y tiempos vienen de datos, no del mockup. La relectura de Ya llegó tiene carga/error/reintento además del tablero; nunca simula reposición ni mensaje enviado.
 - Recepciones PNG/PDF descargadas y revisadas visualmente en Chromium local y la combinación con #45: coinciden en estructura, producto y total. Códigos, fecha/hora, código de barras y puerto varían por los fixtures. No es una comparación pixel a pixel de todos los recibos contra el HTML ni prueba de impresión/compartir nativo; quedan pendientes recibos con múltiples variantes/condiciones reales después de editar el pedido.
-- Safari/iPhone físico, Google OAuth real entre Safari/PWA, Contact Picker Android, regreso físico de WhatsApp, compartir nativo y lectura privada autenticada en tienda Supabase real no verificados. La prueba de transporte intercepta Supabase; SQL prueba RLS separadamente en PostgreSQL.
+- No verificados **por Coding**: Safari/iPhone físico, Google OAuth real entre Safari/PWA, Contact Picker Android, regreso físico de WhatsApp, compartir nativo y lectura privada autenticada en tienda Supabase real no verificados. La prueba de transporte intercepta Supabase; SQL prueba RLS separadamente en PostgreSQL.
 - Rendimiento comparable en Vercel y 4G **no aprobado**; es tarea de #45. No se cambió protección de preview para evitar el login de Vercel.
 - `probar-proximamente` no ejecutado en esta tarea; el contexto documenta fallo previo en main. No se presenta como validado.
 
@@ -99,3 +99,20 @@ Antes de continuar Claude: comprobar heads, commits y migraciones; conservar est
 6. **Demo ropa:** usa Lino & Algodón, pide aviso de una variante agotada y repón esa misma variante. Ya llegó debe ofrecer Avisar; abre el borrador y vuelve: Avisado. No debe cambiar el aviso de otra variante. Revisa la plantilla sin enviar automáticamente.
 7. **iPhone:** repite apertura desde WhatsApp a Safari, teclado, gesto de cierre, Atrás, movimiento reducido y descarga/compartir de recibo. Estos pasos físicos no están aprobados por Chromium.
 8. **Tienda real:** entrar con Google en preview debe regresar al mismo enlace y otra cuenta no permitir registrar. Para escrituras usa una solicitud nueva de prueba acordada y productos destinados a pruebas; no `4DCQ2PZ28F`, existencias vendibles ni clientes reales sin acuerdo. El flujo hospedado necesita esta revisión manual; no lo describimos como probado.
+
+
+## Reporte manual de Lewis — 5 oct 2026 (distinto de Coding)
+
+Lewis reportó que Google funcionó después de permitir el callback de la preview; la solicitud apareció en el panel; el enlace del comprador reflejó los estados; al despachar, el producto quedó agotado. Es validación manual comunicada por Lewis, **no** una prueba ejecutada/repetida por Coding ni evidencia de cobertura completa en Safari/PWA, aislamiento, Contact Picker, fallos de red o recibos nativos. Coding no modificó callbacks, Supabase, pedidos ni existencias durante la corrección de likes.
+
+## Corrección visual de likes en PR #46
+
+Head revisado al comenzar: `6bb5c954d53eae3dd2d71110a811e012d89e0cab`, rama `feature/pedido-catalogo-panel-continuacion`; #46 abierto/borrador contra `feature/catalogo-react`. Main y #44/#45 permanecían en los SHA del informe anterior, sin nuevos commits.
+
+La clase `.cnt` de la bolsa dibuja un corazón pequeño y se estaba usando también para likes. El reel ahora usa `.likes-count` y un span en el flujo del botón: corazón principal, número centrado debajo, «Lo quiero». El nombre accesible incluye el contador positivo mostrado. Cero permanece oculto; agotados conservan Avísame sin likes. `.cnt`, bolsa, cálculos, stock, Supabase, rendimiento y aaah no se modifican.
+
+**Pruebas de Coding para esta corrección:** TypeScript y build local pasaron; lint 0 errores/27 advertencias existentes; npm test 199/199; catálogo original 9/9. Verificación específica Chromium/demo: 12 grupos (1, 12 y 1234 por ancho; cero/selección/aaah/bolsa/agotado por ancho) a 360/390/430. Número en posición estática sin background/insignia, orden vertical y centrado comprobados; botón al menos 44 × 44, etiqueta accesible con cantidad, cero oculto, selección reversible y contador de bolsa intacto. Contraste inspeccionado visualmente sobre foto clara: texto blanco con la sombra existente. No se certifica contraste de todas las fotos posibles ni VoiceOver físico.
+
+El primer intento de la comprobación local intentó modificar fixtures con un evento artificial sin recargar, y falló por no refrescar ese dato; se repitió con recargas. Las primeras capturas tomaron otro reel; se repitieron con el producto de fixture visible. Solo las capturas finales corresponden a la validación indicada. Ver `../capturas/pedido-catalogo-panel/likes/README.md`. Sin cambios en Supabase/migraciones/stock/rendimiento. Preview del nuevo commit: ver PR #46.
+
+Safari físico sigue pendiente para **esta corrección visual**. Pasos breves: abrir el preview actualizado y el catálogo; revisar un producto disponible con likes, tocar su corazón y comprobar el número separado del icono, aaah y contador de bolsa; tocar otra vez para quitarlo; revisar un producto sin likes y uno agotado (Avísame). VoiceOver debe anunciar la cantidad cuando se muestre. Usar demo para seleccionar sin tocar datos reales; los números de fixture 1/12/1234 solo se usan en pruebas locales y no se fijan en la app.

@@ -936,3 +936,8 @@ Registrar crea un único pedido Nuevo, sin descontar stock; despachar/deshacer u
 Tras reponer, «Ya llegó» relee el producto y la variante confirmados. Avisar abre WhatsApp sin envío automático; marca al recuperar foco/visibilidad, no mediante un temporizador. Eso indica que se abrió el mensaje y se volvió, **no** que se envió ni recibió. Si falla marcar, el reintento no vuelve a abrir WhatsApp. No ofrece avisar con stock cero; null conserva sin control. El enlace se incluye solo si es HTTPS válido.
 
 Demo conserva solicitudes en el mismo navegador: el enlace de WhatsApp sin `?demo` no transporta los datos locales a otro dispositivo. Recorrido seguro: volver al catálogo demo en el mismo contexto y usar `/pedido/{codigo}?demo`. No se cambia el enlace publicado ni el HTML antiguo. Pruebas y límites en `handoffs/pedido-catalogo-panel-continuacion.md`.
+
+
+### Likes en los reels públicos (corrección PR #46)
+
+El botón presenta corazón principal → cantidad positiva centrada como texto → «Lo quiero». El contador de likes utiliza `.likes-count`, independiente de `.cnt` (insignia de la bolsa, sin cambios). El nombre accesible incluye la cantidad mostrada. Cero permanece oculto; agotados conservan Avísame sin contador. No cambia selección, cálculo de likes ni animación aaah.
