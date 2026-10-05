@@ -1,10 +1,24 @@
+## Activación en producción — Planning, 2026-10-05
+
+Lewis autorizó aplicar la migración después del error al abrir Eliminar.
+Aplicada en Supabase euihaeyfdlpvmbtfzvnt como **20261005225218_eliminar_producto_logico.sql**.
+Sustituye el nombre provisional 20261005215350_eliminar_producto_logico.sql; contenido SQL conservado sin modificaciones.
+El comentario inicial «NO aplicada» dentro del archivo es histórico de su preparación.
+
+Verificado en producción: columna eliminado_en, ambas RPC, ejecución para authenticated y denegación para anon, y seis triggers de protección.
+Productos antes/después: 16; activos: 15; stock total: 10; retirados después: 0.
+No se eliminaron productos ni archivos para probar. Las pruebas de replay/concurrencia descritas abajo pertenecen a Coding; Planning no las repitió.
+Pendiente: confirmación del recorrido autenticado en Safari por Lewis. Los bloqueos por pedidos, solicitudes o avisos pendientes siguen activos.
+
+---
+
 # Catálogo: eliminación protegida — Coding, 2026-10-05
 
 ## Alcance y contrato
 
 Base main `709d7dfb9dfb3db10607568546763f08281c77f8`, revisada de nuevo antes de publicar rama. Las tres primeras mejoras ya estaban implementadas por PR #49: se conservaron y se repitieron sus pruebas específicas. No se incorporó PR #45, ni se alteraron las carpetas o pendientes de otras sesiones.
 
-Nueva migración **pendiente**, generada por `npx supabase migration new eliminar_producto_logico`: `20261005215350_eliminar_producto_logico.sql`. NO aplicada a producción. Su versión es provisional CLI: cuando haya autorización posterior para aplicarla, guardar el identificador asignado por Supabase y actualizar referencias, sin tocar migraciones aplicadas. No aplicar toda la carpeta a ciegas.
+Nueva migración **pendiente**, generada por `npx supabase migration new eliminar_producto_logico`: `20261005225218_eliminar_producto_logico.sql`. NO aplicada a producción. Su versión es provisional CLI: cuando haya autorización posterior para aplicarla, guardar el identificador asignado por Supabase y actualizar referencias, sin tocar migraciones aplicadas. No aplicar toda la carpeta a ciegas.
 
 - Añade `productos.eliminado_en`, sin cambiar filas ni cantidades existentes.
 - RPC de revisión y eliminación con identidad `auth.uid()`, membresía `mis_tiendas()`, `search_path=''` y ejecución únicamente authenticated. SECURITY DEFINER permite cambiar solo la marca de retirada y visibilidad sin conceder esa escritura desde el cliente. RLS existente se mantiene; no usa user_metadata.

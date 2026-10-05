@@ -1,3 +1,17 @@
+## Activación en producción — Planning, 2026-10-05
+
+Lewis autorizó aplicar la migración después del error al abrir Eliminar.
+Aplicada en Supabase euihaeyfdlpvmbtfzvnt como **20261005225218_eliminar_producto_logico.sql**.
+Sustituye el nombre provisional 20261005215350_eliminar_producto_logico.sql; contenido SQL conservado sin modificaciones.
+El comentario inicial «NO aplicada» dentro del archivo es histórico de su preparación.
+
+Verificado en producción: columna eliminado_en, ambas RPC, ejecución para authenticated y denegación para anon, y seis triggers de protección.
+Productos antes/después: 16; activos: 15; stock total: 10; retirados después: 0.
+No se eliminaron productos ni archivos para probar. Las pruebas de replay/concurrencia descritas abajo pertenecen a Coding; Planning no las repitió.
+Pendiente: confirmación del recorrido autenticado en Safari por Lewis. Los bloqueos por pedidos, solicitudes o avisos pendientes siguen activos.
+
+---
+
 # Contexto del proyecto y forma de trabajo
 
 Este es el documento que pone al día a cualquier sesión nueva (Claude o Codex, Planning o Coding). Léelo primero, después `AGENTS.md` y `HANDOFF.md`.

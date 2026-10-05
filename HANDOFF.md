@@ -1,3 +1,17 @@
+## Activación en producción — Planning, 2026-10-05
+
+Lewis autorizó aplicar la migración después del error al abrir Eliminar.
+Aplicada en Supabase euihaeyfdlpvmbtfzvnt como **20261005225218_eliminar_producto_logico.sql**.
+Sustituye el nombre provisional 20261005215350_eliminar_producto_logico.sql; contenido SQL conservado sin modificaciones.
+El comentario inicial «NO aplicada» dentro del archivo es histórico de su preparación.
+
+Verificado en producción: columna eliminado_en, ambas RPC, ejecución para authenticated y denegación para anon, y seis triggers de protección.
+Productos antes/después: 16; activos: 15; stock total: 10; retirados después: 0.
+No se eliminaron productos ni archivos para probar. Las pruebas de replay/concurrencia descritas abajo pertenecen a Coding; Planning no las repitió.
+Pendiente: confirmación del recorrido autenticado en Safari por Lewis. Los bloqueos por pedidos, solicitudes o avisos pendientes siguen activos.
+
+---
+
 # Deslizapp — Panel de tienda (handoff para Claude Code)
 
 Este repo es el punto de partida del **panel de administración** de Deslizapp: la
@@ -27,7 +41,7 @@ Además, en `referencias/` está el **prototipo interactivo y navegable del pane
 
 ## Eliminación de productos — propuesta, sin publicación
 
-Rama `feature/catalogo-eliminar-producto`, desde main `709d7df` (PR #49). Conserva sus tres mejoras de selección, historial y likes; no incorpora PR #45. Nuevo contrato y validación en `docs/validacion-eliminar-producto.md`. Migración CLI `20261005215350_eliminar_producto_logico.sql` **pendiente, no aplicada a producción**; al aplicar en una entrega autorizada, usar la versión que asigne Supabase según AGENTS.md. La preview real conserva el catálogo existente pero no podrá eliminar hasta ese paso. Demo sí permite probarlo.
+Rama `feature/catalogo-eliminar-producto`, desde main `709d7df` (PR #49). Conserva sus tres mejoras de selección, historial y likes; no incorpora PR #45. Nuevo contrato y validación en `docs/validacion-eliminar-producto.md`. Migración CLI `20261005225218_eliminar_producto_logico.sql` **pendiente, no aplicada a producción**; al aplicar en una entrega autorizada, usar la versión que asigne Supabase según AGENTS.md. La preview real conserva el catálogo existente pero no podrá eliminar hasta ese paso. Demo sí permite probarlo.
 
 Eliminar retira lógicamente; no borra archivos, filas históricas ni variantes. Bloquea pedidos en curso, solicitudes vigentes y avisos pendientes; ofrece Ocultar sin perder otros campos. Las nuevas referencias bloquean el producto y rechazan retirados. Historial usa `getProductos(tiendaId, true)`; la lista administrativa/selectores usan el valor por defecto. No reintroducir retirados en alertas de stock. No agregar limpieza de medios: siguen referenciados por la fila histórica. Confirmación sale primero, luego editor, para conservar Atrás con movimiento reducido.
 
