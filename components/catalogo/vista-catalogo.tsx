@@ -6,7 +6,7 @@ import { DonaInventario } from "./dona-inventario";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos } from "@/lib/formato";
-import { etiquetaSalud, saludDelInventario, stockParaSalud } from "@/lib/inventario-catalogo";
+import { etiquetaSalud, saludDelInventario, stockParaSalud, etiquetaStock } from "@/lib/inventario-catalogo";
 import { STOCK_BAJO } from "@/lib/config";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
@@ -15,7 +15,8 @@ import { Segmentos } from "../controles";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
-import { IconoBuscar } from "../iconos";
+import { Etiqueta } from "../ui";
+import { IconoBuscar, IconoCorazon } from "../iconos";
 import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
@@ -157,17 +158,11 @@ export function VistaCatalogo() {
 function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto: Producto; promos: Promo[]; prioridad?: boolean }) {
   const precio = precioConPromo(p, promos);
   const agotado = p.stock === 0;
-  const etiqueta = agotado
-    ? { texto: "Agotado", clase: "bg-bosque text-papel" }
-    : !p.activo
-      ? { texto: "Oculto", clase: "bg-papel text-bosque" }
-      : precio.porcentaje
-        ? { texto: `−${precio.porcentaje}%`, clase: "bg-mandarina text-bosque-oscuro" }
-        : null;
-  const stock = p.stock === null ? "Sin control de stock" : agotado ? "Sin stock" : `${p.stock} en stock`;
+  const stock = etiquetaStock(p);
+  const etiqueta = precio.porcentaje ? { texto: `−${precio.porcentaje}%`, clase: "bg-mandarina text-bosque-oscuro" } : null;
   // Nombre accesible = el texto visible de la tarjeta en el mismo orden (WCAG 2.5.3: nombre, precio, stock y después las
   // etiquetas de la foto), separado por comas para que se lea con pausas, y al final la acción.
-  const nombreAccesible = [p.nombre, formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", stock, etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `♥ ${p.likes}`]
+  const nombreAccesible = [p.nombre, formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", stock.texto, !p.activo ? "Oculto del catálogo" : "", etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `${p.likes} ${p.likes === 1 ? "like" : "likes"}`]
     .filter(Boolean)
     .join(",") + ". Ver producto";
 
@@ -176,16 +171,22 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
       href={`/catalogo/${p.id}`}
       scroll={false}
       aria-label={nombreAccesible}
-      className="tocable block text-bosque"
+      className="tocable block min-w-0 text-texto"
     >
       <div className="flex flex-col">
         <div className="order-2">
-      <p className="mt-2 text-[14.5px] leading-tight font-extrabold">{p.nombre}</p>
+      <div className="mt-2 flex items-start gap-2">
+        <p className="min-w-0 flex-1 break-words text-secundario font-extrabold">{p.nombre}</p>
+        <span aria-hidden="true" data-likes-panel className="flex shrink-0 flex-col items-center gap-1 text-etiqueta tabular-nums">
+          <span className="grid size-8 place-items-center rounded-full border border-linea bg-marca-papel text-marca-mandarina"><IconoCorazon tamano={20} fill="currentColor"/></span>
+          <span>{p.likes}</span>
+        </span>
+      </div>
       <p className="mt-0.5 flex items-baseline gap-1.5">
         <span className="text-[14.5px] font-extrabold">{formatearPesos(precio.precio)}</span>
         {precio.precioAntes && <span className="text-[12.5px] text-suave line-through">{formatearPesos(precio.precioAntes)}</span>}
       </p>
-      <p className="text-[12.5px] font-semibold text-suave">{stock}</p>
+      <div className="mt-1 flex flex-col items-start gap-1"><Etiqueta tono={stock.tono} className="h-auto min-h-(--alto-etiqueta) max-w-full py-1 whitespace-normal">{stock.texto}</Etiqueta>{!p.activo && <span className="text-etiqueta text-texto-secundario">Oculto del catálogo</span>}</div>
         </div>
         <div className="order-1 relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
         {p.fotos[0] ? (
@@ -203,7 +204,6 @@ function TarjetaProducto({ producto: p, promos, prioridad = false }: { producto:
             Retocada ✦
           </span>
         )}
-        <span aria-hidden="true" className="absolute right-2.5 bottom-2.5 rounded-full bg-white px-[9px] py-[3px] text-xs font-extrabold">♥ {p.likes}</span>
       </div>
       </div>
     </Link>

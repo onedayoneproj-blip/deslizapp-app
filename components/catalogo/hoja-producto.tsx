@@ -87,7 +87,7 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
 export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const router = useRouter();
   const historial = useHistorialInventario();
-  const { getProducto, getPromos } = useData();
+  const { getProducto, getPromos, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
   const destino = useRef("/catalogo");
@@ -96,17 +96,39 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const navegar = (ruta: string) => { destino.current = ruta; setAbierta(false); };
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
+  const lista = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId), true);
   return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? "Historial de ajustes" : producto?.nombre ?? "Producto"} altura="auto"
     fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">{producto?.nombre ?? "Producto"}</span></div> : undefined}>
     <div className={historial.abierto ? "hidden" : "contents"}>
-    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} alNavegar={navegar} alVerHistorial={historial.abrir}/>}
+    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={historial.abrir}/>}
     </div>
     {historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
   </Hoja>;
 }
 
-function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }: { producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
+function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const toast = useToast();
+  const { actualizarProducto } = useData();
+  const { tiendaId, tienda } = useTiendaActiva();
+  const { abrirInventario } = usePanelUI();
+  const { mostrarToast: mostrarToastUI } = useToastUI();
+  const [guardandoVisible, setGuardandoVisible] = useState(false);
+  const enviandoVisible = useRef(false);
+  // La confirmación local cubre solo la breve espera de la relectura del proveedor.
+  const [confirmado, setConfirmado] = useState<{ base: Producto; activo: boolean } | null>(null);
+  const visible = confirmado?.base === producto ? confirmado.activo : producto.activo;
+  const bloqueaVisible = !visible && tienda != null && productos != null && resumenDelPlan(productos, tienda.limiteProductos).estado === "lleno";
+  const avisarLleno = () => mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
+  const cambiarVisible = async (activo: boolean) => {
+    if (enviandoVisible.current || cargandoProductos || !tienda) return;
+    if (activo && bloqueaVisible) { avisarLleno(); return; }
+    enviandoVisible.current = true; setGuardandoVisible(true);
+    try {
+      const p = await actualizarProducto(tiendaId, producto.id, { activo });
+      setConfirmado({ base: producto, activo: p.activo });
+    } catch (e) { toast(mensajeDeError(e, "No se pudo cambiar la visibilidad. Inténtalo otra vez.")); }
+    finally { enviandoVisible.current = false; setGuardandoVisible(false); }
+  };
   const inventario = useInventarioPendiente(producto);
   useAvisarAlSalir(inventario.pendiente || inventario.incierto);
   const confirmarSalida = useConfirmarSalida();
@@ -120,9 +142,13 @@ function ContenidoVistaProducto({ producto, precio, alNavegar, alVerHistorial }:
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="flex flex-wrap items-baseline gap-x-2 text-destacado"><span>{formatearPesos(precio.precio)}</span>{precio.precioAntes && <span className="text-secundario font-normal text-texto-secundario line-through">{formatearPesos(precio.precioAntes)}</span>}</p>
         {producto.categoria && <p className="break-words text-secundario text-texto-secundario">{producto.categoria}</p>}
-        {!producto.activo && <Etiqueta className="mt-1 self-start">Oculto</Etiqueta>}
+        {producto.stock === 0 && <Etiqueta tono="fuerte" className="mt-1 self-start">Agotado</Etiqueta>}
       </div>
     </div>
+    <ListaAgrupada>
+      <FilaLista titulo="Visible en el catálogo" detalle={visible ? "Visible" : "Oculto del catálogo"}
+        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
+    </ListaAgrupada>
     {activas.length > 0 ? (
       // Con opciones, el stock es por combinación: se cambia en la ficha.
       <ListaAgrupada etiqueta="Stock e historial">
@@ -176,7 +202,9 @@ function FormularioProducto({
   const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
   const [eligiendoColeccion, setEligiendoColeccion] = useState(false);
-  const [activo, setActivo] = useState(producto?.activo ?? true);
+  const [visibilidad, setVisibilidad] = useState({ base: producto?.activo ?? true, valor: producto?.activo ?? true });
+  const cambioVisible = visibilidad.valor !== visibilidad.base;
+  const activo = cambioVisible ? visibilidad.valor : (producto?.activo ?? visibilidad.valor);
   const [porEncargo, setPorEncargo] = useState(producto?.porEncargo ?? false);
   const [encargoTexto, setEncargoTexto] = useState(producto?.encargoTexto ?? "");
   const [guardando, setGuardando] = useState(false);
@@ -194,10 +222,10 @@ function FormularioProducto({
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
     medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40)]),
-    nombre, precio, stock: producto ? null : stock, opciones, stockVariantes, detalles, categoria, nuevaColeccion, activo, porEncargo, encargoTexto,
+    nombre, precio, stock: producto ? null : stock, opciones, stockVariantes, detalles, categoria, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
-  useAvisarAlSalir(firma !== firmaInicial || inventario.pendiente || inventario.incierto);
+  useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
 
   const colecciones = useMemo(() => {
     const todas = new Set(productos.map((p) => p.categoria).filter((c): c is string => Boolean(c)));
@@ -213,7 +241,7 @@ function FormularioProducto({
   const bloqueaVisible = llenoPlan && !(producto?.activo ?? false);
   const cambiarVisible = (valor: boolean) => {
     if (valor && bloqueaVisible) return;
-    setActivo(valor);
+    setVisibilidad({ base: producto?.activo ?? true, valor });
   };
   const avisarLleno = () =>
     mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
@@ -281,7 +309,7 @@ function FormularioProducto({
       // Más de un retoque: el último lo cobra el guardado (junto con la ficha), los demás antes.
       if (retoques > 1) await usarCreditosRetoque(tiendaId, retoques - 1);
       const bien = await inventario.guardar(
-        { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, activo: activo && !bloqueaVisible, ...catalogo },
+        { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, ...(cambioVisible ? { activo: activo && !bloqueaVisible } : {}), ...catalogo },
         retoques > 0, motivo, nota,
       );
       if (!bien) { setGuardando(false); return false; }
@@ -372,6 +400,7 @@ function FormularioProducto({
         />
         <FilaLista
           titulo="Visible en el catálogo"
+          detalle={activo && !bloqueaVisible ? "Visible" : "Oculto del catálogo"}
           accion={<Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />}
         />
         {(producto?.tipo ?? "producto") === "producto" && (

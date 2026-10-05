@@ -57,6 +57,20 @@ export function situacionVariantes(p: ProductoInventario): { resaltado: string |
   return { resaltado, resto };
 }
 
+/** Etiqueta de la tarjeta: conserva el total, y con variantes señala las que están bajas o agotadas. */
+export function etiquetaStock(p: ProductoInventario): { texto: string; tono: "neutro" | "exito" | "atencion" | "fuerte" } {
+  const activas = activasDe(p);
+  const sinControl = activas.length ? activas.some(v => v.stock === null) : p.stock === null;
+  if (sinControl) return { texto: "Sin control de stock", tono: "neutro" };
+  const total = activas.length ? activas.reduce((n,v) => n + v.stock!, 0) : p.stock!;
+  if (total === 0) return { texto: "Agotado", tono: "fuerte" };
+  const bajas = activas.length ? activas.some(v => v.stock! <= STOCK_BAJO) : total <= STOCK_BAJO;
+  const variantes = situacionVariantes(p);
+  const detalle = variantes && (variantes.resaltado || /de /.test(variantes.resto))
+    ? [variantes.resaltado, /de /.test(variantes.resto) ? variantes.resto : null].filter(Boolean).join(" · ") : null;
+  return { texto: `${total} en stock${detalle ? ` · ${detalle}` : ""}`, tono: bajas ? "atencion" : "exito" };
+}
+
 export type SaludInventario = {
   /** Con 3 o más unidades, o sin control de stock. */
   conStock: number;
