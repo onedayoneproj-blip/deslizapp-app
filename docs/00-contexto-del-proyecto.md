@@ -62,6 +62,8 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)
 
+**Seguimiento en revisión:** `feature/catalogo-visibilidad-og`, desde main publicado sin #45: interruptor en vista previa, likes del panel/feed, etiquetas de stock e imagen compuesta del pedido. No fusionar automáticamente. Pruebas y límites en `docs/validacion-catalogo-visibilidad-og.md`; handoff en `docs/handoffs/catalogo-visibilidad-og.md`.
+
 **Pendientes sueltos:**
 - Pasar Promos al sistema de diseño (`components/ui`).
 - Inicio y el esqueleto de la app.

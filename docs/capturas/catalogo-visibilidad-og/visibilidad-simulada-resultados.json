@@ -1,0 +1,47 @@
+[
+  {
+    "name": "fallo-y-doble-envio",
+    "width": 360,
+    "passed": true
+  },
+  {
+    "name": "plan-lleno",
+    "width": 360,
+    "passed": true
+  },
+  {
+    "name": "editor-lectura-externa",
+    "width": 360,
+    "passed": true
+  },
+  {
+    "name": "fallo-y-doble-envio",
+    "width": 390,
+    "passed": true
+  },
+  {
+    "name": "plan-lleno",
+    "width": 390,
+    "passed": true
+  },
+  {
+    "name": "editor-lectura-externa",
+    "width": 390,
+    "passed": true
+  },
+  {
+    "name": "fallo-y-doble-envio",
+    "width": 430,
+    "passed": true
+  },
+  {
+    "name": "plan-lleno",
+    "width": 430,
+    "passed": true
+  },
+  {
+    "name": "editor-lectura-externa",
+    "width": 430,
+    "passed": true
+  }
+]
