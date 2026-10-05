@@ -1227,12 +1227,31 @@ html.catalogo-html,
 :where(.catalogo-publico) .act.like[aria-pressed="true"] svg path {
   fill: currentColor;
 }
-/* Likes: texto en el flujo del botón, independiente de la insignia de la bolsa. */
+/* Likes: número y frase son bloques separados. La bolsa conserva su insignia. */
+:where(.catalogo-publico) .act.like .likes-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+:where(.catalogo-publico) .act.like .likes-phrase {
+  display: block;
+  max-width: 100%;
+  text-align: center;
+  word-break: normal;
+}
+
 :where(.catalogo-publico) .act.like .likes-count {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.2;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 :where(.catalogo-publico) .cnt {
   position: absolute;

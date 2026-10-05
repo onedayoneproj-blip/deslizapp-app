@@ -301,7 +301,7 @@ export function Reel({
         >
           <Icono nombre={agotado ? "wa" : "heart"} />
           {mostrarLikes && (
-            <span className="likes-count" aria-hidden="true">{p.likes} {p.likes === 1 ? "lo quiere" : "lo quieren"}</span>
+            <span className="likes-caption" aria-hidden="true"><span className="likes-count">{p.likes}</span><span className="likes-phrase">{p.likes === 1 ? "Lo quiere" : "Lo quieren"}</span></span>
           )}
           {!mostrarLikes && <span>{agotado ? "Avísame" : "Lo quiero"}</span>}
         </button>
