@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- ImageResponse compone un PNG de servidor; next/image no es compatible dentro de él. */
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";

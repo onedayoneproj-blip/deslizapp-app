@@ -24,10 +24,12 @@ test("imagen solo acepta código, sin sesión ni descargador por query, y distin
 });
 test("metadatos absolutos PNG, título/total y demo sin preview de navegador",async()=>{
  globalThis.__ogPedido=p;globalThis.__ogError=false;globalThis.__ogLecturas=[];
- const saved=process.env.VERCEL_URL;process.env.VERCEL_URL="fixture-preview.vercel.app";
+ const saved=process.env.VERCEL_URL,savedEnv=process.env.VERCEL_ENV,savedDomain=process.env.VERCEL_PROJECT_PRODUCTION_URL;delete process.env.VERCEL_ENV;process.env.VERCEL_URL="fixture-preview.vercel.app";
  try{
  const m=await generateMetadata({params:Promise.resolve({codigo:p.codigo}),searchParams:Promise.resolve({})});assert.equal(m.title,"Tu pedido con Tienda Fixture");assert.equal(m.openGraph.description,"2 productos · RD$12,500");assert.deepEqual(m.openGraph.images,[{url:"https://fixture-preview.vercel.app/pedido/PRUEBAAA23/imagen",width:1200,height:630,type:"image/png",alt:"Productos de tu pedido con Tienda Fixture"}]);assert(!JSON.stringify(m).includes("NO PUBLICAR"));
+ process.env.VERCEL_ENV="production";process.env.VERCEL_PROJECT_PRODUCTION_URL="deslizapp-app.vercel.app";
+ const produccion=await generateMetadata({params:Promise.resolve({codigo:p.codigo}),searchParams:Promise.resolve({})});assert.equal(produccion.openGraph.images[0].url,"https://deslizapp-app.vercel.app/pedido/PRUEBAAA23/imagen");
  globalThis.__ogLecturas=[];const demo=await generateMetadata({params:Promise.resolve({codigo:p.codigo}),searchParams:Promise.resolve({demo:""})});assert.equal(demo.openGraph,undefined);assert.deepEqual(globalThis.__ogLecturas,[]);
  const invalido=await generateMetadata({params:Promise.resolve({codigo:"../mal"}),searchParams:Promise.resolve({})});assert.equal(invalido.openGraph,undefined);assert.deepEqual(globalThis.__ogLecturas,[]);
- }finally{if(saved===undefined)delete process.env.VERCEL_URL;else process.env.VERCEL_URL=saved;}
+ }finally{if(saved===undefined)delete process.env.VERCEL_URL;else process.env.VERCEL_URL=saved;for(const [k,v]of [["VERCEL_ENV",savedEnv],["VERCEL_PROJECT_PRODUCTION_URL",savedDomain]])if(v===undefined)delete process.env[k];else process.env[k]=v;}
 });

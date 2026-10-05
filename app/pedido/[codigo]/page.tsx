@@ -33,7 +33,8 @@ export async function generateMetadata({
   const title = "Tu pedido con " + s.tienda.nombre;
   const h = await headers();
   const host = h.get("host") ?? "";
-  const origen = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}`
+  const origen = process.env.VERCEL_ENV === "production" ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "deslizapp-app.vercel.app"}`
+    : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}`
     : /^localhost(?::\d+)?$/.test(host) ? `http://${host}` : "https://deslizapp-app.vercel.app";
   const imagen = urlImagenPedido(codigo, origen)!;
   return {
