@@ -1,0 +1,348 @@
+{
+  "antes": {
+    "perfil": {
+      "ancho": 390,
+      "alto": 844,
+      "dpr": 1,
+      "red": "1.6 Mbps / 150 ms",
+      "cpu": 1,
+      "ventanaMs": 12000
+    },
+    "navegador": "151.0.7922.173",
+    "fecha": "2026-10-04T21:48:36.187Z",
+    "origen": "http://localhost:3220",
+    "frías": {
+      "fotoMs": {
+        "mediana": 5244.4000000003725,
+        "mínimo": 5057.0999999996275,
+        "máximo": 5362.10000000149,
+        "valores": [
+          5343.199999999255,
+          5244.4000000003725,
+          5362.10000000149,
+          5057.0999999996275,
+          5219.199999999255
+        ]
+      },
+      "utilizableMs": {
+        "mediana": 5244.5999999996275,
+        "mínimo": 5057.299999998882,
+        "máximo": 5365.9000000003725,
+        "valores": [
+          5343.199999999255,
+          5244.5999999996275,
+          5365.9000000003725,
+          5057.299999998882,
+          5219.4000000003725
+        ]
+      },
+      "lcpMs": {
+        "mediana": 5264,
+        "mínimo": 5076,
+        "máximo": 5400,
+        "valores": [
+          5376,
+          5264,
+          5400,
+          5076,
+          5260
+        ]
+      },
+      "cls": {
+        "mediana": 0.8483945786270769,
+        "mínimo": 0.8483945786270769,
+        "máximo": 0.8483945786270769,
+        "valores": [
+          0.8483945786270769,
+          0.8483945786270769,
+          0.8483945786270769,
+          0.8483945786270769,
+          0.8483945786270769
+        ]
+      },
+      "bytesPrimerReel": {
+        "mediana": 764132,
+        "mínimo": 764124,
+        "máximo": 764393,
+        "valores": [
+          764393,
+          764124,
+          764135,
+          764130,
+          764132
+        ]
+      },
+      "bytes12s": {
+        "mediana": 1283971,
+        "mínimo": 1283954,
+        "máximo": 1283983,
+        "valores": [
+          1283983,
+          1283969,
+          1283954,
+          1283978,
+          1283971
+        ]
+      },
+      "solicitudes12s": {
+        "mediana": 31,
+        "mínimo": 31,
+        "máximo": 31,
+        "valores": [
+          31,
+          31,
+          31,
+          31,
+          31
+        ]
+      },
+      "siguienteMs": {
+        "mediana": 11,
+        "mínimo": 6,
+        "máximo": 41,
+        "valores": [
+          41,
+          11,
+          7,
+          6,
+          14
+        ]
+      },
+      "carritoMs": {
+        "mediana": 155,
+        "mínimo": 132,
+        "máximo": 233,
+        "valores": [
+          150,
+          233,
+          132,
+          155,
+          170
+        ]
+      }
+    },
+    "normal": [
+      {
+        "tipo": "normal-inicial",
+        "tiempo": {
+          "foto": 5283,
+          "utilizable": 5283.199999999255,
+          "lcp": 3340,
+          "cls": 0.8483945786270769,
+          "decodificacionMs": 5.399999998509884,
+          "imagen": {
+            "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg",
+            "natural": [
+              799,
+              800
+            ],
+            "caja": [
+              432.8239440917969,
+              541.0299072265625
+            ],
+            "dpr": 1
+          }
+        },
+        "siguienteMs": 5,
+        "carritoMs": 163
+      },
+      {
+        "tipo": "repetida",
+        "tiempo": {
+          "foto": 798.3000000007451,
+          "utilizable": 1274.699999999255,
+          "lcp": 952,
+          "cls": 0,
+          "decodificacionMs": 60.40000000037253,
+          "imagen": {
+            "url": "https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/0753d2a7-469e-43a5-9fc7-51336720db83/13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg",
+            "natural": [
+              799,
+              800
+            ],
+            "caja": [
+              436.79998779296875,
+              546.5599975585938
+            ],
+            "dpr": 1
+          }
+        },
+        "siguienteMs": 5,
+        "carritoMs": 144
+      }
+    ]
+  },
+  "despues-definitivo": {
+    "perfil": {
+      "ancho": 390,
+      "alto": 844,
+      "dpr": 1,
+      "red": "1.6 Mbps / 150 ms",
+      "cpu": 1,
+      "ventanaMs": 12000
+    },
+    "navegador": "151.0.7922.173",
+    "fecha": "2026-10-05T00:44:00.474Z",
+    "origen": "http://localhost:3230",
+    "frías": {
+      "fotoMs": {
+        "mediana": 1327.6000000014901,
+        "mínimo": 1143.8999999985099,
+        "máximo": 1426.699999999255,
+        "valores": [
+          1426.699999999255,
+          1143.8999999985099,
+          1327.6000000014901,
+          1269.800000000745,
+          1376
+        ]
+      },
+      "utilizableMs": {
+        "mediana": 2723.300000000745,
+        "mínimo": 2656.199999999255,
+        "máximo": 2799.60000000149,
+        "valores": [
+          2780.300000000745,
+          2799.60000000149,
+          2723.300000000745,
+          2656.199999999255,
+          2699.099999997765
+        ]
+      },
+      "lcpMs": {
+        "mediana": 1504,
+        "mínimo": 1232,
+        "máximo": 2732,
+        "valores": [
+          1504,
+          1232,
+          2732,
+          2580,
+          1460
+        ]
+      },
+      "cls": {
+        "mediana": 5.334639958872764e-05,
+        "mínimo": 5.334639958872764e-05,
+        "máximo": 5.334639958872764e-05,
+        "valores": [
+          5.334639958872764e-05,
+          5.334639958872764e-05,
+          5.334639958872764e-05,
+          5.334639958872764e-05,
+          5.334639958872764e-05
+        ]
+      },
+      "bytesPrimerReel": {
+        "mediana": 438468,
+        "mínimo": 438468,
+        "máximo": 438469,
+        "valores": [
+          438469,
+          438468,
+          438468,
+          438468,
+          438468
+        ]
+      },
+      "bytes12s": {
+        "mediana": 476000,
+        "mínimo": 476000,
+        "máximo": 476002,
+        "valores": [
+          476002,
+          476000,
+          476000,
+          476000,
+          476000
+        ]
+      },
+      "solicitudes12s": {
+        "mediana": 31,
+        "mínimo": 31,
+        "máximo": 31,
+        "valores": [
+          31,
+          31,
+          31,
+          31,
+          31
+        ]
+      },
+      "siguienteMs": {
+        "mediana": 6,
+        "mínimo": 4,
+        "máximo": 27,
+        "valores": [
+          6,
+          27,
+          5,
+          4,
+          7
+        ]
+      },
+      "carritoMs": {
+        "mediana": 156,
+        "mínimo": 129,
+        "máximo": 212,
+        "valores": [
+          159,
+          212,
+          156,
+          143,
+          129
+        ]
+      }
+    },
+    "normal": [
+      {
+        "tipo": "normal-inicial",
+        "tiempo": {
+          "foto": 1278.300000000745,
+          "utilizable": 2436.199999999255,
+          "lcp": 1364,
+          "cls": 5.334639958872764e-05,
+          "decodificacionMs": 25.100000001490116,
+          "imagen": {
+            "url": "http://localhost:3230/_next/image?url=https%3A%2F%2Feuihaeyfdlpvmbtfzvnt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproductos%2F0753d2a7-469e-43a5-9fc7-51336720db83%2F13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg&w=390&q=85",
+            "natural": [
+              390,
+              390
+            ],
+            "caja": [
+              436.79998779296875,
+              546
+            ],
+            "dpr": 1
+          }
+        },
+        "siguienteMs": 6,
+        "carritoMs": 232
+      },
+      {
+        "tipo": "repetida",
+        "tiempo": {
+          "foto": 694.3000000007451,
+          "utilizable": 953.1000000014901,
+          "lcp": 792,
+          "cls": 0,
+          "decodificacionMs": 30.5,
+          "imagen": {
+            "url": "http://localhost:3230/_next/image?url=https%3A%2F%2Feuihaeyfdlpvmbtfzvnt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproductos%2F0753d2a7-469e-43a5-9fc7-51336720db83%2F13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg&w=390&q=85",
+            "natural": [
+              390,
+              390
+            ],
+            "caja": [
+              436.79998779296875,
+              546
+            ],
+            "dpr": 1
+          }
+        },
+        "siguienteMs": 21,
+        "carritoMs": 125
+      }
+    ]
+  }
+}

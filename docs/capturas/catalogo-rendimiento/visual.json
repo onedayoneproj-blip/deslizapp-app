@@ -1,0 +1,80 @@
+[
+  {
+    "ancho": 360,
+    "dpr": 3,
+    "hash": "",
+    "id": "r-zakat-z36",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Feuihaeyfdlpvmbtfzvnt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproductos%2F0753d2a7-469e-43a5-9fc7-51336720db83%2F13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg&w=1080&q=85",
+    "natural": 266,
+    "overflow": false,
+    "tinte": "#80807a",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  },
+  {
+    "ancho": 360,
+    "dpr": 3,
+    "hash": "#p/mayar",
+    "id": "r-mayar",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Fdeslizapp-app.vercel.app%2Fcatalogos%2Fesencias-michel%2Ffotos%2Fmayar.webp&w=1080&q=85",
+    "natural": 213,
+    "overflow": false,
+    "tinte": "#9CCBC6",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  },
+  {
+    "ancho": 390,
+    "dpr": 3,
+    "hash": "",
+    "id": "r-zakat-z36",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Feuihaeyfdlpvmbtfzvnt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproductos%2F0753d2a7-469e-43a5-9fc7-51336720db83%2F13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg&w=1200&q=85",
+    "natural": 259,
+    "overflow": false,
+    "tinte": "#80807a",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  },
+  {
+    "ancho": 390,
+    "dpr": 3,
+    "hash": "#p/mayar",
+    "id": "r-mayar",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Fdeslizapp-app.vercel.app%2Fcatalogos%2Fesencias-michel%2Ffotos%2Fmayar.webp&w=1200&q=85",
+    "natural": 208,
+    "overflow": false,
+    "tinte": "#9CCBC6",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  },
+  {
+    "ancho": 430,
+    "dpr": 3,
+    "hash": "",
+    "id": "r-zakat-z36",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Feuihaeyfdlpvmbtfzvnt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fproductos%2F0753d2a7-469e-43a5-9fc7-51336720db83%2F13e6d1b4-7033-460a-b9b0-94bbc0893d36.jpg&w=1920&q=85",
+    "natural": 178,
+    "overflow": false,
+    "tinte": "#80807a",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  },
+  {
+    "ancho": 430,
+    "dpr": 3,
+    "hash": "#p/mayar",
+    "id": "r-mayar",
+    "src": "http://localhost:3230/_next/image?url=https%3A%2F%2Fdeslizapp-app.vercel.app%2Fcatalogos%2Fesencias-michel%2Ffotos%2Fmayar.webp&w=1920&q=85",
+    "natural": 143,
+    "overflow": false,
+    "tinte": "#9CCBC6",
+    "videos": 0,
+    "errores": [],
+    "escrituras": []
+  }
+]

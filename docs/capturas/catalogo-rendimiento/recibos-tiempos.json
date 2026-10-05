@@ -1,0 +1,17 @@
+[
+  {
+    "formato": "pdf",
+    "primeraCargaModulo": true,
+    "ms": 377
+  },
+  {
+    "formato": "png",
+    "primeraCargaModulo": false,
+    "ms": 100
+  },
+  {
+    "formato": "png",
+    "primeraCargaModulo": true,
+    "ms": 271
+  }
+]
