@@ -469,3 +469,8 @@ Resultados, fixtures y límites se registran en docs/validacion-espera-catalogo.
 ### Pulido autorizado de la cifra de likes del panel
 
 Parte de main `8dded0d` (#47 fusionado), sin #45. Solo la cifra pierde la pastilla: texto Papel con sombra Bosque, dentro de la foto bajo el círculo sin cambiar su geometría. Conserva cero, cifras largas y nombre accesible; no cambia contratos, datos, Supabase ni controles. Publicación squash autorizada por Lewis tras validar. Resultados y límites: `docs/handoffs/catalogo-likes-sin-pildora.md`.
+
+
+### Selección de agotados, historial común y píldora de likes
+
+Esta implementación parte del main `b46d5ecd` (#48 fusionado) en su propia rama; el checkout `feature/catalogo-react` con cambios pendientes quedó intacto. PR #45 sigue fuera. «Ocultarlos» abre selección interna; comienza vacía, búsqueda/select all se limita a resultados, y la elegibilidad se relee por producto y tienda antes de ocultar solo `activo`. Errores parciales dejan lista de pendientes para reintento individualizado. Se preservan inventario, historial y avisos. Historial manual ahora usa `ListaAgrupada` / `FilaLista`, motivo, cantidad, fecha y actor; la píldora del panel es una cápsula única corazón+cifra. Sin SQL. PR #49 abierto (HEAD inicial `3a0f58cb7f5352f28d433050b69cb80de9855666`); preview READY: `https://deslizapp-p0bl3h2dw-onedayone.vercel.app`, alias `https://deslizapp-app-git-fix-catalogo-agotados-visibles-onedayone.vercel.app`. Véase `docs/handoffs/catalogo-agotados-visibles.md` para pruebas, límites y entrega.

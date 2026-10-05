@@ -1005,14 +1005,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .barrido-franja-grano { background: url('/ilustraciones/proxima-jugada/grano.svg') repeat; background-size: 180px 180px; opacity: .35; mix-blend-mode: overlay; -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); }
 .barrido-chispa { position: absolute; width: 14px; height: 14px; animation: barrido-titila 900ms ease-in-out infinite; }
 @keyframes barrido-titila { 0%,100% { transform: scale(.5) rotate(0deg); opacity: .5; } 50% { transform: scale(1.15) rotate(45deg); opacity: 1; } }
-
-/* Cifra de likes del panel: texto sobre foto, sin insignia. El contorno de
-   texto conserva contraste sobre fotos claras/oscuras sin dibujar una caja. */
-.likes-panel-cifra {
-  text-shadow:
-    -1px -1px 0 var(--marca-bosque),
-    1px -1px 0 var(--marca-bosque),
-    -1px 1px 0 var(--marca-bosque),
-    1px 1px 0 var(--marca-bosque),
-    0 1px 2px var(--marca-bosque);
-}

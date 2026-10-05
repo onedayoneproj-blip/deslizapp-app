@@ -236,16 +236,12 @@ export function HistorialInventario({ productoId }: { productoId: string }) {
   const { tiendaId } = useTiendaActiva();
   const [limite, setLimite] = useState(10);
   const { data, cargando, error, reintentar } = useConsulta(`ajustes:${tiendaId}:${productoId}:${limite}`, () => getAjustesInventario(tiendaId, productoId, 0, limite), true);
-  return <section aria-label="Ajustes de inventario" className="flex flex-col gap-2 text-bosque">
-    <h3 className="font-display text-xl">Ajustes de inventario</h3>
-    <p className="text-[12.5px] text-suave">Solo ajustes manuales. Las ventas siguen en Pedidos.</p>
-    {error ? <div role="alert"><p>No pudimos cargar los ajustes.</p><button type="button" onClick={reintentar} className="tocable min-h-11 font-bold underline">Reintentar historial</button></div> : data === undefined ? <p role="status">Cargando ajustes…</p> : <>
-      {data.ajustes.length === 0 ? <p className="py-3 text-sm">Todavía no hay ajustes.</p> : <ul className="divide-y divide-borde">{data.ajustes.map(a => <li key={a.id} className="py-3 text-sm">
-        <div className="flex items-baseline justify-between gap-3"><b className="text-base">{a.variacion > 0 ? "+" : "−"}{Math.abs(a.variacion)}</b><span>{a.stockAnterior} → {a.stockNuevo}</span></div>
-        <p className="font-bold">{MOTIVOS_INVENTARIO[a.motivo]}</p>{a.nota && <p className="break-words">{a.nota}</p>}
-        <p className="mt-1 break-words text-[12px] text-suave">{new Intl.DateTimeFormat("es-DO", { timeZone: "America/Santo_Domingo", dateStyle: "medium", timeStyle: "short" }).format(new Date(a.creadoEn))} · {a.actorNombre}</p>
-      </li>)}</ul>}
-      {data.hayMas && <button type="button" disabled={cargando} onClick={() => setLimite(n => n + 10)} className="tocable min-h-11 rounded-full border-[1.5px] border-bosque font-bold">Ver más ajustes</button>}
-    </>}
+  const fechaHora = (iso: string) => new Intl.DateTimeFormat("es-DO", { timeZone: "America/Santo_Domingo", dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+  return <section aria-label="Historial de ajustes" className="flex flex-col gap-3 text-texto">
+    <p className="text-secundario text-texto-secundario">Solo ajustes manuales.</p>
+    {error ? <div role="alert" className="flex flex-col gap-2"><p>No pudimos cargar los ajustes.</p><Boton jerarquia="terciario" tamano="compacto" onClick={reintentar}>Reintentar historial</Boton></div> : data === undefined ? <p role="status">Cargando ajustes…</p> : data.ajustes.length === 0 ? <p className="py-3 text-secundario text-texto-secundario">Todavía no hay ajustes.</p> : <ListaAgrupada etiqueta="Ajustes manuales de inventario">
+      {data.ajustes.map(a => <FilaLista key={a.id} titulo={<span className={a.variacion > 0 ? "text-exito-texto" : "text-peligro"}>{a.variacion > 0 ? "+" : "−"}{Math.abs(a.variacion)} {Math.abs(a.variacion) === 1 ? "unidad" : "unidades"}</span>} detalle={`${a.stockAnterior} → ${a.stockNuevo}`} pie={<span className="flex whitespace-normal flex-col gap-0.5 break-words text-etiqueta font-normal text-texto-secundario"><span>{MOTIVOS_INVENTARIO[a.motivo]}{a.nota ? ` · ${a.nota}` : ""}</span><span>{fechaHora(a.creadoEn)} · {a.actorNombre}</span></span>} />)}
+      {data.hayMas && <FilaLista titulo={cargando ? "Cargando…" : "Ver más ajustes"} onClick={() => { if (!cargando) setLimite(n => n + 10); }} />}
+    </ListaAgrupada>}
   </section>;
 }

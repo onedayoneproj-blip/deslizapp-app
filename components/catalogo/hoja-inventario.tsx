@@ -5,23 +5,22 @@ import { useMemo, useState } from "react";
 import { NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
 import { BotonVerMas, useVerMas } from "../ver-mas";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { DIAS_SIN_MOVIMIENTO, etiquetaSalud, lecturaInventario, porcentajeDe, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, stockParaSalud, ventasPorProducto } from "@/lib/inventario-catalogo";
+import { DIAS_SIN_MOVIMIENTO, etiquetaSalud, lecturaInventario, porcentajeDe, porReponer, saludDelInventario, seleccionInicial, sinMovimiento, agotadosVisibles, stockParaSalud, ventasPorProducto } from "@/lib/inventario-catalogo";
 import { resumenDelPlan, textosDelPlan } from "@/lib/plan-catalogo";
 import type { Producto } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha, IconoPedidos, IconoReloj } from "../iconos";
 import { BotonVolver } from "../selector-busqueda";
 import { usePanelUI } from "../panel/ui";
-import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, Aviso, useToastUI } from "../ui";
+import { Boton, FilaLista, ListaAgrupada, ResumenDona, Tarjeta, Aviso } from "../ui";
 import { DetalleStock, Esperan } from "./stock-producto";
 import { COLOR_STOCK, DonaInventario } from "./dona-inventario";
 import { MiniaturaProducto } from "./miniatura-producto";
 import { VistaHacerEspacio } from "./vista-hacer-espacio";
 import { VistaPorReponer } from "./vista-por-reponer";
 
-export type VistaInventario = "resumen" | "porReponer" | "sinMovimiento" | "espacio" | "grupo";
+export type VistaInventario = "resumen" | "porReponer" | "sinMovimiento" | "espacio" | "ocultarAgotados" | "grupo";
 type GrupoInventario = "conStock" | "quedan" | "agotados";
 const NOMBRE_GRUPO: Record<GrupoInventario, string> = { conStock: "Con stock", quedan: "Queda 1 o 2", agotados: "Agotados" };
 
@@ -30,6 +29,7 @@ const TITULO: Record<VistaInventario, string> = {
   porReponer: "Por reponer",
   sinMovimiento: "Sin movimiento",
   espacio: "Hacer espacio",
+  ocultarAgotados: "Ocultar agotados",
   grupo: "Tu inventario",
 };
 
@@ -117,6 +117,8 @@ export function HojaInventario({ abierta, alCerrar, vistaAlAbrir, ahora }: { abi
         <VistaPorReponer productos={productos} ventas={ventas} marcados={marcados} alCambiarMarcados={setMarcados} alTerminar={alVolver} />
       ) : vista === "sinMovimiento" ? (
         <VistaSinMovimiento productos={productos} ventas={ventas} ahora={ahora} alCerrarHoja={alCerrar} />
+      ) : vista === "ocultarAgotados" ? (
+        <VistaHacerEspacio productos={productos} ventas={ventas} enReposicion={marcados} alTerminar={alVolver} soloAgotadosVisibles />
       ) : (
         <VistaHacerEspacio productos={productos} ventas={ventas} enReposicion={marcados} alTerminar={alVolver} />
       )}
@@ -128,10 +130,7 @@ type VentasMapa = ReturnType<typeof ventasPorProducto>;
 
 function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { productos: Producto[]; ventas: VentasMapa; ahora: number; alAbrir: (v: VistaInventario) => void; alAbrirGrupo: (g: GrupoInventario) => void }) {
   const { tienda } = useTiendaActiva();
-  const { mostrarToast } = useToastUI();
-  const { cambiarVisibilidad } = useData();
   const { abrirPlan } = usePanelUI();
-  const [ocultando, setOcultando] = useState(false);
 
   const limite = tienda?.limiteProductos ?? 0;
   const plan = resumenDelPlan(productos, limite);
@@ -139,31 +138,12 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
   const lectura = lecturaInventario(salud);
   const textos = textosDelPlan(plan);
   const reponer = porReponer(productos, ventas);
-  const agotadosAVista = productos.filter((p) => p.activo && p.stock === 0);
+  const agotadosAVista = agotadosVisibles(productos);
   const quietos = sinMovimiento(productos, ventas, ahora);
   const vendidosAgotados = reponer.vendidos.length;
   // También cuentan los productos con alguna opción agotada aunque queden de otras (se reponen por variante).
   const conOpcionAgotada = reponer.seAcaban.filter((l) => (l.producto.variantes ?? []).some((v) => v.activa && v.stock === 0));
   const paraReponer = [...reponer.vendidos, ...reponer.sinVentas, ...conOpcionAgotada];
-
-  const ocultarAgotados = async () => {
-    if (ocultando) return;
-    const ids = agotadosAVista.map((p) => p.id);
-    setOcultando(true);
-    try {
-      await cambiarVisibilidad(tienda!.id, ids, false);
-      mostrarToast(`Ocultaste ${ids.length}`, {
-        accion: {
-          texto: "Deshacer",
-          alTocar: () => void cambiarVisibilidad(tienda!.id, ids, true).catch((e) => mostrarToast(mensajeDeError(e, "No se pudo deshacer."))),
-        },
-      });
-    } catch (e) {
-      mostrarToast(mensajeDeError(e, "No se pudo ocultar. Inténtalo otra vez."));
-    } finally {
-      setOcultando(false);
-    }
-  };
 
   const hayAtencion = paraReponer.length > 0 || agotadosAVista.length > 0 || quietos.length > 0;
   const libre = Math.max(0, plan.limite - plan.usados);
@@ -227,7 +207,7 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
                     {agotadosAVista.length === 1 ? "Ocupa 1 lugar de tu plan" : `Ocupan ${agotadosAVista.length} lugares de tu plan`}
                   </p>
                 </div>
-                <Boton jerarquia="secundario" tamano="compacto" cargando={ocultando} onClick={() => void ocultarAgotados()}>
+                <Boton jerarquia="secundario" tamano="compacto" onClick={() => alAbrir("ocultarAgotados")}>
                   Ocultarlos
                 </Boton>
               </div>

@@ -47,7 +47,7 @@ try {
   const nombre = producto.nombre;
   const revisarHistorial=async texto=>{
     await page.getByRole("button",{name:"Historial",exact:true}).click();
-    await page.getByRole("region",{name:"Ajustes de inventario"}).getByText(texto,{exact:true}).waitFor();
+    await page.getByRole("region",{name:"Historial de ajustes"}).getByText(texto,{exact:false}).waitFor();
     ok(await page.locator('[role="dialog"]').count()===1,"Historial se abre en la misma hoja");
     await page.getByRole("button",{name:/^Volver a/}).click();
   };
@@ -64,7 +64,7 @@ try {
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem("deslizapp-demo-v5")??"{}").ajustesInventario?.length===1);
   ok((await registros(page))[0].variacion===3,"Guardar varios toques crea una única reposición final");
-  await revisarHistorial("+3");
+  await revisarHistorial("+3 unidades");
   const pedidoAntes=JSON.parse(await persistido(page)).pedidos.length;
   await menos().click();await menos().click();
   await page.getByRole("button",{name:"Guardar cambios",exact:true}).click();
