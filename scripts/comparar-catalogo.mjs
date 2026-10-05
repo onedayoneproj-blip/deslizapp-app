@@ -6,7 +6,7 @@ import { navegador, URL } from "./navegador-catalogo.mjs";
 import sharp from "sharp";
 import { mkdirSync, writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-const carpeta = "docs/capturas/catalogo-react/comparar";
+const carpeta = process.env.CAPTURAS ?? "docs/capturas/catalogo-react/comparar";
 mkdirSync(carpeta, { recursive: true });
 const base = construirDesdeSeed();
 base.promos = [];

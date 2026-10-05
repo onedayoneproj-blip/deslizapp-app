@@ -4,7 +4,8 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { navegador, URL, playwright } from "./navegador-catalogo.mjs";
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const resultados = [];
-const caps = "docs/capturas/catalogo-react/recorridos";
+const caps = process.env.CAPTURAS ?? "docs/capturas/catalogo-react/recorridos";
+const recibos = [];
 mkdirSync(caps, { recursive: true });
 const CLAVE = "deslizapp-demo-v5";
 const base = construirDesdeSeed();
@@ -257,7 +258,7 @@ try {
       );
       const msg = new globalThis.URL(captura[0]).searchParams.get("text");
       aprobar(
-        /Mi pedido #[A-Z0-9]+:\nhttp:\/\/localhost:3220\/pedido\//.test(msg),
+        msg.includes("Mi pedido #") && msg.includes("\n" + URL + "/pedido/"),
         "Mensaje lleva código y origen real",
       );
       const lectura = await ctx.newPage();
@@ -276,16 +277,30 @@ try {
         "Historia sin vencimiento de 24 h",
       );
       await lectura.evaluate(() => Object.defineProperty(navigator, "canShare", { value: () => false, configurable: true }));
+      const inicioPdf = Date.now();
       const descarga = lectura.waitForEvent("download");
       await lectura.locator("[data-inv=pdf]").click();
       const archivo = await descarga;
+      recibos.push({formato:"pdf",primeraCargaModulo:true,ms:Date.now()-inicioPdf});
       aprobar(archivo.suggestedFilename().endsWith(".pdf"), "PDF descargable");
       await archivo.saveAs(caps + "/recibo-prueba.pdf");
+      const inicioPng = Date.now();
       const png = lectura.waitForEvent("download");
       await lectura.locator("[data-inv=png]").click();
       const image = await png;
+      recibos.push({formato:"png",primeraCargaModulo:false,ms:Date.now()-inicioPng});
       await image.saveAs(caps + "/recibo-prueba.png");
       await lectura.screenshot({ path: caps + "/pedido-390.png" });
+      const primeraImagen = await ctx.newPage();
+      await primeraImagen.goto(URL + "/pedido/" + s.codigo + "?demo");
+      await primeraImagen.waitForSelector(".pvslide");
+      await primeraImagen.evaluate(() => Object.defineProperty(navigator, "canShare", { value: () => false, configurable: true }));
+      const inicioImagenFria = Date.now(), imagenFria = primeraImagen.waitForEvent("download");
+      await primeraImagen.locator("[data-inv=png]").click();
+      const imagenNueva = await imagenFria;
+      aprobar(imagenNueva.suggestedFilename().endsWith(".png"), "PNG funciona como primer uso del módulo diferido");
+      recibos.push({formato:"png",primeraCargaModulo:true,ms:Date.now()-inicioImagenFria});
+      await primeraImagen.close();
       aprobar(!errores.length, "Sin errores al pedir");
       await ctx.close();
     },
@@ -369,6 +384,7 @@ try {
   fallos++;
   resultados.push({ nombre: "entorno", paso: false, error: String(e) });
 } finally {
+  writeFileSync(caps + "/recibos-tiempos.json", JSON.stringify(recibos, null, 2) + "\n");
   await b.close();
   writeFileSync(
     caps + "/resultados.json",
