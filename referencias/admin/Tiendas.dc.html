@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: Tiendas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.chip{height:38px;padding:0 14px;border-radius:999px;border:1.5px solid #e3d6bf;background:#fff;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;color:#174b3a;display:inline-flex;align-items:center;gap:6px;flex:none;cursor:pointer}
+.chip.on{background:#174b3a;border-color:#174b3a;color:#fff9ee}
+.chip i{font-style:normal;font-size:12px;border-radius:999px;padding:1px 7px;background:#f3ead9;color:#174b3a}
+.chip.on i{background:#fff9ee}
+.fila{display:flex;align-items:center;gap:12px;min-height:72px;padding:10px 14px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.av{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none;font-family:'Fredoka',sans-serif;font-stretch:112%}
+.n{font-size:16px;font-weight:800}
+.s{font-size:13px;color:#4f6a5e;display:flex;align-items:center;gap:6px}
+.pt{width:8px;height:8px;border-radius:999px;flex:none}
+.et{font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:800;color:#4f6a5e;padding:8px 0;border-radius:999px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1100px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
+    <h1 class="f" style="margin: 0; font-size: 32px;">Tiendas</h1>
+    <label style="height: 50px; border: 2px solid #e3d6bf; border-radius: 16px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 16px; color: #4f6a5e;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+      <span>Nombre, WhatsApp o correo</span>
+    </label>
+    <div style="display: flex; gap: 8px; overflow: hidden;">
+      <button type="button" class="chip on">Todas <i>17</i></button>
+      <button type="button" class="chip">Activas <i>12</i></button>
+      <button type="button" class="chip">En prueba <i>4</i></button>
+      <button type="button" class="chip">Atrasadas <i>1</i></button>
+    </div>
+    <span style="font-size: 13px; font-weight: 700; color: #4f6a5e;">Primero las que te necesitan</span>
+  </div>
+
+  <div style="margin: 10px 16px 0; background: #fff; border: 1px solid #efe4d2; border-radius: 22px; overflow: hidden;">
+    <div class="fila">
+      <span class="av" style="background: #ffe3d6; color: #a8410f;">MS</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Mora Shoes</span><span class="et" style="background: #ffe3d6; color: #a8410f;">Atrasada</span></span>
+        <span class="s"><span class="pt" style="background: #ff834f;"></span>Pro · pago vencido hace 2 días</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #f3ead9;">CB</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Casa Brisa</span><span class="et" style="background: #f3ead9; color: #4f6a5e;">En prueba</span></span>
+        <span class="s"><span class="pt" style="background: #c9b998;"></span>Se enfría · 4 días sin productos</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #f5c9d6;">EM</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Esencias Michel</span><span class="et" style="background: #dcebe2; color: #1f6b47;">Activa</span></span>
+        <span class="s"><span class="pt" style="background: #ff834f;"></span>3 pedidos del catálogo sin registrar</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #dcebe2;">LB</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Luna Bijou</span><span class="et" style="background: #dcebe2; color: #1f6b47;">Activa</span></span>
+        <span class="s"><span class="pt" style="background: #174b3a;"></span>Su catálogo espera hace 3 días</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #dcebe2;">LA</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Lino &amp; Algodón</span><span class="et" style="background: #dcebe2; color: #1f6b47;">Activa</span></span>
+        <span class="s"><span class="pt" style="background: #3e9a6b;"></span>Viva · 9 pedidos esta semana</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #f5c9d6;">DV</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Dulce Vicio</span><span class="et" style="background: #dcebe2; color: #1f6b47;">Activa</span></span>
+        <span class="s"><span class="pt" style="background: #3e9a6b;"></span>Viva · 41 aaahs esta semana</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="fila">
+      <span class="av" style="background: #f3ead9;">TK</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="n">Tikí Kids</span><span class="et" style="background: #f3ead9; color: #4f6a5e;">En prueba</span></span>
+        <span class="s"><span class="pt" style="background: #3e9a6b;"></span>Nueva · 8 productos en 2 días</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+
+  <div style="margin: 14px 16px 0; display: flex; gap: 14px; font-size: 12.5px; font-weight: 700; color: #4f6a5e;">
+    <span style="display: flex; align-items: center; gap: 5px;"><span class="pt" style="background: #3e9a6b;"></span>Viva</span>
+    <span style="display: flex; align-items: center; gap: 5px;"><span class="pt" style="background: #ff834f;"></span>Te necesita</span>
+    <span style="display: flex; align-items: center; gap: 5px;"><span class="pt" style="background: #c9b998;"></span>Se enfría</span>
+    <span style="display: flex; align-items: center; gap: 5px;"><span class="pt" style="background: #174b3a;"></span>Esperando al equipo</span>
+  </div>
+
+  <nav style="position: absolute; left: 12px; right: 12px; bottom: 18px; height: 66px; background: #fff; border-radius: 999px; box-shadow: 0 8px 26px rgba(23,75,58,.14); display: flex; align-items: center; padding: 0 8px;" aria-label="Navegación del admin">
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Hoy</span>
+    <span class="tab" style="background: #f5c9d6; color: #174b3a;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5L5.5 4h13L20 9.5M4 9.5h16v10H4z"/><path d="M10 19.5v-5h4v5"/></svg>Tiendas</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Trabajo</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg>Cobros</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>Más</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

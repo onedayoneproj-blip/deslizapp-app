@@ -78,6 +78,14 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 **Catálogo conectado, estado actual:** PR #47 y el pulido de likes PR #48 ya están publicados en main; PR #45 de rendimiento no se incluye. Esta rama independiente añade selección de agotados visibles, historial con filas comunes y la nueva píldora de likes. Estado y validaciones: `docs/handoffs/catalogo-agotados-visibles.md`.
 
+**Admin de Deslizapp** (diseño aprobado el 5 oct 2026): el panel de Lewis para administrar todas las tiendas en `/admin`. Especificación: `docs/13-admin.md`. Diseño: `referencias/admin/`. Se construye en 4 partes, cada una un PR que se deja abierto para que Lewis lo pruebe:
+1. Base y capa de datos: `docs/prompts/admin-1-base.md`. **Sigue.**
+2. Hoy, Tiendas, ficha y Ver como: `docs/prompts/admin-2-tiendas.md`.
+3. Trabajo (catálogos, retoque real) y Personalizar: `docs/prompts/admin-3-trabajo.md`.
+4. Cobros, Planes, Más, Salud y Registro: `docs/prompts/admin-4-cobros.md`.
+
+La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño (lienzo «Onboarding de Deslizapp», tres opciones sin elegir).
+
 **Pendientes sueltos:**
 - Pasar Promos al sistema de diseño (`components/ui`).
 - Inicio y el esqueleto de la app.

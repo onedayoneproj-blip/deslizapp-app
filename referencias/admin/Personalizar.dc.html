@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: personalizar un catálogo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Cormorant+Garamond:ital,wght@0,500;1,500&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.tit{font-size:12px;font-weight:800;letter-spacing:2px;color:#4f6a5e;margin:4px 4px 0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;border-top:1px solid #efe4d2;font-size:15px}
+.fila:first-child{border-top:none}
+.k{font-weight:800;flex:none}
+.v{flex:1;min-width:0;text-align:right;color:#4f6a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw{width:22px;height:22px;border-radius:999px;border:2px solid #fff;box-shadow:0 0 0 1px #e3d6bf}
+.int{width:46px;height:28px;border-radius:999px;position:relative;flex:none}
+.int i{position:absolute;top:3px;width:22px;height:22px;border-radius:999px;background:#fff}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1100px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="padding: 14px 16px 0; display: flex; align-items: center; gap: 12px;">
+    <button type="button" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <span style="display: flex; flex-direction: column;"><h1 class="f" style="margin: 0; font-size: 22px;">Su catálogo</h1><span style="font-size: 13px; color: #4f6a5e;">Esencias Michel · lo que hoy se hace con SQL</span></span>
+  </div>
+
+  <div style="margin: 14px 16px 0; height: 120px; border-radius: 22px; overflow: hidden; position: relative; background: linear-gradient(180deg, #8a6170 0%, #e8b8a6 100%);">
+    <span style="position: absolute; left: 0; right: 0; top: 22px; text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 30px; color: #fff;">Esencias <i>Michel</i></span>
+    <span style="position: absolute; left: 0; right: 0; top: 70px; display: flex; justify-content: center; gap: 18px; color: #fff; font-size: 14px; font-weight: 800;"><span>Novedades</span><span style="opacity: .6;">Colecciones</span></span>
+    <span style="position: absolute; right: 10px; bottom: 10px; height: 28px; padding: 0 10px; border-radius: 999px; background: rgba(255,249,238,.9); font-size: 12px; font-weight: 800; display: flex; align-items: center;">Vista previa</span>
+  </div>
+
+  <div style="padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px;">
+    <span class="tit">MARCA</span>
+    <div class="lista">
+      <div class="fila"><span class="k">Colores</span><span class="v" style="display: flex; justify-content: flex-end; gap: 4px;"><span class="sw" style="background: #F7EDE9;"></span><span class="sw" style="background: #A3325C;"></span><span class="sw" style="background: #E0457B;"></span><span class="sw" style="background: #9C7738;"></span></span></div>
+      <div class="fila"><span class="k">Letra de títulos</span><span class="v" style="font-family: 'Cormorant Garamond', serif; font-size: 17px;">Cormorant</span></div>
+      <div class="fila"><span class="k">Cabecera</span><span class="v">Esencias <i>Michel</i></span></div>
+    </div>
+
+    <span class="tit">FRASES</span>
+    <div class="lista">
+      <div class="fila"><span class="k">Botón de comprar</span><span class="v">¡Lo quiero, Michel!</span></div>
+      <div class="fila"><span class="k">Saludo de WhatsApp</span><span class="v">¡Hola Michel! Vi tu catálogo…</span></div>
+      <div class="fila"><span class="k">Al agregar</span><span class="v">3 frases</span></div>
+      <div class="fila"><span class="k">Sello de agotado</span><span class="v">Aaah… dejaste que…</span></div>
+    </div>
+
+    <span class="tit">SECCIONES</span>
+    <div class="lista">
+      <div class="fila"><span class="k" style="flex: 1;">Chat</span><span class="int" style="background: #174b3a;"><i style="right: 3px;"></i></span></div>
+      <div class="fila"><span class="k" style="flex: 1;">Búsqueda</span><span class="int" style="background: #174b3a;"><i style="right: 3px;"></i></span></div>
+      <div class="fila"><span class="k" style="flex: 1;">Colecciones</span><span class="int" style="background: #174b3a;"><i style="right: 3px;"></i></span></div>
+      <div class="fila"><span class="k" style="flex: 1;">Opiniones</span><span style="font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 9px; background: #f3ead9;">Pronto</span></div>
+    </div>
+
+    <span class="tit">PRODUCTOS</span>
+    <div class="lista">
+      <div class="fila"><span class="k">Orden en el catálogo</span><span class="v">13 ordenados · nuevos arriba</span></div>
+      <div class="fila"><span class="k">Opiniones de internet</span><span class="v">15 en 9 productos</span></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

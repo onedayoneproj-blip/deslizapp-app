@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: catálogos por armar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.seg{flex:1;height:44px;border-radius:999px;border:none;font-family:'Figtree',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.sec{font-size:12px;font-weight:800;letter-spacing:2px;color:#4f6a5e;margin:6px 2px 0}
+.card{background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;align-items:center;gap:10px}
+.av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%;font-size:14px;flex:none}
+.n{font-size:16px;font-weight:800}
+.s{font-size:13px;color:#4f6a5e}
+.bt{height:40px;padding:0 14px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.b1{background:#174b3a;color:#fff9ee}
+.b2{background:transparent;color:#174b3a;border:2px solid #174b3a}
+.paso{flex:1;display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800}
+.paso i{height:5px;border-radius:999px;display:block}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:800;color:#4f6a5e;padding:8px 0;border-radius:999px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1100px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
+    <h1 class="f" style="margin: 0; font-size: 32px;">Trabajo</h1>
+    <div style="display: flex; gap: 6px; background: #f3ead9; border-radius: 999px; padding: 4px;">
+      <button type="button" class="seg" style="background: #174b3a; color: #fff9ee;">Catálogos <span style="font-size: 12px; background: #ff834f; color: #10362a; border-radius: 999px; padding: 1px 7px;">4</span></button>
+      <button type="button" class="seg" style="background: transparent; color: #174b3a;">Fotos <span style="font-size: 12px; background: #fff9ee; border-radius: 999px; padding: 1px 7px;">12</span></button>
+    </div>
+  </div>
+
+  <div style="padding: 10px 16px 0; display: flex; flex-direction: column; gap: 10px;">
+    <span class="sec">POR EMPEZAR</span>
+    <div class="card">
+      <div class="top"><span class="av" style="background: #dcebe2;">LB</span><span style="flex: 1; display: flex; flex-direction: column;"><span class="n">Luna Bijou</span><span class="s">Accesorios · 18 productos con foto</span></span><span style="font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 9px; background: #ffe3d6; color: #a8410f;">Hace 3 días</span></div>
+      <span style="display: flex; gap: 8px;"><button type="button" class="bt b1">Empezar</button><button type="button" class="bt b2">Ver sus fotos</button></span>
+    </div>
+
+    <span class="sec">ARMANDO</span>
+    <div class="card">
+      <div class="top"><span class="av" style="background: #f5c9d6;">DV</span><span style="flex: 1; display: flex; flex-direction: column;"><span class="n">Dulce Vicio</span><span class="s">Comida · 24 productos</span></span></div>
+      <div style="display: flex; gap: 6px;">
+        <span class="paso"><i style="background: #174b3a;"></i>Fotos</span>
+        <span class="paso"><i style="background: #ff834f;"></i>Portada</span>
+        <span class="paso" style="color: #4f6a5e;"><i style="background: #eadfcb;"></i>Detalles</span>
+      </div>
+      <span class="s">Ella ve «Diseñando tu portada» en su app.</span>
+      <span style="display: flex; gap: 8px;"><button type="button" class="bt b1">Pasar a Detalles</button></span>
+    </div>
+
+    <span class="sec">PIDIÓ CAMBIOS</span>
+    <div class="card">
+      <div class="top"><span class="av" style="background: #f3ead9;">TK</span><span style="flex: 1; display: flex; flex-direction: column;"><span class="n">Tikí Kids</span><span class="s">Ropa · ayer</span></span></div>
+      <span style="background: #fff9ee; border-radius: 14px; padding: 10px 12px; font-size: 14px; line-height: 20px;">«Que el logo se vea más grande y quiten el body de prueba.»</span>
+      <span style="display: flex; gap: 8px;"><button type="button" class="bt b1">Mandar a revisar</button><button type="button" class="bt b2">Personalizar</button></span>
+    </div>
+
+    <span class="sec">ESPERANDO SU SÍ</span>
+    <div class="card">
+      <div class="top"><span class="av" style="background: #dcebe2;">LA</span><span style="flex: 1; display: flex; flex-direction: column;"><span class="n">Lino &amp; Algodón</span><span class="s">Se lo mandaste hace 2 días</span></span></div>
+      <span style="display: flex; gap: 8px;"><button type="button" class="bt b2"><svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.6 16.8L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9z"/></svg>Recordarle</button></span>
+    </div>
+    <span class="cav" style="align-self: center; font-size: 21px; color: #c24e18;">publicar lo toca ella, no tú</span>
+  </div>
+
+  <nav style="position: absolute; left: 12px; right: 12px; bottom: 18px; height: 66px; background: #fff; border-radius: 999px; box-shadow: 0 8px 26px rgba(23,75,58,.14); display: flex; align-items: center; padding: 0 8px;" aria-label="Navegación del admin">
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Hoy</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5L5.5 4h13L20 9.5M4 9.5h16v10H4z"/><path d="M10 19.5v-5h4v5"/></svg>Tiendas</span>
+    <span class="tab" style="background: #f5c9d6; color: #174b3a;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Trabajo</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg>Cobros</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>Más</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: invitaciones</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.cav{font-family:'Caveat',cursive;font-weight:700}
+.btn{height:54px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;cursor:pointer}
+.pill{height:40px;padding:0 16px;border-radius:999px;border:1.5px solid #e3d6bf;background:#fff;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;color:#174b3a;display:flex;align-items:center;gap:6px;cursor:pointer}
+.pill.on{background:#174b3a;border-color:#174b3a;color:#fff9ee}
+.fila{display:flex;align-items:center;gap:12px;min-height:74px;padding:12px 16px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.av{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.et{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:800}
+.ico{width:44px;height:44px;border-radius:999px;border:none;background:#f3ead9;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="position: absolute; left: 16px; right: 16px; top: 16px; display: flex; align-items: center; justify-content: space-between;">
+    <span style="display: flex; align-items: center; gap: 8px;"><span class="f" style="font-size: 22px;">deslizapp</span><span style="height: 24px; padding: 0 10px; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 12px; font-weight: 800; display: flex; align-items: center;">admin</span></span>
+    <span class="f" style="width: 40px; height: 40px; border-radius: 999px; background: #f5c9d6; display: flex; align-items: center; justify-content: center; font-size: 15px;">LE</span>
+  </div>
+
+  <div style="position: absolute; left: 16px; right: 16px; top: 80px; display: flex; flex-direction: column; gap: 16px;">
+    <h1 class="f" style="margin: 0; font-size: 32px;">Invitaciones</h1>
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="pill on">Pendientes <span style="background: #fff9ee; color: #174b3a; border-radius: 999px; padding: 0 7px; font-size: 12px;">2</span></button>
+      <button type="button" class="pill">Usadas</button>
+      <button type="button" class="pill">Vencidas</button>
+    </div>
+    <div style="background: #fff; border: 1px solid #efe4d2; border-radius: 22px; overflow: hidden;">
+      <div class="fila">
+        <span class="av" style="background: #f5c9d6;">EM</span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+          <b style="font-size: 16px;">Esencias Michel</b>
+          <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;"><span class="et" style="background: #dcebe2; color: #1f6b47;">Pre-llenada</span><span style="font-size: 13.5px; color: #4f6a5e;">Para Michel · vence en 6 días</span></span>
+        </span>
+        <button type="button" class="ico" aria-label="Enviar de nuevo por WhatsApp"><svg width="20" height="20" viewBox="0 0 24 24" fill="#174b3a" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.6 16.8L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9z"/></svg></button>
+      </div>
+      <div class="fila">
+        <span class="av" style="background: #f3ead9; border: 2px dashed #c9b998; color: #4f6a5e;">?</span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+          <b style="font-size: 16px;">Tienda por estrenar</b>
+          <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;"><span class="et" style="background: #f3ead9; color: #4f6a5e;">Vacía</span><span style="font-size: 13.5px; color: #4f6a5e;">Para Rosa · vence en 3 días</span></span>
+        </span>
+        <button type="button" class="ico" aria-label="Enviar de nuevo por WhatsApp"><svg width="20" height="20" viewBox="0 0 24 24" fill="#174b3a" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.6 16.8L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9z"/></svg></button>
+      </div>
+    </div>
+    <span style="font-size: 14px; line-height: 20px; color: #4f6a5e;">Cada enlace sirve una sola vez y vence a los 7 días. Toca una fila para copiarlo o anularlo.</span>
+  </div>
+
+  <div style="position: absolute; left: 16px; right: 16px; bottom: 36px;">
+    <button type="button" class="btn" style="background: #174b3a; color: #fff9ee;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>Nueva invitación</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

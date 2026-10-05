@@ -1,5 +1,7 @@
 # Fase 2 — Cuentas, verificación y cobros manuales
 
+> **Actualización (5 oct 2026):** la zona `/admin`, los cobros manuales y los créditos por movimientos se concretan y se construyen según `docs/13-admin.md`, que manda sobre este documento donde no coincidan. Los estados de tienda siguen siendo los de la base (`en_prueba`, `activa`, `pausada`, `eliminada`); el estado de cobro se calcula (docs/13 §8). La verificación de Instagram sigue decidida, pero queda para después.
+
 **No se construye en la primera entrega.** Este documento deja escritas las
 decisiones ya tomadas por el dueño de Deslizapp (Lewis) para que, cuando
 llegue el momento, se construya sin volver a discutirlas. Todo esto necesita

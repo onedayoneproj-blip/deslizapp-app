@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: fotos por retocar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.seg{flex:1;height:44px;border-radius:999px;border:none;font-family:'Figtree',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.grupo{background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.n{font-size:16px;font-weight:800}
+.s{font-size:13px;color:#4f6a5e}
+.foto{position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:#f3ead9}
+.foto img{width:100%;height:100%;object-fit:cover;filter:saturate(.75) brightness(.92)}
+.foto.sel{outline:3px solid #ff834f;outline-offset:2px}
+.bt{height:44px;padding:0 16px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:800;color:#4f6a5e;padding:8px 0;border-radius:999px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1100px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
+    <h1 class="f" style="margin: 0; font-size: 32px;">Trabajo</h1>
+    <div style="display: flex; gap: 6px; background: #f3ead9; border-radius: 999px; padding: 4px;">
+      <button type="button" class="seg" style="background: transparent; color: #174b3a;">Catálogos <span style="font-size: 12px; background: #fff9ee; border-radius: 999px; padding: 1px 7px;">4</span></button>
+      <button type="button" class="seg" style="background: #174b3a; color: #fff9ee;">Fotos <span style="font-size: 12px; background: #ff834f; color: #10362a; border-radius: 999px; padding: 1px 7px;">12</span></button>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px;">
+    <div class="grupo">
+      <div style="display: flex; align-items: center; justify-content: space-between;"><span style="display: flex; flex-direction: column;"><span class="n">Esencias Michel</span><span class="s">4 fotos · llegaron ayer · 20 créditos</span></span><span style="font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 9px; background: #ffe3d6; color: #a8410f;">La más vieja</span></div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+        <span class="foto sel"><img src="img/kiara.webp" alt="Kiara Pink"></span>
+        <span class="foto"><img src="img/mayar.webp" alt="Mayar"></span>
+        <span class="foto"><img src="img/parade.webp" alt="Parade"></span>
+        <span class="foto"><img src="img/she.webp" alt="Shé"></span>
+      </div>
+    </div>
+
+    <div style="background: #174b3a; color: #fff9ee; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <span style="display: flex; align-items: center; justify-content: space-between;"><b style="font-size: 16px;">Kiara Pink</b><span style="font-size: 13px; color: #b9cfc4;">1 de 4</span></span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+        <span style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 800; color: #b9cfc4;">ANTES<span style="aspect-ratio: 4/5; border-radius: 14px; overflow: hidden;"><img src="img/kiara.webp" alt="" style="width: 100%; height: 100%; object-fit: cover; filter: saturate(.6) brightness(.85) contrast(.9);"></span></span>
+        <span style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 800; color: #f5c9d6;">DESPUÉS<span style="aspect-ratio: 4/5; border-radius: 14px; border: 2px dashed #f5c9d6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #f5c9d6; font-size: 13px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f5c9d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></svg>Subir la retocada</span></span>
+      </div>
+      <span style="display: flex; gap: 8px;">
+        <button type="button" class="bt" style="background: #fff9ee; color: #174b3a;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg>Bajar original</button>
+        <button type="button" class="bt" style="background: #ff834f; color: #10362a; opacity: .55;">Entregar</button>
+      </span>
+      <span style="font-size: 13px; color: #b9cfc4; line-height: 18px;">Al entregar, la foto cambia en su producto y se le cobran 5 créditos. Si no se puede, «Devolver» le explica por qué y no cobra.</span>
+    </div>
+
+    <div class="grupo">
+      <div style="display: flex; align-items: center; justify-content: space-between;"><span style="display: flex; flex-direction: column;"><span class="n">Dulce Vicio</span><span class="s">6 fotos · hoy · 30 créditos</span></span></div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+        <span class="foto"><img src="img/wildflower.webp" alt=""></span>
+        <span class="foto"><img src="img/oxana.webp" alt=""></span>
+        <span class="foto" style="display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; background: #f3ead9;">+4</span>
+      </div>
+    </div>
+  </div>
+
+  <nav style="position: absolute; left: 12px; right: 12px; bottom: 18px; height: 66px; background: #fff; border-radius: 999px; box-shadow: 0 8px 26px rgba(23,75,58,.14); display: flex; align-items: center; padding: 0 8px;" aria-label="Navegación del admin">
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Hoy</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5L5.5 4h13L20 9.5M4 9.5h16v10H4z"/><path d="M10 19.5v-5h4v5"/></svg>Tiendas</span>
+    <span class="tab" style="background: #f5c9d6; color: #174b3a;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Trabajo</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg>Cobros</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>Más</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

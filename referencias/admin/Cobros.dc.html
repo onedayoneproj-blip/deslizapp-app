@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: cobros</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.sec{font-size:12px;font-weight:800;letter-spacing:2px;color:#4f6a5e;margin:6px 4px 0}
+.lista{background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden}
+.fila{display:flex;align-items:center;gap:12px;min-height:70px;padding:10px 14px;border-top:1px solid #efe4d2}
+.fila:first-child{border-top:none}
+.av{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%;font-size:14px;flex:none}
+.n{font-size:16px;font-weight:800}
+.s{font-size:13px;color:#4f6a5e}
+.m{font-size:16px;font-weight:800;white-space:nowrap}
+.bt{height:38px;padding:0 14px;border:none;border-radius:999px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:800;color:#4f6a5e;padding:8px 0;border-radius:999px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1100px; overflow: hidden; background: #fff9ee; color: #174b3a; font-family: 'Figtree', sans-serif;">
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
+    <h1 class="f" style="margin: 0; font-size: 32px;">Cobros</h1>
+    <div style="background: #174b3a; color: #fff9ee; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 12px; font-weight: 800;">Octubre · cobrado</span>
+      <span style="display: flex; align-items: baseline; gap: 8px;"><span class="f" style="font-size: 32px;">RD$38,400</span><span style="font-size: 14px; color: #b9cfc4;">de RD$48,000</span></span>
+      <span style="height: 8px; border-radius: 999px; background: rgba(255,249,238,.18); overflow: hidden;"><span style="display: block; width: 80%; height: 100%; background: #f5c9d6;"></span></span>
+      <span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #dcebe2;"><span>Por cobrar: RD$9,600 · 3 tiendas</span><span>Créditos: RD$1,500</span></span>
+    </div>
+  </div>
+
+  <div style="padding: 10px 16px 0; display: flex; flex-direction: column; gap: 8px;">
+    <span class="sec" style="color: #a8410f;">ATRASADAS</span>
+    <div class="lista" style="border-color: #ffd0bc;">
+      <div class="fila" style="flex-direction: column; align-items: stretch; gap: 10px;">
+        <span style="display: flex; align-items: center; gap: 12px;">
+          <span class="av" style="background: #ffe3d6; color: #a8410f;">MS</span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">Mora Shoes</span><span class="s" style="color: #a8410f; font-weight: 700;">Venció hace 2 días · 3 días de gracia</span></span>
+          <span class="m">RD$3,200</span>
+        </span>
+        <span style="display: flex; gap: 8px; padding-left: 54px;"><button type="button" class="bt" style="background: #174b3a; color: #fff9ee;">Registrar pago</button><button type="button" class="bt" style="background: transparent; color: #174b3a; border: 2px solid #174b3a;">Escribirle</button></span>
+      </div>
+    </div>
+
+    <span class="sec">VENCEN ESTA SEMANA</span>
+    <div class="lista">
+      <div class="fila"><span class="av" style="background: #f5c9d6;">EM</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">Esencias Michel</span><span class="s">Jueves 9 · Plan 20</span></span><span class="m">RD$1,500</span></div>
+      <div class="fila"><span class="av" style="background: #dcebe2;">LB</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">Luna Bijou</span><span class="s">Sábado 11 · Básico</span></span><span class="m">RD$1,500</span></div>
+      <div class="fila"><span class="av" style="background: #f5c9d6;">DV</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">Dulce Vicio</span><span class="s">Domingo 12 · Pro</span></span><span class="m">RD$3,200</span></div>
+    </div>
+
+    <span class="sec">AL DÍA</span>
+    <div class="lista">
+      <div class="fila"><span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">9 tiendas</span><span class="s">La próxima vence el 15 oct</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+
+    <span class="sec">EN PRUEBA</span>
+    <div class="lista">
+      <div class="fila"><span style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span class="n">4 tiendas</span><span class="s">Tikí Kids termina su prueba en 5 días</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+
+  <nav style="position: absolute; left: 12px; right: 12px; bottom: 18px; height: 66px; background: #fff; border-radius: 999px; box-shadow: 0 8px 26px rgba(23,75,58,.14); display: flex; align-items: center; padding: 0 8px;" aria-label="Navegación del admin">
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Hoy</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5L5.5 4h13L20 9.5M4 9.5h16v10H4z"/><path d="M10 19.5v-5h4v5"/></svg>Tiendas</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Trabajo</span>
+    <span class="tab" style="background: #f5c9d6; color: #174b3a;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg>Cobros</span>
+    <span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>Más</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
