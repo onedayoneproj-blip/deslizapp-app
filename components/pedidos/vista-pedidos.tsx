@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { usePendientesPedidos } from "@/lib/data/pendientes-pedidos";
 import { textoFechaDeudaAccesible } from "@/lib/credito";
 import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
@@ -51,18 +52,17 @@ export function useElegirPestanaPedidos() {
  * abrir y cerrar un pedido: /pedidos/nuevo y /pedidos/[id] solo agregan la hoja encima.
  */
 export function VistaPedidos({ children }: { children: ReactNode }) {
-  const { getPedidos, getProductos, getClientes, solicitudesPendientes } = useData();
+  const { getProductos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const [pestanaElegida, setPestanaElegida] = useState<Pestana | null>(null);
   const [ahora] = useState(() => Date.now());
 
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const pendientes = usePendientesPedidos();
+  const { pedidos } = pendientes;
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
-  // Los pedidos del catálogo que la tienda todavía no registró (respaldo de WhatsApp). Son solicitudes, no pedidos: no se
-  // suman a ninguna cuenta de pedidos, ventas ni stock.
-  const pendientes = useConsulta(`solicitudes:${tiendaId}`, () => solicitudesPendientes(tiendaId));
-  const porRegistrar = pendientes.data?.length ?? 0;
+  // Solo el aviso de trabajo pendiente suma solicitudes; las listas y métricas conservan pedidos registrados.
+  const porRegistrar = pendientes.cuenta?.porRegistrar;
 
   const porCliente = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, { nombre: c.nombre, repite: c.repite }])), [clientes]);
   const fotos = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
@@ -73,8 +73,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   }, [pedidos]);
   // Al entrar: primero muestra los pedidos nuevos (o los del catálogo por registrar); si no hay ninguno, lleva a los que
   // esperan despacho. Mientras carga, conserva "Nuevos". Lo que la persona eligió no se cambia.
-  const pendientesListos = pendientes.data !== undefined || pendientes.error;
-  const pestana = pestanaElegida ?? (pedidos && pendientesListos && cuentas.nuevo === 0 && porRegistrar === 0 ? "por_despachar" : "nuevo");
+  const pestana = pestanaElegida ?? (pendientes.cuenta?.total === 0 && !pendientes.error ? "por_despachar" : "nuevo");
   const elegirPestana = (nueva: Pestana) => setPestanaElegida(nueva);
   const todos = useMemo(() => (pedidos ?? []).filter((p) => p.estado === pestana), [pedidos, pestana]);
   // 30 más recientes; "Ver más antiguos" agrega 30 cada vez. Los contadores de las pastillas siguen siendo el total.
@@ -93,7 +92,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
           opciones={PESTANAS.map((t) => ({
             id: t.id,
             texto: t.nombre,
-            cantidad: pedidos ? cuentas[t.id] : undefined,
+            cantidad: t.id === "nuevo" ? pendientes.cuenta?.total : pedidos ? cuentas[t.id] : undefined,
+            nombreAccesible: t.id === "nuevo" ? `Nuevos, ${pendientes.descripcion}` : undefined,
             atencion: PIDEN_ATENCION.includes(t.id),
           }))}
         />
@@ -104,8 +104,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             <Esqueleto className="h-[112px] rounded-radio-l" />
           </>
         )}
-        {pestana === "nuevo" && <RespaldoCatalogo cantidad={porRegistrar} error={pendientes.error && !pendientes.data} alReintentar={pendientes.reintentar} />}
-        {pedidos && todos.length === 0 && !(pestana === "nuevo" && porRegistrar > 0) && (
+        {pestana === "nuevo" && <RespaldoCatalogo cantidad={porRegistrar} error={pendientes.error} alReintentar={pendientes.reintentar} />}
+        {pedidos && todos.length === 0 && !(pestana === "nuevo" && (porRegistrar === undefined || porRegistrar > 0 || pendientes.error)) && (
           <EstadoVacio ilustracion="pedidos" titulo={vacio.titulo} remate={vacio.remate} />
         )}
         {pedidos && todos.length > 0 && (
@@ -129,7 +129,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
 }
 
 /** «N del catálogo por registrar»: los que llegaron por WhatsApp y todavía no son pedidos. Solo con pendientes vigentes. */
-function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number; error: boolean; alReintentar: () => void }) {
+function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number | undefined; error: boolean; alReintentar: () => void }) {
   if (error) {
     return (
       <Aviso tono="atencion" accion={{ texto: "Reintentar", alTocar: alReintentar }}>
@@ -137,6 +137,7 @@ function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number;
       </Aviso>
     );
   }
+  if (cantidad === undefined) return <Esqueleto aria-label="Cargando solicitudes del catálogo" className="h-[60px] rounded-radio-l" />;
   if (cantidad === 0) return null;
   return (
     <Tarjeta href="/pedidos/por-registrar" etiqueta={`${cantidad} ${cantidad === 1 ? "pedido" : "pedidos"} del catálogo por registrar`}>

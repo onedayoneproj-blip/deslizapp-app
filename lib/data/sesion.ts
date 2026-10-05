@@ -6,7 +6,7 @@ import { HAY_SUPABASE, SUPABASE_LLAVE, SUPABASE_URL } from "../supabase/config";
 import { createClient } from "../supabase/client";
 import { esErrorDeRed, traducirErrorSupabase } from "./errores";
 import { aUsuario, type FilaUsuario } from "./filas";
-import { COOKIE_VOLVER, debeComprobarSesion, vueltaPermitida } from "../auth/canje";
+import { COOKIE_VOLVER, callbackGoogle, debeComprobarSesion, vueltaPermitida } from "../auth/canje";
 import { elegirModo, KEY_MODO, type Modo } from "./modo";
 
 export type EstadoSesion =
@@ -153,7 +153,7 @@ function recordarVuelta(volverA: string | undefined) {
       ? `${COOKIE_VOLVER}=${encodeURIComponent(ruta)}; path=/; max-age=600; samesite=lax${seguro}`
       : `${COOKIE_VOLVER}=; path=/; max-age=0; samesite=lax${seguro}`;
   } catch {
-    // Sin cookies: vuelve al panel, que igual tiene los pedidos por registrar.
+    // El callback conserva también el destino permitido en su URL.
   }
 }
 
@@ -177,7 +177,7 @@ export async function entrarConGoogle(volverA?: string): Promise<string | null> 
     recordarVuelta(volverA);
     const { error } = await createClient().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackGoogle(window.location.origin, volverA) },
     });
     if (error) {
       deshacer();

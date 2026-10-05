@@ -5,14 +5,14 @@
 // volver (solo rutas permitidas: lib/auth/canje.ts `vueltaPermitida`); al fallar, se vuelve a ese mismo link con el aviso.
 
 import { NextResponse, type NextRequest } from "next/server";
-import { COOKIE_VOLVER, resolverVuelta, vueltaPermitida } from "@/lib/auth/canje";
+import { COOKIE_VOLVER, destinoGoogle, resolverVuelta, vueltaPermitida } from "@/lib/auth/canje";
 import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const volver = vueltaPermitida(request.cookies.get(COOKIE_VOLVER)?.value);
+  const volver = vueltaPermitida(searchParams.get("volver")) ?? vueltaPermitida(request.cookies.get(COOKIE_VOLVER)?.value);
   const responder = (ruta: string) => {
     const r = NextResponse.redirect(`${origin}${ruta}`);
     if (request.cookies.has(COOKIE_VOLVER)) r.cookies.delete(COOKIE_VOLVER);
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         return !error && !!data.user;
       },
     );
-    if (resultado === "ok") return responder(volver ?? "/");
+    if (resultado === "ok") return responder(destinoGoogle(volver, false));
   }
-  return responder(`${volver ?? "/"}?error_login=1`);
+  return responder(destinoGoogle(volver, true));
 }

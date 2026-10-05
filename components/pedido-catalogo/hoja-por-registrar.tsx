@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { useData } from "@/lib/data/provider";
+import { usePendientesPedidos } from "@/lib/data/pendientes-pedidos";
 import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
 import { Esqueleto } from "../esqueleto";
 import { Hoja } from "../hoja";
@@ -17,9 +16,7 @@ import { HojaRegistrarSolicitud } from "./registrar-solicitud";
  */
 export function HojaPorRegistrar() {
   const router = useRouter();
-  const { solicitudesPendientes } = useData();
-  const { tiendaId } = useTiendaActiva();
-  const { data, error, reintentar } = useConsulta(`solicitudes:${tiendaId}`, () => solicitudesPendientes(tiendaId));
+  const { solicitudes: data, error, reintentar } = usePendientesPedidos();
   const [abierto, setAbierto] = useState<string | null>(null);
   const [visible, setVisible] = useState(true);
   const destino = useRef<string | null>(null);
@@ -31,7 +28,7 @@ export function HojaPorRegistrar() {
     <Hoja abierta={visible} alCerrar={cerrar} alSalir={salir} protegerAtras titulo="Por registrar" altura="grande">
       <div className="flex flex-col gap-3 pb-2">
         <p className="text-secundario text-texto-secundario">Te llegaron desde tu catálogo por WhatsApp. Regístralos para que pasen a Nuevos.</p>
-        {data === undefined && error && (
+        {error && (
           <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: reintentar }}>
             No pudimos ver los pedidos por registrar. Revisa tu conexión.
           </Aviso>

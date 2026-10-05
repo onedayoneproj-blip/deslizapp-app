@@ -292,8 +292,8 @@ export function Reel({
           aria-pressed={!agotado ? q : undefined}
           data-like={!agotado ? p.slug : undefined}
           aria-label={
-            (agotado ? "Avísame: " : "Lo quiero: ") + p.nombre +
-            (mostrarLikes ? `. ${p.likes} me gusta` : "")
+            (agotado ? "Avísame: " : q ? "Quitar del carrito: " : "Lo quiero: ") + p.nombre +
+            (mostrarLikes ? `. ${p.likes} ${p.likes === 1 ? "lo quiere" : "lo quieren"}` : "")
           }
           onClick={() =>
             agotado ? avisar(varianteId) : q ? elegir(varianteId) : aaah()
@@ -301,9 +301,9 @@ export function Reel({
         >
           <Icono nombre={agotado ? "wa" : "heart"} />
           {mostrarLikes && (
-            <span className="likes-count" aria-hidden="true">{p.likes}</span>
+            <span className="likes-count" aria-hidden="true">{p.likes} {p.likes === 1 ? "lo quiere" : "lo quieren"}</span>
           )}
-          <span>{agotado ? "Avísame" : "Lo quiero"}</span>
+          {!mostrarLikes && <span>{agotado ? "Avísame" : "Lo quiero"}</span>}
         </button>
         {(t.personalizacion.secciones as Record<string, unknown> | undefined)
           ?.opiniones !== false && (

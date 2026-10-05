@@ -35,10 +35,12 @@ const AVISO_LOGIN = "No se pudo entrar con Google. Tu pedido sigue aquí: intén
 function tomarErrorLogin(): boolean {
   try {
     const url = new URL(location.href);
-    if (!url.searchParams.has("error_login")) return false;
+    const error = url.searchParams.has("error_login");
+    if (!error && !url.searchParams.has("registrar")) return false;
     url.searchParams.delete("error_login");
+    url.searchParams.delete("registrar");
     history.replaceState(history.state, "", url.pathname + url.search + url.hash);
-    return true;
+    return error;
   } catch {
     return false;
   }
@@ -82,6 +84,7 @@ export function TiendaEnPedido({
   const [intento, setIntento] = useState(0);
   const [cerrandoEntrada, setCerrandoEntrada] = useState(false);
   const siguiente = useRef<Fase | null>(null);
+  const errorDeVuelta = useRef<{ codigo: string; valor: boolean } | null>(null);
   const cancelada = useRef(false);
   const cerrarEntrada = () => { cancelada.current = true; setCerrandoEntrada(true); };
   const alSalirEntrada = () => {
@@ -94,7 +97,8 @@ export function TiendaEnPedido({
 
   useEffect(() => {
     let vivo = true;
-    const errorLogin = !demo && tomarErrorLogin();
+    if (errorDeVuelta.current?.codigo !== codigo) errorDeVuelta.current = { codigo, valor: !demo && tomarErrorLogin() };
+    const errorLogin = errorDeVuelta.current.valor;
     const visible = pedirEntrar || errorLogin;
     if (demo) {
       queueMicrotask(() => vivo && setFase({ tipo: "entrar", aviso: null }));

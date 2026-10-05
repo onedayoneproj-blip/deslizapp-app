@@ -48,3 +48,17 @@ export function vueltaPermitida(valor: string | null | undefined): string | null
   }
   return /^\/pedido\/[A-HJ-NP-Z2-9]{10}$/.test(ruta) ? ruta : null;
 }
+
+/** El código viaja en el callback además de la cookie: dos pestañas no comparten su destino. */
+export function callbackGoogle(origen: string, volverA?: string): string {
+  const url = new URL("/auth/callback", origen);
+  const vuelta = vueltaPermitida(volverA);
+  if (vuelta) url.searchParams.set("volver", vuelta);
+  return url.href;
+}
+
+/** Mantiene el login normal del panel; el retorno de una solicitud monta su vista privada tras comprobar RLS. */
+export function destinoGoogle(vuelta: string | null, error: boolean): string {
+  if (!vuelta) return error ? "/?error_login=1" : "/";
+  return `${vuelta}?registrar=1${error ? "&error_login=1" : ""}`;
+}

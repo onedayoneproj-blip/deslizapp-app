@@ -110,7 +110,9 @@ export function PedidoComprador({
   const [tienda, setTienda] = useState<"no" | "comprobar" | "entrar">("no");
   useEffect(() => {
     if (demo) return;
-    if (hayCookieDeSesion() || new URLSearchParams(location.search).has("error_login")) queueMicrotask(() => setTienda("comprobar"));
+    const params = new URLSearchParams(location.search);
+    if (params.get("registrar") === "1" || params.has("error_login")) queueMicrotask(() => setTienda("entrar"));
+    else if (hayCookieDeSesion()) queueMicrotask(() => setTienda("comprobar"));
   }, [demo]);
 
   const enlace = s
@@ -183,6 +185,14 @@ export function PedidoComprador({
   const nombres = NOMBRE_PRODUCTO[catalogo?.tienda.rubro ?? "general"];
   const tema = catalogo ? temaDeTienda(catalogo.tienda) : null;
   const valido = s && s.estado !== "vencido" && s.items.length > 0;
+  const entradaTienda = (
+    <p className="pvest-tienda">
+      ¿Eres la tienda?{" "}
+      <button type="button" onClick={() => setTienda("entrar")}>
+        Entra para registrarlo
+      </button>
+    </p>
+  );
   return (
     <div
       className="catalogo-publico pedido-publico"
@@ -333,12 +343,7 @@ export function PedidoComprador({
                 <button className="pvbtn pri wide" onClick={volver}>
                   Seguir explorando {s.tienda.nombre}
                 </button>
-                <p className="pvest-tienda">
-                  ¿Eres la tienda?{" "}
-                  <button type="button" onClick={() => setTienda("entrar")}>
-                    Entra para registrarlo
-                  </button>
-                </p>
+                {entradaTienda}
               </section>
             </>
           ) : (
@@ -369,6 +374,7 @@ export function PedidoComprador({
                     ? "Seguir explorando " + s.tienda.nombre
                     : "Volver al catálogo"}
                 </button>
+                {s && entradaTienda}
               </div>
             </>
           )}

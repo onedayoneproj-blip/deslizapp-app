@@ -27,8 +27,7 @@ import {
   type ComponentType,
   type PointerEvent as EventoPuntero,
 } from "react";
-import { useConsulta } from "@/lib/data/consulta";
-import { useData } from "@/lib/data/provider";
+import { usePendientesPedidos } from "@/lib/data/pendientes-pedidos";
 import { hayCampoConFoco, RESORTE } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
 import { Contador } from "../contador";
@@ -69,9 +68,8 @@ type Medidas = { ancho: number; alto: number; contenidos: number[] };
 export function NavInferior() {
   const pathname = usePathname();
   const router = useRouter();
-  const { tiendaActivaId, getPedidos } = useData();
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaActivaId}`, () => getPedidos(tiendaActivaId));
-  const nuevos = pedidos?.filter((p) => p.estado === "nuevo").length ?? 0;
+  const pendientes = usePendientesPedidos();
+  const nuevos = pendientes.cuenta?.total;
 
   const activa = indiceDe(pathname);
   // Toque: el selector va a la pestaña tocada al instante, antes de que termine de cambiar la ruta.
@@ -310,7 +308,7 @@ export function NavInferior() {
             {SECCIONES.map(({ href, nombre, Icono }, i) => {
               const esActiva = i === activa;
               const marcada = i === resaltada;
-              const badge = href === "/pedidos" && nuevos > 0 ? nuevos : 0;
+              const badge = href === "/pedidos" && nuevos !== undefined && nuevos > 0 ? nuevos : 0;
               return (
                 <li key={href} className="relative min-w-0 flex-1">
                   {/* Medidor invisible: ancho real del contenido con la letra de la pestaña activa */}
@@ -326,7 +324,7 @@ export function NavInferior() {
                     href={href}
                     draggable={false}
                     aria-current={esActiva ? "page" : undefined}
-                    aria-label={badge ? `${nombre}, ${badge} ${badge === 1 ? "nuevo" : "nuevos"}` : undefined}
+                    aria-label={href === "/pedidos" ? `${nombre}, ${pendientes.descripcion}` : undefined}
                     onClick={(e) => {
                       if (ignorarClic.current) {
                         e.preventDefault();

@@ -22,6 +22,16 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.33.1",
+    fecha: "2026-10-05",
+    titulo: "Cada pendiente cuenta.",
+    cambios: [
+      "El corazón te dice cuántas personas lo quieren.",
+      "Nuevos y Pedidos cuentan también lo que falta registrar del catálogo.",
+      "Al entrar con Google desde un pedido, vuelves directo a ese pedido.",
+    ],
+  },
+  {
     version: "0.33.0",
     fecha: "2026-10-05",
     titulo: "Del catálogo a tus pedidos.",
