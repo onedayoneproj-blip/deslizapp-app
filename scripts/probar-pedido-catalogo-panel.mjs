@@ -33,7 +33,7 @@ const datos = p => p.evaluate(k => JSON.parse(localStorage.getItem(k)),clave);
 const guardarFixture = async (p,d) => { await p.evaluate(({k,d}) => {localStorage.setItem(k,JSON.stringify(d));window.dispatchEvent(new StorageEvent("storage",{key:k}));},{k:clave,d}); };
 const hoja = p => p.getByRole("dialog",{name:"Pedido del catálogo",exact:true});
 const boton = (p,name) => p.getByRole("button",{name,exact:true});
-const foto = async (p,n,c) => {if(c.ancho===390 && c.tema==="claro" && !c.reducido) await p.screenshot({path:`${caps}/${n}.png`});};
+const foto = async (p,n,c) => {if((c.ancho===390 || process.env.FOTOS_TODOS==="1") && c.tema==="claro" && !c.reducido) {await p.waitForTimeout(500);await p.screenshot({path:`${caps}/${n}${process.env.FOTOS_TODOS==="1"?"-"+c.ancho:""}.png`});}};
 async function pagina(c, d = base, tienda = michel.id) {
  const ctx=await b.newContext({viewport:{width:c.ancho,height:844},isMobile:true,hasTouch:true,reducedMotion:c.reducido?"reduce":"no-preference",serviceWorkers:"block"}), p=await ctx.newPage();
  p.setDefaultTimeout(15000);p.setDefaultNavigationTimeout(60000); const errores=[];p.on("pageerror",e=>errores.push(e.message));

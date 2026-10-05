@@ -22,6 +22,16 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.33.0",
+    fecha: "2026-10-05",
+    titulo: "Del catálogo a tus pedidos.",
+    cambios: [
+      "Registra lo que te pidieron con quien te escribió, sin perder el borrador.",
+      "Los pedidos del catálogo por registrar también aparecen en Nuevos.",
+      "Cuando repones una opción, puedes avisar a quienes la esperan.",
+    ],
+  },
+  {
     version: "0.32.0",
     fecha: "2026-10-04",
     titulo: "Tu catálogo, conectado.",

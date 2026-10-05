@@ -1,0 +1,29 @@
+✅ Catálogo demo: hay producto con stock controlado
+✅ Vista previa sin overflow horizontal
+✅ Tres toques solo cambian la propuesta, sin persistir
+✅ Volver al stock original no crea ajustes
+✅ Guardar varios toques crea una única reposición final
+✅ Historial se abre en la misma hoja
+✅ Cancelar la confirmación conserva propuesta sin guardar
+✅ Otro exige nota
+✅ Historial se abre en la misma hoja
+✅ Una disminución final con nota actualiza historial sin pedidos
+✅ Con cambios sin guardar se ocultan Editar y Crear pedido
+✅ Guardar cambios y Descartar aparecen encima de la tarjeta de stock
+✅ Descartar recupera el stock y devuelve Editar / Crear pedido
+✅ Descartar y editar recupera el stock guardado
+✅ Guardar solo nombre no crea ajuste
+✅ Editar tampoco escribe al tocar cantidades
+✅ Historial se abre en la misma hoja
+✅ Guardar edición confirma ficha y ajuste; historial actualizado
+✅ Historial se abre en la misma hoja
+✅ Disminuir desde edición confirma motivo y un único delta final
+✅ Atrás del navegador respeta cambios pendientes
+✅ Crear pedido abre el formulario preseleccionado sin guardarlo
+✅ Abrir pedido no crea una venta ni cambia stock
+✅ Con stock cero no se puede disminuir
+✅ Nombre largo y stock cero sin overflow
+✅ Stock null muestra Sin control de stock
+✅ Stock null no muestra controles de cantidad
+✅ Miniatura sin foto conserva la forma y no desborda
+✅ Sin errores de página: []

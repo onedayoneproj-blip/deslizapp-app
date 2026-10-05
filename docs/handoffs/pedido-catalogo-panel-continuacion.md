@@ -1,0 +1,99 @@
+# Pedido del catálogo en el panel — continuación de Coding
+
+**Claude y Codex: leer este archivo antes de retomar.** Fecha: 5 de octubre de 2026. Puesto: Coding. PR [#46](https://github.com/onedayoneproj-blip/deslizapp-app/pull/46), en borrador, sin fusionar. Rama `feature/pedido-catalogo-panel-continuacion`, base `feature/catalogo-react` mientras #44 siga abierto. El trabajo de rendimiento de #45 permanece separado.
+
+## Procedencia y convivencia
+
+- Main revisado: `1d8bf5d081cdcc8fe497deac342cbece37572e7f`.
+- Catálogo React #44: `a56553756e6c4e5ad2b25a52c2e67962dc73e8f6`, abierto/borrador.
+- Trabajo inicial publicado de Claude: `4307a1416d0364b116a875361ecf7d7e1f44cac3`. Se conservan sus cuatro commits; no se reinició la implementación ni se empujó a su rama.
+- Rendimiento #45: `ddd0057cd1047db679eb155e16c9a7a8be2b2927`, abierto/borrador. Se volvieron a consultar los tres heads y main al cierre: sin nuevos commits.
+- Worktree propio `/workspace/deslizapp-pedido-panel`; integración temporal propia `/workspace/deslizapp-panel-integracion`. No se modificaron rama, archivos ni servidor de `/workspace/deslizapp-rendimiento`.
+- El script local de 13 escenarios y las últimas correcciones/documentación locales de Claude no estaban accesibles. Se reconstruyó el script desde el código publicado y el prompt documental; **no** se afirma haber recuperado esos archivos ni su resultado 12/13.
+- Publicación por conector GitHub porque `git push` devolvió HTTP 401. Se verificó que los árboles de cada commit publicado coinciden con los locales; las SHA cambian por los metadatos del conector. Commits publicados iniciales: `539106c` (local `6adc698`), `615085f` (local `fb35005`), `b75562b` (local `a1e4d28`). El head definitivo se consulta en el PR.
+
+## Auditoría del prompt y correcciones
+
+| Área | Estado publicado por Claude | Resultado de la continuación |
+|---|---|---|
+| Una ruta pública/privada, estado del comprador | Implementado | Conservado; error de lectura distinto de inexistente, reintento, índice de historia seguro al quitar líneas |
+| Registrar, Quitar/Deshacer/Encargo, cliente provisional | Implementado | Validación de disponibilidad en demo/RPC; error no deja cliente/pedido parcial; conserva borradores internos |
+| Selector compartido, teléfono completo/Contact Picker | Implementado | Prefijo numérico rellena WhatsApp; búsqueda sigue activa solo en su vista; confirmación al abandonar cliente nuevo |
+| Capas, Atrás, Ver pedido | Bugs reportados, últimas soluciones sin evidencia publicada | Corregidos y probados: overlay debajo de Hoja, historial consumido en alSalir antes de navegar, cierres protegidos |
+| Respaldo en Nuevos y descarte | Implementado | Navegación lista → Registrar → lista, vacío y descarte explícito verificados |
+| Ya llegó / marcado del aviso | Implementado con producto anterior y temporizador | Relectura tras reponer y variante correcta; marca solo tras retorno de foco/visibilidad, reintento sin segundo WhatsApp |
+| Manifest scope `/` | Ya implementado | Sin cambios; no promete apertura automática de PWA |
+| Script local de 13 casos / docs locales | Sin evidencia accesible | Nuevo script reproducible y documentación en esta rama |
+
+Registrar sigue creando un único pedido **Nuevo**; no confirma, despacha, reserva ni descuenta stock. Cliente nuevo/note se guardan atómicamente con el pedido. El nombre no une identidades; el teléfono completo normalizado sí identifica el existente. Quitar conserva foto/precio/condiciones de la solicitud y recalcula descuento/total según la RPC existente. Encargo es local a la línea/variante; no activa el producto globalmente. Los datos privados se obtienen con sesión y RLS, nunca con metadata editable. La tienda objetivo deriva de la solicitud accesible, aunque el perfil tenga otra tienda por defecto.
+
+Si se pierde la respuesta de una escritura, «Comprobar registro» hace una lectura. No reenvía automáticamente. Si esa lectura confirma que sigue pendiente, hace falta un nuevo toque explícito para registrar; si encuentra el pedido, abre el existente. Los avisos no afirman que WhatsApp se envió o que la persona respondió. HTTPS inválido se omite del mensaje.
+
+## Supabase
+
+- Proyecto único accesible: **producción `euihaeyfdlpvmbtfzvnt`**. Otros entornos y bases locales de otras sesiones: desconocidos/inaccesibles.
+- `20261004223008_pedido_catalogo_panel.sql` ya estaba aplicada. No se editó ni reaplicó.
+- **Aplicada:** `20261005013157_registrar_solicitud_disponibilidad.sql`, después de validación en base desechable. Versión tomada del historial real de Supabase.
+- Reemplaza solo el cuerpo de `registrar_solicitud`, misma firma/retorno/permisos. Mantiene bloqueo de solicitud, identidad y pertenencia; bloquea productos y luego variantes en orden estable, valida actividad/compatibilidad y stock agregado antes de crear filas. Encargo permite cero, sin reserva/descuento ni cambio global. Stock null conserva sin control. Compatible con las apps de #44/#45.
+- Replay completo de **32 migraciones** en PostgreSQL 17.6 desechable; Auth/Storage con bootstrap mínimo para ejecutar los contratos, **no** un entorno hospedado completo de Supabase Auth.
+- Pruebas SQL: RLS anónimo/otra tienda, disponibilidad, variantes, descuentos finales, cliente y nota, registro duplicado, encargo, stock null, producto/variante inactivos, despacho/deshacer. Dos sesiones SQL concurrentes reales: una espera el bloqueo, generan un solo pedido/cliente; carrera contra cambio de stock rechaza sin filas parciales. Fixtures propios; rollback y contenedor desechable.
+- Verificación posterior de solo lectura: función, ACL, `search_path` vacío, guardas e historial presentes. `npm run revisar:migraciones -- lista.json`: **32 repo / 32 producción, cero diferencias de versión**. Aviso histórico intencional: `20260930005714_invitaciones.sql` frente al nombre aplicado `invitaciones_y_tienda_esencias_michel`; no se alteró historia ni se incorporaron datos de tienda a migraciones.
+- Advisors no dan cero avisos: persisten funciones públicas/authenticated SECURITY DEFINER y avisos de invitaciones/Auth ya existentes. Esta función sigue restringida a authenticated/service_role y comprobación de pertenencia; no tiene permiso anon/PUBLIC. No se amplió ese contrato.
+- **No se modificaron existencias, pedidos ni solicitudes reales de prueba. `4DCQ2PZ28F` quedó intacta.** La única escritura de producción fue la migración compatible autorizada. No se cambió `url_catalogo`, el HTML ni se desplegó la app a producción.
+
+## Validación ejecutada
+
+| Comprobación | Resultado real |
+|---|---|
+| TypeScript (`npx tsc --noEmit`) | Pasó; también pasó dentro del build |
+| Lint | Pasó: 0 errores, 27 advertencias de imágenes existentes |
+| `npm test` | Pasó: 25 archivos; corrida detallada con `--test-isolation=none`: **199/199 tests** |
+| Build local final | Pasó Next.js 16.3.6; sin la ruta temporal de transporte |
+| Matriz comprador/registro | **91/91 comprobados**: 13 casos × 360/390/430 claro/oscuro + 390 reducido. Primera corrida 84/91 por expectativa textual antigua; aislamiento repetido 7/7. JSON de ambos intentos y consolidado incluidos |
+| Transporte simulado | **7/7**: sin sesión, otra tienda, respuesta perdida, red fallida/recuperada, lectura con reintento, fallo de marcado sin segundo WhatsApp, apertura bloqueada sin marcar |
+| Catálogo original | **9/9**, incluidos solicitud, precio autoritativo, disponibilidad, PNG/PDF, foco y movimiento reducido |
+| Producto original | **42/42** a 360/390/430 claro/oscuro; reposición y WhatsApp marcados solo al volver, variantes y despacho |
+| Hojas general | Pasó completo; cinco cierres, hoja apilada, guardas, foco atrapado y cliente nuevo |
+| Teclado general | Pasó completo con confirmación explícita de descarte; primer intento con límite de 180 s se interrumpió. Corrida final permitía 480 s y terminó con exit 0 |
+| Inventario general | Pasó completo: propuesta, historial, guardado conjunto, motivos, descarte, stock cero/null, navegación y pedido |
+| Replay SQL | Pasó cadena completa de 32, RLS, atomicidad, concurrencia real y carrera de stock en base desechable |
+| Convivencia #45 | Build conjunto; catálogo **9/9** y comprador/registro **26/26** (390 normal/reducido, incluido aislamiento repetido) |
+| Capturas | Reales en Chromium local; registrar/resuelto en 360/390/430 y principales vistas a 390; inspeccionadas visualmente. WebP sin retoque de UI, originales guardados |
+| Recibos | PNG/PDF descargados en rama y mezcla; PDF rasterizado para comparar visualmente. Producto/total y estructura coherentes, variaciones legítimas de código/hora/puerto |
+
+
+Los primeros intentos paralelos contra dev tuvieron timeouts; un reinicio del entorno interrumpió otras corridas. No se contaron como aprobadas. El build detectó y permitió corregir el relevo de historial entre «¿Eres la tienda?» y Registrar. Una ruta temporal de transporte dejó tipos dev obsoletos tras el reinicio: se retiró el archivo generado y se reconstruyó sin esa ruta. La prueba general de teclado se actualizó para **comprobar**, no saltarse, la confirmación nueva al abandonar el borrador; su primer límite de 180 s se excedió, luego se repitió completo.
+
+La primera matriz de aislamiento esperaba el texto del aviso previo; el contenido privado estaba bloqueado. Se corrigió el localizador al texto real «Este pedido no es de tu tienda.» y se repitió el caso en todas las configuraciones, manteniendo las aserciones de ausencia de Registrar y de pedidos nuevos. Los JSON conservan ambos intentos para no ocultar ese resultado.
+
+## Combinación temporal con #45
+
+Merge solo en el worktree temporal, sin conflictos Git. Revisión manual de archivos comunes confirmó: import SSR `publica-real`, delegación pública con SDK bajo demanda, descarga de recibo lazy, medios/imágenes responsivos de #45; estados, error público, guardas del índice, carga privada lazy y registro de esta rama. Ninguna optimización se duplicó en la continuación.
+
+Build conjunto pasó; catálogo conjunto **9/9** (incluidos PNG/PDF); 13 escenarios a 390 px normal/reducido **26/26**, con 24 en la primera corrida y los dos casos de aislamiento repetidos tras corregir la expectativa textual. Se guardaron JSON y comparación visual de recibos. No se publicó ni fusionó la integración temporal. Esto prueba esos recorridos, **no** rendimiento Vercel/4G ni Safari físico.
+
+## Límites, diferencias y decisiones
+
+- Demo: solicitudes/carrito/avisos viven en el navegador. El WhatsApp demo existente no añade `?demo`; por tanto el enlace enviado no transporta una solicitud local a otro dispositivo. Para probarla, reabrir en el mismo contexto con `?demo`. No se presenta eso como registro real.
+- Los códigos del tablero de seis caracteres son ejemplos: se conserva el contrato de diez. Nombres, cantidades, precios y tiempos vienen de datos, no del mockup. La relectura de Ya llegó tiene carga/error/reintento además del tablero; nunca simula reposición ni mensaje enviado.
+- Recepciones PNG/PDF descargadas y revisadas visualmente en Chromium local y la combinación con #45: coinciden en estructura, producto y total. Códigos, fecha/hora, código de barras y puerto varían por los fixtures. No es una comparación pixel a pixel de todos los recibos contra el HTML ni prueba de impresión/compartir nativo; quedan pendientes recibos con múltiples variantes/condiciones reales después de editar el pedido.
+- Safari/iPhone físico, Google OAuth real entre Safari/PWA, Contact Picker Android, regreso físico de WhatsApp, compartir nativo y lectura privada autenticada en tienda Supabase real no verificados. La prueba de transporte intercepta Supabase; SQL prueba RLS separadamente en PostgreSQL.
+- Rendimiento comparable en Vercel y 4G **no aprobado**; es tarea de #45. No se cambió protección de preview para evitar el login de Vercel.
+- `probar-proximamente` no ejecutado en esta tarea; el contexto documenta fallo previo en main. No se presenta como validado.
+
+## Preview, revisión y próximos pasos
+
+PR #46 sigue abierto/borrador y apunta a `feature/catalogo-react`. Preview final y SHA exacta: ver descripción del PR (se verifica READY después del último commit). READY confirma build, no prueba de login/flujo visual remoto.
+
+Antes de continuar Claude: comprobar heads, commits y migraciones; conservar esta rama, no repetir SQL ni registrar/descartar la solicitud reservada. Tras merge autorizado de #44, mover solo los commits de esta etapa y retargetear a main con pruebas; coordinar con #45 preservando ambas funcionalidades. No usar --force fuera de la rama propia.
+
+## Comprobaciones manuales de Lewis (separadas de las automáticas)
+
+1. **Demo, mismo Safari:** abre preview → Demo → Catálogo → enlace de catálogo React `/tienda/esencias-michel?demo`. Elige dos perfumes y pulsa pedir. WhatsApp muestra borrador; no hace falta enviarlo. Regresa al mismo Safari y abre `/pedido/CODIGO?demo`: Enviado, cantidad y recibo coherentes.
+2. Toca «Entra para registrarlo» → «Ver como la tienda (demo)». Busca cliente; con nombre incompleto debe ofrecer crear, y con teléfono completo existente solo elegir. Escribe nombre/teléfono/nota; vuelve, cierra con X y prueba Atrás: pregunta si abandonar y «Seguir aquí» conserva el borrador y teclado.
+3. Prueba Quitar/Deshacer y una opción agotada → Por encargo. Registra una vez: Confirmado para comprador, un solo pedido en Nuevos y stock igual. «Ver pedido» debe ir al detalle sin rebote de URL.
+4. En ese **pedido demo**, confirma/despacha: comprador Va en camino. Solo despacho baja stock; Por encargo no lo baja. Descarga imagen/PDF y revisa productos y total. No uses un pedido real de ventas para esta prueba.
+5. Sin registrar otra solicitud demo, abre Pedidos → Nuevos → Del catálogo por registrar; revisa listado y descarte con confirmación. Cancelar deja la solicitud disponible.
+6. **Demo ropa:** usa Lino & Algodón, pide aviso de una variante agotada y repón esa misma variante. Ya llegó debe ofrecer Avisar; abre el borrador y vuelve: Avisado. No debe cambiar el aviso de otra variante. Revisa la plantilla sin enviar automáticamente.
+7. **iPhone:** repite apertura desde WhatsApp a Safari, teclado, gesto de cierre, Atrás, movimiento reducido y descarga/compartir de recibo. Estos pasos físicos no están aprobados por Chromium.
+8. **Tienda real:** entrar con Google en preview debe regresar al mismo enlace y otra cuenta no permitir registrar. Para escrituras usa una solicitud nueva de prueba acordada y productos destinados a pruebas; no `4DCQ2PZ28F`, existencias vendibles ni clientes reales sin acuerdo. El flujo hospedado necesita esta revisión manual; no lo describimos como probado.

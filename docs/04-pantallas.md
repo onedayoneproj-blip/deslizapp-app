@@ -922,4 +922,17 @@ mismo tono — no se deja el texto por defecto de un framework de UI.
 
 El corazón mantiene pedido local y registra el aaah. Enviar crea solicitud con precios de la base y abre WhatsApp en la misma pestaña; no envía automáticamente. Agotado y límite de intentos mantienen el carrito; fallo de red permite texto sin enlace. Opiniones respeta `false` / `pronto`; el resto de secciones respeta personalización.
 
-`/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». No muestra todavía estado/registro de la parte 3. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.
+`/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». La continuación de la parte 3 añade estado/registro (ver la sección siguiente); ambas entregas siguen pendientes de fusión. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.
+
+
+## Pedido del catálogo en el panel — continuación, sin publicar
+
+La misma historia del comprador mantiene productos, precios y recibos. La hoja inferior muestra Enviado / Confirmado / Despachado con tres tramos; cancelado y vencido son estados distintos. Registrado no vence al cumplir siete días. Las líneas finales y el descuento reflejan Quitar/Por encargo; no se deduce confirmación por abrir WhatsApp.
+
+«Entra para registrarlo» comprueba la sesión y la tienda de la solicitud mediante RLS. La hoja privada reutiliza Hoja y SelectorCliente: búsqueda parcial permite crear un borrador; un teléfono completo ya existente permite elegirlo. Personas con el mismo nombre no se unen automáticamente. El cliente provisional, su nota y las decisiones solo persisten al registrar. Quitar ofrece Deshacer; Por encargo afecta únicamente esa línea/variante. Productos ocultos, variantes incompatibles o retiradas deben quitarse.
+
+Registrar crea un único pedido Nuevo, sin descontar stock; despachar/deshacer usan sus operaciones actuales. Ante respuesta incierta aparece «Comprobar registro»: primero relee, nunca vuelve a escribir automáticamente. Cierres, Atrás y cambios sin guardar conservan el borrador; Ver pedido consume el historial de la hoja antes de navegar. Nuevos incluye «Del catálogo por registrar», incluso sin pedidos nuevos, con carga, vacío y error/reintento.
+
+Tras reponer, «Ya llegó» relee el producto y la variante confirmados. Avisar abre WhatsApp sin envío automático; marca al recuperar foco/visibilidad, no mediante un temporizador. Eso indica que se abrió el mensaje y se volvió, **no** que se envió ni recibió. Si falla marcar, el reintento no vuelve a abrir WhatsApp. No ofrece avisar con stock cero; null conserva sin control. El enlace se incluye solo si es HTTPS válido.
+
+Demo conserva solicitudes en el mismo navegador: el enlace de WhatsApp sin `?demo` no transporta los datos locales a otro dispositivo. Recorrido seguro: volver al catálogo demo en el mismo contexto y usar `/pedido/{codigo}?demo`. No se cambia el enlace publicado ni el HTML antiguo. Pruebas y límites en `handoffs/pedido-catalogo-panel-continuacion.md`.

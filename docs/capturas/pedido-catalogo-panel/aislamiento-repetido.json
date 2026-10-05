@@ -1,0 +1,51 @@
+[
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 360,
+    "tema": "oscuro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "oscuro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 430,
+    "tema": "oscuro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  }
+]

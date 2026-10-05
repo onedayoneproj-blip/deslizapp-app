@@ -1,0 +1,107 @@
+✅ [deslizar] hay dos hojas apiladas (detalle + abono)
+✅ [deslizar] sin cambios: se cierra la de arriba y queda la de abajo (1)
+✅ [deslizar] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [deslizar] sin cambios no pregunta nada
+✅ [deslizar] el detalle del pedido sigue a la vista
+✅ [deslizar] sin errores de página ([])
+✅ [fondo] hay dos hojas apiladas (detalle + abono)
+✅ [fondo] sin cambios: se cierra la de arriba y queda la de abajo (1)
+✅ [fondo] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [fondo] sin cambios no pregunta nada
+✅ [fondo] el detalle del pedido sigue a la vista
+✅ [fondo] sin errores de página ([])
+✅ [escape] hay dos hojas apiladas (detalle + abono)
+✅ [escape] sin cambios: se cierra la de arriba y queda la de abajo (1)
+✅ [escape] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [escape] sin cambios no pregunta nada
+✅ [escape] el detalle del pedido sigue a la vista
+✅ [escape] sin errores de página ([])
+✅ [equis] hay dos hojas apiladas (detalle + abono)
+✅ [equis] sin cambios: se cierra la de arriba y queda la de abajo (1)
+✅ [equis] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [equis] sin cambios no pregunta nada
+✅ [equis] el detalle del pedido sigue a la vista
+✅ [equis] sin errores de página ([])
+✅ [atras] hay dos hojas apiladas (detalle + abono)
+✅ [atras] sin cambios: se cierra la de arriba y queda la de abajo (1)
+✅ [atras] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [atras] sin cambios no pregunta nada
+✅ [atras] el detalle del pedido sigue a la vista
+✅ [atras] un segundo "atrás" cierra el detalle (/pedidos)
+✅ [atras] sin errores de página ([])
+✅ [deslizar] con cambios sale "¿Salir sin guardar?"
+✅ [deslizar] con cambios no se cierra ninguna hoja
+✅ [deslizar] la hoja volvió a su lugar (no quedó a medio deslizar)
+✅ [deslizar] el diálogo dice qué se pierde
+✅ [deslizar] el foco entra al diálogo ("Seguir aquí")
+✅ [deslizar] Tab no saca el foco del diálogo
+✅ [deslizar] "Seguir aquí" no cierra nada
+✅ [deslizar] lo escrito se conserva
+✅ [deslizar] vuelve a preguntar
+✅ [deslizar] "Salir" cierra solo la de arriba (1)
+✅ [deslizar] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [deslizar] al volver a abrir el abono, está vacío
+✅ [deslizar] sin errores de página ([])
+✅ [fondo] con cambios sale "¿Salir sin guardar?"
+✅ [fondo] con cambios no se cierra ninguna hoja
+✅ [fondo] la hoja volvió a su lugar (no quedó a medio deslizar)
+✅ [fondo] el diálogo dice qué se pierde
+✅ [fondo] el foco entra al diálogo ("Seguir aquí")
+✅ [fondo] Tab no saca el foco del diálogo
+✅ [fondo] "Seguir aquí" no cierra nada
+✅ [fondo] lo escrito se conserva
+✅ [fondo] vuelve a preguntar
+✅ [fondo] "Salir" cierra solo la de arriba (1)
+✅ [fondo] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [fondo] al volver a abrir el abono, está vacío
+✅ [fondo] sin errores de página ([])
+✅ [escape] con cambios sale "¿Salir sin guardar?"
+✅ [escape] con cambios no se cierra ninguna hoja
+✅ [escape] la hoja volvió a su lugar (no quedó a medio deslizar)
+✅ [escape] el diálogo dice qué se pierde
+✅ [escape] el foco entra al diálogo ("Seguir aquí")
+✅ [escape] Tab no saca el foco del diálogo
+✅ [escape] "Seguir aquí" no cierra nada
+✅ [escape] lo escrito se conserva
+✅ [escape] Escape vuelve a preguntar
+✅ [escape] Escape dentro del diálogo equivale a "Seguir aquí"
+✅ [escape] vuelve a preguntar
+✅ [escape] "Salir" cierra solo la de arriba (1)
+✅ [escape] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [escape] al volver a abrir el abono, está vacío
+✅ [escape] sin errores de página ([])
+✅ [equis] con cambios sale "¿Salir sin guardar?"
+✅ [equis] con cambios no se cierra ninguna hoja
+✅ [equis] la hoja volvió a su lugar (no quedó a medio deslizar)
+✅ [equis] el diálogo dice qué se pierde
+✅ [equis] el foco entra al diálogo ("Seguir aquí")
+✅ [equis] Tab no saca el foco del diálogo
+✅ [equis] "Seguir aquí" no cierra nada
+✅ [equis] lo escrito se conserva
+✅ [equis] vuelve a preguntar
+✅ [equis] "Salir" cierra solo la de arriba (1)
+✅ [equis] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [equis] al volver a abrir el abono, está vacío
+✅ [equis] sin errores de página ([])
+✅ [atras] con cambios sale "¿Salir sin guardar?"
+✅ [atras] con cambios no se cierra ninguna hoja
+✅ [atras] la hoja volvió a su lugar (no quedó a medio deslizar)
+✅ [atras] el diálogo dice qué se pierde
+✅ [atras] el foco entra al diálogo ("Seguir aquí")
+✅ [atras] Tab no saca el foco del diálogo
+✅ [atras] "Seguir aquí" no cierra nada
+✅ [atras] lo escrito se conserva
+✅ [atras] vuelve a preguntar
+✅ [atras] "Salir" cierra solo la de arriba (1)
+✅ [atras] la dirección no cambió (/pedidos/a5000000-0000-4000-8000-000000000013)
+✅ [atras] al volver a abrir el abono, está vacío
+✅ [atras] sin errores de página ([])
+✅ Guardar el abono cierra la hoja sin preguntar
+✅ Guardar: sin errores de página ([])
+✅ Cliente nuevo vacío: la X cierra sin preguntar
+✅ Cliente nuevo con un nombre escrito: la X pregunta
+✅ Cliente nuevo: «Seguir aquí» conserva lo escrito
+✅ Cliente nuevo: «Salir» cierra (/clientes)
+✅ Cliente nuevo: sin errores de página ([])
+
+Todo bien: hojas apiladas y aviso al salir.

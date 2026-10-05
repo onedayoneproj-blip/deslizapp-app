@@ -177,3 +177,12 @@ se equivocara de `tiendaId`).
 ## Rutas públicas del catálogo
 
 El panel conserva `useData()` y sus dos implementaciones. `/tienda/{slug}` y `/pedido/{codigo}` están fuera del dashboard: usan `FuentePublica` (Pick de las cinco operaciones ya existentes de `FuenteDatos`) mediante `lib/data/publica.ts`, sin montar sesión ni DataProvider. SSR real usa un cliente Supabase **anon**, sin cookies ni persistencia de sesión y `cache: no-store`; `?demo` lee el almacén del navegador y se suscribe a cambios entre pestañas. La UI pública no consulta tablas directamente. La revisión y el contrato aditivo están en `validacion-catalogo-react.md`.
+
+
+## Registro privado de solicitudes — continuación de la parte 3
+
+La superficie privada de `/pedido/{codigo}` se carga bajo demanda al pedirla o detectar una sesión. Autorización mediante `getClaims`, `usuarios` y lectura autenticada de `solicitudes_pedido` protegida por RLS: la tienda objetivo es la de esa solicitud, no metadata editable ni la tienda por defecto del perfil. Después monta `ProveedorReal` o `ProveedorDemo` y utiliza `useData()`. No duplica despacho ni reserva stock.
+
+`20261004223008_pedido_catalogo_panel.sql` estaba aplicada antes de la continuación y no se edita. `20261005013157_registrar_solicitud_disponibilidad.sql` está aplicada: sustituye únicamente el cuerpo de `registrar_solicitud`, sin cambiar firma ni retorno. Bloquea productos y después variantes en orden estable, verifica propiedad/actividad y stock agregado; rechaza el cambio antes de crear cliente/pedido. Encargo no descuenta ni reserva. La RPC conserva comprobaciones de identidad/pertenencia, `search_path` vacío y ejecución restringida; RLS continúa aislando tiendas. Es compatible con #44 y #45. No escribe datos de tiendas en migraciones.
+
+Replay y pruebas reproducibles: `npm run probar:pedido-catalogo-db` (Docker propio, PostgreSQL 17.6, 32 migraciones, fixtures aislados y rollback; el bootstrap de Auth/Storage no es un Supabase hospedado completo). Prueba de transporte: `npm run probar:pedido-catalogo-transporte` requiere servidor **dev** y crea/elimina una ruta temporal; no usar mientras se construye el build. Browser demo: `URL=... npm run probar:pedido-catalogo`.

@@ -1,0 +1,30 @@
+[
+  {
+    "nombre": "sin-sesion",
+    "paso": true
+  },
+  {
+    "nombre": "otra-tienda",
+    "paso": true
+  },
+  {
+    "nombre": "respuesta-perdida",
+    "paso": true
+  },
+  {
+    "nombre": "red-caida-y-recuperada",
+    "paso": true
+  },
+  {
+    "nombre": "lectura-rota-con-reintento",
+    "paso": true
+  },
+  {
+    "nombre": "aviso-fallo-marcado",
+    "paso": true
+  },
+  {
+    "nombre": "aviso-apertura-fallida",
+    "paso": true
+  }
+]
