@@ -172,3 +172,44 @@ test("lineasDeReposicion: una fila por variante agotada o con 1 o 2 (agotadas pr
     ],
   );
 });
+
+
+test("agotadosVisibles usa la regla común: todas las variantes activas en cero; excluye ocultos y sin control", async () => {
+  const { agotadosVisibles } = await import("../lib/inventario-catalogo.ts");
+  const base = { nombre: "Producto", stock: 0, activo: true };
+  const variantes = stock => ({ ...base, stock: stock.reduce((n, x) => n + (x ?? 0), 0), opciones: [{ nombre: "Talla", valores: ["S", "M"] }], variantes: stock.map((x, i) => ({ id: String(i), valores: { Talla: String(i) }, stock: x, activa: true })) });
+  const elegible = { ...base, id: "base" };
+  const todasCero = { ...variantes([0, 0]), id: "todas-cero" };
+  const disponible = { ...variantes([0, 4]), id: "con-stock" };
+  const sinControl = { ...variantes([0, null]), id: "sin-control" };
+  const oculto = { ...base, id: "oculto", activo: false };
+  assert.deepEqual(agotadosVisibles([elegible, todasCero, disponible, sinControl, oculto]).map(p => p.id), ["base", "todas-cero"]);
+});
+
+
+test("ocultarAgotadosElegibles revalida tienda y stock y continúa si una actualización falla", async () => {
+  const { ocultarAgotadosElegibles } = await import("../lib/inventario-catalogo.ts");
+  const items = new Map([
+    ["ok", { id: "ok", nombre: "OK", activo: true, stock: 0 }],
+    ["repuesto", { id: "repuesto", nombre: "Repuesto", activo: true, stock: 0 }],
+    ["fallo", { id: "fallo", nombre: "Fallo", activo: true, stock: 0 }],
+  ]);
+  const lecturas = [], cambios = [];
+  const resultado = await ocultarAgotadosElegibles("tienda-fixture", ["ok", "repuesto", "fallo"], async (tienda, id) => {
+    lecturas.push([tienda, id]);
+    return id === "repuesto" ? { ...items.get(id), stock: 4 } : items.get(id);
+  }, async (tienda, id, cambio) => {
+    cambios.push([tienda, id, cambio]);
+    if (id === "fallo") throw new Error("fallo de red");
+  });
+  assert.deepEqual(resultado.ocultados, ["ok"]);
+  assert.deepEqual(resultado.yaNoElegibles, ["repuesto"]);
+  assert.deepEqual(resultado.fallidos.map(f => f.id), ["fallo"]);
+  assert.deepEqual(lecturas, [["tienda-fixture", "ok"], ["tienda-fixture", "repuesto"], ["tienda-fixture", "fallo"]]);
+  assert.deepEqual(cambios, [["tienda-fixture", "ok", { activo: false }], ["tienda-fixture", "fallo", { activo: false }]]);
+  // La acción de reintento recibe solo los pendientes; los ya ocultados y los repuestos no se vuelven a enviar.
+  const reintentos = [];
+  const reintento = await ocultarAgotadosElegibles("tienda-fixture", resultado.fallidos.map(f => f.id), async (tienda, id) => items.get(id), async (tienda, id, cambio) => reintentos.push([tienda, id, cambio]));
+  assert.deepEqual(reintentos, [["tienda-fixture", "fallo", { activo: false }]]);
+  assert.deepEqual(reintento.ocultados, ["fallo"]);
+});

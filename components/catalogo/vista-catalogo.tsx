@@ -196,9 +196,9 @@ function TarjetaProducto({ producto: p, promos, prioridad = false, avisos }: { p
         ) : (
           <span className="grid h-full place-items-center font-display text-4xl text-bosque/30">{p.nombre[0]}</span>
         )}
-        <span aria-hidden="true" data-likes-panel className="absolute right-2.5 bottom-2.5 flex max-w-2/5 flex-col items-center gap-1 text-etiqueta tabular-nums">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full border border-linea bg-marca-papel text-marca-mandarina"><IconoCorazon tamano={20} fill="currentColor"/></span>
-          <span className="likes-panel-cifra max-w-full px-1.5 py-0.5 text-center font-extrabold break-all text-marca-papel">{p.likes}</span>
+        <span aria-hidden="true" data-likes-panel className="absolute right-2.5 bottom-2.5 inline-flex max-w-[calc(100%-1.25rem)] items-center justify-center gap-1.5 rounded-full border border-linea bg-marca-papel px-2 py-1 text-etiqueta font-extrabold tabular-nums text-texto">
+          <IconoCorazon tamano={16} fill="currentColor" className="shrink-0 text-marca-mandarina" />
+          <span className="min-w-0 break-all text-center">{p.likes}</span>
         </span>
         {etiqueta && (
           <span aria-hidden="true" className={`absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${etiqueta.clase}`}>

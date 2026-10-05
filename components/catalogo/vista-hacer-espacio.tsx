@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
+
 import { diaMesCorto } from "@/lib/formato";
-import { candidatosAEspacio, DIAS_SIN_MOVIMIENTO, type VentasProducto } from "@/lib/inventario-catalogo";
-import { productoDeClave } from "@/lib/inventario-catalogo";
+import { agotadosVisibles, candidatosAEspacio, DIAS_SIN_MOVIMIENTO, ocultarAgotadosElegibles, productoDeClave, type VentasProducto } from "@/lib/inventario-catalogo";
 import type { Producto } from "@/lib/types";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Boton, CheckSeleccion, FilaLista, ListaAgrupada, useToastUI } from "../ui";
+import { Boton, Buscador, CheckSeleccion, FilaLista, ListaAgrupada, useToastUI } from "../ui";
 import { MiniaturaProducto } from "./miniatura-producto";
 
 /** Cuántos "sin moverse" se ven de entrada y por cada "Ver más". */
@@ -27,11 +27,13 @@ export function VistaHacerEspacio({
   ventas,
   enReposicion,
   alTerminar,
+  soloAgotadosVisibles = false,
 }: {
   productos: Producto[];
   ventas: Map<string, VentasProducto>;
   enReposicion: Record<string, number> | null;
   alTerminar: () => void;
+  soloAgotadosVisibles?: boolean;
 }) {
   const { tiendaId } = useTiendaActiva();
   const { cambiarVisibilidad } = useData();
@@ -44,6 +46,8 @@ export function VistaHacerEspacio({
   const [elegidos, setElegidos] = useState<Set<string>>(() => new Set(candidatos.agotados.filter((a) => a.marcado).map((a) => a.producto.id)));
   const [ocultando, setOcultando] = useState(false);
   const quietos = useVerMas(candidatos.sinMoverse, "sin-moverse", PASO_SIN_MOVERSE);
+
+  if (soloAgotadosVisibles) return <SeleccionarAgotadosVisibles productos={productos} alTerminar={alTerminar} />;
 
   const alternar = (id: string) =>
     setElegidos((actual) => {
@@ -142,4 +146,67 @@ export function VistaHacerEspacio({
       )}
     </div>
   );
+}
+
+
+const normalizarBusqueda = (texto: string) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** Selección reversible hasta la acción final; vuelve a comprobar la elegibilidad justo antes de cada cambio. */
+function SeleccionarAgotadosVisibles({ productos, alTerminar }: { productos: Producto[]; alTerminar: () => void }) {
+  const { tiendaId } = useTiendaActiva();
+  const { getProducto, actualizarProducto } = useData();
+  const [busqueda, setBusqueda] = useState("");
+  const [elegidos, setElegidos] = useState<Set<string>>(() => new Set());
+  const [ocupado, setOcupado] = useState(false);
+  const enCurso = useRef(false);
+  const [fallidos, setFallidos] = useState<{ id: string; nombre: string; error: string }[]>([]);
+  const [omitidos, setOmitidos] = useState<Set<string>>(() => new Set());
+  const [mensaje, setMensaje] = useState("");
+  const elegiblesBase = useMemo(() => agotadosVisibles(productos), [productos]);
+  const elegibles = elegiblesBase.filter(p => !omitidos.has(p.id));
+  const q = normalizarBusqueda(busqueda);
+  const resultados = elegibles.filter(p => !q || normalizarBusqueda(p.nombre).includes(q));
+  const todoElegido = resultados.length > 0 && resultados.every(p => elegidos.has(p.id));
+
+  const alternar = (id: string) => {
+    setMensaje("");
+    setElegidos(actual => { const siguiente = new Set(actual); if (siguiente.has(id)) siguiente.delete(id); else siguiente.add(id); return siguiente; });
+  };
+  const alternarResultados = () => {
+    const ids = resultados.map(p => p.id);
+    setMensaje("");
+    setElegidos(actual => { const siguiente = new Set(actual); if (ids.every(id => siguiente.has(id))) ids.forEach(id => siguiente.delete(id)); else ids.forEach(id => siguiente.add(id)); return siguiente; });
+  };
+  const ocultar = async (ids: string[]) => {
+    if (enCurso.current || ids.length === 0) return;
+    enCurso.current = true; setOcupado(true); setMensaje("");
+    const intento = await ocultarAgotadosElegibles(tiendaId, ids, getProducto, actualizarProducto);
+    const ocultados = intento.ocultados.map(id => elegibles.find(p => p.id === id)?.nombre ?? "Producto");
+    const obsoletos = intento.yaNoElegibles.map(id => elegibles.find(p => p.id === id)?.nombre ?? "Producto");
+    const pendientes = intento.fallidos.map(f => ({ id: f.id, nombre: elegibles.find(p => p.id === f.id)?.nombre ?? "Producto", error: mensajeDeError(f.error, "No se pudo actualizar.") }));
+    setFallidos(pendientes);
+    setOmitidos(actual => new Set([...actual, ...intento.yaNoElegibles]));
+    setElegidos(new Set(pendientes.map(p => p.id)));
+    if (pendientes.length) {
+      setMensaje(`${ocultados.length ? `Se ocultaron ${ocultados.length}. ` : ""}No se pudieron ocultar ${pendientes.length === 1 ? "1 producto" : `${pendientes.length} productos`}: ${pendientes.map(p => p.nombre).join(", ")}.`);
+    } else if (obsoletos.length) {
+      setMensaje(`${ocultados.length ? `Se ocultaron ${ocultados.length}. ` : ""}Ya no están agotados y visibles: ${obsoletos.join(", ")}.`);
+    } else {
+      alTerminar();
+    }
+    enCurso.current = false; setOcupado(false);
+  };
+
+  return <div className="flex flex-col gap-4">
+    <p className="text-secundario text-texto-secundario">Elige qué productos agotados ocultar. No se cambiarán hasta confirmar.</p>
+    <Buscador valor={busqueda} alCambiar={setBusqueda} etiqueta="Buscar agotados visibles" placeholder="Buscar producto" />
+    {resultados.length > 0 && <ListaAgrupada etiqueta="Productos agotados visibles">
+      <FilaLista titulo={todoElegido ? "Quitar selección de resultados" : "Seleccionar todos los resultados"} detalle={`${resultados.length} ${resultados.length === 1 ? "producto" : "productos"} de esta búsqueda`} inicio={<CheckSeleccion marcado={todoElegido}/>} onClick={alternarResultados} marcada={todoElegido} />
+      {resultados.map(p => <FilaLista key={p.id} marcada={elegidos.has(p.id)} onClick={() => alternar(p.id)} inicio={<span className="flex items-center gap-3"><CheckSeleccion marcado={elegidos.has(p.id)}/><MiniaturaProducto producto={p} atenuada/></span>} titulo={p.nombre} detalle="Agotado · Visible" />)}
+    </ListaAgrupada>}
+    {resultados.length === 0 && <p className="py-5 text-center text-secundario text-texto-secundario">{elegibles.length ? "No encontramos productos con ese nombre." : "Ya no hay productos agotados a la vista."}</p>}
+    <p role="status" aria-live="polite" className="text-center text-secundario text-texto-secundario">{elegidos.size ? `${elegidos.size} ${elegidos.size === 1 ? "producto seleccionado" : "productos seleccionados"}` : "Ningún producto seleccionado"}</p>
+    {mensaje && <div role="alert" className="flex flex-col gap-2 rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto"><p>{mensaje}</p>{fallidos.length > 0 && <ul className="list-disc pl-5">{fallidos.map(f => <li key={f.id}><span className="font-bold">{f.nombre}:</span> {f.error}</li>)}</ul>}<div className="flex flex-col gap-2">{fallidos.length > 0 && <Boton jerarquia="secundario" tamano="normal" onClick={() => void ocultar(fallidos.map(f => f.id))} deshabilitado={ocupado}>Reintentar solo los {fallidos.length} pendientes</Boton>}<Boton jerarquia="terciario" tamano="compacto" onClick={() => {setMensaje("");setFallidos([]);setElegidos(new Set());}}>Seguir eligiendo</Boton></div></div>}
+    {!mensaje && <Boton tamano="grande" anchoCompleto deshabilitado={!elegidos.size || ocupado} cargando={ocupado} onClick={() => void ocultar([...elegidos])}>{elegidos.size === 0 ? "Ocultar del catálogo" : elegidos.size === 1 ? "Ocultar 1 producto" : `Ocultar ${elegidos.size} productos`}</Boton>}
+  </div>;
 }

@@ -99,6 +99,39 @@ export function saludDelInventario(productos: ProductoInventario[]): SaludInvent
   return { conStock, quedan, agotados, disponibles: conStock + quedan, total: conStock + quedan + agotados };
 }
 
+
+/** Productos que de verdad están agotados y siguen visibles; comparte la regla de variantes y sin control con la salud. */
+export function agotadosVisibles<P extends ProductoInventario>(productos: P[]): P[] {
+  return productos.filter((p) => p.activo && stockParaSalud(p) === 0);
+}
+
+export type ResultadoOcultarAgotados = {
+  ocultados: string[];
+  yaNoElegibles: string[];
+  fallidos: { id: string; error: unknown }[];
+};
+
+/** Relee cada id bajo la tienda indicada antes de cambiar solo `activo`; fallos individuales no bloquean los demás. */
+export async function ocultarAgotadosElegibles<P extends ProductoInventario & { id: string }>(
+  tiendaId: string,
+  ids: string[],
+  leer: (tiendaId: string, id: string) => Promise<P | null>,
+  actualizar: (tiendaId: string, id: string, cambios: { activo: false }) => Promise<unknown>,
+): Promise<ResultadoOcultarAgotados> {
+  const resultado: ResultadoOcultarAgotados = { ocultados: [], yaNoElegibles: [], fallidos: [] };
+  for (const id of ids) {
+    try {
+      const actual = await leer(tiendaId, id);
+      if (!actual || agotadosVisibles([actual]).length === 0) { resultado.yaNoElegibles.push(id); continue; }
+      await actualizar(tiendaId, id, { activo: false });
+      resultado.ocultados.push(id);
+    } catch (error) {
+      resultado.fallidos.push({ id, error });
+    }
+  }
+  return resultado;
+}
+
 /** "9 disponibles · 6 agotados" (sin agotados: "9 disponibles"). */
 export function textoSalud(s: Pick<SaludInventario, "disponibles" | "agotados">): string {
   const disponibles = `${s.disponibles} ${s.disponibles === 1 ? "disponible" : "disponibles"}`;
