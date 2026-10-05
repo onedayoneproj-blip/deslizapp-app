@@ -59,7 +59,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
 
   const pendientes = usePendientesPedidos();
   const { pedidos } = pendientes;
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const { data: productos } = useConsulta(`productos-historial:${tiendaId}`, () => getProductos(tiendaId, true));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   // Solo el aviso de trabajo pendiente suma solicitudes; las listas y métricas conservan pedidos registrados.
   const porRegistrar = pendientes.cuenta?.porRegistrar;

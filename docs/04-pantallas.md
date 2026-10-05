@@ -974,3 +974,16 @@ En las tarjetas de Catálogo, el número es texto sin fondo, borde ni insignia b
 ### Selección para ocultar productos agotados
 
 En «Tu inventario», «N agotados siguen a la vista» → «Ocultarlos» abre una vista interna de selección en la misma Hoja. Lista solo productos visibles con `stockParaSalud(...) === 0` (variantes activas incluidas; sin control queda fuera), ninguno viene seleccionado. El buscador limita la lista y «Seleccionar todos los resultados» afecta solo esa búsqueda. Cancelar/volver no cambia nada. «Ocultar 1 producto» / «Ocultar N productos» relee producto y tienda antes de cada actualización de `activo`; no cambia stock, pedidos ni avisos. Los fallos parciales identifican los pendientes y el reintento se limita a ellos.
+
+
+### Eliminar producto (rama de revisión, pendiente de migración)
+
+Al final de Editar producto: acción terciaria de peligro «Eliminar producto». Abre la misma Hoja apilada de confirmación, con nombre guardado, consecuencias y Cancelar. No usa confirm/alert del navegador. Cancelar conserva el borrador y los ajustes provisionales. Confirmar descarta explícitamente los cambios de ficha aún no guardados. La hoja superior termina de salir antes de cerrar el editor (también con movimiento reducido).
+
+La eliminación es lógica: `eliminado_en` y `activo=false`; sale de Catálogo y de los selectores de nuevos pedidos. Conserva fila, variantes, stock, likes, colecciones, promos, medios y referencias históricas. No es una promesa de borrado permanente. Se conservan artículos con nombre/variante/precio históricos, pedidos, ventas, pagos, saldos, comprobantes y ajustes. Las superficies históricas leen productos retirados; las alertas de stock y los selectores no los incluyen. Enlaces del panel muestran «Producto eliminado. Su historial se conserva.»; el catálogo público usa su estado existente de producto no disponible, sin exponer datos de otra tienda.
+
+Se bloquea ante pedidos Nuevo/Por despachar, solicitudes vigentes sin registrar o avisos de reposición sin avisar. La confirmación muestra los pendientes y ofrece «Ocultar producto»: solo cambia visibilidad y conserva los demás campos del borrador. Nunca marca avisos ni cancela pedidos. Revisa nuevamente bajo bloqueo de fila al confirmar. Las nuevas relaciones toman el mismo bloqueo para evitar carreras. Un pedido histórico puede devolver stock y volver a despacharse: no se borra su producto ni su variante. Agregar un artículo retirado a un pedido nuevo se rechaza. Una edición que intente reconstruir líneas retiradas se rechaza; el vendedor conserva la consulta, despacho/devolución y puede ocultar en lugar de eliminar cuando necesite seguir editando su selección.
+
+Fallo de escritura: no anuncia éxito ni reintenta automáticamente; exige revisar producto y pendientes. La operación es idempotente. Si la migración no está disponible, no permite eliminar; ofrece Ocultar.
+
+Se conservan de main/PR #49: selección interna de agotados sin selección inicial, revalidación y fallos parciales; historial con ListaAgrupada/FilaLista y Ver más; única píldora horizontal `[corazón cifra]` dentro de la foto (cero incluido).

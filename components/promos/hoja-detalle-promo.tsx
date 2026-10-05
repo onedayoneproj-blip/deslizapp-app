@@ -25,7 +25,7 @@ export function HojaDetallePromo({ promoId, desdeLista = false }: { promoId: str
     else router.replace("/promos", { scroll: false });
   }, [router, desdeLista]);
   const consultaPromos = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const consultaProductos = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const consultaProductos = useConsulta(`productos-historial:${tiendaId}`, () => getProductos(tiendaId, true));
   const consultaPedidos = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const { data: promos } = consultaPromos;
   const { data: productos } = consultaProductos;

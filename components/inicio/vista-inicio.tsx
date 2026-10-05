@@ -86,7 +86,7 @@ function Inicio() {
   const [aviso, setAviso] = useState<string | null>(null);
   // "Ahora" se toma al consultar (no al pintar): cada cambio de datos (p. ej. un pedido simulado) lo renueva.
   const { data } = useConsulta(`resumen:${tiendaId}`, async () => {
-    const [pedidos, eventos, productos] = await Promise.all([getPedidos(tiendaId), getEventosAaah(tiendaId), getProductos(tiendaId)]);
+    const [pedidos, eventos, productos] = await Promise.all([getPedidos(tiendaId), getEventosAaah(tiendaId), getProductos(tiendaId, true)]);
     return { pedidos, eventos, productos, ahora: Date.now() };
   });
 
@@ -242,7 +242,7 @@ function Inicio() {
           </>
         )}
 
-        {data && <OjoConElStock productos={data.productos} />}
+        {data && <OjoConElStock productos={data.productos.filter(p => !p.eliminadoEn)} />}
         {data && tienda && <TarjetaPlan tienda={tienda} productos={resumenDelPlan(data.productos, tienda.limiteProductos).usados} />}
 
         <p className="mt-0.5 text-center font-mano text-[21px] text-suave">tu pulgar tiene buen gusto. déjalo trabajar.</p>

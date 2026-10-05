@@ -79,3 +79,8 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 Para que una sesión nueva sepa todo esto, empieza con: "Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md` y `HANDOFF.md`, y dime cuál es tu puesto (Planning o Coding)". Cuando termine algo importante, que se actualice la sección "Dónde va el trabajo" de este documento en el mismo PR.
 Seguimiento dentro de PR #47: visibilidad de «Avísame» en Inicio/Catálogo/vista previa, filtro En espera y likes dentro de foto. Conserva los cambios anteriores de la misma rama. No incorpora #45 ni cambios de Supabase. Handoff adicional: docs/handoffs/espera-catalogo.md; validación: docs/validacion-espera-catalogo.md.
+
+
+### Propuesta de eliminación de productos (2026-10-05, Coding)
+
+Rama `feature/catalogo-eliminar-producto` desde main con PR #49. Eliminación lógica con historial conservado; bloqueada por pedidos/solicitudes/avisos pendientes. Contrato aditivo y replay en `docs/validacion-eliminar-producto.md`. No equivale a «Eliminar para siempre». Migración nueva pendiente de producción por instrucción del dueño; PR sin merge ni publicación. No incorpora PR #45.
