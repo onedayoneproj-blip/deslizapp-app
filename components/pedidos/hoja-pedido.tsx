@@ -37,7 +37,7 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   const [saliendo, setSaliendo] = useState(false);
 
   const q1 = useConsulta(`pedido:${tiendaId}:${pedidoId}`, () => getPedido(tiendaId, pedidoId));
-  const q2 = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const q2 = useConsulta(`productos-historial:${tiendaId}`, () => getProductos(tiendaId, true));
   const q3 = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const q4 = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const q5 = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));

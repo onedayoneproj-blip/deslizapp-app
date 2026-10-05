@@ -327,7 +327,7 @@ export function calcularLineas(
   if (lineas.length === 0) throw new DatosInvalidos("El pedido necesita al menos un producto.");
   const items: LineaCalculada[] = lineas.map((l) => {
     const producto = productos.find((p) => p.id === l.productoId && p.tiendaId === tiendaId);
-    if (!producto) throw new DatosInvalidos("Un producto del pedido ya no existe en tu tienda.");
+    if (!producto || producto.eliminadoEn) throw new DatosInvalidos("Un producto del pedido ya no está disponible. Revisa sus artículos.");
     const suyas = (variantes ?? producto.variantes ?? []).filter((v) => v.productoId === producto.id);
     const variante = l.varianteId ? suyas.find((v) => v.id === l.varianteId) : undefined;
     if (l.varianteId && !variante) throw new DatosInvalidos("Esa opción ya no existe. Elige otra.");

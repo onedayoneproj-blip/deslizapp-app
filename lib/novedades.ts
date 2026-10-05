@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.35.3", fecha: "2026-10-05", titulo: "Se va del catálogo. Su historia se queda.",
+    cambios: ["Elimina un producto desde Editar sin borrar sus pedidos ni sus ajustes.", "Si quedan pedidos o personas esperando, puedes ocultarlo mientras los resuelves."],
+  },
+  {
     version: "0.35.2", fecha: "2026-10-05", titulo: "Tú eliges qué ocultar.",
     cambios: [
       "Selecciona los productos agotados que ya no quieres mostrar.",

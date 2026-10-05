@@ -27,7 +27,7 @@ export function HojaCompartir({ promoId, desde }: { promoId: string; desde?: "de
     else router.replace(`/promos/${promoId}`, { scroll: false });
   }, [router, promoId, desde]);
   const consultaPromos = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const consultaProductos = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const consultaProductos = useConsulta(`productos-historial:${tiendaId}`, () => getProductos(tiendaId, true));
   const { data: promos } = consultaPromos;
   const { data: productos } = consultaProductos;
   if (!promos || !productos || !tienda) return <Hoja abierta alCerrar={cerrar} titulo="Compartir promo" altura="grande">

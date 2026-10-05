@@ -61,6 +61,8 @@ export type Usuario = {
 export type OpinionProducto = { usuario: string; fuente: string; url: string; texto: string; estrellas: number | null; traducida: boolean };
 
 export type Producto = {
+  /** Retirado de la administración; se conserva para el historial. */
+  eliminadoEn?: string | null;
   orden?: number | null;
   opiniones?: OpinionProducto[];
   id: string;
@@ -394,7 +396,7 @@ export type EventoAaah = {
 
 /** Lo nuevo del catálogo conectado es opcional al crear: la base pone slug, tipo y medios (desde `fotos`). */
 type CamposCatalogo = "slug" | "tipo" | "medios" | "detalles" | "opciones" | "porEncargo" | "encargoTexto" | "variantes";
-export type NuevoProducto = Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn" | CamposCatalogo> &
+export type NuevoProducto = Omit<Producto, "id" | "tiendaId" | "creadoEn" | "actualizadoEn" | "eliminadoEn" | CamposCatalogo> &
   Partial<Omit<Pick<Producto, CamposCatalogo>, "variantes">>;
 export type CambiosProducto = Partial<NuevoProducto>;
 

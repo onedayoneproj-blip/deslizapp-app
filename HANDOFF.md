@@ -25,6 +25,12 @@ orden:
 
 Además, en `referencias/` está el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, ábrelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y créditos (ver `referencias/LEEME.md`).
 
+## Eliminación de productos — propuesta, sin publicación
+
+Rama `feature/catalogo-eliminar-producto`, desde main `709d7df` (PR #49). Conserva sus tres mejoras de selección, historial y likes; no incorpora PR #45. Nuevo contrato y validación en `docs/validacion-eliminar-producto.md`. Migración CLI `20261005215350_eliminar_producto_logico.sql` **pendiente, no aplicada a producción**; al aplicar en una entrega autorizada, usar la versión que asigne Supabase según AGENTS.md. La preview real conserva el catálogo existente pero no podrá eliminar hasta ese paso. Demo sí permite probarlo.
+
+Eliminar retira lógicamente; no borra archivos, filas históricas ni variantes. Bloquea pedidos en curso, solicitudes vigentes y avisos pendientes; ofrece Ocultar sin perder otros campos. Las nuevas referencias bloquean el producto y rechazan retirados. Historial usa `getProductos(tiendaId, true)`; la lista administrativa/selectores usan el valor por defecto. No reintroducir retirados en alertas de stock. No agregar limpieza de medios: siguen referenciados por la fila histórica. Confirmación sale primero, luego editor, para conservar Atrás con movimiento reducido.
+
 ## Publicación autorizada del catálogo conectado
 
 PR #44 y #46 fusionados y publicados en producción. Esencias Michel abre el catálogo React desde `tiendas.url_catalogo`. PR #45 de rendimiento queda fuera. El código original de Claude está incluido mediante #46; no retomar su rama para publicarla por separado. Estado, comprobaciones y límites: `docs/handoffs/publicacion-catalogo-conectado.md`. Las notas de implementación anteriores son históricas; no asumir que las previews antiguas tienen la versión actual.

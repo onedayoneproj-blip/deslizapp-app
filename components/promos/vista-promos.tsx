@@ -53,7 +53,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
   const { tiendaId } = useTiendaActiva();
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
-  const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const { data: productos } = useConsulta(`productos-historial:${tiendaId}`, () => getProductos(tiendaId, true));
   const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
   const [pestana, setPestana] = useState<EstadoPromo>("activa");
   const router = useRouter();

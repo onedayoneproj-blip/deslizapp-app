@@ -1,3 +1,4 @@
+import { eliminarProductoDeDB, revisarEliminacionProducto } from "./eliminar-producto";
 // La demo: un almacén en el navegador (memoria + localStorage), sin login, con selector de tienda.
 // Implementa la misma interfaz que Supabase (lib/data/fuente.ts). Ver docs/05-arquitectura.md.
 
@@ -232,11 +233,17 @@ export const fuenteDemo: FuenteDatos = {
   },
 
   // Productos
-  async getProductos(tiendaId: string): Promise<Producto[]> {
-    return productosDeTienda(leerDemo().db, tiendaId);
+  async getProductos(tiendaId: string, incluirEliminados = false): Promise<Producto[]> {
+    return productosDeTienda(leerDemo().db, tiendaId, incluirEliminados);
   },
   async getProducto(tiendaId: string, id: string): Promise<Producto | null> {
     return productoDeTienda(leerDemo().db, tiendaId, id);
+  },
+  async revisarEliminacionProducto(tiendaId, id) {
+    return revisarEliminacionProducto(leerDemo().db, tiendaId, id, ahora());
+  },
+  async eliminarProducto(tiendaId, id) {
+    escribir(db => eliminarProductoDeDB(db, tiendaId, id, ahora()));
   },
   async crearProducto(tiendaId: string, datos: NuevoProducto, extra?: ExtraNuevoProducto): Promise<Producto> {
     let creado!: Producto;

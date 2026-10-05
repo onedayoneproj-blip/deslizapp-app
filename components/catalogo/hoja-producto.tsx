@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
@@ -38,7 +38,9 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
   const cerrar = useCallback(() => setAbierta(false), []);
-  const alSalir = useCallback(() => router.push(desdeVistaPrevia && productoId ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }), [router, desdeVistaPrevia, productoId]);
+  const eliminado = useRef(false);
+  const [retirando, setRetirando] = useState(false);
+  const alSalir = useCallback(() => router.push(!eliminado.current && desdeVistaPrevia && productoId ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }), [router, desdeVistaPrevia, productoId]);
 
 
   const { data: producto, cargando, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId ?? "nuevo"}`, () =>
@@ -60,14 +62,14 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   if (errorProductos) {
     return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoConError alCerrar={alSalir} alReintentar={reintentarProductos} textoVolver={desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"} /></Hoja>;
   }
-  if (editando && !producto) {
+  if (editando && (!producto || (producto.eliminadoEn && !retirando))) {
     return (
       <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}>
         <div className="py-6 text-center">
-          <p className="font-display text-xl">Este producto no vive aquí.</p>
-          <p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p>
-          <button type="button" onClick={alSalir} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
-            {desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"}
+          <p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p>
+          {!producto?.eliminadoEn && <p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p>}
+          <button type="button" onClick={() => { eliminado.current = Boolean(producto?.eliminadoEn); cerrar(); }} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+            {!producto?.eliminadoEn && desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"}
           </button>
         </div>
       </Hoja>
@@ -79,7 +81,7 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
     <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} altura="grande"
       fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta={`Volver a ${tituloFicha}`} /><span aria-hidden="true">{tituloFicha}</span></div> : undefined}>
       <div className={historial.abierto ? "hidden" : "contents"}>
-        <FormularioProducto key={producto?.id ?? "nuevo"} producto={producto ?? null} productos={productos} alTerminar={cerrar} alVerHistorial={historial.abrir} />
+        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}`} producto={producto ?? null} productos={productos} alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} />
       </div>
       {productoId && historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
     </Hoja>
@@ -105,7 +107,7 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? (vistaInterna === "espera" ? "Lista de espera" : "Historial de ajustes") : producto?.nombre ?? "Producto"} altura="auto"
     fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">{producto?.nombre ?? "Producto"}</span></div> : undefined}>
     <div className={historial.abierto ? "hidden" : "contents"}>
-    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto ? <div className="py-6 text-center"><p className="font-display text-xl">Este producto no vive aquí.</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={boton => verInterna(boton, "historial")} alVerEspera={boton => verInterna(boton, "espera")}/>}
+    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto || producto.eliminadoEn ? <div className="py-6 text-center"><p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={boton => verInterna(boton, "historial")} alVerEspera={boton => verInterna(boton, "espera")}/>}
     </div>
     {historial.visitado && <div className={historial.abierto ? "" : "hidden"}>{vistaInterna === "espera" && producto ? <ListaEsperaProducto key={`${tiendaId}:${productoId}`} producto={producto}/> : <HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/>}</div>}
   </Hoja>;
@@ -181,11 +183,15 @@ function FormularioProducto({
   producto,
   productos,
   alTerminar,
+  alEliminar,
+  alIniciarEliminacion,
   alVerHistorial,
 }: {
   producto: Producto | null;
   productos: Producto[];
   alTerminar: () => void;
+  alEliminar: () => void;
+  alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
   const { crearProducto, usarCreditosRetoque, guardarVariantes, ajustarStock } = useData();
@@ -215,6 +221,7 @@ function FormularioProducto({
   const [porEncargo, setPorEncargo] = useState(producto?.porEncargo ?? false);
   const [encargoTexto, setEncargoTexto] = useState(producto?.encargoTexto ?? "");
   const [guardando, setGuardando] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
 
   const tieneOpciones = opciones.length > 0;
@@ -455,6 +462,8 @@ function FormularioProducto({
       )}
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
+      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
+      {producto && <ConfirmacionEliminarProducto producto={producto} abierta={eliminando} pendiente={firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto} alCerrar={() => setEliminando(false)} alEliminar={alEliminar} alIniciar={alIniciarEliminacion} alOcultar={() => { setVisibilidad({ base: false, valor: false }); setEliminando(false); }}/>}
       <ConfirmacionInventario inventario={inventario}/>
       <HojaMotivoVariantes
         abierta={pidiendoMotivo}
@@ -523,4 +532,55 @@ function HojaColeccion({
       </div>
     </Hoja>
   );
+}
+
+/** Misma Hoja apilada y botones de peligro del panel; el borrador permanece montado. */
+function ConfirmacionEliminarProducto({ producto, abierta, pendiente, alCerrar, alEliminar, alIniciar, alOcultar }: { producto: Producto; abierta: boolean; pendiente: boolean; alCerrar: () => void; alEliminar: () => void; alIniciar: () => void; alOcultar: () => void }) {
+  const { tiendaId } = useTiendaActiva();
+  const { revisarEliminacionProducto, eliminarProducto, actualizarProducto, refrescar } = useData();
+  const revision = useConsulta(`eliminar-producto:${tiendaId}:${producto.id}:${abierta}`, () => abierta ? revisarEliminacionProducto(tiendaId, producto.id) : Promise.resolve(null), true);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [incierto, setIncierto] = useState(false);
+  const enviando = useRef(false);
+  const toast = useToast();
+  const completado = useRef(false);
+  const vigente = useRef(true);
+  useEffect(() => { vigente.current = true; return () => { vigente.current = false; }; }, []);
+  const r = revision.data;
+  const bloqueado = Boolean(r && (r.pedidosPendientes || r.solicitudesPendientes || r.avisosPendientes));
+  const cerrar = () => { if (!enviando.current) alCerrar(); };
+  const guardar = async (ocultar: boolean) => {
+    if (enviando.current || producto.tiendaId !== tiendaId || (!ocultar && (!r || revision.cargando || revision.error || bloqueado || incierto))) return;
+    enviando.current = true; setGuardando(true); setError(null);
+    try {
+      if (ocultar) {
+        await actualizarProducto(tiendaId, producto.id, { activo: false });
+        if (!vigente.current) return;
+        toast("Oculto del catálogo. Su historial y pendientes se conservan."); alOcultar();
+      } else {
+        alIniciar();
+        await eliminarProducto(tiendaId, producto.id);
+        if (!vigente.current) return;
+        completado.current = true;
+        toast("Producto eliminado. Su historial se conserva."); alCerrar();
+      }
+    } catch {
+      if (!vigente.current) return;
+      setError("No confirmamos el cambio. Revisa el estado y los pendientes antes de repetirlo.");
+      setIncierto(true);
+    } finally { enviando.current = false; if (vigente.current) setGuardando(false); }
+  };
+  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={() => { if (completado.current) alEliminar(); }} titulo="¿Eliminar producto?" altura="auto">
+    <div className="flex flex-col gap-4">
+      <p className="text-destacado break-words">{producto.nombre}</p>
+      <p className="text-cuerpo text-texto-secundario">Saldrá del catálogo y de los selectores de nuevos pedidos. Conservamos pedidos, ventas, pagos, comprobantes, ajustes y sus fotos y videos para el historial.</p>
+      {pendiente && <p className="text-secundario text-texto-secundario">Si lo eliminas, los cambios de esta ficha sin guardar se descartarán.</p>}
+      {revision.error ? <><p role="alert" className="text-cuerpo text-texto-secundario">No pudimos comprobar si se puede eliminar. Esta tienda necesita tener habilitada la eliminación; mientras tanto puedes ocultarlo.</p><Boton jerarquia="secundario" onClick={revision.reintentar}>Reintentar</Boton></> : revision.cargando || !r ? <p role="status">Revisando pendientes…</p> : bloqueado ? <div role="status" className="text-cuerpo text-texto-secundario"><p>Antes de eliminar, resuelve estos pendientes. Puedes ocultarlo y seguir administrándolo.</p><ul className="mt-2 list-disc pl-5">{r.pedidosPendientes > 0 && <li>{r.pedidosPendientes} {r.pedidosPendientes === 1 ? "pedido en curso" : "pedidos en curso"}.</li>}{r.solicitudesPendientes > 0 && <li>{r.solicitudesPendientes} solicitudes por registrar.</li>}{r.avisosPendientes > 0 && <li>{r.avisosPendientes} solicitudes de reposición sin avisar.</li>}</ul></div> : r.conHistorial && <p className="text-secundario text-texto-secundario">Este producto tiene historial. Se conserva completo; no se borra para siempre.</p>}
+      {error && <p role="alert" className="text-peligro text-secundario">{error}</p>}
+      {incierto && <Boton jerarquia="secundario" deshabilitado={guardando} onClick={() => { refrescar(); revision.reintentar(); setIncierto(false); setError(null); }}>Revisar estado y pendientes</Boton>}
+      {bloqueado || revision.error ? <Boton jerarquia="secundario" cargando={guardando} deshabilitado={incierto} onClick={() => void guardar(true)}>Ocultar producto</Boton> : <Boton jerarquia="peligro" cargando={guardando} deshabilitado={!r || revision.cargando || incierto} onClick={() => void guardar(false)}>{r?.conHistorial ? "Eliminar y conservar historial" : "Sí, eliminar producto"}</Boton>}
+      <Boton jerarquia="secundario" deshabilitado={guardando} onClick={cerrar}>Cancelar</Boton>
+    </div>
+  </Hoja>;
 }

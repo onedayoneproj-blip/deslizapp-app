@@ -1,3 +1,4 @@
+import type { RevisionEliminacionProducto } from "./eliminar-producto";
 // La interfaz ÚNICA de datos. La cumplen dos implementaciones: la demo (lib/data/demo.ts, en el navegador)
 // y Supabase (lib/data/supabase.ts). Las pantallas solo ven esto a través de `useData()`; nunca una fila.
 // Los errores que lanza (con mensaje para el dueño) están en lib/data/errores.ts.
@@ -100,7 +101,9 @@ export type FuenteDatos = {
   releerTienda(tiendaId: string): Promise<void>;
 
   // Productos
-  getProductos(tiendaId: string): Promise<Producto[]>;
+  getProductos(tiendaId: string, incluirEliminados?: boolean): Promise<Producto[]>;
+  revisarEliminacionProducto(tiendaId: string, id: string): Promise<RevisionEliminacionProducto>;
+  eliminarProducto(tiendaId: string, id: string): Promise<void>;
   getProducto(tiendaId: string, id: string): Promise<Producto | null>;
   /**
    * Crea el producto en una sola vez (RPC `crear_producto`): la ficha con medios, detalles y encargo, el cobro de `retoques`
