@@ -1,0 +1,25 @@
+begin;
+do $$ begin if current_database()<>'replay_provisional' then raise exception 'Solo replay'; end if; end $$;
+insert into public.solicitudes_pedido(id,tienda_id,codigo,items,total,dispositivo) values ('50000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','PRUEBAB234','[{"producto_id":"30000000-0000-4000-8000-000000000001","variante_id":"40000000-0000-4000-8000-000000000001","nombre":"Camisa prueba","cantidad":1,"precio_unitario":1000,"por_encargo":false}]',1000,'replay'),('50000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','PRUEBAC234','[{"producto_id":"30000000-0000-4000-8000-000000000002","variante_id":null,"nombre":"Sin control","cantidad":50,"precio_unitario":500,"por_encargo":false}]',25000,'replay');
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
+update public.productos set activo=false where id='30000000-0000-4000-8000-000000000001';
+set local role authenticated;
+do $$ begin begin perform public.registrar_solicitud('50000000-0000-4000-8000-000000000002','60000000-0000-4000-8000-000000000001',null,'{}',array['40000000-0000-4000-8000-000000000001']::uuid[]);raise exception 'aceptó oculto';exception when raise_exception then if sqlerrm<>'producto_no_disponible' then raise;end if;end;end $$;
+reset role;
+update public.productos set activo=true where id='30000000-0000-4000-8000-000000000001';
+update public.producto_variantes set activa=false where id='40000000-0000-4000-8000-000000000001';
+set local role authenticated;
+do $$ begin begin perform public.registrar_solicitud('50000000-0000-4000-8000-000000000002','60000000-0000-4000-8000-000000000001',null,'{}',array['40000000-0000-4000-8000-000000000001']::uuid[]);raise exception 'aceptó variante oculta';exception when raise_exception then if sqlerrm<>'producto_no_disponible' then raise;end if;end;end $$;
+reset role;
+update public.producto_variantes set activa=true where id='40000000-0000-4000-8000-000000000001';
+set local role authenticated;
+do $$ declare p public.pedidos;begin
+ p:=public.registrar_solicitud('50000000-0000-4000-8000-000000000002','60000000-0000-4000-8000-000000000001',null,'{}',array['40000000-0000-4000-8000-000000000001']::uuid[]);
+ if (select por_encargo from public.productos where id='30000000-0000-4000-8000-000000000001') then raise exception 'activó encargo global';end if;
+ update public.pedidos set estado='por_despachar' where id=p.id;perform public.despachar_pedido(p.id);
+ if (select stock from public.producto_variantes where id='40000000-0000-4000-8000-000000000001')<>0 then raise exception 'descontó encargo';end if;
+ p:=public.registrar_solicitud('50000000-0000-4000-8000-000000000003','60000000-0000-4000-8000-000000000001',null,'{}','{}');
+ if p.total<>25000 or (select stock from public.productos where id='30000000-0000-4000-8000-000000000002') is not null then raise exception 'sin control';end if;
+end $$;
+rollback;
+select 'Pasó: inactivo, variante inactiva, encargo local, despacho de encargo y stock null.';

@@ -113,7 +113,14 @@ function ContenidoRegistrar({
   const prod = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const cli = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
   const [final, setFinal] = useState<Final | null>(null);
-  const [ahora] = useState(() => Date.now());
+  const [ahora, setAhora] = useState(() => Date.now());
+  useEffect(() => {
+    if (!sol.data || sol.data.pedidoId || sol.data.descartadaEn) return;
+    const espera = Math.max(0, Date.parse(sol.data.venceEn) - Date.now());
+    if (!Number.isFinite(espera)) return;
+    const reloj = window.setTimeout(() => setAhora(Date.now()), Math.min(espera, 2_147_483_647));
+    return () => window.clearTimeout(reloj);
+  }, [sol.data]);
 
   const terminar = (f: Final) => {
     setHayCambios(false);
@@ -167,7 +174,7 @@ function ContenidoRegistrar({
   if (sol.data === undefined || !prod.data || !cli.data) return <Cargando />;
 
   const s = sol.data;
-  if (!s) {
+  if (!s || s.tiendaId !== tiendaId) {
     return (
       <Cierre titulo="Este pedido no es de tu tienda." texto="Solo la tienda que lo recibió puede registrarlo. Revisa con qué cuenta entraste.">
         <Boton jerarquia="secundario" anchoCompleto onClick={alCerrar}>
@@ -295,6 +302,7 @@ function Formulario({
   const [descartar, setDescartar] = useState(false);
   const buscador = useRef<HTMLInputElement>(null);
   const botonCliente = useRef<HTMLButtonElement>(null);
+  const scrollPedido = useRef(0);
   const enCurso = useRef(false);
 
   const cambiar = (b: Borrador | null, c: ClienteElegido | null | undefined) => {
@@ -312,11 +320,14 @@ function Formulario({
     else if (estuvoEnSelector.current) {
       estuvoEnSelector.current = false;
       botonCliente.current?.focus({ preventScroll: true });
+      const contenido = botonCliente.current?.closest<HTMLElement>("[data-hoja-contenido]");
+      if (contenido) contenido.scrollTop = scrollPedido.current;
     }
   }, [vista]);
   const cerrarSelector = () => setVista("pedido");
   // El foco va al buscador en el MISMO toque que abre el selector (regla del teclado, HANDOFF.md).
   const abrirSelector = () => {
+    scrollPedido.current = botonCliente.current?.closest<HTMLElement>("[data-hoja-contenido]")?.scrollTop ?? 0;
     flushSync(() => setVista("cliente"));
     buscador.current?.focus({ preventScroll: true });
   };
@@ -426,7 +437,7 @@ function Formulario({
     <>
       {/* Las vistas internas permanecen montadas: Atrás conserva la búsqueda y el cliente provisional. */}
       <div hidden={vista !== "cliente"}>
-        <SelectorCliente clientes={clientes} entrada={buscador} modo="provisional" titulo="¿Quién te escribió?"
+        <SelectorCliente activa={vista === "cliente"} clientes={clientes} entrada={buscador} modo="provisional" titulo="¿Quién te escribió?"
           alElegir={(c) => { cambiar(null, c); setDuplicado(null); setError(null); cerrarSelector(); }}
           alVolver={cerrarSelector} />
       </div>

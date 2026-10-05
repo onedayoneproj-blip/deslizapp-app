@@ -17,6 +17,7 @@ import { Buscador } from "./ui";
  * Sin animación por elemento. Las filas largas usan `content-visibility` para desplazarse fluido.
  */
 export function SelectorBusqueda({
+  activa = true,
   entrada,
   consulta,
   alCambiarConsulta,
@@ -29,6 +30,7 @@ export function SelectorBusqueda({
   accionAbajo,
   children,
 }: {
+  activa?: boolean;
   entrada: RefObject<HTMLInputElement | null>;
   consulta: string;
   alCambiarConsulta: (texto: string) => void;
@@ -46,11 +48,11 @@ export function SelectorBusqueda({
 }) {
   // Al entrar a esta vista, la lista empieza arriba del todo.
   const irArriba = useIrArribaHoja();
-  useLayoutEffect(() => irArriba(), [irArriba]);
+  useLayoutEffect(() => { if (activa) irArriba(); }, [activa, irArriba]);
 
   return (
     <div className="flex flex-col gap-3">
-      <HojaFijoArriba>
+      {activa && <HojaFijoArriba>
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <BotonVolver onClick={alVolver} />
@@ -58,11 +60,11 @@ export function SelectorBusqueda({
           </div>
           {fijo}
         </div>
-      </HojaFijoArriba>
+      </HojaFijoArriba>}
       {accionArriba}
       {children}
       {accionAbajo}
-      {abajo && <HojaFijoAbajo>{abajo}</HojaFijoAbajo>}
+      {activa && abajo && <HojaFijoAbajo>{abajo}</HojaFijoAbajo>}
     </div>
   );
 }

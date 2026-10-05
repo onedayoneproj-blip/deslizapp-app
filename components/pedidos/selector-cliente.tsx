@@ -8,7 +8,7 @@ import { ClienteDuplicado, MAX_NOTA } from "@/lib/data/clientes";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { clienteDelTelefono } from "@/lib/pedido-catalogo";
-import { formatearTelefono, normalizarTelefonoDO, pareceTelefono, resaltarTelefono } from "@/lib/telefono";
+import { formatearTelefono, normalizarTelefonoDO, resaltarTelefono } from "@/lib/telefono";
 import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
 import { CampoNota } from "../clientes/campo-nota";
@@ -33,6 +33,7 @@ export type ClienteProvisional = { id?: undefined; nombre: string; telefono: str
  * se crea con el pedido). El buscador recibe el foco en el mismo toque que lo abre (lo hace la hoja con `entrada`).
  */
 export function SelectorCliente({
+  activa = true,
   clientes,
   entrada,
   alElegir,
@@ -40,6 +41,7 @@ export function SelectorCliente({
   modo = "guardar",
   titulo,
 }: {
+  activa?: boolean;
   clientes: ClienteConResumen[];
   entrada: RefObject<HTMLInputElement | null>;
   alElegir: (cliente: ClienteElegido) => void;
@@ -53,6 +55,8 @@ export function SelectorCliente({
   const nombreNuevo = useRef<HTMLInputElement>(null);
   const telefonoNuevo = useRef<HTMLInputElement>(null);
   const q = consulta.trim();
+  // Un prefijo escrito en el chat todavía no es un WhatsApp válido, pero se completa en ese campo.
+  const esNumero = /\d/.test(q) && /^[\d\s+\-().]+$/.test(q);
 
   if (creando) {
     return (
@@ -79,17 +83,18 @@ export function SelectorCliente({
   // Abre el formulario con lo escrito (teléfono si parece número, nombre si no) y enfoca el campo que falta
   // en el MISMO toque, para no perder el teclado.
   const crear = () => {
-    const inicial = !q ? { nombre: "", telefono: "" } : pareceTelefono(q) ? { nombre: "", telefono: q } : { nombre: q, telefono: "" };
+    const inicial = !q ? { nombre: "", telefono: "" } : esNumero ? { nombre: "", telefono: q } : { nombre: q, telefono: "" };
     flushSync(() => setCreando(inicial));
     (inicial.nombre ? telefonoNuevo : nombreNuevo).current?.focus({ preventScroll: true });
   };
   // Siempre arriba: "+ Nuevo cliente" sin texto; "+ Crear «texto»" con texto. Solo se omite con un WhatsApp completo que ya existe.
   const accion = exacto ? undefined : (
-    <FilaAccion texto={q ? `Crear «${q}»` : "Nuevo cliente"} detalle={q ? (pareceTelefono(q) ? "Con ese WhatsApp" : "Con ese nombre") : "Nombre, WhatsApp y nota"} onClick={crear} />
+    <FilaAccion texto={q ? `Crear «${q}»` : "Nuevo cliente"} detalle={q ? (esNumero ? "Con ese WhatsApp" : "Con ese nombre") : "Nombre, WhatsApp y nota"} onClick={crear} />
   );
 
   return (
     <SelectorBusqueda
+      activa={activa}
       entrada={entrada}
       consulta={consulta}
       alCambiarConsulta={setConsulta}

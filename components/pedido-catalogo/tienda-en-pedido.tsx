@@ -6,13 +6,13 @@
 // (RLS de solicitudes_pedido: solo miembros de esa tienda). Otra cuenta no recibe nada de la solicitud ni puede registrar.
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { aUsuario, type FilaUsuario } from "@/lib/data/filas";
 import { cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } from "@/lib/data/demo";
 import { esErrorDeRed } from "@/lib/data/errores";
-import { ProveedorDemo, ProveedorReal, useData } from "@/lib/data/provider";
+import { ProveedorDemo, ProveedorReal } from "@/lib/data/provider";
 import { fuentePublica } from "@/lib/data/publica";
 import { entrarConGoogle, verDemo } from "@/lib/data/sesion";
 import type { Usuario, VistaSolicitud } from "@/lib/types";
@@ -80,6 +80,17 @@ export function TiendaEnPedido({
   const router = useRouter();
   const [fase, setFase] = useState<Fase>({ tipo: "comprobando" });
   const [intento, setIntento] = useState(0);
+  const [cerrandoEntrada, setCerrandoEntrada] = useState(false);
+  const siguiente = useRef<Fase | null>(null);
+  const cancelada = useRef(false);
+  const cerrarEntrada = () => { cancelada.current = true; setCerrandoEntrada(true); };
+  const alSalirEntrada = () => {
+    const destino = siguiente.current;
+    siguiente.current = null;
+    if (destino) { setCerrandoEntrada(false); setFase(destino); }
+    else alCerrar();
+  };
+  const compacta = (contenido: ReactNode) => <HojaCompacta abierta={!cerrandoEntrada} alCerrar={cerrarEntrada} alSalir={alSalirEntrada}>{contenido}</HojaCompacta>;
 
   useEffect(() => {
     let vivo = true;
@@ -93,14 +104,18 @@ export function TiendaEnPedido({
     }
     leerSesionDeLaTienda(codigo).then(
       (s) => {
-        if (!vivo) return;
-        if (s.tipo === "usuario") setFase({ tipo: "tienda", usuario: s.usuario });
+        if (!vivo || cancelada.current) return;
+        if (s.tipo === "usuario") {
+          const destino: Fase = { tipo: "tienda", usuario: s.usuario };
+          if (visible) { siguiente.current = destino; setCerrandoEntrada(true); }
+          else setFase(destino);
+        }
         else if (!visible) alCerrar();
         else if (s.tipo === "sin-tienda") setFase({ tipo: "otra" });
         else setFase({ tipo: "entrar", aviso: errorLogin ? AVISO_LOGIN : null });
       },
       () => {
-        if (!vivo) return;
+        if (!vivo || cancelada.current) return;
         if (visible) setFase({ tipo: "error" });
         else alCerrar();
       },
@@ -110,7 +125,7 @@ export function TiendaEnPedido({
     };
     // alCerrar cambia en cada render del padre; la comprobación es una por intento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codigo, demo, intento]);
+  }, [codigo, demo, intento, pedirEntrar]);
 
   const releerPublico = () => {
     fuentePublica(demo)
@@ -125,30 +140,25 @@ export function TiendaEnPedido({
   };
 
   if (fase.tipo === "comprobando") {
-    return pedirEntrar ? (
-      <HojaCompacta alCerrar={alCerrar}>
+    return pedirEntrar ? compacta(
         <p role="status" className="py-6 text-center text-texto-secundario">
           Revisando tu sesión…
         </p>
-      </HojaCompacta>
     ) : null;
   }
   if (fase.tipo === "error") {
-    return (
-      <HojaCompacta alCerrar={alCerrar}>
+    return compacta(
         <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => (setFase({ tipo: "comprobando" }), setIntento((n) => n + 1)) }}>
           No pudimos revisar tu sesión. Revisa tu conexión.
         </Aviso>
-      </HojaCompacta>
     );
   }
   if (fase.tipo === "entrar") {
-    return (
+    return compacta(
       <EresLaTienda
         codigo={codigo}
         demo={demo}
         aviso={fase.aviso}
-        alCerrar={alCerrar}
         alVerComoTiendaDemo={() => {
           const tiendaId = tiendaDeSolicitudDemo(codigo);
           if (!tiendaId) {
@@ -156,31 +166,26 @@ export function TiendaEnPedido({
             return;
           }
           cambiarTiendaActivaDemo(tiendaId);
-          setFase({ tipo: "demo" });
+          siguiente.current = { tipo: "demo" };
+          setCerrandoEntrada(true);
         }}
       />
     );
   }
   if (fase.tipo === "otra") {
-    return (
-      <HojaCompacta alCerrar={alCerrar}>
+    return compacta(
         <div className="flex flex-col gap-3 pb-2">
           <p className="font-display text-titulo-seccion">Esta cuenta no es de esa tienda.</p>
           <p className="text-texto-secundario">Solo la tienda que recibió el pedido puede registrarlo. Si tienes otra cuenta de Deslizapp, entra con ella.</p>
           <BotonGoogle codigo={codigo} texto="Entrar con otra cuenta" cambiarCuenta />
-          <Boton jerarquia="terciario" anchoCompleto onClick={alCerrar}>
+          <Boton jerarquia="terciario" anchoCompleto onClick={cerrarEntrada}>
             Cerrar
           </Boton>
         </div>
-      </HojaCompacta>
     );
   }
 
-  const hoja = (
-    <ComprobarMiembro codigo={codigo} pedirEntrar={pedirEntrar} alCerrar={alCerrar} alNoEs={() => (pedirEntrar ? setFase({ tipo: "otra" }) : alCerrar())}>
-      <HojaRegistrarSolicitud codigo={codigo} abierta alCerrar={alCerrar} alVerPedido={verPedido} alCambio={releerPublico} />
-    </ComprobarMiembro>
-  );
+  const hoja = <HojaRegistrarSolicitud codigo={codigo} abierta alCerrar={alCerrar} alVerPedido={verPedido} alCambio={releerPublico} />;
   return (
     <ToastProvider>
       <ProveedorToast>
@@ -194,45 +199,8 @@ export function TiendaEnPedido({
   );
 }
 
-/**
- * Antes de mostrar nada de la tienda: ¿esta solicitud es de una de sus tiendas? La lectura va con su sesión (RLS); si no
- * es suya llega null y no se monta la hoja.
- */
-function ComprobarMiembro({ codigo, pedirEntrar, alCerrar, alNoEs, children }: { codigo: string; pedirEntrar: boolean; alCerrar: () => void; alNoEs: () => void; children: ReactNode }) {
-  const { solicitudPorCodigo, tiendaActivaId } = useData();
-  const [es, setEs] = useState<boolean | null>(null);
-  useEffect(() => {
-    let vivo = true;
-    solicitudPorCodigo(codigo).then(
-      (s) => {
-        if (!vivo) return;
-        if (s && s.tiendaId === tiendaActivaId) setEs(true);
-        else alNoEs();
-      },
-      // Sin conexión: la hoja misma muestra Reintentar (no se decide "no es tuya" por un error).
-      () => vivo && setEs(true),
-    );
-    return () => {
-      vivo = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codigo, solicitudPorCodigo, tiendaActivaId]);
-  if (es) return children;
-  return pedirEntrar ? (
-    <HojaCompacta alCerrar={alCerrar}>
-      <p role="status" className="py-6 text-center text-texto-secundario">
-        Revisando tu tienda…
-      </p>
-    </HojaCompacta>
-  ) : null;
-}
-
-function HojaCompacta({ alCerrar, children }: { alCerrar: () => void; children: ReactNode }) {
-  return (
-    <Hoja abierta alCerrar={alCerrar} titulo="¿Eres la tienda?">
-      {children}
-    </Hoja>
-  );
+function HojaCompacta({ abierta = true, alCerrar, alSalir, children }: { abierta?: boolean; alCerrar: () => void; alSalir?: () => void; children: ReactNode }) {
+  return <Hoja abierta={abierta} alCerrar={alCerrar} alSalir={alSalir} protegerAtras titulo="¿Eres la tienda?">{children}</Hoja>;
 }
 
 const sinSuscripcion = () => () => {};
@@ -248,18 +216,15 @@ function EresLaTienda({
   codigo,
   demo,
   aviso,
-  alCerrar,
   alVerComoTiendaDemo,
 }: {
   codigo: string;
   demo: boolean;
   aviso: string | null;
-  alCerrar: () => void;
   alVerComoTiendaDemo: () => void;
 }) {
   const iphone = useSyncExternalStore(sinSuscripcion, enSafariDeIphone, () => false);
   return (
-    <HojaCompacta alCerrar={alCerrar}>
       <div className="flex flex-col gap-3 pb-2">
         <p className="text-cuerpo">Entra con tu cuenta de Deslizapp y registra este pedido desde aquí.</p>
         {aviso && <Aviso tono="peligro">{aviso}</Aviso>}
@@ -286,7 +251,6 @@ function EresLaTienda({
           </>
         )}
       </div>
-    </HojaCompacta>
   );
 }
 

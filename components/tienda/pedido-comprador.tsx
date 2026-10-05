@@ -231,8 +231,8 @@ export function PedidoComprador({
               <div className="pvbars" aria-hidden="true">
                 {s.items.map((_, j) => (
                   <i
-                    key={j + "-" + i}
-                    className={j < i ? "done" : j === i ? "run" : ""}
+                    key={j + "-" + indice}
+                    className={j < indice ? "done" : j === indice ? "run" : ""}
                     onAnimationEnd={() => {
                       if (!pausa) paso(1);
                     }}
