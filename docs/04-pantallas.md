@@ -923,3 +923,8 @@ mismo tono — no se deja el texto por defecto de un framework de UI.
 El corazón mantiene pedido local y registra el aaah. Enviar crea solicitud con precios de la base y abre WhatsApp en la misma pestaña; no envía automáticamente. Agotado y límite de intentos mantienen el carrito; fallo de red permite texto sin enlace. Opiniones respeta `false` / `pronto`; el resto de secciones respeta personalización.
 
 `/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». No muestra todavía estado/registro de la parte 3. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.
+
+
+### Primera carga del catálogo público (revisión de rendimiento)
+
+Mantiene diseño, reels, encuadre, colores de borde, video, variantes, carrito y recibos. La portada visible (también `#p/{slug}`) tiene prioridad; fotos responsivas por viewport/DPR, vecinos progresivos y video solo activo. Coach, historias, planes, recibos y cliente anónimo se cargan al necesitarlos. No cambia disponibilidad, stock/precios, pedidos ni `url_catalogo`. Originales intactos; hosts desconocidos conservan su URL. Medición y límites: `validacion-catalogo-rendimiento.md`. No es una publicación del nuevo catálogo.

@@ -1,0 +1,254 @@
+[
+  {
+    "ancho": 360,
+    "estado": "primer-reel",
+    "porcentaje": 1.64,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "mas",
+    "porcentaje": 5.19,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "colecciones",
+    "porcentaje": 9.67,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "busqueda",
+    "porcentaje": 1.3,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "perfil",
+    "porcentaje": 26.63,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "opiniones",
+    "porcentaje": 3.45,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "carrito",
+    "porcentaje": 3.41,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "pedido",
+    "porcentaje": 9.59,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "historia-pedido",
+    "porcentaje": 6.43,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "agotado",
+    "porcentaje": 1.84,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "coach",
+    "porcentaje": 0.24,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "como-funciona",
+    "porcentaje": 1.09,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "planes",
+    "porcentaje": 1.89,
+    "fallo": null
+  },
+  {
+    "ancho": 360,
+    "estado": "final",
+    "porcentaje": 0.27,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "primer-reel",
+    "porcentaje": 1.43,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "mas",
+    "porcentaje": 4.82,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "colecciones",
+    "porcentaje": 8.93,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "busqueda",
+    "porcentaje": 0.81,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "perfil",
+    "porcentaje": 27.26,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "opiniones",
+    "porcentaje": 3.27,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "carrito",
+    "porcentaje": 3.17,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "pedido",
+    "porcentaje": 8.8,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "historia-pedido",
+    "porcentaje": 6.11,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "agotado",
+    "porcentaje": 1.55,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "coach",
+    "porcentaje": 0.21,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "como-funciona",
+    "porcentaje": 1.01,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "planes",
+    "porcentaje": 1.83,
+    "fallo": null
+  },
+  {
+    "ancho": 390,
+    "estado": "final",
+    "porcentaje": 0.25,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "primer-reel",
+    "porcentaje": 2.15,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "mas",
+    "porcentaje": 3.27,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "colecciones",
+    "porcentaje": 8.11,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "busqueda",
+    "porcentaje": 0.79,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "perfil",
+    "porcentaje": 28.29,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "opiniones",
+    "porcentaje": 3.43,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "carrito",
+    "porcentaje": 2.37,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "pedido",
+    "porcentaje": 8.03,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "historia-pedido",
+    "porcentaje": 5.65,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "agotado",
+    "porcentaje": 1.29,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "coach",
+    "porcentaje": 0.17,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "como-funciona",
+    "porcentaje": 0.92,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "planes",
+    "porcentaje": 1.57,
+    "fallo": null
+  },
+  {
+    "ancho": 430,
+    "estado": "final",
+    "porcentaje": 0.23,
+    "fallo": null
+  }
+]

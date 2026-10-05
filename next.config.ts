@@ -5,6 +5,15 @@ import type { NextConfig } from "next";
 const ID_DESPLIEGUE = process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`;
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://euihaeyfdlpvmbtfzvnt.supabase.co").hostname, pathname: "/storage/v1/object/public/productos/**", search: "" },
+      { protocol: "https", hostname: "deslizapp-app.vercel.app", pathname: "/catalogos/esencias-michel/fotos/**", search: "" },
+    ],
+    maximumRedirects: 0,
+    deviceSizes: [360, 390, 430, 640, 750, 828, 1080, 1200, 1920],
+    qualities: [75, 85],
+  },
   env: {
     NEXT_PUBLIC_ID_DESPLIEGUE: ID_DESPLIEGUE,
   },

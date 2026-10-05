@@ -14,6 +14,7 @@ export function Reel({
   activo,
   siguiente,
   anterior,
+  precargar,
   cantidadPedido,
   seleccionado,
   elegir,
@@ -29,6 +30,7 @@ export function Reel({
   activo: boolean;
   siguiente: boolean;
   anterior: boolean;
+  precargar: boolean;
   cantidadPedido: number;
   seleccionado: (id: string | null) => boolean;
   elegir: (id: string | null, on?: boolean) => void;
@@ -126,9 +128,10 @@ export function Reel({
           medios={p.medios}
           nombre={p.nombre}
           activo={activo}
-          siguiente={siguiente}
-          anterior={anterior}
-          prioridad={i < 2}
+          siguiente={siguiente && precargar}
+          anterior={anterior && precargar}
+          prioridad={activo}
+          precargar={precargar}
           dobleToque={aaah}
         />
         {agotado && (

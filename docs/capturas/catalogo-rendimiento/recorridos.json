@@ -1,0 +1,38 @@
+[
+  {
+    "nombre": "hash/carrusel/video 360",
+    "paso": true
+  },
+  {
+    "nombre": "aviso 360",
+    "paso": true
+  },
+  {
+    "nombre": "hash/carrusel/video 390",
+    "paso": true
+  },
+  {
+    "nombre": "aviso 390",
+    "paso": true
+  },
+  {
+    "nombre": "ropa / precios / agotada / sin tema",
+    "paso": true
+  },
+  {
+    "nombre": "envío / historia / recibos / precio autoritativo",
+    "paso": true
+  },
+  {
+    "nombre": "Por encargo sin stock",
+    "paso": true
+  },
+  {
+    "nombre": "agotado entre abrir/enviar y oculto al recargar",
+    "paso": true
+  },
+  {
+    "nombre": "movimiento reducido, atrás y foco",
+    "paso": true
+  }
+]

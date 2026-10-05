@@ -29,6 +29,7 @@ const TODAS: Novedad[] = [
       "El catálogo nuevo refleja tus productos, opciones, precios y disponibilidad.",
       "Tus clientes pueden pedir por WhatsApp, recibir su enlace y avisarte qué esperan.",
       "El enlace público actual se conserva hasta revisar el catálogo nuevo.",
+      "El catálogo nuevo prioriza la foto que estás mirando y carga el resto cuando lo necesitas.",
     ],
   },
   {

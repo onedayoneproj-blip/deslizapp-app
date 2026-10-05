@@ -18,3 +18,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Contexto y forma de trabajo
 
 - Antes de empezar, lee `docs/00-contexto-del-proyecto.md` (qué es el proyecto, los puestos Planning y Coding, cómo se cierran los PR, dónde está la marca y el sistema de diseño, y dónde va el trabajo).
+
+
+# Convivencia durante el catálogo conectado
+
+- Cada sesión usa un checkout/worktree separado. No cambiar la rama, carpeta ni archivos pendientes de la sesión de rendimiento.
+- Antes de actualizar una rama propia, guardar los cambios en commits, revisar los commits nuevos de `feature/catalogo-react` y hacer rebase. Resolver conflictos conservando ambas funcionalidades y repetir las pruebas afectadas; nunca aceptar una versión automáticamente.
+- Si la rama propia ya está publicada y necesita actualizar su historial, usar `--force-with-lease` solo en esa rama. Nunca forzar `feature/catalogo-react` ni `main`.
+- Supabase es compartido: migraciones aditivas y compatibles con el catálogo y la sesión de rendimiento. No renombrar/eliminar contratos que otra sesión esté usando. Documentar y coordinar un cambio incompatible antes de aplicarlo.
+- La solicitud **`4DCQ2PZ28F`** está reservada: no registrarla, descartarla ni modificarla. Las pruebas que escriban usan fixtures separados.
