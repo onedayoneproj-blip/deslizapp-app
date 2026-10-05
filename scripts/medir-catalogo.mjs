@@ -48,8 +48,8 @@ async function medir(ctx,n,tipo){
  console.log(JSON.stringify({tipo,n,foto:tiempo.foto,utilizable:tiempo.utilizable,lcp:metricas.lcp,cls:metricas.cls,bytes:datos.transferenciaVentana,siguienteMs,carritoMs,errores}));await p.close();
 }
 try{
- for(let n=1;n<=veces;n++){const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block'});await ctx.addInitScript(observar);await medir(ctx,n,'fria');await ctx.close();}
- const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'allow'});await ctx.addInitScript(observar);await medir(ctx,1,'normal-inicial');await medir(ctx,2,'repetida');await ctx.close();
+ for(let n=1;n<=veces;n++){const ctx=await b.newContext({storageState:process.env.AUTH_STATE_FILE??undefined,viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block'});await ctx.addInitScript(observar);await medir(ctx,n,'fria');await ctx.close();}
+ const ctx=await b.newContext({storageState:process.env.AUTH_STATE_FILE??undefined,viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'allow'});await ctx.addInitScript(observar);await medir(ctx,1,'normal-inicial');await medir(ctx,2,'repetida');await ctx.close();
 }finally{
  writeFileSync(salida+'/'+etiqueta+'.json',JSON.stringify({etiqueta,origen:URL,fecha:new Date().toISOString(),navegador:await b.version(),perfil:{ancho:390,alto:844,dpr:1,red:'1.6 Mbps / 150 ms',cpu:1,ventanaMs:ventana},resultados,nota:'Contextos fríos, SW bloqueado; repetida SW normal. CDN/optimizador servidor no se purga. CDP mide tamaños externos; Resource Timing 0 sin TAO no es ahorro. No es Safari físico.'},null,2)+'\n');await b.close();
 }

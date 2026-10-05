@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import { fuentePublicaReal } from "@/lib/data/publica";
+import { fuentePublicaReal } from "@/lib/data/publica-real";
 import { PedidoComprador } from "@/components/tienda/pedido-comprador";
 import { dinero } from "@/lib/tienda/carrito";
 import "../../tienda/catalogo.css";

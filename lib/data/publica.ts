@@ -1,7 +1,4 @@
 // Entrada pública a la misma capa de datos. Sin sesión, cookies ni DataProvider del panel.
-import { createClient } from "@supabase/supabase-js";
-import { crearOperacionesPublicas } from "./supabase-publica";
-import { SUPABASE_URL, SUPABASE_LLAVE } from "../supabase/config";
 import type { FuenteDatos } from "./fuente";
 export type FuentePublica = Pick<
   FuenteDatos,
@@ -11,25 +8,18 @@ export type FuentePublica = Pick<
   | "registrarAaah"
   | "pedirAviso"
 >;
-export function fuentePublicaReal(): FuentePublica {
-  if (!SUPABASE_URL || !SUPABASE_LLAVE)
-    throw new Error("El catálogo no está disponible ahora.");
-  return crearOperacionesPublicas(
-    createClient(SUPABASE_URL, SUPABASE_LLAVE, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-      },
-      global: {
-        fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
-      },
-    }),
-  );
-}
 export async function fuentePublica(demo: boolean): Promise<FuentePublica> {
   if (demo) return (await import("./demo")).fuenteDemo;
-  return fuentePublicaReal();
+  let pendiente: Promise<FuentePublica> | undefined;
+  const real = () => pendiente ??= import("./publica-real").then(m => m.fuentePublicaReal());
+  // Solo delega: no duplica consultas ni cambia el contrato o los errores.
+  return {
+    catalogoPublico: async (...args) => (await real()).catalogoPublico(...args),
+    crearSolicitudPedido: async (...args) => (await real()).crearSolicitudPedido(...args),
+    verSolicitud: async (...args) => (await real()).verSolicitud(...args),
+    registrarAaah: async (...args) => (await real()).registrarAaah(...args),
+    pedirAviso: async (...args) => (await real()).pedirAviso(...args),
+  };
 }
 
 export async function observarFuentePublicaDemo(): Promise<() => void> {

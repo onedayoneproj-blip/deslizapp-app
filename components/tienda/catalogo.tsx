@@ -99,17 +99,17 @@ export function Catalogo({
   } | null>(null);
   const [toast, setToast] = useState("");
   const [bar, setBar] = useState(false);
-  const [precargar, setPrecargar] = useState(false);
+  const [precargaDe, setPrecargaDe] = useState("");
+  const precargar = Boolean(actual) && precargaDe === actual;
   const [enviando, setEnviando] = useState(false);
   const envio = useRef(false);
   const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entrada = useRef(false);
   useEffect(() => {
-    setPrecargar(false);
     let timer: ReturnType<typeof setTimeout>;
     const imagen = root.current?.querySelector<HTMLImageElement>(".reel.on .medio img");
-    const lista = () => { timer = setTimeout(() => setPrecargar(true), 500); };
+    const lista = () => { timer = setTimeout(() => setPrecargaDe(actual), 500); };
     if (imagen?.complete && imagen.naturalWidth > 1) lista();
     else imagen?.addEventListener("load", lista, { once: true });
     return () => { clearTimeout(timer); imagen?.removeEventListener("load", lista); };

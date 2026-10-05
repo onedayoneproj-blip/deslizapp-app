@@ -1,8 +1,8 @@
 import './cargar-ts.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {crearOperacionesPublicas} from '../lib/data/supabase-publica.ts';
-import {CatalogoNoDisponible, ErrorDeRed} from '../lib/data/errores.ts';
+const {crearOperacionesPublicas} = await import('../lib/data/supabase-publica.ts');
+const {CatalogoNoDisponible, ErrorDeRed} = await import('../lib/data/errores.ts');
 const mock=(data,error=null)=>{const llamadas=[];return {llamadas,fuente:crearOperacionesPublicas({rpc:(nombre,args)=>{llamadas.push({nombre,args});return Promise.resolve({data,error});}})};};
 test('la fuente pública compartida solo expone las cinco operaciones del contrato',()=>{
  assert.deepEqual(Object.keys(mock(null).fuente).sort(),['catalogoPublico','crearSolicitudPedido','pedirAviso','registrarAaah','verSolicitud'].sort());

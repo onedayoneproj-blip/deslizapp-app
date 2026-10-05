@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import { fuentePublicaReal } from "@/lib/data/publica";
+import { fuentePublicaReal } from "@/lib/data/publica-real";
 import { Catalogo } from "@/components/tienda/catalogo";
 import "../catalogo.css";
 export const dynamic = "force-dynamic";
