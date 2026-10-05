@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { enlaceAviso, mensajeYaLlego } from "@/lib/avisos";
-import { useTiendaActiva } from "@/lib/data/consulta";
+import { catalogoParaAviso, enlaceAviso, mensajeYaLlego } from "@/lib/avisos";
+import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { textoDeVariante } from "@/lib/inventario-catalogo";
 import { formatearTelefono } from "@/lib/telefono";
 import type { AvisoLlegada, Producto } from "@/lib/types";
 import { IconoCheck, IconoPersona, IconoWhatsApp } from "../iconos";
-import { Avatar, Boton, Etiqueta, Tarjeta, useToastUI } from "../ui";
+import { Avatar, Aviso, Boton, Etiqueta, Tarjeta, useToastUI } from "../ui";
 
 /** "18095550142" → "+18095550142" (como lo entiende formatearTelefono). */
 const conMas = (t: string) => (t.startsWith("+") ? t : `+${t}`);
@@ -25,7 +25,17 @@ type EstadoFila = "abriendo" | "marcando" | "avisado" | "fallo";
  *   marcar (no reabre WhatsApp).
  * - Sin enlace del catálogo publicado, lo dice: el mensaje va sin enlace (nunca uno inventado).
  */
-export function TarjetaYaLlego({ producto, avisos, modo = "llego" }: { producto: Producto; avisos: AvisoLlegada[]; modo?: "llego" | "espera" }) {
+export function TarjetaYaLlego(props: { producto: Producto; avisos: AvisoLlegada[]; modo?: "llego" | "espera" }) {
+  const { getProducto } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const actual = useConsulta(`producto-avisos:${tiendaId}:${props.producto.id}`, () => getProducto(tiendaId, props.producto.id), true);
+  if (actual.error) return <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: actual.reintentar }}>No pudimos comprobar las existencias. Reintenta la lectura antes de avisar.</Aviso>;
+  if (!actual.data && actual.cargando) return <p role="status" className="py-3 text-texto-secundario">Comprobando las existencias…</p>;
+  if (!actual.data) return <Aviso>Este producto ya no está en tu tienda.</Aviso>;
+  return <ContenidoYaLlego {...props} producto={actual.data} />;
+}
+
+function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Producto; avisos: AvisoLlegada[]; modo?: "llego" | "espera" }) {
   const { marcarAvisado } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { mostrarToast } = useToastUI();
@@ -57,16 +67,18 @@ export function TarjetaYaLlego({ producto, avisos, modo = "llego" }: { producto:
   // Al volver de WhatsApp (la pestaña vuelve a verse o recupera el foco), se marca como avisado.
   useEffect(() => {
     if (!enCamino) return;
+    let marcada = false;
     const volver = () => {
-      if (document.visibilityState !== "visible") return;
+      if (marcada || document.visibilityState !== "visible") return;
+      marcada = true;
       setEnCamino(null);
       void marcarRef.current(enCamino);
     };
-    const tiempo = window.setTimeout(volver, 1500);
+
     window.addEventListener("focus", volver);
     document.addEventListener("visibilitychange", volver);
     return () => {
-      window.clearTimeout(tiempo);
+  
       window.removeEventListener("focus", volver);
       document.removeEventListener("visibilitychange", volver);
     };
@@ -79,12 +91,13 @@ export function TarjetaYaLlego({ producto, avisos, modo = "llego" }: { producto:
     return v ? textoDeVariante(producto.opciones, v.valores) : null;
   };
   const hayDe = (varianteId: string | null) => {
-    const stock = varianteId ? producto.variantes?.find((v) => v.id === varianteId)?.stock : producto.stock;
+    if (!producto.activo) return false;
+    const stock = varianteId ? producto.variantes?.find((v) => v.id === varianteId && v.activa)?.stock : producto.stock;
     return stock === null || (stock ?? 0) > 0;
   };
   const que = unaVariante ? `${producto.nombre} ${varianteDe(unaVariante)}` : producto.nombre;
   const n = avisos.length;
-  const urlCatalogo = tienda?.urlCatalogo ?? null;
+  const urlCatalogo = catalogoParaAviso(tienda?.urlCatalogo ?? null);
 
   const avisar = (a: AvisoLlegada) => {
     const texto = mensajeYaLlego({ nombre: a.nombre, producto: producto.nombre, variante: varianteDe(a.varianteId), urlCatalogo, slug: producto.slug });
@@ -111,7 +124,7 @@ export function TarjetaYaLlego({ producto, avisos, modo = "llego" }: { producto:
       )}
       <ul className="mt-3 flex flex-col">
         {avisos.map((a) => {
-          const estado = estados.get(a.id);
+          const estado = a.avisadoEn ? "avisado" : estados.get(a.id);
           const hay = hayDe(a.varianteId);
           const telefono = formatearTelefono(conMas(a.telefono));
           return (

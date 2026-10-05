@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
@@ -21,11 +21,14 @@ export function HojaPorRegistrar() {
   const { tiendaId } = useTiendaActiva();
   const { data, error, reintentar } = useConsulta(`solicitudes:${tiendaId}`, () => solicitudesPendientes(tiendaId));
   const [abierto, setAbierto] = useState<string | null>(null);
+  const [visible, setVisible] = useState(true);
+  const destino = useRef<string | null>(null);
   const [ahora] = useState(() => Date.now());
-  const cerrar = useCallback(() => router.push("/pedidos", { scroll: false }), [router]);
+  const cerrar = useCallback(() => setVisible(false), []);
+  const salir = () => router.push(destino.current ?? "/pedidos", { scroll: false });
 
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Por registrar" altura="grande">
+    <Hoja abierta={visible} alCerrar={cerrar} alSalir={salir} protegerAtras titulo="Por registrar" altura="grande">
       <div className="flex flex-col gap-3 pb-2">
         <p className="text-secundario text-texto-secundario">Te llegaron desde tu catálogo por WhatsApp. Regístralos para que pasen a Nuevos.</p>
         {data === undefined && error && (
@@ -71,7 +74,7 @@ export function HojaPorRegistrar() {
           codigo={abierto}
           abierta
           alCerrar={() => setAbierto(null)}
-          alVerPedido={(id) => router.push(`/pedidos/${id}`, { scroll: false })}
+          alVerPedido={(id) => { destino.current = `/pedidos/${id}`; setVisible(false); }}
         />
       )}
     </Hoja>

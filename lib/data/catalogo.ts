@@ -458,13 +458,23 @@ export function registrarSolicitudEnDB(db: DB, tiendaId: string, solicitudId: st
     .filter((i) => !quitar.has(i.productoId) && !(i.varianteId && quitar.has(i.varianteId)))
     .map((i) => (encargo.has(i.productoId) || (i.varianteId && encargo.has(i.varianteId)) ? { ...i, porEncargo: true } : i));
   if (quedan.length === 0) throw new DatosInvalidos("Quitaste todo. El pedido necesita al menos un producto.");
-  // Un producto o variante que ya no existe en la tienda no se registra (ni como encargo), como `producto_no_disponible`.
-  const fantasma = quedan.find(
-    (i) =>
-      !db.productos.some((p) => p.id === i.productoId && p.tiendaId === tiendaId) ||
-      (i.varianteId && !db.variantes.some((v) => v.id === i.varianteId && v.productoId === i.productoId)),
-  );
-  if (fantasma) throw new DatosInvalidos(`${fantasma.nombre} ya no está en tu catálogo. Quítalo para registrar el pedido.`);
+  // La misma validación autoritativa de registrar_solicitud, antes de devolver una DB modificada.
+  const cantidades = new Map<string, number>();
+  for (const i of quedan) {
+    const p = db.productos.find(p => p.id === i.productoId && p.tiendaId === tiendaId);
+    const v = i.varianteId ? db.variantes.find(v => v.id === i.varianteId && v.productoId === i.productoId) : null;
+    if (!p || (i.varianteId && !v)) throw new DatosInvalidos(`${i.nombre} ya no está en tu catálogo. Quítalo para registrar el pedido.`);
+    if (!p.activo || (v && !v.activa) || (!i.varianteId && db.variantes.some(v => v.productoId === p.id && v.activa))) {
+      throw new DatosInvalidos(`${i.nombre} cambió en tu catálogo. Quítalo para registrar el pedido.`);
+    }
+    if (!i.porEncargo) {
+      const llave = i.varianteId ?? i.productoId;
+      const cantidad = (cantidades.get(llave) ?? 0) + i.cantidad;
+      cantidades.set(llave, cantidad);
+      const stock = v ? v.stock : p.stock;
+      if (stock !== null && stock < cantidad) throw new DatosInvalidos(`Cambió la disponibilidad de ${i.nombre}. Revisa el pedido antes de registrarlo.`);
+    }
+  }
   const subtotal = quedan.reduce((t, i) => t + i.precioUnitario * i.cantidad, 0);
   const descuento = subtotalAntes > 0 ? Math.round((s.descuento * subtotal) / subtotalAntes) : 0;
 

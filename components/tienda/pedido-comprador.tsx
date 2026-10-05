@@ -30,15 +30,19 @@ export function PedidoComprador({
   demo,
   inicial,
   inicialCatalogo = null,
+  errorInicial = false,
 }: {
   codigo: string;
   demo: boolean;
   inicial: VistaSolicitud | null;
   inicialCatalogo?: CatalogoPublico | null;
+  errorInicial?: boolean;
 }) {
   const [s, setS] = useState(inicial);
   const [catalogo, setCatalogo] = useState(inicialCatalogo);
   const [cargando, setCargando] = useState(demo);
+  const [falloLectura, setFalloLectura] = useState(errorInicial);
+  const [intentoLectura, setIntentoLectura] = useState(0);
   const [i, setI] = useState(0);
   const [pausa, setPausa] = useState(false);
   const [error, setError] = useState("");
@@ -48,18 +52,19 @@ export function PedidoComprador({
   const [catalogoAnterior, setCatalogoAnterior] = useState<string | null>(null);
   useEffect(() => {
     let valido = true;
-    if (demo)
-      fuentePublica(true)
+    if (demo || intentoLectura > 0)
+      fuentePublica(demo)
         .then((f) => f.verSolicitud(codigo))
         .then((s) => {
           if (valido) {
             setS(s);
             setCargando(false);
-            if(s) fuentePublica(true).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
+            setFalloLectura(false);
+            if(s) fuentePublica(demo).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
           }
         })
         .catch(() => {
-          if (valido) setCargando(false);
+          if (valido) { setCargando(false); setFalloLectura(true); }
         });
     try {
       const url = new URL(document.referrer);
@@ -72,7 +77,7 @@ export function PedidoComprador({
       valido = false;
       if (hold.current) clearTimeout(hold.current);
     };
-  }, [codigo, demo]);
+  }, [codigo, demo, intentoLectura]);
   // El estado cambia cuando la tienda lo registra o lo despacha: se vuelve a leer al volver a la pestaña, al recuperar el foco
   // y, mientras se ve la página, cada 45 s (sin Realtime ni anillo). Lo ya final (cancelado o vencido) no se sigue leyendo.
   const estadoActual = s?.estado;
@@ -172,7 +177,8 @@ export function PedidoComprador({
       setPreparando(false);
     }
   };
-  const item = s?.items[i];
+  const indice = Math.min(i, Math.max(0, (s?.items.length ?? 1) - 1));
+  const item = s?.items[indice];
   const producto = catalogo?.productos.find(p=>p.id===item?.productoId);
   const nombres = NOMBRE_PRODUCTO[catalogo?.tienda.rubro ?? "general"];
   const tema = catalogo ? temaDeTienda(catalogo.tienda) : null;
@@ -188,7 +194,7 @@ export function PedidoComprador({
         } as CSSProperties
       }
     >
-      <div id="pvBg" className="pvov">
+      <div id="pvBg" className={"pvov" + (tienda !== "no" ? " tienda-abierta" : "")}>
         <main
           className={
             "pvpage" + (!valido ? " gone" : "") + (pausa ? " paused" : "")
@@ -200,8 +206,8 @@ export function PedidoComprador({
               {s.items.map((p, j) => (
                 <img
                   key={p.productoId + (p.varianteId ?? "")}
-                  className={"pvslide" + (j === i ? " on" : "")}
-                  src={p.foto ?? ""}
+                  className={"pvslide" + (j === indice ? " on" : "")}
+                  src={p.foto ?? undefined}
                   alt=""
                   style={
                     {
@@ -262,7 +268,7 @@ export function PedidoComprador({
                   {item.porEncargo ? " · Por encargo" : ""}
                 </span>
                 <span className="pvtag">
-                  {i + 1} de {s.items.length}
+                  {indice + 1} de {s.items.length}
                 </span>
                 <span className="pvacts">
                   <a
@@ -341,13 +347,15 @@ export function PedidoComprador({
                 <h2>
                   {cargando
                     ? "Abriendo tu pedido…"
-                    : s?.estado === "vencido"
+                    : falloLectura
+                      ? "No pudimos abrir tu pedido"
+                      : s?.estado === "vencido"
                       ? "Este pedido venció"
                       : "Este pedido no está disponible"}
                 </h2>
                 <p className="pvgonep">
                   {!cargando &&
-                    (s?.estado === "vencido"
+                    (falloLectura ? "Revisa la conexión y vuelve a intentarlo. Tu enlace sigue aquí." : s?.estado === "vencido"
                       ? "Nadie lo registró en 7 días. Si todavía te interesa, vuélvelo a armar."
                       : s
                         ? "Puedes volver al catálogo y armarlo otra vez."
@@ -355,6 +363,7 @@ export function PedidoComprador({
                 </p>
               </div>
               <div className="pvsheet">
+                {falloLectura && <button className="pvbtn pri wide" onClick={() => { setCargando(true); setIntentoLectura(n => n + 1); }}>Reintentar</button>}
                 <button className="pvbtn pri wide" onClick={volver}>
                   {s
                     ? "Seguir explorando " + s.tienda.nombre

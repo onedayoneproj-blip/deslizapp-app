@@ -48,13 +48,21 @@ export function HojaRegistrarSolicitud({
   alCambio?: () => void;
 }) {
   const [hayCambios, setHayCambios] = useState(false);
+  const [cerrando, setCerrando] = useState(false);
+  const destino = useRef<string | null>(null);
+  const verPedido = (id: string) => { destino.current = id; setCerrando(true); };
+  const salir = () => {
+    if (destino.current) alVerPedido(destino.current);
+    else (alSalir ?? alCerrar)();
+  };
   // El selector de cliente es otra vista DENTRO de la hoja: Atrás vuelve al pedido sin cerrar ni perder el borrador.
   const [vista, setVista] = useState<Vista>("pedido");
   return (
     <Hoja
-      abierta={abierta}
-      alCerrar={alCerrar}
-      alSalir={alSalir}
+      abierta={abierta && !cerrando}
+      alCerrar={() => setCerrando(true)}
+      alSalir={salir}
+      protegerAtras
       titulo="Pedido del catálogo"
       altura="grande"
       avisarAlSalir={hayCambios}
@@ -68,9 +76,9 @@ export function HojaRegistrarSolicitud({
     >
       <ContenidoRegistrar
         codigo={codigo}
-        alVerPedido={alVerPedido}
+        alVerPedido={verPedido}
         alCambio={alCambio}
-        alCerrar={alCerrar}
+        alCerrar={() => setCerrando(true)}
         setHayCambios={setHayCambios}
         vista={vista}
         setVista={setVista}
@@ -277,11 +285,12 @@ function Formulario({
   alTerminar: (f: Final) => void;
   alReleer: () => void;
 }) {
-  const { registrarSolicitud, descartarSolicitud, solicitudPorCodigo } = useData();
+  const { registrarSolicitud, descartarSolicitud, solicitudPorCodigo, refrescar } = useData();
   const [borrador, setBorrador] = useState<Borrador>({ quitar: [], encargo: [] });
   const [cliente, setCliente] = useState<ClienteElegido | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resultadoIncierto, setResultadoIncierto] = useState(false);
   const [duplicado, setDuplicado] = useState<ClienteDuplicado["existente"] | null>(null);
   const [descartar, setDescartar] = useState(false);
   const buscador = useRef<HTMLInputElement>(null);
@@ -312,24 +321,6 @@ function Formulario({
     buscador.current?.focus({ preventScroll: true });
   };
 
-  if (vista === "cliente") {
-    return (
-      <SelectorCliente
-        clientes={clientes}
-        entrada={buscador}
-        modo="provisional"
-        titulo="¿Quién te escribió?"
-        alElegir={(c) => {
-          cambiar(null, c);
-          setDuplicado(null);
-          setError(null);
-          cerrarSelector();
-        }}
-        alVolver={cerrarSelector}
-      />
-    );
-  }
-
   const { quedan, subtotal, descuento, total } = totalDelBorrador(s, borrador);
   const quitados = new Set(borrador.quitar);
   const encargos = new Set(borrador.encargo);
@@ -358,7 +349,7 @@ function Formulario({
 
   /** ¿Quedó registrada o cerrada (otra sesión, una respuesta perdida)? Se mira el vínculo antes de reintentar. */
   const revisarVinculo = async (): Promise<boolean> => {
-    const ahora = await solicitudPorCodigo(s.codigo).catch(() => undefined);
+    const ahora = await solicitudPorCodigo(s.codigo);
     if (ahora?.pedidoId) {
       alTerminar({ tipo: "registrado", pedidoId: ahora.pedidoId, yaEstaba: true });
       return true;
@@ -372,13 +363,21 @@ function Formulario({
   };
 
   const registrar = async () => {
-    if (motivo || !cliente || enCurso.current) return;
+    if ((!resultadoIncierto && motivo) || !cliente || enCurso.current) return;
     enCurso.current = true;
     setEnviando(true);
     setError(null);
     setDuplicado(null);
     const cambios = { quitar: borrador.quitar, encargo: borrador.encargo };
     try {
+      if (resultadoIncierto) {
+        // Primero una lectura confirmada: este toque nunca vuelve a escribir.
+        if (!(await revisarVinculo())) {
+          setResultadoIncierto(false);
+          setError("Sigue sin registrar. Revisa el borrador antes de registrarlo.");
+        }
+        return;
+      }
       const r = await registrarSolicitud(
         tiendaId,
         s.id,
@@ -388,8 +387,17 @@ function Formulario({
     } catch (e) {
       if (e instanceof ClienteDuplicado) {
         setDuplicado(e.existente);
-      } else if (!(await revisarVinculo())) {
-        setError(esErrorDeRed(e) ? "No hay conexión. Tu pedido sigue aquí sin registrar: inténtalo otra vez." : mensajeDeError(e, "No se pudo registrar. Inténtalo otra vez."));
+      } else {
+        try {
+          if (!(await revisarVinculo())) {
+            setResultadoIncierto(false);
+            refrescar();
+            setError(esErrorDeRed(e) ? "No se registró. Conservamos tu borrador: revisa la conexión antes de intentarlo otra vez." : mensajeDeError(e, "No se pudo registrar. Revisa el borrador."));
+          }
+        } catch {
+          setResultadoIncierto(true);
+          setError("No pudimos comprobar si se registró. Conservamos tu borrador; comprueba el resultado antes de repetir.");
+        }
       }
     } finally {
       enCurso.current = false;
@@ -404,12 +412,25 @@ function Formulario({
       alTerminar({ tipo: "descartado" });
     } catch (e) {
       setDescartar(false);
-      if (!(await revisarVinculo())) setError(mensajeDeError(e, "No se pudo descartar. Inténtalo otra vez."));
+      try {
+        if (!(await revisarVinculo())) setError(mensajeDeError(e, "No se pudo descartar. Inténtalo otra vez."));
+      } catch {
+        setResultadoIncierto(true);
+        setError("No pudimos comprobar el resultado. Revisa la conexión y comprueba el registro.");
+      }
     }
   };
 
   const unidades = s.items.reduce((t, i) => t + i.cantidad, 0);
   return (
+    <>
+      {/* Las vistas internas permanecen montadas: Atrás conserva la búsqueda y el cliente provisional. */}
+      <div hidden={vista !== "cliente"}>
+        <SelectorCliente clientes={clientes} entrada={buscador} modo="provisional" titulo="¿Quién te escribió?"
+          alElegir={(c) => { cambiar(null, c); setDuplicado(null); setError(null); cerrarSelector(); }}
+          alVolver={cerrarSelector} />
+      </div>
+      <div hidden={vista !== "pedido"}>
     <div className="flex flex-col gap-4">
       <p className="text-secundario text-texto-secundario">
         #{s.codigo} · {haceCuanto(s.creadaEn).replace(/^H/, "h")} · {unidades} {unidades === 1 ? "producto" : "productos"}
@@ -506,15 +527,15 @@ function Formulario({
       {error && <Aviso tono="peligro">{error}</Aviso>}
 
       <div className="flex flex-col gap-1.5">
-        <Boton anchoCompleto deshabilitado={Boolean(motivo)} cargando={enviando} onClick={() => void registrar()} aria-describedby={motivo ? "registrar-motivo" : undefined}>
-          Registrar pedido
+        <Boton anchoCompleto deshabilitado={!resultadoIncierto && Boolean(motivo)} cargando={enviando} onClick={() => void registrar()} aria-describedby={motivo ? "registrar-motivo" : undefined}>
+          {resultadoIncierto ? "Comprobar registro" : "Registrar pedido"}
         </Boton>
         {motivo && (
           <p id="registrar-motivo" className="text-center text-secundario text-texto-secundario">
             {motivo}
           </p>
         )}
-        <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={enviando} onClick={() => setDescartar(true)}>
+        <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={enviando || resultadoIncierto} onClick={() => setDescartar(true)}>
           No es un pedido
         </Boton>
       </div>
@@ -528,6 +549,8 @@ function Formulario({
         textoCancelar="Seguir aquí"
       />
     </div>
+      </div>
+    </>
   );
 }
 

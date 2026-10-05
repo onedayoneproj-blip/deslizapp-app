@@ -12,6 +12,7 @@ import { formatearTelefono, normalizarTelefonoDO, pareceTelefono, resaltarTelefo
 import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
 import { CampoNota } from "../clientes/campo-nota";
+import { useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { IconoPersona } from "../iconos";
 import { Aviso, Avatar, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
@@ -190,6 +191,11 @@ function FormularioNuevo({
   const [telefonosContacto, setTelefonosContacto] = useState<string[] | null>(null);
   const hayContactos = useSyncExternalStore(nada, () => contactosDelNavegador() !== null, () => false);
 
+  const cambios = nombre !== inicial.nombre || telefono !== inicial.telefono || nota.trim() !== "";
+  useAvisarAlSalir(cambios);
+  const confirmarSalida = useConfirmarSalida();
+  const volver = () => cambios ? confirmarSalida(alVolver) : alVolver();
+
   const valido = normalizarTelefonoDO(telefono) !== null;
   const malo = tocado && telefono.trim() !== "" && !valido;
   const puedeGuardar = nombre.trim() !== "" && valido && !guardando;
@@ -244,7 +250,7 @@ function FormularioNuevo({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex items-center gap-2">
-        <BotonVolver onClick={alVolver} />
+        <BotonVolver onClick={volver} />
         <p className="font-display text-titulo-seccion">Cliente nuevo</p>
       </div>
       <Campo

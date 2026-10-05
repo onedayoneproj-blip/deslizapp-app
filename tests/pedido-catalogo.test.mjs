@@ -89,7 +89,8 @@ test("selector: solo un WhatsApp completo y válido que ya existe es la excepci�
 test("demo: registrar une líneas finales al estado público, nota del cliente nuevo y nunca dos pedidos", () => {
   let db = construirDesdeSeed(new Date("2026-10-04T12:00:00Z").getTime());
   const t = db.tiendas[0];
-  const p = db.productos.find((x) => x.tiendaId === t.id && x.activo);
+  const p = { ...db.productos.find((x) => x.tiendaId === t.id && x.activo), stock: 5, opciones: [] };
+  db = { ...db, productos: db.productos.map(x => x.id === p.id ? p : x), variantes: db.variantes.filter(v => v.productoId !== p.id) };
   const ahora = "2026-10-04T12:00:00.000Z";
   const base = { id: "s1", tiendaId: t.id, codigo: "ABCDEFGH23", codigoPromo: null, descuento: 0, creadaEn: ahora, venceEn: "2026-10-11T12:00:00.000Z", pedidoId: null, descartadaEn: null, dispositivo: "d" };
   db = { ...db, solicitudes: [...db.solicitudes, { ...base, items: [item({ productoId: p.id, nombre: p.nombre, precioUnitario: 1000, cantidad: 2 }), item({ productoId: "fantasma", nombre: "Fantasma", precioUnitario: 500 })], total: 2500 }] };
@@ -134,4 +135,25 @@ test("demo: sin registrar vence a los 7 días; descartada se ve vencida", () => 
   const d = descartarSolicitudEnDB(db, t.id, "s2", "2026-10-02T00:00:00Z");
   assert.equal(verSolicitudDeDB(d, s.codigo, t.id, Date.parse("2026-10-02T01:00:00Z")).estado, "vencido");
   assert.equal(verSolicitudDeDB(db, "NOEXISTE22", t.id, Date.now()), null);
+});
+
+test("registro demo valida stock/activación actuales, sin cambios parciales, encargo ni ventas anticipadas", () => {
+  let db = construirDesdeSeed();
+  const t = db.tiendas[0];
+  const p = { ...db.productos.find(p => p.tiendaId === t.id), id: "prueba-stock", stock: 1, activo: true, opciones: [] };
+  db = { ...db, productos: [...db.productos, p], solicitudes: [...db.solicitudes, { id: "s-validacion", tiendaId: t.id, codigo: "PRUEBAAA23", items: [item({ productoId: p.id, cantidad: 2 })], total: 2000, descuento: 0, codigoPromo: null, creadaEn: new Date().toISOString(), venceEn: new Date(Date.now() + 86400000).toISOString(), pedidoId: null, descartadaEn: null, dispositivo: "prueba" }] };
+  const antes = JSON.stringify(db);
+  const d = { clienteNuevo: { nombre: "Nueva prueba", telefono: null, nota: "Conserva nota" } };
+  let n = 0;
+  const registrar = (base, datos = d) => registrarSolicitudEnDB(base, t.id, "s-validacion", datos, () => `prueba-${++n}`, new Date().toISOString());
+  assert.throws(() => registrar(db), /disponibilidad/);
+  assert.equal(JSON.stringify(db), antes);
+  assert.throws(() => registrar({ ...db, productos: db.productos.map(x => x.id === p.id ? { ...x, activo: false } : x) }, { ...d, encargo: [p.id] }), /cambió en tu catálogo/);
+  const encargo = registrar(db, { ...d, encargo: [p.id] });
+  assert.equal(encargo.db.productos.find(x => x.id === p.id).stock, 1);
+  assert.equal(encargo.db.productos.find(x => x.id === p.id).porEncargo, p.porEncargo);
+  assert.equal(encargo.db.pedidoItems.find(x => x.pedidoId === encargo.pedido.id).porEncargo, true);
+  assert.equal(encargo.pedido.estado, "nuevo");
+  const libre = registrar({ ...db, productos: db.productos.map(x => x.id === p.id ? { ...x, stock: null } : x) });
+  assert.equal(libre.db.productos.find(x => x.id === p.id).stock, null);
 });

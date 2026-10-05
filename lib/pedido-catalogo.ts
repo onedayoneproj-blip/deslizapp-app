@@ -73,7 +73,7 @@ export function disponibilidadDeLinea(item: ItemSolicitud, productos: Producto[]
   if (!p) return { tipo: "no_esta", motivo: "borrado" };
   const variante = item.varianteId ? p.variantes?.find((v) => v.id === item.varianteId) : null;
   if (item.varianteId && !variante) return { tipo: "no_esta", motivo: "borrado" };
-  if (!p.activo || (variante && !variante.activa)) return { tipo: "no_esta", motivo: "oculto" };
+  if (!p.activo || (variante && !variante.activa) || (!item.varianteId && p.variantes?.some(v => v.activa))) return { tipo: "no_esta", motivo: "oculto" };
   if (item.porEncargo) return { tipo: "ok" };
   const stock = variante ? variante.stock : p.stock;
   if (stock === null || stock >= item.cantidad) return { tipo: "ok" };

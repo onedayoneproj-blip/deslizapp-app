@@ -8752,3 +8752,6 @@ html.catalogo-html,
   text-underline-offset: 2px;
   cursor: pointer;
 }
+
+/* La historia pública no puede superar el portal de Hoja del panel. */
+.pedido-publico .pvov.tienda-abierta { z-index: 1; }

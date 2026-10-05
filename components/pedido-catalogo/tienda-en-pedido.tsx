@@ -46,7 +46,7 @@ function tomarErrorLogin(): boolean {
 
 type Sesion = { tipo: "sin-sesion" } | { tipo: "sin-tienda" } | { tipo: "usuario"; usuario: Usuario };
 
-async function leerSesionDeLaTienda(): Promise<Sesion> {
+async function leerSesionDeLaTienda(codigo: string): Promise<Sesion> {
   if (!HAY_SUPABASE) return { tipo: "sin-sesion" };
   const supabase = createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -55,7 +55,11 @@ async function leerSesionDeLaTienda(): Promise<Sesion> {
   if (!sub) return { tipo: "sin-sesion" };
   const r = await supabase.from("usuarios").select("*").eq("id", sub).maybeSingle();
   if (r.error) throw r.error;
-  return r.data ? { tipo: "usuario", usuario: aUsuario(r.data as FilaUsuario) } : { tipo: "sin-tienda" };
+  if (!r.data) return { tipo: "sin-tienda" };
+  // La tienda objetivo sale de una lectura autenticada protegida por RLS, nunca de la URL o metadata.
+  const solicitud = await supabase.from("solicitudes_pedido").select("tienda_id").eq("codigo", codigo.trim().toUpperCase()).maybeSingle();
+  if (solicitud.error) throw solicitud.error;
+  return solicitud.data ? { tipo: "usuario", usuario: { ...aUsuario(r.data as FilaUsuario), tiendaId: solicitud.data.tienda_id } } : { tipo: "sin-tienda" };
 }
 
 export function TiendaEnPedido({
@@ -87,7 +91,7 @@ export function TiendaEnPedido({
         vivo = false;
       };
     }
-    leerSesionDeLaTienda().then(
+    leerSesionDeLaTienda(codigo).then(
       (s) => {
         if (!vivo) return;
         if (s.tipo === "usuario") setFase({ tipo: "tienda", usuario: s.usuario });
@@ -106,7 +110,7 @@ export function TiendaEnPedido({
     };
     // alCerrar cambia en cada render del padre; la comprobación es una por intento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demo, intento]);
+  }, [codigo, demo, intento]);
 
   const releerPublico = () => {
     fuentePublica(demo)
@@ -173,7 +177,7 @@ export function TiendaEnPedido({
   }
 
   const hoja = (
-    <ComprobarMiembro codigo={codigo} pedirEntrar={pedirEntrar} alNoEs={() => (pedirEntrar ? setFase({ tipo: "otra" }) : alCerrar())}>
+    <ComprobarMiembro codigo={codigo} pedirEntrar={pedirEntrar} alCerrar={alCerrar} alNoEs={() => (pedirEntrar ? setFase({ tipo: "otra" }) : alCerrar())}>
       <HojaRegistrarSolicitud codigo={codigo} abierta alCerrar={alCerrar} alVerPedido={verPedido} alCambio={releerPublico} />
     </ComprobarMiembro>
   );
@@ -194,15 +198,15 @@ export function TiendaEnPedido({
  * Antes de mostrar nada de la tienda: ¿esta solicitud es de una de sus tiendas? La lectura va con su sesión (RLS); si no
  * es suya llega null y no se monta la hoja.
  */
-function ComprobarMiembro({ codigo, pedirEntrar, alNoEs, children }: { codigo: string; pedirEntrar: boolean; alNoEs: () => void; children: ReactNode }) {
-  const { solicitudPorCodigo } = useData();
+function ComprobarMiembro({ codigo, pedirEntrar, alCerrar, alNoEs, children }: { codigo: string; pedirEntrar: boolean; alCerrar: () => void; alNoEs: () => void; children: ReactNode }) {
+  const { solicitudPorCodigo, tiendaActivaId } = useData();
   const [es, setEs] = useState<boolean | null>(null);
   useEffect(() => {
     let vivo = true;
     solicitudPorCodigo(codigo).then(
       (s) => {
         if (!vivo) return;
-        if (s) setEs(true);
+        if (s && s.tiendaId === tiendaActivaId) setEs(true);
         else alNoEs();
       },
       // Sin conexión: la hoja misma muestra Reintentar (no se decide "no es tuya" por un error).
@@ -212,10 +216,10 @@ function ComprobarMiembro({ codigo, pedirEntrar, alNoEs, children }: { codigo: s
       vivo = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codigo, solicitudPorCodigo]);
+  }, [codigo, solicitudPorCodigo, tiendaActivaId]);
   if (es) return children;
   return pedirEntrar ? (
-    <HojaCompacta alCerrar={() => {}}>
+    <HojaCompacta alCerrar={alCerrar}>
       <p role="status" className="py-6 text-center text-texto-secundario">
         Revisando tu tienda…
       </p>
