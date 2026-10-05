@@ -420,3 +420,28 @@ Rutas públicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin s
 Migración **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, catálogo público ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
 
 La excepción visual de la superficie pública está en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios públicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona automáticamente: Lewis prueba el preview.**
+
+
+## Pedido del catálogo en el panel — continuación de Coding
+
+**Claude/Codex: antes de retomar, leer `docs/handoffs/pedido-catalogo-panel-continuacion.md`.** Conserva la implementación inicial de Claude y las correcciones en la rama separada `feature/pedido-catalogo-panel-continuacion`. No fusionar #44, #45 ni esta continuación sin Lewis. No tocar `/workspace/deslizapp-rendimiento` ni la solicitud real reservada `4DCQ2PZ28F`.
+
+Estado/registro del comprador, respaldo en Nuevos y Avísame implementados, pendientes de revisión en preview. Registrar no descuenta stock; solo despacho. La hoja consume su historial antes de Ver pedido; selector interno conserva borradores y no deja portales ocultos activos. Ya llegó usa producto/variante releídos tras reponer y marca al volver del WhatsApp, sin afirmar envío. Resultado de escritura incierto obliga a comprobar primero.
+
+`20261004223008` estaba aplicada; no se reaplicó/editó. Adicional `20261005013157_registrar_solicitud_disponibilidad.sql` aplicada después de replay completo y pruebas de RLS/concurrencia en base desechable: misma firma, stock validado y bloqueos compatibles, sin reservas ni modificaciones de existencias de producción. Solo producción accesible; otras bases locales siguen desconocidas. Historial: 32 versiones en repo y producción, cero diferencias; el nombre histórico de `20260930005714` difiere intencionalmente.
+
+Las secciones de primera entrega y «Aplicación coordinada del inventario» son históricas: no describen el catálogo/stock actual. `supabase/migrations/` manda. No se ejecutó limpieza ni una operación de prueba sobre datos reales. Safari/iPhone físico, login Google real, Contact Picker, retorno físico de WhatsApp y rendimiento Vercel/4G requieren validación de Lewis. No asumir que una captura o respuesta HTTP verifica esos recorridos.
+
+
+### Seguimiento PR #46: likes y validación reportada
+
+Los likes del reel utilizan `.likes-count` (texto bajo el corazón), separados de `.cnt` de la bolsa; contador positivo incluido en el nombre accesible, cero oculto. No cambia cálculos, inventario ni aaah. Resultados y capturas en `docs/handoffs/pedido-catalogo-panel-continuacion.md`.
+
+**Reporte de Lewis, no pruebas de Coding:** Google funcionó tras permitir el callback de la preview; solicitud visible en el panel, enlace con estados actualizados y producto agotado tras despachar. Coding no cambió ese callback ni repitió escrituras reales. Los pendientes de Safari físico/cobertura completa se conservan; distinguir este reporte del navegador automatizado.
+
+
+### Seguimiento PR #46: likes, pendientes y Google al código
+
+Likes positivos del reel: «1 lo quiere» / «N lo quieren» bajo el corazón; cero conserva «Lo quiero», agotado Avísame. Nombre accesible incluye acción y contador; `.cnt` de la bolsa intacta. `usePendientesPedidos` reúne pedidos y solicitudes, suma solo trabajo pendiente y conserva errores/carga; el mismo desglose alimenta Nuevos y el único contador inferior. Registrar mantiene el total; confirmar/descartar/vencer lo reduce, sin alterar ventas/deuda/stock.
+
+Google conserva el código en `redirectTo` (parámetro local validado `volver`) además de `dz_volver`. Callback retorna al código con `registrar=1`; la vista privada comprueba sesión y pertenencia por RLS antes de abrir. Destinos externos/rebotes al panel no se usan para resolver solicitudes. Error/cancelación conserva el aviso y código; ya registrada ofrece su pedido existente. No cambia Site URL ni configuración Auth. Lista de callbacks permitidos no accesible en esta sesión: documentar dirección exacta de la nueva preview en el PR y completar OAuth real en Safari. Handoff ampliado en `docs/handoffs/pedido-catalogo-panel-continuacion.md`. No incorporar #45 ni fusionar/publicar.

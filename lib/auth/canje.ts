@@ -30,3 +30,35 @@ export function debeComprobarSesion(modo: "demo" | "real" | null, hayConfiguraci
   if (!hayConfiguracion || modo === "demo") return false;
   return modo === "real" || hayErrorLogin || hayCookieSesion;
 }
+
+/** La cookie que recuerda a dónde volver después de Google (solo el link de un pedido del catálogo). */
+export const COOKIE_VOLVER = "dz_volver";
+
+/**
+ * A dónde se puede volver después de Google: solo rutas locales permitidas (hoy, `/pedido/CODIGO`). Cualquier otra cosa
+ * (otro dominio, `//x`, rutas con `..`, un código que no es de solicitud) vuelve al panel: nunca se redirige afuera.
+ */
+export function vueltaPermitida(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  let ruta = valor;
+  try {
+    ruta = decodeURIComponent(valor);
+  } catch {
+    return null;
+  }
+  return /^\/pedido\/[A-HJ-NP-Z2-9]{10}$/.test(ruta) ? ruta : null;
+}
+
+/** El código viaja en el callback además de la cookie: dos pestañas no comparten su destino. */
+export function callbackGoogle(origen: string, volverA?: string): string {
+  const url = new URL("/auth/callback", origen);
+  const vuelta = vueltaPermitida(volverA);
+  if (vuelta) url.searchParams.set("volver", vuelta);
+  return url.href;
+}
+
+/** Mantiene el login normal del panel; el retorno de una solicitud monta su vista privada tras comprobar RLS. */
+export function destinoGoogle(vuelta: string | null, error: boolean): string {
+  if (!vuelta) return error ? "/?error_login=1" : "/";
+  return `${vuelta}?registrar=1${error ? "&error_login=1" : ""}`;
+}

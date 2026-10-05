@@ -1,0 +1,392 @@
+perfume · 360 · claro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 360 · claro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 360 · claro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 360 · claro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 360 · claro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 360 · claro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 360 · claro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+perfume · 390 · claro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 390 · claro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 390 · claro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 390 · claro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 390 · claro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 390 · claro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 390 · claro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+perfume · 430 · claro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 430 · claro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 430 · claro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 430 · claro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 430 · claro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 430 · claro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 430 · claro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+perfume · 360 · oscuro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 360 · oscuro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 360 · oscuro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 360 · oscuro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 360 · oscuro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 360 · oscuro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 360 · oscuro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+perfume · 390 · oscuro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 390 · oscuro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 390 · oscuro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 390 · oscuro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 390 · oscuro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 390 · oscuro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 390 · oscuro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+perfume · 430 · oscuro
+  ✅ Formulario de perfume sin desborde
+  ✅ Se guardan Marca y Tamaño (75 ml · EDT)
+  ✅ Se guarda Ideal para
+  ✅ Se guardan las notas en su orden
+  ✅ Al volver a abrir, Marca está
+  ✅ Al volver a abrir, Tamaño está (Tamaño: 75 ml · EDT)
+  ✅ Al volver a abrir, Notas están
+  ✅ Sin errores de página
+ropa · 430 · oscuro
+  ✅ La hoja dice que salen 10 combinaciones
+  ✅ Hay 10 filas de stock
+  ✅ El total suma (6 en total)
+  ✅ Formulario de ropa sin desborde
+  ✅ Al quitar un color quedan 5
+  ✅ Publicar crea la blusa con sus 5 variantes
+  ✅ …y su stock por variante (3 en total)
+  ✅ Sin errores de página
+medios · 430 · oscuro
+  ✅ El video se preparó (sin anillo de progreso)
+  ✅ Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle
+  ✅ Tocar el video activa el sonido
+  ✅ Hacer portada pone la segunda foto primero
+  ✅ Mover a la izquierda ordena el video
+  ✅ Quitar deja 2 elementos
+  ✅ El tercer video no se deja
+  ✅ Tira de medios sin desborde
+  ✅ Publicar guarda la foto y los 2 videos
+  ✅ Sin errores de página
+encargo · 430 · oscuro
+  ✅ Se guarda Por encargo con su tiempo
+  ✅ Sin errores de página
+pedido · 430 · oscuro
+  ✅ Por encargo apagado en la camisa
+  ✅ La camisa no se agrega sin elegir
+  ✅ M · Arena (agotada) está apagada
+  ✅ …y dice Agotado
+  ✅ Selector con variantes sin desborde
+  ✅ El pedido muestra M · Blanco
+  ✅ La línea guarda la variante
+  ✅ El detalle muestra M · Blanco
+  ✅ Despachar baja M · Blanco de 5 a 4
+  ✅ Sin errores de página
+pedidoEncargo · 430 · oscuro
+  ✅ M · Arena empieza agotada
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ Selector con encargo sin desborde
+  ✅ El pedido muestra M · Arena y Por encargo
+  ✅ La línea entra con por_encargo = true
+  ✅ Editar pedido conserva Por encargo
+  ✅ Despachar no toca el stock de M · Arena (sigue en 0)
+  ✅ M · Arena agotada se puede elegir y dice Por encargo
+  ✅ La variante dice Por encargo · Llega en 5 días
+  ✅ La venta pasada entra por encargo
+  ✅ …y no descuenta M · Arena
+  ✅ Sin errores de página
+yaLlego · 430 · oscuro
+  ✅ Ya llegó sin desborde
+  ✅ Avisar abre WhatsApp de quien espera
+  ✅ El mensaje nombra la variante y lleva #p/camisa-de-lino
+  ✅ Abrir WhatsApp no marca antes de volver
+  ✅ La fila pasa a Avisado
+  ✅ Queda marcado como avisado
+  ✅ Sin errores de página
+
+Todo bien.

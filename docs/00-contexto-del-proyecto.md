@@ -54,7 +54,7 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 1. Base de datos y capa de datos. **Hecho** (PR #40).
 2. Panel: producto con detalles por rubro, opciones con stock por variante, fotos y video, Por encargo, "Ya llegó". **Hecho** (PR #42).
 3. **Catálogo en React** en `/tienda/{slug}` y la página del pedido del comprador `/pedido/{codigo}`, como copia fiel del HTML. **Implementado en PR #44, pendiente de revisión en preview y fusión autorizada**: `docs/prompts/catalogo-react.md`. Migración y SQL de Michel aplicados; el enlace público sigue apuntando al HTML antiguo.
-4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Prompt por escribir; los tableros están en `referencias/pedido-catalogo/`.
+4. **Pedido del catálogo en el panel**: estado del pedido para el comprador, "Registrar pedido" para la tienda, la fila de respaldo en Pedidos › Nuevos, la lista de Avísame. Implementado inicialmente por Claude y completado en `feature/pedido-catalogo-panel-continuacion`, pendiente de revisión y fusión. Prompt en la rama documental `docs/pedido-catalogo-panel`; tableros en `referencias/pedido-catalogo/`. Antes de retomar, leer `docs/handoffs/pedido-catalogo-panel-continuacion.md`. PR #46 incluye el seguimiento de likes (singular/plural), contadores de trabajo pendiente y retorno de Google al código elegido; ver su handoff para pruebas y límites de OAuth real. PR #45 de rendimiento sigue separado.
 
 (En el documento 12 estas dos últimas figuran como partes 4 y 3; el orden se cambió porque el HTML fijo no refleja lo que la tienda cambia en la app.)
 

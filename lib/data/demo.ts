@@ -44,6 +44,7 @@ import {
   registrarAaahEnDB,
   registrarSolicitudEnDB,
   solicitudesPendientesDeDB,
+  solicitudPorCodigoDeDB,
   verSolicitudDeDB,
 } from "./catalogo";
 import {
@@ -617,6 +618,10 @@ export const fuenteDemo: FuenteDatos = {
     });
     return resultado;
   },
+  async solicitudPorCodigo(codigo) {
+    const e = leerDemo();
+    return solicitudPorCodigoDeDB(e.db, codigo, e.tiendaActivaId);
+  },
   async descartarSolicitud(tiendaId, solicitudId) {
     escribir((db) => descartarSolicitudEnDB(db, tiendaId, solicitudId, ahora()));
   },
@@ -701,4 +706,9 @@ export function cambiarTiendaActivaDemo(tiendaId: string) {
   estado = { ...actual, tiendaActivaId: tiendaId, version: actual.version + 1 };
   persistir(estado);
   emitir();
+}
+
+/** Demo: de qué tienda (de este navegador) es la solicitud de ese código, para "Ver como la tienda". null si no está aquí. */
+export function tiendaDeSolicitudDemo(codigo: string): string | null {
+  return leerDemo().db.solicitudes.find((s) => s.codigo === codigo.trim().toUpperCase())?.tiendaId ?? null;
 }

@@ -1142,7 +1142,11 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       }),
     async registrarSolicitud(tiendaId, solicitudId, d) {
       const nuevo = d.clienteNuevo
-        ? { nombre: d.clienteNuevo.nombre.trim(), telefono: d.clienteNuevo.telefono?.trim() ? d.clienteNuevo.telefono.trim() : null }
+        ? {
+            nombre: d.clienteNuevo.nombre.trim(),
+            telefono: d.clienteNuevo.telefono?.trim() ? d.clienteNuevo.telefono.trim() : null,
+            nota: d.clienteNuevo.nota?.trim() ? d.clienteNuevo.nota.trim() : null,
+          }
         : null;
       let creado: { id: string; cliente_id: string | null };
       try {
@@ -1175,6 +1179,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     async descartarSolicitud(_tiendaId, solicitudId) {
       await dato(supabase.rpc("descartar_solicitud", { p_solicitud_id: solicitudId }));
       cambio(undefined);
+    },
+    async solicitudPorCodigo(codigo) {
+      // RLS: solo las de mis tiendas. Sin caché: el estado cambia (otra sesión pudo registrarla).
+      const f = await dato<FilaSolicitud>(
+        supabase.from("solicitudes_pedido").select("*").eq("codigo", codigo.trim().toUpperCase()).maybeSingle(),
+      );
+      return f ? aSolicitud(f) : null;
     },
 
     // ---- Avísame cuando llegue ----

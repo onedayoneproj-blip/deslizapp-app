@@ -9,6 +9,7 @@ export type OpcionFiltro<T extends string> = {
   id: T;
   texto: ReactNode;
   cantidad?: number;
+  nombreAccesible?: string;
   atencion?: boolean;
 };
 
@@ -99,6 +100,7 @@ export function FilaPastillas<T extends string>({
               key={o.id}
               ref={(el) => void (el ? botones.current.set(o.id, el) : botones.current.delete(o.id))}
               type="button"
+              aria-label={o.nombreAccesible}
               aria-pressed={elegida}
               onKeyDown={(e) => {
                 if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;

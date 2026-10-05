@@ -77,7 +77,7 @@ Lo que los filtros del catálogo usan: perfumes filtra por `para` y `ocasiones` 
   5. "No es un pedido" → la descarta.
 - **Respaldo en Pedidos › Nuevos:** fila "N pedidos del catálogo por registrar" que abre la lista de solicitudes vigentes. Así ninguno se pierde si la tienda no toca el enlace.
 - En iPhone el enlace de WhatsApp abre Safari, no la app instalada: la primera vez la tienda entra con Google en Safari desde "¿Eres la tienda?". En Android, Chrome puede abrirlo en la app instalada (declararlo en el manifest).
-- Las solicitudes vencidas sin registrar se borran a los 7 días (tarea programada o al leer).
+- Las solicitudes sin registrar vencen a los siete días según el contrato de lectura/registro. La implementación actual no garantiza borrado físico ni añade tarea programada; una solicitud registrada no vence.
 
 ## 7. Aaahs
 
@@ -103,3 +103,8 @@ Lo que los filtros del catálogo usan: perfumes filtra por `para` y `ocasiones` 
 
 3. **Panel, pedido del catálogo:** `/pedido/{codigo}` (las dos vistas), fila de respaldo, lista de espera de Avísame. Diseño: tablero "Pedido del catálogo".
 4. **Catálogo en React** `/tienda/{slug}`, leyendo de §5–§9. Luego `url_catalogo` apunta ahí. **Es una copia fiel del HTML actual** (`public/catalogos/esencias-michel.html`): mismo feed de reels, cabecera, perfil, búsqueda, colecciones, panel «más», carrito, pedido, recibo, animaciones (aaah, sello de agotado), tipografías y medidas. Se compara lado a lado con el HTML, pantalla por pantalla. Lo único nuevo es lo de este documento (carrusel con video, opciones, Por encargo, Avísame, estado del pedido) y la marca de cada tienda en vez de los valores fijos de Esencias Michel. Los tableros del canvas "Producto" (6 a 10) son ilustrativos: dicen **qué** se agrega y dónde, no cómo se ve el resto del reel.
+
+
+### Estado de la parte 3 (5 oct 2026)
+
+Implementación inicial publicada por Claude en `feature/pedido-catalogo-panel` (`4307a14`); continuación separada en `feature/pedido-catalogo-panel-continuacion`. No fusionada ni publicada. Contrato público ampliado en `20261004223008` ya aplicado; protección de disponibilidad al registrar en `20261005013157` también aplicada y compatible. No cambiar `url_catalogo`, el HTML publicado ni la solicitud reservada `4DCQ2PZ28F`. Ver `handoffs/pedido-catalogo-panel-continuacion.md` para resultados realmente ejecutados y convivencia con la optimización de #45.

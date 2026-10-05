@@ -1,0 +1,170 @@
+[
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "06 registrar estados y ver pedido",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "09 respaldo lista descarte y retorno",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "10 vencida inexistente y registrada antigua",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "11 teclado atrás borrador y cierres",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "06 registrar estados y ver pedido",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "09 respaldo lista descarte y retorno",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "10 vencida inexistente y registrada antigua",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "11 teclado atrás borrador y cierres",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "06 registrar estados y ver pedido",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "09 respaldo lista descarte y retorno",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "10 vencida inexistente y registrada antigua",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "11 teclado atrás borrador y cierres",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  },
+  {
+    "nombre": "06 registrar estados y ver pedido",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  },
+  {
+    "nombre": "09 respaldo lista descarte y retorno",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  },
+  {
+    "nombre": "10 vencida inexistente y registrada antigua",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  },
+  {
+    "nombre": "11 teclado atrás borrador y cierres",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": true,
+    "paso": true
+  }
+]

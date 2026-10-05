@@ -25,7 +25,7 @@ import { IconoChevronDerecha, IconoMas } from "../iconos";
 import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { SelectorCliente, type ClienteElegido } from "./selector-cliente";
+import { SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
 
@@ -107,7 +107,7 @@ function Formulario({
 
   // Los selectores (cliente, productos) son otra vista DENTRO de esta misma hoja (no una segunda hoja).
   const [vista, setVista] = useState<"pedido" | "cliente" | "productos" | "descuento">("pedido");
-  const [cliente, setCliente] = useState<ClienteElegido | null>(() => {
+  const [cliente, setCliente] = useState<ClienteGuardado | null>(() => {
     const c = pedido?.clienteId ? clientes.find((x) => x.id === pedido.clienteId) : undefined;
     return c ? { id: c.id, nombre: c.nombre, telefono: c.telefono } : null;
   });
@@ -196,6 +196,8 @@ function Formulario({
   };
   const abrirSelector = () => abrir("cliente");
   const elegir = (c: ClienteElegido) => {
+    // En "+ Pedido" el selector guarda al cliente nuevo antes de devolverlo (modo "guardar"): siempre trae id.
+    if (c.nuevo) return;
     setCliente(c);
     setVista("pedido");
   };

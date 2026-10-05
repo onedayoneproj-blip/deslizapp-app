@@ -6,7 +6,7 @@ import { HAY_SUPABASE, SUPABASE_LLAVE, SUPABASE_URL } from "../supabase/config";
 import { createClient } from "../supabase/client";
 import { esErrorDeRed, traducirErrorSupabase } from "./errores";
 import { aUsuario, type FilaUsuario } from "./filas";
-import { debeComprobarSesion } from "../auth/canje";
+import { COOKIE_VOLVER, callbackGoogle, debeComprobarSesion, vueltaPermitida } from "../auth/canje";
 import { elegirModo, KEY_MODO, type Modo } from "./modo";
 
 export type EstadoSesion =
@@ -144,11 +144,25 @@ async function googleActivado(): Promise<boolean> {
   return ajustes.external?.google === true;
 }
 
+/** Recuerda (10 min) a qué link volver después de Google; solo rutas permitidas. Sin `volverA`, la borra. */
+function recordarVuelta(volverA: string | undefined) {
+  try {
+    const ruta = vueltaPermitida(volverA);
+    const seguro = window.location.protocol === "https:" ? "; secure" : "";
+    document.cookie = ruta
+      ? `${COOKIE_VOLVER}=${encodeURIComponent(ruta)}; path=/; max-age=600; samesite=lax${seguro}`
+      : `${COOKIE_VOLVER}=; path=/; max-age=0; samesite=lax${seguro}`;
+  } catch {
+    // El callback conserva también el destino permitido en su URL.
+  }
+}
+
 /**
  * Lleva a Google y, al volver, a /auth/callback. Devuelve un aviso (y no sale de la app) si el acceso con
- * Google no está configurado todavía o no hay conexión.
+ * Google no está configurado todavía o no hay conexión. `volverA`: el link de un pedido del catálogo al que volver
+ * (`/pedido/CODIGO`); sin él, al panel.
  */
-export async function entrarConGoogle(): Promise<string | null> {
+export async function entrarConGoogle(volverA?: string): Promise<string | null> {
   if (!HAY_SUPABASE) return AVISO_GOOGLE_SIN_CONFIGURAR;
   let guardado = false;
   // Si no se pudo salir hacia Google, se olvida el modo real (salvo que ya se haya elegido otra cosa).
@@ -160,9 +174,10 @@ export async function entrarConGoogle(): Promise<string | null> {
     // Se recuerda antes de salir: al volver de Google la app abre directo en modo real.
     guardarModo("real");
     guardado = true;
+    recordarVuelta(volverA);
     const { error } = await createClient().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackGoogle(window.location.origin, volverA) },
     });
     if (error) {
       deshacer();

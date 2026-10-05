@@ -1,0 +1,71 @@
+[
+  {
+    "nombre": "sin-sesion",
+    "paso": true
+  },
+  {
+    "nombre": "otra-tienda",
+    "paso": true
+  },
+  {
+    "nombre": "respuesta-perdida",
+    "paso": true
+  },
+  {
+    "nombre": "red-caida-y-recuperada",
+    "paso": true
+  },
+  {
+    "nombre": "lectura-rota-con-reintento",
+    "paso": true
+  },
+  {
+    "nombre": "google-retorno-PRUEBAR234",
+    "paso": true
+  },
+  {
+    "nombre": "sesion-valida-PRUEBAR234",
+    "paso": true
+  },
+  {
+    "nombre": "google-retorno-PRUEBAT234",
+    "paso": true
+  },
+  {
+    "nombre": "sesion-valida-PRUEBAT234",
+    "paso": true
+  },
+  {
+    "nombre": "error-login-especifico",
+    "paso": true
+  },
+  {
+    "nombre": "retorno-otra-tienda",
+    "paso": true
+  },
+  {
+    "nombre": "retorno-registrada",
+    "paso": true
+  },
+  {
+    "nombre": "retorno-vencida",
+    "paso": true
+  },
+  {
+    "nombre": "retorno-descartada",
+    "paso": true
+  },
+  {
+    "nombre": "contador-lectura-fallida",
+    "paso": false,
+    "error": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Nuevos, 0 pedidos registrados nuevos y 2 solicitudes del catálogo por registrar', exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "nombre": "aviso-fallo-marcado",
+    "paso": true
+  },
+  {
+    "nombre": "aviso-apertura-fallida",
+    "paso": true
+  }
+]

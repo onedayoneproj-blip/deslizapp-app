@@ -257,7 +257,7 @@ try {
       );
       const msg = new globalThis.URL(captura[0]).searchParams.get("text");
       aprobar(
-        /Mi pedido #[A-Z0-9]+:\nhttp:\/\/localhost:3220\/pedido\//.test(msg),
+        msg.includes("Mi pedido #") && msg.includes("\n" + URL + "/pedido/"),
         "Mensaje lleva código y origen real",
       );
       const lectura = await ctx.newPage();

@@ -58,7 +58,7 @@ export function DataProvider({ children, cargando, entrada }: { children: ReactN
   return entrada;
 }
 
-function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: ReactNode }) {
+export function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: ReactNode }) {
   const e = useSyncExternalStore(suscribirDemo, leerDemo, nadaEnServidor);
   const valor = useMemo<DataContexto | null>(
     () =>
@@ -79,7 +79,7 @@ function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
-function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Usuario }) {
+export function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Usuario }) {
   const [version, setVersion] = useState(0);
   const [errorLectura, setErrorLectura] = useState<string | null>(null);
   const [fuente] = useState(() => crearFuenteSupabase(createClient(), () => setVersion((v) => v + 1)));
@@ -95,8 +95,8 @@ function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Us
     setErrorLectura(mensajeDeError(e, "No pudimos cargar tus datos. Inténtalo otra vez."));
   }, []);
 
-  // Al volver a la app (otra pestaña, el teléfono bloqueado) se leen los datos de nuevo: pudieron llegar
-  // pedidos del catálogo mientras tanto.
+  // Al volver a la app (otra pestaña, el teléfono bloqueado, de WhatsApp o del link de un pedido) se leen los datos de
+  // nuevo: pudieron llegar pedidos del catálogo mientras tanto. Visibilidad y foco comparten el mismo freno de 15 s.
   useEffect(() => {
     let ultima = Date.now();
     const alVolver = () => {
@@ -105,7 +105,11 @@ function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Us
       refrescar();
     };
     document.addEventListener("visibilitychange", alVolver);
-    return () => document.removeEventListener("visibilitychange", alVolver);
+    window.addEventListener("focus", alVolver);
+    return () => {
+      document.removeEventListener("visibilitychange", alVolver);
+      window.removeEventListener("focus", alVolver);
+    };
   }, [refrescar]);
 
   const valor = useMemo<DataContexto>(

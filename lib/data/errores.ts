@@ -267,6 +267,7 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("reposicion_repetida")) return new DatosInvalidos("Un producto aparece repetido en la lista.");
 
   // Catálogo conectado (migraciones 20261004…): variantes, catálogo público, solicitudes, aaahs y avisos
+  if (mensaje.includes("disponibilidad_cambio")) return new DatosInvalidos("Cambió la disponibilidad. Revisa las existencias y decide qué quitar o pasar a encargo.");
   if (mensaje.includes("usar_variante")) return new UsarVariante();
   if (mensaje.includes("variante_invalida")) return new DatosInvalidos("Esa variante no corresponde a este producto. Revisa las opciones.");
   if (mensaje.includes("variantes_sin_permiso")) return new SinPermiso();

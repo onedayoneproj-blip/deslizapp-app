@@ -22,6 +22,27 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.33.1",
+    fecha: "2026-10-05",
+    titulo: "Cada pendiente cuenta.",
+    cambios: [
+      "El corazón te dice cuántas personas lo quieren.",
+      "Nuevos y Pedidos cuentan también lo que falta registrar del catálogo.",
+      "Al entrar con Google desde un pedido, vuelves directo a ese pedido.",
+    ],
+  },
+  {
+    version: "0.33.0",
+    fecha: "2026-10-05",
+    titulo: "Del catálogo a tus pedidos.",
+    cambios: [
+      "Registra lo que te pidieron con quien te escribió, sin perder el borrador.",
+      "Los pedidos del catálogo por registrar también aparecen en Nuevos.",
+      "Los me gusta se leen debajo del corazón, separados de la bolsita del pedido.",
+      "Cuando repones una opción, puedes avisar a quienes la esperan.",
+    ],
+  },
+  {
     version: "0.32.0",
     fecha: "2026-10-04",
     titulo: "Tu catálogo, conectado.",

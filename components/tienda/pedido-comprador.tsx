@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import dynamic from "next/dynamic";
+import { estadoComprador } from "@/lib/pedido-catalogo";
 import type { VistaSolicitud, CatalogoPublico } from "@/lib/types";
 import { fuentePublica } from "@/lib/data/publica";
 import { lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
@@ -9,20 +11,38 @@ import { NOMBRE_PRODUCTO } from "@/lib/rubros";
 import { dinero } from "@/lib/tienda/carrito";
 import { descargarRecibo } from "@/lib/tienda/recibo";
 import { Icono } from "./iconos";
+
+// La vista de la tienda (Registrar) solo se carga si hay sesión o la piden: el comprador no la descarga.
+const TiendaEnPedido = dynamic(() => import("../pedido-catalogo/tienda-en-pedido").then((m) => m.TiendaEnPedido), { ssr: false });
+
+/** Sin sesión de Supabase (cookie) no se carga nada de la tienda al abrir. */
+function hayCookieDeSesion(): boolean {
+  try {
+    return /(^|;\s*)sb-[^=]*auth-token/.test(document.cookie);
+  } catch {
+    return false;
+  }
+}
+
+const FINALES = new Set(["cancelado", "vencido"]);
 export function PedidoComprador({
   codigo,
   demo,
   inicial,
   inicialCatalogo = null,
+  errorInicial = false,
 }: {
   codigo: string;
   demo: boolean;
   inicial: VistaSolicitud | null;
   inicialCatalogo?: CatalogoPublico | null;
+  errorInicial?: boolean;
 }) {
   const [s, setS] = useState(inicial);
   const [catalogo, setCatalogo] = useState(inicialCatalogo);
   const [cargando, setCargando] = useState(demo);
+  const [falloLectura, setFalloLectura] = useState(errorInicial);
+  const [intentoLectura, setIntentoLectura] = useState(0);
   const [i, setI] = useState(0);
   const [pausa, setPausa] = useState(false);
   const [error, setError] = useState("");
@@ -32,18 +52,19 @@ export function PedidoComprador({
   const [catalogoAnterior, setCatalogoAnterior] = useState<string | null>(null);
   useEffect(() => {
     let valido = true;
-    if (demo)
-      fuentePublica(true)
+    if (demo || intentoLectura > 0)
+      fuentePublica(demo)
         .then((f) => f.verSolicitud(codigo))
         .then((s) => {
           if (valido) {
             setS(s);
             setCargando(false);
-            if(s) fuentePublica(true).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
+            setFalloLectura(false);
+            if(s) fuentePublica(demo).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
           }
         })
         .catch(() => {
-          if (valido) setCargando(false);
+          if (valido) { setCargando(false); setFalloLectura(true); }
         });
     try {
       const url = new URL(document.referrer);
@@ -56,7 +77,44 @@ export function PedidoComprador({
       valido = false;
       if (hold.current) clearTimeout(hold.current);
     };
-  }, [codigo, demo]);
+  }, [codigo, demo, intentoLectura]);
+  // El estado cambia cuando la tienda lo registra o lo despacha: se vuelve a leer al volver a la pestaña, al recuperar el foco
+  // y, mientras se ve la página, cada 45 s (sin Realtime ni anillo). Lo ya final (cancelado o vencido) no se sigue leyendo.
+  const estadoActual = s?.estado;
+  useEffect(() => {
+    if (estadoActual && FINALES.has(estadoActual)) return;
+    let vivo = true;
+    let ultima = Date.now();
+    const releer = () => {
+      if (document.visibilityState !== "visible" || Date.now() - ultima < 5_000) return;
+      ultima = Date.now();
+      fuentePublica(demo)
+        .then((f) => f.verSolicitud(codigo))
+        .then((nueva) => {
+          if (vivo && nueva) setS(nueva);
+        })
+        .catch(() => {});
+    };
+    const reloj = window.setInterval(releer, 45_000);
+    document.addEventListener("visibilitychange", releer);
+    window.addEventListener("focus", releer);
+    return () => {
+      vivo = false;
+      window.clearInterval(reloj);
+      document.removeEventListener("visibilitychange", releer);
+      window.removeEventListener("focus", releer);
+    };
+  }, [codigo, demo, estadoActual]);
+
+  // ¿Es la tienda? Solo con sesión (o en la demo, si lo pide): la vista de la tienda se monta encima, sin frenar al comprador.
+  const [tienda, setTienda] = useState<"no" | "comprobar" | "entrar">("no");
+  useEffect(() => {
+    if (demo) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get("registrar") === "1" || params.has("error_login")) queueMicrotask(() => setTienda("entrar"));
+    else if (hayCookieDeSesion()) queueMicrotask(() => setTienda("comprobar"));
+  }, [demo]);
+
   const enlace = s
     ? `/tienda/${s.tienda.slug}${demo ? "?demo" : ""}`
     : catalogoAnterior;
@@ -66,6 +124,8 @@ export function PedidoComprador({
   };
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
+      // Con la hoja de la tienda abierta, las teclas son de la hoja.
+      if (document.querySelector('[role="dialog"]')) return;
       if (e.key === "Escape") {
         if (enlace) location.href = enlace;
         else history.back();
@@ -119,11 +179,20 @@ export function PedidoComprador({
       setPreparando(false);
     }
   };
-  const item = s?.items[i];
+  const indice = Math.min(i, Math.max(0, (s?.items.length ?? 1) - 1));
+  const item = s?.items[indice];
   const producto = catalogo?.productos.find(p=>p.id===item?.productoId);
   const nombres = NOMBRE_PRODUCTO[catalogo?.tienda.rubro ?? "general"];
   const tema = catalogo ? temaDeTienda(catalogo.tienda) : null;
   const valido = s && s.estado !== "vencido" && s.items.length > 0;
+  const entradaTienda = (
+    <p className="pvest-tienda">
+      ¿Eres la tienda?{" "}
+      <button type="button" onClick={() => setTienda("entrar")}>
+        Entra para registrarlo
+      </button>
+    </p>
+  );
   return (
     <div
       className="catalogo-publico pedido-publico"
@@ -135,7 +204,7 @@ export function PedidoComprador({
         } as CSSProperties
       }
     >
-      <div id="pvBg" className="pvov">
+      <div id="pvBg" className={"pvov" + (tienda !== "no" ? " tienda-abierta" : "")}>
         <main
           className={
             "pvpage" + (!valido ? " gone" : "") + (pausa ? " paused" : "")
@@ -147,8 +216,8 @@ export function PedidoComprador({
               {s.items.map((p, j) => (
                 <img
                   key={p.productoId + (p.varianteId ?? "")}
-                  className={"pvslide" + (j === i ? " on" : "")}
-                  src={p.foto ?? ""}
+                  className={"pvslide" + (j === indice ? " on" : "")}
+                  src={p.foto ?? undefined}
                   alt=""
                   style={
                     {
@@ -172,8 +241,8 @@ export function PedidoComprador({
               <div className="pvbars" aria-hidden="true">
                 {s.items.map((_, j) => (
                   <i
-                    key={j + "-" + i}
-                    className={j < i ? "done" : j === i ? "run" : ""}
+                    key={j + "-" + indice}
+                    className={j < indice ? "done" : j === indice ? "run" : ""}
                     onAnimationEnd={() => {
                       if (!pausa) paso(1);
                     }}
@@ -209,7 +278,7 @@ export function PedidoComprador({
                   {item.porEncargo ? " · Por encargo" : ""}
                 </span>
                 <span className="pvtag">
-                  {i + 1} de {s.items.length}
+                  {indice + 1} de {s.items.length}
                 </span>
                 <span className="pvacts">
                   <a
@@ -250,26 +319,8 @@ export function PedidoComprador({
                   </button>
                 </span>
               </div>
-              <section className="pvsheet">
-                <div className="pvt">
-                  <span>
-                    Total · {s.items.length}{" "}
-                    {s.items.length === 1 ? "producto" : "productos"}
-                  </span>
-                  <b>{dinero(s.total)}</b>
-                </div>
-                <p className="pvmeta">
-                  Pedido #{s.codigo} ·{" "}
-                  {new Date(s.creadaEn).toLocaleString("es-DO", {
-                    timeZone: "America/Santo_Domingo",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <p className="pvsec">Descargar recibo</p>
+              <section className="pvsheet" aria-labelledby="pvest-titulo">
+                <EstadoDelPedido vista={s} />
                 <div className="pvrow">
                   <button
                     className="pvbtn soft"
@@ -292,6 +343,7 @@ export function PedidoComprador({
                 <button className="pvbtn pri wide" onClick={volver}>
                   Seguir explorando {s.tienda.nombre}
                 </button>
+                {entradaTienda}
               </section>
             </>
           ) : (
@@ -300,28 +352,71 @@ export function PedidoComprador({
                 <h2>
                   {cargando
                     ? "Abriendo tu pedido…"
-                    : s?.estado === "vencido"
+                    : falloLectura
+                      ? "No pudimos abrir tu pedido"
+                      : s?.estado === "vencido"
                       ? "Este pedido venció"
                       : "Este pedido no está disponible"}
                 </h2>
                 <p className="pvgonep">
                   {!cargando &&
-                    (s
-                      ? "Puedes volver al catálogo y armarlo otra vez."
-                      : "Revisa el enlace o pídele a quien te lo mandó que lo envíe de nuevo.")}
+                    (falloLectura ? "Revisa la conexión y vuelve a intentarlo. Tu enlace sigue aquí." : s?.estado === "vencido"
+                      ? "Nadie lo registró en 7 días. Si todavía te interesa, vuélvelo a armar."
+                      : s
+                        ? "Puedes volver al catálogo y armarlo otra vez."
+                        : "Revisa el enlace o pídele a quien te lo mandó que lo envíe de nuevo.")}
                 </p>
               </div>
               <div className="pvsheet">
+                {falloLectura && <button className="pvbtn pri wide" onClick={() => { setCargando(true); setIntentoLectura(n => n + 1); }}>Reintentar</button>}
                 <button className="pvbtn pri wide" onClick={volver}>
                   {s
                     ? "Seguir explorando " + s.tienda.nombre
                     : "Volver al catálogo"}
                 </button>
+                {s && entradaTienda}
               </div>
             </>
           )}
         </main>
       </div>
+      {tienda !== "no" && s && (
+        <TiendaEnPedido
+          codigo={s.codigo}
+          demo={demo}
+          pedirEntrar={tienda === "entrar"}
+          alCerrar={() => setTienda("no")}
+          alCambiarEstado={(nueva) => setS(nueva)}
+        />
+      )}
+    </div>
+  );
+}
+
+const PASOS = ["Enviado", "Confirmado", "Despachado"] as const;
+
+/** La cabecera de la hoja: punto y estado como título, total, la línea corta y la barra de tres tramos (Estados). */
+function EstadoDelPedido({ vista }: { vista: VistaSolicitud }) {
+  const e = estadoComprador(vista);
+  const cancelado = e.estado === "cancelado";
+  return (
+    <div className={"pvest " + e.estado}>
+      <div className="pvest-fila">
+        <h2 id="pvest-titulo">{e.titulo}</h2>
+        <b className="pvest-total">{dinero(vista.total)}</b>
+      </div>
+      <p className="pvest-linea">{e.linea}</p>
+      <ol className="pvest-pasos" aria-label={cancelado ? "Pedido cancelado" : `Paso ${e.paso} de 3: ${PASOS[e.paso - 1]}`}>
+        {PASOS.map((paso, n) => (
+          <li
+            key={paso}
+            className={(n < e.paso ? "lleno" : "") + (n === e.paso - 1 ? " actual" : "")}
+            aria-current={n === e.paso - 1 ? "step" : undefined}
+          >
+            {cancelado ? <span className="sr-only">{paso}</span> : paso}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

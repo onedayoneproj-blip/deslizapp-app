@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
+import { usePendientesPedidos } from "@/lib/data/pendientes-pedidos";
 import { textoFechaDeudaAccesible } from "@/lib/credito";
 import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
 import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
@@ -12,7 +13,8 @@ import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Avatar, BloqueDeuda, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
+import { Aviso, Avatar, BloqueDeuda, Contador, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
+import { IconoChevronDerecha } from "../iconos";
 import { EtiquetaPago } from "./comunes";
 
 type Pestana = EstadoPedido;
@@ -50,14 +52,17 @@ export function useElegirPestanaPedidos() {
  * abrir y cerrar un pedido: /pedidos/nuevo y /pedidos/[id] solo agregan la hoja encima.
  */
 export function VistaPedidos({ children }: { children: ReactNode }) {
-  const { getPedidos, getProductos, getClientes } = useData();
+  const { getProductos, getClientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const [pestanaElegida, setPestanaElegida] = useState<Pestana | null>(null);
   const [ahora] = useState(() => Date.now());
 
-  const { data: pedidos } = useConsulta(`pedidos:${tiendaId}`, () => getPedidos(tiendaId));
+  const pendientes = usePendientesPedidos();
+  const { pedidos } = pendientes;
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
   const { data: clientes } = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  // Solo el aviso de trabajo pendiente suma solicitudes; las listas y métricas conservan pedidos registrados.
+  const porRegistrar = pendientes.cuenta?.porRegistrar;
 
   const porCliente = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, { nombre: c.nombre, repite: c.repite }])), [clientes]);
   const fotos = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
@@ -66,8 +71,9 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
     for (const p of pedidos ?? []) c[p.estado]++;
     return c;
   }, [pedidos]);
-  // Al entrar: primero muestra los pedidos nuevos; si no hay, lleva a los que esperan despacho. Mientras carga, conserva "Nuevos".
-  const pestana = pestanaElegida ?? (pedidos && cuentas.nuevo === 0 ? "por_despachar" : "nuevo");
+  // Al entrar: primero muestra los pedidos nuevos (o los del catálogo por registrar); si no hay ninguno, lleva a los que
+  // esperan despacho. Mientras carga, conserva "Nuevos". Lo que la persona eligió no se cambia.
+  const pestana = pestanaElegida ?? (pendientes.cuenta?.total === 0 && !pendientes.error ? "por_despachar" : "nuevo");
   const elegirPestana = (nueva: Pestana) => setPestanaElegida(nueva);
   const todos = useMemo(() => (pedidos ?? []).filter((p) => p.estado === pestana), [pedidos, pestana]);
   // 30 más recientes; "Ver más antiguos" agrega 30 cada vez. Los contadores de las pastillas siguen siendo el total.
@@ -86,7 +92,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
           opciones={PESTANAS.map((t) => ({
             id: t.id,
             texto: t.nombre,
-            cantidad: pedidos ? cuentas[t.id] : undefined,
+            cantidad: t.id === "nuevo" ? pendientes.cuenta?.total : pedidos ? cuentas[t.id] : undefined,
+            nombreAccesible: t.id === "nuevo" ? `Nuevos, ${pendientes.descripcion}` : undefined,
             atencion: PIDEN_ATENCION.includes(t.id),
           }))}
         />
@@ -97,7 +104,8 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
             <Esqueleto className="h-[112px] rounded-radio-l" />
           </>
         )}
-        {pedidos && todos.length === 0 && (
+        {pestana === "nuevo" && <RespaldoCatalogo cantidad={porRegistrar} error={pendientes.error} alReintentar={pendientes.reintentar} />}
+        {pedidos && todos.length === 0 && !(pestana === "nuevo" && (porRegistrar === undefined || porRegistrar > 0 || pendientes.error)) && (
           <EstadoVacio ilustracion="pedidos" titulo={vacio.titulo} remate={vacio.remate} />
         )}
         {pedidos && todos.length > 0 && (
@@ -117,6 +125,31 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
       <BotonFlotante href="/pedidos/nuevo" texto="Pedido" />
       {children}
     </Contexto.Provider>
+  );
+}
+
+/** «N del catálogo por registrar»: los que llegaron por WhatsApp y todavía no son pedidos. Solo con pendientes vigentes. */
+function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number | undefined; error: boolean; alReintentar: () => void }) {
+  if (error) {
+    return (
+      <Aviso tono="atencion" accion={{ texto: "Reintentar", alTocar: alReintentar }}>
+        No pudimos ver si te llegaron pedidos del catálogo.
+      </Aviso>
+    );
+  }
+  if (cantidad === undefined) return <Esqueleto aria-label="Cargando solicitudes del catálogo" className="h-[60px] rounded-radio-l" />;
+  if (cantidad === 0) return null;
+  return (
+    <Tarjeta href="/pedidos/por-registrar" etiqueta={`${cantidad} ${cantidad === 1 ? "pedido" : "pedidos"} del catálogo por registrar`}>
+      <div className="flex items-center gap-3">
+        <Contador valor={cantidad} atencion />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-destacado text-texto">{cantidad} del catálogo por registrar</span>
+          <span className="truncate text-secundario text-texto-secundario">Te llegaron por WhatsApp. Regístralos aquí.</span>
+        </div>
+        <IconoChevronDerecha tamano={20} className="shrink-0 text-texto-secundario" />
+      </div>
+    </Tarjeta>
   );
 }
 

@@ -50,7 +50,8 @@ async function pagina(ancho, tema, tienda) {
       window.__abiertos = [];
       window.open = (url) => {
         window.__abiertos.push(String(url));
-        return null;
+        // Como un navegador real: devuelve la ventana (null = no se abrió, y entonces no se marca nada).
+        return { opener: null };
       };
     },
     { tienda },
@@ -424,6 +425,8 @@ const ESCENARIOS = {
     if (process.env.VERBOSO) console.log(texto);
     ok(/wa\.me\/18495550177/.test(abiertos[0] ?? ""), "Avisar abre WhatsApp de quien espera");
     ok(texto.includes("¡Hola Mariela! Ya llegó Camisa de lino · M · Arena.") && texto.includes("https://example.com/lino-y-algodon#p/camisa-de-lino"), "El mensaje nombra la variante y lleva #p/camisa-de-lino");
+    ok(!(await db(page)).avisos.find((a) => a.id === "a8000000-0000-4000-8000-000000000003").avisadoEn, "Abrir WhatsApp no marca antes de volver");
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await page.getByText("Avisado", { exact: true }).waitFor({ timeout: 5000 });
     ok(true, "La fila pasa a Avisado");
     await page.waitForFunction(([k]) => JSON.parse(localStorage.getItem(k)).avisos.find((a) => a.id === "a8000000-0000-4000-8000-000000000003").avisadoEn !== null, [CLAVE]);

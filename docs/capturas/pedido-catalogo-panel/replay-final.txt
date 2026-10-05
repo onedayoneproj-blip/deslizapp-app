@@ -1,0 +1,85 @@
+NOTICE:  constraint "promos_cliente_solo_codigo" of relation "promos" does not exist, skipping
+NOTICE:  policy "jugada_envios_leer" for relation "public.jugada_envios" does not exist, skipping
+BEGIN
+DO
+INSERT 0 2
+INSERT 0 4
+SET
+DO
+ROLLBACK
+                            resultado                             
+------------------------------------------------------------------
+ Pasó: replay completo, opiniones, orden, aislamiento y RPC anon.
+(1 row)
+
+BEGIN
+DO
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+              set_config              
+--------------------------------------
+ 20000000-0000-4000-8000-000000000002
+(1 row)
+
+SET
+DO
+RESET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+DO
+RESET
+              set_config              
+--------------------------------------
+ 20000000-0000-4000-8000-000000000001
+(1 row)
+
+SET
+DO
+RESET
+UPDATE 1
+SET
+DO
+RESET
+ROLLBACK
+                                             resultado                                              
+----------------------------------------------------------------------------------------------------
+ Pasó: RLS, anon, agotado, vacío, duplicado, atomicidad, total, nota, estados y stock por variante.
+(1 row)
+
+Pasó: dos sesiones solapadas, espera Lock comprobada, un pedido y un cliente.
+Pasó: cambio de stock concurrente, disponibilidad final verificada, no creó otro pedido.
+BEGIN
+DO
+INSERT 0 2
+              set_config              
+--------------------------------------
+ 20000000-0000-4000-8000-000000000001
+(1 row)
+
+UPDATE 1
+SET
+DO
+RESET
+UPDATE 1
+UPDATE 1
+SET
+DO
+RESET
+UPDATE 1
+SET
+DO
+ROLLBACK
+                                      ?column?                                       
+-------------------------------------------------------------------------------------
+ Pasó: inactivo, variante inactiva, encargo local, despacho de encargo y stock null.
+(1 row)
+

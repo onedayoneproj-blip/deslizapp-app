@@ -1,0 +1,93 @@
+[
+  {
+    "nombre": "01 solicitud desde catálogo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "03 selector compartido",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "04 variantes quitar deshacer encargo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "05 cliente provisional nota y cancelar",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "06 registrar estados y ver pedido",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "07 despacho y devolución por variante",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "08 doble toque y registrada al recargar",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "09 respaldo lista descarte y retorno",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "10 vencida inexistente y registrada antigua",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "11 teclado atrás borrador y cierres",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "12 avisos de variante repuesta",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "13 aislamiento al cambiar tienda",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  }
+]

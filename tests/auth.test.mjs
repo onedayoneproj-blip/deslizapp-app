@@ -35,3 +35,30 @@ test("al abrir: se comprueba la sesión con modo real, o sin modo si hay señal 
   assert.equal(debeComprobarSesion("demo", true, true, true), false);
   assert.equal(debeComprobarSesion("real", false, false, false), false);
 });
+
+test("vuelta después de Google: solo /pedido/CODIGO; nada externo ni raro", async () => {
+  const { vueltaPermitida } = await import("../lib/auth/canje.ts");
+  assert.equal(vueltaPermitida("/pedido/4DCQ2PZ28F"), "/pedido/4DCQ2PZ28F");
+  assert.equal(vueltaPermitida(encodeURIComponent("/pedido/4DCQ2PZ28F")), "/pedido/4DCQ2PZ28F");
+  for (const malo of [null, "", "/", "//evil.com", "https://evil.com/pedido/4DCQ2PZ28F", "/pedido/4dcq2pz28f", "/pedido/4DCQ2PZ28F/../../x", "/pedido/4DCQ2PZ28I", "/pedido/4DCQ2PZ28F?x=1", "%E0%A4%A"]) {
+    assert.equal(vueltaPermitida(malo), null, String(malo));
+  }
+});
+
+test("OAuth preserva dominio y cada código sin depender de una cookie compartida", async () => {
+  const { callbackGoogle, destinoGoogle } = await import("../lib/auth/canje.ts");
+  for (const origin of ["https://deslizapp-preview-onedayone.vercel.app", "https://deslizapp-app.vercel.app"])
+    for (const codigo of ["PRUEBAAA23", "PRUEBAB234"]) {
+      const retorno = `/pedido/${codigo}`;
+      const url = new URL(callbackGoogle(origin, retorno));
+      assert.equal(url.origin, origin);
+      assert.equal(url.pathname, "/auth/callback");
+      assert.equal(url.searchParams.get("volver"), retorno);
+      assert.equal(destinoGoogle(retorno, false), `${retorno}?registrar=1`);
+      assert.equal(destinoGoogle(retorno, true), `${retorno}?registrar=1&error_login=1`);
+    }
+  for (const invalid of ["https://evil.com", "//evil.com", "/catalogo", "/pedidos", "/pedido/PRUEBAAA23/../x"])
+    assert.equal(callbackGoogle("https://example.com", invalid), "https://example.com/auth/callback");
+  assert.equal(destinoGoogle(null, false), "/");
+  assert.equal(destinoGoogle(null, true), "/?error_login=1");
+});

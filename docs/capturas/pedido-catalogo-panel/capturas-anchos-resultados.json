@@ -1,0 +1,44 @@
+[
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "04 variantes quitar deshacer encargo",
+    "ancho": 360,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "04 variantes quitar deshacer encargo",
+    "ancho": 390,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "02 comprador y tienda demo",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  },
+  {
+    "nombre": "04 variantes quitar deshacer encargo",
+    "ancho": 430,
+    "tema": "claro",
+    "reducido": false,
+    "paso": true
+  }
+]

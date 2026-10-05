@@ -53,6 +53,7 @@ export function Reel({
   const agotado = disp === "agotado";
   const encargo = disp === "por_encargo";
   const q = seleccionado(varianteId);
+  const mostrarLikes = !agotado && p.likes > 0;
   const precio = v ? (v.precioPromo ?? v.precio) : (p.precioPromo ?? p.precio);
   const precioBase = v?.precio ?? p.precio;
   const quedan = v?.quedan ?? p.quedan;
@@ -290,14 +291,19 @@ export function Reel({
           className={"act" + (!agotado ? " like" : "")}
           aria-pressed={!agotado ? q : undefined}
           data-like={!agotado ? p.slug : undefined}
-          aria-label={(agotado ? "Avísame: " : "Lo quiero: ") + p.nombre}
+          aria-label={
+            (agotado ? "Avísame: " : q ? "Quitar del carrito: " : "Lo quiero: ") + p.nombre +
+            (mostrarLikes ? `. ${p.likes} ${p.likes === 1 ? "lo quiere" : "lo quieren"}` : "")
+          }
           onClick={() =>
             agotado ? avisar(varianteId) : q ? elegir(varianteId) : aaah()
           }
         >
           <Icono nombre={agotado ? "wa" : "heart"} />
-          {!agotado && p.likes > 0 && <i className="cnt">{p.likes}</i>}
-          <span>{agotado ? "Avísame" : "Lo quiero"}</span>
+          {mostrarLikes && (
+            <span className="likes-count" aria-hidden="true">{p.likes} {p.likes === 1 ? "lo quiere" : "lo quieren"}</span>
+          )}
+          {!mostrarLikes && <span>{agotado ? "Avísame" : "Lo quiero"}</span>}
         </button>
         {(t.personalizacion.secciones as Record<string, unknown> | undefined)
           ?.opiniones !== false && (

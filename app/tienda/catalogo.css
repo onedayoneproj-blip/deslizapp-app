@@ -1227,6 +1227,13 @@ html.catalogo-html,
 :where(.catalogo-publico) .act.like[aria-pressed="true"] svg path {
   fill: currentColor;
 }
+/* Likes: texto en el flujo del botón, independiente de la insignia de la bolsa. */
+:where(.catalogo-publico) .act.like .likes-count {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
 :where(.catalogo-publico) .cnt {
   position: absolute;
   top: -4px;
@@ -7149,6 +7156,12 @@ html.catalogo-html,
   --dzf-mandarina: #ff834f;
   --dzf-papel: #fff9ee;
   --dzf-num: "DZ Fredoka", "Fredoka", var(--dz-font);
+  /* Estado del pedido (docs/12 §6): Confirmado rosa de la malla, nombres y barras vacías */
+  --dzf-confirmado: #f59bbb;
+  --dzf-atencion-t: #a8410f;
+  --dzf-peligro: #b4432a;
+  --dzf-vacio: #e7dcc8;
+  --dzf-verde-2: #4f6a5e;
 }
 
 /* 1 · El aaah: siempre mandarina, con estallido de la marca */
@@ -8648,3 +8661,104 @@ html.catalogo-html,
 
 /* El corazón del estallido conserva el relleno del HTML aprobado. */
 .catalogo-publico .burst > svg path { fill: currentColor; }
+
+/* 6b · Estado del pedido para el comprador (tableros Comprador y Estados; docs/12 §6) */
+:where(.catalogo-publico) .pvest {
+  --pvc: var(--dzf-mandarina);
+  padding: 2px 8px 0;
+  font-family: var(--dz-font);
+  color: var(--dzf-verde);
+}
+:where(.catalogo-publico) .pvest.confirmado { --pvc: var(--dzf-confirmado); }
+:where(.catalogo-publico) .pvest.despachado { --pvc: var(--dzf-verde); }
+:where(.catalogo-publico) .pvest.cancelado { --pvc: var(--dzf-vacio); }
+:where(.catalogo-publico) .pvest-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+:where(.catalogo-publico) .pvest h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+:where(.catalogo-publico) .pvest h2::before {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--pvc);
+}
+:where(.catalogo-publico) .pvest.cancelado h2::before { background: var(--dzf-peligro); }
+:where(.catalogo-publico) .pvest-total {
+  flex: none;
+  font-family: var(--dzf-num);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+:where(.catalogo-publico) .pvest-linea {
+  margin: 3px 0 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--dzf-verde-2);
+}
+:where(.catalogo-publico) .pvest-pasos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 12px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+:where(.catalogo-publico) .pvest-pasos li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dzf-verde-2);
+}
+:where(.catalogo-publico) .pvest-pasos li::before {
+  content: "";
+  height: 5px;
+  border-radius: 999px;
+  background: var(--dzf-vacio);
+}
+:where(.catalogo-publico) .pvest-pasos li.lleno::before { background: var(--pvc); }
+:where(.catalogo-publico) .pvest-pasos li.actual {
+  font-weight: 800;
+  color: var(--dzf-verde);
+}
+:where(.catalogo-publico) .pvest.enviado .pvest-pasos li.actual { color: var(--dzf-atencion-t); }
+:where(.catalogo-publico) .pvest-tienda {
+  margin: 10px 0 2px;
+  text-align: center;
+  font-family: var(--dz-font);
+  font-size: 13px;
+  color: var(--dzf-verde-2);
+}
+:where(.catalogo-publico) .pvest-tienda button {
+  min-height: 32px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--dzf-verde);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* La historia pública no puede superar el portal de Hoja del panel. */
+.pedido-publico .pvov.tienda-abierta { z-index: 1; }

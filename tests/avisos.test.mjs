@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { enlaceAviso, esperanPorProducto, mensajeYaLlego } from "../lib/avisos.ts";
+import { catalogoParaAviso, enlaceAviso, esperanPorProducto, mensajeYaLlego } from "../lib/avisos.ts";
+
+test("Ya llegó omite enlaces inválidos y ejecutables", () => {
+  for (const url of [null, "no es un enlace", "javascript:alert(1)", "http://example.com", "https://usuario:clave@example.com"]) {
+    assert.equal(catalogoParaAviso(url), null);
+    assert.equal(mensajeYaLlego({ nombre: null, producto: "Camisa", variante: null, urlCatalogo: url, slug: "camisa" }), "¡Hola! Ya llegó Camisa.");
+  }
+  assert.equal(catalogoParaAviso("https://example.com/catalogo#viejo"), "https://example.com/catalogo");
+});
 
 test("mensaje de Ya llegó: con nombre, variante y enlace al producto", () => {
   assert.equal(

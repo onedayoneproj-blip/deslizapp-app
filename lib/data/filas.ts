@@ -372,13 +372,22 @@ export function aSolicitud(f: FilaSolicitud): SolicitudPedido {
 export type FilaVistaSolicitud = {
   id: string | null;
   codigo: string;
-  tienda: { nombre: string; slug: string; logo_url: string | null; foto_perfil_url: string | null; whatsapp: string | null };
+  tienda: {
+    nombre: string;
+    slug: string;
+    logo_url: string | null;
+    foto_perfil_url: string | null;
+    whatsapp: string | null;
+    nombre_vendedora?: string | null;
+    rubro?: string | null;
+  };
   items: FilaItemSolicitud[];
   descuento: number;
   total: number;
   creada_en: string;
   vence_en: string;
   estado: string;
+  despachado_en?: string | null;
   es_mi_tienda: boolean;
 };
 
@@ -392,6 +401,8 @@ export function aVistaSolicitud(f: FilaVistaSolicitud): VistaSolicitud {
       logoUrl: f.tienda.logo_url,
       fotoPerfilUrl: f.tienda.foto_perfil_url,
       whatsapp: f.tienda.whatsapp,
+      nombreVendedora: f.tienda.nombre_vendedora ?? null,
+      rubro: (f.tienda.rubro as Rubro | null | undefined) ?? null,
     },
     items: (f.items ?? []).map(aItemSolicitud),
     descuento: f.descuento,
@@ -399,6 +410,7 @@ export function aVistaSolicitud(f: FilaVistaSolicitud): VistaSolicitud {
     creadaEn: f.creada_en,
     venceEn: f.vence_en,
     estado: f.estado as VistaSolicitud["estado"],
+    despachadoEn: f.despachado_en ?? null,
     esMiTienda: f.es_mi_tienda,
   };
 }

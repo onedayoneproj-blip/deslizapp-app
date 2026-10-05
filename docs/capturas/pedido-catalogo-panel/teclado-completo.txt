@@ -1,0 +1,277 @@
+✅ Buscador del Catálogo: (a) tras tocar, el campo es document.activeElement
+✅ Buscador del Catálogo: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Buscador del Catálogo: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Buscador del Catálogo: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Buscador del Catálogo: (b) se puede escribir ("she")
+✅ Buscador del Catálogo: (b) tras escribir, mismo nodo y con foco
+✅ Buscador del Catálogo: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Buscador: la lista responde a lo escrito (Shé,RD$1,200,1 en stock,♥ 214. Ver producto)
+✅ Buscador: con el teclado abierto, cambiar de filtro no inicia transición de vista
+✅ Buscador: sin errores de página ([])
+✅ Nuevo producto · Nombre: (a) tras tocar, el campo es document.activeElement
+✅ Nuevo producto · Nombre: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nuevo producto · Nombre: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nuevo producto · Nombre: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nuevo producto · Nombre: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nuevo producto · Nombre: (e) el campo queda a la vista sobre el teclado (parte baja en 305px ≤ 508px)
+✅ Nuevo producto · Nombre: (b) se puede escribir ("Brisa")
+✅ Nuevo producto · Nombre: (b) tras escribir, mismo nodo y con foco
+✅ Nuevo producto · Nombre: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nuevo producto · Precio: (a) tras tocar, el campo es document.activeElement
+✅ Nuevo producto · Precio: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nuevo producto · Precio: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nuevo producto · Precio: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nuevo producto · Precio: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nuevo producto · Precio: (e) el campo queda a la vista sobre el teclado (parte baja en 401px ≤ 508px)
+✅ Nuevo producto · Precio: (b) se puede escribir ("2450")
+✅ Nuevo producto · Precio: (b) tras escribir, mismo nodo y con foco
+✅ Nuevo producto · Precio: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nuevo producto: tras escribir, deslizar para cerrar pregunta «¿Salir sin guardar?»
+✅ Nuevo producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Salir»)
+✅ Nuevo producto: sin errores de página ([])
+✅ Catálogo: hay un producto con stock controlado para probar la hoja de ajuste
+✅ Ajuste de inventario · Motivo: (a) tras tocar, el campo es document.activeElement
+✅ Ajuste de inventario · Motivo: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Ajuste de inventario · Motivo: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Ajuste de inventario · Motivo: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Ajuste de inventario · Motivo: (b) se puede escribir ("Conteo corregido")
+✅ Ajuste de inventario · Motivo: (b) tras escribir, mismo nodo y con foco
+✅ Ajuste de inventario · Motivo: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Ajuste: cancelar cierra solo la confirmación y vuelve al producto
+✅ Ajuste de inventario: sin errores de página []
+✅ Selector de cliente: el buscador tiene el foco justo después del toque que lo abre
+✅ Selector de cliente · Buscador: (a) tras tocar, el campo es document.activeElement
+✅ Selector de cliente · Buscador: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Selector de cliente · Buscador: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Selector de cliente · Buscador: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Selector de cliente · Buscador: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Selector de cliente · Buscador: (e) el campo queda a la vista sobre el teclado (parte baja en 136px ≤ 508px)
+✅ Selector de cliente · Buscador: (b) se puede escribir ("zzqx")
+✅ Selector de cliente · Buscador: (b) tras escribir, mismo nodo y con foco
+✅ Selector de cliente · Buscador: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Crear cliente · Nombre: (a) tras tocar, el campo es document.activeElement
+✅ Crear cliente · Nombre: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Crear cliente · Nombre: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Crear cliente · Nombre: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Crear cliente · Nombre: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Crear cliente · Nombre: (e) el campo queda a la vista sobre el teclado (parte baja en 235px ≤ 508px)
+✅ Crear cliente · Nombre: (b) se puede escribir ("Marina")
+✅ Crear cliente · Nombre: (b) tras escribir, mismo nodo y con foco
+✅ Crear cliente · Nombre: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Crear cliente · WhatsApp: (a) tras tocar, el campo es document.activeElement
+✅ Crear cliente · WhatsApp: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Crear cliente · WhatsApp: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Crear cliente · WhatsApp: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Crear cliente · WhatsApp: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Crear cliente · WhatsApp: (e) el campo queda a la vista sobre el teclado (parte baja en 325px ≤ 508px)
+✅ Crear cliente · WhatsApp: (b) se puede escribir ("8095550123")
+✅ Crear cliente · WhatsApp: (b) tras escribir, mismo nodo y con foco
+✅ Crear cliente · WhatsApp: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Crear cliente · Nota: (a) tras tocar, el campo es document.activeElement
+✅ Crear cliente · Nota: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Crear cliente · Nota: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Crear cliente · Nota: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Crear cliente · Nota: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Crear cliente · Nota: (e) el campo queda a la vista sobre el teclado (parte baja en 415px ≤ 508px)
+✅ Crear cliente · Nota: (b) se puede escribir ("Talla M")
+✅ Crear cliente · Nota: (b) tras escribir, mismo nodo y con foco
+✅ Crear cliente · Nota: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Crear cliente: Volver protege los cambios sin guardar
+✅ Selector de productos: el buscador tiene el foco justo después del toque que lo abre
+✅ Selector de productos · Buscador: (a) tras tocar, el campo es document.activeElement
+✅ Selector de productos · Buscador: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Selector de productos · Buscador: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Selector de productos · Buscador: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Selector de productos · Buscador: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Selector de productos · Buscador: (e) el campo queda a la vista sobre el teclado (parte baja en 136px ≤ 508px)
+✅ Selector de productos · Buscador: (b) se puede escribir ("kiara")
+✅ Selector de productos · Buscador: (b) tras escribir, mismo nodo y con foco
+✅ Selector de productos · Buscador: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nuevo pedido: sin errores de página ([])
+✅ Nueva promo · Nombre: (a) tras tocar, el campo es document.activeElement
+✅ Nueva promo · Nombre: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nueva promo · Nombre: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nueva promo · Nombre: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nueva promo · Nombre: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nueva promo · Nombre: (e) el campo queda a la vista sobre el teclado (parte baja en 277px ≤ 508px)
+✅ Nueva promo · Nombre: (b) se puede escribir ("Semana rosa")
+✅ Nueva promo · Nombre: (b) tras escribir, mismo nodo y con foco
+✅ Nueva promo · Nombre: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nueva promo · Descuento: (a) tras tocar, el campo es document.activeElement
+✅ Nueva promo · Descuento: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nueva promo · Descuento: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nueva promo · Descuento: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nueva promo · Descuento: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nueva promo · Descuento: (e) el campo queda a la vista sobre el teclado (parte baja en 362px ≤ 508px)
+✅ Nueva promo · Descuento: (b) se puede escribir ("25")
+✅ Nueva promo · Descuento: (b) tras escribir, mismo nodo y con foco
+✅ Nueva promo · Descuento: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nueva promo · Código: (a) tras tocar, el campo es document.activeElement
+✅ Nueva promo · Código: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nueva promo · Código: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nueva promo · Código: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nueva promo · Código: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nueva promo · Código: (e) el campo queda a la vista sobre el teclado (parte baja en 492px ≤ 508px)
+✅ Nueva promo · Código: (b) se puede escribir ("ROSA25")
+✅ Nueva promo · Código: (b) tras escribir, mismo nodo y con foco
+✅ Nueva promo · Código: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Selector de colección: el buscador tiene el foco justo después del toque que lo abre
+✅ Selector de colección · Buscador: (a) tras tocar, el campo es document.activeElement
+✅ Selector de colección · Buscador: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Selector de colección · Buscador: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Selector de colección · Buscador: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Selector de colección · Buscador: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Selector de colección · Buscador: (e) el campo queda a la vista sobre el teclado (parte baja en 136px ≤ 508px)
+✅ Selector de colección · Buscador: (b) se puede escribir ("dul")
+✅ Selector de colección · Buscador: (b) tras escribir, mismo nodo y con foco
+✅ Selector de colección · Buscador: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Nueva promo: sin errores de página ([])
+✅ Copia de promo · Nombre: (a) tras tocar, el campo es document.activeElement
+✅ Copia de promo · Nombre: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Copia de promo · Nombre: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Copia de promo · Nombre: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Copia de promo · Nombre: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Copia de promo · Nombre: (e) el campo queda a la vista sobre el teclado (parte baja en 377px ≤ 508px)
+✅ Copia de promo · Nombre: (b) se puede escribir ("Otra semana")
+✅ Copia de promo · Nombre: (b) tras escribir, mismo nodo y con foco
+✅ Copia de promo · Nombre: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Copia de promo · Descuento: (a) tras tocar, el campo es document.activeElement
+✅ Copia de promo · Descuento: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Copia de promo · Descuento: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Copia de promo · Descuento: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Copia de promo · Descuento: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Copia de promo · Descuento: (e) el campo queda a la vista sobre el teclado (parte baja en 462px ≤ 508px)
+✅ Copia de promo · Descuento: (b) se puede escribir ("25")
+✅ Copia de promo · Descuento: (b) tras escribir, mismo nodo y con foco
+✅ Copia de promo · Descuento: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Copia de promo · Código: (a) tras tocar, el campo es document.activeElement
+✅ Copia de promo · Código: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Copia de promo · Código: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Copia de promo · Código: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Copia de promo · Código: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Copia de promo · Código: (e) el campo queda a la vista sobre el teclado (parte baja en 492px ≤ 508px)
+✅ Copia de promo · Código: (b) se puede escribir ("COPIA25")
+✅ Copia de promo · Código: (b) tras escribir, mismo nodo y con foco
+✅ Copia de promo · Código: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Copia de promo: sin errores de página ([])
+✅ Compartir promo: el mensaje tiene el foco justo después del toque en «Editar mensaje»
+✅ Compartir promo · Mensaje: (a) tras tocar, el campo es document.activeElement
+✅ Compartir promo · Mensaje: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Compartir promo · Mensaje: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Compartir promo · Mensaje: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Compartir promo · Mensaje: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Compartir promo · Mensaje: (e) el campo queda a la vista sobre el teclado (parte baja en 418px ≤ 508px)
+✅ Compartir promo · Mensaje: (b) se puede escribir ("Gracias")
+✅ Compartir promo · Mensaje: (b) tras escribir, mismo nodo y con foco
+✅ Compartir promo · Mensaje: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Compartir promo: sin errores de página ([])
+✅ Buscador de Clientes: (a) tras tocar, el campo es document.activeElement
+✅ Buscador de Clientes: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Buscador de Clientes: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Buscador de Clientes: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Buscador de Clientes: (b) se puede escribir ("carol")
+✅ Buscador de Clientes: (b) tras escribir, mismo nodo y con foco
+✅ Buscador de Clientes: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Cliente nuevo · Nombre: (a) tras tocar, el campo es document.activeElement
+✅ Cliente nuevo · Nombre: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Cliente nuevo · Nombre: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Cliente nuevo · Nombre: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Cliente nuevo · Nombre: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Cliente nuevo · Nombre: (e) el campo queda a la vista sobre el teclado (parte baja en 215px ≤ 508px)
+✅ Cliente nuevo · Nombre: (b) se puede escribir ("Marina")
+✅ Cliente nuevo · Nombre: (b) tras escribir, mismo nodo y con foco
+✅ Cliente nuevo · Nombre: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Cliente nuevo · WhatsApp: (a) tras tocar, el campo es document.activeElement
+✅ Cliente nuevo · WhatsApp: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Cliente nuevo · WhatsApp: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Cliente nuevo · WhatsApp: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Cliente nuevo · WhatsApp: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Cliente nuevo · WhatsApp: (e) el campo queda a la vista sobre el teclado (parte baja en 305px ≤ 508px)
+✅ Cliente nuevo · WhatsApp: (b) se puede escribir ("8095551234")
+✅ Cliente nuevo · WhatsApp: (b) tras escribir, mismo nodo y con foco
+✅ Cliente nuevo · WhatsApp: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Cliente nuevo · Nota: (a) tras tocar, el campo es document.activeElement
+✅ Cliente nuevo · Nota: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Cliente nuevo · Nota: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Cliente nuevo · Nota: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Cliente nuevo · Nota: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Cliente nuevo · Nota: (e) el campo queda a la vista sobre el teclado (parte baja en 395px ≤ 508px)
+✅ Cliente nuevo · Nota: (b) se puede escribir ("Talla M")
+✅ Cliente nuevo · Nota: (b) tras escribir, mismo nodo y con foco
+✅ Cliente nuevo · Nota: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Clientes: sin errores de página ([])
+✅ Mi marca · Enlace del catálogo: (a) tras tocar, el campo es document.activeElement
+✅ Mi marca · Enlace del catálogo: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Mi marca · Enlace del catálogo: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Mi marca · Enlace del catálogo: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Mi marca · Enlace del catálogo: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Mi marca · Enlace del catálogo: (e) el campo queda a la vista sobre el teclado (parte baja en 492px ≤ 508px)
+✅ Mi marca · Enlace del catálogo: (b) se puede escribir ("instagram.com/mitienda")
+✅ Mi marca · Enlace del catálogo: (b) tras escribir, mismo nodo y con foco
+✅ Mi marca · Enlace del catálogo: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Mi marca · Código del color: (a) tras tocar, el campo es document.activeElement
+✅ Mi marca · Código del color: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Mi marca · Código del color: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Mi marca · Código del color: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Mi marca · Código del color: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Mi marca · Código del color: (e) el campo queda a la vista sobre el teclado (parte baja en 352px ≤ 508px)
+✅ Mi marca · Código del color: (b) se puede escribir ("5E2750")
+✅ Mi marca · Código del color: (b) tras escribir, mismo nodo y con foco
+✅ Mi marca · Código del color: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Mi marca: sin errores de página ([])
+✅ Nuevo producto · Colección nueva: (a) tras tocar, el campo es document.activeElement
+✅ Nuevo producto · Colección nueva: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nuevo producto · Colección nueva: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nuevo producto · Colección nueva: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nuevo producto · Colección nueva: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nuevo producto · Colección nueva: (e) el campo queda a la vista sobre el teclado (parte baja en 492px ≤ 508px)
+✅ Nuevo producto · Colección nueva: (b) se puede escribir ("Para él")
+✅ Nuevo producto · Colección nueva: (b) tras escribir, mismo nodo y con foco
+✅ Nuevo producto · Colección nueva: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Colección nueva: sin errores de página ([])
+✅ Editar cliente · Nota: (a) tras tocar, el campo es document.activeElement
+✅ Editar cliente · Nota: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Editar cliente · Nota: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Editar cliente · Nota: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Editar cliente · Nota: (b) se puede escribir (" Le gusta el rosa")
+✅ Editar cliente · Nota: (b) tras escribir, mismo nodo y con foco
+✅ Editar cliente · Nota: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Editar cliente: sin errores de página ([])
+✅ Selector de producto (promo): el buscador tiene el foco justo después del toque que lo abre
+✅ Selector de producto (promo) · Buscador: (a) tras tocar, el campo es document.activeElement
+✅ Selector de producto (promo) · Buscador: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Selector de producto (promo) · Buscador: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Selector de producto (promo) · Buscador: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Selector de producto (promo) · Buscador: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Selector de producto (promo) · Buscador: (e) el campo queda a la vista sobre el teclado (parte baja en 136px ≤ 508px)
+✅ Selector de producto (promo) · Buscador: (b) se puede escribir ("kiara")
+✅ Selector de producto (promo) · Buscador: (b) tras escribir, mismo nodo y con foco
+✅ Selector de producto (promo) · Buscador: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Promo (producto): sin errores de página ([])
+✅ Nuevo pedido a crédito · Te dio ahora: (a) tras tocar, el campo es document.activeElement
+✅ Nuevo pedido a crédito · Te dio ahora: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Nuevo pedido a crédito · Te dio ahora: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Nuevo pedido a crédito · Te dio ahora: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Nuevo pedido a crédito · Te dio ahora: (c) la hoja sigue abierta y no se movió (20 → 20)
+✅ Nuevo pedido a crédito · Te dio ahora: (e) el campo queda a la vista sobre el teclado (parte baja en 437px ≤ 508px)
+✅ Nuevo pedido a crédito · Te dio ahora: (b) se puede escribir ("500")
+✅ Nuevo pedido a crédito · Te dio ahora: (b) tras escribir, mismo nodo y con foco
+✅ Nuevo pedido a crédito · Te dio ahora: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Pedido a crédito: sin errores de página ([])
+✅ Registrar abono · Monto: (a) tras tocar, el campo es document.activeElement
+✅ Registrar abono · Monto: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Registrar abono · Monto: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Registrar abono · Monto: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Registrar abono · Monto: (b) se puede escribir ("500")
+✅ Registrar abono · Monto: (b) tras escribir, mismo nodo y con foco
+✅ Registrar abono · Monto: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Registrar abono · Nota: (a) tras tocar, el campo es document.activeElement
+✅ Registrar abono · Nota: (c) el campo sigue siendo el mismo nodo (no se remontó)
+✅ Registrar abono · Nota: (c) con el teclado abierto conserva el foco (eventos de foco: )
+✅ Registrar abono · Nota: (c) tras enfocar, el foco no cambió de lugar en ningún momento (sin cambios)
+✅ Registrar abono · Nota: (b) se puede escribir ("le di cambio")
+✅ Registrar abono · Nota: (b) tras escribir, mismo nodo y con foco
+✅ Registrar abono · Nota: (d) mientras se escribe no se inicia ninguna transición de vista (0)
+✅ Registrar abono: sin errores de página ([])
+
+Todo bien: escribir no pierde el foco.

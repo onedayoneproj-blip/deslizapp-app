@@ -1,0 +1,30 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import "./cargar-ts.mjs";
+const { pendientesPedidos, textoPendientes } = await import("../lib/pendientes-pedidos.ts");
+const { construirDesdeSeed } = await import("../lib/data/db.ts");
+const { registrarSolicitudEnDB, solicitudesPendientesDeDB, descartarSolicitudEnDB } = await import("../lib/data/catalogo.ts");
+const fecha = Date.parse("2026-10-05T15:00:00Z");
+const sol = (id, extra={}) => ({id,tiendaId:"t1",pedidoId:null,descartadaEn:null,venceEn:new Date(fecha+60000).toISOString(),...extra});
+const pedido=(id,estado="nuevo",tiendaId="t1")=>({id,tiendaId,estado});
+test("Nuevos suma solicitudes vigentes sin contaminar estados ni otras tiendas",()=>{
+ const ss=[sol("a"),sol("b"),sol("c",{tiendaId:"t2"}),sol("d",{pedidoId:"p1"}),sol("e",{descartadaEn:"hoy"}),sol("f",{venceEn:"inválida"}),sol("g",{venceEn:new Date(fecha).toISOString()})];
+ assert.deepEqual(pendientesPedidos([],ss,"t1",fecha),{nuevos:0,porRegistrar:2,total:2});
+ assert.deepEqual(pendientesPedidos([pedido("1"),pedido("2"),pedido("3"),pedido("4","por_despachar"),pedido("5","despachado"),pedido("6","cancelado"),pedido("7","nuevo","t2")],ss,"t1",fecha),{nuevos:3,porRegistrar:2,total:5});
+ assert.equal(pendientesPedidos([],ss,"t1",fecha+60000).total,0);
+ assert.equal(pendientesPedidos([],[],"t1",fecha).total,0);
+ assert.match(textoPendientes({nuevos:1,porRegistrar:1}),/1 pedido registrado nuevo y 1 solicitud/);
+});
+test("registro conserva total; confirmar, descartar y vencer lo reducen sin duplicar",()=>{
+ let db=construirDesdeSeed();db.pedidos=[];db.pedidoItems=[];db.abonos=[];db.solicitudes=[];db.promos=[];
+ const t=db.tiendas[0],p=db.productos.find(p=>p.tiendaId===t.id&&p.activo),cliente=db.clientes.find(c=>c.tiendaId===t.id);
+ p.stock=10;p.opciones=[];db.variantes=db.variantes.filter(v=>v.productoId!==p.id);
+ db.solicitudes=["PRUEBAAA23","PRUEBAB234"].map(codigo=>({...sol(codigo,{tiendaId:t.id}),codigo,total:p.precio,descuento:0,codigoPromo:null,creadaEn:new Date(fecha).toISOString(),items:[{productoId:p.id,varianteId:null,nombre:p.nombre,varianteTexto:null,foto:null,precioUnitario:p.precio,cantidad:1,porEncargo:false}]}));
+ const contar=()=>pendientesPedidos(db.pedidos,solicitudesPendientesDeDB(db,t.id,fecha),t.id,fecha);
+ assert.equal(contar().total,2);
+ db=registrarSolicitudEnDB(db,t.id,db.solicitudes[1].id,{clienteId:cliente.id},()=>"pedido-prueba",new Date(fecha).toISOString()).db;
+ assert.deepEqual(contar(),{nuevos:1,porRegistrar:1,total:2});
+ db.pedidos[0].estado="por_despachar";assert.equal(contar().total,1);
+ db=descartarSolicitudEnDB(db,t.id,db.solicitudes[0].id,new Date(fecha).toISOString());assert.equal(contar().total,0);
+ assert.equal(db.productos.find(x=>x.id===p.id).stock,10);
+});
