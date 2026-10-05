@@ -40,7 +40,7 @@ variable**: mide el contenido de la pestaña (ícono o nombre, lo más ancho) +
   cápsula (6 px del borde, siguiendo su curva).
 - Con "reducir movimiento": sin resorte ni estiramiento, cambio directo.
 Cada pestaña es un enlace real (`aria-current="page"` en la activa). Sobre
-"Pedidos", un contador Mandarina con el número de pedidos `nuevo`
+"Pedidos", un contador Mandarina con el total de pedidos `nuevo` más solicitudes vigentes del catálogo por registrar
 (`components/contador.tsx`, el mismo de las pastillas de filtro).
 
 **Tamaño único de las pastillas** (`Segmentos` y `Chip`, `components/controles.tsx`): salen de los tokens de
@@ -940,4 +940,11 @@ Demo conserva solicitudes en el mismo navegador: el enlace de WhatsApp sin `?dem
 
 ### Likes en los reels públicos (corrección PR #46)
 
-El botón presenta corazón principal → cantidad positiva centrada como texto → «Lo quiero». El contador de likes utiliza `.likes-count`, independiente de `.cnt` (insignia de la bolsa, sin cambios). El nombre accesible incluye la cantidad mostrada. Cero permanece oculto; agotados conservan Avísame sin contador. No cambia selección, cálculo de likes ni animación aaah.
+El botón presenta corazón principal → «1 lo quiere» o «N lo quieren» como texto centrado sin insignia. En cero conserva «Lo quiero» sin contador. El contador de likes utiliza `.likes-count`, independiente de `.cnt` (insignia de la bolsa, sin cambios). El nombre accesible mantiene la acción «Lo quiero: producto» o «Quitar del carrito: producto» y añade la cantidad/frase mostrada. Cero permanece oculto; agotados conservan Avísame sin contador. No cambia selección, cálculo de likes ni animación aaah.
+
+
+### Trabajo pendiente y retorno de Google (seguimiento PR #46)
+
+«Nuevos» y el único contador del tab inferior «Pedidos» suman pedidos registrados `nuevo` + solicitudes vigentes por registrar de la tienda activa. La tarjeta «N del catálogo por registrar» conserva el desglose. Registrar cambia una solicitud por un Nuevo sin variar el total; confirmar, descartar o vencer retira su pendiente. Las solicitudes nunca se suman a ventas, deuda, inventario ni otras métricas de pedidos. `usePendientesPedidos()` publica ambas lecturas juntas, conserva el último resultado si falla y comunica el error; sin primera lectura, la cifra queda pendiente, nunca cero inventado. El vencimiento se recalcula sin escrituras y también al volver al foco.
+
+Desde `/pedido/CODIGO`, Google vuelve al mismo dominio/código. `redirectTo` incluye `volver` validado; `dz_volver` es respaldo compatible con callbacks anteriores. El callback agrega `registrar=1` para montar explícitamente la vista; ese marcador no concede acceso. `getClaims` + lectura autenticada de `usuarios` y `solicitudes_pedido` bajo RLS resuelven el miembro/tienda. Otra cuenta recibe aviso; registrada ofrece el pedido existente; vencida/descartada no permite registrar. El error vuelve al código y conserva su aviso incluso en Strict Mode. Login normal del panel sigue usando Inicio. No depende del perfil por defecto ni de `user_metadata`.

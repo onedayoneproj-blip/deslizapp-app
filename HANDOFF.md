@@ -438,3 +438,10 @@ Las secciones de primera entrega y «Aplicación coordinada del inventario» son
 Los likes del reel utilizan `.likes-count` (texto bajo el corazón), separados de `.cnt` de la bolsa; contador positivo incluido en el nombre accesible, cero oculto. No cambia cálculos, inventario ni aaah. Resultados y capturas en `docs/handoffs/pedido-catalogo-panel-continuacion.md`.
 
 **Reporte de Lewis, no pruebas de Coding:** Google funcionó tras permitir el callback de la preview; solicitud visible en el panel, enlace con estados actualizados y producto agotado tras despachar. Coding no cambió ese callback ni repitió escrituras reales. Los pendientes de Safari físico/cobertura completa se conservan; distinguir este reporte del navegador automatizado.
+
+
+### Seguimiento PR #46: likes, pendientes y Google al código
+
+Likes positivos del reel: «1 lo quiere» / «N lo quieren» bajo el corazón; cero conserva «Lo quiero», agotado Avísame. Nombre accesible incluye acción y contador; `.cnt` de la bolsa intacta. `usePendientesPedidos` reúne pedidos y solicitudes, suma solo trabajo pendiente y conserva errores/carga; el mismo desglose alimenta Nuevos y el único contador inferior. Registrar mantiene el total; confirmar/descartar/vencer lo reduce, sin alterar ventas/deuda/stock.
+
+Google conserva el código en `redirectTo` (parámetro local validado `volver`) además de `dz_volver`. Callback retorna al código con `registrar=1`; la vista privada comprueba sesión y pertenencia por RLS antes de abrir. Destinos externos/rebotes al panel no se usan para resolver solicitudes. Error/cancelación conserva el aviso y código; ya registrada ofrece su pedido existente. No cambia Site URL ni configuración Auth. Lista de callbacks permitidos no accesible en esta sesión: documentar dirección exacta de la nueva preview en el PR y completar OAuth real en Safari. Handoff ampliado en `docs/handoffs/pedido-catalogo-panel-continuacion.md`. No incorporar #45 ni fusionar/publicar.
