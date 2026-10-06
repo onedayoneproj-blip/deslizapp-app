@@ -16,9 +16,30 @@ diseño de escritorio aparte en esta entrega.
 **Encabezado** (todas las pantallas, se desplaza con el contenido):
 - Izquierda: foto de la tienda circular de 42 px (iniciales sobre Rosa Suave si no hay
   foto) + nombre de la tienda + debajo "Plan 20 · deslizapp". Tocarlo abre el
-  **menú de la tienda** (selector de tienda activa + acciones de demo).
+  **menú de tus tiendas** (selector de tiendas y cuenta; ver abajo).
 - Derecha: botón blanco con borde verde "✦ 35 créditos" (créditos de retoque
   disponibles). Tocarlo abre **Plan y créditos** (pantalla 8).
+
+**Menú de tus tiendas** (`components/panel/menu-tienda.tsx`; título «Tus tiendas» si la cuenta tiene más de una, «Tu tienda»
+si tiene una). De arriba abajo:
+1. **La tienda activa**, en una tarjeta con contorno `accion`: logo, nombre, «Plan · N créditos» y el check; al pie de la misma
+   tarjeta, la fila **Mi marca** (con chevron; abre la hoja). Su detalle es «Logo, colores y letra» hasta que entre el PR de Mi marca.
+2. **Las otras tiendas de la cuenta** (las de las que es miembro, sin las eliminadas; la activa primero y el resto por nombre).
+   Tocar una **cambia de tienda**: en la app real guarda la tienda por defecto de la cuenta (`usuarios.tienda_id`, solo una propia)
+   y **recarga la página**, así nunca se ve un dato de la anterior; sale «Ahora estás en X.». Con un error, la tienda sigue como estaba.
+   Con una sola tienda no hay lista. En Ver como no se cambia de tienda.
+3. «Administrar Deslizapp» (solo admins; oculto en Ver como).
+4. En la demo, la sección «Modo demo» y su laboratorio.
+5. **La cuenta**: foto de Google (o iniciales en rosa), nombre y correo, leídos de la sesión (no se guardan en la base), y «Cerrar
+   sesión» (en la demo, «Cuenta de demo» y «Salir de la demo»; en Ver como, «Cerrar sesión y salir»).
+6. Versión, «Ver novedades», Privacidad y Términos.
+El encabezado no cambia; su etiqueta accesible es «Menú de tus tiendas» (más de una) o «Menú de la tienda». «Crear otra tienda»
+llega con el PR de grupos de tiendas, debajo de las otras tiendas.
+
+**Cuenta en el admin** (`components/admin/hoja-cuenta.tsx`): el círculo de la derecha del encabezado de `/admin` y `/admin-demo` es
+la cuenta (foto de Google o iniciales) y abre una hoja corta con «Ir a mi tienda» (lleva a `/`, el panel de la tienda por defecto de
+la cuenta; sin tienda no aparece) y la cuenta con «Cerrar sesión». Ida y vuelta: panel → «Administrar Deslizapp» → admin → cuenta →
+«Ir a mi tienda» → panel.
 
 **Navegación inferior** (`components/panel/nav-inferior.tsx`) — **decisión del
 dueño que manda sobre el prototipo**: barra de pestañas tradicional, inspirada

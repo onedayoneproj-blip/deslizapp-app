@@ -3,7 +3,7 @@
 // DataProvider: elige la fuente de datos según el modo (lib/data/sesion.ts) y la da a las pantallas con
 // `useData()`. Las dos fuentes cumplen la misma interfaz (lib/data/fuente.ts):
 // - demo: lib/data/demo.ts (navegador + localStorage, con selector de tienda);
-// - real: lib/data/supabase.ts (Supabase con Google; una cuenta = una tienda).
+// - real: lib/data/supabase.ts (Supabase con Google; una cuenta puede ser miembro de varias tiendas y elige la activa).
 // Ver docs/05-arquitectura.md.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -13,7 +13,8 @@ import { cambiarTiendaActivaDemo, fuenteDemo, leerDemo, suscribirDemo } from "./
 import { mensajeDeError } from "./errores";
 import type { FuenteDatos } from "./fuente";
 import type { Modo } from "./modo";
-import { leerSesion, salir, suscribirSesion, type EstadoSesion } from "./sesion";
+import { elegirTiendaPorDefecto, leerSesion, salir, suscribirSesion, type EstadoSesion } from "./sesion";
+import { CUENTA_DEMO, KEY_AVISO_TRAS_CAMBIO, RUTA_PANEL, type CuentaVista } from "../cuenta";
 import { crearFuenteSupabase } from "./supabase";
 import { soloMirar } from "./solo-mirar";
 import type { SesionVerComo } from "../admin/tipos";
@@ -27,8 +28,14 @@ export type DataContexto = FuenteDatos & {
   soloMirar: boolean;
   /** Demo: la elegida en el selector. Real: la de tu cuenta. */
   tiendaActivaId: string;
-  /** Solo demo (en real no hace nada: una cuenta = una tienda). */
-  cambiarTiendaActiva: (tiendaId: string) => void;
+  /**
+   * Cambia de tienda. Demo: al instante. Real: guarda la tienda por defecto de la cuenta y recarga la página (así nunca se
+   * ve un dato de la anterior); `aviso` se muestra al volver a cargar. Si falla, lanza y la tienda sigue como estaba.
+   * En Ver como no hace nada.
+   */
+  cambiarTiendaActiva: (tiendaId: string, aviso?: string) => void | Promise<void>;
+  /** Foto, nombre y correo de la cuenta (de la sesión de Google). null en Ver como o sin datos. */
+  cuenta: CuentaVista | null;
   /** Sube con cada cambio; las consultas lo usan para volver a leer. */
   version: number;
   /** Cerrar sesión (real) o salir de la demo: vuelve a la pantalla de entrada. */
@@ -61,7 +68,7 @@ export function DataProvider({ children, cargando, entrada }: { children: ReactN
   const sesion = useSesion();
   if (!sesion || sesion.tipo === "cargando") return cargando;
   if (sesion.tipo === "demo") return <ProveedorDemo cargando={cargando}>{children}</ProveedorDemo>;
-  if (sesion.tipo === "lista") return <ProveedorReal usuario={sesion.usuario}>{children}</ProveedorReal>;
+  if (sesion.tipo === "lista") return <ProveedorReal usuario={sesion.usuario} cuenta={sesion.cuenta}>{children}</ProveedorReal>;
   return entrada;
 }
 
@@ -75,6 +82,7 @@ export function ProveedorDemo({ children, cargando }: { children: ReactNode; car
         soloMirar: false,
         tiendaActivaId: e.tiendaActivaId,
         cambiarTiendaActiva: cambiarTiendaActivaDemo,
+        cuenta: CUENTA_DEMO,
         version: e.version,
         salir,
         errorLectura: null,
@@ -87,7 +95,7 @@ export function ProveedorDemo({ children, cargando }: { children: ReactNode; car
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
-export function ProveedorReal({ children, usuario }: { children: ReactNode; usuario: Usuario }) {
+export function ProveedorReal({ children, usuario, cuenta = null }: { children: ReactNode; usuario: Usuario; cuenta?: CuentaVista | null }) {
   const [version, setVersion] = useState(0);
   const [errorLectura, setErrorLectura] = useState<string | null>(null);
   const [fuente] = useState(() => crearFuenteSupabase(createClient(), () => setVersion((v) => v + 1)));
@@ -123,20 +131,37 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
     };
   }, [refrescar]);
 
+  const cambiarTiendaActiva = useCallback(
+    async (tiendaId: string, aviso?: string) => {
+      if (tiendaId === usuario.tiendaId) return;
+      await elegirTiendaPorDefecto(tiendaId);
+      // Recargar es lo más seguro: caché, hojas abiertas, filas de espera y borradores de la tienda anterior desaparecen juntos.
+      try {
+        if (aviso) sessionStorage.setItem(KEY_AVISO_TRAS_CAMBIO, aviso);
+      } catch {
+        // Sin sessionStorage: se cambia igual, solo sin el aviso.
+      }
+      fuente.olvidar();
+      window.location.href = RUTA_PANEL;
+    },
+    [fuente, usuario.tiendaId],
+  );
+
   const valor = useMemo<DataContexto>(
     () => ({
       ...fuente,
       modo: "real",
       soloMirar: false,
       tiendaActivaId: usuario.tiendaId,
-      cambiarTiendaActiva: nada,
+      cambiarTiendaActiva,
+      cuenta,
       version,
       salir,
       errorLectura,
       avisarErrorLectura,
       refrescar,
     }),
-    [fuente, usuario.tiendaId, version, errorLectura, avisarErrorLectura, refrescar],
+    [fuente, usuario.tiendaId, cambiarTiendaActiva, cuenta, version, errorLectura, avisarErrorLectura, refrescar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
@@ -188,7 +213,7 @@ function ProveedorSesionSoloMirar({ children, sesion }: { children: ReactNode; s
   // sobre la fuente protegida, nunca sobre instancia.real (incluidos métodos futuros).
   const valor = useMemo<DataContexto>(() => {
     const estado: Omit<DataContexto, keyof FuenteDatos> = {
-      modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada,
+      modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada, cuenta: null,
       version, salir: async () => { await cerrarVerComo(false); }, errorLectura: null, avisarErrorLectura: nada, refrescar,
     };
     return new Proxy({} as DataContexto, {
