@@ -10,7 +10,7 @@ for intento in {1..40}; do
 done
 psql_local(){ docker exec -i "$PANEL_REPLAY_CONTAINER" psql -U postgres -d replay_provisional -v ON_ERROR_STOP=1 "$@"; }
 psql_local < scripts/preparar-replay-inventario.sql >/dev/null
-for archivo in supabase/migrations/*.sql; do psql_local < "$archivo" >/dev/null; done
+for archivo in supabase/migrations/*.sql; do psql_local --single-transaction < "$archivo" >/dev/null; done
 psql_local < scripts/probar-catalogo-react-db.sql
 psql_local < scripts/probar-pedido-catalogo-panel-db.sql
 python3 scripts/probar-pedido-catalogo-concurrencia.py

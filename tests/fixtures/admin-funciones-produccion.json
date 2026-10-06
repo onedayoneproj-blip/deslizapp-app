@@ -1,0 +1,442 @@
+[
+  {
+    "nombre": "admin_admins",
+    "argumentos": "",
+    "md5": "5cd25a6ca2a86c7a587b245665685de4",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_agregar_admin",
+    "argumentos": "p_email text",
+    "md5": "f5772f3a1ac005b9ee0994a46bac9210",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_ajustar_creditos",
+    "argumentos": "p_tienda_id uuid, p_cantidad integer, p_motivo text",
+    "md5": "6b8c176ee5560a2f99efa783a3a94313",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_anular_pago",
+    "argumentos": "p_pago_id uuid, p_motivo text",
+    "md5": "7e169f2c7a150f6de61976d1e6875fff",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_cambiar_estado_tienda",
+    "argumentos": "p_tienda_id uuid, p_accion text, p_fecha date",
+    "md5": "17152bc1361e1b3570e950b4630b0d9f",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_cambiar_plan",
+    "argumentos": "p_tienda_id uuid, p_plan_id text, p_limite integer",
+    "md5": "38b50826fb10925f468a53463ceba94a",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_catalogo_avanzar",
+    "argumentos": "p_tienda_id uuid, p_accion text, p_url_catalogo text",
+    "md5": "8413b4165ac2c24db374b52f7e8a342d",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_funcion_tienda",
+    "argumentos": "p_tienda_id uuid, p_funcion text, p_encendida boolean",
+    "md5": "5feaa7212423d678c78b46a0b94fdee6",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_guardar_personalizacion",
+    "argumentos": "p_tienda_id uuid, p_cambios jsonb",
+    "md5": "83015c68e570f39bf1f3b58ad7dd8038",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_guardar_plan",
+    "argumentos": "p_id text, p_nombre text, p_precio_mensual integer, p_limite_productos integer, p_creditos_mensuales integer, p_se_ofrece boolean, p_orden integer, p_destacado boolean",
+    "md5": "9f238523b979db4b24f17af54000245f",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_guardar_precio_extra",
+    "argumentos": "p_clave text, p_nombre text, p_precio integer, p_creditos integer, p_orden integer",
+    "md5": "2fd92e3635adf3a828304847248feba7",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_hoy",
+    "argumentos": "",
+    "md5": "056e2f65879b089cfa0ec25ab89d55ed",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_planes",
+    "argumentos": "",
+    "md5": "7db3b19afdc04b604914a7bb33a998cd",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_posponer",
+    "argumentos": "p_clave text, p_horas integer",
+    "md5": "3f6e7c6f05b71600f1d253cfdae23b06",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_quitar_admin",
+    "argumentos": "p_usuario_id uuid",
+    "md5": "22c4df285ea7d409c9ab3f6f77ad41d5",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_recarga_mensual",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "392bf34bb8fa6ea78281cfd6e7c056ae",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_registrar_pago",
+    "argumentos": "p_tienda_id uuid, p_concepto text, p_monto integer, p_metodo text, p_referencia text, p_comprobante_url text, p_nota text, p_meses integer, p_creditos integer",
+    "md5": "fdf5034fad00cce99d27cead938edce8",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_registro",
+    "argumentos": "p_filtro text, p_antes_de timestamp with time zone",
+    "md5": "df03e596ee9e4c467da194d6edf83e0d",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_resumen_mes",
+    "argumentos": "",
+    "md5": "545db1e83708a408a93b1b7786fabd7b",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_retoque_devolver",
+    "argumentos": "p_trabajo_id uuid, p_motivo text",
+    "md5": "9b671cc7cc0e38641c25402fb33489a3",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_retoque_entregar",
+    "argumentos": "p_trabajo_id uuid, p_url_retocada text",
+    "md5": "d2cef3fa59f8615a4991e53ad2a78a57",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_salud",
+    "argumentos": "",
+    "md5": "3b1e32ef8884f0ec7e5a84f116b7f7fa",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_tienda",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "8c2df9e6b17c3fb0b348b68075e43fe9",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_tiendas",
+    "argumentos": "p_filtro text, p_busqueda text",
+    "md5": "9e47ed3014bf13d89360d95718657bc8",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_trabajos_retoque",
+    "argumentos": "p_estado text",
+    "md5": "c44abc40a03fcafbf754e1a61bf7f234",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_transferir_tienda",
+    "argumentos": "p_tienda_id uuid, p_email_nuevo_dueno text",
+    "md5": "e19d182fd95630c4995e8f14956a690d",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_ver_como_iniciar",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "90cb9f27174f327043dc8bf716aa4e57",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_ver_como_terminar",
+    "argumentos": "p_sesion_id uuid",
+    "md5": "bb39fb2d7f966cdbf0e0cc6804acc3f5",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_viendo",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "380b0285519cb4e858d4aa75772dca40",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "asuntos_admin",
+    "argumentos": "p_ahora timestamp with time zone, p_uso jsonb",
+    "md5": "0e7089e29e773d411b453572750d17d9",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": false
+  },
+  {
+    "nombre": "estado_cobro",
+    "argumentos": "p_estado text, p_prueba_hasta date, p_pagado_hasta date, p_dias_gracia integer, p_hoy date",
+    "md5": "213f045bbf919b120a61fd35059af648",
+    "definer": false,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "gastar_creditos",
+    "argumentos": "p_cantidad integer",
+    "md5": "b5e333fc46b3550e0143cc097e7dc5ee",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "gastar_creditos",
+    "argumentos": "p_tienda_id uuid, p_cantidad integer",
+    "md5": "c326764e308e3ea3ca94c8c90a2ba7fd",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "marcar_actividad",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "7914ee805b7de00df5f432859b8de7bf",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "pedir_retoque",
+    "argumentos": "p_producto_id uuid, p_medio_url text",
+    "md5": "87d70bcd1b1985b325f96f355a9aa165",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "regla_admin",
+    "argumentos": "p_clave text",
+    "md5": "e8d52feb45836bf4aa5be64c6b4c815c",
+    "definer": false,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "reglas_admin",
+    "argumentos": "",
+    "md5": "0728aaa65d9041c6f77c651ed5297f06",
+    "definer": false,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "salud_tiendas",
+    "argumentos": "p_ahora timestamp with time zone",
+    "md5": "59a43336128c7d5763db9d5c4e1a59c1",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": false
+  },
+  {
+    "nombre": "soy_admin",
+    "argumentos": "",
+    "md5": "5050d1281314ef5e09b09ae2fda8fe67",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "tiendas_que_miro",
+    "argumentos": "",
+    "md5": "627539ead9727902b525640ee3eb3b34",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  }
+]

@@ -1,0 +1,1263 @@
+{
+  "fecha": "2026-10-06",
+  "seguridad": [
+    {
+      "name": "rls_enabled_no_policy",
+      "title": "RLS Enabled No Policy",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects cases where row level security (RLS) has been enabled on a table but no RLS policies have been created.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+      "count": 3,
+      "findings": [
+        {
+          "detail": "Table \\`public.admin_pospuestos\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "admin_pospuestos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Table \\`public.invitaciones\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "invitaciones",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Table \\`public.sesiones_ver_como\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "sesiones_ver_como",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        }
+      ]
+    },
+    {
+      "name": "anon_security_definer_function_executable",
+      "title": "Public Can Execute SECURITY DEFINER Function",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects `SECURITY DEFINER` functions that are callable without signing in. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if it is not meant to be public.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
+      "count": 5,
+      "findings": [
+        {
+          "detail": "Function `public.catalogo_publico(p_slug text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/catalogo_publico`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "catalogo_publico",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.crear_solicitud_pedido(p_slug text, p_items jsonb, p_codigo_promo text, p_dispositivo text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/crear_solicitud_pedido`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "crear_solicitud_pedido",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_items jsonb, p_codigo_promo text, p_dispositivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.pedir_aviso(p_slug text, p_producto_slug text, p_variante_id uuid, p_telefono text, p_nombre text, p_dispositivo text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/pedir_aviso`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "pedir_aviso",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_producto_slug text, p_variante_id uuid, p_telefono text, p_nombre text, p_dispositivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_aaah(p_slug text, p_producto_slug text, p_dispositivo text, p_on boolean)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_aaah`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_aaah",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_producto_slug text, p_dispositivo text, p_on boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.ver_solicitud(p_codigo text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/ver_solicitud`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "ver_solicitud",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_codigo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        }
+      ]
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects `SECURITY DEFINER` functions that are callable by signed-in users. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if signed-in users should not call it.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "count": 74,
+      "findings": [
+        {
+          "detail": "Function `public.admin_admins()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_admins`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_admins",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_agregar_admin(p_email text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_agregar_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_agregar_admin",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_email text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_ajustar_creditos(p_tienda_id uuid, p_cantidad integer, p_motivo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_ajustar_creditos`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_ajustar_creditos",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cantidad integer, p_motivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_anular_pago(p_pago_id uuid, p_motivo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_anular_pago`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_anular_pago",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_pago_id uuid, p_motivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_cambiar_estado_tienda(p_tienda_id uuid, p_accion text, p_fecha date)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_cambiar_estado_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_cambiar_estado_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_accion text, p_fecha date",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_cambiar_plan(p_tienda_id uuid, p_plan_id text, p_limite integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_cambiar_plan`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_cambiar_plan",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_plan_id text, p_limite integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_catalogo_avanzar(p_tienda_id uuid, p_accion text, p_url_catalogo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_catalogo_avanzar`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_catalogo_avanzar",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_accion text, p_url_catalogo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_funcion_tienda(p_tienda_id uuid, p_funcion text, p_encendida boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_funcion_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_funcion_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_funcion text, p_encendida boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_guardar_personalizacion(p_tienda_id uuid, p_cambios jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_guardar_personalizacion`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_guardar_personalizacion",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cambios jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_guardar_plan(p_id text, p_nombre text, p_precio_mensual integer, p_limite_productos integer, p_creditos_mensuales integer, p_se_ofrece boolean, p_orden integer, p_destacado boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_guardar_plan`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_guardar_plan",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_id text, p_nombre text, p_precio_mensual integer, p_limite_productos integer, p_creditos_mensuales integer, p_se_ofrece boolean, p_orden integer, p_destacado boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_guardar_precio_extra(p_clave text, p_nombre text, p_precio integer, p_creditos integer, p_orden integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_guardar_precio_extra`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_guardar_precio_extra",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_clave text, p_nombre text, p_precio integer, p_creditos integer, p_orden integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_hoy()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_hoy`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_hoy",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_planes()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_planes`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_planes",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_posponer(p_clave text, p_horas integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_posponer`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_posponer",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_clave text, p_horas integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_quitar_admin(p_usuario_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_quitar_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_quitar_admin",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_usuario_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_recarga_mensual(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_recarga_mensual`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_recarga_mensual",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_registrar_pago(p_tienda_id uuid, p_concepto text, p_monto integer, p_metodo text, p_referencia text, p_comprobante_url text, p_nota text, p_meses integer, p_creditos integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_registrar_pago`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_registrar_pago",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_concepto text, p_monto integer, p_metodo text, p_referencia text, p_comprobante_url text, p_nota text, p_meses integer, p_creditos integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_registro(p_filtro text, p_antes_de timestamp with time zone)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_registro`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_registro",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_filtro text, p_antes_de timestamp with time zone",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_resumen_mes()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_resumen_mes`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_resumen_mes",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_retoque_devolver(p_trabajo_id uuid, p_motivo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_retoque_devolver`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_retoque_devolver",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_trabajo_id uuid, p_motivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_retoque_entregar(p_trabajo_id uuid, p_url_retocada text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_retoque_entregar`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_retoque_entregar",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_trabajo_id uuid, p_url_retocada text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_salud()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_salud`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_salud",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_tienda(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_tiendas(p_filtro text, p_busqueda text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_tiendas`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_tiendas",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_filtro text, p_busqueda text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_trabajos_retoque(p_estado text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_trabajos_retoque`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_trabajos_retoque",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_estado text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_transferir_tienda(p_tienda_id uuid, p_email_nuevo_dueno text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_transferir_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_transferir_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_email_nuevo_dueno text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_ver_como_iniciar(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_ver_como_iniciar`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_ver_como_iniciar",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_ver_como_terminar(p_sesion_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_ver_como_terminar`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_ver_como_terminar",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_sesion_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.admin_viendo(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/admin_viendo`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "admin_viendo",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.ajustar_stock(p_tienda_id uuid, p_producto_id uuid, p_variacion integer, p_motivo text, p_nota text, p_variante_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/ajustar_stock`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "ajustar_stock",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto_id uuid, p_variacion integer, p_motivo text, p_nota text, p_variante_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.borrar_cliente(p_cliente_id uuid, p_borrar_pedidos boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/borrar_cliente`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "borrar_cliente",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_cliente_id uuid, p_borrar_pedidos boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.cambiar_estado_tienda(p_tienda_id uuid, p_accion text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/cambiar_estado_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "cambiar_estado_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_accion text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.catalogo_publico(p_slug text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/catalogo_publico`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "catalogo_publico",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.crear_codigo_cliente(p_tienda_id uuid, p_cliente_id uuid, p_porcentaje integer, p_dias integer, p_codigo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/crear_codigo_cliente`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "crear_codigo_cliente",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cliente_id uuid, p_porcentaje integer, p_dias integer, p_codigo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.crear_producto(p_tienda_id uuid, p_producto jsonb, p_creditos integer, p_opciones jsonb, p_variantes jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/crear_producto`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "crear_producto",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto jsonb, p_creditos integer, p_opciones jsonb, p_variantes jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.crear_solicitud_pedido(p_slug text, p_items jsonb, p_codigo_promo text, p_dispositivo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/crear_solicitud_pedido`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "crear_solicitud_pedido",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_items jsonb, p_codigo_promo text, p_dispositivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.crear_tienda(p_nombre text, p_rubro text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/crear_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "crear_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_nombre text, p_rubro text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.descartar_solicitud(p_solicitud_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/descartar_solicitud`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "descartar_solicitud",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_solicitud_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.deshacer_despacho(p_pedido_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/deshacer_despacho`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "deshacer_despacho",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_pedido_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.despachar_pedido(p_pedido_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/despachar_pedido`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "despachar_pedido",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_pedido_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.editar_abono(p_abono_id uuid, p_monto integer, p_metodo text, p_fecha timestamp with time zone, p_nota text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/editar_abono`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "editar_abono",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_abono_id uuid, p_monto integer, p_metodo text, p_fecha timestamp with time zone, p_nota text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.editar_pedido(p_pedido_id uuid, p_cliente_id uuid, p_items jsonb, p_codigo_promo text, p_fecha timestamp with time zone, p_ya_hecho boolean, p_descontar_stock boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/editar_pedido`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "editar_pedido",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_pedido_id uuid, p_cliente_id uuid, p_items jsonb, p_codigo_promo text, p_fecha timestamp with time zone, p_ya_hecho boolean, p_descontar_stock boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.eliminar_abono(p_abono_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/eliminar_abono`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "eliminar_abono",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_abono_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.eliminar_pedido(p_pedido_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/eliminar_pedido`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "eliminar_pedido",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_pedido_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.eliminar_producto(p_tienda_id uuid, p_producto_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/eliminar_producto`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "eliminar_producto",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.gastar_creditos(p_cantidad integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/gastar_creditos`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "gastar_creditos",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_cantidad integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.gastar_creditos(p_tienda_id uuid, p_cantidad integer)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/gastar_creditos`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "gastar_creditos",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cantidad integer",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.guardar_producto_inventario(p_tienda_id uuid, p_producto_id uuid, p_cambios jsonb, p_stock_base integer, p_stock_nuevo integer, p_motivo text, p_nota text, p_ajuste_id uuid, p_retocar boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/guardar_producto_inventario`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "guardar_producto_inventario",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto_id uuid, p_cambios jsonb, p_stock_base integer, p_stock_nuevo integer, p_motivo text, p_nota text, p_ajuste_id uuid, p_retocar boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.guardar_variantes(p_tienda_id uuid, p_producto_id uuid, p_opciones jsonb, p_variantes jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/guardar_variantes`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "guardar_variantes",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto_id uuid, p_opciones jsonb, p_variantes jsonb",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.invitar_a_tienda(p_tienda_id uuid, p_email text, p_rol text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/invitar_a_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "invitar_a_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_email text, p_rol text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.marcar_actividad(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/marcar_actividad`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "marcar_actividad",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.marcar_avisado(p_aviso_ids uuid[])` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/marcar_avisado`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "marcar_avisado",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_aviso_ids uuid[]",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.mi_tienda_id()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/mi_tienda_id`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "mi_tienda_id",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.mis_tiendas()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/mis_tiendas`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "mis_tiendas",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.mis_tiendas_con_eliminadas()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/mis_tiendas_con_eliminadas`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "mis_tiendas_con_eliminadas",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.pedir_aviso(p_slug text, p_producto_slug text, p_variante_id uuid, p_telefono text, p_nombre text, p_dispositivo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/pedir_aviso`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "pedir_aviso",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_producto_slug text, p_variante_id uuid, p_telefono text, p_nombre text, p_dispositivo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.pedir_cambios_catalogo(p_tienda_id uuid, p_notas text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/pedir_cambios_catalogo`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "pedir_cambios_catalogo",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_notas text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.pedir_retoque(p_producto_id uuid, p_medio_url text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/pedir_retoque`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "pedir_retoque",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_producto_id uuid, p_medio_url text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.precio_con_promo(p_producto_id uuid, p_precio integer, p_ahora timestamp with time zone)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/precio_con_promo`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "precio_con_promo",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_producto_id uuid, p_precio integer, p_ahora timestamp with time zone",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.publicar_catalogo(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/publicar_catalogo`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "publicar_catalogo",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.quitar_de_tienda(p_tienda_id uuid, p_usuario_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/quitar_de_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "quitar_de_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_usuario_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_aaah(p_slug text, p_producto_slug text, p_dispositivo text, p_on boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_aaah`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_aaah",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_slug text, p_producto_slug text, p_dispositivo text, p_on boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_abono(p_tienda_id uuid, p_cliente_id uuid, p_monto integer, p_metodo text, p_fecha timestamp with time zone, p_nota text, p_pedido_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_abono`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_abono",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cliente_id uuid, p_monto integer, p_metodo text, p_fecha timestamp with time zone, p_nota text, p_pedido_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_envio_jugada(p_tienda_id uuid, p_cliente_id uuid, p_jugada text, p_tipo text, p_promo_id uuid, p_producto_ids uuid[])` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_envio_jugada`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_envio_jugada",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cliente_id uuid, p_jugada text, p_tipo text, p_promo_id uuid, p_producto_ids uuid[]",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_solicitud(p_solicitud_id uuid, p_cliente_id uuid, p_cliente_nuevo jsonb, p_quitar uuid[], p_encargo uuid[])` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_solicitud`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_solicitud",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_solicitud_id uuid, p_cliente_id uuid, p_cliente_nuevo jsonb, p_quitar uuid[], p_encargo uuid[]",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.registrar_venta_pasada(p_tienda_id uuid, p_cliente_id uuid, p_fecha timestamp with time zone, p_items jsonb, p_codigo_promo text, p_descontar_stock boolean)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/registrar_venta_pasada`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "registrar_venta_pasada",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_cliente_id uuid, p_fecha timestamp with time zone, p_items jsonb, p_codigo_promo text, p_descontar_stock boolean",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.reponer_stock(p_tienda_id uuid, p_items jsonb, p_nota text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/reponer_stock`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "reponer_stock",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_items jsonb, p_nota text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.revisar_eliminacion_producto(p_tienda_id uuid, p_producto_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/revisar_eliminacion_producto`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "revisar_eliminacion_producto",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_producto_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.solicitar_catalogo(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/solicitar_catalogo`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "solicitar_catalogo",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.soy_admin()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/soy_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "soy_admin",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.soy_dueno(p_tienda_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/soy_dueno`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "soy_dueno",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "p_tienda_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.tiendas_que_miro()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/tiendas_que_miro`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "tiendas_que_miro",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.transferir_tienda(p_tienda_id uuid, p_usuario_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/transferir_tienda`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "transferir_tienda",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_tienda_id uuid, p_usuario_id uuid",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        },
+        {
+          "detail": "Function `public.ver_solicitud(p_codigo text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/ver_solicitud`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "ver_solicitud",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "p_codigo text",
+            "security_definer": true
+          },
+          "observed_at": "2026-10-06T02:25:13.593Z"
+        }
+      ]
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "title": "Leaked Password Protection Disabled",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Leaked password protection is currently disabled.",
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+      "count": 1,
+      "findings": [
+        {
+          "detail": "Supabase Auth prevents the use of compromised passwords by checking against HaveIBeenPwned.org. Enable this feature to enhance security.",
+          "metadata": {
+            "type": "auth",
+            "entity": "Auth"
+          }
+        }
+      ]
+    }
+  ],
+  "rendimiento": [
+    {
+      "name": "unindexed_foreign_keys",
+      "title": "Unindexed foreign keys",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+      "count": 3,
+      "findings": [
+        {
+          "detail": "Table \\`public.invitaciones\\` has a foreign key \\`invitaciones_tienda_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "invitaciones",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "invitaciones_tienda_id_fkey",
+            "fkey_columns": [
+              2
+            ]
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.jugada_envios\\` has a foreign key \\`jugada_envios_cliente_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "jugada_envios",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "jugada_envios_cliente_id_fkey",
+            "fkey_columns": [
+              3
+            ]
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.jugada_envios\\` has a foreign key \\`jugada_envios_promo_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "jugada_envios",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "jugada_envios_promo_id_fkey",
+            "fkey_columns": [
+              6
+            ]
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        }
+      ]
+    },
+    {
+      "name": "unused_index",
+      "title": "Unused Index",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Detects if an index has never been used and may be a candidate for removal.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+      "count": 18,
+      "findings": [
+        {
+          "detail": "Index \\`admins_quitado_por_idx\\` on table \\`public.admins\\` has not been used",
+          "metadata": {
+            "name": "admins",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`ajustes_inventario_tienda_idx\\` on table \\`public.ajustes_inventario\\` has not been used",
+          "metadata": {
+            "name": "ajustes_inventario",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`pedido_items_variante_idx\\` on table \\`public.pedido_items\\` has not been used",
+          "metadata": {
+            "name": "pedido_items",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`admins_creado_por_idx\\` on table \\`public.admins\\` has not been used",
+          "metadata": {
+            "name": "admins",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`ajustes_inventario_variante_idx\\` on table \\`public.ajustes_inventario\\` has not been used",
+          "metadata": {
+            "name": "ajustes_inventario",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`avisos_llegada_variante_idx\\` on table \\`public.avisos_llegada\\` has not been used",
+          "metadata": {
+            "name": "avisos_llegada",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`promos_cliente_idx\\` on table \\`public.promos\\` has not been used",
+          "metadata": {
+            "name": "promos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`tiendas_plan_idx\\` on table \\`public.tiendas\\` has not been used",
+          "metadata": {
+            "name": "tiendas",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`registro_admin_fecha_idx\\` on table \\`public.registro_admin\\` has not been used",
+          "metadata": {
+            "name": "registro_admin",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`registro_admin_tienda_idx\\` on table \\`public.registro_admin\\` has not been used",
+          "metadata": {
+            "name": "registro_admin",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`funciones_tienda_creado_por_idx\\` on table \\`public.funciones_tienda\\` has not been used",
+          "metadata": {
+            "name": "funciones_tienda",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`sesiones_ver_como_tienda_idx\\` on table \\`public.sesiones_ver_como\\` has not been used",
+          "metadata": {
+            "name": "sesiones_ver_como",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`pagos_tienda_fecha_idx\\` on table \\`public.pagos\\` has not been used",
+          "metadata": {
+            "name": "pagos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`trabajos_retoque_tienda_idx\\` on table \\`public.trabajos_retoque\\` has not been used",
+          "metadata": {
+            "name": "trabajos_retoque",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`trabajos_retoque_producto_idx\\` on table \\`public.trabajos_retoque\\` has not been used",
+          "metadata": {
+            "name": "trabajos_retoque",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`trabajos_retoque_cola_idx\\` on table \\`public.trabajos_retoque\\` has not been used",
+          "metadata": {
+            "name": "trabajos_retoque",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`movimientos_creditos_pago_idx\\` on table \\`public.movimientos_creditos\\` has not been used",
+          "metadata": {
+            "name": "movimientos_creditos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Index \\`movimientos_creditos_trabajo_idx\\` on table \\`public.movimientos_creditos\\` has not been used",
+          "metadata": {
+            "name": "movimientos_creditos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        }
+      ]
+    },
+    {
+      "name": "multiple_permissive_policies",
+      "title": "Multiple Permissive Policies",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+      "count": 6,
+      "findings": [
+        {
+          "detail": "Table \\`public.clientes\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{clientes_de_mis_tiendas,clientes_ver_como}\\`",
+          "metadata": {
+            "name": "clientes",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.pedido_items\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{pedido_items_de_mis_tiendas,pedido_items_ver_como}\\`",
+          "metadata": {
+            "name": "pedido_items",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.pedidos\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{pedidos_de_mis_tiendas,pedidos_ver_como}\\`",
+          "metadata": {
+            "name": "pedidos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.producto_variantes\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{producto_variantes_de_mis_tiendas,producto_variantes_ver_como}\\`",
+          "metadata": {
+            "name": "producto_variantes",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.productos\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{productos_de_mis_tiendas,productos_ver_como}\\`",
+          "metadata": {
+            "name": "productos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        },
+        {
+          "detail": "Table \\`public.promos\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{promos_de_mis_tiendas,promos_ver_como}\\`",
+          "metadata": {
+            "name": "promos",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-06T02:25:13.699Z"
+        }
+      ]
+    }
+  ]
+}

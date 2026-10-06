@@ -79,7 +79,7 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 **Catálogo conectado, estado actual:** PR #47 y el pulido de likes PR #48 ya están publicados en main; PR #45 de rendimiento no se incluye. Esta rama independiente añade selección de agotados visibles, historial con filas comunes y la nueva píldora de likes. Estado y validaciones: `docs/handoffs/catalogo-agotados-visibles.md`.
 
 **Admin de Deslizapp** (diseño aprobado el 5 oct 2026): el panel de Lewis para administrar todas las tiendas en `/admin`. Especificación: `docs/13-admin.md`. Diseño: `referencias/admin/`. Se construye en 4 partes, cada una un PR que se deja abierto para que Lewis lo pruebe:
-1. Base y capa de datos: `docs/prompts/admin-1-base.md`. **Sigue.**
+1. Base y capa de datos: `docs/prompts/admin-1-base.md`. **En revisión**, [PR #51](https://github.com/onedayoneproj-blip/deslizapp-app/pull/51), rama `feature/admin-base`: Codex tomó el relevo de Claude, recuperó las seis SQL aplicadas y construyó TypeScript sin pantallas. Anulación encadenada corregida con autorización de Lewis y aplicada como 20261006030939; historial 40/40, sin tocar pagos reales. [Handoff](handoffs/admin-base-codex.md), [validación base](validacion-admin-base.md) y [validación de anulación](validacion-admin-anulacion.md). Claude debe leer el estado remoto y no empujar su copia antigua. Partes 2–4 pendientes.
 2. Hoy, Tiendas, ficha y Ver como: `docs/prompts/admin-2-tiendas.md`.
 3. Trabajo (catálogos, retoque real) y Personalizar: `docs/prompts/admin-3-trabajo.md`.
 4. Cobros, Planes, Más, Salud y Registro: `docs/prompts/admin-4-cobros.md`.
