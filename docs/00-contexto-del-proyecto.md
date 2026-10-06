@@ -86,7 +86,11 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 **Dos Coding en paralelo** (desde el 5 oct 2026): uno construye el admin y otro hace los pendientes de la app. Reglas para que no se pisen:
 - Cada uno en su rama, desde `main` actualizado. Antes de abrir o actualizar un PR, `git fetch origin && git rebase origin/main`.
-- **Migraciones:** una a la vez. Antes de aplicar, `list_migrations` para ver si la otra sesión aplicó algo nuevo; si tocan la misma tabla o política, se para y se avisa a Lewis. Nunca editar una migración de la otra sesión.
+- **Migraciones:** las dos sesiones comparten la base de producción, así que un PR sin merge igual cambia Supabase. Reglas:
+  - Una a la vez, y quien coordina es Lewis: antes de aplicar, se le pregunta si otra sesión está a mitad de un cambio. Cualquier Coding (Claude o Codex) puede aplicar.
+  - Antes de aplicar, ensayo con `execute_sql` dentro de `BEGIN; … ROLLBACK;`. Después de aplicar, comprobar que la app de `main` sigue funcionando (catálogo y panel de Michel). Las políticas existentes solo se amplían, nunca se quita acceso que hoy existe.
+  - `list_migrations` antes de aplicar; si la otra sesión tocó la misma tabla o política, se para y se avisa a Lewis. Nunca editar una migración de la otra sesión.
+  - Subir la rama a GitHub a menudo, para que otra herramienta pueda seguir si se acaba el límite de uso.
 - Archivos compartidos (`lib/types.ts`, `lib/data/fuente.ts`, `lib/data/demo.ts` y su seed, `components/ui/`, `lib/novedades.ts`): cambios pequeños y aditivos. Si hace falta reorganizar uno, se dice en el PR.
 - `lib/novedades.ts`: una versión nueva por PR que se publique, con el número siguiente al de `main` en el momento del merge.
 
