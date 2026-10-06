@@ -45,7 +45,8 @@ export const WHATSAPP_DESLIZAPP = "";
 export const MOSTRAR_MARCA_DESLIZAPP_EN_CUPON = true;
 
 /**
- * ¿El retoque de fotos es real? Mientras sea `false` es una demostración: junto al interruptor de retoque se
- * muestra la etiqueta "Demo". Al conectar el retoque de verdad (docs/07), pasar a `true` y la etiqueta desaparece.
+ * El retoque de fotos es real: la tienda manda la foto al taller (RPC `pedir_retoque`, reserva créditos), el equipo la entrega
+ * desde el admin (se cobra al entregar) o la devuelve con un motivo (no se cobra). Ya no hay retoque de demostración ni etiqueta
+ * "Demo" en la ficha.
  */
-export const RETOQUE_REAL = false;
+export const RETOQUE_REAL = true;

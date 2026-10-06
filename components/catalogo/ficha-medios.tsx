@@ -1,22 +1,23 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
-import { CREDITOS_POR_RETOQUE, RETOQUE_REAL } from "@/lib/config";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
 import { nuevoId } from "@/lib/data/db";
-import { reducirFoto, retocarFoto } from "@/lib/imagen";
+import { reducirFoto } from "@/lib/imagen";
 import type { Medio, Producto } from "@/lib/types";
 import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, VIDEO_MAX_S, type PasoVideo, type VideoElegido } from "@/lib/video";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Boton, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
+import { Boton, Etiqueta, FilaLista, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
+import type { Taller } from "./taller";
 
 export const MAX_MEDIOS = 10;
 export const MAX_VIDEOS = 2;
 
-/** Un medio en el borrador de la ficha. Una foto recién retocada guarda la `original` para poder volver atrás. */
+/** Un medio en el borrador de la ficha. */
 export type MedioBorrador =
-  | { id: string; tipo: "foto"; url: string; retocada: boolean; original?: string; retoquePendiente?: boolean }
+  | { id: string; tipo: "foto"; url: string; retocada: boolean }
   | { id: string; tipo: "video"; url: string | null; portada: string | null; duracionS: number; progreso?: number | null };
 
 /** Los medios del producto (o, si es viejo y solo tiene `fotos`, sus fotos) como borrador. */
@@ -35,23 +36,43 @@ export function mediosParaGuardar(medios: MedioBorrador[]): Medio[] {
   );
 }
 
-export const retoquesPendientes = (medios: MedioBorrador[]) => medios.filter((m) => m.tipo === "foto" && m.retoquePendiente).length;
+/**
+ * Una foto que el taller entregó mientras la ficha estaba abierta: en el borrador se cambia la original por la retocada, así
+ * guardar no la vuelve atrás. Devuelve la misma lista si no hay nada que cambiar.
+ */
+export function conEntregadas(medios: MedioBorrador[], entregadas: { medioUrlOriginal: string; medioUrlRetocado: string | null }[]): MedioBorrador[] {
+  let cambio = false;
+  const nuevos = medios.map((m) => {
+    const t = m.tipo === "foto" ? entregadas.find((e) => e.medioUrlOriginal === m.url && e.medioUrlRetocado) : undefined;
+    if (!t || m.tipo !== "foto") return m;
+    cambio = true;
+    return { ...m, url: t.medioUrlRetocado!, retocada: true };
+  });
+  return cambio ? nuevos : medios;
+}
 
 /**
  * Fotos y video de la ficha (tablero Producto «Perfume» y «Video»): la TiraMedios, la hoja chica de cada miniatura (portada,
- * mover, quitar y, en fotos, el retoque con sus créditos) y, si un video dura más de 30 s, la hoja que elige el tramo.
+ * mover, quitar y, en fotos, mandarla al taller de retoque) y, si un video dura más de 30 s, la hoja que elige el tramo.
  */
 export function SeccionMedios({
   medios,
   alCambiar,
-  creditos,
+  taller,
   avisar,
 }: {
   medios: MedioBorrador[];
   alCambiar: (cambio: (medios: MedioBorrador[]) => MedioBorrador[]) => void;
-  creditos: number;
+  taller: Taller;
   avisar: (mensaje: string) => void;
 }) {
+  // Si el taller entrega una foto con la ficha abierta, el borrador toma la retocada.
+  const ultimaEntregada = taller.entregadas[0]?.id;
+  useEffect(() => {
+    if (ultimaEntregada) alCambiar((l) => conEntregadas(l, taller.entregadas));
+    // Solo al aparecer una entrega nueva.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ultimaEntregada]);
   const entrada = useRef<HTMLInputElement>(null);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [tramo, setTramo] = useState<{ video: VideoElegido; cuadros: string[] } | null>(null);
@@ -141,7 +162,7 @@ export function SeccionMedios({
       <TiraMedios
         elementos={medios.map((m) =>
           m.tipo === "foto"
-            ? { id: m.id, tipo: "foto", imagen: m.url }
+            ? { id: m.id, tipo: "foto", imagen: m.url, taller: tallerDeMiniatura(taller.estado(m.url)) }
             : { id: m.id, tipo: "video", imagen: m.portada, duracionS: m.duracionS, progreso: m.progreso ?? null },
         )}
         alTocar={setAbierto}
@@ -155,8 +176,7 @@ export function SeccionMedios({
         medio={elegido}
         indice={indice}
         total={medios.length}
-        creditos={creditos}
-        pendientes={retoquesPendientes(medios)}
+        taller={taller}
         alCerrar={() => setAbierto(null)}
         alCambiar={(nuevo) => alCambiar((l) => l.map((m) => (m.id === nuevo.id ? nuevo : m)))}
         alMover={(hasta) => mover(indice, hasta)}
@@ -182,13 +202,14 @@ export function SeccionMedios({
   );
 }
 
-/** Hoja chica de una miniatura: la foto, el retoque (solo fotos) y las acciones. */
+const tallerDeMiniatura = (e: ReturnType<Taller["estado"]>) => (e?.estado === "pendiente" ? "pendiente" : e?.estado === "devuelto" ? "devuelta" : null);
+
+/** Hoja chica de una miniatura: la foto, el taller de retoque (solo fotos) y las acciones. */
 function HojaMedio({
   medio,
   indice,
   total,
-  creditos,
-  pendientes,
+  taller,
   alCerrar,
   alCambiar,
   alMover,
@@ -198,8 +219,7 @@ function HojaMedio({
   medio: MedioBorrador | null;
   indice: number;
   total: number;
-  creditos: number;
-  pendientes: number;
+  taller: Taller;
   alCerrar: () => void;
   alCambiar: (m: MedioBorrador) => void;
   alMover: (hasta: number) => void;
@@ -208,38 +228,63 @@ function HojaMedio({
 }) {
   // Lo último abierto se sigue viendo mientras la hoja baja.
   const [visto, setVisto] = useState(medio);
-  const [retocando, setRetocando] = useState(false);
-  const [vista, setVista] = useState<"antes" | "despues">("despues");
-  if (medio && medio !== visto) {
-    // Otra miniatura: se empieza viendo el resultado.
-    if (medio.id !== visto?.id) setVista("despues");
-    setVisto(medio);
-  }
+  const otra = useRef<HTMLInputElement>(null);
+  if (medio && medio !== visto) setVisto(medio);
   const m = medio ?? visto;
   if (!m) return null;
   const foto = m.tipo === "foto" ? m : null;
-  const alcanzan = creditos >= CREDITOS_POR_RETOQUE * (pendientes + (foto?.retoquePendiente ? 0 : 1));
+  const imagen = foto ? foto.url : m.tipo === "video" ? m.portada : null;
+  const enTaller = foto ? taller.estado(foto.url) : null;
 
-  const retocar = async (prender: boolean) => {
-    if (!foto) return;
-    if (!prender) {
-      alCambiar({ ...foto, url: foto.original ?? foto.url, retocada: false, original: undefined, retoquePendiente: false });
-      return;
-    }
-    setRetocando(true);
+  /** «Subir otra» de una devuelta: la foto nueva reemplaza a esta en el borrador (al guardar se puede mandar de nuevo). */
+  const subirOtra = async (archivo: File | undefined) => {
+    if (!archivo || !foto) return;
     try {
-      const url = await retocarFoto(foto.url);
-      alCambiar({ ...foto, original: foto.url, url, retocada: true, retoquePendiente: true });
-      setVista("despues");
+      alCambiar({ ...foto, url: await reducirFoto(archivo), retocada: false });
     } catch {
-      avisar("Esta foto no se dejó retocar. Prueba con otra.");
-    } finally {
-      setRetocando(false);
+      avisar("Esa foto no quiso cargar. Prueba con otra.");
     }
   };
 
-  const verAntes = foto?.retoquePendiente && vista === "antes";
-  const imagen = foto ? (verAntes ? foto.original! : foto.url) : m.tipo === "video" ? m.portada : null;
+  const retoque = (() => {
+    if (!foto) return null;
+    if (enTaller?.estado === "pendiente")
+      return {
+        titulo: "En el taller",
+        detalle: "El equipo la está retocando.",
+        pie: `Reservamos ${CREDITOS_POR_RETOQUE} créditos; se cobran al entregarla.`,
+        accion: null,
+      };
+    if (enTaller?.estado === "devuelto")
+      return {
+        titulo: "Te la devolvimos",
+        detalle: "No se cobró.",
+        pie: `«${enTaller.trabajo.motivoDevolucion ?? "No se pudo retocar."}»`,
+        accion: (
+          <Boton tamano="compacto" jerarquia="secundario" deshabilitado={taller.soloMirar} onClick={() => otra.current?.click()}>
+            Subir otra
+          </Boton>
+        ),
+      };
+    if (foto.retocada) return { titulo: "Retocada por el equipo", detalle: "Ya tiene luz y fondo de estudio.", pie: null, accion: null };
+    const motivo = taller.soloMirar
+      ? "Solo mirar: aquí no se manda nada al taller."
+      : !taller.guardada(foto.url)
+        ? "Guarda el producto para mandarla al taller."
+        : taller.libres < CREDITOS_POR_RETOQUE
+          ? "Te faltan créditos para esta."
+          : null;
+    return {
+      titulo: "Retocar foto",
+      detalle: motivo ?? "Luz, fondo y color de estudio.",
+      pie: motivo ? null : `${CREDITOS_POR_RETOQUE} créditos, se cobran al entregarla.`,
+      accion: (
+        <Boton tamano="compacto" deshabilitado={!!motivo} cargando={taller.pidiendo === foto.url} onClick={() => void taller.pedir(foto.url)}>
+          Retocar
+        </Boton>
+      ),
+    };
+  })();
 
   return (
     <Hoja abierta={medio !== null} alCerrar={alCerrar} titulo={m.tipo === "video" ? "Video" : indice === 0 ? "Portada" : "Foto"}>
@@ -253,51 +298,22 @@ function HojaMedio({
             esquina={<span className="pointer-events-none absolute right-2 bottom-2"><Etiqueta tono="fuerte">{duracionCorta(m.duracionS)}</Etiqueta></span>}
           />
         ) : (
-          <div className="relative mx-auto aspect-square w-full max-w-60 overflow-hidden rounded-radio-m bg-superficie-hundida">
+          <div className={`relative mx-auto aspect-square w-full max-w-60 overflow-hidden rounded-radio-m bg-superficie-hundida ${enTaller?.estado === "pendiente" ? "ring-3 ring-resalte" : ""}`}>
             {imagen && <Foto src={imagen} alt={m.tipo === "video" ? "Portada del video" : "Foto del producto"} className="h-full w-full" sizes="240px" />}
             {m.tipo === "video" && <span className="absolute right-2 bottom-2"><Etiqueta tono="fuerte">{duracionCorta(m.duracionS)}</Etiqueta></span>}
-            {retocando && <span className="absolute inset-0 grid place-items-center bg-[rgb(0_0_0/0.35)]"><Etiqueta tono="fuerte">Poniéndole la luz…</Etiqueta></span>}
           </div>
         )}
-        {foto?.retoquePendiente && (
-          <ControlSegmentado
-            etiqueta="Comparar foto"
-            valor={vista}
-            alCambiar={setVista}
-            opciones={[
-              { id: "antes", texto: "Antes" },
-              { id: "despues", texto: "Después" },
-            ]}
-          />
-        )}
-        {foto && (
+        {retoque && (
           <ListaAgrupada etiqueta="Retoque">
             <FilaLista
-              titulo={
-                <span className="flex items-center gap-2">
-                  {foto.retocada && !foto.retoquePendiente ? "Retocar otra vez" : "Retocar foto"}
-                  {!RETOQUE_REAL && <Etiqueta>Demo</Etiqueta>}
-                </span>
-              }
-              detalle={
-                foto.retoquePendiente
-                  ? `Al guardar usa ${CREDITOS_POR_RETOQUE} créditos.`
-                  : alcanzan
-                    ? `Luz, fondo y color de estudio. ${CREDITOS_POR_RETOQUE} créditos.`
-                    : `Te faltan créditos (tienes ${creditos}). Se recargan el día 1.`
-              }
-              accion={
-                <Interruptor
-                  encendido={Boolean(foto.retoquePendiente)}
-                  alCambiar={(v) => void retocar(v)}
-                  etiqueta="Retocar foto"
-                  deshabilitado={retocando || (!foto.retoquePendiente && !alcanzan)}
-                  alTocarBloqueado={() => avisar("Te faltan créditos para retocar. Se recargan el día 1.")}
-                />
-              }
+              titulo={retoque.titulo}
+              detalle={retoque.detalle}
+              pie={retoque.pie ? <span className="text-secundario text-texto-secundario">{retoque.pie}</span> : undefined}
+              accion={retoque.accion ?? undefined}
             />
           </ListaAgrupada>
         )}
+        <input ref={otra} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => { void subirOtra(e.target.files?.[0]); e.target.value = ""; }} />
         {total > 1 && (
           <ListaAgrupada etiqueta="Acciones">
             {indice > 0 && <FilaLista titulo="Hacer portada" onClick={() => { alMover(0); alCerrar(); }} />}

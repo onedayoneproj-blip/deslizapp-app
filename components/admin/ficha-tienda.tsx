@@ -111,7 +111,7 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
       <Tarjeta className="mt-3">
         <div className="flex justify-between"><h2 className="font-display text-titulo-hoja font-bold">Catálogo</h2><Etiqueta tono={ficha.catalogo.estado === "publicado" ? "exito" : "neutro"}>{ficha.catalogo.estado}</Etiqueta></div>
         <p className="mt-2 text-secundario text-texto-secundario">Desde {fecha(ficha.catalogo.solicitadoEn)} · {t.urlCatalogo ?? `/tienda/${t.slug}`}</p>
-        <div className="mt-3 flex gap-2"><Boton jerarquia="secundario" deshabilitado>Personalizar · Muy pronto</Boton><Boton href={t.urlCatalogo ?? `/tienda/${t.slug}`} jerarquia="secundario">Abrir</Boton></div>
+        <div className="mt-3 flex gap-2"><Boton jerarquia="secundario" href={`${raiz}/tiendas/${t.id}/catalogo`}>Personalizar</Boton><Boton href={t.urlCatalogo ?? `/tienda/${t.slug}`} jerarquia="secundario">Abrir</Boton></div>
       </Tarjeta>
 
       <Tarjeta className="mt-3"><h2 className="font-display text-titulo-hoja font-bold">Equipo</h2><ul className="mt-2 divide-y divide-linea">{ficha.equipo.map(m=><li key={m.usuarioId} className="flex min-h-12 items-center justify-between gap-2 py-2"><span className="truncate font-bold">{m.nombre || m.email} · {m.rol}</span><span className="shrink-0 text-[12px] text-texto-secundario">{m.ultimaEntradaEn ? fecha(m.ultimaEntradaEn) : "Sin actividad"}</span></li>)}</ul></Tarjeta>

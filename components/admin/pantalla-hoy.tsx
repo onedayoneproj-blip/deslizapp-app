@@ -30,7 +30,8 @@ function Asunto({ asunto, refrescar }: { asunto: AsuntoAdmin; refrescar: () => v
     finally { setOcupado(false); }
   };
   const soloLink = ["empezar", "seguir", "ver salud", "retocar", "ver cambios"].includes(contenido.accion.toLowerCase());
-  const hrefAccion = contenido.accion === "Ver salud" ? `${raiz}/mas` : `${raiz}/trabajo`;
+  const conTienda = asunto.tiendaId ? `tienda=${encodeURIComponent(asunto.tiendaId)}` : "";
+  const hrefAccion = contenido.accion === "Ver salud" ? `${raiz}/mas` : asunto.regla === "fotos" ? `${raiz}/trabajo?ver=fotos${conTienda ? `&${conTienda}` : ""}` : `${raiz}/trabajo${conTienda ? `?${conTienda}` : ""}`;
   const hrefTienda = asunto.tiendaId ? `${raiz}/tiendas/${asunto.tiendaId}` : `${raiz}/tiendas`;
   return <Tarjeta className="mb-3 p-4">
     <div className="flex gap-3">
