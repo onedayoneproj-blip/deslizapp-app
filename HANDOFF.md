@@ -1,526 +1,2 @@
-## Admin: base fusionada y prueba de inventario corregida ‚Äî Coding, 2026-10-06
-
-PR #51 est√° fusionado en `main` en `a07acfc`. La correcci√≥n autorizada de anulaci√≥n encadenada se aplic√≥ como **20261006030939_admin_anular_mensualidades_recalculo**, sin tocar pagos reales. Contrato, 392 secuencias SQL/demo, concurrencia y l√≠mites de cobertura externa: [validaci√≥n de anulaci√≥n](docs/validacion-admin-anulacion.md).
-
-El replay de inventario report√≥ inicialmente una firma obsoleta de `ajustar_stock` de cinco argumentos, tambi√©n presente en main sin el admin. La prueba se ajust√≥ al contrato actual de seis argumentos; replay completo posterior pas√≥. El addendum conserva el fallo hist√≥rico y registra el resultado nuevo. Solo cambian pruebas/documentaci√≥n; no se altera el inventario. Rama independiente de correcci√≥n: `fix/inventario-prueba-firma`.
-
-SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff admin](docs/handoffs/admin-base-codex.md) y la [validaci√≥n](docs/validacion-admin-base.md), incluyendo la correcci√≥n posterior de anulaci√≥n y los advisors. soloMirar bloquea desde la app; una cuenta admin/due√±o conserva permisos de due√±o en la base.
-
-Claude: leer el handoff y hacer fetch del estado remoto antes de continuar. No empujar la copia antigua encima del trabajo de Codex ni reaplicar las seis migraciones. Lewis ya es admin activo; no repetir el alta.
-
-## Activaci√≥n en producci√≥n ‚Äî Planning, 2026-10-05
-
-Lewis autoriz√≥ aplicar la migraci√≥n despu√©s del error al abrir Eliminar.
-Aplicada en Supabase euihaeyfdlpvmbtfzvnt como **20261005225218_eliminar_producto_logico.sql**.
-Sustituye el nombre provisional 20261005215350_eliminar_producto_logico.sql; contenido SQL conservado sin modificaciones.
-El comentario inicial ¬´NO aplicada¬ª dentro del archivo es hist√≥rico de su preparaci√≥n.
-
-Verificado en producci√≥n: columna eliminado_en, ambas RPC, ejecuci√≥n para authenticated y denegaci√≥n para anon, y seis triggers de protecci√≥n.
-Productos antes/despu√©s: 16; activos: 15; stock total: 10; retirados despu√©s: 0.
-No se eliminaron productos ni archivos para probar. Las pruebas de replay/concurrencia descritas abajo pertenecen a Coding; Planning no las repiti√≥.
-Pendiente: confirmaci√≥n del recorrido autenticado en Safari por Lewis. Los bloqueos por pedidos, solicitudes o avisos pendientes siguen activos.
-
----
-
-# Deslizapp ‚Äî Panel de tienda (handoff para Claude Code)
-
-## Admin parte 2: Hoy, Tiendas, ficha y Ver como ‚Äî Coding
-
-Trabajo en `feature/admin-tiendas`, desde `origin/main` actualizado (`1454a782`); preparar PR abierto, sin merge y sin deploy a producci√≥n. Los PR #51 y #52 est√°n fusionados. Lewis ya tiene alta admin; no volver a crearla. No incorporar PR #45.
-
-La implementaci√≥n, la comparaci√≥n de capturas, resultados y l√≠mites se detallan en [handoff para Planning y Claude](docs/handoffs/admin-tiendas-codex.md) y [validaci√≥n de Admin parte 2](docs/validacion-admin-tiendas.md). Incluye la UI de Demo aislada, fuentes admin real/demo, guardia central `soloMirar` y una propuesta aditiva para dos RPC de validar el modo. Replay completo desechable pas√≥; producci√≥n permanece en 40/40 migraciones y sin cambios. **Las bases locales de la otra sesi√≥n son desconocidas.** Se requiere coordinaci√≥n antes de aplicar SQL compartido; el Supabase CLI no est√° instalado, y el identificador SQL local es provisional. Google real, callback de preview, Safari f√≠sico y la vista de una tienda real no est√°n verificados.
-
-Cuando se publique la preview, el callback requerido es `https://<host-exacto-del-preview>/auth/callback`; no cambiar Site URL ni la configuraci√≥n Auth. Ver como no revoca en la base permisos ordinarios del due√±o: `soloMirar` bloquea las escrituras √∫nicamente dentro de ese recorrido de la app.
-
-Capturas/comparaci√≥n con dise√±os aprobados: [`docs/capturas/admin-tiendas/README.md`](docs/capturas/admin-tiendas/README.md). Lewis puede probar `/admin` y la ficha de Michel en el preview, pero Ver como debe esperar a que Planning coordine el RPC aditivo y permita el callback exacto.
-
-### Correcci√≥n posterior de la prueba de replay de inventario
-
-PR #52 actualizado; consulta la [validaci√≥n de inventario](validacion-admin-base.md) antes de repetir el replay. El historial conserva los resultados iniciales fallidos y el resultado posterior que pas√≥.
-
-Este repo es el punto de partida del **panel de administraci√≥n** de Deslizapp: la
-app web donde el due√±o de una tienda (ej. Esencias Michel) gestiona su cat√°logo,
-ve sus pedidos, los despacha, arma promos y revisa c√≥mo le va.
-
-**No confundir con:** el cat√°logo p√∫blico que ven los clientes finales (el que
-se desliza tipo Instagram Reels y pide por WhatsApp). Ese ya existe como un HTML
-independiente y **se manten√≠a separado** de este proyecto; desde octubre de 2026 se conecta y se pasa a React aqu√≠ (ver `docs/12-catalogo-conectado.md`). Este repo
-incluye el panel y las rutas p√∫blicas nuevas; el cambio del enlace p√∫blico se har√° despu√©s de comparar ambas superficies.
-
-**Primero lee `docs/00-contexto-del-proyecto.md`**: qu√© es el proyecto, c√≥mo se trabaja (Planning y Coding), d√≥nde va el trabajo y d√≥nde est√° cada cosa. Lo que sigue en este documento es la base del panel.
-
-Este documento es el punto de entrada. Antes de escribir c√≥digo, lee en este
-orden:
-
-1. `docs/01-marca.md` ‚Äî voz, colores, tipograf√≠a. Todo lo que se muestre debe sentirse como esto.
-2. `docs/02-alcance.md` ‚Äî qu√© entra en esta primera versi√≥n y qu√© no.
-3. `docs/03-modelo-de-datos.md` ‚Äî las tablas, ya con la forma que tendr√°n en Supabase.
-4. `docs/04-pantallas.md` ‚Äî spec de cada pantalla, campo por campo, sacada de los mockups ya validados.
-5. `docs/05-arquitectura.md` ‚Äî c√≥mo se construye esto con datos falsos hoy sin tener que rehacerlo cuando se conecte Supabase.
-6. `docs/06-orden-de-construccion.md` ‚Äî en qu√© orden construir, y el criterio de "listo" de cada paso.
-7. `docs/07-fase-2-cuentas-y-cobros.md` ‚Äî **solo lectura por ahora:** decisiones ya tomadas para la fase 2 (verificaci√≥n de Instagram, zona de administraci√≥n, cobros manuales). No se construye en la primera entrega.
-8. `docs/08-movimiento.md` ‚Äî el sistema de movimiento: c√≥mo se anima todo (reglas obligatorias para lo nuevo).
-
-Adem√°s, en `referencias/` est√° el **prototipo interactivo y navegable del panel** (`referencias/prototipo-interactivo/Main.dc.html`, √°brelo en el navegador) y otros HTML de referencia. Es la referencia visual principal; los `docs/` mandan en reglas de datos, stock y cr√©ditos (ver `referencias/LEEME.md`).
-
-## Eliminaci√≥n de productos ‚Äî propuesta, sin publicaci√≥n
-
-Rama `feature/catalogo-eliminar-producto`, desde main `709d7df` (PR #49). Conserva sus tres mejoras de selecci√≥n, historial y likes; no incorpora PR #45. Nuevo contrato y validaci√≥n en `docs/validacion-eliminar-producto.md`. Migraci√≥n CLI `20261005225218_eliminar_producto_logico.sql` **pendiente, no aplicada a producci√≥n**; al aplicar en una entrega autorizada, usar la versi√≥n que asigne Supabase seg√∫n AGENTS.md. La preview real conserva el cat√°logo existente pero no podr√° eliminar hasta ese paso. Demo s√≠ permite probarlo.
-
-Eliminar retira l√≥gicamente; no borra archivos, filas hist√≥ricas ni variantes. Bloquea pedidos en curso, solicitudes vigentes y avisos pendientes; ofrece Ocultar sin perder otros campos. Las nuevas referencias bloquean el producto y rechazan retirados. Historial usa `getProductos(tiendaId, true)`; la lista administrativa/selectores usan el valor por defecto. No reintroducir retirados en alertas de stock. No agregar limpieza de medios: siguen referenciados por la fila hist√≥rica. Confirmaci√≥n sale primero, luego editor, para conservar Atr√°s con movimiento reducido.
-
-## Publicaci√≥n autorizada del cat√°logo conectado
-
-PR #44 y #46 fusionados y publicados en producci√≥n. Esencias Michel abre el cat√°logo React desde `tiendas.url_catalogo`. PR #45 de rendimiento queda fuera. El c√≥digo original de Claude est√° incluido mediante #46; no retomar su rama para publicarla por separado. Estado, comprobaciones y l√≠mites: `docs/handoffs/publicacion-catalogo-conectado.md`. Las notas de implementaci√≥n anteriores son hist√≥ricas; no asumir que las previews antiguas tienen la versi√≥n actual.
-
-## Regla permanente: novedades
-
-**Cada cambio visible para el usuario suma una l√≠nea a `lib/novedades.ts`.**
-Si el cambio sale en una versi√≥n nueva, se agrega una entrada nueva arriba
-(n√∫mero mayor, fecha y de 2 a 4 l√≠neas cortas en tono de marca). Al abrir la
-app despu√©s del despliegue, cada persona ve esas novedades una sola vez (la
-primera vez que alguien entra no se le muestran). La versi√≥n actual se ve en
-el men√∫ de la tienda. Cambios internos sin efecto visible no llevan l√≠nea.
-
-## Regla permanente: campos de texto y teclado (iPhone)
-
-**Nunca animar ni remontar los ancestros de un campo de texto al enfocarlo o al cambiar el tama√±o;
-`focus()` siempre dentro del gesto del usuario; no cambiar `key` ni estado de layout por eventos de
-`resize`/`visualViewport`.** En concreto:
-- Ning√∫n `useEffect` con listeners de `resize`/`visualViewport` cambia estado de React, ni el
-  alto/posici√≥n de una hoja, ni llama a `focus()`. El teclado solo puede escribir una variable CSS
-  (`--teclado`) y desplazar el contenido para dejar a la vista el campo enfocado (ver `components/hoja.tsx`).
-- Los efectos que manejan foco (bloquear fondo, devolver el foco al cerrar) son **estables**: sin
-  dependencias que cambien. Si se vuelven a ejecutar con un campo enfocado, su limpieza le quita el foco.
-- Ninguna transici√≥n de vista (`ViewTransition`, `startViewTransition`, `addTransitionType`): en iOS
-  le quita el foco al campo. Ya no se usan en ninguna parte.
-- Una hoja con campos de texto es `"grande"` (una `"auto"` crece con el `--teclado` y se mueve). Si un toque abre un
-  campo (ej. el selector de cliente), el `focus()` va en el mismo toque: `flushSync` + `focus()`.
-- Toda hoja o pantalla nueva con campos de texto se prueba con `npm run probar:teclado`
-  (`scripts/probar-teclado.mjs`, con la app corriendo): agr√©gale el campo nuevo.
-
-## Regla permanente: movimiento
-
-**Movimiento solo en hojas, barra de navegaci√≥n y microinteracciones de un solo
-elemento. Prohibido animar la p√°gina completa al cambiar de pesta√±a y prohibido
-animar cada elemento de una lista o grilla al entrar. Solo `transform` y
-`opacity`, con la excepci√≥n aprobada de `stroke-dashoffset` en el SVG de las
-donas de Cat√°logo y Clientes.** Cambiar de pesta√±a es instant√°neo; las listas y grillas aparecen de
-una vez; las fotos no se funden al cargar; no hay librer√≠a de animaci√≥n.
-
-Toda pantalla o componente nuevo sigue `docs/08-movimiento.md`: tokens
-(`--mov-*`, `--curva-*` en `app/globals.css` y `lib/movimiento.ts`), nada que haga
-esperar un toque y respeto por `prefers-reduced-motion`. Los elementos tocables,
-n√∫meros, avisos y cargas usan los componentes base (`tocable`, `Numero`,
-`Segmentos`, `Esqueleto`‚Ä¶).
-
-**Excepci√≥n concreta de movimiento para ¬´Tu pr√≥xima jugada¬ª:** el resplandor granulado fijo al pie de su Hoja, visible desde que se abre la galer√≠a o un detalle, puede moverse continuamente con `transform` y `opacity`. Es decorativo, queda detr√°s del contenido, no bloquea toques y queda est√°tico con movimiento reducido. La tarjeta inicial comparte ese brillo; al abrir galer√≠a o detalle hay una capa breve de morph o barrido y un pulso, y al abrir o elegir un borrador y al tocar ¬´Ver m√°s clientes¬ª otro pulso. `LuzJugada` mantiene quietos el recorte y el grano; tres manchas independientes completan ciclos suaves de 8 s. Pulsos de 520 ms sustituibles y transiciones difusas de 480 ms; nunca se escala o desplaza un fondo rectangular. Todo usa solo transform y opacidad; con movimiento reducido no hay transici√≥n. Cabecera y desenfoque de `Hoja` siempre quedan encima del contenido desplazable y de las capas decorativas. Las reglas generales siguen vigentes: nada de transiciones de p√°gina ni entradas escalonadas de listas. Ver `docs/08-movimiento.md`.
-
-**Regresi√≥n de historial detectada al validar las animaciones:** al cerrar los borradores,
-el guard de Strict Mode imped√≠a retirar su entrada tambi√©n en producci√≥n. Ese guard
-solo corresponde a desarrollo. La salida vuelve a consumir la entrada de la hoja
-apilada; el siguiente ¬´atr√°s¬ª regresa a la galer√≠a sin necesitar un segundo toque.
-La mezcla de color del velo se aplica en la capa decorativa de `Hoja`, bajo el blur
-y la cabecera, para conservar el contraste del texto.
-
-## Pastillas de filtro
-
-Un solo tama√±o para todas (`Segmentos` y `Chip` en `components/controles.tsx`): tokens `--pastilla-alto` (36 px),
-`--pastilla-px` (14 px), `--pastilla-letra` (13,5 / 14 px) y `--pastilla-contador` (20 px) en `app/globals.css`. Nadie pasa
-un alto propio: para cambiarlas se edita un valor. Ancho natural, alineadas a la izquierda, y la fila de `Segmentos` se
-desplaza en horizontal si no caben. √Årea de toque de 44 px o m√°s con un pseudo-elemento invisible. Detalle en
-`docs/04-pantallas.md`.
-
-## Ticket de promo (Promos y selector de cup√≥n)
-
-**Cambiar de tipo mediante copia:** al tocar un tipo distinto en edici√≥n se explica la restricci√≥n
-y se abre una hoja compacta sobre el editor; ¬´S√≠, crear otra promo¬ª abre el formulario nuevo
-con el tipo elegido despu√©s de cerrar esa hoja. Reutiliza la duplicaci√≥n y sus fechas (hoy,
-sin vencimiento ni pausa); no copia usos. Los cambios sin guardar piden el aviso existente antes
-de salir. La original solo termina al elegir ¬´Terminar la anterior¬ª y confirmar ¬´S√≠, terminar¬ª.
-Cancelar o ¬´Dejar ambas¬ª conserva la original. Detalles y l√≠mites en docs/04; comprobaci√≥n de
-demo local con `node scripts/probar-reemplazo-promos.mjs` y foco con `npm run probar:teclado`.
-La tarjeta abre el detalle de solo lectura en `/promos/[id]`; la edici√≥n tiene su propia ruta
-`/promos/[id]/editar`. La hoja de compartir vuelve al detalle cuando sali√≥ de √©l.
-`node scripts/probar-detalle-promos.mjs` comprueba las rutas, hojas y capturas reales.
-No necesita migraciones. (La reconciliaci√≥n de migraciones ya se hizo: PR #41.)
-
-Un solo componente, `components/promos/ticket-promo.tsx`, con dos tama√±os: normal (lista de Promos, v√≠a `tarjeta-promo.tsx`) y
-compacto (selector de cup√≥n de pedidos, `selector-descuento.tsx`). Colores y forma salen de ah√≠: no se duplica el ticket.
-Fila de descuento de un pedido = `FilaDescuento` ("+ Agregar cup√≥n" o ticket compacto con Cambiar / Quitar).
-
-## Resumen: qu√© es una venta
-
-Una **venta confirmada** es un pedido `despachado` (fecha = `despachado_en`, o `creado_en` si viniera nulo); un **pedido recibido** es
-cualquier no cancelado (por `creado_en`); un **pendiente** es `nuevo` o `por_despachar`. Vive en `lib/resumen.ts` (`ventasDe`,
-`pendientesDe`, `fechaDeVenta`) con pruebas en `tests/resumen.test.mjs`. La cifra y las barras principales del Resumen suman ventas
-confirmadas m√°s pedidos `por_despachar` del tramo (no los `nuevo`); barras rosas = pagado, mandarina = por cobrar, seg√∫n los importes actuales de `getPedidos`
-(incluye abonos parciales; no agrupa cobros por fecha de abono). El total no cambia. La variaci√≥n
-compara ambos grupos. Ticket promedio, top 3 y Clientes contin√∫an usando solo pedidos despachados; "Pedidos recibidos" y "De aaah a
-pedido" usan recibidos. La tarjeta conserva la l√≠nea con el total global por despachar. Detalle en docs/03 y docs/04; validaci√≥n de los colores de pago en
-`docs/validacion-grafico-pagos.md`.
-
-**Borrar contacto:** la edici√≥n ofrece conservar los pedidos y abonos sin asociarlos al contacto, o borrar tambi√©n todo ese historial.
-La segunda opci√≥n exige confirmaci√≥n. Demo y Supabase comparten la regla; la RPC `borrar_cliente` en `20261002161112_borrar_cliente.sql`
-opera solo en la tienda de sesi√≥n. Borrar pedidos hist√≥ricos no restaura stock. La migraci√≥n se aplic√≥ a producci√≥n en Supabase con el identificador `20261002161112`. El historial de migraciones del repositorio y de Supabase ya est√° reconciliado (PR #41).
-
-## Donas de Cat√°logo y Clientes
-
-`components/dona.tsx` pinta el SVG reutilizable. Cat√°logo muestra en su cabecera
-la salud del inventario y abre ¬´Tu inventario¬ª (ver la secci√≥n de arriba; antes mostraba los espacios libres del plan). Clientes muestra la mezcla
-de quienes repiten, compraron una vez y no han comprado; su hoja ¬´Tus clientes¬ª
-abre filtros y el mensaje de WhatsApp para Dormidos. Todos esos grupos usan solo
-pedidos despachados; ¬´Nuevos¬ª y ¬´Dormidos¬ª usan d√≠as civiles de Santo Domingo.
-¬´Deben¬ª sigue usando cuentas por cobrar. C√°lculo puro en
-`lib/clientes-resumen.ts`; detalles en docs/04-pantallas.md. La demo ya contiene
-los tres segmentos, nuevos y dormidos. No requiere migraciones.
-
-La hoja ¬´Tus clientes¬ª comienza con la tarjeta ¬´Tu pr√≥xima jugada¬ª: galer√≠a y cuatro detalles dentro de la misma hoja. ¬´Escribir¬ª abre una hoja apilada con tres borradores locales; el elegido se puede editar antes de abrir WhatsApp, sin env√≠o autom√°tico. `lib/proxima-jugada.ts` reutiliza el an√°lisis de compras despachadas, excluye clientes con pedidos en curso y respeta la tienda activa; los grupos se recalculan al cambiar los datos o el d√≠a de Santo Domingo. Los datos de ejemplo del mockup no se copian al c√≥digo. Ver `docs/04-pantallas.md` y `tests/proxima-jugada.test.mjs`.
-
-## Cat√°logo: inventario, Por reponer y Hacer espacio
-
-- **El plan cuenta solo los productos VISIBLES** (`activo = true`; los ocultos no ocupan lugar). Helper √∫nico: `lib/plan-catalogo.ts`
-  (`resumenDelPlan`, estados `sobra` < 70 % ¬∑ `quedan` 70‚Äì89 % ¬∑ `casi` 90‚Äì99 % ¬∑ `lleno`, y `textosDelPlan`). Lo usan la lista del
-  Cat√°logo, la hoja del producto, ¬´Tu plan¬ª y la tarjeta del Inicio. Con el plan lleno, un producto nuevo se guarda oculto
-  (interruptor apagado y deshabilitado) y volver visible uno oculto no cambia nada y avisa con un Toast con ¬´Hacer espacio¬ª.
-  No hay restricci√≥n en la base para esto (a prop√≥sito).
-- **La dona del Cat√°logo es la salud del inventario** (visibles: con stock ‚â• 3 o sin control ¬∑ queda 1 o 2 ¬∑ agotados;
-  `lib/inventario-catalogo.ts`) y abre la hoja **¬´Tu inventario¬ª** (`components/catalogo/hoja-inventario.tsx`, montada en
-  `PanelUIProvider`; se abre con `usePanelUI().abrirInventario()`, o `abrirInventario("espacio")` para ir directo a ¬´Hacer espacio¬ª).
-  Vistas internas con Volver: **Por reponer** (`vista-por-reponer.tsx`), **Sin movimiento** y **Hacer espacio**
-  (`vista-hacer-espacio.tsx`). Lo marcado en Por reponer vive en la hoja mientras est√° abierta.
-- **Por reponer**: ¬´Todav√≠a viene¬ª comparte el mensaje (`mensajeReposicion`, `navigator.share` o `wa.me`); ¬´¬°Ya la tengo!¬ª llama a
-  `reponerStock` ‚Üí RPC `reponer_stock` (todo o nada, motivo `reposicion` en el historial). **Hacer espacio**: `cambiarVisibilidad`
-  (un solo UPDATE) oculta; Deshacer vuelve a mostrar. No hay ¬´eliminar para siempre¬ª (pedidos e historial apuntan a los productos).
-- Ventas de ¬´30 d√≠as¬ª salen de los pedidos **despachados** (`ventasPorProducto`). ¬´Sin movimiento¬ª = visibles con stock y sin
-  ventas en 30 d√≠as (productos reci√©n creados tambi√©n entran). Los que no llevan stock no se reponen.
-- La leyenda de la dona filtra la lista; para ¬´Queda 1 o 2¬ª se cre√≥ la pastilla **¬´Por agotarse¬ª** (stock 1 o 2, visibles).
-  `usePanelUI().filtrarCatalogo()` pide el filtro a la lista aunque se est√© en otra ruta.
-- El Toast con acci√≥n es `components/ui/toast.tsx` (`useToastUI`), montado junto al antiguo `components/toast.tsx` en el layout del
-  panel (el antiguo sigue para el resto de la app hasta migrarlo).
-- Gr√°ficos redondeados (docs/09 ¬´Barras y anillos¬ª): `Dona` dibuja cada segmento con punta redonda y 3 px de separaci√≥n; la barra del
-  plan y `BarraAbonado` llevan extremos de p√≠ldora y un m√≠nimo de ancho igual a su alto. En la barra y la leyenda del plan el tramo
-  verde se llama ¬´Disponibles¬ª (igual que la dona). En la vista previa del producto, ¬´Guardar/Descartar¬ª van encima de la tarjeta de
-  stock y ¬´Editar/Crear pedido¬ª se ocultan mientras haya cambios sin guardar.
-- **Hoja de resumen con dona unificada** (`components/ui/resumen-dona.tsx`, docs/09): ¬´Tus clientes¬ª y ¬´Tu inventario¬ª usan el mismo
-  `ResumenDona` (dona 112 + t√≠tulo Fredoka y l√≠nea; leyenda y ¬´otros grupos¬ª como `ListaAgrupada`, filas con n√∫mero > 0 tocables con
-  chevron). Tocar una fila abre dentro de la hoja la lista del grupo (clientes con `FilaCliente`, productos). La leyenda del inventario ya no
-  filtra la lista de atr√°s (se quit√≥ `filtrarCatalogo`; la pastilla ¬´Por agotarse¬ª sigue). Lecturas puras: `lecturaClientes`, `lecturaInventario`.
-- Donas sin anillo de fondo: `Dona` solo dibuja la `pista` cuando la suma de los segmentos es 0 (estado vac√≠o). `COLOR_STOCK.agotados` es
-  `var(--peligro)` y lo usan la dona, la leyenda y la barra del plan (no se toc√≥ el modo oscuro).
-- Cuadros del resumen de Clientes: en `ResumenDona` los `otros` son cuadros 2√ó2 (√≠cono suelto junto a la cifra; nombre y explicaci√≥n con
-  el chevron a su derecha). Con valor > 0 cierran la hoja y filtran la pantalla de Clientes; `FiltroClientes` suma `catalogo` y `manual`,
-  cuyas pastillas solo aparecen mientras est√°n elegidas (`pastillasClientes`). La leyenda de la dona mantiene su vista interna con Volver.
-- Componentes ui nuevos: `VistaPreviaWhatsApp` (burbuja enviada con el patr√≥n `public/chat/patron-whatsapp.svg`; tambi√©n en el
-  recordatorio de cobro del cliente) y `CheckSeleccion` (+ `FilaLista marcada` = casilla). Capturas en `docs/capturas/catalogo/`.
-
-## Vista previa de producto e inventario
-
-Las tarjetas de Cat√°logo abren `/catalogo/[id]`: ficha de solo lectura: el t√≠tulo de la hoja es el nombre del producto, foto de 120 px, precio vigente, colecci√≥n,
-etiqueta ¬´Oculto¬ª solo si lo est√°, e inventario en lista agrupada (¬´En stock¬ª con Cantidad e ¬´Historial¬ª). ¬´Crear pedido¬ª abre el formulario preseleccionado; solo despachar
-el pedido descuenta inventario. ¬´Editar¬ª conserva el formulario y sus fotos.
-
-**Inventario provisional de PR #21:** vista previa y edici√≥n
-comparten un borrador de cantidad mediante `useData()`. +/‚àí no escribe; guardar
-confirma un √∫nico delta final. Disminuir pide motivo al guardar (¬´Otro¬ª requiere
-nota); aumentar usa reposici√≥n. Descartar o volver al stock base no crea registros.
-El historial visible muestra solo ajustes reales, con antes/despu√©s, motivo, nota,
-actor y fecha de Santo Domingo, por tramos de diez y con error/reintento.
-`stock = null` sigue sin control; no se habilita/deshabilita en productos existentes.
-
-**Contenedor y navegaci√≥n interna:** Guardar cambios y Descartar viven dentro de
-Inventario, tienen el mismo ancho y aparecen solo con diferencia. Descartar afecta √∫nicamente la cantidad;
-el Guardar del editor sigue usando la operaci√≥n conjunta de ficha e inventario.
-No duplicar ese bot√≥n con el Guardar general mientras haya ajuste pendiente.
-¬´Ver historial¬ª es una fila de ancho completo con borde y chevron existente;
-abre una vista de la misma Hoja, conserva la ficha/formulario
-montados y restaura scroll y foco al volver. `Hoja.alVolverInterno` consume Atr√°s
-solo en esa vista antes de evaluar la salida con cambios; no crea otra hoja ni
-otra entrada al abrir el historial. X/Escape mantienen la protecci√≥n de salida.
-No se cambiaron operaciones de datos, Supabase ni migraciones para esta mejora.
-Ver `docs/validacion-historial-interno.md`.
-
-`20261002203414_ajustes_inventario.sql` **est√° aplicada**: tabla `ajustes_inventario`,
-RLS y RPC `ajustar_stock`. La nueva migraci√≥n
-`20261002223718_guardar_producto_inventario.sql` **est√° aplicada en producci√≥n**. A√±ade una RPC
-con nombre distinto (sin sobrecarga), conserva la anterior e incorpora √≠ndice del
-historial. Bloquea el producto, verifica base/membres√≠a/actor y guarda ficha, stock,
-ajuste y cr√©ditos de retoque juntos. El ID del ajuste evita repetir una operaci√≥n
-confirmada. El cliente no puede escribir stock ni historial directamente.
-El usuario autoriz√≥ aplicar esta migraci√≥n y despu√©s fusionar PR #21. Se aplic√≥
-mediante el conector, con la versi√≥n `20261002223718` generada por Supabase.
-El archivo se renombr√≥ desde `20261002205119`; no se alter√≥ el historial interno.
-En producci√≥n se comprob√≥ ficha+stock, registro/actor, repetici√≥n sin duplicar,
-conflicto sin ficha parcial y aislamiento mediante una transacci√≥n revertida.
-La lectura posterior conserv√≥ 15 productos, 2 ajustes y la firma de stock
-`338ecaf4cc10f82a36acf78d275e6596`. No equivale al recorrido de navegador real.
-
-Si cambia el stock, se relee el producto/historial y se conserva la propuesta para
-revisarla. Ante resultado de red incierto, se bloquea el reenv√≠o hasta releer; no hay
-reintento autom√°tico. Con respuesta perdida pero ajuste confirmado, se reconoce
-por ID. Fotos se suben antes de la transacci√≥n: errores conocidos limpian las nuevas;
-una respuesta incierta las conserva para no borrar fotos posiblemente guardadas.
-
-Las dos hojas de ruta optan por `Hoja.protegerAtras`: misma confirmaci√≥n existente
-antes de Atr√°s, X, Escape, gesto o navegaci√≥n a edici√≥n/pedido. Retiran su marcador
-antes de navegar mediante `alSalir`; las otras hojas mantienen su comportamiento.
-Los efectos de foco siguen estables, sin cambios por teclado/resize. No se a√±aden
-animaciones ni entradas de filas. Ver `docs/validacion-inventario-provisional.md`.
-
-**Hist√≥rico de PR #20 (interacci√≥n anterior al inventario provisional):**
-La RPC, RLS y los permisos se comprobaron en producci√≥n; incrementos,
-disminuciones, registro/actor, rechazo de negativos, cambios directos y otra
-tienda pasaron dentro de una transacci√≥n revertida. No persistieron ajustes de prueba; despu√©s se observaron dos reposiciones
-+1 registradas a las 20:36:30/20:36:36 UTC, posteriores a la verificaci√≥n. Ver `docs/validacion-inventario-pr20.md`.
-
-Nota hist√≥rica: la reconciliaci√≥n de identificadores ya se hizo (PR #41); hoy el repo y Supabase coinciden (`npm run revisar:migraciones`). Aun as√≠, no ejecutar un `db push` general a ciegas.
-El CLI ya est√° instalado; el dry-run dirigido a producci√≥n sigue sin ejecutarse
-por falta de credenciales y la divergencia pendiente;
-la comprobaci√≥n transaccional del SQL y la aplicaci√≥n individual no equivalen
-a ese dry-run. Navegador con tienda real, fallos de red reales e iPhone f√≠sico siguen
-pendientes.
-
-## Ventas a cr√©dito y abonos
-
-Un pedido puede ser `contado` o `credito` (columnas `pago_modo` y `pago_fecha_acordada` de `pedidos`, que la app s√≠ escribe) y los abonos
-viven en la tabla `abonos` (solo lectura: se crean con la RPC `registrar_abono`, se editan con `editar_abono` ‚Äîmonto, m√©todo, fecha y nota; el monto m√°ximo es el saldo del pedido + el monto viejo‚Äî y se borran con `eliminar_abono`). Todas las cuentas
-(saldo, reparto del m√°s viejo al m√°s nuevo, "Atrasado N d√≠as" en hora de Santo Domingo, cuentas por cobrar, recordatorio) est√°n en
-`lib/credito.ts` con pruebas en `tests/credito.test.mjs`; la demo las usa en `lib/data/creditos.ts` y `lib/data/pedidos.ts` (la demo
-reparte igual que la RPC y trae tres clientes que compraron fiado). Pantallas en `components/credito/` y detalle en docs/03 y docs/04.
-Un pedido cancelado no genera deuda; las ventas del Resumen no cambian (cuentan al despachar, est√© pagado o no). El recordatorio por
-WhatsApp lo abre siempre el due√±o. Las RPC de abonos (incluida `editar_abono`) a√∫n no se probaron contra Supabase real; la demo tiene `editarAbono` con la misma firma (`planearEdicionAbono` en `lib/credito.ts`, con tests). Al cambiar la forma de los datos de la
-demo, su clave de almacenamiento pas√≥ a `deslizapp-demo-v3` (los datos de prueba anteriores se reinician una vez).
-
-## Cat√°logo en l√≠nea (enlace)
-
-`tiendas.url_catalogo` (Mi marca) alimenta la tarjeta de la pesta√±a Cat√°logo (`components/catalogo/tarjeta-catalogo.tsx`), con 8 estados
-que salen de `tiendas.catalogo_estado` (+ `catalogo_paso`, `catalogo_notas_cambios`, fechas) v√≠a `lib/catalogo-estado.ts` (puro, con tests).
-El due√±o solo cambia el estado con las RPC `solicitar_catalogo`, `pedir_cambios_catalogo` y `publicar_catalogo` (nunca UPDATE directo);
-el equipo hace el resto fuera de la app. La demo tiene "Simular avance del cat√°logo" en el men√∫ de la tienda. Las RPC a√∫n no se probaron
-contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
-HTML. El cat√°logo todav√≠a no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
-
-## Sistema de dise√±o (tokens, components/ui y /diseno)
-
-- **Reglas:** `docs/09-sistema-de-diseno.md` (y `docs/10-marca-ilustracion-y-fondos.md`). Valores en `referencias/sistema-de-diseno/tokens.json`.
-- **Tokens** en `app/globals.css`: colores por FUNCI√ìN (`--fondo`, `--superficie`, `--texto`, `--accion`, `--atencion-texto`, `--peligro`‚Ä¶) con
-  el valor claro en `:root` y el oscuro SOLO bajo `[data-theme="dark"]` (en `<html>` o en cualquier contenedor; todav√≠a sin
-  `prefers-color-scheme`: el oscuro autom√°tico se activa cuando las pantallas est√©n migradas). Utilidades de Tailwind sin prefijo:
-  `bg-superficie`, `bg-superficie-hundida`, `text-texto`, `text-texto-secundario`, `border-linea`, `border-borde-campo`, `bg-accion
-  text-sobre-accion`, `bg-accion-suave`, `bg-atencion-suave text-atencion-texto`, `text-peligro`, `outline-foco`, `bg-velo`‚Ä¶
-  (`linea`, `peligro` y `marco` coinciden con los nombres viejos y tienen el mismo valor en claro).
-- **Texto:** `text-cifra`, `text-titulo-pantalla`, `text-titulo-hoja`, `text-titulo-seccion` (con `font-display`), `text-destacado`,
-  `text-cuerpo`, `text-secundario`, `text-etiqueta`, `text-contador`, `text-mano` / `text-mano-celebracion` (con `font-mano`). En rem.
-- **Radios:** `rounded-radio-s/m/l/xl` (10/16/22/28; las p√≠ldoras, `rounded-full`). **Sombras:** `shadow-flotante`, `shadow-hoja`.
-  **Alturas:** `h-(--alto-boton-grande)`, `h-(--alto-control)`, `h-(--alto-compacto)`, `h-(--alto-campo)`, `h-(--alto-etiqueta)`,
-  `size-(--alto-avatar)`.
-- **Colores heredados** (`bosque`, `rosa`, `mandarina`, `papel`, `menta`, `arena`, `suave`, `borde`, `tenue`, `apagado`, `tinta`,
-  `bosque-oscuro`, `mandarina-texto`): siguen igual mientras dura la migraci√≥n; se reemplazan al migrar cada pantalla.
-- **`components/ui/` es la fuente de verdad para todo lo nuevo:** Boton (+ BotonIcono), Pastilla / FilaPastillas, Opcion /
-  GrupoOpciones, ControlSegmentado, ListaAgrupada / FilaLista, Tarjeta, Aviso, Alerta, Etiqueta / Contador, Campo / Buscador, Avatar
-  y el Toast nuevo (ProveedorToast + useToastUI). Se importan desde `@/components/ui`. Los componentes viejos (`controles.tsx`,
-  `toast.tsx`‚Ä¶) siguen en las pantallas que a√∫n no se migran.
-- **Pantallas migradas al sistema:** **Pedidos** (lista, detalle, "+ Pedido"/venta pasada/Editar, selectores de cliente, producto y cup√≥n, y el
-  pago y los abonos: `components/pedidos/*`, `components/credito/{pago-del-pedido,campos-pago,hoja-abono,hoja-detalle-abono,tarjeta-saldado,comunes}`). Variantes
-  nuevas en `components/ui/`: `Cantidad` (‚àí 1 +, cuadrados de 36, `radio-s`; `BotonCantidad` suelto), `Boton jerarquia="terciario" tono="peligro"` (texto rojo sin contorno: Cancelar / Eliminar pedido, Borrar abono), `Boton whatsapp` (Escribir: compacto, relleno `accion`, icono WhatsApp), `Boton jerarquia="resalte"` (Despachar pedido, la llamada emocional de la pantalla), `CampoMonto` (monto en pesos, normal o grande), `BotonIcono tono="accion"`, `Buscador entrada=` (ref para el
-  teclado de iPhone), `Boton scroll=` (para enlaces que abren hojas) y `soloDigitos`. Qued√≥ con tokens tambi√©n lo compartido que usa la
-  pantalla: `selector-busqueda`, `ver-mas`, `hoja-estado`, `boton-flotante`, `titulo-pantalla`, `Interruptor`, `estado-vacio`, el esqueleto,
-  el fondo del `body` y de `(dashboard)/layout`, y los colores de `hoja.tsx` (solo tokens, sin reescribirla). Pendiente de Pedidos: el encabezado y
-  la barra inferior (shell), `TicketPromo` (Promos) y la hoja `Hoja` completa (radio 28, sombra).
-- **FilaPastillas (filtros) = c√°psula que se desliza:** el indicador `accion` es de tres piezas con `transform` (puntas + centro con `scaleX`, `--mov-normal` y `--curva-salida`, sin transici√≥n con reducir movimiento) sobre una capa de relleno `superficie` + `borde-pastilla` por pastilla; alto `--pastilla-alto`, `--pastilla-px`, `--pastilla-letra` en bold, gap 6 px, toque 44. Mantiene `aria-pressed` (lo que prueban `probar:teclado` y `probar:hojas`), flechas/Inicio/Fin y divisor solo antes del primer condicional. Usa el `Contador` de `ui/etiqueta` (tokens, claro/oscuro), no el viejo `components/contador.tsx`. Afecta a toda pantalla que use `FilaPastillas` (Pedidos y el selector de productos de + Pedido).
-- **Vista previa de la factura:** "Descargar" de la `TarjetaDocumento` abre la hoja "Factura #N" (altura autom√°tica) con la vista previa = el MISMO PNG que genera `generarImagenFactura` (blob local) en una hoja de papel con scroll interno (m√°x. 55vh), skeleton mientras se genera y `Aviso` con "Reintentar" si falla. Botones "PDF" (principal) e "Imagen" (secundario); archivos `factura-N.pdf` / `factura-N.png`; al terminar cierra y muestra "Factura descargada". `descargarArchivo` (`lib/portapapeles.ts`) usa la hoja de compartir con el archivo en la PWA de iPhone/iPad y la descarga normal en el resto. "Compartir" no cambi√≥.
-- **Celebraci√≥n de despacho:** `components/pedidos/hoja-despachado.tsx` (referencia `referencias/animacion-despacho/pedido-despachado.html`). Se abre desde `hoja-pedido.tsx` solo cuando `despacharPedido` respondi√≥ OK y reemplaza al toast. Movimiento solo CSS (`desp-*` en `app/globals.css`, transform/opacity; estilos base = estado final, sin animaci√≥n con reducir movimiento) y el conteo del monto con `requestAnimationFrame` (se cancela al cerrar). Token nuevo `--patron` (claro #ebe1d0, oscuro #1c3027) para los √≠conos del fondo. `Hoja` gan√≥ `tituloOculto` (t√≠tulo solo para lectores de pantalla). La etiqueta de stock usa `STOCK_BAJO` (‚â§ 2) y el stock que trae el servidor al releer `productos`.
-- **`TarjetaDocumento`** (`components/ui/tarjeta-documento.tsx`): la factura del detalle del pedido (miniatura de papel, "Factura #N", etiqueta Al contado/Pagado en √©xito o A cr√©dito en atenci√≥n, y "Descargar" secundario + "Compartir" principal con texto). Va despu√©s de la tarjeta de productos y antes de la de Pago, solo en pedidos despachados. Usa las mismas funciones de `AccionesFactura` (hoja "Descargar como PDF / imagen" y compartir); no cambi√≥ c√≥mo se genera ni lo que se comparte.
-- **Etiquetas con relleno visible:** neutro = `borde-pastilla` + `texto`; √©xito (Entregado, Pagado, Al contado, Despachado); atenci√≥n (Quedan N, A cr√©dito, Debe, Atrasado); fuerte solo Agotado.
-- **Hojas de abono:** Registrar y Editar abono, y el detalle del abono, tienen altura autom√°tica. **GrupoOpciones:** la pregunta es subt√≠tulo `destacado` en `texto` (sigue siendo la etiqueta del radiogroup).
-- **Clientes migrado al sistema** (`components/clientes/*`, `components/credito/{cuenta-cliente,por-cobrar,tarjeta-saldado,comunes}`): `Buscador`, filtros con `FilaPastillas` (los Segmentos ya no filtran), `ListaAgrupada` + `FilaLista` (nuevo: prop `accion` para un bot√≥n "Escribir" junto a la fila, y `pie` para una etiqueta debajo), `Etiqueta` Repite en √©xito, `CampoMultilinea` (nota), `Campo`, `Alerta` para borrar el historial, `Tarjeta tono="destacada"` para "Por cobrar". `luz-jugada.tsx` no se toc√≥; las tarjetas de jugadas conservan su color de datos (`lib/proxima-jugada`) y el texto fijo `marca-bosque`.
-- **Menos texto (docs/09, principio inicial):** filtros de Clientes `Todos ¬∑ Deben ¬∑ Repiten ¬∑ Nuevos ¬∑ Dormidos` sin divisor (`FilaPastillas ocultarVacios`); "Repite" es la se√±al de coraz√≥n de `Avatar repite`; lo atrasado es reloj + texto, sin p√≠ldora (ya no existe el tono `urgente`); en filas de lista la deuda es `MontoDeuda` (a la derecha) + `BarraAbonado mini`; la tarjeta de pedido empieza por el cliente (avatar, nombre, "#N ¬∑ Ayer") con una sola etiqueta de pago; la hoja del pedido ya no repite el estado, el origen ni frases; el detalle del cliente tiene cabecera compacta, movimientos con √≠conos, "Registrar abono" y el recordatorio con 4 mensajes (`mensajesRecordatorio` en `lib/credito.ts`). La nota del cliente (m√°x. 60, `clientes_nota_largo`) se edita en "Editar cliente" y se ve como burbuja sobre el avatar de 88 px.
-- **Bloque de deuda** (`components/ui/bloque-deuda.tsx`: `BloqueDeuda`, `FechaDeuda`, `BarraAbonado`; reemplaza al chin, ya no existe `Tarjeta chin` ni `atencion-borde`): "Debe RD$X" + fecha (`textoFechaDeuda` en `lib/credito.ts`) o la etiqueta `urgente` (token nuevo de `Etiqueta`, solo para "Atrasado N d√≠as"), barra de lo abonado y leyenda; `tamano="mini"` en el historial del cliente. Va en la tarjeta de pedido (que ya no lleva el estado: lleva la etiqueta de pago, regla "No repetir el filtro"), en las cuentas de "Deben" (suman TODOS los pedidos con saldo: `totalPedidos` y `abonado` en `CuentaPorCobrar`/`CuentaCliente`, `totalYAbonado`) y en "Te debe". Las filas de "Todos" llevan la etiqueta "Debe RD$X". La hoja del pedido muestra una sola `EtiquetaPago`. `Hoja` tiene `capaSuperior`. La factura es siempre blanca (`PAPEL_DOCUMENTO`).
-- **Cup√≥n aplicado:** el ticket compacto es UN bot√≥n con chevron que abre el selector; tocar el cup√≥n aplicado lo quita y tocar otro lo cambia (toasts "Cup√≥n quitado" / "Cup√≥n cambiado"); el c√≥digo se muestra una sola vez.
-- **Ver m√°s:** `BotonVerMas` es la √∫ltima fila de la lista ("Ver N m√°s" + "5 de 69"); `forma="fila"` en listas agrupadas y `forma="tarjeta"` en tarjetas sueltas; el foco pasa al primer elemento nuevo (`lib/ver-mas.ts`). **Dona:** solo la cifra dentro del anillo; el texto va debajo.
-- **Foco verde, nunca naranja:** `--foco` es #174b3a (claro) / #9ed3b8 (oscuro). Campo, CampoMonto y Buscador no llevan anillo: con el cursor dentro el contorno de 2 px pasa a `accion` (con error, `peligro`); el borde es siempre de 2 px para que no salte. Botones, opciones, pastillas y filas tocables usan el anillo `foco` de 3 px solo con `:focus-visible`.
-- **Secundario con relleno:** `Boton jerarquia="secundario"` lleva relleno `superficie` (nunca transparente). Las acciones dentro de tarjetas y filas (Cambiar, Quitar, Cambiar a cr√©dito) son secundario `compacto`; el terciario queda solo para Cancelar/Eliminar pedido y Borrar abono (peligro) y Reintentar en un aviso.
-- **Cantidad:** ‚àí en `superficie-hundida`, + en `accion` con icono `sobre-accion`; cada uno se apaga al llegar al m√≠nimo o al tope. **`FilaAgregar`** (`components/ui/fila-agregar.tsx`): c√≠rculo `accion` de 24 px con +, texto `destacado` (Agregar cup√≥n).
-- **Regla Opcion vs segmentado:** `ControlSegmentado` solo cambia una vista o modo (D√≠a / Semana / Mes); un dato que se guarda va con `GrupoOpciones` / `Opcion` aunque sean dos opciones (por eso "¬øC√≥mo te paga?" ya no es segmentado).
-- **Gu√≠a viva:** `/diseno` (p√∫blica, noindex, sin enlace desde la app), con todos los componentes y sus estados, en claro y oscuro.
-- **Regla:** en c√≥digo nuevo no se escriben colores ni tama√±os a mano (ni hex, ni `bg-white`, ni `text-[Npx]` fuera de la escala, ni
-  `rounded-[Npx]`, ni `shadow-[‚Ä¶]`). `npm run revisar-estilos` cuenta lo que queda a mano en las pantallas viejas (solo informa).
-
-## Icono de la app
-
-Fondo Menta, isotipo Verde Bosque con borde Menta (fuente: `public/icons/isotipo-app.svg`; se regenera con `npm run iconos`, que usa sharp). Para ver el icono nuevo en iPhone hay que borrar la app de la pantalla de inicio y volver a agregarla desde Safari (iOS guarda el icono al instalar).
-
-## Hojas apiladas, aviso al salir y color de opciones
-
-- `Hoja` se pinta en un portal en `<body>`: una hoja sobre otra (ej. "Registrar abono" sobre el detalle del pedido) no comparte gestos con la
-  de abajo; solo la de arriba responde a deslizar, fondo, Escape, X y "atr√°s". Con cambios sin guardar (`avisarAlSalir` o `useAvisarAlSalir`)
-  cerrar pregunta "¬øSalir sin guardar?". Se prueba con `npm run probar:hojas` (con la app corriendo; igual que `probar:teclado`).
-  L√≠mite conocido: en hojas de RUTA con cambios sin guardar (pedido nuevo, cliente nuevo‚Ä¶) el bot√≥n atr√°s del tel√©fono sale directo con la
-  ruta; deslizar, fondo, Escape y X s√≠ preguntan. Excepci√≥n optativa de esta rama: vista previa y formulario de producto usan `protegerAtras` y coordinan `alSalir` despu√©s de retirar el marcador; sus cambios pendientes s√≠ se protegen al volver. No se extiende a las otras rutas.
-- Las opciones de un formulario (`Chip` / `Segmentos` con `tono="opcion"`) van en Rosa con check; las acciones, en Verde Bosque (principal) o
-  contorno (secundaria); ver docs/04-pantallas.md. No cambia las pastillas de filtro.
-- Las hojas de cliente y de pedido nunca quedan en blanco (esqueleto, o error con "Reintentar"): `components/hoja-estado.tsx`, y
-  `useConsulta` devuelve tambi√©n `error` y `reintentar`.
-
-## Hojas inferiores
-
-Para elegir algo de una lista larga dentro de una hoja (cliente, producto, y en el paso 8 producto o colecci√≥n) se usa
-`components/selector-busqueda.tsx` (`SelectorBusqueda`, `FilaAccion`, `ListaSeleccion`) y los helpers de `lib/texto.ts`
-y `lib/telefono.ts`: una vista m√°s DENTRO de la misma hoja, nunca una segunda hoja encima. Lo fijo arriba va
-con `<HojaFijoArriba>` (dentro de la cabecera y de su desenfoque: nunca `sticky` suelto) y lo fijo abajo con
-`<HojaFijoAbajo>` / `PildoraSeleccion` (se oculta con el teclado).
-
-Toda hoja nueva (detalle de pedido, nuevo pedido, nueva promo‚Ä¶) usa el
-componente `Hoja` de `components/hoja.tsx` y elige su altura con la propiedad
-`altura`: `"auto"` (contenido corto), `"expandible"` (contenido largo: abre a
-media altura) o `"grande"` (formularios largos). La forma (pegada a los bordes,
-esquinas de arriba de 30 px, tope bajo la barra de estado), la cabecera fija con
-borde de desplazamiento, cerrar deslizando, el teclado y la accesibilidad ya
-vienen resueltos ah√≠ (detalle en `docs/04-pantallas.md`).
-
-## App instalable (PWA)
-
-- `app/manifest.ts` + √≠conos en `public/icons/` y `app/icon.png` (se regeneran con
-  `node scripts/generar-iconos.mjs` a partir de `referencias/iconos/icono-vendedores.png`,
-  la "d" verde sobre crema). El √≠cono rosado es de la futura app marketplace: no se usa aqu√≠
-  (ver "√çconos de las apps" en `docs/01-marca.md`).
-- `public/sw.js` (solo en producci√≥n): red primero para p√°ginas y c√≥digo,
-  cach√© para im√°genes, fuentes e √≠conos. Nunca guarda HTML por adelantado.
-- Aviso "Hay una versi√≥n nueva": compara el despliegue compilado
-  (`NEXT_PUBLIC_ID_DESPLIEGUE`, ver `next.config.ts`) con `/api/version`.
-
-## Importante sobre esta versi√≥n de Next.js
-
-Este proyecto usa **Next.js 16** (App Router), que tiene cambios respecto a
-versiones anteriores que puede que tu conocimiento no refleje (por ejemplo,
-`params` y `searchParams` llegan como `Promise` en las p√°ginas, y existen los
-helpers globales `PageProps<'/ruta'>` / `LayoutProps<'/ruta'>`). Antes de
-escribir rutas o layouts, revisa `node_modules/next/dist/docs/01-app/` ‚Äî
-ah√≠ est√° la documentaci√≥n exacta de esta versi√≥n instalada.
-
-## Estado actual del repo
-
-- Next.js 16 + TypeScript + Tailwind v4 + App Router, publicado en Vercel
-  (https://deslizapp-app.vercel.app; cada push a `main` publica solo).
-- Hechos: tema de marca, capa de datos de prueba (`useData()` + `localStorage`),
-  layout con navegaci√≥n, Plan y cr√©ditos, Cat√°logo, retoque de fotos, Pedidos
-  (lista, detalle, despacho con stock y pedido manual), Clientes (derivados de los pedidos), Promos (estado por fechas, compartir), Mi marca (logo, colores y letra de los cupones), Resumen (Inicio, con c√°lculos en `lib/resumen.ts`) y app instalable con novedades. El avance paso a paso est√° en `docs/06-orden-de-construccion.md`.
-- **Primera entrega cerrada** (pasos 0‚Äì10 de `docs/06-orden-de-construccion.md`). El repaso final, con lo que
-  se prob√≥, lo que se corrigi√≥ y lo pendiente, est√° en `docs/08-repaso-final.md`.
-- **Supabase conectado (paso 11)**: dos modos detr√°s de la misma interfaz de datos ‚Äî **demo** (seed +
-  `localStorage`, sin login) y **real** (Supabase con Google; una cuenta = una tienda v√≠a `usuarios`). El esquema
-  vive en `supabase/migrations/` (manda sobre los docs). C√≥mo est√° armado: `docs/05-arquitectura.md`; reglas que
-  pone la base y errores: `docs/03-modelo-de-datos.md`. Variables: `.env.example` (solo la llave publicable;
-  nunca una secreta ni `service_role`). **Fotos y logos**: en modo real se comprimen en el navegador y se suben al
-  bucket `productos` de Storage (`<tienda_id>/<uuid>.webp`, logo en `<tienda_id>/logo/`; JPEG en iPhone porque
-  Safari no crea WebP); la base guarda solo la URL p√∫blica. Reglas en `lib/data/almacen.ts`. La demo sigue con data URLs.
-
-### Lo que sigue (en este orden)
-
-1. **Terminar Supabase**: recarga mensual de cr√©ditos en la base, y el Resumen con consultas agregadas cuando el
-   historial crezca (sus pruebas, `npm test`, son el contrato). El seed (~900 KB) sigue dentro del c√≥digo de la
-   app por la demo: se puede cargar bajo demanda. Borrar un producto entero (hoy no existe en la app) deber√°
-   borrar tambi√©n sus fotos del bucket (`rutasParaBorrar` en `lib/data/almacen.ts`).
-2. **Cuentas** (verificaci√≥n de Instagram, zona de administraci√≥n para crear tiendas y filas de `usuarios`,
-   cobros manuales): `docs/07-fase-2-cuentas-y-cobros.md`. Hoy las filas de `usuarios` se crean a mano en Supabase.
-3. **Retoque de fotos con IA de verdad** (hoy es un efecto de demostraci√≥n) con su descuento de cr√©ditos en el servidor.
-4. **Cat√°logo p√∫blico integrado**: el HTML independiente pasa a leer la marca (`marca_*`, `url_catalogo`) y las
-   promos de cada tienda; los enlaces de compartir promo dejan de depender del enlace que escribe el due√±o.
-5. **Notificaciones** de pedidos nuevos (hoy solo el contador) y **sincronizaci√≥n entre dispositivos**.
-6. Pendientes del repaso: `docs/08-repaso-final.md` ("Pendiente").
-
-### Interruptores de negocio (`lib/config.ts`)
-
-- `RETOQUE_REAL` (hoy `false`): mientras sea `false`, el retoque de fotos se presenta como demostraci√≥n (etiqueta "Demo").
-  Al conectar el retoque de verdad, pasar a `true`.
-- `MOSTRAR_MARCA_DESLIZAPP_EN_CUPON` (hoy `true`): el "Hecho con Deslizapp" al pie de la imagen del cup√≥n; pensado
-  para quitarse por plan.
-- `STOCK_BAJO`, `CREDITOS_POR_RETOQUE`, l√≠mites y nombres de plan: ver el mismo archivo.
-
-## Qu√© se espera de esta primera entrega
-
-Construir las pantallas descritas en `docs/04-pantallas.md`, funcionando por
-completo contra datos de prueba (ver `docs/05-arquitectura.md`), con
-navegaci√≥n real entre ellas, multi-tienda desde el modelo de datos (aunque el
-selector de tienda pueda ser simple al inicio), y fiel a la identidad visual
-de `docs/01-marca.md`. Al terminar, el due√±o de una tienda deber√≠a poder abrir
-la app, ver su cat√°logo, recibir y despachar un pedido, crear una promo y ver
-su resumen semanal ‚Äî todo con datos falsos pero con la sensaci√≥n de producto
-terminado.
-
-El cat√°logo p√∫blico integrado queda fuera de esta entrega (Supabase y el
-acceso con Google llegaron en el paso 11) (est√°n detallados como pr√≥ximos pasos en
-`docs/05-arquitectura.md` y `docs/06-orden-de-construccion.md`, para que quien
-retome sepa exactamente qu√© sigue).
-
-
-## Pedido despachado: estado y comprobante
-En la hoja de un pedido despachado, ¬´Despachado. Final feliz.¬ª aparece al inicio como texto con check, sin fondo ni estilo de bot√≥n. Debajo de ¬´Editar pedido¬ª aparecen ¬´Descargar factura¬ª y ¬´Compartir¬ª. Descargar abre una hoja para elegir PDF o imagen; el PNG y el PDF salen del recibo visual de `referencias/catalogo-esencias-michel.html` (ticket con logo, art√≠culos, totales y pago). Compartir invoca la hoja nativa con el PNG y el texto: ¬´¬°Hola, {cliente}! Te comparto el comprobante de tu pedido #{n√∫mero} de {tienda}. ¬°Gracias por tu compra!¬ª. Si el navegador no admite compartir archivos, guarda el PNG y copia el texto. El comprobante no tiene valor fiscal; la app a√∫n no guarda RNC ni NCF.
-
-### Aplicaci√≥n coordinada del inventario
-
-No aplicar esta migraci√≥n separada de una versi√≥n compatible de la app: restringe UPDATE directo de stock, y el editor publicado anteriormente lo inclu√≠a en su escritura. Una aplicaci√≥n anticipada puede impedir guardar productos en esa versi√≥n. La PR sigue sin desplegar; la migraci√≥n no est√° aplicada. En productos existentes, activar/desactivar el control de stock queda pendiente de una operaci√≥n auditada espec√≠fica; crear productos conserva esa elecci√≥n inicial. El registro persiste sin a√±adir una pantalla de historial.
-
-## Cat√°logo React (PR #44, abierto para revisi√≥n)
-
-Rutas p√∫blicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin sesi√≥n del panel. Superficie propia en `components/tienda/` / `app/tienda/catalogo.css`, fiel al HTML; no aplica `components/ui` del panel. Usa las operaciones p√∫blicas de `FuenteDatos` mediante `lib/data/publica.ts`; `?demo` conserva la fuente demo, carrito y coach por tienda. El despacho y registro de pedidos no cambia: enviar crea una solicitud, no una venta.
-
-Migraci√≥n **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, cat√°logo p√∫blico ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
-
-La excepci√≥n visual de la superficie p√∫blica est√° en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios p√∫blicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona autom√°ticamente: Lewis prueba el preview.**
-
-### Admin parte 2 ‚Äî Hoy, Tiendas, ficha y Ver como
-
-Implementaci√≥n en `feature/admin-tiendas`, nacida de `origin/main` `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`; PR y preview se completan al publicar la rama. No incorpora #45, no fusionar ni desplegar producci√≥n. Lewis ya era admin y no se dio de alta otra vez. Hoy, Tiendas y ficha usan contratos y RPC reales; Trabajo, Cobros y M√°s contin√∫an como placeholders. `/admin-demo` tiene fuente aislada y nunca conecta a Supabase. Ver como bloquea escrituras en la app incluso para un admin que tambi√©n es due√±o, sin afirmar que la base revoque los permisos del due√±o. Detalles, capturas comparativas, validaciones y pasos manuales en `docs/handoffs/admin-tiendas-codex.md` y `docs/validacion-admin-tiendas.md`.
-
-Replay completo desechable aprobado; producci√≥n conserva sus 40 migraciones sin cambio. Ver como necesita la propuesta aditiva `20261006130000_admin_ver_como_validar.sql` porque `sesiones_ver_como` no es legible desde clientes y la cookie no puede autorizar. No aplicar/mergear hasta coordinar con la otra sesi√≥n y obtener versi√≥n oficial de Supabase CLI; las bases locales de esa sesi√≥n son desconocidas. Ning√∫n cambio manual de datos. TypeScript, lint (cero errores), 38 tests, scripts de teclado/hojas/admin y replay pasaron. Build local bloqueado porque no pudo descargar Caveat/Figtree/Fredoka; pendiente build remoto. No se probaron Google real, Safari f√≠sico, sesi√≥n real de Ver como ni cierre multidispositivo con Auth. No se cambi√≥ el callback de Supabase; permitir √∫nicamente `https://<host-exacto-del-preview>/auth/callback` tras recibirlo.
-
-
-## Pedido del cat√°logo en el panel ‚Äî continuaci√≥n de Coding
-
-**Claude/Codex: antes de retomar, leer `docs/handoffs/pedido-catalogo-panel-continuacion.md`.** Conserva la implementaci√≥n inicial de Claude y las correcciones en la rama separada `feature/pedido-catalogo-panel-continuacion`. No fusionar #44, #45 ni esta continuaci√≥n sin Lewis. No tocar `/workspace/deslizapp-rendimiento` ni la solicitud real reservada `4DCQ2PZ28F`.
-
-Estado/registro del comprador, respaldo en Nuevos y Av√≠same implementados, pendientes de revisi√≥n en preview. Registrar no descuenta stock; solo despacho. La hoja consume su historial antes de Ver pedido; selector interno conserva borradores y no deja portales ocultos activos. Ya lleg√≥ usa producto/variante rele√≠dos tras reponer y marca al volver del WhatsApp, sin afirmar env√≠o. Resultado de escritura incierto obliga a comprobar primero.
-
-`20261004223008` estaba aplicada; no se reaplic√≥/edit√≥. Adicional `20261005013157_registrar_solicitud_disponibilidad.sql` aplicada despu√©s de replay completo y pruebas de RLS/concurrencia en base desechable: misma firma, stock validado y bloqueos compatibles, sin reservas ni modificaciones de existencias de producci√≥n. Solo producci√≥n accesible; otras bases locales siguen desconocidas. Historial: 32 versiones en repo y producci√≥n, cero diferencias; el nombre hist√≥rico de `20260930005714` difiere intencionalmente.
-
-Las secciones de primera entrega y ¬´Aplicaci√≥n coordinada del inventario¬ª son hist√≥ricas: no describen el cat√°logo/stock actual. `supabase/migrations/` manda. No se ejecut√≥ limpieza ni una operaci√≥n de prueba sobre datos reales. Safari/iPhone f√≠sico, login Google real, Contact Picker, retorno f√≠sico de WhatsApp y rendimiento Vercel/4G requieren validaci√≥n de Lewis. No asumir que una captura o respuesta HTTP verifica esos recorridos.
-
-
-### Seguimiento PR #46: likes y validaci√≥n reportada
-
-Los likes del reel utilizan `.likes-count` (texto bajo el coraz√≥n), separados de `.cnt` de la bolsa; contador positivo incluido en el nombre accesible, cero oculto. No cambia c√°lculos, inventario ni aaah. Resultados y capturas en `docs/handoffs/pedido-catalogo-panel-continuacion.md`.
-
-**Reporte de Lewis, no pruebas de Coding:** Google funcion√≥ tras permitir el callback de la preview; solicitud visible en el panel, enlace con estados actualizados y producto agotado tras despachar. Coding no cambi√≥ ese callback ni repiti√≥ escrituras reales. Los pendientes de Safari f√≠sico/cobertura completa se conservan; distinguir este reporte del navegador automatizado.
-
-
-### Seguimiento PR #46: likes, pendientes y Google al c√≥digo
-
-Likes positivos del reel: ¬´1 lo quiere¬ª / ¬´N lo quieren¬ª bajo el coraz√≥n; cero conserva ¬´Lo quiero¬ª, agotado Av√≠same. Nombre accesible incluye acci√≥n y contador; `.cnt` de la bolsa intacta. `usePendientesPedidos` re√∫ne pedidos y solicitudes, suma solo trabajo pendiente y conserva errores/carga; el mismo desglose alimenta Nuevos y el √∫nico contador inferior. Registrar mantiene el total; confirmar/descartar/vencer lo reduce, sin alterar ventas/deuda/stock.
-
-Google conserva el c√≥digo en `redirectTo` (par√°metro local validado `volver`) adem√°s de `dz_volver`. Callback retorna al c√≥digo con `registrar=1`; la vista privada comprueba sesi√≥n y pertenencia por RLS antes de abrir. Destinos externos/rebotes al panel no se usan para resolver solicitudes. Error/cancelaci√≥n conserva el aviso y c√≥digo; ya registrada ofrece su pedido existente. No cambia Site URL ni configuraci√≥n Auth. Lista de callbacks permitidos no accesible en esta sesi√≥n: documentar direcci√≥n exacta de la nueva preview en el PR y completar OAuth real en Safari. Handoff ampliado en `docs/handoffs/pedido-catalogo-panel-continuacion.md`. No incorporar #45 ni fusionar/publicar.
-
-
-## Seguimiento desde main publicado: visibilidad e imagen compuesta
-
-Coding trabaja aislado en `feature/catalogo-visibilidad-og`, desde `be3f1fe` (incluye #44/#46, excluye #45). No fusionar ni publicar sin Lewis. Leer `docs/validacion-catalogo-visibilidad-og.md` para resultados y `docs/handoffs/catalogo-visibilidad-og.md` para entrega.
-
-Vista previa guarda √∫nicamente visibilidad con la operaci√≥n existente, sin optimismo ni tocar borrador/historial de inventario; conserva aviso del plan. El editor refleja visibilidad externa cuando no la edit√≥ y omite ese campo al guardar otros datos. Panel: coraz√≥n de lectura y cifra debajo, Etiqueta de stock con variantes y texto separado ¬´Oculto del cat√°logo¬ª. Feed: n√∫mero y frase son bloques separados. No cambian likes, bolsa, filtros o stock del comprador.
-
-Imagen p√∫blica de pedido en servidor: hasta cuatro l√≠neas en orden, variante conservada y cantidad sin duplicar fotos. Fallback de marca, √°rea central segura para recorte cuadrado, PNG 1200√ó630, URL absoluta del despliegue y cach√© de 5 minutos. Solo fotos p√∫blicas del bucket `productos` del proyecto configurado; sin URL arbitraria, redirecciones ni datos del comprador. Demo local no produce previews p√∫blicas; WhatsApp puede guardar la imagen anterior. No requiere SQL ni configura Supabase. El l√≠mite de productos visibles ya era una comprobaci√≥n de interfaz: no se encontr√≥ su equivalente at√≥mico en las migraciones; esta tarea conserva esa regla y documenta la limitaci√≥n, sin darla como protecci√≥n de servidor.
-### Seguimiento de espera y likes dentro de foto ‚Äî PR #47
-
-Coding contin√∫a en feature/catalogo-visibilidad-og sobre el head 4b6457b verificado abierto, conservando las mejoras de visibilidad/stock/feed/OG y sin #45. Se reutilizan avisos_llegada, avisosPendientes, Esperan y TarjetaYaLlego; no hay SQL ni cambios de producci√≥n.
-
-Inicio y Cat√°logo comparten una lectura de espera; lib/avisos.ts cuenta personas normalizadas y productos distintos sin perder solicitudes por variante. ¬´En espera¬ª incluye ocultos/repuestos, combina b√∫squeda, conserva selecci√≥n al resolver el √∫ltimo aviso y nunca da una lectura fallida por cero. Lista accesible desde tarjeta (acci√≥n independiente), vista previa (interna, conserva propuesta/scroll/foco) e Inicio (productos ‚Üí lista). Stock confirmado y variante correcta antes de Avisar. Reposici√≥n no marca; volver de WhatsApp no prueba env√≠o. Likes de lectura vuelven dentro de la foto abajo a la derecha, con cifra debajo, incluido cero y d√≠gitos largos. No cambia feed ni bolsa.
-
-Resultados, fixtures y l√≠mites se registran en docs/validacion-espera-catalogo.md y docs/handoffs/espera-catalogo.md. Safari/iPhone f√≠sico, WhatsApp nativo y escrituras de tienda real requieren validaci√≥n de Lewis. No modificar avisos reales para probar ni fusionar/publicar sin autorizaci√≥n. Movimiento y teclado siguen sus reglas, sin transiciones nuevas.
-
-### Pulido autorizado de la cifra de likes del panel
-
-Parte de main `8dded0d` (#47 fusionado), sin #45. Solo la cifra pierde la pastilla: texto Papel con sombra Bosque, dentro de la foto bajo el c√≠rculo sin cambiar su geometr√≠a. Conserva cero, cifras largas y nombre accesible; no cambia contratos, datos, Supabase ni controles. Publicaci√≥n squash autorizada por Lewis tras validar. Resultados y l√≠mites: `docs/handoffs/catalogo-likes-sin-pildora.md`.
-
-
-### Selecci√≥n de agotados, historial com√∫n y p√≠ldora de likes
-
-Esta implementaci√≥n parte del main `b46d5ecd` (#48 fusionado) en su propia rama; el checkout `feature/catalogo-react` con cambios pendientes qued√≥ intacto. PR #45 sigue fuera. ¬´Ocultarlos¬ª abre selecci√≥n interna; comienza vac√≠a, b√∫squeda/select all se limita a resultados, y la elegibilidad se relee por producto y tienda antes de ocultar solo `activo`. Errores parciales dejan lista de pendientes para reintento individualizado. Se preservan inventario, historial y avisos. Historial manual ahora usa `ListaAgrupada` / `FilaLista`, motivo, cantidad, fecha y actor; la p√≠ldora del panel es una c√°psula √∫nica coraz√≥n+cifra. Sin SQL. PR #49 abierto (HEAD inicial `3a0f58cb7f5352f28d433050b69cb80de9855666`); preview READY: `https://deslizapp-p0bl3h2dw-onedayone.vercel.app`, alias `https://deslizapp-app-git-fix-catalogo-agotados-visibles-onedayone.vercel.app`. V√©ase `docs/handoffs/catalogo-agotados-visibles.md` para pruebas, l√≠mites y entrega.
+Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌ€M}’:-jZ.∂õ≠ñ)ﬁ≥R22F÷ñ„¢&6RgW6ñˆÊFí'VV&FRñÁfVÁF&ñÚ6˜'&VvñF(	B6ˆFñÊr¬##b””`†•"3SW7L:gW6ñˆÊFÚV‚÷ñÊV‚v6f6‚∆6˜'&V66ú;6‚WF˜&ó¶FFRÁV∆6ú;6‚VÊ6FVÊF6R∆ñ<;26ˆ÷Ú¢£##cc3ì3ïˆF÷ñÂˆÁV∆%ˆ÷VÁ7V∆ñFFW5˜&V6∆7V∆Ú¢¢¬6ñ‚Fˆ6"v˜2&V∆W2‚6ˆÁG&FÚ¬3ì"6V7VVÊ6ñ25¬ˆFV÷Ú¬6ˆÊ7W'&VÊ6ñíÃ:÷÷óFW2FR6ˆ&W'GW&WáFW&Ê¢∑f∆ñF6ú;6‚FRÁV∆6ú;6Â“ÜFˆ72˜f∆ñF6ñˆ‚÷F÷ñ‚÷ÁV∆6ñˆ‚Ê÷Bí‡†§V¬&W∆íFRñÁfVÁF&ñÚ&W˜'L;2ñÊñ6ñ∆÷VÁFRVÊfó&÷ˆ'6ˆ∆WFFRßW7F%˜7Fˆ6∂FR6ñÊ6Ú&wV÷VÁF˜2¬F÷&ú:ñ‚&W6VÁFRV‚÷ñ‚6ñ‚V¬F÷ñ‚‚∆'VV&6RßW7L;2¬6ˆÁG&FÚ7GV¬FR6Vó2&wV÷VÁF˜3≤&W∆í6ˆ◊∆WFÚ˜7FW&ñ˜"<;2‚V¬FFVÊGV“6ˆÁ6W'fV¬f∆∆ÚÜó7L;7&ñ6Úí&Vvó7G&V¬&W7V«FFÚÁVWfÚ‚6ˆ∆Ú6÷&ñ‚'VV&2ˆFˆ7V÷VÁF6ú;6„≤ÊÚ6R«FW&V¬ñÁfVÁF&ñÚ‚&÷ñÊFWVÊFñVÁFRFR6˜'&V66ú;6„¢fóÇˆñÁfVÁF&ñÚ◊'VV&÷fó&÷‡†•5¬∆ñ6F&V7WW&FíV&∆ñ6F≤6GóU67&óB¬FV÷Úí6ˆ∆Ù÷ó&"&V6ˆÁ7G'VñF26ñ‚ÁF∆∆2‚∆VW"∂V¬ÜÊFˆfbF÷ñÂ“ÜFˆ72ˆÜÊFˆfg2ˆF÷ñ‚÷&6R÷6ˆFWÇÊ÷Bíí∆∑f∆ñF6ú;6Â“ÜFˆ72˜f∆ñF6ñˆ‚÷F÷ñ‚÷&6RÊ÷Bí¬ñÊ6«WñVÊFÚ∆6˜'&V66ú;6‚˜7FW&ñ˜"FRÁV∆6ú;6‚í∆˜2Gfó6˜'2‚6ˆ∆Ù÷ó&"&∆˜VVFW6FR∆≤VÊ7VVÁFF÷ñ‚ˆGV\;Ú6ˆÁ6W'fW&÷ó6˜2FRGV\;ÚV‚∆&6R‡†§6∆VFS¢∆VW"V¬ÜÊFˆfbíÜ6W"fWF6ÇFV¬W7FFÚ&V÷˜FÚÁFW2FR6ˆÁFñÁV"‚ÊÚV◊V¶"∆6˜ñÁFñwVVÊ6ñ÷FV¬G&&¶ÚFR6ˆFWÇÊí&V∆ñ6"∆26Vó2÷ñw&6ñˆÊW2‚∆Wvó2ñW2F÷ñ‚7FófÛ≤ÊÚ&WWFó"V¬«F‡†¢227Fóf6ú;6‚V‚&ˆGV66ú;6‚(	B∆ÊÊñÊr¬##b””P†§∆Wvó2WF˜&ó¨;2∆ñ6"∆÷ñw&6ú;6‚FW7\:ó2FV¬W'&˜"¬'&ó"V∆ñ÷ñÊ"‡§∆ñ6FV‚7W&6RWVñÜWñfF«f÷'FgßfÁB6ˆ÷Ú¢£##cS##S#ÖˆV∆ñ÷ñÊ%˜&ˆGV7Fıˆ∆ˆvñ6ÚÁ7¬¢¢‡•7W7FóGWñRV¬Êˆ÷'&R&˜fó6ñˆÊ¬##cS#S3SˆV∆ñ÷ñÊ%˜&ˆGV7Fıˆ∆ˆvñ6ÚÁ7√≤6ˆÁFVÊñFÚ5¬6ˆÁ6W'fFÚ6ñ‚÷ˆFñfñ66ñˆÊW2‡§V¬6ˆ÷VÁF&ñÚñÊñ6ñ¬*¥‰Ú∆ñ6F+≤FVÁG&ÚFV¬&6ÜófÚW2Üó7L;7&ñ6ÚFR7R&W&6ú;6‚‡†•fW&ñfñ6FÚV‚&ˆGV66ú;6„¢6ˆ«V÷ÊV∆ñ÷ñÊFıˆV‚¬÷&2%2¬V¶V7V6ú;6‚&WFÜVÁFñ6FVBíFVÊVv6ú;6‚&Êˆ‚¬í6Vó2G&ñvvW'2FR&˜FV66ú;6‚‡•&ˆGV7F˜2ÁFW2ˆFW7\:ó3¢c≤7Fóf˜3¢S≤7Fˆ6≤F˜F√¢≤&WFó&F˜2FW7\:ó3¢‡§ÊÚ6RV∆ñ÷ñÊ&ˆ‚&ˆGV7F˜2Êí&6Üóf˜2&&ˆ&"‚∆2'VV&2FR&W∆íˆ6ˆÊ7W'&VÊ6ñFW67&óF2&¶ÚW'FVÊV6V‚6ˆFñÊs≤∆ÊÊñÊrÊÚ∆2&WóFú;2‡•VÊFñVÁFS¢6ˆÊfó&÷6ú;6‚FV¬&V6˜'&ñFÚWFVÁFñ6FÚV‚6f&í˜"∆Wvó2‚∆˜2&∆˜VV˜2˜"VFñF˜2¬6ˆ∆ñ6óGVFW2Úfó6˜2VÊFñVÁFW26ñwVV‚7Fóf˜2‡†¢““–†¢2FW6∆ó¶(	BÊV¬FRFñVÊFÜÜÊFˆfb&6∆VFR6ˆFRê†¢22F÷ñ‚'FR#¢Ü˜í¬FñVÊF2¬fñ6ÜífW"6ˆ÷Ú(	B6ˆFñÊp†•G&&¶ÚV‚fVGW&RˆF÷ñ‚◊FñVÊF6¬FW6FR˜&ñvñ‚ˆ÷ñÊ7GV∆ó¶FÚÜCSFsÉ&ì≤&W&""&ñW'FÚ¬6ñ‚÷W&vRí6ñ‚FW∆˜í&ˆGV66ú;6‚‚∆˜2"3Sí3S"W7L:‚gW6ñˆÊF˜2‚∆Wvó2ñFñVÊR«FF÷ñ„≤ÊÚfˆ«fW"7&V&∆‚ÊÚñÊ6˜'˜&""3CR‡†§∆ñ◊∆V÷VÁF6ú;6‚¬∆6ˆ◊&6ú;6‚FR6GW&2¬&W7V«FF˜2íÃ:÷÷óFW26RFWF∆∆‚V‚∂ÜÊFˆfb&∆ÊÊñÊrí6∆VFU“ÜFˆ72ˆÜÊFˆfg2ˆF÷ñ‚◊FñVÊF2÷6ˆFWÇÊ÷Bíí∑f∆ñF6ú;6‚FRF÷ñ‚'FR%“ÜFˆ72˜f∆ñF6ñˆ‚÷F÷ñ‚◊FñVÊF2Ê÷Bí‚ñÊ6«WñR∆TíFRFV÷Úó6∆F¬gVVÁFW2F÷ñ‚&V¬ˆFV÷Ú¬wV&Fñ6VÁG&¬6ˆ∆Ù÷ó&&íVÊ&˜VW7FFóFóf&F˜2%2FRf∆ñF"V¬÷ˆFÚ‚&W∆í6ˆ◊∆WFÚFW6V6Ü&∆R<;3≤&ˆGV66ú;6‚W&÷ÊV6RV‚CÛC÷ñw&6ñˆÊW2í6ñ‚6÷&ñ˜2‚¢§∆2&6W2∆ˆ6∆W2FR∆˜G&6W6ú;6‚6ˆ‚FW66ˆÊˆ6ñF2‚¢¢6R&WVñW&R6ˆ˜&FñÊ6ú;6‚ÁFW2FR∆ñ6"5¬6ˆ◊'FñFÛ≤V¬7W&6R4ƒíÊÚW7L:ñÁ7F∆FÚ¬íV¬ñFVÁFñfñ6F˜"5¬∆ˆ6¬W2&˜fó6ñˆÊ¬‚vˆˆv∆R&V¬¬6∆∆&6≤FR&WfñWr¬6f&íl:◊6ñ6Úí∆fó7FFRVÊFñVÊF&V¬ÊÚW7L:‚fW&ñfñ6F˜2‡†§7VÊFÚ6RV&∆óVR∆&WfñWr¬V¬6∆∆&6≤&WVW&ñFÚW2áGG3¢ÚÛ∆Ü˜7B÷WÜ7FÚ÷FV¬◊&WfñWs‚ˆWFÇˆ6∆∆&6∂≤ÊÚ6÷&ñ"6óFRU$¬Êí∆6ˆÊfñwW&6ú;6‚WFÇ‚fW"6ˆ÷ÚÊÚ&Wfˆ6V‚∆&6RW&÷ó6˜2˜&FñÊ&ñ˜2FV¬GV\;Û¢6ˆ∆Ù÷ó&&&∆˜VV∆2W67&óGW&2;¶Êñ6÷VÁFRFVÁG&ÚFRW6R&V6˜'&ñFÚFR∆‡†§6GW&2ˆ6ˆ◊&6ú;6‚6ˆ‚Fó6\;˜2&ˆ&F˜3¢∂Fˆ72ˆ6GW&2ˆF÷ñ‚◊FñVÊF2ı$TD‘RÊ÷F“ÜFˆ72ˆ6GW&2ˆF÷ñ‚◊FñVÊF2ı$TD‘RÊ÷Bí‚∆Wvó2VVFR&ˆ&"ˆF÷ñÊí∆fñ6ÜFR÷ñ6ÜV¬V‚V¬&WfñWr¬W&ÚfW"6ˆ÷ÚFV&RW7W&"VR∆ÊÊñÊr6ˆ˜&FñÊRV¬%2FóFófÚíW&÷óFV¬6∆∆&6≤WÜ7FÚ‡†¢2226˜'&V66ú;6‚˜7FW&ñ˜"FR∆'VV&FR&W∆íFRñÁfVÁF&ñ†•"3S"7GV∆ó¶FÛ≤6ˆÁ7V«F∆∑f∆ñF6ú;6‚FRñÁfVÁF&ñı“áf∆ñF6ñˆ‚÷F÷ñ‚÷&6RÊ÷BíÁFW2FR&WWFó"V¬&W∆í‚V¬Üó7F˜&ñ¬6ˆÁ6W'f∆˜2&W7V«FF˜2ñÊñ6ñ∆W2f∆∆ñF˜2íV¬&W7V«FFÚ˜7FW&ñ˜"VR<;2‡†§W7FR&WÚW2V¬VÁFÚFR'FñFFV¬¢ßÊV¬FRF÷ñÊó7G&6ú;6‚¢¢FRFW6∆ó¶¢∆¶vV"FˆÊFRV¬GV\;ÚFRVÊFñVÊFÜV¢‚W6VÊ6ñ2÷ñ6ÜV¬ívW7FñˆÊ7R6L:∆ˆvÚ¿ßfR7W2VFñF˜2¬∆˜2FW76Ü¬&÷&ˆ÷˜2í&Wfó6<;6÷Ú∆Rf‡†¢¢§ÊÚ6ˆÊgVÊFó"6ˆ„¢¢¢V¬6L:∆ˆvÚ;¶&∆ñ6ÚVRfV‚∆˜26∆ñVÁFW2fñÊ∆W2ÜV¬VPß6RFW6∆ó¶FóÚñÁ7Fw&“&VV«2íñFR˜"vÜG4í‚W6RñWÜó7FR6ˆ÷ÚV‚ÖD‘¿¶ñÊFWVÊFñVÁFRí¢ß6R÷ÁFVÏ:÷6W&FÚ¢¢FRW7FR&˜ñV7FÛ≤FW6FRˆ7GV'&RFR##b6R6ˆÊV7Fí6R6&V7B\:“áfW"Fˆ72Û"÷6F∆ˆvÚ÷6ˆÊV7FFÚÊ÷Fí‚W7FR&W¶ñÊ6«WñRV¬ÊV¬í∆2'WF2;¶&∆ñ62ÁVWf3≤V¬6÷&ñÚFV¬VÊ∆6R;¶&∆ñ6Ú6RÜ,:FW7\:ó2FR6ˆ◊&"÷&27WW&fñ6ñW2‡†¢¢•&ñ÷W&Ú∆VRFˆ72Û÷6ˆÁFWáFÚ÷FV¬◊&˜ñV7FÚÊ÷F¢£¢\:íW2V¬&˜ñV7FÚ¬<;6÷Ú6RG&&¶Ö∆ÊÊñÊrí6ˆFñÊrí¬L;6ÊFRfV¬G&&¶ÚíL;6ÊFRW7L:6F6˜6‚∆ÚVR6ñwVRV‚W7FRFˆ7V÷VÁFÚW2∆&6RFV¬ÊV¬‡†§W7FRFˆ7V÷VÁFÚW2V¬VÁFÚFRVÁG&F‚ÁFW2FRW67&ñ&ó"<;6FñvÚ¬∆VRV‚W7FP¶˜&FV„††£‚Fˆ72Û÷÷&6Ê÷F(	Bf˜¢¬6ˆ∆˜&W2¬Fóˆw&l:÷‚FˆFÚ∆ÚVR6R◊VW7G&RFV&R6VÁFó'6R6ˆ÷ÚW7FÚ‡£"‚Fˆ72Û"÷∆6Ê6RÊ÷F(	B\:íVÁG&V‚W7F&ñ÷W&fW'6ú;6‚í\:íÊÚ‡£2‚Fˆ72Û2÷÷ˆFV∆Ú÷FR÷FF˜2Ê÷F(	B∆2F&∆2¬ñ6ˆ‚∆f˜&÷VRFVÊG,:‚V‚7W&6R‡£B‚Fˆ72ÛB◊ÁF∆∆2Ê÷F(	B7V2FR6FÁF∆∆¬6◊Ú˜"6◊Ú¬66FFR∆˜2÷ˆ6∑W2ñf∆ñFF˜2‡£R‚Fˆ72ÛR÷'VóFV7GW&Ê÷F(	B<;6÷Ú6R6ˆÁ7G'WñRW7FÚ6ˆ‚FF˜2f«6˜2Ü˜í6ñ‚FVÊW"VR&VÜ6W&∆Ú7VÊFÚ6R6ˆÊV7FR7W&6R‡£b‚Fˆ72Ûb÷˜&FV‚÷FR÷6ˆÁ7G'V66ñˆ‚Ê÷F(	BV‚\:í˜&FV‚6ˆÁ7G'Vó"¬íV¬7&óFW&ñÚFR&∆ó7FÚ"FR6F6Ú‡£r‚Fˆ72Ûr÷f6R”"÷7VVÁF2◊í÷6ˆ'&˜2Ê÷F(	B¢ß6ˆ∆Ú∆V7GW&˜"Ü˜&¢¢¢FV6ó6ñˆÊW2ñFˆ÷F2&∆f6R"áfW&ñfñ66ú;6‚FRñÁ7Fw&“¬¶ˆÊFRF÷ñÊó7G&6ú;6‚¬6ˆ'&˜2÷ÁV∆W2í‚ÊÚ6R6ˆÁ7G'WñRV‚∆&ñ÷W&VÁG&Vv‡£Ç‚Fˆ72ÛÇ÷÷˜fñ÷ñVÁFÚÊ÷F(	BV¬6ó7FV÷FR÷˜fñ÷ñVÁFÛ¢<;6÷Ú6RÊñ÷FˆFÚá&Vv∆2ˆ&∆ñvF˜&ñ2&∆ÚÁVWfÚí‡†§FV‹:2¬V‚&VfW&VÊ6ñ2ˆW7L:V¬¢ß&˜F˜FóÚñÁFW&7FófÚíÊfVv&∆RFV¬ÊV¬¢¢Ü&VfW&VÊ6ñ2˜&˜F˜FóÚ÷ñÁFW&7FófÚÙ÷ñ‚ÊF2ÊáF÷∆¬:'&V∆ÚV‚V¬ÊfVvF˜"íí˜G&˜2ÖD‘¬FR&VfW&VÊ6ñ‚W2∆&VfW&VÊ6ñfó7V¬&ñÊ6ó√≤∆˜2Fˆ72ˆ÷ÊF‚V‚&Vv∆2FRFF˜2¬7Fˆ6≤í7,:ñFóF˜2áfW"&VfW&VÊ6ñ2ÙƒTT‘RÊ÷Fí‡†¢22V∆ñ÷ñÊ6ú;6‚FR&ˆGV7F˜2(	B&˜VW7F¬6ñ‚V&∆ñ66ú;6‡†•&÷fVGW&Rˆ6F∆ˆvÚ÷V∆ñ÷ñÊ"◊&ˆGV7Fˆ¬FW6FR÷ñ‚sñCvFfÖ"3Cíí‚6ˆÁ6W'f7W2G&W2÷V¶˜&2FR6V∆V66ú;6‚¬Üó7F˜&ñ¬í∆ñ∂W3≤ÊÚñÊ6˜'˜&"3CR‚ÁVWfÚ6ˆÁG&FÚíf∆ñF6ú;6‚V‚Fˆ72˜f∆ñF6ñˆ‚÷V∆ñ÷ñÊ"◊&ˆGV7FÚÊ÷F‚÷ñw&6ú;6‚4ƒí##cS##S#ÖˆV∆ñ÷ñÊ%˜&ˆGV7Fıˆ∆ˆvñ6ÚÁ7∆¢ßVÊFñVÁFR¬ÊÚ∆ñ6F&ˆGV66ú;6‚¢£≤¬∆ñ6"V‚VÊVÁG&VvWF˜&ó¶F¬W6"∆fW'6ú;6‚VR6ñvÊR7W&6R6V|;¶‚tTÂE2Ê÷B‚∆&WfñWr&V¬6ˆÁ6W'fV¬6L:∆ˆvÚWÜó7FVÁFRW&ÚÊÚˆG,:V∆ñ÷ñÊ"Ü7FW6R6Ú‚FV÷Ú<:“W&÷óFR&ˆ&&∆Ú‡†§V∆ñ÷ñÊ"&WFó&Ã;6vñ6÷VÁFS≤ÊÚ&˜'&&6Üóf˜2¬fñ∆2Üó7L;7&ñ62Êíf&ñÁFW2‚&∆˜VVVFñF˜2V‚7W'6Ú¬6ˆ∆ñ6óGVFW2fñvVÁFW2ífó6˜2VÊFñVÁFW3≤ˆg&V6Rˆ7V«F"6ñ‚W&FW"˜G&˜26◊˜2‚∆2ÁVWf2&VfW&VÊ6ñ2&∆˜VV‚V¬&ˆGV7FÚí&V6Ü¶‚&WFó&F˜2‚Üó7F˜&ñ¬W6vWE&ˆGV7F˜2áFñVÊFñB¬G'VRñ≤∆∆ó7FF÷ñÊó7G&Fóf˜6V∆V7F˜&W2W6‚V¬f∆˜"˜"FVfV7FÚ‚ÊÚ&VñÁG&ˆGV6ó"&WFó&F˜2V‚∆W'F2FR7Fˆ6≤‚ÊÚw&Vv"∆ñ◊ñW¶FR÷VFñ˜3¢6ñwVV‚&VfW&VÊ6ñF˜2˜"∆fñ∆Üó7L;7&ñ6‚6ˆÊfó&÷6ú;6‚6∆R&ñ÷W&Ú¬«VVvÚVFóF˜"¬&6ˆÁ6W'f"G,:26ˆ‚÷˜fñ÷ñVÁFÚ&VGV6ñFÚ‡†¢22V&∆ñ66ú;6‚WF˜&ó¶FFV¬6L:∆ˆvÚ6ˆÊV7FF†•"3CBí3CbgW6ñˆÊF˜2íV&∆ñ6F˜2V‚&ˆGV66ú;6‚‚W6VÊ6ñ2÷ñ6ÜV¬'&RV¬6L:∆ˆvÚ&V7BFW6FRFñVÊF2ÁW&≈ˆ6F∆ˆvˆ‚"3CRFR&VÊFñ÷ñVÁFÚVVFgVW&‚V¬<;6FñvÚ˜&ñvñÊ¬FR6∆VFRW7L:ñÊ6«VñFÚ÷VFñÁFR3Cc≤ÊÚ&WFˆ÷"7R&÷&V&∆ñ6&∆˜"6W&FÚ‚W7FFÚ¬6ˆ◊&ˆ&6ñˆÊW2íÃ:÷÷óFW3¢Fˆ72ˆÜÊFˆfg2˜V&∆ñ66ñˆ‚÷6F∆ˆvÚ÷6ˆÊV7FFÚÊ÷F‚∆2Ê˜F2FRñ◊∆V÷VÁF6ú;6‚ÁFW&ñ˜&W26ˆ‚Üó7L;7&ñ63≤ÊÚ7V÷ó"VR∆2&WfñWw2ÁFñwV2FñVÊV‚∆fW'6ú;6‚7GV¬‡†¢22&Vv∆W&÷ÊVÁFS¢Ê˜fVFFW0†¢¢§6F6÷&ñÚfó6ñ&∆R&V¬W7V&ñÚ7V÷VÊÃ:÷ÊV∆ñ"ˆÊ˜fVFFW2ÁG6‚¢†•6íV¬6÷&ñÚ6∆RV‚VÊfW'6ú;6‚ÁVWf¬6Rw&VvVÊVÁG&FÁVWf'&ñ&¢ÜÏ;¶÷W&Ú÷ñ˜"¬fV6ÜíFR"BÃ:÷ÊV26˜'F2V‚FˆÊÚFR÷&6í‚¬'&ó"∆¶FW7\:ó2FV¬FW7∆ñVwVR¬6FW'6ˆÊfRW62Ê˜fVFFW2VÊ6ˆ∆fW¢Ü∆ß&ñ÷W&fW¢VR∆wVñV‚VÁG&ÊÚ6R∆R◊VW7G&‚í‚∆fW'6ú;6‚7GV¬6RfRV‡¶V¬÷VÏ;¢FR∆FñVÊF‚6÷&ñ˜2ñÁFW&Ê˜26ñ‚VfV7FÚfó6ñ&∆RÊÚ∆∆Wf‚Ã:÷ÊV‡†¢22&Vv∆W&÷ÊVÁFS¢6◊˜2FRFWáFÚíFV6∆FÚÜïÜˆÊRê†¢¢§ÁVÊ6Êñ÷"Êí&V÷ˆÁF"∆˜2Ê6W7G&˜2FRV‚6◊ÚFRFWáFÚ¬VÊfˆ6&∆ÚÚ¬6÷&ñ"V¬F÷;Û∞¶fˆ7W2Çñ6ñV◊&RFVÁG&ÚFV¬vW7FÚFV¬W7V&ñÛ≤ÊÚ6÷&ñ"∂WñÊíW7FFÚFR∆ñ˜WB˜"WfVÁF˜2FP¶&W6ó¶Vˆfó7V≈fñWw˜'F‚¢¢V‚6ˆÊ7&WFÛ†¢“ÊñÊ|;¶‚W6TVffV7F6ˆ‚∆ó7FVÊW'2FR&W6ó¶Vˆfó7V≈fñWw˜'F6÷&ñW7FFÚFR&V7B¬ÊíV¿¢«FÚ˜˜6ñ6ú;6‚FRVÊÜˆ¶¬Êí∆∆÷fˆ7W2Çñ‚V¬FV6∆FÚ6ˆ∆ÚVVFRW67&ñ&ó"VÊf&ñ&∆R550¢Ü“◊FV6∆FˆííFW7∆¶"V¬6ˆÁFVÊñFÚ&FV¶"∆fó7FV¬6◊ÚVÊfˆ6FÚáfW"6ˆ◊ˆÊVÁG2ˆÜˆ¶ÁG7Üí‡¢“∆˜2VfV7F˜2VR÷ÊV¶‚fˆ6ÚÜ&∆˜VV"fˆÊFÚ¬FWfˆ«fW"V¬fˆ6Ú¬6W'&"í6ˆ‚¢¶W7F&∆W2¢£¢6ñ‡¢FWVÊFVÊ6ñ2VR6÷&ñV‚‚6í6RgVV«fV‚V¶V7WF"6ˆ‚V‚6◊ÚVÊfˆ6FÚ¬7R∆ñ◊ñW¶∆RVóFV¬fˆ6Ú‡¢“ÊñÊwVÊG&Á6ñ6ú;6‚FRfó7FÜfñWuG&Á6óFñˆÊ¬7F'EfñWuG&Á6óFñˆÊ¬FEG&Á6óFñˆÂGóVì¢V‚îı0¢∆RVóFV¬fˆ6Ú¬6◊Ú‚ñÊÚ6RW6‚V‚ÊñÊwVÊ'FR‡¢“VÊÜˆ¶6ˆ‚6◊˜2FRFWáFÚW2&w&ÊFR&áVÊ&WFÚ&7&V6R6ˆ‚V¬“◊FV6∆Fˆí6R◊VWfRí‚6íV‚F˜VR'&RV‡¢6◊ÚÜV¢‚V¬6V∆V7F˜"FR6∆ñVÁFRí¬V¬fˆ7W2ÇñfV‚V¬÷ó6÷ÚF˜VS¢f«W6Ö7ñÊ6≤fˆ7W2Çñ‡¢“FˆFÜˆ¶ÚÁF∆∆ÁVWf6ˆ‚6◊˜2FRFWáFÚ6R'VV&6ˆ‚Á“'V‚&ˆ&#ßFV6∆Fˆ ¢Ü67&óG2˜&ˆ&"◊FV6∆FÚÊ÷ß6¬6ˆ‚∆6˜'&ñVÊFÚì¢w,:ñv∆RV¬6◊ÚÁVWfÚ‡†¢22&Vv∆W&÷ÊVÁFS¢÷˜fñ÷ñVÁF†¢¢§÷˜fñ÷ñVÁFÚ6ˆ∆ÚV‚Üˆ¶2¬&'&FRÊfVv6ú;6‚í÷ñ7&ˆñÁFW&66ñˆÊW2FRV‚6ˆ∆¶V∆V÷VÁFÚ‚&ˆÜñ&ñFÚÊñ÷"∆:vñÊ6ˆ◊∆WF¬6÷&ñ"FRW7F;í&ˆÜñ&ñF¶Êñ÷"6FV∆V÷VÁFÚFRVÊ∆ó7FÚw&ñ∆∆¬VÁG&"‚6ˆ∆ÚG&Á6f˜&÷ê¶˜6óGñ¬6ˆ‚∆WÜ6W6ú;6‚&ˆ&FFR7G&ˆ∂R÷F6Üˆfg6WFV‚V¬5drFR∆0¶FˆÊ2FR6L:∆ˆvÚí6∆ñVÁFW2‚¢¢6÷&ñ"FRW7F;W2ñÁ7FÁL:ÊVÛ≤∆2∆ó7F2íw&ñ∆∆2&V6V‚FPßVÊfW£≤∆2f˜F˜2ÊÚ6RgVÊFV‚¬6&v#≤ÊÚÜí∆ñ'&W,:÷FRÊñ÷6ú;6‚‡†•FˆFÁF∆∆Ú6ˆ◊ˆÊVÁFRÁVWfÚ6ñwVRFˆ72ÛÇ÷÷˜fñ÷ñVÁFÚÊ÷F¢Fˆ∂VÁ0¢Ü“÷÷˜b“¶¬“÷7W'f“¶V‚ˆv∆ˆ&«2Ê776í∆ñ"ˆ÷˜fñ÷ñVÁFÚÁG6í¬ÊFVRÜv¶W7W&"V‚F˜VRí&W7WFÚ˜"&VfW'2◊&VGV6VB÷÷˜FñˆÊ‚∆˜2V∆V÷VÁF˜2Fˆ6&∆W2¿¶Ï;¶÷W&˜2¬fó6˜2í6&v2W6‚∆˜26ˆ◊ˆÊVÁFW2&6RÜFˆ6&∆V¬ÁV÷W&ˆ¿¶6Vv÷VÁF˜6¬W7VV∆WFˆ(
+bí‡†¢¢§WÜ6W6ú;6‚6ˆÊ7&WFFR÷˜fñ÷ñVÁFÚ&*µGR,;7Üñ÷ßVvF+≥¢¢¢V¬&W7∆ÊF˜"w&ÁV∆FÚfñ¶Ú¬ñRFR7RÜˆ¶¬fó6ñ&∆RFW6FRVR6R'&R∆v∆W,:÷ÚV‚FWF∆∆R¬VVFR÷˜fW'6R6ˆÁFñÁV÷VÁFR6ˆ‚G&Á6f˜&÷í˜6óGñ‚W2FV6˜&FófÚ¬VVFFWG,:2FV¬6ˆÁFVÊñFÚ¬ÊÚ&∆˜VVF˜VW2íVVFW7L:Fñ6Ú6ˆ‚÷˜fñ÷ñVÁFÚ&VGV6ñFÚ‚∆F&¶WFñÊñ6ñ¬6ˆ◊'FRW6R'&ñ∆∆Û≤¬'&ó"v∆W,:÷ÚFWF∆∆RÜíVÊ6'&WfRFR÷˜'ÇÚ&'&ñFÚíV‚V«6Ú¬í¬'&ó"ÚV∆Vvó"V‚&˜'&F˜"í¬Fˆ6"*µfW"‹:26∆ñVÁFW<+≤˜G&ÚV«6Ú‚«W§ßVvF÷ÁFñVÊRVñWF˜2V¬&V6˜'FRíV¬w&ÊÛ≤G&W2÷Ê6Ü2ñÊFWVÊFñVÁFW26ˆ◊∆WF‚6ñ6∆˜27VfW2FRÇ2‚V«6˜2FRS#◊27W7FóGVñ&∆W2íG&Á6ñ6ñˆÊW2FñgW62FRCÉ◊3≤ÁVÊ66RW66∆ÚFW7∆¶V‚fˆÊFÚ&V7FÊwV∆"‚FˆFÚW66ˆ∆ÚG&Á6f˜&“í˜6ñFC≤6ˆ‚÷˜fñ÷ñVÁFÚ&VGV6ñFÚÊÚÜíG&Á6ñ6ú;6‚‚6&V6W&íFW6VÊf˜VRFRÜˆ¶6ñV◊&RVVF‚VÊ6ñ÷FV¬6ˆÁFVÊñFÚFW7∆¶&∆RíFR∆262FV6˜&Fóf2‚∆2&Vv∆2vVÊW&∆W26ñwVV‚fñvVÁFW3¢ÊFFRG&Á6ñ6ñˆÊW2FR:vñÊÊíVÁG&F2W66∆ˆÊF2FR∆ó7F2‚fW"Fˆ72ÛÇ÷÷˜fñ÷ñVÁFÚÊ÷F‡†¢¢•&Vw&W6ú;6‚FRÜó7F˜&ñ¬FWFV7FF¬f∆ñF"∆2Êñ÷6ñˆÊW3¢¢¢¬6W'&"∆˜2&˜'&F˜&W2¿¶V¬wV&BFR7G&ñ7B÷ˆFRñ◊VL:÷&WFó&"7RVÁG&FF÷&ú:ñ‚V‚&ˆGV66ú;6‚‚W6RwV&@ß6ˆ∆Ú6˜'&W7ˆÊFRFW6'&ˆ∆∆Ú‚∆6∆ñFgVV«fR6ˆÁ7V÷ó"∆VÁG&FFR∆Üˆ¶¶ñ∆F≤V¬6ñwVñVÁFR*∂G,:<+≤&Vw&W6∆v∆W,:÷6ñ‚ÊV6W6óF"V‚6VwVÊFÚF˜VR‡§∆÷W¶6∆FR6ˆ∆˜"FV¬fV∆Ú6R∆ñ6V‚∆6FV6˜&FófFRÜˆ¶¬&¶ÚV¬&«W ßí∆6&V6W&¬&6ˆÁ6W'f"V¬6ˆÁG&7FRFV¬FWáFÚ‡†¢227Fñ∆∆2FRfñ«G&†•V‚6ˆ∆ÚF÷;Ú&FˆF2Ü6Vv÷VÁF˜6í6ÜóV‚6ˆ◊ˆÊVÁG2ˆ6ˆÁG&ˆ∆W2ÁG7Üì¢Fˆ∂VÁ2“◊7Fñ∆∆÷«FˆÉ3bÇí¿¶“◊7Fñ∆∆◊ÜÉBÇí¬“◊7Fñ∆∆÷∆WG&É2√RÚBÇíí“◊7Fñ∆∆÷6ˆÁFF˜&É#ÇíV‚ˆv∆ˆ&«2Ê776‚ÊFñR6ßV‚«FÚ&˜ñÛ¢&6÷&ñ&∆26RVFóFV‚f∆˜"‚Ê6ÜÚÊGW&¬¬∆ñÊVF2∆óßVñW&F¬í∆fñ∆FR6Vv÷VÁF˜66P¶FW7∆¶V‚Ü˜&ó¶ˆÁF¬6íÊÚ6&V‚‚8&VFRF˜VRFRCBÇÚ‹:26ˆ‚V‚6WVFÚ÷V∆V÷VÁFÚñÁfó6ñ&∆R‚FWF∆∆RV‡¶Fˆ72ÛB◊ÁF∆∆2Ê÷F‡†¢22Fñ6∂WBFR&ˆ÷ÚÖ&ˆ÷˜2í6V∆V7F˜"FR7W;6‚ê†¢¢§6÷&ñ"FRFóÚ÷VFñÁFR6˜ñ¢¢¢¬Fˆ6"V‚FóÚFó7FñÁFÚV‚VFñ6ú;6‚6RWá∆ñ6∆&W7G&ñ66ú;6‡ßí6R'&RVÊÜˆ¶6ˆ◊7F6ˆ'&RV¬VFóF˜#≤*µ<:“¬7&V"˜G&&ˆ÷¸+≤'&RV¬f˜&◊V∆&ñÚÁVWf¶6ˆ‚V¬FóÚV∆VvñFÚFW7\:ó2FR6W'&"W6Üˆ¶‚&WWFñ∆ó¶∆GW∆ñ66ú;6‚í7W2fV6Ü2ÜÜ˜í¿ß6ñ‚fVÊ6ñ÷ñVÁFÚÊíW6ì≤ÊÚ6˜ñW6˜2‚∆˜26÷&ñ˜26ñ‚wV&F"ñFV‚V¬fó6ÚWÜó7FVÁFRÁFW0¶FR6∆ó"‚∆˜&ñvñÊ¬6ˆ∆ÚFW&÷ñÊ¬V∆Vvó"*µFW&÷ñÊ"∆ÁFW&ñ˜,+≤í6ˆÊfó&÷"*µ<:“¬FW&÷ñÊ,+≤‡§6Ê6V∆"Ú*¥FV¶"÷&<+≤6ˆÁ6W'f∆˜&ñvñÊ¬‚FWF∆∆W2íÃ:÷÷óFW2V‚Fˆ72ÛC≤6ˆ◊&ˆ&6ú;6‚FP¶FV÷Ú∆ˆ6¬6ˆ‚ÊˆFR67&óG2˜&ˆ&"◊&VV◊∆¶Ú◊&ˆ÷˜2Ê÷ß6ífˆ6Ú6ˆ‚Á“'V‚&ˆ&#ßFV6∆Fˆ‡§∆F&¶WF'&RV¬FWF∆∆RFR6ˆ∆Ú∆V7GW&V‚˜&ˆ÷˜2ı∂ñE÷≤∆VFñ6ú;6‚FñVÊR7R&˜ñ'WF¶˜&ˆ÷˜2ı∂ñE“ˆVFóF&‚∆Üˆ¶FR6ˆ◊'Fó"gVV«fR¬FWF∆∆R7VÊFÚ6∆ú;2FR:ñ¬‡¶ÊˆFR67&óG2˜&ˆ&"÷FWF∆∆R◊&ˆ÷˜2Ê÷ß66ˆ◊'VV&∆2'WF2¬Üˆ¶2í6GW&2&V∆W2‡§ÊÚÊV6W6óF÷ñw&6ñˆÊW2‚Ñ∆&V6ˆÊ6ñ∆ñ6ú;6‚FR÷ñw&6ñˆÊW2ñ6RÜó¶Û¢"3C‚ê†•V‚6ˆ∆Ú6ˆ◊ˆÊVÁFR¬6ˆ◊ˆÊVÁG2˜&ˆ÷˜2˜Fñ6∂WB◊&ˆ÷ÚÁG7Ü¬6ˆ‚F˜2F÷;˜3¢Ê˜&÷¬Ü∆ó7FFR&ˆ÷˜2¬l:÷F&¶WF◊&ˆ÷ÚÁG7Üíê¶6ˆ◊7FÚá6V∆V7F˜"FR7W;6‚FRVFñF˜2¬6V∆V7F˜"÷FW67VVÁFÚÁG7Üí‚6ˆ∆˜&W2íf˜&÷6∆V‚FRå:”¢ÊÚ6RGW∆ñ6V¬Fñ6∂WB‡§fñ∆FRFW67VVÁFÚFRV‚VFñFÚ“fñ∆FW67VVÁFˆÇ"≤w&Vv"7W;6‚"ÚFñ6∂WB6ˆ◊7FÚ6ˆ‚6÷&ñ"ÚVóF"í‡†¢22&W7V÷V„¢\:íW2VÊfVÁF†•VÊ¢ßfVÁF6ˆÊfó&÷F¢¢W2V‚VFñFÚFW76ÜFˆÜfV6Ü“FW76ÜFıˆVÊ¬Ú7&VFıˆVÊ6ífñÊñW&ÁV∆Úì≤V‚¢ßVFñFÚ&V6ñ&ñFÚ¢¢W0¶7V«VñW"ÊÚ6Ê6V∆FÚá˜"7&VFıˆVÊì≤V‚¢ßVÊFñVÁFR¢¢W2ÁVWfˆÚ˜%ˆFW76Ü&‚fófRV‚∆ñ"˜&W7V÷V‚ÁG6ÜfVÁF4FV¿¶VÊFñVÁFW4FV¬fV6ÜFUfVÁFí6ˆ‚'VV&2V‚FW7G2˜&W7V÷V‚ÁFW7BÊ÷ß6‚∆6ñg&í∆2&'&2&ñÊ6ó∆W2F]t◊›m¢Gß≤⁄Óù∆≠y“íFV&W,:¢&˜'&"F÷&ú:ñ‚7W2f˜F˜2FV¬'V6∂WBÜ'WF5&&˜'&&V‚∆ñ"ˆFFˆ∆÷6V‚ÁG6í‡£"‚¢§7VVÁF2¢¢áfW&ñfñ66ú;6‚FRñÁ7Fw&“¬¶ˆÊFRF÷ñÊó7G&6ú;6‚&7&V"FñVÊF2ífñ∆2FRW7V&ñ˜6¿¢6ˆ'&˜2÷ÁV∆W2ì¢Fˆ72Ûr÷f6R”"÷7VVÁF2◊í÷6ˆ'&˜2Ê÷F‚Ü˜í∆2fñ∆2FRW7V&ñ˜66R7&V‚÷ÊÚV‚7W&6R‡£2‚¢•&WF˜VRFRf˜F˜26ˆ‚îFRfW&FB¢¢ÜÜ˜íW2V‚VfV7FÚFRFV÷˜7G&6ú;6‚í6ˆ‚7RFW67VVÁFÚFR7,:ñFóF˜2V‚V¬6W'fñF˜"‡£B‚¢§6L:∆ˆvÚ;¶&∆ñ6ÚñÁFVw&FÚ¢£¢V¬ÖD‘¬ñÊFWVÊFñVÁFR6∆VW"∆÷&6Ü÷&6Ú¶¬W&≈ˆ6F∆ˆvˆíí∆0¢&ˆ÷˜2FR6FFñVÊF≤∆˜2VÊ∆6W2FR6ˆ◊'Fó"&ˆ÷ÚFV¶‚FRFWVÊFW"FV¬VÊ∆6RVRW67&ñ&RV¬GV\;Ú‡£R‚¢§Ê˜Fñfñ66ñˆÊW2¢¢FRVFñF˜2ÁVWf˜2ÜÜ˜í6ˆ∆ÚV¬6ˆÁFF˜"íí¢ß6ñÊ7&ˆÊó¶6ú;6‚VÁG&RFó7˜6óFóf˜2¢¢‡£b‚VÊFñVÁFW2FV¬&W6Û¢Fˆ72ÛÇ◊&W6Ú÷fñÊ¬Ê÷FÇ%VÊFñVÁFR"í‡†¢222ñÁFW''WF˜&W2FRÊVvˆ6ñÚÜ∆ñ"ˆ6ˆÊfñrÁG6ê†¢“$UDıTUı$T∆ÜÜ˜íf«6Vì¢÷ñVÁG&26Vf«6V¬V¬&WF˜VRFRf˜F˜26R&W6VÁF6ˆ÷ÚFV÷˜7G&6ú;6‚ÜWFóVWF$FV÷Ú"í‡¢¬6ˆÊV7F"V¬&WF˜VRFRfW&FB¬6"G'VV‡¢“‘ı5E$%Ù‘$4ÙDU4ƒï§ÙTÂÙ5UÙÊÜÜ˜íG'VVì¢V¬$ÜV6ÜÚ6ˆ‚FW6∆ó¶"¬ñRFR∆ñ÷vV‚FV¬7W;6„≤VÁ6F¢&VóF'6R˜"∆‚‡¢“5DÙ4µÙ$§ˆ¬5$TDïDı5ıı%ı$UDıTV¬Ã:÷÷óFW2íÊˆ÷'&W2FR∆„¢fW"V¬÷ó6÷Ú&6ÜófÚ‡†¢22\:í6RW7W&FRW7F&ñ÷W&VÁG&Vv†§6ˆÁ7G'Vó"∆2ÁF∆∆2FW67&óF2V‚Fˆ72ÛB◊ÁF∆∆2Ê÷F¬gVÊ6ñˆÊÊFÚ˜ ¶6ˆ◊∆WFÚ6ˆÁG&FF˜2FR'VV&áfW"Fˆ72ÛR÷'VóFV7GW&Ê÷Fí¬6ˆ‡¶ÊfVv6ú;6‚&V¬VÁG&RV∆∆2¬◊V«Fí◊FñVÊFFW6FRV¬÷ˆFV∆ÚFRFF˜2ÜVÁVRV¿ß6V∆V7F˜"FRFñVÊFVVF6W"6ñ◊∆R¬ñÊñ6ñÚí¬ífñV¬∆ñFVÁFñFBfó7V¿¶FRFˆ72Û÷÷&6Ê÷F‚¬FW&÷ñÊ"¬V¬GV\;ÚFRVÊFñVÊFFV&W,:÷ˆFW"'&ó ¶∆¬fW"7R6L:∆ˆvÚ¬&V6ñ&ó"íFW76Ü"V‚VFñFÚ¬7&V"VÊ&ˆ÷ÚífW ß7R&W7V÷V‚6V÷Ê¬(	BFˆFÚ6ˆ‚FF˜2f«6˜2W&Ú6ˆ‚∆6VÁ66ú;6‚FR&ˆGV7FßFW&÷ñÊFÚ‡†§V¬6L:∆ˆvÚ;¶&∆ñ6ÚñÁFVw&FÚVVFgVW&FRW7FVÁG&VvÖ7W&6RíV¿¶66W6Ú6ˆ‚vˆˆv∆R∆∆Vv&ˆ‚V‚V¬6ÚíÜW7L:‚FWF∆∆F˜26ˆ÷Ú,;7Üñ÷˜26˜2V‡¶Fˆ72ÛR÷'VóFV7GW&Ê÷FíFˆ72Ûb÷˜&FV‚÷FR÷6ˆÁ7G'V66ñˆ‚Ê÷F¬&VRVñV‡ß&WFˆ÷R6WWÜ7F÷VÁFR\:í6ñwVRí‡††¢22VFñFÚFW76ÜFÛ¢W7FFÚí6ˆ◊&ˆ&ÁFP§V‚∆Üˆ¶FRV‚VFñFÚFW76ÜFÚ¬*¥FW76ÜFÚ‚fñÊ¬fV∆ó¢Ï+≤&V6R¬ñÊñ6ñÚ6ˆ÷ÚFWáFÚ6ˆ‚6ÜV6≤¬6ñ‚fˆÊFÚÊíW7Fñ∆ÚFR&˜L;6‚‚FV&¶ÚFR*¥VFóF"VFñF¸+≤&V6V‚*¥FW66&v"f7GW&+≤í*¥6ˆ◊'Fó,+≤‚FW66&v"'&RVÊÜˆ¶&V∆Vvó"DbÚñ÷vV„≤V¬‰ríV¬Db6∆V‚FV¬&V6ñ&Úfó7V¬FR&VfW&VÊ6ñ2ˆ6F∆ˆvÚ÷W6VÊ6ñ2÷÷ñ6ÜV¬ÊáF÷∆áFñ6∂WB6ˆ‚∆ˆvÚ¬'L:÷7V∆˜2¬F˜F∆W2ívÚí‚6ˆ◊'Fó"ñÁfˆ6∆Üˆ¶ÊFóf6ˆ‚V¬‰ríV¬FWáFÛ¢*º*Üˆ∆¬∂6∆ñVÁFW“FR6ˆ◊'FÚV¬6ˆ◊&ˆ&ÁFRFRGRVFñFÚ7∂Ï;¶÷W&˜“FR∑FñVÊF“‚*w&6ñ2˜"GR6ˆ◊&+≤‚6íV¬ÊfVvF˜"ÊÚF÷óFR6ˆ◊'Fó"&6Üóf˜2¬wV&FV¬‰rí6˜ñV¬FWáFÚ‚V¬6ˆ◊&ˆ&ÁFRÊÚFñVÊRf∆˜"fó66√≤∆;¶‚ÊÚwV&F$‰2Êí‰4b‡†¢222∆ñ66ú;6‚6ˆ˜&FñÊFFV¬ñÁfVÁF&ñ†§ÊÚ∆ñ6"W7F÷ñw&6ú;6‚6W&FFRVÊfW'6ú;6‚6ˆ◊Fñ&∆RFR∆¢&W7G&ñÊvRUDDRFó&V7FÚFR7Fˆ6≤¬íV¬VFóF˜"V&∆ñ6FÚÁFW&ñ˜&÷VÁFR∆ÚñÊ6«\:÷V‚7RW67&óGW&‚VÊ∆ñ66ú;6‚ÁFñ6óFVVFRñ◊VFó"wV&F"&ˆGV7F˜2V‚W6fW'6ú;6‚‚∆"6ñwVR6ñ‚FW7∆Vv#≤∆÷ñw&6ú;6‚ÊÚW7L:∆ñ6F‚V‚&ˆGV7F˜2WÜó7FVÁFW2¬7Fóf"ˆFW67Fóf"V¬6ˆÁG&ˆ¬FR7Fˆ6≤VVFVÊFñVÁFRFRVÊ˜W&6ú;6‚VFóFFW7V<:÷fñ6≤7&V"&ˆGV7F˜26ˆÁ6W'fW6V∆V66ú;6‚ñÊñ6ñ¬‚V¬&Vvó7G&ÚW'6ó7FR6ñ‚;Fó"VÊÁF∆∆FRÜó7F˜&ñ¬‡†¢226L:∆ˆvÚ&V7BÖ"3CB¬&ñW'FÚ&&Wfó6ú;6‚ê†•'WF2;¶&∆ñ62˜FñVÊF˜∑6«Vw÷í˜VFñFÚ˜∂6ˆFñv˜÷gVW&FV¬F6Ü&ˆ&B¬6ñ‚6W6ú;6‚FV¬ÊV¬‚7WW&fñ6ñR&˜ñV‚6ˆ◊ˆÊVÁG2˜FñVÊFˆÚ˜FñVÊFˆ6F∆ˆvÚÊ776¬fñV¬¬ÖD‘√≤ÊÚ∆ñ66ˆ◊ˆÊVÁG2˜VñFV¬ÊV¬‚W6∆2˜W&6ñˆÊW2;¶&∆ñ62FRgVVÁFTFF˜6÷VFñÁFR∆ñ"ˆFF˜V&∆ñ6ÁG6≤ˆFV÷ˆ6ˆÁ6W'f∆gVVÁFRFV÷Ú¬6'&óFÚí6ˆ6Ç˜"FñVÊF‚V¬FW76ÜÚí&Vvó7G&ÚFRVFñF˜2ÊÚ6÷&ñ¢VÁfñ"7&VVÊ6ˆ∆ñ6óGVB¬ÊÚVÊfVÁF‡†§÷ñw&6ú;6‚¢¶∆ñ6F¢¢##cCÉC3Eˆ6F∆ˆvı˜&V7BÁ7∆¢˜&FV‚ˆ˜ñÊñˆÊW2¬6L:∆ˆvÚ;¶&∆ñ6Ú◊∆ñFÚíw&VvF˜2FW6FR˜fVÁF2‚5¬FR÷ñ6ÜV¬vVÊW&FÚíV¶V7WFFÚ¬6W&FÚFR÷ñw&6ñˆÊW3≤6ˆÁ6W'f7W2÷VÁ6¶W2¬6V66ñˆÊW2¬7Fˆ6≤¬&V6ñ˜2¬fó6ñ&ñ∆ñFBíVÊ∆6RÁFW&ñ˜"‚ÊÚVFóF"V¬ÖD‘¬ÁFñwVÚÊíW&≈ˆ6F∆ˆvˆÜ7FWF˜&ó¶"V¬6÷&ñÚ‚ñÊf˜&÷R¬6GW&2¬∆ñ÷óF6ñˆÊW2FRvV$∂óBˆïÜˆÊRí'VV&2&V∆W2V‚Fˆ72˜f∆ñF6ñˆ‚÷6F∆ˆvÚ◊&V7BÊ÷F‡†§∆WÜ6W6ú;6‚fó7V¬FR∆7WW&fñ6ñR;¶&∆ñ6W7L:V‚Fˆ72ÛÇ÷÷˜fñ÷ñVÁFÚÊ÷F¢˜'FFÚFV¬ÖD‘¬á&VV«2¬Ç¬6ˆ6Ç¬Üó7F˜&ñ2íÜˆ¶2í¬&VGV6ñFÚ7VÊFÚ6RñFR÷VÊ˜2÷˜fñ÷ñVÁFÚ‚f˜&◊V∆&ñ˜2;¶&∆ñ6˜26ˆÁ6W'f‚«GW&¬fˆ6ÚíFV6∆FÛ≤ÁVÊ6Êñ÷"V¬6◊ÚVÊfˆ6FÚ‚¢§W7F"ÊÚ6RgW6ñˆÊWFˆ‹:Fñ6÷VÁFS¢∆Wvó2'VV&V¬&WfñWr‚¢††¢222F÷ñ‚'FR"(	BÜ˜í¬FñVÊF2¬fñ6ÜífW"6ˆ÷†§ñ◊∆V÷VÁF6ú;6‚V‚fVGW&RˆF÷ñ‚◊FñVÊF6¬Ê6ñFFR˜&ñvñ‚ˆ÷ñÊCSFsÉ&VCVSñÜfV6cSfC3#F#CñCvVVí&V&6F6ˆ'&RV#Éc3#6ccC&3ssÜVcsvcÜV3F#Ccv6#ì#c‚"3S2&ñW'FÚ¬6ˆ÷÷óB&V÷˜FÚFC&3SfSÉ#ÉcV3#6cìccC#F3ÉñV6CCÉv63¬&WfñWr$TEíáGG3¢ÚˆFW6∆ó¶÷ìSfì&“÷ˆÊVFñˆÊRÁfW&6V¬ÊÜ∆ñ2W7F&∆RáGG3¢ÚˆFW6∆ó¶÷÷vóB÷fVGW&R÷F÷ñ‚◊FñVÊF2÷ˆÊVFñˆÊRÁfW&6V¬Êí‚ÊÚñÊ6˜'˜&3CR¬ÊÚgW6ñˆÊ"ÊíFW7∆Vv"&ˆGV66ú;6‚‚∆Wvó2ñW&F÷ñ‚íÊÚ6RFñÚFR«F˜G&fW¢‚Ü˜í¬FñVÊF2ífñ6ÜW6‚6ˆÁG&F˜2í%2&V∆W3≤G&&¶Ú¬6ˆ'&˜2í‹:26ˆÁFñÏ;¶‚6ˆ÷Ú∆6VÜˆ∆FW'2‚ˆF÷ñ‚÷FV÷ˆFñVÊRgVVÁFRó6∆FíÁVÊ66ˆÊV7F7W&6R‚fW"6ˆ÷Ú&∆˜VVW67&óGW&2V‚∆ñÊ6«W6Ú&V‚F÷ñ‚VRF÷&ú:ñ‚W2GV\;Ú¬6ñ‚fó&÷"VR∆&6R&Wf˜VR∆˜2W&÷ó6˜2FV¬GV\;Ú‚FWF∆∆W2¬6GW&26ˆ◊&Fóf2¬f∆ñF6ñˆÊW2í6˜2÷ÁV∆W2V‚Fˆ72ˆÜÊFˆfg2ˆF÷ñ‚◊FñVÊF2÷6ˆFWÇÊ÷FíFˆ72˜f∆ñF6ñˆ‚÷F÷ñ‚◊FñVÊF2Ê÷F‡†•&W∆í6ˆ◊∆WFÚFW6V6Ü&∆R&ˆ&FÛ≤&ˆGV66ú;6‚6ˆÁ6W'f7W2C÷ñw&6ñˆÊW26ñ‚6÷&ñÚ‚fW"6ˆ÷ÚÊV6W6óF∆&˜VW7FFóFóf##cc3ˆF÷ñÂ˜fW%ˆ6ˆ÷ı˜f∆ñF"Á7∆˜'VR6W6ñˆÊW5˜fW%ˆ6ˆ÷ˆÊÚW2∆Vvñ&∆RFW6FR6∆ñVÁFW2í∆6ˆˆ∂ñRÊÚVVFRWF˜&ó¶"‚ÊÚ∆ñ6"ˆ÷W&vV"Ü7F6ˆ˜&FñÊ"6ˆ‚∆˜G&6W6ú;6‚íˆ'FVÊW"fW'6ú;6‚ˆfñ6ñ¬FR7W&6R4ƒì≤∆2&6W2∆ˆ6∆W2FRW66W6ú;6‚6ˆ‚FW66ˆÊˆ6ñF2‚ÊñÊ|;¶‚6÷&ñÚ÷ÁV¬FRFF˜2‚GóU67&óB¬∆ñÁBÜ6W&ÚW'&˜&W2í¬3ÇFW7G2¬67&óG2FRFV6∆FÚˆÜˆ¶2ˆF÷ñ‚í&W∆í6&ˆ‚‚V¬'Vñ∆B∆ˆ6¬&∆˜V\;2∆2FW66&v2FRvˆˆv∆RfˆÁG2¬W&Ú∆&WfñWr&V÷˜FVVL;2$TEì≤ˆí˜fW'6ñˆÊFWgVV«fRG≈Û$4µTÁ'ev%ïuCEfUCÜ7ñïsÉÉÉF‚ÊÚ6R&ˆ&&ˆ‚vˆˆv∆R&V¬¬6f&íl:◊6ñ6Ú¬6W6ú;6‚&V¬FRfW"6ˆ÷ÚÊí6ñW'&R◊V«FñFó7˜6óFófÚ6ˆ‚WFÇ‚ÊÚ6R6÷&ú;2V¬6∆∆&6≤FR7W&6S≤&ÙWFÇV‚∆&WfñWr¬W&÷óFó"WÜ7F÷VÁFRáGG3¢ÚˆFW6∆ó¶÷ìSfì&“÷ˆÊVFñˆÊRÁfW&6V¬ÊˆWFÇˆ6∆∆&6∂‡††¢22VFñFÚFV¬6L:∆ˆvÚV‚V¬ÊV¬(	B6ˆÁFñÁV6ú;6‚FR6ˆFñÊp†¢¢§6∆VFRÙ6ˆFWÉ¢ÁFW2FR&WFˆ÷"¬∆VW"Fˆ72ˆÜÊFˆfg2˜VFñFÚ÷6F∆ˆvÚ◊ÊV¬÷6ˆÁFñÁV6ñˆ‚Ê÷F‚¢¢6ˆÁ6W'f∆ñ◊∆V÷VÁF6ú;6‚ñÊñ6ñ¬FR6∆VFRí∆26˜'&V66ñˆÊW2V‚∆&÷6W&FfVGW&R˜VFñFÚ÷6F∆ˆvÚ◊ÊV¬÷6ˆÁFñÁV6ñˆÊ‚ÊÚgW6ñˆÊ"3CB¬3CRÊíW7F6ˆÁFñÁV6ú;6‚6ñ‚∆Wvó2‚ÊÚFˆ6"˜v˜&∑76RˆFW6∆ó¶◊&VÊFñ÷ñVÁFˆÊí∆6ˆ∆ñ6óGVB&V¬&W6W'fFDD5%£#Ñf‡†§W7FFÚ˜&Vvó7G&ÚFV¬6ˆ◊&F˜"¬&W7∆FÚV‚ÁVWf˜2íl:◊6÷Rñ◊∆V÷VÁFF˜2¬VÊFñVÁFW2FR&Wfó6ú;6‚V‚&WfñWr‚&Vvó7G&"ÊÚFW67VVÁF7Fˆ6≥≤6ˆ∆ÚFW76ÜÚ‚∆Üˆ¶6ˆÁ7V÷R7RÜó7F˜&ñ¬ÁFW2FRfW"VFñFÛ≤6V∆V7F˜"ñÁFW&ÊÚ6ˆÁ6W'f&˜'&F˜&W2íÊÚFV¶˜'F∆W2ˆ7V«F˜27Fóf˜2‚ñ∆∆V|;2W6&ˆGV7FÚ˜f&ñÁFR&V∆\:÷F˜2G&2&WˆÊW"í÷&6¬fˆ«fW"FV¬vÜG4¬6ñ‚fó&÷"VÁl:÷Ú‚&W7V«FFÚFRW67&óGW&ñÊ6ñW'FÚˆ&∆ñv6ˆ◊&ˆ&"&ñ÷W&Ú‡†¶##cC##3ÜW7F&∆ñ6F≤ÊÚ6R&V∆ñ<;2ˆVFóL;2‚Fñ6ñˆÊ¬##cS3Su˜&Vvó7G&%˜6ˆ∆ñ6óGVEˆFó7ˆÊñ&ñ∆ñFBÁ7∆∆ñ6FFW7\:ó2FR&W∆í6ˆ◊∆WFÚí'VV&2FR$≈2ˆ6ˆÊ7W'&VÊ6ñV‚&6RFW6V6Ü&∆S¢÷ó6÷fó&÷¬7Fˆ6≤f∆ñFFÚí&∆˜VV˜26ˆ◊Fñ&∆W2¬6ñ‚&W6W'f2Êí÷ˆFñfñ66ñˆÊW2FRWÜó7FVÊ6ñ2FR&ˆGV66ú;6‚‚6ˆ∆Ú&ˆGV66ú;6‚66W6ñ&∆S≤˜G&2&6W2∆ˆ6∆W26ñwVV‚FW66ˆÊˆ6ñF2‚Üó7F˜&ñ√¢3"fW'6ñˆÊW2V‚&WÚí&ˆGV66ú;6‚¬6W&ÚFñfW&VÊ6ñ3≤V¬Êˆ÷'&RÜó7L;7&ñ6ÚFR##cì3SsFFñfñW&RñÁFVÊ6ñˆÊ∆÷VÁFR‡†§∆26V66ñˆÊW2FR&ñ÷W&VÁG&Vví*¥∆ñ66ú;6‚6ˆ˜&FñÊFFV¬ñÁfVÁF&ñ¸+≤6ˆ‚Üó7L;7&ñ63¢ÊÚFW67&ñ&V‚V¬6L:∆ˆvÚ˜7Fˆ6≤7GV¬‚7W&6Rˆ÷ñw&FñˆÁ2ˆ÷ÊF‚ÊÚ6RV¶V7WL;2∆ñ◊ñW¶ÊíVÊ˜W&6ú;6‚FR'VV&6ˆ'&RFF˜2&V∆W2‚6f&íˆïÜˆÊRl:◊6ñ6Ú¬∆ˆvñ‚vˆˆv∆R&V¬¬6ˆÁF7Bñ6∂W"¬&WF˜&ÊÚl:◊6ñ6ÚFRvÜG4í&VÊFñ÷ñVÁFÚfW&6V¬ÛDr&WVñW&V‚f∆ñF6ú;6‚FR∆Wvó2‚ÊÚ7V÷ó"VRVÊ6GW&Ú&W7VW7FÖEEfW&ñfñ6W6˜2&V6˜'&ñF˜2‡††¢2226VwVñ÷ñVÁFÚ"3Cc¢∆ñ∂W2íf∆ñF6ú;6‚&W˜'FF†§∆˜2∆ñ∂W2FV¬&VV¬WFñ∆ó¶‚Ê∆ñ∂W2÷6˜VÁFáFWáFÚ&¶ÚV¬6˜&¨;6‚í¬6W&F˜2FRÊ6ÁFFR∆&ˆ«6≤6ˆÁFF˜"˜6óFófÚñÊ6«VñFÚV‚V¬Êˆ÷'&R66W6ñ&∆R¬6W&Úˆ7V«FÚ‚ÊÚ6÷&ñ<:∆7V∆˜2¬ñÁfVÁF&ñÚÊíÇ‚&W7V«FF˜2í6GW&2V‚Fˆ72ˆÜÊFˆfg2˜VFñFÚ÷6F∆ˆvÚ◊ÊV¬÷6ˆÁFñÁV6ñˆ‚Ê÷F‡†¢¢•&W˜'FRFR∆Wvó2¬ÊÚ'VV&2FR6ˆFñÊs¢¢¢vˆˆv∆RgVÊ6ñˆÏ;2G&2W&÷óFó"V¬6∆∆&6≤FR∆&WfñWs≤6ˆ∆ñ6óGVBfó6ñ&∆RV‚V¬ÊV¬¬VÊ∆6R6ˆ‚W7FF˜27GV∆ó¶F˜2í&ˆGV7FÚv˜FFÚG&2FW76Ü"‚6ˆFñÊrÊÚ6÷&ú;2W6R6∆∆&6≤Êí&WóFú;2W67&óGW&2&V∆W2‚∆˜2VÊFñVÁFW2FR6f&íl:◊6ñ6Úˆ6ˆ&W'GW&6ˆ◊∆WF6R6ˆÁ6W'f„≤Fó7FñÊwVó"W7FR&W˜'FRFV¬ÊfVvF˜"WFˆ÷Fó¶FÚ‡††¢2226VwVñ÷ñVÁFÚ"3Cc¢∆ñ∂W2¬VÊFñVÁFW2ívˆˆv∆R¬<;6Fñv†§∆ñ∂W2˜6óFóf˜2FV¬&VV√¢*≥∆ÚVñW&\+≤Ú*¥‚∆ÚVñW&VÏ+≤&¶ÚV¬6˜&¨;6„≤6W&Ú6ˆÁ6W'f*¥∆ÚVñW&¸+≤¬v˜FFÚl:◊6÷R‚Êˆ÷'&R66W6ñ&∆RñÊ6«WñR66ú;6‚í6ˆÁFF˜#≤Ê6ÁFFR∆&ˆ«6ñÁF7F‚W6UVÊFñVÁFW5VFñF˜6&\;¶ÊRVFñF˜2í6ˆ∆ñ6óGVFW2¬7V÷6ˆ∆ÚG&&¶ÚVÊFñVÁFRí6ˆÁ6W'fW'&˜&W2ˆ6&v≤V¬÷ó6÷ÚFW6v∆˜6R∆ñ÷VÁFÁVWf˜2íV¬;¶Êñ6Ú6ˆÁFF˜"ñÊfW&ñ˜"‚&Vvó7G&"÷ÁFñVÊRV¬F˜F√≤6ˆÊfó&÷"ˆFW66'F"˜fVÊ6W"∆Ú&VGV6R¬6ñ‚«FW&"fVÁF2ˆFWVF˜7Fˆ6≤‡†§vˆˆv∆R6ˆÁ6W'fV¬<;6FñvÚV‚&VFó&V7EFˆá,:÷WG&Ú∆ˆ6¬f∆ñFFÚfˆ«fW&íFV‹:2FRG•˜fˆ«fW&‚6∆∆&6≤&WF˜&Ê¬<;6FñvÚ6ˆ‚&Vvó7G&#”≤∆fó7F&ófF6ˆ◊'VV&6W6ú;6‚íW'FVÊVÊ6ñ˜"$≈2ÁFW2FR'&ó"‚FW7FñÊ˜2WáFW&Ê˜2˜&V&˜FW2¬ÊV¬ÊÚ6RW6‚&&W6ˆ«fW"6ˆ∆ñ6óGVFW2‚W'&˜"ˆ6Ê6V∆6ú;6‚6ˆÁ6W'fV¬fó6Úí<;6FñvÛ≤ñ&Vvó7G&Fˆg&V6R7RVFñFÚWÜó7FVÁFR‚ÊÚ6÷&ñ6óFRU$¬Êí6ˆÊfñwW&6ú;6‚WFÇ‚∆ó7FFR6∆∆&6∑2W&÷óFñF˜2ÊÚ66W6ñ&∆RV‚W7F6W6ú;6„¢Fˆ7V÷VÁF"Fó&V66ú;6‚WÜ7FFR∆ÁVWf&WfñWrV‚V¬"í6ˆ◊∆WF"ÙWFÇ&V¬V‚6f&í‚ÜÊFˆfb◊∆ñFÚV‚Fˆ72ˆÜÊFˆfg2˜VFñFÚ÷6F∆ˆvÚ◊ÊV¬÷6ˆÁFñÁV6ñˆ‚Ê÷F‚ÊÚñÊ6˜'˜&"3CRÊígW6ñˆÊ"˜V&∆ñ6"‡††¢226VwVñ÷ñVÁFÚFW6FR÷ñ‚V&∆ñ6FÛ¢fó6ñ&ñ∆ñFBRñ÷vV‚6ˆ◊VW7F†§6ˆFñÊrG&&¶ó6∆FÚV‚fVGW&Rˆ6F∆ˆvÚ◊fó6ñ&ñ∆ñFB÷ˆv¬FW6FR&S6cfVÜñÊ6«WñR3CBÚ3Cb¬WÜ6«WñR3CRí‚ÊÚgW6ñˆÊ"ÊíV&∆ñ6"6ñ‚∆Wvó2‚∆VW"Fˆ72˜f∆ñF6ñˆ‚÷6F∆ˆvÚ◊fó6ñ&ñ∆ñFB÷ˆrÊ÷F&&W7V«FF˜2íFˆ72ˆÜÊFˆfg2ˆ6F∆ˆvÚ◊fó6ñ&ñ∆ñFB÷ˆrÊ÷F&VÁG&Vv‡†•fó7F&WfñwV&F;¶Êñ6÷VÁFRfó6ñ&ñ∆ñFB6ˆ‚∆˜W&6ú;6‚WÜó7FVÁFR¬6ñ‚˜Fñ÷ó6÷ÚÊíFˆ6"&˜'&F˜"ˆÜó7F˜&ñ¬FRñÁfVÁF&ñÛ≤6ˆÁ6W'ffó6ÚFV¬∆‚‚V¬VFóF˜"&Vf∆V¶fó6ñ&ñ∆ñFBWáFW&Ê7VÊFÚÊÚ∆VFóL;2íˆ÷óFRW6R6◊Ú¬wV&F"˜G&˜2FF˜2‚ÊV√¢6˜&¨;6‚FR∆V7GW&í6ñg&FV&¶Ú¬WFóVWFFR7Fˆ6≤6ˆ‚f&ñÁFW2íFWáFÚ6W&FÚ*¥ˆ7V«FÚFV¬6L:∆ˆv¸+≤‚fVVC¢Ï;¶÷W&Úíg&6R6ˆ‚&∆˜VW26W&F˜2‚ÊÚ6÷&ñ‚∆ñ∂W2¬&ˆ«6¬fñ«G&˜2Ú7Fˆ6≤FV¬6ˆ◊&F˜"‡†§ñ÷vV‚;¶&∆ñ6FRVFñFÚV‚6W'fñF˜#¢Ü7F7VG&ÚÃ:÷ÊV2V‚˜&FV‚¬f&ñÁFR6ˆÁ6W'fFí6ÁFñFB6ñ‚GW∆ñ6"f˜F˜2‚f∆∆&6≤FR÷&6¬:&V6VÁG&¬6VwW&&&V6˜'FR7VG&FÚ¬‰r#9sc3¬U$¬'6ˆ«WFFV¬FW7∆ñVwVRí66å:íFRR÷ñÁWF˜2‚6ˆ∆Úf˜F˜2;¶&∆ñ62FV¬'V6∂WB&ˆGV7F˜6FV¬&˜ñV7FÚ6ˆÊfñwW&FÛ≤6ñ‚U$¬&&óG&&ñ¬&VFó&V66ñˆÊW2ÊíFF˜2FV¬6ˆ◊&F˜"‚FV÷Ú∆ˆ6¬ÊÚ&ˆGV6R&WfñWw2;¶&∆ñ63≤vÜG4VVFRwV&F"∆ñ÷vV‚ÁFW&ñ˜"‚ÊÚ&WVñW&R5¬Êí6ˆÊfñwW&7W&6R‚V¬Ã:÷÷óFRFR&ˆGV7F˜2fó6ñ&∆W2ñW&VÊ6ˆ◊&ˆ&6ú;6‚FRñÁFW&f£¢ÊÚ6RVÊ6ˆÁG,;27RWVóf∆VÁFRL;6÷ñ6ÚV‚∆2÷ñw&6ñˆÊW3≤W7FF&V6ˆÁ6W'fW6&Vv∆íFˆ7V÷VÁF∆∆ñ÷óF6ú;6‚¬6ñ‚F&∆6ˆ÷Ú&˜FV66ú;6‚FR6W'fñF˜"‡¢2226VwVñ÷ñVÁFÚFRW7W&í∆ñ∂W2FVÁG&ÚFRf˜FÚ(	B"3Cp†§6ˆFñÊr6ˆÁFñÏ;¶V‚fVGW&Rˆ6F∆ˆvÚ◊fó6ñ&ñ∆ñFB÷ˆr6ˆ'&RV¬ÜVBF#cCSv"fW&ñfñ6FÚ&ñW'FÚ¬6ˆÁ6W'fÊFÚ∆2÷V¶˜&2FRfó6ñ&ñ∆ñFB˜7Fˆ6≤ˆfVVBÙÙrí6ñ‚3CR‚6R&WWFñ∆ó¶‚fó6˜5ˆ∆∆VvF¬fó6˜5VÊFñVÁFW2¬W7W&‚íF&¶WFñ∆∆VvÛ≤ÊÚÜí5¬Êí6÷&ñ˜2FR&ˆGV66ú;6‚‡†§ñÊñ6ñÚí6L:∆ˆvÚ6ˆ◊'FV‚VÊ∆V7GW&FRW7W&≤∆ñ"ˆfó6˜2ÁG27VVÁFW'6ˆÊ2Ê˜&÷∆ó¶F2í&ˆGV7F˜2Fó7FñÁF˜26ñ‚W&FW"6ˆ∆ñ6óGVFW2˜"f&ñÁFR‚*¥V‚W7W&+≤ñÊ6«WñRˆ7V«F˜2˜&WVW7F˜2¬6ˆ÷&ñÊ,;ß7VVF¬6ˆÁ6W'f6V∆V66ú;6‚¬&W6ˆ«fW"V¬;¶«Fñ÷Úfó6ÚíÁVÊ6FVÊ∆V7GW&f∆∆ñF˜"6W&Ú‚∆ó7F66W6ñ&∆RFW6FRF&¶WFÜ66ú;6‚ñÊFWVÊFñVÁFRí¬fó7F&WfñÜñÁFW&Ê¬6ˆÁ6W'f&˜VW7F˜67&ˆ∆¬ˆfˆ6ÚíRñÊñ6ñÚá&ˆGV7F˜2(i"∆ó7Fí‚7Fˆ6≤6ˆÊfó&÷FÚíf&ñÁFR6˜'&V7FÁFW2FRfó6"‚&W˜6ñ6ú;6‚ÊÚ÷&6≤fˆ«fW"FRvÜG4ÊÚ'VV&VÁl:÷Ú‚∆ñ∂W2FR∆V7GW&gVV«fV‚FVÁG&ÚFR∆f˜FÚ&¶Ú∆FW&V6Ü¬6ˆ‚6ñg&FV&¶Ú¬ñÊ6«VñFÚ6W&ÚíL:÷vóF˜2∆&v˜2‚ÊÚ6÷&ñfVVBÊí&ˆ«6‡†•&W7V«FF˜2¬fóáGW&W2íÃ:÷÷óFW26R&Vvó7G&‚V‚Fˆ72˜f∆ñF6ñˆ‚÷W7W&÷6F∆ˆvÚÊ÷BíFˆ72ˆÜÊFˆfg2ˆW7W&÷6F∆ˆvÚÊ÷B‚6f&íˆïÜˆÊRl:◊6ñ6Ú¬vÜG4ÊFófÚíW67&óGW&2FRFñVÊF&V¬&WVñW&V‚f∆ñF6ú;6‚FR∆Wvó2‚ÊÚ÷ˆFñfñ6"fó6˜2&V∆W2&&ˆ&"ÊígW6ñˆÊ"˜V&∆ñ6"6ñ‚WF˜&ó¶6ú;6‚‚÷˜fñ÷ñVÁFÚíFV6∆FÚ6ñwVV‚7W2&Vv∆2¬6ñ‚G&Á6ñ6ñˆÊW2ÁVWf2‡†¢222V∆ñFÚWF˜&ó¶FÚFR∆6ñg&FR∆ñ∂W2FV¬ÊV¿†•'FRFR÷ñ‚ÜFFVCFÇ3CrgW6ñˆÊFÚí¬6ñ‚3CR‚6ˆ∆Ú∆6ñg&ñW&FR∆7Fñ∆∆¢FWáFÚV¬6ˆ‚6ˆ÷'&&˜7VR¬FVÁG&ÚFR∆f˜FÚ&¶ÚV¬<:◊&7V∆Ú6ñ‚6÷&ñ"7RvVˆ÷WG,:÷‚6ˆÁ6W'f6W&Ú¬6ñg&2∆&v2íÊˆ÷'&R66W6ñ&∆S≤ÊÚ6÷&ñ6ˆÁG&F˜2¬FF˜2¬7W&6RÊí6ˆÁG&ˆ∆W2‚V&∆ñ66ú;6‚7V6ÇWF˜&ó¶F˜"∆Wvó2G&2f∆ñF"‚&W7V«FF˜2íÃ:÷÷óFW3¢Fˆ72ˆÜÊFˆfg2ˆ6F∆ˆvÚ÷∆ñ∂W2◊6ñ‚◊ñ∆F˜&Ê÷F‡††¢2226V∆V66ú;6‚FRv˜FF˜2¬Üó7F˜&ñ¬6ˆ‹;¶‚í:÷∆F˜&FR∆ñ∂W0†§W7Fñ◊∆V÷VÁF6ú;6‚'FRFV¬÷ñ‚#CfCVV6FÇ3CÇgW6ñˆÊFÚíV‚7R&˜ñ&÷≤V¬6ÜV6∂˜WBfVGW&Rˆ6F∆ˆvÚ◊&V7F6ˆ‚6÷&ñ˜2VÊFñVÁFW2VVL;2ñÁF7FÚ‚"3CR6ñwVRgVW&‚*¥ˆ7V«F&∆˜<+≤'&R6V∆V66ú;6‚ñÁFW&Ê≤6ˆ÷ñVÁ¶f<:÷¬,;ß7VVF˜6V∆V7B∆¬6R∆ñ÷óF&W7V«FF˜2¬í∆V∆Vvñ&ñ∆ñFB6R&V∆VR˜"&ˆGV7FÚíFñVÊFÁFW2FRˆ7V«F"6ˆ∆Ú7Fófˆ‚W'&˜&W2&6ñ∆W2FV¶‚∆ó7FFRVÊFñVÁFW2&&VñÁFVÁFÚñÊFófñGV∆ó¶FÚ‚6R&W6W'f‚ñÁfVÁF&ñÚ¬Üó7F˜&ñ¬ífó6˜2‚Üó7F˜&ñ¬÷ÁV¬Ü˜&W6∆ó7Fw'WFÚfñ∆∆ó7F¬÷˜FófÚ¬6ÁFñFB¬fV6Üí7F˜#≤∆:÷∆F˜&FV¬ÊV¬W2VÊ<:7V∆;¶Êñ66˜&¨;6‚∂6ñg&‚6ñ‚5¬‚"3Cí&ñW'FÚÑÑTBñÊñ6ñ¬6cSÜ6#vcS3S&c#ÜCC33S#cñ6#ÉFSìÉSSccfì≤&WfñWr$TEì¢áGG3¢ÚˆFW6∆ó¶◊&√6É&Gr÷ˆÊVFñˆÊRÁfW&6V¬Ê¬∆ñ2áGG3¢ÚˆFW6∆ó¶÷÷vóB÷fóÇ÷6F∆ˆvÚ÷v˜FF˜2◊fó6ñ&∆W2÷ˆÊVFñˆÊRÁfW&6V¬Ê‚l:ñ6RFˆ72ˆÜÊFˆfg2ˆ6F∆ˆvÚ÷v˜FF˜2◊fó6ñ&∆W2Ê÷F&'VV&2¬Ã:÷÷óFW2íVÁG&Vv‡†

@@ -1,6 +1,6 @@
 # Admin parte 2 — handoff para Planning y Claude Code
 
-**Puesto:** Coding. **Rama:** `feature/admin-tiendas`. Base verificada: `origin/main` en `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`. El PR/commit final y la URL exacta de preview se completan al subir la rama. No incorporar #45, no fusionar y no publicar producción. Lewis ya tiene alta admin; no se repitió.
+**Puesto:** Coding. **Rama:** `feature/admin-tiendas`. Partió de `origin/main` `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`, luego se rebasó manualmente sobre `5ab86323f60d2a3778ef177f8ec1db467cab9260` para conservar los cambios nuevos de documentación. PR abierto: [#53](https://github.com/onedayoneproj-blip/deslizapp-app/pull/53). Commit remoto validado: `dd0ba0c56e828065c23f9661d24c89ecd4817cc1`. Preview READY: [despliegue exacto](https://deslizapp-i56aa91rm-onedayone.vercel.app), [alias estable de la rama](https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app). `/api/version` comprobado: `dpl_2CKUNrqfWbYWT4PveT18cyiW8884`. No incorporar #45, no fusionar y no publicar producción. Lewis ya tiene alta admin; no se repitió.
 
 ## Cambios
 
@@ -25,9 +25,9 @@
 - `npm run probar:admin-db`: replay desechable completo pasó; incluye admin sin membresía, cuenta admin/dueño, no-admin, admin retirado, vencimiento/salida, ACL, 40 funciones existentes y las dos guardias nuevas.
 - `npm test`: 38/38. `npx next typegen && npx tsc --noEmit`: pasó. `npm run lint`: pasó con advertencias conocidas y cero errores.
 - `npm run probar:teclado`: pasó (teclado virtual simulado en Chromium). `npm run probar:hojas`: pasó gestos, Atrás, Escape, X, foco, diálogo y borradores.
-- Build local no terminó: el entorno bloqueó la descarga de Caveat, Figtree y Fredoka desde Google Fonts. Verificar el build remoto de la preview Vercel.
+- Build local no terminó: el entorno bloqueó la descarga de Caveat, Figtree y Fredoka desde Google Fonts. El build de Vercel sí terminó READY; las rutas `/admin-demo`, `/admin-demo/tiendas` y `/api/version` respondieron 200. En ambos hosts de preview `/api/version` informó el ID exacto de despliegue anterior.
 - Google OAuth, callbacks, login real, captura del panel real Ver como, ciclo de varias pestañas/salida/expiración con Auth real, Safari físico y teclado iPhone no ejecutados.
-- Callback exacto a permitir en Supabase cuando se sepa el despliegue: `https://<host-exacto-del-preview>/auth/callback`. No cambiar Site URL ni allowlist por esta rama. Refrescar preview antiguo no incluye el commit nuevo.
+- No se cambió la configuración Auth. Si Lewis autoriza OAuth en la preview, el callback exacto a permitir es `https://deslizapp-i56aa91rm-onedayone.vercel.app/auth/callback`. No cambiar Site URL; no asumir que el alias también está permitido. Refrescar un despliegue anterior no incorpora este commit.
 - La migración sigue sin aplicar y la CLI de Supabase no está instalada para asignar su versión oficial. El identificador actual es provisional; no fusionar/aplicar hasta coordinar el espacio de migración con la otra sesión. Sus bases locales siguen desconocidas.
 
 ## Pasos de Lewis en iPhone (cuando haya preview y migración disponible)

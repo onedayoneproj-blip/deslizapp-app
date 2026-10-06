@@ -1,6 +1,6 @@
 # Admin parte 2 — validación de Coding
 
-Rama de trabajo: `feature/admin-tiendas`, nacida de `origin/main` en `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`. PR y despliegue se anotan en el handoff al publicarlos.
+Rama de trabajo: `feature/admin-tiendas`, nacida de `origin/main` en `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`, rebasada sobre `5ab86323f60d2a3778ef177f8ec1db467cab9260`. PR #53, commit remoto `dd0ba0c56e828065c23f9661d24c89ecd4817cc1`. Preview READY: https://deslizapp-i56aa91rm-onedayone.vercel.app; alias estable https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app. `/api/version` respondió `dpl_2CKUNrqfWbYWT4PveT18cyiW8884`.
 
 ## Hecho en esta rama
 
@@ -28,11 +28,11 @@ La ruta de Ver como necesita `admin_ver_como_actual()` y `admin_ver_como_validar
 - `npm run probar:hojas`: pasó los cierres con gesto, fondo, Escape, X y Atrás, confirmación de cambios, foco y conservación de datos.
 - `scripts/probar-admin-tiendas.mjs`: pasó en Chromium local con Demo aislada, filtros/búsqueda, ficha, posponer y acciones de ajuste/transferencia/pausa usando solo fixtures; verificó 360/390/430 px, tema claro/oscuro, cero overflow y cero tráfico Supabase desde Demo.
 - Las capturas actuales de Hoy, Tiendas y ficha son de Chromium real ejecutando la app Demo y están en `docs/capturas/admin-tiendas/`.
-- `npm run build`: bloqueado por el entorno de red; Next no pudo descargar Caveat, Figtree y Fredoka de Google Fonts. No se cambió la tipografía para ocultar el problema. Esperar el build remoto de Vercel como verificación adicional.
+- `npm run build`: bloqueado por el entorno de red; Next no pudo descargar Caveat, Figtree y Fredoka de Google Fonts. No se cambió la tipografía para ocultar el problema. Vercel construyó este mismo commit y publicó una preview en estado READY; `admin-demo`, `admin-demo/tiendas` y `api/version` respondieron HTTP 200.
 
 ## Pendiente/no verificado
 
 - La migración no está aplicada: la API real de Ver como responderá con una explicación de actualización pendiente; no se considera lista para probar con Michel hasta coordinar y desplegar la migración.
-- OAuth real de Google, callback de preview, aviso de sesión real, membresía de tienda, panel de la cuenta admin/dueño, cierre/vencimiento SQL y navegadores de iPhone/Safari requieren validación manual. Callback que se debe permitir, una vez exista el host de preview: `https://<host-exacto-del-preview>/auth/callback`. No se modificó la configuración Auth.
+- OAuth real de Google, callback de preview, aviso de sesión real, membresía de tienda, panel de la cuenta admin/dueño, cierre/vencimiento SQL y navegadores de iPhone/Safari requieren validación manual. No se modificó Auth. Si Lewis autoriza login en esta preview, permitir exactamente `https://deslizapp-i56aa91rm-onedayone.vercel.app/auth/callback`; no asumir permitido el alias estable y no cambiar Site URL.
 - No se probó visualmente el flujo Ver como con una sesión real: hacerlo requeriría la migración y credenciales Google. Demo informa que Ver como es exclusivo de sesión admin real y no intenta llamar el API.
 - La otra sesión no expone bases locales o de desarrollo; no se puede confirmar si usa nombres/contratos aún no publicados.
