@@ -24,6 +24,20 @@ Pendiente: confirmación del recorrido autenticado en Safari por Lewis. Los bloq
 
 # Deslizapp — Panel de tienda (handoff para Claude Code)
 
+## Admin parte 2: Hoy, Tiendas, ficha y Ver como — Coding
+
+Trabajo en `feature/admin-tiendas`, desde `origin/main` actualizado (`1454a782`); preparar PR abierto, sin merge y sin deploy a producción. Los PR #51 y #52 están fusionados. Lewis ya tiene alta admin; no volver a crearla. No incorporar PR #45.
+
+La implementación, la comparación de capturas, resultados y límites se detallan en [handoff para Planning y Claude](docs/handoffs/admin-tiendas-codex.md) y [validación de Admin parte 2](docs/validacion-admin-tiendas.md). Incluye la UI de Demo aislada, fuentes admin real/demo, guardia central `soloMirar` y una propuesta aditiva para dos RPC de validar el modo. Replay completo desechable pasó; producción permanece en 40/40 migraciones y sin cambios. **Las bases locales de la otra sesión son desconocidas.** Se requiere coordinación antes de aplicar SQL compartido; el Supabase CLI no está instalado, y el identificador SQL local es provisional. Google real, callback de preview, Safari físico y la vista de una tienda real no están verificados.
+
+Cuando se publique la preview, el callback requerido es `https://<host-exacto-del-preview>/auth/callback`; no cambiar Site URL ni la configuración Auth. Ver como no revoca en la base permisos ordinarios del dueño: `soloMirar` bloquea las escrituras únicamente dentro de ese recorrido de la app.
+
+Capturas/comparación con diseños aprobados: [`docs/capturas/admin-tiendas/README.md`](docs/capturas/admin-tiendas/README.md). Lewis puede probar `/admin` y la ficha de Michel en el preview, pero Ver como debe esperar a que Planning coordine el RPC aditivo y permita el callback exacto.
+
+### Corrección posterior de la prueba de replay de inventario
+
+PR #52 actualizado; consulta la [validación de inventario](validacion-admin-base.md) antes de repetir el replay. El historial conserva los resultados iniciales fallidos y el resultado posterior que pasó.
+
 Este repo es el punto de partida del **panel de administración** de Deslizapp: la
 app web donde el dueño de una tienda (ej. Esencias Michel) gestiona su catálogo,
 ve sus pedidos, los despacha, arma promos y revisa cómo le va.
@@ -454,6 +468,12 @@ Rutas públicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin s
 Migración **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, catálogo público ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
 
 La excepción visual de la superficie pública está en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios públicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona automáticamente: Lewis prueba el preview.**
+
+### Admin parte 2 — Hoy, Tiendas, ficha y Ver como
+
+Implementación en `feature/admin-tiendas`, nacida de `origin/main` `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`; PR y preview se completan al publicar la rama. No incorpora #45, no fusionar ni desplegar producción. Lewis ya era admin y no se dio de alta otra vez. Hoy, Tiendas y ficha usan contratos y RPC reales; Trabajo, Cobros y Más continúan como placeholders. `/admin-demo` tiene fuente aislada y nunca conecta a Supabase. Ver como bloquea escrituras en la app incluso para un admin que también es dueño, sin afirmar que la base revoque los permisos del dueño. Detalles, capturas comparativas, validaciones y pasos manuales en `docs/handoffs/admin-tiendas-codex.md` y `docs/validacion-admin-tiendas.md`.
+
+Replay completo desechable aprobado; producción conserva sus 40 migraciones sin cambio. Ver como necesita la propuesta aditiva `20261006130000_admin_ver_como_validar.sql` porque `sesiones_ver_como` no es legible desde clientes y la cookie no puede autorizar. No aplicar/mergear hasta coordinar con la otra sesión y obtener versión oficial de Supabase CLI; las bases locales de esa sesión son desconocidas. Ningún cambio manual de datos. TypeScript, lint (cero errores), 38 tests, scripts de teclado/hojas/admin y replay pasaron. Build local bloqueado porque no pudo descargar Caveat/Figtree/Fredoka; pendiente build remoto. No se probaron Google real, Safari físico, sesión real de Ver como ni cierre multidispositivo con Auth. No se cambió el callback de Supabase; permitir únicamente `https://<host-exacto-del-preview>/auth/callback` tras recibirlo.
 
 
 ## Pedido del catálogo en el panel — continuación de Coding

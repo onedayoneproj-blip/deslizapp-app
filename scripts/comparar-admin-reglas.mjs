@@ -169,8 +169,14 @@ const hashes =
  select p.proname as nombre,pg_get_function_identity_arguments(p.oid) as argumentos,md5(pg_get_functiondef(p.oid)) as md5,p.prosecdef as definer,p.proconfig as configuracion,has_function_privilege('anon',p.oid,'EXECUTE') as anon,has_function_privilege('authenticated',p.oid,'EXECUTE') as authenticated
  from pg_proc p where p.pronamespace='public'::regnamespace and (p.proname ~ '^admin_' or p.proname in ('soy_admin','tiendas_que_miro','reglas_admin','regla_admin','estado_cobro','asuntos_admin','salud_tiendas','pedir_retoque','gastar_creditos','marcar_actividad'))
 ) f;`)[0];
+const nuevasVerComo = hashes.filter((f) => ["admin_ver_como_actual", "admin_ver_como_validar"].includes(f.nombre));
+assert.deepEqual(nuevasVerComo.map((f) => [f.nombre, f.definer, f.configuracion, f.anon, f.authenticated]), [
+  ["admin_ver_como_actual", true, ['search_path=""'], false, true],
+  ["admin_ver_como_validar", true, ['search_path=""'], false, true],
+], "Las dos guardias nuevas son SECURITY DEFINER, search_path vacío y solo authenticated");
+const hashesProduccion = hashes.filter((f) => !["admin_ver_como_actual", "admin_ver_como_validar"].includes(f.nombre));
 assert.deepEqual(
-  hashes,
+  hashesProduccion,
   JSON.parse(
     readFileSync(
       new URL(
@@ -183,5 +189,5 @@ assert.deepEqual(
   "Cuerpos y permisos del replay coinciden con producción",
 );
 console.log(
-  `Paridad TS/Postgres: ${casos.tiendas.length} escenarios × ${casos.usos.length} usos; claves, datos, prioridades, acciones, fechas, cobro y personalización OK; condiciones resueltas sin asuntos; ${hashes.length} funciones coinciden con producción`,
+  `Paridad TS/Postgres: ${casos.tiendas.length} escenarios × ${casos.usos.length} usos; claves, datos, prioridades, acciones, fechas, cobro y personalización OK; condiciones resueltas sin asuntos; ${hashesProduccion.length} funciones existentes coinciden con producción y 2 guardias nuevas tienen ACL verificada`,
 );
