@@ -50,3 +50,8 @@ export function avisoGuardadoConRetoques(base: string, marcadas: number, enviada
   const taller = enviadas > 0 && fallaron === 0 ? avisoFotosEnElTaller(enviadas, porFoto) : avisoFotosSinTaller(fallaron, marcadas);
   return `${base} ${taller}`;
 }
+
+// ---- Mi marca y el retoque (docs/prompts/mi-marca.md §4) ----
+export const MOTIVO_SIN_MARCA = "Antes de retocar, cuéntanos de tu marca.";
+export const ACCION_COMPLETAR_MARCA = "Completar Mi marca";
+export const AVISO_SIN_MARCA_AL_GUARDAR = "Guardado. Para mandar la foto al taller, primero completa Mi marca.";

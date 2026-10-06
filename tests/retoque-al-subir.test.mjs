@@ -5,7 +5,7 @@ const R = await import("../lib/retoque-al-subir.ts");
 const T = await import("../lib/retoque-textos.ts");
 
 test("el interruptor cuenta TODAS las fotos marcadas, no una a una", () => {
-  const e = (libres, marcadas, estaMarcada = false) => R.estadoInterruptor({ soloMirar: false, libres, marcadas, estaMarcada });
+  const e = (libres, marcadas, estaMarcada = false) => R.estadoInterruptor({ soloMirar: false, libres, marcadas, estaMarcada, marcaLista: true });
   assert.deepEqual(e(12, 0), { deshabilitado: false, motivo: null }, "con 12 caben dos");
   assert.deepEqual(e(12, 1), { deshabilitado: false, motivo: null }, "la segunda cabe");
   assert.deepEqual(e(12, 2), { deshabilitado: true, motivo: "Te faltan créditos para esta." }, "la tercera ya no (15 > 12)");
@@ -17,9 +17,21 @@ test("el interruptor cuenta TODAS las fotos marcadas, no una a una", () => {
 });
 
 test("solo mirar: el interruptor sale deshabilitado con su motivo, aunque sobren créditos", () => {
-  const r = R.estadoInterruptor({ soloMirar: true, libres: 100, marcadas: 0, estaMarcada: false });
+  const r = R.estadoInterruptor({ soloMirar: true, libres: 100, marcadas: 0, estaMarcada: false, marcaLista: true });
   assert.deepEqual(r, { deshabilitado: true, motivo: "Solo mirar: aquí no se manda nada al taller." });
-  assert.equal(R.estadoInterruptor({ soloMirar: true, libres: 100, marcadas: 1, estaMarcada: true }).deshabilitado, true);
+  assert.equal(R.estadoInterruptor({ soloMirar: true, libres: 100, marcadas: 1, estaMarcada: true, marcaLista: true }).deshabilitado, true);
+});
+
+test("sin marca lista el interruptor no se enciende, aunque sobren créditos; con la marca lista vuelve a funcionar", () => {
+  const e = (marcaLista, extra = {}) => R.estadoInterruptor({ soloMirar: false, libres: 100, marcadas: 0, estaMarcada: false, marcaLista, ...extra });
+  assert.deepEqual(e(false), { deshabilitado: true, motivo: "Antes de retocar, cuéntanos de tu marca." });
+  assert.deepEqual(e(null), { deshabilitado: true, motivo: null }, "mientras se lee, sin motivo todavía");
+  assert.deepEqual(e(true), { deshabilitado: false, motivo: null });
+  // Solo mirar manda sobre la marca; y la marca manda sobre los créditos.
+  assert.equal(e(false, { soloMirar: true }).motivo, "Solo mirar: aquí no se manda nada al taller.");
+  assert.equal(e(false, { libres: 0 }).motivo, "Antes de retocar, cuéntanos de tu marca.");
+  // Una foto ya marcada se puede apagar siempre.
+  assert.deepEqual(e(false, { estaMarcada: true, marcadas: 1 }), { deshabilitado: false, motivo: null });
 });
 
 test("emparejar por posición: la foto nueva cambia de URL al guardarse y solo se piden las marcadas", () => {

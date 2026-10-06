@@ -3,13 +3,13 @@
 // hasta que el producto se guarda; después, cada foto marcada se manda con su URL ya guardada (taller.pedirDe).
 
 import { CREDITOS_POR_RETOQUE } from "./config";
-import { MOTIVO_SIN_CREDITOS, MOTIVO_SOLO_MIRAR } from "./retoque-textos";
+import { MOTIVO_SIN_CREDITOS, MOTIVO_SIN_MARCA, MOTIVO_SOLO_MIRAR } from "./retoque-textos";
 
 export type EstadoInterruptor = { deshabilitado: boolean; motivo: string | null };
 
 /**
  * ¿Se puede encender el interruptor de esta foto? Cuenta TODAS las fotos marcadas, no una a una: con 12 créditos libres caben
- * dos (10) y la tercera ya no. Una foto ya encendida siempre se puede apagar (el motivo solo aparece al apagarla).
+ * dos (10) y la tercera ya no. Una foto ya encendida siempre se puede apagar (el motivo solo aparece al apagarla). Sin marca lista no se enciende ninguna: es la misma regla que bloquea el botón «Retocar» de las fotos guardadas.
  */
 export function estadoInterruptor(p: {
   soloMirar: boolean;
@@ -17,11 +17,15 @@ export function estadoInterruptor(p: {
   /** Cuántas fotos están marcadas en el borrador (incluida esta, si lo está). */
   marcadas: number;
   estaMarcada: boolean;
+  /** La regla única de lib/marca-retoque.ts: null mientras se lee (deshabilitado, sin motivo todavía). */
+  marcaLista: boolean | null;
   costo?: number;
 }): EstadoInterruptor {
   const costo = p.costo ?? CREDITOS_POR_RETOQUE;
   if (p.soloMirar) return { deshabilitado: true, motivo: MOTIVO_SOLO_MIRAR };
   if (p.estaMarcada) return { deshabilitado: false, motivo: null };
+  if (p.marcaLista === null) return { deshabilitado: true, motivo: null };
+  if (!p.marcaLista) return { deshabilitado: true, motivo: MOTIVO_SIN_MARCA };
   return p.libres >= costo * (p.marcadas + 1) ? { deshabilitado: false, motivo: null } : { deshabilitado: true, motivo: MOTIVO_SIN_CREDITOS };
 }
 
