@@ -14,9 +14,9 @@ const filtros: { id: FiltroTiendas; texto: string }[] = [
   { id: "pausadas", texto: "Pausadas" },
 ];
 const salud: Record<string, { texto: string; punto: string }> = {
-  viva: { texto: "Viva", punto: "bg-exito" }, te_necesita: { texto: "Te necesita", punto: "bg-resalte" },
-  esperando_equipo: { texto: "Esperando al equipo", punto: "bg-borde-pastilla" },
-  se_enfria: { texto: "Se enfría", punto: "bg-mandarina" }, quieta: { texto: "Nueva", punto: "bg-borde-pastilla" },
+  viva: { texto: "Viva", punto: "bg-exito-texto" }, te_necesita: { texto: "Te necesita", punto: "bg-resalte" },
+  esperando_equipo: { texto: "Esperando al equipo", punto: "bg-accion" },
+  se_enfria: { texto: "Se enfría", punto: "bg-apagado" }, quieta: { texto: "Nueva", punto: "bg-borde-pastilla" },
 };
 
 export function PantallaTiendas() {
@@ -59,6 +59,6 @@ export function PantallaTiendas() {
         </Link></li>;
       })}
     </ul>}
-    {lista && <p className="mt-3 text-[12px] text-texto-secundario">● Viva　● Te necesita　● Se enfría　● Esperando al equipo</p>}
+    {lista && <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-texto-secundario">{(["viva", "te_necesita", "se_enfria", "esperando_equipo"] as const).map((k) => <span key={k} className="inline-flex items-center gap-1"><span aria-hidden="true" className={`size-2 rounded-full ${salud[k].punto}`} />{salud[k].texto}</span>)}</p>}
   </>;
 }

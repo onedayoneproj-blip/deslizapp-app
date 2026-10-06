@@ -172,7 +172,8 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
 
       <div
         className="relative mt-4 overflow-hidden rounded-radio-l px-4 pt-6 pb-4 text-center text-white"
-        style={{ background: `linear-gradient(170deg, ${tema.colores.accent}, ${tema.colores.heart})` }}
+        // Fondo liso del color de los botones: el tema ya lo deja en AA con letra blanca.
+        style={{ background: tema.colores.accent }}
         aria-label="Vista previa de la cabecera"
         role="img"
       >
@@ -184,7 +185,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
         )}
         <p className="mt-3 flex justify-center gap-5 text-secundario font-bold" style={{ fontFamily: familia(tema.fuentes.body) }}>
           <span>Novedades</span>
-          {secciones.colecciones !== false && <span className="opacity-60">Colecciones</span>}
+          {secciones.colecciones !== false && <span className="opacity-85">Colecciones</span>}
         </p>
       </div>
       <div className="mt-2 flex justify-end">

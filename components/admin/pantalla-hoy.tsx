@@ -12,7 +12,7 @@ import { EstadoAdmin } from "./estado";
 const dinero = (n: number) => new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", maximumFractionDigits: 0 }).format(n);
 const saludoRD = () => {
   const h = Number(new Intl.DateTimeFormat("en", { timeZone: "America/Santo_Domingo", hour: "2-digit", hourCycle: "h23" }).format(new Date()));
-  return h < 5 || h >= 19 ? "noches" : h < 12 ? "días" : "tardes";
+  return h < 5 || h >= 19 ? "Buenas noches" : h < 12 ? "Buenos días" : "Buenas tardes";
 };
 
 function Asunto({ asunto, refrescar }: { asunto: AsuntoAdmin; refrescar: () => void }) {
@@ -71,8 +71,8 @@ export function PantallaHoy() {
   const plata = asuntos.filter(a => a.categoria === "plata").length;
   const fecha = new Intl.DateTimeFormat("es-DO", { timeZone: "America/Santo_Domingo", weekday: "long", day: "numeric", month: "long" }).format(new Date());
   return <>
-    <p className="text-secundario capitalize text-texto-secundario">{fecha}</p>
-    <h1 className="mt-2 font-display text-titulo-pantalla font-bold text-bosque">Buenas {saludoRD()}, Lewis.</h1>
+    <p className="text-secundario text-texto-secundario first-letter:uppercase">{fecha}</p>
+    <h1 className="mt-2 font-display text-titulo-pantalla font-bold text-bosque">{saludoRD()}, Lewis.</h1>
     <p className="mt-1 text-texto-secundario">{asuntos.length} {asuntos.length === 1 ? "cosa te espera" : "cosas te esperan"}. {plata} {plata === 1 ? "es" : "son"} de plata.</p>
     <EstadoAdmin cargando={cargando && !resumen} error={error} reintentar={() => void leer()} />
     {resumen && <div className="mt-5 grid grid-cols-2 gap-2.5">

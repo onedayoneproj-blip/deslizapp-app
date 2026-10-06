@@ -54,6 +54,13 @@ tiendas, productos, taller, créditos y personalización (localStorage `deslizap
 operación se relee el panel; después de una escritura del admin se devuelve **solo lo que cambió** campo a campo; las operaciones
 van en fila. Lo que es solo del admin (pagos, registro, tiendas de ejemplo de Hoy) sigue en memoria.
 
+## Tema claro y modo oscuro
+
+Revisión visual en el tema claro de las pantallas nuevas y de Hoy, Tiendas y ficha; se corrigieron problemas de legibilidad
+(saludo y fecha de Hoy, puntos y leyenda de salud en Tiendas, contraste de la vista previa de Personalizar). **El modo oscuro no
+está diseñado para la app:** no se revisó, no se cambiaron colores para él y no se presenta como validado. Queda pendiente de
+diseño para toda la app.
+
 ## Seguridad de las acciones
 
 - **Doble envío:** cada acción tiene un candado (`useRef`) además del botón en «cargando». Probado: doble toque en Entregar cobra 5

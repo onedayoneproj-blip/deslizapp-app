@@ -1,7 +1,7 @@
 // Admin parte 3 en la demo (sin Supabase): Trabajo › Catálogos, el ciclo del taller de retoque entre el panel de la tienda y
-// /admin-demo en el MISMO navegador, Personalizar y el catálogo público con ?demo. Además: anchos 360/390/430, claro y
-// oscuro, menos movimiento, teclado, hojas, Atrás, errores y borrador guardado. Comprueba que no salga ni una petición a
-// Supabase.
+// /admin-demo en el MISMO navegador, Personalizar y el catálogo público con ?demo. Además: anchos 360/390/430 en el tema
+// claro (el modo oscuro de la app todavía no está diseñado), menos movimiento, teclado, hojas, Atrás, errores y borrador
+// guardado. Comprueba que no salga ni una petición a Supabase.
 //
 // Uso: PLAYWRIGHT_MODULE=/ruta/playwright-core/index.mjs CHROMIUM_PATH=/ruta/chromium BASE_URL=http://127.0.0.1:3000 \
 //      [CAPTURE_DIR=docs/capturas/admin-trabajo] node scripts/probar-admin-trabajo.mjs
@@ -32,29 +32,20 @@ const ok = (cond, msg) => {
 };
 
 /** Un navegador limpio (una demo nueva) con la tienda activa del panel, el ancho, el tema y el movimiento. */
-async function pagina({ ancho = 390, tema = "light", tienda = MICHEL, movimiento = "no-preference" } = {}) {
-  const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: tema, reducedMotion: movimiento });
+async function pagina({ ancho = 390, tienda = MICHEL, movimiento = "no-preference" } = {}) {
+  const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "light", reducedMotion: movimiento });
   const page = await ctx.newPage();
   const errores = [];
   const supabase = [];
   page.on("pageerror", (e) => errores.push(e.message));
   page.on("request", (r) => /supabase\.(co|in)/.test(r.url()) && supabase.push(r.url()));
   await page.addInitScript(
-    ({ tienda, oscuro }) => {
+    ({ tienda }) => {
       localStorage.setItem("deslizapp-version-vista", "9.9.9");
       localStorage.setItem("deslizapp-modo-v1", "demo");
       if (!localStorage.getItem("deslizapp-sesion-v1")) localStorage.setItem("deslizapp-sesion-v1", tienda);
-      if (oscuro) {
-        // Igual que probar-producto: el tema oscuro del panel se fuerza con data-theme después de hidratar.
-        addEventListener("load", () => {
-          const html = document.documentElement;
-          const poner = () => html.getAttribute("data-theme") !== "dark" && html.setAttribute("data-theme", "dark");
-          setTimeout(poner, 300);
-          new MutationObserver(poner).observe(html, { attributes: true });
-        });
-      }
     },
-    { tienda, oscuro: tema === "dark" },
+    { tienda },
   );
   const db = async () => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "null");
   const tiendaActiva = (id) => page.evaluate((id) => localStorage.setItem("deslizapp-sesion-v1", id), id);
@@ -277,26 +268,43 @@ try {
   }
 
   // ---------------------------------------------------------------------------------------------------------------------
-  console.log("5 · Anchos, temas, menos movimiento y teclado");
-  for (const tema of ["light", "dark"]) {
-    for (const ancho of [360, 390, 430]) {
-      const { ctx, page, errores } = await pagina({ ancho, tema, movimiento: ancho === 360 ? "reduce" : "no-preference" });
-      for (const ruta of ["/admin-demo/trabajo", "/admin-demo/trabajo?ver=fotos", `/admin-demo/tiendas/${MICHEL}/catalogo`]) {
-        await page.goto(`${BASE}${ruta}`);
-        await page.getByRole("heading", { level: 1 }).first().waitFor();
-        await page.waitForTimeout(300);
-        ok(await sinScrollHorizontal(page), `${ancho}px ${tema}: ${ruta} sin scroll horizontal`);
-      }
-      if (ancho === 390 || ancho === 360) await capturar(page, `personalizar-${ancho}-${tema === "dark" ? "oscuro" : "claro"}`);
-      await page.goto(`${BASE}/admin-demo/trabajo`);
-      await page.getByRole("radio", { name: /Catálogos/ }).focus();
-      await page.keyboard.press("ArrowRight");
-      await page.waitForURL(/ver=fotos/);
-      ok(true, `${ancho}px ${tema}: el segmento se cambia con el teclado`);
-      if (ancho === 390) await capturar(page, `trabajo-fotos-${ancho}-${tema === "dark" ? "oscuro" : "claro"}`);
-      ok(errores.length === 0, `${ancho}px ${tema}: sin errores de página`);
-      await ctx.close();
+  console.log("5 · Anchos (tema claro), menos movimiento y teclado");
+  for (const ancho of [360, 390, 430]) {
+    const { ctx, page, errores } = await pagina({ ancho, movimiento: ancho === 360 ? "reduce" : "no-preference" });
+    for (const ruta of ["/admin-demo", "/admin-demo/tiendas", `/admin-demo/tiendas/${MICHEL}`, "/admin-demo/trabajo", "/admin-demo/trabajo?ver=fotos", `/admin-demo/tiendas/${MICHEL}/catalogo`]) {
+      await page.goto(`${BASE}${ruta}`);
+      await page.getByRole("heading").first().waitFor();
+      await page.waitForTimeout(300);
+      ok(await sinScrollHorizontal(page), `${ancho}px: ${ruta} sin scroll horizontal`);
     }
+    if (ancho !== 390) await capturar(page, `personalizar-${ancho}-claro`);
+    await page.goto(`${BASE}/admin-demo/trabajo`);
+    await page.getByRole("radio", { name: /Catálogos/ }).focus();
+    await page.keyboard.press("ArrowRight");
+    await page.waitForURL(/ver=fotos/);
+    ok(true, `${ancho}px: el segmento se cambia con el teclado`);
+    if (ancho === 390) await capturar(page, "trabajo-fotos-390-claro");
+    ok(errores.length === 0, `${ancho}px: sin errores de página`);
+    await ctx.close();
+  }
+  console.log("6 · Hoy, Tiendas y ficha en tema claro (capturas de revisión)");
+  {
+    const { ctx, page, errores } = await pagina({});
+    await page.goto(`${BASE}/admin-demo`);
+    await page.getByRole("heading", { name: /^(Buenos días|Buenas tardes|Buenas noches), Lewis\./ }).waitFor();
+    ok(true, "Hoy saluda con la concordancia correcta");
+    await capturar(page, "hoy-390-claro");
+    await page.goto(`${BASE}/admin-demo/tiendas`);
+    await page.getByRole("heading", { name: "Tiendas" }).waitFor();
+    const puntos = await page.locator("ul li span[aria-hidden='true'].rounded-full").evaluateAll((els) => els.map((e) => getComputedStyle(e).backgroundColor));
+    ok(puntos.length > 0 && puntos.every((c) => c !== "rgba(0, 0, 0, 0)"), "cada tienda tiene su punto de salud visible");
+    await capturar(page, "tiendas-390-claro");
+    await page.goto(`${BASE}/admin-demo/tiendas/${MICHEL}`);
+    await page.getByRole("link", { name: "Personalizar" }).waitFor();
+    ok((await page.getByRole("link", { name: "Personalizar" }).getAttribute("href")) === `/admin-demo/tiendas/${MICHEL}/catalogo`, "la ficha abre Personalizar dentro de /admin-demo");
+    await capturar(page, "ficha-390-claro");
+    ok(errores.length === 0, "sin errores de página");
+    await ctx.close();
   }
   console.log("Listo: todo pasó.");
 } finally {

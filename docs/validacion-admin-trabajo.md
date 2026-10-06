@@ -15,9 +15,10 @@ según pida cada script). Handoff: [handoffs/admin-trabajo-claude.md](handoffs/a
 | `npm run build` | Pasa, **0 advertencias** (la base: 0). |
 | `npm run probar:admin-db` | Replay completo en Postgres 17.6 desechable de las 43 migraciones; pruebas nuevas `scripts/probar-admin-trabajo-db.sql` (lecturas solo admin, orden sin retirados, reservar/entregar una vez/devolver, doble envío, foto cambiada y producto retirado sin sustituir ni cobrar); **44 funciones** iguales en md5 y ACL a producción. |
 | `npm run revisar:migraciones` con la lista de Supabase | 43/43, **cero diferencias de versión**. |
-| `probar:admin-trabajo` (nuevo, build final) | **78/78**. Catálogos (empezar → 3 pasos → revisar, la tienda ve cada paso, saltos inválidos no ofrecidos, enlace inválido no cambia nada); taller (pedir reserva sin cobrar, doble toque en Entregar cobra una vez, foto cambia en producto y catálogo `?demo`, original en el historial, devolver con motivo sin cobrar y libera la reserva, la tienda ve tostada y motivo); Personalizar (teclado, Atrás cierra la hoja, contador, borrador tras recargar, orden, aviso AA, SVG malicioso rechazado, merge sin borrar la cabecera, catálogo `?demo` refleja botón y Búsqueda); acceso en el menú (demo → `/admin-demo`); 360/390/430 × claro/oscuro sin scroll horizontal, menos movimiento en 360, segmento con flechas. **Cero peticiones a Supabase.** |
+| `probar:admin-trabajo` (nuevo, build final; tema claro) | **76/76**. Catálogos (empezar → 3 pasos → revisar, la tienda ve cada paso, saltos inválidos no ofrecidos, enlace inválido no cambia nada); taller (pedir reserva sin cobrar, doble toque en Entregar cobra una vez, foto cambia en producto y catálogo `?demo`, original en el historial, devolver con motivo sin cobrar y libera la reserva, la tienda ve tostada y motivo); Personalizar (teclado, Atrás cierra la hoja, contador, borrador tras recargar, orden, aviso AA, SVG malicioso rechazado, merge sin borrar la cabecera, catálogo `?demo` refleja botón y Búsqueda); acceso en el menú (demo → `/admin-demo`); Hoy, Tiendas, ficha, Trabajo y Personalizar a 360/390/430 sin scroll horizontal, menos movimiento en 360, segmento con flechas; Hoy saluda bien, cada tienda tiene su punto de salud visible y la ficha abre Personalizar dentro de `/admin-demo`. **Cero peticiones a Supabase.** |
 | Regresiones del panel y catálogo demo (build de producción) | Pasan: `probar-admin-tiendas`, `agotados-y-likes`, `aviso-publico`, `contadores-catalogo`, `detalle-promos`, `eliminar-producto`, `espera-tienda`, `historial-ajustes-lista`, `historial-interno`, `hojas`, `inventario`, `pedido-catalogo-panel`, `producto` (ficha con fotos, el cambio más grande del panel), `proximamente`, `reemplazo-promos`, `teclado`. |
 | Scripts que piden `next dev` | Pasan en dev: `espera-fallos`, `visibilidad-catalogo`, `pedido-catalogo-transporte`, `ver-como-transporte` (12/12). |
+| Acceso por URL directa | Las rutas nuevas (`/admin/trabajo`, `/admin/tiendas/[id]/catalogo`) cuelgan del layout de `/admin`, que exige sesión y `soy_admin()` en el servidor (404 si no) y redirige si hay Ver como activo; ni cookies ni `localStorage` abren nada. Cada RPC nueva vuelve a exigir `soy_admin()` (replay: `no_admin` para no admins y anon sin permiso de ejecución). `probar-admin-tiendas`: `/admin` sin sesión da 404. |
 | Lecturas reales (sin escribir) | Ver §3. |
 
 **Fallo propio encontrado y corregido:** `probar-ver-como-transporte` falló en la rama (pasaba en la base) porque guarda su propia
@@ -27,6 +28,16 @@ falló por un import sin extensión en `lib/tienda/tema.ts` (carga nativa de Nod
 
 Al correr la batería, varios scripts reescriben capturas de otras funciones en `docs/capturas/`; se revirtieron y solo se
 agregan las de `docs/capturas/admin-trabajo/`.
+
+**Revisión del tema claro** (pantallas nuevas y Hoy, Tiendas, ficha): corregidos «Buenas días», la fecha «6 De Octubre», el
+punto «Viva» invisible y los colores/leyenda de salud en Tiendas, y el contraste de la vista previa de Personalizar. Detalle en
+[capturas/admin-trabajo/README.md](capturas/admin-trabajo/README.md). `probar-admin-tiendas` se ajustó al saludo nuevo y pasa.
+**Modo oscuro:** no se revisó ni se validó; no está diseñado para la app y queda pendiente de diseño para toda la app (la
+matriz de oscuro de `probar-admin-tiendas` es de la parte 2 y no se cuenta como validación).
+
+Los resultados de regresiones del panel/catálogo de esta tabla son de la corrida sobre el código del panel de `6e2a9b0`; los
+cambios posteriores solo tocan pantallas del admin (Hoy, Tiendas, Personalizar) y se volvieron a probar con
+`probar-admin-trabajo` y `probar-admin-tiendas`.
 
 ## 2. Fallos que ya existían (misma firma en la base)
 
@@ -56,7 +67,7 @@ las líneas ✓/✗/espera, sin tiempos).
   layout de `/admin`, que vuelve a autorizar en el servidor.
 - **Red del contenedor:** `*.supabase.co` y `*.vercel.app` están bloqueados por la política de red, así que tampoco se pudo
   abrir la preview desde aquí ni correr los scripts que leen el catálogo real.
-- **iPhone/Safari físico:** no disponible; los anchos, temas, teclado y Atrás se simularon en Chromium.
+- **iPhone/Safari físico:** no disponible; los anchos, el teclado y Atrás se simularon en Chromium (tema claro).
 
 ## 4. Pasos para Lewis en el iPhone (preview del PR)
 
