@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Comprar créditos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+a{color:#174b3a}a:hover{color:#10362a}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.paq{width:100%;min-height:68px;border-radius:20px;border:1.5px solid #efe4d2;background:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;font-family:'Figtree',sans-serif;color:#174b3a;text-align:left;cursor:pointer}
+.paq.on{border:2.5px solid #174b3a;background:#fff}
+.dot{width:24px;height:24px;border-radius:999px;border:2.5px solid #9c8b6e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.on .dot{border-color:#174b3a}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 900px; overflow: hidden; background: #93a89c; font-family: 'Figtree', sans-serif; color: #174b3a;">
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 110px; background: #fff9ee; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; justify-content: center;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <h2 class="f" style="margin: 0; font-size: 24px; line-height: 28px;">Más créditos</h2>
+      <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div style="background: #ffe3d6; border-radius: 16px; padding: 12px 14px; display: flex; gap: 10px; align-items: center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a8410f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/></svg>
+      <span style="font-size: 14.5px; line-height: 20px; font-weight: 700; color: #a8410f;">Te quedan 3 créditos. Para retocar una foto hacen falta 5.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;" role="radiogroup" aria-label="Paquete de créditos">
+      <button type="button" class="paq" role="radio" aria-checked="false">
+        <span class="dot"></span>
+        <span style="flex: 1; display: flex; flex-direction: column;"><b style="font-size: 17px;">25 créditos</b><span style="font-size: 13.5px; color: #4f6a5e;">5 fotos retocadas</span></span>
+        <b style="font-size: 16px;">RD$[PRECIO]</b>
+      </button>
+      <button type="button" class="paq on" role="radio" aria-checked="true">
+        <span class="dot"><span style="width: 12px; height: 12px; border-radius: 999px; background: #174b3a;"></span></span>
+        <span style="flex: 1; display: flex; flex-direction: column;"><b style="font-size: 17px;">50 créditos</b><span style="font-size: 13.5px; color: #4f6a5e;">10 fotos retocadas</span></span>
+        <b style="font-size: 16px;">RD$[PRECIO]</b>
+      </button>
+      <button type="button" class="paq" role="radio" aria-checked="false">
+        <span class="dot"></span>
+        <span style="flex: 1; display: flex; flex-direction: column;"><b style="font-size: 17px;">100 créditos</b><span style="font-size: 13.5px; color: #4f6a5e;">20 fotos retocadas</span></span>
+        <b style="font-size: 16px;">RD$[PRECIO]</b>
+      </button>
+    </div>
+
+    <div style="background: #dcebe2; border-radius: 16px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f6b47" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #174b3a;">Los que compras no vencen. Se usan después de los de tu plan.</span>
+    </div>
+
+    <a href="ElegirPlan.dc.html" style="font-size: 14.5px; font-weight: 800; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center;">¿Retocas mucho? El plan Tienda trae 100 al mes</a>
+
+    <div style="margin-top: auto;">
+      <a href="ComoPagar.dc.html" style="height: 54px; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center;">Comprar 50 créditos</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

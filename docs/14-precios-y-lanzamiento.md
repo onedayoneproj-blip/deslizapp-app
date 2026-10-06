@@ -64,7 +64,16 @@ La tienda carga sus productos y fotos. Para que sea fácil, en tres etapas:
 
 En el onboarding, «subir tus productos» es un paso de la lista que desbloquea el catálogo.
 
-## 6. Referencias de mercado (6 oct 2026)
+## 6. Pantallas de suscripción (diseño aprobado el 6 oct 2026)
+
+Lo que ve la tienda para elegir plan, pagar y quedar al día: elegir plan (mensual o anual), la oferta de fundadora, cómo pagar, «Ya pagué» con la captura, «lo estamos revisando», «al día» con el recibo, Tu plan rediseñado, catálogo lleno, video por plan, comprar créditos, avisos de prueba y renovación, y la tienda en pausa (panel y catálogo). Diseño: `referencias/suscripcion/`. Prompt: `docs/prompts/suscripcion-tienda.md`.
+
+- No hay pasarela: la tienda transfiere y avisa; Lewis **confirma** en Cobros. Un aviso de pago no activa nada por sí solo.
+- Subir de plan paga la diferencia por los días que quedan; bajar de plan se pide por WhatsApp y aplica al renovar.
+- El video queda solo desde el plan Tienda (`permite_video` en el plan).
+- Faltan datos de Lewis: banco y cuenta para transferir, precio de los paquetes de créditos y créditos del plan Pro.
+
+## 7. Referencias de mercado (6 oct 2026)
 
 Para la conversación de venta y para revisar los precios:
 - La competencia real es Instagram y WhatsApp Business, que son gratis (y Wabi, gratis para colmados en RD).

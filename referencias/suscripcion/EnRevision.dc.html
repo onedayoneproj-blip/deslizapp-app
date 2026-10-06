@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Pago en revisión</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+a{color:#174b3a}a:hover{color:#10362a}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.fila{display:flex;justify-content:space-between;align-items:center;min-height:44px;border-bottom:1px solid #efe4d2;font-size:15px}
+.fila:last-child{border-bottom:none}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a; padding: 72px 20px 28px; display: flex; flex-direction: column; align-items: stretch; gap: 22px;">
+
+  <div style="display: flex; justify-content: center;">
+    <span style="width: 112px; height: 112px; border-radius: 999px; background: #f5c9d6; display: flex; align-items: center; justify-content: center;">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 4 4 5 4 9s-4 5-4 9M16 3c0 4-4 5-4 9s4 5 4 9"/><path d="M10 18h4" stroke-width="2.4"/></svg>
+    </span>
+  </div>
+
+  <div style="text-align: center; display: flex; flex-direction: column; gap: 4px;">
+    <h1 class="f" style="margin: 0; font-size: 32px; line-height: 34px;">Recibido.</h1>
+    <p style="margin: 0; font-family: 'Caveat', cursive; font-weight: 600; font-size: 30px; line-height: 32px; color: #1f6b47;">Lo estamos revisando.</p>
+    <p style="margin: 10px 0 0; font-size: 16px; line-height: 23px; color: #4f6a5e;">Te avisamos aquí y por WhatsApp cuando quede confirmado. Mientras, tu tienda sigue andando.</p>
+  </div>
+
+  <section style="border-radius: 22px; background: #fff; border: 1px solid #efe4d2; padding: 4px 16px;">
+    <div class="fila"><span style="color: #4f6a5e;">Pago</span><b>RD$1,690</b></div>
+    <div class="fila"><span style="color: #4f6a5e;">Plan</span><b>Tienda · un mes</b></div>
+    <div class="fila"><span style="color: #4f6a5e;">Enviado</span><b>Hoy, 10:42 a. m.</b></div>
+    <div class="fila"><span style="color: #4f6a5e;">Estado</span><span style="height: 24px; padding: 0 10px; border-radius: 999px; background: #f3ead9; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center;">Por revisar</span></div>
+  </section>
+
+  <p style="margin: 0; text-align: center; font-size: 14px; line-height: 20px; color: #4f6a5e;">Si algo no cuadra, te escribimos. Nada se cobra dos veces.</p>
+
+  <div style="margin-top: auto;">
+    <a href="AlDia.dc.html" style="height: 54px; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center;">Volver a mi tienda</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

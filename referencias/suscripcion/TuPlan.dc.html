@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tu plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+a{color:#174b3a}a:hover{color:#10362a}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.pago{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid #efe4d2}
+.pago:last-child{border-bottom:none}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1000px; overflow: hidden; background: #93a89c; font-family: 'Figtree', sans-serif; color: #174b3a;">
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 48px; background: #fff9ee; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; justify-content: center;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <h2 class="f" style="margin: 0; font-size: 24px; line-height: 28px;">Tu plan</h2>
+      <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <section style="border-radius: 26px; background: #174b3a; color: #fff9ee; padding: 18px; display: flex; flex-direction: column; gap: 8px;">
+      <span style="display: flex; align-items: center; justify-content: space-between;">
+        <span class="f" style="font-size: 30px; line-height: 32px;">Tienda</span>
+        <span style="height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255,249,238,0.14); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center;">Mensual · RD$1,690</span>
+      </span>
+      <span style="font-size: 14px; color: #d9e6df;">Pagado hasta el <b style="color: #fff9ee;">6 de noviembre</b></span>
+      <span style="font-size: 14px; font-weight: 800; margin-top: 4px;">112 de 200 productos</span>
+      <span style="height: 10px; border-radius: 999px; background: rgba(255,249,238,0.2); overflow: hidden;"><span style="display: block; height: 10px; width: 56%; border-radius: 999px; background: #f5c9d6;"></span></span>
+      <span style="font-size: 13px; color: #d9e6df;">Te quedan 88 espacios. Cambiar precios, stock y textos no gasta nada.</span>
+    </section>
+
+    <section style="border-radius: 22px; border: 1px solid #efe4d2; background: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+      <span style="width: 48px; height: 48px; border-radius: 16px; background: #ff834f; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10362a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg></span>
+      <span style="flex: 1; display: flex; flex-direction: column;"><b class="f" style="font-size: 22px; line-height: 24px;">65 créditos</b><span style="font-size: 13.5px; color: #4f6a5e;">Te alcanzan para 13 fotos retocadas</span></span>
+      <a href="Creditos.dc.html" style="height: 36px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #e7dcc8; background: #fff; font-size: 13px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center;">Comprar</a>
+    </section>
+
+    <section style="border-radius: 22px; background: #f5c9d6; padding: 16px; display: flex; flex-direction: column; gap: 4px;">
+      <span class="f" style="font-size: 21px; line-height: 24px;">Pásate al anual.</span>
+      <span style="font-size: 14.5px; font-weight: 700;">RD$16,900 al año: dos meses te salen gratis.</span>
+      <a href="ElegirPlan.dc.html" style="margin-top: 10px; height: 48px; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center;">Ver el anual</a>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-size: 14px; font-weight: 800; padding: 4px 0;">Tus pagos</span>
+      <div style="border-radius: 22px; background: #fff; border: 1px solid #efe4d2; padding: 0 16px;">
+        <div class="pago"><span style="flex: 1; display: flex; flex-direction: column;"><b style="font-size: 15px;">Plan Tienda · un mes</b><span style="font-size: 13px; color: #4f6a5e;">6 de octubre</span></span><b style="font-size: 15px;">RD$1,690</b><button type="button" aria-label="Ver el recibo de octubre" style="width: 44px; height: 44px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
+        <div class="pago"><span style="flex: 1; display: flex; flex-direction: column;"><b style="font-size: 15px;">50 créditos</b><span style="font-size: 13px; color: #4f6a5e;">22 de septiembre</span></span><b style="font-size: 15px;">RD$[PRECIO]</b><button type="button" aria-label="Ver el recibo de septiembre" style="width: 44px; height: 44px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
+      </div>
+    </section>
+
+    <div style="margin-top: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+      <a href="ElegirPlan.dc.html" style="height: 52px; border-radius: 999px; border: 1.5px solid #174b3a; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center;">Cambiar de plan</a>
+      <a href="ComoPagar.dc.html" style="height: 52px; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center;">Pagar el mes</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

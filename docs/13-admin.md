@@ -193,6 +193,7 @@ Hoy el retoque es una demo (`RETOQUE_REAL = false`, `gastar_creditos` cobra al i
   - Una línea que calcula «Queda pagada hasta…»: una mensualidad suma un mes a `max(pagado_hasta, hoy)`.
   - Interruptor «Mandarle el recibo»: abre WhatsApp con el mensaje y la imagen del recibo, que se genera como los recibos de pedidos.
   - Comprar créditos suma el movimiento `compra` con el `pago_id`.
+- **Pagos por revisar:** la tienda avisa su pago con una captura (`avisos_pago`) y Lewis lo confirma o rechaza desde una sección «Por revisar» en Cobros, que también sale en Hoy. Detalle en `docs/prompts/suscripcion-tienda.md` §2 y §4.
 - **Créditos con pago anual:** `admin_recarga_mensual` recarga por mes calendario a toda tienda activa o en prueba, sin mirar cómo paga. Una tienda anual sigue recibiendo sus créditos cada mes, sin cambios.
 - **Aviso de renovación anual:** a 30 días, con la regla de Hoy de §4.1. El estado de cobro (`vence_pronto`, 3 días) no cambia: el aviso anual es un asunto aparte de Hoy, no un estado nuevo.
 - **Pausar por falta de pago no es automático** en esta versión. Hoy lo sugiere cuando una tienda está `vencida`, y Lewis decide desde la ficha (`cambiar_estado_tienda` en versión admin).
@@ -232,4 +233,5 @@ Cada parte es un PR. Las partes 2, 3 y 4 dependen de la 1. Entre ellas son indep
 2. **Hoy, Tiendas, ficha y Ver como** (`admin-2-tiendas.md`): el armazón `/admin` con su barra, y el modo solo mirar en la capa de datos.
 3. **Trabajo: catálogos, fotos (retoque real) y Personalizar** (`admin-3-trabajo.md`): incluye el cambio del retoque en el panel de la tienda.
 4. **Cobros, Planes, Más, Salud y Registro** (`admin-4-cobros.md`): incluye que la app de las tiendas lea los planes de la base.
+5. **Suscripción de la tienda** (`docs/prompts/suscripcion-tienda.md`, después de la 4): lo que la tienda ve para elegir plan y pagar, más «Por revisar» en Cobros y en Hoy. No confundir con las invitaciones del onboarding, que son otra parte.
 5. **Invitaciones** (con el onboarding; sin prompt todavía).

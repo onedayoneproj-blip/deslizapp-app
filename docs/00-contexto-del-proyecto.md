@@ -84,6 +84,7 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 2. Hoy, Tiendas, ficha y Ver como: `docs/prompts/admin-2-tiendas.md`.
 3. Trabajo (catálogos, retoque real) y Personalizar: `docs/prompts/admin-3-trabajo.md`.
 4. Cobros, Planes, Más, Salud y Registro: `docs/prompts/admin-4-cobros.md`.
+5. **Suscripción de la tienda** (elegir plan, pagar con captura, «Por revisar» en Cobros, pausa; diseño aprobado el 6 oct 2026): `docs/prompts/suscripcion-tienda.md`, después de la 4. Precios, pago anual y pruebas: `docs/14-precios-y-lanzamiento.md`. Diseño: `referencias/suscripcion/`.
 
 **Dos Coding en paralelo** (desde el 5 oct 2026): uno construye el admin y otro hace los pendientes de la app. Reglas para que no se pisen:
 - Cada uno en su rama, desde `main` actualizado. Antes de abrir o actualizar un PR, `git fetch origin && git rebase origin/main`.
