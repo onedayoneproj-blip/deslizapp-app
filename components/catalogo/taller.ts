@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CREDITOS_POR_RETOQUE } from "@/lib/config";
+import { avisoFotoEnProceso } from "@/lib/retoque-textos";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -94,7 +94,7 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
     setPidiendo(url);
     try {
       await pedirRetoque(tiendaId, productoId, url);
-      avisar(`Tu foto está en el taller. Reservamos ${CREDITOS_POR_RETOQUE} créditos; se cobran al entregarla.`);
+      avisar(avisoFotoEnProceso());
       return true;
     } catch (e) {
       // Si la respuesta se perdió, se mira el taller antes de decir que no.
@@ -102,7 +102,7 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
         const ahora = await trabajosRetoque(tiendaId);
         if (ahora.some((t) => t.productoId === productoId && t.medioUrlOriginal === url && t.estado === "pendiente")) {
           reintentar();
-          avisar(`Tu foto está en el taller. Reservamos ${CREDITOS_POR_RETOQUE} créditos; se cobran al entregarla.`);
+          avisar(avisoFotoEnProceso());
           return true;
         }
       } catch {

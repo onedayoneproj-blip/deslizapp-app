@@ -115,8 +115,17 @@ try {
     const pedir = async (producto) => {
       await page.goto(`${BASE}/catalogo/${producto}/editar`);
       await page.getByRole("button", { name: /^Foto 1 de/ }).click();
+      const retoque = page.getByRole("list", { name: "Retoque" });
+      await retoque.getByText("Retocar foto").waitFor();
+      ok(await retoque.getByText("Beta", { exact: true }).isVisible(), "«Beta» junto a «Retocar foto»");
+      ok(await retoque.getByText("Se retoca con tu marca como guía. Cuesta 5 créditos.", { exact: true }).isVisible(), "la ficha dice con qué se retoca y cuánto cuesta");
+      if (producto === TOBILLERA) await capturar(page, "panel-ficha-retocar-beta");
       await page.getByRole("button", { name: "Retocar", exact: true }).click();
       await page.getByText("En el taller", { exact: true }).first().waitFor();
+      ok(await retoque.getByText("Beta", { exact: true }).isVisible(), "«Beta» también en «En el taller»");
+      ok(await retoque.getByText("Tu foto está en proceso, con tu marca como guía. Reservamos 5 créditos; se cobran cuando esté lista.", { exact: true }).isVisible(), "el taller explica el proceso y la reserva");
+      ok(await retoque.getByText("Hecho con criterio de marca.", { exact: true }).isVisible(), "y remata en Caveat");
+      ok((await retoque.getByText(/horas|días|minutos/).count()) === 0, "sin tiempo estimado inventado");
     };
     await pedir(TOBILLERA);
     await capturar(page, "panel-foto-en-el-taller");
@@ -163,11 +172,20 @@ try {
     await page.goto(`${BASE}/catalogo/${TOBILLERA}/editar`);
     await page.getByText("Tu foto salió del taller.").waitFor();
     ok(true, "la tienda ve la tostada «Tu foto salió del taller.»");
+    await page.getByRole("button", { name: /^Foto 1 de/ }).click();
+    ok(await page.getByRole("list", { name: "Retoque" }).getByText("Retocada por el equipo").isVisible() && (await page.getByRole("list", { name: "Retoque" }).getByText("Beta", { exact: true }).isVisible()), "«Beta» también en la foto entregada");
+    await capturar(page, "panel-foto-entregada-beta");
     await page.goto(`${BASE}/catalogo/${ANILLO}/editar`);
     await page.getByRole("button", { name: /devuelta por el taller/ }).click();
     ok(await page.getByText("«Tiene muy poca luz.»").waitFor({ timeout: 10000 }).then(() => true, () => false), "la tienda ve el motivo");
     ok(await page.getByRole("button", { name: "Subir otra" }).isVisible(), "y puede subir otra");
+    ok(await page.getByRole("list", { name: "Retoque" }).getByText("Beta", { exact: true }).isVisible(), "«Beta» también en la foto devuelta");
     await capturar(page, "panel-foto-devuelta");
+    await page.goto(`${BASE}/`);
+    await page.getByRole("button", { name: /Ver plan y créditos/ }).click();
+    ok(await page.getByRole("dialog").getByText("Beta", { exact: true }).isVisible(), "«Beta» en la hoja de plan y créditos");
+    await capturar(page, "hoja-plan-beta");
+    await page.keyboard.press("Escape");
     await page.goto(`${BASE}/tienda/luna-bisuteria?demo`);
     await page.waitForFunction(() => [...document.images].some((i) => i.currentSrc.startsWith("data:image/") || i.src.includes("data%3Aimage") || i.src.startsWith("data:image/")), null, { timeout: 15000 });
     ok(true, "el catálogo público de la demo ya muestra la foto retocada");

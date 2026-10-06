@@ -50,3 +50,15 @@ export const MOSTRAR_MARCA_DESLIZAPP_EN_CUPON = true;
  * "Demo" en la ficha.
  */
 export const RETOQUE_REAL = true;
+
+/**
+ * El retoque es una función Beta: no es automático. Un modelo de inteligencia de imagen procesa la foto, asistido por expertos
+ * en branding de Deslizapp que parten de la marca de la tienda; por eso tarda. Esta es la etiqueta que lo dice, en un solo sitio.
+ */
+export const ETIQUETA_RETOQUE_BETA = "Beta";
+
+/**
+ * Cuánto tarda, dicho como texto corto ("hasta 48 horas"). Vacío = no se muestra nada: todavía no se mide y no se inventa
+ * (lo fija Lewis).
+ */
+export const TIEMPO_RETOQUE_TEXTO = "";
