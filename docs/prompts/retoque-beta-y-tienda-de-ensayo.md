@@ -20,7 +20,7 @@ El retoque **no es automático**. Un modelo de inteligencia de imagen procesa la
 
 ## 3. Textos del retoque (sin pantalla de bienvenida)
 
-- En la ficha, bajo el título de la foto: «Inteligencia de imagen guiada por tu marca. Cuesta 5 créditos.»
+- En la ficha, bajo el título de la foto: «Se retoca con tu marca como guía. Cuesta 5 créditos.»
 - En el taller: «Tu foto está en proceso, con tu marca como guía. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Hecho con criterio de marca.»
 - Si hay un tiempo estimado, ponlo en una constante de `lib/config.ts` (`TIEMPO_RETOQUE_TEXTO`) y no lo muestres si está vacía. **No inventes un número**; Lewis lo fija.
 - **No** hagas pantalla de bienvenida ni enlace «Cómo funciona»: vienen después con Mi marca.
