@@ -1,5 +1,5 @@
 import type { CatalogoPublico } from "../types";
-import { cabeceraSegura } from "./svg-cabecera";
+import { cabeceraSegura } from "./svg-cabecera.ts";
 export type TemaCatalogo = {
   colores: Record<string, string>;
   fuentes: { display: string; body: string };
