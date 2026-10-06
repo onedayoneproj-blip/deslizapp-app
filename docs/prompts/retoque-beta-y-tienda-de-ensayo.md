@@ -4,7 +4,9 @@
 
 ## 0. Antes de empezar
 
-Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md`, `docs/11-voz-y-frases.md` (la voz manda en todo texto), `docs/09-sistema-de-diseno.md`, `docs/13-admin.md` §7 y `docs/14-precios-y-lanzamiento.md` §2. Tu puesto es **Coding**. Mira cómo quedó el retoque en `components/catalogo/ficha-medios.tsx`, `components/catalogo/taller.ts`, `lib/data/retoques.ts` y `lib/config.ts` (`RETOQUE_REAL`).
+Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md`, `docs/11-voz-y-frases.md` (la voz manda en todo texto), `docs/09-sistema-de-diseno.md`, `docs/13-admin.md` §7, `referencias/retoque-beta/LEEME.md` y `docs/14-precios-y-lanzamiento.md` §2. Tu puesto es **Coding**. Mira cómo quedó el retoque en `components/catalogo/ficha-medios.tsx`, `components/catalogo/taller.ts`, `lib/data/retoques.ts` y `lib/config.ts` (`RETOQUE_REAL`).
+
+Diseño aprobado: `referencias/retoque-beta/` (LEEME y tableros `Ficha`, `Bienvenida`, `ComoFunciona`, `EnElTaller`, con capturas). Síguelo en medidas, jerarquía y textos; no copies su HTML.
 
 ## 1. Por qué
 

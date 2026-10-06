@@ -1,0 +1,42 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-06T15:55:00Z"
+  },
+  "title": "Retoque Beta de Deslizapp",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Ficha.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Ficha con la etiqueta Beta"
+    },
+    "Bienvenida.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 Bienvenida (primera vez)"
+    },
+    "ComoFunciona.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 \u00abC\u00f3mo funciona\u00bb reabierto"
+    },
+    "EnElTaller.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "4 \u00b7 En el taller"
+    }
+  }
+}

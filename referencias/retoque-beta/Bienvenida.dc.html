@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bienvenida</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.beta{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#ffe3d6;color:#a8410f;font:800 11px/1 'Figtree',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.beta.on{background:#fff9ee;color:#174b3a}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;background:#fff9ee;font-family:'Figtree',sans-serif;color:#174b3a;">
+  <div style="position:absolute;left:0;right:0;top:0;height:430px;background:linear-gradient(160deg,#d9c3a0,#b99a73 55%,#93a89c);"></div>
+  <div style="position:absolute;left:16px;top:16px;width:44px;height:44px;border-radius:999px;background:#fff9ee;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+
+  <div style="position:absolute;left:0;right:0;top:410px;bottom:0;background:#fff9ee;border-radius:28px 28px 0 0;padding:22px 20px;display:flex;flex-direction:column;gap:14px;">
+    <div><h2 class="f" style="margin:0;font-size:26px;line-height:30px;">Tobillera Arena</h2><div style="font-size:14.5px;color:#4f6a5e;margin-top:2px;">Bisutería · 1 en stock</div></div>
+    
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(23,75,58,.55);"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff9ee;border-radius:28px 28px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:16px;">
+    <div style="display:flex;justify-content:center;"><span style="width:40px;height:5px;border-radius:999px;background:#e7dcc8;"></span></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div><span class="beta">Beta</span>
+        <h2 class="f" style="margin:8px 0 0;font-size:28px;line-height:32px;">Retoque con ojo humano.</h2>
+        <div class="f" style="font-size:28px;line-height:32px;color:#ff834f;">No lo hace una máquina sola.</div></div>
+      <button type="button" aria-label="Cerrar" style="width:44px;height:44px;flex-shrink:0;border-radius:999px;border:none;background:#f3ead9;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;gap:12px;"><span class="f" style="width:32px;height:32px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">1</span><div><b style="font-size:16.5px;">Pides.</b><div style="font-size:14.5px;line-height:20px;color:#4f6a5e;">Reservamos los créditos. No se cobran hasta que la foto esté lista.</div></div></div>
+      <div style="display:flex;gap:12px;"><span class="f" style="width:32px;height:32px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">2</span><div><b style="font-size:16.5px;">Una persona la trabaja.</b><div style="font-size:14.5px;line-height:20px;color:#4f6a5e;">Usa IA, pero escoge ella: la foto que se parece a tu marca y conecta con tus clientes.</div></div></div>
+      <div style="display:flex;gap:12px;"><span class="f" style="width:32px;height:32px;border-radius:999px;background:#174b3a;color:#fff9ee;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">3</span><div><b style="font-size:16.5px;">Te avisamos.</b><div style="font-size:14.5px;line-height:20px;color:#4f6a5e;">Te sale en el producto y decides si te gusta.</div></div></div>
+    </div>
+    <div style="background:#ffe3d6;border-radius:16px;padding:12px 14px;font-size:14px;line-height:20px;font-weight:600;color:#a8410f;">Es una función en Beta. Tarda más que un filtro, y se nota en el resultado. Si una foto no sale como debe, te devolvemos los créditos.</div>
+    <div style="display:flex;flex-direction:column;gap:6px;"><button type="button" style="height:54px;border-radius:999px;border:none;background:#174b3a;color:#fff9ee;font:800 17px 'Figtree',sans-serif;">Entendido, retocar</button>
+      <button type="button" style="height:48px;border:none;background:none;color:#174b3a;font:800 15px 'Figtree',sans-serif;">Ahora no</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
