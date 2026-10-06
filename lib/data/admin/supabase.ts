@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorAdmin, type FuenteAdmin } from "./fuente-admin";
+import { problemaDeArchivo, tipoDeDataUrl } from "../almacen";
+import { nuevoId } from "../db";
+import { comprimirParaSubir } from "../../imagen";
+
+/** Bucket público de las fotos que entrega el equipo (sube solo un admin; la tienda solo las ve). */
+export const BUCKET_RETOQUES = "retoques";
+const EXTENSION_RETOQUE: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
 const opacos = new Set([
   "datos",
@@ -58,6 +65,34 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
         { p_tienda_id: tiendaId, p_cambios: cambios },
         false,
       ),
+    productosTienda: (tiendaId) =>
+      rpc("admin_productos_tienda", { p_tienda_id: tiendaId }),
+    personalizacionTienda: (tiendaId) =>
+      rpc("admin_personalizacion_tienda", { p_tienda_id: tiendaId }),
+    async subirRetocada(trabajo, dataUrl) {
+      if (problemaDeArchivo(tipoDeDataUrl(dataUrl), 0) === "formato")
+        throw new ErrorAdmin("formato_no_permitido");
+      let blob: Blob;
+      try {
+        blob = await comprimirParaSubir(dataUrl);
+      } catch {
+        throw new ErrorAdmin("formato_no_permitido");
+      }
+      if (problemaDeArchivo(blob.type, blob.size) === "grande")
+        throw new ErrorAdmin("archivo_muy_grande");
+      // Nombre nuevo en cada intento (upsert false): un reintento nunca pisa la foto de otro intento ni de otro trabajo.
+      const ruta = `${trabajo.tiendaId}/${trabajo.id}-${nuevoId()}.${EXTENSION_RETOQUE[blob.type] ?? "jpg"}`;
+      let error: unknown;
+      try {
+        ({ error } = await cliente.storage
+          .from(BUCKET_RETOQUES)
+          .upload(ruta, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false }));
+      } catch (e) {
+        error = e;
+      }
+      if (error) throw new ErrorAdmin("subida_fallida", error instanceof Error ? error.message : "subida_fallida");
+      return cliente.storage.from(BUCKET_RETOQUES).getPublicUrl(ruta).data.publicUrl;
+    },
     trabajosRetoque: (estado = "pendiente") =>
       rpc("admin_trabajos_retoque", { p_estado: estado }),
     entregarRetoque: (trabajoId, urlRetocada) =>

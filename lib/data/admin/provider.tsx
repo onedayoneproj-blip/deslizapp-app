@@ -2,16 +2,20 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { FuenteAdmin } from "./fuente-admin";
-import { crearFuenteAdminDemo } from "./demo";
+import { crearFuenteAdminDemoCompartida } from "./demo-compartida";
+import { escribirDemoDesdeAdmin, leerDemoGuardada } from "../demo";
 import { crearFuenteAdminSupabase } from "./supabase";
 import { createClient } from "@/lib/supabase/client";
 
 const ContextoAdmin = createContext<{ fuente: FuenteAdmin; demo: boolean } | null>(null);
 
-/** La demo crea exclusivamente su almacén local; nunca instancia el cliente de Supabase. */
+/**
+ * La demo crea exclusivamente su almacén local y comparte con la demo del panel de este navegador las tiendas, el taller
+ * y la personalización; nunca instancia el cliente de Supabase.
+ */
 export function ProveedorAdmin({ children, demo = false }: { children: ReactNode; demo?: boolean }) {
   const [fuente] = useState<FuenteAdmin>(() =>
-    demo ? crearFuenteAdminDemo() : crearFuenteAdminSupabase(createClient()),
+    demo ? crearFuenteAdminDemoCompartida(leerDemoGuardada, escribirDemoDesdeAdmin) : crearFuenteAdminSupabase(createClient()),
   );
   const valor = useMemo(() => ({ fuente, demo }), [fuente, demo]);
   return <ContextoAdmin.Provider value={valor}>{children}</ContextoAdmin.Provider>;
