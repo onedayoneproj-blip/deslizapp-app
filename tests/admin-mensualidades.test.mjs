@@ -6,38 +6,74 @@ const { crearEstadoAdminDemo } = await import("../lib/data/admin/seed.ts");
 const { crearFuenteAdminDemo } = await import("../lib/data/admin/demo.ts");
 const { recalcularMensualidades } = await import("../lib/admin/pagos.ts");
 
-test("demo: reservas y créditos usados bloquean reversión; liberar permite anular",async()=>{
-  const e=crearEstadoAdminDemo(),t=e.panel.tiendas[0];
-  e.usuarioId=e.panel.usuarios.find(u=>u.tiendaId===t.id&&u.rol==="dueno").id;
-  e.admins[0].usuarioId=e.usuarioId;
-  e.trabajos=[];e.movimientos=e.movimientos.filter(m=>m.tiendaId!==t.id);t.creditosRetoque=0;
-  const f=crearFuenteAdminDemo(e);
-  const p=(await f.registrarPago({tiendaId:t.id,concepto:"creditos",monto:500,metodo:"efectivo",creditos:10})).pago;
-  const foto=e.panel.productos.find(p=>p.tiendaId===t.id&&p.medios.some(m=>m.tipo==="foto"));
-  const tr=await f.pedirRetoque(foto.id,foto.medios.find(m=>m.tipo==="foto").url);
-  let antes=structuredClone(e);
-  await assert.rejects(f.anularPago(p.id,"reserva"),/creditos_ya_usados/);assert.deepEqual(e,antes);
-  await f.devolverRetoque(tr.id,"fixture");
-  await f.ajustarCreditos(t.id,-1,"consumido");
-  antes=structuredClone(e);
-  await assert.rejects(f.anularPago(p.id,"usados"),/creditos_ya_usados/);assert.deepEqual(e,antes);
-  await f.ajustarCreditos(t.id,1,"restaurar");
-  assert.equal((await f.anularPago(p.id,"liberado")).creditos,0);
+test("demo: reservas y créditos usados bloquean reversión; liberar permite anular", async () => {
+  const e = crearEstadoAdminDemo(),
+    t = e.panel.tiendas[0];
+  e.usuarioId = e.panel.usuarios.find(
+    (u) => u.tiendaId === t.id && u.rol === "dueno",
+  ).id;
+  e.admins[0].usuarioId = e.usuarioId;
+  e.trabajos = [];
+  e.movimientos = e.movimientos.filter((m) => m.tiendaId !== t.id);
+  t.creditosRetoque = 0;
+  const f = crearFuenteAdminDemo(e);
+  const p = (
+    await f.registrarPago({
+      tiendaId: t.id,
+      concepto: "creditos",
+      monto: 500,
+      metodo: "efectivo",
+      creditos: 10,
+    })
+  ).pago;
+  const foto = e.panel.productos.find(
+    (p) => p.tiendaId === t.id && p.medios.some((m) => m.tipo === "foto"),
+  );
+  const tr = await f.pedirRetoque(
+    foto.id,
+    foto.medios.find((m) => m.tipo === "foto").url,
+  );
+  let antes = structuredClone(e);
+  await assert.rejects(f.anularPago(p.id, "reserva"), /creditos_ya_usados/);
+  assert.deepEqual(e, antes);
+  await f.devolverRetoque(tr.id, "fixture");
+  await f.ajustarCreditos(t.id, -1, "consumido");
+  antes = structuredClone(e);
+  await assert.rejects(f.anularPago(p.id, "usados"), /creditos_ya_usados/);
+  assert.deepEqual(e, antes);
+  await f.ajustarCreditos(t.id, 1, "restaurar");
+  assert.equal((await f.anularPago(p.id, "liberado")).creditos, 0);
 });
-test("demo: fallo durante auditoría revierte pago, fecha y registro",async()=>{
-  const e=crearEstadoAdminDemo(),id=e.panel.tiendas[0].id;e.panel.tiendas[0].pagadoHasta=null;
-  const f=crearFuenteAdminDemo(e);
-  const p=(await f.registrarPago({tiendaId:id,concepto:"mensualidad",monto:1000,metodo:"efectivo"})).pago;
-  const antes=structuredClone(e),push=Array.prototype.push;
+test("demo: fallo durante auditoría revierte pago, fecha y registro", async () => {
+  const e = crearEstadoAdminDemo(),
+    id = e.panel.tiendas[0].id;
+  e.panel.tiendas[0].pagadoHasta = null;
+  const f = crearFuenteAdminDemo(e);
+  const p = (
+    await f.registrarPago({
+      tiendaId: id,
+      concepto: "mensualidad",
+      monto: 1000,
+      metodo: "efectivo",
+    })
+  ).pago;
+  const antes = structuredClone(e),
+    push = Array.prototype.push;
   try {
     // Inyección solo en el proceso de prueba, sin añadir hooks de fallo a la app.
-    Array.prototype.push=function(...items){
-      if(items.some(x=>x?.accion==="anular_pago"))throw new Error("fallo_auditoria_fixture");
-      return push.apply(this,items);
+    Array.prototype.push = function (...items) {
+      if (items.some((x) => x?.accion === "anular_pago"))
+        throw new Error("fallo_auditoria_fixture");
+      return push.apply(this, items);
     };
-    await assert.rejects(f.anularPago(p.id,"fixture"),/fallo_auditoria_fixture/);
-  } finally {Array.prototype.push=push;}
-  assert.deepEqual(e,antes);
+    await assert.rejects(
+      f.anularPago(p.id, "fixture"),
+      /fallo_auditoria_fixture/,
+    );
+  } finally {
+    Array.prototype.push = push;
+  }
+  assert.deepEqual(e, antes);
 });
 
 export async function probarDemo(caso) {
