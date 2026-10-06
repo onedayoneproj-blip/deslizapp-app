@@ -19,7 +19,7 @@ Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras ti
 - Los planes anteriores (`p20`, `p60`, `p100`) dejan de ofrecerse (`se_ofrece = false`); quien los tiene los conserva.
 - **Video solo desde Tienda:** el video pesa mucho (cerca de 10 MB por 30 s) y el plan gratis de Supabase tiene 1 GB. **Esa restricción por plan todavía no existe en el código**; se decide cuando se construya.
 - **Créditos comprados:** se siguen vendiendo en paquetes y no vencen. **El precio del paquete se fija cuando se mida lo que cuesta cada foto retocada con IA** (todavía no medido). Los créditos mensuales no se acumulan.
-- **Retoque con IA:** hoy el admin trabaja con una cola de entrega manual (docs/13 §7). Queda por decidir si la IA retoca dentro de la app (automático, con costo por foto) o si Lewis la usa por fuera y sube el resultado. La cola sirve de puente.
+- **Retoque con IA:** hoy el admin trabaja con una cola de entrega manual (docs/13 §7). Queda por decidir si la IA retoca dentro de la app (automático, con costo por foto) o si Lewis la usa por fuera y sube el resultado. La cola sirve de puente. **Mientras tanto el retoque es una función Beta y lo hace una persona que supervisa la IA** (ojo y gusto, no un botón automático); la app lo dice con una etiqueta «Beta» y una pantalla de bienvenida la primera vez (`docs/prompts/retoque-beta-y-tienda-de-ensayo.md`).
 
 ## 3. Pago anual
 
