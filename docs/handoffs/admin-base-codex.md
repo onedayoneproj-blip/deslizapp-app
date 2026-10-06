@@ -2,6 +2,7 @@
 
 Fecha: 6 de octubre de 2026. Puesto: Coding, exclusivamente admin.
 Rama: `feature/admin-base`, desde `origin/main` (`dc76745`).
+PR abierto contra main: [#51](https://github.com/onedayoneproj-blip/deslizapp-app/pull/51), sin merge ni despliegue.
 Checkout independiente: `/workspace/deslizapp-admin`. No se incorporó PR #45 ni se modificó el workspace de otra sesión.
 
 ## Recuperación y procedencia

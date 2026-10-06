@@ -24,7 +24,20 @@ Se ejecutaron en el checkout independiente actualizado con origin/main. Los resu
 
 El replay reproducible es `npm run probar:admin-db` (requiere Docker, Node y Python). Crea y elimina su contenedor; no conecta a producción. Las pruebas SQL usan rollback y datos ficticios. El snapshot de funciones de producción contiene metadatos de funciones, no usuarios.
 
-Los resultados de todos los scripts `probar:*` se añaden al cierre de esta validación.
+Todos los scripts `probar:*` del package.json se ejecutaron:
+
+| Script | Resultado |
+| --- | --- |
+| probar:teclado | Pasa, conserva nodo/foco y sin errores de página |
+| probar:hojas | Pasa, hojas apiladas y aviso al salir |
+| probar:inventario | Pasa, stock/variantes y presentación sin errores |
+| probar:pedido-catalogo | 78/78 casos pasan |
+| probar:pedido-catalogo-transporte | 17/17 casos pasan, Supabase/OAuth simulados; requiere dev por su ruta temporal |
+| probar:admin-db | Pasa el replay y las comprobaciones SQL descritas arriba |
+| probar:pedido-catalogo-db | Pasa el replay previo con disponibilidad/concurrencia |
+| probar:producto | Matriz completa 41/42: timeout aislado al publicar medios, 360/claro. Ese único caso pasa al repetirlo en el build final y también en main independiente. Los otros 41 pasan |
+
+No se presenta la primera ejecución de producto como íntegramente verde. No se reprodujo el timeout en la repetición; no se modificó UI ni el script compartido para esconderlo. Durante preparación se descartaron ejecuciones con el servidor apuntando a un build reemplazado o sin configuración ficticia de transporte. El build final se generó después de eliminar la ruta temporal, que no se publicó.
 
 ## Contrato para la parte 2
 
@@ -50,10 +63,10 @@ Consulta de producción de solo lectura después de recuperar las seis migracion
 
 | Regla | Avisos | Explicación / decisión |
 | --- | --- | --- |
-| rls_enabled_no_policy | INFO × 3 | admin_pospuestos y sesiones_ver_como son tablas de acceso por RPC; sin acceso directo. invitaciones es anterior. No abrir políticas para silenciar el aviso |
-| anon_security_definer_function_executable | WARN × 5 | catalogo_publico, crear_solicitud_pedido, pedir_aviso, registrar_aaah y ver_solicitud son RPC públicas intencionales del catálogo, anteriores al admin |
-| authenticated_security_definer_function_executable | WARN × 74 | Incluye RPC de negocio/admin y helpers existentes. Las administrativas de negocio comprueban soy_admin y rechazan usuario normal; admin_viendo es helper de RLS con sesión vigente. ACL/search_path y denegaciones se prueban. El resto corresponde a contratos previos; no se revocó acceso del panel |
-| auth_leaked_password_protection | WARN × 1 | Configuración Auth existente; requiere decisión de configuración separada, no una migración admin |
-| unindexed_foreign_keys | INFO × 3 | invitaciones_tienda_id_fkey y jugada_envios_cliente_id_fkey / promo_id_fkey son previas; evaluar índices con carga real y coordinación |
-| unused_index | INFO × 18 | Incluye índices nuevos de auditoría/admin aún sin tráfico e índices previos. No eliminarlos por una observación temprana; lista exacta en el snapshot |
-| multiple_permissive_policies | WARN × 6 | clientes, pedido_items, pedidos, producto_variantes, productos, promos: política SELECT adicional de Ver como junto a la política previa FOR ALL. Intencional para conservar escritura del dueño sin concederla al admin observador |
+| [rls_enabled_no_policy](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | INFO × 3 | admin_pospuestos y sesiones_ver_como son tablas de acceso por RPC; sin acceso directo. invitaciones es anterior. No abrir políticas para silenciar el aviso |
+| [anon_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) | WARN × 5 | catalogo_publico, crear_solicitud_pedido, pedir_aviso, registrar_aaah y ver_solicitud son RPC públicas intencionales del catálogo, anteriores al admin |
+| [authenticated_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | WARN × 74 | Incluye RPC de negocio/admin y helpers existentes. Las administrativas de negocio comprueban soy_admin y rechazan usuario normal; admin_viendo es helper de RLS con sesión vigente. ACL/search_path y denegaciones se prueban. El resto corresponde a contratos previos; no se revocó acceso del panel |
+| [auth_leaked_password_protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) | WARN × 1 | Configuración Auth existente; requiere decisión de configuración separada, no una migración admin |
+| [unindexed_foreign_keys](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys) | INFO × 3 | invitaciones_tienda_id_fkey y jugada_envios_cliente_id_fkey / promo_id_fkey son previas; evaluar índices con carga real y coordinación |
+| [unused_index](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index) | INFO × 18 | Incluye índices nuevos de auditoría/admin aún sin tráfico e índices previos. No eliminarlos por una observación temprana; lista exacta en el snapshot |
+| [multiple_permissive_policies](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies) | WARN × 6 | clientes, pedido_items, pedidos, producto_variantes, productos, promos: política SELECT adicional de Ver como junto a la política previa FOR ALL. Intencional para conservar escritura del dueño sin concederla al admin observador |
