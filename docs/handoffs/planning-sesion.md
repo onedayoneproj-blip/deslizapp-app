@@ -18,21 +18,23 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | Prompt | Modelo | Depende de | Cierre |
 |---|---|---|---|
 | `retoque-beta-y-tienda-de-ensayo.md` | Sonnet | — | **Hecho**, PR #55 mergeado el 6 oct |
-| `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | merge a main |
-| `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main |
+| `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | **En curso.** Migración revisada por Planning y autorizada; PR abierto con preview (cambia quién puede retocar). Debe conectar la compuerta al interruptor de #56 |
+| `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main. Incluye §2b: volver del admin al panel |
 | `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
 | `admin-4-cobros.md` | Sonnet | — | según el prompt |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
 
 Sin prompt todavía (los escribe Planning cuando toque):
-- Bloqueo en la base de las escrituras durante Ver como (Opus, rama `fix/ver-como-bloqueo`; `docs/13` §6).
+- ~~Bloqueo en la base de las escrituras durante Ver como~~: prompt escrito, `docs/prompts/ver-como-bloqueo-en-la-base.md` (Opus, rama `fix/ver-como-bloqueo`, PR abierto). Ponerlo en la cola antes de `suscripciones-y-varias-tiendas`.
 - Onboarding, opción B (historias + historias): especificación y prompt; incluye la parte 5 del admin, invitaciones.
 - Adaptar `suscripcion-tienda.md` al modelo de suscripciones por titular (después de `suscripciones-y-varias-tiendas`).
 - «Importar productos» / entrevista de inventario.
 - Actualizar `docs/13` §1 sobre el enlace «Administrar Deslizapp».
 
 ## Decisiones tomadas en esta sesión
+
+- **Marianny = Michel** (Marianny Michel, la dueña de Esencias Michel; en la base, Michel Guerrero). Es la titular de la suscripción sin límite de Esencias Michel.
 
 - **Retoque**: no es automático. Modelo de inteligencia de imagen asistido por expertos en branding, con la marca de la tienda como guía. Es Beta. Créditos: se reservan al pedir, se cobran al entregar, «Devolver» los regresa. Es **opcional**: la tienda decide con un interruptor al subir la foto (prompt `retoque-al-subir.md`).
 - **Mi marca**: logo, Instagram, 3 palabras, 3 a 6 fotos de referencia y «lo que no quiero» opcional. Marca lista = 3 palabras y al menos 3 referencias; sin eso no se puede retocar. Bienvenida animada (hoja) la primera vez. El paquete «Marca y diseño» cuesta RD$5,000, con precio editable y promociones.
@@ -42,7 +44,6 @@ Sin prompt todavía (los escribe Planning cuando toque):
 
 ## Preguntas abiertas para Lewis
 
-- ¿Quién es «Marianny»? Pidió que su usuario fuera ilimitado, pero en la base los dueños de Esencias Michel son Lewis Bautista y Michel Guerrero. Confirmar antes de que corra `suscripciones-y-varias-tiendas`.
 - ¿El límite de colaboradores se cuenta por suscripción? (Así está en el prompt.)
 - Tiempo de entrega del retoque (`TIEMPO_RETOQUE_TEXTO` vacío hasta que lo mida).
 - Número de WhatsApp de Deslizapp (`WHATSAPP_DESLIZAPP` en `lib/config.ts` está vacío).
