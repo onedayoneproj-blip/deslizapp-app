@@ -149,4 +149,4 @@ PR con:
   3. Poner el precio de los paquetes de créditos.
   4. Con una tienda de prueba, elegir un plan, mandar un «Ya pagué» con una captura y confirmarlo desde Cobros.
 
-**Déjalo abierto, sin merge.** Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` (la tienda ve algo nuevo: pagar y el recibo).
+**Déjalo abierto, sin merge** (es uno de los casos de precaución de `docs/00`: cobra a tiendas reales). Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` (la tienda ve algo nuevo: pagar y el recibo).

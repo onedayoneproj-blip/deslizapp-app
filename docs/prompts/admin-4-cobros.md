@@ -1,6 +1,6 @@
 # Admin, parte 4: Cobros, Planes, Más, Salud y Registro (rama `feature/admin-cobros`)
 
-> **Modelo:** en Codex, el más alto con razonamiento alto. En Claude Code, Opus 5.5. Toca dinero y hace que la app de las tiendas lea los planes de la base.
+> **Modelo:** en Claude Code, Sonnet 5.5; en Codex, el modelo principal con razonamiento medio. Toca cobros, pero solo los registra Lewis y solo él ve el admin; las migraciones siguen las reglas de `docs/00`.
 
 ## 0. Antes de empezar
 
@@ -92,4 +92,4 @@ PR con:
   2. Asignar el plan a Michel.
   3. Registrar su pago y mandarle el recibo.
 
-**Déjalo abierto, sin merge.** Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` si la tienda ve algo nuevo (planes, recibo).
+**Si todo pasa, haz merge (squash) a `main`**: el admin solo lo ve Lewis. Déjalo abierto solo si algo falla o decidiste algo que no estaba en el prompt. Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` si la tienda ve algo nuevo (planes, recibo).
