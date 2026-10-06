@@ -406,8 +406,7 @@ function HojaFrase({ abierta, alCerrar, frase, valor, alGuardar }: { abierta: bo
 }
 
 function HojaOrden({ abierta, alCerrar, productos, alCambiar }: { abierta: boolean; alCerrar: () => void; productos: ProductoAdmin[]; alCambiar: (ids: string[]) => void }) {
-  const lista = useRef<HTMLOListElement>(null);
-  const [arrastre, setArrastre] = useState<{ id: string; desde: number; y0: number; dy: number } | null>(null);
+  const [arrastre, setArrastre] = useState<{ id: string; desde: number; y0: number; dy: number; alto: number } | null>(null);
   const [anuncio, setAnuncio] = useState("");
   const ids = productos.map((p) => p.id);
   const mover = (desde: number, hasta: number) => {
@@ -418,8 +417,7 @@ function HojaOrden({ abierta, alCerrar, productos, alCambiar }: { abierta: boole
     alCambiar(nuevo);
     setAnuncio(`${productos[desde]!.nombre}: puesto ${hasta + 1} de ${ids.length}.`);
   };
-  const alto = () => (lista.current?.firstElementChild as HTMLElement | null)?.offsetHeight ?? 64;
-  const destino = arrastre ? Math.max(0, Math.min(ids.length - 1, arrastre.desde + Math.round(arrastre.dy / alto()))) : -1;
+  const destino = arrastre ? Math.max(0, Math.min(ids.length - 1, arrastre.desde + Math.round(arrastre.dy / arrastre.alto))) : -1;
   const soltar = () => {
     if (arrastre && destino !== arrastre.desde) mover(arrastre.desde, destino);
     setArrastre(null);
@@ -429,7 +427,7 @@ function HojaOrden({ abierta, alCerrar, productos, alCambiar }: { abierta: boole
       <div className="px-5 pb-6">
         <p className="mb-3 text-secundario text-texto-secundario">Arrastra desde ⠿ o usa las flechas. El primero es el que se ve primero.</p>
         <p className="sr-only" aria-live="polite">{anuncio}</p>
-        <ol ref={lista} className="overflow-hidden rounded-radio-l border border-linea bg-superficie">
+        <ol className="overflow-hidden rounded-radio-l border border-linea bg-superficie">
           {productos.map((p, i) => {
             const foto = p.medios.find((m) => m.tipo === "foto")?.url;
             const arrastrado = arrastre?.id === p.id;
@@ -444,7 +442,8 @@ function HojaOrden({ abierta, alCerrar, productos, alCambiar }: { abierta: boole
                   className="grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center text-texto-secundario select-none"
                   onPointerDown={(e: EventoPuntero<HTMLSpanElement>) => {
                     e.currentTarget.setPointerCapture(e.pointerId);
-                    setArrastre({ id: p.id, desde: i, y0: e.clientY, dy: 0 });
+                    // El alto de una fila se mide al empezar (no durante el render).
+                    setArrastre({ id: p.id, desde: i, y0: e.clientY, dy: 0, alto: (e.currentTarget.parentElement as HTMLElement).offsetHeight || 64 });
                   }}
                   onPointerMove={(e) => arrastre?.id === p.id && setArrastre({ ...arrastre, dy: e.clientY - arrastre.y0 })}
                   onPointerUp={soltar}
