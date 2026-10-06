@@ -30,6 +30,18 @@ Título «Tus tiendas» si hay más de una, «Tu tienda» si hay una. De arriba 
 - **Demo:** misma hoja con las tiendas de la demo y la cuenta como «Cuenta de demo» (iniciales) con «Salir de la demo»; la sección «Modo demo» y su laboratorio siguen abajo como hoy.
 - **Ver como (`soloMirar`):** no se cambia de tienda; la tarjeta de la tienda se ve y el botón dice «Cerrar sesión y salir», como hoy. Las demás filas, apagadas con `data-solo-mirar-permitido` donde ya se use.
 
+## 2b. Volver del admin al panel de la tienda
+
+Hoy, dentro de `/admin`, no hay forma de volver al panel: el encabezado de `components/admin/marco.tsx` tiene un círculo «LE» fijo (con `aria-label="Lewis"` escrito a mano) que no se toca, y «Más» es un marcador.
+
+- **El círculo de la derecha del encabezado del admin pasa a ser la cuenta real**: la misma foto de Google / iniciales del §2.4 (reutiliza el componente de cuenta que hagas para el menú; nada de nombres escritos a mano). Tocarlo abre una hoja corta (`Hoja altura="auto"`) con:
+  1. **«Ir a mi tienda»** (fila con el logo y el nombre de la tienda por defecto de la cuenta, y chevron): lleva a `/`, el panel de esa tienda. Si la cuenta no tiene tienda, la fila no aparece.
+  2. La cuenta (foto, nombre, correo) y «Cerrar sesión», igual que en el menú de la tienda.
+- La navegación inferior del admin no cambia (no se agrega una sexta pestaña).
+- **`/admin-demo`:** la misma hoja; «Ir a mi tienda» lleva al panel de la demo de ese navegador, y la cuenta es «Cuenta de demo».
+- **Ver como:** el admin ya redirige a `/` cuando hay una vista activa; no cambies ese caso.
+- Con esto, ida y vuelta queda así: panel → «Administrar Deslizapp» → admin → cuenta → «Ir a mi tienda» → panel.
+
 ## 3. Cambiar de tienda en la app real
 
 - La lista sale de **las tiendas de las que la cuenta es miembro** (no eliminadas), ordenadas con la activa primero y después por nombre. Si `getTiendas` hoy devuelve otra cosa, ajústalo sin abrir lectura de tiendas ajenas (las políticas por membresía ya filtran; comprueba que un admin fuera de Ver como no recibe todas las tiendas).
@@ -49,7 +61,9 @@ Título «Tus tiendas» si hay más de una, «Tu tienda» si hay una. De arriba 
 
 - Pruebas unitarias de la ordenación de las tiendas, del texto de cada estado de Mi marca y de que **cambiar de tienda no deja datos de la anterior** (con el laboratorio y la demo; la cuenta real de Lewis tiene dos tiendas: Esencias Michel y la «Tienda de ensayo», pero tú no tienes su sesión: **no pruebes con ella ni cambies su tienda por defecto**; dile que lo pruebe él).
 - Demo con 3 tiendas: lista, cambio, aviso, Mi marca dentro de la tarjeta. Con 1 tienda. Ver como (sin cambio posible). Cuenta sin foto.
+- Admin (`/admin-demo` en navegador; `/admin` real solo hasta donde llegue sin la sesión de Lewis): el círculo abre la hoja, «Ir a mi tienda» vuelve al panel, y del panel se regresa con «Administrar Deslizapp».
+- **Otra sesión de Coding está haciendo Mi marca en paralelo (`feat/mi-marca`) y también toca `menu-tienda.tsx`.** Haz `git fetch origin && git rebase origin/main` antes de abrir el PR; si Mi marca ya entró, usa su función de «marca lista» en la fila de Mi marca. No edites su migración ni sus archivos de `components/marca-tienda/` más allá de abrir la hoja.
 - `tsc`, tests, lint y build sin errores nuevos; regresiones del panel y del menú; `npm run revisar:migraciones` en cero (no debe haber cambios).
 - Novedad en el panel con el siguiente número de versión (`lib/novedades.ts`), una frase en la voz de la marca.
 - Actualiza `docs/04-pantallas.md` (el menú de la tienda) y la sección que cuente que el selector era solo de la demo.
-- Resume en español, corto: qué cambió, qué debe probar Lewis con su cuenta (cambiar entre Michel y la ensayo) y cualquier decisión que tomaste.
+- Resume en español, corto: qué cambió, qué debe probar Lewis con su cuenta (cambiar entre Michel y la ensayo, y la ida y vuelta panel ↔ admin) y cualquier decisión que tomaste.
