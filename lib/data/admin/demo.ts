@@ -1,4 +1,6 @@
 import { ErrorAdmin, type FuenteAdmin } from "./fuente-admin";
+import type { DB } from "../db";
+import { marcaDeDB } from "../marca-retoque";
 import { recalcularMensualidades } from "../../admin/pagos";
 import {
   crearEstadoAdminDemo,
@@ -588,6 +590,11 @@ export function crearFuenteAdminDemo(
               (p) => p.id === t.productoId,
             )!.nombre,
           }));
+      }),
+    marcaTienda: (id) =>
+      leer(() => {
+        tienda(id);
+        return marcaDeDB(e.panel as unknown as DB, id);
       }),
     productosTienda: (id) =>
       leer(() => {

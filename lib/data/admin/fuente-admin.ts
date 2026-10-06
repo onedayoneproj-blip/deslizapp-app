@@ -1,3 +1,4 @@
+import type { MarcaRetoque } from "../../marca-retoque";
 import type {
   Admin,
   AsuntoAdmin,
@@ -50,6 +51,8 @@ export interface FuenteAdmin {
   productosTienda(tiendaId: string): Promise<ProductoAdmin[]>;
   /** Marca y personalización actuales, para Personalizar. */
   personalizacionTienda(tiendaId: string): Promise<PersonalizacionTiendaAdmin>;
+  /** La marca de la tienda para el retoque (Instagram, 3 palabras, lo que evita, referencias). Solo lectura: el admin no escribe aquí. */
+  marcaTienda(tiendaId: string): Promise<MarcaRetoque>;
   guardarPersonalizacion(
     tiendaId: string,
     cambios: CambiosPersonalizacion,
