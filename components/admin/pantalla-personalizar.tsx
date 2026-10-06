@@ -258,7 +258,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
       )}
 
       <HojaColores abierta={hoja === "colores"} alCerrar={() => setHoja(null)} colores={tema.colores} deMarca={sinMarca} propios={(temaPropio.colores ?? {}) as Record<string, string>} alCambiar={(c) => setBorrador(cambiar(borrador, "tema", { colores: c }))} />
-      <Hoja abierta={hoja === "letra"} alCerrar={() => setHoja(null)} titulo="Letra de títulos">
+      <Hoja protegerAtras abierta={hoja === "letra"} alCerrar={() => setHoja(null)} titulo="Letra de títulos">
         <div className="px-5 pb-6">
           <ListaAgrupada etiqueta="Letras">
             {LETRAS.map((l) => (
@@ -280,7 +280,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
       {FRASES.map((f) => (
         <HojaFrase key={f.clave} abierta={hoja === `frase:${f.clave}`} alCerrar={() => setHoja(null)} frase={f} valor={mensajes[f.clave] as string | string[] | undefined} alGuardar={(v) => { setBorrador(cambiar(borrador, "mensajes", { [f.clave]: v })); setHoja(null); }} />
       ))}
-      <Hoja abierta={hoja === "opiniones-modo"} alCerrar={() => setHoja(null)} titulo="Opiniones">
+      <Hoja protegerAtras abierta={hoja === "opiniones-modo"} alCerrar={() => setHoja(null)} titulo="Opiniones">
         <div className="space-y-3 px-5 pb-6">
           <ControlSegmentado<ModoOpiniones>
             etiqueta="Opiniones en el catálogo"
@@ -301,7 +301,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
 
 function HojaColores({ abierta, alCerrar, colores, deMarca, propios, alCambiar }: { abierta: boolean; alCerrar: () => void; colores: Record<string, string>; deMarca: Record<string, string>; propios: Record<string, string>; alCambiar: (c: Objeto) => void }) {
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Colores">
+    <Hoja protegerAtras abierta={abierta} alCerrar={alCerrar} titulo="Colores">
       <div className="space-y-4 px-5 pb-6">
         {COLORES.map((c) => {
           const valor = colores[c.clave] ?? "#000000";
@@ -317,7 +317,7 @@ function HojaColores({ abierta, alCerrar, colores, deMarca, propios, alCambiar }
                   <p className="font-bold">{c.nombre}</p>
                   <p className="text-secundario text-texto-secundario">{valor.toUpperCase()}{propios[c.clave] ? "" : " · de su marca"}</p>
                 </div>
-                {propios[c.clave] && <Boton jerarquia="terciario" tamano="compacto" onClick={() => alCambiar({ [c.clave]: null })}>Como su marca</Boton>}
+                {propios[c.clave] && <Boton jerarquia="terciario" tamano="compacto" aria-label={`${c.nombre}: como su marca`} onClick={() => alCambiar({ [c.clave]: null })}>Como su marca</Boton>}
               </div>
               {aviso && <p role="alert" className="mt-1 rounded-radio-m bg-atencion-suave px-3 py-2 text-secundario text-atencion-texto">{aviso}</p>}
             </div>
@@ -342,7 +342,7 @@ function HojaCabecera({ abierta, alCerrar, actual, nombre, alGuardar }: { abiert
   }
   const resultado = tipo === "svg" && svg.trim() ? validarSvgCabecera(svg) : null;
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Cabecera" altura="grande" avisarAlSalir={tipo === "svg" && svg !== (actual ?? "")}>
+    <Hoja protegerAtras abierta={abierta} alCerrar={alCerrar} titulo="Cabecera" altura="grande" avisarAlSalir={tipo === "svg" && svg !== (actual ?? "")}>
       <div className="space-y-4 px-5 pb-6">
         <ControlSegmentado<"texto" | "svg"> etiqueta="Tipo de cabecera" valor={tipo} alCambiar={setTipo} opciones={[{ id: "texto", texto: "Su nombre" }, { id: "svg", texto: "SVG" }]} />
         {tipo === "texto" ? (
@@ -379,7 +379,7 @@ function HojaFrase({ abierta, alCerrar, frase, valor, alGuardar }: { abierta: bo
   const cambio = JSON.stringify(frase.lista ? limpias : limpias[0] ?? "") !== JSON.stringify(frase.lista ? (Array.isArray(valor) ? valor : []) : typeof valor === "string" ? valor : "");
   const maxLineas = "maxLineas" in frase ? frase.maxLineas : 1;
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo={frase.nombre} altura="grande" avisarAlSalir={cambio}>
+    <Hoja protegerAtras abierta={abierta} alCerrar={alCerrar} titulo={frase.nombre} altura="grande" avisarAlSalir={cambio}>
       <div className="space-y-3 px-5 pb-6">
         {frase.clave === "al_agregar" && <p className="text-secundario text-texto-secundario">La primera sale con el primer producto, la segunda con el segundo… la última se repite.</p>}
         {frase.clave === "agotado_foto" && <p className="text-secundario text-texto-secundario">Cada línea va en su renglón sobre la foto agotada.</p>}
@@ -423,7 +423,7 @@ function HojaOrden({ abierta, alCerrar, productos, alCambiar }: { abierta: boole
     setArrastre(null);
   };
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Orden en el catálogo" altura="grande">
+    <Hoja protegerAtras abierta={abierta} alCerrar={alCerrar} titulo="Orden en el catálogo" altura="grande">
       <div className="px-5 pb-6">
         <p className="mb-3 text-secundario text-texto-secundario">Arrastra desde ⠿ o usa las flechas. El primero es el que se ve primero.</p>
         <p className="sr-only" aria-live="polite">{anuncio}</p>
@@ -484,7 +484,7 @@ function HojaOpiniones({ abierta, alCerrar, productos, opinionesDe, alCambiar }:
     return true;
   };
   return (
-    <Hoja abierta={abierta} alCerrar={() => { setProductoId(null); setEditando(null); alCerrar(); }} titulo={editando ? (editando.indice === null ? "Nueva opinión" : "Editar opinión") : producto ? producto.nombre : "Opiniones de internet"} altura="grande" alVolverInterno={volver}>
+    <Hoja protegerAtras abierta={abierta} alCerrar={() => { setProductoId(null); setEditando(null); alCerrar(); }} titulo={editando ? (editando.indice === null ? "Nueva opinión" : "Editar opinión") : producto ? producto.nombre : "Opiniones de internet"} altura="grande" alVolverInterno={volver}>
       <div className="space-y-3 px-5 pb-6">
         {!producto && (
           <ListaAgrupada etiqueta="Productos">

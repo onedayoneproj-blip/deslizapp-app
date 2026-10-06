@@ -219,7 +219,7 @@ function Catalogos({ tiendas, resaltar, refrescar }: { tiendas: TiendaAdmin[]; r
         );
       })}
       {enTrabajo.some((t) => t.catalogoEstado === "revisar") && <p className="mt-2 text-center font-mano text-mano text-resalte">publicar lo toca ella, no tú</p>}
-      <Hoja abierta={!!revisar} alCerrar={() => setRevisar(null)} titulo="Mandar a revisar">
+      <Hoja protegerAtras abierta={!!revisar} alCerrar={() => setRevisar(null)} titulo="Mandar a revisar">
         <div className="space-y-4 px-5 pb-6">
           <p className="text-texto-secundario">{revisar?.nombre} lo verá en su pestaña Catálogo, con «Publicar» y «Pedir cambios».</p>
           <Campo etiqueta="Enlace de su catálogo" type="url" inputMode="url" autoComplete="off" value={enlace} onChange={(e) => { setEnlace(e.target.value); setErrorEnlace(null); }} error={errorEnlace ?? undefined} />

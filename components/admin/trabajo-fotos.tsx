@@ -194,7 +194,7 @@ function Mesa({
       </div>
       {aviso && <p role="alert" className="mt-3 rounded-radio-m bg-superficie p-3 text-secundario text-peligro">{aviso}</p>}
       <p className="mt-3 text-secundario opacity-85">Al entregar, la foto cambia en su producto y se le cobran {t.creditos} créditos. Si no se puede, «Devolver» le explica por qué y no cobra.</p>
-      <Hoja abierta={devolver} alCerrar={() => !ocupado && setDevolver(false)} titulo="Devolver la foto" avisarAlSalir={motivo.trim().length > 0 && fase === "listo"}>
+      <Hoja protegerAtras abierta={devolver} alCerrar={() => !ocupado && setDevolver(false)} titulo="Devolver la foto" avisarAlSalir={motivo.trim().length > 0 && fase === "listo"}>
         <div className="space-y-3 px-5 pb-6">
           <p className="text-texto-secundario">Ella lo verá en la foto, con «Subir otra». No se le cobra.</p>
           <div className="flex flex-wrap gap-2">

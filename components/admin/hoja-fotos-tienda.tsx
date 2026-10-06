@@ -59,7 +59,7 @@ export function HojaFotosTienda({ tienda, alCerrar }: { tienda: { id: string; no
   };
 
   return (
-    <Hoja abierta={!!tienda} alCerrar={alCerrar} titulo={tienda ? `Fotos de ${tienda.nombre}` : "Fotos"}>
+    <Hoja protegerAtras abierta={!!tienda} alCerrar={alCerrar} titulo={tienda ? `Fotos de ${tienda.nombre}` : "Fotos"}>
       <div className="px-5 pb-6">
         {!productos && !error && <div role="status" aria-label="Cargando fotos" className="grid grid-cols-3 gap-2">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="aspect-square animate-pulse rounded-radio-m bg-superficie-hundida" />)}</div>}
         {error && <p role="alert" className="text-texto-secundario">No pudimos traer sus fotos. Cierra y vuelve a abrir.</p>}
