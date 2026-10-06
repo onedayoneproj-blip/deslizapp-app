@@ -164,7 +164,7 @@ todas las cifras.
   `despachar_pedido`) y créditos (RPC `gastar_creditos`). Sus errores se muestran en español claro
   (`lib/data/errores.ts`, tabla en `03-modelo-de-datos.md`).
 - Pantalla de entrada: "Entrar con Google" / "Ver demo" (se recuerda el modo). "Cerrar sesión" / "Salir de
-  la demo" en el menú de la tienda; el selector de tiendas y las acciones de prueba solo en demo. Cuenta sin
+  la demo" en el menú de la tienda; el selector de tiendas va en la demo y en la app real (las tiendas de las que la cuenta es miembro); las acciones de prueba, solo en demo. Cuenta sin
   fila en `usuarios`: "Tu cuenta aún no está activada. Escríbenos y la activamos".
 - Sin conexión: esqueletos + aviso arriba con "Reintentar". Fotos: siguen como data URL (Storage marcado).
 - Pruebas: `tests/datos.test.mjs` (conversión de nombres, errores de las RPC, elección de modo), sin tocar

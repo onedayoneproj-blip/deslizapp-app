@@ -8,7 +8,7 @@ implementaciones** y la app elige cuál usar según el modo activo:
 
 | Modo | Implementación | Datos | Entrada |
 |---|---|---|---|
-| **demo** | `lib/data/demo.ts` | seed + `localStorage` del navegador | "Ver demo". Sin login; selector de tienda en el menú |
+| **demo** | `lib/data/demo.ts` | seed + `localStorage` del navegador | "Ver demo". Sin login; selector de tienda en el menú (el mismo menú que la app real) |
 | **real** | `lib/data/supabase.ts` | Supabase (Postgres + RLS) | "Entrar con Google". Una cuenta de Google = una tienda (tabla `usuarios`) |
 
 Esto se llama patrón *repository*: la UI depende de una interfaz estable

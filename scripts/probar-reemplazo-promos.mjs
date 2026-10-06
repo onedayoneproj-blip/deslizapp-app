@@ -25,7 +25,7 @@ async function abrir(id = originalId) {
     localStorage.setItem("deslizapp-version-vista", "99.0.0");
   });
   await page.goto(`${url}/promos`);
-  await page.getByRole("button", { name: /Cambiar de tienda/ }).click();
+  await page.getByRole("button", { name: /Menú de tus tiendas/ }).click();
   await page.getByRole("button", { name: /Reiniciar datos de prueba/ }).click();
   await page.getByRole("button", { name: /¿Seguro\? Toca otra vez/ }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
