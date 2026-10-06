@@ -96,7 +96,7 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 - Archivos compartidos (`lib/types.ts`, `lib/data/fuente.ts`, `lib/data/demo.ts` y su seed, `components/ui/`, `lib/novedades.ts`): cambios pequeños y aditivos. Si hace falta reorganizar uno, se dice en el PR.
 - `lib/novedades.ts`: una versión nueva por PR que se publique, con el número siguiente al de `main` en el momento del merge.
 
-La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño (lienzo «Onboarding de Deslizapp», tres opciones sin elegir).
+La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño. **Elegido el 6 oct 2026 (opción B del lienzo «Onboarding de Deslizapp»): historias para la introducción e historias también para la recopilación de los datos básicos.** Falta escribir la especificación y el prompt.
 
 **Pendientes sueltos:**
 - Pasar Promos al sistema de diseño (`components/ui`).
