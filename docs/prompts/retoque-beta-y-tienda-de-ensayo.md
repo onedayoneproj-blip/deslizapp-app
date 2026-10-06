@@ -23,12 +23,15 @@ El retoque **no es automático**. Una persona de Deslizapp, con ojo y gusto, tra
 - **Cuándo:** la primera vez que una persona toca «Retocar» en una tienda, **antes** de reservar los créditos. Después ya no sale sola.
 - **Cómo se recuerda:** por tienda y dispositivo, en el almacenamiento local, con try/catch (si no hay almacenamiento, sale cada vez, sin romper nada). Un enlace «Cómo funciona» en la ficha la vuelve a abrir. Cuando se abre así, no pide confirmar nada, solo cierra.
 - **Qué muestra:** tres pasos cortos y una nota. Botones: «Entendido, retocar» (sigue al pedido normal) y «Ahora no» (cierra sin pedir nada).
-- **Textos propuestos** (en la voz de Deslizapp, sin signos de exclamación y sin palabras corporativas; puedes ajustar el ritmo, pero no el fondo ni inventar promesas):
-  - Titular: «Retoque con ojo humano.» Remate (color de marca): «No lo hace una máquina sola.»
-  - 1. «Pides.» «Reservamos los créditos; no se cobran hasta que la foto esté lista.»
-  - 2. «Una persona la trabaja.» «Usa IA, pero escoge ella: la foto que se parece a tu marca y que conecta con tus clientes.»
-  - 3. «Te avisamos.» «Te sale en el producto y ahí decides si te gusta.»
-  - Nota: «Es una función en Beta. Tarda más que un filtro, y se nota en el resultado. Si una foto no sale como debe, te devolvemos los créditos.»
+- **Textos propuestos** (voz de Deslizapp, sin exclamaciones ni palabras corporativas; ajusta el ritmo, no el fondo ni inventes promesas). La idea de valor: la IA no decide sola; una persona con criterio, y no un botón, escoge lo que mejor cuenta el producto y es honesta con él.
+  - Titular: «La IA propone.» Remate (color de marca): «Una persona decide.»
+  - 1. «Pides.» «Reservamos los créditos. Se cobran cuando la foto esté lista.»
+  - 2. «La IA propone.» «Prepara varias versiones de tu foto.»
+  - 3. «Una persona decide.» «Alguien con ojo para el producto y la marca escoge la que mejor lo cuenta y le habla a tus clientes.»
+  - 4. «Te avisamos.» «Te sale en el producto y decides si te gusta.»
+  - Franja verde (honestidad): «Tu producto sigue siendo tu producto. Mejoramos la foto, no lo cambiamos: lo que ve tu cliente es lo que recibe.»
+  - Nota Beta: «Beta: por ahora cada foto pasa por una persona, y eso toma su tiempo. Si no sale como debe, te devolvemos los créditos.»
+  - En la ficha: «La IA propone, una persona decide. Cuesta 5 créditos.» En el taller: «La IA ya propuso; ahora una persona escoge la mejor. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Con IA, pero con criterio.»
   - Si hay un tiempo estimado, ponlo en una constante de `lib/config.ts` (`TIEMPO_RETOQUE_TEXTO`) y no lo muestres si está vacía. **No inventes un número**; Lewis lo fija.
 - Funciona igual en la demo (sin Supabase) y respeta el modo oscuro/claro que ya tenga el panel. No se muestra en Ver como (es solo mirar).
 
