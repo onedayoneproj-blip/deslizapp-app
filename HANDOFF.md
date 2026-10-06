@@ -1,8 +1,10 @@
-## Admin: Codex toma el relevo — Coding, 2026-10-06
+## Admin: base fusionada y prueba de inventario corregida — Coding, 2026-10-06
 
-Corrección autorizada de anulación encadenada aplicada como **20261006030939_admin_anular_mensualidades_recalculo**, sin tocar pagos reales. Contrato, 392 secuencias SQL/demo, concurrencia y límites de cobertura externa: [validación de anulación](docs/validacion-admin-anulacion.md). PR #51 sigue abierto, sin pantallas, merge ni despliegue.
+PR #51 está fusionado en `main` en `a07acfc`. La corrección autorizada de anulación encadenada se aplicó como **20261006030939_admin_anular_mensualidades_recalculo**, sin tocar pagos reales. Contrato, 392 secuencias SQL/demo, concurrencia y límites de cobertura externa: [validación de anulación](docs/validacion-admin-anulacion.md).
 
-Rama independiente `feature/admin-base`. SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff del relevo](docs/handoffs/admin-base-codex.md) y [la validación](docs/validacion-admin-base.md), incluyendo la corrección posterior de anulación y los advisors. soloMirar bloquea desde la app; una cuenta admin/dueño conserva permisos de dueño en la base.
+El replay de inventario reportó inicialmente una firma obsoleta de `ajustar_stock` de cinco argumentos, también presente en main sin el admin. La prueba se ajustó al contrato actual de seis argumentos; replay completo posterior pasó. El addendum conserva el fallo histórico y registra el resultado nuevo. Solo cambian pruebas/documentación; no se altera el inventario. Rama independiente de corrección: `fix/inventario-prueba-firma`.
+
+SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff admin](docs/handoffs/admin-base-codex.md) y la [validación](docs/validacion-admin-base.md), incluyendo la corrección posterior de anulación y los advisors. soloMirar bloquea desde la app; una cuenta admin/dueño conserva permisos de dueño en la base.
 
 Claude: leer el handoff y hacer fetch del estado remoto antes de continuar. No empujar la copia antigua encima del trabajo de Codex ni reaplicar las seis migraciones. Lewis ya es admin activo; no repetir el alta.
 
