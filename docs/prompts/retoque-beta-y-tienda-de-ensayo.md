@@ -6,11 +6,11 @@
 
 Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md`, `docs/11-voz-y-frases.md` (la voz manda en todo texto), `docs/09-sistema-de-diseno.md`, `docs/13-admin.md` §7, `referencias/retoque-beta/LEEME.md` y `docs/14-precios-y-lanzamiento.md` §2. Tu puesto es **Coding**. Mira cómo quedó el retoque en `components/catalogo/ficha-medios.tsx`, `components/catalogo/taller.ts`, `lib/data/retoques.ts` y `lib/config.ts` (`RETOQUE_REAL`).
 
-Diseño: solo los tableros `Ficha` y `EnElTaller` de `referencias/retoque-beta/` (etiqueta «Beta» y textos). **`Bienvenida` y `ComoFunciona` no se construyen en este PR**: los reemplaza una bienvenida animada que llega con «Mi marca» (otro prompt). No copies su HTML.
+Diseño: solo los tableros `Ficha` y `EnElTaller` de `referencias/retoque-beta/` (etiqueta «Beta» y textos). La bienvenida es una hoja que llega con «Mi marca» (otro prompt), no en este PR. No copies su HTML.
 
 ## 1. Por qué
 
-El retoque **no es automático**. Una persona de Deslizapp, con ojo y gusto, trabaja la foto con IA y escoge un resultado humano, que conecta con los clientes de esa tienda y va con sus valores. Por eso tarda. Hay que decirlo desde el principio y marcar la función como **Beta**, para que quien espere entienda por qué.
+El retoque **no es automático**. Un modelo de inteligencia de imagen procesa la foto, asistido por expertos en branding de Deslizapp que parten de la marca de la tienda para escoger un resultado que conecta con sus clientes y va con sus valores. Por eso tarda. Hay que decirlo desde el principio y marcar la función como **Beta**, para que quien espere entienda por qué.
 
 ## 2. Etiqueta «Beta»
 
@@ -20,8 +20,8 @@ El retoque **no es automático**. Una persona de Deslizapp, con ojo y gusto, tra
 
 ## 3. Textos del retoque (sin pantalla de bienvenida)
 
-- En la ficha, bajo el título de la foto: «La IA propone, una persona decide. Cuesta 5 créditos.»
-- En el taller: «La IA ya propuso; ahora una persona escoge la mejor. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Con IA, pero con criterio.»
+- En la ficha, bajo el título de la foto: «Inteligencia de imagen guiada por tu marca. Cuesta 5 créditos.»
+- En el taller: «Tu foto está en proceso, con tu marca como guía. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Hecho con criterio de marca.»
 - Si hay un tiempo estimado, ponlo en una constante de `lib/config.ts` (`TIEMPO_RETOQUE_TEXTO`) y no lo muestres si está vacía. **No inventes un número**; Lewis lo fija.
 - **No** hagas pantalla de bienvenida ni enlace «Cómo funciona»: vienen después con Mi marca.
 - Funciona igual en la demo y no cambia nada en Ver como.
