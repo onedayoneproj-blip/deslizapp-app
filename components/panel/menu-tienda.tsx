@@ -11,6 +11,7 @@ import { Hoja } from "../hoja";
 import { IconoCheck, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
 import { useToast } from "../toast";
 import { Logotipo } from "../marca";
+import { AccesoAdmin } from "./acceso-admin";
 import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
 
@@ -28,7 +29,7 @@ const NOMBRE_ESTADO_CATALOGO = {
  * En la demo, además, el selector de tienda activa y las acciones de prueba.
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, soloMirar, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const toast = useToast();
@@ -109,6 +110,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
 
       <button
         type="button"
+        data-solo-mirar-permitido={soloMirar || undefined}
         onClick={() => {
           cerrar();
           abrirMiMarca();
@@ -121,6 +123,8 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
         </span>
       </button>
+
+      <AccesoAdmin alAbrir={cerrar} />
 
       {demo && (
         <>
@@ -169,7 +173,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         }}
         className="tocable mt-5 flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-borde bg-white px-5 text-[15px] font-extrabold text-bosque"
       >
-        {demo ? "Salir de la demo" : "Cerrar sesión"}
+        {demo ? "Salir de la demo" : soloMirar ? "Cerrar sesión y salir" : "Cerrar sesión"}
       </button>
 
       <div className="mt-5 flex items-center justify-between gap-3 px-1 text-[13px] text-suave">

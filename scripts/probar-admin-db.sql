@@ -51,10 +51,18 @@ select set_config('request.jwt.claim.sub','aa000000-0000-4000-8000-000000000001'
 set local role authenticated;
 select pg_temp.comprobar(not exists(select 1 from public.productos where id='ac000000-0000-4000-8000-000000000001'),'admin sin sesión no lee');
 select public.admin_ver_como_iniciar('ab000000-0000-4000-8000-000000000001');
+do $$ declare v jsonb; id uuid; ajena jsonb; begin
+ v:=public.admin_ver_como_actual(); id:=(v->>'id')::uuid;
+ perform pg_temp.comprobar(v->>'tienda_id'='ab000000-0000-4000-8000-000000000001','actual devuelve la tienda autorizada');
+ perform pg_temp.comprobar(public.admin_ver_como_validar(id)->>'id'=id::text,'valida el ID propio y vigente');
+ ajena:=public.admin_ver_como_validar('ab000000-0000-4000-8000-000000000099');
+ perform pg_temp.comprobar(ajena is null,'ID arbitrario no concede acceso');
+end $$;
 select pg_temp.comprobar(exists(select 1 from public.productos where id='ac000000-0000-4000-8000-000000000001'),'admin con sesión lee');
 select pg_temp.rechaza($q$insert into public.productos(tienda_id,nombre,precio) values('ab000000-0000-4000-8000-000000000001','No',100)$q$,'42501');
 do $$ declare n integer; begin update public.productos set nombre='No' where id='ac000000-0000-4000-8000-000000000001';get diagnostics n=row_count;perform pg_temp.comprobar(n=0,'admin ajeno update sin filas');end $$;
 select pg_temp.rechaza($q$select public.gastar_creditos('ab000000-0000-4000-8000-000000000001',1)$q$,'P0002','tienda_no_encontrada');
+do $$ declare v jsonb; begin v:=public.admin_ver_como_actual(); perform public.admin_ver_como_terminar((v->>'id')::uuid); perform pg_temp.comprobar(public.admin_ver_como_actual() is null,'salida retira sesión activa'); perform pg_temp.comprobar(public.admin_ver_como_validar((v->>'id')::uuid) is null,'sesión cerrada ya no valida'); end $$;
 reset role;
 update public.sesiones_ver_como set inicio=now()-interval '31 minutes',vence_en=now()-interval '1 minute' where admin_id='aa000000-0000-4000-8000-000000000001' and fin is null;
 set local role authenticated;

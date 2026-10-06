@@ -15,6 +15,8 @@
     "probar:pedido-catalogo": "node scripts/probar-pedido-catalogo-panel.mjs",
     "probar:pedido-catalogo-transporte": "node scripts/probar-pedido-catalogo-transporte.mjs",
     "probar:admin-db": "bash scripts/probar-admin-replay.sh",
+    "probar:admin-trabajo": "node scripts/probar-admin-trabajo.mjs",
+    "probar:ver-como-transporte": "node scripts/probar-ver-como-transporte.mjs",
     "probar:pedido-catalogo-db": "bash scripts/probar-pedido-catalogo-panel-replay.sh",
     "probar:producto": "node scripts/probar-producto.mjs",
     "revisar:migraciones": "node scripts/revisar-migraciones.mjs",

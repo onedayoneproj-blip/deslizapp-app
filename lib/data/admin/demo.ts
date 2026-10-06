@@ -36,6 +36,8 @@ const entero = (v: number, min = 0, max = 2147483647) =>
 const motivo = (s: string, max: number) =>
   s.trim().length >= 1 && [...s.trim()].length <= max;
 const url = (s: string) => /^https:\/\/\S+$/.test(s) && s.length <= 2048;
+/** En la demo la foto retocada no sale del navegador: se guarda como data URL de imagen. */
+const fotoDemo = (s: string) => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
 const correo = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 const filtros: FiltroTiendas[] = [
   "todas",
@@ -587,9 +589,58 @@ export function crearFuenteAdminDemo(
             )!.nombre,
           }));
       }),
+    productosTienda: (id) =>
+      leer(() => {
+        tienda(id);
+        // El mismo orden que el catálogo público: orden (sin orden primero), más nuevo, id.
+        return e.panel.productos
+          .filter((p) => p.tiendaId === id && !p.eliminadoEn)
+          .sort(
+            (a, b) =>
+              (a.orden ?? -1) - (b.orden ?? -1) ||
+              Date.parse(b.creadoEn) - Date.parse(a.creadoEn) ||
+              a.id.localeCompare(b.id),
+          )
+          .map((p) => ({
+            id: p.id,
+            nombre: p.nombre,
+            slug: p.slug ?? null,
+            activo: p.activo,
+            orden: p.orden ?? null,
+            opiniones: p.opiniones ?? [],
+            medios: p.medios,
+            creadoEn: p.creadoEn,
+            actualizadoEn: p.actualizadoEn,
+          }));
+      }),
+    personalizacionTienda: (id) =>
+      leer(() => {
+        const t = tienda(id);
+        return {
+          id: t.id,
+          nombre: t.nombre,
+          slug: t.slug,
+          vendedora: t.nombreVendedora ?? null,
+          rubro: t.rubro,
+          estado: t.estado,
+          marcaColorPrincipal: t.marcaColorPrincipal,
+          marcaColorAcento: t.marcaColorAcento,
+          marcaEstilo: t.marcaEstilo,
+          logoUrl: t.logoUrl,
+          urlCatalogo: t.urlCatalogo,
+          catalogoEstado: t.catalogoEstado,
+          catalogoNotasCambios: t.catalogoNotasCambios,
+          personalizacion: (t.personalizacion ?? {}) as Objeto,
+        };
+      }),
+    async subirRetocada(_trabajo, dataUrl) {
+      exigir();
+      if (!fotoDemo(dataUrl)) error("formato_no_permitido");
+      return dataUrl;
+    },
     entregarRetoque: (id, enlace) =>
       mutar(() => {
-        if (!url(enlace)) error("enlace_invalido");
+        if (!url(enlace) && !fotoDemo(enlace)) error("enlace_invalido");
         const tr = trabajo(id),
           p =
             e.panel.productos.find(

@@ -59,6 +59,10 @@ export function HojaPlan({ abierta, alCerrar }: { abierta: boolean; alCerrar: ()
             Cada foto retocada usa {CREDITOS_POR_RETOQUE} créditos. El día 1 de cada mes vuelves a tener{" "}
             {CREDITOS_RETOQUE_MENSUALES}; los que no uses no se acumulan.
           </p>
+          <p className="mt-2 text-[13.5px] text-suave">
+            El retoque lo hace nuestro taller: mandas la foto desde el producto, te la devolvemos con luz de estudio y los créditos se
+            cobran al entregarla. Si no se puede, te decimos por qué y no pagas.
+          </p>
         </section>
 
         <section className="rounded-3xl bg-rosa p-4">

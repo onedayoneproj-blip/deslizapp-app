@@ -104,6 +104,19 @@ test("cierre y vencimiento no revelan permisos del dueño ni llaman lecturas", a
   g.cerrar();
   await assert.rejects(g.getTiendas(), VerComoVencido);
 });
+test("la sesión exacta se comprueba antes y después de cada lectura; cambios de pestaña invalidan el resultado", async () => {
+  let llamadas = 0, validaciones = 0, vigente = true;
+  const f = soloMirar({ getTienda: async () => { llamadas++; return { id: "t" }; } },
+    { id: "s-1", tiendaId: "t", venceEn: "2099-01-01T00:00:00Z" }, Date.now,
+    async () => { validaciones++; return vigente; });
+  assert.deepEqual(await f.getTiendas(), [{ id: "t" }]);
+  assert.equal(validaciones, 2);
+  assert.equal(llamadas, 1);
+  vigente = false;
+  await assert.rejects(f.getTiendas(), VerComoVencido);
+  assert.equal(llamadas, 1, "sesión terminada no vuelve a consultar la tienda");
+  assert.equal(validaciones, 3);
+});
 test("envoltura de la fuente Supabase real no invoca rpc, consultas, compresión ni storage al escribir", async () => {
   const cliente = new Proxy(
     {},

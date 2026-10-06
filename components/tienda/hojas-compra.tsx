@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import type { LineaLocal } from "@/lib/tienda/carrito";
 import { dinero, mensajePedido } from "@/lib/tienda/carrito";
+import { modoOpiniones } from "@/lib/tienda/tema";
 import { DialogoCatalogo, PanelCatalogo } from "./dialogo";
 import { Icono } from "./iconos";
 import { MarcaDeslizapp } from "./artes-deslizapp";
@@ -151,9 +152,7 @@ export function HojaOpiniones({
   cerrar: () => void;
 }) {
   const [texto, setTexto] = useState("");
-  const mostrar =
-    (t.personalizacion.secciones as Record<string, unknown> | undefined)
-      ?.opiniones !== "pronto";
+  const mostrar = modoOpiniones(t.personalizacion.secciones) === "si";
   const opiniones = mostrar ? p.opiniones : [];
   const preguntar = () => {
     if (!t.whatsapp) return;

@@ -11,7 +11,7 @@ Lee:
 - `docs/09-sistema-de-diseno.md` (en especial «Menos texto» y §16), `docs/08-movimiento.md` y `docs/11-voz-y-frases.md`.
 - Lo que dejó la parte 1 (`docs/prompts/admin-1-base.md` y su PR): las funciones `admin_*`, la capa `lib/data/admin/` y el modo `soloMirar`.
 
-Rama `feature/admin-tiendas` desde `main`, con la parte 1 ya fusionada. Si no lo está, parte de su rama y abre el PR contra ella, diciéndolo en el PR.
+Rama `feature/admin-tiendas` desde `origin/main` actualizado; las partes anteriores están fusionadas. Lewis ya es admin: no ejecutes su alta otra vez. Abre el PR contra `main` y déjalo sin fusionar.
 
 ## 1. El armazón de `/admin`
 
@@ -23,7 +23,7 @@ Rama `feature/admin-tiendas` desde `main`, con la parte 1 ya fusionada. Si no lo
   - Reutiliza ese componente si puede recibir otras pestañas.
   - Si no, súbelo a `components/ui/` con las pestañas como propiedad, y que el panel lo use igual que antes.
 - Encabezado con «deslizapp», la etiqueta «admin» y el avatar del admin.
-- **Trabajo, Cobros y Más:** pantallas con el título y un «Muy pronto» (docs/09 §10, «Función en preparación»). Se llenan en las partes 3 y 4.
+- **Trabajo, Cobros y Más:** pantallas con el título y un «Muy pronto» (docs/09 §10, «Función en preparación»). No implementes las partes 3–4.
 - **Componentes:** usa `components/ui/`. Si falta uno, créalo según docs/09 §16.5, expórtalo, agrégalo a `/diseno` y descríbelo en docs/09. Seguramente faltan:
   - `TarjetaAsunto` (ícono por categoría, título, motivo, acción principal y secundaria);
   - `PuntoSalud`;
@@ -68,11 +68,13 @@ Rama `feature/admin-tiendas` desde `main`, con la parte 1 ya fusionada. Si no lo
 ## 4. Ver como
 
 - «Ver como ella» llama a `admin_ver_como_iniciar` y abre el panel normal (`/`) con la fuente en modo `soloMirar` para esa tienda.
-- **Elige cómo pasa el modo** (cookie de sesión de corta duración, o parámetro más estado) y explícalo en el PR. La base es la que autoriza (`admin_viendo`); el cliente solo evita llamadas inútiles.
+- Reutiliza los contratos, las fuentes y el wrapper `soloMirar` de la parte 1. Ver como debe usar una fuente y caché independientes para la tienda vista. La cookie solo identifica una sesión; no concede acceso. La ruta y cada operación deben validar usuario autenticado, admin vigente, tienda, vencimiento y que la sesión pertenece al usuario actual. Revisa las firmas reales de las RPC antes de llamarlas.
 - La franja verde de arriba siempre está («Viendo {tienda} · Solo mirar · queda anotado», «Salir»). Respeta el área segura del iPhone.
-- **Botones de acción** (Despachar, + Pedido, Guardar, Reponer, etc.): se ven apagados. Un toque muestra el aviso del tablero «Aquí solo se mira. Para cambiar algo, escríbele a {vendedora}.».
-  - Hazlo en un solo lugar (un contexto `soloMirar` que lean `Boton` y las hojas de edición), no botón por botón.
-- **Al salir o al vencer la sesión** (30 minutos): `admin_ver_como_terminar` y vuelta a la ficha.
+- No afirmes que SQL revoca los permisos normales de escritura de una persona dueña. Lewis también es dueño de Michel; `soloMirar` bloquea ese recorrido de la app, antes de invocar Supabase.
+- **Botones de acción** (Despachar, + Pedido, Guardar, Reponer, etc.): no escriben ni abren formularios editables. Al intentarlo muestran «Aquí solo se mira. Para cambiar algo, escríbele a {vendedora}.».
+  - Conserva el bloqueo central de todas las escrituras antes de invocar Supabase. Revisa botones, formularios, acciones rápidas, teclado y rutas directas.
+- **Al salir o al vencer la sesión** (30 minutos): cierra el modo, invalida y retira su caché y vuelve a la ficha. Si SQL no confirma el cierre, bloquea el panel de la tienda y ofrece recuperación; no dejes el panel accesible.
+- No marques actividad de la tienda por la visita del admin. Prueba recarga, Atrás, varias pestañas y cierre de sesión.
 - **No se debe poder:**
   - entrar al modo demo desde ahí;
   - cambiar de tienda en el menú;

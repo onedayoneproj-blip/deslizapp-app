@@ -12,8 +12,10 @@ import type {
   ListaTiendasAdmin,
   Objeto,
   PagoAdmin,
+  PersonalizacionTiendaAdmin,
   PlanAdmin,
   PrecioExtra,
+  ProductoAdmin,
   RegistroAdmin,
   ResumenMesAdmin,
   SaludAdmin,
@@ -44,6 +46,10 @@ export interface FuenteAdmin {
     catalogoPasoEn: string;
     urlCatalogo: string | null;
   }>;
+  /** Productos de la tienda (sin retirados), en el orden del catálogo público. */
+  productosTienda(tiendaId: string): Promise<ProductoAdmin[]>;
+  /** Marca y personalización actuales, para Personalizar. */
+  personalizacionTienda(tiendaId: string): Promise<PersonalizacionTiendaAdmin>;
   guardarPersonalizacion(
     tiendaId: string,
     cambios: CambiosPersonalizacion,
@@ -54,6 +60,11 @@ export interface FuenteAdmin {
     urlRetocada: string,
   ): Promise<TrabajoRetoque>;
   devolverRetoque(trabajoId: string, motivo: string): Promise<TrabajoRetoque>;
+  /**
+   * Sube la foto retocada (JPEG ya reducido, como data URL) y devuelve su URL pública. No toca el producto ni cobra:
+   * eso lo hace entregarRetoque. Un nombre nuevo por intento, así un reintento nunca pisa otra foto.
+   */
+  subirRetocada(trabajo: Pick<TrabajoRetoque, "id" | "tiendaId">, dataUrl: string): Promise<string>;
   registrarPago(
     datos: DatosPagoAdmin,
   ): Promise<{

@@ -15,9 +15,16 @@ import type { FuenteDatos } from "./fuente";
 import type { Modo } from "./modo";
 import { leerSesion, salir, suscribirSesion, type EstadoSesion } from "./sesion";
 import { crearFuenteSupabase } from "./supabase";
+import { soloMirar } from "./solo-mirar";
+import type { SesionVerComo } from "../admin/tipos";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { navegarVerComo } from "../admin/navegacion-ver-como";
 
 export type DataContexto = FuenteDatos & {
   modo: Modo;
+  /** Ver como: la capa de datos bloquea escrituras; no revoca permisos SQL del dueño. */
+  soloMirar: boolean;
   /** Demo: la elegida en el selector. Real: la de tu cuenta. */
   tiendaActivaId: string;
   /** Solo demo (en real no hace nada: una cuenta = una tienda). */
@@ -65,6 +72,7 @@ export function ProveedorDemo({ children, cargando }: { children: ReactNode; car
       e && {
         ...fuenteDemo,
         modo: "demo",
+        soloMirar: false,
         tiendaActivaId: e.tiendaActivaId,
         cambiarTiendaActiva: cambiarTiendaActivaDemo,
         version: e.version,
@@ -102,7 +110,10 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
     const alVolver = () => {
       if (document.visibilityState !== "visible" || Date.now() - ultima < 15_000) return;
       ultima = Date.now();
-      refrescar();
+      void fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "detectar" }) })
+        .then(r => { if (!r.ok) throw new Error("No se pudo comprobar Ver como."); return r.json() as Promise<{ activa?: boolean }>; })
+        .then(r => { if (r.activa) window.location.reload(); else refrescar(); })
+        .catch(() => window.location.reload());
     };
     document.addEventListener("visibilitychange", alVolver);
     window.addEventListener("focus", alVolver);
@@ -116,6 +127,7 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
     () => ({
       ...fuente,
       modo: "real",
+      soloMirar: false,
       tiendaActivaId: usuario.tiendaId,
       cambiarTiendaActiva: nada,
       version,
@@ -127,6 +139,129 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
     [fuente, usuario.tiendaId, version, errorLectura, avisarErrorLectura, refrescar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
+}
+
+/** Fuente fresca y acotada para Ver como: no comparte caché ni estado de tienda con el dueño. */
+export function ProveedorSoloMirar({ children, sesion }: { children: ReactNode; sesion: SesionVerComo & { tiendaNombre: string } }) {
+  return <ProveedorSesionSoloMirar key={`${sesion.id}:${sesion.tiendaId}:${sesion.venceEn}`} sesion={sesion}>{children}</ProveedorSesionSoloMirar>;
+}
+
+function ProveedorSesionSoloMirar({ children, sesion }: { children: ReactNode; sesion: SesionVerComo & { tiendaNombre: string } }) {
+  const [version, setVersion] = useState(0);
+  const [bloqueada, setBloqueada] = useState(false);
+  const [instancia] = useState(() => {
+    const cliente = createClient();
+    const real = crearFuenteSupabase(cliente, () => setVersion((v) => v + 1));
+    const lectura = soloMirar(real, sesion, Date.now, async () => {
+      const respuesta = await fetch("/api/admin/ver-como", {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "validar", sesionId: sesion.id }), cache: "no-store",
+      }).catch(() => null);
+      if (!respuesta?.ok) {
+        lectura.cerrar(); real.olvidar(); setBloqueada(true);
+        if (respuesta?.status === 409) {
+          const detalle = await respuesta.json().catch(() => ({})) as { motivo?: string };
+          if (detalle.motivo === "reemplazada") window.location.reload();
+          else navegarVerComo(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`);
+        } else navegarVerComo("/ver-como/recuperar");
+        return false;
+      }
+      return true;
+    });
+    return { real, lectura, cliente };
+  });
+  const refrescar = useCallback(() => {
+    instancia.real.olvidar();
+    setVersion((v) => v + 1);
+  }, [instancia]);
+  const cerrarVerComo = useCallback(async (volverAFicha: boolean) => {
+    instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
+    const r = await fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "terminar", sesionId: sesion.id }) }).catch(() => null);
+    if (!r?.ok) { navegarVerComo("/ver-como/recuperar"); return false; }
+    if (!volverAFicha) {
+      const { error } = await instancia.cliente.auth.signOut();
+      if (error) { navegarVerComo("/ver-como/recuperar"); return false; }
+    }
+    navegarVerComo(volverAFicha ? `/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}` : "/");
+    return true;
+  }, [instancia, sesion.id, sesion.tiendaId]);
+  // No enumerar la envoltura: su Proxy no tiene propiedades propias. Cada método se resuelve
+  // sobre la fuente protegida, nunca sobre instancia.real (incluidos métodos futuros).
+  const valor = useMemo<DataContexto>(() => {
+    const estado: Omit<DataContexto, keyof FuenteDatos> = {
+      modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada,
+      version, salir: async () => { await cerrarVerComo(false); }, errorLectura: null, avisarErrorLectura: nada, refrescar,
+    };
+    return new Proxy({} as DataContexto, {
+      get: (_objetivo, nombre) => Object.hasOwn(estado, nombre)
+        ? Reflect.get(estado, nombre)
+        : Reflect.get(instancia.lectura, nombre),
+    });
+  }, [instancia, sesion.tiendaId, version, refrescar, cerrarVerComo]);
+  useEffect(() => {
+    const { data } = instancia.cliente.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
+        navegarVerComo("/");
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [instancia]);
+  useEffect(() => {
+    const restante = Math.max(0, Date.parse(sesion.venceEn) - Date.now());
+    const reloj = window.setTimeout(() => {
+      instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
+      void fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "terminar", sesionId: sesion.id }) })
+        .then(r => { if (r.ok) navegarVerComo(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`); else navegarVerComo("/ver-como/recuperar"); })
+        .catch(() => navegarVerComo("/ver-como/recuperar"));
+    }, restante);
+    const enfocar = () => { if (document.visibilityState === "visible") refrescar(); };
+    window.addEventListener("focus", enfocar); document.addEventListener("visibilitychange", enfocar);
+    return () => { window.clearTimeout(reloj); window.removeEventListener("focus", enfocar); document.removeEventListener("visibilitychange", enfocar); };
+  }, [instancia, refrescar, sesion.venceEn, sesion.id, sesion.tiendaId]);
+  if (bloqueada) return <p role="status">La vista está bloqueada. Comprobando la salida…</p>;
+  return <Contexto.Provider value={valor}><SoloMirarCapa tienda={sesion.tiendaNombre} onSalir={() => void cerrarVerComo(true)}>{children}</SoloMirarCapa></Contexto.Provider>;
+}
+
+function SoloMirarCapa({ children, tienda, onSalir }: { children: ReactNode; tienda: string; onSalir: () => void }) {
+  const pathname = usePathname();
+  const [mensaje, setMensaje] = useState("");
+  useEffect(() => {
+    const permitida = (el: Element | null) => {
+      const control = el?.closest("[data-solo-mirar-permitido], [role=tab], [aria-pressed], [aria-label^='Volver'], [aria-label^='Cerrar'], [aria-label^='Atrás']");
+      return !!control || /^(cancelar|volver|cerrar|cerrar sesión y salir|reintentar|ver más|atrás|regresar|listo)$/i.test(el?.closest("button")?.textContent?.trim() ?? "");
+    };
+    const rutaSoloDemoOEdicion = (pathname: string) => /^\/admin-demo(?:\/|$)|^\/(?:prueba|diseno|novedades|instalar)(?:\/|$)|^\/(?:catalogo\/nuevo|catalogo\/[^/]+\/editar|clientes\/nuevo|pedidos\/nuevo|pedidos\/[^/]+\/editar|promos\/nueva|promos\/[^/]+\/(?:editar|compartir))(?:\/|$)/.test(pathname);
+    const bloquear = (ev: Event) => {
+      const target = ev.target instanceof Element ? ev.target : null;
+      if (!target) return;
+      const enlace = target.closest("a[href]") as HTMLAnchorElement | null;
+      const boton = target.closest("button, input[type=submit], [role=button]");
+      const destino = enlace ? new URL(enlace.href).pathname : "";
+      const editableRuta = enlace && /\/(?:editar|nuevo|nueva|crear)(?:\/|$)/.test(destino);
+      if (editableRuta || (enlace && rutaSoloDemoOEdicion(destino)) || (boton && !permitida(boton))) {
+        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.();
+        setMensaje(`Aquí solo se mira. Para cambiar algo, escríbele a ${tienda}.`);
+        window.setTimeout(() => setMensaje(""), 3500);
+      }
+      if (ev.type === "submit") {
+        ev.preventDefault(); ev.stopPropagation();
+        setMensaje(`Aquí solo se mira. Para cambiar algo, escríbele a ${tienda}.`);
+      }
+    };
+    document.addEventListener("click", bloquear, true);
+    document.addEventListener("submit", bloquear, true);
+    return () => { document.removeEventListener("click", bloquear, true); document.removeEventListener("submit", bloquear, true); };
+  }, [tienda]);
+  const rutaEditable = /\/(?:editar|nuevo|nueva|crear)(?:\/|$)/.test(pathname);
+  const rutaNoPermitida = /^\/admin-demo(?:\/|$)|^\/(?:prueba|diseno|novedades|instalar)(?:\/|$)|^\/(?:catalogo\/nuevo|catalogo\/[^/]+\/editar|clientes\/nuevo|pedidos\/nuevo|pedidos\/[^/]+\/editar|promos\/nueva|promos\/[^/]+\/(?:editar|compartir))(?:\/|$)/.test(pathname);
+  return <>
+    <div className="sticky top-0 z-50 flex min-h-[56px] items-center gap-2 bg-bosque px-3 text-papel" role="status">
+      <span aria-hidden="true">◉</span><span className="min-w-0 flex-1 leading-tight"><strong className="block">Viendo {tienda}</strong><small className="text-papel/80">Solo mirar · queda anotado</small></span>
+      <button type="button" data-solo-mirar-permitido onClick={onSalir} className="min-h-11 rounded-full bg-papel px-4 font-bold text-bosque">Salir</button>
+    </div>
+    {rutaEditable || rutaNoPermitida ? <main className="mx-auto min-h-[60dvh] max-w-[480px] p-5"><h1 className="font-display text-titulo-hoja font-bold text-bosque">Aquí solo se mira</h1><p className="mt-2 text-texto-secundario">Para cambiar algo, escríbele a {tienda}.</p><Link href="/" className="mt-4 inline-flex min-h-11 items-center rounded-full bg-bosque px-5 font-bold text-papel">Volver al panel</Link></main> : children}
+    {mensaje && <div role="status" aria-live="polite" className="fixed bottom-24 left-4 right-4 z-[80] mx-auto max-w-[440px] rounded-radio-m bg-bosque p-4 font-bold text-papel shadow-hoja">{mensaje}</div>}
+  </>;
 }
 
 export function useData(): DataContexto {

@@ -1,3 +1,7 @@
+## Admin parte 3: Trabajo, retoque real y Personalizar — Coding (Claude), 2026-10-06
+
+PR dependiente desde `feature/admin-trabajo` contra `feature/admin-tiendas` (#53 abierto; partió de su HEAD `39d618f`). Sin merge ni producción; no incorpora #45. Trabajo › Catálogos y Fotos, Personalizar (`/admin/tiendas/[id]/catalogo`), retoque real en la ficha del producto (reserva al pedir, cobra una vez al entregar, devolver no cobra), cabecera SVG con lista blanca al guardar y al pintar el catálogo público, «Pronto» de opiniones como `secciones.opiniones_pronto`, y «Administrar Deslizapp» en el menú de la tienda solo para admins activos (oculto en Ver como y si la consulta falla). `/admin-demo` comparte el taller con la demo del panel del mismo navegador, sin Supabase. Migraciones de lectura aplicadas: `20261006130421_admin_productos_tienda`, `20261006130705_admin_personalizacion_tienda` (43/43, cero diferencias, snapshot de 44 funciones). **No hay tienda de ensayo en Supabase: el retoque real con Storage/Auth no se ejecutó y Michel no se tocó** (95 créditos, 0 trabajos). Detalles: [handoff](docs/handoffs/admin-trabajo-claude.md) y [validación](docs/validacion-admin-trabajo.md).
+
 ## Admin: base fusionada y prueba de inventario corregida — Coding, 2026-10-06
 
 PR #51 está fusionado en `main` en `a07acfc`. La corrección autorizada de anulación encadenada se aplicó como **20261006030939_admin_anular_mensualidades_recalculo**, sin tocar pagos reales. Contrato, 392 secuencias SQL/demo, concurrencia y límites de cobertura externa: [validación de anulación](docs/validacion-admin-anulacion.md).
@@ -23,6 +27,20 @@ Pendiente: confirmación del recorrido autenticado en Safari por Lewis. Los bloq
 ---
 
 # Deslizapp — Panel de tienda (handoff para Claude Code)
+
+## Admin parte 2: Hoy, Tiendas, ficha y Ver como — Coding
+
+PR #53 abierto desde `feature/admin-tiendas`, sin merge ni deploy a producción. Alias de preview de la rama: `https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app`; la URL única, el commit/ID exacto READY y el callback que correspondería permitir están en la descripción actual del PR. Parte de main rebasado a `5ab8632` (incluye los cambios de documentación posteriores a #51/#52). Lewis ya tiene alta admin; no repetirla. No incorporar #45.
+
+La implementación, comparación de capturas, resultados y límites se detallan en [handoff para Planning y Claude](docs/handoffs/admin-tiendas-codex.md) y [validación de Admin parte 2](docs/validacion-admin-tiendas.md). Incluye Demo aislada, fuentes admin real/demo, guardia central `soloMirar` y una migración aditiva propuesta para dos RPC. Replay completo desechable pasó; producción permanece en 40 migraciones sin cambios. **Las bases locales de la otra sesión son desconocidas.** Coordinar SQL compartido y asignar versión oficial con Supabase CLI antes de aplicar; no está instalado y el nombre local de la migración es provisional. Google real, Safari físico, cierre/verificación real y la tienda real no están verificados.
+
+No se cambió Auth. Para probar Google en la preview, permitir el callback exacto que indique la descripción del PR; no cambiar Site URL. Ver como no revoca en la base permisos ordinarios del dueño: `soloMirar` bloquea las escrituras únicamente dentro de ese recorrido de la app.
+
+Capturas/comparación: [`docs/capturas/admin-tiendas/README.md`](docs/capturas/admin-tiendas/README.md). En Demo puede revisarse la interfaz segura; Ver como real requiere coordinar la migración primero.
+
+### Corrección posterior de la prueba de replay de inventario
+
+PR #52 actualizado; consulta la [validación de inventario](validacion-admin-base.md) antes de repetir el replay. El historial conserva los resultados iniciales fallidos y el resultado posterior que pasó.
 
 Este repo es el punto de partida del **panel de administración** de Deslizapp: la
 app web donde el dueño de una tienda (ej. Esencias Michel) gestiona su catálogo,
@@ -454,6 +472,14 @@ Rutas públicas `/tienda/{slug}` y `/pedido/{codigo}` fuera del dashboard, sin s
 Migración **aplicada** `20261004184134_catalogo_react.sql`: orden/opiniones, catálogo público ampliado y agregados desde/ventas. SQL de Michel generado y ejecutado, separado de migraciones; conserva sus mensajes, secciones, stock, precios, visibilidad y enlace anterior. No editar el HTML antiguo ni `url_catalogo` hasta autorizar el cambio. Informe, capturas, limitaciones de WebKit/iPhone y pruebas reales en `docs/validacion-catalogo-react.md`.
 
 La excepción visual de la superficie pública está en `docs/08-movimiento.md`: portado del HTML (reels, aaah, coach, historias y hojas), reducido cuando se pide menos movimiento. Formularios públicos conservan altura, foco y teclado; nunca animar el campo enfocado. **Esta PR no se fusiona automáticamente: Lewis prueba el preview.**
+
+### Admin parte 2 — Hoy, Tiendas, ficha y Ver como
+
+Implementación en `feature/admin-tiendas`, PR #53 abierto y rama enlazada arriba. No incorpora #45, no fusionar ni desplegar producción. Lewis ya era admin y no se dio de alta otra vez. Hoy, Tiendas y ficha usan contratos y RPC reales; Trabajo, Cobros y Más continúan como placeholders. `/admin-demo` tiene fuente aislada y nunca conecta a Supabase. Ver como bloquea escrituras en la app incluso para un admin que también es dueño, sin afirmar que la base revoque los permisos del dueño. Detalles, capturas comparativas, validaciones y pasos manuales en `docs/handoffs/admin-tiendas-codex.md` y `docs/validacion-admin-tiendas.md`.
+
+**Continuación de Codex tras Planning (`f0f9438`):** corregidos el contexto de Ver como, su inicio desde ficha y retirada inmediata al cerrar/perder autorización. 248 tests, build local, typecheck y replay desechable pasaron; 12 recorridos de proveedor/useData con transporte autenticado SIMULADO. Lint compara 27/27 con main, cero avisos añadidos y sin silenciar reglas. Hojas/teclado simulados pasaron sobre build local. Fallos/reintentos y resultados históricos conservados en la validación.
+
+Planning aplicó `20261006111233_admin_ver_como_validar.sql`; Coding no la reaplicó ni editó. Historial actual 41/41, cero diferencias; snapshot de 42 funciones coincide con metadatos reales y ACL. No cambios Auth, altas admin ni escrituras reales. Google real/Safari físico siguen pendientes. Alias estable `/admin` y callback exacto, pasos y despliegue actual en handoff/PR. **Claude: leer handoff y fetch remoto antes de retomar; no empujar copia antigua encima de Codex.** PR #53 abierto, sin merge ni producción; #45 excluido.
 
 
 ## Pedido del catálogo en el panel — continuación de Coding

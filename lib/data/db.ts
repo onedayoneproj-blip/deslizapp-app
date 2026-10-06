@@ -3,6 +3,7 @@
 
 import { MARCA_NEUTRA } from "../marca";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
+import type { TrabajoRetoque } from "../admin/tipos";
 import type { Abono, AjusteInventario, AvisoLlegada, Cliente, EnvioJugada, EventoAaah, Pedido, PedidoItem, Producto, Promo, SolicitudPedido, Tienda, Usuario, Variante } from "../types";
 import {
   aCliente,
@@ -59,6 +60,8 @@ export type DB = {
   solicitudes: (SolicitudPedido & { dispositivo?: string })[];
   /** "Avísame cuando llegue". */
   avisos: (AvisoLlegada & { dispositivo?: string })[];
+  /** Fotos que la tienda mandó al taller (retoque real). Las comparte el admin demo en el mismo navegador. */
+  trabajosRetoque: TrabajoRetoque[];
 };
 
 /**
@@ -87,6 +90,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     variantes: (seedVariantes as FilaVariante[]).map(aVariante),
     solicitudes: [],
     avisos: avisosDeLaDemo(ahora),
+    trabajosRetoque: [],
   };
 }
 
@@ -173,6 +177,7 @@ export function migrar(db: DB): DB {
     variantes: db.variantes ?? [],
     solicitudes: db.solicitudes ?? [],
     avisos: db.avisos ?? [],
+    trabajosRetoque: db.trabajosRetoque ?? [],
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,

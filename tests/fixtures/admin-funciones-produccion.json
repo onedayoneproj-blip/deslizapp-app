@@ -132,6 +132,17 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_personalizacion_tienda",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "d5976a14e78ce3e5abbeb808919915e2",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_planes",
     "argumentos": "",
     "md5": "7db3b19afdc04b604914a7bb33a998cd",
@@ -146,6 +157,17 @@
     "nombre": "admin_posponer",
     "argumentos": "p_clave text, p_horas integer",
     "md5": "3f6e7c6f05b71600f1d253cfdae23b06",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_productos_tienda",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "0267e60bc2c74bcc5054a5eb916fc48b",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
@@ -286,6 +308,17 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_ver_como_actual",
+    "argumentos": "",
+    "md5": "dcf4b5647425f5083ec83540808a6f0b",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_ver_como_iniciar",
     "argumentos": "p_tienda_id uuid",
     "md5": "90cb9f27174f327043dc8bf716aa4e57",
@@ -300,6 +333,17 @@
     "nombre": "admin_ver_como_terminar",
     "argumentos": "p_sesion_id uuid",
     "md5": "bb39fb2d7f966cdbf0e0cc6804acc3f5",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_ver_como_validar",
+    "argumentos": "p_sesion_id uuid",
+    "md5": "b980f559dd18f57ec92638b1e4d1ad04",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

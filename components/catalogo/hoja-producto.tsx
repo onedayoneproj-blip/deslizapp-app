@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -21,7 +20,8 @@ import { formatearPesos } from "@/lib/formato";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
-import { mediosIniciales, mediosParaGuardar, retoquesPendientes, SeccionMedios, type MedioBorrador } from "./ficha-medios";
+import { conEntregadas, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
+import { useTaller } from "./taller";
 import { claveVariante, combinaciones, HojaMotivoVariantes, SeccionOpciones, variantesBase } from "./ficha-opciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 
@@ -194,13 +194,14 @@ function FormularioProducto({
   alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
-  const { crearProducto, usarCreditosRetoque, guardarVariantes, ajustarStock } = useData();
+  const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario } = usePanelUI();
   const toast = useToast();
   const { mostrarToast: mostrarToastUI } = useToastUI();
   const rubro = tienda?.rubro ?? "general";
+  const taller = useTaller(producto, toast);
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
@@ -285,18 +286,22 @@ function FormularioProducto({
       toast("Espera a que el video termine de prepararse.");
       return false;
     }
-    const final = mediosParaGuardar(medios);
-    const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
-    if (fotos.length === 0) {
+    if (mediosParaGuardar(medios).every((m) => m.tipo !== "foto")) {
       toast("Falta la foto. El producto es la estrella.");
       return false;
     }
-    const retoques = retoquesPendientes(medios);
-    if (retoques > 0 && (tienda?.creditosRetoque ?? 0) < retoques * CREDITOS_POR_RETOQUE) {
-      toast("Te faltan créditos para retocar. Se recargan el día 1.");
-      return false;
-    }
     setGuardando(true);
+    // Si el taller entregó una foto mientras la ficha estaba abierta, se guarda la retocada (nunca se vuelve a la original).
+    let entregadas = taller.entregadas;
+    if (producto) {
+      try {
+        entregadas = (await trabajosRetoque(tiendaId)).filter((t) => t.productoId === producto.id && t.estado === "entregado" && t.medioUrlRetocado);
+      } catch {
+        // Sin conexión para mirar el taller: se usa lo último leído.
+      }
+    }
+    const final = mediosParaGuardar(conEntregadas(medios, entregadas));
+    const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
     const fotoRetocada = final.find((m) => m.tipo === "foto")?.tipo === "foto" ? (final.find((m) => m.tipo === "foto") as { retocada: boolean }).retocada : false;
     const catalogo = { medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null) };
     const variantes = combos.map((c) => {
@@ -307,24 +312,22 @@ function FormularioProducto({
     });
     try {
       if (!producto) {
-        // Una sola llamada: la ficha, el retoque y las variantes (si algo falla, no queda nada a medias).
+        // Una sola llamada: la ficha y las variantes (si algo falla, no queda nada a medias).
         await crearProducto(
           tiendaId,
           {
             nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
             activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
           },
-          { retoques, ...(tieneOpciones ? { opciones, variantes } : {}) },
+          { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
-        toast(retoques > 0 ? `Publicado y retocado. −${retoques * CREDITOS_POR_RETOQUE} créditos.` : activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
+        toast(activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
         alTerminar();
         return true;
       }
-      // Más de un retoque: el último lo cobra el guardado (junto con la ficha), los demás antes.
-      if (retoques > 1) await usarCreditosRetoque(tiendaId, retoques - 1);
       const bien = await inventario.guardar(
         { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, ...(cambioVisible ? { activo: activo && !bloqueaVisible } : {}), ...catalogo },
-        retoques > 0, motivo, nota,
+        false, motivo, nota,
       );
       if (!bien) { setGuardando(false); return false; }
       const antes = [...base.keys()].sort().join(",");
@@ -340,7 +343,7 @@ function FormularioProducto({
         const delta = quiere - b.stock;
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
       }
-      toast(retoques > 0 ? `Guardado y retocado. −${retoques * CREDITOS_POR_RETOQUE} créditos.` : "Guardado. El catálogo ya se enteró.");
+      toast("Guardado. El catálogo ya se enteró.");
       inventario.finalizar(alTerminar);
       return true;
     } catch (e) {
@@ -358,7 +361,7 @@ function FormularioProducto({
 
   return (
     <div className="flex flex-col gap-5">
-      <SeccionMedios medios={medios} alCambiar={setMedios} creditos={tienda?.creditosRetoque ?? 0} avisar={toast} />
+      <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />
 
       <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Kiara Pink" maxLength={120} />
       <Campo
@@ -453,11 +456,7 @@ function FormularioProducto({
 
       {(!producto || !inventario.pendiente || tieneOpciones) && (
         <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando} onClick={alGuardar}>
-          {retoquesPendientes(medios) > 0
-            ? `${producto ? "Guardar" : "Publicar"} · −${retoquesPendientes(medios) * CREDITOS_POR_RETOQUE} créditos`
-            : producto
-              ? "Guardar cambios"
-              : "Publicar"}
+          {producto ? "Guardar cambios" : "Publicar"}
         </Boton>
       )}
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
