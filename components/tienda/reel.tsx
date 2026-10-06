@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { dinero } from "@/lib/tienda/carrito";
+import { modoOpiniones } from "@/lib/tienda/tema";
 import { detallesDe, lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
 import { Icono, SelloAgotado } from "./iconos";
 import { Medios } from "./medios";
@@ -305,11 +306,10 @@ export function Reel({
           )}
           {!mostrarLikes && <span>{agotado ? "Avísame" : "Lo quiero"}</span>}
         </button>
-        {(t.personalizacion.secciones as Record<string, unknown> | undefined)
-          ?.opiniones !== false && (
+        {modoOpiniones(t.personalizacion.secciones) !== "no" && (
           <button className="act" data-comments={p.slug} onClick={opiniones}>
             <Icono nombre="comment" />
-            <span>{p.opiniones.length || "Pregúntame"}</span>
+            <span>{(modoOpiniones(t.personalizacion.secciones) === "si" && p.opiniones.length) || "Pregúntame"}</span>
           </button>
         )}
         <button
