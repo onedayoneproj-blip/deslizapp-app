@@ -6,6 +6,7 @@ import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp } from "@/lib/formato";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { Hoja } from "../hoja";
+import { EtiquetaBeta } from "../catalogo/etiqueta-beta";
 import { IconoCreditos, IconoWhatsApp } from "../iconos";
 
 /**
@@ -59,9 +60,12 @@ export function HojaPlan({ abierta, alCerrar }: { abierta: boolean; alCerrar: ()
             Cada foto retocada usa {CREDITOS_POR_RETOQUE} créditos. El día 1 de cada mes vuelves a tener{" "}
             {CREDITOS_RETOQUE_MENSUALES}; los que no uses no se acumulan.
           </p>
-          <p className="mt-2 text-[13.5px] text-suave">
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-suave">
+            <EtiquetaBeta />
+            <span>
             El retoque lo hace nuestro taller: mandas la foto desde el producto, te la devolvemos con luz de estudio y los créditos se
-            cobran al entregarla. Si no se puede, te decimos por qué y no pagas.
+            cobran cuando esté lista. Si no se puede, te decimos por qué y no pagas.
+            </span>
           </p>
         </section>
 

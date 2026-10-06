@@ -10,6 +10,8 @@ import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, V
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { Boton, Etiqueta, FilaLista, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
+import { REMATE_TALLER, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
+import { EtiquetaBeta } from "./etiqueta-beta";
 import type { Taller } from "./taller";
 
 export const MAX_MEDIOS = 10;
@@ -246,27 +248,43 @@ function HojaMedio({
     }
   };
 
+  /** El título de cada estado del taller lleva «Beta» al lado: el retoque no es automático y por eso tarda. */
+  const conBeta = (titulo: string) => (
+    <span className="flex items-center gap-2">
+      {titulo}
+      <EtiquetaBeta />
+    </span>
+  );
+  const textoSecundario = "text-secundario text-texto-secundario";
+  const tiempo = tiempoRetoque();
+
   const retoque = (() => {
     if (!foto) return null;
     if (enTaller?.estado === "pendiente")
       return {
-        titulo: "En el taller",
-        detalle: "El equipo la está retocando.",
-        pie: `Reservamos ${CREDITOS_POR_RETOQUE} créditos; se cobran al entregarla.`,
+        titulo: conBeta("En el taller"),
+        detalle: undefined,
+        pie: (
+          <>
+            <span className={`block ${textoSecundario}`}>{textoEnTaller()}</span>
+            {tiempo && <span className={`mt-1 block ${textoSecundario}`}>{tiempo}</span>}
+            <span className="mt-1 block font-mano text-mano text-mandarina-texto">{REMATE_TALLER}</span>
+          </>
+        ),
         accion: null,
       };
     if (enTaller?.estado === "devuelto")
       return {
-        titulo: "Te la devolvimos",
+        titulo: conBeta("Te la devolvimos"),
         detalle: "No se cobró.",
-        pie: `«${enTaller.trabajo.motivoDevolucion ?? "No se pudo retocar."}»`,
+        pie: <span className={textoSecundario}>{`«${enTaller.trabajo.motivoDevolucion ?? "No se pudo retocar."}»`}</span>,
         accion: (
           <Boton tamano="compacto" jerarquia="secundario" deshabilitado={taller.soloMirar} onClick={() => otra.current?.click()}>
             Subir otra
           </Boton>
         ),
       };
-    if (foto.retocada) return { titulo: "Retocada por el equipo", detalle: "Ya tiene luz y fondo de estudio.", pie: null, accion: null };
+    if (foto.retocada) return { titulo: conBeta("Retocada por el equipo"), detalle: "Ya tiene luz y fondo de estudio.", pie: null, accion: null };
     const motivo = taller.soloMirar
       ? "Solo mirar: aquí no se manda nada al taller."
       : !taller.guardada(foto.url)
@@ -275,9 +293,9 @@ function HojaMedio({
           ? "Te faltan créditos para esta."
           : null;
     return {
-      titulo: "Retocar foto",
-      detalle: motivo ?? "Luz, fondo y color de estudio.",
-      pie: motivo ? null : `${CREDITOS_POR_RETOQUE} créditos, se cobran al entregarla.`,
+      titulo: conBeta("Retocar foto"),
+      detalle: motivo ?? undefined,
+      pie: <span className={textoSecundario}>{textoFichaRetoque()}</span>,
       accion: (
         <Boton tamano="compacto" deshabilitado={!!motivo} cargando={taller.pidiendo === foto.url} onClick={() => void taller.pedir(foto.url)}>
           Retocar
@@ -308,7 +326,7 @@ function HojaMedio({
             <FilaLista
               titulo={retoque.titulo}
               detalle={retoque.detalle}
-              pie={retoque.pie ? <span className="text-secundario text-texto-secundario">{retoque.pie}</span> : undefined}
+              pie={retoque.pie ?? undefined}
               accion={retoque.accion ?? undefined}
             />
           </ListaAgrupada>
