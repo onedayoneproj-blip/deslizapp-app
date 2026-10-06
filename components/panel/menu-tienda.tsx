@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXTO_MENU_MARCA_LISTA, textoFalta } from "@/lib/marca-retoque";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
@@ -29,9 +30,12 @@ const NOMBRE_ESTADO_CATALOGO = {
  * En la demo, además, el selector de tienda activa y las acciones de prueba.
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, soloMirar, tiendaActivaId, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, soloMirar, tiendaActivaId, getMarcaRetoque, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
+  // Mi marca muestra cuánto le falta al taller (o que ya está lista), con la misma regla que bloquea el retoque.
+  const { data: marcaRetoque } = useConsulta(`marca:${tiendaActivaId}`, () => getMarcaRetoque(tiendaActivaId));
+  const faltaMarca = marcaRetoque ? textoFalta(marcaRetoque) : null;
   const toast = useToast();
   const { abrirNovedades, abrirMiMarca } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
@@ -120,7 +124,17 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center text-destacado text-texto">✦</span>
         <span className="min-w-0 flex-1">
           <span className="block font-extrabold">Mi marca</span>
-          <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
+          {marcaRetoque && faltaMarca ? (
+            <span className="block text-secundario font-bold text-atencion-texto" data-estado-marca="falta">
+              {faltaMarca}
+            </span>
+          ) : marcaRetoque ? (
+            <span className="block text-secundario font-bold text-exito-texto" data-estado-marca="lista">
+              {TEXTO_MENU_MARCA_LISTA}
+            </span>
+          ) : (
+            <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
+          )}
         </span>
       </button>
 
