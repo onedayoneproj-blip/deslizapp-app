@@ -31,6 +31,17 @@ export function mensajeWhatsApp(asunto: AsuntoAdmin) {
     case "vence_pronto": return `¡Hola${vendedora ? `, ${vendedora}` : ""}! Tu plan de Deslizapp vence pronto. Si ya pagaste, mándame el comprobante y te ayudo.`;
     case "solicitudes": return `¡Hola${vendedora ? `, ${vendedora}` : ""}! Vi que tienes pedidos del catálogo esperando por registrar. ¿Te ayudo con alguno?`;
     case "sin_pedidos": return `¡Hola${vendedora ? `, ${vendedora}` : ""}! ¿Cómo te ha ido con el catálogo de ${nombre}? Si necesitas una mano, aquí estoy.`;
-    default: return `¡Hola${vendedora ? `, ${vendedora}` : ""}! ¿Cómo va todo con ${nombre}? Si necesitas una mano con Deslizapp, aquí estoy.`;
+    default: return mensajeGeneralTienda(nombre, vendedora);
   }
+}
+
+export function mensajeGeneralTienda(tienda: string, vendedora?: string | null) {
+  const saludo = vendedora?.trim();
+  return `¡Hola${saludo ? `, ${saludo}` : ""}! ¿Cómo va todo con ${tienda}? Si necesitas una mano con Deslizapp, aquí estoy.`;
+}
+
+/** Abre la conversación con texto editable; WhatsApp no envía el mensaje por sí solo. */
+export function enlaceWhatsAppAdmin(numero: string | null | undefined, texto: string) {
+  const digitos = numero?.replace(/\D/g, "") ?? "";
+  return digitos ? `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}` : null;
 }

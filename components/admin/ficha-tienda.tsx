@@ -8,6 +8,7 @@ import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import type { FichaTiendaAdmin } from "@/lib/admin/tipos";
 import { EstadoAdmin } from "./estado";
 import { IconoChevronDerecha, IconoPersona, IconoWhatsApp, IconoEnlaceExterno } from "@/components/iconos";
+import { enlaceWhatsAppAdmin, mensajeGeneralTienda } from "@/lib/admin/mensajes";
 
 type Accion = "creditos" | "transferir" | "pausar" | "reactivar" | null;
 const fecha = (v: string | null) => v ? new Intl.DateTimeFormat("es-DO", { timeZone: "America/Santo_Domingo", day: "numeric", month: "short", year: "numeric" }).format(new Date(v)) : "—";
@@ -70,6 +71,7 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
   };
 
   const t = ficha?.tienda;
+  const enlaceWhatsapp = t ? enlaceWhatsAppAdmin(t.whatsapp, mensajeGeneralTienda(t.nombre, t.vendedora)) : null;
   const nombreAccion = accion === "creditos" ? "Ajustar créditos" : accion === "transferir" ? "Pasar la tienda a otro dueño" : accion === "pausar" ? "Pausar tienda" : "Reactivar tienda";
   const descripcionAccion = accion === "creditos" ? `Se registrará un ajuste de ${cantidad} créditos con el motivo indicado.` : accion === "transferir" ? `La propiedad pasará a la cuenta ${correo || "indicada"}.` : accion === "pausar" ? "La tienda quedará pausada y el cambio aparecerá en el registro." : "La tienda volverá a estar activa y el cambio aparecerá en el registro.";
 
@@ -86,7 +88,7 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         <button type="button" onClick={() => void abrirVerComo()} disabled={ocupado} className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-bosque focus-visible:outline-2 focus-visible:outline-accion"><span className="mb-1 flex justify-center"><IconoPersona tamano={21} /></span><span className="text-[12px] font-bold">Ver como ella</span></button>
-        {t.whatsapp ? <a href={`https://wa.me/${t.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-bosque focus-visible:outline-2 focus-visible:outline-accion"><span className="mb-1 flex justify-center"><IconoWhatsApp tamano={21} /></span><span className="text-[12px] font-bold">Escribirle</span></a> : <span className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-texto-secundario"><span className="mb-1 flex justify-center"><IconoWhatsApp tamano={21} /></span><span className="text-[12px] font-bold">Sin WhatsApp</span></span>}
+        {enlaceWhatsapp ? <a href={enlaceWhatsapp} target="_blank" rel="noreferrer" className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-bosque focus-visible:outline-2 focus-visible:outline-accion"><span className="mb-1 flex justify-center"><IconoWhatsApp tamano={21} /></span><span className="text-[12px] font-bold">Escribirle</span></a> : <span className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-texto-secundario"><span className="mb-1 flex justify-center"><IconoWhatsApp tamano={21} /></span><span className="text-[12px] font-bold">Sin WhatsApp</span></span>}
         <a href={t.urlCatalogo ?? `/tienda/${t.slug}`} target="_blank" rel="noreferrer" className="min-h-[76px] rounded-radio-l bg-superficie p-2 text-bosque focus-visible:outline-2 focus-visible:outline-accion"><span className="mb-1 flex justify-center"><IconoEnlaceExterno tamano={21} /></span><span className="text-[12px] font-bold">Su catálogo</span></a>
       </div>
       {aviso && <p className="mt-3 rounded-radio-m bg-atencion-suave p-3 text-secundario text-atencion-texto" role="alert">{aviso}</p>}

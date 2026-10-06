@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import type { AsuntoAdmin, ResumenMesAdmin } from "@/lib/admin/tipos";
-import { mensajeWhatsApp, textoAsunto } from "@/lib/admin/mensajes";
+import { enlaceWhatsAppAdmin, mensajeWhatsApp, textoAsunto } from "@/lib/admin/mensajes";
 import { Boton, Tarjeta } from "@/components/ui";
 import { IconoMoneda, IconoClientes, IconoChispa } from "@/components/iconos";
 import { EstadoAdmin } from "./estado";
@@ -22,8 +22,7 @@ function Asunto({ asunto, refrescar }: { asunto: AsuntoAdmin; refrescar: () => v
   const [aviso, setAviso] = useState<string | null>(null);
   const contenido = textoAsunto(asunto);
   const IconoAsunto = asunto.categoria === "plata" ? IconoMoneda : asunto.categoria === "clientes" ? IconoClientes : IconoChispa;
-  const wa = asunto.tiendaWhatsapp?.replace(/\D/g, "");
-  const link = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(mensajeWhatsApp(asunto))}` : null;
+  const link = enlaceWhatsAppAdmin(asunto.tiendaWhatsapp, mensajeWhatsApp(asunto));
   const manana = async () => {
     setOcupado(true); setAviso(null);
     try { await fuente.posponer(asunto.clave); refrescar(); }

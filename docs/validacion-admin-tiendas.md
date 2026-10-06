@@ -1,6 +1,6 @@
 # Admin parte 2 — validación de Coding
 
-Rama de trabajo: `feature/admin-tiendas`, nacida de `origin/main` en `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`, rebasada sobre `5ab86323f60d2a3778ef177f8ec1db467cab9260`. PR #53, commit remoto `dd0ba0c56e828065c23f9661d24c89ecd4817cc1`. Preview READY: https://deslizapp-i56aa91rm-onedayone.vercel.app; alias estable https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app. `/api/version` respondió `dpl_2CKUNrqfWbYWT4PveT18cyiW8884`.
+Rama `feature/admin-tiendas`, rebasada sobre main `5ab86323f60d2a3778ef177f8ec1db467cab9260`. PR #53 permanece abierto. El alias estable es https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app; la URL única READY, commit e ID verificados más recientes se mantienen en la descripción actual del PR para que esta nota no quede atada a un commit de documentación.
 
 ## Hecho en esta rama
 
@@ -21,18 +21,18 @@ La ruta de Ver como necesita `admin_ver_como_actual()` y `admin_ver_como_validar
 - Replay completo desde base desechable con `npm run probar:admin-db`: pasó las comprobaciones SQL de permisos, lectura entre tiendas, admin no miembro y dueño, admin retirado, sesión vencida/cerrada, aislamiento y funciones admin. El comparador confirmó 40 funciones previas iguales a producción y ACL limitada en las dos guardias nuevas. En la prueba del dueño, la base conserva sus permisos normales; esto confirma que el bloqueo corresponde a `soloMirar` de la app.
 - Navegador Chromium local (Playwright): `/admin` y `/admin/tiendas` directos sin sesión dieron 404; Hoy/Tiendas/ficha Demo recorrieron sin peticiones a Supabase y sin overflow a 360, 390 y 430 px, en claro y oscuro. Se ejercitaron búsqueda, filtro «En prueba», posponer, ajuste de créditos, transferencia y pausa sobre fixtures volátiles. Capturas actuales de 390 px: `docs/capturas/admin-tiendas/`.
 - `tests/admin-solo-mirar.test.mjs`: cubre todas las escrituras de la interfaz actual y escrituras futuras, accesos admin sin membresía y admin/dueño, validación antes/después de leer, cambio de tienda, cierre/vencimiento y comprobación de que un intento de escritura no llega al cliente Supabase.
-- `npm test`: 38/38 pasaron.
+- `npm test`: 39/39 pasaron, incluyendo el texto de WhatsApp y el enlace editable de la ficha.
 - `npx next typegen && npx tsc --noEmit`: pasó.
 - `npm run lint`: pasó con 38 advertencias (uso de `<img>` en código existente, navegación de recarga intencional para limpiar la fuente y dependencias existentes de hooks); cero errores.
 - `npm run probar:teclado`: pasó en Chromium con viewport y teclado virtual simulado; no es Safari físico.
 - `npm run probar:hojas`: pasó los cierres con gesto, fondo, Escape, X y Atrás, confirmación de cambios, foco y conservación de datos.
-- `scripts/probar-admin-tiendas.mjs`: pasó en Chromium local con Demo aislada, filtros/búsqueda, ficha, posponer y acciones de ajuste/transferencia/pausa usando solo fixtures; verificó 360/390/430 px, tema claro/oscuro, cero overflow y cero tráfico Supabase desde Demo.
+- `scripts/probar-admin-tiendas.mjs`: pasó en Chromium local con Demo aislada, filtros/búsqueda, ficha, posponer y acciones de ajuste/transferencia/pausa usando solo fixtures; verificó 360/390/430 px, tema claro/oscuro, cero overflow, cero tráfico Supabase desde Demo y enlace `wa.me` con borrador editable desde la ficha.
 - Las capturas actuales de Hoy, Tiendas y ficha son de Chromium real ejecutando la app Demo y están en `docs/capturas/admin-tiendas/`.
-- `npm run build`: bloqueado por el entorno de red; Next no pudo descargar Caveat, Figtree y Fredoka de Google Fonts. No se cambió la tipografía para ocultar el problema. Vercel construyó este mismo commit y publicó una preview en estado READY; `admin-demo`, `admin-demo/tiendas` y `api/version` respondieron HTTP 200.
+- `npm run build`: bloqueado por el entorno de red; Next no pudo descargar Caveat, Figtree y Fredoka de Google Fonts. No se cambió la tipografía para ocultar el problema. Vercel construyó el commit funcional y los despliegues de sincronización de documentación en estado READY; las rutas Demo y `/api/version` respondieron HTTP 200. El despliegue exacto más reciente se conserva en el PR #53.
 
 ## Pendiente/no verificado
 
 - La migración no está aplicada: la API real de Ver como responderá con una explicación de actualización pendiente; no se considera lista para probar con Michel hasta coordinar y desplegar la migración.
-- OAuth real de Google, callback de preview, aviso de sesión real, membresía de tienda, panel de la cuenta admin/dueño, cierre/vencimiento SQL y navegadores de iPhone/Safari requieren validación manual. No se modificó Auth. Si Lewis autoriza login en esta preview, permitir exactamente `https://deslizapp-i56aa91rm-onedayone.vercel.app/auth/callback`; no asumir permitido el alias estable y no cambiar Site URL.
+- OAuth real de Google, callback de preview, aviso de sesión real, membresía de tienda, panel de la cuenta admin/dueño, cierre/vencimiento SQL y navegadores de iPhone/Safari requieren validación manual. No se modificó Auth. Si Lewis autoriza login en esta preview, usar y permitir solo el callback exacto que muestra la descripción actual del PR; no asumir permitido el alias estable y no cambiar Site URL.
 - No se probó visualmente el flujo Ver como con una sesión real: hacerlo requeriría la migración y credenciales Google. Demo informa que Ver como es exclusivo de sesión admin real y no intenta llamar el API.
 - La otra sesión no expone bases locales o de desarrollo; no se puede confirmar si usa nombres/contratos aún no publicados.

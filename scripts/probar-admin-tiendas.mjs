@@ -67,6 +67,8 @@ try {
 
       await pagina.getByRole("link", { name: /Esencias Michel/ }).first().click({ timeout: 5000 });
       await pagina.getByRole("heading", { name: "Esencias Michel" }).waitFor();
+      const whatsappFicha = await pagina.getByRole("link", { name: "Escribirle" }).getAttribute("href");
+      assert.match(whatsappFicha ?? "", /^https:\/\/wa\.me\/\d+\?text=/, "WhatsApp abre un borrador editable");
       assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `Ficha sin overflow ${width}/${tema}`);
       if (width === 390 && tema === "light" && capturas) {
         await pagina.setViewportSize({ width, height: 1300 });
