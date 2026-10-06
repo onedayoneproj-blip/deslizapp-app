@@ -1,4 +1,5 @@
 import type { RevisionEliminacionProducto } from "./eliminar-producto";
+import type { TrabajoRetoque } from "../admin/tipos";
 // La interfaz ÚNICA de datos. La cumplen dos implementaciones: la demo (lib/data/demo.ts, en el navegador)
 // y Supabase (lib/data/supabase.ts). Las pantallas solo ven esto a través de `useData()`; nunca una fila.
 // Los errores que lanza (con mensaje para el dueño) están en lib/data/errores.ts.
@@ -86,6 +87,13 @@ export type FuenteDatos = {
    * Lanza CreditosInsuficientes si no alcanzan. Devuelve la tienda con el saldo nuevo.
    */
   usarCreditosRetoque(tiendaId: string, fotos?: number): Promise<Tienda>;
+  /**
+   * Manda una foto ya guardada del producto al taller (real: RPC `pedir_retoque`). Reserva los créditos; se cobran solo cuando
+   * el equipo la entrega. Lanza CreditosInsuficientes si el saldo libre no alcanza y DatosInvalidos si ya está en el taller.
+   */
+  pedirRetoque(tiendaId: string, productoId: string, medioUrl: string): Promise<TrabajoRetoque>;
+  /** Las fotos de la tienda en el taller y las atendidas en los últimos 30 días (entregadas o devueltas), de la más nueva a la más vieja. */
+  trabajosRetoque(tiendaId: string): Promise<TrabajoRetoque[]>;
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
   actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda>;
 

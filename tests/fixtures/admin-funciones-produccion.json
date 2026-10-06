@@ -154,6 +154,17 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_productos_tienda",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "0267e60bc2c74bcc5054a5eb916fc48b",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_quitar_admin",
     "argumentos": "p_usuario_id uuid",
     "md5": "22c4df285ea7d409c9ab3f6f77ad41d5",
