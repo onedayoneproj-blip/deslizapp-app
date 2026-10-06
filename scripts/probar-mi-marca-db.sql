@@ -36,6 +36,7 @@ select pg_temp.comprobar(not has_table_privilege('anon','public.marca_tienda','S
 select pg_temp.comprobar(not has_table_privilege('anon','public.marca_tienda','INSERT') and not has_table_privilege('anon','public.marca_referencias','INSERT'),'anon escribe');
 select pg_temp.comprobar(not has_column_privilege('authenticated','public.marca_referencias','tienda_id','UPDATE') and has_column_privilege('authenticated','public.marca_referencias','orden','UPDATE'),'permisos por columna de las referencias');
 select pg_temp.comprobar(not has_column_privilege('authenticated','public.marca_tienda','tienda_id','UPDATE') and has_column_privilege('authenticated','public.marca_tienda','palabras','UPDATE'),'permisos por columna de la marca');
+select pg_temp.comprobar(not has_function_privilege('anon','public.marca_palabras_validas(text[])','EXECUTE') and has_function_privilege('authenticated','public.marca_palabras_validas(text[])','EXECUTE') and not has_function_privilege('anon','public.marca_referencias_limite()','EXECUTE') and not has_function_privilege('authenticated','public.marca_referencias_limite()','EXECUTE'),'funciones de apoyo de Mi marca: sin acceso anon; el trigger, sin acceso de la API');
 
 -- 1. La dueña de A escribe y lee lo suyo.
 select set_config('request.jwt.claim.sub','ca000000-0000-4000-8000-000000000002',true);

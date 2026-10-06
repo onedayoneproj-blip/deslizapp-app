@@ -1,6 +1,5 @@
 -- Mi marca para el retoque: las 3 palabras de la marca, lo que no quiere y de 3 a 6 fotos de referencia por tienda.
 -- El logo (tiendas.logo_url) y el Instagram (tiendas.instagram) ya existen y se reutilizan.
--- NOMBRE PROVISIONAL: el archivo definitivo lleva la versión que Supabase le ponga al aplicarla (AGENTS.md).
 -- Ningún dato real de tiendas va aquí.
 
 -- ─── Palabras de la marca: hasta 3, de 1 a 24 caracteres, sin espacios de sobra ─────────────────────────────────────
