@@ -8,6 +8,8 @@ import { useData } from "@/lib/data/provider";
 import type { Detalles } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
+import { avisoGuardadoConRetoques } from "@/lib/retoque-textos";
+import { mandarMarcadas, urlsGuardadasMarcadas } from "@/lib/retoque-al-subir";
 import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
@@ -194,7 +196,7 @@ function FormularioProducto({
   alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
-  const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque } = useData();
+  const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque, getProducto } = useData();
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario } = usePanelUI();
@@ -236,7 +238,7 @@ function FormularioProducto({
 
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
-    medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40)]),
+    medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
     nombre, precio, stock: producto ? null : stock, opciones, stockVariantes, detalles, categoria, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
@@ -310,10 +312,20 @@ function FormularioProducto({
       // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
       return { valores: c, stock: b ? b.stock : (stockVariantes[k] ?? 0), precio: b?.precio ?? null };
     });
+    // Fotos nuevas marcadas «Retocar esta foto» (en el orden de las fotos que se guardan).
+    const marcadasPorFoto = conEntregadas(medios, entregadas).flatMap((m) => (m.tipo === "foto" ? [!!m.retocar && !taller.guardada(m.url)] : []));
+    const totalMarcadas = marcadasPorFoto.filter(Boolean).length;
+    /** Ya guardado el producto, manda al taller cada foto marcada con su URL guardada. Nunca deshace el guardado. */
+    const mandarAlTaller = async (guardado: Producto | null, base: string) => {
+      if (totalMarcadas === 0) return base;
+      const urls = urlsGuardadasMarcadas(marcadasPorFoto, (guardado?.medios ?? []).flatMap((m) => (m.tipo === "foto" ? [m.url] : [])));
+      const r = await mandarMarcadas(urls, totalMarcadas, (url) => taller.pedirDe(guardado!.id, url, { silencioso: true }));
+      return avisoGuardadoConRetoques(base, r.marcadas, r.enviadas);
+    };
     try {
       if (!producto) {
         // Una sola llamada: la ficha y las variantes (si algo falla, no queda nada a medias).
-        await crearProducto(
+        const creado = await crearProducto(
           tiendaId,
           {
             nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
@@ -321,7 +333,8 @@ function FormularioProducto({
           },
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
-        toast(activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
+        const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
+        toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
         return true;
       }
@@ -343,7 +356,8 @@ function FormularioProducto({
         const delta = quiere - b.stock;
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
       }
-      toast("Guardado. El catálogo ya se enteró.");
+      const guardado = totalMarcadas > 0 ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
+      toast(await mandarAlTaller(guardado, "Guardado. El catálogo ya se enteró."));
       inventario.finalizar(alTerminar);
       return true;
     } catch (e) {
