@@ -26,7 +26,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
 
 Sin prompt todavía (los escribe Planning cuando toque):
-- Bloqueo en la base de las escrituras durante Ver como (Opus, rama `fix/ver-como-bloqueo`; `docs/13` §6).
+- ~~Bloqueo en la base de las escrituras durante Ver como~~: prompt escrito, `docs/prompts/ver-como-bloqueo-en-la-base.md` (Opus, rama `fix/ver-como-bloqueo`, PR abierto). Ponerlo en la cola antes de `suscripciones-y-varias-tiendas`.
 - Onboarding, opción B (historias + historias): especificación y prompt; incluye la parte 5 del admin, invitaciones.
 - Adaptar `suscripcion-tienda.md` al modelo de suscripciones por titular (después de `suscripciones-y-varias-tiendas`).
 - «Importar productos» / entrevista de inventario.
