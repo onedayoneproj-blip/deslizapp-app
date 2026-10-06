@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef } from "react";
-import { WHATSAPP_DESLIZAPP } from "@/lib/config";
+import { INSTAGRAM_DESLIZAPP } from "@/lib/config";
 import { nuevoId } from "@/lib/data/db";
 import { reducirFoto } from "@/lib/imagen";
 import {
@@ -101,9 +101,8 @@ export function SeccionRetoque({
   const quitar = (f: { id: string; nueva: boolean }) =>
     alCambiar(f.nueva ? { ...borrador, nuevas: borrador.nuevas.filter((n) => n.id !== f.id) } : { ...borrador, quitar: [...borrador.quitar, f.id] });
 
-  const hablemos = WHATSAPP_DESLIZAPP
-    ? `https://wa.me/${WHATSAPP_DESLIZAPP}?text=${encodeURIComponent("Hola, quiero que me hagan la marca de mi tienda.")}`
-    : null;
+  // «Hablemos» lleva al Instagram de Deslizapp (todavía no hay WhatsApp de Deslizapp).
+  const hablemos = `https://instagram.com/${INSTAGRAM_DESLIZAPP}`;
 
   return (
     <section aria-label="Para el retoque" className="flex flex-col gap-4 border-t border-linea pt-5" data-seccion-retoque="">
@@ -228,13 +227,11 @@ export function SeccionRetoque({
           <p className="text-cuerpo text-texto-secundario">
             Te la hacemos. Buscamos lo que tu tienda quiere decir y lo convertimos en logo, colores y estilo, como hicimos con Deslizapp.
           </p>
-          {hablemos && (
-            <div className="flex justify-end">
-              <Boton href={hablemos} target="_blank" rel="noreferrer" tamano="compacto" jerarquia="resalte">
-                Hablemos
-              </Boton>
-            </div>
-          )}
+          <div className="flex justify-end">
+            <Boton href={hablemos} target="_blank" rel="noreferrer" tamano="compacto" jerarquia="resalte">
+              Hablemos
+            </Boton>
+          </div>
         </div>
       )}
     </section>

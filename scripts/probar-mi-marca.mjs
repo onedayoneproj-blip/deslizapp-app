@@ -137,7 +137,8 @@ await caso("2. Completar Mi marca: palabras, referencias en vivo, tope de 6, gua
   ok(!conLogo || (await hoja(page).locator("[data-tarjeta-sin-marca]").count()) === 0, "con logo y sin referencias la tarjeta «¿Todavía no tienes marca?» no sale");
   if (conLogo) await hoja(page).getByRole("button", { name: "Quitar logo (usar iniciales)" }).click();
   ok((await hoja(page).locator("[data-tarjeta-sin-marca]").count()) === 1 && (await hoja(page).getByText("¿Todavía no tienes marca?").isVisible()), "sin logo ni referencias sale «¿Todavía no tienes marca?»");
-  ok((await hoja(page).getByRole("link", { name: "Hablemos" }).count()) === 0 && !(await hoja(page).innerText()).includes("RD$"), "sin «Hablemos» ni precio (WHATSAPP_DESLIZAPP vacío y sin precio en la base)");
+  ok((await hoja(page).getByRole("link", { name: "Hablemos" }).getAttribute("href")) === "https://instagram.com/deslizapp", "«Hablemos» lleva al Instagram de Deslizapp (@deslizapp)");
+  ok(!(await hoja(page).innerText()).includes("RD$"), "sin precio (no se inventa; falta decidir cómo exponerlo)");
   for (const [i, p] of ["elegante", "cálida", "femenina"].entries()) await hoja(page).getByRole("textbox", { name: `Palabra ${i + 1}`, exact: true }).fill(p);
   ok((await banner().innerText()).includes("Faltan 3 fotos de referencia"), "con 3 palabras sigue faltando: «Faltan 3 fotos de referencia»");
   const entrada = hoja(page).locator('input[aria-label="Añadir fotos de referencia"]');

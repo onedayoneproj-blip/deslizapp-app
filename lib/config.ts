@@ -37,6 +37,8 @@ export const FOTO_LADO_MAXIMO = 800;
  * (ej. "18095550000"). Vacío = WhatsApp abre con el mensaje listo y la persona elige el contacto.
  */
 export const WHATSAPP_DESLIZAPP = "";
+/** Cuenta de Instagram de Deslizapp (sin @): a donde lleva «Hablemos» en Mi marca mientras no haya WhatsApp. */
+export const INSTAGRAM_DESLIZAPP = "deslizapp";
 
 /**
  * "Hecho con Deslizapp" al pie de la imagen del cupón que se comparte (lib/imagen-promo.ts). Se deja discreto;
