@@ -45,6 +45,12 @@ Después de `git fetch origin` y `git rebase origin/main` (main dc76745, sin PR 
 
 Los runners de replay aplican ahora cada archivo con `--single-transaction`, cambio mínimo necesario para el bloqueo transaccional de la nueva migración. Pasan los replays admin, pedidos, catálogo y eliminación lógica. El runner de inventario encuentra una comprobación obsoleta de la firma de cinco argumentos de ajustar_stock (la vigente tiene seis). Se reprodujo el mismo error en el checkout independiente de main dc76745, sin migraciones admin. Pendiente de la sesión de app; no se cambió su prueba compartida ni se presenta ese runner como verde.
 
+### Corrección posterior de la prueba de inventario — 6 de octubre de 2026
+
+En un checkout independiente de `origin/main` actualizado a `a07acfc`, `bash scripts/probar-inventario-replay.sh` reprodujo el fallo exacto: `ERROR: function "public.ajustar_stock(uuid,uuid,integer,text,text)" does not exist` (PL/pgSQL, `inline_code_block line 9 at IF`). La comprobación de ACL usaba una identidad antigua de cinco argumentos.
+
+La migración `20261004123742_variantes_y_stock.sql` reemplaza la función por `ajustar_stock(p_tienda_id uuid, p_producto_id uuid, p_variacion integer, p_motivo text, p_nota text DEFAULT NULL, p_variante_id uuid DEFAULT NULL) RETURNS public.productos`. El sexto argumento es el ID de la variante; `NULL` mantiene el ajuste al nivel del producto. Solo se actualizó la firma literal de `has_function_privilege` a seis argumentos. Las llamadas de prueba con cuatro argumentos son válidas por los dos valores predeterminados; no se alteraron. El replay posterior pasó completo, con `--single-transaction` intacto para cada migración. Este seguimiento corrige solo prueba y documentación; no cambia SQL de producción ni comportamiento de inventario. El error descrito arriba se conserva como antecedente reproducible, no como resultado actual.
+
 Lectura previa real: cero pagos, cero mensualidades/anulaciones y cero tiendas con `pagado_hasta`. No hay datos afectados por este defecto en ese momento. No se guardó correo ni se usaron cuentas, pagos o productos de Lewis como fixtures. Las pruebas funcionales y de concurrencia se hicieron exclusivamente en la base desechable.
 
 Sin pantallas de partes 2–4, merge ni despliegue. `soloMirar` bloquea escrituras desde la app; la cuenta admin/dueño conserva permisos de dueño en la base. No se cambió esa política.

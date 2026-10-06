@@ -44,6 +44,10 @@ Antes de futuras migraciones: list_migrations y revisión remota, coordinación 
 
 ## Validación y siguientes pasos
 
+### Seguimiento posterior: runner de inventario
+
+El replay dejó de estar pendiente: su comprobación de permisos apuntaba a la firma antigua de cinco argumentos. En main `a07acfc`, la migración de variantes define seis argumentos; `p_variante_id uuid DEFAULT NULL` es el sexto y selecciona la variante. El replay completo reprodujo el error exacto y pasó al cambiar solo la firma consultada por `has_function_privilege`. Las invocaciones de cuatro argumentos siguen siendo compatibles por defaults. Véase el addendum de [validación de anulación](../validacion-admin-anulacion.md). Sin cambios a funciones/migraciones o datos de producción.
+
 Resultados propios, límites y advisors: [validacion-admin-base.md](../validacion-admin-base.md). Claude había reportado replay, pruebas SQL y comparación TypeScript/Postgres; sus scripts no estaban accesibles y esos reportes no se cuentan como validaciones de Codex.
 
 Planning debe revisar este PR abierto contra main, especialmente el contrato corregido de cobertura, su límite de conciliación externa y el alcance real de Ver como. Las partes 2–4 siguen pendientes. La parte 2 deberá crear una FuenteDatos fresca para la tienda vista, envolverla y terminar la sesión SQL al salir; no reutilizar una caché de otra tienda ni presentar acciones que escriban. Cuando exista Cobros, Lewis podrá comprobar anulaciones en demo y su historial; no hay pantalla que deba validar ahora.
