@@ -1,12 +1,12 @@
-# Retoque en Beta + pantalla de bienvenida + tienda de ensayo (rama `feat/retoque-beta`)
+# Retoque en Beta + tienda de ensayo (rama `feat/retoque-beta`)
 
-> **Modelo:** en Claude Code, Sonnet 5.5; en Codex, el modelo principal con razonamiento medio. Es un cambio de textos y de una pantalla, más una tienda de prueba creada con datos (no con una migración). Cuando todo pase, **fusiona (squash) a `main`** según la regla de cierre de `docs/00`. Lewis prueba en producción.
+> **Modelo:** en Claude Code, Sonnet 5.5; en Codex, el modelo principal con razonamiento medio. Es un cambio pequeño de textos, más una tienda de prueba creada con datos (no con una migración). Cuando todo pase, **fusiona (squash) a `main`** según la regla de cierre de `docs/00`. Lewis prueba en producción.
 
 ## 0. Antes de empezar
 
 Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md`, `docs/11-voz-y-frases.md` (la voz manda en todo texto), `docs/09-sistema-de-diseno.md`, `docs/13-admin.md` §7, `referencias/retoque-beta/LEEME.md` y `docs/14-precios-y-lanzamiento.md` §2. Tu puesto es **Coding**. Mira cómo quedó el retoque en `components/catalogo/ficha-medios.tsx`, `components/catalogo/taller.ts`, `lib/data/retoques.ts` y `lib/config.ts` (`RETOQUE_REAL`).
 
-Diseño aprobado: `referencias/retoque-beta/` (LEEME y tableros `Ficha`, `Bienvenida`, `ComoFunciona`, `EnElTaller`, con capturas). Síguelo en medidas, jerarquía y textos; no copies su HTML.
+Diseño: solo los tableros `Ficha` y `EnElTaller` de `referencias/retoque-beta/` (etiqueta «Beta» y textos). **`Bienvenida` y `ComoFunciona` no se construyen en este PR**: los reemplaza una bienvenida animada que llega con «Mi marca» (otro prompt). No copies su HTML.
 
 ## 1. Por qué
 
@@ -18,22 +18,13 @@ El retoque **no es automático**. Una persona de Deslizapp, con ojo y gusto, tra
 - También en cualquier otro lugar del panel donde se hable de retocar (hoja de créditos, si la hay). Búscalos con grep; no cambies el admin.
 - Un solo texto para la etiqueta, en `lib/config.ts` o en el archivo de textos que ya use el proyecto.
 
-## 3. Pantalla de bienvenida (la primera vez)
+## 3. Textos del retoque (sin pantalla de bienvenida)
 
-- **Cuándo:** la primera vez que una persona toca «Retocar» en una tienda, **antes** de reservar los créditos. Después ya no sale sola.
-- **Cómo se recuerda:** por tienda y dispositivo, en el almacenamiento local, con try/catch (si no hay almacenamiento, sale cada vez, sin romper nada). Un enlace «Cómo funciona» en la ficha la vuelve a abrir. Cuando se abre así, no pide confirmar nada, solo cierra.
-- **Qué muestra:** tres pasos cortos y una nota. Botones: «Entendido, retocar» (sigue al pedido normal) y «Ahora no» (cierra sin pedir nada).
-- **Textos propuestos** (voz de Deslizapp, sin exclamaciones ni palabras corporativas; ajusta el ritmo, no el fondo ni inventes promesas). La idea de valor: la IA no decide sola; una persona con criterio, y no un botón, escoge lo que mejor cuenta el producto y es honesta con él.
-  - Titular: «La IA propone.» Remate (color de marca): «Una persona decide.»
-  - 1. «Pides.» «Reservamos los créditos. Se cobran cuando la foto esté lista.»
-  - 2. «La IA propone.» «Prepara varias versiones de tu foto.»
-  - 3. «Una persona decide.» «Alguien con ojo para el producto y la marca escoge la que mejor lo cuenta y le habla a tus clientes.»
-  - 4. «Te avisamos.» «Te sale en el producto y decides si te gusta.»
-  - Franja verde (honestidad): «Tu producto sigue siendo tu producto. Mejoramos la foto, no lo cambiamos: lo que ve tu cliente es lo que recibe.»
-  - Nota Beta: «Beta: por ahora cada foto pasa por una persona, y eso toma su tiempo. Si no sale como debe, te devolvemos los créditos.»
-  - En la ficha: «La IA propone, una persona decide. Cuesta 5 créditos.» En el taller: «La IA ya propuso; ahora una persona escoge la mejor. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Con IA, pero con criterio.»
-  - Si hay un tiempo estimado, ponlo en una constante de `lib/config.ts` (`TIEMPO_RETOQUE_TEXTO`) y no lo muestres si está vacía. **No inventes un número**; Lewis lo fija.
-- Funciona igual en la demo (sin Supabase) y respeta el modo oscuro/claro que ya tenga el panel. No se muestra en Ver como (es solo mirar).
+- En la ficha, bajo el título de la foto: «La IA propone, una persona decide. Cuesta 5 créditos.»
+- En el taller: «La IA ya propuso; ahora una persona escoge la mejor. Reservamos 5 créditos; se cobran cuando esté lista.» y, en Caveat, «Con IA, pero con criterio.»
+- Si hay un tiempo estimado, ponlo en una constante de `lib/config.ts` (`TIEMPO_RETOQUE_TEXTO`) y no lo muestres si está vacía. **No inventes un número**; Lewis lo fija.
+- **No** hagas pantalla de bienvenida ni enlace «Cómo funciona»: vienen después con Mi marca.
+- Funciona igual en la demo y no cambia nada en Ver como.
 
 ## 4. Tienda de ensayo (datos, no migración)
 
@@ -47,7 +38,7 @@ Una tienda falsa para que Lewis y los Coding prueben sin tocar Esencias Michel. 
 
 ## 5. Pruebas y cierre
 
-- Prueba en demo y en la tienda de ensayo: aparece la etiqueta; primera vez sale la bienvenida; «Ahora no» no reserva; «Entendido, retocar» sí; la segunda vez no sale sola; «Cómo funciona» la reabre.
+- Prueba en demo y en la tienda de ensayo: aparece la etiqueta «Beta» en el botón y en cada estado; los textos nuevos salen; pedir, entregar y devolver siguen igual (créditos incluidos).
 - `tsc`, tests, lint y build sin errores nuevos. Los scripts de regresión que tocan la ficha.
 - Novedad en el panel solo si el proyecto ya publica novedades por cambios así (mira cómo se hizo con la 0.36.0; no la inventes).
 - Si todo pasa: squash a `main`. Si algo falla o tomaste una decisión que no estaba aquí, deja el PR abierto con la preview y dilo.

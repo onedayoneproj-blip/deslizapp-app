@@ -6,7 +6,7 @@ Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras ti
 
 - **Se elimina el cobro de montaje (instalación) para todos los planes.**
 - Para que eso salga a cuenta, **la tienda carga sus propios productos y fotos** con el onboarding. El equipo solo deja lista la personalización (colores, frases, cabecera), que con la pantalla Personalizar del admin son unos 15 a 30 minutos.
-- **Marca o logo nuevos siguen siendo un servicio aparte** (RD$5,000, `precios_extra`): ahí hay trabajo de diseño de verdad. En el admin, el concepto interno `instalacion` se muestra como «Marca y diseño».
+- **Marca o logo nuevos siguen siendo un servicio aparte** (RD$5,000, `precios_extra`): ahí hay trabajo de diseño de verdad. **El precio se edita desde el admin y admite descuentos de promoción** (decisión del 6 oct 2026; falta especificarlo). En el admin, el concepto interno `instalacion` se muestra como «Marca y diseño».
 
 ## 2. Planes
 
@@ -19,7 +19,7 @@ Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras ti
 - Los planes anteriores (`p20`, `p60`, `p100`) dejan de ofrecerse (`se_ofrece = false`); quien los tiene los conserva.
 - **Video solo desde Tienda:** el video pesa mucho (cerca de 10 MB por 30 s) y el plan gratis de Supabase tiene 1 GB. **Esa restricción por plan todavía no existe en el código**; se decide cuando se construya.
 - **Créditos comprados:** se siguen vendiendo en paquetes y no vencen. **El precio del paquete se fija cuando se mida lo que cuesta cada foto retocada con IA** (todavía no medido). Los créditos mensuales no se acumulan.
-- **Retoque con IA:** hoy el admin trabaja con una cola de entrega manual (docs/13 §7). Queda por decidir si la IA retoca dentro de la app (automático, con costo por foto) o si Lewis la usa por fuera y sube el resultado. La cola sirve de puente. **Mientras tanto el retoque es una función Beta y lo hace una persona que supervisa la IA** (ojo y gusto, no un botón automático); la app lo dice con una etiqueta «Beta» y una pantalla de bienvenida la primera vez (`docs/prompts/retoque-beta-y-tienda-de-ensayo.md`).
+- **Retoque con IA:** hoy el admin trabaja con una cola de entrega manual (docs/13 §7). Queda por decidir si la IA retoca dentro de la app (automático, con costo por foto) o si Lewis la usa por fuera y sube el resultado. La cola sirve de puente. **El retoque se hace con la foto original y con «Mi marca» de la tienda** (logo, Instagram y al menos 3 fotos de referencia, que se exigen antes del primer retoque; si no tiene marca, se le ofrece el paquete «Marca y diseño»). **Mientras tanto el retoque es una función Beta y lo hace una persona que supervisa la IA** (ojo y gusto, no un botón automático); la app lo dice con una etiqueta «Beta» y una pantalla de bienvenida la primera vez (`docs/prompts/retoque-beta-y-tienda-de-ensayo.md`).
 
 ## 3. Pago anual
 
