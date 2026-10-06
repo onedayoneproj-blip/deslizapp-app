@@ -37,6 +37,11 @@ export type Taller = {
   /** ¿Esta URL está guardada en el producto? Solo esas se pueden mandar. */
   guardada: (url: string) => boolean;
   pedir: (url: string) => Promise<boolean>;
+  /**
+   * Manda al taller una foto de un producto ya guardado, aunque la ficha sea la de un producto que apenas se creó. Con
+   * `silencioso` no avisa por su cuenta (quien manda varias fotos junta el resultado en una sola tostada).
+   */
+  pedirDe: (productoId: string, url: string, opciones?: { silencioso?: boolean }) => Promise<boolean>;
   pidiendo: string | null;
   soloMirar: boolean;
   /** Las entregadas de este producto (para cambiar la foto en un borrador abierto). */
@@ -88,33 +93,37 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
   const estado = useCallback((url: string) => (productoId ? estadoFotoEnTaller(trabajos ?? [], productoId, url) : null), [trabajos, productoId]);
   const guardada = (url: string) => !!producto?.medios.some((m) => m.tipo === "foto" && m.url === url);
 
-  const pedir = async (url: string) => {
-    if (!productoId || enCurso.current) return false;
+  const pedirDe = async (destinoId: string, url: string, opciones?: { silencioso?: boolean }) => {
+    if (enCurso.current) return false;
     enCurso.current = true;
     setPidiendo(url);
+    const aviso = (mensaje: string) => {
+      if (!opciones?.silencioso) avisar(mensaje);
+    };
     try {
-      await pedirRetoque(tiendaId, productoId, url);
-      avisar(avisoFotoEnProceso());
+      await pedirRetoque(tiendaId, destinoId, url);
+      aviso(avisoFotoEnProceso());
       return true;
     } catch (e) {
       // Si la respuesta se perdió, se mira el taller antes de decir que no.
       try {
         const ahora = await trabajosRetoque(tiendaId);
-        if (ahora.some((t) => t.productoId === productoId && t.medioUrlOriginal === url && t.estado === "pendiente")) {
+        if (ahora.some((t) => t.productoId === destinoId && t.medioUrlOriginal === url && t.estado === "pendiente")) {
           reintentar();
-          avisar(avisoFotoEnProceso());
+          aviso(avisoFotoEnProceso());
           return true;
         }
       } catch {
         /* se avisa abajo */
       }
-      avisar(mensajeDeError(e, "No pudimos mandarla al taller. Inténtalo otra vez."));
+      aviso(mensajeDeError(e, "No pudimos mandarla al taller. Inténtalo otra vez."));
       return false;
     } finally {
       enCurso.current = false;
       setPidiendo(null);
     }
   };
+  const pedir = async (url: string) => (productoId ? pedirDe(productoId, url) : false);
 
-  return { libres, estado, guardada, pedir, pidiendo, soloMirar, entregadas };
+  return { libres, estado, guardada, pedir, pedirDe, pidiendo, soloMirar, entregadas };
 }

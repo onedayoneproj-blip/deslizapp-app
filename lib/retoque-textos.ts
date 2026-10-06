@@ -22,3 +22,31 @@ export function tiempoRetoque(texto: string = TIEMPO_RETOQUE_TEXTO): string | nu
   const t = texto.trim();
   return t ? t : null;
 }
+
+// ── Retoque opcional al subir la foto (el interruptor «Retocar esta foto» de la ficha) ──────────────────────────────
+
+export const TITULO_RETOCAR_ESTA = "Retocar esta foto";
+/** Debajo del interruptor encendido: es solo una intención hasta guardar. */
+export const TEXTO_SE_MANDA_AL_GUARDAR = "Se manda al taller cuando guardes.";
+export const MOTIVO_SIN_CREDITOS = "Te faltan créditos para esta.";
+export const MOTIVO_SOLO_MIRAR = "Solo mirar: aquí no se manda nada al taller.";
+
+/** Lo que se suma a la tostada de «Guardado» cuando fotos marcadas pasaron al taller. */
+export const avisoFotosEnElTaller = (n: number, porFoto: number = CREDITOS_POR_RETOQUE) =>
+  n === 1 ? `Tu foto está en el taller: reservamos ${porFoto} créditos.` : `Tus ${n} fotos están en el taller: reservamos ${n * porFoto} créditos.`;
+
+/** Si el producto se guardó pero alguna foto no pudo pasar al taller (el producto nunca se pierde por eso). */
+export const avisoFotosSinTaller = (fallaron: number, total: number) =>
+  total === 1
+    ? "No pudimos mandar la foto al taller. Toca la foto y «Retocar»."
+    : fallaron === total
+      ? "No pudimos mandar las fotos al taller. Toca cada una y «Retocar»."
+      : `${total - fallaron} de ${total} fotos están en el taller. Para el resto, toca la foto y «Retocar».`;
+
+/** La tostada final: lo de siempre al guardar y, si hubo fotos marcadas, cómo les fue en el taller. */
+export function avisoGuardadoConRetoques(base: string, marcadas: number, enviadas: number, porFoto: number = CREDITOS_POR_RETOQUE): string {
+  if (marcadas === 0) return base;
+  const fallaron = marcadas - enviadas;
+  const taller = enviadas > 0 && fallaron === 0 ? avisoFotosEnElTaller(enviadas, porFoto) : avisoFotosSinTaller(fallaron, marcadas);
+  return `${base} ${taller}`;
+}

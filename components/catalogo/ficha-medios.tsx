@@ -9,8 +9,9 @@ import type { Medio, Producto } from "@/lib/types";
 import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, VIDEO_MAX_S, type PasoVideo, type VideoElegido } from "@/lib/video";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Boton, Etiqueta, FilaLista, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
-import { REMATE_TALLER, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
+import { Boton, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
+import { REMATE_TALLER, TEXTO_SE_MANDA_AL_GUARDAR, TITULO_RETOCAR_ESTA, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
+import { estadoInterruptor } from "@/lib/retoque-al-subir";
 import { EtiquetaBeta } from "./etiqueta-beta";
 import type { Taller } from "./taller";
 
@@ -19,7 +20,8 @@ export const MAX_VIDEOS = 2;
 
 /** Un medio en el borrador de la ficha. */
 export type MedioBorrador =
-  | { id: string; tipo: "foto"; url: string; retocada: boolean }
+  // `retocar`: la intención de mandarla al taller al guardar (solo fotos nuevas; no se guarda con el producto).
+  | { id: string; tipo: "foto"; url: string; retocada: boolean; retocar?: boolean }
   | { id: string; tipo: "video"; url: string | null; portada: string | null; duracionS: number; progreso?: number | null };
 
 /** Los medios del producto (o, si es viejo y solo tiene `fotos`, sus fotos) como borrador. */
@@ -135,6 +137,8 @@ export function SeccionMedios({
     }
   };
 
+  /** Fotos nuevas marcadas para el taller: cuentan todas contra los créditos libres. */
+  const marcadas = medios.filter((m) => m.tipo === "foto" && m.retocar && !taller.guardada(m.url)).length;
   const elegido = medios.find((m) => m.id === abierto) ?? null;
   const indice = elegido ? medios.indexOf(elegido) : -1;
   const mover = (desde: number, hasta: number) =>
@@ -178,6 +182,7 @@ export function SeccionMedios({
         medio={elegido}
         indice={indice}
         total={medios.length}
+        marcadas={marcadas}
         taller={taller}
         alCerrar={() => setAbierto(null)}
         alCambiar={(nuevo) => alCambiar((l) => l.map((m) => (m.id === nuevo.id ? nuevo : m)))}
@@ -211,6 +216,7 @@ function HojaMedio({
   medio,
   indice,
   total,
+  marcadas,
   taller,
   alCerrar,
   alCambiar,
@@ -221,6 +227,8 @@ function HojaMedio({
   medio: MedioBorrador | null;
   indice: number;
   total: number;
+  /** Cuántas fotos nuevas hay marcadas en el borrador. */
+  marcadas: number;
   taller: Taller;
   alCerrar: () => void;
   alCambiar: (m: MedioBorrador) => void;
@@ -285,13 +293,26 @@ function HojaMedio({
         ),
       };
     if (foto.retocada) return { titulo: conBeta("Retocada por el equipo"), detalle: "Ya tiene luz y fondo de estudio.", pie: null, accion: null };
-    const motivo = taller.soloMirar
-      ? "Solo mirar: aquí no se manda nada al taller."
-      : !taller.guardada(foto.url)
-        ? "Guarda el producto para mandarla al taller."
-        : taller.libres < CREDITOS_POR_RETOQUE
-          ? "Te faltan créditos para esta."
-          : null;
+    if (!taller.guardada(foto.url)) {
+      // Foto nueva: el interruptor solo anota la intención; se manda al taller cuando el producto se guarde.
+      const marcada = !!foto.retocar;
+      const { deshabilitado, motivo: sinMotivo } = estadoInterruptor({ soloMirar: taller.soloMirar, libres: taller.libres, marcadas, estaMarcada: marcada });
+      return {
+        titulo: conBeta(TITULO_RETOCAR_ESTA),
+        detalle: sinMotivo ?? (marcada ? TEXTO_SE_MANDA_AL_GUARDAR : undefined),
+        pie: <span className={textoSecundario}>{textoFichaRetoque()}</span>,
+        accion: (
+          <Interruptor
+            etiqueta={TITULO_RETOCAR_ESTA}
+            encendido={marcada}
+            deshabilitado={deshabilitado}
+            alCambiar={(v) => alCambiar({ ...foto, retocar: v })}
+            alTocarBloqueado={() => sinMotivo && avisar(sinMotivo)}
+          />
+        ),
+      };
+    }
+    const motivo = taller.soloMirar ? "Solo mirar: aquí no se manda nada al taller." : taller.libres < CREDITOS_POR_RETOQUE ? "Te faltan créditos para esta." : null;
     return {
       titulo: conBeta("Retocar foto"),
       detalle: motivo ?? undefined,

@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.37.0", fecha: "2026-10-06", titulo: "Súbela y pídele retoque.",
+    cambios: [
+      "Al subir una foto nueva, enciende «Retocar esta foto» y se manda al taller cuando guardes el producto.",
+      "Se reservan 5 créditos por foto marcada; se cobran al entregarla. Sigue en Beta.",
+      "Si el taller no la recibe, el producto queda guardado y te avisamos.",
+    ],
+  },
+  {
     version: "0.36.1", fecha: "2026-10-06", titulo: "El retoque llega en Beta.",
     cambios: [
       "No es un botón automático: la foto se retoca con tu marca como guía y expertos de Deslizapp en el camino. Por eso tarda.",
