@@ -56,6 +56,7 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 | Movimiento | `docs/08-movimiento.md` |
 | Alcance, modelo de datos, pantallas, arquitectura, orden | `docs/02` a `docs/07` |
 | **Catálogo conectado** (el plan en curso) | `docs/12-catalogo-conectado.md`, prompts en `docs/prompts/` |
+| **Precios, pago anual, pruebas y lanzamiento** | `docs/14-precios-y-lanzamiento.md` |
 | Diseños aprobados | `referencias/` (cada carpeta tiene su `LEEME.md`) |
 | Capturas de PRs anteriores | `docs/capturas/` |
 | Catálogo conectado publicado de Esencias Michel | `/tienda/esencias-michel` (React, datos de Supabase) |

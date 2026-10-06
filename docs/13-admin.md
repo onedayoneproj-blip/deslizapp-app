@@ -6,7 +6,7 @@ El panel desde el que Lewis (y quien él diga) administra todas las tiendas: lo 
 
 - **Teléfono primero.** Mismo estilo y componentes que la app de las tiendas. En computadora son las mismas pantallas, más anchas.
 - **Las tiendas entran solo por link de Deslizapp.** No hay registro abierto. Las invitaciones viven en el admin, pero se construyen con el onboarding (parte 5), que todavía está en diseño.
-- **Planes sin decidir:** se crean y editan desde el admin; ningún precio ni límite queda fijo en el código.
+- **Planes:** se crean y editan desde el admin; ningún precio ni límite queda fijo en el código. **Los planes y precios propuestos (6 oct 2026), el pago anual, las pruebas y el fin del montaje están en `docs/14-precios-y-lanzamiento.md`.**
 - **El retoque de fotos y el armado de catálogos los hace el equipo a mano**, por ahora. El admin es su cola de trabajo.
 - **«Ver como la tienda»: solo mirar**, y cada vez queda anotado.
 - **Eficiente e inteligente:** el admin le dice a Lewis qué hacer (pestaña Hoy), en vez de obligarlo a revisar tienda por tienda.
@@ -107,6 +107,7 @@ Una función `admin_hoy()` calcula los asuntos en la base (una sola consulta par
 | 1 | Plata | Pago vencido, dentro o fuera de los días de gracia | Escribirle · «Ya pagó» |
 | 1 | Plata | Prueba que termina en ≤ 3 días sin plan elegido | Escribirle |
 | 2 | Plata | Vence en ≤ 3 días | Recordarle |
+| 2 | Plata | **Pago anual** (su última mensualidad vigente fue de 12 meses) que vence en ≤ 30 días | Recordarle |
 | 3 | Clientes | Solicitudes del catálogo sin registrar con más de 24 h | Avisarle |
 | 3 | Clientes | Catálogo `solicitado` hace más de 2 días, o `cambios` hace más de 1 día | Empezar · Ver cambios |
 | 4 | Se enfría | En prueba, ≥ 3 días y 0 productos | Darle un empujón |
@@ -185,12 +186,15 @@ Hoy el retoque es una demo (`RETOQUE_REAL = false`, `gastar_creditos` cobra al i
   - Cobrado en el mes contra lo esperado (la suma de los precios de las tiendas activas). Por cobrar y créditos vendidos.
   - Secciones: Atrasadas (`en_gracia` y `vencida`), Vencen esta semana, Al día (plegado, con la próxima fecha), En prueba (plegado, con la que termina antes).
 - **Registrar pago:**
-  - Concepto (Mensualidad, Créditos, Instalación).
+  - Concepto (Mensualidad, Créditos, Marca y diseño; este último es el concepto interno `instalacion`, ya sin cobro de montaje, docs/14 §1).
+  - Con Mensualidad, un selector **Mensual o Anual**. Anual es una mensualidad con `meses = 12` y monto 10 veces el precio mensual del plan (constante `MESES_PAGADOS_ANUAL = 10` en un solo archivo). No cambia el esquema: `admin_registrar_pago` ya acepta `p_meses` de 1 a 12.
   - Monto, que se llena con el precio del plan (o del paquete) y se puede cambiar.
   - Método, referencia opcional y foto del comprobante (bucket privado `comprobantes`, solo admin).
   - Una línea que calcula «Queda pagada hasta…»: una mensualidad suma un mes a `max(pagado_hasta, hoy)`.
   - Interruptor «Mandarle el recibo»: abre WhatsApp con el mensaje y la imagen del recibo, que se genera como los recibos de pedidos.
   - Comprar créditos suma el movimiento `compra` con el `pago_id`.
+- **Créditos con pago anual:** `admin_recarga_mensual` recarga por mes calendario a toda tienda activa o en prueba, sin mirar cómo paga. Una tienda anual sigue recibiendo sus créditos cada mes, sin cambios.
+- **Aviso de renovación anual:** a 30 días, con la regla de Hoy de §4.1. El estado de cobro (`vence_pronto`, 3 días) no cambia: el aviso anual es un asunto aparte de Hoy, no un estado nuevo.
 - **Pausar por falta de pago no es automático** en esta versión. Hoy lo sugiere cuando una tienda está `vencida`, y Lewis decide desde la ficha (`cambiar_estado_tienda` en versión admin).
 
 ## 9. Planes
