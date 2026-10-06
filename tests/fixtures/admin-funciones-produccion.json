@@ -132,6 +132,17 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_personalizacion_tienda",
+    "argumentos": "p_tienda_id uuid",
+    "md5": "d5976a14e78ce3e5abbeb808919915e2",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_planes",
     "argumentos": "",
     "md5": "7db3b19afdc04b604914a7bb33a998cd",

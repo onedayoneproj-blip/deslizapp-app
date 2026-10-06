@@ -48,6 +48,22 @@ do $$ declare r jsonb := public.admin_productos_tienda('bb000000-0000-4000-8000-
 end $$;
 reset role;
 
+-- 1b. admin_personalizacion_tienda: solo admins, devuelve personalización y marca sin tocar nada.
+update public.tiendas set personalizacion='{"secciones":{"chat":false},"tema":{"colores":{"bg":"#FFFFFF"}}}' where id='bb000000-0000-4000-8000-000000000001';
+select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
+set local role authenticated;
+select pg_temp.rechaza($q$select public.admin_personalizacion_tienda('bb000000-0000-4000-8000-000000000001')$q$,'no_admin');
+reset role;
+select pg_temp.comprobar(not has_function_privilege('anon','public.admin_personalizacion_tienda(uuid)','EXECUTE'),'anon ejecuta admin_personalizacion_tienda');
+select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+do $$ declare r jsonb := public.admin_personalizacion_tienda('bb000000-0000-4000-8000-000000000001'); begin
+ perform pg_temp.comprobar(r->>'slug'='taller-fixture' and r->'personalizacion'->'secciones'->>'chat'='false' and r->>'marca_estilo' is not null,'personalización y marca');
+ perform pg_temp.rechaza($q$select public.admin_personalizacion_tienda('bb000000-0000-4000-8000-0000000000ff')$q$,'tienda_no_encontrada');
+end $$;
+reset role;
+select pg_temp.comprobar((select count(*) from public.registro_admin where tienda_id='bb000000-0000-4000-8000-000000000001')=0,'leer no anota en el registro');
+
 -- 2. La tienda pide: reserva (no cobra), no repite la misma foto, y el saldo libre manda.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
@@ -133,5 +149,5 @@ do $$ declare b2 uuid; ok boolean := false; begin
  perform pg_temp.comprobar(ok,'retirado: producto_no_encontrado');
  perform pg_temp.comprobar((select creditos_retoque from public.tiendas where id='bb000000-0000-4000-8000-000000000001')=7,'no cobró el retirado');
 end $$;
-select 'Pasó: admin_productos_tienda (solo admin, orden, sin retirados), reservar/entregar una vez/devolver, doble envío, foto cambiada y producto retirado sin sustitución ni cobro.' as resultado;
+select 'Pasó: admin_personalizacion_tienda, admin_productos_tienda (solo admin, orden, sin retirados), reservar/entregar una vez/devolver, doble envío, foto cambiada y producto retirado sin sustitución ni cobro.' as resultado;
 rollback;
