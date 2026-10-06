@@ -34,6 +34,8 @@ end $$;
 SQL
 psql_local < scripts/probar-admin-db.sql
 psql_local < scripts/probar-admin-trabajo-db.sql
+psql_local < scripts/probar-mi-marca-db.sql
+python3 scripts/probar-mi-marca-concurrencia.py
 node scripts/comparar-admin-reglas.mjs
 node scripts/comparar-admin-mensualidades.mjs
 psql_local < scripts/probar-admin-mensualidades-db.sql
