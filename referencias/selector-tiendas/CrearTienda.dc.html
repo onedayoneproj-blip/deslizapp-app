@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Crear otra tienda</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+a{color:#174b3a}a:hover{color:#10362a}
+button{font-family:'Figtree',sans-serif}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:115%}
+.op{height:44px;padding:0 14px;border-radius:999px;border:1.5px solid #e7dcc8;background:#ffffff;color:#174b3a;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.op.on{background:#dcebe2;border-color:#dcebe2;font-weight:800}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 20px 6px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="width: 42px; height: 42px; border-radius: 999px; background: #f5c9d6; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">MS</span>
+      <div><div style="font-size: 16px; font-weight: 800;">Mora Shoes</div><div style="font-size: 12.5px; color: #4f6a5e;">Pro · deslizapp</div></div>
+    </div>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(16, 54, 42, 0.5);"></div>
+
+  <div role="dialog" aria-label="Crear otra tienda" style="position: absolute; left: 0; right: 0; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; box-shadow: 0 -8px 30px rgba(16, 54, 42, 0.16); padding: 8px 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; justify-content: center;"><span style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8;"></span></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: -2px;">
+      <div>
+        <h2 class="f" style="margin: 0; font-size: 24px; line-height: 28px;">Crear otra tienda</h2>
+        <div style="font-family: 'Caveat', cursive; font-weight: 700; font-size: 22px; line-height: 22px; color: #a8410f;">un catálogo más</div>
+      </div>
+      <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #f3ead9; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <label for="nombre" style="font-size: 14px; font-weight: 800; color: #4f6a5e;">Nombre de la tienda</label>
+      <input id="nombre" type="text" value="Casa Verde" style="height: 50px; border-radius: 16px; border: 2px solid #174b3a; background: #ffffff; padding: 0 14px; font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 600; color: #174b3a; outline: none;">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 14px; font-weight: 800; color: #4f6a5e;">¿Qué vendes?</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span class="op">Perfumes</span>
+        <span class="op">Ropa</span>
+        <span class="op">Accesorios</span>
+        <span class="op">Belleza</span>
+        <span class="op">Comida</span>
+        <span class="op on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Hogar</span>
+        <span class="op">Otro</span>
+      </div>
+    </div>
+
+    <div style="background: #dcebe2; border-radius: 16px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f6b47" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 600;">Empieza vacía. Cambias entre tus tiendas desde el nombre, arriba.</span>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button type="button" style="flex: 1; height: 52px; border-radius: 999px; border: 1.5px solid #174b3a; background: #ffffff; color: #174b3a; font-size: 17px; font-weight: 800;">Cancelar</button>
+      <button type="button" style="flex: 1; height: 52px; border-radius: 999px; border: none; background: #174b3a; color: #fff9ee; font-size: 17px; font-weight: 800;">Crear tienda</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

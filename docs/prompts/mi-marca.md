@@ -6,7 +6,7 @@
 
 Lee `docs/00-contexto-del-proyecto.md` (reglas de migraciones, «Dos Coding en paralelo» y cierre de PR), `AGENTS.md`, `HANDOFF.md`, `docs/09-sistema-de-diseno.md`, `docs/08-movimiento.md` (reglas de movimiento: solo `transform` y `opacity`, nada que bloquee un toque, apagado con `prefers-reduced-motion`), `docs/11-voz-y-frases.md`, `docs/13-admin.md` §7 y `docs/14-precios-y-lanzamiento.md` §2. Tu puesto es **Coding**.
 
-Diseño aprobado: `referencias/mi-marca/` (LEEME y tableros `MiMarca`, `MiMarcaVacia`, `Bienvenida`, `AdminFoto`). **Abre `Bienvenida.dc.html` en un navegador: es animada y no hay captura que lo cuente.** No copies su HTML: se construye con `components/ui/`, los tokens del panel y `lib/movimiento.ts`.
+Diseño aprobado: `referencias/mi-marca/` (LEEME y tableros `MiMarca`, `MiMarcaVacia`, `Bienvenida`, `AdminFoto`; en `MiMarca` y `MiMarcaVacia` está dibujada solo la sección nueva «Para el retoque»). **Abre `Bienvenida.dc.html` en un navegador: es animada y no hay captura que lo cuente.** No copies su HTML: se construye con `components/ui/`, los tokens del panel y `lib/movimiento.ts`.
 
 Este PR toca `components/catalogo/ficha-medios.tsx` y el taller, igual que `docs/prompts/retoque-beta-y-tienda-de-ensayo.md`. Si ese PR no está en `main`, espéralo o haz rebase; no dupliques su etiqueta Beta ni sus textos.
 
@@ -30,20 +30,21 @@ Aplica `docs/00`: antes `list_migrations`; ensaya con `BEGIN; … ROLLBACK;`; pr
 - Corre `get_advisors` (seguridad) después de aplicar y arregla lo que salga de tus objetos.
 - **«Marca lista»** es una regla derivada, no una columna: hay **3 palabras y al menos 3 fotos de referencia**. Ponla en una sola función de `lib/` (y, si el admin la necesita en SQL, una vista o función aparte) para que app y admin digan lo mismo.
 
-## 3. La pantalla «Mi marca» (panel de la tienda)
+## 3. La hoja «Mi marca» (se amplía, no se crea otra)
 
-Es una **hoja** (los formularios del panel son hojas), según `MiMarca` y `MiMarcaVacia`.
+**Ya existe** `components/marca-tienda/hoja-mi-marca.tsx` («Mi marca»: logo, colores principal y acento, estilo de letra de cupones y catálogo). **Amplíala**; no hagas otra hoja ni duplicar el logo. Su entrada de hoy es una fila en el menú de la tienda; con `docs/prompts/selector-de-tiendas.md` esa fila pasa **dentro de la tarjeta de la tienda activa**: si ese PR ya está en `main`, no toques el menú; si no, deja la fila donde está.
 
-- **Entrada:** una fila «Mi marca» en el menú que se abre al tocar el nombre de la tienda (`components/panel/menu-tienda.tsx`), con un punto de atención mientras no esté lista. También se abre sola desde el retoque (§4).
-- **Campos:** logo (el existente, con su cambio), Instagram (`@` fijo, se guarda sin él), «Tu marca en 3 palabras» (3 campos cortos, obligatorios para que la marca esté lista), «Así quiero que se vean mis fotos» (de 3 a 6; arrastrar para ordenar no hace falta; quitar sí) y «Lo que no quiero» (una línea, opcional).
-- **Estados:** vacía (aviso rojo «Faltan N fotos de referencia» según el tablero), parcial y lista («Tu marca está lista para el taller.», franja verde). Guarda con «Guardar», con confirmación «¿Salir sin guardar?» como las demás hojas.
-- **Tarjeta «¿Todavía no tienes marca?»** (en la vacía): «Te la hacemos. Buscamos lo que tu tienda quiere decir y lo convertimos en logo, colores y estilo, como hicimos con Deslizapp.» El precio sale del registro de `precios_extra` del paquete «Marca y diseño» (míralo en la base; no escribas RD$5,000 a mano). Si no existe, no se muestra el precio. «Hablemos» abre WhatsApp con un mensaje ya escrito, usando `WHATSAPP_DESLIZAPP` de `lib/config.ts`; **hoy está vacío**: mientras lo esté, oculta el botón y dilo en el PR para que Lewis ponga el número.
-- Los textos de la pantalla en la voz de `docs/11`, con la menor cantidad de palabras (principio de `docs/09`). Los del diseño son la base.
+Agrega una sección nueva, **«Para el retoque»**, según `MiMarca` y `MiMarcaVacia`, debajo de lo que ya tiene:
+
+- **Instagram** (`@` fijo, se guarda sin él), «Tu marca en 3 palabras» (3 campos cortos, obligatorios para que la marca esté lista), «Así quiero que se vean mis fotos» (de 3 a 6; quitar sí, ordenar no hace falta) y «Lo que no quiero» (una línea, opcional). El logo es el que la hoja ya maneja.
+- **Estados:** vacía (aviso «Faltan N fotos de referencia» según el tablero), parcial y lista («Tu marca está lista para el taller.», franja verde). La fila de Mi marca en el menú muestra ese estado («Faltan 3 fotos de referencia» en `atencion-texto`, o «Lista para el taller»). Guarda con el botón que la hoja ya usa y conserva su confirmación «¿Salir sin guardar?».
+- **Tarjeta «¿Todavía no tienes marca?»** (cuando no hay logo ni referencias): «Te la hacemos. Buscamos lo que tu tienda quiere decir y lo convertimos en logo, colores y estilo, como hicimos con Deslizapp.» El precio sale del registro de `precios_extra` del paquete «Marca y diseño» (míralo en la base; no escribas RD$5,000 a mano). Si no existe, no se muestra el precio. «Hablemos» abre WhatsApp con un mensaje ya escrito, usando `WHATSAPP_DESLIZAPP` de `lib/config.ts`; **hoy está vacío**: mientras lo esté, oculta el botón y dilo en el PR para que Lewis ponga el número.
+- Los textos de la hoja en la voz de `docs/11`, con la menor cantidad de palabras (principio de `docs/09`). Los del diseño son la base.
 - **Ver como:** se ve, no se edita. **Demo:** funciona con datos locales, sin Supabase.
 
 ## 4. El retoque exige la marca
 
-- Al tocar «Retocar foto» con la marca **no lista**, abre «Mi marca» con el aviso y, al guardarla lista, **sigue al pedido** sin que tenga que volver a tocar nada. Con la marca lista, sigue la bienvenida o el pedido normal.
+- Al tocar «Retocar foto» con la marca **no lista**, abre la hoja «Mi marca» con el aviso y, al guardarla lista, **sigue al pedido** sin que tenga que volver a tocar nada. Con la marca lista, sigue la bienvenida o el pedido normal.
 - Con la marca lista, el pedido de retoque no cambia (reserva créditos, etc.): no toques `pedir_retoque` salvo que haga falta para algo de este PR, y dilo.
 
 ## 5. La bienvenida animada (`Bienvenida`)

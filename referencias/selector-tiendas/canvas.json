@@ -1,0 +1,54 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-06T17:40:00Z"
+  },
+  "title": "Selector de tiendas y cuenta",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "MenuPro.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Men\u00fa con plan Pro (3 tiendas)",
+      "radius": 28
+    },
+    "MenuBasico.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 Men\u00fa con plan B\u00e1sico (1 tienda)",
+      "radius": 28
+    },
+    "CrearTienda.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 Crear otra tienda",
+      "radius": 28
+    },
+    "Encabezado.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 360,
+      "title": "4 \u00b7 Encabezado: A como est\u00e1, B con tu foto",
+      "radius": 28
+    }
+  },
+  "order": [
+    "MenuPro.dc.html",
+    "MenuBasico.dc.html",
+    "CrearTienda.dc.html",
+    "Encabezado.dc.html"
+  ],
+  "notes": {},
+  "designSystems": []
+}
