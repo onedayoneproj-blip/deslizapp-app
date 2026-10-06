@@ -9,6 +9,7 @@ import type { FichaTiendaAdmin } from "@/lib/admin/tipos";
 import { EstadoAdmin } from "./estado";
 import { IconoChevronDerecha, IconoPersona, IconoWhatsApp, IconoEnlaceExterno } from "@/components/iconos";
 import { enlaceWhatsAppAdmin, mensajeGeneralTienda } from "@/lib/admin/mensajes";
+import { navegarVerComo } from "@/lib/admin/navegacion-ver-como";
 
 type Accion = "creditos" | "transferir" | "pausar" | "reactivar" | null;
 const fecha = (v: string | null) => v ? new Intl.DateTimeFormat("es-DO", { timeZone: "America/Santo_Domingo", day: "numeric", month: "short", year: "numeric" }).format(new Date(v)) : "—";
@@ -63,9 +64,9 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
     if (demo) { setAviso("Ver como requiere una sesión admin real. Demo no consulta tiendas reales."); return; }
     setOcupado(true); setAviso(null);
     try {
-      const r = await fetch("/api/admin/ver-como/iniciar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ tiendaId }) });
+      const r = await fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "iniciar", tiendaId }) });
       if (!r.ok) throw new Error("No pudimos abrir Ver como.");
-      window.location.assign("/");
+      navegarVerComo("/");
     } catch (e) { setAviso(e instanceof Error ? e.message : "No pudimos abrir Ver como."); }
     finally { setOcupado(false); }
   };

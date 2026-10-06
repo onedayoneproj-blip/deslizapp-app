@@ -1,3 +1,25 @@
+# Relevo actual de Codex — Coding Admin, 2026-10-06
+
+Continuación del [PR #53](https://github.com/onedayoneproj-blip/deslizapp-app/pull/53), rama `feature/admin-tiendas`, después del commit de Planning `f0f9438`, conservado como ancestro. Checkout independiente `/workspace/deslizapp-admin-tiendas`; otros workspaces intactos. Fetch/rebase sobre main `5ab86323f60d2a3778ef177f8ec1db467cab9260`, sin conflictos ni #45.
+
+Corregidos composición de `ProveedorSoloMirar` (useData delega al Proxy guardado, no spread), endpoint de inicio de la ficha y limpieza inmediata de la vista al perder autorización/cerrar/vencer. Nueva identidad de sesión remonta fuente/caché. Se centralizaron cargas completas de transiciones de autorización con URL absoluta del mismo origen; cero reglas silenciadas. Error de detección en el panel normal recarga para autorizar en servidor, sin llevar al dueño común a una ficha admin.
+
+Validación propia: 248 tests, typegen/typecheck, build local, lint 27/27 idéntico a main, replay admin completo con 42 hashes/ACL, 392 secuencias SQL/demo y concurrencia. 12 recorridos del proveedor/contexto en Chromium con Auth/API/Supabase SIMULADOS; Demo responsive clara/oscura, teclado simulado y hojas sobre build local. Resultados, fallos/reintentos y tabla de las 11 advertencias anteriores: [validacion-admin-tiendas.md](../validacion-admin-tiendas.md). Google real y Safari físico siguen pendientes; simulación no los sustituye.
+
+Planning ya aplicó `20261006111233_admin_ver_como_validar.sql`. No se editó ni reaplicó. Historial propio 41/41, cero diferencias; snapshot ampliado a las 42 funciones aplicadas, verificadas con consulta real de metadatos solamente. Sin altas admin, cambios Auth ni escrituras sobre pagos/productos/tiendas reales. SoloMirar bloquea desde la app; admin/dueño conserva permisos normales de dueño en PostgreSQL.
+
+Preview estable `/admin`: https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app/admin. Callback de ese host: `https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app/auth/callback`; no se pudo comprobar la allowlist ni se modificó Auth. Sin sesión, iniciar Google en la raíz primero y luego abrir `/admin`. Pasos de lectura/Ver como/intento bloqueado/Salir/ficha en la validación. El PR registra SHA final, URL única e ID READY exactos; no usar como actuales los despliegues históricos siguientes.
+
+**Para Planning:** revisar esta continuación y evidencia integrada; PR permanece abierto, SIN merge ni publicación en producción. Trabajo/Cobros/Más no avanzaron. Mantener distinguidos resultados propios de Codex, verificación SQL de Planning y reportes históricos.
+
+**Para Claude al volver:** Codex toma el relevo de Coding Admin. Leer este handoff, validación y estado remoto del PR antes de continuar. Hacer fetch, revisar SHA de `origin/feature/admin-tiendas` y conservar estos cambios; no empujar una copia antigua encima del remoto, no force-push ni reaplicar SQL. Cualquier trabajo local previo debe compararse e incorporarse sin perder el commit de Planning ni esta continuación.
+
+Reproducir transporte: iniciar dev con URL pública ficticia `https://euihaeyfdlpvmbtfzvnt.supabase.co` y llave publicable `clave_ficticia_transporte`; ejecutar `URL=http://localhost:PUERTO npm run probar:ver-como-transporte` con Playwright/Chromium del entorno. El script crea/elimina una ruta fixture temporal y no debe correr simultáneamente con build/typegen/lint. Para teclado/hojas, usar build local, evitando interferencia del portal dev. Nunca enviar fixtures al proyecto real.
+
+---
+
+# Informes históricos y revisión original de Planning
+
 ## Revisión de Planning — 2026-10-06
 
 Lewis autorizó completar la coordinación del PR. Aplicada en Supabase

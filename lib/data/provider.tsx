@@ -19,6 +19,7 @@ import { soloMirar } from "./solo-mirar";
 import type { SesionVerComo } from "../admin/tipos";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { navegarVerComo } from "../admin/navegacion-ver-como";
 
 export type DataContexto = FuenteDatos & {
   modo: Modo;
@@ -112,7 +113,7 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
       void fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "detectar" }) })
         .then(r => { if (!r.ok) throw new Error("No se pudo comprobar Ver como."); return r.json() as Promise<{ activa?: boolean }>; })
         .then(r => { if (r.activa) window.location.reload(); else refrescar(); })
-        .catch(() => window.location.assign("/ver-como/recuperar"));
+        .catch(() => window.location.reload());
     };
     document.addEventListener("visibilitychange", alVolver);
     window.addEventListener("focus", alVolver);
@@ -142,7 +143,12 @@ export function ProveedorReal({ children, usuario }: { children: ReactNode; usua
 
 /** Fuente fresca y acotada para Ver como: no comparte caché ni estado de tienda con el dueño. */
 export function ProveedorSoloMirar({ children, sesion }: { children: ReactNode; sesion: SesionVerComo & { tiendaNombre: string } }) {
+  return <ProveedorSesionSoloMirar key={`${sesion.id}:${sesion.tiendaId}:${sesion.venceEn}`} sesion={sesion}>{children}</ProveedorSesionSoloMirar>;
+}
+
+function ProveedorSesionSoloMirar({ children, sesion }: { children: ReactNode; sesion: SesionVerComo & { tiendaNombre: string } }) {
   const [version, setVersion] = useState(0);
+  const [bloqueada, setBloqueada] = useState(false);
   const [instancia] = useState(() => {
     const cliente = createClient();
     const real = crearFuenteSupabase(cliente, () => setVersion((v) => v + 1));
@@ -151,12 +157,12 @@ export function ProveedorSoloMirar({ children, sesion }: { children: ReactNode; 
         method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "validar", sesionId: sesion.id }), cache: "no-store",
       }).catch(() => null);
       if (!respuesta?.ok) {
-        real.olvidar();
+        lectura.cerrar(); real.olvidar(); setBloqueada(true);
         if (respuesta?.status === 409) {
           const detalle = await respuesta.json().catch(() => ({})) as { motivo?: string };
           if (detalle.motivo === "reemplazada") window.location.reload();
-          else window.location.assign(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`);
-        } else window.location.assign("/ver-como/recuperar");
+          else navegarVerComo(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`);
+        } else navegarVerComo("/ver-como/recuperar");
         return false;
       }
       return true;
@@ -168,26 +174,34 @@ export function ProveedorSoloMirar({ children, sesion }: { children: ReactNode; 
     setVersion((v) => v + 1);
   }, [instancia]);
   const cerrarVerComo = useCallback(async (volverAFicha: boolean) => {
-    instancia.lectura.cerrar(); instancia.real.olvidar();
+    instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
     const r = await fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "terminar", sesionId: sesion.id }) }).catch(() => null);
-    if (!r?.ok) { window.location.assign("/ver-como/recuperar"); return false; }
+    if (!r?.ok) { navegarVerComo("/ver-como/recuperar"); return false; }
     if (!volverAFicha) {
       const { error } = await instancia.cliente.auth.signOut();
-      if (error) { window.location.assign("/ver-como/recuperar"); return false; }
+      if (error) { navegarVerComo("/ver-como/recuperar"); return false; }
     }
-    window.location.assign(volverAFicha ? `/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}` : "/");
+    navegarVerComo(volverAFicha ? `/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}` : "/");
     return true;
   }, [instancia, sesion.id, sesion.tiendaId]);
-  const valor = useMemo<DataContexto>(() => ({
-    ...instancia.lectura,
-    modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada,
-    version, salir: async () => { await cerrarVerComo(false); }, errorLectura: null, avisarErrorLectura: nada, refrescar,
-  }), [instancia, sesion.id, sesion.tiendaId, version, refrescar, cerrarVerComo]);
+  // No enumerar la envoltura: su Proxy no tiene propiedades propias. Cada método se resuelve
+  // sobre la fuente protegida, nunca sobre instancia.real (incluidos métodos futuros).
+  const valor = useMemo<DataContexto>(() => {
+    const estado: Omit<DataContexto, keyof FuenteDatos> = {
+      modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada,
+      version, salir: async () => { await cerrarVerComo(false); }, errorLectura: null, avisarErrorLectura: nada, refrescar,
+    };
+    return new Proxy({} as DataContexto, {
+      get: (_objetivo, nombre) => Object.hasOwn(estado, nombre)
+        ? Reflect.get(estado, nombre)
+        : Reflect.get(instancia.lectura, nombre),
+    });
+  }, [instancia, sesion.tiendaId, version, refrescar, cerrarVerComo]);
   useEffect(() => {
     const { data } = instancia.cliente.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
-        instancia.lectura.cerrar(); instancia.real.olvidar();
-        window.location.assign("/");
+        instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
+        navegarVerComo("/");
       }
     });
     return () => data.subscription.unsubscribe();
@@ -195,15 +209,16 @@ export function ProveedorSoloMirar({ children, sesion }: { children: ReactNode; 
   useEffect(() => {
     const restante = Math.max(0, Date.parse(sesion.venceEn) - Date.now());
     const reloj = window.setTimeout(() => {
-      instancia.lectura.cerrar(); instancia.real.olvidar();
+      instancia.lectura.cerrar(); instancia.real.olvidar(); setBloqueada(true);
       void fetch("/api/admin/ver-como", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ accion: "terminar", sesionId: sesion.id }) })
-        .then(r => { if (r.ok) window.location.assign(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`); else window.location.assign("/ver-como/recuperar"); })
-        .catch(() => window.location.assign("/ver-como/recuperar"));
+        .then(r => { if (r.ok) navegarVerComo(`/admin/tiendas/${encodeURIComponent(sesion.tiendaId)}`); else navegarVerComo("/ver-como/recuperar"); })
+        .catch(() => navegarVerComo("/ver-como/recuperar"));
     }, restante);
     const enfocar = () => { if (document.visibilityState === "visible") refrescar(); };
     window.addEventListener("focus", enfocar); document.addEventListener("visibilitychange", enfocar);
     return () => { window.clearTimeout(reloj); window.removeEventListener("focus", enfocar); document.removeEventListener("visibilitychange", enfocar); };
   }, [instancia, refrescar, sesion.venceEn, sesion.id, sesion.tiendaId]);
+  if (bloqueada) return <p role="status">La vista está bloqueada. Comprobando la salida…</p>;
   return <Contexto.Provider value={valor}><SoloMirarCapa tienda={sesion.tiendaNombre} onSalir={() => void cerrarVerComo(true)}>{children}</SoloMirarCapa></Contexto.Provider>;
 }
 

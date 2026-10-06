@@ -174,7 +174,7 @@ assert.deepEqual(nuevasVerComo.map((f) => [f.nombre, f.definer, f.configuracion,
   ["admin_ver_como_actual", true, ['search_path=""'], false, true],
   ["admin_ver_como_validar", true, ['search_path=""'], false, true],
 ], "Las dos guardias nuevas son SECURITY DEFINER, search_path vacío y solo authenticated");
-const hashesProduccion = hashes.filter((f) => !["admin_ver_como_actual", "admin_ver_como_validar"].includes(f.nombre));
+const hashesProduccion = hashes;
 assert.deepEqual(
   hashesProduccion,
   JSON.parse(
@@ -189,5 +189,5 @@ assert.deepEqual(
   "Cuerpos y permisos del replay coinciden con producción",
 );
 console.log(
-  `Paridad TS/Postgres: ${casos.tiendas.length} escenarios × ${casos.usos.length} usos; claves, datos, prioridades, acciones, fechas, cobro y personalización OK; condiciones resueltas sin asuntos; ${hashesProduccion.length} funciones existentes coinciden con producción y 2 guardias nuevas tienen ACL verificada`,
+  `Paridad TS/Postgres: ${casos.tiendas.length} escenarios × ${casos.usos.length} usos; claves, datos, prioridades, acciones, fechas, cobro y personalización OK; condiciones resueltas sin asuntos; ${hashesProduccion.length} funciones coinciden con producción, incluidas las 2 guardias de Ver como con ACL verificada`,
 );

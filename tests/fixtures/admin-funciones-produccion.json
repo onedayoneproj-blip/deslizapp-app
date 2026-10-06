@@ -286,6 +286,17 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_ver_como_actual",
+    "argumentos": "",
+    "md5": "dcf4b5647425f5083ec83540808a6f0b",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_ver_como_iniciar",
     "argumentos": "p_tienda_id uuid",
     "md5": "90cb9f27174f327043dc8bf716aa4e57",
@@ -300,6 +311,17 @@
     "nombre": "admin_ver_como_terminar",
     "argumentos": "p_sesion_id uuid",
     "md5": "bb39fb2d7f966cdbf0e0cc6804acc3f5",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_ver_como_validar",
+    "argumentos": "p_sesion_id uuid",
+    "md5": "b980f559dd18f57ec92638b1e4d1ad04",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
