@@ -27,7 +27,7 @@ try {
       pagina.on("request", request => { if (/supabase\.co|supabase\.in/.test(request.url())) supabase.push(request.url()); });
       const hoy = await pagina.goto(`${base}/admin-demo`, { waitUntil: "domcontentloaded" });
       assert.equal(hoy?.status(), 200, "Hoy Demo debe abrir sin sesión real");
-      await pagina.getByRole("heading", { name: /Buenas .* Lewis/ }).waitFor();
+      await pagina.getByRole("heading", { name: /^(Buenos días|Buenas tardes|Buenas noches), Lewis\./ }).waitFor();
       await pagina.getByText("Tiendas activas", { exact: true }).waitFor();
       if (tema === "dark") await pagina.evaluate(() => document.body.dataset.theme = "dark");
       assert.equal(await pagina.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `Hoy sin overflow ${width}/${tema}`);

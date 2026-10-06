@@ -45,3 +45,9 @@ export function enlaceWhatsAppAdmin(numero: string | null | undefined, texto: st
   const digitos = numero?.replace(/\D/g, "") ?? "";
   return digitos ? `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}` : null;
 }
+
+/** «Recordarle»: el catálogo está listo para que ella lo revise y lo publique (publicar lo toca ella). */
+export function mensajeRevisarCatalogo(tienda: string, vendedora?: string | null) {
+  const saludo = vendedora?.trim();
+  return `¡Hola${saludo ? `, ${saludo}` : ""}! Tu catálogo de ${tienda} está listo para que lo mires. Ábrelo en Deslizapp, pestaña Catálogo: si te gusta, lo publicas tú; si quieres cambiar algo, me lo dices ahí mismo.`;
+}

@@ -1,4 +1,5 @@
 import type { CatalogoPublico } from "../types";
+import { cabeceraSegura } from "./svg-cabecera.ts";
 export type TemaCatalogo = {
   colores: Record<string, string>;
   fuentes: { display: string; body: string };
@@ -73,7 +74,21 @@ export function temaDeTienda(t: CatalogoPublico["tienda"]): TemaCatalogo {
       ...propio?.colores,
     },
     fuentes: propio?.fuentes ?? fuentes[t.marcaEstilo] ?? fuentes.moderna,
-    cabecera: propio?.cabecera,
+    // Se valida también al pintar: la base solo exige texto y el dueño puede cambiar su personalización.
+    cabecera: cabeceraSegura(propio?.cabecera),
     tintes: propio?.tintes ?? {},
   };
+}
+
+export type ModoOpiniones = "si" | "pronto" | "no";
+/**
+ * Opiniones del catálogo: encendidas ("si"), «Pronto» (el botón invita a preguntar, sin mostrar opiniones) o apagadas.
+ * En la base `secciones` solo admite booleanos: «Pronto» se guarda como `opiniones_pronto: true` (también se acepta el
+ * valor viejo `opiniones: "pronto"`).
+ */
+export function modoOpiniones(secciones: unknown): ModoOpiniones {
+  const s = (secciones && typeof secciones === "object" ? secciones : {}) as Record<string, unknown>;
+  if (s.opiniones === false) return "no";
+  if (s.opiniones === "pronto" || s.opiniones_pronto === true) return "pronto";
+  return "si";
 }

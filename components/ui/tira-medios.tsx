@@ -22,6 +22,8 @@ export type ElementoTira = {
   duracionS?: number;
   /** Mientras se prepara o sube: 0 a 100 (anillo con el porcentaje sobre la miniatura oscurecida). */
   progreso?: number | null;
+  /** Solo foto: en el taller de retoque ("pendiente", con anillo) o devuelta por el equipo ("devuelta"). */
+  taller?: "pendiente" | "devuelta" | null;
 };
 
 /** 18 → "0:18"; 75 → "1:15". */
@@ -107,7 +109,7 @@ export function TiraMedios({
             <div key={m.id} role="listitem" className="shrink-0">
               <button
                 type="button"
-                aria-label={`${m.tipo === "video" ? "Video" : "Foto"} ${i + 1} de ${elementos.length}${i === 0 ? ", portada" : ""}${sube ? `, ${Math.round(m.progreso!)} %` : ""}`}
+                aria-label={`${m.tipo === "video" ? "Video" : "Foto"} ${i + 1} de ${elementos.length}${i === 0 ? ", portada" : ""}${sube ? `, ${Math.round(m.progreso!)} %` : ""}${m.taller === "pendiente" ? ", en el taller" : m.taller === "devuelta" ? ", devuelta por el taller" : ""}`}
                 onClick={() => {
                   if (tocarSuprimido.current) {
                     tocarSuprimido.current = false;
@@ -172,7 +174,12 @@ export function TiraMedios({
                     <AnilloProgreso valor={m.progreso!} />
                   </span>
                 )}
-                {i === 0 && !sube && <Sello>Portada</Sello>}
+                {m.taller === "pendiente" && <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-radio-m ring-3 ring-resalte ring-inset" />}
+                {m.taller ? (
+                  <Sello tono={m.taller === "devuelta" ? "atencion" : "resalte"}>{m.taller === "devuelta" ? "Devuelta" : "En el taller"}</Sello>
+                ) : (
+                  i === 0 && !sube && <Sello>Portada</Sello>
+                )}
                 {m.tipo === "video" && !sube && (
                   <Sello derecha={i === 0}>
                     <IconoReproducir tamano={10} strokeWidth={0} />
@@ -205,12 +212,13 @@ export function TiraMedios({
 }
 
 /** El rótulo pequeño sobre la miniatura ("Portada", "▶ 0:18"): `accion` con texto `sobre-accion`. */
-function Sello({ children, derecha = false }: { children: ReactNode; derecha?: boolean }) {
+function Sello({ children, derecha = false, tono = "accion" }: { children: ReactNode; derecha?: boolean; tono?: "accion" | "resalte" | "atencion" }) {
   return (
     <span
       aria-hidden="true"
       className={clases(
-        "absolute bottom-1.5 inline-flex h-5 items-center gap-1 rounded-full bg-accion px-2 text-etiqueta leading-none text-sobre-accion",
+        "absolute bottom-1.5 inline-flex h-5 items-center gap-1 rounded-full px-2 text-etiqueta leading-none whitespace-nowrap",
+        tono === "resalte" ? "bg-resalte text-sobre-resalte" : tono === "atencion" ? "bg-atencion-suave text-atencion-texto" : "bg-accion text-sobre-accion",
         derecha ? "right-1.5" : "left-1.5",
       )}
     >

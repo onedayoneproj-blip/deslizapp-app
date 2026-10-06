@@ -1,4 +1,4 @@
-import type { EstadoCatalogo, EstadoTienda, OpinionProducto } from "../types";
+import type { EstadoCatalogo, EstadoTienda, Medio, OpinionProducto } from "../types";
 
 export type Json =
   null | boolean | number | string | Json[] | { [clave: string]: Json };
@@ -282,4 +282,33 @@ export type CambiosPersonalizacion = {
     orden?: number | null;
     opiniones?: OpinionProducto[];
   }[];
+};
+/** Lo que Trabajo y Personalizar necesitan de un producto (admin_productos_tienda, sin retirados). */
+export type ProductoAdmin = {
+  id: string;
+  nombre: string;
+  slug: string | null;
+  activo: boolean;
+  orden: number | null;
+  opiniones: OpinionProducto[];
+  medios: Medio[];
+  creadoEn: string;
+  actualizadoEn: string;
+};
+/** Marca y personalización de una tienda (admin_personalizacion_tienda). `personalizacion` conserva las claves JSON. */
+export type PersonalizacionTiendaAdmin = {
+  id: string;
+  nombre: string;
+  slug: string;
+  vendedora: string | null;
+  rubro: string;
+  estado: EstadoTienda;
+  marcaColorPrincipal: string;
+  marcaColorAcento: string;
+  marcaEstilo: string;
+  logoUrl: string | null;
+  urlCatalogo: string | null;
+  catalogoEstado: EstadoCatalogo;
+  catalogoNotasCambios: string | null;
+  personalizacion: Objeto;
 };

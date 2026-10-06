@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.36.0", fecha: "2026-10-06", titulo: "Tus fotos, al taller de verdad.",
+    cambios: [
+      "Toca una foto y «Retocar»: nuestro equipo le pone luz y fondo de estudio.",
+      "Reservamos los créditos y se cobran al entregarla. Si no se puede, te decimos por qué y no pagas.",
+      "La foto nueva aparece sola en tu producto.",
+    ],
+  },
+  {
     version: "0.35.3", fecha: "2026-10-05", titulo: "Se va del catálogo. Su historia se queda.",
     cambios: ["Elimina un producto desde Editar sin borrar sus pedidos ni sus ajustes.", "Si quedan pedidos o personas esperando, puedes ocultarlo mientras los resuelves."],
   },

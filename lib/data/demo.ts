@@ -1,4 +1,6 @@
 import { eliminarProductoDeDB, revisarEliminacionProducto } from "./eliminar-producto";
+import { pedirRetoqueEnDB, trabajosDeTienda } from "./retoques";
+import type { TrabajoRetoque } from "../admin/tipos";
 // La demo: un almacén en el navegador (memoria + localStorage), sin login, con selector de tienda.
 // Implementa la misma interfaz que Supabase (lib/data/fuente.ts). Ver docs/05-arquitectura.md.
 
@@ -178,6 +180,20 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizada;
+  },
+
+  async pedirRetoque(tiendaId, productoId, medioUrl) {
+    let trabajo!: TrabajoRetoque;
+    escribir((db) => {
+      const usuario = buscarDueno(db, tiendaId)?.id ?? null;
+      const r = pedirRetoqueEnDB(db, tiendaId, productoId, medioUrl, ahora(), nuevoId(), usuario);
+      trabajo = r.trabajo;
+      return r.db;
+    });
+    return structuredClone(trabajo);
+  },
+  async trabajosRetoque(tiendaId) {
+    return structuredClone(trabajosDeTienda(leerDemo().db.trabajosRetoque ?? [], tiendaId, Date.now()));
   },
 
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
@@ -706,6 +722,22 @@ export const fuenteDemo: FuenteDatos = {
     emitir();
   },
 };
+
+/**
+ * Solo para el admin demo (/admin-demo), en el mismo navegador: aplica un cambio a la base de la demo del panel (catálogo,
+ * fotos entregadas, créditos, personalización) para que la tienda lo vea al volver. Vuelve a leer lo guardado antes de
+ * escribir, por si el panel cambió en otra pestaña. Nunca toca Supabase.
+ */
+export function escribirDemoDesdeAdmin(cambio: (db: DB) => DB) {
+  estado = cargarInicial((estado?.version ?? 0) + 1);
+  escribir(cambio);
+}
+
+/** La base de la demo del panel tal como está guardada ahora (para que el admin demo parta de ella). */
+export function leerDemoGuardada(): DB {
+  estado = cargarInicial((estado?.version ?? 0) + 1);
+  return structuredClone(estado.db);
+}
 
 export function cambiarTiendaActivaDemo(tiendaId: string) {
   const actual = leerDemo();

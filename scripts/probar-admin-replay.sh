@@ -33,6 +33,7 @@ do $$ begin
 end $$;
 SQL
 psql_local < scripts/probar-admin-db.sql
+psql_local < scripts/probar-admin-trabajo-db.sql
 node scripts/comparar-admin-reglas.mjs
 node scripts/comparar-admin-mensualidades.mjs
 psql_local < scripts/probar-admin-mensualidades-db.sql

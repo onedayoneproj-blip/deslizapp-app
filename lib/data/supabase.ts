@@ -79,6 +79,9 @@ import {
   type FilaUsuario,
 } from "./filas";
 import type { FuenteDatos } from "./fuente";
+import type { TrabajoRetoque } from "../admin/tipos";
+import { desdeFilaAdmin } from "./admin/supabase";
+import { DIAS_TALLER_VISIBLE } from "./retoques";
 import { calcularLineas, descuentoDeCodigo, MENSAJE_CODIGO_MALO, pagoAlEditar, pagoDelPedido, puedeEditarCodigo, recalcularConCodigo } from "./pedidos";
 import { desdeFormulario, promoTerminada } from "./promos";
 
@@ -433,6 +436,34 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       if (!tienda) throw new DatosInvalidos("No encontramos tu tienda.");
       return cambio(tienda);
     },
+    async pedirRetoque(tiendaId, productoId, medioUrl) {
+      const { data, error } = await supabase.rpc("pedir_retoque", { p_producto_id: productoId, p_medio_url: medioUrl });
+      if (error) {
+        const m = String(error.message ?? "");
+        if (m.includes("retoque_pendiente")) throw new DatosInvalidos("Esa foto ya está en el taller.");
+        if (m.includes("foto_ya_retocada")) throw new DatosInvalidos("Esa foto ya salió del taller.");
+        if (m.includes("foto_no_encontrada")) throw new DatosInvalidos("Esa foto ya no está en el producto. Guarda y vuelve a intentarlo.");
+        if (m.includes("producto_no_encontrado")) throw new DatosInvalidos("Ese producto ya no está en tu tienda.");
+        if (m.includes("creditos_insuficientes")) throw new CreditosInsuficientes(null, CREDITOS_POR_RETOQUE);
+        throw traducirErrorSupabase(error);
+      }
+      return cambio(desdeFilaAdmin(data) as TrabajoRetoque);
+    },
+    trabajosRetoque: (tiendaId) =>
+      leer(`trabajos:${tiendaId}`, async () => {
+        const desde = new Date(Date.now() - DIAS_TALLER_VISIBLE * 86_400_000).toISOString();
+        const filas =
+          (await dato<Record<string, unknown>[]>(
+            supabase
+              .from("trabajos_retoque")
+              .select("*")
+              .eq("tienda_id", tiendaId)
+              .or(`estado.eq.pendiente,atendido_en.gte.${desde}`)
+              .order("creado_en", { ascending: false })
+              .limit(200),
+          )) ?? [];
+        return filas.map((f) => desdeFilaAdmin(f) as TrabajoRetoque);
+      }),
     async actualizarMarca(tiendaId, datos) {
       const antes = await tiendaCruda(tiendaId);
       const logoUrl = await subirLogo(supabase.storage, tiendaId, datos.logoUrl);

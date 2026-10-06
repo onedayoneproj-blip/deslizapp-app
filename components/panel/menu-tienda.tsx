@@ -11,6 +11,7 @@ import { Hoja } from "../hoja";
 import { IconoCheck, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
 import { useToast } from "../toast";
 import { Logotipo } from "../marca";
+import { AccesoAdmin } from "./acceso-admin";
 import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
 
@@ -122,6 +123,8 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
         </span>
       </button>
+
+      <AccesoAdmin alAbrir={cerrar} />
 
       {demo && (
         <>
