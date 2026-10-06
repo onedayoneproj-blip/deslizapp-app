@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bienvenida animada</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.beta{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#ffe3d6;color:#a8410f;font:800 11px/1 'Figtree',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.card{background:#fff;border:1.5px solid #efe4d2;border-radius:20px;padding:14px 16px}
+.lab{font:800 13px/16px 'Figtree',sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#4f6a5e}
+.inp{height:48px;border-radius:14px;border:1.5px solid #e7dcc8;background:#fff;padding:0 14px;display:flex;align-items:center;font:600 15.5px 'Figtree',sans-serif;color:#174b3a}
+.chip{height:36px;padding:0 14px;border-radius:999px;background:#dcebe2;color:#174b3a;display:inline-flex;align-items:center;font:700 14.5px 'Figtree',sans-serif}
+.btn{height:54px;border-radius:999px;border:none;background:#174b3a;color:#fff9ee;font:800 17px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;width:100%}
+.ph{border-radius:14px}
+.sc{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 28px;text-align:center;opacity:0;animation-duration:12s;animation-iteration-count:infinite;animation-timing-function:ease}
+.bar{flex:1;height:4px;border-radius:99px;background:rgba(255,249,238,.35);overflow:hidden}.bar i{display:block;height:100%;background:#fff9ee;transform-origin:left;transform:scaleX(0);animation-duration:12s;animation-iteration-count:infinite;animation-timing-function:linear}
+@keyframes s0{0%,0%{opacity:0;transform:translateY(14px)}2%,15%{opacity:1;transform:none}17%,100%{opacity:0;transform:translateY(-8px)}}
+.s0{animation-name:s0}
+@keyframes b0{0%,0%{transform:scaleX(0)}17%,100%{transform:scaleX(1)}}
+.b0{animation-name:b0}
+@keyframes s1{0%,16%{opacity:0;transform:translateY(14px)}18%,31%{opacity:1;transform:none}33%,100%{opacity:0;transform:translateY(-8px)}}
+.s1{animation-name:s1}
+@keyframes b1{0%,16%{transform:scaleX(0)}33%,100%{transform:scaleX(1)}}
+.b1{animation-name:b1}
+@keyframes s2{0%,32%{opacity:0;transform:translateY(14px)}34%,47%{opacity:1;transform:none}49%,100%{opacity:0;transform:translateY(-8px)}}
+.s2{animation-name:s2}
+@keyframes b2{0%,32%{transform:scaleX(0)}49%,100%{transform:scaleX(1)}}
+.b2{animation-name:b2}
+@keyframes s3{0%,48%{opacity:0;transform:translateY(14px)}50%,63%{opacity:1;transform:none}65%,100%{opacity:0;transform:translateY(-8px)}}
+.s3{animation-name:s3}
+@keyframes b3{0%,48%{transform:scaleX(0)}65%,100%{transform:scaleX(1)}}
+.b3{animation-name:b3}
+@keyframes s4{0%,64%{opacity:0;transform:translateY(14px)}66%,98%{opacity:1;transform:none}100%,100%{opacity:0;transform:translateY(-8px)}}
+.s4{animation-name:s4}
+@keyframes b4{0%,64%{transform:scaleX(0)}99%,100%{transform:scaleX(1)}}
+.b4{animation-name:b4}
+@keyframes fan1{0%,16%{transform:none}30%,100%{transform:translateX(-82px) rotate(-8deg)}}@keyframes fan2{0%,16%{transform:none}30%,100%{transform:translateX(82px) rotate(8deg)}}.fan1{animation:fan1 12s ease infinite}.fan2{animation:fan2 12s ease infinite}
+@keyframes pick{0%,38%{opacity:.35;transform:scale(.94)}44%,60%{opacity:1;transform:scale(1.06)}64%,100%{opacity:1;transform:scale(1)}}.pick{animation:pick 12s ease infinite}
+@media (prefers-reduced-motion:reduce){.sc,.bar i,.fan1,.fan2,.pick{animation:none!important}.s4{opacity:1!important}}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;background:#fff9ee;font-family:'Figtree',sans-serif;color:#174b3a;">
+<div style="position:absolute;inset:0;background:#174b3a;color:#fff9ee;">
+ <div style="position:absolute;left:16px;right:60px;top:14px;display:flex;gap:5px;z-index:2;"><div class="bar"><i class="b0"></i></div><div class="bar"><i class="b1"></i></div><div class="bar"><i class="b2"></i></div><div class="bar"><i class="b3"></i></div><div class="bar"><i class="b4"></i></div></div>
+ <div style="position:absolute;right:12px;top:6px;width:44px;height:44px;border-radius:999px;background:rgba(255,249,238,.14);display:flex;align-items:center;justify-content:center;z-index:2;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+ <div class="sc s0"><div style="width:170px;height:170px;border-radius:22px;background:linear-gradient(150deg,#cdbfa8,#9d8d73);display:flex;align-items:center;justify-content:center;"><div style="width:57px;height:57px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div><div class="f" style="font-size:30px;line-height:34px;">Tu foto.</div><div style="font-size:15.5px;line-height:22px;color:#cfe0d6;max-width:290px;">Tal cual la mandas.</div></div><div class="sc s1"><div style="position:relative;width:170px;height:170px;"><div class="fan1" style="position:absolute;inset:0;"><div style="width:170px;height:170px;border-radius:22px;background:linear-gradient(150deg,#f7e0cf,#e0a98a);display:flex;align-items:center;justify-content:center;"><div style="width:57px;height:57px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div><div class="fan2" style="position:absolute;inset:0;"><div style="width:170px;height:170px;border-radius:22px;background:linear-gradient(150deg,#fbe7c8,#e6b96f);display:flex;align-items:center;justify-content:center;"><div style="width:57px;height:57px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div><div style="position:absolute;inset:0;"><div style="width:170px;height:170px;border-radius:22px;background:linear-gradient(150deg,#e9eadf,#b6c3a8);display:flex;align-items:center;justify-content:center;"><div style="width:57px;height:57px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div></div><div class="f" style="font-size:30px;line-height:34px;">La IA propone.</div><div style="font-size:15.5px;line-height:22px;color:#cfe0d6;max-width:290px;">Varias versiones de la misma foto.</div></div><div class="sc s2"><div style="display:flex;gap:8px;"><div class="ph" style="width:64px;height:64px;background:linear-gradient(150deg,#f3d9c4,#d9a98a);flex-shrink:0;"></div><div class="ph" style="width:64px;height:64px;background:linear-gradient(150deg,#e7dcc8,#b9a37f);flex-shrink:0;"></div><div class="ph" style="width:64px;height:64px;background:linear-gradient(150deg,#cfe0d6,#7fa592);flex-shrink:0;"></div></div><div style="display:flex;gap:10px;align-items:center;"><div style="opacity:.4;"><div style="width:92px;height:92px;border-radius:22px;background:linear-gradient(150deg,#f7e0cf,#e0a98a);display:flex;align-items:center;justify-content:center;"><div style="width:31px;height:31px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div><div class="pick"><div style="width:120px;height:120px;border-radius:22px;background:linear-gradient(150deg,#e9eadf,#b6c3a8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #ff834f;"><div style="width:40px;height:40px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div><div style="opacity:.4;"><div style="width:92px;height:92px;border-radius:22px;background:linear-gradient(150deg,#fbe7c8,#e6b96f);display:flex;align-items:center;justify-content:center;"><div style="width:31px;height:31px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div></div><div class="f" style="font-size:30px;line-height:34px;">Una persona decide.</div><div style="font-size:15.5px;line-height:22px;color:#cfe0d6;max-width:290px;">Mira tu marca y escoge la que mejor la cuenta.</div></div><div class="sc s3"><div style="width:170px;height:170px;border-radius:22px;background:linear-gradient(150deg,#e9eadf,#b6c3a8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(255,249,238,.9);"><div style="width:57px;height:57px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div><div class="f" style="font-size:30px;line-height:34px;">Tu producto, igual.</div><div class="f" style="font-size:30px;line-height:34px;color:#ff834f;margin-top:-16px;">Tu foto, a tu estilo.</div><div style="font-size:15.5px;line-height:22px;color:#cfe0d6;max-width:290px;">Mejoramos la foto, no lo cambiamos. Lo que ve tu cliente es lo que recibe.</div></div><div class="sc s4" style="gap:18px;"><div style="font:600 24px 'Caveat',cursive;color:#ffb89a;">Con IA, pero con criterio.</div><div class="f" style="font-size:28px;line-height:32px;">Un filtro deja todas las fotos iguales.</div><div class="f" style="font-size:28px;line-height:32px;color:#ff834f;margin-top:-12px;">Aquí alguien mira tu marca.</div><button class="btn" style="background:#fff9ee;color:#174b3a;margin-top:14px;max-width:310px;">Retocar mi foto</button><div style="font-size:13px;line-height:19px;color:#cfe0d6;max-width:290px;"><span class="beta" style="margin-right:6px;">Beta</span>Cada foto pasa por una persona y toma su tiempo. Si no sale bien, te devolvemos los créditos.</div></div>
+ <div style="position:absolute;left:0;right:0;bottom:22px;text-align:center;font-size:12.5px;color:rgba(255,249,238,.6);z-index:2;">Toca para avanzar · se puede saltar</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Admin: pedido de retoque</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}*{box-sizing:border-box}
+.f{font-family:'Fredoka',sans-serif;font-weight:700;font-stretch:112%}
+.beta{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#ffe3d6;color:#a8410f;font:800 11px/1 'Figtree',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.card{background:#fff;border:1.5px solid #efe4d2;border-radius:20px;padding:14px 16px}
+.lab{font:800 13px/16px 'Figtree',sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#4f6a5e}
+.inp{height:48px;border-radius:14px;border:1.5px solid #e7dcc8;background:#fff;padding:0 14px;display:flex;align-items:center;font:600 15.5px 'Figtree',sans-serif;color:#174b3a}
+.chip{height:36px;padding:0 14px;border-radius:999px;background:#dcebe2;color:#174b3a;display:inline-flex;align-items:center;font:700 14.5px 'Figtree',sans-serif}
+.btn{height:54px;border-radius:999px;border:none;background:#174b3a;color:#fff9ee;font:800 17px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;width:100%}
+.ph{border-radius:14px}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;background:#fff9ee;font-family:'Figtree',sans-serif;color:#174b3a;">
+<div style="padding:18px 16px 6px;display:flex;align-items:center;gap:8px;"><div style="width:44px;height:44px;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div><h1 class="f" style="margin:0;font-size:22px;">Trabajo · Fotos</h1></div>
+<div style="position:absolute;inset:70px 0 0;padding:8px 16px 20px;display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+ <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:16.5px;">Esencias Michel</b><div style="font-size:13.5px;color:#4f6a5e;">Perfume Rosa Ámbar · pidió hace 2 h</div></div><span class="beta">Beta</span></div>
+  <div style="display:flex;gap:10px;align-items:flex-end;"><div><div class="lab" style="margin-bottom:4px;">Original</div><div style="width:120px;height:120px;border-radius:22px;background:linear-gradient(150deg,#cdbfa8,#9d8d73);display:flex;align-items:center;justify-content:center;"><div style="width:40px;height:40px;border-radius:999px;border:5px solid rgba(255,255,255,.85);"></div></div></div><div style="flex:1;border:2px dashed #c9b998;border-radius:22px;height:120px;display:flex;align-items:center;justify-content:center;color:#4f6a5e;font-weight:800;font-size:14px;">Después · subir</div></div>
+  <div style="border-top:1.5px solid #efe4d2;padding-top:12px;display:flex;flex-direction:column;gap:10px;">
+   <div class="lab">Su marca</div>
+   <div style="display:flex;gap:8px;align-items:center;"><div class="ph" style="width:68px;height:68px;background:linear-gradient(150deg,#f3d9c4,#d9a98a);flex-shrink:0;"></div><div class="ph" style="width:68px;height:68px;background:linear-gradient(150deg,#e7dcc8,#b9a37f);flex-shrink:0;"></div><div class="ph" style="width:68px;height:68px;background:linear-gradient(150deg,#cfe0d6,#7fa592);flex-shrink:0;"></div><div class="ph" style="width:68px;height:68px;background:linear-gradient(150deg,#ffd3c2,#ff9f78);flex-shrink:0;"></div></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="chip">elegante</span><span class="chip">cálida</span><span class="chip">femenina</span></div>
+   <div style="background:#ffe3d6;border-radius:12px;padding:8px 12px;font-size:13.5px;line-height:19px;font-weight:700;color:#a8410f;">No quiere: fondo blanco, brillos exagerados</div>
+   <div style="font-size:13.5px;color:#4f6a5e;">Instagram <b style="color:#174b3a;">@esenciasmichel</b></div>
+  </div>
+  <div style="display:flex;gap:8px;"><span style="flex:1;height:48px;border-radius:999px;background:#f3ead9;color:#174b3a;font:800 15px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;">Copiar instrucciones</span></div>
+  <div style="display:flex;gap:8px;"><span style="flex:1;height:52px;border-radius:999px;background:#174b3a;color:#fff9ee;font:800 16px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;">Entregar</span><span style="width:110px;height:52px;border-radius:999px;border:2px solid #174b3a;color:#174b3a;font:800 16px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;">Devolver</span></div>
+ </div>
+ <div class="card" style="font-size:13px;line-height:19px;color:#4f6a5e;"><b style="color:#174b3a;">Copiar instrucciones</b> arma el texto para pegar en la IA: «Retoca esta foto para Esencias Michel. Marca: elegante, cálida, femenina. Estilo: como las fotos de referencia. Evita: fondo blanco, brillos exagerados. No cambies el producto.»</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
