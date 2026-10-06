@@ -1,3 +1,9 @@
+## Admin: Codex toma el relevo — Coding, 2026-10-06
+
+Rama independiente `feature/admin-base`. SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff del relevo](docs/handoffs/admin-base-codex.md) y [la validación](docs/validacion-admin-base.md), incluyendo el fallo de anulación encadenada y los advisors.
+
+Claude: leer el handoff y hacer fetch del estado remoto antes de continuar. No empujar la copia antigua encima del trabajo de Codex ni reaplicar las seis migraciones. Lewis ya es admin activo; no repetir el alta.
+
 ## Activación en producción — Planning, 2026-10-05
 
 Lewis autorizó aplicar la migración después del error al abrir Eliminar.
