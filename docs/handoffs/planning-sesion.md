@@ -20,7 +20,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `retoque-beta-y-tienda-de-ensayo.md` | Sonnet | — | **Hecho**, PR #55 mergeado el 6 oct |
 | `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | merge a main |
 | `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main |
-| `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | Mi marca (usa su compuerta) | merge a main |
+| `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
 | `admin-4-cobros.md` | Sonnet | — | según el prompt |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |

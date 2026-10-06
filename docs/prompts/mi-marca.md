@@ -45,6 +45,7 @@ Agrega una sección nueva, **«Para el retoque»**, según `MiMarca` y `MiMarcaV
 ## 4. El retoque exige la marca
 
 - Al tocar «Retocar foto» con la marca **no lista**, abre la hoja «Mi marca» con el aviso y, al guardarla lista, **sigue al pedido** sin que tenga que volver a tocar nada. Con la marca lista, sigue la bienvenida o el pedido normal.
+- **El interruptor «Retocar esta foto»** (ya está en main, PR #56: `lib/retoque-al-subir.ts`, `ficha-medios.tsx`, `taller.pedirDe`) debe respetar la misma regla: con la marca no lista, el interruptor sale apagado y deshabilitado, con el aviso y el enlace a «Mi marca»; al dejarla lista se puede encender. Reutiliza la misma función de «marca lista» y el mismo aviso; no hagas una segunda compuerta. Y la bienvenida animada también sale la primera vez que se **guarda** un producto con una foto marcada, antes de reservar créditos (mismo recordatorio por tienda y dispositivo). Añade pruebas para ambos caminos.
 - Con la marca lista, el pedido de retoque no cambia (reserva créditos, etc.): no toques `pedir_retoque` salvo que haga falta para algo de este PR, y dilo.
 
 ## 5. La bienvenida animada (`Bienvenida`)
