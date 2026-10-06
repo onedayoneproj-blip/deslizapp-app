@@ -11,8 +11,10 @@ import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
-import { BUCKET, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
+import { BUCKET, BUCKET_MARCA, FIRMA_SEGUNDOS, rutaReferencia, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
+import type { DatosMarcaRetoque, MarcaRetoque } from "../marca-retoque";
+import { comprobarTopeReferencias, validarMarcaRetoque } from "./marca-retoque";
 import { nuevoId } from "./db";
 import { validarAjusteInventario, validarReposicion } from "./inventario";
 import { DIAS_ENVIOS } from "./jugadas";
@@ -130,7 +132,7 @@ async function todas<T>(consulta: (desde: number, hasta: number) => PromiseLike<
 type Almacen = SupabaseClient["storage"];
 
 /** Comprime en el navegador y sube UNA imagen nueva (data URL). Devuelve la URL pública. */
-async function subirImagen(storage: Almacen, dataUrl: string, ruta: (tipo: string) => string): Promise<{ url: string; ruta: string }> {
+async function subirImagen(storage: Almacen, dataUrl: string, ruta: (tipo: string) => string, bucket: string = BUCKET): Promise<{ url: string; ruta: string }> {
   const tipoOriginal = tipoDeDataUrl(dataUrl);
   if (problemaDeArchivo(tipoOriginal, 0) === "formato") throw new FormatoNoPermitido();
   let blob: Blob;
@@ -143,19 +145,19 @@ async function subirImagen(storage: Almacen, dataUrl: string, ruta: (tipo: strin
   const destino = ruta(blob.type);
   let error: unknown;
   try {
-    ({ error } = await storage.from(BUCKET).upload(destino, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false }));
+    ({ error } = await storage.from(bucket).upload(destino, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false }));
   } catch (e) {
     error = e;
   }
   if (error) throw traducirErrorSupabase(error);
-  return { url: storage.from(BUCKET).getPublicUrl(destino).data.publicUrl, ruta: destino };
+  return { url: storage.from(bucket).getPublicUrl(destino).data.publicUrl, ruta: destino };
 }
 
 /** Borra archivos del bucket sin bloquear a nadie: si falla, solo queda un aviso en la consola. */
-async function borrarArchivos(storage: Almacen, rutas: string[]) {
+async function borrarArchivos(storage: Almacen, rutas: string[], bucket: string = BUCKET) {
   if (rutas.length === 0) return;
   try {
-    const { error } = await storage.from(BUCKET).remove(rutas);
+    const { error } = await storage.from(bucket).remove(rutas);
     if (error) console.warn("No se pudieron borrar archivos viejos", error);
   } catch (e) {
     console.warn("No se pudieron borrar archivos viejos", e);
@@ -293,6 +295,29 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     olvidar();
     alCambiar();
     return valor;
+  }
+
+  /** La marca para el retoque, sin caché. Las fotos de referencia viven en un bucket privado: se ven con URLs firmadas. */
+  async function leerMarcaRetoque(tiendaId: string): Promise<MarcaRetoque> {
+    const [t, m, filas] = await Promise.all([
+      dato<{ instagram: string | null }>(supabase.from("tiendas").select("instagram").eq("id", tiendaId).maybeSingle()),
+      dato<{ palabras: string[]; evita: string | null }>(supabase.from("marca_tienda").select("palabras, evita").eq("tienda_id", tiendaId).maybeSingle()),
+      dato<{ id: string; ruta: string; orden: number }[]>(
+        supabase.from("marca_referencias").select("id, ruta, orden").eq("tienda_id", tiendaId).order("orden", { ascending: true }).order("creado_en", { ascending: true }),
+      ),
+    ]);
+    const referencias = filas ?? [];
+    const firmadas = new Map<string, string>();
+    if (referencias.length) {
+      const { data } = await supabase.storage.from(BUCKET_MARCA).createSignedUrls(referencias.map((r) => r.ruta), FIRMA_SEGUNDOS);
+      for (const f of data ?? []) if (f.path && f.signedUrl) firmadas.set(f.path, f.signedUrl);
+    }
+    return {
+      instagram: t?.instagram ?? null,
+      palabras: m?.palabras ?? [],
+      evita: m?.evita ?? null,
+      referencias: referencias.map((r) => ({ id: r.id, url: firmadas.get(r.ruta) ?? "", orden: r.orden })),
+    };
   }
 
   // ---- lecturas crudas (sin caché), para usarlas dentro de las escrituras ----
@@ -486,6 +511,48 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       // El logo anterior ya no se usa.
       await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [antes?.logoUrl], [logoUrl]));
       return cambio(aTienda(f));
+    },
+
+    // ---- Mi marca para el retoque (tablas marca_tienda / marca_referencias y bucket privado marca-referencias) ----
+    getMarcaRetoque: (tiendaId) => leer(`marca:${tiendaId}`, () => leerMarcaRetoque(tiendaId)),
+    async guardarMarcaRetoque(tiendaId, datos) {
+      const { palabras, evita, instagram } = validarMarcaRetoque(datos);
+      const filas =
+        (await dato<{ id: string; ruta: string; orden: number }[]>(
+          supabase.from("marca_referencias").select("id, ruta, orden").eq("tienda_id", tiendaId),
+        )) ?? [];
+      const quitando = filas.filter((f) => datos.quitar.includes(f.id));
+      comprobarTopeReferencias(filas.length - quitando.length, datos.nuevas.length);
+      // 1. Las fotos nuevas suben primero: si una falla, no se toca nada más.
+      const subidas: string[] = [];
+      try {
+        for (const dataUrl of datos.nuevas)
+          subidas.push((await subirImagen(supabase.storage, dataUrl, (tipo) => rutaReferencia(tiendaId, nuevoId(), tipo), BUCKET_MARCA)).ruta);
+      } catch (e) {
+        await borrarArchivos(supabase.storage, subidas, BUCKET_MARCA);
+        throw e;
+      }
+      try {
+        // Sin upsert: su ON CONFLICT toca tienda_id y la tienda de una fila no se muda (solo palabras y evita se pueden cambiar).
+        const existe = await dato<{ tienda_id: string }>(supabase.from("marca_tienda").select("tienda_id").eq("tienda_id", tiendaId).maybeSingle());
+        if (existe) await dato(supabase.from("marca_tienda").update({ palabras, evita }).eq("tienda_id", tiendaId));
+        else await dato(supabase.from("marca_tienda").insert({ tienda_id: tiendaId, palabras, evita }));
+        await dato(supabase.from("tiendas").update({ instagram }).eq("id", tiendaId));
+        // 2. Primero se quitan las filas (así un cambio de 6 a 6 cabe en el tope de la base) y luego se agregan las nuevas.
+        if (quitando.length) await dato(supabase.from("marca_referencias").delete().eq("tienda_id", tiendaId).in("id", quitando.map((f) => f.id)));
+        const base = filas.filter((f) => !datos.quitar.includes(f.id)).reduce((n, f) => Math.max(n, f.orden + 1), 0);
+        if (subidas.length) await dato(supabase.from("marca_referencias").insert(subidas.map((ruta, i) => ({ tienda_id: tiendaId, ruta, orden: base + i }))));
+      } catch (e) {
+        // Lo que se subió y no quedó anotado se borra; lo quitado ya no está en la lista, así que su archivo también sobra.
+        await borrarArchivos(supabase.storage, [...subidas, ...quitando.map((f) => f.ruta)], BUCKET_MARCA);
+        if (String((e as { message?: unknown })?.message ?? "").includes("marca_referencias_limite")) throw new DatosInvalidos("Hasta 6 fotos de referencia.");
+        throw e;
+      }
+      // 3. Quitar una referencia borra también su archivo.
+      await borrarArchivos(supabase.storage, quitando.map((f) => f.ruta), BUCKET_MARCA);
+      olvidar();
+      const marca = await leerMarcaRetoque(tiendaId);
+      return cambio(marca);
     },
 
     // ---- Catálogo en línea (RPC: los campos catalogo_* nunca se escriben por UPDATE) ----

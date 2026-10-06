@@ -415,6 +415,33 @@ html {
   }
 }
 
+/* Escena de la bienvenida del retoque (docs/08, excepción «Bienvenida del retoque»): corre una vez al abrir, ~2,5 s. Solo
+   transform y opacity de decoración, sin bloquear toques. Con movimiento reducido se ve el resultado directo. */
+.bv-ref { opacity: 0; transform: scale(0.6); }
+.bv-ref1 { animation: bv-pop 250ms var(--curva-salida) 550ms forwards, bv-entra1 420ms var(--curva-entrada) 1250ms forwards; }
+.bv-ref2 { animation: bv-pop 250ms var(--curva-salida) 680ms forwards, bv-entra2 420ms var(--curva-entrada) 1300ms forwards; }
+.bv-ref3 { animation: bv-pop 250ms var(--curva-salida) 810ms forwards, bv-entra3 420ms var(--curva-entrada) 1350ms forwards; }
+.bv-tumarca { opacity: 0; animation: bv-aparece 250ms var(--curva-salida) 600ms forwards, bv-desvanece 200ms var(--curva-entrada) 1250ms forwards; }
+.bv-barrido { transform: translateX(-100%); animation: bv-barre 750ms var(--curva-salida) 1600ms forwards; }
+.bv-barrido-dentro { transform: translateX(100%); animation: bv-barre 750ms var(--curva-salida) 1600ms forwards; }
+.bv-luz { opacity: 0; transform: translateX(-40px); animation: bv-luz 750ms var(--curva-salida) 1600ms forwards; }
+.bv-chispa { opacity: 0; transform: scale(0.6); animation: bv-pop 250ms var(--curva-salida) 2300ms forwards; }
+.bv-mano { opacity: 0; transform: translateY(8px); animation: bv-asoma 250ms var(--curva-salida) 2400ms forwards; }
+.bv-titulo { animation: bv-asoma 250ms var(--curva-salida) 300ms both; }
+@keyframes bv-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bv-desvanece { from { opacity: 1; } to { opacity: 0; } }
+@keyframes bv-asoma { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes bv-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.03); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes bv-entra1 { from { opacity: 1; transform: none; } to { opacity: 0; transform: translate(-150px, 70px) scale(0.4); } }
+@keyframes bv-entra2 { from { opacity: 1; transform: none; } to { opacity: 0; transform: translate(-110px, 70px) scale(0.4); } }
+@keyframes bv-entra3 { from { opacity: 1; transform: none; } to { opacity: 0; transform: translate(-70px, 70px) scale(0.4); } }
+@keyframes bv-barre { to { transform: none; } }
+@keyframes bv-luz { 0% { opacity: 0; transform: translateX(-40px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateX(330px); } }
+@media (prefers-reduced-motion: reduce) {
+  .bv-tumarca, .bv-barrido, .bv-barrido-dentro, .bv-chispa, .bv-mano, .bv-titulo { animation: none; opacity: 1; transform: none; }
+  .bv-ref, .bv-luz, .bv-tumarca { animation: none; opacity: 0; }
+}
+
 /* Aparecer (contenido nuevo) y salidas de avisos */
 @utility mov-aparece {
   animation: mov-aparece var(--mov-normal) var(--curva-salida) backwards;

@@ -52,6 +52,15 @@ export function rutaLogo(tiendaId: string, id: string, tipo = "image/webp"): str
   return `${tiendaId}/logo/${id}.${EXTENSION[tipo] ?? "webp"}`;
 }
 
+/** Bucket PRIVADO de las fotos de referencia de «Mi marca» (uso interno: se ven con URL firmada, nunca en el catálogo). */
+export const BUCKET_MARCA = "marca-referencias";
+/** Cuánto dura una URL firmada de una referencia (4 horas). */
+export const FIRMA_SEGUNDOS = 4 * 3600;
+/** Ruta de una referencia: "<tienda_id>/<id>.webp". La base exige que empiece por la carpeta de la propia tienda. */
+export function rutaReferencia(tiendaId: string, id: string, tipo = "image/webp"): string {
+  return `${tiendaId}/${id}.${EXTENSION[tipo] ?? "webp"}`;
+}
+
 const MARCA_PUBLICA = `/storage/v1/object/public/${BUCKET}/`;
 
 /** La ruta dentro del bucket de una URL pública de nuestro Storage; null si es de otro lado. */

@@ -35,6 +35,7 @@ export const LECTURAS_SOLO_MIRAR = [
   "avisosPendientes",
   "avisosDeProducto",
   "trabajosRetoque",
+  "getMarcaRetoque",
 ] as const satisfies readonly (keyof FuenteDatos)[];
 /** La envoltura no modifica la fuente ni sus permisos. Cerrarla/vencerla nunca devuelve accidentalmente la fuente real. */
 export function soloMirar(

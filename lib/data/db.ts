@@ -35,6 +35,7 @@ import seedPedidoItems from "./seed/pedido_items.json";
 import seedPedidos from "./seed/pedidos.json";
 import seedProductos from "./seed/productos.json";
 import seedPromos from "./seed/promos.json";
+import { marcasDeLaDemo, type MarcaGuardada } from "./marca-retoque";
 import seedTiendas from "./seed/tiendas.json";
 import seedUsuarios from "./seed/usuarios.json";
 import seedVariantes from "./seed/producto_variantes.json";
@@ -62,6 +63,8 @@ export type DB = {
   avisos: (AvisoLlegada & { dispositivo?: string })[];
   /** Fotos que la tienda mandó al taller (retoque real). Las comparte el admin demo en el mismo navegador. */
   trabajosRetoque: TrabajoRetoque[];
+  /** «Mi marca» para el retoque, por tienda (palabras, lo que evita, fotos de referencia). El Instagram va en la tienda. */
+  marcasRetoque: Record<string, MarcaGuardada>;
 };
 
 /**
@@ -91,6 +94,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     solicitudes: [],
     avisos: avisosDeLaDemo(ahora),
     trabajosRetoque: [],
+    marcasRetoque: marcasDeLaDemo(),
   };
 }
 
@@ -178,6 +182,7 @@ export function migrar(db: DB): DB {
     solicitudes: db.solicitudes ?? [],
     avisos: db.avisos ?? [],
     trabajosRetoque: db.trabajosRetoque ?? [],
+    marcasRetoque: db.marcasRetoque ?? {},
     // Mi marca: tiendas guardadas antes de que existiera, con la paleta neutra (nunca el verde de Deslizapp)
     tiendas: db.tiendas.map((t) => ({
       ...t,

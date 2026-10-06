@@ -61,3 +61,23 @@ test("Copiar instrucciones: el formato del prompt, sin las líneas que no tienen
     "Retoca esta foto para Luna. Marca: a, b, c. Estilo: como las fotos de referencia. Evita: nada de brillos. No cambies el producto.",
   );
 });
+
+test("la bienvenida se recuerda por tienda y sin almacenamiento sale cada vez", async () => {
+  const B = await import("../lib/bienvenida-retoque.ts");
+  const memoria = new Map();
+  const almacen = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => memoria.set(k, v) };
+  assert.equal(B.bienvenidaVista("tienda-a", almacen), false, "la primera vez no la ha visto");
+  B.marcarBienvenidaVista("tienda-a", almacen);
+  assert.equal(B.bienvenidaVista("tienda-a", almacen), true);
+  assert.equal(B.bienvenidaVista("tienda-b", almacen), false, "otra tienda del mismo dispositivo la ve aparte");
+  B.marcarBienvenidaVista("tienda-a", almacen);
+  assert.equal(JSON.parse(memoria.values().next().value).length, 1, "no se duplica");
+  // Sin almacenamiento o con uno que falla: no rompe y sale cada vez.
+  assert.equal(B.bienvenidaVista("tienda-a", null), false);
+  B.marcarBienvenidaVista("tienda-a", null);
+  const roto = { getItem: () => { throw new Error("bloqueado"); }, setItem: () => { throw new Error("bloqueado"); } };
+  assert.equal(B.bienvenidaVista("tienda-a", roto), false);
+  B.marcarBienvenidaVista("tienda-a", roto);
+  // Un guardado corrupto se ignora.
+  assert.equal(B.bienvenidaVista("x", { getItem: () => "{no es json", setItem() {} }), false);
+});

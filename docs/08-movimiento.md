@@ -148,6 +148,15 @@ y se documenta aquí.
   completos y recorridos en 360/390/430 px. Los videos, no las capturas aisladas,
   son la evidencia de la revisión de movimiento.
 
+### Excepción: bienvenida del retoque (Mi marca)
+
+`components/catalogo/bienvenida-retoque.tsx`, clases `bv-*` en `globals.css`. La hoja usa el movimiento normal de `components/hoja.tsx`; solo la
+**escena** (212 px) tiene animación propia, una sola vez al abrir (~2,5 s): la foto del producto, las miniaturas «Tu marca» que llegan y se
+funden, un barrido de luz que la cambia por la versión de ejemplo y una chispa con la nota «a tu estilo». Solo `transform` y `opacity` de
+decoración; no bloquea toques (Cancelar, «Retocar foto», X, Escape y Atrás responden durante la animación). Con `prefers-reduced-motion` no se
+mueve nada: se ve el resultado directo. La versión «después» es una **ilustración** (la misma foto con más luz y un fondo suave), nunca un
+resultado inventado. La excepción se limita a esta pantalla.
+
 ### Inventario: historial como vista interna
 
 Ficha ↔ historial de ajustes cambia directamente dentro de la misma Hoja, sin
