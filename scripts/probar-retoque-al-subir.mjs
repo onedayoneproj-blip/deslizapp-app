@@ -99,9 +99,16 @@ const cerrarHoja = async (page) => {
   await hoja(page).getByRole("button", { name: "Cerrar" }).first().click().catch(() => page.keyboard.press("Escape"));
   await page.waitForTimeout(350);
 };
+/** Publica; si hay fotos marcadas y es la primera vez, la bienvenida del retoque sale antes de guardar: se confirma. */
 const publicar = async (page) => {
   await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await confirmarBienvenida(page);
   await page.waitForURL(`${URL}/catalogo`);
+};
+const confirmarBienvenida = async (page) => {
+  const bv = page.getByRole("dialog", { name: "Retoque con tu marca" });
+  const sale = await bv.waitFor({ timeout: 4000 }).then(() => true, () => false);
+  if (sale) await bv.getByRole("button", { name: "Retocar foto", exact: true }).click();
 };
 
 let casos = 0;
@@ -202,6 +209,7 @@ await caso("5. Si el pedido al taller falla, el producto queda guardado y se avi
   // Entre marcar y guardar se acaban los créditos: el taller rechaza el pedido.
   await poner(c, 0);
   await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await confirmarBienvenida(page);
   await page.waitForURL(`${URL}/catalogo`);
   const d = await db(page);
   const p = d.productos.find((x) => x.nombre === "Falla el taller");

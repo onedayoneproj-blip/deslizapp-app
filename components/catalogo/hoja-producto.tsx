@@ -10,6 +10,7 @@ import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/typ
 import { textoEspera } from "@/lib/avisos";
 import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
 import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
+import { DURACION } from "@/lib/movimiento";
 import { mandarMarcadas, urlsGuardadasMarcadas } from "@/lib/retoque-al-subir";
 import { BienvenidaRetoque, type DatosBienvenida } from "./bienvenida-retoque";
 import { ListaEsperaProducto } from "./hoja-espera";
@@ -305,6 +306,9 @@ function FormularioProducto({
       );
       // Cancelar vuelve al formulario: no se guarda nada y las fotos siguen marcadas por si quiere apagarlas.
       if (!sigue) return false;
+      // La bienvenida es una hoja apilada: se espera a que termine de salir (y de devolver su entrada del historial) antes de
+      // guardar, porque al guardar se cierra esta hoja y las dos salidas a la vez dejarían la dirección en la pantalla de antes.
+      await new Promise((r) => setTimeout(r, DURACION.entrada + 150));
     }
     setGuardando(true);
     // Si el taller entregó una foto mientras la ficha estaba abierta, se guarda la retocada (nunca se vuelve a la original).

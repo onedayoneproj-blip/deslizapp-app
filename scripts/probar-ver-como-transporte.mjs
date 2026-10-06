@@ -15,7 +15,7 @@ assert(/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(base), "Solo servidor
 const dir = "app/catalogos/fixture-ver-como";
 assert(!existsSync(dir), "No sobrescribir rutas existentes");
 const metodos = [...readFileSync("lib/data/fuente.ts", "utf8").split("export type FuenteDatos = {")[1].matchAll(/^  (\w+)\(/gm)].map(m => m[1]);
-const lecturas = ["getTiendas", "solicitudPorCodigo", "getTienda", "getDueno", "getProductos", "getProducto", "revisarEliminacionProducto", "getAjustesInventario", "revisarGuardadoInventario", "getPedidos", "getPedido", "getCuentasPorCobrar", "getCuentaCliente", "getClientes", "getCliente", "getPromos", "enviosJugada", "getEventosAaah", "solicitudesPendientes", "avisosPendientes", "avisosDeProducto", "trabajosRetoque"];
+const lecturas = ["getTiendas", "solicitudPorCodigo", "getTienda", "getDueno", "getProductos", "getProducto", "revisarEliminacionProducto", "getAjustesInventario", "revisarGuardadoInventario", "getPedidos", "getPedido", "getCuentasPorCobrar", "getCuentaCliente", "getClientes", "getCliente", "getPromos", "enviosJugada", "getEventosAaah", "solicitudesPendientes", "avisosPendientes", "avisosDeProducto", "trabajosRetoque", "getMarcaRetoque"];
 mkdirSync(dir, { recursive: true });
 writeFileSync(dir + "/page.tsx", `"use client";
 import {useEffect,useState,useSyncExternalStore} from "react";

@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.38.0", fecha: "2026-10-06", titulo: "Tu marca, la guía del taller.",
+    cambios: [
+      "En «Mi marca» cuéntanos tu marca en 3 palabras y súbenos de 3 a 6 fotos que te gusten.",
+      "Con tu marca lista, retocar sale a tu estilo. Sin ella, el botón te lleva a completarla.",
+      "La primera vez que mandas una foto, te mostramos cómo funciona.",
+    ],
+  },
+  {
     version: "0.37.0", fecha: "2026-10-06", titulo: "Súbela y pídele retoque.",
     cambios: [
       "Al subir una foto nueva, enciende «Retocar esta foto» y se manda al taller cuando guardes el producto.",

@@ -409,5 +409,20 @@ await caso("9. 360 px: la hoja Mi marca y la ficha sin desborde", async () => {
   return c;
 });
 
+await caso("10. «¿Salir sin guardar?»: sin cambios cierra directo; con cambios pregunta", async () => {
+  const c = await pagina(LUNA);
+  const { page } = c;
+  await abrirMarca(page);
+  await page.keyboard.press("Escape");
+  await esperar(page, 700);
+  ok((await page.locator("[data-seccion-retoque]").count()) === 0, "sin cambios, cerrar no pregunta");
+  await abrirMarca(page);
+  await hoja(page).getByRole("textbox", { name: "Palabra 1", exact: true }).fill("distinta");
+  await page.keyboard.press("Escape");
+  await esperar(page, 500);
+  ok(await page.getByText("¿Salir sin guardar?").first().isVisible(), "con cambios, cerrar pregunta «¿Salir sin guardar?»");
+  return c;
+});
+
 console.log("\nTodo pasa");
 await navegador.close();
