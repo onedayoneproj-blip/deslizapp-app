@@ -1,3 +1,28 @@
+## Revisión de Planning — 2026-10-06
+
+Lewis autorizó completar la coordinación del PR. Aplicada en Supabase
+`20261006111233_admin_ver_como_validar.sql`, reemplazando el nombre provisional
+`20261006130000_admin_ver_como_validar.sql`. El SQL se conserva idéntico.
+Verificados ambos RPC, SECURITY DEFINER/search_path vacío y ACL:
+authenticated puede ejecutarlos, anon no. No se modificaron tiendas ni se
+abrieron sesiones reales para probar.
+
+**Bloqueo de código antes del merge:** `soloMirar()` devuelve un Proxy sobre
+un objeto vacío, sin ownKeys/getOwnPropertyDescriptor. En
+`ProveedorSoloMirar`, `...instancia.lectura` no enumera los métodos de
+FuenteDatos. Las lecturas a través de useData pueden quedar undefined.
+Coding debe corregir la composición manteniendo el guard central y probar
+el proveedor/contexto completo, no solo accesos directos al Proxy.
+
+Pendiente también: comparación del lint de main/PR para las 11 advertencias
+adicionales y corrección o justificación individual. No se ejecutó lint por
+Planning ni se repitieron los replays de Coding. Google/Safari/Ver como real
+siguen pendientes. No merge ni publicación del admin.
+
+Lo que sigue abajo es el informe histórico anterior a esta activación.
+
+---
+
 # Admin parte 2 — handoff para Planning y Claude Code
 
 **Puesto:** Coding. **Rama:** `feature/admin-tiendas`. Partió de `origin/main` `1454a782a5d5aaa59a8fecf56d1c124b419d7aee`, luego se rebasó manualmente sobre `5ab86323f60d2a3778ef177f8ec1db467cab9260` para conservar los cambios nuevos de documentación. PR abierto: [#53](https://github.com/onedayoneproj-blip/deslizapp-app/pull/53). El commit remoto y la URL única READY más recientes se actualizan en la descripción del PR; [el alias estable de la rama](https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app) permite abrir la preview. No incorporar #45, no fusionar y no publicar producción. Lewis ya tiene alta admin; no se repitió.
@@ -16,7 +41,7 @@
 
 - Producción tiene 40 migraciones aplicadas, sin cambios. Se inspeccionaron los contratos y nombres reales; tabla `sesiones_ver_como` bloquea SELECT directo a roles app.
 - Se necesita una migración aditiva con dos guardias para Ver como, porque la fuente real no puede consultar la tabla directamente y la cookie no basta para autorizar ni sincronizar pestañas: `admin_ver_como_actual()` y `admin_ver_como_validar(uuid)`. Sin ella el endpoint de inicio falla cerrado; no usar Ver como contra tienda real todavía.
-- Archivo propuesto: `supabase/migrations/20261006130000_admin_ver_como_validar.sql`. Replay completo en una base desechable pasó; no se aplicó en producción. No existe rama de desarrollo accesible. Las bases locales de la otra sesión siguen desconocidas. Antes de aplicar, coordinar con esa sesión e historial y crear la versión correcta con Supabase CLI; la CLI no está instalada en este entorno, por eso el identificador del archivo es provisional y debe normalizarse antes de aplicar/mergear.
+- Archivo propuesto: `supabase/migrations/20261006111233_admin_ver_como_validar.sql`. Replay completo en una base desechable pasó; no se aplicó en producción. No existe rama de desarrollo accesible. Las bases locales de la otra sesión siguen desconocidas. Antes de aplicar, coordinar con esa sesión e historial y crear la versión correcta con Supabase CLI; la CLI no está instalada en este entorno, por eso el identificador del archivo es provisional y debe normalizarse antes de aplicar/mergear.
 - No cambia las políticas de escritura del dueño. SQL permite que Lewis, dueño de Michel, use sus permisos normales; solo el flujo de la app establece `soloMirar`.
 
 ## Pruebas y límites

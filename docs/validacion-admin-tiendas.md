@@ -1,3 +1,28 @@
+## Revisión de Planning — 2026-10-06
+
+Lewis autorizó completar la coordinación del PR. Aplicada en Supabase
+`20261006111233_admin_ver_como_validar.sql`, reemplazando el nombre provisional
+`20261006130000_admin_ver_como_validar.sql`. El SQL se conserva idéntico.
+Verificados ambos RPC, SECURITY DEFINER/search_path vacío y ACL:
+authenticated puede ejecutarlos, anon no. No se modificaron tiendas ni se
+abrieron sesiones reales para probar.
+
+**Bloqueo de código antes del merge:** `soloMirar()` devuelve un Proxy sobre
+un objeto vacío, sin ownKeys/getOwnPropertyDescriptor. En
+`ProveedorSoloMirar`, `...instancia.lectura` no enumera los métodos de
+FuenteDatos. Las lecturas a través de useData pueden quedar undefined.
+Coding debe corregir la composición manteniendo el guard central y probar
+el proveedor/contexto completo, no solo accesos directos al Proxy.
+
+Pendiente también: comparación del lint de main/PR para las 11 advertencias
+adicionales y corrección o justificación individual. No se ejecutó lint por
+Planning ni se repitieron los replays de Coding. Google/Safari/Ver como real
+siguen pendientes. No merge ni publicación del admin.
+
+Lo que sigue abajo es el informe histórico anterior a esta activación.
+
+---
+
 # Admin parte 2 — validación de Coding
 
 Rama `feature/admin-tiendas`, rebasada sobre main `5ab86323f60d2a3778ef177f8ec1db467cab9260`. PR #53 permanece abierto. El alias estable es https://deslizapp-app-git-feature-admin-tiendas-onedayone.vercel.app; la URL única READY, commit e ID verificados más recientes se mantienen en la descripción actual del PR para que esta nota no quede atada a un commit de documentación.
@@ -14,7 +39,7 @@ Rama `feature/admin-tiendas`, rebasada sobre main `5ab86323f60d2a3778ef177f8ec1d
 
 Se revisaron las firmas reales en las migraciones y el estado accesible del proyecto `euihaeyfdlpvmbtfzvnt`: las 40 migraciones originales están aplicadas; existen `admin_ver_como_iniciar(uuid)` y `admin_ver_como_terminar(uuid)`. La tabla `sesiones_ver_como` no da acceso directo a `anon` ni `authenticated`.
 
-La ruta de Ver como necesita `admin_ver_como_actual()` y `admin_ver_como_validar(uuid)`: funciones para validar al usuario actual, que sigue siendo admin, la pertenencia del ID de sesión, la tienda y su vigencia. Sin ellas una cookie no puede validarse contra la base ni la app detectar el modo en otras pestañas sin abrir acceso a la tabla. La propuesta aditiva está en `supabase/migrations/20261006130000_admin_ver_como_validar.sql`; no cambia datos, políticas de dueño ni las 40 migraciones ya aplicadas. El replay completo desechable pasó. No se aplicó a producción ni se creó una rama de desarrollo porque no hay ninguna disponible. Las bases locales de la otra sesión permanecen desconocidas. Antes de aplicar, coordinar con la otra sesión y generar la versión con el Supabase CLI autorizado; el CLI no está instalado en este entorno, así que el número actual del archivo es provisional.
+La ruta de Ver como necesita `admin_ver_como_actual()` y `admin_ver_como_validar(uuid)`: funciones para validar al usuario actual, que sigue siendo admin, la pertenencia del ID de sesión, la tienda y su vigencia. Sin ellas una cookie no puede validarse contra la base ni la app detectar el modo en otras pestañas sin abrir acceso a la tabla. La propuesta aditiva está en `supabase/migrations/20261006111233_admin_ver_como_validar.sql`; no cambia datos, políticas de dueño ni las 40 migraciones ya aplicadas. El replay completo desechable pasó. No se aplicó a producción ni se creó una rama de desarrollo porque no hay ninguna disponible. Las bases locales de la otra sesión permanecen desconocidas. Antes de aplicar, coordinar con la otra sesión y generar la versión con el Supabase CLI autorizado; el CLI no está instalado en este entorno, así que el número actual del archivo es provisional.
 
 ## Validaciones realmente ejecutadas
 
