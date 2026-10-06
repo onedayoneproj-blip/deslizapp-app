@@ -34,7 +34,7 @@ do $$ begin
   begin perform public.ajustar_stock('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',1,'reposicion');raise exception 'Aceptó stock null';exception when sqlstate 'P0001' then if SQLERRM <> 'stock_sin_control' then raise;end if;end;
   begin update public.productos set stock=100 where id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';raise exception 'Aceptó stock directo';exception when insufficient_privilege then null;end;
   if has_table_privilege('authenticated','public.ajustes_inventario','INSERT') or has_table_privilege('authenticated','public.ajustes_inventario','UPDATE') then raise exception 'Historial escribible directamente';end if;
-  if has_function_privilege('anon','public.ajustar_stock(uuid,uuid,integer,text,text)','EXECUTE') then raise exception 'RPC pública';end if;
+  if has_function_privilege('anon','public.ajustar_stock(uuid,uuid,integer,text,text,uuid)','EXECUTE') then raise exception 'RPC pública';end if;
 end $$;
 reset role;
 insert into public.pedidos(id,tienda_id,estado) values ('ffffffff-ffff-4fff-8fff-ffffffffffff','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','por_despachar');
