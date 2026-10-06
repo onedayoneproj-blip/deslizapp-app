@@ -32,18 +32,20 @@ La SQL aplicada conserva los permisos normales del dueño durante Ver como: Code
 
 `quitado_en` se conserva: al retirar al admin pierde las RPC administrativas y la lectura por Ver como; permanece la fila histórica. Se probó el guard del último admin.
 
-## Hallazgo que Planning debe resolver antes de Cobros
+## Hallazgo corregido con autorización de Lewis
 
-La función aplicada `admin_anular_pago` falla al anular sucesivamente A y B, dos mensualidades: puede conservar la fecha anterior de B, que incluía A, aunque no quede ningún pago vigente. Reproducido por Codex en PostgreSQL desechable. La demo reproduce la semántica aplicada; no oculta el fallo.
+La función original `admin_anular_pago` fallaba al anular sucesivamente A y B: conservaba cobertura de un pago anulado. Codex lo reprodujo y Lewis autorizó corregirlo y aplicar una migración adicional, confirmando que la otra sesión no preparaba cambios incompatibles.
 
-`scripts/sql/admin-anular-pago-propuesta.sql` recalcula desde la fecha anterior al primer pago y reproduce todos los pagos vigentes. Es una **propuesta, no una migración**; tiene guard de base desechable. `scripts/probar-admin-anulacion-limite.sql` demuestra el fallo original y la corrección propuesta, dentro de una transacción que revierte incluso el DDL.
+Aplicada **20261006030939_admin_anular_mensualidades_recalculo**; historial 40/40 sin diferencias de versiones. Conserva la cobertura previa al primer pago y reproduce todos los vigentes por numero, usando fechas RD y meses civiles originales. Demo actualizada con el mismo contrato. El saldo de créditos y sus protecciones no cambiaron. 392 secuencias SQL/demo/calendario y tres solapamientos PostgreSQL pasan. [Validación completa](../validacion-admin-anulacion.md).
 
-No activar Cobros reales hasta revisar este caso y coordinar la corrección. Antes de una migración adicional: consultar nuevamente list_migrations, confirmar con Lewis qué está tocando la otra sesión en pagos/tiendas/políticas, ampliar casos de anulación y ensayar en una base desechable. Nunca editar los seis archivos originales ni borrar historial.
+Una cobertura externa posterior que no coincida con el libro rechaza la anulación con `cobertura_no_conciliada`, sin borrar cobertura ni crear registros parciales: requiere conciliación explícita. No existe otra RPC que cambie pagado_hasta. No se modificó ningún pago real; producción tenía y conserva cero pagos/coberturas. La migración cambia función y ACL, sin reparar datos. La propuesta con guard sigue siendo ensayo desechable, nunca ejecutar ese script en producción.
+
+Antes de futuras migraciones: list_migrations y revisión remota, coordinación explícita con Lewis (la lista no es un bloqueo), ensayo desechable. Nunca editar los seis originales ni la nueva migración aplicada ni borrar historial.
 
 ## Validación y siguientes pasos
 
 Resultados propios, límites y advisors: [validacion-admin-base.md](../validacion-admin-base.md). Claude había reportado replay, pruebas SQL y comparación TypeScript/Postgres; sus scripts no estaban accesibles y esos reportes no se cuentan como validaciones de Codex.
 
-Planning debe revisar este PR abierto contra main, especialmente la anulación encadenada y el alcance real de Ver como. Las partes 2–4 siguen pendientes. La parte 2 deberá crear una FuenteDatos fresca para la tienda vista, envolverla y terminar la sesión SQL al salir; no reutilizar una caché de otra tienda ni presentar acciones que escriban.
+Planning debe revisar este PR abierto contra main, especialmente el contrato corregido de cobertura, su límite de conciliación externa y el alcance real de Ver como. Las partes 2–4 siguen pendientes. La parte 2 deberá crear una FuenteDatos fresca para la tienda vista, envolverla y terminar la sesión SQL al salir; no reutilizar una caché de otra tienda ni presentar acciones que escriban. Cuando exista Cobros, Lewis podrá comprobar anulaciones en demo y su historial; no hay pantalla que deba validar ahora.
 
-**Para Claude al volver:** Codex tomó el relevo. Leer este handoff, el PR y el estado remoto antes de continuar. Hacer fetch y trabajar desde el nuevo HEAD de `origin/feature/admin-base` en un checkout independiente. No empujar la copia antigua encima de Codex, no hacer force push, no reaplicar estas migraciones ni repetir el alta de Lewis. Si aparecen archivos antiguos, comparar y rescatar solo cambios ausentes mediante commits nuevos.
+**Para Claude al volver:** Codex tomó el relevo y aplicó también la corrección 20261006030939. Leer este handoff, la validación de anulación, el PR y el estado remoto antes de continuar. Hacer fetch y trabajar desde el nuevo HEAD de `origin/feature/admin-base` en un checkout independiente. No empujar la copia antigua encima de Codex, no hacer force push, no reaplicar las siete migraciones admin ni repetir el alta de Lewis. Si aparecen archivos antiguos, comparar y rescatar solo cambios ausentes mediante commits nuevos.

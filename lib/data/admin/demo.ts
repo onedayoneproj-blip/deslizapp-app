@@ -1,4 +1,5 @@
 import { ErrorAdmin, type FuenteAdmin } from "./fuente-admin";
+import { recalcularMensualidades } from "../../admin/pagos";
 import {
   crearEstadoAdminDemo,
   type EstadoAdminDemo,
@@ -727,6 +728,12 @@ export function crearFuenteAdminDemo(
         const p =
           e.pagos.find((p) => p.id === id) ?? error("pago_no_encontrado");
         if (!pagoVigente(p)) error("pago_ya_anulado");
+        if (
+          p.concepto === "mensualidad" &&
+          tienda(p.tiendaId, true).pagadoHasta !==
+            recalcularMensualidades(e.pagos, p.tiendaId)
+        )
+          error("cobertura_no_conciliada");
         const t = tienda(p.tiendaId, true),
           a: PagoAdmin = {
             ...p,
@@ -746,20 +753,7 @@ export function crearFuenteAdminDemo(
           };
         e.pagos.push(a);
         if (p.concepto === "mensualidad") {
-          let hasta = p.pagadoHastaAnterior;
-          for (const q of e.pagos
-            .filter(
-              (q) =>
-                q.tiendaId === t.id &&
-                q.concepto === "mensualidad" &&
-                q.numero > p.numero &&
-                pagoVigente(q),
-            )
-            .sort((a, b) => a.numero - b.numero)) {
-            const dia = diaRD(Date.parse(q.creadoEn));
-            hasta = sumarMeses(hasta && hasta > dia ? hasta : dia, q.meses!);
-          }
-          t.pagadoHasta = hasta;
+          t.pagadoHasta = recalcularMensualidades(e.pagos, t.id);
         }
         if (p.concepto === "creditos") {
           if (t.creditosRetoque - reservado(t.id) < p.creditos!)

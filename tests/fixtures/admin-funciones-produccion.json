@@ -35,7 +35,7 @@
   {
     "nombre": "admin_anular_pago",
     "argumentos": "p_pago_id uuid, p_motivo text",
-    "md5": "9030fdea458f1d086fc22f297af2d2c3",
+    "md5": "7e169f2c7a150f6de61976d1e6875fff",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

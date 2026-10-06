@@ -2,6 +2,8 @@
 
 6 de octubre de 2026. Sin pantallas, merge ni despliegue. Procedencia y decisiones: [handoff](handoffs/admin-base-codex.md).
 
+Actualización autorizada: anulación encadenada corregida y aplicada como **20261006030939_admin_anular_mensualidades_recalculo**, historial 40/40, sin tocar pagos reales. [Contrato y validación ampliada](validacion-admin-anulacion.md). Los resultados iniciales que siguen se conservan como historia de la primera entrega.
+
 ## Pruebas propias
 
 Se ejecutaron en el checkout independiente actualizado con origin/main. Los resultados previos reportados por Claude no se usan como evidencia.
@@ -51,7 +53,7 @@ La decisión de almacenamiento ya aplicada por Claude se conserva: comprobantes 
 
 ## Límites y decisiones
 
-- La anulación encadenada de mensualidades tiene un defecto en el SQL aplicado. Prueba y propuesta reversible incluidas, sin aplicar a producción. Es un bloqueo para habilitar Cobros; ver handoff.
+- El defecto original de anulación encadenada quedó corregido con la séptima migración admin autorizada. La cobertura externa no conciliada se protege rechazando la anulación; ver validación ampliada. Las pantallas de Cobros siguen pendientes.
 - Se mantienen las reglas aplicadas aunque haya diferencias con textos anteriores: prueba sin fecha continúa en_prueba; meses usan calendario con ajuste de fin de mes; salud quieta es fallback; uso de fotos agregado y claves de plataforma estables. La comparación prueba estas decisiones.
 - Reducir el límite de un plan no oculta productos; los identificadores configurables están en los tipos admin. El panel existente todavía tiene su configuración de planes hasta su integración posterior.
 - No se probó Google real, la cuenta real de Lewis ni Safari; la protección del perfil admin/dueño se verifica con fixtures y llamadas interceptadas antes del cliente.

@@ -1,5 +1,13 @@
--- Ensayo desechable del contrato corregido. La migración de producción se genera con CLI.
-do $$ begin if current_database()<>'replay_provisional' then raise exception 'Solo replay_provisional'; end if; end $$;
+-- Protección contra reemplazar una versión concurrente no revisada.
+set local lock_timeout = '5s';
+lock table public.tiendas in exclusive mode;
+do $$ begin
+ if md5(pg_get_functiondef('public.admin_anular_pago(uuid,text)'::regprocedure)) <> '9030fdea458f1d086fc22f297af2d2c3' then
+  raise exception 'admin_anular_pago cambió: coordinar y revisar antes de aplicar';
+ end if;
+end $$;
+-- Corrige anulación encadenada. Sin cambios de datos ni de pagos históricos.
+-- Cobertura anterior al primer pago + mensualidades vigentes por numero.
 create or replace function public.admin_anular_pago(p_pago_id uuid, p_motivo text) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
@@ -59,3 +67,6 @@ begin
     'motivo', v_motivo, 'pagado_hasta', v_t.pagado_hasta));
   return jsonb_build_object('anulacion', to_jsonb(v_anula), 'pagado_hasta', v_t.pagado_hasta, 'creditos', v_t.creditos_retoque);
 end $$;
+
+revoke execute on function public.admin_anular_pago(uuid,text) from public, anon;
+grant execute on function public.admin_anular_pago(uuid,text) to authenticated;

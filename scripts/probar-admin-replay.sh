@@ -9,6 +9,7 @@ for intento in {1..40}; do
   sleep .2
 done
 psql_local(){ docker exec -i "$ADMIN_REPLAY_CONTAINER" psql -U postgres -d replay_provisional -v ON_ERROR_STOP=1 "$@"; }
+docker cp scripts/sql/admin-anular-pago-propuesta.sql "$ADMIN_REPLAY_CONTAINER:/tmp/admin-anular-pago-propuesta.sql"
 psql_local < scripts/preparar-replay-inventario.sql >/dev/null
 psql_local <<'SQL' >/dev/null
 alter table storage.objects add column metadata jsonb default '{}'::jsonb;
@@ -17,10 +18,14 @@ grant usage on schema auth, storage to anon, authenticated, service_role;
 grant select, insert, update, delete on storage.objects to authenticated;
 SQL
 for archivo in supabase/migrations/*.sql; do
+  if [[ "$archivo" == *admin_anular_mensualidades_recalculo.sql ]]; then
+    # Reproduce la función antigua y ensaya la propuesta ANTES de la migración nueva.
+    psql_local < scripts/probar-admin-anulacion-limite.sql
+  fi
   if [[ "$archivo" == *20261006012434* ]]; then
     psql_local -c 'create table public.admin_saldo_previo_replay as select id, creditos_retoque from public.tiendas' >/dev/null
   fi
-  psql_local < "$archivo" >/dev/null
+  psql_local --single-transaction < "$archivo" >/dev/null
 done
 psql_local <<'SQL'
 do $$ begin
@@ -29,8 +34,9 @@ end $$;
 SQL
 psql_local < scripts/probar-admin-db.sql
 node scripts/comparar-admin-reglas.mjs
-docker cp scripts/sql/admin-anular-pago-propuesta.sql "$ADMIN_REPLAY_CONTAINER:/tmp/admin-anular-pago-propuesta.sql"
-psql_local < scripts/probar-admin-anulacion-limite.sql
+node scripts/comparar-admin-mensualidades.mjs
+psql_local < scripts/probar-admin-mensualidades-db.sql
+python3 scripts/probar-admin-mensualidades-concurrencia.py
 # Regresión de tablas compartidas, usando el mismo replay completo.
 psql_local < scripts/probar-eliminar-producto-db.sql
 psql_local < scripts/probar-catalogo-react-db.sql

@@ -1,6 +1,8 @@
 ## Admin: Codex toma el relevo — Coding, 2026-10-06
 
-Rama independiente `feature/admin-base`. SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff del relevo](docs/handoffs/admin-base-codex.md) y [la validación](docs/validacion-admin-base.md), incluyendo el fallo de anulación encadenada y los advisors.
+Corrección autorizada de anulación encadenada aplicada como **20261006030939_admin_anular_mensualidades_recalculo**, sin tocar pagos reales. Contrato, 392 secuencias SQL/demo, concurrencia y límites de cobertura externa: [validación de anulación](docs/validacion-admin-anulacion.md). PR #51 sigue abierto, sin pantallas, merge ni despliegue.
+
+Rama independiente `feature/admin-base`. SQL aplicada recuperada y publicada; capa TypeScript, demo y soloMirar reconstruidas sin pantallas. Leer [el handoff del relevo](docs/handoffs/admin-base-codex.md) y [la validación](docs/validacion-admin-base.md), incluyendo la corrección posterior de anulación y los advisors. soloMirar bloquea desde la app; una cuenta admin/dueño conserva permisos de dueño en la base.
 
 Claude: leer el handoff y hacer fetch del estado remoto antes de continuar. No empujar la copia antigua encima del trabajo de Codex ni reaplicar las seis migraciones. Lewis ya es admin activo; no repetir el alta.
 
