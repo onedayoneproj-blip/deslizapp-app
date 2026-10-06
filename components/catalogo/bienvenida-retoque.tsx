@@ -61,7 +61,7 @@ export function BienvenidaRetoque({
             Beta: cada foto se revisa con cuidado y eso toma su tiempo. Si no sale como debe, te devolvemos los créditos.
           </p>
 
-          <div className="flex gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             <Boton jerarquia="secundario" anchoCompleto onClick={alCancelar}>
               Cancelar
             </Boton>

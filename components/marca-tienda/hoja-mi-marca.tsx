@@ -24,7 +24,7 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCamara } from "../iconos";
 import { useToast } from "../toast";
 import { instagramLimpio, marcaLista, MARCA_VACIA, type MarcaRetoque } from "@/lib/marca-retoque";
-import { borradorCambio, borradorDeMarca, marcaConBorrador, SeccionRetoque, type BorradorRetoque } from "./seccion-retoque";
+import { borradorCambio, borradorDeMarca, SeccionRetoque, type BorradorRetoque } from "./seccion-retoque";
 import { CuponTienda, marcaDeTienda } from "./cupon-tienda";
 
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];

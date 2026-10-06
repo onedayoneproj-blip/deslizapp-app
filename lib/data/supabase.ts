@@ -13,7 +13,7 @@ import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
 import { BUCKET, BUCKET_MARCA, FIRMA_SEGUNDOS, rutaReferencia, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
 import { limpiarDatosCliente, limpiarNota } from "./clientes";
-import type { DatosMarcaRetoque, MarcaRetoque } from "../marca-retoque";
+import type { MarcaRetoque } from "../marca-retoque";
 import { comprobarTopeReferencias, validarMarcaRetoque } from "./marca-retoque";
 import { nuevoId } from "./db";
 import { validarAjusteInventario, validarReposicion } from "./inventario";

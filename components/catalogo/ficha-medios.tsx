@@ -343,9 +343,11 @@ function HojaMedio({
       const faltaMarca = !taller.soloMirar && taller.marcaLista === false && !marcada;
       return {
         titulo: conBeta(TITULO_RETOCAR_ESTA),
-        detalle: sinMotivo ?? (marcada ? TEXTO_SE_MANDA_AL_GUARDAR : undefined),
+        // El motivo de la marca es largo: va en el pie, que baja de línea, no en el detalle, que se corta con «…».
+        detalle: faltaMarca ? undefined : (sinMotivo ?? (marcada ? TEXTO_SE_MANDA_AL_GUARDAR : undefined)),
         pie: (
           <>
+            {faltaMarca && <span className="block text-secundario font-bold text-atencion-texto">{MOTIVO_SIN_MARCA}</span>}
             <span className={`block ${textoSecundario}`}>{textoFichaRetoque()}</span>
             {faltaMarca && (
               <Boton tamano="compacto" jerarquia="secundario" className="mt-2" onClick={alCompletarMarca}>
@@ -378,10 +380,17 @@ function HojaMedio({
     const puede = !motivo && taller.marcaLista === true;
     return {
       titulo: conBeta("Retocar foto"),
-      detalle: motivo ?? undefined,
+      detalle: sinMarca ? undefined : (motivo ?? undefined),
       pie: (
         <>
+          {sinMarca && <span className="block text-secundario font-bold text-atencion-texto">{MOTIVO_SIN_MARCA}</span>}
           <span className={`block ${textoSecundario}`}>{textoFichaRetoque()}</span>
+          {sinMarca && (
+            // Sin Mi marca lista no se puede retocar: en lugar de «Retocar», el camino a completarla.
+            <Boton tamano="compacto" jerarquia="secundario" className="mt-2" onClick={alCompletarMarca}>
+              {ACCION_COMPLETAR_MARCA}
+            </Boton>
+          )}
           {puede && (
             <Boton tamano="compacto" jerarquia="terciario" className="mt-1 -ml-2" onClick={() => alComoFunciona(foto.url)}>
               Cómo funciona
@@ -389,12 +398,7 @@ function HojaMedio({
           )}
         </>
       ),
-      accion: sinMarca ? (
-        // Sin Mi marca lista no se puede retocar: en lugar de «Retocar», el camino a completarla.
-        <Boton tamano="compacto" jerarquia="secundario" onClick={alCompletarMarca}>
-          {ACCION_COMPLETAR_MARCA}
-        </Boton>
-      ) : (
+      accion: sinMarca ? undefined : (
         <Boton tamano="compacto" deshabilitado={!puede} cargando={taller.pidiendo === foto.url} onClick={() => alRetocar(foto.url)}>
           Retocar
         </Boton>

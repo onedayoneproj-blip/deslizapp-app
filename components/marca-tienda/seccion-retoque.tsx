@@ -140,7 +140,7 @@ export function SeccionRetoque({
             <input
               id={idIg}
               value={borrador.instagram}
-              onChange={(e) => alCambiar({ ...borrador, instagram: e.target.value })}
+              onChange={(e) => alCambiar({ ...borrador, instagram: e.target.value.replace(/^@+/, "") })}
               placeholder="tutienda"
               autoCapitalize="none"
               autoCorrect="off"
