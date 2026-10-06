@@ -84,6 +84,12 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 3. Trabajo (catálogos, retoque real) y Personalizar: `docs/prompts/admin-3-trabajo.md`.
 4. Cobros, Planes, Más, Salud y Registro: `docs/prompts/admin-4-cobros.md`.
 
+**Dos Coding en paralelo** (desde el 5 oct 2026): uno construye el admin y otro hace los pendientes de la app. Reglas para que no se pisen:
+- Cada uno en su rama, desde `main` actualizado. Antes de abrir o actualizar un PR, `git fetch origin && git rebase origin/main`.
+- **Migraciones:** una a la vez. Antes de aplicar, `list_migrations` para ver si la otra sesión aplicó algo nuevo; si tocan la misma tabla o política, se para y se avisa a Lewis. Nunca editar una migración de la otra sesión.
+- Archivos compartidos (`lib/types.ts`, `lib/data/fuente.ts`, `lib/data/demo.ts` y su seed, `components/ui/`, `lib/novedades.ts`): cambios pequeños y aditivos. Si hace falta reorganizar uno, se dice en el PR.
+- `lib/novedades.ts`: una versión nueva por PR que se publique, con el número siguiente al de `main` en el momento del merge.
+
 La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño (lienzo «Onboarding de Deslizapp», tres opciones sin elegir).
 
 **Pendientes sueltos:**
