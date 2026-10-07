@@ -409,7 +409,7 @@
   {
     "nombre": "marcar_actividad",
     "argumentos": "p_tienda_id uuid",
-    "md5": "7914ee805b7de00df5f432859b8de7bf",
+    "md5": "b1a28821f701921fa12fd33dc17c8423",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

@@ -22,7 +22,8 @@ grant execute on function pg_temp.toca(text,int) to authenticated, anon;
 insert into auth.users(id,email,raw_app_meta_data,email_confirmed_at) values
  ('cd000000-0000-4000-8000-000000000001','u1-admin-duena@prueba.invalid','{"provider":"google"}',now()),
  ('cd000000-0000-4000-8000-000000000002','u2-admin-ajeno@prueba.invalid','{"provider":"google"}',now()),
- ('cd000000-0000-4000-8000-000000000003','u3-duena-comun@prueba.invalid','{"provider":"google"}',now());
+ ('cd000000-0000-4000-8000-000000000003','u3-duena-comun@prueba.invalid','{"provider":"google"}',now()),
+ ('cd000000-0000-4000-8000-000000000004','u4-staff-comun@prueba.invalid','{"provider":"google"}',now());
 insert into public.admins(usuario_id,email) values
  ('cd000000-0000-4000-8000-000000000001','u1-admin-duena@prueba.invalid'),
  ('cd000000-0000-4000-8000-000000000002','u2-admin-ajeno@prueba.invalid');
@@ -32,7 +33,8 @@ insert into public.tiendas(id,nombre,slug,estado,creditos_retoque) values
 insert into public.miembros(usuario_id,tienda_id,rol) values
  ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000a','dueno'),
  ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000b','staff'),
- ('cd000000-0000-4000-8000-000000000003','ce000000-0000-4000-8000-00000000000a','dueno');
+ ('cd000000-0000-4000-8000-000000000003','ce000000-0000-4000-8000-00000000000a','dueno'),
+ ('cd000000-0000-4000-8000-000000000004','ce000000-0000-4000-8000-00000000000a','staff');
 
 -- Una fila de cada tabla con escritura para miembros, en cada tienda (ids derivados de la tienda y un sufijo).
 create function pg_temp.id(t uuid, k text) returns uuid language sql immutable as $$ select md5(t::text||k)::uuid $$;
@@ -110,6 +112,15 @@ insert into rpc_casos(grupo, nombre, q) values
  (3,'descartar_solicitud',$q$select public.descartar_solicitud(pg_temp.id('{T}','solicitud'))$q$),
  (3,'registrar_venta_pasada',$q$select public.registrar_venta_pasada('{T}'::uuid, null, now() - interval '1 day', jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null, false)$q$),
  (3,'marcar_avisado',$q$select public.marcar_avisado(array[pg_temp.id('{T}','aviso')])$q$);
+-- Grupo 4: la tienda misma y su equipo.
+insert into rpc_casos(grupo, nombre, q) values
+ (4,'cambiar_estado_tienda',$q$select public.cambiar_estado_tienda('{T}'::uuid, 'pausar')$q$),
+ (4,'pedir_cambios_catalogo',$q$select public.pedir_cambios_catalogo('{T}'::uuid, 'Cambios de prueba')$q$),
+ (4,'publicar_catalogo',$q$select public.publicar_catalogo('{T}'::uuid)$q$),
+ (4,'solicitar_catalogo',$q$select public.solicitar_catalogo('{T}'::uuid)$q$),
+ (4,'invitar_a_tienda',$q$select public.invitar_a_tienda('{T}'::uuid, 'nadie@ejemplo.invalid', 'staff')$q$),
+ (4,'quitar_de_tienda',$q$select public.quitar_de_tienda('{T}'::uuid, 'cd000000-0000-4000-8000-000000000004')$q$),
+ (4,'transferir_tienda',$q$select public.transferir_tienda('{T}'::uuid, 'cd000000-0000-4000-8000-000000000004')$q$);
 
 -- ═══ 0. La función de apoyo y los permisos ═══
 select pg_temp.comprobar(not has_function_privilege('anon','public.exigir_no_viendo(uuid)','EXECUTE') and has_function_privilege('authenticated','public.exigir_no_viendo(uuid)','EXECUTE'),'exigir_no_viendo: sin EXECUTE para anon');
@@ -193,6 +204,9 @@ delete from storage.objects where name like 'ce000000-0000-4000-8000-00000000000
 insert into storage.objects(bucket_id,name) values ('comprobantes','ce000000-0000-4000-8000-00000000000a/recibo.pdf');
 delete from storage.objects where bucket_id='comprobantes';
 select pg_temp.probar_rpc(true);
+select pg_temp.comprobar(public.marcar_actividad('ce000000-0000-4000-8000-00000000000a') = false,'marcar_actividad durante Ver como devuelve false');
+select pg_temp.comprobar((select count(*) from public.miembros where tienda_id='ce000000-0000-4000-8000-00000000000a' and usuario_id='cd000000-0000-4000-8000-000000000001' and ultima_entrada_en is not null)=0,'marcar_actividad durante Ver como no anota la entrada');
+select pg_temp.comprobar(public.marcar_actividad('ce000000-0000-4000-8000-00000000000b') is not null,'marcar_actividad en la otra tienda (B) funciona');
 reset role;
 -- Ninguna fila de A cambió.
 select pg_temp.comprobar((select nombre from public.productos where id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','producto'))='Sin sesión A','el producto de A no cambió');
@@ -224,6 +238,7 @@ insert into storage.objects(bucket_id,name) values ('productos','ce000000-0000-4
 delete from storage.objects where name like '%/despues.png';
 select public.exigir_no_viendo('ce000000-0000-4000-8000-00000000000a');
 select pg_temp.probar_rpc(false);
+select pg_temp.comprobar(public.marcar_actividad('ce000000-0000-4000-8000-00000000000a') = true,'con la sesión terminada marcar_actividad vuelve a anotar');
 reset role;
 
 -- ═══ 4. Sesión vencida: vuelve a escribir sin hacer nada ═══
