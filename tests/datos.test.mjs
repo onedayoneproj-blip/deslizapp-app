@@ -246,6 +246,16 @@ test("reglas de la tabla, permisos y sesión", () => {
   assert.ok(traducirErrorSupabase({ code: "PGRST301", message: "JWT expired" }) instanceof SesionVencida);
 });
 
+test("Ver como: la base frena la escritura y la app lo dice claro", () => {
+  const rpc = traducirErrorSupabase({ code: "42501", message: "solo_mirar", hint: "Estás mirando esta tienda; aquí no se cambia nada. Sal de Ver como para editar." });
+  assert.ok(rpc instanceof SinPermiso);
+  assert.equal(rpc.message, "Estás mirando esta tienda; aquí no se cambia nada. Sal de Ver como para editar.");
+  const tabla = traducirErrorSupabase({ code: "42501", message: 'new row violates row-level security policy "ver_como_no_escribe_clientes_insert" for table "clientes"' });
+  assert.ok(tabla instanceof SinPermiso);
+  assert.match(tabla.message, /Ver como/);
+  assert.doesNotMatch(tabla.message, /!/);
+});
+
 test("errores de red (Chrome, Safari, Firefox)", () => {
   for (const message of ["TypeError: Failed to fetch", "Load failed", "NetworkError when attempting to fetch resource."]) {
     assert.ok(esErrorDeRed({ message }), message);

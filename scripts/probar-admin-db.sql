@@ -61,7 +61,8 @@ end $$;
 select pg_temp.comprobar(exists(select 1 from public.productos where id='ac000000-0000-4000-8000-000000000001'),'admin con sesión lee');
 select pg_temp.rechaza($q$insert into public.productos(tienda_id,nombre,precio) values('ab000000-0000-4000-8000-000000000001','No',100)$q$,'42501');
 do $$ declare n integer; begin update public.productos set nombre='No' where id='ac000000-0000-4000-8000-000000000001';get diagnostics n=row_count;perform pg_temp.comprobar(n=0,'admin ajeno update sin filas');end $$;
-select pg_temp.rechaza($q$select public.gastar_creditos('ab000000-0000-4000-8000-000000000001',1)$q$,'P0002','tienda_no_encontrada');
+-- Un admin que solo mira (no es miembro): antes decía tienda_no_encontrada; ahora la base lo dice con más claridad (solo_mirar).
+select pg_temp.rechaza($q$select public.gastar_creditos('ab000000-0000-4000-8000-000000000001',1)$q$,'42501','solo_mirar');
 do $$ declare v jsonb; begin v:=public.admin_ver_como_actual(); perform public.admin_ver_como_terminar((v->>'id')::uuid); perform pg_temp.comprobar(public.admin_ver_como_actual() is null,'salida retira sesión activa'); perform pg_temp.comprobar(public.admin_ver_como_validar((v->>'id')::uuid) is null,'sesión cerrada ya no valida'); end $$;
 reset role;
 update public.sesiones_ver_como set inicio=now()-interval '31 minutes',vence_en=now()-interval '1 minute' where admin_id='aa000000-0000-4000-8000-000000000001' and fin is null;
@@ -77,10 +78,14 @@ select pg_temp.comprobar((select quitado_en is not null from public.admins where
 select set_config('request.jwt.claim.sub','aa000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
 select pg_temp.rechaza($q$select public.admin_quitar_admin('aa000000-0000-4000-8000-000000000002')$q$,'P0001','ultimo_admin');
--- Cuenta admin/dueño como Lewis: SQL conserva permisos del dueño, wrapper deberá bloquearlos.
+-- Cuenta admin/dueño como Lewis: mientras mira, la BASE le quita la escritura de esa tienda (fix/ver-como-bloqueo; el detalle en
+-- probar-ver-como-bloqueo-db.sql). Al terminar la sesión recupera los permisos del dueño y el resto de esta prueba sigue igual.
 select public.admin_ver_como_iniciar('ab000000-0000-4000-8000-000000000001');
 update public.productos set nombre='Foto dueño' where id='ac000000-0000-4000-8000-000000000001';
-select pg_temp.comprobar((select nombre='Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'documentar permiso dueño vigente');
+select pg_temp.comprobar((select nombre<>'Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'Ver como bloquea al dueño admin en la base');
+select public.admin_ver_como_terminar((public.admin_ver_como_actual()->>'id')::uuid);
+update public.productos set nombre='Foto dueño' where id='ac000000-0000-4000-8000-000000000001';
+select pg_temp.comprobar((select nombre='Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'al terminar Ver como el dueño vuelve a escribir');
 -- Retoque reserva/cobra/devuelve y legacy firmas de gastar_creditos.
 do $$ declare tr jsonb; v integer; begin
  tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/original.jpg');

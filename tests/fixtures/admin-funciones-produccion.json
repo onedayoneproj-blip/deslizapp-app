@@ -398,7 +398,7 @@
   {
     "nombre": "gastar_creditos",
     "argumentos": "p_tienda_id uuid, p_cantidad integer",
-    "md5": "c326764e308e3ea3ca94c8c90a2ba7fd",
+    "md5": "4dc9cce8ed57ef2af7e77f8a54bfe675",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
@@ -409,7 +409,7 @@
   {
     "nombre": "marcar_actividad",
     "argumentos": "p_tienda_id uuid",
-    "md5": "7914ee805b7de00df5f432859b8de7bf",
+    "md5": "b1a28821f701921fa12fd33dc17c8423",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
@@ -420,7 +420,7 @@
   {
     "nombre": "pedir_retoque",
     "argumentos": "p_producto_id uuid, p_medio_url text",
-    "md5": "87d70bcd1b1985b325f96f355a9aa165",
+    "md5": "bf64a8c120310043e2cd1456411c7d22",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
