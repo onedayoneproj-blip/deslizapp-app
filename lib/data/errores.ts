@@ -136,9 +136,11 @@ export class InventarioCambio extends ErrorClaro {
   constructor() { super("El stock cambió mientras ajustabas. Revisa la cantidad actual antes de guardar."); }
 }
 
+export const MENSAJE_SOLO_MIRAR = "Estás mirando esta tienda; aquí no se cambia nada. Sal de Ver como para editar.";
+
 export class SinPermiso extends ErrorClaro {
-  constructor() {
-    super("Tu cuenta no tiene permiso para hacer eso.");
+  constructor(mensaje = "Tu cuenta no tiene permiso para hacer eso.") {
+    super(mensaje);
   }
 }
 
@@ -344,7 +346,12 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (c.status === 413 || c.status === "413" || /maximum allowed size|payload too large|exceeded/i.test(mensaje)) return new ArchivoMuyGrande();
   if (c.status === 415 || c.status === "415" || /mime type|not supported|invalid.*type/i.test(mensaje)) return new FormatoNoPermitido();
 
-  // Permisos y sesión
+  // Permisos y sesión. `solo_mirar` lo lanza exigir_no_viendo (RPC); en las tablas la base solo dice "row-level security",
+  // y con una sesión de Ver como abierta en otra pestaña es la causa más probable.
+  if (mensaje.includes("solo_mirar")) return new SinPermiso(MENSAJE_SOLO_MIRAR);
+  if (/row-level security/i.test(mensaje)) {
+    return new SinPermiso("No se pudo guardar. Si tienes Ver como abierto en otra pestaña, sal de ahí para editar.");
+  }
   if (codigo === "42501" || /permission denied|row-level security/i.test(mensaje)) return new SinPermiso();
   if (codigo === "PGRST301" || codigo === "PGRST303" || c.status === 401 || /jwt|refresh token/i.test(mensaje)) return new SesionVencida();
 
