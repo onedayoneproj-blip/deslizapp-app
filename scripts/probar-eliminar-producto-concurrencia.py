@@ -7,7 +7,7 @@ def start(sql):
  p=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);p.stdin.write(sql);p.stdin.close();return p
 run("""insert into auth.users(id,email) values ('21000000-0000-4000-8000-000000000001','eliminar@fixture.invalid');
 insert into public.tiendas(id,nombre,slug,estado) values ('11000000-0000-4000-8000-000000000001','Fixture','fixture-eliminar','activa');
-insert into public.miembros(usuario_id,tienda_id) values ('21000000-0000-4000-8000-000000000001','11000000-0000-4000-8000-000000000001');
+insert into public.miembros(usuario_id,tienda_id,nivel) values ('21000000-0000-4000-8000-000000000001','11000000-0000-4000-8000-000000000001','administrador');
 insert into public.productos(id,tienda_id,nombre,precio,stock) values ('31000000-0000-4000-8000-000000000001','11000000-0000-4000-8000-000000000001','Primero',100,3),('31000000-0000-4000-8000-000000000002','11000000-0000-4000-8000-000000000001','Segundo',100,3);
 insert into public.pedidos(id,tienda_id,estado,total) values ('71000000-0000-4000-8000-000000000001','11000000-0000-4000-8000-000000000001','nuevo',100);""")
 auth="select set_config('request.jwt.claim.sub','21000000-0000-4000-8000-000000000001',true);set local role authenticated;"
