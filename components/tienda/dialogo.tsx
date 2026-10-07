@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { decidirGesto, resultadoSoltar } from "@/lib/gesto-hoja";
 /** Hojas propias de la superficie pública, fieles al HTML; no aplica tokens del panel. */
 export function DialogoCatalogo({
   id,
@@ -109,26 +110,132 @@ export function DialogoCatalogo({
     </div>
   );
 }
+const ZONAS_ASA = ".grab,.wahead,.shead,.wagrab";
+
+/** Contenedor que hace scroll vertical bajo el dedo, sin salir de la hoja. */
+function contenedorScroll(desde: HTMLElement | null, hoja: HTMLElement) {
+  for (let el = desde; el && el !== hoja; el = el.parentElement) {
+    const o = getComputedStyle(el).overflowY;
+    if ((o === "auto" || o === "scroll") && el.scrollHeight > el.clientHeight)
+      return el;
+  }
+  return null;
+}
+
 export function PanelCatalogo({
   children,
   clase = "sheet",
   cerrar,
+  asa = clase === "sheet",
+  ...datos
 }: {
   children: ReactNode;
   clase?: string;
   cerrar: () => void;
+  asa?: boolean;
+  [dato: `data-${string}`]: string | undefined;
 }) {
   const [full, setFull] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; id: number } | null>(null);
+  const estado = useRef({ full, cerrar });
+  useLayoutEffect(() => {
+    estado.current = { full, cerrar };
+  });
+  // Gesto sobre el cuerpo (touch): a media altura, arriba expande; con el cuerpo arriba, abajo arrastra.
+  // Va con touch events no pasivos porque hay que cancelar el scroll nativo solo cuando el gesto es de la hoja.
+  useEffect(() => {
+    const hoja = ref.current;
+    if (!hoja) return;
+    let g: {
+      x: number;
+      y: number;
+      modo: "esperar" | "ignorar" | "scroll" | "expandir" | "arrastrar";
+      scroll: HTMLElement | null;
+    } | null = null;
+    const reset = () => {
+      hoja.style.transform = "";
+      hoja.style.transition = "";
+    };
+    const inicio = (e: TouchEvent) => {
+      g = null;
+      const t = e.target as HTMLElement;
+      const foco = document.activeElement;
+      if (
+        e.touches.length !== 1 ||
+        t.closest(ZONAS_ASA + ",input,textarea,.x,.wax") ||
+        (foco && hoja.contains(foco) && foco.matches("input,textarea"))
+      )
+        return;
+      g = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        modo: "esperar",
+        scroll: contenedorScroll(t, hoja),
+      };
+    };
+    const mover = (e: TouchEvent) => {
+      if (!g || g.modo === "ignorar" || g.modo === "scroll") return;
+      const dy = e.touches[0].clientY - g.y;
+      if (g.modo === "esperar") {
+        const full = estado.current.full;
+        g.modo = decidirGesto({
+          dx: e.touches[0].clientX - g.x,
+          dy,
+          full,
+          scrollTop: full ? (g.scroll?.scrollTop ?? 0) : 0,
+        });
+        if (g.modo === "esperar") return;
+        if (g.modo === "expandir") setFull(true);
+        if (g.modo === "arrastrar") hoja.style.transition = "none";
+      }
+      if (e.cancelable) e.preventDefault();
+      if (g.modo === "arrastrar")
+        hoja.style.transform = `translateY(${Math.max(0, dy)}px)`;
+    };
+    const fin = (e: TouchEvent) => {
+      const actual = g;
+      g = null;
+      if (actual?.modo !== "arrastrar") return;
+      reset();
+      if (e.type === "touchcancel") return;
+      const dy = e.changedTouches[0].clientY - actual.y;
+      const r = resultadoSoltar(dy, estado.current.full);
+      if (r === "cerrar") estado.current.cerrar();
+      if (r === "reducir") {
+        actual.scroll?.scrollTo({ top: 0 });
+        setFull(false);
+      }
+    };
+    hoja.addEventListener("touchstart", inicio, { passive: true });
+    hoja.addEventListener("touchmove", mover, { passive: false });
+    hoja.addEventListener("touchend", fin);
+    hoja.addEventListener("touchcancel", fin);
+    return () => {
+      hoja.removeEventListener("touchstart", inicio);
+      hoja.removeEventListener("touchmove", mover);
+      hoja.removeEventListener("touchend", fin);
+      hoja.removeEventListener("touchcancel", fin);
+    };
+  }, []);
+  const reducir = () => {
+    ref.current?.querySelectorAll<HTMLElement>(".sbody,.wabody").forEach((b) => (b.scrollTop = 0));
+    setFull(false);
+  };
   return (
     <div
+      ref={ref}
+      {...datos}
       className={clase + (full ? " full" : "")}
       onClick={(e) => {
-        if ((e.target as HTMLElement).closest(".wagrab")) setFull(!full);
+        if ((e.target as HTMLElement).closest(".wagrab")) {
+          if (full) reducir();
+          else setFull(true);
+        }
       }}
       onPointerDown={(e) => {
         if (
-          !(e.target as HTMLElement).closest(".grab,.wahead,.shead,.wagrab") ||
+          !(e.target as HTMLElement).closest(ZONAS_ASA) ||
           (e.target as HTMLElement).closest("input,textarea,.x,.wax")
         )
           return;
@@ -151,21 +258,21 @@ export function PanelCatalogo({
         e.currentTarget.style.transform = "";
         if (!d) return;
         const dy = e.clientY - d.y;
-        if (dy > 90) {
-          if (full) setFull(false);
-          else cerrar();
-        } else if (dy < -50) setFull(true);
+        const r = resultadoSoltar(dy, full);
+        if (r === "cerrar") cerrar();
+        else if (r === "reducir") reducir();
+        else if (dy < -50) setFull(true);
       }}
       onPointerCancel={(e) => {
         drag.current = null;
         e.currentTarget.style.transform = "";
       }}
     >
-      {clase === "sheet" && (
+      {asa && (
         <button
           className="grab"
           aria-label={full ? "Reducir hoja" : "Ampliar hoja"}
-          onClick={() => setFull(!full)}
+          onClick={() => (full ? reducir() : setFull(true))}
         />
       )}{" "}
       {children}
