@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>El detalle «más»</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.rl{width:390px;height:844px;box-sizing:border-box;position:relative;overflow:hidden;font-family:Manrope,system-ui,sans-serif;color:#fff;background:#2a1a22}
+.ph{position:absolute;inset:0;display:flex;justify-content:center;padding-top:110px;font-size:12px;font-weight:700;color:rgba(255,255,255,.55)}
+.tm{position:absolute;top:12px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.nota{position:absolute;left:14px;right:14px;top:50px;font-size:12px;font-weight:700;background:rgba(255,255,255,.92);color:#2a1a22;border-radius:12px;padding:8px 10px;line-height:1.35}
+.pn{position:absolute;left:0;right:0;bottom:0;height:560px;background:#f7ede9;color:#2a1a22;border-radius:22px 22px 0 0;padding:20px 20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+h3{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:30px;line-height:1.05}
+.fam{font-size:12px;font-weight:700;letter-spacing:.06em;color:#7c6770}
+p{margin:0;font-size:14px;line-height:1.45;color:#4a3841}
+dl{margin:0;display:grid;gap:6px}
+dl div{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid #e6d5cf;padding-bottom:6px}
+dt{color:#7c6770;font-weight:700}
+dd{margin:0;font-weight:700}
+.fi{display:flex;flex-wrap:wrap;gap:7px}
+.fi span{font:600 12px Manrope,sans-serif;border:1px solid #2a1a22;border-radius:30px;padding:0 12px;min-height:34px;display:inline-flex;align-items:center;box-sizing:border-box;color:#2a1a22}
+.fi span.on{background:#2a1a22;color:#fff;border-color:#2a1a22}
+.fi span.ag{text-decoration:line-through;opacity:.5}
+.lb{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#7c6770;margin-bottom:6px}
+.prow{display:flex;gap:10px;align-items:center;margin-top:auto}
+.btn{flex:1;min-height:50px;border-radius:999px;border:0;background:#e0457b;color:#fff;font:800 15px Manrope,sans-serif;display:flex;align-items:center;justify-content:center}
+.menos{border:0;background:none;color:#7c6770;font:700 13px Manrope,sans-serif;min-height:44px}
+</style>
+</helmet>
+<div class="rl">
+  <div class="ph" style="background:linear-gradient(180deg,#d9c9a8 0%,#bfa982 60%,#7a6a4d 100%)">foto 2 · Arena</div>
+  <div class="tm"><span>03 / 12 · Producto</span></div>
+  <div class="nota">4 · Toca «más»: el detalle abre con las mismas pastillas, ahora con el precio de cada una cuando cambia.</div>
+  <div class="pn">
+    <h3>Camisa de lino</h3>
+    <div class="fam">Lino 100% · Corte regular</div>
+    <p>Fresca, liviana y con caída. Para los días que no quieres pensar en qué ponerte.</p>
+    <dl>
+      <div><dt>Material</dt><dd>Lino</dd></div>
+      <div><dt>Cuidado</dt><dd>Lavar a mano</dd></div>
+    </dl>
+    <div>
+      <div class="lb">Talla</div>
+      <div class="fi" role="group" aria-label="Talla"><span>S · RD$ 1,850</span><span class="on">M · RD$ 1,850</span><span class="ag">L · RD$ 1,850</span><span>XL · RD$ 2,100</span></div>
+    </div>
+    <div>
+      <div class="lb">Color</div>
+      <div class="fi" role="group" aria-label="Color"><span>Negro</span><span class="on">Arena</span><span>Verde</span></div>
+    </div>
+    <div class="prow">
+      <div class="btn">¡Lo quiero, Lino!</div>
+      <button type="button" class="menos">menos</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

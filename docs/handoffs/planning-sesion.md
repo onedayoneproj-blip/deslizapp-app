@@ -26,6 +26,8 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `admin-4-cobros.md` | Sonnet | #57 mergeado (menú, novedades) | PR abierto con preview: la app de las tiendas empieza a leer planes de la base (§0b del prompt) |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
+| `presentaciones-panel.md` (rama `feat/presentaciones-panel`) | Sonnet | — (después de equipo; no a la vez que otra migración) | merge a main. Presentaciones en el panel (crear varias, hoja por presentación, precio propio, foto por color, perfumes con tamaño) |
+| `presentaciones-catalogo.md` (rama `feat/presentaciones-catalogo`) | Sonnet | `presentaciones-panel.md` | PR abierto con preview (lo ven los compradores). Opción B: «Ver presentaciones»; ♥ sin elegir abre las pastillas |
 
 Sin prompt todavía (los escribe Planning cuando toque):
 - **Mi marca «mágica»**: idea anotada en `docs/15-mi-marca-magica.md` (cuestionario como historias de Instagram, tarjeta de marca con IA, rondas opcionales, nombre de marketing; Instagram solo conectando la cuenta del dueño). Falta: lienzo de diseño y que Lewis elija el nombre.
@@ -36,6 +38,8 @@ Sin prompt todavía (los escribe Planning cuando toque):
 - Actualizar `docs/13` §1 sobre el enlace «Administrar Deslizapp».
 
 ## Decisiones tomadas en esta sesión
+
+- **Presentaciones de producto** (7 oct): un producto con sus presentaciones (no un producto por talla); hoja propia por presentación; foto por color; nombre «Presentaciones» en el panel. En el catálogo del cliente, **opción B** («Ver presentaciones» con hoja de todas juntas) y ♥ sin elegir abre la hoja de pastillas de la opción A. Diseño en `referencias/presentaciones/`; prompts `presentaciones-panel.md` y `presentaciones-catalogo.md`.
 
 - **Marianny = Michel** (Marianny Michel, la dueña de Esencias Michel; en la base, Michel Guerrero). Es la titular de la suscripción sin límite de Esencias Michel.
 

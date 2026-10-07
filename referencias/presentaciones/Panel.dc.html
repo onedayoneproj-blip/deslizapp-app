@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cómo se ve en tu catálogo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;800&family=Fredoka:wght@600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#fff9ee;color:#174b3a;font-family:Figtree,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="padding:20px 20px 8px"><h1 style="margin:0;font-family:Fredoka,system-ui,sans-serif;font-size:32px;line-height:34px;font-weight:700">Tu catálogo</h1></div>
+  <div style="flex:1;overflow:hidden;padding:8px 20px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:8px">
+      <span style="height:36px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:14px;font-weight:800">Todos</span>
+      <span style="height:36px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#fff;border:2px solid #e7dcc8;font-size:14px;font-weight:800">Por agotarse</span>
+      <span style="height:36px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:#fff;border:2px solid #e7dcc8;font-size:14px;font-weight:800">Agotados</span>
+    </div>
+    <ul style="list-style:none;margin:0;padding:0;background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden">
+      <li style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+        <div style="width:56px;height:70px;border-radius:10px;background:#c9d6c9;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:17px;font-weight:800">Camisa de lino</div>
+          <div style="font-size:14px;color:#4f6a5e">Desde RD$ 1,850 · 12 presentaciones</div>
+          <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap"><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;background:#ffe3d6;color:#a8410f;font-size:12px;font-weight:800">2 agotadas</span><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;background:#f3ead9;font-size:12px;font-weight:800">31 en total</span></div>
+        </div>
+        <span style="color:#4f6a5e;font-size:20px">›</span>
+      </li>
+      <li style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #efe4d2">
+        <div style="width:56px;height:70px;border-radius:10px;background:#e3d2c0;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:17px;font-weight:800">Pantalón de algodón</div>
+          <div style="font-size:14px;color:#4f6a5e">RD$ 2,300 · 6 presentaciones</div>
+          <div style="margin-top:4px;display:flex;gap:6px"><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;background:#dcebe2;color:#1f6b47;font-size:12px;font-weight:800">Hay de todas</span></div>
+        </div>
+        <span style="color:#4f6a5e;font-size:20px">›</span>
+      </li>
+      <li style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #efe4d2">
+        <div style="width:56px;height:70px;border-radius:10px;background:#d9d2c5;flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:17px;font-weight:800">Bolso de mano</div>
+          <div style="font-size:14px;color:#4f6a5e">RD$ 950 · sin presentaciones</div>
+          <div style="margin-top:4px;display:flex;gap:6px"><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;background:#f3ead9;font-size:12px;font-weight:800">8 en stock</span></div>
+        </div>
+        <span style="color:#4f6a5e;font-size:20px">›</span>
+      </li>
+    </ul>
+    <div style="background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:17px;font-weight:800">Camisa de lino · lo que se acaba</div>
+      <div style="font-size:14px;line-height:20px;color:#4f6a5e">L · Negro y XL · Verde están agotadas. «Por reponer» las lista por presentación, no por producto.</div>
+      <span style="color:#174b3a;font-size:14px;font-weight:800;min-height:44px;display:inline-flex;align-items:center">Ver por reponer ›</span>
+    </div>
+  </div>
+  <nav aria-label="Navegación" style="margin:0 12px 12px;border-radius:999px;background:#fff;box-shadow:0 10px 24px -10px rgba(16,54,42,.45);display:flex;justify-content:space-around;padding:8px;font-size:11px;font-weight:800">
+    <span style="min-width:56px;min-height:48px;display:flex;align-items:center;justify-content:center;color:#4f6a5e">Inicio</span>
+    <span style="min-width:56px;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#f5c9d6">Catálogo</span>
+    <span style="min-width:56px;min-height:48px;display:flex;align-items:center;justify-content:center;color:#4f6a5e">Pedidos</span>
+    <span style="min-width:56px;min-height:48px;display:flex;align-items:center;justify-content:center;color:#4f6a5e">Clientes</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

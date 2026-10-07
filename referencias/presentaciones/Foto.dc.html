@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>La foto va por color</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;800&family=Fredoka:wght@600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#fff9ee;color:#174b3a;font-family:Figtree,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px">
+    <h1 style="margin:0;font-family:Fredoka,system-ui,sans-serif;font-size:24px;line-height:28px;font-weight:700">Foto de cada color</h1>
+    <button type="button" aria-label="Cerrar" style="width:44px;height:44px;border-radius:999px;border:0;background:#f3ead9;color:#174b3a;font-size:20px">✕</button>
+  </div>
+  <div style="flex:1;overflow:hidden;padding:8px 20px;display:flex;flex-direction:column;gap:16px">
+    <p style="margin:0;font-size:16px;line-height:24px">Así tu cliente ve la camisa del color que elige. Una foto por color, no por talla.</p>
+    <ul style="list-style:none;margin:0;padding:0;background:#fff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden">
+      <li style="display:flex;align-items:center;gap:12px;min-height:76px;padding:8px 12px 8px 16px">
+        <div style="width:44px;height:56px;border-radius:10px;background:#2a2a2a;flex:none"></div>
+        <div style="flex:1"><div style="font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px"><i style="width:14px;height:14px;border-radius:999px;background:#1c1c1c;display:inline-block"></i>Negro</div><div style="font-size:14px;color:#4f6a5e">Foto 3 · 5 presentaciones</div></div>
+        <span style="min-height:44px;display:inline-flex;align-items:center;color:#174b3a;font-size:14px;font-weight:800">Cambiar</span>
+      </li>
+      <li style="display:flex;align-items:center;gap:12px;min-height:76px;padding:8px 12px 8px 16px;border-top:1px solid #efe4d2">
+        <div style="width:44px;height:56px;border-radius:10px;background:#e3d2c0;flex:none"></div>
+        <div style="flex:1"><div style="font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px"><i style="width:14px;height:14px;border-radius:999px;background:#e8dcc4;border:1px solid #9c8b6e;display:inline-block;box-sizing:border-box"></i>Arena</div><div style="font-size:14px;color:#4f6a5e">Foto 2 · 4 presentaciones</div></div>
+        <span style="min-height:44px;display:inline-flex;align-items:center;color:#174b3a;font-size:14px;font-weight:800">Cambiar</span>
+      </li>
+      <li style="display:flex;align-items:center;gap:12px;min-height:76px;padding:8px 12px 8px 16px;border-top:1px solid #efe4d2">
+        <div style="width:44px;height:56px;border-radius:10px;border:2px dashed #9c8b6e;box-sizing:border-box;display:grid;place-items:center;color:#4f6a5e;flex:none;font-size:20px">+</div>
+        <div style="flex:1"><div style="font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px"><i style="width:14px;height:14px;border-radius:999px;background:#4a5d4f;display:inline-block"></i>Verde</div><div style="font-size:14px;color:#a8410f;font-weight:800">Sin foto: se ve la del producto</div></div>
+        <span style="min-height:44px;display:inline-flex;align-items:center;color:#174b3a;font-size:14px;font-weight:800">Elegir</span>
+      </li>
+    </ul>
+    <section aria-labelledby="t5" style="display:flex;flex-direction:column;gap:10px">
+      <h3 id="t5" style="margin:0;font-family:Fredoka,system-ui,sans-serif;font-size:20px;line-height:24px;font-weight:700">Elegir foto para Verde</h3>
+      <div style="display:flex;gap:10px">
+        <div style="width:84px;height:104px;border-radius:14px;background:#c9d6c9;box-sizing:border-box;display:flex;align-items:flex-end;padding:6px;font-size:12px;font-weight:800">1</div>
+        <div style="width:84px;height:104px;border-radius:14px;background:#e3d2c0;box-sizing:border-box;display:flex;align-items:flex-end;padding:6px;font-size:12px;font-weight:800">2 · Arena</div>
+        <div style="width:84px;height:104px;border-radius:14px;background:#2a2a2a;color:#fff9ee;box-sizing:border-box;display:flex;align-items:flex-end;padding:6px;font-size:12px;font-weight:800">3 · Negro</div>
+        <div style="width:84px;height:104px;border-radius:14px;background:#4a5d4f;border:3px solid #174b3a;box-sizing:border-box;display:flex;align-items:flex-end;padding:6px;font-size:12px;font-weight:800;color:#fff9ee">4 ✓</div>
+      </div>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#4f6a5e">Escoges entre las fotos que ya subiste al producto. ¿Falta una? Súbela aquí mismo.</p>
+    </section>
+  </div>
+  <div style="padding:12px 20px 20px"><button type="button" style="width:100%;height:52px;border-radius:999px;border:0;background:#174b3a;color:#fff9ee;font-size:17px;font-weight:800">Listo</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

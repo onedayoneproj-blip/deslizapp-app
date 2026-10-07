@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Los casos difíciles</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;800&family=Fredoka:wght@600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#fff9ee;color:#174b3a;font-family:Figtree,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="padding:20px 20px 4px"><h1 style="margin:0;font-family:Fredoka,system-ui,sans-serif;font-size:24px;line-height:28px;font-weight:700">Lo que hay que cuidar</h1></div>
+  <div style="flex:1;overflow:hidden;padding:8px 20px 16px;display:flex;flex-direction:column;gap:12px">
+    <section aria-labelledby="c1" style="background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <h2 id="c1" style="margin:0;font-size:17px;font-weight:800">Quitar una talla que ya vendió</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#4f6a5e">«La talla XL ya tiene pedidos. No la borramos para no perder tu historial: la ocultamos y tus clientes dejan de verla.»</p>
+      <div style="display:flex;gap:8px"><span style="height:44px;flex:1;border-radius:999px;background:#174b3a;color:#fff9ee;display:grid;place-items:center;font-size:14px;font-weight:800">Ocultar XL</span><span style="height:44px;flex:1;border-radius:999px;background:#fff;border:2px solid #e7dcc8;display:grid;place-items:center;font-size:14px;font-weight:800">Cancelar</span></div>
+    </section>
+    <section aria-labelledby="c2" style="background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <h2 id="c2" style="margin:0;font-size:17px;font-weight:800">Cambiar de «Talla» a «Talla y color»</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#4f6a5e">Las presentaciones que tienes se conservan con su stock y pasan a «Sin color». Tú les pones el color después. Nada se pierde ni se duplica.</p>
+    </section>
+    <section aria-labelledby="c3" style="background:#ffe3d6;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+      <h2 id="c3" style="margin:0;font-size:17px;font-weight:800;color:#a8410f">Todas agotadas</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#174b3a">El producto sale «Agotado» en el panel y en el catálogo, y «Avísame» pide la talla que quiere la persona.</p>
+    </section>
+    <section aria-labelledby="c4" style="background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+      <h2 id="c4" style="margin:0;font-size:17px;font-weight:800">El Ayudante solo mira</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#4f6a5e">Ve las presentaciones y su stock, pero «Agregar», «+», «−» y la hoja de edición salen apagados con «Esto lo hace quien administra la tienda.»</p>
+      <div style="display:flex;gap:6px;opacity:.45"><b style="width:36px;height:36px;border-radius:10px;background:#f3ead9;display:grid;place-items:center">−</b><b style="min-width:28px;text-align:center;font-size:17px;line-height:36px">3</b><b style="width:36px;height:36px;border-radius:10px;background:#f3ead9;display:grid;place-items:center">+</b></div>
+    </section>
+    <section aria-labelledby="c5" style="background:#fff;border:1px solid #efe4d2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+      <h2 id="c5" style="margin:0;font-size:17px;font-weight:800">Pedido a mano y promos</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#4f6a5e">Al crear un pedido eliges la talla y el color. Un cupón de un producto aplica a todas sus presentaciones. El límite del plan cuenta UN producto, no doce.</p>
+    </section>
+    <section aria-labelledby="c6" style="background:#dcebe2;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+      <h2 id="c6" style="margin:0;font-size:17px;font-weight:800;color:#1f6b47">Retocar la foto de un color</h2>
+      <p style="margin:0;font-size:14px;line-height:20px;color:#174b3a">El retoque sigue por foto del producto. La foto de un color es una de esas mismas fotos, así que si se retoca, se actualiza en todas las tallas de ese color.</p>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
