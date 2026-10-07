@@ -91,6 +91,22 @@ async function escribirEtiqueta(page, rotulo, valores) {
     await caja.press("Enter");
   }
 }
+/** Marca los valores de una cosa que cambia en la hoja abierta: la píldora si es sugerida; si no, con «+ Otro …». */
+async function elegirValores(page, rotulo, valores) {
+  const cosa = { Colores: "Color", Tallas: "Talla", Tamaños: "Tamaño" }[rotulo] ?? rotulo;
+  const seccion = hoja(page).locator(`[data-eje="${cosa}"]`);
+  for (const v of valores) {
+    const pildora = seccion.getByRole("checkbox", { name: v, exact: true });
+    if (await pildora.count()) {
+      await pildora.click();
+      continue;
+    }
+    const caja = seccion.getByRole("textbox", { name: `Otro ${cosa.toLocaleLowerCase("es")}` });
+    if (!(await caja.isVisible().catch(() => false))) await seccion.getByRole("button", { name: `+ Otro ${cosa.toLocaleLowerCase("es")}` }).click();
+    await caja.fill(v);
+    await caja.press("Enter");
+  }
+}
 
 /** "+ Pedido": crea un cliente nuevo y lo elige. */
 async function nuevoCliente(page, nombre, telefono) {
@@ -203,9 +219,9 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("checkbox", { name: "Color" }).click();
-    await escribirEtiqueta(page, "Colores", ["Negro", "Blanco"]);
+    await elegirValores(page, "Colores", ["Negro", "Blanco"]);
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
-    ok((await hoja(page).innerText()).includes("Salen 10 presentaciones"), "La hoja dice que salen 10 presentaciones");
+    ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
     ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 10, "Hay 10 filas de stock");
@@ -218,7 +234,7 @@ const ESCENARIOS = {
     await capturar(page, "formulario-ropa", ancho, tema);
     // Quitar el color Blanco: «Cambiar qué varía» → fuera Blanco (se van sus 5 presentaciones).
     await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
-    await hoja(page).getByRole("button", { name: "Quitar Blanco", exact: true }).click();
+    await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
