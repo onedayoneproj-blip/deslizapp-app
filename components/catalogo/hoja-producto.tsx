@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, tipoPorDefecto, type Detalles, type Rubro } from "@/lib/rubros";
+import { esRubro, NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, tipoPorDefecto, type Detalles, type Rubro } from "@/lib/rubros";
 import { FilaTipoProducto } from "./fila-tipo-producto";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { MotivoAjusteInventario, Producto } from "@/lib/types";
@@ -193,8 +193,23 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
   </div>;
 }
 
-/** El tipo del último producto creado en esta sesión (en memoria): el siguiente nuevo sale con él. */
-let ultimoTipoCreado: Rubro | null = null;
+/** El tipo del último producto creado en esta sesión (sessionStorage, por tienda): el siguiente nuevo sale con él. */
+const claveUltimoTipo = (tiendaId: string) => `deslizapp-ultimo-tipo:${tiendaId}`;
+function leerUltimoTipo(tiendaId: string): Rubro | null {
+  try {
+    const v = sessionStorage.getItem(claveUltimoTipo(tiendaId));
+    return esRubro(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+function guardarUltimoTipo(tiendaId: string, tipo: Rubro) {
+  try {
+    sessionStorage.setItem(claveUltimoTipo(tiendaId), tipo);
+  } catch {
+    // sin almacenamiento: el siguiente sale con el principal
+  }
+}
 
 function FormularioProducto({
   producto,
@@ -226,8 +241,9 @@ function FormularioProducto({
   const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
   const variosTipos = tipos.length > 1;
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
-  const [tipoInicial] = useState<Rubro | null>(() => (producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? tipoPorDefecto(tienda, ultimoTipoCreado) : null));
-  const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipoInicial && tipos.includes(tipoInicial) ? tipoInicial : rubro;
+  // Se calcula en cada vuelta (no se congela): la tienda puede llegar después del primer pintado.
+  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? tipoPorDefecto(tienda, leerUltimoTipo(tienda.id)) : rubro;
+  const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
@@ -276,7 +292,7 @@ function FormularioProducto({
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
     medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
-    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, tipo, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
+    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, tipoElegido, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
@@ -430,7 +446,7 @@ function FormularioProducto({
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
         await guardarFotosDeColor(creado);
-        if (variosTipos) ultimoTipoCreado = tipo;
+        if (variosTipos) guardarUltimoTipo(tiendaId, tipo);
         const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
         toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
