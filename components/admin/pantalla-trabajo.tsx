@@ -10,6 +10,7 @@ import { enlaceWhatsAppAdmin, mensajeRevisarCatalogo } from "@/lib/admin/mensaje
 import { errorConocido, textoErrorAdmin } from "@/lib/admin/errores";
 import type { TiendaAdmin, TrabajoRetoque } from "@/lib/admin/tipos";
 import { haceDias } from "@/lib/admin/tiempo";
+import { recordado, recordar } from "@/lib/data/admin/recuerdo";
 import { EstadoAdmin } from "./estado";
 import { HojaFotosTienda } from "./hoja-fotos-tienda";
 import { FotosTrabajo } from "./trabajo-fotos";
@@ -238,8 +239,9 @@ export function PantallaTrabajo() {
   const ruta = usePathname();
   const vista: Vista = params.get("ver") === "fotos" ? "fotos" : "catalogos";
   const resaltar = params.get("tienda");
-  const [tiendas, setTiendas] = useState<TiendaAdmin[] | null>(null);
-  const [trabajos, setTrabajos] = useState<TrabajoRetoque[] | null>(null);
+  const previo = recordado<{ tiendas: TiendaAdmin[]; trabajos: TrabajoRetoque[] }>(fuente, "trabajo");
+  const [tiendas, setTiendas] = useState<TiendaAdmin[] | null>(previo?.tiendas ?? null);
+  const [trabajos, setTrabajos] = useState<TrabajoRetoque[] | null>(previo?.trabajos ?? null);
   const [error, setError] = useState<string | null>(null);
 
   const leer = useCallback(async () => {
@@ -248,6 +250,7 @@ export function PantallaTrabajo() {
       const [t, r] = await Promise.all([fuente.tiendas("todas"), fuente.trabajosRetoque("pendiente")]);
       setTiendas(t.tiendas);
       setTrabajos(r);
+      recordar(fuente, "trabajo", { tiendas: t.tiendas, trabajos: r });
       return t.tiendas;
     } catch {
       setError("No se pudo cargar Trabajo.");

@@ -6,6 +6,7 @@ import { Avatar, Buscador, Etiqueta } from "@/components/ui";
 import { Segmentos } from "@/components/controles";
 import type { FiltroTiendas, ListaTiendasAdmin } from "@/lib/admin/tipos";
 import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
+import { recordado, recordar } from "@/lib/data/admin/recuerdo";
 import { EstadoAdmin } from "./estado";
 
 const filtros: { id: FiltroTiendas; texto: string }[] = [
@@ -25,14 +26,15 @@ export function PantallaTiendas() {
   const [filtro, setFiltro] = useState<FiltroTiendas>("todas");
   const [texto, setTexto] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [lista, setLista] = useState<ListaTiendasAdmin | null>(null);
+  // Al volver a la pestaña se muestra la lista de "Todas" sin buscar mientras se vuelve a leer.
+  const [lista, setLista] = useState<ListaTiendasAdmin | null>(() => recordado<ListaTiendasAdmin>(fuente, "tiendas:todas:") ?? null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { const id = window.setTimeout(() => setBusqueda(texto), 250); return () => window.clearTimeout(id); }, [texto]);
   const leer = useCallback(async () => {
     setCargando(true); setError(null);
-    try { setLista(await fuente.tiendas(filtro, busqueda)); }
+    try { setLista(recordar(fuente, `tiendas:${filtro}:${busqueda}`, await fuente.tiendas(filtro, busqueda))); }
     catch { setError("No pudimos cargar las tiendas."); }
     finally { setCargando(false); }
   }, [fuente, filtro, busqueda]);

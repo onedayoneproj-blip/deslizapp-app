@@ -32,7 +32,7 @@ import { hayCampoConFoco, RESORTE } from "@/lib/movimiento";
 import { IconoCatalogo, IconoClientes, IconoInicio, IconoPedidos, IconoPromos } from "../iconos";
 import { Contador } from "../contador";
 
-type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number; strokeWidth?: number }> };
+export type Seccion = { href: string; nombre: string; Icono: ComponentType<{ tamano?: number; strokeWidth?: number }> };
 
 const SECCIONES: Seccion[] = [
   { href: "/", nombre: "Inicio", Icono: IconoInicio },
@@ -41,7 +41,6 @@ const SECCIONES: Seccion[] = [
   { href: "/clientes", nombre: "Clientes", Icono: IconoClientes },
   { href: "/promos", nombre: "Promos", Icono: IconoPromos },
 ];
-const N = SECCIONES.length;
 
 /** Distancia horizontal (px) a partir de la cual un toque pasa a ser arrastre. */
 const UMBRAL_ARRASTRE = 8;
@@ -58,20 +57,48 @@ const RIGIDEZ = RESORTE.rigidez;
 const AMORTIGUACION = RESORTE.amortiguacion;
 /** Las pestañas navegan con el tipo "pestaña": la pantalla cambia con un fundido corto. */
 
-function indiceDe(pathname: string) {
-  const i = SECCIONES.findIndex(({ href }) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`)));
+/** Índice de la pestaña de `pathname`: la raíz de la barra solo coincide exacta; las demás, también con sus subrutas. */
+function indiceDe(secciones: Seccion[], pathname: string) {
+  const raiz = secciones[0]!.href;
+  const i = secciones.findIndex(({ href }) => (href === raiz ? pathname === raiz : pathname === href || pathname.startsWith(`${href}/`)));
   return i === -1 ? 0 : i;
 }
 
 type Medidas = { ancho: number; alto: number; contenidos: number[] };
 
+/** Barra del panel de la tienda (con el contador de pedidos nuevos). */
 export function NavInferior() {
-  const pathname = usePathname();
-  const router = useRouter();
   const pendientes = usePendientesPedidos();
   const nuevos = pendientes.cuenta?.total;
+  return (
+    <BarraPestanas
+      secciones={SECCIONES}
+      etiqueta="Secciones"
+      insignia={{ href: "/pedidos", valor: nuevos ?? 0, etiqueta: `Pedidos, ${pendientes.descripcion}` }}
+    />
+  );
+}
 
-  const activa = indiceDe(pathname);
+/**
+ * La barra en sí: la usan el panel de la tienda y el panel admin, para que se sientan igual.
+ * `precargar`: las pestañas se traen antes del toque (rutas dinámicas sin loading.tsx no se precargan solas).
+ */
+export function BarraPestanas({
+  secciones,
+  etiqueta,
+  insignia,
+  precargar = false,
+}: {
+  secciones: Seccion[];
+  etiqueta: string;
+  insignia?: { href: string; valor: number; etiqueta: string };
+  precargar?: boolean;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const N = secciones.length;
+
+  const activa = indiceDe(secciones, pathname);
   // Toque: el selector va a la pestaña tocada al instante, antes de que termine de cambiar la ruta.
   const [tocada, setTocada] = useState<{ indice: number; desde: string } | null>(null);
   // Arrastre: pestaña que el selector cubre ahora (se resalta en vivo).
@@ -116,7 +143,7 @@ export function NavInferior() {
       const ancho = Math.min(Math.max(m.contenidos[i]! + 2 * RELLENO, m.alto), tab + 12);
       return limitar(centro - ancho / 2, centro + ancho / 2, m);
     },
-    [],
+    [N],
   );
 
   // ---- Resorte (física simple, sin duración fija) ----
@@ -257,7 +284,7 @@ export function NavInferior() {
     if (g.cubierta !== activa) {
       if (hayCampoConFoco()) (document.activeElement as HTMLElement).blur();
       setTocada({ indice: g.cubierta, desde: pathname });
-      router.push(SECCIONES[g.cubierta]!.href);
+      router.push(secciones[g.cubierta]!.href);
     }
   };
 
@@ -270,7 +297,7 @@ export function NavInferior() {
 
   return (
     <nav
-      aria-label="Secciones"
+      aria-label={etiqueta}
       // Anclada durante las transiciones de pantalla: no se mueve (ver globals.css).
       className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] px-3 pb-(--nav-margen)"
     >
@@ -305,10 +332,10 @@ export function NavInferior() {
           </span>
 
           <ul className="relative flex h-full">
-            {SECCIONES.map(({ href, nombre, Icono }, i) => {
+            {secciones.map(({ href, nombre, Icono }, i) => {
               const esActiva = i === activa;
               const marcada = i === resaltada;
-              const badge = href === "/pedidos" && nuevos !== undefined && nuevos > 0 ? nuevos : 0;
+              const badge = insignia && href === insignia.href && insignia.valor > 0 ? insignia.valor : 0;
               return (
                 <li key={href} className="relative min-w-0 flex-1">
                   {/* Medidor invisible: ancho real del contenido con la letra de la pestaña activa */}
@@ -322,9 +349,10 @@ export function NavInferior() {
                   </span>
                   <Link
                     href={href}
+                    prefetch={precargar ? true : undefined}
                     draggable={false}
                     aria-current={esActiva ? "page" : undefined}
-                    aria-label={href === "/pedidos" ? `${nombre}, ${pendientes.descripcion}` : undefined}
+                    aria-label={insignia && href === insignia.href ? insignia.etiqueta : undefined}
                     onClick={(e) => {
                       if (ignorarClic.current) {
                         e.preventDefault();
