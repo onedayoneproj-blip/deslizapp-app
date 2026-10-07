@@ -27,6 +27,9 @@ import { useToast } from "../toast";
 import { instagramLimpio, marcaLista, MARCA_VACIA, type MarcaRetoque } from "@/lib/marca-retoque";
 import { borradorCambio, borradorDeMarca, SeccionRetoque, type BorradorRetoque } from "./seccion-retoque";
 import { CuponTienda, marcaDeTienda } from "./cupon-tienda";
+import { HojaLoQueVendes } from "../catalogo/hoja-lo-que-vendes";
+import { FilaLista, ListaAgrupada } from "../ui";
+import { NOMBRE_TIPO, rubrosDeTienda } from "@/lib/rubros";
 
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];
 
@@ -95,6 +98,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
     const t = setTimeout(() => setResaltar(false), 1600);
     return () => clearTimeout(t);
   }, [mostrarEnlace]);
+  const [vendiendo, setVendiendo] = useState(false);
   const [procesando, setProcesando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const entradaLogo = useRef<HTMLInputElement>(null);
@@ -310,6 +314,11 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
         />
         {urlTocada && urlMala && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese enlace no se ve bien. Ej: tutienda.com o instagram.com/tutienda</span>}
       </label>
+
+      <ListaAgrupada etiqueta="Lo que vendes">
+        <FilaLista titulo="Lo que vendes" fin={<span className="text-secundario font-normal text-texto-secundario">{rubrosDeTienda(tienda).map((r) => NOMBRE_TIPO[r]).join(", ")}</span>} onClick={() => setVendiendo(true)} />
+      </ListaAgrupada>
+      {vendiendo && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendo(false)} />}
 
       {retoque && marcaGuardada ? (
         <SeccionRetoque

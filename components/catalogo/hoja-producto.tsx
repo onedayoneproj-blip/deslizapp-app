@@ -6,7 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import type { Detalles } from "@/lib/rubros";
+import { NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, tipoPorDefecto, type Detalles, type Rubro } from "@/lib/rubros";
+import { FilaTipoProducto } from "./fila-tipo-producto";
+import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
 import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
@@ -191,6 +193,9 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
   </div>;
 }
 
+/** El tipo del último producto creado en esta sesión (en memoria): el siguiente nuevo sale con él. */
+let ultimoTipoCreado: Rubro | null = null;
+
 function FormularioProducto({
   producto,
   productos,
@@ -217,6 +222,13 @@ function FormularioProducto({
   const { mostrarToast: mostrarToastUI } = useToastUI();
   const rubro = tienda?.rubro ?? "general";
   const taller = useTaller(producto, toast);
+  // Tipo de producto (docs/prompts/tipo-de-producto.md): solo con más de un rubro. Un producto nuevo sale con el tipo del último creado.
+  const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
+  const variosTipos = tipos.length > 1;
+  const [tipoElegido, setTipo] = useState<Rubro | null>(null);
+  const [tipoInicial] = useState<Rubro | null>(() => (producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? tipoPorDefecto(tienda, ultimoTipoCreado) : null));
+  const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipoInicial && tipos.includes(tipoInicial) ? tipoInicial : rubro;
+  const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
@@ -264,7 +276,7 @@ function FormularioProducto({
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
     medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
-    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
+    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, tipo, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
@@ -362,7 +374,11 @@ function FormularioProducto({
     const final = mediosParaGuardar(conEntregadas(medios, entregadas));
     const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
     const fotoRetocada = final.find((m) => m.tipo === "foto")?.tipo === "foto" ? (final.find((m) => m.tipo === "foto") as { retocada: boolean }).retocada : false;
-    const catalogo = { medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null) };
+    // Con un solo rubro no se manda nada (todo igual que antes); con varios, el tipo va explícito.
+    const catalogo = {
+      medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null),
+      ...(variosTipos && (!producto || tipo !== (tienda ? tipoDeProducto(producto, tienda) : tipo)) ? { rubro: tipo } : {}),
+    };
     const variantes = borradorPres.map((p) => {
       const b = base.get(claveVariante(p.valores));
       // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
@@ -414,6 +430,7 @@ function FormularioProducto({
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
         await guardarFotosDeColor(creado);
+        if (variosTipos) ultimoTipoCreado = tipo;
         const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
         toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
@@ -461,6 +478,13 @@ function FormularioProducto({
 
   return (
     <div className="flex flex-col gap-5">
+      {variosTipos && !sinCatalogo && (
+        <FilaTipoProducto tipos={tipos} valor={tipo} alCambiar={setTipo} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando} />
+      )}
+      {variosTipos && sinCatalogo && (
+        <ListaAgrupada etiqueta="Tipo de producto"><FilaLista titulo="Tipo de producto" fin={<span className="text-secundario font-normal text-texto-secundario">{NOMBRE_TIPO[tipo]}</span>} onClick={() => toast(porque)} /></ListaAgrupada>
+      )}
+      {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
       <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />
       <BienvenidaRetoque
         datos={bienvenida?.datos ?? null}
@@ -487,7 +511,7 @@ function FormularioProducto({
 
       {(producto?.tipo ?? "producto") === "producto" && (
         <SeccionPresentaciones
-          rubro={rubro}
+          rubro={tipo}
           precioProducto={Number(precio) || 0}
           estado={presentaciones}
           alCambiar={cambiarPresentaciones}
