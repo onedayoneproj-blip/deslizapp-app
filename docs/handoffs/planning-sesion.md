@@ -17,6 +17,8 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 
 **Hallazgo (7 oct):** el catálogo público de una tienda solo responde si `tiendas.estado = 'activa'` **y** `catalogo_estado = 'publicado'` (`tienda_publica`). Una tienda nueva (en_prueba, catálogo «sin») no tiene catálogo público hasta que Lewis la active y publique desde el admin. Para probadores, hace falta una **publicación automática** («Publicar mi catálogo», sin paso manual) o hacerlo a mano por cada tienda. Pendiente de decidir con Lewis.
 
+**Cambio por SQL en datos reales (7 oct, pedido por Lewis):** la Tienda de ensayo (`tienda-de-ensayo`) pasó a `estado = 'activa'` y `catalogo_estado = 'publicado'` (con `activada_en`, `catalogo_publicado_en` y `url_catalogo` iguales a los de Esencias Michel) para poder ver su catálogo público y probar las presentaciones. Sus 2 productos siguen **ocultos**. No dejó rastro en `registro_admin`. Ojo: el admin **no puede activar una tienda** (`admin_cambiar_estado_tienda` solo pausa, reactiva y cambia la prueba) y `publicar_catalogo` es una acción de la tienda: **una tienda en prueba nunca tiene catálogo público** hasta que se registra su primer pago; es parte de lo que resuelve «Publicar mi catálogo».
+
 **Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»).
 
 ## Cola para Coding (Lewis pega los prompts)
