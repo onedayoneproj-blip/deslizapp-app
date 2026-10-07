@@ -14,6 +14,15 @@ Lee:
 
 Rama `feature/admin-cobros` desde `main`, con las partes anteriores fusionadas. Si no lo están, parte de la última rama y dilo en el PR.
 
+## 0b. Ajustes de Planning (7 oct 2026): léelos antes de empezar
+
+- **Parte desde `main` al día.** Entraron #55, #56, #58 y entra #57 (Mi marca): si #57 aún no está en `main`, haz `git fetch origin` seguido y rebasa antes de abrir el PR; el menú de la tienda, `lib/novedades.ts` (usa el número siguiente al de `main` al momento del merge) y `lib/cuenta.ts` cambiaron.
+- **Migraciones:** antes de aplicar una, `list_migrations` y pregúntale a Lewis si otra sesión está a mitad de un cambio; ensayo en `BEGIN … ROLLBACK`; el archivo lleva la versión que Supabase asigne. `npm run revisar:migraciones` en cero.
+- **Esencias Michel y la Tienda de ensayo están en «Plan a medida» (`custom`) con `limite_productos = 100000` puesto a mano** (parche de «ilimitado»). Al pasar la app a leer los planes de la base, **las dos tiendas tienen que verse y comportarse igual que hoy** (nombre «Plan a medida», sin límite práctico, 95 créditos en Michel). Añade una prueba de eso y no cambies su plan en la base.
+- Para la prueba real usa la **Tienda de ensayo** (slug `tienda-de-ensayo`), nunca Michel. No ajustes sus créditos por SQL: hazlo con las funciones del admin o déjalo como paso para Lewis.
+- **Fuera de alcance:** suscripciones por titular, varias tiendas por suscripción y niveles de permiso de colaboradores. Llegan con `docs/prompts/suscripciones-y-varias-tiendas.md` (Opus), después de esta parte. No diseñes esto aquí; solo no lo estorbes (por ejemplo, no pongas el plan como dato fijo de la tienda en el cliente).
+- **Cierre distinto al del final de este prompt:** como la app de las tiendas empieza a leer sus planes de la base (lo que ve cada dueño en su encabezado, su límite y su hoja «Tu plan»), **deja el PR abierto con su preview** y avisa a Lewis qué probar en el panel de Michel. No hagas merge.
+
 ## 1. Cobros y Registrar pago
 
 - **Pantalla Cobros** (`/admin/cobros`), con lo de docs/13 §8:
@@ -92,4 +101,4 @@ PR con:
   2. Asignar el plan a Michel.
   3. Registrar su pago y mandarle el recibo.
 
-**Si todo pasa, haz merge (squash) a `main`**: el admin solo lo ve Lewis. Déjalo abierto solo si algo falla o decidiste algo que no estaba en el prompt. Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` si la tienda ve algo nuevo (planes, recibo).
+**No hagas merge (ver §0b):** deja el PR abierto con su preview. Actualiza «Dónde va el trabajo» en `docs/00-contexto-del-proyecto.md` y `lib/novedades.ts` si la tienda ve algo nuevo (planes, recibo).

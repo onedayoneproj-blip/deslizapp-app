@@ -21,7 +21,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | **En curso.** Migración revisada por Planning y autorizada; PR abierto con preview (cambia quién puede retocar). Debe conectar la compuerta al interruptor de #56 |
 | `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main. Incluye §2b: volver del admin al panel |
 | `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
-| `admin-4-cobros.md` | Sonnet | — | según el prompt |
+| `admin-4-cobros.md` | Sonnet | #57 mergeado (menú, novedades) | PR abierto con preview: la app de las tiendas empieza a leer planes de la base (§0b del prompt) |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
 
