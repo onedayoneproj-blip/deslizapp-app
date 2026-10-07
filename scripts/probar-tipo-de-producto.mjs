@@ -32,8 +32,8 @@ async function pagina(ancho, tienda) {
 }
 const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "{}");
 const sinDesborde = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+const H = "[data-hoja-cabecera] [data-selector-catalogo]"; // el selector de la hoja (la pestaña Catálogo queda debajo)
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
-const hoja = (page) => page.locator('[role="dialog"]').last();
 
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
@@ -42,46 +42,92 @@ for (const ancho of ANCHOS) {
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await page.goto(`${URL}/catalogo`);
-    await page.waitForSelector("[data-filtro-tipo]");
+    await page.waitForSelector("[data-selector-catalogo]");
     ok(await sinDesborde(page), "el Catálogo no desborda");
-    const opciones = await page.locator("[data-filtro-tipo] option").allInnerTexts();
-    ok(opciones.join() === "Todos los tipos,Ropa,Accesorios", "el filtro ofrece Todos los tipos, Ropa, Accesorios");
-    await page.selectOption("[data-filtro-tipo]", "accesorios");
+    ok((await page.locator("h1 [data-selector-catalogo]").getAttribute("aria-label")) === "Catálogo: Ropa. Cambiar", "el título es el selector: «Catálogo: Ropa. Cambiar»");
+    const opciones = await page.locator("h1 [data-selector-catalogo] option").allInnerTexts();
+    ok(opciones.join() === "Ropa · 2,Accesorios · 2,Lo que vendes…", "ofrece Ropa · 2, Accesorios · 2 y «Lo que vendes…» (sin «Todo»)");
+    ok(/Tus catálogos viven aquí/.test(await page.locator("body").innerText()), "el subtítulo habla de los catálogos");
+    await page.selectOption("h1 [data-selector-catalogo]", "accesorios");
     await page.waitForTimeout(500);
     const tarjetas = await page.locator('a[href^="/catalogo/a3000000"]').allInnerTexts();
-    ok(tarjetas.length === 2 && tarjetas.every((t) => /Cinturón|Sombrero/.test(t)), "filtrar por Accesorios deja solo los dos accesorios");
-    await page.selectOption("[data-filtro-tipo]", "todos");
-    await page.waitForTimeout(500);
-    ok((await page.locator('a[href^="/catalogo/a3000000"]').count()) === 4, "Todos los tipos devuelve los 4 productos");
+    ok(tarjetas.length === 2 && tarjetas.every((t) => /Cinturón|Sombrero/.test(t)), "Accesorios deja solo los dos accesorios");
+    ok((await page.getByPlaceholder("Busca en Accesorios").count()) === 1, "el buscador dice «Busca en Accesorios»");
+    await page.reload();
+    await page.waitForSelector("[data-selector-catalogo]");
+    ok((await page.inputValue("h1 [data-selector-catalogo]")) === "accesorios", "al volver abre el último catálogo que miró");
 
-    console.log("• producto nuevo: tipo por defecto, cambiarlo, y el siguiente sale con el último");
+    console.log("• producto nuevo: sale con el catálogo activo; el selector va fijo en la cabecera");
     await page.goto(`${URL}/catalogo/nuevo`);
-    await page.waitForSelector("[data-tipo-producto]");
-    ok((await page.inputValue("[data-tipo-producto]")) === "ropa", "un producto nuevo sale con el tipo principal (Ropa)");
-    ok((await page.locator("[data-tipo-producto] option").allInnerTexts()).join() === "Ropa,Accesorios,Vendo otra cosa también", "el selector trae los tipos y «Vendo otra cosa también»");
+    await page.waitForSelector(H);
+    ok((await page.inputValue(H)) === "accesorios", "un producto nuevo sale con el catálogo activo (Accesorios)");
+    ok((await page.locator("[data-hoja-cabecera] [data-selector-catalogo]").count()) === 1, "el selector está en la cabecera de la hoja");
+    ok((await page.locator(H + " option").allInnerTexts()).join() === "Ropa · 2,Accesorios · 2,Vendo otra cosa también", "trae los catálogos y «Vendo otra cosa también»");
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Gorra de prueba");
     await page.getByRole("textbox", { name: /Precio/ }).fill("500");
-    await page.selectOption("[data-tipo-producto]", "accesorios");
+    await page.selectOption(H, "ropa");
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "gorra.png", mimeType: "image/png", buffer: PNG }]);
     await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo`);
     const creado = (await db(page)).productos.find((p) => p.nombre === "Gorra de prueba");
-    ok(creado && creado.rubro === "accesorios", "se guardó con el tipo Accesorios");
-    await page.goto(`${URL}/catalogo/nuevo`);
-    await page.waitForSelector("[data-tipo-producto]");
-    ok((await page.inputValue("[data-tipo-producto]")) === "accesorios", "el siguiente producto nuevo sale con el último tipo (Accesorios)");
+    ok(creado && creado.rubro === "ropa", "se guardó con el catálogo elegido en la hoja (Ropa)");
 
     console.log("• editar: cambiar el tipo con el selector");
     const sombrero = (await db(page)).productos.find((p) => p.nombre === "Sombrero de paja");
     await page.goto(`${URL}/catalogo/${sombrero.id}/editar`);
-    await page.waitForSelector("[data-tipo-producto]");
-    ok((await page.inputValue("[data-tipo-producto]")) === "accesorios", "el sombrero muestra Accesorios");
-    await page.selectOption("[data-tipo-producto]", "ropa");
+    await page.waitForSelector(H);
+    ok((await page.inputValue(H)) === "accesorios", "el sombrero muestra Accesorios");
+    await page.selectOption(H, "ropa");
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForTimeout(1500);
     ok((await db(page)).productos.find((p) => p.id === sombrero.id).rubro === "ropa", "el cambio a Ropa quedó guardado");
     ok(errores.length === 0, "sin errores de la página: " + errores.join("; "));
+    await ctx.close();
+  }
+
+  console.log("• catálogo vacío, «Lo que vendes…» y Ayudante");
+  {
+    const { ctx, page } = await pagina(ancho, LINO);
+    await page.goto(`${URL}/catalogo`);
+    await page.waitForSelector("[data-selector-catalogo]");
+    // Un catálogo recién agregado y sin productos: se suma «Hogar» con «Lo que vendes…».
+    await page.selectOption("h1 [data-selector-catalogo]", "__otra");
+    await page.getByRole("checkbox", { name: /Hogar/ }).tap();
+    await page.getByRole("button", { name: "Guardar", exact: true }).tap();
+    await page.waitForTimeout(900);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(600);
+    await page.selectOption("h1 [data-selector-catalogo]", "hogar");
+    await page.waitForTimeout(500);
+    const cuerpo = await page.locator("body").innerText();
+    ok(/Todavía no hay nada en Hogar/.test(cuerpo) && !/Tu vitrina está vacía/.test(cuerpo), "un catálogo vacío tiene su estado pequeño (no «Tu vitrina está vacía»)");
+    ok((await page.getByRole("link", { name: "Agregar producto" }).count()) === 1, "con el botón de agregar producto");
+    await page.getByRole("link", { name: "Agregar producto" }).tap();
+    await page.waitForSelector(H);
+    ok((await page.inputValue(H)) === "hogar", "«+ Producto» sale con el catálogo que se está viendo");
+    await page.goto(`${URL}/catalogo`);
+    await page.waitForSelector("[data-selector-catalogo]");
+    await page.selectOption("h1 [data-selector-catalogo]", "__otra");
+    await page.waitForTimeout(700);
+    ok((await page.locator('[role="dialog"]').count()) === 1 && (await page.inputValue("h1 [data-selector-catalogo]")) === "hogar", "«Lo que vendes…» abre la hoja y deja el catálogo elegido como estaba");
+    // Ayudante (sin permiso de catálogo): el nombre sin chevron y la tostada de siempre, nada de select.
+    await page.goto(`${URL}/catalogo`);
+    await page.waitForSelector('header button[aria-haspopup="dialog"]');
+    await page.waitForTimeout(900);
+    await page.locator('header button[aria-haspopup="dialog"]').first().tap();
+    await page.waitForSelector("[data-tienda-activa]");
+    await page.waitForTimeout(500);
+    await page.locator('[data-mirar-como] [role="radio"]:has-text("Ayudante")').tap();
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(500);
+    await page.goto(`${URL}/catalogo/nuevo`);
+    await page.waitForSelector("[data-hoja-cabecera] [data-selector-catalogo]");
+    ok((await page.locator("[data-hoja-cabecera] select").count()) === 0, "Ayudante: el selector de la hoja no es un select");
+    await page.locator("[data-hoja-cabecera] [data-selector-catalogo]").tap();
+    await page.waitForSelector("text=Esto lo hace quien administra la tienda.", { timeout: 4000 });
+    ok(true, "Ayudante: al tocarlo sale «Esto lo hace quien administra la tienda.»");
     await ctx.close();
   }
 
@@ -128,10 +174,11 @@ for (const ancho of ANCHOS) {
     const { ctx, page, errores } = await pagina(ancho, MICHEL);
     await page.goto(`${URL}/catalogo`);
     await page.waitForSelector('a[href^="/catalogo/a3000000"]');
-    ok((await page.locator("[data-filtro-tipo]").count()) === 0, "el Catálogo no tiene el filtro de tipos");
+    ok((await page.locator("[data-selector-catalogo]").count()) === 0, "el Catálogo no tiene selector de catálogos");
+    ok(/Tu catálogo/.test(await page.locator("h1").innerText()), "el título sigue siendo «Tu catálogo»");
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
-    ok((await page.locator("[data-tipo-producto]").count()) === 0, "el producto nuevo no tiene la fila Tipo de producto");
+    ok((await page.locator("[data-selector-catalogo]").count()) === 0, "el producto nuevo no tiene selector de catálogos");
     await page.goto(`${URL}/tienda/esencias-michel?demo`);
     await page.waitForSelector("button[aria-label^='Buscar']");
     await page.getByRole("button", { name: /^Buscar/ }).first().click();

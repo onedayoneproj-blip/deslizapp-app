@@ -205,6 +205,28 @@ try {
     await ctx.close();
   }
 
+  // ---- Selector de catálogos fijo en la cabecera de la hoja: tocarlo no arrastra ni cierra la hoja ni le quita el foco a un campo
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
+    await page.goto(URL + "/catalogo/nuevo");
+    const sel = '[data-hoja-cabecera] [data-selector-catalogo]';
+    await page.waitForSelector(sel);
+    await page.waitForTimeout(900);
+    await page.tap('input[placeholder="Ej: Kiara Pink"]');
+    await page.keyboard.type("Gorra");
+    await page.evaluate(() => document.activeElement.blur());
+    const antes = await page.locator('[role="dialog"]').first().boundingBox();
+    await page.tap(sel);
+    await page.waitForTimeout(500);
+    const despues = await page.locator('[role="dialog"]').first().boundingBox();
+    ok(!!(await page.$('[role="dialog"]')) && !(await page.$('[role="alertdialog"]')), "Selector de catálogos: tocarlo no cierra la hoja ni pregunta «¿Salir sin guardar?»");
+    ok(Math.abs(antes.y - despues.y) < 1, "Selector de catálogos: tocarlo no mueve la hoja");
+    ok(!(await page.evaluate(() => document.activeElement?.matches("input, textarea"))), "Selector de catálogos: no abre el teclado");
+    ok(errores.length === 0, `Selector de catálogos: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Presentaciones: valores nuevos, «Otra…», valor suelto y precio propio
   {
     const { ctx, page, errores } = await abrir(navegador);
