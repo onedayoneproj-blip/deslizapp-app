@@ -50,6 +50,45 @@ end $$;
 select pg_temp.sembrar('ce000000-0000-4000-8000-00000000000a');
 select pg_temp.sembrar('ce000000-0000-4000-8000-00000000000b');
 
+-- ═══ Las RPC security definer que escriben (saltan RLS): cada una con su llamada de ejemplo; {T} = la tienda ═══
+-- Con sesión de Ver como sobre A: en A TODAS lanzan solo_mirar (42501); en B (la otra tienda de U1) NINGUNA lo hace (puede fallar por
+-- otra razón, pero no por Ver como). Sin sesión, o con ella terminada o vencida: ninguna lo lanza.
+create temp table rpc_casos(grupo int, nombre text, q text);
+grant select on rpc_casos to authenticated;
+create function pg_temp.probar_rpc(bloqueada_en_a boolean) returns void language plpgsql as $$
+declare c record; a uuid := 'ce000000-0000-4000-8000-00000000000a'; b uuid := 'ce000000-0000-4000-8000-00000000000b'; n int := 0;
+begin
+  for c in select * from rpc_casos order by grupo, nombre loop
+    n := n + 1;
+    begin
+      execute replace(c.q, '{T}', a::text);
+      if bloqueada_en_a then raise exception 'NO_BLOQUEO %', c.nombre; end if;
+    exception when others then
+      if sqlerrm like 'NO_BLOQUEO %' then raise; end if;
+      if bloqueada_en_a and not (sqlstate = '42501' and sqlerrm = 'solo_mirar') then
+        raise exception 'En A, % lanzó % / % (se esperaba solo_mirar)', c.nombre, sqlstate, sqlerrm; end if;
+      if not bloqueada_en_a and sqlerrm = 'solo_mirar' then raise exception 'En A, % lanzó solo_mirar sin sesión vigente', c.nombre; end if;
+    end;
+    begin
+      execute replace(c.q, '{T}', b::text);
+    exception when others then
+      if sqlerrm = 'solo_mirar' then raise exception 'En B, % lanzó solo_mirar (B no se mira)', c.nombre; end if;
+    end;
+  end loop;
+  if n = 0 then raise exception 'No hay casos de RPC'; end if;
+end $$;
+grant execute on function pg_temp.probar_rpc(boolean) to authenticated;
+-- Grupo 2: producto, inventario, retoque y créditos.
+insert into rpc_casos(grupo, nombre, q) values
+ (2,'ajustar_stock',$q$select public.ajustar_stock('{T}'::uuid, pg_temp.id('{T}','producto'), 1, 'reposicion', null, null)$q$),
+ (2,'crear_producto',$q$select public.crear_producto('{T}'::uuid, '{"nombre":"RPC","precio":10}'::jsonb, 0, '[]'::jsonb, '[]'::jsonb)$q$),
+ (2,'eliminar_producto',$q$select public.eliminar_producto('{T}'::uuid, pg_temp.id('{T}','producto'))$q$),
+ (2,'guardar_producto_inventario',$q$select public.guardar_producto_inventario('{T}'::uuid, pg_temp.id('{T}','producto'), '{"nombre":"Y"}'::jsonb, 0, 0, null, null, null, false)$q$),
+ (2,'guardar_variantes',$q$select public.guardar_variantes('{T}'::uuid, pg_temp.id('{T}','producto'), '[{"nombre":"Talla","valores":["S","M"]}]'::jsonb, '[]'::jsonb)$q$),
+ (2,'reponer_stock',$q$select public.reponer_stock('{T}'::uuid, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null)$q$),
+ (2,'pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('{T}','producto'), 'https://ejemplo.invalid/a.webp')$q$),
+ (2,'gastar_creditos',$q$select public.gastar_creditos('{T}'::uuid, 1)$q$);
+
 -- ═══ 0. La función de apoyo y los permisos ═══
 select pg_temp.comprobar(not has_function_privilege('anon','public.exigir_no_viendo(uuid)','EXECUTE') and has_function_privilege('authenticated','public.exigir_no_viendo(uuid)','EXECUTE'),'exigir_no_viendo: sin EXECUTE para anon');
 select pg_temp.comprobar((select prosrc ~ 'solo_mirar' and proconfig::text like '%search_path=%' from pg_proc where oid='public.exigir_no_viendo(uuid)'::regprocedure),'exigir_no_viendo con search_path fijo');
@@ -131,6 +170,7 @@ delete from storage.objects where name like 'ce000000-0000-4000-8000-00000000000
 -- Los buckets solo del admin no cambian: el admin sube su comprobante aunque esté mirando A.
 insert into storage.objects(bucket_id,name) values ('comprobantes','ce000000-0000-4000-8000-00000000000a/recibo.pdf');
 delete from storage.objects where bucket_id='comprobantes';
+select pg_temp.probar_rpc(true);
 reset role;
 -- Ninguna fila de A cambió.
 select pg_temp.comprobar((select nombre from public.productos where id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','producto'))='Sin sesión A','el producto de A no cambió');
@@ -161,18 +201,20 @@ select pg_temp.toca($q$update public.productos set nombre='Terminada' where tien
 insert into storage.objects(bucket_id,name) values ('productos','ce000000-0000-4000-8000-00000000000a/despues.png');
 delete from storage.objects where name like '%/despues.png';
 select public.exigir_no_viendo('ce000000-0000-4000-8000-00000000000a');
+select pg_temp.probar_rpc(false);
 reset role;
 
 -- ═══ 4. Sesión vencida: vuelve a escribir sin hacer nada ═══
 select set_config('request.jwt.claim.sub','cd000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 select pg_temp.comprobar((select (public.admin_ver_como_iniciar('ce000000-0000-4000-8000-00000000000a')->>'id') is not null),'U1 abre otra sesión sobre A');
-select pg_temp.toca($q$update public.productos set nombre='Bloqueada' where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,0);
+select pg_temp.toca($q$update public.productos set nombre='Bloqueada' where id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','producto')$q$,0);
 reset role;
 update public.sesiones_ver_como set inicio = now() - interval '2 minutes', vence_en = now() - interval '1 minute' where admin_id='cd000000-0000-4000-8000-000000000001' and fin is null;
 select set_config('request.jwt.claim.sub','cd000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
-select pg_temp.toca($q$update public.productos set nombre='Vencida' where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,1);
+select pg_temp.toca($q$update public.productos set nombre='Vencida' where id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','producto')$q$,1);
+select pg_temp.probar_rpc(false);
 reset role;
 -- Un miembro común (U3) sin ninguna sesión: sin cambios.
 select set_config('request.jwt.claim.sub','cd000000-0000-4000-8000-000000000003',true);
