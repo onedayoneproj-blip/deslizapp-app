@@ -303,7 +303,7 @@ export function HojaAviso({
       nombre="Te aviso cuando llegue"
       cerrar={cerrar}
     >
-      <div className="sheet aviso-llegada">
+      <PanelCatalogo clase="sheet aviso-llegada" asa={false} cerrar={cerrar}>
         <button className="grab" aria-label="Cerrar aviso" onClick={cerrar} />
         <div className="shead">
           <h2>Te aviso cuando llegue</h2>
@@ -354,7 +354,7 @@ export function HojaAviso({
           </button>
           <p className="note">Solo para este aviso.</p>
         </form>
-      </div>
+      </PanelCatalogo>
     </DialogoCatalogo>
   );
 }

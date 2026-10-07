@@ -18,7 +18,7 @@ import {
   type EstadoCelda,
   type Eleccion,
 } from "@/lib/tienda/presentaciones";
-import { DialogoCatalogo } from "./dialogo";
+import { DialogoCatalogo, PanelCatalogo } from "./dialogo";
 
 /**
  * «Ver presentaciones» (opción B: todas juntas en una cuadrícula) y la hoja de pastillas (opción A, la que abre ♥ cuando todavía no
@@ -62,7 +62,7 @@ export function HojaPresentaciones({
   const precioActual = c?.precio ?? d?.precio ?? base;
   return (
     <DialogoCatalogo id="presBg" nombre={tituloHoja(p.opciones)} cerrar={cerrar}>
-      <div className="sheet pres-sheet" data-presentaciones-hoja={modo}>
+      <PanelCatalogo clase="sheet pres-sheet" asa={false} cerrar={cerrar} data-presentaciones-hoja={modo}>
         <button className="grab" aria-label="Cerrar" onClick={cerrar} />
         <div className="shead">
           <h2>{tituloHoja(p.opciones)}</h2>
@@ -113,7 +113,7 @@ export function HojaPresentaciones({
           )}
           {agotada && !c?.variante && <p className="pres-leyenda">Esa combinación no la tengo. Elige otra.</p>}
         </div>
-      </div>
+      </PanelCatalogo>
     </DialogoCatalogo>
   );
 }

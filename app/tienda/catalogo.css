@@ -4037,10 +4037,15 @@ html.catalogo-html,
   pointer-events: none;
 }
 :where(.catalogo-publico) .sheet {
+  touch-action: pan-y;
+}
+/* El asa y la cabecera arrastran la hoja con pointer events: ahí no hay scroll nativo. */
+:where(.catalogo-publico) .sheet .grab,
+:where(.catalogo-publico) .sheet .shead {
   touch-action: none;
 }
-:where(.catalogo-publico) .sheet.full .sbody {
-  touch-action: pan-y;
+:where(.catalogo-publico) .sheet .sbody {
+  overscroll-behavior: contain;
 }
 :where(.catalogo-publico) .sheet:not(.full) .sbody {
   overflow: hidden;
@@ -6317,6 +6322,10 @@ html.catalogo-html,
     transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1),
     --p 0.38s;
   animation: waIn 0.38s cubic-bezier(0.2, 0.8, 0.3, 1);
+  touch-action: pan-y;
+}
+:where(.catalogo-publico) .wagrab,
+:where(.catalogo-publico) .wahead {
   touch-action: none;
 }
 :where(.catalogo-publico) .wa.full {
@@ -9120,4 +9129,14 @@ html.catalogo-html,
   .catalogo-publico .pres-scroll {
     scroll-behavior: auto;
   }
+}
+
+/* Avisar y presentaciones: también se expanden al deslizar hacia arriba (gesto del cuerpo, PanelCatalogo). */
+.catalogo-publico .sheet.pres-sheet.full,
+.catalogo-publico .sheet.aviso-llegada.full {
+  height: 100%;
+  max-height: 100%;
+}
+.catalogo-publico .pres-body {
+  overscroll-behavior: contain;
 }

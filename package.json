@@ -11,6 +11,7 @@
     "iconos": "node scripts/generar-iconos.mjs",
     "revisar-estilos": "node scripts/revisar-estilos.mjs",
     "probar:hojas": "node scripts/probar-hojas.mjs",
+    "probar:hojas-gestos": "node scripts/probar-hojas-gestos.mjs",
     "probar:inventario": "node scripts/probar-inventario.mjs",
     "probar:pedido-catalogo": "node scripts/probar-pedido-catalogo-panel.mjs",
     "probar:pedido-catalogo-transporte": "node scripts/probar-pedido-catalogo-transporte.mjs",
