@@ -71,7 +71,7 @@ const ESCENARIOS = {
     await hoja(page).waitFor();
     ok((await hoja(page).locator("h2").innerText()) === "Elige la tuya", "Título «Elige la tuya» (dos ejes)");
     ok((await hoja(page).locator(".pres-celda").count()) === 12, "La cuadrícula trae las 12 celdas");
-    ok((await hoja(page).locator(".pres-fila img").count()) === 3, "Cada color con su foto al lado del nombre");
+    ok((await hoja(page).locator(".pres-fila .pres-mini:not(.punto)").count()) === 3, "Cada color con su foto al lado del nombre");
     const l = celdaAria(page, "Talla L, color Negro, agotada");
     ok((await l.count()) === 1 && (await l.evaluate((el) => el.classList.contains("agotada") && !!el.querySelector("s"))), "L · Negro va tachada y su etiqueta dice «agotada»");
     ok((await celdaAria(page, "Talla S, color Verde, quedan 2").count()) === 1, "S · Verde: «quedan 2»");
@@ -83,9 +83,6 @@ const ESCENARIOS = {
     ok((await celdaAria(page, "Talla M, color Arena").getAttribute("aria-checked")) === "true", "La celda elegida queda marcada");
     ok((await hoja(page).locator(".pres-linea").innerText()).includes("M · Arena"), "La línea dice «M · Arena»");
     await page.waitForTimeout(700);
-    const pantalon = await page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-demo-v5") ?? "null"));
-    const idxArena = await page.evaluate(() => 0);
-    void pantalon, idxArena;
     ok((await fotoVista(page, "pantalon-de-algodon")) === 2, "El reel fue a la foto del color Arena (la tercera)");
     // Un color sin foto asignada no mueve nada: se prueba en la prueba unitaria; aquí, agregar.
     await hoja(page).getByRole("button", { name: "Agregar a mi pedido" }).tap();
@@ -147,9 +144,7 @@ const ESCENARIOS = {
     await page.keyboard.press("Escape");
     await page.locator("#avisoBg").waitFor({ state: "detached" });
     ok(await r.evaluate((el) => el.classList.contains("sold")), "El reel queda sellado para esa combinación");
-    const like = r.locator("[data-like], .act").first();
     ok(/^Avísame/.test((await r.locator(".acts .act").first().getAttribute("aria-label")) ?? ""), "♥ pasa a «Avísame»");
-    void like;
     await captura(page, "agotada-reel", ancho);
     // Elegir otra la desella.
     await r.locator(".cap .pres-btn").tap();

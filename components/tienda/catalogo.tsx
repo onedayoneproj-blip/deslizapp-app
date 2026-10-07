@@ -1250,7 +1250,6 @@ export function Catalogo({
       {vista === "presentaciones" && producto && tienePresentaciones(producto) && (
         <HojaPresentaciones
           p={producto}
-          t={t}
           modo={modoPres}
           eleccion={elecciones[producto.slug] ?? null}
           enPedido={(vid) => cart.some((l) => l.productoId === producto.id && l.varianteId === vid)}

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { CSSProperties } from "react";
-import type { CatalogoPublico, OpcionProducto, ProductoPublico } from "@/lib/types";
+import type { OpcionProducto, ProductoPublico } from "@/lib/types";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import { dinero } from "@/lib/tienda/carrito";
 import {
@@ -27,7 +27,6 @@ import { DialogoCatalogo } from "./dialogo";
  */
 export function HojaPresentaciones({
   p,
-  t,
   modo,
   eleccion,
   enPedido,
@@ -38,7 +37,6 @@ export function HojaPresentaciones({
   cerrar,
 }: {
   p: ProductoPublico;
-  t: CatalogoPublico["tienda"];
   /** "b": cuadrícula con todas; "a": pastillas «Elige la tuya» (la que abre ♥). */
   modo: "a" | "b";
   eleccion: Eleccion | null;
@@ -74,9 +72,7 @@ export function HojaPresentaciones({
         </div>
         <div className="sbody pres-body">
           <div className="pres-prod">
-            <span className="pres-foto" aria-hidden="true">
-              {foto && <img src={foto} alt="" />}
-            </span>
+            <span className="pres-foto" aria-hidden="true" style={foto ? fondoFoto(foto) : undefined} />
             <span>
               <b>{p.nombre}</b>
               <small>
@@ -85,7 +81,7 @@ export function HojaPresentaciones({
             </span>
           </div>
           {g && !g.columnas ? (
-            <ListaPresentaciones p={p} eje={g.filas} sel={sel} base={base} alElegir={elegir} />
+            <ListaPresentaciones p={p} eje={g.filas} sel={sel} alElegir={elegir} />
           ) : g && modo === "b" ? (
             <Cuadricula p={p} filas={g.filas} columnas={g.columnas!} sel={sel} base={base} alElegir={elegir} />
           ) : g ? (
@@ -122,13 +118,15 @@ export function HojaPresentaciones({
   );
 }
 
+/** La foto como fondo (decorativa): así no suma avisos de <img> y se recorta igual que las demás miniaturas. */
+const fondoFoto = (url: string): CSSProperties => ({ backgroundImage: `url("${url.replace(/"/g, "%22")}")` });
 const estilo = (hex: string | null): CSSProperties | undefined => (hex ? ({ "--muestra": hex } as CSSProperties) : undefined);
 
 /** La foto del color como miniatura junto al nombre de la fila; sin foto asignada, un punto del color si se conoce. */
 function MuestraColor({ p, eje, valor }: { p: ProductoPublico; eje: OpcionProducto; valor: string }) {
   const url = esEjeColor(eje.nombre) || p.opciones[0] === eje ? fotoDeEleccion(p, { [eje.nombre]: valor }) : null;
   const hex = esEjeColor(eje.nombre) ? colorPorNombre(valor) : null;
-  if (url) return <span className="pres-mini" aria-hidden="true"><img src={url} alt="" /></span>;
+  if (url) return <span className="pres-mini" aria-hidden="true" style={fondoFoto(url)} />;
   if (hex) return <span className="pres-mini punto" aria-hidden="true" style={estilo(hex)} />;
   return null;
 }
@@ -208,7 +206,7 @@ function Celda({ p, e, c, marcada, base, etiqueta, alTocar }: { p: ProductoPubli
 }
 
 /** Un solo eje (perfumes: «Tamaño»): una lista simple con el valor, su precio y su estado. */
-function ListaPresentaciones({ p, eje, sel, base, alElegir }: { p: ProductoPublico; eje: OpcionProducto; sel: Eleccion | null; base: number; alElegir: (v: Eleccion) => void }) {
+function ListaPresentaciones({ p, eje, sel, alElegir }: { p: ProductoPublico; eje: OpcionProducto; sel: Eleccion | null; alElegir: (v: Eleccion) => void }) {
   return (
     <div className="pres-lista" role="radiogroup" aria-label={eje.nombre}>
       {eje.valores.map((v) => {
