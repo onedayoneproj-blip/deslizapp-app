@@ -18,7 +18,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | Prompt | Modelo | Depende de | Cierre |
 |---|---|---|---|
 | `retoque-beta-y-tienda-de-ensayo.md` | Sonnet | — | **Hecho**, PR #55 mergeado el 6 oct |
-| `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | **En curso.** Migración revisada por Planning y autorizada; PR abierto con preview (cambia quién puede retocar). Debe conectar la compuerta al interruptor de #56 |
+| `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | **Hecho**, PR #57 mergeado el 7 oct (squash `16bf9a6`) tras la prueba de Lewis en el iPhone. Compuerta conectada al interruptor de #56. Falta borrar la rama `feat/mi-marca` |
 | `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main. Incluye §2b: volver del admin al panel |
 | `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
 | `colaboradores-e-invitaciones.md` (rama `feat/equipo-e-invitaciones`) | **Opus** | #57 mergeado; no a la vez que `ver-como-bloqueo-en-la-base.md` | PR abierto con preview. Niveles Ayudante/Editor/Administrador, enlaces de un solo uso con aprobación del dueño, enlace de tienda nueva desde el admin |
