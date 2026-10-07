@@ -20,9 +20,11 @@ import {
 } from "@/lib/marca";
 import { estadoPromo } from "@/lib/promos";
 import type { Promo, Tienda } from "@/lib/types";
-import { Hoja } from "../hoja";
+import { Hoja, useAvisarAlSalir } from "../hoja";
 import { IconoCamara } from "../iconos";
 import { useToast } from "../toast";
+import { instagramLimpio, marcaLista, MARCA_VACIA, type MarcaRetoque } from "@/lib/marca-retoque";
+import { borradorCambio, borradorDeMarca, SeccionRetoque, type BorradorRetoque } from "./seccion-retoque";
 import { CuponTienda, marcaDeTienda } from "./cupon-tienda";
 
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];
@@ -62,12 +64,17 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
 }
 
 function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alTerminar: () => void; mostrarEnlace: boolean }) {
-  const { actualizarMarca, getPromos, getProductos } = useData();
+  const { actualizarMarca, guardarMarcaRetoque, getMarcaRetoque, getPromos, getProductos, soloMirar } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
 
+  const { data: marcaGuardada, error: errorMarca, reintentar: reintentarMarca } = useConsulta(`marca:${tiendaId}`, () => getMarcaRetoque(tiendaId));
+  // El borrador de «Para el retoque» arranca cuando llega lo guardado (una sola vez por apertura de la hoja).
+  const [retoque, setRetoque] = useState<BorradorRetoque | null>(null);
+  if (marcaGuardada && !retoque) setRetoque(borradorDeMarca(marcaGuardada));
+  const [igTocado, setIgTocado] = useState(false);
   const [logo, setLogo] = useState<string | null>(tienda.logoUrl);
   const [marca, setMarca] = useState<Marca>(() => marcaDeTienda(tienda));
   const [combos, setCombos] = useState<Marca[]>([]);
@@ -133,13 +140,38 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
   const producto = ejemplo.productoId ? productos?.find((p) => p.id === ejemplo.productoId) : undefined;
   const deColeccion = ejemplo.coleccion ? (productos?.filter((p) => p.categoria === ejemplo.coleccion).length ?? 0) : 0;
 
+  const marcaPrevia: MarcaRetoque = marcaGuardada ?? MARCA_VACIA;
+  const igMal = retoque ? !instagramLimpio(retoque.instagram).valido : false;
+  const retoqueCambio = !!retoque && borradorCambio(retoque, marcaPrevia);
+  const marcaCambio =
+    logo !== tienda.logoUrl ||
+    marca.principal.toUpperCase() !== tienda.marcaColorPrincipal.toUpperCase() ||
+    marca.acento.toUpperCase() !== tienda.marcaColorAcento.toUpperCase() ||
+    marca.estilo !== tienda.marcaEstilo ||
+    urlNormal !== (tienda.urlCatalogo ?? null);
+  // Con cambios sin guardar, cerrar pregunta «¿Salir sin guardar?» (la hoja lo hace con este aviso).
+  useAvisarAlSalir(!soloMirar && !guardando && (retoqueCambio || marcaCambio || url.trim() !== (tienda.urlCatalogo ?? "")));
+
   const guardar = async () => {
     setUrlTocada(true);
-    if (urlMala || guardando) return;
+    setIgTocado(true);
+    if (urlMala || igMal || guardando || soloMirar) return;
     setGuardando(true);
     try {
       await actualizarMarca(tiendaId, { logoUrl: logo, principal: legible.principal, acento: legible.acento, estilo: marca.estilo, urlCatalogo: urlNormal });
-      toast("¡Tu marca quedó lista!");
+      let lista = marcaLista(marcaGuardada);
+      if (retoque && retoqueCambio) {
+        const ig = instagramLimpio(retoque.instagram);
+        const guardada = await guardarMarcaRetoque(tiendaId, {
+          instagram: ig.valor,
+          palabras: retoque.palabras,
+          evita: retoque.evita.trim() || null,
+          quitar: retoque.quitar,
+          nuevas: retoque.nuevas.map((n) => n.url),
+        });
+        lista = marcaLista(guardada);
+      }
+      toast(lista ? "Tu marca está lista para el taller." : "Mi marca guardada.");
       alTerminar();
     } catch (e) {
       toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
@@ -274,9 +306,39 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
         {urlTocada && urlMala && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese enlace no se ve bien. Ej: tutienda.com o instagram.com/tutienda</span>}
       </label>
 
-      <button type="button" onClick={guardar} disabled={guardando} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
-        Guardar mi marca
-      </button>
+      {retoque && marcaGuardada ? (
+        <SeccionRetoque
+          marca={marcaGuardada}
+          borrador={retoque}
+          alCambiar={setRetoque}
+          soloLectura={soloMirar}
+          tieneLogo={!!logo}
+          alAvisar={toast}
+          errorInstagram={igTocado && igMal}
+        />
+      ) : (
+        <section aria-label="Para el retoque" className="border-t border-linea pt-5">
+          <h3 className="font-display text-titulo-seccion text-texto">Para el retoque</h3>
+          {errorMarca ? (
+            <p className="mt-1 text-secundario text-texto-secundario">
+              No pudimos leer tu marca.{" "}
+              <button type="button" onClick={reintentarMarca} className="tocable font-extrabold text-accion">
+                Reintentar
+              </button>
+            </p>
+          ) : (
+            <p className="mt-1 text-secundario text-texto-secundario">Un momento…</p>
+          )}
+        </section>
+      )}
+
+      {soloMirar ? (
+        <p className="text-center text-secundario text-texto-secundario">Solo mirar: aquí no se cambia nada.</p>
+      ) : (
+        <button type="button" onClick={guardar} disabled={guardando} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
+          Guardar mi marca
+        </button>
+      )}
       {!tienda.logoUrl && !logo && <p className="-mt-3 text-center text-[12.5px] text-suave">Sin logo usamos tus iniciales y una paleta neutra.</p>}
     </div>
   );

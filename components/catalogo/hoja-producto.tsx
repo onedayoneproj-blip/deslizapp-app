@@ -8,8 +8,11 @@ import { useData } from "@/lib/data/provider";
 import type { Detalles } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
-import { avisoGuardadoConRetoques } from "@/lib/retoque-textos";
+import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
+import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
+import { DURACION } from "@/lib/movimiento";
 import { mandarMarcadas, urlsGuardadasMarcadas } from "@/lib/retoque-al-subir";
+import { BienvenidaRetoque, type DatosBienvenida } from "./bienvenida-retoque";
 import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
@@ -226,6 +229,8 @@ function FormularioProducto({
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
+  // La bienvenida del retoque, antes de guardar un producto con fotos marcadas por primera vez en esta tienda.
+  const [bienvenida, setBienvenida] = useState<{ datos: DatosBienvenida; resolver: (ok: boolean) => void } | null>(null);
 
   const tieneOpciones = opciones.length > 0;
   const combos = useMemo(() => combinaciones(opciones), [opciones]);
@@ -292,6 +297,19 @@ function FormularioProducto({
       toast("Falta la foto. El producto es la estrella.");
       return false;
     }
+    // Fotos nuevas marcadas «Retocar esta foto»: la primera vez, la bienvenida va ANTES de guardar y de reservar créditos.
+    const marcadasAhora = medios.filter((m) => m.tipo === "foto" && m.retocar && !taller.guardada(m.url));
+    if (marcadasAhora.length > 0 && taller.marcaLista === true && !bienvenidaVista(tiendaId)) {
+      const foto = marcadasAhora[0]!.tipo === "foto" ? (marcadasAhora[0] as { url: string }).url : null;
+      const sigue = await new Promise<boolean>((resolver) =>
+        setBienvenida({ datos: { n: Date.now(), foto, referencias: (taller.marca?.referencias ?? []).slice(0, 3).map((r) => r.url) }, resolver }),
+      );
+      // Cancelar vuelve al formulario: no se guarda nada y las fotos siguen marcadas por si quiere apagarlas.
+      if (!sigue) return false;
+      // La bienvenida es una hoja apilada: se espera a que termine de salir (y de devolver su entrada del historial) antes de
+      // guardar, porque al guardar se cierra esta hoja y las dos salidas a la vez dejarían la dirección en la pantalla de antes.
+      await new Promise((r) => setTimeout(r, DURACION.entrada + 150));
+    }
     setGuardando(true);
     // Si el taller entregó una foto mientras la ficha estaba abierta, se guarda la retocada (nunca se vuelve a la original).
     let entregadas = taller.entregadas;
@@ -318,6 +336,8 @@ function FormularioProducto({
     /** Ya guardado el producto, manda al taller cada foto marcada con su URL guardada. Nunca deshace el guardado. */
     const mandarAlTaller = async (guardado: Producto | null, base: string) => {
       if (totalMarcadas === 0) return base;
+      // Sin Mi marca lista no se manda nada al taller: el producto ya quedó guardado.
+      if (taller.marcaLista !== true) return AVISO_SIN_MARCA_AL_GUARDAR;
       const urls = urlsGuardadasMarcadas(marcadasPorFoto, (guardado?.medios ?? []).flatMap((m) => (m.tipo === "foto" ? [m.url] : [])));
       const r = await mandarMarcadas(urls, totalMarcadas, (url) => taller.pedirDe(guardado!.id, url, { silencioso: true }));
       return avisoGuardadoConRetoques(base, r.marcadas, r.enviadas);
@@ -376,6 +396,18 @@ function FormularioProducto({
   return (
     <div className="flex flex-col gap-5">
       <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />
+      <BienvenidaRetoque
+        datos={bienvenida?.datos ?? null}
+        alCancelar={() => {
+          bienvenida?.resolver(false);
+          setBienvenida(null);
+        }}
+        alConfirmar={() => {
+          marcarBienvenidaVista(tiendaId);
+          bienvenida?.resolver(true);
+          setBienvenida(null);
+        }}
+      />
 
       <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Kiara Pink" maxLength={120} />
       <Campo

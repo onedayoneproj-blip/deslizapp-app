@@ -42,7 +42,7 @@ test("la cuenta sale de los datos de Google de la sesión: nombre, correo y foto
 test("el aviso al cambiar de tienda y el de error no piden disculpas largas", () => {
   assert.equal(C.avisoAhoraEstas("Luna Bisutería"), "Ahora estás en Luna Bisutería.");
   assert.equal(C.AVISO_SIN_CAMBIO, "No pudimos cambiar de tienda. Sigues en la de antes.");
-  for (const t of [C.avisoAhoraEstas("X"), C.AVISO_SIN_CAMBIO, C.DETALLE_MI_MARCA, C.tituloMenu(2)]) assert.ok(!t.includes("!"));
+  for (const t of [C.avisoAhoraEstas("X"), C.AVISO_SIN_CAMBIO, C.tituloMenu(2)]) assert.ok(!t.includes("!"));
 });
 
 test("demo: al cambiar de tienda no queda ningún dato de la anterior", async () => {

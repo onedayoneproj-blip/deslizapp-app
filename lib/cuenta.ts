@@ -49,9 +49,6 @@ export const accionEncabezado = (cantidad: number) => (cantidad > 1 ? "Menú de 
 /** Etiqueta accesible completa de una tienda de la lista: «Mora Shoes, Pro, tienda activa». */
 export const etiquetaTienda = (nombre: string, plan: string, activa: boolean) => `${nombre}, ${plan}${activa ? ", tienda activa" : ""}`;
 
-/** Detalle de la fila «Mi marca» dentro de la tarjeta. Sin la regla de «marca lista» (PR de Mi marca) es un subtítulo corto. */
-export const DETALLE_MI_MARCA = "Logo, colores y letra";
-
 // El aviso que se muestra al volver a cargar la página tras cambiar de tienda (la recarga borra todo lo de la anterior).
 export const KEY_AVISO_TRAS_CAMBIO = "deslizapp-aviso-tras-cambio";
 export const avisoAhoraEstas = (nombre: string) => `Ahora estás en ${nombre}.`;

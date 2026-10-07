@@ -50,6 +50,8 @@ import {
   solicitudPorCodigoDeDB,
   verSolicitudDeDB,
 } from "./catalogo";
+import type { DatosMarcaRetoque, MarcaRetoque } from "../marca-retoque";
+import { guardarMarcaEnDB, marcaDeDB } from "./marca-retoque";
 import {
   avanzarCatalogoDemo,
   buscarDueno,
@@ -205,6 +207,19 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return actualizada;
+  },
+
+  async getMarcaRetoque(tiendaId: string) {
+    return marcaDeDB(leerDemo().db, tiendaId);
+  },
+  async guardarMarcaRetoque(tiendaId: string, datos: DatosMarcaRetoque) {
+    let marca!: MarcaRetoque;
+    escribir((db) => {
+      const r = guardarMarcaEnDB(db, tiendaId, datos, nuevoId);
+      marca = r.marca;
+      return r.db;
+    });
+    return marca;
   },
 
   // Catálogo en línea

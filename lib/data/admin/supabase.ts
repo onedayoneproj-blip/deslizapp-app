@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ErrorAdmin, type FuenteAdmin } from "./fuente-admin";
-import { problemaDeArchivo, tipoDeDataUrl } from "../almacen";
+import { BUCKET_MARCA, FIRMA_SEGUNDOS, problemaDeArchivo, tipoDeDataUrl } from "../almacen";
 import { nuevoId } from "../db";
 import { comprimirParaSubir } from "../../imagen";
 
@@ -67,6 +67,28 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
       ),
     productosTienda: (tiendaId) =>
       rpc("admin_productos_tienda", { p_tienda_id: tiendaId }),
+    // Solo lectura, con las políticas de admin de marca_tienda / marca_referencias y del bucket privado (URLs firmadas).
+    async marcaTienda(tiendaId) {
+      const falla = (e: { message: string }) => new ErrorAdmin(e.message, e.message);
+      const [t, m, r] = await Promise.all([
+        cliente.from("tiendas").select("instagram").eq("id", tiendaId).maybeSingle(),
+        cliente.from("marca_tienda").select("palabras, evita").eq("tienda_id", tiendaId).maybeSingle(),
+        cliente.from("marca_referencias").select("id, ruta, orden").eq("tienda_id", tiendaId).order("orden", { ascending: true }).order("creado_en", { ascending: true }),
+      ]);
+      for (const x of [t, m, r]) if (x.error) throw falla(x.error);
+      const filas = (r.data ?? []) as { id: string; ruta: string; orden: number }[];
+      const firmadas = new Map<string, string>();
+      if (filas.length) {
+        const { data } = await cliente.storage.from(BUCKET_MARCA).createSignedUrls(filas.map((f) => f.ruta), FIRMA_SEGUNDOS);
+        for (const f of data ?? []) if (f.path && f.signedUrl) firmadas.set(f.path, f.signedUrl);
+      }
+      return {
+        instagram: (t.data as { instagram: string | null } | null)?.instagram ?? null,
+        palabras: (m.data as { palabras: string[] } | null)?.palabras ?? [],
+        evita: (m.data as { evita: string | null } | null)?.evita ?? null,
+        referencias: filas.map((f) => ({ id: f.id, url: firmadas.get(f.ruta) ?? "", orden: f.orden })),
+      };
+    },
     personalizacionTienda: (tiendaId) =>
       rpc("admin_personalizacion_tienda", { p_tienda_id: tiendaId }),
     async subirRetocada(trabajo, dataUrl) {

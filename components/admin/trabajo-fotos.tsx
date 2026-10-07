@@ -10,6 +10,8 @@ import { codigoError, errorConocido, textoErrorAdmin } from "@/lib/admin/errores
 import { reducirFoto } from "@/lib/imagen";
 import type { TiendaAdmin, TrabajoRetoque } from "@/lib/admin/tipos";
 import { haceDias } from "@/lib/admin/tiempo";
+import { instruccionesDeRetoque, marcaLista, type MarcaRetoque } from "@/lib/marca-retoque";
+import { copiarTexto } from "@/lib/portapapeles";
 
 const MAX_MOTIVO = 200;
 const MOTIVOS_RAPIDOS = ["Está borrosa: mándala más nítida.", "No se ve bien el producto.", "Tiene muy poca luz."];
@@ -30,6 +32,82 @@ function agrupar(trabajos: TrabajoRetoque[], tiendas: TiendaAdmin[]): Grupo[] {
   }
   // La tienda con la foto más vieja va primero (el Map conserva ese orden).
   return [...grupos.values()];
+}
+
+/**
+ * «Su marca» (tablero AdminFoto): las referencias (tocar abre grande), las 3 palabras, lo que no quiere, el Instagram y «Copiar
+ * instrucciones» para pegar en la IA. Solo lee. Sin marca lista dice que la tienda todavía no la completó y deja trabajar igual.
+ */
+function SuMarca({ tiendaId, tiendaNombre }: { tiendaId: string; tiendaNombre: string }) {
+  const fuente = useAdmin();
+  const [marca, setMarca] = useState<MarcaRetoque | null | "error">(null);
+  const [grande, setGrande] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState<string | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    fuente.marcaTienda(tiendaId).then(
+      (m) => vigente && setMarca(m),
+      () => vigente && setMarca("error"),
+    );
+    return () => {
+      vigente = false;
+    };
+  }, [fuente, tiendaId]);
+
+  if (marca === null) return <p className="mt-3 text-secundario opacity-80">Leyendo su marca…</p>;
+  if (marca === "error") return <p className="mt-3 text-secundario opacity-80">No pudimos leer su marca. Puedes trabajar igual.</p>;
+  const lista = marcaLista(marca);
+  const copiar = () => {
+    // Dentro del toque, sin await antes (en iPhone el navegador lo rechaza si no).
+    void copiarTexto(instruccionesDeRetoque(tiendaNombre, marca)).then((ok) => setCopiado(ok ? "Instrucciones copiadas." : "No se pudo copiar. Prueba otra vez."));
+  };
+  return (
+    <section aria-label={`Su marca: ${tiendaNombre}`} className="mt-3 border-t border-linea pt-3" data-su-marca={lista ? "lista" : "falta"}>
+      <h4 className="mb-2 text-etiqueta tracking-wider uppercase opacity-80">Su marca</h4>
+      {!lista && <p className="mb-2 rounded-radio-m bg-atencion-suave p-2.5 text-secundario font-bold text-atencion-texto">Esta tienda todavía no completó su marca.</p>}
+      {marca.referencias.length > 0 && (
+        <ul className="flex flex-wrap gap-2" aria-label="Fotos de referencia">
+          {marca.referencias.map((r, i) => (
+            <li key={r.id}>
+              <button type="button" onClick={() => setGrande(r.url)} aria-label={`Ver referencia ${i + 1} grande`} className="tocable block size-[68px] overflow-hidden rounded-radio-m bg-superficie-hundida focus-visible:outline-3 focus-visible:outline-foco">
+                {/* eslint-disable-next-line @next/next/no-img-element -- URL firmada o data URL */}
+                <img src={r.url} alt="" className="size-full object-cover" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {marca.palabras.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-2" aria-label="Su marca en 3 palabras">
+          {marca.palabras.map((p) => (
+            <li key={p}>
+              <Etiqueta tono="exito">{p}</Etiqueta>
+            </li>
+          ))}
+        </ul>
+      )}
+      {marca.evita && <p className="mt-2 rounded-radio-m bg-atencion-suave p-2.5 text-secundario font-bold text-atencion-texto">No quiere: {marca.evita}</p>}
+      {marca.instagram && (
+        <p className="mt-2 text-secundario">
+          Instagram <b>@{marca.instagram}</b>
+        </p>
+      )}
+      <div className="mt-3">
+        <Boton jerarquia="secundario" anchoCompleto onClick={copiar}>
+          Copiar instrucciones
+        </Boton>
+        <p role="status" className={copiado ? "mt-2 text-secundario font-bold" : "sr-only"}>
+          {copiado}
+        </p>
+      </div>
+      <Hoja abierta={grande !== null} alCerrar={() => setGrande(null)} titulo="Referencia">
+        {grande && (
+          // eslint-disable-next-line @next/next/no-img-element -- URL firmada o data URL
+          <img src={grande} alt="Foto de referencia, grande" className="mx-auto max-h-[70dvh] w-full rounded-radio-m object-contain" />
+        )}
+      </Hoja>
+    </section>
+  );
 }
 
 /** La foto que se está retocando: antes y después, Bajar original, Subir la retocada, Entregar y Devolver. */
@@ -185,6 +263,7 @@ function Mesa({
           </label>
         </figure>
       </div>
+      <SuMarca tiendaId={t.tiendaId} tiendaNombre={t.tiendaNombre ?? "la tienda"} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Boton jerarquia="secundario" icono={<IconoDescargar tamano={20} />} onClick={() => void bajarFoto(t.medioUrlOriginal, `${t.productoNombre ?? "foto"} original`)}>Bajar original</Boton>
         <Boton jerarquia="resalte" deshabilitado={!despues || (ocupado && fase !== "subiendo" && fase !== "entregando")} cargando={fase === "subiendo" || fase === "entregando"} onClick={() => void entregar()}>

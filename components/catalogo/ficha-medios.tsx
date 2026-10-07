@@ -10,8 +10,12 @@ import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, V
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { Boton, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
-import { REMATE_TALLER, TEXTO_SE_MANDA_AL_GUARDAR, TITULO_RETOCAR_ESTA, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
+import { ACCION_COMPLETAR_MARCA, MOTIVO_SIN_MARCA, REMATE_TALLER, TEXTO_SE_MANDA_AL_GUARDAR, TITULO_RETOCAR_ESTA, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
+import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
+import { useTiendaActiva } from "@/lib/data/consulta";
 import { estadoInterruptor } from "@/lib/retoque-al-subir";
+import { usePanelUI } from "../panel/ui";
+import { BienvenidaRetoque, type DatosBienvenida } from "./bienvenida-retoque";
 import { EtiquetaBeta } from "./etiqueta-beta";
 import type { Taller } from "./taller";
 
@@ -78,7 +82,12 @@ export function SeccionMedios({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ultimaEntregada]);
   const entrada = useRef<HTMLInputElement>(null);
+  const { tiendaId } = useTiendaActiva();
+  const { abrirMiMarca } = usePanelUI();
   const [abierto, setAbierto] = useState<string | null>(null);
+  // La bienvenida del retoque: la primera vez que se manda una foto (y otra vez desde «Cómo funciona»).
+  const [bienvenida, setBienvenida] = useState<(DatosBienvenida & { url: string }) | null>(null);
+  const aperturas = useRef(0);
   const [tramo, setTramo] = useState<{ video: VideoElegido; cuadros: string[] } | null>(null);
   const videos = medios.filter((m) => m.tipo === "video").length;
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
@@ -139,6 +148,19 @@ export function SeccionMedios({
 
   /** Fotos nuevas marcadas para el taller: cuentan todas contra los créditos libres. */
   const marcadas = medios.filter((m) => m.tipo === "foto" && m.retocar && !taller.guardada(m.url)).length;
+  /** La hoja de la foto se cierra antes de abrir otra encima: nunca más de dos hojas apiladas (la ficha y una). */
+  const completarMarca = () => {
+    setAbierto(null);
+    abrirMiMarca();
+  };
+  const verBienvenida = (url: string) => {
+    setAbierto(null);
+    setBienvenida({ n: ++aperturas.current, url, foto: url, referencias: (taller.marca?.referencias ?? []).slice(0, 3).map((r) => r.url) });
+  };
+  const retocar = (url: string) => {
+    if (bienvenidaVista(tiendaId)) void taller.pedir(url);
+    else verBienvenida(url);
+  };
   const elegido = medios.find((m) => m.id === abierto) ?? null;
   const indice = elegido ? medios.indexOf(elegido) : -1;
   const mover = (desde: number, hasta: number) =>
@@ -191,7 +213,20 @@ export function SeccionMedios({
           alCambiar((l) => l.filter((m) => m.id !== abierto));
           setAbierto(null);
         }}
+        alCompletarMarca={completarMarca}
+        alRetocar={retocar}
+        alComoFunciona={verBienvenida}
         avisar={avisar}
+      />
+      <BienvenidaRetoque
+        datos={bienvenida}
+        alCancelar={() => setBienvenida(null)}
+        alConfirmar={() => {
+          const url = bienvenida?.url;
+          marcarBienvenidaVista(tiendaId);
+          setBienvenida(null);
+          if (url) void taller.pedir(url);
+        }}
       />
       <HojaTramo
         tramo={tramo}
@@ -222,6 +257,9 @@ function HojaMedio({
   alCambiar,
   alMover,
   alQuitar,
+  alCompletarMarca,
+  alRetocar,
+  alComoFunciona,
   avisar,
 }: {
   medio: MedioBorrador | null;
@@ -234,6 +272,11 @@ function HojaMedio({
   alCambiar: (m: MedioBorrador) => void;
   alMover: (hasta: number) => void;
   alQuitar: () => void;
+  /** Cierra esta hoja y abre «Mi marca». */
+  alCompletarMarca: () => void;
+  /** Manda la foto al taller (la primera vez, con la bienvenida antes). */
+  alRetocar: (url: string) => void;
+  alComoFunciona: (url: string) => void;
   avisar: (mensaje: string) => void;
 }) {
   // Lo último abierto se sigue viendo mientras la hoja baja.
@@ -296,11 +339,23 @@ function HojaMedio({
     if (!taller.guardada(foto.url)) {
       // Foto nueva: el interruptor solo anota la intención; se manda al taller cuando el producto se guarde.
       const marcada = !!foto.retocar;
-      const { deshabilitado, motivo: sinMotivo } = estadoInterruptor({ soloMirar: taller.soloMirar, libres: taller.libres, marcadas, estaMarcada: marcada });
+      const { deshabilitado, motivo: sinMotivo } = estadoInterruptor({ soloMirar: taller.soloMirar, libres: taller.libres, marcadas, estaMarcada: marcada, marcaLista: taller.marcaLista });
+      const faltaMarca = !taller.soloMirar && taller.marcaLista === false && !marcada;
       return {
         titulo: conBeta(TITULO_RETOCAR_ESTA),
-        detalle: sinMotivo ?? (marcada ? TEXTO_SE_MANDA_AL_GUARDAR : undefined),
-        pie: <span className={textoSecundario}>{textoFichaRetoque()}</span>,
+        // El motivo de la marca es largo: va en el pie, que baja de línea, no en el detalle, que se corta con «…».
+        detalle: faltaMarca ? undefined : (sinMotivo ?? (marcada ? TEXTO_SE_MANDA_AL_GUARDAR : undefined)),
+        pie: (
+          <>
+            {faltaMarca && <span className="block text-secundario font-bold text-atencion-texto">{MOTIVO_SIN_MARCA}</span>}
+            <span className={`block ${textoSecundario}`}>{textoFichaRetoque()}</span>
+            {faltaMarca && (
+              <Boton tamano="compacto" jerarquia="secundario" className="mt-2" onClick={alCompletarMarca}>
+                {ACCION_COMPLETAR_MARCA}
+              </Boton>
+            )}
+          </>
+        ),
         accion: (
           <Interruptor
             etiqueta={TITULO_RETOCAR_ESTA}
@@ -312,13 +367,39 @@ function HojaMedio({
         ),
       };
     }
-    const motivo = taller.soloMirar ? "Solo mirar: aquí no se manda nada al taller." : taller.libres < CREDITOS_POR_RETOQUE ? "Te faltan créditos para esta." : null;
+    const sinMarca = !taller.soloMirar && taller.marcaLista === false;
+    const motivo = taller.soloMirar
+      ? "Solo mirar: aquí no se manda nada al taller."
+      : sinMarca
+        ? MOTIVO_SIN_MARCA
+        : taller.marcaLista === null
+          ? null
+          : taller.libres < CREDITOS_POR_RETOQUE
+            ? "Te faltan créditos para esta."
+            : null;
+    const puede = !motivo && taller.marcaLista === true;
     return {
       titulo: conBeta("Retocar foto"),
-      detalle: motivo ?? undefined,
-      pie: <span className={textoSecundario}>{textoFichaRetoque()}</span>,
-      accion: (
-        <Boton tamano="compacto" deshabilitado={!!motivo} cargando={taller.pidiendo === foto.url} onClick={() => void taller.pedir(foto.url)}>
+      detalle: sinMarca ? undefined : (motivo ?? undefined),
+      pie: (
+        <>
+          {sinMarca && <span className="block text-secundario font-bold text-atencion-texto">{MOTIVO_SIN_MARCA}</span>}
+          <span className={`block ${textoSecundario}`}>{textoFichaRetoque()}</span>
+          {sinMarca && (
+            // Sin Mi marca lista no se puede retocar: en lugar de «Retocar», el camino a completarla.
+            <Boton tamano="compacto" jerarquia="secundario" className="mt-2" onClick={alCompletarMarca}>
+              {ACCION_COMPLETAR_MARCA}
+            </Boton>
+          )}
+          {puede && (
+            <Boton tamano="compacto" jerarquia="terciario" className="mt-1 -ml-2" onClick={() => alComoFunciona(foto.url)}>
+              Cómo funciona
+            </Boton>
+          )}
+        </>
+      ),
+      accion: sinMarca ? undefined : (
+        <Boton tamano="compacto" deshabilitado={!puede} cargando={taller.pidiendo === foto.url} onClick={() => alRetocar(foto.url)}>
           Retocar
         </Boton>
       ),

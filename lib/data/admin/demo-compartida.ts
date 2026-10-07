@@ -79,6 +79,8 @@ export function crearFuenteAdminDemoCompartida(
       (estado.panel as Record<string, unknown>)[lista] = [...structuredClone(db[lista]), ...deEjemplo];
     }
     estado.trabajos = [...estado.trabajos.filter((t) => !ids.has(t.tiendaId)), ...structuredClone(db.trabajosRetoque ?? [])];
+    // La marca para el retoque es de la tienda: el admin la lee tal cual está en su panel (no la escribe).
+    estado.panel.marcasRetoque = structuredClone(db.marcasRetoque ?? {});
     // Si el saldo de la tienda cambió en su panel, el registro del admin lo anota como ajuste para que cuadre.
     for (const t of tiendas) {
       const suma = estado.movimientos.filter((m) => m.tiendaId === t.id).reduce((n, m) => n + m.cantidad, 0);

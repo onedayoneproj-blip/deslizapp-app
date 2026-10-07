@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { avisoFotoEnProceso } from "@/lib/retoque-textos";
+import { marcaLista as esMarcaLista, type MarcaRetoque } from "@/lib/marca-retoque";
+import { avisoFotoEnProceso, MOTIVO_SIN_MARCA } from "@/lib/retoque-textos";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -44,6 +45,10 @@ export type Taller = {
   pedirDe: (productoId: string, url: string, opciones?: { silencioso?: boolean }) => Promise<boolean>;
   pidiendo: string | null;
   soloMirar: boolean;
+  /** La marca de la tienda para el retoque; undefined mientras se lee. */
+  marca: MarcaRetoque | undefined;
+  /** La regla «marca lista» (lib/marca-retoque.ts): null mientras se lee. Sin ella no se manda nada al taller. */
+  marcaLista: boolean | null;
   /** Las entregadas de este producto (para cambiar la foto en un borrador abierto). */
   entregadas: TrabajoRetoque[];
 };
@@ -54,10 +59,14 @@ export type Taller = {
  */
 export function useTaller(producto: Producto | null, avisar: (mensaje: string) => void): Taller {
   const datos = useData();
-  const { trabajosRetoque, pedirRetoque, soloMirar } = datos;
+  const { trabajosRetoque, pedirRetoque, soloMirar, getMarcaRetoque } = datos;
   const { tiendaId, tienda } = useTiendaActiva();
   const consulta = useConsulta(`taller:${tiendaId}`, () => trabajosRetoque(tiendaId), true);
   const trabajos = consulta.data;
+  const consultaMarca = useConsulta(`marca:${tiendaId}`, () => getMarcaRetoque(tiendaId));
+  const marca = consultaMarca.data;
+  // Si la lectura falla no se adivina: sin marca confirmada no se manda nada.
+  const marcaLista = marca ? esMarcaLista(marca) : consultaMarca.error ? false : null;
   const { reintentar } = consulta;
   const [pidiendo, setPidiendo] = useState<string | null>(null);
   const enCurso = useRef(false);
@@ -95,6 +104,11 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
 
   const pedirDe = async (destinoId: string, url: string, opciones?: { silencioso?: boolean }) => {
     if (enCurso.current) return false;
+    // La compuerta de la marca también vive aquí: ninguna pantalla manda una foto al taller sin Mi marca lista.
+    if (marcaLista !== true) {
+      if (!opciones?.silencioso) avisar(MOTIVO_SIN_MARCA);
+      return false;
+    }
     enCurso.current = true;
     setPidiendo(url);
     const aviso = (mensaje: string) => {
@@ -125,5 +139,5 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
   };
   const pedir = async (url: string) => (productoId ? pedirDe(productoId, url) : false);
 
-  return { libres, estado, guardada, pedir, pedirDe, pidiendo, soloMirar, entregadas };
+  return { libres, estado, guardada, pedir, pedirDe, pidiendo, soloMirar, marca, marcaLista, entregadas };
 }

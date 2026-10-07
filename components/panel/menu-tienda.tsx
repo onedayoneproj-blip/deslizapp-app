@@ -10,7 +10,9 @@ import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
 import { IconoCheck, IconoChevronDerecha, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
 import { Boton } from "../ui";
-import { AVISO_SIN_CAMBIO, DETALLE_MI_MARCA, avisoAhoraEstas, etiquetaTienda, ordenarTiendas, tituloMenu } from "@/lib/cuenta";
+import { AVISO_SIN_CAMBIO, avisoAhoraEstas, etiquetaTienda, ordenarTiendas, tituloMenu } from "@/lib/cuenta";
+import { detalleMiMarca } from "@/lib/marca-retoque";
+import { Esqueleto } from "../esqueleto";
 import { useToast } from "../toast";
 import { Logotipo } from "../marca";
 import { AccesoAdmin } from "./acceso-admin";
@@ -33,9 +35,12 @@ const NOMBRE_ESTADO_CATALOGO = {
  * sesión» y la versión. En la demo, además, la sección «Modo demo». Aquí irá «Crear otra tienda» (PR de grupos de tiendas).
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
+  // La línea de Mi marca dice lo que falta con la misma regla que bloquea el retoque (también en Ver como, solo para mirar).
+  const { data: marcaRetoque, cargando: leyendoMarca } = useConsulta(`marca:${tiendaActivaId}`, () => getMarcaRetoque(tiendaActivaId));
+  const estadoMarca = detalleMiMarca(marcaRetoque);
   const toast = useToast();
   const { abrirNovedades, abrirMiMarca } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
@@ -131,7 +136,14 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
             <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-accion-suave text-texto">✦</span>
             <span className="min-w-0 flex-1">
               <span className="block font-extrabold">Mi marca</span>
-              <span className="block text-secundario text-texto-secundario">{DETALLE_MI_MARCA}</span>
+              {estadoMarca ? (
+                <span className={`block text-secundario ${estadoMarca.tono === "lista" ? "text-exito-texto" : "text-atencion-texto"}`} data-estado-marca={estadoMarca.tono}>
+                  {estadoMarca.texto}
+                </span>
+              ) : (
+                // Mientras se lee (o si no se pudo leer) no se inventa un estado: una línea corta de carga o nada.
+                <span className="block h-5" data-estado-marca="leyendo">{leyendoMarca && <Esqueleto className="mt-1.5 h-3 w-32 rounded-full" />}</span>
+              )}
             </span>
             <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
           </button>
