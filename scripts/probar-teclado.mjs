@@ -144,6 +144,33 @@ try {
     await ctx.close();
   }
 
+  // ---- Hoja «Tu equipo»: la nota del enlace y el correo
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL + "/catalogo");
+    await page.waitForSelector('header button[aria-haspopup="dialog"]');
+    await page.waitForTimeout(900);
+    await page.tap('header button[aria-haspopup="dialog"]');
+    await page.waitForSelector("[data-fila-equipo]");
+    await page.waitForTimeout(500);
+    await page.tap("button[data-fila-equipo]");
+    await page.waitForSelector('[role="dialog"] [data-hoja-equipo]');
+    await page.waitForTimeout(700);
+    await page.tap('[role="dialog"] button:has-text("Invitar por enlace")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Para Ana"]');
+    await page.waitForTimeout(300);
+    await probarCampo(page, '[role="dialog"] input[placeholder="Para Ana"]', "Tu equipo · Para quién", "Rosa", { dentroDeHoja: true });
+    await page.evaluate(() => document.activeElement.blur());
+    await page.tap('[role="dialog"] section[aria-label="Invitar por enlace"] button:has-text("Cancelar")');
+    await page.waitForTimeout(300);
+    await page.tap('[role="dialog"] button:has-text("Invitar por correo")');
+    await page.waitForSelector('[role="dialog"] input[type="email"]');
+    await page.waitForTimeout(300);
+    await probarCampo(page, '[role="dialog"] input[type="email"]', "Tu equipo · Correo de Google", "rosa@gmail.com", { dentroDeHoja: true });
+    ok(errores.length === 0, `Tu equipo: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Hoja "Nuevo producto"
   {
     const { ctx, page, errores } = await abrir(navegador);

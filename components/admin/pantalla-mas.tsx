@@ -105,7 +105,8 @@ function Invitaciones() {
         <Boton onClick={crear}>Crear enlace de tienda</Boton>
       </Tarjeta>
       {url && (
-        <Tarjeta className="mt-3 border-2 border-accion p-4" data-enlace-tienda-nuevo="">
+        <div data-enlace-tienda-nuevo="">
+        <Tarjeta className="mt-3 border-2 border-accion p-4">
           <p className="font-bold">Tu enlace está listo. Se muestra solo esta vez.</p>
           <p className="mt-2 rounded-radio-m bg-superficie-hundida px-3 py-2 text-secundario break-all select-all">{url}</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -114,6 +115,7 @@ function Invitaciones() {
             <Boton tamano="compacto" jerarquia="terciario" onClick={() => setCodigo(null)}>Listo</Boton>
           </div>
         </Tarjeta>
+        </div>
       )}
       {aviso && <p role="status" className="mt-2 text-secundario font-bold">{aviso}</p>}
       <div className="mt-3"><EstadoAdmin cargando={!lista && !error} error={error} reintentar={() => void leer()} /></div>
@@ -121,8 +123,8 @@ function Invitaciones() {
       {lista && lista.length > 0 && (
         <ul className="mt-3 flex flex-col gap-2">
           {lista.map((l) => (
-            <li key={l.id}>
-              <Tarjeta className="p-3.5" data-enlace-tienda={l.estado}>
+            <li key={l.id} data-enlace-tienda={l.estado}>
+              <Tarjeta className="p-3.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-extrabold">{l.nota ?? "Sin nota"}</span>
                   <Etiqueta tono={ESTADO[l.estado].tono}>{ESTADO[l.estado].texto}</Etiqueta>
