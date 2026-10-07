@@ -11,6 +11,14 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 - Diseño: lienzos de Claude Design (artifacts) primero, Lewis aprueba, luego se copian a `referencias/<carpeta>/` con su `LEEME.md`. Textos con la voz de `docs/11`.
 - Datos reales (dar créditos, cambiar plan de una tienda) por SQL con el MCP de Supabase solo si Lewis lo pide; nunca en migraciones. Ojo: un cambio por SQL directo no deja rastro en `registro_admin`; mejor que Lewis lo haga desde `/admin` cuando se pueda.
 
+## Prioridad actual (7 oct 2026, Lewis)
+
+**Nada de admin por ahora** (`admin-4-cobros` queda en pausa; con lo que tiene el admin le alcanza). **Todo lo que concierne al uso de la app por la tienda y el comprador**: que la tienda y el catálogo estén listos para que Lewis mande el **enlace de invitación** a contactos de confianza que prueben, y preparar el lanzamiento lo antes posible.
+
+**Hallazgo (7 oct):** el catálogo público de una tienda solo responde si `tiendas.estado = 'activa'` **y** `catalogo_estado = 'publicado'` (`tienda_publica`). Una tienda nueva (en_prueba, catálogo «sin») no tiene catálogo público hasta que Lewis la active y publique desde el admin. Para probadores, hace falta una **publicación automática** («Publicar mi catálogo», sin paso manual) o hacerlo a mano por cada tienda. Pendiente de decidir con Lewis.
+
+**Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»).
+
 ## Cola para Coding (Lewis pega los prompts)
 
 En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesión de Coding.
