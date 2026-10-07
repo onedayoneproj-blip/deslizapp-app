@@ -36,6 +36,7 @@ Lo que los filtros del catálogo usan: perfumes filtra por `para` y `ocasiones` 
 
 - `productos.opciones` sigue siendo la lista de ejes: `[{"nombre":"Talla","valores":["S","M","L"]},{"nombre":"Color","valores":["Negro","Blanco"]}]`. Máximo 2 ejes y 12 valores por eje.
 - Tabla nueva **`producto_variantes`**: `id`, `tienda_id`, `producto_id`, `valores` jsonb (`{"Talla":"M","Color":"Negro"}`), `stock` integer null (null = sin control), `precio` integer null (null = el del producto), `activa` boolean, `orden`. Única por (producto_id, valores).
+- **Presentaciones en el catálogo del cliente** (opción B, parte 2 de presentaciones): `catalogo_publico` devuelve `fotos_por_valor` junto a `opciones`; el reel sale limpio con «Ver presentaciones ›», la hoja muestra todas (cuadrícula con dos ejes, lista con uno), la foto sigue al color y el pedido guarda la presentación como siempre. Detalle en `docs/04-pantallas.md`.
 - Producto **sin opciones** = sin variantes; su stock sigue en `productos.stock`.
 - Producto **con opciones**: el stock vive en las variantes; `productos.stock` pasa a ser la suma (la mantiene un trigger) para resúmenes y para "Agotado" del producto (todas en 0).
 - `pedido_items` suma `variante_id` (null si no aplica) y `variante_texto` (foto fija: "Talla M · Negro"), y `por_encargo` boolean.

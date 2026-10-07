@@ -91,6 +91,7 @@ export function Medios({
   anterior,
   prioridad,
   dobleToque,
+  irA = null,
 }: {
   medios: Medio[];
   nombre: string;
@@ -99,9 +100,18 @@ export function Medios({
   anterior: boolean;
   prioridad: boolean;
   dobleToque: () => void;
+  /** Una foto a la que ir (la del color elegido): solo mueve este carrusel, no la página ni el foco. */
+  irA?: number | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [indice, setIndice] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (irA === null || !el) return;
+    const left = irA * el.clientWidth;
+    if (Math.abs(el.scrollLeft - left) < 2) return;
+    el.scrollTo({ left, behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth" });
+  }, [irA]);
   const tap = useRef({ t: 0, x: 0, y: 0 });
   return (
     <>

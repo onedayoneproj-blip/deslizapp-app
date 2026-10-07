@@ -1,5 +1,6 @@
 import type { ProductoPublico, ItemSolicitud, CatalogoPublico } from "../types";
 import type { LineaCarrito } from "../data/fuente";
+import { fotoDeEleccion } from "./presentaciones.ts";
 export type LineaLocal = LineaCarrito & {
   slug: string;
   nombre: string;
@@ -49,7 +50,8 @@ export function lineaDe(
           )
           .join(" · ")
       : null,
-    foto: p.medios.find((m) => m.tipo === "foto")?.url ?? null,
+    // La foto del color elegido, si el producto tiene una asignada; si no, la primera foto.
+    foto: (v && fotoDeEleccion(p, v.valores)) || (p.medios.find((m) => m.tipo === "foto")?.url ?? null),
     precioUnitario: v
       ? (v.precioPromo ?? v.precio)
       : (p.precioPromo ?? p.precio),

@@ -469,6 +469,7 @@ export type FilaCatalogoPublico = {
     disponibilidad: string;
     quedan: number | null;
     encargo_texto: string | null;
+    fotos_por_valor?: Record<string, Record<string, string>> | null;
     variantes: { id: string; valores: Record<string, string>; precio: number; precio_promo: number | null; disponibilidad: string; quedan: number | null }[];
   }[];
 };
@@ -507,6 +508,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       medios: (p.medios ?? []).map(aMedio),
       detalles: p.detalles ?? {},
       opciones: p.opciones ?? [],
+      fotosPorValor: p.fotos_por_valor ?? {},
       likes: p.likes,
       disponibilidad: p.disponibilidad as Disponibilidad,
       quedan: p.quedan ?? null,

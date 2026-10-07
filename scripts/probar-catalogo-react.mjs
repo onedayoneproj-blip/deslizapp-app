@@ -211,21 +211,27 @@ try {
   await caso("ropa / precios / agotada / sin tema", async () => {
     const { ctx, p, errores } = await contexto(390, lino.slug);
     const r = p.locator("#r-" + camisa.slug);
-    await r.getByRole("button", { name: "M", exact: true }).first().click();
+    // Presentaciones (docs/prompts/presentaciones-catalogo.md): el reel sale limpio y todas se eligen en la hoja «Ver presentaciones».
+    await r.locator(".cap .pres-btn").click();
+    const h = p.locator("#presBg");
+    const celda = h.getByRole("radio", { name: /^Talla M, color Arena, agotada/ });
+    await celda.click();
     await p.waitForTimeout(100);
     aprobar(
-      await r
-        .getByRole("button", { name: "M", exact: true })
-        .first()
-        .evaluate((el) => el.classList.contains("agotada")),
+      await celda.evaluate((el) => el.classList.contains("agotada")),
       "M · Arena tachada y tocable",
     );
-    await r.getByRole("button", { name: "Negro", exact: true }).first().click();
+    await h.getByRole("radio", { name: /^Talla M, color Negro/ }).click();
     aprobar(
-      (await r.locator(".pr strong").innerText()).includes("1,900"),
+      (await h.locator(".pres-prod small").innerText()).includes("1,900"),
       "Precio cambia con M · Negro",
     );
-    await r.locator(".acts [data-like]").click();
+    await h.getByRole("button", { name: "Agregar a mi pedido" }).click();
+    await h.waitFor({ state: "detached" });
+    aprobar(
+      (await r.locator(".pr strong").innerText()).includes("1,900"),
+      "El reel muestra el precio de M · Negro",
+    );
     await p.locator("#bagDock button").click();
     aprobar(
       (await p.locator("#lines").innerText()).includes("Talla M · Negro"),
