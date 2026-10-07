@@ -9140,3 +9140,17 @@ html.catalogo-html,
 .catalogo-publico .pres-body {
   overscroll-behavior: contain;
 }
+
+/* Hojas expandidas: el cuerpo ocupa el resto de la columna y se puede encoger (desborda y hace scroll en vez de recortarse). */
+.catalogo-publico .sheet.full .sbody,
+.catalogo-publico .sheet.full .pres-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+.catalogo-publico .pres-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}

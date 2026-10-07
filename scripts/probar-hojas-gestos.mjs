@@ -56,12 +56,26 @@ const full = (page, sel) => page.locator(sel).evaluate((e) => e.classList.contai
 const arriba = (page, sel) => page.locator(sel).evaluate((e) => e.scrollTop);
 
 /** Recorrido común. `hoja` = selector de la hoja; `cuerpo` = el que desplaza; `scroll` = si el contenido desborda al expandir. */
-async function recorrido(nombre, { cdp, page }, hoja, cuerpo, { cierraCon = "#" } = {}) {
+async function recorrido(nombre, { cdp, page }, hoja, cuerpo) {
+  // Contenido largo siempre (carrito con muchos productos, muchas combinaciones): si el demo es corto, se añade relleno.
+  await page.locator(cuerpo).evaluate((e) => {
+    if (e.scrollHeight > e.clientHeight * 1.8) return;
+    for (let i = 0; i < 16; i++) {
+      const d = document.createElement("div");
+      d.style.cssText = "height:56px;flex:none";
+      d.textContent = "relleno " + i;
+      e.appendChild(d);
+    }
+  });
   const p = (await centro(page, cuerpo));
   ok(!(await full(page, hoja)), `${nombre}: abre a media altura`);
-  await dedo(cdp, [p.x, p.y + 60], [p.x, p.y - 140]);
+  // Un solo recorrido: expande y, sin soltar, el mismo gesto ya desplaza el contenido.
+  await dedo(cdp, [p.x, p.y + 140], [p.x, p.y - 260], 24);
   ok(await full(page, hoja), `${nombre}: deslizar arriba sobre el cuerpo expande`);
+  ok((await arriba(page, cuerpo)) > 20, `${nombre}: en ese mismo recorrido el contenido ya hace scroll (${await arriba(page, cuerpo)} px)`);
+  await page.locator(cuerpo).evaluate((e) => (e.scrollTop = 0));
   const sc = await page.locator(cuerpo).evaluate((e) => e.scrollHeight > e.clientHeight + 4);
+  ok(sc, `${nombre}: expandida, el cuerpo desborda y puede hacer scroll`);
   if (sc) {
     const q = await centro(page, cuerpo);
     await dedo(cdp, [q.x, q.y + 120], [q.x, q.y - 120]);
@@ -110,7 +124,6 @@ for (const ancho of [390, 360]) {
     await s.page.waitForSelector("#r-pantalon-de-algodon.on");
     await s.page.locator("#r-pantalon-de-algodon .cap .pres-btn").click();
     await s.page.waitForSelector("#presBg .sheet");
-    const xs = await centro(s.page, "#presBg .pres-body");
     const cuadricula = s.page.locator("#presBg .pres-scroll");
     ok((await cuadricula.count()) === 1, "Presentaciones: hay cuadrícula con scroll horizontal");
     if (await cuadricula.count()) {

@@ -147,15 +147,26 @@ export function PanelCatalogo({
   useEffect(() => {
     const hoja = ref.current;
     if (!hoja) return;
+    type Modo = "esperar" | "ignorar" | "scroll" | "expandir" | "arrastrar" | "guiar";
     let g: {
       x: number;
       y: number;
-      modo: "esperar" | "ignorar" | "scroll" | "expandir" | "arrastrar";
+      modo: Modo;
+      destino: HTMLElement;
       scroll: HTMLElement | null;
+      top0: number;
+      guia: { y: number; top: number } | null;
     } | null = null;
     const reset = () => {
       hoja.style.transform = "";
       hoja.style.transition = "";
+    };
+    // Desplaza el contenedor siguiendo el dedo con JS (sin scroll nativo): tras expandir en el mismo gesto,
+    // o cuando Safari no reconoce el cuerpo como desplazable.
+    const guiar = (y: number) => {
+      if (!g?.scroll) return;
+      g.guia ??= { y, top: g.scroll.scrollTop };
+      g.scroll.scrollTop = g.guia.top - (y - g.guia.y);
     };
     const inicio = (e: TouchEvent) => {
       g = null;
@@ -167,18 +178,37 @@ export function PanelCatalogo({
         (foco && hoja.contains(foco) && foco.matches("input,textarea"))
       )
         return;
+      const scroll = contenedorScroll(t, hoja);
       g = {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
         modo: "esperar",
-        scroll: contenedorScroll(t, hoja),
+        destino: t,
+        scroll,
+        top0: scroll?.scrollTop ?? 0,
+        guia: null,
       };
     };
     const mover = (e: TouchEvent) => {
-      if (!g || g.modo === "ignorar" || g.modo === "scroll") return;
-      const dy = e.touches[0].clientY - g.y;
+      if (!g || g.modo === "ignorar") return;
+      const y = e.touches[0].clientY;
+      const dy = y - g.y;
+      const full = estado.current.full;
+      // El contenedor se busca también al decidir: al empezar el gesto la hoja podía estar a media altura (cuerpo sin scroll).
+      if (full && !g.scroll) {
+        g.scroll = contenedorScroll(g.destino, hoja);
+        g.top0 = g.scroll?.scrollTop ?? 0;
+      }
+      if (g.modo === "scroll") {
+        // Vigilante: el dedo ya se movió y el contenido no. Si el navegador no inició el scroll nativo, lo guiamos.
+        const c = g.scroll;
+        const puede = c && (dy < 0 ? c.scrollTop < c.scrollHeight - c.clientHeight - 1 : c.scrollTop > 0);
+        if (c && puede && e.cancelable && Math.abs(dy) > 24 && c.scrollTop === g.top0) {
+          g.modo = "guiar";
+          g.guia = null;
+        } else return;
+      }
       if (g.modo === "esperar") {
-        const full = estado.current.full;
         g.modo = decidirGesto({
           dx: e.touches[0].clientX - g.x,
           dy,
@@ -190,8 +220,13 @@ export function PanelCatalogo({
         if (g.modo === "arrastrar") hoja.style.transition = "none";
       }
       if (e.cancelable) e.preventDefault();
-      if (g.modo === "arrastrar")
-        hoja.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      if (g.modo === "arrastrar") hoja.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      // Expandió en este gesto: en cuanto el cuerpo puede desplazarse, el mismo recorrido ya lo desplaza.
+      if (g.modo === "expandir" && estado.current.full) {
+        g.scroll ??= contenedorScroll(g.destino, hoja);
+        guiar(y);
+      }
+      if (g.modo === "guiar") guiar(y);
     };
     const fin = (e: TouchEvent) => {
       const actual = g;
