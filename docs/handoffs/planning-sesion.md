@@ -81,6 +81,10 @@ Lienzo: https://claude.ai/artifact/GRm2BmLszQfAhckVr8WMWQ (31 pantallas). Recorr
 - **Tipo de producto (decidido por Lewis, 7 oct):** SÍ va el rubro por producto: la tienda tiene uno o varios («Lo que vendes») y cada producto un «Tipo de producto» (selector nativo, solo con más de un rubro; filtro en el Catálogo; búsqueda del cliente por tipo). Prompt: `docs/prompts/tipo-de-producto.md` (Sonnet; no cambia los Detalles).
 - **«Detalles» se reemplaza** (propuesta de Lewis): fuera los campos por rubro; en su lugar una **descripción corta (caption)** y una **ficha técnica como imagen** que la tienda sube, con un botón circular con ícono de ficha junto a «Ver presentaciones» que abre la imagen. Si no tiene ficha, Deslizapp se la genera **gastando créditos**. **Ojo:** la búsqueda del catálogo (`lib/tienda/busqueda.ts`) se apoya en los Detalles (sinónimos de notas, «para ella», ocasiones): quitarlos estropea la búsqueda de perfumes. Propuesta: dejar de pedirlos a la tienda y generarlos solos como «etiquetas de búsqueda» ocultas (con IA); los de Michel se conservan. Sin decidir; no hay prompt.
 
+## IA de Deslizapp: más adelante (decisión de Lewis, 7 oct 2026)
+
+La IA (servicio de Claude desde el servidor, revisión automática de productos, etiquetas de búsqueda automáticas, ficha técnica generada) **se introduce más adelante**. Por ahora todo es **manual**: la ficha técnica la sube la tienda o la hace el equipo de Deslizapp (con créditos, como el retoque); la revisión de productos se diseña pero se difiere. Todo se construye con los mismos estados y colas para que la IA se enchufe después sin rehacer nada.
+
 ## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
 
 - **Abrir la cuenta de desarrollador de Meta** (gratis; con su Facebook). Con el acceso estándar se puede probar «conectar Instagram» con la cuenta de Michel; el acceso avanzado (otras tiendas) pide App Review y Business Verification, y probablemente una empresa registrada (RNC) y dominio propio. Detalle en `docs/15-mi-marca-magica.md`.
