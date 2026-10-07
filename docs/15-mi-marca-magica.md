@@ -63,8 +63,30 @@ Antes de fijarlo, revisar `docs/11-voz-y-frases.md`.
 4. Rondas opcionales 2 y 3.
 5. Conectar Instagram (depende de la aprobación de Meta).
 
+## Decisiones de Lewis (7 oct 2026)
+
+- **Dónde vive el cuestionario:** dentro de **Mi marca** (menú de la tienda), como experiencia opcional. **No** va en el onboarding de toda tienda nueva. (El onboarding de historias sigue su propio camino: nombre, logo, rubro y datos básicos.)
+- **Quién paga la IA:** **Deslizapp**. Es una sola vez por tienda y cuesta poco; no se cobra ni se descuenta de créditos de la tienda. Las rondas 2 y 3 también las cubre Deslizapp; si el gasto crece, se revisa con límites por tienda.
+- **Mergear #57:** aprobado como siguiente paso, cuando Lewis lo pruebe en el iPhone y diga «mergea».
+
 ## Preguntas abiertas para Lewis
 
 - Nombre de marketing (¿Vibra?).
-- ¿El cuestionario va en el onboarding de toda tienda nueva y también disponible después desde el menú? (Recomendado.)
-- ¿Abrir ya la cuenta de desarrollador de Meta para la revisión?
+- ¿Deslizapp tiene empresa registrada (RNC) y dominio propio? Decide si se puede pedir el acceso avanzado de Instagram.
+- ¿Abrir ya la cuenta de desarrollador de Meta? El acceso estándar (inmediato) ya permite probar con la cuenta de Michel.
+
+## Instagram: requisitos (verificado el 7 oct 2026)
+
+- Cuentas de las tiendas: Business o Creator (cambiarla es gratis).
+- Cuenta de desarrollador de Meta (gratis), app tipo Business, producto «Instagram API with Instagram Login», dirección HTTPS de retorno.
+- **Acceso estándar:** inmediato, solo para cuentas con rol en la app (sirve para probar con Michel).
+- **Acceso avanzado** (para cualquier otra tienda): App Review (video de uso, explicación de permisos, privacidad, términos, borrado de datos) y Business Verification (documentos legales de una empresa; probablemente dominio propio).
+- Costo: no se encontró ningún cargo de Meta; el costo es tiempo (semanas de revisión) más nuestra IA y almacenamiento.
+
+## Idea relacionada: convertir un post de Instagram en un producto de Deslizapp
+
+Opciones evaluadas:
+- **D. Foto o captura + texto del post → la IA con visión arma el producto** (nombre, descripción, precio si aparece, rubro) y el dueño revisa antes de guardar. No depende de Meta y funciona hoy en iPhone y Android. **Recomendada primero.**
+- **A. Conectar la cuenta** y elegir un post dentro de Deslizapp: mejor experiencia, mismo login y misma revisión de Meta que la conexión de la marca. Copiar las imágenes a nuestro almacenamiento (los enlaces de Instagram caducan). Después.
+- **B. Pegar el enlace (oEmbed):** solo muestra el post incrustado, no copia foto ni texto. Descartada como base.
+- **C. «Compartir» desde Instagram al PWA:** funciona en Android; en iPhone Safari no lo soporta (hasta donde se pudo verificar) y Instagram solo comparte el enlace. Descartada.
