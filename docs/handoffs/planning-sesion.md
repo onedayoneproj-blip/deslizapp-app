@@ -73,6 +73,12 @@ Lienzo: https://claude.ai/artifact/GRm2BmLszQfAhckVr8WMWQ (31 pantallas). Recorr
 - Falta: copiar el lienzo a `referencias/onboarding/`, y escribir los prompts: (1) onboarding (historias, tienda creada con sus datos, alinear `/unirse` y «Tu equipo» con el diseño, estado «esperando aprobación» en el enlace de equipo); (2) checklist de Inicio y desbloqueo de «Pide tu catálogo»; (3) tipos de producto (cambia el modelo de datos), aparte.
 - Va después de `admin-4-cobros`.
 
+## Ideas en evaluación (7 oct 2026, Lewis)
+
+- **Lista de productos prohibidos aprobada por Lewis:** armas y municiones, drogas ilegales, sexo explícito, productos falsificados, documentos falsos, medicamentos con receta, animales vivos (los Términos tienen que decirlo).
+- **Revisión de productos nuevos** con IA (Claude desde el servidor, foto + texto): estados «En revisión» / aprobado / dudoso (cola en el admin) / rechazado; después de aprobado, los cambios salen al instante pero se revisan **después** (se ocultan solos si no pasan); tiendas con buen historial saltan la revisión previa; los productos existentes se dan por aprobados. Requiere un servicio de IA de Deslizapp (clave de API en Vercel, control de costo y registro de uso) que también usarán Mi marca «mágica» y crear producto desde foto.
+- **«Detalles» se reemplaza** (propuesta de Lewis): fuera los campos por rubro; en su lugar una **descripción corta (caption)** y una **ficha técnica como imagen** que la tienda sube, con un botón circular con ícono de ficha junto a «Ver presentaciones» que abre la imagen. Si no tiene ficha, Deslizapp se la genera **gastando créditos**. Consecuencia: el rubro por producto (selector, filtro) pierde su razón de ser; se evalúa dejar solo rubro(s) **de la tienda** para las presentaciones típicas. En la app, «Lo que vendes» en vez de «rubro». Sin decidir; no hay prompt.
+
 ## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
 
 - **Abrir la cuenta de desarrollador de Meta** (gratis; con su Facebook). Con el acceso estándar se puede probar «conectar Instagram» con la cuenta de Michel; el acceso avanzado (otras tiendas) pide App Review y Business Verification, y probablemente una empresa registrada (RNC) y dominio propio. Detalle en `docs/15-mi-marca-magica.md`.
