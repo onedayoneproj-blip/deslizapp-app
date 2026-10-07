@@ -40,7 +40,8 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
 | `presentaciones-panel.md` (rama `feat/presentaciones-panel`) | Sonnet | — (después de equipo; no a la vez que otra migración) | **Hecho**, PR #62 mergeado el 7 oct (squash, migración `20261007125411` aplicada). Falta que Lewis lo pruebe en la demo (Lino & Algodón y Esencias Michel) |
 | `presentaciones-catalogo.md` (rama `feat/presentaciones-catalogo`) | Sonnet | `presentaciones-panel.md` | **Hecho**, PR #63 mergeado el 7 oct (squash `2e0f4eb`) con el botón «Elegir otra ›». Lewis lo autorizó; sin probar en iPhone real todavía (lo hará él). Falta borrar la rama `feat/presentaciones-catalogo` |
-| `tipo-de-producto.md` (rama `feat/tipo-de-producto`) | Sonnet | `presentaciones-catalogo.md` en main | merge a main si una tienda con un solo rubro no cambia en nada |
+| `tipo-de-producto.md` (rama `feat/tipo-de-producto`) | Sonnet | `presentaciones-catalogo.md` en main | merge a main si una tienda con un solo rubro no cambia en nada. **Obligatorio para lanzar** (Lewis probará con tiendas de varios rubros) |
+| `bloquear-video.md` (rama `fix/bloquear-video`) | Sonnet | — (una migración; no a la vez que otra) | merge a main. Por ahora no se suben videos; lo que ya existe se sigue viendo |
 
 Sin prompt todavía (los escribe Planning cuando toque):
 - **Mi marca «mágica»**: idea anotada en `docs/15-mi-marca-magica.md` (cuestionario como historias de Instagram, tarjeta de marca con IA, rondas opcionales, nombre de marketing; Instagram solo conectando la cuenta del dueño). Falta: lienzo de diseño y que Lewis elija el nombre.
