@@ -1,6 +1,5 @@
 "use client";
 
-import { TEXTO_MENU_MARCA_LISTA, textoFalta } from "@/lib/marca-retoque";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
@@ -9,10 +8,15 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
-import { IconoCheck, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
+import { IconoCheck, IconoChevronDerecha, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
+import { Boton } from "../ui";
+import { AVISO_SIN_CAMBIO, avisoAhoraEstas, etiquetaTienda, ordenarTiendas, tituloMenu } from "@/lib/cuenta";
+import { detalleMiMarca } from "@/lib/marca-retoque";
+import { Esqueleto } from "../esqueleto";
 import { useToast } from "../toast";
 import { Logotipo } from "../marca";
 import { AccesoAdmin } from "./acceso-admin";
+import { FilaCuenta } from "./cuenta";
 import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
 
@@ -26,30 +30,49 @@ const NOMBRE_ESTADO_CATALOGO = {
 } as const;
 
 /**
- * Menú de la tienda (hace de Ajustes): Mi marca, novedades y cerrar sesión.
- * En la demo, además, el selector de tienda activa y las acciones de prueba.
+ * Menú de tus tiendas (hace de Ajustes). De arriba abajo: la tienda activa (con Mi marca dentro de su tarjeta), las otras
+ * tiendas de la cuenta (tocar una cambia de tienda), «Administrar Deslizapp» si eres admin, la cuenta de Google con «Cerrar
+ * sesión» y la versión. En la demo, además, la sección «Modo demo». Aquí irá «Crear otra tienda» (PR de grupos de tiendas).
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, soloMirar, tiendaActivaId, getMarcaRetoque, getTiendas, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
-  // Mi marca muestra cuánto le falta al taller (o que ya está lista), con la misma regla que bloquea el retoque.
-  const { data: marcaRetoque } = useConsulta(`marca:${tiendaActivaId}`, () => getMarcaRetoque(tiendaActivaId));
-  const faltaMarca = marcaRetoque ? textoFalta(marcaRetoque) : null;
+  // La línea de Mi marca dice lo que falta con la misma regla que bloquea el retoque (también en Ver como, solo para mirar).
+  const { data: marcaRetoque, cargando: leyendoMarca } = useConsulta(`marca:${tiendaActivaId}`, () => getMarcaRetoque(tiendaActivaId));
+  const estadoMarca = detalleMiMarca(marcaRetoque);
   const toast = useToast();
   const { abrirNovedades, abrirMiMarca } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
+  const [cambiando, setCambiando] = useState<string | null>(null);
+
+  const ordenadas = ordenarTiendas(tiendas ?? [], tiendaActivaId);
+  const activa = ordenadas.find((t) => t.id === tiendaActivaId) ?? null;
+  const otras = ordenadas.filter((t) => t.id !== tiendaActivaId);
 
   const cerrar = () => {
     setConfirmarReinicio(false);
     alCerrar();
   };
 
-  const elegirTienda = (id: string) => {
-    cambiarTiendaActiva(id);
+  const elegirTienda = async (id: string) => {
+    if (cambiando || soloMirar || id === tiendaActivaId) return;
     const nombre = tiendas?.find((t) => t.id === id)?.nombre;
-    if (id !== tiendaActivaId && nombre) toast(`Ahora estás en ${nombre}.`);
-    cerrar();
+    const aviso = nombre ? avisoAhoraEstas(nombre) : undefined;
+    setCambiando(id);
+    try {
+      await cambiarTiendaActiva(id, aviso);
+      // Demo: el cambio fue al instante. Real: la página se recarga y el aviso sale al volver.
+      if (demo) {
+        if (aviso) toast(aviso);
+        cerrar();
+      }
+    } catch {
+      // Con un error la tienda sigue como estaba.
+      toast(AVISO_SIN_CAMBIO);
+    } finally {
+      setCambiando(null);
+    }
   };
 
   const simular = async () => {
@@ -81,62 +104,76 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
     cerrar();
   };
 
+  const etiquetaSalir = demo ? "Salir de la demo" : soloMirar ? "Cerrar sesión y salir" : "Cerrar sesión";
+  const alSalir = () => {
+    cerrar();
+    void salir();
+  };
+
   return (
-    <Hoja abierta={abierto} alCerrar={cerrar} titulo={demo ? "Tus tiendas" : "Tu tienda"} altura="auto">
-      {demo && (
-        <ul className="space-y-2">
-          {tiendas?.map((t) => {
-            const activa = t.id === tiendaActivaId;
-            return (
-              <li key={t.id}>
-                <button
-                  type="button"
-                  onClick={() => elegirTienda(t.id)}
-                  aria-pressed={activa}
-                  className={`flex w-full items-center gap-3 rounded-[18px] border-[1.5px] px-3 py-2.5 text-left ${
-                    activa ? "border-bosque bg-white" : "border-borde bg-white/60 hover:border-bosque/40"
-                  }`}
-                >
-                  <LogoTienda tienda={t} tamano={40} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-extrabold">{t.nombre}</span>
-                    <span className="block text-[13px] text-suave">
-                      {NOMBRE_PLAN[t.plan]} · {t.creditosRetoque} créditos
-                    </span>
-                  </span>
-                  {activa && <IconoCheck tamano={20} className="text-bosque" />}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+    <Hoja abierta={abierto} alCerrar={cerrar} titulo={tituloMenu(ordenadas.length)} altura="auto">
+      {activa && (
+        <div className="overflow-hidden rounded-radio-l border-2 border-accion bg-superficie" data-tienda-activa="">
+          <div className="flex items-center gap-3 px-3.5 py-3" aria-label={etiquetaTienda(activa.nombre, NOMBRE_PLAN[activa.plan], true)} role="group">
+            <LogoTienda tienda={activa} tamano={44} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-extrabold">{activa.nombre}</span>
+              <span className="block text-secundario text-texto-secundario">
+                {NOMBRE_PLAN[activa.plan]} · {activa.creditosRetoque} créditos
+              </span>
+            </span>
+            <IconoCheck tamano={22} className="shrink-0 text-accion" />
+          </div>
+          <button
+            type="button"
+            data-solo-mirar-permitido={soloMirar || undefined}
+            onClick={() => {
+              cerrar();
+              abrirMiMarca();
+            }}
+            className="tocable flex min-h-14 w-full items-center gap-3 border-t border-linea px-3.5 py-2 text-left"
+          >
+            <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-accion-suave text-texto">✦</span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-extrabold">Mi marca</span>
+              {estadoMarca ? (
+                <span className={`block text-secundario ${estadoMarca.tono === "lista" ? "text-exito-texto" : "text-atencion-texto"}`} data-estado-marca={estadoMarca.tono}>
+                  {estadoMarca.texto}
+                </span>
+              ) : (
+                // Mientras se lee (o si no se pudo leer) no se inventa un estado: una línea corta de carga o nada.
+                <span className="block h-5" data-estado-marca="leyendo">{leyendoMarca && <Esqueleto className="mt-1.5 h-3 w-32 rounded-full" />}</span>
+              )}
+            </span>
+            <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
+          </button>
+        </div>
       )}
 
-      <button
-        type="button"
-        data-solo-mirar-permitido={soloMirar || undefined}
-        onClick={() => {
-          cerrar();
-          abrirMiMarca();
-        }}
-        className={`tocable flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left ${demo ? "mt-3" : ""}`}
-      >
-        <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center text-destacado text-texto">✦</span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-extrabold">Mi marca</span>
-          {marcaRetoque && faltaMarca ? (
-            <span className="block text-secundario font-bold text-atencion-texto" data-estado-marca="falta">
-              {faltaMarca}
-            </span>
-          ) : marcaRetoque ? (
-            <span className="block text-secundario font-bold text-exito-texto" data-estado-marca="lista">
-              {TEXTO_MENU_MARCA_LISTA}
-            </span>
-          ) : (
-            <span className="block text-[13px] text-suave">Logo, colores y letra de tus cupones.</span>
-          )}
-        </span>
-      </button>
+      {otras.length > 0 && (
+        <ul className="mt-2 space-y-2" aria-label="Tus otras tiendas">
+          {otras.map((t) => (
+            <li key={t.id}>
+              <button
+                type="button"
+                onClick={() => void elegirTienda(t.id)}
+                disabled={soloMirar || cambiando !== null}
+                aria-label={etiquetaTienda(t.nombre, NOMBRE_PLAN[t.plan], false)}
+                aria-busy={cambiando === t.id || undefined}
+                className="tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l border-[1.5px] border-linea bg-superficie px-3.5 py-2.5 text-left disabled:opacity-60"
+              >
+                <LogoTienda tienda={t} tamano={44} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-extrabold">{t.nombre}</span>
+                  <span className="block text-secundario text-texto-secundario">
+                    {NOMBRE_PLAN[t.plan]} · {t.creditosRetoque} créditos
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <AccesoAdmin alAbrir={cerrar} />
 
@@ -179,18 +216,18 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         </>
       )}
 
-      <button
-        type="button"
-        onClick={() => {
-          cerrar();
-          void salir();
-        }}
-        className="tocable mt-5 flex h-12 w-full items-center justify-center rounded-full border-[1.5px] border-borde bg-white px-5 text-[15px] font-extrabold text-bosque"
-      >
-        {demo ? "Salir de la demo" : soloMirar ? "Cerrar sesión y salir" : "Cerrar sesión"}
-      </button>
+      <div className="mt-5 border-t border-linea pt-4">
+        {cuenta ? (
+          <FilaCuenta cuenta={cuenta} etiquetaSalir={etiquetaSalir} alSalir={alSalir} />
+        ) : (
+          // Ver como: no hay una cuenta que mostrar, solo la salida.
+          <Boton jerarquia="secundario" anchoCompleto onClick={alSalir}>
+            {etiquetaSalir}
+          </Boton>
+        )}
+      </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3 px-1 text-[13px] text-suave">
+      <div className="mt-4 flex items-center justify-between gap-3 px-1 text-[13px] text-suave">
         <span>
           <Logotipo className="text-bosque" /> · versión {VERSION_ACTUAL}
         </span>

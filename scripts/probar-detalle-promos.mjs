@@ -122,7 +122,7 @@ try {
   assert.equal(await page.getByRole("button", { name: "Editar promo" }).count(), 0);
   assert.equal(await page.getByRole("button", { name: "Compartir promo" }).count(), 0);
   await page.goto(`${base}/promos`);
-  await page.getByRole("button", { name: /Cambiar de tienda/ }).click();
+  await page.getByRole("button", { name: /Menú de tus tiendas/ }).click();
   await page.getByRole("button", { name: /Reiniciar datos de prueba/ }).click();
   await page.getByRole("button", { name: /¿Seguro\? Toca otra vez/ }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });

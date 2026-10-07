@@ -69,6 +69,16 @@ export function textoFalta(m: Pick<MarcaRetoque, "palabras" | "referencias">): s
 export const TEXTO_MARCA_LISTA = "Tu marca está lista para el taller.";
 export const TEXTO_MENU_MARCA_LISTA = "Lista para el taller";
 
+/**
+ * La línea gris de la fila «Mi marca» del menú, con la misma regla que bloquea el retoque. `null` mientras se lee la marca (o si
+ * la lectura falló): no se muestra un estado inventado.
+ */
+export function detalleMiMarca(m: Pick<MarcaRetoque, "palabras" | "referencias"> | null | undefined): { texto: string; tono: "falta" | "lista" } | null {
+  if (!m) return null;
+  const falta = textoFalta(m);
+  return falta ? { texto: falta, tono: "falta" } : { texto: TEXTO_MENU_MARCA_LISTA, tono: "lista" };
+}
+
 /** Instagram a como se guarda: sin «@» ni enlace. `valido` false si no cumple (letras, números, punto y guion bajo; hasta 30). */
 export function instagramLimpio(texto: string): { valor: string | null; valido: boolean } {
   const t = texto

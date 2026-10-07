@@ -435,10 +435,14 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     olvidar,
 
     // ---- Tiendas ----
+    // Solo las tiendas de las que esta cuenta es miembro (mis_tiendas() las da sin las eliminadas): ni un admin fuera de
+    // Ver como recibe las de otros, aunque alguna política se ampliara.
     getTiendas: () =>
       leer("tiendas", async () => {
-        const filas = (await dato<FilaTienda[]>(supabase.from("tiendas").select("*").order("nombre"))) ?? [];
-        return filas.map((f) => aTienda(f));
+        const ids = ((await dato<string[]>(supabase.rpc("mis_tiendas"))) ?? []).filter((x) => typeof x === "string");
+        if (ids.length === 0) return [];
+        const filas = (await dato<FilaTienda[]>(supabase.from("tiendas").select("*").in("id", ids).order("nombre"))) ?? [];
+        return filas.filter((f) => f.estado !== "eliminada").map((f) => aTienda(f));
       }),
     getTienda: (tiendaId) => leer(`tienda:${tiendaId}`, () => tiendaCruda(tiendaId)),
     getDueno: (tiendaId) =>

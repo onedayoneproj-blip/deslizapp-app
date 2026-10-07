@@ -81,3 +81,15 @@ Para la conversación de venta y para revisar los precios:
 - Shopify Starter US$5 y Basic US$25; Tiendanube desde unos US$6 (México y Colombia); Take App Business US$50. Todas son «hazlo tú mismo».
 - Netflix en RD: US$4.99, 7.99 y 10.99. No se iguala su precio: cobra poco porque no hace nada a mano por cada cliente.
 - Frases de venta, solo en conversación y en la hoja de planes (en los anuncios no se habla de dinero): «se paga con una venta al mes» y «menos de RD$60 al día».
+
+
+## Permisos de colaboradores (propuesta de Lewis, 7 oct 2026)
+
+**Hoy:** `miembros.rol` solo tiene `dueno` y `staff`, y las funciones de la base (por ejemplo `pedir_retoque`) solo comprueban que la persona sea miembro de la tienda. Un colaborador puede gastar créditos y editar Mi marca. No hay colaboradores reales todavía (Lewis y Michel son dueños), así que no es un riesgo actual.
+
+**Decisión:** el dueño decide qué puede hacer cada colaborador, y lo exige la base (no solo la pantalla). Niveles listos para elegir al invitar y cambiables después; por defecto el más bajo:
+- **Ayudante:** pedidos, clientes y promos.
+- **Editor:** lo anterior más productos y catálogo.
+- **Administrador:** lo anterior más créditos, retoque, compras y Mi marca.
+
+Se construye dentro de `docs/prompts/suscripciones-y-varias-tiendas.md` (Opus), junto con el límite de colaboradores. Falta confirmar con Lewis los nombres y el reparto de cada nivel.

@@ -22,11 +22,19 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.38.0", fecha: "2026-10-06", titulo: "Tu marca, la guía del taller.",
+    version: "0.39.0", fecha: "2026-10-06", titulo: "Tu marca, la guía del taller.",
     cambios: [
       "En «Mi marca» cuéntanos tu marca en 3 palabras y súbenos de 3 a 6 fotos que te gusten.",
       "Con tu marca lista, retocar sale a tu estilo. Sin ella, el botón te lleva a completarla.",
       "La primera vez que mandas una foto, te mostramos cómo funciona.",
+    ],
+  },
+  {
+    version: "0.38.0", fecha: "2026-10-06", titulo: "Tus tiendas, a un toque.",
+    cambios: [
+      "Si tienes más de una tienda, cámbiate de una a otra desde el menú del nombre.",
+      "Ahí también ves tu cuenta de Google y sales de la sesión.",
+      "En el admin, tu foto te lleva de vuelta a tu tienda.",
     ],
   },
   {

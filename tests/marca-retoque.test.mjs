@@ -81,3 +81,21 @@ test("la bienvenida se recuerda por tienda y sin almacenamiento sale cada vez", 
   // Un guardado corrupto se ignora.
   assert.equal(B.bienvenidaVista("x", { getItem: () => "{no es json", setItem() {} }), false);
 });
+
+test("la línea de la fila «Mi marca» del menú dice lo que falta, o que está lista, y no inventa nada mientras se lee", () => {
+  const refs = (n) => Array.from({ length: n }, (_, i) => ({ id: `r${i}`, url: `u${i}`, orden: i }));
+  const d = (palabras, n) => M.detalleMiMarca({ palabras, referencias: refs(n) });
+  assert.deepEqual(d([], 0), { texto: "Faltan 3 palabras y 3 fotos de referencia", tono: "falta" }, "nada hecho");
+  assert.deepEqual(d(["a", "b", "c"], 0), { texto: "Faltan 3 fotos de referencia", tono: "falta" });
+  assert.deepEqual(d(["a", "b", "c"], 2), { texto: "Falta 1 foto de referencia", tono: "falta" }, "singular");
+  assert.deepEqual(d(["a", "b", "c"], 1), { texto: "Faltan 2 fotos de referencia", tono: "falta" }, "plural");
+  assert.deepEqual(d(["a", "b"], 3), { texto: "Falta 1 palabra", tono: "falta" });
+  assert.deepEqual(d(["a"], 3), { texto: "Faltan 2 palabras", tono: "falta" });
+  assert.deepEqual(d(["a", "b"], 2), { texto: "Faltan 1 palabra y 1 foto de referencia", tono: "falta" });
+  assert.deepEqual(d(["a"], 1), { texto: "Faltan 2 palabras y 2 fotos de referencia", tono: "falta" });
+  assert.deepEqual(d(["a", "b", "c"], 3), { texto: "Lista para el taller", tono: "lista" });
+  assert.deepEqual(d(["a", "b", "c"], 6), { texto: "Lista para el taller", tono: "lista" });
+  assert.deepEqual(d(["a", "b", " "], 3), { texto: "Falta 1 palabra", tono: "falta" }, "una palabra en blanco no cuenta");
+  assert.equal(M.detalleMiMarca(undefined), null, "mientras se lee: nada");
+  assert.equal(M.detalleMiMarca(null), null, "si la lectura falló: nada");
+});

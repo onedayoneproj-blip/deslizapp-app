@@ -104,6 +104,8 @@ await caso("1. Sin marca: el menú dice qué falta y «Retocar» de una foto gua
   await menu(page);
   const fila = page.locator('[role="dialog"] [data-estado-marca]').first();
   ok((await fila.getAttribute("data-estado-marca")) === "falta" && (await fila.innerText()) === "Faltan 3 palabras y 3 fotos de referencia", "la fila Mi marca dice «Faltan 3 palabras y 3 fotos de referencia»");
+  ok(((await fila.getAttribute("class")) ?? "").includes("text-atencion-texto"), "…en atencion-texto");
+  ok((await page.locator('[role="dialog"] [data-tienda-activa] button', { hasText: "Mi marca" }).count()) === 1, "la fila sigue DENTRO de la tarjeta de la tienda activa");
   await page.keyboard.press("Escape");
   await esperar(page);
   const id = await primerProducto(page);
@@ -171,6 +173,7 @@ await caso("2. Completar Mi marca: palabras, referencias en vivo, tope de 6, gua
   await menu(page);
   const fila = page.locator('[role="dialog"] [data-estado-marca]').first();
   ok((await fila.getAttribute("data-estado-marca")) === "lista" && (await fila.innerText()) === "Lista para el taller", "la fila del menú dice «Lista para el taller»");
+  ok(((await fila.getAttribute("class")) ?? "").includes("text-exito-texto"), "…en exito-texto");
   await page.tap('[role="dialog"] >> text=Mi marca');
   await page.waitForSelector("[data-seccion-retoque]");
   await esperar(page, 600);
@@ -407,6 +410,30 @@ await caso("9. 360 px: la hoja Mi marca y la ficha sin desborde", async () => {
   const { page } = c;
   await abrirMarca(page);
   ok(await sinDesborde(page), "Mi marca sin scroll horizontal a 360");
+  return c;
+});
+
+await caso("9b. Mi marca a medias: el menú dice solo lo que falta, con singular y plural", async () => {
+  const c = await pagina(MICHEL);
+  const { page } = c;
+  await abrirMarca(page);
+  for (const [i, p] of ["uno", "dos"].entries()) await hoja(page).getByRole("textbox", { name: `Palabra ${i + 1}`, exact: true }).fill(p);
+  await hoja(page).locator('input[aria-label="Añadir fotos de referencia"]').setInputFiles(await archivos(page, 1));
+  await hoja(page).getByRole("img", { name: "Referencia 1" }).waitFor();
+  await hoja(page).getByRole("button", { name: "Guardar mi marca", exact: true }).click();
+  await page.getByText("Mi marca guardada.").first().waitFor({ timeout: 4000 });
+  await menu(page);
+  const fila = page.locator('[role="dialog"] [data-estado-marca]').first();
+  ok((await fila.innerText()) === "Faltan 1 palabra y 2 fotos de referencia", "«Faltan 1 palabra y 2 fotos de referencia»");
+  await page.keyboard.press("Escape");
+  await esperar(page, 500);
+  await abrirMarca(page);
+  await hoja(page).locator('input[aria-label="Añadir fotos de referencia"]').setInputFiles(await archivos(page, 1, 1));
+  await hoja(page).getByRole("img", { name: "Referencia 2" }).waitFor();
+  await hoja(page).getByRole("button", { name: "Guardar mi marca", exact: true }).click();
+  await page.getByText("Mi marca guardada.").nth(0).waitFor({ timeout: 4000 }).catch(() => {});
+  await menu(page);
+  ok((await page.locator('[role="dialog"] [data-estado-marca]').first().innerText()) === "Faltan 1 palabra y 1 foto de referencia", "«Faltan 1 palabra y 1 foto de referencia»");
   return c;
 });
 

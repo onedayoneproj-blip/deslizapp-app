@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
-import { useTiendaActiva } from "@/lib/data/consulta";
+import { accionEncabezado } from "@/lib/cuenta";
+import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
+import { useAvisoTrasCambio } from "./aviso-tras-cambio";
 import { useData } from "@/lib/data/provider";
 import { Esqueleto } from "../esqueleto";
 import { IconoChevronAbajo, IconoCreditos } from "../iconos";
@@ -17,8 +19,10 @@ import { usePanelUI } from "./ui";
  */
 export function Encabezado() {
   const { tienda } = useTiendaActiva();
-  // En la demo el menú cambia de tienda; en modo real es el menú de tu tienda (Ajustes).
-  const accion = useData().modo === "demo" ? "Cambiar de tienda" : "Menú de la tienda";
+  const { getTiendas } = useData();
+  const { data: tiendas } = useConsulta("tiendas", getTiendas);
+  const accion = accionEncabezado(tiendas?.length ?? 1);
+  useAvisoTrasCambio();
   const { abrirPlan } = usePanelUI();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = useCallback(() => setMenuAbierto(false), []);

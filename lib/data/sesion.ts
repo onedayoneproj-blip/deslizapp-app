@@ -2,6 +2,7 @@
 // Un almacén fuera de React (como la demo) que el DataProvider lee con useSyncExternalStore.
 
 import type { Usuario } from "../types";
+import { cuentaDeClaims, type CuentaVista } from "../cuenta";
 import { HAY_SUPABASE, SUPABASE_LLAVE, SUPABASE_URL } from "../supabase/config";
 import { createClient } from "../supabase/client";
 import { esErrorDeRed, traducirErrorSupabase } from "./errores";
@@ -17,7 +18,7 @@ export type EstadoSesion =
   | { tipo: "cargando" }
   /** Entró con Google pero su cuenta no tiene tienda (no hay fila en `usuarios`). */
   | { tipo: "sin-tienda"; email: string }
-  | { tipo: "lista"; usuario: Usuario }
+  | { tipo: "lista"; usuario: Usuario; /** Foto, nombre y correo de Google, leídos de la sesión (no se guardan). */ cuenta: CuentaVista | null }
   /** No se pudo comprobar la sesión (sin conexión, por ejemplo). */
   | { tipo: "error"; mensaje: string };
 
@@ -125,7 +126,7 @@ export async function comprobarSesion(aviso: string | null = null) {
       return;
     }
     guardarModo("real"); // por si el login terminó en un contexto sin modo guardado
-    poner({ tipo: "lista", usuario: aUsuario(r.data as FilaUsuario) });
+    poner({ tipo: "lista", usuario: aUsuario(r.data as FilaUsuario), cuenta: cuentaDeClaims(claims) });
   } catch (e) {
     poner({ tipo: "error", mensaje: esErrorDeRed(e) ? AVISO_SIN_RED : "No pudimos abrir tu tienda. Inténtalo otra vez." });
   }
@@ -190,6 +191,12 @@ export async function entrarConGoogle(volverA?: string): Promise<string | null> 
   }
 }
 
+/** Salir de la demo sin tocar Supabase (para /admin-demo, donde la sesión de la app no está cargada): olvida el modo y vuelve a la entrada. */
+export function salirDeLaDemo() {
+  guardarModo(null);
+  poner({ tipo: "entrada", aviso: null });
+}
+
 /** Cerrar sesión (real) o salir de la demo (sus datos se quedan guardados): vuelve a la entrada. */
 export async function salir() {
   const eraReal = estado?.tipo !== "demo";
@@ -202,4 +209,17 @@ export async function salir() {
       // Sin conexión: la sesión local igual se borra.
     }
   }
+}
+
+/**
+ * Cambia la tienda por defecto de la cuenta (`usuarios.tienda_id`, la política `usuarios_elegir_tienda` solo deja elegir una
+ * propia). Lanza si no se pudo: la tienda sigue como estaba. No recarga nada: quien llama decide (la app recarga la página).
+ */
+export async function elegirTiendaPorDefecto(tiendaId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims?.sub) throw error ?? new Error("sin_sesion");
+  const r = await supabase.from("usuarios").update({ tienda_id: tiendaId }).eq("id", data.claims.sub).select("tienda_id").maybeSingle();
+  if (r.error) throw traducirErrorSupabase(r.error);
+  if (r.data?.tienda_id !== tiendaId) throw new Error("no_se_cambio");
 }
