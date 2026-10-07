@@ -37,6 +37,7 @@ import {
 import { Reel } from "./reel";
 import { Icono, SelloAgotado } from "./iconos";
 import { colorDePortada } from "./medios";
+import { MenuCatalogo } from "./menu-catalogo";
 import { DialogoCatalogo } from "./dialogo";
 import { HojaPedido, HojaOpiniones, HojaAviso } from "./hojas-compra";
 import { HojaPresentaciones } from "./hoja-presentaciones";
@@ -379,8 +380,7 @@ export function Catalogo({
   const filtro = filtroVigente(cols, filter);
   const lista = cols.find((col) => col.id === filtro)?.productos ?? cv.productos;
   const nombreLista = variosCatalogos ? "productos" : nombres.plural;
-  const cambiarCatalogo = (valor: string) => {
-    const nuevo = (valor || null) as Rubro | null;
+  const cambiarCatalogo = (nuevo: Rubro | null) => {
     const nuevaCols = coleccionesDe(catalogoFiltrado(c, nuevo));
     const nuevoFiltro = filtroVigente(nuevaCols, filter);
     setCatalogoActivo(nuevo);
@@ -391,22 +391,6 @@ export function Catalogo({
       requestAnimationFrame(() => document.getElementById("r-" + primero.slug)?.scrollIntoView({ block: "start" }));
     }
   };
-  const selectorCatalogo = (clase: string, alto?: boolean) => (
-    <select
-      className={clase}
-      aria-label={"Ver por catálogo: " + (activo ? NOMBRE_TIPO[activo] : "Todo") + ". Cambiar"}
-      value={activo ?? ""}
-      onChange={(e) => cambiarCatalogo(e.target.value)}
-      data-alto={alto ? "1" : undefined}
-    >
-      <option value="">Todo</option>
-      {catalogos.map((x) => (
-        <option key={x.rubro} value={x.rubro}>
-          {NOMBRE_TIPO[x.rubro]} · {x.cantidad}
-        </option>
-      ))}
-    </select>
-  );
   const index =
     actual === "fin"
       ? lista.length
@@ -1017,13 +1001,30 @@ export function Catalogo({
             ))}
           </div>
         )}
-        <div className={"gridtabs" + (variosCatalogos ? " gridtabs-sel" : "")}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>{variosCatalogos ? (
-          <>
-            <span>{activo ? NOMBRE_TIPO[activo] : "Todo"}</span>
-            <svg className="chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
-            {selectorCatalogo("gt-select")}
-          </>
-        ) : nombres.plural}</div>
+        {variosCatalogos ? (
+          <div className="gridtabs gridtabs-tabs" role="tablist" aria-label="Ver por catálogo"
+            onKeyDown={(e) => {
+              const i = [null, ...catalogos.map((x) => x.rubro)].indexOf(activo);
+              const op = [null, ...catalogos.map((x) => x.rubro)];
+              const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+              if (!d) return;
+              e.preventDefault();
+              const n = (i + d + op.length) % op.length;
+              cambiarCatalogo(op[n]!);
+              const barra = e.currentTarget;
+              requestAnimationFrame(() => barra.querySelectorAll<HTMLElement>('[role="tab"]')[n]?.focus());
+            }}>
+            {[{ rubro: null as Rubro | null, nombre: "Todo" }, ...catalogos.map((x) => ({ rubro: x.rubro as Rubro | null, nombre: NOMBRE_TIPO[x.rubro] }))].map((o) => (
+              <button key={o.rubro ?? "todo"} type="button" role="tab" className="gt-tab"
+                aria-selected={activo === o.rubro} tabIndex={activo === o.rubro ? 0 : -1}
+                onClick={() => cambiarCatalogo(o.rubro)}>
+                <span>{o.nombre}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="gridtabs"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>{nombres.plural}</div>
+        )}
         <div className="grid" id="grid">
           {lista.map((p) => (
             <article
@@ -1163,14 +1164,7 @@ export function Catalogo({
             ×
           </button>
           {variosCatalogos && (
-            <label className="co-catalogo">
-              <span>Catálogo</span>
-              <span className="co-cat-val">
-                {activo ? NOMBRE_TIPO[activo] : "Todo"}
-                <svg className="chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
-              </span>
-              {selectorCatalogo("gt-select")}
-            </label>
+            <MenuCatalogo catalogos={catalogos.map((x) => x.rubro)} activo={activo} alElegir={cambiarCatalogo} />
           )}
           <ul className="colist" id="coGrid">
             {cols
