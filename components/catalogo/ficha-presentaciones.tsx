@@ -532,7 +532,7 @@ function HojaElegir({
         })}
         {error && <p role="alert" className="text-secundario font-bold text-peligro">{error}</p>}
         <Boton tamano="grande" anchoCompleto deshabilitado={!completos || !!error} onClick={() => confirmarYa(finales)}>
-          {cambiar ? "Guardar" : n === 0 ? "Crear" : `Crear ${n === 1 ? "la 1" : `las ${n}`}`}
+          {cambiar ? "Guardar" : `Crear ${n === 1 ? "la 1" : `las ${n}`}`}
         </Boton>
       </div>
       <Alerta
