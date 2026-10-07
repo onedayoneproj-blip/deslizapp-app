@@ -22,7 +22,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main. Incluye §2b: volver del admin al panel |
 | `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
 | `colaboradores-e-invitaciones.md` (rama `feat/equipo-e-invitaciones`) | **Opus** | #57 mergeado; no a la vez que `ver-como-bloqueo-en-la-base.md` | PR abierto con preview. Niveles Ayudante/Editor/Administrador, enlaces de un solo uso con aprobación del dueño, enlace de tienda nueva desde el admin |
-| `ver-como-bloqueo-en-la-base.md` (rama `fix/ver-como-bloqueo`) | **Opus** | — (no a la vez que el anterior; Lewis decide el orden) | PR abierto, Planning mergea |
+| `ver-como-bloqueo-en-la-base.md` | **Opus** | — | **Hecho**, PR #59 mergeado el 7 oct por indicación de Lewis; probado por Lewis en Ver como (funciona) |
 | `admin-4-cobros.md` | Sonnet | #57 mergeado (menú, novedades) | PR abierto con preview: la app de las tiendas empieza a leer planes de la base (§0b del prompt) |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
