@@ -2,7 +2,7 @@ import { limpiarFotosPorValor } from "../presentaciones";
 import type { CambiosProducto, Medio, NuevoProducto, OpcionProducto, Producto, Variante } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos } from "./errores";
-import { detallesValidos } from "../rubros";
+import { detallesValidos, rubrosDeTienda } from "../rubros";
 export { sumarStock } from "./inventario";
 import { ordenarVariantes, slugDesdeTexto } from "./filas";
 
@@ -23,6 +23,7 @@ export function validarCatalogo(db: DB, p: Producto) {
   if (p.medios.length > 10 || videos.length > 2 || medioMalo) throw new DatosInvalidos("Hasta 10 fotos y videos, y máximo 2 videos de 30 segundos.");
   const rubro = db.tiendas.find((t) => t.id === p.tiendaId)?.rubro;
   if (!rubro || !detallesValidos(rubro, p.detalles, p.tipo === "servicio")) throw new DatosInvalidos("Algún detalle no sirve para este tipo de producto. Revísalo.");
+  if (p.rubro != null && !rubrosDeTienda(db.tiendas.find((t) => t.id === p.tiendaId) ?? { rubro: "general" }).includes(p.rubro)) throw new DatosInvalidos("Ese tipo de producto no es de tu tienda.");
   if (p.encargoTexto !== null && (p.encargoTexto.length < 1 || p.encargoTexto.length > 40)) throw new DatosInvalidos("El tiempo de encargo va en hasta 40 caracteres.");
   if (p.tipo === "servicio" && (p.stock !== null || p.porEncargo)) throw new DatosInvalidos("Un servicio no lleva stock.");
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug) || p.slug.length > 40) throw new DatosInvalidos("El enlace va en minúsculas, números y guiones (hasta 40).");

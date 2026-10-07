@@ -2,6 +2,7 @@
 // Nada fuera de lib/data/ importa este archivo.
 
 import { MARCA_NEUTRA } from "../marca";
+import { rubrosDeTienda } from "../rubros";
 import { diaDeSantoDomingo, sumarDias } from "../credito";
 import type { TrabajoRetoque } from "../admin/tipos";
 import type { Abono, AjusteInventario, AvisoLlegada, Cliente, EnvioJugada, EventoAaah, Pedido, PedidoItem, Producto, Promo, SolicitudPedido, Tienda, Usuario, Variante } from "../types";
@@ -207,6 +208,7 @@ export function migrar(db: DB): DB {
       catalogoSolicitadoEn: t.catalogoSolicitadoEn ?? null,
       catalogoPublicadoEn: t.catalogoPublicadoEn ?? null,
       rubro: t.rubro ?? "general",
+      rubros: rubrosDeTienda({ rubro: t.rubro ?? "general", rubros: t.rubros }),
     })),
   };
 }

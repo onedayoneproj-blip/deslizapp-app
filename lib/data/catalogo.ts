@@ -2,6 +2,7 @@
 // migraciones 20261004123742 y 20261004124138 (supabase/migrations/). Funciones puras sobre la DB de la demo.
 
 import { conPago } from "../credito";
+import { rubrosDeTienda } from "../rubros";
 import { estadoPromo, precioConPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type {
@@ -231,6 +232,7 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
         slug: p.slug,
         nombre: p.nombre,
         tipo: p.tipo,
+        rubro: p.rubro ?? t.rubro,
         categoria: p.categoria,
         precio: p.precio,
         precioPromo: promo ? precioConPromo(p, db.promos, ahora).precio : null,
@@ -274,6 +276,7 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
       descripcion: t.descripcion ?? null,
       nombreVendedora: t.nombreVendedora ?? null,
       rubro: t.rubro,
+      rubros: rubrosDeTienda(t),
     },
     productos,
   };

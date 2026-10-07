@@ -8,6 +8,7 @@ import type { CambiosProducto, Cliente, ClienteConResumen, EnvioJugada, EventoAa
 import { CREDITOS_POR_RETOQUE } from "../config";
 import type { CambiosAbono } from "../credito";
 import type { Abono, MotivoAjusteInventario } from "../types";
+import type { Rubro } from "../rubros";
 import { DatosInvalidos, FuncionApagada } from "./errores";
 import { FUNCIONES } from "../funciones";
 import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
@@ -61,6 +62,7 @@ import {
   descontarCreditos,
   listarTiendas,
   modificarMarca,
+  modificarRubros,
   pedirCambiosDelCatalogo,
   pedirCatalogo,
   publicarElCatalogo,
@@ -205,6 +207,16 @@ const fuenteDemoBase: FuenteDatos = {
     let actualizada!: Tienda;
     escribir((db) => {
       const r = modificarMarca(db, tiendaId, datos);
+      actualizada = r.tienda;
+      return r.db;
+    });
+    return actualizada;
+  },
+
+  async guardarRubros(tiendaId: string, rubros: Rubro[]): Promise<Tienda> {
+    let actualizada!: Tienda;
+    escribir((db) => {
+      const r = modificarRubros(db, tiendaId, rubros);
       actualizada = r.tienda;
       return r.db;
     });
