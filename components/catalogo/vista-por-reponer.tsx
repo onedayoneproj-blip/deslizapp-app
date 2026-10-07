@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
 import { useMemo, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
@@ -47,6 +48,9 @@ export function VistaPorReponer({
 }) {
   const { tiendaId } = useTiendaActiva();
   const { reponerStock } = useData();
+  // Sumar al stock es del grupo «catalogo»; la lista para el proveedor (copiar, compartir) es de todos.
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const { mostrarToast } = useToastUI();
   const { espera } = usePanelUI();
   const avisos = espera.error || espera.cargando ? undefined : espera.data;
@@ -204,9 +208,12 @@ export function VistaPorReponer({
           )}
         </div>
       ) : (
-        <Boton tamano="grande" anchoCompleto deshabilitado={elegidas.length === 0} cargando={sumando} onClick={() => void sumar()}>
-          Sumar {unidades} al stock
-        </Boton>
+        <>
+          {sinCatalogo && <p className="mb-2 text-center text-secundario text-texto-secundario" data-sin-permiso="">{porque}</p>}
+          <Boton tamano="grande" anchoCompleto deshabilitado={sinCatalogo || elegidas.length === 0} cargando={sumando} onClick={() => void sumar()}>
+            Sumar {unidades} al stock
+          </Boton>
+        </>
       )}
     </div>
   );

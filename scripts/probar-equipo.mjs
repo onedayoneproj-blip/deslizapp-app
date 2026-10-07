@@ -89,7 +89,8 @@ await hoja().locator('button:has-text("Invitar por enlace")').tap();
 await esperar(300);
 await hoja().locator('[aria-label="Invitar por enlace"] [role="radio"]:has-text("Administrador")').tap();
 await hoja().locator('input[placeholder="Para Ana"]').fill("Para Rosa");
-await hoja().locator('[aria-label="Invitar por enlace"] button:has-text("Crear enlace")').tap();
+// Doble toque: el botón se bloquea mientras crea, así que solo nace UN enlace.
+await hoja().locator('[aria-label="Invitar por enlace"] button:has-text("Crear enlace")').evaluate((b) => { b.click(); b.click(); });
 await page.waitForSelector("[data-enlace-nuevo]");
 const url = await hoja().locator("[data-url-enlace]").innerText();
 ok(/\/unirse\/demo-[a-z0-9]+$/i.test(url), `el enlace es /unirse/<código> (${url.replace(URL, "")})`);
@@ -97,7 +98,9 @@ await hoja().locator('[data-enlace-nuevo] button:has-text("Copiar")').tap();
 ok(await toast("Enlace copiado."), "Copiar");
 ok((await page.evaluate(() => navigator.clipboard.readText())) === url, "en el portapapeles queda el enlace");
 const enlace = hoja().locator("[data-enlace]");
-ok((await enlace.count()) === 1 && (await enlace.innerText()).includes("Administrador · Para Rosa"), "aparece en «Enlaces activos» con su nivel y su nota");
+ok((await enlace.count()) === 1, "doble toque en «Crear enlace»: un solo enlace");
+ok((await enlace.innerText()).includes("Administrador · Para Rosa"), "aparece en «Enlaces activos» con su nivel y su nota");
+ok((await enlace.locator('button:has-text("Copiar")').count()) === 1, "y su fila tiene «Copiar» (el código quedó ligado al enlace correcto)");
 ok((await enlace.innerText()).includes("vence en 7 días"), "vence en 7 días");
 
 console.log("\n• Cambiar nivel, quitar y cancelar");
@@ -151,6 +154,34 @@ const editar = hoja().locator('button:has-text("Editar")');
 ok(await editar.isDisabled(), "«Editar» del producto, apagado");
 ok((await hoja().locator("[data-sin-permiso]").innerText()).includes("quien administra la tienda"), "con su porqué debajo");
 ok(await hoja().locator('button:has-text("Crear pedido")').isEnabled(), "pero «Crear pedido» sí (ventas)");
+// Todo lo que cambia el catálogo está apagado para el Ayudante, con el mismo porqué.
+const visible = hoja().getByRole("switch", { name: "Visible en el catálogo" });
+ok((await visible.getAttribute("aria-disabled")) === "true", "el interruptor «Visible en el catálogo», apagado");
+const antes = await page.evaluate(() => localStorage.getItem("deslizapp-demo-v5") ?? [...Object.keys(localStorage)].filter((k) => k.startsWith("deslizapp-demo")).map((k) => localStorage.getItem(k)).join("|"));
+await visible.click({ force: true });
+ok(await toast(PORQUE), "tocarlo explica por qué");
+const menos = hoja().getByRole("button", { name: /^Disminuir stock de/ });
+if ((await menos.count()) > 0) {
+  ok(await menos.isDisabled(), "el ajuste de stock (−), apagado");
+  ok(await hoja().getByRole("button", { name: /^Aumentar stock de/ }).isDisabled(), "el ajuste de stock (+), apagado");
+}
+const despues = await page.evaluate(() => [...Object.keys(localStorage)].filter((k) => k.startsWith("deslizapp-demo")).map((k) => localStorage.getItem(k)).join("|"));
+ok(despues === antes || antes.includes(despues) || despues.includes(antes), "tocar los controles apagados no cambió los datos de la demo");
+await cerrarHojas();
+// Inventario (la dona): se ve, pero sumar stock y ocultar son del catálogo.
+await page.goto(URL + "/catalogo");
+await page.waitForSelector("button:has(.dona-cabecera)");
+await esperar(600);
+await page.locator("button:has(.dona-cabecera)").tap();
+await page.waitForSelector('[role="dialog"]');
+await esperar(700);
+await hoja().getByRole("button", { name: /Por reponer/ }).first().tap();
+await esperar(700);
+await hoja().getByRole("radio", { name: /Ya la tengo/ }).or(hoja().getByRole("tab", { name: /Ya la tengo/ })).first().tap();
+await esperar(500);
+const sumar = hoja().locator("button:has-text('al stock')");
+ok((await sumar.count()) === 1 && (await sumar.isDisabled()), "«Sumar al stock» (Por reponer), apagado");
+ok((await hoja().locator("[data-sin-permiso]").innerText()) === PORQUE, "con el porqué");
 await cerrarHojas();
 await abrirMenu();
 await page.locator('button:has-text("Mi marca")').first().tap();

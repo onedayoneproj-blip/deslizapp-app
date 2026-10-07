@@ -172,7 +172,7 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
  * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si el producto no
  * lleva stock, la primera fila dice "Sin control de stock". Los cambios son un borrador: aparecen "Guardar" y "Descartar" ENCIMA de la lista.
  */
-export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
+export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial, soloLectura = false }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void; /** El nivel de la cuenta no incluye catálogo: el stock se ve y no se ajusta. */ soloLectura?: boolean }) {
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
   const ocupado = i.guardando || i.incierto;
   return (
@@ -202,7 +202,7 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
               <Cantidad
                 valor={i.propuesta}
                 max={2147483647}
-                deshabilitado={ocupado}
+                deshabilitado={ocupado || soloLectura}
                 alCambiar={(valor) => i.cambiar(valor - (i.propuesta ?? 0))}
                 etiquetaQuitar={`Disminuir stock de ${nombre}`}
                 etiquetaAgregar={`Aumentar stock de ${nombre}`}

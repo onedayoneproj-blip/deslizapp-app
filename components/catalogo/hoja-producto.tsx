@@ -162,18 +162,18 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     </div>
     <ListaAgrupada>
       <FilaLista titulo="Visible en el catálogo" detalle={visible ? "Visible" : "Oculto del catálogo"}
-        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
+        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={sinCatalogo || guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={sinCatalogo ? () => toast(porque) : bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
       {!espera.error && !espera.cargando && (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) > 0 && <FilaLista titulo={textoEspera(espera.resumen!.personasPorProducto.get(producto.id)!)} onClick={e => alVerEspera(e.currentTarget)}/>}
     </ListaAgrupada>
     {espera.error ? <ListaAgrupada><FilaLista titulo="No pudimos leer la lista de espera" onClick={() => espera.reintentar()} fin={<span>Reintentar</span>}/></ListaAgrupada> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
     {activas.length > 0 ? (
       // Con opciones, el stock es por combinación: se cambia en la ficha.
       <ListaAgrupada etiqueta="Stock e historial">
-        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={() => navegar(`/catalogo/${producto.id}/editar`)} />
+        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={sinCatalogo ? () => toast(porque) : () => navegar(`/catalogo/${producto.id}/editar`)} />
         <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
       </ListaAgrupada>
     ) : (
-      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial} soloLectura={sinCatalogo}
         alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
     )}
     {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
@@ -183,7 +183,7 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
       <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando || sinCatalogo} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
       <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
     </div>}
-    {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">Editar: {porque.charAt(0).toLowerCase() + porque.slice(1)}</p>}
+    {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">{porque}</p>}
     <ConfirmacionInventario inventario={inventario}/>
   </div>;
 }
@@ -515,7 +515,7 @@ function FormularioProducto({
       )}
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
-      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
+      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={sinCatalogo || guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
       {producto && <ConfirmacionEliminarProducto producto={producto} abierta={eliminando} pendiente={firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto} alCerrar={() => setEliminando(false)} alEliminar={alEliminar} alIniciar={alIniciarEliminacion} alOcultar={() => { setVisibilidad({ base: false, valor: false }); setEliminando(false); }}/>}
       <ConfirmacionInventario inventario={inventario}/>
       <HojaMotivoVariantes

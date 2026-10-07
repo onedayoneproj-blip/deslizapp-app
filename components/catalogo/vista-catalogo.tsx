@@ -134,7 +134,7 @@ export function VistaCatalogo() {
               ilustracion="catalogo"
               titulo="Tu vitrina está vacía."
               remate="Sube tu primera pieza y deja que tu gente diga aaah."
-              accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo" }}
+              accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
             />
           ) : (
             <EstadoVacio pequeno ilustracion="catalogo" titulo={filtro === "en_espera" && espera.resumen?.productos === 0 ? "Nadie esperando por ahora." : "No encontramos nada con eso."} remate={filtro === "en_espera" && espera.resumen?.productos === 0 ? undefined : "Ni un suspiro. Prueba con otra palabra u otro filtro."} />

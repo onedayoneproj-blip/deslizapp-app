@@ -14,7 +14,7 @@ import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, re
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
-import { aprobarEnDB, cambiarNivelEnDB, cancelarEnlaceEnDB, crearEnlaceEnDB, equipoEnDB, invitarCorreoEnDB, permisoDemo, quitarEnDB, rechazarEnDB } from "./equipo-demo";
+import { conPermisosDeLaDemo, aprobarEnDB, cambiarNivelEnDB, cancelarEnlaceEnDB, crearEnlaceEnDB, equipoEnDB, invitarCorreoEnDB, permisoDemo, quitarEnDB, rechazarEnDB } from "./equipo-demo";
 import type { DatosAbonoNuevo, DatosPago, ExtraNuevoProducto, FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
@@ -160,7 +160,7 @@ export function suscribirDemo(oyente: () => void) {
 
 const ahora = () => new Date().toISOString();
 
-export const fuenteDemo: FuenteDatos = {
+const fuenteDemoBase: FuenteDatos = {
   // Tiendas
   async getTiendas(): Promise<Tienda[]> {
     return listarTiendas(leerDemo().db);
@@ -780,6 +780,9 @@ export const fuenteDemo: FuenteDatos = {
     emitir();
   },
 };
+
+/** La fuente de la demo con los permisos por nivel de la base (lib/data/equipo-demo.ts). */
+export const fuenteDemo: FuenteDatos = conPermisosDeLaDemo(fuenteDemoBase, () => leerDemo().db);
 
 /**
  * Solo para el admin demo (/admin-demo), en el mismo navegador: aplica un cambio a la base de la demo del panel (catálogo,

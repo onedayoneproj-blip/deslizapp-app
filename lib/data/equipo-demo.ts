@@ -2,7 +2,7 @@
 // reales ni Supabase. Cada tienda trae su dueña y un par de colaboradores de ejemplo con distinto nivel.
 // `nivelDemo` deja mirar la app como Ayudante, Editor o Administrador (solo en este navegador).
 
-import { NOTA_MAX, correoValido, type EquipoTienda, type MiPermiso, type Nivel } from "../equipo";
+import { NOTA_MAX, TEXTO_SIN_PERMISO, correoValido, puede, type EquipoTienda, type Grupo, type MiPermiso, type Nivel } from "../equipo";
 import { DatosInvalidos, SinPermiso } from "./errores";
 import type { DB } from "./db";
 
@@ -105,4 +105,31 @@ export function invitarCorreoEnDB(db: DB, tiendaId: string, email: string, nivel
     ...e,
     invitaciones: [...e.invitaciones.filter((i) => i.email !== correo), { email: correo, nivel, creadoEn: new Date(ahora).toISOString() }],
   }));
+}
+
+/**
+ * Lo que la base exige (`exigir_permiso`), también en la demo: cada operación de datos y el grupo que necesita. Mirando la demo como
+ * un colaborador sin ese grupo, la operación lanza SinPermiso y NO cambia nada, aunque algún control se haya quedado encendido.
+ * Lo que no está aquí (lecturas, pedidos, clientes, promos y avisos: «ventas», que todos tienen) pasa igual.
+ */
+export const GRUPO_DE_OPERACION: Record<string, Grupo> = {
+  crearProducto: "catalogo", actualizarProducto: "catalogo", eliminarProducto: "catalogo", ajustarStock: "catalogo", reponerStock: "catalogo",
+  cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", actualizarMarca: "catalogo",
+  solicitarCatalogo: "catalogo", pedirCambiosCatalogo: "catalogo", publicarCatalogo: "catalogo",
+  usarCreditosRetoque: "creditos", pedirRetoque: "creditos",
+  guardarMarcaRetoque: "marca",
+};
+
+/** Envuelve la fuente de la demo: antes de cada operación con grupo, comprueba el nivel con el que se mira la demo. */
+export function conPermisosDeLaDemo<T extends object>(fuente: T, leerDb: () => DB): T {
+  const envuelta = { ...fuente } as Record<string, unknown>;
+  for (const [nombre, grupo] of Object.entries(GRUPO_DE_OPERACION)) {
+    const original = (fuente as Record<string, unknown>)[nombre];
+    if (typeof original !== "function") continue;
+    envuelta[nombre] = async (...args: unknown[]) => {
+      if (!puede(permisoDemo(leerDb()), grupo)) throw new SinPermiso(TEXTO_SIN_PERMISO);
+      return (original as (...a: unknown[]) => unknown).apply(fuente, args);
+    };
+  }
+  return envuelta as T;
 }

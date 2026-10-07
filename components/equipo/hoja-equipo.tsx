@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -58,7 +58,6 @@ function Contenido({ tiendaId, nombreTienda }: { tiendaId: string; nombreTienda:
   if (!equipo) return <p role="status" className="text-texto-secundario">Cargando tu equipo…</p>;
 
   const enlacesConCodigo = equipo.enlaces.map((e) => ({ ...e, codigo: recienCreados[e.id] ?? null }));
-  const nuevo = ultimoCodigo ? enlacesConCodigo.find((e) => e.codigo === ultimoCodigo) ?? null : null;
 
   return (
     <div className="flex flex-col gap-6 pb-4" data-hoja-equipo="">
@@ -91,7 +90,7 @@ function Contenido({ tiendaId, nombreTienda }: { tiendaId: string; nombreTienda:
         )}
       </section>
 
-      {nuevo && nuevo.codigo && <EnlaceNuevo codigo={nuevo.codigo} nombreTienda={nombreTienda} alListo={() => setUltimoCodigo(null)} />}
+      {ultimoCodigo && <EnlaceNuevo codigo={ultimoCodigo} nombreTienda={nombreTienda} alListo={() => setUltimoCodigo(null)} />}
 
       {formulario === null && (
         <div className="flex flex-col gap-2.5">
@@ -104,7 +103,8 @@ function Contenido({ tiendaId, nombreTienda }: { tiendaId: string; nombreTienda:
           tiendaId={tiendaId}
           alCancelar={() => setFormulario(null)}
           alCrear={(id, codigo) => {
-            setRecienCreados((r) => ({ ...r, [id]: codigo }));
+            // `id` es null si no se pudo saber con certeza cuál fila es: el enlace igual se muestra aquí, solo que sin «Copiar» en la lista.
+            if (id) setRecienCreados((r) => ({ ...r, [id]: codigo }));
             setUltimoCodigo(codigo);
             setFormulario(null);
           }}
@@ -306,20 +306,39 @@ function EnlaceNuevo({ codigo, nombreTienda, alListo }: { codigo: string; nombre
   );
 }
 
-function FormularioEnlace({ tiendaId, alCancelar, alCrear }: { tiendaId: string; alCancelar: () => void; alCrear: (id: string, codigo: string) => void }) {
+function FormularioEnlace({ tiendaId, alCancelar, alCrear }: { tiendaId: string; alCancelar: () => void; alCrear: (id: string | null, codigo: string) => void }) {
   const { crearEnlaceEquipo, getEquipo } = useData();
   const toast = useToast();
   const [nivel, setNivel] = useState<Nivel>("ayudante");
   const [nota, setNota] = useState("");
+  const [creando, setCreando] = useState(false);
+  // Candado síncrono: un segundo toque antes de volver a pintar tampoco crea otro enlace.
+  const enCurso = useRef(false);
   const crear = async () => {
+    if (enCurso.current) return;
+    enCurso.current = true;
+    setCreando(true);
     try {
+      // La función de la base devuelve solo el código (a propósito: la firma no cambia). Para saber cuál fila es, se comparan los
+      // enlaces de antes y de después: si aparece exactamente uno nuevo, es ese. Si no (otra pestaña creó otro al mismo tiempo, o la
+      // lectura falló), NO se adivina: el enlace se muestra igual y la fila queda sin «Copiar».
+      const antes = await getEquipo(tiendaId).then((e) => new Set(e.enlaces.map((x) => x.id))).catch(() => null);
       const codigo = await crearEnlaceEquipo(tiendaId, nivel, nota.trim() || null);
-      // El enlace nuevo es el más reciente de la lista (la base no devuelve su id con el código, a propósito: el código va solo).
-      const equipo = await getEquipo(tiendaId);
-      const id = equipo.enlaces[0]?.id ?? codigo;
+      let id: string | null = null;
+      if (antes) {
+        try {
+          const nuevos = (await getEquipo(tiendaId)).enlaces.filter((x) => !antes.has(x.id));
+          if (nuevos.length === 1) id = nuevos[0]!.id;
+        } catch {
+          // Se queda sin id: ver arriba.
+        }
+      }
       alCrear(id, codigo);
     } catch (e) {
       toast(mensajeDeError(e));
+    } finally {
+      enCurso.current = false;
+      setCreando(false);
     }
   };
   return (
@@ -335,8 +354,8 @@ function FormularioEnlace({ tiendaId, alCancelar, alCrear }: { tiendaId: string;
         ayuda="Solo lo ves tú, para reconocer el enlace."
       />
       <div className="flex gap-2">
-        <Boton onClick={crear}>Crear enlace</Boton>
-        <Boton jerarquia="secundario" onClick={alCancelar}>Cancelar</Boton>
+        <Boton cargando={creando} onClick={crear}>Crear enlace</Boton>
+        <Boton jerarquia="secundario" deshabilitado={creando} onClick={alCancelar}>Cancelar</Boton>
       </div>
     </section>
   );

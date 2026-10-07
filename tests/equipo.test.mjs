@@ -115,3 +115,25 @@ test("demo: equipo de ejemplo y operaciones; mirando como colaborador, nada del 
   assert.throws(() => D.crearEnlaceEnDB(comoEditor, "t1", "ayudante", null, "id-2", Date.now()), /quien administra/);
   assert.throws(() => D.invitarCorreoEnDB(paso, "t1", "no-es-correo", "ayudante", Date.now()), /correo/);
 });
+
+test("demo: mirando como Ayudante, las operaciones de catálogo, créditos y marca no corren ni cambian nada", async () => {
+  let llamadas = 0;
+  const base = Object.fromEntries(Object.keys(D.GRUPO_DE_OPERACION).map((n) => [n, async () => { llamadas++; return "hecho"; }]));
+  base.getProductos = async () => "lectura";
+  base.crearPedidoManual = async () => { llamadas++; return "pedido"; };
+  const db = (nivelDemo) => ({ nivelDemo });
+  const comoAyudante = D.conPermisosDeLaDemo(base, () => db("ayudante"));
+  for (const n of Object.keys(D.GRUPO_DE_OPERACION)) await assert.rejects(() => comoAyudante[n](), /quien administra/, n);
+  assert.equal(llamadas, 0, "ninguna operación escribió");
+  assert.equal(await comoAyudante.getProductos(), "lectura", "las lecturas pasan");
+  assert.equal(await comoAyudante.crearPedidoManual(), "pedido", "ventas sí (Ayudante)");
+  // Editor: catálogo sí, créditos y marca no. Administrador: todo.
+  const comoEditor = D.conPermisosDeLaDemo(base, () => db("editor"));
+  assert.equal(await comoEditor.ajustarStock(), "hecho");
+  await assert.rejects(() => comoEditor.pedirRetoque(), /quien administra/);
+  await assert.rejects(() => comoEditor.guardarMarcaRetoque(), /quien administra/);
+  const comoAdmin = D.conPermisosDeLaDemo(base, () => db("administrador"));
+  for (const n of Object.keys(D.GRUPO_DE_OPERACION)) assert.equal(await comoAdmin[n](), "hecho", n);
+  const comoDuena = D.conPermisosDeLaDemo(base, () => db("dueno"));
+  assert.equal(await comoDuena.eliminarProducto(), "hecho");
+});

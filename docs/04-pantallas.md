@@ -43,7 +43,7 @@ vez con «Compartir» y «Copiar») e «Invitar por correo» (no pide aprobació
 
 **Lo que un nivel no puede, se ve apagado con «Esto lo hace quien administra la tienda.»** (`usePermisos()` en
 `lib/data/permisos.ts`, el único lugar que lee el nivel): «+ Producto», «Editar» y «Guardar» de la ficha (Ayudante), «Retocar esta
-foto» y «Retocar foto» (sin créditos: Ayudante y Editor) y Mi marca sin «Guardar» (Ayudante y Editor). Si igual llega un
+foto» y «Retocar foto» (sin créditos: Ayudante y Editor) y Mi marca sin «Guardar» (Ayudante y Editor). Para el Ayudante, TODO lo que cambia el catálogo está apagado: «+ Producto», el botón del catálogo vacío, el interruptor «Visible», el ajuste de stock, «Editar», «Eliminar producto», «Pedirlo»/«Revisar» del catálogo en línea y, dentro del inventario (la dona), «Sumar al stock» y «Ocultar». En la demo, además, la capa de datos lo rechaza igual que la base (`conPermisosDeLaDemo`). Si igual llega un
 `sin_permiso` de la base, se muestra el mismo texto.
 
 **`/unirse/<código>`** (`components/unirse/pantalla-unirse.tsx`): el enlace de invitación. Guarda el código en el navegador y lo

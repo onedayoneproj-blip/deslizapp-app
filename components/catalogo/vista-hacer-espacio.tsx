@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
 import { useMemo, useRef, useState } from "react";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
@@ -37,6 +38,9 @@ export function VistaHacerEspacio({
 }) {
   const { tiendaId } = useTiendaActiva();
   const { cambiarVisibilidad } = useData();
+  // Ocultar productos es del grupo «catalogo» (Editor en adelante).
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const { mostrarToast } = useToastUI();
   const [ahora] = useState(() => Date.now());
   const candidatos = useMemo(
@@ -138,8 +142,9 @@ export function VistaHacerEspacio({
 
       {hayAlgo && (
         <div className="flex flex-col gap-3">
+          {sinCatalogo && <p className="text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
           <p className="text-center text-secundario text-texto-secundario">{n === 0 ? "Marca lo que quieras ocultar" : `Liberas ${lugares(n)} · los vuelves a mostrar cuando quieras`}</p>
-          <Boton tamano="grande" anchoCompleto deshabilitado={n === 0} cargando={ocultando} onClick={() => void ocultar()}>
+          <Boton tamano="grande" anchoCompleto deshabilitado={sinCatalogo || n === 0} cargando={ocultando} onClick={() => void ocultar()}>
             {n === 0 ? "Ocultar del catálogo" : `Ocultar ${n} del catálogo`}
           </Boton>
         </div>
@@ -155,6 +160,8 @@ const normalizarBusqueda = (texto: string) => texto.normalize("NFD").replace(/[\
 function SeleccionarAgotadosVisibles({ productos, alTerminar }: { productos: Producto[]; alTerminar: () => void }) {
   const { tiendaId } = useTiendaActiva();
   const { getProducto, actualizarProducto, refrescar } = useData();
+  const { puede: puedeAgotados, porque: porqueAgotados } = usePermisos();
+  const sinCatalogoAgotados = !puedeAgotados("catalogo");
   const [busqueda, setBusqueda] = useState("");
   const [elegidos, setElegidos] = useState<Set<string>>(() => new Set());
   const [ocupado, setOcupado] = useState(false);
@@ -210,6 +217,7 @@ function SeleccionarAgotadosVisibles({ productos, alTerminar }: { productos: Pro
     {resultados.length === 0 && <p className="py-5 text-center text-secundario text-texto-secundario">{elegibles.length ? "No encontramos productos con ese nombre." : "Ya no hay productos agotados a la vista."}</p>}
     <p role="status" aria-live="polite" className="text-center text-secundario text-texto-secundario">{elegidos.size ? `${elegidos.size} ${elegidos.size === 1 ? "producto seleccionado" : "productos seleccionados"}` : "Ningún producto seleccionado"}</p>
     {mensaje && <div role="alert" className="flex flex-col gap-2 rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto"><p>{mensaje}</p>{fallidos.length > 0 && <ul className="list-disc pl-5">{fallidos.map(f => <li key={f.id}><span className="font-bold">{f.nombre}:</span> {f.error}</li>)}</ul>}<div className="flex flex-col gap-2">{fallidos.length > 0 && <Boton jerarquia="secundario" tamano="normal" onClick={() => void ocultar(fallidos.map(f => f.id))} deshabilitado={ocupado}>Reintentar solo los {fallidos.length} pendientes</Boton>}<Boton jerarquia="terciario" tamano="compacto" onClick={() => {setMensaje("");setFallidos([]);setElegidos(new Set());}}>Seguir eligiendo</Boton></div></div>}
-    {!mensaje && <Boton tamano="grande" anchoCompleto deshabilitado={!elegidos.size || ocupado} cargando={ocupado} onClick={() => void ocultar([...elegidos])}>{elegidos.size === 0 ? "Ocultar del catálogo" : elegidos.size === 1 ? "Ocultar 1 producto" : `Ocultar ${elegidos.size} productos`}</Boton>}
+    {!mensaje && sinCatalogoAgotados && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">{porqueAgotados}</p>}
+    {!mensaje && <Boton tamano="grande" anchoCompleto deshabilitado={sinCatalogoAgotados || !elegidos.size || ocupado} cargando={ocupado} onClick={() => void ocultar([...elegidos])}>{elegidos.size === 0 ? "Ocultar del catálogo" : elegidos.size === 1 ? "Ocultar 1 producto" : `Ocultar ${elegidos.size} productos`}</Boton>}
   </div>;
 }

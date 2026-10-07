@@ -33,7 +33,7 @@ export function EstadoVacio({
   /** Nota a mano (Caveat, Mandarina), opcional. */
   nota?: string;
   /** Botón Mandarina, opcional. */
-  accion?: { texto: string; href: string };
+  accion?: { texto: string; href: string; /** Esta cuenta no puede: se ve apagado y, al tocarlo, explica por qué. */ bloqueado?: { motivo: string; alTocar: () => void } };
   pequeno?: boolean;
 }) {
   const ancho = pequeno ? 120 : 210;
@@ -53,7 +53,18 @@ export function EstadoVacio({
       <h2 className={`font-display text-texto ${pequeno ? "text-titulo-seccion" : "text-titulo-hoja"}`}>{titulo}</h2>
       <p className={`mt-2 max-w-xs text-texto-secundario ${pequeno ? "text-secundario" : "text-cuerpo"}`}>{remate}</p>
       {nota && <p className="mt-3 font-mano text-mano text-atencion-texto -rotate-2">{nota}</p>}
-      {accion && (
+      {accion?.bloqueado && (
+        <button
+          type="button"
+          aria-disabled="true"
+          data-sin-permiso=""
+          onClick={accion.bloqueado.alTocar}
+          className="tocable mt-5 flex h-[52px] items-center rounded-full bg-resalte px-6 text-cuerpo font-extrabold text-sobre-resalte opacity-40 outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+        >
+          {accion.texto}
+        </button>
+      )}
+      {accion && !accion.bloqueado && (
         <Link
           href={accion.href}
           scroll={false}
