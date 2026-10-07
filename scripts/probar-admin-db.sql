@@ -77,10 +77,14 @@ select pg_temp.comprobar((select quitado_en is not null from public.admins where
 select set_config('request.jwt.claim.sub','aa000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
 select pg_temp.rechaza($q$select public.admin_quitar_admin('aa000000-0000-4000-8000-000000000002')$q$,'P0001','ultimo_admin');
--- Cuenta admin/dueño como Lewis: SQL conserva permisos del dueño, wrapper deberá bloquearlos.
+-- Cuenta admin/dueño como Lewis: mientras mira, la BASE le quita la escritura de esa tienda (fix/ver-como-bloqueo; el detalle en
+-- probar-ver-como-bloqueo-db.sql). Al terminar la sesión recupera los permisos del dueño y el resto de esta prueba sigue igual.
 select public.admin_ver_como_iniciar('ab000000-0000-4000-8000-000000000001');
 update public.productos set nombre='Foto dueño' where id='ac000000-0000-4000-8000-000000000001';
-select pg_temp.comprobar((select nombre='Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'documentar permiso dueño vigente');
+select pg_temp.comprobar((select nombre<>'Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'Ver como bloquea al dueño admin en la base');
+select public.admin_ver_como_terminar((public.admin_ver_como_actual()->>'id')::uuid);
+update public.productos set nombre='Foto dueño' where id='ac000000-0000-4000-8000-000000000001';
+select pg_temp.comprobar((select nombre='Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'al terminar Ver como el dueño vuelve a escribir');
 -- Retoque reserva/cobra/devuelve y legacy firmas de gastar_creditos.
 do $$ declare tr jsonb; v integer; begin
  tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/original.jpg');
