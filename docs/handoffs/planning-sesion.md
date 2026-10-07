@@ -21,6 +21,8 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 
 **Datos de prueba en la Tienda de ensayo (7 oct, por SQL, pedido por Lewis):** «Aro de ensayo» con presentaciones Tamaño (Chico/Grande) × Color (Plata/Dorado), una agotada (Grande · Plata), una con precio propio (Grande · Dorado RD$450) y foto por color; «Frasco de ensayo» con Tamaño 30/50/100 ml (RD$300 / el base RD$500 / RD$800, la de 100 ml agotada). Las variantes se insertaron directo (sin historial de inventario). Sirven para probar el panel y el catálogo público real.
 
+**Rubros de la Tienda de ensayo (7 oct, por SQL, pedido por Lewis):** `rubros = {general, accesorios}` (principal: general) para probar tipo de producto (#67). Sus productos siguen sin tipo (null = general). Sin rastro en `registro_admin`.
+
 **Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»). **Coordinación entre cuentas (7 oct, Lewis):** Lewis usa un Planning en cada cuenta (dos de Claude y Codex); la única fuente de verdad es el repo: este relevo, `docs/00` y `docs/16`. Cada Planning lo actualiza al lanzar, mergear o decidir algo, y lo lee antes de lanzar.
 
 ## Cola para Coding (Lewis pega los prompts)
