@@ -26,14 +26,16 @@ insert into auth.users(id,email,raw_app_meta_data,raw_user_meta_data,email_confi
  ('dd000000-0000-4000-8000-00000000000a','ayudante@prueba.invalid','{"provider":"google"}','{"full_name":"Ayudante"}',now()),
  ('dd000000-0000-4000-8000-00000000000e','editor@prueba.invalid','{"provider":"google"}','{"full_name":"Editor"}',now()),
  ('dd000000-0000-4000-8000-00000000000c','administra@prueba.invalid','{"provider":"google"}','{"full_name":"Administra"}',now()),
- ('dd000000-0000-4000-8000-00000000000f','extrano@prueba.invalid','{"provider":"google"}','{"full_name":"Extraño"}',now());
+ ('dd000000-0000-4000-8000-00000000000f','extrano@prueba.invalid','{"provider":"google"}','{"full_name":"Extraño"}',now()),
+ ('dd000000-0000-4000-8000-00000000000b','otra-ayudante@prueba.invalid','{"provider":"google"}','{"full_name":"Otra"}',now());
 insert into public.tiendas(id,nombre,slug,estado,creditos_retoque) values ('de000000-0000-4000-8000-000000000001','Permisos fixture','permisos-fixture','activa',0);
 insert into public.movimientos_creditos(tienda_id,cantidad,tipo,motivo) values ('de000000-0000-4000-8000-000000000001',20,'ajuste','fixture');
 insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
  ('dd000000-0000-4000-8000-00000000000d','de000000-0000-4000-8000-000000000001','dueno','ayudante'),
  ('dd000000-0000-4000-8000-00000000000a','de000000-0000-4000-8000-000000000001','staff','ayudante'),
  ('dd000000-0000-4000-8000-00000000000e','de000000-0000-4000-8000-000000000001','staff','editor'),
- ('dd000000-0000-4000-8000-00000000000c','de000000-0000-4000-8000-000000000001','staff','administrador');
+ ('dd000000-0000-4000-8000-00000000000c','de000000-0000-4000-8000-000000000001','staff','administrador'),
+ ('dd000000-0000-4000-8000-00000000000b','de000000-0000-4000-8000-000000000001','staff','ayudante');
 -- Una fila de cada tabla con escritura para miembros.
 insert into public.productos(id,tienda_id,nombre,precio,stock,opciones,medios) values (pg_temp.id('producto'),'de000000-0000-4000-8000-000000000001','Producto',1000,5,'[{"nombre":"Talla","valores":["S","M"]}]',
   '[{"tipo":"foto","url":"https://ejemplo.invalid/a.webp","retocada":false}]');
@@ -163,7 +165,93 @@ select public.admin_ver_como_terminar((public.admin_ver_como_actual()->>'id')::u
 select pg_temp.toca($q$update public.productos set nombre='Producto' where id=pg_temp.id('producto')$q$,1);
 reset role;
 
--- @@RPC@@
+-- ═══ 4. RPC security definer: con cada nivel, `sin_permiso` si no tiene el grupo y NUNCA si lo tiene ═══
+-- Cada llamada se deshace al terminar (se lanza OK_DESHACER), así ninguna cambia lo que ve la siguiente.
+create temp table rpc_casos(grupo text, nombre text, q text);
+grant select on rpc_casos to authenticated;
+insert into rpc_casos values
+ ('ventas','borrar_cliente',$q$select public.borrar_cliente(pg_temp.id('cliente'), false)$q$),
+ ('ventas','crear_codigo_cliente',$q$select public.crear_codigo_cliente('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('cliente'), 10, 5, null)$q$),
+ ('ventas','despachar_pedido',$q$select public.despachar_pedido(pg_temp.id('pedido'))$q$),
+ ('ventas','deshacer_despacho',$q$select public.deshacer_despacho(pg_temp.id('pedido'))$q$),
+ ('ventas','editar_pedido',$q$select public.editar_pedido(pg_temp.id('pedido'), null, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('producto'), 'variante_id', pg_temp.id('variante'), 'cantidad', 1)), null, null, false, false)$q$),
+ ('ventas','eliminar_pedido',$q$select public.eliminar_pedido(pg_temp.id('pedido'))$q$),
+ ('ventas','registrar_abono',$q$select public.registrar_abono('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('cliente'), 10, 'efectivo', now(), null, null)$q$),
+ ('ventas','registrar_envio_jugada',$q$select public.registrar_envio_jugada('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('cliente'), 'x', 'codigo', null, '{}')$q$),
+ ('ventas','registrar_venta_pasada',$q$select public.registrar_venta_pasada('de000000-0000-4000-8000-000000000001'::uuid, null, now() - interval '1 day', jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('producto'), 'variante_id', pg_temp.id('variante'), 'cantidad', 1)), null, false)$q$),
+ ('catalogo','ajustar_stock',$q$select public.ajustar_stock('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('producto'), 1, 'reposicion', null, null)$q$),
+ ('catalogo','crear_producto',$q$select public.crear_producto('de000000-0000-4000-8000-000000000001'::uuid, '{"nombre":"RPC","precio":10}'::jsonb, 0, '[]'::jsonb, '[]'::jsonb)$q$),
+ ('catalogo','eliminar_producto',$q$select public.eliminar_producto('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('producto'))$q$),
+ ('catalogo','guardar_producto_inventario',$q$select public.guardar_producto_inventario('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('producto'), '{"nombre":"Y"}'::jsonb, 0, 0, null, null, null, false)$q$),
+ ('catalogo','guardar_variantes',$q$select public.guardar_variantes('de000000-0000-4000-8000-000000000001'::uuid, pg_temp.id('producto'), '[{"nombre":"Talla","valores":["S","M"]}]'::jsonb, '[]'::jsonb)$q$),
+ ('catalogo','reponer_stock',$q$select public.reponer_stock('de000000-0000-4000-8000-000000000001'::uuid, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('producto'), 'variante_id', pg_temp.id('variante'), 'cantidad', 1)), null)$q$),
+ ('catalogo','publicar_catalogo',$q$select public.publicar_catalogo('de000000-0000-4000-8000-000000000001'::uuid)$q$),
+ ('catalogo','solicitar_catalogo',$q$select public.solicitar_catalogo('de000000-0000-4000-8000-000000000001'::uuid)$q$),
+ ('catalogo','pedir_cambios_catalogo',$q$select public.pedir_cambios_catalogo('de000000-0000-4000-8000-000000000001'::uuid, 'Cambios de prueba')$q$),
+ ('creditos','gastar_creditos',$q$select public.gastar_creditos('de000000-0000-4000-8000-000000000001'::uuid, 1)$q$),
+ ('creditos','pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('producto'), 'https://ejemplo.invalid/a.webp')$q$),
+ ('equipo','cambiar_estado_tienda',$q$select public.cambiar_estado_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'pausar')$q$),
+ ('equipo','invitar_por_correo',$q$select public.invitar_por_correo('de000000-0000-4000-8000-000000000001'::uuid, 'nadie@ejemplo.invalid', 'editor')$q$),
+ ('equipo','invitar_a_tienda',$q$select public.invitar_a_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'nadie2@ejemplo.invalid', 'staff')$q$),
+ ('equipo','transferir_tienda',$q$select public.transferir_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'dd000000-0000-4000-8000-00000000000a')$q$),
+ ('equipo','quitar_otro',$q$select public.quitar_de_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'dd000000-0000-4000-8000-00000000000b')$q$);
+create function pg_temp.probar_rpc(u uuid, nivel text) returns void language plpgsql as $$
+declare c record; puede boolean; n int := 0;
+begin
+  perform pg_temp.como(u);
+  for c in select * from rpc_casos loop
+    n := n + 1;
+    puede := nivel = 'dueno' or (c.grupo <> 'equipo' and public.nivel_tiene_grupo(nivel, c.grupo));
+    begin
+      execute c.q;
+      raise exception 'OK_DESHACER';
+    exception when others then
+      if sqlerrm = 'OK_DESHACER' then
+        if not puede then raise exception '% (%) pudo %', nivel, c.grupo, c.nombre; end if;
+      elsif sqlerrm = 'sin_permiso' then
+        if puede then raise exception '% recibió sin_permiso en % (debía poder)', nivel, c.nombre; end if;
+      elsif not puede and not (c.grupo = 'equipo' and sqlerrm = 'solo_dueno') then
+        raise exception '% en % lanzó % / % (se esperaba sin_permiso)', nivel, c.nombre, sqlstate, sqlerrm;
+      end if;
+    end;
+  end loop;
+  if n < 20 then raise exception 'Faltan casos de RPC'; end if;
+end $$;
+grant execute on function pg_temp.probar_rpc(uuid,text) to authenticated;
+set local role authenticated;
+select pg_temp.probar_rpc('dd000000-0000-4000-8000-00000000000d','dueno');
+select pg_temp.probar_rpc('dd000000-0000-4000-8000-00000000000a','ayudante');
+select pg_temp.probar_rpc('dd000000-0000-4000-8000-00000000000e','editor');
+select pg_temp.probar_rpc('dd000000-0000-4000-8000-00000000000c','administrador');
+-- El extraño: ninguna RPC le sirve (cada una falla con su propio error de pertenencia).
+select pg_temp.como('dd000000-0000-4000-8000-00000000000f');
+select pg_temp.rechaza($q$select public.crear_producto('de000000-0000-4000-8000-000000000001'::uuid, '{"nombre":"RPC","precio":10}'::jsonb, 0, '[]'::jsonb, '[]'::jsonb)$q$,'42501');
+select pg_temp.rechaza($q$select public.gastar_creditos('de000000-0000-4000-8000-000000000001'::uuid, 1)$q$,'P0002');
+-- Salir: un colaborador sale él mismo; un dueño no quita a otro dueño (solo transferir); la última dueña no sale.
+select pg_temp.como('dd000000-0000-4000-8000-00000000000a');
+select public.quitar_de_tienda('de000000-0000-4000-8000-000000000001','dd000000-0000-4000-8000-00000000000a');
+select pg_temp.comprobar((select count(*) from public.productos where tienda_id='de000000-0000-4000-8000-000000000001')=0,'tras salir, el Ayudante ya no lee la tienda');
+reset role;
+insert into public.miembros(usuario_id,tienda_id,rol) values ('dd000000-0000-4000-8000-00000000000f','de000000-0000-4000-8000-000000000001','dueno');
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-00000000000d');
+select pg_temp.rechaza($q$select public.quitar_de_tienda('de000000-0000-4000-8000-000000000001','dd000000-0000-4000-8000-00000000000f')$q$,'42501','no_se_quita_dueno');
+select public.quitar_de_tienda('de000000-0000-4000-8000-000000000001','dd000000-0000-4000-8000-00000000000e');
+select pg_temp.comprobar((select count(*) from public.miembros where tienda_id='de000000-0000-4000-8000-000000000001' and usuario_id='dd000000-0000-4000-8000-00000000000e')=0,'la dueña quita al Editor');
+-- Transferir: la que deja de ser dueña queda Administradora.
+select public.transferir_tienda('de000000-0000-4000-8000-000000000001','dd000000-0000-4000-8000-00000000000c');
+select pg_temp.comprobar((select rol||'/'||nivel from public.miembros where tienda_id='de000000-0000-4000-8000-000000000001' and usuario_id='dd000000-0000-4000-8000-00000000000d')='staff/administrador','al transferir, la exdueña queda Administradora');
+reset role;
+-- Invitar por correo guarda el nivel (y lo aplica al entrar con Google).
+select pg_temp.como('dd000000-0000-4000-8000-00000000000c');
+set local role authenticated;
+select public.invitar_por_correo('de000000-0000-4000-8000-000000000001','nueva@prueba.invalid','editor');
+reset role;
+select pg_temp.comprobar((select nivel from public.invitaciones where email='nueva@prueba.invalid')='editor','la invitación guarda el nivel');
+insert into auth.users(id,email,raw_app_meta_data,email_confirmed_at) values ('dd000000-0000-4000-8000-000000000010','nueva@prueba.invalid','{"provider":"google"}',now());
+select pg_temp.comprobar((select rol||'/'||nivel from public.miembros where usuario_id='dd000000-0000-4000-8000-000000000010')='staff/editor','al entrar con Google queda Editor');
+
+-- @@ENLACES@@
 
 rollback;
 select 'Pasó: cada nivel escribe solo lo suyo en tablas y archivos; el extraño no ve nada; Ver como y permisos conviven.';
