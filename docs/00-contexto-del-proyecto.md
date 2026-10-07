@@ -101,7 +101,7 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 
 La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño. **Elegido el 6 oct 2026 (opción B del lienzo «Onboarding de Deslizapp»): historias para la introducción e historias también para la recopilación de los datos básicos.** Falta escribir la especificación y el prompt.
 
-**Selector de catálogos** (`docs/prompts/selector-de-catalogos.md`, 7 oct 2026): tras #67 (tipo de producto), el nombre del catálogo es el título de la pestaña Catálogo y el selector (un catálogo a la vez, sin «Todo»), y en la hoja de producto va fijo en la cabecera. Diseño: `referencias/selector-catalogos/`.
+**Selector de catálogos** (`docs/prompts/selector-de-catalogos.md`, 7 oct 2026): tras #67 (tipo de producto), el nombre del catálogo es el título de la pestaña Catálogo y el selector (un catálogo a la vez, sin «Todo»), y en la hoja de producto va fijo en la cabecera. Diseño: `referencias/selector-catalogos/`. **Hecho** (rama `feat/selector-catalogos`, v0.43.0): ver `docs/04-pantallas.md` (Tipo de producto).
 
 **Pendientes sueltos:**
 - **Mi marca «mágica»** (cuestionario de historias + tarjeta de marca con IA, nombre de marketing por decidir): idea anotada en `docs/15-mi-marca-magica.md`, después de #57 y con lienzo de diseño primero.

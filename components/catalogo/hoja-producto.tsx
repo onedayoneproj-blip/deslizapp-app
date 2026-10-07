@@ -6,8 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { esRubro, NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, tipoPorDefecto, type Detalles, type Rubro } from "@/lib/rubros";
-import { FilaTipoProducto } from "./fila-tipo-producto";
+import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib/rubros";
+import { catalogoInicial, contarPorCatalogo, leerCatalogoActivo } from "@/lib/catalogo-activo";
+import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
@@ -20,7 +21,7 @@ import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
-import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
@@ -92,7 +93,7 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
     <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} altura="grande"
       fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta={`Volver a ${tituloFicha}`} /><span aria-hidden="true">{tituloFicha}</span></div> : undefined}>
       <div className={historial.abierto ? "hidden" : "contents"}>
-        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}`} producto={producto ?? null} productos={productos} alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} />
+        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}`} producto={producto ?? null} productos={productos} alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} historialAbierto={historial.abierto} />
       </div>
       {productoId && historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
     </Hoja>
@@ -193,24 +194,6 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
   </div>;
 }
 
-/** El tipo del último producto creado en esta sesión (sessionStorage, por tienda): el siguiente nuevo sale con él. */
-const claveUltimoTipo = (tiendaId: string) => `deslizapp-ultimo-tipo:${tiendaId}`;
-function leerUltimoTipo(tiendaId: string): Rubro | null {
-  try {
-    const v = sessionStorage.getItem(claveUltimoTipo(tiendaId));
-    return esRubro(v) ? v : null;
-  } catch {
-    return null;
-  }
-}
-function guardarUltimoTipo(tiendaId: string, tipo: Rubro) {
-  try {
-    sessionStorage.setItem(claveUltimoTipo(tiendaId), tipo);
-  } catch {
-    // sin almacenamiento: el siguiente sale con el principal
-  }
-}
-
 function FormularioProducto({
   producto,
   productos,
@@ -218,6 +201,7 @@ function FormularioProducto({
   alEliminar,
   alIniciarEliminacion,
   alVerHistorial,
+  historialAbierto,
 }: {
   producto: Producto | null;
   productos: Producto[];
@@ -225,6 +209,7 @@ function FormularioProducto({
   alEliminar: () => void;
   alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
+  historialAbierto: boolean;
 }) {
   const { crearProducto, guardarVariantes, guardarFotoValor, ajustarStock, trabajosRetoque, getProducto, getPedidos } = useData();
   // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
@@ -237,12 +222,12 @@ function FormularioProducto({
   const { mostrarToast: mostrarToastUI } = useToastUI();
   const rubro = tienda?.rubro ?? "general";
   const taller = useTaller(producto, toast);
-  // Tipo de producto (docs/prompts/tipo-de-producto.md): solo con más de un rubro. Un producto nuevo sale con el tipo del último creado.
+  // Tipo de producto (docs/prompts/tipo-de-producto.md): solo con más de un rubro. Un producto nuevo sale con el catálogo que se estaba viendo.
   const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
   const variosTipos = tipos.length > 1;
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
   // Se calcula en cada vuelta (no se congela): la tienda puede llegar después del primer pintado.
-  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? tipoPorDefecto(tienda, leerUltimoTipo(tienda.id)) : rubro;
+  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? catalogoInicial(tienda, leerCatalogoActivo(tienda.id)) : rubro;
   const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
@@ -446,7 +431,6 @@ function FormularioProducto({
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
         await guardarFotosDeColor(creado);
-        if (variosTipos) guardarUltimoTipo(tiendaId, tipo);
         const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
         toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
@@ -494,11 +478,14 @@ function FormularioProducto({
 
   return (
     <div className="flex flex-col gap-5">
-      {variosTipos && !sinCatalogo && (
-        <FilaTipoProducto tipos={tipos} valor={tipo} alCambiar={setTipo} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando} />
-      )}
-      {variosTipos && sinCatalogo && (
-        <ListaAgrupada etiqueta="Tipo de producto"><FilaLista titulo="Tipo de producto" fin={<span className="text-secundario font-normal text-texto-secundario">{NOMBRE_TIPO[tipo]}</span>} onClick={() => toast(porque)} /></ListaAgrupada>
+      {variosTipos && !historialAbierto && (
+        <HojaFijoArriba>
+          <SelectorCatalogo
+            tipos={tipos} valor={tipo} conteo={tienda ? contarPorCatalogo(productos, tienda) : undefined} tamano="hoja" textoOtra="Vendo otra cosa también"
+            alCambiar={setTipo} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
+            sinPermiso={sinCatalogo ? () => toast(porque) : undefined}
+          />
+        </HojaFijoArriba>
       )}
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
       <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />

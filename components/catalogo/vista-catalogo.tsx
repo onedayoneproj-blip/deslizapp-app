@@ -27,7 +27,13 @@ import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
-import { NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, type Rubro } from "@/lib/rubros";
+import { NOMBRE_TIPO, rubrosDeTienda, type Rubro } from "@/lib/rubros";
+import { catalogoInicial, contarPorCatalogo, guardarCatalogoActivo, leerCatalogoActivo, productosDeCatalogo } from "@/lib/catalogo-activo";
+import { SelectorCatalogo } from "./selector-catalogo";
+import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
+
+const SUBTITULO_VARIOS = "Tus catálogos viven aquí. Toca el nombre y cambia.";
+const SUBTITULO_UNO = "Lo que tus clientes deslizan. Tú solo lo mantienes bonito.";
 
 type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos" | "en_espera";
 
@@ -66,19 +72,22 @@ export function VistaCatalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
-  // «Todos los tipos / Perfumes / Ropa…»: solo con más de un rubro.
-  const [tipoFiltro, setTipoFiltro] = useState<Rubro | "todos">("todos");
+  // Un catálogo a la vez (sin «Todo»): solo con más de un rubro. Abre el último que miró esta persona, o el principal.
+  const [catalogoElegido, setCatalogoElegido] = useState<Rubro | null>(null);
+  const [vendiendoOtra, setVendiendoOtra] = useState(false);
   const tipos = tienda ? rubrosDeTienda(tienda) : [];
   const variosTipos = tipos.length > 1;
+  const catalogo: Rubro | null = tienda && variosTipos ? (catalogoElegido && tipos.includes(catalogoElegido) ? catalogoElegido : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
+  const delCatalogo = useMemo(() => (productos && tienda && catalogo ? productosDeCatalogo(productos, tienda, catalogo) : productos), [productos, tienda, catalogo]);
+  const conteo = useMemo(() => (productos && tienda && variosTipos ? contarPorCatalogo(productos, tienda) : undefined), [productos, tienda, variosTipos]);
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 
   const visibles = useMemo(() => {
     const cumple = filtro === "en_espera" ? (p: Producto) => Boolean(espera.resumen?.porProducto.has(p.id)) : FILTROS.find((f) => f.id === filtro)!.cumple;
     const q = normalizar(busquedaAplicada);
-    const tipo = variosTipos && tipoFiltro !== "todos" && tienda ? tipoFiltro : null;
-    return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)) && (!tipo || tipoDeProducto(p, tienda!) === tipo));
-  }, [productos, filtro, busquedaAplicada, espera.resumen, tipoFiltro, variosTipos, tienda]);
+    return (delCatalogo ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
+  }, [delCatalogo, filtro, busquedaAplicada, espera.resumen]);
 
   // Salud del inventario (solo visibles) y estado del plan (los ocultos no ocupan lugar).
   const salud = saludDelInventario(productos ?? []);
@@ -86,7 +95,16 @@ export function VistaCatalogo() {
 
   return (
     <>
-      <TituloPantalla titulo="Tu catálogo" subtitulo="Lo que tus clientes deslizan. Tú solo lo mantienes bonito." derecha={
+      <TituloPantalla
+        titulo={tienda && catalogo ? (
+          <SelectorCatalogo
+            tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes…"
+            alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido(r)); }}
+            alVenderOtra={() => setVendiendoOtra(true)}
+          />
+        ) : "Tu catálogo"}
+        subtitulo={variosTipos ? SUBTITULO_VARIOS : SUBTITULO_UNO}
+        derecha={
         tienda && productos ? <button type="button" onClick={() => abrirInventario()} aria-label={etiquetaSalud(salud)}
           className="tocable flex w-20 shrink-0 flex-col items-center gap-1 rounded-radio-m">
           <DonaInventario className="dona-cabecera" salud={salud} cifra={String(salud.disponibles).length > 3 ? "dona-cifra-larga text-secundario" : "text-titulo-seccion"} />
@@ -115,26 +133,10 @@ export function VistaCatalogo() {
               setBusqueda(valor);
               startTransition(() => setBusquedaAplicada(valor));
             }}
-            placeholder="Busca un producto"
+            placeholder={catalogo ? `Busca en ${NOMBRE_TIPO[catalogo]}` : "Busca un producto"}
             className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
           />
         </label>
-
-        {variosTipos && (
-          <label className="relative flex h-11 items-center justify-between gap-2 rounded-full border-[1.5px] border-borde bg-white px-4 text-secundario font-extrabold text-bosque">
-            <span>Tipo de producto</span>
-            <span aria-hidden="true" className="font-normal text-texto-secundario">{tipoFiltro === "todos" ? "Todos los tipos" : NOMBRE_TIPO[tipoFiltro]}</span>
-            <select
-              value={tipoFiltro}
-              data-filtro-tipo=""
-              onChange={(e) => { const v = e.target.value as Rubro | "todos"; startTransition(() => setTipoFiltro(v)); }}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            >
-              <option value="todos">Todos los tipos</option>
-              {tipos.map((r) => <option key={r} value={r}>{NOMBRE_TIPO[r]}</option>)}
-            </select>
-          </label>
-        )}
 
         <Segmentos
             etiqueta="Filtrar productos"
@@ -145,7 +147,7 @@ export function VistaCatalogo() {
             opciones={[...FILTROS.map((f) => ({
               id: f.id,
               texto: f.nombre,
-              cantidad: productos ? productos.filter(f.cumple).length : undefined,
+              cantidad: delCatalogo ? delCatalogo.filter(f.cumple).length : undefined,
               atencion: PIDEN_ATENCION.includes(f.id),
             })), ...((espera.resumen?.productos || filtro === "en_espera" || espera.error || !espera.resumen) ? [{ id: "en_espera" as const, texto: "En espera", cantidad: espera.error || espera.cargando ? undefined : espera.resumen?.productos, atencion: true }] : [])]}
           />
@@ -158,6 +160,14 @@ export function VistaCatalogo() {
               titulo="Tu vitrina está vacía."
               remate="Sube tu primera pieza y deja que tu gente diga aaah."
               accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
+            />
+          ) : catalogo && delCatalogo?.length === 0 ? (
+            <EstadoVacio
+              pequeno
+              ilustracion="catalogo"
+              titulo={`Todavía no hay nada en ${NOMBRE_TIPO[catalogo]}.`}
+              remate="Sube tu primera pieza y deja que tu gente diga aaah."
+              accion={{ texto: "Agregar producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
             />
           ) : (
             <EstadoVacio pequeno ilustracion="catalogo" titulo={filtro === "en_espera" && espera.resumen?.productos === 0 ? "Nadie esperando por ahora." : "No encontramos nada con eso."} remate={filtro === "en_espera" && espera.resumen?.productos === 0 ? undefined : "Ni un suspiro. Prueba con otra palabra u otro filtro."} />
@@ -182,7 +192,8 @@ export function VistaCatalogo() {
       </div>
 
       {/* Sin productos, el botón del estado vacío ya invita a publicar: no se duplica */}
-      {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
+      {!(productos && productos.length === 0) && !(catalogo && delCatalogo?.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
+      {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
     </>
   );
 }
