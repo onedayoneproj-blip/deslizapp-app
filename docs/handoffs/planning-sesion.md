@@ -46,6 +46,7 @@ Sin prompt todavía (los escribe Planning cuando toque):
 ## Preguntas abiertas para Lewis
 
 - ¿El límite de colaboradores se cuenta por suscripción? (Así está en el prompt.)
+- Niveles de permiso de colaboradores (Ayudante / Editor / Administrador, elegidos por el dueño y exigidos en la base): propuesta en `docs/14`; confirmar nombres y reparto y sumarlo al prompt de suscripciones.
 - Tiempo de entrega del retoque (`TIEMPO_RETOQUE_TEXTO` vacío hasta que lo mida).
 - Número de WhatsApp de Deslizapp (`WHATSAPP_DESLIZAPP` en `lib/config.ts` está vacío).
 - Si existe la fila «Marca y diseño» en `precios_extra`.
