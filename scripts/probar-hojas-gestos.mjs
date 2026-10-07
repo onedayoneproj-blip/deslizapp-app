@@ -93,6 +93,24 @@ async function recorrido(nombre, { cdp, page }, hoja, cuerpo) {
   ok((await page.locator(hoja).count()) === 0, `${nombre}: otro deslizar abajo la cierra`);
 }
 
+/** Pantallas completas con scroll propio (sin gesto de hoja): con contenido largo, deslizar arriba/abajo desplaza y no cierra. */
+async function scrollPropio(nombre, { cdp, page }, panel, cuerpo, lista) {
+  await page.locator(lista).evaluate((e) => {
+    for (let i = 0; i < 30; i++) {
+      const d = document.createElement("div");
+      d.style.cssText = "height:60px;flex:none";
+      d.textContent = "relleno " + i;
+      e.appendChild(d);
+    }
+  });
+  const q = await centro(page, cuerpo);
+  await dedo(cdp, [q.x, q.y + 200], [q.x, q.y - 200], 14);
+  const t = await arriba(page, cuerpo);
+  ok(t > 20 && (await page.locator(panel).count()) === 1, `${nombre}: con contenido largo, deslizar arriba desplaza (${t} px) y no cierra`);
+  await dedo(cdp, [q.x, q.y - 200], [q.x, q.y + 200], 14);
+  ok((await arriba(page, cuerpo)) < t, `${nombre}: deslizar abajo vuelve a subir el contenido`);
+}
+
 for (const ancho of [390, 360]) {
   console.log(`— ${ancho} px —`);
   {
@@ -111,6 +129,21 @@ for (const ancho of [390, 360]) {
     await s.page.locator("#r-mayar [data-comments]").click();
     await s.page.waitForSelector("#cmBg .sheet");
     await recorrido("Opiniones", s, "#cmBg .sheet", "#cmBg .sbody");
+    await s.ctx.close();
+  }
+  {
+    const s = await abrir(ancho, "/tienda/esencias-michel?demo");
+    await s.page.locator("#colTab").click();
+    await s.page.waitForSelector("#coBg");
+    await scrollPropio("Colecciones", s, "#coBg", "#coBg", "#coGrid");
+    await s.ctx.close();
+  }
+  {
+    const s = await abrir(ancho, "/tienda/esencias-michel?demo");
+    await s.page.locator("#searchBtn").click();
+    await s.page.waitForSelector("#srBg");
+    await s.page.locator("#srOut").evaluate((e) => (e.style.minHeight = "0"));
+    await scrollPropio("Buscar", s, "#srBg", "#srOut", "#srOut");
     await s.ctx.close();
   }
   {
