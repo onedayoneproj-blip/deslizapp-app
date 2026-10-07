@@ -136,6 +136,7 @@ export class InventarioCambio extends ErrorClaro {
   constructor() { super("El stock cambió mientras ajustabas. Revisa la cantidad actual antes de guardar."); }
 }
 
+export const MENSAJE_SIN_PERMISO_NIVEL = "Esto lo hace quien administra la tienda.";
 export const MENSAJE_SOLO_MIRAR = "Estás mirando esta tienda; aquí no se cambia nada. Sal de Ver como para editar.";
 
 export class SinPermiso extends ErrorClaro {
@@ -349,8 +350,10 @@ export function traducirErrorSupabase(e: unknown): Error {
   // Permisos y sesión. `solo_mirar` lo lanza exigir_no_viendo (RPC); en las tablas la base solo dice "row-level security",
   // y con una sesión de Ver como abierta en otra pestaña es la causa más probable.
   if (mensaje.includes("solo_mirar")) return new SinPermiso(MENSAJE_SOLO_MIRAR);
+  // exigir_permiso: la cuenta es de la tienda, pero su nivel no incluye eso (docs/handoffs/permisos-auditoria.md).
+  if (mensaje === "sin_permiso" || mensaje === "solo_dueno") return new SinPermiso(MENSAJE_SIN_PERMISO_NIVEL);
   if (/row-level security/i.test(mensaje)) {
-    return new SinPermiso("No se pudo guardar. Si tienes Ver como abierto en otra pestaña, sal de ahí para editar.");
+    return new SinPermiso("No se pudo guardar: esto lo hace quien administra la tienda. Si tienes Ver como abierto en otra pestaña, sal de ahí.");
   }
   if (codigo === "42501" || /permission denied|row-level security/i.test(mensaje)) return new SinPermiso();
   if (codigo === "PGRST301" || codigo === "PGRST303" || c.status === 401 || /jwt|refresh token/i.test(mensaje)) return new SesionVencida();

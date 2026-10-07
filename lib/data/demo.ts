@@ -14,6 +14,7 @@ import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, re
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
 import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
+import { aprobarEnDB, cambiarNivelEnDB, cancelarEnlaceEnDB, crearEnlaceEnDB, equipoEnDB, invitarCorreoEnDB, permisoDemo, quitarEnDB, rechazarEnDB } from "./equipo-demo";
 import type { DatosAbonoNuevo, DatosPago, ExtraNuevoProducto, FuenteDatos } from "./fuente";
 import {
   cambiarEstadoPedido,
@@ -220,6 +221,48 @@ export const fuenteDemo: FuenteDatos = {
       return r.db;
     });
     return marca;
+  },
+
+  // Equipo (en la demo, sin enlaces reales)
+  async getMiPermiso() {
+    return permisoDemo(leerDemo().db);
+  },
+  async getEquipo(tiendaId) {
+    return equipoEnDB(leerDemo().db, tiendaId);
+  },
+  async crearEnlaceEquipo(tiendaId, nivel, nota) {
+    let codigo = "";
+    escribir((db) => {
+      const r = crearEnlaceEnDB(db, tiendaId, nivel, nota, nuevoId(), Date.now());
+      codigo = r.codigo;
+      return r.db;
+    });
+    return codigo;
+  },
+  async aprobarSolicitud(tiendaId, enlaceId, nivel) {
+    escribir((db) => aprobarEnDB(db, tiendaId, enlaceId, nivel, Date.now()));
+  },
+  async rechazarSolicitud(tiendaId, enlaceId) {
+    escribir((db) => rechazarEnDB(db, tiendaId, enlaceId));
+  },
+  async cancelarEnlaceEquipo(tiendaId, enlaceId) {
+    escribir((db) => cancelarEnlaceEnDB(db, tiendaId, enlaceId));
+  },
+  async cambiarNivelMiembro(tiendaId, usuarioId, nivel) {
+    escribir((db) => cambiarNivelEnDB(db, tiendaId, usuarioId, nivel));
+  },
+  async quitarMiembro(tiendaId, usuarioId) {
+    escribir((db) => quitarEnDB(db, tiendaId, usuarioId));
+  },
+  async invitarPorCorreo(tiendaId, email, nivel) {
+    escribir((db) => invitarCorreoEnDB(db, tiendaId, email, nivel, Date.now()));
+  },
+  async salirDeTienda() {
+    // En la demo no hay otra cuenta a la que volver: «salir» vuelve a mirarla como dueña.
+    escribir((db) => ({ ...db, nivelDemo: "dueno" }));
+  },
+  async mirarDemoComo(nivel) {
+    escribir((db) => ({ ...db, nivelDemo: nivel }));
   },
 
   // Catálogo en línea

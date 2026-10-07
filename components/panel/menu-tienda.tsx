@@ -8,8 +8,10 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
-import { IconoCheck, IconoChevronDerecha, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
-import { Boton } from "../ui";
+import { IconoCheck, IconoChevronDerecha, IconoClientes, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
+import { Boton, GrupoOpciones } from "../ui";
+import { usePermisos } from "@/lib/data/permisos";
+import { NIVELES } from "@/lib/equipo";
 import { AVISO_SIN_CAMBIO, avisoAhoraEstas, etiquetaTienda, ordenarTiendas, tituloMenu } from "@/lib/cuenta";
 import { detalleMiMarca } from "@/lib/marca-retoque";
 import { Esqueleto } from "../esqueleto";
@@ -35,14 +37,21 @@ const NOMBRE_ESTADO_CATALOGO = {
  * sesión» y la versión. En la demo, además, la sección «Modo demo». Aquí irá «Crear otra tienda» (PR de grupos de tiendas).
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, getEquipo, salirDeTienda, mirarDemoComo, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { permiso, esDuena } = usePermisos();
+  // Solo la dueña lee su equipo (la base no se lo da a nadie más): para la marca de «esperan tu visto bueno».
+  const { data: equipo } = useConsulta(`equipo:${tiendaActivaId}:${esDuena && !soloMirar}`, () =>
+    esDuena && !soloMirar ? getEquipo(tiendaActivaId) : Promise.resolve(null),
+  );
+  const esperan = equipo?.solicitudes.length ?? 0;
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
   const demo = modo === "demo";
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   // La línea de Mi marca dice lo que falta con la misma regla que bloquea el retoque (también en Ver como, solo para mirar).
   const { data: marcaRetoque, cargando: leyendoMarca } = useConsulta(`marca:${tiendaActivaId}`, () => getMarcaRetoque(tiendaActivaId));
   const estadoMarca = detalleMiMarca(marcaRetoque);
   const toast = useToast();
-  const { abrirNovedades, abrirMiMarca } = usePanelUI();
+  const { abrirNovedades, abrirMiMarca, abrirEquipo } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
   const [cambiando, setCambiando] = useState<string | null>(null);
 
@@ -52,7 +61,28 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
 
   const cerrar = () => {
     setConfirmarReinicio(false);
+    setConfirmarSalida(false);
     alCerrar();
+  };
+
+  const salirDeEstaTienda = async () => {
+    if (!confirmarSalida) {
+      setConfirmarSalida(true);
+      return;
+    }
+    try {
+      await salirDeTienda(tiendaActivaId);
+      if (demo) {
+        toast("Listo. Vuelves a mirar la demo como dueña.");
+        cerrar();
+      } else {
+        // La cuenta queda con otra tienda suya o sin tienda: se recarga para no ver nada de esta.
+        window.location.reload();
+      }
+    } catch (e) {
+      setConfirmarSalida(false);
+      toast(mensajeDeError(e));
+    }
   };
 
   const elegirTienda = async (id: string) => {
@@ -147,6 +177,36 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
             </span>
             <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
           </button>
+          {!soloMirar && esDuena && (
+            <button
+              type="button"
+              onClick={() => {
+                cerrar();
+                abrirEquipo();
+              }}
+              data-fila-equipo=""
+              className="tocable flex min-h-14 w-full items-center gap-3 border-t border-linea px-3.5 py-2 text-left"
+            >
+              <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-accion-suave text-texto"><IconoClientes tamano={18} /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-extrabold">Tu equipo</span>
+                <span className={`block text-secundario ${esperan > 0 ? "font-bold text-atencion-texto" : "text-texto-secundario"}`}>
+                  {esperan > 0 ? `${esperan} ${esperan === 1 ? "espera" : "esperan"} tu visto bueno` : "Invita a quien te ayuda"}
+                </span>
+              </span>
+              {esperan > 0 && <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-resalte" />}
+              <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
+            </button>
+          )}
+          {!soloMirar && permiso?.rol === "staff" && (
+            <div className="border-t border-linea px-3.5 py-3" data-fila-equipo="colaborador">
+              <p className="font-extrabold opacity-60">Tu equipo</p>
+              <p className="text-secundario text-texto-secundario">Esto lo ve quien administra la tienda. Aquí eres {NIVELES.find((n) => n.id === permiso.nivel)?.nombre}.</p>
+              <Boton jerarquia="terciario" tono="peligro" tamano="compacto" className="mt-1 -ml-2" onClick={salirDeEstaTienda}>
+                {confirmarSalida ? "Toca otra vez para salir" : "Salir de esta tienda"}
+              </Boton>
+            </div>
+          )}
         </div>
       )}
 
@@ -182,6 +242,17 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
           <div className="mt-6 flex items-baseline gap-2">
             <h2 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h2>
             <span className="font-mano text-lg text-mandarina-texto">nadie se entera</span>
+          </div>
+          <div className="mt-2 rounded-3xl border border-linea bg-white px-4 py-3" data-mirar-como="">
+            <GrupoOpciones
+              titulo="Mirar la app como"
+              etiqueta="Mirar la app como"
+              compacta
+              opciones={[{ id: "dueno" as const, texto: "Dueña" }, ...NIVELES.map((n) => ({ id: n.id, texto: n.nombre }))]}
+              valor={permiso?.rol === "dueno" ? "dueno" : (permiso?.nivel ?? "dueno")}
+              alCambiar={(n) => void mirarDemoComo(n)}
+            />
+            <p className="mt-1.5 text-xs text-suave">Para ver lo que ve cada persona de tu equipo. Solo en la demo.</p>
           </div>
           <div className="mt-2 divide-y divide-linea overflow-hidden rounded-3xl border border-linea bg-white">
             <AccionDemo

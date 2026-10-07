@@ -1,5 +1,7 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
+import { useToast } from "../toast";
 import Link from "next/link";
 import { startTransition, useMemo, useState } from "react";
 import { DonaInventario } from "./dona-inventario";
@@ -50,6 +52,9 @@ const normalizar = (texto: string) =>
 /** Catálogo (pantalla 1): medidor del plan, buscador, filtros y grilla. */
 export function VistaCatalogo() {
   const { getProductos, getPromos } = useData();
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
+  const toast = useToast();
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario, espera } = usePanelUI();
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -154,7 +159,7 @@ export function VistaCatalogo() {
       </div>
 
       {/* Sin productos, el botón del estado vacío ya invita a publicar: no se duplica */}
-      {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} />}
+      {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
     </>
   );
 }

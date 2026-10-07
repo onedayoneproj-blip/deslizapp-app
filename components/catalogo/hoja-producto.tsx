@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -121,6 +122,8 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
 function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerEspera: (boton: HTMLButtonElement) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const toast = useToast();
   const { actualizarProducto } = useData();
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario, espera } = usePanelUI();
   const { mostrarToast: mostrarToastUI } = useToastUI();
@@ -177,9 +180,10 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
     {/* Con cambios de stock sin guardar, "Guardar cambios" es el único botón principal a la vista */}
     {!inventario.pendiente && <div className="grid grid-cols-2 gap-3">
-      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
+      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando || sinCatalogo} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
       <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
     </div>}
+    {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">Editar: {porque.charAt(0).toLowerCase() + porque.slice(1)}</p>}
     <ConfirmacionInventario inventario={inventario}/>
   </div>;
 }
@@ -200,6 +204,9 @@ function FormularioProducto({
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
   const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque, getProducto } = useData();
+  // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario } = usePanelUI();
@@ -500,8 +507,9 @@ function FormularioProducto({
         }}
       />
 
+      {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
       {(!producto || !inventario.pendiente || tieneOpciones) && (
-        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando} onClick={alGuardar}>
+        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo} onClick={alGuardar}>
           {producto ? "Guardar cambios" : "Publicar"}
         </Boton>
       )}

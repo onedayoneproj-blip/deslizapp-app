@@ -1,5 +1,7 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
+import { TEXTO_SIN_PERMISO } from "@/lib/equipo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { marcaLista as esMarcaLista, type MarcaRetoque } from "@/lib/marca-retoque";
 import { avisoFotoEnProceso, MOTIVO_SIN_MARCA } from "@/lib/retoque-textos";
@@ -45,6 +47,8 @@ export type Taller = {
   pedirDe: (productoId: string, url: string, opciones?: { silencioso?: boolean }) => Promise<boolean>;
   pidiendo: string | null;
   soloMirar: boolean;
+  /** El nivel de esta cuenta no incluye créditos (Ayudante, Editor): el retoque se ve apagado con su porqué. */
+  sinPermiso: boolean;
   /** La marca de la tienda para el retoque; undefined mientras se lee. */
   marca: MarcaRetoque | undefined;
   /** La regla «marca lista» (lib/marca-retoque.ts): null mientras se lee. Sin ella no se manda nada al taller. */
@@ -60,6 +64,7 @@ export type Taller = {
 export function useTaller(producto: Producto | null, avisar: (mensaje: string) => void): Taller {
   const datos = useData();
   const { trabajosRetoque, pedirRetoque, soloMirar, getMarcaRetoque } = datos;
+  const sinPermiso = !usePermisos().puede("creditos");
   const { tiendaId, tienda } = useTiendaActiva();
   const consulta = useConsulta(`taller:${tiendaId}`, () => trabajosRetoque(tiendaId), true);
   const trabajos = consulta.data;
@@ -104,6 +109,10 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
 
   const pedirDe = async (destinoId: string, url: string, opciones?: { silencioso?: boolean }) => {
     if (enCurso.current) return false;
+    if (sinPermiso) {
+      if (!opciones?.silencioso) avisar(TEXTO_SIN_PERMISO);
+      return false;
+    }
     // La compuerta de la marca también vive aquí: ninguna pantalla manda una foto al taller sin Mi marca lista.
     if (marcaLista !== true) {
       if (!opciones?.silencioso) avisar(MOTIVO_SIN_MARCA);
@@ -139,5 +148,5 @@ export function useTaller(producto: Producto | null, avisar: (mensaje: string) =
   };
   const pedir = async (url: string) => (productoId ? pedirDe(productoId, url) : false);
 
-  return { libres, estado, guardada, pedir, pedirDe, pidiendo, soloMirar, marca, marcaLista, entregadas };
+  return { libres, estado, guardada, pedir, pedirDe, pidiendo, soloMirar, sinPermiso, marca, marcaLista, entregadas };
 }
