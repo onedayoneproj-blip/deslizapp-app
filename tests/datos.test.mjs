@@ -79,6 +79,7 @@ test("tienda: de fila a la app", () => {
     catalogoSolicitadoEn: null,
     catalogoPublicadoEn: null,
     rubro: "general",
+    rubros: ["general"],
   });
 });
 

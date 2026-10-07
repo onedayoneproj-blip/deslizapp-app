@@ -1,7 +1,8 @@
 import type { EstiloMarca } from "../marca";
+import { errorDeRubros, productosConTipoQuitado, type Rubro } from "../rubros";
 import type { Tienda, Usuario } from "../types";
 import type { DB } from "./db";
-import { CreditosInsuficientes, DatosInvalidos } from "./errores";
+import { CreditosInsuficientes, DatosInvalidos, mensajeRubroEnUso } from "./errores";
 
 export { CreditosInsuficientes };
 
@@ -24,6 +25,21 @@ export function descontarCreditos(db: DB, tiendaId: string, cantidad: number) {
 
 export function buscarDueno(db: DB, tiendaId: string): Usuario | null {
   return db.usuarios.find((u) => u.tiendaId === tiendaId && u.rol === "dueno") ?? null;
+}
+
+/**
+ * «Lo que vendes» (RPC `guardar_rubros_tienda`): el primero es el principal. Quitar un tipo que algún producto usa no se puede:
+ * el mensaje dice cuáles (decisión: se bloquea, no se pasan solos al principal).
+ */
+export function modificarRubros(db: DB, tiendaId: string, rubros: Rubro[]) {
+  const actual = buscarTienda(db, tiendaId);
+  if (!actual) throw new Error("Esa tienda no existe.");
+  const malo = errorDeRubros(rubros);
+  if (malo) throw new DatosInvalidos(malo);
+  const usan = productosConTipoQuitado(db.productos.filter((p) => p.tiendaId === tiendaId), rubros);
+  if (usan.length) throw new DatosInvalidos(mensajeRubroEnUso(usan.map((p) => p.nombre)));
+  const tienda: Tienda = { ...actual, rubro: rubros[0]!, rubros };
+  return { db: { ...db, tiendas: db.tiendas.map((t) => (t.id === tiendaId ? tienda : t)) }, tienda };
 }
 
 export type DatosMarca = {

@@ -13,6 +13,7 @@ import type { CambiosAbono } from "../credito";
 import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
+import type { Rubro } from "../rubros";
 import type { DatosMarcaRetoque, MarcaRetoque } from "../marca-retoque";
 import type { EquipoTienda, MiPermiso, Nivel } from "../equipo";
 
@@ -98,6 +99,8 @@ export type FuenteDatos = {
   trabajosRetoque(tiendaId: string): Promise<TrabajoRetoque[]>;
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
   actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda>;
+  /** «Lo que vendes»: los tipos de producto de la tienda (el primero es el principal). No deja quitar un tipo que algún producto usa. */
+  guardarRubros(tiendaId: string, rubros: Rubro[]): Promise<Tienda>;
   /** «Mi marca» para el retoque: Instagram, 3 palabras, lo que no quiere y las fotos de referencia (3 a 6). Es lectura (Ver como la puede pedir). */
   getMarcaRetoque(tiendaId: string): Promise<MarcaRetoque>;
   /** Guarda lo de arriba. Quitar una referencia borra también su archivo. Devuelve la marca como quedó. */

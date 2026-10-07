@@ -2,7 +2,7 @@ import { limpiarFotosPorValor } from "../presentaciones";
 import type { CambiosProducto, Medio, NuevoProducto, OpcionProducto, Producto, Variante } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos } from "./errores";
-import { detallesValidos } from "../rubros";
+import { detallesValidos, rubrosDeTienda } from "../rubros";
 export { sumarStock } from "./inventario";
 import { ordenarVariantes, slugDesdeTexto } from "./filas";
 
@@ -11,6 +11,13 @@ export const variantesDe = (db: DB, productoId: string): Variante[] => ordenarVa
 
 /** El producto con sus variantes, como lo devuelve Supabase. */
 export const conVariantes = (db: DB, p: Producto): Producto => ({ ...p, variantes: variantesDe(db, p.id) });
+
+/** El tipo del producto debe ser uno de los que vende la tienda (trigger `productos_rubro`). */
+function validarTipo(db: DB, p: Producto) {
+  if (p.rubro != null && !rubrosDeTienda(db.tiendas.find((t) => t.id === p.tiendaId) ?? { rubro: "general" }).includes(p.rubro)) {
+    throw new DatosInvalidos("Ese tipo de producto no es de tu tienda.");
+  }
+}
 
 /**
  * Las reglas de la base para lo del catálogo conectado (constraints de productos y triggers productos_medios /
@@ -23,6 +30,7 @@ export function validarCatalogo(db: DB, p: Producto) {
   if (p.medios.length > 10 || videos.length > 2 || medioMalo) throw new DatosInvalidos("Hasta 10 fotos y videos, y máximo 2 videos de 30 segundos.");
   const rubro = db.tiendas.find((t) => t.id === p.tiendaId)?.rubro;
   if (!rubro || !detallesValidos(rubro, p.detalles, p.tipo === "servicio")) throw new DatosInvalidos("Algún detalle no sirve para este tipo de producto. Revísalo.");
+  validarTipo(db, p);
   if (p.encargoTexto !== null && (p.encargoTexto.length < 1 || p.encargoTexto.length > 40)) throw new DatosInvalidos("El tiempo de encargo va en hasta 40 caracteres.");
   if (p.tipo === "servicio" && (p.stock !== null || p.porEncargo)) throw new DatosInvalidos("Un servicio no lleva stock.");
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(p.slug) || p.slug.length > 40) throw new DatosInvalidos("El enlace va en minúsculas, números y guiones (hasta 40).");
@@ -96,6 +104,7 @@ export function modificarProducto(db: DB, tiendaId: string, id: string, cambios:
   if (actual.eliminadoEn) throw new DatosInvalidos("Este producto fue eliminado. Su historial se conserva.");
   let producto: Producto = { ...actual, ...cambios, actualizadoEn: ahora } as Producto;
   delete producto.variantes;
+  if (cambios.rubro !== undefined) validarTipo(db, producto);
   if (cambios.medios) producto = { ...producto, ...fotosDesdeMedios(cambios.medios) };
   else if (cambios.fotos || cambios.fotoRetocada !== undefined) producto = { ...producto, medios: mediosDesdeFotos(producto.fotos, producto.fotoRetocada, actual.medios) };
   // Como el trigger de la base: la foto de un color solo vale mientras su foto y su valor sigan en el producto.

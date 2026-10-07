@@ -27,6 +27,7 @@ import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
+import { NOMBRE_TIPO, rubrosDeTienda, tipoDeProducto, type Rubro } from "@/lib/rubros";
 
 type Filtro = "todos" | "visibles" | "por_agotarse" | "agotados" | "ocultos" | "en_espera";
 
@@ -65,14 +66,19 @@ export function VistaCatalogo() {
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
+  // «Todos los tipos / Perfumes / Ropa…»: solo con más de un rubro.
+  const [tipoFiltro, setTipoFiltro] = useState<Rubro | "todos">("todos");
+  const tipos = tienda ? rubrosDeTienda(tienda) : [];
+  const variosTipos = tipos.length > 1;
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 
   const visibles = useMemo(() => {
     const cumple = filtro === "en_espera" ? (p: Producto) => Boolean(espera.resumen?.porProducto.has(p.id)) : FILTROS.find((f) => f.id === filtro)!.cumple;
     const q = normalizar(busquedaAplicada);
-    return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)));
-  }, [productos, filtro, busquedaAplicada, espera.resumen]);
+    const tipo = variosTipos && tipoFiltro !== "todos" && tienda ? tipoFiltro : null;
+    return (productos ?? []).filter((p) => cumple(p) && (!q || normalizar(p.nombre).includes(q)) && (!tipo || tipoDeProducto(p, tienda!) === tipo));
+  }, [productos, filtro, busquedaAplicada, espera.resumen, tipoFiltro, variosTipos, tienda]);
 
   // Salud del inventario (solo visibles) y estado del plan (los ocultos no ocupan lugar).
   const salud = saludDelInventario(productos ?? []);
@@ -113,6 +119,22 @@ export function VistaCatalogo() {
             className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
           />
         </label>
+
+        {variosTipos && (
+          <label className="relative flex h-11 items-center justify-between gap-2 rounded-full border-[1.5px] border-borde bg-white px-4 text-secundario font-extrabold text-bosque">
+            <span>Tipo de producto</span>
+            <span aria-hidden="true" className="font-normal text-texto-secundario">{tipoFiltro === "todos" ? "Todos los tipos" : NOMBRE_TIPO[tipoFiltro]}</span>
+            <select
+              value={tipoFiltro}
+              data-filtro-tipo=""
+              onChange={(e) => { const v = e.target.value as Rubro | "todos"; startTransition(() => setTipoFiltro(v)); }}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            >
+              <option value="todos">Todos los tipos</option>
+              {tipos.map((r) => <option key={r} value={r}>{NOMBRE_TIPO[r]}</option>)}
+            </select>
+          </label>
+        )}
 
         <Segmentos
             etiqueta="Filtrar productos"

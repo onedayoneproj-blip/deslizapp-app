@@ -98,7 +98,10 @@
     "instagram": "https://www.instagram.com/esenciasmichel8/",
     "descripcion": "Perfumes nuevos y sellados. Dale al corazón en los que te gusten y mándale tu pedido a Michel por WhatsApp.",
     "nombre_vendedora": "Michel",
-    "foto_perfil_url": "/tienda/original-0.jpg"
+    "foto_perfil_url": "/tienda/original-0.jpg",
+    "rubros": [
+      "perfumes"
+    ]
   },
   {
     "id": "a1000000-0000-4000-8000-000000000002",
@@ -114,7 +117,10 @@
     "marca_color_acento": "#F4A07C",
     "marca_estilo": "moderna",
     "url_catalogo": null,
-    "rubro": "accesorios"
+    "rubro": "accesorios",
+    "rubros": [
+      "accesorios"
+    ]
   },
   {
     "id": "a1000000-0000-4000-8000-000000000003",
@@ -130,6 +136,10 @@
     "marca_color_acento": "#D9B98C",
     "marca_estilo": "moderna",
     "url_catalogo": "https://example.com/lino-y-algodon",
-    "rubro": "ropa"
+    "rubro": "ropa",
+    "rubros": [
+      "ropa",
+      "accesorios"
+    ]
   }
 ]

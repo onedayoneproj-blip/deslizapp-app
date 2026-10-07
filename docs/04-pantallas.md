@@ -1056,3 +1056,11 @@ Se bloquea ante pedidos Nuevo/Por despachar, solicitudes vigentes sin registrar 
 Fallo de escritura: no anuncia éxito ni reintenta automáticamente; exige revisar producto y pendientes. La operación es idempotente. Si la migración no está disponible, no permite eliminar; ofrece Ocultar.
 
 Se conservan de main/PR #49: selección interna de agotados sin selección inicial, revalidación y fallos parciales; historial con ListaAgrupada/FilaLista y Ver más; única píldora horizontal `[corazón cifra]` dentro de la foto (cero incluido).
+
+### Tipo de producto («Lo que vendes»)
+
+Una tienda puede vender varios rubros; cada producto lleva su tipo. En la app: **«Lo que vendes»** (la tienda) y **«Tipo de producto»** (cada producto); la palabra «rubro» no sale. Con **un solo rubro nada de esto aparece** y todo queda como antes (solo suma la fila «Lo que vendes» en Mi marca).
+- **«Lo que vendes»:** una fila en la hoja de **Mi marca** abre una hoja con los rubros como filas con check (al menos uno; el primero es el principal). Es del grupo `catalogo`. Quitar un tipo que algún producto usa avisa cuáles (no se quita).
+- **Formulario del producto:** con más de un rubro, justo arriba, la fila **Tipo de producto** (estilo Colección: etiqueta, valor gris y chevron) con un `<select>` nativo encima; su última opción, «Vendo otra cosa también», abre «Lo que vendes». Un producto nuevo sale con el tipo del último creado en la sesión (sessionStorage, por tienda) y, si no hay, el principal. Las presentaciones típicas salen del tipo del producto; los Detalles, del principal.
+- **Catálogo del panel:** un `<select>` nativo «Todos los tipos / Ropa / Accesorios» sobre las pastillas; combina con la búsqueda y con las pastillas.
+- **Catálogo del cliente:** en la búsqueda, con más de un rubro, pastillas «Todo / Ropa / Accesorios» y las palabras que nombran un tipo («ropa», «perfumes») filtran por él; el resto de la consulta se busca como siempre (`lib/tienda/busqueda.ts`). Con un solo rubro la búsqueda es idéntica (prueba con un caso fijo de Esencias Michel).

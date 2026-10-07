@@ -75,6 +75,7 @@ export type FilaTienda = {
   catalogo_solicitado_en?: string | null;
   catalogo_publicado_en?: string | null;
   rubro?: string;
+  rubros?: string[];
 };
 
 export type FilaUsuario = { id: string; tienda_id: string; email: string; nombre: string; rol: string };
@@ -105,6 +106,7 @@ export type FilaProducto = {
   fotos_por_valor?: Record<string, Record<string, string>>;
   por_encargo?: boolean;
   encargo_texto?: string | null;
+  rubro?: string | null;
   /** Embebidas con `select("*, producto_variantes(*)")`. */
   producto_variantes?: FilaVariante[] | null;
 };
@@ -279,8 +281,12 @@ export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
     catalogoSolicitadoEn: f.catalogo_solicitado_en ?? null,
     catalogoPublicadoEn: f.catalogo_publicado_en ?? null,
     rubro: (f.rubro ?? "general") as Rubro,
+    rubros: rubrosDe((f.rubro ?? "general") as Rubro, (f.rubros ?? []) as Rubro[]),
   };
 }
+
+/** El principal primero y sin repetir (igual que `rubrosDeTienda` de lib/rubros.ts, que aquí no se importa para que filas.ts siga siendo solo tipos). */
+const rubrosDe = (rubro: Rubro, rubros: Rubro[]): Rubro[] => [...new Set([rubro, ...rubros])];
 
 export function aUsuario(f: FilaUsuario): Usuario {
   return { id: f.id, tiendaId: f.tienda_id, email: f.email, nombre: f.nombre, rol: f.rol as RolUsuario };
@@ -294,6 +300,7 @@ export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto
     nombre: f.nombre,
     precio: f.precio,
     fotos: f.fotos ?? [],
+    rubro: (f.rubro as Rubro | null | undefined) ?? null,
     fotoRetocada: f.foto_retocada,
     categoria: f.categoria,
     activo: f.activo,
@@ -450,6 +457,7 @@ export type FilaCatalogoPublico = {
     descripcion: string | null;
     nombre_vendedora: string | null;
     rubro: string;
+    rubros?: string[];
   };
   productos: {
     orden: number | null;
@@ -458,6 +466,7 @@ export type FilaCatalogoPublico = {
     slug: string;
     nombre: string;
     tipo: string;
+    rubro?: string | null;
     categoria: string | null;
     precio: number;
     precio_promo: number | null;
@@ -493,6 +502,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       descripcion: t.descripcion,
       nombreVendedora: t.nombre_vendedora,
       rubro: (t.rubro ?? "general") as Rubro,
+      rubros: rubrosDe((t.rubro ?? "general") as Rubro, (t.rubros ?? []) as Rubro[]),
     },
     productos: (f.productos ?? []).map((p) => ({
       orden: p.orden ?? null,
@@ -501,6 +511,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       slug: p.slug,
       nombre: p.nombre,
       tipo: p.tipo === "servicio" ? "servicio" : "producto",
+      rubro: (p.rubro ?? t.rubro ?? "general") as Rubro,
       categoria: p.categoria,
       precio: p.precio,
       precioPromo: p.precio_promo ?? null,
@@ -652,12 +663,13 @@ export function filaProductoNuevo(tiendaId: string, d: NuevoProducto) {
     ...(d.detalles !== undefined ? { detalles: d.detalles } : {}),
     ...(d.porEncargo !== undefined ? { por_encargo: d.porEncargo } : {}),
     ...(d.encargoTexto !== undefined ? { encargo_texto: d.encargoTexto } : {}),
+    ...(d.rubro !== undefined ? { rubro: d.rubro } : {}),
   };
 }
 
 /** Solo las columnas que llegan en `cambios` (un `update` parcial). `likes` nunca se escribe. */
 export function filaCambiosProducto(c: CambiosProducto) {
-  type Columna = "nombre" | "precio" | "fotos" | "foto_retocada" | "categoria" | "activo" | "destacado" | "stock" | "slug" | "tipo" | "medios" | "detalles" | "por_encargo" | "encargo_texto";
+  type Columna = "nombre" | "precio" | "fotos" | "foto_retocada" | "categoria" | "activo" | "destacado" | "stock" | "slug" | "tipo" | "medios" | "detalles" | "por_encargo" | "encargo_texto" | "rubro";
   const fila: Partial<Record<Columna, unknown>> = {};
   if (c.nombre !== undefined) fila.nombre = c.nombre;
   if (c.precio !== undefined) fila.precio = c.precio;
@@ -674,6 +686,7 @@ export function filaCambiosProducto(c: CambiosProducto) {
   if (c.detalles !== undefined) fila.detalles = c.detalles;
   if (c.porEncargo !== undefined) fila.por_encargo = c.porEncargo;
   if (c.encargoTexto !== undefined) fila.encargo_texto = c.encargoTexto;
+  if (c.rubro !== undefined) fila.rubro = c.rubro;
   return fila;
 }
 

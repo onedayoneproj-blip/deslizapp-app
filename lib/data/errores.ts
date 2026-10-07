@@ -117,6 +117,9 @@ export class PromoInvalida extends ErrorClaro {
   }
 }
 
+export const mensajeRubroEnUso = (nombres: string[]) =>
+  `No puedes quitar ese tipo todavía: lo usan ${nombres.slice(0, 3).join(", ")}${nombres.length > 3 ? ` y ${nombres.length - 3} más` : ""}. Cámbiales el tipo primero.`;
+
 export class DatosInvalidos extends ErrorClaro {}
 
 /** El código personal escrito a mano no sirve (formato o ya en uso): se muestra en el campo "Código". */
@@ -250,6 +253,10 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("stock_fuera_de_rango")) return new DatosInvalidos("Esa cantidad supera el límite permitido.");
   if (mensaje.includes("ajuste_producto_no_encontrado")) return new DatosInvalidos("Ese producto ya no existe en esta tienda.");
   if (mensaje.includes("ajuste_invalido")) return new DatosInvalidos("El ajuste debe cambiar al menos una unidad.");
+
+  // «Lo que vendes» y el tipo de cada producto
+  if (mensaje.includes("rubro_en_uso")) return new DatosInvalidos(mensajeRubroEnUso(texto(c.details).split(", ").filter(Boolean)));
+  if (mensaje.includes("rubro_invalido") || mensaje.includes("rubros_invalidos")) return new DatosInvalidos("Ese tipo de producto no es de tu tienda.");
 
   // RPC crear_codigo_cliente y registrar_envio_jugada
   if (mensaje.includes("codigo_en_uso")) return new CodigoNoValido(MENSAJE_CODIGO_EN_USO);

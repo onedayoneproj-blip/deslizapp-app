@@ -44,6 +44,8 @@ export type Tienda = {
   catalogoPublicadoEn: string | null;
   /** Qué vende (define los detalles de sus productos, lib/rubros.ts). */
   rubro: Rubro;
+  /** Todo lo que vende («Lo que vendes»); `rubro` es el principal y siempre está aquí. */
+  rubros: Rubro[];
 };
 
 export type EstadoTienda = "en_prueba" | "activa" | "pausada" | "eliminada";
@@ -83,6 +85,8 @@ export type Producto = {
   tipo: TipoProducto;
   /** Fotos y videos en orden. La base lo mantiene igual a `fotos` mientras la app escriba `fotos`. */
   medios: Medio[];
+  /** Tipo de producto (su rubro). null = el principal de la tienda. Solo organiza y busca: los Detalles siguen el rubro principal. */
+  rubro?: Rubro | null;
   /** Detalles del rubro (marca, notas, talla…), más `descripcion`. */
   detalles: Detalles;
   /** Ejes de las variantes (Talla, Color…); vacío = sin variantes. */
@@ -344,6 +348,8 @@ export type ProductoPublico = {
   slug: string;
   nombre: string;
   tipo: TipoProducto;
+  /** Tipo de producto ya resuelto (el principal de la tienda si el producto no trae). */
+  rubro: Rubro;
   categoria: string | null;
   precio: number;
   /** El precio con la promo automática vigente; null si no hay. */
@@ -386,6 +392,8 @@ export type CatalogoPublico = {
     descripcion: string | null;
     nombreVendedora: string | null;
     rubro: Rubro;
+    /** Lo que vende la tienda; con más de uno, el catálogo muestra tipos. */
+    rubros: Rubro[];
   };
   productos: ProductoPublico[];
 };

@@ -4,6 +4,7 @@
 //   despachar (RPC despachar_pedido) y los créditos (RPC gastar_creditos). El RLS limita todo a tu tienda.
 // - Las filas (snake_case) se convierten SOLO con lib/data/filas.ts.
 
+import { errorDeRubros } from "../rubros";
 import { equipoSupabase } from "./equipo-supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDITOS_POR_RETOQUE } from "../config";
@@ -517,6 +518,13 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       }
       // El logo anterior ya no se usa.
       await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [antes?.logoUrl], [logoUrl]));
+      return cambio(aTienda(f));
+    },
+
+    async guardarRubros(tiendaId, rubros) {
+      const malo = errorDeRubros(rubros);
+      if (malo) throw new DatosInvalidos(malo);
+      const f = await requerido<FilaTienda>(supabase.rpc("guardar_rubros_tienda", { p_tienda_id: tiendaId, p_rubros: rubros }), () => new DatosInvalidos("No encontramos tu tienda."));
       return cambio(aTienda(f));
     },
 

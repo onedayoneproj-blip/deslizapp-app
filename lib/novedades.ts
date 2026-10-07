@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.42.0", fecha: "2026-10-08", titulo: "Cada producto, de lo suyo.",
+    cambios: [
+      "Si vendes de más de una cosa, en Mi marca marcas «Lo que vendes» y cada producto lleva su tipo.",
+      "En el catálogo filtras por tipo, y tus clientes también los buscan por tipo («ropa», «perfumes»).",
+      "Si vendes de un solo tipo, nada cambia.",
+    ],
+  },
+  {
     version: "0.41.0", fecha: "2026-10-08", titulo: "Un producto, todas sus presentaciones.",
     cambios: [
       "Tallas, colores o tamaños en un solo producto: eliges qué cambia y salen todas, cada una con su stock.",

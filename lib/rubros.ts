@@ -193,3 +193,44 @@ export function camposComoEnLaBase(): Record<string, Record<string, unknown>> {
 export const NOMBRE_PRODUCTO: Record<Rubro,{singular:string;plural:string}> = {
  perfumes:{singular:'perfume',plural:'perfumes'},ropa:{singular:'prenda',plural:'prendas'},accesorios:{singular:'accesorio',plural:'accesorios'},belleza:{singular:'producto',plural:'productos'},comida:{singular:'producto',plural:'productos'},hogar:{singular:'producto',plural:'productos'},general:{singular:'producto',plural:'productos'},
 };
+
+// ---- Lo que vende una tienda y el tipo de cada producto (docs/prompts/tipo-de-producto.md) ----
+
+/** Cómo se ve cada rubro en pantalla («Lo que vendes», «Tipo de producto»); la palabra «rubro» no sale. */
+export const NOMBRE_TIPO: Record<Rubro, string> = {
+  perfumes: "Perfumes",
+  ropa: "Ropa",
+  accesorios: "Accesorios",
+  belleza: "Belleza",
+  comida: "Comida",
+  hogar: "Hogar",
+  general: "General",
+};
+
+export const esRubro = (v: unknown): v is Rubro => typeof v === "string" && (RUBROS as readonly string[]).includes(v);
+
+/** Los rubros de la tienda con el principal primero, sin repetir. Una tienda sin `rubros` vende solo el principal. */
+export function rubrosDeTienda(t: { rubro: Rubro; rubros?: readonly Rubro[] | null }): Rubro[] {
+  return [...new Set([t.rubro, ...(t.rubros ?? [])])];
+}
+
+/** El tipo de un producto: el suyo, o el principal de la tienda si no tiene. */
+export const tipoDeProducto = (p: { rubro?: Rubro | null }, t: { rubro: Rubro }): Rubro => p.rubro ?? t.rubro;
+
+/** Valida «Lo que vendes»: al menos uno, sin repetir, todos de la lista. Devuelve el mensaje o null. */
+export function errorDeRubros(rubros: readonly string[]): string | null {
+  if (rubros.length === 0) return "Elige al menos una cosa que vendes.";
+  if (rubros.some((r) => !esRubro(r))) return "Ese tipo no existe.";
+  if (new Set(rubros).size !== rubros.length) return "Hay un tipo repetido.";
+  return null;
+}
+
+/** Productos (vigentes) que usan un tipo que la tienda dejaría de vender. */
+export function productosConTipoQuitado<P extends { nombre: string; rubro?: Rubro | null; eliminadoEn?: string | null }>(productos: readonly P[], rubros: readonly Rubro[]): P[] {
+  return productos.filter((p) => !p.eliminadoEn && p.rubro != null && !rubros.includes(p.rubro));
+}
+
+/** El tipo con el que sale un producto nuevo: el del último producto creado en la sesión si la tienda lo sigue vendiendo; si no, el principal. */
+export function tipoPorDefecto(t: { rubro: Rubro; rubros?: readonly Rubro[] | null }, ultimo: Rubro | null): Rubro {
+  return ultimo && rubrosDeTienda(t).includes(ultimo) ? ultimo : t.rubro;
+}

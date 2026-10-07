@@ -21,8 +21,8 @@ import {
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
 import { portada, coleccionesDe, mostrarDetalle } from "@/lib/tienda/catalogo";
-import { buscarCatalogo, CHIPS_PERFUME } from "@/lib/tienda/busqueda";
-import { NOMBRE_PRODUCTO } from "@/lib/rubros";
+import { buscarCatalogo, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
+import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import {
   dispositivo,
@@ -92,6 +92,7 @@ export function Catalogo({
   const [actual, setActual] = useState(inicial?.productos[0]?.slug ?? "");
   const [cart, setCart] = useState<LineaLocal[]>([]);
   const [query, setQuery] = useState("");
+  const [tipoBusqueda, setTipoBusqueda] = useState<Rubro | null>(null);
   const [elegido, setElegido] = useState<{
     slug: string;
     varianteId: string | null;
@@ -357,6 +358,11 @@ export function Catalogo({
       </div>
     );
   const t = c.tienda;
+  // Búsqueda por tipo de producto: solo con más de un rubro (con uno, todo queda como antes).
+  const tiposBusqueda = tiposDelCatalogo(c);
+  const tiposEscritos = tiposEnConsulta(c, query).tipos;
+  const tipoActivo = tipoBusqueda ?? (tiposEscritos.length === 1 ? tiposEscritos[0]! : null);
+  const resultados = buscarCatalogo(c, query, tipoBusqueda);
   const tema = temaDeTienda(t);
   const secciones = t.personalizacion.secciones as
     Record<string, unknown> | undefined;
@@ -1184,6 +1190,14 @@ export function Catalogo({
               Cancelar
             </button>
           </div>
+          {tiposBusqueda.length > 1 && (
+            <div className="srtipos" role="group" aria-label="Tipo de producto">
+              <button type="button" aria-pressed={!tipoActivo} onClick={() => setTipoBusqueda(null)}>Todo</button>
+              {tiposBusqueda.map((r) => (
+                <button key={r} type="button" aria-pressed={tipoActivo === r} onClick={() => setTipoBusqueda(tipoActivo === r ? null : r)}>{NOMBRE_TIPO[r]}</button>
+              ))}
+            </div>
+          )}
           <div className="srbody" id="srOut" aria-live="polite">
             {!query && (
               <>
@@ -1203,12 +1217,12 @@ export function Catalogo({
             )}
             {query && (
               <p className="srhead">
-                <b>{buscarCatalogo(c, query).length}</b> resultados para «
+                <b>{resultados.length}</b> resultados para «
                 {query}»
               </p>
             )}
             <div className="srlist">
-              {buscarCatalogo(c, query).map((p) => (
+              {resultados.map((p) => (
                 <button
                   className="sritem"
                   data-go={p.slug}
