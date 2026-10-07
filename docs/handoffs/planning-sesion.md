@@ -61,6 +61,14 @@ Sin prompt todavía (los escribe Planning cuando toque):
 - Borrar en GitHub las ramas `feature/admin-tiendas` y `feature/admin-trabajo` (y las viejas que lista `docs/00`).
 - PRs abiertos viejos: #45 (rendimiento, excluido a propósito), #43, #23, #2.
 
+## Onboarding (lienzo «Onboarding de Deslizapp», 7 oct 2026)
+
+Lienzo: https://claude.ai/artifact/GRm2BmLszQfAhckVr8WMWQ (31 pantallas). Recorrido: enlace por WhatsApp → introducción en historias (4) → datos básicos en historias (nombre, lo que vende, chat, «Tú») → «su tienda ya existe» → Inicio con checklist de 7 pasos.
+- **Aprobado por Lewis:** opción B (introducción y datos en historias); **el checklist de 7 pasos** y **las tiendas de varios tipos de producto** (aprobados el 7 oct).
+- **Decisión:** el rubro (lo que vende) **lo llena la persona al registrarse**; no se pre-llena desde el admin. (Nombre pre-llenado: sin decidir; por defecto, tampoco.)
+- Falta: copiar el lienzo a `referencias/onboarding/`, y escribir los prompts: (1) onboarding (historias, tienda creada con sus datos, alinear `/unirse` y «Tu equipo» con el diseño, estado «esperando aprobación» en el enlace de equipo); (2) checklist de Inicio y desbloqueo de «Pide tu catálogo»; (3) tipos de producto (cambia el modelo de datos), aparte.
+- Va después de `admin-4-cobros`.
+
 ## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
 
 - **Abrir la cuenta de desarrollador de Meta** (gratis; con su Facebook). Con el acceso estándar se puede probar «conectar Instagram» con la cuenta de Michel; el acceso avanzado (otras tiendas) pide App Review y Business Verification, y probablemente una empresa registrada (RNC) y dominio propio. Detalle en `docs/15-mi-marca-magica.md`.
