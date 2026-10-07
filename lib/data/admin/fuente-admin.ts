@@ -22,6 +22,7 @@ import type {
   SaludAdmin,
   SesionVerComo,
   TrabajoRetoque,
+  EnlaceTiendaNueva,
 } from "../../admin/tipos";
 
 /** Sin pantallas: contrato para las partes 2–4. Montos enteros RD$, fechas civiles de Santo Domingo. */
@@ -135,6 +136,11 @@ export interface FuenteAdmin {
   admins(): Promise<Admin[]>;
   agregarAdmin(email: string): Promise<Admin>;
   quitarAdmin(usuarioId: string): Promise<void>;
+  /** Más › Invitaciones: los últimos 50 enlaces de tienda nueva (sin código). */
+  enlacesTiendaNueva(): Promise<EnlaceTiendaNueva[]>;
+  /** Crea un enlace de tienda nueva y devuelve su CÓDIGO (una sola vez; el registro anota el enlace, nunca el código). */
+  crearEnlaceTiendaNueva(nota: string | null): Promise<string>;
+  cancelarEnlaceTienda(enlaceId: string): Promise<void>;
   /** Operaciones del miembro, aún no conectadas al panel (parte 3). */
   marcarActividad(tiendaId: string): Promise<boolean>;
   pedirRetoque(productoId: string, medioUrl: string): Promise<TrabajoRetoque>;

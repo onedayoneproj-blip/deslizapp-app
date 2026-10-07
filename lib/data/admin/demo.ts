@@ -1132,6 +1132,31 @@ export function crearFuenteAdminDemo(
         anotar(null, "agregar_admin", { usuario_id: u.id, email: q });
         return a;
       }),
+    enlacesTiendaNueva: () =>
+      leer(() =>
+        structuredClone(e.enlacesTienda ?? []).map((l) => ({
+          ...l,
+          estado: l.estado === "activo" && Date.parse(l.venceEn) <= reloj() ? ("vencido" as const) : l.estado,
+        })),
+      ),
+    crearEnlaceTiendaNueva: (nota) =>
+      mutar(() => {
+        const limpia = nota?.trim() || null;
+        if (limpia && limpia.length > 40) error("nota_invalida");
+        const id = crypto.randomUUID();
+        e.enlacesTienda = [
+          { id, nota: limpia, estado: "activo", creadoEn: iso(), venceEn: new Date(reloj() + 7 * 86400000).toISOString(), reclamadoEn: null, correo: null, nombre: null, tiendaCreada: null },
+          ...(e.enlacesTienda ?? []),
+        ];
+        anotar(null, "enlace_tienda_nueva", { enlace_id: id, nota: limpia });
+        return `demo-${id.replace(/-/g, "")}`;
+      }),
+    cancelarEnlaceTienda: (id) =>
+      mutar(() => {
+        const l = (e.enlacesTienda ?? []).find((x) => x.id === id && x.estado === "activo") ?? error("enlace_no_valido");
+        l.estado = "cancelado";
+        anotar(null, "cancelar_enlace_tienda", { enlace_id: id });
+      }),
     quitarAdmin: (id) =>
       mutar(() => {
         const a =

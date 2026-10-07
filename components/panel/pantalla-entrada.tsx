@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSesion } from "@/lib/data/provider";
 import { comprobarSesion, entrarConGoogle, salir, verDemo } from "@/lib/data/sesion";
 import { Isotipo, Logotipo } from "../marca";
+import { INSTAGRAM_DESLIZAPP } from "@/lib/config";
+import { misSolicitudes, solicitudPrincipal, type MiSolicitud } from "@/lib/data/unirse";
 
 /**
  * La pantalla de entrada: "Entrar con Google" (tu tienda real) o "Ver demo" (datos de prueba).
@@ -30,21 +32,7 @@ export function PantallaEntrada() {
 
   let contenido;
   if (sesion?.tipo === "sin-tienda") {
-    contenido = (
-      <>
-        <h1 className="font-display text-[28px] leading-tight text-bosque">Tu cuenta aún no está activada</h1>
-        <p className="mt-3 text-[15.5px] leading-snug text-suave">
-          Escríbenos y la activamos.
-          {sesion.email && (
-            <>
-              {" "}
-              Entraste como <span className="font-bold text-tinta">{sesion.email}</span>.
-            </>
-          )}
-        </p>
-        <BotonPrincipal onClick={() => void salir()}>Cerrar sesión</BotonPrincipal>
-      </>
-    );
+    contenido = <SinTienda email={sesion.email} />;
   } else if (sesion?.tipo === "error") {
     contenido = (
       <>
@@ -132,5 +120,69 @@ function LogoGoogle() {
       <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
       <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
     </svg>
+  );
+}
+
+/**
+ * La cuenta entró con Google pero no es de ninguna tienda. Deslizapp es por invitación: si ya abrió un enlace, aquí ve en qué
+ * va (esperando la aprobación o «Crea tu tienda»); si no, que abra el suyo o nos escriba. Cuando la aprueban, entra sola.
+ */
+function SinTienda({ email }: { email: string }) {
+  const [solicitud, setSolicitud] = useState<MiSolicitud | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    const mirar = async () => {
+      try {
+        const s = solicitudPrincipal(await misSolicitudes());
+        if (!vigente) return;
+        // Ya la aprobaron: la cuenta tiene tienda. Se vuelve a comprobar la sesión y entra al panel.
+        if (s?.tipo === "colaborador" && s.estado === "aprobado") void comprobarSesion();
+        else setSolicitud(s);
+      } catch {
+        // Sin conexión: se ve igual, sin la solicitud.
+      }
+    };
+    void mirar();
+    const id = window.setInterval(() => document.visibilityState === "visible" && void mirar(), 15_000);
+    return () => {
+      vigente = false;
+      window.clearInterval(id);
+    };
+  }, []);
+  const esperando = solicitud?.tipo === "colaborador" && solicitud.estado === "esperando";
+  const crear = solicitud?.tipo === "tienda_nueva" && solicitud.estado === "aprobado" && !solicitud.tiendaCreada;
+  return (
+    <>
+      <h1 className="font-display text-[28px] leading-tight text-bosque">{esperando ? "Esperando que te aprueben" : "Deslizapp es por invitación"}</h1>
+      <p className="mt-3 text-[15.5px] leading-snug text-suave" data-sin-tienda={esperando ? "esperando" : crear ? "crear" : "sin-enlace"}>
+        {esperando
+          ? `${solicitud?.tiendaNombre ?? "La tienda"} tiene que darte el visto bueno. Cuando lo haga, entras directo.`
+          : crear
+            ? "Tu invitación para abrir una tienda está lista."
+            : "Si ya tienes un enlace de invitación, ábrelo desde aquí mismo. Si no, escríbenos y te contamos."}
+        {email && (
+          <>
+            {" "}
+            Entraste como <span className="font-bold text-tinta">{email}</span>.
+          </>
+        )}
+      </p>
+      {crear && (
+        <Link href="/unirse" className="tocable mt-6 flex h-[54px] w-full items-center justify-center rounded-full bg-bosque px-6 text-[16px] font-extrabold text-papel">
+          Crear mi tienda
+        </Link>
+      )}
+      {!esperando && !crear && (
+        <a
+          href={`https://instagram.com/${INSTAGRAM_DESLIZAPP}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tocable mt-6 flex h-[54px] w-full items-center justify-center rounded-full bg-bosque px-6 text-[16px] font-extrabold text-papel"
+        >
+          Escríbenos
+        </a>
+      )}
+      <BotonSecundario onClick={() => void salir()}>Cerrar sesión</BotonSecundario>
+    </>
   );
 }

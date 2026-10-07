@@ -29,6 +29,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Enlaces de invitación (`/unirse` y `/unirse/<código>`): el código es un secreto de un solo uso. Sin referer, sin índice y sin caché.
+        source: "/unirse/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
+      {
         // El service worker nunca se guarda en caché: así cada visita trae el más reciente.
         source: "/sw.js",
         headers: [

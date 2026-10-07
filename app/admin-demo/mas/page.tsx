@@ -1,2 +1,2 @@
-import { PantallaProximamente } from "@/components/admin/pantalla-proximamente";
-export default function DemoMasPage() { return <PantallaProximamente />; }
+import { PantallaMas } from "@/components/admin/pantalla-mas";
+export default function DemoMasPage() { return <PantallaMas />; }

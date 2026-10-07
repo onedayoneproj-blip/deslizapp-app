@@ -312,3 +312,16 @@ export type PersonalizacionTiendaAdmin = {
   catalogoNotasCambios: string | null;
   personalizacion: Objeto;
 };
+
+/** Un enlace de tienda nueva (Más › Invitaciones). Nunca trae el código: ese se ve una sola vez, al crearlo. */
+export type EnlaceTiendaNueva = {
+  id: string;
+  nota: string | null;
+  estado: "activo" | "aprobado" | "usado" | "cancelado" | "vencido";
+  creadoEn: string;
+  venceEn: string;
+  reclamadoEn: string | null;
+  correo: string | null;
+  nombre: string | null;
+  tiendaCreada: string | null;
+};
