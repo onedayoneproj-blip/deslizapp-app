@@ -44,6 +44,12 @@ create function pg_temp.sembrar(t uuid) returns void language plpgsql as $$ begi
   insert into public.pedidos(id,tienda_id,cliente_id,estado,total,pago_modo) values (pg_temp.id(t,'pedido'),t,pg_temp.id(t,'cliente'),'por_despachar',1000,'contado');
   insert into public.pedido_items(id,pedido_id,producto_id,variante_id,variante_texto,nombre_producto,cantidad,precio_unitario) values (pg_temp.id(t,'item'),pg_temp.id(t,'pedido'),pg_temp.id(t,'producto'),pg_temp.id(t,'variante'),'S','Producto fixture',1,1000);
   insert into public.promos(id,tienda_id,tipo,coleccion,nombre,valor_porcentaje,fecha_inicio,fecha_fin,estado) values (pg_temp.id(t,'promo'),t,'coleccion','Fixture','Promo fixture',10,now(),now()+interval '5 days','activa');
+  insert into public.pedidos(id,tienda_id,cliente_id,estado,total,pago_modo) values (pg_temp.id(t,'pedidoc'),t,pg_temp.id(t,'cliente'),'por_despachar',1000,'credito');
+  insert into public.abonos(id,tienda_id,pedido_id,monto,metodo) values (pg_temp.id(t,'abono'),t,pg_temp.id(t,'pedidoc'),100,'efectivo');
+  insert into public.solicitudes_pedido(id,tienda_id,codigo,items,total,dispositivo) values (pg_temp.id(t,'solicitud'),t,
+    case when t='ce000000-0000-4000-8000-00000000000a' then 'PRUEBAAA23' else 'PRUEBAAB23' end,
+    jsonb_build_array(jsonb_build_object('producto_id',pg_temp.id(t,'producto'),'variante_id',pg_temp.id(t,'variante'),'nombre','Producto fixture','cantidad',1,'precio_unitario',1000)),1000,'fixture');
+  insert into public.avisos_llegada(id,tienda_id,producto_id,variante_id,telefono,dispositivo) values (pg_temp.id(t,'aviso'),t,pg_temp.id(t,'producto'),pg_temp.id(t,'variante'),case when t='ce000000-0000-4000-8000-00000000000a' then '18095550101' else '18095550102' end,'fixture');
   insert into public.marca_tienda(tienda_id,palabras) values (t,array['uno','dos','tres']);
   insert into public.marca_referencias(id,tienda_id,ruta,orden) values (pg_temp.id(t,'ref'),t,t::text||'/r.jpg',0);
 end $$;
@@ -88,6 +94,22 @@ insert into rpc_casos(grupo, nombre, q) values
  (2,'reponer_stock',$q$select public.reponer_stock('{T}'::uuid, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null)$q$),
  (2,'pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('{T}','producto'), 'https://ejemplo.invalid/a.webp')$q$),
  (2,'gastar_creditos',$q$select public.gastar_creditos('{T}'::uuid, 1)$q$);
+-- Grupo 3: pedidos, clientes, abonos, solicitudes, avisos y envíos.
+insert into rpc_casos(grupo, nombre, q) values
+ (3,'borrar_cliente',$q$select public.borrar_cliente(pg_temp.id('{T}','cliente'), false)$q$),
+ (3,'crear_codigo_cliente',$q$select public.crear_codigo_cliente('{T}'::uuid, pg_temp.id('{T}','cliente'), 10, 5, null)$q$),
+ (3,'deshacer_despacho',$q$select public.deshacer_despacho(pg_temp.id('{T}','pedido'))$q$),
+ (3,'despachar_pedido',$q$select public.despachar_pedido(pg_temp.id('{T}','pedido'))$q$),
+ (3,'editar_abono',$q$select public.editar_abono(pg_temp.id('{T}','abono'), 50, 'efectivo', now(), null)$q$),
+ (3,'editar_pedido',$q$select public.editar_pedido(pg_temp.id('{T}','pedido'), null, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null, null, false, false)$q$),
+ (3,'eliminar_abono',$q$select public.eliminar_abono(pg_temp.id('{T}','abono'))$q$),
+ (3,'eliminar_pedido',$q$select public.eliminar_pedido(pg_temp.id('{T}','pedido'))$q$),
+ (3,'registrar_abono',$q$select public.registrar_abono('{T}'::uuid, pg_temp.id('{T}','cliente'), 10, 'efectivo', now(), null, null)$q$),
+ (3,'registrar_envio_jugada',$q$select public.registrar_envio_jugada('{T}'::uuid, pg_temp.id('{T}','cliente'), 'x', 'codigo', null, '{}')$q$),
+ (3,'registrar_solicitud',$q$select public.registrar_solicitud(pg_temp.id('{T}','solicitud'), null, null, '{}', '{}')$q$),
+ (3,'descartar_solicitud',$q$select public.descartar_solicitud(pg_temp.id('{T}','solicitud'))$q$),
+ (3,'registrar_venta_pasada',$q$select public.registrar_venta_pasada('{T}'::uuid, null, now() - interval '1 day', jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null, false)$q$),
+ (3,'marcar_avisado',$q$select public.marcar_avisado(array[pg_temp.id('{T}','aviso')])$q$);
 
 -- ═══ 0. La función de apoyo y los permisos ═══
 select pg_temp.comprobar(not has_function_privilege('anon','public.exigir_no_viendo(uuid)','EXECUTE') and has_function_privilege('authenticated','public.exigir_no_viendo(uuid)','EXECUTE'),'exigir_no_viendo: sin EXECUTE para anon');
@@ -114,7 +136,7 @@ select pg_temp.comprobar((select (public.admin_ver_como_iniciar('ce000000-0000-4
 select pg_temp.comprobar(public.admin_viendo('ce000000-0000-4000-8000-00000000000a'),'admin_viendo(A)');
 -- Lecturas de A: funcionan.
 select pg_temp.comprobar((select count(*) from public.productos where tienda_id='ce000000-0000-4000-8000-00000000000a')=1,'lee los productos de A');
-select pg_temp.comprobar((select count(*) from public.pedidos where tienda_id='ce000000-0000-4000-8000-00000000000a')=1 and (select count(*) from public.pedido_items where pedido_id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','pedido'))=1,'lee pedidos e items de A');
+select pg_temp.comprobar((select count(*) from public.pedidos where tienda_id='ce000000-0000-4000-8000-00000000000a')=2 and (select count(*) from public.pedido_items where pedido_id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','pedido'))=1,'lee pedidos e items de A');
 select pg_temp.comprobar((select count(*) from public.marca_tienda where tienda_id='ce000000-0000-4000-8000-00000000000a')=1,'lee la marca de A');
 -- La función de apoyo.
 select pg_temp.rechaza($q$select public.exigir_no_viendo('ce000000-0000-4000-8000-00000000000a')$q$,'42501','solo_mirar');
@@ -219,7 +241,7 @@ reset role;
 -- Un miembro común (U3) sin ninguna sesión: sin cambios.
 select set_config('request.jwt.claim.sub','cd000000-0000-4000-8000-000000000003',true);
 set local role authenticated;
-select pg_temp.toca($q$update public.pedidos set total=1234 where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,1);
+select pg_temp.toca($q$update public.pedidos set total=1234 where id=pg_temp.id('ce000000-0000-4000-8000-00000000000a','pedido')$q$,1);
 reset role;
 
 -- (Las pruebas de las RPC security definer se suman al final de este archivo.)
