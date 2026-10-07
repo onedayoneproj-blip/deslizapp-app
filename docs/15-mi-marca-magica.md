@@ -69,6 +69,10 @@ Antes de fijarlo, revisar `docs/11-voz-y-frases.md`.
 - **Quién paga la IA:** **Deslizapp**. Es una sola vez por tienda y cuesta poco; no se cobra ni se descuenta de créditos de la tienda. Las rondas 2 y 3 también las cubre Deslizapp; si el gasto crece, se revisa con límites por tienda.
 - **Mergear #57:** aprobado como siguiente paso, cuando Lewis lo pruebe en el iPhone y diga «mergea».
 
+## Recordatorios para más adelante (Lewis, 7 oct 2026)
+
+Lewis dejó estas dos para después y pidió que se las recordemos: (1) abrir la cuenta de desarrollador de Meta; (2) elegir el nombre de marketing (¿Vibra?). No bloquean el resto del trabajo.
+
 ## Preguntas abiertas para Lewis
 
 - Nombre de marketing (¿Vibra?).

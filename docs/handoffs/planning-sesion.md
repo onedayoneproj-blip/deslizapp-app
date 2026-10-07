@@ -50,16 +50,22 @@ Sin prompt todavía (los escribe Planning cuando toque):
 - ¿El límite de colaboradores se cuenta por suscripción? (Así está en el prompt.)
 - Niveles de permiso de colaboradores: **confirmados por Lewis (7 oct)** y escritos en `docs/prompts/colaboradores-e-invitaciones.md` (junto con las invitaciones por enlace). El prompt de suscripciones solo suma el límite de colaboradores en el gancho `puede_sumar_colaborador`.
 - Tiempo de entrega del retoque (`TIEMPO_RETOQUE_TEXTO` vacío hasta que lo mida).
-- Número de WhatsApp de Deslizapp (`WHATSAPP_DESLIZAPP` en `lib/config.ts` está vacío).
+- ~~Número de WhatsApp de Deslizapp~~: **resuelto (7 oct)**. No habrá número: el contacto con Deslizapp es el enlace directo al Instagram `instagram.com/deslizapp` (`INSTAGRAM_DESLIZAPP` en `lib/config.ts`). `WHATSAPP_DESLIZAPP` se retira (hoy solo lo usa `components/panel/hoja-plan.tsx`; lo cambia `admin-4-cobros`).
 - Si existe la fila «Marca y diseño» en `precios_extra`.
 - Una segunda cuenta no admin para probar Ver como y el 404 del admin.
 - Datos de pago (banco, precios de paquetes de créditos, créditos de Pro): lo dejó para después.
 
 ## Pendientes de Lewis
 
-- Dar +20 créditos a la Tienda de ensayo desde Admin › Tiendas › Tienda de ensayo › Ajustar créditos (tiene 0).
+- ~~Créditos de la Tienda de ensayo~~: **hecho (7 oct)**, Lewis le dio 100 créditos desde el admin.
 - Borrar en GitHub las ramas `feature/admin-tiendas` y `feature/admin-trabajo` (y las viejas que lista `docs/00`).
 - PRs abiertos viejos: #45 (rendimiento, excluido a propósito), #43, #23, #2.
+
+## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
+
+- **Abrir la cuenta de desarrollador de Meta** (gratis; con su Facebook). Con el acceso estándar se puede probar «conectar Instagram» con la cuenta de Michel; el acceso avanzado (otras tiendas) pide App Review y Business Verification, y probablemente una empresa registrada (RNC) y dominio propio. Detalle en `docs/15-mi-marca-magica.md`.
+- **Elegir el nombre de marketing** de Mi marca «mágica» (propuesta: **Vibra**; rondas Vibra 1, 2 y 3).
+- Cuando toque Mi marca «mágica»: lienzo de diseño del cuestionario de historias → Lewis aprueba → prompt.
 
 ## Lienzos de diseño (artifacts de claude.ai)
 
