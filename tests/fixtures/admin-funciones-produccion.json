@@ -66,9 +66,42 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_cancelar_enlace_tienda",
+    "argumentos": "p_enlace_id uuid",
+    "md5": "6282dae0234dc7755af280d2f19476e4",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_catalogo_avanzar",
     "argumentos": "p_tienda_id uuid, p_accion text, p_url_catalogo text",
     "md5": "8413b4165ac2c24db374b52f7e8a342d",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_crear_enlace_tienda_nueva",
+    "argumentos": "p_nota text",
+    "md5": "a185a9339d066fa4cb44fe8c0438956f",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_enlaces_tienda_nueva",
+    "argumentos": "",
+    "md5": "f452f4c48ea0967294d2d86a45b4bb1e",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

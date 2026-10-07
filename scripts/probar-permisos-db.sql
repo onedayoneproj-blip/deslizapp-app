@@ -364,7 +364,56 @@ select pg_temp.comprobar((select prosrc ~ 'puede_sumar_colaborador' from pg_proc
   and (select prosrc ~ 'puede_sumar_colaborador' from pg_proc where oid='public.invitar_por_correo(uuid,text,text,text)'::regprocedure)
   and (select prosrc ~ 'puede_sumar_colaborador' from pg_proc where oid='public.crear_enlace_colaborador(uuid,text,text)'::regprocedure),'puede_sumar_colaborador en aprobar, invitar y crear enlace');
 
--- @@TIENDA_NUEVA@@
+-- ═══ 6. Tienda nueva: solo con enlace de un admin ═══
+select pg_temp.comprobar(not has_function_privilege('authenticated','public.crear_tienda(text,text)','EXECUTE')
+  and not has_function_privilege('authenticated','public.crear_tienda_para(uuid,text,text)','EXECUTE'),'crear_tienda ya no es ejecutable por una cuenta común');
+insert into auth.users(id,email,raw_app_meta_data,raw_user_meta_data,email_confirmed_at) values
+ ('dd000000-0000-4000-8000-000000000031','admin-lewis@prueba.invalid','{"provider":"google"}','{}',now()),
+ ('dd000000-0000-4000-8000-000000000032','nueva-tienda@prueba.invalid','{"provider":"google"}','{"full_name":"Nueva"}',now()),
+ ('dd000000-0000-4000-8000-000000000033','otra-nueva@prueba.invalid','{"provider":"google"}','{}',now());
+insert into public.admins(usuario_id,email) values ('dd000000-0000-4000-8000-000000000031','admin-lewis@prueba.invalid');
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-000000000032');
+select pg_temp.rechaza($q$select public.crear_tienda('Sin enlace','ropa')$q$,'42501','permission denied');
+select pg_temp.rechaza($q$select public.admin_crear_enlace_tienda_nueva('x')$q$,'42501','no_admin');
+select pg_temp.como('dd000000-0000-4000-8000-000000000031');
+insert into codigos values ('t1', public.admin_crear_enlace_tienda_nueva('Para Nueva')), ('t2', public.admin_crear_enlace_tienda_nueva(null)),
+  ('t3', public.admin_crear_enlace_tienda_nueva('Cancelar'));
+select pg_temp.comprobar(jsonb_array_length(public.admin_enlaces_tienda_nueva())=3,'el admin lista sus enlaces de tienda nueva');
+select pg_temp.comprobar((select count(*) from public.enlaces_invitacion where tipo='tienda_nueva')=3,'el admin los ve en la tabla');
+select public.admin_cancelar_enlace_tienda((select id from public.enlaces_invitacion where nota='Cancelar'));
+reset role;
+select pg_temp.comprobar((select count(*) from public.registro_admin where accion='enlace_tienda_nueva')=3
+  and not exists (select 1 from public.registro_admin r join codigos k on r.detalle::text like '%'||k.c||'%'),'el registro anota el enlace, nunca el código');
+set local role authenticated;
+-- Quien abre t1 queda aprobada al instante (no aprueba nadie más) y crea su tienda.
+select pg_temp.como('dd000000-0000-4000-8000-000000000032');
+select pg_temp.comprobar((select public.reclamar_enlace((select c from codigos where k='t1'))->>'estado')='aprobado','tienda nueva: aprobada al abrir');
+select pg_temp.comprobar((select count(*) from public.enlaces_invitacion)=0,'una cuenta común no lee enlaces de tienda nueva');
+select pg_temp.rechaza($q$select public.crear_mi_tienda((select (public.mis_solicitudes()->0->>'id')::uuid),'','ropa')$q$,'22023','nombre_invalido');
+select pg_temp.comprobar((select (public.crear_mi_tienda((select (public.mis_solicitudes()->0->>'id')::uuid),'Mi Tienda Nueva','ropa')).estado)='en_prueba','crea su tienda en prueba');
+select pg_temp.comprobar((select rol from public.miembros m join public.tiendas t on t.id=m.tienda_id where t.nombre='Mi Tienda Nueva')='dueno'
+  and (select t.nombre from public.usuarios u join public.tiendas t on t.id=u.tienda_id where u.id='dd000000-0000-4000-8000-000000000032')='Mi Tienda Nueva','es su dueña y su tienda activa');
+select pg_temp.rechaza($q$select public.crear_mi_tienda((select e.id from public.enlaces_invitacion e limit 1),'Otra más','ropa')$q$,'P0001','enlace_no_valido');
+reset role;
+select pg_temp.comprobar((select estado from public.enlaces_invitacion where nota='Para Nueva')='usado','el enlace queda usado');
+set local role authenticated;
+-- Otra cuenta no puede usar el enlace de otra ni el cancelado.
+select pg_temp.como('dd000000-0000-4000-8000-000000000033');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='t1'))$q$,'P0001','enlace_no_valido');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='t3'))$q$,'P0001','enlace_no_valido');
+select pg_temp.rechaza($q$select public.crear_mi_tienda((select id from public.enlaces_invitacion where nota='Para Nueva'),'Robada','ropa')$q$,'P0001','enlace_no_valido');
+-- El tope de 3 tiendas en prueba se mantiene.
+reset role;
+insert into public.tiendas(id,nombre,slug,estado) values
+ ('de000000-0000-4000-8000-0000000000e1','Prueba uno','prueba-uno-fx','en_prueba'),('de000000-0000-4000-8000-0000000000e2','Prueba dos','prueba-dos-fx','en_prueba'),
+ ('de000000-0000-4000-8000-0000000000e3','Prueba tres','prueba-tres-fx','en_prueba');
+insert into public.miembros(usuario_id,tienda_id,rol) select 'dd000000-0000-4000-8000-000000000033', id, 'dueno' from public.tiendas where slug like 'prueba-%-fx';
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-000000000033');
+select public.reclamar_enlace((select c from codigos where k='t2'));
+select pg_temp.rechaza($q$select public.crear_mi_tienda((select (public.mis_solicitudes()->0->>'id')::uuid),'Cuarta','ropa')$q$,'P0001','demasiadas_tiendas_en_prueba');
+reset role;
 
 rollback;
 select 'Pasó: cada nivel escribe solo lo suyo en tablas y archivos; el extraño no ve nada; Ver como y permisos conviven.';
