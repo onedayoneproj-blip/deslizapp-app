@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.45.0", fecha: "2026-10-08", titulo: "Qué cambia, más claro.",
+    cambios: [
+      "Al crear presentaciones eliges hasta 2 cosas que cambian (color, tamaño…) de una lista, en cualquier tienda.",
+      "De cada una marcas cuáles tienes, o escribes la tuya.",
+    ],
+  },
+  {
     version: "0.44.0", fecha: "2026-10-08", titulo: "Tus clientes ven por catálogo.",
     cambios: [
       "Si vendes de más de una cosa, tus clientes ahora pueden ver tu tienda por catálogo («Perfumes», «Accesorios»…) o todo junto.",

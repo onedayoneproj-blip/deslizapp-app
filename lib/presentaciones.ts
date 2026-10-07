@@ -117,6 +117,69 @@ export function atajosDe(nombre: string, rubro: Rubro | null = null): { texto: s
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// La lista de «cosas que cambian» y sus valores sugeridos (hoja «¿Qué cambia de una a otra?»)
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Las cosas que cambian que ofrece cualquier tienda, además de lo típico de su tipo. */
+export const COSAS_QUE_CAMBIAN = ["Color", "Tamaño", "Talla", "Material", "Modelo", "Sabor", "Tono"] as const;
+
+/** «Lo típico en {tipo}»: cómo se dice el tipo en esa frase. */
+export const TIPO_EN_FRASE: Record<Rubro, string> = {
+  perfumes: "perfumes", ropa: "ropa", accesorios: "accesorios", belleza: "belleza", comida: "comida", hogar: "hogar", general: "general",
+};
+
+const mismo = (a: string, b: string) => a.trim().toLocaleLowerCase("es") === b.trim().toLocaleLowerCase("es");
+
+/** Los dos grupos de la hoja: lo típico del tipo (primero) y las otras del catálogo fijo, sin repetir las de arriba. */
+export function listaDeCosas(tipicas: readonly string[]): { tipicas: string[]; otras: string[] } {
+  const arriba = [...tipicas];
+  return { tipicas: arriba, otras: COSAS_QUE_CAMBIAN.filter((c) => !arriba.some((t) => mismo(t, c))) };
+}
+
+/** Valores sugeridos de cada cosa (corta, en español dominicano). Modelo: ninguno. */
+const SUGERIDOS: Record<string, string[]> = {
+  talla: ["XS", "S", "M", "L", "XL"],
+  color: ["Dorado", "Plateado", "Negro", "Blanco", "Rojo", "Azul", "Rosado", "Verde", "Beige", "Gris", "Marrón"],
+  tamano: ["Pequeño", "Mediano", "Grande"],
+  material: ["Algodón", "Lino", "Cuero", "Metal"],
+  sabor: ["Vainilla", "Chocolate", "Fresa", "Limón"],
+  tono: ["Claro", "Medio", "Oscuro"],
+};
+
+export function valoresSugeridos(nombre: string, rubro: Rubro | null = null): string[] {
+  const n = nombre.trim().toLocaleLowerCase("es").normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (n === "tamano" && rubro === "perfumes") return ["30 ml", "50 ml", "100 ml"];
+  return [...(SUGERIDOS[n] ?? [])];
+}
+
+/** Los valores como se ven: primero los sugeridos y después los que el dueño escribió o ya tenía (en el orden en que los puso). */
+export const valoresVisibles = (sugeridos: string[], elegidos: string[]) => [...sugeridos, ...elegidos.filter((v) => !sugeridos.includes(v))];
+
+/** Los valores elegidos, en el orden en que se ven (así las combinaciones salen en un orden estable). */
+export const ordenarValores = (sugeridos: string[], elegidos: string[]) => valoresVisibles(sugeridos, elegidos).filter((v) => elegidos.includes(v));
+
+/** Agrega o quita un valor; no pasa de `MAX_VALORES` ni de `LARGO_VALOR` letras, ni repite (sin distinguir mayúsculas). */
+export function alternarValor(valores: string[], valor: string): string[] {
+  if (valores.includes(valor)) return valores.filter((v) => v !== valor);
+  const limpio = valor.trim().replace(/\s+/g, " ").slice(0, LARGO_VALOR);
+  if (!limpio || valores.length >= MAX_VALORES || valores.some((v) => mismo(v, limpio))) return valores;
+  return [...valores, limpio];
+}
+
+/** ¿Se puede elegir otra cosa que cambie? Hasta `MAX_EJES` por producto, las del catálogo y las propias juntas. */
+export const puedeElegirOtra = (cuantas: number) => cuantas < MAX_EJES;
+
+/** El error de un nombre propio («+ Otra cosa»): vacío, largo, repetido o igual a una del catálogo. null si sirve. */
+export function errorDeNombrePropio(nombre: string, elegidas: readonly string[], tipicas: readonly string[] = []): string | null {
+  const n = nombre.trim();
+  if (!n) return "Escribe qué cambia.";
+  if (n.length > LARGO_VALOR) return `Hasta ${LARGO_VALOR} letras.`;
+  if (elegidas.some((e) => mismo(e, n))) return "Ya la elegiste.";
+  if (COSAS_QUE_CAMBIAN.some((c) => mismo(c, n)) || tipicas.some((t) => mismo(t, n))) return "Esa ya está en la lista: tócala arriba.";
+  return null;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Agregar una suelta
 // ---------------------------------------------------------------------------------------------------------------------
 

@@ -25,6 +25,7 @@ export { ElegirMensaje, type MensajeElegible } from "./elegir-mensaje";
 export { HojaProximamente, TarjetaProximamente } from "./funcion-en-preparacion";
 export { Interruptor } from "./interruptor";
 export { EditorEtiquetas } from "./editor-etiquetas";
+export { CosaElegible } from "./cosa-elegible";
 export { TiraMedios, duracionCorta, type ElementoTira } from "./tira-medios";
 export { FilaVariante } from "./fila-variante";
 export { VideoProducto } from "./video-producto";

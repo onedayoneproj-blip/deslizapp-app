@@ -254,3 +254,68 @@ test("la migración trae lo que la app espera: función, permisos, limpieza y le
   assert.doesNotMatch(sql, /delete from/i);
   assert.doesNotMatch(sql, /create or replace function public\.(guardar_variantes|opciones_validas)/i);
 });
+
+test("lista de cosas que cambian: lo típico primero, «Otras» sin repetir; General deja solo «Otras»", () => {
+  const ropa = P.listaDeCosas(R.OPCIONES_TIPICAS.ropa);
+  assert.deepEqual(ropa.tipicas, ["Talla", "Color"]);
+  assert.deepEqual(ropa.otras, ["Tamaño", "Material", "Modelo", "Sabor", "Tono"]);
+  const perfumes = P.listaDeCosas(R.OPCIONES_TIPICAS.perfumes);
+  assert.deepEqual(perfumes.tipicas, ["Tamaño"]);
+  assert.ok(!perfumes.otras.includes("Tamaño"));
+  const general = P.listaDeCosas(R.OPCIONES_TIPICAS.general);
+  assert.deepEqual(general.tipicas, []);
+  assert.deepEqual(general.otras, [...P.COSAS_QUE_CAMBIAN]);
+  for (const r of R.RUBROS) {
+    const l = P.listaDeCosas(R.OPCIONES_TIPICAS[r]);
+    assert.equal(new Set([...l.tipicas, ...l.otras]).size, l.tipicas.length + l.otras.length);
+  }
+});
+
+test("hasta 2 cosas que cambian por producto, las propias incluidas", () => {
+  assert.equal(P.puedeElegirOtra(0), true);
+  assert.equal(P.puedeElegirOtra(1), true);
+  assert.equal(P.puedeElegirOtra(2), false);
+  assert.equal(P.MAX_EJES, 2);
+  assert.match(P.errorDeEjes([{ nombre: "A", valores: ["x"] }, { nombre: "B", valores: ["x"] }, { nombre: "C", valores: ["x"] }]), /Hasta 2/);
+});
+
+test("nombre de una cosa propia: vacío, largo, repetido o del catálogo", () => {
+  assert.ok(P.errorDeNombrePropio("   ", []));
+  assert.ok(P.errorDeNombrePropio("a".repeat(21), []));
+  assert.equal(P.errorDeNombrePropio("a".repeat(20), []), null);
+  assert.equal(P.errorDeNombrePropio("Aroma", []), null);
+  assert.ok(P.errorDeNombrePropio("aroma", ["Aroma"]));
+  assert.ok(P.errorDeNombrePropio("color", []));
+  assert.ok(P.errorDeNombrePropio(" COLOR ", ["Aroma"]));
+  assert.ok(P.errorDeNombrePropio("Tamaño", [], ["Tamaño"]));
+});
+
+test("valores sugeridos: cortos, por cosa, y perfumes con sus ml", () => {
+  assert.deepEqual(P.valoresSugeridos("Talla"), ["XS", "S", "M", "L", "XL"]);
+  assert.deepEqual(P.valoresSugeridos("Tamaño"), ["Pequeño", "Mediano", "Grande"]);
+  assert.deepEqual(P.valoresSugeridos("Tamaño", "perfumes"), ["30 ml", "50 ml", "100 ml"]);
+  assert.deepEqual(P.valoresSugeridos("Modelo"), []);
+  assert.deepEqual(P.valoresSugeridos("Aroma"), []);
+  for (const c of P.COSAS_QUE_CAMBIAN) {
+    const v = P.valoresSugeridos(c);
+    if (c !== "Modelo") assert.ok(v.length >= 3 && v.length <= 11, c);
+    assert.ok(v.every((x) => x.length <= P.LARGO_VALOR));
+  }
+});
+
+test("valores propios: máximo 12, 20 letras, sin repetir; el orden sigue al de la lista", () => {
+  let v = [];
+  for (let i = 0; i < 15; i++) v = P.alternarValor(v, `V${i}`);
+  assert.equal(v.length, 12);
+  assert.deepEqual(P.alternarValor(["Dorado"], "dorado"), ["Dorado"]);
+  assert.deepEqual(P.alternarValor(["Dorado"], "Dorado"), []);
+  assert.deepEqual(P.alternarValor([], "  "), []);
+  assert.equal(P.alternarValor([], "x".repeat(30))[0].length, 20);
+  const sug = P.valoresSugeridos("Color");
+  assert.deepEqual(P.ordenarValores(sug, ["Negro", "Turquesa", "Dorado"]), ["Dorado", "Negro", "Turquesa"]);
+  assert.deepEqual(P.valoresVisibles(["A", "B"], ["B", "Z"]), ["A", "B", "Z"]);
+});
+
+test("cuántas salen: Color × Tamaño", () => {
+  assert.equal(P.cuantasSalen([{ nombre: "Color", valores: ["Dorado", "Plateado"] }, { nombre: "Tamaño", valores: ["Pequeño", "Mediano", "Grande"] }]), 6);
+});

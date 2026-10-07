@@ -260,3 +260,7 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 5. **Siempre con los componentes de `components/ui/`.** Antes de escribir una pieza nueva se busca la que ya existe (Boton, Opcion, GrupoOpciones, ListaAgrupada, FilaLista, CheckSeleccion, Campo, Cantidad, Tarjeta, Hoja, VistaPreviaWhatsApp, Interruptor, EditorEtiquetas, TiraMedios, FilaVariante, VideoProducto…). Si no existe, se crea en `components/ui/` siguiendo esta guía (tokens, radios, alturas, estados, accesibilidad), se exporta en su `index.ts` y se agrega a `/diseno`. Nunca estilos sueltos ni piezas copiadas de un prototipo o de un tablero de diseño: esos muestran cómo se ve y cómo se mueve, no son código.
 
 Las vistas de los componentes en este sistema son representaciones estáticas de cómo deben verse; la fuente de verdad del código serán los componentes de `components/ui/`.
+
+### Cosa elegible (`CosaElegible`, `components/ui/cosa-elegible.tsx`)
+
+Rectángulo (`radio-m`, alto 52) para elegir «qué cambia de una a otra» (Color, Tamaño) en la hoja de presentaciones. Va en cuadrícula de dos columnas. Sin elegir: `superficie-hundida` con «+» a la derecha. Elegida: `accion` con letra `sobre-accion` y check. Apagada (ya hay dos): 40 %, sin toque. Cambia al instante, sin animar. No es una `Opcion`: los *valores* de cada cosa (Dorado, Grande) siguen siendo píldoras `Opcion`; así lo que cambia y sus valores no se confunden. En pantalla se dice «cosas que cambian» y «lo que tienes», nunca «dimensión», «eje» ni «opción».

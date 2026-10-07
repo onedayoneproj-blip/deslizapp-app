@@ -5,6 +5,7 @@ import { MOTIVOS_INVENTARIO } from "@/lib/data/inventario";
 import { formatearPesos } from "@/lib/formato";
 import {
   agregarSuelta,
+  alternarValor,
   atajosDe,
   cambiarQueVaria,
   cambiarValores,
@@ -16,17 +17,24 @@ import {
   cuantasUsan,
   ejeDeFoto,
   errorDeEjes,
+  errorDeNombrePropio,
   estadoDe,
   LARGO_VALOR,
+  listaDeCosas,
   MAX_EJES,
   MAX_VALORES,
   ordenarPresentaciones,
+  ordenarValores,
   precioDe,
+  puedeElegirOtra,
   quitar,
   resumenDe,
   TEXTO_CON_PEDIDOS,
   textoCombinacion,
   textoPresentaciones,
+  TIPO_EN_FRASE,
+  valoresSugeridos,
+  valoresVisibles,
   VISIBLES,
   type Presentacion,
 } from "@/lib/presentaciones";
@@ -35,7 +43,8 @@ import { OPCIONES_TIPICAS, type Rubro } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Aviso, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, EditorEtiquetas, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
+import { clases, FOCO } from "../ui/comunes";
+import { Alerta, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, CosaElegible, EditorEtiquetas, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
 
 /** Lo que la ficha del producto edita de las presentaciones: los ejes, cada presentación y la foto de cada valor (por id de foto). */
 export type EstadoPresentaciones = {
@@ -294,11 +303,67 @@ export function SeccionPresentaciones({
   );
 }
 
-const OTRA = "\u0000otra";
+type EjeBorrador = { nombre: string; valores: string[]; propia: boolean };
+type EstadoHoja = { ejes: EjeBorrador[]; otraAbierta: boolean; otra: string; errorOtra: string | null };
 
-type EjeBorrador = { clave: string; valores: string[] };
+const ETIQUETA_COSA = "inline-flex h-8 items-center rounded-radio-s bg-accion px-3 text-destacado text-sobre-accion";
 
-/** «Elegir» (¿Qué cambia de una a otra?): las pastillas de lo que varía, sus valores con atajos y cuántas presentaciones salen. */
+/** «Otro color» / «Otro tamaño»: el botón punteado que abre el campo para un valor propio. */
+function OtroValor({ nombre, valores, alCambiar }: { nombre: string; valores: string[]; alCambiar: (v: string[]) => void }) {
+  const [escribiendo, setEscribiendo] = useState(false);
+  const [texto, setTexto] = useState("");
+  const entrada = useRef<HTMLInputElement>(null);
+  const agregar = () => {
+    const nuevos = alternarValor(valores, texto);
+    if (nuevos !== valores) alCambiar(nuevos);
+    setTexto("");
+  };
+  const lleno = valores.length >= MAX_VALORES;
+  if (!escribiendo) {
+    if (lleno) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setEscribiendo(true);
+          // El foco dentro del mismo toque: así iOS abre el teclado.
+          requestAnimationFrame(() => entrada.current?.focus());
+        }}
+        className="tocable inline-flex h-(--alto-control) items-center gap-1.5 rounded-full border-[1.5px] border-dashed border-borde-pastilla px-4 text-cuerpo font-extrabold text-texto-secundario"
+      >
+        + Otro {nombre.toLocaleLowerCase("es")}
+      </button>
+    );
+  }
+  return (
+    <input
+      ref={entrada}
+      autoFocus
+      type="text"
+      enterKeyHint="done"
+      autoComplete="off"
+      aria-label={`Otro ${nombre.toLocaleLowerCase("es")}`}
+      placeholder="Escríbelo y toca Enter"
+      maxLength={LARGO_VALOR}
+      value={texto}
+      onChange={(e) => setTexto(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === ",") {
+          e.preventDefault();
+          agregar();
+        } else if (e.key === "Escape") setEscribiendo(false);
+      }}
+      onBlur={() => {
+        // Lo escrito no se pierde al salir del campo.
+        agregar();
+        setEscribiendo(false);
+      }}
+      className="h-(--alto-control) w-44 min-w-0 rounded-full border-2 border-borde-campo bg-superficie px-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario focus:border-accion"
+    />
+  );
+}
+
+/** «Elegir» (¿Qué cambia de una a otra?): las cosas que cambian como rectángulos, y de cada una elegida, cuáles tienes. */
 function HojaElegir({
   abierta,
   cambiar,
@@ -316,17 +381,19 @@ function HojaElegir({
   alCerrar: () => void;
   alConfirmar: (ejes: OpcionProducto[]) => void;
 }) {
-  const tipicas = [...OPCIONES_TIPICAS[rubro]];
-  const inicial = (): { ejes: EjeBorrador[]; otra: string } => {
-    if (!cambiar) return { ejes: tipicas.slice(0, 1).map((t) => ({ clave: t, valores: [] })), otra: "" };
-    let otra = "";
-    const ejes = opciones.map((o) => {
-      if (tipicas.some((t) => t.toLocaleLowerCase("es") === o.nombre.toLocaleLowerCase("es"))) return { clave: tipicas.find((t) => t.toLocaleLowerCase("es") === o.nombre.toLocaleLowerCase("es"))!, valores: o.valores };
-      otra = o.nombre;
-      return { clave: OTRA, valores: o.valores };
-    });
-    return { ejes, otra };
-  };
+  const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
+  const delCatalogo = [...tipicas, ...otras];
+  const inicial = (): EstadoHoja => ({
+    ejes: cambiar
+      ? opciones.map((o) => {
+          const cat = delCatalogo.find((c) => c.toLocaleLowerCase("es") === o.nombre.toLocaleLowerCase("es"));
+          return { nombre: cat ?? o.nombre, valores: o.valores, propia: !cat };
+        })
+      : tipicas.slice(0, 1).map((nombre) => ({ nombre, valores: [], propia: false })),
+    otraAbierta: false,
+    otra: "",
+    errorOtra: null,
+  });
   const [estado, setEstado] = useState(inicial);
   const [abiertaAntes, setAbiertaAntes] = useState(abierta);
   const [confirmar, setConfirmar] = useState<OpcionProducto[] | null>(null);
@@ -334,91 +401,136 @@ function HojaElegir({
     setAbiertaAntes(abierta);
     if (abierta) setEstado(inicial());
   }
-  const { ejes, otra } = estado;
-  const nombreDe = (e: EjeBorrador) => (e.clave === OTRA ? otra.trim() : e.clave);
-  const finales: OpcionProducto[] = ejes.map((e) => ({ nombre: nombreDe(e), valores: e.valores }));
+  const { ejes, otraAbierta, otra, errorOtra } = estado;
+  const llenos = !puedeElegirOtra(ejes.length);
+  const finales: OpcionProducto[] = ejes.map((e) => ({ nombre: e.nombre, valores: e.propia ? e.valores : ordenarValores(valoresSugeridos(e.nombre, rubro), e.valores) }));
   const completos = ejes.length > 0 && finales.every((e) => e.nombre && e.valores.length > 0);
   const error = completos ? errorDeEjes(finales) : null;
   const n = completos ? cuantasSalen(finales) : 0;
-  const hayOtra = ejes.some((e) => e.clave === OTRA);
-  const llenos = ejes.length >= MAX_EJES;
-  const alternar = (clave: string) =>
+  const alternar = (nombre: string) =>
     setEstado((s) => {
-      if (s.ejes.some((e) => e.clave === clave)) return { ...s, ejes: s.ejes.filter((e) => e.clave !== clave) };
-      if (s.ejes.length >= MAX_EJES) return s;
-      return { ...s, ejes: [...s.ejes, { clave, valores: [] }] };
+      if (s.ejes.some((e) => e.nombre === nombre)) return { ...s, ejes: s.ejes.filter((e) => e.nombre !== nombre) };
+      if (!puedeElegirOtra(s.ejes.length)) return s;
+      return { ...s, ejes: [...s.ejes, { nombre, valores: [], propia: false }], otraAbierta: false };
     });
-  const ponerValores = (clave: string, valores: string[]) => setEstado((s) => ({ ...s, ejes: s.ejes.map((e) => (e.clave === clave ? { ...e, valores } : e)) }));
-  const frase = finales.map((e) => `${e.valores.length} ${e.valores.length === 1 ? e.nombre.toLocaleLowerCase("es") : plural(e.nombre.toLocaleLowerCase("es"))}`).join(" por ");
-  const seVan = cambiar && completos && !error ? cuantasSeVan(antes, finales) : 0;
+  const quitarEje = (nombre: string) => setEstado((s) => ({ ...s, ejes: s.ejes.filter((e) => e.nombre !== nombre) }));
+  const ponerValores = (nombre: string, valores: string[]) => setEstado((s) => ({ ...s, ejes: s.ejes.map((e) => (e.nombre === nombre ? { ...e, valores } : e)) }));
+  const listoOtra = () => {
+    const e = errorDeNombrePropio(otra, ejes.map((x) => x.nombre), tipicas);
+    if (e) return setEstado((s) => ({ ...s, errorOtra: e }));
+    setEstado((s) => ({ ...s, ejes: [...s.ejes, { nombre: otra.trim(), valores: [], propia: true }], otraAbierta: false, otra: "", errorOtra: null }));
+  };
   const confirmarYa = (f: OpcionProducto[]) => {
     if (cambiar && cuantasSeVan(antes, f) > 0) setConfirmar(f);
     else alConfirmar(f);
   };
+  const rectangulo = (nombre: string) => {
+    const puesta = ejes.some((e) => e.nombre === nombre);
+    return (
+      <CosaElegible key={nombre} elegida={puesta} deshabilitada={!puesta && llenos} onClick={() => alternar(nombre)}>
+        {nombre}
+      </CosaElegible>
+    );
+  };
+  const mostrarOtra = otraAbierta && !llenos;
 
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo={cambiar ? "Qué varía" : "Presentaciones"} altura="grande" avisarAlSalir={ejes.some((e) => e.valores.length > 0) && !cambiar}>
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2" role="group" aria-labelledby="elegir-titulo">
-          <p id="elegir-titulo" className="font-display text-titulo-hoja text-texto">¿Qué cambia de una a otra?</p>
-          <div className="flex flex-wrap gap-2">
-            {tipicas.map((t) => {
-              const puesta = ejes.some((e) => e.clave === t);
-              return (
-                <Opcion key={t} casilla elegida={puesta} deshabilitada={!puesta && llenos} onClick={() => alternar(t)}>
-                  {t}
-                </Opcion>
-              );
-            })}
-            <Opcion casilla elegida={hayOtra} deshabilitada={!hayOtra && llenos} onClick={() => alternar(OTRA)}>
-              Otra…
-            </Opcion>
-          </div>
-        </div>
-        {hayOtra && (
-          <Campo
-            etiqueta="¿Cómo se llama?"
-            placeholder="Ej: Sabor"
-            maxLength={LARGO_VALOR}
-            value={otra}
-            enterKeyHint="done"
-            onChange={(e) => setEstado((s) => ({ ...s, otra: e.target.value }))}
-          />
-        )}
-        {ejes.map((e) => {
-          const nombre = nombreDe(e);
-          if (!nombre) return null;
-          return (
-            <div key={e.clave} className="flex flex-col gap-2" data-eje={nombre}>
-              <EditorEtiquetas etiqueta={plural(nombre)} valores={e.valores} alCambiar={(v) => ponerValores(e.clave, v)} maximo={MAX_VALORES} largoMaximo={LARGO_VALOR} />
-              {atajosDe(nombre, rubro).length > 0 && (
-                <div className="flex flex-wrap items-center gap-x-1 text-secundario text-texto-secundario">
-                  Rápido:
-                  {atajosDe(nombre, rubro).map((a) => (
-                    <Boton key={a.texto} jerarquia="terciario" tamano="compacto" onClick={() => ponerValores(e.clave, a.valores)}>
-                      {a.texto}
-                    </Boton>
-                  ))}
-                </div>
+        <p id="elegir-titulo" className="font-display text-titulo-hoja text-texto">¿Qué cambia de una a otra?</p>
+        <div className="flex flex-col gap-4" role="group" aria-labelledby="elegir-titulo">
+          {tipicas.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-secundario font-extrabold text-texto-secundario">Lo típico en {TIPO_EN_FRASE[rubro]}</p>
+              <div className="grid grid-cols-2 gap-2">{tipicas.map(rectangulo)}</div>
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            {tipicas.length > 0 && <p className="text-secundario font-extrabold text-texto-secundario">Otras</p>}
+            <div className="grid grid-cols-2 gap-2">
+              {otras.map(rectangulo)}
+              {llenos ? (
+                <p role="status" className="col-span-full flex h-13 items-center justify-center rounded-radio-m border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario">
+                  Ya elegiste {MAX_EJES}: es el máximo.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEstado((s) => ({ ...s, otraAbierta: !s.otraAbierta }))}
+                  className={clases("tocable col-span-full flex h-13 items-center justify-center rounded-radio-m border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario", FOCO)}
+                >
+                  + Otra cosa
+                </button>
               )}
             </div>
+          </div>
+        </div>
+        {mostrarOtra && (
+          <Tarjeta className="flex flex-col gap-3 p-4">
+            <Campo
+              etiqueta="¿Qué otra cosa cambia?"
+              placeholder="Ej: Aroma"
+              ayuda="Ej: Material, Aroma, Estampado. Después eliges cuáles tienes."
+              maxLength={LARGO_VALOR}
+              value={otra}
+              error={errorOtra}
+              enterKeyHint="done"
+              onChange={(e) => setEstado((s) => ({ ...s, otra: e.target.value, errorOtra: null }))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  listoOtra();
+                }
+              }}
+            />
+            <Boton tamano="compacto" onClick={listoOtra} deshabilitado={!otra.trim()}>
+              Listo
+            </Boton>
+          </Tarjeta>
+        )}
+        {ejes.length > 0 && <p className="font-display text-titulo-hoja text-texto">¿Cuáles tienes?</p>}
+        {ejes.map((e) => {
+          const sugeridos = e.propia ? [] : valoresSugeridos(e.nombre, rubro);
+          const atajos = atajosDe(e.nombre, rubro).filter((a) => a.texto !== "30 · 50 · 100 ml");
+          return (
+            <Tarjeta key={e.nombre} className="flex flex-col gap-3 p-4">
+              <div data-eje={e.nombre} role="group" aria-label={e.nombre} className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={ETIQUETA_COSA}>{e.nombre}</span>
+                  <Boton jerarquia="terciario" tamano="compacto" aria-label={`Quitar ${e.nombre}`} onClick={() => quitarEje(e.nombre)}>
+                    Quitar
+                  </Boton>
+                </div>
+                {e.propia ? (
+                  <EditorEtiquetas etiqueta={plural(e.nombre)} rotuloVisible={false} valores={e.valores} alCambiar={(v) => ponerValores(e.nombre, v)} maximo={MAX_VALORES} largoMaximo={LARGO_VALOR} />
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {valoresVisibles(sugeridos, e.valores).map((v) => {
+                      const puesto = e.valores.includes(v);
+                      return (
+                        <Opcion key={v} casilla elegida={puesto} deshabilitada={!puesto && e.valores.length >= MAX_VALORES} onClick={() => ponerValores(e.nombre, alternarValor(e.valores, v))}>
+                          {v}
+                        </Opcion>
+                      );
+                    })}
+                    <OtroValor nombre={e.nombre} valores={e.valores} alCambiar={(v) => ponerValores(e.nombre, v)} />
+                  </div>
+                )}
+                {atajos.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-1 text-secundario text-texto-secundario">
+                    Rápido:
+                    {atajos.map((a) => (
+                      <Boton key={a.texto} jerarquia="terciario" tamano="compacto" onClick={() => ponerValores(e.nombre, a.valores)}>
+                        {a.texto}
+                      </Boton>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Tarjeta>
           );
         })}
-        {completos && !error && (
-          <Aviso tono="exito" className="flex-col" >
-            <p className="text-destacado">{cambiar ? `Quedan ${textoPresentaciones(n)}` : `Salen ${textoPresentaciones(n)}`}</p>
-            <p className="text-secundario">
-              {frase.charAt(0).toUpperCase() + frase.slice(1)}.{" "}
-              {cambiar
-                ? seVan > 0
-                  ? `${seVan === 1 ? "Una de las que tienes se va" : `${seVan} de las que tienes se van`}.`
-                  : "Las que ya tienes se conservan con su stock."
-                : "Después les pones el stock a cada una, y quitas las que no existen."}
-            </p>
-          </Aviso>
-        )}
         {error && <p role="alert" className="text-secundario font-bold text-peligro">{error}</p>}
-        {!cambiar && <p className="text-secundario text-texto-secundario">¿Solo una? Elige un solo valor y listo.</p>}
         <Boton tamano="grande" anchoCompleto deshabilitado={!completos || !!error} onClick={() => confirmarYa(finales)}>
           {cambiar ? "Guardar" : `Crear ${n === 1 ? "la 1" : `las ${n}`}`}
         </Boton>
