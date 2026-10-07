@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Presentaciones, elegir qué cambia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;display=swap">
+<style>
+body{margin:0}
+.pant{width:390px;height:844px;background:#10362a59;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.hoja{position:absolute;left:0;right:0;top:44px;bottom:0;background:#fff9ee;border-radius:30px 30px 0 0;overflow:hidden}
+.cab{padding:10px 20px 12px;border-bottom:1px solid #efe4d2}
+.asa{width:44px;height:5px;border-radius:999px;background:#e2d5bf;margin:0 auto 8px}
+.cerrar{width:40px;height:40px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;cursor:pointer}
+.cuerpo{padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+.tit{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tit p{margin:0;font-size:22px}
+.cuenta{height:28px;border-radius:999px;background:#f3ead9;padding:0 12px;display:inline-flex;align-items:center;font:800 13px 'Figtree',sans-serif;color:#4f6a5e}
+.rot{margin:0 0 8px;font-size:13px;font-weight:800;color:#4f6a5e}
+.rej{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tile{height:52px;border-radius:14px;border:0;background:#f3ead9;color:#174b3a;padding:0 14px;font:800 16px 'Figtree',sans-serif;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.tile.otra{background:none;border:1.5px dashed #c9bba3;color:#4f6a5e}
+.pie{position:absolute;left:0;right:0;bottom:0;padding:12px 20px 30px;background:#fff9ee;border-top:1px solid #efe4d2}
+.btn{width:100%;height:56px;border:0;border-radius:999px;background:#174b3a;color:#fff;font:800 17px 'Figtree',sans-serif}
+.btn[disabled]{opacity:.35}
+</style>
+</helmet>
+<div class="pant">
+  <div class="hoja" role="dialog" aria-label="Presentaciones">
+    <div class="cab">
+      <div class="asa"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <h2 class="disp" style="margin: 0; font-size: 24px">Presentaciones</h2>
+        <button class="cerrar" type="button" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+    </div>
+    <div class="cuerpo">
+      <div class="tit"><p class="disp">¿Qué cambia de una a otra?</p></div>
+      <div role="group" aria-label="Lo típico en Accesorios">
+        <p class="rot">Lo típico en Accesorios</p>
+        <div class="rej">
+          <button class="tile" type="button" aria-pressed="false">Color<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile" type="button" aria-pressed="false">Tamaño<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile" type="button" aria-pressed="false">Material<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+        </div>
+      </div>
+      <div role="group" aria-label="Otras">
+        <p class="rot">Otras</p>
+        <div class="rej">
+          <button class="tile" type="button" aria-pressed="false">Talla<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile" type="button" aria-pressed="false">Modelo<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile" type="button" aria-pressed="false">Sabor<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile" type="button" aria-pressed="false">Tono<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button class="tile otra" type="button" style="grid-column: 1 / -1; justify-content: center; gap: 6px">+ Otra cosa</button>
+        </div>
+      </div>
+    </div>
+    <div class="pie"><button class="btn" type="button" disabled>Crear presentaciones</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
