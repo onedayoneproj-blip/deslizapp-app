@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
-const { decidirGesto: d, resultadoSoltar: r } = await import("../lib/gesto-hoja.ts");
+const { decidirGesto: d, resultadoSoltar: r, debeCancelar } = await import("../lib/gesto-hoja.ts");
 
 test("un toque casi quieto espera; uno más horizontal que vertical se ignora", () => {
   assert.equal(d({ dx: 3, dy: -4, full: false, scrollTop: 0 }), "esperar");
@@ -23,4 +23,12 @@ test("al soltar: más de 90 px cierra o reduce; menos vuelve", () => {
   assert.equal(r(91, true), "reducir");
   assert.equal(r(90, false), "volver");
   assert.equal(r(-10, true), "volver");
+});
+
+test("scroll e ignorar nunca cancelan el touchmove; expandir, arrastrar y guiar sí", () => {
+  for (const m of ["esperar", "ignorar", "scroll"]) assert.equal(debeCancelar(m), false, m);
+  for (const m of ["expandir", "arrastrar", "guiar"]) assert.equal(debeCancelar(m), true, m);
+  // Con la hoja expandida, un dedo rápido (primer paso > 8 px) hacia arriba o con el cuerpo scrolleado decide "scroll" y no se cancela.
+  assert.equal(debeCancelar(d({ dx: 0, dy: -30, full: true, scrollTop: 0 })), false);
+  assert.equal(debeCancelar(d({ dx: 0, dy: 30, full: true, scrollTop: 200 })), false);
 });

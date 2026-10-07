@@ -74,6 +74,19 @@ async function recorrido(nombre, { cdp, page }, hoja, cuerpo) {
   ok(await full(page, hoja), `${nombre}: deslizar arriba sobre el cuerpo expande`);
   ok((await arriba(page, cuerpo)) > 20, `${nombre}: en ese mismo recorrido el contenido ya hace scroll (${await arriba(page, cuerpo)} px)`);
   await page.locator(cuerpo).evaluate((e) => (e.scrollTop = 0));
+  // Segundo gesto, separado, con la hoja ya expandida y un dedo rápido (pasos de ~27 px): el navegador hace el scroll y la hoja no cancela ningún touchmove.
+  await page.evaluate(() => {
+    window.__cancelados = 0;
+    window.__moves = 0;
+    document.addEventListener("touchmove", (e) => { window.__moves++; if (e.defaultPrevented) window.__cancelados++; }, { passive: true });
+  });
+  {
+    const q = await centro(page, cuerpo);
+    await dedo(cdp, [q.x, q.y + 120], [q.x, q.y - 120], 9);
+    const [c, m] = await page.evaluate(() => [window.__cancelados, window.__moves]);
+    ok(m > 0 && c === 0 && (await arriba(page, cuerpo)) > 20 && (await full(page, hoja)), `${nombre}: segundo gesto rápido con la hoja expandida desplaza (${await arriba(page, cuerpo)} px), ${c} de ${m} touchmove cancelados`);
+    await page.locator(cuerpo).evaluate((e) => (e.scrollTop = 0));
+  }
   const sc = await page.locator(cuerpo).evaluate((e) => e.scrollHeight > e.clientHeight + 4);
   ok(sc, `${nombre}: expandida, el cuerpo desborda y puede hacer scroll`);
   if (sc) {

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { decidirGesto, resultadoSoltar } from "@/lib/gesto-hoja";
+import { debeCancelar, decidirGesto, resultadoSoltar } from "@/lib/gesto-hoja";
 /** Hojas propias de la superficie pública, fieles al HTML; no aplica tokens del panel. */
 export function DialogoCatalogo({
   id,
@@ -215,11 +215,11 @@ export function PanelCatalogo({
           full,
           scrollTop: full ? (g.scroll?.scrollTop ?? 0) : 0,
         });
-        if (g.modo === "esperar") return;
+        if (!debeCancelar(g.modo)) return;
         if (g.modo === "expandir") setFull(true);
         if (g.modo === "arrastrar") hoja.style.transition = "none";
       }
-      if (e.cancelable) e.preventDefault();
+      if (debeCancelar(g.modo) && e.cancelable) e.preventDefault();
       if (g.modo === "arrastrar") hoja.style.transform = `translateY(${Math.max(0, dy)}px)`;
       // Expandió en este gesto: en cuanto el cuerpo puede desplazarse, el mismo recorrido ya lo desplaza.
       if (g.modo === "expandir" && estado.current.full) {
