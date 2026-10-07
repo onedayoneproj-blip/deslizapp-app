@@ -80,12 +80,18 @@ const sinDesborde = async (page) => page.evaluate(() => document.documentElement
 const capturar = async (page, nombre, ancho, tema) => {
   if (CAPTURAS && ancho === 390) await page.screenshot({ path: join(CAPTURAS, `${nombre}-${tema}.png`) });
 };
-/** El botón "Agregar" (o la caja) del editor de etiquetas rotulado `rotulo` en la hoja abierta. */
+/** Marca los valores de una cosa que cambia en la hoja abierta: la píldora si es sugerida; si no, con «+ Otro …». */
 async function escribirEtiqueta(page, rotulo, valores) {
-  const grupo = hoja(page).locator(`xpath=.//p[normalize-space()="${rotulo}"]/..`);
+  const cosa = { Colores: "Color", Tallas: "Talla", Tamaños: "Tamaño" }[rotulo] ?? rotulo;
+  const seccion = hoja(page).locator(`[data-eje="${cosa}"]`);
   for (const v of valores) {
-    const caja = page.getByRole("textbox", { name: `Agregar a ${rotulo}`, exact: true });
-    if (!(await caja.isVisible().catch(() => false))) await grupo.getByRole("button", { name: "Agregar", exact: true }).click();
+    const pildora = seccion.getByRole("checkbox", { name: v, exact: true });
+    if (await pildora.count()) {
+      await pildora.click();
+      continue;
+    }
+    const caja = seccion.getByRole("textbox", { name: `Otro ${cosa.toLocaleLowerCase("es")}` });
+    if (!(await caja.isVisible().catch(() => false))) await seccion.getByRole("button", { name: `+ Otro ${cosa.toLocaleLowerCase("es")}` }).click();
     await caja.fill(v);
     await caja.press("Enter");
   }
@@ -140,8 +146,9 @@ const ESCENARIOS = {
     await escribirEtiqueta(page, "Colores", ["Negro", "Arena"]);
     // Tocar fuera cierra el campo de escribir (si no, el toque a «Crear» llega con el contenido ya movido).
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
-    ok((await hoja(page).innerText()).includes("Salen 10 presentaciones"), "Elegir: «Salen 10 presentaciones»");
-    ok(await hoja(page).getByRole("checkbox", { name: "Otra…" }).isDisabled(), "…y con dos cosas elegidas «Otra…» se apaga (hasta 2)");
+    ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "Elegir: el botón dice «Crear las 10»");
+    ok(await hoja(page).getByText("Ya elegiste 2: es el máximo.").isVisible(), "…y con dos cosas elegidas «+ Otra cosa» pasa a «Ya elegiste 2: es el máximo.»");
+    ok(await hoja(page).getByRole("checkbox", { name: "Material" }).isDisabled(), "…y las demás se apagan");
     await capturar(page, "elegir", ancho, tema);
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
@@ -291,8 +298,8 @@ const ESCENARIOS = {
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("2500");
     await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
     ok((await hoja(page).getByRole("checkbox", { name: "Tamaño" }).getAttribute("aria-checked")) === "true", "Los perfumes sugieren «Tamaño»");
-    await hoja(page).getByRole("button", { name: "30 · 50 · 100 ml", exact: true }).click();
-    ok((await hoja(page).innerText()).includes("Salen 3 presentaciones"), "El atajo «30 · 50 · 100 ml» crea 3");
+    for (const ml of ["30 ml", "50 ml", "100 ml"]) await hoja(page).getByRole("checkbox", { name: ml, exact: true }).click();
+    ok(await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).isEnabled(), "Los 30, 50 y 100 ml sugeridos crean 3");
     await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).click();
     ok((await filasPres(page).count()) === 3, "Y salen 3 filas");
   },

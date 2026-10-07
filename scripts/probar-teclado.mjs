@@ -252,12 +252,22 @@ try {
     await page.waitForTimeout(600);
     // «Cambiar qué varía» → Otra…: el nombre y los valores nuevos
     await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
-    await page.getByRole("checkbox", { name: "Otra…" }).waitFor();
+    await page.getByRole("checkbox", { name: "Talla" }).waitFor();
     await page.waitForTimeout(500);
-    await page.getByRole("checkbox", { name: "Talla" }).click();
-    await page.getByRole("checkbox", { name: "Otra…" }).click();
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Sabor"]');
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Sabor"]', "Cambiar qué varía · Nombre de la otra", "Tela", { dentroDeHoja: true });
+    // Quita lo que ya tiene para dejar lugar a la cosa propia
+    for (const nombre of ["Talla", "Color"]) {
+      const q = page.getByRole("button", { name: `Quitar ${nombre}`, exact: true });
+      if (await q.count()) await q.click();
+    }
+    await page.getByRole("button", { name: "+ Otra cosa", exact: true }).click();
+    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Aroma"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Aroma"]', "Cambiar qué varía · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
+    await page.getByRole("button", { name: "Listo", exact: true }).click();
+    // Valor propio de una cosa del catálogo
+    await page.getByRole("checkbox", { name: "Color" }).click();
+    await page.getByRole("button", { name: /^\+ Otro color/ }).click();
+    await page.waitForSelector('[role="dialog"] input[aria-label="Otro color"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label="Otro color"]', "Cambiar qué varía · Otro color", "Turquesa", { dentroDeHoja: true });
     await page.evaluate(() => document.activeElement.blur());
     ok(errores.length === 0, `Presentaciones: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
