@@ -1,6 +1,6 @@
 # Ver como: que la base bloquee las escrituras (rama `fix/ver-como-bloqueo`)
 
-> **Modelo:** en Claude Code, **Opus 5.5**; en Codex, el modelo top con razonamiento alto. Es seguridad y permisos en la base compartida. **No hagas merge:** deja el PR abierto con su preview y las pruebas, y Planning mergea cuando Lewis lo diga. Una migración a la vez; antes de aplicar cualquiera, pregunta a Lewis si otra sesión está a mitad de un cambio.
+> **Modelo:** en Claude Code, **Opus 5.5**; en Codex, el modelo top con razonamiento alto. Es seguridad y permisos en la base compartida. **No hagas merge:** deja el PR abierto con su preview y las pruebas, y Planning mergea cuando Lewis lo diga. Una migración a la vez; antes de aplicar cualquiera, `list_migrations` (Lewis trabaja con una sola sesión a la vez; no hace falta preguntarle).
 
 ## 0. Antes de empezar
 

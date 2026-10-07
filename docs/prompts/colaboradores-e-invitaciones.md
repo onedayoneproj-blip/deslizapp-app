@@ -1,6 +1,6 @@
 # Equipo, niveles de permiso e invitaciones por enlace (rama `feat/equipo-e-invitaciones`)
 
-> **Modelo:** en Claude Code, **Opus 5.5**; en Codex, el modelo top con razonamiento alto. Es seguridad y permisos en la base compartida, con dinero (créditos) de por medio. **No hagas merge:** deja el PR abierto con su preview y las pruebas; Planning mergea cuando Lewis lo diga. Una migración a la vez; antes de aplicar cualquiera, pregunta a Lewis si otra sesión está a mitad de un cambio.
+> **Modelo:** en Claude Code, **Opus 5.5**; en Codex, el modelo top con razonamiento alto. Es seguridad y permisos en la base compartida, con dinero (créditos) de por medio. **No hagas merge:** deja el PR abierto con su preview y las pruebas; Planning mergea cuando Lewis lo diga. Una migración a la vez; antes de aplicar cualquiera, `list_migrations` (Lewis trabaja con una sola sesión a la vez; no hace falta preguntarle).
 
 > **Orden:** va después de que Mi marca (PR #57) esté en `main`. **Comparte funciones y políticas con `docs/prompts/ver-como-bloqueo-en-la-base.md`**: no corran a la vez; Lewis decide cuál va primero. Si ese ya está en `main`, tus funciones nuevas llaman su `exigir_no_viendo(...)` y tu auditoría lo tiene en cuenta; si no, déjalo anotado en el PR para que esa sesión las cubra. `docs/prompts/suscripciones-y-varias-tiendas.md` va **después** de este: tú solo dejas el gancho del límite de colaboradores (§3.6).
 
@@ -87,7 +87,7 @@ Tabla nueva, p. ej. `enlaces_invitacion` (mira que no choque con `invitaciones`,
 ## 6. Migraciones y datos
 
 - Migraciones nuevas, pequeñas y una a la vez (nunca edites una aplicada); ensayo en `BEGIN; … ROLLBACK;` con `execute_sql` sobre la base real, luego replay (`probar:admin-db`), luego `apply_migration`; el archivo lleva la versión que asigne Supabase. `npm run revisar:migraciones` en cero, `get_advisors` sin nada nuevo.
-- Antes de aplicar cada una: `list_migrations` y pregunta a Lewis si otra sesión está a mitad de un cambio. Después de aplicar, comprueba que el panel y el catálogo de Esencias Michel siguen normales (solo lecturas).
+- Antes de aplicar cada una: `list_migrations` (Lewis trabaja con una sola sesión a la vez; no hace falta preguntarle). Después de aplicar, comprueba que el panel y el catálogo de Esencias Michel siguen normales (solo lecturas).
 - **Ningún dato real va en migraciones.** No crees invitaciones ni miembros reales para probar.
 
 ## 7. Pruebas
