@@ -1,4 +1,4 @@
-import { CAMPOS_POR_RUBRO, NOMBRE_VALOR, OCASIONES_NOCHE, OCASIONES_DIA } from "../rubros";
+import { CAMPOS_POR_RUBRO, NOMBRE_VALOR, OCASIONES_NOCHE, OCASIONES_DIA, rubrosDeTienda, tipoDeProducto, type Rubro } from "../rubros";
 import type { CatalogoPublico, ProductoPublico } from "../types";
 export const portada = (p: ProductoPublico) =>
   p.medios[0]?.tipo === "video"
@@ -87,3 +87,16 @@ export function coleccionesDe(c: CatalogoPublico): Coleccion[] {
     });
   return a.filter((a) => a.productos.length > 0);
 }
+
+/** Los catálogos (rubros) de la tienda con productos visibles y cuántos tiene cada uno. Un producto sin rubro cuenta como el principal. */
+export function catalogosDe(c: CatalogoPublico): { rubro: Rubro; cantidad: number }[] {
+  return rubrosDeTienda(c.tienda)
+    .map((rubro) => ({ rubro, cantidad: c.productos.filter((p) => tipoDeProducto(p, c.tienda) === rubro).length }))
+    .filter((x) => x.cantidad > 0);
+}
+/** El catálogo solo con los productos de un rubro (`null` = Todo: el mismo catálogo). */
+export function catalogoFiltrado(c: CatalogoPublico, rubro: Rubro | null): CatalogoPublico {
+  return rubro === null ? c : { ...c, productos: c.productos.filter((p) => tipoDeProducto(p, c.tienda) === rubro) };
+}
+/** La colección elegida si sigue existiendo; si no, «Todos». */
+export const filtroVigente = (cols: readonly Coleccion[], id: string) => (cols.some((c) => c.id === id) ? id : "all");

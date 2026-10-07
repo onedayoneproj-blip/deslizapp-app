@@ -20,7 +20,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { portada, coleccionesDe, mostrarDetalle } from "@/lib/tienda/catalogo";
+import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarCatalogo, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
@@ -89,6 +89,8 @@ export function Catalogo({
   }, [vista]);
   const [perfil, setPerfil] = useState(false);
   const [filter, setFilter] = useState("all");
+  // Ver por catálogo (rubro); null = Todo. Solo cambia con más de un catálogo.
+  const [catalogoActivo, setCatalogoActivo] = useState<Rubro | null>(null);
   const [actual, setActual] = useState(inicial?.productos[0]?.slug ?? "");
   const [cart, setCart] = useState<LineaLocal[]>([]);
   const [query, setQuery] = useState("");
@@ -369,8 +371,42 @@ export function Catalogo({
   const mensajes = t.personalizacion.mensajes as
     Record<string, string> | undefined;
   const nombres = NOMBRE_PRODUCTO[t.rubro];
-  const cols = coleccionesDe(c);
-  const lista = cols.find((col) => col.id === filter)?.productos ?? c.productos;
+  const catalogos = catalogosDe(c);
+  const variosCatalogos = catalogos.length > 1;
+  const activo = variosCatalogos && catalogos.some((x) => x.rubro === catalogoActivo) ? catalogoActivo : null;
+  const cv = catalogoFiltrado(c, activo);
+  const cols = coleccionesDe(cv);
+  const filtro = filtroVigente(cols, filter);
+  const lista = cols.find((col) => col.id === filtro)?.productos ?? cv.productos;
+  const nombreLista = variosCatalogos ? "productos" : nombres.plural;
+  const cambiarCatalogo = (valor: string) => {
+    const nuevo = (valor || null) as Rubro | null;
+    const nuevaCols = coleccionesDe(catalogoFiltrado(c, nuevo));
+    const nuevoFiltro = filtroVigente(nuevaCols, filter);
+    setCatalogoActivo(nuevo);
+    setFilter(nuevoFiltro);
+    const primero = (nuevaCols.find((x) => x.id === nuevoFiltro)?.productos ?? [])[0];
+    if (primero && actual !== "fin" && actual !== "deslizapp" && !(nuevaCols.find((x) => x.id === nuevoFiltro)?.productos ?? []).some((p) => p.slug === actual)) {
+      setActual(primero.slug);
+      requestAnimationFrame(() => document.getElementById("r-" + primero.slug)?.scrollIntoView({ block: "start" }));
+    }
+  };
+  const selectorCatalogo = (clase: string, alto?: boolean) => (
+    <select
+      className={clase}
+      aria-label={"Ver por catálogo: " + (activo ? NOMBRE_TIPO[activo] : "Todo") + ". Cambiar"}
+      value={activo ?? ""}
+      onChange={(e) => cambiarCatalogo(e.target.value)}
+      data-alto={alto ? "1" : undefined}
+    >
+      <option value="">Todo</option>
+      {catalogos.map((x) => (
+        <option key={x.rubro} value={x.rubro}>
+          {NOMBRE_TIPO[x.rubro]} · {x.cantidad}
+        </option>
+      ))}
+    </select>
+  );
   const index =
     actual === "fin"
       ? lista.length
@@ -598,7 +634,7 @@ export function Catalogo({
         <button
           className="hback"
           id="backBtn"
-          aria-label={"Volver a los " + nombres.plural}
+          aria-label={"Volver a los " + nombreLista}
           onClick={volverPerfil}
         >
           <Icono nombre="back" />
@@ -706,7 +742,7 @@ export function Catalogo({
           <button
             className="htab"
             data-tab="new"
-            aria-pressed={filter === "all"}
+            aria-pressed={filtro === "all"}
             onClick={() => seleccionarFiltro("all")}
           >
             Novedades
@@ -716,16 +752,16 @@ export function Catalogo({
               className="htab"
               data-tab="col"
               id="colTab"
-              aria-pressed={filter !== "all"}
+              aria-pressed={filtro !== "all"}
               aria-haspopup="dialog"
               onClick={() =>
                 vista === "colecciones" ? cerrar() : abrir("colecciones")
               }
             >
               <span>
-                {filter === "all"
+                {filtro === "all"
                   ? "Colecciones"
-                  : cols.find((c) => c.id === filter)?.nombre}
+                  : cols.find((c) => c.id === filtro)?.nombre}
               </span>
               <span className="hcov" aria-hidden="true">
                 {cols
@@ -742,7 +778,7 @@ export function Catalogo({
       <main
         className="reels"
         id="reels"
-        aria-label={nombres.plural}
+        aria-label={nombreLista}
         hidden={perfil}
       >
         {lista.length > 0 && (
@@ -800,8 +836,8 @@ export function Catalogo({
               </div>
               <h2>
                 ¡Ya viste{" "}
-                {filter === "all"
-                  ? "todos mis " + nombres.plural
+                {filtro === "all"
+                  ? "todos mis " + nombreLista
                   : "esta colección"}
                 !
               </h2>
@@ -809,7 +845,7 @@ export function Catalogo({
                 <>
                   <p>
                     Elegiste {cart.length}{" "}
-                    {cart.length === 1 ? nombres.singular : nombres.plural} ·{" "}
+                    {cart.length === 1 ? (variosCatalogos ? "producto" : nombres.singular) : nombreLista} ·{" "}
                     <b>{dinero(total)}</b>
                   </p>
                   <div className="finimgs">
@@ -902,8 +938,8 @@ export function Catalogo({
           </div>
           <div className="pstats">
             <div>
-              <b id="statCount">{c.productos.length}</b>
-              {nombres.plural}
+              <b id="statCount">{cv.productos.length}</b>
+              {nombreLista}
             </div>
             <div>
               <b id="statSales">{t.ventas ?? "Nueva"}</b>
@@ -964,13 +1000,13 @@ export function Catalogo({
             className="hls"
             id="hls"
             role="group"
-            aria-label={"Filtrar " + nombres.plural}
+            aria-label={"Filtrar " + nombreLista}
           >
             {cols.map((col) => (
               <button
                 className="hl"
                 key={col.id}
-                aria-pressed={filter === col.id}
+                aria-pressed={filtro === col.id}
                 onClick={() => setFilter(col.id)}
               >
                 <span className="ring">
@@ -981,7 +1017,13 @@ export function Catalogo({
             ))}
           </div>
         )}
-        <div className="gridtabs"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>{nombres.plural}</div>
+        <div className={"gridtabs" + (variosCatalogos ? " gridtabs-sel" : "")}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>{variosCatalogos ? (
+          <>
+            <span>{activo ? NOMBRE_TIPO[activo] : "Todo"}</span>
+            <svg className="chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+            {selectorCatalogo("gt-select")}
+          </>
+        ) : nombres.plural}</div>
         <div className="grid" id="grid">
           {lista.map((p) => (
             <article
@@ -1089,7 +1131,7 @@ export function Catalogo({
             <button className="sum" onClick={() => abrir("pedido")}>
               <b>
                 {cart.length}{" "}
-                {cart.length === 1 ? nombres.singular : nombres.plural} ·{" "}
+                {cart.length === 1 ? (variosCatalogos ? "producto" : nombres.singular) : nombreLista} ·{" "}
                 {dinero(total)}
               </b>
               <small>Ver o cambiar mi pedido</small>
@@ -1120,6 +1162,16 @@ export function Catalogo({
           >
             ×
           </button>
+          {variosCatalogos && (
+            <label className="co-catalogo">
+              <span>Catálogo</span>
+              <span className="co-cat-val">
+                {activo ? NOMBRE_TIPO[activo] : "Todo"}
+                <svg className="chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+              {selectorCatalogo("gt-select")}
+            </label>
+          )}
           <ul className="colist" id="coGrid">
             {cols
               .filter((c) => c.id !== "all")
@@ -1127,7 +1179,7 @@ export function Catalogo({
                 <li key={col.id}>
                   <button
                     className="coitem"
-                    aria-pressed={filter === col.id}
+                    aria-pressed={filtro === col.id}
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
@@ -1140,8 +1192,8 @@ export function Catalogo({
                     <small>
                       {col.productos.length}{" "}
                       {col.productos.length === 1
-                        ? nombres.singular
-                        : nombres.plural}
+                        ? (variosCatalogos ? "producto" : nombres.singular)
+                        : nombreLista}
                     </small>
                   </button>
                 </li>
