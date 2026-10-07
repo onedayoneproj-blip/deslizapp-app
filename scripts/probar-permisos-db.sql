@@ -251,7 +251,120 @@ select pg_temp.comprobar((select nivel from public.invitaciones where email='nue
 insert into auth.users(id,email,raw_app_meta_data,email_confirmed_at) values ('dd000000-0000-4000-8000-000000000010','nueva@prueba.invalid','{"provider":"google"}',now());
 select pg_temp.comprobar((select rol||'/'||nivel from public.miembros where usuario_id='dd000000-0000-4000-8000-000000000010')='staff/editor','al entrar con Google queda Editor');
 
--- @@ENLACES@@
+-- ═══ 5. Enlaces de colaborador: un solo uso, la dueña aprueba ═══
+-- Nueva tienda limpia para no arrastrar lo anterior: dueña D2, Administrador X2 (colaborador), y cuentas que abren enlaces.
+reset role;
+insert into auth.users(id,email,raw_app_meta_data,raw_user_meta_data,email_confirmed_at) values
+ ('dd000000-0000-4000-8000-000000000021','duena2@prueba.invalid','{"provider":"google"}','{"full_name":"Dueña Dos"}',now()),
+ ('dd000000-0000-4000-8000-000000000022','admin2@prueba.invalid','{"provider":"google"}','{"full_name":"Admin Dos"}',now()),
+ ('dd000000-0000-4000-8000-000000000023','abre1@prueba.invalid','{"provider":"google"}','{"full_name":"Ana Abre"}',now()),
+ ('dd000000-0000-4000-8000-000000000024','abre2@prueba.invalid','{"provider":"google"}','{"full_name":"Beto Abre"}',now()),
+ ('dd000000-0000-4000-8000-000000000025','sin-google@prueba.invalid','{"provider":"email"}','{}',now());
+insert into public.tiendas(id,nombre,slug,estado) values ('de000000-0000-4000-8000-000000000002','Enlaces fixture','enlaces-fixture','activa');
+insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
+ ('dd000000-0000-4000-8000-000000000021','de000000-0000-4000-8000-000000000002','dueno','ayudante'),
+ ('dd000000-0000-4000-8000-000000000022','de000000-0000-4000-8000-000000000002','staff','administrador');
+create temp table codigos(k text primary key, c text);
+grant all on codigos to authenticated;
+select pg_temp.comprobar(not has_table_privilege('anon','public.enlaces_invitacion','SELECT') and not has_column_privilege('authenticated','public.enlaces_invitacion','codigo_hash','SELECT')
+  and not has_table_privilege('authenticated','public.enlaces_invitacion','INSERT') and not has_table_privilege('authenticated','public.enlaces_invitacion','UPDATE'),
+  'enlaces: anon nada; nadie lee el hash ni escribe la tabla');
+select pg_temp.comprobar(not has_function_privilege('anon','public.reclamar_enlace(text)','EXECUTE') and not has_function_privilege('authenticated','public.codigo_enlace_nuevo()','EXECUTE')
+  and not has_function_privilege('authenticated','public.hash_enlace(text)','EXECUTE'),'funciones de enlace sin anon; el código y el hash no se piden por la API');
+set local role authenticated;
+-- Un colaborador (ni siquiera Administrador) crea enlaces, aprueba ni ve el equipo.
+select pg_temp.como('dd000000-0000-4000-8000-000000000022');
+select pg_temp.rechaza($q$select public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor',null)$q$,'42501','sin_permiso');
+select pg_temp.rechaza($q$select public.equipo_de_tienda('de000000-0000-4000-8000-000000000002')$q$,'42501','solo_dueno');
+select pg_temp.rechaza($q$select public.cambiar_nivel('de000000-0000-4000-8000-000000000002','dd000000-0000-4000-8000-000000000022','administrador')$q$,'42501','sin_permiso');
+-- La dueña crea tres enlaces: el código vuelve una vez y solo queda su hash.
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+insert into codigos values ('a', public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor','Para Ana')),
+  ('b', public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002',null,null)),
+  ('c', public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','ayudante',null));
+select pg_temp.comprobar((select count(*) from codigos where c ~ '^[A-Za-z0-9_-]{43}$')=3,'códigos base64url de 256 bits');
+select pg_temp.rechaza($q$select public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','jefe',null)$q$,'22023','nivel_invalido');
+select pg_temp.rechaza($q$select public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor',repeat('x',41))$q$,'22023','nota_invalida');
+select pg_temp.comprobar((select count(*) from public.enlaces_invitacion where tienda_id='de000000-0000-4000-8000-000000000002')=3,'la dueña ve sus enlaces');
+select pg_temp.comprobar(jsonb_array_length(public.equipo_de_tienda('de000000-0000-4000-8000-000000000002')->'enlaces')=3,'equipo_de_tienda lista los activos');
+reset role;
+select pg_temp.comprobar((select count(*) from public.enlaces_invitacion e join codigos k on e.codigo_hash=encode(sha256(convert_to(k.c,'UTF8')),'hex'))=3
+  and not exists (select 1 from public.enlaces_invitacion e join codigos k on e.codigo_hash=k.c),'se guarda el SHA-256, nunca el código');
+set local role authenticated;
+-- La dueña no se reclama su propio enlace; una cuenta sin Google tampoco; un código inventado da el mismo error.
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='a'))$q$,'P0001','enlace_no_valido');
+select pg_temp.como('dd000000-0000-4000-8000-000000000025');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='a'))$q$,'P0001','enlace_no_valido');
+select pg_temp.como('dd000000-0000-4000-8000-000000000023');
+select pg_temp.rechaza($q$select public.reclamar_enlace('esto-no-es-un-codigo-valido-de-nada-1234567')$q$,'P0001','enlace_no_valido');
+-- Ana abre el enlace a: queda esperando, NO es miembro y no lee nada de la tienda.
+select pg_temp.comprobar((select public.reclamar_enlace((select c from codigos where k='a'))->>'estado')='esperando','Ana queda esperando');
+select pg_temp.comprobar((select public.reclamar_enlace((select c from codigos where k='a'))->>'estado')='esperando','si Ana lo vuelve a abrir, ve su estado');
+select pg_temp.comprobar((select count(*) from public.miembros where tienda_id='de000000-0000-4000-8000-000000000002')=0
+  and (select count(*) from public.tiendas where id='de000000-0000-4000-8000-000000000002')=0
+  and (select count(*) from public.enlaces_invitacion)=0,'sin aprobar no es miembro ni lee la tienda ni los enlaces');
+select pg_temp.comprobar((select public.mis_solicitudes()->0->>'estado')='esperando' and (select public.mis_solicitudes()->0->>'tienda_nombre')='Enlaces fixture','Ana ve «esperando» con el nombre de la tienda');
+-- Beto intenta el mismo enlace: ya no sirve.
+select pg_temp.como('dd000000-0000-4000-8000-000000000024');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='a'))$q$,'P0001','enlace_no_valido');
+-- El Administrador no aprueba; la dueña sí, cambiando el nivel a Administrador.
+select pg_temp.como('dd000000-0000-4000-8000-000000000022');
+select pg_temp.rechaza($q$select public.aprobar_miembro((select id from public.enlaces_invitacion where nota='Para Ana'),'administrador')$q$,'42501');
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+select pg_temp.comprobar(jsonb_array_length(public.equipo_de_tienda('de000000-0000-4000-8000-000000000002')->'solicitudes')=1
+  and (public.equipo_de_tienda('de000000-0000-4000-8000-000000000002')->'solicitudes'->0->>'email')='abre1@prueba.invalid','la dueña ve la solicitud con el correo de Google');
+select public.aprobar_miembro((select id from public.enlaces_invitacion where nota='Para Ana'),'administrador');
+select pg_temp.rechaza($q$select public.aprobar_miembro((select id from public.enlaces_invitacion where nota='Para Ana'),'editor')$q$,'P0001','solicitud_no_valida');
+select pg_temp.comprobar((select rol||'/'||nivel from public.miembros where usuario_id='dd000000-0000-4000-8000-000000000023' and tienda_id='de000000-0000-4000-8000-000000000002')='staff/administrador','aprobada con el nivel elegido');
+select pg_temp.como('dd000000-0000-4000-8000-000000000023');
+select pg_temp.comprobar((select count(*) from public.tiendas where id='de000000-0000-4000-8000-000000000002')=1
+  and (select tienda_id from public.usuarios where id='dd000000-0000-4000-8000-000000000023')='de000000-0000-4000-8000-000000000002','aprobada, Ana entra a la tienda');
+select pg_temp.comprobar((select count(*) from public.enlaces_invitacion)=0,'Ana (Administradora) no lee los enlaces');
+-- Beto abre b y la dueña lo rechaza: no es miembro.
+select pg_temp.como('dd000000-0000-4000-8000-000000000024');
+select public.reclamar_enlace((select c from codigos where k='b'));
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+select public.rechazar_miembro((select e.id from public.enlaces_invitacion e where e.estado='esperando'));
+select pg_temp.comprobar((select count(*) from public.miembros where usuario_id='dd000000-0000-4000-8000-000000000024')=0,'rechazado no es miembro');
+-- c: cancelado no sirve.
+select public.cancelar_enlace((select e.id from public.enlaces_invitacion e where e.estado='activo' and e.nivel='ayudante' limit 1));
+select pg_temp.como('dd000000-0000-4000-8000-000000000024');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='c'))$q$,'P0001','enlace_no_valido');
+-- Vencimiento (reloj simulado): un enlace de 8 días ya no sirve; una solicitud de 8 días ya no se aprueba.
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+insert into codigos values ('d', public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor','Viejo')),
+  ('e', public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor','Solicitud vieja'));
+reset role;
+update public.enlaces_invitacion set creado_en=now()-interval '8 days', vence_en=now()-interval '1 day' where nota='Viejo';
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-000000000024');
+select pg_temp.rechaza($q$select public.reclamar_enlace((select c from codigos where k='d'))$q$,'P0001','enlace_no_valido');
+select public.reclamar_enlace((select c from codigos where k='e'));
+reset role;
+update public.enlaces_invitacion set reclamado_en=now()-interval '8 days' where nota='Solicitud vieja';
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+select pg_temp.rechaza($q$select public.aprobar_miembro((select id from public.enlaces_invitacion where nota='Solicitud vieja'),null)$q$,'P0001','solicitud_no_valida');
+-- Cambiar nivel: solo la dueña, y solo a colaboradores.
+select public.cambiar_nivel('de000000-0000-4000-8000-000000000002','dd000000-0000-4000-8000-000000000023','ayudante');
+select pg_temp.comprobar((select nivel from public.miembros where usuario_id='dd000000-0000-4000-8000-000000000023')='ayudante','la dueña baja a Ana a Ayudante');
+select pg_temp.rechaza($q$select public.cambiar_nivel('de000000-0000-4000-8000-000000000002','dd000000-0000-4000-8000-000000000021','editor')$q$,'P0002','no_es_colaborador');
+-- Con Ver como abierto sobre su tienda, un admin que además es dueño no crea enlaces ni aprueba.
+reset role;
+insert into public.admins(usuario_id,email) values ('dd000000-0000-4000-8000-000000000021','duena2@prueba.invalid');
+set local role authenticated;
+select pg_temp.como('dd000000-0000-4000-8000-000000000021');
+select public.admin_ver_como_iniciar('de000000-0000-4000-8000-000000000002');
+select pg_temp.rechaza($q$select public.crear_enlace_colaborador('de000000-0000-4000-8000-000000000002','editor',null)$q$,'42501','solo_mirar');
+select pg_temp.rechaza($q$select public.cambiar_nivel('de000000-0000-4000-8000-000000000002','dd000000-0000-4000-8000-000000000023','editor')$q$,'42501','solo_mirar');
+select public.admin_ver_como_terminar((public.admin_ver_como_actual()->>'id')::uuid);
+-- El gancho del límite se llama al aprobar y al invitar por correo.
+reset role;
+select pg_temp.comprobar((select prosrc ~ 'puede_sumar_colaborador' from pg_proc where oid='public.aprobar_miembro(uuid,text)'::regprocedure)
+  and (select prosrc ~ 'puede_sumar_colaborador' from pg_proc where oid='public.invitar_por_correo(uuid,text,text,text)'::regprocedure)
+  and (select prosrc ~ 'puede_sumar_colaborador' from pg_proc where oid='public.crear_enlace_colaborador(uuid,text,text)'::regprocedure),'puede_sumar_colaborador en aprobar, invitar y crear enlace');
+
+-- @@TIENDA_NUEVA@@
 
 rollback;
 select 'Pasó: cada nivel escribe solo lo suyo en tablas y archivos; el extraño no ve nada; Ver como y permisos conviven.';
