@@ -64,7 +64,7 @@ const ESCENARIOS = {
     await captura(page, "b1-reel", ancho);
   },
 
-  /** OpcionB2 + OpcionB3 + Publico2: la hoja con todas, elegir, la foto sigue al color, agregar y «Cambiar ›». */
+  /** OpcionB2 + OpcionB3 + Publico2: la hoja con todas, elegir, la foto sigue al color, agregar y «Elegir otra ›». */
   async hojaB(page, ancho) {
     const r = reel(page, "pantalon-de-algodon");
     await r.locator(".cap .pres-btn").tap();
@@ -88,16 +88,16 @@ const ESCENARIOS = {
     await hoja(page).getByRole("button", { name: "Agregar a mi pedido" }).tap();
     await hoja(page).waitFor({ state: "detached" });
     const boton = r.locator(".cap .pres-btn");
-    ok((await boton.innerText()).includes("M · Arena · Cambiar ›"), "OpcionB3: el botón dice «M · Arena · Cambiar ›»");
+    ok((await boton.innerText()).includes("M · Arena · Elegir otra ›"), "OpcionB3: el botón dice «M · Arena · Elegir otra ›»");
     ok((await r.locator(".inbadge").count()) === 1, "El reel muestra «En tu pedido»");
     const lineas = await carrito(page, LINO);
     ok(lineas.length === 1 && lineas[0].varianteTexto === "Talla M · Arena" && lineas[0].precioUnitario === 2300, "El pedido tiene M · Arena a RD$2,300");
     ok(lineas[0].foto.includes("arena"), "…con la foto del color Arena");
     await captura(page, "b3-elegida", ancho);
-    // Cambiar la reabre con la elegida marcada.
+    // «Elegir otra» la reabre con la elegida marcada.
     await boton.tap();
     await hoja(page).waitFor();
-    ok((await celdaAria(page, "Talla M, color Arena").getAttribute("aria-checked")) === "true", "Cambiar reabre la hoja con M · Arena marcada");
+    ok((await celdaAria(page, "Talla M, color Arena").getAttribute("aria-checked")) === "true", "Elegir otra reabre la hoja con M · Arena marcada");
     ok((await hoja(page).getByRole("button", { name: "Quitar de mi pedido" }).count()) === 1, "…y ofrece quitarla del pedido");
   },
 

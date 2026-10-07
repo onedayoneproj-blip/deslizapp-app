@@ -161,7 +161,7 @@ export function Reel({
         data-presentaciones={p.slug}
         aria-label={
           eleccion
-            ? `Cambiar presentación de ${p.nombre}: ${textoEleccion(p.opciones, eleccion)}`
+            ? `Elegir otra presentación de ${p.nombre}: ${textoEleccion(p.opciones, eleccion)}`
             : `Ver presentaciones de ${p.nombre}`
         }
         onClick={() => abrirPresentaciones("b")}
@@ -169,7 +169,7 @@ export function Reel({
         {eleccion ? (
           <>
             {hexElegido && <i className="pres-punto" aria-hidden="true" style={{ background: hexElegido }} />}
-            <span>{textoEleccion(p.opciones, eleccion)} · Cambiar ›</span>
+            <span>{textoEleccion(p.opciones, eleccion)} · Elegir otra ›</span>
           </>
         ) : (
           <>
