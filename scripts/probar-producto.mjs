@@ -236,68 +236,55 @@ const ESCENARIOS = {
     ok(blusa.stock === 3 && suyas.find((v) => v.valores.Talla === "S").stock === 2, "…y su stock por variante (3 en total)");
   },
 
-  /** 3. Medios: 2 fotos y 1 video corto; cambiar la portada, ordenar, quitar; el tercer video no se deja. */
+  /** 3. Medios: 2 fotos; un video elegido NO se agrega (VIDEO_PERMITIDO apagado); portada y orden; un video que ya existe se ve y se quita. */
   async medios(page, ancho, tema) {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
     const a = await archivosDePrueba(page);
     const entrada = page.locator("[data-entrada-medios]");
+    ok(((await entrada.getAttribute("accept")) ?? "") === "image/*", "El selector de archivos acepta solo imágenes");
     await entrada.setInputFiles([
       { name: "rojo.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") },
       { name: "azul.png", mimeType: "image/png", buffer: Buffer.from(a.azul, "base64") },
     ]);
     await page.getByRole("button", { name: /^Foto 2 de 2/ }).waitFor();
     await entrada.setInputFiles([{ name: "corto.webm", mimeType: "video/webm", buffer: Buffer.from(a.video, "base64") }]);
-    await page.getByRole("button", { name: /^Video 3 de 3/ }).waitFor();
-    await page.waitForTimeout(400);
-    await capturar(page, "video-subiendo", ancho, tema);
-    await page.waitForFunction(() => document.querySelector('[aria-label^="Video 3 de 3"]') && !/%/.test(document.querySelector('[aria-label^="Video 3 de 3"]').getAttribute("aria-label")), null, { timeout: 30_000 });
-    ok(true, "El video se preparó (sin anillo de progreso)");
-    // La hoja del video muestra el video mismo: solo, mudo y en bucle; tocarlo activa el sonido.
-    await page.getByRole("button", { name: /^Video 3 de 3/ }).click();
-    await hoja(page).locator("video").waitFor();
-    await page.waitForTimeout(700);
-    const enHoja = () =>
-      hoja(page).locator("video").evaluate(async (v) => {
-        const t = v.currentTime;
-        await new Promise((r) => setTimeout(r, 500));
-        return { paused: v.paused, muted: v.muted, loop: v.loop, inline: v.playsInline, avanza: v.currentTime !== t, local: v.currentSrc.startsWith("blob:") };
-      });
-    const e1 = await enHoja();
-    ok(e1.local && !e1.paused && e1.muted && e1.loop && e1.inline && e1.avanza, "Tocar la miniatura del video: hay un <video> reproduciéndose, mudo y en bucle");
-    await page.getByRole("button", { name: "Activar el sonido del video" }).click();
-    const e2 = await enHoja();
-    ok(!e2.muted && !e2.paused && (await page.getByRole("button", { name: "Quitar el sonido del video" }).count()) === 1, "Tocar el video activa el sonido");
-    await capturar(page, "video-en-hoja", ancho, tema);
-    await page.keyboard.press("Escape");
-    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+    await page.waitForTimeout(800);
+    ok((await page.locator('[aria-label^="Video "]').count()) === 0 && (await page.getByRole("button", { name: /^Foto 2 de 2/ }).count()) === 1, "Un video elegido no se agrega ni deja nada raro");
+    await capturar(page, "medios-solo-fotos", ancho, tema);
     const imagenes = async () => page.locator('[aria-label="Fotos y video"] li img').evaluateAll((l) => l.map((i) => i.getAttribute("src")));
     const antes = await imagenes();
-    await page.getByRole("button", { name: /^Foto 2 de 3/ }).click();
+    await page.getByRole("button", { name: /^Foto 2 de 2/ }).click();
     await page.getByRole("button", { name: "Hacer portada", exact: true }).click();
     ok((await imagenes())[0] === antes[1], "Hacer portada pone la segunda foto primero");
-    await page.getByRole("button", { name: /^Video 3 de 3/ }).click();
-    await page.getByRole("button", { name: "Mover a la izquierda", exact: true }).click();
-    await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: /^Video 2 de 3/ }).waitFor();
-    ok(true, "Mover a la izquierda ordena el video");
-    await page.getByRole("button", { name: /^Foto 3 de 3/ }).click();
+    await page.getByRole("button", { name: /^Foto 2 de 2/ }).click();
     await page.getByRole("button", { name: "Quitar foto", exact: true }).click();
-    await page.getByRole("button", { name: /^Video 2 de 2/ }).waitFor();
-    ok(true, "Quitar deja 2 elementos");
-    await entrada.setInputFiles([{ name: "otro.webm", mimeType: "video/webm", buffer: Buffer.from(a.video, "base64") }]);
-    await page.waitForFunction(() => !/%/.test(document.querySelector('[aria-label="Fotos y video"]')?.innerText ?? "") && document.querySelectorAll('[aria-label^="Video "]').length === 2, null, { timeout: 30_000 });
-    await entrada.setInputFiles([{ name: "tercero.webm", mimeType: "video/webm", buffer: Buffer.from(a.video, "base64") }]);
-    await page.getByText("Hasta 2 videos por producto. Quita uno para agregar otro.").waitFor();
-    ok((await page.locator('[aria-label^="Video "]').count()) === 2, "El tercer video no se deja");
+    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+    ok(true, "Quitar deja 1 elemento");
     ok(await sinDesborde(page), "Tira de medios sin desborde");
-    // Publicar: la ficha con sus medios (foto y videos) en una sola llamada.
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Video de prueba");
+    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Foto de prueba");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("900");
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo`);
-    const nuevo = (await db(page)).productos.find((p) => p.nombre === "Video de prueba");
-    ok(nuevo && nuevo.medios.length === 3 && nuevo.medios.filter((m) => m.tipo === "video").length === 2 && nuevo.fotos.length === 1, "Publicar guarda la foto y los 2 videos");
+    const nuevo = (await db(page)).productos.find((p) => p.nombre === "Foto de prueba");
+    ok(nuevo && nuevo.medios.length === 1 && nuevo.fotos.length === 1, "Publicar guarda solo la foto");
+    // Un producto que ya trae un video: se ve en la ficha, se abre y se puede quitar.
+    await page.evaluate(([k, id, video]) => {
+      const d = JSON.parse(localStorage.getItem(k));
+      const p = d.productos.find((x) => x.id === id);
+      p.medios = [...p.medios, { tipo: "video", url: `data:video/webm;base64,${video}`, portada: null, duracionS: 3 }];
+      localStorage.setItem(k, JSON.stringify(d));
+    }, [CLAVE, CAMISA, a.video]);
+    await page.goto(`${URL}/catalogo/${CAMISA}/editar`);
+    await page.waitForTimeout(1500);
+        const n = await page.locator('[aria-label^="Video "]').count();
+    ok(n === 1, "Un video que ya existe se sigue viendo en la ficha");
+    await page.locator('[aria-label^="Video "]').first().click();
+    await hoja(page).locator("video").waitFor();
+    ok(true, "…y se abre y se reproduce en su hoja");
+    await page.getByRole("button", { name: "Quitar video", exact: true }).click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label^="Video "]').length === 0);
+    ok(true, "…y se puede quitar");
   },
 
   /** 4. Por encargo: encender, escribir el tiempo, guardar. */

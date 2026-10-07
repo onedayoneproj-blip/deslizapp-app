@@ -975,6 +975,8 @@ mismo tono — no se deja el texto por defecto de un framework de UI.
 
 `/tienda/{slug}` replica el catálogo HTML con la marca de cada tienda: reels, perfil/cuadrícula, colecciones calculadas, búsqueda, panel «más», coach, opiniones y hoja de pedido. Medio horizontal con puntos, video mudo en línea con sonido opcional, opciones y precio/disponibilidad por variante, promo automática y Por encargo. Agotados conservan sello y abren «Te aviso cuando llegue»; el teléfono se guarda para ese aviso. La fuente pública no expone stock exacto por encima de tres.
 
+**Video en la ficha (desde el 7 oct 2026):** no se pueden agregar videos (`VIDEO_PERMITIDO = false`, `lib/config.ts`); la tira de medios queda como la de fotos. Los videos que ya existen se siguen viendo y se pueden mover y quitar.
+
 El corazón mantiene pedido local y registra el aaah. Enviar crea solicitud con precios de la base y abre WhatsApp en la misma pestaña; no envía automáticamente. Agotado y límite de intentos mantienen el carrito; fallo de red permite texto sin enlace. Opiniones respeta `false` / `pronto`; el resto de secciones respeta personalización.
 
 `/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». La continuación de la parte 3 añade estado/registro (ver la sección siguiente); ambas entregas siguen pendientes de fusión. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.
