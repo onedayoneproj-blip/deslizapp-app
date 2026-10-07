@@ -8781,3 +8781,343 @@ html.catalogo-html,
 
 /* La historia pública no puede superar el portal de Hoja del panel. */
 .pedido-publico .pvov.tienda-abierta { z-index: 1; }
+
+/* ---------- Presentaciones (talla, color, tamaño): reel limpio y hojas (docs/prompts/presentaciones-catalogo.md) ---------- */
+/* El botón del reel: un solo botón «Ver presentaciones ›» con los colores en puntitos; elegida, «M · Negro · Cambiar ›». */
+.catalogo-publico .pres-fila-cap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 10px 0 2px;
+}
+.catalogo-publico .pres-fila-cap .mas {
+  min-height: 44px;
+  padding: 0 4px;
+}
+.catalogo-publico .pres-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: rgba(20, 8, 14, 0.38);
+  color: #fff;
+  font: 700 13px var(--body);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.catalogo-publico .pres-btn > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.catalogo-publico .pres-btn.elegida {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+.catalogo-publico .pres-btn.en-panel {
+  margin: 10px 0 6px;
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.catalogo-publico .pres-btn.en-panel.elegida {
+  background: var(--ink);
+  color: #fff;
+}
+.catalogo-publico .pres-puntos {
+  display: inline-flex;
+}
+.catalogo-publico .pres-puntos i,
+.catalogo-publico .pres-punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  flex: none;
+}
+.catalogo-publico .pres-puntos i + i {
+  margin-left: -4px;
+}
+.catalogo-publico .pres-btn.elegida .pres-punto {
+  border-color: rgba(0, 0, 0, 0.35);
+}
+.catalogo-publico .pres-desde {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* La hoja (opción B: cuadrícula; opción A: pastillas). Superficie propia, no usa components/ui. */
+.catalogo-publico .sheet.pres-sheet {
+  height: auto;
+  max-height: 90%;
+  background: var(--surface);
+  color: var(--ink);
+}
+.catalogo-publico .pres-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}
+.catalogo-publico .pres-prod {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.catalogo-publico .pres-prod b {
+  display: block;
+  font: 600 22px/1.1 var(--display);
+}
+.catalogo-publico .pres-prod small {
+  display: block;
+  margin-top: 3px;
+  font: 700 12px var(--body);
+  color: var(--muted);
+  text-shadow: none;
+}
+.catalogo-publico .pres-foto {
+  position: relative;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--accent-soft);
+}
+.catalogo-publico .pres-foto,
+.catalogo-publico .pres-mini {
+  background-size: cover;
+  background-position: center;
+}
+.catalogo-publico .pres-scroll {
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 10px 24px 6px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.catalogo-publico .pres-grid {
+  display: grid;
+  grid-template-columns: minmax(84px, max-content) repeat(var(--cols), minmax(46px, 1fr));
+  gap: 8px;
+  align-items: center;
+  width: max-content;
+  min-width: 100%;
+}
+.catalogo-publico .pres-col {
+  text-align: center;
+  font: 700 11px var(--body);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.catalogo-publico .pres-fila {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding-right: 6px;
+  background: var(--surface);
+  font: 700 14px var(--body);
+}
+.catalogo-publico .pres-mini {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--accent-soft);
+}
+.catalogo-publico .pres-mini.punto {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--muestra, #ccc);
+  border: 1px solid var(--line);
+}
+.catalogo-publico .pres-celda {
+  position: relative;
+  min-width: 46px;
+  min-height: 48px;
+  padding: 0 6px;
+  border: 1px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font: 700 14px var(--body);
+  cursor: pointer;
+}
+.catalogo-publico .pres-celda.agotada,
+.catalogo-publico .pres-item.agotada,
+.catalogo-publico .pres-pastilla.agotada {
+  border-style: dashed;
+  border-color: var(--muted);
+  color: var(--muted);
+  background: transparent;
+}
+.catalogo-publico .pres-celda.agotada s,
+.catalogo-publico .pres-item.agotada s,
+.catalogo-publico .pres-pastilla.agotada s {
+  text-decoration-thickness: 2px;
+}
+.catalogo-publico .pres-celda.on,
+.catalogo-publico .pres-pastilla.on {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+}
+.catalogo-publico .pres-celda.on.agotada,
+.catalogo-publico .pres-pastilla.on.agotada {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-style: solid;
+}
+.catalogo-publico .pres-celda.on::before,
+.catalogo-publico .pres-pastilla.on::before {
+  content: "✓";
+  font-size: 11px;
+  margin-right: 4px;
+}
+.catalogo-publico .pres-quedan,
+.catalogo-publico .pres-precio {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font: 800 10px/1.4 var(--body);
+  font-style: normal;
+  text-align: center;
+}
+.catalogo-publico .pres-precio {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.catalogo-publico .pres-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.catalogo-publico .pres-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: 700 15px var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+.catalogo-publico .pres-item.on {
+  background: var(--accent-soft);
+  border-width: 2px;
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.catalogo-publico .pres-item.on .pres-valor::before {
+  content: "✓ ";
+}
+.catalogo-publico .pres-nota {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font: 700 13px var(--body);
+}
+.catalogo-publico .pres-nota b {
+  color: var(--accent);
+}
+.catalogo-publico .pres-rotulo {
+  margin: 0 0 8px;
+  font: 800 11px var(--body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.catalogo-publico .pres-pastillas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.catalogo-publico .pres-pastilla {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: 700 14px var(--body);
+  cursor: pointer;
+}
+.catalogo-publico .pres-leyenda {
+  margin: 0;
+  font: 600 12px var(--body);
+  color: var(--muted);
+}
+.catalogo-publico .pres-linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font: 700 15px var(--body);
+}
+.catalogo-publico .pres-linea b {
+  color: var(--accent);
+  font-size: 13px;
+}
+.catalogo-publico .pres-agregar {
+  width: 100%;
+  min-height: 52px;
+  flex: none;
+  border-radius: 999px;
+}
+.catalogo-publico .pres-agregar:disabled {
+  opacity: 0.5;
+}
+@media (max-width: 380px) {
+  .catalogo-publico .pres-grid {
+    gap: 6px;
+  }
+  .catalogo-publico .pres-fila {
+    gap: 7px;
+    font-size: 13px;
+  }
+  .catalogo-publico .pres-fila .pres-mini:not(.punto) {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .catalogo-publico .pres-scroll {
+    scroll-behavior: auto;
+  }
+}

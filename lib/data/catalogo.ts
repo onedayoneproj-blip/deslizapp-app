@@ -238,6 +238,7 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
         medios: p.medios,
         detalles: p.detalles,
         opciones: p.opciones,
+        fotosPorValor: p.fotosPorValor ?? {},
         likes: p.likes,
         disponibilidad: disp,
         quedan: disp === "quedan" ? stock : null,

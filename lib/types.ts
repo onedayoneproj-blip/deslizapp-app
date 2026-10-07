@@ -357,6 +357,8 @@ export type ProductoPublico = {
   /** Solo con disponibilidad "quedan" (1 a 3). */
   quedan: number | null;
   encargoTexto: string | null;
+  /** La foto de cada color (o del primer eje): { Color: { Negro: "<url de una de sus fotos>" } }. Vacío = la del producto. */
+  fotosPorValor?: FotosPorValor;
   variantes: {
     id: string;
     valores: Record<string, string>;

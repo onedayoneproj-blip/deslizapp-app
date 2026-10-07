@@ -1,10 +1,24 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { dinero } from "@/lib/tienda/carrito";
 import { modoOpiniones } from "@/lib/tienda/tema";
 import { detallesDe, lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
+import {
+  accionCorazon,
+  agotadoPara,
+  colorDeEleccion,
+  coloresDelEje,
+  desde,
+  disponibilidadPara,
+  indiceDeFoto,
+  textoEjes,
+  textoEleccion,
+  tienePresentaciones,
+  varianteDe,
+  type Eleccion,
+} from "@/lib/tienda/presentaciones";
 import { Icono, SelloAgotado } from "./iconos";
 import { Medios } from "./medios";
 export function Reel({
@@ -22,6 +36,9 @@ export function Reel({
   avisar,
   perfil,
   compartir,
+  eleccion,
+  abrirPresentaciones,
+  registrarBurst,
 }: {
   p: ProductoPublico;
   t: CatalogoPublico["tienda"];
@@ -37,25 +54,41 @@ export function Reel({
   avisar: (id: string | null) => void;
   perfil: () => void;
   compartir: () => void;
+  /** La presentación elegida de este producto (null = todavía no eligió). Solo con presentaciones. */
+  eleccion: Eleccion | null;
+  /** Abre la hoja «Ver presentaciones» ("b") o la de pastillas que abre ♥ ("a"). */
+  abrirPresentaciones: (modo: "a" | "b") => void;
+  /** Deja que la hoja dispare el «aaah» de este reel al agregar. */
+  registrarBurst: (fn: (() => void) | null) => void;
 }) {
+  const pres = tienePresentaciones(p);
   const [valores, setValores] = useState<Record<string, string>>(
     () => p.variantes[0]?.valores ?? {},
   );
   const [abierto, setAbierto] = useState(false);
   const burst = useRef<HTMLDivElement>(null);
-  const v = p.variantes.find((v) =>
-    p.opciones.every((o) => v.valores[o.nombre] === valores[o.nombre]),
-  );
+  const v = pres
+    ? varianteDe(p, eleccion)
+    : p.variantes.find((v) =>
+        p.opciones.every((o) => v.valores[o.nombre] === valores[o.nombre]),
+      );
   const varianteId = v?.id ?? null;
-  const disp =
-    p.variantes.length && !v
+  // Con presentaciones y sin elegir, el reel no se sella: solo si TODAS están agotadas. Elegida, solo esa combinación.
+  const disp = pres
+    ? disponibilidadPara(p, eleccion)
+    : p.variantes.length && !v
       ? "agotado"
       : (v?.disponibilidad ?? p.disponibilidad);
-  const agotado = disp === "agotado";
+  const agotado = pres ? agotadoPara(p, eleccion) : disp === "agotado";
   const encargo = disp === "por_encargo";
   const q = seleccionado(varianteId);
+  // «En tu pedido»: con presentaciones, si cualquiera de ellas ya está en el pedido.
+  const enPedido = pres ? p.variantes.some((x) => seleccionado(x.id)) : q;
   const mostrarLikes = !agotado && p.likes > 0;
-  const precio = v ? (v.precioPromo ?? v.precio) : (p.precioPromo ?? p.precio);
+  // «Desde RD$ X» mientras no haya una elegida y los precios sean distintos; elegida, el precio de esa.
+  const desdeP = pres && !v ? desde(p) : null;
+  const conDesde = !!desdeP?.varia;
+  const precio = v ? (v.precioPromo ?? v.precio) : conDesde ? desdeP!.precio : (p.precioPromo ?? p.precio);
   const precioBase = v?.precio ?? p.precio;
   const quedan = v?.quedan ?? p.quedan;
   const m = t.personalizacion.mensajes as Record<string, string> | undefined;
@@ -70,15 +103,89 @@ export function Reel({
           .replace(/\s+\S*$/, "")
           .replace(/[,.:;]$/, "") + "…"
       : txt;
-  const aaah = () => {
-    if (agotado || (p.variantes.length > 0 && !v)) return;
-    elegir(varianteId, true);
+  const lanzarBurst = () => {
     const b = burst.current;
     if (!b) return;
     b.classList.remove("go");
     void b.offsetWidth;
     b.classList.add("go");
   };
+  // Con presentaciones, el «aaah» (♥ y doble toque) depende de si ya eligió: sin elegir abre la hoja de pastillas; elegida la
+  // agrega; agotada pide el aviso. La hoja usa el mismo «aaah» al agregar.
+  const burstRef = useRef(lanzarBurst);
+  useEffect(() => {
+    burstRef.current = lanzarBurst;
+  });
+  useEffect(() => {
+    registrarBurst(() => burstRef.current());
+    return () => registrarBurst(null);
+  }, [registrarBurst]);
+  const corazon = () => {
+    if (!pres) return null;
+    return accionCorazon(p, eleccion, (id) => seleccionado(id));
+  };
+  const aaah = () => {
+    if (pres) {
+      const a = corazon()!;
+      if (a.tipo === "hoja") abrirPresentaciones("a");
+      else if (a.tipo === "avisar") avisar(a.varianteId);
+      else if (a.tipo === "agregar") {
+        elegir(a.varianteId, true);
+        lanzarBurst();
+      }
+      return;
+    }
+    if (agotado || (p.variantes.length > 0 && !v)) return;
+    elegir(varianteId, true);
+    lanzarBurst();
+  };
+  // ♥ y el botón del detalle: igual que antes, salvo con presentaciones.
+  const alCorazon = () => {
+    if (pres) {
+      const a = corazon()!;
+      if (a.tipo === "quitar") elegir(a.varianteId);
+      else aaah();
+      return;
+    }
+    if (agotado) avisar(varianteId);
+    else if (q) elegir(varianteId);
+    else aaah();
+  };
+  const colores = pres ? coloresDelEje(p.opciones) : [];
+  const hexElegido = pres ? colorDeEleccion(p.opciones, eleccion) : null;
+  const botonPresentaciones = (clase = "") =>
+    pres ? (
+      <button
+        type="button"
+        className={"pres-btn" + (eleccion ? " elegida" : "") + (clase ? " " + clase : "")}
+        data-presentaciones={p.slug}
+        aria-label={
+          eleccion
+            ? `Elegir otra presentación de ${p.nombre}: ${textoEleccion(p.opciones, eleccion)}`
+            : `Ver presentaciones de ${p.nombre}`
+        }
+        onClick={() => abrirPresentaciones("b")}
+      >
+        {eleccion ? (
+          <>
+            {hexElegido && <i className="pres-punto" aria-hidden="true" style={{ background: hexElegido }} />}
+            <span>{textoEleccion(p.opciones, eleccion)} · Elegir otra ›</span>
+          </>
+        ) : (
+          <>
+            {colores.length > 0 && (
+              <span className="pres-puntos" aria-hidden="true">
+                {colores.slice(0, 5).map((c, i) => (
+                  <i key={i} style={{ background: c }} />
+                ))}
+              </span>
+            )}
+            <span>Ver presentaciones ›</span>
+          </>
+        )}
+      </button>
+    ) : null;
+
   const opciones = (conPrecio = false) =>
     p.opciones.length === 0 ? null : (
       <div className="opciones-catalogo">
@@ -132,6 +239,7 @@ export function Reel({
           anterior={anterior}
           prioridad={i < 2}
           dobleToque={aaah}
+          irA={pres ? indiceDeFoto(p, eleccion) : null}
         />
         {agotado && (
           <>
@@ -162,7 +270,7 @@ export function Reel({
                     ? "Perfume"
                     : "Producto"}
           </span>
-          {q && <span className="inbadge">En tu pedido</span>}
+          {enPedido && <span className="inbadge">En tu pedido</span>}
         </div>
         <div className="cap ov">
           <button
@@ -176,8 +284,10 @@ export function Reel({
           </button>
           <h2>{p.nombre}</h2>
           <div className="pr">
+            {conDesde && <small className="pres-desde">Desde</small>}
             <strong>{dinero(precio)}</strong>
-            {precio < precioBase && <del>{dinero(precioBase)}</del>}
+            {!pres && precio < precioBase && <del>{dinero(precioBase)}</del>}
+            {pres && v && precio < precioBase && <del>{dinero(precioBase)}</del>}
             <span>
               {agotado
                 ? "Agotado"
@@ -185,23 +295,39 @@ export function Reel({
                   ? (p.encargoTexto ?? "Por encargo")
                   : disp === "quedan"
                     ? `Solo tengo ${quedan}`
-                    : ""}
-              {lineaCorta(p, t.rubro) ? " · " + lineaCorta(p, t.rubro) : ""}
+                    : pres && !eleccion
+                      ? textoEjes(p.opciones)
+                      : ""}
+              {!pres && lineaCorta(p, t.rubro) ? " · " + lineaCorta(p, t.rubro) : ""}
             </span>
           </div>
-          {opciones()}
+          {!pres && opciones()}
           {encargo && <span className="por-encargo">Por encargo</span>}
-          <p className="txt">
-            {short}{" "}
-            <button
-              className="mas"
-              data-more={p.slug}
-              aria-expanded={abierto}
-              onClick={() => setAbierto(true)}
-            >
-              más
-            </button>
-          </p>
+          {pres ? (
+            <div className="pres-fila-cap">
+              {botonPresentaciones()}
+              <button
+                className="mas"
+                data-more={p.slug}
+                aria-expanded={abierto}
+                onClick={() => setAbierto(true)}
+              >
+                más
+              </button>
+            </div>
+          ) : (
+            <p className="txt">
+              {short}{" "}
+              <button
+                className="mas"
+                data-more={p.slug}
+                aria-expanded={abierto}
+                onClick={() => setAbierto(true)}
+              >
+                más
+              </button>
+            </p>
+          )}
         </div>
         <div className="panel" hidden={!abierto || !activo}>
           <div className="pin">
@@ -240,14 +366,12 @@ export function Reel({
                     : p.detalles.ocasiones}
                 </p>
               )}
-            {opciones(true)}
+            {pres ? botonPresentaciones("en-panel") : opciones(true)}
             <div className="prow">
               <button
                 className={"btn " + (agotado ? "ghost" : q ? "ghost" : "heart")}
-                disabled={!!p.variantes.length && !v}
-                onClick={() =>
-                  agotado ? avisar(varianteId) : q ? elegir(varianteId) : aaah()
-                }
+                disabled={!pres && !!p.variantes.length && !v}
+                onClick={alCorazon}
               >
                 {agotado
                   ? "Avísame cuando llegue"
@@ -296,9 +420,7 @@ export function Reel({
             (agotado ? "Avísame: " : q ? "Quitar del carrito: " : "Lo quiero: ") + p.nombre +
             (mostrarLikes ? `. ${p.likes} ${p.likes === 1 ? "lo quiere" : "lo quieren"}` : "")
           }
-          onClick={() =>
-            agotado ? avisar(varianteId) : q ? elegir(varianteId) : aaah()
-          }
+          onClick={alCorazon}
         >
           <Icono nombre={agotado ? "wa" : "heart"} />
           {mostrarLikes && (

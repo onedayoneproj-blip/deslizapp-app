@@ -39,6 +39,8 @@ import { Icono, SelloAgotado } from "./iconos";
 import { colorDePortada } from "./medios";
 import { DialogoCatalogo } from "./dialogo";
 import { HojaPedido, HojaOpiniones, HojaAviso } from "./hojas-compra";
+import { HojaPresentaciones } from "./hoja-presentaciones";
+import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
 import { Coach, Historias, ArteFinal } from "./historias";
 import { Planes } from "./planes";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
@@ -58,6 +60,7 @@ type Vista =
   | "opiniones"
   | "aviso"
   | "coach"
+  | "presentaciones"
   | "historia"
   | "planes"
   | null;
@@ -93,6 +96,10 @@ export function Catalogo({
     slug: string;
     varianteId: string | null;
   } | null>(null);
+  // Presentaciones: la que eligió cada producto (por slug), qué hoja se abre y el «aaah» de cada reel.
+  const [elecciones, setElecciones] = useState<Record<string, Eleccion>>({});
+  const [modoPres, setModoPres] = useState<"a" | "b">("b");
+  const bursts = useRef(new Map<string, () => void>());
   const [toast, setToast] = useState("");
   const [bar, setBar] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -545,6 +552,10 @@ export function Catalogo({
     setElegido({ slug: p, varianteId: vid });
     abrir(v);
   };
+  const abrirPresentaciones = (productoSlug: string, modo: "a" | "b") => {
+    setModoPres(modo);
+    abrirTipo("presentaciones", productoSlug);
+  };
   const seleccionarFiltro = (id: string, desdeAtras = false) => {
     if (!desdeAtras && history.state?.catalogoVista) {
       trasCerrar.current = () => seleccionarFiltro(id, true);
@@ -748,6 +759,9 @@ export function Catalogo({
               cart.some((l) => l.productoId === p.id && l.varianteId === vid)
             }
             elegir={(vid, on) => elegir(p.slug, vid, on)}
+            eleccion={elecciones[p.slug] ?? null}
+            abrirPresentaciones={(modo) => abrirPresentaciones(p.slug, modo)}
+            registrarBurst={(fn) => (fn ? bursts.current.set(p.slug, fn) : bursts.current.delete(p.slug))}
             perfil={showPerfil}
             opiniones={() =>
               secciones?.opiniones !== false && abrirTipo("opiniones", p.slug)
@@ -988,7 +1002,9 @@ export function Catalogo({
                   <SelloAgotado />
                 ) : (
                   <span className="tprice">
-                    {dinero(p.precioPromo ?? p.precio)}
+                    {tienePresentaciones(p) && desde(p)?.varia
+                      ? "Desde " + dinero(desde(p)!.precio)
+                      : dinero(p.precioPromo ?? p.precio)}
                   </span>
                 )}
               </div>
@@ -997,7 +1013,11 @@ export function Catalogo({
                   className="tlike"
                   aria-label={"Lo quiero: " + p.nombre}
                   aria-pressed={cart.some((l) => l.productoId === p.id)}
-                  onClick={() => elegir(p.slug, p.variantes[0]?.id ?? null)}
+                  onClick={() =>
+                    tienePresentaciones(p)
+                      ? abrirPresentaciones(p.slug, "a")
+                      : elegir(p.slug, p.variantes[0]?.id ?? null)
+                  }
                 >
                   <Icono nombre="heart" />
                 </button>
@@ -1206,7 +1226,9 @@ export function Catalogo({
                   <span className="sp">
                     {p.disponibilidad === "agotado"
                       ? "Agotado"
-                      : dinero(p.precioPromo ?? p.precio)}
+                      : tienePresentaciones(p) && desde(p)?.varia
+                        ? "Desde " + dinero(desde(p)!.precio)
+                        : dinero(p.precioPromo ?? p.precio)}
                   </span>
                 </button>
               ))}
@@ -1223,6 +1245,30 @@ export function Catalogo({
           ver={go}
           enviar={() => void enviar()}
           enviando={enviando}
+        />
+      )}
+      {vista === "presentaciones" && producto && tienePresentaciones(producto) && (
+        <HojaPresentaciones
+          p={producto}
+          modo={modoPres}
+          eleccion={elecciones[producto.slug] ?? null}
+          enPedido={(vid) => cart.some((l) => l.productoId === producto.id && l.varianteId === vid)}
+          alElegir={(e) => setElecciones((x) => ({ ...x, [producto.slug]: e }))}
+          alAgregar={(e) => {
+            const v = varianteDe(producto, e);
+            if (!v) return;
+            setElecciones((x) => ({ ...x, [producto.slug]: e }));
+            elegir(producto.slug, v.id, true);
+            cerrar();
+            // El «aaah» de siempre, en el reel de este producto.
+            setTimeout(() => bursts.current.get(producto.slug)?.(), 60);
+          }}
+          alQuitar={(vid) => {
+            elegir(producto.slug, vid, false);
+            cerrar();
+          }}
+          alAvisar={(vid) => abrirTipo("aviso", producto.slug, vid)}
+          cerrar={cerrar}
         />
       )}
       {vista === "opiniones" && producto && (

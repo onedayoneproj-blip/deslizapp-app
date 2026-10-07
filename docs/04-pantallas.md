@@ -979,6 +979,18 @@ El corazón mantiene pedido local y registra el aaah. Enviar crea solicitud con 
 
 `/pedido/{codigo}` muestra historia del comprador, total, recibos PNG/PDF y «Seguir explorando {tienda}». La continuación de la parte 3 añade estado/registro (ver la sección siguiente); ambas entregas siguen pendientes de fusión. Vencido/inexistente tienen mensaje breve; para un código desconocido sin tienda se usa procedencia/historial al volver. `?demo` permanece enteramente local. URL real y metadatos sociales; no se cambia aún `url_catalogo` ni el HTML antiguo. Validación y diferencias previstas: `validacion-catalogo-react.md`.
 
+### Presentaciones en el catálogo del cliente (opción B)
+
+Solo para productos **con presentaciones** (ejes + variantes); un producto sin ellas se ve y se comporta como siempre. Lógica pura en `lib/tienda/presentaciones.ts`; superficie propia (`components/tienda/reel.tsx`, `hoja-presentaciones.tsx`, `app/tienda/catalogo.css`), sin `components/ui`. Diseño en `referencias/presentaciones/` (`OpcionB1`–`B3`, `OpcionA2`, `Publico2`–`Publico5`).
+- **Reel limpio:** sin las filas de pastillas ni la descripción larga. Debajo del precio, «4 tallas · 3 colores» y **un solo botón «Ver presentaciones ›»** con los colores conocidos en puntitos (un nombre que no se conoce no se dibuja). Al lado, «más». Ya elegida, el botón dice «M · Negro · Elegir otra ›» y el reel muestra «En tu pedido».
+- **Hoja «Ver presentaciones»:** título «Elige tu talla», «Elige tu tamaño» o «Elige la tuya». Con **dos ejes**, cuadrícula: el eje Color en filas (con la foto de ese color) y el otro en columnas; **tachada = agotada**, un número = quedan pocas (la regla de «quedan» de siempre), el precio propio solo si difiere del base; la celda elegida lleva ✓ y un anillo (no solo color); celdas de 44 px; se desplaza si hay muchas. Con **un solo eje** (perfumes), una lista con valor, precio y estado. Debajo, la línea «M · Negro · Quedan 2» y «Agregar a mi pedido» (o «Quitar de mi pedido» si ya está). Tocar una tachada cambia el botón a «Avísame cuando vuelva» (el mismo aviso de siempre).
+- **♥:** sin elegir abre la hoja de pastillas (opción A, «Elige la tuya»); con una elegida la agrega directo (o la quita si ya está en el pedido); si esa está agotada, «Avísame». Lo mismo vale para el doble toque sobre la foto, el botón del detalle y el corazón de la cuadrícula. «Agregar a mi pedido» usa el mismo `elegir` y el mismo «aaah» (el pedido, el stock y el contador no cambian).
+- **La foto sigue al color:** al elegir un color con foto asignada (`fotosPorValor`, parte 1), el carrusel de ese reel va a esa foto (solo `scrollTo` horizontal del carrusel, sin tocar la página ni el foco; sin animación con movimiento reducido). Sin foto asignada no se mueve.
+- **Agotada:** la combinación elegida agotada (o inexistente) sella el reel como un agotado de hoy, solo para ella; si todas lo están, «Agotado» como hoy.
+- **«Desde RD$ X»:** si los precios difieren, el reel (mientras no haya elegida), la cuadrícula del catálogo y la búsqueda dicen «Desde» con el más bajo de las que se pueden pedir; al elegir una, su precio. Con la promo, el tachado sigue como hoy.
+- **Detalle «más»:** en vez de las pastillas, el mismo botón de presentaciones.
+- **Pedido:** cada línea ya lleva `varianteTexto`; la foto de la línea es la del color elegido. La misma camisa en dos presentaciones son dos líneas. Una agotada antes de enviar sale «Agotado» y frena el envío (sin cambios).
+- Pruebas: `tests/catalogo-presentaciones.test.mjs`, `npm run probar:catalogo-presentaciones` (demo `?demo`, 390 y 360).
 
 ## Pedido del catálogo en el panel — continuación, sin publicar
 
