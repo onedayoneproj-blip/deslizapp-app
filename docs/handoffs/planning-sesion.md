@@ -26,7 +26,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `admin-4-cobros.md` | Sonnet | #57 mergeado (menú, novedades) | PR abierto con preview: la app de las tiendas empieza a leer planes de la base (§0b del prompt) |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
-| `presentaciones-panel.md` (rama `feat/presentaciones-panel`) | Sonnet | — (después de equipo; no a la vez que otra migración) | merge a main. Presentaciones en el panel (crear varias, hoja por presentación, precio propio, foto por color, perfumes con tamaño) |
+| `presentaciones-panel.md` (rama `feat/presentaciones-panel`) | Sonnet | — (después de equipo; no a la vez que otra migración) | **Hecho**, PR #62 mergeado el 7 oct (squash, migración `20261007125411` aplicada). Falta que Lewis lo pruebe en la demo (Lino & Algodón y Esencias Michel) |
 | `presentaciones-catalogo.md` (rama `feat/presentaciones-catalogo`) | Sonnet | `presentaciones-panel.md` | PR abierto con preview (lo ven los compradores). Opción B: «Ver presentaciones»; ♥ sin elegir abre las pastillas |
 
 Sin prompt todavía (los escribe Planning cuando toque):
