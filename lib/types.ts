@@ -93,7 +93,12 @@ export type Producto = {
   encargoTexto: string | null;
   /** Solo cuando se leen con el producto. Con variantes activas, `stock` es la suma de ellas. */
   variantes?: Variante[];
+  /** La foto de cada color: { Color: { Negro: "<url de una de sus fotos>" } }. Vacío = se ve la del producto. */
+  fotosPorValor?: FotosPorValor;
 };
+
+/** eje → valor → url de una de las fotos del producto (la base la limpia si la foto o el valor desaparecen). */
+export type FotosPorValor = Record<string, Record<string, string>>;
 
 export type TipoProducto = "producto" | "servicio";
 

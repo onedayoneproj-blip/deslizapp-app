@@ -1238,6 +1238,15 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aProducto(f));
     },
 
+    async guardarFotoValor(tiendaId, productoId, eje, valor, url) {
+      await dato(supabase.rpc("guardar_foto_valor", { p_tienda_id: tiendaId, p_producto_id: productoId, p_eje: eje, p_valor: valor, p_url: url }));
+      const f = await requerido<FilaProducto>(
+        supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle(),
+        () => new DatosInvalidos("Ese producto ya no existe en esta tienda."),
+      );
+      return cambio(aProducto(f));
+    },
+
     // ---- Solicitudes del catálogo ----
     solicitudesPendientes: (tiendaId) =>
       leer(`solicitudes:${tiendaId}`, async () => {

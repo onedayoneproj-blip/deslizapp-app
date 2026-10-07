@@ -42,6 +42,7 @@ import {
   catalogoPublicoDeDB,
   crearSolicitudEnDB,
   descartarSolicitudEnDB,
+  guardarFotoValorEnDB,
   guardarVariantesEnDB,
   marcarAvisadoEnDB,
   pedirAvisoEnDB,
@@ -438,6 +439,16 @@ const fuenteDemoBase: FuenteDatos = {
       const actor = db.usuarios.find((u) => u.tiendaId === tiendaId);
       if (!actor) throw new DatosInvalidos("No hay una cuenta asociada a esta tienda.");
       const r = guardarVariantesEnDB(db, tiendaId, productoId, opciones, variantes, actor.id, nuevoId, ahora());
+      actualizado = r.producto;
+      return r.db;
+    });
+    return actualizado;
+  },
+
+  async guardarFotoValor(tiendaId, productoId, eje, valor, url) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const r = guardarFotoValorEnDB(db, tiendaId, productoId, eje, valor, url, ahora());
       actualizado = r.producto;
       return r.db;
     });

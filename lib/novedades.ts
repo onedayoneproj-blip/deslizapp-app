@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.41.0", fecha: "2026-10-08", titulo: "Un producto, todas sus presentaciones.",
+    cambios: [
+      "Tallas, colores o tamaños en un solo producto: eliges qué cambia y salen todas, cada una con su stock.",
+      "Una presentación puede costar distinto, y cada color lleva la foto que tú elijas.",
+      "En el catálogo ves «Desde RD$…» y cuántas se agotaron.",
+    ],
+  },
+  {
     version: "0.40.0", fecha: "2026-10-07", titulo: "Tu equipo, cada uno en lo suyo.",
     cambios: [
       "En el menú, «Tu equipo»: invita por enlace o por correo y aprueba a quien entra.",

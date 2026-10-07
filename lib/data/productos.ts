@@ -1,3 +1,4 @@
+import { limpiarFotosPorValor } from "../presentaciones";
 import type { CambiosProducto, Medio, NuevoProducto, OpcionProducto, Producto, Variante } from "../types";
 import type { DB } from "./db";
 import { DatosInvalidos } from "./errores";
@@ -97,6 +98,8 @@ export function modificarProducto(db: DB, tiendaId: string, id: string, cambios:
   delete producto.variantes;
   if (cambios.medios) producto = { ...producto, ...fotosDesdeMedios(cambios.medios) };
   else if (cambios.fotos || cambios.fotoRetocada !== undefined) producto = { ...producto, medios: mediosDesdeFotos(producto.fotos, producto.fotoRetocada, actual.medios) };
+  // Como el trigger de la base: la foto de un color solo vale mientras su foto y su valor sigan en el producto.
+  producto = { ...producto, fotosPorValor: limpiarFotosPorValor(producto.fotosPorValor, producto.opciones, producto.medios) };
   if (cambios.slug !== undefined && db.productos.some((p) => p.tiendaId === tiendaId && p.id !== id && p.slug === cambios.slug)) {
     throw new DatosInvalidos("Ese enlace ya lo usa otro de tus productos. Prueba otro.");
   }

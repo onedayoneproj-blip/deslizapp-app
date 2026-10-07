@@ -33,6 +33,7 @@ import {
 } from "./errores";
 import type { DatosRegistrarSolicitud, DatosVariante, LineaCarrito, SolicitudCreada } from "./fuente";
 import { siguienteNumeroPedido } from "./pedidos";
+import { asignarFotoValor, limpiarFotosPorValor } from "../presentaciones";
 import { conVariantes, sumarStock, textoVariante, variantesDe } from "./productos";
 
 const HORA = 60 * 60 * 1000;
@@ -141,13 +142,41 @@ export function guardarVariantesEnDB(
     .filter((v) => !nuevas.some((n) => n.id === v.id) && conPedidos.has(v.id))
     .map((v) => ({ ...v, activa: false }));
   const variantes = [...db.variantes.filter((v) => v.productoId !== productoId), ...quedan, ...nuevas];
-  const actualizado = { ...sumarStock({ ...producto, opciones }, variantes), actualizadoEn: ahora };
+  const actualizado = {
+    ...sumarStock({ ...producto, opciones }, variantes),
+    // Como el trigger de la base: si un valor sale de las opciones, su foto de color sale con él.
+    fotosPorValor: limpiarFotosPorValor(producto.fotosPorValor, opciones, producto.medios),
+    actualizadoEn: ahora,
+  };
   const siguiente: DB = {
     ...db,
     variantes,
     productos: db.productos.map((p) => (p.id === productoId ? actualizado : p)),
     ajustesInventario: [...db.ajustesInventario, ...ajustes],
   };
+  return { db: siguiente, producto: conVariantes(siguiente, actualizado) };
+}
+
+/** Como la RPC `guardar_foto_valor`: la foto de un valor (url nula la quita); tiene que ser una foto del producto. */
+export function guardarFotoValorEnDB(
+  db: DB,
+  tiendaId: string,
+  productoId: string,
+  eje: string,
+  valor: string,
+  url: string | null,
+  ahora: string,
+): { db: DB; producto: Producto } {
+  const producto = db.productos.find((p) => p.id === productoId && p.tiendaId === tiendaId && !p.eliminadoEn);
+  if (!producto) throw new DatosInvalidos("Ese producto ya no existe en esta tienda.");
+  let fotos;
+  try {
+    fotos = asignarFotoValor(producto, eje, valor, url);
+  } catch {
+    throw new DatosInvalidos("Esa foto no es de este producto.");
+  }
+  const actualizado = { ...producto, fotosPorValor: fotos, actualizadoEn: ahora };
+  const siguiente: DB = { ...db, productos: db.productos.map((p) => (p.id === productoId ? actualizado : p)) };
   return { db: siguiente, producto: conVariantes(siguiente, actualizado) };
 }
 

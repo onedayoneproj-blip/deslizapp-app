@@ -62,6 +62,7 @@ tabla de prueba con un solo usuario "activo".
 | `stock` | number \| null | `null` = stock ilimitado/no controlado |
 | `likes` | number | viene del catálogo público (❤ en los mockups). **Lo mantiene la base** desde `eventos_aaah` (trigger); la app solo lo lee |
 | `creado_en` / `actualizado_en` | datetime | |
+| `fotos_por_valor` | jsonb | `{ "Color": { "Negro": "<url de una de las fotos del producto>" } }`; `{}` por defecto. La foto de cada color (o del primer eje si no hay Color), no de cada combinación. La base la limpia sola (trigger `productos_z_fotos_por_valor`): sale la foto de `medios`, sale el valor o el eje de `opciones`, y la entrada se borra; si la foto se reemplazó por su versión retocada, la entrada la sigue. Se escribe solo con `guardar_foto_valor` |
 
 ## `ajustes_inventario`
 
@@ -401,3 +402,7 @@ Mapa nivel → grupo en `public.nivel_tiene_grupo` (único lugar; la app lo refl
 | `tienda_creada_id` | uuid \| null | tienda nueva creada con el enlace |
 
 Se escribe solo con funciones: `crear_enlace_colaborador`, `reclamar_enlace`, `aprobar_miembro`, `rechazar_miembro`, `cancelar_enlace`, `crear_mi_tienda` y las `admin_*`. `invitaciones` (por correo) se conserva y ahora lleva `nivel`.
+
+## Presentaciones del producto: foto por color (aplicada)
+
+`20261007125411_presentaciones_fotos_por_valor.sql`, aditiva: `productos.fotos_por_valor` (arriba), `fotos_por_valor_limpias(fotos, opciones, medios)` (pura), el trigger de limpieza, `guardar_foto_valor(tienda, producto, eje, valor, url)` y `catalogo_publico` con la misma firma devolviendo `fotos_por_valor` junto a `opciones` (la lectura en el comprador es de la parte 2). Las **presentaciones** son las `producto_variantes` de siempre (`valores`, `stock`, `precio` null = el del producto, `activa`, `orden`) hasta 2 ejes, 12 valores de 20 letras y 144 en total; `guardar_variantes` y `opciones_validas` no cambiaron. Una presentación que desaparece se borra si no tiene pedidos y queda inactiva si los tiene. `guardar_foto_valor` es del grupo `catalogo`: `exigir_no_viendo` y `exigir_permiso`, revocada a `public` y `anon`; con url nula quita la foto; si la url no es una foto del producto o el valor no existe en el eje, `foto_valor_invalida` (22023). Pruebas: `scripts/probar-presentaciones-db.sql` (dentro de `npm run probar:admin-db`).

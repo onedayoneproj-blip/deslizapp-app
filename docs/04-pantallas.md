@@ -305,6 +305,18 @@ provisional hasta que exista la plantilla `/tienda/[slug]`.
 
 ---
 
+### Presentaciones del producto (tallas, colores, tamaños)
+
+Reemplaza la sección «Opciones» de la ficha del producto (solo `tipo = producto`; diseño en `referencias/presentaciones/`). Se construye con `components/ui/` (`components/catalogo/ficha-presentaciones.tsx`, lógica pura en `lib/presentaciones.ts`). Todo edita el borrador de la ficha y se guarda con «Guardar cambios» o «Publicar»; los cambios de stock de las que ya existían siguen pidiendo el motivo de ajuste si bajan.
+- **Sin presentaciones («Main»):** tarjeta «¿Viene en varias tallas, colores o tamaños?», «Agregar presentaciones» y «No, solo viene de una forma» (deja el stock simple de siempre y la tarjeta se reduce a una fila «Agregar presentaciones»). Se ve en todos los rubros.
+- **«¿Qué cambia de una a otra?» («Elegir»):** hoja grande. Pastillas con las típicas del rubro (`OPCIONES_TIPICAS`; los perfumes sugieren «Tamaño») y «Otra…», hasta 2. Valores con atajos «XS a XL», «36 a 42», «Única» (Talla) y «30 · 50 · 100 ml» (Tamaño de perfumes). «Salen N presentaciones» y «Crear las N».
+- **Lista:** una fila por combinación con su muestra de color, «Quedan N», «Agotada» u «Oculta» y «RD$… · precio propio» (siempre con palabras), stock − / +, filtro por el primer eje, «Ver las N» pasando de cinco, «Agregar presentación» (suelta), «Foto de cada color» y «Cambiar qué varía» (las que existen se conservan con su stock; un eje nuevo las deja en «Sin color» para completarlas; quitar un eje junta las iguales y suma su stock; quitar un valor pide confirmación).
+- **Hoja de UNA presentación:** stock, precio («El mismo» / «Uno propio», `CampoMonto`), foto del color (elige entre las fotos del producto), «Ocultar esta presentación» y «Quitar» con confirmación. Si tiene pedidos dice «Ya tiene pedidos: la ocultamos para no perder tu historial» y solo la oculta (`activa = false`); sin pedidos se borra al guardar.
+- **«Foto de cada color»:** una fila por valor del eje Color (o del primero), con su foto o «Sin foto: se ve la del producto»; el selector usa las fotos del producto y deja «Subir otra» (entra a las fotos del producto). La foto se guarda por `guardar_foto_valor` después de guardar las fotos y las presentaciones.
+- **Catálogo del panel:** la tarjeta dice «Desde RD$ X · N presentaciones» con «N agotadas» y «N en total» (o «Hay de todas»). «Por reponer» y «Tu inventario» ya listaban por presentación.
+- **Permisos:** todo es del grupo `catalogo`. Un Ayudante las ve pero «Agregar», «+/−», la hoja y la foto salen apagados con «Esto lo hace quien administra la tienda.»; Ver como no escribe (la base lo bloquea y `guardarFotoValor` no está entre las lecturas permitidas).
+- Un producto sin presentaciones se ve y se guarda como antes. Pruebas: `npm run probar:presentaciones`, `tests/presentaciones.test.mjs`, `probar:teclado` (precio propio, valor suelto, «Otra…»).
+
 ## 2. Pedidos
 
 **Qué muestra:**

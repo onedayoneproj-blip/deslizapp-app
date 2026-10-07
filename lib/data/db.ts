@@ -96,7 +96,7 @@ export function construirDesdeSeed(ahora: number = Date.now()): DB {
     clientes: (seedClientes as FilaCliente[]).map((f) => aCliente(f, fecha)),
     promos: (seedPromos as FilaPromo[]).map((f) => aPromo(f, fecha)),
     eventosAaah: (seedEventos as FilaEventoAaah[]).map((f) => aEventoAaah(f, fecha)),
-    variantes: (seedVariantes as FilaVariante[]).map(aVariante),
+    variantes: (seedVariantes as unknown as FilaVariante[]).map(aVariante),
     solicitudes: [],
     avisos: avisosDeLaDemo(ahora),
     trabajosRetoque: [],
@@ -229,6 +229,7 @@ function conCamposDelCatalogo(productos: Producto[]): Producto[] {
       medios: p.medios ?? p.fotos.map((url, i) => ({ tipo: "foto" as const, url, retocada: i === 0 && p.fotoRetocada })),
       detalles: p.detalles ?? {},
       opciones: p.opciones ?? [],
+      fotosPorValor: p.fotosPorValor ?? {},
       porEncargo: p.porEncargo ?? false,
       encargoTexto: p.encargoTexto ?? null,
     };
