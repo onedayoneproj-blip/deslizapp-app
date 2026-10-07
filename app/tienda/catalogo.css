@@ -9153,6 +9153,8 @@ html.catalogo-html,
 .catalogo-publico .pres-body {
   flex: 1 1 auto;
   min-height: 0;
+}
+
 /* Búsqueda por tipo de producto (solo con más de un rubro). */
 :where(.catalogo-publico) .srtipos {
   display: flex;
