@@ -21,6 +21,8 @@
     "probar:ver-como-transporte": "node scripts/probar-ver-como-transporte.mjs",
     "probar:pedido-catalogo-db": "bash scripts/probar-pedido-catalogo-panel-replay.sh",
     "probar:producto": "node scripts/probar-producto.mjs",
+    "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
+    "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
     "revisar:migraciones": "node scripts/revisar-migraciones.mjs",
     "test": "node --test tests/*.test.mjs"
   },

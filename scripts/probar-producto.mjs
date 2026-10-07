@@ -195,34 +195,34 @@ const ESCENARIOS = {
     ok((await fila(page, "Notas").getAttribute("aria-label")).includes("Bergamota"), "Al volver a abrir, Notas están");
   },
 
-  /** 2. Ropa: Talla (XS a XL) y Color (2) → 10 combinaciones; stock a tres; el total suma; quitar un color → 5. */
+  /** 2. Ropa: Talla (XS a XL) y Color (2) → 10 presentaciones; stock a tres; el total suma; quitar un color → 5. */
   async ropa(page, ancho, tema) {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa de prueba");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
-    await page.getByRole("button", { name: "Agregar opción", exact: true }).click();
-    await page.getByRole("radio", { name: "Talla", exact: true }).click();
-    await page.getByRole("button", { name: "XS a XL", exact: true }).click();
-    await capturar(page, "agregar-opcion", ancho, tema);
-    await page.getByRole("button", { name: "Agregar", exact: true }).last().click();
-    await page.getByRole("button", { name: "Agregar opción", exact: true }).click();
-    await page.getByRole("radio", { name: "Color", exact: true }).click();
-    await escribirEtiqueta(page, "Valores", ["Negro", "Blanco"]);
-    ok((await hoja(page).innerText()).includes("10 combinaciones"), "La hoja dice que salen 10 combinaciones");
-    await hoja(page).getByRole("button", { name: "Agregar", exact: true }).last().click();
+    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
+    await hoja(page).getByRole("checkbox", { name: "Color" }).click();
+    await escribirEtiqueta(page, "Colores", ["Negro", "Blanco"]);
+    await hoja(page).getByText("¿Qué cambia de una a otra?").click();
+    ok((await hoja(page).innerText()).includes("Salen 10 presentaciones"), "La hoja dice que salen 10 presentaciones");
+    await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
-    ok((await page.getByRole("list", { name: "Stock por opción" }).locator("li").count()) === 10, "Hay 10 filas de stock");
+    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 10, "Hay 10 filas de stock");
     await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
     await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
     await page.getByRole("button", { name: "Agregar uno de M · Negro" }).click();
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno de L · Blanco" }).click();
-    ok((await page.locator("#titulo-stock").locator("xpath=..").innerText()).includes("6 en total"), "El total suma (6 en total)");
+    ok((await page.locator("#titulo-presentaciones").locator("xpath=..").innerText()).includes("6 en total"), "El total suma (6 en total)");
     ok(await sinDesborde(page), "Formulario de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
-    await page.getByRole("button", { name: /^Color/ }).click();
-    await page.getByRole("button", { name: "Quitar Blanco", exact: true }).click();
+    // Quitar el color Blanco: «Cambiar qué varía» → fuera Blanco (se van sus 5 presentaciones).
+    await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
+    await hoja(page).getByRole("button", { name: "Quitar Blanco", exact: true }).click();
+    await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
-    ok((await page.getByRole("list", { name: "Stock por opción" }).locator("li").count()) === 5, "Al quitar un color quedan 5");
+    await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
+    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 5, "Al quitar un color quedan 5");
     // Publicar: producto y variantes en una sola llamada.
     const a = await archivosDePrueba(page);
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);

@@ -7,7 +7,7 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import type { Detalles } from "@/lib/rubros";
-import type { MotivoAjusteInventario, OpcionProducto, Producto } from "@/lib/types";
+import type { MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
 import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
 import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
@@ -26,9 +26,12 @@ import { formatearPesos } from "@/lib/formato";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
-import { conEntregadas, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
+import { reducirFoto } from "@/lib/imagen";
+import { nuevoId } from "@/lib/data/db";
+import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { useTaller } from "./taller";
-import { claveVariante, combinaciones, HojaMotivoVariantes, SeccionOpciones, variantesBase } from "./ficha-opciones";
+import { claveVariante, ejeDeFoto, presentacionesDe } from "@/lib/presentaciones";
+import { HojaMotivoVariantes, SeccionPresentaciones, type EstadoPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
@@ -169,7 +172,7 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     {activas.length > 0 ? (
       // Con opciones, el stock es por combinación: se cambia en la ficha.
       <ListaAgrupada etiqueta="Stock e historial">
-        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={sinCatalogo ? () => toast(porque) : () => navegar(`/catalogo/${producto.id}/editar`)} />
+        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "presentación" : "presentaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={sinCatalogo ? () => toast(porque) : () => navegar(`/catalogo/${producto.id}/editar`)} />
         <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
       </ListaAgrupada>
     ) : (
@@ -203,7 +206,7 @@ function FormularioProducto({
   alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
-  const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque, getProducto } = useData();
+  const { crearProducto, guardarVariantes, guardarFotoValor, ajustarStock, trabajosRetoque, getProducto, getPedidos } = useData();
   // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
   const { puede, porque } = usePermisos();
   const sinCatalogo = !puede("catalogo");
@@ -219,11 +222,22 @@ function FormularioProducto({
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
   const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
-  const [opciones, setOpciones] = useState<OpcionProducto[]>(producto?.opciones ?? []);
-  const base = useMemo(() => variantesBase(producto), [producto]);
-  const [stockVariantes, setStockVariantes] = useState<Record<string, number>>(() =>
-    Object.fromEntries([...base.entries()].map(([k, v]) => [k, v.stock ?? 0])),
-  );
+  // Las presentaciones (tallas, colores, tamaños): se editan aquí y se guardan con el producto.
+  const base = useMemo(() => new Map((producto?.variantes ?? []).map((v) => [claveVariante(v.valores), v])), [producto]);
+  const [presentaciones, setPresentaciones] = useState<EstadoPresentaciones>(() => {
+    const opciones = producto?.opciones ?? [];
+    const pres = presentacionesDe(producto);
+    // La foto de cada valor del eje que la lleva, como id de la foto en el borrador (así sobrevive a que la foto se suba al guardar).
+    const eje = ejeDeFoto(opciones);
+    const guardadas = eje ? (producto?.fotosPorValor?.[eje.nombre] ?? {}) : {};
+    const fotosColor: Record<string, string> = {};
+    for (const [valor, url] of Object.entries(guardadas)) {
+      const m = medios.find((x) => x.tipo === "foto" && x.url === url);
+      if (m) fotosColor[valor] = m.id;
+    }
+    return { opciones, pres: pres.length > 0 ? pres : [], fotosColor };
+  });
+  const { opciones, pres: borradorPres, fotosColor } = presentaciones;
   const [detalles, setDetalles] = useState<Detalles>(producto?.detalles ?? {});
   const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
@@ -239,19 +253,18 @@ function FormularioProducto({
   // La bienvenida del retoque, antes de guardar un producto con fotos marcadas por primera vez en esta tienda.
   const [bienvenida, setBienvenida] = useState<{ datos: DatosBienvenida; resolver: (ok: boolean) => void } | null>(null);
 
-  const tieneOpciones = opciones.length > 0;
-  const combos = useMemo(() => combinaciones(opciones), [opciones]);
+  const tieneOpciones = opciones.length > 0 && borradorPres.length > 0;
   // Lo que baja en variantes que ya existían pide motivo (como el stock del producto); lo que sube es reposición.
-  const bajadas = combos.reduce((s, c) => {
-    const b = base.get(claveVariante(c));
-    const quiere = stockVariantes[claveVariante(c)] ?? 0;
+  const bajadas = borradorPres.reduce((s, p) => {
+    const b = base.get(claveVariante(p.valores));
+    const quiere = p.stock ?? 0;
     return b && b.stock !== null && quiere < b.stock ? s + (b.stock - quiere) : s;
   }, 0);
 
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
     medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
-    nombre, precio, stock: producto ? null : stock, opciones, stockVariantes, detalles, categoria, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
+    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
@@ -275,11 +288,30 @@ function FormularioProducto({
   const avisarLleno = () =>
     mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
-  const cambiarOpciones = (nuevas: OpcionProducto[]) => {
-    // Al pasar a opciones, el stock vive en cada combinación: un ajuste suelto del producto se descarta.
-    if (nuevas.length > 0 && opciones.length === 0 && inventario.pendiente) inventario.recuperar();
-    setOpciones(nuevas);
+  const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
+    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta.
+    if (nuevo.pres.length > 0 && !tieneOpciones && inventario.pendiente) inventario.recuperar();
+    setPresentaciones(nuevo);
   };
+
+  /** Una foto nueva elegida desde «Foto de cada color»: entra a las del producto y devuelve su id. */
+  const agregarFotoDeColor = async (archivo: File): Promise<string | null> => {
+    if (medios.length >= MAX_MEDIOS) {
+      toast(`Ya tiene ${MAX_MEDIOS}. Quita uno para agregar otro.`);
+      return null;
+    }
+    try {
+      const url = await reducirFoto(archivo);
+      const id = nuevoId();
+      setMedios((l) => (l.length >= MAX_MEDIOS ? l : [...l, { id, tipo: "foto", url, retocada: false }]));
+      return id;
+    } catch {
+      toast("Esa foto no quiso cargar. Prueba con otra.");
+      return null;
+    }
+  };
+  /** ¿Esta presentación ya salió en algún pedido? Entonces quitarla solo la oculta. */
+  const tienePedidosVariante = async (varianteId: string) => (await getPedidos(tiendaId)).some((p) => p.items.some((i) => i.varianteId === varianteId));
 
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
 
@@ -331,11 +363,11 @@ function FormularioProducto({
     const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
     const fotoRetocada = final.find((m) => m.tipo === "foto")?.tipo === "foto" ? (final.find((m) => m.tipo === "foto") as { retocada: boolean }).retocada : false;
     const catalogo = { medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null) };
-    const variantes = combos.map((c) => {
-      const k = claveVariante(c);
-      const b = base.get(k);
+    const variantes = borradorPres.map((p) => {
+      const b = base.get(claveVariante(p.valores));
       // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
-      return { valores: c, stock: b ? b.stock : (stockVariantes[k] ?? 0), precio: b?.precio ?? null };
+      // Una oculta no admite ajuste aparte (la base solo ajusta activas): su stock va directo en el guardado.
+      return { valores: p.valores, stock: b && p.activa ? b.stock : (p.stock ?? 0), precio: p.precio, activa: p.activa };
     });
     // Fotos nuevas marcadas «Retocar esta foto» (en el orden de las fotos que se guardan).
     const marcadasPorFoto = conEntregadas(medios, entregadas).flatMap((m) => (m.tipo === "foto" ? [!!m.retocar && !taller.guardada(m.url)] : []));
@@ -349,6 +381,27 @@ function FormularioProducto({
       const r = await mandarMarcadas(urls, totalMarcadas, (url) => taller.pedirDe(guardado!.id, url, { silencioso: true }));
       return avisoGuardadoConRetoques(base, r.marcadas, r.enviadas);
     };
+    /** La foto de cada color se guarda al final, con las fotos ya guardadas: el borrador la lleva por id y aquí se busca su url. */
+    const guardarFotosDeColor = async (guardado: Producto, finalMedios: typeof final = final) => {
+      const eje = ejeDeFoto(tieneOpciones ? opciones : []);
+      if (!eje) return;
+      const vivo = (await getProducto(tiendaId, guardado.id).catch(() => null)) ?? guardado;
+      // Los medios guardados van en el mismo orden que los del borrador.
+      const idsEnOrden = conEntregadas(medios, entregadas).filter((m) => m.tipo === "foto" || m.url).map((m) => m.id);
+      const urlDeId = (id: string) => {
+        const i = idsEnOrden.indexOf(id);
+        const m = i >= 0 ? vivo.medios[i] : undefined;
+        return m && m.tipo === "foto" ? m.url : null;
+      };
+      void finalMedios;
+      const guardadas = vivo.fotosPorValor?.[eje.nombre] ?? {};
+      for (const valor of eje.valores) {
+        const quiere = fotosColor[valor] ? urlDeId(fotosColor[valor]) : null;
+        const hay = guardadas[valor] ?? null;
+        if (quiere === hay) continue;
+        await guardarFotoValor(tiendaId, guardado.id, eje.nombre, valor, quiere);
+      }
+    };
     try {
       if (!producto) {
         // Una sola llamada: la ficha y las variantes (si algo falla, no queda nada a medias).
@@ -360,6 +413,7 @@ function FormularioProducto({
           },
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
+        await guardarFotosDeColor(creado);
         const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
         toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
@@ -370,20 +424,25 @@ function FormularioProducto({
         false, motivo, nota,
       );
       if (!bien) { setGuardando(false); return false; }
+      const efectivas = tieneOpciones ? borradorPres : [];
       const antes = [...base.keys()].sort().join(",");
-      const ahora = combos.map(claveVariante).sort().join(",");
-      if (JSON.stringify(opciones) !== JSON.stringify(producto.opciones) || antes !== ahora) {
-        await guardarVariantes(tiendaId, producto.id, opciones, variantes);
+      const ahora = efectivas.map((p) => claveVariante(p.valores)).sort().join(",");
+      const otroPrecioOEstado = efectivas.some((p) => {
+        const b = base.get(claveVariante(p.valores));
+        return b && (b.precio !== p.precio || b.activa !== p.activa);
+      });
+      if (JSON.stringify(tieneOpciones ? opciones : []) !== JSON.stringify(producto.opciones) || (tieneOpciones ? antes !== ahora : producto.opciones.length > 0) || otroPrecioOEstado) {
+        await guardarVariantes(tiendaId, producto.id, tieneOpciones ? opciones : [], tieneOpciones ? variantes : []);
       }
-      for (const c of combos) {
-        const k = claveVariante(c);
-        const b = base.get(k);
-        const quiere = stockVariantes[k] ?? 0;
-        if (!b || b.stock === null || quiere === b.stock) continue;
+      for (const p of efectivas) {
+        const b = base.get(claveVariante(p.valores));
+        const quiere = p.stock ?? 0;
+        if (!b || !p.activa || b.stock === null || quiere === b.stock) continue;
         const delta = quiere - b.stock;
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
       }
       const guardado = totalMarcadas > 0 ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
+      await guardarFotosDeColor(producto, final);
       toast(await mandarAlTaller(guardado, "Guardado. El catálogo ya se enteró."));
       inventario.finalizar(alTerminar);
       return true;
@@ -427,13 +486,18 @@ function FormularioProducto({
       />
 
       {(producto?.tipo ?? "producto") === "producto" && (
-        <SeccionOpciones
+        <SeccionPresentaciones
           rubro={rubro}
-          opciones={opciones}
-          alCambiarOpciones={cambiarOpciones}
-          stock={Object.fromEntries(combos.map((c) => [claveVariante(c), stockVariantes[claveVariante(c)] ?? 0]))}
-          alCambiarStock={(k, v) => setStockVariantes((s) => ({ ...s, [k]: v }))}
+          precioProducto={Number(precio) || 0}
+          estado={presentaciones}
+          alCambiar={cambiarPresentaciones}
+          fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
+          agregarFoto={agregarFotoDeColor}
+          sinPermiso={sinCatalogo}
+          porque={porque}
+          avisar={toast}
           deshabilitado={guardando}
+          tienePedidos={tienePedidosVariante}
         />
       )}
 
