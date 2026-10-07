@@ -23,3 +23,8 @@ export function resultadoSoltar(dy: number, full: boolean): "cerrar" | "reducir"
   if (dy <= UMBRAL_CERRAR) return "volver";
   return full ? "reducir" : "cerrar";
 }
+
+/** Solo los gestos que maneja la hoja cancelan el scroll nativo; "scroll" e "ignorar" lo dejan pasar intacto. */
+export function debeCancelar(modo: DecisionGesto | "guiar"): boolean {
+  return modo === "expandir" || modo === "arrastrar" || modo === "guiar";
+}
