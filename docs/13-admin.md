@@ -20,7 +20,7 @@ El panel desde el que Lewis (y quien él diga) administra todas las tiendas: lo 
 
 ## 2. Navegación
 
-Barra inferior de 5 pestañas, igual a la de la app (cápsula, selector rosa):
+Barra inferior de 5 pestañas, igual a la de la app (cápsula, selector rosa). Es el mismo componente (`BarraPestanas` en `components/panel/nav-inferior.tsx`): el selector se mueve al tocar y se arrastra con imán. En el admin las pestañas se precargan (`precargar`), `app/admin/loading.tsx` deja el cambio de pantalla inmediato, y Hoy, Tiendas y Trabajo recuerdan su última lectura en memoria (`lib/data/admin/recuerdo.ts`) para no volver a mostrar el esqueleto al regresar:
 
 | Pestaña | Qué tiene |
 |---|---|

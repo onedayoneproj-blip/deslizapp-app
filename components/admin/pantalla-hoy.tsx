@@ -7,6 +7,7 @@ import type { AsuntoAdmin, ResumenMesAdmin } from "@/lib/admin/tipos";
 import { enlaceWhatsAppAdmin, mensajeWhatsApp, textoAsunto } from "@/lib/admin/mensajes";
 import { Boton, Tarjeta } from "@/components/ui";
 import { IconoMoneda, IconoClientes, IconoChispa } from "@/components/iconos";
+import { recordado, recordar } from "@/lib/data/admin/recuerdo";
 import { EstadoAdmin } from "./estado";
 
 const dinero = (n: number) => new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP", maximumFractionDigits: 0 }).format(n);
@@ -50,15 +51,16 @@ function Asunto({ asunto, refrescar }: { asunto: AsuntoAdmin; refrescar: () => v
 
 export function PantallaHoy() {
   const fuente = useAdmin();
-  const [resumen, setResumen] = useState<ResumenMesAdmin | null>(null);
-  const [asuntos, setAsuntos] = useState<AsuntoAdmin[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const previo = recordado<{ resumen: ResumenMesAdmin; asuntos: AsuntoAdmin[] }>(fuente, "hoy");
+  const [resumen, setResumen] = useState<ResumenMesAdmin | null>(previo?.resumen ?? null);
+  const [asuntos, setAsuntos] = useState<AsuntoAdmin[]>(previo?.asuntos ?? []);
+  const [cargando, setCargando] = useState(!previo);
   const [error, setError] = useState<string | null>(null);
   const leer = useCallback(async () => {
     setCargando(true); setError(null);
     try {
       const [r, h] = await Promise.all([fuente.resumenMes(), fuente.hoy()]);
-      setResumen(r); setAsuntos(h);
+      setResumen(r); setAsuntos(h); recordar(fuente, "hoy", { resumen: r, asuntos: h });
     } catch { setError("No se pudo cargar Hoy."); }
     finally { setCargando(false); }
   }, [fuente]);

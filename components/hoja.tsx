@@ -81,6 +81,28 @@ const PILA_DE_HOJAS: symbol[] = [];
 
 /** Popstates que provoca la propia hoja al quitar su entrada de historial: no cierran ninguna hoja. */
 const IGNORAR_ATRAS = { n: 0 };
+
+/**
+ * Fondo bloqueado mientras haya al menos una hoja abierta. Es un contador y no "guardar y restaurar" por hoja: si una hoja se
+ * abre mientras otra termina de cerrarse, el orden de las limpiezas se cruza y la segunda restauraba "hidden" (el scroll
+ * quedaba trabado sin ninguna hoja a la vista).
+ */
+const BLOQUEO_FONDO = { hojas: 0, overflow: "", overscroll: "" };
+function bloquearFondo() {
+  const html = document.documentElement;
+  if (BLOQUEO_FONDO.hojas++ === 0) {
+    BLOQUEO_FONDO.overflow = document.body.style.overflow;
+    BLOQUEO_FONDO.overscroll = html.style.overscrollBehavior;
+  }
+  document.body.style.overflow = "hidden";
+  html.style.overscrollBehavior = "none";
+}
+function liberarFondo() {
+  BLOQUEO_FONDO.hojas = Math.max(0, BLOQUEO_FONDO.hojas - 1);
+  if (BLOQUEO_FONDO.hojas > 0) return;
+  document.body.style.overflow = BLOQUEO_FONDO.overflow === "hidden" ? "" : BLOQUEO_FONDO.overflow;
+  document.documentElement.style.overscrollBehavior = BLOQUEO_FONDO.overscroll === "none" ? "" : BLOQUEO_FONDO.overscroll;
+}
 /** Marca de la entrada de historial de una hoja apilada. Conserva el estado de Next (`__NA`…) para no confundir al router. */
 const estadoDeHoja = () => ({ ...(window.history.state ?? {}), deslizappHoja: true });
 
@@ -503,10 +525,7 @@ function HojaMontada({
   // devolvería el foco al botón que abrió la hoja y el teclado se cerraría.
   useEffect(() => {
     const anterior = document.activeElement as HTMLElement | null;
-    const html = document.documentElement;
-    const previo = { overflow: document.body.style.overflow, overscroll: html.style.overscrollBehavior };
-    document.body.style.overflow = "hidden";
-    html.style.overscrollBehavior = "none";
+    bloquearFondo();
     // El foco va a la hoja solo si no está ya dentro (un campo con autoFocus, por ejemplo).
     if (!panel.current?.contains(document.activeElement)) panel.current?.focus({ preventScroll: true });
 
@@ -599,8 +618,7 @@ function HojaMontada({
       } else if (alSalirRef.current) window.setTimeout(() => alSalirRef.current?.(), 0);
       const posicion = PILA_DE_HOJAS.indexOf(turno);
       if (posicion >= 0) PILA_DE_HOJAS.splice(posicion, 1);
-      document.body.style.overflow = previo.overflow;
-      html.style.overscrollBehavior = previo.overscroll;
+      liberarFondo();
       if (anterior && document.contains(anterior)) anterior.focus({ preventScroll: true });
     };
   }, []);
