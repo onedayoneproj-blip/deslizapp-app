@@ -234,6 +234,3 @@ export function productosConTipoQuitado<P extends { nombre: string; rubro?: Rubr
 export function tipoPorDefecto(t: { rubro: Rubro; rubros?: readonly Rubro[] | null }, ultimo: Rubro | null): Rubro {
   return ultimo && rubrosDeTienda(t).includes(ultimo) ? ultimo : t.rubro;
 }
-
-export const mensajeRubroEnUso = (nombres: string[]) =>
-  `No puedes quitar ese tipo todavía: lo usan ${nombres.slice(0, 3).join(", ")}${nombres.length > 3 ? ` y ${nombres.length - 3} más` : ""}. Cámbiales el tipo primero.`;

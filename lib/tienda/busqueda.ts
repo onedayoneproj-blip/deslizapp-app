@@ -1,5 +1,5 @@
 import type { CatalogoPublico, ProductoPublico } from "../types";
-import { OCASIONES_NOCHE, OCASIONES_DIA } from "../rubros";
+import { OCASIONES_NOCHE, OCASIONES_DIA, rubrosDeTienda, type Rubro } from "../rubros";
 const norm = (s: string) =>
   s
     .normalize("NFD")
@@ -107,7 +107,7 @@ function distancia(a: string, b: string, max: number): number {
   }
   return prev[b.length];
 }
-export function buscarCatalogo(
+function buscarSinTipos(
   c: CatalogoPublico,
   q: string,
 ): ProductoPublico[] {
@@ -202,4 +202,52 @@ export function buscarCatalogo(
         : b.score - a.score || a.precio - b.precio,
     )
     .map((r) => r.p);
+}
+
+// ---- Tipos de producto (docs/prompts/tipo-de-producto.md): una dimensión más de la búsqueda, solo con más de un rubro ----
+
+/** Palabras (ya sin tildes ni mayúsculas) con las que se pide cada tipo. */
+const PALABRAS_DE_TIPO: Record<Rubro, string[]> = {
+  perfumes: ["perfume", "perfumes", "fragancia", "fragancias"],
+  ropa: ["ropa", "prenda", "prendas", "vestimenta"],
+  accesorios: ["accesorio", "accesorios"],
+  belleza: ["belleza", "maquillaje"],
+  comida: ["comida", "comidas"],
+  hogar: ["hogar"],
+  general: [],
+};
+
+/** Los tipos de la tienda que tienen productos en el catálogo (con 1 o ninguno, no hay nada que filtrar). */
+export function tiposDelCatalogo(c: CatalogoPublico): Rubro[] {
+  const vendidos = rubrosDeTienda(c.tienda);
+  return vendidos.filter((r) => c.productos.some((p) => p.rubro === r));
+}
+
+/** Los tipos que la persona escribió ("ropa", "perfumes") y lo que queda de la consulta sin esas palabras. */
+export function tiposEnConsulta(c: CatalogoPublico, q: string): { tipos: Rubro[]; resto: string } {
+  const vendidos = tiposDelCatalogo(c);
+  if (vendidos.length < 2) return { tipos: [], resto: q };
+  const tipos: Rubro[] = [];
+  const resto = q
+    .split(/\s+/)
+    .filter((w) => {
+      const palabra = norm(w).replace(/[^a-z0-9]/g, "");
+      const r = vendidos.find((v) => PALABRAS_DE_TIPO[v].includes(palabra));
+      if (r) { if (!tipos.includes(r)) tipos.push(r); return false; }
+      return true;
+    })
+    .join(" ");
+  return { tipos, resto };
+}
+
+/**
+ * Busca en el catálogo. Con un solo tipo de producto es la búsqueda de siempre. Con más de uno, las palabras que nombran un tipo
+ * ("perfumes", "ropa") filtran por él y `tipoElegido` (la pastilla) también; el resto de la consulta se busca como siempre.
+ */
+export function buscarCatalogo(c: CatalogoPublico, q: string, tipoElegido: Rubro | null = null): ProductoPublico[] {
+  if (tiposDelCatalogo(c).length < 2) return buscarSinTipos(c, q);
+  const { tipos, resto } = tiposEnConsulta(c, q);
+  const filtro = tipoElegido ? [tipoElegido] : tipos;
+  if (!filtro.length) return buscarSinTipos(c, q);
+  return buscarSinTipos({ ...c, productos: c.productos.filter((p) => filtro.includes(p.rubro)) }, resto);
 }

@@ -4,7 +4,6 @@
 
 import type { ErroresPromo } from "../promos";
 import type { Cliente } from "../types";
-import { mensajeRubroEnUso } from "../rubros";
 
 /** Un error cuyo `message` ya está escrito para el dueño de la tienda (se puede mostrar tal cual). */
 export class ErrorClaro extends Error {}
@@ -117,6 +116,9 @@ export class PromoInvalida extends ErrorClaro {
     this.errores = errores;
   }
 }
+
+export const mensajeRubroEnUso = (nombres: string[]) =>
+  `No puedes quitar ese tipo todavía: lo usan ${nombres.slice(0, 3).join(", ")}${nombres.length > 3 ? ` y ${nombres.length - 3} más` : ""}. Cámbiales el tipo primero.`;
 
 export class DatosInvalidos extends ErrorClaro {}
 

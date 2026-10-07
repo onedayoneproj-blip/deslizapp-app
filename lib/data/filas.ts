@@ -3,7 +3,7 @@
 // Sin imports de valores (solo tipos): se prueba directo con Node (tests/datos.test.mjs).
 
 import type { EstiloMarca } from "../marca";
-import { rubrosDeTienda, type Detalles, type Rubro } from "../rubros";
+import type { Detalles, Rubro } from "../rubros";
 import type {
   CambiosProducto,
   Abono,
@@ -281,9 +281,12 @@ export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
     catalogoSolicitadoEn: f.catalogo_solicitado_en ?? null,
     catalogoPublicadoEn: f.catalogo_publicado_en ?? null,
     rubro: (f.rubro ?? "general") as Rubro,
-    rubros: rubrosDeTienda({ rubro: (f.rubro ?? "general") as Rubro, rubros: (f.rubros ?? []) as Rubro[] }),
+    rubros: rubrosDe((f.rubro ?? "general") as Rubro, (f.rubros ?? []) as Rubro[]),
   };
 }
+
+/** El principal primero y sin repetir (igual que `rubrosDeTienda` de lib/rubros.ts, que aquí no se importa para que filas.ts siga siendo solo tipos). */
+const rubrosDe = (rubro: Rubro, rubros: Rubro[]): Rubro[] => [...new Set([rubro, ...rubros])];
 
 export function aUsuario(f: FilaUsuario): Usuario {
   return { id: f.id, tiendaId: f.tienda_id, email: f.email, nombre: f.nombre, rol: f.rol as RolUsuario };
@@ -499,7 +502,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       descripcion: t.descripcion,
       nombreVendedora: t.nombre_vendedora,
       rubro: (t.rubro ?? "general") as Rubro,
-      rubros: rubrosDeTienda({ rubro: (t.rubro ?? "general") as Rubro, rubros: (t.rubros ?? []) as Rubro[] }),
+      rubros: rubrosDe((t.rubro ?? "general") as Rubro, (t.rubros ?? []) as Rubro[]),
     },
     productos: (f.productos ?? []).map((p) => ({
       orden: p.orden ?? null,

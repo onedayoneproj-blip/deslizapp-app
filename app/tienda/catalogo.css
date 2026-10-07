@@ -9153,4 +9153,31 @@ html.catalogo-html,
 .catalogo-publico .pres-body {
   flex: 1 1 auto;
   min-height: 0;
+/* Búsqueda por tipo de producto (solo con más de un rubro). */
+:where(.catalogo-publico) .srtipos {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 16px 12px;
+  scrollbar-width: none;
+}
+:where(.catalogo-publico) .srtipos::-webkit-scrollbar {
+  display: none;
+}
+:where(.catalogo-publico) .srtipos button {
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+:where(.catalogo-publico) .srtipos button[aria-pressed="true"] {
+  background: #fff;
+  color: #1f1f1f;
 }

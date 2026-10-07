@@ -1,8 +1,8 @@
 import type { EstiloMarca } from "../marca";
-import { errorDeRubros, mensajeRubroEnUso, productosConTipoQuitado, type Rubro } from "../rubros";
+import { errorDeRubros, productosConTipoQuitado, type Rubro } from "../rubros";
 import type { Tienda, Usuario } from "../types";
 import type { DB } from "./db";
-import { CreditosInsuficientes, DatosInvalidos } from "./errores";
+import { CreditosInsuficientes, DatosInvalidos, mensajeRubroEnUso } from "./errores";
 
 export { CreditosInsuficientes };
 
