@@ -24,6 +24,8 @@ diseño de escritorio aparte en esta entrega.
 si tiene una). De arriba abajo:
 1. **La tienda activa**, en una tarjeta con contorno `accion`: logo, nombre, «Plan · N créditos» y el check; al pie de la misma
    tarjeta, la fila **Mi marca** (con chevron; abre la hoja). Su detalle es «Logo, colores y letra» hasta que entre el PR de Mi marca.
+   Debajo, **Tu equipo** (solo la dueña; «N esperan tu visto bueno» con un punto si hay solicitudes). Un colaborador ve la fila
+   apagada («Esto lo ve quien administra la tienda. Aquí eres {nivel}.») y «Salir de esta tienda» (pide confirmar).
 2. **Las otras tiendas de la cuenta** (las de las que es miembro, sin las eliminadas; la activa primero y el resto por nombre).
    Tocar una **cambia de tienda**: en la app real guarda la tienda por defecto de la cuenta (`usuarios.tienda_id`, solo una propia)
    y **recarga la página**, así nunca se ve un dato de la anterior; sale «Ahora estás en X.». Con un error, la tienda sigue como estaba.
@@ -33,6 +35,26 @@ si tiene una). De arriba abajo:
 5. **La cuenta**: foto de Google (o iniciales en rosa), nombre y correo, leídos de la sesión (no se guardan en la base), y «Cerrar
    sesión» (en la demo, «Cuenta de demo» y «Salir de la demo»; en Ver como, «Cerrar sesión y salir»).
 6. Versión, «Ver novedades», Privacidad y Términos.
+**Tu equipo** (`components/equipo/hoja-equipo.tsx`, hoja grande): «Esperan tu visto bueno» arriba (nombre y correo de Google,
+nivel con `GrupoOpciones`, «Aprobar» o «Rechazar»); «Quiénes están» (la dueña y cada colaborador con su nivel, que se cambia ahí
+mismo, y «Quitar» con segundo toque); los invitados por correo; «Invitar por enlace» (nivel y una nota opcional; el enlace se ve una
+vez con «Compartir» y «Copiar») e «Invitar por correo» (no pide aprobación); «Enlaces activos» con «Cancelar enlace». En la demo,
+«Modo demo» trae «Mirar la app como» (Dueña, Ayudante, Editor, Administrador) para ver lo que ve cada nivel.
+
+**Lo que un nivel no puede, se ve apagado con «Esto lo hace quien administra la tienda.»** (`usePermisos()` en
+`lib/data/permisos.ts`, el único lugar que lee el nivel): «+ Producto», «Editar» y «Guardar» de la ficha (Ayudante), «Retocar esta
+foto» y «Retocar foto» (sin créditos: Ayudante y Editor) y Mi marca sin «Guardar» (Ayudante y Editor). Si igual llega un
+`sin_permiso` de la base, se muestra el mismo texto.
+
+**`/unirse/<código>`** (`components/unirse/pantalla-unirse.tsx`): el enlace de invitación. Guarda el código en el navegador y lo
+quita de la barra al instante; sin sesión, «Entrar con Google» (vuelve a `/unirse`, sin el código). Estados: «Esperando que te
+aprueben» (mira cada 15 s; cuando aprueban, entra directo), «Ya eres parte de {tienda}», «Crea tu tienda» (nombre y rubro; enlace
+de Deslizapp), «Este enlace ya no sirve. Pídele uno nuevo a quien te invitó.», «Esta vez no se pudo» (rechazada) y sin conexión con
+«Reintentar». Sin referer, sin índice y sin recursos de terceros.
+
+**Sin tienda** (cuenta de Google que no es de ninguna tienda, `pantalla-entrada.tsx`): «Deslizapp es por invitación», si ya tiene un
+enlace que lo abra, «Escríbenos» (Instagram de Deslizapp) y, si ya abrió uno, «Esperando que te aprueben» o «Crear mi tienda».
+
 El encabezado no cambia; su etiqueta accesible es «Menú de tus tiendas» (más de una) o «Menú de la tienda». «Crear otra tienda»
 llega con el PR de grupos de tiendas, debajo de las otras tiendas.
 

@@ -44,7 +44,7 @@ tabla de prueba con un solo usuario "activo".
 | `tienda_id` | uuid → `tiendas.id` | |
 | `email` | string | |
 | `nombre` | string | |
-| `rol` | `'dueno' \| 'staff'` | por ahora solo se usa `'dueno'` |
+| `rol` | `'dueno' \| 'staff'` | el rol vive en `miembros` (por tienda); este campo es solo el de la primera tienda |
 
 ## `productos`
 
@@ -372,3 +372,32 @@ Si cambia la forma de los datos, subir la versión de la clave de
 ## Ampliación catálogo React (aplicada)
 
 `20261004184134_catalogo_react.sql`: productos suma `orden integer null` y `opiniones jsonb not null default []`. Hasta 20 opiniones con seis llaves obligatorias, texto hasta 600, URL HTTPS, estrellas enteras 1–5/null y traducida bool. Validador + CHECK; el contrato exacto está en la migración. `catalogo_publico` ordena nuevos sin orden primero por creación descendente; luego `orden` ascendente. Añade desde y número de pedidos despachados solo desde 10, sin datos de clientes. Los datos de Michel van en SQL generado fuera de migraciones. `scripts/cargar-catalogo-esencias-michel.mjs` se ejecuta después del generador general si se regenera el seed del panel.
+
+
+## `miembros` (quién es de cada tienda) y niveles de permiso
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `usuario_id` | uuid → `auth.users.id` | |
+| `tienda_id` | uuid → `tiendas.id` | |
+| `rol` | `'dueno' \| 'staff'` | dueño: todo; staff: colaborador |
+| `nivel` | `'ayudante' \| 'editor' \| 'administrador'` | solo cuenta para `staff`; por defecto `ayudante`. Lo cambia la dueña con `cambiar_nivel` (nadie escribe `miembros` directo) |
+
+Mapa nivel → grupo en `public.nivel_tiene_grupo` (único lugar; la app lo refleja en `lib/equipo.ts` y un test los compara): **ventas** (todos), **catalogo** (Editor y Administrador), **creditos**, **marca** y **compras** (Administrador), **equipo** (solo dueño). Lo exigen la base (`exigir_permiso` en cada función que escribe y políticas restrictivas `permiso_<grupo>_<tabla>_*`) y Storage. Auditoría: `docs/handoffs/permisos-auditoria.md`.
+
+## `enlaces_invitacion` (enlaces de un solo uso)
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | uuid | PK |
+| `tipo` | `'colaborador' \| 'tienda_nueva'` | colaborador lo crea la dueña; tienda nueva, un admin |
+| `tienda_id` | uuid \| null | null en tienda nueva |
+| `nivel` | nivel \| null | solo colaborador |
+| `nota` | string \| null | etiqueta de quien lo crea, hasta 40 |
+| `codigo_hash` | text | **solo** el SHA-256 del código (el código se ve una vez al crearlo); nadie lo lee por la API |
+| `estado` | `activo → esperando → aprobado \| rechazado`, o `cancelado`, `vencido`, `usado` | un enlace activo vence a los 7 días; una solicitud sin decidir, también |
+| `reclamado_por`, `reclamado_en`, `correo_visto`, `nombre_visto` | | quien lo abrió (cuenta de Google verificada) |
+| `decidido_por`, `decidido_en` | | quien aprobó, rechazó o canceló |
+| `tienda_creada_id` | uuid \| null | tienda nueva creada con el enlace |
+
+Se escribe solo con funciones: `crear_enlace_colaborador`, `reclamar_enlace`, `aprobar_miembro`, `rechazar_miembro`, `cancelar_enlace`, `crear_mi_tienda` y las `admin_*`. `invitaciones` (por correo) se conserva y ahora lleva `nivel`.
