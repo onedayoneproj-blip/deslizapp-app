@@ -2,7 +2,7 @@
 
 import { TEXTO_SIN_PERMISO } from "@/lib/equipo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { CREDITOS_POR_RETOQUE } from "@/lib/config";
+import { CREDITOS_POR_RETOQUE, esVideoAgregable, tiposDeMedioElegibles } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
 import { nuevoId } from "@/lib/data/db";
 import { reducirFoto } from "@/lib/imagen";
@@ -142,7 +142,8 @@ export function SeccionMedios({
     if (!archivos) return;
     const lista = [...archivos].slice(0, MAX_MEDIOS - medios.length);
     for (const archivo of lista) {
-      if (archivo.type.startsWith("video/")) void agregarVideo(archivo);
+      if (esVideoAgregable(archivo.type)) void agregarVideo(archivo);
+      else if (archivo.type.startsWith("video/")) continue; // video apagado (VIDEO_PERMITIDO): no se sube
       else void agregarFoto(archivo);
     }
   };
@@ -177,7 +178,7 @@ export function SeccionMedios({
       <input
         ref={entrada}
         type="file"
-        accept="image/*,video/*"
+        accept={tiposDeMedioElegibles()}
         multiple
         className="sr-only"
         tabIndex={-1}

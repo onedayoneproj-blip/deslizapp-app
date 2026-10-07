@@ -64,3 +64,19 @@ export const ETIQUETA_RETOQUE_BETA = "Beta";
  * (lo fija Lewis).
  */
 export const TIEMPO_RETOQUE_TEXTO = "";
+
+/**
+ * ¿La app deja AGREGAR videos a un producto? Decisión de negocio temporal (7 oct 2026, Lewis): por ahora no, para cuidar el
+ * almacenamiento y la salida de datos del plan gratis de Supabase y el peso del catálogo. Los videos que ya existen se siguen
+ * viendo, reproduciendo, moviendo y quitando; solo se apaga el agregar.
+ *
+ * Para volver a abrirlo (probablemente solo desde cierto plan): poner esto en `true` y aplicar la migración inversa que
+ * devuelve `video/mp4`, `video/webm` y `video/quicktime` a `allowed_mime_types` del bucket `productos` (ver HANDOFF.md).
+ */
+export const VIDEO_PERMITIDO = false;
+
+/** Lo que acepta el selector de archivos de la ficha: con el video apagado, solo imágenes. */
+export const tiposDeMedioElegibles = (videoPermitido: boolean = VIDEO_PERMITIDO) => (videoPermitido ? "image/*,video/*" : "image/*");
+
+/** ¿Este archivo elegido es un video que la ficha debe preparar? Con el video apagado, ninguno (se ignora, no se sube). */
+export const esVideoAgregable = (tipo: string, videoPermitido: boolean = VIDEO_PERMITIDO) => videoPermitido && tipo.startsWith("video/");
