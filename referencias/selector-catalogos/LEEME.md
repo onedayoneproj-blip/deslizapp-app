@@ -19,10 +19,15 @@ Solo cuando la tienda vende **más de un rubro**. Con uno solo, todo queda como 
 
 - Las cifras y los nombres del lienzo son de ejemplo. No copies su HTML: usa `components/ui/`, `components/hoja.tsx` y los tokens (`docs/09`).
 - La dona de la cabecera del dibujo muestra la cifra del catálogo; en la app se queda como hoy (es de toda la tienda y abre «Tu inventario»).
-- El menú del dibujo es una ilustración; en la app el selector es el `<select>` nativo de iOS (ver el prompt).
+- El menú del dibujo es una ilustración; en la app es `MenuFlotante` (`components/ui/menu-flotante.tsx`), sin `<select>` nativo.
 
 ## Cambios del 7 oct (tras probar #68)
 
 - **El botón naranja «+ Producto» no se mueve nunca**, tampoco con un catálogo vacío (ahí #68 lo reemplazó por un botón al centro; está mal).
 - **Sin selector nativo de iOS**: el selector (título de la pestaña y cabecera de la hoja de producto) abre un **menú flotante** como el de `CatalogoMenu.dc.html`. Prompt: `docs/prompts/selector-catalogos-ajustes.md`.
 - **Comprador:** perfil con **pestañas de texto** («Todo · Perfumes · Accesorios», como la barra de pestañas del perfil de Instagram pero con nombres) y, en «Colecciones», el menú flotante. Prompt: `docs/prompts/catalogo-por-tipo-comprador.md`.
+
+## Ajustes hechos (`fix/selector-catalogos-ajustes`)
+
+- Menú flotante construido como el dibujo (tarjeta bajo el nombre, check, cantidad, «Lo que vendes» con «+»). Diferencias: el velo es más suave (`bg-velo` al 40 %) y el menú es de 252 px con tokens de la app. En la hoja de producto va en un portal sobre la hoja.
+- «+ Producto» siempre abajo a la derecha; con un catálogo vacío el estado pequeño dice «Toca + Producto y sube tu primera pieza.» y no trae botón propio.

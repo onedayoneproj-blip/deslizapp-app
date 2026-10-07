@@ -33,6 +33,13 @@ async function pagina(ancho, tienda) {
 const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "{}");
 const sinDesborde = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 const H = "[data-hoja-cabecera] [data-selector-catalogo]"; // el selector de la hoja (la pestaña Catálogo queda debajo)
+
+// El selector es un menú flotante (components/ui/menu-flotante.tsx): se abre al tocar y sus opciones viven en un portal.
+const MENU = "[data-menu-flotante]";
+const valorDe = async (page, sel) => ((await page.locator(sel).getAttribute("aria-label")) ?? "").replace(/^[^:]+: /, "").replace(/\. Cambiar$/, "");
+const abrirMenu = async (page, sel) => { await page.locator(sel).tap(); await page.waitForSelector(MENU); await page.waitForTimeout(250); };
+const opcionesDe = async (page, sel) => { await abrirMenu(page, sel); const t = (await page.locator(MENU + " button").allInnerTexts()).map((x) => x.replace(/\s+/g, " ").trim()); await page.keyboard.press("Escape"); await page.waitForTimeout(200); return t; };
+const elegir = async (page, sel, texto) => { await abrirMenu(page, sel); await page.locator(MENU + " button").filter({ hasText: texto }).first().tap(); await page.waitForTimeout(300); };
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
 for (const ancho of ANCHOS) {
@@ -45,27 +52,27 @@ for (const ancho of ANCHOS) {
     await page.waitForSelector("[data-selector-catalogo]");
     ok(await sinDesborde(page), "el Catálogo no desborda");
     ok((await page.locator("h1 [data-selector-catalogo]").getAttribute("aria-label")) === "Catálogo: Ropa. Cambiar", "el título es el selector: «Catálogo: Ropa. Cambiar»");
-    const opciones = await page.locator("h1 [data-selector-catalogo] option").allInnerTexts();
-    ok(opciones.join() === "Ropa · 2,Accesorios · 2,Lo que vendes…", "ofrece Ropa · 2, Accesorios · 2 y «Lo que vendes…» (sin «Todo»)");
+    const opciones = await opcionesDe(page, "h1 [data-selector-catalogo]");
+    ok(opciones.join() === "Ropa 2,Accesorios 2,Lo que vendes", "ofrece Ropa · 2, Accesorios · 2 y «Lo que vendes…» (sin «Todo»)");
     ok(/Tus catálogos viven aquí/.test(await page.locator("body").innerText()), "el subtítulo habla de los catálogos");
-    await page.selectOption("h1 [data-selector-catalogo]", "accesorios");
+    await elegir(page, "h1 [data-selector-catalogo]", "Accesorios");
     await page.waitForTimeout(500);
     const tarjetas = await page.locator('a[href^="/catalogo/a3000000"]').allInnerTexts();
     ok(tarjetas.length === 2 && tarjetas.every((t) => /Cinturón|Sombrero/.test(t)), "Accesorios deja solo los dos accesorios");
     ok((await page.getByPlaceholder("Busca en Accesorios").count()) === 1, "el buscador dice «Busca en Accesorios»");
     await page.reload();
     await page.waitForSelector("[data-selector-catalogo]");
-    ok((await page.inputValue("h1 [data-selector-catalogo]")) === "accesorios", "al volver abre el último catálogo que miró");
+    ok((await valorDe(page, "h1 [data-selector-catalogo]")) === "Accesorios", "al volver abre el último catálogo que miró");
 
     console.log("• producto nuevo: sale con el catálogo activo; el selector va fijo en la cabecera");
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.waitForSelector(H);
-    ok((await page.inputValue(H)) === "accesorios", "un producto nuevo sale con el catálogo activo (Accesorios)");
+    ok((await valorDe(page, H)) === "Accesorios", "un producto nuevo sale con el catálogo activo (Accesorios)");
     ok((await page.locator("[data-hoja-cabecera] [data-selector-catalogo]").count()) === 1, "el selector está en la cabecera de la hoja");
-    ok((await page.locator(H + " option").allInnerTexts()).join() === "Ropa · 2,Accesorios · 2,Vendo otra cosa también", "trae los catálogos y «Vendo otra cosa también»");
+    ok((await opcionesDe(page, H)).join() === "Ropa 2,Accesorios 2,Vendo otra cosa también", "trae los catálogos y «Vendo otra cosa también»");
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Gorra de prueba");
     await page.getByRole("textbox", { name: /Precio/ }).fill("500");
-    await page.selectOption(H, "ropa");
+    await elegir(page, H, "Ropa");
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "gorra.png", mimeType: "image/png", buffer: PNG }]);
     await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
@@ -77,8 +84,8 @@ for (const ancho of ANCHOS) {
     const sombrero = (await db(page)).productos.find((p) => p.nombre === "Sombrero de paja");
     await page.goto(`${URL}/catalogo/${sombrero.id}/editar`);
     await page.waitForSelector(H);
-    ok((await page.inputValue(H)) === "accesorios", "el sombrero muestra Accesorios");
-    await page.selectOption(H, "ropa");
+    ok((await valorDe(page, H)) === "Accesorios", "el sombrero muestra Accesorios");
+    await elegir(page, H, "Ropa");
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForTimeout(1500);
     ok((await db(page)).productos.find((p) => p.id === sombrero.id).rubro === "ropa", "el cambio a Ropa quedó guardado");
@@ -92,25 +99,29 @@ for (const ancho of ANCHOS) {
     await page.goto(`${URL}/catalogo`);
     await page.waitForSelector("[data-selector-catalogo]");
     // Un catálogo recién agregado y sin productos: se suma «Hogar» con «Lo que vendes…».
-    await page.selectOption("h1 [data-selector-catalogo]", "__otra");
+    await elegir(page, "h1 [data-selector-catalogo]", "Lo que vendes");
     await page.getByRole("checkbox", { name: /Hogar/ }).tap();
     await page.getByRole("button", { name: "Guardar", exact: true }).tap();
     await page.waitForTimeout(900);
     await page.keyboard.press("Escape");
     await page.waitForTimeout(600);
-    await page.selectOption("h1 [data-selector-catalogo]", "hogar");
+    await elegir(page, "h1 [data-selector-catalogo]", "Hogar");
     await page.waitForTimeout(500);
     const cuerpo = await page.locator("body").innerText();
     ok(/Todavía no hay nada en Hogar/.test(cuerpo) && !/Tu vitrina está vacía/.test(cuerpo), "un catálogo vacío tiene su estado pequeño (no «Tu vitrina está vacía»)");
-    ok((await page.getByRole("link", { name: "Agregar producto" }).count()) === 1, "con el botón de agregar producto");
-    await page.getByRole("link", { name: "Agregar producto" }).tap();
+    ok((await page.getByRole("link", { name: "Agregar producto" }).count()) === 0, "sin botón propio al centro (la píldora «Agregar producto» ya no existe)");
+    const flot = page.getByRole("link", { name: /Producto/ });
+    ok((await flot.count()) === 1 && (await flot.locator("svg").count()) === 1, "el botón flotante «+ Producto» sigue ahí, con su «+»");
+    const caja = await flot.boundingBox();
+    ok(caja.x + caja.width > 330 && caja.y > 600, "…abajo a la derecha");
+    await flot.tap();
     await page.waitForSelector(H);
-    ok((await page.inputValue(H)) === "hogar", "«+ Producto» sale con el catálogo que se está viendo");
+    ok((await valorDe(page, H)) === "Hogar", "«+ Producto» sale con el catálogo que se está viendo");
     await page.goto(`${URL}/catalogo`);
     await page.waitForSelector("[data-selector-catalogo]");
-    await page.selectOption("h1 [data-selector-catalogo]", "__otra");
+    await elegir(page, "h1 [data-selector-catalogo]", "Lo que vendes");
     await page.waitForTimeout(700);
-    ok((await page.locator('[role="dialog"]').count()) === 1 && (await page.inputValue("h1 [data-selector-catalogo]")) === "hogar", "«Lo que vendes…» abre la hoja y deja el catálogo elegido como estaba");
+    ok((await page.locator('[role="dialog"]').count()) === 1 && (await valorDe(page, "h1 [data-selector-catalogo]")) === "Hogar", "«Lo que vendes…» abre la hoja y deja el catálogo elegido como estaba");
     // Ayudante (sin permiso de catálogo): el nombre sin chevron y la tostada de siempre, nada de select.
     await page.goto(`${URL}/catalogo`);
     await page.waitForSelector('header button[aria-haspopup="dialog"]');

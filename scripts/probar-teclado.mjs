@@ -205,6 +205,23 @@ try {
     await ctx.close();
   }
 
+  // ---- Selector de catálogos del título de la pestaña Catálogo
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
+    await page.goto(URL + "/catalogo");
+    await page.waitForSelector("h1 [data-selector-catalogo]");
+    await page.waitForTimeout(900);
+    await page.tap("h1 [data-selector-catalogo]");
+    await page.waitForSelector("[data-menu-flotante]");
+    ok(await page.evaluate(() => document.activeElement?.getAttribute("aria-checked") === "true"), "Menú del título: el foco va a la opción activa");
+    await page.tap("[data-menu-flotante] [role=menuitemradio][aria-checked=false]");
+    await page.waitForTimeout(400);
+    ok(!(await page.$("[data-menu-flotante]")), "Menú del título: elegir cierra el menú");
+    ok(errores.length === 0, `Menú del título: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Selector de catálogos fijo en la cabecera de la hoja: tocarlo no arrastra ni cierra la hoja ni le quita el foco a un campo
   {
     const { ctx, page, errores } = await abrir(navegador);
@@ -223,6 +240,14 @@ try {
     ok(!!(await page.$('[role="dialog"]')) && !(await page.$('[role="alertdialog"]')), "Selector de catálogos: tocarlo no cierra la hoja ni pregunta «¿Salir sin guardar?»");
     ok(Math.abs(antes.y - despues.y) < 1, "Selector de catálogos: tocarlo no mueve la hoja");
     ok(!(await page.evaluate(() => document.activeElement?.matches("input, textarea"))), "Selector de catálogos: no abre el teclado");
+    ok(!!(await page.$("[data-menu-flotante]")), "Selector de catálogos: abre el menú flotante");
+    ok(await page.evaluate(() => document.activeElement?.getAttribute("role") === "menuitemradio" && document.activeElement.getAttribute("aria-checked") === "true"), "Selector de catálogos: el foco va a la opción activa dentro del toque");
+    await page.keyboard.press("ArrowDown");
+    ok(await page.evaluate(() => document.activeElement?.getAttribute("role") === "menuitemradio" || document.activeElement?.getAttribute("role") === "menuitem"), "Selector de catálogos: las flechas mueven el foco");
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    ok(!(await page.$("[data-menu-flotante]")) && !!(await page.$('[role="dialog"]')), "Selector de catálogos: Escape cierra el menú y no la hoja");
+    ok(await page.evaluate((s) => document.activeElement === document.querySelector(s), sel), "Selector de catálogos: el foco vuelve al disparador");
     ok(errores.length === 0, `Selector de catálogos: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

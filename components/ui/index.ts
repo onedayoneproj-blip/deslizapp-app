@@ -28,4 +28,5 @@ export { EditorEtiquetas } from "./editor-etiquetas";
 export { CosaElegible } from "./cosa-elegible";
 export { TiraMedios, duracionCorta, type ElementoTira } from "./tira-medios";
 export { FilaVariante } from "./fila-variante";
+export { MenuFlotante, type OpcionMenu } from "./menu-flotante";
 export { VideoProducto } from "./video-producto";

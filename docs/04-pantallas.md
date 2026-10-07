@@ -1066,3 +1066,7 @@ Una tienda puede vender varios rubros; cada producto lleva su tipo. En la app: *
 - **Catálogo del cliente:** en la búsqueda, con más de un rubro, pastillas «Todo / Ropa / Accesorios» y las palabras que nombran un tipo («ropa», «perfumes») filtran por él; el resto de la consulta se busca como siempre (`lib/tienda/busqueda.ts`). Con un solo rubro la búsqueda es idéntica (prueba con un caso fijo de Esencias Michel).
 
 **Catálogo del comprador, ver por catálogo:** con más de un rubro, el perfil lleva pestañas de texto «Todo / Perfumes / …» y la hoja «Colecciones» un menú flotante «Catálogo». Ver `docs/12-catalogo-conectado.md`.
+
+## Selector de catálogos: menú flotante (7 oct 2026)
+
+Con más de un rubro, el nombre del catálogo (título de la pestaña Catálogo y cabecera fija de la hoja de producto) abre un **menú flotante** (`MenuFlotante`, `docs/09` §16), no el selector nativo de iOS. Opciones: cada catálogo con su cantidad y, al final, «Lo que vendes» («Vendo otra cosa también» en la hoja). Sin «Todo». El botón «+ Producto» queda siempre abajo a la derecha; solo se esconde si la tienda entera no tiene productos. Un catálogo vacío muestra el estado pequeño «Todavía no hay nada en X.» sin botón propio.
