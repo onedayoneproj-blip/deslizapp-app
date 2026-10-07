@@ -19,6 +19,8 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 
 **Cambio por SQL en datos reales (7 oct, pedido por Lewis):** la Tienda de ensayo (`tienda-de-ensayo`) pasó a `estado = 'activa'` y `catalogo_estado = 'publicado'` (con `activada_en`, `catalogo_publicado_en` y `url_catalogo` iguales a los de Esencias Michel) para poder ver su catálogo público y probar las presentaciones. Sus 2 productos siguen **ocultos**. No dejó rastro en `registro_admin`. Ojo: el admin **no puede activar una tienda** (`admin_cambiar_estado_tienda` solo pausa, reactiva y cambia la prueba) y `publicar_catalogo` es una acción de la tienda: **una tienda en prueba nunca tiene catálogo público** hasta que se registra su primer pago; es parte de lo que resuelve «Publicar mi catálogo».
 
+**Datos de prueba en la Tienda de ensayo (7 oct, por SQL, pedido por Lewis):** «Aro de ensayo» con presentaciones Tamaño (Chico/Grande) × Color (Plata/Dorado), una agotada (Grande · Plata), una con precio propio (Grande · Dorado RD$450) y foto por color; «Frasco de ensayo» con Tamaño 30/50/100 ml (RD$300 / el base RD$500 / RD$800, la de 100 ml agotada). Las variantes se insertaron directo (sin historial de inventario). Sirven para probar el panel y el catálogo público real.
+
 **Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»).
 
 ## Cola para Coding (Lewis pega los prompts)
