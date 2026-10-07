@@ -109,3 +109,7 @@ Lo que los filtros del catálogo usan: perfumes filtra por `para` y `ocasiones` 
 ### Estado de la parte 3 (5 oct 2026)
 
 Implementación inicial publicada por Claude en `feature/pedido-catalogo-panel` (`4307a14`); continuación separada en `feature/pedido-catalogo-panel-continuacion`. No fusionada ni publicada. Contrato público ampliado en `20261004223008` ya aplicado; protección de disponibilidad al registrar en `20261005013157` también aplicada y compatible. No cambiar `url_catalogo`, el HTML publicado ni la solicitud reservada `4DCQ2PZ28F`. Ver `handoffs/pedido-catalogo-panel-continuacion.md` para resultados realmente ejecutados y convivencia con la optimización de #45.
+
+### Ver por catálogo (comprador, 7 oct 2026)
+
+Con más de un rubro con productos, el rótulo del perfil (`.gridtabs`) es un selector: ícono + nombre del catálogo activo + chevron, con un `<select>` nativo encima (opacity 0, 44 px). Opciones: «Todo» (por defecto) y cada rubro «Perfumes · 8». La hoja «Colecciones» repite el mismo `<select>` en una fila «Catálogo». Un solo estado (`catalogoActivo`, `null` = Todo) filtra colecciones, cuadrícula, feed, círculos y contadores; si la colección elegida desaparece, vuelve a «Todos». Un producto sin rubro cuenta como el principal. Con varios catálogos los textos dicen «productos». El buscador y la cabecera no cambian; con un solo rubro nada cambia. Lógica en `lib/tienda/catalogo.ts` (`catalogosDe`, `catalogoFiltrado`, `filtroVigente`). Idea pendiente: enlace por catálogo (`?catalogo=`).

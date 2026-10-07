@@ -9216,8 +9216,8 @@ html.catalogo-html,
   min-height: 44px;
   margin: 0 0 12px;
   padding: 0 4px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
   font-size: 13px;
   font-weight: 700;
 }
