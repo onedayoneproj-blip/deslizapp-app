@@ -23,6 +23,8 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 
 **Rubros de la Tienda de ensayo (7 oct, por SQL, pedido por Lewis):** `rubros = {general, accesorios}` (principal: general) para probar tipo de producto (#67). Sus productos siguen sin tipo (null = general). Sin rastro en `registro_admin`.
 
+**Decisión de Lewis (7 oct): a los rubros de la tienda se les llama «catálogo» en pantalla** (título «Accesorios ⌄» con la rueda nativa de iOS, un catálogo a la vez, sin «Todo»). Alternativas descartadas en el lienzo https://claude.ai/artifact/TrrXrRkCMNej86ZB2GDyvX.
+
 **Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»). **Coordinación entre cuentas (7 oct, Lewis):** Lewis usa un Planning en cada cuenta (dos de Claude y Codex); la única fuente de verdad es el repo: este relevo, `docs/00` y `docs/16`. Cada Planning lo actualiza al lanzar, mergear o decidir algo, y lo lee antes de lanzar.
 
 ## Cola para Coding (Lewis pega los prompts)
@@ -46,6 +48,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `bloquear-video.md` (rama `fix/bloquear-video`) | Sonnet | — (una migración; no a la vez que otra) | **Hecho**, PR #64 mergeado el 7 oct (migración `20261007161952`). Por ahora no se suben videos; lo que ya existe se sigue viendo |
 | `hojas-del-catalogo-gestos.md` (rama `fix/hojas-gestos`) | Sonnet | — | **Hecho**, PR #65 mergeado el 7 oct. Lewis lo probó: falta el scroll con la hoja expandida (siguiente fila) |
 | `hojas-scroll-expandida.md` (rama `fix/hojas-scroll-expandida`) | Sonnet | #65 | **Hecho**, PR #66 mergeado el 7 oct (squash `77f37c2`) tras la prueba de Lewis en el iPhone. Causas: el contenedor de scroll se buscaba solo al tocar, y el touchmove que decidía «scroll» se cancelaba (`debeCancelar` en `lib/gesto-hoja.ts`). Afectaba a pedido, opiniones, planes, Avísame y presentaciones. Falta borrar la rama `fix/hojas-scroll-expandida` |
+| `selector-de-catalogos.md` (rama `feat/selector-catalogos`) | Sonnet | #67 en main | **En curso** (7 oct). Reemplaza el renglón y la fila de #67: el nombre del catálogo es el título con selector nativo (sin «Todo»), y el selector va fijo en la cabecera de la hoja de producto, sin píldora. Sin migraciones; merge a main si una tienda de un solo rubro no cambia. Diseño: `referencias/selector-catalogos/` |
 | `publicar-catalogo.md` (rama `feat/publicar-catalogo`) | Sonnet | `bloquear-video` y `tipo-de-producto` (una migración a la vez) | PR abierto con preview; Planning revisa el SQL y Lewis prueba con una tienda de prueba. El catálogo de una tienda en prueba es público al publicarlo, sin indexar |
 
 Sin prompt todavía (los escribe Planning cuando toque):

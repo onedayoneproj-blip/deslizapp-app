@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Catálogo, nombre como título</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}
+.pant{width:390px;height:844px;background:#fff9ee;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.titulo-btn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;margin:0;color:#174b3a;cursor:pointer;font-size:32px;line-height:1.1}
+.sub{margin:4px 0 0;font-size:14px;color:#4f6a5e}
+.dona{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:800;color:#4f6a5e}
+.tarjeta{border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.buscar{height:48px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;display:flex;align-items:center;gap:10px;padding:0 16px;box-sizing:border-box;font-size:16px;color:#4f6a5ecc}
+.pills{display:flex;gap:8px}
+.pill{height:36px;padding:0 14px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;font:600 13.5px 'Figtree',sans-serif;color:#174b3a;display:inline-flex;align-items:center;gap:6px}
+.pill.on{background:#174b3a;border-color:#174b3a;color:#fff}
+.cont{min-width:20px;height:20px;border-radius:999px;background:#f3ead9;color:#174b3a;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;box-sizing:border-box}
+.pill.on .cont{background:#ffffff33;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+.foto{height:176px;border-radius:20px;display:flex;align-items:flex-end;padding:10px;box-sizing:border-box;font-size:12px;font-weight:800;color:#174b3a99}
+.nom{margin:8px 0 0;font-size:15px;font-weight:800}
+.pre{margin:2px 0 0;font-size:14px;color:#4f6a5e}
+.barra{position:absolute;left:0;right:0;bottom:0;height:84px;background:#fffdf8;border-top:1px solid #efe4d2;display:flex;justify-content:space-around;padding-top:10px;box-sizing:border-box}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#4f6a5e}
+.tab i{width:24px;height:24px;border-radius:8px;border:2px solid currentColor;box-sizing:border-box;display:block}
+.tab.on{color:#174b3a}
+.tab.on i{background:#f5c9d6;border-color:#174b3a}
+.fab{position:absolute;right:18px;bottom:98px;height:54px;border:0;border-radius:999px;background:#ff834f;color:#10362a;padding:0 20px 0 16px;display:inline-flex;align-items:center;gap:8px;font:800 16px 'Figtree',sans-serif;box-shadow:0 10px 26px -8px #10362a66}
+</style>
+</helmet>
+<div class="pant">
+  <div style="padding: 58px 20px 0; display: flex; align-items: center; gap: 14px">
+    <div style="flex: 1; min-width: 0">
+      <button class="titulo-btn disp" type="button" aria-label="Catálogo: Accesorios. Cambiar">Accesorios<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+      <p class="sub">Tus catálogos viven aquí. Toca el nombre y cambia.</p>
+    </div>
+    <div class="dona">
+      <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="#dcebe2" stroke-width="8"></circle><circle cx="32" cy="32" r="26" fill="none" stroke="#174b3a" stroke-width="8" stroke-dasharray="130 164" stroke-linecap="round" transform="rotate(-90 32 32)"></circle><text x="32" y="38" text-anchor="middle" font-family="Fredoka" font-weight="600" font-size="18" fill="#174b3a">7</text></svg>
+      <span>7 disponibles</span>
+    </div>
+  </div>
+  <div style="padding: 14px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <div class="tarjeta">
+      <div style="width: 40px; height: 40px; border-radius: 12px; background: #dcebe2"></div>
+      <div style="flex: 1"><div style="font-weight: 800; font-size: 15px">Tu catálogo está en línea</div><div style="font-size: 13px; color: #4f6a5e">deslizapp.app/tienda/tienda-de-ensayo</div></div>
+    </div>
+    <div class="buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Busca en Accesorios</div>
+    <div class="pills"><span class="pill on">Todos <span class="cont">7</span></span><span class="pill">Por agotarse <span class="cont">1</span></span><span class="pill">Agotados <span class="cont">0</span></span></div>
+    <div class="grid">
+      <div><div class="foto" style="background: #f3ead9">Foto</div><p class="nom">Pulsera tejida</p><p class="pre">RD$600</p></div>
+      <div><div class="foto" style="background: #dcebe2">Foto</div><p class="nom">Aro dorado</p><p class="pre">RD$450</p></div>
+    </div>
+  </div>
+  <button class="fab" type="button"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10362a" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Producto</button>
+  <nav class="barra" aria-label="Pestañas"><span class="tab"><i></i>Inicio</span><span class="tab"><i></i>Pedidos</span><span class="tab on"><i></i>Catálogo</span><span class="tab"><i></i>Clientes</span><span class="tab"><i></i>Más</span></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

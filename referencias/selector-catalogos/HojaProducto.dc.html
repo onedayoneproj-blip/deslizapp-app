@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Producto nuevo, selector en la cabecera</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;family=Caveat:wght@600&amp;display=swap">
+<style>
+body{margin:0}
+.pant{width:390px;height:844px;background:#10362a59;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.hoja{position:absolute;left:0;right:0;top:50px;bottom:0;background:#fff9ee;border-radius:30px 30px 0 0;overflow:hidden}
+.cab{padding:10px 20px 12px;border-bottom:1px solid #efe4d2;background:#fff9eeeb}
+.asa{width:44px;height:5px;border-radius:999px;background:#e2d5bf;margin:0 auto 8px}
+.cerrar{width:40px;height:40px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;cursor:pointer}
+.chip{border:0;background:none;padding:0;display:inline-flex;align-items:center;gap:6px;font:600 20px 'Fredoka',sans-serif;font-stretch:115%;color:#174b3a;cursor:pointer;min-height:44px}
+.cuerpo{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.fotos{height:150px;border-radius:22px;border:2px dashed #e2d5bf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fffdf8}
+.mano{font-family:'Caveat',cursive;font-size:22px;color:#4f6a5e}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo label{font-size:14px;font-weight:800}
+.campo span{height:48px;border-radius:14px;border:1.5px solid #e7dcc8;background:#fff;display:flex;align-items:center;padding:0 14px;font-size:16px;color:#4f6a5e99}
+.lista{border-radius:18px;background:#fff;border:1px solid #efe4d2;overflow:hidden}
+.fila{min-height:52px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:800;border-bottom:1px solid #efe4d2}
+.fila:last-child{border-bottom:0}
+.fila em{margin-left:auto;font-style:normal;font-weight:400;color:#4f6a5e}
+</style>
+</helmet>
+<div class="pant">
+  <div class="hoja" role="dialog" aria-label="Producto nuevo">
+    <div class="cab">
+      <div class="asa"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <h2 class="disp" style="margin: 0; font-size: 24px">Producto nuevo</h2>
+        <button class="cerrar" type="button" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+      <div style="margin-top: 2px">
+        <button class="chip" type="button" aria-label="Catálogo: Perfumes. Cambiar">Perfumes<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+      </div>
+    </div>
+    <div class="cuerpo">
+      <div class="fotos"><span style="font-weight: 800; font-size: 16px">Sube la foto del celular</span><span class="mano">nosotros le ponemos la luz</span></div>
+      <div class="campo"><label>Nombre</label><span>Majestic Oud</span></div>
+      <div class="campo"><label>Precio</label><span>RD$</span></div>
+      <div class="lista"><div class="fila">Colección<em>Árabes</em></div><div class="fila">Visible en el catálogo<em>Sí</em></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
