@@ -27,7 +27,7 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
 | `presentaciones-panel.md` (rama `feat/presentaciones-panel`) | Sonnet | — (después de equipo; no a la vez que otra migración) | **Hecho**, PR #62 mergeado el 7 oct (squash, migración `20261007125411` aplicada). Falta que Lewis lo pruebe en la demo (Lino & Algodón y Esencias Michel) |
-| `presentaciones-catalogo.md` (rama `feat/presentaciones-catalogo`) | Sonnet | `presentaciones-panel.md` | PR abierto con preview (lo ven los compradores). Opción B: «Ver presentaciones»; ♥ sin elegir abre las pastillas |
+| `presentaciones-catalogo.md` (rama `feat/presentaciones-catalogo`) | Sonnet | `presentaciones-panel.md` | **En curso** (Coding la está ejecutando, 7 oct). PR abierto con preview (lo ven los compradores); lo mergea Planning cuando Lewis diga «mergea». Opción B: «Ver presentaciones»; ♥ sin elegir abre las pastillas |
 | `tipo-de-producto.md` (rama `feat/tipo-de-producto`) | Sonnet | `presentaciones-catalogo.md` en main | merge a main si una tienda con un solo rubro no cambia en nada |
 
 Sin prompt todavía (los escribe Planning cuando toque):
