@@ -11,13 +11,15 @@ Mira: `components/catalogo/selector-catalogo.tsx`, `components/catalogo/vista-ca
 ## 1. Lo que Lewis vio en #68 y no le gustó (7 oct 2026)
 
 1. **El botón de crear producto cambió de lugar y perdió el «+».** Pasa cuando el catálogo elegido está vacío (por ejemplo, Accesorios en la Tienda de ensayo): se escondió el botón naranja y el estado vacío puso un «Agregar producto» al centro, sin ícono. **Eso lo pidió mi prompt y estaba mal.** El botón flotante «+ Producto» tiene que estar **siempre en su sitio de siempre** (abajo a la derecha, con el «+»), también con un catálogo vacío.
-2. **El selector nativo de iOS (la rueda) no lo convence.** Quiere el **menú flotante** del dibujo (`CatalogoMenu.dc.html`), en los dos lugares donde hoy hay selector: el título de la pestaña Catálogo y la cabecera fija de la hoja de producto.
+2. **El selector nativo de iOS no lo convence** (en la captura se ve el menú gris del sistema con «General · 2 / Accesorios · 0 ✓ / Lo que vendes…»). Quiere el **menú flotante** del dibujo (`CatalogoMenu.dc.html`), en los dos lugares donde hoy hay selector: el título de la pestaña Catálogo y la cabecera fija de la hoja de producto.
 
 ## 2. Qué se arregla
 
 ### 2.1 Botón «+ Producto»
 
-- Vuelve a verse **siempre**, con su «+», donde estaba antes de #68 (`BotonFlotante`, sin cambios). Solo se oculta, como antes de #67, cuando la tienda entera no tiene ningún producto (ahí manda el estado vacío «Tu vitrina está vacía»).
+**Lo que Lewis ve y no quiere** (captura del 7 oct, Tienda de ensayo, catálogo «Accesorios» vacío): una píldora naranja grande **«Agregar producto» al centro de la pantalla**, debajo del texto «Todavía no hay nada en Accesorios.». **Esa píldora se quita.** En su lugar tiene que verse el botón flotante de siempre, **igual que el «+ Cliente» de la pestaña Clientes cuando ya hay clientes**: abajo a la derecha, encima de la barra de navegación, con su «+» y la palabra («+ Producto»). Es el mismo componente `BotonFlotante` y no se cambia su aspecto.
+
+- Vuelve a verse **siempre**, con su «+», donde estaba antes de #68 (`BotonFlotante`, sin cambios). Solo se oculta, como en Clientes, cuando la tienda entera no tiene ningún producto (ahí manda el estado vacío «Tu vitrina está vacía» con su botón, como hoy). Un catálogo vacío dentro de una tienda que sí tiene productos **no** cuenta como tienda vacía: ahí va el botón flotante.
 - **Catálogo vacío:** el estado vacío pequeño queda (título y remate con voz de `docs/11`), **sin botón propio**; el flotante es el que invita. Si el texto dice algo como «Toca + Producto…», sin repetir el verbo del botón.
 - Revisa que ningún otro estado (cargando, filtros sin resultado, permisos) lo esconda ni lo mueva.
 
