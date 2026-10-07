@@ -37,6 +37,8 @@ psql_local < scripts/probar-admin-trabajo-db.sql
 psql_local < scripts/probar-mi-marca-db.sql
 python3 scripts/probar-mi-marca-concurrencia.py
 psql_local < scripts/probar-ver-como-bloqueo-db.sql
+psql_local < scripts/probar-permisos-db.sql
+python3 scripts/probar-enlaces-concurrencia.py
 node scripts/comparar-admin-reglas.mjs
 node scripts/comparar-admin-mensualidades.mjs
 psql_local < scripts/probar-admin-mensualidades-db.sql

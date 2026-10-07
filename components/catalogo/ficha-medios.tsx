@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXTO_SIN_PERMISO } from "@/lib/equipo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CREDITOS_POR_RETOQUE } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
@@ -339,8 +340,8 @@ function HojaMedio({
     if (!taller.guardada(foto.url)) {
       // Foto nueva: el interruptor solo anota la intención; se manda al taller cuando el producto se guarde.
       const marcada = !!foto.retocar;
-      const { deshabilitado, motivo: sinMotivo } = estadoInterruptor({ soloMirar: taller.soloMirar, libres: taller.libres, marcadas, estaMarcada: marcada, marcaLista: taller.marcaLista });
-      const faltaMarca = !taller.soloMirar && taller.marcaLista === false && !marcada;
+      const { deshabilitado, motivo: sinMotivo } = estadoInterruptor({ soloMirar: taller.soloMirar, sinPermiso: taller.sinPermiso, libres: taller.libres, marcadas, estaMarcada: marcada, marcaLista: taller.marcaLista });
+      const faltaMarca = !taller.soloMirar && !taller.sinPermiso && taller.marcaLista === false && !marcada;
       return {
         titulo: conBeta(TITULO_RETOCAR_ESTA),
         // El motivo de la marca es largo: va en el pie, que baja de línea, no en el detalle, que se corta con «…».
@@ -367,9 +368,11 @@ function HojaMedio({
         ),
       };
     }
-    const sinMarca = !taller.soloMirar && taller.marcaLista === false;
+    const sinMarca = !taller.soloMirar && !taller.sinPermiso && taller.marcaLista === false;
     const motivo = taller.soloMirar
       ? "Solo mirar: aquí no se manda nada al taller."
+      : taller.sinPermiso
+        ? TEXTO_SIN_PERMISO
       : sinMarca
         ? MOTIVO_SIN_MARCA
         : taller.marcaLista === null

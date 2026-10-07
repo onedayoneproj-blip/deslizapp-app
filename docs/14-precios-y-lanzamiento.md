@@ -92,4 +92,4 @@ Para la conversación de venta y para revisar los precios:
 - **Editor:** lo anterior más productos y catálogo.
 - **Administrador:** lo anterior más créditos, retoque, compras y Mi marca.
 
-Se construye dentro de `docs/prompts/suscripciones-y-varias-tiendas.md` (Opus), junto con el límite de colaboradores. Lewis confirmó los tres niveles el 7 oct 2026. Prompt: `docs/prompts/colaboradores-e-invitaciones.md` (incluye enlaces de invitación de un solo uso con aprobación del dueño y el enlace de tienda nueva que genera el admin).
+**Ya construido** (7 oct 2026, `docs/prompts/colaboradores-e-invitaciones.md`, PR abierto; lo mergea Planning): los tres niveles los exige la base, «Tu equipo» en el menú, enlaces de un solo uso con aprobación de la dueña, invitar por correo con nivel y el enlace de tienda nueva desde el admin. Auditoría: `docs/handoffs/permisos-auditoria.md`. **Queda para suscripciones:** el límite de colaboradores por plan va en `public.puede_sumar_colaborador` (hoy siempre sí; ya lo llaman aprobar, invitar por correo y crear enlace).

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -121,6 +122,8 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
 function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerEspera: (boton: HTMLButtonElement) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
   const toast = useToast();
   const { actualizarProducto } = useData();
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario, espera } = usePanelUI();
   const { mostrarToast: mostrarToastUI } = useToastUI();
@@ -159,27 +162,28 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     </div>
     <ListaAgrupada>
       <FilaLista titulo="Visible en el catálogo" detalle={visible ? "Visible" : "Oculto del catálogo"}
-        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
+        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={sinCatalogo || guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={sinCatalogo ? () => toast(porque) : bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
       {!espera.error && !espera.cargando && (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) > 0 && <FilaLista titulo={textoEspera(espera.resumen!.personasPorProducto.get(producto.id)!)} onClick={e => alVerEspera(e.currentTarget)}/>}
     </ListaAgrupada>
     {espera.error ? <ListaAgrupada><FilaLista titulo="No pudimos leer la lista de espera" onClick={() => espera.reintentar()} fin={<span>Reintentar</span>}/></ListaAgrupada> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
     {activas.length > 0 ? (
       // Con opciones, el stock es por combinación: se cambia en la ficha.
       <ListaAgrupada etiqueta="Stock e historial">
-        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={() => navegar(`/catalogo/${producto.id}/editar`)} />
+        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "combinación" : "combinaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={sinCatalogo ? () => toast(porque) : () => navegar(`/catalogo/${producto.id}/editar`)} />
         <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
       </ListaAgrupada>
     ) : (
-      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial} soloLectura={sinCatalogo}
         alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
     )}
     {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
     {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
     {/* Con cambios de stock sin guardar, "Guardar cambios" es el único botón principal a la vista */}
     {!inventario.pendiente && <div className="grid grid-cols-2 gap-3">
-      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
+      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando || sinCatalogo} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
       <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
     </div>}
+    {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">{porque}</p>}
     <ConfirmacionInventario inventario={inventario}/>
   </div>;
 }
@@ -200,6 +204,9 @@ function FormularioProducto({
   alVerHistorial: (boton: HTMLButtonElement) => void;
 }) {
   const { crearProducto, guardarVariantes, ajustarStock, trabajosRetoque, getProducto } = useData();
+  // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
   const inventario = useInventarioPendiente(producto, alTerminar);
   const { tiendaId, tienda } = useTiendaActiva();
   const { abrirInventario } = usePanelUI();
@@ -500,14 +507,15 @@ function FormularioProducto({
         }}
       />
 
+      {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
       {(!producto || !inventario.pendiente || tieneOpciones) && (
-        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando} onClick={alGuardar}>
+        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo} onClick={alGuardar}>
           {producto ? "Guardar cambios" : "Publicar"}
         </Boton>
       )}
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
-      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
+      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={sinCatalogo || guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
       {producto && <ConfirmacionEliminarProducto producto={producto} abierta={eliminando} pendiente={firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto} alCerrar={() => setEliminando(false)} alEliminar={alEliminar} alIniciar={alIniciarEliminacion} alOcultar={() => { setVisibilidad({ base: false, valor: false }); setEliminando(false); }}/>}
       <ConfirmacionInventario inventario={inventario}/>
       <HojaMotivoVariantes

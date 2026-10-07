@@ -47,6 +47,8 @@ export type EstadoAdminDemo = {
   entradas: Record<string, string>;
   uso: { almacenamientoBytes: number; baseBytes: number };
   usuarioId: string;
+  /** Más › Invitaciones (demo): enlaces de tienda nueva, sin código. */
+  enlacesTienda?: import("../../admin/tipos").EnlaceTiendaNueva[];
 };
 /** Seed aislado: reutiliza las tiendas/productos existentes sin alterar localStorage ni el seed del panel. */
 export function crearEstadoAdminDemo(

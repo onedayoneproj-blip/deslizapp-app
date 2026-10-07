@@ -14,6 +14,7 @@ import type { DatosClienteEditables } from "./clientes";
 import type { DatosEdicionPedido, DatosPedidoManual } from "./pedidos";
 import type { DatosMarca } from "./tiendas";
 import type { DatosMarcaRetoque, MarcaRetoque } from "../marca-retoque";
+import type { EquipoTienda, MiPermiso, Nivel } from "../equipo";
 
 export type { DatosClienteEditables, DatosEdicionPedido, DatosMarca, DatosPago, DatosPedidoManual };
 
@@ -101,6 +102,23 @@ export type FuenteDatos = {
   getMarcaRetoque(tiendaId: string): Promise<MarcaRetoque>;
   /** Guarda lo de arriba. Quitar una referencia borra también su archivo. Devuelve la marca como quedó. */
   guardarMarcaRetoque(tiendaId: string, datos: DatosMarcaRetoque): Promise<MarcaRetoque>;
+
+  // Equipo (docs/prompts/colaboradores-e-invitaciones.md). Lo exige la base: un colaborador recibe SinPermiso.
+  /** Qué es esta cuenta en la tienda: dueña o colaboradora de un nivel. Es lectura. */
+  getMiPermiso(tiendaId: string): Promise<MiPermiso>;
+  /** Solo la dueña: miembros, solicitudes que esperan su visto bueno, enlaces activos (sin código) e invitaciones por correo. */
+  getEquipo(tiendaId: string): Promise<EquipoTienda>;
+  /** Crea un enlace de un solo uso y devuelve su CÓDIGO (se muestra una sola vez; la base guarda solo el hash). */
+  crearEnlaceEquipo(tiendaId: string, nivel: Nivel, nota: string | null): Promise<string>;
+  aprobarSolicitud(tiendaId: string, enlaceId: string, nivel: Nivel): Promise<void>;
+  rechazarSolicitud(tiendaId: string, enlaceId: string): Promise<void>;
+  cancelarEnlaceEquipo(tiendaId: string, enlaceId: string): Promise<void>;
+  cambiarNivelMiembro(tiendaId: string, usuarioId: string, nivel: Nivel): Promise<void>;
+  quitarMiembro(tiendaId: string, usuarioId: string): Promise<void>;
+  /** Invitar por correo: no pide aprobación (la dueña ya escribió quién). Al entrar con Google con ese correo, queda en el equipo. */
+  invitarPorCorreo(tiendaId: string, email: string, nivel: Nivel): Promise<void>;
+  /** Un colaborador se va de la tienda. */
+  salirDeTienda(tiendaId: string): Promise<void>;
 
   // Catálogo en línea del dueño (RPC en Supabase; lo arma el equipo). Devuelven la tienda con su estado nuevo. Estos campos NO se
   // escriben por UPDATE directo: solo por estas funciones.
@@ -283,4 +301,6 @@ export type FuenteDatos = {
   simularAvanceCatalogo(tiendaId: string): Promise<Tienda>;
   simularPedidoCatalogo(tiendaId: string): Promise<{ pedido: PedidoConItems; cliente: Cliente }>;
   reiniciarDemo(): Promise<void>;
+  /** Mirar la demo como dueña o como colaborador de un nivel (solo este navegador). En modo real lanza SoloDemo. */
+  mirarDemoComo(nivel: "dueno" | Nivel): Promise<void>;
 };

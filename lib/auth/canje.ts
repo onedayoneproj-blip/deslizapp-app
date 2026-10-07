@@ -31,12 +31,13 @@ export function debeComprobarSesion(modo: "demo" | "real" | null, hayConfiguraci
   return modo === "real" || hayErrorLogin || hayCookieSesion;
 }
 
-/** La cookie que recuerda a dónde volver después de Google (solo el link de un pedido del catálogo). */
+/** La cookie que recuerda a dónde volver después de Google (el link de un pedido del catálogo, o `/unirse`). */
 export const COOKIE_VOLVER = "dz_volver";
 
 /**
- * A dónde se puede volver después de Google: solo rutas locales permitidas (hoy, `/pedido/CODIGO`). Cualquier otra cosa
- * (otro dominio, `//x`, rutas con `..`, un código que no es de solicitud) vuelve al panel: nunca se redirige afuera.
+ * A dónde se puede volver después de Google: solo rutas locales permitidas (`/pedido/CODIGO` y `/unirse`, SIN el código del
+ * enlace: ese queda guardado en el navegador y nunca viaja en el retorno). Cualquier otra cosa (otro dominio, `//x`, rutas con
+ * `..`, un código que no es de solicitud) vuelve al panel: nunca se redirige afuera.
  */
 export function vueltaPermitida(valor: string | null | undefined): string | null {
   if (!valor) return null;
@@ -46,6 +47,7 @@ export function vueltaPermitida(valor: string | null | undefined): string | null
   } catch {
     return null;
   }
+  if (ruta === RUTA_UNIRSE) return ruta;
   return /^\/pedido\/[A-HJ-NP-Z2-9]{10}$/.test(ruta) ? ruta : null;
 }
 
@@ -57,8 +59,12 @@ export function callbackGoogle(origen: string, volverA?: string): string {
   return url.href;
 }
 
+/** Donde se abre un enlace de invitación (docs/prompts/colaboradores-e-invitaciones.md §3). */
+export const RUTA_UNIRSE = "/unirse";
+
 /** Mantiene el login normal del panel; el retorno de una solicitud monta su vista privada tras comprobar RLS. */
 export function destinoGoogle(vuelta: string | null, error: boolean): string {
   if (!vuelta) return error ? "/?error_login=1" : "/";
+  if (vuelta === RUTA_UNIRSE) return error ? `${RUTA_UNIRSE}?error_login=1` : RUTA_UNIRSE;
   return `${vuelta}?registrar=1${error ? "&error_login=1" : ""}`;
 }

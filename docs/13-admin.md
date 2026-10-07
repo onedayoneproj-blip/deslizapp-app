@@ -28,7 +28,7 @@ Barra inferior de 5 pestañas, igual a la de la app (cápsula, selector rosa). E
 | **Tiendas** | Lista con búsqueda y filtros → ficha de cada tienda → «Ver como». |
 | **Trabajo** | Segmento Catálogos · Fotos. Desde un catálogo: Personalizar. |
 | **Cobros** | Lo cobrado y lo pendiente → Registrar pago. |
-| **Más** | Invitaciones (parte 5), Planes, Funciones nuevas, Novedades, Salud, Registro, Quién entra al admin. |
+| **Más** | Invitaciones (enlaces de tienda nueva, ya construido), Planes, Funciones nuevas, Novedades, Salud, Registro, Quién entra al admin. |
 
 ## 3. Pantallas
 
@@ -86,6 +86,7 @@ Ver §8.
 Ver §9.
 
 ### 3.9 Más, Salud y Registro (`Mas`, `Salud`, `Registro`)
+- **Invitaciones** (construido el 7 oct 2026, `components/admin/pantalla-mas.tsx`): «Crear enlace de tienda» con una nota opcional («Para Rosa»). El enlace (`/unirse/<código>`) se muestra **una sola vez**, con Copiar y Compartir; la base guarda solo el hash. Lista de los últimos 50 con su estado (sin abrir, abierto sin tienda, tienda creada, cancelado, venció), quién lo abrió y «Cancelar». Funciones: `admin_crear_enlace_tienda_nueva`, `admin_enlaces_tienda_nueva`, `admin_cancelar_enlace_tienda`; el registro anota el enlace, nunca el código. Mientras sea beta, una tienda solo se abre así (`crear_tienda` ya no la puede llamar una cuenta común).
 - **Funciones nuevas:** encender una función que está en preparación (hoy solo `proximaJugada`) para tiendas elegidas, antes de soltarla para todas.
 - **Novedades:** la versión publicada (`lib/novedades.ts`). Quién la vio queda para después (§11).
 - **Salud:**
@@ -223,7 +224,7 @@ Ejemplo de tono: «¡Hola, Michel! Tu plan vence el jueves. Si ya pagaste, mánd
 
 ## 11. Lo que queda para después
 
-- **Invitaciones y onboarding** (parte 5): dependen del diseño del onboarding (lienzo «Onboarding de Deslizapp», aún sin elegir opción). Mientras tanto, en Más › Invitaciones va «Próximamente».
+- **Onboarding** (parte 5): depende del diseño (lienzo «Onboarding de Deslizapp», aún sin elegir opción). Las invitaciones ya están (§3.9): quien abre un enlace de tienda nueva crea su tienda con nombre y rubro y entra al panel.
 - **Recarga mensual automática de créditos y cobro recurrente:** primero manual desde el admin; una tarea programada más adelante.
 - **Quién vio las novedades.**
 - **Errores de la app en Salud:** hoy no hay registro de errores. Cuando lo haya, se suma.
@@ -239,4 +240,4 @@ Cada parte es un PR. Las partes 2, 3 y 4 dependen de la 1. Entre ellas son indep
 3. **Trabajo: catálogos, fotos (retoque real) y Personalizar** (`admin-3-trabajo.md`): incluye el cambio del retoque en el panel de la tienda.
 4. **Cobros, Planes, Más, Salud y Registro** (`admin-4-cobros.md`): incluye que la app de las tiendas lea los planes de la base.
 5. **Suscripción de la tienda** (`docs/prompts/suscripcion-tienda.md`, después de la 4): lo que la tienda ve para elegir plan y pagar, más «Por revisar» en Cobros y en Hoy. No confundir con las invitaciones del onboarding, que son otra parte.
-5. **Invitaciones** (con el onboarding; sin prompt todavía).
+5. **Invitaciones**: hechas en `docs/prompts/colaboradores-e-invitaciones.md` (PR abierto, lo mergea Planning). El onboarding de historias va aparte.

@@ -87,6 +87,8 @@ El enlace guardado de Esencias Michel se cambió a https://deslizapp-app.vercel.
 4. Cobros, Planes, Más, Salud y Registro: `docs/prompts/admin-4-cobros.md`, sigue en preparación.
 5. **Suscripción de la tienda** (elegir plan, pagar con captura, «Por revisar» en Cobros, pausa; diseño aprobado el 6 oct 2026): `docs/prompts/suscripcion-tienda.md`, después de la 4. Precios, pago anual y pruebas: `docs/14-precios-y-lanzamiento.md`. Diseño: `referencias/suscripcion/`.
 
+**Equipo, niveles e invitaciones** (`docs/prompts/colaboradores-e-invitaciones.md`, 7 oct 2026): rama `feat/equipo-e-invitaciones`, **PR abierto sin merge** (seguridad y créditos: lo mergea Planning cuando Lewis lo diga). Las 4 migraciones ya están aplicadas en Supabase (`20261007024238`, `…030128`, `…030828`, `…031102`). Auditoría: `docs/handoffs/permisos-auditoria.md`. Lo siguiente es `docs/prompts/suscripciones-y-varias-tiendas.md` (pone el límite en `puede_sumar_colaborador`).
+
 **Dos Coding en paralelo** (desde el 5 oct 2026): uno construye el admin y otro hace los pendientes de la app. Reglas para que no se pisen:
 - Cada uno en su rama, desde `main` actualizado. Antes de abrir o actualizar un PR, `git fetch origin && git rebase origin/main`.
 - **Migraciones:** las dos sesiones comparten la base de producción, así que un PR sin merge igual cambia Supabase. Reglas:

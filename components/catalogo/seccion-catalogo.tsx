@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ESTADOS_QUE_SE_REFRESCAN, vistaCatalogo, type EstadoCatalogo } from "@/lib/catalogo-estado";
 import { consumirRevisionDelCatalogo } from "@/lib/destello";
 import { mensajeDeError } from "@/lib/data/errores";
+import { usePermisos } from "@/lib/data/permisos";
 import { useData } from "@/lib/data/provider";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
 import type { Tienda } from "@/lib/types";
@@ -46,6 +47,9 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
   const { solicitarCatalogo, pedirCambiosCatalogo, publicarCatalogo, releerTienda } = useData();
   const { abrirMiMarca, abrirPlan } = usePanelUI();
   const toast = useToast();
+  // Pedir, revisar y publicar el catálogo son del grupo «catalogo» (Editor en adelante). La base lo exige igual.
+  const { puede, porque } = usePermisos();
+  const sinCatalogo = !puede("catalogo");
 
   const [enLinea, setEnLinea] = useState(false);
   const [pedir, setPedir] = useState(false);
@@ -142,6 +146,7 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
           },
           alConectar: () => abrirMiMarca("enlace"),
           alVerPlan: abrirPlan,
+          sinPermiso: sinCatalogo ? () => toast(porque) : undefined,
         }}
       />
       <HojaPedirCatalogo

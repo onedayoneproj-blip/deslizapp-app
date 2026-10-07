@@ -30,11 +30,12 @@ insert into public.admins(usuario_id,email) values
 insert into public.tiendas(id,nombre,slug,estado,creditos_retoque) values
  ('ce000000-0000-4000-8000-00000000000a','Ver como A fixture','ver-como-a-fixture','activa',50),
  ('ce000000-0000-4000-8000-00000000000b','Ver como B fixture','ver-como-b-fixture','activa',50);
-insert into public.miembros(usuario_id,tienda_id,rol) values
- ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000a','dueno'),
- ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000b','staff'),
- ('cd000000-0000-4000-8000-000000000003','ce000000-0000-4000-8000-00000000000a','dueno'),
- ('cd000000-0000-4000-8000-000000000004','ce000000-0000-4000-8000-00000000000a','staff');
+-- Los colaboradores con nivel Administrador (todo menos el equipo): esta prueba es de Ver como, no de niveles (probar-permisos-db.sql).
+insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
+ ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000a','dueno','ayudante'),
+ ('cd000000-0000-4000-8000-000000000001','ce000000-0000-4000-8000-00000000000b','staff','administrador'),
+ ('cd000000-0000-4000-8000-000000000003','ce000000-0000-4000-8000-00000000000a','dueno','ayudante'),
+ ('cd000000-0000-4000-8000-000000000004','ce000000-0000-4000-8000-00000000000a','staff','administrador');
 
 -- Una fila de cada tabla con escritura para miembros, en cada tienda (ids derivados de la tienda y un sufijo).
 create function pg_temp.id(t uuid, k text) returns uuid language sql immutable as $$ select md5(t::text||k)::uuid $$;

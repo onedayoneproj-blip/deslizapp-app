@@ -21,6 +21,8 @@ export type AccionesTarjeta = {
   alCompartirReciente: () => void;
   alConectar: () => void;
   alVerPlan: () => void;
+  /** Esta cuenta no tiene el grupo catálogo: «Pedirlo» y «Revisar» se ven apagados y, al tocarlos, llaman esto (explica por qué). */
+  sinPermiso?: () => void;
 };
 
 /**
@@ -59,7 +61,7 @@ export function TarjetaCatalogo({ vista, tienda, acciones }: { vista: VistaCatal
 function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta }) {
   switch (vista) {
     case "sin":
-      return <Sin boton="Pedirlo" alTocar={acciones.alPedir} />;
+      return <Sin boton="Pedirlo" alTocar={acciones.sinPermiso ?? acciones.alPedir} apagado={!!acciones.sinPermiso} />;
     case "conectar":
       return <Sin boton="Conectar mi catálogo" alTocar={acciones.alConectar} debajo />;
     case "solicitado":
@@ -67,7 +69,7 @@ function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tie
     case "generando":
       return <Generando paso={pasoActual(tienda.catalogoPaso)} />;
     case "revisar":
-      return <Revisar alTocar={acciones.alRevisar} />;
+      return <Revisar alTocar={acciones.sinPermiso ?? acciones.alRevisar} apagado={!!acciones.sinPermiso} />;
     case "cambios":
       return <Cambios notas={tienda.catalogoNotasCambios} />;
     case "recien":
@@ -100,12 +102,14 @@ function Insignia({ fondo, children, className = "" }: { fondo: string; children
 }
 
 /** Botón de la tarjeta: 36 px de alto con el área de toque de 44 px (pseudo-elemento invisible). */
-function Boton({ children, alTocar, clase, latido = false }: { children: ReactNode; alTocar: () => void; clase: string; latido?: boolean }) {
+function Boton({ children, alTocar, clase, latido = false, apagado = false }: { children: ReactNode; alTocar: () => void; clase: string; latido?: boolean; apagado?: boolean }) {
   return (
     <button
       type="button"
       onClick={alTocar}
-      className={`tocable relative isolate flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-extrabold after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${clase} ${latido ? "cat-anim-onda-cta" : ""}`}
+      aria-disabled={apagado || undefined}
+      data-sin-permiso={apagado || undefined}
+      className={`${apagado ? "opacity-40 " : ""}tocable relative isolate flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-extrabold after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${clase} ${latido ? "cat-anim-onda-cta" : ""}`}
     >
       {children}
     </button>
@@ -125,7 +129,7 @@ function Icono({ children, tamano = 22, trazo = "#174b3a", grosor = 2 }: { child
 // ---------------------------------------------------------------------------
 
 /** 1 · Sin catálogo (y "Conectar mi catálogo" cuando figura publicado pero no hay un enlace válido). */
-function Sin({ boton, alTocar, debajo = false }: { boton: string; alTocar: () => void; debajo?: boolean }) {
+function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: string; alTocar: () => void; debajo?: boolean; apagado?: boolean }) {
   return (
     <div className={`${CAJA} border-[1.5px] border-dashed border-bosque/30 bg-papel`}>
       <span aria-hidden="true" className="cat-anim-nota absolute top-1 right-[18px] font-mano text-[17px] text-mandarina-texto" style={{ transform: "rotate(-4deg)" }}>
@@ -142,7 +146,7 @@ function Sin({ boton, alTocar, debajo = false }: { boton: string; alTocar: () =>
         </Insignia>
         <Textos titulo="Tu catálogo en línea" subtitulo="Lo armamos por ti con tus fotos. Tú solo lo compartes." />
         {!debajo && (
-          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido>
+          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido={!apagado} apagado={apagado}>
             {boton}
           </Boton>
         )}
@@ -259,7 +263,7 @@ function Generando({ paso }: { paso: 1 | 2 | 3 }) {
 }
 
 /** 4 · Listo para revisar. */
-function Revisar({ alTocar }: { alTocar: () => void }) {
+function Revisar({ alTocar, apagado = false }: { alTocar: () => void; apagado?: boolean }) {
   return (
     <div className={`${CAJA} bg-rosa`}>
       <div className={FILA}>
@@ -273,7 +277,7 @@ function Revisar({ alTocar }: { alTocar: () => void }) {
           <span aria-hidden="true" className="cat-anim-onda absolute top-0 right-0 isolate h-3 w-3 rounded-full border-2 border-rosa bg-mandarina" />
         </Insignia>
         <Textos titulo="¡Está listo! Échale un ojo" subtitulo="Revísalo y publícalo cuando te guste." colorSub="text-bosque" />
-        <Boton alTocar={alTocar} clase="bg-bosque text-papel">
+        <Boton alTocar={alTocar} clase="bg-bosque text-papel" apagado={apagado}>
           Revisar
         </Boton>
       </div>

@@ -197,6 +197,11 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
       rpc("admin_registro", { p_filtro: filtro, p_antes_de: antesDe ?? null }),
     admins: () => rpc("admin_admins"),
     agregarAdmin: (email) => rpc("admin_agregar_admin", { p_email: email }),
+    enlacesTiendaNueva: () => rpc("admin_enlaces_tienda_nueva"),
+    crearEnlaceTiendaNueva: (nota) => rpc<string>("admin_crear_enlace_tienda_nueva", { p_nota: nota?.trim() || null }, false),
+    cancelarEnlaceTienda: async (enlaceId) => {
+      await rpc("admin_cancelar_enlace_tienda", { p_enlace_id: enlaceId });
+    },
     quitarAdmin: (usuarioId) =>
       rpc("admin_quitar_admin", { p_usuario_id: usuarioId }),
     marcarActividad: (tiendaId) =>

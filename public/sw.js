@@ -4,10 +4,11 @@
 // - Páginas y código (HTML, JS, CSS): RED PRIMERO. Siempre se pide la versión publicada;
 //   la copia guardada solo se usa si no hay conexión. Así nadie queda atrapado en una versión vieja.
 // - Imágenes, fuentes e íconos: CACHÉ PRIMERO (cambian poco y pesan).
-// - /api/* y el propio sw.js: nunca pasan por la caché.
+// - /api/*, /unirse y el propio sw.js: nunca pasan por el service worker ni por la caché. /unirse/<código> lleva un secreto de un
+//   solo uso en la dirección: el service worker no lo intercepta, no lo guarda y no lo sirve sin conexión.
 // Si cambia la forma de guardar, subir VERSION: al activarse borra las cachés anteriores.
 
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE_PAGINAS = `deslizapp-paginas-${VERSION}`;
 const CACHE_RECURSOS = `deslizapp-recursos-${VERSION}`;
 
@@ -43,6 +44,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/") || url.pathname === "/sw.js") return;
+  // Sin respondWith: el navegador la pide por su cuenta, igual que sin service worker.
+  if (url.pathname === "/unirse" || url.pathname.startsWith("/unirse/")) return;
 
   if (esRecurso(request, url)) {
     event.respondWith(cachePrimero(request));

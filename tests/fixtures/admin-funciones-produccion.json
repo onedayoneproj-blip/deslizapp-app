@@ -66,9 +66,42 @@
     "authenticated": true
   },
   {
+    "nombre": "admin_cancelar_enlace_tienda",
+    "argumentos": "p_enlace_id uuid",
+    "md5": "6282dae0234dc7755af280d2f19476e4",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
     "nombre": "admin_catalogo_avanzar",
     "argumentos": "p_tienda_id uuid, p_accion text, p_url_catalogo text",
     "md5": "8413b4165ac2c24db374b52f7e8a342d",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_crear_enlace_tienda_nueva",
+    "argumentos": "p_nota text",
+    "md5": "a185a9339d066fa4cb44fe8c0438956f",
+    "definer": true,
+    "configuracion": [
+      "search_path=\"\""
+    ],
+    "anon": false,
+    "authenticated": true
+  },
+  {
+    "nombre": "admin_enlaces_tienda_nueva",
+    "argumentos": "",
+    "md5": "f452f4c48ea0967294d2d86a45b4bb1e",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
@@ -398,7 +431,7 @@
   {
     "nombre": "gastar_creditos",
     "argumentos": "p_tienda_id uuid, p_cantidad integer",
-    "md5": "4dc9cce8ed57ef2af7e77f8a54bfe675",
+    "md5": "85ec12918ba7b1473586ce834725e44c",
     "definer": true,
     "configuracion": [
       "search_path=\"\""
@@ -420,7 +453,7 @@
   {
     "nombre": "pedir_retoque",
     "argumentos": "p_producto_id uuid, p_medio_url text",
-    "md5": "bf64a8c120310043e2cd1456411c7d22",
+    "md5": "05749e6bd9e3dbf4d1f61caed286c108",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

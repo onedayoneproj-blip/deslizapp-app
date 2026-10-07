@@ -4,6 +4,7 @@
 
 import { CREDITOS_POR_RETOQUE } from "./config";
 import { MOTIVO_SIN_CREDITOS, MOTIVO_SIN_MARCA, MOTIVO_SOLO_MIRAR } from "./retoque-textos";
+import { TEXTO_SIN_PERMISO } from "./equipo";
 
 export type EstadoInterruptor = { deshabilitado: boolean; motivo: string | null };
 
@@ -20,9 +21,12 @@ export function estadoInterruptor(p: {
   /** La regla única de lib/marca-retoque.ts: null mientras se lee (deshabilitado, sin motivo todavía). */
   marcaLista: boolean | null;
   costo?: number;
+  /** El nivel de la cuenta no incluye créditos (solo dueña y Administrador retocan). La base lo exige igual. */
+  sinPermiso?: boolean;
 }): EstadoInterruptor {
   const costo = p.costo ?? CREDITOS_POR_RETOQUE;
   if (p.soloMirar) return { deshabilitado: true, motivo: MOTIVO_SOLO_MIRAR };
+  if (p.sinPermiso) return { deshabilitado: true, motivo: TEXTO_SIN_PERMISO };
   if (p.estaMarcada) return { deshabilitado: false, motivo: null };
   if (p.marcaLista === null) return { deshabilitado: true, motivo: null };
   if (!p.marcaLista) return { deshabilitado: true, motivo: MOTIVO_SIN_MARCA };

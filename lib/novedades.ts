@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.40.0", fecha: "2026-10-07", titulo: "Tu equipo, cada uno en lo suyo.",
+    cambios: [
+      "En el menú, «Tu equipo»: invita por enlace o por correo y aprueba a quien entra.",
+      "Eliges qué hace cada persona: Ayudante, Editor o Administrador. Lo puedes cambiar cuando quieras.",
+      "Lo que alguien no puede hacer se ve apagado, con el porqué.",
+    ],
+  },
+  {
     version: "0.39.0", fecha: "2026-10-06", titulo: "Tu marca, la guía del taller.",
     cambios: [
       "En «Mi marca» cuéntanos tu marca en 3 palabras y súbenos de 3 a 6 fotos que te gusten.",

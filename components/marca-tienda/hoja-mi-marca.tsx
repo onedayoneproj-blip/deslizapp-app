@@ -1,5 +1,6 @@
 "use client";
 
+import { usePermisos } from "@/lib/data/permisos";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
@@ -64,7 +65,11 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
 }
 
 function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alTerminar: () => void; mostrarEnlace: boolean }) {
-  const { actualizarMarca, guardarMarcaRetoque, getMarcaRetoque, getPromos, getProductos, soloMirar } = useData();
+  const { actualizarMarca, guardarMarcaRetoque, getMarcaRetoque, getPromos, getProductos, soloMirar: verComo } = useData();
+  // Mi marca la edita la dueña o un Administrador (grupo «marca»). A los demás se les muestra sin editar, con el porqué.
+  const { puede, porque } = usePermisos();
+  const sinPermiso = !verComo && !puede("marca");
+  const soloMirar = verComo || sinPermiso;
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
@@ -333,7 +338,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
       )}
 
       {soloMirar ? (
-        <p className="text-center text-secundario text-texto-secundario">Solo mirar: aquí no se cambia nada.</p>
+        <p className="text-center text-secundario text-texto-secundario" data-sin-permiso={sinPermiso || undefined}>{sinPermiso ? porque : "Solo mirar: aquí no se cambia nada."}</p>
       ) : (
         <button type="button" onClick={guardar} disabled={guardando} className="tocable h-14 rounded-full bg-bosque text-[16.5px] font-extrabold text-papel disabled:opacity-60">
           Guardar mi marca

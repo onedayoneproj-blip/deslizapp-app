@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { NOVEDADES, VERSION_ACTUAL, novedadesDesde, type Novedad } from "@/lib/novedades";
 import { HojaInventario, type VistaInventario } from "../catalogo/hoja-inventario";
 import { HojaMiMarca } from "../marca-tienda/hoja-mi-marca";
+import { HojaEquipo } from "../equipo/hoja-equipo";
 import { HojaPlan } from "./hoja-plan";
 import { PantallaNovedades } from "./pantalla-novedades";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -20,7 +21,9 @@ type PanelUI = {
   abrirPlan: () => void;
   /** Abre "Tu inventario"; con "espacio" entra directo a "Hacer espacio". */
   abrirInventario: (vista?: Extract<VistaInventario, "espacio">) => void;
-  abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void };
+  abrirNovedades: () => void; abrirMiMarca: (campo?: CampoMarca) => void;
+  /** «Tu equipo» (solo la dueña). */
+  abrirEquipo: () => void };
 
 const Contexto = createContext<PanelUI | null>(null);
 
@@ -90,7 +93,10 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
     setMarcaAbierta(true);
   }, []);
   const cerrarMiMarca = useCallback(() => setMarcaAbierta(false), []);
-  const valor = { abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEspera, espera: { ...consultaEspera, resumen } };
+  const [equipoAbierto, setEquipoAbierto] = useState(false);
+  const abrirEquipo = useCallback(() => setEquipoAbierto(true), []);
+  const cerrarEquipo = useCallback(() => setEquipoAbierto(false), []);
+  const valor = { abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEquipo, abrirEspera, espera: { ...consultaEspera, resumen } };
 
   return (
     <Contexto.Provider value={valor}>
@@ -99,6 +105,7 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
       <HojaInventario abierta={inventarioAbierto} alCerrar={cerrarInventario} vistaAlAbrir={vistaInventario} ahora={inventarioAbiertoEn} />
       <HojaPlan abierta={planAbierto} alCerrar={cerrarPlan} />
       <HojaMiMarca abierta={marcaAbierta} alCerrar={cerrarMiMarca} campo={campoMarca} />
+      <HojaEquipo abierta={equipoAbierto} alCerrar={cerrarEquipo} />
       {novedades.length > 0 && <PantallaNovedades novedades={novedades} alCerrar={cerrarNovedades} />}
     </Contexto.Provider>
   );

@@ -4,6 +4,7 @@
 //   despachar (RPC despachar_pedido) y los créditos (RPC gastar_creditos). El RLS limita todo a tu tienda.
 // - Las filas (snake_case) se convierten SOLO con lib/data/filas.ts.
 
+import { equipoSupabase } from "./equipo-supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDITOS_POR_RETOQUE } from "../config";
 import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
@@ -296,6 +297,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     alCambiar();
     return valor;
   }
+
+  const equipo = equipoSupabase(supabase, cambio);
 
   /** La marca para el retoque, sin caché. Las fotos de referencia viven en un bucket privado: se ven con URLs firmadas. */
   async function leerMarcaRetoque(tiendaId: string): Promise<MarcaRetoque> {
@@ -1383,7 +1386,14 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       );
     },
 
+    // ---- Equipo (lib/data/equipo-supabase.ts) ----
+    ...equipo,
+    getMiPermiso: (tiendaId) => leer(`permiso:${tiendaId}`, () => equipo.getMiPermiso(tiendaId)),
+
     // ---- Solo demo ----
+    async mirarDemoComo() {
+      throw new SoloDemo();
+    },
     async simularAvanceCatalogo() {
       throw new SoloDemo();
     },
