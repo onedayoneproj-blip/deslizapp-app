@@ -1091,5 +1091,132 @@
       "descripcion": "¿Te llama la atención? Escríbeme y te cuento más de este perfume.",
       "familia": "Dulces"
     }
+  },
+  {
+    "foto_retocada": false,
+    "activo": true,
+    "destacado": false,
+    "likes": 0,
+    "creado_en": "2026-09-24T16:00:00.000Z",
+    "actualizado_en": "2026-09-26T16:00:00.000Z",
+    "tipo": "producto",
+    "por_encargo": false,
+    "encargo_texto": null,
+    "opiniones": [],
+    "id": "a3000000-0000-4000-8000-000000000018",
+    "tienda_id": "a1000000-0000-4000-8000-000000000003",
+    "nombre": "Pantalón de algodón",
+    "precio": 2300,
+    "fotos": [
+      "/seed/productos/pantalon-de-algodon.svg",
+      "/seed/productos/pantalon-de-algodon-negro.svg",
+      "/seed/productos/pantalon-de-algodon-arena.svg",
+      "/seed/productos/pantalon-de-algodon-verde.svg"
+    ],
+    "categoria": "Pantalones",
+    "stock": 31,
+    "slug": "pantalon-de-algodon",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/pantalon-de-algodon.svg",
+        "retocada": false
+      },
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/pantalon-de-algodon-negro.svg",
+        "retocada": false
+      },
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/pantalon-de-algodon-arena.svg",
+        "retocada": false
+      },
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/pantalon-de-algodon-verde.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "material": "Algodón grueso",
+      "corte": "Recto, tiro alto",
+      "cuidado": "Lavar en frío",
+      "para": "unisex",
+      "descripcion": "Cómodo todo el día y no pierde la forma."
+    },
+    "opciones": [
+      {
+        "nombre": "Talla",
+        "valores": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "nombre": "Color",
+        "valores": [
+          "Negro",
+          "Arena",
+          "Verde"
+        ]
+      }
+    ],
+    "fotos_por_valor": {
+      "Color": {
+        "Negro": "/seed/productos/pantalon-de-algodon-negro.svg",
+        "Arena": "/seed/productos/pantalon-de-algodon-arena.svg",
+        "Verde": "/seed/productos/pantalon-de-algodon-verde.svg"
+      }
+    }
+  },
+  {
+    "foto_retocada": false,
+    "activo": true,
+    "destacado": false,
+    "likes": 0,
+    "creado_en": "2026-09-24T16:00:00.000Z",
+    "actualizado_en": "2026-09-26T16:00:00.000Z",
+    "tipo": "producto",
+    "por_encargo": false,
+    "encargo_texto": null,
+    "opiniones": [],
+    "id": "a3000000-0000-4000-8000-000000000019",
+    "tienda_id": "a1000000-0000-4000-8000-000000000001",
+    "nombre": "Majestic Oud",
+    "precio": 2800,
+    "fotos": [
+      "/seed/productos/majestic-oud.svg"
+    ],
+    "categoria": "Amaderados",
+    "stock": 14,
+    "slug": "majestic-oud",
+    "medios": [
+      {
+        "tipo": "foto",
+        "url": "/seed/productos/majestic-oud.svg",
+        "retocada": false
+      }
+    ],
+    "detalles": {
+      "marca": "Maison Alhambra",
+      "para": "unisex",
+      "familia": "Amaderados",
+      "concentracion": "edp",
+      "descripcion": "Oud, ámbar y un fondo cálido que dura todo el día."
+    },
+    "opciones": [
+      {
+        "nombre": "Tamaño",
+        "valores": [
+          "30 ml",
+          "50 ml",
+          "100 ml"
+        ]
+      }
+    ],
+    "fotos_por_valor": {}
   }
 ]

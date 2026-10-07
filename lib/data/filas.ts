@@ -102,6 +102,7 @@ export type FilaProducto = {
   medios?: FilaMedio[];
   detalles?: Detalles;
   opciones?: OpcionProducto[];
+  fotos_por_valor?: Record<string, Record<string, string>>;
   por_encargo?: boolean;
   encargo_texto?: string | null;
   /** Embebidas con `select("*, producto_variantes(*)")`. */
@@ -308,6 +309,7 @@ export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto
     medios: f.medios ? f.medios.map(aMedio) : (f.fotos ?? []).map((url, i) => ({ tipo: "foto" as const, url, retocada: i === 0 && f.foto_retocada })),
     detalles: f.detalles ?? {},
     opciones: f.opciones ?? [],
+    fotosPorValor: f.fotos_por_valor ?? {},
     porEncargo: f.por_encargo ?? false,
     encargoTexto: f.encargo_texto ?? null,
     ...(f.producto_variantes ? { variantes: ordenarVariantes(f.producto_variantes.map(aVariante)) } : {}),

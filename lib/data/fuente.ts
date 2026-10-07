@@ -172,6 +172,11 @@ export type FuenteDatos = {
    * Devuelve el producto con sus variantes (su `stock` es la suma de las activas).
    */
   guardarVariantes(tiendaId: string, productoId: string, opciones: OpcionProducto[], variantes: DatosVariante[]): Promise<Producto>;
+  /**
+   * La foto de un color (o del valor del eje que lleve foto): una de las fotos del producto. Con `url` nula la quita y vuelve a
+   * verse la del producto. La base y la demo la limpian solas si la foto o el valor desaparecen. Grupo «catalogo».
+   */
+  guardarFotoValor(tiendaId: string, productoId: string, eje: string, valor: string, url: string | null): Promise<Producto>;
 
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;

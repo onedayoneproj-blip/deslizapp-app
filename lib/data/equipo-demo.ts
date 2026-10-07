@@ -114,7 +114,7 @@ export function invitarCorreoEnDB(db: DB, tiendaId: string, email: string, nivel
  */
 export const GRUPO_DE_OPERACION: Record<string, Grupo> = {
   crearProducto: "catalogo", actualizarProducto: "catalogo", eliminarProducto: "catalogo", ajustarStock: "catalogo", reponerStock: "catalogo",
-  cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", actualizarMarca: "catalogo",
+  cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", guardarFotoValor: "catalogo", actualizarMarca: "catalogo",
   solicitarCatalogo: "catalogo", pedirCambiosCatalogo: "catalogo", publicarCatalogo: "catalogo",
   usarCreditosRetoque: "creditos", pedirRetoque: "creditos",
   guardarMarcaRetoque: "marca",

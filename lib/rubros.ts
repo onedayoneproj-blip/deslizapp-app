@@ -126,7 +126,7 @@ export function errorDeDetalle(campo: CampoDetalle | "descripcion", valor: strin
 
 /** Opciones típicas de cada rubro: sugerencias del formulario, no obligación ("general": la tienda las nombra). */
 export const OPCIONES_TIPICAS: Record<Rubro, readonly string[]> = {
-  perfumes: [],
+  perfumes: ["Tamaño"],
   ropa: ["Talla", "Color"],
   accesorios: ["Color"],
   belleza: ["Tono"],
