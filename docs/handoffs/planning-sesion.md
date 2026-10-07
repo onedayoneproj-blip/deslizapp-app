@@ -85,6 +85,14 @@ Lienzo: https://claude.ai/artifact/GRm2BmLszQfAhckVr8WMWQ (31 pantallas). Recorr
 
 La IA (servicio de Claude desde el servidor, revisión automática de productos, etiquetas de búsqueda automáticas, ficha técnica generada) **se introduce más adelante**. Por ahora todo es **manual**: la ficha técnica la sube la tienda o la hace el equipo de Deslizapp (con créditos, como el retoque); la revisión de productos se diseña pero se difiere. Todo se construye con los mismos estados y colas para que la IA se enchufe después sin rehacer nada.
 
+## Ficha técnica y revisión: decisiones del 7 oct
+
+- **Revisión de productos nuevos: diferida** hasta abrir el registro al público o hasta que llegue la IA (acuerdo Lewis/Planning). Mientras tanto, las tiendas nuevas solo entran con enlace de Lewis.
+- **Detalles:** dejan de pedirse a las tiendas nuevas; los de Michel se conservan y se siguen mostrando. Se reemplazan por descripción corta + ficha técnica en imagen.
+- **Pendiente de verificar:** hoy el admin **no puede ocultar un producto** de una tienda (no hay función `admin_*` para eso; solo pausar la tienda entera con `admin_cambiar_estado_tienda`, o SQL). Hace falta una acción mínima «Ocultar producto» en la ficha de tienda del admin, y que los Términos incluyan la lista de prohibidos.
+- **Lienzo de la ficha técnica** (tarjeta en el panel, botón circular en el reel, cola en el admin): Lewis dijo «más tarde». Sin prompt hasta entonces.
+- Falta aclarar con Lewis quién hace las fichas pedidas a Deslizapp («el equipo» = él y quien le ayude, desde Admin › Trabajo, como el retoque).
+
 ## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
 
 - **Abrir la cuenta de desarrollador de Meta** (gratis; con su Facebook). Con el acceso estándar se puede probar «conectar Instagram» con la cuenta de Michel; el acceso avanzado (otras tiendas) pide App Review y Business Verification, y probablemente una empresa registrada (RNC) y dominio propio. Detalle en `docs/15-mi-marca-magica.md`.
