@@ -92,4 +92,4 @@ Para la conversación de venta y para revisar los precios:
 - **Editor:** lo anterior más productos y catálogo.
 - **Administrador:** lo anterior más créditos, retoque, compras y Mi marca.
 
-Se construye dentro de `docs/prompts/suscripciones-y-varias-tiendas.md` (Opus), junto con el límite de colaboradores. Falta confirmar con Lewis los nombres y el reparto de cada nivel.
+Se construye dentro de `docs/prompts/suscripciones-y-varias-tiendas.md` (Opus), junto con el límite de colaboradores. Lewis confirmó los tres niveles el 7 oct 2026. Prompt: `docs/prompts/colaboradores-e-invitaciones.md` (incluye enlaces de invitación de un solo uso con aprobación del dueño y el enlace de tienda nueva que genera el admin).

@@ -21,6 +21,8 @@ En este orden; los que no dependen entre sí pueden ir en paralelo en otra sesi�
 | `mi-marca.md` (rama `feat/mi-marca`) | Sonnet | #55 | **En curso.** Migración revisada por Planning y autorizada; PR abierto con preview (cambia quién puede retocar). Debe conectar la compuerta al interruptor de #56 |
 | `selector-de-tiendas.md` (rama `feat/selector-tiendas`) | Sonnet | — (paralelo) | merge a main. Incluye §2b: volver del admin al panel |
 | `retoque-al-subir.md` (interruptor «Retocar esta foto», apagado por defecto) | Sonnet | — | **Hecho**, PR #56 mergeado el 6 oct; la compuerta de marca la añade `mi-marca.md` |
+| `colaboradores-e-invitaciones.md` (rama `feat/equipo-e-invitaciones`) | **Opus** | #57 mergeado; no a la vez que `ver-como-bloqueo-en-la-base.md` | PR abierto con preview. Niveles Ayudante/Editor/Administrador, enlaces de un solo uso con aprobación del dueño, enlace de tienda nueva desde el admin |
+| `ver-como-bloqueo-en-la-base.md` (rama `fix/ver-como-bloqueo`) | **Opus** | — (no a la vez que el anterior; Lewis decide el orden) | PR abierto, Planning mergea |
 | `admin-4-cobros.md` | Sonnet | #57 mergeado (menú, novedades) | PR abierto con preview: la app de las tiendas empieza a leer planes de la base (§0b del prompt) |
 | `precio-marca-y-promociones.md` | Sonnet | parte 4 y Mi marca | PR abierto si cambia el cálculo del monto |
 | `suscripciones-y-varias-tiendas.md` | **Opus** | parte 4 y selector | PR abierto con preview |
@@ -46,7 +48,7 @@ Sin prompt todavía (los escribe Planning cuando toque):
 ## Preguntas abiertas para Lewis
 
 - ¿El límite de colaboradores se cuenta por suscripción? (Así está en el prompt.)
-- Niveles de permiso de colaboradores (Ayudante / Editor / Administrador, elegidos por el dueño y exigidos en la base): propuesta en `docs/14`; confirmar nombres y reparto y sumarlo al prompt de suscripciones.
+- Niveles de permiso de colaboradores: **confirmados por Lewis (7 oct)** y escritos en `docs/prompts/colaboradores-e-invitaciones.md` (junto con las invitaciones por enlace). El prompt de suscripciones solo suma el límite de colaboradores en el gancho `puede_sumar_colaborador`.
 - Tiempo de entrega del retoque (`TIEMPO_RETOQUE_TEXTO` vacío hasta que lo mida).
 - Número de WhatsApp de Deslizapp (`WHATSAPP_DESLIZAPP` en `lib/config.ts` está vacío).
 - Si existe la fila «Marca y diseño» en `precios_extra`.
