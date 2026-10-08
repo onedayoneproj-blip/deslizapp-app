@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Compartir</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;family=Caveat:wght@600;700&amp;display=swap">
+<style>
+body{margin:0}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.pant{width:390px;height:844px;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a}
+.hoja{position:absolute;left:0;right:0;top:44px;bottom:0;background:#fff9ee;border-radius:30px 30px 0 0;overflow:hidden}
+.cab{padding:10px 20px 12px;border-bottom:1px solid #efe4d2}
+.asa{width:44px;height:5px;border-radius:999px;background:#e2d5bf;margin:0 auto 8px}
+.cb{width:40px;height:40px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;flex:none}
+.btn{flex:1;height:56px;border:0;border-radius:999px;background:#174b3a;color:#fff;font:800 17px 'Figtree',sans-serif;box-shadow:0 8px 24px #10362a40;display:flex;align-items:center;justify-content:center;gap:8px}
+.gh{flex:1;height:56px;border-radius:999px;border:1.5px solid #174b3a;background:#fff;color:#174b3a;font:800 16px 'Figtree',sans-serif;box-shadow:0 8px 24px #10362a2e}
+.chip{height:40px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:#174b3a}
+.chip.on{background:#174b3a;color:#fff;border-color:#174b3a}
+.sug{font-size:11px;font-weight:800;background:#ffe3d6;color:#a8410f;border-radius:999px;padding:2px 8px}
+.fila{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid #f3ead9}
+.fila:last-child{border-bottom:0}
+.sw{width:50px;height:30px;border-radius:999px;background:#d8cdb8;position:relative;flex:none;margin-left:auto}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff}
+.sw.on{background:#174b3a}.sw.on::after{left:23px}
+.tarj{border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:0 16px}
+.sub{font-size:13px;color:#4f6a5e;font-weight:600}
+.hist{width:405px;height:720px;position:relative;overflow:hidden;font-family:'Figtree',sans-serif;border-radius:18px}
+.foto{position:absolute;inset:0}
+.top{position:absolute;left:16px;right:16px;top:18px;display:flex;align-items:center;gap:10px;color:#fff}
+.logo{width:40px;height:40px;border-radius:50%;background:#174b3a;border:2px solid #fff;display:grid;place-items:center;font-family:'Fredoka';font-weight:600;font-size:16px;color:#fff;flex:none}
+.card{position:absolute;left:16px;right:16px;bottom:18px;background:#fff9eef2;border-radius:26px;padding:16px 18px;color:#174b3a;box-shadow:0 10px 30px #0004}
+.pres{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pp{height:30px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;padding:0 12px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800}
+.pt{width:14px;height:14px;border-radius:50%;border:1px solid #0002}
+.pie{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed #e2d5bf}
+.qr{width:46px;height:46px;border-radius:8px;background:repeating-linear-gradient(90deg,#174b3a 0 4px,#fff 4px 7px),#174b3a;flex:none;border:3px solid #fff;outline:1px solid #e7dcc8}
+.stk{position:absolute;font-family:'Fredoka';font-weight:700;font-stretch:115%;color:#fff;border-radius:999px;padding:8px 18px;font-size:22px;border:4px solid #fff;box-shadow:0 8px 18px #0004}
+.marca{position:absolute;display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px 6px 6px;font-family:'Fredoka';font-weight:600;font-size:15px;color:#174b3a;border:4px solid #fff;outline:1px solid #0000;box-shadow:0 8px 18px #0004}
+.pk{position:relative;display:inline-flex;align-items:center;justify-content:center;font-family:'Fredoka';font-weight:700;font-stretch:115%;border-radius:999px;padding:6px 14px;font-size:16px;border:3px solid #fff;box-shadow:0 5px 12px #0003;color:#fff}
+.ck{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#174b3a;border:2px solid #fff;display:grid;place-items:center}
+.marca i{width:28px;height:28px;border-radius:50%;background:#f4c6d4;display:grid;place-items:center;font-style:normal}
+</style>
+</helmet>
+<div class="pant" style="background:#10362a59"><div class="hoja" style="top:300px">
+<div class="cab"><div class="asa"></div><h2 class="disp" style="margin:0;font-size:22px">¿Dónde la compartes?</h2></div>
+<div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+<button type="button" style="height:64px;border-radius:20px;border:1px solid #efe4d2;background:#fff;display:flex;align-items:center;gap:12px;padding:0 16px;font:800 17px 'Figtree',sans-serif;color:#174b3a"><span style="width:44px;height:44px;border-radius:50%;background:#e6f9ee;display:grid;place-items:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 5.2A9 9 0 1 0 21 12" stroke-dasharray="3.2 2.4"></path><circle cx="12" cy="12" r="4"></circle><path d="M19 2v6M16 5h6"></path></svg></span><span style="text-align:left">Estado de WhatsApp<br><span class="sub">El enlace va en el texto</span></span></button>
+<button type="button" style="height:64px;border-radius:20px;border:1px solid #efe4d2;background:#fff;display:flex;align-items:center;gap:12px;padding:0 16px;font:800 17px 'Figtree',sans-serif;color:#174b3a"><span style="width:44px;height:44px;border-radius:50%;background:#f3ead9;display:grid;place-items:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="3.2 2.4"></circle><path d="M12 8v8M8 12h8"></path></svg></span><span style="text-align:left">Historia de Instagram<br><span class="sub">Copiamos el enlace: pégalo con el sticker «Enlace»</span></span></button>
+<button type="button" style="height:56px;border-radius:999px;border:0;background:none;font:800 15px 'Figtree',sans-serif;color:#174b3a">Guardar la imagen</button>
+</div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
