@@ -158,8 +158,7 @@ export function VistaCatalogo() {
             <EstadoVacio
               ilustracion="catalogo"
               titulo="Tu vitrina está vacía."
-              remate="Sube tu primera pieza y deja que tu gente diga aaah."
-              accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
+              remate="Toca + Producto y sube tu primera pieza para que tu gente diga aaah."
             />
           ) : catalogo && delCatalogo?.length === 0 ? (
             <EstadoVacio
@@ -190,8 +189,7 @@ export function VistaCatalogo() {
         </ul>
       </div>
 
-      {/* Solo se esconde con la tienda entera vacía (ahí invita el estado vacío); un catálogo vacío lo conserva */}
-      {!(productos && productos.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
+      <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
     </>
   );

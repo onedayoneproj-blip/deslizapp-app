@@ -21,8 +21,8 @@ const PESTANAS: { id: EstadoPromo; nombre: string }[] = [
 ];
 
 const VACIO: Record<EstadoPromo, { titulo: string; remate: string }> = {
-  activa: { titulo: "Ninguna promo activa.", remate: "Ponle un descuento a lo que quieras mover y mira cómo se deslizan." },
-  programada: { titulo: "Nada programado.", remate: "Deja una promo lista para más adelante: arranca sola el día que elijas." },
+  activa: { titulo: "Ninguna promo activa.", remate: "Toca + Promo y ponle un descuento a lo que quieras mover." },
+  programada: { titulo: "Nada programado.", remate: "Toca + Promo y déjala lista: arranca sola el día que elijas." },
   terminada: { titulo: "Aún no ha terminado ninguna.", remate: "Las que se vencen, o que termines tú, se guardan aquí." },
 };
 
@@ -84,7 +84,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
   const { visibles, quedan, mostrados, verMas } = useVerMas(todas, `${tiendaId}:${pestana}`);
   const productosPorId = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const sinPromos = promos !== undefined && promos.length === 0;
-  const vacio = sinPromos ? { titulo: "Aún no tienes promos.", remate: "Crea la primera y mira cómo se deslizan tus productos." } : VACIO[pestana];
+  const vacio = sinPromos ? { titulo: "Aún no tienes promos.", remate: "Toca + Promo y crea la primera para ver cómo se deslizan tus productos." } : VACIO[pestana];
 
   return (
     <ContextoOferta.Provider value={ofrecer}>
@@ -113,7 +113,6 @@ export function VistaPromos({ children }: { children: ReactNode }) {
             ilustracion="promos"
             titulo={vacio.titulo}
             remate={vacio.remate}
-            accion={pestana !== "terminada" || sinPromos ? { texto: "Crear promo", href: "/promos/nueva" } : undefined}
           />
         )}
         {todas.length > 0 && (
@@ -138,8 +137,7 @@ export function VistaPromos({ children }: { children: ReactNode }) {
         )}
       </div>
 
-      {/* Sin ninguna promo, el botón del estado vacío ya invita a crear: no se duplica */}
-      {!sinPromos && <BotonFlotante href="/promos/nueva" texto="Promo" />}
+      <BotonFlotante href="/promos/nueva" texto="Promo" />
       {children}
       {oferta && (
         <div role="status" className="pointer-events-none fixed inset-x-0 top-[calc(14px+env(safe-area-inset-top))] z-[60] mx-auto max-w-[480px] px-4">
