@@ -21,8 +21,9 @@ Hay tres caminos para lo mismo (elegir al crear, «Agregar presentación», «Ca
 5. **Se quitan** «Agregar presentación» (suelta) y «Cambiar qué varía» como caminos aparte, los filtros «Todas / …» (solo si hay más de 12 filas, si los conservas) y la fila repetida de stock.
 6. **«Agotada»** no sale en un producto que aún no se publicó; con 0 se ve «0».
 7. **Barra fija de la hoja de producto:** «Cómo se ve» y «Publicar»/«Guardar cambios» **flotan solos, del mismo ancho (mitad y mitad), con sombra, sin la tarjeta/recuadro detrás**.
-8. **El «0» fantasma** detrás del título «Nuevo producto» (el desenfoque progresivo de la cabecera deja ver un campo de abajo): corrígelo.
-9. Corrige todo lo que el informe de pruebas marque como «bloquea» o «confunde» en presentaciones; lo que no corrijas, dilo en el PR con el porqué.
+8. **«Cómo se ve» = el reel real del comprador.** Hoy abre una hoja mínima propia; Lewis espera ver el producto **tal como sale en el feed del catálogo**. Monta el mismo reel de `components/tienda/reel.tsx` (con `app/tienda/catalogo.css`, el tema de la tienda y su cabecera) a pantalla completa, alimentado con el borrador convertido a `ProductoPublico` (fotos, nombre, precio/promo, presentaciones con «Ver presentaciones», descripción con «…», botón de la ficha, por encargo). Sin pedir, sin carrito ni escrituras: los botones de comprar se ven pero no hacen nada o avisan «Así lo verá tu cliente». Una X para volver. Si alguna pieza del reel depende de datos que el borrador no tiene, usa valores neutros y dilo en el PR. Mira cómo lo resuelve la vista previa de Mi marca si la hay.
+9. **El «0» fantasma** detrás del título «Nuevo producto» (el desenfoque progresivo de la cabecera deja ver un campo de abajo): corrígelo.
+10. Corrige todo lo que el informe de pruebas marque como «bloquea» o «confunde» en presentaciones; lo que no corrijas, dilo en el PR con el porqué.
 
 ## 3. Reglas
 
