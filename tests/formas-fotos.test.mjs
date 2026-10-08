@@ -68,3 +68,7 @@ test("hoja Colecciones: la X queda encima de la capa de scroll y la carátula el
   assert.doesNotMatch(sc.cuerpo, /z-index/);
   assert.ok(!reglas.some((r) => /\.hl\[aria-pressed="true"\] img/.test(r.sel)), "sin contorno en la carátula elegida de la barra");
 });
+
+test("carátula elegida: la foto se recorta detrás del check, sin borde (docs/09)", () => {
+  assert.ok(reglas.some((x) => /\.coitem\[aria-pressed="true"\] \.cc img/.test(x.sel) && /mask-image/.test(x.cuerpo)));
+});

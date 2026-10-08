@@ -724,6 +724,11 @@ html.catalogo-html,
 :where(.catalogo-publico) .coitem[aria-pressed="true"] .ck {
   opacity: 1;
 }
+/* Elegida: el check va sobre la esquina de la carátula; la foto se recorta (máscara) con su forma, sin borde. */
+:where(.catalogo-publico) .coitem[aria-pressed="true"] .cc img {
+  -webkit-mask-image: radial-gradient(circle 14.5px at 70px 68px, transparent calc(100% - 1px), #000 100%);
+  mask-image: radial-gradient(circle 14.5px at 70px 68px, transparent calc(100% - 1px), #000 100%);
+}
 @media (max-height: 720px) {
   :where(.catalogo-publico) .colist {
     gap: 12px;
@@ -734,6 +739,10 @@ html.catalogo-html,
   }
   :where(.catalogo-publico) .coitem .cc img {
     border-radius: 19px;
+  }
+  :where(.catalogo-publico) .coitem[aria-pressed="true"] .cc img {
+    -webkit-mask-image: radial-gradient(circle 14.5px at 54px 52px, transparent calc(100% - 1px), #000 100%);
+    mask-image: radial-gradient(circle 14.5px at 54px 52px, transparent calc(100% - 1px), #000 100%);
   }
   :where(.catalogo-publico) .coitem b {
     font-size: 15.5px;
