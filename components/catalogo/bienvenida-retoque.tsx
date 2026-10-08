@@ -113,7 +113,7 @@ function Escena({ foto, referencias }: { foto: string | null; referencias: strin
           <div className="absolute top-[42px] right-3.5 flex flex-col gap-1.5" aria-hidden="true">
             {referencias.map((url, i) => (
               // eslint-disable-next-line @next/next/no-img-element -- referencia de la tienda (URL firmada o data URL)
-              <img key={i} src={url} alt="" className={`bv-ref bv-ref${i + 1} size-11 rounded-[10px] border border-borde-pastilla object-cover`} />
+              <img key={i} src={url} alt="" className={`bv-ref bv-ref${i + 1} size-11 rounded-[10px] border-2 border-fondo object-cover`} />
             ))}
           </div>
         </>

@@ -7,7 +7,7 @@ const css = readFileSync("app/tienda/catalogo.css", "utf8");
 const reglas = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, sel, cuerpo]) => ({ sel: sel.trim(), cuerpo }));
 
 // Selectores del catálogo del comprador que dibujan la foto de un producto.
-const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".abz-c", ".abz-c img", ".finimgs img", ".a8 .res img"];
+const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".coitem img", ".coitem .cc", ".finimgs img", ".hl img", ".hl .ring", ".a8 .res img"];
 
 test("ninguna foto de producto del catálogo del comprador es circular", () => {
   for (const f of FOTOS_DE_PRODUCTO) {
@@ -36,14 +36,12 @@ test("el campo de búsqueda del comprador no dibuja recuadro al enfocarse", () =
   assert.match(css, /\.srbox:focus-within/);
 });
 
-test("las colecciones son cartas en abanico con contorno fino y sin anillo blanco grueso (docs/09)", () => {
-  const carta = reglas.find((x) => x.sel.endsWith(".abz-c"));
-  assert.ok(carta, "falta .abz-c");
-  assert.match(carta.cuerpo, /border:\s*var\(--abz-grosor\) solid var\(--abz-borde\)/);
-  assert.match(carta.cuerpo, /background:\s*transparent/);
-  for (const sel of [".finimgs img", ".fly"]) {
-    const r = reglas.find((x) => x.sel.endsWith(sel));
-    assert.ok(r, `falta ${sel}`);
-    assert.doesNotMatch(r.cuerpo, /border:\s*[2-9]px solid #fff/, `${sel} no lleva anillo blanco grueso`);
-  }
+test("superposición: se separa con recorte transparente (máscara), nunca con borde blanco (docs/09)", () => {
+  const hcov = reglas.filter((x) => x.sel.includes(".hcov"));
+  for (const x of hcov) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, `${x.sel} no lleva borde`);
+  assert.ok(hcov.some((x) => /mask-image/.test(x.cuerpo)), "las cartas de atrás del abanico llevan máscara");
+  const fin = reglas.filter((x) => x.sel.includes(".finimgs img"));
+  for (const x of fin) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, "las fotos apiladas no llevan borde");
+  assert.ok(fin.some((x) => /mask-image/.test(x.cuerpo)), "las fotos apiladas llevan máscara");
+  assert.doesNotMatch(css, /\.cnt\s*\{[^}]*box-shadow:\s*0 0 0 2px/, "el contador no lleva aro");
 });

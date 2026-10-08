@@ -19,6 +19,7 @@ import { COLOR_STOCK, DonaInventario } from "./dona-inventario";
 import { MiniaturaProducto } from "./miniatura-producto";
 import { VistaHacerEspacio } from "./vista-hacer-espacio";
 import { VistaPorReponer } from "./vista-por-reponer";
+import { recortePila } from "@/lib/recorte";
 
 export type VistaInventario = "resumen" | "porReponer" | "sinMovimiento" | "espacio" | "ocultarAgotados" | "grupo";
 type GrupoInventario = "conStock" | "quedan" | "agotados";
@@ -187,8 +188,10 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
                 <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
               </div>
               <div aria-hidden="true" className="mt-3 flex -space-x-2">
-                {paraReponer.slice(0, 4).map((l) => (
-                  <MiniaturaProducto key={l.producto.id} producto={l.producto} className="size-10 border border-borde-pastilla" />
+                {paraReponer.slice(0, 4).map((l, n, todos) => (
+                  <span key={l.producto.id} style={n < todos.length - 1 ? recortePila(40, 8, 10) : undefined} className="inline-flex">
+                    <MiniaturaProducto producto={l.producto} className="size-10" />
+                  </span>
                 ))}
               </div>
             </Tarjeta>

@@ -20,7 +20,6 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { AbanicoColeccion } from "./abanico-coleccion";
 import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
@@ -755,8 +754,10 @@ export function Catalogo({
                 {cols
                   .filter((c) => c.id !== "all")
                   .slice(0, 3)
-                  .map((col) => (
-                    <img loading="lazy" key={col.id} src={portada(col.productos[0])} alt="" />
+                  .map((col, n) => (
+                    <span key={col.id} className={"hc " + ["hc-f", "hc-i", "hc-d"][n]}>
+                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                    </span>
                   ))}
               </span>
             </button>
@@ -999,7 +1000,7 @@ export function Catalogo({
                 onClick={() => setFilter(col.id)}
               >
                 <span className="ring">
-                  <AbanicoColeccion productos={col.productos} />
+                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
                 </span>
                 {col.nombre}
               </button>
@@ -1182,7 +1183,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <AbanicoColeccion productos={col.productos} />
+                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>

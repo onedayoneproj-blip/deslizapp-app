@@ -239,19 +239,21 @@ function BotonSticker({ id, dibujo, puesto, alTocar }: { id: IdSticker; dibujo?:
       onClick={alTocar}
       className="tocable relative grid min-h-11 min-w-11 place-items-center p-1"
     >
-      {dibujo ? (
-        // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
-        <img
-          src={dibujo.url}
-          alt=""
-          draggable={false}
-          style={{ height: alto, width: (dibujo.ancho / dibujo.alto) * alto, transform: `rotate(${INCLINACION_STICKER[id]}deg)`, opacity: puesto ? 1 : 0.55 }}
-        />
-      ) : (
-        <span className="block" style={{ height: alto, width: alto }} />
-      )}
+      <span className={"relative grid place-items-center" + (puesto ? " corte [--corte-r:12px] [--corte-x:calc(100%_-_6px)] [--corte-y:6px]" : "")}>
+        {dibujo ? (
+          // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
+          <img
+            src={dibujo.url}
+            alt=""
+            draggable={false}
+            style={{ height: alto, width: (dibujo.ancho / dibujo.alto) * alto, transform: `rotate(${INCLINACION_STICKER[id]}deg)`, opacity: puesto ? 1 : 0.55 }}
+          />
+        ) : (
+          <span className="block" style={{ height: alto, width: alto }} />
+        )}
+      </span>
       {puesto && (
-        <span className="absolute right-0 top-0 grid size-5 place-items-center rounded-full bg-accion text-white ring-2 ring-superficie">
+        <span className="absolute right-0 top-0 grid size-5 place-items-center rounded-full bg-accion text-white">
           <IconoCheck tamano={12} strokeWidth={3.5} />
         </span>
       )}

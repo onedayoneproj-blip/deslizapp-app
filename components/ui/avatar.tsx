@@ -40,13 +40,14 @@ export function Avatar({
           "relative grid place-items-center overflow-hidden font-display",
           TAMANO[tamano],
           "rounded-full",
+          repite && "corte [--corte-r:12px] [--corte-x:calc(100%_-_8px)] [--corte-y:calc(100%_-_8px)]",
           vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? "bg-marca-rosa text-texto" : "bg-accion text-sobre-accion",
         )}
       >
         {vacio ? "?" : foto ? <Foto src={foto} alt="" className="absolute inset-0" sizes={FOTO[tamano]} /> : iniciales(nombre)}
       </span>
       {repite && (
-        <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full border-2 border-superficie bg-accion text-sobre-accion">
+        <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-accion text-sobre-accion">
           <IconoCorazon tamano={11} fill="currentColor" strokeWidth={0} />
         </span>
       )}

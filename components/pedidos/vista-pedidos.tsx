@@ -16,6 +16,7 @@ import { BotonVerMas, useVerMas } from "../ver-mas";
 import { Aviso, Avatar, BloqueDeuda, Contador, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
 import { IconoChevronDerecha } from "../iconos";
 import { EtiquetaPago } from "./comunes";
+import { recortePila } from "@/lib/recorte";
 
 type Pestana = EstadoPedido;
 
@@ -178,10 +179,10 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex shrink-0 -space-x-2">
-            {p.items.slice(0, 3).map((i) => {
+            {p.items.slice(0, 3).map((i, n, todos) => {
               const foto = productos.get(i.productoId)?.fotos[0];
               return (
-                <span key={i.id} className="size-9 overflow-hidden rounded-radio-s border border-borde-pastilla bg-superficie-hundida">
+                <span key={i.id} style={n < todos.length - 1 ? recortePila(36, 8, 10) : undefined} className="size-9 overflow-hidden rounded-radio-s bg-superficie-hundida">
                   {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="36px" /> : null}
                 </span>
               );
