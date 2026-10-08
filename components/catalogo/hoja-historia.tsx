@@ -115,7 +115,7 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
     <>
       <Hoja abierta alCerrar={alCerrar} titulo="Tu historia" altura="auto">
         <div className="flex flex-col gap-4">
-          {/* Tocar la vista previa abre «Ajustar foto»; la píldora «Ajustar» de la esquina lo deja ver */}
+          {/* Tocar la vista previa abre «Ajustar foto»; la píldora «Ajustar» de la esquina superior lo deja ver */}
           <button
             type="button"
             aria-label="Vista previa: toca para ajustar la foto"
@@ -131,13 +131,12 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
             ) : (
               <p role="status" className="grid h-full place-items-center px-3 text-center text-secundario text-texto-secundario">Preparando…</p>
             )}
-            <span aria-hidden="true" data-pildora-ajustar className="absolute bottom-2 right-2 flex h-8 items-center gap-1.5 rounded-full bg-black/55 pl-2.5 pr-3 text-[12px] font-bold leading-none text-white backdrop-blur-sm">
+            <span aria-hidden="true" data-pildora-ajustar className="absolute right-2 top-2 flex h-8 items-center gap-1.5 rounded-full bg-black/55 pl-2.5 pr-3 text-[12px] font-bold leading-none text-white backdrop-blur-sm">
               <IconoEditar tamano={14} />
               Ajustar
             </span>
           </button>
 
-          <Boton jerarquia="secundario" anchoCompleto deshabilitado={!natural || !ajuste} onClick={() => setAjustando(true)}>Ajustar foto</Boton>
 
           <div className="rounded-radio-l bg-superficie px-4 py-3 ring-1 ring-linea">
             <p className="text-destacado text-texto">Stickers</p>

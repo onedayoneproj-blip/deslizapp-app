@@ -75,7 +75,7 @@ if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "2-hoja-1-sticker.png
 await guardarImagen("2-imagen-1-sticker.jpg");
 
 // Arrastrar en «Ajustar foto»
-await page.getByRole("button", { name: "Ajustar foto" }).click();
+await page.getByRole("button", { name: "Vista previa" }).click();
 await page.waitForSelector("[data-sticker='aaah']");
 const st = page.locator("[data-sticker='aaah']");
 const pos = async () => ({ x: Number(await st.getAttribute("data-x")), y: Number(await st.getAttribute("data-y")) });
@@ -99,7 +99,7 @@ for (const id of ["nuevo", "ultimas"]) if (!(await puestos()).includes(id) && (a
 console.log("  puestos:", (await puestos()).join(", "));
 if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "4-hoja-3-stickers.png") });
 await guardarImagen("4-imagen-3-stickers.jpg");
-await page.getByRole("button", { name: "Ajustar foto" }).click();
+await page.getByRole("button", { name: "Vista previa" }).click();
 await page.waitForSelector("[data-sticker]");
 ok((await page.locator("[data-sticker]").count()) === (await puestos()).length || true, `${await page.locator("[data-sticker]").count()} stickers en «Ajustar foto»`);
 if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "5-ajustar-3-stickers.png") });

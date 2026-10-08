@@ -43,11 +43,16 @@ for (const ancho of [360, 390]) {
   ok(caja.width <= tarjeta.width * 0.8, `la píldora (${Math.round(caja.width)} px) ocupa menos del 80 % de la tarjeta (${Math.round(tarjeta.width)} px)`);
   const texto = await botones.first().innerText();
   console.log("  texto visible:", JSON.stringify(texto.trim()), `· tarjeta ${Math.round(tarjeta.width)} px`);
+  ok(texto.trim() === "Historia", "en tarjetas de 2 columnas dice «Historia» (nunca «A historia»)");
+  ok(await botones.first().evaluate((b) => { const t = b.querySelector("span span:not(.hidden)"); return t.scrollWidth <= t.clientWidth + 1 && b.getBoundingClientRect().right <= b.parentElement.getBoundingClientRect().right + 1; }), "el texto no se corta");
   ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "sin desborde horizontal");
   if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `${ancho}-1-catalogo.png`) });
   await botones.first().click();
   await page.waitForSelector('img[alt^="Vista previa"]', { timeout: 20000 });
   ok(await page.locator("[data-pildora-ajustar]").isVisible(), "la vista previa muestra la píldora «Ajustar»");
+  const pv = await page.locator('button[aria-label^="Vista previa"]').boundingBox();
+  const pil = await page.locator("[data-pildora-ajustar]").boundingBox();
+  ok(pil.y - pv.y < 16 && pv.x + pv.width - (pil.x + pil.width) < 16, "la píldora «Ajustar» está en la esquina superior derecha");
   if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `${ancho}-2-hoja.png`) });
   await page.locator('img[alt^="Vista previa"]').click();
   await page.locator("[data-marco-historia]").waitFor();
@@ -55,9 +60,11 @@ for (const ancho of [360, 390]) {
   ok((await page.getByText("Pellizca para acercar o alejar y arrastra para mover.").isVisible()), "texto de ayuda visible");
   if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `${ancho}-3-ajustar.png`) });
   await page.getByRole("button", { name: "Cancelar" }).click();
-  await page.getByRole("button", { name: "Ajustar foto", exact: true }).click();
+  await page.getByRole("button", { name: "Vista previa" }).click();
   await page.locator("[data-marco-historia]").waitFor();
-  ok(true, "el botón «Ajustar foto» de abajo sigue abriéndolo");
+  ok(true, "se puede abrir otra vez desde la vista previa");
+  await page.getByRole("button", { name: "Cancelar" }).click();
+  ok((await page.getByRole("button", { name: "Ajustar foto", exact: true }).count()) === 0, "ya no hay botón grande «Ajustar foto» debajo");
   ok(errores.length === 0, `sin errores de página ${errores.join("|")}`);
   await ctx.close();
 }

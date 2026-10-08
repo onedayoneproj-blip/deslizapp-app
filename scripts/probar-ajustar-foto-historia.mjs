@@ -68,7 +68,7 @@ async function abrirHoja(forma, ancho, alto, { sinFiltro = false } = {}) {
   await page.goto(`${URL}/catalogo`);
   await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
   await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
-  await page.getByRole("button", { name: "Ajustar foto" }).waitFor();
+  await page.getByRole("button", { name: "Vista previa" }).waitFor();
   await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
   return { ctx, page, errores };
 }
@@ -116,7 +116,7 @@ const casos = [
 for (const c of casos) {
   console.log(`\n${c.forma} (${c.w}×${c.h})`);
   const { ctx, page, errores } = await abrirHoja(c.forma, c.w, c.h);
-  await page.getByRole("button", { name: "Ajustar foto" }).click();
+  await page.getByRole("button", { name: "Vista previa" }).click();
   await marco(page).waitFor();
   await page.waitForSelector("[data-guia-tarjeta]");
   ok((await interruptor(page).getAttribute("aria-checked")) === String(c.difuminadoInicial), `«Fondo difuminado» ${c.difuminadoInicial ? "encendido" : "apagado"} por defecto`);
@@ -183,7 +183,7 @@ for (const c of casos) {
     (await import("node:fs")).writeFileSync(join(CAPTURAS, `${c.forma}-5-imagen-final-${nuevo ? "con" : "sin"}-fondo.jpg`), Buffer.from(datos.split(",")[1], "base64"));
   }
   // Reabrir: conserva lo guardado
-  await page.getByRole("button", { name: "Ajustar foto" }).click();
+  await page.getByRole("button", { name: "Vista previa" }).click();
   await marco(page).waitFor();
   const guardado = await estado(page);
   ok(Math.abs(guardado.k - encuadre.k) < 0.01 && Math.abs(guardado.x - encuadre.x) < 0.01 && (await interruptor(page).getAttribute("aria-checked")) === String(nuevo), "al reabrir, el encuadre guardado sigue");
