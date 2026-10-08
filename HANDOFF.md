@@ -1,3 +1,7 @@
+## Retoque conserva la foto del color — Coding (Claude), 2026-10-08
+
+Rama `fix/retoque-conserva-foto-color`, **PR abierto sin merge**. **Una migración, ya aplicada**: `20261008192122_retoque_conserva_foto_color` (`list_migrations` → ensayo en la base real dentro de una transacción abortada, con una entrega simulada sobre un producto con fotos por color: el color de la foto retocada pasó a la nueva y el otro no cambió → replay → `apply_migration`; `revisar:migraciones` en cero; `get_advisors` sin nada nuevo; Michel 15 productos y la misma huella). `admin_retoque_entregar` marca el trabajo «entregado» antes de tocar `medios`, así el trigger de `fotos_por_valor` sigue la retocada (era el fallo anotado en #84). Huella nueva en `tests/fixtures/admin-funciones-produccion.json`. Prueba en `scripts/probar-medios-hosts-db.sql` (falla sin la migración, pasa con ella).
+
 ## Fotos solo de direcciones propias — Coding (Claude), 2026-10-08
 
 Rama `fix/medios-hosts-propios`, **PR abierto sin merge** (seguridad, lo ven compradores). **Una migración aditiva, ya aplicada**: `20261008165331_medios_solo_hosts_propios` (`list_migrations` → inventario y conteo en la base real: 0 de 49 direcciones fuera de lo permitido → ensayo en `BEGIN … ROLLBACK` → replay → `apply_migration`; `revisar:migraciones` en cero; `get_advisors` sin nada nuevo; Esencias Michel: 15 productos y la misma huella de `catalogo_publico`). Detalle en `docs/03` (migración 20261008165331).
