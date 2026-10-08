@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { MOTIVOS_INVENTARIO } from "@/lib/data/inventario";
 import { pastillasDeOpciones } from "@/lib/hoja-producto";
+import { useState } from "react";
 import type { EstadoPresentaciones } from "@/lib/presentaciones";
 import type { Rubro } from "@/lib/rubros";
 import type { MotivoAjusteInventario } from "@/lib/types";
@@ -20,6 +20,8 @@ export type { FotoBorrador } from "./hoja-presentacion";
  * Todo edita el borrador de la ficha: se guarda con «Guardar cambios» del producto.
  */
 export function SeccionPresentaciones({
+  abierta,
+  alAlternar,
   rubro,
   precioProducto,
   estado,
@@ -34,6 +36,9 @@ export function SeccionPresentaciones({
   deshabilitado,
   tienePedidos,
 }: {
+  /** La hoja de presentaciones: la maneja la ficha para que el Precio («Desde…») también pueda abrirla. */
+  abierta: boolean;
+  alAlternar: (abierta: boolean) => void;
   rubro: Rubro;
   precioProducto: number;
   estado: EstadoPresentaciones;
@@ -52,15 +57,14 @@ export function SeccionPresentaciones({
   /** ¿Esta presentación (por id de variante) ya tiene pedidos? */
   tienePedidos: (varianteId: string) => Promise<boolean>;
 }) {
-  const [abierta, setAbierta] = useState(false);
   const { opciones, pres } = estado;
   const tiene = pres.length > 0 && opciones.length > 0;
   return (
-    <div data-presentaciones="" data-cosas-que-cambian="">
+    <div data-presentaciones="" data-cosas-que-cambian="" className="border-t border-linea">
       <button
         type="button"
         disabled={deshabilitado}
-        onClick={() => (sinPermiso ? avisar(porque) : setAbierta(true))}
+        onClick={() => (sinPermiso ? avisar(porque) : alAlternar(true))}
         className="tocable flex min-h-15 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -79,7 +83,7 @@ export function SeccionPresentaciones({
       </button>
       <FlujoPresentaciones
         abierta={abierta}
-        alCerrar={() => setAbierta(false)}
+        alCerrar={() => alAlternar(false)}
         rubro={rubro}
         precioProducto={precioProducto}
         estado={estado}
@@ -91,7 +95,7 @@ export function SeccionPresentaciones({
         avisar={avisar}
         alConfirmar={(nuevo) => {
           alCambiar(nuevo);
-          setAbierta(false);
+          alAlternar(false);
         }}
       />
     </div>

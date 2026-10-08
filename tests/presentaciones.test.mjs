@@ -447,3 +447,29 @@ test("resumen de una tarjeta colapsada: los valores elegidos, o «Elige cuáles 
   assert.equal(P.resumenDeValores(["Única"]), "Única");
   assert.equal(P.resumenDeValores([]), "Elige cuáles tienes");
 });
+
+test("precio por presentación: arranque del interruptor, «Desde» y apagar", () => {
+  const pr = (precio, activa = true) => ({ valores: { Talla: "S" }, stock: 1, precio, activa });
+  // Sin precios propios (o iguales al del producto): apagado y sin «Desde».
+  const iguales = [pr(null), pr(950), pr(null)];
+  assert.equal(P.tienePreciosPropios(iguales, 950), false);
+  assert.equal(P.preciosVarian(iguales, 950), false);
+  // Perfume 30/50/100 ml con precios distintos: encendido y «Desde» el menor.
+  const perfume = [pr(null), pr(1800), pr(3200)];
+  assert.equal(P.tienePreciosPropios(perfume, 950), true);
+  assert.equal(P.preciosVarian(perfume, 950), true);
+  assert.equal(P.resumenDe(perfume, 950).desde, 950);
+  // Una oculta con otro precio no cuenta.
+  assert.equal(P.preciosVarian([pr(null), pr(5000, false)], 950), false);
+  assert.equal(P.tienePreciosPropios([pr(5000, false)], 950), false);
+  // Apagar: todas vuelven al del producto.
+  const apagadas = P.unificarPrecios(perfume);
+  assert.deepEqual(apagadas.map((p) => p.precio), [null, null, null]);
+  assert.equal(P.preciosVarian(apagadas, 950), false);
+  // Lo que escribe el dueño: vacío, 0 o el del producto = sin precio propio.
+  assert.equal(P.precioDeTexto("", 950), null);
+  assert.equal(P.precioDeTexto("0", 950), null);
+  assert.equal(P.precioDeTexto("950", 950), null);
+  assert.equal(P.precioDeTexto("1,800", 950), 1800);
+  assert.equal(P.precioDeTexto("123456789", 950), 1234567);
+});

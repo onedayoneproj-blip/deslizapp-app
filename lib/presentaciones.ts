@@ -428,6 +428,23 @@ export function colorDe(opciones: OpcionProducto[], valores: Record<string, stri
 /** El precio que se cobra por una presentación: el suyo o el del producto. */
 export const precioDe = (p: Pick<Presentacion, "precio">, precioProducto: number) => p.precio ?? precioProducto;
 
+/** ¿Alguna presentación activa tiene un precio distinto al del producto? Con esto el interruptor «Cada una tiene su precio» arranca encendido. */
+export const tienePreciosPropios = (lista: Presentacion[], precioProducto: number) =>
+  lista.some((p) => p.activa && p.precio !== null && p.precio !== precioProducto);
+
+/** ¿Los precios de las presentaciones activas no son todos iguales? Entonces la tarjeta de Precio dice «Desde». */
+export const preciosVarian = (lista: Presentacion[], precioProducto: number) =>
+  new Set(lista.filter((p) => p.activa).map((p) => precioDe(p, precioProducto))).size > 1;
+
+/** Apagar «Cada una tiene su precio»: todas vuelven al precio del producto. */
+export const unificarPrecios = (lista: Presentacion[]): Presentacion[] => lista.map((p) => (p.precio === null ? p : { ...p, precio: null }));
+
+/** El precio que escribió el dueño en una fila (solo dígitos): vacío, 0 o igual al del producto = sin precio propio. */
+export const precioDeTexto = (digitos: string, precioProducto: number): number | null => {
+  const n = Number(digitos.replace(/\D/g, "").slice(0, 7));
+  return n > 0 && n !== precioProducto ? n : null;
+};
+
 export type EstadoPresentacion = "oculta" | "agotada" | "quedan" | "normal";
 
 /**

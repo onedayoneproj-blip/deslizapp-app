@@ -29,12 +29,15 @@ import {
   ponerATodas,
   ponerTodasEn,
   precioDe,
+  precioDeTexto,
   puedeElegirOtra,
   quitar,
   repartoCuadra,
   resumenDe,
   resumenDeValores,
   tarjetaApagada,
+  tienePreciosPropios,
+  unificarPrecios,
   TEXTO_CON_PEDIDOS,
   textoCombinacion,
   textoDeReparto,
@@ -51,7 +54,7 @@ import type { OpcionProducto } from "@/lib/types";
 import { IconoChevronAbajo, IconoChevronArriba, IconoMas } from "../iconos";
 import { Hoja, HojaFijoAbajo } from "../hoja";
 import { clases, FOCO } from "../ui/comunes";
-import { Alerta, Boton, Campo, Cantidad, EditorEtiquetas, Etiqueta, FilaLista, FilaVariante, ListaAgrupada, Opcion, Tarjeta } from "../ui";
+import { Alerta, Boton, Campo, Cantidad, EditorEtiquetas, Etiqueta, FilaLista, FilaVariante, Interruptor, ListaAgrupada, Opcion, Tarjeta } from "../ui";
 import { HojaFotoColor, HojaPresentacion, type FotoBorrador } from "./hoja-presentacion";
 
 const plural = (nombre: string) => (/[aeiouáéíóú]$/i.test(nombre) ? `${nombre}s` : `${nombre}es`);
@@ -141,6 +144,52 @@ const tarjetasIniciales = (rubro: Rubro, opciones: OpcionProducto[]): Tarjetas =
 const ejesFinales = (ejes: EjeBorrador[], rubro: Rubro): OpcionProducto[] =>
   ejes.map((e) => ({ nombre: e.nombre, valores: e.propia ? e.valores : ordenarValores(valoresSugeridos(e.nombre, rubro), e.valores) }));
 
+/**
+ * El campo de precio de una fila (con «Cada una tiene su precio» encendido). Arranca con el precio del producto; «siguiente» del
+ * teclado pasa al próximo precio de la lista (el foco sale del mismo gesto, así iOS no cierra el teclado) y en el último, «Listo».
+ */
+function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: string; precioProducto: number; precio: number; alCambiar: (p: number | null) => void }) {
+  const [escrito, setEscrito] = useState(String(precio));
+  // Si el precio cambia desde otro lado (el detalle de la fila), el campo lo sigue; lo que se está escribiendo no se pisa.
+  const [precioAntes, setPrecioAntes] = useState(precio);
+  if (precio !== precioAntes) {
+    setPrecioAntes(precio);
+    if (precio !== (precioDeTexto(escrito, precioProducto) ?? precioProducto)) setEscrito(String(precio));
+  }
+  return (
+    <label className="flex h-12 w-full min-w-0 items-center gap-2 rounded-radio-m border-2 border-borde-campo bg-superficie px-3 focus-within:border-accion">
+      <span className="text-secundario font-extrabold text-texto-secundario">RD$</span>
+      <input
+        data-precio-fila=""
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        enterKeyHint="next"
+        aria-label={`Precio de ${texto}, en pesos`}
+        value={escrito}
+        onChange={(e) => {
+          const d = e.target.value.replace(/\D/g, "").replace(/^0+/, "").slice(0, 7);
+          setEscrito(d);
+          alCambiar(precioDeTexto(d, precioProducto));
+        }}
+        onBlur={() => {
+          if (!escrito) setEscrito(String(precioProducto));
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          const campos = Array.from(e.currentTarget.closest("[data-paso]")?.querySelectorAll<HTMLInputElement>("input[data-precio-fila]") ?? []);
+          const siguiente = campos[campos.indexOf(e.currentTarget) + 1];
+          // El foco sale del mismo gesto (iOS); la hoja ya cuida que el campo enfocado quede sobre el teclado.
+          if (siguiente) siguiente.focus();
+          else e.currentTarget.blur();
+        }}
+        className="w-0 min-w-0 flex-1 bg-transparent font-display text-titulo-seccion text-texto outline-none"
+      />
+    </label>
+  );
+}
+
 type Detalle = { tipo: "una"; clave: string } | { tipo: "foto" } | null;
 
 /**
@@ -187,6 +236,8 @@ export function FlujoPresentaciones({
     borrador: { opciones: editando ? estado.opciones : [], pres: editando ? estado.pres : [], fotosColor: editando ? estado.fotosColor : {} } as EstadoPresentaciones,
     origenes: [] as Origen[],
     abiertos: null as string[] | null,
+    // Con precios propios que ya difieren, «Cada una tiene su precio» arranca encendido.
+    precios: editando && tienePreciosPropios(estado.pres, precioProducto),
   });
   const [s, setS] = useState(arrancar);
   const [abiertaAntes, setAbiertaAntes] = useState(abierta);
@@ -376,10 +427,19 @@ export function FlujoPresentaciones({
         alCambiar={(v) => cambiarUna(clave, { stock: v })}
         alAbrir={() => setDetalle({ tipo: "una", clave })}
         estado={st.estado === "normal" ? null : st.texto}
-        detalle={p.precio !== null ? `${formatearPesos(precioDe(p, precioProducto))} · precio propio` : undefined}
+        detalle={!s.precios && p.precio !== null ? `${formatearPesos(precioDe(p, precioProducto))} · precio propio` : undefined}
         atenuada={!p.activa}
+        debajo={s.precios && p.activa ? <PrecioFila texto={textoCombinacion(opciones, p.valores)} precioProducto={precioProducto} precio={precioDe(p, precioProducto)} alCambiar={(precio) => cambiarUna(clave, { precio })} /> : undefined}
       />
     );
+  };
+
+  /** Apagar con precios distintos avisa: todas vuelven al precio del producto. */
+  const cambiarPrecios = (encender: boolean) => {
+    if (encender) return setS((x) => ({ ...x, precios: true }));
+    const apagar = () => setS((x) => ({ ...x, precios: false, borrador: { ...x.borrador, pres: unificarPrecios(x.borrador.pres) } }));
+    if (tienePreciosPropios(pres, precioProducto)) setPreguntar({ texto: `Todas vuelven al precio del producto: ${formatearPesos(precioProducto)}.`, aplicar: apagar });
+    else apagar();
   };
 
   const nombreHoja = paso === 1 ? "Qué cambia" : "Cuántas tienes";
@@ -475,6 +535,16 @@ export function FlujoPresentaciones({
             </div>
             <Boton jerarquia="terciario" tamano="compacto" onClick={() => setS((x) => ({ ...x, paso: 1 }))}>Cambiar qué cambia</Boton>
           </div>
+
+          {pres.length > 0 && (
+            <ul className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-precios-por-fila="">
+              <FilaLista
+                titulo="Cada una tiene su precio"
+                detalle={s.precios ? "Cambia solo las que valen distinto." : "Todas valen lo mismo."}
+                accion={<Interruptor encendido={s.precios} alCambiar={cambiarPrecios} etiqueta="Cada una tiene su precio" />}
+              />
+            </ul>
+          )}
 
           {pendiente.length > 0 && (
             <p role="status" className="rounded-radio-m bg-atencion-suave p-3 text-secundario font-bold text-atencion-texto" data-reparto="">

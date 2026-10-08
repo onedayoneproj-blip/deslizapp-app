@@ -386,7 +386,9 @@ for (const ancho of ANCHOS) {
     await captura(page, "17-detalle-fila", ancho);
     await page.getByRole("button", { name: "Listo", exact: true }).last().click();
     await page.waitForTimeout(500);
-    ok((await pasoTexto(page)).includes("RD$1,200 · precio propio") || (await pasoTexto(page)).includes("RD$ 1,200 · precio propio"), `11 · «${nombre}» muestra su precio propio`);
+    // Con precios propios en el producto, «Cada una tiene su precio» arranca encendido y el precio se ve en el campo de la fila.
+    const propio = await hoja(page).locator("input[data-precio-fila]").first().inputValue().catch(() => "");
+    ok(propio === "1200" || (await pasoTexto(page)).includes("1,200 · precio propio"), `11 · «${nombre}» muestra su precio propio`);
     await hoja(page).getByRole("button", { name: /^Foto de cada /i }).click();
     await page.waitForTimeout(450);
     ok((await page.getByText(/Foto de cada /).count()) >= 1, "12 · «Foto de cada …» se abre desde el paso 2");

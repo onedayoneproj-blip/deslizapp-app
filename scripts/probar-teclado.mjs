@@ -320,6 +320,40 @@ try {
     await ctx.close();
   }
 
+  // ---- «Cada una tiene su precio»: varios campos de precio seguidos en una hoja grande
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
+    await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
+    await page.waitForSelector("[data-cosas-que-cambian]");
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.waitForSelector("[data-paso=cuantas]");
+    await page.waitForTimeout(900);
+    const interruptor = page.getByRole("switch", { name: "Cada una tiene su precio" });
+    if ((await interruptor.getAttribute("aria-checked")) !== "true") await interruptor.click();
+    await page.waitForSelector("input[data-precio-fila]");
+    const campos = '[role="dialog"] input[data-precio-fila]';
+    ok((await page.locator(campos).count()) >= 2, "Precio por fila: hay varios campos de precio seguidos");
+    await page.evaluate(() => document.querySelector("input[data-precio-fila]").setAttribute("data-prueba", "primero"));
+    await probarCampo(page, 'input[data-prueba="primero"]', "Precio por fila · primera", "1200", { dentroDeHoja: true, reemplazar: true });
+    // «Siguiente» del teclado pasa al próximo precio sin cerrar el teclado ni mover la hoja
+    await page.evaluate(() => window.__teclado(true));
+    const antes = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(700);
+    const paso = await page.evaluate(() => {
+      const l = Array.from(document.querySelectorAll("input[data-precio-fila]"));
+      return l.indexOf(document.activeElement);
+    });
+    ok(paso === 1, `Precio por fila: «siguiente» pasa al próximo precio (campo ${paso})`);
+    const despues = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
+    ok(antes === despues, `Precio por fila: la hoja no se movió al pasar al siguiente (${antes} → ${despues})`);
+    const r = await page.evaluate(() => document.activeElement.getBoundingClientRect().bottom);
+    ok(r <= 844 - ALTO_TECLADO, `Precio por fila: el campo enfocado queda sobre el teclado (${Math.round(r)}px)`);
+    ok(errores.length === 0, `Precio por fila: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
   // ---- Hoja apilada de disminución: el motivo "Otro" muestra una nota con teclado.
   {
     const { ctx, page, errores } = await abrir(navegador);

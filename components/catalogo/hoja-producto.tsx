@@ -26,6 +26,7 @@ import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
+import { IconoChevronDerecha } from "../iconos";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
@@ -33,7 +34,7 @@ import { reducirFoto } from "@/lib/imagen";
 import { nuevoId } from "@/lib/data/db";
 import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { useTaller } from "./taller";
-import { claveVariante, ejeDeFoto, presentacionesDe, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
+import { claveVariante, ejeDeFoto, presentacionesDe, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
 import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
 import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
 import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
@@ -239,6 +240,7 @@ function FormularioProducto({
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
+  const [presAbierta, setPresAbierta] = useState(false);
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
   const [stock, setStockValor] = useState<number>(producto ? (producto.stock ?? 0) : 1);
   // Un producto nuevo arranca con 1; solo si el dueño lo tocó cuenta como stock que repartir al crear presentaciones.
@@ -357,6 +359,7 @@ function FormularioProducto({
 
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
   const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
+  const varia = tieneOpciones && preciosVarian(borradorPres, Number(precio) || 0);
   // «Publicar» / «Guardar cambios» espera a tener foto, nombre y precio (la misma regla de siempre; antes avisaba al tocar).
   const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
 
@@ -577,19 +580,40 @@ function FormularioProducto({
         maxLength={120}
         className="[&_input]:h-14 [&_input]:text-titulo-seccion [&_input]:font-extrabold"
       />
-      <Campo
-        etiqueta="Precio (RD$)"
-        inputMode="numeric"
-        value={precio}
-        onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
-        placeholder="Ej: 950"
-        className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
-      />
-
-      {/* Cosas que cambian y stock: una sola tarjeta */}
+      {/* Precio, cosas que cambian, stock y por encargo: una sola tarjeta */}
       <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
+        {varia && resumenPres.desde !== null ? (
+          <button
+            type="button"
+            disabled={guardando}
+            onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}
+            data-precio-desde=""
+            className="tocable flex min-h-20 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-secundario text-texto-secundario">Precio</span>
+              <span className="font-display text-cifra text-texto">Desde {formatearPesos(resumenPres.desde)}</span>
+              <span className="text-secundario text-texto-secundario">Varía por presentación</span>
+            </span>
+            <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
+          </button>
+        ) : (
+          <div className="p-4" data-precio="">
+            <Campo
+              etiqueta="Precio (RD$)"
+              inputMode="numeric"
+              enterKeyHint="done"
+              value={precio}
+              onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
+              placeholder="Ej: 950"
+              className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
+            />
+          </div>
+        )}
         {(producto?.tipo ?? "producto") === "producto" && (
           <SeccionPresentaciones
+            abierta={presAbierta}
+            alAlternar={setPresAbierta}
             rubro={tipo}
             precioProducto={Number(precio) || 0}
             estado={presentaciones}
