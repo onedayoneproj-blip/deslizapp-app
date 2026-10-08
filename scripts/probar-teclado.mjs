@@ -110,7 +110,9 @@ async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false
   if (reemplazar) await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.type(texto);
   const valor = await page.$eval(selector, (el) => el.value);
-  ok(valor === texto, `${nombre}: (b) se puede escribir (${JSON.stringify(valor)})`);
+  // Los campos de precio muestran comas de miles ("2450" se ve "2,450"): se compara sin ellas.
+  const esPrecio = /^\d+$/.test(texto) && valor === Number(texto).toLocaleString("en-US");
+  ok(valor === texto || esPrecio, `${nombre}: (b) se puede escribir (${JSON.stringify(valor)})`);
   ok((await conFoco()) && (await page.evaluate((s) => document.querySelector(s).__marca, selector)) === "mismo-nodo", `${nombre}: (b) tras escribir, mismo nodo y con foco`);
   const vt = await page.evaluate(() => window.__vt);
   ok(vt === 0, `${nombre}: (d) mientras se escribe no se inicia ninguna transición de vista (${vt})`);
@@ -178,11 +180,31 @@ try {
     await page.waitForSelector('a[href="/catalogo/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/catalogo/nuevo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(700);
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Kiara Pink"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder="0"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="El nombre de tu producto"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="Escribe el precio"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
+    // Descripción y «Cuándo llega» viven en filas plegadas: abrir la fila no mueve ni quita el foco de otro campo.
+    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.waitForTimeout(200);
+    await page.evaluate(() => (window.__foco = []));
+    // click() desde la página (sin mover el foco del navegador): lo que se prueba es que la app no toque el foco al abrir la fila.
+    await page.evaluate(() => document.querySelector('[role="dialog"] [data-fila-plegable="descripcion"] button[aria-expanded]').click());
+    await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
+    const focoTrasAbrirFila = await page.evaluate(() => ({ nombre: document.activeElement?.getAttribute("placeholder"), eventos: window.__foco.join(" ") }));
+    ok(focoTrasAbrirFila.nombre === "El nombre de tu producto", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
     await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
+    await page.tap('[role="switch"][aria-label="Por encargo"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Nuevo producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
+    // La barra fija («Cómo se ve» + «Publicar») no tapa el campo enfocado: con el teclado abierto se oculta.
+    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.evaluate(() => window.__teclado(true));
+    await page.waitForTimeout(400);
+    ok(await page.evaluate(() => getComputedStyle(document.querySelector("[data-barra-producto]").parentElement).visibility === "hidden"), "La barra fija se oculta con el teclado abierto (no tapa el campo enfocado)");
+    await page.evaluate(() => window.__teclado(false));
+    await page.waitForTimeout(300);
+    await page.evaluate(() => document.activeElement.blur());
     // Cerrar el teclado tocando fuera y confirmar que la hoja se sigue cerrando deslizando
     await page.evaluate(() => document.activeElement.blur());
     await page.waitForTimeout(200);
@@ -231,7 +253,7 @@ try {
     const sel = '[data-hoja-cabecera] [data-selector-catalogo]';
     await page.waitForSelector(sel);
     await page.waitForTimeout(900);
-    await page.tap('input[placeholder="Ej: Kiara Pink"]');
+    await page.tap('input[placeholder="El nombre de tu producto"]');
     await page.keyboard.type("Gorra");
     await page.evaluate(() => document.activeElement.blur());
     const antes = await page.locator('[role="dialog"]').first().boundingBox();
@@ -258,48 +280,79 @@ try {
     const { ctx, page, errores } = await abrir(navegador);
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
-    await page.waitForSelector("#titulo-presentaciones");
+    await page.waitForSelector("[data-cosas-que-cambian]");
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await page.waitForSelector("[data-paso=cuantas]");
     await page.waitForTimeout(900);
     // Precio propio (hoja de una presentación)
-    await page.getByRole("button", { name: "Abrir S · Negro", exact: true }).click();
+    await page.locator('section[aria-label="Talla S"]').getByRole("button", { name: "Abrir Negro", exact: true }).click();
     await page.getByRole("radio", { name: "Uno propio" }).click();
     await page.waitForSelector('input[aria-label^="Precio de esta presentación"]');
     await page.waitForTimeout(500);
     await probarCampo(page, 'input[aria-label^="Precio de esta presentación"]', "Presentación · Precio propio", "950", { dentroDeHoja: true, reemplazar: true });
     await page.keyboard.press("Escape");
     await page.waitForTimeout(600);
-    // Otro valor suelto
-    await page.getByRole("button", { name: "Agregar presentación", exact: true }).click();
-    await page.waitForSelector('[role="dialog"] input[placeholder="Escríbelo aquí"]');
-    await page.waitForTimeout(600);
-    await probarCampo(page, '[role="dialog"] input[placeholder="Escríbelo aquí"]', "Agregar presentación · Otro valor", "XXL", { dentroDeHoja: true });
-    await page.evaluate(() => document.activeElement.blur());
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(600);
-    // «Cambiar qué varía» → Otra…: el nombre y los valores nuevos
-    await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
+    // Paso 1 («Cambiar qué cambia»): valor propio de una cosa del catálogo, «Otra cosa» y sus valores
+    await page.getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
     await page.getByRole("button", { name: "Quitar Talla", exact: true }).waitFor();
     await page.waitForTimeout(500);
+    await page.locator('[data-eje="Color"]').getByRole("button", { name: /^\+ Otro color/ }).click();
+    await page.waitForSelector('[role="dialog"] input[aria-label="Otro color"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label="Otro color"]', "Qué cambia · Otro color", "Turquesa", { dentroDeHoja: true });
+    await page.evaluate(() => document.activeElement.blur());
     // Quita lo que ya tiene para dejar lugar a la cosa propia
     for (const nombre of ["Talla", "Color"]) {
       const q = page.getByRole("button", { name: `Quitar ${nombre}`, exact: true });
       if (await q.count()) await q.click();
     }
     await page.getByRole("button", { name: "+ Otra cosa", exact: true }).click();
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Aroma"]');
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Aroma"]', "Cambiar qué varía · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escribe qué cambia"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Escribe qué cambia"]', "Qué cambia · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
     await page.getByRole("button", { name: "Listo", exact: true }).click();
+    // La cosa propia nace arriba; su valor se escribe en el campo del editor de etiquetas
+    await page.locator('[data-eje="Tela"]').getByRole("button", { name: "Agregar", exact: true }).click();
+    await page.waitForSelector('[role="dialog"] input[aria-label="Agregar a Telas"]');
+    await probarCampo(page, '[role="dialog"] input[aria-label="Agregar a Telas"]', "Qué cambia · Valor de una cosa propia", "Lino", { dentroDeHoja: true });
+    await page.evaluate(() => document.activeElement.blur());
     // Lista que se expande: colapsar y volver a expandir la cosa propia no deja la hoja sin su campo
     await page.getByRole("button", { name: "Contraer Tela", exact: true }).click();
     await page.getByRole("button", { name: "Expandir Tela", exact: true }).click();
     await page.getByRole("button", { name: "Contraer Tela", exact: true }).waitFor();
-    // Valor propio de una cosa del catálogo
-    await page.getByRole("button", { name: "Color", exact: true }).click();
-    await page.getByRole("button", { name: /^\+ Otro color/ }).click();
-    await page.waitForSelector('[role="dialog"] input[aria-label="Otro color"]');
-    await probarCampo(page, '[role="dialog"] input[aria-label="Otro color"]', "Cambiar qué varía · Otro color", "Turquesa", { dentroDeHoja: true });
-    await page.evaluate(() => document.activeElement.blur());
     ok(errores.length === 0, `Presentaciones: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
+  // ---- «Cada una tiene su precio»: varios campos de precio seguidos en una hoja grande
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
+    await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
+    await page.waitForSelector("[data-cosas-que-cambian]");
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await page.waitForSelector("[data-paso=cuantas]");
+    await page.waitForTimeout(900);
+    const interruptor = page.getByRole("switch", { name: "Cada una tiene su precio" });
+    if ((await interruptor.getAttribute("aria-checked")) !== "true") await interruptor.click();
+    await page.waitForSelector("input[data-precio-fila]");
+    const campos = '[role="dialog"] input[data-precio-fila]';
+    ok((await page.locator(campos).count()) >= 2, "Precio por fila: hay varios campos de precio seguidos");
+    await page.evaluate(() => document.querySelector("input[data-precio-fila]").setAttribute("data-prueba", "primero"));
+    await probarCampo(page, 'input[data-prueba="primero"]', "Precio por fila · primera", "1200", { dentroDeHoja: true, reemplazar: true });
+    // «Siguiente» del teclado pasa al próximo precio sin cerrar el teclado ni mover la hoja
+    await page.evaluate(() => window.__teclado(true));
+    const antes = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(700);
+    const paso = await page.evaluate(() => {
+      const l = Array.from(document.querySelectorAll("input[data-precio-fila]"));
+      return l.indexOf(document.activeElement);
+    });
+    ok(paso === 1, `Precio por fila: «siguiente» pasa al próximo precio (campo ${paso})`);
+    const despues = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
+    ok(antes === despues, `Precio por fila: la hoja no se movió al pasar al siguiente (${antes} → ${despues})`);
+    const r = await page.evaluate(() => document.activeElement.getBoundingClientRect().bottom);
+    ok(r <= 844 - ALTO_TECLADO, `Precio por fila: el campo enfocado queda sobre el teclado (${Math.round(r)}px)`);
+    ok(errores.length === 0, `Precio por fila: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 
@@ -471,7 +524,7 @@ try {
     await page.waitForSelector('a[href="/catalogo/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/catalogo/nuevo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(700);
     // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
     await page.tap('[role="dialog"] button:has-text("Sin colección")');

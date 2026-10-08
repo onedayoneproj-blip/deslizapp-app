@@ -10,7 +10,7 @@ import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib
 import { catalogoInicial, contarPorCatalogo, leerCatalogoActivo } from "@/lib/catalogo-activo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
-import type { MotivoAjusteInventario, Producto } from "@/lib/types";
+import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
 import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
 import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
@@ -21,11 +21,12 @@ import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoAbajo, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
+import { IconoChevronDerecha } from "../iconos";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
@@ -33,10 +34,14 @@ import { reducirFoto } from "@/lib/imagen";
 import { nuevoId } from "@/lib/data/db";
 import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { useTaller } from "./taller";
-import { claveVariante, ejeDeFoto, presentacionesDe } from "@/lib/presentaciones";
-import { HojaMotivoVariantes, SeccionPresentaciones, type EstadoPresentaciones } from "./ficha-presentaciones";
+import { claveVariante, ejeDeFoto, presentacionesDe, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
+import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
+import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
+import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
+import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
+import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
-import { fichaCambiada, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
+import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
@@ -235,8 +240,15 @@ function FormularioProducto({
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
+  const [presAbierta, setPresAbierta] = useState(false);
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
-  const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
+  const [stock, setStockValor] = useState<number>(producto ? (producto.stock ?? 0) : 1);
+  // Un producto nuevo arranca con 1; solo si el dueño lo tocó cuenta como stock que repartir al crear presentaciones.
+  const [stockTocado, setStockTocado] = useState(false);
+  const setStock = (v: number) => {
+    setStockValor(v);
+    setStockTocado(true);
+  };
   // Las presentaciones (tallas, colores, tamaños): se editan aquí y se guardan con el producto.
   const base = useMemo(() => new Map((producto?.variantes ?? []).map((v) => [claveVariante(v.valores), v])), [producto]);
   const [presentaciones, setPresentaciones] = useState<EstadoPresentaciones>(() => {
@@ -273,6 +285,9 @@ function FormularioProducto({
   const [porEncargo, setPorEncargo] = useState(producto?.porEncargo ?? false);
   const [encargoTexto, setEncargoTexto] = useState(producto?.encargoTexto ?? "");
   const [guardando, setGuardando] = useState(false);
+  const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
+  const alternar = (id: string) => setPlegadas((p) => ({ ...p, [id]: !p[id] }));
+  const [viendo, setViendo] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
   // La bienvenida del retoque, antes de guardar un producto con fotos marcadas por primera vez en esta tienda.
@@ -313,9 +328,13 @@ function FormularioProducto({
   const avisarLleno = () =>
     mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
+  /** El stock simple que se reparte al crear presentaciones: el guardado del producto, o lo que puso el dueño en uno nuevo. */
+  const stockSimple = producto ? producto.stock : stockTocado ? stock : null;
   const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
-    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta.
+    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta (ya se repartió el guardado).
     if (nuevo.pres.length > 0 && !tieneOpciones && inventario.pendiente) inventario.recuperar();
+    // Al volver a un solo stock en un producto nuevo, el total de las presentaciones pasa a su stock.
+    if (nuevo.pres.length === 0 && tieneOpciones && !producto) setStockValor(resumenDe(borradorPres, Number(precio) || 0).enTotal);
     setPresentaciones(nuevo);
   };
 
@@ -339,6 +358,10 @@ function FormularioProducto({
   const tienePedidosVariante = async (varianteId: string) => (await getPedidos(tiendaId)).some((p) => p.items.some((i) => i.varianteId === varianteId));
 
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
+  const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
+  const varia = tieneOpciones && preciosVarian(borradorPres, Number(precio) || 0);
+  // «Publicar» / «Guardar cambios» espera a tener foto, nombre y precio (la misma regla de siempre; antes avisaba al tocar).
+  const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
 
   const guardar = async (
     motivo: MotivoAjusteInventario = "reposicion",
@@ -495,6 +518,28 @@ function FormularioProducto({
     }
   };
 
+  /** El borrador como lo vería quien compra: lo que «Cómo se ve» le manda al reel (solo se arma al abrirse). */
+  const datosVista = (): DatosVistaPrevia | null => {
+    if (!tienda) return null;
+    const medioDeId = new Map(medios.flatMap((m) => (m.tipo === "foto" ? [[m.id, m.url] as const] : [])));
+    const ejeFoto = ejeDeFoto(tieneOpciones ? opciones : []);
+    const fotosPorValor: FotosPorValor = {};
+    if (ejeFoto) {
+      for (const [valor, id] of Object.entries(fotosColor)) {
+        const url = medioDeId.get(id);
+        if (url && ejeFoto.valores.includes(valor)) (fotosPorValor[ejeFoto.nombre] ??= {})[valor] = url;
+      }
+    }
+    const fichaUrl = fichaVisible(producto?.fichaUrl, ficha) ? (ficha.tipo === "nueva" ? ficha.foto : (producto?.fichaUrl ?? null)) : null;
+    return {
+      tienda: tiendaPublicaDe(tienda),
+      producto: productoPublicoDeBorrador({
+        nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? opciones : [], presentaciones: tieneOpciones ? borradorPres : [],
+        stock: producto && !tieneOpciones && inventario.propuesta !== null ? inventario.propuesta : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo, fotosPorValor, fichaUrl,
+      }),
+    };
+  };
+
   const alGuardar = () => {
     if (producto && tieneOpciones && bajadas > 0) setPidiendoMotivo(true);
     else if (producto) inventario.pedirGuardar(guardar);
@@ -527,91 +572,118 @@ function FormularioProducto({
         }}
       />
 
-      <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Kiara Pink" maxLength={120} />
       <Campo
-        etiqueta="Precio (RD$)"
-        inputMode="numeric"
-        value={precio}
-        onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
-        placeholder="0"
-        className="[&_input]:font-extrabold"
+        etiqueta="Nombre"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        placeholder="El nombre de tu producto"
+        maxLength={120}
+        className="[&_input]:h-14 [&_input]:text-titulo-seccion [&_input]:font-extrabold"
       />
-
-      <SeccionDescripcion valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} />
-
-      {(producto?.tipo ?? "producto") === "producto" && (
-        <SeccionPresentaciones
-          rubro={tipo}
-          precioProducto={Number(precio) || 0}
-          estado={presentaciones}
-          alCambiar={cambiarPresentaciones}
-          fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
-          agregarFoto={agregarFotoDeColor}
-          sinPermiso={sinCatalogo}
-          porque={porque}
-          avisar={toast}
-          deshabilitado={guardando}
-          tienePedidos={tienePedidosVariante}
-        />
-      )}
-
-      {/* Stock sin opciones: como siempre */}
-      {!tieneOpciones && (
-        <div className={producto ? "" : "rounded-radio-l border border-linea bg-superficie p-4"}>
-          {producto ? (
-            <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
-              alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || preparando}/>
-          ) : (
-            <>
+      {/* Precio, stock, por encargo y presentaciones (de último): una sola tarjeta */}
+      <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
+        {varia && resumenPres.desde !== null ? (
+          <button
+            type="button"
+            disabled={guardando}
+            onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}
+            data-precio-desde=""
+            className="tocable flex min-h-20 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-secundario text-texto-secundario">Precio</span>
+              <span className="font-display text-cifra text-texto">Desde {formatearPesos(resumenPres.desde)}</span>
+              <span className="text-secundario text-texto-secundario">Varía por presentación</span>
+            </span>
+            <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
+          </button>
+        ) : (
+          <div className="p-4" data-precio="">
+            <Campo
+              etiqueta="Precio (RD$)"
+              inputMode="numeric"
+              enterKeyHint="done"
+              precio={{ digitos: precio, alCambiar: setPrecio }}
+              placeholder="Escribe el precio"
+              className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
+            />
+          </div>
+        )}
+        {tieneOpciones ? (
+          <div className="flex min-h-15 items-center justify-between gap-3 border-t border-linea px-4 py-2 first:border-t-0">
+            <span className="text-destacado text-texto">En stock</span>
+            <span className="text-secundario text-texto-secundario">{resumenStockPresentaciones(resumenPres.total, resumenPres.enTotal)}</span>
+          </div>
+        ) : (
+          <div className="border-t border-linea p-4 first:border-t-0">
+            {producto ? (
+              <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
+                alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || preparando}/>
+            ) : (
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-destacado text-texto">En stock</p>
-                  <p className="text-secundario text-texto-secundario">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
+                  <p className="text-secundario text-texto-secundario">Al despachar, baja solito.</p>
                 </div>
-                {stock !== null && <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />}
+                <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />
               </div>
-              <button type="button" onClick={() => setStock(stock === null ? 1 : null)} className="tocable -mb-1 flex min-h-11 items-center text-secundario font-extrabold text-texto-secundario">{stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}</button>
-            </>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+        {(producto?.tipo ?? "producto") === "producto" && (
+          <div className="border-t border-linea" data-encargo="">
+            <ul>
+              <FilaLista titulo="Por encargo" detalle={resumenEncargo(porEncargo, encargoTexto)} accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />} />
+            </ul>
+            {porEncargo && (
+              <div className="px-4 pb-4">
+                <Campo etiqueta="Cuándo llega" value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
+              </div>
+            )}
+          </div>
+        )}
+        {(producto?.tipo ?? "producto") === "producto" && (
+          <SeccionPresentaciones
+            abierta={presAbierta}
+            alAlternar={setPresAbierta}
+            rubro={tipo}
+            precioProducto={Number(precio) || 0}
+            estado={presentaciones}
+            alCambiar={cambiarPresentaciones}
+            stockSimple={stockSimple}
+            publicado={Boolean(producto)}
+            fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
+            agregarFoto={agregarFotoDeColor}
+            sinPermiso={sinCatalogo}
+            porque={porque}
+            avisar={toast}
+            deshabilitado={guardando}
+            tienePedidos={tienePedidosVariante}
+          />
+        )}
+      </div>
 
-      {/* Sin la tienda todavía no se sabe el rubro: Detalles espera para no mostrar los campos de otro. */}
-      {tienda && conDetalles && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
-
-      <SeccionFichaTecnica actual={producto?.fichaUrl} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} />
-
-      {/* Colección, visibilidad y por encargo: una sola lista agrupada */}
+      {/* Más opciones: plegadas, cada una muestra su valor */}
+      <p className="-mb-2 px-1 text-secundario font-extrabold tracking-wide text-texto-secundario uppercase">Más opciones</p>
+      <ListaAgrupada etiqueta="Descripción y ficha técnica" className="-mt-1">
+        <FilaPlegable id="descripcion" titulo="Descripción" detalle={resumenDescripcion(descripcion) ?? "Opcional"} abierta={!!plegadas.descripcion} alAlternar={() => alternar("descripcion")}>
+          <SeccionDescripcion sinTitulo valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} />
+        </FilaPlegable>
+        <FilaPlegable id="ficha" titulo="Ficha técnica" detalle={fichaVisible(producto?.fichaUrl, ficha) ? "Subida" : "Opcional"} abierta={!!plegadas.ficha} alAlternar={() => alternar("ficha")}>
+          <SeccionFichaTecnica sinTitulo actual={producto?.fichaUrl} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} />
+        </FilaPlegable>
+      </ListaAgrupada>
       <ListaAgrupada etiqueta="Colección y visibilidad">
-        <FilaLista
-          titulo="Colección"
-          fin={<span className="text-secundario font-normal text-texto-secundario">{coleccionElegida ?? "Sin colección"}</span>}
-          onClick={() => setEligiendoColeccion(true)}
-        />
+        <FilaLista titulo="Colección" fin={<span className="text-secundario font-normal text-texto-secundario">{coleccionElegida ?? "Sin colección"}</span>} onClick={() => setEligiendoColeccion(true)} />
         <FilaLista
           titulo="Visible en el catálogo"
           detalle={activo && !bloqueaVisible ? "Visible" : "Oculto del catálogo"}
           accion={<Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />}
         />
-        {(producto?.tipo ?? "producto") === "producto" && (
-          <FilaLista
-            titulo="Por encargo"
-            detalle="Se puede pedir aunque no haya."
-            accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />}
-          />
-        )}
-        {porEncargo && (
-          <li className="px-4 pb-4">
-            <Campo
-              etiqueta={<span className="sr-only">Cuándo llega</span>}
-              value={encargoTexto}
-              maxLength={40}
-              onChange={(e) => setEncargoTexto(e.target.value)}
-              placeholder="Llega en 7 a 10 días"
-            />
-          </li>
-        )}
       </ListaAgrupada>
+
+      {/* Sin la tienda todavía no se sabe el rubro: Detalles espera para no mostrar los campos de otro. */}
+      {tienda && conDetalles && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
       {bloqueaVisible && !producto && (
         <p className="-mt-3 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
       )}
@@ -628,11 +700,20 @@ function FormularioProducto({
       />
 
       {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
-      {(!producto || !inventario.pendiente || tieneOpciones) && (
-        <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo} onClick={alGuardar}>
-          {producto ? "Guardar cambios" : "Publicar"}
-        </Boton>
+      {!historialAbierto && (
+        <HojaFijoAbajo>
+          {/* Dos botones que flotan solos, del mismo ancho y con sombra: sin tarjeta ni recuadro detrás. */}
+          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))] grid grid-cols-2 gap-3" data-barra-producto="">
+            <Boton jerarquia="secundario" tamano="grande" anchoCompleto className={!(!producto || !inventario.pendiente || tieneOpciones) ? "col-span-2 shadow-flotante" : "shadow-flotante"} onClick={() => setViendo(true)}>Cómo se ve</Boton>
+            {(!producto || !inventario.pendiente || tieneOpciones) && (
+              <Boton tamano="grande" anchoCompleto className="shadow-flotante" cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
+                {producto ? "Guardar cambios" : "Publicar"}
+              </Boton>
+            )}
+          </div>
+        </HojaFijoAbajo>
       )}
+      <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible={activo && !bloqueaVisible} datos={datosVista} />
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
       {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={sinCatalogo || guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}

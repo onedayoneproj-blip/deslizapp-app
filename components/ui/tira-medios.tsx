@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { VIDEO_PERMITIDO } from "@/lib/config";
 import { menosMovimiento } from "@/lib/movimiento";
 import { Foto } from "../foto";
 import { IconoMas, IconoReproducir } from "../iconos";
@@ -32,7 +33,7 @@ export const duracionCorta = (s: number) => `${Math.floor(s / 60)}:${String(Math
 /**
  * Tira de fotos y video de un producto (docs/09 §16.5; tablero Producto «Perfume» y «Video»): miniaturas cuadradas de 76 px,
  * `radio-m`, en una fila que se desliza. La primera lleva "Portada"; un video lleva ▶ y su duración. Al final, la casilla
- * punteada "Foto o video" (con `bloqueo`, se apaga y la razón va en la línea de abajo).
+ * punteada "Foto o video" ("Agregar foto" mientras `VIDEO_PERMITIDO` esté apagado) (con `bloqueo`, se apaga y la razón va en la línea de abajo).
  *
  * Tocar una miniatura llama a `alTocar` (la hoja chica de acciones). Mantener presionado y arrastrar la ordena (`alMover`); el
  * mismo cambio se puede hacer desde la hoja chica ("Mover a la izquierda / derecha"), que es también el camino con teclado.
@@ -44,7 +45,8 @@ export function TiraMedios({
   alAgregar,
   bloqueo,
   nota,
-  etiqueta = "Fotos y video",
+  etiqueta = VIDEO_PERMITIDO ? "Fotos y video" : "Fotos",
+  seleccionado,
 }: {
   elementos: ElementoTira[];
   alTocar: (id: string) => void;
@@ -55,6 +57,8 @@ export function TiraMedios({
   /** La línea de abajo ("Hasta 10. Mantén presionado para ordenar."). */
   nota?: ReactNode;
   etiqueta?: string;
+  /** La miniatura que se ve en grande arriba (la hoja de producto): lleva un contorno `accion`. */
+  seleccionado?: string;
 }) {
   const fila = useRef<HTMLDivElement>(null);
   const gesto = useRef<{ id: string; desde: number; x: number; y: number; timer: number; activo: boolean; puntero: number } | null>(null);
@@ -109,6 +113,7 @@ export function TiraMedios({
             <div key={m.id} role="listitem" className="shrink-0">
               <button
                 type="button"
+                aria-current={seleccionado === m.id ? "true" : undefined}
                 aria-label={`${m.tipo === "video" ? "Video" : "Foto"} ${i + 1} de ${elementos.length}${i === 0 ? ", portada" : ""}${sube ? `, ${Math.round(m.progreso!)} %` : ""}${m.taller === "pendiente" ? ", en el taller" : m.taller === "devuelta" ? ", devuelta por el taller" : ""}`}
                 onClick={() => {
                   if (tocarSuprimido.current) {
@@ -160,6 +165,7 @@ export function TiraMedios({
                 className={clases(
                   "tocable relative block overflow-hidden rounded-radio-m bg-superficie-hundida select-none [-webkit-touch-callout:none]",
                   FOCO,
+                  seleccionado === m.id && "outline-3 outline-offset-2 outline-accion",
                   arrastrado ? "z-10 shadow-flotante" : "transition-transform duration-(--mov-normal) ease-(--curva-salida)",
                 )}
                 style={{
@@ -202,7 +208,7 @@ export function TiraMedios({
             style={{ width: LADO, height: LADO }}
           >
             <IconoMas tamano={18} strokeWidth={2.4} />
-            Foto o video
+            {VIDEO_PERMITIDO ? "Foto o video" : "Agregar foto"}
           </button>
         </div>
       </div>

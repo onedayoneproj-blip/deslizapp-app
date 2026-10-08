@@ -23,6 +23,7 @@ export function FilaVariante({
   detalle,
   atenuada = false,
   deshabilitadoAbrir = false,
+  debajo,
 }: {
   texto: string;
   /** Hex del color de la variante (si un eje es Color y el nombre se conoce). */
@@ -37,6 +38,8 @@ export function FilaVariante({
   atenuada?: boolean;
   /** El toque sigue ahí (explica por qué no se puede) pero la fila se ve apagada. */
   deshabilitadoAbrir?: boolean;
+  /** Algo que va debajo de toda la fila (el campo de precio propio). */
+  debajo?: ReactNode;
 }) {
   const automatico = stock === 0 ? "Agotado" : stock <= 2 ? `Queda${stock === 1 ? "" : "n"} ${stock}` : null;
   const estado = estadoPedido === undefined ? automatico : estadoPedido;
@@ -48,7 +51,7 @@ export function FilaVariante({
     </>
   );
   return (
-    <li className={clases("flex min-h-15 items-center gap-3 border-t border-linea px-4 first:border-t-0", atenuada && "opacity-70")}>
+    <li className={clases("flex min-h-15 flex-wrap items-center gap-x-3 border-t border-linea px-4 first:border-t-0", atenuada && "opacity-70")}>
       {color && <span aria-hidden="true" className="size-5 shrink-0 rounded-full border border-linea" style={{ background: color }} />}
       {alAbrir ? (
         <button type="button" onClick={alAbrir} aria-disabled={deshabilitadoAbrir || undefined} aria-label={`Abrir ${texto}`} className={clases("tocable flex min-h-15 min-w-0 flex-1 flex-col items-start justify-center py-2 text-left", FOCO)}>
@@ -65,6 +68,7 @@ export function FilaVariante({
         etiquetaQuitar={`Quitar uno de ${texto}`}
         etiquetaAgregar={`Agregar uno de ${texto}`}
       />
+      {debajo && <div className="basis-full pb-3">{debajo}</div>}
     </li>
   );
 }
