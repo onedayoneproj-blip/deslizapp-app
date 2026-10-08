@@ -8,5 +8,6 @@
       "feature/proxima-jugada-pulido": false,
       "fix/jugada-animaciones": false
     }
-  }
+  },
+  "ignoreCommand": "bash -c 'CH=$(git diff --name-only HEAD^ HEAD) || exit 1; echo \"$CH\" | grep -qE \"^referencias/sistema-de-diseno/\" && exit 1; echo \"$CH\" | grep -vqE \"^docs/|^referencias/|\\.md$\" && exit 1; exit 0'"
 }
