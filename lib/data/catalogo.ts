@@ -181,6 +181,15 @@ export function guardarFotoValorEnDB(
   return { db: siguiente, producto: conVariantes(siguiente, actualizado) };
 }
 
+/** Como la RPC `guardar_ficha_producto`: la foto de la ficha técnica (null la quita). */
+export function guardarFichaEnDB(db: DB, tiendaId: string, productoId: string, url: string | null, ahora: string): { db: DB; producto: Producto } {
+  const producto = db.productos.find((p) => p.id === productoId && p.tiendaId === tiendaId && !p.eliminadoEn);
+  if (!producto) throw new DatosInvalidos("Ese producto ya no existe en esta tienda.");
+  const actualizado = { ...producto, fichaUrl: url, actualizadoEn: ahora };
+  const siguiente: DB = { ...db, productos: db.productos.map((p) => (p.id === productoId ? actualizado : p)) };
+  return { db: siguiente, producto: conVariantes(siguiente, actualizado) };
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Catálogo público
 // ---------------------------------------------------------------------------------------------------------------------
@@ -241,6 +250,7 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
         detalles: p.detalles,
         opciones: p.opciones,
         fotosPorValor: p.fotosPorValor ?? {},
+        fichaUrl: p.fichaUrl ?? null,
         likes: p.likes,
         disponibilidad: disp,
         quedan: disp === "quedan" ? stock : null,

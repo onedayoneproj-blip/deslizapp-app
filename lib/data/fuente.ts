@@ -185,6 +185,12 @@ export type FuenteDatos = {
    */
   guardarFotoValor(tiendaId: string, productoId: string, eje: string, valor: string, url: string | null): Promise<Producto>;
 
+  /**
+   * La ficha técnica: una foto con las especificaciones. `foto` es la foto nueva (data URL) o null para quitarla. Sube el archivo,
+   * guarda la dirección y borra el archivo anterior. Grupo «catalogo».
+   */
+  guardarFicha(tiendaId: string, productoId: string, foto: string | null): Promise<Producto>;
+
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;
   getPedido(tiendaId: string, id: string): Promise<PedidoConItems | null>;

@@ -44,6 +44,7 @@ import {
   crearSolicitudEnDB,
   descartarSolicitudEnDB,
   guardarFotoValorEnDB,
+  guardarFichaEnDB,
   guardarVariantesEnDB,
   marcarAvisadoEnDB,
   pedirAvisoEnDB,
@@ -481,6 +482,16 @@ const fuenteDemoBase: FuenteDatos = {
     let actualizado!: Producto;
     escribir((db) => {
       const r = guardarFotoValorEnDB(db, tiendaId, productoId, eje, valor, url, ahora());
+      actualizado = r.producto;
+      return r.db;
+    });
+    return actualizado;
+  },
+
+  async guardarFicha(tiendaId, productoId, foto) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const r = guardarFichaEnDB(db, tiendaId, productoId, foto, ahora());
       actualizado = r.producto;
       return r.db;
     });

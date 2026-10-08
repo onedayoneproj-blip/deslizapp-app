@@ -11,10 +11,10 @@ type FilaDetalle = { id: string; nombre: string; campos: CampoDetalle[] } | { id
 const NOTAS = ["notas_salida", "notas_corazon", "notas_fondo"];
 const NOMBRE_NOTA: Record<string, string> = { notas_salida: "Salida", notas_corazon: "Corazón", notas_fondo: "Fondo" };
 
-/** Las filas del rubro, con Descripción primero. */
+/** Las filas del rubro. La Descripción ya no va aquí: tiene su propio campo en la hoja (ficha-tecnica.tsx). */
 function filasDe(rubro: Rubro): FilaDetalle[] {
   const campos = CAMPOS_POR_RUBRO[rubro];
-  const filas: FilaDetalle[] = [{ id: "descripcion", nombre: "Descripción", campos: "descripcion" }];
+  const filas: FilaDetalle[] = [];
   for (const c of campos) {
     if (rubro === "perfumes" && c.llave === "concentracion") continue;
     if (rubro === "perfumes" && (c.llave === "notas_corazon" || c.llave === "notas_fondo")) continue;

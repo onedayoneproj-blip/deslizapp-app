@@ -99,6 +99,8 @@ export type Producto = {
   variantes?: Variante[];
   /** La foto de cada color: { Color: { Negro: "<url de una de sus fotos>" } }. Vacío = se ve la del producto. */
   fotosPorValor?: FotosPorValor;
+  /** La foto de la ficha técnica (las especificaciones), que sube la tienda. null/ausente = sin ficha. */
+  fichaUrl?: string | null;
 };
 
 /** eje → valor → url de una de las fotos del producto (la base la limpia si la foto o el valor desaparecen). */
@@ -365,6 +367,8 @@ export type ProductoPublico = {
   encargoTexto: string | null;
   /** La foto de cada color (o del primer eje): { Color: { Negro: "<url de una de sus fotos>" } }. Vacío = la del producto. */
   fotosPorValor?: FotosPorValor;
+  /** La foto de la ficha técnica; null = el producto no tiene. */
+  fichaUrl?: string | null;
   variantes: {
     id: string;
     valores: Record<string, string>;

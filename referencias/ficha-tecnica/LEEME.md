@@ -16,3 +16,9 @@ Reemplaza los «Detalles» por campos en las tiendas nuevas: una **descripción 
 - Cuánto crece el límite de la descripción (el dibujo dice 300) y qué campos del producto indexa la búsqueda desde que se dejan de pedir los Detalles (`lib/tienda/busqueda.ts`).
 
 Se construye después de «Publicar mi catálogo» y del onboarding (lleva migración). Las cifras y los nombres del dibujo son de ejemplo; no copies su HTML.
+
+## Construido (8 oct 2026) — en qué se aparta del dibujo
+- La descripción se llama «Descripción» y llega a **600** caracteres (el dibujo decía «Descripción corta» y 300): es `detalles.descripcion`, que la base ya validaba a 600.
+- «Quitar» pide una confirmación breve en la misma tarjeta («Sí, quitar» / «Mejor no»).
+- La ficha se guarda con el producto (se ve «Se sube cuando guardes el producto» mientras tanto).
+- El visor no es una hoja del catálogo: es una pantalla completa propia (`DialogoCatalogo`), así que sus gestos no son los de `PanelCatalogo`.

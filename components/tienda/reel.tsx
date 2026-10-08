@@ -19,6 +19,7 @@ import {
   varianteDe,
   type Eleccion,
 } from "@/lib/tienda/presentaciones";
+import { formaBotonFicha, textoCortoDelReel } from "@/lib/ficha-tecnica";
 import { Icono, SelloAgotado } from "./iconos";
 import { Medios } from "./medios";
 export function Reel({
@@ -38,6 +39,7 @@ export function Reel({
   compartir,
   eleccion,
   abrirPresentaciones,
+  abrirFicha,
   registrarBurst,
 }: {
   p: ProductoPublico;
@@ -58,6 +60,8 @@ export function Reel({
   eleccion: Eleccion | null;
   /** Abre la hoja «Ver presentaciones» ("b") o la de pastillas que abre ♥ ("a"). */
   abrirPresentaciones: (modo: "a" | "b") => void;
+  /** Abre el visor de la ficha técnica (solo si el producto tiene `fichaUrl`). */
+  abrirFicha: () => void;
   /** Deja que la hoja dispare el «aaah» de este reel al agregar. */
   registrarBurst: (fn: (() => void) | null) => void;
 }) {
@@ -92,17 +96,12 @@ export function Reel({
   const precioBase = v?.precio ?? p.precio;
   const quedan = v?.quedan ?? p.quedan;
   const m = t.personalizacion.mensajes as Record<string, string> | undefined;
-  const txt = String(
-    p.detalles.descripcion ??
-      "¿Te llama la atención? Escríbeme y te cuento más.",
-  );
-  const short =
-    txt.length > 78
-      ? txt
-          .slice(0, 78)
-          .replace(/\s+\S*$/, "")
-          .replace(/[,.:;]$/, "") + "…"
-      : txt;
+  const descripcion = typeof p.detalles.descripcion === "string" ? p.detalles.descripcion.trim() : "";
+  const txt = descripcion || "¿Te llama la atención? Escríbeme y te cuento más.";
+  // Los Detalles que ya existen (Esencias Michel) siguen en el detalle. El texto del reel termina en el «…» tocable (el botón lo
+  // pinta); sin descripción ni Detalles no hay texto ni «…».
+  const short = textoCortoDelReel(p.detalles, txt);
+  const formaFicha = formaBotonFicha(p, pres);
   const lanzarBurst = () => {
     const b = burst.current;
     if (!b) return;
@@ -303,30 +302,41 @@ export function Reel({
           </div>
           {!pres && opciones()}
           {encargo && <span className="por-encargo">Por encargo</span>}
-          {pres ? (
-            <div className="pres-fila-cap">
-              {botonPresentaciones()}
-              <button
-                className="mas"
-                data-more={p.slug}
-                aria-expanded={abierto}
-                onClick={() => setAbierto(true)}
-              >
-                más
-              </button>
-            </div>
-          ) : (
+          {short !== null && (
             <p className="txt">
               {short}{" "}
               <button
-                className="mas"
+                className="mas elipsis"
                 data-more={p.slug}
+                aria-label="Ver la descripción completa"
                 aria-expanded={abierto}
                 onClick={() => setAbierto(true)}
               >
-                más
+                …
               </button>
             </p>
+          )}
+          {(pres || formaFicha) && (
+            <div className="pres-fila-cap">
+              {botonPresentaciones()}
+              {formaFicha &&
+                (formaFicha === "circulo" ? (
+                  <button
+                    type="button"
+                    className="ficha-btn circulo"
+                    data-ficha={p.slug}
+                    aria-label="Ver la ficha técnica"
+                    onClick={abrirFicha}
+                  >
+                    <Icono nombre="ficha" />
+                  </button>
+                ) : (
+                  <button type="button" className="ficha-btn pildora" data-ficha={p.slug} onClick={abrirFicha}>
+                    <Icono nombre="ficha" />
+                    <span>Ficha técnica</span>
+                  </button>
+                ))}
+            </div>
           )}
         </div>
         <div className="panel" hidden={!abierto || !activo}>

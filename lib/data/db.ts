@@ -232,6 +232,7 @@ function conCamposDelCatalogo(productos: Producto[]): Producto[] {
       detalles: p.detalles ?? {},
       opciones: p.opciones ?? [],
       fotosPorValor: p.fotosPorValor ?? {},
+      fichaUrl: p.fichaUrl ?? null,
       porEncargo: p.porEncargo ?? false,
       encargoTexto: p.encargoTexto ?? null,
     };

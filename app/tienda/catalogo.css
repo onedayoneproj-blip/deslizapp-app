@@ -9307,6 +9307,128 @@ html.catalogo-html,
   }
 }
 
+/* ---------- Ficha técnica y descripción con «…» (docs/prompts/ficha-tecnica.md) ---------- */
+/* El «…» que abre el detalle: sin la palabra «más», con área de toque de 44 px sin mover el texto. */
+.catalogo-publico .mas.elipsis {
+  position: relative;
+  display: inline;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+}
+.catalogo-publico .mas.elipsis::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+/* El botón de la ficha: vidrio, igual que «Ver presentaciones». Círculo con presentaciones; píldora sin ellas. */
+.catalogo-publico .ficha-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(20, 8, 14, 0.38);
+  color: #fff;
+  font: 700 13px var(--body);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.catalogo-publico .ficha-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.catalogo-publico .ficha-btn.circulo {
+  width: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+.catalogo-publico .ficha-btn.pildora {
+  padding: 0 16px;
+  border-radius: 999px;
+}
+/* El visor: pantalla completa, fondo oscuro. Solo se mueve `transform` y `opacity`. */
+.catalogo-publico .sheet-bg.ficha-visor {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: rgba(10, 6, 9, 0.96);
+  color: #fff;
+  overscroll-behavior: contain;
+}
+.catalogo-publico .ficha-visor .ficha-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 8px 6px 16px;
+}
+.catalogo-publico .ficha-visor .ficha-tit {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.catalogo-publico .ficha-visor .ficha-tit strong {
+  font: 800 16px var(--body);
+}
+.catalogo-publico .ficha-visor .ficha-tit span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.catalogo-publico .ficha-visor .x {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+.catalogo-publico .ficha-visor .ficha-escena {
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.catalogo-publico .ficha-visor .ficha-escena img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.catalogo-publico .ficha-visor .ficha-pista {
+  margin: 0;
+  padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .catalogo-publico .sheet-bg.ficha-visor {
+    animation: tFadeIn 0.22s ease-out;
+  }
+}
+
 /* Búsqueda: cómo se entendió el precio (docs/12 §búsqueda). */
 :where(.catalogo-publico) .srprecio {
   display: inline-flex;
