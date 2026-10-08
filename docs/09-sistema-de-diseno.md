@@ -211,7 +211,10 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja 
 - **Colores del inventario (dona, leyenda y barra del plan, siempre los mismos):** Con stock / Disponibles = `accion`; Queda 1 o 2 = `resalte`; Agotados = `peligro`, porque pide acción. Nunca un crema o un tono suave para lo que hay que resolver.
 - **Dona:** dentro del anillo va solo la cifra (Fredoka). Lo que significa la cifra ("clientes", "productos") va debajo, fuera del anillo, junto al dato secundario ("110 clientes · 59 repiten"). Nada de texto pequeño en mayúsculas apretado dentro del anillo.
 - **Contador:** círculo de 20 px con número `contador`; `resalte` cuando pide atención, `accion-suave` cuando solo informa.
-- **Avatar:** redondo para personas (`marca-rosa` con iniciales en Fredoka), cuadrado `radio-m` para la tienda (`accion` con iniciales o su logo). Siempre 44 px en filas y 64 px en la cabecera de un detalle. Señales en el borde del avatar, en vez de etiquetas: cliente que repite = círculo `accion` de 20 px con un corazón relleno `sobre-accion` y borde `superficie` de 2 px, en la esquina inferior derecha.
+- **Avatar:** redondo para personas (`marca-rosa` con iniciales en Fredoka) y también redondo para la tienda (`accion` con iniciales o su logo). Siempre 44 px en filas y 64 px en la cabecera de un detalle. Señales en el borde del avatar, en vez de etiquetas: cliente que repite = círculo `accion` de 20 px con un corazón relleno `sobre-accion` y borde `superficie` de 2 px, en la esquina inferior derecha.
+
+- **Regla de formas (8 oct 2026):** el círculo se reserva a la foto de la **tienda** y la foto de la **persona** (dueña, equipo, cliente). La foto o miniatura de un **producto** es siempre un cuadrado de bordes redondeados (`radio-s` en miniaturas de fila; `radio-m` en fotos más grandes), nunca un círculo; también las portadas de colección, los resultados de búsqueda y el carrito. Lo que no es foto (botones redondos, puntos, contadores, ✕) no entra en la regla. `MiniaturaProducto` es el único componente de miniatura del panel; en el catálogo del comprador cada clase con foto de producto lleva `border-radius` en px.
+- **Campos de texto del comprador:** sin recuadro de foco; la señal es el borde de la píldora (`:focus-within`) o del campo.
 
 ## 12. Iconos
 
