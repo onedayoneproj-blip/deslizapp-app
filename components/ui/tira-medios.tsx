@@ -45,6 +45,7 @@ export function TiraMedios({
   bloqueo,
   nota,
   etiqueta = "Fotos y video",
+  seleccionado,
 }: {
   elementos: ElementoTira[];
   alTocar: (id: string) => void;
@@ -55,6 +56,8 @@ export function TiraMedios({
   /** La línea de abajo ("Hasta 10. Mantén presionado para ordenar."). */
   nota?: ReactNode;
   etiqueta?: string;
+  /** La miniatura que se ve en grande arriba (la hoja de producto): lleva un contorno `accion`. */
+  seleccionado?: string;
 }) {
   const fila = useRef<HTMLDivElement>(null);
   const gesto = useRef<{ id: string; desde: number; x: number; y: number; timer: number; activo: boolean; puntero: number } | null>(null);
@@ -109,6 +112,7 @@ export function TiraMedios({
             <div key={m.id} role="listitem" className="shrink-0">
               <button
                 type="button"
+                aria-current={seleccionado === m.id ? "true" : undefined}
                 aria-label={`${m.tipo === "video" ? "Video" : "Foto"} ${i + 1} de ${elementos.length}${i === 0 ? ", portada" : ""}${sube ? `, ${Math.round(m.progreso!)} %` : ""}${m.taller === "pendiente" ? ", en el taller" : m.taller === "devuelta" ? ", devuelta por el taller" : ""}`}
                 onClick={() => {
                   if (tocarSuprimido.current) {
@@ -160,6 +164,7 @@ export function TiraMedios({
                 className={clases(
                   "tocable relative block overflow-hidden rounded-radio-m bg-superficie-hundida select-none [-webkit-touch-callout:none]",
                   FOCO,
+                  seleccionado === m.id && "outline-3 outline-offset-2 outline-accion",
                   arrastrado ? "z-10 shadow-flotante" : "transition-transform duration-(--mov-normal) ease-(--curva-salida)",
                 )}
                 style={{

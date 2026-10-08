@@ -112,7 +112,13 @@ async function foto(page, color) {
 }
 const abrirProducto = async (page, id) => {
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.locator("#titulo-presentaciones").waitFor();
+  await page.locator("[data-cosas-que-cambian]").waitFor();
+  await desplegar(page);
+};
+/** «Cosas que cambian» viene plegada: se abre para ver las filas de cada presentación. */
+const desplegar = async (page) => {
+  const fila = page.getByRole("button", { name: /^Cosas que cambian/ });
+  if ((await fila.getAttribute("aria-expanded")) === "false") await fila.click();
 };
 const guardarProducto = async (page) => {
   await page.getByRole("button", { name: /^(Guardar cambios|Publicar)$/ }).click();
@@ -120,7 +126,7 @@ const guardarProducto = async (page) => {
 const producto = async (page, nombre) => (await db(page)).productos.find((p) => p.nombre === nombre);
 const variantesDe = async (page, id) => (await db(page)).variantes.filter((v) => v.productoId === id);
 const espera = (page, ms = 350) => page.waitForTimeout(ms);
-const encabezado = (page) => page.locator("#titulo-presentaciones").locator("xpath=..").innerText();
+const encabezado = (page) => page.locator("[data-tarjeta-stock]").innerText();
 const filasPres = (page) => page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li");
 
 const ESCENARIOS = {
@@ -129,8 +135,8 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Camisa nueva");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1850");
-    ok(await page.getByText("¿Viene en varias tallas, colores o tamaños?").isVisible(), "Main: la tarjeta pregunta si viene en varias tallas, colores o tamaños");
-    ok(await page.getByRole("button", { name: "No, solo viene de una forma" }).isVisible(), "…y deja decir que no");
+    ok(await page.getByRole("button", { name: /^Cosas que cambian/ }).isVisible(), "Main: la fila «Cosas que cambian» invita a agregar tallas, colores o tamaños");
+    ok(await page.getByText("Talla, color, tamaño. Cada una lleva su stock.").isVisible(), "…y dice que cada una lleva su stock");
     await capturar(page, "main", ancho, tema);
     const a = [await foto(page, "#2b2b2b"), await foto(page, "#e8d9c4")];
     await page.locator("[data-entrada-medios]").setInputFiles([
@@ -138,7 +144,7 @@ const ESCENARIOS = {
       { name: "arena.png", mimeType: "image/png", buffer: Buffer.from(a[1], "base64") },
     ]);
     await page.getByRole("button", { name: /^Foto 2 de 2/ }).waitFor();
-    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await hoja(page).getByText("¿Qué cambia de una a otra?").waitFor();
     ok((await hoja(page).getByRole("button", { name: "Contraer Talla" }).getAttribute("aria-expanded")) === "true", "Elegir: Talla ya viene elegida y abierta (la típica de la ropa)");
     await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
@@ -151,11 +157,12 @@ const ESCENARIOS = {
     ok(await hoja(page).getByRole("button", { name: "Material", exact: true }).isDisabled(), "…y las demás se apagan");
     await capturar(page, "elegir", ancho, tema);
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
+    await desplegar(page);
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
     ok((await filasPres(page).count()) === 10, "Lista: hay 10 filas");
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
     await page.getByRole("button", { name: "Agregar uno de XL · Arena" }).click();
-    ok((await encabezado(page)).includes("10 · 4 en total"), "El encabezado cuenta 10 · 4 en total");
+    ok((await encabezado(page)).includes("10 presentaciones · 4 en total"), "El encabezado cuenta 10 · 4 en total");
     await page.getByRole("button", { name: "Abrir XL · Arena" }).click();
     await hoja(page).getByText("Precio", { exact: true }).waitFor();
     await hoja(page).getByRole("radio", { name: "Uno propio" }).click();
@@ -193,7 +200,7 @@ const ESCENARIOS = {
     ok(/2 agotadas/.test(t) && /\d+ en total/.test(t), "…con «2 agotadas» y «N en total»");
     await capturar(page, "panel", ancho, tema);
     await abrirProducto(page, PANTALON);
-    ok((await encabezado(page)).includes("12 · 31 en total"), "Lista: 12 · 31 en total");
+    ok((await encabezado(page)).includes("12 presentaciones · 31 en total"), "Lista: 12 · 31 en total");
     await page.getByRole("button", { name: "XL", exact: true }).first().click();
     await espera(page);
     ok((await filasPres(page).count()) === 3, "El filtro por talla deja las 3 XL");
@@ -226,7 +233,7 @@ const ESCENARIOS = {
     await capturar(page, "quitar", ancho, tema);
     await page.getByRole("alertdialog").getByRole("button", { name: "Quitar", exact: true }).click();
     await espera(page);
-    ok((await encabezado(page)).includes("11 ·"), "Sin pedidos: queda en 11");
+    ok((await encabezado(page)).includes("11 presentaciones"), "Sin pedidos: queda en 11");
     await guardarProducto(page);
     await page.waitForURL((u) => !u.pathname.endsWith("/editar") && !u.pathname.endsWith("/nuevo"));
     const p = await producto(page, "Pantalón de algodón");
@@ -264,9 +271,10 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("900");
-    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Crear las 5", exact: true }).click();
+    await desplegar(page);
     await page.getByRole("button", { name: "Agregar uno de M", exact: true }).click();
     await page.getByRole("button", { name: "Agregar uno de M", exact: true }).click();
     await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
@@ -276,7 +284,7 @@ const ESCENARIOS = {
     await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
     await page.getByRole("button", { name: "Agregar uno de M · Sin color" }).waitFor();
     ok((await filasPres(page).count()) === 5, "Quedan las 5 de siempre (nada se duplica)");
-    ok((await encabezado(page)).includes("5 · 2 en total"), "…con su stock (2 en total)");
+    ok((await encabezado(page)).includes("5 presentaciones · 2 en total"), "…con su stock (2 en total)");
     await page.getByRole("button", { name: "Abrir M · Sin color" }).click();
     await hoja(page).getByText("¿Cuál es?").waitFor();
     await hoja(page).getByRole("radio", { name: "Negro", exact: true }).click();
@@ -291,7 +299,7 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Lista nueva");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("500");
-    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await hoja(page).getByText("¿Qué cambia de una a otra?").waitFor();
     ok((await hoja(page).locator("[data-eje]").count()) === 1, "Una sola cosa abierta al empezar (Talla)");
     ok(await hoja(page).getByRole("button", { name: "Color", exact: true }).isEnabled(), "Color está sin elegir y se puede tocar");
@@ -322,6 +330,7 @@ const ESCENARIOS = {
     ok((await hoja(page).getByRole("button", { name: "Contraer Talla" }).getAttribute("aria-expanded")) === "true", "Volver a elegir Talla la deja abierta y vacía");
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
+    await desplegar(page);
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
     ok((await filasPres(page).count()) === 10, "Crea las 10 (5 tallas × 2 colores)");
     await capturar(page, "expandible", ancho, tema);
@@ -330,18 +339,19 @@ const ESCENARIOS = {
   /** Perfume: «Tamaño» típica de los perfumes, atajo 30 · 50 · 100 ml y «Desde» con precio propio. */
   async perfume(page, ancho, tema) {
     await abrirProducto(page, OUD);
-    ok((await encabezado(page)).includes("3 · 14 en total"), "El Majestic Oud: 3 · 14 en total");
+    ok((await encabezado(page)).includes("3 presentaciones · 14 en total"), "El Majestic Oud: 3 · 14 en total");
     const filas = await page.getByRole("list", { name: "Presentaciones del producto" }).first().innerText();
     ok(filas.includes("RD$1,200 · precio propio") && filas.includes("RD$1,900 · precio propio"), "30 ml y 50 ml con su precio propio; 100 ml con el del producto");
     await capturar(page, "perfume", ancho, tema);
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Perfume nuevo");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("2500");
-    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     ok((await hoja(page).getByRole("button", { name: "Contraer Tamaño" }).getAttribute("aria-expanded")) === "true", "Los perfumes sugieren «Tamaño»");
     for (const ml of ["30 ml", "50 ml", "100 ml"]) await hoja(page).getByRole("checkbox", { name: ml, exact: true }).click();
     ok(await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).isEnabled(), "Los 30, 50 y 100 ml sugeridos crean 3");
     await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).click();
+    await desplegar(page);
     ok((await filasPres(page).count()) === 3, "Y salen 3 filas");
   },
 

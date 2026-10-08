@@ -182,7 +182,27 @@ try {
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Kiara Pink"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[placeholder="0"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
+    // Descripción y «Cuándo llega» viven en filas plegadas: abrir la fila no mueve ni quita el foco de otro campo.
+    await page.tap('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForTimeout(200);
+    await page.evaluate(() => (window.__foco = []));
+    // click() desde la página (sin mover el foco del navegador): lo que se prueba es que la app no toque el foco al abrir la fila.
+    await page.evaluate(() => document.querySelector('[role="dialog"] [data-fila-plegable="descripcion"] button[aria-expanded]').click());
+    await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
+    const focoTrasAbrirFila = await page.evaluate(() => ({ nombre: document.activeElement?.getAttribute("placeholder"), eventos: window.__foco.join(" ") }));
+    ok(focoTrasAbrirFila.nombre === "Ej: Kiara Pink", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
     await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
+    await page.tap('[role="switch"][aria-label="Por encargo"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Nuevo producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
+    // La barra fija («Cómo se ve» + «Publicar») no tapa el campo enfocado: con el teclado abierto se oculta.
+    await page.tap('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.evaluate(() => window.__teclado(true));
+    await page.waitForTimeout(400);
+    ok(await page.evaluate(() => getComputedStyle(document.querySelector("[data-barra-producto]").parentElement).visibility === "hidden"), "La barra fija se oculta con el teclado abierto (no tapa el campo enfocado)");
+    await page.evaluate(() => window.__teclado(false));
+    await page.waitForTimeout(300);
+    await page.evaluate(() => document.activeElement.blur());
     // Cerrar el teclado tocando fuera y confirmar que la hoja se sigue cerrando deslizando
     await page.evaluate(() => document.activeElement.blur());
     await page.waitForTimeout(200);
@@ -258,7 +278,8 @@ try {
     const { ctx, page, errores } = await abrir(navegador);
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
-    await page.waitForSelector("#titulo-presentaciones");
+    await page.waitForSelector("[data-cosas-que-cambian]");
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await page.waitForTimeout(900);
     // Precio propio (hoja de una presentación)
     await page.getByRole("button", { name: "Abrir S · Negro", exact: true }).click();

@@ -243,20 +243,15 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 - Activar/desactivar (interruptor "Visible en el catálogo" del formulario).
 
 **Formulario de producto (crear/editar)** — hoja "Nuevo producto" / "Editar producto":
-- Foto: recuadro punteado "Sube la foto del celular" (+ "nosotros le ponemos
-  la luz" en Caveat). La foto se guarda reducida (máx. 800 px, JPEG). La foto
-  es obligatoria para publicar.
-- Tarjeta **"Retocar foto"** con subtítulo "Luz, fondo y color" — ver pantalla 6.
-- Nombre (ej. "Kiara Pink").
-- Precio (RD$).
-- **En stock**: al crear, contador − / + ("Al despachar, baja solito.") y opción de no controlar stock (`stock = null`). Al editar, cantidad de solo lectura: los cambios se registran desde la vista previa. Activar/desactivar el control en productos existentes queda pendiente de una operación auditada específica.
-- **Colección** (`categoria`, opcional): chips con las colecciones que ya usa
-  la tienda + opción de escribir una nueva.
-- Interruptor **"Visible en el catálogo"** ("Apágalo para esconderlo sin borrarlo.").
-- Botón principal "Publicar" (crear) / "Guardar cambios" (editar). Si el
-  retoque está activo: "Publicar · −5 créditos".
-- Validación con tono de marca: "Ponle nombre y precio. Lo demás lo hacemos
-  nosotros." / "Falta la foto. El producto es la estrella."
+(Rediseño del 8 oct 2026, `docs/prompts/hoja-producto-rediseno.md`, dibujos en `referencias/hoja-producto-nuevo/`. Mismos datos, mismas funciones de guardado y mismos permisos; solo cambia cómo se ordena.)
+- **Foto grande arriba** (`SeccionMedios`): la principal a todo el ancho, cuadrado de bordes redondeados (nunca círculo), con el contador «1 / 10»; debajo, la tira de miniaturas con «Foto o video» para agregar. Tocar una miniatura la pone en grande y abre sus acciones (portada, mover, quitar, retoque); mantener presionado la ordena. Sin fotos: un espacio amplio con borde punteado, cámara y «Agrega la primera foto». Videos y límites como siempre.
+- **Nombre y Precio** como campos grandes; el precio con el tipo de letra de las cifras (Fredoka).
+- **Una tarjeta** (`data-tarjeta-stock`): «Cosas que cambian» (sin presentaciones, invita y abre el flujo de siempre; con ellas, pastillas «Color · 2», «Tamaño · 3» y, al tocar, se despliega la lista de presentaciones) y «En stock» (sin presentaciones, el control de siempre —al crear, − / + y «No llevo la cuenta»; al editar, `ControlInventario` con su historial—; con presentaciones, «N presentaciones · M en total»).
+- **Más opciones**, plegadas en filas que muestran su valor: Descripción (contador «N / 600» y la línea de la búsqueda), Ficha técnica (sube, cambia o quita), Colección (abre su hoja), Por encargo (con «Cuándo llega») y Visible en el catálogo. Abrir o cerrar una fila es instantáneo y no toca el foco. «Detalles» (Esencias Michel) sigue debajo, solo en productos que ya los tienen.
+- **Barra fija abajo** (`HojaFijoAbajo`, se oculta con el teclado): «Cómo se ve» y «Publicar» / «Guardar cambios». El botón principal queda apagado hasta que haya al menos una foto, nombre y un precio mayor que cero (`lib/hoja-producto.ts`): es la misma regla de antes, que avisaba al tocar. «Cómo se ve» abre una hoja con el producto armado desde el borrador (foto, nombre, precio, presentaciones, descripción, por encargo, oculto); la app no tenía una vista del comprador para un producto sin guardar. Al editar con stock sin presentaciones y un ajuste pendiente, el botón de guardar lo pone el control de stock, como antes.
+- Al final, sin cambios: aviso de permiso, errores del inventario, «Eliminar producto». Un Ayudante lo ve apagado («Esto lo hace quien administra la tienda.»).
+- Validación: "Ponle nombre y precio. Lo demás lo hacemos nosotros." / "Falta la foto. El producto es la estrella." siguen en el guardado, por si algo se cuela.
+- Tarjeta **"Retocar foto"** (por foto, desde su hoja) — ver pantalla 6.
 
 **Límite del plan:** si el catálogo está lleno, el botón "+ Producto" y el
 medidor lo indican, pero la demo no se bloquea.

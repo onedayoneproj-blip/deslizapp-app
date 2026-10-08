@@ -10,6 +10,8 @@ import type { Medio, Producto } from "@/lib/types";
 import { cuadrosDelVideo, leerVideo, oirPasosVideo, pasosVideo, prepararVideo, VIDEO_MAX_S, type PasoVideo, type VideoElegido } from "@/lib/video";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
+import { IconoCamara, IconoReproducir as IconoPlay } from "../iconos";
+import { contadorMedios } from "@/lib/hoja-producto";
 import { Boton, Etiqueta, FilaLista, Interruptor, ListaAgrupada, TiraMedios, VideoProducto, duracionCorta } from "../ui";
 import { ACCION_COMPLETAR_MARCA, MOTIVO_SIN_MARCA, REMATE_TALLER, TEXTO_SE_MANDA_AL_GUARDAR, TITULO_RETOCAR_ESTA, textoEnTaller, textoFichaRetoque, tiempoRetoque } from "@/lib/retoque-textos";
 import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
@@ -86,6 +88,8 @@ export function SeccionMedios({
   const { tiendaId } = useTiendaActiva();
   const { abrirMiMarca } = usePanelUI();
   const [abierto, setAbierto] = useState<string | null>(null);
+  // La foto que se ve en grande; si ya no existe (se quitó), la primera.
+  const [vista, setVista] = useState<string | null>(null);
   // La bienvenida del retoque: la primera vez que se manda una foto (y otra vez desde «Cómo funciona»).
   const [bienvenida, setBienvenida] = useState<(DatosBienvenida & { url: string }) | null>(null);
   const aperturas = useRef(0);
@@ -163,6 +167,7 @@ export function SeccionMedios({
     if (bienvenidaVista(tiendaId)) void taller.pedir(url);
     else verBienvenida(url);
   };
+  const principal = medios.find((m) => m.id === vista) ?? medios[0] ?? null;
   const elegido = medios.find((m) => m.id === abierto) ?? null;
   const indice = elegido ? medios.indexOf(elegido) : -1;
   const mover = (desde: number, hasta: number) =>
@@ -189,18 +194,57 @@ export function SeccionMedios({
           e.target.value = "";
         }}
       />
-      <TiraMedios
-        elementos={medios.map((m) =>
-          m.tipo === "foto"
-            ? { id: m.id, tipo: "foto", imagen: m.url, taller: tallerDeMiniatura(taller.estado(m.url)) }
-            : { id: m.id, tipo: "video", imagen: m.portada, duracionS: m.duracionS, progreso: m.progreso ?? null },
-        )}
-        alTocar={setAbierto}
-        alMover={mover}
-        alAgregar={() => entrada.current?.click()}
-        bloqueo={bloqueo}
-        nota={preparando ? "Lo dejamos liviano para que cargue rápido." : `Hasta ${MAX_MEDIOS}. Mantén presionado para ordenar.`}
-      />
+      {principal ? (
+        <>
+          <button
+            type="button"
+            aria-label="Foto principal: ver opciones"
+            onClick={() => { if (!(principal.tipo === "video" && typeof principal.progreso === "number")) setAbierto(principal.id); }}
+            className="tocable relative block aspect-square w-full overflow-hidden rounded-radio-l bg-superficie-hundida outline-none focus-visible:outline-3 focus-visible:outline-foco"
+            data-foto-principal=""
+          >
+            {(principal.tipo === "foto" ? principal.url : principal.portada) ? (
+              <Foto src={(principal.tipo === "foto" ? principal.url : principal.portada)!} alt="" className="h-full w-full" sizes="(max-width: 480px) 100vw, 440px" />
+            ) : (
+              <span className="grid h-full place-items-center text-secundario text-texto-secundario">Preparando el video…</span>
+            )}
+            <span aria-hidden="true" className="absolute top-3 right-3 rounded-full bg-accion px-2.5 py-1 text-etiqueta text-sobre-accion tabular-nums">
+              {contadorMedios(medios.indexOf(principal) + 1, medios.length)}
+            </span>
+            {principal.tipo === "video" && principal.url && (
+              <span aria-hidden="true" className="absolute bottom-3 left-3 inline-flex h-6 items-center gap-1 rounded-full bg-accion px-2.5 text-etiqueta text-sobre-accion">
+                <IconoPlay tamano={10} strokeWidth={0} />
+                {duracionCorta(principal.duracionS)}
+              </span>
+            )}
+          </button>
+          <TiraMedios
+            elementos={medios.map((m) =>
+              m.tipo === "foto"
+                ? { id: m.id, tipo: "foto", imagen: m.url, taller: tallerDeMiniatura(taller.estado(m.url)) }
+                : { id: m.id, tipo: "video", imagen: m.portada, duracionS: m.duracionS, progreso: m.progreso ?? null },
+            )}
+            seleccionado={principal.id}
+            // Tocar una miniatura la pone en grande y abre sus acciones (como siempre).
+            alTocar={(id) => { setVista(id); setAbierto(id); }}
+            alMover={mover}
+            alAgregar={() => entrada.current?.click()}
+            bloqueo={bloqueo}
+            nota={preparando ? "Lo dejamos liviano para que cargue rápido." : `Hasta ${MAX_MEDIOS}. Mantén presionado para ordenar.`}
+          />
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => entrada.current?.click()}
+          className="tocable flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-radio-l border-2 border-dashed border-borde-campo bg-superficie text-texto outline-none focus-visible:outline-3 focus-visible:outline-foco"
+          data-foto-vacia=""
+        >
+          <IconoCamara tamano={36} strokeWidth={2} />
+          <span className="text-destacado">Agrega la primera foto</span>
+          <span className="text-secundario text-texto-secundario">O un video corto.</span>
+        </button>
+      )}
       <DepuracionVideo />
       <HojaMedio
         medio={elegido}

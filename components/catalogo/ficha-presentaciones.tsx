@@ -43,10 +43,11 @@ import { colorPorNombre } from "@/lib/colores";
 import { OPCIONES_TIPICAS, type Rubro } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
-import { IconoChevronAbajo, IconoChevronArriba, IconoMas } from "../iconos";
+import { IconoChevronAbajo, IconoChevronArriba, IconoChevronDerecha, IconoMas } from "../iconos";
+import { pastillasDeOpciones } from "@/lib/hoja-producto";
 import { Hoja } from "../hoja";
 import { clases, FOCO } from "../ui/comunes";
-import { Alerta, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, EditorEtiquetas, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
+import { Alerta, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, EditorEtiquetas, Etiqueta, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
 
 /** Lo que la ficha del producto edita de las presentaciones: los ejes, cada presentación y la foto de cada valor (por id de foto). */
 export type EstadoPresentaciones = {
@@ -85,6 +86,7 @@ export function SeccionPresentaciones({
   avisar,
   deshabilitado,
   tienePedidos,
+  variante = "seccion",
 }: {
   rubro: Rubro;
   precioProducto: number;
@@ -99,6 +101,8 @@ export function SeccionPresentaciones({
   deshabilitado?: boolean;
   /** ¿Esta presentación (por id de variante) ya tiene pedidos? */
   tienePedidos: (varianteId: string) => Promise<boolean>;
+  /** "fila": la fila «Cosas que cambian» de la hoja de producto (resumen en pastillas; con presentaciones se despliega). */
+  variante?: "seccion" | "fila";
 }) {
   const { opciones, pres, fotosColor } = estado;
   type Vista = { tipo: "elegir"; cambiar: boolean } | { tipo: "una"; clave: string } | { tipo: "foto" } | { tipo: "suelta" } | null;
@@ -106,6 +110,7 @@ export function SeccionPresentaciones({
   const [descartada, setDescartada] = useState(false);
   const [filtro, setFiltro] = useState("todas");
   const [todas, setTodas] = useState(false);
+  const [desplegada, setDesplegada] = useState(false);
   const bloqueado = sinPermiso || !!deshabilitado;
   const abrir = (v: NonNullable<Vista>) => (sinPermiso ? avisar(porque) : setVista(v));
 
@@ -129,40 +134,8 @@ export function SeccionPresentaciones({
 
   const enLista = vista?.tipo === "una" ? pres.find((p) => claveVariante(p.valores) === vista.clave) ?? null : null;
 
-  return (
+  const detalle = tiene && primero ? (
     <>
-      <section aria-labelledby="titulo-presentaciones" className="flex flex-col gap-2" data-presentaciones="">
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 id="titulo-presentaciones" className="font-display text-titulo-seccion text-texto">Presentaciones</h3>
-          {tiene && (
-            <span className="text-secundario text-texto-secundario">
-              {resumen.total} · {resumen.enTotal} en total
-            </span>
-          )}
-        </div>
-
-        {!tiene && !descartada && (
-          <Tarjeta className="flex flex-col gap-3 p-4">
-            <p className="text-destacado text-texto">¿Viene en varias tallas, colores o tamaños?</p>
-            <p className="text-secundario text-texto-secundario">Cada una lleva su propio stock, y su precio si cambia. Tu cliente elige la suya.</p>
-            <Boton tamano="grande" anchoCompleto deshabilitado={bloqueado} onClick={() => abrir({ tipo: "elegir", cambiar: false })}>
-              Agregar presentaciones
-            </Boton>
-            <Boton jerarquia="terciario" anchoCompleto deshabilitado={bloqueado} onClick={() => setDescartada(true)}>
-              No, solo viene de una forma
-            </Boton>
-          </Tarjeta>
-        )}
-        {!tiene && descartada && (
-          <ListaAgrupada etiqueta="Presentaciones del producto">
-            <li className="px-4">
-              <FilaAgregar texto="Agregar presentaciones" alTocar={() => abrir({ tipo: "elegir", cambiar: false })} deshabilitado={bloqueado} className="min-h-15" />
-            </li>
-          </ListaAgrupada>
-        )}
-
-        {tiene && primero && (
-          <>
             {primero.valores.length > 1 && (
               <FilaPastillas
                 etiqueta={`Filtrar por ${primero.nombre}`}
@@ -218,8 +191,70 @@ export function SeccionPresentaciones({
               Cambiar qué varía (talla, color…)
             </Boton>
           </>
+  ) : null;
+
+  const cuerpo = variante === "fila" ? (
+    <div data-presentaciones="" data-cosas-que-cambian="">
+      <button
+        type="button"
+        aria-expanded={tiene ? desplegada : undefined}
+        onClick={() => (tiene ? setDesplegada((d) => !d) : abrir({ tipo: "elegir", cambiar: false }))}
+        className="tocable flex min-h-15 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco"
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span className="text-destacado text-texto">Cosas que cambian</span>
+          {tiene ? (
+            <span className="flex flex-wrap gap-1.5">
+              {pastillasDeOpciones(opciones).map((t) => (
+                <Etiqueta key={t} tono="exito">{t}</Etiqueta>
+              ))}
+            </span>
+          ) : (
+            <span className="text-secundario text-texto-secundario">Talla, color, tamaño. Cada una lleva su stock.</span>
+          )}
+        </span>
+        {tiene && desplegada ? <IconoChevronAbajo tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" /> : <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />}
+      </button>
+      {tiene && desplegada && <div className="flex flex-col gap-3 border-t border-linea p-3">{detalle}</div>}
+    </div>
+  ) : (
+  <section aria-labelledby="titulo-presentaciones" className="flex flex-col gap-2" data-presentaciones="">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 id="titulo-presentaciones" className="font-display text-titulo-seccion text-texto">Presentaciones</h3>
+          {tiene && (
+            <span className="text-secundario text-texto-secundario">
+              {resumen.total} · {resumen.enTotal} en total
+            </span>
+          )}
+        </div>
+
+        {!tiene && !descartada && (
+          <Tarjeta className="flex flex-col gap-3 p-4">
+            <p className="text-destacado text-texto">¿Viene en varias tallas, colores o tamaños?</p>
+            <p className="text-secundario text-texto-secundario">Cada una lleva su propio stock, y su precio si cambia. Tu cliente elige la suya.</p>
+            <Boton tamano="grande" anchoCompleto deshabilitado={bloqueado} onClick={() => abrir({ tipo: "elegir", cambiar: false })}>
+              Agregar presentaciones
+            </Boton>
+            <Boton jerarquia="terciario" anchoCompleto deshabilitado={bloqueado} onClick={() => setDescartada(true)}>
+              No, solo viene de una forma
+            </Boton>
+          </Tarjeta>
         )}
+        {!tiene && descartada && (
+          <ListaAgrupada etiqueta="Presentaciones del producto">
+            <li className="px-4">
+              <FilaAgregar texto="Agregar presentaciones" alTocar={() => abrir({ tipo: "elegir", cambiar: false })} deshabilitado={bloqueado} className="min-h-15" />
+            </li>
+          </ListaAgrupada>
+        )}
+
+        {detalle}
       </section>
+  );
+
+  return (
+    <>
+      {cuerpo}
 
       <HojaElegir
         abierta={vista?.tipo === "elegir"}

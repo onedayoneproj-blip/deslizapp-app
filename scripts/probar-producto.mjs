@@ -216,20 +216,21 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa de prueba");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
-    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await elegirValores(page, "Colores", ["Negro", "Blanco"]);
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
     ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 10, "Hay 10 filas de stock");
     await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
     await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
     await page.getByRole("button", { name: "Agregar uno de M · Negro" }).click();
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno de L · Blanco" }).click();
-    ok((await page.locator("#titulo-presentaciones").locator("xpath=..").innerText()).includes("6 en total"), "El total suma (6 en total)");
+    ok((await page.locator("[data-tarjeta-stock]").innerText()).includes("6 presentaciones · 6 en total") || (await page.locator("[data-tarjeta-stock]").innerText()).includes("6 en total"), "El total suma (6 en total)");
     ok(await sinDesborde(page), "Formulario de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
     // Quitar el color Blanco: «Cambiar qué varía» → fuera Blanco (se van sus 5 presentaciones).

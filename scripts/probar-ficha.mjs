@@ -143,10 +143,13 @@ async function panel(ancho) {
   await page.waitForTimeout(900);
   ok((await page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 0, "Un producto nuevo no pide Detalles");
   const desc = page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
+  ok((await desc.count()) === 0, "La Descripción viene plegada en «Más opciones»");
+  await page.locator('[data-fila-plegable="descripcion"] button[aria-expanded]').tap();
   ok((await desc.count()) === 1, "Pide la Descripción");
   await desc.fill("Oud ahumado con vainilla. Dura todo el día.");
   ok((await page.getByText("43 / 600").count()) === 1, "El contador dice «43 / 600»");
   ok((await page.getByText("Lo que escribas aquí también lo usa la búsqueda de tu catálogo.").count()) === 1, "…y explica que la búsqueda la usa");
+  await page.locator('[data-fila-plegable="ficha"] button[aria-expanded]').tap();
   ok((await page.getByText("Si tienes la foto de las especificaciones, súbela.").count()) === 1, "La tarjeta «Ficha técnica» invita a subirla");
   await captura(page, "5-panel-sin-ficha", ancho);
   await page.locator('input[type="file"]').last().setInputFiles({ name: "ficha.png", mimeType: "image/png", buffer: PNG });
@@ -164,8 +167,10 @@ async function panel(ancho) {
   const m = await abrir(ancho, "/catalogo", MICHEL_ID);
   await m.page.waitForSelector('a[href^="/catalogo/"]');
   await m.page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000019/editar");
-  await m.page.waitForSelector('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
+  await m.page.waitForSelector('[data-fila-plegable="descripcion"]');
   await m.page.waitForTimeout(700);
+  await m.page.locator('[data-fila-plegable="descripcion"] button[aria-expanded]').tap();
+  await m.page.locator('[data-fila-plegable="ficha"] button[aria-expanded]').tap();
   ok((await m.page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 1, "Michel: su producto con Detalles los sigue mostrando");
   ok((await m.page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]').inputValue()).startsWith("Oud"), "…y la descripción que ya tenía");
   ok((await m.page.getByRole("button", { name: "Cambiar", exact: true }).count()) === 1, "…y su ficha de muestra");
