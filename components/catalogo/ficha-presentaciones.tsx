@@ -15,7 +15,7 @@ import type { FotoBorrador } from "./hoja-presentacion";
 export type { FotoBorrador } from "./hoja-presentacion";
 
 /**
- * «Cosas que cambian» en la hoja de producto: solo el resumen (una pastilla por cosa y «N presentaciones · M»). Tocarlo abre el
+ * «Presentaciones» en la hoja de producto: solo el resumen (una pastilla por cosa y «N presentaciones · M»). Tocarlo abre el
  * flujo de dos pasos: sin presentaciones en el paso 1 («Qué cambia»); con ellas, directo en el paso 2 («Cuántas tienes»).
  * Todo edita el borrador de la ficha: se guarda con «Guardar cambios» del producto.
  */
@@ -68,7 +68,7 @@ export function SeccionPresentaciones({
         className="tocable flex min-h-15 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="text-destacado text-texto">Cosas que cambian</span>
+          <span className="text-destacado text-texto">Presentaciones</span>
           {tiene ? (
             <span className="flex flex-wrap gap-1.5">
               {pastillasDeOpciones(opciones).map((t) => (

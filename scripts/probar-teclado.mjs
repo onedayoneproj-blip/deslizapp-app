@@ -281,7 +281,7 @@ try {
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
     await page.waitForSelector("[data-cosas-que-cambian]");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await page.waitForSelector("[data-paso=cuantas]");
     await page.waitForTimeout(900);
     // Precio propio (hoja de una presentación)
@@ -328,7 +328,7 @@ try {
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
     await page.waitForSelector("[data-cosas-que-cambian]");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await page.waitForSelector("[data-paso=cuantas]");
     await page.waitForTimeout(900);
     const interruptor = page.getByRole("switch", { name: "Cada una tiene su precio" });

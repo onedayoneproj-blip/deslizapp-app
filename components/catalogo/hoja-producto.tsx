@@ -580,7 +580,7 @@ function FormularioProducto({
         maxLength={120}
         className="[&_input]:h-14 [&_input]:text-titulo-seccion [&_input]:font-extrabold"
       />
-      {/* Precio, cosas que cambian, stock y por encargo: una sola tarjeta */}
+      {/* Precio, stock, por encargo y presentaciones (de último): una sola tarjeta */}
       <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
         {varia && resumenPres.desde !== null ? (
           <button
@@ -608,25 +608,6 @@ function FormularioProducto({
               className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
             />
           </div>
-        )}
-        {(producto?.tipo ?? "producto") === "producto" && (
-          <SeccionPresentaciones
-            abierta={presAbierta}
-            alAlternar={setPresAbierta}
-            rubro={tipo}
-            precioProducto={Number(precio) || 0}
-            estado={presentaciones}
-            alCambiar={cambiarPresentaciones}
-            stockSimple={stockSimple}
-            publicado={Boolean(producto)}
-            fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
-            agregarFoto={agregarFotoDeColor}
-            sinPermiso={sinCatalogo}
-            porque={porque}
-            avisar={toast}
-            deshabilitado={guardando}
-            tienePedidos={tienePedidosVariante}
-          />
         )}
         {tieneOpciones ? (
           <div className="flex min-h-15 items-center justify-between gap-3 border-t border-linea px-4 py-2 first:border-t-0">
@@ -660,6 +641,25 @@ function FormularioProducto({
               </div>
             )}
           </div>
+        )}
+        {(producto?.tipo ?? "producto") === "producto" && (
+          <SeccionPresentaciones
+            abierta={presAbierta}
+            alAlternar={setPresAbierta}
+            rubro={tipo}
+            precioProducto={Number(precio) || 0}
+            estado={presentaciones}
+            alCambiar={cambiarPresentaciones}
+            stockSimple={stockSimple}
+            publicado={Boolean(producto)}
+            fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
+            agregarFoto={agregarFotoDeColor}
+            sinPermiso={sinCatalogo}
+            porque={porque}
+            avisar={toast}
+            deshabilitado={guardando}
+            tienePedidos={tienePedidosVariante}
+          />
         )}
       </div>
 

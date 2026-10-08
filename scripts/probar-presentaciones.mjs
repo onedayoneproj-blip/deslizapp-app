@@ -76,7 +76,7 @@ const editar = async (page, id) => {
   await page.waitForTimeout(500);
 };
 const abrirFlujo = async (page) => {
-  await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+  await page.getByRole("button", { name: /^Presentaciones/ }).click();
   await hoja(page).locator("[data-paso]").waitFor();
   await page.waitForTimeout(450);
 };
@@ -193,7 +193,7 @@ for (const ancho of ANCHOS) {
     ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Listo · 4 en total»");
     await listo(page);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "La hoja: «4 presentaciones · 4 en total»");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     ok((await paso(page)) === "cuantas", "5 · Con presentaciones, abre directo en «Cuántas tienes»");
     ok((await hoja(page).innerText()).includes("Cambiar qué cambia"), "…con el resumen y el enlace «Cambiar qué cambia»");
     await captura(page, "07-editar-paso2", ancho);
@@ -208,7 +208,7 @@ for (const ancho of ANCHOS) {
     ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4, "15 · Se publicó con 4 presentaciones y su stock");
     await editar(page, p.id);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "15 · Reabrir lo muestra igual");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await hoja(page).getByRole("button", { name: "Cerrar", exact: true }).click();
     await page.waitForTimeout(500);
     ok(!(await page.getByText("¿Salir sin guardar?").count()), "15 · Cerrar el flujo sin cambios no pregunta nada");
@@ -328,7 +328,7 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(400);
     const total = await hoja(page).getByRole("button", { name: /^Listo · \d+ en total/ }).innerText();
     ok(Number(total.match(/(\d+) en total/)[1]) === totalGuardado, "7a · El stock total no cambia: se suma, no se pierde");
-    ok((await tarjetaStock(page)).includes("Cosas que cambian"), "…y la hoja de producto sigue ahí");
+    ok((await tarjetaStock(page)).includes("Presentaciones"), "…y la hoja de producto sigue ahí");
     // 7b · quitar la última cosa
     await hoja(page).getByRole("button", { name: "Cambiar qué cambia" }).click();
     await quitarCosa(page, "Talla");
@@ -337,7 +337,7 @@ for (const ancho of ANCHOS) {
     await hoja(page).getByRole("button", { name: "Volver a un solo stock" }).click();
     await page.getByRole("button", { name: "Sí, cambiar" }).click();
     await page.waitForTimeout(600);
-    ok((await page.getByRole("button", { name: /^Cosas que cambian/ }).innerText()).includes("Talla, color, tamaño"), "7b · Vuelve el stock simple y la fila invita a crear presentaciones");
+    ok((await page.getByRole("button", { name: /^Presentaciones/ }).innerText()).includes("Talla, color, tamaño"), "7b · Vuelve el stock simple y la fila invita a crear presentaciones");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -366,7 +366,7 @@ for (const ancho of ANCHOS) {
     ok((await pasoTexto(page)).includes("Vainilla") && (await pasoTexto(page)).includes("Coco") && (await pasoTexto(page)).includes("Foto de cada aroma"), "8 · Las filas y «Foto de cada aroma»");
     await listo(page);
     ok((await page.getByRole("button", { name: /Agregar presentación|Cambiar qué varía/ }).count()) === 0 && (await page.getByText(/Cambiar qué varía|Agregar presentación/).count()) === 0, "10 · «Agregar presentación» y «Cambiar qué varía» ya no existen");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     ok((await hoja(page).getByText(/Cambiar qué varía|Agregar presentación|Todas/).count()) === 0 || (await hoja(page).getByRole("radio", { name: "Todas" }).count()) === 0, "10 · Ni filtros «Todas / …» ni filas de stock repetidas");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
@@ -388,7 +388,7 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(500);
     // Con precios propios en el producto, «Cada una tiene su precio» arranca encendido y el precio se ve en el campo de la fila.
     const propio = await hoja(page).locator("input[data-precio-fila]").first().inputValue().catch(() => "");
-    ok(propio === "1200" || (await pasoTexto(page)).includes("1,200 · precio propio"), `11 · «${nombre}» muestra su precio propio`);
+    ok(propio.replace(/,/g, "") === "1200" || (await pasoTexto(page)).includes("1,200 · precio propio"), `11 · «${nombre}» muestra su precio propio`);
     await hoja(page).getByRole("button", { name: /^Foto de cada /i }).click();
     await page.waitForTimeout(450);
     ok((await page.getByText(/Foto de cada /).count()) >= 1, "12 · «Foto de cada …» se abre desde el paso 2");

@@ -1,5 +1,5 @@
 // Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo: foto grande, Nombre y Precio, tarjeta de
-// «Cosas que cambian» y stock, «Más opciones» plegadas, barra fija «Cómo se ve» + «Publicar», editar, Ayudante. Nunca toca Supabase.
+// «Presentaciones» y stock, «Más opciones» plegadas, barra fija «Cómo se ve» + «Publicar», editar, Ayudante. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=docs/capturas/hoja-producto-rediseno] node scripts/probar-hoja-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -158,10 +158,11 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(700);
     await captura(page, "2-listo", ancho);
     const tarjeta = await page.locator("[data-tarjeta-stock]").innerText();
-    ok(/Talla · \d+/.test(tarjeta) && /Color · \d+/.test(tarjeta), `«Cosas que cambian» resume en pastillas (${tarjeta.split("\n").slice(0, 4).join(" | ")})`);
+    ok(/Talla · \d+/.test(tarjeta) && /Color · \d+/.test(tarjeta), `«Presentaciones» resume en pastillas (${tarjeta.split("\n").slice(0, 4).join(" | ")})`);
     ok(/\d+ presentaciones · \d+ en total/.test(tarjeta), "«En stock»: «N presentaciones · M en total»");
+    { const i = (t) => tarjeta.indexOf(t); ok(i("Precio") >= 0 && i("Precio") < i("En stock") && i("En stock") < i("Por encargo") && i("Por encargo") < i("Presentaciones"), "Orden de la tarjeta: Precio, En stock, Por encargo, Presentaciones"); }
     ok((await page.getByRole("list", { name: "Presentaciones del producto" }).count()) === 0, "La hoja de producto no lista las filas: solo resume");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await page.locator("[data-paso=cuantas]").waitFor();
     ok((await page.locator('[role="dialog"]').last().innerText()).includes("Cuántas tienes"), "Tocar la fila abre el flujo directo en «Cuántas tienes»");
     await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();

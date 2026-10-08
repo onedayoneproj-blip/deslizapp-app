@@ -14,7 +14,7 @@ test("«Publicar» pide foto, nombre y un precio mayor que cero", () => {
   assert.equal(H.puedePublicar({ ...ok, preparando: true }), false);
 });
 
-test("las pastillas de «Cosas que cambian»", () => {
+test("las pastillas de «Presentaciones»", () => {
   assert.deepEqual(H.pastillasDeOpciones([{ nombre: "Color", valores: ["Negro", "Arena"] }, { nombre: "Tamaño", valores: ["S", "M", "L"] }]), ["Color · 2", "Tamaño · 3"]);
   assert.deepEqual(H.pastillasDeOpciones([]), []);
 });

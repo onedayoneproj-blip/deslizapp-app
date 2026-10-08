@@ -9,7 +9,7 @@ export function puedePublicar(d: { nombre: string; precio: string; fotos: number
   return d.nombre.trim().length > 0 && Number(d.precio) > 0 && d.fotos > 0 && !d.preparando;
 }
 
-/** Las pastillas de «Cosas que cambian»: «Color · 2», «Tamaño · 3». */
+/** Las pastillas de «Presentaciones»: «Color · 2», «Tamaño · 3». */
 export const pastillasDeOpciones = (opciones: OpcionProducto[]) => opciones.map((o) => `${o.nombre} · ${o.valores.length}`);
 
 /** El stock con presentaciones: «6 presentaciones · 18 en total». */

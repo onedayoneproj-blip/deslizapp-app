@@ -216,7 +216,7 @@ const ESCENARIOS = {
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa de prueba");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await elegirValores(page, "Colores", ["Negro", "Blanco"]);
@@ -234,7 +234,7 @@ const ESCENARIOS = {
     ok(await sinDesborde(page), "Formulario de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
     // Quitar el color Blanco: «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.getByRole("button", { name: /^Presentaciones/ }).click();
     await hoja(page).getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
     await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
     await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
