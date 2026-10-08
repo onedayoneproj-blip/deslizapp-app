@@ -368,7 +368,9 @@ export function BarraPestanas({
                     }`}
                   >
                     <span className="relative">
-                      <Icono tamano={22} strokeWidth={marcada ? 2.3 : 2} />
+                      <span className={badge > 0 ? "corte block [--corte-rx:13px] [--corte-r:11px] [--corte-x:25px] [--corte-y:3px]" : "block"}>
+                        <Icono tamano={22} strokeWidth={marcada ? 2.3 : 2} />
+                      </span>
                       <Contador valor={badge} tamano="barra" oculto className="mov-aparece absolute -top-1.5 -right-3" />
                     </span>
                     <span className={`max-w-full truncate px-0.5 text-[11.5px] leading-none ${marcada ? "font-extrabold" : "font-semibold"}`}>

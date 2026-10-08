@@ -274,20 +274,22 @@ function BotonSticker({ id, dibujo, puesto, deshabilitado, alTocar }: { id: IdSt
       onClick={alTocar}
       className="tocable relative grid h-[76px] min-w-11 place-items-center p-1 disabled:opacity-40"
     >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element -- sticker de nuestro propio sitio, ya recortado
-        <img
-          src={src}
-          alt=""
-          draggable={false}
-          className="max-h-[64px] max-w-full object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.3)]"
-          style={{ opacity: puesto ? 1 : 0.6 }}
-        />
-      ) : (
-        <span className="block size-16" />
-      )}
+      <span className={"relative grid place-items-center" + (puesto ? " corte [--corte-r:12px] [--corte-x:calc(100%_-_6px)] [--corte-y:6px]" : "")}>
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element -- sticker de nuestro propio sitio, ya recortado
+          <img
+            src={src}
+            alt=""
+            draggable={false}
+            className="max-h-[64px] max-w-full object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.3)]"
+            style={{ opacity: puesto ? 1 : 0.6 }}
+          />
+        ) : (
+          <span className="block size-16" />
+        )}
+      </span>
       {puesto && (
-        <span className="absolute right-0 top-0 grid size-5 place-items-center rounded-full bg-accion text-white ring-2 ring-superficie">
+        <span className="absolute right-0 top-0 grid size-5 place-items-center rounded-full bg-accion text-white">
           <IconoCheck tamano={12} strokeWidth={3.5} />
         </span>
       )}
