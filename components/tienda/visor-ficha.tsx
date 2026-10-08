@@ -10,6 +10,7 @@ import { DialogoCatalogo } from "./dialogo";
  */
 export function VisorFicha({ p, cerrar }: { p: ProductoPublico; cerrar: () => void }) {
   const escena = useRef<HTMLDivElement>(null);
+  const imagen = useRef<HTMLImageElement>(null);
   const [vista, setVista] = useState<VistaZoom>(AJUSTADA);
   const actual = useRef(vista);
   const dedos = useRef(new Map<number, Punto>());
@@ -32,7 +33,10 @@ export function VisorFicha({ p, cerrar }: { p: ProductoPublico; cerrar: () => vo
   }, []);
   const medidas = () => {
     const r = escena.current!.getBoundingClientRect();
-    return { r, ancho: r.width, alto: r.height };
+    // Tamaño real de la foto: los límites del arrastre salen de lo que ocupa dentro de la escena (contain), no de la escena.
+    const img = imagen.current;
+    const natural = img && img.naturalWidth > 0 ? { ancho: img.naturalWidth, alto: img.naturalHeight } : null;
+    return { r, ancho: r.width, alto: r.height, natural };
   };
   /** Posición relativa al centro del área visible. */
   const centrado = (e: { clientX: number; clientY: number }): Punto => {
@@ -59,13 +63,13 @@ export function VisorFicha({ p, cerrar }: { p: ProductoPublico; cerrar: () => vo
     if (!antes) return;
     const ahora = centrado(e);
     dedos.current.set(e.pointerId, ahora);
-    const { ancho, alto } = medidas();
+    const { ancho, alto, natural } = medidas();
     if (dedos.current.size >= 2 && gesto.current) {
       const { c, d } = dos();
-      poner(pellizcar(gesto.current.inicio, gesto.current.c0, gesto.current.d0, c, d, ancho, alto));
+      poner(pellizcar(gesto.current.inicio, gesto.current.c0, gesto.current.d0, c, d, ancho, alto, natural));
     } else if (dedos.current.size === 1) {
       if (toque.current && Math.hypot(e.clientX - toque.current.x, e.clientY - toque.current.y) > 8) toque.current.movido = true;
-      if (actual.current.k > 1) poner(mover(actual.current, ahora.x - antes.x, ahora.y - antes.y, ancho, alto));
+      if (actual.current.k > 1) poner(mover(actual.current, ahora.x - antes.x, ahora.y - antes.y, ancho, alto, natural));
     }
   };
   const subir = (e: React.PointerEvent) => {
@@ -74,8 +78,8 @@ export function VisorFicha({ p, cerrar }: { p: ProductoPublico; cerrar: () => vo
     if (dedos.current.size < 2) gesto.current = null;
     const t = toque.current;
     if (eraUno && t && !t.movido && Date.now() - t.t < 350) {
-      const { ancho, alto } = medidas();
-      poner(alternar(actual.current, centrado(e), ancho, alto));
+      const { ancho, alto, natural } = medidas();
+      poner(alternar(actual.current, centrado(e), ancho, alto, natural));
     }
     toque.current = null;
   };
@@ -107,7 +111,7 @@ export function VisorFicha({ p, cerrar }: { p: ProductoPublico; cerrar: () => vo
         onPointerCancel={cancelar}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={foto} alt={`Ficha técnica de ${p.nombre}`} draggable={false} style={{ transform: transformDe(vista) }} />
+        <img ref={imagen} src={foto} alt={`Ficha técnica de ${p.nombre}`} draggable={false} style={{ transform: transformDe(vista) }} />
       </div>
       <p className="ficha-pista" aria-hidden="true">
         {vista.k > 1 ? "Toca dos veces para volver" : "Pellizca o toca para acercar"}
