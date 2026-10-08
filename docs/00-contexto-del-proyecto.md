@@ -44,6 +44,7 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 - **Texto de la app:** con la voz de la marca (`docs/01-marca.md` y `docs/11-voz-y-frases.md`).
 - **Migraciones** (reglas completas en `AGENTS.md`): se aplican en Supabase y el archivo de `supabase/migrations/` lleva la versión que Supabase le puso. No se edita una migración aplicada. Los datos reales de una tienda no van en migraciones. `npm run revisar:migraciones` tiene que dar cero diferencias.
 - **Novedades, teclado e iPhone, movimiento:** reglas permanentes en `HANDOFF.md`.
+- **Revisión automática:** cada PR y push a `main` corre el check «Revisión» (tipos con `npm run tipos`, `npm test`, `npm run lint`; sin build ni Playwright). Un PR en rojo no se fusiona. Los minutos de Actions son limitados: no lanzar corridas de más. Detalle en `HANDOFF.md`.
 - **Pruebas antes de abrir un PR:** `npm run lint`, `npm run build`, `npm test` y los `scripts/probar-*.mjs` que tocan lo cambiado. `probar-proximamente` falla también en `main`; no es tuyo.
 - **Cuando no se pueda probar algo** (por ejemplo, Safari de iPhone, que el entorno de Claude Code no tiene), el PR lo dice con claridad; Lewis lo prueba en el teléfono.
 

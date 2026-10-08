@@ -621,3 +621,11 @@ Rama `fix/bloquear-video`. Decisión de Lewis: no se suben videos (almacenamient
 - El touchmove que decide "scroll" o "ignorar" **nunca se cancela** (`debeCancelar` en `lib/gesto-hoja.ts`): cancelarlo en iOS puede bloquear el scroll nativo de todo el gesto.
 - Expandida, el contenido hace scroll **desde el mismo gesto que expandió** (el JS lo guía con el dedo en cuanto el cuerpo puede desplazarse) y el contenedor de scroll se busca al decidir el gesto, no solo al tocar. Si Safari no inicia el scroll nativo (el dedo se movió más de 24 px y `scrollTop` no cambió), el gesto lo guía el JS. El cuerpo de una hoja `.full` es `flex: 1 1 0; min-height: 0; overflow-y: auto`.
 - Con un campo enfocado dentro de la hoja, el gesto del cuerpo no actúa (no se anima ni se pierde el teclado). Prueba: `npm run probar:hojas-gestos` (`scripts/probar-hojas-gestos.mjs`) y `tests/gesto-hoja.test.mjs`.
+
+## Revisión automática en GitHub
+
+Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflows/revision.yml`): `npm ci`, `npm run tipos` (`next typegen && tsc --noEmit`), `npm test` y `npm run lint`. Sin `build` (lo hace Vercel) y sin Playwright. No usa secretos ni variables de entorno.
+
+- Un PR con «Revisión» en rojo **no se fusiona**.
+- Los tipos `PageProps`/`LayoutProps` los genera `next typegen`; correr `tsc` solo, sin generarlos, da errores falsos. Usa `npm run tipos`.
+- Los minutos de GitHub Actions son limitados: no lances corridas de más (el flujo cancela las viejas de la misma rama).
