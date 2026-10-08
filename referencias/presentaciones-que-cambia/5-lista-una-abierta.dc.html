@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Presentaciones, lista que se expande en filas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;display=swap">
+<style>
+body{margin:0}
+.pant{width:390px;height:844px;background:#10362a59;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.hoja{position:absolute;left:0;right:0;top:44px;bottom:0;background:#fff9ee;border-radius:30px 30px 0 0;overflow:hidden}
+.cab{padding:10px 20px 12px;border-bottom:1px solid #efe4d2}
+.asa{width:44px;height:5px;border-radius:999px;background:#e2d5bf;margin:0 auto 8px}
+.cerrar{width:40px;height:40px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;cursor:pointer}
+.cuerpo{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.preg{margin:0;font-size:22px}
+.lista{display:flex;flex-direction:column;gap:8px}
+.dim{width:100%;border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#174b3a;font:800 16px 'Figtree',sans-serif;text-align:left}
+.dim.off{opacity:.4}
+.etq2{height:40px;border-radius:12px;background:#f3ead9;color:#174b3a;padding:0 16px;font:800 18px 'Figtree',sans-serif;display:inline-flex;align-items:center}
+.dim.otra{border:1.5px dashed #c9bba3;background:none;color:#4f6a5e;justify-content:center;height:52px;padding:0}
+.tope{margin:0;height:52px;border-radius:22px;border:1.5px dashed #c9bba3;color:#4f6a5e;display:flex;align-items:center;justify-content:center;font:800 15px 'Figtree',sans-serif}
+.card{border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:14px 16px}
+.cab-n{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;min-height:40px}
+.card:has(.sub2) .cab-n{margin-bottom:0}
+.nom2{display:flex;flex-direction:column;font:800 18px 'Figtree',sans-serif;color:#174b3a}
+.sub2{font:600 14px 'Figtree',sans-serif;color:#4f6a5e;margin-top:2px}
+.circ{width:40px;height:40px;border-radius:999px;border:0;display:grid;place-items:center;flex:none;cursor:pointer}
+.circ.mas{background:#f3ead9}
+.circ.on{background:#174b3a}
+.scroll{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 4px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.scroll .v{flex:none}
+.fila{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:6px}
+.v{height:40px;border-radius:999px;border:1.5px solid #e2d5bf;background:#fff;padding:0 14px;font:600 15px 'Figtree',sans-serif;color:#174b3a;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.v.on{background:#dcebe2;border-color:#dcebe2;font-weight:800;padding-left:8px}
+.ck{width:20px;height:20px;border-radius:999px;background:#174b3a;display:grid;place-items:center;flex:none}
+.v.mas{border-style:dashed;color:#4f6a5e}
+.pie-d{display:flex;justify-content:flex-end;margin-top:2px}
+.quitar{border:0;background:none;color:#174b3a;font:800 14px 'Figtree',sans-serif;min-height:44px;padding:0 4px;cursor:pointer}
+.nota{margin:0;font-size:13px;font-weight:800;color:#4f6a5e}
+.pie{position:absolute;left:0;right:0;bottom:0;padding:12px 20px 30px;background:#fff9ee;border-top:1px solid #efe4d2}
+.btn{width:100%;height:56px;border:0;border-radius:999px;background:#174b3a;color:#fff;font:800 17px 'Figtree',sans-serif}
+.card{position:relative}
+.tit-d{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;border:0;background:none;padding:0;min-height:40px;cursor:pointer;color:#174b3a;text-align:left}
+.tit-d .l1{display:inline-flex;align-items:center;gap:6px;font:800 18px 'Figtree',sans-serif}
+.xq{position:absolute;top:-10px;right:-6px;width:28px;height:28px;border-radius:999px;border:2px solid #fff9ee;background:#174b3a;display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:0 2px 6px -2px #10362a66}
+.xq::after{content:"";position:absolute;inset:-8px}
+</style>
+</helmet>
+<div class="pant">
+  <div class="hoja" role="dialog" aria-label="Presentaciones">
+    <div class="cab">
+      <div class="asa"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <h2 class="disp" style="margin: 0; font-size: 24px">Presentaciones</h2>
+        <button class="cerrar" type="button" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+    </div>
+    <div class="cuerpo">
+      <p class="preg disp">¿Qué cambia de una a otra?</p>
+      <div class="lista">
+<div class="card" role="group" aria-label="Color"><div class="cab-n"><button class="tit-d" type="button" aria-expanded="true" aria-label="Contraer Color"><span class="l1">Color<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></span></button><button class="quitar" type="button" aria-label="Quitar Color">Quitar</button></div><div class="fila"><button class="v on" type="button" aria-pressed="true"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>Dorado</button><button class="v on" type="button" aria-pressed="true"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>Plateado</button><button class="v" type="button" aria-pressed="false">Negro</button><button class="v" type="button" aria-pressed="false">Blanco</button><button class="v" type="button" aria-pressed="false">Rojo</button><button class="v" type="button" aria-pressed="false">Azul</button><button class="v" type="button" aria-pressed="false">Rosado</button><button class="v" type="button" aria-pressed="false">Verde</button><button class="v" type="button" aria-pressed="false">Beige</button><button class="v" type="button" aria-pressed="false">Gris</button><button class="v" type="button" aria-pressed="false">Marrón</button><button class="v mas" type="button">+ Otro color</button></div></div><button class="dim" type="button" aria-pressed="false" aria-expanded="false"><span class="nom2">Tamaño</span><span class="circ mas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span></button><button class="dim" type="button" aria-pressed="false" aria-expanded="false"><span class="nom2">Material</span><span class="circ mas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span></button><button class="dim" type="button" aria-pressed="false" aria-expanded="false"><span class="nom2">Talla</span><span class="circ mas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span></button><button class="dim" type="button" aria-pressed="false" aria-expanded="false"><span class="nom2">Modelo</span><span class="circ mas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span></button><button class="dim otra" type="button">+ Otra cosa</button>
+      </div>
+    </div>
+    <div class="pie"><button class="btn" type="button">Crear las 2</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

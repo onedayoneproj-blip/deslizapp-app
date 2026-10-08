@@ -9,3 +9,13 @@ Lienzo de Claude Design: https://claude.ai/artifact/RruuuejLhTu6QHVTYz96xY
 
 Decisiones de Lewis: hasta 2 cosas que cambian por producto; lo que se agrega o quita vale solo para ese producto; en pantalla nunca «dimensión».
 Las listas de valores y los nombres del lienzo son de ejemplo. No copies su HTML: `components/ui/` y los tokens (`docs/09`).
+
+## La lista que se expande (8 oct 2026, aprobada por Lewis)
+
+Reemplaza la cuadrícula de rectángulos de arriba de #70. Prompt: `docs/prompts/presentaciones-lista-expandible.md`.
+
+5. `5-lista-una-abierta` — una lista de tarjetas blancas de bordes redondeados, sin recuadro verde en el nombre. Sin elegir: nombre y círculo arena con «+». Elegida y abierta: nombre con **chevron** al lado, **«Quitar»** (texto) arriba a la derecha y los valores en **filas**.
+6. `6-lista-dos-elegidas` — una cerrada con su resumen («Dorado, Plateado») y otra abierta; las demás apagadas y «Ya elegiste 2: es el máximo.» en lugar de «+ Otra cosa».
+7. `7-lista-valores-con-scroll-descartada` — los valores en una sola fila con scroll de lado. **Se descartó**; solo queda de referencia.
+
+Descartado en el camino: la franja verde de encabezado, la etiqueta verde en el nombre, el botón X en el borde de la tarjeta y el chevron en un círculo en la esquina.
