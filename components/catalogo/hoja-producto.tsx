@@ -36,6 +36,7 @@ import { useTaller } from "./taller";
 import { claveVariante, ejeDeFoto, presentacionesDe } from "@/lib/presentaciones";
 import { HojaMotivoVariantes, SeccionPresentaciones, type EstadoPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
+import { fichaCambiada, SeccionDescripcion, SeccionFichaTecnica, type BorradorFicha } from "./ficha-tecnica";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
@@ -211,7 +212,7 @@ function FormularioProducto({
   alVerHistorial: (boton: HTMLButtonElement) => void;
   historialAbierto: boolean;
 }) {
-  const { crearProducto, guardarVariantes, guardarFotoValor, ajustarStock, trabajosRetoque, getProducto, getPedidos } = useData();
+  const { crearProducto, guardarVariantes, guardarFotoValor, guardarFicha, ajustarStock, trabajosRetoque, getProducto, getPedidos } = useData();
   // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
   const { puede, porque } = usePermisos();
   const sinCatalogo = !puede("catalogo");
@@ -252,6 +253,16 @@ function FormularioProducto({
   });
   const { opciones, pres: borradorPres, fotosColor } = presentaciones;
   const [detalles, setDetalles] = useState<Detalles>(producto?.detalles ?? {});
+  // Los Detalles por rubro solo se piden en un producto que ya los tiene (Esencias Michel); uno nuevo lleva solo la descripción.
+  const [conDetalles] = useState(() => Object.keys(producto?.detalles ?? {}).some((k) => k !== "descripcion"));
+  const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
+  const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
+  const ponerDescripcion = (texto: string) =>
+    setDetalles((d) => {
+      const { descripcion: _viejo, ...resto } = d;
+      void _viejo;
+      return texto.trim() ? { ...resto, descripcion: texto } : resto;
+    });
   const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
   const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
   const [eligiendoColeccion, setEligiendoColeccion] = useState(false);
@@ -277,7 +288,7 @@ function FormularioProducto({
   // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
   const firma = JSON.stringify({
     medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
-    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, categoria, tipoElegido, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
+    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, ficha: ficha.tipo === "nueva" ? ficha.foto.slice(-40) : ficha.tipo, categoria, tipoElegido, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
@@ -419,6 +430,17 @@ function FormularioProducto({
         await guardarFotoValor(tiendaId, guardado.id, eje.nombre, valor, quiere);
       }
     };
+    /** La ficha técnica se sube al final, con el producto ya guardado (es su propia llamada; si falla, el producto ya quedó). */
+    const guardarLaFicha = async (guardado: Producto): Promise<string | null> => {
+      if (!fichaCambiada(ficha)) return null;
+      try {
+        await guardarFicha(tiendaId, guardado.id, ficha.tipo === "nueva" ? ficha.foto : null);
+      } catch (e) {
+        // El producto ya quedó guardado: no se repite (crearía otro). Se avisa y la ficha se vuelve a subir desde el producto.
+        return `El producto quedó guardado, pero la ficha no. ${mensajeDeError(e, "Ábrelo y súbela otra vez.")}`;
+      }
+      return null;
+    };
     try {
       if (!producto) {
         // Una sola llamada: la ficha y las variantes (si algo falla, no queda nada a medias).
@@ -431,7 +453,8 @@ function FormularioProducto({
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
         await guardarFotosDeColor(creado);
-        const mensaje = activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.";
+        const falloFicha = await guardarLaFicha(creado);
+        const mensaje = falloFicha ?? (activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
         toast(await mandarAlTaller(creado, mensaje));
         alTerminar();
         return true;
@@ -460,7 +483,8 @@ function FormularioProducto({
       }
       const guardado = totalMarcadas > 0 ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
       await guardarFotosDeColor(producto, final);
-      toast(await mandarAlTaller(guardado, "Guardado. El catálogo ya se enteró."));
+      const falloFicha = await guardarLaFicha(producto);
+      toast(await mandarAlTaller(guardado, falloFicha ?? "Guardado. El catálogo ya se enteró."));
       inventario.finalizar(alTerminar);
       return true;
     } catch (e) {
@@ -512,6 +536,8 @@ function FormularioProducto({
         className="[&_input]:font-extrabold"
       />
 
+      <SeccionDescripcion valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} />
+
       {(producto?.tipo ?? "producto") === "producto" && (
         <SeccionPresentaciones
           rubro={tipo}
@@ -550,7 +576,9 @@ function FormularioProducto({
       )}
 
       {/* Sin la tienda todavía no se sabe el rubro: Detalles espera para no mostrar los campos de otro. */}
-      {tienda && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
+      {tienda && conDetalles && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
+
+      <SeccionFichaTecnica actual={producto?.fichaUrl} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} />
 
       {/* Colección, visibilidad y por encargo: una sola lista agrupada */}
       <ListaAgrupada etiqueta="Colección y visibilidad">

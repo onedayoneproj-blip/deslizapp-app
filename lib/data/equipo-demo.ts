@@ -114,7 +114,7 @@ export function invitarCorreoEnDB(db: DB, tiendaId: string, email: string, nivel
  */
 export const GRUPO_DE_OPERACION: Record<string, Grupo> = {
   crearProducto: "catalogo", actualizarProducto: "catalogo", eliminarProducto: "catalogo", ajustarStock: "catalogo", reponerStock: "catalogo",
-  cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", guardarFotoValor: "catalogo", actualizarMarca: "catalogo", guardarRubros: "catalogo",
+  cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", guardarFotoValor: "catalogo", guardarFicha: "catalogo", actualizarMarca: "catalogo", guardarRubros: "catalogo",
   solicitarCatalogo: "catalogo", pedirCambiosCatalogo: "catalogo", publicarCatalogo: "catalogo",
   // Publicarse al público es decisión de la dueña (la base exige el grupo «equipo», que es solo suyo).
   publicarMiCatalogo: "equipo", despublicarMiCatalogo: "equipo",
