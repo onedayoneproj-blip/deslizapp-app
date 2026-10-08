@@ -102,7 +102,8 @@ test("búsqueda de perfumes conserva pesos, sinónimos y presupuesto del HTML",(
   const db=construirDesdeSeed();db.promos=[];
   const c=catalogoPublicoDeDB(db,"esencias-michel",new Date());
   assert.equal(buscarCatalogo(c,"dulce")[0].slug,"urbantoy");
-  assert.ok(buscarCatalogo(c,"2000").every(p=>p.precio<=2000));
+  assert.ok(buscarCatalogo(c,"menos de 2000").every(p=>[p.precio,...p.variantes.map(v=>v.precio)].some(x=>x<=2000)));
+  assert.ok(buscarCatalogo(c,"2000").every(p=>[p.precio,...p.variantes.map(v=>v.precio)].some(x=>x>=1500&&x<=2500))); // un número suelto es «cerca de», no un tope
   assert.ok(buscarCatalogo(c,"mayr").some(p=>p.slug==="mayar"));
   assert.ok(buscarCatalogo(c,"noche").length>0);
 });

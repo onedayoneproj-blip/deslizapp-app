@@ -120,3 +120,7 @@ Decisión de Lewis (7 oct): la tienda **publica su propio catálogo** y una tien
 (sin indexar para buscadores; Esencias Michel, activa, no cambia). Mínimo para publicar: 3 productos visibles con foto. Solo la dueña
 publica; dejar de mostrarlo, por ahora, se pide a Deslizapp (la función `despublicar_mi_catalogo` existe en la base y conserva el enlace). El comprador ve, pide, da ♥, pide «Avísame» y abre su pedido igual en una
 tienda en prueba, porque todas las funciones públicas pasan por `tienda_publica`. Detalle en `HANDOFF.md` y `docs/04-pantallas.md`.
+
+### Búsqueda del comprador: precio y presentaciones (8 oct 2026)
+
+La hoja de búsqueda también encuentra por los valores de las presentaciones (colores, tamaños), la descripción y el tipo, y entiende el precio («menos de 500», «hasta 2000», «más de 1000», «entre 500 y 1500», y un número suelto como «cerca de»). Se muestra cómo se entendió, con una ✕ para quitarlo, y si nada cumple el precio se ofrecen los 6 más cercanos. Reglas completas en `docs/04-pantallas.md` (catálogo público). La búsqueda por palabras de Esencias Michel no cambia: `tests/fixtures/michel-busqueda-base.json` guarda 26 consultas fijas (ids en orden) y `tests/busqueda-precio.test.mjs` las compara. En perfumes no se suman los valores de las presentaciones (no se comprobó que no alteraran resultados). Cambio de comportamiento: antes un número suelto de 300 o más era un tope; ahora es «cerca de», y «menos de N» ordena del más cercano al tope hacia abajo.
