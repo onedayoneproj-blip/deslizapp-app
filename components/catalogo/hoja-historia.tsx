@@ -8,13 +8,14 @@ import {
   textoWhatsAppHistoria, tienePresentaciones, type OpcionesHistoria,
 } from "@/lib/historia";
 import { generarImagenHistoria, imagenesStickers, medirFoto, type EntradaImagenHistoria } from "@/lib/imagen-historia";
-import { INCLINACION_STICKER, NOMBRE_STICKER, alternarSticker, stickersIniciales, stickersOfrecidos, textoSticker, type IdSticker, type StickerPuesto } from "@/lib/stickers-historia";
+import { urlStickerImagen, type IdGrupoSticker } from "@/lib/catalogo-stickers";
+import { NOMBRE_STICKER, alternarSticker, gruposOfrecidos, stickersIniciales, textoSticker, type GrupoOfrecido, type IdSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { AjustarFotoHistoria } from "./ajustar-foto-historia";
 import { IconoCheck, IconoEditar, IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
 import { useToast } from "../toast";
-import { Aviso, Boton, Interruptor } from "../ui";
+import { Aviso, Boton, ControlSegmentado, Interruptor } from "../ui";
 
 type Clave = { entradaBase: unknown; ajuste: unknown };
 const sinAbortar = (e: unknown) => !(e instanceof DOMException && e.name === "AbortError");
@@ -34,7 +35,9 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   /** Los stickers puestos. Vienen marcados los que el producto sugiere (nuevo, últimas unidades). */
   const [stickers, setStickers] = useState<StickerPuesto[]>(() => stickersIniciales(producto));
   const [dibujosStickers, setDibujosStickers] = useState<Record<string, { url: string; ancho: number; alto: number }>>({});
-  const ofrecidos = useMemo(() => stickersOfrecidos(producto), [producto]);
+  const grupos = useMemo(() => gruposOfrecidos(producto), [producto]);
+  const [idGrupo, setIdGrupo] = useState<IdGrupoSticker>("basicos");
+  const grupo = grupos.find((g) => g.id === idGrupo) ?? grupos[0]!;
 
   const foto = fotoDeHistoria(producto);
   const conPresentaciones = tienePresentaciones(producto);
@@ -57,12 +60,14 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   }, [foto]);
 
   useEffect(() => {
+    // Solo «Últimas N» se dibuja con datos del producto; los ilustrados se ven directo de su archivo
+    if (!grupos.some((g) => g.ids.includes("ultimas"))) return;
     let vigente = true;
-    void imagenesStickers(ofrecidos.map((id) => ({ id, texto: textoSticker(id, producto) }))).then((m) => vigente && setDibujosStickers(m));
+    void imagenesStickers([{ id: "ultimas", texto: textoSticker("ultimas", producto) }]).then((m) => vigente && setDibujosStickers(m), () => undefined);
     return () => {
       vigente = false;
     };
-  }, [ofrecidos, producto]);
+  }, [grupos, producto]);
 
   const entradaBase = useMemo<Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta"> | null>(
     () => (foto ? { datos, foto, logoUrl: tienda.fotoPerfilUrl ?? tienda.logoUrl, nombreTienda: tienda.nombre, direccion, stickers } : null),
@@ -140,17 +145,22 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
 
           <div className="rounded-radio-l bg-superficie px-4 py-3 ring-1 ring-linea">
             <p className="text-destacado text-texto">Stickers</p>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-              {ofrecidos.map((id) => (
-                <BotonSticker
-                  key={id}
-                  id={id}
-                  dibujo={dibujosStickers[`${id}|${textoSticker(id, producto)}`]}
-                  puesto={stickers.some((s) => s.id === id)}
-                  alTocar={() => setStickers((l) => alternarSticker(l, id, producto))}
-                />
-              ))}
+            <div className="mt-2">
+              <ControlSegmentado
+                etiqueta="Grupo de stickers"
+                compacto
+                valor={grupo.id}
+                alCambiar={setIdGrupo}
+                opciones={grupos.map((g) => ({ id: g.id, texto: g.nombre }))}
+              />
             </div>
+            <PanelStickers
+              grupo={grupo}
+              dibujos={dibujosStickers}
+              producto={producto}
+              puestos={stickers}
+              alTocar={(id) => setStickers((l) => alternarSticker(l, id, producto))}
+            />
           </div>
 
           <ul className="rounded-radio-l bg-superficie px-4 ring-1 ring-linea">
@@ -227,29 +237,55 @@ function Destino({ icono, titulo, detalle, alTocar }: { icono: React.ReactNode; 
   );
 }
 
-/** Un sticker de la fila: se ve como sticker (borde blanco, sombra, inclinado) y marca con un check cuando está puesto. */
-function BotonSticker({ id, dibujo, puesto, alTocar }: { id: IdSticker; dibujo?: { url: string; ancho: number; alto: number }; puesto: boolean; alTocar: () => void }) {
-  const alto = 64;
+/** Los stickers de un grupo, en una cuadrícula de 4. Un grupo de pago (cuando lo haya) se ve apagado y no se puede tocar. */
+function PanelStickers({ grupo, dibujos, producto, puestos, alTocar }: {
+  grupo: GrupoOfrecido;
+  dibujos: Record<string, { url: string; ancho: number; alto: number }>;
+  producto: Producto;
+  puestos: StickerPuesto[];
+  alTocar: (id: IdSticker) => void;
+}) {
+  return (
+    <div role="group" aria-label={`Stickers: ${grupo.nombre}`} data-grupo-stickers={grupo.id} className="mt-1 grid grid-cols-4 items-center gap-x-1 gap-y-1">
+      {grupo.ids.map((id) => (
+        <BotonSticker
+          key={id}
+          id={id}
+          dibujo={id === "ultimas" ? dibujos[`${id}|${textoSticker(id, producto)}`] : undefined}
+          puesto={puestos.some((s) => s.id === id)}
+          deshabilitado={!grupo.disponible}
+          alTocar={() => alTocar(id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Un sticker de la cuadrícula: se ve como sticker (borde blanco, sombra) y marca con un check cuando está puesto. */
+function BotonSticker({ id, dibujo, puesto, deshabilitado, alTocar }: { id: IdSticker; dibujo?: { url: string; ancho: number; alto: number }; puesto: boolean; deshabilitado: boolean; alTocar: () => void }) {
+  const src = id === "ultimas" ? dibujo?.url : urlStickerImagen(id);
   return (
     <button
       type="button"
       aria-pressed={puesto}
       aria-label={NOMBRE_STICKER[id]}
       data-sticker-boton={id}
+      disabled={deshabilitado}
       onClick={alTocar}
-      className="tocable relative grid min-h-11 min-w-11 place-items-center p-1"
+      className="tocable relative grid h-[76px] min-w-11 place-items-center p-1 disabled:opacity-40"
     >
       <span className={"relative grid place-items-center" + (puesto ? " corte [--corte-r:12px] [--corte-x:calc(100%_-_6px)] [--corte-y:6px]" : "")}>
-        {dibujo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element -- sticker de nuestro propio sitio, ya recortado
           <img
-            src={dibujo.url}
+            src={src}
             alt=""
             draggable={false}
-            style={{ height: alto, width: (dibujo.ancho / dibujo.alto) * alto, transform: `rotate(${INCLINACION_STICKER[id]}deg)`, opacity: puesto ? 1 : 0.55 }}
+            className="max-h-[64px] max-w-full object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.3)]"
+            style={{ opacity: puesto ? 1 : 0.6 }}
           />
         ) : (
-          <span className="block" style={{ height: alto, width: alto }} />
+          <span className="block size-16" />
         )}
       </span>
       {puesto && (

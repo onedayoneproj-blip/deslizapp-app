@@ -7,7 +7,7 @@ import {
   type AjusteFoto, type Encuadre, type Medida, type Punto,
 } from "@/lib/encuadre-historia";
 import { generarImagenHistoria, imagenesStickers, type EntradaImagenHistoria } from "@/lib/imagen-historia";
-import { INCLINACION_STICKER, NOMBRE_STICKER, limitarSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
+import { NOMBRE_STICKER, limitarSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import { Boton, Interruptor } from "../ui";
 
 type Entrada = Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta">;
@@ -251,7 +251,7 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, stickersInicial
       </div>
 
       <div className="shrink-0 rounded-t-radio-l bg-superficie px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-texto">
-        <p className="text-center text-secundario text-texto-secundario">Pellizca para acercar o alejar y arrastra para mover.</p>
+        <p className="text-center text-secundario text-texto-secundario">Pellizca para acercar o alejar y arrastra para mover. Con dos dedos sobre un sticker, también lo giras.</p>
         <div className="mt-2 flex min-h-14 items-center justify-between gap-3 border-t border-linea">
           <span className="text-destacado">Fondo difuminado</span>
           <Interruptor encendido={difuminado} alCambiar={cambiarFondo} etiqueta="Fondo difuminado" />
@@ -275,13 +275,18 @@ function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
   useEffect(() => {
     actual.current = sticker;
   }, [sticker]);
-  const pinza = useRef<{ k: number; d: number } | null>(null);
+  const pinza = useRef<{ k: number; d: number; r: number; a: number } | null>(null);
   const escala = marco.ancho / 1080;
   const s = limitarSticker(sticker);
 
   const distancia = () => {
     const [a, b] = [...dedos.current.values()];
     return Math.hypot(a!.x - b!.x, a!.y - b!.y);
+  };
+  /** El ángulo de la recta entre los dos dedos, en grados: al girarlos, el sticker gira lo mismo. */
+  const angulo = () => {
+    const [a, b] = [...dedos.current.values()];
+    return (Math.atan2(b!.y - a!.y, b!.x - a!.x) * 180) / Math.PI;
   };
   return (
     // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
@@ -297,7 +302,7 @@ function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
       style={{
         width: imagen.ancho,
         height: imagen.alto,
-        transform: `translate3d(${s.x * marco.ancho - imagen.ancho / 2}px, ${s.y * marco.alto - imagen.alto / 2}px, 0) rotate(${INCLINACION_STICKER[s.id]}deg) scale(${escala * s.k})`,
+        transform: `translate3d(${s.x * marco.ancho - imagen.ancho / 2}px, ${s.y * marco.alto - imagen.alto / 2}px, 0) rotate(${s.r}deg) scale(${escala * s.k})`,
         willChange: "transform",
       }}
       onPointerDown={(e) => {
@@ -306,7 +311,7 @@ function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
         try {
           e.currentTarget.setPointerCapture(e.pointerId);
         } catch {}
-        pinza.current = dedos.current.size === 2 ? { k: actual.current.k, d: distancia() } : null;
+        pinza.current = dedos.current.size === 2 ? { k: actual.current.k, d: distancia(), r: actual.current.r, a: angulo() } : null;
       }}
       onPointerMove={(e) => {
         e.stopPropagation();
@@ -314,7 +319,7 @@ function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
         if (!antes) return;
         dedos.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (dedos.current.size >= 2 && pinza.current && pinza.current.d > 0) {
-          alCambiar(limitarSticker({ ...actual.current, k: pinza.current.k * (distancia() / pinza.current.d) }));
+          alCambiar(limitarSticker({ ...actual.current, k: pinza.current.k * (distancia() / pinza.current.d), r: pinza.current.r + angulo() - pinza.current.a }));
         } else if (dedos.current.size === 1) {
           alCambiar(moverSticker(actual.current, e.clientX - antes.x, e.clientY - antes.y, marco));
         }

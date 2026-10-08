@@ -14,12 +14,15 @@ export function ControlSegmentado<T extends string>({
   valor,
   alCambiar,
   etiqueta,
+  compacto = false,
 }: {
   opciones: { id: T; texto: ReactNode }[];
   valor: T;
   alCambiar: (id: T) => void;
   /** La pregunta, para lectores de pantalla. */
   etiqueta: string;
+  /** Letra y márgenes más chicos, para textos largos en pantallas angostas (360 px). */
+  compacto?: boolean;
 }) {
   const props = useRadiogrupo(
     opciones.map((o) => o.id),
@@ -41,8 +44,9 @@ export function ControlSegmentado<T extends string>({
             onClick={() => alCambiar(o.id)}
             {...p}
             className={clases(
-              "tocable relative h-10 min-w-0 flex-1 truncate rounded-full px-3 text-cuerpo before:absolute before:inset-x-0 before:-inset-y-1 before:content-['']",
+              "tocable relative h-10 min-w-0 flex-1 truncate rounded-full before:absolute before:inset-x-0 before:-inset-y-1 before:content-['']",
               FOCO,
+              compacto ? "px-1 text-secundario" : "px-3 text-cuerpo",
               elegida ? "bg-superficie font-extrabold text-texto ring-1 ring-linea" : "font-bold text-texto-secundario",
             )}
           >

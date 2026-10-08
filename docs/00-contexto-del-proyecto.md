@@ -106,6 +106,8 @@ La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño. **E
 
 **Publicar mi catálogo** (`docs/prompts/publicar-catalogo.md`, PR #74 mergeado el 8 oct 2026): la dueña publica su catálogo sola con 3 productos con foto; una tienda en prueba tiene catálogo público al publicarlo, sin indexar. Dejar de mostrarlo se pide por ahora a Deslizapp (la función `despublicar_mi_catalogo` existe en la base sin usarse en pantalla).
 
+**Stickers ilustrados en la historia** (rama `feat/stickers-ilustrados`, v0.51.0): 33 WebP con alfa en `public/stickers/{basicos,temporadas,marca}/` (origen: `referencias/stickers/png/`), catálogo y grupos en `lib/catalogo-stickers.ts` (cada grupo con `gratis`, listo para marcar uno de pago sin cobros construidos). El selector de la hoja «Tu historia» los muestra en pestañas Básicos / Temporadas / Marca (todas las temporadas, sin filtrar por fecha). Solo «Últimas N» sigue dibujado con datos del producto. En «Ajustar foto»: arrastrar, pellizcar para escalar y girar con dos dedos.
+
 **Pendientes sueltos:**
 - **Mi marca «mágica»** (cuestionario de historias + tarjeta de marca con IA, nombre de marketing por decidir): idea anotada en `docs/15-mi-marca-magica.md`, después de #57 y con lienzo de diseño primero.
 - Pasar Promos al sistema de diseño (`components/ui`).
