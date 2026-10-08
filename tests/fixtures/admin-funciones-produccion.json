@@ -277,7 +277,7 @@
   {
     "nombre": "admin_retoque_entregar",
     "argumentos": "p_trabajo_id uuid, p_url_retocada text",
-    "md5": "bfca3a3c1fba2afe17551966d7593096",
+    "md5": "f9aa98fb16982e149ad5d715aaa20469",
     "definer": true,
     "configuracion": [
       "search_path=\"\""

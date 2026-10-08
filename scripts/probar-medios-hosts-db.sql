@@ -26,7 +26,7 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
  ('c1000000-0000-4000-8000-00000000000d','c2000000-0000-4000-8000-000000000001','dueno','ayudante');
 insert into public.movimientos_creditos(tienda_id,cantidad,tipo,motivo) values ('c2000000-0000-4000-8000-000000000001',10,'ajuste','fixture');
 insert into public.productos(id,tienda_id,nombre,precio,stock,opciones,medios) values
- ('c3000000-0000-4000-8000-000000000001','c2000000-0000-4000-8000-000000000001','Con fotos',1000,3,'[{"nombre":"Color","valores":["Negro"]}]',
+ ('c3000000-0000-4000-8000-000000000001','c2000000-0000-4000-8000-000000000001','Con fotos',1000,3,'[{"nombre":"Color","valores":["Negro","Blanco"]}]',
   '[{"tipo":"foto","url":"https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/c2000000-0000-4000-8000-000000000001/a.webp","retocada":false},{"tipo":"foto","url":"https://deslizapp-app.vercel.app/catalogos/esencias-michel/fotos/she.webp","retocada":false},{"tipo":"video","url":"https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/c2000000-0000-4000-8000-000000000001/v.mp4","portada":"https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/c2000000-0000-4000-8000-000000000001/p.webp","duracion_s":5}]');
 
 -- ═══ 0. Estructura ═══
@@ -99,6 +99,9 @@ select pg_temp.comprobar((select jsonb_array_length((public.guardar_producto_inv
 select pg_temp.rechaza($q$select public.guardar_foto_valor('c2000000-0000-4000-8000-000000000001','c3000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/a.webp')$q$,'22023','foto_valor_invalida');
 select pg_temp.comprobar(public.guardar_foto_valor('c2000000-0000-4000-8000-000000000001','c3000000-0000-4000-8000-000000000001','Color','Negro',
   'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/c2000000-0000-4000-8000-000000000001/a.webp') ? 'Color','foto del color propia');
+-- Blanco apunta a otra foto (la que no se retoca): no debe cambiar al entregar el retoque de la de Negro.
+select public.guardar_foto_valor('c2000000-0000-4000-8000-000000000001','c3000000-0000-4000-8000-000000000001','Color','Blanco',
+  'https://deslizapp-app.vercel.app/catalogos/esencias-michel/fotos/she.webp');
 -- Retoque: pedirlo
 select set_config('medios_test.trabajo',(public.pedir_retoque('c3000000-0000-4000-8000-000000000001',
   'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/c2000000-0000-4000-8000-000000000001/a.webp')->>'id'),true);
@@ -114,6 +117,11 @@ select public.admin_retoque_entregar(current_setting('medios_test.trabajo')::uui
   'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/c2000000-0000-4000-8000-000000000001/r.webp');
 reset role;
 select pg_temp.comprobar((select medios->1->>'url' from public.productos where id='c3000000-0000-4000-8000-000000000001') like '%/retoques/c2000000-0000-4000-8000-000000000001/r.webp','la retocada entra en medios');
--- (La foto del color NO sigue a la retocada en este camino: fallo previo anotado en HANDOFF, fuera de este PR.)
+-- Migración *_retoque_conserva_foto_color: el color asignado sigue a la retocada; el otro color no cambia.
+select pg_temp.comprobar((select fotos_por_valor->'Color'->>'Negro' from public.productos where id='c3000000-0000-4000-8000-000000000001')
+  = 'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/c2000000-0000-4000-8000-000000000001/r.webp','la foto de Negro pasa a la retocada');
+select pg_temp.comprobar((select fotos_por_valor->'Color'->>'Blanco' from public.productos where id='c3000000-0000-4000-8000-000000000001')
+  = 'https://deslizapp-app.vercel.app/catalogos/esencias-michel/fotos/she.webp','la foto de Blanco no cambia');
+select pg_temp.comprobar((select estado from public.trabajos_retoque where id=current_setting('medios_test.trabajo')::uuid)='entregado','el trabajo queda entregado');
 select 'Pasó: medios solo de direcciones propias (regla, restricción, guardado, color, retoque, logo).';
 rollback;
