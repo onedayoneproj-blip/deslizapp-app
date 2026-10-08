@@ -319,3 +319,16 @@ test("valores propios: máximo 12, 20 letras, sin repetir; el orden sigue al de 
 test("cuántas salen: Color × Tamaño", () => {
   assert.equal(P.cuantasSalen([{ nombre: "Color", valores: ["Dorado", "Plateado"] }, { nombre: "Tamaño", valores: ["Pequeño", "Mediano", "Grande"] }]), 6);
 });
+
+test("tarjetas de la lista: con 2 elegidas se apagan las que no lo están; las elegidas no", () => {
+  assert.equal(P.tarjetaApagada(false, 0), false);
+  assert.equal(P.tarjetaApagada(false, 1), false);
+  assert.equal(P.tarjetaApagada(false, 2), true);
+  assert.equal(P.tarjetaApagada(true, 2), false);
+});
+
+test("resumen de una tarjeta colapsada: los valores elegidos, o «Elige cuáles tienes»", () => {
+  assert.equal(P.resumenDeValores(["Dorado", "Plateado"]), "Dorado, Plateado");
+  assert.equal(P.resumenDeValores(["Única"]), "Única");
+  assert.equal(P.resumenDeValores([]), "Elige cuáles tienes");
+});

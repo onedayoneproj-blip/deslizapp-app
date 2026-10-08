@@ -29,10 +29,11 @@ import {
   puedeElegirOtra,
   quitar,
   resumenDe,
+  resumenDeValores,
+  tarjetaApagada,
   TEXTO_CON_PEDIDOS,
   textoCombinacion,
   textoPresentaciones,
-  TIPO_EN_FRASE,
   valoresSugeridos,
   valoresVisibles,
   VISIBLES,
@@ -42,9 +43,10 @@ import { colorPorNombre } from "@/lib/colores";
 import { OPCIONES_TIPICAS, type Rubro } from "@/lib/rubros";
 import type { MotivoAjusteInventario, OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
+import { IconoChevronAbajo, IconoChevronArriba, IconoMas } from "../iconos";
 import { Hoja } from "../hoja";
 import { clases, FOCO } from "../ui/comunes";
-import { Alerta, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, CosaElegible, EditorEtiquetas, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
+import { Alerta, Boton, Campo, CampoMonto, CampoMultilinea, Cantidad, EditorEtiquetas, FilaAgregar, FilaLista, FilaPastillas, FilaVariante, GrupoOpciones, ListaAgrupada, Opcion, Tarjeta } from "../ui";
 
 /** Lo que la ficha del producto edita de las presentaciones: los ejes, cada presentación y la foto de cada valor (por id de foto). */
 export type EstadoPresentaciones = {
@@ -304,9 +306,7 @@ export function SeccionPresentaciones({
 }
 
 type EjeBorrador = { nombre: string; valores: string[]; propia: boolean };
-type EstadoHoja = { ejes: EjeBorrador[]; otraAbierta: boolean; otra: string; errorOtra: string | null };
-
-const ETIQUETA_COSA = "inline-flex h-8 items-center rounded-radio-s bg-accion px-3 text-destacado text-sobre-accion";
+type EstadoHoja = { ejes: EjeBorrador[]; otraAbierta: boolean; otra: string; errorOtra: string | null; cerradas: string[] };
 
 /** «Otro color» / «Otro tamaño»: el botón punteado que abre el campo para un valor propio. */
 function OtroValor({ nombre, valores, alCambiar }: { nombre: string; valores: string[]; alCambiar: (v: string[]) => void }) {
@@ -363,7 +363,7 @@ function OtroValor({ nombre, valores, alCambiar }: { nombre: string; valores: st
   );
 }
 
-/** «Elegir» (¿Qué cambia de una a otra?): las cosas que cambian como rectángulos, y de cada una elegida, cuáles tienes. */
+/** «Elegir» (¿Qué cambia de una a otra?): una lista de tarjetas; cada cosa elegida se expande ahí mismo con sus valores. */
 function HojaElegir({
   abierta,
   cambiar,
@@ -393,6 +393,7 @@ function HojaElegir({
     otraAbierta: false,
     otra: "",
     errorOtra: null,
+    cerradas: [],
   });
   const [estado, setEstado] = useState(inicial);
   const [abiertaAntes, setAbiertaAntes] = useState(abierta);
@@ -401,19 +402,20 @@ function HojaElegir({
     setAbiertaAntes(abierta);
     if (abierta) setEstado(inicial());
   }
-  const { ejes, otraAbierta, otra, errorOtra } = estado;
+  const { ejes, otraAbierta, otra, errorOtra, cerradas } = estado;
   const llenos = !puedeElegirOtra(ejes.length);
   const finales: OpcionProducto[] = ejes.map((e) => ({ nombre: e.nombre, valores: e.propia ? e.valores : ordenarValores(valoresSugeridos(e.nombre, rubro), e.valores) }));
   const completos = ejes.length > 0 && finales.every((e) => e.nombre && e.valores.length > 0);
   const error = completos ? errorDeEjes(finales) : null;
   const n = completos ? cuantasSalen(finales) : 0;
-  const alternar = (nombre: string) =>
+  const elegir = (nombre: string) =>
     setEstado((s) => {
-      if (s.ejes.some((e) => e.nombre === nombre)) return { ...s, ejes: s.ejes.filter((e) => e.nombre !== nombre) };
-      if (!puedeElegirOtra(s.ejes.length)) return s;
-      return { ...s, ejes: [...s.ejes, { nombre, valores: [], propia: false }], otraAbierta: false };
+      if (s.ejes.some((e) => e.nombre === nombre) || !puedeElegirOtra(s.ejes.length)) return s;
+      return { ...s, ejes: [...s.ejes, { nombre, valores: [], propia: false }], otraAbierta: false, cerradas: s.cerradas.filter((c) => c !== nombre) };
     });
-  const quitarEje = (nombre: string) => setEstado((s) => ({ ...s, ejes: s.ejes.filter((e) => e.nombre !== nombre) }));
+  // Quitar se lleva la cosa y todos sus valores, sin confirmar; volver a elegirla la deja vacía y abierta.
+  const quitarEje = (nombre: string) => setEstado((s) => ({ ...s, ejes: s.ejes.filter((e) => e.nombre !== nombre), cerradas: s.cerradas.filter((c) => c !== nombre) }));
+  const alternarAbierta = (nombre: string) => setEstado((s) => ({ ...s, cerradas: s.cerradas.includes(nombre) ? s.cerradas.filter((c) => c !== nombre) : [...s.cerradas, nombre] }));
   const ponerValores = (nombre: string, valores: string[]) => setEstado((s) => ({ ...s, ejes: s.ejes.map((e) => (e.nombre === nombre ? { ...e, valores } : e)) }));
   const listoOtra = () => {
     const e = errorDeNombrePropio(otra, ejes.map((x) => x.nombre), tipicas);
@@ -424,112 +426,130 @@ function HojaElegir({
     if (cambiar && cuantasSeVan(antes, f) > 0) setConfirmar(f);
     else alConfirmar(f);
   };
-  const rectangulo = (nombre: string) => {
-    const puesta = ejes.some((e) => e.nombre === nombre);
+
+  /** Sin elegir: toda la tarjeta es el botón; elegida: nombre + chevron colapsa, «Quitar» arriba a la derecha. */
+  const tarjeta = (nombre: string, propia: boolean) => {
+    const eje = ejes.find((e) => e.nombre === nombre);
+    if (!eje) {
+      const apagada = tarjetaApagada(false, ejes.length);
+      return (
+        <button
+          key={nombre}
+          type="button"
+          aria-pressed={false}
+          disabled={apagada}
+          onClick={() => elegir(nombre)}
+          className={clases("tocable flex min-h-14 w-full items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie px-4 py-2 text-left disabled:opacity-40", FOCO)}
+        >
+          <span className="min-w-0 truncate text-destacado font-extrabold text-texto">{nombre}</span>
+          <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-superficie-hundida text-texto-secundario">
+            <IconoMas tamano={20} />
+          </span>
+        </button>
+      );
+    }
+    const colapsada = cerradas.includes(nombre);
+    const sugeridos = propia ? [] : valoresSugeridos(nombre, rubro);
+    const atajos = atajosDe(nombre, rubro).filter((a) => a.texto !== "30 · 50 · 100 ml");
     return (
-      <CosaElegible key={nombre} elegida={puesta} deshabilitada={!puesta && llenos} onClick={() => alternar(nombre)}>
-        {nombre}
-      </CosaElegible>
+      <Tarjeta key={nombre} className="flex flex-col gap-3">
+        <div data-eje={nombre} role="group" aria-label={nombre} className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <button
+              type="button"
+              aria-expanded={!colapsada}
+              aria-label={`${colapsada ? "Expandir" : "Contraer"} ${nombre}`}
+              onClick={() => alternarAbierta(nombre)}
+              className={clases("tocable flex min-h-11 min-w-0 flex-col items-start justify-center text-left", FOCO)}
+            >
+              <span className="flex max-w-full items-center gap-1.5 text-destacado font-extrabold text-texto">
+                <span className="truncate">{nombre}</span>
+                {colapsada ? <IconoChevronAbajo tamano={18} className="shrink-0 text-texto-secundario" /> : <IconoChevronArriba tamano={18} className="shrink-0 text-texto-secundario" />}
+              </span>
+              {colapsada && <span className="max-w-full truncate text-secundario text-texto-secundario">{resumenDeValores(eje.valores)}</span>}
+            </button>
+            <Boton jerarquia="terciario" tamano="compacto" aria-label={`Quitar ${nombre}`} onClick={() => quitarEje(nombre)}>
+              Quitar
+            </Boton>
+          </div>
+          {!colapsada &&
+            (propia ? (
+              <EditorEtiquetas etiqueta={plural(nombre)} rotuloVisible={false} valores={eje.valores} alCambiar={(v) => ponerValores(nombre, v)} maximo={MAX_VALORES} largoMaximo={LARGO_VALOR} />
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {valoresVisibles(sugeridos, eje.valores).map((v) => {
+                    const puesto = eje.valores.includes(v);
+                    return (
+                      <Opcion key={v} casilla elegida={puesto} deshabilitada={!puesto && eje.valores.length >= MAX_VALORES} onClick={() => ponerValores(nombre, alternarValor(eje.valores, v))}>
+                        {v}
+                      </Opcion>
+                    );
+                  })}
+                  <OtroValor nombre={nombre} valores={eje.valores} alCambiar={(v) => ponerValores(nombre, v)} />
+                </div>
+                {atajos.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-1 text-secundario text-texto-secundario">
+                    Rápido:
+                    {atajos.map((a) => (
+                      <Boton key={a.texto} jerarquia="terciario" tamano="compacto" onClick={() => ponerValores(nombre, a.valores)}>
+                        {a.texto}
+                      </Boton>
+                    ))}
+                  </div>
+                )}
+              </>
+            ))}
+        </div>
+      </Tarjeta>
     );
   };
+  const propias = ejes.filter((e) => e.propia);
   const mostrarOtra = otraAbierta && !llenos;
 
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo={cambiar ? "Qué varía" : "Presentaciones"} altura="grande" avisarAlSalir={ejes.some((e) => e.valores.length > 0) && !cambiar}>
       <div className="flex flex-col gap-5">
         <p id="elegir-titulo" className="font-display text-titulo-hoja text-texto">¿Qué cambia de una a otra?</p>
-        <div className="flex flex-col gap-4" role="group" aria-labelledby="elegir-titulo">
-          {tipicas.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-secundario font-extrabold text-texto-secundario">Lo típico en {TIPO_EN_FRASE[rubro]}</p>
-              <div className="grid grid-cols-2 gap-2">{tipicas.map(rectangulo)}</div>
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            {tipicas.length > 0 && <p className="text-secundario font-extrabold text-texto-secundario">Otras</p>}
-            <div className="grid grid-cols-2 gap-2">
-              {otras.map(rectangulo)}
-              {llenos ? (
-                <p role="status" className="col-span-full flex h-13 items-center justify-center rounded-radio-m border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario">
-                  Ya elegiste {MAX_EJES}: es el máximo.
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setEstado((s) => ({ ...s, otraAbierta: !s.otraAbierta }))}
-                  className={clases("tocable col-span-full flex h-13 items-center justify-center rounded-radio-m border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario", FOCO)}
-                >
-                  + Otra cosa
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-        {mostrarOtra && (
-          <Tarjeta className="flex flex-col gap-3 p-4">
-            <Campo
-              etiqueta="¿Qué otra cosa cambia?"
-              placeholder="Ej: Aroma"
-              ayuda="Ej: Material, Aroma, Estampado. Después eliges cuáles tienes."
-              maxLength={LARGO_VALOR}
-              value={otra}
-              error={errorOtra}
-              enterKeyHint="done"
-              onChange={(e) => setEstado((s) => ({ ...s, otra: e.target.value, errorOtra: null }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  listoOtra();
-                }
-              }}
-            />
-            <Boton tamano="compacto" onClick={listoOtra} deshabilitado={!otra.trim()}>
-              Listo
-            </Boton>
-          </Tarjeta>
-        )}
-        {ejes.length > 0 && <p className="font-display text-titulo-hoja text-texto">¿Cuáles tienes?</p>}
-        {ejes.map((e) => {
-          const sugeridos = e.propia ? [] : valoresSugeridos(e.nombre, rubro);
-          const atajos = atajosDe(e.nombre, rubro).filter((a) => a.texto !== "30 · 50 · 100 ml");
-          return (
-            <Tarjeta key={e.nombre} className="flex flex-col gap-3 p-4">
-              <div data-eje={e.nombre} role="group" aria-label={e.nombre} className="flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className={ETIQUETA_COSA}>{e.nombre}</span>
-                  <Boton jerarquia="terciario" tamano="compacto" aria-label={`Quitar ${e.nombre}`} onClick={() => quitarEje(e.nombre)}>
-                    Quitar
-                  </Boton>
-                </div>
-                {e.propia ? (
-                  <EditorEtiquetas etiqueta={plural(e.nombre)} rotuloVisible={false} valores={e.valores} alCambiar={(v) => ponerValores(e.nombre, v)} maximo={MAX_VALORES} largoMaximo={LARGO_VALOR} />
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {valoresVisibles(sugeridos, e.valores).map((v) => {
-                      const puesto = e.valores.includes(v);
-                      return (
-                        <Opcion key={v} casilla elegida={puesto} deshabilitada={!puesto && e.valores.length >= MAX_VALORES} onClick={() => ponerValores(e.nombre, alternarValor(e.valores, v))}>
-                          {v}
-                        </Opcion>
-                      );
-                    })}
-                    <OtroValor nombre={e.nombre} valores={e.valores} alCambiar={(v) => ponerValores(e.nombre, v)} />
-                  </div>
-                )}
-                {atajos.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-x-1 text-secundario text-texto-secundario">
-                    Rápido:
-                    {atajos.map((a) => (
-                      <Boton key={a.texto} jerarquia="terciario" tamano="compacto" onClick={() => ponerValores(e.nombre, a.valores)}>
-                        {a.texto}
-                      </Boton>
-                    ))}
-                  </div>
-                )}
-              </div>
+        <div className="flex flex-col gap-2" role="group" aria-labelledby="elegir-titulo">
+          {[...tipicas, ...otras].map((nombre) => tarjeta(nombre, false))}
+          {propias.map((e) => tarjeta(e.nombre, true))}
+          {mostrarOtra ? (
+            <Tarjeta className="flex flex-col gap-3">
+              <Campo
+                etiqueta="¿Qué otra cosa cambia?"
+                placeholder="Ej: Aroma"
+                ayuda="Ej: Material, Aroma, Estampado."
+                maxLength={LARGO_VALOR}
+                value={otra}
+                error={errorOtra}
+                enterKeyHint="done"
+                onChange={(e) => setEstado((s) => ({ ...s, otra: e.target.value, errorOtra: null }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    listoOtra();
+                  }
+                }}
+              />
+              <Boton tamano="compacto" onClick={listoOtra} deshabilitado={!otra.trim()}>
+                Listo
+              </Boton>
             </Tarjeta>
-          );
-        })}
+          ) : llenos ? (
+            <p role="status" className="flex h-13 items-center justify-center rounded-radio-l border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario">
+              Ya elegiste {MAX_EJES}: es el máximo.
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEstado((s) => ({ ...s, otraAbierta: true }))}
+              className={clases("tocable flex h-13 items-center justify-center rounded-radio-l border-[1.5px] border-dashed border-borde-pastilla text-destacado text-texto-secundario", FOCO)}
+            >
+              + Otra cosa
+            </button>
+          )}
+        </div>
         {error && <p role="alert" className="text-secundario font-bold text-peligro">{error}</p>}
         <Boton tamano="grande" anchoCompleto deshabilitado={!completos || !!error} onClick={() => confirmarYa(finales)}>
           {cambiar ? "Guardar" : `Crear ${n === 1 ? "la 1" : `las ${n}`}`}

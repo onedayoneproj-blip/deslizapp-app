@@ -169,6 +169,12 @@ export function alternarValor(valores: string[], valor: string): string[] {
 /** ¿Se puede elegir otra cosa que cambie? Hasta `MAX_EJES` por producto, las del catálogo y las propias juntas. */
 export const puedeElegirOtra = (cuantas: number) => cuantas < MAX_EJES;
 
+/** Una tarjeta sin elegir se apaga (no se toca) cuando ya hay `MAX_EJES` elegidas; las elegidas nunca se apagan. */
+export const tarjetaApagada = (elegida: boolean, cuantasElegidas: number) => !elegida && !puedeElegirOtra(cuantasElegidas);
+
+/** Lo que dice una tarjeta colapsada debajo del nombre: los valores elegidos, o «Elige cuáles tienes». */
+export const resumenDeValores = (valores: readonly string[]) => (valores.length > 0 ? valores.join(", ") : "Elige cuáles tienes");
+
 /** El error de un nombre propio («+ Otra cosa»): vacío, largo, repetido o igual a una del catálogo. null si sirve. */
 export function errorDeNombrePropio(nombre: string, elegidas: readonly string[], tipicas: readonly string[] = []): string | null {
   const n = nombre.trim();

@@ -277,7 +277,7 @@ try {
     await page.waitForTimeout(600);
     // «Cambiar qué varía» → Otra…: el nombre y los valores nuevos
     await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
-    await page.getByRole("checkbox", { name: "Talla" }).waitFor();
+    await page.getByRole("button", { name: "Quitar Talla", exact: true }).waitFor();
     await page.waitForTimeout(500);
     // Quita lo que ya tiene para dejar lugar a la cosa propia
     for (const nombre of ["Talla", "Color"]) {
@@ -288,8 +288,12 @@ try {
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Aroma"]');
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Aroma"]', "Cambiar qué varía · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
     await page.getByRole("button", { name: "Listo", exact: true }).click();
+    // Lista que se expande: colapsar y volver a expandir la cosa propia no deja la hoja sin su campo
+    await page.getByRole("button", { name: "Contraer Tela", exact: true }).click();
+    await page.getByRole("button", { name: "Expandir Tela", exact: true }).click();
+    await page.getByRole("button", { name: "Contraer Tela", exact: true }).waitFor();
     // Valor propio de una cosa del catálogo
-    await page.getByRole("checkbox", { name: "Color" }).click();
+    await page.getByRole("button", { name: "Color", exact: true }).click();
     await page.getByRole("button", { name: /^\+ Otro color/ }).click();
     await page.waitForSelector('[role="dialog"] input[aria-label="Otro color"]');
     await probarCampo(page, '[role="dialog"] input[aria-label="Otro color"]', "Cambiar qué varía · Otro color", "Turquesa", { dentroDeHoja: true });
