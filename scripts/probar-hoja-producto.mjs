@@ -1,5 +1,5 @@
 // Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo: foto grande, Nombre y Precio, tarjeta de
-// «Presentaciones» y stock, «Más opciones» plegadas, barra fija «Cómo se ve» + «Publicar», editar, Ayudante. Nunca toca Supabase.
+// «Presentaciones» y stock, «Más opciones» plegadas, botones «Vista previa» + «Publicar» al final, editar, Ayudante. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=docs/capturas/hoja-producto-rediseno] node scripts/probar-hoja-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -67,7 +67,7 @@ for (const ancho of ANCHOS) {
     ok(Math.abs(caja.width - caja.height) < 2 && caja.width > ancho - 60, "…cuadrado a todo el ancho (nunca círculo)");
     const publicar = page.getByRole("button", { name: "Publicar", exact: true });
     ok(await publicar.isDisabled(), "«Publicar» está apagado al empezar");
-    ok(await page.getByRole("button", { name: "Cómo se ve", exact: true }).isEnabled(), "«Cómo se ve» sí está prendido");
+    ok(await page.getByRole("button", { name: "Vista previa", exact: true }).isEnabled(), "«Vista previa» sí está prendido");
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Aros dorados");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1850");
     ok(await publicar.isDisabled(), "Con nombre y precio, sin foto, sigue apagado");
@@ -130,23 +130,25 @@ for (const ancho of ANCHOS) {
     // Por encargo
     await page.getByRole("switch", { name: "Por encargo" }).click();
     await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
-    // Cómo se ve
-    // La barra fija: «Cómo se ve» y «Publicar» flotan solos, del mismo ancho, con sombra y sin recuadro detrás.
+    // Vista previa
+    // Los botones van al final de la página (como en pedido nuevo): uno sobre otro, del mismo ancho y alto, sin flotar.
+    await bajar(page);
+    await page.waitForTimeout(300);
     const barra = page.locator("[data-barra-producto]");
-    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Cómo se ve", exact: true }).boundingBox(), page.getByRole("button", { name: "Publicar", exact: true }).boundingBox()]);
-    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.y - b2.y) < 1, "«Cómo se ve» y «Publicar» miden lo mismo (mitad y mitad)");
-    const marco = await barra.evaluate((e) => { const c = getComputedStyle(e); return { fondo: c.backgroundColor, borde: c.borderTopWidth, sombra: c.boxShadow }; });
-    ok(marco.borde === "0px" && (marco.fondo === "rgba(0, 0, 0, 0)" || marco.fondo === "transparent") && marco.sombra === "none", "…sin tarjeta ni recuadro detrás");
-    ok((await page.getByRole("button", { name: "Publicar", exact: true }).evaluate((e) => getComputedStyle(e).boxShadow)) !== "none", "…y cada botón con su sombra");
-    await captura(page, "barra-flotante", ancho);
-    // Cómo se ve: el reel real del catálogo del comprador, con el borrador
-    await page.getByRole("button", { name: "Cómo se ve", exact: true }).click();
+    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Vista previa", exact: true }).boundingBox(), page.getByRole("button", { name: "Publicar", exact: true }).boundingBox()]);
+    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.height - b2.height) < 1.5 && b1.y < b2.y && Math.abs(b1.x - b2.x) < 1, "«Vista previa» arriba y «Publicar» debajo, del mismo ancho y alto");
+    ok(await barra.evaluate((e) => { for (let n = e; n && !n.hasAttribute("data-hoja-contenido"); n = n.parentElement) { const p = getComputedStyle(n).position; if (p === "fixed" || p === "sticky") return false; } return true; }), "…los botones no flotan: van dentro de la página");
+    ok((await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight)) < 2 && b2.y + b2.height <= 844, "…al desplazar hasta el final se ven completos");
+    ok((await page.getByRole("button", { name: "Vista previa", exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor)) !== "rgba(0, 0, 0, 0)", "…«Vista previa» es opaco");
+    await captura(page, "botones-al-final", ancho);
+    // Vista previa: el reel real del catálogo del comprador, con el borrador
+    await page.getByRole("button", { name: "Vista previa", exact: true }).click();
     const visor = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
     await visor.locator("article.reel").waitFor({ timeout: 15000 });
     await page.waitForTimeout(1000);
     const reel = visor.locator("article.reel");
     const vista = (await reel.innerText()).replace(/\s+/g, " ");
-    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Solo tengo 1") && vista.includes("Aros dorados con baño de oro"), "«Cómo se ve» es el reel del catálogo: nombre, precio, «Solo tengo 1» (con 1 en stock, como en el catálogo) y descripción");
+    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Solo tengo 1") && vista.includes("Aros dorados con baño de oro"), "«Vista previa» es el reel del catálogo: nombre, precio, «Solo tengo 1» (con 1 en stock, como en el catálogo) y descripción");
     ok((await visor.locator("header.hdr").count()) === 1 && (await reel.locator(".act.like").count()) === 1 && (await reel.locator("button.elipsis").count()) === 1, "…con su cabecera, los botones de comprar y el «…» de la descripción");
     await captura(page, "como-se-ve", ancho);
     await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();

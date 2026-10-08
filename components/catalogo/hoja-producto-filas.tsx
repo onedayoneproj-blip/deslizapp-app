@@ -35,7 +35,7 @@ export function FilaPlegable({ id, titulo, detalle, abierta, alAlternar, childre
 }
 
 /**
- * «Cómo se ve»: el reel real del catálogo del comprador (`components/tienda/reel.tsx`, con su CSS, el tema de la tienda y su
+ * «Vista previa»: el reel real del catálogo del comprador (`components/tienda/reel.tsx`, con su CSS, el tema de la tienda y su
  * cabecera) montado a pantalla completa con el borrador. Va en un iframe del mismo sitio (`/vista-previa-catalogo`): el catálogo se
  * desplaza como una página entera y así no se pisa con los estilos ni el scroll del panel. Sin pedir ni escribir nada.
  */
@@ -56,7 +56,7 @@ export function HojaComoSeVe({ abierta, alCerrar, datos, visible }: { abierta: b
     return () => window.removeEventListener("message", alMensaje);
   }, [abierta]);
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Cómo se ve" tituloOculto altura="grande">
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Vista previa" tituloOculto altura="grande">
       <div className="absolute inset-0 overflow-hidden rounded-t-[30px] bg-black" data-como-se-ve="">
         <iframe ref={marco} src="/vista-previa-catalogo" title="Así lo verá tu cliente" className="size-full border-0" />
         {!visible && (

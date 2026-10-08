@@ -1,5 +1,5 @@
 // Presentaciones por pasos (docs/prompts/presentaciones-por-pasos.md), en la demo: «Qué cambia» → «Cuántas tienes», los 17 escenarios del
-// informe de QA (docs/qa/presentaciones-escenarios.md) uno por uno, el reparto del stock, «Cómo se ve» con el reel real y el perfume de
+// informe de QA (docs/qa/presentaciones-escenarios.md) uno por uno, el reparto del stock, «Vista previa» con el reel real y el perfume de
 // Michel con «Tamaño». A 390 y 360, tema claro. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [SOLO=1,1b,4] [CAPTURAS=docs/capturas/presentaciones-por-pasos] node scripts/probar-presentaciones.mjs
 import { createRequire } from "node:module";
@@ -457,7 +457,7 @@ for (const ancho of ANCHOS) {
   }
 
   if (quiere("16")) {
-    console.log("• 16 · «Cómo se ve» es el reel real del catálogo del comprador");
+    console.log("• 16 · «Vista previa» es el reel real del catálogo del comprador");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Aros de luna", "950");
     await abrirFlujo(page);
@@ -466,7 +466,7 @@ for (const ancho of ANCHOS) {
     await siguiente(page);
     await sumar(page, "Agregar uno de Plateado", 2);
     await listo(page);
-    await page.getByRole("button", { name: "Cómo se ve", exact: true }).click();
+    await page.getByRole("button", { name: "Vista previa", exact: true }).click();
     const marco = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
     await marco.locator("article.reel").waitFor({ timeout: 15000 });
     await page.waitForTimeout(1200);

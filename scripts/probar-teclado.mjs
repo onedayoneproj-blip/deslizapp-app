@@ -197,11 +197,14 @@ try {
     await page.tap('[role="switch"][aria-label="Por encargo"]');
     await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
     await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Nuevo producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
-    // La barra fija («Cómo se ve» + «Publicar») no tapa el campo enfocado: con el teclado abierto se oculta.
+    // Los botones («Vista previa» + «Publicar») van al final de la página: con el teclado abierto no flotan sobre el campo y, al
+    // desplazar hasta el final, quedan por encima del teclado.
     await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.evaluate(() => window.__teclado(true));
     await page.waitForTimeout(400);
-    ok(await page.evaluate(() => getComputedStyle(document.querySelector("[data-barra-producto]").parentElement).visibility === "hidden"), "La barra fija se oculta con el teclado abierto (no tapa el campo enfocado)");
+    await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
+    await page.waitForTimeout(300);
+    ok(await page.evaluate(() => { const r = document.querySelector("[data-barra-producto]").getBoundingClientRect(); return r.bottom <= window.visualViewport.height + 1; }), "Con el teclado abierto, al final de la hoja los botones quedan sobre el teclado");
     await page.evaluate(() => window.__teclado(false));
     await page.waitForTimeout(300);
     await page.evaluate(() => document.activeElement.blur());
