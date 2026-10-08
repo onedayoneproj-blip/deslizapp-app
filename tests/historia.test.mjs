@@ -100,3 +100,11 @@ test("dirección en líneas: dominio completo y ruta aparte, sin https", () => {
   assert.equal(H.direccionEnLineas("http://x.com"), null);
   assert.equal(H.direccionEnLineas(null), null);
 });
+
+test("«Desde» ignora las presentaciones agotadas mientras haya otras que se puedan pedir", () => {
+  const p = { ...perfume, variantes: [vari({ Tamaño: "30 ml" }, 0, 1800), vari({ Tamaño: "50 ml" }, 3, 2500), vari({ Tamaño: "100 ml" }, 3, 3200)] };
+  assert.deepEqual(H.precioHistoria(p, []), { desde: true, precio: 2500, antes: null });
+  // todas agotadas: el más bajo de todas
+  const todas = { ...perfume, variantes: perfume.variantes.map((v) => ({ ...v, stock: 0 })) };
+  assert.deepEqual(H.precioHistoria(todas, []), { desde: true, precio: 1800, antes: null });
+});

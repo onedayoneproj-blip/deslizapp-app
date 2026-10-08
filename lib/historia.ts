@@ -1,7 +1,7 @@
 // Compartir un producto en una historia (WhatsApp, Instagram): lo que dice la imagen según los interruptores, el texto del precio,
 // las presentaciones resumidas y el enlace directo al producto. Lógica pura, sin pantalla: se prueba en tests/historia.test.mjs.
 
-import { presentacionesDe, resumenDe, type Presentacion } from "./presentaciones";
+import { precioDe, presentacionesDe, resumenDe, type Presentacion } from "./presentaciones";
 import { enlaceCatalogo } from "./enlace-catalogo";
 import { colorPorNombre, esEjeColor } from "./colores";
 import { precioConPromo } from "./promos";
@@ -39,7 +39,11 @@ export function precioHistoria(producto: Producto, promos: Promo[], ahora: Date 
   const lista = presentacionesDe(producto);
   const resumen = (producto.tipo ?? "producto") === "producto" && producto.opciones.length > 0 ? resumenDe(lista, producto.precio) : null;
   if (resumen && resumen.total > 0 && resumen.conPrecioPropio && resumen.desde != null) {
-    const p = precioConPromo({ ...producto, precio: resumen.desde }, promos, ahora);
+    // «Desde» como el catálogo público: el más bajo de las que se pueden pedir (si todas están agotadas, de todas)
+    const activas = lista.filter((x) => x.activa);
+    const pedibles = activas.filter((x) => x.stock !== 0);
+    const desde = Math.min(...(pedibles.length ? pedibles : activas).map((x) => precioDe(x, producto.precio)));
+    const p = precioConPromo({ ...producto, precio: desde }, promos, ahora);
     return { desde: true, precio: p.precio, antes: p.precioAntes };
   }
   const p = precioConPromo(producto, promos, ahora);

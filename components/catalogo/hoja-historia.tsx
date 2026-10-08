@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ENCUADRE_INICIAL, difuminadoPorDefecto, type AjusteFoto, type Medida } from "@/lib/encuadre-historia";
-import { copiarTexto, guardarArchivo } from "@/lib/portapapeles";
+import { copiarTexto, descargarArchivo, guardarArchivo } from "@/lib/portapapeles";
 import {
   AVISO_INSTAGRAM, AVISO_SIN_PUBLICAR, OPCIONES_INICIALES, catalogoAbre, datosHistoria, direccionEnLineas, enlaceProductoHistoria, fotoDeHistoria,
   textoWhatsAppHistoria, tienePresentaciones, type OpcionesHistoria,
@@ -15,14 +15,16 @@ import { IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
 import { useToast } from "../toast";
 import { Aviso, Boton, Interruptor } from "../ui";
 
+type Clave = { entradaBase: unknown; ajuste: unknown };
 const sinAbortar = (e: unknown) => !(e instanceof DOMException && e.name === "AbortError");
 
 /** «Tu historia»: vista previa de la imagen (1080×1920, hecha en el teléfono), tres interruptores y «Compartir». Solo lectura: no escribe en la base. */
 export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto: Producto; promos: Promo[]; tienda: Tienda; alCerrar: () => void }) {
   const toast = useToast();
   const [opciones, setOpciones] = useState<OpcionesHistoria>(OPCIONES_INICIALES);
-  const [imagen, setImagen] = useState<{ blob: Blob; url: string } | null>(null);
-  const [fallo, setFallo] = useState(false);
+  /** Cada imagen guarda con qué opciones se hizo (`para`): si cambian, ya no vale y no se puede compartir hasta que salga la nueva. */
+  const [hecha, setHecha] = useState<{ blob: Blob; url: string; para: Clave } | null>(null);
+  const [falloPara, setFalloPara] = useState<Clave | null>(null);
   const [dondeAbierta, setDondeAbierta] = useState(false);
   const [ajustando, setAjustando] = useState(false);
   const [natural, setNatural] = useState<Medida | null>(null);
@@ -50,22 +52,22 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   }, [foto]);
 
   const entradaBase = useMemo<Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta"> | null>(
-    () => (foto ? { datos, foto, logoUrl: tienda.logoUrl, nombreTienda: tienda.nombre, direccion } : null),
-    [datos, foto, tienda.logoUrl, tienda.nombre, direccion],
+    () => (foto ? { datos, foto, logoUrl: tienda.fotoPerfilUrl ?? tienda.logoUrl, nombreTienda: tienda.nombre, direccion } : null),
+    [datos, foto, tienda.fotoPerfilUrl, tienda.logoUrl, tienda.nombre, direccion],
   );
 
   useEffect(() => {
     if (!entradaBase || !ajuste) return;
     let vigente = true;
     let url: string | null = null;
+    const clave: Clave = { entradaBase, ajuste };
     generarImagenHistoria({ ...entradaBase, ajuste }).then(
       (blob) => {
         if (!vigente) return;
         url = URL.createObjectURL(blob);
-        setFallo(false);
-        setImagen({ blob, url });
+        setHecha({ blob, url, para: clave });
       },
-      () => vigente && setFallo(true),
+      () => vigente && setFalloPara(clave),
     );
     return () => {
       vigente = false;
@@ -73,6 +75,9 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
     };
   }, [entradaBase, ajuste]);
 
+  const esActual = (c: Clave | null | undefined) => !!c && c.entradaBase === entradaBase && c.ajuste === ajuste;
+  const imagen = esActual(hecha?.para) ? hecha : null;
+  const fallo = esActual(falloPara);
   const cambiar = (k: keyof OpcionesHistoria) => (v: boolean) => setOpciones((o) => ({ ...o, [k]: v }));
   const nombreArchivo = `historia-${producto.slug}.jpg`;
 
@@ -148,7 +153,11 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
               detalle="Copiamos el enlace: pégalo con el sticker «Enlace»"
               alTocar={() => { setDondeAbierta(false); enviar(undefined, true); }}
             />
-            <Boton jerarquia="terciario" anchoCompleto onClick={() => { setDondeAbierta(false); if (imagen) { guardarArchivo(imagen.blob, nombreArchivo); toast("Imagen guardada."); } }}>
+            <Boton jerarquia="terciario" anchoCompleto onClick={() => {
+              setDondeAbierta(false);
+              // En la app instalada en iPhone la descarga directa no siempre anda: descargarArchivo usa la hoja de compartir
+              if (imagen) void descargarArchivo(imagen.blob, nombreArchivo).then((ok) => ok && toast("Imagen guardada."));
+            }}>
               Guardar la imagen
             </Boton>
           </div>

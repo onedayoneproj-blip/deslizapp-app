@@ -157,7 +157,7 @@ for (const c of casos) {
   const srcAntes = await previa(page).getAttribute("src");
   await page.getByRole("button", { name: "Listo" }).last().click();
   await marco(page).waitFor({ state: "detached" });
-  await page.waitForFunction((s) => document.querySelector('img[alt^="Vista previa"]')?.getAttribute("src") !== s, srcAntes, { timeout: 15000 });
+  await page.waitForFunction((s) => (document.querySelector('img[alt^="Vista previa"]')?.getAttribute("src") ?? s) !== s, srcAntes, { timeout: 15000 });
   ok(true, "«Listo» regenera la vista previa");
   const dims = await page.evaluate(async () => {
     const img = document.querySelector('img[alt^="Vista previa"]');
