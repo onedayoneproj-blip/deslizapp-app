@@ -188,7 +188,7 @@ function Resumen({ productos, ventas, ahora, alAbrir, alAbrirGrupo }: { producto
               </div>
               <div aria-hidden="true" className="mt-3 flex -space-x-2">
                 {paraReponer.slice(0, 4).map((l) => (
-                  <MiniaturaProducto key={l.producto.id} producto={l.producto} className="size-10 border-2 border-superficie" />
+                  <MiniaturaProducto key={l.producto.id} producto={l.producto} className="size-10 border border-borde-pastilla" />
                 ))}
               </div>
             </Tarjeta>

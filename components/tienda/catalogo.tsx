@@ -20,6 +20,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
+import { AbanicoColeccion } from "./abanico-coleccion";
 import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
@@ -998,7 +999,7 @@ export function Catalogo({
                 onClick={() => setFilter(col.id)}
               >
                 <span className="ring">
-                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                  <AbanicoColeccion productos={col.productos} />
                 </span>
                 {col.nombre}
               </button>
@@ -1181,7 +1182,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                      <AbanicoColeccion productos={col.productos} />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>

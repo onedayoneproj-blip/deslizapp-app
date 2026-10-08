@@ -181,7 +181,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
             {p.items.slice(0, 3).map((i) => {
               const foto = productos.get(i.productoId)?.fotos[0];
               return (
-                <span key={i.id} className="size-9 overflow-hidden rounded-radio-s border-2 border-superficie bg-superficie-hundida">
+                <span key={i.id} className="size-9 overflow-hidden rounded-radio-s border border-borde-pastilla bg-superficie-hundida">
                   {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="36px" /> : null}
                 </span>
               );

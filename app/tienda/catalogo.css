@@ -570,6 +570,49 @@ html.catalogo-html,
   font-weight: 700;
   text-shadow: none;
 }
+/* Abanico de colecciones: cartas (cuadrados redondeados) con contorno fino y relleno transparente, sin anillo blanco */
+:where(.catalogo-publico) .abz {
+  --abz-lado: 62px;
+  --abz-grosor: 1.5px;
+  --abz-sombra: 0.35;
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+:where(.catalogo-publico) .abz-c {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--abz-lado);
+  height: var(--abz-lado);
+  margin-left: calc(var(--abz-lado) / -2);
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: calc(var(--abz-lado) * 0.27);
+  border: var(--abz-grosor) solid var(--abz-borde);
+  background: transparent;
+  box-shadow: 0 6px 12px -6px rgba(20, 8, 14, var(--abz-sombra));
+  transform-origin: 50% 100%;
+}
+:where(.catalogo-publico) .abz-c img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+:where(.catalogo-publico) .abz-c.vacia {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+:where(.catalogo-publico) .abz-i {
+  transform: translateX(calc(var(--abz-lado) * -0.36)) rotate(-8deg);
+}
+:where(.catalogo-publico) .abz-d {
+  transform: translateX(calc(var(--abz-lado) * 0.36)) rotate(8deg);
+}
+:where(.catalogo-publico) .abz-f {
+  z-index: 1;
+}
 /* Colecciones: pantalla con desenfoque y lista vertical */
 :where(.catalogo-publico) .coov {
   position: fixed;
@@ -628,24 +671,15 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .coitem .cc {
   position: relative;
-  width: 78px;
-  height: 78px;
-  border-radius: 24px;
-  padding: 3px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  transition:
-    transform 0.2s,
-    border-color 0.2s;
+  width: 130px;
+  height: 96px;
+  --abz-lado: 68px;
+  --abz-borde: rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s;
 }
 :where(.catalogo-publico) .coitem:hover .cc,
 :where(.catalogo-publico) .coitem:focus-visible .cc {
   transform: scale(1.06);
-}
-:where(.catalogo-publico) .coitem img {
-  width: 100%;
-  height: 100%;
-  border-radius: 19px;
-  object-fit: cover;
 }
 :where(.catalogo-publico) .coitem b {
   display: block;
@@ -677,7 +711,8 @@ html.catalogo-html,
   opacity: 0;
 }
 :where(.catalogo-publico) .coitem[aria-pressed="true"] .cc {
-  border-color: #fff;
+  --abz-borde: var(--bg);
+  --abz-grosor: 2px;
 }
 :where(.catalogo-publico) .coitem[aria-pressed="true"] .ck {
   opacity: 1;
@@ -687,11 +722,18 @@ html.catalogo-html,
     gap: 12px;
   }
   :where(.catalogo-publico) .coitem .cc {
-    width: 62px;
-    height: 62px;
+    width: 104px;
+    height: 78px;
+    --abz-lado: 54px;
   }
   :where(.catalogo-publico) .coitem b {
     font-size: 15.5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.catalogo-publico) .coitem:hover .cc,
+  :where(.catalogo-publico) .coitem:focus-visible .cc {
+    transform: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -1491,7 +1533,7 @@ html.catalogo-html,
   height: 52px;
   border-radius: 14px;
   object-fit: cover;
-  border: 3px solid #fff;
+  border: 1.5px solid var(--ink2);
   box-shadow: 0 4px 10px -4px rgba(42, 26, 34, 0.4);
 }
 :where(.catalogo-publico) .finimgs img + img {
@@ -1881,20 +1923,16 @@ html.catalogo-html,
   width: 70px;
 }
 :where(.catalogo-publico) .hl .ring {
-  width: 66px;
-  height: 66px;
-  border-radius: 22px;
-  padding: 2px;
-  border: 1.5px solid var(--line);
-}
-:where(.catalogo-publico) .hl img {
-  width: 100%;
-  height: 100%;
-  border-radius: 18px;
-  object-fit: cover;
+  position: relative;
+  width: 70px;
+  height: 60px;
+  --abz-lado: 44px;
+  --abz-sombra: 0.22;
+  --abz-borde: var(--ink2);
 }
 :where(.catalogo-publico) .hl[aria-pressed="true"] .ring {
-  border: 2px solid var(--accent);
+  --abz-borde: var(--accent);
+  --abz-grosor: 2px;
 }
 :where(.catalogo-publico) .hl[aria-pressed="true"] {
   color: var(--ink);
@@ -3260,7 +3298,7 @@ html.catalogo-html,
   height: 80px;
   border-radius: 8px;
   overflow: hidden;
-  border: 2px solid #fff;
+  border: 1.5px solid var(--ink2);
   left: 50%;
   top: 50%;
   margin: -40px 0 0 -32px;
