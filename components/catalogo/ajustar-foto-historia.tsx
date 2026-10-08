@@ -8,7 +8,6 @@ import {
 } from "@/lib/encuadre-historia";
 import { generarImagenHistoria, imagenesStickers, type EntradaImagenHistoria } from "@/lib/imagen-historia";
 import { INCLINACION_STICKER, NOMBRE_STICKER, limitarSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
-import { IconoMas, IconoMenos } from "../iconos";
 import { Boton, Interruptor } from "../ui";
 
 type Entrada = Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta">;
@@ -150,6 +149,22 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, stickersInicial
     setDifuminado(v);
     poner(ENCUADRE_INICIAL);
   };
+  const teclado = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget) return;
+    const paso = 0.03;
+    const flechas: Record<string, [number, number]> = { ArrowLeft: [-paso, 0], ArrowRight: [paso, 0], ArrowUp: [0, -paso], ArrowDown: [0, paso] };
+    const f = flechas[e.key];
+    if (f) {
+      e.preventDefault();
+      poner(mover(actual.current, f[0] * marco.ancho, f[1] * marco.alto, marco, natural, difuminado));
+    } else if (e.key === "+" || e.key === "=") {
+      e.preventDefault();
+      zoom(actual.current.k + K_PASO);
+    } else if (e.key === "-") {
+      e.preventDefault();
+      zoom(actual.current.k - K_PASO);
+    }
+  };
   const zoom = (k: number) => poner(acercarA(actual.current, k, marco, natural, difuminado));
   const limpio = limitar(enc, marco, natural, difuminado);
 
@@ -169,6 +184,10 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, stickersInicial
         <div
           ref={marcoRef}
           data-marco-historia
+          tabIndex={0}
+          role="group"
+          aria-label="Foto de la historia. Con el teclado: flechas para mover, más y menos para acercar o alejar."
+          onKeyDown={teclado}
           data-k={limpio.k.toFixed(2)}
           data-x={limpio.x.toFixed(3)}
           data-y={limpio.y.toFixed(3)}
@@ -232,26 +251,8 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, stickersInicial
       </div>
 
       <div className="shrink-0 rounded-t-radio-l bg-superficie px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-texto">
-        <p className="text-center text-secundario text-texto-secundario">Arrastra para mover. Pellizca o usa el control para acercar. Mueve también los stickers.</p>
-        <div className="mt-2 flex items-center gap-2">
-          <button type="button" aria-label="Alejar" disabled={limpio.k <= K_MIN} onClick={() => zoom(limpio.k - K_PASO)} className="tocable grid size-11 shrink-0 place-items-center rounded-full bg-superficie-hundida disabled:opacity-40">
-            <IconoMenos tamano={20} />
-          </button>
-          <input
-            type="range"
-            aria-label="Acercar la foto"
-            min={K_MIN}
-            max={K_MAX}
-            step={0.01}
-            value={limpio.k}
-            onChange={(e) => zoom(Number(e.target.value))}
-            className="h-11 min-w-0 flex-1 accent-accion"
-          />
-          <button type="button" aria-label="Acercar" disabled={limpio.k >= K_MAX} onClick={() => zoom(limpio.k + K_PASO)} className="tocable grid size-11 shrink-0 place-items-center rounded-full bg-superficie-hundida disabled:opacity-40">
-            <IconoMas tamano={20} />
-          </button>
-        </div>
-        <div className="mt-1 flex min-h-14 items-center justify-between gap-3 border-t border-linea">
+        <p className="text-center text-secundario text-texto-secundario">Pellizca para acercar o alejar y arrastra para mover.</p>
+        <div className="mt-2 flex min-h-14 items-center justify-between gap-3 border-t border-linea">
           <span className="text-destacado">Fondo difuminado</span>
           <Interruptor encendido={difuminado} alCambiar={cambiarFondo} etiqueta="Fondo difuminado" />
         </div>

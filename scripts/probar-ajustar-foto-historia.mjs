@@ -66,8 +66,8 @@ async function abrirHoja(forma, ancho, alto, { sinFiltro = false } = {}) {
   const jpeg = Buffer.from((await fotoDePrueba(page, ancho, alto)).split(",")[1], "base64");
   await page.route(/\/(seed\/productos|catalogos\/esencias-michel\/fotos)\/[^?]*\.(svg|jpg|webp|png)/, (r) => r.fulfill({ status: 200, contentType: "image/jpeg", body: jpeg }));
   await page.goto(`${URL}/catalogo`);
-  await page.waitForSelector('[aria-label^="Compartir"]');
-  await page.locator('[aria-label^="Compartir"]').first().click();
+  await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
+  await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
   await page.getByRole("button", { name: "Ajustar foto" }).waitFor();
   await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
   return { ctx, page, errores };
@@ -131,15 +131,22 @@ for (const c of casos) {
   await arrastrar(page, -40, 60);
   const movido = await estado(page);
   ok(movido.x !== tras.x || movido.y !== tras.y, `arrastrar mueve (${tras.x},${tras.y}) → (${movido.x},${movido.y})`);
-  await page.getByRole("button", { name: "Alejar" }).click();
-  ok((await estado(page)).k < movido.k, "el botón − aleja");
-  await page.getByRole("button", { name: "Acercar", exact: true }).click();
-  await page.getByRole("button", { name: "Acercar", exact: true }).click();
-  ok((await estado(page)).k > movido.k, "el botón + acerca");
-  await page.getByLabel("Acercar la foto").fill("3.2");
-  ok(Math.abs((await estado(page)).k - 3.2) < 0.01, "el deslizador acerca");
+  ok((await page.getByRole("slider").count()) === 0 && (await page.getByRole("button", { name: /^(Acercar|Alejar)$/ }).count()) === 0, "ya no hay barra de zoom ni botones − / +");
+  ok(await page.getByText("Pellizca para acercar o alejar y arrastra para mover.").isVisible(), "el texto de ayuda dice cómo acercar y mover");
+  // Alternativa de teclado (sin barra visible): + y − acercan y alejan, las flechas mueven
+  await marco(page).focus();
+  const k0 = (await estado(page)).k;
+  await page.keyboard.press("+");
+  ok((await estado(page)).k > k0, "con el teclado, + acerca");
+  for (let i = 0; i < 20; i++) await page.keyboard.press("-");
+  ok((await estado(page)).k === 1, "con el teclado, − aleja hasta el tamaño base");
+  await page.keyboard.press("+");
+  await page.keyboard.press("+");
+  const antesFlecha = await estado(page);
+  await page.keyboard.press("ArrowLeft");
+  ok((await estado(page)).x < antesFlecha.x, "con el teclado, las flechas mueven");
   // Alejar del todo no deja huecos en relleno: k=1 y la foto cubre el marco
-  await page.getByLabel("Acercar la foto").fill("1");
+  for (let i = 0; i < 12; i++) await page.keyboard.press("-");
   if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `${c.forma}-2-k1.png`) });
 
   // Cambiar el fondo

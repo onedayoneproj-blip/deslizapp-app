@@ -12,7 +12,6 @@ export const ALTO_HISTORIA = 1920;
 
 const BOSQUE = "#174b3a";
 const SUAVE = "#4f6a5e";
-const ROSA = "#f5c9d6";
 const MANDARINA = "#ff834f";
 /** El corazón de los «aaah» de la app (el mismo trazo de components/tienda/iconos.tsx, caja de 24). */
 const CORAZON_AAAH = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
@@ -215,10 +214,10 @@ function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: n
   c.fill();
   ctx.drawImage(aparte, x, y);
 
-  // Miniatura de deslizapp: el corazón de los «aaah» sobre el rosa de la marca, en círculo
+  // Miniatura de deslizapp: el corazón mandarina de los «aaah» sobre un círculo verde bosque de la marca
   const mx = x + cx;
   const my = y + cx;
-  ctx.fillStyle = ROSA;
+  ctx.fillStyle = BOSQUE;
   ctx.beginPath();
   ctx.arc(mx, my, m / 2, 0, Math.PI * 2);
   ctx.fill();

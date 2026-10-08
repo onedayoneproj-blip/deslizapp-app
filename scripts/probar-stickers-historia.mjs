@@ -32,8 +32,8 @@ await page.addInitScript((tienda) => {
   localStorage.setItem("deslizapp-sesion-v1", tienda);
 }, MICHEL);
 await page.goto(`${URL}/catalogo`);
-await page.waitForSelector('[aria-label^="Compartir"]');
-await page.locator('[aria-label^="Compartir"]').first().click();
+await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
+await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
 await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
 
 const boton = (id) => page.locator(`[data-sticker-boton="${id}"]`);

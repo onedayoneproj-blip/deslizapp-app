@@ -220,14 +220,19 @@ function TarjetaProducto({ producto: p, promos, alHistoria, prioridad = false, a
     .join(",") + ". Ver producto";
 
   return (
-    <div className="relative min-w-0">
+    <div className="@container relative min-w-0">
     <button
       type="button"
       onClick={alHistoria}
-      aria-label={`Compartir ${p.nombre} en historia`}
-      className="tocable absolute top-1 right-1 z-10 grid size-11 place-items-center rounded-full text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+      aria-label={`Agregar ${p.nombre} a historia`}
+      className="tocable absolute top-0.5 right-0.5 z-10 flex min-h-11 items-center justify-end text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
     >
-      <span aria-hidden="true" className="grid size-9 place-items-center rounded-full bg-black/45 backdrop-blur-sm"><IconoHistoria tamano={20} /></span>
+      {/* Píldora de vidrio con el ícono y el texto; en tarjetas angostas (2 columnas) el texto se acorta a «A historia» */}
+      <span aria-hidden="true" className="flex h-8 items-center gap-1.5 rounded-full bg-black/45 pl-2.5 pr-3 text-[12px] font-bold leading-none backdrop-blur-sm">
+        <IconoHistoria tamano={16} className="shrink-0" />
+        <span className="@[200px]:hidden">A historia</span>
+        <span className="hidden @[200px]:inline">Agregar a historia</span>
+      </span>
     </button>
     <Link
       href={`/catalogo/${p.id}`}

@@ -12,7 +12,7 @@ import { INCLINACION_STICKER, NOMBRE_STICKER, alternarSticker, stickersIniciales
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { AjustarFotoHistoria } from "./ajustar-foto-historia";
-import { IconoCheck, IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
+import { IconoCheck, IconoEditar, IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
 import { useToast } from "../toast";
 import { Aviso, Boton, Interruptor } from "../ui";
 
@@ -115,7 +115,14 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
     <>
       <Hoja abierta alCerrar={alCerrar} titulo="Tu historia" altura="auto">
         <div className="flex flex-col gap-4">
-          <div className="mx-auto aspect-[9/16] w-[180px] overflow-hidden rounded-radio-m bg-superficie-hundida shadow-sm">
+          {/* Tocar la vista previa abre «Ajustar foto»; la píldora «Ajustar» de la esquina lo deja ver */}
+          <button
+            type="button"
+            aria-label="Vista previa: toca para ajustar la foto"
+            disabled={!natural || !ajuste}
+            onClick={() => setAjustando(true)}
+            className="tocable relative mx-auto block aspect-[9/16] w-[180px] overflow-hidden rounded-radio-m bg-superficie-hundida shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+          >
             {imagen ? (
               // eslint-disable-next-line @next/next/no-img-element -- vista previa de un blob local
               <img src={imagen.url} alt={`Vista previa de la historia de ${producto.nombre}`} className="h-full w-full object-cover" />
@@ -124,7 +131,11 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
             ) : (
               <p role="status" className="grid h-full place-items-center px-3 text-center text-secundario text-texto-secundario">Preparando…</p>
             )}
-          </div>
+            <span aria-hidden="true" data-pildora-ajustar className="absolute bottom-2 right-2 flex h-8 items-center gap-1.5 rounded-full bg-black/55 pl-2.5 pr-3 text-[12px] font-bold leading-none text-white backdrop-blur-sm">
+              <IconoEditar tamano={14} />
+              Ajustar
+            </span>
+          </button>
 
           <Boton jerarquia="secundario" anchoCompleto deshabilitado={!natural || !ajuste} onClick={() => setAjustando(true)}>Ajustar foto</Boton>
 
