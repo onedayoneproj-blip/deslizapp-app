@@ -39,6 +39,7 @@ import {
   FilaVariante,
   VideoProducto,
   Interruptor,
+  MenuFlotante,
   ProveedorToast,
   TiraMedios,
   Tarjeta,
@@ -709,6 +710,8 @@ function Producto() {
         <EditorEtiquetas etiqueta="Ideal para (con valores fijos: casillas)" valores={ocasiones} alCambiar={setOcasiones} permitidos={["Día", "Oficina", "Noche", "Citas", "Regalo"]} />
       </div>
       <div className="flex max-w-90 flex-col gap-2">
+        <Rotulo>menú flotante: el nombre con chevron abre una tarjeta; al final, una acción con «+»</Rotulo>
+        <MenuDemo />
         <Rotulo>interruptor: encender o apagar algo; con su texto en la fila</Rotulo>
         <ListaAgrupada>
           <FilaLista titulo="Visible en el catálogo" accion={<Interruptor encendido={visible} alCambiar={setVisible} etiqueta="Visible en el catálogo" />} />
@@ -798,5 +801,16 @@ function Iconos() {
         ))}
       </Fila>
     </Seccion>
+  );
+}
+
+function MenuDemo() {
+  const [v, setV] = useState("perfumes");
+  return (
+    <MenuFlotante
+      etiqueta="Catálogo" tamano="pantalla" valor={v} alElegir={setV}
+      opciones={[{ id: "perfumes", texto: "Perfumes", cantidad: 8 }, { id: "accesorios", texto: "Accesorios", cantidad: 0 }]}
+      accion={{ texto: "Lo que vendes", alTocar: () => undefined }}
+    />
   );
 }

@@ -261,6 +261,10 @@ Las curvas y duraciones con nombre de `docs/08-movimiento.md` se mantienen. Las 
 
 Las vistas de los componentes en este sistema son representaciones estáticas de cómo deben verse; la fuente de verdad del código serán los componentes de `components/ui/`.
 
+### Menú flotante (`MenuFlotante`, `components/ui/menu-flotante.tsx`)
+
+El nombre de lo elegido con un chevron (sin fondo ni borde, toque de 44 px o más, `aria-haspopup="menu"`, `aria-expanded`) que abre una tarjeta justo debajo: `radio` 16, `superficie`, `borde`, `shadow-flotante`, 240–260 px de ancho sin salirse de la pantalla. Cada opción es un `menuitemradio` (cantidad a la derecha, check en la activa); una línea separadora y, al final, una acción con «+» (`menuitem`). Se pinta en un portal a `document.body` con posición calculada (`lib/menu-flotante.ts`), así una hoja que recorta o arrastra no lo afecta; el portal no deja pasar los eventos de puntero a la hoja. Cierra al elegir, al tocar fuera (fondo que atenúa), con Escape y al cambiar de tamaño; flechas/Inicio/Fin mueven el foco; al abrir, el foco va al elemento activo dentro del gesto del toque y al cerrar vuelve al disparador. Movimiento: solo `transform` y `opacity` (`.menu-flotante`), sin transformación con `prefers-reduced-motion`. Lo usa `SelectorCatalogo` (título de Catálogo y cabecera de la hoja de producto).
+
 ### Cosa elegible (`CosaElegible`, `components/ui/cosa-elegible.tsx`)
 
 Rectángulo (`radio-m`, alto 52) para elegir «qué cambia de una a otra» (Color, Tamaño) en la hoja de presentaciones. Va en cuadrícula de dos columnas. Sin elegir: `superficie-hundida` con «+» a la derecha. Elegida: `accion` con letra `sobre-accion` y check. Apagada (ya hay dos): 40 %, sin toque. Cambia al instante, sin animar. No es una `Opcion`: los *valores* de cada cosa (Dorado, Grande) siguen siendo píldoras `Opcion`; así lo que cambia y sus valores no se confunden. En pantalla se dice «cosas que cambian» y «lo que tienes», nunca «dimensión», «eje» ni «opción».

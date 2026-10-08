@@ -132,8 +132,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
           <EstadoVacio
             ilustracion="clientes"
             titulo="Aún no tienes clientes."
-            remate="Cuando alguien pida por tu catálogo, aparece aquí. O agrégalo tú."
-            accion={{ texto: "Agregar cliente", href: "/clientes/nuevo" }}
+            remate="Cuando alguien pida por tu catálogo, aparece aquí. O toca + Cliente y agrega el primero."
           />
         )}
         {filtro !== "deben" && listo && total > 0 && filtrados.length === 0 && (
@@ -152,8 +151,7 @@ export function VistaClientes({ children }: { children: ReactNode }) {
         )}
       </div>
 
-      {/* Sin clientes, el botón del estado vacío ya invita a agregar: no se duplica */}
-      {!(clientes && total === 0) && <BotonFlotante href="/clientes/nuevo" texto="Cliente" />}
+      <BotonFlotante href="/clientes/nuevo" texto="Cliente" />
       {hoja && listo && <HojaResumenClientes resumen={resumen} clientes={clientes!} pedidos={pedidos!} tiendaId={tiendaId}
         tienda={tienda?.nombre ?? "la tienda"} vendedora={dueno?.nombre ?? ""} urlCatalogo={tienda?.urlCatalogo ?? null}
         ahora={ahora} alCerrar={() => setHoja(false)} alFiltrar={(f) => { setFiltro(f); window.scrollTo({ top: 0 }); }} />}

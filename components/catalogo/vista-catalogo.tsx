@@ -98,7 +98,7 @@ export function VistaCatalogo() {
       <TituloPantalla
         titulo={tienda && catalogo ? (
           <SelectorCatalogo
-            tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes…"
+            tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes"
             alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido(r)); }}
             alVenderOtra={() => setVendiendoOtra(true)}
           />
@@ -158,16 +158,14 @@ export function VistaCatalogo() {
             <EstadoVacio
               ilustracion="catalogo"
               titulo="Tu vitrina está vacía."
-              remate="Sube tu primera pieza y deja que tu gente diga aaah."
-              accion={{ texto: "Publicar mi primer producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
+              remate="Toca + Producto y sube tu primera pieza para que tu gente diga aaah."
             />
           ) : catalogo && delCatalogo?.length === 0 ? (
             <EstadoVacio
               pequeno
               ilustracion="catalogo"
               titulo={`Todavía no hay nada en ${NOMBRE_TIPO[catalogo]}.`}
-              remate="Sube tu primera pieza y deja que tu gente diga aaah."
-              accion={{ texto: "Agregar producto", href: "/catalogo/nuevo", bloqueado: sinCatalogo ? { motivo: porque, alTocar: () => toast(porque) } : undefined }}
+              remate="Toca + Producto y sube tu primera pieza."
             />
           ) : (
             <EstadoVacio pequeno ilustracion="catalogo" titulo={filtro === "en_espera" && espera.resumen?.productos === 0 ? "Nadie esperando por ahora." : "No encontramos nada con eso."} remate={filtro === "en_espera" && espera.resumen?.productos === 0 ? undefined : "Ni un suspiro. Prueba con otra palabra u otro filtro."} />
@@ -191,8 +189,7 @@ export function VistaCatalogo() {
         </ul>
       </div>
 
-      {/* Sin productos, el botón del estado vacío ya invita a publicar: no se duplica */}
-      {!(productos && productos.length === 0) && !(catalogo && delCatalogo?.length === 0) && <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
+      <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
     </>
   );
