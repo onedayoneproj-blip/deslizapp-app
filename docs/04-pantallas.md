@@ -285,11 +285,10 @@ Ocho estados:
 6. **¡Recién publicado!**: confeti, texto en Caveat y "Compartir" (abre la hoja del catálogo en línea). Solo si se publicó hace menos de 3
    días y no se vio aún en este dispositivo (`localStorage`, clave `deslizapp-catalogo-visto-{tienda}`); se marca visto al tocar
    "Compartir" o a los 6 s en pantalla.
-7. **En línea**: punto verde, «Tu catálogo está en línea», el enlace, y debajo «Copiar enlace», «Compartir» (hoja nativa) y «Dejar de
-   mostrarlo» (solo la dueña; `despublicar_mi_catalogo`, con confirmación que explica que los clientes dejan de verlo y se puede volver a
-   publicar; conserva el enlace y el primer momento publicado). Tocar el título abre el catálogo. La celebración «¡Ya estás en línea!»
-   (estado 6) sale al publicar la primera vez. La hoja `hoja-catalogo-en-linea.tsx` (abrir, copiar, WhatsApp, cambiar enlace) se abre desde
-   la celebración.
+7. **En línea**: una sola fila — punto verde, «En línea» con el enlace y el botón compacto «Compartir» (hoja nativa). Tocar la tarjeta abre
+   el catálogo. La celebración «¡Ya estás en línea!» (estado 6) sale al publicar la primera vez. La hoja `hoja-catalogo-en-linea.tsx`
+   (abrir, copiar, WhatsApp, cambiar enlace) se abre desde la celebración. No hay «Dejar de mostrarlo» en pantalla por ahora: quien quiera
+   dejar de mostrar su catálogo le escribe a Deslizapp (`despublicar_mi_catalogo` sigue en la base, sin usar en la interfaz).
 8. **Pausado**: "Ver plan" abre lo mismo que el bloque del plan.
 
 Publicado sin `url_catalogo` https válido (comprobado con `new URL`) se muestra como **Sin catálogo** con "Conectar mi catálogo" (abre Mi

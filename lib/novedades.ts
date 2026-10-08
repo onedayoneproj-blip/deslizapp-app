@@ -25,7 +25,7 @@ const TODAS: Novedad[] = [
     version: "0.46.0", fecha: "2026-10-08", titulo: "Publica tu catálogo tú sola.",
     cambios: [
       "Con 3 productos con foto, tocas «Publicar mi catálogo» y tus clientes ya lo ven en su enlace.",
-      "Tienes «Copiar enlace», «Compartir» y «Dejar de mostrarlo» cuando quieras: lo vuelves a publicar sin perder nada.",
+      "Ya en línea, la tarjeta te deja compartir tu enlace con un toque.",
     ],
   },
   {

@@ -370,6 +370,8 @@ foto) vive en `v_minimo` dentro de la función y en `PRODUCTOS_MINIMOS_PARA_PUBL
 `catalogo_publico` trae `tienda.indexable` (solo las activas): `/tienda/[slug]` de una tienda en prueba sale con `robots: noindex, nofollow`
 (la etiqueta, no la cabecera `X-Robots-Tag`; las vistas previas Open Graph no cambian; `/pedido/…` ya era siempre noindex). Replay:
 `scripts/probar-publicar-catalogo-db.sql`; navegador (demo): `scripts/probar-publicar-catalogo.mjs`.
+La tarjeta «En línea» es la de siempre (una fila, «Compartir»); NO hay «Copiar enlace» ni «Dejar de mostrarlo» en pantalla: quien quiera
+dejar de mostrarlo le escribe a Deslizapp. `despublicar_mi_catalogo` y `despublicarMiCatalogo` quedan sin usar en la interfaz.
 
 ## Sistema de diseño (tokens, components/ui y /diseno)
 

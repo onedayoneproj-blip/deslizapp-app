@@ -1,4 +1,4 @@
-// Publicar mi catálogo en la demo (docs/prompts/publicar-catalogo.md): sin lo mínimo, con lo mínimo, publicar, copiar, dejar de mostrar,
+// Publicar mi catálogo en la demo (docs/prompts/publicar-catalogo.md): sin lo mínimo, con lo mínimo, publicar,
 // y el botón apagado para un colaborador. Uso: URL=http://localhost:3000 [CHROMIUM_PATH=…] node scripts/probar-publicar-catalogo.mjs [carpeta-de-capturas]
 import "../tests/cargar-ts.mjs";
 import { createRequire } from "node:module";
@@ -47,7 +47,7 @@ for (const ancho of [390, 360]) {
   ok(page.url().endsWith("/catalogo/nuevo"), "«Crear producto» lleva a crear un producto");
   await page.context().close();
 
-  // 2. Con lo mínimo: publicar, copiar, compartir, dejar de mostrar
+  // 2. Con lo mínimo: publicar, compartir
   page = await abrir(ancho, { productos: 3 });
   const publicar = tarjeta(page).getByRole("button", { name: "Publicar mi catálogo" });
   ok(await publicar.count() === 1, "con 3 productos: «Publicar mi catálogo»");
@@ -66,23 +66,10 @@ for (const ancho of [390, 360]) {
   ok(await tarjeta(page).getByText("¡Ya estás en línea!").count() === 1, "publicado: sale la celebración que ya existía");
   await page.screenshot({ path: `${OUT}/recien-${ancho}.png` });
   await page.waitForTimeout(6500);
-  ok(await tarjeta(page).getByText("Tu catálogo está en línea").count() === 1, "después: «Tu catálogo está en línea»");
+  ok(await tarjeta(page).getByText("En línea").count() === 1, "después: «En línea»");
   ok((await tarjeta(page).innerText()).includes("deslizapp-app.vercel.app/tienda/lino-y-algodon"), "muestra el enlace");
   await page.screenshot({ path: `${OUT}/en-linea-${ancho}.png` });
-  await tarjeta(page).getByRole("button", { name: "Copiar enlace" }).tap(); await page.waitForTimeout(600);
-  const copiado = await page.evaluate(() => navigator.clipboard.readText()).catch(() => null);
-  ok(copiado === "https://deslizapp-app.vercel.app/tienda/lino-y-algodon", `copia el enlace (${copiado})`);
   ok(await tarjeta(page).getByRole("button", { name: "Compartir" }).count() === 1, "hay «Compartir»");
-  await tarjeta(page).getByRole("button", { name: "Dejar de mostrarlo" }).tap(); await page.waitForTimeout(700);
-  ok((await page.getByRole("dialog").innerText()).includes("el enlace deja de funcionar"), "la confirmación explica qué pasa");
-  await page.screenshot({ path: `${OUT}/hoja-dejar-${ancho}.png` });
-  await page.getByRole("dialog").getByRole("button", { name: "Mejor no" }).tap(); await page.waitForTimeout(600);
-  ok(await tarjeta(page).getByText("Tu catálogo está en línea").count() === 1, "«Mejor no» lo deja en línea");
-  await tarjeta(page).getByRole("button", { name: "Dejar de mostrarlo" }).tap(); await page.waitForTimeout(600);
-  await page.getByRole("dialog").getByRole("button", { name: "Dejar de mostrarlo" }).tap(); await page.waitForTimeout(900);
-  ok(await tarjeta(page).getByRole("button", { name: "Publicar mi catálogo" }).count() === 1, "dejar de mostrarlo: vuelve a «Publicar mi catálogo»");
-  const guardado = await page.evaluate(({ k }) => { const t = JSON.parse(localStorage.getItem(k)).tiendas.find((x) => x.slug === "lino-y-algodon"); return { e: t.catalogoEstado, u: t.urlCatalogo, p: t.catalogoPublicadoEn }; }, { k: CLAVE });
-  ok(guardado.e === "sin" && guardado.u && guardado.p, "conserva el enlace y el primer momento publicado");
   await page.context().close();
 
   // 3. Un colaborador no publica

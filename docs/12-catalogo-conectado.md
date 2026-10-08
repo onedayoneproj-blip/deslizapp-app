@@ -118,5 +118,5 @@ Con más de un rubro con productos: en el perfil, el rótulo `.gridtabs` es una 
 
 Decisión de Lewis (7 oct): la tienda **publica su propio catálogo** y una tienda **en prueba** tiene catálogo público en cuanto lo publica
 (sin indexar para buscadores; Esencias Michel, activa, no cambia). Mínimo para publicar: 3 productos visibles con foto. Solo la dueña
-publica y deja de mostrarlo; despublicar conserva el enlace. El comprador ve, pide, da ♥, pide «Avísame» y abre su pedido igual en una
+publica; dejar de mostrarlo, por ahora, se pide a Deslizapp (la función `despublicar_mi_catalogo` existe en la base y conserva el enlace). El comprador ve, pide, da ♥, pide «Avísame» y abre su pedido igual en una
 tienda en prueba, porque todas las funciones públicas pasan por `tienda_publica`. Detalle en `HANDOFF.md` y `docs/04-pantallas.md`.

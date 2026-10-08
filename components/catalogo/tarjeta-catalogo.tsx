@@ -6,7 +6,7 @@ import { textoFaltan } from "@/lib/publicar-catalogo";
 import { ETIQUETAS_PASOS, NOMBRES_PASOS, PROGRESO_PASOS, pasoActual, type VistaCatalogo } from "@/lib/catalogo-estado";
 import { menosMovimiento } from "@/lib/movimiento";
 import type { Tienda } from "@/lib/types";
-import { IconoCompartir, IconoCopiar } from "../iconos";
+import { IconoCompartir } from "../iconos";
 import { Boton as BotonUI, Tarjeta } from "../ui";
 
 // La tarjeta del catálogo en línea (pestaña Catálogo): 8 estados dinámicos, del diseño aprobado en
@@ -18,11 +18,7 @@ export type AccionesTarjeta = {
   alPublicar: () => void;
   /** Llevar a crear un producto (cuando faltan productos con foto para publicar). */
   alCrearProducto: () => void;
-  /** Copia el enlace del catálogo. */
-  alCopiar: () => void;
-  /** «Dejar de mostrarlo» (abre la confirmación). */
-  alDejarDeMostrar: () => void;
-  /** Publicar y dejar de mostrar son solo de la dueña: sin ser ella, el botón se ve apagado y, al tocarlo, llama esto (explica por qué). */
+  /** Publicar es solo de la dueña: sin ser ella, el botón se ve apagado y, al tocarlo, llama esto (explica por qué). */
   soloDuena?: () => void;
   alPedir: () => void;
   alRevisar: () => void;
@@ -91,7 +87,7 @@ function Estado({ vista, tienda, acciones, faltan }: { vista: VistaCatalogo; tie
     case "recien":
       return <Recien alTocar={acciones.alCompartirReciente} />;
     case "publicado":
-      return <Publicado tienda={tienda} acciones={acciones} />;
+      return <Publicado tienda={tienda} alCompartir={acciones.alCompartir} />;
     case "pausado":
       return <Pausado alTocar={acciones.alVerPlan} />;
   }
@@ -356,13 +352,9 @@ function Recien({ alTocar }: { alTocar: () => void }) {
   );
 }
 
-/**
- * 7 · En línea: el estado del día a día. «Tu catálogo está en línea», el enlace, y debajo «Copiar enlace», «Compartir» y
- * «Dejar de mostrarlo» (solo la dueña). Tocar el título abre el catálogo.
- */
-function Publicado({ tienda, acciones }: { tienda: Tienda; acciones: AccionesTarjeta }) {
+/** 7 · En línea: el estado del día a día. Una fila: punto verde · "En línea" y el enlace · "Compartir". Tocar la tarjeta abre el catálogo. */
+function Publicado({ tienda, alCompartir }: { tienda: Tienda; alCompartir: () => void }) {
   const enlace = enlaceCatalogo(tienda.urlCatalogo);
-  const soloDuena = !!acciones.soloDuena;
   return (
     <Tarjeta className="relative">
       <div className={FILA}>
@@ -376,11 +368,11 @@ function Publicado({ tienda, acciones }: { tienda: Tienda; acciones: AccionesTar
                 rel="noopener noreferrer"
                 className="rounded-radio-s after:absolute after:inset-0 after:rounded-radio-l after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
               >
-                Tu catálogo está en línea
+                En línea
                 <span className="sr-only"> · abrir el catálogo</span>
               </a>
             ) : (
-              "Tu catálogo está en línea"
+              "En línea"
             )}
           </p>
           {enlace && (
@@ -390,23 +382,9 @@ function Publicado({ tienda, acciones }: { tienda: Tienda; acciones: AccionesTar
             </p>
           )}
         </div>
-      </div>
-      <div className="relative z-10 mt-3 flex flex-wrap items-center gap-2">
-        <BotonUI tamano="compacto" jerarquia="secundario" icono={<IconoCopiar tamano={18} />} onClick={acciones.alCopiar}>
-          Copiar enlace
-        </BotonUI>
-        <BotonUI tamano="compacto" icono={<IconoCompartir tamano={18} />} onClick={acciones.alCompartir}>
+        <BotonUI tamano="compacto" icono={<IconoCompartir tamano={18} />} onClick={alCompartir} className="relative z-10">
           Compartir
         </BotonUI>
-        <button
-          type="button"
-          onClick={soloDuena ? acciones.soloDuena : acciones.alDejarDeMostrar}
-          aria-disabled={soloDuena || undefined}
-          data-sin-permiso={soloDuena || undefined}
-          className={`${soloDuena ? "opacity-40 " : ""}tocable ml-auto flex h-9 items-center rounded-full px-2 text-[13.5px] font-extrabold text-bosque focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco`}
-        >
-          Dejar de mostrarlo
-        </button>
       </div>
     </Tarjeta>
   );
