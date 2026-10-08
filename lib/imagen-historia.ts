@@ -4,13 +4,18 @@
 import { formatearPesos, iniciales } from "./formato";
 import { ENCUADRE_INICIAL, rectFoto, rectFondo, type AjusteFoto } from "./encuadre-historia";
 import type { DatosHistoria, DireccionHistoria } from "./historia";
+import { dibujarSticker } from "./dibujo-stickers-historia";
+import { INCLINACION_STICKER, limitarSticker, type IdSticker, type StickerPuesto } from "./stickers-historia";
 
 export const ANCHO_HISTORIA = 1080;
 export const ALTO_HISTORIA = 1920;
 
 const BOSQUE = "#174b3a";
 const SUAVE = "#4f6a5e";
-const ICONO_DESLIZAPP = "/icons/icon-512.png";
+const ROSA = "#f5c9d6";
+const MANDARINA = "#ff834f";
+/** El corazón de los «aaah» de la app (el mismo trazo de components/tienda/iconos.tsx, caja de 24). */
+const CORAZON_AAAH = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
 const BORDE = "#e7dcc8";
 
 type Fuentes = { display: string; texto: string };
@@ -26,6 +31,8 @@ export type EntradaImagenHistoria = {
   direccion: DireccionHistoria | null;
   /** Cómo va la foto: con o sin fondo difuminado y su encuadre. Sin esto, relleno centrado. */
   ajuste?: AjusteFoto;
+  /** Stickers puestos (posición y tamaño en fracción de la imagen). Los dibuja igual que la hoja y «Ajustar foto». */
+  stickers?: StickerPuesto[];
   /** Solo la tarjeta, sobre un lienzo transparente: la guía de la vista «Ajustar foto». */
   soloTarjeta?: boolean;
 };
@@ -47,7 +54,7 @@ export async function medirFoto(src: string): Promise<{ ancho: number; alto: num
 }
 
 /** Las fuentes de la marca (Fredoka y Figtree, las de la app) listas para dibujar. Sin internet usa las de respaldo. */
-async function fuentesListas(): Promise<Fuentes> {
+export async function fuentesListas(): Promise<Fuentes> {
   const estilo = getComputedStyle(document.documentElement);
   const familia = (variable: string, respaldo: string) => estilo.getPropertyValue(variable).trim() || respaldo;
   const display = `${familia("--font-fredoka", "Fredoka")}, ui-rounded, system-ui, sans-serif`;
@@ -176,8 +183,8 @@ function lineaQueCabe(ctx: CanvasRenderingContext2D, texto: string, x: number, y
 
 type Pastilla = { texto: string; color: string | null; ancho: number };
 
-/** La foto de la tienda en círculo; la miniatura de deslizapp abajo a la derecha, separada por un recorte (se ve la tarjeta). */
-function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: number, logo: HTMLImageElement | null, nombre: string, f: Fuentes, icono: HTMLImageElement | null) {
+/** La foto de la tienda en círculo; la miniatura del aaah de deslizapp abajo a la derecha, separada por un recorte (se ve la tarjeta). */
+function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: number, logo: HTMLImageElement | null, nombre: string, f: Fuentes) {
   const aparte = document.createElement("canvas");
   aparte.width = aparte.height = d;
   const c = aparte.getContext("2d")!;
@@ -208,29 +215,39 @@ function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: n
   c.fill();
   ctx.drawImage(aparte, x, y);
 
-  // Miniatura de deslizapp: el ícono oficial de la marca (public/icons), recortado en círculo
+  // Miniatura de deslizapp: el corazón de los «aaah» sobre el rosa de la marca, en círculo
   const mx = x + cx;
   const my = y + cx;
-  ctx.save();
+  ctx.fillStyle = ROSA;
   ctx.beginPath();
   ctx.arc(mx, my, m / 2, 0, Math.PI * 2);
-  ctx.clip();
-  // El ícono trae margen: se agranda para que la «d» con su flecha llene el círculo y se reconozca aun chiquita
-  if (icono) ctx.drawImage(icono, mx - m * 0.65, my - m * 0.65, m * 1.3, m * 1.3);
-  else {
-    ctx.fillStyle = "#dcebe2";
-    ctx.fillRect(mx - m / 2, my - m / 2, m, m);
-  }
+  ctx.fill();
+  const e = (m * 0.62) / 24;
+  ctx.save();
+  ctx.translate(mx - 12 * e, my - 12.4 * e);
+  ctx.scale(e, e);
+  ctx.fillStyle = MANDARINA;
+  ctx.fill(new Path2D(CORAZON_AAAH));
   ctx.restore();
+}
+
+/** Los stickers como imágenes sueltas (PNG con sombra), para la hoja y «Ajustar foto»: el mismo dibujo que sale en la imagen final. */
+export async function imagenesStickers(items: { id: IdSticker; texto: string }[]): Promise<Record<string, { url: string; ancho: number; alto: number }>> {
+  const f = await fuentesListas();
+  const salida: Record<string, { url: string; ancho: number; alto: number }> = {};
+  for (const { id, texto } of items) {
+    const d = dibujarSticker(id, texto, f.display);
+    salida[`${id}|${texto}`] = { url: d.lienzo.toDataURL("image/png"), ancho: d.ancho, alto: d.alto };
+  }
+  return salida;
 }
 
 /** Dibuja la historia y devuelve el archivo (JPG de alta calidad). */
 export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Promise<Blob> {
-  const [f, foto, logo, icono] = await Promise.all([
+  const [f, foto, logo] = await Promise.all([
     fuentesListas(),
     cargarImagen(entrada.foto),
     entrada.logoUrl ? cargarImagen(entrada.logoUrl) : Promise.resolve(null),
-    cargarImagen(ICONO_DESLIZAPP),
   ]);
   if (!foto) throw new Error("No pudimos leer la foto del producto.");
 
@@ -419,7 +436,7 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
 
     let xt = x0;
     if (datos.fotoTienda) {
-      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f, icono);
+      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
       xt = x0 + circulo + 34;
     }
     ctx.fillStyle = BOSQUE;
@@ -440,6 +457,18 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     } else {
       ctx.font = `700 40px ${f.texto}`;
       ctx.fillText("Pídelo en mi catálogo", xt, centro + 14);
+    }
+    if (!entrada.soloTarjeta) {
+      for (const puesto of entrada.stickers ?? []) {
+        const st = limitarSticker(puesto);
+        const d = dibujarSticker(st.id, st.texto, f.display);
+        ctx.save();
+        ctx.translate(st.x * ANCHO_HISTORIA, st.y * ALTO_HISTORIA);
+        ctx.rotate((INCLINACION_STICKER[st.id] * Math.PI) / 180);
+        ctx.scale(st.k, st.k);
+        ctx.drawImage(d.lienzo, -d.ancho / 2, -d.alto / 2);
+        ctx.restore();
+      }
     }
     return lienzo;
   };

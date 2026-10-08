@@ -27,6 +27,7 @@ const TODAS: Novedad[] = [
       "En Catálogo, toca el ícono de historia arriba a la derecha de cada producto.",
       "Elige si va el precio, las presentaciones y la foto de tu tienda: la imagen sale lista, hecha en tu teléfono.",
       "Con «Ajustar foto» mueve y acerca la foto, o ponle fondo difuminado si no es vertical.",
+      "Ponle stickers: «¡Nuevo!», «Últimas unidades» y el aaah de deslizapp. Arrástralos para dejarlos donde quieras.",
       "Compártela en el Estado de WhatsApp o en una historia de Instagram, con el enlace directo a ese producto.",
     ],
   },

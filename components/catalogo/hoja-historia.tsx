@@ -7,11 +7,12 @@ import {
   AVISO_INSTAGRAM, AVISO_SIN_PUBLICAR, OPCIONES_INICIALES, catalogoAbre, datosHistoria, direccionEnLineas, enlaceProductoHistoria, fotoDeHistoria,
   textoWhatsAppHistoria, tienePresentaciones, type OpcionesHistoria,
 } from "@/lib/historia";
-import { generarImagenHistoria, medirFoto, type EntradaImagenHistoria } from "@/lib/imagen-historia";
+import { generarImagenHistoria, imagenesStickers, medirFoto, type EntradaImagenHistoria } from "@/lib/imagen-historia";
+import { INCLINACION_STICKER, NOMBRE_STICKER, alternarSticker, stickersIniciales, stickersOfrecidos, textoSticker, type IdSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { AjustarFotoHistoria } from "./ajustar-foto-historia";
-import { IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
+import { IconoCheck, IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
 import { useToast } from "../toast";
 import { Aviso, Boton, Interruptor } from "../ui";
 
@@ -30,6 +31,10 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   const [natural, setNatural] = useState<Medida | null>(null);
   /** Cómo va la foto. null mientras se lee su tamaño (de él sale el fondo difuminado por defecto). */
   const [ajuste, setAjuste] = useState<AjusteFoto | null>(null);
+  /** Los stickers puestos. Vienen marcados los que el producto sugiere (nuevo, últimas unidades). */
+  const [stickers, setStickers] = useState<StickerPuesto[]>(() => stickersIniciales(producto));
+  const [dibujosStickers, setDibujosStickers] = useState<Record<string, { url: string; ancho: number; alto: number }>>({});
+  const ofrecidos = useMemo(() => stickersOfrecidos(producto), [producto]);
 
   const foto = fotoDeHistoria(producto);
   const conPresentaciones = tienePresentaciones(producto);
@@ -51,9 +56,17 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
     };
   }, [foto]);
 
+  useEffect(() => {
+    let vigente = true;
+    void imagenesStickers(ofrecidos.map((id) => ({ id, texto: textoSticker(id, producto) }))).then((m) => vigente && setDibujosStickers(m));
+    return () => {
+      vigente = false;
+    };
+  }, [ofrecidos, producto]);
+
   const entradaBase = useMemo<Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta"> | null>(
-    () => (foto ? { datos, foto, logoUrl: tienda.fotoPerfilUrl ?? tienda.logoUrl, nombreTienda: tienda.nombre, direccion } : null),
-    [datos, foto, tienda.fotoPerfilUrl, tienda.logoUrl, tienda.nombre, direccion],
+    () => (foto ? { datos, foto, logoUrl: tienda.fotoPerfilUrl ?? tienda.logoUrl, nombreTienda: tienda.nombre, direccion, stickers } : null),
+    [datos, foto, tienda.fotoPerfilUrl, tienda.logoUrl, tienda.nombre, direccion, stickers],
   );
 
   useEffect(() => {
@@ -115,6 +128,21 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
 
           <Boton jerarquia="secundario" anchoCompleto deshabilitado={!natural || !ajuste} onClick={() => setAjustando(true)}>Ajustar foto</Boton>
 
+          <div className="rounded-radio-l bg-superficie px-4 py-3 ring-1 ring-linea">
+            <p className="text-destacado text-texto">Stickers</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {ofrecidos.map((id) => (
+                <BotonSticker
+                  key={id}
+                  id={id}
+                  dibujo={dibujosStickers[`${id}|${textoSticker(id, producto)}`]}
+                  puesto={stickers.some((s) => s.id === id)}
+                  alTocar={() => setStickers((l) => alternarSticker(l, id, producto))}
+                />
+              ))}
+            </div>
+          </div>
+
           <ul className="rounded-radio-l bg-superficie px-4 ring-1 ring-linea">
             <Fila texto="Precio" valor={opciones.precio} alCambiar={cambiar("precio")} />
             {conPresentaciones && <Fila texto="Presentaciones" valor={opciones.presentaciones} alCambiar={cambiar("presentaciones")} />}
@@ -133,7 +161,8 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
           entrada={entradaBase}
           natural={natural}
           inicial={ajuste}
-          alListo={(a) => { setAjuste(a); setAjustando(false); }}
+          stickersIniciales={stickers}
+          alListo={(a, puestos) => { setAjuste(a); setStickers(puestos); setAjustando(false); }}
           alCancelar={() => setAjustando(false)}
         />
       )}
@@ -184,6 +213,38 @@ function Destino({ icono, titulo, detalle, alTocar }: { icono: React.ReactNode; 
         <span className="block text-destacado text-texto">{titulo}</span>
         <span className="block text-secundario text-texto-secundario">{detalle}</span>
       </span>
+    </button>
+  );
+}
+
+/** Un sticker de la fila: se ve como sticker (borde blanco, sombra, inclinado) y marca con un check cuando está puesto. */
+function BotonSticker({ id, dibujo, puesto, alTocar }: { id: IdSticker; dibujo?: { url: string; ancho: number; alto: number }; puesto: boolean; alTocar: () => void }) {
+  const alto = 64;
+  return (
+    <button
+      type="button"
+      aria-pressed={puesto}
+      aria-label={NOMBRE_STICKER[id]}
+      data-sticker-boton={id}
+      onClick={alTocar}
+      className="tocable relative grid min-h-11 min-w-11 place-items-center p-1"
+    >
+      {dibujo ? (
+        // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
+        <img
+          src={dibujo.url}
+          alt=""
+          draggable={false}
+          style={{ height: alto, width: (dibujo.ancho / dibujo.alto) * alto, transform: `rotate(${INCLINACION_STICKER[id]}deg)`, opacity: puesto ? 1 : 0.55 }}
+        />
+      ) : (
+        <span className="block" style={{ height: alto, width: alto }} />
+      )}
+      {puesto && (
+        <span className="absolute right-0 top-0 grid size-5 place-items-center rounded-full bg-accion text-white ring-2 ring-superficie">
+          <IconoCheck tamano={12} strokeWidth={3.5} />
+        </span>
+      )}
     </button>
   );
 }

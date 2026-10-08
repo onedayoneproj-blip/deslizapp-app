@@ -6,7 +6,8 @@ import {
   ENCUADRE_INICIAL, K_MAX, K_MIN, K_PASO, acercarA, limitar, medidaFoto, mover, pellizcar, rectFondo,
   type AjusteFoto, type Encuadre, type Medida, type Punto,
 } from "@/lib/encuadre-historia";
-import { generarImagenHistoria, type EntradaImagenHistoria } from "@/lib/imagen-historia";
+import { generarImagenHistoria, imagenesStickers, type EntradaImagenHistoria } from "@/lib/imagen-historia";
+import { INCLINACION_STICKER, NOMBRE_STICKER, limitarSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import { IconoMas, IconoMenos } from "../iconos";
 import { Boton, Interruptor } from "../ui";
 
@@ -19,17 +20,20 @@ type Entrada = Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta">;
  * que dibuja la imagen final. Gestos como el visor de la ficha (lib/tienda/zoom.ts): pointer events, `touch-action: none` solo
  * en el marco (no hay hojas encima) y solo `transform` en lo que se mueve.
  */
-export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCancelar }: {
+export function AjustarFotoHistoria({ entrada, natural, inicial, stickersIniciales = [], alListo, alCancelar }: {
   entrada: Entrada;
   natural: Medida;
   inicial: AjusteFoto;
-  alListo: (a: AjusteFoto) => void;
+  stickersIniciales?: StickerPuesto[];
+  alListo: (a: AjusteFoto, stickers: StickerPuesto[]) => void;
   alCancelar: () => void;
 }) {
   const [difuminado, setDifuminado] = useState(inicial.difuminado);
   const [enc, setEnc] = useState<Encuadre>(inicial.encuadre);
   const [area, setArea] = useState<Medida>({ ancho: 0, alto: 0 });
   const [guia, setGuia] = useState<string | null>(null);
+  const [puestos, setPuestos] = useState<StickerPuesto[]>(stickersIniciales);
+  const [imgStickers, setImgStickers] = useState<Record<string, { url: string; ancho: number; alto: number }>>({});
   const zona = useRef<HTMLDivElement>(null);
   const marcoRef = useRef<HTMLDivElement>(null);
   const actual = useRef(enc);
@@ -68,6 +72,17 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCanc
       if (url) setTimeout(() => URL.revokeObjectURL(url!), 0);
     };
   }, [entrada]);
+
+  // Los stickers como imágenes sueltas: el mismo dibujo que sale en la imagen final
+  useEffect(() => {
+    let vigente = true;
+    void imagenesStickers(stickersIniciales).then((m) => vigente && setImgStickers(m));
+    return () => {
+      vigente = false;
+    };
+    // Los stickers que se pueden mover son los de la hoja al abrir esta vista
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Escape cierra solo esta vista (no la hoja de abajo); Safari no debe hacer zoom de página con el pellizco
   useEffect(() => {
@@ -147,7 +162,7 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCanc
       <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 px-3 pt-[env(safe-area-inset-top)]">
         <button type="button" onClick={alCancelar} className="tocable min-h-11 px-3 text-destacado text-white/85">Cancelar</button>
         <h2 className="text-destacado">Ajustar foto</h2>
-        <button type="button" onClick={() => alListo({ difuminado, encuadre: limpio })} className="tocable min-h-11 px-3 text-destacado font-bold text-white">Listo</button>
+        <button type="button" onClick={() => alListo({ difuminado, encuadre: limpio }, puestos.map(limitarSticker))} className="tocable min-h-11 px-3 text-destacado font-bold text-white">Listo</button>
       </div>
 
       <div ref={zona} className="flex min-h-0 flex-1 items-center justify-center px-4">
@@ -194,6 +209,19 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCanc
                   willChange: "transform",
                 }}
               />
+              {puestos.map((st) => {
+                const img = imgStickers[`${st.id}|${st.texto}`];
+                if (!img) return null;
+                return (
+                  <StickerArrastrable
+                    key={st.id}
+                    sticker={st}
+                    imagen={img}
+                    marco={marco}
+                    alCambiar={(n) => setPuestos((l) => l.map((o) => (o.id === n.id ? n : o)))}
+                  />
+                );
+              })}
               {guia && (
                 // eslint-disable-next-line @next/next/no-img-element -- guía local
                 <img src={guia} alt="" draggable={false} data-guia-tarjeta className="pointer-events-none absolute inset-0 h-full w-full opacity-45" />
@@ -204,7 +232,7 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCanc
       </div>
 
       <div className="shrink-0 rounded-t-radio-l bg-superficie px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-texto">
-        <p className="text-center text-secundario text-texto-secundario">Arrastra para mover. Pellizca o usa el control para acercar.</p>
+        <p className="text-center text-secundario text-texto-secundario">Arrastra para mover. Pellizca o usa el control para acercar. Mueve también los stickers.</p>
         <div className="mt-2 flex items-center gap-2">
           <button type="button" aria-label="Alejar" disabled={limpio.k <= K_MIN} onClick={() => zoom(limpio.k - K_PASO)} className="tocable grid size-11 shrink-0 place-items-center rounded-full bg-superficie-hundida disabled:opacity-40">
             <IconoMenos tamano={20} />
@@ -227,9 +255,78 @@ export function AjustarFotoHistoria({ entrada, natural, inicial, alListo, alCanc
           <span className="text-destacado">Fondo difuminado</span>
           <Interruptor encendido={difuminado} alCambiar={cambiarFondo} etiqueta="Fondo difuminado" />
         </div>
-        <Boton anchoCompleto tamano="grande" onClick={() => alListo({ difuminado, encuadre: limpio })}>Listo</Boton>
+        <Boton anchoCompleto tamano="grande" onClick={() => alListo({ difuminado, encuadre: limpio }, puestos.map(limitarSticker))}>Listo</Boton>
       </div>
     </div>,
     document.body,
+  );
+}
+
+/** Un sticker sobre la foto: se arrastra con un dedo y se agranda o achica pellizcándolo. Solo `transform`. */
+function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
+  sticker: StickerPuesto;
+  imagen: { url: string; ancho: number; alto: number };
+  marco: Medida;
+  alCambiar: (s: StickerPuesto) => void;
+}) {
+  const dedos = useRef(new Map<number, Punto>());
+  const actual = useRef(sticker);
+  useEffect(() => {
+    actual.current = sticker;
+  }, [sticker]);
+  const pinza = useRef<{ k: number; d: number } | null>(null);
+  const escala = marco.ancho / 1080;
+  const s = limitarSticker(sticker);
+
+  const distancia = () => {
+    const [a, b] = [...dedos.current.values()];
+    return Math.hypot(a!.x - b!.x, a!.y - b!.y);
+  };
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
+    <img
+      src={imagen.url}
+      alt={`Sticker ${NOMBRE_STICKER[s.id]}: arrástralo para moverlo`}
+      draggable={false}
+      data-sticker={s.id}
+      data-x={s.x.toFixed(3)}
+      data-y={s.y.toFixed(3)}
+      data-k={s.k.toFixed(2)}
+      className="absolute left-0 top-0 max-w-none cursor-grab touch-none select-none"
+      style={{
+        width: imagen.ancho,
+        height: imagen.alto,
+        transform: `translate3d(${s.x * marco.ancho - imagen.ancho / 2}px, ${s.y * marco.alto - imagen.alto / 2}px, 0) rotate(${INCLINACION_STICKER[s.id]}deg) scale(${escala * s.k})`,
+        willChange: "transform",
+      }}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        dedos.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {}
+        pinza.current = dedos.current.size === 2 ? { k: actual.current.k, d: distancia() } : null;
+      }}
+      onPointerMove={(e) => {
+        e.stopPropagation();
+        const antes = dedos.current.get(e.pointerId);
+        if (!antes) return;
+        dedos.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (dedos.current.size >= 2 && pinza.current && pinza.current.d > 0) {
+          alCambiar(limitarSticker({ ...actual.current, k: pinza.current.k * (distancia() / pinza.current.d) }));
+        } else if (dedos.current.size === 1) {
+          alCambiar(moverSticker(actual.current, e.clientX - antes.x, e.clientY - antes.y, marco));
+        }
+      }}
+      onPointerUp={(e) => {
+        e.stopPropagation();
+        dedos.current.delete(e.pointerId);
+        pinza.current = null;
+      }}
+      onPointerCancel={(e) => {
+        dedos.current.delete(e.pointerId);
+        pinza.current = null;
+      }}
+    />
   );
 }
