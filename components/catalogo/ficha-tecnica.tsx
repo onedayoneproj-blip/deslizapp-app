@@ -15,16 +15,19 @@ export function SeccionDescripcion({
   alCambiar,
   deshabilitado,
   alTocarBloqueado,
+  sinTitulo = false,
 }: {
   valor: string;
   alCambiar: (texto: string) => void;
   deshabilitado?: boolean;
   alTocarBloqueado?: () => void;
+  /** Dentro de una fila plegable de la hoja de producto: el título ya lo lleva la fila. */
+  sinTitulo?: boolean;
 }) {
   return (
     <div onClick={deshabilitado ? alTocarBloqueado : undefined}>
       <CampoMultilinea
-        etiqueta="Descripción"
+        etiqueta={sinTitulo ? <span className="sr-only">Descripción</span> : "Descripción"}
         filas={4}
         maxLength={LARGO_DESCRIPCION}
         value={valor}
@@ -53,6 +56,7 @@ export function SeccionFichaTecnica({
   sinPermiso,
   porque,
   avisar,
+  sinTitulo = false,
 }: {
   actual: string | null | undefined;
   borrador: BorradorFicha;
@@ -60,6 +64,8 @@ export function SeccionFichaTecnica({
   sinPermiso: boolean;
   porque: string;
   avisar: (texto: string) => void;
+  /** Dentro de una fila plegable: sin título ni tarjeta propia. */
+  sinTitulo?: boolean;
 }) {
   const archivo = useRef<HTMLInputElement>(null);
   const [leyendo, setLeyendo] = useState(false);
@@ -92,8 +98,8 @@ export function SeccionFichaTecnica({
 
   return (
     <section aria-labelledby="titulo-ficha" className="flex flex-col gap-2">
-      <h3 id="titulo-ficha" className="font-display text-titulo-seccion text-texto">Ficha técnica</h3>
-      <div className="flex flex-col gap-3 rounded-radio-l border border-linea bg-superficie p-4">
+      {sinTitulo ? <h3 id="titulo-ficha" className="sr-only">Ficha técnica</h3> : <h3 id="titulo-ficha" className="font-display text-titulo-seccion text-texto">Ficha técnica</h3>}
+      <div className={sinTitulo ? "flex flex-col gap-3" : "flex flex-col gap-3 rounded-radio-l border border-linea bg-superficie p-4"}>
         <input ref={archivo} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => { void leer(e.target.files?.[0]); e.target.value = ""; }} />
         {foto ? (
           <>

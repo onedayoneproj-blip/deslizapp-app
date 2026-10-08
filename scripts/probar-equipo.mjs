@@ -196,7 +196,7 @@ await page.goto(URL + "/catalogo");
 await page.waitForSelector('a[href="/catalogo/nuevo"]');
 ok((await page.locator('button[data-sin-permiso]:has-text("Producto")').count()) === 0, "«+ Producto» encendido");
 await page.locator('a[href="/catalogo/nuevo"]').tap();
-await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
 await esperar(600);
 ok((await hoja().locator("[data-sin-permiso]").count()) === 0, "la ficha nueva no muestra el aviso de permiso");
 // Una foto nueva: en su hoja, el interruptor «Retocar esta foto» queda apagado con el porqué.

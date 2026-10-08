@@ -22,13 +22,22 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.49.0", fecha: "2026-10-08", titulo: "Tu producto, en una historia.",
+    version: "0.50.0", fecha: "2026-10-08", titulo: "Tu producto, en una historia.",
     cambios: [
-      "En Catálogo, toca el ícono de historia arriba a la derecha de cada producto.",
+      "En Catálogo, toca «Agregar a historia» arriba a la derecha de cada producto.",
       "Elige si va el precio, las presentaciones y la foto de tu tienda: la imagen sale lista, hecha en tu teléfono.",
       "Con «Ajustar foto» (o tocando la vista previa) pellizca para acercar, arrastra para mover, o ponle fondo difuminado si no es vertical.",
       "Ponle stickers: «¡Nuevo!», «Últimas unidades» y el aaah de deslizapp. Arrástralos para dejarlos donde quieras.",
       "Compártela en el Estado de WhatsApp o en una historia de Instagram, con el enlace directo a ese producto.",
+    ],
+  },
+  {
+    version: "0.49.0", fecha: "2026-10-08", titulo: "Tu producto, de un vistazo.",
+    cambios: [
+      "La foto va grande arriba, y Nombre y Precio a la vista.",
+      "Lo opcional queda plegado: tócalo y se abre.",
+      "Mira «Cómo se ve» antes de publicar: es el catálogo de tu cliente, tal cual.",
+      "Colores y tallas van en dos pasos: qué cambia y cuántas tienes.",
     ],
   },
   {

@@ -19,7 +19,7 @@ export function DetalleStock({ producto: p }: { producto: Producto }) {
       </>
     );
   }
-  return <>{p.stock === null ? "Sin control de stock" : p.stock === 0 ? "Agotado" : p.stock === 1 ? "Queda 1" : `${p.stock} en stock`}</>;
+  return <>{p.stock === null ? "Sin cantidad guardada" : p.stock === 0 ? "Agotado" : p.stock === 1 ? "Queda 1" : `${p.stock} en stock`}</>;
 }
 
 /**

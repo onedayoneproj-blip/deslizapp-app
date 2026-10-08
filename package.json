@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "probar:teclado": "node scripts/probar-teclado.mjs",
+    "probar:hoja-producto": "node scripts/probar-hoja-producto.mjs",
     "iconos": "node scripts/generar-iconos.mjs",
     "revisar-estilos": "node scripts/revisar-estilos.mjs",
     "probar:hojas": "node scripts/probar-hojas.mjs",

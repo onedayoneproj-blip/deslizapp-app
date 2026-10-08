@@ -3,6 +3,7 @@
 import { useId, type ComponentProps, type ReactNode, type Ref } from "react";
 import { IconoBuscar } from "../iconos";
 import { clases } from "./comunes";
+import { InputPrecio } from "./input-precio";
 
 // Foco = contorno de 2 px `accion` (nunca anillo ni naranja). El borde es siempre de 2 px: el campo no cambia de tamaño al enfocarlo.
 const FOCO_CAMPO = "outline-none";
@@ -18,28 +19,35 @@ export function Campo({
   error,
   id,
   className,
+  precio,
   ...input
-}: Omit<ComponentProps<"input">, "className"> & { etiqueta: ReactNode; ayuda?: ReactNode; error?: ReactNode; className?: string }) {
+}: Omit<ComponentProps<"input">, "className"> & {
+  etiqueta: ReactNode;
+  ayuda?: ReactNode;
+  error?: ReactNode;
+  className?: string;
+  /** Un precio en pesos: el campo muestra comas de miles y entrega dígitos (`value` y `onChange` no se usan). */
+  precio?: { digitos: string; alCambiar: (digitos: string) => void; max?: number };
+}) {
   const propio = useId();
   const idCampo = id ?? propio;
   const idNota = `${idCampo}-nota`;
   const nota = error ?? ayuda;
+  const estilo = clases(
+    "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
+    FOCO_CAMPO,
+    error ? "border-peligro" : "border-borde-campo focus:border-accion",
+  );
   return (
     <div className={clases("flex min-w-0 flex-col gap-1.5", className)}>
       <label htmlFor={idCampo} className="text-secundario font-extrabold text-texto">
         {etiqueta}
       </label>
-      <input
-        id={idCampo}
-        {...input}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={nota ? idNota : undefined}
-        className={clases(
-          "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
-          FOCO_CAMPO,
-          error ? "border-peligro" : "border-borde-campo focus:border-accion",
-        )}
-      />
+      {precio ? (
+        <InputPrecio {...input} id={idCampo} digitos={precio.digitos} alCambiar={precio.alCambiar} max={precio.max} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
+      ) : (
+        <input id={idCampo} {...input} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
+      )}
       {nota && (
         <p id={idNota} className={clases("text-secundario", error ? "font-bold text-peligro" : "text-texto-secundario")}>
           {nota}
@@ -107,6 +115,7 @@ export function CampoMonto({
   ayuda,
   error,
   tamano = "normal",
+  maxDigitos = 8,
   className,
 }: {
   etiqueta: ReactNode;
@@ -117,6 +126,8 @@ export function CampoMonto({
   ayuda?: ReactNode;
   error?: ReactNode;
   tamano?: "normal" | "grande";
+  /** Hasta cuántas cifras se escriben. */
+  maxDigitos?: number;
   className?: string;
 }) {
   const id = useId();
@@ -133,15 +144,14 @@ export function CampoMonto({
         <span className="block text-secundario text-texto-secundario">{etiqueta}</span>
         <span className="flex items-baseline gap-1.5">
           <span className={clases("font-display text-texto-secundario", tamano === "grande" ? "text-titulo-hoja" : "text-titulo-seccion")}>RD$</span>
-          <input
+          <InputPrecio
             id={id}
-            type="text"
-            inputMode="numeric"
+            digitos={valor}
+            alCambiar={alCambiar}
+            max={maxDigitos}
             autoComplete="off"
             enterKeyHint="done"
             placeholder="0"
-            value={valor === "" ? "" : Number(valor).toLocaleString("en-US")}
-            onChange={(e) => alCambiar(soloDigitos(e.target.value))}
             aria-label={etiquetaAccesible}
             aria-invalid={error ? true : undefined}
             aria-describedby={nota ? `${id}-nota` : undefined}
