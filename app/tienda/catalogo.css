@@ -611,6 +611,46 @@ html.catalogo-html,
   font-weight: 700;
   text-shadow: none;
 }
+/* Carátula de colección: carta de frente + 1 o 2 cartas sólidas detrás que asoman a la derecha (mazo cerrado).
+   Las de atrás se recortan (máscara) con la forma de la de adelante: separación transparente de ~3 px, sin borde ni anillo. */
+:where(.catalogo-publico) .mazo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+:where(.catalogo-publico) .mazo img,
+:where(.catalogo-publico) .mazo .mz {
+  position: absolute;
+  top: 0;
+  width: var(--s);
+  height: var(--s);
+  border-radius: calc(var(--s) * 0.3);
+}
+:where(.catalogo-publico) .mazo img {
+  left: 0;
+  object-fit: cover;
+  box-shadow: 0 6px 14px -8px rgba(20, 8, 14, 0.5);
+}
+:where(.catalogo-publico) .mazo .mz {
+  --hueco: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20x%3D%27-17.5%27%20y%3D%27-3.5%27%20width%3D%27107%27%20height%3D%27107%27%20rx%3D%2733.5%27%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-image: linear-gradient(#000, #000), var(--hueco);
+  mask-image: linear-gradient(#000, #000), var(--hueco);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+:where(.catalogo-publico) .mazo .mz1 {
+  left: calc(var(--s) * 0.14);
+  background: color-mix(in srgb, var(--accent) 62%, var(--bg));
+}
+:where(.catalogo-publico) .mazo .mz2 {
+  left: calc(var(--s) * 0.28);
+  background: color-mix(in srgb, var(--accent) 36%, var(--bg));
+}
 /* Colecciones: pantalla con desenfoque y lista vertical */
 :where(.catalogo-publico) .coov {
   position: fixed;
@@ -620,10 +660,16 @@ html.catalogo-html,
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   backdrop-filter: blur(18px) saturate(1.2);
   color: #fff;
+  overflow: hidden;
+  animation: coIn 0.3s ease-out;
+}
+/* El contenido hace scroll dentro; la X queda fija arriba (fuera del scroll). */
+:where(.catalogo-publico) .coscroll {
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: calc(var(--cotop, 112px) + var(--ovext, 0px)) 24px 36px;
-  animation: coIn 0.3s ease-out;
 }
 :where(.catalogo-publico) .coov.out {
   animation: coOut 0.25s ease-in forwards;
@@ -668,25 +714,15 @@ html.catalogo-html,
   cursor: pointer;
 }
 :where(.catalogo-publico) .coitem .cc {
+  --s: 78px;
   position: relative;
-  width: 78px;
-  height: 78px;
-  border-radius: 24px;
-  padding: 3px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  transition:
-    transform 0.2s,
-    border-color 0.2s;
+  width: calc(var(--s) * 1.28);
+  height: var(--s);
+  transition: transform 0.2s;
 }
 :where(.catalogo-publico) .coitem:hover .cc,
 :where(.catalogo-publico) .coitem:focus-visible .cc {
   transform: scale(1.06);
-}
-:where(.catalogo-publico) .coitem img {
-  width: 100%;
-  height: 100%;
-  border-radius: 19px;
-  object-fit: cover;
 }
 :where(.catalogo-publico) .coitem b {
   display: block;
@@ -703,7 +739,7 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .coitem .ck {
   position: absolute;
-  right: -4px;
+  right: calc(var(--s) * 0.28 - 4px);
   bottom: -2px;
   width: 24px;
   height: 24px;
@@ -717,9 +753,6 @@ html.catalogo-html,
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   opacity: 0;
 }
-:where(.catalogo-publico) .coitem[aria-pressed="true"] .cc {
-  border-color: #fff;
-}
 :where(.catalogo-publico) .coitem[aria-pressed="true"] .ck {
   opacity: 1;
 }
@@ -728,11 +761,16 @@ html.catalogo-html,
     gap: 12px;
   }
   :where(.catalogo-publico) .coitem .cc {
-    width: 62px;
-    height: 62px;
+    --s: 62px;
   }
   :where(.catalogo-publico) .coitem b {
     font-size: 15.5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.catalogo-publico) .coitem:hover .cc,
+  :where(.catalogo-publico) .coitem:focus-visible .cc {
+    transform: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -1909,7 +1947,7 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .hls {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   overflow-x: auto;
   margin: 22px -16px 0;
   padding: 2px 16px 6px;
@@ -1931,23 +1969,16 @@ html.catalogo-html,
   font-size: 12px;
   font-weight: 600;
   color: var(--ink2);
-  width: 70px;
+  width: 82px;
 }
-:where(.catalogo-publico) .hl .ring {
-  width: 66px;
-  height: 66px;
-  border-radius: 22px;
-  padding: 2px;
-  border: 1.5px solid var(--line);
+:where(.catalogo-publico) .hl .hl-carta {
+  --s: 62px;
+  position: relative;
+  width: calc(var(--s) * 1.28);
+  height: var(--s);
 }
-:where(.catalogo-publico) .hl img {
-  width: 100%;
-  height: 100%;
-  border-radius: 18px;
-  object-fit: cover;
-}
-:where(.catalogo-publico) .hl[aria-pressed="true"] .ring {
-  border: 2px solid var(--accent);
+:where(.catalogo-publico) .hl[aria-pressed="true"] .mazo img {
+  outline: 2px solid var(--accent);
 }
 :where(.catalogo-publico) .hl[aria-pressed="true"] {
   color: var(--ink);

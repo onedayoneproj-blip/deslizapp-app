@@ -7,7 +7,7 @@ const css = readFileSync("app/tienda/catalogo.css", "utf8");
 const reglas = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, sel, cuerpo]) => ({ sel: sel.trim(), cuerpo }));
 
 // Selectores del catálogo del comprador que dibujan la foto de un producto.
-const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".coitem img", ".coitem .cc", ".finimgs img", ".hl img", ".hl .ring", ".a8 .res img"];
+const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".mazo img", ".mazo .mz", ".coitem .cc", ".finimgs img", ".hl .hl-carta", ".a8 .res img"];
 
 test("ninguna foto de producto del catálogo del comprador es circular", () => {
   for (const f of FOTOS_DE_PRODUCTO) {
@@ -44,4 +44,19 @@ test("superposición: se separa con recorte transparente (máscara), nunca con b
   for (const x of fin) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, "las fotos apiladas no llevan borde");
   assert.ok(fin.some((x) => /mask-image/.test(x.cuerpo)), "las fotos apiladas llevan máscara");
   assert.doesNotMatch(css, /\.cnt\s*\{[^}]*box-shadow:\s*0 0 0 2px/, "el contador no lleva aro");
+});
+
+test("carátula de colección: mazo con cartas detrás recortadas, sin anillo ni borde (docs/09)", () => {
+  assert.ok(reglas.some((x) => x.sel.endsWith(".mazo .mz") && /mask-composite:\s*exclude/.test(x.cuerpo)), "las cartas de atrás llevan máscara");
+  const cc = reglas.filter((x) => /\.coitem \.cc|\.hl \.hl-carta|\.mazo/.test(x.sel));
+  for (const x of cc) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, `${x.sel} no lleva borde`);
+});
+
+test("hoja Colecciones: la X queda fuera del scroll y tocar el fondo cierra", () => {
+  const co = reglas.find((x) => x.sel.endsWith(".coov"));
+  assert.match(co.cuerpo, /overflow:\s*hidden/);
+  assert.ok(reglas.find((x) => x.sel.endsWith(".coscroll") && /overflow-y:\s*auto/.test(x.cuerpo)));
+  const tsx = readFileSync("components/tienda/catalogo.tsx", "utf8");
+  assert.match(tsx, /className="coscroll"/);
+  assert.match(tsx, /t\.matches\("\.colist, \.colist > li"\)\) cerrar\(\)/);
 });

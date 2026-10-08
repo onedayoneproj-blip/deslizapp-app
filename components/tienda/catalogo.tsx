@@ -20,6 +20,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
+import { MazoColeccion } from "./mazo-coleccion";
 import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
@@ -87,6 +88,18 @@ export function Catalogo({
   const root = useRef<HTMLDivElement>(null);
   const [vista, setVista] = useState<Vista>(null);
   const vistaRef = useRef<Vista>(null);
+  // Hoja Colecciones: el título «Colecciones» del encabezado se centra de verdad respecto a la pantalla (mide el texto, sin el abanico).
+  useLayoutEffect(() => {
+    if (vista !== "colecciones") return;
+    const tab = document.getElementById("colTab");
+    const texto = tab?.firstElementChild;
+    if (!tab || !texto) return;
+    const r = texto.getBoundingClientRect();
+    tab.style.setProperty("--cox", document.documentElement.clientWidth / 2 - (r.left + r.width / 2) + "px");
+    return () => {
+      tab.style.removeProperty("--cox");
+    };
+  }, [vista]);
   useLayoutEffect(() => {
     vistaRef.current = vista;
   }, [vista]);
@@ -999,8 +1012,8 @@ export function Catalogo({
                 aria-pressed={filtro === col.id}
                 onClick={() => setFilter(col.id)}
               >
-                <span className="ring">
-                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                <span className="hl-carta">
+                  <MazoColeccion productos={col.productos} />
                 </span>
                 {col.nombre}
               </button>
@@ -1169,6 +1182,14 @@ export function Catalogo({
           >
             ×
           </button>
+          <div
+            className="coscroll"
+            onClick={(e) => {
+              // Tocar fuera del contenido (el fondo, el espacio entre colecciones) cierra la hoja, como las demás.
+              const t = e.target as HTMLElement;
+              if (t === e.currentTarget || t.matches(".colist, .colist > li")) cerrar();
+            }}
+          >
           {variosCatalogos && (
             <MenuCatalogo catalogos={catalogos.map((x) => x.rubro)} activo={activo} alElegir={cambiarCatalogo} />
           )}
@@ -1183,7 +1204,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                      <MazoColeccion productos={col.productos} />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>
@@ -1199,6 +1220,7 @@ export function Catalogo({
                 </li>
               ))}
           </ul>
+          </div>
         </DialogoCatalogo>
       )}
       {vista === "buscar" && (
