@@ -50,20 +50,25 @@ select pg_temp.comprobar((select pg_get_functiondef('public.catalogo_publico(tex
 -- ═══ 1. La restricción: solo el Storage de Deslizapp, carpeta de la tienda ═══
 select pg_temp.rechaza($q$update public.productos set ficha_url='http://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
 select pg_temp.rechaza($q$update public.productos set ficha_url='https://ejemplo.invalid/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
-select pg_temp.rechaza($q$update public.productos set ficha_url='https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000003/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
-select pg_temp.rechaza($q$update public.productos set ficha_url='https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/../x.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
-select pg_temp.rechaza($q$update public.productos set ficha_url='https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a b.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000003/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/../x.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a b.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+-- Host ajeno con la misma forma de ruta (revisión de Codex en #76): solo vale el Storage de este proyecto.
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://otro.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvnt.supabase.co.malo.example/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.rechaza($q$update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvntXsupabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a.webp' where id='bf000000-0000-4000-8000-000000000001'$q$,'23514','productos_ficha_url_valida');
+select pg_temp.comprobar(public.ficha_url_valida('https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/a.webp','be000000-0000-4000-8000-000000000001'),'el Storage propio sí vale');
 
 -- ═══ 2. Permisos por nivel (grupo catalogo) ═══
 set local role authenticated;
 select pg_temp.como('bd000000-0000-4000-8000-00000000000a');
-select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp')$q$,'42501');
+select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp')$q$,'42501');
 select pg_temp.como('bd000000-0000-4000-8000-00000000000e');
-select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp') is not null,'el Editor guarda la ficha');
+select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp') is not null,'el Editor guarda la ficha');
 select pg_temp.como('bd000000-0000-4000-8000-00000000000c');
-select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/g.webp') like '%/g.webp','el Administrador la cambia');
+select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/g.webp') like '%/g.webp','el Administrador la cambia');
 select pg_temp.como('bd000000-0000-4000-8000-00000000000d');
-select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/h.webp') like '%/h.webp','la dueña guarda la ficha');
+select pg_temp.comprobar(public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/h.webp') like '%/h.webp','la dueña guarda la ficha');
 reset role;
 select pg_temp.comprobar((select ficha_url from public.productos where id='bf000000-0000-4000-8000-000000000001') like '%/h.webp','quedó guardada la última');
 
@@ -75,7 +80,8 @@ select pg_temp.como('bd000000-0000-4000-8000-00000000000c');
 select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000003','bf000000-0000-4000-8000-000000000003',null)$q$,'42501');
 select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000003',null)$q$,'P0002');
 select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://ejemplo.invalid/a.webp')$q$,'22023','ficha_invalida');
-select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000003/f.webp')$q$,'22023','ficha_invalida');
+select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://otro.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp')$q$,'22023','ficha_invalida');
+select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-4000-8000-000000000001','bf000000-0000-4000-8000-000000000001','https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000003/f.webp')$q$,'22023','ficha_invalida');
 reset role;
 select pg_temp.comprobar((select ficha_url from public.productos where id='bf000000-0000-4000-8000-000000000003') is null,'el producto ajeno no se tocó');
 
@@ -92,7 +98,7 @@ select pg_temp.rechaza($q$select public.guardar_ficha_producto('be000000-0000-40
 reset role;
 
 -- ═══ 5. Lectura pública ═══
-update public.productos set ficha_url='https://x.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp' where id='bf000000-0000-4000-8000-000000000001';
+update public.productos set ficha_url='https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/be000000-0000-4000-8000-000000000001/f.webp' where id='bf000000-0000-4000-8000-000000000001';
 select pg_temp.comprobar((select p->>'ficha_url' from jsonb_array_elements(public.catalogo_publico('ficha-fixture')->'productos') p where p->>'nombre'='Con ficha') like '%/f.webp','catalogo_publico devuelve la ficha');
 select pg_temp.comprobar((select count(*) from jsonb_array_elements(public.catalogo_publico('ficha-fixture')->'productos') p where p ? 'ficha_url' and p ? 'opciones' and p ? 'fotos_por_valor')>=1,'catalogo_publico sigue igual en lo demás');
 

@@ -1260,8 +1260,16 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       try {
         await dato(supabase.rpc("guardar_ficha_producto", { p_tienda_id: tiendaId, p_producto_id: productoId, p_url: nueva?.url ?? null }));
       } catch (e) {
-        if (nueva) await borrarArchivos(supabase.storage, [nueva.ruta]);
-        throw e;
+        // Solo un rechazo claro del servidor deja el archivo nuevo huérfano seguro. Con un error de red el guardado pudo
+        // llegar: se relee la fila y, si ya tiene la ficha nueva, se sigue como si hubiera salido bien; si no, el archivo
+        // se conserva (como en guardarProductoConInventario) para no dejar la ficha apuntando a nada.
+        if (!(e instanceof ErrorClaro) || e instanceof ErrorDeRed) {
+          const guardada = await dato<{ ficha_url: string | null }>(supabase.from("productos").select("ficha_url").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()).catch(() => undefined);
+          if (guardada === undefined || (guardada?.ficha_url ?? null) !== (nueva?.url ?? null)) throw e;
+        } else {
+          if (nueva) await borrarArchivos(supabase.storage, [nueva.ruta]);
+          throw e;
+        }
       }
       await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [antes], [nueva?.url]));
       cambio(undefined);
