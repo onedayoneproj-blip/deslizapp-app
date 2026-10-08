@@ -1,3 +1,10 @@
+## Ficha técnica y descripción — Coding (Claude), 2026-10-08
+
+Rama `feat/ficha-tecnica`. **PR abierto, sin merge** (lo ven compradores y lleva migración: Planning revisa el SQL y Lewis prueba en el iPhone). **Una migración aditiva**, `20261008023803_ficha_tecnica` (`list_migrations` → ensayo en `BEGIN … ROLLBACK` sobre la base real → `apply_migration`; Esencias Michel responde igual: 15 productos y la misma huella del JSON salvo la llave nueva `ficha_url: null`): `productos.ficha_url text` nullable con un `check` (https del Storage de Deslizapp, bucket `productos`, carpeta de la propia tienda, sin `..`), `guardar_ficha_producto(tienda, producto, url)` (`security definer`, `search_path = ''`, `exigir_no_viendo` + `exigir_permiso('catalogo')`, producto de la tienda y no eliminado, revocada a `public` y `anon`; con url nula quita la ficha) y `catalogo_publico` con la misma firma devolviendo `ficha_url` (se reemplazó solo esa línea sobre la definición vigente, sin `drop`). **Los Detalles de Esencias Michel no se tocaron.**
+- **Panel:** «Descripción» (hasta 600, contador «43 / 600» y la línea de la búsqueda) es `detalles.descripcion`; «Detalles» solo sale en un producto que ya tiene otros Detalles; tarjeta «Ficha técnica» (subir, cambiar, quitar con confirmación). La ficha se guarda **junto con el producto** (su propia llamada `guardarFicha`, después de guardarlo; si falla, el producto ya quedó y se avisa sin duplicarlo). Un archivo viejo se borra al cambiar o quitar. Grupo `catalogo`. Código: `components/catalogo/ficha-tecnica.tsx`, `lib/ficha-tecnica.ts`.
+- **Catálogo del comprador:** la descripción siempre se ve (dos líneas), terminada en «…» (`.mas.elipsis`, `data-more`, 44 px, `aria-label` «Ver la descripción completa») también con presentaciones; sin descripción ni Detalles, ni texto ni «…» (con Detalles de siempre y sin descripción se conserva el texto de siempre). Botón de la ficha: círculo con presentaciones, píldora sin ellas, ninguno sin ficha. Visor `components/tienda/visor-ficha.tsx` (pellizcar y mover con pointer events + un toque alterna ajustar/acercar; lógica pura en `lib/tienda/zoom.ts`; `touch-action: none` solo en el visor, que no es una hoja).
+- Pruebas: `tests/ficha-tecnica.test.mjs`, `probar:teclado` con la descripción. **Sin probar:** Safari del iPhone (pellizco y zoom reales), modo oscuro.
+
 ## Fotos redondas solo de tienda y persona + búsqueda sin recuadro — Coding (Claude), 2026-10-08
 
 Rama `fix/avatares-y-foco-busqueda` (base: `feat/busqueda-precio-presentaciones`, #75). **PR abierto, sin merge**; **sin migraciones**. **Regla de formas:** círculo = foto de la tienda y de la persona; foto/miniatura de producto = siempre cuadrado de bordes redondeados (documentada en `docs/09` §11). `Avatar tipo="tienda"` ahora es círculo. Resultados de búsqueda, portadas de colección (`.hl`, `.coitem`), carrito (`.finimgs`), apilado de portadas (`.hcov`) y la demostración `.a8` pasaron de círculo a cuadrado redondeado; logo de la tienda en `cupon-tienda` y `hoja-mi-marca` pasó a círculo. El recuadro oscuro de la búsqueda venía de `.catalogo-publico :focus-visible` (más específico que el `outline:0` del input): ahora el input no dibuja nada y el foco se ve en la píldora (`.srbox:focus-within`). Regresión: `tests/formas-fotos.test.mjs`. **Sin probar:** Safari físico.
@@ -360,6 +367,22 @@ El dueño solo cambia el estado con las RPC `solicitar_catalogo`, `pedir_cambios
 el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catálogo" en el menú de la tienda. Las RPC aún no se probaron
 contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
 HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
+
+### Publicar mi catálogo (migración `20261008015455_publicar_catalogo`)
+
+La tienda pone su catálogo en línea sola. Base: `tienda_publica` acepta `estado in ('activa','en_prueba')` y `catalogo_estado = 'publicado'`
+(es la ÚNICA puerta del comprador: `catalogo_publico`, `crear_solicitud_pedido`, `ver_solicitud`, `pedir_aviso` y `registrar_aaah` la
+llaman; `crear_codigo_cliente` y demás que dicen `'activa'` hablan del estado de una promo). `publicar_mi_catalogo(p_tienda_id)` y
+`despublicar_mi_catalogo(p_tienda_id)`: solo la dueña (`exigir_no_viendo`, `exigir_permiso(...,'equipo')`, `soy_dueno`); errores
+`catalogo_incompleto`, `catalogo_en_curso` (no pisa un flujo manual en curso), `tienda_pausada`, `solo_dueno`. Publicar desde `sin`; ya
+publicado no hace nada; despublicar deja `sin` y CONSERVA `url_catalogo` y `catalogo_publicado_en`. Lo mínimo (3 productos visibles con
+foto) vive en `v_minimo` dentro de la función y en `PRODUCTOS_MINIMOS_PARA_PUBLICAR` (`lib/config.ts`); la dirección base, en `v_base` y
+`URL_BASE_CATALOGO` (un test comprueba que coinciden). `productos_para_publicar` es interna (nadie la ejecuta desde fuera).
+`catalogo_publico` trae `tienda.indexable` (solo las activas): `/tienda/[slug]` de una tienda en prueba sale con `robots: noindex, nofollow`
+(la etiqueta, no la cabecera `X-Robots-Tag`; las vistas previas Open Graph no cambian; `/pedido/…` ya era siempre noindex). Replay:
+`scripts/probar-publicar-catalogo-db.sql`; navegador (demo): `scripts/probar-publicar-catalogo.mjs`.
+La tarjeta «En línea» es la de siempre (una fila, «Compartir»); NO hay «Copiar enlace» ni «Dejar de mostrarlo» en pantalla: quien quiera
+dejar de mostrarlo le escribe a Deslizapp. `despublicar_mi_catalogo` y `despublicarMiCatalogo` quedan sin usar en la interfaz.
 
 ## Sistema de diseño (tokens, components/ui y /diseno)
 

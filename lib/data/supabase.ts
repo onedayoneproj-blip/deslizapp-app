@@ -586,6 +586,14 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const f = await requerido<FilaTienda>(supabase.rpc("publicar_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
       return cambio(aTienda(f));
     },
+    async publicarMiCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("publicar_mi_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
+    async despublicarMiCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("despublicar_mi_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
     async releerTienda(tiendaId) {
       // Solo se olvida lo de la tienda (el resto sigue en caché) y las pantallas vuelven a leer.
       enVuelo.delete(`tienda:${tiendaId}`);
@@ -1246,6 +1254,21 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       return cambio(aProducto(f));
     },
 
+    async guardarFicha(tiendaId, productoId, foto) {
+      const antes = (await dato<{ ficha_url: string | null }>(supabase.from("productos").select("ficha_url").eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle()))?.ficha_url ?? null;
+      const nueva = foto && esDataUrl(foto) ? await subirImagen(supabase.storage, foto, (tipo) => rutaFoto(tiendaId, nuevoId(), tipo)) : null;
+      try {
+        await dato(supabase.rpc("guardar_ficha_producto", { p_tienda_id: tiendaId, p_producto_id: productoId, p_url: nueva?.url ?? null }));
+      } catch (e) {
+        if (nueva) await borrarArchivos(supabase.storage, [nueva.ruta]);
+        throw e;
+      }
+      await borrarArchivos(supabase.storage, rutasParaBorrar(tiendaId, [antes], [nueva?.url]));
+      cambio(undefined);
+      const f = await dato<FilaProducto>(supabase.from("productos").select(PRODUCTO_CON_VARIANTES).eq("tienda_id", tiendaId).eq("id", productoId).maybeSingle());
+      if (!f) throw new DatosInvalidos("Ese producto ya no existe en tu tienda.");
+      return aProducto(f);
+    },
     async guardarFotoValor(tiendaId, productoId, eje, valor, url) {
       await dato(supabase.rpc("guardar_foto_valor", { p_tienda_id: tiendaId, p_producto_id: productoId, p_eje: eje, p_valor: valor, p_url: url }));
       const f = await requerido<FilaProducto>(

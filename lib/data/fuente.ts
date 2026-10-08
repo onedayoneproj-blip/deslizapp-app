@@ -131,6 +131,10 @@ export type FuenteDatos = {
   pedirCambiosCatalogo(tiendaId: string, notas: string): Promise<Tienda>;
   /** revisar → publicado (exige el enlace). */
   publicarCatalogo(tiendaId: string): Promise<Tienda>;
+  /** sin → publicado, de una vez, solo la dueña (RPC `publicar_mi_catalogo`; exige el mínimo de productos con foto). Ya publicado: no hace nada. */
+  publicarMiCatalogo(tiendaId: string): Promise<Tienda>;
+  /** publicado → sin, solo la dueña (RPC `despublicar_mi_catalogo`): los clientes dejan de verlo; conserva el enlace y se puede volver a publicar. */
+  despublicarMiCatalogo(tiendaId: string): Promise<Tienda>;
   /** Vuelve a leer la tienda (el equipo cambia el estado desde fuera de la app). En la demo no hace nada. */
   releerTienda(tiendaId: string): Promise<void>;
 
@@ -180,6 +184,12 @@ export type FuenteDatos = {
    * verse la del producto. La base y la demo la limpian solas si la foto o el valor desaparecen. Grupo «catalogo».
    */
   guardarFotoValor(tiendaId: string, productoId: string, eje: string, valor: string, url: string | null): Promise<Producto>;
+
+  /**
+   * La ficha técnica: una foto con las especificaciones. `foto` es la foto nueva (data URL) o null para quitarla. Sube el archivo,
+   * guarda la dirección y borra el archivo anterior. Grupo «catalogo».
+   */
+  guardarFicha(tiendaId: string, productoId: string, foto: string | null): Promise<Producto>;
 
   // Pedidos
   getPedidos(tiendaId: string): Promise<PedidoConItems[]>;

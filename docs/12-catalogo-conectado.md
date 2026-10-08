@@ -36,6 +36,7 @@ Lo que los filtros del catálogo usan: perfumes filtra por `para` y `ocasiones` 
 
 - `productos.opciones` sigue siendo la lista de ejes: `[{"nombre":"Talla","valores":["S","M","L"]},{"nombre":"Color","valores":["Negro","Blanco"]}]`. Máximo 2 ejes y 12 valores por eje.
 - Tabla nueva **`producto_variantes`**: `id`, `tienda_id`, `producto_id`, `valores` jsonb (`{"Talla":"M","Color":"Negro"}`), `stock` integer null (null = sin control), `precio` integer null (null = el del producto), `activa` boolean, `orden`. Única por (producto_id, valores).
+- **Ficha técnica y descripción** (8 oct 2026): `productos.ficha_url` + `guardar_ficha_producto`; en el panel, «Descripción» (600) y la tarjeta «Ficha técnica»; en el catálogo, la descripción con «…» y el botón/visor de la ficha. Los Detalles por rubro solo se piden donde ya existen. Detalle en `docs/04-pantallas.md` y `HANDOFF.md`.
 - **Presentaciones en el catálogo del cliente** (opción B, parte 2 de presentaciones): `catalogo_publico` devuelve `fotos_por_valor` junto a `opciones`; el reel sale limpio con «Ver presentaciones ›», la hoja muestra todas (cuadrícula con dos ejes, lista con uno), la foto sigue al color y el pedido guarda la presentación como siempre. Detalle en `docs/04-pantallas.md`.
 - Producto **sin opciones** = sin variantes; su stock sigue en `productos.stock`.
 - Producto **con opciones**: el stock vive en las variantes; `productos.stock` pasa a ser la suma (la mantiene un trigger) para resúmenes y para "Agotado" del producto (todas en 0).
@@ -113,6 +114,13 @@ Implementación inicial publicada por Claude en `feature/pedido-catalogo-panel` 
 ### Ver por catálogo (comprador, 7 oct 2026)
 
 Con más de un rubro con productos: en el perfil, el rótulo `.gridtabs` es una barra de **pestañas de texto** (Instagram: la activa en negrita con raya debajo; «Todo» primero, luego cada catálogo, sin números; con muchas, scroll horizontal; `tablist`/`tab`, flechas). En la hoja «Colecciones», una fila «Catálogo» abre un **menú flotante** propio (`components/tienda/menu-catalogo.tsx`; check en el activo; cierra al elegir, al tocar fuera y con Escape, antes que la hoja). Sin `<select>` nativo. Un solo estado (`catalogoActivo`, `null` = Todo) filtra colecciones, cuadrícula, feed, círculos y contadores; si la colección elegida desaparece, vuelve a «Todos». Producto sin rubro = principal. Con varios catálogos los textos dicen «productos». Buscador y cabecera no cambian; con un solo rubro nada cambia. Lógica en `lib/tienda/catalogo.ts`; prueba: `scripts/probar-catalogo-por-tipo.mjs`. Idea pendiente: enlace por catálogo (`?catalogo=`).
+
+### Publicar mi catálogo (8 oct 2026)
+
+Decisión de Lewis (7 oct): la tienda **publica su propio catálogo** y una tienda **en prueba** tiene catálogo público en cuanto lo publica
+(sin indexar para buscadores; Esencias Michel, activa, no cambia). Mínimo para publicar: 3 productos visibles con foto. Solo la dueña
+publica; dejar de mostrarlo, por ahora, se pide a Deslizapp (la función `despublicar_mi_catalogo` existe en la base y conserva el enlace). El comprador ve, pide, da ♥, pide «Avísame» y abre su pedido igual en una
+tienda en prueba, porque todas las funciones públicas pasan por `tienda_publica`. Detalle en `HANDOFF.md` y `docs/04-pantallas.md`.
 
 ### Búsqueda del comprador: precio y presentaciones (8 oct 2026)
 

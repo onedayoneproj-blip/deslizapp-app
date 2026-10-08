@@ -52,7 +52,7 @@ const ESCENARIOS = {
   async reel(page, ancho) {
     const r = reel(page, "pantalon-de-algodon");
     ok((await r.locator(".opciones-catalogo").count()) === 0, "El reel no trae las filas de pastillas");
-    ok((await r.locator("p.txt").count()) === 0, "…ni la descripción encima de la foto");
+    ok((await r.locator("p.txt").count()) === 1 && (await r.locator("p.txt [data-more]").innerText()).trim() === "…", "…y la descripción termina en «…» (ficha técnica)");
     const boton = r.locator(".cap .pres-btn");
     ok((await boton.innerText()).includes("Ver presentaciones ›"), "Un solo botón «Ver presentaciones ›»");
     ok((await boton.locator(".pres-puntos i").count()) === 3, "…con los 3 colores en puntitos");
@@ -218,7 +218,7 @@ const ESCENARIOS = {
   async sinPresentaciones(page) {
     const r = reel(page, "kiara");
     ok((await r.locator(".cap .pres-btn").count()) === 0 && (await r.locator(".pres-fila-cap").count()) === 0, "Sin botón de presentaciones");
-    ok((await r.locator("p.txt").count()) === 1 && (await r.locator("[data-more]").count()) === 1, "Con su descripción y «más» como siempre");
+    ok((await r.locator("p.txt").count()) === 1 && (await r.locator("[data-more]").count()) === 1, "Con su descripción y «…» que abre el detalle");
     await r.locator("[data-like]").tap();
     await page.waitForTimeout(500);
     ok((await hoja(page).count()) === 0 && (await carrito(page, MICHEL)).length === 1, "♥ agrega directo, sin hoja");

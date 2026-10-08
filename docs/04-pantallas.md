@@ -269,7 +269,13 @@ subtítulo y la dona del plan, encima de los filtros). Reemplaza a la antigua fi
 lugar, `vistaCatalogo()` en `lib/catalogo-estado.ts` (con tests): la tienda pausada manda sobre todo; después `tiendas.catalogo_estado`.
 Ocho estados:
 
-1. **Sin catálogo**: "Pedirlo" abre la hoja "¿Pedimos tu catálogo?" → "Sí, pedirlo" (`solicitar_catalogo`); aviso "¡Listo! Lo pedimos por ti".
+1. **Sin catálogo** (la tienda publica sola, `docs/prompts/publicar-catalogo.md`): sin lo mínimo (3 productos visibles con foto,
+   `PRODUCTOS_MINIMOS_PARA_PUBLICAR` en `lib/config.ts`, regla en `lib/publicar-catalogo.ts`) dice «Te faltan N productos con foto para
+   publicar tu catálogo» con «Crear producto» (lleva a `/catalogo/nuevo`); con lo mínimo, **«Publicar mi catálogo»** abre la hoja
+   «¿Publicamos tu catálogo?» (el enlace que tendrá, la lista de lo que no se puede vender —`lib/productos-prohibidos.ts`— y «Al publicar
+   aceptas los Términos») → «Publicar» (`publicar_mi_catalogo`) / «Ahora no». Solo la dueña: un colaborador ve el botón apagado y, al
+   tocarlo, «Esto lo hace quien administra la tienda.». El flujo manual de ocho estados (`solicitar_catalogo`, `HojaPedirCatalogo`) sigue
+   en el código para los catálogos que el equipo arma, pero la tarjeta ya no ofrece «Pedirlo».
 2. **Pedido recibido**: solo informa.
 3. **Armando tu catálogo**: icono de destellos, "Paso N de 3 · nombre" (Reuniendo tus fotos / Diseñando tu portada / Últimos detalles),
    barra 33 / 62 / 90 %, fila de tres pasos (hecho / en curso / pendiente). Si `catalogo_paso` viene vacío se toma el paso 1.
@@ -279,8 +285,10 @@ Ocho estados:
 6. **¡Recién publicado!**: confeti, texto en Caveat y "Compartir" (abre la hoja del catálogo en línea). Solo si se publicó hace menos de 3
    días y no se vio aún en este dispositivo (`localStorage`, clave `deslizapp-catalogo-visto-{tienda}`); se marca visto al tocar
    "Compartir" o a los 6 s en pantalla.
-7. **En línea**: chip verde (#2e8b57), enlace con el dominio en negrita, botones redondos compartir y abrir; tocar el cuerpo abre la hoja
-   "Tu catálogo en línea" (`hoja-catalogo-en-linea.tsx`: abrir, copiar, WhatsApp, cambiar enlace).
+7. **En línea**: una sola fila — punto verde, «En línea» con el enlace y el botón compacto «Compartir» (hoja nativa). Tocar la tarjeta abre
+   el catálogo. La celebración «¡Ya estás en línea!» (estado 6) sale al publicar la primera vez. La hoja `hoja-catalogo-en-linea.tsx`
+   (abrir, copiar, WhatsApp, cambiar enlace) se abre desde la celebración. No hay «Dejar de mostrarlo» en pantalla por ahora: quien quiera
+   dejar de mostrar su catálogo le escribe a Deslizapp (`despublicar_mi_catalogo` sigue en la base, sin usar en la interfaz).
 8. **Pausado**: "Ver plan" abre lo mismo que el bloque del plan.
 
 Publicado sin `url_catalogo` https válido (comprobado con `new URL`) se muestra como **Sin catálogo** con "Conectar mi catálogo" (abre Mi
@@ -1072,3 +1080,5 @@ Una tienda puede vender varios rubros; cada producto lleva su tipo. En la app: *
 Con más de un rubro, el nombre del catálogo (título de la pestaña Catálogo y cabecera fija de la hoja de producto) abre un **menú flotante** (`MenuFlotante`, `docs/09` §16), no el selector nativo de iOS. Opciones: cada catálogo con su cantidad y, al final, «Lo que vendes» («Vendo otra cosa también» en la hoja). Sin «Todo». El botón «+ Producto» queda siempre abajo a la derecha; solo se esconde si la tienda entera no tiene productos. Un catálogo vacío muestra el estado pequeño «Todavía no hay nada en X.» sin botón propio.
 
 - **Botón de crear, siempre el flotante (8 oct 2026):** en Pedidos, Catálogo, Clientes y Promos el único botón de crear es `BotonFlotante` (abajo a la derecha), también cargando, con la pestaña vacía, con filtro sin resultados o con error. Los estados vacíos no llevan botón: solo ilustración, título y un remate que manda al flotante («Toca + Cliente…», «Toca + Promo…», «Toca + Producto…»). Se quitaron «Agregar cliente», «Crear promo» y «Publicar mi primer producto».
+
+- **Ficha técnica y descripción (8 oct 2026, `docs/prompts/ficha-tecnica.md`, diseño en `referencias/ficha-tecnica/`):** en la hoja de producto, «Descripción» (hasta 600 caracteres, contador «43 / 600» y «Lo que escribas aquí también lo usa la búsqueda de tu catálogo.») va debajo del precio; «Detalles» solo sale en un producto que ya tiene Detalles distintos de la descripción (Esencias Michel); la tarjeta «Ficha técnica» sube, cambia o quita (con confirmación) UNA foto de las especificaciones, que se guarda junto con el producto. Un Ayudante lo ve apagado («Esto lo hace quien administra la tienda.»). En el catálogo del comprador la descripción se ve siempre bajo el precio, a dos líneas y terminada en un «…» tocable (sin la palabra «más») que abre el detalle; con ficha sale un círculo de vidrio con el ícono al lado de «Ver presentaciones», o una píldora «Ficha técnica» si no hay presentaciones; abre un visor a pantalla completa con zoom (pellizcar y mover, o un toque alterna ajustar y acercar). Se aparta del dibujo en: el límite de la descripción es 600 (el dibujo decía 300) y el título del campo es «Descripción», no «Descripción corta».

@@ -41,6 +41,7 @@ import { MenuCatalogo } from "./menu-catalogo";
 import { DialogoCatalogo } from "./dialogo";
 import { HojaPedido, HojaOpiniones, HojaAviso } from "./hojas-compra";
 import { HojaPresentaciones } from "./hoja-presentaciones";
+import { VisorFicha } from "./visor-ficha";
 import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
 import { Coach, Historias, ArteFinal } from "./historias";
 import { Planes } from "./planes";
@@ -62,6 +63,7 @@ type Vista =
   | "aviso"
   | "coach"
   | "presentaciones"
+  | "ficha"
   | "historia"
   | "planes"
   | null;
@@ -788,6 +790,7 @@ export function Catalogo({
             elegir={(vid, on) => elegir(p.slug, vid, on)}
             eleccion={elecciones[p.slug] ?? null}
             abrirPresentaciones={(modo) => abrirPresentaciones(p.slug, modo)}
+            abrirFicha={() => abrirTipo("ficha", p.slug)}
             registrarBurst={(fn) => (fn ? bursts.current.set(p.slug, fn) : bursts.current.delete(p.slug))}
             perfil={showPerfil}
             opiniones={() =>
@@ -1343,6 +1346,7 @@ export function Catalogo({
           cerrar={cerrar}
         />
       )}
+      {vista === "ficha" && producto?.fichaUrl && <VisorFicha p={producto} cerrar={cerrar} />}
       {vista === "opiniones" && producto && (
         <HojaOpiniones t={t} p={producto} cerrar={cerrar} />
       )}

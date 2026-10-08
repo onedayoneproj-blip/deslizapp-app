@@ -182,6 +182,7 @@ try {
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Kiara Pink"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[placeholder="0"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
     // Cerrar el teclado tocando fuera y confirmar que la hoja se sigue cerrando deslizando
     await page.evaluate(() => document.activeElement.blur());
     await page.waitForTimeout(200);

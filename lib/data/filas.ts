@@ -104,6 +104,7 @@ export type FilaProducto = {
   detalles?: Detalles;
   opciones?: OpcionProducto[];
   fotos_por_valor?: Record<string, Record<string, string>>;
+  ficha_url?: string | null;
   por_encargo?: boolean;
   encargo_texto?: string | null;
   rubro?: string | null;
@@ -317,6 +318,7 @@ export function aProducto(f: FilaProducto, fecha: AjusteFecha = igual): Producto
     detalles: f.detalles ?? {},
     opciones: f.opciones ?? [],
     fotosPorValor: f.fotos_por_valor ?? {},
+    fichaUrl: f.ficha_url ?? null,
     porEncargo: f.por_encargo ?? false,
     encargoTexto: f.encargo_texto ?? null,
     ...(f.producto_variantes ? { variantes: ordenarVariantes(f.producto_variantes.map(aVariante)) } : {}),
@@ -458,6 +460,7 @@ export type FilaCatalogoPublico = {
     nombre_vendedora: string | null;
     rubro: string;
     rubros?: string[];
+    indexable?: boolean;
   };
   productos: {
     orden: number | null;
@@ -479,6 +482,7 @@ export type FilaCatalogoPublico = {
     quedan: number | null;
     encargo_texto: string | null;
     fotos_por_valor?: Record<string, Record<string, string>> | null;
+    ficha_url?: string | null;
     variantes: { id: string; valores: Record<string, string>; precio: number; precio_promo: number | null; disponibilidad: string; quedan: number | null }[];
   }[];
 };
@@ -503,6 +507,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       nombreVendedora: t.nombre_vendedora,
       rubro: (t.rubro ?? "general") as Rubro,
       rubros: rubrosDe((t.rubro ?? "general") as Rubro, (t.rubros ?? []) as Rubro[]),
+      indexable: t.indexable !== false,
     },
     productos: (f.productos ?? []).map((p) => ({
       orden: p.orden ?? null,
@@ -520,6 +525,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       detalles: p.detalles ?? {},
       opciones: p.opciones ?? [],
       fotosPorValor: p.fotos_por_valor ?? {},
+      fichaUrl: p.ficha_url ?? null,
       likes: p.likes,
       disponibilidad: p.disponibilidad as Disponibilidad,
       quedan: p.quedan ?? null,

@@ -44,6 +44,7 @@ import {
   crearSolicitudEnDB,
   descartarSolicitudEnDB,
   guardarFotoValorEnDB,
+  guardarFichaEnDB,
   guardarVariantesEnDB,
   marcarAvisadoEnDB,
   pedirAvisoEnDB,
@@ -66,6 +67,8 @@ import {
   pedirCambiosDelCatalogo,
   pedirCatalogo,
   publicarElCatalogo,
+  publicarMiCatalogoEnDB,
+  despublicarMiCatalogoEnDB,
   type DatosMarca,
 } from "./tiendas";
 
@@ -306,6 +309,24 @@ const fuenteDemoBase: FuenteDatos = {
     });
     return t;
   },
+  async publicarMiCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = publicarMiCatalogoEnDB(db, tiendaId, ahora());
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async despublicarMiCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = despublicarMiCatalogoEnDB(db, tiendaId);
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
   async releerTienda(): Promise<void> {
     // La demo vive en el navegador: no hay nadie más que cambie el estado.
   },
@@ -461,6 +482,16 @@ const fuenteDemoBase: FuenteDatos = {
     let actualizado!: Producto;
     escribir((db) => {
       const r = guardarFotoValorEnDB(db, tiendaId, productoId, eje, valor, url, ahora());
+      actualizado = r.producto;
+      return r.db;
+    });
+    return actualizado;
+  },
+
+  async guardarFicha(tiendaId, productoId, foto) {
+    let actualizado!: Producto;
+    escribir((db) => {
+      const r = guardarFichaEnDB(db, tiendaId, productoId, foto, ahora());
       actualizado = r.producto;
       return r.db;
     });
