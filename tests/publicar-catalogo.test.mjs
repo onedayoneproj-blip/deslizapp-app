@@ -54,3 +54,50 @@ test("la app y la base dicen lo mismo: el mínimo y la dirección base", () => {
   assert.match(sql, new RegExp(`v_minimo constant integer := ${C.PRODUCTOS_MINIMOS_PARA_PUBLICAR};`));
   assert.ok(sql.includes(`v_base constant text := '${C.URL_BASE_CATALOGO}';`));
 });
+
+// La demo hace lo mismo que la base (lib/data/tiendas.ts).
+const { construirDesdeSeed } = await import("../lib/data/db.ts");
+const T = await import("../lib/data/tiendas.ts");
+const LINO = "a1000000-0000-4000-8000-000000000003";
+const AHORA = "2026-10-08T12:00:00.000Z";
+const conProductos = (n) => {
+  const d = construirDesdeSeed();
+  const suyos = d.productos.filter((p) => p.tiendaId === LINO && cuentaOk(p)).slice(0, n);
+  return { ...d, productos: [...d.productos.filter((p) => p.tiendaId !== LINO), ...suyos] };
+};
+const cuentaOk = (p) => P.cuentaParaPublicar(p);
+
+test("demo: sin lo mínimo no publica; con lo mínimo sí, con el enlace estándar", () => {
+  assert.throws(() => T.publicarMiCatalogoEnDB(conProductos(2), LINO, AHORA), /te faltan productos con foto/i);
+  const r = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+  assert.equal(r.tienda.catalogoEstado, "publicado");
+  assert.equal(r.tienda.urlCatalogo, "https://deslizapp-app.vercel.app/tienda/lino-y-algodon");
+  assert.equal(r.tienda.catalogoPublicadoEn, AHORA);
+  // Otra vez: no cambia nada.
+  assert.equal(T.publicarMiCatalogoEnDB(r.db, LINO, "2026-10-09T00:00:00.000Z").tienda.catalogoPublicadoEn, AHORA);
+});
+
+test("demo: dejar de mostrar conserva el enlace y el primer momento; volver a publicar no los pierde", () => {
+  const a = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+  const b = T.despublicarMiCatalogoEnDB(a.db, LINO);
+  assert.equal(b.tienda.catalogoEstado, "sin");
+  assert.equal(b.tienda.urlCatalogo, a.tienda.urlCatalogo);
+  assert.equal(b.tienda.catalogoPublicadoEn, AHORA);
+  assert.equal(T.despublicarMiCatalogoEnDB(b.db, LINO).tienda.catalogoEstado, "sin", "otra vez no es un error");
+  const c = T.publicarMiCatalogoEnDB(b.db, LINO, "2026-10-10T00:00:00.000Z");
+  assert.equal(c.tienda.catalogoPublicadoEn, AHORA);
+});
+
+test("demo: no pisa un flujo manual en curso ni publica una tienda pausada", () => {
+  const d = conProductos(3);
+  const enCurso = { ...d, tiendas: d.tiendas.map((t) => (t.id === LINO ? { ...t, catalogoEstado: "solicitado" } : t)) };
+  assert.throws(() => T.publicarMiCatalogoEnDB(enCurso, LINO, AHORA), /en camino/);
+  assert.throws(() => T.despublicarMiCatalogoEnDB(enCurso, LINO), /cambió de estado/);
+  const pausada = { ...d, tiendas: d.tiendas.map((t) => (t.id === LINO ? { ...t, estado: "pausada" } : t)) };
+  assert.throws(() => T.publicarMiCatalogoEnDB(pausada, LINO, AHORA), /en pausa/);
+});
+
+test("demo: «Simular avance» arranca el flujo del equipo desde «sin»", () => {
+  const r = T.avanzarCatalogoDemo(conProductos(0), LINO);
+  assert.equal(r.tienda.catalogoEstado, "solicitado");
+});
