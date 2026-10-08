@@ -277,6 +277,7 @@ export function catalogoPublicoDeDB(db: DB, slug: string, ahora: Date): Catalogo
       nombreVendedora: t.nombreVendedora ?? null,
       rubro: t.rubro,
       rubros: rubrosDeTienda(t),
+      indexable: t.estado === "activa",
     },
     productos,
   };

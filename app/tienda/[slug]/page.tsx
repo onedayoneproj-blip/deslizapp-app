@@ -37,6 +37,9 @@ export async function generateMetadata({
   return {
     title: c.tienda.nombre,
     description: descripcion,
+    // Una tienda en prueba tiene catálogo público, pero sin indexar: los buscadores no la listan. Las vistas previas de
+    // WhatsApp e Instagram (Open Graph, abajo) no dependen de esto. Las tiendas activas quedan como siempre (sin etiqueta).
+    ...(c.tienda.indexable ? {} : { robots: { index: false, follow: false } }),
     openGraph: {
       title: c.tienda.nombre,
       description: descripcion,

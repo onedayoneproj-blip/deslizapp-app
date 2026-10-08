@@ -320,6 +320,10 @@ export function traducirErrorSupabase(e: unknown): Error {
   if (mensaje.includes("pedido_con_abonos")) return new PedidoConAbonos();
   // RPC del catálogo en línea
   if (mensaje.includes("catalogo_estado_invalido")) return new DatosInvalidos("Tu catálogo ya cambió de estado. Actualiza la pantalla para ver dónde va.");
+  // RPC publicar_mi_catalogo / despublicar_mi_catalogo
+  if (mensaje.includes("catalogo_incompleto")) return new DatosInvalidos("Todavía te faltan productos con foto para publicar tu catálogo. Agrégalos y vuelve.");
+  if (mensaje.includes("catalogo_en_curso")) return new DatosInvalidos("Tu catálogo ya va en camino con nuestro equipo. Actualiza la pantalla para ver dónde va.");
+  if (mensaje.includes("tienda_pausada")) return new DatosInvalidos("Tu tienda está en pausa. Actívala con tu plan para publicar tu catálogo.");
   if (mensaje.includes("notas_invalidas")) return new DatosInvalidos("Cuéntanos qué quieres cambiar (hasta 500 caracteres).");
   if (mensaje.includes("catalogo_sin_enlace")) return new DatosInvalidos("Todavía no tenemos el enlace de tu catálogo. Escríbenos y lo conectamos.");
   if (mensaje.includes("tienda_no_encontrada")) return new DatosInvalidos("No encontramos tu tienda. Vuelve a entrar.");

@@ -1,5 +1,6 @@
 import type { EstiloMarca } from "../marca";
 import { errorDeRubros, productosConTipoQuitado, type Rubro } from "../rubros";
+import { enlaceAlPublicar, faltanParaPublicar } from "../publicar-catalogo";
 import type { Tienda, Usuario } from "../types";
 import type { DB } from "./db";
 import { CreditosInsuficientes, DatosInvalidos, mensajeRubroEnUso } from "./errores";
@@ -107,12 +108,40 @@ export function publicarElCatalogo(db: DB, tiendaId: string, ahora: string) {
   return conTienda(db, { ...t, catalogoEstado: "publicado", catalogoPublicadoEn: ahora, catalogoNotasCambios: null });
 }
 
+/** sin → publicado, de una vez (RPC `publicar_mi_catalogo`): exige el mínimo de productos con foto; ya publicado no hace nada. */
+export function publicarMiCatalogoEnDB(db: DB, tiendaId: string, ahora: string) {
+  const t = tiendaDelCatalogo(db, tiendaId);
+  if (t.estado === "pausada") throw new DatosInvalidos("Tu tienda está en pausa. Actívala con tu plan para publicar tu catálogo.");
+  if (t.catalogoEstado === "publicado") return { db, tienda: t };
+  if (t.catalogoEstado !== "sin") throw new DatosInvalidos("Tu catálogo ya va en camino con nuestro equipo. Actualiza la pantalla para ver dónde va.");
+  if (faltanParaPublicar(db.productos.filter((p) => p.tiendaId === t.id)) > 0) {
+    throw new DatosInvalidos("Todavía te faltan productos con foto para publicar tu catálogo. Agrégalos y vuelve.");
+  }
+  return conTienda(db, {
+    ...t,
+    catalogoEstado: "publicado",
+    catalogoPublicadoEn: t.catalogoPublicadoEn ?? ahora,
+    catalogoNotasCambios: null,
+    urlCatalogo: enlaceAlPublicar(t.slug),
+  });
+}
+
+/** publicado → sin (RPC `despublicar_mi_catalogo`): conserva el enlace y el primer momento publicado. */
+export function despublicarMiCatalogoEnDB(db: DB, tiendaId: string) {
+  const t = tiendaDelCatalogo(db, tiendaId);
+  if (t.catalogoEstado === "sin") return { db, tienda: t };
+  if (t.catalogoEstado !== "publicado") throw new DatosInvalidos(ESTADO_INVALIDO);
+  return conTienda(db, { ...t, catalogoEstado: "sin" });
+}
+
 /**
- * SOLO DEMO: hace de "el equipo". solicitado → generando (paso 1) → paso 2 → paso 3 → revisar (con un enlace de ejemplo si no
+ * SOLO DEMO: hace de "el equipo". sin → solicitado → generando (paso 1) → paso 2 → paso 3 → revisar (con un enlace de ejemplo si no
  * hay) y cambios → revisar. En los demás estados no hace nada.
  */
 export function avanzarCatalogoDemo(db: DB, tiendaId: string) {
   const t = tiendaDelCatalogo(db, tiendaId);
+  // Desde «sin» la demo arranca el flujo del equipo (la dueña ya publica sola, así que ya no hay un botón «Pedirlo»).
+  if (t.catalogoEstado === "sin") return conTienda(db, { ...t, catalogoEstado: "solicitado", catalogoSolicitadoEn: new Date().toISOString() });
   if (t.catalogoEstado === "solicitado") return conTienda(db, { ...t, catalogoEstado: "generando", catalogoPaso: 1 });
   if (t.catalogoEstado === "generando") {
     const paso = t.catalogoPaso ?? 1;

@@ -40,6 +40,7 @@ psql_local < scripts/probar-ver-como-bloqueo-db.sql
 psql_local < scripts/probar-permisos-db.sql
 psql_local < scripts/probar-presentaciones-db.sql
 psql_local < scripts/probar-tipo-de-producto-db.sql
+psql_local < scripts/probar-publicar-catalogo-db.sql
 python3 scripts/probar-enlaces-concurrencia.py
 node scripts/comparar-admin-reglas.mjs
 node scripts/comparar-admin-mensualidades.mjs

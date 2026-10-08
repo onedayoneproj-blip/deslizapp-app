@@ -394,6 +394,8 @@ export type CatalogoPublico = {
     rubro: Rubro;
     /** Lo que vende la tienda; con más de uno, el catálogo muestra tipos. */
     rubros: Rubro[];
+    /** Las tiendas en prueba salen sin indexar para buscadores (noindex); las activas, como siempre. */
+    indexable: boolean;
   };
   productos: ProductoPublico[];
 };

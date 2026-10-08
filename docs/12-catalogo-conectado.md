@@ -113,3 +113,10 @@ Implementación inicial publicada por Claude en `feature/pedido-catalogo-panel` 
 ### Ver por catálogo (comprador, 7 oct 2026)
 
 Con más de un rubro con productos: en el perfil, el rótulo `.gridtabs` es una barra de **pestañas de texto** (Instagram: la activa en negrita con raya debajo; «Todo» primero, luego cada catálogo, sin números; con muchas, scroll horizontal; `tablist`/`tab`, flechas). En la hoja «Colecciones», una fila «Catálogo» abre un **menú flotante** propio (`components/tienda/menu-catalogo.tsx`; check en el activo; cierra al elegir, al tocar fuera y con Escape, antes que la hoja). Sin `<select>` nativo. Un solo estado (`catalogoActivo`, `null` = Todo) filtra colecciones, cuadrícula, feed, círculos y contadores; si la colección elegida desaparece, vuelve a «Todos». Producto sin rubro = principal. Con varios catálogos los textos dicen «productos». Buscador y cabecera no cambian; con un solo rubro nada cambia. Lógica en `lib/tienda/catalogo.ts`; prueba: `scripts/probar-catalogo-por-tipo.mjs`. Idea pendiente: enlace por catálogo (`?catalogo=`).
+
+### Publicar mi catálogo (8 oct 2026)
+
+Decisión de Lewis (7 oct): la tienda **publica su propio catálogo** y una tienda **en prueba** tiene catálogo público en cuanto lo publica
+(sin indexar para buscadores; Esencias Michel, activa, no cambia). Mínimo para publicar: 3 productos visibles con foto. Solo la dueña
+publica; dejar de mostrarlo, por ahora, se pide a Deslizapp (la función `despublicar_mi_catalogo` existe en la base y conserva el enlace). El comprador ve, pide, da ♥, pide «Avísame» y abre su pedido igual en una
+tienda en prueba, porque todas las funciones públicas pasan por `tienda_publica`. Detalle en `HANDOFF.md` y `docs/04-pantallas.md`.

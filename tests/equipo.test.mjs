@@ -133,7 +133,14 @@ test("demo: mirando como Ayudante, las operaciones de catálogo, créditos y mar
   await assert.rejects(() => comoEditor.pedirRetoque(), /quien administra/);
   await assert.rejects(() => comoEditor.guardarMarcaRetoque(), /quien administra/);
   const comoAdmin = D.conPermisosDeLaDemo(base, () => db("administrador"));
-  for (const n of Object.keys(D.GRUPO_DE_OPERACION)) assert.equal(await comoAdmin[n](), "hecho", n);
+  // Publicarse al público (grupo «equipo») es solo de la dueña: ni el Administrador.
+  for (const n of Object.keys(D.GRUPO_DE_OPERACION).filter((n) => D.GRUPO_DE_OPERACION[n] !== "equipo")) assert.equal(await comoAdmin[n](), "hecho", n);
+  for (const n of ["publicarMiCatalogo", "despublicarMiCatalogo"]) {
+    assert.equal(D.GRUPO_DE_OPERACION[n], "equipo", n);
+    await assert.rejects(() => comoAdmin[n](), /quien administra/, n);
+  }
   const comoDuena = D.conPermisosDeLaDemo(base, () => db("dueno"));
   assert.equal(await comoDuena.eliminarProducto(), "hecho");
+  assert.equal(await comoDuena.publicarMiCatalogo(), "hecho");
+  assert.equal(await comoDuena.despublicarMiCatalogo(), "hecho");
 });
