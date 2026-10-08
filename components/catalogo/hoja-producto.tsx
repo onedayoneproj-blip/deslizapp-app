@@ -532,7 +532,7 @@ function FormularioProducto({
       tienda: tiendaPublicaDe(tienda),
       producto: productoPublicoDeBorrador({
         nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? opciones : [], presentaciones: tieneOpciones ? borradorPres : [],
-        stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo, fotosPorValor, fichaUrl,
+        stock: producto && !tieneOpciones && inventario.propuesta !== null ? inventario.propuesta : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo, fotosPorValor, fichaUrl,
       }),
     };
   };

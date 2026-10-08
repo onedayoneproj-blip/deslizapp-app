@@ -227,11 +227,12 @@ export function FlujoPresentaciones({
   const siguiente = () => {
     if (pista) return;
     const ya = borrador.pres.length > 0 && mismosEjes(finales, borrador.opciones);
+    // Desde lo que el dueño ya tiene en el borrador (con sus cantidades tocadas), o desde lo que el producto traía al abrir si aún no hay.
+    const fuente = borrador.pres.length > 0 ? { opciones: borrador.opciones, pres: borrador.pres } : { opciones: estado.opciones, pres: estado.pres };
     const ir = () => {
       if (ya) return setS((x) => ({ ...x, paso: 2, desdePaso1: true }));
       try {
-        // Siempre desde lo que el producto tenía al abrir, con lo ya tocado en el paso 2 encima.
-        const c = cambiarEjes(estado.opciones, estado.pres, finales, stockSimple);
+        const c = cambiarEjes(fuente.opciones, fuente.pres, finales, stockSimple);
         setS((x) => ({
           ...x,
           paso: 2,
@@ -247,7 +248,7 @@ export function FlujoPresentaciones({
     if (ya) return ir();
     let c;
     try {
-      c = cambiarEjes(estado.opciones, estado.pres, finales, stockSimple);
+      c = cambiarEjes(fuente.opciones, fuente.pres, finales, stockSimple);
     } catch (e) {
       return avisar(e instanceof Error ? e.message : "No se pudo.");
     }
