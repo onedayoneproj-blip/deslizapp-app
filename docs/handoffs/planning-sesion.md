@@ -73,6 +73,7 @@ Sin prompt todavía (los escribe Planning cuando toque):
 
 ## Decisiones tomadas en esta sesión
 
+- **Resplandor arriba en el panel (8 oct, Lewis):** es el efecto de Safari/iOS 26 bajo la barra de estado, teñido con `themeColor` crema; no es código nuestro. Se propuso tapar con una franja propia (crema + desenfoque por capas); **Lewis decidió dejarlo como está**. No volver a proponerlo salvo que él lo pida.
 - **Presentaciones de producto** (7 oct): un producto con sus presentaciones (no un producto por talla); hoja propia por presentación; foto por color; nombre «Presentaciones» en el panel. En el catálogo del cliente, **opción B** («Ver presentaciones» con hoja de todas juntas) y ♥ sin elegir abre la hoja de pastillas de la opción A. Diseño en `referencias/presentaciones/`; prompts `presentaciones-panel.md` y `presentaciones-catalogo.md`.
 
 - **Marianny = Michel** (Marianny Michel, la dueña de Esencias Michel; en la base, Michel Guerrero). Es la titular de la suscripción sin límite de Esencias Michel.
