@@ -66,6 +66,8 @@ import {
   pedirCambiosDelCatalogo,
   pedirCatalogo,
   publicarElCatalogo,
+  publicarMiCatalogoEnDB,
+  despublicarMiCatalogoEnDB,
   type DatosMarca,
 } from "./tiendas";
 
@@ -301,6 +303,24 @@ const fuenteDemoBase: FuenteDatos = {
     let t!: Tienda;
     escribir((db) => {
       const r = publicarElCatalogo(db, tiendaId, ahora());
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async publicarMiCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = publicarMiCatalogoEnDB(db, tiendaId, ahora());
+      t = r.tienda;
+      return r.db;
+    });
+    return t;
+  },
+  async despublicarMiCatalogo(tiendaId: string): Promise<Tienda> {
+    let t!: Tienda;
+    escribir((db) => {
+      const r = despublicarMiCatalogoEnDB(db, tiendaId);
       t = r.tienda;
       return r.db;
     });

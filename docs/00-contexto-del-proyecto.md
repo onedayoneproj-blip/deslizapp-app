@@ -103,6 +103,8 @@ La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño. **E
 
 **Selector de catálogos** (`docs/prompts/selector-de-catalogos.md`, 7 oct 2026): tras #67 (tipo de producto), el nombre del catálogo es el título de la pestaña Catálogo y el selector (un catálogo a la vez, sin «Todo»), y en la hoja de producto va fijo en la cabecera. Diseño: `referencias/selector-catalogos/`. **Hecho** (rama `feat/selector-catalogos`, v0.43.0): ver `docs/04-pantallas.md` (Tipo de producto).
 
+**Publicar mi catálogo** (`docs/prompts/publicar-catalogo.md`, PR #74 mergeado el 8 oct 2026): la dueña publica su catálogo sola con 3 productos con foto; una tienda en prueba tiene catálogo público al publicarlo, sin indexar. Dejar de mostrarlo se pide por ahora a Deslizapp (la función `despublicar_mi_catalogo` existe en la base sin usarse en pantalla).
+
 **Pendientes sueltos:**
 - **Mi marca «mágica»** (cuestionario de historias + tarjeta de marca con IA, nombre de marketing por decidir): idea anotada en `docs/15-mi-marca-magica.md`, después de #57 y con lienzo de diseño primero.
 - Pasar Promos al sistema de diseño (`components/ui`).

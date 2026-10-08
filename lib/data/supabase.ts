@@ -586,6 +586,14 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       const f = await requerido<FilaTienda>(supabase.rpc("publicar_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
       return cambio(aTienda(f));
     },
+    async publicarMiCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("publicar_mi_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
+    async despublicarMiCatalogo(tiendaId) {
+      const f = await requerido<FilaTienda>(supabase.rpc("despublicar_mi_catalogo", { p_tienda_id: tiendaId }), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
     async releerTienda(tiendaId) {
       // Solo se olvida lo de la tienda (el resto sigue en caché) y las pantallas vuelven a leer.
       enVuelo.delete(`tienda:${tiendaId}`);

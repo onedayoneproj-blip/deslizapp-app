@@ -458,6 +458,7 @@ export type FilaCatalogoPublico = {
     nombre_vendedora: string | null;
     rubro: string;
     rubros?: string[];
+    indexable?: boolean;
   };
   productos: {
     orden: number | null;
@@ -503,6 +504,7 @@ export function aCatalogoPublico(f: FilaCatalogoPublico): CatalogoPublico {
       nombreVendedora: t.nombre_vendedora,
       rubro: (t.rubro ?? "general") as Rubro,
       rubros: rubrosDe((t.rubro ?? "general") as Rubro, (t.rubros ?? []) as Rubro[]),
+      indexable: t.indexable !== false,
     },
     productos: (f.productos ?? []).map((p) => ({
       orden: p.orden ?? null,

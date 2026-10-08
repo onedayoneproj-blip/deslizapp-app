@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
+import { textoFaltan } from "@/lib/publicar-catalogo";
 import { ETIQUETAS_PASOS, NOMBRES_PASOS, PROGRESO_PASOS, pasoActual, type VistaCatalogo } from "@/lib/catalogo-estado";
 import { menosMovimiento } from "@/lib/movimiento";
 import type { Tienda } from "@/lib/types";
@@ -13,6 +14,12 @@ import { Boton as BotonUI, Tarjeta } from "../ui";
 // en app/globals.css (`cat-anim-*`, solo transform / opacity).
 
 export type AccionesTarjeta = {
+  /** «Publicar mi catálogo» (abre la hoja de confirmación). */
+  alPublicar: () => void;
+  /** Llevar a crear un producto (cuando faltan productos con foto para publicar). */
+  alCrearProducto: () => void;
+  /** Publicar es solo de la dueña: sin ser ella, el botón se ve apagado y, al tocarlo, llama esto (explica por qué). */
+  soloDuena?: () => void;
   alPedir: () => void;
   alRevisar: () => void;
   /** Comparte el enlace del catálogo (hoja nativa de compartir o, si no hay, lo copia). */
@@ -29,7 +36,7 @@ export type AccionesTarjeta = {
  * Dibuja la tarjeta de la `vista` dada. Cuando la vista cambia con la pantalla abierta, la tarjeta anterior sale con un fundido y
  * la nueva entra con la animación "entrar"; con "reducir movimiento" el cambio es instantáneo.
  */
-export function TarjetaCatalogo({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta }) {
+export function TarjetaCatalogo({ vista, tienda, acciones, faltan = 0 }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta; faltan?: number }) {
   const [mostrada, setMostrada] = useState(vista);
   const [saliendo, setSaliendo] = useState(false);
   useEffect(() => {
@@ -52,16 +59,21 @@ export function TarjetaCatalogo({ vista, tienda, acciones }: { vista: VistaCatal
   return (
     <section aria-label="Catálogo en línea" aria-live="polite" className="min-h-[76px]">
       <div key={mostrada} className={`cat-anim-entrar ${saliendo ? "cat-anim-salir" : ""}`}>
-        <Estado vista={mostrada} tienda={tienda} acciones={acciones} />
+        <Estado vista={mostrada} tienda={tienda} acciones={acciones} faltan={faltan} />
       </div>
     </section>
   );
 }
 
-function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta }) {
+function Estado({ vista, tienda, acciones, faltan }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta; faltan: number }) {
   switch (vista) {
     case "sin":
-      return <Sin boton="Pedirlo" alTocar={acciones.sinPermiso ?? acciones.alPedir} apagado={!!acciones.sinPermiso} />;
+      // La tienda publica sola: sin lo mínimo, dice qué falta; con lo mínimo, «Publicar mi catálogo» (solo la dueña).
+      return faltan > 0 ? (
+        <Sin subtitulo={textoFaltan(faltan)} boton="Crear producto" alTocar={acciones.alCrearProducto} debajo />
+      ) : (
+        <Sin subtitulo="Ya tienes lo necesario. Tus clientes lo verán en un enlace tuyo." boton="Publicar mi catálogo" alTocar={acciones.soloDuena ?? acciones.alPublicar} apagado={!!acciones.soloDuena} debajo mas={false} />
+      );
     case "conectar":
       return <Sin boton="Conectar mi catálogo" alTocar={acciones.alConectar} debajo />;
     case "solicitado":
@@ -129,7 +141,7 @@ function Icono({ children, tamano = 22, trazo = "#174b3a", grosor = 2 }: { child
 // ---------------------------------------------------------------------------
 
 /** 1 · Sin catálogo (y "Conectar mi catálogo" cuando figura publicado pero no hay un enlace válido). */
-function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: string; alTocar: () => void; debajo?: boolean; apagado?: boolean }) {
+function Sin({ boton, alTocar, subtitulo = "Lo armamos por ti con tus fotos. Tú solo lo compartes.", debajo = false, mas = true, apagado = false }: { boton: string; alTocar: () => void; subtitulo?: string; debajo?: boolean; mas?: boolean; apagado?: boolean }) {
   return (
     <div className={`${CAJA} border-[1.5px] border-dashed border-bosque/30 bg-papel`}>
       <span aria-hidden="true" className="cat-anim-nota absolute top-1 right-[18px] font-mano text-[17px] text-mandarina-texto" style={{ transform: "rotate(-4deg)" }}>
@@ -144,7 +156,7 @@ function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: strin
           </span>
           <span aria-hidden="true" className="cat-anim-titilar2 absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-mandarina" />
         </Insignia>
-        <Textos titulo="Tu catálogo en línea" subtitulo="Lo armamos por ti con tus fotos. Tú solo lo compartes." />
+        <Textos titulo="Tu catálogo en línea" subtitulo={subtitulo} />
         {!debajo && (
           <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido={!apagado} apagado={apagado}>
             {boton}
@@ -153,12 +165,14 @@ function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: strin
       </div>
       {debajo && (
         <div className="mt-3 flex">
-          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido>
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-bosque text-papel">
-              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
+          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido={!apagado} apagado={apagado}>
+            {mas && (
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-bosque text-papel">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+            )}
             {boton}
           </Boton>
         </div>
