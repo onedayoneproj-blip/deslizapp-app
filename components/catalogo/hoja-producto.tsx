@@ -21,7 +21,7 @@ import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
@@ -518,7 +518,7 @@ function FormularioProducto({
     }
   };
 
-  /** El borrador como lo vería quien compra: lo que «Cómo se ve» le manda al reel (solo se arma al abrirse). */
+  /** El borrador como lo vería quien compra: lo que «Vista previa» le manda al reel (solo se arma al abrirse). */
   const datosVista = (): DatosVistaPrevia | null => {
     if (!tienda) return null;
     const medioDeId = new Map(medios.flatMap((m) => (m.tipo === "foto" ? [[m.id, m.url] as const] : [])));
@@ -702,17 +702,15 @@ function FormularioProducto({
 
       {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
       {!historialAbierto && (
-        <HojaFijoAbajo>
-          {/* Dos botones que flotan solos, del mismo ancho y con sombra: sin tarjeta ni recuadro detrás. */}
-          <div className="pointer-events-auto mx-4 grid grid-cols-2 gap-3 pb-[max(0.75rem,var(--safe-abajo))]" data-barra-producto="">
-            <Boton jerarquia="secundario" tamano="grande" anchoCompleto className={!(!producto || !inventario.pendiente || tieneOpciones) ? "col-span-2 shadow-flotante" : "shadow-flotante"} onClick={() => setViendo(true)}>Cómo se ve</Boton>
-            {(!producto || !inventario.pendiente || tieneOpciones) && (
-              <Boton tamano="grande" anchoCompleto className="shadow-flotante" cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
-                {producto ? "Guardar cambios" : "Publicar"}
-              </Boton>
-            )}
-          </div>
-        </HojaFijoAbajo>
+        // Al final de la página, como en las demás hojas de registro (pedido nuevo): dos botones grandes del mismo ancho.
+        <div className="flex flex-col gap-3" data-barra-producto="">
+          <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={() => setViendo(true)}>Vista previa</Boton>
+          {(!producto || !inventario.pendiente || tieneOpciones) && (
+            <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
+              {producto ? "Guardar cambios" : "Publicar"}
+            </Boton>
+          )}
+        </div>
       )}
       <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible={activo && !bloqueaVisible} datos={datosVista} />
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}

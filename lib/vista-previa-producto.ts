@@ -1,4 +1,4 @@
-// «Cómo se ve» (docs/prompts/presentaciones-por-pasos.md §8): el borrador de la hoja de producto convertido a `ProductoPublico`, la
+// «Vista previa» (docs/prompts/presentaciones-por-pasos.md §8): el borrador de la hoja de producto convertido a `ProductoPublico`, la
 // misma forma que lee el catálogo del comprador, para montar el mismo reel con lo que aún no se guarda. Lógica pura.
 import { disponibilidad } from "./data/catalogo";
 import { claveVariante, type Presentacion } from "./presentaciones";
