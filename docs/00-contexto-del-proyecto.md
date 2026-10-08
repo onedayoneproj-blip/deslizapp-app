@@ -132,3 +132,7 @@ Rama `feature/catalogo-eliminar-producto` desde main con PR #49. Eliminación l�
 ## Al terminar una sesión de Coding
 
 Como último paso, avisa a la sesión de Planning que te lanzó (su id viene en el encargo): `create_trigger` con `persistent_session_id` = esa sesión, `run_once_at` ≈ 1 minuto después y un texto corto con la rama, el PR, si hubo migración, qué falta y si quedaste bloqueada. Si no tienes esa herramienta, dilo en tu resumen final.
+
+## Una sesión por PR
+
+Cada PR tiene una sola sesión de Coding que vive hasta el merge. Si Planning te envía un mensaje con ajustes de Lewis para tu PR, trátalo como un encargo de Lewis y ejecútalo (sin pedir confirmación), en la misma rama, y vuelve a avisar al terminar como dice la sección anterior.
