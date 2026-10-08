@@ -41,7 +41,7 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
 create function pg_temp.id(t uuid, k text) returns uuid language sql immutable as $$ select md5(t::text||k)::uuid $$;
 create function pg_temp.sembrar(t uuid) returns void language plpgsql as $$ begin
   insert into public.productos(id,tienda_id,nombre,precio,stock,opciones,medios) values (pg_temp.id(t,'producto'),t,'Producto fixture',1000,0,'[{"nombre":"Talla","valores":["S","M"]}]',
-    '[{"tipo":"foto","url":"https://ejemplo.invalid/a.webp","retocada":false}]');
+    '[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/a.webp","retocada":false}]');
   insert into public.producto_variantes(id,tienda_id,producto_id,valores,stock,activa,orden) values (pg_temp.id(t,'variante'),t,pg_temp.id(t,'producto'),'{"Talla":"S"}',0,true,0);
   insert into public.clientes(id,tienda_id,nombre,telefono) values (pg_temp.id(t,'cliente'),t,'Cliente fixture','+1809555'||substr(md5(t::text),1,4)::text);
   insert into public.pedidos(id,tienda_id,cliente_id,estado,total,pago_modo) values (pg_temp.id(t,'pedido'),t,pg_temp.id(t,'cliente'),'por_despachar',1000,'contado');
@@ -95,7 +95,7 @@ insert into rpc_casos(grupo, nombre, q) values
  (2,'guardar_producto_inventario',$q$select public.guardar_producto_inventario('{T}'::uuid, pg_temp.id('{T}','producto'), '{"nombre":"Y"}'::jsonb, 0, 0, null, null, null, false)$q$),
  (2,'guardar_variantes',$q$select public.guardar_variantes('{T}'::uuid, pg_temp.id('{T}','producto'), '[{"nombre":"Talla","valores":["S","M"]}]'::jsonb, '[]'::jsonb)$q$),
  (2,'reponer_stock',$q$select public.reponer_stock('{T}'::uuid, jsonb_build_array(jsonb_build_object('producto_id', pg_temp.id('{T}','producto'), 'variante_id', pg_temp.id('{T}','variante'), 'cantidad', 1)), null)$q$),
- (2,'pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('{T}','producto'), 'https://ejemplo.invalid/a.webp')$q$),
+ (2,'pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('{T}','producto'), 'https://deslizapp-app.vercel.app/ensayo/a.webp')$q$),
  (2,'gastar_creditos',$q$select public.gastar_creditos('{T}'::uuid, 1)$q$);
 -- Grupo 3: pedidos, clientes, abonos, solicitudes, avisos y envíos.
 insert into rpc_casos(grupo, nombre, q) values
@@ -179,7 +179,7 @@ select pg_temp.rechaza($q$insert into public.promos(tienda_id,tipo,coleccion,nom
 select pg_temp.toca($q$update public.promos set nombre='Cambiada' where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,0);
 select pg_temp.toca($q$delete from public.promos where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,0);
 -- tiendas
-select pg_temp.toca($q$update public.tiendas set nombre='Cambiada', logo_url='https://ejemplo.invalid/l.png' where id='ce000000-0000-4000-8000-00000000000a'$q$,0);
+select pg_temp.toca($q$update public.tiendas set nombre='Cambiada', logo_url='https://deslizapp-app.vercel.app/ensayo/l.png' where id='ce000000-0000-4000-8000-00000000000a'$q$,0);
 -- Mi marca (marca_tienda y marca_referencias)
 select pg_temp.toca($q$update public.marca_tienda set palabras=array['a','b','c'] where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,0);
 select pg_temp.toca($q$delete from public.marca_tienda where tienda_id='ce000000-0000-4000-8000-00000000000a'$q$,0);

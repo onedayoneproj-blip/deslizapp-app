@@ -192,6 +192,13 @@ test("despachar_pedido: stock insuficiente con el nombre del producto", () => {
   assert.equal(mensajeDeError(e), "No hay stock suficiente de Kiara Pink 100 ml.");
 });
 
+test("fotos de otro sitio: la restricción de la base sale en español", () => {
+  for (const restriccion of ["productos_medios_hosts_propios", "tiendas_logo_url_propia", "tiendas_foto_perfil_url_propia"]) {
+    const e = traducirErrorSupabase({ code: "23514", message: `new row for relation violates check constraint "${restriccion}"` });
+    assert.match(e.message, /no se subió desde Deslizapp/);
+  }
+});
+
 test("despachar_pedido: no encontrado y no despachable", () => {
   assert.ok(traducirErrorSupabase({ code: "P0002", message: "pedido_no_encontrado" }) instanceof PedidoNoEncontrado);
   assert.ok(traducirErrorSupabase({ code: "P0001", message: "pedido_no_despachable" }) instanceof PedidoNoDespachable);

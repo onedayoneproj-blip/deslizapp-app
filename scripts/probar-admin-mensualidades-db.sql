@@ -9,7 +9,7 @@ insert into auth.users(id,email) values('af000000-0000-4000-8000-000000000001','
 insert into public.admins(usuario_id,email) values('af000000-0000-4000-8000-000000000001','cobros@prueba.invalid');
 insert into public.tiendas(id,nombre,slug,estado,creditos_retoque) values('af000000-0000-4000-8000-000000000002','Cobros fixture','cobros-fixture','activa',0),('af000000-0000-4000-8000-000000000004','Otra fixture','otra-cobros-fixture','activa',0);
 insert into public.miembros(usuario_id,tienda_id,rol) values('af000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000002','dueno');
-insert into public.productos(id,tienda_id,nombre,precio,medios) values('af000000-0000-4000-8000-000000000005','af000000-0000-4000-8000-000000000002','Foto fixture',100,'[{"tipo":"foto","url":"https://example.invalid/foto.jpg"}]');
+insert into public.productos(id,tienda_id,nombre,precio,medios) values('af000000-0000-4000-8000-000000000005','af000000-0000-4000-8000-000000000002','Foto fixture',100,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/foto.jpg"}]');
 select set_config('request.jwt.claim.sub','af000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 select set_config('admin_test.pago',(public.admin_registrar_pago('af000000-0000-4000-8000-000000000002','mensualidad',1000,'efectivo',p_comprobante_url=>'af000000-0000-4000-8000-000000000002/fixture.pdf')->'pago'->>'id'),true);
@@ -46,7 +46,7 @@ select pg_temp.ok((select comprobante_url='af000000-0000-4000-8000-000000000002/
 -- Créditos: compra de 10, reserva 5, reversión rechazada; liberar reserva permite anular.
 set local role authenticated;
 select set_config('admin_test.creditos',public.admin_registrar_pago('af000000-0000-4000-8000-000000000002','creditos',500,'efectivo',p_creditos=>10)->'pago'->>'id',true);
-select set_config('admin_test.trabajo',public.pedir_retoque('af000000-0000-4000-8000-000000000005','https://example.invalid/foto.jpg')->>'id',true);
+select set_config('admin_test.trabajo',public.pedir_retoque('af000000-0000-4000-8000-000000000005','https://deslizapp-app.vercel.app/ensayo/foto.jpg')->>'id',true);
 select pg_temp.rechaza($q$select public.admin_anular_pago(current_setting('admin_test.creditos')::uuid,'reserva')$q$,'creditos_ya_usados');
 select public.admin_retoque_devolver(current_setting('admin_test.trabajo')::uuid,'devolver fixture');
 select public.admin_anular_pago(current_setting('admin_test.creditos')::uuid,'liberado');

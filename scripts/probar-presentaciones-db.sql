@@ -35,9 +35,9 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
 insert into public.productos(id,tienda_id,nombre,precio,stock,opciones,medios) values
  ('af000000-0000-4000-8000-000000000001','ae000000-0000-4000-8000-000000000001','Camisa',1850,0,
   '[{"nombre":"Talla","valores":["S","M"]},{"nombre":"Color","valores":["Negro","Arena"]}]',
-  '[{"tipo":"foto","url":"https://ejemplo.invalid/1.webp","retocada":false},{"tipo":"foto","url":"https://ejemplo.invalid/2.webp","retocada":false},{"tipo":"video","url":"https://ejemplo.invalid/v.mp4","portada":null,"duracion_s":5}]'),
+  '[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/1.webp","retocada":false},{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/2.webp","retocada":false},{"tipo":"video","url":"https://deslizapp-app.vercel.app/ensayo/v.mp4","portada":null,"duracion_s":5}]'),
  ('af000000-0000-4000-8000-000000000002','ae000000-0000-4000-8000-000000000002','Camisa V',1850,0,
-  '[{"nombre":"Color","valores":["Negro"]}]','[{"tipo":"foto","url":"https://ejemplo.invalid/v1.webp","retocada":false}]');
+  '[{"nombre":"Color","valores":["Negro"]}]','[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/v1.webp","retocada":false}]');
 
 -- ═══ 0. Estructura ═══
 select pg_temp.comprobar((select count(*) from information_schema.columns where table_name='productos' and column_name='fotos_por_valor' and is_nullable='NO')=1,'columna fotos_por_valor not null');
@@ -51,44 +51,44 @@ select pg_temp.comprobar((select pg_get_functiondef('public.catalogo_publico(tex
 -- ═══ 1. Permisos por nivel ═══
 set local role authenticated;
 select pg_temp.como('ad000000-0000-4000-8000-00000000000a');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/1.webp')$q$,'42501','sin_permiso');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp')$q$,'42501','sin_permiso');
 select pg_temp.como('ad000000-0000-4000-8000-00000000000f');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/1.webp')$q$,'42501','variantes_sin_permiso');
-select pg_temp.rechaza($q$update public.productos set fotos_por_valor='{"Color":{"Negro":"https://ejemplo.invalid/1.webp"}}' where id='af000000-0000-4000-8000-000000000001'$q$,'42501','');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp')$q$,'42501','variantes_sin_permiso');
+select pg_temp.rechaza($q$update public.productos set fotos_por_valor='{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1.webp"}}' where id='af000000-0000-4000-8000-000000000001'$q$,'42501','');
 reset role;
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')='{}'::jsonb,'Ayudante y extraño no cambiaron nada');
 
 set local role authenticated;
 select pg_temp.como('ad000000-0000-4000-8000-00000000000e');
-select pg_temp.comprobar(public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/1.webp')=
-  '{"Color":{"Negro":"https://ejemplo.invalid/1.webp"}}'::jsonb,'el Editor guarda la foto de Negro');
+select pg_temp.comprobar(public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp')=
+  '{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1.webp"}}'::jsonb,'el Editor guarda la foto de Negro');
 select pg_temp.como('ad000000-0000-4000-8000-00000000000c');
-select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Arena','https://ejemplo.invalid/2.webp');
+select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Arena','https://deslizapp-app.vercel.app/ensayo/2.webp');
 select pg_temp.como('ad000000-0000-4000-8000-00000000000d');
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')=
-  '{"Color":{"Negro":"https://ejemplo.invalid/1.webp","Arena":"https://ejemplo.invalid/2.webp"}}'::jsonb,'la dueña lo lee (y Arena quedó)');
+  '{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1.webp","Arena":"https://deslizapp-app.vercel.app/ensayo/2.webp"}}'::jsonb,'la dueña lo lee (y Arena quedó)');
 
 -- ═══ 2. Validación: eje, valor y url tienen que existir ═══
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Rojo','https://ejemplo.invalid/1.webp')$q$,'22023','foto_valor_invalida');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Tono','Negro','https://ejemplo.invalid/1.webp')$q$,'22023','foto_valor_invalida');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/otra.webp')$q$,'22023','foto_valor_invalida');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/v.mp4')$q$,'22023','foto_valor_invalida');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000009','Color','Negro','https://ejemplo.invalid/1.webp')$q$,'P0002','ajuste_producto_no_encontrado');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Rojo','https://deslizapp-app.vercel.app/ensayo/1.webp')$q$,'22023','foto_valor_invalida');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Tono','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp')$q$,'22023','foto_valor_invalida');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/otra.webp')$q$,'22023','foto_valor_invalida');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/v.mp4')$q$,'22023','foto_valor_invalida');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000009','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp')$q$,'P0002','ajuste_producto_no_encontrado');
 -- Un producto de otra tienda no se toca con la tienda propia.
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000002','Color','Negro','https://ejemplo.invalid/v1.webp')$q$,'P0002','');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000002','Color','Negro','https://deslizapp-app.vercel.app/ensayo/v1.webp')$q$,'P0002','');
 reset role;
 
 -- ═══ 3. Limpieza: al quitar la foto de medios, al quitar el valor o el eje de opciones ═══
-update public.productos set medios='[{"tipo":"foto","url":"https://ejemplo.invalid/1.webp","retocada":false}]' where id='af000000-0000-4000-8000-000000000001';
+update public.productos set medios='[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/1.webp","retocada":false}]' where id='af000000-0000-4000-8000-000000000001';
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')=
-  '{"Color":{"Negro":"https://ejemplo.invalid/1.webp"}}'::jsonb,'sin la foto 2 en medios, Arena sale del mapa');
+  '{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1.webp"}}'::jsonb,'sin la foto 2 en medios, Arena sale del mapa');
 update public.productos set opciones='[{"nombre":"Talla","valores":["S","M"]},{"nombre":"Color","valores":["Arena"]}]' where id='af000000-0000-4000-8000-000000000001';
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')='{}'::jsonb,'sin el valor Negro en opciones, sale del mapa y el eje vacío también');
 -- Camino real: guardar_variantes cambia las opciones y el mapa se limpia solo.
 update public.productos set opciones='[{"nombre":"Color","valores":["Negro","Arena"]}]', fotos_por_valor='{}' where id='af000000-0000-4000-8000-000000000001';
 set local role authenticated;
 select pg_temp.como('ad000000-0000-4000-8000-00000000000e');
-select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/1.webp');
+select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp');
 select count(*) from public.guardar_variantes('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','[{"nombre":"Talla","valores":["S"]}]','[{"valores":{"Talla":"S"},"stock":2,"precio":null}]');
 reset role;
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')='{}'::jsonb,'guardar_variantes sin el eje Color limpia el mapa');
@@ -96,7 +96,7 @@ select pg_temp.comprobar((select fotos_por_valor from public.productos where id=
 update public.productos set opciones='[{"nombre":"Color","valores":["Negro","Arena"]}]' where id='af000000-0000-4000-8000-000000000001';
 set local role authenticated;
 select pg_temp.como('ad000000-0000-4000-8000-00000000000e');
-select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://ejemplo.invalid/1.webp');
+select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro','https://deslizapp-app.vercel.app/ensayo/1.webp');
 select pg_temp.comprobar(public.guardar_foto_valor('ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','Color','Negro',null)='{}'::jsonb,'url nula la quita y el eje vacío desaparece');
 reset role;
 -- Una escritura directa con basura (insert: la tabla permite insertar) se limpia.
@@ -104,23 +104,23 @@ insert into public.productos(id,tienda_id,nombre,precio,stock,fotos_por_valor) v
  ('af000000-0000-4000-8000-000000000003','ae000000-0000-4000-8000-000000000001','Basura',1,1,'{"Color":{"Rojo":"https://x.invalid/a"}}');
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000003')='{}'::jsonb,'una entrada inválida al insertar se limpia');
 -- La foto retocada: la entrada sigue a la foto nueva.
-update public.productos set opciones='[{"nombre":"Color","valores":["Negro"]}]', medios='[{"tipo":"foto","url":"https://ejemplo.invalid/1.webp","retocada":false}]', fotos_por_valor='{"Color":{"Negro":"https://ejemplo.invalid/1.webp"}}' where id='af000000-0000-4000-8000-000000000001';
+update public.productos set opciones='[{"nombre":"Color","valores":["Negro"]}]', medios='[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/1.webp","retocada":false}]', fotos_por_valor='{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1.webp"}}' where id='af000000-0000-4000-8000-000000000001';
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')<>'{}'::jsonb,'preparada la foto de Negro');
 insert into public.trabajos_retoque(id,tienda_id,producto_id,medio_url_original,medio_url_retocado,estado,creditos,atendido_en)
- values ('b0000000-0000-4000-8000-000000000001','ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','https://ejemplo.invalid/1.webp','https://ejemplo.invalid/1-retocada.webp','entregado',1,now());
-update public.productos set medios='[{"tipo":"foto","url":"https://ejemplo.invalid/1-retocada.webp","retocada":true}]' where id='af000000-0000-4000-8000-000000000001';
-select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')='{"Color":{"Negro":"https://ejemplo.invalid/1-retocada.webp"}}'::jsonb,'tras el retoque la foto del color es la retocada');
+ values ('b0000000-0000-4000-8000-000000000001','ae000000-0000-4000-8000-000000000001','af000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/1.webp','https://deslizapp-app.vercel.app/ensayo/1-retocada.webp','entregado',1,now());
+update public.productos set medios='[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/1-retocada.webp","retocada":true}]' where id='af000000-0000-4000-8000-000000000001';
+select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000001')='{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1-retocada.webp"}}'::jsonb,'tras el retoque la foto del color es la retocada');
 
 -- ═══ 4. Lectura pública ═══
 select pg_temp.comprobar((select (p->'fotos_por_valor') from jsonb_array_elements(public.catalogo_publico('presentaciones-fixture')->'productos') p where p->>'nombre'='Camisa')
-  ='{"Color":{"Negro":"https://ejemplo.invalid/1-retocada.webp"}}'::jsonb,'catalogo_publico devuelve el mapa');
+  ='{"Color":{"Negro":"https://deslizapp-app.vercel.app/ensayo/1-retocada.webp"}}'::jsonb,'catalogo_publico devuelve el mapa');
 select pg_temp.comprobar((select count(*) from jsonb_array_elements(public.catalogo_publico('presentaciones-fixture')->'productos') p where p ? 'variantes' and p ? 'opciones')>=1,'catalogo_publico sigue igual en lo demás');
 
 -- ═══ 5. Ver como: no escribe ═══
 set local role authenticated;
 select pg_temp.como('ad000000-0000-4000-8000-00000000000b');
 select pg_temp.comprobar((select (public.admin_ver_como_iniciar('ae000000-0000-4000-8000-000000000002')->>'id') is not null),'abre Ver como sobre su propia tienda');
-select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000002','af000000-0000-4000-8000-000000000002','Color','Negro','https://ejemplo.invalid/v1.webp')$q$,'42501','solo_mirar');
+select pg_temp.rechaza($q$select public.guardar_foto_valor('ae000000-0000-4000-8000-000000000002','af000000-0000-4000-8000-000000000002','Color','Negro','https://deslizapp-app.vercel.app/ensayo/v1.webp')$q$,'42501','solo_mirar');
 reset role;
 select pg_temp.comprobar((select fotos_por_valor from public.productos where id='af000000-0000-4000-8000-000000000002')='{}'::jsonb,'Ver como no escribió nada');
 rollback;
