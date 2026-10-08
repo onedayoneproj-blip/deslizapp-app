@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.45.2", fecha: "2026-10-08", titulo: "Una sola lista, todo ahí mismo.",
+    cambios: [
+      "Cada cosa que cambia es una tarjeta: la tocas y se abre con sus valores.",
+      "La cierras y queda un resumen, y «Quitar» la saca al instante.",
+    ],
+  },
+  {
     version: "0.45.1", fecha: "2026-10-08", titulo: "Cambiar de catálogo, más a tu estilo.",
     cambios: [
       "El nombre del catálogo abre un menú propio, no el de iPhone.",

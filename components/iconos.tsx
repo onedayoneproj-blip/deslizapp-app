@@ -152,6 +152,12 @@ export const IconoChevronAbajo = (p: Props) => (
   </Icono>
 );
 
+export const IconoChevronArriba = (p: Props) => (
+  <Icono {...p}>
+    <path d="m6 15 6-6 6 6" />
+  </Icono>
+);
+
 export const IconoChevronDerecha = (p: Props) => (
   <Icono {...p}>
     <path d="m9 6 6 6-6 6" />

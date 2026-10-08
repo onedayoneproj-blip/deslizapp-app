@@ -140,15 +140,15 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: /^Foto 2 de 2/ }).waitFor();
     await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
     await hoja(page).getByText("¿Qué cambia de una a otra?").waitFor();
-    ok((await hoja(page).getByRole("checkbox", { name: "Talla" }).getAttribute("aria-checked")) === "true", "Elegir: Talla ya viene elegida (la típica de la ropa)");
-    await hoja(page).getByRole("checkbox", { name: "Color" }).click();
+    ok((await hoja(page).getByRole("button", { name: "Contraer Talla" }).getAttribute("aria-expanded")) === "true", "Elegir: Talla ya viene elegida y abierta (la típica de la ropa)");
+    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await escribirEtiqueta(page, "Colores", ["Negro", "Arena"]);
     // Tocar fuera cierra el campo de escribir (si no, el toque a «Crear» llega con el contenido ya movido).
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "Elegir: el botón dice «Crear las 10»");
     ok(await hoja(page).getByText("Ya elegiste 2: es el máximo.").isVisible(), "…y con dos cosas elegidas «+ Otra cosa» pasa a «Ya elegiste 2: es el máximo.»");
-    ok(await hoja(page).getByRole("checkbox", { name: "Material" }).isDisabled(), "…y las demás se apagan");
+    ok(await hoja(page).getByRole("button", { name: "Material", exact: true }).isDisabled(), "…y las demás se apagan");
     await capturar(page, "elegir", ancho, tema);
     await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
     await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
@@ -270,7 +270,7 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: "Agregar uno de M", exact: true }).click();
     await page.getByRole("button", { name: "Agregar uno de M", exact: true }).click();
     await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
-    await hoja(page).getByRole("checkbox", { name: "Color" }).click();
+    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await escribirEtiqueta(page, "Colores", ["Negro", "Arena"]);
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
@@ -286,6 +286,47 @@ const ESCENARIOS = {
     ok(true, "La completa: M · Sin color pasa a M · Negro");
   },
 
+  /** La lista que se expande: elegir, colapsar con resumen, el máximo de 2, una cosa propia, «Quitar» y volver a elegir. */
+  async expandible(page, ancho, tema) {
+    await page.goto(`${URL}/catalogo/nuevo`);
+    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Lista nueva");
+    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("500");
+    await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
+    await hoja(page).getByText("¿Qué cambia de una a otra?").waitFor();
+    ok((await hoja(page).locator("[data-eje]").count()) === 1, "Una sola cosa abierta al empezar (Talla)");
+    ok(await hoja(page).getByRole("button", { name: "Color", exact: true }).isEnabled(), "Color está sin elegir y se puede tocar");
+    ok((await hoja(page).getByRole("checkbox", { name: "Color", exact: true }).count()) === 0, "…y no hay rectángulos de arriba (solo la lista)");
+    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
+    ok((await hoja(page).getByRole("button", { name: "Contraer Color" }).getAttribute("aria-expanded")) === "true", "Elegir Color lo expande ahí mismo");
+    ok((await hoja(page).getByRole("button", { name: "Contraer Talla" }).getAttribute("aria-expanded")) === "true", "…y Talla no se colapsa sola");
+    await escribirEtiqueta(page, "Colores", ["Dorado", "Plateado"]);
+    await hoja(page).getByText("¿Qué cambia de una a otra?").click();
+    await hoja(page).getByRole("button", { name: "Contraer Color" }).click();
+    ok(await hoja(page).getByRole("button", { name: "Expandir Color" }).getByText("Dorado, Plateado").isVisible(), "Colapsada resume «Dorado, Plateado»");
+    await hoja(page).getByRole("button", { name: "Expandir Talla" }).count();
+    await hoja(page).getByRole("button", { name: "Contraer Talla" }).click();
+    ok(await hoja(page).getByRole("button", { name: "Expandir Talla" }).getByText("Elige cuáles tienes").isVisible(), "Sin valores dice «Elige cuáles tienes»");
+    ok(await hoja(page).getByText("Ya elegiste 2: es el máximo.").isVisible(), "Con 2: «Ya elegiste 2: es el máximo.» en lugar de «+ Otra cosa»");
+    ok(await hoja(page).getByRole("button", { name: "Material", exact: true }).isDisabled(), "…y las demás tarjetas se apagan");
+    await capturar(page, "expandible-cerradas", ancho, tema);
+    await hoja(page).getByRole("button", { name: "Quitar Talla" }).click();
+    ok((await hoja(page).getByRole("button", { name: "Talla", exact: true }).count()) === 1, "Quitar la devuelve a la lista, sin confirmar");
+    ok(await hoja(page).getByRole("button", { name: "+ Otra cosa" }).isVisible(), "…y «+ Otra cosa» vuelve");
+    await hoja(page).getByRole("button", { name: "+ Otra cosa" }).click();
+    await hoja(page).getByRole("textbox", { name: "¿Qué otra cosa cambia?" }).fill("Aroma");
+    await hoja(page).getByRole("button", { name: "Listo", exact: true }).click();
+    ok((await hoja(page).locator('[data-eje="Aroma"]').count()) === 1, "Una cosa propia («Aroma») se vuelve tarjeta");
+    await hoja(page).getByRole("button", { name: "Quitar Aroma" }).click();
+    ok((await hoja(page).locator('[data-eje="Aroma"]').count()) === 0, "Quitar una propia la borra");
+    await hoja(page).getByRole("button", { name: "Talla", exact: true }).click();
+    ok((await hoja(page).getByRole("button", { name: "Contraer Talla" }).getAttribute("aria-expanded")) === "true", "Volver a elegir Talla la deja abierta y vacía");
+    await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
+    await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
+    await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
+    ok((await filasPres(page).count()) === 10, "Crea las 10 (5 tallas × 2 colores)");
+    await capturar(page, "expandible", ancho, tema);
+  },
+
   /** Perfume: «Tamaño» típica de los perfumes, atajo 30 · 50 · 100 ml y «Desde» con precio propio. */
   async perfume(page, ancho, tema) {
     await abrirProducto(page, OUD);
@@ -297,7 +338,7 @@ const ESCENARIOS = {
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Perfume nuevo");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("2500");
     await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
-    ok((await hoja(page).getByRole("checkbox", { name: "Tamaño" }).getAttribute("aria-checked")) === "true", "Los perfumes sugieren «Tamaño»");
+    ok((await hoja(page).getByRole("button", { name: "Contraer Tamaño" }).getAttribute("aria-expanded")) === "true", "Los perfumes sugieren «Tamaño»");
     for (const ml of ["30 ml", "50 ml", "100 ml"]) await hoja(page).getByRole("checkbox", { name: ml, exact: true }).click();
     ok(await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).isEnabled(), "Los 30, 50 y 100 ml sugeridos crean 3");
     await hoja(page).getByRole("button", { name: "Crear las 3", exact: true }).click();
@@ -330,7 +371,7 @@ const ESCENARIOS = {
   },
 };
 
-const TIENDA = { crear: LINO, lista: LINO, quitar: LINO, cambiar: LINO, perfume: MICHEL, ayudante: LINO };
+const TIENDA = { crear: LINO, lista: LINO, quitar: LINO, cambiar: LINO, expandible: LINO, perfume: MICHEL, ayudante: LINO };
 
 for (const tema of TEMAS) {
   for (const ancho of ANCHOS) {

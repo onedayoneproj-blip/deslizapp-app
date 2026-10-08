@@ -218,7 +218,7 @@ const ESCENARIOS = {
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
     await page.getByRole("button", { name: "Agregar presentaciones", exact: true }).click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
-    await hoja(page).getByRole("checkbox", { name: "Color" }).click();
+    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await elegirValores(page, "Colores", ["Negro", "Blanco"]);
     await hoja(page).getByText("¿Qué cambia de una a otra?").click();
     ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
