@@ -637,6 +637,7 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .coX {
   position: absolute;
+  z-index: 2;
   top: calc(max(8px, env(safe-area-inset-top)) + var(--ovext, 0px));
   right: 10px;
   width: 42px;
@@ -1953,9 +1954,6 @@ html.catalogo-html,
   height: 100%;
   border-radius: 22px;
   object-fit: cover;
-}
-:where(.catalogo-publico) .hl[aria-pressed="true"] img {
-  outline: 2px solid var(--accent);
 }
 :where(.catalogo-publico) .hl[aria-pressed="true"] {
   color: var(--ink);

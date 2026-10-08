@@ -60,3 +60,11 @@ test("hoja Colecciones: la X queda fuera del scroll y tocar el fondo cierra", ()
   assert.match(tsx, /className="coscroll"/);
   assert.match(tsx, /t\.matches\("\.colist, \.colist > li"\)\) cerrar\(\)/);
 });
+
+test("hoja Colecciones: la X queda encima de la capa de scroll y la carátula elegida no lleva contorno", () => {
+  const x = reglas.find((x) => x.sel.endsWith(".coX") && /position:\s*absolute/.test(x.cuerpo));
+  assert.match(x.cuerpo, /z-index:\s*2/);
+  const sc = reglas.find((x) => x.sel.endsWith(".coscroll"));
+  assert.doesNotMatch(sc.cuerpo, /z-index/);
+  assert.ok(!reglas.some((r) => /\.hl\[aria-pressed="true"\] img/.test(r.sel)), "sin contorno en la carátula elegida de la barra");
+});
