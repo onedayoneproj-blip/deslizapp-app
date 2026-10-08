@@ -25,6 +25,8 @@ Para la sesión de Planning que retome. Lee primero `docs/00-contexto-del-proyec
 
 **Decisión de Lewis (7 oct): a los rubros de la tienda se les llama «catálogo» en pantalla** (título «Accesorios ⌄» con la rueda nativa de iOS, un catálogo a la vez, sin «Todo»). Alternativas descartadas en el lienzo https://claude.ai/artifact/TrrXrRkCMNej86ZB2GDyvX.
 
+**Tienda de ensayo como tienda nueva (8 oct, por SQL, pedido por Lewis):** para probar «Publicar mi catálogo» (#74) volvió a `estado = 'en_prueba'` y `catalogo_estado = 'sin'`, sin `url_catalogo`, `catalogo_publicado_en` ni `activada_en` (el `prueba_hasta` sigue en null: la prueba cuenta desde que se publica). Tiene 2 productos visibles con foto (Aro y Frasco de ensayo); Lewis crea el 3.º desde la app. Su catálogo público ya **no responde** hasta que lo publique. Sin rastro en `registro_admin`. Para dejarla otra vez publicada: `publicar_mi_catalogo` desde la app (o SQL si Lewis lo pide).
+
 **Orquestación:** Planning puede crear/mandar mensajes/leer sesiones de Coding (herramientas `mcp__claude-code-remote__*`). Reglas acordadas: crear sesiones solo cuando Lewis lo pide («lanza X»), decir el modelo, nunca dos sesiones con migraciones a la vez, mergear solo lo que Lewis marque; siempre contarle qué se le mandó a cada sesión. Coding responde por send_message si se le pide («avísame con una línea»). **Coordinación entre cuentas (7 oct, Lewis):** Lewis usa un Planning en cada cuenta (dos de Claude y Codex); la única fuente de verdad es el repo: este relevo, `docs/00` y `docs/16`. Cada Planning lo actualiza al lanzar, mergear o decidir algo, y lo lee antes de lanzar.
 
 ## Cola para Coding (Lewis pega los prompts)
