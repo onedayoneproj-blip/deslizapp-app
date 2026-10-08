@@ -173,6 +173,12 @@ export function etiquetaPrecio(f: FiltroPrecio): string {
     : "Cerca de " + dinero(f.valor);
 }
 
+/** Lo que se dice cuando nada cumple el precio y se muestra lo más cercano. */
+export const avisoSinPrecio = (f: FiltroPrecio): string => {
+  const e = etiquetaPrecio(f);
+  return "No hay nada " + e.charAt(0).toLowerCase() + e.slice(1) + ". Esto es lo más cercano:";
+};
+
 /** Saca de la consulta la parte del precio. `resto` es la consulta sin esa parte (para buscar el texto y para la ✕). */
 export function leerPrecio(c: CatalogoPublico, q: string): { precio: FiltroPrecio | null; resto: string } {
   let w = norm(q);
