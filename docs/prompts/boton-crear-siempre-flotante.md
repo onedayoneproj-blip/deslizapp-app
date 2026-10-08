@@ -2,7 +2,7 @@
 
 > **Modelo:** en Claude Code, Sonnet 5.5; en Codex, el modelo principal con razonamiento medio. **Sin migraciones.** Solo el panel. **Deja el PR abierto con su preview** para que Lewis lo vea en el iPhone. No hagas merge.
 
-> **Orden:** parte de `main` **después** de que se haya mergeado el PR #71 (`fix/selector-catalogos-ajustes`, que toca la misma línea del botón en `vista-catalogo.tsx`). Si no está en `main`, para y avisa.
+> **Orden:** el PR #71 (`fix/selector-catalogos-ajustes`) todavía puede estar sin mergear y toca la misma línea del botón en `vista-catalogo.tsx`. **Si no está en `main`, parte de esa rama** (`git fetch origin fix/selector-catalogos-ajustes`), crea `fix/boton-crear-flotante` desde ahí y abre el PR con **base en `fix/selector-catalogos-ajustes`**, diciendo en la descripción que depende del #71. Si ya está en `main`, parte de `main`.
 
 ## 0. Antes de empezar
 
@@ -38,6 +38,8 @@ Dónde pasa hoy (confirmado en el código):
 - Novedad en `lib/novedades.ts` solo si la dueña lo nota (versión siguiente a la de `main`).
 
 ## 4. Pruebas y cierre
+
+- **Verificación completa pedida por Lewis («por si acaso»):** antes de abrir el PR, recorre **las cuatro pestañas en todos sus estados** (cargando, vacía, con datos, filtro sin resultados, error, sin permiso) en demo y en la tienda de ensayo, y comprueba por código y con capturas que **en ninguna** sale un botón de crear que no sea el flotante, y que el flotante siempre se ve abajo a la derecha. Adjunta una tabla pestaña × estado en el PR.
 
 - Navegador (demo `?demo`, 390 y 360; Lino & Algodón no tiene clientes ni promos): capturas de las cuatro pestañas **vacías y con datos** antes y después; el flotante en su sitio en todas; ningún botón de crear al centro; la tienda de ensayo con la tienda entera sin productos.
 - `tsc`, `npm test`, `npm run lint` (sin avisos nuevos), `npm run build` y las regresiones de pedidos, clientes, promos y catálogo.
