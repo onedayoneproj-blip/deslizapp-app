@@ -1,18 +1,22 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ESTADOS_QUE_SE_REFRESCAN, vistaCatalogo, type EstadoCatalogo } from "@/lib/catalogo-estado";
 import { consumirRevisionDelCatalogo } from "@/lib/destello";
 import { mensajeDeError } from "@/lib/data/errores";
+import { useConsulta } from "@/lib/data/consulta";
 import { usePermisos } from "@/lib/data/permisos";
 import { useData } from "@/lib/data/provider";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
+import { enlaceAlPublicar, faltanParaPublicar } from "@/lib/publicar-catalogo";
 import type { Tienda } from "@/lib/types";
 import { copiarTexto } from "@/lib/portapapeles";
 import { usePanelUI } from "../panel/ui";
 import { useToast } from "../toast";
 import { HojaCatalogoEnLinea } from "./hoja-catalogo-en-linea";
-import { HojaPedirCatalogo } from "./hoja-pedir-catalogo";
+import { HojaDejarDeMostrar } from "./hoja-dejar-de-mostrar";
+import { HojaPublicarCatalogo } from "./hoja-publicar-catalogo";
 import { HojaRevisarCatalogo } from "./hoja-revisar-catalogo";
 import { TarjetaCatalogo } from "./tarjeta-catalogo";
 
@@ -44,15 +48,22 @@ const REFRESCO_MS = 60_000;
  * las RPC, la celebración de "recién publicado" y la actualización en vivo (el equipo cambia el estado desde fuera de la app).
  */
 export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
-  const { solicitarCatalogo, pedirCambiosCatalogo, publicarCatalogo, releerTienda } = useData();
+  const { pedirCambiosCatalogo, publicarCatalogo, publicarMiCatalogo, despublicarMiCatalogo, getProductos, releerTienda } = useData();
+  const router = useRouter();
   const { abrirMiMarca, abrirPlan } = usePanelUI();
   const toast = useToast();
   // Pedir, revisar y publicar el catálogo son del grupo «catalogo» (Editor en adelante). La base lo exige igual.
-  const { puede, porque } = usePermisos();
+  // Publicarse al público y dejar de mostrarlo son solo de la dueña (grupo «equipo»): un colaborador ve el estado, no el botón.
+  const { puede, porque, esDuena } = usePermisos();
   const sinCatalogo = !puede("catalogo");
+  const soloDuena = !esDuena;
+  // Mismo cache que la lista de productos: al crear uno, «te faltan…» se actualiza solo.
+  const { data: productos } = useConsulta(`productos:${tienda.id}`, () => getProductos(tienda.id));
+  const faltan = productos ? faltanParaPublicar(productos) : 0;
 
   const [enLinea, setEnLinea] = useState(false);
-  const [pedir, setPedir] = useState(false);
+  const [publicar, setPublicar] = useState(false);
+  const [dejar, setDejar] = useState(false);
   const [revisar, setRevisar] = useState(false);
   const [marcados, setMarcados] = useState<string[]>([]);
 
@@ -131,13 +142,26 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
     void copiarTexto(enlace.href).then((ok) => toast(ok ? "Enlace copiado" : "No se pudo copiar. Ábrelo y copia el enlace desde ahí."));
   };
 
+  // Copiar el enlace desde la tarjeta «En línea». Sin `await` antes de copiar (iPhone).
+  const copiar = () => {
+    const enlace = enlaceCatalogo(tienda.urlCatalogo);
+    if (!enlace) return;
+    void copiarTexto(enlace.href).then((ok) => toast(ok ? "Enlace copiado" : "No se pudo copiar. Ábrelo y copia el enlace desde ahí."));
+  };
+
   return (
     <>
       <TarjetaCatalogo
         vista={vista}
         tienda={tienda}
+        faltan={faltan}
         acciones={{
-          alPedir: () => setPedir(true),
+          alPublicar: () => setPublicar(true),
+          alCrearProducto: sinCatalogo ? () => toast(porque) : () => router.push("/catalogo/nuevo"),
+          alCopiar: copiar,
+          alDejarDeMostrar: () => setDejar(true),
+          soloDuena: soloDuena ? () => toast(porque) : undefined,
+          alPedir: () => undefined,
           alRevisar: () => setRevisar(true),
           alCompartir: compartir,
           alCompartirReciente: () => {
@@ -149,10 +173,16 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
           sinPermiso: sinCatalogo ? () => toast(porque) : undefined,
         }}
       />
-      <HojaPedirCatalogo
-        abierta={pedir}
-        alCerrar={() => setPedir(false)}
-        alConfirmar={() => intentar(() => solicitarCatalogo(tienda.id), "¡Listo! Lo pedimos por ti", () => setPedir(false))}
+      <HojaPublicarCatalogo
+        abierta={publicar}
+        alCerrar={() => setPublicar(false)}
+        enlace={enlaceAlPublicar(tienda.slug)}
+        alConfirmar={() => intentar(() => publicarMiCatalogo(tienda.id), "¡Tu catálogo ya está en línea!", () => setPublicar(false))}
+      />
+      <HojaDejarDeMostrar
+        abierta={dejar}
+        alCerrar={() => setDejar(false)}
+        alConfirmar={() => intentar(() => despublicarMiCatalogo(tienda.id), "Listo. Tu catálogo ya no se muestra.", () => setDejar(false))}
       />
       <HojaRevisarCatalogo
         abierta={revisar}

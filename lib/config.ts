@@ -80,3 +80,17 @@ export const tiposDeMedioElegibles = (videoPermitido: boolean = VIDEO_PERMITIDO)
 
 /** ¿Este archivo elegido es un video que la ficha debe preparar? Con el video apagado, ninguno (se ignora, no se sube). */
 export const esVideoAgregable = (tipo: string, videoPermitido: boolean = VIDEO_PERMITIDO) => videoPermitido && tipo.startsWith("video/");
+
+/**
+ * Lo mínimo para que una tienda publique su propio catálogo: productos visibles (no ocultos ni eliminados) con al menos una foto.
+ * La base aplica la MISMA regla (`publicar_mi_catalogo`, constante `v_minimo`); si cambia aquí, cambia allá en una migración nueva.
+ * El checklist del onboarding (docs/16) lo subirá a 5.
+ */
+export const PRODUCTOS_MINIMOS_PARA_PUBLICAR = 3;
+
+/**
+ * Base de la dirección del catálogo de cada tienda: `${URL_BASE_CATALOGO}/tienda/{slug}`. La pone la base al publicar
+ * (`publicar_mi_catalogo`, constante `v_base`); la app solo la usa para MOSTRAR el enlace antes de publicar. tests/publicar-catalogo.test.mjs
+ * comprueba que las dos coinciden.
+ */
+export const URL_BASE_CATALOGO = "https://deslizapp-app.vercel.app";

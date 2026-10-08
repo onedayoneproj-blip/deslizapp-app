@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
+import { textoFaltan } from "@/lib/publicar-catalogo";
 import { ETIQUETAS_PASOS, NOMBRES_PASOS, PROGRESO_PASOS, pasoActual, type VistaCatalogo } from "@/lib/catalogo-estado";
 import { menosMovimiento } from "@/lib/movimiento";
 import type { Tienda } from "@/lib/types";
-import { IconoCompartir } from "../iconos";
+import { IconoCompartir, IconoCopiar } from "../iconos";
 import { Boton as BotonUI, Tarjeta } from "../ui";
 
 // La tarjeta del catálogo en línea (pestaña Catálogo): 8 estados dinámicos, del diseño aprobado en
@@ -13,6 +14,16 @@ import { Boton as BotonUI, Tarjeta } from "../ui";
 // en app/globals.css (`cat-anim-*`, solo transform / opacity).
 
 export type AccionesTarjeta = {
+  /** «Publicar mi catálogo» (abre la hoja de confirmación). */
+  alPublicar: () => void;
+  /** Llevar a crear un producto (cuando faltan productos con foto para publicar). */
+  alCrearProducto: () => void;
+  /** Copia el enlace del catálogo. */
+  alCopiar: () => void;
+  /** «Dejar de mostrarlo» (abre la confirmación). */
+  alDejarDeMostrar: () => void;
+  /** Publicar y dejar de mostrar son solo de la dueña: sin ser ella, el botón se ve apagado y, al tocarlo, llama esto (explica por qué). */
+  soloDuena?: () => void;
   alPedir: () => void;
   alRevisar: () => void;
   /** Comparte el enlace del catálogo (hoja nativa de compartir o, si no hay, lo copia). */
@@ -29,7 +40,7 @@ export type AccionesTarjeta = {
  * Dibuja la tarjeta de la `vista` dada. Cuando la vista cambia con la pantalla abierta, la tarjeta anterior sale con un fundido y
  * la nueva entra con la animación "entrar"; con "reducir movimiento" el cambio es instantáneo.
  */
-export function TarjetaCatalogo({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta }) {
+export function TarjetaCatalogo({ vista, tienda, acciones, faltan = 0 }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta; faltan?: number }) {
   const [mostrada, setMostrada] = useState(vista);
   const [saliendo, setSaliendo] = useState(false);
   useEffect(() => {
@@ -52,16 +63,21 @@ export function TarjetaCatalogo({ vista, tienda, acciones }: { vista: VistaCatal
   return (
     <section aria-label="Catálogo en línea" aria-live="polite" className="min-h-[76px]">
       <div key={mostrada} className={`cat-anim-entrar ${saliendo ? "cat-anim-salir" : ""}`}>
-        <Estado vista={mostrada} tienda={tienda} acciones={acciones} />
+        <Estado vista={mostrada} tienda={tienda} acciones={acciones} faltan={faltan} />
       </div>
     </section>
   );
 }
 
-function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta }) {
+function Estado({ vista, tienda, acciones, faltan }: { vista: VistaCatalogo; tienda: Tienda; acciones: AccionesTarjeta; faltan: number }) {
   switch (vista) {
     case "sin":
-      return <Sin boton="Pedirlo" alTocar={acciones.sinPermiso ?? acciones.alPedir} apagado={!!acciones.sinPermiso} />;
+      // La tienda publica sola: sin lo mínimo, dice qué falta; con lo mínimo, «Publicar mi catálogo» (solo la dueña).
+      return faltan > 0 ? (
+        <Sin subtitulo={textoFaltan(faltan)} boton="Crear producto" alTocar={acciones.alCrearProducto} />
+      ) : (
+        <Sin subtitulo="Ya tienes lo necesario. Tus clientes lo verán en un enlace tuyo." boton="Publicar mi catálogo" alTocar={acciones.soloDuena ?? acciones.alPublicar} apagado={!!acciones.soloDuena} />
+      );
     case "conectar":
       return <Sin boton="Conectar mi catálogo" alTocar={acciones.alConectar} debajo />;
     case "solicitado":
@@ -75,7 +91,7 @@ function Estado({ vista, tienda, acciones }: { vista: VistaCatalogo; tienda: Tie
     case "recien":
       return <Recien alTocar={acciones.alCompartirReciente} />;
     case "publicado":
-      return <Publicado tienda={tienda} alCompartir={acciones.alCompartir} />;
+      return <Publicado tienda={tienda} acciones={acciones} />;
     case "pausado":
       return <Pausado alTocar={acciones.alVerPlan} />;
   }
@@ -129,7 +145,7 @@ function Icono({ children, tamano = 22, trazo = "#174b3a", grosor = 2 }: { child
 // ---------------------------------------------------------------------------
 
 /** 1 · Sin catálogo (y "Conectar mi catálogo" cuando figura publicado pero no hay un enlace válido). */
-function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: string; alTocar: () => void; debajo?: boolean; apagado?: boolean }) {
+function Sin({ boton, alTocar, subtitulo = "Lo armamos por ti con tus fotos. Tú solo lo compartes.", debajo = false, apagado = false }: { boton: string; alTocar: () => void; subtitulo?: string; debajo?: boolean; apagado?: boolean }) {
   return (
     <div className={`${CAJA} border-[1.5px] border-dashed border-bosque/30 bg-papel`}>
       <span aria-hidden="true" className="cat-anim-nota absolute top-1 right-[18px] font-mano text-[17px] text-mandarina-texto" style={{ transform: "rotate(-4deg)" }}>
@@ -144,7 +160,7 @@ function Sin({ boton, alTocar, debajo = false, apagado = false }: { boton: strin
           </span>
           <span aria-hidden="true" className="cat-anim-titilar2 absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-mandarina" />
         </Insignia>
-        <Textos titulo="Tu catálogo en línea" subtitulo="Lo armamos por ti con tus fotos. Tú solo lo compartes." />
+        <Textos titulo="Tu catálogo en línea" subtitulo={subtitulo} />
         {!debajo && (
           <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido={!apagado} apagado={apagado}>
             {boton}
@@ -338,9 +354,13 @@ function Recien({ alTocar }: { alTocar: () => void }) {
   );
 }
 
-/** 7 · En línea: el estado del día a día. Una fila: punto verde · "En línea" y el enlace · "Compartir". Tocar la tarjeta abre el catálogo. */
-function Publicado({ tienda, alCompartir }: { tienda: Tienda; alCompartir: () => void }) {
+/**
+ * 7 · En línea: el estado del día a día. «Tu catálogo está en línea», el enlace, y debajo «Copiar enlace», «Compartir» y
+ * «Dejar de mostrarlo» (solo la dueña). Tocar el título abre el catálogo.
+ */
+function Publicado({ tienda, acciones }: { tienda: Tienda; acciones: AccionesTarjeta }) {
   const enlace = enlaceCatalogo(tienda.urlCatalogo);
+  const soloDuena = !!acciones.soloDuena;
   return (
     <Tarjeta className="relative">
       <div className={FILA}>
@@ -354,11 +374,11 @@ function Publicado({ tienda, alCompartir }: { tienda: Tienda; alCompartir: () =>
                 rel="noopener noreferrer"
                 className="rounded-radio-s after:absolute after:inset-0 after:rounded-radio-l after:content-[''] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
               >
-                En línea
+                Tu catálogo está en línea
                 <span className="sr-only"> · abrir el catálogo</span>
               </a>
             ) : (
-              "En línea"
+              "Tu catálogo está en línea"
             )}
           </p>
           {enlace && (
@@ -368,9 +388,23 @@ function Publicado({ tienda, alCompartir }: { tienda: Tienda; alCompartir: () =>
             </p>
           )}
         </div>
-        <BotonUI tamano="compacto" icono={<IconoCompartir tamano={18} />} onClick={alCompartir} className="relative z-10">
+      </div>
+      <div className="relative z-10 mt-3 flex flex-wrap items-center gap-2">
+        <BotonUI tamano="compacto" jerarquia="secundario" icono={<IconoCopiar tamano={18} />} onClick={acciones.alCopiar}>
+          Copiar enlace
+        </BotonUI>
+        <BotonUI tamano="compacto" icono={<IconoCompartir tamano={18} />} onClick={acciones.alCompartir}>
           Compartir
         </BotonUI>
+        <button
+          type="button"
+          onClick={soloDuena ? acciones.soloDuena : acciones.alDejarDeMostrar}
+          aria-disabled={soloDuena || undefined}
+          data-sin-permiso={soloDuena || undefined}
+          className={`${soloDuena ? "opacity-40 " : ""}tocable ml-auto flex h-9 items-center rounded-full px-2 text-[13.5px] font-extrabold text-bosque focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco`}
+        >
+          Dejar de mostrarlo
+        </button>
       </div>
     </Tarjeta>
   );
