@@ -7,8 +7,8 @@ const TAMANO = { chat: "size-8.5 text-secundario", normal: "size-(--alto-avatar)
 const FOTO = { chat: "34px", normal: "44px", grande: "64px", nota: "88px" } as const;
 
 /**
- * Avatar (docs/09 §11): persona = redondo `marca-rosa` con iniciales en Fredoka; tienda = cuadrado `radio-m` `accion` con
- * iniciales o su logo. 34 en la cabecera de la vista previa de WhatsApp, 44 px en filas, 64 en la cabecera de un detalle (88 cuando lleva la nota encima). Junto al nombre es
+ * Avatar (docs/09 §11): persona = redondo `marca-rosa` con iniciales en Fredoka; tienda = redondo `accion` con
+ * iniciales o su logo (el círculo es solo de personas y tiendas; la foto de un producto es siempre cuadrada, ver MiniaturaProducto). 34 en la cabecera de la vista previa de WhatsApp, 44 px en filas, 64 en la cabecera de un detalle (88 cuando lleva la nota encima). Junto al nombre es
  * decorativo (aria-hidden); con `solo`, lleva el nombre como etiqueta accesible.
  * `repite`: la señal de cliente que repite (en vez de la etiqueta "Repite"): círculo `accion` de 20 px con un corazón relleno
  * `sobre-accion` y borde `superficie` de 2 px en la esquina inferior derecha. La palabra va en el aria-label de quien lo usa.
@@ -39,7 +39,8 @@ export function Avatar({
         className={clases(
           "relative grid place-items-center overflow-hidden font-display",
           TAMANO[tamano],
-          vacio ? "rounded-full bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? "rounded-full bg-marca-rosa text-texto" : "rounded-radio-m bg-accion text-sobre-accion",
+          "rounded-full",
+          vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? "bg-marca-rosa text-texto" : "bg-accion text-sobre-accion",
         )}
       >
         {vacio ? "?" : foto ? <Foto src={foto} alt="" className="absolute inset-0" sizes={FOTO[tamano]} /> : iniciales(nombre)}
