@@ -1,28 +1,29 @@
 // Stickers de la historia (versión corta): cuáles se ofrecen, cuáles vienen marcados, el texto de «Últimas N» y dónde van por defecto.
 // Lógica pura, sin pantalla: se prueba en tests/stickers-historia.test.mjs. El dibujo está en lib/dibujo-stickers-historia.ts.
 
+import { GRUPOS_STICKERS, NOMBRES_STICKERS_IMAGEN, grupoDisponible, type GrupoSticker, type IdSticker } from "./catalogo-stickers";
 import type { Producto } from "./types";
 
-export type IdSticker = "nuevo" | "ultimas" | "aaah";
-export const IDS_STICKERS: readonly IdSticker[] = ["nuevo", "ultimas", "aaah"];
+export type { IdSticker } from "./catalogo-stickers";
+/** En el orden de la hoja: «Últimas N» (dibujado) abre los básicos y luego van los ilustrados. */
+export const IDS_STICKERS: readonly IdSticker[] = ["ultimas", ...GRUPOS_STICKERS.flatMap((g) => g.stickers.map((s) => s.id))];
 
-/** Un sticker puesto en la historia: centro en fracción del ancho y del alto de la imagen, y tamaño (1 = el de base). */
-export type StickerPuesto = { id: IdSticker; x: number; y: number; k: number; texto: string };
+/** Un sticker puesto en la historia: centro en fracción del ancho y del alto de la imagen, tamaño (1 = el de base) y giro en grados. */
+export type StickerPuesto = { id: IdSticker; x: number; y: number; k: number; r: number; texto: string };
 
 export const DIAS_NUEVO = 7;
 export const STOCK_ULTIMAS = 3;
 export const K_STICKER_MIN = 0.6;
 export const K_STICKER_MAX = 2;
 
-export const NOMBRE_STICKER: Record<IdSticker, string> = { nuevo: "Nuevo", ultimas: "Últimas unidades", aaah: "Aaah de deslizapp" };
-/** Inclinación de cada uno, en grados (la misma en la hoja, en «Ajustar foto» y en la imagen). */
-export const INCLINACION_STICKER: Record<IdSticker, number> = { nuevo: -8, ultimas: -5, aaah: -6 };
-/** Dónde queda cada uno por defecto: arriba, sin tapar la tarjeta de abajo ni el centro de la foto. */
-export const POSICION_STICKER: Record<IdSticker, { x: number; y: number }> = {
-  nuevo: { x: 0.22, y: 0.11 },
-  ultimas: { x: 0.7, y: 0.1 },
-  aaah: { x: 0.78, y: 0.24 },
-};
+
+export const NOMBRE_STICKER: Record<IdSticker, string> = { ...NOMBRES_STICKERS_IMAGEN, ultimas: "Últimas unidades" };
+/** Inclinación con que entra cada uno, en grados. Los ilustrados ya traen su propia gracia: entran derechos. */
+export const INCLINACION_STICKER: Record<IdSticker, number> = { ...(Object.fromEntries(Object.keys(NOMBRES_STICKERS_IMAGEN).map((id) => [id, 0])) as Record<IdSticker, number>), ultimas: -5 };
+/** Dónde van los que se ponen, en orden: arriba, sin tapar la tarjeta de abajo ni el centro de la foto. */
+export const POSICIONES_STICKER: readonly { x: number; y: number }[] = [
+  { x: 0.24, y: 0.12 }, { x: 0.74, y: 0.12 }, { x: 0.24, y: 0.28 }, { x: 0.74, y: 0.28 }, { x: 0.5, y: 0.2 }, { x: 0.5, y: 0.36 },
+];
 
 const MS_DIA = 86_400_000;
 
@@ -51,6 +52,17 @@ export function stickersOfrecidos(producto: Pick<Producto, "stock" | "porEncargo
   return IDS_STICKERS.filter((id) => id !== "ultimas" || ofreceUltimas(producto));
 }
 
+/** Los grupos de la hoja con sus stickers: «Últimas N» va primero en «Básicos» cuando se ofrece. */
+export type GrupoOfrecido = { id: GrupoSticker["id"]; nombre: string; disponible: boolean; ids: IdSticker[] };
+export function gruposOfrecidos(producto: Pick<Producto, "stock" | "porEncargo">): GrupoOfrecido[] {
+  return GRUPOS_STICKERS.map((g, i) => ({
+    id: g.id,
+    nombre: g.nombre,
+    disponible: grupoDisponible(g),
+    ids: [...(i === 0 && ofreceUltimas(producto) ? (["ultimas"] as IdSticker[]) : []), ...g.stickers.map((s) => s.id)],
+  }));
+}
+
 /** Cuáles vienen marcados de entrada: «¡Nuevo!» con el producto de 7 días o menos; «Últimas N» con 1 a 3 unidades. */
 export function stickersSugeridos(producto: Pick<Producto, "creadoEn" | "stock" | "porEncargo">, ahora: Date = new Date()): IdSticker[] {
   const ids: IdSticker[] = [];
@@ -62,28 +74,46 @@ export function stickersSugeridos(producto: Pick<Producto, "creadoEn" | "stock" 
 
 /** El texto que lleva cada sticker para este producto. */
 export const textoSticker = (id: IdSticker, producto: Pick<Producto, "stock">): string =>
-  id === "nuevo" ? "¡Nuevo!" : id === "ultimas" ? textoUltimas(unidadesQueQuedan(producto)) : "aaah";
+  id === "ultimas" ? textoUltimas(unidadesQueQuedan(producto)) : NOMBRE_STICKER[id];
 
-/** Un sticker en su lugar por defecto. */
-export const stickerPorDefecto = (id: IdSticker, producto: Pick<Producto, "stock">): StickerPuesto => ({
-  id, ...POSICION_STICKER[id], k: 1, texto: textoSticker(id, producto),
+/** El primer lugar de `POSICIONES_STICKER` que no tiene ya un sticker encima (si todos están, vuelve al primero). */
+export function posicionLibre(puestos: readonly Pick<StickerPuesto, "x" | "y">[]): { x: number; y: number } {
+  const ocupado = (p: { x: number; y: number }) => puestos.some((s) => Math.abs(s.x - p.x) < 0.1 && Math.abs(s.y - p.y) < 0.07);
+  return POSICIONES_STICKER.find((p) => !ocupado(p)) ?? POSICIONES_STICKER[0]!;
+}
+
+/** Un sticker en el primer lugar libre (`puestos`: los que ya están). */
+export const stickerPorDefecto = (id: IdSticker, producto: Pick<Producto, "stock">, puestos: readonly StickerPuesto[] = []): StickerPuesto => ({
+  id, ...posicionLibre(puestos), k: 1, r: INCLINACION_STICKER[id], texto: textoSticker(id, producto),
 });
 
 /** Los stickers marcados de entrada, en sus lugares por defecto. */
 export const stickersIniciales = (producto: Pick<Producto, "creadoEn" | "stock" | "porEncargo">, ahora: Date = new Date()): StickerPuesto[] =>
-  stickersSugeridos(producto, ahora).map((id) => stickerPorDefecto(id, producto));
+  stickersSugeridos(producto, ahora).reduce<StickerPuesto[]>((l, id) => [...l, stickerPorDefecto(id, producto, l)], []);
 
-/** Poner o quitar un sticker (al tocarlo en la hoja). Al ponerlo vuelve a su lugar por defecto. */
+/** Poner o quitar un sticker (al tocarlo en la hoja). Al ponerlo entra en el primer lugar libre. */
 export function alternarSticker(lista: StickerPuesto[], id: IdSticker, producto: Pick<Producto, "stock">): StickerPuesto[] {
-  return lista.some((s) => s.id === id) ? lista.filter((s) => s.id !== id) : [...lista, stickerPorDefecto(id, producto)];
+  return lista.some((s) => s.id === id) ? lista.filter((s) => s.id !== id) : [...lista, stickerPorDefecto(id, producto, lista)];
 }
 
 const entre = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
-/** Deja el sticker dentro de la imagen (el centro nunca sale del cuadro) y con un tamaño razonable. */
+/** El giro en el rango (-180, 180]. */
+export const normalizarGiro = (r: number): number => {
+  const v = ((((r + 180) % 360) + 360) % 360) - 180;
+  return v === -180 ? 180 : v;
+};
+
+/** Deja el sticker dentro de la imagen (el centro nunca sale del cuadro), con un tamaño razonable y el giro normalizado. */
 export function limitarSticker(s: StickerPuesto): StickerPuesto {
   const num = (v: number, defecto: number) => (Number.isFinite(v) ? v : defecto);
-  return { ...s, x: entre(num(s.x, 0.5), 0.05, 0.95), y: entre(num(s.y, 0.2), 0.04, 0.96), k: entre(num(s.k, 1), K_STICKER_MIN, K_STICKER_MAX) };
+  return {
+    ...s,
+    x: entre(num(s.x, 0.5), 0.05, 0.95),
+    y: entre(num(s.y, 0.2), 0.04, 0.96),
+    k: entre(num(s.k, 1), K_STICKER_MIN, K_STICKER_MAX),
+    r: normalizarGiro(num(s.r, INCLINACION_STICKER[s.id])),
+  };
 }
 
 /** Arrastrar: `dx` y `dy` en los píxeles del marco donde se ve la imagen. */

@@ -4,8 +4,9 @@
 import { formatearPesos, iniciales } from "./formato";
 import { ENCUADRE_INICIAL, rectFoto, rectFondo, type AjusteFoto } from "./encuadre-historia";
 import type { DatosHistoria, DireccionHistoria } from "./historia";
-import { dibujarSticker } from "./dibujo-stickers-historia";
-import { INCLINACION_STICKER, limitarSticker, type IdSticker, type StickerPuesto } from "./stickers-historia";
+import { urlStickerImagen } from "./catalogo-stickers";
+import { dibujarSticker, necesitaImagen } from "./dibujo-stickers-historia";
+import { limitarSticker, type IdSticker, type StickerPuesto } from "./stickers-historia";
 
 export const ANCHO_HISTORIA = 1080;
 export const ALTO_HISTORIA = 1920;
@@ -230,12 +231,40 @@ function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: n
   ctx.restore();
 }
 
+const cacheStickers = new Map<string, Promise<HTMLImageElement | null>>();
+
+/** El WebP de un sticker ilustrado, del propio sitio (mismo origen: no ensucia el lienzo). Se guarda para no pedirlo dos veces. */
+function imagenSticker(id: IdSticker): Promise<HTMLImageElement | null> {
+  if (!necesitaImagen(id)) return Promise.resolve(null);
+  let p = cacheStickers.get(id);
+  if (!p) {
+    p = cargarImagen(urlStickerImagen(id)).then((img) => {
+      if (!img) cacheStickers.delete(id);
+      return img;
+    });
+    cacheStickers.set(id, p);
+  }
+  return p;
+}
+
+/** Carga las imágenes de los stickers ilustrados que se van a dibujar; falla si alguna no llega. */
+async function imagenesCargadas(ids: IdSticker[]): Promise<Map<IdSticker, HTMLImageElement | null>> {
+  const unicos = [...new Set(ids)];
+  const imgs = await Promise.all(unicos.map(imagenSticker));
+  const m = new Map<IdSticker, HTMLImageElement | null>();
+  unicos.forEach((id, i) => {
+    if (necesitaImagen(id) && !imgs[i]) throw new Error(`No pudimos leer el sticker ${id}.`);
+    m.set(id, imgs[i]!);
+  });
+  return m;
+}
+
 /** Los stickers como imágenes sueltas (PNG con sombra), para la hoja y «Ajustar foto»: el mismo dibujo que sale en la imagen final. */
 export async function imagenesStickers(items: { id: IdSticker; texto: string }[]): Promise<Record<string, { url: string; ancho: number; alto: number }>> {
-  const f = await fuentesListas();
+  const [f, imgs] = await Promise.all([fuentesListas(), imagenesCargadas(items.map((i) => i.id))]);
   const salida: Record<string, { url: string; ancho: number; alto: number }> = {};
   for (const { id, texto } of items) {
-    const d = dibujarSticker(id, texto, f.display);
+    const d = dibujarSticker(id, texto, f.display, imgs.get(id));
     salida[`${id}|${texto}`] = { url: d.lienzo.toDataURL("image/png"), ancho: d.ancho, alto: d.alto };
   }
   return salida;
@@ -243,10 +272,11 @@ export async function imagenesStickers(items: { id: IdSticker; texto: string }[]
 
 /** Dibuja la historia y devuelve el archivo (JPG de alta calidad). */
 export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Promise<Blob> {
-  const [f, foto, logo] = await Promise.all([
+  const [f, foto, logo, imgsStickers] = await Promise.all([
     fuentesListas(),
     cargarImagen(entrada.foto),
     entrada.logoUrl ? cargarImagen(entrada.logoUrl) : Promise.resolve(null),
+    imagenesCargadas(entrada.soloTarjeta ? [] : (entrada.stickers ?? []).map((s) => s.id)),
   ]);
   if (!foto) throw new Error("No pudimos leer la foto del producto.");
 
@@ -460,10 +490,10 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     if (!entrada.soloTarjeta) {
       for (const puesto of entrada.stickers ?? []) {
         const st = limitarSticker(puesto);
-        const d = dibujarSticker(st.id, st.texto, f.display);
+        const d = dibujarSticker(st.id, st.texto, f.display, imgsStickers.get(st.id));
         ctx.save();
         ctx.translate(st.x * ANCHO_HISTORIA, st.y * ALTO_HISTORIA);
-        ctx.rotate((INCLINACION_STICKER[st.id] * Math.PI) / 180);
+        ctx.rotate((st.r * Math.PI) / 180);
         ctx.scale(st.k, st.k);
         ctx.drawImage(d.lienzo, -d.ancho / 2, -d.alto / 2);
         ctx.restore();

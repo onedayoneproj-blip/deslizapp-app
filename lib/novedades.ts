@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.51.0", fecha: "2026-10-08", titulo: "Stickers con sabor.",
+    cambios: [
+      "33 stickers ilustrados para tus historias: «Nuevo», «Agotado», «Más vendido», Navidad, Viernes negro y más.",
+      "Están en tres pestañas: Básicos, Temporadas y Marca. Son gratis.",
+      "Arrastra para moverlos, pellizca para agrandarlos y gira con dos dedos.",
+    ],
+  },
+  {
     version: "0.50.0", fecha: "2026-10-08", titulo: "Tu producto, en una historia.",
     cambios: [
       "En Catálogo, toca «Agregar a historia» arriba a la derecha de cada producto.",

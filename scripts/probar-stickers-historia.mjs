@@ -1,6 +1,6 @@
-// Stickers de la historia (PR #81), en la demo a 390: la fila «Stickers» de la hoja, marcados de entrada, poner/quitar, arrastrar en
+// Stickers de la historia (PR #81, y los ilustrados en pestañas), en la demo a 390 (ANCHO=360 para el otro): el selector «Stickers» de la hoja, marcados de entrada, poner/quitar, arrastrar en
 // «Ajustar foto» y la imagen final 1080×1920 con 0, 1 y 3 stickers. Nunca toca Supabase.
-//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [CAPTURAS=docs/capturas/stickers-historia] node scripts/probar-stickers-historia.mjs
+//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHO=390] [CAPTURAS=docs/capturas/stickers-historia] node scripts/probar-stickers-historia.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -22,7 +22,7 @@ const ok = (c, m) => {
   if (!c) process.exitCode = 1;
 };
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
-const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+const ctx = await navegador.newContext({ viewport: { width: Number(process.env.ANCHO ?? 390), height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 const page = await ctx.newPage();
 const errores = [];
 page.on("pageerror", (e) => errores.push(e.message));
@@ -36,8 +36,24 @@ await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
 await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
 await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
 
+const GRUPO_DE = { ultimas: "Básicos", nuevo: "Básicos", aaah: "Marca", "te-amo": "Temporadas", halloween: "Temporadas", "mas-vendido": "Básicos" };
+const abrirGrupo = async (nombre) => {
+  await page.getByRole("radio", { name: nombre }).click();
+  await page.waitForSelector(`[data-grupo-stickers] [data-sticker-boton]`);
+};
 const boton = (id) => page.locator(`[data-sticker-boton="${id}"]`);
-const puestos = async () => (await page.locator('[data-sticker-boton][aria-pressed="true"]').evaluateAll((l) => l.map((e) => e.dataset.stickerBoton)));
+const verBoton = async (id) => {
+  if (GRUPO_DE[id]) await abrirGrupo(GRUPO_DE[id]);
+  return boton(id);
+};
+const puestos = async () => {
+  const todos = [];
+  for (const g of ["Básicos", "Temporadas", "Marca"]) {
+    await abrirGrupo(g);
+    todos.push(...(await page.locator('[data-sticker-boton][aria-pressed="true"]').evaluateAll((l) => l.map((e) => e.dataset.stickerBoton))));
+  }
+  return todos;
+};
 const esperarNueva = async (antes) => {
   await page.waitForFunction((s) => (document.querySelector('img[alt^="Vista previa"]')?.getAttribute("src") ?? s) !== s, antes, { timeout: 15000 });
 };
@@ -55,12 +71,22 @@ const guardarImagen = async (nombre) => {
 };
 const toggle = async (id) => {
   const a = await src();
-  await boton(id).click();
+  await (await verBoton(id)).click();
   await esperarNueva(a);
 };
 
-await boton("aaah").waitFor();
-ok((await page.locator("[data-sticker-boton]").count()) >= 2, "la fila «Stickers» ofrece los stickers");
+await abrirGrupo("Básicos");
+ok((await page.locator("[data-sticker-boton]").count()) >= 12, "la pestaña Básicos ofrece sus stickers");
+for (const [nombre, n] of [["Temporadas", 12], ["Marca", 9]]) {
+  await abrirGrupo(nombre);
+  ok((await page.locator("[data-sticker-boton]").count()) === n, `la pestaña ${nombre} ofrece ${n}`);
+  await page.waitForFunction(() => [...document.querySelectorAll("[data-sticker-boton] img")].every((i) => i.complete), null, { timeout: 10000 }).catch(() => {});
+  const rotos = await page.locator("[data-sticker-boton] img").evaluateAll((l) => l.filter((i) => !i.complete || i.naturalWidth === 0).length);
+  ok(rotos === 0, `${nombre}: todas las imágenes cargan`);
+  if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `0-selector-${nombre.toLowerCase()}.png`) });
+}
+await abrirGrupo("Básicos");
+if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "0-selector-basicos.png") });
 console.log("  marcados de entrada:", (await puestos()).join(", ") || "(ninguno)");
 ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "sin desborde horizontal");
 // Dejar la hoja en 0 stickers
@@ -95,13 +121,13 @@ await esperarNueva(a1);
 await guardarImagen("3-imagen-sticker-movido.jpg");
 
 // 3 stickers
-for (const id of ["nuevo", "ultimas"]) if (!(await puestos()).includes(id) && (await boton(id).count())) await toggle(id);
+for (const id of ["nuevo", "ultimas"]) if (!(await puestos()).includes(id) && (await (await verBoton(id)).count())) await toggle(id);
 console.log("  puestos:", (await puestos()).join(", "));
 if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "4-hoja-3-stickers.png") });
 await guardarImagen("4-imagen-3-stickers.jpg");
 await page.getByRole("button", { name: "Vista previa" }).click();
 await page.waitForSelector("[data-sticker]");
-ok((await page.locator("[data-sticker]").count()) === (await puestos()).length || true, `${await page.locator("[data-sticker]").count()} stickers en «Ajustar foto»`);
+ok((await page.locator("[data-sticker]").count()) === 3, `${await page.locator("[data-sticker]").count()} stickers en «Ajustar foto»`);
 if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, "5-ajustar-3-stickers.png") });
 await page.getByRole("button", { name: "Cancelar" }).click();
 ok(errores.length === 0, `sin errores de página ${errores.join("|")}`);

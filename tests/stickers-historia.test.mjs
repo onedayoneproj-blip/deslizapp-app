@@ -25,7 +25,9 @@ test("agotado o por encargo: «Últimas» ni se ofrece ni se sugiere", () => {
   assert.equal(S.stickersOfrecidos(prod({ stock: 0 })).includes("ultimas"), false);
   assert.equal(S.stickersOfrecidos(prod({ porEncargo: true, stock: 2 })).includes("ultimas"), false);
   assert.deepEqual(S.stickersSugeridos(prod({ porEncargo: true, stock: 2 }), AHORA), []);
-  assert.deepEqual(S.stickersOfrecidos(prod()), ["nuevo", "ultimas", "aaah"]);
+  assert.equal(S.stickersOfrecidos(prod()).includes("ultimas"), true);
+  assert.equal(S.stickersOfrecidos(prod()).length, 34);
+  assert.equal(S.stickersOfrecidos(prod({ stock: 0 })).length, 33);
 });
 
 test("texto de «Últimas N»: con número, uno solo, y sin número", () => {
@@ -37,19 +39,38 @@ test("texto de «Últimas N»: con número, uno solo, y sin número", () => {
   assert.equal(S.textoSticker("nuevo", { stock: 2 }), "¡Nuevo!");
 });
 
-test("posiciones por defecto: arriba, fuera de la tarjeta y del centro, y sin encimarse", () => {
-  const lista = S.IDS_STICKERS.map((id) => S.stickerPorDefecto(id, { stock: 2 }));
-  for (const s of lista) {
-    assert.ok(s.y < 0.3, `${s.id} arriba`);
-    assert.ok(s.x > 0.1 && s.x < 0.9);
-    assert.equal(s.k, 1);
+test("posiciones por defecto: arriba, fuera de la tarjeta y del centro, y cada uno en un lugar libre", () => {
+  for (const p of S.POSICIONES_STICKER) {
+    assert.ok(p.y < 0.4, "arriba");
+    assert.ok(p.x > 0.1 && p.x < 0.9);
   }
-  // Cajas de sus formas (con el borde), en píxeles de la imagen: no se tocan
-  const tamano = { nuevo: [328, 328], ultimas: [406, 183], aaah: [328, 298] };
-  const caja = (s) => ({ x0: s.x * 1080 - tamano[s.id][0] / 2, x1: s.x * 1080 + tamano[s.id][0] / 2, y0: s.y * 1920 - tamano[s.id][1] / 2, y1: s.y * 1920 + tamano[s.id][1] / 2 });
-  const tocan = (p, q) => p.x0 < q.x1 && q.x0 < p.x1 && p.y0 < q.y1 && q.y0 < p.y1;
-  const cajas = lista.map(caja);
-  for (let i = 0; i < cajas.length; i++) for (let j = i + 1; j < cajas.length; j++) assert.equal(tocan(cajas[i], cajas[j]), false);
+  // Poniendo uno tras otro, ninguno cae encima del anterior
+  let l = [];
+  for (const id of ["nuevo", "ultimas", "aaah", "te-amo", "halloween"]) l = S.alternarSticker(l, id, { stock: 2 });
+  const claves = l.map((s) => `${s.x},${s.y}`);
+  assert.equal(new Set(claves).size, l.length);
+  assert.equal(l[0].k, 1);
+  assert.equal(l[0].r, 0);
+  assert.equal(l[1].r, -5);
+  // Sin lugar libre, vuelve al primero
+  assert.deepEqual(S.posicionLibre(S.POSICIONES_STICKER), S.POSICIONES_STICKER[0]);
+});
+
+test("grupos: Básicos, Temporadas y Marca con 12, 12 y 9; «Últimas» abre Básicos solo si se ofrece", () => {
+  const g = S.gruposOfrecidos(prod());
+  assert.deepEqual(g.map((x) => x.nombre), ["Básicos", "Temporadas", "Marca"]);
+  assert.deepEqual(g.map((x) => x.ids.length), [13, 12, 9]);
+  assert.equal(g[0].ids[0], "ultimas");
+  assert.equal(S.gruposOfrecidos(prod({ stock: 0 }))[0].ids.includes("ultimas"), false);
+  assert.ok(g.every((x) => x.disponible), "todos gratis por ahora");
+});
+
+test("giro: se normaliza a (-180, 180] y un valor roto cae a la inclinación de entrada", () => {
+  const base = S.stickerPorDefecto("ultimas", { stock: 2 });
+  assert.equal(S.limitarSticker({ ...base, r: 190 }).r, -170);
+  assert.equal(S.limitarSticker({ ...base, r: -180 }).r, 180);
+  assert.equal(S.limitarSticker({ ...base, r: 360 }).r, 0);
+  assert.equal(S.limitarSticker({ ...base, r: NaN }).r, -5);
 });
 
 test("alternar pone el sticker en su lugar y lo quita; arrastrar lo deja dentro de la imagen", () => {
