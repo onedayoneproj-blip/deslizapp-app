@@ -38,17 +38,17 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
  ('ad100000-0000-4000-8000-00000000000b','ae100000-0000-4000-8000-000000000002','dueno','ayudante');
 -- Tienda 1: dos productos con foto, uno sin foto, uno oculto con foto, uno eliminado con foto => solo 2 cuentan.
 insert into public.productos(id,tienda_id,nombre,precio,stock,activo,eliminado_en,medios) values
- ('af100000-0000-4000-8000-000000000001','ae100000-0000-4000-8000-000000000001','Con foto 1',1000,5,true,null,'[{"url":"https://x.test/1.jpg","tipo":"foto","retocada":false}]'),
- ('af100000-0000-4000-8000-000000000002','ae100000-0000-4000-8000-000000000001','Con foto 2',1000,5,true,null,'[{"url":"https://x.test/2.jpg","tipo":"foto","retocada":false},{"url":"https://x.test/2.mp4","tipo":"video"}]'),
+ ('af100000-0000-4000-8000-000000000001','ae100000-0000-4000-8000-000000000001','Con foto 1',1000,5,true,null,'[{"url":"https://deslizapp-app.vercel.app/ensayo/1.jpg","tipo":"foto","retocada":false}]'),
+ ('af100000-0000-4000-8000-000000000002','ae100000-0000-4000-8000-000000000001','Con foto 2',1000,5,true,null,'[{"url":"https://deslizapp-app.vercel.app/ensayo/2.jpg","tipo":"foto","retocada":false},{"url":"https://deslizapp-app.vercel.app/ensayo/2.mp4","tipo":"video"}]'),
  ('af100000-0000-4000-8000-000000000003','ae100000-0000-4000-8000-000000000001','Sin foto',1000,5,true,null,'[]'),
- ('af100000-0000-4000-8000-000000000004','ae100000-0000-4000-8000-000000000001','Oculto',1000,5,false,null,'[{"url":"https://x.test/4.jpg","tipo":"foto","retocada":false}]'),
- ('af100000-0000-4000-8000-000000000005','ae100000-0000-4000-8000-000000000001','Solo video',1000,5,true,null,'[{"url":"https://x.test/5.mp4","tipo":"video"}]'),
- ('af100000-0000-4000-8000-000000000006','ae100000-0000-4000-8000-000000000001','Agotado con foto',1000,0,true,null,'[{"url":"https://x.test/6.jpg","tipo":"foto","retocada":false}]');
+ ('af100000-0000-4000-8000-000000000004','ae100000-0000-4000-8000-000000000001','Oculto',1000,5,false,null,'[{"url":"https://deslizapp-app.vercel.app/ensayo/4.jpg","tipo":"foto","retocada":false}]'),
+ ('af100000-0000-4000-8000-000000000005','ae100000-0000-4000-8000-000000000001','Solo video',1000,5,true,null,'[{"url":"https://deslizapp-app.vercel.app/ensayo/5.mp4","tipo":"video"}]'),
+ ('af100000-0000-4000-8000-000000000006','ae100000-0000-4000-8000-000000000001','Agotado con foto',1000,0,true,null,'[{"url":"https://deslizapp-app.vercel.app/ensayo/6.jpg","tipo":"foto","retocada":false}]');
 update public.productos set eliminado_en=now(), activo=false where id='af100000-0000-4000-8000-000000000004';
 insert into public.productos(id,tienda_id,nombre,precio,stock,medios) values
- ('af100000-0000-4000-8000-000000000007','ae100000-0000-4000-8000-000000000002','V1',1000,5,'[{"url":"https://x.test/v1.jpg","tipo":"foto","retocada":false}]'),
- ('af100000-0000-4000-8000-000000000008','ae100000-0000-4000-8000-000000000002','V2',1000,5,'[{"url":"https://x.test/v2.jpg","tipo":"foto","retocada":false}]'),
- ('af100000-0000-4000-8000-000000000009','ae100000-0000-4000-8000-000000000002','V3',1000,5,'[{"url":"https://x.test/v3.jpg","tipo":"foto","retocada":false}]');
+ ('af100000-0000-4000-8000-000000000007','ae100000-0000-4000-8000-000000000002','V1',1000,5,'[{"url":"https://deslizapp-app.vercel.app/ensayo/v1.jpg","tipo":"foto","retocada":false}]'),
+ ('af100000-0000-4000-8000-000000000008','ae100000-0000-4000-8000-000000000002','V2',1000,5,'[{"url":"https://deslizapp-app.vercel.app/ensayo/v2.jpg","tipo":"foto","retocada":false}]'),
+ ('af100000-0000-4000-8000-000000000009','ae100000-0000-4000-8000-000000000002','V3',1000,5,'[{"url":"https://deslizapp-app.vercel.app/ensayo/v3.jpg","tipo":"foto","retocada":false}]');
 
 -- ═══ 0. Estructura y permisos de ejecución ═══
 select pg_temp.comprobar(not has_function_privilege('anon','public.publicar_mi_catalogo(uuid)','EXECUTE')

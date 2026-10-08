@@ -34,10 +34,10 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
  ('bd000000-0000-4000-8000-00000000000c','be000000-0000-4000-8000-000000000001','staff','administrador'),
  ('bd000000-0000-4000-8000-00000000000b','be000000-0000-4000-8000-000000000002','dueno','ayudante');
 insert into public.productos(id,tienda_id,nombre,precio,stock,medios) values
- ('bf000000-0000-4000-8000-000000000001','be000000-0000-4000-8000-000000000001','Con ficha',1850,3,'[{"tipo":"foto","url":"https://ejemplo.invalid/1.webp","retocada":false}]'),
- ('bf000000-0000-4000-8000-000000000002','be000000-0000-4000-8000-000000000002','Producto V',1850,3,'[{"tipo":"foto","url":"https://ejemplo.invalid/v1.webp","retocada":false}]'),
- ('bf000000-0000-4000-8000-000000000003','be000000-0000-4000-8000-000000000003','Producto ajeno',1850,3,'[{"tipo":"foto","url":"https://ejemplo.invalid/a1.webp","retocada":false}]'),
- ('bf000000-0000-4000-8000-000000000004','be000000-0000-4000-8000-000000000001','Producto eliminado',1850,0,'[{"tipo":"foto","url":"https://ejemplo.invalid/e1.webp","retocada":false}]');
+ ('bf000000-0000-4000-8000-000000000001','be000000-0000-4000-8000-000000000001','Con ficha',1850,3,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/1.webp","retocada":false}]'),
+ ('bf000000-0000-4000-8000-000000000002','be000000-0000-4000-8000-000000000002','Producto V',1850,3,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/v1.webp","retocada":false}]'),
+ ('bf000000-0000-4000-8000-000000000003','be000000-0000-4000-8000-000000000003','Producto ajeno',1850,3,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/a1.webp","retocada":false}]'),
+ ('bf000000-0000-4000-8000-000000000004','be000000-0000-4000-8000-000000000001','Producto eliminado',1850,0,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/e1.webp","retocada":false}]');
 
 -- ═══ 0. Estructura ═══
 select pg_temp.comprobar((select count(*) from information_schema.columns where table_name='productos' and column_name='ficha_url' and is_nullable='YES')=1,'columna ficha_url nullable');

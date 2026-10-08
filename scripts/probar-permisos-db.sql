@@ -38,7 +38,7 @@ insert into public.miembros(usuario_id,tienda_id,rol,nivel) values
  ('dd000000-0000-4000-8000-00000000000b','de000000-0000-4000-8000-000000000001','staff','ayudante');
 -- Una fila de cada tabla con escritura para miembros.
 insert into public.productos(id,tienda_id,nombre,precio,stock,opciones,medios) values (pg_temp.id('producto'),'de000000-0000-4000-8000-000000000001','Producto',1000,5,'[{"nombre":"Talla","valores":["S","M"]}]',
-  '[{"tipo":"foto","url":"https://ejemplo.invalid/a.webp","retocada":false}]');
+  '[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/a.webp","retocada":false}]');
 insert into public.producto_variantes(id,tienda_id,producto_id,valores,stock,activa,orden) values (pg_temp.id('variante'),'de000000-0000-4000-8000-000000000001',pg_temp.id('producto'),'{"Talla":"S"}',5,true,0);
 insert into public.clientes(id,tienda_id,nombre,telefono) values (pg_temp.id('cliente'),'de000000-0000-4000-8000-000000000001','Cliente','+18095557001');
 insert into public.pedidos(id,tienda_id,cliente_id,estado,total,pago_modo) values (pg_temp.id('pedido'),'de000000-0000-4000-8000-000000000001',pg_temp.id('cliente'),'por_despachar',1000,'contado');
@@ -189,7 +189,7 @@ insert into rpc_casos values
  ('catalogo','solicitar_catalogo',$q$select public.solicitar_catalogo('de000000-0000-4000-8000-000000000001'::uuid)$q$),
  ('catalogo','pedir_cambios_catalogo',$q$select public.pedir_cambios_catalogo('de000000-0000-4000-8000-000000000001'::uuid, 'Cambios de prueba')$q$),
  ('creditos','gastar_creditos',$q$select public.gastar_creditos('de000000-0000-4000-8000-000000000001'::uuid, 1)$q$),
- ('creditos','pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('producto'), 'https://ejemplo.invalid/a.webp')$q$),
+ ('creditos','pedir_retoque',$q$select public.pedir_retoque(pg_temp.id('producto'), 'https://deslizapp-app.vercel.app/ensayo/a.webp')$q$),
  ('equipo','cambiar_estado_tienda',$q$select public.cambiar_estado_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'pausar')$q$),
  ('equipo','invitar_por_correo',$q$select public.invitar_por_correo('de000000-0000-4000-8000-000000000001'::uuid, 'nadie@ejemplo.invalid', 'editor')$q$),
  ('equipo','invitar_a_tienda',$q$select public.invitar_a_tienda('de000000-0000-4000-8000-000000000001'::uuid, 'nadie2@ejemplo.invalid', 'staff')$q$),

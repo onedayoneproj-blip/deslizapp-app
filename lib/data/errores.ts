@@ -348,6 +348,9 @@ export function traducirErrorSupabase(e: unknown): Error {
     if (todo.includes("marca_color")) return new DatosInvalidos("Ese color no es válido.");
     if (todo.includes("productos_slug_formato")) return new DatosInvalidos("El enlace va en minúsculas, números y guiones (hasta 40).");
     if (todo.includes("productos_medios_validos")) return new DatosInvalidos("Hasta 10 fotos y videos, y máximo 2 videos de 30 segundos.");
+    // Migración *_medios_solo_hosts_propios: solo fotos subidas desde Deslizapp (nunca un enlace de otro sitio).
+    if (todo.includes("productos_medios_hosts_propios")) return new DatosInvalidos("Esa foto no se subió desde Deslizapp. Vuelve a elegirla desde tu teléfono.");
+    if (todo.includes("tiendas_logo_url_propia") || todo.includes("tiendas_foto_perfil_url_propia")) return new DatosInvalidos("Esa foto no se subió desde Deslizapp. Vuelve a elegirla desde tu teléfono.");
     if (todo.includes("productos_servicio_sin_stock")) return new DatosInvalidos("Un servicio no lleva stock.");
     if (todo.includes("stock")) return new DatosInvalidos("El stock no puede quedar en negativo.");
     return new DatosInvalidos("Algún dato no es válido. Revísalo e inténtalo otra vez.");

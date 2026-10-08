@@ -25,9 +25,9 @@ insert into public.miembros(usuario_id,tienda_id,rol) values
  ('ba000000-0000-4000-8000-000000000003','bb000000-0000-4000-8000-000000000002','dueno');
 insert into public.movimientos_creditos(tienda_id,cantidad,tipo,motivo) values ('bb000000-0000-4000-8000-000000000001',12,'ajuste','fixture');
 insert into public.productos(id,tienda_id,nombre,precio,stock,orden,medios) values
- ('bc000000-0000-4000-8000-000000000001','bb000000-0000-4000-8000-000000000001','Uno',100,2,2,'[{"tipo":"foto","url":"https://example.invalid/a.jpg","retocada":false},{"tipo":"foto","url":"https://example.invalid/b.jpg","retocada":false}]'),
- ('bc000000-0000-4000-8000-000000000002','bb000000-0000-4000-8000-000000000001','Dos',100,2,null,'[{"tipo":"foto","url":"https://example.invalid/c.jpg","retocada":false}]'),
- ('bc000000-0000-4000-8000-000000000003','bb000000-0000-4000-8000-000000000001','Tres',100,2,1,'[{"tipo":"foto","url":"https://example.invalid/d.jpg","retocada":false}]');
+ ('bc000000-0000-4000-8000-000000000001','bb000000-0000-4000-8000-000000000001','Uno',100,2,2,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/a.jpg","retocada":false},{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/b.jpg","retocada":false}]'),
+ ('bc000000-0000-4000-8000-000000000002','bb000000-0000-4000-8000-000000000001','Dos',100,2,null,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/c.jpg","retocada":false}]'),
+ ('bc000000-0000-4000-8000-000000000003','bb000000-0000-4000-8000-000000000001','Tres',100,2,1,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/d.jpg","retocada":false}]');
 
 -- 1. admin_productos_tienda: solo admins, sin retirados, en el orden del catálogo público.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
@@ -41,7 +41,7 @@ set local role authenticated;
 do $$ declare r jsonb := public.admin_productos_tienda('bb000000-0000-4000-8000-000000000001'); begin
  perform pg_temp.comprobar(jsonb_array_length(r)=2,'cuenta sin retirados');
  perform pg_temp.comprobar(r->0->>'nombre'='Dos' and r->1->>'nombre'='Uno','orden: sin orden primero, como el catálogo');
- perform pg_temp.comprobar(r->1->'medios'->0->>'url'='https://example.invalid/a.jpg','medios');
+ perform pg_temp.comprobar(r->1->'medios'->0->>'url'='https://deslizapp-app.vercel.app/ensayo/a.jpg','medios');
  perform pg_temp.rechaza($q$select public.admin_productos_tienda('bb000000-0000-4000-8000-0000000000ff')$q$,'tienda_no_encontrada');
  -- El admin sin «Ver como» sigue sin leer productos directo (la RPC no abre la tabla).
  perform pg_temp.comprobar((select count(*) from public.productos where tienda_id='bb000000-0000-4000-8000-000000000001')=0,'lectura directa sin Ver como');
@@ -68,21 +68,21 @@ select pg_temp.comprobar((select count(*) from public.registro_admin where tiend
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
 do $$ declare t jsonb; begin
- t := public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/a.jpg');
+ t := public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/a.jpg');
  perform pg_temp.comprobar(t->>'estado'='pendiente' and (t->>'creditos')::int=5,'trabajo pendiente');
  perform pg_temp.comprobar((select creditos_retoque from public.tiendas where id='bb000000-0000-4000-8000-000000000001')=12,'pedir no cobra');
- perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/a.jpg')$q$,'retoque_pendiente');
- perform public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/b.jpg');
+ perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/a.jpg')$q$,'retoque_pendiente');
+ perform public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/b.jpg');
  -- 12 - 10 reservados = 2 libres: la tercera no entra.
- perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000002','https://example.invalid/c.jpg')$q$,'creditos_insuficientes');
- perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/no-esta.jpg')$q$,'foto_no_encontrada');
+ perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000002','https://deslizapp-app.vercel.app/ensayo/c.jpg')$q$,'creditos_insuficientes');
+ perform pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/no-esta.jpg')$q$,'foto_no_encontrada');
  perform pg_temp.comprobar((select count(*) from public.trabajos_retoque)=2,'la dueña ve sus 2 trabajos');
 end $$;
 reset role;
 -- Otra tienda no pide sobre productos ajenos ni ve sus trabajos.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000003',true);
 set local role authenticated;
-select pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/a.jpg')$q$,'producto_no_encontrado');
+select pg_temp.rechaza($q$select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/a.jpg')$q$,'producto_no_encontrado');
 select pg_temp.comprobar((select count(*) from public.trabajos_retoque)=0,'otra tienda no ve trabajos ajenos');
 reset role;
 
@@ -90,61 +90,61 @@ reset role;
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 do $$ declare a uuid; b uuid; begin
- select (x->>'id')::uuid into a from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://example.invalid/a.jpg';
- select (x->>'id')::uuid into b from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://example.invalid/b.jpg';
+ select (x->>'id')::uuid into a from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://deslizapp-app.vercel.app/ensayo/a.jpg';
+ select (x->>'id')::uuid into b from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://deslizapp-app.vercel.app/ensayo/b.jpg';
  perform pg_temp.rechaza(format('select public.admin_retoque_entregar(%L,%L)',a,'http://inseguro.invalid/x.webp'),'enlace_invalido');
- perform public.admin_retoque_entregar(a,'https://example.invalid/retoques/a-1.webp');
- perform pg_temp.rechaza(format('select public.admin_retoque_entregar(%L,%L)',a,'https://example.invalid/retoques/a-2.webp'),'trabajo_no_pendiente');
+ perform public.admin_retoque_entregar(a,'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/bb000000-0000-4000-8000-000000000001/a-1.webp');
+ perform pg_temp.rechaza(format('select public.admin_retoque_entregar(%L,%L)',a,'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/bb000000-0000-4000-8000-000000000001/a-2.webp'),'trabajo_no_pendiente');
  perform pg_temp.rechaza(format('select public.admin_retoque_devolver(%L,%L)',a,'tarde'),'trabajo_no_pendiente');
  perform public.admin_retoque_devolver(b,'La foto está muy oscura');
 end $$;
 reset role;
 do $$ declare a uuid; m jsonb; begin
- select id into a from public.trabajos_retoque where medio_url_original='https://example.invalid/a.jpg';
+ select id into a from public.trabajos_retoque where medio_url_original='https://deslizapp-app.vercel.app/ensayo/a.jpg';
  perform pg_temp.comprobar((select creditos_retoque from public.tiendas where id='bb000000-0000-4000-8000-000000000001')=7,'cobró una sola vez y devolver no cobró');
  perform pg_temp.comprobar((select count(*) from public.movimientos_creditos where trabajo_id=a)=1,'un solo movimiento');
  select medios into m from public.productos where id='bc000000-0000-4000-8000-000000000001';
- perform pg_temp.comprobar(m->0->>'url'='https://example.invalid/retoques/a-1.webp' and (m->0->>'retocada')::boolean,'foto entregada en su lugar');
- perform pg_temp.comprobar(m->1->>'url'='https://example.invalid/b.jpg','la otra foto no cambió');
- perform pg_temp.comprobar((select medio_url_original from public.trabajos_retoque where id=a)='https://example.invalid/a.jpg','conserva la original');
- perform pg_temp.comprobar((select motivo_devolucion from public.trabajos_retoque where medio_url_original='https://example.invalid/b.jpg')='La foto está muy oscura','motivo guardado');
+ perform pg_temp.comprobar(m->0->>'url'='https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/bb000000-0000-4000-8000-000000000001/a-1.webp' and (m->0->>'retocada')::boolean,'foto entregada en su lugar');
+ perform pg_temp.comprobar(m->1->>'url'='https://deslizapp-app.vercel.app/ensayo/b.jpg','la otra foto no cambió');
+ perform pg_temp.comprobar((select medio_url_original from public.trabajos_retoque where id=a)='https://deslizapp-app.vercel.app/ensayo/a.jpg','conserva la original');
+ perform pg_temp.comprobar((select motivo_devolucion from public.trabajos_retoque where medio_url_original='https://deslizapp-app.vercel.app/ensayo/b.jpg')='La foto está muy oscura','motivo guardado');
 end $$;
 
 -- 4. La tienda cambió la foto mientras esperaba: no se sustituye otra foto ni se cobra.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
-select public.pedir_retoque('bc000000-0000-4000-8000-000000000002','https://example.invalid/c.jpg');
+select public.pedir_retoque('bc000000-0000-4000-8000-000000000002','https://deslizapp-app.vercel.app/ensayo/c.jpg');
 reset role;
-update public.productos set medios='[{"tipo":"foto","url":"https://example.invalid/c-nueva.jpg","retocada":false}]' where id='bc000000-0000-4000-8000-000000000002';
+update public.productos set medios='[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/c-nueva.jpg","retocada":false}]' where id='bc000000-0000-4000-8000-000000000002';
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 do $$ declare c uuid; begin
- select (x->>'id')::uuid into c from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://example.invalid/c.jpg';
- perform pg_temp.rechaza(format('select public.admin_retoque_entregar(%L,%L)',c,'https://example.invalid/retoques/c-1.webp'),'foto_no_encontrada');
+ select (x->>'id')::uuid into c from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://deslizapp-app.vercel.app/ensayo/c.jpg';
+ perform pg_temp.rechaza(format('select public.admin_retoque_entregar(%L,%L)',c,'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/bb000000-0000-4000-8000-000000000001/c-1.webp'),'foto_no_encontrada');
 end $$;
 reset role;
 do $$ begin
- perform pg_temp.comprobar((select estado from public.trabajos_retoque where medio_url_original='https://example.invalid/c.jpg')='pendiente','sigue pendiente tras el rechazo');
+ perform pg_temp.comprobar((select estado from public.trabajos_retoque where medio_url_original='https://deslizapp-app.vercel.app/ensayo/c.jpg')='pendiente','sigue pendiente tras el rechazo');
  perform pg_temp.comprobar((select creditos_retoque from public.tiendas where id='bb000000-0000-4000-8000-000000000001')=7,'no cobró la foto cambiada');
- perform pg_temp.comprobar((select medios->0->>'url' from public.productos where id='bc000000-0000-4000-8000-000000000002')='https://example.invalid/c-nueva.jpg','no sustituyó la foto nueva');
+ perform pg_temp.comprobar((select medios->0->>'url' from public.productos where id='bc000000-0000-4000-8000-000000000002')='https://deslizapp-app.vercel.app/ensayo/c-nueva.jpg','no sustituyó la foto nueva');
 end $$;
 -- El admin la devuelve: la reserva se libera.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
-select public.admin_retoque_devolver((select (x->>'id')::uuid from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://example.invalid/c.jpg'),'Cambiaste la foto: pide la nueva');
+select public.admin_retoque_devolver((select (x->>'id')::uuid from jsonb_array_elements(public.admin_trabajos_retoque('pendiente')) x where x->>'medio_url_original'='https://deslizapp-app.vercel.app/ensayo/c.jpg'),'Cambiaste la foto: pide la nueva');
 reset role;
 
 -- 5. Producto retirado mientras esperaba: tampoco se entrega.
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000002',true);
 set local role authenticated;
-select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://example.invalid/b.jpg');
+select public.pedir_retoque('bc000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/b.jpg');
 reset role;
 update public.productos set eliminado_en=now(), activo=false where id='bc000000-0000-4000-8000-000000000001';
 select set_config('request.jwt.claim.sub','ba000000-0000-4000-8000-000000000001',true);
 do $$ declare b2 uuid; ok boolean := false; begin
- select id into b2 from public.trabajos_retoque where medio_url_original='https://example.invalid/b.jpg' and estado='pendiente';
+ select id into b2 from public.trabajos_retoque where medio_url_original='https://deslizapp-app.vercel.app/ensayo/b.jpg' and estado='pendiente';
  execute 'set local role authenticated';
- begin perform public.admin_retoque_entregar(b2,'https://example.invalid/retoques/b-1.webp'); exception when others then ok := sqlerrm='producto_no_encontrado'; end;
+ begin perform public.admin_retoque_entregar(b2,'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/bb000000-0000-4000-8000-000000000001/b-1.webp'); exception when others then ok := sqlerrm='producto_no_encontrado'; end;
  execute 'reset role';
  perform pg_temp.comprobar(ok,'retirado: producto_no_encontrado');
  perform pg_temp.comprobar((select creditos_retoque from public.tiendas where id='bb000000-0000-4000-8000-000000000001')=7,'no cobró el retirado');

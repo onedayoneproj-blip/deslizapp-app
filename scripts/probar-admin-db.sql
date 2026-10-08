@@ -19,7 +19,7 @@ insert into public.tiendas(id,nombre,slug,estado,creditos_retoque,catalogo_estad
 insert into public.miembros(usuario_id,tienda_id,rol) values ('aa000000-0000-4000-8000-000000000002','ab000000-0000-4000-8000-000000000001','dueno');
 insert into public.usuarios(id,tienda_id,email,rol) values ('aa000000-0000-4000-8000-000000000002','ab000000-0000-4000-8000-000000000001','dueno@prueba.invalid','dueno');
 insert into public.productos(id,tienda_id,nombre,precio,stock,medios) values
- ('ac000000-0000-4000-8000-000000000001','ab000000-0000-4000-8000-000000000001','Foto',100,2,'[{"tipo":"foto","url":"https://example.invalid/original.jpg"},{"tipo":"foto","url":"https://example.invalid/otra.jpg"}]');
+ ('ac000000-0000-4000-8000-000000000001','ab000000-0000-4000-8000-000000000001','Foto',100,2,'[{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/original.jpg"},{"tipo":"foto","url":"https://deslizapp-app.vercel.app/ensayo/otra.jpg"}]');
 insert into public.movimientos_creditos(tienda_id,cantidad,tipo,motivo) values ('ab000000-0000-4000-8000-000000000001',10,'ajuste','fixture');
 -- Verificación estructural completa de admin RPC y RLS, incluida baja lógica.
 do $$ declare f record; begin
@@ -88,16 +88,16 @@ update public.productos set nombre='Foto dueño' where id='ac000000-0000-4000-80
 select pg_temp.comprobar((select nombre='Foto dueño' from public.productos where id='ac000000-0000-4000-8000-000000000001'),'al terminar Ver como el dueño vuelve a escribir');
 -- Retoque reserva/cobra/devuelve y legacy firmas de gastar_creditos.
 do $$ declare tr jsonb; v integer; begin
- tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/original.jpg');
+ tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/original.jpg');
  perform pg_temp.comprobar((select coalesce(sum(creditos),0) from public.trabajos_retoque where tienda_id='ab000000-0000-4000-8000-000000000001' and estado='pendiente')=5,'reserva');
- perform pg_temp.rechaza($q$select public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/original.jpg')$q$,'P0001','retoque_pendiente');
+ perform pg_temp.rechaza($q$select public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/original.jpg')$q$,'P0001','retoque_pendiente');
  perform public.gastar_creditos('ab000000-0000-4000-8000-000000000001',5);
- perform pg_temp.rechaza($q$select public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/otra.jpg')$q$,'P0001','creditos_insuficientes');
+ perform pg_temp.rechaza($q$select public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/otra.jpg')$q$,'P0001','creditos_insuficientes');
  perform public.admin_retoque_devolver((tr->>'id')::uuid,'foto borrosa');
  perform pg_temp.comprobar((select coalesce(sum(creditos),0) from public.trabajos_retoque where tienda_id='ab000000-0000-4000-8000-000000000001' and estado='pendiente')=0,'devuelve reserva');
  perform pg_temp.comprobar((select creditos_retoque=5 from public.tiendas where id='ab000000-0000-4000-8000-000000000001'),'no cobra devolución');
- tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://example.invalid/original.jpg');
- perform public.admin_retoque_entregar((tr->>'id')::uuid,'https://example.invalid/retocada.jpg');
+ tr:=public.pedir_retoque('ac000000-0000-4000-8000-000000000001','https://deslizapp-app.vercel.app/ensayo/original.jpg');
+ perform public.admin_retoque_entregar((tr->>'id')::uuid,'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/ab000000-0000-4000-8000-000000000001/retocada.jpg');
  perform pg_temp.comprobar((select creditos_retoque=0 from public.tiendas where id='ab000000-0000-4000-8000-000000000001'),'cobra entrega');
  perform public.admin_ajustar_creditos('ab000000-0000-4000-8000-000000000001',5,'fixture');
  v:=public.gastar_creditos(1);perform pg_temp.comprobar(v=4,'firma legacy');
