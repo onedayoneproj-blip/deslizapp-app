@@ -213,3 +213,6 @@ test("adaptador real conserva datos/detalle/JSON y manda los parámetros reales,
   });
   await assert.rejects(fallida.hoy(), /no_admin/);
 });
+
+import { test as __rojo } from "node:test";
+__rojo("prueba temporal en rojo", () => { throw new Error("rojo a propósito"); });
