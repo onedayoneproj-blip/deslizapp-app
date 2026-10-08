@@ -1,26 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { borradorAlQuitar, contadorDescripcion, fichaVisible, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { LARGO_DESCRIPCION } from "@/lib/rubros";
 import { reducirFoto } from "@/lib/imagen";
 import { Foto } from "../foto";
 import { Boton, CampoMultilinea } from "../ui";
-
-/** Lo que se hará con la ficha al guardar el producto: nada, subir esta foto (data URL) o quitarla. */
-export type BorradorFicha = { tipo: "igual" } | { tipo: "nueva"; foto: string } | { tipo: "quitada" };
-
-/** Hay algo que guardar en la ficha. */
-export const fichaCambiada = (b: BorradorFicha) => b.tipo !== "igual";
-
-/** La foto de la ficha que se ve en la tarjeta: la nueva, o la guardada si no se la quitó. */
-export function fichaVisible(actual: string | null | undefined, b: BorradorFicha): string | null {
-  if (b.tipo === "nueva") return b.foto;
-  if (b.tipo === "quitada") return null;
-  return actual ?? null;
-}
-
-/** «43 / 600». */
-export const contadorDescripcion = (texto: string) => `${texto.length} / ${LARGO_DESCRIPCION}`;
 
 /**
  * Descripción: hasta 600 caracteres (es `detalles.descripcion`). La búsqueda del catálogo la usa; el formulario lo dice en una línea.
@@ -102,7 +87,7 @@ export function SeccionFichaTecnica({
     if (!confirmando) return setConfirmando(true);
     setConfirmando(false);
     // Una foto nueva que aún no se guardó solo se descarta; una guardada se quita al guardar el producto.
-    alCambiar(actual ? { tipo: "quitada" } : { tipo: "igual" });
+    alCambiar(borradorAlQuitar(actual));
   };
 
   return (

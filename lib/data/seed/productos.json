@@ -1170,7 +1170,8 @@
         "Arena": "/seed/productos/pantalon-de-algodon-arena.svg",
         "Verde": "/seed/productos/pantalon-de-algodon-verde.svg"
       }
-    }
+    },
+    "ficha_url": "/seed/productos/ficha-pantalon-de-algodon.svg"
   },
   {
     "foto_retocada": false,
@@ -1217,7 +1218,8 @@
         ]
       }
     ],
-    "fotos_por_valor": {}
+    "fotos_por_valor": {},
+    "ficha_url": "/seed/productos/ficha-majestic-oud.svg"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000024",
@@ -1252,7 +1254,8 @@
     "encargo_texto": null,
     "orden": null,
     "opiniones": [],
-    "rubro": "accesorios"
+    "rubro": "accesorios",
+    "ficha_url": "/seed/productos/ficha-cinturon-de-cuero.svg"
   },
   {
     "id": "a3000000-0000-4000-8000-000000000025",

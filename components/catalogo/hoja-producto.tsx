@@ -36,7 +36,8 @@ import { useTaller } from "./taller";
 import { claveVariante, ejeDeFoto, presentacionesDe } from "@/lib/presentaciones";
 import { HojaMotivoVariantes, SeccionPresentaciones, type EstadoPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
-import { fichaCambiada, SeccionDescripcion, SeccionFichaTecnica, type BorradorFicha } from "./ficha-tecnica";
+import { fichaCambiada, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
+import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
 
@@ -254,7 +255,7 @@ function FormularioProducto({
   const { opciones, pres: borradorPres, fotosColor } = presentaciones;
   const [detalles, setDetalles] = useState<Detalles>(producto?.detalles ?? {});
   // Los Detalles por rubro solo se piden en un producto que ya los tiene (Esencias Michel); uno nuevo lleva solo la descripción.
-  const [conDetalles] = useState(() => Object.keys(producto?.detalles ?? {}).some((k) => k !== "descripcion"));
+  const [conDetalles] = useState(() => tieneDetallesPorRubro(producto?.detalles));
   const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
   const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
   const ponerDescripcion = (texto: string) =>
