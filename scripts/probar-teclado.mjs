@@ -110,7 +110,9 @@ async function probarCampo(page, selector, nombre, texto, { dentroDeHoja = false
   if (reemplazar) await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.type(texto);
   const valor = await page.$eval(selector, (el) => el.value);
-  ok(valor === texto, `${nombre}: (b) se puede escribir (${JSON.stringify(valor)})`);
+  // Los campos de precio muestran comas de miles ("2450" se ve "2,450"): se compara sin ellas.
+  const esPrecio = /^\d+$/.test(texto) && valor === Number(texto).toLocaleString("en-US");
+  ok(valor === texto || esPrecio, `${nombre}: (b) se puede escribir (${JSON.stringify(valor)})`);
   ok((await conFoco()) && (await page.evaluate((s) => document.querySelector(s).__marca, selector)) === "mismo-nodo", `${nombre}: (b) tras escribir, mismo nodo y con foco`);
   const vt = await page.evaluate(() => window.__vt);
   ok(vt === 0, `${nombre}: (d) mientras se escribe no se inicia ninguna transición de vista (${vt})`);
