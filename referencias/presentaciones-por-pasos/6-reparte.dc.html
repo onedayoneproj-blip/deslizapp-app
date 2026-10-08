@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reparte lo que tenías</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;800&amp;display=swap">
+<style>
+body{margin:0}
+.pant{width:390px;height:844px;position:relative;overflow:hidden;box-sizing:border-box;font-family:'Figtree',sans-serif;color:#174b3a;background:#10362a59}
+.disp{font-family:'Fredoka',sans-serif;font-weight:600;font-stretch:115%}
+.hoja{position:absolute;left:0;right:0;top:44px;bottom:0;background:#fff9ee;border-radius:30px 30px 0 0;overflow:hidden}
+.cab{padding:10px 20px 12px;border-bottom:1px solid #efe4d2}
+.asa{width:44px;height:5px;border-radius:999px;background:#e2d5bf;margin:0 auto 8px}
+.cb{width:40px;height:40px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;flex:none}
+.paso{font-size:13px;font-weight:800;color:#4f6a5e;margin:0 0 2px}
+.barra{display:flex;gap:6px;margin-top:10px}.barra i{flex:1;height:4px;border-radius:2px;background:#e7dcc8}.barra i.on{background:#174b3a}
+.cuerpo{position:absolute;left:0;right:0;top:118px;bottom:100px;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
+.tarj{border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:14px 16px}
+.th{display:flex;align-items:center;gap:8px}
+.th b{font-size:18px;font-weight:800}
+.th .q{margin-left:auto;font-size:15px;font-weight:800;color:#174b3a;background:none;border:0;min-height:44px}
+.mas{width:40px;height:40px;border-radius:50%;background:#f3ead9;display:grid;place-items:center;margin-left:auto;border:0}
+.sub{font-size:13px;color:#4f6a5e;font-weight:600}
+.vals{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.op{height:40px;border-radius:999px;border:1.5px solid #e7dcc8;background:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:15px;color:#174b3a}
+.op.on{background:#d9f2e4;border-color:#9fd3b6}
+.op.otro{border-style:dashed;color:#4f6a5e}
+.pt{width:14px;height:14px;border-radius:50%;border:1px solid #0002}
+.otra{border:2px dashed #d8cbb2;border-radius:22px;padding:16px;text-align:center;font-weight:800;color:#4f6a5e}
+.lista{border-radius:22px;background:#fff;border:1px solid #efe4d2;padding:0 16px}
+.fila{display:flex;align-items:center;gap:12px;min-height:60px;border-bottom:1px solid #f3ead9}
+.fila:last-child{border-bottom:0}
+.fila b{font-size:16px;font-weight:800}
+.st{margin-left:auto;display:flex;align-items:center;gap:6px}
+.st button{width:40px;height:40px;border-radius:12px;border:0;background:#f3ead9;color:#174b3a;font:800 20px 'Figtree',sans-serif}
+.st button.mas2{background:#174b3a;color:#fff}
+.st span{min-width:26px;text-align:center;font-weight:800;font-size:18px}
+.grupo{font-size:13px;font-weight:800;color:#4f6a5e;margin:6px 4px -4px;display:flex;align-items:center;gap:6px}
+.todas{display:flex;align-items:center;gap:10px;border-radius:18px;background:#f3ead9;padding:8px 8px 8px 16px}
+.todas b{font-size:15px}
+.aviso{border-radius:18px;background:#fff1d6;color:#7a4b00;padding:12px 14px;font-size:14px;font-weight:700;line-height:1.35}
+.flot{position:absolute;left:20px;right:20px;bottom:30px;display:flex;gap:10px}
+.btn{flex:1;height:56px;border:0;border-radius:999px;background:#174b3a;color:#fff;font:800 17px 'Figtree',sans-serif;box-shadow:0 8px 24px #10362a40}
+.btn[disabled]{opacity:.4}
+.gh{height:56px;border-radius:999px;border:1.5px solid #174b3a;background:#fff;color:#174b3a;font:800 16px 'Figtree',sans-serif;padding:0 20px;box-shadow:0 8px 24px #10362a2e}
+.lnk{background:none;border:0;color:#174b3a;font:800 15px 'Figtree',sans-serif;min-height:44px;padding:0}
+.campo{background:#fff;border:1.5px solid #e7dcc8;border-radius:18px;padding:10px 16px 12px}
+.campo small{display:block;font-size:13px;font-weight:800;color:#4f6a5e}
+.chip{display:inline-flex;align-items:center;height:30px;border-radius:999px;background:#d9f2e4;padding:0 12px;font-size:14px;font-weight:800}
+</style>
+</helmet>
+<div class="pant">
+<div class="hoja" role="dialog" aria-label="Reparte lo que tenías">
+<div class="cab"><div class="asa"></div><div style="display:flex;align-items:center;gap:10px"><button class="cb" type="button" aria-label="Atrás"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><div style="flex:1"><p class="paso">Paso 2 de 2</p><h2 class="disp" style="margin:0;font-size:24px">Cuántas tienes</h2></div><button class="cb" type="button" aria-label="Cerrar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div><div class="barra"><i class="on"></i><i class="on"></i></div></div><div class="cuerpo" style="gap:8px">
+<div class="aviso">Tenías 5 de Plateado. Repártelas entre las tallas: faltan 2.</div>
+<div class="grupo"><span class="pt" style="background:#c9ccd1"></span>Plateado · 3 de 5</div>
+<div class="lista"><div class="fila"><b>S</b><span class="st"><button type="button" aria-label="Menos">−</button><span>1</span><button type="button" class="mas2" aria-label="Más">+</button></span></div><div class="fila"><b>M</b><span class="st"><button type="button" aria-label="Menos">−</button><span>2</span><button type="button" class="mas2" aria-label="Más">+</button></span></div><div class="fila"><b>L</b><span class="st"><button type="button" aria-label="Menos">−</button><span>0</span><button type="button" class="mas2" aria-label="Más">+</button></span></div></div>
+<div class="grupo"><span class="pt" style="background:#ffffff"></span>Blanco · 3 de 3</div>
+<div class="lista"><div class="fila"><b>S</b><span class="st"><button type="button" aria-label="Menos">−</button><span>1</span><button type="button" class="mas2" aria-label="Más">+</button></span></div><div class="fila"><b>M</b><span class="st"><button type="button" aria-label="Menos">−</button><span>1</span><button type="button" class="mas2" aria-label="Más">+</button></span></div><div class="fila"><b>L</b><span class="st"><button type="button" aria-label="Menos">−</button><span>1</span><button type="button" class="mas2" aria-label="Más">+</button></span></div></div>
+</div><div class="flot"><button class="btn" type="button" disabled>Listo</button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
