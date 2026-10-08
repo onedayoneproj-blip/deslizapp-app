@@ -22,7 +22,8 @@ import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { Etiqueta } from "../ui";
-import { IconoBuscar, IconoCorazon } from "../iconos";
+import { IconoBuscar, IconoCorazon, IconoHistoria } from "../iconos";
+import { HojaHistoria } from "./hoja-historia";
 import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
@@ -75,6 +76,7 @@ export function VistaCatalogo() {
   // Un catálogo a la vez (sin «Todo»): solo con más de un rubro. Abre el último que miró esta persona, o el principal.
   const [catalogoElegido, setCatalogoElegido] = useState<Rubro | null>(null);
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
+  const [enHistoria, setEnHistoria] = useState<Producto | null>(null);
   const tipos = tienda ? rubrosDeTienda(tienda) : [];
   const variosTipos = tipos.length > 1;
   const catalogo: Rubro | null = tienda && variosTipos ? (catalogoElegido && tipos.includes(catalogoElegido) ? catalogoElegido : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
@@ -183,19 +185,20 @@ export function VistaCatalogo() {
             ))}
           {visibles.map((p, i) => (
             <li key={p.id}>
-              <TarjetaProducto producto={p} promos={promos ?? []} prioridad={i < 4} avisos={espera.error || espera.cargando ? [] : espera.resumen?.porProducto.get(p.id) ?? []}/>
+              <TarjetaProducto producto={p} promos={promos ?? []} alHistoria={() => (p.fotos[0] ? setEnHistoria(p) : toast("Ponle una foto primero."))} prioridad={i < 4} avisos={espera.error || espera.cargando ? [] : espera.resumen?.porProducto.get(p.id) ?? []}/>
             </li>
           ))}
         </ul>
       </div>
 
       <BotonFlotante href="/catalogo/nuevo" texto="Producto" detalle={lleno ? "plan lleno" : undefined} bloqueado={sinCatalogo ? () => toast(porque) : undefined} />
+      {enHistoria && tienda && <HojaHistoria producto={enHistoria} promos={promos ?? []} tienda={tienda} alCerrar={() => setEnHistoria(null)} />}
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
     </>
   );
 }
 
-function TarjetaProducto({ producto: p, promos, prioridad = false, avisos }: { producto: Producto; promos: Promo[]; prioridad?: boolean; avisos: AvisoLlegada[] }) {
+function TarjetaProducto({ producto: p, promos, alHistoria, prioridad = false, avisos }: { producto: Producto; promos: Promo[]; alHistoria: () => void; prioridad?: boolean; avisos: AvisoLlegada[] }) {
   const precio = precioConPromo(p, promos);
   const agotado = p.stock === 0;
   const stock = etiquetaStock(p);
@@ -217,7 +220,20 @@ function TarjetaProducto({ producto: p, promos, prioridad = false, avisos }: { p
     .join(",") + ". Ver producto";
 
   return (
-    <div className="min-w-0">
+    <div className="@container relative min-w-0">
+    <button
+      type="button"
+      onClick={alHistoria}
+      aria-label={`Agregar ${p.nombre} a historia`}
+      className="tocable absolute top-0.5 right-0.5 z-10 flex min-h-11 items-center justify-end text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+    >
+      {/* Píldora de vidrio con el ícono y el texto; en tarjetas angostas (2 columnas) el texto se acorta a «Historia» */}
+      <span aria-hidden="true" className="flex h-8 items-center gap-1.5 rounded-full bg-black/45 pl-2.5 pr-3 text-[12px] font-bold leading-none backdrop-blur-sm">
+        <IconoHistoria tamano={16} className="shrink-0" />
+        <span className="@[200px]:hidden">Historia</span>
+        <span className="hidden @[200px]:inline">Agregar a historia</span>
+      </span>
+    </button>
     <Link
       href={`/catalogo/${p.id}`}
       scroll={false}

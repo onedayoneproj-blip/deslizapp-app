@@ -306,3 +306,20 @@ export const IconoBocinaApagada = (p: Props) => (
     <path d="m21 9.5-5 5" />
   </Icono>
 );
+
+/** Historia: círculo punteado con un «+» (el de «Tu historia» de Instagram). */
+export const IconoHistoria = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="9" strokeDasharray="3.2 2.4" />
+    <path d="M12 8v8M8 12h8" />
+  </Icono>
+);
+
+/** Estado de WhatsApp: aro punteado, cámara al centro y un «+» arriba a la derecha. */
+export const IconoEstadoWhatsApp = (p: Props) => (
+  <Icono {...p}>
+    <path d="M17.5 5.2A9 9 0 1 0 21 12" strokeDasharray="3.2 2.4" />
+    <circle cx="12" cy="12" r="4" />
+    <path d="M19 2v6M16 5h6" />
+  </Icono>
+);
