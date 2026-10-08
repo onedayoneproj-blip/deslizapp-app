@@ -4,7 +4,7 @@
 
 ## 0. Antes de empezar
 
-Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md` (teclado, gestos, permisos, movimiento), `docs/09`, `docs/11`, **`referencias/presentaciones-por-pasos/LEEME.md`** con sus 6 dibujos, `referencias/hoja-producto-nuevo/LEEME.md`, y **el informe de pruebas `docs/qa/presentaciones-escenarios.md` de la rama `qa/presentaciones-escenarios`** (`git fetch origin qa/presentaciones-escenarios`; si aún no existe, sigue sin él y dilo). Tu puesto es **Coding**.
+Lee `docs/00-contexto-del-proyecto.md`, `AGENTS.md`, `HANDOFF.md` (teclado, gestos, permisos, movimiento), `docs/09`, `docs/11`, **`referencias/presentaciones-por-pasos/LEEME.md`** con sus 6 dibujos, `referencias/hoja-producto-nuevo/LEEME.md`, y **el informe de pruebas `docs/qa/presentaciones-escenarios.md` de la rama `qa/presentaciones-escenarios`** (`git fetch origin qa/presentaciones-escenarios` y `git show origin/qa/presentaciones-escenarios:docs/qa/presentaciones-escenarios.md`; tiene 34 capturas en `docs/capturas/qa-presentaciones/` de esa rama). Tu puesto es **Coding**.
 
 Mira: `components/catalogo/ficha-presentaciones.tsx` (`SeccionPresentaciones`, `HojaElegir`, `HojaSuelta`, `HojaPresentacion`, `HojaFotoColor`), `lib/presentaciones.ts` (`crearTodas`, `cambiarQueVaria`, `agregarSuelta`, `cuantasSeVan`, `valorSin`, `estadoDe`, límites) y `components/catalogo/hoja-producto.tsx`.
 
@@ -18,6 +18,7 @@ Hay tres caminos para lo mismo (elegir al crear, «Agregar presentación», «Ca
 2. **En la hoja de producto**, «Cosas que cambian» es solo el resumen (pastillas por cosa y «N presentaciones · M») y abre el flujo. Sin presentaciones, la fila invita a crearlas y el stock simple sigue como hoy.
 3. **Editar** abre directo en el paso 2, con el resumen arriba y el enlace «Cambiar qué cambia» al paso 1.
 4. **Cambiar lo que ya existe** (en el paso 1 al editar): agregar un valor (se suman sus filas con 0), quitar un valor (sus filas se van; con pedidos, se ocultan como hoy, avisando), quitar una cosa entera (las combinaciones se juntan: pregunta clara, sin perder stock sin avisar), **agregar una 2.ª cosa**: el stock de cada valor viejo se **reparte** en el paso 2 (aviso «Tenías 5 de Plateado. Repártelas entre las tallas: faltan 2.», encabezado «Plateado · 3 de 5», «Listo» apagado hasta que cuadre; permitir también «dejarlo en una sola» si es más simple, explica qué elegiste).
+4b. **Pasar de stock simple a presentaciones** (escenario 1b del QA: hoy un producto con 8 queda en 0 sin aviso): en el paso 2 se aplica el mismo reparto («Tenías 8. Repártelas: faltan 8.», «Listo» apagado hasta que cuadre, o «Ponerlas todas en …» como atajo). Nunca se pierde stock en silencio, y si baja, queda en el historial de ajustes como hoy.
 5. **Se quitan** «Agregar presentación» (suelta) y «Cambiar qué varía» como caminos aparte, los filtros «Todas / …» (solo si hay más de 12 filas, si los conservas) y la fila repetida de stock.
 6. **«Agotada»** no sale en un producto que aún no se publicó; con 0 se ve «0».
 7. **Barra fija de la hoja de producto:** «Cómo se ve» y «Publicar»/«Guardar cambios» **flotan solos, del mismo ancho (mitad y mitad), con sombra, sin la tarjeta/recuadro detrás**.
