@@ -116,7 +116,7 @@ La IA (servicio de Claude desde el servidor, revisión automática de productos,
 - **Revisión de productos nuevos: diferida** hasta abrir el registro al público o hasta que llegue la IA (acuerdo Lewis/Planning). Mientras tanto, las tiendas nuevas solo entran con enlace de Lewis.
 - **Detalles:** dejan de pedirse a las tiendas nuevas; los de Michel se conservan y se siguen mostrando. Se reemplazan por descripción corta + ficha técnica en imagen.
 - **Pendiente de verificar:** hoy el admin **no puede ocultar un producto** de una tienda (no hay función `admin_*` para eso; solo pausar la tienda entera con `admin_cambiar_estado_tienda`, o SQL). Hace falta una acción mínima «Ocultar producto» en la ficha de tienda del admin, y que los Términos incluyan la lista de prohibidos.
-- **Lienzo de la ficha técnica** (tarjeta en el panel, botón circular en el reel, cola en el admin): Lewis dijo «más tarde». Sin prompt hasta entonces.
+- **Lienzo de la ficha técnica** (8 oct, en revisión con Lewis): https://claude.ai/artifact/Wpsj134KTDLQk34zcLU9CU — reel con presentaciones (círculo al lado de «Ver presentaciones»), sin presentaciones (círculo solo o píldora «Ficha técnica», por decidir), visor de la ficha, panel (descripción corta + tarjeta: sin ficha, subida, pedida a Deslizapp con créditos) y cola «Fichas» en Admin › Trabajo. Construcción: después de «Publicar mi catálogo» y del onboarding (lleva migración). Falta: precio en créditos, y resolver la búsqueda que hoy usa los Detalles.
 - Falta aclarar con Lewis quién hace las fichas pedidas a Deslizapp («el equipo» = él y quien le ayude, desde Admin › Trabajo, como el retoque).
 
 ## Para recordarle a Lewis más adelante (él lo pidió, 7 oct)
