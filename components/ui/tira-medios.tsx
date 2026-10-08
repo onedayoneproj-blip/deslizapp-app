@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { VIDEO_PERMITIDO } from "@/lib/config";
 import { menosMovimiento } from "@/lib/movimiento";
 import { Foto } from "../foto";
 import { IconoMas, IconoReproducir } from "../iconos";
@@ -32,7 +33,7 @@ export const duracionCorta = (s: number) => `${Math.floor(s / 60)}:${String(Math
 /**
  * Tira de fotos y video de un producto (docs/09 §16.5; tablero Producto «Perfume» y «Video»): miniaturas cuadradas de 76 px,
  * `radio-m`, en una fila que se desliza. La primera lleva "Portada"; un video lleva ▶ y su duración. Al final, la casilla
- * punteada "Foto o video" (con `bloqueo`, se apaga y la razón va en la línea de abajo).
+ * punteada "Foto o video" ("Agregar foto" mientras `VIDEO_PERMITIDO` esté apagado) (con `bloqueo`, se apaga y la razón va en la línea de abajo).
  *
  * Tocar una miniatura llama a `alTocar` (la hoja chica de acciones). Mantener presionado y arrastrar la ordena (`alMover`); el
  * mismo cambio se puede hacer desde la hoja chica ("Mover a la izquierda / derecha"), que es también el camino con teclado.
@@ -44,7 +45,7 @@ export function TiraMedios({
   alAgregar,
   bloqueo,
   nota,
-  etiqueta = "Fotos y video",
+  etiqueta = VIDEO_PERMITIDO ? "Fotos y video" : "Fotos",
   seleccionado,
 }: {
   elementos: ElementoTira[];
@@ -207,7 +208,7 @@ export function TiraMedios({
             style={{ width: LADO, height: LADO }}
           >
             <IconoMas tamano={18} strokeWidth={2.4} />
-            Foto o video
+            {VIDEO_PERMITIDO ? "Foto o video" : "Agregar foto"}
           </button>
         </div>
       </div>

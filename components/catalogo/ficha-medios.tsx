@@ -2,7 +2,7 @@
 
 import { TEXTO_SIN_PERMISO } from "@/lib/equipo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { CREDITOS_POR_RETOQUE, esVideoAgregable, tiposDeMedioElegibles } from "@/lib/config";
+import { CREDITOS_POR_RETOQUE, VIDEO_PERMITIDO, esVideoAgregable, tiposDeMedioElegibles } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
 import { nuevoId } from "@/lib/data/db";
 import { reducirFoto } from "@/lib/imagen";
@@ -179,7 +179,7 @@ export function SeccionMedios({
     });
 
   return (
-    <section aria-label="Fotos y video" className="flex flex-col gap-2">
+    <section aria-label={VIDEO_PERMITIDO ? "Fotos y video" : "Fotos"} className="flex flex-col gap-2">
       <input
         ref={entrada}
         type="file"
@@ -242,7 +242,7 @@ export function SeccionMedios({
         >
           <IconoCamara tamano={36} strokeWidth={2} />
           <span className="text-destacado">Agrega la primera foto</span>
-          <span className="text-secundario text-texto-secundario">O un video corto.</span>
+          {VIDEO_PERMITIDO && <span className="text-secundario text-texto-secundario">O un video corto.</span>}
         </button>
       )}
       <DepuracionVideo />

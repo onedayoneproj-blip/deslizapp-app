@@ -178,25 +178,25 @@ try {
     await page.waitForSelector('a[href="/catalogo/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/catalogo/nuevo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(700);
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Kiara Pink"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: 950"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="El nombre de tu producto"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] input[placeholder="Escribe el precio"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
     // Descripción y «Cuándo llega» viven en filas plegadas: abrir la fila no mueve ni quita el foco de otro campo.
-    await page.tap('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(200);
     await page.evaluate(() => (window.__foco = []));
     // click() desde la página (sin mover el foco del navegador): lo que se prueba es que la app no toque el foco al abrir la fila.
     await page.evaluate(() => document.querySelector('[role="dialog"] [data-fila-plegable="descripcion"] button[aria-expanded]').click());
     await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
     const focoTrasAbrirFila = await page.evaluate(() => ({ nombre: document.activeElement?.getAttribute("placeholder"), eventos: window.__foco.join(" ") }));
-    ok(focoTrasAbrirFila.nombre === "Ej: Kiara Pink", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
+    ok(focoTrasAbrirFila.nombre === "El nombre de tu producto", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
     await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
     await page.tap('[role="switch"][aria-label="Por encargo"]');
     await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
     await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Nuevo producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
     // La barra fija («Cómo se ve» + «Publicar») no tapa el campo enfocado: con el teclado abierto se oculta.
-    await page.tap('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.evaluate(() => window.__teclado(true));
     await page.waitForTimeout(400);
     ok(await page.evaluate(() => getComputedStyle(document.querySelector("[data-barra-producto]").parentElement).visibility === "hidden"), "La barra fija se oculta con el teclado abierto (no tapa el campo enfocado)");
@@ -251,7 +251,7 @@ try {
     const sel = '[data-hoja-cabecera] [data-selector-catalogo]';
     await page.waitForSelector(sel);
     await page.waitForTimeout(900);
-    await page.tap('input[placeholder="Ej: Kiara Pink"]');
+    await page.tap('input[placeholder="El nombre de tu producto"]');
     await page.keyboard.type("Gorra");
     await page.evaluate(() => document.activeElement.blur());
     const antes = await page.locator('[role="dialog"]').first().boundingBox();
@@ -304,8 +304,8 @@ try {
       if (await q.count()) await q.click();
     }
     await page.getByRole("button", { name: "+ Otra cosa", exact: true }).click();
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Aroma"]');
-    await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Aroma"]', "Qué cambia · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escribe qué cambia"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Escribe qué cambia"]', "Qué cambia · ¿Qué otra cosa cambia?", "Tela", { dentroDeHoja: true });
     await page.getByRole("button", { name: "Listo", exact: true }).click();
     // La cosa propia nace arriba; su valor se escribe en el campo del editor de etiquetas
     await page.locator('[data-eje="Tela"]').getByRole("button", { name: "Agregar", exact: true }).click();
@@ -522,7 +522,7 @@ try {
     await page.waitForSelector('a[href="/catalogo/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/catalogo/nuevo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Kiara Pink"]');
+    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(700);
     // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
     await page.tap('[role="dialog"] button:has-text("Sin colección")');

@@ -139,7 +139,7 @@ async function catalogo(ancho) {
 async function panel(ancho) {
   console.log(`\nPanel · ${ancho}`);
   const { ctx, page, errores } = await abrir(ancho, "/catalogo/nuevo", LINO_ID);
-  await page.waitForSelector('input[placeholder="Ej: Kiara Pink"]');
+  await page.waitForSelector('input[placeholder="El nombre de tu producto"]');
   await page.waitForTimeout(900);
   ok((await page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 0, "Un producto nuevo no pide Detalles");
   const desc = page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');

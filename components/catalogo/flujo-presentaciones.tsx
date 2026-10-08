@@ -54,6 +54,7 @@ import type { OpcionProducto } from "@/lib/types";
 import { IconoChevronAbajo, IconoChevronArriba, IconoMas } from "../iconos";
 import { Hoja, HojaFijoAbajo } from "../hoja";
 import { clases, FOCO } from "../ui/comunes";
+import { InputPrecio } from "../ui/input-precio";
 import { Alerta, Boton, Campo, Cantidad, EditorEtiquetas, Etiqueta, FilaLista, FilaVariante, Interruptor, ListaAgrupada, Opcion, Tarjeta } from "../ui";
 import { HojaFotoColor, HojaPresentacion, type FotoBorrador } from "./hoja-presentacion";
 
@@ -159,16 +160,13 @@ function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: strin
   return (
     <label className="flex h-12 w-full min-w-0 items-center gap-2 rounded-radio-m border-2 border-borde-campo bg-superficie px-3 focus-within:border-accion">
       <span className="text-secundario font-extrabold text-texto-secundario">RD$</span>
-      <input
+      <InputPrecio
         data-precio-fila=""
-        type="text"
-        inputMode="numeric"
         autoComplete="off"
         enterKeyHint="next"
         aria-label={`Precio de ${texto}, en pesos`}
-        value={escrito}
-        onChange={(e) => {
-          const d = e.target.value.replace(/\D/g, "").replace(/^0+/, "").slice(0, 7);
+        digitos={escrito}
+        alCambiar={(d) => {
           setEscrito(d);
           alCambiar(precioDeTexto(d, precioProducto));
         }}
@@ -471,8 +469,8 @@ export function FlujoPresentaciones({
               <Tarjeta className="flex flex-col gap-3">
                 <Campo
                   etiqueta="¿Qué otra cosa cambia?"
-                  placeholder="Ej: Aroma"
-                  ayuda="Ej: Material, Aroma, Estampado."
+                  placeholder="Escribe qué cambia"
+                  ayuda="Por ejemplo: Material, Aroma o Estampado."
                   maxLength={LARGO_VALOR}
                   value={otra}
                   error={errorOtra}

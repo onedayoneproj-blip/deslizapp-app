@@ -71,6 +71,20 @@ for (const ancho of ANCHOS) {
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Aros dorados");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1850");
     ok(await publicar.isDisabled(), "Con nombre y precio, sin foto, sigue apagado");
+    ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).inputValue()) === "1,850", "El precio se ve con coma de miles (1,850)");
+    ok((await page.getByRole("textbox", { name: "Nombre", exact: true }).getAttribute("placeholder")) === "El nombre de tu producto" && (await page.getByRole("textbox", { name: "Precio (RD$)" }).getAttribute("placeholder")) === "Escribe el precio", "Los ejemplos son invitaciones, sin «Ej:»");
+    ok((await page.getByText("O un video corto.").count()) === 0 && (await page.getByText("Foto o video").count()) === 0, "Con el video apagado no se habla de video al agregar fotos");
+    {
+      // Escribir y borrar en el medio: el cursor no salta al final.
+      const precio = page.getByRole("textbox", { name: "Precio (RD$)" });
+      await precio.fill("");
+      await precio.pressSequentially("12500");
+      ok((await precio.inputValue()) === "12,500", "Escribir 12500 da 12,500");
+      await precio.evaluate((e) => e.setSelectionRange(2, 2)); // 12|,500
+      await precio.press("Backspace");
+      ok((await precio.inputValue()) === "1,500" && (await precio.evaluate((e) => e.selectionStart)) === 1, "Borrar en el medio deja el cursor junto al dígito (1|,500)");
+      await precio.fill("1850");
+    }
     ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).evaluate((e) => getComputedStyle(e).fontFamily)).toLowerCase().includes("fredoka"), "El precio va en Fredoka");
     ok(await sinDesborde(page), "Sin desborde horizontal");
     await captura(page, "1-vacio", ancho);

@@ -576,7 +576,7 @@ function FormularioProducto({
         etiqueta="Nombre"
         value={nombre}
         onChange={(e) => setNombre(e.target.value)}
-        placeholder="Ej: Kiara Pink"
+        placeholder="El nombre de tu producto"
         maxLength={120}
         className="[&_input]:h-14 [&_input]:text-titulo-seccion [&_input]:font-extrabold"
       />
@@ -603,9 +603,8 @@ function FormularioProducto({
               etiqueta="Precio (RD$)"
               inputMode="numeric"
               enterKeyHint="done"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
-              placeholder="Ej: 950"
+              precio={{ digitos: precio, alCambiar: setPrecio }}
+              placeholder="Escribe el precio"
               className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
             />
           </div>

@@ -102,6 +102,7 @@ export function HojaPresentacion({
               etiqueta="Precio de esta presentación"
               etiquetaAccesible="Precio de esta presentación, en pesos"
               valor={textoPrecio}
+              maxDigitos={7}
               alCambiar={(d) => {
                 const limpio = d.replace(/\D/g, "").slice(0, 7);
                 setTextoPrecio(limpio);
