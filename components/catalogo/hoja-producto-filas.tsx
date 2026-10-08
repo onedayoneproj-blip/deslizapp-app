@@ -1,14 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { formatearPesos } from "@/lib/formato";
-import { resumenDe, type Presentacion } from "@/lib/presentaciones";
-import { contadorMedios } from "@/lib/hoja-producto";
-import type { OpcionProducto } from "@/lib/types";
-import { Foto } from "../foto";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Hoja } from "../hoja";
 import { IconoChevronAbajo, IconoChevronDerecha } from "../iconos";
-import { Etiqueta } from "../ui";
+import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 
 /**
  * Una fila de «Más opciones» que se pliega: muestra su valor cerrada y, al tocarla, se abre en el mismo lugar. Abrir y cerrar es
@@ -39,62 +34,36 @@ export function FilaPlegable({ id, titulo, detalle, abierta, alAlternar, childre
   );
 }
 
-export type BorradorVista = {
-  nombre: string;
-  precio: number;
-  foto: string | null;
-  cantidadFotos: number;
-  descripcion: string;
-  opciones: OpcionProducto[];
-  presentaciones: Presentacion[];
-  stock: number | null;
-  porEncargo: boolean;
-  encargoTexto: string;
-  coleccion: string | null;
-  visible: boolean;
-  conFicha: boolean;
-};
-
 /**
- * «Cómo se ve»: el producto tal como lo verá quien compra, armado con el borrador (aún sin guardar). El catálogo del comprador
- * solo lee productos ya guardados, así que esto es una vista mínima con los mismos datos: foto, nombre, precio, presentaciones,
- * descripción y si es por encargo.
+ * «Cómo se ve»: el reel real del catálogo del comprador (`components/tienda/reel.tsx`, con su CSS, el tema de la tienda y su
+ * cabecera) montado a pantalla completa con el borrador. Va en un iframe del mismo sitio (`/vista-previa-catalogo`): el catálogo se
+ * desplaza como una página entera y así no se pisa con los estilos ni el scroll del panel. Sin pedir ni escribir nada.
  */
-export function HojaComoSeVe({ abierta, alCerrar, borrador }: { abierta: boolean; alCerrar: () => void; borrador: BorradorVista }) {
-  const conPres = borrador.opciones.length > 0 && borrador.presentaciones.length > 0;
-  const r = conPres ? resumenDe(borrador.presentaciones, borrador.precio) : null;
-  const agotado = conPres ? r!.total > 0 && r!.enTotal === 0 : borrador.stock === 0;
+export function HojaComoSeVe({ abierta, alCerrar, datos, visible }: { abierta: boolean; alCerrar: () => void; datos: () => DatosVistaPrevia | null; visible: boolean }) {
+  const marco = useRef<HTMLIFrameElement>(null);
+  const ultimos = useRef(datos);
+  useEffect(() => {
+    ultimos.current = datos;
+  });
+  useEffect(() => {
+    if (!abierta) return;
+    const alMensaje = (e: MessageEvent) => {
+      if (e.origin !== location.origin || e.source !== marco.current?.contentWindow || e.data?.tipo !== `${MENSAJE_VISTA_PREVIA}-listo`) return;
+      const d = ultimos.current();
+      if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: d }, location.origin);
+    };
+    window.addEventListener("message", alMensaje);
+    return () => window.removeEventListener("message", alMensaje);
+  }, [abierta]);
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Cómo se ve" altura="auto">
-      <div className="flex flex-col gap-4 text-texto" data-como-se-ve="">
-        {!borrador.visible && <p className="rounded-radio-m bg-atencion-suave p-3 text-secundario font-bold text-atencion-texto">Está oculto: nadie lo ve en el catálogo.</p>}
-        <div className="relative aspect-square w-full overflow-hidden rounded-radio-l bg-superficie-hundida">
-          {borrador.foto ? <Foto src={borrador.foto} alt="" className="h-full w-full" sizes="(max-width: 480px) 100vw, 440px" /> : <span className="grid h-full place-items-center text-secundario text-texto-secundario">Falta la foto</span>}
-          {borrador.cantidadFotos > 1 && <span aria-hidden="true" className="absolute top-3 right-3 rounded-full bg-accion px-2.5 py-1 text-etiqueta text-sobre-accion tabular-nums">{contadorMedios(1, borrador.cantidadFotos)}</span>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <p className="break-words text-destacado">{borrador.nombre.trim() || "Sin nombre"}</p>
-          <p className="font-display text-cifra">
-            {conPres && r!.desde !== null && r!.conPrecioPropio ? `Desde ${formatearPesos(r!.desde)}` : borrador.precio > 0 ? formatearPesos(borrador.precio) : "Sin precio"}
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Cómo se ve" tituloOculto altura="grande">
+      <div className="absolute inset-0 overflow-hidden rounded-t-[30px] bg-black" data-como-se-ve="">
+        <iframe ref={marco} src="/vista-previa-catalogo" title="Así lo verá tu cliente" className="size-full border-0" />
+        {!visible && (
+          <p className="absolute inset-x-4 bottom-[max(1rem,var(--safe-abajo))] rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto">
+            Está oculto: nadie lo ve en el catálogo.
           </p>
-          {borrador.coleccion && <p className="text-secundario text-texto-secundario">{borrador.coleccion}</p>}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {agotado && !borrador.porEncargo && <Etiqueta tono="fuerte">Agotado</Etiqueta>}
-          {borrador.porEncargo && <Etiqueta tono="marca">{borrador.encargoTexto.trim() || "Por encargo"}</Etiqueta>}
-        </div>
-        {conPres && (
-          <ul aria-label="Presentaciones" className="flex flex-col gap-2">
-            {borrador.opciones.map((o) => (
-              <li key={o.nombre} className="flex flex-wrap items-center gap-1.5">
-                <span className="text-secundario font-extrabold">{o.nombre}</span>
-                {o.valores.map((v) => <Etiqueta key={v}>{v}</Etiqueta>)}
-              </li>
-            ))}
-          </ul>
         )}
-        {borrador.descripcion.trim() && <p className="whitespace-pre-line break-words text-cuerpo text-texto-secundario">{borrador.descripcion.trim()}</p>}
-        {borrador.conFicha && <p className="text-secundario text-texto-secundario">Lleva ficha técnica.</p>}
       </div>
     </Hoja>
   );

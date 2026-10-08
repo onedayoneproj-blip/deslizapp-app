@@ -13,6 +13,14 @@ export const MAX_PRESENTACIONES = 144;
 /** Cuántas filas se ven antes de «Ver las N». */
 export const VISIBLES = 5;
 
+/** Lo que la ficha del producto edita de las presentaciones: los ejes, cada presentación y la foto de cada valor (por id de foto). */
+export type EstadoPresentaciones = {
+  opciones: OpcionProducto[];
+  pres: Presentacion[];
+  /** valor del eje que lleva foto → id de la foto en el borrador de la ficha. */
+  fotosColor: Record<string, string>;
+};
+
 /** Una presentación en edición: lo que se guardará con `guardarVariantes`. `id` solo si ya existía en la base. */
 export type Presentacion = {
   id?: string;
@@ -169,6 +177,28 @@ export function alternarValor(valores: string[], valor: string): string[] {
 /** ¿Se puede elegir otra cosa que cambie? Hasta `MAX_EJES` por producto, las del catálogo y las propias juntas. */
 export const puedeElegirOtra = (cuantas: number) => cuantas < MAX_EJES;
 
+/** Cosas cuyo nombre acaba en «a» pero se dicen en masculino («el aroma»). */
+const MASCULINAS = new Set(["aroma", "idioma", "sistema", "tema", "diseño"]);
+const esFemenina = (nombre: string) => /a$/i.test(nombre.trim()) && !MASCULINAS.has(nombre.trim().toLocaleLowerCase("es"));
+
+/** «Otro color», «Otra talla»: el botón que abre el campo de un valor propio. */
+export const otroDe = (nombre: string) => `${esFemenina(nombre) ? "Otra" : "Otro"} ${nombre.trim().toLocaleLowerCase("es")}`;
+
+/** «las tallas», «los colores»: para «Repártelas entre las tallas». */
+export function entreLos(nombre: string): string {
+  const n = nombre.trim().toLocaleLowerCase("es");
+  const plural = /[aeiouáéíóú]$/.test(n) ? `${n}s` : `${n}es`;
+  return `${esFemenina(n) ? "las" : "los"} ${plural}`;
+}
+
+/** Por qué todavía no se puede seguir al paso 2 (null si ya se puede). Dice la cosa que falta, no solo que falta algo. */
+export function pistaDeEjes(ejes: { nombre: string; valores: string[] }[]): string | null {
+  if (ejes.length === 0) return "Elige qué cambia de una a otra.";
+  const sin = ejes.filter((e) => e.valores.length === 0).map((e) => e.nombre);
+  if (sin.length > 0) return `Elige al menos un valor de ${sin.join(" y de ")}.`;
+  return errorDeEjes(ejes);
+}
+
 /** Una tarjeta sin elegir se apaga (no se toca) cuando ya hay `MAX_EJES` elegidas; las elegidas nunca se apagan. */
 export const tarjetaApagada = (elegida: boolean, cuantasElegidas: number) => !elegida && !puedeElegirOtra(cuantasElegidas);
 
@@ -186,97 +216,177 @@ export function errorDeNombrePropio(nombre: string, elegidas: readonly string[],
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Agregar una suelta
+// Cambiar qué cambia (paso 1) y repartir lo que había (paso 2)
 // ---------------------------------------------------------------------------------------------------------------------
 
-export type ResultadoCambio = { opciones: OpcionProducto[]; presentaciones: Presentacion[]; aviso: string | null };
+export type ResultadoCambio = { opciones: OpcionProducto[]; presentaciones: Presentacion[] };
+
+/** Stock que había antes del cambio y hay que repartir entre las filas nuevas: «Tenías 5 de Plateado» o «Tenías 8». */
+export type Origen = {
+  id: string;
+  /** «Plateado», «Plateado · Algodón»; vacío cuando era el stock simple del producto o el de todas juntas. */
+  titulo: string;
+  total: number;
+  /** Las filas (por `claveVariante`) entre las que se reparte. */
+  filas: string[];
+};
+
+export type Cambio = ResultadoCambio & {
+  origenes: Origen[];
+  /** Presentaciones que se van porque su valor ya no está. */
+  perdidas: number;
+  /** Unidades de stock que se van con ellas. */
+  unidadesPerdidas: number;
+  /** Cuántas se juntaron en otra al quitar una cosa. */
+  juntadas: number;
+  /** La pregunta antes de aplicar (null si el cambio no pierde ni mueve nada que importe). */
+  confirmar: string | null;
+};
+
+const sumaStock = (a: number | null, b: number | null) => (a === null && b === null ? null : (a ?? 0) + (b ?? 0));
+const unidades = (n: number) => `${n} ${n === 1 ? "unidad" : "unidades"}`;
 
 /**
- * Agrega UNA presentación con estos valores (uno por eje). Un valor que el eje todavía no tiene lo suma al eje. Si ya existe
- * (también si está oculta) lanza el aviso en vez de duplicar.
+ * Pasa de unos ejes a otros (paso 1 → paso 2) sin perder stock en silencio:
+ *  - un valor nuevo suma sus filas con 0; un valor que se quita se lleva las suyas (con pedidos, la base solo las oculta);
+ *  - quitar una cosa junta las filas que quedan iguales y suma su stock;
+ *  - agregar una cosa crea todas las combinaciones con 0 y devuelve un `Origen` por cada valor viejo con stock: el dueño
+ *    lo reparte en el paso 2 y «Listo» no se enciende hasta que cuadre;
+ *  - pasar de stock simple (`stockSimple`) a presentaciones deja un solo origen con ese total.
+ * `antes` son las presentaciones de `opcionesAntes`; las de los ejes que siguen conservan su precio y si están ocultas.
  */
-export function agregarSuelta(opciones: OpcionProducto[], lista: Presentacion[], valores: Record<string, string>): ResultadoCambio {
-  const limpios: Record<string, string> = {};
-  for (const o of opciones) limpios[o.nombre] = (valores[o.nombre] ?? "").trim();
-  if (opciones.some((o) => !limpios[o.nombre])) throw new Error("Elige un valor en cada uno.");
-  if (opciones.some((o) => limpios[o.nombre].length > LARGO_VALOR)) throw new Error(`Cada valor va hasta ${LARGO_VALOR} letras.`);
-  if (lista.some((p) => claveVariante(p.valores) === claveVariante(limpios))) throw new Error("Esa presentación ya existe.");
-  if (lista.length >= MAX_PRESENTACIONES) throw new Error(`El máximo es ${MAX_PRESENTACIONES} presentaciones.`);
-  const nuevasOpciones = opciones.map((o) => {
-    if (o.valores.includes(limpios[o.nombre])) return o;
-    if (o.valores.length >= MAX_VALORES) throw new Error(`${o.nombre} llega hasta ${MAX_VALORES} valores.`);
-    return { ...o, valores: [...o.valores, limpios[o.nombre]] };
-  });
-  return { opciones: nuevasOpciones, presentaciones: [...lista, { valores: limpios, stock: 0, precio: null, activa: true }], aviso: null };
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Cambiar qué varía
-// ---------------------------------------------------------------------------------------------------------------------
-
-/** El valor de «todavía no lo sé» de un eje nuevo: «Sin color», «Sin talla». */
-export const valorSin = (eje: string) => `Sin ${eje.trim().toLocaleLowerCase("es")}`.slice(0, LARGO_VALOR);
-
-/**
- * Pasa de unos ejes a otros conservando lo que existe, con su stock y su precio:
- *  - un eje que sigue (mismo nombre) conserva el valor de cada presentación; si su valor ya no está, la presentación se va;
- *  - un eje nuevo pone «Sin <eje>» en las que ya existían (y se suma a los valores del eje): el dueño las completa después;
- *  - un eje que se quita puede dejar dos iguales: se juntan en una y se suma su stock (no se pierde ni se duplica nada).
- * `aviso` dice, en la voz de la app, qué pasó con lo que existía.
- */
-export function cambiarQueVaria(antes: Presentacion[], nuevos: OpcionProducto[]): ResultadoCambio {
+export function cambiarEjes(opcionesAntes: OpcionProducto[], antes: Presentacion[], nuevos: OpcionProducto[], stockSimple: number | null = null): Cambio {
   const error = errorDeEjes(nuevos);
   if (error) throw new Error(error);
-  const sinValor = new Map<string, string>();
   const ejes = nuevos.map((e) => ({ ...e, valores: [...e.valores] }));
-  const nombresAntes = new Set(antes.flatMap((p) => Object.keys(p.valores)));
-  for (const e of ejes) {
-    if (nombresAntes.has(e.nombre) || antes.length === 0) continue;
-    const sin = valorSin(e.nombre);
-    if (!e.valores.includes(sin)) {
-      if (e.valores.length >= MAX_VALORES) throw new Error(`Deja un lugar libre en ${e.nombre}: ahí va «${sin}» para las que ya tienes.`);
-      e.valores.push(sin);
-    }
-    sinValor.set(e.nombre, sin);
-  }
-  if (cuantasSalen(ejes) > MAX_PRESENTACIONES && antes.length > 0) throw new Error(`Son demasiadas: el máximo es ${MAX_PRESENTACIONES} presentaciones.`);
-  const resultado = new Map<string, Presentacion>();
+  const nombresAntes = new Set(opcionesAntes.map((o) => o.nombre));
+  const comunes = ejes.filter((e) => nombresAntes.has(e.nombre));
+  const agregados = ejes.filter((e) => !nombresAntes.has(e.nombre));
+  const quitados = opcionesAntes.filter((o) => !ejes.some((e) => e.nombre === o.nombre)).length;
+
+  // Lo que había, mirado solo por las cosas que siguen: las que ya no caben se pierden y las que quedan iguales se juntan.
+  const proyectadas = new Map<string, Presentacion>();
   let perdidas = 0;
+  let unidadesPerdidas = 0;
   let juntadas = 0;
-  for (const p of antes) {
-    const valores: Record<string, string> = {};
-    let cabe = true;
-    for (const e of ejes) {
-      const v = sinValor.get(e.nombre) ?? p.valores[e.nombre];
-      if (v === undefined || !e.valores.includes(v)) cabe = false;
-      else valores[e.nombre] = v;
+  if (comunes.length > 0) {
+    for (const p of antes) {
+      const valores: Record<string, string> = {};
+      const cabe = comunes.every((e) => {
+        const v = p.valores[e.nombre];
+        if (v === undefined || !e.valores.includes(v)) return false;
+        valores[e.nombre] = v;
+        return true;
+      });
+      if (!cabe) {
+        perdidas++;
+        if (p.activa) unidadesPerdidas += p.stock ?? 0;
+        continue;
+      }
+      const k = claveVariante(valores);
+      const previa = proyectadas.get(k);
+      if (previa) {
+        juntadas++;
+        proyectadas.set(k, { ...previa, stock: sumaStock(previa.stock, p.stock), activa: previa.activa || p.activa });
+      } else proyectadas.set(k, { ...p, valores });
     }
-    if (!cabe) {
-      perdidas++;
-      continue;
-    }
-    const k = claveVariante(valores);
-    const previa = resultado.get(k);
-    if (previa) {
-      juntadas++;
-      resultado.set(k, { ...previa, stock: previa.stock === null && p.stock === null ? null : (previa.stock ?? 0) + (p.stock ?? 0), activa: previa.activa || p.activa });
-    } else resultado.set(k, { ...p, valores });
   }
+
+  const origenes: Origen[] = [];
+  let presentaciones: Presentacion[];
+  if (agregados.length === 0) {
+    presentaciones = crearTodas(ejes, [...proyectadas.values()]);
+  } else {
+    // El stock de antes que no tiene a dónde ir solo (porque se creó una cosa nueva) se reparte.
+    const todas = combinaciones(ejes);
+    if (comunes.length === 0) {
+      const total = antes.length > 0 ? antes.filter((p) => p.activa).reduce((s, p) => s + (p.stock ?? 0), 0) : (stockSimple ?? 0);
+      presentaciones = todas.map((valores) => ({ valores, stock: 0, precio: null, activa: true }));
+      if (total > 0) origenes.push({ id: "todo", titulo: "", total, filas: presentaciones.map((p) => claveVariante(p.valores)) });
+    } else {
+      presentaciones = todas.map((valores) => {
+        const de = proyectadas.get(claveVariante(Object.fromEntries(comunes.map((e) => [e.nombre, valores[e.nombre]!]))));
+        return { valores, stock: de && de.stock === null ? null : 0, precio: de?.precio ?? null, activa: de?.activa ?? true };
+      });
+      for (const [, de] of proyectadas) {
+        if (!de.activa || !de.stock) continue;
+        const filas = presentaciones.filter((p) => comunes.every((e) => p.valores[e.nombre] === de.valores[e.nombre])).map((p) => claveVariante(p.valores));
+        origenes.push({ id: claveVariante(de.valores), titulo: textoCombinacion(comunes, de.valores), total: de.stock, filas });
+      }
+    }
+  }
+  presentaciones = ordenarPresentaciones(ejes, presentaciones);
+
+  // La pregunta: solo cuando algo se va o se mueve.
   const partes: string[] = [];
-  if (sinValor.size > 0 && antes.length > 0) partes.push(`Las que tienes pasan a «${[...sinValor.values()].join("» y «")}»: ponles el valor cuando puedas.`);
-  if (juntadas > 0) partes.push(`${juntadas === 1 ? "Dos se juntaron en una" : `${juntadas + 1} se juntaron`}: sumamos su stock.`);
-  if (perdidas > 0) partes.push(`${perdidas === 1 ? "Una se va" : `${perdidas} se van`}: su valor ya no está. Si tiene pedidos, solo queda oculta.`);
-  return { opciones: ejes, presentaciones: ordenarPresentaciones(ejes, [...resultado.values()]), aviso: partes.length ? partes.join(" ") : null };
+  if (comunes.length === 0 && antes.length > 0) partes.push("Las que tienes se reemplazan por las nuevas y su stock lo repartes en el paso 2.");
+  else {
+    if (perdidas > 0) partes.push(`${perdidas === 1 ? "Una presentación se va" : `${perdidas} presentaciones se van`}${unidadesPerdidas > 0 ? ` con ${unidades(unidadesPerdidas)}` : ""}. Si ya tiene pedidos, solo queda oculta.`);
+    if (quitados > 0 && juntadas > 0) partes.push(`Las que quedan iguales se juntan y suman su stock (${juntadas === 1 ? "una se junta" : `${juntadas} se juntan`}).`);
+  }
+  return { opciones: ejes, presentaciones, origenes, perdidas, unidadesPerdidas, juntadas, confirmar: partes.length ? partes.join(" ") : null };
 }
 
 /** Cuántas de las que existen se perderían al pasar a estos ejes (para avisar antes de guardar). */
-export const cuantasSeVan = (antes: Presentacion[], nuevos: OpcionProducto[]) => {
+export const cuantasSeVan = (opcionesAntes: OpcionProducto[], antes: Presentacion[], nuevos: OpcionProducto[]) => {
   try {
-    return antes.length - cambiarQueVaria(antes, nuevos).presentaciones.length;
+    return cambiarEjes(opcionesAntes, antes, nuevos).perdidas;
   } catch {
     return 0;
   }
 };
+
+/** Los ejes son los mismos (nombres y valores, en el mismo orden): no hay nada que recalcular. */
+export const mismosEjes = (a: OpcionProducto[], b: OpcionProducto[]) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Pone encima de lo recalculado lo que el dueño ya había tocado en el paso 2 (stock, precio propio, oculta) en las filas que siguen. */
+export function conservarEdicion(nuevas: Presentacion[], editadas: Presentacion[]): Presentacion[] {
+  const previas = new Map(editadas.map((p) => [claveVariante(p.valores), p]));
+  return nuevas.map((p) => {
+    const e = previas.get(claveVariante(p.valores));
+    return e ? { ...p, stock: e.stock, precio: e.precio, activa: e.activa } : p;
+  });
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// El reparto: «Tenías 5 de Plateado. Repártelas entre las tallas: faltan 2.»
+// ---------------------------------------------------------------------------------------------------------------------
+
+export type EstadoReparto = { origen: Origen; repartido: number; /** Positivo: faltan; negativo: sobran; 0: cuadra. */ faltan: number };
+
+/** Cuánto lleva repartido cada origen: la suma del stock de sus filas (las activas que siguen en la lista). */
+export function estadoDeReparto(origenes: Origen[], pres: Presentacion[]): EstadoReparto[] {
+  const porClave = new Map(pres.map((p) => [claveVariante(p.valores), p]));
+  return origenes.map((origen) => {
+    const repartido = origen.filas.reduce((s, k) => {
+      const p = porClave.get(k);
+      return s + (p && p.activa ? (p.stock ?? 0) : 0);
+    }, 0);
+    return { origen, repartido, faltan: origen.total - repartido };
+  });
+}
+
+/** ¿Todo lo que había quedó repartido? Mientras no, «Listo» no se enciende. */
+export const repartoCuadra = (origenes: Origen[], pres: Presentacion[]) => estadoDeReparto(origenes, pres).every((e) => e.faltan === 0);
+
+/** Lo que se dice de un origen: «Tenías 5 de Plateado. Repártelas entre las tallas: faltan 2.» */
+export function textoDeReparto(e: EstadoReparto, entre: string): string {
+  const tenia = e.origen.titulo ? `Tenías ${e.origen.total} de ${e.origen.titulo}.` : `Tenías ${e.origen.total}.`;
+  if (e.faltan === 0) return `${tenia} Ya las repartiste.`;
+  if (e.faltan > 0) return `${tenia} Repártelas ${entre}: ${e.faltan === 1 ? "falta 1" : `faltan ${e.faltan}`}.`;
+  return `${tenia} Te pasaste por ${-e.faltan}.`;
+}
+
+/** «Ponerlas todas en …»: todo el stock del origen en una fila y las demás del origen en 0. */
+export function ponerTodasEn(pres: Presentacion[], origen: Origen, clave: string): Presentacion[] {
+  return pres.map((p) => {
+    const k = claveVariante(p.valores);
+    return origen.filas.includes(k) ? { ...p, stock: k === clave ? origen.total : 0 } : p;
+  });
+}
+
+/** «Poner a todas»: la misma cantidad en todas las filas (las ocultas se quedan como están). */
+export const ponerATodas = (pres: Presentacion[], cantidad: number): Presentacion[] => pres.map((p) => (p.activa ? { ...p, stock: Math.max(0, Math.floor(cantidad)) } : p));
 
 /** Completar una presentación «Sin color»: le pone otros valores si no chocan con otra. Lanza el aviso si ya existe. */
 export function cambiarValores(lista: Presentacion[], clave: string, valores: Record<string, string>): Presentacion[] {
@@ -315,10 +425,14 @@ export const precioDe = (p: Pick<Presentacion, "precio">, precioProducto: number
 
 export type EstadoPresentacion = "oculta" | "agotada" | "quedan" | "normal";
 
-/** «Oculta» (no la ve el cliente), «Agotada» (0), «Quedan N» (1 o 2) o normal. Sin control de stock (null) es normal. */
-export function estadoDe(p: Presentacion): { estado: EstadoPresentacion; texto: string | null } {
+/**
+ * «Oculta» (no la ve el cliente), «Agotada» (0), «Quedan N» (1 o 2) o normal. Sin control de stock (null) es normal. «Agotada»
+ * es de una presentación que ya existía en un producto ya publicado: la que recién se crea, o la de un producto que aún no se
+ * publicó, solo muestra su «0» (todavía no se ha puesto stock).
+ */
+export function estadoDe(p: Presentacion, publicado = true): { estado: EstadoPresentacion; texto: string | null } {
   if (!p.activa) return { estado: "oculta", texto: "Oculta" };
-  if (p.stock === 0) return { estado: "agotada", texto: "Agotada" };
+  if (p.stock === 0) return publicado && p.id ? { estado: "agotada", texto: "Agotada" } : { estado: "normal", texto: null };
   if (p.stock !== null && p.stock <= 2) return { estado: "quedan", texto: `Quedan ${p.stock}` };
   return { estado: "normal", texto: null };
 }
@@ -369,6 +483,14 @@ export const nombreCompleto = (producto: Pick<Producto, "nombre" | "opciones">, 
 /** El eje que lleva foto: Color si existe; si no, el primero. null si no hay ejes. */
 export function ejeDeFoto(opciones: OpcionProducto[]): OpcionProducto | null {
   return opciones.find((o) => esEjeColor(o.nombre)) ?? opciones[0] ?? null;
+}
+
+/** Si cambian los ejes, la foto de un valor solo sigue si el eje que lleva foto es el mismo y el valor sigue existiendo. */
+export function podarFotosColor(fotos: Record<string, string>, antes: OpcionProducto[], despues: OpcionProducto[]): Record<string, string> {
+  const a = ejeDeFoto(antes);
+  const d = ejeDeFoto(despues);
+  if (!a || !d || a.nombre !== d.nombre) return {};
+  return Object.fromEntries(Object.entries(fotos).filter(([valor]) => d.valores.includes(valor)));
 }
 
 /** Como `public.fotos_por_valor_limpias`: solo las entradas cuyo eje y valor existen y cuya url es una foto del producto. */

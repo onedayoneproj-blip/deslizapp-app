@@ -42,42 +42,135 @@ test("los límites de la base: 2 ejes, 12 valores, 20 letras, sin repetir, 144",
   assert.equal(P.MAX_PRESENTACIONES, 144);
 });
 
-test("agregar una suelta: suma el valor al eje, no duplica y respeta los límites", () => {
-  const lista = P.crearTodas([TALLA, COLOR]);
-  const r = P.agregarSuelta([TALLA, COLOR], lista, { Talla: "XXL", Color: "Negro" });
-  assert.equal(r.presentaciones.length, 13);
-  assert.deepEqual(r.opciones[0].valores, ["S", "M", "L", "XL", "XXL"]);
-  assert.throws(() => P.agregarSuelta([TALLA, COLOR], lista, { Talla: "S", Color: "Negro" }), /ya existe/);
-  assert.throws(() => P.agregarSuelta([TALLA, COLOR], lista, { Talla: "S", Color: "" }), /Elige/);
-  const oculta = lista.map((p, i) => (i === 0 ? { ...p, activa: false } : p));
-  assert.throws(() => P.agregarSuelta([TALLA, COLOR], oculta, { Talla: "S", Color: "Negro" }), /ya existe/, "una oculta tampoco se duplica");
-  const llena = { nombre: "Talla", valores: Array.from({ length: 12 }, (_, i) => `T${i}`) };
-  assert.throws(() => P.agregarSuelta([llena], P.crearTodas([llena]), { Talla: "nueva" }), /12/);
+const con = (lista, stocks) => lista.map((p, i) => ({ ...p, stock: stocks[i] ?? 0 }));
+const claves = (lista) => lista.map((p) => P.claveVariante(p.valores));
+
+test("crear con 1 cosa: salen sus filas con 0 y sin nada que repartir", () => {
+  const r = P.cambiarEjes([], [], [COLOR]);
+  assert.equal(r.presentaciones.length, 3);
+  assert.deepEqual(r.origenes, []);
+  assert.equal(r.confirmar, null);
 });
 
-test("cambiar qué varía: agregar un eje nuevo deja «Sin color» y conserva stock y precio", () => {
-  const antes = P.crearTodas([TALLA]).map((p, i) => ({ ...p, stock: i + 1, precio: p.valores.Talla === "XL" ? 2900 : null }));
-  const r = P.cambiarQueVaria(antes, [TALLA, { nombre: "Color", valores: ["Negro", "Arena"] }]);
-  assert.equal(r.presentaciones.length, 4, "nada se duplica");
-  assert.ok(r.presentaciones.every((p) => p.valores.Color === "Sin color"));
-  assert.deepEqual(r.opciones[1].valores, ["Negro", "Arena", "Sin color"]);
-  assert.deepEqual(r.presentaciones.map((p) => p.stock), [1, 2, 3, 4]);
+test("crear con 2 cosas: todas las combinaciones, en el orden de los ejes", () => {
+  const r = P.cambiarEjes([], [], [COLOR, { nombre: "Tamaño", valores: ["Pequeño", "Grande"] }]);
+  assert.equal(r.presentaciones.length, 6);
+  assert.deepEqual(r.presentaciones[1].valores, { Color: "Negro", Tamaño: "Grande" });
+  assert.throws(() => P.cambiarEjes([], [], []), /Elige/);
+  assert.throws(() => P.cambiarEjes([], [], [{ nombre: "Talla", valores: [] }]), /Falta/);
+});
+
+test("agregar un valor: se suman sus filas con 0 y lo que había no se toca", () => {
+  const antes = con(P.crearTodas([TALLA]), [5, 4, 3, 2]).map((p, i) => ({ ...p, precio: i === 3 ? 2900 : null }));
+  const r = P.cambiarEjes([TALLA], antes, [{ nombre: "Talla", valores: ["S", "M", "L", "XL", "XXL"] }]);
+  assert.equal(r.presentaciones.length, 5);
+  assert.deepEqual(r.presentaciones.map((p) => p.stock), [5, 4, 3, 2, 0]);
   assert.equal(r.presentaciones[3].precio, 2900);
-  assert.match(r.aviso, /Sin color/);
-  assert.doesNotMatch(r.aviso, /[!¡]/);
+  assert.deepEqual(r.origenes, []);
+  assert.equal(r.confirmar, null);
+  // Con 2 cosas faltan las combinaciones del valor nuevo, todas en 0.
+  const dos = con(P.crearTodas([TALLA, COLOR]), [1, 1, 1]);
+  const r2 = P.cambiarEjes([TALLA, COLOR], dos, [TALLA, { nombre: "Color", valores: ["Negro", "Arena", "Verde", "Rojo"] }]);
+  assert.equal(r2.presentaciones.length, 16);
+  assert.equal(r2.presentaciones.filter((p) => p.valores.Color === "Rojo").length, 4);
+  assert.ok(r2.presentaciones.filter((p) => p.valores.Color === "Rojo").every((p) => p.stock === 0));
 });
 
-test("cambiar qué varía: quitar un eje junta las iguales y suma su stock; un valor que sale, se va", () => {
-  const antes = P.crearTodas([TALLA, COLOR]).map((p) => ({ ...p, stock: 1 }));
-  const r = P.cambiarQueVaria(antes, [TALLA]);
+test("quitar un valor: sus filas se van y se pregunta, diciendo cuántas y cuánto stock", () => {
+  const antes = con(P.crearTodas([TALLA, COLOR]), [1, 1, 1, 2, 2, 2]);
+  const nuevos = [{ nombre: "Talla", valores: ["S", "M"] }, COLOR];
+  const r = P.cambiarEjes([TALLA, COLOR], antes, nuevos);
+  assert.equal(r.presentaciones.length, 6);
+  assert.equal(r.perdidas, 6);
+  assert.equal(r.unidadesPerdidas, 0);
+  assert.match(r.confirmar, /6 presentaciones se van/);
+  assert.match(r.confirmar, /pedidos/);
+  assert.equal(P.cuantasSeVan([TALLA, COLOR], antes, nuevos), 6);
+  const conStock = con(P.crearTodas([TALLA]), [3, 3, 4, 4]);
+  const r2 = P.cambiarEjes([TALLA], conStock, [{ nombre: "Talla", valores: ["S", "M", "L"] }]);
+  assert.match(r2.confirmar, /Una presentación se va con 4 unidades/);
+  assert.doesNotMatch(r2.confirmar, /[!¡]/);
+});
+
+test("quitar una cosa entera: las que quedan iguales se juntan y suman su stock, y se pregunta", () => {
+  const antes = con(P.crearTodas([TALLA, COLOR]), [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+  const r = P.cambiarEjes([TALLA, COLOR], antes, [TALLA]);
   assert.equal(r.presentaciones.length, 4);
   assert.ok(r.presentaciones.every((p) => p.stock === 3), "3 colores × 1 = 3 por talla");
-  assert.match(r.aviso, /sumamos su stock/);
-  const sin = P.cambiarQueVaria(antes, [{ nombre: "Talla", valores: ["S", "M"] }, COLOR]);
-  assert.equal(sin.presentaciones.length, 6);
-  assert.match(sin.aviso, /se van/);
-  assert.equal(P.cuantasSeVan(antes, [{ nombre: "Talla", valores: ["S", "M"] }, COLOR]), 6);
-  assert.throws(() => P.cambiarQueVaria(antes, []), /Elige/);
+  assert.equal(r.juntadas, 8);
+  assert.match(r.confirmar, /se juntan y suman su stock/);
+  assert.deepEqual(r.origenes, [], "juntar no deja nada por repartir");
+  const total = (l) => l.reduce((s, p) => s + p.stock, 0);
+  assert.equal(total(r.presentaciones), total(antes), "no se pierde ni se duplica stock");
+});
+
+test("agregar una 2.ª cosa: todas las combinaciones, y el stock de cada valor viejo se reparte", () => {
+  const antes = con(P.crearTodas([COLOR]), [5, 3, 0]);
+  const talla = { nombre: "Talla", valores: ["S", "M", "L"] };
+  const r = P.cambiarEjes([COLOR], antes, [COLOR, talla]);
+  assert.equal(r.presentaciones.length, 9);
+  assert.ok(r.presentaciones.every((p) => p.stock === 0), "nada se reparte solo");
+  assert.deepEqual(r.origenes.map((o) => [o.titulo, o.total, o.filas.length]), [["Negro", 5, 3], ["Arena", 3, 3]], "Verde tenía 0: no hay nada que repartir");
+  assert.equal(r.confirmar, null);
+  // Al repartir, lo que falta se dice en palabras y «Listo» espera a que cuadre.
+  let lista = r.presentaciones.map((p) => (p.valores.Color === "Negro" && p.valores.Talla === "S" ? { ...p, stock: 3 } : p));
+  const e = P.estadoDeReparto(r.origenes, lista);
+  assert.deepEqual(e.map((x) => x.faltan), [2, 3]);
+  assert.equal(P.textoDeReparto(e[0], "entre las tallas"), "Tenías 5 de Negro. Repártelas entre las tallas: faltan 2.");
+  assert.equal(P.repartoCuadra(r.origenes, lista), false);
+  lista = lista.map((p) => {
+    if (p.valores.Color === "Negro" && p.valores.Talla === "M") return { ...p, stock: 2 };
+    if (p.valores.Color === "Arena") return { ...p, stock: 1 };
+    return p;
+  });
+  assert.equal(P.repartoCuadra(r.origenes, lista), true);
+  const pasado = lista.map((p) => (p.valores.Color === "Negro" && p.valores.Talla === "L" ? { ...p, stock: 1 } : p));
+  const e2 = P.estadoDeReparto(r.origenes, pasado);
+  assert.equal(e2[0].faltan, -1);
+  assert.equal(P.textoDeReparto(e2[0], "entre las tallas"), "Tenías 5 de Negro. Te pasaste por 1.");
+  // «Ponerlas todas en …»: todo el stock del valor en una fila.
+  const una = P.ponerTodasEn(r.presentaciones, r.origenes[0], P.claveVariante({ Color: "Negro", Talla: "M" }));
+  assert.equal(una.find((p) => p.valores.Color === "Negro" && p.valores.Talla === "M").stock, 5);
+  assert.equal(P.repartoCuadra([r.origenes[0]], una), true);
+  // El precio propio y «oculta» de cada valor viejo pasan a sus filas.
+  const propio = antes.map((p, i) => (i === 0 ? { ...p, precio: 1200 } : p));
+  const r2 = P.cambiarEjes([COLOR], propio, [COLOR, talla]);
+  assert.ok(r2.presentaciones.filter((p) => p.valores.Color === "Negro").every((p) => p.precio === 1200));
+});
+
+test("pasar de stock simple a presentaciones: un solo origen con el total y nada se pierde en silencio", () => {
+  const r = P.cambiarEjes([], [], [COLOR], 8);
+  assert.deepEqual(r.origenes.map((o) => [o.titulo, o.total, o.filas.length]), [["", 8, 3]]);
+  assert.equal(P.textoDeReparto(P.estadoDeReparto(r.origenes, r.presentaciones)[0], "entre ellas"), "Tenías 8. Repártelas entre ellas: faltan 8.");
+  assert.equal(P.repartoCuadra(r.origenes, r.presentaciones), false);
+  const todas = P.ponerTodasEn(r.presentaciones, r.origenes[0], claves(r.presentaciones)[1]);
+  assert.deepEqual(todas.map((p) => p.stock), [0, 8, 0]);
+  assert.equal(P.repartoCuadra(r.origenes, todas), true);
+  assert.deepEqual(P.cambiarEjes([], [], [COLOR], 0).origenes, [], "sin stock no hay nada que repartir");
+  assert.deepEqual(P.cambiarEjes([], [], [COLOR], null).origenes, [], "sin llevar la cuenta tampoco");
+});
+
+test("cambiar una cosa por otra: lo que tenías se reparte entre las nuevas y se pregunta antes", () => {
+  const antes = con(P.crearTodas([COLOR]), [2, 3, 4]);
+  const r = P.cambiarEjes([COLOR], antes, [TALLA]);
+  assert.equal(r.presentaciones.length, 4);
+  assert.deepEqual(r.origenes.map((o) => [o.titulo, o.total]), [["", 9]]);
+  assert.match(r.confirmar, /se reemplazan/);
+});
+
+test("«Poner a todas» y lo ya tocado en el paso 2 sobrevive a volver al paso 1", () => {
+  const lista = P.crearTodas([TALLA]).map((p, i) => ({ ...p, activa: i !== 3 }));
+  const todas = P.ponerATodas(lista, 4);
+  assert.deepEqual(todas.map((p) => p.stock), [4, 4, 4, 0], "la oculta no cambia");
+  assert.equal(P.ponerATodas(lista, -3)[0].stock, 0);
+  const nuevas = P.cambiarEjes([TALLA], P.crearTodas([TALLA]), [{ nombre: "Talla", valores: ["S", "M", "L", "XL", "XXL"] }]).presentaciones;
+  const editadas = nuevas.map((p, i) => ({ ...p, stock: i + 1, precio: i === 0 ? 900 : null }));
+  const otra = P.cambiarEjes([TALLA], P.crearTodas([TALLA]), [{ nombre: "Talla", valores: ["S", "M", "L", "XL", "XXL", "XXXL"] }]).presentaciones;
+  const vuelta = P.conservarEdicion(otra, editadas);
+  assert.deepEqual(vuelta.map((p) => p.stock), [1, 2, 3, 4, 5, 0]);
+  assert.equal(vuelta[0].precio, 900);
+  assert.equal(P.mismosEjes([TALLA], [{ ...TALLA }]), true);
+  assert.equal(P.mismosEjes([TALLA], [COLOR]), false);
 });
 
 test("quitar: sin pedidos se va; con pedidos solo se oculta (y dice por qué)", () => {
@@ -94,7 +187,7 @@ test("quitar: sin pedidos se va; con pedidos solo se oculta (y dice por qué)", 
 });
 
 test("completar una «Sin color»: cambia sus valores y no choca con otra", () => {
-  const lista = P.cambiarQueVaria(P.crearTodas([TALLA]), [TALLA, { nombre: "Color", valores: ["Negro"] }]).presentaciones;
+  const lista = P.crearTodas([TALLA]).map((p) => ({ ...p, valores: { ...p.valores, Color: "Sin color" } }));
   const k = P.claveVariante({ Talla: "S", Color: "Sin color" });
   const hecha = P.cambiarValores(lista, k, { Talla: "S", Color: "Negro" });
   assert.deepEqual(hecha[0].valores, { Talla: "S", Color: "Negro" });
@@ -122,7 +215,10 @@ test("precio propio, «Desde», conteos y estados", () => {
   const oculta = P.resumenDe([{ valores: { Talla: "S" }, stock: 5, precio: 100, activa: false }, { valores: { Talla: "M" }, stock: 1, precio: null, activa: true }], 500);
   assert.deepEqual([oculta.total, oculta.ocultas, oculta.enTotal, oculta.desde], [1, 1, 1, 500]);
   assert.equal(P.resumenDe([], 500).desde, null);
-  assert.deepEqual(P.estadoDe({ valores: {}, stock: 0, precio: null, activa: true }), { estado: "agotada", texto: "Agotada" });
+  assert.deepEqual(P.estadoDe({ id: "v1", valores: {}, stock: 0, precio: null, activa: true }), { estado: "agotada", texto: "Agotada" });
+  // «Agotada» solo en lo que ya existía en un producto publicado: una recién creada, o la de un producto nuevo, dice «0».
+  assert.equal(P.estadoDe({ valores: {}, stock: 0, precio: null, activa: true }).texto, null);
+  assert.equal(P.estadoDe({ id: "v1", valores: {}, stock: 0, precio: null, activa: true }, false).texto, null);
   assert.equal(P.estadoDe({ valores: {}, stock: 2, precio: null, activa: true }).texto, "Quedan 2");
   assert.equal(P.estadoDe({ valores: {}, stock: 3, precio: null, activa: true }).texto, null);
   assert.equal(P.estadoDe({ valores: {}, stock: null, precio: null, activa: true }).texto, null);

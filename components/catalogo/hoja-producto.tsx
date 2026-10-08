@@ -10,7 +10,7 @@ import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib
 import { catalogoInicial, contarPorCatalogo, leerCatalogoActivo } from "@/lib/catalogo-activo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
-import type { MotivoAjusteInventario, Producto } from "@/lib/types";
+import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
 import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
 import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
@@ -33,10 +33,12 @@ import { reducirFoto } from "@/lib/imagen";
 import { nuevoId } from "@/lib/data/db";
 import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { useTaller } from "./taller";
-import { claveVariante, ejeDeFoto, presentacionesDe, resumenDe } from "@/lib/presentaciones";
+import { claveVariante, ejeDeFoto, presentacionesDe, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
 import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
 import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
-import { HojaMotivoVariantes, SeccionPresentaciones, type EstadoPresentaciones } from "./ficha-presentaciones";
+import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
+import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
+import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
@@ -238,7 +240,13 @@ function FormularioProducto({
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
-  const [stock, setStock] = useState<number | null>(producto ? producto.stock : 1);
+  const [stock, setStockValor] = useState<number | null>(producto ? producto.stock : 1);
+  // Un producto nuevo arranca con 1; solo si el dueño lo tocó cuenta como stock que repartir al crear presentaciones.
+  const [stockTocado, setStockTocado] = useState(false);
+  const setStock = (v: number | null) => {
+    setStockValor(v);
+    setStockTocado(true);
+  };
   // Las presentaciones (tallas, colores, tamaños): se editan aquí y se guardan con el producto.
   const base = useMemo(() => new Map((producto?.variantes ?? []).map((v) => [claveVariante(v.valores), v])), [producto]);
   const [presentaciones, setPresentaciones] = useState<EstadoPresentaciones>(() => {
@@ -318,9 +326,13 @@ function FormularioProducto({
   const avisarLleno = () =>
     mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
 
+  /** El stock simple que se reparte al crear presentaciones: el guardado del producto, o lo que puso el dueño en uno nuevo. */
+  const stockSimple = producto ? producto.stock : stockTocado ? stock : null;
   const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
-    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta.
+    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta (ya se repartió el guardado).
     if (nuevo.pres.length > 0 && !tieneOpciones && inventario.pendiente) inventario.recuperar();
+    // Al volver a un solo stock en un producto nuevo, el total de las presentaciones pasa a su stock.
+    if (nuevo.pres.length === 0 && tieneOpciones && !producto) setStockValor(resumenDe(borradorPres, Number(precio) || 0).enTotal);
     setPresentaciones(nuevo);
   };
 
@@ -344,7 +356,6 @@ function FormularioProducto({
   const tienePedidosVariante = async (varianteId: string) => (await getPedidos(tiendaId)).some((p) => p.items.some((i) => i.varianteId === varianteId));
 
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
-  const primeraFoto = medios.find((m) => m.tipo === "foto")?.url ?? null;
   const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
   // «Publicar» / «Guardar cambios» espera a tener foto, nombre y precio (la misma regla de siempre; antes avisaba al tocar).
   const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
@@ -504,6 +515,28 @@ function FormularioProducto({
     }
   };
 
+  /** El borrador como lo vería quien compra: lo que «Cómo se ve» le manda al reel (solo se arma al abrirse). */
+  const datosVista = (): DatosVistaPrevia | null => {
+    if (!tienda) return null;
+    const medioDeId = new Map(medios.flatMap((m) => (m.tipo === "foto" ? [[m.id, m.url] as const] : [])));
+    const ejeFoto = ejeDeFoto(tieneOpciones ? opciones : []);
+    const fotosPorValor: FotosPorValor = {};
+    if (ejeFoto) {
+      for (const [valor, id] of Object.entries(fotosColor)) {
+        const url = medioDeId.get(id);
+        if (url && ejeFoto.valores.includes(valor)) (fotosPorValor[ejeFoto.nombre] ??= {})[valor] = url;
+      }
+    }
+    const fichaUrl = fichaVisible(producto?.fichaUrl, ficha) ? (ficha.tipo === "nueva" ? ficha.foto : (producto?.fichaUrl ?? null)) : null;
+    return {
+      tienda: tiendaPublicaDe(tienda),
+      producto: productoPublicoDeBorrador({
+        nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? opciones : [], presentaciones: tieneOpciones ? borradorPres : [],
+        stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo, fotosPorValor, fichaUrl,
+      }),
+    };
+  };
+
   const alGuardar = () => {
     if (producto && tieneOpciones && bajadas > 0) setPidiendoMotivo(true);
     else if (producto) inventario.pedirGuardar(guardar);
@@ -549,7 +582,7 @@ function FormularioProducto({
         inputMode="numeric"
         value={precio}
         onChange={(e) => setPrecio(e.target.value.replace(/\D/g, "").slice(0, 7))}
-        placeholder="0"
+        placeholder="Ej: 950"
         className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
       />
 
@@ -557,11 +590,12 @@ function FormularioProducto({
       <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
         {(producto?.tipo ?? "producto") === "producto" && (
           <SeccionPresentaciones
-            variante="fila"
             rubro={tipo}
             precioProducto={Number(precio) || 0}
             estado={presentaciones}
             alCambiar={cambiarPresentaciones}
+            stockSimple={stockSimple}
+            publicado={Boolean(producto)}
             fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
             agregarFoto={agregarFotoDeColor}
             sinPermiso={sinCatalogo}
@@ -644,22 +678,18 @@ function FormularioProducto({
       {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
       {!historialAbierto && (
         <HojaFijoAbajo>
-          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))] flex gap-3 rounded-radio-l border border-linea bg-superficie p-3 shadow-flotante" data-barra-producto="">
-            <Boton jerarquia="secundario" tamano="grande" anchoCompleto={!(!producto || !inventario.pendiente || tieneOpciones)} onClick={() => setViendo(true)}>Cómo se ve</Boton>
+          {/* Dos botones que flotan solos, del mismo ancho y con sombra: sin tarjeta ni recuadro detrás. */}
+          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))] grid grid-cols-2 gap-3" data-barra-producto="">
+            <Boton jerarquia="secundario" tamano="grande" anchoCompleto className={!(!producto || !inventario.pendiente || tieneOpciones) ? "col-span-2 shadow-flotante" : "shadow-flotante"} onClick={() => setViendo(true)}>Cómo se ve</Boton>
             {(!producto || !inventario.pendiente || tieneOpciones) && (
-              <div className="min-w-0 flex-1">
-                <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
-                  {producto ? "Guardar cambios" : "Publicar"}
-                </Boton>
-              </div>
+              <Boton tamano="grande" anchoCompleto className="shadow-flotante" cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
+                {producto ? "Guardar cambios" : "Publicar"}
+              </Boton>
             )}
           </div>
         </HojaFijoAbajo>
       )}
-      <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} borrador={{
-        nombre, precio: Number(precio) || 0, foto: primeraFoto, cantidadFotos: medios.filter((m) => m.tipo === "foto").length, descripcion, opciones: tieneOpciones ? opciones : [],
-        presentaciones: tieneOpciones ? borradorPres : [], stock, porEncargo, encargoTexto, coleccion: coleccionElegida, visible: activo && !bloqueaVisible, conFicha: Boolean(fichaVisible(producto?.fichaUrl, ficha)),
-      }} />
+      <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible={activo && !bloqueaVisible} datos={datosVista} />
       {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
       {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
       {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={sinCatalogo || guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
