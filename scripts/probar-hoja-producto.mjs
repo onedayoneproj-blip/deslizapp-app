@@ -76,6 +76,10 @@ for (const ancho of ANCHOS) {
     await captura(page, "1-vacio", ancho);
     for (const n of ["Descripción", "Ficha técnica", "Colección", "Por encargo", "Visible en el catálogo"]) ok((await page.getByText(n, { exact: true }).count()) >= 1, `«Más opciones» tiene la fila ${n}`);
     ok((await page.locator("[data-fila-plegable] textarea").count()) === 0, "Lo opcional viene plegado");
+    ok((await page.locator("[data-tarjeta-stock] [data-encargo]").getByText("Por encargo", { exact: true }).count()) === 1, "«Por encargo» está en la tarjeta del stock");
+    ok((await page.getByText(/llevo la cuenta|llevas la cuenta/i).count()) === 0, "No hay «No llevo la cuenta»");
+    ok((await page.locator('[data-fila-plegable="descripcion"], [data-fila-plegable="ficha"]').evaluateAll((l) => new Set(l.map((e) => e.parentElement)).size)) === 1, "Descripción y Ficha técnica comparten un grupo");
+    ok((await page.locator('[data-fila-plegable="descripcion"]').evaluate((e) => !e.parentElement.textContent.includes("Colección"))), "Colección y Visible van en otro grupo");
     const A = [await png(page, "#c33"), await png(page, "#3a6"), await png(page, "#36c")];
     await page.locator("[data-entrada-medios]").setInputFiles(A.map((b, i) => ({ name: `f${i}.png`, mimeType: "image/png", buffer: Buffer.from(b, "base64") })));
     await page.getByRole("button", { name: /^Foto 3 de 3/ }).waitFor();

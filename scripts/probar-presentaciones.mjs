@@ -154,6 +154,11 @@ for (const ancho of ANCHOS) {
     const t = await pasoTexto(page);
     ok(t.includes("Poner a todas") && t.includes("Dorado") && t.includes("Plateado") && t.includes("Blanco") && !t.includes("Agotad"), "Una fila por color, «Poner a todas» y ni rastro de «Agotada»");
     ok((await hoja(page).getByRole("button", { name: /^Listo · 0 en total/ }).isEnabled()), "«Listo · 0 en total» (producto nuevo sin reparto)");
+    {
+      const at = await hoja(page).getByRole("button", { name: "Atrás", exact: true }).boundingBox();
+      const li = await hoja(page).getByRole("button", { name: /^Listo ·/ }).boundingBox();
+      ok(at && li && Math.abs(at.width - li.width) <= 1 && Math.abs(at.height - li.height) <= 1, "«Atrás» y «Listo» miden lo mismo (mitad y mitad)");
+    }
     await captura(page, "03-paso2-una-cosa", ancho);
     await sumar(page, "Agregar uno a todas", 2);
     ok((await hoja(page).getByRole("button", { name: /^Listo · 6 en total/ }).count()) === 1, "«Poner a todas» pone 2 en cada una: «Listo · 6 en total»");

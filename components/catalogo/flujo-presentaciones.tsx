@@ -560,21 +560,19 @@ export function FlujoPresentaciones({
               {faltanEnTotal > 0 ? `Faltan ${faltanEnTotal} por repartir` : `Te pasaste por ${sobranEnTotal}`}
             </p>
           )}
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3" data-botones-flujo="">
             {paso === 2 && s.desdePaso1 && (
-              <Boton jerarquia="secundario" tamano="grande" className="shadow-flotante" onClick={() => setS((x) => ({ ...x, paso: 1 }))}>Atrás</Boton>
+              <Boton jerarquia="secundario" tamano="grande" anchoCompleto className="shadow-flotante" onClick={() => setS((x) => ({ ...x, paso: 1 }))}>Atrás</Boton>
             )}
-            <div className="min-w-0 flex-1">
-              {paso === 1 ? (
-                <Boton tamano="grande" anchoCompleto className="shadow-flotante" deshabilitado={!!pista} onClick={siguiente}>
-                  {pista ? "Siguiente" : `Siguiente · ${textoPresentaciones(n)}`}
-                </Boton>
-              ) : (
-                <Boton tamano="grande" anchoCompleto className="shadow-flotante" deshabilitado={!cuadra || pres.length === 0} onClick={listo}>
-                  {`Listo · ${resumen.enTotal} en total`}
-                </Boton>
-              )}
-            </div>
+            {paso === 1 ? (
+              <Boton tamano="grande" anchoCompleto className="col-span-2 shadow-flotante" deshabilitado={!!pista} onClick={siguiente}>
+                {pista ? "Siguiente" : `Siguiente · ${textoPresentaciones(n)}`}
+              </Boton>
+            ) : (
+              <Boton tamano="grande" anchoCompleto className={clases("shadow-flotante", !s.desdePaso1 && "col-span-2")} deshabilitado={!cuadra || pres.length === 0} onClick={listo}>
+                {`Listo · ${resumen.enTotal} en total`}
+              </Boton>
+            )}
           </div>
         </div>
       </HojaFijoAbajo>

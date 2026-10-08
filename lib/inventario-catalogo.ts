@@ -61,7 +61,7 @@ export function situacionVariantes(p: ProductoInventario): { resaltado: string |
 export function etiquetaStock(p: ProductoInventario): { texto: string; tono: "neutro" | "exito" | "atencion" | "fuerte" } {
   const activas = activasDe(p);
   const sinControl = activas.length ? activas.some(v => v.stock === null) : p.stock === null;
-  if (sinControl) return { texto: "Sin control de stock", tono: "neutro" };
+  if (sinControl) return { texto: "Sin cantidad guardada", tono: "neutro" };
   const total = activas.length ? activas.reduce((n,v) => n + v.stock!, 0) : p.stock!;
   if (total === 0) return { texto: "Agotado", tono: "fuerte" };
   const bajas = activas.length ? activas.some(v => v.stock! <= STOCK_BAJO) : total <= STOCK_BAJO;

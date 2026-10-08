@@ -144,7 +144,7 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
   return <section aria-label="Inventario" className="rounded-[18px] border-[1.5px] border-borde bg-white p-4 text-bosque">
     <p className="text-[13px] font-bold text-suave">Inventario</p>
-    {i.base === null ? <p className="mt-1 font-extrabold">Sin control de stock</p> : <>
+    {i.base === null ? <><p className="mt-1 font-display text-[27px] leading-tight tabular-nums">0 <span className="text-base">unidades</span></p><p role="status" data-sin-cantidad="" className="mt-1 text-sm text-suave">Este producto no tiene su cantidad guardada. Se ve como 0.</p></> : <>
       <p className="mt-1 text-sm text-suave">Stock actual: {i.base}</p>
       <div className="mt-2 flex items-center justify-between gap-2">
         <p aria-live="polite" className="min-w-0 break-all font-display text-[27px] leading-tight tabular-nums">{i.propuesta} <span className="text-base">{i.propuesta === 1 ? "unidad" : "unidades"}</span></p>
@@ -169,8 +169,8 @@ export function ControlInventario({ inventario, nombre, alGuardar, alVerHistoria
 }
 
 /**
- * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si el producto no
- * lleva stock, la primera fila dice "Sin control de stock". Los cambios son un borrador: aparecen "Guardar" y "Descartar" ENCIMA de la lista.
+ * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si un producto viejo no
+ * trae cantidad, se ve como 0 con un aviso corto. Los cambios son un borrador: aparecen "Guardar" y "Descartar" ENCIMA de la lista.
  */
 export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial, soloLectura = false }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void; /** El nivel de la cuenta no incluye catálogo: el stock se ve y no se ajusta. */ soloLectura?: boolean }) {
   const delta = (i.propuesta ?? 0) - (i.base ?? 0);
@@ -194,7 +194,7 @@ export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerH
       )}
       <ListaAgrupada etiqueta="Stock e historial">
         {i.base === null || i.propuesta === null ? (
-          <FilaLista titulo="Sin control de stock" />
+          <FilaLista titulo="En stock" detalle={<span data-sin-cantidad="">Sin cantidad guardada: se ve como 0</span>} fin={<span className="text-secundario font-normal text-texto-secundario">0</span>} />
         ) : (
           <FilaLista
             titulo="En stock"

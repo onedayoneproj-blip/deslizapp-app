@@ -134,7 +134,7 @@ try {
   ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),"Nombre largo y stock cero sin overflow");
   if(process.env.CAPTURAS){await page.screenshot({path:process.env.CAPTURAS+"/producto-"+(process.env.ANCHO??390)+".png"});}
   await ponerStock(null);
-  ok((await page.locator('section[aria-label="Inventario"]').getByText("Sin control de stock", { exact: true }).count()) === 1, "Stock null muestra Sin control de stock");
+  ok((await page.locator('section[aria-label="Inventario"] [data-sin-cantidad]').count()) === 1, "Stock null se ve como 0 con aviso");
   ok((await page.locator('[role="dialog"] button[aria-label^="Aumentar stock"], [role="dialog"] button[aria-label^="Disminuir stock"]').count()) === 0, "Stock null no muestra controles de cantidad");
   await page.evaluate(id=>{const db=JSON.parse(localStorage.getItem("deslizapp-demo-v5"));db.productos.find(p=>p.id===id).fotos=[];localStorage.setItem("deslizapp-demo-v5",JSON.stringify(db));},id);
   await page.reload();await page.locator('section[aria-label="Inventario"]').waitFor();

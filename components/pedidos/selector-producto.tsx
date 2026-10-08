@@ -133,7 +133,7 @@ function Cabeza({ producto: p, consulta, precio, precioAntes, detalle }: { produ
   );
 }
 
-const textoStock = (stock: number | null) => (stock === null ? "Sin control de stock" : stock === 0 ? "Sin stock" : `${stock} en stock`);
+const textoStock = (stock: number | null) => (stock === null ? "Sin cantidad guardada" : stock === 0 ? "Sin stock" : `${stock} en stock`);
 
 function FilaProducto({
   producto: p,

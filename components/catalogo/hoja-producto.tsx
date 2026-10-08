@@ -240,10 +240,10 @@ function FormularioProducto({
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
   const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
-  const [stock, setStockValor] = useState<number | null>(producto ? producto.stock : 1);
+  const [stock, setStockValor] = useState<number>(producto ? (producto.stock ?? 0) : 1);
   // Un producto nuevo arranca con 1; solo si el dueño lo tocó cuenta como stock que repartir al crear presentaciones.
   const [stockTocado, setStockTocado] = useState(false);
-  const setStock = (v: number | null) => {
+  const setStock = (v: number) => {
     setStockValor(v);
     setStockTocado(true);
   };
@@ -616,16 +616,25 @@ function FormularioProducto({
               <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
                 alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || preparando}/>
             ) : (
-              <>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-destacado text-texto">En stock</p>
-                    <p className="text-secundario text-texto-secundario">{stock === null ? "No llevas la cuenta de este." : "Al despachar, baja solito."}</p>
-                  </div>
-                  {stock !== null && <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-destacado text-texto">En stock</p>
+                  <p className="text-secundario text-texto-secundario">Al despachar, baja solito.</p>
                 </div>
-                <button type="button" onClick={() => setStock(stock === null ? 1 : null)} className="tocable -mb-1 flex min-h-11 items-center text-secundario font-extrabold text-texto-secundario">{stock === null ? "Mejor sí llevo la cuenta" : "No llevo la cuenta de este"}</button>
-              </>
+                <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />
+              </div>
+            )}
+          </div>
+        )}
+        {(producto?.tipo ?? "producto") === "producto" && (
+          <div className="border-t border-linea" data-encargo="">
+            <ul>
+              <FilaLista titulo="Por encargo" detalle={resumenEncargo(porEncargo, encargoTexto)} accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />} />
+            </ul>
+            {porEncargo && (
+              <div className="px-4 pb-4">
+                <Campo etiqueta="Cuándo llega" value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
+              </div>
             )}
           </div>
         )}
@@ -633,24 +642,16 @@ function FormularioProducto({
 
       {/* Más opciones: plegadas, cada una muestra su valor */}
       <p className="-mb-2 px-1 text-secundario font-extrabold tracking-wide text-texto-secundario uppercase">Más opciones</p>
-      <ListaAgrupada etiqueta="Más opciones" className="-mt-1">
+      <ListaAgrupada etiqueta="Descripción y ficha técnica" className="-mt-1">
         <FilaPlegable id="descripcion" titulo="Descripción" detalle={resumenDescripcion(descripcion) ?? "Opcional"} abierta={!!plegadas.descripcion} alAlternar={() => alternar("descripcion")}>
           <SeccionDescripcion sinTitulo valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} />
         </FilaPlegable>
         <FilaPlegable id="ficha" titulo="Ficha técnica" detalle={fichaVisible(producto?.fichaUrl, ficha) ? "Subida" : "Opcional"} abierta={!!plegadas.ficha} alAlternar={() => alternar("ficha")}>
           <SeccionFichaTecnica sinTitulo actual={producto?.fichaUrl} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} />
         </FilaPlegable>
+      </ListaAgrupada>
+      <ListaAgrupada etiqueta="Colección y visibilidad">
         <FilaLista titulo="Colección" fin={<span className="text-secundario font-normal text-texto-secundario">{coleccionElegida ?? "Sin colección"}</span>} onClick={() => setEligiendoColeccion(true)} />
-        {(producto?.tipo ?? "producto") === "producto" && (
-          <>
-            <FilaLista titulo="Por encargo" detalle={resumenEncargo(porEncargo, encargoTexto)} accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />} />
-            {porEncargo && (
-              <li className="px-4 pb-4">
-                <Campo etiqueta="Cuándo llega" value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
-              </li>
-            )}
-          </>
-        )}
         <FilaLista
           titulo="Visible en el catálogo"
           detalle={activo && !bloqueaVisible ? "Visible" : "Oculto del catálogo"}
