@@ -20,8 +20,11 @@ export function Campo({
   id,
   className,
   precio,
+  prefijo,
   ...input
 }: Omit<ComponentProps<"input">, "className"> & {
+  /** Texto fijo dentro del campo, antes de lo que se escribe ("RD$"). Mismo tamaño que el valor, en gris. */
+  prefijo?: ReactNode;
   etiqueta: ReactNode;
   ayuda?: ReactNode;
   error?: ReactNode;
@@ -34,7 +37,8 @@ export function Campo({
   const idNota = `${idCampo}-nota`;
   const nota = error ?? ayuda;
   const estilo = clases(
-    "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
+    "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo font-normal text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
+    prefijo ? "pl-13" : null,
     FOCO_CAMPO,
     error ? "border-peligro" : "border-borde-campo focus:border-accion",
   );
@@ -43,11 +47,18 @@ export function Campo({
       <label htmlFor={idCampo} className="text-secundario font-extrabold text-texto">
         {etiqueta}
       </label>
-      {precio ? (
-        <InputPrecio {...input} id={idCampo} digitos={precio.digitos} alCambiar={precio.alCambiar} max={precio.max} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
-      ) : (
-        <input id={idCampo} {...input} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
-      )}
+      <div className="relative">
+        {prefijo && (
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-cuerpo text-texto-secundario">
+            {prefijo}
+          </span>
+        )}
+        {precio ? (
+          <InputPrecio {...input} id={idCampo} digitos={precio.digitos} alCambiar={precio.alCambiar} max={precio.max} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
+        ) : (
+          <input id={idCampo} {...input} aria-invalid={error ? true : undefined} aria-describedby={nota ? idNota : undefined} className={estilo} />
+        )}
+      </div>
       {nota && (
         <p id={idNota} className={clases("text-secundario", error ? "font-bold text-peligro" : "text-texto-secundario")}>
           {nota}
@@ -86,7 +97,7 @@ export function CampoMultilinea({
         aria-invalid={error ? true : undefined}
         aria-describedby={nota ? idNota : undefined}
         className={clases(
-          "w-full min-w-0 resize-none rounded-radio-m border-2 bg-superficie px-3.5 py-3 text-cuerpo text-texto placeholder:text-texto-secundario disabled:opacity-40",
+          "w-full min-w-0 resize-none rounded-radio-m border-2 bg-superficie px-3.5 py-3 text-cuerpo font-normal text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
           FOCO_CAMPO,
           error ? "border-peligro" : "border-borde-campo focus:border-accion",
         )}

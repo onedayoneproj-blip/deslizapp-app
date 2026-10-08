@@ -117,7 +117,7 @@ function OtroValor({ nombre, valores, alCambiar }: { nombre: string; valores: st
         agregar();
         setEscribiendo(false);
       }}
-      className="h-(--alto-control) w-44 min-w-0 rounded-full border-2 border-borde-campo bg-superficie px-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario focus:border-accion"
+      className="h-(--alto-campo) w-56 min-w-0 rounded-radio-m border-2 border-borde-campo bg-superficie px-3.5 text-cuerpo font-normal text-texto outline-none placeholder:font-normal placeholder:text-texto-secundario focus:border-accion"
     />
   );
 }
@@ -158,8 +158,8 @@ function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: strin
     if (precio !== (precioDeTexto(escrito, precioProducto) ?? precioProducto)) setEscrito(String(precio));
   }
   return (
-    <label className="flex h-12 w-full min-w-0 items-center gap-2 rounded-radio-m border-2 border-borde-campo bg-superficie px-3 focus-within:border-accion">
-      <span className="text-secundario font-extrabold text-texto-secundario">RD$</span>
+    <label className="flex h-(--alto-campo) w-full min-w-0 items-center gap-2 rounded-radio-m border-2 border-borde-campo bg-superficie px-3.5 focus-within:border-accion">
+      <span className="text-cuerpo font-normal text-texto-secundario">RD$</span>
       <InputPrecio
         data-precio-fila=""
         autoComplete="off"
@@ -182,7 +182,7 @@ function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: strin
           if (siguiente) siguiente.focus();
           else e.currentTarget.blur();
         }}
-        className="w-0 min-w-0 flex-1 bg-transparent font-display text-titulo-seccion text-texto outline-none"
+        className="w-0 min-w-0 flex-1 bg-transparent text-cuerpo font-normal text-texto outline-none placeholder:text-texto-secundario"
       />
     </label>
   );

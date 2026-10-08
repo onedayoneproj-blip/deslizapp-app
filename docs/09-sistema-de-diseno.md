@@ -109,6 +109,8 @@ Todos son píldora, letra extrabold, sin subrayado.
 
 **Tamaños:** grande 52 px (al pie de hojas y formularios), normal 44 px, compacto 36 px (dentro de tarjetas, con área de toque de 44 px). Letra: 17 en grande, 16 en normal, 14 en compacto.
 
+**Apagado (`deshabilitado`):** los botones con relleno (principal, secundario, resalte) se apagan con un color sólido apagado (`superficie-hundida`, texto secundario, borde `linea`), **nunca con opacidad**: un botón que flota no deja ver lo que pasa por debajo. Los botones sin fondo (terciario, peligro) sí bajan al 40 %.
+
 **Reglas**
 
 1. **Una sola acción principal por vista.** Si hay dos botones juntos, uno es principal y el otro secundario. Nunca dos rellenos iguales lado a lado.
@@ -117,6 +119,10 @@ Todos son píldora, letra extrabold, sin subrayado.
 4. **Deshabilitado:** opacidad 40 %, siempre la misma. Mejor aún: explicar con una línea qué falta en vez de deshabilitar sin decir por qué.
 5. **El subrayado no es un botón.** Se subraya solo un **enlace dentro de una frase** que lleva a otra página (Privacidad, Términos, "ya existe Marleny Peña"). Cualquier acción va como terciario.
 6. **Las filas no llevan botón de borrar.** Una fila de historial (un abono, un movimiento de inventario) termina en chevron y abre una hoja con su detalle y sus acciones ("Borrar abono", con confirmación). Un botón de borrar en cada fila pesa más que el dato y abarata la pantalla.
+
+### Campos de texto: todos se ven iguales
+
+Todos los campos de una hoja o pantalla (nombre, precio, descripción, «Otra cosa», valores propios, «Cuándo llega») son el mismo `Campo`/`CampoMultilinea`: misma altura (`--alto-campo`, 50), `radio-m`, contorno de 2 px `borde-campo`, rótulo `secundario` extrabold arriba, y el valor y el ejemplo en `cuerpo` (16) de peso regular. **El ejemplo (placeholder) va en gris suave (`texto-secundario`), tamaño normal y peso regular; nunca en tipografía display ni más grande que el valor.** Si un campo debe destacar (el precio), se hace con algo sutil: el prefijo `RD$` dentro del campo (`prefijo="RD$"`), no con otro tamaño ni otra altura. Un campo suelto no se mete dentro de una tarjeta de filas (recuadro dentro de recuadro): va fuera, entre las demás filas del formulario. `CampoMonto` (cifra grande) es solo para el monto protagonista de una hoja de cobro, no para formularios de producto.
 
 ## 6. Elegir: pastillas, opciones y controles
 

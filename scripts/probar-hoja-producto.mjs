@@ -85,7 +85,17 @@ for (const ancho of ANCHOS) {
       ok((await precio.inputValue()) === "1,500" && (await precio.evaluate((e) => e.selectionStart)) === 1, "Borrar en el medio deja el cursor junto al dígito (1|,500)");
       await precio.fill("1850");
     }
-    ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).evaluate((e) => getComputedStyle(e).fontFamily)).toLowerCase().includes("fredoka"), "El precio va en Fredoka");
+    {
+      // Todos los campos se ven iguales (docs/09): mismo alto, letra y peso; el ejemplo en gris, tamaño normal.
+      const estilo = (n) => page.getByRole("textbox", { name: n, exact: true }).evaluate((e) => { const c = getComputedStyle(e); const p = e.getBoundingClientRect(); return { alto: Math.round(p.height), letra: c.fontSize, peso: c.fontWeight, familia: c.fontFamily, borde: c.borderTopWidth + c.borderTopLeftRadius }; });
+      const [nombre, precio] = [await estilo("Nombre"), await estilo("Precio (RD$)")];
+      ok(JSON.stringify(nombre) === JSON.stringify(precio) && precio.letra === "16px" && precio.peso === "400", `Nombre y Precio: mismo alto, letra, peso y borde (${JSON.stringify(precio)})`);
+      ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).evaluate((e) => getComputedStyle(e, "::placeholder").fontSize)) === "16px", "El ejemplo del precio es del tamaño normal de un campo");
+    }
+    {
+      const b = await publicar.evaluate((e) => { const c = getComputedStyle(e); return { op: c.opacity, fondo: c.backgroundColor }; });
+      ok(b.op === "1" && !/rgba|\/ /.test(b.fondo), `«Publicar» apagado es opaco (fondo ${b.fondo})`);
+    }
     ok(await sinDesborde(page), "Sin desborde horizontal");
     await captura(page, "1-vacio", ancho);
     for (const n of ["Descripción", "Ficha técnica", "Colección", "Por encargo", "Visible en el catálogo"]) ok((await page.getByText(n, { exact: true }).count()) >= 1, `«Más opciones» tiene la fila ${n}`);

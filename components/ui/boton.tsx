@@ -15,6 +15,12 @@ const JERARQUIA: Record<JerarquiaBoton, string> = {
   peligro: "border-peligro bg-transparent text-peligro",
   resalte: "border-resalte bg-resalte text-sobre-resalte",
 };
+/** Botones con relleno, apagados: color sólido (sin transparencia). Los demás (sin fondo) siguen con opacidad. */
+const APAGADO: Partial<Record<JerarquiaBoton, string>> = {
+  principal: "border-linea bg-superficie-hundida text-texto-secundario",
+  secundario: "border-linea bg-superficie-hundida text-texto-secundario",
+  resalte: "border-linea bg-superficie-hundida text-texto-secundario",
+};
 /** Relleno de peligro: SOLO el botón final de una Alerta. */
 const PELIGRO_RELLENO = "border-peligro bg-peligro text-sobre-peligro";
 
@@ -79,9 +85,10 @@ export function Boton(props: ComoBoton | ComoEnlace) {
     FOCO,
     TAMANO[tamano],
     jerarquia === "terciario" ? PX_TERCIARIO[tamano] : PX[tamano],
-    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : jerarquia === "terciario" && tono === "peligro" ? "border-transparent bg-transparent text-peligro" : JERARQUIA[jerarquia],
+    jerarquia === "peligro" && relleno ? PELIGRO_RELLENO : jerarquia === "terciario" && tono === "peligro" ? "border-transparent bg-transparent text-peligro" : deshabilitado && APAGADO[jerarquia] ? APAGADO[jerarquia] : JERARQUIA[jerarquia],
     anchoCompleto && "w-full",
-    deshabilitado && "opacity-40",
+    // Apagado = color sólido apagado, nunca opacidad: un botón que flota no deja ver lo que pasa por debajo (docs/09 §5).
+    deshabilitado && !APAGADO[jerarquia] && "opacity-40",
     bloqueado ? "cursor-not-allowed" : "cursor-pointer",
     className,
   );
