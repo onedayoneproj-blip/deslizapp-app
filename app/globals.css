@@ -1041,3 +1041,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @media (prefers-reduced-motion: reduce) {
   .menu-flotante { animation-name: menu-flotante-velo; }
 }
+
+/* Recorte (docs/09, «Superposición»): donde dos elementos se superponen, el de atrás deja un hueco transparente
+   con la forma del de adelante, en vez de un borde blanco. Variables: centro (--corte-x, --corte-y), radio (--corte-r) y,
+   si es una elipse, su ancho (--corte-rx). Se pone en el elemento de atrás. */
+.corte {
+  -webkit-mask-image: radial-gradient(ellipse var(--corte-rx, var(--corte-r)) var(--corte-r) at var(--corte-x) var(--corte-y), transparent calc(100% - 1px), #000 100%);
+  mask-image: radial-gradient(ellipse var(--corte-rx, var(--corte-r)) var(--corte-r) at var(--corte-x) var(--corte-y), transparent calc(100% - 1px), #000 100%);
+}
