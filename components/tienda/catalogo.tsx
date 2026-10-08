@@ -20,7 +20,6 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { MazoColeccion } from "./mazo-coleccion";
 import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
@@ -1013,7 +1012,7 @@ export function Catalogo({
                 onClick={() => setFilter(col.id)}
               >
                 <span className="hl-carta">
-                  <MazoColeccion productos={col.productos} />
+                  <img loading="lazy" src={portada(col.productos[0])} alt="" />
                 </span>
                 {col.nombre}
               </button>
@@ -1204,7 +1203,7 @@ export function Catalogo({
                     onClick={() => seleccionarFiltro(col.id)}
                   >
                     <span className="cc">
-                      <MazoColeccion productos={col.productos} />
+                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
                       <span className="ck" aria-hidden="true">
                         ✓
                       </span>

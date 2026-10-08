@@ -7,7 +7,7 @@ const css = readFileSync("app/tienda/catalogo.css", "utf8");
 const reglas = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, sel, cuerpo]) => ({ sel: sel.trim(), cuerpo }));
 
 // Selectores del catálogo del comprador que dibujan la foto de un producto.
-const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".mazo img", ".mazo .mz", ".coitem .cc", ".finimgs img", ".hl .hl-carta", ".a8 .res img"];
+const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".coitem .cc img", ".coitem .cc", ".finimgs img", ".hl img", ".hl .hl-carta", ".a8 .res img"];
 
 test("ninguna foto de producto del catálogo del comprador es circular", () => {
   for (const f of FOTOS_DE_PRODUCTO) {
@@ -46,9 +46,9 @@ test("superposición: se separa con recorte transparente (máscara), nunca con b
   assert.doesNotMatch(css, /\.cnt\s*\{[^}]*box-shadow:\s*0 0 0 2px/, "el contador no lleva aro");
 });
 
-test("carátula de colección: mazo con cartas detrás recortadas, sin anillo ni borde (docs/09)", () => {
-  assert.ok(reglas.some((x) => x.sel.endsWith(".mazo .mz") && /mask-composite:\s*exclude/.test(x.cuerpo)), "las cartas de atrás llevan máscara");
-  const cc = reglas.filter((x) => /\.coitem \.cc|\.hl \.hl-carta|\.mazo/.test(x.sel));
+test("carátula de colección: simple, redondeada, sin capas ni borde (docs/09)", () => {
+  assert.doesNotMatch(css, /\.mazo|\.mz\b/, "ya no hay mazo");
+  const cc = reglas.filter((x) => /\.coitem \.cc|\.hl \.hl-carta|\.hl img/.test(x.sel));
   for (const x of cc) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, `${x.sel} no lleva borde`);
 });
 
