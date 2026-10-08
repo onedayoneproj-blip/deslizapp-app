@@ -21,7 +21,7 @@ import {
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
 import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
-import { buscarCatalogo, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
+import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import {
@@ -367,7 +367,8 @@ export function Catalogo({
   const tiposBusqueda = tiposDelCatalogo(c);
   const tiposEscritos = tiposEnConsulta(c, query).tipos;
   const tipoActivo = tipoBusqueda ?? (tiposEscritos.length === 1 ? tiposEscritos[0]! : null);
-  const resultados = buscarCatalogo(c, query, tipoBusqueda);
+  const busqueda = buscarConPrecio(c, query, tipoBusqueda);
+  const resultados = busqueda.productos;
   const tema = temaDeTienda(t);
   const secciones = t.personalizacion.secciones as
     Record<string, unknown> | undefined;
@@ -1266,9 +1267,20 @@ export function Catalogo({
             )}
             {query && (
               <p className="srhead">
-                <b>{resultados.length}</b> resultados para «
+                <b>{busqueda.cercanos ? 0 : resultados.length}</b> resultados para «
                 {query}»
               </p>
+            )}
+            {query && busqueda.etiqueta && (
+              <p className="srprecio">
+                <span>{busqueda.etiqueta}</span>
+                <button type="button" aria-label={"Quitar «" + busqueda.etiqueta + "»"} onClick={() => setQuery(busqueda.sinPrecio)}>
+                  <span aria-hidden="true">✕</span>
+                </button>
+              </p>
+            )}
+            {query && busqueda.cercanos && busqueda.precio && (
+              <p className="srcerca">{avisoSinPrecio(busqueda.precio)}</p>
             )}
             <div className="srlist">
               {resultados.map((p) => (
