@@ -205,9 +205,9 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
         <div className="flex items-center gap-3">
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element -- data URL del logo, sin optimizar
-            <img src={logo} alt="Tu logo" className="h-16 w-16 rounded-[18px] border border-linea bg-white object-contain" />
+            <img src={logo} alt="Tu logo" className="h-16 w-16 rounded-full border border-linea bg-white object-contain" />
           ) : (
-            <span className="grid h-16 w-16 place-items-center rounded-[18px] text-xl font-bold" style={{ background: coloresCupon(legible).fondo, color: coloresCupon(legible).acento }}>
+            <span className="grid h-16 w-16 place-items-center rounded-full text-xl font-bold" style={{ background: coloresCupon(legible).fondo, color: coloresCupon(legible).acento }}>
               {iniciales(tienda.nombre)}
             </span>
           )}

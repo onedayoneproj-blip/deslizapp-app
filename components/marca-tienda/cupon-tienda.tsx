@@ -59,9 +59,9 @@ export function CuponTienda({
         <div className="flex items-center gap-2.5">
           {tienda.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- data URL o SVG del seed, sin optimizar
-            <img src={tienda.logoUrl} alt="" className="h-10 w-10 shrink-0 rounded-[12px] object-cover" />
+            <img src={tienda.logoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
           ) : (
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] text-[15px] font-bold" style={{ background: c.fondo, color: c.acento, fontFamily: titulo }}>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[15px] font-bold" style={{ background: c.fondo, color: c.acento, fontFamily: titulo }}>
               {iniciales(tienda.nombre)}
             </span>
           )}

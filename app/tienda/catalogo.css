@@ -233,6 +233,18 @@ html.catalogo-html,
   font-size: 16px;
   color: #fff;
 }
+:where(.catalogo-publico) .srbox:focus-within {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+:where(.catalogo-publico) .srbox input,
+:where(.catalogo-publico) .srbox input:focus,
+:where(.catalogo-publico) .srbox input:focus-visible {
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
 :where(.catalogo-publico) .srbox input::placeholder {
   color: rgba(255, 255, 255, 0.65);
 }
@@ -343,7 +355,7 @@ html.catalogo-html,
 :where(.catalogo-publico) .sritem img {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: 14px;
   object-fit: cover;
   border: 1.5px solid rgba(255, 255, 255, 0.4);
 }
@@ -538,7 +550,7 @@ html.catalogo-html,
 :where(.catalogo-publico) .hcov img {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: 6px;
   object-fit: cover;
   border: 1.5px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -618,7 +630,7 @@ html.catalogo-html,
   position: relative;
   width: 78px;
   height: 78px;
-  border-radius: 50%;
+  border-radius: 24px;
   padding: 3px;
   border: 2px solid rgba(255, 255, 255, 0.5);
   transition:
@@ -632,7 +644,7 @@ html.catalogo-html,
 :where(.catalogo-publico) .coitem img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 19px;
   object-fit: cover;
 }
 :where(.catalogo-publico) .coitem b {
@@ -1477,7 +1489,7 @@ html.catalogo-html,
 :where(.catalogo-publico) .finimgs img {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 14px;
   object-fit: cover;
   border: 3px solid #fff;
   box-shadow: 0 4px 10px -4px rgba(42, 26, 34, 0.4);
@@ -1871,14 +1883,14 @@ html.catalogo-html,
 :where(.catalogo-publico) .hl .ring {
   width: 66px;
   height: 66px;
-  border-radius: 50%;
+  border-radius: 22px;
   padding: 2px;
   border: 1.5px solid var(--line);
 }
 :where(.catalogo-publico) .hl img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 18px;
   object-fit: cover;
 }
 :where(.catalogo-publico) .hl[aria-pressed="true"] .ring {
@@ -5414,7 +5426,7 @@ html.catalogo-html,
 :where(.catalogo-publico) .a8 .res img {
   width: 62px;
   height: 62px;
-  border-radius: 50%;
+  border-radius: 16px;
   object-fit: cover;
   border: 2px solid rgba(255, 249, 238, 0.85);
 }
@@ -7542,8 +7554,8 @@ html.catalogo-html,
   font-family: var(--dz-font);
 }
 :where(.catalogo-publico) .ask input:focus-visible {
-  outline: 2px solid var(--dzf-mandarina);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--dzf-mandarina);
 }
 :where(.catalogo-publico) #askSend {
   background: var(--dzf-mandarina);
@@ -9460,4 +9472,19 @@ html.catalogo-html,
   font-size: 14px;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* Campos de texto del comprador: sin recuadro de foco (ni el del navegador ni el contorno de arriba). La señal de foco es el
+   borde del campo o de la píldora que lo contiene; así no hay un rectángulo dentro de la píldora. */
+.catalogo-publico input:focus,
+.catalogo-publico input:focus-visible,
+.catalogo-publico textarea:focus,
+.catalogo-publico textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.catalogo-publico .aviso-sheet input:focus,
+.catalogo-publico .aviso-llegada input:focus {
+  border-color: var(--accent);
 }
