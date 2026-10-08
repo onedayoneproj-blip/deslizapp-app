@@ -132,9 +132,15 @@ function leerNumero(digitos: string, sufijo?: string): number {
   return NaN;
 }
 
-/** Los precios con los que se compara un producto: los de sus presentaciones si tienen precio propio, o el que ve el comprador. */
+/**
+ * Los precios con los que se compara un producto: los de sus presentaciones que se pueden pedir (si todas están agotadas, los de
+ * todas, como el «Desde» de `presentaciones.ts`), o el que ve el comprador si no tiene presentaciones.
+ */
 export function preciosDe(p: ProductoPublico): number[] {
-  if (p.variantes.length) return p.variantes.map((v) => v.precioPromo ?? v.precio);
+  if (p.variantes.length) {
+    const pedibles = p.variantes.filter((v) => v.disponibilidad !== "agotado");
+    return (pedibles.length ? pedibles : p.variantes).map((v) => v.precioPromo ?? v.precio);
+  }
   return [p.precioPromo ?? p.precio];
 }
 
@@ -205,8 +211,10 @@ export function leerPrecio(c: CatalogoPublico, q: string): { precio: FiltroPreci
     const m = tomar(re, (m) => { const [a, b] = dos(m); return preciable(a, literal) && preciable(b, literal); });
     if (m) { const [a, b] = dos(m); precio = rango(a, b); }
   };
+  // «entre X y Y» y «de X a Y» son rango siempre, aunque X o Y estén escritos en el catálogo: solo el número suelto (o «X-Y»)
+  // se compara con el texto de los productos.
   sec(new RegExp(`\\bentre\\s+${NUM}\\s+y\\s+${NUM}`, "g"), true);
-  if (!precio) sec(new RegExp(`\\bde\\s+${NUM}\\s+a\\s+${NUM}`, "g"), false);
+  if (!precio) sec(new RegExp(`\\bde\\s+${NUM}\\s+a\\s+${NUM}`, "g"), true);
   if (!precio) sec(new RegExp(`(?<![\\d.,-])${NUM}\\s*-\\s*${NUM}`, "g"), false);
   if (!precio) {
     let max: number | null = null, min: number | null = null;
@@ -404,7 +412,16 @@ export function buscarConPrecio(c: CatalogoPublico, q: string, tipoElegido: Rubr
   const { tipos, resto } = tiposEnConsulta(c, q);
   const filtro = tipoElegido ? [tipoElegido] : tipos;
   if (!filtro.length) return buscarSinTipos(c, q);
-  const r = buscarSinTipos({ ...c, productos: c.productos.filter((p) => filtro.includes(p.rubro)) }, resto);
-  // La ✕ quita solo el precio: las palabras de tipo («ropa») siguen en la consulta.
-  return r.precio ? { ...r, sinPrecio: leerPrecio(c, q).resto } : r;
+  const filtrado = { ...c, productos: c.productos.filter((p) => filtro.includes(p.rubro)) };
+  const r = buscarSinTipos(filtrado, resto);
+  if (!r.precio) return r;
+  // La ✕ quita solo el precio: las palabras de tipo («ropa») siguen en la consulta. El precio se vuelve a ubicar con los MISMOS
+  // productos con los que se reconoció (no con todo el catálogo, donde ese número podría ser texto de otro tipo); si aun así no
+  // sale el mismo, se arma con las palabras de tipo y lo que quedó sin el precio.
+  const conTipos = leerPrecio(filtrado, q);
+  if (mismoPrecio(conTipos.precio, r.precio)) return { ...r, sinPrecio: conTipos.resto };
+  const palabrasTipo = q.split(/\s+/).filter((w) => w && !resto.split(/\s+/).includes(w));
+  return { ...r, sinPrecio: [...palabrasTipo, r.sinPrecio].filter(Boolean).join(" ") };
 }
+
+const mismoPrecio = (a: FiltroPrecio | null, b: FiltroPrecio | null) => JSON.stringify(a) === JSON.stringify(b);

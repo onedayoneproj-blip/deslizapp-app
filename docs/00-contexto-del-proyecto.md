@@ -44,6 +44,7 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 - **Texto de la app:** con la voz de la marca (`docs/01-marca.md` y `docs/11-voz-y-frases.md`).
 - **Migraciones** (reglas completas en `AGENTS.md`): se aplican en Supabase y el archivo de `supabase/migrations/` lleva la versión que Supabase le puso. No se edita una migración aplicada. Los datos reales de una tienda no van en migraciones. `npm run revisar:migraciones` tiene que dar cero diferencias.
 - **Novedades, teclado e iPhone, movimiento:** reglas permanentes en `HANDOFF.md`.
+- **Revisión automática:** cada PR y push a `main` corre el check «Revisión» (tipos con `npm run tipos`, `npm test`, `npm run lint`; sin build ni Playwright). Un PR en rojo no se fusiona. Los minutos de Actions son limitados: no lanzar corridas de más. Detalle en `HANDOFF.md`.
 - **Pruebas antes de abrir un PR:** `npm run lint`, `npm run build`, `npm test` y los `scripts/probar-*.mjs` que tocan lo cambiado. `probar-proximamente` falla también en `main`; no es tuyo.
 - **Cuando no se pueda probar algo** (por ejemplo, Safari de iPhone, que el entorno de Claude Code no tiene), el PR lo dice con claridad; Lewis lo prueba en el teléfono.
 
@@ -126,3 +127,8 @@ Seguimiento dentro de PR #47: visibilidad de «Avísame» en Inicio/Catálogo/vi
 ### Propuesta de eliminación de productos (2026-10-05, Coding)
 
 Rama `feature/catalogo-eliminar-producto` desde main con PR #49. Eliminación lógica con historial conservado; bloqueada por pedidos/solicitudes/avisos pendientes. Contrato aditivo y replay en `docs/validacion-eliminar-producto.md`. No equivale a «Eliminar para siempre». Migración nueva pendiente de producción por instrucción del dueño; PR sin merge ni publicación. No incorpora PR #45.
+
+
+## Al terminar una sesión de Coding
+
+Como último paso, avisa a la sesión de Planning que te lanzó (su id viene en el encargo): `create_trigger` con `persistent_session_id` = esa sesión, `run_once_at` ≈ 1 minuto después y un texto corto con la rama, el PR, si hubo migración, qué falta y si quedaste bloqueada. Si no tienes esa herramienta, dilo en tu resumen final.

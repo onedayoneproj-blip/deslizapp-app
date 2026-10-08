@@ -29,6 +29,7 @@
     "probar:publicar-catalogo": "node scripts/probar-publicar-catalogo.mjs",
     "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
     "revisar:migraciones": "node scripts/revisar-migraciones.mjs",
+    "tipos": "next typegen && tsc --noEmit",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

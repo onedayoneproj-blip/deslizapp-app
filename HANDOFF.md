@@ -1,3 +1,9 @@
+## Arreglos de la revisión de Codex en #75 y #76 — Coding (Claude), 2026-10-08
+
+Rama `fix/revision-codex-75-76`, **PR abierto sin merge** (seguridad y lo ven compradores). **Una migración**, `20261008114617_ficha_url_solo_storage_propio` (`list_migrations` → ensayo en `BEGIN … ROLLBACK` sobre la base real → replay `probar:admin-db` → `apply_migration`; `revisar:migraciones` en cero, `get_advisors` sin nada nuevo): `public.ficha_url_valida(url, tienda)` (solo `https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/<tienda>/…`), el `check` de `productos.ficha_url` la usa y `guardar_ficha_producto` (misma firma) también. Antes: 0 filas con ficha.
+- **Pendiente, mismo hueco:** `medios` (fotos y videos del producto) solo valida largo, cualquier host; `fotos_por_valor` está atado a `medios`. No se cerró aquí: en producción hay fotos reales de Michel y de la tienda de ensayo en `deslizapp-app.vercel.app/catalogos/…` y `/ensayo/…`, las retocadas viven en el bucket `retoques` y ~15 pruebas de replay usan `https://ejemplo.invalid/…`. Necesita su propia migración con la lista de hosts permitidos (decisión de Lewis/Planning).
+- **Código:** `guardarFicha` ya no borra la ficha subida tras un error de red (relee la fila; solo borra con un rechazo claro). Zoom del visor: límites con el tamaño real de la imagen (`contenida`). Búsqueda: precio con presentaciones pedibles; «de X a Y» siempre rango; la ✕ no reinterpreta el precio contra otro conjunto. Pruebas: `tests/revision-codex-75-76.test.mjs`, `scripts/probar-ficha-db.sql` (host ajeno).
+
 ## Hoja de producto rediseñada — Coding (Claude), 2026-10-08
 
 Rama `feat/hoja-producto-rediseno` (#78), con base en `main` (#76 ya está en main). **PR abierto, sin merge** (lo prueba Lewis en el iPhone). **Sin migraciones**, sin tocar la base, `catalogo_publico` ni el catálogo del comprador. Panel: `components/catalogo/hoja-producto.tsx`, `hoja-producto-filas.tsx` (`FilaPlegable`, `HojaComoSeVe`), `ficha-medios.tsx` (foto grande), `ficha-presentaciones.tsx` (`variante="fila"`), `ficha-tecnica.tsx` (`sinTitulo`), `ui/tira-medios.tsx` (`seleccionado`). Lógica pura: `lib/hoja-producto.ts` (`puedePublicar`, resúmenes) con `tests/hoja-producto.test.mjs`.
@@ -635,3 +641,11 @@ Rama `fix/bloquear-video`. Decisión de Lewis: no se suben videos (almacenamient
 - El touchmove que decide "scroll" o "ignorar" **nunca se cancela** (`debeCancelar` en `lib/gesto-hoja.ts`): cancelarlo en iOS puede bloquear el scroll nativo de todo el gesto.
 - Expandida, el contenido hace scroll **desde el mismo gesto que expandió** (el JS lo guía con el dedo en cuanto el cuerpo puede desplazarse) y el contenedor de scroll se busca al decidir el gesto, no solo al tocar. Si Safari no inicia el scroll nativo (el dedo se movió más de 24 px y `scrollTop` no cambió), el gesto lo guía el JS. El cuerpo de una hoja `.full` es `flex: 1 1 0; min-height: 0; overflow-y: auto`.
 - Con un campo enfocado dentro de la hoja, el gesto del cuerpo no actúa (no se anima ni se pierde el teclado). Prueba: `npm run probar:hojas-gestos` (`scripts/probar-hojas-gestos.mjs`) y `tests/gesto-hoja.test.mjs`.
+
+## Revisión automática en GitHub
+
+Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflows/revision.yml`): `npm ci`, `npm run tipos` (`next typegen && tsc --noEmit`), `npm test` y `npm run lint`. Sin `build` (lo hace Vercel) y sin Playwright. No usa secretos ni variables de entorno.
+
+- Un PR con «Revisión» en rojo **no se fusiona**.
+- Los tipos `PageProps`/`LayoutProps` los genera `next typegen`; correr `tsc` solo, sin generarlos, da errores falsos. Usa `npm run tipos`.
+- Los minutos de GitHub Actions son limitados: no lances corridas de más (el flujo cancela las viejas de la misma rama).
