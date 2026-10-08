@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.49.0", fecha: "2026-10-08", titulo: "Tu producto, en una historia.",
+    cambios: [
+      "En Catálogo, toca el ícono de historia arriba a la derecha de cada producto.",
+      "Elige si va el precio, las presentaciones y la foto de tu tienda: la imagen sale lista, hecha en tu teléfono.",
+      "Compártela en el Estado de WhatsApp o en una historia de Instagram, con el enlace directo a ese producto.",
+    ],
+  },
+  {
     version: "0.48.0", fecha: "2026-10-08", titulo: "Tu producto, bien explicado.",
     cambios: [
       "Escribe la descripción en un solo campo: también la usa la búsqueda de tu catálogo.",
