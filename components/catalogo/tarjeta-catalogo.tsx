@@ -74,9 +74,9 @@ function Estado({ vista, tienda, acciones, faltan }: { vista: VistaCatalogo; tie
     case "sin":
       // La tienda publica sola: sin lo mínimo, dice qué falta; con lo mínimo, «Publicar mi catálogo» (solo la dueña).
       return faltan > 0 ? (
-        <Sin subtitulo={textoFaltan(faltan)} boton="Crear producto" alTocar={acciones.alCrearProducto} />
+        <Sin subtitulo={textoFaltan(faltan)} boton="Crear producto" alTocar={acciones.alCrearProducto} debajo />
       ) : (
-        <Sin subtitulo="Ya tienes lo necesario. Tus clientes lo verán en un enlace tuyo." boton="Publicar mi catálogo" alTocar={acciones.soloDuena ?? acciones.alPublicar} apagado={!!acciones.soloDuena} />
+        <Sin subtitulo="Ya tienes lo necesario. Tus clientes lo verán en un enlace tuyo." boton="Publicar mi catálogo" alTocar={acciones.soloDuena ?? acciones.alPublicar} apagado={!!acciones.soloDuena} debajo mas={false} />
       );
     case "conectar":
       return <Sin boton="Conectar mi catálogo" alTocar={acciones.alConectar} debajo />;
@@ -145,7 +145,7 @@ function Icono({ children, tamano = 22, trazo = "#174b3a", grosor = 2 }: { child
 // ---------------------------------------------------------------------------
 
 /** 1 · Sin catálogo (y "Conectar mi catálogo" cuando figura publicado pero no hay un enlace válido). */
-function Sin({ boton, alTocar, subtitulo = "Lo armamos por ti con tus fotos. Tú solo lo compartes.", debajo = false, apagado = false }: { boton: string; alTocar: () => void; subtitulo?: string; debajo?: boolean; apagado?: boolean }) {
+function Sin({ boton, alTocar, subtitulo = "Lo armamos por ti con tus fotos. Tú solo lo compartes.", debajo = false, mas = true, apagado = false }: { boton: string; alTocar: () => void; subtitulo?: string; debajo?: boolean; mas?: boolean; apagado?: boolean }) {
   return (
     <div className={`${CAJA} border-[1.5px] border-dashed border-bosque/30 bg-papel`}>
       <span aria-hidden="true" className="cat-anim-nota absolute top-1 right-[18px] font-mano text-[17px] text-mandarina-texto" style={{ transform: "rotate(-4deg)" }}>
@@ -169,12 +169,14 @@ function Sin({ boton, alTocar, subtitulo = "Lo armamos por ti con tus fotos. Tú
       </div>
       {debajo && (
         <div className="mt-3 flex">
-          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido>
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-bosque text-papel">
-              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
+          <Boton alTocar={alTocar} clase="bg-mandarina text-bosque-oscuro" latido={!apagado} apagado={apagado}>
+            {mas && (
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-bosque text-papel">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+            )}
             {boton}
           </Boton>
         </div>

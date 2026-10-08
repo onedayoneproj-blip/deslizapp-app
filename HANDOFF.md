@@ -357,6 +357,20 @@ el equipo hace el resto fuera de la app. La demo tiene "Simular avance del catá
 contra Supabase real. Detalle en docs/04-pantallas.md. El enlace se valida con `lib/enlace-catalogo.ts` (solo https) y nunca se pinta como
 HTML. El catálogo todavía no se alimenta solo de los productos del panel. El de Esencias Michel vive provisionalmente en `/catalogos/esencias-michel.html` (`public/catalogos/`).
 
+### Publicar mi catálogo (migración `20261008015455_publicar_catalogo`)
+
+La tienda pone su catálogo en línea sola. Base: `tienda_publica` acepta `estado in ('activa','en_prueba')` y `catalogo_estado = 'publicado'`
+(es la ÚNICA puerta del comprador: `catalogo_publico`, `crear_solicitud_pedido`, `ver_solicitud`, `pedir_aviso` y `registrar_aaah` la
+llaman; `crear_codigo_cliente` y demás que dicen `'activa'` hablan del estado de una promo). `publicar_mi_catalogo(p_tienda_id)` y
+`despublicar_mi_catalogo(p_tienda_id)`: solo la dueña (`exigir_no_viendo`, `exigir_permiso(...,'equipo')`, `soy_dueno`); errores
+`catalogo_incompleto`, `catalogo_en_curso` (no pisa un flujo manual en curso), `tienda_pausada`, `solo_dueno`. Publicar desde `sin`; ya
+publicado no hace nada; despublicar deja `sin` y CONSERVA `url_catalogo` y `catalogo_publicado_en`. Lo mínimo (3 productos visibles con
+foto) vive en `v_minimo` dentro de la función y en `PRODUCTOS_MINIMOS_PARA_PUBLICAR` (`lib/config.ts`); la dirección base, en `v_base` y
+`URL_BASE_CATALOGO` (un test comprueba que coinciden). `productos_para_publicar` es interna (nadie la ejecuta desde fuera).
+`catalogo_publico` trae `tienda.indexable` (solo las activas): `/tienda/[slug]` de una tienda en prueba sale con `robots: noindex, nofollow`
+(la etiqueta, no la cabecera `X-Robots-Tag`; las vistas previas Open Graph no cambian; `/pedido/…` ya era siempre noindex). Replay:
+`scripts/probar-publicar-catalogo-db.sql`; navegador (demo): `scripts/probar-publicar-catalogo.mjs`.
+
 ## Sistema de diseño (tokens, components/ui y /diseno)
 
 - **Reglas:** `docs/09-sistema-de-diseno.md` (y `docs/10-marca-ilustracion-y-fondos.md`). Valores en `referencias/sistema-de-diseno/tokens.json`.

@@ -269,7 +269,13 @@ subtítulo y la dona del plan, encima de los filtros). Reemplaza a la antigua fi
 lugar, `vistaCatalogo()` en `lib/catalogo-estado.ts` (con tests): la tienda pausada manda sobre todo; después `tiendas.catalogo_estado`.
 Ocho estados:
 
-1. **Sin catálogo**: "Pedirlo" abre la hoja "¿Pedimos tu catálogo?" → "Sí, pedirlo" (`solicitar_catalogo`); aviso "¡Listo! Lo pedimos por ti".
+1. **Sin catálogo** (la tienda publica sola, `docs/prompts/publicar-catalogo.md`): sin lo mínimo (3 productos visibles con foto,
+   `PRODUCTOS_MINIMOS_PARA_PUBLICAR` en `lib/config.ts`, regla en `lib/publicar-catalogo.ts`) dice «Te faltan N productos con foto para
+   publicar tu catálogo» con «Crear producto» (lleva a `/catalogo/nuevo`); con lo mínimo, **«Publicar mi catálogo»** abre la hoja
+   «¿Publicamos tu catálogo?» (el enlace que tendrá, la lista de lo que no se puede vender —`lib/productos-prohibidos.ts`— y «Al publicar
+   aceptas los Términos») → «Publicar» (`publicar_mi_catalogo`) / «Ahora no». Solo la dueña: un colaborador ve el botón apagado y, al
+   tocarlo, «Esto lo hace quien administra la tienda.». El flujo manual de ocho estados (`solicitar_catalogo`, `HojaPedirCatalogo`) sigue
+   en el código para los catálogos que el equipo arma, pero la tarjeta ya no ofrece «Pedirlo».
 2. **Pedido recibido**: solo informa.
 3. **Armando tu catálogo**: icono de destellos, "Paso N de 3 · nombre" (Reuniendo tus fotos / Diseñando tu portada / Últimos detalles),
    barra 33 / 62 / 90 %, fila de tres pasos (hecho / en curso / pendiente). Si `catalogo_paso` viene vacío se toma el paso 1.
@@ -279,8 +285,11 @@ Ocho estados:
 6. **¡Recién publicado!**: confeti, texto en Caveat y "Compartir" (abre la hoja del catálogo en línea). Solo si se publicó hace menos de 3
    días y no se vio aún en este dispositivo (`localStorage`, clave `deslizapp-catalogo-visto-{tienda}`); se marca visto al tocar
    "Compartir" o a los 6 s en pantalla.
-7. **En línea**: chip verde (#2e8b57), enlace con el dominio en negrita, botones redondos compartir y abrir; tocar el cuerpo abre la hoja
-   "Tu catálogo en línea" (`hoja-catalogo-en-linea.tsx`: abrir, copiar, WhatsApp, cambiar enlace).
+7. **En línea**: punto verde, «Tu catálogo está en línea», el enlace, y debajo «Copiar enlace», «Compartir» (hoja nativa) y «Dejar de
+   mostrarlo» (solo la dueña; `despublicar_mi_catalogo`, con confirmación que explica que los clientes dejan de verlo y se puede volver a
+   publicar; conserva el enlace y el primer momento publicado). Tocar el título abre el catálogo. La celebración «¡Ya estás en línea!»
+   (estado 6) sale al publicar la primera vez. La hoja `hoja-catalogo-en-linea.tsx` (abrir, copiar, WhatsApp, cambiar enlace) se abre desde
+   la celebración.
 8. **Pausado**: "Ver plan" abre lo mismo que el bloque del plan.
 
 Publicado sin `url_catalogo` https válido (comprobado con `new URL`) se muestra como **Sin catálogo** con "Conectar mi catálogo" (abre Mi
