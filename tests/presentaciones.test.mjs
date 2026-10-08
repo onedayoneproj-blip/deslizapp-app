@@ -158,6 +158,25 @@ test("cambiar una cosa por otra: lo que tenías se reparte entre las nuevas y se
   assert.match(r.confirmar, /se reemplazan/);
 });
 
+test("quitar la última fila de un valor lo saca de la cosa (el catálogo no ofrece lo que no hay)", () => {
+  const lista = P.crearTodas([COLOR]).filter((p) => p.valores.Color !== "Arena");
+  assert.deepEqual(P.podarValores([COLOR], lista)[0].valores, ["Negro", "Verde"]);
+  const dos = P.crearTodas([TALLA, COLOR]).filter((p) => !(p.valores.Color === "Arena"));
+  assert.deepEqual(P.podarValores([TALLA, COLOR], dos).map((o) => o.valores.length), [4, 2]);
+});
+
+test("las cosas se dicen bien: «Otra talla», «Otro color», «entre las tallas», y por qué no se puede seguir", () => {
+  assert.equal(P.otroDe("Talla"), "Otra talla");
+  assert.equal(P.otroDe("Color"), "Otro color");
+  assert.equal(P.otroDe("Aroma"), "Otro aroma");
+  assert.equal(P.entreLos("Talla"), "las tallas");
+  assert.equal(P.entreLos("Color"), "los colores");
+  assert.equal(P.pistaDeEjes([]), "Elige qué cambia de una a otra.");
+  assert.equal(P.pistaDeEjes([{ nombre: "Talla", valores: [] }]), "Elige al menos un valor de Talla.");
+  assert.equal(P.pistaDeEjes([{ nombre: "Talla", valores: [] }, { nombre: "Color", valores: [] }]), "Elige al menos un valor de Talla y de Color.");
+  assert.equal(P.pistaDeEjes([TALLA]), null);
+});
+
 test("«Poner a todas» y lo ya tocado en el paso 2 sobrevive a volver al paso 1", () => {
   const lista = P.crearTodas([TALLA]).map((p, i) => ({ ...p, activa: i !== 3 }));
   const todas = P.ponerATodas(lista, 4);

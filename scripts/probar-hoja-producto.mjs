@@ -103,13 +103,26 @@ for (const ancho of ANCHOS) {
     await page.getByRole("switch", { name: "Por encargo" }).click();
     await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
     // Cómo se ve
+    // La barra fija: «Cómo se ve» y «Publicar» flotan solos, del mismo ancho, con sombra y sin recuadro detrás.
+    const barra = page.locator("[data-barra-producto]");
+    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Cómo se ve", exact: true }).boundingBox(), page.getByRole("button", { name: "Publicar", exact: true }).boundingBox()]);
+    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.y - b2.y) < 1, "«Cómo se ve» y «Publicar» miden lo mismo (mitad y mitad)");
+    const marco = await barra.evaluate((e) => { const c = getComputedStyle(e); return { fondo: c.backgroundColor, borde: c.borderTopWidth, sombra: c.boxShadow }; });
+    ok(marco.borde === "0px" && (marco.fondo === "rgba(0, 0, 0, 0)" || marco.fondo === "transparent") && marco.sombra === "none", "…sin tarjeta ni recuadro detrás");
+    ok((await page.getByRole("button", { name: "Publicar", exact: true }).evaluate((e) => getComputedStyle(e).boxShadow)) !== "none", "…y cada botón con su sombra");
+    await captura(page, "barra-flotante", ancho);
+    // Cómo se ve: el reel real del catálogo del comprador, con el borrador
     await page.getByRole("button", { name: "Cómo se ve", exact: true }).click();
-    await page.locator("[data-como-se-ve]").waitFor();
-    const vista = await page.locator("[data-como-se-ve]").innerText();
-    ok(vista.includes("Aros dorados") && vista.includes("1,850") && vista.includes("Llega en 8 días") && vista.includes("Aros dorados con baño de oro"), "«Cómo se ve» muestra nombre, precio, encargo y descripción");
+    const visor = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
+    await visor.locator("article.reel").waitFor({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    const reel = visor.locator("article.reel");
+    const vista = (await reel.innerText()).replace(/\s+/g, " ");
+    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Solo tengo 1") && vista.includes("Aros dorados con baño de oro"), "«Cómo se ve» es el reel del catálogo: nombre, precio, «Solo tengo 1» (con 1 en stock, como en el catálogo) y descripción");
+    ok((await visor.locator("header.hdr").count()) === 1 && (await reel.locator(".act.like").count()) === 1 && (await reel.locator("button.elipsis").count()) === 1, "…con su cabecera, los botones de comprar y el «…» de la descripción");
     await captura(page, "como-se-ve", ancho);
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(600);
+    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
+    await page.waitForTimeout(700);
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo`);
     const d = JSON.parse(await page.evaluate(() => localStorage.getItem("deslizapp-demo-v5")));
@@ -119,7 +132,7 @@ for (const ancho of ANCHOS) {
     await ctx.close();
   }
 
-  console.log("• Con presentaciones: pastillas, stock y la lista que se despliega");
+  console.log("• Con presentaciones: la fila es solo el resumen y abre el flujo en «Cuántas tienes»");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await page.goto(`${URL}/catalogo/${PANTALON}/editar`);
@@ -129,10 +142,12 @@ for (const ancho of ANCHOS) {
     const tarjeta = await page.locator("[data-tarjeta-stock]").innerText();
     ok(/Talla · \d+/.test(tarjeta) && /Color · \d+/.test(tarjeta), `«Cosas que cambian» resume en pastillas (${tarjeta.split("\n").slice(0, 4).join(" | ")})`);
     ok(/\d+ presentaciones · \d+ en total/.test(tarjeta), "«En stock»: «N presentaciones · M en total»");
-    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).count()) === 0, "La lista viene plegada");
+    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).count()) === 0, "La hoja de producto no lista las filas: solo resume");
     await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
-    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).count()) === 1, "Tocar la fila abre las presentaciones");
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await page.locator("[data-paso=cuantas]").waitFor();
+    ok((await page.locator('[role="dialog"]').last().innerText()).includes("Cuántas tienes"), "Tocar la fila abre el flujo directo en «Cuántas tienes»");
+    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
+    await page.waitForTimeout(600);
     ok(await page.getByRole("button", { name: "Eliminar producto" }).count() === 1, "Editar conserva «Eliminar producto»");
     ok(await page.getByRole("button", { name: "Guardar cambios", exact: true }).isEnabled(), "«Guardar cambios» está prendido en un producto que ya está completo");
     ok(await sinDesborde(page), "Sin desborde horizontal");

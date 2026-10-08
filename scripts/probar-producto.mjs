@@ -101,8 +101,8 @@ async function elegirValores(page, rotulo, valores) {
       await pildora.click();
       continue;
     }
-    const caja = seccion.getByRole("textbox", { name: `Otro ${cosa.toLocaleLowerCase("es")}` });
-    if (!(await caja.isVisible().catch(() => false))) await seccion.getByRole("button", { name: `+ Otro ${cosa.toLocaleLowerCase("es")}` }).click();
+    const caja = seccion.getByRole("textbox", { name: /^Otr[oa] / });
+    if (!(await caja.isVisible().catch(() => false))) await seccion.getByRole("button", { name: /^\+ Otr[oa] / }).click();
     await caja.fill(v);
     await caja.press("Enter");
   }
@@ -220,26 +220,28 @@ const ESCENARIOS = {
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await elegirValores(page, "Colores", ["Negro", "Blanco"]);
-    await hoja(page).getByText("¿Qué cambia de una a otra?").click();
-    ok(await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
-    await hoja(page).getByRole("button", { name: "Crear las 10", exact: true }).click();
-    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
-    await page.getByRole("button", { name: "Ver las 10", exact: true }).click();
-    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 10, "Hay 10 filas de stock");
-    await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
-    await page.getByRole("button", { name: "Agregar uno de S · Negro" }).click();
-    await page.getByRole("button", { name: "Agregar uno de M · Negro" }).click();
-    for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno de L · Blanco" }).click();
-    ok((await page.locator("[data-tarjeta-stock]").innerText()).includes("6 presentaciones · 6 en total") || (await page.locator("[data-tarjeta-stock]").innerText()).includes("6 en total"), "El total suma (6 en total)");
+    ok(await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
+    await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).click();
+    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 10, "Hay 10 filas de stock (agrupadas por talla)");
+    const talla = (t) => hoja(page).locator(`section[aria-label="Talla ${t}"]`);
+    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
+    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
+    await talla("M").getByRole("button", { name: "Agregar uno de Negro" }).click();
+    for (let i = 0; i < 3; i++) await talla("L").getByRole("button", { name: "Agregar uno de Blanco" }).click();
+    await hoja(page).getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
+    await page.waitForTimeout(600);
+    ok((await page.locator("[data-tarjeta-stock]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
     ok(await sinDesborde(page), "Formulario de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
-    // Quitar el color Blanco: «Cambiar qué varía» → fuera Blanco (se van sus 5 presentaciones).
-    await page.getByRole("button", { name: /^Cambiar qué varía/ }).click();
+    // Quitar el color Blanco: «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
+    await page.getByRole("button", { name: /^Cosas que cambian/ }).click();
+    await hoja(page).getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
     await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
-    await hoja(page).getByText("¿Qué cambia de una a otra?").click();
-    await hoja(page).getByRole("button", { name: "Guardar", exact: true }).click();
+    await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
     await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
-    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).first().locator("li").count()) === 5, "Al quitar un color quedan 5");
+    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 5, "Al quitar un color quedan 5");
+    await hoja(page).getByRole("button", { name: /^Listo ·/ }).click();
+    await page.waitForTimeout(600);
     // Publicar: producto y variantes en una sola llamada.
     const a = await archivosDePrueba(page);
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);

@@ -25,6 +25,7 @@ import {
   otroDe,
   pistaDeEjes,
   podarFotosColor,
+  podarValores,
   ponerATodas,
   ponerTodasEn,
   precioDe,
@@ -68,6 +69,8 @@ function OtroValor({ nombre, valores, alCambiar }: { nombre: string; valores: st
     const nuevos = alternarValor(valores, texto);
     if (nuevos !== valores) alCambiar(nuevos);
     setTexto("");
+    // Con el valor 12 el campo se cierra ahí mismo: así el siguiente toque cae donde se ve y no en una hoja que se movió.
+    if (nuevos.length >= MAX_VALORES) setEscribiendo(false);
   };
   if (!escribiendo) {
     // Con los 12 el botón se queda (apagado) para que la hoja no se mueva debajo del dedo.
@@ -278,7 +281,9 @@ export function FlujoPresentaciones({
   const cambios = paso === 1 ? !editando && ejes.some((e) => e.valores.length > 0) : JSON.stringify(borrador) !== JSON.stringify(editando ? { opciones: estado.opciones, pres: estado.pres, fotosColor: estado.fotosColor } : { opciones: [], pres: [], fotosColor: {} });
 
   const listo = () => {
-    alConfirmar(pres.length === 0 ? { opciones: [], pres: [], fotosColor: {} } : borrador);
+    if (pres.length === 0) return alConfirmar({ opciones: [], pres: [], fotosColor: {} });
+    const podadas = podarValores(opciones, pres);
+    alConfirmar({ ...borrador, opciones: podadas, fotosColor: podarFotosColor(fotosColor, opciones, podadas) });
   };
 
   const tarjeta = (nombre: string, propia: boolean) => {

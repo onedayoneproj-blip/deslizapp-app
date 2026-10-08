@@ -26,7 +26,8 @@ const TODAS: Novedad[] = [
     cambios: [
       "La foto va grande arriba, y Nombre y Precio a la vista.",
       "Lo opcional queda plegado: tócalo y se abre.",
-      "Mira «Cómo se ve» antes de publicar.",
+      "Mira «Cómo se ve» antes de publicar: es el catálogo de tu cliente, tal cual.",
+      "Colores y tallas van en dos pasos: qué cambia y cuántas tienes.",
     ],
   },
   {

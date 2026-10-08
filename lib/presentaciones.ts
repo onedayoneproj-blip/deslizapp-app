@@ -339,6 +339,11 @@ export const cuantasSeVan = (opcionesAntes: OpcionProducto[], antes: Presentacio
 /** Los ejes son los mismos (nombres y valores, en el mismo orden): no hay nada que recalcular. */
 export const mismosEjes = (a: OpcionProducto[], b: OpcionProducto[]) => JSON.stringify(a) === JSON.stringify(b);
 
+/** Quita de cada cosa los valores que se quedaron sin ninguna presentación (así «Cómo se ve» y el catálogo no ofrecen lo que no hay). */
+export function podarValores(opciones: OpcionProducto[], pres: Presentacion[]): OpcionProducto[] {
+  return opciones.map((o) => ({ ...o, valores: o.valores.filter((v) => pres.some((p) => p.valores[o.nombre] === v)) }));
+}
+
 /** Pone encima de lo recalculado lo que el dueño ya había tocado en el paso 2 (stock, precio propio, oculta) en las filas que siguen. */
 export function conservarEdicion(nuevas: Presentacion[], editadas: Presentacion[]): Presentacion[] {
   const previas = new Map(editadas.map((p) => [claveVariante(p.valores), p]));
