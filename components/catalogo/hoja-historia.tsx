@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ENCUADRE_INICIAL, difuminadoPorDefecto, type AjusteFoto, type Medida } from "@/lib/encuadre-historia";
 import { copiarTexto, guardarArchivo } from "@/lib/portapapeles";
 import {
-  AVISO_INSTAGRAM, AVISO_SIN_PUBLICAR, OPCIONES_INICIALES, catalogoAbre, datosHistoria, direccionCorta, enlaceProductoHistoria, fotoDeHistoria,
+  AVISO_INSTAGRAM, AVISO_SIN_PUBLICAR, OPCIONES_INICIALES, catalogoAbre, datosHistoria, direccionEnLineas, enlaceProductoHistoria, fotoDeHistoria,
   textoWhatsAppHistoria, tienePresentaciones, type OpcionesHistoria,
 } from "@/lib/historia";
-import { generarImagenHistoria } from "@/lib/imagen-historia";
+import { generarImagenHistoria, medirFoto, type EntradaImagenHistoria } from "@/lib/imagen-historia";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
+import { AjustarFotoHistoria } from "./ajustar-foto-historia";
 import { IconoEstadoWhatsApp, IconoHistoria } from "../iconos";
 import { useToast } from "../toast";
 import { Aviso, Boton, Interruptor } from "../ui";
@@ -22,19 +24,41 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   const [imagen, setImagen] = useState<{ blob: Blob; url: string } | null>(null);
   const [fallo, setFallo] = useState(false);
   const [dondeAbierta, setDondeAbierta] = useState(false);
+  const [ajustando, setAjustando] = useState(false);
+  const [natural, setNatural] = useState<Medida | null>(null);
+  /** Cómo va la foto. null mientras se lee su tamaño (de él sale el fondo difuminado por defecto). */
+  const [ajuste, setAjuste] = useState<AjusteFoto | null>(null);
 
   const foto = fotoDeHistoria(producto);
   const conPresentaciones = tienePresentaciones(producto);
   const enlace = enlaceProductoHistoria(tienda.urlCatalogo, producto.slug);
-  const direccion = direccionCorta(tienda.urlCatalogo);
+  const direccion = useMemo(() => direccionEnLineas(tienda.urlCatalogo), [tienda.urlCatalogo]);
   const abre = catalogoAbre(tienda);
   const datos = useMemo(() => datosHistoria(producto, promos, opciones), [producto, promos, opciones]);
 
   useEffect(() => {
     if (!foto) return;
     let vigente = true;
+    void medirFoto(foto).then((m) => {
+      if (!vigente) return;
+      setNatural(m);
+      setAjuste({ difuminado: difuminadoPorDefecto(m), encuadre: ENCUADRE_INICIAL });
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [foto]);
+
+  const entradaBase = useMemo<Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta"> | null>(
+    () => (foto ? { datos, foto, logoUrl: tienda.logoUrl, nombreTienda: tienda.nombre, direccion } : null),
+    [datos, foto, tienda.logoUrl, tienda.nombre, direccion],
+  );
+
+  useEffect(() => {
+    if (!entradaBase || !ajuste) return;
+    let vigente = true;
     let url: string | null = null;
-    generarImagenHistoria({ datos, foto, logoUrl: tienda.logoUrl, nombreTienda: tienda.nombre, direccion }).then(
+    generarImagenHistoria({ ...entradaBase, ajuste }).then(
       (blob) => {
         if (!vigente) return;
         url = URL.createObjectURL(blob);
@@ -47,7 +71,7 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
       vigente = false;
       if (url) setTimeout(() => URL.revokeObjectURL(url!), 0);
     };
-  }, [datos, foto, tienda.logoUrl, tienda.nombre, direccion]);
+  }, [entradaBase, ajuste]);
 
   const cambiar = (k: keyof OpcionesHistoria) => (v: boolean) => setOpciones((o) => ({ ...o, [k]: v }));
   const nombreArchivo = `historia-${producto.slug}.jpg`;
@@ -84,6 +108,8 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
             )}
           </div>
 
+          <Boton jerarquia="secundario" anchoCompleto deshabilitado={!natural || !ajuste} onClick={() => setAjustando(true)}>Ajustar foto</Boton>
+
           <ul className="rounded-radio-l bg-superficie px-4 ring-1 ring-linea">
             <Fila texto="Precio" valor={opciones.precio} alCambiar={cambiar("precio")} />
             {conPresentaciones && <Fila texto="Presentaciones" valor={opciones.presentaciones} alCambiar={cambiar("presentaciones")} />}
@@ -96,6 +122,16 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
           </Boton>
         </div>
       </Hoja>
+
+      {ajustando && entradaBase && natural && ajuste && (
+        <AjustarFotoHistoria
+          entrada={entradaBase}
+          natural={natural}
+          inicial={ajuste}
+          alListo={(a) => { setAjuste(a); setAjustando(false); }}
+          alCancelar={() => setAjustando(false)}
+        />
+      )}
 
       {dondeAbierta && (
         <Hoja abierta alCerrar={() => setDondeAbierta(false)} titulo="¿Dónde la compartes?" altura="auto">

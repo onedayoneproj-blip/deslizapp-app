@@ -93,3 +93,10 @@ test("el catálogo abre solo si está publicado, activo y con enlace", () => {
   assert.equal(H.catalogoAbre({ ...ok, estado: "pausada" }), false);
   assert.equal(H.catalogoAbre({ ...ok, urlCatalogo: null }), false);
 });
+
+test("dirección en líneas: dominio completo y ruta aparte, sin https", () => {
+  assert.deepEqual(H.direccionEnLineas("https://deslizapp-app.vercel.app/tienda/esencias-michel"), { dominio: "deslizapp-app.vercel.app", ruta: "/tienda/esencias-michel" });
+  assert.deepEqual(H.direccionEnLineas("https://www.esenciasmichel.com/"), { dominio: "esenciasmichel.com", ruta: null });
+  assert.equal(H.direccionEnLineas("http://x.com"), null);
+  assert.equal(H.direccionEnLineas(null), null);
+});

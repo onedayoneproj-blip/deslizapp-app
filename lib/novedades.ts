@@ -26,6 +26,7 @@ const TODAS: Novedad[] = [
     cambios: [
       "En Catálogo, toca el ícono de historia arriba a la derecha de cada producto.",
       "Elige si va el precio, las presentaciones y la foto de tu tienda: la imagen sale lista, hecha en tu teléfono.",
+      "Con «Ajustar foto» mueve y acerca la foto, o ponle fondo difuminado si no es vertical.",
       "Compártela en el Estado de WhatsApp o en una historia de Instagram, con el enlace directo a ese producto.",
     ],
   },

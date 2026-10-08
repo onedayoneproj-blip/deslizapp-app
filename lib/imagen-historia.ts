@@ -1,16 +1,16 @@
 // Imagen (1080×1920) de un producto para una historia de WhatsApp o Instagram. Se dibuja en un <canvas> del teléfono: nada sale a un
 // servidor. Los dibujos están en referencias/compartir-historia/. Solo cliente.
 
-import { TRAZO_ISOTIPO } from "@/components/marca";
 import { formatearPesos, iniciales } from "./formato";
-import type { DatosHistoria } from "./historia";
+import { ENCUADRE_INICIAL, rectFoto, rectFondo, type AjusteFoto } from "./encuadre-historia";
+import type { DatosHistoria, DireccionHistoria } from "./historia";
 
 export const ANCHO_HISTORIA = 1080;
 export const ALTO_HISTORIA = 1920;
 
 const BOSQUE = "#174b3a";
 const SUAVE = "#4f6a5e";
-const ROSA = "#f4c6d4";
+const ICONO_DESLIZAPP = "/icons/icon-512.png";
 const BORDE = "#e7dcc8";
 
 type Fuentes = { display: string; texto: string };
@@ -22,8 +22,12 @@ export type EntradaImagenHistoria = {
   /** Logo de la tienda; sin él, sus iniciales. */
   logoUrl: string | null;
   nombreTienda: string;
-  /** «dominio/ruta», sin https. */
-  direccion: string | null;
+  /** Dirección del catálogo en dos partes (dominio y ruta), sin https. */
+  direccion: DireccionHistoria | null;
+  /** Cómo va la foto: con o sin fondo difuminado y su encuadre. Sin esto, relleno centrado. */
+  ajuste?: AjusteFoto;
+  /** Solo la tarjeta, sobre un lienzo transparente: la guía de la vista «Ajustar foto». */
+  soloTarjeta?: boolean;
 };
 
 function cargarImagen(src: string): Promise<HTMLImageElement | null> {
@@ -34,6 +38,12 @@ function cargarImagen(src: string): Promise<HTMLImageElement | null> {
     img.onerror = () => resolver(null);
     img.src = src;
   });
+}
+
+/** Lo que mide la foto (para el encuadre y para decidir el fondo difuminado por defecto); null si no se pudo leer. */
+export async function medirFoto(src: string): Promise<{ ancho: number; alto: number } | null> {
+  const img = await cargarImagen(src);
+  return img ? medidaDe(img) : null;
 }
 
 /** Las fuentes de la marca (Fredoka y Figtree, las de la app) listas para dibujar. Sin internet usa las de respaldo. */
@@ -78,20 +88,96 @@ function recortar(ctx: CanvasRenderingContext2D, texto: string, ancho: number): 
   return `${t.trimEnd()}…`;
 }
 
-/** Foto a pantalla completa, recortada como `cover`. */
-function dibujarCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  const k = Math.max(ANCHO_HISTORIA / w, ALTO_HISTORIA / h);
-  const dw = w * k;
-  const dh = h * k;
-  ctx.drawImage(img, (ANCHO_HISTORIA - dw) / 2, (ALTO_HISTORIA - dh) / 2, dw, dh);
+const medidaDe = (img: HTMLImageElement) => ({ ancho: img.naturalWidth || img.width, alto: img.naturalHeight || img.height });
+const MARCO = { ancho: ANCHO_HISTORIA, alto: ALTO_HISTORIA };
+
+let filtroCanvas: boolean | null = null;
+/** ¿Este navegador dibuja `ctx.filter` de verdad? (Safari de iPhone lo ignora en versiones viejas: se prueba con un píxel, no con la propiedad.) */
+function filtroDisponible(): boolean {
+  if (filtroCanvas !== null) return filtroCanvas;
+  try {
+    const c = document.createElement("canvas");
+    c.width = c.height = 12;
+    const x = c.getContext("2d")!;
+    x.filter = "blur(3px)";
+    x.fillStyle = "#fff";
+    x.fillRect(5, 5, 2, 2);
+    filtroCanvas = x.getImageData(2, 6, 1, 1).data[3]! > 0;
+  } catch {
+    filtroCanvas = false;
+  }
+  return filtroCanvas;
+}
+
+/** Foto ampliada y desenfocada llenando todo el lienzo. Con `ctx.filter` si anda; si no, se achica mucho y se vuelve a agrandar por pasos. */
+function dibujarFondoDifuminado(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
+  const r = rectFondo(MARCO, medidaDe(img));
+  if (filtroDisponible()) {
+    ctx.save();
+    ctx.filter = "blur(48px)";
+    ctx.drawImage(img, r.x, r.y, r.ancho, r.alto);
+    ctx.restore();
+  } else {
+    // Respaldo: bajar a ~1/32 por mitades y subir por mitades (cada paso suaviza)
+    let w = Math.round(r.ancho);
+    let h = Math.round(r.alto);
+    let fuente: CanvasImageSource = img;
+    const pasos: number[] = [];
+    while (w / 2 >= ANCHO_HISTORIA / 32) {
+      w = Math.round(w / 2);
+      h = Math.round(h / 2);
+      pasos.push(w);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const x = c.getContext("2d")!;
+      x.imageSmoothingQuality = "high";
+      x.drawImage(fuente, 0, 0, w, h);
+      fuente = c;
+    }
+    for (let i = 0; i < pasos.length; i++) {
+      w = Math.round(w * 2);
+      h = Math.round(h * 2);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const x = c.getContext("2d")!;
+      x.imageSmoothingQuality = "high";
+      x.drawImage(fuente, 0, 0, w, h);
+      fuente = c;
+    }
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(fuente, r.x, r.y, r.ancho, r.alto);
+  }
+  ctx.fillStyle = "rgba(0,0,0,0.16)";
+  ctx.fillRect(0, 0, ANCHO_HISTORIA, ALTO_HISTORIA);
+}
+
+/** La foto con su encuadre: llena la historia (relleno) o va entera sobre el fondo difuminado. */
+function dibujarFoto(ctx: CanvasRenderingContext2D, img: HTMLImageElement, ajuste: AjusteFoto) {
+  if (ajuste.difuminado) dibujarFondoDifuminado(ctx, img);
+  const r = rectFoto(ajuste.encuadre, MARCO, medidaDe(img), ajuste.difuminado);
+  ctx.save();
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, r.x, r.y, r.ancho, r.alto);
+  ctx.restore();
+}
+
+/** Escribe una línea que cabe en `ancho`: baja el tamaño de la letra hasta `minimo` antes de cortar con «…». */
+function lineaQueCabe(ctx: CanvasRenderingContext2D, texto: string, x: number, y: number, ancho: number, peso: number, tamano: number, minimo: number, familia: string) {
+  let t = tamano;
+  ctx.font = `${peso} ${t}px ${familia}`;
+  while (t > minimo && ctx.measureText(texto).width > ancho) {
+    t -= 1;
+    ctx.font = `${peso} ${t}px ${familia}`;
+  }
+  ctx.fillText(recortar(ctx, texto, ancho), x, y);
 }
 
 type Pastilla = { texto: string; color: string | null; ancho: number };
 
 /** La foto de la tienda en círculo; la miniatura de deslizapp abajo a la derecha, separada por un recorte (se ve la tarjeta). */
-function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: number, logo: HTMLImageElement | null, nombre: string, f: Fuentes) {
+function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: number, logo: HTMLImageElement | null, nombre: string, f: Fuentes, icono: HTMLImageElement | null) {
   const aparte = document.createElement("canvas");
   aparte.width = aparte.height = d;
   const c = aparte.getContext("2d")!;
@@ -122,25 +208,30 @@ function dibujarTienda(ctx: CanvasRenderingContext2D, x: number, y: number, d: n
   c.fill();
   ctx.drawImage(aparte, x, y);
 
-  // Miniatura de deslizapp
+  // Miniatura de deslizapp: el ícono oficial de la marca (public/icons), recortado en círculo
   const mx = x + cx;
   const my = y + cx;
-  ctx.fillStyle = ROSA;
+  ctx.save();
   ctx.beginPath();
   ctx.arc(mx, my, m / 2, 0, Math.PI * 2);
-  ctx.fill();
-  const lado = m * 0.58;
-  ctx.save();
-  ctx.translate(mx - lado / 2, my - lado / 2);
-  ctx.scale(lado / 2048, lado / 2048);
-  ctx.fillStyle = BOSQUE;
-  ctx.fill(new Path2D(TRAZO_ISOTIPO));
+  ctx.clip();
+  // El ícono trae margen: se agranda para que la «d» con su flecha llene el círculo y se reconozca aun chiquita
+  if (icono) ctx.drawImage(icono, mx - m * 0.65, my - m * 0.65, m * 1.3, m * 1.3);
+  else {
+    ctx.fillStyle = "#dcebe2";
+    ctx.fillRect(mx - m / 2, my - m / 2, m, m);
+  }
   ctx.restore();
 }
 
 /** Dibuja la historia y devuelve el archivo (JPG de alta calidad). */
 export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Promise<Blob> {
-  const [f, foto, logo] = await Promise.all([fuentesListas(), cargarImagen(entrada.foto), entrada.logoUrl ? cargarImagen(entrada.logoUrl) : Promise.resolve(null)]);
+  const [f, foto, logo, icono] = await Promise.all([
+    fuentesListas(),
+    cargarImagen(entrada.foto),
+    entrada.logoUrl ? cargarImagen(entrada.logoUrl) : Promise.resolve(null),
+    cargarImagen(ICONO_DESLIZAPP),
+  ]);
   if (!foto) throw new Error("No pudimos leer la foto del producto.");
 
   const dibujar = (conLogo: boolean): HTMLCanvasElement => {
@@ -149,9 +240,11 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     lienzo.height = ALTO_HISTORIA;
     const ctx = lienzo.getContext("2d")!;
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "#1d1a17";
-    ctx.fillRect(0, 0, ANCHO_HISTORIA, ALTO_HISTORIA);
-    dibujarCover(ctx, foto);
+    if (!entrada.soloTarjeta) {
+      ctx.fillStyle = "#1d1a17";
+      ctx.fillRect(0, 0, ANCHO_HISTORIA, ALTO_HISTORIA);
+      dibujarFoto(ctx, foto, entrada.ajuste ?? { difuminado: false, encuadre: ENCUADRE_INICIAL });
+    }
 
     const { datos } = entrada;
     const margen = 48;
@@ -221,8 +314,10 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     const g = ctx.createLinearGradient(0, yCaja - 360, 0, ALTO_HISTORIA);
     g.addColorStop(0, "rgba(16,54,42,0)");
     g.addColorStop(1, "rgba(16,54,42,0.45)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, yCaja - 360, ANCHO_HISTORIA, ALTO_HISTORIA - (yCaja - 360));
+    if (!entrada.soloTarjeta) {
+      ctx.fillStyle = g;
+      ctx.fillRect(0, yCaja - 360, ANCHO_HISTORIA, ALTO_HISTORIA - (yCaja - 360));
+    }
 
     // --- Tarjeta crema ---
     ctx.save();
@@ -324,25 +419,33 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
 
     let xt = x0;
     if (datos.fotoTienda) {
-      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
+      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f, icono);
       xt = x0 + circulo + 34;
     }
     ctx.fillStyle = BOSQUE;
-    ctx.font = `700 40px ${f.texto}`;
     const centro = y + circulo / 2;
-    if (entrada.direccion) {
-      ctx.fillText("Pídelo en mi catálogo", xt, centro - 6);
-      ctx.fillStyle = SUAVE;
-      ctx.font = `600 34px ${f.texto}`;
-      ctx.fillText(recortar(ctx, entrada.direccion, x0 + anchoUtil - xt), xt, centro + 44);
+    const anchoTexto = x0 + anchoUtil - xt;
+    const d = entrada.direccion;
+    if (d) {
+      // «Pídelo en mi catálogo», el dominio completo y, debajo, la ruta: sin «https://» y sin cortar a mitad
+      const lineas = d.ruta ? 3 : 2;
+      const arriba = centro - (lineas === 3 ? 44 : 22);
+      lineaQueCabe(ctx, "Pídelo en mi catálogo", xt, arriba + 12, anchoTexto, 700, 40, 32, f.texto);
+      ctx.fillStyle = BOSQUE;
+      lineaQueCabe(ctx, d.dominio, xt, arriba + 62, anchoTexto, 700, 36, 24, f.texto);
+      if (d.ruta) {
+        ctx.fillStyle = SUAVE;
+        lineaQueCabe(ctx, d.ruta, xt, arriba + 106, anchoTexto, 600, 32, 22, f.texto);
+      }
     } else {
+      ctx.font = `700 40px ${f.texto}`;
       ctx.fillText("Pídelo en mi catálogo", xt, centro + 14);
     }
     return lienzo;
   };
 
   const aBlob = (lienzo: HTMLCanvasElement) =>
-    new Promise<Blob>((resolver, rechazar) => lienzo.toBlob((b) => (b ? resolver(b) : rechazar(new Error("No se pudo generar la imagen."))), "image/jpeg", 0.92));
+    new Promise<Blob>((resolver, rechazar) => lienzo.toBlob((b) => (b ? resolver(b) : rechazar(new Error("No se pudo generar la imagen."))), entrada.soloTarjeta ? "image/png" : "image/jpeg", 0.92));
 
   try {
     return await aBlob(dibujar(true));

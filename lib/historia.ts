@@ -103,6 +103,16 @@ export function direccionCorta(urlCatalogo: string | null | undefined): string |
   return `${e.dominio}${ruta}`;
 }
 
+export type DireccionHistoria = { dominio: string; ruta: string | null };
+
+/** La dirección en dos partes para escribirla en la imagen sin cortarla: el dominio completo y, debajo, la ruta («/tienda/esencias»). Sin https. */
+export function direccionEnLineas(urlCatalogo: string | null | undefined): DireccionHistoria | null {
+  const e = enlaceCatalogo(urlCatalogo);
+  if (!e) return null;
+  const ruta = new URL(e.href).pathname.replace(/\/$/, "");
+  return { dominio: e.dominio, ruta: ruta || null };
+}
+
 /** Texto de WhatsApp: «Majestic Oud · Pídelo aquí: https://…». */
 export const textoWhatsAppHistoria = (nombre: string, enlace: string) => `${nombre} · Pídelo aquí: ${enlace}`;
 
