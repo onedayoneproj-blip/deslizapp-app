@@ -578,8 +578,20 @@ function FormularioProducto({
         onChange={(e) => setNombre(e.target.value)}
         placeholder="El nombre de tu producto"
         maxLength={120}
-        className="[&_input]:h-14 [&_input]:text-titulo-seccion [&_input]:font-extrabold"
       />
+      {/* El precio es un campo como el nombre: el «RD$» va dentro, sin otro tamaño de letra. Si varía por presentación, es una fila de la tarjeta. */}
+      {!(varia && resumenPres.desde !== null) && (
+        <Campo
+          etiqueta="Precio"
+          aria-label="Precio (RD$)"
+          prefijo="RD$"
+          inputMode="numeric"
+          enterKeyHint="done"
+          precio={{ digitos: precio, alCambiar: setPrecio }}
+          placeholder="Escribe el precio"
+          data-precio=""
+        />
+      )}
       {/* Precio, stock, por encargo y presentaciones (de último): una sola tarjeta */}
       <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
         {varia && resumenPres.desde !== null ? (
@@ -588,27 +600,16 @@ function FormularioProducto({
             disabled={guardando}
             onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}
             data-precio-desde=""
-            className="tocable flex min-h-20 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
+            className="tocable flex min-h-15 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
           >
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-secundario text-texto-secundario">Precio</span>
-              <span className="font-display text-cifra text-texto">Desde {formatearPesos(resumenPres.desde)}</span>
+              <span className="text-destacado text-texto">Precio</span>
               <span className="text-secundario text-texto-secundario">Varía por presentación</span>
             </span>
+            <span className="text-secundario text-texto-secundario">Desde {formatearPesos(resumenPres.desde)}</span>
             <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
           </button>
-        ) : (
-          <div className="p-4" data-precio="">
-            <Campo
-              etiqueta="Precio (RD$)"
-              inputMode="numeric"
-              enterKeyHint="done"
-              precio={{ digitos: precio, alCambiar: setPrecio }}
-              placeholder="Escribe el precio"
-              className="[&_input]:h-16 [&_input]:font-display [&_input]:text-cifra"
-            />
-          </div>
-        )}
+        ) : null}
         {tieneOpciones ? (
           <div className="flex min-h-15 items-center justify-between gap-3 border-t border-linea px-4 py-2 first:border-t-0">
             <span className="text-destacado text-texto">En stock</span>
@@ -703,7 +704,7 @@ function FormularioProducto({
       {!historialAbierto && (
         <HojaFijoAbajo>
           {/* Dos botones que flotan solos, del mismo ancho y con sombra: sin tarjeta ni recuadro detrás. */}
-          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))] grid grid-cols-2 gap-3" data-barra-producto="">
+          <div className="pointer-events-auto mx-4 grid grid-cols-2 gap-3 pb-[max(0.75rem,var(--safe-abajo))]" data-barra-producto="">
             <Boton jerarquia="secundario" tamano="grande" anchoCompleto className={!(!producto || !inventario.pendiente || tieneOpciones) ? "col-span-2 shadow-flotante" : "shadow-flotante"} onClick={() => setViendo(true)}>Cómo se ve</Boton>
             {(!producto || !inventario.pendiente || tieneOpciones) && (
               <Boton tamano="grande" anchoCompleto className="shadow-flotante" cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>

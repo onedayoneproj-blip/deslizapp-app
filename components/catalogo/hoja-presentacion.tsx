@@ -7,7 +7,7 @@ import { colorPorNombre } from "@/lib/colores";
 import type { OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Boton, CampoMonto, Cantidad, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
+import { Alerta, Boton, Campo, Cantidad, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
 
 export type FotoBorrador = { id: string; url: string };
 
@@ -98,15 +98,22 @@ export function HojaPresentacion({
             opciones={[{ id: "mismo", texto: "El mismo" }, { id: "propio", texto: "Uno propio" }]}
           />
           {propio && (
-            <CampoMonto
+            <Campo
               etiqueta="Precio de esta presentación"
-              etiquetaAccesible="Precio de esta presentación, en pesos"
-              valor={textoPrecio}
-              maxDigitos={7}
-              alCambiar={(d) => {
-                const limpio = d.replace(/\D/g, "").slice(0, 7);
-                setTextoPrecio(limpio);
-                alCambiar({ precio: limpio ? Number(limpio) : null });
+              aria-label="Precio de esta presentación, en pesos"
+              prefijo="RD$"
+              inputMode="numeric"
+              enterKeyHint="done"
+              autoComplete="off"
+              placeholder="Escribe el precio"
+              precio={{
+                digitos: textoPrecio,
+                max: 7,
+                alCambiar: (d) => {
+                  const limpio = d.replace(/\D/g, "").slice(0, 7);
+                  setTextoPrecio(limpio);
+                  alCambiar({ precio: limpio ? Number(limpio) : null });
+                },
               }}
             />
           )}
