@@ -45,7 +45,7 @@ export const MAX_NOTA = 60;
 export const MAX_NOMBRE_CLIENTE = 120;
 
 /** `avatarEmoji` / `avatarColor`: sin ellos (undefined) el avatar no se toca; `null` = volver a las iniciales. */
-export type DatosClienteEditables = { nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null };
+export type DatosClienteEditables = { nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null; /** Sin ella (undefined) la nota no se toca; así «Editar cliente» guarda todo en UNA sola llamada. */ nota?: string | null };
 
 /**
  * El avatar que se guarda: el emoji limpio y el color tal cual (null con emoji = «Automático»: el color sale del emoji; null sin emoji = las
@@ -112,7 +112,8 @@ export function modificarCliente(db: DB, tiendaId: string, id: string, datos: Da
   if (existente && existente.id !== id) throw new ClienteDuplicado(existente);
 
   const avatar = datos.avatarEmoji === undefined && datos.avatarColor === undefined ? {} : limpiarAvatar(datos.avatarEmoji, datos.avatarColor);
-  const cliente: Cliente = { ...actual, ...limpios, ...avatar };
+  const nota = datos.nota === undefined ? {} : { nota: limpiarNota(datos.nota) };
+  const cliente: Cliente = { ...actual, ...limpios, ...avatar, ...nota };
   return {
     db: { ...db, clientes: db.clientes.map((c) => (c.id === id && c.tiendaId === tiendaId ? cliente : c)) },
     cliente,

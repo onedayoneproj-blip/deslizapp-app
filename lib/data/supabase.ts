@@ -1116,7 +1116,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const f = await requerido<FilaCliente>(
           supabase
             .from("clientes")
-            .update({ nombre: limpios.nombre, telefono: limpios.telefono, ...columnasAvatar(datos) })
+            .update({ nombre: limpios.nombre, telefono: limpios.telefono, ...columnasAvatar(datos), ...(datos.nota === undefined ? {} : { nota: limpiarNota(datos.nota) }) })
             .eq("tienda_id", tiendaId)
             .eq("id", id)
             .select("*")

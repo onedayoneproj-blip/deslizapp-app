@@ -96,3 +96,17 @@ test("tonoPastelDePixeles: sin píxeles útiles da null; un gris da un pastel ca
   assert.ok(Math.max(...gris) - Math.min(...gris) < 40, "casi neutro");
   assert.equal(tonoDeEmoji("🌸"), TONO_RESPALDO, "en servidor (sin document) → crema");
 });
+
+test("editar cliente guarda datos, avatar y nota en UNA sola llamada; sin nota (undefined) no la toca", () => {
+  const db0 = construirDesdeSeed();
+  const c = db0.clientes.find((x) => x.tiendaId === TIENDA);
+  const r = modificarCliente(db0, TIENDA, c.id, { nombre: "Nombre nuevo", telefono: c.telefono, avatarEmoji: "🌸", avatarColor: "menta", nota: "  Talla M  " });
+  assert.equal(r.cliente.nombre, "Nombre nuevo");
+  assert.equal(r.cliente.avatarEmoji, "🌸");
+  assert.equal(r.cliente.avatarColor, "menta");
+  assert.equal(r.cliente.nota, "Talla M");
+  const sinNota = modificarCliente(r.db, TIENDA, c.id, { nombre: "Otro", telefono: c.telefono });
+  assert.equal(sinNota.cliente.nota, "Talla M", "undefined = no se toca");
+  const borrada = modificarCliente(sinNota.db, TIENDA, c.id, { nombre: "Otro", telefono: c.telefono, nota: "" });
+  assert.equal(borrada.cliente.nota, null, "vacía la borra");
+});

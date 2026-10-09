@@ -23,7 +23,7 @@ export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alElimi
 }
 
 function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void; idNota?: string }) {
-  const { actualizarCliente, actualizarNotaCliente, eliminarCliente } = useData();
+  const { actualizarCliente, eliminarCliente } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
   const [nombre, setNombre] = useState(cliente.nombre);
@@ -57,8 +57,9 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
     setGuardando(true);
     setDuplicado(null);
     try {
-      if (datosCambiados || avatarCambiado) await actualizarCliente(tiendaId, cliente.id, { nombre, telefono, ...(avatarCambiado ? { avatarEmoji: emoji, avatarColor: color } : null) });
-      if (notaCambiada) await actualizarNotaCliente(tiendaId, cliente.id, nota);
+      // Todo en UNA llamada (datos, avatar y nota): si fueran dos, la primera refrescaría al cliente y reabriría el formulario con la
+      // segunda en vuelo, y un fallo de esa segunda perdería lo escrito en la nota.
+      await actualizarCliente(tiendaId, cliente.id, { nombre, telefono, ...(avatarCambiado ? { avatarEmoji: emoji, avatarColor: color } : null), ...(notaCambiada ? { nota } : null) });
       toast("Datos actualizados.");
       alTerminar();
     } catch (error) {
