@@ -19,8 +19,8 @@ Diseño: `referencias/onboarding/` (lienzo de Lewis, 33 pantallas; opción **B**
 |---|---|---|
 | 1 | Sube tu logo | `logo_url` no es null |
 | 2 | Elige tus colores | la tienda guardó sus colores (marca en `onboarding`) |
-| 3 | Agrega 5 productos | 5 o más productos que cuentan para publicar |
-| 4 | **Publica tu catálogo** | `catalogo_estado = 'publicado'`; se desbloquea con 1, 2 y 3 |
+| 3 | Agrega tus primeros productos | al menos 1 producto (es una sugerencia; **no bloquea nada**) |
+| 4 | **Publica tu catálogo** | `catalogo_estado = 'publicado'`; **disponible desde el día uno**, sin requisitos |
 | 5 | Cuéntales quién eres | la tienda tiene descripción |
 | 6 | Pon Deslizapp en tu pantalla | abierta como app (pantalla completa) o la tienda tocó «Ya lo hice» tras ver cómo |
 | 7 | Invita a tu equipo | hay otro miembro o una invitación pendiente; o «Lo hago sola» |
@@ -28,7 +28,7 @@ Diseño: `referencias/onboarding/` (lienzo de Lewis, 33 pantallas; opción **B**
 Al completar los 7 (o al cerrarlo), el checklist se va con una celebración corta y no vuelve. Lo ve el dueño, no los colaboradores.
 
 ## Fallos del lienzo corregidos aquí
-1. **«Pide tu catálogo · el equipo lo arma» ya no aplica.** Desde el PR #74 la tienda **publica sola** (`publicar_mi_catalogo`). El paso 4 dice «Ya tienes con qué. **Publica tu catálogo.**» y el botón publica. El mínimo de productos sube de 3 a 5 (estaba anotado en la función).
+1. **«Pide tu catálogo · el equipo lo arma» ya no aplica.** Desde el PR #74 la tienda **publica sola** (`publicar_mi_catalogo`). El paso 4 es «**Publica tu catálogo**» y el botón publica. **Sin mínimo de productos** (decisión de Lewis, 9 oct): la tienda puede publicar con el catálogo vacío para ver desde el día uno cómo se verá; migración `20261009232947_publicar_catalogo_sin_minimo`. Un catálogo vacío tiene que verse bien para quien lo abra («Pronto, aquí van los productos de {tienda}»), no roto.
 2. **La tienda no se puede crear con todos los datos.** `crear_mi_tienda` recibe solo nombre y un rubro; hace falta una función nueva que cree la tienda con nombre, varios rubros, WhatsApp y nombre de la vendedora en una sola transacción.
 3. **El enlace «en vivo» del capítulo 1 puede mentir:** si el nombre ya existe, la base le pone `-2`. La vista previa tiene que salir de la base (función de solo lectura), no de una copia del algoritmo.
 4. **Las tiendas que ya existen no deben ver nada de esto.** Se marca todo como visto para las tiendas actuales, menos la Tienda de ensayo (para que Lewis pruebe) y Soft Era (es nueva).
