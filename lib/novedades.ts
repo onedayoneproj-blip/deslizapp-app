@@ -25,7 +25,7 @@ const TODAS: Novedad[] = [
     version: "0.52.0", fecha: "2026-10-09", titulo: "Pedido más clarito.",
     cambios: [
       "«Cambiar a crédito» ya no pide botones extra: eliges la fecha y queda guardado.",
-      "«Editar pedido» pasa abajo, junto a «Cancelar pedido», lejos del pago.",
+      "«Registrar abono» ya no se confunde con «Editar pedido»: es un botón de texto dentro de Pago.",
       "Menos repetido: sin «Agotado» en lo ya vendido, sin dos «A crédito» y, sin descuento, solo el Total.",
     ],
   },
