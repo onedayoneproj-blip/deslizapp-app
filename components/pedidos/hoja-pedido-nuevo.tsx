@@ -24,7 +24,7 @@ import { IconoCalendario, IconoChevronDerecha, IconoMas } from "../iconos";
 import { Alerta, Aviso, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
+import { comoGuardado, SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
 import { AvatarCliente } from "../clientes/avatar-cliente";
@@ -109,7 +109,7 @@ function Formulario({
   const [vista, setVista] = useState<"pedido" | "cliente" | "productos" | "descuento">("pedido");
   const [cliente, setCliente] = useState<ClienteGuardado | null>(() => {
     const c = pedido?.clienteId ? clientes.find((x) => x.id === pedido.clienteId) : undefined;
-    return c ? { id: c.id, nombre: c.nombre, telefono: c.telefono } : null;
+    return c ? comoGuardado(c) : null;
   });
   // Despachado: solo cliente y fecha. Los productos y el código se ven atenuados y no se tocan.
   const bloqueado = pedido?.estado === "despachado";

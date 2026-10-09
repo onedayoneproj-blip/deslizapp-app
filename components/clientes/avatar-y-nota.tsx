@@ -5,8 +5,9 @@ import { COLORES_AVATAR, EMOJIS_AVATAR, hexDeColor, type ColorAvatar } from "@/l
 import { MAX_NOTA } from "@/lib/data/clientes";
 import { iniciales } from "@/lib/formato";
 import { Hoja } from "../hoja";
-import { IconoCheck, IconoEditar, IconoMas } from "../iconos";
+import { IconoCheck, IconoChispa, IconoEditar, IconoMas } from "../iconos";
 import { Avatar, Boton } from "../ui";
+import { useTonoDeEmoji } from "../ui/avatar";
 
 /** Forma de la nota de Instagram: gotita pegada abajo-izquierda y un puntito suelto (referencias/cliente-nuevo-nota). */
 function ColaDeNota({ ancho = 36, alto = 34, className }: { ancho?: number; alto?: number; className?: string }) {
@@ -222,21 +223,35 @@ export function HojaAvatar({
 
 function Selector({ nombre, emoji, color, alElegir }: { nombre: string; emoji: string | null; color: ColorAvatar | null; alElegir: (emoji: string | null, color: ColorAvatar | null) => void }) {
   const [e, setE] = useState<string | null>(emoji);
-  const [c, setC] = useState<ColorAvatar>(color ?? "crema");
+  // null = «Automático»: con emoji, el pastel del emoji; con iniciales, el rosa de siempre
+  const [c, setC] = useState<ColorAvatar | null>(color);
+  const tono = useTonoDeEmoji(e);
+  const fondo = c ? hexDeColor(c) : e ? tono : null;
   return (
     <div className="flex flex-col gap-4">
       <div className="mx-auto">
         <span
           role="img"
           aria-label="Así se ve"
-          className="grid size-23 place-items-center overflow-hidden rounded-full font-display text-titulo-hoja text-texto"
-          style={{ backgroundColor: hexDeColor(c) ?? undefined, fontSize: e ? "48px" : undefined }}
+          className={`grid size-23 place-items-center overflow-hidden rounded-full font-display text-titulo-hoja text-texto ${fondo ? "" : "bg-marca-rosa"}`}
+          style={{ ...(fondo ? { backgroundColor: fondo } : null), ...(e ? { fontSize: "48px" } : null) }}
         >
           {e ?? iniciales(nombre || "?")}
         </span>
       </div>
 
-      <div role="radiogroup" aria-label="Color de fondo" className="flex justify-center gap-3.5">
+      <div role="radiogroup" aria-label="Color de fondo" className="flex flex-wrap justify-center gap-3">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={c === null}
+          aria-label="Automático"
+          onClick={() => setC(null)}
+          className={`tocable grid size-11 place-items-center rounded-full border-2 border-dashed border-borde-campo text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${e ? "" : "bg-marca-rosa"}`}
+          style={e && tono ? { backgroundColor: tono } : undefined}
+        >
+          {c === null ? <IconoCheck tamano={20} strokeWidth={3} /> : <IconoChispa tamano={18} />}
+        </button>
         {COLORES_AVATAR.map((col) => (
           <button
             key={col.id}
@@ -269,7 +284,7 @@ function Selector({ nombre, emoji, color, alElegir }: { nombre: string; emoji: s
         ))}
       </div>
 
-      <Boton tamano="grande" anchoCompleto onClick={() => alElegir(e, e === null && c === "crema" ? null : c)}>
+      <Boton tamano="grande" anchoCompleto onClick={() => alElegir(e, c)}>
         Usar este
       </Boton>
     </div>

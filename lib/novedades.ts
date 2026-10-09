@@ -24,7 +24,7 @@ const TODAS: Novedad[] = [
   {
     version: "0.56.0", fecha: "2026-10-09", titulo: "Clientes con carita.",
     cambios: [
-      "Dale a cada cliente un avatar con emoji y color: queda en todas sus pantallas.",
+      "Dale a cada cliente un avatar con emoji: el color del círculo sale del emoji solito (o lo eliges tú).",
       "La nota ahora es una burbuja sobre el avatar, como las notas de Instagram: tócala y escribe ahí mismo.",
       "«Cliente nuevo» más chiquita y directa: nombre, WhatsApp y listo.",
     ],

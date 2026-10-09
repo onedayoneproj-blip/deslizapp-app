@@ -1,5 +1,6 @@
 "use client";
 
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { buscarClientes, recientes } from "@/lib/buscar-clientes";
@@ -22,7 +23,16 @@ import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /** Un cliente de la tienda (`id`), o uno nuevo todavía sin guardar (`nuevo`: se crea al registrar, en la misma operación). */
 export type ClienteElegido = ClienteGuardado | ClienteProvisional;
-export type ClienteGuardado = { id: string; nombre: string; telefono: string | null; nuevo?: undefined };
+export type ClienteGuardado = { id: string; nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null; nuevo?: undefined };
+
+/** El cliente guardado que se entrega al elegirlo: con su avatar, para que siga viéndose igual en el pedido o la solicitud. */
+export const comoGuardado = (c: { id: string; nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }): ClienteGuardado => ({
+  id: c.id,
+  nombre: c.nombre,
+  telefono: c.telefono,
+  avatarEmoji: c.avatarEmoji ?? null,
+  avatarColor: c.avatarColor ?? null,
+});
 export type ClienteProvisional = { id?: undefined; nombre: string; telefono: string | null; nota: string | null; nuevo: true };
 
 /**
@@ -122,7 +132,7 @@ export function SelectorCliente({
             <FilaLista key={c.id}>
               <button
                 type="button"
-                onClick={() => alElegir({ id: c.id, nombre: c.nombre, telefono: c.telefono })}
+                onClick={() => alElegir(comoGuardado(c))}
                 className="tocable flex w-full items-center gap-3 py-2.5 text-left text-texto outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco"
               >
                 <AvatarCliente cliente={c} />
@@ -235,7 +245,7 @@ function FormularioNuevo({
       const numero = normalizarTelefonoDO(telefono);
       const existente = numero ? clientes.find((c) => c.telefono !== null && normalizarTelefonoDO(c.telefono) === numero) : undefined;
       if (existente) {
-        setDuplicado({ id: existente.id, nombre: existente.nombre, telefono: existente.telefono });
+        setDuplicado(comoGuardado(existente));
         return;
       }
       alElegir({ nombre: nombre.trim(), telefono: numero, nota: nota.trim() || null, nuevo: true });
@@ -245,9 +255,9 @@ function FormularioNuevo({
     try {
       const c = await crearCliente(tiendaId, { nombre, telefono, nota });
       toast(`${c.nombre} guardado. Ya está en tus clientes.`);
-      alElegir({ id: c.id, nombre: c.nombre, telefono: c.telefono });
+      alElegir(comoGuardado(c));
     } catch (error) {
-      if (error instanceof ClienteDuplicado) setDuplicado({ id: error.existente.id, nombre: error.existente.nombre, telefono: error.existente.telefono });
+      if (error instanceof ClienteDuplicado) setDuplicado(comoGuardado(error.existente));
       else toast(mensajeDeError(error, "No se pudo guardar. Inténtalo otra vez."));
       setGuardando(false);
     }

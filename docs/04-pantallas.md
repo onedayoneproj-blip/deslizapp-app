@@ -583,9 +583,15 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 centrado, el **avatar grande** (112 px, con la muesca del botón «+» o lápiz) y encima la **nota como burbuja estilo Instagram**
 (`BurbujaNota`: píldora redondeada, gotita y puntito abajo-izquierda, sombra única; sin nota dice «Talla, gustos…»). Abajo, Nombre y
 WhatsApp (con icono) y «Guardar cliente» pegado debajo.
-- Tocar el avatar abre **«Su avatar»** (hoja apilada): 5 colores de fondo de la marca (crema, rosa, dorado, menta, durazno) y una cuadrícula
-  de emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni
-  avatar, el círculo es crema con una carita.
+- Tocar el avatar abre **«Su avatar»** (hoja apilada): primero **«Automático»** (marcado por defecto; con un emoji, el círculo toma un tono
+  pastel del color predominante del emoji) y luego los 5 colores de la marca (crema, rosa, dorado, menta, durazno), y una cuadrícula de
+  emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni avatar,
+  el círculo es crema con una carita.
+- **Regla del color** (`avatar_color`): con emoji y color nulo = Automático (pastel del emoji, calculado dibujando el emoji en un canvas de
+  48 px: color predominante sin lo transparente ni lo casi blanco/negro, aclarado a 88 % de luminosidad; guardado por emoji en memoria y
+  `localStorage`, sin parpadeo; en el servidor o si falla, crema); color elegido = ese color, con emoji o con iniciales (crema también se
+  conserva); sin emoji y sin color = iniciales con el rosa de siempre (`lib/avatar-cliente.ts`, `Avatar`). El mismo tono sale en todas las
+  listas y hojas.
 - La **burbuja de la nota es el campo**: tocarla pone el cursor dentro y se escribe ahí mismo (nada de otra hoja ni otra vista). Crece
   en alto con el texto hacia arriba, máx. 3 líneas y luego se desplaza por dentro, sin mover el avatar; mantiene la forma de Instagram
   (píldora + gotita + puntito) y el placeholder «Talla, gustos…». Sin saltos de línea: Enter cierra el teclado (`enterkeyhint="done"`).
@@ -595,6 +601,9 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
   esconder la burbuja bajo el encabezado (`verBotonGuardar`, con `visualViewport`).
 - El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
   Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
+- **Altura con teclado:** «Cliente nuevo» y «Editar cliente» miden lo que mide su contenido (`altura="auto"`), pero la hoja congela su alto
+  mientras el teclado está abierto y lo suelta al cerrarlo (`Hoja`: relleno `--teclado` sin hacerla crecer ni moverla); el contenido se
+  desplaza dentro.
 - **Detalle del cliente** (hoja «Cliente»): el título de la hoja es el NOMBRE del cliente (una línea, con puntos suspensivos si es largo; sin el
   nombre grande repetido debajo). Arriba, el avatar real (emoji + color, o iniciales) con su nota como burbuja de Instagram encima (solo
   lectura); sin nota, una burbuja tenue de línea punteada «Agregar nota» con la misma forma. Tocar la burbuja o el avatar abre «Editar

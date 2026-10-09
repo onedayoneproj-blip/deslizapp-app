@@ -47,13 +47,15 @@ export const MAX_NOMBRE_CLIENTE = 120;
 /** `avatarEmoji` / `avatarColor`: sin ellos (undefined) el avatar no se toca; `null` = volver a las iniciales. */
 export type DatosClienteEditables = { nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null };
 
-/** El avatar que se guarda: el emoji limpio y un color válido (el emoji sin color toma `crema`; sin emoji ni color, iniciales). */
+/**
+ * El avatar que se guarda: el emoji limpio y el color tal cual (null con emoji = «Automático»: el color sale del emoji; null sin emoji = las
+ * iniciales con el rosa de siempre; crema u otro color elegido se conserva aunque no haya emoji). Un color inexistente o un emoji
+ * demasiado largo se rechazan con un mensaje claro.
+ */
 export function limpiarAvatar(emoji: string | null | undefined, color: string | null | undefined): { avatarEmoji: string | null; avatarColor: ColorAvatar | null } {
   if (color !== null && color !== undefined && !esColorAvatar(color)) throw new DatosInvalidos("Ese color de avatar no existe. Elige uno de los cinco.");
   if ((emoji ?? "").trim().length > MAX_EMOJI) throw new DatosInvalidos("Ese emoji no cabe. Elige otro.");
-  const avatarEmoji = limpiarEmoji(emoji);
-  const avatarColor = color ?? (avatarEmoji ? "crema" : null);
-  return { avatarEmoji, avatarColor };
+  return { avatarEmoji: limpiarEmoji(emoji), avatarColor: color ?? null };
 }
 
 /** Nombre limpio y WhatsApp opcional ya normalizado para guardar. */

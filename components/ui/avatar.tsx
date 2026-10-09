@@ -1,4 +1,7 @@
-import { hexDeColor, type ColorAvatar } from "@/lib/avatar-cliente";
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { hexDeColor, TONO_RESPALDO, tonoDeEmoji, type ColorAvatar } from "@/lib/avatar-cliente";
 import { iniciales } from "@/lib/formato";
 import { Foto } from "../foto";
 import { IconoCorazon } from "../iconos";
@@ -7,6 +10,17 @@ import { clases } from "./comunes";
 const TAMANO = { chat: "size-8.5 text-secundario", normal: "size-(--alto-avatar) text-cuerpo", grande: "size-16 text-titulo-hoja", nota: "size-22 text-titulo-pantalla", perfil: "size-28 text-cifra" } as const;
 /** Tamaño del emoji (la mitad del círculo, como la referencia de Cliente nuevo). */
 const EMOJI = { chat: 17, normal: 22, grande: 32, nota: 44, perfil: 56 } as const;
+const sinSuscripcion = () => () => {};
+
+/** El fondo de un avatar con emoji y sin color elegido («Automático»): el pastel del emoji (en el servidor, el crema de respaldo). */
+export function useTonoDeEmoji(emoji: string | null | undefined): string | null {
+  return useSyncExternalStore(
+    sinSuscripcion,
+    () => (emoji ? tonoDeEmoji(emoji) : null),
+    () => (emoji ? TONO_RESPALDO : null),
+  );
+}
+
 const FOTO = { chat: "34px", normal: "44px", grande: "64px", nota: "88px", perfil: "112px" } as const;
 
 /**
@@ -40,6 +54,8 @@ export function Avatar({
   emoji?: string | null;
   color?: ColorAvatar | null;
 }) {
+  const tono = useTonoDeEmoji(emoji && !color ? emoji : null);
+  const fondo = color ? hexDeColor(color) : tono; // elegido > automático (del emoji) > nada (rosa de siempre)
   const accesible = solo ? { role: "img", "aria-label": repite ? `${nombre}, repite` : nombre } : { "aria-hidden": true };
   return (
     <span {...accesible} className="relative inline-grid shrink-0">
@@ -49,10 +65,10 @@ export function Avatar({
           TAMANO[tamano],
           "rounded-full",
           repite && "corte [--corte-r:12px] [--corte-x:calc(100%_-_8px)] [--corte-y:calc(100%_-_8px)]",
-          vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? (color ? "text-texto" : "bg-marca-rosa text-texto") : "bg-accion text-sobre-accion",
+          vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? (fondo ? "text-texto" : "bg-marca-rosa text-texto") : "bg-accion text-sobre-accion",
           emoji && "font-normal",
         )}
-        style={color && !vacio && tipo === "persona" ? { backgroundColor: hexDeColor(color) ?? undefined, ...(emoji ? { fontSize: EMOJI[tamano] } : null) } : emoji && !vacio ? { fontSize: EMOJI[tamano] } : undefined}
+        style={!vacio && (fondo || emoji) && tipo === "persona" ? { ...(fondo ? { backgroundColor: fondo } : null), ...(emoji ? { fontSize: EMOJI[tamano] } : null) } : undefined}
       >
         {vacio ? "?" : emoji ? <span aria-hidden="true" className="leading-none">{emoji}</span> : foto ? <Foto src={foto} alt="" className="absolute inset-0" sizes={FOTO[tamano]} /> : iniciales(nombre)}
       </span>

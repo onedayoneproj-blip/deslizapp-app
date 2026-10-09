@@ -21,7 +21,7 @@ import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha } from "../iconos";
-import { SelectorCliente, type ClienteElegido } from "../pedidos/selector-cliente";
+import { comoGuardado, SelectorCliente, type ClienteElegido } from "../pedidos/selector-cliente";
 import { Alerta, Aviso, Boton, Etiqueta } from "../ui";
 import { AvatarCliente } from "../clientes/avatar-cliente";
 
@@ -528,7 +528,7 @@ function Formulario({
           accion={{
             texto: `Usar a ${duplicado.nombre.split(" ")[0]}`,
             alTocar: () => {
-              cambiar(null, { id: duplicado.id, nombre: duplicado.nombre, telefono: duplicado.telefono });
+              cambiar(null, comoGuardado(duplicado));
               setDuplicado(null);
             },
           }}
