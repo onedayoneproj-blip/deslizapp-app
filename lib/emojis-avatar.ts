@@ -39,8 +39,9 @@ function grafemas(texto: string): number {
 export type ResultadoEmoji = { ok: true; emoji: string } | { ok: false; error: string };
 
 /**
- * «Usar otro emoji»: acepta UN solo emoji del sistema (también con tono de piel, secuencias ZWJ, banderas y teclas) hasta el límite de
- * `MAX_EMOJI` caracteres de la base, y rechaza texto normal, varios emojis o vacío con un mensaje claro.
+ * Comprueba que un texto sea UN solo emoji del sistema (también con tono de piel, secuencias ZWJ, banderas y teclas) y quepa en los
+ * `MAX_EMOJI` caracteres de la base; rechaza texto normal, varios emojis o vacío con un mensaje claro. Hoy sirve para descartar valores raros
+ * guardados en «Usados hace poco» (no hay campo para escribir emojis: la web no puede abrir solo el teclado de emojis).
  */
 export function validarEmoji(texto: string): ResultadoEmoji {
   const limpio = texto.trim();

@@ -26,7 +26,7 @@ const TODAS: Novedad[] = [
     cambios: [
       "Dale a cada cliente un avatar con emoji: el color del círculo sale del emoji solito (o lo eliges tú).",
       "La nota ahora es una burbuja sobre el avatar, como las notas de Instagram: tócala y escribe ahí mismo.",
-      "Más de 350 emojis por categorías, con tonos de piel, recientes y «usar otro emoji».",
+      "Más de 350 emojis por categorías, con tonos de piel y los que usaste hace poco.",
       "«Cliente nuevo» más chiquita y directa: nombre, WhatsApp y listo.",
     ],
   },

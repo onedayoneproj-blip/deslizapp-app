@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIAS_EMOJI, conTono, guardarTonoPiel, leerRecientes, leerTonoPiel, TONOS_PIEL, validarEmoji } from "@/lib/emojis-avatar";
-import { Campo } from "../ui";
+import { CATEGORIAS_EMOJI, conTono, guardarTonoPiel, leerRecientes, leerTonoPiel, TONOS_PIEL } from "@/lib/emojis-avatar";
 
 /** Una celda de emoji: botón de 48 px con el nombre en español como etiqueta. */
 function Celda({ emoji, nombre, elegido, alTocar }: { emoji: string; nombre: string; elegido: boolean; alTocar: () => void }) {
@@ -22,16 +21,13 @@ function Celda({ emoji, nombre, elegido, alTocar }: { emoji: string; nombre: str
 
 /**
  * Elegir el emoji del avatar: «Usados hace poco» (hasta 12), categorías en pestañas horizontales, una cuadrícula de 6 columnas que se
- * desplaza (solo se pinta la categoría abierta) con tono de piel en «Personas» (se recuerda), «Aa» para volver a las iniciales y «Usar otro
- * emoji» para escribir cualquiera con el teclado del teléfono (un solo emoji, validado).
+ * desplaza (solo se pinta la categoría abierta) con tono de piel en «Personas» (se recuerda), «Aa» para volver a las iniciales (sin campo de texto: la web no puede abrir solo el teclado de emojis del teléfono).
  */
 export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alElegir: (emoji: string | null) => void }) {
   const [categoria, setCategoria] = useState(CATEGORIAS_EMOJI[0]!.id);
   const [tono, setTono] = useState(() => leerTonoPiel());
   const [recientes] = useState(() => leerRecientes());
-  const [otro, setOtro] = useState("");
   const abierta = CATEGORIAS_EMOJI.find((c) => c.id === categoria) ?? CATEGORIAS_EMOJI[0]!;
-  const validado = otro.trim() === "" ? null : validarEmoji(otro);
 
   return (
     <div className="flex flex-col gap-3">
@@ -95,7 +91,7 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
         })}
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-linea pt-3">
+      <div className="border-t border-linea pt-3">
         <button
           type="button"
           role="radio"
@@ -105,21 +101,6 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
         >
           Aa <span className="font-sans text-secundario font-normal text-texto-secundario">Usar las iniciales</span>
         </button>
-        <Campo
-          etiqueta="Usar otro emoji"
-          value={otro}
-          onChange={(e) => {
-            setOtro(e.target.value);
-            const r = e.target.value.trim() === "" ? null : validarEmoji(e.target.value);
-            if (r?.ok) alElegir(r.emoji);
-          }}
-          placeholder="Escribe o pega un emoji"
-          autoComplete="off"
-          autoCorrect="off"
-          enterKeyHint="done"
-          error={validado && !validado.ok ? validado.error : undefined}
-          ayuda={validado?.ok ? `Listo: ${validado.emoji}` : "Cambia al teclado de emojis de tu teléfono (🌐) y toca el que quieras."}
-        />
       </div>
     </div>
   );
