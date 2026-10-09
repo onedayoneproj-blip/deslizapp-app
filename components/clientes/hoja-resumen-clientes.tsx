@@ -124,7 +124,7 @@ export function HojaResumenClientes({ resumen, clientes, pedidos, tiendaId, tien
       seleccionada={seleccionada} porEnvio={porEnvio} ahora={ahora}
       tiendaId={tiendaId} navegar={navegar} filtrar={filtrar} irADatos={irADatos} alEscribir={(id, nombre, cliente) => { setBarrido(null); setBorrador({ id, nombre, cliente }); }} />
     {borrador && <HojaEscribirJugada key={`${borrador.id}:${borrador.cliente.id}`} jugada={borrador.id}
-      cliente={{ id: borrador.cliente.id, nombre: borrador.cliente.nombre, telefono: borrador.cliente.telefono! }} tiendaId={tiendaId}
+      cliente={{ id: borrador.cliente.id, nombre: borrador.cliente.nombre, telefono: borrador.cliente.telefono!, avatarEmoji: borrador.cliente.avatarEmoji, avatarColor: borrador.cliente.avatarColor }} tiendaId={tiendaId}
       vendedora={vendedora} tienda={tienda} urlCatalogo={urlCatalogo} alCerrar={cerrarBorrador} />}
   </Hoja>;
 }
