@@ -1,4 +1,6 @@
 -- Onboarding, parte 1 (docs/17-onboarding.md, docs/prompts/onboarding-1-historias-y-datos.md).
+-- Aplicada por Planning en Supabase el 9 oct 2026 (versión 20261009232614). El mínimo de 5 de la sección 5 quedó sin efecto con
+-- 20261009232947_publicar_catalogo_sin_minimo (decisión de Lewis: sin mínimo para publicar).
 --
 -- 1. tiendas.onboarding: lo visto/hecho del onboarding, en la base (no en el teléfono). Claves con timestamp ISO:
 --    intro_vista_en, colores_elegidos_en, pantalla_inicio_en, equipo_omitido_en, checklist_cerrado_en.
