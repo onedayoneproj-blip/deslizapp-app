@@ -9,7 +9,7 @@ import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
-import { AvatarYNota, HojaAvatar, HojaNota } from "./avatar-y-nota";
+import { AvatarYNota, HojaAvatar } from "./avatar-y-nota";
 import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { Aviso, Boton, Campo } from "../ui";
 import { useToast } from "../toast";
@@ -38,7 +38,6 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const [emoji, setEmoji] = useState<string | null>(null);
   const [color, setColor] = useState<ColorAvatar | null>(null);
   const [eligiendoAvatar, setEligiendoAvatar] = useState(false);
-  const [escribiendoNota, setEscribiendoNota] = useState(false);
   const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
@@ -67,7 +66,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} alAbrirAvatar={() => setEligiendoAvatar(true)} alAbrirNota={() => setEscribiendoNota(true)} />
+      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} alCambiarNota={(v) => { setNota(v); setErrorNota(undefined); }} alAbrirAvatar={() => setEligiendoAvatar(true)} />
       <Campo etiqueta="Nombre" icono={IconoPersona} type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Paola Jiménez" autoComplete="off" />
       <Campo
         etiqueta="WhatsApp" icono={IconoWhatsApp}
@@ -98,7 +97,6 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
       </Boton>
 
       <HojaAvatar abierta={eligiendoAvatar} alCerrar={() => setEligiendoAvatar(false)} nombre={nombre} emoji={emoji} color={color} alElegir={(e, c) => { setEmoji(e); setColor(c); setEligiendoAvatar(false); }} />
-      <HojaNota abierta={escribiendoNota} alCerrar={() => setEscribiendoNota(false)} nombre={nombre} nota={nota} emoji={emoji} color={color} alListo={(n) => { setNota(n); setErrorNota(undefined); setEscribiendoNota(false); }} />
     </div>
   );
 }

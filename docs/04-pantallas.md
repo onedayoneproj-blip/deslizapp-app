@@ -586,11 +586,14 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
 - Tocar el avatar abre **«Su avatar»** (hoja apilada): 5 colores de fondo de la marca (crema, rosa, dorado, menta, durazno) y una cuadrícula
   de emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni
   avatar, el círculo es crema con una carita.
-- Tocar la burbuja abre **«Nota»**: la burbuja grande se escribe ahí mismo, «Solo tú la ves · N/60» y «Listo». El límite sigue en 60 y la nota
-  se sigue encontrando en el buscador de clientes.
+- La **burbuja de la nota es el campo**: tocarla pone el cursor dentro y se escribe ahí mismo (nada de otra hoja ni otra vista). Crece
+  en alto con el texto hacia arriba, máx. 3 líneas y luego se desplaza por dentro, sin mover el avatar; mantiene la forma de Instagram
+  (píldora + gotita + puntito) y el placeholder «Talla, gustos…». Sin saltos de línea: Enter cierra el teclado (`enterkeyhint="done"`).
+  Mientras se escribe, bajo el avatar sale discreto «Solo tú la ves · N/60» (lugar fijo, no mueve nada). Se guarda en el formulario al
+  escribir (con «Guardar cliente»); el límite sigue en 60 y la nota se sigue encontrando en el buscador de clientes.
 - El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
   Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
-- El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» ya en «Nota».
+- El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» con el cursor ya dentro de la nota, en el mismo toque (regla del teclado de iPhone).
 - Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales (migración `20261009012119`). La
   app solo envía esas columnas cuando se eligió un avatar.
 

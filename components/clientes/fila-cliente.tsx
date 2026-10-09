@@ -6,7 +6,7 @@ import { formatearPesos } from "@/lib/formato";
 import { formatearTelefono, resaltarTelefono } from "@/lib/telefono";
 import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
-import { Avatar, BarraAbonado, Boton, FilaLista, MontoDeuda } from "../ui";
+import { BarraAbonado, Boton, FilaLista, MontoDeuda } from "../ui";
 import { TextoResaltado } from "./texto-resaltado";
 import { AvatarCliente } from "./avatar-cliente";
 

@@ -22,7 +22,7 @@ import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha } from "../iconos";
 import { SelectorCliente, type ClienteElegido } from "../pedidos/selector-cliente";
-import { Alerta, Aviso, Avatar, Boton, Etiqueta } from "../ui";
+import { Alerta, Aviso, Boton, Etiqueta } from "../ui";
 import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /**

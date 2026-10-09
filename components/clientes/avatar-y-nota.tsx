@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { COLORES_AVATAR, EMOJIS_AVATAR, hexDeColor, type ColorAvatar } from "@/lib/avatar-cliente";
 import { MAX_NOTA } from "@/lib/data/clientes";
 import { iniciales } from "@/lib/formato";
@@ -41,34 +41,89 @@ export function BurbujaNota({ nota, onClick, etiqueta, className }: { nota: stri
   );
 }
 
+/** Líneas que muestra la burbuja de la nota antes de desplazarse por dentro. */
+const LINEAS_NOTA = 3;
+
 /**
- * Arriba de "Cliente nuevo" y "Editar cliente": la burbuja de la nota sobre el avatar grande (112 px, con la muesca del botón
- * "+" / lápiz). Tocar el avatar abre "Su avatar"; tocar la burbuja, "Nota". Solo emoji, nunca fotos.
+ * La burbuja de la nota ES el campo (como la nota de Instagram): tocarla pone el cursor dentro y se escribe ahí mismo, sin otra hoja ni
+ * otra vista. Crece en alto con el texto (máx. 3 líneas, luego se desplaza por dentro) hacia ARRIBA, para que el avatar no se mueva. Sin
+ * saltos de línea: Enter cierra el teclado (`enterkeyhint="done"`). El contador «Solo tú la ves · N/60» sale discreto mientras se escribe.
+ */
+function BurbujaEscribible({ id, valor, alCambiar, alEnfocar }: { id?: string; valor: string; alCambiar: (v: string) => void; alEnfocar: (enfocado: boolean) => void }) {
+  const campo = useRef<HTMLTextAreaElement>(null);
+  // Alto según el contenido (hasta LINEAS_NOTA líneas)
+  useLayoutEffect(() => {
+    const el = campo.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const linea = parseFloat(getComputedStyle(el).lineHeight) || 19;
+    el.style.height = `${Math.min(el.scrollHeight, linea * LINEAS_NOTA)}px`;
+  }, [valor]);
+  return (
+    <div className="absolute bottom-[108px] left-[30px] z-20">
+      <div className="relative w-[150px] text-superficie [filter:drop-shadow(0_5px_12px_rgb(23_75_58/0.16))]">
+        <label className="block rounded-[26px] bg-superficie px-4 py-3">
+          <span className="sr-only">Nota del cliente</span>
+          <textarea
+            ref={campo}
+            id={id}
+            rows={1}
+            value={valor}
+            maxLength={MAX_NOTA}
+            placeholder="Talla, gustos…"
+            enterKeyHint="done"
+            autoComplete="off"
+            onFocus={() => alEnfocar(true)}
+            onBlur={() => alEnfocar(false)}
+            onChange={(e) => alCambiar(e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_NOTA))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.blur();
+              }
+            }}
+            className="block w-full resize-none overflow-y-auto bg-transparent text-center text-[16px] leading-[1.25] font-semibold text-texto outline-none placeholder:font-normal placeholder:text-texto-secundario"
+          />
+        </label>
+        <ColaDeNota className="absolute top-[calc(100%-10px)] left-5.5" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Arriba de "Cliente nuevo" y "Editar cliente": la burbuja de la nota (un campo, se escribe ahí mismo) sobre el avatar grande (112 px,
+ * con la muesca del botón "+" / lápiz). Tocar el avatar abre "Su avatar". Solo emoji, nunca fotos.
  */
 export function AvatarYNota({
   nombre,
   nota,
   emoji,
   color,
+  idNota,
+  alCambiarNota,
   alAbrirAvatar,
-  alAbrirNota,
 }: {
   nombre: string;
   nota: string;
   emoji: string | null;
   color: ColorAvatar | null;
+  /** id del campo de la nota (para enfocarlo desde el detalle del cliente en el mismo toque). */
+  idNota?: string;
+  alCambiarNota: (nota: string) => void;
   alAbrirAvatar: () => void;
-  alAbrirNota: () => void;
 }) {
   const hayAvatar = emoji !== null || color !== null;
+  const [enfocada, setEnfocada] = useState(false);
   return (
-    <div className="relative mx-auto mt-3 h-44 w-60">
-      <BurbujaNota nota={nota} onClick={alAbrirNota} etiqueta={nota ? "Editar la nota" : "Agregar una nota"} className="absolute top-[-8px] left-[30px]" />
+    <div>
+    <div className="relative mx-auto mt-3 h-[212px] w-60">
+      <BurbujaEscribible id={idNota} valor={nota} alCambiar={alCambiarNota} alEnfocar={setEnfocada} />
       <button
         type="button"
         onClick={alAbrirAvatar}
         aria-label={hayAvatar ? "Cambiar avatar" : "Elegir avatar"}
-        className="tocable absolute top-[52px] left-16 size-28 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+        className="tocable absolute top-[100px] left-16 size-28 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
       >
         <span className="block [mask:radial-gradient(circle_21px_at_93px_93px,transparent_20.5px,#000_21px)]">
           {nombre.trim() === "" && !hayAvatar ? (
@@ -89,6 +144,11 @@ export function AvatarYNota({
           {hayAvatar ? <IconoEditar tamano={16} strokeWidth={2.4} /> : <IconoMas tamano={16} strokeWidth={3} />}
         </span>
       </button>
+    </div>
+      {/* Lugar fijo (no mueve nada al aparecer): discreto, solo mientras se escribe */}
+      <p aria-live="polite" className="mt-1 h-5 text-center text-etiqueta font-normal text-texto-secundario">
+        {enfocada ? `Solo tú la ves · ${nota.length}/${MAX_NOTA}` : ""}
+      </p>
     </div>
   );
 }
@@ -168,70 +228,6 @@ function Selector({ nombre, emoji, color, alElegir }: { nombre: string; emoji: s
 
       <Boton tamano="grande" anchoCompleto onClick={() => alElegir(e, e === null && c === "crema" ? null : c)}>
         Usar este
-      </Boton>
-    </div>
-  );
-}
-
-/** "Nota": la burbuja grande se escribe ahí mismo (cursor dentro). «Solo tú la ves · N/60» y «Listo». */
-export function HojaNota({
-  abierta,
-  alCerrar,
-  nombre,
-  nota,
-  emoji,
-  color,
-  alListo,
-}: {
-  abierta: boolean;
-  alCerrar: () => void;
-  nombre: string;
-  nota: string;
-  emoji: string | null;
-  color: ColorAvatar | null;
-  alListo: (nota: string) => void;
-}) {
-  return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Nota" altura="grande">
-      <Escribir key={`${abierta}`} nombre={nombre} inicial={nota} emoji={emoji} color={color} alListo={alListo} />
-    </Hoja>
-  );
-}
-
-function Escribir({ nombre, inicial, emoji, color, alListo }: { nombre: string; inicial: string; emoji: string | null; color: ColorAvatar | null; alListo: (nota: string) => void }) {
-  const [texto, setTexto] = useState(inicial);
-  return (
-    <div className="flex flex-col items-center gap-3 pt-4">
-      <div className="relative z-20 w-full max-w-[250px] text-superficie [filter:drop-shadow(0_8px_18px_rgb(23_75_58/0.16))]">
-        <label className="block rounded-[34px] bg-superficie px-6 py-4">
-          <span className="sr-only">Nota del cliente</span>
-          <textarea
-            autoFocus
-            value={texto}
-            onChange={(e) => setTexto(e.target.value.replace(/\n/g, " ").slice(0, MAX_NOTA))}
-            maxLength={MAX_NOTA}
-            rows={2}
-            placeholder="Talla, gustos…"
-            enterKeyHint="done"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                alListo(texto);
-              }
-            }}
-            className="block w-full resize-none bg-transparent text-center text-cuerpo font-semibold text-texto outline-none placeholder:font-normal placeholder:text-texto-secundario"
-          />
-        </label>
-        <ColaDeNota ancho={54} alto={51} className="absolute top-[calc(100%-15px)] left-8" />
-      </div>
-      <div className="mt-8">
-        <Avatar nombre={nombre || "?"} tamano="perfil" emoji={emoji} color={color} />
-      </div>
-      <p className="text-secundario text-texto-secundario">
-        Solo tú la ves · {texto.length}/{MAX_NOTA}
-      </p>
-      <Boton tamano="grande" anchoCompleto onClick={() => alListo(texto)}>
-        Listo
       </Boton>
     </div>
   );

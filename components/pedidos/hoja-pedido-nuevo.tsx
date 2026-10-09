@@ -21,7 +21,7 @@ import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoCalendario, IconoChevronDerecha, IconoMas } from "../iconos";
-import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
+import { Alerta, Aviso, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";

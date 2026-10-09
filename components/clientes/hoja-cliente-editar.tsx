@@ -9,20 +9,20 @@ import { formatearTelefono, normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente, PedidoConItems } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { useToast } from "../toast";
-import { AvatarYNota, HojaAvatar, HojaNota } from "./avatar-y-nota";
+import { AvatarYNota, HojaAvatar } from "./avatar-y-nota";
 import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { Alerta, Aviso, Boton, Campo, GrupoOpciones } from "../ui";
 import { IconoPersona, IconoWhatsApp } from "../iconos";
 
-export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, abrirNota = false }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** Abre «Nota» al entrar (se tocó la burbuja del detalle). */ abrirNota?: boolean }) {
+export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** id del campo de la nota (para enfocarlo al tocar la burbuja del detalle). */ idNota?: string }) {
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Editar cliente" altura="auto">
-      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}:${cliente.nota ?? ""}:${cliente.avatarEmoji ?? ""}:${cliente.avatarColor ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} abrirNota={abrirNota} />
+      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}:${cliente.nota ?? ""}:${cliente.avatarEmoji ?? ""}:${cliente.avatarColor ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} idNota={idNota} />
     </Hoja>
   );
 }
 
-function Formulario({ cliente, pedidos, alTerminar, alEliminar, abrirNota }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void; abrirNota: boolean }) {
+function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void; idNota?: string }) {
   const { actualizarCliente, actualizarNotaCliente, eliminarCliente } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
@@ -32,7 +32,6 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, abrirNota }: { c
   const [emoji, setEmoji] = useState<string | null>(cliente.avatarEmoji ?? null);
   const [color, setColor] = useState<ColorAvatar | null>(cliente.avatarColor ?? null);
   const [eligiendoAvatar, setEligiendoAvatar] = useState(false);
-  const [escribiendoNota, setEscribiendoNota] = useState(abrirNota);
   const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
@@ -90,7 +89,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, abrirNota }: { c
 
   return (
     <div className="flex flex-col gap-3.5">
-      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} alAbrirAvatar={() => setEligiendoAvatar(true)} alAbrirNota={() => setEscribiendoNota(true)} />
+      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} idNota={idNota} alCambiarNota={(v) => { setNota(v); setErrorNota(undefined); }} alAbrirAvatar={() => setEligiendoAvatar(true)} />
 
       <Campo
         etiqueta="Nombre" icono={IconoPersona}
@@ -131,7 +130,6 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, abrirNota }: { c
       </Boton>
 
       <HojaAvatar abierta={eligiendoAvatar} alCerrar={() => setEligiendoAvatar(false)} nombre={nombre} emoji={emoji} color={color} alElegir={(e, c) => { setEmoji(e); setColor(c); setEligiendoAvatar(false); }} />
-      <HojaNota abierta={escribiendoNota} alCerrar={() => setEscribiendoNota(false)} nombre={nombre} nota={nota} emoji={emoji} color={color} alListo={(n) => { setNota(n); setErrorNota(undefined); setEscribiendoNota(false); }} />
 
       <div className="border-t border-linea pt-2">
         <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={() => setHojaBorradoAbierta(true)} deshabilitado={guardando}>

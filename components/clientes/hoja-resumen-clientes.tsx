@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { preload } from "react-dom";
 import { getImageProps } from "next/image";
 import { Hoja, useIrArribaHoja } from "../hoja";
-import { Avatar, Boton, FilaLista, ListaAgrupada } from "../ui";
+import { Boton, FilaLista, ListaAgrupada } from "../ui";
 import { BotonVerMas, useVerMas } from "../ver-mas";
 import { ContenidoResumenClientes, NOMBRE_GRUPO_CLIENTES } from "./contenido-resumen-clientes";
 import { FilaCliente } from "./fila-cliente";

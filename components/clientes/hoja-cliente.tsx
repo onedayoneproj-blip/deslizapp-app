@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { cuentaDeCliente } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -13,7 +14,7 @@ import { Hoja } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoEditar } from "../iconos";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
+import { BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
 import { AvatarCliente } from "./avatar-cliente";
 import { BurbujaNota } from "./avatar-y-nota";
@@ -76,11 +77,11 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
 function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string; alEliminar: () => void }) {
   const { tienda } = useTiendaActiva();
   const [editando, setEditando] = useState(false);
-  // Tocar la burbuja abre "Editar cliente" ya con la vista «Nota»
-  const [abrirNota, setAbrirNota] = useState(false);
+  // Tocar la burbuja abre "Editar cliente" con el cursor en la nota, en el MISMO toque (regla del teclado de iPhone)
+  const idNota = useId();
   const editarNota = () => {
-    setAbrirNota(true);
-    setEditando(true);
+    flushSync(() => setEditando(true));
+    document.getElementById(idNota)?.focus();
   };
   const [ahora] = useState(Date.now);
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
@@ -150,7 +151,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
         )}
       </div>
 
-      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => { setEditando(false); setAbrirNota(false); }} alEliminar={alEliminar} abrirNota={abrirNota} />
+      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => setEditando(false)} alEliminar={alEliminar} idNota={idNota} />
     </div>
   );
 }

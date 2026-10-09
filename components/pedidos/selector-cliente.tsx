@@ -14,7 +14,7 @@ import type { ClienteConResumen } from "@/lib/types";
 import { CampoNota } from "../clientes/campo-nota";
 import { useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { IconoPersona, IconoWhatsApp } from "../iconos";
-import { Aviso, Avatar, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
+import { Aviso, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { BotonVolver, FilaAccion, FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
 import { useToast } from "../toast";

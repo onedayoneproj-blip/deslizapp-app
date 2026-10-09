@@ -12,7 +12,7 @@ import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
+import { Alerta, Aviso, Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion } from "../iconos";
 import { HojaDespachado } from "./hoja-despachado";
