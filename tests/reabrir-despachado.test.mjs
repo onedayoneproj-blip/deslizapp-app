@@ -31,3 +31,23 @@ test("tras reabrir se puede despachar otra vez (mismo número) y el stock vuelve
   assert.equal(otra.pedido.estado, "despachado");
   assert.equal(otra.pedido.numero, p.numero);
 });
+
+test("tras reabrir no se ofrece «venta que ya hice» (no re-marcar despachado sin restar el stock)", async () => {
+  const { ofreceVentaPasada } = await import("../lib/venta-pasada.ts");
+  assert.equal(ofreceVentaPasada("despachado", true), false);
+  assert.equal(ofreceVentaPasada("por_despachar", true), false, "reabierto desde despachado en la misma hoja");
+  assert.equal(ofreceVentaPasada("por_despachar", false), true, "un por despachar normal sí puede");
+  assert.equal(ofreceVentaPasada(undefined, false), true, "pedido nuevo");
+});
+
+test("reabrir → despachar de nuevo descuenta el stock (el único camino de vuelta a despachado)", () => {
+  const db = construirDesdeSeed();
+  const p = db.pedidos.find((x) => x.tiendaId === TIENDA && x.estado === "despachado");
+  const items = db.pedidoItems.filter((i) => i.pedidoId === p.id);
+  const stock = (d, id) => d.productos.find((x) => x.id === id)?.stock;
+  const it = items.find((i) => !i.porEncargo && !i.varianteId && stock(db, i.productoId) !== null);
+  if (!it) return;
+  const reabierto = deshacerDespacho(db, TIENDA, p.id, "2026-10-09T12:00:00.000Z");
+  const otra = despacharPedido(reabierto.db, TIENDA, p.id, "2026-10-09T13:00:00.000Z");
+  assert.equal(stock(otra.db, it.productoId), stock(db, it.productoId));
+});

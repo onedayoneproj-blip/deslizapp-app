@@ -25,3 +25,12 @@ const formatoDia = new Intl.DateTimeFormat("es-DO", { timeZone: "UTC", day: "num
 
 /** "3 de octubre" del día elegido ("2026-10-03"), sin depender de la zona horaria. */
 export const diaEnPalabras = (dia: string) => formatoDia.format(new Date(`${dia}T12:00:00Z`));
+
+/**
+ * ¿El editor ofrece «Es una venta que ya hice»? No en un pedido despachado ni en uno que se REABRIÓ desde despachado en esta misma
+ * hoja: con «Descontar del stock» apagado volvería a marcarlo despachado sin restar el stock que reabrir devolvió. Para volver a
+ * despachar se usa «Despachar pedido», que valida y descuenta el stock.
+ */
+export function ofreceVentaPasada(estado: string | undefined, veniaDespachado: boolean): boolean {
+  return estado !== "despachado" && !veniaDespachado;
+}

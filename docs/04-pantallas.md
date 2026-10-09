@@ -493,7 +493,8 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   la fecha de la venta vuelve a la original (en Por despachar no se edita). La **factura** no se guarda en ninguna parte: se arma
   con el pedido, así que desaparece al reabrir y vuelve a generarse al despachar (mismo número, con los productos nuevos). Si el
   pedido tiene abonos, no se puede guardar con un total menor a lo ya abonado (aviso: "Ya abonó RD$X, más que el nuevo total. Agrega productos hasta cubrirlo.").
-  No aparece el interruptor de "venta que ya hice". (Se quitó el viejo «Ir a los pasos del pedido» y su destello.)
+  No aparece el interruptor de "venta que ya hice", tampoco después de reabrir (volvería a marcarlo despachado sin restar el stock que
+  reabrir devolvió; para volver a despachar está "Despachar pedido", que valida y descuenta). (Se quitó el viejo «Ir a los pasos del pedido» y su destello.)
 - Real: RPC `editar_pedido(p_pedido_id, p_cliente_id, p_items, p_codigo_promo, p_fecha, p_ya_hecho, p_descontar_stock)`; sus
   errores (`pedido_no_encontrado`, `pedido_no_editable`, `fecha_invalida`, `cliente_no_encontrado`, `sin_productos`,
   `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×

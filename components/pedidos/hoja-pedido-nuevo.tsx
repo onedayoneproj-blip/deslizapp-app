@@ -10,7 +10,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
-import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
+import { diaEnPalabras, diaLocal, fechaDeVenta, ofreceVentaPasada } from "@/lib/venta-pasada";
 import { cantidadMaxima, claveLinea, deClaveLinea, esEncargo, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
 import { buscarCodigoPromo } from "@/lib/promos";
@@ -112,6 +112,8 @@ function Formulario({
   });
   // Despachado: solo cliente y fecha. Los productos y el código se ven atenuados y no se tocan.
   const bloqueado = pedido?.estado === "despachado";
+  // Si el editor se abrió con un pedido despachado (aunque luego se reabra), no se ofrece «venta que ya hice» (ver ofreceVentaPasada).
+  const [veniaDespachado] = useState(bloqueado);
   const buscador = useRef<HTMLInputElement>(null);
   // Por llave de línea: el producto, o "producto:variante" (claveLinea).
   const [cantidades, setCantidades] = useState<Record<string, number>>(() => {
@@ -453,7 +455,7 @@ function Formulario({
             error={fechaVenta === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
           />
         </div>
-      ) : (
+      ) : !ofreceVentaPasada(pedido?.estado, veniaDespachado) ? null : (
         <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2.5">
           <div className="flex min-h-11 items-center justify-between gap-3">
             <span className="text-cuerpo font-extrabold">Es una venta que ya hice</span>
