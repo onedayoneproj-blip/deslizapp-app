@@ -591,6 +591,8 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
   (píldora + gotita + puntito) y el placeholder «Talla, gustos…». Sin saltos de línea: Enter cierra el teclado (`enterkeyhint="done"`).
   Mientras se escribe, bajo el avatar sale discreto «Solo tú la ves · N/60» (lugar fijo, no mueve nada). Se guarda en el formulario al
   escribir (con «Guardar cliente»); el límite sigue en 60 y la nota se sigue encontrando en el buscador de clientes.
+  Con el teclado abierto, si «Guardar cliente» quedó bajo el teclado, al enfocar la nota el contenido sube lo necesario para verlo sin
+  esconder la burbuja bajo el encabezado (`verBotonGuardar`, con `visualViewport`).
 - El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
   Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
 - El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» con el cursor ya dentro de la nota, en el mismo toque (regla del teclado de iPhone).

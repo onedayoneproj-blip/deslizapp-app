@@ -125,7 +125,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
         </div>
       )}
 
-      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar} cargando={guardando}>
+      <Boton data-guardar tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar} cargando={guardando}>
         Guardar cambios
       </Boton>
 

@@ -92,7 +92,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
         </Aviso>
       )}
 
-      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
+      <Boton data-guardar tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         Guardar cliente
       </Boton>
 

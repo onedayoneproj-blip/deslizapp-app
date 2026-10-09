@@ -41,6 +41,22 @@ export function BurbujaNota({ nota, onClick, etiqueta, className }: { nota: stri
   );
 }
 
+/**
+ * Con el teclado abierto, si «Guardar cliente» quedó bajo el teclado, sube el contenido lo que haga falta para verlo SIN esconder la
+ * burbuja bajo el encabezado. Espera a que la hoja termine de acomodar el campo enfocado (350 ms) y mide con `visualViewport`.
+ */
+function verBotonGuardar(campo: HTMLTextAreaElement | null) {
+  window.setTimeout(() => {
+    const vv = window.visualViewport;
+    const contenido = campo?.closest<HTMLElement>("[data-hoja-contenido]");
+    const boton = contenido?.querySelector<HTMLElement>("[data-guardar]");
+    if (!campo || !vv || !contenido || !boton || document.activeElement !== campo) return;
+    const falta = boton.getBoundingClientRect().bottom - (vv.offsetTop + vv.height - 12);
+    const holgura = campo.getBoundingClientRect().top - (contenido.getBoundingClientRect().top + 88);
+    if (falta > 0 && holgura > 0) contenido.scrollBy({ top: Math.min(falta, holgura), behavior: "smooth" });
+  }, 400);
+}
+
 /** Líneas que muestra la burbuja de la nota antes de desplazarse por dentro. */
 const LINEAS_NOTA = 3;
 
@@ -73,7 +89,10 @@ function BurbujaEscribible({ id, valor, alCambiar, alEnfocar }: { id?: string; v
             placeholder="Talla, gustos…"
             enterKeyHint="done"
             autoComplete="off"
-            onFocus={() => alEnfocar(true)}
+            onFocus={() => {
+              alEnfocar(true);
+              verBotonGuardar(campo.current);
+            }}
             onBlur={() => alEnfocar(false)}
             onChange={(e) => alCambiar(e.target.value.replace(/\s*\n\s*/g, " ").slice(0, MAX_NOTA))}
             onKeyDown={(e) => {
@@ -117,13 +136,13 @@ export function AvatarYNota({
   const [enfocada, setEnfocada] = useState(false);
   return (
     <div>
-    <div className="relative mx-auto mt-3 h-[212px] w-60">
+    <div className="relative mx-auto mt-3 h-[192px] w-60">
       <BurbujaEscribible id={idNota} valor={nota} alCambiar={alCambiarNota} alEnfocar={setEnfocada} />
       <button
         type="button"
         onClick={alAbrirAvatar}
         aria-label={hayAvatar ? "Cambiar avatar" : "Elegir avatar"}
-        className="tocable absolute top-[100px] left-16 size-28 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+        className="tocable absolute top-[80px] left-16 size-28 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
       >
         <span className="block [mask:radial-gradient(circle_21px_at_93px_93px,transparent_20.5px,#000_21px)]">
           {nombre.trim() === "" && !hayAvatar ? (
