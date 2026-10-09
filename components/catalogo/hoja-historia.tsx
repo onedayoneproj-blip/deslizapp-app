@@ -8,7 +8,7 @@ import {
   textoWhatsAppHistoria, tienePresentaciones, type OpcionesHistoria,
 } from "@/lib/historia";
 import { generarImagenHistoria, imagenesStickers, medirFoto, type EntradaImagenHistoria } from "@/lib/imagen-historia";
-import { urlStickerImagen, type IdGrupoSticker } from "@/lib/catalogo-stickers";
+import { esStickerPropio, urlStickerImagen, type IdGrupoSticker } from "@/lib/catalogo-stickers";
 import { alternarSticker, nombreSticker, gruposOfrecidos, stickersIniciales, textoSticker, type GrupoOfrecido, type IdSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import type { Producto, Promo, Tienda } from "@/lib/types";
 import { Hoja } from "../hoja";
@@ -268,7 +268,10 @@ function PanelStickers({ grupo, dibujos, producto, puestos, alTocar }: {
 function BotonSticker({ id, nombre, dibujo, puesto, deshabilitado, alTocar }: { id: IdSticker; nombre: string; dibujo?: { url: string; ancho: number; alto: number }; puesto: boolean; deshabilitado: boolean; alTocar: () => void }) {
   const src = id === "ultimas" ? dibujo?.url : urlStickerImagen(id);
   // Un sticker propio cuyo archivo no carga no se muestra (ni imagen rota ni hueco)
+  // y mientras no cargue no se puede tocar: poner uno sin imagen haría fallar la historia
+  const propio = esStickerPropio(id);
   const [roto, setRoto] = useState(false);
+  const [cargado, setCargado] = useState(!propio);
   if (roto) return null;
   return (
     <button
@@ -276,7 +279,7 @@ function BotonSticker({ id, nombre, dibujo, puesto, deshabilitado, alTocar }: { 
       aria-pressed={puesto}
       aria-label={nombre}
       data-sticker-boton={id}
-      disabled={deshabilitado}
+      disabled={deshabilitado || !cargado}
       onClick={alTocar}
       className="tocable relative grid h-[76px] min-w-11 place-items-center p-1 disabled:opacity-40"
     >
@@ -287,6 +290,14 @@ function BotonSticker({ id, nombre, dibujo, puesto, deshabilitado, alTocar }: { 
             src={src}
             alt=""
             draggable={false}
+            ref={(el) => {
+              // La imagen puede haber terminado de cargar antes de que React la atendiera
+              if (el?.complete) {
+                if (el.naturalWidth > 0) setCargado(true);
+                else setRoto(true);
+              }
+            }}
+            onLoad={() => setCargado(true)}
             onError={() => setRoto(true)}
             className="max-h-[64px] max-w-full object-contain drop-shadow-[0_3px_4px_rgba(0,0,0,0.3)]"
             style={{ opacity: puesto ? 1 : 0.6 }}
