@@ -120,7 +120,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
           </p>
           {/* El mismo botón abre y cierra: tocarlo de nuevo vuelve a contado (sin botones de Cancelar aparte) */}
           <Boton jerarquia="secundario" tamano="compacto" onClick={cambiando ? dejarDeContado : () => setCambiando(true)} deshabilitado={ocupado}>
-            {cambiando ? "Volver a contado" : "Cambiar a crédito"}
+            {cambiando ? "Cerrar" : "Cambiar a crédito"}
           </Boton>
         </div>
         {cambiando && (

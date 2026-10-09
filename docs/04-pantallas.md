@@ -502,7 +502,7 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 `referencias/credito-abonos/`). Los abonos y saldos vienen con el pedido (`pagado`, `saldo`, `abonos`).
 - **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"**. Al tocarlo se abre la
   pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha (sin ninguna marcada), SIN botones de
-  "Cancelar" ni "A crédito": el mismo botón de la fila pasa a decir **"Volver a contado"** (cierra el bloque). Elegir una fecha (o
+  "Cancelar" ni "A crédito": el mismo botón de la fila pasa a decir **"Cerrar"** (cierra el bloque sin cambiar nada). Elegir una fecha (o
   "Sin fecha") **guarda al momento** (`cambiarPagoPedido`), igual en pedidos pendientes y despachados: aviso "Pedido #N quedó a
   crédito." (sin Deshacer: la app aún no tiene ese patrón en los avisos) y la tarjeta pasa a "Pago" a crédito. "Elegir fecha" guarda
   cuando se confirma el día en el campo, no al tocar la pastilla (`debeGuardarFecha` en `lib/credito.ts`). Mientras guarda, las
