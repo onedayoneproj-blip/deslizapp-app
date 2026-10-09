@@ -485,10 +485,10 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto, en un recuadro naranja suave (Mandarina): "Para cambiar los productos o las cantidades,
   reabre el pedido." con el botón de contorno **"Reabrir pedido"**. Pide confirmación ("¿Reabrir el pedido? El pedido vuelve a
   "Por despachar" y el stock de estos productos se devuelve. Cambias lo que necesites y lo despachas otra vez." — "Sí, reabrir" /
-  "Mejor no"). Al aceptar se usa `deshacerDespacho` (real: RPC `deshacer_despacho`; devuelve el stock y quita `despachado_en`), el
+  "Mejor no"). Al aceptar se usa `deshacerDespacho` (real: RPC `deshacer_despacho`; devuelve el stock y conserva `despachado_en`), el
   aviso dice "Pedido #N reabierto. Cambia lo que necesites." y el MISMO editor queda editable (productos, cantidades y descuento),
   sin pasos intermedios; después, el flujo normal de "Despachar pedido". Se conservan el cliente, el pago a crédito y los abonos;
-  la fecha de la venta vuelve a la original (en Por despachar no se edita). La **factura** no se guarda en ninguna parte: se arma
+  la fecha de la venta se conserva: reabrir → corregir → despachar de nuevo mantiene la fecha ORIGINAL de despacho (reportes, clientes que repiten y factura no se mueven a hoy); un pedido que nunca se despachó recibe la hora del despacho. (Real: requiere que `deshacer_despacho` conserve `despachado_en` y `despachar_pedido` use `coalesce(despachado_en, now())`.) La **factura** no se guarda en ninguna parte: se arma
   con el pedido, así que desaparece al reabrir y vuelve a generarse al despachar (mismo número, con los productos nuevos). Si el
   pedido tiene abonos, no se puede guardar con un total menor a lo ya abonado (aviso: "Ya abonó RD$X, más que el nuevo total. Agrega productos hasta cubrirlo.").
   El interruptor de "venta que ya hice" solo existe al registrar un pedido NUEVO: al editar uno que ya existe (despachado, reabierto o por
@@ -559,7 +559,7 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 - Desde `por_despachar` → Recibido (`nuevo`): directo. Aviso: "Pedido #N volvió a Recibido."
 - Desde `despachado` (a cualquier paso anterior): confirmación breve en la misma hoja ("Se devolverá el stock de los
   productos. ¿Volver a Confirmado?", "Sí, volver" / "Mejor no"); devuelve el stock de cada producto según `cantidad` (los de
-  `stock = null` no cambian), quita `despachado_en` y deja el pedido en `por_despachar`; si el destino es Recibido, después lo
+  `stock = null` no cambian), conserva `despachado_en` (la fecha original de la venta) y deja el pedido en `por_despachar`; si el destino es Recibido, después lo
   pasa a `nuevo`. Real: RPC `deshacer_despacho(p_pedido_id)` (errores `pedido_no_deshacible` y `pedido_no_encontrado` en
   español). Demo: lo mismo en `lib/data/pedidos.ts`.
 - `cancelado`: botón principal **"Reabrir pedido"** (pasa a `nuevo`; "Pedido #N reabierto.") y, debajo, en rojo,

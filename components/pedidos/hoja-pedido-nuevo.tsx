@@ -214,7 +214,7 @@ function Formulario({
   const aItems = () => lineas.map((l) => ({ productoId: l.producto.id, varianteId: l.variante?.id ?? null, cantidad: l.cantidad, porEncargo: l.porEncargo }));
 
   /**
-   * Despachado → Por despachar (`deshacer_despacho`: devuelve el stock y quita `despachado_en`). El pago, los abonos y el cliente se
+   * Despachado → Por despachar (`deshacer_despacho`: devuelve el stock y conserva `despachado_en`, la fecha original de la venta). El pago, los abonos y el cliente se
    * conservan; la fecha de la venta vuelve a la original (en Por despachar no se edita). El editor queda ya lleno y editable.
    * La factura no se guarda: se arma con el pedido al despacharlo otra vez (mismo número), así no queda una vieja.
    */

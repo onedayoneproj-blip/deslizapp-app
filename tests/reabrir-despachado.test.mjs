@@ -16,7 +16,7 @@ test("reabrir un despachado a crédito con abonos: estado y stock cambian, el pa
   const conStock = items.find((i) => !i.porEncargo && !i.varianteId && stockAntes(db, i.productoId) !== null);
   const r = deshacerDespacho(db, TIENDA, p.id, "2026-10-09T12:00:00.000Z");
   assert.equal(r.pedido.estado, "por_despachar");
-  assert.equal(r.pedido.despachadoEn, null);
+  assert.equal(r.pedido.despachadoEn, p.despachadoEn, "conserva la fecha original de la venta");
   assert.equal(r.pedido.pagoModo, "credito");
   assert.equal(r.pedido.pagoFechaAcordada, p.pagoFechaAcordada);
   assert.deepEqual(r.db.abonos.filter((a) => a.pedidoId === p.id), db.abonos.filter((a) => a.pedidoId === p.id));
@@ -60,4 +60,15 @@ test("reabrir sin editar no cambia la firma del editor (salir no avisa); editar 
   assert.equal(diaEnFirma(false, false, original), null);
   // Cambiar el día antes de reabrir sí era un cambio, y reabrir lo restablece al original
   assert.notEqual(diaEnFirma(false, true, "2026-10-05"), diaEnFirma(false, true, original));
+});
+
+test("reabrir → despachar de nuevo conserva la fecha original (reportes y factura); un pedido nuevo se despacha con la hora actual", () => {
+  const db = construirDesdeSeed();
+  const p = db.pedidos.find((x) => x.tiendaId === TIENDA && x.estado === "despachado" && x.despachadoEn);
+  const reabierto = deshacerDespacho(db, TIENDA, p.id, "2026-10-09T12:00:00.000Z");
+  const otra = despacharPedido(reabierto.db, TIENDA, p.id, "2026-10-09T13:00:00.000Z");
+  assert.equal(otra.pedido.despachadoEn, p.despachadoEn);
+  // Un pedido que nunca se despachó (sin fecha de despacho) recibe la hora del despacho
+  const nunca = { ...reabierto.db, pedidos: reabierto.db.pedidos.map((x) => (x.id === p.id ? { ...x, despachadoEn: null } : x)) };
+  assert.equal(despacharPedido(nunca, TIENDA, p.id, "2026-10-09T13:00:00.000Z").pedido.despachadoEn, "2026-10-09T13:00:00.000Z");
 });

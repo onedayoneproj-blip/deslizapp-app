@@ -158,7 +158,8 @@ export function cambiarEstadoPedido(db: DB, tiendaId: string, id: string, estado
 }
 
 /**
- * Despacha un pedido por_despachar: registra `despachadoEn` y descuenta el stock de cada producto
+ * Despacha un pedido por_despachar: registra `despachadoEn` (si ya traía uno porque se reabrió, conserva la fecha ORIGINAL de la venta;
+ * si nunca se despachó, la hora actual) y descuenta el stock de cada producto
  * según la cantidad. `stock = null` no se descuenta. Si algún producto no alcanza, lanza
  * StockInsuficiente y no cambia nada. Devuelve los nombres de los productos que quedaron en 0.
  */
@@ -166,19 +167,20 @@ export function despacharPedido(db: DB, tiendaId: string, id: string, ahora: str
   const actual = pedidoParaCambiar(db, tiendaId, id);
   if (actual.estado !== "por_despachar") throw new Error("Solo se despachan pedidos que están por despachar.");
   const r = moverStockDemo(db, tiendaId, db.pedidoItems.filter((i) => i.pedidoId === id), -1, ahora);
-  const pedido: Pedido = { ...actual, estado: "despachado", despachadoEn: ahora };
+  const pedido: Pedido = { ...actual, estado: "despachado", despachadoEn: actual.despachadoEn ?? ahora };
   return { db: { ...reemplazarPedido(db, pedido), productos: r.productos, variantes: r.variantes }, pedido: conItems(db, pedido), agotados: r.agotados };
 }
 
 /**
- * Deshace un despacho: el pedido vuelve a por_despachar sin `despachadoEn` y cada producto (o variante) con stock controlado
+ * Deshace un despacho: el pedido vuelve a por_despachar CONSERVANDO `despachadoEn` (la fecha original de la venta, para que reabrir →
+ * corregir → despachar de nuevo no la mueva a hoy en reportes ni en la factura) y cada producto (o variante) con stock controlado
  * recupera lo que se descontó. Lo mismo que hace la RPC `deshacer_despacho` en Supabase.
  */
 export function deshacerDespacho(db: DB, tiendaId: string, id: string, ahora: string) {
   const actual = pedidoParaCambiar(db, tiendaId, id);
   if (actual.estado !== "despachado") throw new PedidoNoDeshacible();
   const r = moverStockDemo(db, tiendaId, db.pedidoItems.filter((x) => x.pedidoId === id), 1, ahora);
-  const pedido: Pedido = { ...actual, estado: "por_despachar", despachadoEn: null };
+  const pedido: Pedido = { ...actual, estado: "por_despachar" };
   return { db: { ...reemplazarPedido(db, pedido), productos: r.productos, variantes: r.variantes }, pedido: conItems(db, pedido) };
 }
 
