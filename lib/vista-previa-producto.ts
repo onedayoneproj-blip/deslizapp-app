@@ -3,7 +3,7 @@
 import { disponibilidad } from "./data/catalogo";
 import { claveVariante, type Presentacion } from "./presentaciones";
 import type { Detalles, Rubro } from "./rubros";
-import type { CatalogoPublico, FotosPorValor, Medio, OpcionProducto, ProductoPublico, Tienda } from "./types";
+import type { CatalogoPublico, FotosPorValor, Medio, OpcionProducto, Producto, ProductoPublico, Tienda } from "./types";
 
 /** Lo que el dueño tiene en la hoja de producto ahora mismo (sin guardar). */
 export type BorradorPublico = {
@@ -95,4 +95,45 @@ export function tiendaPublicaDe(t: Tienda): CatalogoPublico["tienda"] {
     rubros: t.rubros,
     indexable: false,
   };
+}
+
+/**
+ * «Ver cómo queda» el catálogo entero (antes o después de publicar): los productos guardados como los vería quien compra, en el
+ * orden del catálogo. Solo los visibles. Sin promos ni opiniones (valores neutros, como el borrador); los likes, los que tiene.
+ */
+export function productosPublicosDe(productos: Producto[], rubroTienda: Tienda["rubro"]): ProductoPublico[] {
+  return productos
+    .filter((p) => p.activo && !p.eliminadoEn)
+    .sort((a, b) => (a.orden == null ? (b.orden == null ? 0 : -1) : b.orden == null ? 1 : a.orden - b.orden) || b.creadoEn.localeCompare(a.creadoEn) || a.id.localeCompare(b.id))
+    .map((p) => {
+      const activas = (p.variantes ?? []).filter((v) => v.activa);
+      const stock = activas.length === 0 ? p.stock : activas.some((v) => v.stock === null) ? null : activas.reduce((s, v) => s + (v.stock ?? 0), 0);
+      const disp = disponibilidad(stock, p.porEncargo);
+      return {
+        orden: p.orden ?? null,
+        opiniones: [],
+        id: p.id,
+        slug: p.slug,
+        nombre: p.nombre,
+        tipo: p.tipo,
+        rubro: p.rubro ?? rubroTienda,
+        categoria: p.categoria,
+        precio: p.precio,
+        precioPromo: null,
+        promo: null,
+        medios: p.medios,
+        detalles: p.detalles,
+        opciones: activas.length > 0 ? p.opciones : [],
+        fotosPorValor: activas.length > 0 ? (p.fotosPorValor ?? {}) : {},
+        fichaUrl: p.fichaUrl ?? null,
+        likes: p.likes,
+        disponibilidad: disp,
+        quedan: disp === "quedan" ? stock : null,
+        encargoTexto: p.porEncargo ? p.encargoTexto : null,
+        variantes: activas.map((v) => {
+          const dv = disponibilidad(v.stock, p.porEncargo);
+          return { id: v.id, valores: v.valores, precio: v.precio ?? p.precio, precioPromo: null, disponibilidad: dv, quedan: dv === "quedan" ? v.stock : null };
+        }),
+      };
+    });
 }

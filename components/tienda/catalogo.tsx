@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { SUBTEXTO_CATALOGO_PRONTO, textoCatalogoPronto } from "@/lib/publicar-catalogo";
 import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
 import type { CatalogoPublico } from "@/lib/types";
@@ -814,7 +815,7 @@ export function Catalogo({
             compartir={() => void compartir(p.slug)}
           />
         ))}
-        {!lista.length && (
+        {!lista.length && cv.productos.length > 0 && (
           <p className="empty">Aaah… todavía no hay productos aquí.</p>
         )}
         <article
@@ -836,14 +837,21 @@ export function Catalogo({
               <div className="bigav">
                 <span aria-hidden="true" />
               </div>
-              <h2>
-                ¡Ya viste{" "}
-                {filtro === "all"
-                  ? "todos mis " + nombreLista
-                  : "esta colección"}
-                !
-              </h2>
-              {cart.length > 0 ? (
+              {/* Catálogo publicado sin productos todavía (se puede publicar vacío): se ve como un «pronto», no roto. */}
+              {cv.productos.length === 0 ? (
+                <h2 data-catalogo-pronto="">{textoCatalogoPronto(t.nombre)}</h2>
+              ) : (
+                <h2>
+                  ¡Ya viste{" "}
+                  {filtro === "all"
+                    ? "todos mis " + nombreLista
+                    : "esta colección"}
+                  !
+                </h2>
+              )}
+              {cv.productos.length === 0 ? (
+                <p>{SUBTEXTO_CATALOGO_PRONTO}</p>
+              ) : cart.length > 0 ? (
                 <>
                   <p>
                     Elegiste {cart.length}{" "}

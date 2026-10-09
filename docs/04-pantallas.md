@@ -278,11 +278,15 @@ subtítulo y la dona del plan, encima de los filtros). Reemplaza a la antigua fi
 lugar, `vistaCatalogo()` en `lib/catalogo-estado.ts` (con tests): la tienda pausada manda sobre todo; después `tiendas.catalogo_estado`.
 Ocho estados:
 
-1. **Sin catálogo** (la tienda publica sola, `docs/prompts/publicar-catalogo.md`): sin lo mínimo (5 productos visibles con foto desde el onboarding,
-   `PRODUCTOS_MINIMOS_PARA_PUBLICAR` en `lib/config.ts`, regla en `lib/publicar-catalogo.ts`) dice «Te faltan N productos con foto para
-   publicar tu catálogo» con «Crear producto» (lleva a `/catalogo/nuevo`); con lo mínimo, **«Publicar mi catálogo»** abre la hoja
-   «¿Publicamos tu catálogo?» (el enlace que tendrá, la lista de lo que no se puede vender —`lib/productos-prohibidos.ts`— y «Al publicar
-   aceptas los Términos») → «Publicar» (`publicar_mi_catalogo`) / «Ahora no». Solo la dueña: un colaborador ve el botón apagado y, al
+1. **Sin catálogo** (la tienda publica sola, `docs/prompts/publicar-catalogo.md`). **Sin mínimo** (decisión de Lewis, 9 oct 2026;
+   migración `20261009232947_publicar_catalogo_sin_minimo`): **«Publicar mi catálogo»** y **«Ver cómo queda»** desde el día uno. El texto
+   sugiere 5 productos con foto (`PRODUCTOS_SUGERIDOS_PARA_PUBLICAR` en `lib/config.ts`, regla en `lib/publicar-catalogo.ts`); con 5 o más,
+   «Ya se luce». «Ver cómo queda» abre la hoja «Vista previa» de producto (`HojaComoSeVe`, iframe `/vista-previa-catalogo`) con todos los
+   productos visibles (vacío: «Pronto, aquí van los productos de {tienda}.»). «Publicar mi catálogo» abre la hoja de siempre (el enlace que
+   tendrá, la lista de lo que no se puede vender —`lib/productos-prohibidos.ts`— y «Al publicar aceptas los Términos»): con 5 o más,
+   «¿Publicamos tu catálogo?» → «Publicar» / «Ahora no»; con menos, la confirmación suave «Tu catálogo está vacío» / «Tu catálogo tiene N
+   producto(s)», «Así lo verán tus clientes. Puedes publicarlo y seguir agregando.» → «Publicar igual» / «Agregar más» (lleva a
+   `/catalogo/nuevo`). Nunca bloquea. Solo la dueña publica: un colaborador ve el botón apagado y, al
    tocarlo, «Esto lo hace quien administra la tienda.». El flujo manual de ocho estados (`solicitar_catalogo`, `HojaPedirCatalogo`) sigue
    en el código para los catálogos que el equipo arma, pero la tarjeta ya no ofrece «Pedirlo».
 2. **Pedido recibido**: solo informa.

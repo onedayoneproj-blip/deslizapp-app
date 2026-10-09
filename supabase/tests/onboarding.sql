@@ -1,5 +1,5 @@
 -- Verificación del onboarding, parte 1 (docs/17-onboarding.md). Todo corre dentro de begin … rollback: no deja nada.
--- Antes de aplicar la migración: se pega la migración entre `begin;` y los casos. Después de aplicarla: se corre tal cual.
+-- Se corre tal cual contra la base (migraciones 20261009232614 y 20261009232947 aplicadas).
 -- Crea una cuenta y un enlace de tienda nueva de mentira (solo dentro de la transacción). Cada caso falla con assert.
 
 begin;
@@ -108,24 +108,14 @@ begin
   raise notice 'caso 4 ok';
 end $$;
 
--- Caso 5. publicar_mi_catalogo pide 5 productos con foto.
+-- Caso 5. publicar_mi_catalogo sin mínimo (20261009232947, decisión de Lewis): la tienda nueva publica con el catálogo vacío.
 do $$
-declare t uuid; i int;
+declare t uuid;
 begin
   select tienda_creada_id into t from public.enlaces_invitacion where id = '00000000-0000-4000-8000-0000000000e1';
   perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a1","role":"authenticated"}', true);
   execute 'set local role authenticated';
-  for i in 1..4 loop
-    insert into public.productos (tienda_id, nombre, precio, medios)
-    values (t, 'P' || i, 100, jsonb_build_array(jsonb_build_object('tipo', 'foto', 'url',
-      'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/' || t || '/p' || i || '.webp')));
-  end loop;
-  begin perform public.publicar_mi_catalogo(t); assert false, 'caso 5: publicó con 4';
-  exception when sqlstate 'P0001' then null; end;
-  insert into public.productos (tienda_id, nombre, precio, medios)
-  values (t, 'P5', 100, jsonb_build_array(jsonb_build_object('tipo', 'foto', 'url',
-    'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/' || t || '/p5.webp')));
-  assert (public.publicar_mi_catalogo(t)).catalogo_estado = 'publicado', 'caso 5: no publicó con 5';
+  assert (public.publicar_mi_catalogo(t)).catalogo_estado = 'publicado', 'caso 5: no publicó vacía';
   execute 'reset role';
   raise notice 'caso 5 ok';
 end $$;

@@ -1,6 +1,6 @@
 import type { EstiloMarca } from "../marca";
 import { errorDeRubros, productosConTipoQuitado, type Rubro } from "../rubros";
-import { enlaceAlPublicar, faltanParaPublicar } from "../publicar-catalogo";
+import { enlaceAlPublicar } from "../publicar-catalogo";
 import type { Tienda, Usuario } from "../types";
 import type { DB } from "./db";
 import { CreditosInsuficientes, DatosInvalidos, mensajeRubroEnUso } from "./errores";
@@ -108,15 +108,12 @@ export function publicarElCatalogo(db: DB, tiendaId: string, ahora: string) {
   return conTienda(db, { ...t, catalogoEstado: "publicado", catalogoPublicadoEn: ahora, catalogoNotasCambios: null });
 }
 
-/** sin → publicado, de una vez (RPC `publicar_mi_catalogo`): exige el mínimo de productos con foto; ya publicado no hace nada. */
+/** sin → publicado, de una vez (RPC `publicar_mi_catalogo`): sin mínimo de productos; ya publicado no hace nada. */
 export function publicarMiCatalogoEnDB(db: DB, tiendaId: string, ahora: string) {
   const t = tiendaDelCatalogo(db, tiendaId);
   if (t.estado === "pausada") throw new DatosInvalidos("Tu tienda está en pausa. Actívala con tu plan para publicar tu catálogo.");
   if (t.catalogoEstado === "publicado") return { db, tienda: t };
   if (t.catalogoEstado !== "sin") throw new DatosInvalidos("Tu catálogo ya va en camino con nuestro equipo. Actualiza la pantalla para ver dónde va.");
-  if (faltanParaPublicar(db.productos.filter((p) => p.tiendaId === t.id)) > 0) {
-    throw new DatosInvalidos("Todavía te faltan productos con foto para publicar tu catálogo. Agrégalos y vuelve.");
-  }
   return conTienda(db, {
     ...t,
     catalogoEstado: "publicado",
