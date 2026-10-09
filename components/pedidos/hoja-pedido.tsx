@@ -221,23 +221,16 @@ function Detalle({
       toast(nuevo === null ? "Cupón quitado" : habia ? "Cupón cambiado" : `Descuento ${nuevo} aplicado. El total ya cambió.`);
     });
 
-  // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina). Es una acción
-  // de texto al final de la hoja, aparte de la tarjeta de Pago y del botón principal.
+  // "Editar pedido": el mismo formulario de "+ Pedido", ya lleno (no aplica a un cancelado: se reabre o se elimina).
   const botonEditar = (
-    <Boton jerarquia="terciario" href={`/pedidos/${pedido.id}/editar`} scroll={false} deshabilitado={ocupado}>
+    <Boton jerarquia="secundario" anchoCompleto href={`/pedidos/${pedido.id}/editar`} scroll={false} deshabilitado={ocupado}>
       Editar pedido
     </Boton>
   );
   const botonCancelar = (
-    <Boton jerarquia="terciario" tono="peligro" onClick={cancelar} deshabilitado={ocupado}>
+    <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
       Cancelar pedido
     </Boton>
-  );
-  const pieDeAcciones = (conCancelar: boolean) => (
-    <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6">
-      {botonEditar}
-      {conCancelar && botonCancelar}
-    </div>
   );
 
   if (vista === "descuento") {
@@ -377,35 +370,39 @@ function Detalle({
       {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
       <PagoDelPedido pedido={pedido} cliente={cliente} />
 
-      {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta. "Editar pedido" y "Cancelar pedido"
-          van al final, como texto, lejos del pago y del botón principal. */}
+      {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta. "Editar pedido" va aparte: con aire
+          sobre la tarjeta de Pago y sobre la nota a mano. */}
       {pedido.estado === "nuevo" && (
-        <>
+        <div className="mt-2 flex flex-col gap-2">
           <Boton tamano="grande" anchoCompleto onClick={confirmar} deshabilitado={ocupado}>
             Confirmar pedido
           </Boton>
-          {pieDeAcciones(true)}
-        </>
+          <div className="mt-3 flex flex-col gap-2">
+            {botonEditar}
+            {botonCancelar}
+          </div>
+        </div>
       )}
       {pedido.estado === "por_despachar" && (
-        <>
-          <div className="flex flex-col gap-2">
-            {faltantes.length > 0 && (
-              <div role="alert">
-                <Aviso tono="atencion">
-                  <b>No alcanza el stock de {faltantes.join(" ni de ")}.</b> Sube el stock desde el Catálogo o cancela el pedido: no dejamos el stock en negativo.
-                </Aviso>
-              </div>
-            )}
-            <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
-              Despachar pedido
-            </Boton>
-            <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
+        <div className="mt-2 flex flex-col gap-2">
+          {faltantes.length > 0 && (
+            <div role="alert">
+              <Aviso tono="atencion">
+                <b>No alcanza el stock de {faltantes.join(" ni de ")}.</b> Sube el stock desde el Catálogo o cancela el pedido: no dejamos el stock en negativo.
+              </Aviso>
+            </div>
+          )}
+          <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
+            Despachar pedido
+          </Boton>
+          <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
+          <div className="mt-3 flex flex-col gap-2">
+            {botonEditar}
+            {botonCancelar}
           </div>
-          {pieDeAcciones(true)}
-        </>
+        </div>
       )}
-      {pedido.estado === "despachado" && pieDeAcciones(false)}
+      {pedido.estado === "despachado" && <div className="mt-2 flex flex-col gap-2">{botonEditar}</div>}
       {pedido.estado === "cancelado" && (
         <div className="flex flex-col gap-2">
           <Boton tamano="grande" anchoCompleto onClick={reabrir} deshabilitado={ocupado}>

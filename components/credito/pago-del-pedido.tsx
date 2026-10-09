@@ -197,7 +197,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
                   Recordarle por WhatsApp
                 </Boton>
               )}
-              <Boton jerarquia="secundario" anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
+              <Boton jerarquia="terciario" anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
                 Registrar abono
               </Boton>
             </div>

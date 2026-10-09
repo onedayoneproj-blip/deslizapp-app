@@ -477,9 +477,8 @@ primero hay que volver a `por_despachar` desde la barra de pasos. La misma fila 
 pedido" y el detalle, con la misma regla y el mismo cálculo (`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`;
 `calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
 
-**Editar pedido** (acción de texto —botón terciario— al final de la hoja, junto a "Cancelar pedido" en rojo y con espacio claro respecto
-a la tarjeta de Pago y al botón principal; en `nuevo`, `por_despachar` y `despachado`, no en `cancelado`; "Registrar abono" se queda en la
-tarjeta de Pago como botón secundario): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
+**Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— a todo lo ancho, debajo del botón principal y de la nota a mano, con espacio de aire sobre ellos y sobre la tarjeta de Pago; en `nuevo`, `por_despachar` y
+`despachado`, no en `cancelado`; "Registrar abono" no se le parece: va dentro de la tarjeta de Pago como botón de texto con "+", debajo de "Recordarle por WhatsApp"): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
 `/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
 Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
 - `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". El interruptor
@@ -514,8 +513,8 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   Cada abono es una **fila** (`FilaLista`: icono, "Abono · Transferencia" con puntos suspensivos, fecha debajo, monto y flecha) y TODA la
   fila abre la hoja **"Abono"** (`hoja-detalle-abono.tsx`, apilada sobre el detalle): monto en grande, cómo pagó, fecha, a qué pedido se
   aplicó y la nota si hay; abajo **"Editar abono"** (secundario, ancho completo) y **"Borrar abono"** (terciario peligro, abre la Alerta
-  "¿Borrar este abono? La deuda vuelve a subir RD$X."; al borrar se cierra la hoja). No hay "Borrar" en cada fila. Botones **"+ Registrar abono"**
-  (principal) y **"Recordarle por WhatsApp"** (contorno; solo con teléfono y deuda). Los cambios de saldo se anuncian con `aria-live`.
+  "¿Borrar este abono? La deuda vuelve a subir RD$X."; al borrar se cierra la hoja). No hay "Borrar" en cada fila. Botones **"Recordarle por WhatsApp"** (principal) y **"+ Registrar abono"** (botón de texto, terciario)
+  debajo, solo con teléfono y deuda. Los cambios de saldo se anuncian con `aria-live`.
 - **Colores en el flujo de crédito** (+ Pedido / venta pasada / Editar pedido, "Registrar abono" y "Cambiar a crédito"; las pastillas de
   filtro de Pedidos, Clientes, Catálogo y Promos no cambian): una **opción elegida** (`tono="opcion"` de `Chip` y `Segmentos`,
   `role="radio"` dentro de `GrupoOpciones`) va en **Rosa Suave con borde Verde Bosque de 1,5 px y un check en círculo a la izquierda**
