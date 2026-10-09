@@ -1,6 +1,6 @@
 // "Avísame cuando llegue" en el panel (docs/12 §9; tablero Producto «Inventario»).
 import { normalizarTelefonoDO } from "./telefono";
-import type { AvisoLlegada } from "./types";
+import type { AvisoLlegada, Cliente } from "./types";
 
 /** Pendientes de una sola tienda. Las filas por variante se conservan; los contadores son personas. */
 export function resumenEspera(avisos: AvisoLlegada[], tiendaId: string) {
@@ -42,6 +42,23 @@ export function mensajeYaLlego(d: { nombre: string | null; producto: string; var
 
 /** "18095550142" → enlace de WhatsApp con el mensaje. */
 export const enlaceAviso = (telefono: string, mensaje: string) => `https://wa.me/${telefono.replace(/\D/g, "")}?text=${encodeURIComponent(mensaje)}`;
+
+/** Chat de WhatsApp con ese número, sin mensaje escrito ("Escribir" libre, no el aviso de «Ya llegó»). */
+export const enlaceChat = (telefono: string) => `https://wa.me/${telefono.replace(/\D/g, "")}`;
+
+/** Clientes con teléfono, por teléfono normalizado: se arma UNA vez por lista y cada fila consulta el mapa. Si dos comparten número, queda el primero. */
+export function clientesPorTelefono<C extends Pick<Cliente, "telefono">>(clientes: C[]): Map<string, C> {
+  const mapa = new Map<string, C>();
+  for (const c of clientes) {
+    if (!c.telefono) continue;
+    const clave = normalizarTelefonoDO(c.telefono) ?? c.telefono;
+    if (!mapa.has(clave)) mapa.set(clave, c);
+  }
+  return mapa;
+}
+
+/** El cliente registrado con el teléfono de un aviso (en cualquier formato del mismo número), o null. */
+export const clienteDelAviso = <C,>(mapa: Map<string, C>, telefono: string): C | null => mapa.get(normalizarTelefonoDO(telefono) ?? telefono) ?? null;
 
 /** Cuántos esperan cada producto (por id). */
 export function esperanPorProducto(avisos: { productoId: string }[]): Map<string, number> {

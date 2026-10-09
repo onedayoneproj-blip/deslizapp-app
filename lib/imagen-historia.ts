@@ -3,7 +3,7 @@
 
 import { formatearPesos, iniciales } from "./formato";
 import { ENCUADRE_INICIAL, rectFoto, rectFondo, type AjusteFoto } from "./encuadre-historia";
-import type { DatosHistoria, DireccionHistoria } from "./historia";
+import { textoPieHistoria, type DatosHistoria, type DireccionHistoria } from "./historia";
 import { urlStickerImagen } from "./catalogo-stickers";
 import { dibujarSticker, necesitaImagen } from "./dibujo-stickers-historia";
 import { limitarSticker, type IdSticker, type StickerPuesto } from "./stickers-historia";
@@ -304,7 +304,7 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     const lineasNombre = partirLineas(ctx, datos.nombre, anchoUtil, 2);
     const altoNombre = lineasNombre.length * 68;
 
-    const altoPrecio = datos.precio ? 118 : 0;
+    const altoPrecio = datos.precio || datos.etiquetaAgotado ? 118 : 0;
 
     const pastillas: Pastilla[][] = [];
     if (datos.presentaciones) {
@@ -347,10 +347,19 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     const altoPastillas = pastillas.length ? pastillas.length * 76 + (pastillas.length - 1) * 14 : 0;
 
     const circulo = 150;
-    const altoPie = circulo;
+    // El pie del producto agotado es largo: se parte en hasta 2 líneas (sin cortar palabras) y el pie crece lo que haga falta.
+    const textoPie = textoPieHistoria(datos.agotado);
+    const anchoPie = x0 + anchoUtil - (datos.fotoTienda ? x0 + circulo + 34 : x0);
+    let lineasPie = [textoPie];
+    if (datos.agotado) {
+      ctx.font = `700 38px ${f.texto}`;
+      lineasPie = partirLineas(ctx, textoPie, anchoPie, 2);
+    }
+    const extraPie = (lineasPie.length - 1) * 44;
+    const altoPie = circulo + extraPie;
 
     let alto = relleno + altoNombre;
-    if (datos.precio) alto += 6 + altoPrecio;
+    if (datos.precio || datos.etiquetaAgotado) alto += 6 + altoPrecio;
     if (altoPastillas) alto += 22 + altoPastillas;
     alto += 34 + 2 + 34 + altoPie + relleno;
 
@@ -385,7 +394,14 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
       ctx.fillText(l, x0, y - 16);
     }
 
-    if (datos.precio) {
+    if (datos.etiquetaAgotado) {
+      // «Agotado» con el peso del precio (mismo cuerpo y color), sin tachar ni apagar
+      y += 6;
+      ctx.font = `700 96px ${f.display}`;
+      ctx.fillStyle = BOSQUE;
+      ctx.fillText("Agotado", x0, y + 94);
+      y += altoPrecio;
+    } else if (datos.precio) {
       y += 6;
       const base = y + 94;
       let x = x0;
@@ -465,27 +481,33 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
 
     let xt = x0;
     if (datos.fotoTienda) {
-      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
+      dibujarTienda(ctx, x0, y + extraPie / 2, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
       xt = x0 + circulo + 34;
     }
     ctx.fillStyle = BOSQUE;
-    const centro = y + circulo / 2;
+    const centro = y + altoPie / 2;
     const anchoTexto = x0 + anchoUtil - xt;
     const d = entrada.direccion;
     if (d) {
-      // «Pídelo en mi catálogo», el dominio completo y, debajo, la ruta: sin «https://» y sin cortar a mitad
+      // «Pídelo en mi catálogo» (agotado: ver TEXTO_PIE_AGOTADO), el dominio completo y, debajo, la ruta: sin «https://» y sin cortar a mitad
       const lineas = d.ruta ? 3 : 2;
       const arriba = centro - (lineas === 3 ? 44 : 22);
-      lineaQueCabe(ctx, "Pídelo en mi catálogo", xt, arriba + 12, anchoTexto, 700, 40, 32, f.texto);
+      const arribaP = arriba - extraPie / 2;
+      if (datos.agotado) {
+        ctx.font = `700 38px ${f.texto}`;
+        lineasPie.forEach((l, i) => ctx.fillText(l, xt, arribaP + 12 + i * 44));
+      } else {
+        lineaQueCabe(ctx, textoPie, xt, arribaP + 12, anchoTexto, 700, 40, 32, f.texto);
+      }
       ctx.fillStyle = BOSQUE;
-      lineaQueCabe(ctx, d.dominio, xt, arriba + 62, anchoTexto, 700, 36, 24, f.texto);
+      lineaQueCabe(ctx, d.dominio, xt, arribaP + 62 + extraPie, anchoTexto, 700, 36, 24, f.texto);
       if (d.ruta) {
         ctx.fillStyle = SUAVE;
-        lineaQueCabe(ctx, d.ruta, xt, arriba + 106, anchoTexto, 600, 32, 22, f.texto);
+        lineaQueCabe(ctx, d.ruta, xt, arribaP + 106 + extraPie, anchoTexto, 600, 32, 22, f.texto);
       }
     } else {
-      ctx.font = `700 40px ${f.texto}`;
-      ctx.fillText("Pídelo en mi catálogo", xt, centro + 14);
+      ctx.font = `700 ${datos.agotado ? 38 : 40}px ${f.texto}`;
+      lineasPie.forEach((l, i) => ctx.fillText(l, xt, centro + 14 + (i - (lineasPie.length - 1) / 2) * 44));
     }
     if (!entrada.soloTarjeta) {
       for (const puesto of entrada.stickers ?? []) {
