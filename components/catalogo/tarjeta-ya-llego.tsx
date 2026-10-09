@@ -162,7 +162,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
                 </span>
               </span>
               <div className="ml-auto flex items-center gap-2">
-                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} onClick={() => escribir(a)} aria-label={`Escribir a ${nombre ?? telefono} por WhatsApp`}>
+                <Boton whatsapp onClick={() => escribir(a)} aria-label={`Escribir a ${nombre ?? telefono} por WhatsApp`}>
                   Escribir
                 </Boton>
                 {estado === "avisado" ? (
