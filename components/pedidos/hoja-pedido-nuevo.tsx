@@ -21,12 +21,13 @@ import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
 import { IconoCalendario, IconoChevronDerecha, IconoMas } from "../iconos";
-import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
+import { Alerta, Aviso, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
-import { SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
+import { comoGuardado, SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /**
  * Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar.
@@ -108,7 +109,7 @@ function Formulario({
   const [vista, setVista] = useState<"pedido" | "cliente" | "productos" | "descuento">("pedido");
   const [cliente, setCliente] = useState<ClienteGuardado | null>(() => {
     const c = pedido?.clienteId ? clientes.find((x) => x.id === pedido.clienteId) : undefined;
-    return c ? { id: c.id, nombre: c.nombre, telefono: c.telefono } : null;
+    return c ? comoGuardado(c) : null;
   });
   // Despachado: solo cliente y fecha. Los productos y el código se ven atenuados y no se tocan.
   const bloqueado = pedido?.estado === "despachado";
@@ -323,7 +324,7 @@ function Formulario({
       <p className="text-secundario font-extrabold">Cliente</p>
       {cliente ? (
         <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
-          <Avatar nombre={cliente.nombre} />
+          <AvatarCliente cliente={cliente} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-destacado">{cliente.nombre}</p>
             {cliente.telefono && <p className="truncate text-secundario text-texto-secundario">{formatearTelefono(cliente.telefono)}</p>}

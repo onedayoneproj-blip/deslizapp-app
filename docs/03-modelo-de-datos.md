@@ -161,6 +161,8 @@ cambia después).
 | `origen` | `'catalogo' \| 'manual'` | |
 | `primer_pedido_en` | datetime | fecha del primer pedido; si todavía no pide, la fecha en que se creó |
 | `nota` | string \| null | nota libre del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. `null` si no tiene |
+| `avatar_emoji` | string \| null | emoji del avatar (≤ 16 caracteres); sin él, el avatar son las iniciales. (migración `20261009012119_clientes_avatar_emoji_color`) |
+| `avatar_color` | `'crema' \| 'rosa' \| 'dorado' \| 'menta' \| 'durazno'` \| null | color de fondo del avatar. (migración `20261009012119_clientes_avatar_emoji_color`) |
 | `pedidos_count` | number | derivado — cuenta sus pedidos **no cancelados**. Lo mantiene la base (trigger); la app solo lo lee |
 
 `pedidos_count` sigue contando pedidos recibidos para el historial. «Repite»

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Hoja } from "../hoja";
 import { IconoEtiqueta, IconoWhatsApp } from "../iconos";
@@ -40,7 +41,7 @@ const MAXIMO_PRODUCTOS = 3;
  */
 export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tienda, urlCatalogo, alCerrar }: {
   jugada: IdJugada;
-  cliente: { id: string; nombre: string; telefono: string };
+  cliente: { id: string; nombre: string; telefono: string; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null };
   tiendaId: string; vendedora: string; tienda: string; urlCatalogo: string | null;
   alCerrar: () => void;
 }) {
@@ -213,7 +214,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
           {modo === "saludo" && <ElegirMensaje etiqueta="Mensaje del saludo" opciones={saludos} elegido={tono} alElegir={setTono} />}
         </div>
         {texto
-          ? <VistaPreviaWhatsApp texto={texto} nombre={cliente.nombre} />
+          ? <VistaPreviaWhatsApp texto={texto} nombre={cliente.nombre} avatarEmoji={cliente.avatarEmoji} avatarColor={cliente.avatarColor} />
           : <p className="rounded-radio-m bg-superficie p-4 text-secundario text-texto-secundario">Elige al menos un producto para armar el mensaje.</p>}
         {texto && (editando
           ? <CampoMultilinea etiqueta="Tu mensaje" id="jugada-mensaje" value={texto} filas={6} onChange={(e) => setEditado({ base, texto: e.target.value })} />

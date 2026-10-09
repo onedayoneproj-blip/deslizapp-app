@@ -453,6 +453,17 @@ function HojaMontada({
       const p = panel.current;
       if (!c || !p) return;
       const tapado = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      // Altura automática: el relleno del teclado haría crecer (y mover) la hoja. Se congela el alto que tenía justo antes de abrirse el
+      // teclado y se suelta al cerrarlo: la hoja no cambia de tamaño con el teclado, el contenido se desplaza dentro.
+      if (p.dataset.altura === "auto") {
+        if (tapado > 0 && !p.dataset.congelada) {
+          p.style.height = `${p.offsetHeight}px`;
+          p.dataset.congelada = "";
+        } else if (tapado === 0 && p.dataset.congelada !== undefined) {
+          p.style.height = "";
+          delete p.dataset.congelada;
+        }
+      }
       // En el panel: lo usan el contenido (relleno) y la zona fija de abajo (se oculta con el teclado).
       p.style.setProperty("--teclado", `${tapado}px`);
       if (tapado > 0) p.dataset.teclado = "";
@@ -741,6 +752,7 @@ function HojaMontada({
       <div
         ref={panel}
         data-hoja-panel
+        data-altura={altura}
         role="dialog"
         aria-modal="true"
         aria-labelledby={idTitulo}
@@ -793,7 +805,7 @@ function HojaMontada({
         >
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
           <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
-            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "font-display text-titulo-hoja text-texto"}>
+            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
             <BotonCerrar onClick={cerrar} />

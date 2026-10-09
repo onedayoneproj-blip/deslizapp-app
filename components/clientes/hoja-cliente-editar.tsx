@@ -9,25 +9,29 @@ import { formatearTelefono, normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente, PedidoConItems } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { useToast } from "../toast";
-import { CampoNota } from "./campo-nota";
+import { AvatarYNota, HojaAvatar } from "./avatar-y-nota";
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { Alerta, Aviso, Boton, Campo, GrupoOpciones } from "../ui";
 import { IconoPersona, IconoWhatsApp } from "../iconos";
 
-export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** id del campo de la nota (para enfocarlo al tocar la burbuja). */ idNota?: string }) {
+export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** id del campo de la nota (para enfocarlo al tocar la burbuja del detalle). */ idNota?: string }) {
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Editar cliente" altura="grande">
-      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}:${cliente.nota ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} idNota={idNota} />
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Editar cliente" altura="auto">
+      <Formulario key={`${cliente.id}:${cliente.nombre}:${cliente.telefono ?? ""}:${cliente.nota ?? ""}:${cliente.avatarEmoji ?? ""}:${cliente.avatarColor ?? ""}`} cliente={cliente} pedidos={pedidos} alTerminar={alCerrar} alEliminar={alEliminar} idNota={idNota} />
     </Hoja>
   );
 }
 
 function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; alTerminar: () => void; alEliminar: () => void; idNota?: string }) {
-  const { actualizarCliente, actualizarNotaCliente, eliminarCliente } = useData();
+  const { actualizarCliente, eliminarCliente } = useData();
   const { tiendaId } = useTiendaActiva();
   const toast = useToast();
   const [nombre, setNombre] = useState(cliente.nombre);
   const [telefono, setTelefono] = useState(cliente.telefono ? formatearTelefono(cliente.telefono) : "");
   const [nota, setNota] = useState(cliente.nota ?? "");
+  const [emoji, setEmoji] = useState<string | null>(cliente.avatarEmoji ?? null);
+  const [color, setColor] = useState<ColorAvatar | null>(cliente.avatarColor ?? null);
+  const [eligiendoAvatar, setEligiendoAvatar] = useState(false);
   const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
@@ -42,7 +46,8 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
   const nombreLimpio = nombre.trim();
   const notaCambiada = nota.trim() !== (cliente.nota ?? "");
   const datosCambiados = nombreLimpio !== cliente.nombre || (telefonoValido ? telefonoNormalizado !== cliente.telefono : true);
-  const cambiado = datosCambiados || notaCambiada;
+  const avatarCambiado = emoji !== (cliente.avatarEmoji ?? null) || color !== (cliente.avatarColor ?? null);
+  const cambiado = datosCambiados || notaCambiada || avatarCambiado;
   const puedeGuardar = nombreLimpio !== "" && nombreLimpio.length <= MAX_NOMBRE_CLIENTE && telefonoValido && cambiado && !guardando;
   const telefonoMalo = tocado && !telefonoValido;
   useAvisarAlSalir(cambiado);
@@ -52,8 +57,9 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
     setGuardando(true);
     setDuplicado(null);
     try {
-      if (datosCambiados) await actualizarCliente(tiendaId, cliente.id, { nombre, telefono });
-      if (notaCambiada) await actualizarNotaCliente(tiendaId, cliente.id, nota);
+      // Todo en UNA llamada (datos, avatar y nota): si fueran dos, la primera refrescaría al cliente y reabriría el formulario con la
+      // segunda en vuelo, y un fallo de esa segunda perdería lo escrito en la nota.
+      await actualizarCliente(tiendaId, cliente.id, { nombre, telefono, ...(avatarCambiado ? { avatarEmoji: emoji, avatarColor: color } : null), ...(notaCambiada ? { nota } : null) });
       toast("Datos actualizados.");
       alTerminar();
     } catch (error) {
@@ -84,7 +90,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
 
   return (
     <div className="flex flex-col gap-3.5">
-      <p className="text-texto-secundario">Cambia solo lo que necesites.</p>
+      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} idNota={idNota} alCambiarNota={(v) => { setNota(v); setErrorNota(undefined); }} alAbrirAvatar={() => setEligiendoAvatar(true)} />
 
       <Campo
         etiqueta="Nombre" icono={IconoPersona}
@@ -110,7 +116,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
         ayuda="Usa 809, 829 o 849 y 7 dígitos más. Déjalo vacío si no usa WhatsApp."
       />
 
-      <CampoNota id={idNota} valor={nota} alCambiar={(v) => { setNota(v); setErrorNota(undefined); }} error={errorNota} />
+      {errorNota && <p role="alert" className="text-secundario font-bold text-peligro">{errorNota}</p>}
 
       {duplicado && (
         <div role="alert">
@@ -120,9 +126,11 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
         </div>
       )}
 
-      <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar} cargando={guardando}>
+      <Boton data-guardar tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar} cargando={guardando}>
         Guardar cambios
       </Boton>
+
+      <HojaAvatar abierta={eligiendoAvatar} alCerrar={() => setEligiendoAvatar(false)} nombre={nombre} emoji={emoji} color={color} alElegir={(e, c) => { setEmoji(e); setColor(c); setEligiendoAvatar(false); }} />
 
       <div className="border-t border-linea pt-2">
         <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={() => setHojaBorradoAbierta(true)} deshabilitado={guardando}>

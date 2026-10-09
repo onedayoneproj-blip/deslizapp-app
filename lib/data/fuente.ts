@@ -5,6 +5,7 @@ import type { TrabajoRetoque } from "../admin/tipos";
 // Los errores que lanza (con mensaje para el dueño) están en lib/data/errores.ts.
 
 import type { CuentaCliente, CuentasPorCobrar, DatosPago } from "../credito";
+import type { ColorAvatar } from "../avatar-cliente";
 import type { DatosPromo } from "../promos";
 import type { Abono, PropuestaInventario, PaginaAjustesInventario, AjusteInventario, CambiosProducto, Cliente, ClienteConResumen, EventoAaah, MotivoAjusteInventario, NuevoProducto, PedidoConItems, Producto, Promo, Tienda, Usuario } from "../types";
 import type { EnvioJugada, MetodoAbono, TipoEnvioJugada } from "../types";
@@ -252,7 +253,7 @@ export type FuenteDatos = {
   getClientes(tiendaId: string): Promise<ClienteConResumen[]>;
   getCliente(tiendaId: string, id: string): Promise<ClienteConResumen | null>;
   /** "+ Cliente". Lanza ClienteDuplicado si el WhatsApp ya es de otro cliente de la tienda. */
-  crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null }): Promise<Cliente>;
+  crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }): Promise<Cliente>;
   /** Cambia nombre y WhatsApp (vacío = sin WhatsApp). Lanza ClienteDuplicado si ya lo usa otra persona. */
   actualizarCliente(tiendaId: string, id: string, datos: DatosClienteEditables): Promise<Cliente>;
   /** Borra el contacto y conserva sus pedidos en el historial, ya sin nombre asociado. */

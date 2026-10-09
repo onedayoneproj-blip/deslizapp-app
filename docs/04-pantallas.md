@@ -578,6 +578,49 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 
 ## 4. Clientes
 
+**«Cliente nuevo» y «Editar cliente»** (`hoja-cliente-nuevo.tsx`, `hoja-cliente-editar.tsx`, `avatar-y-nota.tsx`; diseño en
+`referencias/cliente-nuevo-nota/`): la hoja mide lo que mide su contenido (sin la frase «Nombre y WhatsApp. Con eso basta.»). Arriba,
+centrado, el **avatar grande** (112 px, con la muesca del botón «+» o lápiz) y encima la **nota como burbuja estilo Instagram**
+(`BurbujaNota`: píldora redondeada, gotita y puntito abajo-izquierda, sombra única; sin nota dice «Talla, gustos…»). Abajo, Nombre y
+WhatsApp (con icono) y «Guardar cliente» pegado debajo.
+- Tocar el avatar abre **«Su avatar»** (hoja apilada): primero **«Automático»** (marcado por defecto; con un emoji, el círculo toma un tono
+  pastel del color predominante del emoji) y luego los 5 colores de la marca (crema, rosa, dorado, menta, durazno), y una cuadrícula de
+  emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni avatar,
+  el círculo es crema con una carita.
+- **Selector de emojis** (`selector-emoji.tsx`, datos en `lib/emojis-avatar-datos.ts`, lógica en `lib/emojis-avatar.ts`): unos 350 emojis curados
+  (belleza, moda, perfumes, joyas, hogar, comida, 🇩🇴, 🔥, 💅, 👑, 💎, 🌸…) en 13 categorías (Caras, Personas, Moda y ropa, Belleza y cuidado,
+  Corazones y símbolos, Animales, Naturaleza y flores, Comida y bebida, Fiestas y regalos, Deportes, Viajes y lugares, Objetos y hogar,
+  Banderas) en pestañas horizontales; cuadrícula de 6 columnas con celdas de 48 px que se desplaza (solo se pinta la categoría abierta);
+  cada emoji es un botón con su nombre en español. En «Personas» hay **tono de piel** (6 opciones, se recuerda). Arriba, **«Usados hace
+  poco»** (hasta 12, `localStorage`). **«Aa Iniciales»** es la primera píldora de la fila de categorías (vuelve a las iniciales; se ve marcada cuando es lo elegido). No hay campo para escribir otro emoji: la web no puede abrir solo el teclado de emojis del teléfono (ni en iPhone ni en
+  Android), y abrir el teclado normal confundía; todo lo que se ofrece está en la cuadrícula.
+- **Regla del color** (`avatar_color`): con emoji y color nulo = Automático (pastel del emoji, calculado dibujando el emoji en un canvas de
+  48 px: color predominante sin lo transparente ni lo casi blanco/negro, aclarado a 88 % de luminosidad; guardado por emoji en memoria y
+  `localStorage`, sin parpadeo; en el servidor o si falla, crema); color elegido = ese color, con emoji o con iniciales (crema también se
+  conserva); sin emoji y sin color = iniciales con el rosa de siempre (`lib/avatar-cliente.ts`, `Avatar`). El mismo tono sale en todas las
+  listas y hojas.
+- La **burbuja de la nota es el campo**: tocarla pone el cursor dentro y se escribe ahí mismo (nada de otra hoja ni otra vista). Crece
+  en alto con el texto hacia arriba, máx. 3 líneas y luego se desplaza por dentro, sin mover el avatar; mantiene la forma de Instagram
+  (píldora + gotita + puntito) y el placeholder «Talla, gustos…». Sin saltos de línea: Enter cierra el teclado (`enterkeyhint="done"`).
+  Mientras se escribe, bajo el avatar sale discreto «Solo tú la ves · N/60» (lugar fijo, no mueve nada). Se guarda en el formulario al
+  escribir (con «Guardar cliente»); el límite sigue en 60 y la nota se sigue encontrando en el buscador de clientes.
+  Con el teclado abierto, si «Guardar cliente» quedó bajo el teclado, al enfocar la nota el contenido sube lo necesario para verlo sin
+  esconder la burbuja bajo el encabezado (`verBotonGuardar`, con `visualViewport`).
+- El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
+  Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
+- **Altura con teclado:** «Cliente nuevo» y «Editar cliente» miden lo que mide su contenido (`altura="auto"`), pero la hoja congela su alto
+  mientras el teclado está abierto y lo suelta al cerrarlo (`Hoja`: relleno `--teclado` sin hacerla crecer ni moverla); el contenido se
+  desplaza dentro.
+- **Detalle del cliente** (hoja «Cliente»): el título de la hoja es el NOMBRE del cliente (una línea, con puntos suspensivos si es largo; sin el
+  nombre grande repetido debajo). Arriba, el avatar real (emoji + color, o iniciales) con su nota como burbuja de Instagram encima (solo
+  lectura); sin nota, una burbuja tenue de línea punteada «Agregar nota» con la misma forma. Tocar la burbuja o el avatar abre «Editar
+  cliente» con el cursor ya dentro de la nota, en el mismo toque (regla del teclado de iPhone). Debajo: el teléfono y «Escribir» / «Editar».
+- El avatar (emoji + color) sale también en: lista de Clientes, resumen de clientes, «Deben», Pedidos (lista y detalle), el selector de cliente
+  de «+ Pedido» y «Editar pedido», y las solicitudes del catálogo. No lo usa «Avísame» del catálogo (`tarjeta-ya-llego`: son avisos de
+  compradores, no clientes guardados).
+- Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales (migración `20261009012119`). La
+  app solo envía esas columnas cuando se eligió un avatar.
+
 **Filtro "Deben"** (ventas a crédito): bajo el buscador, `Segmentos` "Todos" · **"Deben"** con contador (mismo estilo que Cancelados en
 Pedidos). En "Deben" aparece la tarjeta Verde Bosque **"Por cobrar"** (total, "N clientes · N pedidos"
 y "Cobrado este mes: RD$X" = abonos del mes en hora de Santo Domingo) y la lista, **una fila por cliente** ordenada: primero los

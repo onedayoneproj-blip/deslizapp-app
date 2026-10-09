@@ -1,10 +1,27 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { hexDeColor, TONO_RESPALDO, tonoDeEmoji, type ColorAvatar } from "@/lib/avatar-cliente";
 import { iniciales } from "@/lib/formato";
 import { Foto } from "../foto";
 import { IconoCorazon } from "../iconos";
 import { clases } from "./comunes";
 
-const TAMANO = { chat: "size-8.5 text-secundario", normal: "size-(--alto-avatar) text-cuerpo", grande: "size-16 text-titulo-hoja", nota: "size-22 text-titulo-pantalla" } as const;
-const FOTO = { chat: "34px", normal: "44px", grande: "64px", nota: "88px" } as const;
+const TAMANO = { chat: "size-8.5 text-secundario", normal: "size-(--alto-avatar) text-cuerpo", grande: "size-16 text-titulo-hoja", nota: "size-22 text-titulo-pantalla", perfil: "size-28 text-cifra" } as const;
+/** Tamaño del emoji (la mitad del círculo, como la referencia de Cliente nuevo). */
+const EMOJI = { chat: 17, normal: 22, grande: 32, nota: 44, perfil: 56 } as const;
+const sinSuscripcion = () => () => {};
+
+/** El fondo de un avatar con emoji y sin color elegido («Automático»): el pastel del emoji (en el servidor, el crema de respaldo). */
+export function useTonoDeEmoji(emoji: string | null | undefined): string | null {
+  return useSyncExternalStore(
+    sinSuscripcion,
+    () => (emoji ? tonoDeEmoji(emoji) : null),
+    () => (emoji ? TONO_RESPALDO : null),
+  );
+}
+
+const FOTO = { chat: "34px", normal: "44px", grande: "64px", nota: "88px", perfil: "112px" } as const;
 
 /**
  * Avatar (docs/09 §11): persona = redondo `marca-rosa` con iniciales en Fredoka; tienda = redondo `accion` con
@@ -21,17 +38,24 @@ export function Avatar({
   solo = false,
   repite = false,
   vacio = false,
+  emoji,
+  color,
 }: {
   nombre: string;
   tipo?: "persona" | "tienda";
-  tamano?: "chat" | "normal" | "grande" | "nota";
+  tamano?: "chat" | "normal" | "grande" | "nota" | "perfil";
   foto?: string | null;
   /** Va sin el nombre al lado: se anuncia con el nombre. */
   solo?: boolean;
   repite?: boolean;
   /** Sin persona (un pedido sin cliente): `superficie-hundida` con "?". */
   vacio?: boolean;
+  /** Avatar de un cliente: un emoji en vez de las iniciales y/o un color de fondo (lib/avatar-cliente.ts). */
+  emoji?: string | null;
+  color?: ColorAvatar | null;
 }) {
+  const tono = useTonoDeEmoji(emoji && !color ? emoji : null);
+  const fondo = color ? hexDeColor(color) : tono; // elegido > automático (del emoji) > nada (rosa de siempre)
   const accesible = solo ? { role: "img", "aria-label": repite ? `${nombre}, repite` : nombre } : { "aria-hidden": true };
   return (
     <span {...accesible} className="relative inline-grid shrink-0">
@@ -41,10 +65,12 @@ export function Avatar({
           TAMANO[tamano],
           "rounded-full",
           repite && "corte [--corte-r:12px] [--corte-x:calc(100%_-_8px)] [--corte-y:calc(100%_-_8px)]",
-          vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? "bg-marca-rosa text-texto" : "bg-accion text-sobre-accion",
+          vacio ? "bg-superficie-hundida text-texto-secundario" : tipo === "persona" ? (fondo ? "text-texto" : "bg-marca-rosa text-texto") : "bg-accion text-sobre-accion",
+          emoji && "font-normal",
         )}
+        style={!vacio && (fondo || emoji) && tipo === "persona" ? { ...(fondo ? { backgroundColor: fondo } : null), ...(emoji ? { fontSize: EMOJI[tamano] } : null) } : undefined}
       >
-        {vacio ? "?" : foto ? <Foto src={foto} alt="" className="absolute inset-0" sizes={FOTO[tamano]} /> : iniciales(nombre)}
+        {vacio ? "?" : emoji ? <span aria-hidden="true" className="leading-none">{emoji}</span> : foto ? <Foto src={foto} alt="" className="absolute inset-0" sizes={FOTO[tamano]} /> : iniciales(nombre)}
       </span>
       {repite && (
         <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-accion text-sobre-accion">

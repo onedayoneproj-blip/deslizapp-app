@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { horaCorta } from "@/lib/formato";
 import { IconoWhatsApp } from "../iconos";
 import { Avatar } from "./avatar";
@@ -17,6 +18,8 @@ import { clases } from "./comunes";
 export function VistaPreviaWhatsApp({
   texto,
   nombre,
+  avatarEmoji,
+  avatarColor,
   sinDestinatario = false,
   hora,
   className,
@@ -24,6 +27,9 @@ export function VistaPreviaWhatsApp({
   texto: string;
   /** A quién le llega (el cliente). */
   nombre?: string;
+  /** El avatar guardado del cliente (emoji y color): sin él, sus iniciales. */
+  avatarEmoji?: string | null;
+  avatarColor?: ColorAvatar | null;
   /** Todavía no se sabe a quién (se elige al enviar, como la lista de Por reponer). */
   sinDestinatario?: boolean;
   hora?: string;
@@ -43,7 +49,7 @@ export function VistaPreviaWhatsApp({
               <IconoWhatsApp tamano={18} />
             </span>
           ) : (
-            <Avatar nombre={titulo} tamano="chat" />
+            <Avatar nombre={titulo} tamano="chat" emoji={avatarEmoji} color={avatarColor} />
           )}
           <span className="flex min-w-0 flex-col leading-tight">
             <b className="truncate text-secundario font-extrabold text-texto">{titulo}</b>

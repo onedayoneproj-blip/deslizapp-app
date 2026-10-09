@@ -14,8 +14,10 @@ import { Hoja } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoEditar } from "../iconos";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
-import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
+import { BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
+import { AvatarCliente } from "./avatar-cliente";
+import { BurbujaNota } from "./avatar-y-nota";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
 export function HojaCliente({ clienteId }: { clienteId: string }) {
@@ -66,7 +68,20 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
 
   // Sin campos de texto (la nota se edita en "Editar cliente"): altura automática
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Cliente">
+    <Hoja
+      abierta
+      alCerrar={cerrar}
+      titulo={
+        cliente ? (
+          <span className="block truncate">
+            {cliente.nombre}
+            {cliente.repite && <span className="sr-only">, repite</span>}
+          </span>
+        ) : (
+          "Cliente"
+        )
+      }
+    >
       {cuerpo}
     </Hoja>
   );
@@ -75,8 +90,8 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
 function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string; alEliminar: () => void }) {
   const { tienda } = useTiendaActiva();
   const [editando, setEditando] = useState(false);
+  // Tocar la burbuja abre "Editar cliente" con el cursor en la nota, en el MISMO toque (regla del teclado de iPhone)
   const idNota = useId();
-  // Tocar la burbuja abre "Editar cliente" con el foco en la nota, en el MISMO toque (regla del teclado de iPhone)
   const editarNota = () => {
     flushSync(() => setEditando(true));
     document.getElementById(idNota)?.focus();
@@ -88,30 +103,20 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className={`flex flex-col items-center gap-1 text-center ${cliente.nota ? "pt-12" : ""}`}>
-        {cliente.nota ? (
-          // La nota como las notas de Instagram: el avatar crece a 88 y la burbuja se apoya sobre su borde superior izquierdo
-          <div className="relative">
-            <Avatar nombre={cliente.nombre} tamano="nota" repite={cliente.repite} />
-            <button
-              type="button"
-              onClick={editarNota}
-              aria-label={`Nota: ${cliente.nota}. Editar la nota`}
-              className="tocable absolute right-9 bottom-17 z-10 w-max max-w-37.5 rounded-radio-l bg-superficie px-3 py-2 text-center text-secundario font-semibold text-texto shadow-flotante outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
-            >
-              <span className="line-clamp-2 break-words">{cliente.nota}</span>
-              {/* Cola de pensamiento: dos circulitos que bajan hacia el avatar */}
-              <span aria-hidden="true" className="absolute -right-1 -bottom-3 size-3 rounded-full bg-superficie shadow-flotante" />
-              <span aria-hidden="true" className="absolute -right-3 -bottom-5.5 size-1.5 rounded-full bg-superficie shadow-flotante" />
-            </button>
-          </div>
-        ) : (
-          <Avatar nombre={cliente.nombre} tamano="grande" repite={cliente.repite} />
-        )}
-        <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
-          {cliente.nombre}
-          {cliente.repite && <span className="sr-only">, repite</span>}
-        </h2>
+      <div className="flex flex-col items-center gap-1 text-center">
+        {/* Avatar real del cliente (emoji + color, o iniciales) con su nota como burbuja de Instagram encima (solo lectura): tocar la
+            burbuja o el avatar abre «Editar cliente» con el cursor en la nota. Sin nota: «Agregar nota», tenue y punteada. */}
+        <div className="relative h-[204px] w-60">
+          <BurbujaNota nota={cliente.nota ?? ""} onClick={editarNota} etiqueta={cliente.nota ? `Nota: ${cliente.nota}. Editar la nota` : "Agregar nota"} className="absolute bottom-[104px] left-[30px]" />
+          <button
+            type="button"
+            onClick={editarNota}
+            aria-label={`Avatar de ${cliente.nombre}. Editar la nota`}
+            className="tocable absolute top-[92px] left-16 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+          >
+            <AvatarCliente cliente={cliente} tamano="perfil" repite={cliente.repite} />
+          </button>
+        </div>
         <p className="text-secundario font-bold text-texto-secundario">{cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"}</p>
         <div className="mt-2 flex items-center gap-2">
           {cliente.telefono && (

@@ -1,5 +1,6 @@
 import { eliminarProductoDeDB, revisarEliminacionProducto } from "./eliminar-producto";
 import { pedirRetoqueEnDB, trabajosDeTienda } from "./retoques";
+import type { ColorAvatar } from "../avatar-cliente";
 import type { TrabajoRetoque } from "../admin/tipos";
 // La demo: un almacén en el navegador (memoria + localStorage), sin login, con selector de tienda.
 // Implementa la misma interfaz que Supabase (lib/data/fuente.ts). Ver docs/05-arquitectura.md.
@@ -643,7 +644,7 @@ const fuenteDemoBase: FuenteDatos = {
     return clienteDeTienda(leerDemo().db, tiendaId, id);
   },
   /** "+ Cliente". Lanza ClienteDuplicado si el WhatsApp ya es de otro cliente de la tienda. */
-  async crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null }): Promise<Cliente> {
+  async crearCliente(tiendaId: string, datos: { nombre: string; telefono: string; nota?: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }): Promise<Cliente> {
     let creado!: Cliente;
     escribir((db) => {
       const r = insertarCliente(db, tiendaId, datos, nuevoId(), ahora());

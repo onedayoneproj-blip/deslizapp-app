@@ -21,8 +21,9 @@ import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha } from "../iconos";
-import { SelectorCliente, type ClienteElegido } from "../pedidos/selector-cliente";
-import { Alerta, Aviso, Avatar, Boton, Etiqueta } from "../ui";
+import { comoGuardado, SelectorCliente, type ClienteElegido } from "../pedidos/selector-cliente";
+import { Alerta, Aviso, Boton, Etiqueta } from "../ui";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /**
  * «Pedido del catálogo» (tablero Registrar, docs/12 §6): la tienda convierte la solicitud que le llegó por WhatsApp en un pedido.
@@ -496,7 +497,7 @@ function Formulario({
         <p className="text-secundario font-extrabold">¿Quién te escribió?</p>
         {cliente ? (
           <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
-            <Avatar nombre={cliente.nombre} />
+            <AvatarCliente cliente={cliente} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-destacado">{cliente.nombre}</p>
               <p className="truncate text-secundario text-texto-secundario">
@@ -527,7 +528,7 @@ function Formulario({
           accion={{
             texto: `Usar a ${duplicado.nombre.split(" ")[0]}`,
             alTocar: () => {
-              cambiar(null, { id: duplicado.id, nombre: duplicado.nombre, telefono: duplicado.telefono });
+              cambiar(null, comoGuardado(duplicado));
               setDuplicado(null);
             },
           }}

@@ -14,7 +14,7 @@ import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
 import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
 import { BUCKET, BUCKET_MARCA, FIRMA_SEGUNDOS, rutaReferencia, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
-import { limpiarDatosCliente, limpiarNota } from "./clientes";
+import { limpiarAvatar, limpiarDatosCliente, limpiarNota } from "./clientes";
 import type { MarcaRetoque } from "../marca-retoque";
 import { comprobarTopeReferencias, validarMarcaRetoque } from "./marca-retoque";
 import { nuevoId } from "./db";
@@ -273,6 +273,19 @@ const PRODUCTO_CON_VARIANTES = "*, producto_variantes(*)";
  * `alCambiar` se llama después de cada escritura que salió bien: el provider sube la versión y las
  * pantallas vuelven a leer. Las lecturas iguales que llegan a la vez comparten la misma petición.
  */
+/** Avatar elegido al crear un cliente (solo si hay: sin él no se envían las columnas del avatar). */
+function avatarParaGuardar(datos: { avatarEmoji?: string | null; avatarColor?: string | null }) {
+  const a = limpiarAvatar(datos.avatarEmoji, datos.avatarColor);
+  return a.avatarEmoji || a.avatarColor ? a : {};
+}
+
+/** Columnas del avatar al editar un cliente: solo si el formulario trae un cambio (undefined = no se toca). */
+function columnasAvatar(datos: { avatarEmoji?: string | null; avatarColor?: string | null }) {
+  if (datos.avatarEmoji === undefined && datos.avatarColor === undefined) return {};
+  const a = limpiarAvatar(datos.avatarEmoji, datos.avatarColor);
+  return { avatar_emoji: a.avatarEmoji, avatar_color: a.avatarColor };
+}
+
 export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => void): FuenteDatos & { olvidar(): void } {
   const enVuelo = new Map<string, Promise<unknown>>();
 
@@ -1082,7 +1095,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const f = await requerido<FilaCliente>(
           supabase
             .from("clientes")
-            .insert(filaClienteNuevo(tiendaId, { nombre, telefono, nota: limpiarNota(datos.nota), origen: "manual" }))
+            .insert(filaClienteNuevo(tiendaId, { nombre, telefono, nota: limpiarNota(datos.nota), origen: "manual", ...avatarParaGuardar(datos) }))
             .select("*")
             .single(),
           () => new Error("La base no devolvió el cliente."),
@@ -1103,7 +1116,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
         const f = await requerido<FilaCliente>(
           supabase
             .from("clientes")
-            .update({ nombre: limpios.nombre, telefono: limpios.telefono })
+            .update({ nombre: limpios.nombre, telefono: limpios.telefono, ...columnasAvatar(datos), ...(datos.nota === undefined ? {} : { nota: limpiarNota(datos.nota) }) })
             .eq("tienda_id", tiendaId)
             .eq("id", id)
             .select("*")

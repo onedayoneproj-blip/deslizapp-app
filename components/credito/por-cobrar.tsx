@@ -37,7 +37,7 @@ export function FilaPorCobrar({ cuenta: c, mensaje, ahora, repite = false }: { c
     <li className="relative">
       <Tarjeta href={`/clientes/${c.clienteId}`} etiqueta={`${c.nombre}${repite ? ", repite" : ""}. ${linea(c)}. Debe ${formatearPesos(c.deuda)}, abonó ${formatearPesos(c.abonado)} de ${formatearPesos(c.totalPedidos)}, ${textoFechaDeudaAccesible(c.fechaAcordada, ahora)}`}>
         <div className={`flex items-center gap-3 ${c.telefono ? "pr-28" : ""}`}>
-          <Avatar nombre={c.nombre} repite={repite} />
+          <Avatar nombre={c.nombre} emoji={c.avatarEmoji} color={c.avatarColor} repite={repite} />
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-destacado text-texto">{c.nombre}</span>
             <span className="text-secundario text-texto-secundario">{linea(c)}</span>

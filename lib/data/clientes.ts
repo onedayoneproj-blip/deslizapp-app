@@ -1,5 +1,6 @@
 import { fechaDeVenta, ventasDe } from "../resumen";
 import { normalizarTelefonoDO } from "../telefono";
+import { esColorAvatar, limpiarEmoji, MAX_EMOJI, type ColorAvatar } from "../avatar-cliente";
 import type { Cliente, ClienteConResumen } from "../types";
 import type { DB } from "./db";
 import { ClienteDuplicado, DatosInvalidos } from "./errores";
@@ -43,7 +44,19 @@ export function clientePorTelefono(db: DB, tiendaId: string, telefono: string | 
 export const MAX_NOTA = 60;
 export const MAX_NOMBRE_CLIENTE = 120;
 
-export type DatosClienteEditables = { nombre: string; telefono: string | null };
+/** `avatarEmoji` / `avatarColor`: sin ellos (undefined) el avatar no se toca; `null` = volver a las iniciales. */
+export type DatosClienteEditables = { nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null; /** Sin ella (undefined) la nota no se toca; así «Editar cliente» guarda todo en UNA sola llamada. */ nota?: string | null };
+
+/**
+ * El avatar que se guarda: el emoji limpio y el color tal cual (null con emoji = «Automático»: el color sale del emoji; null sin emoji = las
+ * iniciales con el rosa de siempre; crema u otro color elegido se conserva aunque no haya emoji). Un color inexistente o un emoji
+ * demasiado largo se rechazan con un mensaje claro.
+ */
+export function limpiarAvatar(emoji: string | null | undefined, color: string | null | undefined): { avatarEmoji: string | null; avatarColor: ColorAvatar | null } {
+  if (color !== null && color !== undefined && !esColorAvatar(color)) throw new DatosInvalidos("Ese color de avatar no existe. Elige uno de los cinco.");
+  if ((emoji ?? "").trim().length > MAX_EMOJI) throw new DatosInvalidos("Ese emoji no cabe. Elige otro.");
+  return { avatarEmoji: limpiarEmoji(emoji), avatarColor: color ?? null };
+}
 
 /** Nombre limpio y WhatsApp opcional ya normalizado para guardar. */
 export function limpiarDatosCliente(datos: DatosClienteEditables): DatosClienteEditables {
@@ -67,7 +80,7 @@ export function limpiarNota(nota: string | null | undefined): string | null {
 export function insertarCliente(
   db: DB,
   tiendaId: string,
-  datos: { nombre: string; telefono: string; nota?: string | null },
+  datos: { nombre: string; telefono: string; nota?: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null },
   id: string,
   ahora: string,
 ) {
@@ -77,7 +90,7 @@ export function insertarCliente(
   if (!telefono) throw new Error("Ese WhatsApp no es un número dominicano válido.");
   const existente = clientePorTelefono(db, tiendaId, telefono);
   if (existente) throw new ClienteDuplicado(existente);
-  const cliente: Cliente = { id, tiendaId, nombre, telefono, origen: "manual", primerPedidoEn: ahora, nota: limpiarNota(datos.nota) };
+  const cliente: Cliente = { id, tiendaId, nombre, telefono, origen: "manual", primerPedidoEn: ahora, nota: limpiarNota(datos.nota), ...limpiarAvatar(datos.avatarEmoji, datos.avatarColor) };
   return { db: { ...db, clientes: [...db.clientes, cliente] }, cliente };
 }
 
@@ -98,7 +111,9 @@ export function modificarCliente(db: DB, tiendaId: string, id: string, datos: Da
   const existente = clientePorTelefono(db, tiendaId, limpios.telefono);
   if (existente && existente.id !== id) throw new ClienteDuplicado(existente);
 
-  const cliente: Cliente = { ...actual, ...limpios };
+  const avatar = datos.avatarEmoji === undefined && datos.avatarColor === undefined ? {} : limpiarAvatar(datos.avatarEmoji, datos.avatarColor);
+  const nota = datos.nota === undefined ? {} : { nota: limpiarNota(datos.nota) };
+  const cliente: Cliente = { ...actual, ...limpios, ...avatar, ...nota };
   return {
     db: { ...db, clientes: db.clientes.map((c) => (c.id === id && c.tiendaId === tiendaId ? cliente : c)) },
     cliente,

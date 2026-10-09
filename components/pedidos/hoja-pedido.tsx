@@ -12,7 +12,7 @@ import { formatearTelefono } from "@/lib/telefono";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Aviso, Avatar, Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
+import { Alerta, Aviso, Boton, Etiqueta, FilaLista, ListaAgrupada } from "../ui";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamion } from "../iconos";
 import { HojaDespachado } from "./hoja-despachado";
@@ -21,6 +21,7 @@ import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { ChipEstado, detalleDeItem, pieDeItem, stockDeItem } from "./comunes";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
@@ -277,7 +278,7 @@ function Detalle({
 
       {/* Cliente */}
       <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
-        {cliente ? <Avatar nombre={cliente.nombre} /> : <span aria-hidden="true" className="grid size-(--alto-avatar) shrink-0 place-items-center rounded-full bg-marca-rosa font-display text-cuerpo text-texto">?</span>}
+        {cliente ? <AvatarCliente cliente={cliente} /> : <span aria-hidden="true" className="grid size-(--alto-avatar) shrink-0 place-items-center rounded-full bg-marca-rosa font-display text-cuerpo text-texto">?</span>}
         <div className="min-w-0 flex-1">
           <p className="truncate text-destacado">{cliente?.nombre ?? "Cliente sin nombre"}</p>
           <p className="truncate text-secundario text-texto-secundario">{cliente?.telefono ? formatearTelefono(cliente.telefono) : "Sin teléfono"}</p>

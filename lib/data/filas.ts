@@ -172,6 +172,9 @@ export type FilaCliente = {
   primer_pedido_en: string;
   pedidos_count: number;
   nota: string | null;
+  /** Opcionales: la base los trae desde la migración del avatar. */
+  avatar_emoji?: string | null;
+  avatar_color?: string | null;
 };
 
 export type FilaPedido = {
@@ -551,6 +554,8 @@ export function aCliente(f: FilaCliente, fecha: AjusteFecha = igual): Cliente {
     origen: f.origen as OrigenPedido,
     primerPedidoEn: fecha(f.primer_pedido_en),
     nota: f.nota,
+    avatarEmoji: f.avatar_emoji ?? null,
+    avatarColor: f.avatar_color === "crema" || f.avatar_color === "rosa" || f.avatar_color === "dorado" || f.avatar_color === "menta" || f.avatar_color === "durazno" ? f.avatar_color : null,
   };
 }
 
@@ -708,8 +713,9 @@ export function filaMarca(d: { logoUrl: string | null; principal: string; acento
 }
 
 /** Cliente nuevo: el teléfono ya va normalizado ("+18095550142"). `pedidos_count` lo mantiene la base. */
-export function filaClienteNuevo(tiendaId: string, d: { nombre: string; telefono: string | null; nota: string | null; origen: OrigenPedido }) {
-  return { tienda_id: tiendaId, nombre: d.nombre, telefono: d.telefono, nota: d.nota, origen: d.origen };
+export function filaClienteNuevo(tiendaId: string, d: { nombre: string; telefono: string | null; nota: string | null; origen: OrigenPedido; avatarEmoji?: string | null; avatarColor?: string | null }) {
+  // Las columnas del avatar solo se envían si hay avatar elegido: sin él, crear un cliente no depende de ellas.
+  return { tienda_id: tiendaId, nombre: d.nombre, telefono: d.telefono, nota: d.nota, origen: d.origen, ...(d.avatarEmoji || d.avatarColor ? { avatar_emoji: d.avatarEmoji ?? null, avatar_color: d.avatarColor ?? null } : {}) };
 }
 
 /** Pedido nuevo: SIN `numero` (lo asigna la base: el mayor de la tienda + 1). */
