@@ -595,7 +595,13 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
   esconder la burbuja bajo el encabezado (`verBotonGuardar`, con `visualViewport`).
 - El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
   Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
-- El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» con el cursor ya dentro de la nota, en el mismo toque (regla del teclado de iPhone).
+- **Detalle del cliente** (hoja «Cliente»): el título de la hoja es el NOMBRE del cliente (una línea, con puntos suspensivos si es largo; sin el
+  nombre grande repetido debajo). Arriba, el avatar real (emoji + color, o iniciales) con su nota como burbuja de Instagram encima (solo
+  lectura); sin nota, una burbuja tenue de línea punteada «Agregar nota» con la misma forma. Tocar la burbuja o el avatar abre «Editar
+  cliente» con el cursor ya dentro de la nota, en el mismo toque (regla del teclado de iPhone). Debajo: el teléfono y «Escribir» / «Editar».
+- El avatar (emoji + color) sale también en: lista de Clientes, resumen de clientes, «Deben», Pedidos (lista y detalle), el selector de cliente
+  de «+ Pedido» y «Editar pedido», y las solicitudes del catálogo. No lo usa «Avísame» del catálogo (`tarjeta-ya-llego`: son avisos de
+  compradores, no clientes guardados).
 - Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales (migración `20261009012119`). La
   app solo envía esas columnas cuando se eligió un avatar.
 

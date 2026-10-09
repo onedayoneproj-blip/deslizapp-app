@@ -18,8 +18,32 @@ function ColaDeNota({ ancho = 36, alto = 34, className }: { ancho?: number; alto
   );
 }
 
+/** Sin nota, en el detalle del cliente: la misma forma, tenue y con línea punteada: «Agregar nota». */
+function BurbujaAgregarNota({ onClick, etiqueta, className }: { onClick: () => void; etiqueta?: string; className?: string }) {
+  return (
+    <div className={`z-20 ${className ?? ""}`}>
+      <div className="relative w-max text-texto-secundario">
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={etiqueta ?? "Agregar nota"}
+          className="tocable block rounded-[26px] border-2 border-dashed border-borde-campo px-4 py-2.5 text-center text-secundario leading-tight outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+        >
+          Agregar nota
+        </button>
+        {/* Gotita y puntito, también punteados */}
+        <svg aria-hidden="true" width="36" height="34" viewBox="0 0 36 34" className="absolute top-[calc(100%-1px)] left-5.5 overflow-visible">
+          <circle cx="12" cy="9" r="6" fill="none" stroke="currentColor" strokeOpacity="0.6" strokeWidth="2" strokeDasharray="3 3" />
+          <circle cx="23" cy="26" r="3.6" fill="none" stroke="currentColor" strokeOpacity="0.6" strokeWidth="2" strokeDasharray="2 2" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 /** Burbuja de la nota (píldora muy redondeada, sombra única, fondo `superficie`) con su cola. `onClick`: la burbuja es un botón. */
 export function BurbujaNota({ nota, onClick, etiqueta, className }: { nota: string; onClick?: () => void; etiqueta?: string; className?: string }) {
+  if (!nota && onClick) return <BurbujaAgregarNota onClick={onClick} etiqueta={etiqueta} className={className} />;
   const contenido = nota ? (
     <span className="line-clamp-3 break-words text-secundario font-semibold text-texto">{nota}</span>
   ) : (

@@ -793,7 +793,7 @@ function HojaMontada({
         >
           <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
           <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
-            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "font-display text-titulo-hoja text-texto"}>
+            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
             <BotonCerrar onClick={cerrar} />

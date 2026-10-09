@@ -68,7 +68,20 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
 
   // Sin campos de texto (la nota se edita en "Editar cliente"): altura automática
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Cliente">
+    <Hoja
+      abierta
+      alCerrar={cerrar}
+      titulo={
+        cliente ? (
+          <span className="block truncate">
+            {cliente.nombre}
+            {cliente.repite && <span className="sr-only">, repite</span>}
+          </span>
+        ) : (
+          "Cliente"
+        )
+      }
+    >
       {cuerpo}
     </Hoja>
   );
@@ -90,20 +103,20 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className={`flex flex-col items-center gap-1 text-center ${cliente.nota ? "pt-14" : ""}`}>
-        {cliente.nota ? (
-          // La nota como las notas de Instagram: el avatar crece a 88 y la burbuja se apoya sobre su borde superior izquierdo
-          <div className="relative">
-            <AvatarCliente cliente={cliente} tamano="nota" repite={cliente.repite} />
-            <BurbujaNota nota={cliente.nota} onClick={editarNota} etiqueta={`Nota: ${cliente.nota}. Editar la nota`} className="absolute bottom-[78px] -left-4" />
-          </div>
-        ) : (
-          <AvatarCliente cliente={cliente} tamano="grande" repite={cliente.repite} />
-        )}
-        <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
-          {cliente.nombre}
-          {cliente.repite && <span className="sr-only">, repite</span>}
-        </h2>
+      <div className="flex flex-col items-center gap-1 text-center">
+        {/* Avatar real del cliente (emoji + color, o iniciales) con su nota como burbuja de Instagram encima (solo lectura): tocar la
+            burbuja o el avatar abre «Editar cliente» con el cursor en la nota. Sin nota: «Agregar nota», tenue y punteada. */}
+        <div className="relative h-[204px] w-60">
+          <BurbujaNota nota={cliente.nota ?? ""} onClick={editarNota} etiqueta={cliente.nota ? `Nota: ${cliente.nota}. Editar la nota` : "Agregar nota"} className="absolute bottom-[104px] left-[30px]" />
+          <button
+            type="button"
+            onClick={editarNota}
+            aria-label={`Avatar de ${cliente.nombre}. Editar la nota`}
+            className="tocable absolute top-[92px] left-16 rounded-full outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
+          >
+            <AvatarCliente cliente={cliente} tamano="perfil" repite={cliente.repite} />
+          </button>
+        </div>
         <p className="text-secundario font-bold text-texto-secundario">{cliente.telefono ? formatearTelefono(cliente.telefono) : "Sin WhatsApp"}</p>
         <div className="mt-2 flex items-center gap-2">
           {cliente.telefono && (
