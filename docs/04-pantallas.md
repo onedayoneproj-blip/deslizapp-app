@@ -587,6 +587,14 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
   pastel del color predominante del emoji) y luego los 5 colores de la marca (crema, rosa, dorado, menta, durazno), y una cuadrícula de
   emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni avatar,
   el círculo es crema con una carita.
+- **Selector de emojis** (`selector-emoji.tsx`, datos en `lib/emojis-avatar-datos.ts`, lógica en `lib/emojis-avatar.ts`): unos 350 emojis curados
+  (belleza, moda, perfumes, joyas, hogar, comida, 🇩🇴, 🔥, 💅, 👑, 💎, 🌸…) en 13 categorías (Caras, Personas, Moda y ropa, Belleza y cuidado,
+  Corazones y símbolos, Animales, Naturaleza y flores, Comida y bebida, Fiestas y regalos, Deportes, Viajes y lugares, Objetos y hogar,
+  Banderas) en pestañas horizontales; cuadrícula de 6 columnas con celdas de 48 px que se desplaza (solo se pinta la categoría abierta);
+  cada emoji es un botón con su nombre en español. En «Personas» hay **tono de piel** (6 opciones, se recuerda). Arriba, **«Usados hace
+  poco»** (hasta 12, `localStorage`). «Aa · Usar las iniciales» y **«Usar otro emoji»**: un campo para escribir o pegar cualquier emoji
+  del teclado del teléfono; valida UN solo emoji (`Intl.Segmenter` por grafema + patrón de emoji; acepta tonos, ZWJ, banderas y teclas,
+  hasta 16 caracteres) y rechaza texto con un mensaje claro («Escribe un solo emoji.», «Eso no es un emoji…»).
 - **Regla del color** (`avatar_color`): con emoji y color nulo = Automático (pastel del emoji, calculado dibujando el emoji en un canvas de
   48 px: color predominante sin lo transparente ni lo casi blanco/negro, aclarado a 88 % de luminosidad; guardado por emoji en memoria y
   `localStorage`, sin parpadeo; en el servidor o si falla, crema); color elegido = ese color, con emoji o con iniciales (crema también se

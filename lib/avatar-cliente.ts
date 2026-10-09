@@ -12,12 +12,6 @@ export const COLORES_AVATAR: { id: ColorAvatar; nombre: string; hex: string }[] 
   { id: "durazno", nombre: "Durazno", hex: "#FAD3C2" },
 ];
 
-/** Los emojis de la cuadrícula (la primera casilla, «Aa», es volver a las iniciales). */
-export const EMOJIS_AVATAR = [
-  "👩🏽", "👱🏽‍♀️", "👩🏾‍🦱", "🧔🏽", "👵🏽", "💅🏽", "👗", "👠", "💄", "🌸", "🌺", "💖",
-  "🦋", "🐱", "🍓", "☕", "🎀", "💎", "👑", "🌴", "⭐", "🌙", "🛍️",
-] as const;
-
 export const hexDeColor = (color: ColorAvatar | null | undefined) => COLORES_AVATAR.find((c) => c.id === color)?.hex ?? null;
 
 export const esColorAvatar = (valor: unknown): valor is ColorAvatar => COLORES_AVATAR.some((c) => c.id === valor);

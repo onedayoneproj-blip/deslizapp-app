@@ -4,7 +4,7 @@ import { test } from "node:test";
 import "./cargar-ts.mjs";
 const { limpiarAvatar, insertarCliente, modificarCliente } = await import("../lib/data/clientes.ts");
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
-const { COLORES_AVATAR, EMOJIS_AVATAR, tonoPastelDePixeles, tonoDeEmoji, TONO_RESPALDO } = await import("../lib/avatar-cliente.ts");
+const { COLORES_AVATAR, tonoPastelDePixeles, tonoDeEmoji, TONO_RESPALDO } = await import("../lib/avatar-cliente.ts");
 
 const TIENDA = "a1000000-0000-4000-8000-000000000001";
 
@@ -24,12 +24,10 @@ test("limpiarAvatar rechaza con mensaje claro un color inventado o un emoji dema
 
 test("los emojis con modificadores (tono de piel, ZWJ) caben en el límite de 16", () => {
   for (const e of ["👩🏽‍🦱", "👱🏽‍♀️", "👩🏾‍🦱", "🧔🏽", "👵🏽", "💅🏽", "🛍️"]) assert.deepEqual(limpiarAvatar(e, "menta"), { avatarEmoji: e, avatarColor: "menta" });
-  for (const e of EMOJIS_AVATAR) assert.ok(e.length <= 16, e);
 });
 
-test("hay 5 colores de la marca y emojis sin repetir", () => {
+test("hay 5 colores de la marca", () => {
   assert.deepEqual(COLORES_AVATAR.map((c) => c.id), ["crema", "rosa", "dorado", "menta", "durazno"]);
-  assert.equal(new Set(EMOJIS_AVATAR).size, EMOJIS_AVATAR.length);
 });
 
 test("crear un cliente con avatar y nota lo guarda; sin avatar queda en iniciales", () => {

@@ -1,13 +1,15 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { COLORES_AVATAR, EMOJIS_AVATAR, hexDeColor, type ColorAvatar } from "@/lib/avatar-cliente";
+import { COLORES_AVATAR, hexDeColor, type ColorAvatar } from "@/lib/avatar-cliente";
 import { MAX_NOTA } from "@/lib/data/clientes";
 import { iniciales } from "@/lib/formato";
 import { Hoja } from "../hoja";
 import { IconoCheck, IconoChispa, IconoEditar, IconoMas } from "../iconos";
 import { Avatar, Boton } from "../ui";
 import { useTonoDeEmoji } from "../ui/avatar";
+import { guardarReciente } from "@/lib/emojis-avatar";
+import { SelectorEmoji } from "./selector-emoji";
 
 /** Forma de la nota de Instagram: gotita pegada abajo-izquierda y un puntito suelto (referencias/cliente-nuevo-nota). */
 function ColaDeNota({ ancho = 36, alto = 34, className }: { ancho?: number; alto?: number; className?: string }) {
@@ -240,7 +242,7 @@ function Selector({ nombre, emoji, color, alElegir }: { nombre: string; emoji: s
         </span>
       </div>
 
-      <div role="radiogroup" aria-label="Color de fondo" className="flex flex-wrap justify-center gap-3">
+      <div role="radiogroup" aria-label="Color de fondo" className="flex flex-wrap justify-center gap-2">
         <button
           type="button"
           role="radio"
@@ -268,23 +270,12 @@ function Selector({ nombre, emoji, color, alElegir }: { nombre: string; emoji: s
         ))}
       </div>
 
-      <div role="radiogroup" aria-label="Emoji" className="grid grid-cols-6 gap-1.5 border-t border-linea pt-3">
-        {[null, ...EMOJIS_AVATAR].map((x) => (
-          <button
-            key={x ?? "iniciales"}
-            type="button"
-            role="radio"
-            aria-checked={e === x}
-            aria-label={x ?? "Iniciales"}
-            onClick={() => setE(x)}
-            className={`tocable grid h-13.5 place-items-center rounded-radio-m outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco ${e === x ? "bg-accion-suave" : ""} ${x ? "text-[30px]" : "font-display text-cuerpo text-texto"}`}
-          >
-            {x ?? "Aa"}
-          </button>
-        ))}
-      </div>
+      <SelectorEmoji valor={e} alElegir={setE} />
 
-      <Boton tamano="grande" anchoCompleto onClick={() => alElegir(e, c)}>
+      <Boton tamano="grande" anchoCompleto onClick={() => {
+          if (e) guardarReciente(e);
+          alElegir(e, c);
+        }}>
         Usar este
       </Boton>
     </div>
