@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.52.0", fecha: "2026-10-09", titulo: "Campos con ícono.",
+    cambios: [
+      "Nombre, WhatsApp, fechas, enlaces y más campos ahora llevan un icono a la izquierda.",
+      "Se ven igual en toda la app: más fácil saber qué va en cada uno.",
+    ],
+  },
+  {
     version: "0.51.0", fecha: "2026-10-08", titulo: "Stickers con sabor.",
     cambios: [
       "33 stickers ilustrados para tus historias: «Nuevo», «Agotado», «Más vendido», Navidad, Viernes negro y más.",

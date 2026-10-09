@@ -20,6 +20,8 @@ import {
   type ErroresPromo,
 } from "@/lib/promos";
 import type { PedidoConItems, Producto, Promo, TipoPromo } from "@/lib/types";
+import { Campo } from "../ui";
+import { IconoCalendario, IconoEtiqueta, IconoNumeral } from "../iconos";
 import { Chip, Interruptor } from "../controles";
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
@@ -318,20 +320,17 @@ function Formulario({
         </div>
       </Hoja>
 
-      <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        Nombre
-        <input
-          type="text"
-          value={datos.nombre}
-          onChange={(e) => cambiar("nombre", e.target.value.slice(0, 40))}
-          onBlur={() => tocar("nombre")}
-          placeholder="Ej: Semana del aaah"
-          autoComplete="off"
-          aria-invalid={Boolean(error("nombre")) || undefined}
-          className={`${campo} ${error("nombre") ? "border-[#b4432a]" : ""}`}
-        />
-        <Mensaje texto={error("nombre")} />
-      </label>
+      <Campo
+        etiqueta="Nombre"
+        icono={IconoEtiqueta}
+        type="text"
+        value={datos.nombre}
+        onChange={(e) => cambiar("nombre", e.target.value.slice(0, 40))}
+        onBlur={() => tocar("nombre")}
+        placeholder="Ej: Semana del aaah"
+        autoComplete="off"
+        error={error("nombre")}
+      />
 
       {/* Descuento, solo en % */}
       <div className="flex flex-col gap-2">
@@ -371,44 +370,34 @@ function Formulario({
 
       {/* Según el tipo */}
       {datos.tipo === "codigo" && (
-        <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-          Código
-          <input
-            type="text"
-            value={datos.codigo}
-            onChange={(e) => cambiar("codigo", limpiarCodigo(e.target.value))}
-            onBlur={() => tocar("codigo")}
-            placeholder="Ej: AAAH10"
-            autoCapitalize="characters"
-            autoComplete="off"
-            aria-invalid={Boolean(error("codigo")) || undefined}
-            className={`${campo} font-display tracking-wider ${error("codigo") ? "border-[#b4432a]" : ""}`}
-          />
-          <span className="text-[12.5px] font-semibold text-suave">
-            Solo letras y números, sin espacios, hasta {MAX_CODIGO}. Lo escribe el cliente al pedir.
-          </span>
-          <Mensaje texto={error("codigo")} />
-        </label>
+        <Campo
+          etiqueta="Código"
+          icono={IconoEtiqueta}
+          type="text"
+          value={datos.codigo}
+          onChange={(e) => cambiar("codigo", limpiarCodigo(e.target.value))}
+          onBlur={() => tocar("codigo")}
+          placeholder="Ej: AAAH10"
+          autoCapitalize="characters"
+          autoComplete="off"
+          ayuda={`Solo letras y números, sin espacios, hasta ${MAX_CODIGO}. Lo escribe el cliente al pedir.`}
+          error={error("codigo")}
+        />
       )}
       {datos.tipo === "codigo" && (
-        <label className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-          <span>
-            ¿Cuántas veces se puede usar? <span className="font-semibold text-suave">(opcional)</span>
-          </span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={datos.limite}
-            onChange={(e) => cambiar("limite", e.target.value.replace(/\D/g, "").slice(0, 6))}
-            onBlur={() => tocar("limite")}
-            placeholder="Sin límite"
-            autoComplete="off"
-            aria-invalid={Boolean(error("limite")) || undefined}
-            className={`${campo} ${error("limite") ? "border-[#b4432a]" : ""}`}
-          />
-          <span className="text-[12.5px] font-semibold text-suave">Cuenta los pedidos (sin los cancelados). Al llegar al límite, el código queda agotado. Vacío = sin límite.</span>
-          <Mensaje texto={error("limite")} />
-        </label>
+        <Campo
+          etiqueta={<>¿Cuántas veces se puede usar? <span className="font-semibold text-texto-secundario">(opcional)</span></>}
+          icono={IconoNumeral}
+          type="text"
+          inputMode="numeric"
+          value={datos.limite}
+          onChange={(e) => cambiar("limite", e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onBlur={() => tocar("limite")}
+          placeholder="Sin límite"
+          autoComplete="off"
+          ayuda="Cuenta los pedidos (sin los cancelados). Al llegar al límite, el código queda agotado. Vacío = sin límite."
+          error={error("limite")}
+        />
       )}
       {datos.tipo === "coleccion" && (
         <div className="flex flex-col gap-1.5">
@@ -439,34 +428,28 @@ function Formulario({
       )}
 
       {/* Fechas */}
-      <div className="grid grid-cols-2 gap-3">
-        <label className="flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
-          Empieza
-          <input
-            type="date"
-            value={datos.inicio}
-            onChange={(e) => cambiar("inicio", e.target.value)}
-            onBlur={() => tocar("inicio")}
-            aria-invalid={Boolean(error("inicio")) || undefined}
-            className={`${campo} appearance-none ${error("inicio") ? "border-[#b4432a]" : ""}`}
-          />
-          <Mensaje texto={error("inicio")} />
-        </label>
-        <label className="flex min-w-0 flex-col gap-1.5 text-[13.5px] font-bold">
-          <span>
-            Vence <span className="font-semibold text-suave">(opcional)</span>
-          </span>
-          <input
-            type="date"
-            value={datos.fin}
-            min={datos.inicio || undefined}
-            onChange={(e) => cambiar("fin", e.target.value)}
-            onBlur={() => tocar("fin")}
-            aria-invalid={Boolean(error("fin")) || undefined}
-            className={`${campo} appearance-none ${error("fin") ? "border-[#b4432a]" : ""}`}
-          />
-          <Mensaje texto={error("fin")} />
-        </label>
+      <div className="grid grid-cols-1 gap-3 min-[430px]:grid-cols-2">
+        <Campo
+          etiqueta="Empieza"
+          icono={IconoCalendario}
+          type="date"
+          value={datos.inicio}
+          onChange={(e) => cambiar("inicio", e.target.value)}
+          onBlur={() => tocar("inicio")}
+          className="[&_input]:max-w-full [&_input]:appearance-none"
+          error={error("inicio")}
+        />
+        <Campo
+          etiqueta={<>Vence <span className="font-semibold text-texto-secundario">(opcional)</span></>}
+          icono={IconoCalendario}
+          type="date"
+          value={datos.fin}
+          min={datos.inicio || undefined}
+          onChange={(e) => cambiar("fin", e.target.value)}
+          onBlur={() => tocar("fin")}
+          className="[&_input]:max-w-full [&_input]:appearance-none"
+          error={error("fin")}
+        />
       </div>
       {datos.fin && (
         <button type="button" onClick={() => cambiar("fin", "")} className="tocable -mt-2 flex min-h-11 items-center self-start px-1 text-[13px] font-extrabold text-suave">

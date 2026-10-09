@@ -28,7 +28,8 @@ import { instagramLimpio, marcaLista, MARCA_VACIA, type MarcaRetoque } from "@/l
 import { borradorCambio, borradorDeMarca, SeccionRetoque, type BorradorRetoque } from "./seccion-retoque";
 import { CuponTienda, marcaDeTienda } from "./cupon-tienda";
 import { HojaLoQueVendes } from "../catalogo/hoja-lo-que-vendes";
-import { FilaLista, ListaAgrupada } from "../ui";
+import { Campo, FilaLista, ListaAgrupada } from "../ui";
+import { IconoEnlace } from "../iconos";
 import { NOMBRE_TIPO, rubrosDeTienda } from "@/lib/rubros";
 
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];
@@ -90,7 +91,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
   const [urlTocada, setUrlTocada] = useState(false);
   // Viniendo de "Conectar mi catálogo" / "Cambiar enlace": el campo se acerca a la vista y se resalta un momento. No se enfoca
   // (el teclado del iPhone solo abre bien si el foco sale de un toque; HANDOFF.md): la persona toca el campo y escribe.
-  const campoEnlace = useRef<HTMLLabelElement>(null);
+  const campoEnlace = useRef<HTMLDivElement>(null);
   const [resaltar, setResaltar] = useState(mostrarEnlace);
   useEffect(() => {
     if (!mostrarEnlace) return;
@@ -296,11 +297,10 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
       </div>
 
       {/* Enlace */}
-      <label ref={campoEnlace} className="flex flex-col gap-1.5 text-[13.5px] font-bold">
-        <span>
-          Enlace de tu catálogo <span className="font-semibold text-suave">(opcional)</span>
-        </span>
-        <input
+      <div ref={campoEnlace}>
+        <Campo
+          etiqueta={<>Enlace de tu catálogo <span className="font-normal text-texto-secundario">(opcional)</span></>}
+          icono={IconoEnlace}
           type="url"
           inputMode="url"
           value={url}
@@ -309,11 +309,10 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
           placeholder="Ej: instagram.com/tutienda"
           autoCapitalize="none"
           autoComplete="off"
-          aria-invalid={(urlTocada && urlMala) || undefined}
-          className={`h-[50px] w-full min-w-0 rounded-2xl border-[1.5px] bg-white px-3.5 text-base font-normal text-bosque outline-none focus:border-bosque ${urlTocada && urlMala ? "border-[#b4432a]" : resaltar ? "border-mandarina" : "border-borde"}`}
+          className={resaltar && !(urlTocada && urlMala) ? "[&_input]:border-resalte" : undefined}
+          error={urlTocada && urlMala ? "Ese enlace no se ve bien. Ej: tutienda.com o instagram.com/tutienda" : undefined}
         />
-        {urlTocada && urlMala && <span className="text-[12.5px] font-semibold text-[#b4432a]">Ese enlace no se ve bien. Ej: tutienda.com o instagram.com/tutienda</span>}
-      </label>
+      </div>
 
       <ListaAgrupada etiqueta="Lo que vendes">
         <FilaLista titulo="Lo que vendes" fin={<span className="text-secundario font-normal text-texto-secundario">{rubrosDeTienda(tienda).map((r) => NOMBRE_TIPO[r]).join(", ")}</span>} onClick={() => setVendiendo(true)} />

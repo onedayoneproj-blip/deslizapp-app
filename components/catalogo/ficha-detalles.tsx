@@ -1,5 +1,6 @@
 "use client";
 
+import { IconoNumeral } from "../iconos";
 import { useState } from "react";
 import { CAMPOS_POR_RUBRO, errorDeDetalle, LARGO_DESCRIPCION, LARGO_ITEM_LISTA, LARGO_TEXTO, MAX_ITEMS_LISTA, nombreValor, type CampoDetalle, type Detalles, type Rubro } from "@/lib/rubros";
 import { Hoja } from "../hoja";
@@ -206,6 +207,7 @@ function HojaDetalle({
                 <Campo
                   key={k}
                   etiqueta={c.llave === "tamano_ml" ? "Mililitros" : rotulo}
+                  icono={IconoNumeral}
                   inputMode="numeric"
                   value={String(valor)}
                   onChange={(e) => poner(k, e.target.value.replace(/\D/g, "").slice(0, 9))}

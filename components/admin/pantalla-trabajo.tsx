@@ -14,6 +14,7 @@ import { recordado, recordar } from "@/lib/data/admin/recuerdo";
 import { EstadoAdmin } from "./estado";
 import { HojaFotosTienda } from "./hoja-fotos-tienda";
 import { FotosTrabajo } from "./trabajo-fotos";
+import { IconoEnlace } from "../iconos";
 
 type Vista = "catalogos" | "fotos";
 type Grupo = { estado: TiendaAdmin["catalogoEstado"]; titulo: string };
@@ -223,7 +224,7 @@ function Catalogos({ tiendas, resaltar, refrescar }: { tiendas: TiendaAdmin[]; r
       <Hoja protegerAtras abierta={!!revisar} alCerrar={() => setRevisar(null)} titulo="Mandar a revisar">
         <div className="space-y-4 px-5 pb-6">
           <p className="text-texto-secundario">{revisar?.nombre} lo verá en su pestaña Catálogo, con «Publicar» y «Pedir cambios».</p>
-          <Campo etiqueta="Enlace de su catálogo" type="url" inputMode="url" autoComplete="off" value={enlace} onChange={(e) => { setEnlace(e.target.value); setErrorEnlace(null); }} error={errorEnlace ?? undefined} />
+          <Campo etiqueta="Enlace de su catálogo" icono={IconoEnlace} type="url" inputMode="url" autoComplete="off" value={enlace} onChange={(e) => { setEnlace(e.target.value); setErrorEnlace(null); }} error={errorEnlace ?? undefined} />
           <Boton anchoCompleto cargando={!!revisar && ocupada === revisar.id} onClick={() => void confirmarRevisar()}>Mandar a revisar</Boton>
         </div>
       </Hoja>

@@ -7,7 +7,7 @@ import { Hoja } from "@/components/hoja";
 import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import type { FichaTiendaAdmin } from "@/lib/admin/tipos";
 import { EstadoAdmin } from "./estado";
-import { IconoChevronDerecha, IconoPersona, IconoWhatsApp, IconoEnlaceExterno } from "@/components/iconos";
+import { IconoChevronDerecha, IconoEnlaceExterno, IconoNumeral, IconoPersona, IconoSobre, IconoWhatsApp } from "@/components/iconos";
 import { enlaceWhatsAppAdmin, mensajeGeneralTienda } from "@/lib/admin/mensajes";
 import { navegarVerComo } from "@/lib/admin/navegacion-ver-como";
 
@@ -125,8 +125,8 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
       </section>
       <Hoja abierta={accion === "creditos" || accion === "transferir"} alCerrar={() => setAccion(null)} titulo={nombreAccion}>
         <div className="space-y-4 px-5 pb-8">
-          {accion === "creditos" && <><p className="text-texto-secundario">Saldo actual: <strong>{ficha.treintaDias.creditos} créditos</strong>.</p><Campo etiqueta="Cantidad (usa negativo para retirar)" type="number" value={cantidad} onChange={e=>setCantidad(e.target.value)} /><Campo etiqueta="Motivo" value={motivo} onChange={e=>setMotivo(e.target.value)} maxLength={200} /></>}
-          {accion === "transferir" && <><p className="text-texto-secundario">La persona nueva recibirá la titularidad y la actual quedará como miembro.</p><Campo etiqueta="Correo del nuevo dueño" type="email" value={correo} onChange={e=>setCorreo(e.target.value)} autoComplete="email" /></>}
+          {accion === "creditos" && <><p className="text-texto-secundario">Saldo actual: <strong>{ficha.treintaDias.creditos} créditos</strong>.</p><Campo etiqueta="Cantidad (usa negativo para retirar)" icono={IconoNumeral} type="number" value={cantidad} onChange={e=>setCantidad(e.target.value)} /><Campo etiqueta="Motivo" value={motivo} onChange={e=>setMotivo(e.target.value)} maxLength={200} /></>}
+          {accion === "transferir" && <><p className="text-texto-secundario">La persona nueva recibirá la titularidad y la actual quedará como miembro.</p><Campo etiqueta="Correo del nuevo dueño" icono={IconoSobre} type="email" value={correo} onChange={e=>setCorreo(e.target.value)} autoComplete="email" /></>}
           <div className="flex justify-end gap-2"><Boton jerarquia="secundario" onClick={()=>setAccion(null)}>Cancelar</Boton><Boton onClick={()=>setConfirmar(true)}>Continuar</Boton></div>
         </div>
       </Hoja>

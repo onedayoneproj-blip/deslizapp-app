@@ -201,6 +201,8 @@ Domingo con formato corto ("Hace 8 min", "Ayer, 6:12 p. m.", "Jue, 4:05 p.
 m."). Las cifras grandes de las tarjetas de estadísticas van en Fredoka (como
 en el prototipo); precios de producto, cantidades y nombres, en Figtree.
 
+- **Campos de texto con icono** (todas las pantallas): los campos de `Campo` llevan un glifo a la izquierda (22 px, trazo 2, `texto-secundario`; texto desde 52 px; tabla campo → icono en `docs/09-sistema-de-diseno.md`). Nombre → persona, WhatsApp → WhatsApp, fecha → calendario, enlace → cadena, correo → sobre, código/nombre de producto/promo → etiqueta, cantidad/límite → #, nota → lápiz; sin icono los de varias líneas y los de monto (RD$). Promos y «Mi marca» (enlace) pasaron a `Campo` para verse igual. El catálogo público del comprador mantiene sus campos propios.
+
 ---
 
 ## 1. Catálogo

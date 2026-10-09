@@ -12,6 +12,7 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { CampoNota } from "./campo-nota";
 import { Aviso, Boton, Campo } from "../ui";
 import { useToast } from "../toast";
+import { IconoPersona, IconoWhatsApp } from "../iconos";
 
 /** "+ Cliente": nombre y WhatsApp dominicano. No duplica un WhatsApp que ya está en la tienda. */
 export function HojaClienteNuevo() {
@@ -62,9 +63,9 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   return (
     <div className="flex flex-col gap-3.5">
       <p className="text-texto-secundario">Nombre y WhatsApp. Con eso basta.</p>
-      <Campo etiqueta="Nombre" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Paola Jiménez" autoComplete="off" />
+      <Campo etiqueta="Nombre" icono={IconoPersona} type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Paola Jiménez" autoComplete="off" />
       <Campo
-        etiqueta="WhatsApp"
+        etiqueta="WhatsApp" icono={IconoWhatsApp}
         type="tel"
         inputMode="tel"
         value={telefono}

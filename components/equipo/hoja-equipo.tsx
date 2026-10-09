@@ -21,6 +21,7 @@ import {
 import { Hoja } from "../hoja";
 import { useToast } from "../toast";
 import { Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
+import { IconoPersona, IconoSobre } from "../iconos";
 
 const OPCIONES_NIVEL = NIVELES.map((n) => ({ id: n.id, texto: n.nombre }));
 
@@ -345,7 +346,7 @@ function FormularioEnlace({ tiendaId, alCancelar, alCrear }: { tiendaId: string;
     <section className="flex flex-col gap-3 rounded-radio-l border-[1.5px] border-linea bg-superficie p-3.5" aria-label="Invitar por enlace">
       <GrupoOpciones titulo="¿Qué podrá hacer?" opciones={NIVELES.map((n) => ({ id: n.id, texto: n.nombre, descripcion: n.detalle }))} valor={nivel} alCambiar={setNivel} />
       <Campo
-        etiqueta="Para quién (opcional)"
+        etiqueta="Para quién (opcional)" icono={IconoPersona}
         placeholder="Para Ana"
         value={nota}
         maxLength={NOTA_MAX}
@@ -382,7 +383,7 @@ function FormularioCorreo({ tiendaId, alTerminar }: { tiendaId: string; alTermin
   return (
     <section className="flex flex-col gap-3 rounded-radio-l border-[1.5px] border-linea bg-superficie p-3.5" aria-label="Invitar por correo">
       <Campo
-        etiqueta="Correo de Google"
+        etiqueta="Correo de Google" icono={IconoSobre}
         type="email"
         inputMode="email"
         autoComplete="email"

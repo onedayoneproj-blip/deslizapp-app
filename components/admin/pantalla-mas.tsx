@@ -6,6 +6,7 @@ import { useAdmin } from "@/lib/data/admin/provider";
 import { textoVence, urlUnirse } from "@/lib/equipo";
 import { Boton, Campo, Etiqueta, Tarjeta } from "@/components/ui";
 import { EstadoAdmin } from "./estado";
+import { IconoPersona } from "../iconos";
 
 const ESTADO: Record<EnlaceTiendaNueva["estado"], { texto: string; tono: "neutro" | "exito" | "atencion" }> = {
   activo: { texto: "Sin abrir", tono: "atencion" },
@@ -101,7 +102,7 @@ function Invitaciones() {
       <h2 id="mas-invitaciones" className="font-display text-titulo-hoja font-bold text-bosque">Invitaciones</h2>
       <p className="mt-1 text-texto-secundario">Mientras sea beta, una tienda nueva se abre solo con un enlace tuyo. Sirve una vez y vence en 7 días.</p>
       <Tarjeta className="mt-3 flex flex-col gap-3 p-4">
-        <Campo etiqueta="Para quién (opcional)" placeholder="Para Rosa" value={nota} maxLength={40} enterKeyHint="done" onChange={(e) => setNota(e.target.value)} />
+        <Campo etiqueta="Para quién (opcional)" icono={IconoPersona} placeholder="Para Rosa" value={nota} maxLength={40} enterKeyHint="done" onChange={(e) => setNota(e.target.value)} />
         <Boton onClick={crear}>Crear enlace de tienda</Boton>
       </Tarjeta>
       {url && (

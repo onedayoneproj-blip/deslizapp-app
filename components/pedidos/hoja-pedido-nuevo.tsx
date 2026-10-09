@@ -21,7 +21,7 @@ import { CamposPago, datosDePago, diaDeOpcion, fechaDeDia, PAGO_INICIAL, type Es
 import { Foto } from "../foto";
 import { Hoja, useAvisarAlSalir } from "../hoja";
 import { Interruptor } from "../controles";
-import { IconoChevronDerecha, IconoMas } from "../iconos";
+import { IconoCalendario, IconoChevronDerecha, IconoMas } from "../iconos";
 import { Alerta, Aviso, Avatar, Boton, Campo, Cantidad, Etiqueta, ListaAgrupada } from "../ui";
 import { useToast } from "../toast";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
@@ -437,7 +437,7 @@ function Formulario({
       {bloqueado ? (
         <div className="rounded-radio-l border border-linea bg-superficie px-4 py-3">
           <Campo
-            etiqueta="Fecha de la venta"
+            etiqueta="Fecha de la venta" icono={IconoCalendario}
             type="date"
             value={dia}
             max={diaLocal()}
@@ -455,7 +455,7 @@ function Formulario({
           {ventaPasada && (
             <div className="mt-2 flex flex-col gap-3 border-t border-linea pt-3 pb-1">
               <Campo
-                etiqueta="Fecha de la venta"
+                etiqueta="Fecha de la venta" icono={IconoCalendario}
                 type="date"
                 value={dia}
                 max={diaLocal()}
