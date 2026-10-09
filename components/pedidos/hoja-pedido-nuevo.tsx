@@ -10,7 +10,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
-import { diaEnPalabras, diaLocal, fechaDeVenta, ofreceVentaPasada } from "@/lib/venta-pasada";
+import { diaEnFirma, diaEnPalabras, diaLocal, fechaDeVenta, ofreceVentaPasada } from "@/lib/venta-pasada";
 import { cantidadMaxima, claveLinea, deClaveLinea, esEncargo, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
 import { buscarCodigoPromo } from "@/lib/promos";
@@ -177,7 +177,7 @@ function Formulario({
     lineas: Object.entries(cantidades).filter(([, n]) => n > 0).sort(([a], [b]) => a.localeCompare(b)),
     codigo: codigo.trim(),
     ventaPasada,
-    dia: ventaPasada || bloqueado ? dia : null,
+    dia: diaEnFirma(ventaPasada, veniaDespachado, dia),
     descontarStock: ventaPasada ? descontarStock : false,
     pago: pago.modo === "credito" ? pago : { modo: "contado" },
   });

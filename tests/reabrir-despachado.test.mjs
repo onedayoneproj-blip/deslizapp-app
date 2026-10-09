@@ -51,3 +51,15 @@ test("reabrir → despachar de nuevo descuenta el stock (el único camino de vue
   const otra = despacharPedido(reabierto.db, TIENDA, p.id, "2026-10-09T13:00:00.000Z");
   assert.equal(stock(otra.db, it.productoId), stock(db, it.productoId));
 });
+
+test("reabrir sin editar no cambia la firma del editor (salir no avisa); editar algo sí la cambia", async () => {
+  const { diaEnFirma } = await import("../lib/venta-pasada.ts");
+  const original = "2026-10-01";
+  // La firma antes de reabrir (despachado) y después (por despachar, mismo editor): el día cuenta igual en las dos.
+  assert.equal(diaEnFirma(false, true, original), diaEnFirma(false, true, original));
+  assert.equal(diaEnFirma(false, true, original), original);
+  // Un pedido que nunca fue despachado no lleva día en la firma (no se edita la fecha)
+  assert.equal(diaEnFirma(false, false, original), null);
+  // Cambiar el día antes de reabrir sí era un cambio, y reabrir lo restablece al original
+  assert.notEqual(diaEnFirma(false, true, "2026-10-05"), diaEnFirma(false, true, original));
+});

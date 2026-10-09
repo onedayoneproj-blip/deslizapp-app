@@ -34,3 +34,12 @@ export const diaEnPalabras = (dia: string) => formatoDia.format(new Date(`${dia}
 export function ofreceVentaPasada(estado: string | undefined, veniaDespachado: boolean): boolean {
   return estado !== "despachado" && !veniaDespachado;
 }
+
+/**
+ * El día que cuenta en la «firma» del editor (lo que decide si cerrar pregunta «¿Salir sin guardar?»): solo si la fecha se edita
+ * (venta pasada, o un editor abierto con un despachado). Depende de `veniaDespachado`, que no cambia al reabrir, y no del estado
+ * actual del pedido: así reabrir sin tocar nada no cambia la firma ni dispara el aviso.
+ */
+export function diaEnFirma(ventaPasada: boolean, veniaDespachado: boolean, dia: string): string | null {
+  return ventaPasada || veniaDespachado ? dia : null;
+}
