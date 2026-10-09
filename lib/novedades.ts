@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.53.0", fecha: "2026-10-09", titulo: "Clientes con carita.",
+    cambios: [
+      "Dale a cada cliente un avatar con emoji y color: queda en todas sus pantallas.",
+      "La nota ahora es una burbuja sobre el avatar, como las notas de Instagram.",
+      "«Cliente nuevo» más chiquita y directa: nombre, WhatsApp y listo.",
+    ],
+  },
+  {
     version: "0.52.0", fecha: "2026-10-09", titulo: "Campos con ícono.",
     cambios: [
       "Nombre, WhatsApp, fechas, enlaces y más campos ahora llevan un icono a la izquierda.",

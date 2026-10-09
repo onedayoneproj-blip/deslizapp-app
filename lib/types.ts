@@ -219,6 +219,9 @@ export type Cliente = {
   primerPedidoEn: string;
   /** Nota del dueño sobre el cliente (talla, gustos, cómo entregarle…). Máx. 200 caracteres. */
   nota: string | null;
+  /** Avatar: un emoji (sin él, las iniciales) y su color de fondo (lib/avatar-cliente.ts). */
+  avatarEmoji?: string | null;
+  avatarColor?: import("./avatar-cliente").ColorAvatar | null;
 };
 
 /**

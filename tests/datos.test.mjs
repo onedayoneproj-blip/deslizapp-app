@@ -141,7 +141,16 @@ test("pedido nuevo: sin número (lo asigna la base) y con sus ítems al leerlo",
 
 test("cliente: pedidos_count no pasa a la app como campo propio", () => {
   const c = aCliente({ id: "c1", tienda_id: "t1", nombre: "Ana", telefono: "+18095550142", origen: "manual", primer_pedido_en: "x", pedidos_count: 3, nota: null });
-  assert.deepEqual(Object.keys(c).sort(), ["id", "nombre", "nota", "origen", "primerPedidoEn", "telefono", "tiendaId"]);
+  assert.deepEqual(Object.keys(c).sort(), ["avatarColor", "avatarEmoji", "id", "nombre", "nota", "origen", "primerPedidoEn", "telefono", "tiendaId"]);
+});
+
+test("cliente: avatar_emoji y avatar_color pasan a la app (un color desconocido se ignora)", () => {
+  const base = { id: "c1", tienda_id: "t1", nombre: "Ana", telefono: null, origen: "manual", primer_pedido_en: "x", pedidos_count: 0, nota: null };
+  assert.deepEqual(
+    [aCliente({ ...base, avatar_emoji: "💅🏽", avatar_color: "rosa" })].map((c) => [c.avatarEmoji, c.avatarColor])[0],
+    ["💅🏽", "rosa"],
+  );
+  assert.deepEqual([aCliente({ ...base, avatar_color: "fucsia" })].map((c) => [c.avatarEmoji, c.avatarColor])[0], [null, null]);
 });
 
 test("promo: código en MAYÚSCULAS, porcentaje numérico y solo el campo de su tipo", () => {

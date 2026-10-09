@@ -18,6 +18,7 @@ import { Aviso, Avatar, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { BotonVolver, FilaAccion, FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
 import { useToast } from "../toast";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /** Un cliente de la tienda (`id`), o uno nuevo todavía sin guardar (`nuevo`: se crea al registrar, en la misma operación). */
 export type ClienteElegido = ClienteGuardado | ClienteProvisional;
@@ -124,7 +125,7 @@ export function SelectorCliente({
                 onClick={() => alElegir({ id: c.id, nombre: c.nombre, telefono: c.telefono })}
                 className="tocable flex w-full items-center gap-3 py-2.5 text-left text-texto outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco"
               >
-                <Avatar nombre={c.nombre} />
+                <AvatarCliente cliente={c} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 text-cuerpo font-extrabold">
                     <span className="truncate">

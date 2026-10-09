@@ -566,6 +566,22 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 
 ## 4. Clientes
 
+**«Cliente nuevo» y «Editar cliente»** (`hoja-cliente-nuevo.tsx`, `hoja-cliente-editar.tsx`, `avatar-y-nota.tsx`; diseño en
+`referencias/cliente-nuevo-nota/`): la hoja mide lo que mide su contenido (sin la frase «Nombre y WhatsApp. Con eso basta.»). Arriba,
+centrado, el **avatar grande** (112 px, con la muesca del botón «+» o lápiz) y encima la **nota como burbuja estilo Instagram**
+(`BurbujaNota`: píldora redondeada, gotita y puntito abajo-izquierda, sombra única; sin nota dice «Talla, gustos…»). Abajo, Nombre y
+WhatsApp (con icono) y «Guardar cliente» pegado debajo.
+- Tocar el avatar abre **«Su avatar»** (hoja apilada): 5 colores de fondo de la marca (crema, rosa, dorado, menta, durazno) y una cuadrícula
+  de emojis; «Aa» = iniciales. «Usar este» lo aplica al formulario (se guarda con el cliente). Solo emoji, nunca fotos. Sin nombre ni
+  avatar, el círculo es crema con una carita.
+- Tocar la burbuja abre **«Nota»**: la burbuja grande se escribe ahí mismo, «Solo tú la ves · N/60» y «Listo». El límite sigue en 60 y la nota
+  se sigue encontrando en el buscador de clientes.
+- El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
+  Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
+- El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» ya en «Nota».
+- Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales. La
+  app solo envía esas columnas cuando se eligió un avatar.
+
 **Filtro "Deben"** (ventas a crédito): bajo el buscador, `Segmentos` "Todos" · **"Deben"** con contador (mismo estilo que Cancelados en
 Pedidos). En "Deben" aparece la tarjeta Verde Bosque **"Por cobrar"** (total, "N clientes · N pedidos"
 y "Cobrado este mes: RD$X" = abonos del mes en hora de Santo Domingo) y la lista, **una fila por cliente** ordenada: primero los

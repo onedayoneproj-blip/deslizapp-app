@@ -28,6 +28,7 @@ import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { SelectorCliente, type ClienteElegido, type ClienteGuardado } from "./selector-cliente";
 import { SelectorProducto } from "./selector-producto";
 import { useElegirPestanaPedidos } from "./vista-pedidos";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 
 /**
  * Pedido manual ("+ Pedido"): una venta que no llegó por el catálogo. Entra directo en Por despachar.
@@ -308,7 +309,7 @@ function Formulario({
       <p className="text-secundario font-extrabold">Cliente</p>
       {cliente ? (
         <div className="flex items-center gap-3 rounded-radio-l border border-linea bg-superficie p-3">
-          <Avatar nombre={cliente.nombre} />
+          <AvatarCliente cliente={cliente} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-destacado">{cliente.nombre}</p>
             {cliente.telefono && <p className="truncate text-secundario text-texto-secundario">{formatearTelefono(cliente.telefono)}</p>}

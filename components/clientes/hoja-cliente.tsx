@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
-import { flushSync } from "react-dom";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { cuentaDeCliente } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -16,6 +15,8 @@ import { IconoEditar } from "../iconos";
 import { CuentaDelCliente } from "../credito/cuenta-cliente";
 import { Avatar, BarraAbonado, Boton, FilaLista, ListaAgrupada, MontoDeuda } from "../ui";
 import { HojaClienteEditar } from "./hoja-cliente-editar";
+import { AvatarCliente } from "./avatar-cliente";
+import { BurbujaNota } from "./avatar-y-nota";
 
 /** Hoja del cliente sobre Clientes. Al cerrar vuelve a /clientes sin perder la búsqueda (la guarda el layout). */
 export function HojaCliente({ clienteId }: { clienteId: string }) {
@@ -75,11 +76,11 @@ export function HojaCliente({ clienteId }: { clienteId: string }) {
 function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente: ClienteConResumen; pedidos: PedidoConItems[]; cuenta: CuentaCliente; vendedora: string; alEliminar: () => void }) {
   const { tienda } = useTiendaActiva();
   const [editando, setEditando] = useState(false);
-  const idNota = useId();
-  // Tocar la burbuja abre "Editar cliente" con el foco en la nota, en el MISMO toque (regla del teclado de iPhone)
+  // Tocar la burbuja abre "Editar cliente" ya con la vista «Nota»
+  const [abrirNota, setAbrirNota] = useState(false);
   const editarNota = () => {
-    flushSync(() => setEditando(true));
-    document.getElementById(idNota)?.focus();
+    setAbrirNota(true);
+    setEditando(true);
   };
   const [ahora] = useState(Date.now);
   const historial = useMemo(() => [...pedidos].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn)), [pedidos]);
@@ -88,25 +89,15 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className={`flex flex-col items-center gap-1 text-center ${cliente.nota ? "pt-12" : ""}`}>
+      <div className={`flex flex-col items-center gap-1 text-center ${cliente.nota ? "pt-14" : ""}`}>
         {cliente.nota ? (
           // La nota como las notas de Instagram: el avatar crece a 88 y la burbuja se apoya sobre su borde superior izquierdo
           <div className="relative">
-            <Avatar nombre={cliente.nombre} tamano="nota" repite={cliente.repite} />
-            <button
-              type="button"
-              onClick={editarNota}
-              aria-label={`Nota: ${cliente.nota}. Editar la nota`}
-              className="tocable absolute right-9 bottom-17 z-10 w-max max-w-37.5 rounded-radio-l bg-superficie px-3 py-2 text-center text-secundario font-semibold text-texto shadow-flotante outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
-            >
-              <span className="line-clamp-2 break-words">{cliente.nota}</span>
-              {/* Cola de pensamiento: dos circulitos que bajan hacia el avatar */}
-              <span aria-hidden="true" className="absolute -right-1 -bottom-3 size-3 rounded-full bg-superficie shadow-flotante" />
-              <span aria-hidden="true" className="absolute -right-3 -bottom-5.5 size-1.5 rounded-full bg-superficie shadow-flotante" />
-            </button>
+            <AvatarCliente cliente={cliente} tamano="nota" repite={cliente.repite} />
+            <BurbujaNota nota={cliente.nota} onClick={editarNota} etiqueta={`Nota: ${cliente.nota}. Editar la nota`} className="absolute bottom-[78px] -left-4" />
           </div>
         ) : (
-          <Avatar nombre={cliente.nombre} tamano="grande" repite={cliente.repite} />
+          <AvatarCliente cliente={cliente} tamano="grande" repite={cliente.repite} />
         )}
         <h2 className="mt-1.5 flex items-center gap-2 font-display text-titulo-hoja">
           {cliente.nombre}
@@ -159,7 +150,7 @@ function Detalle({ cliente, pedidos, cuenta, vendedora, alEliminar }: { cliente:
         )}
       </div>
 
-      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => setEditando(false)} alEliminar={alEliminar} idNota={idNota} />
+      <HojaClienteEditar cliente={cliente} pedidos={pedidos} abierta={editando} alCerrar={() => { setEditando(false); setAbrirNota(false); }} alEliminar={alEliminar} abrirNota={abrirNota} />
     </div>
   );
 }

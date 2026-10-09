@@ -16,6 +16,7 @@ import { BotonVerMas, useVerMas } from "../ver-mas";
 import { Aviso, Avatar, BloqueDeuda, Contador, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
 import { IconoChevronDerecha } from "../iconos";
 import { EtiquetaPago } from "./comunes";
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { recortePila } from "@/lib/recorte";
 
 type Pestana = EstadoPedido;
@@ -65,7 +66,7 @@ export function VistaPedidos({ children }: { children: ReactNode }) {
   // Solo el aviso de trabajo pendiente suma solicitudes; las listas y métricas conservan pedidos registrados.
   const porRegistrar = pendientes.cuenta?.porRegistrar;
 
-  const porCliente = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, { nombre: c.nombre, repite: c.repite }])), [clientes]);
+  const porCliente = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, { nombre: c.nombre, repite: c.repite, avatarEmoji: c.avatarEmoji, avatarColor: c.avatarColor }])), [clientes]);
   const fotos = useMemo(() => new Map((productos ?? []).map((p) => [p.id, p])), [productos]);
   const cuentas = useMemo(() => {
     const c: Record<Pestana, number> = { nuevo: 0, por_despachar: 0, despachado: 0, cancelado: 0 };
@@ -154,7 +155,7 @@ function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number 
   );
 }
 
-function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean }; productos: Map<string, Producto> }) {
+function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }; productos: Map<string, Producto> }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
   const aCredito = p.pagoModo === "credito" && p.estado !== "cancelado";
   const conDeuda = aCredito && p.saldo > 0;
@@ -166,7 +167,7 @@ function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number
     >
       {/* El cliente primero: avatar, nombre y "#N · Ayer"; a la derecha, la forma de pago (cada pestaña ya es un estado) */}
       <div className="flex items-center gap-3">
-        <Avatar nombre={nombre} repite={cliente?.repite} vacio={!cliente} />
+        <Avatar nombre={nombre} emoji={cliente?.avatarEmoji} color={cliente?.avatarColor} repite={cliente?.repite} vacio={!cliente} />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-destacado text-texto">{nombre}</span>
           <span className="truncate text-secundario text-texto-secundario">

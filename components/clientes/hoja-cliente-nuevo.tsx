@@ -9,7 +9,8 @@ import { useData } from "@/lib/data/provider";
 import { normalizarTelefonoDO } from "@/lib/telefono";
 import type { Cliente } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
-import { CampoNota } from "./campo-nota";
+import { AvatarYNota, HojaAvatar, HojaNota } from "./avatar-y-nota";
+import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { Aviso, Boton, Campo } from "../ui";
 import { useToast } from "../toast";
 import { IconoPersona, IconoWhatsApp } from "../iconos";
@@ -18,9 +19,9 @@ import { IconoPersona, IconoWhatsApp } from "../iconos";
 export function HojaClienteNuevo() {
   const router = useRouter();
   const cerrar = useCallback(() => router.push("/clientes", { scroll: false }), [router]);
-  // "grande": con campos de texto la hoja no puede cambiar de tamaño al abrirse el teclado (HANDOFF.md)
+  // Mide lo que mide su contenido (sin la mitad vacía); el teclado no cambia su tamaño (HANDOFF.md)
   return (
-    <Hoja abierta alCerrar={cerrar} titulo="Cliente nuevo" altura="grande">
+    <Hoja abierta alCerrar={cerrar} titulo="Cliente nuevo" altura="auto">
       <Formulario alTerminar={cerrar} />
     </Hoja>
   );
@@ -34,6 +35,10 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [nota, setNota] = useState("");
+  const [emoji, setEmoji] = useState<string | null>(null);
+  const [color, setColor] = useState<ColorAvatar | null>(null);
+  const [eligiendoAvatar, setEligiendoAvatar] = useState(false);
+  const [escribiendoNota, setEscribiendoNota] = useState(false);
   const [errorNota, setErrorNota] = useState<string | undefined>(undefined);
   const [tocado, setTocado] = useState(false);
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
@@ -43,13 +48,13 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
   const malo = tocado && telefono.trim() !== "" && !valido;
   const puedeGuardar = nombre.trim() !== "" && valido && !guardando;
   // Con algún campo lleno y sin guardar, cerrar la hoja pregunta
-  useAvisarAlSalir(nombre.trim() !== "" || telefono.trim() !== "" || nota.trim() !== "");
+  useAvisarAlSalir(nombre.trim() !== "" || telefono.trim() !== "" || nota.trim() !== "" || emoji !== null || color !== null);
 
   const guardar = async () => {
     if (!puedeGuardar) return;
     setGuardando(true);
     try {
-      const cliente = await crearCliente(tiendaId, { nombre, telefono, nota });
+      const cliente = await crearCliente(tiendaId, { nombre, telefono, nota, avatarEmoji: emoji, avatarColor: color });
       toast(`${cliente.nombre} guardado. Ya está en tus clientes.`);
       alTerminar();
     } catch (error) {
@@ -62,7 +67,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <p className="text-texto-secundario">Nombre y WhatsApp. Con eso basta.</p>
+      <AvatarYNota nombre={nombre} nota={nota} emoji={emoji} color={color} alAbrirAvatar={() => setEligiendoAvatar(true)} alAbrirNota={() => setEscribiendoNota(true)} />
       <Campo etiqueta="Nombre" icono={IconoPersona} type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Paola Jiménez" autoComplete="off" />
       <Campo
         etiqueta="WhatsApp" icono={IconoWhatsApp}
@@ -78,7 +83,7 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
         error={malo ? "Escríbelo con 809, 829 o 849 y 7 dígitos más." : undefined}
       />
 
-      <CampoNota valor={nota} alCambiar={(v) => { setNota(v); setErrorNota(undefined); }} error={errorNota} />
+      {errorNota && <p role="alert" className="text-secundario font-bold text-peligro">{errorNota}</p>}
 
       {duplicado && (
         <Aviso tono="atencion" accion={{ texto: "Usar ese cliente", alTocar: () => router.push(`/clientes/${duplicado.id}`, { scroll: false }) }}>
@@ -91,6 +96,9 @@ function Formulario({ alTerminar }: { alTerminar: () => void }) {
       <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         Guardar cliente
       </Boton>
+
+      <HojaAvatar abierta={eligiendoAvatar} alCerrar={() => setEligiendoAvatar(false)} nombre={nombre} emoji={emoji} color={color} alElegir={(e, c) => { setEmoji(e); setColor(c); setEligiendoAvatar(false); }} />
+      <HojaNota abierta={escribiendoNota} alCerrar={() => setEscribiendoNota(false)} nombre={nombre} nota={nota} emoji={emoji} color={color} alListo={(n) => { setNota(n); setErrorNota(undefined); setEscribiendoNota(false); }} />
     </div>
   );
 }

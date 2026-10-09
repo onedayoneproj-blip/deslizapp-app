@@ -21,6 +21,7 @@ import { ordenarPorEnvio } from "@/lib/jugada-envios";
 import { CARTAS_JUGADAS, calcularJugadas, diasDesde, type IdJugada, type Jugada } from "@/lib/proxima-jugada";
 import { cumpleFiltroCliente, ordenarClientes, type ClienteAnalizado, type FiltroClientes, type GrupoClientes, type ResumenClientes } from "@/lib/clientes-resumen";
 import type { ClienteConResumen, Pedido } from "@/lib/types";
+import { AvatarCliente } from "./avatar-cliente";
 export { SEGMENTOS_CLIENTES } from "./contenido-resumen-clientes";
 
 type Vista = "resumen" | "galeria" | IdJugada | `grupo:${GrupoClientes}`;
@@ -199,7 +200,7 @@ function Detalle({ jugada: j, total, recientes, ahora, irADatos, alEscribir, pag
     <ListaAgrupada etiqueta="Clientes para esta jugada">{paginadas.visibles.map((c) => {
       const dias = diasDesde(c.ultimaVenta, ahora);
       const detalle = recientes.get(c.id) ?? (j.id === "volver" ? `Última compra hace ${dias} días` : j.id === "segundo" ? `Compró hace ${dias} días` : j.id === "gracias" ? `${c.compras} compras despachadas` : "Aún no compra");
-      return <FilaLista key={c.id} inicio={<Avatar nombre={c.nombre} />} titulo={c.nombre} detalle={detalle}
+      return <FilaLista key={c.id} inicio={<AvatarCliente cliente={c} />} titulo={c.nombre} detalle={detalle}
         accion={c.telefono ? <Boton tamano="compacto" onClick={() => alEscribir(j.id, j.nombre, c)} aria-label={`Escribir a ${c.nombre} por WhatsApp sobre ${j.nombre}`}>Escribir</Boton> :
           <Boton jerarquia="secundario" tamano="compacto" onClick={() => irADatos(c.id)} aria-label={`Sin WhatsApp. Ver datos de ${c.nombre}`}>Sin WhatsApp · Ver datos</Boton>} />;
     })}

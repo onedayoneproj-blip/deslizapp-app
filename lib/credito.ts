@@ -7,6 +7,7 @@
 // - Un abono sin pedido fijo se reparte entre los pedidos a crédito del cliente con saldo, del más viejo al más nuevo.
 // - Los días (fecha acordada, atraso) se cuentan en hora de Santo Domingo (UTC−4 todo el año).
 
+import type { ColorAvatar } from "./avatar-cliente";
 import type { Abono, EstadoPedido, MetodoAbono, PagoModo } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -328,7 +329,7 @@ export function planearEdicionAbono(
 // Cuentas por cobrar
 // ---------------------------------------------------------------------------
 
-type ClienteBasico = { id: string; nombre: string; telefono: string | null };
+type ClienteBasico = { id: string; nombre: string; telefono: string | null; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null };
 
 /** Lo que debe un cliente (o un pedido) y cómo va: para las filas de "Deben" y la cuenta del cliente. */
 export type EstadoDeuda = {
@@ -350,6 +351,8 @@ export type CuentaPorCobrar = EstadoDeuda & {
   clienteId: string;
   nombre: string;
   telefono: string | null;
+  avatarEmoji?: string | null;
+  avatarColor?: ColorAvatar | null;
   /** Lo que debe en total. */
   deuda: number;
   /** Lo que valen en total sus pedidos con saldo, y lo ya abonado de ellos (para la barra del bloque de deuda). */
@@ -409,6 +412,8 @@ export function cuentasPorCobrar(pedidos: PedidoPago[], clientes: ClienteBasico[
       clienteId,
       nombre: cliente.nombre,
       telefono: cliente.telefono,
+      avatarEmoji: cliente.avatarEmoji ?? null,
+      avatarColor: cliente.avatarColor ?? null,
       deuda: deudaDe(lista),
       ...totalYAbonado(lista),
       pedidos: lista.length,
