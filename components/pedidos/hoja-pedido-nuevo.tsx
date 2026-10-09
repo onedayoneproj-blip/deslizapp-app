@@ -10,7 +10,6 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { textoVariante } from "@/lib/data/productos";
 import { formatearPesos } from "@/lib/formato";
-import { pedirDestelloDePasos } from "@/lib/destello";
 import { diaEnPalabras, diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import { cantidadMaxima, claveLinea, deClaveLinea, esEncargo, precioDeLinea, unidadesVendidas, variantesActivas } from "@/lib/buscar-productos";
 import { formatearTelefono } from "@/lib/telefono";
@@ -100,7 +99,7 @@ function Formulario({
   productoInicialId?: string;
   alTerminar: () => void;
 }) {
-  const { crearPedidoManual, editarPedido } = useData();
+  const { crearPedidoManual, editarPedido, deshacerDespacho } = useData();
   const { tiendaId } = useTiendaActiva();
   const elegirPestana = useElegirPestanaPedidos();
   const toast = useToast();
@@ -131,8 +130,9 @@ function Formulario({
   const [encargos] = useState(() => new Set((pedido?.items ?? []).filter((i) => i.porEncargo).map((i) => claveLinea(i.productoId, i.varianteId))));
   const [codigo, setCodigo] = useState(pedido?.codigoPromo ?? "");
   const [guardando, setGuardando] = useState(false);
-  // Despachado: salir hacia los pasos del pedido, con confirmación si hay cambios sin guardar.
-  const [confirmandoSalir, setConfirmandoSalir] = useState(false);
+  // Despachado: «Reabrir pedido» (con confirmación) lo devuelve a Por despachar para cambiar sus productos.
+  const [confirmandoReabrir, setConfirmandoReabrir] = useState(false);
+  const [reabriendo, setReabriendo] = useState(false);
   // El cupón que había al abrir el selector: la fila lo usa para animar el cambio al volver.
   // "Es una venta que ya hice": entra despachada con la fecha elegida.
   const [ventaPasada, setVentaPasada] = useState(false);
@@ -186,7 +186,9 @@ function Formulario({
   const fechaVenta = pideFecha ? fechaDeVenta(dia) : null;
   const pagoMalo =
     pago.modo === "credito" && ((!conAbonos && montoDeTexto(pago.dio) > totalFinal) || (pago.fecha.opcion === "otra" && diaDeOpcion("otra", pago.fecha.dia) === null));
-  const puedeGuardar = cliente !== null && lineas.length > 0 && !codigoMalo && !pagoMalo && !guardando && (!pideFecha || fechaVenta !== null);
+  // Al cambiar productos de un pedido con abonos, el nuevo total no puede quedar por debajo de lo que ya abonó (la deuda sería negativa).
+  const abonosExceden = Boolean(pedido) && !bloqueado && conAbonos && totalFinal < yaPagado;
+  const puedeGuardar = cliente !== null && lineas.length > 0 && !codigoMalo && !pagoMalo && !abonosExceden && !guardando && (!pideFecha || fechaVenta !== null);
 
   // El foco va al buscador en el MISMO toque que abre el selector (flushSync pinta la vista ya):
   // así el teclado del iPhone abre bien. Regla del teclado en HANDOFF.md.
@@ -209,13 +211,24 @@ function Formulario({
   };
   const aItems = () => lineas.map((l) => ({ productoId: l.producto.id, varianteId: l.variante?.id ?? null, cantidad: l.cantidad, porEncargo: l.porEncargo }));
 
-  // Sin guardar: el cliente o la fecha ya no son los del pedido.
-  const hayCambios = Boolean(pedido) && (cliente?.id !== (pedido?.clienteId ?? undefined) || dia !== diaOriginal);
-  /** Sale del editor SIN guardar y vuelve al detalle, que señala los pasos con un destello. */
-  const irALosPasos = () => {
-    if (!pedido) return;
-    pedirDestelloDePasos(pedido.id);
-    alTerminar();
+  /**
+   * Despachado → Por despachar (`deshacer_despacho`: devuelve el stock y quita `despachado_en`). El pago, los abonos y el cliente se
+   * conservan; la fecha de la venta vuelve a la original (en Por despachar no se edita). El editor queda ya lleno y editable.
+   * La factura no se guarda: se arma con el pedido al despacharlo otra vez (mismo número), así no queda una vieja.
+   */
+  const reabrir = async () => {
+    if (!pedido || reabriendo) return;
+    setReabriendo(true);
+    try {
+      await deshacerDespacho(tiendaId, pedido.id);
+      setDia(diaOriginal ?? diaLocal());
+      toast(`Pedido #${pedido.numero} reabierto. Cambia lo que necesites.`);
+    } catch (error) {
+      toast(mensajeDeError(error, "No se pudo reabrir. Inténtalo otra vez."));
+    } finally {
+      setConfirmandoReabrir(false);
+      setReabriendo(false);
+    }
   };
 
   const guardar = async () => {
@@ -332,24 +345,18 @@ function Formulario({
       <p className="mt-1 text-secundario font-extrabold">Productos</p>
       {bloqueado && (
         <Aviso tono="atencion">
-          <p className="text-secundario font-bold">¿Quieres cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido.</p>
-          <Boton
-            jerarquia="secundario"
-            tamano="compacto"
-            anchoCompleto
-            className="mt-2.5"
-            onClick={() => (hayCambios ? setConfirmandoSalir(true) : irALosPasos())}
-          >
-            Ir a los pasos del pedido
+          <p className="text-secundario font-bold">Para cambiar los productos o las cantidades, reabre el pedido.</p>
+          <Boton jerarquia="secundario" tamano="compacto" anchoCompleto className="mt-2.5" onClick={() => setConfirmandoReabrir(true)} deshabilitado={reabriendo}>
+            Reabrir pedido
           </Boton>
         </Aviso>
       )}
       <Alerta
-        abierta={confirmandoSalir}
-        titulo="¿Salir sin guardar?"
-        descripcion="Tienes cambios sin guardar."
-        accion={{ texto: "Salir", tono: "peligro", alConfirmar: irALosPasos }}
-        alCancelar={() => setConfirmandoSalir(false)}
+        abierta={confirmandoReabrir}
+        titulo="¿Reabrir el pedido?"
+        descripcion={'El pedido vuelve a "Por despachar" y el stock de estos productos se devuelve. Cambias lo que necesites y lo despachas otra vez.'}
+        accion={{ texto: "Sí, reabrir", tono: "accion", alConfirmar: reabrir }}
+        alCancelar={() => setConfirmandoReabrir(false)}
       />
       {lineas.length === 0 ? (
         // Sin productos: toda el área invita a agregar (un solo botón, para que sea tocable completa)
@@ -480,6 +487,13 @@ function Formulario({
         </div>
       )}
 
+      {abonosExceden && (
+        <div role="alert">
+          <Aviso tono="atencion">
+            <b>Ya abonó {formatearPesos(yaPagado)}, más que el nuevo total ({formatearPesos(totalFinal)}).</b> Agrega productos hasta cubrirlo.
+          </Aviso>
+        </div>
+      )}
       <Boton tamano="grande" anchoCompleto onClick={guardar} deshabilitado={!puedeGuardar}>
         {ventaPasada ? "Guardar venta" : pedido ? "Guardar cambios" : "Guardar pedido"}
       </Boton>

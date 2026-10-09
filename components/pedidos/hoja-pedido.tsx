@@ -1,10 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
-import { consumirDestelloDePasos } from "@/lib/destello";
-import { CURVA, menosMovimiento } from "@/lib/movimiento";
 import { mensajeDeError } from "@/lib/data/errores";
 import { puedeEditarCodigo } from "@/lib/data/pedidos";
 import { buscarCodigoPromo } from "@/lib/promos";
@@ -105,23 +103,6 @@ function Detalle({
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
   const [celebrando, setCelebrando] = useState(false);
-  // Viniendo de "Ir a los pasos del pedido" (Editar pedido de un despachado): un destello breve, una sola vez, en el paso
-  // anterior de la barra (el que sirve para retroceder): resalte fijo de ~600 ms y, salvo movimiento reducido, un pulso de
-  // opacidad. Se hace directo sobre el elemento (sin estado de React).
-  const pasoAnterior = useRef<HTMLButtonElement | null>(null);
-  const destellar = useRef<boolean | null>(null);
-  useEffect(() => {
-    destellar.current ??= consumirDestelloDePasos(pedido.id);
-    const el = pasoAnterior.current;
-    if (!destellar.current || !el) return;
-    el.style.backgroundColor = "rgb(245 201 214 / 0.6)";
-    if (!menosMovimiento()) el.animate?.([{ opacity: 1 }, { opacity: 0.3, offset: 0.35 }, { opacity: 1 }], { duration: 600, easing: CURVA.salida });
-    const t = setTimeout(() => (el.style.backgroundColor = ""), 600);
-    return () => {
-      clearTimeout(t);
-      el.style.backgroundColor = "";
-    };
-  }, [pedido.id]);
   // El selector de descuento es otra vista DENTRO de esta misma hoja (como los selectores de cliente y de producto).
   const [vista, setVista] = useState<"detalle" | "descuento">("detalle");
 
@@ -279,7 +260,6 @@ function Detalle({
             <button
               key={nombre}
               type="button"
-              ref={i === paso - 1 ? pasoAnterior : undefined}
               onClick={() => irAlPaso(i as 0 | 1)}
               disabled={ocupado}
               aria-label={`Volver a ${nombre}`}

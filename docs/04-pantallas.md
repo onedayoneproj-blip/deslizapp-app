@@ -484,12 +484,16 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   enciende y se guarda, el pedido pasa a `despachado` con esa fecha ("Venta #N guardada con fecha …"); apagado, conserva su
   estado.
 - `despachado`: solo se cambian el cliente y la fecha (el campo de fecha se ve siempre, con el mismo tope de "no futura").
-  Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto, en un recuadro naranja suave (Mandarina): "¿Quieres
-  cambiar los productos o las cantidades? Eso se hace desde los pasos del pedido." con el botón de contorno **"Ir a los pasos
-  del pedido"**. Al tocarlo se cierra el editor SIN guardar y se vuelve al detalle de ese pedido, donde el paso anterior de la
-  barra (el que sirve para retroceder) hace un destello breve, una sola vez (~600 ms; con movimiento reducido, solo un resalte
-  fijo). Si el cliente o la fecha ya cambiaron, antes pide confirmación: "Tienes cambios sin guardar. ¿Salir de todos modos?"
-  ("Seguir editando" / "Salir"). No aparece el interruptor de "venta que ya hice".
+  Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto, en un recuadro naranja suave (Mandarina): "Para cambiar los productos o las cantidades,
+  reabre el pedido." con el botón de contorno **"Reabrir pedido"**. Pide confirmación ("¿Reabrir el pedido? El pedido vuelve a
+  "Por despachar" y el stock de estos productos se devuelve. Cambias lo que necesites y lo despachas otra vez." — "Sí, reabrir" /
+  "Mejor no"). Al aceptar se usa `deshacerDespacho` (real: RPC `deshacer_despacho`; devuelve el stock y quita `despachado_en`), el
+  aviso dice "Pedido #N reabierto. Cambia lo que necesites." y el MISMO editor queda editable (productos, cantidades y descuento),
+  sin pasos intermedios; después, el flujo normal de "Despachar pedido". Se conservan el cliente, el pago a crédito y los abonos;
+  la fecha de la venta vuelve a la original (en Por despachar no se edita). La **factura** no se guarda en ninguna parte: se arma
+  con el pedido, así que desaparece al reabrir y vuelve a generarse al despachar (mismo número, con los productos nuevos). Si el
+  pedido tiene abonos, no se puede guardar con un total menor a lo ya abonado (aviso: "Ya abonó RD$X, más que el nuevo total. Agrega productos hasta cubrirlo.").
+  No aparece el interruptor de "venta que ya hice". (Se quitó el viejo «Ir a los pasos del pedido» y su destello.)
 - Real: RPC `editar_pedido(p_pedido_id, p_cliente_id, p_items, p_codigo_promo, p_fecha, p_ya_hecho, p_descontar_stock)`; sus
   errores (`pedido_no_encontrado`, `pedido_no_editable`, `fecha_invalida`, `cliente_no_encontrado`, `sin_productos`,
   `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×
