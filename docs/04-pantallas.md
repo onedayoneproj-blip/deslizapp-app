@@ -423,8 +423,12 @@ Reemplaza la sección «Opciones» de la ficha del producto (solo `tipo = produc
 - Cliente: iniciales, nombre, teléfono y botón **"Escribir"** (abre WhatsApp
   con ese número). "Llegó por el catálogo" / "Pedido manual".
 - Productos: foto, nombre, "cantidad × precio unitario" y estado de stock
-  por ítem ("Quedan 3" / "Queda 1" / "Sin stock"; "Entregado" si ya se despachó).
-- Subtotal, descuento del código de promo (si tiene) y Total.
+  por ítem ("Quedan 3" / "Queda 1" / "Sin stock") mientras el pedido espera despacho; ya despachado no lleva etiqueta (el stock
+  habla de hoy, no de la venta; sin "Agotado" ni aviso de reemplazo).
+- **Total**; solo con descuento de un código se ven también Subtotal y Descuento (sin descuento serían lo mismo que el Total).
+- La cabecera fija ("Pedido #N" y la X) lleva el fondo sólido de la hoja (`cabeceraSolida` de `Hoja`): lo que pasa por detrás al hacer
+  scroll no se ve bajo el título.
+- Tarjeta de factura (despachado): no repite "A crédito" (lo dice la tarjeta de Pago); sí "Al contado" y "Pagado".
 - Nota de marca en Caveat: "al despachar, el stock se actualiza solito".
 
 **Acciones:**
@@ -473,8 +477,9 @@ primero hay que volver a `por_despachar` desde la barra de pasos. La misma fila 
 pedido" y el detalle, con la misma regla y el mismo cálculo (`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`;
 `calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
 
-**Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— debajo del botón principal; en `nuevo`, `por_despachar` y
-`despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
+**Editar pedido** (acción de texto —botón terciario— al final de la hoja, junto a "Cancelar pedido" en rojo y con espacio claro respecto
+a la tarjeta de Pago y al botón principal; en `nuevo`, `por_despachar` y `despachado`, no en `cancelado`; "Registrar abono" se queda en la
+tarjeta de Pago como botón secundario): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
 `/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
 Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
 - `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". El interruptor
@@ -495,8 +500,15 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 
 **Pago (ventas a crédito)** (`components/credito/pago-del-pedido.tsx`, entre los productos y las acciones; diseño en
 `referencias/credito-abonos/`). Los abonos y saldos vienen con el pedido (`pagado`, `saldo`, `abonos`).
-- **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"** (pregunta "¿Dejar
-  este pedido a crédito? Quedará debiendo RD$X.", con las pastillas de fecha y "Sí, dejarlo a crédito" / "Mejor no").
+- **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"**. Al tocarlo se abre la
+  pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha, SIN botones de "Cancelar" ni "A crédito":
+  el mismo botón de la fila pasa a decir **"Volver a contado"** (deshace la elección y cierra el bloque). Elegir una fecha (o "Sin fecha")
+  marca el pedido como a crédito en la hoja (la fila dice "A crédito"; "Se guarda al despachar el pedido."):
+  - Pedido en **Por despachar**: no se guarda todavía. **"Despachar pedido"** aplica el pago y despacha en un solo paso
+    (`lib/data/despacho-con-pago.ts`: primero `cambiarPagoPedido`, luego `despacharPedido`; si despachar falla, el pago vuelve a como
+    estaba, así no queda a crédito sin despachar). No hay RPC nueva ni migración. Con "Elegir fecha" sin un día válido, Despachar queda apagado.
+  - Pedido **Recibido** o **Despachado** (no hay "Despachar pedido"): se guarda al elegir la fecha ("Pedido #N quedó a crédito.").
+    "Elegir fecha" guarda cuando se escribe el día, no al tocar la pastilla. Sin deshacer en el aviso (la app aún no tiene ese patrón).
 - **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),
   "Pagó RD$X de RD$Y", barra de progreso (crece con `scaleX`, 600 ms), la fecha acordada ("Quedó en pagar el 15 oct · faltan 15 días";
   atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).

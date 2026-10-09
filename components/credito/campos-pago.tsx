@@ -57,15 +57,16 @@ export { soloDigitos };
  * "¿Cuándo quedó en pagar?": pastillas En 1 semana / Fin de mes / Elegir fecha / Sin fecha. Con "Elegir fecha" aparece el
  * campo de fecha (un día que no haya pasado). La pastilla elegida muestra el día ("15 oct").
  */
-export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago; alCambiar: (f: FechaPago) => void }) {
-  const dia = diaDeOpcion(valor.opcion, valor.dia);
-  const texto = (opcion: OpcionFecha, normal: string) => (valor.opcion === opcion && dia ? diaCorto(dia) : normal);
-  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor.dia ?? sumarDias(hoy(), 14)) : diaDeOpcion(opcion, null) });
+/** `valor` null: todavía no se eligió ninguna (nada marcado). */
+export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void }) {
+  const dia = valor ? diaDeOpcion(valor.opcion, valor.dia) : null;
+  const texto = (opcion: OpcionFecha, normal: string) => (valor?.opcion === opcion && dia ? diaCorto(dia) : normal);
+  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor?.dia ?? sumarDias(hoy(), 14)) : diaDeOpcion(opcion, null) });
   return (
     <div className="flex flex-col gap-3">
       <GrupoOpciones
         titulo="¿Cuándo quedó en pagar?"
-        valor={valor.opcion}
+        valor={valor?.opcion ?? null}
         alCambiar={(o) => (o === "sin" ? alCambiar({ opcion: "sin", dia: null }) : elegir(o))}
         opciones={[
           { id: "semana", texto: texto("semana", "En 1 semana") },
@@ -74,7 +75,7 @@ export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago; alCa
           { id: "sin", texto: "Sin fecha" },
         ]}
       />
-      {valor.opcion === "otra" && (
+      {valor?.opcion === "otra" && (
         <Campo
           etiqueta="Día para pagar"
           type="date"

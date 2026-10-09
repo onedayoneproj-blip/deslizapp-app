@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.52.0", fecha: "2026-10-09", titulo: "Pedido más clarito.",
+    cambios: [
+      "«Cambiar a crédito» ya no pide botones extra: eliges la fecha y se guarda al despachar el pedido.",
+      "«Editar pedido» pasa abajo, junto a «Cancelar pedido», lejos del pago.",
+      "Menos repetido: sin «Agotado» en lo ya vendido, sin dos «A crédito» y, sin descuento, solo el Total.",
+    ],
+  },
+  {
     version: "0.51.0", fecha: "2026-10-08", titulo: "Stickers con sabor.",
     cambios: [
       "33 stickers ilustrados para tus historias: «Nuevo», «Agotado», «Más vendido», Navidad, Viernes negro y más.",

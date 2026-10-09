@@ -40,7 +40,19 @@ function marcarVisto(pedidoId: string) {
  * cuándo quedó en pagar y la lista de abonos (cada fila abre su hoja con Editar y Borrar), con "+ Registrar abono" y "Recordarle
  * por WhatsApp". De contado: una línea "Pagado" y "Cambiar a crédito". Al saldarse, la tarjeta verde con confeti (una sola vez).
  */
-export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cliente: Cliente | null }) {
+export function PagoDelPedido({
+  pedido,
+  cliente,
+  pendiente = null,
+  alElegirPendiente,
+}: {
+  pedido: PedidoConItems;
+  cliente: Cliente | null;
+  /** "Cambiar a crédito" elegido y todavía sin guardar (solo con `alElegirPendiente`): se guarda al despachar el pedido. */
+  pendiente?: FechaPago | null;
+  /** Si viene, elegir la fecha NO guarda: la hoja del pedido lo guarda junto con "Despachar pedido". Sin él, se guarda al elegir. */
+  alElegirPendiente?: (fecha: FechaPago | null) => void;
+}) {
   const { cambiarPagoPedido, getDueno } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
@@ -50,7 +62,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
   const [ocupado, setOcupado] = useState(false);
   const [ahora] = useState(Date.now);
   const [cambiando, setCambiando] = useState(false);
-  const [fecha, setFecha] = useState<FechaPago>({ opcion: "sin", dia: null });
+  const [fecha, setFecha] = useState<FechaPago | null>(null);
 
   const credito = pedido.pagoModo === "credito";
   const cancelado = pedido.estado === "cancelado";
@@ -84,12 +96,29 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
     }
   };
 
-  const pasarACredito = () =>
+  const pasarACredito = (f: FechaPago) =>
     correr(async () => {
-      await cambiarPagoPedido(tiendaId, pedido.id, { pagoModo: "credito", pagoFechaAcordada: diaDeOpcion(fecha.opcion, fecha.dia) });
+      await cambiarPagoPedido(tiendaId, pedido.id, { pagoModo: "credito", pagoFechaAcordada: diaDeOpcion(f.opcion, f.dia) });
       setCambiando(false);
+      setFecha(null);
       toast(`Pedido #${pedido.numero} quedó a crédito.`);
     }, "No se pudo cambiar el pago. Inténtalo otra vez.");
+
+  // Elegir una fecha (o "Sin fecha") deja el pedido a crédito. Pendiente de despacho: solo se marca (se guarda al despachar).
+  // Si no: se guarda al elegir. "Elegir fecha" espera el día que se escriba (la fecha de partida no cuenta como elegida).
+  const elegirFecha = (f: FechaPago) => {
+    if (alElegirPendiente) return alElegirPendiente(f);
+    const eligioElDia = f.opcion === "otra" && fecha?.opcion === "otra";
+    setFecha(f);
+    if (f.opcion !== "otra" || (eligioElDia && diaDeOpcion("otra", f.dia) !== null)) void pasarACredito(f);
+  };
+  const valorFecha = alElegirPendiente ? pendiente : fecha;
+  const abierto = cambiando || pendiente !== null;
+  const dejarDeContado = () => {
+    setCambiando(false);
+    setFecha(null);
+    alElegirPendiente?.(null);
+  };
 
   const vendedora = dueno?.nombre ?? "";
   const nombreTienda = tienda?.nombre ?? "la tienda";
@@ -100,28 +129,24 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
     return (
       <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2">
         <div className="flex min-h-11 items-center justify-between gap-3">
-          <p className="flex items-center gap-1.5 text-secundario font-bold text-texto-secundario">
-            <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
-            Pagado
-          </p>
-          {!cambiando && (
-            <Boton jerarquia="secundario" tamano="compacto" onClick={() => setCambiando(true)}>
-              Cambiar a crédito
-            </Boton>
+          {pendiente ? (
+            <p className="text-secundario font-bold text-atencion-texto">A crédito</p>
+          ) : (
+            <p className="flex items-center gap-1.5 text-secundario font-bold text-texto-secundario">
+              <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
+              Pagado
+            </p>
           )}
+          {/* El mismo botón abre y cierra: tocarlo de nuevo vuelve a contado (sin botones de Cancelar aparte) */}
+          <Boton jerarquia="secundario" tamano="compacto" onClick={abierto ? dejarDeContado : () => setCambiando(true)} deshabilitado={ocupado}>
+            {abierto ? "Volver a contado" : "Cambiar a crédito"}
+          </Boton>
         </div>
-        {cambiando && (
+        {abierto && (
           <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-linea pt-3 pb-1">
             <p className="text-secundario font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
-            <SelectorFechaPago valor={fecha} alCambiar={setFecha} />
-            <div className="grid grid-cols-2 gap-3">
-              <Boton jerarquia="secundario" anchoCompleto onClick={() => setCambiando(false)} deshabilitado={ocupado}>
-                Cancelar
-              </Boton>
-              <Boton anchoCompleto onClick={pasarACredito} deshabilitado={ocupado || (fecha.opcion === "otra" && diaDeOpcion("otra", fecha.dia) === null)}>
-                A crédito
-              </Boton>
-            </div>
+            <SelectorFechaPago valor={valorFecha} alCambiar={elegirFecha} />
+            {alElegirPendiente && pendiente && <p className="text-etiqueta font-normal text-texto-secundario">Se guarda al despachar el pedido.</p>}
           </div>
         )}
       </div>
