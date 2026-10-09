@@ -557,3 +557,12 @@ export function enlaceWhatsAppCliente(telefono: string, texto: string): string {
   if (digitos.length === 10) digitos = `1${digitos}`;
   return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`;
 }
+
+/**
+ * "Cambiar a crédito" desde el detalle: ¿elegir `nueva` guarda ya el pago? Las pastillas ("En 1 semana", "Fin de mes", "Sin fecha")
+ * guardan al tocarlas. "Elegir fecha" arranca con el campo vacío y guarda cuando se escribe un día válido.
+ */
+export function debeGuardarFecha(nueva: { opcion: string; dia: string | null }): boolean {
+  if (nueva.opcion !== "otra") return true;
+  return nueva.dia !== null && esDiaValido(nueva.dia);
+}

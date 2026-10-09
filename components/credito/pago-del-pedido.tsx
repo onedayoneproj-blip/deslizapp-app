@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajeRecordatorio, nombreMetodo } from "@/lib/credito";
+import { debeGuardarFecha, diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajeRecordatorio, nombreMetodo } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -50,7 +50,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
   const [ocupado, setOcupado] = useState(false);
   const [ahora] = useState(Date.now);
   const [cambiando, setCambiando] = useState(false);
-  const [fecha, setFecha] = useState<FechaPago>({ opcion: "sin", dia: null });
+  const [fecha, setFecha] = useState<FechaPago | null>(null);
 
   const credito = pedido.pagoModo === "credito";
   const cancelado = pedido.estado === "cancelado";
@@ -72,24 +72,38 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
     }
   }, [pedido.id, pedido.saldo, pedido.abonos, saldado]);
 
-  const correr = async (accion: () => Promise<void>, error: string) => {
+  const correr = async (accion: () => Promise<void>, error: string, alFallar?: () => void) => {
     if (ocupado) return;
     setOcupado(true);
     try {
       await accion();
     } catch (e) {
       toast(mensajeDeError(e, error));
+      alFallar?.();
     } finally {
       setOcupado(false);
     }
   };
 
-  const pasarACredito = () =>
+  const pasarACredito = (f: FechaPago) =>
     correr(async () => {
-      await cambiarPagoPedido(tiendaId, pedido.id, { pagoModo: "credito", pagoFechaAcordada: diaDeOpcion(fecha.opcion, fecha.dia) });
+      await cambiarPagoPedido(tiendaId, pedido.id, { pagoModo: "credito", pagoFechaAcordada: diaDeOpcion(f.opcion, f.dia) });
       setCambiando(false);
+      setFecha(null);
       toast(`Pedido #${pedido.numero} quedó a crédito.`);
-    }, "No se pudo cambiar el pago. Inténtalo otra vez.");
+    }, "No se pudo cambiar el pago. Inténtalo otra vez.", () => setFecha(null));
+
+  // Elegir una fecha (o "Sin fecha") guarda el pago a crédito al momento, en cualquier estado. "Elegir fecha" espera el día que se
+  // escriba (el campo arranca vacío, así que escribir cualquier día guarda). Si falla, se queda como estaba (de contado, con el aviso).
+  const elegirFecha = (f: FechaPago) => {
+    const guardar = debeGuardarFecha(f);
+    setFecha(f);
+    if (guardar) void pasarACredito(f);
+  };
+  const dejarDeContado = () => {
+    setCambiando(false);
+    setFecha(null);
+  };
 
   const vendedora = dueno?.nombre ?? "";
   const nombreTienda = tienda?.nombre ?? "la tienda";
@@ -104,24 +118,15 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
             <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
             Pagado
           </p>
-          {!cambiando && (
-            <Boton jerarquia="secundario" tamano="compacto" onClick={() => setCambiando(true)}>
-              Cambiar a crédito
-            </Boton>
-          )}
+          {/* El mismo botón abre y cierra: tocarlo de nuevo vuelve a contado (sin botones de Cancelar aparte) */}
+          <Boton jerarquia="secundario" tamano="compacto" onClick={cambiando ? dejarDeContado : () => setCambiando(true)} deshabilitado={ocupado}>
+            {cambiando ? "Cerrar" : "Cambiar a crédito"}
+          </Boton>
         </div>
         {cambiando && (
           <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-linea pt-3 pb-1">
             <p className="text-secundario font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
-            <SelectorFechaPago valor={fecha} alCambiar={setFecha} />
-            <div className="grid grid-cols-2 gap-3">
-              <Boton jerarquia="secundario" anchoCompleto onClick={() => setCambiando(false)} deshabilitado={ocupado}>
-                Cancelar
-              </Boton>
-              <Boton anchoCompleto onClick={pasarACredito} deshabilitado={ocupado || (fecha.opcion === "otra" && diaDeOpcion("otra", fecha.dia) === null)}>
-                A crédito
-              </Boton>
-            </div>
+            <SelectorFechaPago valor={fecha} alCambiar={elegirFecha} deshabilitado={ocupado} diaVacio />
           </div>
         )}
       </div>
@@ -192,7 +197,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
                   Recordarle por WhatsApp
                 </Boton>
               )}
-              <Boton jerarquia="secundario" anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
+              <Boton jerarquia="terciario" anchoCompleto icono={<IconoMas tamano={18} strokeWidth={2.6} />} onClick={() => setAbonando(true)}>
                 Registrar abono
               </Boton>
             </div>
