@@ -579,7 +579,7 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
 - El avatar del cliente (emoji + color, o iniciales con ese color) sale en todo lugar donde sale el cliente: lista de Clientes, Deben,
   Pedidos, detalle del pedido, selector de cliente, resumen, solicitudes del catálogo.
 - El detalle del cliente muestra la nota con la misma burbuja sobre el avatar; tocarla abre «Editar cliente» ya en «Nota».
-- Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales. La
+- Datos: `clientes.avatar_emoji` (≤ 16 caracteres) y `clientes.avatar_color` (crema, rosa, dorado, menta, durazno), ambos opcionales (migración `20261009012119`). La
   app solo envía esas columnas cuando se eligió un avatar.
 
 **Filtro "Deben"** (ventas a crédito): bajo el buscador, `Segmentos` "Todos" · **"Deben"** con contador (mismo estilo que Cancelados en

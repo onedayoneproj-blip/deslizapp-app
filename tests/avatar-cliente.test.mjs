@@ -13,8 +13,17 @@ test("limpiarAvatar: emoji con color, emoji sin color (crema), color solo y sin 
   assert.deepEqual(limpiarAvatar("🌸", null), { avatarEmoji: "🌸", avatarColor: "crema" });
   assert.deepEqual(limpiarAvatar(null, "menta"), { avatarEmoji: null, avatarColor: "menta" });
   assert.deepEqual(limpiarAvatar(null, null), { avatarEmoji: null, avatarColor: null });
-  assert.deepEqual(limpiarAvatar("  ", "fucsia"), { avatarEmoji: null, avatarColor: null });
-  assert.deepEqual(limpiarAvatar("x".repeat(40), "rosa"), { avatarEmoji: null, avatarColor: "rosa" });
+  assert.deepEqual(limpiarAvatar("  ", null), { avatarEmoji: null, avatarColor: null });
+});
+
+test("limpiarAvatar rechaza con mensaje claro un color inventado o un emoji demasiado largo", () => {
+  assert.throws(() => limpiarAvatar("🌸", "fucsia"), /color de avatar no existe/);
+  assert.throws(() => limpiarAvatar("x".repeat(17), "rosa"), /emoji no cabe/);
+});
+
+test("los emojis con modificadores (tono de piel, ZWJ) caben en el límite de 16", () => {
+  for (const e of ["👩🏽‍🦱", "👱🏽‍♀️", "👩🏾‍🦱", "🧔🏽", "👵🏽", "💅🏽", "🛍️"]) assert.deepEqual(limpiarAvatar(e, "menta"), { avatarEmoji: e, avatarColor: "menta" });
+  for (const e of EMOJIS_AVATAR) assert.ok(e.length <= 16, e);
 });
 
 test("hay 5 colores de la marca y emojis sin repetir", () => {

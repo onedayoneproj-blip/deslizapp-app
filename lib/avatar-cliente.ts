@@ -22,10 +22,13 @@ export const hexDeColor = (color: ColorAvatar | null | undefined) => COLORES_AVA
 
 export const esColorAvatar = (valor: unknown): valor is ColorAvatar => COLORES_AVATAR.some((c) => c.id === valor);
 
+/** Hasta cuántos caracteres (unidades UTF-16; la base cuenta puntos de código, que nunca son más) cabe un emoji: `avatar_emoji` ≤ 16. */
+export const MAX_EMOJI = 16;
+
 /** Emoji limpio: texto corto o null (vacío = iniciales). */
 export function limpiarEmoji(emoji: string | null | undefined): string | null {
   const limpio = (emoji ?? "").trim();
-  return limpio === "" || limpio.length > 16 ? null : limpio;
+  return limpio === "" || limpio.length > MAX_EMOJI ? null : limpio;
 }
 
 export type AvatarDeCliente = { avatarEmoji?: string | null; avatarColor?: ColorAvatar | null };

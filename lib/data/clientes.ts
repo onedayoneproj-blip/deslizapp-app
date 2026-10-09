@@ -1,6 +1,6 @@
 import { fechaDeVenta, ventasDe } from "../resumen";
 import { normalizarTelefonoDO } from "../telefono";
-import { esColorAvatar, limpiarEmoji, type ColorAvatar } from "../avatar-cliente";
+import { esColorAvatar, limpiarEmoji, MAX_EMOJI, type ColorAvatar } from "../avatar-cliente";
 import type { Cliente, ClienteConResumen } from "../types";
 import type { DB } from "./db";
 import { ClienteDuplicado, DatosInvalidos } from "./errores";
@@ -49,8 +49,10 @@ export type DatosClienteEditables = { nombre: string; telefono: string | null; a
 
 /** El avatar que se guarda: el emoji limpio y un color válido (el emoji sin color toma `crema`; sin emoji ni color, iniciales). */
 export function limpiarAvatar(emoji: string | null | undefined, color: string | null | undefined): { avatarEmoji: string | null; avatarColor: ColorAvatar | null } {
+  if (color !== null && color !== undefined && !esColorAvatar(color)) throw new DatosInvalidos("Ese color de avatar no existe. Elige uno de los cinco.");
+  if ((emoji ?? "").trim().length > MAX_EMOJI) throw new DatosInvalidos("Ese emoji no cabe. Elige otro.");
   const avatarEmoji = limpiarEmoji(emoji);
-  const avatarColor = esColorAvatar(color) ? color : avatarEmoji ? "crema" : null;
+  const avatarColor = color ?? (avatarEmoji ? "crema" : null);
   return { avatarEmoji, avatarColor };
 }
 
