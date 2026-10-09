@@ -13,7 +13,7 @@ import { resaltar } from "@/lib/texto";
 import type { ClienteConResumen } from "@/lib/types";
 import { CampoNota } from "../clientes/campo-nota";
 import { useAvisarAlSalir, useConfirmarSalida } from "../hoja";
-import { IconoPersona } from "../iconos";
+import { IconoPersona, IconoWhatsApp } from "../iconos";
 import { Aviso, Avatar, Boton, Campo, Etiqueta, GrupoOpciones } from "../ui";
 import { TextoResaltado } from "../clientes/texto-resaltado";
 import { BotonVolver, FilaAccion, FilaLista, ListaSeleccion, SelectorBusqueda } from "../selector-busqueda";
@@ -259,7 +259,7 @@ function FormularioNuevo({
         <p className="font-display text-titulo-seccion">Cliente nuevo</p>
       </div>
       <Campo
-        etiqueta="Nombre"
+        etiqueta="Nombre" icono={IconoPersona}
         ref={nombreRef}
         type="text"
         value={nombre}
@@ -270,7 +270,7 @@ function FormularioNuevo({
         aria-label="Nombre del cliente"
       />
       <Campo
-        etiqueta="WhatsApp"
+        etiqueta="WhatsApp" icono={IconoWhatsApp}
         ref={telefonoRef}
         type="tel"
         inputMode="tel"

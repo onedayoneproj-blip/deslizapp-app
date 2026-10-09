@@ -9,7 +9,7 @@ import { formatearPesos } from "@/lib/formato";
 import { diaLocal, fechaDeVenta } from "@/lib/venta-pasada";
 import type { Abono, MetodoAbono } from "@/lib/types";
 import { Hoja, useAvisarAlSalir } from "../hoja";
-import { IconoCheckCirculo } from "../iconos";
+import { IconoCalendario, IconoCheckCirculo, IconoEditar } from "../iconos";
 import { useToast } from "../toast";
 import { Aviso, Boton, Campo, CampoMonto, GrupoOpciones } from "../ui";
 
@@ -198,7 +198,7 @@ function Formulario({
 
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
         <Campo
-          etiqueta="Fecha"
+          etiqueta="Fecha" icono={IconoCalendario}
           type="date"
           value={dia}
           max={diaLocal()}
@@ -207,7 +207,7 @@ function Formulario({
           error={fecha === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
         />
         <Campo
-          etiqueta="Nota (opcional)"
+          etiqueta="Nota (opcional)" icono={IconoEditar}
           type="text"
           value={nota}
           maxLength={NOTA_MAX}

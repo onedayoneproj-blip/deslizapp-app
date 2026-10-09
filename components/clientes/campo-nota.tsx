@@ -1,6 +1,7 @@
 import type { Ref } from "react";
 import { MAX_NOTA } from "@/lib/data/clientes";
 import { Campo } from "../ui";
+import { IconoEditar } from "../iconos";
 
 /**
  * Nota del cliente (talla, gustos…): una línea, máx. MAX_NOTA (60) caracteres, con contador a la derecha de la ayuda. Solo la ve el
@@ -11,7 +12,7 @@ export function CampoNota({ valor, alCambiar, error, id, entrada }: { valor: str
     <Campo
       ref={entrada}
       id={id}
-      etiqueta="Nota"
+      etiqueta="Nota" icono={IconoEditar}
       type="text"
       value={valor}
       onChange={(e) => alCambiar(e.target.value.slice(0, MAX_NOTA))}

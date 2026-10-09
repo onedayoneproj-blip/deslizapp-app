@@ -11,6 +11,7 @@ import { Hoja, useAvisarAlSalir } from "../hoja";
 import { useToast } from "../toast";
 import { CampoNota } from "./campo-nota";
 import { Alerta, Aviso, Boton, Campo, GrupoOpciones } from "../ui";
+import { IconoPersona, IconoWhatsApp } from "../iconos";
 
 export function HojaClienteEditar({ cliente, pedidos, abierta, alCerrar, alEliminar, idNota }: { cliente: Cliente; pedidos: PedidoConItems[]; abierta: boolean; alCerrar: () => void; alEliminar: () => void; /** id del campo de la nota (para enfocarlo al tocar la burbuja). */ idNota?: string }) {
   return (
@@ -86,7 +87,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
       <p className="text-texto-secundario">Cambia solo lo que necesites.</p>
 
       <Campo
-        etiqueta="Nombre"
+        etiqueta="Nombre" icono={IconoPersona}
         type="text"
         value={nombre}
         onChange={(e) => setNombre(e.target.value.slice(0, MAX_NOMBRE_CLIENTE))}
@@ -95,7 +96,7 @@ function Formulario({ cliente, pedidos, alTerminar, alEliminar, idNota }: { clie
       />
 
       <Campo
-        etiqueta="WhatsApp (opcional)"
+        etiqueta="WhatsApp (opcional)" icono={IconoWhatsApp}
         type="tel"
         inputMode="tel"
         value={telefono}

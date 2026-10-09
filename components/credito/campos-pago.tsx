@@ -6,6 +6,7 @@ import type { DatosPago } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import type { MetodoAbono, PagoModo } from "@/lib/types";
 import { Aviso, Campo, CampoMonto, GrupoOpciones, soloDigitos, Tarjeta } from "../ui";
+import { IconoCalendario } from "../iconos";
 
 /** Cuándo quedó en pagar: una de las pastillas o un día elegido. */
 export type OpcionFecha = "semana" | "mes" | "otra" | "sin";
@@ -77,7 +78,7 @@ export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false, dia
       />
       {valor?.opcion === "otra" && (
         <Campo
-          etiqueta="Día para pagar"
+          etiqueta="Día para pagar" icono={IconoCalendario}
           type="date"
           value={valor.dia ?? ""}
           min={hoy()}

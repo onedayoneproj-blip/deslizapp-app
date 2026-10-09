@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Hoja } from "../hoja";
-import { IconoWhatsApp } from "../iconos";
+import { IconoEtiqueta, IconoWhatsApp } from "../iconos";
 import { MiniaturaProducto } from "../catalogo/miniatura-producto";
 import {
   Aviso, Boton, Buscador, Campo, CampoMultilinea, Cantidad, CheckSeleccion, CuadriculaSeleccion, ElegirMensaje, FilaLista,
@@ -166,7 +166,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
         <section className="flex flex-col gap-3">
           <FilaListaSuelta marcada={elegido === PROPIO} alElegir={() => setElegido(PROPIO)} titulo="Su código" />
           <Tarjeta className="flex flex-col gap-4" etiqueta="Su código">
-            <Campo etiqueta="Código" value={codigo} autoCapitalize="characters" autoCorrect="off" spellCheck={false} maxLength={15}
+            <Campo etiqueta="Código" icono={IconoEtiqueta} value={codigo} autoCapitalize="characters" autoCorrect="off" spellCheck={false} maxLength={15}
               error={errorCodigo ?? (codigo.length < 3 ? "Usa de 3 a 15 letras o números, sin espacios." : undefined)}
               onFocus={() => setElegido(PROPIO)}
               onChange={(e) => { setCodigoEscrito(limpiarCodigo(e.target.value)); setErrorCodigo(null); setElegido(PROPIO); }} />

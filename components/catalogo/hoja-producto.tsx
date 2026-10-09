@@ -26,7 +26,7 @@ import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
-import { IconoChevronDerecha } from "../iconos";
+import { IconoChevronDerecha, IconoEtiqueta, IconoReloj } from "../iconos";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
@@ -573,7 +573,7 @@ function FormularioProducto({
       />
 
       <Campo
-        etiqueta="Nombre"
+        etiqueta="Nombre" icono={IconoEtiqueta}
         value={nombre}
         onChange={(e) => setNombre(e.target.value)}
         placeholder="El nombre de tu producto"
@@ -638,7 +638,7 @@ function FormularioProducto({
             </ul>
             {porEncargo && (
               <div className="px-4 pb-4">
-                <Campo etiqueta="Cuándo llega" value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
+                <Campo etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
               </div>
             )}
           </div>
@@ -772,7 +772,7 @@ function HojaColeccion({
         />
         {agregando ? (
           <div className="flex flex-col gap-3">
-            <Campo etiqueta="Nombre de la colección" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Para él" maxLength={60} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); agregar(); } }} />
+            <Campo etiqueta="Nombre de la colección" icono={IconoEtiqueta} autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Para él" maxLength={60} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); agregar(); } }} />
             <Boton anchoCompleto deshabilitado={!limpio} onClick={agregar}>Agregar colección</Boton>
           </div>
         ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ComponentProps, type ReactNode, type Ref } from "react";
+import { useId, type ComponentProps, type ComponentType, type ReactNode, type Ref } from "react";
 import { IconoBuscar } from "../iconos";
 import { clases } from "./comunes";
 import { InputPrecio } from "./input-precio";
@@ -21,8 +21,11 @@ export function Campo({
   className,
   precio,
   prefijo,
+  icono: Icono,
   ...input
 }: Omit<ComponentProps<"input">, "className"> & {
+  /** Glifo de `components/iconos.tsx` (el componente, ej. `IconoPersona`) a la izquierda (22 px, trazo 2, `texto-secundario`, a 18 px del borde; el texto empieza a 52 px). Decorativo: el rótulo se queda. Nunca junto a `prefijo`. */
+  icono?: ComponentType<{ tamano?: number; strokeWidth?: number }>;
   /** Texto fijo dentro del campo, antes de lo que se escribe ("RD$"). Mismo tamaño que el valor, en gris. */
   prefijo?: ReactNode;
   etiqueta: ReactNode;
@@ -38,7 +41,7 @@ export function Campo({
   const nota = error ?? ayuda;
   const estilo = clases(
     "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo font-normal text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
-    prefijo ? "pl-13" : null,
+    prefijo || Icono ? "pl-13" : null,
     FOCO_CAMPO,
     error ? "border-peligro" : "border-borde-campo focus:border-accion",
   );
@@ -51,6 +54,11 @@ export function Campo({
         {prefijo && (
           <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-cuerpo text-texto-secundario">
             {prefijo}
+          </span>
+        )}
+        {Icono && !prefijo && (
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-4.5 flex items-center text-texto-secundario">
+            <Icono tamano={22} strokeWidth={2} />
           </span>
         )}
         {precio ? (
@@ -203,11 +211,11 @@ export function Buscador({
   return (
     <label
       className={clases(
-        "flex h-(--alto-campo) items-center gap-2.5 rounded-full border-2 border-borde-pastilla bg-superficie px-4.5 text-texto-secundario focus-within:border-accion",
+        "flex h-(--alto-campo) items-center gap-3 rounded-full border-2 border-borde-pastilla bg-superficie px-4.5 text-texto-secundario focus-within:border-accion",
         className,
       )}
     >
-      <IconoBuscar tamano={20} strokeWidth={2.2} className="shrink-0" />
+      <IconoBuscar tamano={22} strokeWidth={2} className="shrink-0" />
       <span className="sr-only">{etiqueta}</span>
       <input
         ref={entrada}

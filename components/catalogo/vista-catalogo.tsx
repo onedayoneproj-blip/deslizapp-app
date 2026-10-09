@@ -11,7 +11,7 @@ import { formatearPesos } from "@/lib/formato";
 import { resumenDeProducto, textoPresentaciones } from "@/lib/presentaciones";
 import { etiquetaSalud, saludDelInventario, stockParaSalud, etiquetaStock } from "@/lib/inventario-catalogo";
 import { Esperan } from "./stock-producto";
-import { Aviso } from "../ui";
+import { Aviso, Buscador } from "../ui";
 import type { AvisoLlegada } from "@/lib/types";
 import { STOCK_BAJO } from "@/lib/config";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
@@ -22,7 +22,7 @@ import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
 import { Foto } from "../foto";
 import { Etiqueta } from "../ui";
-import { IconoBuscar, IconoCorazon, IconoHistoria } from "../iconos";
+import { IconoCorazon, IconoHistoria } from "../iconos";
 import { HojaHistoria } from "./hoja-historia";
 import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
@@ -124,21 +124,15 @@ export function VistaCatalogo() {
 
       <div className="flex flex-col gap-3.5 px-5 pt-1">
         {tienda ? <SeccionCatalogo tienda={tienda} /> : <Esqueleto className="h-[76px] rounded-[22px]" />}
-        <label className="flex h-12 items-center gap-2.5 rounded-full border-[1.5px] border-borde bg-white px-4">
-          <IconoBuscar tamano={20} className="shrink-0 text-suave" />
-          <span className="sr-only">Buscar producto</span>
-          <input
-            type="search"
-            value={busqueda}
-            onChange={(e) => {
-              const valor = e.target.value;
-              setBusqueda(valor);
-              startTransition(() => setBusquedaAplicada(valor));
-            }}
-            placeholder={catalogo ? `Busca en ${NOMBRE_TIPO[catalogo]}` : "Busca un producto"}
-            className="min-w-0 flex-1 bg-transparent text-base text-bosque outline-none placeholder:text-suave/80"
-          />
-        </label>
+        <Buscador
+          etiqueta="Buscar producto"
+          valor={busqueda}
+          alCambiar={(valor) => {
+            setBusqueda(valor);
+            startTransition(() => setBusquedaAplicada(valor));
+          }}
+          placeholder={catalogo ? `Busca en ${NOMBRE_TIPO[catalogo]}` : "Busca un producto"}
+        />
 
         <Segmentos
             etiqueta="Filtrar productos"

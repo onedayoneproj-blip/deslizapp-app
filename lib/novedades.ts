@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.55.0", fecha: "2026-10-09", titulo: "Campos con ícono.",
+    cambios: [
+      "Nombre, WhatsApp, fechas, enlaces y más campos ahora llevan un icono a la izquierda.",
+      "Se ven igual en toda la app: más fácil saber qué va en cada uno.",
+    ],
+  },
+  {
     version: "0.54.0", fecha: "2026-10-09", titulo: "Reabrir sin vueltas.",
     cambios: [
       "«Editar pedido» en uno despachado ahora tiene «Reabrir pedido»: confirmas y quedas editando.",

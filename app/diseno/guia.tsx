@@ -53,7 +53,7 @@ import {
   type JerarquiaBoton,
   type TamanoBoton,
 } from "@/components/ui";
-import { IconoCerrar } from "@/components/iconos";
+import { IconoCerrar, IconoEtiqueta, IconoPersona, IconoSobre } from "@/components/iconos";
 
 type Tema = "claro" | "oscuro";
 
@@ -646,21 +646,22 @@ function Campos() {
   const [telefono, setTelefono] = useState("80955");
   const [monto, setMonto] = useState("1500");
   return (
-    <Seccion numero="12" titulo="Campos" nota="Rótulo arriba, ayuda o error abajo. Alto 50, letra 16 (iOS no hace zoom).">
+    <Seccion numero="12" titulo="Campos" nota="Rótulo arriba, ayuda o error abajo. Alto 50, letra 16 (iOS no hace zoom). Icono a la izquierda: 22 px, trazo 2, a 18 px del borde; el texto empieza a 52 px.">
       <Buscador etiqueta="Buscar cliente" valor={busqueda} alCambiar={setBusqueda} placeholder="Nombre o WhatsApp" />
       <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2">
-        <Campo etiqueta="Nombre" placeholder="Ej: Paola Jiménez" autoComplete="off" />
+        <Campo etiqueta="Nombre" icono={IconoPersona} placeholder="Ej: Paola Jiménez" autoComplete="off" />
         <Campo etiqueta="Precio" inputMode="numeric" placeholder="0" ayuda="En pesos, sin decimales." />
         <Campo
           etiqueta="WhatsApp"
+          icono={IconoWhatsApp}
           type="tel"
           value={telefono}
           onChange={(e) => setTelefono(e.target.value)}
           error={telefono.replace(/\D/g, "").length === 10 ? undefined : "Escríbelo con 809, 829 o 849 y 7 dígitos más."}
         />
-        <Campo etiqueta="Código" value="AAAH10" disabled readOnly />
+        <Campo etiqueta="Código" icono={IconoEtiqueta} value="AAAH10" disabled readOnly />
         <Campo etiqueta="Con foco (cursor dentro): contorno verde de 2 px" defaultValue="Paola" className="[&_input]:border-accion" />
-        <Campo etiqueta="Con error: contorno rojo de 2 px" defaultValue="809" error="Escríbelo con 809, 829 o 849 y 7 dígitos más." />
+        <Campo etiqueta="Con error: contorno rojo de 2 px" icono={IconoSobre} defaultValue="809" error="Escríbelo con 809, 829 o 849 y 7 dígitos más." />
         <CampoMonto etiqueta="Te dio ahora (opcional)" valor={monto} alCambiar={setMonto} />
         <CampoMonto etiqueta="¿Cuánto te pagó?" tamano="grande" valor={monto} alCambiar={setMonto} error={Number(monto) > 1000 ? "Te debe RD$1,000; no puedes abonar más que eso." : undefined} />
       </div>

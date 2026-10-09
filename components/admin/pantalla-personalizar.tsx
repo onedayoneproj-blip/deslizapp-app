@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type PointerEvent as EventoPuntero } from "react";
 import { Boton, BotonIcono, Campo, CampoMultilinea, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada } from "@/components/ui";
 import { Hoja } from "@/components/hoja";
-import { IconoChevronAbajo, IconoChevronDerecha, IconoMas } from "@/components/iconos";
+import { IconoChevronAbajo, IconoChevronDerecha, IconoEditar, IconoEnlace, IconoMas, IconoPersona } from "@/components/iconos";
 import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import { errorConocido, textoErrorAdmin } from "@/lib/admin/errores";
 import {
@@ -390,7 +390,7 @@ function HojaFrase({ abierta, alCerrar, frase, valor, alGuardar }: { abierta: bo
               {frase.max > 60 ? (
                 <CampoMultilinea etiqueta={frase.lista ? `Frase ${i + 1}` : "Texto"} value={l} onChange={(e) => setLineas(lineas.map((x, j) => (j === i ? e.target.value : x)))} filas={3} ayuda={`${largo(l.trim())}/${frase.max}`} error={largo(l.trim()) > frase.max ? "Muy larga." : undefined} />
               ) : (
-                <Campo etiqueta={frase.lista ? `Línea ${i + 1}` : "Texto"} value={l} onChange={(e) => setLineas(lineas.map((x, j) => (j === i ? e.target.value : x)))} ayuda={`${largo(l.trim())}/${frase.max}`} error={largo(l.trim()) > frase.max ? "Muy larga." : undefined} />
+                <Campo etiqueta={frase.lista ? `Línea ${i + 1}` : "Texto"} icono={IconoEditar} value={l} onChange={(e) => setLineas(lineas.map((x, j) => (j === i ? e.target.value : x)))} ayuda={`${largo(l.trim())}/${frase.max}`} error={largo(l.trim()) > frase.max ? "Muy larga." : undefined} />
               )}
             </div>
             {frase.lista && lineas.length > 1 && <BotonIcono etiqueta={`Quitar ${frase.lista ? "frase" : "línea"} ${i + 1}`} className="mt-7" onClick={() => setLineas(lineas.filter((_, j) => j !== i))}>×</BotonIcono>}
@@ -515,9 +515,9 @@ function HojaOpiniones({ abierta, alCerrar, productos, opinionesDe, alCambiar }:
         )}
         {producto && editando && (
           <>
-            <Campo etiqueta="Usuario" value={editando.opinion.usuario} maxLength={80} onChange={(e) => cambiarCampo("usuario", e.target.value)} />
+            <Campo etiqueta="Usuario" icono={IconoPersona} value={editando.opinion.usuario} maxLength={80} onChange={(e) => cambiarCampo("usuario", e.target.value)} />
             <Campo etiqueta="Fuente" placeholder="Ej.: Fragrantica" value={editando.opinion.fuente} maxLength={80} onChange={(e) => cambiarCampo("fuente", e.target.value)} />
-            <Campo etiqueta="Enlace" type="url" inputMode="url" value={editando.opinion.url} maxLength={2048} onChange={(e) => cambiarCampo("url", e.target.value.trim())} error={editando.opinion.url && !/^https:\/\/[^\s/]+(\/\S*)?$/.test(editando.opinion.url) ? "Tiene que empezar con https://." : undefined} />
+            <Campo etiqueta="Enlace" icono={IconoEnlace} type="url" inputMode="url" value={editando.opinion.url} maxLength={2048} onChange={(e) => cambiarCampo("url", e.target.value.trim())} error={editando.opinion.url && !/^https:\/\/[^\s/]+(\/\S*)?$/.test(editando.opinion.url) ? "Tiene que empezar con https://." : undefined} />
             <CampoMultilinea etiqueta="Texto" value={editando.opinion.texto} maxLength={600} filas={4} onChange={(e) => cambiarCampo("texto", e.target.value)} ayuda={`${[...editando.opinion.texto].length}/600`} />
             <ControlSegmentado<string>
               etiqueta="Estrellas"

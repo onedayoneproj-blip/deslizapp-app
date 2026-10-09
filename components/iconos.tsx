@@ -323,3 +323,23 @@ export const IconoEstadoWhatsApp = (p: Props) => (
     <path d="M19 2v6M16 5h6" />
   </Icono>
 );
+
+export const IconoEtiqueta = (p: Props) => (
+  <Icono {...p}>
+    <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h6.3a2 2 0 0 1 1.4.6l6.2 6.2a2 2 0 0 1 0 2.8l-5.8 5.8a2 2 0 0 1-2.8 0L4.6 13.2A2 2 0 0 1 4 11.8z" />
+    <circle cx="8.6" cy="8.6" r="1.2" />
+  </Icono>
+);
+
+export const IconoNumeral = (p: Props) => (
+  <Icono {...p}>
+    <path d="M9 4 7.5 20M16.5 4 15 20M4.5 9h15M4 15h15" />
+  </Icono>
+);
+
+export const IconoSobre = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
+    <path d="m4.5 8.5 6.4 4.3a2 2 0 0 0 2.2 0l6.4-4.3" />
+  </Icono>
+);
