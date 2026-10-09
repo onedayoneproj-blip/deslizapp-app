@@ -904,7 +904,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     volverPedidoARecibido: (tiendaId, id) => moverPedido(tiendaId, id, ["por_despachar"], "nuevo"),
     reabrirPedido: (tiendaId, id) => moverPedido(tiendaId, id, ["cancelado"], "nuevo"),
     async deshacerDespacho(tiendaId, id) {
-      // Todo o nada en la base: devuelve el stock y regresa el pedido a por_despachar (sin despachado_en).
+      // Todo o nada en la base: devuelve el stock y regresa el pedido a por_despachar (conserva despachado_en: la fecha original de la venta).
       await dato(supabase.rpc("deshacer_despacho", { p_pedido_id: id }));
       const pedido = await pedidoCrudo(tiendaId, id);
       if (!pedido) throw new PedidoNoEncontrado();

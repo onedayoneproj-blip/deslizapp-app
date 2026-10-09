@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.54.0", fecha: "2026-10-09", titulo: "Reabrir sin vueltas.",
+    cambios: [
+      "«Editar pedido» en uno despachado ahora tiene «Reabrir pedido»: confirmas y quedas editando.",
+      "El stock se devuelve solito y lo despachas otra vez cuando termines. Tu factura se arma de nuevo.",
+    ],
+  },
+  {
     version: "0.52.0", fecha: "2026-10-09", titulo: "Pedido más clarito.",
     cambios: [
       "«Cambiar a crédito» ya no pide botones extra: eliges la fecha y queda guardado.",
