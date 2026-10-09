@@ -44,11 +44,11 @@ test("si falla (pedido cancelado) lanza y la base queda igual: nada a medias", (
   assert.equal(JSON.stringify(cancelado), antes);
 });
 
-test("debeGuardarFecha: las pastillas guardan; «Elegir fecha» espera el día confirmado", () => {
-  assert.equal(debeGuardarFecha(null, { opcion: "semana", dia: "2026-10-16" }), true);
-  assert.equal(debeGuardarFecha(null, { opcion: "mes", dia: "2026-10-31" }), true);
-  assert.equal(debeGuardarFecha(null, { opcion: "sin", dia: null }), true);
-  assert.equal(debeGuardarFecha(null, { opcion: "otra", dia: "2026-10-23" }), false);
-  assert.equal(debeGuardarFecha({ opcion: "otra" }, { opcion: "otra", dia: null }), false);
-  assert.equal(debeGuardarFecha({ opcion: "otra" }, { opcion: "otra", dia: "2026-10-25" }), true);
+test("debeGuardarFecha: las pastillas guardan; «Elegir fecha» espera un día válido (arranca vacío)", () => {
+  assert.equal(debeGuardarFecha({ opcion: "semana", dia: "2026-10-16" }), true);
+  assert.equal(debeGuardarFecha({ opcion: "mes", dia: "2026-10-31" }), true);
+  assert.equal(debeGuardarFecha({ opcion: "sin", dia: null }), true);
+  assert.equal(debeGuardarFecha({ opcion: "otra", dia: null }), false);
+  assert.equal(debeGuardarFecha({ opcion: "otra", dia: "no-es-fecha" }), false);
+  assert.equal(debeGuardarFecha({ opcion: "otra", dia: "2026-10-25" }), true);
 });

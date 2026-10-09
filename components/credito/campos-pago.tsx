@@ -58,10 +58,10 @@ export { soloDigitos };
  * campo de fecha (un día que no haya pasado). La pastilla elegida muestra el día ("15 oct").
  */
 /** `valor` null: todavía no se eligió ninguna (nada marcado). */
-export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void; deshabilitado?: boolean }) {
+export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false, diaVacio = false }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void; deshabilitado?: boolean; /** «Elegir fecha» arranca con el campo vacío (sin día de partida): quien guarda al elegir necesita que escribir el día siempre sea un cambio. */ diaVacio?: boolean }) {
   const dia = valor ? diaDeOpcion(valor.opcion, valor.dia) : null;
   const texto = (opcion: OpcionFecha, normal: string) => (valor?.opcion === opcion && dia ? diaCorto(dia) : normal);
-  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor?.dia ?? sumarDias(hoy(), 14)) : diaDeOpcion(opcion, null) });
+  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor?.dia ?? (diaVacio ? null : sumarDias(hoy(), 14))) : diaDeOpcion(opcion, null) });
   return (
     <div className="flex flex-col gap-3">
       <GrupoOpciones
@@ -84,7 +84,7 @@ export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false }: {
           disabled={deshabilitado}
           onChange={(e) => alCambiar({ opcion: "otra", dia: e.target.value || null })}
           className="[&_input]:max-w-full [&_input]:appearance-none"
-          error={!dia ? "Elige un día que no haya pasado, o toca «Sin fecha»." : undefined}
+          error={!dia && !(diaVacio && !valor?.dia) ? "Elige un día que no haya pasado, o toca «Sin fecha»." : undefined}
         />
       )}
     </div>

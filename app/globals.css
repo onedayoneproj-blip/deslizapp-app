@@ -324,16 +324,6 @@
   translate: 0 12px;
   visibility: hidden;
 }
-/* Cabecera con fondo sólido (prop `cabeceraSolida` de Hoja): sin desenfoque ni translucidez, para que lo que pasa por detrás
-   no se vea bajo el título. Mismo aspecto que con "reducir transparencia". */
-.hoja-borde-solido > .hoja-borde-desenfoque {
-  display: none;
-}
-.hoja-borde-solido > .hoja-borde-color {
-  bottom: 16px;
-  background: var(--fondo);
-  border-bottom: 1px solid var(--linea);
-}
 @media (prefers-reduced-transparency: reduce) {
   .hoja-borde > .hoja-borde-desenfoque {
     display: none;

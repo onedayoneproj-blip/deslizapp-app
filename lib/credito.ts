@@ -555,10 +555,9 @@ export function enlaceWhatsAppCliente(telefono: string, texto: string): string {
 
 /**
  * "Cambiar a crédito" desde el detalle: ¿elegir `nueva` guarda ya el pago? Las pastillas ("En 1 semana", "Fin de mes", "Sin fecha")
- * guardan al tocarlas. "Elegir fecha" solo muestra el campo la primera vez (con un día de partida); guarda cuando se confirma un día
- * válido en el campo (`anterior` ya era "otra").
+ * guardan al tocarlas. "Elegir fecha" arranca con el campo vacío y guarda cuando se escribe un día válido.
  */
-export function debeGuardarFecha(anterior: { opcion: string } | null, nueva: { opcion: string; dia: string | null }): boolean {
+export function debeGuardarFecha(nueva: { opcion: string; dia: string | null }): boolean {
   if (nueva.opcion !== "otra") return true;
-  return anterior?.opcion === "otra" && nueva.dia !== null && esDiaValido(nueva.dia);
+  return nueva.dia !== null && esDiaValido(nueva.dia);
 }

@@ -94,9 +94,9 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
     }, "No se pudo cambiar el pago. Inténtalo otra vez.", () => setFecha(null));
 
   // Elegir una fecha (o "Sin fecha") guarda el pago a crédito al momento, en cualquier estado. "Elegir fecha" espera el día que se
-  // escriba (la fecha de partida no cuenta como elegida). Si falla, se queda como estaba (de contado, con el aviso).
+  // escriba (el campo arranca vacío, así que escribir cualquier día guarda). Si falla, se queda como estaba (de contado, con el aviso).
   const elegirFecha = (f: FechaPago) => {
-    const guardar = debeGuardarFecha(fecha, f);
+    const guardar = debeGuardarFecha(f);
     setFecha(f);
     if (guardar) void pasarACredito(f);
   };
@@ -126,7 +126,7 @@ export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cli
         {cambiando && (
           <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-linea pt-3 pb-1">
             <p className="text-secundario font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
-            <SelectorFechaPago valor={fecha} alCambiar={elegirFecha} deshabilitado={ocupado} />
+            <SelectorFechaPago valor={fecha} alCambiar={elegirFecha} deshabilitado={ocupado} diaVacio />
           </div>
         )}
       </div>

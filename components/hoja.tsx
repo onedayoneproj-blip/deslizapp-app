@@ -164,8 +164,6 @@ type Props = {
   decoracionAbajo?: ReactNode;
   /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
   decoracionEncima?: ReactNode;
-  /** La cabecera fija (tirador, título y X) lleva el fondo sólido de la hoja: lo que pasa por detrás no se ve bajo el título. */
-  cabeceraSolida?: boolean;
   /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
   avisarAlSalir?: boolean;
   /** Hojas de ruta que consumen su entrada antes de navegar mediante alSalir. */
@@ -206,7 +204,6 @@ function HojaMontada({
   titulo,
   tituloOculto = false,
   capaSuperior,
-  cabeceraSolida = false,
   altura = "auto",
   fijoArriba,
   decoracionAbajo,
@@ -776,7 +773,7 @@ function HojaMontada({
         <div
           ref={borde}
           aria-hidden="true"
-          className={`hoja-borde${cabeceraSolida ? " hoja-borde-solido" : ""} pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]`}
+          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
           style={{ visibility: "hidden" }}
         >
           <div className="hoja-borde-desenfoque" />

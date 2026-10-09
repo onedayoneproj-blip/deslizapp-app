@@ -426,8 +426,6 @@ Reemplaza la sección «Opciones» de la ficha del producto (solo `tipo = produc
   por ítem ("Quedan 3" / "Queda 1" / "Sin stock") mientras el pedido espera despacho; ya despachado no lleva etiqueta (el stock
   habla de hoy, no de la venta; sin "Agotado" ni aviso de reemplazo).
 - **Total**; solo con descuento de un código se ven también Subtotal y Descuento (sin descuento serían lo mismo que el Total).
-- La cabecera fija ("Pedido #N" y la X) lleva el fondo sólido de la hoja (`cabeceraSolida` de `Hoja`): lo que pasa por detrás al hacer
-  scroll no se ve bajo el título.
 - Tarjeta de factura (despachado): no repite "A crédito" (lo dice la tarjeta de Pago); sí "Al contado" y "Pagado".
 - Nota de marca en Caveat: "al despachar, el stock se actualiza solito".
 
@@ -503,8 +501,8 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha (sin ninguna marcada), SIN botones de
   "Cancelar" ni "A crédito": el mismo botón de la fila pasa a decir **"Cerrar"** (cierra el bloque sin cambiar nada). Elegir una fecha (o
   "Sin fecha") **guarda al momento** (`cambiarPagoPedido`), igual en pedidos pendientes y despachados: aviso "Pedido #N quedó a
-  crédito." (sin Deshacer: la app aún no tiene ese patrón en los avisos) y la tarjeta pasa a "Pago" a crédito. "Elegir fecha" guarda
-  cuando se confirma el día en el campo, no al tocar la pastilla (`debeGuardarFecha` en `lib/credito.ts`). Mientras guarda, las
+  crédito." (sin Deshacer: la app aún no tiene ese patrón en los avisos) y la tarjeta pasa a "Pago" a crédito. "Elegir fecha" muestra
+  el campo vacío y guarda al escribir un día válido, no al tocar la pastilla (`debeGuardarFecha` en `lib/credito.ts`). Mientras guarda, las
   opciones se deshabilitan; si falla, aviso de error y se queda de contado. El siguiente paso en pendientes sigue siendo "Despachar
   pedido". No cambia despachar ni hay migración.
 - **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),

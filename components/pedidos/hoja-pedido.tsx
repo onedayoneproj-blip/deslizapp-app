@@ -74,7 +74,7 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
   }
 
   return (
-    <Hoja abierta alCerrar={cerrar} cabeceraSolida titulo={pedido ? `Pedido #${pedido.numero}` : "Pedido"}>
+    <Hoja abierta alCerrar={cerrar} titulo={pedido ? `Pedido #${pedido.numero}` : "Pedido"}>
       {cuerpo}
     </Hoja>
   );
