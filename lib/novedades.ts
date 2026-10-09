@@ -22,10 +22,25 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.52.0", fecha: "2026-10-09", titulo: "Campos con ícono.",
+    version: "0.55.0", fecha: "2026-10-09", titulo: "Campos con ícono.",
     cambios: [
       "Nombre, WhatsApp, fechas, enlaces y más campos ahora llevan un icono a la izquierda.",
       "Se ven igual en toda la app: más fácil saber qué va en cada uno.",
+    ],
+  },
+  {
+    version: "0.54.0", fecha: "2026-10-09", titulo: "Reabrir sin vueltas.",
+    cambios: [
+      "«Editar pedido» en uno despachado ahora tiene «Reabrir pedido»: confirmas y quedas editando.",
+      "El stock se devuelve solito y lo despachas otra vez cuando termines. Tu factura se arma de nuevo.",
+    ],
+  },
+  {
+    version: "0.52.0", fecha: "2026-10-09", titulo: "Pedido más clarito.",
+    cambios: [
+      "«Cambiar a crédito» ya no pide botones extra: eliges la fecha y queda guardado.",
+      "«Registrar abono» ya no se confunde con «Editar pedido»: es un botón de texto dentro de Pago.",
+      "Menos repetido: sin «Agotado» en lo ya vendido, sin dos «A crédito» y, sin descuento, solo el Total.",
     ],
   },
   {

@@ -82,8 +82,10 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     });
   };
 
-  // La misma etiqueta de pago que la hoja del pedido; aquí un pedido a crédito sin saldo se llama "Pagado"
-  const etiqueta = etiquetaDePago(pedido, true);
+  // La misma etiqueta de pago que la hoja del pedido; aquí un pedido a crédito sin saldo se llama "Pagado". "A crédito" no se repite:
+  // ya lo dice la tarjeta de Pago, justo debajo.
+  const dePago = etiquetaDePago(pedido, true);
+  const etiqueta = dePago.texto === "A crédito" ? undefined : dePago;
 
   return (
     <>

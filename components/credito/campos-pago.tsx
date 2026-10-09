@@ -58,32 +58,34 @@ export { soloDigitos };
  * "¿Cuándo quedó en pagar?": pastillas En 1 semana / Fin de mes / Elegir fecha / Sin fecha. Con "Elegir fecha" aparece el
  * campo de fecha (un día que no haya pasado). La pastilla elegida muestra el día ("15 oct").
  */
-export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago; alCambiar: (f: FechaPago) => void }) {
-  const dia = diaDeOpcion(valor.opcion, valor.dia);
-  const texto = (opcion: OpcionFecha, normal: string) => (valor.opcion === opcion && dia ? diaCorto(dia) : normal);
-  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor.dia ?? sumarDias(hoy(), 14)) : diaDeOpcion(opcion, null) });
+/** `valor` null: todavía no se eligió ninguna (nada marcado). */
+export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false, diaVacio = false }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void; deshabilitado?: boolean; /** «Elegir fecha» arranca con el campo vacío (sin día de partida): quien guarda al elegir necesita que escribir el día siempre sea un cambio. */ diaVacio?: boolean }) {
+  const dia = valor ? diaDeOpcion(valor.opcion, valor.dia) : null;
+  const texto = (opcion: OpcionFecha, normal: string) => (valor?.opcion === opcion && dia ? diaCorto(dia) : normal);
+  const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor?.dia ?? (diaVacio ? null : sumarDias(hoy(), 14))) : diaDeOpcion(opcion, null) });
   return (
     <div className="flex flex-col gap-3">
       <GrupoOpciones
         titulo="¿Cuándo quedó en pagar?"
-        valor={valor.opcion}
+        valor={valor?.opcion ?? null}
         alCambiar={(o) => (o === "sin" ? alCambiar({ opcion: "sin", dia: null }) : elegir(o))}
         opciones={[
-          { id: "semana", texto: texto("semana", "En 1 semana") },
-          { id: "mes", texto: texto("mes", "Fin de mes") },
-          { id: "otra", texto: texto("otra", "Elegir fecha") },
-          { id: "sin", texto: "Sin fecha" },
+          { id: "semana", texto: texto("semana", "En 1 semana"), deshabilitada: deshabilitado },
+          { id: "mes", texto: texto("mes", "Fin de mes"), deshabilitada: deshabilitado },
+          { id: "otra", texto: texto("otra", "Elegir fecha"), deshabilitada: deshabilitado },
+          { id: "sin", texto: "Sin fecha", deshabilitada: deshabilitado },
         ]}
       />
-      {valor.opcion === "otra" && (
+      {valor?.opcion === "otra" && (
         <Campo
           etiqueta="Día para pagar" icono={IconoCalendario}
           type="date"
           value={valor.dia ?? ""}
           min={hoy()}
+          disabled={deshabilitado}
           onChange={(e) => alCambiar({ opcion: "otra", dia: e.target.value || null })}
           className="[&_input]:max-w-full [&_input]:appearance-none"
-          error={!dia ? "Elige un día que no haya pasado, o toca «Sin fecha»." : undefined}
+          error={!dia && !(diaVacio && !valor?.dia) ? "Elige un día que no haya pasado, o toca «Sin fecha»." : undefined}
         />
       )}
     </div>
