@@ -88,8 +88,12 @@ export function presentacionesHistoria(producto: Producto, max: number = MAX_PRE
 export const productoAgotadoParaHistoria = (p: Pick<Producto, "activo" | "stock" | "porEncargo" | "opciones" | "variantes">): boolean =>
   !p.porEncargo && stockParaSalud(p) === 0;
 
-/** El pie de la tarjeta: con el producto agotado no se invita a pedirlo, sino a pedir aviso (lo que el catálogo ya ofrece). */
-export const textoPieHistoria = (agotado: boolean) => (agotado ? "Avísame cuando vuelva" : "Pídelo en mi catálogo");
+/** Pie de la historia con el producto agotado, en voz de la vendedora (lo ven sus seguidores). Texto de Lewis; cámbialo solo aquí. */
+export const TEXTO_PIE_AGOTADO = "Aaah… se lo llevaron. Escríbeme y te lo guardo la próxima";
+export const TEXTO_PIE_NORMAL = "Pídelo en mi catálogo";
+
+/** El pie de la tarjeta: agotado → no invita a pedirlo, avisa que se agotó y que le escriban. */
+export const textoPieHistoria = (agotado: boolean) => (agotado ? TEXTO_PIE_AGOTADO : TEXTO_PIE_NORMAL);
 
 /** Qué se dibuja según los interruptores. «Presentaciones» y «Precio» solo salen si el producto los tiene. */
 export function datosHistoria(producto: Producto, promos: Promo[], opciones: OpcionesHistoria, ahora: Date = new Date()): DatosHistoria {

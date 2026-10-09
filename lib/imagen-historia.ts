@@ -347,7 +347,16 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
     const altoPastillas = pastillas.length ? pastillas.length * 76 + (pastillas.length - 1) * 14 : 0;
 
     const circulo = 150;
-    const altoPie = circulo;
+    // El pie del producto agotado es largo: se parte en hasta 2 líneas (sin cortar palabras) y el pie crece lo que haga falta.
+    const textoPie = textoPieHistoria(datos.agotado);
+    const anchoPie = x0 + anchoUtil - (datos.fotoTienda ? x0 + circulo + 34 : x0);
+    let lineasPie = [textoPie];
+    if (datos.agotado) {
+      ctx.font = `700 38px ${f.texto}`;
+      lineasPie = partirLineas(ctx, textoPie, anchoPie, 2);
+    }
+    const extraPie = (lineasPie.length - 1) * 44;
+    const altoPie = circulo + extraPie;
 
     let alto = relleno + altoNombre;
     if (datos.precio || datos.etiquetaAgotado) alto += 6 + altoPrecio;
@@ -472,28 +481,33 @@ export async function generarImagenHistoria(entrada: EntradaImagenHistoria): Pro
 
     let xt = x0;
     if (datos.fotoTienda) {
-      dibujarTienda(ctx, x0, y, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
+      dibujarTienda(ctx, x0, y + extraPie / 2, circulo, conLogo ? logo : null, entrada.nombreTienda, f);
       xt = x0 + circulo + 34;
     }
     ctx.fillStyle = BOSQUE;
-    const centro = y + circulo / 2;
+    const centro = y + altoPie / 2;
     const anchoTexto = x0 + anchoUtil - xt;
     const d = entrada.direccion;
-    const textoPie = textoPieHistoria(datos.agotado);
     if (d) {
-      // «Pídelo en mi catálogo» (agotado: «Avísame cuando vuelva»), el dominio completo y, debajo, la ruta: sin «https://» y sin cortar a mitad
+      // «Pídelo en mi catálogo» (agotado: ver TEXTO_PIE_AGOTADO), el dominio completo y, debajo, la ruta: sin «https://» y sin cortar a mitad
       const lineas = d.ruta ? 3 : 2;
       const arriba = centro - (lineas === 3 ? 44 : 22);
-      lineaQueCabe(ctx, textoPie, xt, arriba + 12, anchoTexto, 700, 40, 32, f.texto);
+      const arribaP = arriba - extraPie / 2;
+      if (datos.agotado) {
+        ctx.font = `700 38px ${f.texto}`;
+        lineasPie.forEach((l, i) => ctx.fillText(l, xt, arribaP + 12 + i * 44));
+      } else {
+        lineaQueCabe(ctx, textoPie, xt, arribaP + 12, anchoTexto, 700, 40, 32, f.texto);
+      }
       ctx.fillStyle = BOSQUE;
-      lineaQueCabe(ctx, d.dominio, xt, arriba + 62, anchoTexto, 700, 36, 24, f.texto);
+      lineaQueCabe(ctx, d.dominio, xt, arribaP + 62 + extraPie, anchoTexto, 700, 36, 24, f.texto);
       if (d.ruta) {
         ctx.fillStyle = SUAVE;
-        lineaQueCabe(ctx, d.ruta, xt, arriba + 106, anchoTexto, 600, 32, 22, f.texto);
+        lineaQueCabe(ctx, d.ruta, xt, arribaP + 106 + extraPie, anchoTexto, 600, 32, 22, f.texto);
       }
     } else {
-      ctx.font = `700 40px ${f.texto}`;
-      ctx.fillText(textoPie, xt, centro + 14);
+      ctx.font = `700 ${datos.agotado ? 38 : 40}px ${f.texto}`;
+      lineasPie.forEach((l, i) => ctx.fillText(l, xt, centro + 14 + (i - (lineasPie.length - 1) / 2) * 44));
     }
     if (!entrada.soloTarjeta) {
       for (const puesto of entrada.stickers ?? []) {

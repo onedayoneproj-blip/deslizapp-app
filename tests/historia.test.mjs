@@ -127,7 +127,7 @@ test("tarjeta de agotado: etiqueta en lugar del precio y pie «Avísame cuando v
   assert.equal(agotado.precio, null);
   assert.equal(agotado.etiquetaAgotado, true);
   assert.equal(agotado.agotado, true);
-  assert.equal(H.textoPieHistoria(agotado.agotado), "Avísame cuando vuelva");
+  assert.equal(H.textoPieHistoria(agotado.agotado), "Aaah… se lo llevaron. Escríbeme y te lo guardo la próxima");
   const conStock = H.datosHistoria(base, [], opc);
   assert.deepEqual(conStock.precio, { desde: false, precio: 3200, antes: null });
   assert.equal(conStock.etiquetaAgotado, false);
