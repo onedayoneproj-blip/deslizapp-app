@@ -108,3 +108,31 @@ test("«Desde» ignora las presentaciones agotadas mientras haya otras que se pu
   const todas = { ...perfume, variantes: perfume.variantes.map((v) => ({ ...v, stock: 0 })) };
   assert.deepEqual(H.precioHistoria(todas, []), { desde: true, precio: 1800, antes: null });
 });
+
+test("agotado para la tarjeta: sin stock en todo, no por encargo", () => {
+  assert.equal(H.productoAgotadoParaHistoria({ ...base, stock: 0 }), true);
+  assert.equal(H.productoAgotadoParaHistoria(base), false);
+  assert.equal(H.productoAgotadoParaHistoria({ ...base, stock: null }), false);
+  assert.equal(H.productoAgotadoParaHistoria({ ...base, stock: 0, porEncargo: true }), false);
+  const todas = { ...perfume, variantes: perfume.variantes.map((v) => ({ ...v, stock: 0 })) };
+  assert.equal(H.productoAgotadoParaHistoria(todas), true);
+  assert.equal(H.productoAgotadoParaHistoria({ ...todas, porEncargo: true }), false);
+  assert.equal(H.productoAgotadoParaHistoria({ ...perfume, variantes: [vari({ Tamaño: "30 ml" }, 0), vari({ Tamaño: "50 ml" }, 2)] }), false);
+  assert.equal(H.productoAgotadoParaHistoria({ ...perfume, variantes: [vari({ Tamaño: "30 ml" }, 0), { ...vari({ Tamaño: "50 ml" }, 4), activa: false }] }), true);
+});
+
+test("tarjeta de agotado: etiqueta en lugar del precio y pie «Avísame cuando vuelva»; con stock, igual que antes", () => {
+  const opc = { precio: true, presentaciones: true, fotoTienda: true };
+  const agotado = H.datosHistoria({ ...base, stock: 0 }, [], opc);
+  assert.equal(agotado.precio, null);
+  assert.equal(agotado.etiquetaAgotado, true);
+  assert.equal(agotado.agotado, true);
+  assert.equal(H.textoPieHistoria(agotado.agotado), "Avísame cuando vuelva");
+  const conStock = H.datosHistoria(base, [], opc);
+  assert.deepEqual(conStock.precio, { desde: false, precio: 3200, antes: null });
+  assert.equal(conStock.etiquetaAgotado, false);
+  assert.equal(H.textoPieHistoria(conStock.agotado), "Pídelo en mi catálogo");
+  const sinPrecio = H.datosHistoria({ ...base, stock: 0 }, [], { ...opc, precio: false });
+  assert.equal(sinPrecio.etiquetaAgotado, false);
+  assert.equal(sinPrecio.agotado, true);
+});

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { catalogoParaAviso, enlaceAviso, mensajeYaLlego, resumenEspera } from "@/lib/avisos";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { catalogoParaAviso, clienteDelAviso, clientesPorTelefono, enlaceAviso, enlaceChat, mensajeYaLlego, resumenEspera } from "@/lib/avisos";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -9,6 +9,7 @@ import { textoDeVariante } from "@/lib/inventario-catalogo";
 import { formatearTelefono } from "@/lib/telefono";
 import type { AvisoLlegada, Producto } from "@/lib/types";
 import { IconoCheck, IconoPersona, IconoWhatsApp } from "../iconos";
+import { AvatarCliente } from "../clientes/avatar-cliente";
 import { Avatar, Aviso, Boton, Etiqueta, Tarjeta, useToastUI } from "../ui";
 
 /** "18095550142" → "+18095550142" (como lo entiende formatearTelefono). */
@@ -36,8 +37,11 @@ export function TarjetaYaLlego(props: { producto: Producto; avisos: AvisoLlegada
 }
 
 function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Producto; avisos: AvisoLlegada[]; modo?: "llego" | "espera" }) {
-  const { marcarAvisado } = useData();
+  const { marcarAvisado, getClientes } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
+  // Los clientes se leen una vez por lista (misma clave que el resto de la app) y se cruzan por teléfono con un Map.
+  const clientes = useConsulta(`clientes:${tiendaId}`, () => getClientes(tiendaId));
+  const porTelefono = useMemo(() => clientesPorTelefono(clientes.data ?? []), [clientes.data]);
   const { mostrarToast } = useToastUI();
   const [estados, setEstados] = useState<Map<string, EstadoFila>>(new Map());
   const [enCamino, setEnCamino] = useState<string | null>(null);
@@ -115,6 +119,13 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
     setEnCamino(a.id);
   };
 
+  // Mensaje libre: abre el chat sin texto de «Ya llegó» y no marca nada como avisado.
+  const escribir = (a: AvisoLlegada) => {
+    const ventana = window.open(enlaceChat(a.telefono), "_blank");
+    if (!ventana) mostrarToast("No se pudo abrir WhatsApp. Inténtalo otra vez.");
+    else ventana.opener = null;
+  };
+
   return (
     <Tarjeta>
       <p className="font-mano text-mano text-atencion-texto">{modo === "llego" ? "Ya llegó" : "Lista de espera"}</p>
@@ -130,9 +141,13 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
           const estado = a.avisadoEn ? "avisado" : estados.get(a.id);
           const hay = hayDe(a.varianteId);
           const telefono = formatearTelefono(conMas(a.telefono));
+          const cliente = clienteDelAviso(porTelefono, a.telefono);
+          const nombre = cliente?.nombre ?? a.nombre;
           return (
             <li key={a.id} className="flex min-h-15 items-center gap-3 border-t border-linea py-2 first:border-t-0">
-              {a.nombre ? (
+              {cliente ? (
+                <AvatarCliente cliente={cliente} />
+              ) : a.nombre ? (
                 <Avatar nombre={a.nombre} />
               ) : (
                 <span aria-hidden="true" className="grid size-(--alto-avatar) shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto-secundario">
@@ -140,18 +155,21 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
                 </span>
               )}
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-destacado text-texto">{a.nombre ?? telefono}</span>
+                <span className="truncate text-destacado text-texto">{nombre ?? telefono}</span>
                 <span className="truncate text-secundario text-texto-secundario">
-                  {a.nombre ? telefono : "Sin nombre"}
+                  {nombre ? telefono : "Sin nombre"}
                   {!unaVariante && varianteDe(a.varianteId) ? ` · ${varianteDe(a.varianteId)}` : ""}
                 </span>
               </span>
+              <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} onClick={() => escribir(a)} aria-label={`Escribir a ${nombre ?? telefono} por WhatsApp`}>
+                Escribir
+              </Boton>
               {estado === "avisado" ? (
                 <Etiqueta tono="exito" icono={<IconoCheck tamano={14} strokeWidth={3} />}>
                   Avisado
                 </Etiqueta>
               ) : estado === "fallo" || estado === "marcando" ? (
-                <Boton jerarquia="secundario" tamano="compacto" cargando={estado === "marcando"} onClick={() => void marcar(a.id)} aria-label={`Reintentar marcar como avisado a ${a.nombre ?? telefono}`}>
+                <Boton jerarquia="secundario" tamano="compacto" cargando={estado === "marcando"} onClick={() => void marcar(a.id)} aria-label={`Reintentar marcar como avisado a ${nombre ?? telefono}`}>
                   {estado === "marcando" ? "Marcando" : "Reintentar"}
                 </Boton>
               ) : !hay ? (

@@ -5,6 +5,7 @@ import { precioDe, presentacionesDe, resumenDe, type Presentacion } from "./pres
 import { enlaceCatalogo } from "./enlace-catalogo";
 import { colorPorNombre, esEjeColor } from "./colores";
 import { precioConPromo } from "./promos";
+import { stockParaSalud } from "./inventario-catalogo";
 import type { Producto, Promo, Tienda } from "./types";
 
 /** Cuántas presentaciones caben en la imagen (una o dos líneas); el resto va como «+N». */
@@ -29,6 +30,10 @@ export type DatosHistoria = {
   precio: PrecioHistoria | null;
   presentaciones: PresentacionesHistoria | null;
   fotoTienda: boolean;
+  /** Producto agotado (sin stock en todas sus presentaciones y no «por encargo»): el pie invita a pedir aviso, no a pedirlo. */
+  agotado: boolean;
+  /** Se dibuja «Agotado» en el lugar del precio (agotado y con el interruptor del precio encendido). */
+  etiquetaAgotado: boolean;
 };
 
 /** El producto tiene con qué armar la historia: una foto (la principal) que se pueda mostrar. */
@@ -76,13 +81,26 @@ export function presentacionesHistoria(producto: Producto, max: number = MAX_PRE
   return { elementos: todos.slice(0, max), mas: Math.max(0, todos.length - max) };
 }
 
+/**
+ * ¿La historia debe tratar el producto como agotado? Sin stock en todas sus presentaciones activas (o en el producto, si no tiene) y sin
+ * «Por encargo». Sin control de stock (null) nunca está agotado. Misma regla de variantes que la salud del inventario.
+ */
+export const productoAgotadoParaHistoria = (p: Pick<Producto, "activo" | "stock" | "porEncargo" | "opciones" | "variantes">): boolean =>
+  !p.porEncargo && stockParaSalud(p) === 0;
+
+/** El pie de la tarjeta: con el producto agotado no se invita a pedirlo, sino a pedir aviso (lo que el catálogo ya ofrece). */
+export const textoPieHistoria = (agotado: boolean) => (agotado ? "Avísame cuando vuelva" : "Pídelo en mi catálogo");
+
 /** Qué se dibuja según los interruptores. «Presentaciones» y «Precio» solo salen si el producto los tiene. */
 export function datosHistoria(producto: Producto, promos: Promo[], opciones: OpcionesHistoria, ahora: Date = new Date()): DatosHistoria {
+  const agotado = productoAgotadoParaHistoria(producto);
   return {
     nombre: producto.nombre,
-    precio: opciones.precio ? precioHistoria(producto, promos, ahora) : null,
+    precio: opciones.precio && !agotado ? precioHistoria(producto, promos, ahora) : null,
     presentaciones: opciones.presentaciones ? presentacionesHistoria(producto) : null,
     fotoTienda: opciones.fotoTienda,
+    agotado,
+    etiquetaAgotado: opciones.precio && agotado,
   };
 }
 
