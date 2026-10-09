@@ -58,7 +58,7 @@ export { soloDigitos };
  * campo de fecha (un día que no haya pasado). La pastilla elegida muestra el día ("15 oct").
  */
 /** `valor` null: todavía no se eligió ninguna (nada marcado). */
-export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void }) {
+export function SelectorFechaPago({ valor, alCambiar, deshabilitado = false }: { valor: FechaPago | null; alCambiar: (f: FechaPago) => void; deshabilitado?: boolean }) {
   const dia = valor ? diaDeOpcion(valor.opcion, valor.dia) : null;
   const texto = (opcion: OpcionFecha, normal: string) => (valor?.opcion === opcion && dia ? diaCorto(dia) : normal);
   const elegir = (opcion: OpcionFecha) => alCambiar({ opcion, dia: opcion === "otra" ? (valor?.dia ?? sumarDias(hoy(), 14)) : diaDeOpcion(opcion, null) });
@@ -69,10 +69,10 @@ export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago | nul
         valor={valor?.opcion ?? null}
         alCambiar={(o) => (o === "sin" ? alCambiar({ opcion: "sin", dia: null }) : elegir(o))}
         opciones={[
-          { id: "semana", texto: texto("semana", "En 1 semana") },
-          { id: "mes", texto: texto("mes", "Fin de mes") },
-          { id: "otra", texto: texto("otra", "Elegir fecha") },
-          { id: "sin", texto: "Sin fecha" },
+          { id: "semana", texto: texto("semana", "En 1 semana"), deshabilitada: deshabilitado },
+          { id: "mes", texto: texto("mes", "Fin de mes"), deshabilitada: deshabilitado },
+          { id: "otra", texto: texto("otra", "Elegir fecha"), deshabilitada: deshabilitado },
+          { id: "sin", texto: "Sin fecha", deshabilitada: deshabilitado },
         ]}
       />
       {valor?.opcion === "otra" && (
@@ -81,6 +81,7 @@ export function SelectorFechaPago({ valor, alCambiar }: { valor: FechaPago | nul
           type="date"
           value={valor.dia ?? ""}
           min={hoy()}
+          disabled={deshabilitado}
           onChange={(e) => alCambiar({ opcion: "otra", dia: e.target.value || null })}
           className="[&_input]:max-w-full [&_input]:appearance-none"
           error={!dia ? "Elige un día que no haya pasado, o toca «Sin fecha»." : undefined}

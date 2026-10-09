@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajeRecordatorio, nombreMetodo } from "@/lib/credito";
+import { debeGuardarFecha, diaCorto, diaDeSantoDomingo, enlaceWhatsAppCliente, mensajeRecordatorio, nombreMetodo } from "@/lib/credito";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
@@ -40,19 +40,7 @@ function marcarVisto(pedidoId: string) {
  * cuándo quedó en pagar y la lista de abonos (cada fila abre su hoja con Editar y Borrar), con "+ Registrar abono" y "Recordarle
  * por WhatsApp". De contado: una línea "Pagado" y "Cambiar a crédito". Al saldarse, la tarjeta verde con confeti (una sola vez).
  */
-export function PagoDelPedido({
-  pedido,
-  cliente,
-  pendiente = null,
-  alElegirPendiente,
-}: {
-  pedido: PedidoConItems;
-  cliente: Cliente | null;
-  /** "Cambiar a crédito" elegido y todavía sin guardar (solo con `alElegirPendiente`): se guarda al despachar el pedido. */
-  pendiente?: FechaPago | null;
-  /** Si viene, elegir la fecha NO guarda: la hoja del pedido lo guarda junto con "Despachar pedido". Sin él, se guarda al elegir. */
-  alElegirPendiente?: (fecha: FechaPago | null) => void;
-}) {
+export function PagoDelPedido({ pedido, cliente }: { pedido: PedidoConItems; cliente: Cliente | null }) {
   const { cambiarPagoPedido, getDueno } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const { data: dueno } = useConsulta(`dueno:${tiendaId}`, () => getDueno(tiendaId));
@@ -84,13 +72,14 @@ export function PagoDelPedido({
     }
   }, [pedido.id, pedido.saldo, pedido.abonos, saldado]);
 
-  const correr = async (accion: () => Promise<void>, error: string) => {
+  const correr = async (accion: () => Promise<void>, error: string, alFallar?: () => void) => {
     if (ocupado) return;
     setOcupado(true);
     try {
       await accion();
     } catch (e) {
       toast(mensajeDeError(e, error));
+      alFallar?.();
     } finally {
       setOcupado(false);
     }
@@ -102,22 +91,18 @@ export function PagoDelPedido({
       setCambiando(false);
       setFecha(null);
       toast(`Pedido #${pedido.numero} quedó a crédito.`);
-    }, "No se pudo cambiar el pago. Inténtalo otra vez.");
+    }, "No se pudo cambiar el pago. Inténtalo otra vez.", () => setFecha(null));
 
-  // Elegir una fecha (o "Sin fecha") deja el pedido a crédito. Pendiente de despacho: solo se marca (se guarda al despachar).
-  // Si no: se guarda al elegir. "Elegir fecha" espera el día que se escriba (la fecha de partida no cuenta como elegida).
+  // Elegir una fecha (o "Sin fecha") guarda el pago a crédito al momento, en cualquier estado. "Elegir fecha" espera el día que se
+  // escriba (la fecha de partida no cuenta como elegida). Si falla, se queda como estaba (de contado, con el aviso).
   const elegirFecha = (f: FechaPago) => {
-    if (alElegirPendiente) return alElegirPendiente(f);
-    const eligioElDia = f.opcion === "otra" && fecha?.opcion === "otra";
+    const guardar = debeGuardarFecha(fecha, f);
     setFecha(f);
-    if (f.opcion !== "otra" || (eligioElDia && diaDeOpcion("otra", f.dia) !== null)) void pasarACredito(f);
+    if (guardar) void pasarACredito(f);
   };
-  const valorFecha = alElegirPendiente ? pendiente : fecha;
-  const abierto = cambiando || pendiente !== null;
   const dejarDeContado = () => {
     setCambiando(false);
     setFecha(null);
-    alElegirPendiente?.(null);
   };
 
   const vendedora = dueno?.nombre ?? "";
@@ -129,24 +114,19 @@ export function PagoDelPedido({
     return (
       <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2">
         <div className="flex min-h-11 items-center justify-between gap-3">
-          {pendiente ? (
-            <p className="text-secundario font-bold text-atencion-texto">A crédito</p>
-          ) : (
-            <p className="flex items-center gap-1.5 text-secundario font-bold text-texto-secundario">
-              <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
-              Pagado
-            </p>
-          )}
+          <p className="flex items-center gap-1.5 text-secundario font-bold text-texto-secundario">
+            <IconoCheck tamano={16} strokeWidth={2.6} className="text-texto" />
+            Pagado
+          </p>
           {/* El mismo botón abre y cierra: tocarlo de nuevo vuelve a contado (sin botones de Cancelar aparte) */}
-          <Boton jerarquia="secundario" tamano="compacto" onClick={abierto ? dejarDeContado : () => setCambiando(true)} deshabilitado={ocupado}>
-            {abierto ? "Volver a contado" : "Cambiar a crédito"}
+          <Boton jerarquia="secundario" tamano="compacto" onClick={cambiando ? dejarDeContado : () => setCambiando(true)} deshabilitado={ocupado}>
+            {cambiando ? "Volver a contado" : "Cambiar a crédito"}
           </Boton>
         </div>
-        {abierto && (
+        {cambiando && (
           <div role="group" aria-label="Cambiar a crédito" className="mov-aparece flex flex-col gap-3 border-t border-linea pt-3 pb-1">
             <p className="text-secundario font-bold">¿Dejar este pedido a crédito? Quedará debiendo {formatearPesos(pedido.total)}.</p>
-            <SelectorFechaPago valor={valorFecha} alCambiar={elegirFecha} />
-            {alElegirPendiente && pendiente && <p className="text-etiqueta font-normal text-texto-secundario">Se guarda al despachar el pedido.</p>}
+            <SelectorFechaPago valor={fecha} alCambiar={elegirFecha} deshabilitado={ocupado} />
           </div>
         )}
       </div>

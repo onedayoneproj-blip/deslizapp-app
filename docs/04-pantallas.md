@@ -501,14 +501,13 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 **Pago (ventas a crédito)** (`components/credito/pago-del-pedido.tsx`, entre los productos y las acciones; diseño en
 `referencias/credito-abonos/`). Los abonos y saldos vienen con el pedido (`pagado`, `saldo`, `abonos`).
 - **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"**. Al tocarlo se abre la
-  pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha, SIN botones de "Cancelar" ni "A crédito":
-  el mismo botón de la fila pasa a decir **"Volver a contado"** (deshace la elección y cierra el bloque). Elegir una fecha (o "Sin fecha")
-  marca el pedido como a crédito en la hoja (la fila dice "A crédito"; "Se guarda al despachar el pedido."):
-  - Pedido en **Por despachar**: no se guarda todavía. **"Despachar pedido"** aplica el pago y despacha en un solo paso
-    (`lib/data/despacho-con-pago.ts`: primero `cambiarPagoPedido`, luego `despacharPedido`; si despachar falla, el pago vuelve a como
-    estaba, así no queda a crédito sin despachar). No hay RPC nueva ni migración. Con "Elegir fecha" sin un día válido, Despachar queda apagado.
-  - Pedido **Recibido** o **Despachado** (no hay "Despachar pedido"): se guarda al elegir la fecha ("Pedido #N quedó a crédito.").
-    "Elegir fecha" guarda cuando se escribe el día, no al tocar la pastilla. Sin deshacer en el aviso (la app aún no tiene ese patrón).
+  pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha (sin ninguna marcada), SIN botones de
+  "Cancelar" ni "A crédito": el mismo botón de la fila pasa a decir **"Volver a contado"** (cierra el bloque). Elegir una fecha (o
+  "Sin fecha") **guarda al momento** (`cambiarPagoPedido`), igual en pedidos pendientes y despachados: aviso "Pedido #N quedó a
+  crédito." (sin Deshacer: la app aún no tiene ese patrón en los avisos) y la tarjeta pasa a "Pago" a crédito. "Elegir fecha" guarda
+  cuando se confirma el día en el campo, no al tocar la pastilla (`debeGuardarFecha` en `lib/credito.ts`). Mientras guarda, las
+  opciones se deshabilitan; si falla, aviso de error y se queda de contado. El siguiente paso en pendientes sigue siendo "Despachar
+  pedido". No cambia despachar ni hay migración.
 - **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),
   "Pagó RD$X de RD$Y", barra de progreso (crece con `scaleX`, 600 ms), la fecha acordada ("Quedó en pagar el 15 oct · faltan 15 días";
   atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).

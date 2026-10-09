@@ -11,7 +11,6 @@ import { buscarCodigoPromo } from "@/lib/promos";
 import { useData } from "@/lib/data/provider";
 import { enlaceWhatsApp, fechaYHora, formatearPesos } from "@/lib/formato";
 import { formatearTelefono } from "@/lib/telefono";
-import type { DatosPago } from "@/lib/credito";
 import type { Cliente, PedidoConItems, Producto, Promo } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
@@ -22,8 +21,6 @@ import { HojaDespachado } from "./hoja-despachado";
 import { AccionesFactura } from "./acciones-factura";
 import { useToast } from "../toast";
 import { PagoDelPedido } from "../credito/pago-del-pedido";
-import { diaDeOpcion, type FechaPago } from "../credito/campos-pago";
-import { despacharConPago } from "@/lib/data/despacho-con-pago";
 import { FilaDescuento, SelectorDescuento } from "./selector-descuento";
 import { ChipEstado, detalleDeItem, pieDeItem, stockDeItem } from "./comunes";
 
@@ -100,7 +97,7 @@ function Detalle({
   alSalir: (saliendo: boolean) => void;
   alEliminado: () => void;
 }) {
-  const { confirmarPedido, cancelarPedido, despacharPedido, cambiarPagoPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido, eliminarPedido } = useData();
+  const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido, eliminarPedido } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
   const toast = useToast();
   const [ocupado, setOcupado] = useState(false);
@@ -108,13 +105,6 @@ function Detalle({
   const [confirmando, setConfirmando] = useState<0 | 1 | null>(null);
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
   const [celebrando, setCelebrando] = useState(false);
-  // "Cambiar a crédito" elegido y sin guardar: solo cuenta mientras el pedido espera despacho y está de contado.
-  const [fechaPendiente, setFechaPendiente] = useState<FechaPago | null>(null);
-  const aplazaPago = pedido.estado === "por_despachar" && pedido.pagoModo !== "credito";
-  const pendiente = aplazaPago ? fechaPendiente : null;
-  const diaPendiente = pendiente ? diaDeOpcion(pendiente.opcion, pendiente.dia) : null;
-  const fechaPendienteMala = pendiente?.opcion === "otra" && diaPendiente === null;
-  const pagoPendiente: DatosPago | null = pendiente ? { pagoModo: "credito", pagoFechaAcordada: diaPendiente } : null;
   // Viniendo de "Ir a los pasos del pedido" (Editar pedido de un despachado): un destello breve, una sola vez, en el paso
   // anterior de la barra (el que sirve para retroceder): resalte fijo de ~600 ms y, salvo movimiento reducido, un pulso de
   // opacidad. Se hace directo sobre el elemento (sin estado de React).
@@ -179,8 +169,7 @@ function Detalle({
     });
   const despachar = () =>
     correr(async () => {
-      // Si se eligió "Cambiar a crédito", el pago se guarda aquí junto con el despacho (si despachar falla, vuelve a como estaba)
-      await despacharConPago({ cambiarPagoPedido, despacharPedido }, tiendaId, pedido, pagoPendiente);
+      await despacharPedido(tiendaId, pedido.id);
       // Solo después de que el servidor respondió OK: la celebración reemplaza al aviso de antes
       setCelebrando(true);
     });
@@ -386,7 +375,7 @@ function Detalle({
       {pedido.estado === "despachado" && tienda && <AccionesFactura key={pedido.id} pedido={pedido} cliente={cliente} tienda={tienda} productos={productos} />}
 
       {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
-      <PagoDelPedido pedido={pedido} cliente={cliente} pendiente={pendiente} alElegirPendiente={aplazaPago ? setFechaPendiente : undefined} />
+      <PagoDelPedido pedido={pedido} cliente={cliente} />
 
       {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta. "Editar pedido" y "Cancelar pedido"
           van al final, como texto, lejos del pago y del botón principal. */}
@@ -408,7 +397,7 @@ function Detalle({
                 </Aviso>
               </div>
             )}
-            <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0 || fechaPendienteMala}>
+            <Boton jerarquia="resalte" tamano="grande" anchoCompleto icono={<IconoCamion tamano={24} />} onClick={despachar} deshabilitado={ocupado || faltantes.length > 0}>
               Despachar pedido
             </Boton>
             <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
