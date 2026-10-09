@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Eligiendo avatar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=Fredoka:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#174B3A}a:hover{color:#0F3326}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #6F7E74; font-family: Figtree, sans-serif; color: #174B3A">
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 552px; background: #CFCBBF; border-radius: 32px 32px 0 0"></div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 600px; background: #FFF9EE; border-radius: 32px 32px 0 0; box-sizing: border-box; padding: 10px 20px 30px; display: flex; flex-direction: column; box-shadow: 0 -10px 30px rgba(0,0,0,0.12)">
+    <div style="width: 52px; height: 5px; border-radius: 3px; background: #E8DCC8; align-self: center"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px">
+      <h1 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 24px">Su avatar</h1>
+      <button aria-label="Cerrar" style="width: 48px; height: 48px; border: 0; border-radius: 50%; background: #F2E9DA; display: grid; place-items: center; cursor: pointer; padding: 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174B3A" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div style="align-self: center; width: 92px; height: 92px; border-radius: 50%; background: {{fondo}}; display: grid; place-items: center; font-size: 48px; margin-top: 6px">{{elegido}}</div>
+
+    <div role="radiogroup" aria-label="Color de fondo" style="display: flex; gap: 14px; justify-content: center; margin-top: 16px">
+      <sc-for list="{{colores}}" as="c" hint-placeholder-count="5">
+        <button role="radio" aria-checked="{{c.activo}}" aria-label="{{c.nombre}}" onClick="{{c.pick}}" style="width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 0; background: {{c.hex}}; display: grid; place-items: center; cursor: pointer">
+          <sc-if value="{{c.activo}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174B3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></sc-if>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="height: 1px; background: #EDE3D2; margin: 18px 0 12px"></div>
+
+    <div role="radiogroup" aria-label="Emoji" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{emojis}}" as="e" hint-placeholder-count="24">
+        <button role="radio" aria-checked="{{e.activo}}" aria-label="{{e.nombre}}" onClick="{{e.pick}}" style="height: 54px; border: 0; border-radius: 16px; background: {{e.bg}}; font-size: {{e.size}}; font-family: Fredoka, sans-serif; font-weight: 600; color: #174B3A; cursor: pointer; padding: 0">{{e.t}}</button>
+      </sc-for>
+    </div>
+
+    <button style="margin-top: auto; height: 58px; border-radius: 999px; border: 0; background: #174B3A; color: #FFF9EE; font-family: Figtree, sans-serif; font-weight: 700; font-size: 18px; cursor: pointer">Usar este</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { emoji: '💅🏽', color: '#F4C6D4' }; }
+  renderVals() {
+    const C = [['Crema','#F2E9DA'],['Rosa','#F4C6D4'],['Dorado','#F3E2B3'],['Menta','#CFE3D8'],['Durazno','#FAD3C2']];
+    const E = ['Aa','👩🏽','👱🏽‍♀️','👩🏾‍🦱','🧔🏽','👵🏽','💅🏽','👗','👠','💄','🌸','🌺','💖','🦋','🐱','🍓','☕','🎀','💎','👑','🌴','⭐','🌙','🛍️'];
+    return {
+      fondo: this.state.color,
+      elegido: this.state.emoji === 'Aa' ? 'PJ' : this.state.emoji,
+      colores: C.map(([nombre, hex]) => ({ nombre, hex, activo: this.state.color === hex, pick: () => this.setState({ color: hex }) })),
+      emojis: E.map((t) => ({ t, nombre: t === 'Aa' ? 'Iniciales' : t, activo: this.state.emoji === t, bg: this.state.emoji === t ? '#F2E9DA' : 'transparent', size: t === 'Aa' ? '18px' : '30px', pick: () => this.setState({ emoji: t }) })),
+    };
+  }
+}
+</script>
+</body>
+</html>
