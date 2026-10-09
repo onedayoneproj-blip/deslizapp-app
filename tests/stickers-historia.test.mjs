@@ -83,3 +83,27 @@ test("alternar pone el sticker en su lugar y lo quita; arrastrar lo deja dentro 
   assert.equal(S.limitarSticker({ ...l[0], k: 9 }).k, S.K_STICKER_MAX);
   assert.equal(S.limitarSticker({ ...l[0], k: NaN }).k, 1);
 });
+
+const SOFT = { slug: "soft-era", nombre: "Soft Era", personalizacion: { stickers_propios: [{ id: "ofertas", nombre: "Ofertas" }, { id: "eres-unica", nombre: "Eres única" }] } };
+
+test("grupos de la hoja: sin stickers propios quedan los tres de siempre; con ellos, «De {tienda}» va primero", () => {
+  assert.deepEqual(S.gruposOfrecidos(prod()).map((g) => g.id), ["basicos", "temporadas", "marca"]);
+  assert.deepEqual(S.gruposOfrecidos(prod(), { slug: "otra", nombre: "Otra", personalizacion: {} }).map((g) => g.id), ["basicos", "temporadas", "marca"]);
+  const g = S.gruposOfrecidos(prod(), SOFT);
+  assert.deepEqual(g.map((x) => x.id), ["tienda", "basicos", "temporadas", "marca"]);
+  assert.equal(g[0].nombre, "De Soft Era");
+  assert.deepEqual(g[0].ids, ["tienda:soft-era/ofertas", "tienda:soft-era/eres-unica"]);
+  assert.equal(g[1].ids[0], "ultimas", "«Últimas N» sigue abriendo los básicos");
+  assert.equal(S.gruposOfrecidos(prod({ stock: 0 }), SOFT)[1].ids.includes("ultimas"), false);
+});
+
+test("poner un sticker propio: lleva el nombre de la tienda como texto, entra derecho y se mueve como los demás", () => {
+  const id = "tienda:soft-era/eres-unica";
+  const [a] = S.alternarSticker([], id, prod(), "Eres única");
+  assert.deepEqual([a.id, a.texto, a.r, a.k], [id, "Eres única", 0, 1]);
+  assert.equal(S.nombreSticker(a), "Eres única");
+  assert.equal(S.nombreSticker({ id: "nuevo", texto: "x" }), "¡Nuevo!");
+  assert.deepEqual(S.alternarSticker([a], id, prod()), []);
+  const m = S.moverSticker(a, 1000, -1000, { ancho: 100, alto: 100 });
+  assert.ok(m.x <= 0.95 && m.y >= 0.04);
+});
