@@ -23,8 +23,13 @@ async function abrir(ancho, { productos = null, nivel = null } = {}) {
   // La demo solo guarda en localStorage tras el primer cambio: se arma la base del seed aquí y se deja guardada.
   const d = construirDesdeSeed();
   if (productos !== null) {
-    const suyos = d.productos.filter((p) => p.tiendaId === LINO && p.activo && p.medios.some((m) => m.tipo === "foto"));
-    d.productos = [...d.productos.filter((p) => p.tiendaId !== LINO), ...suyos.slice(0, productos)];
+    // La demo trae menos productos con foto que el mínimo (5): se repiten con otro id y otro slug.
+    const base = d.productos.filter((p) => p.tiendaId === LINO && p.activo && p.medios.some((m) => m.tipo === "foto"));
+    const suyos = Array.from({ length: productos }, (_, i) => {
+      const p = base[i % base.length];
+      return i < base.length ? p : { ...p, id: `${p.id.slice(0, -4)}${String(9000 + i)}`, slug: `${p.slug}-${i}`, nombre: `${p.nombre} ${i}` };
+    });
+    d.productos = [...d.productos.filter((p) => p.tiendaId !== LINO), ...suyos];
   }
   if (nivel) d.nivelDemo = nivel;
   await page.addInitScript(({ k, d }) => localStorage.setItem(k, JSON.stringify(d)), { k: CLAVE, d });
@@ -37,20 +42,20 @@ for (const ancho of [390, 360]) {
   console.log(`\n── ${ancho} px ──`);
   // 1. Sin lo mínimo
   let page = await abrir(ancho, { productos: 0 });
-  ok(await tarjeta(page).getByText("Te faltan 3 productos con foto para publicar tu catálogo").count() === 1, "sin productos: dice qué falta");
+  ok(await tarjeta(page).getByText("Te faltan 5 productos con foto para publicar tu catálogo").count() === 1, "sin productos: dice qué falta");
   ok(await tarjeta(page).getByRole("button", { name: "Publicar mi catálogo" }).count() === 0, "sin lo mínimo no hay «Publicar»");
   await page.screenshot({ path: `${OUT}/faltan-${ancho}.png` });
   await page.context().close();
-  page = await abrir(ancho, { productos: 2 });
-  ok(await tarjeta(page).getByText("Te falta 1 producto con foto para publicar tu catálogo").count() === 1, "con 2 productos: falta 1 (singular)");
+  page = await abrir(ancho, { productos: 4 });
+  ok(await tarjeta(page).getByText("Te falta 1 producto con foto para publicar tu catálogo").count() === 1, "con 4 productos: falta 1 (singular)");
   await tarjeta(page).getByRole("button", { name: "Crear producto" }).tap(); await page.waitForTimeout(1200);
   ok(page.url().endsWith("/catalogo/nuevo"), "«Crear producto» lleva a crear un producto");
   await page.context().close();
 
   // 2. Con lo mínimo: publicar, compartir
-  page = await abrir(ancho, { productos: 3 });
+  page = await abrir(ancho, { productos: 5 });
   const publicar = tarjeta(page).getByRole("button", { name: "Publicar mi catálogo" });
-  ok(await publicar.count() === 1, "con 3 productos: «Publicar mi catálogo»");
+  ok(await publicar.count() === 1, "con 5 productos: «Publicar mi catálogo»");
   await page.screenshot({ path: `${OUT}/listo-${ancho}.png` });
   await publicar.tap(); await page.waitForTimeout(700);
   const hoja = page.getByRole("dialog");
@@ -74,7 +79,7 @@ for (const ancho of [390, 360]) {
 
   // 3. Un colaborador no publica
   for (const nivel of ["ayudante", "editor", "administrador"]) {
-    page = await abrir(ancho, { productos: 3, nivel });
+    page = await abrir(ancho, { productos: 5, nivel });
     const b = tarjeta(page).getByRole("button", { name: "Publicar mi catálogo" });
     ok(await b.getAttribute("aria-disabled") === "true", `${nivel}: «Publicar» se ve apagado`);
     await b.tap({ force: true }); await page.waitForTimeout(600);

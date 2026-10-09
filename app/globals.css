@@ -409,6 +409,24 @@ html {
     scale: var(--mov-pop-inicio);
   }
 }
+/* Onboarding (docs/17): la barra de la historia actual se llena (transform), y el avatar de «ya existe» aparece con un pop de un
+   solo elemento. Con movimiento reducido la barra no se usa (se avanza tocando) y el pop queda quieto (--mov-pop-inicio: 1). */
+@keyframes onb-barra {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.onb-barra {
+  animation-name: onb-barra;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+.onb-pop {
+  animation: mov-pop-aparece var(--mov-entrada) var(--curva-resorte) both;
+}
 @keyframes mov-brillo {
   to {
     transform: translateX(100%);

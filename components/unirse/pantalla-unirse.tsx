@@ -7,25 +7,24 @@ import { RUTA_UNIRSE } from "@/lib/auth/canje";
 import { entrarConGoogle } from "@/lib/data/sesion";
 import { esErrorDeRed, mensajeDeError } from "@/lib/data/errores";
 import {
-  crearMiTienda,
+  crearMiTiendaCompleta,
   EnlaceNoValido,
   guardarCodigo,
   haySesion,
   leerCodigo,
   misSolicitudes,
+  nombreDeLaCuenta,
   olvidarCodigo,
   reclamarEnlace,
   solicitudPrincipal,
   type MiSolicitud,
   type Reclamo,
+  vistaSlug,
 } from "@/lib/data/unirse";
-import { RUBROS, type Rubro } from "@/lib/rubros";
+import { CLAVE_BORRADOR } from "@/lib/onboarding";
 import { Isotipo, Logotipo } from "../marca";
-import { Boton, Campo, GrupoOpciones } from "../ui";
-
-const NOMBRE_RUBRO: Record<Rubro, string> = {
-  perfumes: "Perfumes", ropa: "Ropa", accesorios: "Accesorios", belleza: "Belleza", comida: "Comida", hogar: "Hogar", general: "Otro",
-};
+import { Boton } from "../ui";
+import { RecorridoOnboarding } from "./recorrido-onboarding";
 /** Recarga completa al panel: la sesión se vuelve a leer y ya trae la tienda (nada de lo anterior queda en memoria). */
 const irAlPanel = () => window.location.assign(new URL("/", window.location.origin).href);
 const NO_SIRVE = "Este enlace ya no sirve. Pídele uno nuevo a quien te invitó.";
@@ -37,7 +36,7 @@ type Fase =
   | { tipo: "esperando"; tienda: string | null }
   | { tipo: "aprobado"; tienda: string | null }
   | { tipo: "rechazado"; tienda: string | null }
-  | { tipo: "crear"; enlaceId: string }
+  | { tipo: "crear"; enlaceId: string; nombreCuenta?: string | null }
   | { tipo: "no-sirve" }
   | { tipo: "error"; mensaje: string };
 
@@ -52,6 +51,13 @@ function faseDe(s: Reclamo | MiSolicitud | null): Fase {
   if (s.estado === "aprobado") return { tipo: "aprobado", tienda: s.tiendaNombre };
   if (s.estado === "rechazado") return { tipo: "rechazado", tienda: s.tiendaNombre };
   return { tipo: "no-sirve" };
+}
+
+/** Para «Hola, {nombre}»: el nombre de Google, solo cuando toca crear la tienda (si no se puede leer, «Hola»). */
+async function conNombre(f: Fase): Promise<Fase> {
+  if (f.tipo !== "crear") return f;
+  const nombreCuenta = await nombreDeLaCuenta().catch(() => null);
+  return { ...f, nombreCuenta };
 }
 
 /**
@@ -79,20 +85,20 @@ export function PantallaUnirse({ codigo }: { codigo?: string }) {
         try {
           const r = await reclamarEnlace(guardado);
           olvidarCodigo();
-          setFase(faseDe(r));
+          setFase(await conNombre(faseDe(r)));
           return;
         } catch (e) {
           if (e instanceof EnlaceNoValido) {
             olvidarCodigo();
             // Si esta cuenta ya lo había abierto antes, su estado sigue en «mis solicitudes».
             const propia = solicitudPrincipal(await misSolicitudes());
-            setFase(propia ? faseDe(propia) : { tipo: "no-sirve" });
+            setFase(propia ? await conNombre(faseDe(propia)) : { tipo: "no-sirve" });
             return;
           }
           throw e;
         }
       }
-      setFase(faseDe(solicitudPrincipal(await misSolicitudes())));
+      setFase(await conNombre(faseDe(solicitudPrincipal(await misSolicitudes()))));
     } catch (e) {
       setFase({ tipo: "error", mensaje: esErrorDeRed(e) ? "No hay conexión. Revisa tu internet e inténtalo otra vez." : mensajeDeError(e) });
     }
@@ -132,6 +138,29 @@ export function PantallaUnirse({ codigo }: { codigo?: string }) {
       document.removeEventListener("visibilitychange", mirar);
     };
   }, [esperando]);
+
+  // Tienda nueva: el onboarding (historias y la historia de tu tienda) ocupa toda la pantalla.
+  if (fase.tipo === "crear")
+    return (
+      <main data-unirse="crear">
+        <RecorridoOnboarding
+          fuente={{
+            claveBorrador: CLAVE_BORRADOR,
+            enlaceId: fase.enlaceId,
+            nombreCuenta: fase.nombreCuenta ?? null,
+            vistaSlug,
+            crear: async (datos) => {
+              try {
+                await crearMiTiendaCompleta(fase.enlaceId, datos);
+              } catch (e) {
+                throw new Error(e instanceof EnlaceNoValido ? NO_SIRVE : esErrorDeRed(e) ? "No hay conexión. Revisa tu internet e inténtalo otra vez." : mensajeDeError(e));
+              }
+            },
+            alTerminar: irAlPanel,
+          }}
+        />
+      </main>
+    );
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-papel px-6 pt-[calc(28px+env(safe-area-inset-top))] pb-[calc(28px+env(safe-area-inset-bottom))]" data-unirse={fase.tipo}>
@@ -209,8 +238,6 @@ function Contenido({ fase, reintentar }: { fase: Fase; reintentar: () => void })
       </>
     );
 
-  if (fase.tipo === "crear") return <CrearTienda enlaceId={fase.enlaceId} />;
-
   if (fase.tipo === "error")
     return (
       <>
@@ -224,47 +251,6 @@ function Contenido({ fase, reintentar }: { fase: Fase; reintentar: () => void })
     <>
       <h1 className="font-display text-[28px] leading-tight text-bosque">Este enlace ya no sirve</h1>
       <p className="mt-2 text-[15.5px] leading-snug text-suave">{NO_SIRVE}</p>
-    </>
-  );
-}
-
-/** «Crea tu tienda»: los mismos campos de crear_tienda (nombre y rubro). Sin animaciones mientras se escribe (HANDOFF: teclado). */
-function CrearTienda({ enlaceId }: { enlaceId: string }) {
-  const [nombre, setNombre] = useState("");
-  const [rubro, setRubro] = useState<Rubro>("general");
-  const [tocado, setTocado] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const malo = nombre.trim().length < 1 || nombre.trim().length > 80;
-  const crear = async () => {
-    setTocado(true);
-    setError(null);
-    if (malo) return;
-    try {
-      await crearMiTienda(enlaceId, nombre, rubro);
-      irAlPanel();
-    } catch (e) {
-      setError(e instanceof EnlaceNoValido ? NO_SIRVE : esErrorDeRed(e) ? "No hay conexión. Revisa tu internet e inténtalo otra vez." : mensajeDeError(e));
-    }
-  };
-  return (
-    <>
-      <h1 className="font-display text-[28px] leading-tight text-bosque">Crea tu tienda</h1>
-      <p className="mt-2 text-[15.5px] leading-snug text-suave">Ponle nombre y dinos qué vendes. Lo demás lo armas después, con calma.</p>
-      <div className="mt-5 flex flex-col gap-4">
-        <Campo
-          etiqueta="Nombre de tu tienda"
-          value={nombre}
-          maxLength={80}
-          autoComplete="organization"
-          enterKeyHint="done"
-          onChange={(e) => setNombre(e.target.value)}
-          onBlur={() => setTocado(true)}
-          error={tocado && malo ? "Escribe el nombre de tu tienda." : undefined}
-        />
-        <GrupoOpciones titulo="¿Qué vendes?" etiqueta="Qué vendes" opciones={RUBROS.map((r) => ({ id: r, texto: NOMBRE_RUBRO[r] }))} valor={rubro} alCambiar={setRubro} />
-        {error && <p role="alert" className="rounded-[18px] bg-mandarina/15 px-4 py-3 text-[14.5px] font-bold text-tinta">{error}</p>}
-        <Boton tamano="grande" anchoCompleto onClick={crear}>Crear mi tienda</Boton>
-      </div>
     </>
   );
 }

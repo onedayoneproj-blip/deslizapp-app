@@ -22,12 +22,12 @@ test("cuenta: visible, no eliminado y con al menos una foto", () => {
 });
 
 test("cuántos faltan", () => {
-  assert.equal(C.PRODUCTOS_MINIMOS_PARA_PUBLICAR, 3);
-  assert.equal(P.faltanParaPublicar([]), 3);
-  assert.equal(P.faltanParaPublicar([prod(), prod({ medios: [] })]), 2);
-  assert.equal(P.faltanParaPublicar([prod(), prod(), prod()]), 0);
-  assert.equal(P.faltanParaPublicar([prod(), prod(), prod(), prod()]), 0);
-  assert.equal(P.faltanParaPublicar([prod()], 5), 4);
+  assert.equal(C.PRODUCTOS_MINIMOS_PARA_PUBLICAR, 5);
+  assert.equal(P.faltanParaPublicar([]), 5);
+  assert.equal(P.faltanParaPublicar([prod(), prod({ medios: [] })]), 4);
+  assert.equal(P.faltanParaPublicar([prod(), prod(), prod(), prod(), prod()]), 0);
+  assert.equal(P.faltanParaPublicar([prod(), prod(), prod(), prod(), prod(), prod()]), 0);
+  assert.equal(P.faltanParaPublicar([prod()], 3), 2);
 });
 
 test("textos de lo que falta, en singular y plural", () => {
@@ -48,8 +48,9 @@ test("la lista de lo que no se puede vender está completa y en un solo lugar", 
 
 test("la app y la base dicen lo mismo: el mínimo y la dirección base", () => {
   const dir = new URL("../supabase/migrations/", import.meta.url);
-  const archivo = readdirSync(dir).filter((f) => f.endsWith("_publicar_catalogo.sql")).sort().at(-1);
-  assert.ok(archivo, "falta la migración publicar_catalogo");
+  // La última migración que define el mínimo (publicar_catalogo lo creó; el onboarding lo subió a 5).
+  const archivo = readdirSync(dir).filter((f) => f.endsWith(".sql") && readFileSync(new URL(f, dir), "utf8").includes("v_minimo constant integer")).sort().at(-1);
+  assert.ok(archivo, "falta la migración que define el mínimo para publicar");
   const sql = readFileSync(new URL(archivo, dir), "utf8");
   assert.match(sql, new RegExp(`v_minimo constant integer := ${C.PRODUCTOS_MINIMOS_PARA_PUBLICAR};`));
   assert.ok(sql.includes(`v_base constant text := '${C.URL_BASE_CATALOGO}';`));
@@ -60,16 +61,18 @@ const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const T = await import("../lib/data/tiendas.ts");
 const LINO = "a1000000-0000-4000-8000-000000000003";
 const AHORA = "2026-10-08T12:00:00.000Z";
+// Lino & Algodón con n productos que cuentan (la demo trae menos que el mínimo: se repiten con otro id).
 const conProductos = (n) => {
   const d = construirDesdeSeed();
-  const suyos = d.productos.filter((p) => p.tiendaId === LINO && cuentaOk(p)).slice(0, n);
+  const base = d.productos.filter((p) => p.tiendaId === LINO && cuentaOk(p));
+  const suyos = Array.from({ length: n }, (_, i) => ({ ...base[i % base.length], id: `${base[i % base.length].id}-${i}` }));
   return { ...d, productos: [...d.productos.filter((p) => p.tiendaId !== LINO), ...suyos] };
 };
 const cuentaOk = (p) => P.cuentaParaPublicar(p);
 
 test("demo: sin lo mínimo no publica; con lo mínimo sí, con el enlace estándar", () => {
-  assert.throws(() => T.publicarMiCatalogoEnDB(conProductos(2), LINO, AHORA), /te faltan productos con foto/i);
-  const r = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+  assert.throws(() => T.publicarMiCatalogoEnDB(conProductos(4), LINO, AHORA), /te faltan productos con foto/i);
+  const r = T.publicarMiCatalogoEnDB(conProductos(5), LINO, AHORA);
   assert.equal(r.tienda.catalogoEstado, "publicado");
   assert.equal(r.tienda.urlCatalogo, "https://deslizapp-app.vercel.app/tienda/lino-y-algodon");
   assert.equal(r.tienda.catalogoPublicadoEn, AHORA);
@@ -78,7 +81,7 @@ test("demo: sin lo mínimo no publica; con lo mínimo sí, con el enlace estánd
 });
 
 test("demo: dejar de mostrar conserva el enlace y el primer momento; volver a publicar no los pierde", () => {
-  const a = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+  const a = T.publicarMiCatalogoEnDB(conProductos(5), LINO, AHORA);
   const b = T.despublicarMiCatalogoEnDB(a.db, LINO);
   assert.equal(b.tienda.catalogoEstado, "sin");
   assert.equal(b.tienda.urlCatalogo, a.tienda.urlCatalogo);
@@ -89,7 +92,7 @@ test("demo: dejar de mostrar conserva el enlace y el primer momento; volver a pu
 });
 
 test("demo: no pisa un flujo manual en curso ni publica una tienda pausada", () => {
-  const d = conProductos(3);
+  const d = conProductos(5);
   const enCurso = { ...d, tiendas: d.tiendas.map((t) => (t.id === LINO ? { ...t, catalogoEstado: "solicitado" } : t)) };
   assert.throws(() => T.publicarMiCatalogoEnDB(enCurso, LINO, AHORA), /en camino/);
   assert.throws(() => T.despublicarMiCatalogoEnDB(enCurso, LINO), /cambió de estado/);
