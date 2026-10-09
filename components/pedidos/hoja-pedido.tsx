@@ -227,6 +227,11 @@ function Detalle({
       Editar pedido
     </Boton>
   );
+  const botonCancelar = (
+    <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
+      Cancelar pedido
+    </Boton>
+  );
 
   if (vista === "descuento") {
     return (
@@ -339,17 +344,20 @@ function Detalle({
           />
         )}
         <li className="border-t border-linea px-4 pt-2.5 pb-3">
-          <div className="flex justify-between text-secundario font-bold text-texto-secundario">
-            <span>Subtotal</span>
-            <span>{formatearPesos(subtotal)}</span>
-          </div>
+          {/* Sin descuento, Subtotal y Total serían lo mismo: solo el Total */}
           {descuento > 0 && (
-            <div className="flex justify-between py-1 text-secundario font-bold">
-              <span>Descuento{pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}</span>
-              <span>−{formatearPesos(descuento)}</span>
-            </div>
+            <>
+              <div className="flex justify-between text-secundario font-bold text-texto-secundario">
+                <span>Subtotal</span>
+                <span>{formatearPesos(subtotal)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-secundario font-bold">
+                <span>Descuento{pedido.codigoPromo ? ` · ${pedido.codigoPromo}` : ""}</span>
+                <span>−{formatearPesos(descuento)}</span>
+              </div>
+            </>
           )}
-          <div className="flex justify-between pt-1.5 font-display text-titulo-seccion">
+          <div className={`flex justify-between font-display text-titulo-seccion ${descuento > 0 ? "pt-1.5" : ""}`}>
             <span>Total</span>
             <span>{formatearPesos(pedido.total)}</span>
           </div>
@@ -362,20 +370,21 @@ function Detalle({
       {/* Pago: de contado ("Pagado") o a crédito (lo que debe, abonos y recordatorio) */}
       <PagoDelPedido pedido={pedido} cliente={cliente} />
 
-      {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta */}
+      {/* Acciones: una sola principal por vista; lo irreversible pide confirmación con Alerta. "Editar pedido" va aparte: con aire
+          sobre la tarjeta de Pago y sobre la nota a mano. */}
       {pedido.estado === "nuevo" && (
-        <div className="flex flex-col gap-2">
+        <div className="mt-2 flex flex-col gap-2">
           <Boton tamano="grande" anchoCompleto onClick={confirmar} deshabilitado={ocupado}>
             Confirmar pedido
           </Boton>
-          {botonEditar}
-          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
-            Cancelar pedido
-          </Boton>
+          <div className="mt-3 flex flex-col gap-2">
+            {botonEditar}
+            {botonCancelar}
+          </div>
         </div>
       )}
       {pedido.estado === "por_despachar" && (
-        <div className="flex flex-col gap-2">
+        <div className="mt-2 flex flex-col gap-2">
           {faltantes.length > 0 && (
             <div role="alert">
               <Aviso tono="atencion">
@@ -387,13 +396,13 @@ function Detalle({
             Despachar pedido
           </Boton>
           <p className="text-center font-mano text-mano text-atencion-texto">al despachar, el stock se actualiza solito</p>
-          {botonEditar}
-          <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={cancelar} deshabilitado={ocupado}>
-            Cancelar pedido
-          </Boton>
+          <div className="mt-3 flex flex-col gap-2">
+            {botonEditar}
+            {botonCancelar}
+          </div>
         </div>
       )}
-      {pedido.estado === "despachado" && <div className="flex flex-col gap-2">{botonEditar}</div>}
+      {pedido.estado === "despachado" && <div className="mt-2 flex flex-col gap-2">{botonEditar}</div>}
       {pedido.estado === "cancelado" && (
         <div className="flex flex-col gap-2">
           <Boton tamano="grande" anchoCompleto onClick={reabrir} deshabilitado={ocupado}>
@@ -425,11 +434,10 @@ function Detalle({
   );
 }
 
-/** Estado del stock de un producto del pedido. Ya despachado: solo "Agotado" si se acabó (la barra de pasos ya dice Despachado). */
+/** Estado del stock de un producto del pedido. Ya despachado no lleva etiqueta: habla del inventario de hoy, no de la venta. */
 function EtiquetasStock({ estado, stock, cantidad }: { estado: PedidoConItems["estado"]; stock: number | null | undefined; cantidad: number }) {
   if (estado === "cancelado") return null;
-  // Despachado: la barra de pasos ya lo dice; solo importa si se agotó
-  if (estado === "despachado") return stock === 0 ? <Etiqueta tono="fuerte">Agotado</Etiqueta> : null;
+  if (estado === "despachado") return null;
   // Sin despachar: etiqueta SOLO si el stock no alcanza para la cantidad
   if (stock === undefined || stock === null || stock >= cantidad) return null;
   if (stock === 0) return <Etiqueta tono="fuerte">Sin stock</Etiqueta>;

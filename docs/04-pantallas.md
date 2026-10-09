@@ -423,8 +423,10 @@ Reemplaza la sección «Opciones» de la ficha del producto (solo `tipo = produc
 - Cliente: iniciales, nombre, teléfono y botón **"Escribir"** (abre WhatsApp
   con ese número). "Llegó por el catálogo" / "Pedido manual".
 - Productos: foto, nombre, "cantidad × precio unitario" y estado de stock
-  por ítem ("Quedan 3" / "Queda 1" / "Sin stock"; "Entregado" si ya se despachó).
-- Subtotal, descuento del código de promo (si tiene) y Total.
+  por ítem ("Quedan 3" / "Queda 1" / "Sin stock") mientras el pedido espera despacho; ya despachado no lleva etiqueta (el stock
+  habla de hoy, no de la venta; sin "Agotado" ni aviso de reemplazo).
+- **Total**; solo con descuento de un código se ven también Subtotal y Descuento (sin descuento serían lo mismo que el Total).
+- Tarjeta de factura (despachado): no repite "A crédito" (lo dice la tarjeta de Pago); sí "Al contado" y "Pagado".
 - Nota de marca en Caveat: "al despachar, el stock se actualiza solito".
 
 **Acciones:**
@@ -473,8 +475,8 @@ primero hay que volver a `por_despachar` desde la barra de pasos. La misma fila 
 pedido" y el detalle, con la misma regla y el mismo cálculo (`razonNoUsable` / `buscarCodigoPromo` en `lib/promos.ts`;
 `calcularLineas` / `recalcularConCodigo` en `lib/data/pedidos.ts`). En la demo se hace lo mismo (`aplicarCodigoAlPedido`).
 
-**Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— debajo del botón principal; en `nuevo`, `por_despachar` y
-`despachado`, no en `cancelado`): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
+**Editar pedido** (acción secundaria: botón de contorno en píldora —borde fino, sin relleno, 44 px— a todo lo ancho, debajo del botón principal y de la nota a mano, con espacio de aire sobre ellos y sobre la tarjeta de Pago; en `nuevo`, `por_despachar` y
+`despachado`, no en `cancelado`; "Registrar abono" no se le parece: va dentro de la tarjeta de Pago como botón de texto con "+", debajo de "Recordarle por WhatsApp"): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
 `/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
 Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
 - `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". El interruptor
@@ -495,16 +497,22 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
 
 **Pago (ventas a crédito)** (`components/credito/pago-del-pedido.tsx`, entre los productos y las acciones; diseño en
 `referencias/credito-abonos/`). Los abonos y saldos vienen con el pedido (`pagado`, `saldo`, `abonos`).
-- **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"** (pregunta "¿Dejar
-  este pedido a crédito? Quedará debiendo RD$X.", con las pastillas de fecha y "Sí, dejarlo a crédito" / "Mejor no").
+- **De contado**: una línea pequeña "Pagado" con check y, si el pedido no está cancelado, **"Cambiar a crédito"**. Al tocarlo se abre la
+  pregunta ("¿Dejar este pedido a crédito? Quedará debiendo RD$X.") con las pastillas de fecha (sin ninguna marcada), SIN botones de
+  "Cancelar" ni "A crédito": el mismo botón de la fila pasa a decir **"Cerrar"** (cierra el bloque sin cambiar nada). Elegir una fecha (o
+  "Sin fecha") **guarda al momento** (`cambiarPagoPedido`), igual en pedidos pendientes y despachados: aviso "Pedido #N quedó a
+  crédito." (sin Deshacer: la app aún no tiene ese patrón en los avisos) y la tarjeta pasa a "Pago" a crédito. "Elegir fecha" muestra
+  el campo vacío y guarda al escribir un día válido, no al tocar la pastilla (`debeGuardarFecha` en `lib/credito.ts`). Mientras guarda, las
+  opciones se deshabilitan; si falla, aviso de error y se queda de contado. El siguiente paso en pendientes sigue siendo "Despachar
+  pedido". No cambia despachar ni hay migración.
 - **A crédito**: tarjeta **"Pago"** con la etiqueta "A crédito"; **"Debe"** en grande (Mandarina texto `#c24e18`, Fredoka 38),
   "Pagó RD$X de RD$Y", barra de progreso (crece con `scaleX`, 600 ms), la fecha acordada ("Quedó en pagar el 15 oct · faltan 15 días";
   atrasado: punto que late y **"Atrasado N días"**; sin fecha: "Sin fecha acordada") y la lista de abonos (fecha, método, nota, monto).
   Cada abono es una **fila** (`FilaLista`: icono, "Abono · Transferencia" con puntos suspensivos, fecha debajo, monto y flecha) y TODA la
   fila abre la hoja **"Abono"** (`hoja-detalle-abono.tsx`, apilada sobre el detalle): monto en grande, cómo pagó, fecha, a qué pedido se
   aplicó y la nota si hay; abajo **"Editar abono"** (secundario, ancho completo) y **"Borrar abono"** (terciario peligro, abre la Alerta
-  "¿Borrar este abono? La deuda vuelve a subir RD$X."; al borrar se cierra la hoja). No hay "Borrar" en cada fila. Botones **"+ Registrar abono"**
-  (principal) y **"Recordarle por WhatsApp"** (contorno; solo con teléfono y deuda). Los cambios de saldo se anuncian con `aria-live`.
+  "¿Borrar este abono? La deuda vuelve a subir RD$X."; al borrar se cierra la hoja). No hay "Borrar" en cada fila. Botones **"Recordarle por WhatsApp"** (principal) y **"+ Registrar abono"** (botón de texto, terciario)
+  debajo, solo con teléfono y deuda. Los cambios de saldo se anuncian con `aria-live`.
 - **Colores en el flujo de crédito** (+ Pedido / venta pasada / Editar pedido, "Registrar abono" y "Cambiar a crédito"; las pastillas de
   filtro de Pedidos, Clientes, Catálogo y Promos no cambian): una **opción elegida** (`tono="opcion"` de `Chip` y `Segmentos`,
   `role="radio"` dentro de `GrupoOpciones`) va en **Rosa Suave con borde Verde Bosque de 1,5 px y un check en círculo a la izquierda**
