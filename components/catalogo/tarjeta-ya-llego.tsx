@@ -144,7 +144,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
           const cliente = clienteDelAviso(porTelefono, a.telefono);
           const nombre = cliente?.nombre ?? a.nombre;
           return (
-            <li key={a.id} className="flex min-h-15 items-center gap-3 border-t border-linea py-2 first:border-t-0">
+            <li key={a.id} className="flex min-h-15 flex-wrap items-center gap-x-3 gap-y-2 border-t border-linea py-2 first:border-t-0">
               {cliente ? (
                 <AvatarCliente cliente={cliente} />
               ) : a.nombre ? (
@@ -154,31 +154,33 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
                   <IconoPersona tamano={20} strokeWidth={2.2} />
                 </span>
               )}
-              <span className="flex min-w-0 flex-1 flex-col">
+              <span className="flex min-w-36 flex-1 flex-col">
                 <span className="truncate text-destacado text-texto">{nombre ?? telefono}</span>
                 <span className="truncate text-secundario text-texto-secundario">
                   {nombre ? telefono : "Sin nombre"}
                   {!unaVariante && varianteDe(a.varianteId) ? ` · ${varianteDe(a.varianteId)}` : ""}
                 </span>
               </span>
-              <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} onClick={() => escribir(a)} aria-label={`Escribir a ${nombre ?? telefono} por WhatsApp`}>
-                Escribir
-              </Boton>
-              {estado === "avisado" ? (
-                <Etiqueta tono="exito" icono={<IconoCheck tamano={14} strokeWidth={3} />}>
-                  Avisado
-                </Etiqueta>
-              ) : estado === "fallo" || estado === "marcando" ? (
-                <Boton jerarquia="secundario" tamano="compacto" cargando={estado === "marcando"} onClick={() => void marcar(a.id)} aria-label={`Reintentar marcar como avisado a ${nombre ?? telefono}`}>
-                  {estado === "marcando" ? "Marcando" : "Reintentar"}
+              <div className="ml-auto flex items-center gap-2">
+                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} onClick={() => escribir(a)} aria-label={`Escribir a ${nombre ?? telefono} por WhatsApp`}>
+                  Escribir
                 </Boton>
-              ) : !hay ? (
-                <Etiqueta>{!producto.activo ? "Oculto del catálogo" : "Sigue agotado"}</Etiqueta>
-              ) : (
-                <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={enCamino !== null || estado === "abriendo"} onClick={() => avisar(a)}>
-                  Avisar
-                </Boton>
-              )}
+                {estado === "avisado" ? (
+                  <Etiqueta tono="exito" icono={<IconoCheck tamano={14} strokeWidth={3} />}>
+                    Avisado
+                  </Etiqueta>
+                ) : estado === "fallo" || estado === "marcando" ? (
+                  <Boton jerarquia="secundario" tamano="compacto" cargando={estado === "marcando"} onClick={() => void marcar(a.id)} aria-label={`Reintentar marcar como avisado a ${nombre ?? telefono}`}>
+                    {estado === "marcando" ? "Marcando" : "Reintentar"}
+                  </Boton>
+                ) : !hay ? (
+                  <Etiqueta>{!producto.activo ? "Oculto del catálogo" : "Sigue agotado"}</Etiqueta>
+                ) : (
+                  <Boton jerarquia="secundario" tamano="compacto" icono={<IconoWhatsApp tamano={18} />} deshabilitado={enCamino !== null || estado === "abriendo"} onClick={() => avisar(a)}>
+                    Avisar
+                  </Boton>
+                )}
+              </div>
             </li>
           );
         })}
