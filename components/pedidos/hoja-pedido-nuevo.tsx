@@ -112,7 +112,7 @@ function Formulario({
   });
   // Despachado: solo cliente y fecha. Los productos y el código se ven atenuados y no se tocan.
   const bloqueado = pedido?.estado === "despachado";
-  // Si el editor se abrió con un pedido despachado (aunque luego se reabra), no se ofrece «venta que ya hice» (ver ofreceVentaPasada).
+  // Si el editor se abrió con un pedido despachado (aunque luego se reabra), la fecha cuenta en la firma de cambios (ver diaEnFirma).
   const [veniaDespachado] = useState(bloqueado);
   const buscador = useRef<HTMLInputElement>(null);
   // Por llave de línea: el producto, o "producto:variante" (claveLinea).
@@ -455,7 +455,7 @@ function Formulario({
             error={fechaVenta === null ? "Elige un día que ya pasó (hoy también vale)." : undefined}
           />
         </div>
-      ) : !ofreceVentaPasada(pedido?.estado, veniaDespachado) ? null : (
+      ) : !ofreceVentaPasada(Boolean(pedido)) ? null : (
         <div className="rounded-radio-l border border-linea bg-superficie px-4 py-2.5">
           <div className="flex min-h-11 items-center justify-between gap-3">
             <span className="text-cuerpo font-extrabold">Es una venta que ya hice</span>

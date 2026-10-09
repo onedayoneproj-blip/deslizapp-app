@@ -479,10 +479,8 @@ pedido" y el detalle, con la misma regla y el mismo cálculo (`razonNoUsable` / 
 `despachado`, no en `cancelado`; "Registrar abono" no se le parece: va dentro de la tarjeta de Pago como botón de texto con "+", debajo de "Recordarle por WhatsApp"): abre el MISMO formulario de "+ Pedido" (`hoja-pedido-nuevo.tsx`, ruta
 `/pedidos/[id]/editar`) con el título **"Editar pedido #N"**, ya lleno con cliente, productos, cantidades, código y fecha.
 Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y vuelve al detalle.
-- `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". El interruptor
-  **"Es una venta que ya hice"** funciona igual que al crear (fecha máx. hoy + "Descontar del stock", apagada): si se
-  enciende y se guarda, el pedido pasa a `despachado` con esa fecha ("Venta #N guardada con fecha …"); apagado, conserva su
-  estado.
+- `nuevo` / `por_despachar`: se cambia todo; los precios y el total se recalculan como en "+ Pedido". Sin el interruptor "Es una venta que ya hice"
+  (ver abajo): para despachar se usa "Despachar pedido".
 - `despachado`: solo se cambian el cliente y la fecha (el campo de fecha se ve siempre, con el mismo tope de "no futura").
   Los productos, cantidades y el descuento se ven atenuados y sin poder tocarse. Sobre la lista hay un aviso corto, en un recuadro naranja suave (Mandarina): "Para cambiar los productos o las cantidades,
   reabre el pedido." con el botón de contorno **"Reabrir pedido"**. Pide confirmación ("¿Reabrir el pedido? El pedido vuelve a
@@ -493,8 +491,9 @@ Guardar actualiza ese mismo pedido (mismo número; "Pedido #N actualizado.") y v
   la fecha de la venta vuelve a la original (en Por despachar no se edita). La **factura** no se guarda en ninguna parte: se arma
   con el pedido, así que desaparece al reabrir y vuelve a generarse al despachar (mismo número, con los productos nuevos). Si el
   pedido tiene abonos, no se puede guardar con un total menor a lo ya abonado (aviso: "Ya abonó RD$X, más que el nuevo total. Agrega productos hasta cubrirlo.").
-  No aparece el interruptor de "venta que ya hice", tampoco después de reabrir (volvería a marcarlo despachado sin restar el stock que
-  reabrir devolvió; para volver a despachar está "Despachar pedido", que valida y descuenta). (Se quitó el viejo «Ir a los pasos del pedido» y su destello.)
+  El interruptor de "venta que ya hice" solo existe al registrar un pedido NUEVO: al editar uno que ya existe (despachado, reabierto o por
+  despachar) no aparece, porque marcarlo despachado desde ahí se saltaría "Despachar pedido", que valida y descuenta el stock (tras reabrir
+  ya se devolvió). El único camino de un pedido existente a despachado es "Despachar pedido". (Se quitó el viejo «Ir a los pasos del pedido» y su destello.)
 - Real: RPC `editar_pedido(p_pedido_id, p_cliente_id, p_items, p_codigo_promo, p_fecha, p_ya_hecho, p_descontar_stock)`; sus
   errores (`pedido_no_encontrado`, `pedido_no_editable`, `fecha_invalida`, `cliente_no_encontrado`, `sin_productos`,
   `items_invalidos`, `producto_no_encontrado`, `stock_insuficiente: <producto>`) salen en español. Como la RPC suma cantidad ×

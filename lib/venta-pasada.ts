@@ -27,12 +27,12 @@ const formatoDia = new Intl.DateTimeFormat("es-DO", { timeZone: "UTC", day: "num
 export const diaEnPalabras = (dia: string) => formatoDia.format(new Date(`${dia}T12:00:00Z`));
 
 /**
- * ¿El editor ofrece «Es una venta que ya hice»? No en un pedido despachado ni en uno que se REABRIÓ desde despachado en esta misma
- * hoja: con «Descontar del stock» apagado volvería a marcarlo despachado sin restar el stock que reabrir devolvió. Para volver a
- * despachar se usa «Despachar pedido», que valida y descuenta el stock.
+ * ¿El editor ofrece «Es una venta que ya hice»? Solo al REGISTRAR un pedido nuevo (una venta pasada). Al editar uno que ya existe no:
+ * convertirlo a despachado desde ahí lo marcaría despachado sin pasar por «Despachar pedido», que valida y descuenta el stock (por
+ * ejemplo, tras reabrir un despachado, que ya devolvió su stock). El único camino de un pedido existente a despachado es «Despachar pedido».
  */
-export function ofreceVentaPasada(estado: string | undefined, veniaDespachado: boolean): boolean {
-  return estado !== "despachado" && !veniaDespachado;
+export function ofreceVentaPasada(esPedidoExistente: boolean): boolean {
+  return !esPedidoExistente;
 }
 
 /**

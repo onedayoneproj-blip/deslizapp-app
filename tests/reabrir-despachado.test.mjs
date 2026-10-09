@@ -32,12 +32,10 @@ test("tras reabrir se puede despachar otra vez (mismo número) y el stock vuelve
   assert.equal(otra.pedido.numero, p.numero);
 });
 
-test("tras reabrir no se ofrece «venta que ya hice» (no re-marcar despachado sin restar el stock)", async () => {
+test("«venta que ya hice» solo al registrar un pedido nuevo: ni al editar uno existente, ni tras reabrir y volver a entrar", async () => {
   const { ofreceVentaPasada } = await import("../lib/venta-pasada.ts");
-  assert.equal(ofreceVentaPasada("despachado", true), false);
-  assert.equal(ofreceVentaPasada("por_despachar", true), false, "reabierto desde despachado en la misma hoja");
-  assert.equal(ofreceVentaPasada("por_despachar", false), true, "un por despachar normal sí puede");
-  assert.equal(ofreceVentaPasada(undefined, false), true, "pedido nuevo");
+  assert.equal(ofreceVentaPasada(false), true, "pedido nuevo");
+  assert.equal(ofreceVentaPasada(true), false, "cualquier pedido existente (despachado, reabierto, por despachar…)");
 });
 
 test("reabrir → despachar de nuevo descuenta el stock (el único camino de vuelta a despachado)", () => {
