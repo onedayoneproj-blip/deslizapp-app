@@ -42,7 +42,22 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
         </div>
       )}
 
-      <div role="tablist" aria-label="Categorías de emojis" className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+      <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+        {/* Volver a las iniciales: una píldora más, igual que las categorías (se ve marcada cuando es lo elegido) */}
+        <button
+          type="button"
+          aria-pressed={valor === null}
+          onClick={() => alElegir(null)}
+          className={`tocable flex h-11 shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 text-secundario font-extrabold whitespace-nowrap outline-none focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-foco ${
+            valor === null ? "border-accion bg-accion-suave text-texto" : "border-borde-pastilla bg-superficie text-texto-secundario"
+          }`}
+        >
+          <span aria-hidden="true" className="font-display text-[16px] leading-none">
+            Aa
+          </span>
+          Iniciales
+        </button>
+        <div role="tablist" aria-label="Categorías de emojis" className="contents">
         {CATEGORIAS_EMOJI.map((c) => (
           <button
             key={c.id}
@@ -51,7 +66,7 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
             aria-selected={c.id === categoria}
             onClick={() => setCategoria(c.id)}
             className={`tocable flex h-11 shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 text-secundario font-extrabold whitespace-nowrap outline-none focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-foco ${
-              c.id === categoria ? "border-accion bg-accion-suave text-texto" : "border-borde-pastilla bg-superficie text-texto-secundario"
+              c.id === categoria ? "border-accion bg-superficie text-texto" : "border-borde-pastilla bg-superficie text-texto-secundario"
             }`}
           >
             <span aria-hidden="true" className="text-[18px] leading-none">
@@ -60,6 +75,7 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
             {c.nombre}
           </button>
         ))}
+        </div>
       </div>
 
       {abierta.conTono && (
@@ -91,17 +107,6 @@ export function SelectorEmoji({ valor, alElegir }: { valor: string | null; alEle
         })}
       </div>
 
-      <div className="border-t border-linea pt-3">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={valor === null}
-          onClick={() => alElegir(null)}
-          className={`tocable flex h-12 items-center justify-center gap-2 rounded-radio-m border-2 font-display text-cuerpo text-texto outline-none focus-visible:outline-3 focus-visible:outline-offset-1 focus-visible:outline-foco ${valor === null ? "border-accion bg-accion-suave" : "border-borde-pastilla bg-superficie"}`}
-        >
-          Aa <span className="font-sans text-secundario font-normal text-texto-secundario">Usar las iniciales</span>
-        </button>
-      </div>
     </div>
   );
 }

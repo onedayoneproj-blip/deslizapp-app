@@ -592,7 +592,7 @@ WhatsApp (con icono) y «Guardar cliente» pegado debajo.
   Corazones y símbolos, Animales, Naturaleza y flores, Comida y bebida, Fiestas y regalos, Deportes, Viajes y lugares, Objetos y hogar,
   Banderas) en pestañas horizontales; cuadrícula de 6 columnas con celdas de 48 px que se desplaza (solo se pinta la categoría abierta);
   cada emoji es un botón con su nombre en español. En «Personas» hay **tono de piel** (6 opciones, se recuerda). Arriba, **«Usados hace
-  poco»** (hasta 12, `localStorage`). «Aa · Usar las iniciales». No hay campo para escribir otro emoji: la web no puede abrir solo el teclado de emojis del teléfono (ni en iPhone ni en
+  poco»** (hasta 12, `localStorage`). **«Aa Iniciales»** es la primera píldora de la fila de categorías (vuelve a las iniciales; se ve marcada cuando es lo elegido). No hay campo para escribir otro emoji: la web no puede abrir solo el teclado de emojis del teléfono (ni en iPhone ni en
   Android), y abrir el teclado normal confundía; todo lo que se ofrece está en la cuadrícula.
 - **Regla del color** (`avatar_color`): con emoji y color nulo = Automático (pastel del emoji, calculado dibujando el emoji en un canvas de
   48 px: color predominante sin lo transparente ni lo casi blanco/negro, aclarado a 88 % de luminosidad; guardado por emoji en memoria y
