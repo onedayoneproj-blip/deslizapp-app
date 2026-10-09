@@ -108,6 +108,8 @@ La parte 5, las invitaciones, llega con el onboarding, que sigue en diseño. **E
 
 **Stickers ilustrados en la historia** (rama `feat/stickers-ilustrados`, v0.51.0): 33 WebP con alfa en `public/stickers/{basicos,temporadas,marca}/` (origen: `referencias/stickers/png/`), catálogo y grupos en `lib/catalogo-stickers.ts` (cada grupo con `gratis`, listo para marcar uno de pago sin cobros construidos). El selector de la hoja «Tu historia» los muestra en pestañas Básicos / Temporadas / Marca (todas las temporadas, sin filtrar por fecha). Solo «Últimas N» sigue dibujado con datos del producto. En «Ajustar foto»: arrastrar, pellizcar para escalar y girar con dos dedos.
 
+**Stickers exclusivos de una tienda** (rama `feat/stickers-de-tienda`): `tiendas.personalizacion.stickers_propios` (`[{ id, nombre }]`, sin migración) añade a la hoja «Tu historia» un grupo «De {tienda}» al inicio; archivos en `public/stickers/tiendas/<slug>/<id>.webp`, ids `tienda:<slug>/<id>` (slug e id con `^[a-z0-9]+(-[a-z0-9]+)*$`; el archivo que no carga no se muestra). Primera: Soft Era (8). Además, Jost se carga en el catálogo (`app/tienda/fuentes.css`).
+
 **Pendientes sueltos:**
 - **Mi marca «mágica»** (cuestionario de historias + tarjeta de marca con IA, nombre de marketing por decidir): idea anotada en `docs/15-mi-marca-magica.md`, después de #57 y con lienzo de diseño primero.
 - Pasar Promos al sistema de diseño (`components/ui`).

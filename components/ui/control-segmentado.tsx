@@ -15,6 +15,7 @@ export function ControlSegmentado<T extends string>({
   alCambiar,
   etiqueta,
   compacto = false,
+  apretado = false,
 }: {
   opciones: { id: T; texto: ReactNode }[];
   valor: T;
@@ -23,6 +24,8 @@ export function ControlSegmentado<T extends string>({
   etiqueta: string;
   /** Letra y márgenes más chicos, para textos largos en pantallas angostas (360 px). */
   compacto?: boolean;
+  /** Aún más justo (letra de 11 px y márgenes mínimos), para cuatro opciones en 360 px. */
+  apretado?: boolean;
 }) {
   const props = useRadiogrupo(
     opciones.map((o) => o.id),
@@ -46,7 +49,7 @@ export function ControlSegmentado<T extends string>({
             className={clases(
               "tocable relative h-10 min-w-0 flex-1 truncate rounded-full before:absolute before:inset-x-0 before:-inset-y-1 before:content-['']",
               FOCO,
-              compacto ? "px-1 text-secundario" : "px-3 text-cuerpo",
+              apretado ? "px-0.5 text-[11px]" : compacto ? "px-1 text-secundario" : "px-3 text-cuerpo",
               elegida ? "bg-superficie font-extrabold text-texto ring-1 ring-linea" : "font-bold text-texto-secundario",
             )}
           >

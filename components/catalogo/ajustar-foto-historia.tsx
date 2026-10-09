@@ -7,7 +7,7 @@ import {
   type AjusteFoto, type Encuadre, type Medida, type Punto,
 } from "@/lib/encuadre-historia";
 import { generarImagenHistoria, imagenesStickers, type EntradaImagenHistoria } from "@/lib/imagen-historia";
-import { NOMBRE_STICKER, limitarSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
+import { limitarSticker, nombreSticker, moverSticker, type StickerPuesto } from "@/lib/stickers-historia";
 import { Boton, Interruptor } from "../ui";
 
 type Entrada = Omit<EntradaImagenHistoria, "ajuste" | "soloTarjeta">;
@@ -292,7 +292,7 @@ function StickerArrastrable({ sticker, imagen, marco, alCambiar }: {
     // eslint-disable-next-line @next/next/no-img-element -- sticker dibujado en el teléfono
     <img
       src={imagen.url}
-      alt={`Sticker ${NOMBRE_STICKER[s.id]}: arrástralo para moverlo`}
+      alt={`Sticker ${nombreSticker(s)}: arrástralo para moverlo`}
       draggable={false}
       data-sticker={s.id}
       data-x={s.x.toFixed(3)}
