@@ -2,7 +2,7 @@
 
 ## Diseño vigente · minimizar y estados discretos
 
-En `minimizar/`: capítulos desplegados (`01`–`04`), entrada normal Demo (`05`), píldora reversible (`06`) y texto ampliado al 200 % (`07`, expandida; `08`, minimizada). A 360/390/430 px, salvo entrada normal a 390. Cero = neutro/círculo; parcial = atención/semicírculo; completo = éxito/check. Contorno de selección independiente. Capturas locales Chromium; fixtures controlados excepto `05`. No Safari ni tiendas reales. Los directorios anteriores se conservan como antecedentes.
+En `minimizar/`: capítulos desplegados (`01`–`04`), entrada normal Demo (`05`), píldora reversible (`06`) y texto ampliado al 200 % (`07`, expandida; `08`, minimizada). A 360/390/430 px, salvo entrada normal a 390. Cero = neutro; parcial = atención; completo = éxito. Sin símbolos junto a Capítulo X, por feedback de Lewis; estado y contador en su nombre accesible y Hecho/Pendiente en filas. Subrayado de selección independiente (sin recuadro, por feedback de Lewis). Capturas locales Chromium; fixtures controlados excepto `05`. No Safari ni tiendas reales. Los directorios anteriores se conservan como antecedentes.
 
 ## Antecedente · capítulos proporcionales (10 oct 2026)
 

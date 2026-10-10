@@ -25,7 +25,7 @@ async function abrir(ancho,opciones={}) {
 }
 const capturar=async (page,path,fullPage=false)=>{
  await page.locator('[role="status"].pointer-events-none > div').waitFor({state:'hidden'});
- await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(100);
+ await page.evaluate(()=>{document.activeElement?.blur();window.scrollTo(0,0)});await page.waitForTimeout(100);
  await page.screenshot({path,fullPage});
 };
 const elegir=(page,n)=>page.getByRole('group',{name:'Capítulos de preparación'}).getByRole('button',{name:new RegExp(`Capítulo ${n} ·`)}).click();
@@ -36,7 +36,7 @@ for(const ancho of [360,390,430]){
  let {ctx,page,trafico}=await abrir(ancho);const c=page.locator('[data-checklist]');await c.waitFor();await contador(page,0);
  ok(await c.getByRole('group').getByRole('button').count()===3,'tres capítulos, no siete tareas');
  ok(await c.getByRole('heading',{name:'Capítulo 2 · Tu tienda tiene personalidad'}).count()===1,'primer incompleto seleccionado');
- ok(await c.locator('details').count()===0,'sin recuadro Hecho');ok(await controlesEstado(page),'capítulos vacíos con estado accesible');
+ ok(await c.locator('details').count()===0,'sin recuadro Hecho');ok(await c.getByRole('group').getByRole('button').evaluateAll(es=>es.every(e=>getComputedStyle(e).borderTopWidth==='0px')),'sin recuadro de selección');ok(await controlesEstado(page),'capítulos vacíos con estado accesible');
  const controles=c.getByRole('group').getByRole('button');
  ok(await controles.evaluateAll(es=>es.every(e=>{const r=e.getBoundingClientRect();return r.height>=44&&r.width>=44})),'toque 44px');
  await controles.first().focus();await page.keyboard.press('ArrowRight');ok(await controles.nth(1).getAttribute('aria-pressed')==='true','flechas seleccionan capítulo y foco');
@@ -52,7 +52,7 @@ for(const ancho of [360,390,430]){
  await fila(page,'Publica tu catálogo').click();await page.getByRole('button',{name:'Publicar igual'}).click();await contador(page,3);ok(await controles.nth(1).getAttribute('aria-pressed')==='true','publicación conserva capítulo');ok(await fila(page,'Publica tu catálogo').innerText().then(t=>t.includes('Hecho')),'publicación hecha consultable');
  await elegir(page,4);await capturar(page,`${OUT}/03-a-mano-${ancho}.png`);await fila(page,'Pantalla de inicio').click();await page.getByRole('button',{name:'Ya lo hice'}).click();await contador(page,4);await c.getByRole('button',{name:'Lo hago sola'}).click();await contador(page,5);await c.getByText('Capítulo listo. Tu tienda sigue tomando forma.').waitFor();ok(await controles.last().getAttribute('aria-pressed')==='true','completar no cambia selección');
  await capturar(page,`${OUT}/04-completo-${ancho}.png`);await c.getByRole('button',{name:'Continuar al capítulo 2'}).click();ok(await controles.first().getAttribute('aria-pressed')==='true','continuar va al pendiente por toque');
- ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'sin overflow horizontal');ok(await c.locator('span.truncate').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1)),'títulos sin cortes');ok(trafico()===0,'Demo sin Supabase');
+ ok(await page.evaluate(ancho=>document.documentElement.scrollWidth<=ancho,ancho),'sin overflow horizontal');ok(await c.locator('span.truncate').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1)),'títulos sin cortes');ok(trafico()===0,'Demo sin Supabase');
  await elegir(page,3);await c.getByRole('button',{name:'Minimizar',exact:true}).click();
  const pildora=c.getByRole('button',{name:/Desplegar Prepara tu tienda/});await pildora.waitFor();
  ok(await pildora.getAttribute('aria-expanded')==='false' && await pildora.evaluate(e=>e===document.activeElement),'píldora plegada recibe foco');
@@ -65,7 +65,7 @@ for(const ancho of [360,390,430]){
  await page.reload();await pildora.waitFor();ok(await page.evaluate(()=>window.guiaExpandidaAntesDeRestaurar)===false,'sin destello expandido al cargar');ok(await c.getByRole('group').count()===0,'recarga conserva minimización');
  await pildora.click();ok(await controles.nth(1).getAttribute('aria-pressed')==='true','restaurar recupera selección tras recarga');ok(await c.getByRole('button',{name:'Minimizar',exact:true}).evaluate(e=>e===document.activeElement),'restaurar conserva foco conectado');
  ok(await controles.nth(1).getAttribute('data-estado')==='En curso','selección independiente del estado');
- await page.evaluate(()=>document.documentElement.style.fontSize='200%');ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'texto ampliado sin overflow');await capturar(page,`${OUT}/07-texto-ampliado-${ancho}.png`,true);
+ await page.evaluate(()=>document.documentElement.style.fontSize='200%');ok(await page.evaluate(ancho=>document.documentElement.scrollWidth<=ancho,ancho),'texto ampliado sin overflow');await capturar(page,`${OUT}/07-texto-ampliado-${ancho}.png`,true);
  await ctx.close();
  ({ctx,page}=await abrir(ancho,{tres:true,reducido:true}));await contador(page,3);ok(await page.getByRole('group',{name:'Capítulos de preparación'}).getByRole('button').nth(1).getAttribute('aria-pressed')==='true','inicial selecciona primer capítulo incompleto');await elegir(page,2);ok(await fila(page,'Sube tu logo').count()===1,'capítulo completo consultable');ok(await page.locator('.checklist-relleno').count()===0,'sin rellenos proporcionales con movimiento reducido');await ctx.close();
  for(const opciones of [{colaborador:true},{cerrado:true},{siete:true}]){({ctx,page}=await abrir(ancho,opciones));await page.waitForTimeout(600);ok(await page.locator('[data-checklist]').count()===0,JSON.stringify(opciones)+' no muestra guía');if(opciones.siete)ok(await page.evaluate(id=>!!JSON.parse(localStorage.getItem('deslizapp-demo-v5')).tiendas.find(t=>t.id===id).onboarding.checklist_cerrado_en,ID),'cierre siete confirmado');await ctx.close();}

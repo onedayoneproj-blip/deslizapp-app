@@ -4,9 +4,11 @@ Continuación de Coding autorizada manualmente por Lewis el 10 oct 2026, siguien
 
 Minimizar cambia la guía por una sola píldora entre márgenes. Es reversible, conserva capítulo, navega y recarga sin destello expandido. Preferencia local aislada por identificador opaco de usuario / modo / tienda; valor solo minimizada y capítulo. Si localStorage falla, conserva estado en memoria durante esta página/navegación (no promete persistir tras recargar sin almacenamiento). Sin nuevas marcas del servidor. Guías cerradas permanecen cerradas.
 
-Los capítulos 2/3/4 conservan agrupación y acciones, con tres estados derivados: sin iniciar, en curso, completo. Tokens neutro/atención/éxito y círculo/semicírculo/check; selección por contorno independiente. Selector breve, una cabecera de nombre y filas consultables. Creación sigue siendo capítulo 1 con cuatro pasos. Se ajusta la novedad 0.57.0 aún no publicada, sin duplicar versiones. Publicar vacío, vista previa, trabajar sola, permisos y exclusión de Ver como conservados.
+Los capítulos 2/3/4 conservan agrupación y acciones, con tres estados derivados: sin iniciar, en curso, completo. Tokens neutro/atención/éxito; Lewis pidió retirar los símbolos junto al nombre de cada capítulo, manteniendo estado/contador en su nombre accesible; selección por subrayado independiente; Lewis descartó expresamente el recuadro. Lewis añadió la referencia visual de Pedido #1008 antes del push: raya completa redondeada arriba, Capítulo X debajo; borde-pastilla/atencion-texto/accion (tokens de Pedidos). Selector breve, una cabecera de nombre y filas consultables. Creación sigue siendo capítulo 1 con cuatro pasos. Se ajusta la novedad 0.57.0 aún no publicada, sin duplicar versiones. Publicar vacío, vista previa, trabajar sola, permisos y exclusión de Ver como conservados.
 
 Cierre 7/7 también minimizada: espera hojas, persiste solo tras éxito, celebra y permite reintentar checklist_cerrado_en al fallar. Los campos de perfil son hermanos del bloque que se pliega: no se desmontan ni animan sus ancestros. Foco de plegar/restaurar dentro del gesto, preventScroll y sin entradas de historial.
+
+**Verificaciones:** tipos, build y lint aprobados; 77/77 archivos de tests, 125 comprobaciones visuales, 15 de fallos y script completo de teclado; 21 verificaciones/capturas finales tras retirar recuadro y símbolos. Lint general mantiene 32 avisos previos; archivos afectados sin avisos.
 
 **Evidencia actual:** [validación](../validacion-onboarding-2.md), [capturas](../capturas/onboarding-2/README.md), [PR](https://github.com/onedayoneproj-blip/deslizapp-app/pull/96). HEAD exacto, Revisión y preview READY del código nuevo se devuelven en el PR y handoff de este chat; la preview anterior de b66ebb4 no valida este ajuste. No se repiten suites de app tras integración únicamente documental.
 
@@ -16,7 +18,7 @@ Cierre 7/7 también minimizada: espera hojas, persiste solo tras éxito, celebra
 
 ## Antecedente · entrega de capítulos proporcionales
 
-# Onboarding 2 · entrega vigente por capítulos
+### Entrega anterior por capítulos proporcionales
 
 Coding Codex, continuación del 10 oct 2026. Se comprobó PR #96 abierto y HEAD remoto `11532b43a456af35f8caf79e65edb70ecf4290fe` antes de clonar y continuar en `feat/onboarding-checklist-codex`. Un push de implementación y una ronda correctiva posterior (un push) para integrar el main documental que avanzó durante la entrega. Sin force, merge a main ni producción. No cambios Supabase ni datos reales.
 

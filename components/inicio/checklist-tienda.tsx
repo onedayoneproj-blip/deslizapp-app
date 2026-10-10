@@ -1,7 +1,7 @@
 "use client";
 
 import { flushSync } from "react-dom";
-import { IconoChevronAbajo, IconoCheck } from "../iconos";
+import { IconoChevronAbajo } from "../iconos";
 import { useEffect, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -100,9 +100,9 @@ function Checklist() {
   };
   return <section id="checklist-guia" data-checklist className="px-5 pt-4 pb-2">
     {checklistMinimizada ? <>
-      <Boton ref={pildora} jerarquia="secundario" anchoCompleto className="h-auto min-h-11 py-2 [&>span:first-child]:w-full" aria-expanded={false} aria-controls="checklist-guia"
+      <Boton ref={pildora} jerarquia="secundario" anchoCompleto className="h-auto min-h-11 py-2 [&>span:first-child]:w-full [&>span:first-child]:whitespace-normal" aria-expanded={false} aria-controls="checklist-guia"
         aria-label={`Desplegar Prepara tu tienda, ${hechos} de 7 pasos`} onClick={() => cambiarMinimizacion(false)}>
-        <span className="flex w-full items-center justify-between gap-2"><span>Prepara tu tienda</span><span className="flex shrink-0 items-center gap-2">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
+        <span className="flex w-full items-center justify-between gap-2"><span>Prepara tu tienda</span><span className="flex shrink-0 items-center gap-2 whitespace-nowrap">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
       </Boton>
       {error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
     </> : <div id="checklist-expandida">
@@ -115,16 +115,15 @@ function Checklist() {
         aria-label={`Capítulo ${c.numero} · ${c.nombre}, ${c.estado}, ${c.hechos} de ${c.total} pasos`}
         data-estado={c.estado}
         aria-pressed={seleccionado === i} aria-controls="checklist-capitulo"
-        className={`tocable flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-1 rounded-radio-s px-1 py-2 outline-none focus-visible:outline-3 focus-visible:outline-foco ${seleccionado === i ? "border-2 border-texto" : "border-2 border-transparent"}`}
+        className={`tocable flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-radio-s px-1 py-2 text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco`}
         onClick={() => seleccionarCapituloChecklist(i)} onKeyDown={e => {
           const destino = e.key === "Home" ? 0 : e.key === "End" ? capitulos.length - 1 : e.key === "ArrowRight" ? (i + 1) % capitulos.length : e.key === "ArrowLeft" ? (i + capitulos.length - 1) % capitulos.length : null;
           if (destino === null) return;
           e.preventDefault(); seleccionarCapituloChecklist(destino); botonesCapitulo.current[destino]?.focus();
         }}>
-        <span aria-hidden="true" className="text-secundario">Capítulo {c.numero}</span>
-        <span aria-hidden="true" className={`flex w-full items-center gap-1 ${c.completo ? "text-exito-texto" : c.hechos ? "text-atencion-texto" : "text-texto-secundario"}`}>
-          <span className={`h-1.5 flex-1 rounded-full ${c.completo ? "bg-exito-texto" : c.hechos ? "bg-atencion-texto" : "bg-superficie-hundida"}`} />
-          {c.completo ? <IconoCheck tamano={16} /> : c.hechos ? <span className="w-4 text-center font-bold">◐</span> : <span className="w-4 text-center">○</span>}
+        <span aria-hidden="true" className={`block h-1.5 w-full rounded-full ${c.completo ? "bg-accion" : c.hechos ? "bg-atencion-texto" : "bg-borde-pastilla"}`} />
+        <span aria-hidden="true" className={`mt-[5px] block w-full text-etiqueta ${c.hechos ? "text-texto" : "text-texto-secundario"}`}>
+          <span className={seleccionado === i ? "underline decoration-2 underline-offset-4" : undefined}>Capítulo {c.numero}</span>
         </span>
       </button>)}
     </div>
