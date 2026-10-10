@@ -35,6 +35,27 @@ for (const ancho of [390, 360]) {
   console.log("• Historias");
   ok((await page.locator("h1").innerText()).startsWith("Hola, Michel."), "«Hola, Michel.» con el primer nombre de Google");
   await foto("01-historia-bienvenida");
+  // Stickers manipulables: arrastrar lo mueve y no pasa la historia; tocarlo tampoco; nunca se sale de la pantalla.
+  await page.waitForTimeout(900);
+  const sticker = page.locator("[data-sticker=aaah]");
+  const s0 = await sticker.boundingBox();
+  await page.mouse.move(s0.x + s0.width / 2, s0.y + s0.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(s0.x + s0.width / 2 - 120, s0.y + s0.height / 2 + 260, { steps: 8 });
+  await page.mouse.up();
+  const s1 = await sticker.boundingBox();
+  ok(Math.abs(s1.x - (s0.x - 120)) < 6 && Math.abs(s1.y - (s0.y + 260)) < 6, "el sticker se arrastra con el dedo");
+  ok((await historia()) === "1", "arrastrar el sticker no pasa la historia");
+  await sticker.tap();
+  await page.waitForTimeout(300);
+  ok((await historia()) === "1", "tocar el sticker no pasa la historia");
+  await page.mouse.move(s1.x + s1.width / 2, s1.y + s1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(-400, 2000, { steps: 6 });
+  await page.mouse.up();
+  const s2 = await sticker.boundingBox();
+  ok(s2.x >= -1 && s2.y + s2.height <= 844 + 1, "el sticker no se sale de la pantalla");
+  await foto("01b-sticker-movido");
   const der = page.getByRole("button", { name: "Siguiente historia" });
   const izq = page.getByRole("button", { name: "Historia anterior" });
   await der.tap();
@@ -83,6 +104,23 @@ for (const ancho of [390, 360]) {
   await campo.fill("Esencias Rosa");
   await page.waitForFunction(() => document.querySelector("[data-slug]")?.textContent === "esencias-rosa");
   ok(true, "el enlace cambia mientras escribe");
+  ok((await page.locator("[data-onboarding=capitulos] input:not([type=file])").count()) === 1, "un solo campo: el nombre se escribe en la tarjeta");
+  const fileCap1 = page.locator("[data-vista-enlace] input[type=file]");
+  await fileCap1.setInputFiles({ name: "nota.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
+  ok((await page.locator("#nota-nombre").innerText()).includes("no es una imagen"), "cap. 1: un archivo que no es imagen lo dice, sin bloquear el nombre");
+  if (ancho === 390) {
+    await fileCap1.setInputFiles("public/tienda/michel-kiara.jpg");
+    await page.waitForSelector("[data-vista-enlace] [data-logo-tienda]");
+    const tam = await page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-onboarding-demo-v1")).logo.length);
+    ok(tam > 10_000 && tam < 120_000, `cap. 1: la foto se recorta y queda en el borrador (${Math.round(tam / 1024)} KB en texto)`);
+    // Teclado abierto con el nombre: «Seguir» encima del teclado.
+    await campo.focus();
+    await page.locator("[data-onboarding=capitulos]").evaluate((el) => el.style.setProperty("--teclado", "300px"));
+    const bt = await page.locator("[data-seguir] button").boundingBox();
+    ok(bt.y + bt.height <= 844 - 300 && (await campo.isVisible()), "cap. 1 con teclado: el nombre y «Seguir» a la vista");
+    await foto("05b-capitulo-1-con-logo-y-teclado");
+    await page.locator("[data-onboarding=capitulos]").evaluate((el) => el.style.setProperty("--teclado", "0px"));
+  }
   await foto("05-capitulo-1-nombre");
   await page.locator("[data-seguir] button").tap();
 
@@ -101,11 +139,15 @@ for (const ancho of [390, 360]) {
   console.log("• Capítulo 3 · El chat");
   ok((await capitulo()) === "3", "pasa al capítulo 3");
   ok((await page.locator("header").innerText()).includes("perfumes y ropa"), "la cabecera dice lo que vende");
+  if (ancho === 390) ok((await page.locator("header [data-logo-tienda]").count()) === 1, "la cabecera de los capítulos muestra la foto");
   await campo.fill("305 555 0142");
   await page.locator("[data-seguir] button").tap();
   ok((await capitulo()) === "3", "un número que no es dominicano no sigue");
   await campo.fill("8496503269");
   ok((await campo.inputValue()) === "849 650 3269", "el número se agrupa al escribir");
+  ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationPlayState)) === "paused", "con el campo enfocado, la burbuja no se mueve");
+  await page.locator("header button").first().focus();
+  ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationPlayState)) === "running", "sin el campo enfocado, la burbuja levita");
 
   console.log("• Borrador");
   await page.reload();
@@ -142,10 +184,32 @@ for (const ancho of [390, 360]) {
   console.log("• Ya existe");
   await page.waitForSelector("[data-onboarding=existe]");
   ok((await page.locator("h1").innerText()).replace(/\s+/g, " ").includes("Esencias Rosa ya existe."), "«Esencias Rosa ya existe.»");
+  ok((await page.locator("[data-lo-que-sigue]").innerText()) === "lo que sigue lo escriben tus clientes", "«lo que sigue lo escriben tus clientes», protagonista");
+  ok((await page.getByText("Ahora déjala lista", { exact: false }).count()) === 0, "sin «Ahora déjala lista…»");
   ok((await page.evaluate(() => localStorage.getItem("deslizapp-onboarding-demo-v1"))) === null, "el borrador se borra al crear la tienda");
   await page.waitForTimeout(500);
   await foto("10-ya-existe");
 
+  if (ancho === 390) {
+    await page.waitForFunction(() => !document.querySelector("[data-poner-logo]"));
+    ok((await page.locator("[data-onboarding=existe] [data-logo-tienda]").count()) === 1, "«ya existe» muestra la foto del capítulo 1 (subida al crear la tienda)");
+    await foto("11-ya-existe-con-logo");
+  } else {
+  console.log("• Pon tu logo en «ya existe» (sin foto en el capítulo 1)");
+  const archivo = page.locator('[data-onboarding=existe] input[type=file]');
+  await archivo.setInputFiles({ name: "nota.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
+  ok((await page.locator("[data-aviso-logo]").innerText()).includes("no es una imagen"), "un archivo que no es imagen: lo dice y se queda con las iniciales");
+  await archivo.setInputFiles({ name: "enorme.png", mimeType: "image/png", buffer: Buffer.alloc(21 * 1024 * 1024) });
+  ok((await page.locator("[data-aviso-logo]").innerText()).includes("pesa mucho"), "una imagen muy pesada: lo dice");
+  ok((await page.locator("[data-onboarding=existe] [data-logo-tienda]").count()) === 0, "sigue con las iniciales");
+  await archivo.setInputFiles("public/tienda/michel-kiara.jpg");
+  await page.waitForSelector("[data-onboarding=existe] [data-logo-tienda]", { timeout: 8000 });
+  ok((await page.locator("[data-aviso-logo]").count()) === 0, "con una foto real: el círculo muestra su logo");
+  await page.waitForFunction(() => !document.querySelector("[data-poner-logo]"), null, { timeout: 8000 }).catch(() => {});
+  ok((await page.locator("[data-poner-logo]").count()) === 0, "el botón se va cuando ya tiene logo");
+  await page.waitForTimeout(900);
+  await foto("11-ya-existe-con-logo");
+  }
   ok(errores.length === 0, `sin errores de página${errores.length ? `: ${errores.join(" | ")}` : ""}`);
   ok(supabase === 0, "la demo no llama a Supabase");
   await ctx.close();
@@ -158,6 +222,7 @@ const page = await ctx.newPage();
 await page.goto(`${URL}/unirse/demo`);
 await page.waitForSelector("[data-onboarding=historias]");
 ok((await page.locator(".onb-barra").count()) === 0, "sin barra que se llena");
+ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationName)) === "none", "lo que imita la app no se mueve");
 await page.waitForTimeout(7500);
 ok((await page.locator("[data-historia]").getAttribute("data-historia")) === "1", "no avanza sola");
 await ctx.close();

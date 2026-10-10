@@ -67,6 +67,7 @@ El logo en las piezas es siempre el isotipo real (`public/icons/isotipo.svg`), n
 - El patrón siempre queda detrás del contenido y nunca baja el contraste del texto.
 - Los objetos flotantes (corazón, bolsa, burbuja) van en tarjetas redondeadas con volumen, como fichas, en Papel, Mandarina o Rosa.
 - **En la app** los patrones se usan con moderación: solo en bienvenida, novedades, pantallas vacías, celebraciones y el catálogo público. Nunca detrás de listas, formularios o números.
+- **Excepción: capítulos del onboarding** (decisión de Lewis, 10 oct 2026). Los 4 capítulos donde la tienda nueva escribe sus datos llevan el patrón de iconos regados a pantalla completa, muy suave y en el tono de su fondo (`FondoPatron` con `mascara="capitulo"`): en la franja del título y del campo queda al 30 % y los campos son blancos, así que el contraste del texto no baja. Es la única pantalla con formulario que lo lleva.
 
 ## Titulares de piezas
 

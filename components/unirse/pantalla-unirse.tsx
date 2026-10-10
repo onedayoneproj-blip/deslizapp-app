@@ -15,6 +15,7 @@ import {
   misSolicitudes,
   nombreDeLaCuenta,
   olvidarCodigo,
+  ponerLogoTiendaNueva,
   reclamarEnlace,
   solicitudPrincipal,
   type MiSolicitud,
@@ -22,6 +23,7 @@ import {
   vistaSlug,
 } from "@/lib/data/unirse";
 import { CLAVE_BORRADOR } from "@/lib/onboarding";
+import type { Tienda } from "@/lib/types";
 import { Isotipo, Logotipo } from "../marca";
 import { Boton } from "../ui";
 import { RecorridoOnboarding } from "./recorrido-onboarding";
@@ -68,6 +70,9 @@ async function conNombre(f: Fase): Promise<Fase> {
 export function PantallaUnirse({ codigo }: { codigo?: string }) {
   const [fase, setFase] = useState<Fase>({ tipo: "cargando" });
   const avisoLogin = useRef<string | null>(null);
+  // La tienda recién creada en el onboarding: «Pon tu logo» la necesita (id, colores y estilo que se conservan).
+  const creada = useRef<Tienda | null>(null);
+  const conConexion = (e: unknown) => (esErrorDeRed(e) ? "No hay conexión. Revisa tu internet e inténtalo otra vez." : mensajeDeError(e));
 
   const resolver = useCallback(async () => {
     setFase({ tipo: "cargando" });
@@ -151,9 +156,19 @@ export function PantallaUnirse({ codigo }: { codigo?: string }) {
             vistaSlug,
             crear: async (datos) => {
               try {
-                await crearMiTiendaCompleta(fase.enlaceId, datos);
+                creada.current = await crearMiTiendaCompleta(fase.enlaceId, datos);
               } catch (e) {
-                throw new Error(e instanceof EnlaceNoValido ? NO_SIRVE : esErrorDeRed(e) ? "No hay conexión. Revisa tu internet e inténtalo otra vez." : mensajeDeError(e));
+                throw new Error(e instanceof EnlaceNoValido ? NO_SIRVE : conConexion(e));
+              }
+            },
+            ponerLogo: async (logo) => {
+              if (!creada.current) throw new Error("Pon tu logo desde Mi marca, en el panel.");
+              try {
+                const t = await ponerLogoTiendaNueva(creada.current, logo);
+                creada.current = t;
+                return t.logoUrl ?? logo;
+              } catch (e) {
+                throw new Error(conConexion(e));
               }
             },
             alTerminar: irAlPanel,
