@@ -4,7 +4,7 @@ Aprobado por Lewis el 10 de octubre de 2026.
 
 ## Estado del piloto
 
-**Autorizado, pendiente de comprobar acceso.** No se ha creado ni editado contenido en Notion desde esta sesión. La búsqueda de conexiones indica que el plugin de Notion no está instalado en esta sesión; se solicitó su habilitación. No asumir que una conexión existente en otra sesión proporciona aquí herramientas de escritura.
+**Autorizado, bloqueado por disponibilidad de herramientas.** Lewis instaló Notion; el catálogo confirma `installed: true`. Tras su mensaje «Prueba Notion», Planning volvió a revisar las herramientas disponibles y no aparecen operaciones de Notion para leer, crear ni editar. No se ha creado ni editado contenido en Notion desde esta sesión. La instalación está confirmada; la operatividad no. Recargar la conversación no resolvió esta comprobación. No pedir otra instalación ni presentar la prueba como aprobada; probar una sesión con las herramientas efectivamente habilitadas o resolver su disponibilidad antes de migrar.
 
 No hay enlace de workspace, tablero ni base de tareas confirmado. No inventarlo. Actualizar este apartado después de comprobar escritura y lectura reales, indicando fecha y enlaces exactos.
 
