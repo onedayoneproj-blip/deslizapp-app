@@ -14,7 +14,9 @@ Diseño: `referencias/onboarding/` (lienzo de Lewis, 33 pantallas; opción **B**
 4. **«{Tienda} ya existe»** (17) → «Ver mi tienda» → Inicio con el checklist.
 5. Si cierra a mitad, lo escrito se recupera en ese teléfono (borrador local); la tienda no existe hasta cerrar el capítulo 4.
 
-## Checklist del primer día en Inicio (23, 24): «Deja tu tienda lista · N de 7»
+## Condiciones de los siete pasos en Inicio
+
+La tabla conserva las condiciones del checklist. Su presentación en siete segmentos y un recuadro «Hecho» queda sustituida por la decisión de capítulos al final de este documento; los criterios y acciones siguen vigentes.
 | # | Paso | Hecho cuando |
 |---|---|---|
 | 1 | Sube tu logo | `logo_url` no es null |
@@ -38,3 +40,19 @@ Al completar los 7 (o al cerrarlo), el checklist se va con una celebración cort
 - **Parte 1** (`docs/prompts/onboarding-1-historias-y-datos.md`, Opus): base de datos + historias + capítulos.
 - **Parte 2** (`docs/prompts/onboarding-2-checklist.md`): checklist en Inicio. Empieza cuando la migración de la parte 1 esté aplicada.
 - **Después:** diseño del link de invitación (01, 02, 32) y tienda pre-llenada (16, 33, admin «Dejar la tienda lista»).
+
+
+## Decisión vigente: preparación por capítulos (10 oct 2026)
+
+**Estado: aprobada por Lewis, pendiente de implementar y validar.** La implementación anterior está en PR #96; no está publicada en main. Consultar la tarea en [el relevo vigente](handoffs/planning-sesion.md) para HEAD, sesión y próxima acción.
+
+- **Qué:** organizar la preparación de la tienda en capítulos con varios pasos, en lugar de una barra de siete tareas independientes.
+- **Por qué:** Lewis encontró la guía visualmente cargada. Los segmentos intercalados no transmiten el progreso de una historia y el recuadro «Hecho» repite información.
+- **Cómo:** cada segmento representa un capítulo y se rellena proporcionalmente a sus pasos completados. Tocar un segmento permite consultar ese capítulo, incluidos los ya completos. Nombre y avance acompañan la selección; área táctil accesible, foco y estado seleccionado distintos del progreso. Mostrar un capítulo a la vez con filas compactas y acciones existentes.
+- **Agrupación propuesta para Coding:** «Tu tienda tiene personalidad» (logo, colores, descripción/Instagram); «Tus productos salen al mundo» (cinco productos y publicación, con vista previa); «Tu tienda, a mano» (instalar y equipo, conservando trabajar sin equipo).
+- **Numeración por resolver:** Lewis considera la creación de la tienda el capítulo inicial y esta preparación su continuación. La bienvenida actual ya usa cuatro capítulos para recoger datos. Coding debe unificar el lenguaje y documentar el resultado antes de presentar la entrega, sin rehacer la lógica de creación. No dar una numeración contradictoria por resuelta.
+- **Descartado:** recuadro separado «Hecho» y carrusel de tarjetas altas/recortadas. La navegación por capítulos no bloquea publicar ni otras acciones; cinco productos siguen siendo recomendación.
+- **Selección y actualización:** empezar por el primero incompleto; no robar selección/foco al actualizar datos o volver de una hoja. Al terminar, ofrecer continuar; no saltar mientras una hoja esté abierta.
+- **Posponer:** no llamar «Lo hago después» a un cierre permanente. Si se conserva ese comportamiento, usar «Ocultar guía» y confirmación explícita, sin introducir persistencia nueva.
+- **Evidencia:** feedback de Lewis en Planning tras probar la preview del PR #96 y prompt completo de ajuste entregado en el chat. Esta nota conserva la decisión; no afirma que el ajuste se haya ejecutado.
+- **Siguiente:** misma tarea/PR, contratos y permisos existentes, sin cambios de Supabase ni datos reales. Dejar el PR abierto y validar visualmente con Lewis en Safari.
