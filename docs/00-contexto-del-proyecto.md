@@ -144,3 +144,7 @@ Cada PR tiene una sola sesión de Coding que vive hasta el merge. Si Planning te
 ### Onboarding 2 · retomado por Codex (10 oct 2026)
 
 Desde main #95 en `feat/onboarding-checklist-codex`: checklist en Inicio, siete pasos con marca persistente en RPC ya publicada, sin migración. Pendientes en carrusel; visibles con foto para productos, Publicar siempre disponible y Ver cómo queda existente. PR abierto sin merge/publicación por petición de Lewis. Handoff: `docs/handoffs/onboarding-2-checklist-codex.md`; validación: `docs/validacion-onboarding-2.md`. El estado remoto manda sobre copias locales sin push de Claude.
+
+### PR #96 · preparación por capítulos (Coding, 10 oct 2026)
+
+Continuación desde HEAD remoto 11532b43, abierto. Creación = capítulo 1 / cuatro pasos; guía en Inicio = capítulos 2–4, con progreso proporcional, selección estable y filas consultables. Contratos originales intactos; sin Supabase ni datos reales. Véanse docs/17, handoff y validación de onboarding-2 para la ronda actual.

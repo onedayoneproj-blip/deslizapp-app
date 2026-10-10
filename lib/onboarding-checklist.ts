@@ -2,6 +2,21 @@ import { DatosInvalidos } from "./data/errores";
 import type { Tienda, Producto } from "./types";
 import type { EquipoTienda } from "./equipo";
 
+// El capítulo 1 es la creación; sus cuatro pantallas son subpasos.
+export const CAPITULOS_CHECKLIST = [
+  { numero: 2, nombre: "Tu tienda tiene personalidad", pasos: [0, 1, 4] },
+  { numero: 3, nombre: "Tus productos salen al mundo", pasos: [2, 3] },
+  { numero: 4, nombre: "Tu tienda, a mano", pasos: [5, 6] },
+] as const;
+
+export function avanceCapitulos(pasos: readonly boolean[]) {
+  return CAPITULOS_CHECKLIST.map(capitulo => {
+    const hechos = capitulo.pasos.filter(i => pasos[i] === true).length;
+    const total = capitulo.pasos.length;
+    return { ...capitulo, hechos, total, proporcion: hechos / total, completo: hechos === total };
+  });
+}
+
 export function productosParaChecklist(productos: readonly Producto[], tiendaId: string): number {
   return productos.filter(p => p.tiendaId === tiendaId && p.activo && !p.eliminadoEn && (p.fotos.some(Boolean) || p.medios.some(m => m.tipo === "foto" && !!m.url))).length;
 }

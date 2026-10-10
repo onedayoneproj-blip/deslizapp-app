@@ -1,0 +1,39 @@
+// Fixture React temporal: se elimina al terminar, nunca se publica ni usa Supabase.
+import '../tests/cargar-ts.mjs';
+import {writeFileSync,mkdirSync,rmSync,existsSync} from 'node:fs';
+import {spawn} from 'node:child_process';
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+const {chromium}=createRequire(import.meta.url)('playwright');
+const {construirDesdeSeed}=await import('../lib/data/db.ts');
+const ruta='app/fixture-checklist-local';
+const id='a1000000-0000-4000-8000-000000000003';
+if(existsSync(ruta))throw new Error('Ya existe el fixture temporal; no sobrescribirlo.');
+mkdirSync(ruta,{recursive:true});
+writeFileSync(`${ruta}/page.tsx`, `"use client";
+import {DataProvider} from "@/lib/data/provider";
+import {fuenteDemo,cambiarTiendaActivaDemo} from "@/lib/data/demo";
+import {PanelUIProvider} from "@/components/panel/ui";
+import {ToastProvider} from "@/components/toast";
+import {ChecklistTienda} from "@/components/inicio/checklist-tienda";
+import {Boton} from "@/components/ui";
+const flags=()=>window as unknown as {fallarCierre:boolean;fallarLectura:boolean;llamadas:string[]};
+if(typeof window!=="undefined") {
+ Object.assign(window,{completarEquipo:()=>fuenteDemo.marcarOnboarding("a1000000-0000-4000-8000-000000000003","equipo_omitido_en")});
+ const marcar=fuenteDemo.marcarOnboarding, equipo=fuenteDemo.getEquipo;
+ fuenteDemo.marcarOnboarding=async (id,clave)=>{flags().llamadas.push(clave);if(clave==="checklist_cerrado_en"&&flags().fallarCierre)throw new Error("Fallo de cierre simulado");return marcar(id,clave);};
+ fuenteDemo.getEquipo=async id=>{if(flags().fallarLectura)throw new Error("Lectura simulada");return equipo(id);};
+}
+export default function Fixture(){return <DataProvider cargando={<p>Cargando</p>} entrada={<p>Entrada</p>}><ToastProvider><PanelUIProvider><ChecklistTienda/><Boton onClick={()=>{flags().fallarCierre=false;}}>Permitir cierre</Boton><Boton onClick={()=>{flags().fallarLectura=false;void fuenteDemo.marcarOnboarding("${id}","pantalla_inicio_en");}}>Recuperar lectura</Boton><Boton onClick={()=>cambiarTiendaActivaDemo("a1000000-0000-4000-8000-000000000002")}>Cambiar tienda fixture</Boton></PanelUIProvider></ToastProvider></DataProvider>;}
+`);
+const servidor=spawn('npm',['run','dev','--','--webpack','--port','3411'],{stdio:['ignore','ignore','inherit'],detached:true});
+let nav;let checks=0;const ok=(v,m)=>{assert(v,m);checks++;console.log('OK',m)};
+try {
+ for(let n=0;n<120;n++){try{if((await fetch('http://localhost:3411/fixture-checklist-local')).ok)break;}catch{}await new Promise(r=>setTimeout(r,500));}
+ nav=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
+ async function abrir(lectura=false){const ctx=await nav.newContext({viewport:{width:390,height:844}});const page=await ctx.newPage();const d=construirDesdeSeed(),t=d.tiendas.find(t=>t.id===id);Object.assign(t,{descripcion:'Tienda',logoUrl:'/tienda/michel-kiara.jpg',catalogoEstado:'publicado',onboarding:{colores_elegidos_en:'fecha',pantalla_inicio_en:'fecha'}});const p=d.productos.find(p=>p.tiendaId===id&&p.activo&&p.fotos.length);d.productos.push(...Array.from({length:5},(_,i)=>({...p,id:'fixture-'+i})));d.equipos[id]={miembros:[{usuarioId:'yo',soyYo:true,rol:'dueno',nivel:'administrador',nombre:'Tú',email:'demo@ejemplo.com',desde:new Date().toISOString(),foto:null}],invitaciones:[],solicitudes:[],enlaces:[]};await page.addInitScript(({d,id,lectura})=>{localStorage.setItem('deslizapp-demo-v5',JSON.stringify(d));localStorage.setItem('deslizapp-modo-v1','demo');localStorage.setItem('deslizapp-sesion-v1',id);localStorage.setItem('deslizapp-version-vista','0.57.0');window.fallarCierre=true;window.fallarLectura=lectura;window.llamadas=[];},{d,id,lectura});await page.goto('http://localhost:3411/fixture-checklist-local');return {ctx,page};}
+ let {ctx,page}=await abrir();await page.locator('[data-checklist]').getByText('6 de 7',{exact:true}).waitFor();await page.getByRole('button',{name:/^Invita a tu equipo ·/}).click();await page.getByRole('heading',{name:'Tu equipo',exact:true}).waitFor();await page.keyboard.press('Escape');await page.getByRole('button',{name:'Lo hago sola'}).click();await page.getByText('No pudimos guardar el cierre. Reintenta.').waitFor();ok(await page.locator('[data-checklist]').count()===1,'cierre fallido conserva guía');ok(await page.evaluate(()=>window.llamadas.join(','))==='equipo_omitido_en,checklist_cerrado_en','cierre tras Lo hago sola usa clave correcta');await page.getByRole('button',{name:'Permitir cierre'}).click();await page.getByRole('button',{name:'Reintentar',exact:true}).click();await page.locator('[data-checklist]').waitFor({state:'detached'});ok(await page.evaluate(()=>window.llamadas.join(','))==='equipo_omitido_en,checklist_cerrado_en,checklist_cerrado_en','reintento guarda cierre, no repite equipo');ok(await page.getByText('Tu tienda está lista. Lo que sigue lo escriben tus clientes.').count()>0,'celebración tras reintento');await ctx.close();
+ ({ctx,page}=await abrir());await page.locator('[data-checklist]').getByText('6 de 7',{exact:true}).waitFor();await page.getByRole('button',{name:/^Capítulo 2 ·/}).click();await page.getByRole('button',{name:/^Cuéntales quién eres ·/}).click();await page.getByRole('textbox',{name:'Tu tienda en una línea'}).fill('Borrador intacto');await page.evaluate(()=>window.completarEquipo());await page.locator('[data-checklist]').getByText('7 de 7',{exact:true}).waitFor();ok(await page.evaluate(()=>window.llamadas.includes('checklist_cerrado_en'))===false,'7/7 con hoja abierta no cierra');ok(await page.getByRole('textbox',{name:'Tu tienda en una línea'}).inputValue()==='Borrador intacto','actualización conserva borrador');await page.keyboard.press('Escape');await page.getByRole('button',{name:'Seguir aquí'}).click();ok(await page.getByRole('textbox',{name:'Tu tienda en una línea'}).evaluate(e=>e===document.activeElement),'Seguir aquí restaura foco');await page.keyboard.press('Escape');await page.getByRole('button',{name:'Salir',exact:true}).click();await page.getByText('No pudimos guardar el cierre. Reintenta.').waitFor();ok(true,'cierre solo después de salir de la hoja');await ctx.close();
+ ({ctx,page}=await abrir(true));await page.getByRole('button',{name:'Recuperar lectura'}).waitFor();await page.waitForTimeout(300);ok(await page.locator('[data-checklist]').count()===0,'error de lectura oculta guía y conserva app');await page.getByRole('button',{name:'Recuperar lectura'}).click();await page.locator('[data-checklist]').waitFor();ok(true,'recuperar lectura vuelve a datos reales del fixture');await page.getByRole('button',{name:/^Capítulo 3 ·/}).click();await page.getByRole('button',{name:'Cambiar tienda fixture'}).click();await page.getByRole('heading',{name:'Tu tienda tiene personalidad'}).waitFor();ok(await page.getByRole('button',{name:/^Capítulo 2 ·/}).getAttribute('aria-pressed')==='true','cambio de tienda inicializa su selección independiente');await ctx.close();
+ console.log(checks+' comprobaciones de fallos aprobadas');
+}finally{if(nav)await nav.close();try{process.kill(-servidor.pid,'SIGTERM');}catch{}rmSync(ruta,{recursive:true,force:true});rmSync('.next/dev/types/app/fixture-checklist-local',{recursive:true,force:true});rmSync('.next/dev/types/validator.ts',{force:true});}

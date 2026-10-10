@@ -659,7 +659,7 @@ function Capitulos({
             <button
               type="button"
               className="tocable -mr-1 flex size-11 items-center justify-center rounded-full"
-              aria-label={cap === 1 ? "Volver a las historias" : "Volver al capítulo anterior"}
+              aria-label={cap === 1 ? "Volver a las historias" : "Volver al paso anterior"}
               onClick={() => (cap === 1 ? volverAHistorias() : irA((cap - 1) as Capitulo))}
             >
               <IconoCerrar tamano={22} />
@@ -802,7 +802,7 @@ function Capitulo1({ b, fuente, cambiar, tocado }: { b: Borrador; fuente: Fuente
 
   return (
     <>
-      <Encabezado capitulo="Capítulo 1 · El nombre" acento={<span className="text-mandarina-texto">con un nombre.</span>}>
+      <Encabezado capitulo="Capítulo 1 · Paso 1 de 4 · El nombre" acento={<span className="text-mandarina-texto">con un nombre.</span>}>
         Toda historia empieza
       </Encabezado>
       {/* La tarjeta ES el campo: el nombre se escribe en su título y el círculo pone la foto (docs/17, capítulo 1). */}
@@ -865,7 +865,7 @@ function Capitulo2({ b, cambiar, tocado }: { b: Borrador; cambiar: (p: Partial<B
   const nombre = b.nombre.trim() || "Tu tienda";
   return (
     <>
-      <Encabezado capitulo="Capítulo 2 · Lo que vendes" acento={<span className="text-mandarina-texto">vende…</span>}>
+      <Encabezado capitulo="Capítulo 1 · Paso 2 de 4 · Lo que vendes" acento={<span className="text-mandarina-texto">vende…</span>}>
         {nombre}
       </Encabezado>
       <p className="mt-2 text-secundario text-marca-bosque/80">Elige todo lo que vendas. El primero es el principal.</p>
@@ -913,7 +913,7 @@ function Capitulo3({ b, cambiar, tocado }: { b: Borrador; cambiar: (p: Partial<B
   const error = tocado && !valido ? "Revisa el número: 10 dígitos, empieza con 809, 829 u 849." : null;
   return (
     <>
-      <Encabezado capitulo="Capítulo 3 · El chat" acento={<span className="text-marca-mandarina">dice aaah…</span>}>
+      <Encabezado capitulo="Capítulo 1 · Paso 3 de 4 · El chat" acento={<span className="text-marca-mandarina">dice aaah…</span>}>
         Y cuando alguien
       </Encabezado>
       <div className="mt-6 [&_label]:text-marca-papel">
@@ -954,7 +954,7 @@ function Capitulo4({ b, deGoogle, cambiar, tocado }: { b: Borrador; deGoogle: st
   const error = tocado ? errorVendedora(vendedora) : null;
   return (
     <>
-      <Encabezado capitulo="Capítulo 4 · Tú" acento={<span className="text-marca-papel">por tu nombre.</span>}>
+      <Encabezado capitulo="Capítulo 1 · Paso 4 de 4 · Tú" acento={<span className="text-marca-papel">por tu nombre.</span>}>
         …te saluda
       </Encabezado>
       <div className="mt-6">

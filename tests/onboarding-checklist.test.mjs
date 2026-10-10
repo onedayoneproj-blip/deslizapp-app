@@ -9,6 +9,15 @@ test('sin datos listos: cero de siete y publicar sigue disponible', () => {
  assert.deepEqual(C.pasosChecklist(tienda, [], equipo, false), Array(7).fill(false));
  assert.equal(C.puedeVerChecklist(tienda, true, false), true);
 });
+test('capítulos: vacío, parcial fuera de orden y completo, sin huecos ni falsos completos', () => {
+ const vacios = C.avanceCapitulos(Array(7).fill(false));
+ assert.deepEqual(vacios.map(c => [c.numero,c.hechos,c.total,c.proporcion,c.completo]), [[2,0,3,0,false],[3,0,2,0,false],[4,0,2,0,false]]);
+ const parciales = C.avanceCapitulos([false,true,false,true,true,false,true]);
+ assert.deepEqual(parciales.map(c => [c.hechos,c.proporcion,c.completo]), [[2,2/3,false],[1,1/2,false],[1,1/2,false]]);
+ assert(C.avanceCapitulos(Array(7).fill(true)).every(c => c.completo && c.proporcion === 1));
+ assert.equal(C.avanceCapitulos([true,true,false,false,true,false,false])[0].completo,true);
+ assert(C.avanceCapitulos([]).every(c => !c.completo && c.hechos === 0));
+});
 test('cada condición completa solo su paso; logo vacío y descripción en blanco no cuentan', () => {
  const casos = [{ logoUrl:'foto' }, { onboarding:{ colores_elegidos_en:'fecha' } }, null, {catalogoEstado:'publicado'}, {descripcion:'Hola'}, {onboarding:{pantalla_inicio_en:'fecha'}}, {onboarding:{equipo_omitido_en:'fecha'}}];
  casos.forEach((c,i) => { const pasos=C.pasosChecklist({...tienda,...c},i===2?Array(5).fill(producto):[],equipo,false); assert.equal(pasos.filter(Boolean).length,1);assert.equal(pasos[i],true); });

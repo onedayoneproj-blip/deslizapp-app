@@ -1,4 +1,30 @@
-# Onboarding 2 · checklist en Inicio
+# Onboarding 2 · entrega vigente por capítulos
+
+Coding Codex, continuación del 10 oct 2026. Se comprobó PR #96 abierto y HEAD remoto `11532b43a456af35f8caf79e65edb70ecf4290fe` antes de clonar y continuar en `feat/onboarding-checklist-codex`. Un solo push, sin force, merge ni producción. No cambios Supabase ni datos reales.
+
+## Qué cambia
+
+Creación = capítulo 1 / cuatro pasos, conservando formularios, lógica y borrador. Inicio continúa con capítulos 2 personalidad (logo, colores, perfil), 3 productos (cinco sugeridos + publicar) y 4 a mano (instalación + equipo). Tres controles de 44 px, verde proporcional para progreso y contorno para selección; nombre/contador, foco y teclado. Solo filas del capítulo seleccionado, con pendientes/hechos consultables, sin carrusel ni Hecho separado.
+
+Primer capítulo incompleto al entrar; selección manual estable ante datos y al regresar desde producto, aislada por modo/tienda en el proveedor. Confirmación de capítulo listo y continuar por toque. Publicar sin mínimo y Ver cómo queda conservados. Ocultar guía explicita el cierre definitivo existente. 7/7 espera a cerrar hojas y conserva celebración/reintento. Atendido el comentario de review sobre la clave fallida de cierre.
+
+## Validación y límites
+
+Typecheck, build final y bienvenida aprobados; 76/76 archivos de tests, 94 comprobaciones Chromium de capítulos y 11 de fallos. Lint final de archivos afectados sin errores/avisos; 32 avisos históricos en el resto. Smoke del build final para entrada Demo y foco aprobado. Resultados de esta ronda y antecedentes: docs/validacion-onboarding-2.md. Capturas actuales: docs/capturas/onboarding-2/capitulos/. No Safari físico, instalación nativa ni Storage/OAuth reales. Los errores usan fixture temporal demo que se elimina al acabar; Ver como se cubre mediante contratos simulados. No se reabrió ni modificó ninguna guía real.
+
+## Lewis · Safari
+
+1. Abre el alias de la rama en navegación privada → Ver demo → Inicio. La guía aparece en Esencias Michel **demo**, sin inyectar estados. Si ya cerraste esa guía en tu Demo habitual, seguirá cerrada; no se reabre.
+2. Toca las tres rayas: consulta pendientes y hechos. En personalidad, revisa logo/colores y el perfil; escribe y cancela el cierre con Seguir aquí para comprobar el borrador.
+3. En productos, abre Agrega 5 productos, cierra a Catálogo y vuelve con Inicio. La selección debe conservarse. Ver cómo queda funciona; publicar con menos de cinco ofrece la confirmación suave.
+4. En a mano, revisa las instrucciones y la opción Lo hago sola. Al completar, pulsa Continuar; no debe moverte por una actualización.
+5. Ocultar guía → Cancelar conserva la guía; confirmar la cierra definitivamente. No usar tiendas reales para probar.
+
+Este handoff se devuelve en la conversación actual para que Lewis lo pegue en Planning. No se usan sesiones antiguas ni se prometen mensajes automáticos.
+
+---
+
+# Antecedente · entrega inicial de siete tarjetas (conservada)
 
 Coding Codex, 10 oct 2026. Rama `feat/onboarding-checklist-codex`, desde main `cd804c8a617725d3f0c50a200402d254f61a674c` (#95 incluido). Planning no editó código de app. No existía trabajo remoto de checklist al comenzar; una copia local sin push de Claude es desconocida. No sobrescribir esta rama con una copia antigua.
 

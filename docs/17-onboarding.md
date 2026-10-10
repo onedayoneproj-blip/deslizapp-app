@@ -4,17 +4,35 @@ Diseño: `referencias/onboarding/` (lienzo de Lewis, 33 pantallas; opción **B**
 
 ## Recorrido de una tienda nueva
 1. Abre su enlace `/unirse/<código>` y entra con Google (**como hoy**; el diseño nuevo del link va después).
-2. **Historias de bienvenida** (pantallas 08-11): 4 historias a pantalla completa con barras de progreso, tocar para avanzar, mantener para pausar, «Saltar» (salta a los capítulos, nunca se salta los datos). «Hola, {nombre de Google}». La última termina en **«Contar mi historia»**.
-3. **La historia de tu tienda, 4 capítulos** (12-15), uno por pantalla, con la cabecera que se va llenando (iniciales, nombre, rubros, WhatsApp):
-   - Cap. 1 · El nombre (cambio de Lewis, 10 oct): el nombre se escribe **directo en la tarjeta de vista previa** (su título es el campo, «Tu tienda» de ejemplo, con lápiz y subrayado; no hay recuadro aparte) y debajo «Así nace tu enlace»: `…/tienda/<slug>` en vivo. El círculo de la tarjeta es tocable: **«+ Pon tu logo»** (opcional; cámara o galería). La foto se recorta en cuadrado al centro y se reduce a 512 px JPEG en el teléfono, se ve al momento y queda en el borrador local (la tienda todavía no existe). Los capítulos 2 a 4 la muestran en su cabecera.
-   - Cap. 2 · Lo que vendes: varios; el primero es el principal («Otra cosa» = `general`).
-   - Cap. 3 · El chat: el WhatsApp de la tienda (dominicano, se valida igual que en Clientes).
-   - Cap. 4 · Tú: «¿Cómo te llaman tus clientes?», pre-llenado con el nombre de Google.
-   - «Cerrar el capítulo» crea la tienda **con todo junto** (una sola llamada). Después se sube la foto del capítulo 1 con la misma subida de Mi marca (carpeta de la tienda); si falla, la tienda ya existe, «ya existe» queda con las iniciales y ofrece «Pon tu logo» para reintentar. La foto sale del borrador al terminar.
+2. **Historias de bienvenida** (pantallas 08-11): 4 historias a pantalla completa con barras de progreso, tocar para avanzar, mantener para pausar, «Saltar» (salta a los pasos de creación, nunca se salta los datos). «Hola, {nombre de Google}». La última termina en **«Contar mi historia»**.
+3. **Capítulo 1 · Tu tienda nace, con 4 pasos** (12-15), uno por pantalla, con la cabecera que se va llenando (iniciales, nombre, rubros, WhatsApp):
+   - Paso 1 · El nombre (cambio de Lewis, 10 oct): el nombre se escribe **directo en la tarjeta de vista previa** (su título es el campo, «Tu tienda» de ejemplo, con lápiz y subrayado; no hay recuadro aparte) y debajo «Así nace tu enlace»: `…/tienda/<slug>` en vivo. El círculo de la tarjeta es tocable: **«+ Pon tu logo»** (opcional; cámara o galería). La foto se recorta en cuadrado al centro y se reduce a 512 px JPEG en el teléfono, se ve al momento y queda en el borrador local (la tienda todavía no existe). Los pasos 2 a 4 la muestran en su cabecera.
+   - Paso 2 · Lo que vendes: varios; el primero es el principal («Otra cosa» = `general`).
+   - Paso 3 · El chat: el WhatsApp de la tienda (dominicano, se valida igual que en Clientes).
+   - Paso 4 · Tú: «¿Cómo te llaman tus clientes?», pre-llenado con el nombre de Google.
+   - «Cerrar el capítulo» crea la tienda **con todo junto** (una sola llamada). Después se sube la foto del paso 1 con la misma subida de Mi marca (carpeta de la tienda); si falla, la tienda ya existe, «ya existe» queda con las iniciales y ofrece «Pon tu logo» para reintentar. La foto sale del borrador al terminar.
 4. **«{Tienda} ya existe»** (17) → «Ver mi tienda» → Inicio con el checklist.
-5. Si cierra a mitad, lo escrito se recupera en ese teléfono (borrador local); la tienda no existe hasta cerrar el capítulo 4.
+5. Si cierra a mitad, lo escrito se recupera en ese teléfono (borrador local); la tienda no existe hasta terminar el paso 4 del capítulo 1.
 
-## Checklist del primer día en Inicio (23, 24): «Deja tu tienda lista · N de 7»
+## Preparación en Inicio · capítulos 2 a 4 (ajuste de Lewis, 10 oct 2026)
+
+La bienvenida tiene cuatro **historias**, sin número de capítulo. Crear la tienda es el **capítulo 1 · Tu tienda nace**: nombre/logo opcional, rubros, WhatsApp y vendedora son pasos 1 a 4. Sus formularios, borrador, validaciones y creación conjunta no cambian. La cabecera dice «Capítulo 1 · Paso N de 4 · [nombre]». «Cerrar el capítulo» conserva su acción de crear.
+
+Después de «Ver mi tienda», Inicio continúa con tres capítulos:
+
+| Capítulo | Nombre | Pasos (contratos originales) |
+|---|---|---|
+| 2 | Tu tienda tiene personalidad | Logo, colores, descripción/Instagram (1, 2, 5) |
+| 3 | Tus productos salen al mundo | Cinco productos con foto, publicar (3, 4); «Ver cómo queda» |
+| 4 | Tu tienda, a mano | Pantalla de inicio, equipo (6, 7); «Lo hago sola» |
+
+La barra de Inicio tiene tres rayas tocables, una por capítulo de preparación. El capítulo de creación ya terminó y no añade otra raya. Cada relleno es tareas hechas / tareas del capítulo (3, 2 y 2); vacío=0, parcial=fracción, completo=1, incluso fuera de orden. Solo `accion` indica progreso; el contorno señala selección. Botones de 44 px, nombre/avance accesibles, `aria-pressed`, foco visible, Tab/Enter/Espacio y flechas/Home/End. No hay controles dentro de un progressbar.
+
+«Capítulo N · X de Y pasos» acompaña al nombre visible. Solo se ven las filas del capítulo seleccionado, con Hecho/Pendiente y acciones de revisión, sin carrusel ni recuadro Hecho. Los textos pueden envolver, nunca recortarse. La selección inicial es el primer capítulo incompleto; después permanece ante actualizaciones. La selección manual se conserva en el proveedor del panel por modo y tienda al volver desde producto, sin persistencia nueva de aplazamiento. Al completar se muestra confirmación breve y botón para seguir al próximo pendiente; nunca navegación automática. El cierre de 7/7 espera a que se cierre cualquier hoja y conserva celebración, intento único y reintento de la clave de cierre.
+
+«Ocultar guía» pide la confirmación existente y cierra definitivamente. No se ofrece «Lo hago después» ni se reabren guías cerradas. No bloquea funciones: cinco productos son una recomendación, publicar sigue disponible con cualquier cantidad y la confirmación suave existente. Movimiento: solo `scaleX` del relleno con tokens actuales, desactivado con movimiento reducido; sin entradas de listas.
+
+### Contratos de los siete pasos (conservados)
 | # | Paso | Hecho cuando |
 |---|---|---|
 | 1 | Sube tu logo | `logo_url` no es null |

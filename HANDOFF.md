@@ -670,3 +670,7 @@ Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflow
 ## Onboarding 2 · checklist en Inicio (Coding Codex)
 
 Rama `feat/onboarding-checklist-codex` desde main #95. PR abierto sin merge por encargo. Siete pasos, cálculos reales/demo, visibles con foto para el paso3 y publicar sin mínimo; cierre confirmado persistente y protección de borrador. Sin migraciones ni tiendas reales modificadas; #45 fuera. Handoff `docs/handoffs/onboarding-2-checklist-codex.md`; resultados `docs/validacion-onboarding-2.md`. Claude: conservar rama remota, no sobrescribir con trabajo local antiguo.
+
+### Continuación PR #96 · capítulos compactos, 10 oct 2026
+
+Sustituye solo la presentación histórica del checklist por capítulos 2–4; la creación se rotula capítulo 1 con cuatro pasos. Sin bloqueo de publicación, sin nuevo aplazamiento, sin migraciones/datos reales. Cierre espera a las hojas y reintenta checklist_cerrado_en (comentario de revisión atendido). Entrega vigente en docs/handoffs/onboarding-2-checklist-codex.md; preservar resultados anteriores. PR abierto por encargo; Lewis recibe aquí el handoff para Planning.

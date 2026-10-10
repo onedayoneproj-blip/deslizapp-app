@@ -1,4 +1,10 @@
-# Checklist · capturas Chromium
+# Onboarding 2 · capturas
+
+## Diseño vigente · capítulos (10 oct 2026)
+
+En `capitulos/`: `00-creacion-*` muestra capítulo 1 con subpasos; después, personalidad, productos, a mano y capítulo completo a 360, 390 y 430 px. `05-demo-normal-390.png` parte de navegador limpio → Ver demo → Inicio; no inyecta datos. Las otras capturas usan fixtures locales de Lino & Algodón. Una raya por capítulo, progreso verde proporcional y contorno de selección; filas comunes sin carrusel ni bloque Hecho. No son Safari ni datos reales. Script: `scripts/probar-onboarding-checklist.mjs`.
+
+## Antecedente · siete tarjetas
 
 Fixtures de Lino & Algodón; 360 y 390 px. `00-pasos-*` muestra cero; `03-pasos-*` tres con movimiento reducido; `07-pasos-*` Inicio tras el cierre confirmado de los siete. Generadas por `scripts/probar-onboarding-checklist.mjs`. No representan Safari ni tiendas reales.
 

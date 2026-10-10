@@ -16,6 +16,9 @@ import { HojaEspera } from "../catalogo/hoja-espera";
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
 type CampoMarca = "enlace" | "logo" | "colores";
 type PanelUI = {
+  hojaAbierta: boolean;
+  capituloChecklist: number | undefined;
+  seleccionarCapituloChecklist: (capitulo: number) => void;
   espera: ReturnType<typeof useConsulta<AvisoLlegada[]>> & { resumen: ReturnType<typeof resumenEspera> | undefined };
   abrirEspera: (producto?: Producto) => void;
   abrirPlan: () => void;
@@ -55,6 +58,10 @@ function novedadesPendientes(): Novedad[] {
 export function PanelUIProvider({ children }: { children: ReactNode }) {
   const { avisosPendientes } = useData();
   const { tiendaId } = useTiendaActiva();
+  const { modo } = useData();
+  const [capitulosChecklist, setCapitulosChecklist] = useState<Record<string, number>>({});
+  const claveChecklist = `${modo}:${tiendaId}`;
+  const seleccionarCapituloChecklist = (capitulo: number) => setCapitulosChecklist(v => ({ ...v, [claveChecklist]: capitulo }));
   const consultaEspera = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId), true);
   const resumen = useMemo(() => consultaEspera.data === undefined ? undefined : resumenEspera(consultaEspera.data, tiendaId), [consultaEspera.data, tiendaId]);
   const [vistaEspera, setVistaEspera] = useState<{ tiendaId: string; abierta: boolean; producto?: Producto }>({ tiendaId, abierta: false });
@@ -96,7 +103,7 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
   const [equipoAbierto, setEquipoAbierto] = useState(false);
   const abrirEquipo = useCallback(() => setEquipoAbierto(true), []);
   const cerrarEquipo = useCallback(() => setEquipoAbierto(false), []);
-  const valor = { abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEquipo, abrirEspera, espera: { ...consultaEspera, resumen } };
+  const valor = { hojaAbierta: marcaAbierta || equipoAbierto || planAbierto || inventarioAbierto || vistaEspera.abierta || novedades.length > 0, capituloChecklist: capitulosChecklist[claveChecklist], seleccionarCapituloChecklist, abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEquipo, abrirEspera, espera: { ...consultaEspera, resumen } };
 
   return (
     <Contexto.Provider value={valor}>

@@ -1,3 +1,5 @@
+> **Ajuste vigente de Lewis, 10 oct 2026:** continuar PR #96 desde su HEAD remoto, abierto sin merge. La presentación histórica de siete rayas, carrusel y Hecho se sustituye por capítulos 2–4 y filas compactas según docs/17. La creación es capítulo 1 con cuatro pasos; sus formularios y lógica quedan iguales. «Ocultar guía» explicita el cierre definitivo. Los contratos, permisos y acciones de este prompt se conservan. No usar sesiones antiguas ni mensajes automáticos: devolver el handoff en la sesión actual para que Lewis lo pegue en Planning. Un solo push por ronda, sin Supabase ni datos reales.
+
 # Onboarding, parte 2: el checklist «Deja tu tienda lista» en Inicio
 
 El PR #95 (parte 1 y 1b) ya está en `main`. PR nuevo, rama nueva desde `main` actualizado.
@@ -6,7 +8,7 @@ Planning te enviará ajustes de Lewis para este PR; trátalo como encargo suyo y
 
 Lee antes: `docs/00-contexto-del-proyecto.md`, `AGENTS.md` (Next cambia cosas: lee `node_modules/next/dist/docs/`), **`docs/17-onboarding.md`** (especificación; la tabla de los 7 pasos es la fuente), `referencias/onboarding/LEEME.md` y las capturas **23 y 24** (`referencias/onboarding/pantallas/`: Inicio con el checklist y con «Publica tu catálogo» desbloqueado; son las de «Pide tu catálogo», pero el paso ahora es **publicar** y no tiene requisitos, ver docs/17 «Fallos del lienzo corregidos»), `docs/08-movimiento.md`, `docs/09-sistema-de-diseno.md`, `docs/10-marca-ilustracion-y-fondos.md`, `docs/11-voz-y-frases.md`, `HANDOFF.md`, `components/inicio/vista-inicio.tsx`, `lib/onboarding.ts` (parte 1), `components/marca-tienda/hoja-mi-marca.tsx`, la hoja de publicar (`PRODUCTOS_SUGERIDOS_PARA_PUBLICAR = 5`), `lib/config.ts` y la migración `supabase/migrations/20261009232614_onboarding_historias_y_datos.sql` (`tiendas.onboarding`, `marcar_onboarding`).
 
-## Qué se construye
+## Presentación original · antecedente (sustituida por docs/17)
 La tarjeta **«Deja tu tienda lista · N de 7»** arriba de Inicio, con barra de 7 segmentos, el saludo («Buenos días, {nombre}.» según la hora) y las tarjetas de los pasos como en las capturas (las pendientes más grandes arriba; las hechas se pliegan abajo con «Hecho»).
 
 | # | Paso | Hecho cuando | Acción |
@@ -31,4 +33,4 @@ La tarjeta **«Deja tu tienda lista · N de 7»** arriba de Inicio, con barra de
 - La tarjeta debe verse bien con 0, 3 y 7 pasos hechos y con la tienda sin logo ni productos (tienda recién creada).
 
 ## Pruebas y cierre
-Unitarias del cálculo de pasos (cada condición, el dueño vs colaborador, `checklist_cerrado_en`), y un `probar:onboarding` ampliado (390 y 360 px, movimiento reducido). Capturas en `docs/capturas/onboarding-2/`. Sin migración: si crees que hace falta una, avisa a Planning antes. Un solo push por ronda. PR abierto, «Revisión» en verde, preview lista; avisa a Planning con `send_message` a `session_01BJDuA1NdKUg4YX64VNuQDv` y `create_trigger` de respaldo (persistent_session_id = esa sesión, run_once_at ≈ 1 min, initiation own_followup). No mergees.
+Unitarias del cálculo de pasos (cada condición, el dueño vs colaborador, `checklist_cerrado_en`), y un `probar:onboarding` ampliado (390 y 360 px, movimiento reducido). Capturas en `docs/capturas/onboarding-2/`. Sin migración: si crees que hace falta una, avisa a Planning antes. Un solo push por ronda. PR abierto, «Revisión» en verde, preview lista; devuelve el handoff aquí para Planning; no uses identificadores de sesiones anteriores ni prometas mensajes automáticos. No mergees.

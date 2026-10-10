@@ -175,7 +175,7 @@ for (const ancho of [390, 360]) {
   await campo.fill("Rosa");
   ok((await page.locator("mark").innerText()) === "Rosa", "el mensaje la saluda por su nombre");
   await foto("09-capitulo-4-tu");
-  await page.getByRole("button", { name: "Volver al capítulo anterior" }).tap();
+  await page.getByRole("button", { name: "Volver al paso anterior" }).tap();
   ok((await capitulo()) === "3", "la X vuelve al capítulo anterior");
   await page.locator("[data-seguir] button").tap();
   ok((await campo.inputValue()) === "Rosa", "lo escrito se queda al volver");
