@@ -2,6 +2,8 @@
 
 Lee primero [docs/00-contexto-del-proyecto.md](docs/00-contexto-del-proyecto.md), [AGENTS.md](AGENTS.md) y el [relevo vigente](docs/handoffs/planning-sesion.md).
 
+**Gestión de tareas:** Lewis autorizó probar Notion. Antes de actualizar el seguimiento, consultar [docs/piloto-notion.md](docs/piloto-notion.md) para comprobar si el piloto ya está activo y qué fuente corresponde. No asumir acceso ni crear un backlog duplicado; la documentación técnica sigue en GitHub.
+
 Este archivo reúne reglas técnicas permanentes, no estados de ramas ni entregas. El estado actual vive solo en el relevo; las decisiones y contratos de cada función, en su documentación.
 
 ## Dónde consultar las reglas de cada función

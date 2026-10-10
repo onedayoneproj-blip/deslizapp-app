@@ -8,6 +8,10 @@ Planning analiza, revisa y escribe documentación; no edita código de la app. L
 
 Consultar [las reglas de memoria y coordinación](../forma-de-trabajo.md) antes de repartir tareas. Una sesión por PR hasta el merge; si se cambia de herramienta o se agota la sesión, relevo explícito sobre el HEAD remoto comprobado.
 
+## Piloto de gestión en Notion
+
+Lewis autorizó una prueba de colaboración en Notion. [Estado, prueba de acceso y transición](../piloto-notion.md). Consultarlo antes de gestionar tareas. No archivar las Issues ni dar el traslado por completado hasta que se verifique el acceso y se registren los enlaces de destino. La documentación técnica sigue en GitHub.
+
 ## Tareas y bugs
 
 El seguimiento de tareas está en [Issues](https://github.com/onedayoneproj-blip/deslizapp-app/issues). No mantener una segunda tabla de estados aquí.

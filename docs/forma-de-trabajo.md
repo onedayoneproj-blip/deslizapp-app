@@ -4,6 +4,8 @@ Acordado con Lewis el 10 de octubre de 2026. Aplica a Planning y Coding, en Clau
 
 ## Una fuente para cada información
 
+**Transición autorizada a un piloto de Notion:** [docs/piloto-notion.md](piloto-notion.md) define cuándo se activa y cómo se traslada el seguimiento. Hasta comprobar el acceso, sigue la fuente actual de la tabla. Una vez activado, Notion será el backlog del piloto; no duplicarlo con Issues. Las reglas de coordinación y documentación técnica permanecen vigentes.
+
 | Información | Fuente |
 |---|---|
 | Qué es el proyecto, puestos e índice | `docs/00-contexto-del-proyecto.md` |

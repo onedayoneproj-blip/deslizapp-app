@@ -1,4 +1,6 @@
-# Seguimiento de Deslizapp en GitHub
+# Seguimiento de Deslizapp
+
+**Notion entra en un piloto autorizado por Lewis.** Consultar [el estado del piloto](piloto-notion.md) antes de elegir dónde registrar o actualizar una tarea. Los accesos de GitHub que siguen aquí se conservan durante la transición; no afirman que Notion ya esté operable.
 
 ## Accesos directos para Lewis
 

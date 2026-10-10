@@ -53,6 +53,8 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 
 ## Estado vigente y memoria compartida
 
+**Piloto de gestión en Notion aprobado:** consultar [su estado y reglas de transición](piloto-notion.md) antes de registrar tareas. El traslado solo empieza después de verificar escritura y lectura reales. Prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub.
+
 - **Tareas y bugs:** [Issues del repositorio](https://github.com/onedayoneproj-blip/deslizapp-app/issues). [Guía de gestión](gestion-del-proyecto.md), con accesos para Lewis y configuración de Projects pendiente. Una tarea por Issue; Project será una vista de esas tareas.
 - **Coordinación de sesiones:** [docs/handoffs/planning-sesion.md](handoffs/planning-sesion.md). Leerlo antes de lanzar una tarea y contrastar la Issue, PR y HEAD con GitHub; no duplicar aquí el backlog.
 - **Reglas de memoria y coordinación:** [docs/forma-de-trabajo.md](forma-de-trabajo.md). Las decisiones se organizan por función; una rama es un dato temporal, no la estructura de la memoria.
