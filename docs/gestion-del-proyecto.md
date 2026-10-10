@@ -1,54 +1,42 @@
 # Seguimiento de Deslizapp
 
-**Notion entra en un piloto autorizado por Lewis.** Consultar [el estado del piloto](piloto-notion.md) antes de elegir dónde registrar o actualizar una tarea. Los accesos de GitHub que siguen aquí se conservan durante la transición; no afirman que Notion ya esté operable.
+**Notion es el backlog del piloto desde el 10 de octubre de 2026.** [Estado y evidencia](piloto-notion.md). Esta sesión es Planning principal; Lewis pasa manualmente los encargos a Coding. Registrar tareas no inicia Coding ni autoriza merges.
 
 ## Accesos directos para Lewis
 
-- [Tareas y bugs](https://github.com/onedayoneproj-blip/deslizapp-app/issues).
-- [Reportar un bug](https://github.com/onedayoneproj-blip/deslizapp-app/issues/new?title=Bug%3A%20&body=Qu%C3%A9%20hice%3A%0A%0AQu%C3%A9%20ocurri%C3%B3%3A%0A%0AQu%C3%A9%20esperaba%3A%0A%0ADispositivo%20y%20enlace%3A%0A%0ACaptura%20o%20video%3A%0A).
+- [Tablero de Deslizapp](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=3f5ed62010cb815caa6f000cc00c0364).
+- [Tabla de tareas](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=8154b003a9f945fd8a4c17023fd7adf2).
+- [Roadmap](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=3f5ed62010cb813f8199000c8790da28).
 - [Índice de documentación](00-contexto-del-proyecto.md).
 - [Relevo de Planning](handoffs/planning-sesion.md).
 - [Reglas de coordinación y memoria](forma-de-trabajo.md).
-- [Deslizapp roadmap](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap).
-- [Projects del repositorio](https://github.com/onedayoneproj-blip/deslizapp-app/projects).
 
-## Project creado por Lewis
-
-Lewis creó **Deslizapp roadmap**, Project #2 de `onedayoneproj-blip`, y compartió su [vista Roadmap](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) el 10 de octubre de 2026. La existencia y el nombre provienen de su reporte.
-
-Planning intentó consultar este proyecto y recibió `Resource not accessible by integration (user.projectV2)`. La conexión permite gestionar Issues, pero todavía no leer ni actualizar Projects v2. No se han comprobado desde Planning los elementos, campos, vistas adicionales, privacidad ni automatizaciones; no afirmar que ya estén configurados.
-
-Usar este Project; no crear otro para cada vista. Añadir una vista **Board** agrupada por Status para el trabajo diario y conservar **Roadmap** para fechas acordadas. Las tareas sin fechas pueden estar en el proyecto sin dibujar una barra temporal: no inventar plazos para hacerlas aparecer.
-
-Configuración propuesta, aún no aplicada:
-- Status: Por aclarar, Listo, En curso, Bloqueado, Por validar, Terminado.
-- Priority: Alta, Media, Baja; Lewis decide las prioridades.
-- Vista principal: tablero agrupado por Status.
-- Segunda vista: tabla para ordenar y buscar.
-- Roadmap con fechas solo cuando haya fechas acordadas; no inventar plazos para llenar una vista.
-
-Añadir tareas existentes con **Add item** y buscar el repositorio y sus números:
-- [#97 · Preparación por capítulos](https://github.com/onedayoneproj-blip/deslizapp-app/issues/97), vinculada al PR #96.
-- [#98 · Validación completa en iPhone](https://github.com/onedayoneproj-blip/deslizapp-app/issues/98).
-- [#99 · Enlace de invitación y tienda prellenada](https://github.com/onedayoneproj-blip/deslizapp-app/issues/99).
-
-Estas tareas están abiertas; su inclusión en el Project, columnas y prioridades aún no están comprobadas por Planning. No lanzar Coding por añadir una tarjeta. Las dependencias y condiciones de cierre se consultan en cada Issue.
-
-Si no hay acceso de Projects para Planning, Lewis mueve las tarjetas desde la web y Planning mantiene el contenido de las tareas por la conexión disponible. No abrir tareas duplicadas para simular cambios de columnas.
+- [Preparación por capítulos · origen #97](https://app.notion.com/p/3f5ed62010cb81758eded930bc0dcde1).
+- [Validación completa en iPhone · origen #98](https://app.notion.com/p/3f5ed62010cb81b69b01c48a155876b5).
+- [Diseño de invitación y tienda prellenada · origen #99](https://app.notion.com/p/3f5ed62010cb819fb74ce140333f148d).
 
 ## Usarlo desde el teléfono
 
-La app de GitHub permite consultar y comentar Issues; adjuntar capturas según sus opciones. Para crear/configurar Projects y trabajar con el tablero, usar Safari si la app no ofrece la vista necesaria. Los enlaces a archivos de documentación también se pueden abrir en Safari.
+Abre el tablero en Notion o Safari y toca una tarea. Para reportar un bug, pulsa Nueva, escribe el título, selecciona Tipo = bug y Estado de tarea = Por aclarar. En el contenido escribe qué hiciste, qué ocurrió, qué esperabas, dispositivo y enlace/HEAD probado; añade una captura si ayuda. Para probar el flujo usa «PRUEBA · bug del tablero» y marca Prueba para excluirlo del trabajo activo. Evita datos de clientes, contraseñas y códigos de invitación.
 
-No hace falta leer toda la documentación para reportar un problema: abrir «Reportar un bug», escribir qué pasó y adjuntar una captura. Evitar contraseñas, códigos de invitación o datos personales de clientes en reportes públicos.
+Usar únicamente Estado de tarea para seguimiento. Sus seis opciones son Por aclarar, Listo, En curso, Bloqueado, Por validar y Terminado. Es una propiedad real Select; el Estado nativo anterior se conserva por seguridad, oculto en vistas, como evidencia de prueba. No mantener ambos estados. Prioridad (Alta/Media/Baja), responsable y fechas se asignan solo cuando estén acordados. Roadmap está configurado sobre Fechas acordadas, actualmente vacías; no inventar fechas para dibujar barras.
+
+La base accesible se reutilizó sin duplicarla y permanece privada. Lewis ya editó allí la tarea de prueba; no se cambiaron permisos ni se publicó contenido. Otras sesiones deben comprobar sus herramientas. El objeto gestionado Deslizapp con 403 no es el destino del piloto.
 
 ## Dónde vive cada información
 
-- **Issue:** tarea o bug, resultado esperado, dependencia, siguiente acción y enlaces a prompt, decisión y PR. Una Issue por tarea; los bugs se enlazan a la tarea de validación.
-- **Project:** vista del seguimiento de esas mismas Issues; no duplicar sus textos en tarjetas nuevas.
-- **Documento de función:** reglas y decisiones aprobadas.
-- **Prompt:** encargo completo para Coding.
-- **PR/handoff/validación:** implementación y evidencia.
-- **Relevo de Planning:** índice y contexto necesarios para coordinar sesiones; enlaza Issues, no mantiene un backlog paralelo.
+- **Notion:** tareas, bugs, decisiones de producto en discusión, prioridades, responsables, dependencias, siguiente acción y enlaces a la evidencia.
+- **Documento de función en GitHub:** comportamiento y decisiones aprobadas necesarias para construir.
+- **Prompt en GitHub:** encargo completo para Coding; Lewis lo pasa manualmente.
+- **PR/handoff/validación:** implementación, pruebas y límites; comprobar HEAD actual.
+- **Relevo:** coordinación y enlaces, sin una segunda tabla de estados.
 
-Antes de fusionar, completar las verificaciones de la Issue y obtener la autorización requerida por el encargo. Después cerrar la Issue cuando se cumpla el resultado acordado, no solo porque se abrió un PR.
+Un PR fusionado puede permanecer Por validar. No marcar Terminado hasta cumplir el resultado acordado y registrar la evidencia correspondiente.
+
+## Antecedentes de GitHub
+
+Se conservan [Issues #97–#99](https://github.com/onedayoneproj-blip/deslizapp-app/issues) con notas y enlaces al destino. Su seguimiento ya no se actualiza allí. Siguen abiertas porque los intentos de cierre no confirmaron éxito; un cierre por traslado tampoco significaría trabajo terminado.
+
+Lewis creó [Deslizapp roadmap, Project #2](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap). Planning recibió Resource not accessible by integration (user.projectV2); no ha verificado sus elementos, vistas, privacidad ni automatizaciones. Se conserva como antecedente, sin modificar ni borrar. Las propuestas anteriores de configuración no son trabajo activo; están en el historial del documento.
+
+No mantener un segundo backlog en GitHub ni importar automáticamente el roadmap histórico. PR #45 de rendimiento sigue excluido por Lewis.
