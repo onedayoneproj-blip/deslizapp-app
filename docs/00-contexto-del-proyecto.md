@@ -53,9 +53,9 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 
 ## Estado vigente y memoria compartida
 
-**Piloto de gestión en Notion aprobado:** consultar [su estado y reglas de transición](piloto-notion.md) antes de registrar tareas. El traslado solo empieza después de verificar escritura y lectura reales. Prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub.
+**Piloto de gestión en Notion operativo desde el 10 de octubre de 2026:** consultar [su estado y evidencia](piloto-notion.md). Notion es el backlog vigente; prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub. Esta sesión con acceso es Planning principal; Lewis pasa manualmente los encargos a Coding.
 
-- **Tareas y bugs:** [Issues del repositorio](https://github.com/onedayoneproj-blip/deslizapp-app/issues). [Guía de gestión](gestion-del-proyecto.md), con accesos para Lewis y configuración de Projects pendiente. Una tarea por Issue; Project será una vista de esas tareas.
+- **Tareas y bugs:** [Deslizapp · Piloto en Notion](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d). [Guía de gestión](gestion-del-proyecto.md), con tabla, tablero y roadmap. Las Issues anteriores y Project #2 se conservan como antecedentes; no mantener seguimiento duplicado.
 - **Coordinación de sesiones:** [docs/handoffs/planning-sesion.md](handoffs/planning-sesion.md). Leerlo antes de lanzar una tarea y contrastar la Issue, PR y HEAD con GitHub; no duplicar aquí el backlog.
 - **Reglas de memoria y coordinación:** [docs/forma-de-trabajo.md](forma-de-trabajo.md). Las decisiones se organizan por función; una rama es un dato temporal, no la estructura de la memoria.
 - **Decisiones de producto:** en el documento de cada función. Onboarding: [docs/17-onboarding.md](17-onboarding.md). Marca, diseño y catálogo: usar el índice anterior.
