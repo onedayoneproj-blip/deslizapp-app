@@ -60,9 +60,21 @@ export function MenuFlotante({
   useEffect(() => {
     if (!abierto) return;
     const alRedimensionar = () => setAbierto(false);
+    const alDesplazarse = (evento: Event) => {
+      const menu = document.getElementById(id);
+      const origen = evento.target;
+      // El menú puede desplazarse por dentro cuando no cabe. Ese gesto no debe cerrarlo ni mover la página.
+      if (origen instanceof Node && menu?.contains(origen)) return;
+      setAbierto(false);
+      disparador.current?.focus({ preventScroll: true });
+    };
     window.addEventListener("resize", alRedimensionar);
-    return () => window.removeEventListener("resize", alRedimensionar);
-  }, [abierto]);
+    window.addEventListener("scroll", alDesplazarse, true);
+    return () => {
+      window.removeEventListener("resize", alRedimensionar);
+      window.removeEventListener("scroll", alDesplazarse, true);
+    };
+  }, [abierto, id]);
 
   const alTeclear = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -111,7 +123,7 @@ export function MenuFlotante({
             aria-label={etiqueta}
             data-menu-flotante=""
             style={{ left: pos.left, top: pos.top, width: pos.width, maxHeight: pos.maxHeight }}
-            className="menu-flotante absolute overflow-y-auto rounded-[16px] border border-borde bg-superficie shadow-flotante"
+            className="menu-flotante absolute overflow-y-auto overscroll-contain rounded-[16px] border border-borde bg-superficie shadow-flotante"
           >
             {opciones.map((o, i) => (
               <Fila

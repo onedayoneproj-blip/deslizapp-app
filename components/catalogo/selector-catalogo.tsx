@@ -1,7 +1,8 @@
 "use client";
 
 import { MenuFlotante } from "../ui/menu-flotante";
-import { NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
+import type { Rubro } from "@/lib/rubros";
+import { CATALOGO_GENERAL, nombreCatalogoPanel, type CatalogoPanel } from "@/lib/catalogo-activo";
 
 /**
  * El nombre del catálogo con un chevron, sin fondo ni borde: es el selector. Abre el menú flotante (`MenuFlotante`) con los
@@ -18,22 +19,24 @@ export function SelectorCatalogo({
   tamano,
   deshabilitado,
   sinPermiso,
+  vistaAgregada = false,
 }: {
   tipos: Rubro[];
-  valor: Rubro;
+  valor: CatalogoPanel;
   conteo?: Record<string, number>;
   textoOtra: string;
-  alCambiar: (r: Rubro) => void;
+  alCambiar: (r: CatalogoPanel) => void;
   alVenderOtra: () => void;
   tamano: "pantalla" | "hoja";
   deshabilitado?: boolean;
   sinPermiso?: () => void;
+  vistaAgregada?: boolean;
 }) {
   if (sinPermiso) {
     const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla text-texto" : "font-display text-titulo-seccion text-texto";
     return (
       <button type="button" data-selector-catalogo="" onClick={sinPermiso} className={`tocable flex min-h-11 items-center text-left ${clase}`}>
-        {NOMBRE_TIPO[valor]}
+        {nombreCatalogoPanel(valor)}
       </button>
     );
   }
@@ -43,8 +46,11 @@ export function SelectorCatalogo({
       tamano={tamano}
       deshabilitado={deshabilitado}
       valor={valor}
-      opciones={tipos.map((r) => ({ id: r, texto: NOMBRE_TIPO[r], cantidad: conteo?.[r] ?? (conteo ? 0 : undefined) }))}
-      alElegir={(id) => alCambiar(id as Rubro)}
+      opciones={[
+        ...(vistaAgregada ? [{ id: CATALOGO_GENERAL, texto: nombreCatalogoPanel(CATALOGO_GENERAL), cantidad: conteo?.[CATALOGO_GENERAL] }] : []),
+        ...tipos.map((r) => ({ id: r, texto: nombreCatalogoPanel(r), cantidad: conteo?.[r] ?? (conteo ? 0 : undefined) })),
+      ]}
+      alElegir={(id) => alCambiar(id as CatalogoPanel)}
       accion={{ texto: textoOtra, alTocar: alVenderOtra }}
     />
   );

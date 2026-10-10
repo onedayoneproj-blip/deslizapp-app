@@ -54,3 +54,12 @@ Con 2 o más rubros:
 - `tsc`, `npm test`, `npm run lint` (sin avisos nuevos), `npm run build`, `probar:teclado` y las regresiones de producto, presentaciones y equipo.
 - `docs/04-pantallas.md`, `docs/00-contexto-del-proyecto.md` (sección «Dónde va el trabajo») y `HANDOFF.md` si cambia una regla.
 - Resume en español, corto: qué cambió, qué debe probar Lewis en el iPhone (Tienda de ensayo, que ya vende General y Accesorios: cambiar de catálogo desde el título, crear un producto desde cada uno, el selector de la hoja al hacer scroll) y las decisiones que tomaste. Di claro que Safari/iPhone no se pudo probar.
+
+## Acuerdos posteriores vigentes (10 oct 2026)
+
+Este prompt conserva el encargo original. Para el comportamiento actual del selector, estos acuerdos posteriores lo amplían y prevalecen:
+
+- Al desplazar la página, el menú se cierra. Si el menú tiene scroll interno, desplazar sus opciones no lo cierra.
+- El rubro físico `general` se muestra como «De todo» en los selectores; sus productos, clave y selección guardada no cambian.
+- «General» es una opción virtual agregada, no un rubro de la tienda. Reúne todos los productos una sola vez por ID. Desde esa vista, crear un producto parte del rubro principal.
+- No renombrar registros ni hacer migraciones para distinguir las dos opciones. El estado local del selector usa un identificador virtual separado del rubro `general`.
