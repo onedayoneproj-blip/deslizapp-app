@@ -140,3 +140,7 @@ Como último paso, avisa a la sesión de Planning que te lanzó (su id viene en 
 ## Una sesión por PR
 
 Cada PR tiene una sola sesión de Coding que vive hasta el merge. Si Planning te envía un mensaje con ajustes de Lewis para tu PR, trátalo como un encargo de Lewis y ejecútalo (sin pedir confirmación), en la misma rama, y vuelve a avisar al terminar como dice la sección anterior.
+
+### Onboarding 2 · retomado por Codex (10 oct 2026)
+
+Desde main #95 en `feat/onboarding-checklist-codex`: checklist en Inicio, siete pasos con marca persistente en RPC ya publicada, sin migración. Pendientes en carrusel; visibles con foto para productos, Publicar siempre disponible y Ver cómo queda existente. PR abierto sin merge/publicación por petición de Lewis. Handoff: `docs/handoffs/onboarding-2-checklist-codex.md`; validación: `docs/validacion-onboarding-2.md`. El estado remoto manda sobre copias locales sin push de Claude.

@@ -666,3 +666,7 @@ Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflow
 - Un PR con «Revisión» en rojo **no se fusiona**.
 - Los tipos `PageProps`/`LayoutProps` los genera `next typegen`; correr `tsc` solo, sin generarlos, da errores falsos. Usa `npm run tipos`.
 - Los minutos de GitHub Actions son limitados: no lances corridas de más (el flujo cancela las viejas de la misma rama).
+
+## Onboarding 2 · checklist en Inicio (Coding Codex)
+
+Rama `feat/onboarding-checklist-codex` desde main #95. PR abierto sin merge por encargo. Siete pasos, cálculos reales/demo, visibles con foto para el paso3 y publicar sin mínimo; cierre confirmado persistente y protección de borrador. Sin migraciones ni tiendas reales modificadas; #45 fuera. Handoff `docs/handoffs/onboarding-2-checklist-codex.md`; resultados `docs/validacion-onboarding-2.md`. Claude: conservar rama remota, no sobrescribir con trabajo local antiguo.
