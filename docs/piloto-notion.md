@@ -4,7 +4,7 @@ Aprobado por Lewis el 10 de octubre de 2026.
 
 ## Estado del piloto
 
-**Prueba técnica aprobada en otra sesión; piloto colaborativo pendiente.** El 10/10/2026 Lewis pegó el siguiente informe de la sesión de prueba. Planning registra ese reporte, sin presentarlo como una comprobación independiente desde este chat.
+**Prueba técnica aprobada y edición de Lewis confirmada; configuración del piloto pendiente.** El 10/10/2026 Lewis pegó el siguiente informe de la sesión de prueba. Planning registra ese reporte, sin presentarlo como una comprobación independiente desde este chat.
 
 - La sesión creó y leyó una tarea con contenido `V1` y estado `Not started`.
 - Editó el contenido a `V2` y la propiedad real de estado a `In progress`.
@@ -13,11 +13,11 @@ Aprobado por Lewis el 10 de octubre de 2026.
 - [Base privada de prueba](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d).
 - El [objeto Deslizapp encontrado](https://app.notion.com/p/954ed62010cb8324aef681028a31db6f?pvs=204) devolvió `403 restricted_resource` a esa sesión. Según su informe, es un objeto gestionado por Notion, no un destino editable mediante MCP. No usarlo ni intentar eludir esa restricción.
 
-Falta que Lewis confirme que puede abrir y editar la tarea y elegir un destino normal accesible para gestionar Deslizapp. Se le pidió añadir «Probado por Lewis» al contenido de la tarea. La base anterior es de prueba, no un tablero de producción confirmado.
+Lewis confirmó en este chat que realizó la edición solicitada («Probado por Lewis»). Se registra su confirmación; Planning no pudo releer Notion desde esta sesión. La sesión con acceso debe verificar esa edición y configurar un destino normal accesible para gestionar Deslizapp. La base anterior sigue siendo de prueba, no un tablero de producción confirmado.
 
 El plugin figura instalado. En este chat de Planning todavía no se exponen herramientas de Notion, aun después de recargar; la sesión de prueba sí las tuvo. La operatividad debe comprobarse por sesión, no asumirse globalmente. No pedir otra instalación ni afirmar que Planning puede actualizar el tablero desde aquí.
 
-**Siguiente:** confirmar edición por Lewis; usar una sesión con acceso real para configurar el espacio compartido y migrar las tareas según las reglas siguientes. No dar el piloto por activo por el solo éxito técnico.
+**Siguiente:** retomar en la misma sesión con acceso real usando [el prompt de configuración](prompts/piloto-notion-gestion.md), verificar la edición de Lewis, configurar el espacio compartido y trasladar las tres tareas según las reglas siguientes. No dar el piloto por activo por el solo éxito técnico.
 
 Las Issues #97–#99 siguen vigentes. No se migró el backlog ni se modificaron esas Issues para trasladarlas. El [Project de GitHub](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) se conserva.
 

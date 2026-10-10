@@ -10,7 +10,7 @@ Consultar [las reglas de memoria y coordinación](../forma-de-trabajo.md) antes 
 
 ## Piloto de gestión en Notion
 
-Lewis autorizó una prueba de colaboración en Notion. [Estado, prueba de acceso y transición](../piloto-notion.md). Consultarlo antes de gestionar tareas. No archivar las Issues ni dar el traslado por completado hasta que se verifique el acceso y se registren los enlaces de destino. La documentación técnica sigue en GitHub.
+Lewis autorizó una prueba de colaboración en Notion y confirmó su edición de la tarea de prueba. [Estado, prueba de acceso y transición](../piloto-notion.md). [Encargo para configurar el piloto en la sesión con acceso](../prompts/piloto-notion-gestion.md). Consultarlo antes de gestionar tareas. No archivar las Issues ni dar el traslado por completado hasta que se verifique el acceso y se registren los enlaces de destino. La documentación técnica sigue en GitHub.
 
 ## Tareas y bugs
 
