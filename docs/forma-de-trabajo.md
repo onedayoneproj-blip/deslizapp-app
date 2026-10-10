@@ -4,12 +4,12 @@ Acordado con Lewis el 10 de octubre de 2026. Aplica a Planning y Coding, en Clau
 
 ## Una fuente para cada información
 
-**Transición autorizada a un piloto de Notion:** [docs/piloto-notion.md](piloto-notion.md) define cuándo se activa y cómo se traslada el seguimiento. Hasta comprobar el acceso, sigue la fuente actual de la tabla. Una vez activado, Notion será el backlog del piloto; no duplicarlo con Issues. Las reglas de coordinación y documentación técnica permanecen vigentes.
+**Piloto Notion activo:** [docs/piloto-notion.md](piloto-notion.md) registra la verificación y los enlaces. Notion es el backlog vigente desde el 10 de octubre de 2026; no duplicarlo con Issues. Las reglas de coordinación y documentación técnica permanecen vigentes.
 
 | Información | Fuente |
 |---|---|
 | Qué es el proyecto, puestos e índice | `docs/00-contexto-del-proyecto.md` |
-| Tareas, bugs, dependencias y siguiente acción | Issues del repositorio; Project como vista cuando esté creado |
+| Tareas, bugs, dependencias y siguiente acción | Notion, base Deslizapp · Piloto; Issues y Project anteriores como antecedentes |
 | Coordinación de sesiones y accesos | `docs/handoffs/planning-sesion.md` y `docs/gestion-del-proyecto.md` |
 | Decisiones vigentes y comportamiento de una función | Documento de esa función en `docs/` |
 | Encargo completo | `docs/prompts/<tarea>.md` |
@@ -37,9 +37,9 @@ Si una decisión cambia, dejar la regla vigente clara y marcar la anterior como 
 
 ## Antes de lanzar una sesión
 
-Planning lee el relevo, la Issue y comprueba GitHub; el relevo es un índice de coordinación, no un backlog paralelo ni un sustituto de esa comprobación.
+Planning lee el relevo, la tarea de Notion y comprueba GitHub; el relevo es un índice de coordinación, no un backlog paralelo ni un sustituto de esa comprobación.
 
-Cada Issue de una tarea activa registra: función, responsable/sesión si se conoce, dependencia, archivos o contratos compartidos, estado, rama/PR si existen, HEAD comprobado y siguiente acción. No inventar una sesión ni presentar un prompt entregado a Lewis como sesión ya iniciada.
+Cada tarea activa de Notion registra: función, responsable/sesión si se conoce, dependencia, archivos o contratos compartidos, estado, rama/PR si existen, HEAD comprobado y siguiente acción. No inventar una sesión ni presentar un prompt entregado a Lewis como sesión ya iniciada.
 
 Lewis crea manualmente las nuevas sesiones de Coding mientras ese sea su acuerdo vigente. Planning entrega un prompt completo y recibe el handoff que Lewis pega. Si más adelante autoriza agentes o sesiones remotas, comprobar primero qué herramientas existen y contarle qué se encargó. No reutilizar identificadores de sesiones antiguas ni asumir herramientas de otra plataforma.
 
@@ -57,10 +57,10 @@ El rebase reduce divergencias; no garantiza compatibilidad funcional. Separar ra
 
 ## Relevo, límites y cierre
 
-Actualizar la Issue al lanzar una tarea, quedar bloqueado o terminar/mergear. Actualizar el relevo cuando cambie la coordinación de sesiones y el documento de la función cuando cambie una decisión. Guardar un checkpoint antes de alcanzar el límite de sesión, aunque el trabajo esté incompleto.
+Actualizar la tarea de Notion al lanzar una tarea, quedar bloqueado o terminar/mergear. Actualizar el relevo cuando cambie la coordinación de sesiones y el documento de la función cuando cambie una decisión. Guardar un checkpoint antes de alcanzar el límite de sesión, aunque el trabajo esté incompleto.
 
 El checkpoint contiene qué está realmente guardado y dónde (remoto o solo local), HEAD/base, implementación y pruebas realizadas, cambios de base aplicados o pendientes, bloqueos, siguiente acción concreta y límites de autorización. No decir que un trabajo está a salvo en GitHub sin comprobar el push.
 
-Al terminar el resultado acordado, cerrar la Issue y dejar enlace a su entrega/PR; mover la tarjeta a Terminado si existe acceso a Projects. No actualizar una tabla duplicada de tareas terminadas indefinidamente. La función conserva sus decisiones vigentes; Git y el archivo conservan la historia.
+Al terminar el resultado acordado, marcar la tarea de Notion como Terminado y dejar enlace a su entrega/PR. Las Issues de origen conservan su historial; su cierre por traslado no significa trabajo terminado. No actualizar una tabla duplicada de tareas terminadas indefinidamente. La función conserva sus decisiones vigentes; Git y el archivo conservan la historia.
 
 Para contradicciones entre documentos, comprobar fecha, decisión explícita de Lewis y evidencia real. No confiar en la posición de un párrafo ni en un «PR abierto» histórico. Si no se puede verificar, marcarlo como desconocido en vez de adivinar.
