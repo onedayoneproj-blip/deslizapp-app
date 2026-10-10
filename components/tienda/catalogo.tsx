@@ -794,7 +794,6 @@ export function Catalogo({
             p={p}
             t={t}
             i={i}
-            n={lista.length}
             activo={actual === p.slug}
             anterior={i === index - 1}
             cantidadPedido={cart.length}

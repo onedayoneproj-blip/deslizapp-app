@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.59.0", fecha: "2026-10-10", titulo: "Las fotos tienen su lugar.",
+    cambios: ["Los puntos del carrusel van debajo de la foto, sin taparla.", "Desliza o toca un punto para ver otra imagen."],
+  },
+  {
     version: "0.58.0", fecha: "2026-10-10", titulo: "Tus catálogos, más claros.",
     cambios: ["«De todo» conserva ese catálogo con otro nombre.", "«General» reúne tus productos y abre primero si aún no has elegido un catálogo.", "El selector se cierra cuando desplazas la pantalla."],
   },

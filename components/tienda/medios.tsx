@@ -105,6 +105,12 @@ export function Medios({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [indice, setIndice] = useState(0);
+  const paginas = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = paginas.current;
+    const punto = el?.children[indice] as HTMLElement | undefined;
+    if (el && punto) el.scrollTo({ left: punto.offsetLeft + punto.offsetWidth / 2 - el.clientWidth / 2, behavior: "instant" });
+  }, [indice, medios.length]);
   useEffect(() => {
     const el = ref.current;
     if (irA === null || !el) return;
@@ -158,11 +164,13 @@ export function Medios({
         ))}
       </div>
       {medios.length > 1 && (
-        <div className="puntos-medios" role="group" aria-label="Fotos y video">
+        <div className="puntos-medios" role="group" aria-label={`Fotos y video de ${nombre}`}>
+          <div className="paginas-medios" ref={paginas}>
           {medios.map((m, i) => (
             <button
               key={m.url}
-              aria-label={`Ver medio ${i + 1}`}
+              type="button"
+              aria-label={`Ver ${m.tipo === "foto" ? "foto" : "video"} ${i + 1} de ${medios.length}`}
               aria-pressed={i === indice}
               onClick={() =>
                 ref.current?.scrollTo({
@@ -175,6 +183,7 @@ export function Medios({
               }
             />
           ))}
+          </div>
         </div>
       )}
     </>

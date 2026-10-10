@@ -184,7 +184,6 @@ export function VistaPreviaReel() {
             p={p}
             t={t}
             i={i}
-            n={lista.length}
             activo={actual === p.slug}
             anterior={lista[i + 1]?.slug === actual}
             siguiente={lista[i - 1]?.slug === actual}

@@ -26,6 +26,7 @@
     "probar:catalogo-presentaciones": "node scripts/probar-catalogo-presentaciones.mjs",
     "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
     "probar:tipo-de-producto": "node scripts/probar-tipo-de-producto.mjs",
+    "probar:carrusel-imagenes": "node scripts/probar-carrusel-imagenes.mjs",
     "probar:selector-general": "node scripts/probar-selector-general-agregado.mjs",
     "probar:publicar-catalogo": "node scripts/probar-publicar-catalogo.mjs",
     "probar:onboarding-fallos": "node scripts/probar-onboarding-fallos.mjs",
