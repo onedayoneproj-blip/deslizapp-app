@@ -1,6 +1,8 @@
 # Onboarding 2 · entrega vigente por capítulos
 
-Coding Codex, continuación del 10 oct 2026. Se comprobó PR #96 abierto y HEAD remoto `11532b43a456af35f8caf79e65edb70ecf4290fe` antes de clonar y continuar en `feat/onboarding-checklist-codex`. Un solo push, sin force, merge ni producción. No cambios Supabase ni datos reales.
+Coding Codex, continuación del 10 oct 2026. Se comprobó PR #96 abierto y HEAD remoto `11532b43a456af35f8caf79e65edb70ecf4290fe` antes de clonar y continuar en `feat/onboarding-checklist-codex`. Un push de implementación y una ronda correctiva posterior (un push) para integrar el main documental que avanzó durante la entrega. Sin force, merge a main ni producción. No cambios Supabase ni datos reales.
+
+La sincronización conserva la nueva estructura documental de main `ca0b614` y resuelve los conflictos que impedían Revisión. El código validado y las capturas son los de `b66ebb4`; HEAD/preview exacta finales se consultan en el PR y en la entrega de esta conversación.
 
 ## Qué cambia
 

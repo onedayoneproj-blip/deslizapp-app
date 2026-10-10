@@ -56,3 +56,13 @@ Al completar los 7 (o al cerrarlo), el checklist se va con una celebración cort
 - **Parte 1** (`docs/prompts/onboarding-1-historias-y-datos.md`, Opus): base de datos + historias + capítulos.
 - **Parte 2** (`docs/prompts/onboarding-2-checklist.md`): checklist en Inicio. Empieza cuando la migración de la parte 1 esté aplicada.
 - **Después:** diseño del link de invitación (01, 02, 32) y tienda pre-llenada (16, 33, admin «Dejar la tienda lista»).
+
+## Decisión vigente: preparación por capítulos (10 oct 2026)
+
+**Estado: implementada y verificada en Demo/fixtures Chromium; pendiente de revisión de Lewis en Safari.** PR [#96](https://github.com/onedayoneproj-blip/deslizapp-app/pull/96), abierto sin merge. Estado/HEAD: [relevo vigente](handoffs/planning-sesion.md); evidencia detallada: [validación](validacion-onboarding-2.md) y [handoff](handoffs/onboarding-2-checklist-codex.md).
+
+- **Qué y por qué:** Lewis encontró cargadas las siete rayas, las tarjetas altas y Hecho. Se organiza la preparación en capítulos con pasos.
+- **Cómo:** creación = capítulo 1 con cuatro pasos; preparación en Inicio = capítulos 2 personalidad, 3 productos y 4 a mano, según la estructura documentada arriba. Progreso proporcional, selección distinta, botones accesibles y filas consultables.
+- **Descartado:** carrusel y bloque Hecho; numeraciones independientes; bloquear publicación con cinco productos; llamar aplazamiento a un cierre permanente.
+- **Evidencia:** encargo de Lewis, capturas y pruebas enlazadas. Demo normal y fixtures son evidencia simulada, no tiendas reales ni Safari físico.
+- **Siguiente:** revisión de Lewis según el relevo; conservar contratos/permisos y no tocar Supabase ni datos reales.
