@@ -28,8 +28,8 @@ import { SeccionCatalogo } from "./seccion-catalogo";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { usePanelUI } from "../panel/ui";
-import { NOMBRE_TIPO, rubrosDeTienda, type Rubro } from "@/lib/rubros";
-import { catalogoInicial, contarPorCatalogo, guardarCatalogoActivo, leerCatalogoActivo, productosDeCatalogo } from "@/lib/catalogo-activo";
+import { rubrosDeTienda } from "@/lib/rubros";
+import { CATALOGO_GENERAL, catalogoInicial, contarPorCatalogo, guardarCatalogoActivo, leerCatalogoActivo, nombreCatalogoPanel, productosDeCatalogo, type CatalogoPanel } from "@/lib/catalogo-activo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 
@@ -74,14 +74,18 @@ export function VistaCatalogo() {
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   // Un catálogo a la vez (sin «Todo»): solo con más de un rubro. Abre el último que miró esta persona, o el principal.
-  const [catalogoElegido, setCatalogoElegido] = useState<Rubro | null>(null);
+  const [catalogoElegido, setCatalogoElegido] = useState<{ tiendaId: string; catalogo: CatalogoPanel } | null>(null);
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
   const [enHistoria, setEnHistoria] = useState<Producto | null>(null);
   const tipos = tienda ? rubrosDeTienda(tienda) : [];
   const variosTipos = tipos.length > 1;
-  const catalogo: Rubro | null = tienda && variosTipos ? (catalogoElegido && tipos.includes(catalogoElegido) ? catalogoElegido : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
+  const seleccionTienda = catalogoElegido && catalogoElegido.tiendaId === tienda?.id ? catalogoElegido.catalogo : null;
+  const catalogo: CatalogoPanel | null = tienda && variosTipos ? (seleccionTienda && (seleccionTienda === CATALOGO_GENERAL || tipos.includes(seleccionTienda)) ? seleccionTienda : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
   const delCatalogo = useMemo(() => (productos && tienda && catalogo ? productosDeCatalogo(productos, tienda, catalogo) : productos), [productos, tienda, catalogo]);
-  const conteo = useMemo(() => (productos && tienda && variosTipos ? contarPorCatalogo(productos, tienda) : undefined), [productos, tienda, variosTipos]);
+  const conteo = useMemo(() => (productos && tienda && variosTipos ? {
+    ...contarPorCatalogo(productos, tienda),
+    [CATALOGO_GENERAL]: productosDeCatalogo(productos, tienda, CATALOGO_GENERAL).length,
+  } : undefined), [productos, tienda, variosTipos]);
   // true si el último cambio de la lista se hizo con el teclado abierto: ahí NO hay transición de
   // vista (le quitaría el foco al campo) y los productos que entran lo hacen con un fundido CSS.
 
@@ -100,8 +104,8 @@ export function VistaCatalogo() {
       <TituloPantalla
         titulo={tienda && catalogo ? (
           <SelectorCatalogo
-            tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes"
-            alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido(r)); }}
+            tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes" vistaAgregada={variosTipos}
+            alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido({ tiendaId: tienda.id, catalogo: r })); }}
             alVenderOtra={() => setVendiendoOtra(true)}
           />
         ) : "Tu catálogo"}
@@ -131,7 +135,7 @@ export function VistaCatalogo() {
             setBusqueda(valor);
             startTransition(() => setBusquedaAplicada(valor));
           }}
-          placeholder={catalogo ? `Busca en ${NOMBRE_TIPO[catalogo]}` : "Busca un producto"}
+          placeholder={catalogo ? `Busca en ${nombreCatalogoPanel(catalogo)}` : "Busca un producto"}
         />
 
         <Segmentos
@@ -160,7 +164,7 @@ export function VistaCatalogo() {
             <EstadoVacio
               pequeno
               ilustracion="catalogo"
-              titulo={`Todavía no hay nada en ${NOMBRE_TIPO[catalogo]}.`}
+              titulo={`Todavía no hay nada en ${nombreCatalogoPanel(catalogo)}.`}
               remate="Toca + Producto y sube tu primera pieza."
             />
           ) : (

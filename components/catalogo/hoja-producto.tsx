@@ -7,7 +7,7 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib/rubros";
-import { catalogoInicial, contarPorCatalogo, leerCatalogoActivo } from "@/lib/catalogo-activo";
+import { CATALOGO_GENERAL, contarPorCatalogo, leerCatalogoActivo, rubroInicialDeProducto } from "@/lib/catalogo-activo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
@@ -234,7 +234,7 @@ function FormularioProducto({
   const variosTipos = tipos.length > 1;
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
   // Se calcula en cada vuelta (no se congela): la tienda puede llegar después del primer pintado.
-  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? catalogoInicial(tienda, leerCatalogoActivo(tienda.id)) : rubro;
+  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id)) : rubro;
   const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
@@ -552,7 +552,7 @@ function FormularioProducto({
         <HojaFijoArriba>
           <SelectorCatalogo
             tipos={tipos} valor={tipo} conteo={tienda ? contarPorCatalogo(productos, tienda) : undefined} tamano="hoja" textoOtra="Vendo otra cosa también"
-            alCambiar={setTipo} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
+            alCambiar={(r) => { if (r !== CATALOGO_GENERAL) setTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
             sinPermiso={sinCatalogo ? () => toast(porque) : undefined}
           />
         </HojaFijoArriba>
