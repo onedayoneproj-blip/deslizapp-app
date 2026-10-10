@@ -75,3 +75,16 @@ Lewis pidió también quitar el recuadro del capítulo seleccionado antes de pus
 Último feedback de Lewis: retirar también los símbolos de completado/pendiente junto a Capítulo X. Solo raya uniforme y nombre, con subrayado del activo; aria-label mantiene estado/avance y las filas consultables conservan sus estados. Esta instrucción sustituye la marca simbólica del prompt.
 
 **Última presentación comprobada:** 21 verificaciones localizadas a 360/390/430 después de ambos feedbacks: sin recuadro ni símbolos, controles ≥44 px, nombres breves, selección/foco por teclado y subrayado, recuperación del capítulo al plegar, texto y píldora al 200 % sin overflow respecto al ancho real configurado. Capturas finales de estados discretos y Demo normal actualizadas. Build final y tipos/lint aprobados; no cambios de lógica desde las suites de 77/125/15 y teclado ya aprobadas.
+
+
+## Ronda posterior · cabecera solo del capítulo activo
+
+Feedback adicional de Lewis: «Deja tu tienda lista» únicamente minimizada. Cabecera superior expandida = «Capítulo X · nombre», sin duplicado inferior. Otros nombres no se muestran hasta tocar su raya; navegación directa y teclado conservados.
+
+- Typecheck y build Webpack aprobados. Lint general: cero errores, 32 avisos anteriores. Tests: 77/77 archivos.
+- Script de checklist: 134 comprobaciones aprobadas a 360/390/430, incluidas cabecera H2 única, ausencia del título general expandida y cambio de nombre por toque. Publicar sin mínimo, retorno de hojas, selección, minimización, recarga, foco y texto ampliado conservados.
+- Fallos: 15 comprobaciones aprobadas; fixture temporal eliminado. Script completo de teclado aprobado, incluido perfil tras minimizar/desplegar.
+- Demo normal sin inyección: entrada Ver demo → Inicio y 12 comprobaciones localizadas de cabecera/píldora al 200 %, con capturas. El contenido de la guía no desborda a las tres anchuras.
+- Límite observado en Demo normal al 200 %: ancho global de 362 px con viewport de 360, tanto expandida como minimizada; las cajas fijas de navegación/toasts llegan a 362. A 390 y 430 el ancho global coincide con viewport. Se conserva como límite de la página, sin atribuir un aprobado global a ese caso ni modificar la navegación común en este ajuste de cabecera. Las pruebas con fixture no muestran ese exceso.
+
+Capturas actuales: `docs/capturas/onboarding-2/cabecera/` (22 imágenes). Antecedentes anteriores conservados. Safari/VoiceOver e instalación física siguen pendientes; no se probaron cuentas, Storage/OAuth ni Ver como reales. No cambios en Supabase ni guías de tiendas reales. HEAD, Revisión y preview READY exacta de esta ronda: PR y handoff en el chat.

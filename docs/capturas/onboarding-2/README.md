@@ -1,3 +1,11 @@
+# Capturas vigentes · cabecera del capítulo
+
+`cabecera/`: cabecera superior única con capítulo y nombre activos; «Deja tu tienda lista» solo en la píldora. 360/390/430 px, texto ampliado, capítulos vacíos/parciales/completos y entrada normal a Demo. Fixtures aislados para estados; la captura Demo normal no inyecta datos.
+
+Las carpetas `minimizar/` y `capitulos/` se conservan como antecedentes.
+
+---
+
 # Onboarding 2 · capturas
 
 ## Diseño vigente · minimizar y estados discretos

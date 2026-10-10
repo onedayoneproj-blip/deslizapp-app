@@ -101,13 +101,13 @@ function Checklist() {
   return <section id="checklist-guia" data-checklist className="px-5 pt-4 pb-2">
     {checklistMinimizada ? <>
       <Boton ref={pildora} jerarquia="secundario" anchoCompleto className="h-auto min-h-11 py-2 [&>span:first-child]:w-full [&>span:first-child]:whitespace-normal" aria-expanded={false} aria-controls="checklist-guia"
-        aria-label={`Desplegar Prepara tu tienda, ${hechos} de 7 pasos`} onClick={() => cambiarMinimizacion(false)}>
-        <span className="flex w-full items-center justify-between gap-2"><span>Prepara tu tienda</span><span className="flex shrink-0 items-center gap-2 whitespace-nowrap">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
+        aria-label={`Desplegar Deja tu tienda lista, ${hechos} de 7 pasos`} onClick={() => cambiarMinimizacion(false)}>
+        <span className="flex w-full items-center justify-between gap-2"><span>Deja tu tienda lista</span><span className="flex shrink-0 items-center gap-2 whitespace-nowrap">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
       </Boton>
       {error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
     </> : <div id="checklist-expandida">
     <div className="flex items-center justify-between gap-2">
-      <h2 className="font-display text-titulo-seccion font-bold">Deja tu tienda lista</h2>
+      <h2 id="checklist-titulo" className="min-w-0 font-display text-titulo-seccion font-bold">Capítulo {capitulo.numero} · {capitulo.nombre}</h2>
       <span className="shrink-0 text-secundario">{hechos} de 7</span>
     </div>
     <div className="flex gap-2" role="group" aria-label="Capítulos de preparación">
@@ -127,8 +127,7 @@ function Checklist() {
         </span>
       </button>)}
     </div>
-    <div id="checklist-capitulo" aria-labelledby="checklist-titulo">
-      <h3 id="checklist-titulo" className="mt-2 mb-3 font-display text-titulo-seccion font-bold">Capítulo {capitulo.numero} · {capitulo.nombre}</h3>
+    <div id="checklist-capitulo" aria-labelledby="checklist-titulo" className="mt-2">
       {error && !hoja && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
       <ListaAgrupada etiqueta={`Pasos de ${capitulo.nombre}`} className="[&_span.truncate]:whitespace-normal [&_span.truncate]:overflow-visible">
         {capitulo.pasos.map(i => <FilaLista key={i}

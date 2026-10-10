@@ -1,3 +1,11 @@
+## Ajuste vigente · cabecera del capítulo activo
+
+Por nuevo feedback de Lewis, «Deja tu tienda lista» aparece solo minimizada. Desplegada, la cabecera superior muestra «Capítulo X · nombre» del seleccionado; se retira el segundo encabezado bajo las rayas. Los otros nombres se consultan al tocar sus controles. Navegación por las rayas y teclado existentes, sin añadir swipe; Continuar al completar conservado. Permisos, acciones, progreso y persistencia sin cambios.
+
+Capturas vigentes en `docs/capturas/onboarding-2/cabecera/`; las anteriores de minimizar se conservan como antecedente. Validación de esta ronda: tipos, lint, 77 archivos de tests, build, 134 comprobaciones de checklist, 15 de fallos, teclado completo y 12 localizadas de texto ampliado aprobados. Demo normal al 200 % presenta un exceso global de 2 px a 360, fuera de la guía; documentado en validación. HEAD y preview exacta se entregan en el PR y este chat.
+
+---
+
 # Onboarding 2 · minimizar y capítulos discretos · entrega vigente
 
 Continuación de Coding autorizada manualmente por Lewis el 10 oct 2026, siguiendo [el prompt nuevo](../prompts/onboarding-2-minimizar-y-capitulos.md). PR #96 comprobado abierto en HEAD `0779aff110dcbd8f4cb357d605192a45976a9248`. Se conserva `feat/onboarding-checklist-codex`; main `f7e05fa` integrado, conflictos de docs/17 y relevo resueltos conservando la decisión nueva y el piloto Notion. Antes de push se integra también el avance documental `ece4c7946dd860fad00788a8c61a2e15e6d957f0`. Un push de esta ronda, sin force, merge a main ni producción.
