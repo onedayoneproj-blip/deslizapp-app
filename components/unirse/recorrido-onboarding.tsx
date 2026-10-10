@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import {
   alternarRubro,
@@ -38,7 +38,6 @@ import {
   IconoCerrar,
   IconoCorazon,
   IconoEnlace,
-  IconoFlechaArriba,
   IconoLabial,
   IconoPerfume,
   IconoPersona,
@@ -46,7 +45,7 @@ import {
   IconoWhatsApp,
 } from "../iconos";
 import { Isotipo, Logotipo } from "../marca";
-import { Boton, Campo } from "../ui";
+import { Boton, Campo, FondoPatron } from "../ui";
 import { clases } from "../ui/comunes";
 
 /** Lo que el recorrido necesita de afuera: en el modo real, Supabase; en la demo, nada real. */
@@ -177,6 +176,8 @@ function useMovimientoReducido() {
 }
 
 const FONDO_HISTORIA = ["bg-marca-rosa-fija", "bg-marca-bosque", "bg-marca-papel", "bg-marca-mandarina"] as const;
+/** El patrón de iconos regados de cada historia (docs/10): un tono apenas distinto de su fondo. */
+const PATRON_HISTORIA = ["#eeb0c5", "#2b6550", "#efe4cf", "#f4733d"] as const;
 /** Texto y barras sobre cada fondo: claro sobre el verde, verde sobre los demás. */
 const OSCURA = [false, true, false, false] as const;
 
@@ -221,6 +222,7 @@ function Historias({ nombre, alTerminar }: { nombre: string | null; alTerminar: 
       data-onboarding="historias"
       data-historia={i + 1}
     >
+      <FondoPatron color={PATRON_HISTORIA[i]!} />
       <div className="relative mx-auto flex h-full max-w-[480px] flex-col">
         {/* Zonas de toque (debajo del contenido, que no recibe toques salvo sus botones) */}
         <button
@@ -336,25 +338,43 @@ function Destello({ className }: { className?: string }) {
   );
 }
 
+/** Entrada escalonada de cada historia (docs/08, excepción «Historias del onboarding»): el ejemplo, luego el titular, luego el texto. */
+const entra = (orden: number) => ({ style: { "--d": orden } as CSSProperties });
+
 function Titulo({ children }: { children: ReactNode }) {
-  return <h1 className="text-center font-display text-titulo-pantalla">{children}</h1>;
+  return (
+    <h1 {...entra(1)} className="onb-entra text-center font-display text-titulo-pantalla">
+      {children}
+    </h1>
+  );
 }
 function Bajada({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={clases("mx-auto mt-3 max-w-[330px] text-center text-cuerpo", className)}>{children}</p>;
+  return (
+    <p {...entra(2)} className={clases("onb-entra mx-auto mt-3 max-w-[330px] text-center text-cuerpo", className)}>
+      {children}
+    </p>
+  );
+}
+
+/** Un sticker de Deslizapp (public/stickers/marca, WebP con alfa): girado un poco, flota apenas y no recibe toques. */
+function Sticker({ nombre, ancho, alto, className, giro = 0 }: { nombre: string; ancho: number; alto: number; className?: string; giro?: number }) {
+  return (
+    <span className={clases("onb-rebote pointer-events-none absolute", className)} style={{ "--giro": `${giro}deg` } as CSSProperties} data-sticker={nombre}>
+      <Image src={`/stickers/marca/${nombre}.webp`} alt="" width={ancho} height={alto} loading="lazy" unoptimized draggable={false} className="onb-flota block select-none" />
+    </span>
+  );
 }
 
 function Historia1({ nombre }: { nombre: string | null }) {
   return (
     <>
-      <div className="relative mx-auto mb-10 size-[210px]">
-        <IconoCorazon tamano={22} className="absolute -left-12 -top-6 fill-marca-mandarina text-marca-mandarina" />
-        <IconoCorazon tamano={26} className="absolute -right-14 -top-10" />
+      <div {...entra(0)} className="onb-entra relative mx-auto mb-10 size-[210px]">
         <Destello className="-left-8 top-24 size-5 text-marca-mandarina" />
-        <IconoCorazon tamano={28} className="absolute -bottom-2 -left-4 fill-marca-mandarina text-marca-mandarina" />
+        <IconoCorazon tamano={28} className="onb-flota absolute -bottom-2 -left-4 fill-marca-mandarina text-marca-mandarina" />
         <div className="flex size-full items-center justify-center rounded-full bg-marca-bosque text-marca-papel shadow-[0_24px_48px_-16px_rgb(16_54_42/0.45)]">
           <Isotipo tamano={124} />
         </div>
-        <span className="absolute -right-6 top-2 rotate-6 rounded-full bg-marca-mandarina px-4 py-1.5 font-display text-titulo-seccion text-marca-bosque">aaah</span>
+        <Sticker nombre="aaah" ancho={132} alto={100} giro={8} className="-right-14 -top-8" />
       </div>
       <Titulo>
         {saludoOnboarding(nombre)}
@@ -368,10 +388,8 @@ function Historia1({ nombre }: { nombre: string | null }) {
 function Historia2() {
   return (
     <>
-      <div className="relative mx-auto mb-10 w-[170px]">
-        <IconoFlechaArriba tamano={22} className="absolute -left-16 top-2" />
-        <Destello className="-right-14 top-4 size-5 text-marca-mandarina" />
-        <IconoCorazon tamano={14} className="absolute -left-6 top-16 fill-marca-rosa-fija text-marca-rosa-fija" />
+      <div {...entra(0)} className="onb-entra relative mx-auto mb-10 w-[170px]">
+        <Destello className="-left-14 top-4 size-5 text-marca-mandarina" />
         <div className="relative overflow-hidden rounded-[26px] border-4 border-marca-papel shadow-[0_24px_48px_-16px_rgb(0_0_0/0.45)]">
           <Image src={EJEMPLO.kiara.foto} alt="" width={170} height={300} className="h-[300px] w-full object-cover" priority draggable={false} />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 text-marca-papel">
@@ -379,8 +397,7 @@ function Historia2() {
             <p className="text-secundario font-bold">{EJEMPLO.kiara.precio}</p>
           </div>
         </div>
-        <IconoCorazon tamano={58} className="absolute -right-10 top-28 fill-marca-mandarina text-marca-mandarina" />
-        <span className="absolute -right-14 top-20 -rotate-6 font-display text-titulo-hoja text-marca-rosa-fija">aaah</span>
+        <Sticker nombre="desliza-y-pide" ancho={92} alto={124} giro={10} className="-right-20 top-36" />
       </div>
       <Titulo>
         Deslizan.
@@ -396,7 +413,7 @@ function Historia2() {
 function Historia3({ nombre }: { nombre: string | null }) {
   return (
     <>
-      <div className="relative mx-auto mb-8 w-full max-w-[300px]">
+      <div {...entra(0)} className="onb-entra relative mx-auto mb-8 w-full max-w-[300px]">
         <div className="mx-auto mb-[-18px] flex size-[72px] items-center justify-center rounded-full bg-[#25d366] text-white shadow-[0_12px_28px_-8px_rgb(37_211_102/0.6)]">
           <IconoWhatsApp tamano={38} />
         </div>
@@ -430,9 +447,8 @@ function Historia3({ nombre }: { nombre: string | null }) {
 function Historia4() {
   return (
     <>
-      <div className="relative mx-auto mb-8 w-full max-w-[290px]">
+      <div {...entra(0)} className="onb-entra relative mx-auto mb-8 w-full max-w-[290px]">
         <Destello className="-right-2 -top-4 size-6 text-marca-bosque" />
-        <IconoCorazon tamano={20} className="absolute -left-4 top-2 fill-marca-papel text-marca-papel" />
         <div className="relative mx-auto h-[190px] w-[230px] -rotate-3 overflow-hidden rounded-[22px] shadow-[0_20px_40px_-18px_rgb(16_54_42/0.5)]">
           <Image src={EJEMPLO.agotado.foto} alt="" width={230} height={190} className="size-full object-cover" draggable={false} />
           <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 rounded-full border-[3px] border-marca-mandarina bg-marca-papel/85 px-4 py-1 font-display text-titulo-hoja text-marca-mandarina">
@@ -847,19 +863,19 @@ function Burbuja({ children, className }: { children: ReactNode; className?: str
 
 function YaExiste({ nombre, alSeguir }: { nombre: string; alSeguir: () => void }) {
   return (
-    <div className="fixed inset-0 bg-marca-bosque text-marca-papel" data-onboarding="existe">
-      <div className="mx-auto flex h-full max-w-[480px] flex-col px-6 pt-[calc(56px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))]">
+    <div className="fixed inset-0 overflow-hidden bg-marca-bosque text-marca-papel" data-onboarding="existe">
+      <FondoPatron color="#2b6550" />
+      <div className="relative mx-auto flex h-full max-w-[480px] flex-col px-6 pt-[calc(56px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))]">
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <div className="relative mb-10">
-            <IconoCorazon tamano={22} className="absolute -left-16 top-4 fill-marca-mandarina text-marca-mandarina" />
-            <IconoCorazon tamano={18} className="absolute -left-20 top-24 fill-marca-rosa-fija text-marca-rosa-fija" />
-            <Destello className="-left-14 bottom-0 size-6 text-marca-papel" />
-            <Destello className="-right-14 bottom-2 size-6 text-marca-mandarina" />
-            <IconoCorazon tamano={24} className="absolute -right-14 top-16 fill-marca-rosa-fija text-marca-rosa-fija" />
-            <div className="onb-pop rounded-full bg-marca-papel/10 p-6">
+            <Destello className="-left-14 bottom-2 size-6 text-marca-mandarina" />
+            <IconoCorazon tamano={22} className="onb-flota absolute -left-16 top-4 fill-marca-rosa-fija text-marca-rosa-fija" />
+            {/* Las iniciales aparecen con un pop y su halo se abre detrás (docs/08, excepción «Historias del onboarding»). */}
+            <span aria-hidden="true" className="onb-halo absolute inset-0 rounded-full bg-marca-papel/[0.06]" />
+            <div className="onb-pop relative rounded-full bg-marca-papel/10 p-6">
               <AvatarTienda nombre={nombre} cap="fin" grande />
             </div>
-            <span className="absolute -right-10 -top-3 rotate-6 font-display text-titulo-pantalla text-marca-mandarina">aaah!</span>
+            <Sticker nombre="aaah-corazon" ancho={104} alto={88} giro={10} className="-right-16 -top-8" />
           </div>
           <p className="text-etiqueta tracking-[0.18em]">FIN DEL CAPÍTULO 1</p>
           <h1 className="mt-3 font-display text-titulo-pantalla">

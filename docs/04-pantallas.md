@@ -61,7 +61,7 @@ tienda, 4 capítulos** con la cabecera que se va llenando (iniciales, nombre, ru
 principal; «Otra cosa» = `general`); el WhatsApp (dominicano, como en Clientes; se guarda en dígitos `1XXXXXXXXXX`); cómo le dicen
 (pre-llenado con Google). «Seguir» siempre a la vista, encima del teclado (`--teclado`, sin estado de React), y su toque no le quita el
 foco al campo. Borrador en este teléfono (`deslizapp-onboarding-v1`, por enlace): si cierra, vuelve al capítulo donde iba. «Cerrar el
-capítulo» crea la tienda con todo junto (`crear_mi_tienda_completa`). (3) **«{Tienda} ya existe.»** → «Ver mi tienda» (panel). Prueba:
+capítulo» crea la tienda con todo junto (`crear_mi_tienda_completa`). (3) **«{Tienda} ya existe.»** → «Ver mi tienda» (panel). Las historias y «ya existe» llevan el fondo de iconos regados de docs/10 (`components/ui/fondo-patron.tsx`, en el tono de cada fondo y limpio en la franja del texto), un solo sticker de `public/stickers/marca` por pantalla (aaah, desliza-y-pide, aaah-corazon) y el movimiento de la excepción «Historias del onboarding» de docs/08; los capítulos no llevan patrón ni movimiento. Prueba:
 `npm run probar:onboarding`.
 
 **Sin tienda** (cuenta de Google que no es de ninguna tienda, `pantalla-entrada.tsx`): «Deslizapp es por invitación», si ya tiene un

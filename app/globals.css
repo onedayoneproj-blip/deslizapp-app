@@ -427,6 +427,60 @@ html {
 .onb-pop {
   animation: mov-pop-aparece var(--mov-entrada) var(--curva-resorte) both;
 }
+/* Onboarding 1b (docs/08, excepción «Historias del onboarding»): entrada escalonada de cada historia (ejemplo → titular → texto),
+   el sticker que aparece con un rebote corto y luego flota apenas, y el halo de las iniciales en «ya existe». Solo transform y
+   opacity; con movimiento reducido no se mueve nada y todo se ve en su lugar. */
+.onb-entra {
+  animation: mov-aparece var(--mov-entrada) var(--curva-salida) both;
+  animation-delay: calc(var(--d, 0) * 110ms);
+}
+@keyframes onb-rebote {
+  from {
+    opacity: 0;
+    transform: rotate(var(--giro, 0deg)) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--giro, 0deg)) scale(1);
+  }
+}
+.onb-rebote {
+  transform: rotate(var(--giro, 0deg));
+  animation: onb-rebote 520ms var(--curva-resorte) 260ms both;
+}
+@keyframes onb-flota {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-5px);
+  }
+}
+.onb-flota {
+  animation: onb-flota 2.8s ease-in-out infinite alternate;
+}
+@keyframes onb-halo {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+.onb-halo {
+  animation: onb-halo 900ms var(--curva-salida) 200ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onb-entra,
+  .onb-rebote,
+  .onb-flota,
+  .onb-halo,
+  .onb-pop {
+    animation: none;
+  }
+}
 @keyframes mov-brillo {
   to {
     transform: translateX(100%);

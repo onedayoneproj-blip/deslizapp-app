@@ -157,6 +157,19 @@ decoración; no bloquea toques (Cancelar, «Retocar foto», X, Escape y Atrás r
 mueve nada: se ve el resultado directo. La versión «después» es una **ilustración** (la misma foto con más luz y un fondo suave), nunca un
 resultado inventado. La excepción se limita a esta pantalla.
 
+### Excepción: historias del onboarding (onboarding 1b, 10 oct 2026)
+
+Pedido de Lewis (`docs/prompts/onboarding-1b-movimiento-fondos-stickers.md`), en `components/unirse/recorrido-onboarding.tsx` y
+las clases `onb-*` de `app/globals.css`. Solo en las 4 historias de bienvenida y en «{Tienda} ya existe»:
+- **Entrada escalonada** de cada historia (`onb-entra`): el ejemplo, luego el titular y luego el texto (110 ms entre uno y otro),
+  con `mov-aparece`, `--mov-entrada` y `--curva-salida`. Son tres piezas de una sola pantalla, no una lista: la regla de no animar
+  listas ni grillas sigue igual.
+- **Sticker** (`onb-rebote`): aparece una vez con un rebote corto (`--curva-resorte`, 520 ms) y después **flota** apenas
+  (`onb-flota`, 5 px, 2,8 s, ida y vuelta), igual que el corazón que lo acompaña. Decorativo, sin toques.
+- **«Ya existe»:** las iniciales con su pop (`onb-pop`) y el halo que se abre una vez detrás (`onb-halo`).
+- Solo `transform` y `opacity`. Con movimiento reducido no se mueve nada y todo se ve en su lugar.
+- **Los capítulos de datos no se mueven** (regla del teclado): ni entradas ni flotación mientras la persona escribe.
+
 ### Inventario: historial como vista interna
 
 Ficha ↔ historial de ajustes cambia directamente dentro de la misma Hoja, sin
