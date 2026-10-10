@@ -1,40 +1,7 @@
 [
   {
-    "nombre": "hash/carrusel/video 360",
+    "nombre": "entorno",
     "paso": false,
-    "error": "TimeoutError: page.waitForFunction: Timeout 12000ms exceeded."
-  },
-  {
-    "nombre": "aviso 360",
-    "paso": true
-  },
-  {
-    "nombre": "hash/carrusel/video 390",
-    "paso": false,
-    "error": "TimeoutError: page.waitForFunction: Timeout 12000ms exceeded."
-  },
-  {
-    "nombre": "aviso 390",
-    "paso": true
-  },
-  {
-    "nombre": "ropa / precios / agotada / sin tema",
-    "paso": true
-  },
-  {
-    "nombre": "envío / historia / recibos / precio autoritativo",
-    "paso": true
-  },
-  {
-    "nombre": "Por encargo sin stock",
-    "paso": true
-  },
-  {
-    "nombre": "agotado entre abrir/enviar y oculto al recargar",
-    "paso": true
-  },
-  {
-    "nombre": "movimiento reducido, atrás y foco",
-    "paso": true
+    "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3220/tienda/esencias-michel?demo#p/mayar\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3220/tienda/esencias-michel?demo#p/mayar\", waiting until \"load\"\u001b[22m\n"
   }
 ]

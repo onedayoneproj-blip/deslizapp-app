@@ -82,11 +82,11 @@ export const tiposDeMedioElegibles = (videoPermitido: boolean = VIDEO_PERMITIDO)
 export const esVideoAgregable = (tipo: string, videoPermitido: boolean = VIDEO_PERMITIDO) => videoPermitido && tipo.startsWith("video/");
 
 /**
- * Lo mínimo para que una tienda publique su propio catálogo: productos visibles (no ocultos ni eliminados) con al menos una foto.
- * La base aplica la MISMA regla (`publicar_mi_catalogo`, constante `v_minimo`); si cambia aquí, cambia allá en una migración nueva.
- * El checklist del onboarding (docs/16) lo subirá a 5.
+ * Publicar el catálogo NO tiene mínimo (decisión de Lewis, 9 oct 2026; migración 20261009232947): se puede publicar vacío para ver
+ * desde el día uno cómo se ve. Esto es solo una GUÍA: con menos productos visibles con foto, «Publicar» pide una confirmación suave
+ * («Publicar igual» siempre funciona), y el paso «Agrega 5 productos» del checklist del onboarding se marca hecho con esta cantidad.
  */
-export const PRODUCTOS_MINIMOS_PARA_PUBLICAR = 3;
+export const PRODUCTOS_SUGERIDOS_PARA_PUBLICAR = 5;
 
 /**
  * Base de la dirección del catálogo de cada tienda: `${URL_BASE_CATALOGO}/tienda/{slug}`. La pone la base al publicar

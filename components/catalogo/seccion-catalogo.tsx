@@ -9,13 +9,15 @@ import { useConsulta } from "@/lib/data/consulta";
 import { usePermisos } from "@/lib/data/permisos";
 import { useData } from "@/lib/data/provider";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
-import { enlaceAlPublicar, faltanParaPublicar } from "@/lib/publicar-catalogo";
+import { enlaceAlPublicar, productosQueCuentan } from "@/lib/publicar-catalogo";
+import { productosPublicosDe, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import type { Tienda } from "@/lib/types";
 import { copiarTexto } from "@/lib/portapapeles";
 import { usePanelUI } from "../panel/ui";
 import { useToast } from "../toast";
 import { HojaCatalogoEnLinea } from "./hoja-catalogo-en-linea";
 import { HojaPublicarCatalogo } from "./hoja-publicar-catalogo";
+import { HojaComoSeVe } from "./hoja-producto-filas";
 import { HojaRevisarCatalogo } from "./hoja-revisar-catalogo";
 import { TarjetaCatalogo } from "./tarjeta-catalogo";
 
@@ -56,9 +58,10 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
   const { puede, porque, esDuena } = usePermisos();
   const sinCatalogo = !puede("catalogo");
   const soloDuena = !esDuena;
-  // Mismo cache que la lista de productos: al crear uno, «te faltan…» se actualiza solo.
+  // Mismo cache que la lista de productos: al crear uno, la tarjeta y la confirmación de publicar se actualizan solas.
   const { data: productos } = useConsulta(`productos:${tienda.id}`, () => getProductos(tienda.id));
-  const faltan = productos ? faltanParaPublicar(productos) : 0;
+  const cuantos = productos ? productosQueCuentan(productos) : 0;
+  const [comoQueda, setComoQueda] = useState(false);
 
   const [enLinea, setEnLinea] = useState(false);
   const [publicar, setPublicar] = useState(false);
@@ -145,8 +148,9 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
       <TarjetaCatalogo
         vista={vista}
         tienda={tienda}
-        faltan={faltan}
+        productos={cuantos}
         acciones={{
+          alVerComoQueda: () => setComoQueda(true),
           alPublicar: () => setPublicar(true),
           alCrearProducto: sinCatalogo ? () => toast(porque) : () => router.push("/catalogo/nuevo"),
           soloDuena: soloDuena ? () => toast(porque) : undefined,
@@ -166,7 +170,19 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
         abierta={publicar}
         alCerrar={() => setPublicar(false)}
         enlace={enlaceAlPublicar(tienda.slug)}
+        productos={cuantos}
+        alAgregarMas={() => {
+          setPublicar(false);
+          if (sinCatalogo) toast(porque);
+          else router.push("/catalogo/nuevo");
+        }}
         alConfirmar={() => intentar(() => publicarMiCatalogo(tienda.id), "¡Tu catálogo ya está en línea!", () => setPublicar(false))}
+      />
+      <HojaComoSeVe
+        abierta={comoQueda}
+        alCerrar={() => setComoQueda(false)}
+        visible
+        datos={() => ({ tienda: tiendaPublicaDe(tienda), productos: productosPublicosDe(productos ?? [], tienda.rubro) })}
       />
       <HojaRevisarCatalogo
         abierta={revisar}

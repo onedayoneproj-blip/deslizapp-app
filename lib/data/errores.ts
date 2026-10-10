@@ -321,6 +321,7 @@ export function traducirErrorSupabase(e: unknown): Error {
   // RPC del catálogo en línea
   if (mensaje.includes("catalogo_estado_invalido")) return new DatosInvalidos("Tu catálogo ya cambió de estado. Actualiza la pantalla para ver dónde va.");
   // RPC publicar_mi_catalogo / despublicar_mi_catalogo
+  // Ya no se lanza (sin mínimo desde 20261009232947); se deja por si una base vieja responde así.
   if (mensaje.includes("catalogo_incompleto")) return new DatosInvalidos("Todavía te faltan productos con foto para publicar tu catálogo. Agrégalos y vuelve.");
   if (mensaje.includes("catalogo_en_curso")) return new DatosInvalidos("Tu catálogo ya va en camino con nuestro equipo. Actualiza la pantalla para ver dónde va.");
   if (mensaje.includes("tienda_pausada")) return new DatosInvalidos("Tu tienda está en pausa. Actívala con tu plan para publicar tu catálogo.");

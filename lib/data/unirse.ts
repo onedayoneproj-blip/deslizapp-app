@@ -120,3 +120,48 @@ export async function crearMiTienda(enlaceId: string, nombre: string, rubro: str
     throw traducirErrorSupabase(error);
   }
 }
+
+/**
+ * Crea la tienda del enlace con todo lo del onboarding junto (crear_mi_tienda_completa): nombre, rubros (el primero es el
+ * principal), WhatsApp (solo dígitos, ya normalizado) y cómo le dicen a la vendedora. Todo o nada.
+ */
+export async function crearMiTiendaCompleta(
+  enlaceId: string,
+  datos: { nombre: string; rubros: string[]; whatsapp: string; vendedora: string },
+): Promise<void> {
+  const { error } = await createClient().rpc("crear_mi_tienda_completa", {
+    p_enlace_id: enlaceId,
+    p_nombre: datos.nombre.trim(),
+    p_rubros: datos.rubros,
+    p_whatsapp: datos.whatsapp,
+    p_nombre_vendedora: datos.vendedora.trim(),
+  });
+  if (error) {
+    const m = String(error.message ?? "");
+    if (m.includes("enlace_no_valido")) throw new EnlaceNoValido();
+    if (m.includes("demasiadas_tiendas_en_prueba")) throw new Error("Ya tienes 3 tiendas en prueba. Escríbenos para abrir otra.");
+    if (m.includes("nombre_invalido")) throw new Error("Escribe el nombre de tu tienda (hasta 80 letras).");
+    if (m.includes("rubros_invalidos")) throw new Error("Elige lo que vendes.");
+    if (m.includes("whatsapp_invalido")) throw new Error("Revisa el WhatsApp: 10 dígitos, empieza con 809, 829 u 849.");
+    if (m.includes("nombre_vendedora_invalido")) throw new Error("Escribe cómo te llaman (hasta 40 letras).");
+    throw traducirErrorSupabase(error);
+  }
+}
+
+/** El enlace que tendría la tienda con ese nombre, según la base (vista_slug: incluye el -2 si ya existe). null si no sirve. */
+export async function vistaSlug(nombre: string): Promise<string | null> {
+  const { data, error } = await createClient().rpc("vista_slug", { p_nombre: nombre });
+  if (error) throw traducirErrorSupabase(error);
+  return typeof data === "string" && data ? data : null;
+}
+
+/** El nombre de la cuenta de Google con la que entró (para «Hola, {nombre}»). null si no hay. */
+export async function nombreDeLaCuenta(): Promise<string | null> {
+  const { data } = await createClient().auth.getClaims();
+  const meta = (data?.claims?.user_metadata ?? {}) as Record<string, unknown>;
+  for (const k of ["given_name", "full_name", "name"]) {
+    const v = meta[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return null;
+}

@@ -27,6 +27,7 @@
     "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
     "probar:tipo-de-producto": "node scripts/probar-tipo-de-producto.mjs",
     "probar:publicar-catalogo": "node scripts/probar-publicar-catalogo.mjs",
+    "probar:onboarding": "node scripts/probar-onboarding.mjs",
     "probar:presentaciones": "node scripts/probar-presentaciones.mjs",
     "revisar:migraciones": "node scripts/revisar-migraciones.mjs",
     "tipos": "next typegen && tsc --noEmit",

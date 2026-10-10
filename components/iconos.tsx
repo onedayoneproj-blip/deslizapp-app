@@ -343,3 +343,53 @@ export const IconoSobre = (p: Props) => (
     <path d="m4.5 8.5 6.4 4.3a2 2 0 0 0 2.2 0l6.4-4.3" />
   </Icono>
 );
+
+// Rubros (capítulo 2 del onboarding: «Lo que vendes»)
+export const IconoPerfume = (p: Props) => (
+  <Icono {...p}>
+    <path d="M10 3h4v3h-4z" />
+    <path d="M7 9.5A2.5 2.5 0 0 1 9.5 7h5A2.5 2.5 0 0 1 17 9.5V19a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z" />
+    <path d="M10 14h4" />
+  </Icono>
+);
+
+export const IconoCamisa = (p: Props) => (
+  <Icono {...p}>
+    <path d="M9 3.5 4 6l1.5 4.5L8 9.6V20h8V9.6l2.5.9L20 6l-5-2.5a3 3 0 0 1-6 0z" />
+  </Icono>
+);
+
+export const IconoAnillo = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="15" r="6" />
+    <path d="m9.5 6 2.5-3 2.5 3-2.5 3z" />
+  </Icono>
+);
+
+export const IconoLabial = (p: Props) => (
+  <Icono {...p}>
+    <path d="M9 11h6v10H9z" />
+    <path d="M10 11V6.5L14 4v7" />
+  </Icono>
+);
+
+export const IconoTazon = (p: Props) => (
+  <Icono {...p}>
+    <path d="M3.5 12h17a8.5 8.5 0 0 1-17 0z" />
+    <path d="M9 8c0-1.5 1.5-1.5 1.5-3M13.5 8c0-1.5 1.5-1.5 1.5-3" />
+  </Icono>
+);
+
+export const IconoCasa = (p: Props) => (
+  <Icono {...p}>
+    <path d="M4 10.5 12 4l8 6.5V20H4z" />
+    <path d="M10 20v-5h4v5" />
+  </Icono>
+);
+
+export const IconoBolsa = (p: Props) => (
+  <Icono {...p}>
+    <path d="M5 8h14l-1 12H6z" />
+    <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+  </Icono>
+);

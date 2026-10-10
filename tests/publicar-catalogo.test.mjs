@@ -1,4 +1,4 @@
-// Publicar mi catálogo: lo mínimo, los textos y que la app y la base digan lo mismo (lib/publicar-catalogo.ts).
+// Publicar mi catálogo: sin mínimo, la confirmación suave, los textos y que la app y la base digan lo mismo (lib/publicar-catalogo.ts).
 import "./cargar-ts.mjs";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -21,18 +21,21 @@ test("cuenta: visible, no eliminado y con al menos una foto", () => {
   assert.equal(P.cuentaParaPublicar(prod({ medios: [{ ...foto, url: "" }] })), false, "foto sin dirección");
 });
 
-test("cuántos faltan", () => {
-  assert.equal(C.PRODUCTOS_MINIMOS_PARA_PUBLICAR, 3);
-  assert.equal(P.faltanParaPublicar([]), 3);
-  assert.equal(P.faltanParaPublicar([prod(), prod({ medios: [] })]), 2);
-  assert.equal(P.faltanParaPublicar([prod(), prod(), prod()]), 0);
-  assert.equal(P.faltanParaPublicar([prod(), prod(), prod(), prod()]), 0);
-  assert.equal(P.faltanParaPublicar([prod()], 5), 4);
+test("sin mínimo: con menos de 5 se pregunta con suavidad; con 5 o más, directo", () => {
+  assert.equal(C.PRODUCTOS_SUGERIDOS_PARA_PUBLICAR, 5);
+  assert.equal("PRODUCTOS_MINIMOS_PARA_PUBLICAR" in C, false, "ya no hay mínimo");
+  assert.equal(P.productosQueCuentan([prod(), prod({ medios: [] }), prod({ activo: false })]), 1);
+  assert.equal(P.pideConfirmarPublicar(0), true);
+  assert.equal(P.pideConfirmarPublicar(4), true);
+  assert.equal(P.pideConfirmarPublicar(5), false);
+  assert.equal(P.pideConfirmarPublicar(9), false);
 });
 
-test("textos de lo que falta, en singular y plural", () => {
-  assert.equal(P.textoFaltan(2), "Te faltan 2 productos con foto para publicar tu catálogo");
-  assert.equal(P.textoFaltan(1), "Te falta 1 producto con foto para publicar tu catálogo");
+test("título de la confirmación: vacío, singular y plural", () => {
+  assert.equal(P.tituloConfirmarPublicar(0), "Tu catálogo está vacío");
+  assert.equal(P.tituloConfirmarPublicar(1), "Tu catálogo tiene 1 producto");
+  assert.equal(P.tituloConfirmarPublicar(3), "Tu catálogo tiene 3 productos");
+  assert.equal(P.textoCatalogoPronto("Esencias Michel"), "Pronto, aquí van los productos de Esencias Michel.");
 });
 
 test("el enlace que tendrá el catálogo", () => {
@@ -46,12 +49,13 @@ test("la lista de lo que no se puede vender está completa y en un solo lugar", 
   }
 });
 
-test("la app y la base dicen lo mismo: el mínimo y la dirección base", () => {
+test("la app y la base dicen lo mismo: sin mínimo y la misma dirección base", () => {
   const dir = new URL("../supabase/migrations/", import.meta.url);
-  const archivo = readdirSync(dir).filter((f) => f.endsWith("_publicar_catalogo.sql")).sort().at(-1);
-  assert.ok(archivo, "falta la migración publicar_catalogo");
+  // La última migración que define publicar_mi_catalogo.
+  const archivo = readdirSync(dir).filter((f) => f.endsWith(".sql") && readFileSync(new URL(f, dir), "utf8").includes("function public.publicar_mi_catalogo")).sort().at(-1);
+  assert.ok(archivo, "falta la migración de publicar_mi_catalogo");
   const sql = readFileSync(new URL(archivo, dir), "utf8");
-  assert.match(sql, new RegExp(`v_minimo constant integer := ${C.PRODUCTOS_MINIMOS_PARA_PUBLICAR};`));
+  assert.ok(!sql.includes("catalogo_incompleto"), `${archivo} todavía exige un mínimo`);
   assert.ok(sql.includes(`v_base constant text := '${C.URL_BASE_CATALOGO}';`));
 });
 
@@ -60,16 +64,18 @@ const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const T = await import("../lib/data/tiendas.ts");
 const LINO = "a1000000-0000-4000-8000-000000000003";
 const AHORA = "2026-10-08T12:00:00.000Z";
+// Lino & Algodón con n productos que cuentan (la demo trae menos que el mínimo: se repiten con otro id).
 const conProductos = (n) => {
   const d = construirDesdeSeed();
-  const suyos = d.productos.filter((p) => p.tiendaId === LINO && cuentaOk(p)).slice(0, n);
+  const base = d.productos.filter((p) => p.tiendaId === LINO && cuentaOk(p));
+  const suyos = Array.from({ length: n }, (_, i) => ({ ...base[i % base.length], id: `${base[i % base.length].id}-${i}` }));
   return { ...d, productos: [...d.productos.filter((p) => p.tiendaId !== LINO), ...suyos] };
 };
 const cuentaOk = (p) => P.cuentaParaPublicar(p);
 
-test("demo: sin lo mínimo no publica; con lo mínimo sí, con el enlace estándar", () => {
-  assert.throws(() => T.publicarMiCatalogoEnDB(conProductos(2), LINO, AHORA), /te faltan productos con foto/i);
-  const r = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+test("demo: publica aunque esté vacío, con el enlace estándar", () => {
+  assert.equal(T.publicarMiCatalogoEnDB(conProductos(0), LINO, AHORA).tienda.catalogoEstado, "publicado", "vacío también");
+  const r = T.publicarMiCatalogoEnDB(conProductos(5), LINO, AHORA);
   assert.equal(r.tienda.catalogoEstado, "publicado");
   assert.equal(r.tienda.urlCatalogo, "https://deslizapp-app.vercel.app/tienda/lino-y-algodon");
   assert.equal(r.tienda.catalogoPublicadoEn, AHORA);
@@ -78,7 +84,7 @@ test("demo: sin lo mínimo no publica; con lo mínimo sí, con el enlace estánd
 });
 
 test("demo: dejar de mostrar conserva el enlace y el primer momento; volver a publicar no los pierde", () => {
-  const a = T.publicarMiCatalogoEnDB(conProductos(3), LINO, AHORA);
+  const a = T.publicarMiCatalogoEnDB(conProductos(5), LINO, AHORA);
   const b = T.despublicarMiCatalogoEnDB(a.db, LINO);
   assert.equal(b.tienda.catalogoEstado, "sin");
   assert.equal(b.tienda.urlCatalogo, a.tienda.urlCatalogo);
@@ -89,7 +95,7 @@ test("demo: dejar de mostrar conserva el enlace y el primer momento; volver a pu
 });
 
 test("demo: no pisa un flujo manual en curso ni publica una tienda pausada", () => {
-  const d = conProductos(3);
+  const d = conProductos(5);
   const enCurso = { ...d, tiendas: d.tiendas.map((t) => (t.id === LINO ? { ...t, catalogoEstado: "solicitado" } : t)) };
   assert.throws(() => T.publicarMiCatalogoEnDB(enCurso, LINO, AHORA), /en camino/);
   assert.throws(() => T.despublicarMiCatalogoEnDB(enCurso, LINO), /cambió de estado/);

@@ -4,12 +4,16 @@ import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { temaDeTienda } from "@/lib/tienda/tema";
 import { portada } from "@/lib/tienda/catalogo";
+import { SUBTEXTO_CATALOGO_PRONTO, textoCatalogoPronto } from "@/lib/publicar-catalogo";
 import { Reel } from "./reel";
 import { Icono } from "./iconos";
 import { colorDePortada } from "./medios";
 
-/** Lo que el panel le manda a esta vista (mismo sitio, por `postMessage`). */
-export type DatosVistaPrevia = { tienda: CatalogoPublico["tienda"]; producto: ProductoPublico };
+/**
+ * Lo que el panel le manda a esta vista (mismo sitio, por `postMessage`): un producto (el borrador de la hoja de producto) o
+ * todos los productos de la tienda («Ver cómo queda» del catálogo; vacío = el «pronto» del catálogo publicado sin productos).
+ */
+export type DatosVistaPrevia = { tienda: CatalogoPublico["tienda"] } & ({ producto: ProductoPublico } | { productos: ProductoPublico[] });
 export const MENSAJE_VISTA_PREVIA = "deslizapp-vista-previa";
 export const AVISO_VISTA_PREVIA = "Así lo verá tu cliente";
 
@@ -86,12 +90,32 @@ export function VistaPreviaReel() {
     };
   }, [datos !== null]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const lista = !datos ? [] : "productos" in datos ? datos.productos : [datos.producto];
+  const [activo, setActivo] = useState<string | null>(null);
+  const actual = activo ?? lista[0]?.slug ?? null;
   const slugTienda = datos?.tienda.slug;
-  const fotoPortada = datos ? portada(datos.producto) : "";
+  const primero = lista.find((x) => x.slug === actual) ?? lista[0];
+  const fotoPortada = primero ? portada(primero) : "";
+
+  // Con varios productos: el activo es el que se ve (como en el catálogo, que lo sigue al desplazarse).
+  const claves = lista.map((x) => x.slug).join("|");
+  useEffect(() => {
+    const el = root.current;
+    if (!el || lista.length < 2) return;
+    const obs = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) if (e.isIntersecting) setActivo((e.target as HTMLElement).dataset.id ?? null);
+      },
+      { threshold: 0.6 },
+    );
+    el.querySelectorAll<HTMLElement>("#reels [data-id]").forEach((r) => obs.observe(r));
+    return () => obs.disconnect();
+  }, [claves]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!datos) return;
+    if (!primero) return;
     const tema = temaDeTienda(datos.tienda);
-    const t = tema.tintes[datos.producto.slug];
+    const t = tema.tintes[primero.slug];
     if (t) {
       root.current?.style.setProperty("--tint", t.c);
       return;
@@ -108,7 +132,7 @@ export function VistaPreviaReel() {
   }, [slugTienda, fotoPortada]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!datos) return <div className="catalogo-publico catalogo-vacio"><p>Armando la vista…</p></div>;
-  const { tienda: t, producto: p } = datos;
+  const t = datos.tienda;
   const tema = temaDeTienda(t);
   const estilo = {
     ...Object.fromEntries(Object.entries(tema.colores).map(([k, v]) => ["--" + k, v])),
@@ -154,26 +178,42 @@ export function VistaPreviaReel() {
             <img src={fotoPortada} alt="" />
           </div>
         )}
-        <Reel
-          p={p}
-          t={t}
-          i={0}
-          n={1}
-          activo
-          anterior={false}
-          siguiente={false}
-          cantidadPedido={0}
-          seleccionado={() => false}
-          elegir={() => avisar()}
-          eleccion={null}
-          abrirPresentaciones={() => avisar()}
-          abrirFicha={() => avisar()}
-          registrarBurst={() => {}}
-          perfil={() => avisar()}
-          opiniones={() => avisar()}
-          avisar={() => avisar()}
-          compartir={() => avisar()}
-        />
+        {lista.map((p, i) => (
+          <Reel
+            key={p.id}
+            p={p}
+            t={t}
+            i={i}
+            n={lista.length}
+            activo={actual === p.slug}
+            anterior={lista[i + 1]?.slug === actual}
+            siguiente={lista[i - 1]?.slug === actual}
+            cantidadPedido={0}
+            seleccionado={() => false}
+            elegir={() => avisar()}
+            eleccion={null}
+            abrirPresentaciones={() => avisar()}
+            abrirFicha={() => avisar()}
+            registrarBurst={() => {}}
+            perfil={() => avisar()}
+            opiniones={() => avisar()}
+            avisar={() => avisar()}
+            compartir={() => avisar()}
+          />
+        ))}
+        {lista.length === 0 && (
+          <article className="reel fin on" data-id="fin">
+            <div className="media">
+              <div className="finbox">
+                <div className="bigav">
+                  <span aria-hidden="true" />
+                </div>
+                <h2 data-catalogo-pronto="">{textoCatalogoPronto(t.nombre)}</h2>
+                <p>{SUBTEXTO_CATALOGO_PRONTO}</p>
+              </div>
+            </div>
+          </article>
+        )}
       </main>
       {toast && <div className="dztoast on" role="status">{toast}</div>}
     </div>
