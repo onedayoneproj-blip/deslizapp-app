@@ -98,3 +98,11 @@ test("las claves del onboarding son las mismas en la app y en la base", () => {
   assert.ok(sql.includes("where slug not in ('tienda-de-ensayo', 'soft-era')"), "relleno: menos la de ensayo y Soft Era");
   assert.ok(!/drop function/i.test(sql), "nunca drop function");
 });
+
+test("«Pon tu logo»: solo imágenes y hasta 20 MB, con mensajes claros", () => {
+  assert.equal(O.errorArchivoLogo({ type: "image/jpeg", size: 3_000_000 }), null);
+  assert.equal(O.errorArchivoLogo({ type: "image/heic", size: O.LOGO_MAX_BYTES }), null);
+  assert.match(O.errorArchivoLogo({ type: "application/pdf", size: 1000 }), /no es una imagen/);
+  assert.match(O.errorArchivoLogo({ type: "", size: 1000 }), /no es una imagen/);
+  assert.match(O.errorArchivoLogo({ type: "image/png", size: O.LOGO_MAX_BYTES + 1 }), /pesa mucho/);
+});

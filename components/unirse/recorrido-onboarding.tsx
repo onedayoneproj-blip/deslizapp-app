@@ -9,6 +9,7 @@ import {
   capituloListo,
   datosParaCrear,
   DURACION_HISTORIA_MS,
+  errorArchivoLogo,
   errorNombreTienda,
   errorVendedora,
   inicialesTienda,
@@ -28,11 +29,13 @@ import {
   type Borrador,
   type Capitulo,
 } from "@/lib/onboarding";
+import { reducirLogo } from "@/lib/imagen";
 import { RUBROS, type Rubro } from "@/lib/rubros";
 import {
   IconoAnillo,
   IconoBolsa,
   IconoCamisa,
+  IconoCamara,
   IconoCasa,
   IconoCheck,
   IconoCerrar,
@@ -59,6 +62,11 @@ export type FuenteOnboarding = {
   vistaSlug: (nombre: string) => Promise<string | null>;
   /** Crea la tienda con todo junto. Lanza un Error con el mensaje para la persona. */
   crear: (datos: { nombre: string; rubros: Rubro[]; whatsapp: string; vendedora: string }) => Promise<void>;
+  /**
+   * «Pon tu logo» en «ya existe» (opcional): sube el logo ya reducido (data URL) a la tienda recién creada y devuelve la dirección
+   * que se muestra. Lanza un Error con el mensaje para la persona.
+   */
+  ponerLogo: (logo: string) => Promise<string>;
   /** «Ver mi tienda». */
   alTerminar: () => void;
 };
@@ -150,7 +158,7 @@ export function RecorridoOnboarding({ fuente }: { fuente: FuenteOnboarding }) {
       />
     );
 
-  if (etapa === "existe") return <YaExiste nombre={borrador.nombre.trim()} alSeguir={fuente.alTerminar} />;
+  if (etapa === "existe") return <YaExiste nombre={borrador.nombre.trim()} alSeguir={fuente.alTerminar} ponerLogo={fuente.ponerLogo} />;
 
   return (
     <Capitulos
@@ -360,7 +368,7 @@ function Bajada({ children, className }: { children: ReactNode; className?: stri
 function Sticker({ nombre, ancho, alto, className, giro = 0 }: { nombre: string; ancho: number; alto: number; className?: string; giro?: number }) {
   return (
     <span className={clases("onb-rebote pointer-events-none absolute", className)} style={{ "--giro": `${giro}deg` } as CSSProperties} data-sticker={nombre}>
-      <Image src={`/stickers/marca/${nombre}.webp`} alt="" width={ancho} height={alto} loading="lazy" unoptimized draggable={false} className="onb-flota block select-none" />
+      <Image src={`/stickers/marca/${nombre}.webp`} alt="" width={ancho} height={alto} loading="lazy" unoptimized draggable={false} className="onb-flota block select-none" style={{ width: ancho, height: "auto" }} />
     </span>
   );
 }
@@ -391,13 +399,13 @@ function Historia2() {
       <div {...entra(0)} className="onb-entra relative mx-auto mb-10 w-[170px]">
         <Destello className="-left-14 top-4 size-5 text-marca-mandarina" />
         <div className="relative overflow-hidden rounded-[26px] border-4 border-marca-papel shadow-[0_24px_48px_-16px_rgb(0_0_0/0.45)]">
-          <Image src={EJEMPLO.kiara.foto} alt="" width={170} height={300} className="h-[300px] w-full object-cover" priority draggable={false} />
+          <Image src={EJEMPLO.kiara.foto} alt="" width={162} height={300} className="h-[300px] w-full object-cover" priority draggable={false} />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 text-marca-papel">
             <p className="font-extrabold leading-tight">{EJEMPLO.kiara.nombre}</p>
             <p className="text-secundario font-bold">{EJEMPLO.kiara.precio}</p>
           </div>
         </div>
-        <Sticker nombre="desliza-y-pide" ancho={92} alto={124} giro={10} className="-right-20 top-36" />
+        <Sticker nombre="desliza-y-pide" ancho={92} alto={123} giro={10} className="-right-20 top-36" />
       </div>
       <Titulo>
         Deslizan.
@@ -861,22 +869,78 @@ function Burbuja({ children, className }: { children: ReactNode; className?: str
 
 // ─── Fin del capítulo 1 ───────────────────────────────────────────────────────────────────────────────────────────────────
 
-function YaExiste({ nombre, alSeguir }: { nombre: string; alSeguir: () => void }) {
+function YaExiste({ nombre, alSeguir, ponerLogo }: { nombre: string; alSeguir: () => void; ponerLogo: FuenteOnboarding["ponerLogo"] }) {
+  const entrada = useRef<HTMLInputElement>(null);
+  const [logo, setLogo] = useState<string | null>(null);
+  const [subiendo, setSubiendo] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  // Opcional: si sale mal, se queda con las iniciales y puede volver a intentarlo (o ponerlo después desde Mi marca).
+  const elegir = async (archivo: File | undefined) => {
+    if (entrada.current) entrada.current.value = "";
+    if (!archivo || subiendo) return;
+    const malo = errorArchivoLogo(archivo);
+    if (malo) {
+      setAviso(malo);
+      return;
+    }
+    setAviso(null);
+    setSubiendo(true);
+    try {
+      const reducido = await reducirLogo(archivo).catch(() => {
+        throw new Error("No pudimos leer esa imagen. Prueba con otra.");
+      });
+      setLogo(await ponerLogo(reducido));
+    } catch (e) {
+      setAviso(e instanceof Error && e.message ? e.message : "No se pudo subir tu logo. Inténtalo otra vez.");
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 overflow-hidden bg-marca-bosque text-marca-papel" data-onboarding="existe">
       <FondoPatron color="#2b6550" />
       <div className="relative mx-auto flex h-full max-w-[480px] flex-col px-6 pt-[calc(56px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))]">
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <div className="relative mb-10">
+          <div className="relative mb-12">
             <Destello className="-left-14 bottom-2 size-6 text-marca-mandarina" />
             <IconoCorazon tamano={22} className="onb-flota absolute -left-16 top-4 fill-marca-rosa-fija text-marca-rosa-fija" />
-            {/* Las iniciales aparecen con un pop y su halo se abre detrás (docs/08, excepción «Historias del onboarding»). */}
+            {/* Las iniciales (o el logo) aparecen con un pop y su halo se abre detrás (docs/08, excepción «Historias del onboarding»). */}
             <span aria-hidden="true" className="onb-halo absolute inset-0 rounded-full bg-marca-papel/[0.06]" />
-            <div className="onb-pop relative rounded-full bg-marca-papel/10 p-6">
-              <AvatarTienda nombre={nombre} cap="fin" grande />
+            <div key={logo ? `logo:${logo}` : "iniciales"} className="onb-pop relative rounded-full bg-marca-papel/10 p-6">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element -- el logo recién subido (o el data URL en la demo)
+                <img src={logo} alt={`Logo de ${nombre}`} className="size-[150px] rounded-full bg-white object-cover" data-logo-tienda />
+              ) : (
+                <AvatarTienda nombre={nombre} cap="fin" grande />
+              )}
             </div>
-            <Sticker nombre="aaah-corazon" ancho={104} alto={88} giro={10} className="-right-16 -top-8" />
+            <Sticker key={logo ? `sticker:${logo}` : "sticker"} nombre="aaah-corazon" ancho={104} alto={90} giro={10} className="-right-16 -top-8" />
+            {!logo && (
+              <button
+                type="button"
+                onClick={() => entrada.current?.click()}
+                disabled={subiendo}
+                className="tocable absolute -bottom-5 left-1/2 flex h-10 -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-marca-papel px-4 text-secundario font-extrabold text-marca-bosque shadow-[0_10px_24px_-10px_rgb(0_0_0/0.5)] disabled:opacity-70"
+                data-poner-logo
+              >
+                {subiendo ? (
+                  "Subiendo tu logo…"
+                ) : (
+                  <>
+                    <IconoCamara tamano={16} /> Pon tu logo
+                  </>
+                )}
+              </button>
+            )}
+            <input ref={entrada} type="file" accept="image/*" hidden aria-label="Pon tu logo" onChange={(e) => void elegir(e.target.files?.[0])} />
           </div>
+          {aviso && (
+            <p role="alert" className="mb-4 rounded-[14px] bg-marca-papel px-3 py-2 text-secundario font-bold text-marca-bosque" data-aviso-logo>
+              {aviso}
+            </p>
+          )}
           <p className="text-etiqueta tracking-[0.18em]">FIN DEL CAPÍTULO 1</p>
           <h1 className="mt-3 font-display text-titulo-pantalla">
             {nombre}
@@ -885,7 +949,7 @@ function YaExiste({ nombre, alSeguir }: { nombre: string; alSeguir: () => void }
           <p className="mt-3 text-cuerpo">Ahora déjala lista para su primer aaah.</p>
         </div>
         <p className="mb-2 text-center font-mano text-mano">lo que sigue lo escriben tus clientes</p>
-        <Boton tamano="grande" anchoCompleto onClick={alSeguir} className="!border-marca-mandarina !bg-marca-mandarina !text-marca-bosque" data-ver-mi-tienda>
+        <Boton tamano="grande" anchoCompleto onClick={alSeguir} deshabilitado={subiendo} className="!border-marca-mandarina !bg-marca-mandarina !text-marca-bosque" data-ver-mi-tienda>
           Ver mi tienda
         </Boton>
       </div>

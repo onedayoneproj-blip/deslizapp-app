@@ -2,8 +2,10 @@
 // El código es un secreto de un solo uso. Se guarda solo en ESTE navegador mientras se entra con Google (sessionStorage y una
 // cookie corta limitada a /unirse); el retorno de Google vuelve a `/unirse` sin el código. Se borra apenas se reclama.
 
+import type { Tienda } from "../types";
 import { createClient } from "../supabase/client";
 import { esErrorDeRed, traducirErrorSupabase } from "./errores";
+import { aTienda, type FilaTienda } from "./filas";
 
 const KEY = "deslizapp-unirse";
 const COOKIE = "dz_unirse";
@@ -128,8 +130,8 @@ export async function crearMiTienda(enlaceId: string, nombre: string, rubro: str
 export async function crearMiTiendaCompleta(
   enlaceId: string,
   datos: { nombre: string; rubros: string[]; whatsapp: string; vendedora: string },
-): Promise<void> {
-  const { error } = await createClient().rpc("crear_mi_tienda_completa", {
+): Promise<Tienda> {
+  const { data, error } = await createClient().rpc("crear_mi_tienda_completa", {
     p_enlace_id: enlaceId,
     p_nombre: datos.nombre.trim(),
     p_rubros: datos.rubros,
@@ -146,6 +148,24 @@ export async function crearMiTiendaCompleta(
     if (m.includes("nombre_vendedora_invalido")) throw new Error("Escribe cómo te llaman (hasta 40 letras).");
     throw traducirErrorSupabase(error);
   }
+  return aTienda(data as FilaTienda);
+}
+
+/**
+ * «Pon tu logo» en «ya existe»: el MISMO camino que Mi marca (`actualizarMarca` de la fuente de Supabase), que sube el archivo a
+ * la carpeta de la tienda y cumple `tiendas_logo_url_propia`. Conserva los colores, el estilo y el enlace que ya tiene la tienda.
+ * `logo` es el data URL que entrega `reducirLogo`.
+ */
+export async function ponerLogoTiendaNueva(tienda: Tienda, logo: string): Promise<Tienda> {
+  const { crearFuenteSupabase } = await import("./supabase");
+  const fuente = crearFuenteSupabase(createClient(), () => {});
+  return fuente.actualizarMarca(tienda.id, {
+    logoUrl: logo,
+    principal: tienda.marcaColorPrincipal,
+    acento: tienda.marcaColorAcento,
+    estilo: tienda.marcaEstilo,
+    urlCatalogo: tienda.urlCatalogo,
+  });
 }
 
 /** El enlace que tendría la tienda con ese nombre, según la base (vista_slug: incluye el -2 si ya existe). null si no sirve. */

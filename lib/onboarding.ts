@@ -175,3 +175,15 @@ export function slugDemo(nombre: string, ocupados: readonly string[]): string | 
   for (let i = 2; ocupados.includes(slug); i++) slug = `${base}-${i}`;
   return slug;
 }
+
+// ─── El logo en «ya existe» (opcional) ───────────────────────────────────────────────────────────────────────────────────
+
+/** Lo más pesado que se acepta para el logo (fotos del teléfono incluidas; después se reduce a 512 px). */
+export const LOGO_MAX_BYTES = 20 * 1024 * 1024;
+
+/** Por qué no sirve el archivo elegido para el logo, en la voz de la marca; null si sirve. */
+export function errorArchivoLogo(archivo: { type: string; size: number }): string | null {
+  if (!archivo.type.startsWith("image/")) return "Eso no es una imagen. Elige una foto o tu logo.";
+  if (archivo.size > LOGO_MAX_BYTES) return "Esa imagen pesa mucho. Prueba con una más liviana (hasta 20 MB).";
+  return null;
+}

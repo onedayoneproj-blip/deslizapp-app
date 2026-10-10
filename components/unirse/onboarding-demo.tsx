@@ -17,6 +17,11 @@ const FUENTE: FuenteOnboarding = {
   },
   // Nada real: la tienda de la demo no se crea; se simula la espera.
   crear: () => esperar(700),
+  // El logo tampoco se sube: se muestra el que eligió (data URL) después de una espera corta.
+  ponerLogo: async (logo) => {
+    await esperar(600);
+    return logo;
+  },
   alTerminar: () => window.location.assign(new URL("/", window.location.origin).href),
 };
 

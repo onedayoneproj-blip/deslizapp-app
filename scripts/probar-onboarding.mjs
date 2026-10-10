@@ -146,6 +146,20 @@ for (const ancho of [390, 360]) {
   await page.waitForTimeout(500);
   await foto("10-ya-existe");
 
+  console.log("• Pon tu logo (opcional)");
+  const archivo = page.locator('[data-onboarding=existe] input[type=file]');
+  await archivo.setInputFiles({ name: "nota.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
+  ok((await page.locator("[data-aviso-logo]").innerText()).includes("no es una imagen"), "un archivo que no es imagen: lo dice y se queda con las iniciales");
+  await archivo.setInputFiles({ name: "enorme.png", mimeType: "image/png", buffer: Buffer.alloc(21 * 1024 * 1024) });
+  ok((await page.locator("[data-aviso-logo]").innerText()).includes("pesa mucho"), "una imagen muy pesada: lo dice");
+  ok((await page.locator("[data-logo-tienda]").count()) === 0, "sigue con las iniciales");
+  await archivo.setInputFiles("public/tienda/michel-kiara.jpg");
+  await page.waitForSelector("[data-logo-tienda]", { timeout: 8000 });
+  ok((await page.locator("[data-aviso-logo]").count()) === 0, "con una foto real: el círculo muestra su logo");
+  ok((await page.locator("[data-poner-logo]").count()) === 0, "el botón se va cuando ya tiene logo");
+  await page.waitForTimeout(900);
+  await foto("11-ya-existe-con-logo");
+
   ok(errores.length === 0, `sin errores de página${errores.length ? `: ${errores.join(" | ")}` : ""}`);
   ok(supabase === 0, "la demo no llama a Supabase");
   await ctx.close();
