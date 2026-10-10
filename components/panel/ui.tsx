@@ -14,7 +14,7 @@ import type { AvisoLlegada, Producto } from "@/lib/types";
 import { HojaEspera } from "../catalogo/hoja-espera";
 
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
-type CampoMarca = "enlace";
+type CampoMarca = "enlace" | "logo" | "colores";
 type PanelUI = {
   espera: ReturnType<typeof useConsulta<AvisoLlegada[]>> & { resumen: ReturnType<typeof resumenEspera> | undefined };
   abrirEspera: (producto?: Producto) => void;

@@ -100,6 +100,8 @@ export type FuenteDatos = {
   trabajosRetoque(tiendaId: string): Promise<TrabajoRetoque[]>;
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
   actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda>;
+  marcarOnboarding(tiendaId: string, clave: import("../onboarding").ClaveOnboarding): Promise<void>;
+  guardarPerfilCatalogo(tiendaId: string, descripcion: string, instagram: string): Promise<Tienda>;
   /** «Lo que vendes»: los tipos de producto de la tienda (el primero es el principal). No deja quitar un tipo que algún producto usa. */
   guardarRubros(tiendaId: string, rubros: Rubro[]): Promise<Tienda>;
   /** «Mi marca» para el retoque: Instagram, 3 palabras, lo que no quiere y las fotos de referencia (3 a 6). Es lectura (Ver como la puede pedir). */

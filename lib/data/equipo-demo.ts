@@ -117,6 +117,7 @@ export const GRUPO_DE_OPERACION: Record<string, Grupo> = {
   cambiarVisibilidad: "catalogo", guardarProductoConInventario: "catalogo", guardarVariantes: "catalogo", guardarFotoValor: "catalogo", guardarFicha: "catalogo", actualizarMarca: "catalogo", guardarRubros: "catalogo",
   solicitarCatalogo: "catalogo", pedirCambiosCatalogo: "catalogo", publicarCatalogo: "catalogo",
   // Publicarse al público es decisión de la dueña (la base exige el grupo «equipo», que es solo suyo).
+  marcarOnboarding: "equipo", guardarPerfilCatalogo: "marca",
   publicarMiCatalogo: "equipo", despublicarMiCatalogo: "equipo",
   usarCreditosRetoque: "creditos", pedirRetoque: "creditos",
   guardarMarcaRetoque: "marca",

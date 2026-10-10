@@ -1,3 +1,5 @@
+import { perfilCatalogoValido } from "../onboarding-checklist";
+import { CLAVES_ONBOARDING } from "../onboarding";
 import { eliminarProductoDeDB, revisarEliminacionProducto } from "./eliminar-producto";
 import { pedirRetoqueEnDB, trabajosDeTienda } from "./retoques";
 import type { ColorAvatar } from "../avatar-cliente";
@@ -207,6 +209,20 @@ const fuenteDemoBase: FuenteDatos = {
   },
 
   /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo. */
+  async marcarOnboarding(tiendaId, clave) {
+    if (!CLAVES_ONBOARDING.includes(clave)) throw new DatosInvalidos("Ese paso no existe.");
+    escribir(db => {
+      if (!db.tiendas.some(t => t.id === tiendaId && t.estado !== "eliminada")) throw new DatosInvalidos("No encontramos tu tienda.");
+      return { ...db, tiendas: db.tiendas.map(t => t.id !== tiendaId ? t : { ...t, onboarding: { ...t.onboarding, [clave]: t.onboarding?.[clave] ?? new Date().toISOString() } }) };
+    });
+  },
+  async guardarPerfilCatalogo(tiendaId, descripcion, instagram) {
+    const perfil = perfilCatalogoValido(descripcion, instagram);
+    let actualizada!: Tienda;
+    escribir(db => ({ ...db, tiendas: db.tiendas.map(t => { if (t.id !== tiendaId) return t; actualizada = { ...t, ...perfil }; return actualizada; }) }));
+    if (!actualizada) throw new DatosInvalidos("No encontramos tu tienda.");
+    return actualizada;
+  },
   async actualizarMarca(tiendaId: string, datos: DatosMarca): Promise<Tienda> {
     let actualizada!: Tienda;
     escribir((db) => {
