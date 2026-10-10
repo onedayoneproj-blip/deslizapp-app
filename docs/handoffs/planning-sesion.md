@@ -20,9 +20,9 @@ La decisión del onboarding vive en [docs/17-onboarding.md](../17-onboarding.md#
 
 ## Projects
 
-Pendiente de creación manual: el CLI devolvió `Resource not accessible by integration` al consultar Projects. La conexión sí permite gestionar Issues. No hay tablero creado ni enlace confirmado.
+Lewis creó **Deslizapp roadmap**, Project #2, y compartió el enlace. Está registrado en [docs/gestion-del-proyecto.md](../gestion-del-proyecto.md), junto con los accesos y pasos de configuración.
 
-Guía y enlaces para Lewis: [docs/gestion-del-proyecto.md](../gestion-del-proyecto.md). Cuando Lewis cree el tablero y comparta el enlace, añadirlo allí; no duplicar esta guía.
+Planning sigue sin acceso de Projects: consultar #2 devuelve `Resource not accessible by integration (user.projectV2)`. Sí puede mantener las Issues. La configuración e inclusión de tareas en el Project están pendientes de comprobación; no duplicar el tablero ni darlo por configurado.
 
 ## Fuera de la cola activa
 

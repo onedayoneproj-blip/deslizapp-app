@@ -7,13 +7,16 @@
 - [Índice de documentación](00-contexto-del-proyecto.md).
 - [Relevo de Planning](handoffs/planning-sesion.md).
 - [Reglas de coordinación y memoria](forma-de-trabajo.md).
+- [Deslizapp roadmap](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap).
 - [Projects del repositorio](https://github.com/onedayoneproj-blip/deslizapp-app/projects).
 
-## Tablero: pendiente de creación
+## Project creado por Lewis
 
-La conexión usada por Planning permite gestionar Issues, pero no Projects v2. La consulta de Projects por CLI devolvió `Resource not accessible by integration`. No se ha creado ningún Project ni se han configurado columnas o automatizaciones. No inventar un enlace de tablero ni prometer que la conexión actual puede actualizar sus campos.
+Lewis creó **Deslizapp roadmap**, Project #2 de `onedayoneproj-blip`, y compartió su [vista Roadmap](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) el 10 de octubre de 2026. La existencia y el nombre provienen de su reporte.
 
-Lewis puede crear el tablero desde [sus Projects](https://github.com/users/onedayoneproj-blip/projects): **New project → Board**, título **Deslizapp · Lanzamiento**. Mantener el proyecto privado salvo que Lewis decida compartirlo. Después, compartir el enlace con Planning para registrar el acceso.
+Planning intentó consultar este proyecto y recibió `Resource not accessible by integration (user.projectV2)`. La conexión permite gestionar Issues, pero todavía no leer ni actualizar Projects v2. No se han comprobado desde Planning los elementos, campos, vistas adicionales, privacidad ni automatizaciones; no afirmar que ya estén configurados.
+
+Usar este Project; no crear otro para cada vista. Añadir una vista **Board** agrupada por Status para el trabajo diario y conservar **Roadmap** para fechas acordadas. Las tareas sin fechas pueden estar en el proyecto sin dibujar una barra temporal: no inventar plazos para hacerlas aparecer.
 
 Configuración propuesta, aún no aplicada:
 - Status: Por aclarar, Listo, En curso, Bloqueado, Por validar, Terminado.
@@ -27,7 +30,7 @@ Añadir tareas existentes con **Add item** y buscar el repositorio y sus número
 - [#98 · Validación completa en iPhone](https://github.com/onedayoneproj-blip/deslizapp-app/issues/98).
 - [#99 · Enlace de invitación y tienda prellenada](https://github.com/onedayoneproj-blip/deslizapp-app/issues/99).
 
-Estas tareas están abiertas; sus columnas y prioridades no están configuradas. No lanzar Coding por añadir una tarjeta. Las dependencias y condiciones de cierre se consultan en cada Issue.
+Estas tareas están abiertas; su inclusión en el Project, columnas y prioridades aún no están comprobadas por Planning. No lanzar Coding por añadir una tarjeta. Las dependencias y condiciones de cierre se consultan en cada Issue.
 
 Si no hay acceso de Projects para Planning, Lewis mueve las tarjetas desde la web y Planning mantiene el contenido de las tareas por la conexión disponible. No abrir tareas duplicadas para simular cambios de columnas.
 
