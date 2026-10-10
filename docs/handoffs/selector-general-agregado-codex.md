@@ -1,6 +1,6 @@
 # Handoff para Planning — selector, «De todo» y vista General
 
-Coding, 10 oct 2026. Rama `fix/selector-catalogo-general-agregado`, desde `main` `614297f941354104451fc18e6230dc815510f277` (squash de #96). PR y commit: se completan tras publicar la rama y abrirlo.
+Coding, 10 oct 2026. Rama `fix/selector-catalogo-general-agregado`, commit de implementación `33cd79eec7e18275203d4ab84bacacfa6f00cfe4`, desde `main` `614297f941354104451fc18e6230dc815510f277` (squash de #96). PR [#100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), abierto, sin fusionar; GitHub reporta `mergeable: true`.
 
 ## Cambios por comportamiento
 
