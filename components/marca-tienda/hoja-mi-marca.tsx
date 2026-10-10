@@ -35,12 +35,12 @@ import { NOMBRE_TIPO, rubrosDeTienda } from "@/lib/rubros";
 const ORDEN_ESTILOS: EstiloMarca[] = ["elegante", "moderna", "divertida", "clasica"];
 
 /** "Mi marca": logo, colores, estilo tipográfico y enlace del catálogo de la tienda activa. */
-export function HojaMiMarca({ abierta, alCerrar, campo }: { abierta: boolean; alCerrar: () => void; campo?: "enlace" }) {
+export function HojaMiMarca({ abierta, alCerrar, campo }: { abierta: boolean; alCerrar: () => void; campo?: "enlace" | "logo" | "colores" }) {
   const { tienda } = useTiendaActiva();
   // "grande": tiene campos (enlace, colores) y la hoja no cambia de tamaño con el teclado (HANDOFF.md)
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Mi marca" altura="grande">
-      {tienda && <Formulario key={`${tienda.id}:${campo ?? ""}`} tienda={tienda} alTerminar={alCerrar} mostrarEnlace={campo === "enlace"} />}
+      {tienda && <Formulario key={`${tienda.id}:${campo ?? ""}`} tienda={tienda} alTerminar={alCerrar} mostrarEnlace={campo === "enlace"} campo={campo} />}
     </Hoja>
   );
 }
@@ -68,10 +68,10 @@ function promoDeEjemplo(tienda: Tienda, promos: Promo[] | undefined): Promo {
   };
 }
 
-function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alTerminar: () => void; mostrarEnlace: boolean }) {
-  const { actualizarMarca, guardarMarcaRetoque, getMarcaRetoque, getPromos, getProductos, soloMirar: verComo } = useData();
+function Formulario({ tienda, alTerminar, mostrarEnlace, campo }: { tienda: Tienda; alTerminar: () => void; mostrarEnlace: boolean; campo?: "enlace" | "logo" | "colores" }) {
+  const { marcarOnboarding, actualizarMarca, guardarMarcaRetoque, getMarcaRetoque, getPromos, getProductos, soloMirar: verComo } = useData();
   // Mi marca la edita la dueña o un Administrador (grupo «marca»). A los demás se les muestra sin editar, con el porqué.
-  const { puede, porque } = usePermisos();
+  const { puede, porque, esDuena } = usePermisos();
   const sinPermiso = !verComo && !puede("marca");
   const soloMirar = verComo || sinPermiso;
   const { tiendaId } = useTiendaActiva();
@@ -99,6 +99,11 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
     const t = setTimeout(() => setResaltar(false), 1600);
     return () => clearTimeout(t);
   }, [mostrarEnlace]);
+  useEffect(() => {
+    if (campo !== "colores" && campo !== "logo") return;
+    const id = window.requestAnimationFrame(() => document.getElementById(`mi-marca-${campo}`)?.scrollIntoView({ block: "start" }));
+    return () => window.cancelAnimationFrame(id);
+  }, [campo]);
   const [vendiendo, setVendiendo] = useState(false);
   const [procesando, setProcesando] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -181,6 +186,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
         });
         lista = marcaLista(guardada);
       }
+      if (esDuena && (campo === "colores" || marca.principal !== tienda.marcaColorPrincipal || marca.acento !== tienda.marcaColorAcento)) await marcarOnboarding(tiendaId, "colores_elegidos_en");
       toast(lista ? "Tu marca está lista para el taller." : "Mi marca guardada.");
       alTerminar();
     } catch (e) {
@@ -202,7 +208,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
 
       {/* Logo */}
       <div>
-        {titulo("Logo")}
+        <span id="mi-marca-logo" />{titulo("Logo")}
         <div className="flex items-center gap-3">
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element -- data URL del logo, sin optimizar
@@ -234,7 +240,7 @@ function Formulario({ tienda, alTerminar, mostrarEnlace }: { tienda: Tienda; alT
 
       {/* Colores */}
       <div>
-        {titulo("Colores")}
+        <span id="mi-marca-colores" />{titulo("Colores")}
         <div role="group" aria-label="Combinaciones propuestas" className="grid grid-cols-3 gap-2">
           {combos.map((m, i) => {
             const elegida = m.principal === legible.principal && m.acento === legible.acento;

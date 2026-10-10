@@ -4,6 +4,7 @@
 //   despachar (RPC despachar_pedido) y los créditos (RPC gastar_creditos). El RLS limita todo a tu tienda.
 // - Las filas (snake_case) se convierten SOLO con lib/data/filas.ts.
 
+import { perfilCatalogoValido } from "../onboarding-checklist";
 import { errorDeRubros } from "../rubros";
 import { equipoSupabase } from "./equipo-supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -510,6 +511,15 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
           )) ?? [];
         return filas.map((f) => desdeFilaAdmin(f) as TrabajoRetoque);
       }),
+    async marcarOnboarding(tiendaId, clave) {
+      await requerido(supabase.rpc("marcar_onboarding", { p_tienda_id: tiendaId, p_clave: clave }), () => new DatosInvalidos("No pudimos guardar este paso."));
+      cambio(undefined);
+    },
+    async guardarPerfilCatalogo(tiendaId, descripcion, instagram) {
+      const perfil = perfilCatalogoValido(descripcion, instagram);
+      const f = await requerido<FilaTienda>(supabase.from("tiendas").update(perfil).eq("id", tiendaId).select("*").maybeSingle(), () => new DatosInvalidos("No encontramos tu tienda."));
+      return cambio(aTienda(f));
+    },
     async actualizarMarca(tiendaId, datos) {
       const antes = await tiendaCruda(tiendaId);
       const logoUrl = await subirLogo(supabase.storage, tiendaId, datos.logoUrl);

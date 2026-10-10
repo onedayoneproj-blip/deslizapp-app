@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.57.0", fecha: "2026-10-10", titulo: "Tu tienda, paso a paso.",
+    cambios: ["Una guía en Inicio te ayuda a dejar tu tienda lista, sin bloquearte.", "Toca las rayas para consultar cada capítulo y sus pasos.", "Minimiza la guía y vuelve a ella cuando quieras, en este navegador.", "Cuando terminas, la guía se despide. Lo que sigue lo escriben tus clientes."],
+  },
+  {
     version: "0.56.0", fecha: "2026-10-09", titulo: "Clientes con carita.",
     cambios: [
       "Dale a cada cliente un avatar con emoji: el color del círculo sale del emoji solito (o lo eliges tú).",

@@ -11,11 +11,17 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { resumenEspera } from "@/lib/avisos";
 import type { AvisoLlegada, Producto } from "@/lib/types";
+import { clavePreferenciaChecklist, leerPreferenciaChecklist, guardarPreferenciaChecklist, type PreferenciaChecklist } from "@/lib/preferencia-checklist";
 import { HojaEspera } from "../catalogo/hoja-espera";
 
 /** `enlace`: Mi marca abre mostrando el campo del enlace del catálogo. */
-type CampoMarca = "enlace";
+type CampoMarca = "enlace" | "logo" | "colores";
 type PanelUI = {
+  hojaAbierta: boolean;
+  capituloChecklist: number | undefined;
+  checklistMinimizada: boolean;
+  minimizarChecklist: (minimizada: boolean, capitulo: number) => void;
+  seleccionarCapituloChecklist: (capitulo: number) => void;
   espera: ReturnType<typeof useConsulta<AvisoLlegada[]>> & { resumen: ReturnType<typeof resumenEspera> | undefined };
   abrirEspera: (producto?: Producto) => void;
   abrirPlan: () => void;
@@ -55,6 +61,17 @@ function novedadesPendientes(): Novedad[] {
 export function PanelUIProvider({ children }: { children: ReactNode }) {
   const { avisosPendientes } = useData();
   const { tiendaId } = useTiendaActiva();
+  const { modo, usuarioId } = useData();
+  const [preferenciasChecklist, setPreferenciasChecklist] = useState<Record<string, PreferenciaChecklist>>({});
+  const claveChecklist = clavePreferenciaChecklist(usuarioId ?? "sin-sesion", modo, tiendaId);
+  // PanelUI solo se monta en el navegador. Lectura síncrona: nunca destella expandida.
+  const preferencia = preferenciasChecklist[claveChecklist] ?? leerPreferenciaChecklist(claveChecklist);
+  const actualizarChecklist = (valor: PreferenciaChecklist) => {
+    guardarPreferenciaChecklist(claveChecklist, valor);
+    setPreferenciasChecklist(v => ({ ...v, [claveChecklist]: valor }));
+  };
+  const seleccionarCapituloChecklist = (capitulo: number) => actualizarChecklist({ ...preferencia, capitulo });
+  const minimizarChecklist = (minimizada: boolean, capitulo: number) => actualizarChecklist({ minimizada, capitulo });
   const consultaEspera = useConsulta(`avisos:${tiendaId}`, () => avisosPendientes(tiendaId), true);
   const resumen = useMemo(() => consultaEspera.data === undefined ? undefined : resumenEspera(consultaEspera.data, tiendaId), [consultaEspera.data, tiendaId]);
   const [vistaEspera, setVistaEspera] = useState<{ tiendaId: string; abierta: boolean; producto?: Producto }>({ tiendaId, abierta: false });
@@ -96,7 +113,7 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
   const [equipoAbierto, setEquipoAbierto] = useState(false);
   const abrirEquipo = useCallback(() => setEquipoAbierto(true), []);
   const cerrarEquipo = useCallback(() => setEquipoAbierto(false), []);
-  const valor = { abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEquipo, abrirEspera, espera: { ...consultaEspera, resumen } };
+  const valor = { hojaAbierta: marcaAbierta || equipoAbierto || planAbierto || inventarioAbierto || vistaEspera.abierta || novedades.length > 0, capituloChecklist: preferencia.capitulo, checklistMinimizada: preferencia.minimizada, minimizarChecklist, seleccionarCapituloChecklist, abrirPlan, abrirInventario, abrirNovedades, abrirMiMarca, abrirEquipo, abrirEspera, espera: { ...consultaEspera, resumen } };
 
   return (
     <Contexto.Provider value={valor}>

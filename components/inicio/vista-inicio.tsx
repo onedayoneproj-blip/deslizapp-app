@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChecklistTienda } from "./checklist-tienda";
 import { useEffect, useMemo, useState } from "react";
 import { CREDITOS_POR_RETOQUE, NOMBRE_PLAN, STOCK_BAJO } from "@/lib/config";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -157,6 +158,7 @@ function Inicio() {
         />
       )}
 
+      <ChecklistTienda />
       <div className="flex flex-col gap-4 px-5 pt-4">
         {!data && <Esqueleto className="h-[93px] rounded-[22px] min-[420px]:h-[74px]" />}
         {nuevos > 0 && (

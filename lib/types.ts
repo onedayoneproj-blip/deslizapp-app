@@ -11,6 +11,7 @@ export type { EstadoCatalogo };
 export type Plan = "p20" | "p60" | "p100" | "custom";
 
 export type Tienda = {
+  onboarding?: Partial<Record<import("./onboarding").ClaveOnboarding, string>>;
   personalizacion?: Record<string, unknown>;
   whatsapp?: string | null;
   instagram?: string | null;

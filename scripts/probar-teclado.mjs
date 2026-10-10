@@ -406,7 +406,7 @@ try {
     await page.fill('[role="dialog"] input[aria-label="Nombre del cliente"]', ""); // viene con lo que se buscó
     await probarCampo(page, '[role="dialog"] input[aria-label="Nombre del cliente"]', "Crear cliente · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[aria-label="WhatsApp del cliente"]', "Crear cliente · WhatsApp", "8095550123", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] [placeholder^="Talla"]', "Crear cliente · Nota", "Talla M", { dentroDeHoja: true });
     // Selector de productos (misma hoja): el foco también va en el toque que lo abre
     await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del formulario de cliente al buscador
     // El selector compartido ahora protege también este borrador: comprueba el aviso antes de descartarlo.
@@ -495,7 +495,7 @@ try {
     await page.waitForTimeout(700);
     await probarCampo(page, '[role="dialog"] input[placeholder="Ej: Paola Jiménez"]', "Cliente nuevo · Nombre", "Marina", { dentroDeHoja: true });
     await probarCampo(page, '[role="dialog"] input[type="tel"]', "Cliente nuevo · WhatsApp", "8095551234", { dentroDeHoja: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Cliente nuevo · Nota", "Talla M", { dentroDeHoja: true });
+    await probarCampo(page, '[role="dialog"] [placeholder^="Talla"]', "Cliente nuevo · Nota", "Talla M", { dentroDeHoja: true });
     ok(errores.length === 0, `Clientes: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -548,10 +548,10 @@ try {
     await page.waitForSelector('[role="dialog"] button:has-text("Editar")');
     await page.waitForTimeout(700);
     await page.tap('[role="dialog"] button:has-text("Editar")');
-    await page.waitForSelector('[role="dialog"] input[placeholder^="Talla"]');
+    await page.waitForSelector('[role="dialog"] [placeholder^="Talla"]');
     await page.waitForTimeout(700);
     // Dos hojas (cliente + editar): el chequeo de la hoja usa la primera; aquí solo se mira el campo (como en "Registrar abono")
-    await probarCampo(page, '[role="dialog"] input[placeholder^="Talla"]', "Editar cliente · Nota", " Le gusta el rosa");
+    await probarCampo(page, '[role="dialog"] [placeholder^="Talla"]', "Editar cliente · Nota", " Le gusta el rosa");
     ok(errores.length === 0, `Editar cliente: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -609,6 +609,23 @@ try {
     await probarCampo(page, 'input[aria-label^="Monto del abono"]', "Registrar abono · Monto", "500");
     await probarCampo(page, 'input[placeholder="Ej. le di cambio"]', "Registrar abono · Nota", "le di cambio");
     ok(errores.length === 0, `Registrar abono: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+  // Perfil de la guía: teclado estable después de minimizar y restaurar.
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.goto(URL);
+    await page.getByRole('button', { name: 'Minimizar', exact: true }).click();
+    await page.getByRole('button', { name: /Desplegar Deja tu tienda lista/ }).click();
+    await page.getByRole('group', { name: 'Capítulos de preparación' }).getByRole('button', { name: /^Capítulo 2 ·/ }).click();
+    await page.getByRole('button', { name: /^Cuéntales quién eres ·/ }).click();
+    await page.getByRole('textbox', { name: 'Tu tienda en una línea' }).waitFor();
+    await page.waitForTimeout(700);
+    for (const [nombre, texto] of [['Tu tienda en una línea', 'Perfumes para cada día'], ['Instagram', 'perfumes.demo']]) {
+      const id = await page.getByRole('textbox', { name: nombre }).getAttribute('id');
+      await probarCampo(page, `[id="${id}"]`, `Guía · ${nombre}`, texto, { dentroDeHoja: true, reemplazar: true });
+    }
+    ok(errores.length === 0, `Guía: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 } finally {

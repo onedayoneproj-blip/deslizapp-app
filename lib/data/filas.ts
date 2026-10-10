@@ -48,6 +48,7 @@ const igual: AjusteFecha = (iso) => iso;
 // ---------------------------------------------------------------------------
 
 export type FilaTienda = {
+  onboarding?: Partial<Record<import("../onboarding").ClaveOnboarding, string>>;
   personalizacion?: Record<string, unknown>;
   whatsapp?: string | null;
   instagram?: string | null;
@@ -259,6 +260,7 @@ export type FilaEventoAaah = { id: string; tienda_id: string; producto_id: strin
 
 export function aTienda(f: FilaTienda, fecha: AjusteFecha = igual): Tienda {
   return {
+    onboarding: f.onboarding ?? {},
     personalizacion: f.personalizacion ?? {},
     whatsapp: f.whatsapp ?? null,
     instagram: f.instagram ?? null,
