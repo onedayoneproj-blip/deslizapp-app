@@ -28,13 +28,13 @@ export function guardarCatalogoActivo(tiendaId: string, rubro: CatalogoPanel) {
   try {
     localStorage.setItem(clave(tiendaId), rubro);
   } catch {
-    // sin almacenamiento: la próxima vez abre el principal
+    // sin almacenamiento: la próxima vez usa la selección inicial de la tienda
   }
 }
 
-/** El catálogo con el que abre: el último visto si la tienda lo sigue vendiendo; si no, el principal. */
+/** Sin preferencia, General en tiendas multirrubro; preferencias válidas y tiendas de un rubro se conservan. */
 export const catalogoInicial = (t: TiendaRubros, ultimo: CatalogoPanel | null): CatalogoPanel => {
-  if (ultimo === CATALOGO_GENERAL && rubrosDeTienda(t).length > 1) return CATALOGO_GENERAL;
+  if ((ultimo === null || ultimo === CATALOGO_GENERAL) && rubrosDeTienda(t).length > 1) return CATALOGO_GENERAL;
   return tipoPorDefecto(t, ultimo && esRubro(ultimo) ? ultimo : null);
 };
 

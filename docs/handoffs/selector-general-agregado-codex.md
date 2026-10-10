@@ -1,3 +1,13 @@
+## Ajuste vigente · primera visita sin preferencia
+
+Nuevo encargo de Planning tras la validación manual de Lewis: con varios rubros y sin preferencia guardada, Catálogo abre la vista virtual «General». Si hay una selección válida, conserva la última de esa tienda; `general` sigue significando el rubro físico «De todo», separado de `__general_agregado__`. Tiendas con un solo rubro y preferencias obsoletas mantienen sus fallbacks actuales. No se migra ni borra almacenamiento.
+
+Se conserva la corrección P2 anterior del estado React asociado a tiendaId. Pruebas nuevas: primera visita, persistencia de selección, A→B→A con preferencias distintas y producto nuevo desde agregado usando rubro principal real. Script de navegador y unitarias ajustados. Verificaciones de esta ronda: tipos, build Webpack, lint (0 errores, 32 avisos anteriores; afectados sin avisos), suite de 77 archivos y 40 comprobaciones Chromium a 360/390 px. Se añadieron dos casos unitarios y se ajustó el de selección inicial. El comentario P2 anterior se marcó resuelto después de aprobar ambas vueltas entre tiendas. Preview exacta y HEAD en la entrega del PR/chat. Capturas nuevas en `docs/capturas/selector-general-inicial/`. El PR sigue abierto, sin merge ni publicación; no Supabase ni datos reales.
+
+Lewis: en Demo privada, entrar a Catálogo de una tienda multirrubro → General; elegir De todo, salir/volver y recargar → De todo; alternar dos tiendas con selecciones distintas y verificar cada una. Desde General, + Producto debe mostrar el rubro principal real. Safari/PWA físico y preferencias de cuentas reales pendientes.
+
+---
+
 # Handoff para Planning — selector, «De todo» y vista General
 
 Coding, 10 oct 2026. Rama `fix/selector-catalogo-general-agregado`, desde `main` `614297f941354104451fc18e6230dc815510f277` (squash de #96). PR [#100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), abierto, sin fusionar. Verificar el HEAD y estado de preview enlazado desde el PR.

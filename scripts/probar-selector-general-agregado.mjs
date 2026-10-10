@@ -3,6 +3,9 @@
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
+import { mkdirSync } from "node:fs";
+const CAPTURAS = "docs/capturas/selector-general-inicial";
+mkdirSync(CAPTURAS, { recursive: true });
 import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
@@ -35,7 +38,6 @@ for (const ancho of [360, 390]) {
     localStorage.setItem("deslizapp-modo-v1", "demo");
     localStorage.setItem("deslizapp-sesion-v1", tienda);
     localStorage.setItem("deslizapp-demo-v5", JSON.stringify(datos));
-    localStorage.setItem(`deslizapp-catalogo-activo:${datos.tiendas.find((t) => t.id !== tienda).id}`, datos.tiendas.find((t) => t.id !== tienda).rubros[1]);
   }, { tienda: TIENDA, datos: base });
   await page.goto(`${URL}/catalogo`);
   const selector = "h1 [data-selector-catalogo]";
@@ -49,9 +51,11 @@ for (const ancho of [360, 390]) {
   };
   const nombreActivo = async (sel = selector) => ((await page.locator(sel).getAttribute("aria-label")) ?? "").replace(/^[^:]+: /, "").replace(/\. Cambiar$/, "");
 
+  ok((await nombreActivo()) === "General", "primera visita sin preferencia abre General agregado");
   await abrir();
   const opciones = (await page.locator(`${MENU} button`).allInnerTexts()).map((s) => s.replace(/\s+/g, " ").trim());
   ok(opciones.join() === "General 4,Ropa 2,Accesorios 2,De todo 1,Hogar 0,Lo que vendes", "el menú distingue General, De todo y los catálogos físicos");
+  await page.screenshot({ path: `${CAPTURAS}/general-sin-preferencia-${ancho}.png` });
   await page.keyboard.press("Escape");
 
   await elegir("De todo");
@@ -62,6 +66,7 @@ for (const ancho of [360, 390]) {
   await page.reload();
   await page.waitForSelector(selector);
   ok((await nombreActivo()) === "De todo", "la selección guardada del rubro general permanece");
+  await page.screenshot({ path: `${CAPTURAS}/de-todo-persistido-${ancho}.png` });
 
   await elegir("General");
   const idsGeneral = await page.locator("ul.grid a[href^='/catalogo/']").evaluateAll((xs) => xs.map((x) => x.getAttribute("href")));
@@ -77,9 +82,16 @@ for (const ancho of [360, 390]) {
     await page.waitForTimeout(250);
   };
   await cambiarTienda(tiendaB.nombre);
+  ok((await nombreActivo()) === "General", "primera visita a B sin preferencia abre su General");
+  await elegir(nombreCatalogoEsperado(rubroGuardadoB));
   ok((await nombreActivo()) === nombreCatalogoEsperado(rubroGuardadoB), "al cambiar de tienda se restaura la selección guardada de B, no General de A");
   await cambiarTienda(tiendaBase.nombre);
   ok((await nombreActivo()) === "General", "al volver a A se restaura su vista General guardada");
+
+  await cambiarTienda(tiendaB.nombre);
+  ok((await nombreActivo()) === nombreCatalogoEsperado(rubroGuardadoB), "B mantiene su catálogo elegido al regresar");
+  await cambiarTienda(tiendaBase.nombre);
+  ok((await nombreActivo()) === "General", "A conserva su preferencia independiente en una segunda vuelta");
 
   await page.goto(`${URL}/catalogo/nuevo`);
   const selectorHoja = "[data-hoja-cabecera] [data-selector-catalogo]";

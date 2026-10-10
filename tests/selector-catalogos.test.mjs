@@ -6,9 +6,9 @@ const { CATALOGO_GENERAL, catalogoInicial, contarPorCatalogo, guardarCatalogoAct
 const tienda = { rubro: "ropa", rubros: ["ropa", "accesorios"] };
 const prods = [{ id: "1", rubro: null }, { id: "2", rubro: "ropa" }, { id: "3", rubro: "accesorios" }, { id: "4", rubro: "accesorios" }];
 
-test("catálogo inicial: el último visto; el principal si no hay o ya no existe", () => {
+test("catálogo inicial: el último visto; General sin preferencia; el principal si la guardada ya no existe", () => {
   assert.equal(catalogoInicial(tienda, "accesorios"), "accesorios");
-  assert.equal(catalogoInicial(tienda, null), "ropa");
+  assert.equal(catalogoInicial(tienda, null), CATALOGO_GENERAL);
   assert.equal(catalogoInicial(tienda, "hogar"), "ropa");
   assert.equal(catalogoInicial({ rubro: "ropa", rubros: ["ropa"] }, "accesorios"), "ropa");
 });
@@ -69,5 +69,38 @@ test("el selector guarda y recupera por separado la vista General y el rubro gen
   } finally {
     if (almacenOriginal === undefined) delete globalThis.localStorage;
     else globalThis.localStorage = almacenOriginal;
+  }
+});
+
+
+test("primera visita multirrubro abre General, incluso con principal general; un rubro queda igual", () => {
+  assert.equal(catalogoInicial({ rubro: "general", rubros: ["general", "ropa"] }, null), CATALOGO_GENERAL);
+  assert.equal(catalogoInicial({ rubro: "general", rubros: ["general"] }, null), "general");
+  assert.equal(catalogoInicial({ rubro: "ropa" }, CATALOGO_GENERAL), "ropa");
+  assert.equal(rubroInicialDeProducto(tienda, null), "ropa");
+});
+
+test("primera visita, persistencia y A→B→A conservan preferencias independientes", () => {
+  const original = globalThis.localStorage;
+  const datos = new Map();
+  globalThis.localStorage = { getItem: k => datos.get(k) ?? null, setItem: (k,v) => datos.set(k,String(v)) };
+  const a = { rubro: "ropa", rubros: ["ropa", "general"] };
+  const b = { rubro: "perfumes", rubros: ["perfumes", "accesorios"] };
+  const entrar = (id,t) => catalogoInicial(t,leerCatalogoActivo(id));
+  try {
+    assert.equal(entrar("A",a),CATALOGO_GENERAL);
+    guardarCatalogoActivo("A","general");
+    assert.equal(entrar("A",a),"general");
+    assert.equal(entrar("B",b),CATALOGO_GENERAL);
+    guardarCatalogoActivo("B","accesorios");
+    assert.equal(entrar("B",b),"accesorios");
+    assert.equal(entrar("A",a),"general");
+    guardarCatalogoActivo("A",CATALOGO_GENERAL);
+    assert.equal(entrar("B",b),"accesorios");
+    assert.equal(entrar("A",a),CATALOGO_GENERAL);
+    assert.equal(rubroInicialDeProducto(a,entrar("A",a)),"ropa");
+  } finally {
+    if (original === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = original;
   }
 });

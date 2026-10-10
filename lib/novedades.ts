@@ -23,7 +23,7 @@ export type Novedad = {
 const TODAS: Novedad[] = [
   {
     version: "0.58.0", fecha: "2026-10-10", titulo: "Tus catálogos, más claros.",
-    cambios: ["«De todo» conserva ese catálogo con otro nombre.", "«General» reúne tus productos sin repetirlos.", "El selector se cierra cuando desplazas la pantalla."],
+    cambios: ["«De todo» conserva ese catálogo con otro nombre.", "«General» reúne tus productos y abre primero si aún no has elegido un catálogo.", "El selector se cierra cuando desplazas la pantalla."],
   },
   {
     version: "0.57.0", fecha: "2026-10-10", titulo: "Tu tienda, paso a paso.",
