@@ -167,8 +167,17 @@ las clases `onb-*` de `app/globals.css`. Solo en las 4 historias de bienvenida y
 - **Sticker** (`onb-rebote`): aparece una vez con un rebote corto (`--curva-resorte`, 520 ms) y después **flota** apenas
   (`onb-flota`, 5 px, 2,8 s, ida y vuelta), igual que el corazón que lo acompaña. Decorativo, sin toques.
 - **«Ya existe»:** las iniciales con su pop (`onb-pop`) y el halo que se abre una vez detrás (`onb-halo`).
+- **Lo que imita la app** (la tarjeta del catálogo, el pedido de WhatsApp, la tarjeta de despacho, el círculo de bienvenida y las
+  burbujas de ejemplo de los capítulos; ajuste de Lewis tras probarlo en su iPhone): entra con rebote (`onb-llega`: sube, escala y
+  gira poco, se pasa y vuelve, 780 ms) y después «levita» (`onb-balancea`: ±2,5° sobre su eje con 3 px de subida, ciclo de 5,4 s)
+  con una sacudida corta cada 5 s (`onb-sacude`, ~450 ms). Envoltorio `Vivo` en `recorrido-onboarding.tsx`.
+- **Stickers manipulables:** se arrastran con el dedo a cualquier lugar de la pantalla (sin salirse; `translate`, sin estado en
+  los capítulos) y tocarlos hace un rebotito (`onb-toque`). Toman sus propios toques: no pasan ni vuelven la historia ni la pausan.
+  Sin girar ni escalar con dos dedos (quedó en solo arrastrar).
 - Solo `transform` y `opacity`. Con movimiento reducido no se mueve nada y todo se ve en su lugar.
-- **Los capítulos de datos no se mueven** (regla del teclado): ni entradas ni flotación mientras la persona escribe.
+- **Capítulos de datos (regla del teclado):** sin entradas; solo las burbujas de ejemplo levitan, y **todo se pausa mientras un campo
+  tiene el foco** (`:has(input:focus)` → `animation-play-state: paused`). Las burbujas no son ancestro de ningún campo y la tarjeta del
+  capítulo 1 (que contiene el campo del nombre) no se anima nunca.
 
 ### Inventario: historial como vista interna
 

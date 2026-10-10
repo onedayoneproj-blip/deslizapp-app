@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import {
   alternarRubro,
@@ -283,7 +283,7 @@ function Historias({ nombre, alTerminar }: { nombre: string | null; alTerminar: 
           {i === 3 && <Historia4 />}
           {ultima && (
             <div className="pointer-events-auto mt-6 flex flex-col items-center gap-2">
-              <p className="font-mano text-mano text-marca-papel">ahora, la historia de tu tienda</p>
+              <p className="font-mano text-[1.625rem] leading-[1.9rem] text-marca-papel">ahora, la historia de tu tienda</p>
               <Boton tamano="grande" anchoCompleto onClick={alTerminar} className="!border-marca-bosque !bg-marca-bosque !text-marca-papel" data-contar-historia>
                 Contar mi historia
               </Boton>
@@ -367,24 +367,86 @@ function Bajada({ children, className }: { children: ReactNode; className?: stri
   );
 }
 
-/** Un sticker de Deslizapp (public/stickers/marca, WebP con alfa): girado un poco, flota apenas y no recibe toques. */
+/**
+ * Un sticker de Deslizapp (public/stickers/marca, WebP con alfa): girado un poco, flota apenas y SE PUEDE ARRASTRAR con el dedo a
+ * cualquier lugar de la pantalla (sin salirse); tocarlo hace un rebotito. Toma sus propios toques: no pasa ni vuelve la historia ni
+ * la pausa. Donde lo deja se queda mientras esté en esa pantalla.
+ */
 function Sticker({ nombre, ancho, alto, className, giro = 0 }: { nombre: string; ancho: number; alto: number; className?: string; giro?: number }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [toques, setToques] = useState(0);
+  const arrastre = useRef<{ id: number; x0: number; y0: number; px: number; py: number; caja: DOMRect; movio: boolean } | null>(null);
+
+  const bajar = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    arrastre.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, px: pos.x, py: pos.y, caja: e.currentTarget.getBoundingClientRect(), movio: false };
+  };
+  const mover = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    const a = arrastre.current;
+    if (!a || a.id !== e.pointerId) return;
+    e.stopPropagation();
+    let dx = e.clientX - a.x0;
+    let dy = e.clientY - a.y0;
+    if (!a.movio && Math.hypot(dx, dy) < 5) return;
+    a.movio = true;
+    // Nunca fuera de la pantalla.
+    dx = Math.min(Math.max(dx, -a.caja.left), window.innerWidth - a.caja.right);
+    dy = Math.min(Math.max(dy, -a.caja.top), window.innerHeight - a.caja.bottom);
+    setPos({ x: a.px + dx, y: a.py + dy });
+  };
+  const soltar = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    const a = arrastre.current;
+    if (!a || a.id !== e.pointerId) return;
+    e.stopPropagation();
+    arrastre.current = null;
+    if (!a.movio) setToques((t) => t + 1);
+  };
+
   return (
-    <span className={clases("onb-rebote pointer-events-none absolute", className)} style={{ "--giro": `${giro}deg` } as CSSProperties} data-sticker={nombre}>
-      <Image src={`/stickers/marca/${nombre}.webp`} alt="" width={ancho} height={alto} loading="lazy" unoptimized draggable={false} className="onb-flota block select-none" style={{ width: ancho, height: "auto" }} />
+    <span
+      className={clases("onb-rebote pointer-events-auto absolute z-20 cursor-grab touch-none active:cursor-grabbing", className)}
+      style={{ "--giro": `${giro}deg`, translate: `${pos.x}px ${pos.y}px` } as CSSProperties}
+      onPointerDown={bajar}
+      onPointerMove={mover}
+      onPointerUp={soltar}
+      onPointerCancel={soltar}
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}
+      data-sticker={nombre}
+    >
+      <span key={toques} className={clases("block", toques > 0 && "onb-toque")}>
+        <Image src={`/stickers/marca/${nombre}.webp`} alt="" width={ancho} height={alto} loading="lazy" unoptimized draggable={false} className="onb-flota block select-none" style={{ width: ancho, height: "auto" }} />
+      </span>
     </span>
+  );
+}
+
+/**
+ * Lo que imita la app (tarjetas, burbujas, el pedido): entra con un rebote y después «levita», con un balanceo lento y una sacudida
+ * corta cada pocos segundos (docs/08, excepción «Historias del onboarding»). En los capítulos se queda quieto mientras se escribe.
+ */
+function Vivo({ children, className, entrada = false, orden = 0 }: { children: ReactNode; className?: string; entrada?: boolean; orden?: number }) {
+  return (
+    <div {...entra(orden)} className={clases(entrada && "onb-llega", className)}>
+      <div className="onb-balancea">
+        <div className="onb-sacude">{children}</div>
+      </div>
+    </div>
   );
 }
 
 function Historia1({ nombre }: { nombre: string | null }) {
   return (
     <>
-      <div {...entra(0)} className="onb-entra relative mx-auto mb-10 size-[210px]">
+      <div {...entra(0)} className="onb-llega relative mx-auto mb-10 size-[210px]">
         <Destello className="-left-8 top-24 size-5 text-marca-mandarina" />
         <IconoCorazon tamano={28} className="onb-flota absolute -bottom-2 -left-4 fill-marca-mandarina text-marca-mandarina" />
-        <div className="flex size-full items-center justify-center rounded-full bg-marca-bosque text-marca-papel shadow-[0_24px_48px_-16px_rgb(16_54_42/0.45)]">
-          <Isotipo tamano={124} />
-        </div>
+        <Vivo className="size-full">
+          <div className="flex size-[210px] items-center justify-center rounded-full bg-marca-bosque text-marca-papel shadow-[0_24px_48px_-16px_rgb(16_54_42/0.45)]">
+            <Isotipo tamano={124} />
+          </div>
+        </Vivo>
         <Sticker nombre="aaah" ancho={132} alto={100} giro={8} className="-right-14 -top-8" />
       </div>
       <Titulo>
@@ -399,8 +461,9 @@ function Historia1({ nombre }: { nombre: string | null }) {
 function Historia2() {
   return (
     <>
-      <div {...entra(0)} className="onb-entra relative mx-auto mb-10 w-[170px]">
+      <div {...entra(0)} className="onb-llega relative mx-auto mb-10 w-[170px]">
         <Destello className="-left-14 top-4 size-5 text-marca-mandarina" />
+        <Vivo>
         <div className="relative overflow-hidden rounded-[26px] border-4 border-marca-papel shadow-[0_24px_48px_-16px_rgb(0_0_0/0.45)]">
           <Image src={EJEMPLO.kiara.foto} alt="" width={162} height={300} className="h-[300px] w-full object-cover" priority draggable={false} />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-8 text-marca-papel">
@@ -408,6 +471,7 @@ function Historia2() {
             <p className="text-secundario font-bold">{EJEMPLO.kiara.precio}</p>
           </div>
         </div>
+        </Vivo>
         <Sticker nombre="desliza-y-pide" ancho={92} alto={123} giro={10} className="-right-20 top-36" />
       </div>
       <Titulo>
@@ -424,7 +488,8 @@ function Historia2() {
 function Historia3({ nombre }: { nombre: string | null }) {
   return (
     <>
-      <div {...entra(0)} className="onb-entra relative mx-auto mb-8 w-full max-w-[300px]">
+      <div {...entra(0)} className="onb-llega relative mx-auto mb-8 w-full max-w-[300px]">
+        <Vivo>
         <div className="mx-auto mb-[-18px] flex size-[72px] items-center justify-center rounded-full bg-[#25d366] text-white shadow-[0_12px_28px_-8px_rgb(37_211_102/0.6)]">
           <IconoWhatsApp tamano={38} />
         </div>
@@ -444,7 +509,8 @@ function Historia3({ nombre }: { nombre: string | null }) {
           </div>
           <p className="mt-1 text-right text-contador font-normal text-marca-bosque/60">9:41 ✓✓</p>
         </div>
-        <p className="mt-3 -rotate-3 text-center font-mano text-mano text-mandarina-texto">con recibo y todo</p>
+        </Vivo>
+        <p className="mt-3 -rotate-3 text-center font-mano text-[1.625rem] leading-[1.9rem] text-mandarina-texto">con recibo y todo</p>
       </div>
       <Titulo>
         El pedido te llega
@@ -458,8 +524,9 @@ function Historia3({ nombre }: { nombre: string | null }) {
 function Historia4() {
   return (
     <>
-      <div {...entra(0)} className="onb-entra relative mx-auto mb-8 w-full max-w-[290px]">
+      <div {...entra(0)} className="onb-llega relative mx-auto mb-8 w-full max-w-[290px]">
         <Destello className="-right-2 -top-4 size-6 text-marca-bosque" />
+        <Vivo>
         <div className="relative mx-auto h-[190px] w-[230px] -rotate-3 overflow-hidden rounded-[22px] shadow-[0_20px_40px_-18px_rgb(16_54_42/0.5)]">
           <Image src={EJEMPLO.agotado.foto} alt="" width={230} height={190} className="size-full object-cover" draggable={false} />
           <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 rounded-full border-[3px] border-marca-mandarina bg-marca-papel/85 px-4 py-1 font-display text-titulo-hoja text-marca-mandarina">
@@ -475,6 +542,7 @@ function Historia4() {
             <IconoCheck tamano={16} /> Despachado
           </p>
         </div>
+        </Vivo>
       </div>
       <Titulo>
         Despachas aquí.
@@ -486,6 +554,9 @@ function Historia4() {
 }
 
 // ─── La historia de tu tienda: 4 capítulos ────────────────────────────────────────────────────────────────────────────────
+
+/** El patrón de iconos regados de cada capítulo (docs/10, excepción del onboarding): muy suave, limpio en el título y el campo. */
+const PATRON_CAPITULO: Record<Capitulo, string> = { 1: "#efbdcf", 2: "#f3eadb", 3: "#235a47", 4: "#f77a46" };
 
 const FONDO_CAPITULO: Record<Capitulo, string> = {
   1: "bg-marca-rosa-fija text-marca-bosque",
@@ -574,7 +645,8 @@ function Capitulos({
   const subtitulo = cap === 3 && b.rubros.length ? rubrosEnTexto(b.rubros) : cap === 4 && whatsappParaGuardar(b.whatsapp) ? whatsappVisible(whatsappParaGuardar(b.whatsapp)!) : "la historia de";
 
   return (
-    <div ref={raiz} className={clases("fixed inset-0 flex flex-col", FONDO_CAPITULO[cap])} data-onboarding="capitulos" data-capitulo={cap}>
+    <div ref={raiz} className={clases("fixed inset-0 flex flex-col overflow-hidden", FONDO_CAPITULO[cap])} data-onboarding="capitulos" data-capitulo={cap}>
+      <FondoPatron color={PATRON_CAPITULO[cap]} mascara="capitulo" />
       <form noValidate onSubmit={(e) => void seguir(e)} className="relative mx-auto flex h-full w-full max-w-[480px] flex-col">
         <header className="shrink-0 px-4 pt-[calc(10px+env(safe-area-inset-top))]">
           <Barras total={TOTAL_CAPITULOS} actual={cap - 1} oscura={oscura} />
@@ -681,7 +753,7 @@ function Nota({ id, error, children, oscura = false }: { id: string; error?: str
 }
 
 function Mano({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={clases("mt-8 -rotate-3 text-right font-mano text-mano", className)}>{children}</p>;
+  return <p className={clases("mt-8 -rotate-3 text-right font-mano text-[1.75rem] leading-[2rem]", className)}>{children}</p>;
 }
 
 /** Cap. 1 · El nombre: «Así nace tu enlace», con el slug que devuelve la base (espera corta mientras escribe). */
@@ -915,10 +987,12 @@ function Capitulo4({ b, deGoogle, cambiar, tocado }: { b: Borrador; deGoogle: st
 
 function Burbuja({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clases("ml-auto w-fit max-w-[280px] rounded-[18px] rounded-tr-[6px] bg-menta px-4 py-3 text-secundario text-marca-bosque shadow-[0_16px_32px_-16px_rgb(0_0_0/0.4)]", className)}>
+    <Vivo className={className}>
+    <div className={clases("ml-auto w-fit max-w-[280px] rounded-[18px] rounded-tr-[6px] bg-menta px-4 py-3 text-secundario text-marca-bosque shadow-[0_16px_32px_-16px_rgb(0_0_0/0.4)]")}>
       {children}
       <span className="mt-1 block text-right text-contador font-normal text-marca-bosque/60">9:41 ✓✓</span>
     </div>
+    </Vivo>
   );
 }
 
@@ -1030,9 +1104,10 @@ function YaExiste({
             {nombre}
             <span className="block text-marca-rosa-fija">ya existe.</span>
           </h1>
-          <p className="mt-3 text-cuerpo">Ahora déjala lista para su primer aaah.</p>
+          <p className="mt-7 -rotate-2 font-mano text-[2.25rem] leading-[2.5rem] text-marca-mandarina" data-lo-que-sigue>
+            lo que sigue lo escriben tus clientes
+          </p>
         </div>
-        <p className="mb-2 text-center font-mano text-mano">lo que sigue lo escriben tus clientes</p>
         <Boton tamano="grande" anchoCompleto onClick={alSeguir} deshabilitado={subiendo} className="!border-marca-mandarina !bg-marca-mandarina !text-marca-bosque" data-ver-mi-tienda>
           Ver mi tienda
         </Boton>

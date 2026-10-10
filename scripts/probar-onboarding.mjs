@@ -35,6 +35,27 @@ for (const ancho of [390, 360]) {
   console.log("• Historias");
   ok((await page.locator("h1").innerText()).startsWith("Hola, Michel."), "«Hola, Michel.» con el primer nombre de Google");
   await foto("01-historia-bienvenida");
+  // Stickers manipulables: arrastrar lo mueve y no pasa la historia; tocarlo tampoco; nunca se sale de la pantalla.
+  await page.waitForTimeout(900);
+  const sticker = page.locator("[data-sticker=aaah]");
+  const s0 = await sticker.boundingBox();
+  await page.mouse.move(s0.x + s0.width / 2, s0.y + s0.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(s0.x + s0.width / 2 - 120, s0.y + s0.height / 2 + 260, { steps: 8 });
+  await page.mouse.up();
+  const s1 = await sticker.boundingBox();
+  ok(Math.abs(s1.x - (s0.x - 120)) < 6 && Math.abs(s1.y - (s0.y + 260)) < 6, "el sticker se arrastra con el dedo");
+  ok((await historia()) === "1", "arrastrar el sticker no pasa la historia");
+  await sticker.tap();
+  await page.waitForTimeout(300);
+  ok((await historia()) === "1", "tocar el sticker no pasa la historia");
+  await page.mouse.move(s1.x + s1.width / 2, s1.y + s1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(-400, 2000, { steps: 6 });
+  await page.mouse.up();
+  const s2 = await sticker.boundingBox();
+  ok(s2.x >= -1 && s2.y + s2.height <= 844 + 1, "el sticker no se sale de la pantalla");
+  await foto("01b-sticker-movido");
   const der = page.getByRole("button", { name: "Siguiente historia" });
   const izq = page.getByRole("button", { name: "Historia anterior" });
   await der.tap();
@@ -124,6 +145,9 @@ for (const ancho of [390, 360]) {
   ok((await capitulo()) === "3", "un número que no es dominicano no sigue");
   await campo.fill("8496503269");
   ok((await campo.inputValue()) === "849 650 3269", "el número se agrupa al escribir");
+  ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationPlayState)) === "paused", "con el campo enfocado, la burbuja no se mueve");
+  await page.locator("header button").first().focus();
+  ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationPlayState)) === "running", "sin el campo enfocado, la burbuja levita");
 
   console.log("• Borrador");
   await page.reload();
@@ -160,6 +184,8 @@ for (const ancho of [390, 360]) {
   console.log("• Ya existe");
   await page.waitForSelector("[data-onboarding=existe]");
   ok((await page.locator("h1").innerText()).replace(/\s+/g, " ").includes("Esencias Rosa ya existe."), "«Esencias Rosa ya existe.»");
+  ok((await page.locator("[data-lo-que-sigue]").innerText()) === "lo que sigue lo escriben tus clientes", "«lo que sigue lo escriben tus clientes», protagonista");
+  ok((await page.getByText("Ahora déjala lista", { exact: false }).count()) === 0, "sin «Ahora déjala lista…»");
   ok((await page.evaluate(() => localStorage.getItem("deslizapp-onboarding-demo-v1"))) === null, "el borrador se borra al crear la tienda");
   await page.waitForTimeout(500);
   await foto("10-ya-existe");
@@ -196,6 +222,7 @@ const page = await ctx.newPage();
 await page.goto(`${URL}/unirse/demo`);
 await page.waitForSelector("[data-onboarding=historias]");
 ok((await page.locator(".onb-barra").count()) === 0, "sin barra que se llena");
+ok((await page.locator(".onb-balancea").first().evaluate((el) => getComputedStyle(el).animationName)) === "none", "lo que imita la app no se mueve");
 await page.waitForTimeout(7500);
 ok((await page.locator("[data-historia]").getAttribute("data-historia")) === "1", "no avanza sola");
 await ctx.close();

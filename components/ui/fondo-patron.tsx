@@ -8,7 +8,20 @@ import { clases } from "./comunes";
  * su contraste. Solo en bienvenida, novedades, pantallas vacías, celebraciones y el catálogo público; nunca detrás de listas,
  * formularios o números.
  */
-export function FondoPatron({ color, className }: { /** El tono del patrón (ej. #eeb0c5 sobre rosa, #2b6550 sobre Verde Bosque). */ color: string; className?: string }) {
+export function FondoPatron({
+  color,
+  className,
+  mascara = "historia",
+}: {
+  /** El tono del patrón (ej. #eeb0c5 sobre rosa, #2b6550 sobre Verde Bosque). */
+  color: string;
+  className?: string;
+  /**
+   * Dónde queda limpio: «historia» deja libre la franja del titular y el texto (centro); «capitulo» (onboarding, excepción de
+   * docs/10) deja libre arriba el título y el campo, y el patrón solo asoma en la cabecera y en la parte de abajo.
+   */
+  mascara?: keyof typeof MASCARA;
+}) {
   return (
     <svg
       aria-hidden="true"
@@ -17,9 +30,8 @@ export function FondoPatron({ color, className }: { /** El tono del patrón (ej.
       preserveAspectRatio="xMidYMid slice"
       style={{
         color,
-        // El centro (titular y texto) queda limpio: el patrón vive en los bordes de arriba y de abajo.
-        maskImage: "linear-gradient(to bottom, #000 0%, #000 30%, transparent 46%, transparent 78%, #000 92%)",
-        WebkitMaskImage: "linear-gradient(to bottom, #000 0%, #000 30%, transparent 46%, transparent 78%, #000 92%)",
+        maskImage: MASCARA[mascara],
+        WebkitMaskImage: MASCARA[mascara],
       }}
     >
       {ICONOS.map(([tipo, x, y, tam, giro], i) => (
@@ -30,6 +42,13 @@ export function FondoPatron({ color, className }: { /** El tono del patrón (ej.
     </svg>
   );
 }
+
+const MASCARA = {
+  // El centro (titular y texto) queda limpio: el patrón vive en los bordes de arriba y de abajo.
+  historia: "linear-gradient(to bottom, #000 0%, #000 30%, transparent 46%, transparent 78%, #000 92%)",
+  // Formularios del onboarding: a pantalla completa, pero muy tenue en la franja del título y del campo.
+  capitulo: "linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.3) 14%, rgb(0 0 0 / 0.3) 50%, #000 62%)",
+} as const;
 
 type Tipo = "flecha" | "corazon" | "chat";
 
@@ -55,4 +74,10 @@ const ICONOS: [Tipo, number, number, number, number][] = [
   ["corazon", 368, 704, 30, 12],
   ["chat", 60, 832, 26, -6],
   ["corazon", 250, 836, 20, 8],
+  // Franja media: solo se ve con la máscara de los capítulos (en las historias queda tapada por el texto limpio).
+  ["flecha", 40, 430, 24, 10],
+  ["corazon", 352, 470, 26, -12],
+  ["chat", 30, 560, 26, 8],
+  ["flecha", 330, 600, 24, -8],
+  ["corazon", 120, 640, 20, 14],
 ];

@@ -472,12 +472,90 @@ html {
 .onb-halo {
   animation: onb-halo 900ms var(--curva-salida) 200ms both;
 }
+/* Lo que imita la app (tarjetas, burbujas, el pedido): entra con rebote (sube, escala y gira poco, se pasa y vuelve), después
+   levita con un balanceo lento sobre su eje y, cada 5 s, una sacudida corta (~450 ms). Tocar un sticker: rebotito. */
+@keyframes onb-llega {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.82) rotate(-6deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.05) rotate(2deg);
+  }
+  78% {
+    transform: translateY(2px) scale(0.98) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.onb-llega {
+  animation: onb-llega 780ms var(--curva-salida) both;
+  animation-delay: calc(var(--d, 0) * 110ms);
+}
+@keyframes onb-balancea {
+  0%,
+  100% {
+    transform: rotate(-2.5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2.5deg) translateY(-3px);
+  }
+}
+.onb-balancea {
+  transform-origin: 50% 60%;
+  animation: onb-balancea 5.4s ease-in-out 800ms infinite;
+}
+@keyframes onb-sacude {
+  0%,
+  90%,
+  100% {
+    transform: none;
+  }
+  91.5% {
+    transform: rotate(-4deg);
+  }
+  93% {
+    transform: rotate(4deg);
+  }
+  94.5% {
+    transform: rotate(-3deg);
+  }
+  96% {
+    transform: rotate(2deg);
+  }
+  97.5% {
+    transform: rotate(-1deg);
+  }
+}
+.onb-sacude {
+  animation: onb-sacude 5s ease-in-out 1.8s infinite;
+}
+@keyframes onb-toque {
+  40% {
+    transform: scale(1.14);
+  }
+}
+.onb-toque {
+  animation: onb-toque 360ms var(--curva-resorte);
+}
+/* En los capítulos de datos nada se mueve mientras el campo tiene el foco (regla del teclado: la burbuja no es ancestro del campo,
+   pero tampoco distrae mientras se escribe). */
+[data-onboarding="capitulos"]:has(input:focus) :is(.onb-balancea, .onb-sacude, .onb-flota) {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .onb-entra,
   .onb-rebote,
   .onb-flota,
   .onb-halo,
-  .onb-pop {
+  .onb-pop,
+  .onb-llega,
+  .onb-balancea,
+  .onb-sacude,
+  .onb-toque {
     animation: none;
   }
 }
