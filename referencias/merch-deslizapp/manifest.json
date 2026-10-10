@@ -1,0 +1,123 @@
+{
+  "tienda_id": "95d185a6-61bb-4a97-852c-33ab437be9e4",
+  "slug": "deslizapp",
+  "logo": "logo-rosado-verde.png",
+  "estado_real": "Tienda creada; catálogo sin publicar; cero productos cargados al cierre de este relevo. Verificar antes de continuar.",
+  "familias": [
+    {
+      "slug": "libretas",
+      "nombre": "Libretas Deslizapp",
+      "rubro": "general",
+      "imagen": "libretas.jpg",
+      "disenos_visibles": [
+        "Tengo algo en mente.",
+        "Lo tenías en mente.",
+        "Aquí empieza mi próxima jugada."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "llaveros",
+      "nombre": "Llaveros Deslizapp",
+      "rubro": "accesorios",
+      "imagen": "llaveros.jpg",
+      "disenos_visibles": [
+        "Eso es mío.",
+        "Ay, eso sí.",
+        "Ta’ jevi."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "stickers",
+      "nombre": "Stickers Deslizapp",
+      "rubro": "general",
+      "imagen": "stickers.jpg",
+      "disenos_visibles": [
+        "Ay, eso sí.",
+        "Lo vi. Lo quise.",
+        "Ta’ jevi.",
+        "Un gustico y sigo.",
+        "Solo iba a mirar. Ajá.",
+        "Dale aaah."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "hoodies",
+      "nombre": "Hoodies Deslizapp",
+      "rubro": "ropa",
+      "imagen": "hoodies.jpg",
+      "disenos_visibles": [
+        "Me di mi gustico.",
+        "Deslizaaah…"
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "termos",
+      "nombre": "Termos Deslizapp",
+      "rubro": "hogar",
+      "imagen": "termos.jpg",
+      "disenos_visibles": [
+        "Un chin de agua.",
+        "Bebe agua. Sigue jevi."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "fundas",
+      "nombre": "Fundas Deslizapp",
+      "rubro": "accesorios",
+      "imagen": "fundas.jpg",
+      "disenos_visibles": [
+        "Ta’ jevi.",
+        "Solo iba a mirar. Ajá.",
+        "Me di mi gustico."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "gorras",
+      "nombre": "Gorras Deslizapp",
+      "rubro": "accesorios",
+      "imagen": "gorras.jpg",
+      "disenos_visibles": [
+        "Ta’ jevi.",
+        "Deslizaaah…"
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "tote-bags",
+      "nombre": "Tote bags Deslizapp",
+      "rubro": "accesorios",
+      "imagen": "tote-bags.jpg",
+      "disenos_visibles": [
+        "Aquí van mis gusticos.",
+        "Eso que me encanta."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    },
+    {
+      "slug": "camisetas",
+      "nombre": "Camisetas Deslizapp",
+      "rubro": "ropa",
+      "imagen": "camisetas.jpg",
+      "disenos_visibles": [
+        "Me di mi gustico.",
+        "Solo iba a mirar. Ajá."
+      ],
+      "precio": null,
+      "stock_confirmado": null
+    }
+  ]
+}
