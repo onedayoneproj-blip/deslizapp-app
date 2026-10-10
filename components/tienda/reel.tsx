@@ -26,7 +26,6 @@ export function Reel({
   p,
   t,
   i,
-  n,
   activo,
   siguiente,
   anterior,
@@ -45,7 +44,6 @@ export function Reel({
   p: ProductoPublico;
   t: CatalogoPublico["tienda"];
   i: number;
-  n: number;
   activo: boolean;
   siguiente: boolean;
   anterior: boolean;
@@ -96,6 +94,7 @@ export function Reel({
   const precioBase = v?.precio ?? p.precio;
   const quedan = v?.quedan ?? p.quedan;
   const m = t.personalizacion.mensajes as Record<string, string> | undefined;
+  const etiqueta = p.detalles.para === "ella" ? "Para ella" : p.detalles.para === "el" ? "Para él" : p.detalles.para === "unisex" ? "Para los dos" : null;
   const descripcion = typeof p.detalles.descripcion === "string" ? p.detalles.descripcion.trim() : "";
   const txt = descripcion || "¿Te llama la atención? Escríbeme y te cuento más.";
   // Los Detalles que ya existen (Esencias Michel) siguen en el detalle. El texto del reel termina en el «…» tocable (el botón lo
@@ -229,7 +228,7 @@ export function Reel({
       data-id={p.slug}
       aria-label={p.nombre + (agotado ? ", agotado" : "")}
     >
-      <div className="media" data-media={p.slug}>
+      <div className="media" data-media={p.slug} data-carrusel-multiple={p.medios.length > 1 ? "true" : undefined}>
         <Medios
           medios={p.medios}
           nombre={p.nombre}
@@ -256,21 +255,10 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        <div className="topmeta ov">
-          <span>
-            {String(i + 1).padStart(2, "0")} / {String(n).padStart(2, "0")} ·{" "}
-            {p.detalles.para === "ella"
-              ? "Para ella"
-              : p.detalles.para === "el"
-                ? "Para él"
-                : p.detalles.para === "unisex"
-                  ? "Para los dos"
-                  : t.rubro === "perfumes"
-                    ? "Perfume"
-                    : "Producto"}
-          </span>
+        {(etiqueta || enPedido) && <div className="topmeta ov">
+          <span>{etiqueta}</span>
           {enPedido && <span className="inbadge">En tu pedido</span>}
-        </div>
+        </div>}
         <div className="cap ov">
           <button
             className="who"

@@ -59,7 +59,13 @@ const ESCENARIOS = {
     const t = await r.locator(".cap .pr").innerText();
     ok(/Desde/i.test(t) && t.includes("RD$2,300") && t.includes("4 tallas · 3 colores"), "Debajo del precio: «Desde RD$2,300» y «4 tallas · 3 colores»");
     ok(await boton.evaluate((el) => el.getBoundingClientRect().height >= 44), "El botón mide 44 px o más");
-    ok(await r.locator(".cap").evaluate((el) => el.scrollWidth <= el.clientWidth + 1), "El pie del reel no se desborda");
+    ok(await r.locator(".cap").evaluate((el) => {
+      // El ::after invisible del «…» amplía el toque a 44 px; no es contenido visual.
+      const limite = el.getBoundingClientRect();
+      const rango = document.createRange();
+      rango.selectNodeContents(el);
+      return [...rango.getClientRects()].every(r => r.right <= limite.right + 1 && r.left >= limite.left - 1);
+    }), "El contenido del pie del reel no se desborda");
     ok(await sinDesborde(page), "La página no se desborda a los lados");
     await captura(page, "b1-reel", ancho);
   },
@@ -84,6 +90,7 @@ const ESCENARIOS = {
     ok((await hoja(page).locator(".pres-linea").innerText()).includes("M · Arena"), "La línea dice «M · Arena»");
     await page.waitForTimeout(700);
     ok((await fotoVista(page, "pantalon-de-algodon")) === 2, "El reel fue a la foto del color Arena (la tercera)");
+    ok((await r.locator('.puntos-medios button[aria-pressed="true"]').getAttribute("aria-label")) === "Ver foto 3 de 4", "El punto activo sigue a la foto asignada al color");
     // Un color sin foto asignada no mueve nada: se prueba en la prueba unitaria; aquí, agregar.
     await hoja(page).getByRole("button", { name: "Agregar a mi pedido" }).tap();
     await hoja(page).waitFor({ state: "detached" });

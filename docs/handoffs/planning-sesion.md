@@ -37,6 +37,10 @@ Planning sigue sin acceso de Projects: consultar #2 devuelve `Resource not acces
 - En la comprobación de GitHub siguen abiertos #43, #23 y #2. Son antecedentes; no se autoriza ejecutarlos, fusionarlos ni cerrarlos por estar en esa lista. Verificar su utilidad y estado antes de proponer trabajo.
 - El plan de lanzamiento y las funciones futuras se consultan en [docs/16-ruta-al-lanzamiento.md](../16-ruta-al-lanzamiento.md); no lanzar automáticamente su contenido.
 
+## Entrega del indicador de imágenes
+
+[Handoff de Coding](indicador-carrusel-imagenes-codex.md), [validación](../validacion-carrusel-imagenes.md) y [tarea vigente](https://app.notion.com/p/3f5ed62010cb81fbb5a3eaa6d9ac94a5). Trabajo nuevo desde main que integra PR #100. Consultar en el PR enlazado desde Notion el HEAD, Revisión y preview exactos. Se entrega abierto para revisión, sin merge ni producción. Los estados anteriores de este relevo se conservan como antecedentes.
+
 ## Cómo retomar
 
 Leer contexto, AGENTS, HANDOFF y este relevo; después la tarea de Notion, el documento de la función y el handoff de su PR. Comprobar rama, HEAD, base y estado remoto. Si hay otra sesión sobre el mismo PR, coordinar el relevo antes de escribir.

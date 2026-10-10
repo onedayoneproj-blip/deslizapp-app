@@ -4,7 +4,7 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { navegador, URL, playwright } from "./navegador-catalogo.mjs";
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const resultados = [];
-const caps = "docs/capturas/catalogo-react/recorridos";
+const caps = process.env.CAPTURAS ?? "docs/capturas/catalogo-react/recorridos";
 mkdirSync(caps, { recursive: true });
 const CLAVE = "deslizapp-demo-v5";
 const base = construirDesdeSeed();
