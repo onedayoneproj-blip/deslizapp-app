@@ -1,6 +1,6 @@
 # Relevo vigente de Planning
 
-Actualizado: 10 de octubre de 2026. Última comprobación de GitHub: main `cd804c8a617725d3f0c50a200402d254f61a674c`, PR #96 abierto en `11532b43a456af35f8caf79e65edb70ecf4290fe`, base main. Esta comprobación es anterior al commit documental que contiene este relevo. Verificar de nuevo antes de lanzar o fusionar.
+Actualizado: 10 de octubre de 2026. Última comprobación de GitHub: main `ca0b614d9bc8aa4d5b8ffe4e800339ba0e27bf21`, PR #96 abierto en `0779aff110dcbd8f4cb357d605192a45976a9248`, base main. Esta comprobación es anterior al commit documental que contiene este relevo. Verificar de nuevo antes de lanzar o fusionar.
 
 ## Acuerdo vigente
 
@@ -8,18 +8,21 @@ Planning analiza, revisa y escribe documentación; no edita código de la app. L
 
 Consultar [las reglas de memoria y coordinación](../forma-de-trabajo.md) antes de repartir tareas. Una sesión por PR hasta el merge; si se cambia de herramienta o se agota la sesión, relevo explícito sobre el HEAD remoto comprobado.
 
-## Trabajo activo
+## Tareas y bugs
 
-| Tarea | Responsable y estado | Dependencia/superficie | Próxima acción |
-|---|---|---|---|
-| Onboarding en Inicio, PR [#96](https://github.com/onedayoneproj-blip/deslizapp-app/pull/96), rama `feat/onboarding-checklist-codex` | Coding: nueva sesión manual solicitada a Lewis; no se ha confirmado su inicio. Implementación de siete pasos entregada; Lewis probó la preview y pidió rediseño por capítulos. | Parte 1 ya en main (#95). Superficie: guía en Inicio, cálculo de pasos y pruebas. Reutilizar contratos existentes; no migraciones ni datos reales. | Continuar desde el HEAD remoto más reciente del mismo PR. Aplicar la [decisión aprobada](../17-onboarding.md#decisión-vigente-preparación-por-capítulos-10-oct-2026), unificar el lenguaje con la bienvenida y devolver preview con evidencia. No mergear. |
+El seguimiento de tareas está en [Issues](https://github.com/onedayoneproj-blip/deslizapp-app/issues). No mantener una segunda tabla de estados aquí.
 
-Preview entregada para la implementación anterior: https://deslizapp-k8v7h5ybi-onedayone.vercel.app
-Alias de la rama: https://deslizapp-app-git-feat-onboarding-checklist-codex-onedayone.vercel.app
+- [#97 · Preparación por capítulos, PR #96](https://github.com/onedayoneproj-blip/deslizapp-app/issues/97).
+- [#98 · Validación completa en iPhone](https://github.com/onedayoneproj-blip/deslizapp-app/issues/98).
+- [#99 · Diseño de invitación y tienda prellenada](https://github.com/onedayoneproj-blip/deslizapp-app/issues/99).
 
-Estas URLs no prueban que el rediseño esté implementado. Consultar el despliegue del próximo HEAD. La guía no aparece en Ver como por diseño. Lewis confirmó que la vio al abrir la preview.
+La decisión del onboarding vive en [docs/17-onboarding.md](../17-onboarding.md#decisión-vigente-preparación-por-capítulos-10-oct-2026). La siguiente sesión y el estado del PR se comprueban antes de trabajar; registrar entregas y enlaces en #97. Al preparar estas Issues, GitHub mostró HEAD `0779aff110dcbd8f4cb357d605192a45976a9248`; la validación antigua de `11532b4` no demuestra el resultado del nuevo HEAD.
 
-Evidencia de la entrega anterior: [handoff de Coding en la rama del PR](https://github.com/onedayoneproj-blip/deslizapp-app/blob/feat/onboarding-checklist-codex/docs/handoffs/onboarding-2-checklist-codex.md). Sus pruebas automatizadas no sustituyen la revisión de Lewis; conservar sus resultados como antecedentes.
+## Projects
+
+Pendiente de creación manual: el CLI devolvió `Resource not accessible by integration` al consultar Projects. La conexión sí permite gestionar Issues. No hay tablero creado ni enlace confirmado.
+
+Guía y enlaces para Lewis: [docs/gestion-del-proyecto.md](../gestion-del-proyecto.md). Cuando Lewis cree el tablero y comparta el enlace, añadirlo allí; no duplicar esta guía.
 
 ## Fuera de la cola activa
 
@@ -31,7 +34,7 @@ Evidencia de la entrega anterior: [handoff de Coding en la rama del PR](https://
 
 Leer contexto, AGENTS, HANDOFF y este relevo; después el documento de la función y el handoff de su PR. Comprobar rama, HEAD, base y estado remoto. Si hay otra sesión sobre el mismo PR, coordinar el relevo antes de escribir.
 
-Al terminar una tarea, actualizar su documento y quitarla de la cola activa, dejando referencia al PR/validación. No añadir entregas históricas al estado actual.
+Al terminar una tarea, actualizar su documento y cerrar su Issue si se cumplió el resultado acordado, dejando referencia al PR/validación. No añadir entregas históricas al estado actual.
 
 ## Antecedentes
 
