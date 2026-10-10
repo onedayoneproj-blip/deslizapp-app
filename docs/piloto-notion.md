@@ -4,22 +4,25 @@ Aprobado por Lewis el 10 de octubre de 2026.
 
 ## Estado del piloto
 
-**Prueba técnica aprobada y edición de Lewis confirmada; configuración del piloto pendiente.** El 10/10/2026 Lewis pegó el siguiente informe de la sesión de prueba. Planning registra ese reporte, sin presentarlo como una comprobación independiente desde este chat.
+**Piloto operativo desde el 10 de octubre de 2026; Notion es la fuente del seguimiento.** Esta sesión pasó a ser Planning principal por instrucción de Lewis. Tiene herramientas de Notion y GitHub; analiza, organiza tareas, prepara prompts y revisa entregas sin editar código. Lewis pasa manualmente los encargos a Coding.
 
-- La sesión creó y leyó una tarea con contenido `V1` y estado `Not started`.
-- Editó el contenido a `V2` y la propiedad real de estado a `In progress`.
-- Volvió a leer y confirmó que persistían ambos cambios.
-- [Tarea de prueba](https://app.notion.com/p/3f5ed62010cb8168a9b7fe26a1c7a812?pvs=204).
-- [Base privada de prueba](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d).
-- El [objeto Deslizapp encontrado](https://app.notion.com/p/954ed62010cb8324aef681028a31db6f?pvs=204) devolvió `403 restricted_resource` a esa sesión. Según su informe, es un objeto gestionado por Notion, no un destino editable mediante MCP. No usarlo ni intentar eludir esa restricción.
+[Base Deslizapp · Piloto](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d) · [Tablero](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=3f5ed62010cb815caa6f000cc00c0364) · [Tabla](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=8154b003a9f945fd8a4c17023fd7adf2) · [Roadmap](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d?v=3f5ed62010cb813f8199000c8790da28).
 
-Lewis confirmó en este chat que realizó la edición solicitada («Probado por Lewis»). Se registra su confirmación; Planning no pudo releer Notion desde esta sesión. La sesión con acceso debe verificar esa edición y configurar un destino normal accesible para gestionar Deslizapp. La base anterior sigue siendo de prueba, no un tablero de producción confirmado.
+- [Preparación por capítulos · origen #97](https://app.notion.com/p/3f5ed62010cb81758eded930bc0dcde1).
+- [Validación completa en iPhone · origen #98](https://app.notion.com/p/3f5ed62010cb81b69b01c48a155876b5).
+- [Diseño de invitación y tienda prellenada · origen #99](https://app.notion.com/p/3f5ed62010cb819fb74ce140333f148d).
 
-El plugin figura instalado. En este chat de Planning todavía no se exponen herramientas de Notion, aun después de recargar; la sesión de prueba sí las tuvo. La operatividad debe comprobarse por sesión, no asumirse globalmente. No pedir otra instalación ni afirmar que Planning puede actualizar el tablero desde aquí.
+Se reutilizó la única base accesible. Las tres tareas se crearon, leyeron y editaron; se verificaron después contenido, propiedades, origen, enlaces y relaciones de dependencia. #98 y #99 dependen de #97. No se trasladó el roadmap histórico ni PR #45. Prioridades, responsables y fechas quedaron sin asignar.
 
-**Siguiente:** retomar en la misma sesión con acceso real usando [el prompt de configuración](prompts/piloto-notion-gestion.md), verificar la edición de Lewis, configurar el espacio compartido y trasladar las tres tareas según las reglas siguientes. No dar el piloto por activo por el solo éxito técnico.
+El seguimiento usa exclusivamente **Estado de tarea**, propiedad real Select con Por aclarar, Listo, En curso, Bloqueado, Por validar y Terminado. MCP rechazó la sintaxis para personalizar STATUS. La revisión automática rechazó convertir el Estado existente por riesgo de eliminar sus opciones; se resolvió con una ampliación aditiva que conserva los datos. Estado nativo queda como evidencia de prueba y oculto en las vistas de trabajo; no mantenerlo en paralelo.
 
-Las Issues #97–#99 siguen vigentes. No se migró el backlog ni se modificaron esas Issues para trasladarlas. El [Project de GitHub](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) se conserva.
+La [tarea de prueba](https://app.notion.com/p/3f5ed62010cb8168a9b7fe26a1c7a812) conserva V2 y Done. Lewis aclaró que solo cambió el estado; Planning releyó Done. No existe la frase «Probado por Lewis» en contenido ni comentarios. Se verificó otra edición y reversión inocua; la prueba queda excluida de las vistas activas mediante Prueba. No se publicaron páginas ni se cambiaron permisos globales. La base era privada; Lewis ya pudo editar allí. El acceso de otros usuarios no se da por comprobado.
+
+Se añadieron notas de traslado a las Issues [#97](https://github.com/onedayoneproj-blip/deslizapp-app/issues/97#issuecomment-6097936565), [#98](https://github.com/onedayoneproj-blip/deslizapp-app/issues/98#issuecomment-6097936944) y [#99](https://github.com/onedayoneproj-blip/deslizapp-app/issues/99#issuecomment-6097937292). Se conservan abiertas como antecedentes: los intentos de cierre fallaron o se interrumpieron, sin éxito confirmado. No significan trabajo terminado y ya no se actualiza su seguimiento. Project #2 se conserva como antecedente sin modificar ni borrar.
+
+El objeto gestionado 954ed62010cb8324aef681028a31db6f sigue excluido por su 403 restricted_resource. No se intenta eludirlo. La operatividad de Notion se comprueba por sesión; no está garantizada para Coding u otras sesiones.
+
+**Siguiente:** revisar la entrega vigente del PR #96 desde su tarea, sin merge automático. Roadmap está configurado pero sin barras hasta acordar fechas. Lewis puede abrir el tablero desde el teléfono y crear un bug de prueba sin datos de clientes. Duración sugerida: dos semanas desde activación, pendiente de confirmar; no hay fecha final acordada.
 
 ## Qué acordamos y por qué
 
