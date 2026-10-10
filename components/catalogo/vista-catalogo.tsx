@@ -74,12 +74,13 @@ export function VistaCatalogo() {
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
   // Un catálogo a la vez (sin «Todo»): solo con más de un rubro. Abre el último que miró esta persona, o el principal.
-  const [catalogoElegido, setCatalogoElegido] = useState<CatalogoPanel | null>(null);
+  const [catalogoElegido, setCatalogoElegido] = useState<{ tiendaId: string; catalogo: CatalogoPanel } | null>(null);
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
   const [enHistoria, setEnHistoria] = useState<Producto | null>(null);
   const tipos = tienda ? rubrosDeTienda(tienda) : [];
   const variosTipos = tipos.length > 1;
-  const catalogo: CatalogoPanel | null = tienda && variosTipos ? (catalogoElegido && (catalogoElegido === CATALOGO_GENERAL || tipos.includes(catalogoElegido)) ? catalogoElegido : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
+  const seleccionTienda = catalogoElegido && catalogoElegido.tiendaId === tienda?.id ? catalogoElegido.catalogo : null;
+  const catalogo: CatalogoPanel | null = tienda && variosTipos ? (seleccionTienda && (seleccionTienda === CATALOGO_GENERAL || tipos.includes(seleccionTienda)) ? seleccionTienda : catalogoInicial(tienda, leerCatalogoActivo(tienda.id))) : null;
   const delCatalogo = useMemo(() => (productos && tienda && catalogo ? productosDeCatalogo(productos, tienda, catalogo) : productos), [productos, tienda, catalogo]);
   const conteo = useMemo(() => (productos && tienda && variosTipos ? {
     ...contarPorCatalogo(productos, tienda),
@@ -104,7 +105,7 @@ export function VistaCatalogo() {
         titulo={tienda && catalogo ? (
           <SelectorCatalogo
             tipos={tipos} valor={catalogo} conteo={conteo} tamano="pantalla" textoOtra="Lo que vendes" vistaAgregada={variosTipos}
-            alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido(r)); }}
+            alCambiar={(r) => { guardarCatalogoActivo(tienda.id, r); startTransition(() => setCatalogoElegido({ tiendaId: tienda.id, catalogo: r })); }}
             alVenderOtra={() => setVendiendoOtra(true)}
           />
         ) : "Tu catálogo"}

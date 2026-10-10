@@ -1,6 +1,6 @@
 # Handoff para Planning — selector, «De todo» y vista General
 
-Coding, 10 oct 2026. Rama `fix/selector-catalogo-general-agregado`, commit de implementación `33cd79eec7e18275203d4ab84bacacfa6f00cfe4`, desde `main` `614297f941354104451fc18e6230dc815510f277` (squash de #96). PR [#100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), abierto, sin fusionar; GitHub reporta `mergeable: true`.
+Coding, 10 oct 2026. Rama `fix/selector-catalogo-general-agregado`, desde `main` `614297f941354104451fc18e6230dc815510f277` (squash de #96). PR [#100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), abierto, sin fusionar. Verificar el HEAD y estado de preview enlazado desde el PR.
 
 ## Cambios por comportamiento
 
@@ -44,3 +44,10 @@ La prueba de navegador es Chromium con viewport/touch simulado, no Chrome Androi
 - Confirmar que el nombre «De todo» se aplica a cada selector de rubros del panel donde el rubro real es `general`, mientras «General» queda reservado a la vista agregada.
 - Confirmar que usar el rubro principal para un producto nuevo desde la vista agregada es la opción esperada.
 - Comprobar el scroll y los nombres en Safari/iPhone y modo instalado antes de integrar.
+
+## Seguimiento P2 — selección por tienda
+
+- La selección React ahora está asociada a su `tiendaId`; al cambiar de tienda, un estado virtual anterior no prevalece sobre la preferencia localStorage de la nueva tienda.
+- La prueba Playwright `probar:selector-general` prepara una segunda tienda con una selección guardada distinta. Comprueba General en A → opción guardada en B → General de vuelta en A.
+- Validación tras esta corrección: `npm run tipos`; `node --test tests/selector-catalogos.test.mjs`; `npm test` (77/77); `npm run lint` (0 errores, 32 avisos existentes); Playwright con Chromium a 360 y 390 px (16 comprobaciones por viewport, incluidas ambas transiciones A→B→A), sin errores JavaScript.
+- La validación usa solo la fixture local Demo; no consulta ni modifica datos de tiendas reales. Se mantiene pendiente la revisión manual en teléfono/Safari indicada arriba.

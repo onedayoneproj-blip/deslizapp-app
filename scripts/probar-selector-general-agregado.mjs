@@ -18,6 +18,9 @@ const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const base = construirDesdeSeed();
 const tiendaBase = base.tiendas.find((t) => t.id === TIENDA);
 tiendaBase.rubros = [...new Set([...tiendaBase.rubros, "general", "hogar"])];
+const tiendaB = base.tiendas.find((t) => t.id !== TIENDA);
+const rubroGuardadoB = tiendaB.rubro === "ropa" ? "accesorios" : "ropa";
+tiendaB.rubros = [...new Set([tiendaB.rubro, rubroGuardadoB])];
 const compartido = base.productos.find((p) => p.tiendaId === TIENDA && (!p.rubro || p.rubro === tiendaBase.rubro));
 base.productos.push({ ...compartido, rubro: "general" });
 
@@ -32,6 +35,7 @@ for (const ancho of [360, 390]) {
     localStorage.setItem("deslizapp-modo-v1", "demo");
     localStorage.setItem("deslizapp-sesion-v1", tienda);
     localStorage.setItem("deslizapp-demo-v5", JSON.stringify(datos));
+    localStorage.setItem(`deslizapp-catalogo-activo:${datos.tiendas.find((t) => t.id !== tienda).id}`, datos.tiendas.find((t) => t.id !== tienda).rubros[1]);
   }, { tienda: TIENDA, datos: base });
   await page.goto(`${URL}/catalogo`);
   const selector = "h1 [data-selector-catalogo]";
@@ -66,6 +70,16 @@ for (const ancho of [360, 390]) {
   await page.reload();
   await page.waitForSelector(selector);
   ok((await nombreActivo()) === "General", "la selección virtual también persiste al volver");
+
+  const cambiarTienda = async (nombre) => {
+    await page.locator("header button").first().tap();
+    await page.locator('ul[aria-label="Tus otras tiendas"] button').filter({ hasText: nombre }).tap();
+    await page.waitForTimeout(250);
+  };
+  await cambiarTienda(tiendaB.nombre);
+  ok((await nombreActivo()) === nombreCatalogoEsperado(rubroGuardadoB), "al cambiar de tienda se restaura la selección guardada de B, no General de A");
+  await cambiarTienda(tiendaBase.nombre);
+  ok((await nombreActivo()) === "General", "al volver a A se restaura su vista General guardada");
 
   await page.goto(`${URL}/catalogo/nuevo`);
   const selectorHoja = "[data-hoja-cabecera] [data-selector-catalogo]";
@@ -105,3 +119,7 @@ for (const ancho of [360, 390]) {
 
 await navegador.close();
 console.log("\nTodo bien.");
+
+function nombreCatalogoEsperado(rubro) {
+  return rubro === "general" ? "De todo" : rubro[0].toUpperCase() + rubro.slice(1);
+}
