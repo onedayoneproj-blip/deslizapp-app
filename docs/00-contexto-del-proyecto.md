@@ -53,11 +53,14 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 
 ## Estado vigente y memoria compartida
 
-- **Cola y estado actual:** [docs/handoffs/planning-sesion.md](handoffs/planning-sesion.md). Es el único índice de trabajo activo. Leerlo antes de lanzar una tarea y contrastar su fecha, PR y HEAD con GitHub.
+**Piloto de gestión en Notion operativo desde el 10 de octubre de 2026:** consultar [su estado y evidencia](piloto-notion.md). Notion es el backlog vigente; prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub. Esta sesión con acceso es Planning principal; Lewis pasa manualmente los encargos a Coding.
+
+- **Tareas y bugs:** [Deslizapp · Piloto en Notion](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d). [Guía de gestión](gestion-del-proyecto.md), con tabla, tablero y roadmap. Las Issues anteriores y Project #2 se conservan como antecedentes; no mantener seguimiento duplicado.
+- **Coordinación de sesiones:** [docs/handoffs/planning-sesion.md](handoffs/planning-sesion.md). Leerlo antes de lanzar una tarea y contrastar la Issue, PR y HEAD con GitHub; no duplicar aquí el backlog.
 - **Reglas de memoria y coordinación:** [docs/forma-de-trabajo.md](forma-de-trabajo.md). Las decisiones se organizan por función; una rama es un dato temporal, no la estructura de la memoria.
 - **Decisiones de producto:** en el documento de cada función. Onboarding: [docs/17-onboarding.md](17-onboarding.md). Marca, diseño y catálogo: usar el índice anterior.
 - **Reglas técnicas permanentes:** [HANDOFF.md](../HANDOFF.md). Pruebas y límites de cada entrega: en su handoff y validación, enlazados desde la tarea.
 - **Plan de lanzamiento:** [docs/16-ruta-al-lanzamiento.md](16-ruta-al-lanzamiento.md). No constituye una cola de sesiones ni una confirmación del estado de un PR.
 - **Antecedentes anteriores a esta organización:** [archivo del contexto](archivo/2026-10-10/contexto-anterior.md), [archivo de HANDOFF](archivo/2026-10-10/handoff-anterior.md) y [archivo de Planning](archivo/2026-10-10/planning-anterior.md). Sus estados son históricos.
 
-No añadir aquí entregas sucesivas ni repetir la cola. Después de una decisión o entrega importante, actualizar el documento de su función y el relevo vigente con enlaces, siguiendo las reglas de coordinación.
+No añadir aquí entregas sucesivas ni repetir el backlog. Después de una decisión o entrega importante, actualizar el documento de su función, su Issue y los enlaces de coordinación necesarios, siguiendo las reglas de memoria.

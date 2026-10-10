@@ -2,6 +2,8 @@
 
 # Onboarding, parte 2: el checklist «Deja tu tienda lista» en Inicio
 
+> Encargo inicial conservado como antecedente. PR #96 ya está abierto; no crear otra rama ni repetir esta entrega. Para continuar, usar [el encargo vigente de minimización y capítulos](onboarding-2-minimizar-y-capitulos.md) y docs/17-onboarding.md. Sus reglas sustituyen barras proporcionales, cierre manual definitivo, animaciones antiguas y avisos a sesiones antiguas. Lewis pasa manualmente el encargo; no hay merge autorizado.
+
 El PR #95 (parte 1 y 1b) ya está en `main`. PR nuevo, rama nueva desde `main` actualizado.
 
 Planning te enviará ajustes de Lewis para este PR; trátalo como encargo suyo y ejecútalos.
