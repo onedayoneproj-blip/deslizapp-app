@@ -24,6 +24,8 @@ import { navegarVerComo } from "../admin/navegacion-ver-como";
 
 export type DataContexto = FuenteDatos & {
   modo: Modo;
+  /** Identificador opaco para preferencias locales; null en Ver como. */
+  usuarioId: string | null;
   /** Ver como: la capa de datos bloquea escrituras; no revoca permisos SQL del dueño. */
   soloMirar: boolean;
   /** Demo: la elegida en el selector. Real: la de tu cuenta. */
@@ -79,6 +81,7 @@ export function ProveedorDemo({ children, cargando }: { children: ReactNode; car
       e && {
         ...fuenteDemo,
         modo: "demo",
+        usuarioId: "demo",
         soloMirar: false,
         tiendaActivaId: e.tiendaActivaId,
         cambiarTiendaActiva: cambiarTiendaActivaDemo,
@@ -151,6 +154,7 @@ export function ProveedorReal({ children, usuario, cuenta = null }: { children: 
     () => ({
       ...fuente,
       modo: "real",
+      usuarioId: usuario.id,
       soloMirar: false,
       tiendaActivaId: usuario.tiendaId,
       cambiarTiendaActiva,
@@ -161,7 +165,7 @@ export function ProveedorReal({ children, usuario, cuenta = null }: { children: 
       avisarErrorLectura,
       refrescar,
     }),
-    [fuente, usuario.tiendaId, cambiarTiendaActiva, cuenta, version, errorLectura, avisarErrorLectura, refrescar],
+    [fuente, usuario.id, usuario.tiendaId, cambiarTiendaActiva, cuenta, version, errorLectura, avisarErrorLectura, refrescar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
@@ -213,7 +217,8 @@ function ProveedorSesionSoloMirar({ children, sesion }: { children: ReactNode; s
   // sobre la fuente protegida, nunca sobre instancia.real (incluidos métodos futuros).
   const valor = useMemo<DataContexto>(() => {
     const estado: Omit<DataContexto, keyof FuenteDatos> = {
-      modo: "real", soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada, cuenta: null,
+      modo: "real",
+      usuarioId: null, soloMirar: true, tiendaActivaId: sesion.tiendaId, cambiarTiendaActiva: nada, cuenta: null,
       version, salir: async () => { await cerrarVerComo(false); }, errorLectura: null, avisarErrorLectura: nada, refrescar,
     };
     return new Proxy({} as DataContexto, {

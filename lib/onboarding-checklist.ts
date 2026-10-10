@@ -13,7 +13,7 @@ export function avanceCapitulos(pasos: readonly boolean[]) {
   return CAPITULOS_CHECKLIST.map(capitulo => {
     const hechos = capitulo.pasos.filter(i => pasos[i] === true).length;
     const total = capitulo.pasos.length;
-    return { ...capitulo, hechos, total, proporcion: hechos / total, completo: hechos === total };
+    return { ...capitulo, hechos, total, estado: hechos === 0 ? "Sin iniciar" : hechos === total ? "Completo" : "En curso", completo: hechos === total };
   });
 }
 

@@ -1,6 +1,10 @@
 # Onboarding 2 · capturas
 
-## Diseño vigente · capítulos (10 oct 2026)
+## Diseño vigente · minimizar y estados discretos
+
+En `minimizar/`: capítulos desplegados (`01`–`04`), entrada normal Demo (`05`), píldora reversible (`06`) y texto ampliado al 200 % (`07`, expandida; `08`, minimizada). A 360/390/430 px, salvo entrada normal a 390. Cero = neutro/círculo; parcial = atención/semicírculo; completo = éxito/check. Contorno de selección independiente. Capturas locales Chromium; fixtures controlados excepto `05`. No Safari ni tiendas reales. Los directorios anteriores se conservan como antecedentes.
+
+## Antecedente · capítulos proporcionales (10 oct 2026)
 
 En `capitulos/`: `00-creacion-*` muestra capítulo 1 con subpasos; después, personalidad, productos, a mano y capítulo completo a 360, 390 y 430 px. `05-demo-normal-390.png` parte de navegador limpio → Ver demo → Inicio; no inyecta datos. Las otras capturas usan fixtures locales de Lino & Algodón. Una raya por capítulo, progreso verde proporcional y contorno de selección; filas comunes sin carrusel ni bloque Hecho. No son Safari ni datos reales. Script: `scripts/probar-onboarding-checklist.mjs`.
 

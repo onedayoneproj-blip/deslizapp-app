@@ -1,3 +1,21 @@
+# Onboarding 2 · minimizar y capítulos discretos · entrega vigente
+
+Continuación de Coding autorizada manualmente por Lewis el 10 oct 2026, siguiendo [el prompt nuevo](../prompts/onboarding-2-minimizar-y-capitulos.md). PR #96 comprobado abierto en HEAD `0779aff110dcbd8f4cb357d605192a45976a9248`. Se conserva `feat/onboarding-checklist-codex`; main `f7e05fa` integrado, conflictos de docs/17 y relevo resueltos conservando la decisión nueva y el piloto Notion. Antes de push se integra también el avance documental `ece4c7946dd860fad00788a8c61a2e15e6d957f0`. Un push de esta ronda, sin force, merge a main ni producción.
+
+Minimizar cambia la guía por una sola píldora entre márgenes. Es reversible, conserva capítulo, navega y recarga sin destello expandido. Preferencia local aislada por identificador opaco de usuario / modo / tienda; valor solo minimizada y capítulo. Si localStorage falla, conserva estado en memoria durante esta página/navegación (no promete persistir tras recargar sin almacenamiento). Sin nuevas marcas del servidor. Guías cerradas permanecen cerradas.
+
+Los capítulos 2/3/4 conservan agrupación y acciones, con tres estados derivados: sin iniciar, en curso, completo. Tokens neutro/atención/éxito y círculo/semicírculo/check; selección por contorno independiente. Selector breve, una cabecera de nombre y filas consultables. Creación sigue siendo capítulo 1 con cuatro pasos. Se ajusta la novedad 0.57.0 aún no publicada, sin duplicar versiones. Publicar vacío, vista previa, trabajar sola, permisos y exclusión de Ver como conservados.
+
+Cierre 7/7 también minimizada: espera hojas, persiste solo tras éxito, celebra y permite reintentar checklist_cerrado_en al fallar. Los campos de perfil son hermanos del bloque que se pliega: no se desmontan ni animan sus ancestros. Foco de plegar/restaurar dentro del gesto, preventScroll y sin entradas de historial.
+
+**Evidencia actual:** [validación](../validacion-onboarding-2.md), [capturas](../capturas/onboarding-2/README.md), [PR](https://github.com/onedayoneproj-blip/deslizapp-app/pull/96). HEAD exacto, Revisión y preview READY del código nuevo se devuelven en el PR y handoff de este chat; la preview anterior de b66ebb4 no valida este ajuste. No se repiten suites de app tras integración únicamente documental.
+
+**Límites:** Demo/fixtures Chromium y teclado simulado; Safari/VoiceOver/iPhone físico, instalación nativa y OAuth/Storage reales pendientes. Aislamiento de usuario/demo-real comprobado por unitarias de preferencia y código de provider; sin alternar cuentas reales. No Supabase ni datos reales, ninguna guía de Michel/María reabierta. Notion disponible en esta continuación: se actualiza la tarea existente con evidencia, sin crear un backlog ni avisar sesiones remotas. Lewis revisa desde Safari privado → preview/alias → Ver demo → Inicio; selecciona capítulos, minimiza, cambia pestaña, vuelve/recarga y despliega. Una Demo que ya cerró la guía conserva el cierre.
+
+---
+
+## Antecedente · entrega de capítulos proporcionales
+
 # Onboarding 2 · entrega vigente por capítulos
 
 Coding Codex, continuación del 10 oct 2026. Se comprobó PR #96 abierto y HEAD remoto `11532b43a456af35f8caf79e65edb70ecf4290fe` antes de clonar y continuar en `feat/onboarding-checklist-codex`. Un push de implementación y una ronda correctiva posterior (un push) para integrar el main documental que avanzó durante la entrega. Sin force, merge a main ni producción. No cambios Supabase ni datos reales.

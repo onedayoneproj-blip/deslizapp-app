@@ -11,10 +11,10 @@ test('sin datos listos: cero de siete y publicar sigue disponible', () => {
 });
 test('capítulos: vacío, parcial fuera de orden y completo, sin huecos ni falsos completos', () => {
  const vacios = C.avanceCapitulos(Array(7).fill(false));
- assert.deepEqual(vacios.map(c => [c.numero,c.hechos,c.total,c.proporcion,c.completo]), [[2,0,3,0,false],[3,0,2,0,false],[4,0,2,0,false]]);
+ assert.deepEqual(vacios.map(c => [c.numero,c.hechos,c.total,c.estado,c.completo]), [[2,0,3,"Sin iniciar",false],[3,0,2,"Sin iniciar",false],[4,0,2,"Sin iniciar",false]]);
  const parciales = C.avanceCapitulos([false,true,false,true,true,false,true]);
- assert.deepEqual(parciales.map(c => [c.hechos,c.proporcion,c.completo]), [[2,2/3,false],[1,1/2,false],[1,1/2,false]]);
- assert(C.avanceCapitulos(Array(7).fill(true)).every(c => c.completo && c.proporcion === 1));
+ assert.deepEqual(parciales.map(c => [c.hechos,c.estado,c.completo]), [[2,"En curso",false],[1,"En curso",false],[1,"En curso",false]]);
+ assert(C.avanceCapitulos(Array(7).fill(true)).every(c => c.completo && c.estado === "Completo"));
  assert.equal(C.avanceCapitulos([true,true,false,false,true,false,false])[0].completo,true);
  assert(C.avanceCapitulos([]).every(c => !c.completo && c.hechos === 0));
 });

@@ -1,5 +1,7 @@
 "use client";
 
+import { flushSync } from "react-dom";
+import { IconoChevronAbajo, IconoCheck } from "../iconos";
 import { useEffect, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -30,7 +32,7 @@ export function ChecklistTienda() {
 function Checklist() {
   const { tiendaId, tienda } = useTiendaActiva();
   const datos = useData();
-  const { abrirMiMarca, abrirEquipo, hojaAbierta, capituloChecklist, seleccionarCapituloChecklist } = usePanelUI();
+  const { abrirMiMarca, abrirEquipo, hojaAbierta, capituloChecklist, seleccionarCapituloChecklist, checklistMinimizada, minimizarChecklist } = usePanelUI();
   const [seleccionInicial, setSeleccionInicial] = useState<number | null>(null);
   const router = useRouter(); const toast = useToast();
   const consulta = useConsulta(`checklist:${tiendaId}`, async () => {
@@ -38,7 +40,7 @@ function Checklist() {
     return { productos, equipo };
   }, true);
   const [instalada, setInstalada] = useState(false);
-  const [hoja, setHoja] = useState<"perfil" | "instalar" | "publicar" | "cerrar" | "vista" | null>(null);
+  const [hoja, setHoja] = useState<"perfil" | "instalar" | "publicar" | "vista" | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [claveFallida, setClaveFallida] = useState<ClaveOnboarding>("checklist_cerrado_en");
@@ -59,6 +61,12 @@ function Checklist() {
   const capitulo = capitulos[seleccionado];
   const siguiente = capitulos.findIndex((c, i) => i > seleccionado && !c.completo);
   const pendiente = siguiente >= 0 ? siguiente : capitulos.findIndex(c => !c.completo);
+  const botonMinimizar = useRef<HTMLButtonElement | null>(null);
+  const pildora = useRef<HTMLButtonElement | null>(null);
+  const cambiarMinimizacion = (minimizada: boolean) => {
+    flushSync(() => minimizarChecklist(minimizada, seleccionado));
+    (minimizada ? pildora.current : botonMinimizar.current)?.focus({ preventScroll: true });
+  };
   const botonesCapitulo = useRef<(HTMLButtonElement | null)[]>([]);
   // Solo una tentativa automática por montaje; el error ofrece reintento explícito.
   useEffect(() => {
@@ -90,29 +98,38 @@ function Checklist() {
     else if (i === 5) setHoja("instalar");
     else abrirEquipo();
   };
-  return <section data-checklist className="px-5 pt-4 pb-2">
+  return <section id="checklist-guia" data-checklist className="px-5 pt-4 pb-2">
+    {checklistMinimizada ? <>
+      <Boton ref={pildora} jerarquia="secundario" anchoCompleto className="h-auto min-h-11 py-2 [&>span:first-child]:w-full" aria-expanded={false} aria-controls="checklist-guia"
+        aria-label={`Desplegar Prepara tu tienda, ${hechos} de 7 pasos`} onClick={() => cambiarMinimizacion(false)}>
+        <span className="flex w-full items-center justify-between gap-2"><span>Prepara tu tienda</span><span className="flex shrink-0 items-center gap-2">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
+      </Boton>
+      {error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
+    </> : <div id="checklist-expandida">
     <div className="flex items-center justify-between gap-2">
       <h2 className="font-display text-titulo-seccion font-bold">Deja tu tienda lista</h2>
       <span className="shrink-0 text-secundario">{hechos} de 7</span>
     </div>
     <div className="flex gap-2" role="group" aria-label="Capítulos de preparación">
       {capitulos.map((c, i) => <button key={c.numero} type="button" ref={el => { botonesCapitulo.current[i] = el; }}
-        aria-label={`Capítulo ${c.numero} · ${c.nombre}, ${c.hechos} de ${c.total} pasos${c.completo ? ", completo" : ""}`}
+        aria-label={`Capítulo ${c.numero} · ${c.nombre}, ${c.estado}, ${c.hechos} de ${c.total} pasos`}
+        data-estado={c.estado}
         aria-pressed={seleccionado === i} aria-controls="checklist-capitulo"
-        className={`tocable flex h-11 min-w-11 flex-1 items-center rounded-radio-s px-1 outline-none focus-visible:outline-3 focus-visible:outline-foco ${seleccionado === i ? "border-2 border-texto" : "border-2 border-transparent"}`}
+        className={`tocable flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-1 rounded-radio-s px-1 py-2 outline-none focus-visible:outline-3 focus-visible:outline-foco ${seleccionado === i ? "border-2 border-texto" : "border-2 border-transparent"}`}
         onClick={() => seleccionarCapituloChecklist(i)} onKeyDown={e => {
           const destino = e.key === "Home" ? 0 : e.key === "End" ? capitulos.length - 1 : e.key === "ArrowRight" ? (i + 1) % capitulos.length : e.key === "ArrowLeft" ? (i + capitulos.length - 1) % capitulos.length : null;
           if (destino === null) return;
           e.preventDefault(); seleccionarCapituloChecklist(destino); botonesCapitulo.current[destino]?.focus();
         }}>
-        <span aria-hidden="true" className="relative h-1.5 w-full overflow-hidden rounded-full bg-superficie-hundida">
-          <span className="checklist-relleno absolute inset-0 origin-left rounded-full bg-accion" style={{ transform: `scaleX(${c.proporcion})` }} />
+        <span aria-hidden="true" className="text-secundario">Capítulo {c.numero}</span>
+        <span aria-hidden="true" className={`flex w-full items-center gap-1 ${c.completo ? "text-exito-texto" : c.hechos ? "text-atencion-texto" : "text-texto-secundario"}`}>
+          <span className={`h-1.5 flex-1 rounded-full ${c.completo ? "bg-exito-texto" : c.hechos ? "bg-atencion-texto" : "bg-superficie-hundida"}`} />
+          {c.completo ? <IconoCheck tamano={16} /> : c.hechos ? <span className="w-4 text-center font-bold">◐</span> : <span className="w-4 text-center">○</span>}
         </span>
       </button>)}
     </div>
     <div id="checklist-capitulo" aria-labelledby="checklist-titulo">
-      <p className="text-secundario text-texto-secundario">Capítulo {capitulo.numero} · {capitulo.hechos} de {capitulo.total} pasos</p>
-      <h3 id="checklist-titulo" className="mt-1 mb-3 font-display text-titulo-seccion font-bold">{capitulo.nombre}</h3>
+      <h3 id="checklist-titulo" className="mt-2 mb-3 font-display text-titulo-seccion font-bold">Capítulo {capitulo.numero} · {capitulo.nombre}</h3>
       {error && !hoja && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
       <ListaAgrupada etiqueta={`Pasos de ${capitulo.nombre}`} className="[&_span.truncate]:whitespace-normal [&_span.truncate]:overflow-visible">
         {capitulo.pasos.map(i => <FilaLista key={i}
@@ -132,7 +149,8 @@ function Checklist() {
         {pendiente >= 0 && <Boton jerarquia="secundario" tamano="compacto" className="mt-2" onClick={() => { seleccionarCapituloChecklist(pendiente); botonesCapitulo.current[pendiente]?.focus(); }}>Continuar al capítulo {capitulos[pendiente].numero}</Boton>}
       </div>}
     </div>
-    <Boton jerarquia="terciario" tamano="compacto" className="mt-2" onClick={() => setHoja("cerrar")}>Ocultar guía</Boton>
+    <Boton ref={botonMinimizar} jerarquia="terciario" tamano="compacto" className="mt-2" aria-expanded={true} aria-controls="checklist-guia" onClick={() => cambiarMinimizacion(true)}>Minimizar</Boton>
+    </div>}
     {hoja === "perfil" && <Perfil alCerrar={() => setHoja(null)} />}
     <Hoja abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} titulo="Tu tienda, a un toque" protegerAtras>
       {error && <Aviso tono="peligro">{error}</Aviso>}
@@ -140,7 +158,6 @@ function Checklist() {
       <h3 className="mt-4 text-destacado">En Android</h3><p className="text-cuerpo">Abre Deslizapp en Chrome. En el menú toca «Instalar aplicación» o «Añadir a pantalla de inicio».</p>
       <Boton className="mt-4" cargando={guardando} onClick={() => void marcar("pantalla_inicio_en")}>Ya lo hice</Boton>
     </Hoja>
-    <Hoja abierta={hoja === "cerrar"} alCerrar={() => setHoja(null)} titulo="¿Ocultar la guía?" protegerAtras>{error && <Aviso tono="peligro">{error}</Aviso>}<p className="text-cuerpo">Puedes seguir preparando tu tienda desde Catálogo, Mi marca y Tu equipo. Esta guía no volverá a aparecer.</p><Boton className="mt-4" cargando={guardando} onClick={() => void marcar("checklist_cerrado_en")}>Ocultar guía</Boton><Boton jerarquia="terciario" onClick={() => setHoja(null)}>Cancelar</Boton></Hoja>
     <HojaComoSeVe abierta={hoja === "vista"} alCerrar={() => setHoja(null)} visible datos={() => ({ tienda: tiendaPublicaDe(tienda), productos: productosPublicosDe(consulta.data?.productos ?? [], tienda.rubro) })} />
     <HojaPublicarCatalogo abierta={hoja === "publicar"} alCerrar={() => setHoja(null)} enlace={`${typeof window === "undefined" ? "https://deslizapp-app.vercel.app" : window.location.origin}${enlace}`} productos={cantidad} alAgregarMas={() => { setHoja(null); router.push("/catalogo/nuevo"); }} alConfirmar={async () => {
       try { await datos.publicarMiCatalogo(tiendaId); setHoja(null); toast("Tu catálogo ya está en línea."); }

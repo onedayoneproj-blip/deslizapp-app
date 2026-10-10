@@ -1199,8 +1199,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   -webkit-mask-image: radial-gradient(ellipse var(--corte-rx, var(--corte-r)) var(--corte-r) at var(--corte-x) var(--corte-y), transparent calc(100% - 1px), #000 100%);
   mask-image: radial-gradient(ellipse var(--corte-rx, var(--corte-r)) var(--corte-r) at var(--corte-x) var(--corte-y), transparent calc(100% - 1px), #000 100%);
 }
-
-/* Progreso por capítulo: solo escala, con los tokens de movimiento existentes. */
-@media (prefers-reduced-motion: no-preference) {
-  .checklist-relleno { transition: transform var(--mov-normal) var(--curva-salida); }
-}

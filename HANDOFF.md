@@ -96,3 +96,4 @@ Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflow
 - Un PR con «Revisión» en rojo **no se fusiona**.
 - Los tipos `PageProps`/`LayoutProps` los genera `next typegen`; correr `tsc` solo, sin generarlos, da errores falsos. Usa `npm run tipos`.
 - Los minutos de GitHub Actions son limitados: no lances corridas de más (el flujo cancela las viejas de la misma rama).
+
