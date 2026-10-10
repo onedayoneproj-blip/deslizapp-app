@@ -83,6 +83,23 @@ for (const ancho of [390, 360]) {
   await campo.fill("Esencias Rosa");
   await page.waitForFunction(() => document.querySelector("[data-slug]")?.textContent === "esencias-rosa");
   ok(true, "el enlace cambia mientras escribe");
+  ok((await page.locator("[data-onboarding=capitulos] input:not([type=file])").count()) === 1, "un solo campo: el nombre se escribe en la tarjeta");
+  const fileCap1 = page.locator("[data-vista-enlace] input[type=file]");
+  await fileCap1.setInputFiles({ name: "nota.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
+  ok((await page.locator("#nota-nombre").innerText()).includes("no es una imagen"), "cap. 1: un archivo que no es imagen lo dice, sin bloquear el nombre");
+  if (ancho === 390) {
+    await fileCap1.setInputFiles("public/tienda/michel-kiara.jpg");
+    await page.waitForSelector("[data-vista-enlace] [data-logo-tienda]");
+    const tam = await page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-onboarding-demo-v1")).logo.length);
+    ok(tam > 10_000 && tam < 120_000, `cap. 1: la foto se recorta y queda en el borrador (${Math.round(tam / 1024)} KB en texto)`);
+    // Teclado abierto con el nombre: «Seguir» encima del teclado.
+    await campo.focus();
+    await page.locator("[data-onboarding=capitulos]").evaluate((el) => el.style.setProperty("--teclado", "300px"));
+    const bt = await page.locator("[data-seguir] button").boundingBox();
+    ok(bt.y + bt.height <= 844 - 300 && (await campo.isVisible()), "cap. 1 con teclado: el nombre y «Seguir» a la vista");
+    await foto("05b-capitulo-1-con-logo-y-teclado");
+    await page.locator("[data-onboarding=capitulos]").evaluate((el) => el.style.setProperty("--teclado", "0px"));
+  }
   await foto("05-capitulo-1-nombre");
   await page.locator("[data-seguir] button").tap();
 
@@ -101,6 +118,7 @@ for (const ancho of [390, 360]) {
   console.log("• Capítulo 3 · El chat");
   ok((await capitulo()) === "3", "pasa al capítulo 3");
   ok((await page.locator("header").innerText()).includes("perfumes y ropa"), "la cabecera dice lo que vende");
+  if (ancho === 390) ok((await page.locator("header [data-logo-tienda]").count()) === 1, "la cabecera de los capítulos muestra la foto");
   await campo.fill("305 555 0142");
   await page.locator("[data-seguir] button").tap();
   ok((await capitulo()) === "3", "un número que no es dominicano no sigue");
@@ -146,20 +164,26 @@ for (const ancho of [390, 360]) {
   await page.waitForTimeout(500);
   await foto("10-ya-existe");
 
-  console.log("• Pon tu logo (opcional)");
+  if (ancho === 390) {
+    await page.waitForFunction(() => !document.querySelector("[data-poner-logo]"));
+    ok((await page.locator("[data-onboarding=existe] [data-logo-tienda]").count()) === 1, "«ya existe» muestra la foto del capítulo 1 (subida al crear la tienda)");
+    await foto("11-ya-existe-con-logo");
+  } else {
+  console.log("• Pon tu logo en «ya existe» (sin foto en el capítulo 1)");
   const archivo = page.locator('[data-onboarding=existe] input[type=file]');
   await archivo.setInputFiles({ name: "nota.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
   ok((await page.locator("[data-aviso-logo]").innerText()).includes("no es una imagen"), "un archivo que no es imagen: lo dice y se queda con las iniciales");
   await archivo.setInputFiles({ name: "enorme.png", mimeType: "image/png", buffer: Buffer.alloc(21 * 1024 * 1024) });
   ok((await page.locator("[data-aviso-logo]").innerText()).includes("pesa mucho"), "una imagen muy pesada: lo dice");
-  ok((await page.locator("[data-logo-tienda]").count()) === 0, "sigue con las iniciales");
+  ok((await page.locator("[data-onboarding=existe] [data-logo-tienda]").count()) === 0, "sigue con las iniciales");
   await archivo.setInputFiles("public/tienda/michel-kiara.jpg");
-  await page.waitForSelector("[data-logo-tienda]", { timeout: 8000 });
+  await page.waitForSelector("[data-onboarding=existe] [data-logo-tienda]", { timeout: 8000 });
   ok((await page.locator("[data-aviso-logo]").count()) === 0, "con una foto real: el círculo muestra su logo");
+  await page.waitForFunction(() => !document.querySelector("[data-poner-logo]"), null, { timeout: 8000 }).catch(() => {});
   ok((await page.locator("[data-poner-logo]").count()) === 0, "el botón se va cuando ya tiene logo");
   await page.waitForTimeout(900);
   await foto("11-ya-existe-con-logo");
-
+  }
   ok(errores.length === 0, `sin errores de página${errores.length ? `: ${errores.join(" | ")}` : ""}`);
   ok(supabase === 0, "la demo no llama a Supabase");
   await ctx.close();

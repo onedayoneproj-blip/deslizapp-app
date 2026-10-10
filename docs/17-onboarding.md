@@ -6,11 +6,11 @@ Diseño: `referencias/onboarding/` (lienzo de Lewis, 33 pantallas; opción **B**
 1. Abre su enlace `/unirse/<código>` y entra con Google (**como hoy**; el diseño nuevo del link va después).
 2. **Historias de bienvenida** (pantallas 08-11): 4 historias a pantalla completa con barras de progreso, tocar para avanzar, mantener para pausar, «Saltar» (salta a los capítulos, nunca se salta los datos). «Hola, {nombre de Google}». La última termina en **«Contar mi historia»**.
 3. **La historia de tu tienda, 4 capítulos** (12-15), uno por pantalla, con la cabecera que se va llenando (iniciales, nombre, rubros, WhatsApp):
-   - Cap. 1 · El nombre: «¿Cómo se llama tu tienda?» y debajo «Así nace tu enlace»: `…/tienda/<slug>` en vivo.
+   - Cap. 1 · El nombre (cambio de Lewis, 10 oct): el nombre se escribe **directo en la tarjeta de vista previa** (su título es el campo, «Tu tienda» de ejemplo, con lápiz y subrayado; no hay recuadro aparte) y debajo «Así nace tu enlace»: `…/tienda/<slug>` en vivo. El círculo de la tarjeta es tocable: **«+ Pon tu logo»** (opcional; cámara o galería). La foto se recorta en cuadrado al centro y se reduce a 512 px JPEG en el teléfono, se ve al momento y queda en el borrador local (la tienda todavía no existe). Los capítulos 2 a 4 la muestran en su cabecera.
    - Cap. 2 · Lo que vendes: varios; el primero es el principal («Otra cosa» = `general`).
    - Cap. 3 · El chat: el WhatsApp de la tienda (dominicano, se valida igual que en Clientes).
    - Cap. 4 · Tú: «¿Cómo te llaman tus clientes?», pre-llenado con el nombre de Google.
-   - «Cerrar el capítulo» crea la tienda **con todo junto** (una sola llamada).
+   - «Cerrar el capítulo» crea la tienda **con todo junto** (una sola llamada). Después se sube la foto del capítulo 1 con la misma subida de Mi marca (carpeta de la tienda); si falla, la tienda ya existe, «ya existe» queda con las iniciales y ofrece «Pon tu logo» para reintentar. La foto sale del borrador al terminar.
 4. **«{Tienda} ya existe»** (17) → «Ver mi tienda» → Inicio con el checklist.
 5. Si cierra a mitad, lo escrito se recupera en ese teléfono (borrador local); la tienda no existe hasta cerrar el capítulo 4.
 

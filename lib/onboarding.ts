@@ -108,9 +108,14 @@ export type Borrador = {
   whatsapp: string;
   /** null = no lo ha tocado: se usa el primer nombre de Google. */
   vendedora: string | null;
+  /**
+   * La foto o el logo que eligió en el capítulo 1, ya recortado (JPEG cuadrado, data URL). Vive aquí porque la tienda todavía no
+   * existe (el storage pide su carpeta); se sube al cerrar el capítulo 4. null = sin foto (iniciales).
+   */
+  logo: string | null;
 };
 
-export const borradorNuevo = (enlaceId: string): Borrador => ({ enlaceId, capitulo: 1, nombre: "", rubros: [], whatsapp: "", vendedora: null });
+export const borradorNuevo = (enlaceId: string): Borrador => ({ enlaceId, capitulo: 1, nombre: "", rubros: [], whatsapp: "", vendedora: null, logo: null });
 
 /** Lee el borrador guardado (texto JSON). Lo que no encaja se descarta campo por campo; de otro enlace, null. */
 export function leerBorrador(texto: string | null, enlaceId: string): Borrador | null {
@@ -134,6 +139,7 @@ export function leerBorrador(texto: string | null, enlaceId: string): Borrador |
     rubros: [...new Set(rubros)].slice(0, RUBROS.length),
     whatsapp: texto_(o.whatsapp, 30),
     vendedora: typeof o.vendedora === "string" ? o.vendedora.slice(0, NOMBRE_VENDEDORA_MAX + 20) : null,
+    logo: esLogoGuardable(o.logo) ? o.logo : null,
   };
 }
 
@@ -177,6 +183,53 @@ export function slugDemo(nombre: string, ocupados: readonly string[]): string | 
 }
 
 // ─── El logo en «ya existe» (opcional) ───────────────────────────────────────────────────────────────────────────────────
+
+/** Lado del logo ya recortado (px): cuadrado, en JPEG, unos 40-60 KB. */
+export const LOGO_LADO = 512;
+export const LOGO_CALIDAD = 0.82;
+/** Lo más largo que se guarda en el borrador (un JPEG de 512 px cabe de sobra). */
+export const LOGO_BORRADOR_MAX = 400_000;
+
+/** ¿Es un logo recortado que se puede guardar en el borrador? (data URL de imagen, no demasiado largo). */
+export function esLogoGuardable(v: unknown): v is string {
+  return typeof v === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) && v.length <= LOGO_BORRADOR_MAX;
+}
+
+/** El recorte cuadrado centrado de una imagen de ancho × alto: de dónde se toma (sx, sy) y de qué lado. */
+export function recorteCuadrado(ancho: number, alto: number): { sx: number; sy: number; lado: number } {
+  const lado = Math.max(1, Math.min(ancho, alto));
+  return { sx: Math.round((ancho - lado) / 2), sy: Math.round((alto - lado) / 2), lado };
+}
+
+/**
+ * La foto elegida, recortada en cuadrado al centro y reducida a 512 px en JPEG (en el teléfono, antes de subir nada). Se ve en
+ * círculo con CSS. Lanza si el navegador no la puede leer.
+ */
+export async function prepararLogo(archivo: Blob): Promise<string> {
+  const url = URL.createObjectURL(archivo);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, mal) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => mal(new Error("imagen_ilegible"));
+      i.src = url;
+    });
+    const { sx, sy, lado } = recorteCuadrado(img.naturalWidth, img.naturalHeight);
+    const salida = Math.min(LOGO_LADO, lado);
+    const lienzo = document.createElement("canvas");
+    lienzo.width = salida;
+    lienzo.height = salida;
+    const ctx = lienzo.getContext("2d");
+    if (!ctx) throw new Error("imagen_ilegible");
+    // JPEG no tiene transparencia: un logo PNG con fondo transparente queda sobre blanco.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, salida, salida);
+    ctx.drawImage(img, sx, sy, lado, lado, 0, 0, salida, salida);
+    return lienzo.toDataURL("image/jpeg", LOGO_CALIDAD);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 /** Lo más pesado que se acepta para el logo (fotos del teléfono incluidas; después se reduce a 512 px). */
 export const LOGO_MAX_BYTES = 20 * 1024 * 1024;

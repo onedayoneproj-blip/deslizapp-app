@@ -11,6 +11,7 @@ import {
   DURACION_HISTORIA_MS,
   errorArchivoLogo,
   errorNombreTienda,
+  prepararLogo,
   errorVendedora,
   inicialesTienda,
   leerBorrador,
@@ -29,7 +30,6 @@ import {
   type Borrador,
   type Capitulo,
 } from "@/lib/onboarding";
-import { reducirLogo } from "@/lib/imagen";
 import { RUBROS, type Rubro } from "@/lib/rubros";
 import {
   IconoAnillo,
@@ -37,6 +37,8 @@ import {
   IconoCamisa,
   IconoCamara,
   IconoCasa,
+  IconoEditar,
+  IconoMas,
   IconoCheck,
   IconoCerrar,
   IconoCorazon,
@@ -158,7 +160,8 @@ export function RecorridoOnboarding({ fuente }: { fuente: FuenteOnboarding }) {
       />
     );
 
-  if (etapa === "existe") return <YaExiste nombre={borrador.nombre.trim()} alSeguir={fuente.alTerminar} ponerLogo={fuente.ponerLogo} />;
+  if (etapa === "existe")
+    return <YaExiste nombre={borrador.nombre.trim()} logoLocal={borrador.logo} alSeguir={fuente.alTerminar} ponerLogo={fuente.ponerLogo} />;
 
   return (
     <Capitulos
@@ -576,7 +579,7 @@ function Capitulos({
         <header className="shrink-0 px-4 pt-[calc(10px+env(safe-area-inset-top))]">
           <Barras total={TOTAL_CAPITULOS} actual={cap - 1} oscura={oscura} />
           <div className="mt-3 flex items-center gap-3">
-            <AvatarTienda nombre={nombre} cap={cap} />
+            <AvatarTienda nombre={nombre} cap={cap} logo={b.logo} />
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate font-extrabold">{nombre || "tu tienda"}</p>
               <p className={clases("truncate text-secundario", oscura ? "text-marca-papel/75" : "text-marca-bosque/70")}>{subtitulo}</p>
@@ -624,15 +627,23 @@ function Capitulos({
   );
 }
 
-function AvatarTienda({ nombre, cap, grande = false }: { nombre: string; cap: Capitulo | "fin"; grande?: boolean }) {
+const TAMANO_AVATAR = { chico: "size-10 text-[15px]", medio: "size-16 text-[22px]", grande: "size-[150px] text-[56px]" } as const;
+
+/** El círculo de la tienda: su logo si ya eligió uno; si no, las iniciales (o «?» punteado mientras no tiene nombre). */
+function AvatarTienda({ nombre, cap, logo = null, tamano = "chico" }: { nombre: string; cap: Capitulo | "fin"; logo?: string | null; tamano?: keyof typeof TAMANO_AVATAR }) {
+  if (logo)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- data URL del borrador o el logo recién subido
+      <img src={logo} alt="" aria-hidden="true" className={clases("shrink-0 rounded-full bg-white object-cover", TAMANO_AVATAR[tamano])} data-logo-tienda />
+    );
   const vacio = !nombre;
-  const color = cap === 3 ? "bg-marca-rosa-fija text-marca-bosque" : cap === "fin" ? "bg-marca-rosa-fija text-marca-bosque" : "bg-marca-bosque text-marca-papel";
+  const color = cap === 3 || cap === "fin" ? "bg-marca-rosa-fija text-marca-bosque" : "bg-marca-bosque text-marca-papel";
   return (
     <span
       aria-hidden="true"
       className={clases(
         "flex shrink-0 items-center justify-center rounded-full font-display",
-        grande ? "size-[150px] text-[56px]" : "size-10 text-[15px]",
+        TAMANO_AVATAR[tamano],
         vacio ? "border-2 border-dashed border-current bg-transparent" : color,
       )}
     >
@@ -693,32 +704,72 @@ function Capitulo1({ b, fuente, cambiar, tocado }: { b: Borrador; fuente: Fuente
 
   const error = tocado ? errorNombreTienda(b.nombre) : null;
   const slugAlDia = slug && slug.de === nombre ? slug.slug : null;
+  const entradaLogo = useRef<HTMLInputElement>(null);
+  const [leyendo, setLeyendo] = useState(false);
+  const [avisoLogo, setAvisoLogo] = useState<string | null>(null);
+
+  // La foto se recorta y se reduce aquí mismo y queda en el borrador: la tienda todavía no existe para subirla.
+  const elegirLogo = async (archivo: File | undefined) => {
+    if (entradaLogo.current) entradaLogo.current.value = "";
+    if (!archivo) return;
+    const malo = errorArchivoLogo(archivo);
+    if (malo) {
+      setAvisoLogo(malo);
+      return;
+    }
+    setAvisoLogo(null);
+    setLeyendo(true);
+    try {
+      cambiar({ logo: await prepararLogo(archivo) });
+    } catch {
+      setAvisoLogo("No pudimos leer esa imagen. Prueba con otra.");
+    } finally {
+      setLeyendo(false);
+    }
+  };
+
   return (
     <>
       <Encabezado capitulo="Capítulo 1 · El nombre" acento={<span className="text-mandarina-texto">con un nombre.</span>}>
         Toda historia empieza
       </Encabezado>
-      <div className="mt-6">
-        <Campo
-          etiqueta="¿Cómo se llama tu tienda?"
-          icono={IconoBolsa}
-          value={b.nombre}
-          maxLength={NOMBRE_TIENDA_MAX}
-          autoComplete="organization"
-          autoCapitalize="words"
-          enterKeyHint="next"
-          placeholder="El nombre de tu tienda"
-          onChange={(e) => cambiar({ nombre: e.target.value })}
-          data-campo-capitulo
-        />
-        <Nota id="nota-nombre" error={error} />
-      </div>
-      <div className="mt-5 rounded-[22px] bg-marca-papel p-4 text-marca-bosque" data-vista-enlace>
+      {/* La tarjeta ES el campo: el nombre se escribe en su título y el círculo pone la foto (docs/17, capítulo 1). */}
+      <div className="mt-6 rounded-[22px] bg-marca-papel p-4 text-marca-bosque shadow-[0_18px_36px_-20px_rgb(16_54_42/0.45)]" data-vista-enlace>
         <div className="flex items-center gap-3">
-          <AvatarTienda nombre={nombre} cap={1} />
-          <div className="min-w-0">
-            <p className="truncate font-display text-titulo-seccion">{nombre || "Tu tienda"}</p>
-            <p className="text-secundario text-marca-bosque/70">Así nace tu enlace</p>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => entradaLogo.current?.click()}
+            disabled={leyendo}
+            aria-label={b.logo ? "Cambiar tu logo" : "Pon tu logo"}
+            className="tocable relative shrink-0 rounded-full"
+            data-poner-logo
+          >
+            <span key={b.logo ?? "sin-logo"} className={clases("block rounded-full", b.logo && "onb-pop")}>
+              <AvatarTienda nombre={nombre} cap={1} logo={b.logo} tamano="medio" />
+            </span>
+            <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-marca-mandarina text-marca-bosque ring-2 ring-marca-papel">
+              {b.logo ? <IconoCamara tamano={13} /> : <IconoMas tamano={14} strokeWidth={3} />}
+            </span>
+          </button>
+          <div className="min-w-0 flex-1">
+            <label className="flex items-center gap-1.5 border-b-2 border-dashed border-marca-bosque/25 focus-within:border-marca-bosque">
+              <input
+                value={b.nombre}
+                onChange={(e) => cambiar({ nombre: e.target.value })}
+                maxLength={NOMBRE_TIENDA_MAX}
+                autoComplete="organization"
+                autoCapitalize="words"
+                enterKeyHint="next"
+                placeholder="Tu tienda"
+                aria-label="Nombre de tu tienda"
+                aria-invalid={error ? true : undefined}
+                className="min-w-0 flex-1 bg-transparent py-0.5 font-display text-titulo-seccion text-marca-bosque caret-marca-mandarina outline-none placeholder:text-marca-bosque/40"
+                data-campo-capitulo
+              />
+              <IconoEditar tamano={16} className="shrink-0 text-marca-bosque/50" />
+            </label>
+            <p className="mt-1 text-secundario text-marca-bosque/70">Así nace tu enlace</p>
           </div>
         </div>
         <p className="mt-3 flex items-center gap-2 overflow-hidden rounded-[12px] bg-marca-bosque/[0.07] px-3 py-2.5 text-secundario">
@@ -727,7 +778,11 @@ function Capitulo1({ b, fuente, cambiar, tocado }: { b: Borrador; fuente: Fuente
             deslizapp…/tienda/<b className="font-extrabold" data-slug>{nombre ? (slugAlDia ?? "…") : "tu-tienda"}</b>
           </span>
         </p>
+        <input ref={entradaLogo} type="file" accept="image/*" hidden aria-label="Pon tu logo" onChange={(e) => void elegirLogo(e.target.files?.[0])} />
       </div>
+      <Nota id="nota-nombre" error={error ?? avisoLogo}>
+        {b.logo ? null : "Toca el círculo para poner tu logo o una foto. Puedes hacerlo después."}
+      </Nota>
       {nombre && <Mano className="text-mandarina-texto">ya suena a marca</Mano>}
     </>
   );
@@ -869,13 +924,51 @@ function Burbuja({ children, className }: { children: ReactNode; className?: str
 
 // ─── Fin del capítulo 1 ───────────────────────────────────────────────────────────────────────────────────────────────────
 
-function YaExiste({ nombre, alSeguir, ponerLogo }: { nombre: string; alSeguir: () => void; ponerLogo: FuenteOnboarding["ponerLogo"] }) {
+function YaExiste({
+  nombre,
+  logoLocal,
+  alSeguir,
+  ponerLogo,
+}: {
+  nombre: string;
+  /** La foto que eligió en el capítulo 1 (del borrador): se sube aquí, la tienda ya existe. */
+  logoLocal: string | null;
+  alSeguir: () => void;
+  ponerLogo: FuenteOnboarding["ponerLogo"];
+}) {
   const entrada = useRef<HTMLInputElement>(null);
-  const [logo, setLogo] = useState<string | null>(null);
-  const [subiendo, setSubiendo] = useState(false);
+  // Se ve al momento (la foto local) mientras sube; si falla, vuelve a las iniciales.
+  const [logo, setLogo] = useState<string | null>(logoLocal);
+  const [subiendo, setSubiendo] = useState(!!logoLocal);
   const [aviso, setAviso] = useState<string | null>(null);
+  const iniciado = useRef(false);
 
-  // Opcional: si sale mal, se queda con las iniciales y puede volver a intentarlo (o ponerlo después desde Mi marca).
+  const subir = async (local: string) => {
+    setAviso(null);
+    setSubiendo(true);
+    setLogo(local);
+    try {
+      setLogo(await ponerLogo(local));
+    } catch (e) {
+      // La tienda ya existe: no se pierde nada. Se queda con las iniciales y puede reintentar (o ponerlo después en Mi marca).
+      setLogo(null);
+      setAviso(e instanceof Error && e.message ? e.message : "No se pudo subir tu logo. Inténtalo otra vez.");
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
+  // La foto del capítulo 1 se sube una sola vez al llegar (también con el doble montaje de desarrollo).
+  useEffect(() => {
+    if (!logoLocal) return;
+    const t = window.setTimeout(() => {
+      if (iniciado.current) return;
+      iniciado.current = true;
+      void subir(logoLocal);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const elegir = async (archivo: File | undefined) => {
     if (entrada.current) entrada.current.value = "";
     if (!archivo || subiendo) return;
@@ -884,18 +977,14 @@ function YaExiste({ nombre, alSeguir, ponerLogo }: { nombre: string; alSeguir: (
       setAviso(malo);
       return;
     }
-    setAviso(null);
-    setSubiendo(true);
+    let local: string;
     try {
-      const reducido = await reducirLogo(archivo).catch(() => {
-        throw new Error("No pudimos leer esa imagen. Prueba con otra.");
-      });
-      setLogo(await ponerLogo(reducido));
-    } catch (e) {
-      setAviso(e instanceof Error && e.message ? e.message : "No se pudo subir tu logo. Inténtalo otra vez.");
-    } finally {
-      setSubiendo(false);
+      local = await prepararLogo(archivo);
+    } catch {
+      setAviso("No pudimos leer esa imagen. Prueba con otra.");
+      return;
     }
+    await subir(local);
   };
 
   return (
@@ -909,15 +998,10 @@ function YaExiste({ nombre, alSeguir, ponerLogo }: { nombre: string; alSeguir: (
             {/* Las iniciales (o el logo) aparecen con un pop y su halo se abre detrás (docs/08, excepción «Historias del onboarding»). */}
             <span aria-hidden="true" className="onb-halo absolute inset-0 rounded-full bg-marca-papel/[0.06]" />
             <div key={logo ? `logo:${logo}` : "iniciales"} className="onb-pop relative rounded-full bg-marca-papel/10 p-6">
-              {logo ? (
-                // eslint-disable-next-line @next/next/no-img-element -- el logo recién subido (o el data URL en la demo)
-                <img src={logo} alt={`Logo de ${nombre}`} className="size-[150px] rounded-full bg-white object-cover" data-logo-tienda />
-              ) : (
-                <AvatarTienda nombre={nombre} cap="fin" grande />
-              )}
+              <AvatarTienda nombre={nombre} cap="fin" logo={logo} tamano="grande" />
             </div>
             <Sticker key={logo ? `sticker:${logo}` : "sticker"} nombre="aaah-corazon" ancho={104} alto={90} giro={10} className="-right-16 -top-8" />
-            {!logo && (
+            {(!logo || subiendo) && (
               <button
                 type="button"
                 onClick={() => entrada.current?.click()}

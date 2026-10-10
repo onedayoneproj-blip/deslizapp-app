@@ -60,7 +60,7 @@ test("borrador: se recupera el del mismo enlace y se limpia lo que no encaja", (
   assert.equal(O.leerBorrador("{roto", "e1"), null);
   assert.equal(O.leerBorrador(null, "e1"), null);
   const raro = O.leerBorrador(JSON.stringify({ enlaceId: "e1", capitulo: 9, nombre: 5, rubros: ["ropa", "zapatos", "ropa"], vendedora: "Ana" }), "e1");
-  assert.deepEqual(raro, { enlaceId: "e1", capitulo: 1, nombre: "", rubros: ["ropa"], whatsapp: "", vendedora: "Ana" });
+  assert.deepEqual(raro, { enlaceId: "e1", capitulo: 1, nombre: "", rubros: ["ropa"], whatsapp: "", vendedora: "Ana", logo: null });
 });
 
 test("cada capítulo pide lo suyo; al cerrar el 4 los datos van listos para la base", () => {
@@ -105,4 +105,19 @@ test("«Pon tu logo»: solo imágenes y hasta 20 MB, con mensajes claros", () =>
   assert.match(O.errorArchivoLogo({ type: "application/pdf", size: 1000 }), /no es una imagen/);
   assert.match(O.errorArchivoLogo({ type: "", size: 1000 }), /no es una imagen/);
   assert.match(O.errorArchivoLogo({ type: "image/png", size: O.LOGO_MAX_BYTES + 1 }), /pesa mucho/);
+});
+
+test("logo del capítulo 1: recorte cuadrado centrado y borrador con foto", () => {
+  assert.deepEqual(O.recorteCuadrado(1200, 800), { sx: 200, sy: 0, lado: 800 });
+  assert.deepEqual(O.recorteCuadrado(600, 900), { sx: 0, sy: 150, lado: 600 });
+  assert.deepEqual(O.recorteCuadrado(512, 512), { sx: 0, sy: 0, lado: 512 });
+  assert.equal(O.LOGO_LADO, 512);
+  const foto = "data:image/jpeg;base64," + "A".repeat(60_000);
+  assert.equal(O.esLogoGuardable(foto), true);
+  assert.equal(O.esLogoGuardable("data:image/jpeg;base64," + "A".repeat(O.LOGO_BORRADOR_MAX)), false, "demasiado largo");
+  assert.equal(O.esLogoGuardable("https://x.test/a.jpg"), false, "solo data URL");
+  assert.equal(O.esLogoGuardable("data:text/html;base64,PHNjcmlwdD4="), false, "solo imágenes");
+  const b = { ...O.borradorNuevo("e1"), nombre: "Esencias", logo: foto };
+  assert.equal(O.leerBorrador(JSON.stringify(b), "e1").logo, foto, "la foto vuelve con el borrador");
+  assert.equal(O.leerBorrador(JSON.stringify({ ...b, logo: "javascript:alert(1)" }), "e1").logo, null);
 });
