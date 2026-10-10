@@ -2,6 +2,19 @@
 
 Tu puesto es Planning. Este encargo es de gestión y documentación; no edites código de la app ni hagas cambios en Supabase.
 
+## Resultado del encargo — 10 de octubre de 2026
+
+**Completado: piloto configurado y seguimiento trasladado.** [Estado y evidencia](../piloto-notion.md) · [Guía para Lewis](../gestion-del-proyecto.md). Esta sesión pasa a ser Planning principal, con herramientas comprobadas de Notion y GitHub; Lewis pasa manualmente los encargos a Coding.
+
+- Se reutilizó la base accesible, con tabla, tablero y roadmap, sin duplicarla ni publicar datos.
+- Se crearon, leyeron y editaron únicamente las tareas de origen #97–#99, con su alcance, aceptación, vínculos y dependencias. Se comprobó el PR #96 abierto y sin merge en el HEAD vigente; revisión funcional aún pendiente.
+- Lewis aclaró que editó solo el estado de prueba. Planning releyó Done; no vio «Probado por Lewis». La edición y reversión inocua del contenido se verificaron.
+- Las vistas usan Estado de tarea, propiedad Select real con seis opciones. Se conservó el Estado nativo anterior y se ocultó de las vistas; no hay conversión destructiva. Roadmap configurado sin fechas inventadas.
+- Se publicaron notas de traslado en las tres Issues y se actualizaron piloto, guía, contexto, memoria y relevo en main. Las Issues siguen abiertas como antecedentes por fallos/interrupciones de cierre; no significa que su trabajo esté terminado. Project #2 conservado.
+- No se inició Coding, se editó código, se hizo merge, se modificó Supabase ni se contrataron planes/automatizaciones.
+
+Los pasos siguientes son el protocolo original del encargo y no una autorización para repetir la importación ni crear tareas duplicadas. Al retomar, consultar primero el estado vigente y los enlaces de Notion.
+
 ## Contexto y comprobación
 
 Lee docs/00-contexto-del-proyecto.md, AGENTS.md, HANDOFF.md, docs/forma-de-trabajo.md, docs/piloto-notion.md y docs/handoffs/planning-sesion.md en main actualizado.
@@ -9,7 +22,7 @@ Lee docs/00-contexto-del-proyecto.md, AGENTS.md, HANDOFF.md, docs/forma-de-traba
 Continúa en la sesión que ya creó, leyó y editó la tarea de prueba:
 https://app.notion.com/p/3f5ed62010cb8168a9b7fe26a1c7a812?pvs=204
 
-Lewis confirmó que añadió «Probado por Lewis». Relee la tarea y comprueba esa edición. No repitas la instalación del plugin. Si esta sesión no tiene herramientas de Notion, entrega el bloqueo y no afirmes que configuraste nada.
+El reporte previo decía que Lewis añadió «Probado por Lewis»; Lewis aclaró después que solo cambió el estado. Relee la tarea y comprueba la edición real, sin atribuirle un cambio de texto inexistente. No repitas la instalación del plugin. Si esta sesión no tiene herramientas de Notion, entrega el bloqueo y no afirmes que configuraste nada.
 
 La base de prueba accesible es:
 https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d
