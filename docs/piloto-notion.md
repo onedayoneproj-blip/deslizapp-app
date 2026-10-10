@@ -4,11 +4,22 @@ Aprobado por Lewis el 10 de octubre de 2026.
 
 ## Estado del piloto
 
-**Autorizado, bloqueado por disponibilidad de herramientas.** Lewis instaló Notion; el catálogo confirma `installed: true`. Tras su mensaje «Prueba Notion», Planning volvió a revisar las herramientas disponibles y no aparecen operaciones de Notion para leer, crear ni editar. No se ha creado ni editado contenido en Notion desde esta sesión. La instalación está confirmada; la operatividad no. Recargar la conversación no resolvió esta comprobación. No pedir otra instalación ni presentar la prueba como aprobada; probar una sesión con las herramientas efectivamente habilitadas o resolver su disponibilidad antes de migrar.
+**Prueba técnica aprobada en otra sesión; piloto colaborativo pendiente.** El 10/10/2026 Lewis pegó el siguiente informe de la sesión de prueba. Planning registra ese reporte, sin presentarlo como una comprobación independiente desde este chat.
 
-No hay enlace de workspace, tablero ni base de tareas confirmado. No inventarlo. Actualizar este apartado después de comprobar escritura y lectura reales, indicando fecha y enlaces exactos.
+- La sesión creó y leyó una tarea con contenido `V1` y estado `Not started`.
+- Editó el contenido a `V2` y la propiedad real de estado a `In progress`.
+- Volvió a leer y confirmó que persistían ambos cambios.
+- [Tarea de prueba](https://app.notion.com/p/3f5ed62010cb8168a9b7fe26a1c7a812?pvs=204).
+- [Base privada de prueba](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d).
+- El [objeto Deslizapp encontrado](https://app.notion.com/p/954ed62010cb8324aef681028a31db6f?pvs=204) devolvió `403 restricted_resource` a esa sesión. Según su informe, es un objeto gestionado por Notion, no un destino editable mediante MCP. No usarlo ni intentar eludir esa restricción.
 
-Hasta entonces, las [Issues #97–#99](https://github.com/onedayoneproj-blip/deslizapp-app/issues) siguen vigentes. El [Project de GitHub](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) se conserva; no se está manteniendo automáticamente desde Planning por falta de permisos.
+Falta que Lewis confirme que puede abrir y editar la tarea y elegir un destino normal accesible para gestionar Deslizapp. Se le pidió añadir «Probado por Lewis» al contenido de la tarea. La base anterior es de prueba, no un tablero de producción confirmado.
+
+El plugin figura instalado. En este chat de Planning todavía no se exponen herramientas de Notion, aun después de recargar; la sesión de prueba sí las tuvo. La operatividad debe comprobarse por sesión, no asumirse globalmente. No pedir otra instalación ni afirmar que Planning puede actualizar el tablero desde aquí.
+
+**Siguiente:** confirmar edición por Lewis; usar una sesión con acceso real para configurar el espacio compartido y migrar las tareas según las reglas siguientes. No dar el piloto por activo por el solo éxito técnico.
+
+Las Issues #97–#99 siguen vigentes. No se migró el backlog ni se modificaron esas Issues para trasladarlas. El [Project de GitHub](https://github.com/users/onedayoneproj-blip/projects/2/views/1?layout_template=roadmap) se conserva.
 
 ## Qué acordamos y por qué
 
