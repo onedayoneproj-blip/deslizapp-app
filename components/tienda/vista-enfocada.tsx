@@ -138,7 +138,8 @@ export function VistaEnfocada({
   const centro = (p: Punto): Punto => {
     const r = ref.current!.getBoundingClientRect();
     return { x: p.x - r.left - r.width / 2, y: p.y - r.top - r.height / 2 };
-  };  /** Pellizco que viene del reel (dos puntos) o su fin (null): misma cuenta que la pinza propia de la vista. */
+  };
+  /** Pellizco que viene del reel (dos puntos) o su fin (null): misma cuenta que la pinza propia de la vista. */
   const pellizcoInicial = useRef(pellizco);
   const pinzaExterna = useRef<{ d0: number; z0: Zoom; local: Punto } | null>(null);
   const pellizcoRef = useRef((dedosAhora: [Punto, Punto] | null) => {
@@ -229,7 +230,6 @@ export function VistaEnfocada({
       fondoInerte.forEach((el, i) => (el.inert = estados[i]));
     };
   }, [raiz, idHistorial]);
-
 
   const inicioDe = (p: Punto) => {
     const g = gesto.current;

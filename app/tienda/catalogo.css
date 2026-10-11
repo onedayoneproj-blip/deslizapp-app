@@ -8598,7 +8598,7 @@ html.catalogo-html,
   pointer-events: auto;
 }
 /* Sin zoom de página al pellizcar la foto: el pellizco abre la vista enfocada. Deslizar sigue igual en los dos ejes. */
-.catalogo-publico .carrusel {
+.catalogo-publico .carrusel.con-vista {
   touch-action: pan-x pan-y;
 }
 /* Botón para ver la foto en grande: esquina superior derecha, bajo las barras. 44 px de toque, 32 px visibles. */

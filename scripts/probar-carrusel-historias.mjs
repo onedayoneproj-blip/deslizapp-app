@@ -393,7 +393,30 @@ try {
     ok(await s.reel.locator('.sonido').count()===1,'video: con el reel a la vista se muestra su sonido');
     await s.reel.getByRole('button',{name:'Ver foto en grande'}).click();await enfocada(s).waitFor();
     ok(await s.reel.locator('.sonido').count()===0&&await s.reel.locator('.carrusel video').evaluate(v=>v.paused),'video: con la vista abierta, el del carrusel se pausa');
-    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    // El botón de sonido está dentro del carrusel: su toque no abre la vista ni, repetido, da el «aaah».
+    const son=await s.reel.locator('.sonido').boundingBox();const sx=son.x+son.width/2,sy=son.y+son.height/2;
+    const etiquetaSon=()=>s.reel.locator('.sonido').getAttribute('aria-label');
+    const antes=await etiquetaSon();
+    await toque(s,sx,sy);await espera(page,700);
+    ok(await enfocada(s).count()===0&&await etiquetaSon()!==antes,'sonido: un toque cambia el sonido y no abre la vista');
+    await toque(s,sx,sy);await espera(page,120);await toque(s,sx,sy);await espera(page,700);
+    ok(await enfocada(s).count()===0&&await s.reel.locator('.burst.go').count()===0,'sonido: dos toques rápidos no dan el «aaah» ni abren la vista');
+    // Enter sobre el botón de sonido es su clic, no abre la vista.
+    const antesEnter=await etiquetaSon();
+    await s.reel.locator('.sonido').focus();await page.keyboard.press('Enter');await espera(page,500);
+    ok(await enfocada(s).count()===0&&await etiquetaSon()!==antesEnter,'teclado: Enter en el sonido no abre la vista');
+    // Con modificadores o con la tecla mantenida, el carrusel no actúa (Alt+← sigue siendo «atrás» del navegador).
+    await irA(s,1);await s.fotos.focus();
+    const prev=await s.fotos.evaluate(e=>{let p=null;e.addEventListener('keydown',ev=>{p=ev.defaultPrevented},{once:true});e.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',altKey:true,bubbles:true,cancelable:true}));return p});
+    await espera(page,400);
+    ok(prev===false&&await indice(s)===1,'teclado: Alt+← no se bloquea ni cambia de foto');
+    await page.keyboard.press('Shift+Enter');await espera(page,400);
+    ok(await enfocada(s).count()===0,'teclado: Mayús+Enter no abre la vista');
+    await s.fotos.evaluate(e=>e.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',repeat:true,bubbles:true,cancelable:true})));await espera(page,400);
+    ok(await enfocada(s).count()===0,'teclado: Enter mantenido (repetido) no abre la vista');
+    // Solo el reel activo es parada de Tab.
+    ok(await page.evaluate(()=>[...document.querySelectorAll('#reels .reel:not(.on) .carrusel, #reels .reel:not(.on) .expandir')].every(e=>e.tabIndex===-1)),'teclado: los reels no activos no son paradas de Tab');
     await cerrarCtx(s,'videos');
   }
 }finally{await browser.close();}

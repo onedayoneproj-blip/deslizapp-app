@@ -105,6 +105,8 @@ const suscribirVisibilidad = (avisar: () => void) => {
 const DOBLE_TOQUE = 320;
 /** Franja de arriba de la foto que no abre la vista enfocada (barras, colección y botón de expandir). */
 const FRANJA_ARRIBA = 56;
+/** Un control dentro del carrusel (el sonido del video) recibe su toque: no es un toque a la foto. */
+const enControl = (t: EventTarget | null) => t instanceof Element && !!t.closest("button, a");
 export function Medios({
   medios,
   nombre,
@@ -215,7 +217,7 @@ export function Medios({
     if (!el) return;
     const distancia = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const inicio = (e: TouchEvent) => {
-      if (e.targetTouches.length < 2 || !conVistaRef.current) return;
+      if (e.targetTouches.length < 2 || !conVistaRef.current || [...e.targetTouches].some((t) => enControl(t.target))) return;
       multitoque.current = true;
       pinza.current = { d0: Math.max(1, distancia(e.targetTouches)) };
     };
@@ -248,6 +250,9 @@ export function Medios({
   const cerrarEnfocada = (i: number) => {
     const el = ref.current;
     abierta.current = false;
+    // Si la pinza abrió la vista, su touchend pudo no llegar al reel (queda inerte mientras tanto).
+    multitoque.current = false;
+    pinza.current = null;
     dedoRef.current = false;
     setDedo(false);
     setEnfocada(null);
@@ -266,14 +271,17 @@ export function Medios({
   return (
     <>
       <div
-        className="carrusel"
+        className={"carrusel" + (conVistaEnfocada && medios.some((m) => m.tipo === "foto") ? " con-vista" : "")}
         ref={ref}
         // Con teclado: el carrusel se enfoca, ←/→ cambian de foto y Enter o Espacio abren la vista enfocada.
-        tabIndex={0}
+        // Solo el reel activo es una parada de Tab: los demás están fuera de la vista.
+        tabIndex={activo ? 0 : -1}
         role="group"
         aria-roledescription="carrusel"
         aria-label={`Fotos de ${nombre}`}
         onKeyDown={(e) => {
+          // Solo con el carrusel enfocado (no el botón de sonido) y sin modificadores: Alt/Cmd+← siguen siendo «atrás».
+          if (e.target !== e.currentTarget || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat) return;
           if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
             e.preventDefault();
             irAFoto(indice + (e.key === "ArrowRight" ? 1 : -1));
@@ -287,6 +295,7 @@ export function Medios({
           setIndice(Math.round(d.scrollLeft / d.clientWidth));
         }}
         onPointerDown={(e) => {
+          if (enControl(e.target)) return;
           // Un dedo nuevo (un segundo toque, un deslizamiento) anula el toque que esperaba a abrir la vista.
           cancelarPendiente();
           tap.current = { t: tap.current.t, x: e.clientX, y: e.clientY, abajo: Date.now() };
@@ -303,6 +312,7 @@ export function Medios({
           setDedo(false);
         }}
         onPointerUp={(e) => {
+          if (enControl(e.target)) return;
           dedoRef.current = false;
           setDedo(false);
           // Un pellizco no es un toque: ni «aaah» ni vista enfocada al soltar los dedos.
@@ -311,7 +321,9 @@ export function Medios({
             Math.hypot(e.clientX - tap.current.x, e.clientY - tap.current.y) >
             12
           ) {
+            // Un deslizamiento: anula el toque que esperaba y no cuenta como primer toque de un doble toque.
             cancelarPendiente();
+            tap.current.t = 0;
             return;
           }
           const now = Date.now();
@@ -384,6 +396,7 @@ export function Medios({
         <button
           type="button"
           className={"expandir ov" + (varios ? " con-historias" : "")}
+          tabIndex={activo && !pausado ? 0 : -1}
           aria-label="Ver foto en grande"
           onClick={() => abrirEnfocada()}
         >

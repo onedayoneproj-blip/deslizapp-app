@@ -30,7 +30,14 @@ Además, defectos de una revisión de #102 que Planning verificó en el código 
 - **Videos:** en la vista enfocada, el video de la foto actual se reproduce y los vecinos se pausan por efecto. El del carrusel deja de ser visible (se pausa y quita su sonido) mientras la vista está abierta.
 - `pointercancel` dentro de la vista devuelve la foto a su sitio: no cambia de foto ni cierra.
 
-Novedad `0.64.0` (la `0.63.0` es la de instalar, #107). Pruebas: `probar-carrusel-historias.mjs`, 269 comprobaciones (también las de los defectos: marca vieja al recargar y sin recargar, Escape doble, tocar y deslizar, tocar y abrir una hoja, teclado, vista previa y videos). Incluye una malla de 9×11 puntos con `elementFromPoint` a 360/390/430 px y con 1/3/10 medios (cada punto sin control cae en el carrusel), el nombre que abre la vista, «…» que abre la descripción y no la vista, el panel abierto que no abre nada, el botón (historial, Escape, foco y geometría sin solapes con la colección ni el sonido) y el pellizco (una sola apertura, sin zoom de página, juntar los dedos no abre, con una hoja abierta tampoco, con un dedo en un control tampoco). No se pudo probar Safari real de iPhone ni el pellizco físico.
+Segunda revisión de Planning sobre `74c97a6`:
+
+- **El sonido no abre la vista:** el botón de sonido vive dentro de `.carrusel`. Ahora su toque (o un pellizco que empiece sobre él) no cuenta como toque a la foto: ni abre la vista ni, repetido, da el «aaah».
+- **Teclado:** el carrusel solo actúa sobre sí mismo (`e.target === e.currentTarget`), sin modificadores (Alt/Cmd+← siguen siendo «atrás») y sin teclas repetidas. Enter sobre el sonido vuelve a ser su clic.
+- **Tab:** solo el reel activo es una parada de Tab (carrusel `tabIndex` 0 o -1). El botón de expandir sale del orden con una hoja encima.
+- **Menores:** `touch-action: pan-x pan-y` solo en carruseles con vista enfocada; `multitoque` se reinicia al cerrar; un deslizamiento reinicia el doble toque. No se cancela el toque pendiente en `pointerleave`: en táctil ese evento llega justo después de `pointerup` y anularía todos los toques simples.
+
+Novedad `0.64.0` (la `0.63.0` es la de instalar, #107). Pruebas: `probar-carrusel-historias.mjs`, 276 comprobaciones (también las de los defectos: marca vieja al recargar y sin recargar, Escape doble, tocar y deslizar, tocar y abrir una hoja, teclado, vista previa y videos). Incluye una malla de 9×11 puntos con `elementFromPoint` a 360/390/430 px y con 1/3/10 medios (cada punto sin control cae en el carrusel), el nombre que abre la vista, «…» que abre la descripción y no la vista, el panel abierto que no abre nada, el botón (historial, Escape, foco y geometría sin solapes con la colección ni el sonido) y el pellizco (una sola apertura, sin zoom de página, juntar los dedos no abre, con una hoja abierta tampoco, con un dedo en un control tampoco). No se pudo probar Safari real de iPhone ni el pellizco físico.
 
 ## Pruebas
 
