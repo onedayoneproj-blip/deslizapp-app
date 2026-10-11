@@ -8,7 +8,7 @@ import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { VERSION_ACTUAL } from "@/lib/novedades";
 import { Hoja } from "../hoja";
-import { IconoCheck, IconoChevronDerecha, IconoClientes, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
+import { IconoCheck, IconoChevronDerecha, IconoClientes, IconoDescargar, IconoMatraz, IconoPedidos, IconoReiniciar } from "../iconos";
 import { Boton, GrupoOpciones } from "../ui";
 import { usePermisos } from "@/lib/data/permisos";
 import { NIVELES } from "@/lib/equipo";
@@ -21,6 +21,8 @@ import { AccesoAdmin } from "./acceso-admin";
 import { FilaCuenta } from "./cuenta";
 import { LogoTienda } from "./logo-tienda";
 import { usePanelUI } from "./ui";
+import { HojaInstalarApp, useMarcarInstalada } from "../pwa/hoja-instalar-app";
+import { useAppInstalada, useEsIos, useInstalarPwa } from "../pwa/instalar-pwa";
 
 const NOMBRE_ESTADO_CATALOGO = {
   sin: "sin catálogo",
@@ -54,6 +56,22 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   const { abrirNovedades, abrirMiMarca, abrirEquipo } = usePanelUI();
   const [confirmarReinicio, setConfirmarReinicio] = useState(false);
   const [cambiando, setCambiando] = useState<string | null>(null);
+  // «Instalar app», fija mientras se pueda: Chrome ofrece instalar (un toque abre su diálogo) o es iPhone (abre la guía).
+  const instalacion = useInstalarPwa();
+  const yaInstalada = useAppInstalada();
+  const esIos = useEsIos();
+  const marcarInstalada = useMarcarInstalada();
+  const [hojaInstalar, setHojaInstalar] = useState(false);
+  const mostrarInstalar = !yaInstalada && (instalacion.puedeInstalar || esIos);
+  const tocarInstalar = async () => {
+    if (!instalacion.puedeInstalar) { cerrar(); setHojaInstalar(true); return; }
+    const r = await instalacion.instalar();
+    if (r === "accepted") {
+      cerrar();
+      try { await marcarInstalada?.(); } catch { /* el paso se puede marcar luego desde la guía */ }
+      toast("Deslizapp ya está en tu pantalla de inicio.");
+    } else if (r === "no-disponible") { cerrar(); setHojaInstalar(true); }
+  };
 
   const ordenadas = ordenarTiendas(tiendas ?? [], tiendaActivaId);
   const activa = ordenadas.find((t) => t.id === tiendaActivaId) ?? null;
@@ -198,6 +216,21 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
               <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
             </button>
           )}
+          {mostrarInstalar && (
+            <button
+              type="button"
+              onClick={() => void tocarInstalar()}
+              data-fila-instalar=""
+              className="tocable flex min-h-14 w-full items-center gap-3 border-t border-linea px-3.5 py-2 text-left"
+            >
+              <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-accion-suave text-texto"><IconoDescargar tamano={18} /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-extrabold">Instalar app</span>
+                <span className="block text-secundario text-texto-secundario">{esIos ? "Ponla en tu pantalla de inicio" : "Un toque y queda en tu pantalla"}</span>
+              </span>
+              <IconoChevronDerecha tamano={18} className="shrink-0 text-texto-secundario" />
+            </button>
+          )}
           {!soloMirar && permiso?.rol === "staff" && (
             <div className="border-t border-linea px-3.5 py-3" data-fila-equipo="colaborador">
               <p className="font-extrabold opacity-60">Tu equipo</p>
@@ -236,6 +269,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
       )}
 
       <AccesoAdmin alAbrir={cerrar} />
+      <HojaInstalarApp abierta={hojaInstalar} alCerrar={() => setHojaInstalar(false)} plataformaInicial={esIos ? "ios" : "android"} />
 
       {demo && (
         <>

@@ -17,6 +17,7 @@ import { HojaComoSeVe } from "../catalogo/hoja-producto-filas";
 import { HojaPublicarCatalogo } from "../catalogo/hoja-publicar-catalogo";
 import { useRouter } from "next/navigation";
 import { useToast } from "../toast";
+import { HojaInstalarApp } from "../pwa/hoja-instalar-app";
 
 const FOCO_GUIA = "outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
@@ -53,6 +54,7 @@ function Checklist() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [claveFallida, setClaveFallida] = useState<ClaveOnboarding>("checklist_cerrado_en");
+  const [plataforma, setPlataforma] = useState<"ios" | "android">("ios");
   const bloqueo = useRef(false); const cierreIntentado = useRef(false);
   useEffect(() => {
     const media = window.matchMedia("(display-mode: standalone)");
@@ -104,7 +106,7 @@ function Checklist() {
     else if (i === 2) router.push("/catalogo/nuevo");
     else if (i === 3) setHoja("publicar");
     else if (i === 4) setHoja("perfil");
-    else if (i === 5) setHoja("instalar");
+    else if (i === 5) { setPlataforma(/android/i.test(navigator.userAgent) ? "android" : "ios"); setHoja("instalar"); } // iPhone por defecto (también en escritorio)
     else abrirEquipo();
   };
   const hayAcciones = seleccionado === 1 || (seleccionado === 2 && !pasos[6]) || (capitulo.completo && pendiente >= 0);
@@ -161,12 +163,7 @@ function Checklist() {
     {error && !hoja && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
     </div>}
     {hoja === "perfil" && <Perfil alCerrar={() => setHoja(null)} />}
-    <Hoja abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} titulo="Tu tienda, a un toque" protegerAtras>
-      {error && <Aviso tono="peligro">{error}</Aviso>}
-      <h3 className="text-destacado">En iPhone</h3><p className="text-cuerpo">Abre Deslizapp en Safari. Toca Compartir y luego «Añadir a pantalla de inicio».</p>
-      <h3 className="mt-4 text-destacado">En Android</h3><p className="text-cuerpo">Abre Deslizapp en Chrome. En el menú toca «Instalar aplicación» o «Añadir a pantalla de inicio».</p>
-      <Boton className="mt-4" cargando={guardando} onClick={() => void marcar("pantalla_inicio_en")}>Ya lo hice</Boton>
-    </Hoja>
+    <HojaInstalarApp abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} plataformaInicial={plataforma} />
     <HojaComoSeVe abierta={hoja === "vista"} alCerrar={() => setHoja(null)} visible datos={() => ({ tienda: tiendaPublicaDe(tienda), productos: productosPublicosDe(consulta.data?.productos ?? [], tienda.rubro) })} />
     <HojaPublicarCatalogo abierta={hoja === "publicar"} alCerrar={() => setHoja(null)} enlace={`${typeof window === "undefined" ? "https://deslizapp-app.vercel.app" : window.location.origin}${enlace}`} productos={cantidad} alAgregarMas={() => { setHoja(null); router.push("/catalogo/nuevo"); }} alConfirmar={async () => {
       try { await datos.publicarMiCatalogo(tiendaId); setHoja(null); toast("Tu catálogo ya está en línea."); }

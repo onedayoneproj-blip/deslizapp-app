@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Figtree, Fredoka } from "next/font/google";
 import { AvisoVersion } from "@/components/pwa/aviso-version";
+import { CapturaInstalacion } from "@/components/pwa/instalar-pwa";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         <AvisoVersion />
+        <CapturaInstalacion />
       </body>
     </html>
   );
