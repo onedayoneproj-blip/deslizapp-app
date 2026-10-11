@@ -49,3 +49,21 @@ export function useInstalarPwa() {
   };
   return { puedeInstalar: evento !== null, instalada, instalar };
 }
+
+const suscribirModo = (o: () => void) => {
+  const media = window.matchMedia("(display-mode: standalone)");
+  media.addEventListener("change", o); window.addEventListener("focus", o);
+  return () => { media.removeEventListener("change", o); window.removeEventListener("focus", o); };
+};
+const leerStandalone = () => window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+/** La app ya corre instalada (modo standalone). Falso en el servidor. */
+export function useAppInstalada() {
+  return useSyncExternalStore(suscribirModo, leerStandalone, () => false);
+}
+
+const leerEsIos = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+/** iPhone/iPad: no hay API de instalación, solo la guía. Falso en el servidor. */
+export function useEsIos() {
+  return useSyncExternalStore(() => () => {}, leerEsIos, () => false);
+}
