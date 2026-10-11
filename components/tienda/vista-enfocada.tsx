@@ -22,12 +22,15 @@ export function VistaEnfocada({
   nombre,
   inicial,
   cerrada,
+  pellizco = false,
 }: {
   medios: Medio[];
   nombre: string;
   inicial: number;
   /** Al terminar de cerrar, con la última foto vista. */
   cerrada: (indice: number) => void;
+  /** Se abrió pellizcando la foto del reel: los mismos dedos siguen acercando aquí hasta que se levantan. */
+  pellizco?: boolean;
 }) {
   const [actual, setActual] = useState(inicial);
   const [saliendo, setSaliendo] = useState(false);
@@ -123,6 +126,35 @@ export function VistaEnfocada({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raiz]);
 
+  const centro = (p: Punto): Punto => {
+    const r = ref.current!.getBoundingClientRect();
+    return { x: p.x - r.left - r.width / 2, y: p.y - r.top - r.height / 2 };
+  };  /** Pellizco que viene del reel (dos puntos) o su fin (null): misma cuenta que la pinza propia de la vista. */
+  const pellizcoInicial = useRef(pellizco);
+  const pinzaExterna = useRef<{ d0: number; z0: Zoom; local: Punto } | null>(null);
+  const pellizcoRef = useRef((dedosAhora: [Punto, Punto] | null) => {
+    void dedosAhora;
+  });
+  useLayoutEffect(() => {
+    pellizcoRef.current = (dedosAhora) => {
+      if (!dedosAhora) {
+        pinzaExterna.current = null;
+        if (zoom.current.s < 1.05) aplicar({ s: 1, x: 0, y: 0 }, true);
+        return;
+      }
+      const [a, b] = dedosAhora;
+      const d = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const m = centro({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+      const p = pinzaExterna.current;
+      if (!p) {
+        const z = zoom.current;
+        pinzaExterna.current = { d0: d, z0: { ...z }, local: { x: (m.x - z.x) / z.s, y: (m.y - z.y) / z.s } };
+        return;
+      }
+      const s = limitar((p.z0.s * d) / p.d0, 1, ZOOM_MAX);
+      aplicar(acotar({ s, x: m.x - s * p.local.x, y: m.y - s * p.local.y }));
+    };
+  });
   // Modal estable: fondo inerte y sin scroll, teclado, «atrás» y gestos propios de Safari bloqueados.
   useEffect(() => {
     if (!raiz) return;
@@ -147,6 +179,24 @@ export function VistaEnfocada({
     };
     const evitar = (e: Event) => e.preventDefault();
     const el = ref.current;
+    // El pellizco que abrió la vista sigue apuntando a la foto del reel: se escucha en la ventana hasta soltar.
+    const sigue = (e: TouchEvent) => {
+      if (e.touches.length < 2) return;
+      e.preventDefault();
+      pellizcoRef.current([...e.touches].slice(0, 2).map((t) => ({ x: t.clientX, y: t.clientY })) as [Punto, Punto]);
+    };
+    const suelta = (e: TouchEvent) => {
+      if (e.touches.length >= 2) return;
+      pellizcoRef.current(null);
+      window.removeEventListener("touchmove", sigue, true);
+      window.removeEventListener("touchend", suelta, true);
+      window.removeEventListener("touchcancel", suelta, true);
+    };
+    if (pellizcoInicial.current) {
+      window.addEventListener("touchmove", sigue, { capture: true, passive: false });
+      window.addEventListener("touchend", suelta, true);
+      window.addEventListener("touchcancel", suelta, true);
+    }
     window.addEventListener("keydown", tecla, true);
     window.addEventListener("popstate", pop);
     document.addEventListener("gesturestart", evitar);
@@ -156,15 +206,15 @@ export function VistaEnfocada({
       window.removeEventListener("popstate", pop);
       document.removeEventListener("gesturestart", evitar);
       el?.removeEventListener("touchmove", evitar);
+      window.removeEventListener("touchmove", sigue, true);
+      window.removeEventListener("touchend", suelta, true);
+      window.removeEventListener("touchcancel", suelta, true);
       html.style.overflow = overflow;
       fondoInerte.forEach((el, i) => (el.inert = estados[i]));
     };
   }, [raiz]);
 
-  const centro = (p: Punto): Punto => {
-    const r = ref.current!.getBoundingClientRect();
-    return { x: p.x - r.left - r.width / 2, y: p.y - r.top - r.height / 2 };
-  };
+
   const inicioDe = (p: Punto) => {
     const g = gesto.current;
     g.modo = null;

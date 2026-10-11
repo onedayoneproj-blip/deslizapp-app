@@ -11,6 +11,16 @@
 - **Ronda 2 (pedido de Lewis):** la etiqueta de texto de la colección («Para ella»…) pasa a ser el abanico de miniaturas de «Colecciones» arriba a la derecha del reel, con la carátula de la colección del producto al frente (`abanicoDeColeccion` en `lib/tienda/catalogo.ts`; también en la vista previa). «En tu pedido» queda a la izquierda. No es tocable.
 - Icono `close` nuevo en `iconos.tsx`. Novedad `0.61.0` en `lib/novedades.ts` (la `0.60.0` es la de la guía, #103). Docs: `04-pantallas.md` (párrafo de #101 marcado como sustituido + regla nueva), `12-catalogo-conectado.md`, excepción de movimiento en `HANDOFF.md` y `08-movimiento.md`.
 
+## Ronda 3 · toque, pellizco y botón (11 oct 2026, rama `fix/enfocada-toque-pinch-boton`)
+
+Lewis probó #102 en producción (iPhone, tienda `deslizapp`, «El Librito») y pidió por medio de Planning:
+
+1. **El toque solo funcionaba en algunas zonas.** `.cap` y `.acts` interceptaban los toques en su espacio vacío y `enCentro()` excluía todo lo que quedaba por debajo de la descripción. Ahora `.reel.on .cap` y `.reel.on .acts` tienen `pointer-events: none` y solo sus controles reales (`button`, `a`, campos; en `.cap` solo sin la descripción abierta) vuelven a `auto`. `enCentro()` pasa a `enFoto()`, que solo excluye la franja de arriba (56 px: barras, colección y botón). El nombre, el precio y el texto ahora abren la vista.
+2. **El pellizco abre la vista.** `touchstart`/`touchmove` no pasivos sobre `.carrusel` con `targetTouches` (los dos dedos sobre la foto) abren al separarse más de un 20 % o 24 px. `touch-action: pan-x pan-y` y `gesturestart` cancelado evitan el zoom de página solo ahí; el viewport de `app/layout.tsx` no se toca, así que el zoom de accesibilidad del resto de la app sigue. `abierta` evita una segunda apertura y el pellizco no cuenta como toque ni como «aaah». La vista recibe `pellizco` y sigue el mismo gesto escuchando `touchmove` en la ventana hasta soltar (en Chromium llega a 2,6×).
+3. **Botón de expandir** (`.expandir`, icono `expandir`): esquina superior derecha bajo las barras, círculo translúcido de 32 px con área de 44 px, «Ver foto en grande». Abre la misma vista (misma entrada de historial y el foco vuelve a la foto). La colección se corre a su izquierda (`.topmeta.con-expandir`, 8 px del círculo) y el sonido del video baja de 52 a 64 px.
+
+Novedad `0.63.0`. Pruebas: `probar-carrusel-historias.mjs`, 253 comprobaciones. Incluye una malla de 9×11 puntos con `elementFromPoint` a 360/390/430 px y con 1/3/10 medios (cada punto sin control cae en el carrusel), el nombre que abre la vista, «…» que abre la descripción y no la vista, el panel abierto que no abre nada, el botón (historial, Escape, foco y geometría sin solapes con la colección ni el sonido) y el pellizco (una sola apertura, sin zoom de página, juntar los dedos no abre, con una hoja abierta tampoco, con un dedo en un control tampoco). No se pudo probar Safari real de iPhone ni el pellizco físico.
+
 ## Pruebas
 
 - `npm run lint` (0 errores; avisos `<img>` previos), `npm run tipos`, `npm test` (589 pasan), `npm run build`.

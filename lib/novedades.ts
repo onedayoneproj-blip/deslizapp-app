@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.63.0", fecha: "2026-10-11", titulo: "Tus fotos, más a la mano.",
+    cambios: ["Tus clientes ven la foto en grande tocándola en cualquier parte, pellizcándola o con el botón de la esquina."],
+  },
+  {
     version: "0.62.0", fecha: "2026-10-11", titulo: "Tu tienda, a un toque.",
     cambios: ["En iPhone, una animación te muestra cómo añadir Deslizapp a tu pantalla de inicio.", "En Android, un botón «Instalar Deslizapp» lo hace por ti.", "Y en el menú de tu tienda queda una fila «Instalar app» mientras no la tengas instalada."],
   },

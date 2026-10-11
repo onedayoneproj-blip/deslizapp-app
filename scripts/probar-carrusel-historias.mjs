@@ -63,7 +63,7 @@ try {
     const abanico=reel.locator('.reel-coleccion');
     ok(await abanico.getAttribute('aria-label')==='Colección Para ella'&&!/para ella/i.test(await reel.locator('.topmeta').innerText()),`${n}: la colección va en abanico, sin la etiqueta de texto`);
     const ab=await abanico.boundingBox();
-    ok(ab.x+ab.width>media.x+media.width-30&&ab.y<media.y+50,`${n}: abanico en la esquina superior derecha`);
+    ok(ab.x+ab.width>media.x+media.width-70&&ab.y<media.y+50,`${n}: abanico en la esquina superior derecha`);
     const frente=await abanico.locator('.hc-f img').getAttribute('src');
     // La carátula de la colección es la foto del primer producto de la colección: el primer reel con esa misma colección.
     ok(frente===await page.evaluate(()=>{const r=[...document.querySelectorAll('#reels .reel')].find(r=>r.querySelector('.reel-coleccion')?.getAttribute('aria-label')==='Colección Para ella');return r?.querySelector('.medio img')?.getAttribute('src')}),`${n}: al frente, la carátula de «Para ella»`);
@@ -83,6 +83,9 @@ try {
       if(total===3){
         await irA(s,2);await espera(page,600);
         ok(await etiqueta(s)==='Video 3 de 3',`${n}: el video anuncia su posición`);
+        const eb3=await reel.getByRole('button',{name:'Ver foto en grande'}).boundingBox(),sb=await reel.locator('.sonido').boundingBox();
+        ok(!overlap(eb3,sb),`${n}: el sonido del video no toca el botón de expandir`);
+        if(width===360)await page.screenshot({path:`${OUT}/360-video-sonido.png`});
         ok(await reel.locator('.historia i.video').evaluate(e=>e.getAnimations().length===0),`${n}: la barra del video no corre sola`);
         // El Chromium de pruebas puede no traer el códec MP4: se fija el tiempo del video y se emite su `timeupdate`.
         await reel.locator('video').evaluate(v=>{Object.defineProperty(v,'duration',{configurable:true,value:8});Object.defineProperty(v,'currentTime',{configurable:true,writable:true,value:2});v.dispatchEvent(new Event('timeupdate'))});
@@ -91,6 +94,27 @@ try {
         await irA(s,0);
       }
     }
+    // Toda la foto recibe el toque salvo los controles reales: malla de puntos con elementFromPoint.
+    const malla=await page.evaluate(({slug,franja})=>{
+      const r=document.querySelector('#r-'+slug+' .carrusel').getBoundingClientRect();const malos=[];
+      for(let fy=0;fy<=10;fy++)for(let fx=0;fx<=8;fx++){
+        const x=r.left+4+(r.width-8)*fx/8,y=r.top+franja+(r.height-franja-4)*fy/10;
+        const el=document.elementFromPoint(x,y);
+        if(!el||el.closest('.carrusel')||el.closest('button,a,input,select,textarea,[role="button"]'))continue;
+        malos.push(el.className||el.tagName);
+      }
+      return malos;
+    },{slug:'mayar',franja:56});
+    ok(malla.length===0,`${n}: toda la foto recibe el toque salvo los controles${malla.length?' (tapan: '+[...new Set(malla)].join(', ')+')':''}`);
+    // Botón de expandir arriba a la derecha, bajo las barras, sin solaparse con la colección ni con el sonido.
+    const exp=reel.getByRole('button',{name:'Ver foto en grande'});
+    const eb=await exp.boundingBox();
+    ok(eb.width>=44&&eb.height>=44&&eb.x+eb.width<=media.x+media.width&&eb.x+eb.width>media.x+media.width-12,`${n}: botón de expandir de 44 px en la esquina derecha`);
+    if(total>1){const b=await s.barras.boundingBox();ok(eb.y+6>=b.y+b.height,`${n}: botón de expandir bajo las barras`);}
+    const visible={x:eb.x+6,y:eb.y+6,width:eb.width-12,height:eb.height-12};
+    ok(!overlap(visible,await abanico.boundingBox()),`${n}: el abanico no toca el botón de expandir`);
+    ok((visible.x)-(ab.x+ab.width)>=6,`${n}: separación entre abanico y botón (${Math.round(visible.x-(ab.x+ab.width))} px)`);
+    const son=reel.locator('.sonido');if(await son.count())ok(!overlap(eb,await son.boundingBox()),`${n}: el sonido no toca el botón de expandir`);
     await page.screenshot({path:`${OUT}/${width}-${total}-medios.png`});
     ok(await page.evaluate(w=>document.documentElement.scrollWidth<=w,width),`${n}: sin overflow horizontal`);
     await cerrarCtx(s,n);
@@ -175,10 +199,6 @@ try {
     await irA(s,0);
     await deslizar(s,x+120,y,x-120,y);await espera(page,700);
     ok(await enfocada(s).count()===0,'deslizar no abre la vista');
-    // Tocar los bordes (descripción) no abre nada.
-    const cap=await s.reel.locator('.cap h2').boundingBox();await toque(s,cap.x+10,cap.y+cap.height/2);await espera(page,600);
-    ok(await enfocada(s).count()===0,'tocar la descripción no abre la vista');
-
     await irA(s,1);
     const largo0=await page.evaluate(()=>history.length);
     await toque(s,x,y);await enfocada(s).waitFor();await espera(page,300);
@@ -229,6 +249,60 @@ try {
     await deslizar(s,200,300,200,560);await enfocada(s).waitFor({state:'detached'});
     ok(!(await page.evaluate(()=>history.state?.catalogoFoto))&&await indice(s)===1,'deslizar hacia abajo cierra y deja la foto vista');
     await cerrarCtx(s,'vista enfocada');
+  }
+
+  // 4b. Toque en toda la foto, botón de expandir y pellizco (contexto limpio: sin la burbuja del «aaah» encima).
+  {
+    const s=await abrirMichel(390,4);const {page}=s;
+    const {x,y}=await centroFoto(s);
+    // El nombre y el precio no son controles: tocarlos abre la vista (antes no llegaba el toque).
+    const cap=await s.reel.locator('.cap h2').boundingBox();await toque(s,cap.x+10,cap.y+cap.height/2);await enfocada(s).waitFor();
+    ok(true,'tocar el nombre del producto abre la vista');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    // Los controles reales siguen recibiendo su toque: «…» abre la descripción, no la vista; y con ella abierta, tocarla no abre nada.
+    const mas=await s.reel.locator('[data-more]').boundingBox();await toque(s,mas.x+mas.width/2,mas.y+mas.height/2);await espera(page,600);
+    ok(await enfocada(s).count()===0&&await s.reel.evaluate(r=>r.classList.contains('open')),'«…» abre la descripción, no la vista');
+    const panel=await s.reel.locator('.panel .pin').boundingBox();await toque(s,panel.x+40,panel.y+20);await espera(page,600);
+    ok(await enfocada(s).count()===0,'con la descripción abierta, tocarla no abre la vista');
+    ok(await s.reel.locator('.expandir').evaluate(b=>getComputedStyle(b).opacity==='0'&&getComputedStyle(b).pointerEvents==='none'),'con la descripción abierta, el botón de expandir se oculta');
+    await s.reel.locator('[data-less]').click();await espera(page,300);
+    // Botón de expandir: misma vista, misma entrada de historial y el foco vuelve a la foto.
+    const largoB=await page.evaluate(()=>navigation.currentEntry.index);
+    await s.reel.getByRole('button',{name:'Ver foto en grande'}).click();await enfocada(s).waitFor();
+    ok(await page.evaluate(()=>history.state?.catalogoFoto===true)&&await page.evaluate(()=>navigation.currentEntry.index)===largoB+1,'botón de expandir: abre la vista con una entrada de historial');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});
+    ok(!(await page.evaluate(()=>history.state?.catalogoFoto))&&await page.evaluate(()=>document.activeElement?.classList.contains('carrusel')),'botón de expandir: Escape cierra y el foco vuelve a la foto');
+    await espera(page,400);
+
+    // Pellizco sobre la foto: abre la vista una sola vez, a 1×, y el mismo gesto sigue acercando.
+    const pell=async(cx,cy,abre=12,pasos=8)=>{
+      await s.cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx-20,y:cy,id:1},{x:cx+20,y:cy,id:2}]});
+      for(let i=1;i<=pasos;i++){await s.cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx-20-i*abre,y:cy,id:1},{x:cx+20+i*abre,y:cy,id:2}]});await espera(page,16)}
+      await s.cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    };
+    const largoP=await page.evaluate(()=>navigation.currentEntry.index);
+    await pell(x,y);await enfocada(s).waitFor();await espera(page,200);
+    ok(await page.evaluate(()=>navigation.currentEntry.index)===largoP+1&&await page.locator('[data-enfocada]').count()===1,'pellizco: abre la vista una sola vez');
+    const zoomP=await page.locator('.enfocada-medio:not([aria-hidden="true"]) .enfocada-zoom').evaluate(e=>Number(e.dataset.zoom??1));
+    console.log(`   (pellizco continuo dentro de la vista en Chromium: ${zoomP}×)`);
+    ok(await page.evaluate(()=>visualViewport.scale)===1,'pellizco: sin zoom de página');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    ok(await page.evaluate(()=>!history.state?.catalogoFoto),'pellizco: cerrar consume su entrada');
+    // Dos dedos quietos o que se juntan no abren nada; tampoco con una hoja abierta.
+    await pell(x,y,-1,6);await espera(page,600);
+    ok(await enfocada(s).count()===0,'juntar los dedos no abre la vista');
+    await s.reel.locator('[data-comments]').click();await page.locator('#cmBg,[role="dialog"]').first().waitFor();await espera(page,300);
+    await pell(x,y);await espera(page,600);
+    ok(await enfocada(s).count()===0,'pellizco con una hoja abierta: no abre la vista');
+    await page.keyboard.press('Escape');await espera(page,500);
+    // Con un dedo en un control (la columna de botones) no cuenta como pellizco sobre la foto.
+    const act=await s.reel.locator('.acts .act').first().boundingBox();
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:act.x+act.width/2,y:act.y+10,id:1},{x:x,y:y,id:2}]});
+    for(let i=1;i<=6;i++){await s.cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:act.x+act.width/2,y:act.y+10,id:1},{x:x-i*15,y:y+i*15,id:2}]});await espera(page,16)}
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await espera(page,600);
+    ok(await enfocada(s).count()===0,'pellizco con un dedo en un control: no abre la vista');
+
+    await cerrarCtx(s,'toque, botón y pellizco');
   }
 
   // 5. Una sola foto: sin barras, el toque abre la vista sin indicador.

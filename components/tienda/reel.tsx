@@ -261,7 +261,7 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "")}>
+        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "") + (p.medios.some((m) => m.tipo === "foto") ? " con-expandir" : "")}>
           <span>{enPedido && <span className="inbadge">En tu pedido</span>}</span>
           {coleccion && (
             <span className="hcov reel-coleccion" role="img" aria-label={"Colección " + coleccion.nombre} data-coleccion={coleccion.nombre}>
