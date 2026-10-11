@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { abanicoDeColeccion, coleccionesDe, pestanaDelFeed, portada } from "@/lib/tienda/catalogo";
+import { coleccionesDe, pestanaDelFeed, portada } from "@/lib/tienda/catalogo";
 import { SUBTEXTO_CATALOGO_PRONTO, textoCatalogoPronto } from "@/lib/publicar-catalogo";
 import { Reel } from "./reel";
 import { Icono } from "./iconos";
@@ -205,7 +205,6 @@ export function VistaPreviaReel() {
             abrirFicha={() => avisar()}
             registrarBurst={() => {}}
             conVistaEnfocada={false}
-            coleccion={(t.personalizacion.secciones as { colecciones?: boolean } | undefined)?.colecciones !== false ? abanicoDeColeccion(cols, p) : null}
             perfil={() => avisar()}
             opiniones={() => avisar()}
             avisar={() => avisar()}
