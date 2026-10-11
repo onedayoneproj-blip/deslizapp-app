@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Isotipo } from "../marca";
+import { IconoCheck } from "../iconos";
 
 export const PASOS_INSTALAR_IOS = [
   "En Safari, toca el menú ☰ de la barra de abajo",
@@ -17,11 +18,15 @@ function Escena({ n, className = "", children }: { n: number; className?: string
   return <div className={`ins-esc ins-d${n} absolute inset-0 ${className}`}>{children}</div>;
 }
 const Barra = ({ w, className = "" }: { w: number; className?: string }) => <span className={`block h-1.5 rounded-full bg-linea ${className}`} style={{ width: w }} />;
-const Toque = ({ n, x, y }: { n: number; x: number; y: number }) => (
-  <span aria-hidden="true" className={`ins-toque ins-d${n} absolute size-[30px] rounded-full bg-texto/30`} style={{ left: x, top: y }} />
+/** El toque va DENTRO de su objetivo (que es `relative`): queda centrado en él sea cual sea su tamaño. */
+const Toque = ({ n }: { n: number }) => (
+  <span aria-hidden="true" className="pointer-events-none absolute top-1/2 left-1/2 size-0">
+    <span className={`ins-toque ins-d${n} -mt-[15px] -ml-[15px] block size-[30px] rounded-full bg-texto/30`} />
+  </span>
 );
 function FilaResaltada({ n, children }: { n: number; children: React.ReactNode }) {
-  return <span className="relative flex h-6 items-center gap-2 px-2.5 text-[10px] font-extrabold text-texto">
+  return <span data-objetivo className="relative flex h-6 items-center gap-2 px-2.5 text-[10px] font-extrabold text-texto">
+    <Toque n={n} />
     <span className={`ins-marca ins-d${n} absolute inset-x-1 inset-y-px rounded-lg bg-accion-suave`} />
     <span className="relative flex items-center gap-2">{children}</span>
   </span>;
@@ -50,7 +55,7 @@ function Animacion() {
 
   return <div data-animacion-ios ref={raiz} className="ins-anim mt-3">
     <ol className="sr-only">{PASOS_INSTALAR_IOS.map((t, i) => <li key={i}>{i < 5 ? `${i + 1}. ` : ""}{t}</li>)}</ol>
-    <div aria-hidden="true" className="rounded-radio-l bg-superficie-hundida py-4">
+    <div aria-hidden="true" data-tarjeta className="rounded-radio-l bg-superficie-hundida py-4">
       <div className="mx-auto h-[360px] w-[176px] rounded-[34px] bg-texto p-[6px]">
         <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-superficie text-texto">
           {/* Pantalla de Safari */}
@@ -60,12 +65,10 @@ function Animacion() {
           <div className="absolute inset-x-0 bottom-2.5 flex justify-center gap-1.5">
             <span className="size-[26px] rounded-full bg-superficie-hundida" />
             <span className="flex h-[26px] w-[92px] items-center gap-2 rounded-full bg-superficie-hundida px-2.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg><Barra w={44} />
+              <span data-objetivo className="relative grid size-[18px] place-items-center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg><Toque n={1} /></span><Barra w={44} />
             </span>
             <span className="size-[26px] rounded-full bg-superficie-hundida" />
           </div>
-          {/* 1 · menú ☰ */}
-          <Escena n={1}><Toque n={1} x={35} y={310} /></Escena>
           {/* 2 · Compartir */}
           <Escena n={2}>
             <div className="ins-velo ins-d2 absolute inset-0 bg-velo" />
@@ -74,7 +77,6 @@ function Animacion() {
               <FilaResaltada n={2}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 8l5-5 5 5" /><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg>Compartir</FilaResaltada>
               <FilaGris w={64} /><FilaGris w={46} />
             </div>
-            <Toque n={2} x={39} y={206} />
           </Escena>
           {/* 3 · Ver más */}
           <Escena n={3}>
@@ -84,10 +86,9 @@ function Animacion() {
               <div className="mt-3 flex justify-between"><span className="size-[26px] rounded-full bg-linea" /><span className="size-[26px] rounded-full bg-linea" /><span className="size-[26px] rounded-full bg-linea" /><span className="size-[26px] rounded-full bg-linea" /></div>
               <div className="mt-3 flex items-start justify-between">
                 <span className="size-[26px] rounded-full bg-superficie" /><span className="size-[26px] rounded-full bg-superficie" /><span className="size-[26px] rounded-full bg-superficie" />
-                <span className="grid w-[26px] justify-items-center gap-0.5"><span className="grid size-[26px] place-items-center rounded-full bg-superficie text-[11px] font-extrabold">···</span><span className="whitespace-nowrap text-[7.5px] font-extrabold">Ver más</span></span>
+                <span className="grid w-[26px] justify-items-center gap-0.5"><span data-objetivo className="relative grid size-[26px] place-items-center rounded-full bg-superficie text-[11px] font-extrabold">···<Toque n={3} /></span><span className="whitespace-nowrap text-[7.5px] font-extrabold">Ver más</span></span>
               </div>
             </div>
-            <Toque n={3} x={122} y={226} />
           </Escena>
           {/* 4 · Añadir a pantalla de inicio */}
           <Escena n={4}>
@@ -99,16 +100,14 @@ function Animacion() {
                 <FilaResaltada n={4}><span className="whitespace-nowrap text-[8.5px]">＋ Añadir a pantalla de inicio</span></FilaResaltada>
               </div>
             </div>
-            <Toque n={4} x={45} y={129} />
           </Escena>
           {/* 5 · Abrir como app web + Añadir */}
           <Escena n={5} className="bg-fondo">
-            <div className="absolute inset-x-2.5 top-3.5 flex h-[22px] items-center justify-between text-[9px] font-extrabold"><span>Cancelar</span><span className="rounded-full bg-accion px-2.5 py-1 text-sobre-accion">Añadir</span></div>
+            <div className="absolute inset-x-2.5 top-3.5 flex h-[22px] items-center justify-between text-[9px] font-extrabold"><span>Cancelar</span><span data-objetivo className="relative rounded-full bg-accion px-2.5 py-1 text-sobre-accion">Añadir<Toque n={5} /></span></div>
             <div className="absolute inset-x-2.5 top-12 grid rounded-xl bg-superficie p-2.5">
               <div className="flex items-center gap-2.5"><span className="grid size-[34px] place-items-center rounded-[9px] bg-marca-rosa-fija text-bosque-oscuro"><Isotipo tamano={21} /></span><span className="text-[11px] font-extrabold">deslizapp</span></div>
             </div>
             <div className="absolute inset-x-2.5 top-[114px] flex items-center justify-between rounded-xl bg-superficie p-2.5 text-[9.5px] font-extrabold"><span>Abrir como app web</span><span className="relative h-[18px] w-[30px] rounded-full bg-accion"><span className="absolute top-0.5 right-0.5 size-3.5 rounded-full bg-sobre-accion" /></span></div>
-            <Toque n={5} x={116} y={10} />
           </Escena>
           {/* 6 · Pantalla de inicio */}
           <Escena n={6} className="bg-accion-suave">
@@ -122,10 +121,10 @@ function Animacion() {
           </Escena>
         </div>
       </div>
-      <div className="relative mx-4 mt-3 h-11">
-        {PASOS_INSTALAR_IOS.map((t, i) => <p key={i} className={`ins-cap ins-d${i + 1} absolute inset-0 flex items-center justify-center gap-2 text-center text-destacado text-texto`}>
-          {i < 5 && <span className="grid size-5 shrink-0 place-items-center rounded-full bg-accion text-[11px] text-sobre-accion">{i + 1}</span>}
-          <span>{t}</span>
+      <div className="relative mx-4 mt-3 h-[88px]">
+        {PASOS_INSTALAR_IOS.map((t, i) => <p key={i} className={`ins-cap ins-d${i + 1} absolute inset-0 flex flex-col items-center gap-1.5 text-center text-destacado text-texto`}>
+          <span data-pie-numero className="grid size-6 shrink-0 place-items-center rounded-full bg-accion text-[12px] text-sobre-accion">{i < 5 ? i + 1 : <IconoCheck tamano={14} strokeWidth={3} />}</span>
+          <span data-pie-texto className="block max-w-[270px] text-balance">{t}</span>
         </p>)}
       </div>
     </div>

@@ -27,7 +27,7 @@ const abrirHoja = async (page, oscuro = false) => {
   if (oscuro) await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
   await page.getByRole("group", { name: "Capítulos de preparación" }).getByRole("button", { name: /Capítulo 4 ·/ }).click();
   await page.locator("[data-checklist]").getByRole("button", { name: /^Pantalla de inicio ·/ }).click();
-  await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor();
+  await page.getByRole("tablist", { name: "Tu teléfono" }).waitFor();
 };
 // La frase visible es la de opacidad más alta de la línea de tiempo CSS.
 const pasoVisible = page => page.evaluate(() => [...document.querySelectorAll("[data-animacion-ios] .ins-cap")].map(e => [Number(getComputedStyle(e).opacity), e.innerText]).sort((a, b) => b[0] - a[0])[0][1]);
@@ -42,15 +42,49 @@ const falso = (resultado) => page => page.evaluate(r => {
 for (const ancho of [360, 390, 430]) for (const oscuro of [false, true]) {
   // iPhone: animación corre y se detiene al cerrar
   let { ctx, page } = await abrir(ancho, { oscuro }); await abrirHoja(page, oscuro);
-  ok(await page.getByRole("radio", { name: "iPhone" }).getAttribute("aria-checked") === "true", `iPhone preseleccionado ${ancho}${oscuro ? " oscuro" : ""}`);
+  ok(await page.getByRole("tab", { name: "iPhone" }).getAttribute("aria-selected") === "true", `iPhone preseleccionado ${ancho}${oscuro ? " oscuro" : ""}`);
   const a = await pasoVisible(page); await page.waitForTimeout(2600); const b = await pasoVisible(page);
   ok(a !== b, "la animación avanza de momento (línea de tiempo CSS)");
   ok((await animaciones(page)).length > 10 && (await animaciones(page)).every(e => e === "running"), "hay animaciones CSS corriendo");
   ok(await page.evaluate(() => !!document.querySelector("[data-animacion-ios].ins-anim") && document.querySelector("[data-animacion-ios]").dataset.pausada === "false"), "no pausada con la pestaña visible");
   ok(await page.locator("[data-animacion-ios] ol.sr-only li").count() === 6, "seis pasos como lista accesible");
   ok(await page.evaluate(a => document.documentElement.scrollWidth <= a, ancho), "sin overflow horizontal");
+  { // selector: barra de filtros como en Inicio (ancho de la hoja, sin barra horizontal propia), cambiar de pestaña sin saltos
+    const tl = page.getByRole("tablist", { name: "Tu teléfono" });
+    const m = await tl.evaluate(e => { const r = e.getBoundingClientRect(), v = e.parentElement; return { w: r.width, x: r.x, scroll: v.scrollWidth <= v.clientWidth + 1, vw: innerWidth }; });
+    ok(m.scroll && m.x >= 0 && m.x + m.w <= m.vw + 1, "selector: cabe en la hoja sin scroll horizontal");
+    const antes = await page.evaluate(() => scrollY);
+    await page.getByRole("tab", { name: "Android" }).click(); await page.waitForTimeout(500);
+    ok(await page.getByRole("tab", { name: "Android" }).getAttribute("aria-selected") === "true", "selector: cambia a Android");
+    ok(await page.locator("[data-animacion-ios]").count() === 0, "selector: la animación se desmonta al cambiar de pestaña");
+    await page.screenshot({ path: `${OUT}/selector-${ancho}${oscuro ? "-oscuro" : ""}.png` });
+    await page.getByRole("tab", { name: "iPhone" }).click(); await page.waitForTimeout(300);
+    ok(await page.evaluate(() => scrollY) === antes, "selector: cambiar de pestaña no desplaza la página");
+  }
   for (const [ms, n] of [[1500, 2], [1500, 3], [1800, 4], [1800, 5]]) { await page.waitForTimeout(ms); if (ancho === 390 && !oscuro) await page.screenshot({ path: `${OUT}/ios-momento-${n}.png` }); }
   await page.screenshot({ path: `${OUT}/ios-${ancho}${oscuro ? "-oscuro" : ""}.png` });
+  // Medidas con la línea de tiempo congelada en cada momento (los 6 pasos): toque dentro de su objetivo y pie centrado en la tarjeta
+  for (let n = 1; n <= 6; n++) {
+    await page.evaluate(n => document.querySelector("[data-animacion-ios]").getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = (n - 1) * 2200 + 1300; }), n);
+    await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const m = await page.evaluate(n => {
+      const c = r => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+      const raiz = document.querySelector("[data-animacion-ios]");
+      const tarjeta = c(raiz.querySelector("[data-tarjeta]").getBoundingClientRect());
+      const pie = raiz.querySelector(`.ins-cap.ins-d${n}`);
+      const toque = raiz.querySelector(`.ins-toque.ins-d${n}`);
+      const t = toque && { ...c(toque.getBoundingClientRect()), op: Number(getComputedStyle(toque).opacity), obj: toque.closest("[data-objetivo]")?.getBoundingClientRect() };
+      return { tarjeta, pieOp: Number(getComputedStyle(pie).opacity), num: c(pie.querySelector("[data-pie-numero]").getBoundingClientRect()), txt: c(pie.querySelector("[data-pie-texto]").getBoundingClientRect()), t };
+    }, n);
+    ok(m.pieOp === 1, `momento ${n}: el pie de frase es visible`);
+    ok(Math.abs(m.num.x - m.tarjeta.x) <= 2 && Math.abs(m.txt.x - m.tarjeta.x) <= 2, `momento ${n}: número y frase centrados en la tarjeta (${ancho} px)`);
+    if (n < 6) {
+      const { t } = m;
+      ok(t && t.op > 0.5 && t.obj && t.x >= t.obj.x - 4 && t.x <= t.obj.x + t.obj.width + 4 && t.y >= t.obj.y - 4 && t.y <= t.obj.y + t.obj.height + 4, `momento ${n}: el toque cae dentro de su objetivo (${ancho} px)`);
+      ok(Math.abs(t.x - (t.obj.x + t.obj.width / 2)) <= 4 && Math.abs(t.y - (t.obj.y + t.obj.height / 2)) <= 4, `momento ${n}: el toque está centrado en su objetivo`);
+    }
+    if ((n === 3 || n === 5) && ancho === 390 && !oscuro) await page.screenshot({ path: `${OUT}/ios-toque-momento-${n}.png` });
+  }
   await page.keyboard.press("Escape"); await page.waitForTimeout(500);
   ok(await page.locator("[data-animacion-ios]").count() === 0, "al cerrar la hoja la animación se desmonta");
   await ctx.close();
@@ -69,7 +103,7 @@ for (const ancho of [360, 390, 430]) for (const oscuro of [false, true]) {
 }
 { // Android sin evento: texto manual
   const { ctx, page } = await abrir(390, { android: true }); await abrirHoja(page);
-  ok(await page.getByRole("radio", { name: "Android" }).getAttribute("aria-checked") === "true", "Android preseleccionado por UA");
+  ok(await page.getByRole("tab", { name: "Android" }).getAttribute("aria-selected") === "true", "Android preseleccionado por UA");
   ok(await page.getByText(/Toca ⋮ y luego Instalar aplicación/).count() === 1, "sin evento: texto manual");
   ok(await page.getByRole("button", { name: "Instalar Deslizapp" }).count() === 0, "sin evento: sin botón");
   await ctx.close();
@@ -81,12 +115,12 @@ for (const resultado of ["accepted", "dismissed"]) { // evento simulado
   await page.screenshot({ path: `${OUT}/android-boton.png` });
   await boton.click(); await page.waitForFunction(() => window.__prompt === 1);
   if (resultado === "accepted") {
-    await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor({ state: "hidden" });
+    await page.getByRole("tablist", { name: "Tu teléfono" }).waitFor({ state: "hidden" });
     await page.getByRole("button", { name: "Capítulo 4 ·" }).count();
     ok(await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem("deslizapp-demo-v5")).tiendas.find(t => t.id === "a1000000-0000-4000-8000-000000000003").onboarding ?? {}).length > 0), "accepted: paso marcado y hoja cerrada");
   } else {
     await page.waitForTimeout(400);
-    ok(await page.getByRole("radiogroup", { name: "Tu teléfono" }).count() === 1, "dismissed: la hoja sigue abierta");
+    ok(await page.getByRole("tablist", { name: "Tu teléfono" }).count() === 1, "dismissed: la hoja sigue abierta");
     ok(await page.getByText(/Toca ⋮ y luego Instalar aplicación/).count() === 1, "dismissed: cae al texto manual (evento consumido)");
   }
   await ctx.close();
@@ -105,7 +139,7 @@ const fila = page => page.locator("[data-fila-instalar]");
 { // iPhone: la fila abre la hoja con la animación
   const { ctx, page } = await abrir(390, { iphone: true }); await abrirMenu(page);
   await page.screenshot({ path: `${OUT}/menu-ios.png` });
-  await fila(page).click(); await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor();
+  await fila(page).click(); await page.getByRole("tablist", { name: "Tu teléfono" }).waitFor();
   ok(await page.locator("[data-animacion-ios]").count() === 1, "menú iPhone: la fila abre la hoja con la animación"); await ctx.close();
 }
 for (const resultado of ["accepted", "dismissed"]) {
