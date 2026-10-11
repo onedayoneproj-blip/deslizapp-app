@@ -52,7 +52,7 @@ export function HojaInstalarApp({ abierta, alCerrar, plataformaInicial }: { abie
 
   return <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu tienda, a un toque" protegerAtras>
     {error && <Aviso tono="peligro">{error}</Aviso>}
-    <Segmentos etiqueta="Tu teléfono" opciones={[{ id: "ios", texto: "iPhone" }, { id: "android", texto: "Android" }]} valor={plataforma} alCambiar={setPlataforma} tono="opcion" />
+    <Segmentos etiqueta="Tu teléfono" opciones={[{ id: "ios", texto: "iPhone" }, { id: "android", texto: "Android" }]} valor={plataforma} alCambiar={setPlataforma} />
     {plataforma === "ios" ? <>
       <AnimacionInstalarIos activa={abierta} />
       {integrado && <p className="mt-2 text-secundario text-texto-secundario">Ábrela en Safari.</p>}
