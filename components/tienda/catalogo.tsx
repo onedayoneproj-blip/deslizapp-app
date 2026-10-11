@@ -619,6 +619,15 @@ export function Catalogo({
     }
     setVista(null);
     if (rubro !== activo) cambiarCatalogo(rubro);
+    // Desde el final del feed (`fin`, `deslizapp`) elegir un catálogo lleva a su primer producto: si no, solo cambiaría la pestaña.
+    if (actual === "fin" || actual === "deslizapp") {
+      const nuevaCols = coleccionesDe(catalogoFiltrado(c, rubro));
+      const primero = (nuevaCols.find((x) => x.id === filtroVigente(nuevaCols, filter))?.productos ?? [])[0];
+      if (primero) {
+        setActual(primero.slug);
+        requestAnimationFrame(() => document.getElementById("r-" + primero.slug)?.scrollIntoView({ block: "start" }));
+      }
+    }
   };
   const seleccionarFiltro = (id: string, desdeAtras = false) => {
     if (!desdeAtras && history.state?.catalogoVista) {
