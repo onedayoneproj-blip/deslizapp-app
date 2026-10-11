@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.65.0", fecha: "2026-10-11", titulo: "Tu catálogo, más en orden.",
+    cambios: ["Si tu tienda no tiene colecciones pero sí varios catálogos, arriba aparece «Catálogos» para pasar de uno a otro."],
+  },
+  {
     version: "0.64.0", fecha: "2026-10-11", titulo: "Tus fotos, más a la mano.",
     cambios: ["Tus clientes ven la foto en grande tocándola en cualquier parte, pellizcándola o con el botón de la esquina."],
   },

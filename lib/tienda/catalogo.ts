@@ -110,5 +110,11 @@ export function catalogosDe(c: CatalogoPublico): { rubro: Rubro; cantidad: numbe
 export function catalogoFiltrado(c: CatalogoPublico, rubro: Rubro | null): CatalogoPublico {
   return rubro === null ? c : { ...c, productos: c.productos.filter((p) => tipoDeProducto(p, c.tienda) === rubro) };
 }
+/** Qué pestaña acompaña a «Novedades» en el feed: «Colecciones» si hay alguna en cualquier catálogo (y la sección está
+ * encendida), «Catálogos» si no hay colecciones pero sí varios catálogos, y ninguna (sin pestañas) en el resto. */
+export function pestanaDelFeed(c: CatalogoPublico, coleccionesEncendidas: boolean): "colecciones" | "catalogos" | null {
+  if (coleccionesEncendidas && coleccionesDe(c).some((x) => x.id !== "all")) return "colecciones";
+  return catalogosDe(c).length > 1 ? "catalogos" : null;
+}
 /** La colección elegida si sigue existiendo; si no, «Todos». */
 export const filtroVigente = (cols: readonly Coleccion[], id: string) => (cols.some((c) => c.id === id) ? id : "all");

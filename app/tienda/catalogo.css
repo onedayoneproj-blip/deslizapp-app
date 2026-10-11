@@ -121,6 +121,7 @@ html.catalogo-html,
   overflow-x: clip;
 }
 :where(.catalogo-publico) #coBg,
+:where(.catalogo-publico) #catBg,
 :where(.catalogo-publico) #srBg,
 :where(.catalogo-publico) #cmBg,
 :where(.catalogo-publico) #orBg,
@@ -490,14 +491,73 @@ html.catalogo-html,
   --logod: #e8c98f;
   filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.35));
 }
+/* Perfil (cuadrícula): la cabecera lleva el mismo desenfoque progresivo que las hojas del panel (app/globals.css,
+   .hoja-borde): 4 capas de 1, 2, 4 y 8 px, la mayor arriba, cada una en su franja, más un velo del fondo de la tienda
+   (--bg) para que el texto se lea sobre productos claros y oscuros. Cubre también la franja de la barra de estado. */
 .catalogo-publico.view-grid .hdr::before {
+  display: none;
+}
+:where(.catalogo-publico) .hdr-borde {
+  display: none;
+}
+.catalogo-publico.view-grid .hdr-borde {
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
   top: calc(-1 * var(--hdrT, 24px));
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  --rampa: min(100%, 72px);
+}
+.catalogo-publico.view-grid .hdr-borde > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.catalogo-publico.view-grid .hdr-borde > .hdr-borde-color {
   background: linear-gradient(
-    to bottom,
-    rgba(247, 237, 233, 0.99) 0,
-    rgba(247, 237, 233, 0.96) calc(var(--hdrT, 24px) + 40px),
-    rgba(247, 237, 233, 0) 100%
+    to top,
+    color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 80%, transparent) calc(var(--rampa) * 0.45),
+    color-mix(in srgb, var(--bg) 92%, transparent) var(--rampa),
+    color-mix(in srgb, var(--bg) 92%, transparent) 100%
   );
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .catalogo-publico.view-grid .hdr-borde > .hdr-borde-desenfoque {
+    -webkit-backdrop-filter: blur(var(--desenfoque));
+    backdrop-filter: blur(var(--desenfoque));
+    -webkit-mask-image: linear-gradient(to top, var(--franja));
+    mask-image: linear-gradient(to top, var(--franja));
+  }
+}
+.catalogo-publico .hdr-borde > :nth-child(1) {
+  --desenfoque: 1px;
+  --franja: transparent 0%, #000 calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), transparent calc(var(--rampa) * 0.5);
+}
+.catalogo-publico .hdr-borde > :nth-child(2) {
+  --desenfoque: 2px;
+  --franja: transparent calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625),
+    transparent calc(var(--rampa) * 0.75);
+}
+.catalogo-publico .hdr-borde > :nth-child(3) {
+  --desenfoque: 4px;
+  --franja: transparent calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875),
+    transparent var(--rampa);
+}
+.catalogo-publico .hdr-borde > :nth-child(4) {
+  --desenfoque: 8px;
+  --franja: transparent calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875), #000 100%;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .catalogo-publico.view-grid .hdr-borde > .hdr-borde-desenfoque {
+    display: none;
+  }
+  .catalogo-publico.view-grid .hdr-borde > .hdr-borde-color {
+    background: var(--bg);
+  }
 }
 :where(.catalogo-publico) .logo {
   border: 0;
@@ -593,6 +653,16 @@ html.catalogo-html,
   -webkit-mask-image: linear-gradient(#000, #000), var(--hueco);
   mask-image: linear-gradient(#000, #000), var(--hueco);
 }
+/* Con menos de tres colecciones el abanico mide solo lo que tiene (no reserva hueco): una carta, o dos. */
+.catalogo-publico .hcov[data-n="1"] {
+  width: 26px;
+}
+.catalogo-publico .hcov[data-n="1"] .hc-f {
+  left: 0;
+}
+.catalogo-publico .hcov[data-n="2"] {
+  width: 36px;
+}
 :where(.catalogo-publico) .hcov .hc-i img {
   transform: rotate(-8deg);
 }
@@ -650,6 +720,15 @@ html.catalogo-html,
   line-height: 1;
   cursor: pointer;
   animation: coIn 0.3s 0.15s ease-out both;
+}
+:where(.catalogo-publico) .co-vacio {
+  max-width: 300px;
+  margin: 8px auto 20px;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 :where(.catalogo-publico) .colist {
   list-style: none;
