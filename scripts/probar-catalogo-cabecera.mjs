@@ -1,5 +1,4 @@
-// Pestañas del feed según colecciones y catálogos, hoja «Catálogos», estado vacío de Colecciones y cabecera del perfil con
-// desenfoque progresivo. Solo fixtures Demo locales (Lino & Algodón modificada): no usa Supabase ni datos reales.
+// Pestañas del feed según colecciones y catálogos, hoja «Catálogos», estado vacío de Colecciones y cabecera flotante del perfil. Solo fixtures Demo locales (Lino & Algodón modificada): no usa Supabase ni datos reales.
 // Con la app corriendo: URL=http://localhost:3220 node scripts/probar-catalogo-cabecera.mjs
 import '../tests/cargar-ts.mjs';
 import assert from 'node:assert/strict';
@@ -103,18 +102,37 @@ try{
       ok(await page.locator('#colTab .hcov').count()===0,`${width}: sin colecciones en el activo, el abanico no reserva espacio`);
       ok(errors.length===0,`${width}: sin errores (vacío)`);await ctx.close();
     }
-    // Perfil: cabecera con desenfoque progresivo (4 capas) y velo del fondo de la tienda.
+    // Perfil: la cabecera con el nombre se va con el scroll; «atrás» e Instagram son botones flotantes que no tocan el borde.
     {
       const {ctx,page,errors}=await abrir(width,'varias-colecciones');
-      await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();
-      await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
-      const capas=await page.locator('.hdr-borde').evaluate(e=>[getComputedStyle(e).display,...[...e.children].map(c=>getComputedStyle(c).backdropFilter||getComputedStyle(c).webkitBackdropFilter)]);
-      ok(capas[0]==='block'&&capas.slice(1,5).join(',')==='blur(1px),blur(2px),blur(4px),blur(8px)',`${width}: perfil con desenfoque de 1, 2, 4 y 8 px`);
-      const velo=await page.locator('.hdr-borde-color').evaluate(e=>getComputedStyle(e).backgroundImage);
-      ok(/gradient/.test(velo),`${width}: velo del fondo de la tienda`);
-      ok(await page.locator('.hdr-borde').evaluate(e=>getComputedStyle(e).pointerEvents==='none'),`${width}: el desenfoque no tapa toques`);
-      ok(await page.locator('.hdr-borde > *').evaluateAll(l=>l.every(e=>e.getBoundingClientRect().top>0.5)),`${width}: ninguna capa de la cabecera toca el borde de arriba (barra de estado de Safari)`);
+      
+      await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();await espera(page,500);
       await page.screenshot({path:`${OUT}/${width}-perfil.png`});
+      const caja=sel=>page.locator(sel).evaluate(e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,w:r.width,h:r.height}});
+      const hdr0=await caja('.hdr .logo'),back0=await caja('#backBtn');
+      ok(await page.locator('.hdr-borde').count()===0,`${width}: el perfil ya no lleva desenfoque ni velo de cabecera`);
+      ok(await page.locator('.hdr').evaluate(e=>getComputedStyle(e).position==='absolute'),`${width}: la cabecera del perfil no es fija`);
+      ok(back0.w>=44&&back0.h>=44,`${width}: «atrás» mide al menos 44 px`);
+      await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
+      await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
+      const hdr1=await caja('.hdr .logo'),back1=await caja('#backBtn');
+      ok(hdr1.top<hdr0.top-300&&hdr1.top+hdr1.h<0,`${width}: el nombre de la cabecera se va con el scroll`);
+      ok(Math.abs(back1.top-back0.top)<1,`${width}: «atrás» queda fijo`);
+      // Nada fijo con fondo, desenfoque o contenido empieza en y=0 (Safari iOS 26 tiñe la barra de estado).
+      const fijos=await page.evaluate(()=>[...document.querySelectorAll('.catalogo-publico *')].filter(e=>{const c=getComputedStyle(e);if(c.position!=='fixed'||c.display==='none'||c.visibility==='hidden'||e.hidden)return false;const r=e.getBoundingClientRect();if(!r.width||!r.height)return false;return c.backgroundColor!=='rgba(0, 0, 0, 0)'||c.backgroundImage!=='none'||(c.backdropFilter&&c.backdropFilter!=='none')||e.children.length>0||e.textContent.trim()!==''}).map(e=>({s:e.id||e.className,t:e.getBoundingClientRect().top})));
+      console.log('   fijos:',JSON.stringify(fijos));
+      ok(fijos.every(f=>f.t>0.5),`${width}: ningún elemento fijo toca el borde de arriba`);
+      ok(back1.top>=8,`${width}: «atrás» separado del borde (${back1.top}px)`);
+      const ig=page.locator('#igBtn');
+      if(await ig.count()){const i=await caja('#igBtn');ok(i.w>=44&&i.h>=44&&i.top>0.5&&Math.abs(i.top-back1.top)<1,`${width}: Instagram flotante, 44 px, a la altura de «atrás»`);}
+      await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
+      // Volver a los reels: sin cabecera fija con fondo, la barra de estado queda transparente.
+      await page.evaluate(()=>window.scrollTo(0,0));
+      await page.locator('#backBtn').click();await page.locator('.catalogo-publico.view-reels').waitFor();await espera(page,600);
+      await page.screenshot({path:`${OUT}/${width}-reels-tras-volver.png`});
+      const fijosReels=await page.evaluate(()=>[...document.querySelectorAll('.catalogo-publico *')].filter(e=>{const c=getComputedStyle(e);if(c.position!=='fixed'||c.display==='none'||c.visibility==='hidden'||e.hidden)return false;const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.top<0.5&&(c.backgroundColor!=='rgba(0, 0, 0, 0)'||c.backgroundImage!=='none'||(c.backdropFilter&&c.backdropFilter!=='none'))}).map(e=>e.id||e.className));
+      ok(fijosReels.length===0,`${width}: tras volver a los reels no hay capas fijas en y=0 (${fijosReels.join(',')})`);
+      ok(await page.locator('.hdr').evaluate(e=>{const c=getComputedStyle(e);return c.position==='fixed'&&parseFloat(c.top)>0}),`${width}: la cabecera de los reels sigue fija y separada del borde`);
       ok(errors.length===0,`${width}: sin errores (perfil)`);await ctx.close();
     }
   }

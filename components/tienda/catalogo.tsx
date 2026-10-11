@@ -662,14 +662,6 @@ export function Catalogo({
       style={estilo}
     >
       <header className="hdr">
-        {/* Perfil: desenfoque progresivo detrás de la cabecera (4 capas, 1–8 px) + velo del fondo de la tienda. */}
-        <div className="hdr-borde" aria-hidden="true">
-          <div className="hdr-borde-desenfoque" />
-          <div className="hdr-borde-desenfoque" />
-          <div className="hdr-borde-desenfoque" />
-          <div className="hdr-borde-desenfoque" />
-          <div className="hdr-borde-color" />
-        </div>
         <button
           className="hback"
           id="backBtn"
