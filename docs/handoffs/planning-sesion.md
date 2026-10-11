@@ -1,6 +1,6 @@
 # Relevo vigente de Planning
 
-Actualizado: 10 de octubre de 2026. Transición documental del piloto guardada en main; último commit documental confirmado antes de este relevo: `24159021c345745319a20a5470f9a25f07090aaa`. PR #96 consultado en esta sesión: abierto, sin merge, HEAD `0779aff110dcbd8f4cb357d605192a45976a9248`; devuelve mergeable false. Comprobar base, conflictos, checks y HEAD de nuevo antes de revisar una entrega o integrar.
+Actualizado: 11 de octubre de 2026, comprobado contra GitHub. `main` está en `ecbd1bef4908ccf18cd9ad8fbf2499af0a2438ee` (squash de #101). Los PR #96, #100 y #101 están **fusionados** (10 oct); no hay PR de trabajo abierto. Esta sesión (Planning) no tiene herramientas de Notion: los estados de las tareas no se releyeron y se dan por desconocidos hasta comprobarlos. Comprobar base, checks y HEAD de nuevo antes de revisar una entrega o integrar.
 
 ## Acuerdo vigente
 
@@ -18,12 +18,14 @@ Operativo desde el 10 de octubre de 2026. [Estado y evidencia](../piloto-notion.
 
 El seguimiento de tareas está en Notion. No mantener una segunda tabla de estados aquí ni actualizar el backlog antiguo de Issues.
 
-- [Preparación por capítulos · origen #97](https://app.notion.com/p/3f5ed62010cb81758eded930bc0dcde1), enlaza el PR #96.
-- [Validación completa en iPhone · origen #98](https://app.notion.com/p/3f5ed62010cb81b69b01c48a155876b5).
-- [Diseño de invitación y tienda prellenada · origen #99](https://app.notion.com/p/3f5ed62010cb819fb74ce140333f148d).
-- [Selector de Catálogo: cierre al desplazarse, «De todo» y vista agregada «General»](selector-general-agregado-codex.md). Entrega de Coding en [PR #100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), abierto y sin fusionar al relevo. GitHub reporta `mergeable: true`; validar en móvil antes de integrar. Planning recibió validación manual de Lewis y encargó abrir General sin preferencia guardada; misma rama/PR, conservando memoria por tienda. Entrega actual y pruebas en el handoff del selector; comprobar nuevo HEAD/preview en PR #100.
+- **Integradas en `main` el 10 oct 2026, pendientes de validar en Safari/iPhone por Lewis** (squash, rama borrada o por borrar; las pruebas simuladas en Demo/Chromium no equivalen a Safari físico):
+  - [PR #96](https://github.com/onedayoneproj-blip/deslizapp-app/pull/96), onboarding por capítulos y guía minimizable (`614297f`). Decisión y evidencia en [docs/17-onboarding.md](../17-onboarding.md#decisión-vigente-preparación-por-capítulos-10-oct-2026), [handoff](onboarding-2-checklist-codex.md) y [validación](../validacion-onboarding-2.md). Tarea: [Preparación por capítulos · origen #97](https://app.notion.com/p/3f5ed62010cb81758eded930bc0dcde1).
+  - [PR #100](https://github.com/onedayoneproj-blip/deslizapp-app/pull/100), selector de Catálogo: cierre al desplazarse, «De todo» y vista agregada «General» abierta por defecto sin preferencia guardada (`a27da20`). [Handoff](selector-general-agregado-codex.md).
+  - [PR #101](https://github.com/onedayoneproj-blip/deslizapp-app/pull/101), puntos del carrusel bajo la imagen y sin progreso global «n/n productos» (`ecbd1be`). [Handoff](indicador-carrusel-imagenes-codex.md), [validación](../validacion-carrusel-imagenes.md) y [tarea](https://app.notion.com/p/3f5ed62010cb81fbb5a3eaa6d9ac94a5).
+- Siguen en la cola, sin encargo en curso: [Validación completa en iPhone · origen #98](https://app.notion.com/p/3f5ed62010cb81b69b01c48a155876b5) y [Diseño de invitación y tienda prellenada · origen #99](https://app.notion.com/p/3f5ed62010cb819fb74ce140333f148d) (ambas dependen de #97).
+- **Encargo preparado, sin confirmar que se haya lanzado:** [tienda oficial de merch de Deslizapp](../prompts/deslizapp-merch-publicacion.md) (tienda `deslizapp` ya creada por Planning; faltan medios en Storage y publicación). Sin precios aprobados ni compra; comprobar rama/PR antes de asumir estado.
 
-La decisión del onboarding vive en [docs/17-onboarding.md](../17-onboarding.md#decisión-vigente-preparación-por-capítulos-10-oct-2026). Lewis recibió el handoff y solicitó minimizar la guía, estados de capítulo sin relleno proporcional y menos texto. [Prompt completo del ajuste](../prompts/onboarding-2-minimizar-y-capitulos.md), preparado para la misma sesión de Coding del PR #96; Lewis lo pasa manualmente. La misma sesión Coding inició el ajuste por instrucción manual de Lewis; integra main y conserva el seguimiento Notion. Entrega y evidencia actuales en [handoff](onboarding-2-checklist-codex.md) y [validación](../validacion-onboarding-2.md); HEAD/checks/preview se comprueban en PR #96. Safari de Lewis pendiente, PR abierto sin merge. Planning comprobó Revisión success y el hilo resuelto, y leyó los componentes afectados; no validó todo el PR ni Safari. La API devuelve mergeable false frente al reporte «sin conflictos»; Coding debe comprobar e integrar main sin perder la documentación nueva. Mantener PR abierto sin merge. La siguiente sesión y el estado del PR se comprueban antes de trabajar; registrar entregas y enlaces en su tarea de Notion. Al preparar estas Issues, GitHub mostró HEAD `0779aff110dcbd8f4cb357d605192a45976a9248`; la validación antigua de `11532b4` no demuestra el resultado del nuevo HEAD.
+Al actualizar las tareas de Notion (cuando haya una sesión con acceso): marcar las tres entregas como Por validar, no Terminado, hasta que Lewis pruebe en Safari. Las notas de «PR abierto, sin merge» en documentos de función (por ejemplo docs/17) son históricas y conviene corregirlas en una pasada de documentación.
 
 ## Projects
 
@@ -34,12 +36,8 @@ Planning sigue sin acceso de Projects: consultar #2 devuelve `Resource not acces
 ## Fuera de la cola activa
 
 - PR #45 de rendimiento sigue excluido por decisión de Lewis. No incorporarlo como dependencia.
-- En la comprobación de GitHub siguen abiertos #43, #23 y #2. Son antecedentes; no se autoriza ejecutarlos, fusionarlos ni cerrarlos por estar en esa lista. Verificar su utilidad y estado antes de proponer trabajo.
+- En la comprobación de GitHub del 11 oct siguen abiertos #43, #23 y #2 (más #45, excluido arriba). Son antecedentes; no se autoriza ejecutarlos, fusionarlos ni cerrarlos por estar en esa lista. Verificar su utilidad y estado antes de proponer trabajo.
 - El plan de lanzamiento y las funciones futuras se consultan en [docs/16-ruta-al-lanzamiento.md](../16-ruta-al-lanzamiento.md); no lanzar automáticamente su contenido.
-
-## Entrega del indicador de imágenes
-
-[Handoff de Coding](indicador-carrusel-imagenes-codex.md), [validación](../validacion-carrusel-imagenes.md) y [tarea vigente](https://app.notion.com/p/3f5ed62010cb81fbb5a3eaa6d9ac94a5). Trabajo nuevo desde main que integra PR #100. Consultar en el PR enlazado desde Notion el HEAD, Revisión y preview exactos. Se entrega abierto para revisión, sin merge ni producción. Los estados anteriores de este relevo se conservan como antecedentes.
 
 ## Cómo retomar
 
