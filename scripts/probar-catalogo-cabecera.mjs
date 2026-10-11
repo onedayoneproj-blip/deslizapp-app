@@ -113,6 +113,7 @@ try{
       const velo=await page.locator('.hdr-borde-color').evaluate(e=>getComputedStyle(e).backgroundImage);
       ok(/gradient/.test(velo),`${width}: velo del fondo de la tienda`);
       ok(await page.locator('.hdr-borde').evaluate(e=>getComputedStyle(e).pointerEvents==='none'),`${width}: el desenfoque no tapa toques`);
+      ok(await page.locator('.hdr-borde > *').evaluateAll(l=>l.every(e=>e.getBoundingClientRect().top>0.5)),`${width}: ninguna capa de la cabecera toca el borde de arriba (barra de estado de Safari)`);
       await page.screenshot({path:`${OUT}/${width}-perfil.png`});
       ok(errors.length===0,`${width}: sin errores (perfil)`);await ctx.close();
     }

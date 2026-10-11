@@ -493,7 +493,8 @@ html.catalogo-html,
 }
 /* Perfil (cuadrícula): la cabecera lleva el mismo desenfoque progresivo que las hojas del panel (app/globals.css,
    .hoja-borde): 4 capas de 1, 2, 4 y 8 px, la mayor arriba, cada una en su franja, más un velo del fondo de la tienda
-   (--bg) para que el texto se lea sobre productos claros y oscuros. Cubre también la franja de la barra de estado. */
+   (--bg) para que el texto se lea sobre productos claros y oscuros. Empieza donde empieza la cabecera (--hdrT): NO se extiende
+   hasta la barra de estado, porque Safari (iOS 26) tiñe la barra con cualquier elemento real que toque el borde de arriba. */
 .catalogo-publico.view-grid .hdr::before {
   display: none;
 }
@@ -505,7 +506,7 @@ html.catalogo-html,
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(-1 * var(--hdrT, 24px));
+  top: 0;
   bottom: 0;
   z-index: -1;
   pointer-events: none;
