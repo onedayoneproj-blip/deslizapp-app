@@ -42,6 +42,7 @@ export function Reel({
   registrarBurst,
   pausado = false,
   coleccion = null,
+  conVistaEnfocada = true,
 }: {
   p: ProductoPublico;
   t: CatalogoPublico["tienda"];
@@ -68,6 +69,8 @@ export function Reel({
   pausado?: boolean;
   /** La colección del producto: va arriba a la derecha como el abanico de «Colecciones», con su carátula al frente. */
   coleccion?: AbanicoColeccion | null;
+  /** Ver la foto en grande (toque, pellizco, teclado y botón). La vista previa del panel la apaga. */
+  conVistaEnfocada?: boolean;
 }) {
   const pres = tienePresentaciones(p);
   const [valores, setValores] = useState<Record<string, string>>(
@@ -244,6 +247,7 @@ export function Reel({
           dobleToque={aaah}
           irA={pres ? indiceDeFoto(p, eleccion) : null}
           pausado={pausado || abierto}
+          conVistaEnfocada={conVistaEnfocada}
         />
         {agotado && (
           <>
@@ -261,7 +265,7 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "") + (p.medios.some((m) => m.tipo === "foto") ? " con-expandir" : "")}>
+        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "") + (conVistaEnfocada && p.medios.some((m) => m.tipo === "foto") ? " con-expandir" : "")}>
           <span>{enPedido && <span className="inbadge">En tu pedido</span>}</span>
           {coleccion && (
             <span className="hcov reel-coleccion" role="img" aria-label={"Colección " + coleccion.nombre} data-coleccion={coleccion.nombre}>

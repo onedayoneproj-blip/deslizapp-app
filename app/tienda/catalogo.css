@@ -8532,6 +8532,11 @@ html.catalogo-html,
 .catalogo-publico .carrusel:focus {
   outline: none;
 }
+/* Con teclado el carrusel se ve enfocado (←/→ cambian de foto, Enter la abre en grande). */
+.catalogo-publico .carrusel:focus-visible {
+  outline: 2px solid var(--surface);
+  outline-offset: -4px;
+}
 .catalogo-publico .historias-medios {
   position: absolute;
   top: 8px;

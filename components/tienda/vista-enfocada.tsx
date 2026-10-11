@@ -23,6 +23,7 @@ export function VistaEnfocada({
   inicial,
   cerrada,
   pellizco = false,
+  idHistorial,
 }: {
   medios: Medio[];
   nombre: string;
@@ -31,6 +32,8 @@ export function VistaEnfocada({
   cerrada: (indice: number) => void;
   /** Se abrió pellizcando la foto del reel: los mismos dedos siguen acercando aquí hasta que se levantan. */
   pellizco?: boolean;
+  /** La marca (`catalogoFoto`) de la entrada de historial que abrió esta vista. */
+  idHistorial: string;
 }) {
   const [actual, setActual] = useState(inicial);
   const [saliendo, setSaliendo] = useState(false);
@@ -111,8 +114,14 @@ export function VistaEnfocada({
     cambiarRef.current = cambiar;
   });
   /** Cerrar consume la entrada de historial que se abrió al entrar; el «atrás» del sistema hace lo mismo. */
+  const atrasPedido = useRef(false);
   const pedirCerrar = () => {
-    if (history.state?.catalogoFoto) history.back();
+    // Una × o un Escape repetidos antes del popstate no deben retroceder dos veces.
+    if (cerrando.current || atrasPedido.current) return;
+    if (history.state?.catalogoFoto === idHistorial) {
+      atrasPedido.current = true;
+      history.back();
+    }
     else salir();
   };
   const pedirCerrarRef = useRef(pedirCerrar);
@@ -155,6 +164,13 @@ export function VistaEnfocada({
       aplicar(acotar({ s, x: m.x - s * p.local.x, y: m.y - s * p.local.y }));
     };
   });
+  // Solo suena el video de la foto que se ve; los vecinos ya montados se pausan.
+  useEffect(() => {
+    pista.current?.querySelectorAll<HTMLVideoElement>("video").forEach((v) => {
+      if (Number(v.closest<HTMLElement>(".enfocada-medio")?.dataset.i) === actual) v.play().catch(() => {});
+      else v.pause();
+    });
+  }, [actual, raiz]);
   // Modal estable: fondo inerte y sin scroll, teclado, «atrás» y gestos propios de Safari bloqueados.
   useEffect(() => {
     if (!raiz) return;
@@ -175,7 +191,7 @@ export function VistaEnfocada({
       e.stopImmediatePropagation();
     };
     const pop = () => {
-      if (!history.state?.catalogoFoto) salirRef.current();
+      if (history.state?.catalogoFoto !== idHistorial) salirRef.current();
     };
     const evitar = (e: Event) => e.preventDefault();
     const el = ref.current;
@@ -212,7 +228,7 @@ export function VistaEnfocada({
       html.style.overflow = overflow;
       fondoInerte.forEach((el, i) => (el.inert = estados[i]));
     };
-  }, [raiz]);
+  }, [raiz, idHistorial]);
 
 
   const inicioDe = (p: Punto) => {
@@ -228,6 +244,8 @@ export function VistaEnfocada({
     const z = zoom.current;
     const m = centro({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
     g.modo = "pinza";
+    // Si antes empezó a bajar para cerrar, el fondo vuelve a ser opaco.
+    if (fondo.current) fondo.current.style.opacity = "";
     g.z0 = { ...z };
     g.d0 = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
     // El punto de la foto bajo los dedos queda bajo los dedos mientras se acerca.
@@ -282,13 +300,17 @@ export function VistaEnfocada({
     const dx = e.clientX - g.inicio.x,
       dy = e.clientY - g.inicio.y;
     const W = ref.current?.clientWidth ?? 1;
+    // Si el sistema cancela el gesto, la foto vuelve a su sitio: ni cambia ni se cierra.
+    const cancelado = e.type === "pointercancel";
     if (g.modo === "desliza") {
       const i = actualRef.current;
+      if (cancelado) colocarPista(0, true);
+      else
       if (dx < -W * 0.18 && i < medios.length - 1) cambiar(i + 1);
       else if (dx > W * 0.18 && i > 0) cambiar(i - 1);
       else colocarPista(0, true);
     } else if (g.modo === "baja") {
-      if (dy > 110) pedirCerrar();
+      if (dy > 110 && !cancelado) pedirCerrar();
       else {
         aplicar({ s: 1, x: 0, y: 0 }, true);
         if (fondo.current) fondo.current.style.opacity = "";
@@ -334,14 +356,14 @@ export function VistaEnfocada({
       >
         <div className="enfocada-pista" ref={pista}>
           {medios.map((m, i) => (
-            <div className="enfocada-medio" key={m.url} aria-hidden={i !== actual}>
+            <div className="enfocada-medio" key={m.url} aria-hidden={i !== actual} data-i={i}>
               <div className="enfocada-zoom">
                 {Math.abs(i - actual) <= 1 &&
                   (m.tipo === "foto" ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.url} alt={nombre} draggable={false} />
                   ) : (
-                    <video src={m.url} poster={m.portada ?? undefined} muted playsInline loop autoPlay={i === actual} />
+                    <video src={m.url} poster={m.portada ?? undefined} muted playsInline loop />
                   ))}
               </div>
             </div>
