@@ -29,7 +29,9 @@ const abrirHoja = async (page, oscuro = false) => {
   await page.locator("[data-checklist]").getByRole("button", { name: /^Pantalla de inicio ·/ }).click();
   await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor();
 };
-const pasoVisible = page => page.locator("[data-animacion-ios] p.min-h-11").innerText();
+// La frase visible es la de opacidad más alta de la línea de tiempo CSS.
+const pasoVisible = page => page.evaluate(() => [...document.querySelectorAll("[data-animacion-ios] .ins-cap")].map(e => [Number(getComputedStyle(e).opacity), e.innerText]).sort((a, b) => b[0] - a[0])[0][1]);
+const animaciones = page => page.evaluate(() => document.querySelector("[data-animacion-ios]").getAnimations({ subtree: true }).map(a => a.playState));
 const paso5 = "Deja Abrir como app web encendido y toca Añadir";
 const falso = (resultado) => page => page.evaluate(r => {
   const e = new Event("beforeinstallprompt", { cancelable: true });
@@ -42,18 +44,28 @@ for (const ancho of [360, 390, 430]) for (const oscuro of [false, true]) {
   let { ctx, page } = await abrir(ancho, { oscuro }); await abrirHoja(page, oscuro);
   ok(await page.getByRole("radio", { name: "iPhone" }).getAttribute("aria-checked") === "true", `iPhone preseleccionado ${ancho}${oscuro ? " oscuro" : ""}`);
   const a = await pasoVisible(page); await page.waitForTimeout(2600); const b = await pasoVisible(page);
-  ok(a !== b, "la animación avanza de momento");
+  ok(a !== b, "la animación avanza de momento (línea de tiempo CSS)");
+  ok((await animaciones(page)).length > 10 && (await animaciones(page)).every(e => e === "running"), "hay animaciones CSS corriendo");
+  ok(await page.evaluate(() => !!document.querySelector("[data-animacion-ios].ins-anim") && document.querySelector("[data-animacion-ios]").dataset.pausada === "false"), "no pausada con la pestaña visible");
   ok(await page.locator("[data-animacion-ios] ol.sr-only li").count() === 6, "seis pasos como lista accesible");
   ok(await page.evaluate(a => document.documentElement.scrollWidth <= a, ancho), "sin overflow horizontal");
+  for (const [ms, n] of [[1500, 2], [1500, 3], [1800, 4], [1800, 5]]) { await page.waitForTimeout(ms); if (ancho === 390 && !oscuro) await page.screenshot({ path: `${OUT}/ios-momento-${n}.png` }); }
   await page.screenshot({ path: `${OUT}/ios-${ancho}${oscuro ? "-oscuro" : ""}.png` });
   await page.keyboard.press("Escape"); await page.waitForTimeout(500);
   ok(await page.locator("[data-animacion-ios]").count() === 0, "al cerrar la hoja la animación se desmonta");
   await ctx.close();
 }
+{ // pestaña oculta: la línea de tiempo se pausa y al volver sigue
+  const { ctx, page } = await abrir(390); await abrirHoja(page);
+  const oculta = v => page.evaluate(v => { Object.defineProperty(document, "visibilityState", { configurable: true, get: () => v ? "hidden" : "visible" }); document.dispatchEvent(new Event("visibilitychange")); }, v);
+  await oculta(true); ok((await animaciones(page)).every(e => e === "paused"), "pestaña oculta: animaciones en pausa");
+  await oculta(false); ok((await animaciones(page)).every(e => e === "running"), "pestaña visible: vuelven a correr"); await ctx.close();
+}
 { // movimiento reducido: quieta en el paso 5
   const { ctx, page } = await abrir(390, { reducido: true }); await abrirHoja(page);
   await page.waitForTimeout(500); const a = await pasoVisible(page); await page.waitForTimeout(3000);
-  ok(a.includes(paso5) && (await pasoVisible(page)).includes(paso5), "movimiento reducido: quieta en el paso 5"); await ctx.close();
+  ok(a.includes(paso5) && (await pasoVisible(page)).includes(paso5) && (await animaciones(page)).length === 0, "movimiento reducido: quieta en el paso 5, sin animaciones");
+  await page.screenshot({ path: `${OUT}/ios-reducido.png` }); await ctx.close();
 }
 { // Android sin evento: texto manual
   const { ctx, page } = await abrir(390, { android: true }); await abrirHoja(page);
