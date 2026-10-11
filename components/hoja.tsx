@@ -160,6 +160,8 @@ type Props = {
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
   fijoArriba?: ReactNode;
+  /** Solo con `tituloOculto`: lo que va en la fila de la X, a su izquierda (las barras de una historia). */
+  juntoACerrar?: ReactNode;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
   decoracionAbajo?: ReactNode;
   /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
@@ -206,6 +208,7 @@ function HojaMontada({
   capaSuperior,
   altura = "auto",
   fijoArriba,
+  juntoACerrar,
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
@@ -808,6 +811,7 @@ function HojaMontada({
             <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
               {titulo}
             </h2>
+            {tituloOculto && juntoACerrar && <div className="min-w-0 flex-1">{juntoACerrar}</div>}
             <BotonCerrar onClick={cerrar} />
           </div>
           {/* Zona fija bajo el título: forma parte de la cabecera (y de su desenfoque) */}

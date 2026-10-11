@@ -1,7 +1,8 @@
 "use client";
 
-import { HojaProducto } from "@/components/catalogo/hoja-producto";
+import { HistoriaProducto } from "@/components/catalogo/historia-producto";
 
+// Crear producto es una historia (una pregunta por pantalla); editar sigue con la hoja de producto.
 export default function NuevoProductoPage() {
-  return <HojaProducto />;
+  return <HistoriaProducto />;
 }

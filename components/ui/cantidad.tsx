@@ -4,7 +4,7 @@ import { IconoMas, IconoMenos } from "../iconos";
 import { clases, FOCO } from "./comunes";
 
 /** Un botón cuadrado de 36 px (`radio-s`, como la miniatura de la foto), `superficie-hundida` con icono `texto`. Con 40 % si no se puede. */
-export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado }: { tipo: "mas" | "menos"; etiqueta: string; onClick: () => void; deshabilitado?: boolean }) {
+export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado, grande = false }: { tipo: "mas" | "menos"; etiqueta: string; onClick: () => void; deshabilitado?: boolean; grande?: boolean }) {
   return (
     <button
       type="button"
@@ -12,12 +12,13 @@ export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado }: { tipo
       onClick={onClick}
       disabled={deshabilitado}
       className={clases(
-        "tocable relative grid size-(--alto-compacto) shrink-0 place-items-center rounded-radio-s after:absolute after:-inset-1 after:content-[''] disabled:opacity-40",
+        "tocable relative grid shrink-0 place-items-center disabled:opacity-40",
+        grande ? "size-14 rounded-radio-m" : "size-(--alto-compacto) rounded-radio-s after:absolute after:-inset-1 after:content-['']",
         tipo === "mas" ? "bg-accion text-sobre-accion" : "bg-superficie-hundida text-texto",
         FOCO,
       )}
     >
-      {tipo === "mas" ? <IconoMas tamano={18} /> : <IconoMenos tamano={18} />}
+      {tipo === "mas" ? <IconoMas tamano={grande ? 24 : 18} /> : <IconoMenos tamano={grande ? 24 : 18} />}
     </button>
   );
 }
@@ -25,6 +26,8 @@ export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado }: { tipo
 /**
  * Cantidad (− 1 +) de un producto (docs/09 §6): dos botones cuadrados y el número en `destacado` entre ellos. El − se apaga en
  * `min` y el + en `max` (el stock). `etiquetaQuitar` / `etiquetaAgregar` dicen a qué producto se refiere ("Quitar uno de X").
+ * `grande`: el contador protagonista de una pantalla («¿Cuántos tienes ahora?» al crear producto): botones de 56 px (`radio-m`)
+ * y el número en Fredoka `cifra`.
  */
 export function Cantidad({
   valor,
@@ -35,6 +38,7 @@ export function Cantidad({
   etiquetaAgregar = "Agregar uno",
   deshabilitado = false,
   paso = 1,
+  grande = false,
   className,
 }: {
   valor: number;
@@ -47,15 +51,16 @@ export function Cantidad({
   deshabilitado?: boolean;
   /** De cuánto en cuánto sube o baja (5 en 5 para un porcentaje). */
   paso?: number;
+  grande?: boolean;
   className?: string;
 }) {
   return (
-    <div className={clases("flex shrink-0 items-center gap-1", className)}>
-      <BotonCantidad tipo="menos" etiqueta={etiquetaQuitar} onClick={() => alCambiar(Math.max(min, valor - paso))} deshabilitado={deshabilitado || valor <= min} />
-      <span className="min-w-7 text-center text-destacado tabular-nums" aria-live="polite">
+    <div className={clases("flex shrink-0 items-center", grande ? "gap-4" : "gap-1", className)}>
+      <BotonCantidad grande={grande} tipo="menos" etiqueta={etiquetaQuitar} onClick={() => alCambiar(Math.max(min, valor - paso))} deshabilitado={deshabilitado || valor <= min} />
+      <span className={grande ? "min-w-20 text-center font-display text-cifra tabular-nums" : "min-w-7 text-center text-destacado tabular-nums"} aria-live="polite">
         {valor}
       </span>
-      <BotonCantidad tipo="mas" etiqueta={etiquetaAgregar} onClick={() => alCambiar(max === undefined ? valor + paso : Math.min(max, valor + paso))} deshabilitado={deshabilitado || (max !== undefined && valor >= max)} />
+      <BotonCantidad grande={grande} tipo="mas" etiqueta={etiquetaAgregar} onClick={() => alCambiar(max === undefined ? valor + paso : Math.min(max, valor + paso))} deshabilitado={deshabilitado || (max !== undefined && valor >= max)} />
     </div>
   );
 }

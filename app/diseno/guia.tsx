@@ -290,6 +290,7 @@ function Botones() {
         <Fila>
           <Cantidad valor={cantidadEj} max={4} alCambiar={setCantidadEj} />
           <Cantidad valor={4} max={4} alCambiar={() => {}} />
+          <Cantidad grande valor={cantidadEj} alCambiar={setCantidadEj} etiquetaQuitar="Quitar uno (grande)" etiquetaAgregar="Agregar uno (grande)" />
         </Fila>
       </div>
       <div className="flex flex-col gap-2">

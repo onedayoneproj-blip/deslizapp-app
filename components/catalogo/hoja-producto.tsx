@@ -12,11 +12,6 @@ import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
 import { textoEspera } from "@/lib/avisos";
-import { avisoGuardadoConRetoques, AVISO_SIN_MARCA_AL_GUARDAR } from "@/lib/retoque-textos";
-import { bienvenidaVista, marcarBienvenidaVista } from "@/lib/bienvenida-retoque";
-import { DURACION } from "@/lib/movimiento";
-import { mandarMarcadas, urlsGuardadasMarcadas } from "@/lib/retoque-al-subir";
-import { BienvenidaRetoque, type DatosBienvenida } from "./bienvenida-retoque";
 import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
@@ -30,9 +25,7 @@ import { IconoChevronDerecha, IconoEtiqueta, IconoReloj } from "../iconos";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { precioConPromo } from "@/lib/promos";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
-import { reducirFoto } from "@/lib/imagen";
-import { nuevoId } from "@/lib/data/db";
-import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
+import { agregarFotoAlBorrador, conEntregadas, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { useTaller } from "./taller";
 import { claveVariante, ejeDeFoto, presentacionesDe, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
 import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
@@ -40,8 +33,9 @@ import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
 import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
+import { useGuardarProducto, variantesParaGuardar } from "./guardar-producto";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
-import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
+import { fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
@@ -218,7 +212,7 @@ function FormularioProducto({
   alVerHistorial: (boton: HTMLButtonElement) => void;
   historialAbierto: boolean;
 }) {
-  const { crearProducto, guardarVariantes, guardarFotoValor, guardarFicha, ajustarStock, trabajosRetoque, getProducto, getPedidos } = useData();
+  const { guardarVariantes, ajustarStock, getProducto, getPedidos } = useData();
   // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
   const { puede, porque } = usePermisos();
   const sinCatalogo = !puede("catalogo");
@@ -290,8 +284,7 @@ function FormularioProducto({
   const [viendo, setViendo] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
-  // La bienvenida del retoque, antes de guardar un producto con fotos marcadas por primera vez en esta tienda.
-  const [bienvenida, setBienvenida] = useState<{ datos: DatosBienvenida; resolver: (ok: boolean) => void } | null>(null);
+  const guardadoComun = useGuardarProducto(producto, taller);
 
   const tieneOpciones = opciones.length > 0 && borradorPres.length > 0;
   // Lo que baja en variantes que ya existían pide motivo (como el stock del producto); lo que sube es reposición.
@@ -339,21 +332,7 @@ function FormularioProducto({
   };
 
   /** Una foto nueva elegida desde «Foto de cada color»: entra a las del producto y devuelve su id. */
-  const agregarFotoDeColor = async (archivo: File): Promise<string | null> => {
-    if (medios.length >= MAX_MEDIOS) {
-      toast(`Ya tiene ${MAX_MEDIOS}. Quita uno para agregar otro.`);
-      return null;
-    }
-    try {
-      const url = await reducirFoto(archivo);
-      const id = nuevoId();
-      setMedios((l) => (l.length >= MAX_MEDIOS ? l : [...l, { id, tipo: "foto", url, retocada: false }]));
-      return id;
-    } catch {
-      toast("Esa foto no quiso cargar. Prueba con otra.");
-      return null;
-    }
-  };
+  const agregarFotoDeColor = (archivo: File) => agregarFotoAlBorrador(archivo, medios, setMedios, toast);
   /** ¿Esta presentación ya salió en algún pedido? Entonces quitarla solo la oculta. */
   const tienePedidosVariante = async (varianteId: string) => (await getPedidos(tiendaId)).some((p) => p.items.some((i) => i.varianteId === varianteId));
 
@@ -370,119 +349,35 @@ function FormularioProducto({
     notaVariantes: string | null = null,
   ): Promise<boolean> => {
     if (guardando || inventario.guardando || inventario.incierto) return false;
-    const precioNumero = Number(precio);
     const coleccion = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
-    if (!nombre.trim() || !precioNumero) {
-      toast("Ponle nombre y precio. Lo demás lo hacemos nosotros.");
-      return false;
+    if (!producto) {
+      // Crear: el mismo guardado que la historia de crear producto (components/catalogo/guardar-producto.tsx).
+      setGuardando(true);
+      const r = await guardadoComun.crear({
+        nombre, precio, medios, stock, presentaciones: tieneOpciones ? presentaciones : { opciones: [], pres: [], fotosColor: {} }, detalles, ficha, coleccion,
+        porEncargo, encargoTexto, rubro: variosTipos ? tipo : null, activo: activo && !bloqueaVisible,
+      });
+      if (!r) { setGuardando(false); return false; }
+      toast(r.mensaje);
+      alTerminar();
+      return true;
     }
-    if (preparando) {
-      toast("Espera a que el video termine de prepararse.");
-      return false;
-    }
-    if (mediosParaGuardar(medios).every((m) => m.tipo !== "foto")) {
-      toast("Falta la foto. El producto es la estrella.");
-      return false;
-    }
-    // Fotos nuevas marcadas «Retocar esta foto»: la primera vez, la bienvenida va ANTES de guardar y de reservar créditos.
-    const marcadasAhora = medios.filter((m) => m.tipo === "foto" && m.retocar && !taller.guardada(m.url));
-    if (marcadasAhora.length > 0 && taller.marcaLista === true && !bienvenidaVista(tiendaId)) {
-      const foto = marcadasAhora[0]!.tipo === "foto" ? (marcadasAhora[0] as { url: string }).url : null;
-      const sigue = await new Promise<boolean>((resolver) =>
-        setBienvenida({ datos: { n: Date.now(), foto, referencias: (taller.marca?.referencias ?? []).slice(0, 3).map((r) => r.url) }, resolver }),
-      );
-      // Cancelar vuelve al formulario: no se guarda nada y las fotos siguen marcadas por si quiere apagarlas.
-      if (!sigue) return false;
-      // La bienvenida es una hoja apilada: se espera a que termine de salir (y de devolver su entrada del historial) antes de
-      // guardar, porque al guardar se cierra esta hoja y las dos salidas a la vez dejarían la dirección en la pantalla de antes.
-      await new Promise((r) => setTimeout(r, DURACION.entrada + 150));
-    }
+    const precioNumero = Number(precio);
+    if (!guardadoComun.validar({ nombre, precio, medios })) return false;
+    if (!(await guardadoComun.pasarBienvenida(medios))) return false;
     setGuardando(true);
-    // Si el taller entregó una foto mientras la ficha estaba abierta, se guarda la retocada (nunca se vuelve a la original).
-    let entregadas = taller.entregadas;
-    if (producto) {
-      try {
-        entregadas = (await trabajosRetoque(tiendaId)).filter((t) => t.productoId === producto.id && t.estado === "entregado" && t.medioUrlRetocado);
-      } catch {
-        // Sin conexión para mirar el taller: se usa lo último leído.
-      }
-    }
+    const entregadas = await guardadoComun.entregadasAlGuardar();
     const final = mediosParaGuardar(conEntregadas(medios, entregadas));
     const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
-    const fotoRetocada = final.find((m) => m.tipo === "foto")?.tipo === "foto" ? (final.find((m) => m.tipo === "foto") as { retocada: boolean }).retocada : false;
+    const primera = final.find((m) => m.tipo === "foto");
+    const fotoRetocada = primera?.tipo === "foto" ? primera.retocada : false;
     // Con un solo rubro no se manda nada (todo igual que antes); con varios, el tipo va explícito.
     const catalogo = {
-      medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto?.encargoTexto ?? null),
-      ...(variosTipos && (!producto || tipo !== (tienda ? tipoDeProducto(producto, tienda) : tipo)) ? { rubro: tipo } : {}),
+      medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto.encargoTexto ?? null),
+      ...(variosTipos && tipo !== (tienda ? tipoDeProducto(producto, tienda) : tipo) ? { rubro: tipo } : {}),
     };
-    const variantes = borradorPres.map((p) => {
-      const b = base.get(claveVariante(p.valores));
-      // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
-      // Una oculta no admite ajuste aparte (la base solo ajusta activas): su stock va directo en el guardado.
-      return { valores: p.valores, stock: b && p.activa ? b.stock : (p.stock ?? 0), precio: p.precio, activa: p.activa };
-    });
-    // Fotos nuevas marcadas «Retocar esta foto» (en el orden de las fotos que se guardan).
-    const marcadasPorFoto = conEntregadas(medios, entregadas).flatMap((m) => (m.tipo === "foto" ? [!!m.retocar && !taller.guardada(m.url)] : []));
-    const totalMarcadas = marcadasPorFoto.filter(Boolean).length;
-    /** Ya guardado el producto, manda al taller cada foto marcada con su URL guardada. Nunca deshace el guardado. */
-    const mandarAlTaller = async (guardado: Producto | null, base: string) => {
-      if (totalMarcadas === 0) return base;
-      // Sin Mi marca lista no se manda nada al taller: el producto ya quedó guardado.
-      if (taller.marcaLista !== true) return AVISO_SIN_MARCA_AL_GUARDAR;
-      const urls = urlsGuardadasMarcadas(marcadasPorFoto, (guardado?.medios ?? []).flatMap((m) => (m.tipo === "foto" ? [m.url] : [])));
-      const r = await mandarMarcadas(urls, totalMarcadas, (url) => taller.pedirDe(guardado!.id, url, { silencioso: true }));
-      return avisoGuardadoConRetoques(base, r.marcadas, r.enviadas);
-    };
-    /** La foto de cada color se guarda al final, con las fotos ya guardadas: el borrador la lleva por id y aquí se busca su url. */
-    const guardarFotosDeColor = async (guardado: Producto, finalMedios: typeof final = final) => {
-      const eje = ejeDeFoto(tieneOpciones ? opciones : []);
-      if (!eje) return;
-      const vivo = (await getProducto(tiendaId, guardado.id).catch(() => null)) ?? guardado;
-      // Los medios guardados van en el mismo orden que los del borrador.
-      const idsEnOrden = conEntregadas(medios, entregadas).filter((m) => m.tipo === "foto" || m.url).map((m) => m.id);
-      const urlDeId = (id: string) => {
-        const i = idsEnOrden.indexOf(id);
-        const m = i >= 0 ? vivo.medios[i] : undefined;
-        return m && m.tipo === "foto" ? m.url : null;
-      };
-      void finalMedios;
-      const guardadas = vivo.fotosPorValor?.[eje.nombre] ?? {};
-      for (const valor of eje.valores) {
-        const quiere = fotosColor[valor] ? urlDeId(fotosColor[valor]) : null;
-        const hay = guardadas[valor] ?? null;
-        if (quiere === hay) continue;
-        await guardarFotoValor(tiendaId, guardado.id, eje.nombre, valor, quiere);
-      }
-    };
-    /** La ficha técnica se sube al final, con el producto ya guardado (es su propia llamada; si falla, el producto ya quedó). */
-    const guardarLaFicha = async (guardado: Producto): Promise<string | null> => {
-      if (!fichaCambiada(ficha)) return null;
-      try {
-        await guardarFicha(tiendaId, guardado.id, ficha.tipo === "nueva" ? ficha.foto : null);
-      } catch (e) {
-        // El producto ya quedó guardado: no se repite (crearía otro). Se avisa y la ficha se vuelve a subir desde el producto.
-        return `El producto quedó guardado, pero la ficha no. ${mensajeDeError(e, "Ábrelo y súbela otra vez.")}`;
-      }
-      return null;
-    };
+    const variantes = variantesParaGuardar(presentaciones, base);
     try {
-      if (!producto) {
-        // Una sola llamada: la ficha y las variantes (si algo falla, no queda nada a medias).
-        const creado = await crearProducto(
-          tiendaId,
-          {
-            nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
-            activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
-          },
-          { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
-        );
-        await guardarFotosDeColor(creado);
-        const falloFicha = await guardarLaFicha(creado);
-        const mensaje = falloFicha ?? (activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
-        toast(await mandarAlTaller(creado, mensaje));
-        alTerminar();
-        return true;
-      }
       const bien = await inventario.guardar(
         { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, ...(cambioVisible ? { activo: activo && !bloqueaVisible } : {}), ...catalogo },
         false, motivo, nota,
@@ -505,10 +400,10 @@ function FormularioProducto({
         const delta = quiere - b.stock;
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
       }
-      const guardado = totalMarcadas > 0 ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
-      await guardarFotosDeColor(producto, final);
-      const falloFicha = await guardarLaFicha(producto);
-      toast(await mandarAlTaller(guardado, falloFicha ?? "Guardado. El catálogo ya se enteró."));
+      const releido = guardadoComun.hayMarcadas(medios, entregadas) ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
+      await guardadoComun.guardarFotosDeColor(medios, entregadas, tieneOpciones ? presentaciones : { opciones: [], pres: [], fotosColor: {} }, producto);
+      const falloFicha = await guardadoComun.guardarLaFicha(ficha, producto);
+      toast(await guardadoComun.mandarAlTaller(medios, entregadas, releido, falloFicha ?? "Guardado. El catálogo ya se enteró."));
       inventario.finalizar(alTerminar);
       return true;
     } catch (e) {
@@ -559,18 +454,7 @@ function FormularioProducto({
       )}
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
       <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />
-      <BienvenidaRetoque
-        datos={bienvenida?.datos ?? null}
-        alCancelar={() => {
-          bienvenida?.resolver(false);
-          setBienvenida(null);
-        }}
-        alConfirmar={() => {
-          marcarBienvenidaVista(tiendaId);
-          bienvenida?.resolver(true);
-          setBienvenida(null);
-        }}
-      />
+      {guardadoComun.bienvenidaRetoque}
 
       <Campo
         etiqueta="Nombre" icono={IconoEtiqueta}
@@ -735,7 +619,7 @@ function FormularioProducto({
 const SIN_COLECCION = "\u0000sin-coleccion";
 
 /** Selector de colección: las colecciones como Opción, "Sin colección" y "Agregar colección" (pide el nombre). */
-function HojaColeccion({
+export function HojaColeccion({
   abierta,
   alCerrar,
   colecciones,
