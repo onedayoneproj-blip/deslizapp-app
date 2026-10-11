@@ -1156,6 +1156,15 @@ Una tienda puede vender varios rubros; cada producto lleva su tipo. En la app: *
 
 **Catálogo del comprador, ver por catálogo:** con más de un rubro, el perfil lleva pestañas de texto «Todo / Perfumes / …» y la hoja «Colecciones» un menú flotante «Catálogo». Ver `docs/12-catalogo-conectado.md`.
 
+**Pestañas del feed y cabecera del perfil (11 oct 2026, aprobado por Lewis):**
+- **Pestañas según lo que tenga la tienda** (`pestanaDelFeed` en `lib/tienda/catalogo.ts`, igual en la vista previa del panel):
+  - **Con al menos una colección** en cualquier catálogo: «Novedades · Colecciones», como antes. El abanico de carátulas solo mide lo que tiene (una, dos o tres cartas) y desaparece si el catálogo activo no tiene colecciones, así «Colecciones» queda centrado sin hueco.
+  - **Varios catálogos y ninguna colección:** «Novedades · Catálogos». «Catálogos» abre una hoja con el mismo diálogo, gestos e historial que Colecciones, con tarjetas grandes: «Todo» y cada catálogo con su carátula, su nombre y cuántos productos tiene. Marca el activo. Elegir uno cambia el catálogo y cierra la hoja (consume su entrada de historial). La pestaña muestra el catálogo elegido, y «Novedades» vuelve a «Todo».
+  - **Un solo catálogo y ninguna colección:** sin pestañas. La cabecera queda solo con la tienda.
+  - Con la sección Colecciones apagada, se comporta como «sin colecciones».
+- **Estado vacío en Colecciones:** con varios catálogos, si el activo no tiene colecciones, bajo el menú «Catálogo» aparece «Este catálogo todavía no tiene colecciones. Mira las de otro catálogo.».
+- **Cabecera del perfil (cuadrícula):** el mismo desenfoque progresivo que las hojas del panel. Son 4 capas de 1, 2, 4 y 8 px, la mayor arriba, cada una con su máscara de degradado, más un velo del color de fondo de la tienda (`--bg`) para que el texto se lea sobre productos claros y oscuros. Sin animaciones. Con transparencia reducida, el fondo es sólido.
+
 ## Selector de catálogos: menú flotante (7 oct 2026)
 
 Con más de un rubro, el nombre del catálogo (título de la pestaña Catálogo y cabecera fija de la hoja de producto) abre un **menú flotante** (`MenuFlotante`, `docs/09` §16), no el selector nativo de iOS. Opciones: cada catálogo con su cantidad y, al final, «Lo que vendes» («Vendo otra cosa también» en la hoja). Sin «Todo». El botón «+ Producto» queda siempre abajo a la derecha; solo se esconde si la tienda entera no tiene productos. Un catálogo vacío muestra el estado pequeño «Todavía no hay nada en X.» sin botón propio.

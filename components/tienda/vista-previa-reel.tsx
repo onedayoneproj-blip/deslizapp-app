@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { abanicoDeColeccion, coleccionesDe, portada } from "@/lib/tienda/catalogo";
+import { abanicoDeColeccion, coleccionesDe, pestanaDelFeed, portada } from "@/lib/tienda/catalogo";
 import { SUBTEXTO_CATALOGO_PRONTO, textoCatalogoPronto } from "@/lib/publicar-catalogo";
 import { Reel } from "./reel";
 import { Icono } from "./iconos";
@@ -135,6 +135,11 @@ export function VistaPreviaReel() {
   const t = datos.tienda;
   const tema = temaDeTienda(t);
   const cols = coleccionesDe({ tienda: t, productos: lista } as CatalogoPublico);
+  // Las mismas pestañas que el catálogo: «Colecciones», «Catálogos» o ninguna.
+  const pestana = pestanaDelFeed(
+    { tienda: t, productos: lista } as CatalogoPublico,
+    (t.personalizacion.secciones as { colecciones?: boolean } | undefined)?.colecciones !== false,
+  );
   const estilo = {
     ...Object.fromEntries(Object.entries(tema.colores).map(([k, v]) => ["--" + k, v])),
     "--display": `"${tema.fuentes.display === "Figtree" ? "DZ Figtree" : tema.fuentes.display === "Fredoka" ? "DZ Fredoka" : tema.fuentes.display}",Georgia,serif`,
@@ -167,10 +172,14 @@ export function VistaPreviaReel() {
         </button>
         <button className="help" aria-label="Cómo usar la página" onClick={() => avisar()}><Icono nombre="help" /></button>
         <button className="hsearch" aria-label="Buscar" onClick={() => avisar()}><Icono nombre="search" /></button>
-        <nav className="htabs" aria-label="Qué ver">
-          <button className="htab" data-tab="new" aria-pressed="true" onClick={() => avisar()}>Novedades</button>
-          <button className="htab" data-tab="col" aria-pressed="false" onClick={() => avisar()}><span>Colecciones</span></button>
-        </nav>
+        {pestana && (
+          <nav className="htabs" aria-label="Qué ver">
+            <button className="htab" data-tab="new" aria-pressed="true" onClick={() => avisar()}>Novedades</button>
+            <button className="htab" data-tab={pestana === "colecciones" ? "col" : "cat"} aria-pressed="false" onClick={() => avisar()}>
+              <span>{pestana === "colecciones" ? "Colecciones" : "Catálogos"}</span>
+            </button>
+          </nav>
+        )}
       </header>
       <main className="reels" id="reels" aria-label="Productos">
         {fotoPortada && (
