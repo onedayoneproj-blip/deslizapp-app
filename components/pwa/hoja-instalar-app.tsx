@@ -29,26 +29,34 @@ export function HojaInstalarApp({ abierta, alCerrar, plataformaInicial }: { abie
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bloqueo = useRef(false);
+  const marcada = useRef(false);
   const [vista, setVista] = useState(abierta);
   // Al abrirse, la pestaña vuelve a la que le toca al teléfono.
   if (abierta !== vista) { setVista(abierta); if (abierta) { setPlataforma(plataformaInicial); setError(null); } }
 
+  // Idempotente: una sola marca por apertura, aunque lleguen a la vez el resultado de instalar() y `appinstalled`.
   const marcar = async () => {
-    if (bloqueo.current) return;
+    if (bloqueo.current || marcada.current) return;
     bloqueo.current = true; setGuardando(true); setError(null);
-    try { await marcarInstalada?.(); alCerrar(); return true; }
-    catch (e) { setError(mensajeDeError(e, "No pudimos guardar este paso. Reintenta.")); return false; }
+    try { await marcarInstalada?.(); marcada.current = true; alCerrar(); }
+    catch (e) { setError(mensajeDeError(e, "No pudimos guardar este paso. Reintenta.")); }
     finally { bloqueo.current = false; setGuardando(false); }
   };
-  // Instalada desde el menú de Chrome con la hoja abierta (appinstalled): también cuenta.
+  // Solo cuenta un `appinstalled` que llega con la hoja abierta (no uno viejo de antes de abrirla).
+  const instaladaAlAbrir = useRef(instalacion.instalada);
+  useEffect(() => { if (abierta) { instaladaAlAbrir.current = instalacion.instalada; marcada.current = false; } }, [abierta]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (abierta && instalacion.instalada) void Promise.resolve().then(marcar);
+    if (abierta && instalacion.instalada && !instaladaAlAbrir.current) void Promise.resolve().then(marcar);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierta, instalacion.instalada]);
   const instalarAndroid = async () => {
-    if (await instalacion.instalar() === "accepted") { if (await marcar()) toast("Deslizapp ya está en tu pantalla de inicio."); }
+    const r = await instalacion.instalar();
+    if (r !== "accepted") return;
+    toast("Deslizapp ya está en tu pantalla de inicio."); // el aviso depende solo del resultado de instalar()
+    await marcar();
   };
-  const integrado = typeof navigator !== "undefined" && /Instagram|FBAN|FBAV|WhatsApp/i.test(navigator.userAgent);
+  // Navegadores integrados y otros navegadores de iPhone: la guía es la de Safari.
+  const integrado = typeof navigator !== "undefined" && /Instagram|FBAN|FBAV|WhatsApp|CriOS|FxiOS|EdgiOS/i.test(navigator.userAgent);
 
   return <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu tienda, a un toque" protegerAtras>
     {error && <Aviso tono="peligro">{error}</Aviso>}

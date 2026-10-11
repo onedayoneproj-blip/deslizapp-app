@@ -44,6 +44,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`}>
+      <head>
+        {/* Guarda `beforeinstallprompt` y `appinstalled` desde el primer momento; components/pwa/instalar-pwa.tsx los lee. */}
+        <script dangerouslySetInnerHTML={{ __html: "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});window.addEventListener('appinstalled',function(){window.__bip=null;window.__apinst=true;});" }} />
+      </head>
       <body className="min-h-full">
         {children}
         <AvisoVersion />

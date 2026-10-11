@@ -54,8 +54,15 @@ function Animacion() {
   }, []);
 
   return <div data-animacion-ios ref={raiz} className="ins-anim mt-3">
-    <ol className="sr-only">{PASOS_INSTALAR_IOS.map((t, i) => <li key={i}>{i < 5 ? `${i + 1}. ` : ""}{t}</li>)}</ol>
-    <div aria-hidden="true" data-tarjeta className="rounded-radio-l bg-superficie-hundida py-4">
+    {/* Con movimiento reducido (CSS): los seis pasos como lista visible en lugar de la ilustración; la lista sr-only se oculta para no duplicar. */}
+    <ol className="sr-only ins-no-reducido">{PASOS_INSTALAR_IOS.map((t, i) => <li key={i}>{t}</li>)}</ol>
+    <ol data-pasos-visibles className="ins-solo-reducido grid gap-3 rounded-radio-l bg-superficie-hundida p-4">
+      {PASOS_INSTALAR_IOS.map((t, i) => <li key={i} className="flex items-start gap-3 text-destacado text-texto">
+        <span className="mt-px grid size-6 shrink-0 place-items-center rounded-full bg-accion text-[12px] text-sobre-accion">{i < 5 ? i + 1 : <IconoCheck tamano={14} strokeWidth={3} />}</span>
+        <span>{t}</span>
+      </li>)}
+    </ol>
+    <div aria-hidden="true" data-tarjeta className="ins-no-reducido rounded-radio-l bg-superficie-hundida py-4">
       <div className="mx-auto h-[360px] w-[176px] rounded-[34px] bg-texto p-[6px]">
         <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-superficie text-texto">
           {/* Pantalla de Safari */}
