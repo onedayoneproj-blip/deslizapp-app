@@ -53,3 +53,7 @@ Sigue la referencia `historia-presentaciones.dc.html`, con las reglas vigentes d
 ## 6. Entrega
 
 PR contra `main`, sin fusionar tú. **Planning revisa el código y fusiona** cuando «Revisión» esté en verde; Lewis prueba en producción. Un push por ronda. **Avisa a Planning (`send_message` a `@parent`) siempre que termines, quedes bloqueado o tu sesión vaya a agotarse**, con PR, HEAD, «Revisión», pruebas hechas y no hechas, decisiones fuera del encargo y pendientes (regla permanente).
+
+## 7. Pendiente para una ronda siguiente (Lewis, 11 oct 2026): retoque desde el paso de fotos
+
+Después de los dos PR, en el paso 1 (fotos): al cargar fotos aparece **debajo una tarjeta** «¿Quieres que Deslizapp retoque estas fotos?» (con la etiqueta Beta existente), con dos respuestas claras («Sí, retocarlas» / «Así están bien»), el costo en créditos y los créditos disponibles, y el aviso de Mi marca si falta (el retoque exige logo, Instagram y al menos 3 fotos de referencia; si no hay marca, se ofrece el paquete «Marca y diseño», ver `docs/14-precios-y-lanzamiento.md`). «Sí» marca todas las fotos para retoque con la lógica actual (`lib/retoque-al-subir.ts`, `BienvenidaRetoque`). Falta diseñarla en el lienzo antes del encargo. Mientras tanto, la marca por foto sigue funcionando como hoy.
