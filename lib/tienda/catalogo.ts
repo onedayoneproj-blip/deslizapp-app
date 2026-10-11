@@ -45,6 +45,18 @@ export type Coleccion = {
   nombre: string;
   productos: ProductoPublico[];
 };
+/** La colección de un reel (la primera que lo incluye, sin «Todos») y su abanico como el de «Colecciones»: su carátula al
+ * frente y detrás las de otras dos colecciones. Sin colección, null. */
+export function abanicoDeColeccion(cols: Coleccion[], p: ProductoPublico) {
+  const propias = cols.filter((c) => c.id !== "all");
+  const suya = propias.find((c) => c.productos.some((x) => x.id === p.id));
+  if (!suya) return null;
+  return {
+    nombre: suya.nombre,
+    portadas: [suya, ...propias.filter((c) => c !== suya).slice(0, 2)].map((c) => portada(c.productos[0])),
+  };
+}
+export type AbanicoColeccion = NonNullable<ReturnType<typeof abanicoDeColeccion>>;
 export function coleccionesDe(c: CatalogoPublico): Coleccion[] {
   const p = c.productos;
   const a: Coleccion[] = [{ id: "all", nombre: "Todos", productos: p }];

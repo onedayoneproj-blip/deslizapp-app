@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { portada } from "@/lib/tienda/catalogo";
+import { abanicoDeColeccion, coleccionesDe, portada } from "@/lib/tienda/catalogo";
 import { SUBTEXTO_CATALOGO_PRONTO, textoCatalogoPronto } from "@/lib/publicar-catalogo";
 import { Reel } from "./reel";
 import { Icono } from "./iconos";
@@ -134,6 +134,7 @@ export function VistaPreviaReel() {
   if (!datos) return <div className="catalogo-publico catalogo-vacio"><p>Armando la vista…</p></div>;
   const t = datos.tienda;
   const tema = temaDeTienda(t);
+  const cols = coleccionesDe({ tienda: t, productos: lista } as CatalogoPublico);
   const estilo = {
     ...Object.fromEntries(Object.entries(tema.colores).map(([k, v]) => ["--" + k, v])),
     "--display": `"${tema.fuentes.display === "Figtree" ? "DZ Figtree" : tema.fuentes.display === "Fredoka" ? "DZ Fredoka" : tema.fuentes.display}",Georgia,serif`,
@@ -194,6 +195,7 @@ export function VistaPreviaReel() {
             abrirPresentaciones={() => avisar()}
             abrirFicha={() => avisar()}
             registrarBurst={() => {}}
+            coleccion={(t.personalizacion.secciones as { colecciones?: boolean } | undefined)?.colecciones !== false ? abanicoDeColeccion(cols, p) : null}
             perfil={() => avisar()}
             opiniones={() => avisar()}
             avisar={() => avisar()}

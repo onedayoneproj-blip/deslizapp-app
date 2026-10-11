@@ -59,6 +59,14 @@ try {
     ok(await page.locator('.puntos-medios,.paginas-medios,[data-carrusel-multiple]').count()===0,`${n}: sin pie reservado ni puntos`);
     ok(await page.evaluate(()=>[...document.querySelectorAll('.media')].every(m=>getComputedStyle(m).getPropertyValue('--pie-medios').trim()==='')),`${n}: sin variable de pie reservado`);
     const media=await reel.locator('.media').boundingBox(),fotos=await s.fotos.boundingBox();
+    // La colección del reel, arriba a la derecha como el abanico de «Colecciones», con su carátula al frente.
+    const abanico=reel.locator('.reel-coleccion');
+    ok(await abanico.getAttribute('aria-label')==='Colección Para ella'&&!/para ella/i.test(await reel.locator('.topmeta').innerText()),`${n}: la colección va en abanico, sin la etiqueta de texto`);
+    const ab=await abanico.boundingBox();
+    ok(ab.x+ab.width>media.x+media.width-30&&ab.y<media.y+50,`${n}: abanico en la esquina superior derecha`);
+    const frente=await abanico.locator('.hc-f img').getAttribute('src');
+    // La carátula de la colección es la foto del primer producto de la colección: el primer reel con esa misma colección.
+    ok(frente===await page.evaluate(()=>{const r=[...document.querySelectorAll('#reels .reel')].find(r=>r.querySelector('.reel-coleccion')?.getAttribute('aria-label')==='Colección Para ella');return r?.querySelector('.medio img')?.getAttribute('src')}),`${n}: al frente, la carátula de «Para ella»`);
     ok(Math.abs(fotos.height-media.height)<1&&Math.abs(fotos.y-media.y)<1,`${n}: la foto ocupa todo el reel`);
     ok(await s.barras.count()===(total>1?1:0),`${n}: barras solo con varios medios`);
     if(total>1){

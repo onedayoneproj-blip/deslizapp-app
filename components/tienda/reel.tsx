@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { dinero } from "@/lib/tienda/carrito";
 import { modoOpiniones } from "@/lib/tienda/tema";
-import { detallesDe, lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
+import { detallesDe, lineaCorta, mostrarDetalle, type AbanicoColeccion } from "@/lib/tienda/catalogo";
 import {
   accionCorazon,
   agotadoPara,
@@ -41,6 +41,7 @@ export function Reel({
   abrirFicha,
   registrarBurst,
   pausado = false,
+  coleccion = null,
 }: {
   p: ProductoPublico;
   t: CatalogoPublico["tienda"];
@@ -65,6 +66,8 @@ export function Reel({
   registrarBurst: (fn: (() => void) | null) => void;
   /** Una hoja o el perfil están encima del reel: sus fotos no avanzan solas. */
   pausado?: boolean;
+  /** La colección del producto: va arriba a la derecha como el abanico de «Colecciones», con su carátula al frente. */
+  coleccion?: AbanicoColeccion | null;
 }) {
   const pres = tienePresentaciones(p);
   const [valores, setValores] = useState<Record<string, string>>(
@@ -97,7 +100,6 @@ export function Reel({
   const precioBase = v?.precio ?? p.precio;
   const quedan = v?.quedan ?? p.quedan;
   const m = t.personalizacion.mensajes as Record<string, string> | undefined;
-  const etiqueta = p.detalles.para === "ella" ? "Para ella" : p.detalles.para === "el" ? "Para él" : p.detalles.para === "unisex" ? "Para los dos" : null;
   const descripcion = typeof p.detalles.descripcion === "string" ? p.detalles.descripcion.trim() : "";
   const txt = descripcion || "¿Te llama la atención? Escríbeme y te cuento más.";
   // Los Detalles que ya existen (Esencias Michel) siguen en el detalle. El texto del reel termina en el «…» tocable (el botón lo
@@ -259,9 +261,18 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        {(etiqueta || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "")}>
-          <span>{etiqueta}</span>
-          {enPedido && <span className="inbadge">En tu pedido</span>}
+        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "")}>
+          <span>{enPedido && <span className="inbadge">En tu pedido</span>}</span>
+          {coleccion && (
+            <span className="hcov reel-coleccion" role="img" aria-label={"Colección " + coleccion.nombre} data-coleccion={coleccion.nombre}>
+              {coleccion.portadas.map((src, n) => (
+                <span key={n} className={"hc " + ["hc-f", "hc-i", "hc-d"][n]}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img loading="lazy" src={src} alt="" />
+                </span>
+              ))}
+            </span>
+          )}
         </div>}
         <div className="cap ov">
           <button
