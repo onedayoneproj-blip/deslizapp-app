@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Crear producto como una historia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.pb *{box-sizing:border-box}
+.pb button{font:inherit;color:inherit;margin:0;cursor:pointer}
+.pb button:focus-visible{outline:3px solid #174b3a;outline-offset:2px}
+.pb .disp{font-family:'Fredoka',sans-serif;font-stretch:115%;font-weight:700}
+.pb .mano{font-family:'Caveat',cursive;font-weight:700}
+.pb .sec{font-size:14px;color:#4f6a5e}
+.pb .btn{height:52px;border:0;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:17px;font-weight:800;width:100%}
+.pb .btn2{height:52px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;font-size:17px;font-weight:800;width:100%}
+.pb .chip{height:36px;padding:0 14px;border-radius:999px;border:1px solid #e7dcc8;background:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+</style>
+</helmet>
+<div class="pb" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a; line-height: 1.3">
+
+  <div style="position: absolute; left: 16px; right: 8px; top: 52px; display: flex; align-items: center; gap: 10px">
+    <div role="progressbar" aria-label="Avance" aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{pasoNum}}" style="flex: 1; display: flex; gap: 4px">
+      <sc-for list="{{barras}}" as="b" hint-placeholder-count="5">
+        <span style="{{b.estilo}}"></span>
+      </sc-for>
+    </div>
+    <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+
+  <div style="{{vistaPreguntas}}">
+    <div style="position: relative; height: 372px; border-radius: 22px; overflow: hidden; background: #f3ead9">
+      <div style="{{sinFoto}}">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        <span class="sec" style="font-weight: 700">Tu foto va aquí</span>
+      </div>
+      <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Vista previa del producto" style="{{conFoto}}"></img>
+      <div style="{{velo}}"></div>
+      <span class="mano" style="{{asiSeVe}}">así se verá</span>
+      <div style="position: absolute; left: 16px; right: 16px; bottom: 14px; color: #fff">
+        <p class="disp" style="{{nombreVista}}">{{nombre}}</p>
+        <p style="{{precioVista}}">RD$1,450</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px">
+      <h1 class="disp" style="margin: 0; font-size: 28px; line-height: 1.1">{{pregunta}}</h1>
+      <p class="sec" style="margin: 6px 0 0; font-size: 15px">{{ayuda}}</p>
+    </div>
+
+    <div style="{{entradaFoto}}">
+      <button type="button" class="btn" onClick="{{seguir}}">Tomar foto</button>
+      <button type="button" class="btn2" onClick="{{seguir}}">Elegir de la galería</button>
+    </div>
+
+    <div style="{{entradaNombre}}">
+      <label for="nom" style="position: absolute; left: -9999px">Nombre del producto</label>
+      <div id="nom" style="height: 56px; border: 2px solid #174b3a; border-radius: 16px; background: #fff; display: flex; align-items: center; padding: 0 16px; font-size: 20px; font-weight: 700">Hoodie Deslizapp<span aria-hidden="true" style="width: 2px; height: 24px; background: #174b3a; margin-left: 2px"></span></div>
+    </div>
+
+    <div style="{{entradaPrecio}}">
+      <div style="height: 64px; border: 2px solid #174b3a; border-radius: 16px; background: #fff; display: flex; align-items: center; gap: 8px; padding: 0 16px">
+        <span style="font-size: 18px; color: #4f6a5e; font-weight: 700">RD$</span><span class="disp" style="font-size: 32px">1,450</span>
+      </div>
+      <button type="button" class="chip" style="margin-top: 12px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Tiene tallas o colores
+      </button>
+    </div>
+
+    <div style="{{entradaStock}}">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 20px">
+        <button type="button" aria-label="Quitar uno" style="width: 56px; height: 56px; border-radius: 999px; border: 1.5px solid #e7dcc8; background: #fff; font-size: 26px; font-weight: 800">−</button>
+        <span class="disp" style="min-width: 80px; text-align: center; font-size: 44px">12</span>
+        <button type="button" aria-label="Agregar uno" style="width: 56px; height: 56px; border-radius: 999px; border: 0; background: #174b3a; color: #fff9ee; font-size: 26px; font-weight: 800">+</button>
+      </div>
+      <button type="button" class="chip" style="margin: 14px auto 0; display: flex">Es por encargo, no llevo stock</button>
+    </div>
+  </div>
+
+  <div style="{{vistaListo}}">
+    <span class="mano" style="font-size: 26px; color: #a8410f">así se ve en tu catálogo</span>
+    <div style="position: relative; height: 440px; border-radius: 22px; overflow: hidden; margin-top: 4px; background: #f3ead9">
+      <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie Deslizapp en el catálogo" style="width: 100%; height: 100%; object-fit: cover"></img>
+      <div style="position: absolute; inset: 55% 0 0 0; background: linear-gradient(to top, rgba(16,54,42,.72), rgba(16,54,42,0))"></div>
+      <div style="position: absolute; left: 6px; top: 8px; right: 6px; display: flex; gap: 3px"><span style="flex: 1; height: 2.5px; border-radius: 999px; background: #fff"></span><span style="flex: 1; height: 2.5px; border-radius: 999px; background: rgba(255,255,255,.45)"></span></div>
+      <div style="position: absolute; right: 10px; bottom: 20px; display: flex; flex-direction: column; gap: 16px; color: #fff; align-items: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-8.6-8.8C2.3 8.1 4.3 5 7.4 5c2 0 3.3 1 4.6 2.6C13.3 6 14.6 5 16.6 5c3.1 0 5.1 3.1 4 6.2C19 15.6 12 20 12 20z"></path></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.7A8 8 0 1 1 21 12z"></path></svg>
+        <span style="width: 44px; height: 44px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 11.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5z"></path><path d="M9 8V7a3 3 0 0 1 6 0v1"></path></svg></span>
+      </div>
+      <div style="position: absolute; left: 16px; bottom: 18px; color: #fff">
+        <p class="disp" style="margin: 0; font-size: 26px">Hoodie Deslizapp</p>
+        <p style="margin: 2px 0 0; font-size: 17px; font-weight: 800">RD$1,450</p>
+      </div>
+    </div>
+    <p style="margin: 14px 0 8px; font-size: 14px; font-weight: 800; color: #4f6a5e">Hazlo brillar · opcional</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <button type="button" class="chip">+ Descripción</button>
+      <button type="button" class="chip">+ Colección</button>
+      <button type="button" class="chip">+ Ficha técnica</button>
+    </div>
+  </div>
+
+  <div style="{{vistaCelebra}}">
+    <div style="position: relative; width: 230px; height: 290px; margin: 0 auto">
+      <span aria-hidden="true" style="position: absolute; left: -18px; top: 30px; width: 14px; height: 14px; border-radius: 4px; background: #ff834f; transform: rotate(20deg)"></span>
+      <span aria-hidden="true" style="position: absolute; right: -14px; top: 6px; width: 12px; height: 12px; border-radius: 999px; background: #f5c9d6"></span>
+      <span aria-hidden="true" style="position: absolute; right: -22px; bottom: 60px; width: 16px; height: 6px; border-radius: 999px; background: #174b3a; transform: rotate(-30deg)"></span>
+      <span aria-hidden="true" style="position: absolute; left: -10px; bottom: 20px; width: 10px; height: 10px; border-radius: 999px; background: #ff834f"></span>
+      <div style="width: 100%; height: 100%; border-radius: 22px; overflow: hidden; transform: rotate(-4deg); box-shadow: 0 10px 24px -10px rgba(16,54,42,.45)">
+        <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie Deslizapp publicado" style="width: 100%; height: 100%; object-fit: cover"></img>
+      </div>
+    </div>
+    <p class="mano" style="margin: 28px 0 0; font-size: 40px; text-align: center; color: #a8410f; line-height: 1">¡Ya está en tu catálogo!</p>
+    <p style="margin: 10px 0 0; font-size: 16px; text-align: center; color: #4f6a5e">Hoodie Deslizapp ya se puede deslizar. Van 1 de 5 para arrancar.</p>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 28px; display: flex; flex-direction: column; gap: 10px">
+    <div style="{{pieSeguir}}">
+      <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </button>
+      <button type="button" class="btn" onClick="{{seguir}}">Seguir</button>
+    </div>
+    <div style="{{piePublicar}}">
+      <button type="button" onClick="{{seguir}}" style="height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800; width: 100%">Publicar</button>
+      <button type="button" onClick="{{seguir}}" style="height: 44px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Guardar sin publicar</button>
+    </div>
+    <div style="{{pieCelebra}}">
+      <button type="button" class="btn" onClick="{{reiniciar}}">Agregar otro</button>
+      <button type="button" class="btn2">Compartir mi catálogo</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":6,"default":1},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const paso = s.paso ?? (this.props.paso ?? 1);
+    const ver = (b, estilo) => b ? (estilo || '') : 'display: none';
+    const textos = {
+      1: ['Empieza por la foto', 'La primera será la portada. Puedes sumar más después.'],
+      2: ['¿Cómo se llama?', 'Como lo dirías en WhatsApp.'],
+      3: ['¿Cuánto cuesta?', 'Si cambia por talla o color, lo ajustas aquí.'],
+      4: ['¿Cuántos tienes ahora?', 'Al despachar, baja solito.']
+    };
+    const t = textos[paso] || ['', ''];
+    return {
+      pasoNum: Math.min(paso, 5),
+      barras: [1, 2, 3, 4, 5].map((i) => ({ estilo: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (i <= paso ? '#174b3a' : '#e7dcc8') })),
+      vistaPreguntas: ver(paso <= 4, 'position: absolute; left: 20px; right: 20px; top: 104px'),
+      vistaListo: ver(paso === 5, 'position: absolute; left: 20px; right: 20px; top: 100px'),
+      vistaCelebra: ver(paso === 6, 'position: absolute; left: 20px; right: 20px; top: 150px'),
+      sinFoto: ver(paso === 1, 'position: absolute; inset: 14px; border: 2px dashed #9c8b6e; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px'),
+      conFoto: ver(paso > 1, 'width: 100%; height: 100%; object-fit: cover'),
+      velo: ver(paso > 1, 'position: absolute; inset: 50% 0 0 0; background: linear-gradient(to top, rgba(16,54,42,.7), rgba(16,54,42,0))'),
+      asiSeVe: ver(paso > 1, 'position: absolute; left: 14px; top: 10px; font-size: 22px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.35)'),
+      nombre: paso >= 2 ? 'Hoodie Deslizapp' : '',
+      nombreVista: ver(paso >= 2, 'margin: 0; font-size: 24px'),
+      precioVista: ver(paso >= 3, 'margin: 2px 0 0; font-size: 16px; font-weight: 800'),
+      pregunta: t[0], ayuda: t[1],
+      entradaFoto: ver(paso === 1, 'margin-top: 20px; display: flex; flex-direction: column; gap: 10px'),
+      entradaNombre: ver(paso === 2, 'margin-top: 16px'),
+      entradaPrecio: ver(paso === 3, 'margin-top: 16px'),
+      entradaStock: ver(paso === 4, 'margin-top: 18px'),
+      pieSeguir: ver(paso >= 2 && paso <= 4, 'display: flex; gap: 10px'),
+      piePublicar: ver(paso === 5, 'display: flex; flex-direction: column; gap: 4px'),
+      pieCelebra: ver(paso === 6, 'display: flex; flex-direction: column; gap: 10px'),
+      seguir: () => this.setState({ paso: Math.min(6, paso + 1) }),
+      atras: () => this.setState({ paso: Math.max(1, paso - 1) }),
+      reiniciar: () => this.setState({ paso: 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

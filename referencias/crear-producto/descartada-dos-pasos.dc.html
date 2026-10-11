@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Crear producto en dos pasos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.pa *{box-sizing:border-box}
+.pa button{font:inherit;color:inherit;margin:0;cursor:pointer}
+.pa button:focus-visible{outline:3px solid #174b3a;outline-offset:2px}
+.pa .disp{font-family:'Fredoka',sans-serif;font-stretch:115%;font-weight:700}
+.pa .lbl{display:block;font-size:14px;font-weight:800;color:#4f6a5e;margin:0 0 6px 2px}
+.pa .campo{height:50px;border:2px solid #9c8b6e;border-radius:16px;background:#fff;display:flex;align-items:center;padding:0 16px;font-size:16px;color:#174b3a;gap:8px}
+.pa .tarjeta{background:#fff;border:1px solid #efe4d2;border-radius:22px}
+.pa .fila{min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid #efe4d2;font-size:16px;font-weight:800;width:100%;background:transparent;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.pa .fila:first-child{border-top:0}
+.pa .sec{font-size:14px;font-weight:400;color:#4f6a5e}
+.pa .chip{height:36px;padding:0 14px;border-radius:999px;border:1px solid #e7dcc8;background:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.pa .chip-on{background:#f5c9d6;border-color:#f5c9d6}
+.pa .btn{height:52px;border:0;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:17px;font-weight:800;width:100%}
+.pa .btn2{height:36px;padding:0 14px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;font-size:14px;font-weight:800}
+</style>
+</helmet>
+<div class="pa" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a; line-height: 1.3">
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(16, 54, 42, 0.5)"></div>
+  <section role="dialog" aria-labelledby="t-hoja" style="position: absolute; left: 0; right: 0; top: 40px; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; display: flex; flex-direction: column; overflow: hidden">
+    <div style="padding: 10px 20px 0; background: #fff9ee">
+      <div aria-hidden="true" style="width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8; margin: 0 auto"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px">
+        <h2 id="t-hoja" class="disp" style="margin: 0; font-size: 24px">Nuevo producto</h2>
+        <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; margin-right: -8px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <div role="group" aria-label="Pasos" style="display: flex; gap: 8px; margin-top: 8px">
+        <button type="button" onClick="{{ir1}}" style="flex: 1; border: 0; background: transparent; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 6px; min-height: 44px; justify-content: center">
+          <span aria-hidden="true" style="height: 4px; border-radius: 999px; background: #174b3a"></span>
+          <span style="{{lbl1}}">1 · Lo esencial</span>
+        </button>
+        <button type="button" onClick="{{ir2}}" style="flex: 1; border: 0; background: transparent; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 6px; min-height: 44px; justify-content: center">
+          <span aria-hidden="true" style="{{barra2}}"></span>
+          <span style="{{lbl2}}">2 · {{nombrePaso2}}</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="{{vista1}}">
+      <div>
+        <span class="lbl">Fotos</span>
+        <div style="display: flex; gap: 8px; align-items: flex-end">
+          <div style="position: relative; width: 116px; height: 146px; border-radius: 16px; overflow: hidden; background: #f3ead9">
+            <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie, portada" style="width: 100%; height: 100%; object-fit: cover"></img>
+            <span style="position: absolute; left: 8px; bottom: 8px; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(16,54,42,.72); color: #fff9ee; font-size: 11px; font-weight: 800; display: flex; align-items: center">Portada</span>
+          </div>
+          <div style="width: 72px; height: 90px; border-radius: 16px; overflow: hidden; background: #f3ead9"><img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie, foto 2" style="width: 100%; height: 100%; object-fit: cover; object-position: 80% 30%"></img></div>
+          <button type="button" aria-label="Añadir foto" style="width: 72px; height: 90px; border-radius: 16px; border: 2px dashed #9c8b6e; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 800">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Foto
+          </button>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Nombre</span>
+        <div class="campo">Hoodie Deslizapp</div>
+      </div>
+
+      <div class="tarjeta" style="padding: 16px">
+        <p class="disp" style="margin: 0; font-size: 18px">¿Viene en varias presentaciones?</p>
+        <p class="sec" style="margin: 4px 0 12px">Tallas, colores o tamaños con su propio precio o stock.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{opPres}}" as="o" hint-placeholder-count="2">
+            <button type="button" aria-pressed="{{o.on}}" onClick="{{o.elegir}}" style="{{o.estilo}}">
+              <span style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <span style="font-size: 16px; font-weight: 800">{{o.titulo}}</span>
+                <span style="{{o.check}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+              </span>
+              <span class="sec" style="text-align: left">{{o.sub}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="tarjeta" style="padding: 16px">
+        <p class="disp" style="margin: 0; font-size: 18px">¿Cómo lo vendes?</p>
+        <p class="sec" style="margin: 4px 0 12px">Decide si llevas stock o lo pides cuando te compran.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{opVenta}}" as="o" hint-placeholder-count="2">
+            <button type="button" aria-pressed="{{o.on}}" onClick="{{o.elegir}}" style="{{o.estilo}}">
+              <span style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+                <span style="font-size: 16px; font-weight: 800">{{o.titulo}}</span>
+                <span style="{{o.check}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+              </span>
+              <span class="sec" style="text-align: left">{{o.sub}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="{{vista2}}">
+      <div class="tarjeta" style="padding: 10px 12px; display: flex; align-items: center; gap: 12px">
+        <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover"></img>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span style="font-size: 16px; font-weight: 800">Hoodie Deslizapp</span>
+          <span class="sec">{{resumen}}</span>
+        </span>
+        <button type="button" class="btn2" onClick="{{ir1}}">Cambiar</button>
+      </div>
+
+      <div style="{{bloquePrecio}}">
+        <span class="lbl">Precio</span>
+        <div class="campo"><span style="color: #4f6a5e">RD$</span>1,450</div>
+      </div>
+
+      <div style="{{bloqueStock}}" class="tarjeta">
+        <div style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <span><span style="display: block; font-size: 17px; font-weight: 800">En stock</span><span class="sec">Al despachar, baja solito.</span></span>
+          <span style="display: flex; align-items: center; gap: 4px">
+            <button type="button" aria-label="Quitar uno" style="width: 40px; height: 40px; border-radius: 999px; border: 1px solid #e7dcc8; background: #fff; font-size: 20px; font-weight: 800">−</button>
+            <span class="disp" style="min-width: 40px; text-align: center; font-size: 22px">12</span>
+            <button type="button" aria-label="Agregar uno" style="width: 40px; height: 40px; border-radius: 999px; border: 0; background: #174b3a; color: #fff9ee; font-size: 20px; font-weight: 800">+</button>
+          </span>
+        </div>
+      </div>
+
+      <div style="{{bloqueEncargo}}" class="tarjeta">
+        <div style="padding: 14px 16px">
+          <span style="display: block; font-size: 17px; font-weight: 800">¿Cuándo llega?</span>
+          <span class="sec">Se lo dices al cliente al pedir. No llevas stock.</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px">
+            <span class="chip">3 a 5 días</span>
+            <span class="chip chip-on">1 a 2 semanas</span>
+            <span class="chip">1 mes</span>
+            <span class="chip">Otro</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="{{bloqueVarias}}">
+        <span class="lbl">¿En qué cambia?</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <span class="chip chip-on">Talla</span><span class="chip chip-on">Color</span><span class="chip">Tamaño</span><span class="chip">+ Otra</span>
+        </div>
+        <div class="tarjeta" style="margin-top: 10px; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="width: 52px; font-weight: 800; font-size: 14px">Talla</span><span class="chip chip-on">S</span><span class="chip chip-on">M</span><span class="chip chip-on">L</span><span class="chip">XL</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="width: 52px; font-weight: 800; font-size: 14px">Color</span>
+            <span class="chip chip-on"><span style="width: 14px; height: 14px; border-radius: 999px; background: #efe6d6; border: 1px solid #c9bda7"></span>Crema</span>
+            <span class="chip chip-on"><span style="width: 14px; height: 14px; border-radius: 999px; background: #2f4a3c"></span>Bosque</span>
+          </div>
+        </div>
+        <div class="tarjeta" style="margin-top: 10px">
+          <div class="fila"><span style="flex: 1">Mismo precio para todas</span><span class="sec" style="font-weight: 700; color: #174b3a">RD$ 1,450</span></div>
+          <div class="fila" style="{{filaStockVar}}"><span style="flex: 1">Stock<span class="sec" style="display: block">6 presentaciones · 31 en total</span></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></div>
+        </div>
+      </div>
+
+      <div>
+        <span class="lbl">Para que se luzca · opcional</span>
+        <div class="tarjeta">
+          <button type="button" class="fila"><span style="flex: 1">Descripción</span><span class="sec">Agregar</span></button>
+          <button type="button" class="fila"><span style="flex: 1">Colección</span><span class="sec">Sin colección</span></button>
+          <button type="button" class="fila"><span style="flex: 1">Ficha técnica</span><span class="sec">Agregar</span></button>
+          <div class="fila"><span style="flex: 1">Visible en el catálogo</span>
+            <span role="switch" aria-checked="true" aria-label="Visible en el catálogo" style="width: 51px; height: 31px; border-radius: 999px; background: #174b3a; position: relative"><span style="position: absolute; right: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 12px 20px 28px; border-top: 1px solid #efe4d2; background: #fff9ee">
+      <button type="button" class="btn" onClick="{{accion}}">{{textoBoton}}</button>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":2,"default":1},"varias":{"editor":"boolean","default":false},"encargo":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const paso = s.paso ?? (this.props.paso ?? 1);
+    const varias = s.varias ?? !!this.props.varias;
+    const encargo = s.encargo ?? !!this.props.encargo;
+    const carta = (on) => 'min-height: 92px; padding: 12px; border-radius: 16px; text-align: left; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; ' + (on ? 'background: #f5c9d6; border: 2px solid #f5c9d6' : 'background: #fff; border: 2px solid #e7dcc8');
+    const check = (on) => on ? 'width: 22px; height: 22px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center' : 'width: 22px; height: 22px; border-radius: 999px; border: 2px solid #9c8b6e';
+    const op = (titulo, sub, on, fn) => ({ titulo, sub, on: on ? 'true' : 'false', estilo: carta(on), check: check(on), elegir: fn });
+    const cuerpo = 'flex: 1; overflow: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px';
+    const ver = (b) => b ? '' : 'display: none';
+    return {
+      opPres: [
+        op('Una sola', 'Un precio, un stock.', !varias, () => this.setState({ varias: false })),
+        op('Varias', 'Tallas, colores…', varias, () => this.setState({ varias: true }))
+      ],
+      opVenta: [
+        op('Lo tengo', 'Llevo el stock.', !encargo, () => this.setState({ encargo: false })),
+        op('Por encargo', 'Lo pido al venderlo.', encargo, () => this.setState({ encargo: true }))
+      ],
+      vista1: paso === 1 ? cuerpo : 'display: none',
+      vista2: paso === 2 ? cuerpo : 'display: none',
+      lbl1: 'font-size: 12px; font-weight: ' + (paso === 1 ? '800' : '600') + '; color: ' + (paso === 1 ? '#174b3a' : '#4f6a5e'),
+      lbl2: 'font-size: 12px; font-weight: ' + (paso === 2 ? '800' : '600') + '; color: ' + (paso === 2 ? '#174b3a' : '#4f6a5e'),
+      barra2: 'height: 4px; border-radius: 999px; background: ' + (paso === 2 ? '#174b3a' : '#e7dcc8'),
+      nombrePaso2: varias ? 'Presentaciones' : (encargo ? 'Precio y entrega' : 'Precio y stock'),
+      resumen: (varias ? 'Varias presentaciones' : 'Una presentación') + ' · ' + (encargo ? 'Por encargo' : 'Lo tengo'),
+      bloquePrecio: ver(!varias),
+      bloqueStock: ver(!varias && !encargo),
+      bloqueEncargo: ver(encargo),
+      bloqueVarias: ver(varias),
+      filaStockVar: encargo ? 'display: none' : '',
+      textoBoton: paso === 1 ? 'Seguir' : 'Guardar producto',
+      accion: () => this.setState({ paso: paso === 1 ? 2 : 1 }),
+      ir1: () => this.setState({ paso: 1 }),
+      ir2: () => this.setState({ paso: 2 })
+    };
+  }
+}
+</script>
+</body>
+</html>
