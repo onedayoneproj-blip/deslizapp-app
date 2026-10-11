@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cómo instalar Deslizapp en el iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ii-claro{--panel:#f3ead9;--bisel:#26312c;--pantalla:#fffdf8;--bloque:#ece4d4;--bloque2:#ddd2be;--tarjeta:#ffffff;--hoja:#f7f2e8;--texto:#174b3a;--texto2:#4f6a5e;--fila:#dcebe2;--toque:rgba(23,75,58,.3);--velo:rgba(20,30,26,.28);--accion:#174b3a;--sobre:#fff9ee;--inicio:#d9e6dd}
+.ii-oscuro{--panel:#1d3329;--bisel:#070f0b;--pantalla:#16281f;--bloque:#24382e;--bloque2:#30473b;--tarjeta:#1f3329;--hoja:#1b2f25;--texto:#f1ebdf;--texto2:#a8bcb1;--fila:#2f5244;--toque:rgba(255,255,255,.35);--velo:rgba(0,0,0,.45);--accion:#9ed3b8;--sobre:#0e2a1f;--inicio:#0f2119}
+.ii-esc,.ii-cap{opacity:0}
+.ii-toque{opacity:.85}
+.ii-lista{transform:translateY(-56px)}
+@keyframes ii-vis{0%{opacity:0}1.5%{opacity:1}15.3%{opacity:1}16.6%{opacity:0}100%{opacity:0}}
+@keyframes ii-toque{0%,8%{opacity:0;transform:scale(.4)}9.5%{opacity:.9;transform:scale(1)}13%{opacity:0;transform:scale(1.6)}100%{opacity:0;transform:scale(1.6)}}
+@keyframes ii-pop{0%,1%{opacity:0;transform:scale(.6)}4%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+@keyframes ii-sube{0%,1%{transform:translateY(100%)}4.5%{transform:translateY(0)}100%{transform:translateY(0)}}
+@keyframes ii-desliza{0%,4%{transform:translateY(0)}8%{transform:translateY(-56px)}100%{transform:translateY(-56px)}}
+@keyframes ii-marca{0%,8.5%{opacity:0}9.5%{opacity:1}100%{opacity:1}}
+@keyframes ii-icono{0%,3%{opacity:0;transform:scale(.2)}6%{opacity:1;transform:scale(1.12)}8%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+@keyframes ii-velo{0%{opacity:0}2%{opacity:1}100%{opacity:1}}
+.ii-anim .ii-esc,.ii-anim .ii-cap{animation:ii-vis 13.2s linear infinite both}
+.ii-anim .ii-toque{animation:ii-toque 13.2s ease-out infinite both}
+.ii-anim .ii-pop{animation:ii-pop 13.2s cubic-bezier(.2,.9,.3,1.2) infinite both}
+.ii-anim .ii-sube{animation:ii-sube 13.2s cubic-bezier(.2,.8,.2,1) infinite both}
+.ii-anim .ii-lista{animation:ii-desliza 13.2s cubic-bezier(.4,0,.2,1) infinite both}
+.ii-anim .ii-marca{animation:ii-marca 13.2s linear infinite both}
+.ii-anim .ii-icono{animation:ii-icono 13.2s cubic-bezier(.2,.9,.3,1.3) infinite both}
+.ii-anim .ii-velo{animation:ii-velo 13.2s linear infinite both}
+.ii-anim .ii-d1{animation-delay:0s}
+.ii-anim .ii-d2{animation-delay:2.2s}
+.ii-anim .ii-d3{animation-delay:4.4s}
+.ii-anim .ii-d4{animation-delay:6.6s}
+.ii-anim .ii-d5{animation-delay:8.8s}
+.ii-anim .ii-d6{animation-delay:11s}
+.ii-fijo-1 .ii-d1.ii-esc,.ii-fijo-1 .ii-d1.ii-cap,.ii-fijo-2 .ii-d2.ii-esc,.ii-fijo-2 .ii-d2.ii-cap,.ii-fijo-3 .ii-d3.ii-esc,.ii-fijo-3 .ii-d3.ii-cap,.ii-fijo-4 .ii-d4.ii-esc,.ii-fijo-4 .ii-d4.ii-cap,.ii-fijo-5 .ii-d5.ii-esc,.ii-fijo-5 .ii-d5.ii-cap,.ii-fijo-6 .ii-d6.ii-esc,.ii-fijo-6 .ii-d6.ii-cap{opacity:1}
+@media (prefers-reduced-motion: reduce){.ii-anim *{animation:none !important}.ii-anim .ii-d5.ii-esc,.ii-anim .ii-d5.ii-cap{opacity:1}}
+</style>
+</helmet>
+<div class="{{clase}}" role="img" aria-label="Animación: en Safari toca el menú de la barra, elige Compartir, toca Ver más, toca Añadir a pantalla de inicio, deja Abrir como app web encendido y toca Añadir. Deslizapp aparece en tu pantalla de inicio." style="width: 350px; height: 500px; position: relative; overflow: hidden; border-radius: 22px; background: var(--panel); font-family: 'Figtree', sans-serif; color: var(--texto)">
+
+  <div aria-hidden="true" style="position: absolute; left: 87px; top: 24px; width: 176px; height: 360px; border-radius: 34px; background: var(--bisel); padding: 6px; box-sizing: border-box">
+    <div style="position: relative; width: 164px; height: 348px; border-radius: 28px; overflow: hidden; background: var(--pantalla)">
+
+      <div style="position: absolute; left: 12px; top: 22px; display: flex; align-items: center; gap: 8px">
+        <span style="width: 18px; height: 18px; border-radius: 999px; background: var(--bloque2)"></span>
+        <span style="width: 60px; height: 7px; border-radius: 999px; background: var(--bloque2)"></span>
+      </div>
+      <div style="position: absolute; left: 12px; top: 54px; display: flex; flex-direction: column; gap: 6px">
+        <span style="width: 120px; height: 11px; border-radius: 999px; background: var(--bloque2)"></span>
+        <span style="width: 86px; height: 11px; border-radius: 999px; background: var(--bloque2)"></span>
+      </div>
+      <div style="position: absolute; left: 12px; right: 12px; top: 96px; border-radius: 12px; background: var(--bloque); display: flex; flex-direction: column">
+        <span style="height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 12px; height: 12px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 70px; height: 6px; border-radius: 999px; background: var(--bloque2)"></span></span>
+        <span style="height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 12px; height: 12px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 56px; height: 6px; border-radius: 999px; background: var(--bloque2)"></span></span>
+        <span style="height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 12px; height: 12px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 80px; height: 6px; border-radius: 999px; background: var(--bloque2)"></span></span>
+      </div>
+      <div style="position: absolute; left: 12px; right: 12px; top: 200px; height: 46px; border-radius: 12px; background: var(--bloque)"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px">
+        <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque)"></span>
+        <span style="width: 92px; height: 26px; border-radius: 999px; background: var(--bloque); display: flex; align-items: center; gap: 7px; padding: 0 9px; box-sizing: border-box">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--texto)" stroke-width="3" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          <span style="width: 44px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span>
+        </span>
+        <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d1" style="position: absolute; inset: 0">
+        <span class="ii-toque ii-d1" style="position: absolute; left: 35px; top: 310px; width: 30px; height: 30px; border-radius: 999px; background: var(--toque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d2" style="position: absolute; inset: 0">
+        <div class="ii-velo ii-d2" style="position: absolute; inset: 0; background: var(--velo)"></div>
+        <div class="ii-pop ii-d2" style="position: absolute; left: 14px; bottom: 44px; width: 132px; padding: 6px 0; border-radius: 14px; background: var(--tarjeta); transform-origin: 36px 100%; display: flex; flex-direction: column">
+          <span style="height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 52px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+          <span style="height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 74px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+          <span style="position: relative; height: 22px; display: flex; align-items: center; gap: 7px; padding: 0 10px">
+            <span class="ii-marca ii-d2" style="position: absolute; inset: 1px 4px; border-radius: 8px; background: var(--fila)"></span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--texto)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="position: relative"><path d="M12 3v12M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+            <span style="position: relative; font-size: 10px; font-weight: 800">Compartir</span>
+          </span>
+          <span style="height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 64px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+          <span style="height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 46px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+          <span style="height: 22px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 68px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+        </div>
+        <span class="ii-toque ii-d2" style="position: absolute; left: 39px; top: 206px; width: 30px; height: 30px; border-radius: 999px; background: var(--toque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d3" style="position: absolute; inset: 0">
+        <div style="position: absolute; inset: 0; background: var(--velo)"></div>
+        <div class="ii-sube ii-d3" style="position: absolute; left: 0; right: 0; bottom: 0; height: 250px; border-radius: 20px 20px 0 0; background: var(--hoja); padding: 12px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 8px; height: 30px">
+            <span style="width: 26px; height: 26px; border-radius: 7px; background: #f5c9d6; color: #174b3a; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 16px">d</span>
+            <span style="display: flex; flex-direction: column; gap: 4px; flex: 1"><span style="font-size: 10px; font-weight: 800">deslizapp</span><span style="width: 56px; height: 4px; border-radius: 999px; background: var(--bloque2)"></span></span>
+            <span style="width: 18px; height: 18px; border-radius: 999px; background: var(--bloque)"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between"><span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: var(--bloque2)"></span></div>
+          <div style="display: flex; justify-content: space-between"><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque)"></span></div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start">
+            <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--tarjeta)"></span>
+            <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--tarjeta)"></span>
+            <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--tarjeta)"></span>
+            <span style="width: 26px; display: flex; flex-direction: column; align-items: center; gap: 3px">
+              <span style="width: 26px; height: 26px; border-radius: 999px; background: var(--tarjeta); display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--texto)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+              <span style="font-size: 7.5px; font-weight: 800; white-space: nowrap">Ver más</span>
+            </span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 4px"><span style="height: 22px; border-radius: 8px; background: var(--tarjeta)"></span><span style="height: 22px; border-radius: 8px; background: var(--tarjeta)"></span></div>
+        </div>
+        <span class="ii-toque ii-d3" style="position: absolute; left: 122px; top: 226px; width: 30px; height: 30px; border-radius: 999px; background: var(--toque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d4" style="position: absolute; inset: 0">
+        <div style="position: absolute; inset: 0; background: var(--velo)"></div>
+        <div style="position: absolute; left: 0; right: 0; top: 26px; bottom: 0; border-radius: 20px 20px 0 0; background: var(--hoja); overflow: hidden">
+          <div style="position: absolute; left: 14px; top: 12px; display: flex; align-items: center; gap: 8px">
+            <span style="width: 22px; height: 22px; border-radius: 6px; background: #f5c9d6; color: #174b3a; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 13px">d</span>
+            <span style="font-size: 10px; font-weight: 800">deslizapp</span>
+          </div>
+          <div class="ii-lista ii-d4" style="position: absolute; left: 10px; right: 10px; top: 42px; display: flex; flex-direction: column; gap: 10px">
+            <div style="border-radius: 10px; background: var(--tarjeta); display: flex; flex-direction: column">
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 66px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 54px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 72px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 48px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 60px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="position: relative; height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 10px">
+                <span class="ii-marca ii-d4" style="position: absolute; inset: 1px 3px; border-radius: 7px; background: var(--fila)"></span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--texto)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="position: relative"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M12 8v8M8 12h8"></path></svg>
+                <span style="position: relative; font-size: 8.5px; font-weight: 800; white-space: nowrap">Añadir a pantalla de inicio</span>
+              </span>
+            </div>
+            <div style="border-radius: 10px; background: var(--tarjeta); display: flex; flex-direction: column">
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 44px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 36px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 70px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+              <span style="height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span style="width: 9px; height: 9px; border-radius: 3px; background: var(--bloque2)"></span><span style="width: 58px; height: 5px; border-radius: 999px; background: var(--bloque2)"></span></span>
+            </div>
+          </div>
+        </div>
+        <span class="ii-toque ii-d4" style="position: absolute; left: 45px; top: 129px; width: 30px; height: 30px; border-radius: 999px; background: var(--toque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d5" style="position: absolute; inset: 0; background: var(--hoja)">
+        <div style="position: absolute; left: 10px; right: 10px; top: 14px; height: 22px; display: flex; align-items: center; justify-content: space-between">
+          <span style="width: 22px; height: 22px; border-radius: 999px; background: var(--bloque); display: flex; align-items: center; justify-content: center"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--texto2)" stroke-width="3.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+          <span style="width: 54px; height: 6px; border-radius: 999px; background: var(--bloque2)"></span>
+          <span style="height: 22px; padding: 0 10px; border-radius: 999px; background: var(--accion); color: var(--sobre); font-size: 9px; font-weight: 800; display: flex; align-items: center">Añadir</span>
+        </div>
+        <div style="position: absolute; left: 10px; right: 10px; top: 50px; border-radius: 12px; background: var(--tarjeta); padding: 10px; display: flex; align-items: center; gap: 10px">
+          <span style="width: 34px; height: 34px; border-radius: 9px; background: #f5c9d6; color: #174b3a; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 20px; flex-shrink: 0">d</span>
+          <span style="display: flex; flex-direction: column; gap: 5px"><span style="font-size: 11px; font-weight: 800">deslizapp</span><span style="width: 74px; height: 4px; border-radius: 999px; background: var(--bloque2)"></span></span>
+        </div>
+        <div style="position: absolute; left: 10px; right: 10px; top: 114px; border-radius: 12px; background: var(--tarjeta); padding: 10px; display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 9.5px; font-weight: 800">Abrir como app web</span>
+          <span style="width: 30px; height: 18px; border-radius: 999px; background: var(--accion); position: relative"><span style="position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 999px; background: var(--sobre)"></span></span>
+        </div>
+        <div style="position: absolute; left: 14px; top: 158px; display: flex; flex-direction: column; gap: 5px"><span style="width: 120px; height: 4px; border-radius: 999px; background: var(--bloque2)"></span><span style="width: 90px; height: 4px; border-radius: 999px; background: var(--bloque2)"></span></div>
+        <span class="ii-toque ii-d5" style="position: absolute; left: 116px; top: 10px; width: 30px; height: 30px; border-radius: 999px; background: var(--toque)"></span>
+      </div>
+
+      <div class="ii-esc ii-d6" style="position: absolute; inset: 0; background: var(--inicio)">
+        <div style="position: absolute; left: 14px; right: 14px; top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 18px; justify-items: center">
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span>
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span>
+          <span style="width: 28px; height: 28px; border-radius: 8px; background: var(--bloque2)"></span>
+          <span class="ii-icono ii-d6" style="position: relative; width: 28px; height: 28px; border-radius: 8px; background: #f5c9d6; color: #174b3a; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 17px">d<span style="position: absolute; top: 31px; left: 50%; transform: translateX(-50%); font-family: 'Figtree', sans-serif; font-size: 7.5px; font-weight: 700; color: var(--texto)">deslizapp</span></span>
+        </div>
+        <div style="position: absolute; left: 12px; right: 12px; bottom: 10px; height: 42px; border-radius: 16px; background: var(--bloque); display: flex; align-items: center; justify-content: space-around; padding: 0 8px"><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque2)"></span><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--bloque2)"></span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 20px; right: 20px; top: 404px; height: 76px">
+    <p class="ii-cap ii-d1" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">1</span><span>En Safari, toca el menú <b>☰</b> de la barra de abajo.</span></p>
+    <p class="ii-cap ii-d2" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">2</span><span>Elige <b>Compartir</b>.</span></p>
+    <p class="ii-cap ii-d3" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">3</span><span>Toca <b>Ver más</b>.</span></p>
+    <p class="ii-cap ii-d4" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">4</span><span>Baja y toca <b>Añadir a pantalla de inicio</b>.</span></p>
+    <p class="ii-cap ii-d5" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">5</span><span>Deja <b>Abrir como app web</b> encendido y toca <b>Añadir</b>.</span></p>
+    <p class="ii-cap ii-d6" style="position: absolute; inset: 0; margin: 0; display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.35"><span style="flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--accion); color: var(--sobre); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sobre)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span>Listo. Deslizapp ya vive en tu pantalla de inicio.</span></p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"oscuro":{"editor":"boolean","default":false},"escena":{"editor":"int","min":0,"max":6,"default":0},"$preview":{"width":350,"height":500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const escena = this.props.escena ?? 0;
+    const tema = this.props.oscuro ? 'ii-oscuro' : 'ii-claro';
+    return { clase: tema + (escena > 0 ? ' ii-fijo ii-fijo-' + escena : ' ii-anim') };
+  }
+}
+</script>
+</body>
+</html>

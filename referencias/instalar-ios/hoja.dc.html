@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hoja Pantalla de inicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a">
+  <div aria-hidden="true" style="position: absolute; inset: 0; padding: 56px 20px 0; box-sizing: border-box">
+    <div style="width: 220px; height: 30px; border-radius: 999px; background: #f3ead9"></div>
+    <div style="margin-top: 20px; width: 300px; height: 64px; border-radius: 16px; background: #f3ead9"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(16, 54, 42, 0.5)"></div>
+
+  <section role="dialog" aria-labelledby="hoja-titulo" style="position: absolute; left: 0; right: 0; top: 52px; bottom: 0; border-radius: 28px 28px 0 0; background: #ffffff; box-shadow: 0 -8px 30px rgba(16, 54, 42, 0.16); padding: 10px 20px 0; box-sizing: border-box; display: flex; flex-direction: column">
+    <span aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #e7dcc8"></span>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px">
+      <h2 id="hoja-titulo" style="margin: 0; font-family: 'Fredoka', sans-serif; font-stretch: 115%; font-weight: 700; font-size: 24px">Pantalla de inicio</h2>
+      <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; margin-right: -8px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center; color: #174b3a">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    <p style="margin: 2px 0 0; font-size: 16px; line-height: 1.4; color: #4f6a5e">Tenla a un toque, como cualquier app.</p>
+
+    <div role="group" aria-label="Tu teléfono" style="display: flex; gap: 8px; margin-top: 14px">
+      <button type="button" aria-pressed="true" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 0; background: #174b3a; color: #fff9ee; font-size: 14px; font-weight: 700">iPhone</button>
+      <button type="button" aria-pressed="false" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #e7dcc8; background: #ffffff; color: #174b3a; font-size: 14px; font-weight: 700">Android</button>
+    </div>
+
+    <div style="margin-top: 16px">
+      <dc-import name="Ilustracion" hint-size="350px,500px"></dc-import>
+    </div>
+
+    <button type="button" style="position: absolute; left: 20px; right: 20px; bottom: 28px; height: 52px; border: 0; border-radius: 999px; background: #174b3a; color: #fff9ee; font-size: 17px; font-weight: 800">Ya lo hice</button>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
