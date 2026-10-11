@@ -21,7 +21,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
+import { portada, coleccionesDe, abanicoDeColeccion, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
@@ -806,6 +806,8 @@ export function Catalogo({
             abrirPresentaciones={(modo) => abrirPresentaciones(p.slug, modo)}
             abrirFicha={() => abrirTipo("ficha", p.slug)}
             registrarBurst={(fn) => (fn ? bursts.current.set(p.slug, fn) : bursts.current.delete(p.slug))}
+            pausado={vista !== null || perfil}
+            coleccion={secciones?.colecciones !== false ? abanicoDeColeccion(cols, p) : null}
             perfil={showPerfil}
             opiniones={() =>
               secciones?.opiniones !== false && abrirTipo("opiniones", p.slug)

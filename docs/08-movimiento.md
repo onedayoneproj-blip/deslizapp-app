@@ -57,6 +57,10 @@ en `lib/movimiento.ts`. Si cambias uno, cambia los dos.
    movimiento reducido. La implementación y sus límites están en la excepción
    detallada al final de este documento; no habilita animaciones en otras pantallas
    ni entradas escalonadas de tarjetas o filas.
+   **Excepción concreta para el carrusel del catálogo público (11 oct 2026):** el llenado de las barras tipo historia
+   (`transform: scaleX()`, 5 s lineal, la animación es el reloj del avance) y la entrada/salida de la vista enfocada de
+   fotos (opacidad y escala con `--mov-normal`/`--mov-rapida` y `--curva-*`; zoom que sigue al dedo con `transform`).
+   Con movimiento reducido no hay avance automático ni animación de entrada o salida.
 4b. **Hojas: rebote y diálogo de salida.** Si una hoja con cambios sin guardar se intenta cerrar, vuelve a su lugar con un rebote de
    `transform` (380 ms, `cubic-bezier(0.34, 1.56, 0.64, 1)`) y el diálogo "¿Salir sin guardar?" entra con `mov-aparece`. Con
    `prefers-reduced-motion` no hay rebote: solo aparece el diálogo. Una pastilla de opción elegida muestra su check con `mov-pop-aparece`.
