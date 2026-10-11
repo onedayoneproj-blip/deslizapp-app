@@ -63,7 +63,7 @@ try {
     const abanico=reel.locator('.reel-coleccion');
     ok(await abanico.getAttribute('aria-label')==='Colección Para ella'&&!/para ella/i.test(await reel.locator('.topmeta').innerText()),`${n}: la colección va en abanico, sin la etiqueta de texto`);
     const ab=await abanico.boundingBox();
-    ok(ab.x+ab.width>media.x+media.width-30&&ab.y<media.y+50,`${n}: abanico en la esquina superior derecha`);
+    ok(ab.x+ab.width>media.x+media.width-70&&ab.y<media.y+50,`${n}: abanico en la esquina superior derecha`);
     const frente=await abanico.locator('.hc-f img').getAttribute('src');
     // La carátula de la colección es la foto del primer producto de la colección: el primer reel con esa misma colección.
     ok(frente===await page.evaluate(()=>{const r=[...document.querySelectorAll('#reels .reel')].find(r=>r.querySelector('.reel-coleccion')?.getAttribute('aria-label')==='Colección Para ella');return r?.querySelector('.medio img')?.getAttribute('src')}),`${n}: al frente, la carátula de «Para ella»`);
@@ -83,6 +83,9 @@ try {
       if(total===3){
         await irA(s,2);await espera(page,600);
         ok(await etiqueta(s)==='Video 3 de 3',`${n}: el video anuncia su posición`);
+        const eb3=await reel.getByRole('button',{name:'Ver foto en grande'}).boundingBox(),sb=await reel.locator('.sonido').boundingBox();
+        ok(!overlap(eb3,sb),`${n}: el sonido del video no toca el botón de expandir`);
+        if(width===360)await page.screenshot({path:`${OUT}/360-video-sonido.png`});
         ok(await reel.locator('.historia i.video').evaluate(e=>e.getAnimations().length===0),`${n}: la barra del video no corre sola`);
         // El Chromium de pruebas puede no traer el códec MP4: se fija el tiempo del video y se emite su `timeupdate`.
         await reel.locator('video').evaluate(v=>{Object.defineProperty(v,'duration',{configurable:true,value:8});Object.defineProperty(v,'currentTime',{configurable:true,writable:true,value:2});v.dispatchEvent(new Event('timeupdate'))});
@@ -91,6 +94,27 @@ try {
         await irA(s,0);
       }
     }
+    // Toda la foto recibe el toque salvo los controles reales: malla de puntos con elementFromPoint.
+    const malla=await page.evaluate(({slug,franja})=>{
+      const r=document.querySelector('#r-'+slug+' .carrusel').getBoundingClientRect();const malos=[];
+      for(let fy=0;fy<=10;fy++)for(let fx=0;fx<=8;fx++){
+        const x=r.left+4+(r.width-8)*fx/8,y=r.top+franja+(r.height-franja-4)*fy/10;
+        const el=document.elementFromPoint(x,y);
+        if(!el||el.closest('.carrusel')||el.closest('button,a,input,select,textarea,[role="button"]'))continue;
+        malos.push(el.className||el.tagName);
+      }
+      return malos;
+    },{slug:'mayar',franja:56});
+    ok(malla.length===0,`${n}: toda la foto recibe el toque salvo los controles${malla.length?' (tapan: '+[...new Set(malla)].join(', ')+')':''}`);
+    // Botón de expandir arriba a la derecha, bajo las barras, sin solaparse con la colección ni con el sonido.
+    const exp=reel.getByRole('button',{name:'Ver foto en grande'});
+    const eb=await exp.boundingBox();
+    ok(eb.width>=44&&eb.height>=44&&eb.x+eb.width<=media.x+media.width&&eb.x+eb.width>media.x+media.width-12,`${n}: botón de expandir de 44 px en la esquina derecha`);
+    if(total>1){const b=await s.barras.boundingBox();ok(eb.y+6>=b.y+b.height,`${n}: botón de expandir bajo las barras`);}
+    const visible={x:eb.x+6,y:eb.y+6,width:eb.width-12,height:eb.height-12};
+    ok(!overlap(visible,await abanico.boundingBox()),`${n}: el abanico no toca el botón de expandir`);
+    ok((visible.x)-(ab.x+ab.width)>=6,`${n}: separación entre abanico y botón (${Math.round(visible.x-(ab.x+ab.width))} px)`);
+    const son=reel.locator('.sonido');if(await son.count())ok(!overlap(eb,await son.boundingBox()),`${n}: el sonido no toca el botón de expandir`);
     await page.screenshot({path:`${OUT}/${width}-${total}-medios.png`});
     ok(await page.evaluate(w=>document.documentElement.scrollWidth<=w,width),`${n}: sin overflow horizontal`);
     await cerrarCtx(s,n);
@@ -175,10 +199,6 @@ try {
     await irA(s,0);
     await deslizar(s,x+120,y,x-120,y);await espera(page,700);
     ok(await enfocada(s).count()===0,'deslizar no abre la vista');
-    // Tocar los bordes (descripción) no abre nada.
-    const cap=await s.reel.locator('.cap h2').boundingBox();await toque(s,cap.x+10,cap.y+cap.height/2);await espera(page,600);
-    ok(await enfocada(s).count()===0,'tocar la descripción no abre la vista');
-
     await irA(s,1);
     const largo0=await page.evaluate(()=>history.length);
     await toque(s,x,y);await enfocada(s).waitFor();await espera(page,300);
@@ -189,7 +209,7 @@ try {
     ok(await dlg.evaluate(d=>getComputedStyle(d.querySelector('.enfocada-fondo')).backgroundColor==='rgb(0, 0, 0)'&&getComputedStyle(d.querySelector('.enfocada-zoom img')).objectFit==='contain'),'fondo negro y foto entera');
     ok(await dlg.evaluate(d=>!d.querySelector('.acts,.cap,.historias-medios,.like')&&getComputedStyle(d).touchAction==='none'),'sin UI del reel y con gestos propios');
     ok(await page.evaluate(()=>document.getElementById('reels').inert&&getComputedStyle(document.documentElement).overflow==='hidden'),'fondo bloqueado');
-    ok(await page.evaluate(()=>history.state?.catalogoFoto===true)&&await page.evaluate(()=>history.length)===largo0+1,'abre una entrada de historial');
+    ok(await page.evaluate(()=>typeof history.state?.catalogoFoto==='string')&&await page.evaluate(()=>history.length)===largo0+1,'abre una entrada de historial');
     await page.screenshot({path:`${OUT}/vista-enfocada.png`});
     // Flechas cambian de foto; Escape cierra y el reel queda en la última vista.
     await page.keyboard.press('ArrowRight');await espera(page,350);
@@ -231,6 +251,60 @@ try {
     await cerrarCtx(s,'vista enfocada');
   }
 
+  // 4b. Toque en toda la foto, botón de expandir y pellizco (contexto limpio: sin la burbuja del «aaah» encima).
+  {
+    const s=await abrirMichel(390,4);const {page}=s;
+    const {x,y}=await centroFoto(s);
+    // El nombre y el precio no son controles: tocarlos abre la vista (antes no llegaba el toque).
+    const cap=await s.reel.locator('.cap h2').boundingBox();await toque(s,cap.x+10,cap.y+cap.height/2);await enfocada(s).waitFor();
+    ok(true,'tocar el nombre del producto abre la vista');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    // Los controles reales siguen recibiendo su toque: «…» abre la descripción, no la vista; y con ella abierta, tocarla no abre nada.
+    const mas=await s.reel.locator('[data-more]').boundingBox();await toque(s,mas.x+mas.width/2,mas.y+mas.height/2);await espera(page,600);
+    ok(await enfocada(s).count()===0&&await s.reel.evaluate(r=>r.classList.contains('open')),'«…» abre la descripción, no la vista');
+    const panel=await s.reel.locator('.panel .pin').boundingBox();await toque(s,panel.x+40,panel.y+20);await espera(page,600);
+    ok(await enfocada(s).count()===0,'con la descripción abierta, tocarla no abre la vista');
+    ok(await s.reel.locator('.expandir').evaluate(b=>getComputedStyle(b).opacity==='0'&&getComputedStyle(b).pointerEvents==='none'),'con la descripción abierta, el botón de expandir se oculta');
+    await s.reel.locator('[data-less]').click();await espera(page,300);
+    // Botón de expandir: misma vista, misma entrada de historial y el foco vuelve a la foto.
+    const largoB=await page.evaluate(()=>navigation.currentEntry.index);
+    await s.reel.getByRole('button',{name:'Ver foto en grande'}).click();await enfocada(s).waitFor();
+    ok(await page.evaluate(()=>typeof history.state?.catalogoFoto==='string')&&await page.evaluate(()=>navigation.currentEntry.index)===largoB+1,'botón de expandir: abre la vista con una entrada de historial');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});
+    ok(!(await page.evaluate(()=>history.state?.catalogoFoto))&&await page.evaluate(()=>document.activeElement?.classList.contains('carrusel')),'botón de expandir: Escape cierra y el foco vuelve a la foto');
+    await espera(page,400);
+
+    // Pellizco sobre la foto: abre la vista una sola vez, a 1×, y el mismo gesto sigue acercando.
+    const pell=async(cx,cy,abre=12,pasos=8)=>{
+      await s.cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx-20,y:cy,id:1},{x:cx+20,y:cy,id:2}]});
+      for(let i=1;i<=pasos;i++){await s.cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx-20-i*abre,y:cy,id:1},{x:cx+20+i*abre,y:cy,id:2}]});await espera(page,16)}
+      await s.cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    };
+    const largoP=await page.evaluate(()=>navigation.currentEntry.index);
+    await pell(x,y);await enfocada(s).waitFor();await espera(page,200);
+    ok(await page.evaluate(()=>navigation.currentEntry.index)===largoP+1&&await page.locator('[data-enfocada]').count()===1,'pellizco: abre la vista una sola vez');
+    const zoomP=await page.locator('.enfocada-medio:not([aria-hidden="true"]) .enfocada-zoom').evaluate(e=>Number(e.dataset.zoom??1));
+    console.log(`   (pellizco continuo dentro de la vista en Chromium: ${zoomP}×)`);
+    ok(await page.evaluate(()=>visualViewport.scale)===1,'pellizco: sin zoom de página');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    ok(await page.evaluate(()=>!history.state?.catalogoFoto),'pellizco: cerrar consume su entrada');
+    // Dos dedos quietos o que se juntan no abren nada; tampoco con una hoja abierta.
+    await pell(x,y,-1,6);await espera(page,600);
+    ok(await enfocada(s).count()===0,'juntar los dedos no abre la vista');
+    await s.reel.locator('[data-comments]').click();await page.locator('#cmBg,[role="dialog"]').first().waitFor();await espera(page,300);
+    await pell(x,y);await espera(page,600);
+    ok(await enfocada(s).count()===0,'pellizco con una hoja abierta: no abre la vista');
+    await page.keyboard.press('Escape');await espera(page,500);
+    // Con un dedo en un control (la columna de botones) no cuenta como pellizco sobre la foto.
+    const act=await s.reel.locator('.acts .act').first().boundingBox();
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:act.x+act.width/2,y:act.y+10,id:1},{x:x,y:y,id:2}]});
+    for(let i=1;i<=6;i++){await s.cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:act.x+act.width/2,y:act.y+10,id:1},{x:x-i*15,y:y+i*15,id:2}]});await espera(page,16)}
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await espera(page,600);
+    ok(await enfocada(s).count()===0,'pellizco con un dedo en un control: no abre la vista');
+
+    await cerrarCtx(s,'toque, botón y pellizco');
+  }
+
   // 5. Una sola foto: sin barras, el toque abre la vista sin indicador.
   {
     const s=await abrirMichel(390,1);const {x,y}=await centroFoto(s);
@@ -240,7 +314,7 @@ try {
     await cerrarCtx(s,'una foto');
   }
 
-  // 6. La vista previa del panel reutiliza el mismo Reel: barras, avance y vista enfocada.
+  // 6. La vista previa del panel reutiliza el mismo Reel con sus barras, pero sin vista enfocada (su historial es de la hoja).
   {
     const db=construirDesdeSeed();const t=db.tiendas.find(t=>t.slug==='esencias-michel');const p=db.productos.find(p=>p.tiendaId===t.id&&p.slug==='mayar');
     p.medios=Array.from({length:3},(_,i)=>({tipo:'foto',url:`/tienda/michel-mayar.jpg?pagina=${i}`,retocada:false}));
@@ -256,11 +330,94 @@ try {
     ok(!/\d+\s*\/\s*\d+/.test(await page.locator('.reels').innerText()),'vista previa: sin contador global');
     await page.waitForFunction(()=>document.querySelector('.reel.on .historias-medios')?.getAttribute('aria-label')==='Foto 3 de 3',null,{timeout:5000});
     ok(true,'vista previa: avanza sola hasta la última');
-    const {x,y}=await centroFoto(s);await toque(s,x,y);await page.locator('[data-enfocada]').waitFor();
-    ok(await page.getByRole('dialog',{name:'Fotos de '+p.nombre}).count()===1,'vista previa: abre la vista enfocada');
-    await page.keyboard.press('Escape');await page.locator('[data-enfocada]').waitFor({state:'detached'});
+    const {x,y}=await centroFoto(s);
+    const largoV=await page.evaluate(()=>navigation.currentEntry.index);
+    ok(await reel.locator('.expandir').count()===0,'vista previa: sin botón de expandir');
+    await toque(s,x,y);await espera(page,700);
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x-20,y,id:1},{x:x+20,y,id:2}]});
+    for(let i=1;i<=8;i++){await s.cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-20-i*12,y,id:1},{x:x+20+i*12,y,id:2}]});await espera(page,16)}
+    await s.cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await espera(page,500);
+    await s.fotos.focus();await page.keyboard.press('Enter');await espera(page,400);
+    ok(await page.locator('[data-enfocada]').count()===0&&await page.evaluate(()=>navigation.currentEntry.index)===largoV,'vista previa: ni toque, ni pellizco, ni Enter abren la vista ni tocan el historial');
     ok(errors.length===0,'vista previa: sin errores JS');
     await ctx.close();
+  }
+
+  // 7. Defectos de la revisión de #102: historial, toque pendiente, hojas, teclado, videos y doble cierre.
+  {
+    const s=await abrirMichel(390,4);const {page}=s;const {x,y}=await centroFoto(s);
+    const idx=()=>page.evaluate(()=>navigation.currentEntry.index);
+    // Una marca vieja de la vista (como tras recargar) se limpia al montar el catálogo.
+    await page.evaluate(()=>history.replaceState({...history.state,catalogoFoto:'viejo'},'',location.href));
+    await page.reload();await page.locator('#r-mayar.on').waitFor();await espera(page,400);
+    ok(!(await page.evaluate(()=>history.state?.catalogoFoto)),'historial: la marca vieja se limpia al recargar');
+    // Sin recargar, una marca vieja en la entrada actual tampoco confunde el cierre: un solo «atrás» y la × cierran.
+    await page.evaluate(()=>history.replaceState({...history.state,catalogoFoto:'viejo'},'',location.href));
+    const base=await idx();
+    await toque(s,x,y);await enfocada(s).waitFor();
+    await page.goBack({waitUntil:'commit'}).catch(()=>{});await enfocada(s).waitFor({state:'detached',timeout:3000});
+    ok(await idx()===base,'historial: con una marca vieja, un solo «atrás» cierra la vista');
+    await espera(page,400);await toque(s,x,y);await enfocada(s).waitFor();
+    await page.getByRole('button',{name:'Cerrar'}).click();await enfocada(s).waitFor({state:'detached',timeout:3000});
+    ok(await idx()===base,'historial: con una marca vieja, la × cierra con un solo toque');
+    // Escape dos veces seguidas no retrocede dos entradas.
+    await espera(page,400);await toque(s,x,y);await enfocada(s).waitFor();
+    await page.keyboard.press('Escape');await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,300);
+    ok(await idx()===base&&await page.locator('#r-mayar.on').count()===1,'Escape doble: un solo retroceso');
+    // Tocar y enseguida deslizar no abre la vista.
+    await espera(page,400);await toque(s,x,y);await espera(page,60);
+    await deslizar(s,x+100,y,x-100,y,5);await espera(page,700);
+    ok(await enfocada(s).count()===0,'tocar y deslizar enseguida no abre la vista');
+    // Tocar y enseguida abrir una hoja (opiniones) no abre la vista encima.
+    await espera(page,400);await toque(s,x,y);await espera(page,60);
+    await s.reel.locator('[data-comments]').click();await espera(page,700);
+    ok(await enfocada(s).count()===0,'tocar y abrir una hoja enseguida: la vista no se abre encima');
+    await page.keyboard.press('Escape');await espera(page,600);
+    // Teclado: el carrusel se enfoca, ←/→ cambian de foto, Enter abre la vista.
+    await irA(s,0);await s.fotos.focus();
+    ok(await s.fotos.evaluate(e=>e.tabIndex===0&&e.getAttribute('aria-label').startsWith('Fotos de Mayar')),'teclado: el carrusel se puede enfocar');
+    await page.keyboard.press('ArrowRight');await espera(page,700);
+    ok(await indice(s)===1&&await etiqueta(s)==='Foto 2 de 4','teclado: → pasa a la foto siguiente');
+    await page.keyboard.press('ArrowLeft');await espera(page,700);
+    ok(await indice(s)===0,'teclado: ← vuelve');
+    ok(await page.locator('#r-mayar.on').count()===1,'teclado: las flechas no cambian de producto');
+    await page.keyboard.press('Enter');await enfocada(s).waitFor();
+    ok(true,'teclado: Enter abre la vista');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});
+    await cerrarCtx(s,'defectos de la revisión');
+  }
+  // 7b. Con la vista abierta, el video del carrusel deja de estar visible (no suena detrás).
+  {
+    const s=await abrirMichel(390,3);const {page}=s;
+    await irA(s,2);await espera(page,400);
+    ok(await s.reel.locator('.sonido').count()===1,'video: con el reel a la vista se muestra su sonido');
+    await s.reel.getByRole('button',{name:'Ver foto en grande'}).click();await enfocada(s).waitFor();
+    ok(await s.reel.locator('.sonido').count()===0&&await s.reel.locator('.carrusel video').evaluate(v=>v.paused),'video: con la vista abierta, el del carrusel se pausa');
+    await page.keyboard.press('Escape');await enfocada(s).waitFor({state:'detached'});await espera(page,400);
+    // El botón de sonido está dentro del carrusel: su toque no abre la vista ni, repetido, da el «aaah».
+    const son=await s.reel.locator('.sonido').boundingBox();const sx=son.x+son.width/2,sy=son.y+son.height/2;
+    const etiquetaSon=()=>s.reel.locator('.sonido').getAttribute('aria-label');
+    const antes=await etiquetaSon();
+    await toque(s,sx,sy);await espera(page,700);
+    ok(await enfocada(s).count()===0&&await etiquetaSon()!==antes,'sonido: un toque cambia el sonido y no abre la vista');
+    await toque(s,sx,sy);await espera(page,120);await toque(s,sx,sy);await espera(page,700);
+    ok(await enfocada(s).count()===0&&await s.reel.locator('.burst.go').count()===0,'sonido: dos toques rápidos no dan el «aaah» ni abren la vista');
+    // Enter sobre el botón de sonido es su clic, no abre la vista.
+    const antesEnter=await etiquetaSon();
+    await s.reel.locator('.sonido').focus();await page.keyboard.press('Enter');await espera(page,500);
+    ok(await enfocada(s).count()===0&&await etiquetaSon()!==antesEnter,'teclado: Enter en el sonido no abre la vista');
+    // Con modificadores o con la tecla mantenida, el carrusel no actúa (Alt+← sigue siendo «atrás» del navegador).
+    await irA(s,1);await s.fotos.focus();
+    const prev=await s.fotos.evaluate(e=>{let p=null;e.addEventListener('keydown',ev=>{p=ev.defaultPrevented},{once:true});e.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',altKey:true,bubbles:true,cancelable:true}));return p});
+    await espera(page,400);
+    ok(prev===false&&await indice(s)===1,'teclado: Alt+← no se bloquea ni cambia de foto');
+    await page.keyboard.press('Shift+Enter');await espera(page,400);
+    ok(await enfocada(s).count()===0,'teclado: Mayús+Enter no abre la vista');
+    await s.fotos.evaluate(e=>e.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',repeat:true,bubbles:true,cancelable:true})));await espera(page,400);
+    ok(await enfocada(s).count()===0,'teclado: Enter mantenido (repetido) no abre la vista');
+    // Solo el reel activo es parada de Tab.
+    ok(await page.evaluate(()=>[...document.querySelectorAll('#reels .reel:not(.on) .carrusel, #reels .reel:not(.on) .expandir')].every(e=>e.tabIndex===-1)),'teclado: los reels no activos no son paradas de Tab');
+    await cerrarCtx(s,'videos');
   }
 }finally{await browser.close();}
 console.log(`${checks} comprobaciones aprobadas`);

@@ -30,3 +30,20 @@ test("colecciones sin vacías y reinicio de la colección que desaparece", () =>
 test("un solo rubro: un solo catálogo (sin selector)", () => {
   assert.equal(catalogosDe(cat(["perfumes"], [p("a", null)])).length, 1);
 });
+
+test("pestaña del feed: colecciones, catálogos o ninguna", async () => {
+  const { pestanaDelFeed } = await import("../lib/tienda/catalogo.ts");
+  // Con una colección en cualquier catálogo: «Colecciones» (aunque el catálogo activo no tenga).
+  const conCol = cat(["ropa", "accesorios"], [p("a", "ropa", { categoria: "Pantalones" }), p("c", "accesorios")]);
+  assert.equal(pestanaDelFeed(conCol, true), "colecciones");
+  // Con la sección apagada se comporta como «sin colecciones»: varios catálogos → «Catálogos».
+  assert.equal(pestanaDelFeed(conCol, false), "catalogos");
+  // Varios catálogos sin colecciones → «Catálogos».
+  assert.equal(pestanaDelFeed(cat(["ropa", "accesorios"], [p("a", "ropa"), p("c", "accesorios")]), true), "catalogos");
+  // Un solo catálogo y sin colecciones → sin pestañas.
+  assert.equal(pestanaDelFeed(cat(["ropa"], [p("a", "ropa"), p("b", "ropa")]), true), null);
+  // Un solo catálogo con colecciones → «Colecciones»; apagadas → sin pestañas.
+  const uno = cat(["ropa"], [p("a", "ropa", { categoria: "Pantalones" })]);
+  assert.equal(pestanaDelFeed(uno, true), "colecciones");
+  assert.equal(pestanaDelFeed(uno, false), null);
+});

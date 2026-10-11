@@ -11,6 +11,34 @@
 - **Ronda 2 (pedido de Lewis):** la etiqueta de texto de la colección («Para ella»…) pasa a ser el abanico de miniaturas de «Colecciones» arriba a la derecha del reel, con la carátula de la colección del producto al frente (`abanicoDeColeccion` en `lib/tienda/catalogo.ts`; también en la vista previa). «En tu pedido» queda a la izquierda. No es tocable.
 - Icono `close` nuevo en `iconos.tsx`. Novedad `0.61.0` en `lib/novedades.ts` (la `0.60.0` es la de la guía, #103). Docs: `04-pantallas.md` (párrafo de #101 marcado como sustituido + regla nueva), `12-catalogo-conectado.md`, excepción de movimiento en `HANDOFF.md` y `08-movimiento.md`.
 
+## Ronda 3 · toque, pellizco y botón (11 oct 2026, rama `fix/enfocada-toque-pinch-boton`)
+
+Lewis probó #102 en producción (iPhone, tienda `deslizapp`, «El Librito») y pidió por medio de Planning:
+
+1. **El toque solo funcionaba en algunas zonas.** `.cap` y `.acts` interceptaban los toques en su espacio vacío y `enCentro()` excluía todo lo que quedaba por debajo de la descripción. Ahora `.reel.on .cap` y `.reel.on .acts` tienen `pointer-events: none` y solo sus controles reales (`button`, `a`, campos; en `.cap` solo sin la descripción abierta) vuelven a `auto`. `enCentro()` pasa a `enFoto()`, que solo excluye la franja de arriba (56 px: barras, colección y botón). El nombre, el precio y el texto ahora abren la vista.
+2. **El pellizco abre la vista.** `touchstart`/`touchmove` no pasivos sobre `.carrusel` con `targetTouches` (los dos dedos sobre la foto) abren al separarse más de un 20 % o 24 px. `touch-action: pan-x pan-y` y `gesturestart` cancelado evitan el zoom de página solo ahí; el viewport de `app/layout.tsx` no se toca, así que el zoom de accesibilidad del resto de la app sigue. `abierta` evita una segunda apertura y el pellizco no cuenta como toque ni como «aaah». La vista recibe `pellizco` y sigue el mismo gesto escuchando `touchmove` en la ventana hasta soltar (en Chromium llega a 2,6×).
+3. **Botón de expandir** (`.expandir`, icono `expandir`): esquina superior derecha bajo las barras, círculo translúcido de 32 px con área de 44 px, «Ver foto en grande». Abre la misma vista (misma entrada de historial y el foco vuelve a la foto). La colección se corre a su izquierda (`.topmeta.con-expandir`, 8 px del círculo) y el sonido del video baja de 52 a 64 px.
+
+Además, defectos de una revisión de #102 que Planning verificó en el código (mismo PR):
+
+- **Historial:** cada apertura marca su entrada con un id (`catalogoFoto: id`). Cerrar compara `=== id` y el popstate `!== id`, y al montar el catálogo se limpia con `replaceState` una marca vieja (tras una recarga o si iOS descartó la pestaña). Antes, una marca vieja hacía que el «atrás» no se viera y que cerrar pidiera dos toques. Una × o un Escape repetidos ya no retroceden dos veces.
+- **Toque pendiente:** el temporizador de 320 ms se cancela con un `pointerdown` nuevo, con `pointercancel`, con un `pointerup` de más de 12 px, cuando el reel deja de ser el activo o cuando se abre una hoja (`pausado`). Tampoco abre con un dedo apoyado. Soltar una pulsación larga no cuenta para el doble toque.
+- **Hojas:** `abrirEnfocada` no abre con `pausado` (hoja, perfil o descripción encima).
+- **Teclado:** el carrusel es enfocable (`tabIndex=0`, `role="group"`, «Fotos de <producto>», foco visible). ←/→ cambian de foto, y Enter o Espacio abren la vista.
+- **Fondo:** al empezar la pinza se restaura la opacidad del fondo si antes había empezado a bajar.
+- **Vista previa del panel:** la vista enfocada se apaga (`conVistaEnfocada={false}`): sin toque, pellizco, Enter ni botón, para no descuadrar el historial de la hoja «Vista previa».
+- **Videos:** en la vista enfocada, el video de la foto actual se reproduce y los vecinos se pausan por efecto. El del carrusel deja de ser visible (se pausa y quita su sonido) mientras la vista está abierta.
+- `pointercancel` dentro de la vista devuelve la foto a su sitio: no cambia de foto ni cierra.
+
+Segunda revisión de Planning sobre `74c97a6`:
+
+- **El sonido no abre la vista:** el botón de sonido vive dentro de `.carrusel`. Ahora su toque (o un pellizco que empiece sobre él) no cuenta como toque a la foto: ni abre la vista ni, repetido, da el «aaah».
+- **Teclado:** el carrusel solo actúa sobre sí mismo (`e.target === e.currentTarget`), sin modificadores (Alt/Cmd+← siguen siendo «atrás») y sin teclas repetidas. Enter sobre el sonido vuelve a ser su clic.
+- **Tab:** solo el reel activo es una parada de Tab (carrusel `tabIndex` 0 o -1). El botón de expandir sale del orden con una hoja encima.
+- **Menores:** `touch-action: pan-x pan-y` solo en carruseles con vista enfocada; `multitoque` se reinicia al cerrar; un deslizamiento reinicia el doble toque. No se cancela el toque pendiente en `pointerleave`: en táctil ese evento llega justo después de `pointerup` y anularía todos los toques simples.
+
+Novedad `0.64.0` (la `0.63.0` es la de instalar, #107). Pruebas: `probar-carrusel-historias.mjs`, 276 comprobaciones (también las de los defectos: marca vieja al recargar y sin recargar, Escape doble, tocar y deslizar, tocar y abrir una hoja, teclado, vista previa y videos). Incluye una malla de 9×11 puntos con `elementFromPoint` a 360/390/430 px y con 1/3/10 medios (cada punto sin control cae en el carrusel), el nombre que abre la vista, «…» que abre la descripción y no la vista, el panel abierto que no abre nada, el botón (historial, Escape, foco y geometría sin solapes con la colección ni el sonido) y el pellizco (una sola apertura, sin zoom de página, juntar los dedos no abre, con una hoja abierta tampoco, con un dedo en un control tampoco). No se pudo probar Safari real de iPhone ni el pellizco físico.
+
 ## Pruebas
 
 - `npm run lint` (0 errores; avisos `<img>` previos), `npm run tipos`, `npm test` (589 pasan), `npm run build`.

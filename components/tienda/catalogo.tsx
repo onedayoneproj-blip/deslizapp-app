@@ -21,7 +21,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { portada, coleccionesDe, abanicoDeColeccion, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente } from "@/lib/tienda/catalogo";
+import { portada, coleccionesDe, abanicoDeColeccion, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente, pestanaDelFeed } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
@@ -58,6 +58,7 @@ const abrirWhatsApp = (telefono: string, texto: string) => {
 };
 type Vista =
   | "colecciones"
+  | "catalogos"
   | "buscar"
   | "pedido"
   | "opiniones"
@@ -90,7 +91,7 @@ export function Catalogo({
   const vistaRef = useRef<Vista>(null);
   // Hoja Colecciones: el título «Colecciones» del encabezado se centra de verdad respecto a la pantalla (mide el texto, sin el abanico).
   useLayoutEffect(() => {
-    if (vista !== "colecciones") return;
+    if (vista !== "colecciones" && vista !== "catalogos") return;
     const tab = document.getElementById("colTab");
     const texto = tab?.firstElementChild;
     if (!tab || !texto) return;
@@ -210,6 +211,14 @@ export function Catalogo({
       vigente = false;
     };
   }, [slug, demo, inicial, intento]);
+  // Una marca de la vista enfocada que sobrevivió a una recarga (o a iOS descartando la pestaña) ya no tiene vista abierta.
+  useEffect(() => {
+    if (history.state?.catalogoFoto) {
+      const { catalogoFoto, ...resto } = history.state;
+      void catalogoFoto;
+      history.replaceState(resto, "", location.href);
+    }
+  }, []);
   useEffect(() => {
     const pop = () => {
       if (trasCerrar.current) {
@@ -396,6 +405,9 @@ export function Catalogo({
   const filtro = filtroVigente(cols, filter);
   const lista = cols.find((col) => col.id === filtro)?.productos ?? cv.productos;
   const nombreLista = variosCatalogos ? "productos" : nombres.plural;
+  // Qué acompaña a «Novedades»: «Colecciones» (si hay en algún catálogo), «Catálogos» (varios y sin colecciones) o nada.
+  const pestana = pestanaDelFeed(c, secciones?.colecciones !== false);
+  const colsActivas = cols.filter((x) => x.id !== "all");
   const cambiarCatalogo = (nuevo: Rubro | null) => {
     const nuevaCols = coleccionesDe(catalogoFiltrado(c, nuevo));
     const nuevoFiltro = filtroVigente(nuevaCols, filter);
@@ -598,6 +610,25 @@ export function Catalogo({
     setModoPres(modo);
     abrirTipo("presentaciones", productoSlug);
   };
+  /** Elegir catálogo desde la hoja «Catálogos» o «Novedades»: primero se cierra la hoja (su entrada de historial), luego cambia. */
+  const elegirCatalogo = (rubro: Rubro | null, desdeAtras = false) => {
+    if (!desdeAtras && history.state?.catalogoVista) {
+      trasCerrar.current = () => elegirCatalogo(rubro, true);
+      history.back();
+      return;
+    }
+    setVista(null);
+    if (rubro !== activo) cambiarCatalogo(rubro);
+    // Desde el final del feed (`fin`, `deslizapp`) elegir un catálogo lleva a su primer producto: si no, solo cambiaría la pestaña.
+    if (actual === "fin" || actual === "deslizapp") {
+      const nuevaCols = coleccionesDe(catalogoFiltrado(c, rubro));
+      const primero = (nuevaCols.find((x) => x.id === filtroVigente(nuevaCols, filter))?.productos ?? [])[0];
+      if (primero) {
+        setActual(primero.slug);
+        requestAnimationFrame(() => document.getElementById("r-" + primero.slug)?.scrollIntoView({ block: "start" }));
+      }
+    }
+  };
   const seleccionarFiltro = (id: string, desdeAtras = false) => {
     if (!desdeAtras && history.state?.catalogoVista) {
       trasCerrar.current = () => seleccionarFiltro(id, true);
@@ -624,13 +655,21 @@ export function Catalogo({
       className={
         "catalogo-publico " + ((tema.tintes[actual]?.dark ?? tinteOscuro) ? "tint-dark " : "") +
         (perfil ? "view-grid" : "view-reels") +
-        (vista === "colecciones" ? " co-open" : "") +
+        (vista === "colecciones" || vista === "catalogos" ? " co-open" : "") +
         (secciones?.como_funciona === false ? " sin-historia" : "")
       }
       ref={root}
       style={estilo}
     >
       <header className="hdr">
+        {/* Perfil: desenfoque progresivo detrás de la cabecera (4 capas, 1–8 px) + velo del fondo de la tienda. */}
+        <div className="hdr-borde" aria-hidden="true">
+          <div className="hdr-borde-desenfoque" />
+          <div className="hdr-borde-desenfoque" />
+          <div className="hdr-borde-desenfoque" />
+          <div className="hdr-borde-desenfoque" />
+          <div className="hdr-borde-color" />
+        </div>
         <button
           className="hback"
           id="backBtn"
@@ -738,44 +777,59 @@ export function Catalogo({
             </svg>
           </a>
         )}
-        <nav className="htabs" aria-label="Qué ver">
-          <button
-            className="htab"
-            data-tab="new"
-            aria-pressed={filtro === "all"}
-            onClick={() => seleccionarFiltro("all")}
-          >
-            Novedades
-          </button>
-          {secciones?.colecciones !== false && (
+        {pestana && (
+          <nav className="htabs" aria-label="Qué ver">
             <button
               className="htab"
-              data-tab="col"
-              id="colTab"
-              aria-pressed={filtro !== "all"}
-              aria-haspopup="dialog"
-              onClick={() =>
-                vista === "colecciones" ? cerrar() : abrir("colecciones")
-              }
+              data-tab="new"
+              aria-pressed={pestana === "catalogos" ? activo === null : filtro === "all"}
+              onClick={() => (pestana === "catalogos" && activo !== null ? elegirCatalogo(null) : seleccionarFiltro("all"))}
             >
-              <span>
-                {filtro === "all"
-                  ? "Colecciones"
-                  : cols.find((c) => c.id === filtro)?.nombre}
-              </span>
-              <span className="hcov" aria-hidden="true">
-                {cols
-                  .filter((c) => c.id !== "all")
-                  .slice(0, 3)
-                  .map((col, n) => (
-                    <span key={col.id} className={"hc " + ["hc-f", "hc-i", "hc-d"][n]}>
-                      <img loading="lazy" src={portada(col.productos[0])} alt="" />
-                    </span>
-                  ))}
-              </span>
+              Novedades
             </button>
-          )}
-        </nav>
+            {pestana === "colecciones" ? (
+              <button
+                className="htab"
+                data-tab="col"
+                id="colTab"
+                aria-pressed={filtro !== "all"}
+                aria-haspopup="dialog"
+                onClick={() =>
+                  vista === "colecciones" ? cerrar() : abrir("colecciones")
+                }
+              >
+                <span>
+                  {filtro === "all"
+                    ? "Colecciones"
+                    : cols.find((c) => c.id === filtro)?.nombre}
+                </span>
+                {/* Solo las carátulas que hay: sin colecciones en este catálogo no reserva espacio y el texto queda centrado. */}
+                {colsActivas.length > 0 && (
+                  <span className="hcov" aria-hidden="true" data-n={Math.min(3, colsActivas.length)}>
+                    {colsActivas.slice(0, 3).map((col, n) => (
+                      <span key={col.id} className={"hc " + ["hc-f", "hc-i", "hc-d"][n]}>
+                        <img loading="lazy" src={portada(col.productos[0])} alt="" />
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                className="htab"
+                data-tab="cat"
+                id="colTab"
+                aria-pressed={activo !== null}
+                aria-haspopup="dialog"
+                onClick={() =>
+                  vista === "catalogos" ? cerrar() : abrir("catalogos")
+                }
+              >
+                <span>{activo ? NOMBRE_TIPO[activo] : "Catálogos"}</span>
+              </button>
+            )}
+          </nav>
+        )}
       </header>
       <main
         className="reels"
@@ -1201,9 +1255,13 @@ export function Catalogo({
           {variosCatalogos && (
             <MenuCatalogo catalogos={catalogos.map((x) => x.rubro)} activo={activo} alElegir={cambiarCatalogo} />
           )}
+          {variosCatalogos && colsActivas.length === 0 && (
+            <p className="co-vacio" role="status">
+              Este catálogo todavía no tiene colecciones. Mira las de otro catálogo.
+            </p>
+          )}
           <ul className="colist" id="coGrid">
-            {cols
-              .filter((c) => c.id !== "all")
+            {colsActivas
               .map((col) => (
                 <li key={col.id}>
                   <button
@@ -1228,6 +1286,42 @@ export function Catalogo({
                 </li>
               ))}
           </ul>
+          </div>
+        </DialogoCatalogo>
+      )}
+      {vista === "catalogos" && (
+        <DialogoCatalogo id="catBg" nombre="Catálogos" clase="coov" cerrar={cerrar}>
+          <button className="coX" aria-label="Cerrar catálogos" onClick={cerrar}>
+            ×
+          </button>
+          <div
+            className="coscroll"
+            onClick={(e) => {
+              const t = e.target as HTMLElement;
+              if (t === e.currentTarget || t.matches(".colist, .colist > li")) cerrar();
+            }}
+          >
+            <ul className="colist" id="catGrid">
+              {[
+                { rubro: null as Rubro | null, nombre: "Todo", productos: c.productos },
+                ...catalogos.map((x) => ({ rubro: x.rubro as Rubro | null, nombre: NOMBRE_TIPO[x.rubro], productos: catalogoFiltrado(c, x.rubro).productos })),
+              ].map((o) => (
+                <li key={o.rubro ?? "todo"}>
+                  <button className="coitem" aria-pressed={activo === o.rubro} onClick={() => elegirCatalogo(o.rubro)}>
+                    <span className="cc">
+                      {o.productos[0] && <img loading="lazy" src={portada(o.productos[0])} alt="" />}
+                      <span className="ck" aria-hidden="true">
+                        ✓
+                      </span>
+                    </span>
+                    <b>{o.nombre}</b>
+                    <small>
+                      {o.productos.length} {o.productos.length === 1 ? "producto" : "productos"}
+                    </small>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </DialogoCatalogo>
       )}

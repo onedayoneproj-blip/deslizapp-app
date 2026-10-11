@@ -474,7 +474,8 @@ for (const ancho of ANCHOS) {
     ok((await reel.locator("h2").innerText()) === "Aros de luna", "El reel lleva el nombre del borrador");
     ok((await reel.locator(".pr strong").innerText()).includes("950"), "…el precio");
     ok((await reel.locator(".pres-btn:not(.en-panel)").innerText()).includes("Ver presentaciones"), "…y «Ver presentaciones ›»");
-    ok((await marco.locator("header.hdr").count()) === 1 && (await marco.locator(".htabs").count()) === 1, "…con la cabecera y las pestañas de la tienda");
+    // Las pestañas siguen la regla del catálogo: un borrador sin colección ni otros catálogos no lleva pestañas.
+    ok((await marco.locator("header.hdr").count()) === 1 && (await marco.locator(".htabs").count()) <= 1, "…con la cabecera de la tienda (y sus pestañas si las tiene)");
     ok((await reel.locator(".act.like").count()) === 1, "…y los botones de comprar a la vista");
     await marco.locator(".act.like").click();
     ok((await marco.getByText("Así lo verá tu cliente").count()) === 1, "Comprar solo avisa «Así lo verá tu cliente»");

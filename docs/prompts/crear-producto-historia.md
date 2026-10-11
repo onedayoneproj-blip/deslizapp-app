@@ -19,6 +19,8 @@ Código de hoy: `app/(dashboard)/catalogo/nuevo/page.tsx` → `components/catalo
 
 Una hoja `grande` a pantalla completa, fondo `fondo`. Arriba, **barras tipo historia** (una por momento: llenas los hechos, `accion`; el resto `borde-pastilla`) y la ✕ (con `protegerAtras` y aviso al salir si hay cambios sin guardar, como hoy). **Una pregunta por pantalla**: título grande (`titulo-hoja`, Fredoka), una línea de ayuda, el control y abajo, fijo, «Atrás» (circular, secundario) + «Seguir» (principal). «Atrás» no pierde nada.
 
+**Proporción:** toda vista previa de la foto es 4:5 con `object-fit: cover` (la del reel real del catálogo), sin barras laterales.
+
 **Tarjeta «así se verá»** arriba en los pasos 2 a 4: la foto de portada a lo ancho, con radio `radio-l`, y encima, con el velo del catálogo, el nombre y el precio que se van llenando **mientras la persona responde** (eso es lo que hace el proceso disfrutable: cada respuesta se ve). La nota «así se verá» en Caveat (es la única Caveat de esa pantalla).
 
 1. **Empieza por la foto.** Sin foto, la tarjeta es un marco punteado con el icono de cámara. Dos botones: «Tomar foto» (principal, abre la cámara) y «Elegir de la galería» (secundario). Usa la lógica de `ficha-medios.tsx` (máximo `MAX_MEDIOS`, la primera es la portada, reordenar, quitar, **marcar para retoque**). Con fotos, se ve la tira de miniaturas y «Seguir». Permitir seguir sin foto: decide y explica (recomendación: se puede, con una línea «Sin foto se vende menos. Puedes agregarla luego.»).
@@ -53,3 +55,7 @@ Sigue la referencia `historia-presentaciones.dc.html`, con las reglas vigentes d
 ## 6. Entrega
 
 PR contra `main`, sin fusionar tú. **Planning revisa el código y fusiona** cuando «Revisión» esté en verde; Lewis prueba en producción. Un push por ronda. **Avisa a Planning (`send_message` a `@parent`) siempre que termines, quedes bloqueado o tu sesión vaya a agotarse**, con PR, HEAD, «Revisión», pruebas hechas y no hechas, decisiones fuera del encargo y pendientes (regla permanente).
+
+## 7. Pendiente para una ronda siguiente (Lewis, 11 oct 2026): retoque desde el paso de fotos
+
+Después de los dos PR, en el paso 1 (fotos): al cargar fotos aparece **debajo una tarjeta** «¿Quieres que Deslizapp retoque estas fotos?» (con la etiqueta Beta existente), con dos respuestas claras («Sí, retocarlas» / «Así están bien»), el costo en créditos y los créditos disponibles, y el aviso de Mi marca si falta (el retoque exige logo, Instagram y al menos 3 fotos de referencia; si no hay marca, se ofrece el paquete «Marca y diseño», ver `docs/14-precios-y-lanzamiento.md`). «Sí» marca todas las fotos para retoque con la lógica actual (`lib/retoque-al-subir.ts`, `BienvenidaRetoque`). Falta diseñarla en el lienzo antes del encargo. Mientras tanto, la marca por foto sigue funcionando como hoy.

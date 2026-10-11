@@ -59,6 +59,14 @@ El rebase reduce divergencias; no garantiza compatibilidad funcional. Separar ra
 
 Toda sesión que Planning cree o a la que encargue trabajo **debe avisar a Planning siempre que termine** (y si queda bloqueada o está por agotarse): mensaje al padre (`send_message` a `@parent`, o a la sesión de Planning que la creó) con estado, PR, HEAD, resultado de «Revisión», pruebas hechas y no hechas, decisiones fuera del encargo y pendientes. Todo encargo o prompt que Planning entregue incluye esta instrucción. Planning, al recibir el aviso, comprueba el PR y los checks en GitHub, la preview en Vercel, y actualiza Notion y el relevo antes de contarle a Lewis.
 
+## Modelo de las sesiones (regla permanente, Lewis, 11 oct 2026)
+
+**Sonnet por defecto** para toda sesión o agente que Planning lance: encargos de Coding, ajustes, revisiones de código y documentación. **Opus solo con el visto bueno de Lewis**, pedido antes de lanzar y explicando por qué, cuando el cambio sea a la vez grande y delicado (dinero, datos de tiendas, migraciones, o el rediseño completo de una pantalla central). Las sesiones ya lanzadas conservan su modelo; la de crear producto sigue en Opus por decisión de Lewis. Para ahorrar, Planning delega las revisiones en agentes que solo cargan el diff, y conviene abrir un chat de Planning nuevo cuando la conversación se hace muy larga (el relevo y Notion permiten retomar).
+
+## Revisión de código antes de fusionar (Lewis, 11 oct 2026)
+
+La revisión de código la hace el bot de **Codex** en GitHub. Codex revisa al abrir el PR, al marcarlo listo o con un comentario «@codex review», pero **no** los pushes posteriores. Antes de fusionar, Planning comprueba que la revisión de Codex cubra el último commit; si hubo pushes después, comenta «@codex review» en el PR y espera su resultado. Los hallazgos se verifican en el código y van a la sesión de Coding antes del merge. Si Codex no está disponible (límite semanal) o no responde, Planning hace la revisión con un agente Sonnet que solo carga el diff.
+
 ## Relevo, límites y cierre
 
 Actualizar la tarea de Notion al lanzar una tarea, quedar bloqueado o terminar/mergear. Actualizar el relevo cuando cambie la coordinación de sesiones y el documento de la función cuando cambie una decisión. Guardar un checkpoint antes de alcanzar el límite de sesión, aunque el trabajo esté incompleto.
