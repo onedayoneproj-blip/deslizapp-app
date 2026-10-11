@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.60.0", fecha: "2026-10-11", titulo: "Tu guía, más ligera.",
+    cambios: ["La guía de Inicio ahora vive en una tarjeta con rayas que se llenan según avanzas.", "Pliégala con la flechita y queda en una píldora, lista para cuando vuelvas."],
+  },
+  {
     version: "0.59.0", fecha: "2026-10-10", titulo: "Las fotos tienen su lugar.",
     cambios: ["Los puntos del carrusel van debajo de la foto, sin taparla.", "Desliza o toca un punto para ver otra imagen."],
   },

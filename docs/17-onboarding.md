@@ -25,7 +25,7 @@ La tabla conserva las condiciones del checklist. Su presentación en siete segme
 | 4 | **Publica tu catálogo** | `catalogo_estado = 'publicado'`; **disponible desde el día uno**, sin requisitos |
 | 5 | Cuéntales quién eres | la tienda tiene descripción |
 | 6 | Pon Deslizapp en tu pantalla | abierta como app (pantalla completa) o la tienda tocó «Ya lo hice» tras ver cómo |
-| 7 | Invita a tu equipo | hay otro miembro o una invitación pendiente; o «Lo hago sola» |
+| 7 | Invita a tu equipo | hay otro miembro o una invitación pendiente; o «Por ahora sin equipo» |
 
 Al completar los 7, el checklist se cierra con la celebración corta y no vuelve, tras guardar el cierre con éxito y sin interrumpir hojas abiertas. Apartarlo manualmente solo lo minimiza a una píldora reversible; no completa ni cierra la guía. Lo ve el dueño, no los colaboradores.
 
@@ -51,7 +51,7 @@ Al completar los 7, el checklist se cierra con la celebración corta y no vuelve
 - **Cómo:** tres controles consultables para capítulos 2–4, sin relleno proporcional. Estado discreto derivado de pasos: cero = sin iniciar; parcial = en curso; todos = completo. Por indicación posterior de Lewis y su captura de Pedido #1008, la raya va arriba y Capítulo X debajo, con los mismos tokens de Pedidos. Cada indicador lleva un color uniforme del sistema (borde-pastilla sin iniciar, atencion-texto en curso, accion completo) y nombre accesible con estado y cantidad de pasos. Lewis pidió quitar los símbolos de estado; las filas consultables conservan Hecho/Pendiente, y la selección se señala con subrayado independiente del nombre (Lewis descartó el recuadro antes del push). Abrir un capítulo no cuenta como progreso. Área táctil de 44 px, foco y teclado; capítulos completos siguen consultables. Un capítulo a la vez con filas compactas y acciones existentes.
 - **Cabecera (ajuste posterior de Lewis):** «Deja tu tienda lista» aparece únicamente en la píldora minimizada. Desplegada, la cabecera superior es «Capítulo X · nombre» del capítulo activo, una sola vez. Las rayas permiten cambiar directamente de capítulo; los otros nombres no aparecen hasta seleccionarlos. No se añade swipe ni botón Siguiente: se conservan toque en las rayas, teclado y Continuar al completar.
 - **Texto:** los controles no seleccionados dicen solo «Capítulo X». El seleccionado se identifica con «Capítulo X · nombre» en una única cabecera de contenido; el selector mantiene «Capítulo X» para no desplazar controles. No repetir el nombre en varios lugares ni recortarlo. Conservar un contador general discreto y los detalles útiles de pasos.
-- **Agrupación implementada:** «Tu tienda tiene personalidad» (logo, colores, descripción/Instagram); «Tus productos salen al mundo» (cinco productos y publicación, con vista previa); «Tu tienda, a mano» (instalar y equipo, conservando trabajar sin equipo).
+- **Agrupación implementada:** «Tu tienda tiene personalidad» (logo, colores, descripción/Instagram); «Tus productos salen al mundo» (cinco productos y publicación, con vista previa); «Tu tienda, a mano» (instalar y equipo, conservando trabajar sin equipo («Por ahora sin equipo»)).
 - **Numeración:** la entrega reporta y el código revisado confirma creación = capítulo 1 con cuatro pasos; Inicio = capítulos 2 personalidad, 3 productos y 4 tienda a mano. Mantener esa presentación sin rehacer la lógica ni los datos de creación; corregir textos históricos que sigan tratando los cuatro pasos iniciales como cuatro capítulos de la preparación.
 - **Descartado:** recuadro separado «Hecho» y carrusel de tarjetas altas/recortadas. La navegación por capítulos no bloquea publicar ni otras acciones; cinco productos siguen siendo recomendación.
 - **Selección y actualización:** empezar por el primero incompleto; no robar selección/foco al actualizar datos o volver de una hoja. Al terminar, ofrecer continuar; no saltar mientras una hoja esté abierta.
@@ -63,11 +63,12 @@ Al completar los 7, el checklist se cierra con la celebración corta y no vuelve
 
 ## Decisión: rediseño visual de la guía (11 oct 2026)
 
-**Estado: aprobada por Lewis sobre el lienzo; sin implementar.** Encargo: [onboarding-guia-rediseno-visual.md](prompts/onboarding-guia-rediseno-visual.md). Referencia visual: [referencias/onboarding-guia](../referencias/onboarding-guia/LEEME.md).
+**Estado: implementada en la rama `feat/onboarding-guia-rediseno`, PR abierto sin merge; pendiente de que Lewis pruebe la preview (Safari/iPhone físico sin verificar).** Encargo: [onboarding-guia-rediseno-visual.md](prompts/onboarding-guia-rediseno-visual.md). Referencia visual: [referencias/onboarding-guia](../referencias/onboarding-guia/LEEME.md).
 
 - **Qué:** la guía vive en una tarjeta estándar con botón de colapsar que la vuelve una píldora; las rayas tipo historia se llenan según los pasos hechos (completo = verde bosque, en curso = mandarina, sin iniciar = solo pista); el capítulo elegido se indica con una punta bajo su raya, sin etiquetas «Capítulo X» ni subrayados; las filas no repiten «Hecho/Pendiente» y se quitan las frases de apoyo.
 - **Por qué:** Lewis vio que el rojo del estado «en curso» no era de Deslizapp (era `--atencion-texto`, color de texto de avisos), que «completo» y «elegido» se confundían y que la guía flotaba suelta.
 - **Sustituye** (solo en lo visual) lo del 10 oct sobre colores `atencion-texto`/`accion` de las rayas, etiquetas «Capítulo X» con subrayado, «Minimizar» como texto y los textos «Hecho/Pendiente». La lógica de pasos, selección, minimización local y cierre 7/7 se conserva.
+- **Texto (11 oct):** «Lo hago sola» pasa a «Por ahora sin equipo» (neutro); misma lógica y clave `equipo_omitido_en`.
 - **Descartado:** B2 (raya activa más gruesa) y la opción A (en curso en verde).
 - **Siguiente:** PR de Coding abierto sin merge, validación de Lewis en el teléfono.
 

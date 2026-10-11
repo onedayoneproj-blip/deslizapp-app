@@ -1,7 +1,7 @@
 "use client";
 
 import { flushSync } from "react-dom";
-import { IconoChevronAbajo } from "../iconos";
+import { IconoCheck, IconoChevronAbajo, IconoChevronArriba, IconoChevronDerecha } from "../iconos";
 import { useEffect, useRef, useState } from "react";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
@@ -11,12 +11,21 @@ import { avanceCapitulos, pasosChecklist, puedeVerChecklist, productosParaCheckl
 import type { ClaveOnboarding } from "@/lib/onboarding";
 import { usePanelUI } from "../panel/ui";
 import { Hoja, useAvisarAlSalir } from "../hoja";
-import { Aviso, Boton, Campo, ListaAgrupada, FilaLista, CheckSeleccion } from "../ui";
+import { Aviso, Boton, Campo } from "../ui";
 import { productosPublicosDe, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { HojaComoSeVe } from "../catalogo/hoja-producto-filas";
 import { HojaPublicarCatalogo } from "../catalogo/hoja-publicar-catalogo";
 import { useRouter } from "next/navigation";
 import { useToast } from "../toast";
+
+const FOCO_GUIA = "outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco";
+
+// Raya tipo historia: pista hundida; el relleno crece con los pasos hechos (completo = accion, en curso = resalte).
+function Raya({ c, className }: { c: { hechos: number; total: number; completo: boolean }; className: string }) {
+  return <span aria-hidden="true" className={`block overflow-hidden rounded-full bg-superficie-hundida ${className}`}>
+    {c.hechos > 0 && <span className={`block h-full rounded-full ${c.completo ? "bg-accion" : "bg-resalte"}`} style={{ width: `${(c.hechos / c.total) * 100}%` }} />}
+  </span>;
+}
 
 const TITULOS = ["Sube tu logo", "Elige tus colores", "Agrega 5 productos", "Publica tu catálogo", "Cuéntales quién eres", "Pantalla de inicio", "Invita a tu equipo"];
 
@@ -98,56 +107,58 @@ function Checklist() {
     else if (i === 5) setHoja("instalar");
     else abrirEquipo();
   };
-  return <section id="checklist-guia" data-checklist className="px-5 pt-4 pb-2">
+  const hayAcciones = seleccionado === 1 || (seleccionado === 2 && !pasos[6]) || (capitulo.completo && pendiente >= 0);
+  return <section id="checklist-guia" data-checklist className="px-5 pt-5 pb-2">
     {checklistMinimizada ? <>
-      <Boton ref={pildora} jerarquia="secundario" anchoCompleto className="h-auto min-h-11 py-2 [&>span:first-child]:w-full [&>span:first-child]:whitespace-normal" aria-expanded={false} aria-controls="checklist-guia"
-        aria-label={`Desplegar Deja tu tienda lista, ${hechos} de 7 pasos`} onClick={() => cambiarMinimizacion(false)}>
-        <span className="flex w-full items-center justify-between gap-2"><span>Deja tu tienda lista</span><span className="flex shrink-0 items-center gap-2 whitespace-nowrap">{hechos} de 7 <IconoChevronAbajo tamano={16} /></span></span>
-      </Boton>
+      <button ref={pildora} type="button" aria-expanded={false} aria-controls="checklist-guia" aria-label={`Desplegar Deja tu tienda lista, ${hechos} de 7 pasos`}
+        className={`tocable flex h-14 w-full items-center gap-3 rounded-full border border-linea bg-superficie px-5 text-left ${FOCO_GUIA}`} onClick={() => cambiarMinimizacion(false)}>
+        <span className="min-w-0 flex-1 truncate text-destacado text-texto">Deja tu tienda lista</span>
+        <span aria-hidden="true" className="flex shrink-0 gap-1">{capitulos.map(c => <Raya key={c.numero} c={c} className="h-1 w-[18px]" />)}</span>
+        <span aria-hidden="true" className="shrink-0 whitespace-nowrap text-secundario text-texto-secundario">{hechos} de 7</span>
+        <IconoChevronAbajo tamano={18} className="shrink-0 text-texto-secundario" />
+      </button>
       {error && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
     </> : <div id="checklist-expandida">
-    <div className="flex items-center justify-between gap-2">
-      <h2 id="checklist-titulo" className="min-w-0 font-display text-titulo-seccion font-bold">Capítulo {capitulo.numero} · {capitulo.nombre}</h2>
-      <span className="shrink-0 text-secundario">{hechos} de 7</span>
+    <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie">
+      <div className="flex items-center justify-between gap-2 pt-1 pr-1 pl-4">
+        <h2 id="checklist-titulo" className="min-w-0 py-2 font-display text-titulo-seccion font-bold">Capítulo {capitulo.numero} · {capitulo.nombre}</h2>
+        <button ref={botonMinimizar} type="button" aria-label="Minimizar la guía" aria-expanded={true} aria-controls="checklist-guia" onClick={() => cambiarMinimizacion(true)}
+          className={`tocable grid size-11 shrink-0 place-items-center rounded-full text-texto ${FOCO_GUIA}`}><IconoChevronArriba tamano={20} strokeWidth={2.2} /></button>
+      </div>
+      <div className="flex gap-1.5 px-4" role="group" aria-label="Capítulos de preparación">
+        {capitulos.map((c, i) => <button key={c.numero} type="button" ref={el => { botonesCapitulo.current[i] = el; }}
+          aria-label={`Capítulo ${c.numero} · ${c.nombre}, ${c.estado}, ${c.hechos} de ${c.total} pasos`}
+          data-estado={c.estado}
+          aria-pressed={seleccionado === i} aria-controls="checklist-capitulo"
+          className={`tocable relative flex h-11 min-w-0 flex-1 items-center rounded-radio-s ${FOCO_GUIA}`}
+          onClick={() => seleccionarCapituloChecklist(i)} onKeyDown={e => {
+            const destino = e.key === "Home" ? 0 : e.key === "End" ? capitulos.length - 1 : e.key === "ArrowRight" ? (i + 1) % capitulos.length : e.key === "ArrowLeft" ? (i + capitulos.length - 1) % capitulos.length : null;
+            if (destino === null) return;
+            e.preventDefault(); seleccionarCapituloChecklist(destino); botonesCapitulo.current[destino]?.focus();
+          }}>
+          <Raya c={c} className="h-1.5 w-full" />
+          {seleccionado === i && <span aria-hidden="true" data-punta className="pointer-events-none absolute bottom-0 left-1/2 z-10 size-3.5 -translate-x-1/2 translate-y-1/2 rotate-45 rounded-tl-[3px] border-t border-l border-linea bg-superficie" />}
+        </button>)}
+      </div>
+      <div id="checklist-capitulo" aria-labelledby="checklist-titulo" className="border-t border-linea">
+        <ul aria-label={`Pasos de ${capitulo.nombre}`}>
+          {capitulo.pasos.map(i => <li key={i} className="border-t border-linea first:border-t-0">
+            <button type="button" className={`tocable flex min-h-14 w-full items-center gap-3 px-4 text-left ${FOCO_GUIA} focus-visible:-outline-offset-3`}
+              onClick={() => i === 3 && pasos[i] ? setHoja("vista") : actuar(i)}>
+              <span aria-hidden="true" className={`grid size-[26px] shrink-0 place-items-center rounded-full ${pasos[i] ? "bg-accion text-sobre-accion" : "border-[1.5px] border-borde-campo"}`}>{pasos[i] && <IconoCheck tamano={15} strokeWidth={3} />}</span>
+              <span className="min-w-0 flex-1 py-2 text-destacado text-texto">{TITULOS[i]}<span className="sr-only"> · {pasos[i] ? "Hecho, revisar" : "Pendiente"}{i === 2 ? `, ${Math.min(cantidad, 5)} de 5 con foto` : ""}</span></span>
+              <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="-mr-1 shrink-0 text-texto-secundario" />
+            </button>
+          </li>)}
+        </ul>
+        {hayAcciones && <div className="flex flex-wrap gap-2 border-t border-linea p-4">
+          {seleccionado === 1 && <Boton jerarquia="secundario" tamano="compacto" onClick={() => setHoja("vista")}>Ver cómo queda</Boton>}
+          {seleccionado === 2 && !pasos[6] && <Boton jerarquia="secundario" tamano="compacto" cargando={guardando} onClick={() => void marcar("equipo_omitido_en")}>Por ahora sin equipo</Boton>}
+          {capitulo.completo && pendiente >= 0 && <Boton jerarquia="secundario" tamano="compacto" onClick={() => { seleccionarCapituloChecklist(pendiente); botonesCapitulo.current[pendiente]?.focus(); }}>Continuar al capítulo {capitulos[pendiente].numero}</Boton>}
+        </div>}
+      </div>
     </div>
-    <div className="flex gap-2" role="group" aria-label="Capítulos de preparación">
-      {capitulos.map((c, i) => <button key={c.numero} type="button" ref={el => { botonesCapitulo.current[i] = el; }}
-        aria-label={`Capítulo ${c.numero} · ${c.nombre}, ${c.estado}, ${c.hechos} de ${c.total} pasos`}
-        data-estado={c.estado}
-        aria-pressed={seleccionado === i} aria-controls="checklist-capitulo"
-        className={`tocable flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-radio-s px-1 py-2 text-left outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco`}
-        onClick={() => seleccionarCapituloChecklist(i)} onKeyDown={e => {
-          const destino = e.key === "Home" ? 0 : e.key === "End" ? capitulos.length - 1 : e.key === "ArrowRight" ? (i + 1) % capitulos.length : e.key === "ArrowLeft" ? (i + capitulos.length - 1) % capitulos.length : null;
-          if (destino === null) return;
-          e.preventDefault(); seleccionarCapituloChecklist(destino); botonesCapitulo.current[destino]?.focus();
-        }}>
-        <span aria-hidden="true" className={`block h-1.5 w-full rounded-full ${c.completo ? "bg-accion" : c.hechos ? "bg-atencion-texto" : "bg-borde-pastilla"}`} />
-        <span aria-hidden="true" className={`mt-[5px] block w-full text-etiqueta ${c.hechos ? "text-texto" : "text-texto-secundario"}`}>
-          <span className={seleccionado === i ? "underline decoration-2 underline-offset-4" : undefined}>Capítulo {c.numero}</span>
-        </span>
-      </button>)}
-    </div>
-    <div id="checklist-capitulo" aria-labelledby="checklist-titulo" className="mt-2">
-      {error && !hoja && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
-      <ListaAgrupada etiqueta={`Pasos de ${capitulo.nombre}`} className="[&_span.truncate]:whitespace-normal [&_span.truncate]:overflow-visible">
-        {capitulo.pasos.map(i => <FilaLista key={i}
-          titulo={TITULOS[i]} inicio={<CheckSeleccion marcado={pasos[i]} />}
-          detalle={`${pasos[i] ? "Hecho" : "Pendiente"}${i === 2 ? ` · ${Math.min(cantidad, 5)} de 5 con foto` : ""}`}
-          etiqueta={`${TITULOS[i]} · ${pasos[i] ? "Hecho, revisar" : "Pendiente"}`}
-          onClick={() => i === 3 && pasos[i] ? setHoja("vista") : actuar(i)}
-        />)}
-      </ListaAgrupada>
-      {seleccionado === 1 && <div className="mt-2 flex flex-wrap gap-2">
-        <Boton jerarquia="secundario" tamano="compacto" onClick={() => setHoja("vista")}>Ver cómo queda</Boton>
-        <p className="self-center text-secundario text-texto-secundario">Cinco productos para empezar. Publica cuando quieras.</p>
-      </div>}
-      {seleccionado === 2 && !pasos[6] && <Boton jerarquia="secundario" tamano="compacto" className="mt-2" cargando={guardando} onClick={() => void marcar("equipo_omitido_en")}>Lo hago sola</Boton>}
-      {capitulo.completo && <div className="mt-3">
-        <p role="status" className="text-secundario">Capítulo listo. Tu tienda sigue tomando forma.</p>
-        {pendiente >= 0 && <Boton jerarquia="secundario" tamano="compacto" className="mt-2" onClick={() => { seleccionarCapituloChecklist(pendiente); botonesCapitulo.current[pendiente]?.focus(); }}>Continuar al capítulo {capitulos[pendiente].numero}</Boton>}
-      </div>}
-    </div>
-    <Boton ref={botonMinimizar} jerarquia="terciario" tamano="compacto" className="mt-2" aria-expanded={true} aria-controls="checklist-guia" onClick={() => cambiarMinimizacion(true)}>Minimizar</Boton>
+    {error && !hoja && <Aviso tono="peligro" accion={{ texto: "Reintentar", alTocar: () => void marcar(claveFallida) }}>{error}</Aviso>}
     </div>}
     {hoja === "perfil" && <Perfil alCerrar={() => setHoja(null)} />}
     <Hoja abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} titulo="Tu tienda, a un toque" protegerAtras>
