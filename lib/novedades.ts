@@ -22,8 +22,12 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.63.0", fecha: "2026-10-11", titulo: "Tus fotos, más a la mano.",
+    version: "0.64.0", fecha: "2026-10-11", titulo: "Tus fotos, más a la mano.",
     cambios: ["Tus clientes ven la foto en grande tocándola en cualquier parte, pellizcándola o con el botón de la esquina."],
+  },
+  {
+    version: "0.63.0", fecha: "2026-10-11", titulo: "Instalar, sin tropiezos.",
+    cambios: ["Si prefieres menos movimiento, los pasos para instalar en iPhone se ven como una lista.", "Si Chrome ofrece instalar antes de que abras la hoja, el botón ya está listo."],
   },
   {
     version: "0.62.0", fecha: "2026-10-11", titulo: "Tu tienda, a un toque.",

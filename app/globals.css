@@ -1227,8 +1227,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @keyframes ins-marca { 0%, 8.5% { opacity: 0; } 9.5% { opacity: 1; } 100% { opacity: 1; } }
 @keyframes ins-icono { 0%, 3% { opacity: 0; transform: scale(0.2); } 6% { opacity: 1; transform: scale(1.12); } 8% { opacity: 1; transform: scale(1); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes ins-velo { 0% { opacity: 0; } 2% { opacity: 1; } 100% { opacity: 1; } }
+.ins-solo-reducido { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .ins-anim * { animation: none !important; }
-  .ins-anim .ins-d5.ins-esc, .ins-anim .ins-d5.ins-cap { opacity: 1; }
-  .ins-anim .ins-d6 .ins-icono { opacity: 1; }
+  .ins-anim .ins-no-reducido { display: none; }
+  .ins-anim .ins-solo-reducido { display: grid; }
 }

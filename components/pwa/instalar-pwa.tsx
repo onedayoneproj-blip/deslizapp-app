@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 /** Evento de Chrome/Edge/Samsung Internet que ofrece instalar la app (no está en los tipos de DOM). */
 type EventoInstalacion = Event & {
@@ -17,15 +17,21 @@ const SERVIDOR: Estado = { evento: null, instalada: false };
 const poner = (nuevo: Partial<Estado>) => { estado = { ...estado, ...nuevo }; oyentes.forEach((o) => o()); };
 const suscribir = (o: () => void) => { oyentes.add(o); return () => { oyentes.delete(o); }; };
 
-/** Se monta una sola vez en el layout: captura `beforeinstallprompt` y `appinstalled` desde que carga la app. */
+type VentanaInstalacion = Window & { __bip?: EventoInstalacion | null; __apinst?: boolean; __bipOyentes?: boolean };
+// Los oyentes se registran al evaluar el módulo (antes de hidratar) y recogen lo que el script inline del layout ya guardó
+// en `window.__bip` / `window.__apinst`: así `beforeinstallprompt` no se pierde si Chrome lo emite antes de hidratar.
+if (typeof window !== "undefined") {
+  const w = window as VentanaInstalacion;
+  estado = { evento: w.__bip ?? null, instalada: w.__apinst === true };
+  if (!w.__bipOyentes) {
+    w.__bipOyentes = true;
+    window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); poner({ evento: e as EventoInstalacion }); });
+    window.addEventListener("appinstalled", () => poner({ evento: null, instalada: true }));
+  }
+}
+
+/** Se monta una vez en el layout; solo asegura que este módulo (y sus oyentes) se cargue con la app. */
 export function CapturaInstalacion() {
-  useEffect(() => {
-    const alOfrecer = (e: Event) => { e.preventDefault(); poner({ evento: e as EventoInstalacion }); };
-    const alInstalar = () => poner({ evento: null, instalada: true });
-    window.addEventListener("beforeinstallprompt", alOfrecer);
-    window.addEventListener("appinstalled", alInstalar);
-    return () => { window.removeEventListener("beforeinstallprompt", alOfrecer); window.removeEventListener("appinstalled", alInstalar); };
-  }, []);
   return null;
 }
 
@@ -38,6 +44,7 @@ export function useInstalarPwa() {
   const { evento, instalada } = useSyncExternalStore(suscribir, () => estado, () => SERVIDOR);
   const instalar = async (): Promise<"accepted" | "dismissed" | "no-disponible"> => {
     if (!evento) return "no-disponible";
+    (window as VentanaInstalacion).__bip = null;
     poner({ evento: null }); // se consume al llamar prompt()
     try {
       await evento.prompt();

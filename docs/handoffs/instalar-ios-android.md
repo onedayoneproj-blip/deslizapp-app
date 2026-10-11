@@ -6,7 +6,7 @@ Encargo: `docs/prompts/instalar-ios-animacion-y-android.md`. Decisión: `docs/17
 - Nuevo: `components/pwa/animacion-instalar-ios.tsx`, `components/pwa/instalar-pwa.tsx` (`CapturaInstalacion` montado en `app/layout.tsx`, `useInstalarPwa`), `scripts/probar-instalar.mjs`. Cambio en `components/inicio/checklist-tienda.tsx` acotado a la hoja «instalar». Novedad 0.62.0.
 - Pruebas: `npm run tipos`, `lint`, `test` (589), `build`; `probar-onboarding-checklist` (152) y `probar-instalar` (360/390/430, claro y oscuro, movimiento reducido, `beforeinstallprompt` simulado con `accepted` y `dismissed`, sin evento).
 - **No probado aquí:** el diálogo real de Chrome en Android y Safari de iPhone. Para Lewis: Android con Chrome, tocar «Instalar Deslizapp» y confirmar; iPhone, ver la animación en Safari.
-- Decisiones fuera del encargo: las pastillas iPhone/Android usan `Segmentos` con `tono="opcion"` (la barra de filtros con indicador está pensada para ancho de pantalla completo); (corregida tras probar Lewis en el teléfono: la primera versión cambiaba de escena con un `setInterval` y se sentía a saltos).
+- Decisiones fuera del encargo: el selector iPhone/Android usó primero `tono="opcion"` (de formularios); se corrigió a la barra de filtros por defecto de `Segmentos`, como en Inicio (rama `fix/instalar-selector`); (corregida tras probar Lewis en el teléfono: la primera versión cambiaba de escena con un `setInterval` y se sentía a saltos).
 
 ## Fila «Instalar app» en el menú de la tienda (pedido de Planning, 11 oct 2026)
 - `components/panel/menu-tienda.tsx`: fila `data-fila-instalar` dentro de la tarjeta de la tienda activa, con el mismo estilo que «Tu equipo». Visible si `!instalada && (puedeInstalar || esIos)`.
@@ -19,3 +19,19 @@ Encargo: `docs/prompts/instalar-ios-animacion-y-android.md`. Decisión: `docs/17
 - Pausa con la pestaña oculta: un único oyente de `visibilitychange` pone `data-pausada` y el CSS pausa las animaciones. Al cerrar la hoja se desmonta y al abrirla empieza del paso 1.
 - Movimiento reducido: en CSS (`@media`), sin animación, escena 5 y su frase visibles.
 - `scripts/probar-instalar.mjs` comprueba animaciones CSS corriendo, pausa con pestaña oculta y quieta sin animaciones con movimiento reducido. Capturas `ios-momento-2..5.png` e `ios-reducido.png`.
+
+## Ajuste del selector y de la animación (rama `fix/instalar-selector`, 11 oct 2026)
+- Selector iPhone / Android: barra de filtros por defecto de `Segmentos` (sin `tono`), como «Hoy / 7 días / Mes / Año» de Inicio. Ahora es `tablist`/`tab`; `probar-instalar` se actualizó.
+- Toque: cada toque va dentro de su objetivo (`data-objetivo`, `relative`) en un contenedor de tamaño cero al 50 %/50 % con margen negativo, así queda centrado y la escala de la animación no choca con el centrado. Una primera versión con `grid place-items-center` se desplazaba cuando el toque era mayor que el objetivo; lo detectó la prueba.
+- Pie de frase: número (o check en el paso 6) centrado encima y frase centrada debajo (`text-balance`), con altura fija de 88 px.
+- `probar-instalar` congela cada uno de los 6 momentos (`getAnimations()` + `currentTime`) y mide: toque dentro y centrado en su objetivo (±4 px), número y frase centrados en la tarjeta (±2 px), a 360/390/430 px. Capturas `ios-toque-momento-3.png` y `-5.png`.
+
+## Revisión de código de #104/#105 (rama `fix/instalar-revision`, 11 oct 2026)
+1. `beforeinstallprompt` ya no se pierde antes de hidratar: un script inline mínimo en `app/layout.tsx` guarda el evento (`window.__bip`) y `appinstalled` (`window.__apinst`), y `instalar-pwa.tsx` registra sus oyentes al evaluar el módulo y lee lo guardado.
+2. Menú: `dismissed` se trata como «sin evento» y abre la hoja con la guía manual.
+3. iPhone con Chrome/Firefox/Edge (`CriOS|FxiOS|EdgiOS`) y navegadores integrados: «Ábrela en Safari.».
+4. Movimiento reducido: los seis pasos se ven como lista visible (CSS `@media`) en lugar de la ilustración quieta; la lista `sr-only` se oculta para no duplicar y ya no lleva «1. », «2. ».
+5. Android: el toast depende solo del resultado de `instalar()`; `marcar` es idempotente (una vez por apertura) y no depende de su retorno. Un `appinstalled` anterior a abrir la hoja ya no la cierra sola.
+6. Foco al cerrar la hoja abierta desde el menú: vuelve a la fila; si ya no existe, se cierra el menú y el foco va al botón que lo abre (`data-abrir-menu-tienda`).
+- **Fallo hallado de paso (venía de #104):** la hoja abierta desde la fila del menú se cerraba sola ~600 ms después, porque se cerraba el menú y se abría la hoja a la vez (la entrada de historial de la hoja nueva se perdía). Ahora la hoja se apila sobre el menú.
+- Pruebas añadidas en `probar-instalar`: evento antes de hidratar, `dismissed` en el menú, UA `CriOS`, movimiento reducido con lista visible, foco al cerrar, un solo toast con `appinstalled`, y hoja que se queda abierta. Novedad 0.63.0.
