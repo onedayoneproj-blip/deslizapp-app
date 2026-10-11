@@ -22,12 +22,18 @@ export function VistaEnfocada({
   nombre,
   inicial,
   cerrada,
+  pellizco = false,
+  idHistorial,
 }: {
   medios: Medio[];
   nombre: string;
   inicial: number;
   /** Al terminar de cerrar, con la última foto vista. */
   cerrada: (indice: number) => void;
+  /** Se abrió pellizcando la foto del reel: los mismos dedos siguen acercando aquí hasta que se levantan. */
+  pellizco?: boolean;
+  /** La marca (`catalogoFoto`) de la entrada de historial que abrió esta vista. */
+  idHistorial: string;
 }) {
   const [actual, setActual] = useState(inicial);
   const [saliendo, setSaliendo] = useState(false);
@@ -108,8 +114,14 @@ export function VistaEnfocada({
     cambiarRef.current = cambiar;
   });
   /** Cerrar consume la entrada de historial que se abrió al entrar; el «atrás» del sistema hace lo mismo. */
+  const atrasPedido = useRef(false);
   const pedirCerrar = () => {
-    if (history.state?.catalogoFoto) history.back();
+    // Una × o un Escape repetidos antes del popstate no deben retroceder dos veces.
+    if (cerrando.current || atrasPedido.current) return;
+    if (history.state?.catalogoFoto === idHistorial) {
+      atrasPedido.current = true;
+      history.back();
+    }
     else salir();
   };
   const pedirCerrarRef = useRef(pedirCerrar);
@@ -123,6 +135,43 @@ export function VistaEnfocada({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [raiz]);
 
+  const centro = (p: Punto): Punto => {
+    const r = ref.current!.getBoundingClientRect();
+    return { x: p.x - r.left - r.width / 2, y: p.y - r.top - r.height / 2 };
+  };
+  /** Pellizco que viene del reel (dos puntos) o su fin (null): misma cuenta que la pinza propia de la vista. */
+  const pellizcoInicial = useRef(pellizco);
+  const pinzaExterna = useRef<{ d0: number; z0: Zoom; local: Punto } | null>(null);
+  const pellizcoRef = useRef((dedosAhora: [Punto, Punto] | null) => {
+    void dedosAhora;
+  });
+  useLayoutEffect(() => {
+    pellizcoRef.current = (dedosAhora) => {
+      if (!dedosAhora) {
+        pinzaExterna.current = null;
+        if (zoom.current.s < 1.05) aplicar({ s: 1, x: 0, y: 0 }, true);
+        return;
+      }
+      const [a, b] = dedosAhora;
+      const d = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const m = centro({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+      const p = pinzaExterna.current;
+      if (!p) {
+        const z = zoom.current;
+        pinzaExterna.current = { d0: d, z0: { ...z }, local: { x: (m.x - z.x) / z.s, y: (m.y - z.y) / z.s } };
+        return;
+      }
+      const s = limitar((p.z0.s * d) / p.d0, 1, ZOOM_MAX);
+      aplicar(acotar({ s, x: m.x - s * p.local.x, y: m.y - s * p.local.y }));
+    };
+  });
+  // Solo suena el video de la foto que se ve; los vecinos ya montados se pausan.
+  useEffect(() => {
+    pista.current?.querySelectorAll<HTMLVideoElement>("video").forEach((v) => {
+      if (Number(v.closest<HTMLElement>(".enfocada-medio")?.dataset.i) === actual) v.play().catch(() => {});
+      else v.pause();
+    });
+  }, [actual, raiz]);
   // Modal estable: fondo inerte y sin scroll, teclado, «atrás» y gestos propios de Safari bloqueados.
   useEffect(() => {
     if (!raiz) return;
@@ -143,10 +192,28 @@ export function VistaEnfocada({
       e.stopImmediatePropagation();
     };
     const pop = () => {
-      if (!history.state?.catalogoFoto) salirRef.current();
+      if (history.state?.catalogoFoto !== idHistorial) salirRef.current();
     };
     const evitar = (e: Event) => e.preventDefault();
     const el = ref.current;
+    // El pellizco que abrió la vista sigue apuntando a la foto del reel: se escucha en la ventana hasta soltar.
+    const sigue = (e: TouchEvent) => {
+      if (e.touches.length < 2) return;
+      e.preventDefault();
+      pellizcoRef.current([...e.touches].slice(0, 2).map((t) => ({ x: t.clientX, y: t.clientY })) as [Punto, Punto]);
+    };
+    const suelta = (e: TouchEvent) => {
+      if (e.touches.length >= 2) return;
+      pellizcoRef.current(null);
+      window.removeEventListener("touchmove", sigue, true);
+      window.removeEventListener("touchend", suelta, true);
+      window.removeEventListener("touchcancel", suelta, true);
+    };
+    if (pellizcoInicial.current) {
+      window.addEventListener("touchmove", sigue, { capture: true, passive: false });
+      window.addEventListener("touchend", suelta, true);
+      window.addEventListener("touchcancel", suelta, true);
+    }
     window.addEventListener("keydown", tecla, true);
     window.addEventListener("popstate", pop);
     document.addEventListener("gesturestart", evitar);
@@ -156,15 +223,14 @@ export function VistaEnfocada({
       window.removeEventListener("popstate", pop);
       document.removeEventListener("gesturestart", evitar);
       el?.removeEventListener("touchmove", evitar);
+      window.removeEventListener("touchmove", sigue, true);
+      window.removeEventListener("touchend", suelta, true);
+      window.removeEventListener("touchcancel", suelta, true);
       html.style.overflow = overflow;
       fondoInerte.forEach((el, i) => (el.inert = estados[i]));
     };
-  }, [raiz]);
+  }, [raiz, idHistorial]);
 
-  const centro = (p: Punto): Punto => {
-    const r = ref.current!.getBoundingClientRect();
-    return { x: p.x - r.left - r.width / 2, y: p.y - r.top - r.height / 2 };
-  };
   const inicioDe = (p: Punto) => {
     const g = gesto.current;
     g.modo = null;
@@ -178,6 +244,8 @@ export function VistaEnfocada({
     const z = zoom.current;
     const m = centro({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
     g.modo = "pinza";
+    // Si antes empezó a bajar para cerrar, el fondo vuelve a ser opaco.
+    if (fondo.current) fondo.current.style.opacity = "";
     g.z0 = { ...z };
     g.d0 = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
     // El punto de la foto bajo los dedos queda bajo los dedos mientras se acerca.
@@ -232,13 +300,17 @@ export function VistaEnfocada({
     const dx = e.clientX - g.inicio.x,
       dy = e.clientY - g.inicio.y;
     const W = ref.current?.clientWidth ?? 1;
+    // Si el sistema cancela el gesto, la foto vuelve a su sitio: ni cambia ni se cierra.
+    const cancelado = e.type === "pointercancel";
     if (g.modo === "desliza") {
       const i = actualRef.current;
+      if (cancelado) colocarPista(0, true);
+      else
       if (dx < -W * 0.18 && i < medios.length - 1) cambiar(i + 1);
       else if (dx > W * 0.18 && i > 0) cambiar(i - 1);
       else colocarPista(0, true);
     } else if (g.modo === "baja") {
-      if (dy > 110) pedirCerrar();
+      if (dy > 110 && !cancelado) pedirCerrar();
       else {
         aplicar({ s: 1, x: 0, y: 0 }, true);
         if (fondo.current) fondo.current.style.opacity = "";
@@ -284,14 +356,14 @@ export function VistaEnfocada({
       >
         <div className="enfocada-pista" ref={pista}>
           {medios.map((m, i) => (
-            <div className="enfocada-medio" key={m.url} aria-hidden={i !== actual}>
+            <div className="enfocada-medio" key={m.url} aria-hidden={i !== actual} data-i={i}>
               <div className="enfocada-zoom">
                 {Math.abs(i - actual) <= 1 &&
                   (m.tipo === "foto" ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.url} alt={nombre} draggable={false} />
                   ) : (
-                    <video src={m.url} poster={m.portada ?? undefined} muted playsInline loop autoPlay={i === actual} />
+                    <video src={m.url} poster={m.portada ?? undefined} muted playsInline loop />
                   ))}
               </div>
             </div>

@@ -195,6 +195,7 @@ export function VistaPreviaReel() {
             abrirPresentaciones={() => avisar()}
             abrirFicha={() => avisar()}
             registrarBurst={() => {}}
+            conVistaEnfocada={false}
             coleccion={(t.personalizacion.secciones as { colecciones?: boolean } | undefined)?.colecciones !== false ? abanicoDeColeccion(cols, p) : null}
             perfil={() => avisar()}
             opiniones={() => avisar()}

@@ -8532,6 +8532,11 @@ html.catalogo-html,
 .catalogo-publico .carrusel:focus {
   outline: none;
 }
+/* Con teclado el carrusel se ve enfocado (←/→ cambian de foto, Enter la abre en grande). */
+.catalogo-publico .carrusel:focus-visible {
+  outline: 2px solid var(--surface);
+  outline-offset: -4px;
+}
 .catalogo-publico .historias-medios {
   position: absolute;
   top: 8px;
@@ -8581,6 +8586,70 @@ html.catalogo-html,
     animation: none;
     transform: scaleX(1);
   }
+}
+/* Toda la foto abre la vista enfocada: las cajas de la descripción y de los botones dejan pasar el dedo y solo sus
+   controles reales lo reciben. Con la descripción abierta («…») manda su panel. */
+.catalogo-publico .reel.on .cap,
+.catalogo-publico .reel.on .acts {
+  pointer-events: none;
+}
+.catalogo-publico .reel.on:not(.open) .cap :is(button, a, input, select, textarea, summary, [role="button"]),
+.catalogo-publico .reel.on .acts :is(button, a) {
+  pointer-events: auto;
+}
+/* Sin zoom de página al pellizcar la foto: el pellizco abre la vista enfocada. Deslizar sigue igual en los dos ejes. */
+.catalogo-publico .carrusel.con-vista {
+  touch-action: pan-x pan-y;
+}
+/* Botón para ver la foto en grande: esquina superior derecha, bajo las barras. 44 px de toque, 32 px visibles. */
+.catalogo-publico .expandir {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--surface);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform var(--mov-rapida) var(--curva-salida), opacity var(--mov-rapida) var(--curva-salida);
+}
+.catalogo-publico .expandir.con-historias {
+  top: 13px;
+}
+.catalogo-publico .expandir::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.catalogo-publico .expandir svg {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+.catalogo-publico .expandir:active {
+  transform: scale(var(--mov-presion));
+}
+.catalogo-publico .expandir:focus-visible {
+  outline: 2px solid var(--surface);
+  outline-offset: -4px;
+  border-radius: 50%;
+}
+.catalogo-publico .reel.open .expandir {
+  opacity: 0;
+  pointer-events: none;
+}
+/* La colección queda a la izquierda del botón de expandir, a 8 px de su círculo. */
+.catalogo-publico .topmeta.con-expandir {
+  right: 52px;
 }
 .catalogo-publico .topmeta.con-historias {
   top: 22px;
@@ -8696,7 +8765,7 @@ html.catalogo-html,
 .catalogo-publico .sonido {
   position: absolute;
   right: 16px;
-  top: 52px;
+  top: 64px; /* bajo el botón de expandir */
   border: 0;
   border-radius: 50%;
   width: 44px;

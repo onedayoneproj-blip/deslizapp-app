@@ -210,6 +210,14 @@ export function Catalogo({
       vigente = false;
     };
   }, [slug, demo, inicial, intento]);
+  // Una marca de la vista enfocada que sobrevivió a una recarga (o a iOS descartando la pestaña) ya no tiene vista abierta.
+  useEffect(() => {
+    if (history.state?.catalogoFoto) {
+      const { catalogoFoto, ...resto } = history.state;
+      void catalogoFoto;
+      history.replaceState(resto, "", location.href);
+    }
+  }, []);
   useEffect(() => {
     const pop = () => {
       if (trasCerrar.current) {

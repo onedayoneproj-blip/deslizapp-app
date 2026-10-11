@@ -103,6 +103,10 @@ const suscribirVisibilidad = (avisar: () => void) => {
 };
 /** Doble toque: misma ventana que antes (el «aaah»). Un toque solo abre la vista enfocada cuando ya no puede llegar el segundo. */
 const DOBLE_TOQUE = 320;
+/** Franja de arriba de la foto que no abre la vista enfocada (barras, colección y botón de expandir). */
+const FRANJA_ARRIBA = 56;
+/** Un control dentro del carrusel (el sonido del video) recibe su toque: no es un toque a la foto. */
+const enControl = (t: EventTarget | null) => t instanceof Element && !!t.closest("button, a");
 export function Medios({
   medios,
   nombre,
@@ -113,6 +117,7 @@ export function Medios({
   dobleToque,
   irA = null,
   pausado = false,
+  conVistaEnfocada = true,
 }: {
   medios: Medio[];
   nombre: string;
@@ -125,11 +130,16 @@ export function Medios({
   irA?: number | null;
   /** Hay algo encima del reel (una hoja, el perfil o la descripción): las fotos no avanzan solas. */
   pausado?: boolean;
+  /** La vista enfocada (toque, pellizco, teclado y botón). Apagada en la vista previa del panel: su historial es de la hoja. */
+  conVistaEnfocada?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [indice, setIndice] = useState(0);
   const [dedo, setDedo] = useState(false);
-  const [enfocada, setEnfocada] = useState<number | null>(null);
+  const [enfocada, setEnfocada] = useState<{ i: number; id: string } | null>(null);
+  // Si la vista se abrió con un pellizco, el mismo gesto sigue acercando dentro de ella.
+  const [conPellizco, setConPellizco] = useState(false);
+  const abierta = useRef(false);
   // Elegir una foto por color reinicia su barra aunque ya estuviera en ella.
   const [vuelta, setVuelta] = useState(0);
   const [irAnterior, setIrAnterior] = useState(irA);
@@ -149,36 +159,102 @@ export function Medios({
   }, [irA]);
   const tap = useRef({ t: 0, x: 0, y: 0, abajo: 0 });
   const pendiente = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelarPendiente = () => {
+    if (pendiente.current) clearTimeout(pendiente.current);
+    pendiente.current = null;
+  };
   const activoRef = useRef(activo);
+  const pausadoRef = useRef(pausado);
+  const dedoRef = useRef(false);
   useEffect(() => {
     activoRef.current = activo;
-  }, [activo]);
+    pausadoRef.current = pausado;
+    // Si mientras tanto se abrió una hoja o el reel dejó de ser el activo, el toque que esperaba ya no abre nada.
+    if (pausado || !activo) cancelarPendiente();
+  }, [activo, pausado]);
   useEffect(() => () => {
     if (pendiente.current) clearTimeout(pendiente.current);
   }, []);
   const varios = medios.length > 1;
   // Como una historia: con el reel activo y a la vista, cada foto dura 5 s (la animación de su barra es el reloj).
-  const corre = varios && activo && !pausado && !dedo && !oculta && enfocada === null && !reducido && medios[indice]?.tipo === "foto";
+  const corre = varios && activo && !pausado && !dedo && !oculta && !enfocada && !reducido && medios[indice]?.tipo === "foto";
   const avanzar = () => {
     const el = ref.current;
     if (!el || !corre || indice >= medios.length - 1) return;
     el.scrollTo({ left: (indice + 1) * el.clientWidth, behavior: "smooth" });
   };
-  /** Toque en la zona central de la foto: fuera quedan arriba (barras, sonido), la columna de botones y la descripción. */
-  const enCentro = (e: React.PointerEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const cap = e.currentTarget.parentElement?.querySelector(".cap")?.getBoundingClientRect();
-    const abajo = cap && cap.height ? cap.top - 8 : r.bottom - r.height * 0.3;
-    return e.clientY > r.top + 44 && e.clientY < abajo && e.clientX > r.left + 24 && e.clientX < r.right - 72;
-  };
-  const abrirEnfocada = () => {
+  /** Toda la foto abre la vista enfocada: los controles del reel reciben sus propios toques (el resto de `.cap` y `.acts`
+   * deja pasar el dedo) y solo queda fuera la franja de arriba, con las barras y el botón de expandir. */
+  const enFoto = (e: React.PointerEvent<HTMLDivElement>) => e.clientY > e.currentTarget.getBoundingClientRect().top + FRANJA_ARRIBA;
+  const abrirEnfocada = (pellizco = false) => {
     const el = ref.current;
-    if (!el || !activoRef.current) return;
-    history.pushState({ ...history.state, catalogoFoto: true }, "", location.href);
-    setEnfocada(Math.round(el.scrollLeft / el.clientWidth));
+    if (!conVistaEnfocada || !el || !activoRef.current || pausadoRef.current || abierta.current) return;
+    abierta.current = true;
+    cancelarPendiente();
+    // Un id por apertura: una marca vieja (tras recargar o si iOS descartó la pestaña) no se confunde con esta.
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    history.pushState({ ...history.state, catalogoFoto: id }, "", location.href);
+    setConPellizco(pellizco);
+    setEnfocada({ i: Math.round(el.scrollLeft / el.clientWidth), id });
   };
+  const irAFoto = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ left: Math.max(0, Math.min(medios.length - 1, i)) * el.clientWidth, behavior: reducido ? "auto" : "smooth" });
+  };
+  // Pellizcar la foto del reel (separar dos dedos) abre la vista enfocada, como un toque. Con eventos táctiles: en Safari de
+  // iPhone son más fiables que los de puntero; `touch-action: pan-x pan-y` del carrusel evita el zoom de la página.
+  const pinza = useRef<{ d0: number } | null>(null);
+  const multitoque = useRef(false);
+  const abrirRef = useRef(abrirEnfocada);
+  const conVistaRef = useRef(conVistaEnfocada);
+  useEffect(() => {
+    abrirRef.current = abrirEnfocada;
+    conVistaRef.current = conVistaEnfocada;
+  });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const distancia = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const inicio = (e: TouchEvent) => {
+      if (e.targetTouches.length < 2 || !conVistaRef.current || [...e.targetTouches].some((t) => enControl(t.target))) return;
+      multitoque.current = true;
+      pinza.current = { d0: Math.max(1, distancia(e.targetTouches)) };
+    };
+    const mueve = (e: TouchEvent) => {
+      const p = pinza.current;
+      if (!p || e.targetTouches.length < 2) return;
+      e.preventDefault();
+      if (abierta.current) return;
+      const d = distancia(e.targetTouches);
+      if (d > p.d0 * 1.2 || d > p.d0 + 24) abrirRef.current(true);
+    };
+    const fin = (e: TouchEvent) => {
+      if (e.targetTouches.length < 2) pinza.current = null;
+      if (e.targetTouches.length === 0) setTimeout(() => (multitoque.current = false), 0);
+    };
+    const evitar = (e: Event) => e.preventDefault();
+    el.addEventListener("touchstart", inicio, { passive: true });
+    el.addEventListener("touchmove", mueve, { passive: false });
+    el.addEventListener("touchend", fin);
+    el.addEventListener("touchcancel", fin);
+    el.addEventListener("gesturestart", evitar);
+    return () => {
+      el.removeEventListener("touchstart", inicio);
+      el.removeEventListener("touchmove", mueve);
+      el.removeEventListener("touchend", fin);
+      el.removeEventListener("touchcancel", fin);
+      el.removeEventListener("gesturestart", evitar);
+    };
+  }, []);
   const cerrarEnfocada = (i: number) => {
     const el = ref.current;
+    abierta.current = false;
+    // Si la pinza abrió la vista, su touchend pudo no llegar al reel (queda inerte mientras tanto).
+    multitoque.current = false;
+    pinza.current = null;
+    dedoRef.current = false;
+    setDedo(false);
     setEnfocada(null);
     if (!el) return;
     el.scrollTo({ left: i * el.clientWidth, behavior: "instant" });
@@ -188,48 +264,85 @@ export function Medios({
   // El foco vuelve a la foto cuando la vista ya se desmontó (antes el fondo sigue inerte).
   const devolverFoco = useRef(false);
   useEffect(() => {
-    if (enfocada !== null || !devolverFoco.current) return;
+    if (enfocada || !devolverFoco.current) return;
     devolverFoco.current = false;
     ref.current?.focus({ preventScroll: true });
   }, [enfocada]);
   return (
     <>
       <div
-        className="carrusel"
+        className={"carrusel" + (conVistaEnfocada && medios.some((m) => m.tipo === "foto") ? " con-vista" : "")}
         ref={ref}
-        tabIndex={-1}
+        // Con teclado: el carrusel se enfoca, ←/→ cambian de foto y Enter o Espacio abren la vista enfocada.
+        // Solo el reel activo es una parada de Tab: los demás están fuera de la vista.
+        tabIndex={activo ? 0 : -1}
+        role="group"
+        aria-roledescription="carrusel"
+        aria-label={`Fotos de ${nombre}`}
+        onKeyDown={(e) => {
+          // Solo con el carrusel enfocado (no el botón de sonido) y sin modificadores: Alt/Cmd+← siguen siendo «atrás».
+          if (e.target !== e.currentTarget || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat) return;
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            irAFoto(indice + (e.key === "ArrowRight" ? 1 : -1));
+          } else if ((e.key === "Enter" || e.key === " ") && conVistaEnfocada) {
+            e.preventDefault();
+            abrirEnfocada();
+          }
+        }}
         onScroll={(e) => {
           const d = e.currentTarget;
           setIndice(Math.round(d.scrollLeft / d.clientWidth));
         }}
         onPointerDown={(e) => {
+          if (enControl(e.target)) return;
+          // Un dedo nuevo (un segundo toque, un deslizamiento) anula el toque que esperaba a abrir la vista.
+          cancelarPendiente();
           tap.current = { t: tap.current.t, x: e.clientX, y: e.clientY, abajo: Date.now() };
+          dedoRef.current = true;
           setDedo(true);
         }}
-        onPointerCancel={() => setDedo(false)}
-        onPointerLeave={() => setDedo(false)}
-        onPointerUp={(e) => {
+        onPointerCancel={() => {
+          cancelarPendiente();
+          dedoRef.current = false;
           setDedo(false);
+        }}
+        onPointerLeave={() => {
+          dedoRef.current = false;
+          setDedo(false);
+        }}
+        onPointerUp={(e) => {
+          if (enControl(e.target)) return;
+          dedoRef.current = false;
+          setDedo(false);
+          // Un pellizco no es un toque: ni «aaah» ni vista enfocada al soltar los dedos.
+          if (multitoque.current || abierta.current) return;
           if (
             Math.hypot(e.clientX - tap.current.x, e.clientY - tap.current.y) >
             12
-          )
+          ) {
+            // Un deslizamiento: anula el toque que esperaba y no cuenta como primer toque de un doble toque.
+            cancelarPendiente();
+            tap.current.t = 0;
             return;
+          }
           const now = Date.now();
+          // Mantener pulsado pausa (como una historia): al soltar no abre nada ni cuenta para el doble toque.
+          if (now - tap.current.abajo >= 450) {
+            tap.current.t = 0;
+            return;
+          }
           if (now - tap.current.t < DOBLE_TOQUE) {
-            if (pendiente.current) clearTimeout(pendiente.current);
-            pendiente.current = null;
+            cancelarPendiente();
             dobleToque();
             tap.current.t = 0;
             return;
           }
           tap.current.t = now;
-          // Mantener pulsado pausa (como una historia) y no abre nada al soltar.
-          if (now - tap.current.abajo < 450 && enCentro(e)) {
-            if (pendiente.current) clearTimeout(pendiente.current);
+          if (conVistaEnfocada && enFoto(e)) {
             pendiente.current = setTimeout(() => {
               pendiente.current = null;
-              abrirEnfocada();
+              if (!dedoRef.current) abrirRef.current();
             }, DOBLE_TOQUE);
           }
         }}
@@ -246,7 +359,7 @@ export function Medios({
             ) : (
               <Video
                 medio={m}
-                visible={activo && indice === i}
+                visible={activo && indice === i && !enfocada}
                 cargar={activo || siguiente}
                 progreso={(f) => {
                   if (barraVideo.current) barraVideo.current.style.transform = `scaleX(${f})`;
@@ -279,8 +392,26 @@ export function Medios({
           ))}
         </div>
       )}
-      {enfocada !== null && (
-        <VistaEnfocada medios={medios} nombre={nombre} inicial={enfocada} cerrada={cerrarEnfocada} />
+      {conVistaEnfocada && medios.some((m) => m.tipo === "foto") && (
+        <button
+          type="button"
+          className={"expandir ov" + (varios ? " con-historias" : "")}
+          tabIndex={activo && !pausado ? 0 : -1}
+          aria-label="Ver foto en grande"
+          onClick={() => abrirEnfocada()}
+        >
+          <Icono nombre="expandir" />
+        </button>
+      )}
+      {enfocada && (
+        <VistaEnfocada
+          medios={medios}
+          nombre={nombre}
+          inicial={enfocada.i}
+          idHistorial={enfocada.id}
+          cerrada={cerrarEnfocada}
+          pellizco={conPellizco}
+        />
       )}
     </>
   );

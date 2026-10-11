@@ -13,7 +13,8 @@ export type NombreIcono =
   | "sound"
   | "mute"
   | "ficha"
-  | "close";
+  | "close"
+  | "expandir";
 export function Icono({ nombre }: { nombre: NombreIcono }) {
   const paths: Partial<Record<NombreIcono, string>> = {
     heart:
@@ -30,6 +31,7 @@ export function Icono({ nombre }: { nombre: NombreIcono }) {
     sound: "M11 4 6 8H3v8h3l5 4z M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14",
     mute: "M11 4 6 8H3v8h3l5 4z M16 9l5 6 M21 9l-5 6",
     close: "M6 6l12 12M18 6 6 18",
+    expandir: "M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5",
     ficha: "M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M14 3v5h5 M9 13h6 M9 17h6",
   };
   if (nombre === "wa")
