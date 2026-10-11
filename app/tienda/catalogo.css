@@ -492,7 +492,7 @@ html.catalogo-html,
   filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.35));
 }
 /* Perfil (cuadrícula): la cabecera NO es fija — el nombre de la tienda es parte de la página y se va con el scroll.
-   Solo el botón «atrás» y el de Instagram quedan fijos, como botones flotantes de cristal. Ninguno toca el borde de arriba
+   Solo el botón «atrás» y el de Instagram quedan fijos, como botones flotantes claros y sólidos. Ninguno toca el borde de arriba
    (--hdrT de separación): Safari (iOS 26) tiñe la barra de estado con cualquier elemento real que toque y=0. */
 .catalogo-publico.view-grid .hdr {
   position: absolute;
@@ -508,13 +508,11 @@ html.catalogo-html,
   z-index: 31;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--ink) 55%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
-  color: var(--surface);
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  color: var(--ink);
   transition: transform var(--mov-rapida) var(--curva-salida);
 }
 .catalogo-publico.view-grid .hback {
@@ -544,16 +542,8 @@ html.catalogo-html,
 }
 .catalogo-publico.view-grid .hback:focus-visible,
 .catalogo-publico.view-grid .hig:focus-visible {
-  outline: 2px solid var(--surface);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
-}
-@media (prefers-reduced-transparency: reduce) {
-  .catalogo-publico.view-grid .hback,
-  .catalogo-publico.view-grid .hig {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: color-mix(in srgb, var(--ink) 92%, transparent);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .catalogo-publico.view-grid .hback,

@@ -113,6 +113,7 @@ try{
       ok(await page.locator('.hdr-borde').count()===0,`${width}: el perfil ya no lleva desenfoque ni velo de cabecera`);
       ok(await page.locator('.hdr').evaluate(e=>getComputedStyle(e).position==='absolute'),`${width}: la cabecera del perfil no es fija`);
       ok(back0.w>=44&&back0.h>=44,`${width}: «atrás» mide al menos 44 px`);
+      ok(await page.locator('#backBtn').evaluate(e=>{const c=getComputedStyle(e);return c.backgroundColor==='rgb(255, 255, 255)'&&(c.backdropFilter||'none')==='none'&&c.boxShadow!=='none'&&c.borderRadius==='50%'}),`${width}: «atrás» es un círculo claro sólido, sin cristal y con sombra`);
       await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
       await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
       const hdr1=await caja('.hdr .logo'),back1=await caja('#backBtn');

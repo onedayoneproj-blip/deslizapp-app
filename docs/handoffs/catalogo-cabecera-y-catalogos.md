@@ -38,4 +38,4 @@ Novedad `0.65.0`. Documentación en `docs/04-pantallas.md` (catálogo público).
 
 ## Actualización: cabecera flotante del perfil (`fix/perfil-cabecera-flotante`)
 
-El desenfoque progresivo (`.hdr-borde`) se retiró del perfil: dejaba un hueco transparente entre la barra de estado y la cabecera fija. Ahora, en `view-grid`, `.hdr` es `position: absolute` (el nombre de la tienda se va con el scroll) y solo «atrás» e Instagram son botones fijos de cristal (44 px, separados del borde con `--hdrT`, nada fijo toca y=0). Con `prefers-reduced-transparency` el fondo es sólido.
+El desenfoque progresivo (`.hdr-borde`) se retiró del perfil: dejaba un hueco transparente entre la barra de estado y la cabecera fija. Ahora, en `view-grid`, `.hdr` es `position: absolute` (el nombre de la tienda se va con el scroll) y solo «atrás» e Instagram son botones fijos de cristal (44 px, separados del borde con `--hdrT`, nada fijo toca y=0). Sin backdrop-filter ni transparencia.
