@@ -123,6 +123,9 @@ try{
       console.log('   fijos:',JSON.stringify(fijos));
       ok(fijos.every(f=>f.t>0.5),`${width}: ningún elemento fijo toca el borde de arriba`);
       ok(back1.top>=8,`${width}: «atrás» separado del borde (${back1.top}px)`);
+      // Las pestañas «Todo · Ropa…» no pasan bajo los botones flotantes: su primera y última pestaña quedan entre ellos.
+      const pest=await page.evaluate(()=>{const t=[...document.querySelectorAll('.gt-tab > span')];if(!t.length)return null;const a=t[0].getBoundingClientRect(),z=t[t.length-1].getBoundingClientRect(),b=document.querySelector('#backBtn').getBoundingClientRect();return {izq:a.left,der:z.right,backDer:b.right,ancho:innerWidth}});
+      if(pest){ok(pest.izq>=pest.backDer+8,`${width}: la primera pestaña queda a la derecha de «atrás» (${Math.round(pest.izq)} ≥ ${Math.round(pest.backDer)+8})`);ok(pest.der<=pest.ancho-68||await page.locator('.gridtabs-tabs').evaluate(e=>e.scrollWidth>e.clientWidth),`${width}: la última pestaña no queda bajo el botón de la derecha o se desliza`);}
       const ig=page.locator('#igBtn');
       if(await ig.count()){const i=await caja('#igBtn');ok(i.w>=44&&i.h>=44&&i.top>0.5&&Math.abs(i.top-back1.top)<1,`${width}: Instagram flotante, 44 px, a la altura de «atrás»`);}
       await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});

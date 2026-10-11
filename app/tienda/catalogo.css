@@ -531,6 +531,13 @@ html.catalogo-html,
   width: 22px;
   height: 22px;
 }
+/* Las pestañas del perfil reservan sitio a ambos lados (12 px + 44 px + 12 px): al deslizar pasan junto a los botones flotantes, no debajo. */
+.catalogo-publico.view-grid .gridtabs {
+  padding-inline: 68px;
+}
+.catalogo-publico.view-grid .gridtabs-tabs {
+  scroll-padding-inline: 68px;
+}
 .catalogo-publico.view-grid .hback:active,
 .catalogo-publico.view-grid .hig:active {
   transform: scale(var(--mov-presion));
