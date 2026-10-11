@@ -22,6 +22,10 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.66.0", fecha: "2026-10-11", titulo: "Tu catálogo, más limpio.",
+    cambios: ["Quitamos el abanico de la colección que se veía arriba a la derecha de cada producto: la colección sigue arriba, en «Colecciones»."],
+  },
+  {
     version: "0.65.0", fecha: "2026-10-11", titulo: "Tu catálogo, más en orden.",
     cambios: ["Si tu tienda no tiene colecciones pero sí varios catálogos, arriba aparece «Catálogos» para pasar de uno a otro."],
   },
@@ -39,7 +43,7 @@ const TODAS: Novedad[] = [
   },
   {
     version: "0.61.0", fecha: "2026-10-11", titulo: "Tus fotos, como una historia.",
-    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos.", "Arriba a la derecha de cada producto se ve la colección a la que pertenece."],
+    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos."],
   },
   {
     version: "0.60.0", fecha: "2026-10-11", titulo: "Tu guía, más ligera.",
