@@ -33,6 +33,7 @@ export function Encabezado() {
         <button
           type="button"
           onClick={() => setMenuAbierto(true)}
+          data-abrir-menu-tienda=""
           aria-haspopup="dialog"
           aria-expanded={menuAbierto}
           // Nombre accesible = el texto visible (nombre y plan) y después la acción, con comas: WCAG 2.5.3 (etiqueta en el nombre)

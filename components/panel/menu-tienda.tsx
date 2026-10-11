@@ -64,13 +64,24 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
   const [hojaInstalar, setHojaInstalar] = useState(false);
   const mostrarInstalar = !yaInstalada && (instalacion.puedeInstalar || esIos);
   const tocarInstalar = async () => {
-    if (!instalacion.puedeInstalar) { cerrar(); setHojaInstalar(true); return; }
+    if (!instalacion.puedeInstalar) { setHojaInstalar(true); return; } // la hoja se apila sobre el menú: cerrarlo a la vez le quita la entrada de historial a la nueva
     const r = await instalacion.instalar();
     if (r === "accepted") {
       cerrar();
       try { await marcarInstalada?.(); } catch { /* el paso se puede marcar luego desde la guía */ }
       toast("Deslizapp ya está en tu pantalla de inicio.");
-    } else if (r === "no-disponible") { cerrar(); setHojaInstalar(true); }
+    } else setHojaInstalar(true); // «dismissed» o sin evento: la guía manual
+  };
+  // Al cerrar la hoja, el foco vuelve a la fila. Si ya no existe (el navegador dejó de ofrecer instalar), se cierra el menú
+  // y el foco vuelve al botón que lo abre.
+  const cerrarHojaInstalar = () => {
+    setHojaInstalar(false);
+    window.requestAnimationFrame(() => {
+      const fila = document.querySelector<HTMLElement>("[data-fila-instalar]");
+      if (fila) { fila.focus({ preventScroll: true }); return; }
+      cerrar();
+      window.requestAnimationFrame(() => document.querySelector<HTMLElement>("[data-abrir-menu-tienda]")?.focus({ preventScroll: true }));
+    });
   };
 
   const ordenadas = ordenarTiendas(tiendas ?? [], tiendaActivaId);
@@ -269,7 +280,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
       )}
 
       <AccesoAdmin alAbrir={cerrar} />
-      <HojaInstalarApp abierta={hojaInstalar} alCerrar={() => setHojaInstalar(false)} plataformaInicial={esIos ? "ios" : "android"} />
+      <HojaInstalarApp abierta={hojaInstalar} alCerrar={cerrarHojaInstalar} plataformaInicial={esIos ? "ios" : "android"} />
 
       {demo && (
         <>
