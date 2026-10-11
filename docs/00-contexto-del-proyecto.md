@@ -7,7 +7,7 @@ Este es el documento que pone al día a cualquier sesión nueva (Claude o Codex,
 **Deslizapp** es un panel PWA (Next.js 16, React 19, TypeScript, Tailwind v4, Supabase) para dueños de tiendas dominicanas, más el **catálogo público** de cada tienda (se desliza como Reels y pide por WhatsApp). Es multi-tienda.
 
 - **Repo:** `onedayoneproj-blip/deslizapp-app`. Producción: https://deslizapp-app.vercel.app (se despliega sola desde `main`).
-- **Preview de cada rama:** `https://deslizapp-app-git-<rama-con-guiones>-onedayone.vercel.app`. Las URLs únicas de despliegue pueden necesitar un callback adicional permitido en Supabase; no asumir que un patrón de alias de rama cubre todos los hosts. En producción se usa el dominio estable.
+- **Preview de cada rama:** `https://deslizapp-app-git-<rama-con-guiones>-onedayone.vercel.app`; **Vercel recorta el alias de las ramas largas** y le añade un sufijo (por ejemplo `…-git-feat-carrusel-historias-vist-656096-onedayone…`), así que la URL real se busca en el despliegue de Vercel del PR, no se construye a mano. Las URLs únicas de despliegue pueden necesitar un callback adicional permitido en Supabase; no asumir que un patrón de alias de rama cubre todos los hosts. En producción se usa el dominio estable.
 - **Supabase:** proyecto `euihaeyfdlpvmbtfzvnt`.
 - **Tienda real de prueba:** Esencias Michel (perfumes, de la prima de Lewis). Hay además tiendas demo en el modo demo (por ejemplo Lino & Algodón, ropa con variantes).
 - **Quién:** Lewis (dueño del producto, habla español dominicano; todo el texto del producto va en español).

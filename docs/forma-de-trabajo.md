@@ -55,6 +55,10 @@ Lewis crea manualmente las nuevas sesiones de Coding mientras ese sea su acuerdo
 
 El rebase reduce divergencias; no garantiza compatibilidad funcional. Separar ramas no basta para declarar tareas independientes. No lanzar trabajo dependiente anticipadamente solo para ganar paralelismo.
 
+## Aviso al terminar (regla permanente, Lewis, 11 oct 2026)
+
+Toda sesión que Planning cree o a la que encargue trabajo **debe avisar a Planning siempre que termine** (y si queda bloqueada o está por agotarse): mensaje al padre (`send_message` a `@parent`, o a la sesión de Planning que la creó) con estado, PR, HEAD, resultado de «Revisión», pruebas hechas y no hechas, decisiones fuera del encargo y pendientes. Todo encargo o prompt que Planning entregue incluye esta instrucción. Planning, al recibir el aviso, comprueba el PR y los checks en GitHub, la preview en Vercel, y actualiza Notion y el relevo antes de contarle a Lewis.
+
 ## Relevo, límites y cierre
 
 Actualizar la tarea de Notion al lanzar una tarea, quedar bloqueado o terminar/mergear. Actualizar el relevo cuando cambie la coordinación de sesiones y el documento de la función cuando cambie una decisión. Guardar un checkpoint antes de alcanzar el límite de sesión, aunque el trabajo esté incompleto.
