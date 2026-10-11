@@ -72,3 +72,10 @@ Al completar los 7, el checklist se cierra con la celebración corta y no vuelve
 - **Descartado:** B2 (raya activa más gruesa) y la opción A (en curso en verde).
 - **Siguiente:** PR de Coding abierto sin merge, validación de Lewis en el teléfono.
 
+
+## Decisión: instalar en iPhone y Android (11 oct 2026)
+
+Paso 6 «Pantalla de inicio», hoja «Tu tienda, a un toque». Arriba, pastillas iPhone / Android (iPhone por defecto, también en escritorio; Android si el navegador lo dice).
+- **iPhone:** animación esquemática del flujo de Safari en iOS 26 (`components/pwa/animacion-instalar-ios.tsx`, referencia visual en `referencias/instalar-ios/`), seis momentos de ~13 s en bucle con su frase debajo. Corre solo con la hoja abierta y la pestaña visible; con movimiento reducido queda quieta en el paso 5. Es decorativa; los seis pasos van como lista de texto para lectores de pantalla. Debajo: «¿No ves ☰? Toca Compartir directamente.» (iOS anteriores) y, en navegadores integrados (Instagram, Facebook, WhatsApp), «Ábrela en Safari.». No hay API en iOS: el paso se marca con «Ya lo hice».
+- **Android:** con el evento `beforeinstallprompt` (capturado desde que carga la app en `components/pwa/instalar-pwa.tsx`) aparece **«Instalar Deslizapp»**. Chrome muestra su propio diálogo: no se instala en silencio. `accepted` marca `pantalla_inicio_en`, toast y cierra la hoja; `dismissed` no marca nada (el evento se consume y Chrome tarda en volver a emitirlo, así que cae al texto manual). `appinstalled` con la hoja abierta también marca el paso.
+- **Sin evento** (Firefox, navegador integrado, iOS, escritorio): texto manual «Abre Deslizapp en Chrome. Toca ⋮ y luego Instalar aplicación (o Añadir a pantalla de inicio).» con «Ya lo hice». **Ya instalada** (`display-mode: standalone`): «Ya está instalada»; el paso ya cuenta como hecho por la vía existente.

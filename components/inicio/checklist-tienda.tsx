@@ -17,6 +17,9 @@ import { HojaComoSeVe } from "../catalogo/hoja-producto-filas";
 import { HojaPublicarCatalogo } from "../catalogo/hoja-publicar-catalogo";
 import { useRouter } from "next/navigation";
 import { useToast } from "../toast";
+import { Segmentos } from "../controles";
+import { AnimacionInstalarIos } from "../pwa/animacion-instalar-ios";
+import { useInstalarPwa } from "../pwa/instalar-pwa";
 
 const FOCO_GUIA = "outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco";
 
@@ -53,6 +56,8 @@ function Checklist() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [claveFallida, setClaveFallida] = useState<ClaveOnboarding>("checklist_cerrado_en");
+  const [plataforma, setPlataforma] = useState<"ios" | "android">("ios");
+  const instalacion = useInstalarPwa();
   const bloqueo = useRef(false); const cierreIntentado = useRef(false);
   useEffect(() => {
     const media = window.matchMedia("(display-mode: standalone)");
@@ -60,6 +65,12 @@ function Checklist() {
     actualizar(); media.addEventListener("change", actualizar); window.addEventListener("focus", actualizar);
     return () => { media.removeEventListener("change", actualizar); window.removeEventListener("focus", actualizar); };
   }, []);
+  const abierta = hoja === "instalar";
+  const instalarAndroid = async () => {
+    const r = await instalacion.instalar();
+    if (r === "accepted") { await marcar("pantalla_inicio_en"); toast("Deslizapp ya está en tu pantalla de inicio."); }
+  };
+  const navegadorIntegrado = typeof navigator !== "undefined" && /Instagram|FBAN|FBAV|WhatsApp/i.test(navigator.userAgent);
   const pasos = tienda && consulta.data ? pasosChecklist(tienda, consulta.data.productos, consulta.data.equipo, instalada) : [];
   const hechos = pasos.filter(Boolean).length;
   const capitulos = avanceCapitulos(pasos);
@@ -93,6 +104,11 @@ function Checklist() {
     catch(e) { setError(mensajeDeError(e, "No pudimos guardar este paso. Reintenta.")); }
     finally { bloqueo.current = false; setGuardando(false); }
   };
+  // Instalada desde el menú de Chrome con la hoja abierta (appinstalled): también cuenta.
+  useEffect(() => {
+    if (abierta && instalacion.instalada && !bloqueo.current) void marcar("pantalla_inicio_en");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abierta, instalacion.instalada]);
   if (!tienda || !consulta.data || consulta.error) return null; // Inicio permanece disponible ante error.
   const cantidad = productosParaChecklist(consulta.data.productos, tiendaId);
   const enlace = `/tienda/${tienda.slug}${datos.modo === "demo" ? "?demo" : ""}`;
@@ -104,7 +120,7 @@ function Checklist() {
     else if (i === 2) router.push("/catalogo/nuevo");
     else if (i === 3) setHoja("publicar");
     else if (i === 4) setHoja("perfil");
-    else if (i === 5) setHoja("instalar");
+    else if (i === 5) { setPlataforma(/android/i.test(navigator.userAgent) ? "android" : "ios"); setHoja("instalar"); } // iPhone por defecto (también en escritorio)
     else abrirEquipo();
   };
   const hayAcciones = seleccionado === 1 || (seleccionado === 2 && !pasos[6]) || (capitulo.completo && pendiente >= 0);
@@ -163,9 +179,18 @@ function Checklist() {
     {hoja === "perfil" && <Perfil alCerrar={() => setHoja(null)} />}
     <Hoja abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} titulo="Tu tienda, a un toque" protegerAtras>
       {error && <Aviso tono="peligro">{error}</Aviso>}
-      <h3 className="text-destacado">En iPhone</h3><p className="text-cuerpo">Abre Deslizapp en Safari. Toca Compartir y luego «Añadir a pantalla de inicio».</p>
-      <h3 className="mt-4 text-destacado">En Android</h3><p className="text-cuerpo">Abre Deslizapp en Chrome. En el menú toca «Instalar aplicación» o «Añadir a pantalla de inicio».</p>
-      <Boton className="mt-4" cargando={guardando} onClick={() => void marcar("pantalla_inicio_en")}>Ya lo hice</Boton>
+      <Segmentos etiqueta="Tu teléfono" opciones={[{ id: "ios", texto: "iPhone" }, { id: "android", texto: "Android" }]} valor={plataforma} alCambiar={setPlataforma} tono="opcion" />
+      {plataforma === "ios" ? <>
+        <AnimacionInstalarIos activa={abierta} />
+        {navegadorIntegrado && <p className="mt-2 text-secundario text-texto-secundario">Ábrela en Safari.</p>}
+        <Boton className="mt-4" cargando={guardando} onClick={() => void marcar("pantalla_inicio_en")}>Ya lo hice</Boton>
+      </> : instalada ? <p className="mt-4 text-cuerpo">Ya está instalada.</p> : instalacion.puedeInstalar ? <>
+        <p className="mt-4 text-cuerpo">Un toque, y Chrome te pide confirmar.</p>
+        <Boton className="mt-4" cargando={guardando} onClick={() => void instalarAndroid()}>Instalar Deslizapp</Boton>
+      </> : <>
+        <p className="mt-4 text-cuerpo">Abre Deslizapp en Chrome. Toca ⋮ y luego Instalar aplicación (o Añadir a pantalla de inicio).</p>
+        <Boton className="mt-4" cargando={guardando} onClick={() => void marcar("pantalla_inicio_en")}>Ya lo hice</Boton>
+      </>}
     </Hoja>
     <HojaComoSeVe abierta={hoja === "vista"} alCerrar={() => setHoja(null)} visible datos={() => ({ tienda: tiendaPublicaDe(tienda), productos: productosPublicosDe(consulta.data?.productos ?? [], tienda.rubro) })} />
     <HojaPublicarCatalogo abierta={hoja === "publicar"} alCerrar={() => setHoja(null)} enlace={`${typeof window === "undefined" ? "https://deslizapp-app.vercel.app" : window.location.origin}${enlace}`} productos={cantidad} alAgregarMas={() => { setHoja(null); router.push("/catalogo/nuevo"); }} alConfirmar={async () => {

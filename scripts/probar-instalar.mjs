@@ -1,0 +1,80 @@
+import "../tests/cargar-ts.mjs";
+import { createRequire } from "node:module";
+import { mkdirSync } from "node:fs";
+import assert from "node:assert/strict";
+const require = createRequire(import.meta.url), { chromium } = require("playwright");
+const { construirDesdeSeed } = await import("../lib/data/db.ts");
+const URL = (process.env.URL ?? "http://localhost:3410").replace(/\/$/, "");
+const OUT = process.argv[2] ?? "docs/capturas/instalar-ios-android"; mkdirSync(OUT, { recursive: true });
+const ID = "a1000000-0000-4000-8000-000000000003";
+const nav = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? undefined, args: ["--no-sandbox"] });
+const ok = (v, t) => { assert(v, t); console.log("OK", t); };
+const UA_ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36";
+async function abrir(ancho, { android = false, reducido = false, oscuro = false } = {}) {
+  const ctx = await nav.newContext({ viewport: { width: ancho, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: reducido ? "reduce" : "no-preference", colorScheme: oscuro ? "dark" : "light", ...(android ? { userAgent: UA_ANDROID } : {}) });
+  const page = await ctx.newPage();
+  const d = construirDesdeSeed(); const t = d.tiendas.find(t => t.id === ID);
+  Object.assign(t, { onboarding: {}, logoUrl: null, descripcion: null, catalogoEstado: "sin" });
+  d.productos = d.productos.filter(p => p.tiendaId !== ID);
+  d.equipos = { ...d.equipos, [ID]: { miembros: [{ usuarioId: "yo", soyYo: true, rol: "dueno", nivel: "administrador", nombre: "Tú", email: "demo@ejemplo.com", desde: new Date().toISOString(), foto: null }], invitaciones: [], solicitudes: [], enlaces: [] } };
+  await page.addInitScript(({ d, id }) => { localStorage.setItem("deslizapp-demo-v5", JSON.stringify(d)); localStorage.setItem("deslizapp-sesion-v1", id); localStorage.setItem("deslizapp-modo-v1", "demo"); localStorage.setItem("deslizapp-version-vista", "99.0.0"); }, { d, id: ID });
+  await page.goto(URL); await page.getByRole("heading", { name: /Buenos|Buenas/ }).waitFor();
+  return { ctx, page };
+}
+const abrirHoja = async (page, oscuro = false) => {
+  if (oscuro) await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+  await page.getByRole("group", { name: "Capítulos de preparación" }).getByRole("button", { name: /Capítulo 4 ·/ }).click();
+  await page.locator("[data-checklist]").getByRole("button", { name: /^Pantalla de inicio ·/ }).click();
+  await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor();
+};
+const pasoVisible = page => page.locator("[data-animacion-ios] p.min-h-11").innerText();
+const paso5 = "Deja Abrir como app web encendido y toca Añadir";
+const falso = (resultado) => page => page.evaluate(r => {
+  const e = new Event("beforeinstallprompt", { cancelable: true });
+  e.prompt = async () => { window.__prompt = (window.__prompt ?? 0) + 1; };
+  e.userChoice = Promise.resolve({ outcome: r });
+  window.dispatchEvent(e);
+}, resultado);
+for (const ancho of [360, 390, 430]) for (const oscuro of [false, true]) {
+  // iPhone: animación corre y se detiene al cerrar
+  let { ctx, page } = await abrir(ancho, { oscuro }); await abrirHoja(page, oscuro);
+  ok(await page.getByRole("radio", { name: "iPhone" }).getAttribute("aria-checked") === "true", `iPhone preseleccionado ${ancho}${oscuro ? " oscuro" : ""}`);
+  const a = await pasoVisible(page); await page.waitForTimeout(2600); const b = await pasoVisible(page);
+  ok(a !== b, "la animación avanza de momento");
+  ok(await page.locator("[data-animacion-ios] ol.sr-only li").count() === 6, "seis pasos como lista accesible");
+  ok(await page.evaluate(a => document.documentElement.scrollWidth <= a, ancho), "sin overflow horizontal");
+  await page.screenshot({ path: `${OUT}/ios-${ancho}${oscuro ? "-oscuro" : ""}.png` });
+  await page.keyboard.press("Escape"); await page.waitForTimeout(500);
+  ok(await page.locator("[data-animacion-ios]").count() === 0, "al cerrar la hoja la animación se desmonta");
+  await ctx.close();
+}
+{ // movimiento reducido: quieta en el paso 5
+  const { ctx, page } = await abrir(390, { reducido: true }); await abrirHoja(page);
+  await page.waitForTimeout(500); const a = await pasoVisible(page); await page.waitForTimeout(3000);
+  ok(a.includes(paso5) && (await pasoVisible(page)).includes(paso5), "movimiento reducido: quieta en el paso 5"); await ctx.close();
+}
+{ // Android sin evento: texto manual
+  const { ctx, page } = await abrir(390, { android: true }); await abrirHoja(page);
+  ok(await page.getByRole("radio", { name: "Android" }).getAttribute("aria-checked") === "true", "Android preseleccionado por UA");
+  ok(await page.getByText(/Toca ⋮ y luego Instalar aplicación/).count() === 1, "sin evento: texto manual");
+  ok(await page.getByRole("button", { name: "Instalar Deslizapp" }).count() === 0, "sin evento: sin botón");
+  await ctx.close();
+}
+for (const resultado of ["accepted", "dismissed"]) { // evento simulado
+  const { ctx, page } = await abrir(390, { android: true });
+  await falso(resultado)(page); await abrirHoja(page);
+  const boton = page.getByRole("button", { name: "Instalar Deslizapp" }); await boton.waitFor();
+  await page.screenshot({ path: `${OUT}/android-boton.png` });
+  await boton.click(); await page.waitForFunction(() => window.__prompt === 1);
+  if (resultado === "accepted") {
+    await page.getByRole("radiogroup", { name: "Tu teléfono" }).waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Capítulo 4 ·" }).count();
+    ok(await page.evaluate(() => Object.values(JSON.parse(localStorage.getItem("deslizapp-demo-v5")).tiendas.find(t => t.id === "a1000000-0000-4000-8000-000000000003").onboarding ?? {}).length > 0), "accepted: paso marcado y hoja cerrada");
+  } else {
+    await page.waitForTimeout(400);
+    ok(await page.getByRole("radiogroup", { name: "Tu teléfono" }).count() === 1, "dismissed: la hoja sigue abierta");
+    ok(await page.getByText(/Toca ⋮ y luego Instalar aplicación/).count() === 1, "dismissed: cae al texto manual (evento consumido)");
+  }
+  await ctx.close();
+}
+await nav.close(); console.log("TODO OK");
