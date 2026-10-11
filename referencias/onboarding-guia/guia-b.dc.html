@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inicio con guía de preparación</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#174b3a}a:hover{color:#10362a}
+.t-claro{--fondo:#fff9ee;--superficie:#ffffff;--hundida:#f3ead9;--texto:#174b3a;--texto2:#4f6a5e;--linea:#efe4d2;--borde-pastilla:#e7dcc8;--borde-campo:#9c8b6e;--accion:#174b3a;--sobre-accion:#fff9ee;--resalte:#ff834f;--rosa:#f5c9d6;--sombra:0 10px 24px -10px rgba(16,54,42,.45)}
+.t-oscuro{--fondo:#0e1d17;--superficie:#16281f;--hundida:#1d3329;--texto:#f1ebdf;--texto2:#a8bcb1;--linea:#2a3d33;--borde-pastilla:#36493f;--borde-campo:#6f8579;--accion:#9ed3b8;--sobre-accion:#0e2a1f;--resalte:#ff834f;--rosa:#5b3343;--sombra:0 10px 24px -10px rgba(0,0,0,.6)}
+.disp{font-family:'Fredoka',sans-serif;font-stretch:115%;font-weight:700}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;margin:0}
+button:focus-visible{outline:3px solid var(--accion);outline-offset:2px}
+</style>
+</helmet>
+<div class="{{tema}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--fondo); color: var(--texto); font-family: 'Figtree', sans-serif; line-height: 1.3; padding: 56px 20px 0">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div class="disp" aria-hidden="true" style="width: 48px; height: 48px; border-radius: 999px; background: var(--rosa); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #174b3a">d</div>
+      <div style="display: flex; flex-direction: column">
+        <span class="disp" style="font-size: 17px">Deslizapp ⌄</span>
+        <span style="font-size: 14px; color: var(--texto2)">Plan 20 · deslizapp</span>
+      </div>
+    </div>
+    <button type="button" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--accion); background: var(--superficie); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff834f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>
+      100 créditos
+    </button>
+  </div>
+
+  <h1 class="disp" style="margin: 20px 0 0; font-size: 32px; line-height: 1.1">Buenas noches, Deslizapp<span style="color: #ff834f">.</span></h1>
+  <p style="margin: 8px 0 0; font-size: 16px; line-height: 1.45; color: var(--texto2)">Esta semana todavía no hay aaahs. Comparte tu catálogo y que empiecen los suspiros.</p>
+
+  <section aria-labelledby="guia-titulo" style="{{estiloTarjeta}}">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 16px 8px 0 16px">
+      <h2 id="guia-titulo" class="disp" style="margin: 0; padding-top: 2px; font-size: 20px; line-height: 1.2">{{actual.titulo}}</h2>
+      <button type="button" aria-label="Minimizar la guía" aria-expanded="true" onClick="{{minimizar}}" style="flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+      </button>
+    </div>
+
+    <div role="group" aria-label="Capítulos" style="display: flex; gap: 6px; padding: 4px 16px 0">
+      <sc-for list="{{capitulos}}" as="c" hint-placeholder-count="3">
+        <button type="button" aria-pressed="{{c.pressed}}" aria-label="{{c.aria}}" onClick="{{c.elegir}}" style="flex: 1 1 0; min-width: 0; height: 36px; border: 0; background: transparent; padding: 0; cursor: pointer; display: flex; align-items: center">
+          <span aria-hidden="true" style="{{c.pista}}"><span style="{{c.relleno}}"></span></span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div aria-hidden="true" style="{{estiloPuntas}}">
+      <sc-for list="{{capitulos}}" as="c" hint-placeholder-count="3">
+        <span style="flex: 1 1 0; display: flex; justify-content: center; height: 0">
+          <span style="{{c.punta}}"></span>
+        </span>
+      </sc-for>
+    </div>
+
+    <div style="{{estiloLista}}">
+      <sc-for list="{{actual.pasos}}" as="p" hint-placeholder-count="3">
+        <button type="button" style="{{p.fila}}">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style="flex-shrink: 0">
+            <circle cx="13" cy="13" r="{{p.radio}}" fill="{{p.fondo}}" stroke="{{p.borde}}" stroke-width="2"></circle>
+            <path d="M8 13.5l3.2 3.2L18 9.8" fill="none" stroke="var(--sobre-accion)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="{{p.check}}"></path>
+          </svg>
+          <span style="flex: 1; min-width: 0; font-size: 17px; font-weight: 800">{{p.nombre}}</span>
+          <span style="position: absolute; left: -9999px">{{p.estado}}</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--texto2)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="{{estiloAcciones}}">
+      <sc-for list="{{actual.acciones}}" as="a" hint-placeholder-count="1">
+        <button type="button" onClick="{{a.hacer}}" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--accion); background: var(--superficie); font-size: 14px; font-weight: 800; cursor: pointer">{{a.texto}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <button type="button" aria-expanded="false" aria-label="{{ariaPildora}}" onClick="{{desplegar}}" style="{{estiloPildora}}">
+    <span style="flex: 1; min-width: 0; font-size: 16px; font-weight: 800">Deja tu tienda lista</span>
+    <span aria-hidden="true" style="display: flex; gap: 3px">
+      <sc-for list="{{capitulos}}" as="c" hint-placeholder-count="3">
+        <span style="display: block; width: 18px; height: 4px; border-radius: 999px; background: var(--hundida); overflow: hidden"><span style="{{c.relleno}}"></span></span>
+      </sc-for>
+    </span>
+    <span style="font-size: 14px; color: var(--texto2); white-space: nowrap">{{hechos}} de 7</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+  </button>
+
+  <div role="group" aria-label="Periodo" style="display: flex; gap: 8px; margin-top: 24px">
+    <button type="button" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--borde-pastilla); background: var(--superficie); font-size: 14px; font-weight: 700">Hoy</button>
+    <button type="button" aria-pressed="true" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--accion); color: var(--sobre-accion); font-size: 14px; font-weight: 700">7 días</button>
+    <button type="button" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--borde-pastilla); background: var(--superficie); font-size: 14px; font-weight: 700">Mes</button>
+    <button type="button" style="height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--borde-pastilla); background: var(--superficie); font-size: 14px; font-weight: 700">Año</button>
+  </div>
+
+  <div style="margin-top: 16px; height: 150px; border-radius: 22px; background: var(--superficie); border: 1px solid var(--linea); display: flex; align-items: center; justify-content: center; color: var(--texto2); font-size: 14px">[Resumen de la semana]</div>
+
+  <nav aria-label="Principal" style="position: absolute; left: 16px; right: 16px; bottom: 24px; height: 76px; border-radius: 999px; background: var(--superficie); box-shadow: var(--sombra); display: flex; align-items: center; justify-content: space-around; padding: 0 8px">
+    <a href="#" aria-current="page" style="width: 64px; height: 64px; border-radius: 999px; background: var(--rosa); color: var(--texto); text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 800">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"></path></svg>Inicio</a>
+    <a href="#" style="color: var(--texto2); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"></rect><rect x="13" y="4" width="7" height="7" rx="2"></rect><rect x="4" y="13" width="7" height="7" rx="2"></rect><rect x="13" y="13" width="7" height="7" rx="2"></rect></svg>Catálogo</a>
+    <a href="#" style="color: var(--texto2); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 11.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5z"></path><path d="M9 8V7a3 3 0 0 1 6 0v1"></path></svg>Pedidos</a>
+    <a href="#" style="color: var(--texto2); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"></path><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3 2.6 3 5.2"></path></svg>Clientes</a>
+    <a href="#" style="color: var(--texto2); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12.2V5a1.5 1.5 0 0 1 1.5-1.5h7.2l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-7.1 7.1a1.5 1.5 0 0 1-2.1 0z"></path><circle cx="8.5" cy="8.5" r="1.5"></circle></svg>Promos</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"indicador":{"editor":"enum","options":["punta","grosor"],"default":"punta"},"colapsada":{"editor":"boolean","default":false},"oscuro":{"editor":"boolean","default":false},"capitulo":{"editor":"int","min":0,"max":2,"default":0},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const indicador = this.props.indicador ?? 'punta';
+    const sel = s.sel != null ? s.sel : (this.props.capitulo ?? 0);
+    const col = s.col != null ? s.col : !!this.props.colapsada;
+    const datos = [
+      { numero: 2, nombre: 'Tu tienda tiene personalidad', pasos: [
+        { nombre: 'Sube tu logo', hecho: true },
+        { nombre: 'Elige tus colores', hecho: false },
+        { nombre: 'Cuéntales quién eres', hecho: true } ], acciones: [] },
+      { numero: 3, nombre: 'Tus productos salen al mundo', pasos: [
+        { nombre: 'Agrega 5 productos', hecho: true },
+        { nombre: 'Publica tu catálogo', hecho: true } ], acciones: ['Ver cómo queda', 'Continuar al capítulo 4'] },
+      { numero: 4, nombre: 'Tu tienda, a mano', pasos: [
+        { nombre: 'Pantalla de inicio', hecho: true },
+        { nombre: 'Invita a tu equipo', hecho: false } ], acciones: ['Lo hago sola'] }
+    ];
+    const caps = datos.map((c, i) => {
+      const hechos = c.pasos.filter((p) => p.hecho).length;
+      const total = c.pasos.length;
+      const completo = hechos === total;
+      const enCurso = hechos > 0 && !completo;
+      const elegido = i === sel;
+      const alto = indicador === 'grosor' ? (elegido ? 10 : 4) : 6;
+      return {
+        ...c, hechos, total, completo,
+        pressed: elegido ? 'true' : 'false',
+        aria: 'Capítulo ' + c.numero + ' · ' + c.nombre + ', ' + (completo ? 'completo' : enCurso ? 'en curso' : 'sin empezar') + ', ' + hechos + ' de ' + total + ' pasos',
+        pista: 'display: block; width: 100%; height: ' + alto + 'px; border-radius: 999px; background: var(--hundida); overflow: hidden',
+        relleno: 'display: block; height: 100%; border-radius: 999px; width: ' + Math.round(hechos / total * 100) + '%; background: ' + (completo ? 'var(--accion)' : 'var(--resalte)'),
+        punta: elegido ? 'display: block; width: 14px; height: 14px; margin-top: 5px; background: var(--superficie); border-top: 1px solid var(--linea); border-left: 1px solid var(--linea); border-top-left-radius: 3px; transform: rotate(45deg)' : 'display: none',
+        elegir: () => this.setState({ sel: i })
+      };
+    });
+    const c = caps[sel];
+    const siguiente = caps.findIndex((x) => !x.completo);
+    const acciones = c.acciones
+      .filter((t) => t !== 'Continuar al capítulo 4' || siguiente === 2)
+      .map((t) => ({ texto: t, hacer: () => { if (t.startsWith('Continuar')) this.setState({ sel: 2 }); } }));
+    const hechos = caps.reduce((n, x) => n + x.hechos, 0);
+    const punta = indicador === 'punta';
+    return {
+      tema: this.props.oscuro ? 't-oscuro' : 't-claro',
+      hechos,
+      capitulos: caps,
+      estiloTarjeta: col ? 'display: none' : 'display: block; position: relative; margin-top: 20px; background: var(--superficie); border: 1px solid var(--linea); border-radius: 22px; overflow: hidden',
+      estiloPildora: col ? 'margin-top: 20px; width: 100%; height: 56px; padding: 0 12px 0 20px; border-radius: 999px; border: 1px solid var(--linea); background: var(--superficie); display: flex; align-items: center; gap: 12px; cursor: pointer; text-align: left' : 'display: none',
+      estiloPuntas: punta ? 'display: flex; gap: 6px; padding: 0 16px; position: relative; z-index: 1' : 'display: none',
+      estiloLista: 'margin-top: ' + (punta ? '12px' : '10px') + '; border-top: 1px solid var(--linea)',
+      estiloAcciones: acciones.length ? 'display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 16px 16px' : 'display: none',
+      actual: {
+        titulo: 'Capítulo ' + c.numero + ' · ' + c.nombre,
+        pasos: c.pasos.map((p, i) => ({
+          ...p,
+          estado: p.hecho ? 'Hecho' : 'Pendiente',
+          radio: p.hecho ? 12 : 11,
+          fondo: p.hecho ? 'var(--accion)' : 'none',
+          borde: p.hecho ? 'var(--accion)' : 'var(--borde-campo)',
+          check: p.hecho ? '' : 'display: none',
+          fila: 'width: 100%; min-height: 56px; border: 0; background: transparent; padding: 10px 16px; display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer; position: relative' + (i > 0 ? '; border-top: 1px solid var(--linea)' : '')
+        }))
+      },
+      ariaPildora: 'Desplegar Deja tu tienda lista, ' + hechos + ' de 7 pasos',
+      minimizar: () => this.setState({ col: true }),
+      desplegar: () => this.setState({ col: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

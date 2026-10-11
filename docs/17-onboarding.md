@@ -60,3 +60,14 @@ Al completar los 7, el checklist se cierra con la celebración corta y no vuelve
 - **Reglas sustituidas:** la propuesta inicial del 10 de octubre pedía relleno proporcional y permitía ocultar definitivamente con confirmación. El feedback posterior de Lewis sustituye ambas; se conservan como antecedente en el historial, no como instrucciones activas.
 - **Evidencia:** [encargo del ajuste](prompts/onboarding-2-minimizar-y-capitulos.md), [validación](validacion-onboarding-2.md), [capturas](capturas/onboarding-2/README.md) y [handoff](handoffs/onboarding-2-checklist-codex.md). Los resultados anteriores y el conflicto documental con main son antecedentes; la ronda nueva integra main sin perder Notion. Demo/fixtures y teclado simulado no equivalen a Safari físico ni a pruebas con tiendas reales.
 - **Siguiente:** Lewis revisa el ajuste entregado por la misma sesión de Coding del PR #96. [Tarea vigente en Notion](https://app.notion.com/p/3f5ed62010cb81758eded930bc0dcde1). Contratos y permisos existentes, sin cambios de Supabase ni datos reales. Coding comprueba main/conflictos antes de entregar; PR abierto sin merge, pendiente de validar visualmente con Lewis en Safari.
+
+## Decisión: rediseño visual de la guía (11 oct 2026)
+
+**Estado: aprobada por Lewis sobre el lienzo; sin implementar.** Encargo: [onboarding-guia-rediseno-visual.md](prompts/onboarding-guia-rediseno-visual.md). Referencia visual: [referencias/onboarding-guia](../referencias/onboarding-guia/LEEME.md).
+
+- **Qué:** la guía vive en una tarjeta estándar con botón de colapsar que la vuelve una píldora; las rayas tipo historia se llenan según los pasos hechos (completo = verde bosque, en curso = mandarina, sin iniciar = solo pista); el capítulo elegido se indica con una punta bajo su raya, sin etiquetas «Capítulo X» ni subrayados; las filas no repiten «Hecho/Pendiente» y se quitan las frases de apoyo.
+- **Por qué:** Lewis vio que el rojo del estado «en curso» no era de Deslizapp (era `--atencion-texto`, color de texto de avisos), que «completo» y «elegido» se confundían y que la guía flotaba suelta.
+- **Sustituye** (solo en lo visual) lo del 10 oct sobre colores `atencion-texto`/`accion` de las rayas, etiquetas «Capítulo X» con subrayado, «Minimizar» como texto y los textos «Hecho/Pendiente». La lógica de pasos, selección, minimización local y cierre 7/7 se conserva.
+- **Descartado:** B2 (raya activa más gruesa) y la opción A (en curso en verde).
+- **Siguiente:** PR de Coding abierto sin merge, validación de Lewis en el teléfono.
+
