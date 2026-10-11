@@ -19,6 +19,8 @@ Código de hoy: `app/(dashboard)/catalogo/nuevo/page.tsx` → `components/catalo
 
 Una hoja `grande` a pantalla completa, fondo `fondo`. Arriba, **barras tipo historia** (una por momento: llenas los hechos, `accion`; el resto `borde-pastilla`) y la ✕ (con `protegerAtras` y aviso al salir si hay cambios sin guardar, como hoy). **Una pregunta por pantalla**: título grande (`titulo-hoja`, Fredoka), una línea de ayuda, el control y abajo, fijo, «Atrás» (circular, secundario) + «Seguir» (principal). «Atrás» no pierde nada.
 
+**Proporción:** toda vista previa de la foto es 4:5 con `object-fit: cover` (la del reel real del catálogo), sin barras laterales.
+
 **Tarjeta «así se verá»** arriba en los pasos 2 a 4: la foto de portada a lo ancho, con radio `radio-l`, y encima, con el velo del catálogo, el nombre y el precio que se van llenando **mientras la persona responde** (eso es lo que hace el proceso disfrutable: cada respuesta se ve). La nota «así se verá» en Caveat (es la única Caveat de esa pantalla).
 
 1. **Empieza por la foto.** Sin foto, la tarjeta es un marco punteado con el icono de cámara. Dos botones: «Tomar foto» (principal, abre la cámara) y «Elegir de la galería» (secundario). Usa la lógica de `ficha-medios.tsx` (máximo `MAX_MEDIOS`, la primera es la portada, reordenar, quitar, **marcar para retoque**). Con fotos, se ve la tira de miniaturas y «Seguir». Permitir seguir sin foto: decide y explica (recomendación: se puede, con una línea «Sin foto se vende menos. Puedes agregarla luego.»).
