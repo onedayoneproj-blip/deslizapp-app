@@ -146,7 +146,7 @@ try {
         await carr.evaluate((el) => el.scrollLeft > el.clientWidth * 0.9),
         "Carrusel horizontal",
       );
-      await p.locator("#r-mayar .puntos-medios button").nth(2).click();
+      await carr.evaluate((el) => el.scrollTo({ left: el.clientWidth * 2, behavior: "instant" }));
       const video = p.locator("#r-mayar video");
       await p.evaluate(() => document.getElementById("r-mayar").scrollIntoView({block:"start"}));
       await p.waitForFunction(() => {

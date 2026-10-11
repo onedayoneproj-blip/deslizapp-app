@@ -90,7 +90,7 @@ const ESCENARIOS = {
     ok((await hoja(page).locator(".pres-linea").innerText()).includes("M · Arena"), "La línea dice «M · Arena»");
     await page.waitForTimeout(700);
     ok((await fotoVista(page, "pantalon-de-algodon")) === 2, "El reel fue a la foto del color Arena (la tercera)");
-    ok((await r.locator('.puntos-medios button[aria-pressed="true"]').getAttribute("aria-label")) === "Ver foto 3 de 4", "El punto activo sigue a la foto asignada al color");
+    ok((await r.locator(".historias-medios").getAttribute("aria-label")) === "Foto 3 de 4", "La barra activa sigue a la foto asignada al color");
     // Un color sin foto asignada no mueve nada: se prueba en la prueba unitaria; aquí, agregar.
     await hoja(page).getByRole("button", { name: "Agregar a mi pedido" }).tap();
     await hoja(page).waitFor({ state: "detached" });

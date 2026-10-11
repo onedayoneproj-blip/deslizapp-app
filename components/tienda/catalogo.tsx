@@ -806,6 +806,7 @@ export function Catalogo({
             abrirPresentaciones={(modo) => abrirPresentaciones(p.slug, modo)}
             abrirFicha={() => abrirTipo("ficha", p.slug)}
             registrarBurst={(fn) => (fn ? bursts.current.set(p.slug, fn) : bursts.current.delete(p.slug))}
+            pausado={vista !== null || perfil}
             perfil={showPerfil}
             opiniones={() =>
               secciones?.opiniones !== false && abrirTipo("opiniones", p.slug)

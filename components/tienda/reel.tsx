@@ -40,6 +40,7 @@ export function Reel({
   abrirPresentaciones,
   abrirFicha,
   registrarBurst,
+  pausado = false,
 }: {
   p: ProductoPublico;
   t: CatalogoPublico["tienda"];
@@ -62,6 +63,8 @@ export function Reel({
   abrirFicha: () => void;
   /** Deja que la hoja dispare el «aaah» de este reel al agregar. */
   registrarBurst: (fn: (() => void) | null) => void;
+  /** Una hoja o el perfil están encima del reel: sus fotos no avanzan solas. */
+  pausado?: boolean;
 }) {
   const pres = tienePresentaciones(p);
   const [valores, setValores] = useState<Record<string, string>>(
@@ -228,7 +231,7 @@ export function Reel({
       data-id={p.slug}
       aria-label={p.nombre + (agotado ? ", agotado" : "")}
     >
-      <div className="media" data-media={p.slug} data-carrusel-multiple={p.medios.length > 1 ? "true" : undefined}>
+      <div className="media" data-media={p.slug}>
         <Medios
           medios={p.medios}
           nombre={p.nombre}
@@ -238,6 +241,7 @@ export function Reel({
           prioridad={i < 2}
           dobleToque={aaah}
           irA={pres ? indiceDeFoto(p, eleccion) : null}
+          pausado={pausado || abierto}
         />
         {agotado && (
           <>
@@ -255,7 +259,7 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        {(etiqueta || enPedido) && <div className="topmeta ov">
+        {(etiqueta || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "")}>
           <span>{etiqueta}</span>
           {enPedido && <span className="inbadge">En tu pedido</span>}
         </div>}
