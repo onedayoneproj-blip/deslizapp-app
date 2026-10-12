@@ -117,6 +117,7 @@ try{
       ok(await page.locator('.hdr').evaluate(e=>getComputedStyle(e).position==='absolute'),`${width}: la cabecera del perfil no es fija`);
       ok(back0.w>=44&&back0.h>=44,`${width}: «atrás» mide al menos 44 px`);
       ok(await page.locator('#backBtn').evaluate(e=>{const c=getComputedStyle(e);return c.backgroundColor==='rgb(255, 255, 255)'&&(c.backdropFilter||'none')==='none'&&c.boxShadow!=='none'&&c.borderRadius==='50%'}),`${width}: «atrás» es un círculo claro sólido, sin cristal y con sombra`);
+      ok(await page.locator('.profile').evaluate((e,t)=>Math.abs(parseFloat(getComputedStyle(e).paddingTop)-(t+66))<1,back0.top),`${width}: el contenido del perfil empieza 66 px bajo los botones (sigue su separación, también con zona segura)`);
       await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
       await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
       const back1=await caja('#backBtn');

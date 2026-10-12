@@ -494,9 +494,17 @@ html.catalogo-html,
 /* Perfil (cuadrícula): la cabecera NO es fija — el nombre de la tienda es parte de la página y se va con el scroll.
    Solo el botón «atrás» y el de Instagram quedan fijos, como botones flotantes claros y sólidos. Ninguno toca el borde de arriba
    (--hdrT de separación): Safari (iOS 26) tiñe la barra de estado con cualquier elemento real que toque y=0. */
+.catalogo-publico.view-grid {
+  /* Separación de lo flotante respecto al borde de arriba: --hdrT o, con muesca (PWA), la zona segura + 8 px. */
+  --perfil-top: max(var(--hdrT, 24px), calc(env(safe-area-inset-top, 0px) + 8px));
+}
 .catalogo-publico.view-grid .hdr {
   position: absolute;
+  top: var(--perfil-top);
   padding-bottom: 0;
+}
+.catalogo-publico.view-grid .profile {
+  padding-top: calc(var(--perfil-top) + 66px);
 }
 .catalogo-publico.view-grid .hdr::before {
   display: none;
@@ -504,7 +512,7 @@ html.catalogo-html,
 .catalogo-publico.view-grid .hback,
 .catalogo-publico.view-grid .hig {
   position: fixed;
-  top: max(var(--hdrT, 24px), calc(env(safe-area-inset-top, 0px) + 8px));
+  top: var(--perfil-top);
   z-index: 31;
   width: 44px;
   height: 44px;
