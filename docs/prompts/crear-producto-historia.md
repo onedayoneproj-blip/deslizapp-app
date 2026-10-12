@@ -19,7 +19,7 @@ Código de hoy: `app/(dashboard)/catalogo/nuevo/page.tsx` → `components/catalo
 
 Una hoja `grande` a pantalla completa, fondo `fondo`. Arriba, **barras tipo historia** (una por momento: llenas los hechos, `accion`; el resto `borde-pastilla`) y la ✕ (con `protegerAtras` y aviso al salir si hay cambios sin guardar, como hoy). **Una pregunta por pantalla**: título grande (`titulo-hoja`, Fredoka), una línea de ayuda, el control y abajo, fijo, «Atrás» (circular, secundario) + «Seguir» (principal). «Atrás» no pierde nada.
 
-**Proporción:** toda vista previa de la foto es 4:5 con `object-fit: cover` (la del reel real del catálogo), sin barras laterales.
+**Proporción (corregido 12 oct):** manda el prototipo. Tarjeta de los pasos de preguntas 350×372 de margen a margen (20 px) y la de «Así se ve en tu catálogo» 350×440 con el reel real reducido en proporción; ver `referencias/crear-producto/LEEME.md`. El catálogo NO es un paso: selector en la cabecera de la hoja que recuerda el último usado.
 
 **Tarjeta «así se verá»** arriba en los pasos 2 a 4: la foto de portada a lo ancho, con radio `radio-l`, y encima, con el velo del catálogo, el nombre y el precio que se van llenando **mientras la persona responde** (eso es lo que hace el proceso disfrutable: cada respuesta se ve). La nota «así se verá» en Caveat (es la única Caveat de esa pantalla).
 
