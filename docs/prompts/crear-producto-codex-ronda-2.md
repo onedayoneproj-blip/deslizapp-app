@@ -1,3 +1,5 @@
+> **ESTADO (12 oct, tarde): en pausa.** Lewis está valorando seguir con la versión de Claude (#112) en vez de la de Codex (#114). No ejecutar este encargo hasta que Planning lo confirme. El prototipo v4 (`referencias/crear-producto/LEEME.md`) cambió después de escribirlo: «atrás» va abajo, la cabecera tiene «Nuevo producto» + selector, y las presentaciones son historia en la hoja principal más una hoja «Inventario» encima.
+
 # Crear producto «como una historia» — ronda 2 para Codex (PR #114)
 
 Encargo de Planning, 12 oct 2026. Lewis probó en su iPhone las dos versiones y **se queda con la de Codex (PR #114, rama `codex/crear-producto-historia`)**. Esta ronda son ajustes sobre ese mismo PR: **sigue en la misma rama, no abras otro PR**. Sigue mandando `docs/prompts/crear-producto-codex.md` y el prototipo (`referencias/crear-producto/capturas/` y el PDF); lo de abajo lo corrige o lo concreta.

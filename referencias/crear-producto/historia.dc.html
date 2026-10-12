@@ -46,18 +46,16 @@ body{margin:0}
     <div aria-hidden="true" style="position: absolute; left: 50%; top: 8px; width: 40px; height: 5px; margin-left: -20px; border-radius: 999px; background: #e7dcc8"></div>
   </section>
 
-  <!-- Cabecera fila 1: solo el selector de catálogo (recuerda el último usado; se oculta con un solo catálogo) -->
-  <div style="position: absolute; left: 20px; right: 20px; top: 98px; height: 28px; display: flex; align-items: center">
+  <!-- Cabecera fila 1: «Nuevo producto» a la izquierda y el selector de catálogo a la derecha (recuerda el último usado; se oculta con un solo catálogo) -->
+  <div style="position: absolute; left: 20px; right: 20px; top: 98px; height: 28px; display: flex; align-items: center; justify-content: space-between">
+    <h2 class="disp" style="margin: 0; font-size: 20px">Nuevo producto</h2>
     <button type="button" aria-label="Catálogo: Ropa" class="disp" style="border: 0; background: transparent; padding: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 6px">Ropa
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
     </button>
   </div>
-  <!-- Fila 2: ‹ atrás (lugar fijo) · barras de historia · ✕ -->
-  <div style="position: absolute; left: 16px; right: 16px; top: 128px; display: flex; align-items: center; gap: 10px">
-    <button type="button" class="circ" aria-label="Atrás" onClick="{{atras}}" style="{{estiloAtras}}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
-    </button>
-    <div role="progressbar" aria-label="Avance" aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{pasoNum}}" style="flex: 1; display: flex; gap: 4px">
+  <!-- Fila 2: barras de historia · ✕ -->
+  <div style="position: absolute; left: 20px; right: 16px; top: 128px; display: flex; align-items: center; gap: 10px">
+    <div role="progressbar" aria-label="Avance" aria-valuemin="1" aria-valuemax="{{maxBarras}}" aria-valuenow="{{pasoNum}}" style="flex: 1; display: flex; gap: 4px">
       <sc-for list="{{barras}}" as="b" hint-placeholder-count="5">
         <span style="{{b.estilo}}"></span>
       </sc-for>
@@ -162,20 +160,78 @@ body{margin:0}
       </div>
     </div>
 
-    <!-- Con varias presentaciones: el resumen de lo que se armó en la hoja «Presentaciones» -->
-    <div style="{{entradaResumen}}">
+  </div>
+
+  <!-- Con varias presentaciones, en la hoja principal como historia: 11 ¿en qué cambia? · 12 ¿qué tallas? · 13 ¿y qué colores? · 14 igual, con el resumen del Inventario -->
+  <div style="{{vistaPres}}">
+    <div style="{{vistaPresInterior}}">
+    <div style="position: relative; height: 212px; border-radius: 22px; overflow: hidden; background: #f3ead9">
+      <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Vista previa del producto" style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%"></img>
+      <div style="position: absolute; inset: 40% 0 0 0; background: linear-gradient(to top, rgba(16,54,42,.78), rgba(16,54,42,0))"></div>
+      <span class="mano" style="position: absolute; left: 14px; top: 8px; font-size: 22px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.35)">así se verá</span>
+      <div style="position: absolute; left: 14px; right: 14px; bottom: 12px; color: #fff">
+        <p class="disp" style="margin: 0; font-size: 22px">Hoodie Deslizapp</p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 2px; flex-wrap: wrap">
+          <span style="font-size: 16px; font-weight: 800">Desde RD$1,450</span>
+          <span style="{{pTallas}}">Talla S · M · L</span>
+          <span style="{{pColores}}"><span style="width: 18px; height: 18px; border-radius: 999px; background: #efe6d6; border: 1.5px solid #c9bda7; display: inline-block"></span><span style="width: 18px; height: 18px; border-radius: 999px; background: #2f4a3c; border: 1.5px solid rgba(255,255,255,.7); display: inline-block"></span></span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 14px">
+      <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 1.1">{{preguntaPres}}</h1>
+      <p class="sec" style="margin: 4px 0 0; font-size: 15px">{{ayudaPres}}</p>
+    </div>
+    <div style="{{bloque11}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true">Talla</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true">Color</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">Tamaño</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">Material</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">+ Otra</button>
+      </div>
+      <p class="sec" style="margin: 10px 2px 0; font-size: 13px">Hasta 2. Para la mayoría basta con talla y color.</p>
+    </div>
+    <div style="{{bloque12}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">XS</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true">S</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true">M</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true">L</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">XL</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">+ Otra</button>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 12px">
+        <button type="button" class="chip" style="border: 1.5px solid #174b3a; font-weight: 800">XS a XL</button>
+        <button type="button" class="chip" style="border: 1.5px solid #174b3a; font-weight: 800">Única</button>
+      </div>
+    </div>
+    <div style="{{bloque13}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true"><span style="width: 16px; height: 16px; border-radius: 999px; background: #efe6d6; border: 1.5px solid #c9bda7; display: inline-block"></span>Crema</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; background: #f5c9d6; border: 2px solid #f5c9d6" aria-pressed="true"><span style="width: 16px; height: 16px; border-radius: 999px; background: #2f4a3c; display: inline-block"></span>Bosque</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false"><span style="width: 16px; height: 16px; border-radius: 999px; background: #f5c9d6; display: inline-block"></span>Rosa</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false"><span style="width: 16px; height: 16px; border-radius: 999px; background: #1d1d1d; display: inline-block"></span>Negro</button>
+        <button type="button" class="chip" style="height: 44px; padding: 0 16px; font-size: 16px; border: 2px solid #e7dcc8" aria-pressed="false">+ Otro</button>
+      </div>
+      <p style="margin: 14px 2px 8px; font-size: 14px; font-weight: 800; color: #4f6a5e">Foto de cada color · opcional</p>
+      <div style="display: flex; gap: 10px">
+        <button type="button" style="flex: 1; min-width: 0; border: 1.5px dashed #9c8b6e; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; gap: 10px; text-align: left"><span style="width: 44px; height: 54px; border-radius: 10px; overflow: hidden; background: #f3ead9; flex-shrink: 0; display: block"><img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: 30% 40%"></img></span><span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">Crema</span><span class="sec" style="font-size: 12px">Foto 1</span></span></button>
+        <button type="button" style="flex: 1; min-width: 0; border: 1.5px dashed #9c8b6e; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; gap: 10px; text-align: left"><span style="width: 44px; height: 54px; border-radius: 10px; overflow: hidden; background: #f3ead9; flex-shrink: 0; display: block"><img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: 85% 40%"></img></span><span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">Bosque</span><span class="sec" style="font-size: 12px">Elegir foto</span></span></button>
+      </div>
+    </div>
+    <!-- Cuando la hoja «Inventario» ya se completó, debajo aparece su resumen con «Editar» -->
+    <div style="{{resumenInventario}}">
+      <p style="margin: 0 2px 8px; font-size: 14px; font-weight: 800; color: #4f6a5e">Inventario</p>
       <div class="fila" style="height: 64px">
-        <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">6 presentaciones</span><span class="sec" style="font-size: 13px">21 en total · Talla y Color</span></span>
-        <button type="button" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; font-size: 14px; font-weight: 800">Cambiar</button>
+        <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">6 presentaciones · 21 en total</span><span class="sec" style="font-size: 13px">Cantidades de cada talla y color</span></span>
+        <button type="button" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; font-size: 14px; font-weight: 800">Editar</button>
       </div>
-      <div class="fila" style="margin-top: 10px">
-        <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
-        <button type="button" role="switch" aria-checked="false" aria-label="Es por encargo" class="sw" style="background: #e7dcc8"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
-      </div>
+    </div>
     </div>
   </div>
 
-  <!-- Paso 9 y 12: así se ve en tu catálogo -->
+  <!-- Paso 9 y 15: así se ve en tu catálogo -->
   <div style="{{vistaListo}}">
     <span class="mano" style="font-size: 26px; color: #a8410f">así se ve en tu catálogo</span>
     <div style="position: relative; height: 440px; border-radius: 22px; overflow: hidden; margin-top: 2px; background: #f3ead9">
@@ -217,16 +273,21 @@ body{margin:0}
     <p style="margin: 10px 0 0; font-size: 16px; text-align: center; color: #4f6a5e">Hoodie Deslizapp ya se puede deslizar. Van 1 de 5 para arrancar.</p>
   </div>
 
-  <!-- Pie: un solo botón principal. Atrás vive solo arriba. -->
+  <!-- Pie: ‹ atrás SIEMPRE abajo a la izquierda + el botón principal -->
   <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; display: flex; flex-direction: column; gap: 10px">
     <div style="{{pieSinFoto}}">
-      <button type="button" onClick="{{seguir}}" style="height: 44px; border: 0; background: transparent; font-size: 16px; font-weight: 800; width: 100%">Seguir sin foto</button>
+      <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center; opacity: .35"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+      <button type="button" onClick="{{seguir}}" style="flex: 1; height: 52px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Seguir sin foto</button>
     </div>
     <div style="{{pieSeguir}}">
-      <button type="button" class="btn" onClick="{{seguir}}">Seguir</button>
+      <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+      <button type="button" class="btn" onClick="{{seguir}}">{{textoSeguir}}</button>
     </div>
     <div style="{{piePublicar}}">
-      <button type="button" onClick="{{seguir}}" style="height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800; width: 100%">Publicar</button>
+      <div style="display: flex; gap: 10px">
+        <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <button type="button" onClick="{{seguir}}" style="flex: 1; height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800">Publicar</button>
+      </div>
       <button type="button" onClick="{{seguir}}" style="height: 36px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Guardar sin publicar</button>
     </div>
     <div style="{{pieCelebra}}">
@@ -236,14 +297,16 @@ body{margin:0}
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":12,"default":1},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":15,"default":1},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const s = this.state || {};
     const paso = s.paso ?? (this.props.paso ?? 1);
-    // 1 foto vacía · 2 con fotos · 3 nombre vacío · 4 nombre · 5 precio vacío · 6 precio · 7 stock · 8 cuándo llega
-    // 9 así se ve · 10 celebración · 11 cuántos tienes (con presentaciones) · 12 así se ve (con presentaciones)
-    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 4, 5][paso - 1];
+    // Un producto: 1 foto vacía · 2 con fotos · 3 nombre vacío · 4 nombre · 5 precio vacío · 6 precio · 7 stock · 8 cuándo llega · 9 así se ve · 10 celebración
+    // Varias presentaciones (en la hoja principal, como historia): 11 ¿en qué cambia? · 12 ¿qué tallas? · 13 ¿y qué colores? · 14 ídem con el resumen del Inventario · 15 así se ve
+    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 4, 5, 6, 6, 7][paso - 1];
+    const conPres = paso >= 11;
+    const nBarras = conPres ? 7 : 5;
     const ver = (b, estilo) => b ? (estilo || '') : 'display: none';
     const textos = {
       3: ['¿Cómo se llama?', 'Como lo dirías en WhatsApp.'],
@@ -251,18 +314,26 @@ class Component extends DCLogic {
       5: ['¿Cuánto cuesta?', 'Si cambia por talla o color, lo ajustas aquí.'],
       6: ['¿Cuánto cuesta?', 'Si cambia por talla o color, lo ajustas aquí.'],
       7: ['¿Cuántos tienes ahora?', 'Al despachar, baja solito.'],
-      8: ['¿Cuándo llega?', 'Se puede pedir aunque no haya.'],
-      11: ['¿Cuántos tienes ahora?', 'Al despachar, baja solito.']
+      8: ['¿Cuándo llega?', 'Se puede pedir aunque no haya.']
+    };
+    const tp = {
+      11: ['¿En qué cambia?', 'Elige lo que cambia entre una y otra.'],
+      12: ['¿Qué tallas hay?', 'Toca las que vendes.'],
+      13: ['¿Y qué colores?', 'Puedes poner una foto para cada uno.'],
+      14: ['¿Y qué colores?', 'Puedes poner una foto para cada uno.']
     };
     const t = textos[paso] || ['', ''];
-    const conPres = paso === 11;
+    const p = tp[paso] || ['', ''];
     return {
       pasoNum: momento,
-      barras: [1, 2, 3, 4, 5].map((i) => ({ estilo: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (i <= momento ? '#174b3a' : '#e7dcc8') })),
-      estiloAtras: paso === 1 ? 'opacity: .35' : (paso === 10 ? 'visibility: hidden' : ''),
+      maxBarras: nBarras,
+      barras: Array.from({ length: nBarras }, (_, k) => ({ estilo: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (k + 1 <= momento ? '#174b3a' : '#e7dcc8') })),
+      estiloAtras: paso === 1 ? 'opacity: .35' : '',
       vistaFoto: ver(paso <= 2, 'position: absolute; left: 20px; right: 20px; top: 180px'),
-      vistaPreguntas: ver((paso >= 3 && paso <= 8) || paso === 11, 'position: absolute; left: 20px; right: 20px; top: 180px'),
-      vistaListo: ver(paso === 9 || paso === 12, 'position: absolute; left: 20px; right: 20px; top: 176px'),
+      vistaPreguntas: ver(paso >= 3 && paso <= 8, 'position: absolute; left: 20px; right: 20px; top: 180px'),
+      vistaPres: ver(paso >= 11 && paso <= 14, 'position: absolute; left: 20px; right: 20px; top: 180px; bottom: 96px; overflow: hidden'),
+      vistaPresInterior: paso === 14 ? 'margin-top: -150px' : '',
+      vistaListo: ver(paso === 9 || paso === 15, 'position: absolute; left: 20px; right: 20px; top: 176px'),
       vistaCelebra: ver(paso === 10, 'position: absolute; left: 20px; right: 20px; top: 200px'),
       sinFoto: ver(paso === 1, 'position: absolute; inset: 14px; border: 2px dashed #9c8b6e; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px'),
       fotoGrande: ver(paso === 2, 'width: 100%; height: 100%; object-fit: cover'),
@@ -272,11 +343,18 @@ class Component extends DCLogic {
       huecoRetoque: ver(paso === 2, 'margin-top: 10px; border: 1.5px dashed #c9bda7; border-radius: 14px; padding: 8px 12px; font-size: 12px; color: #8a8a7a; text-align: center'),
       nombreVista: ver(paso >= 4, 'margin: 0; font-size: 24px'),
       precioVista: ver(paso >= 6, 'display: flex; align-items: center; gap: 10px; margin-top: 2px; flex-wrap: wrap'),
-      textoPrecio: conPres ? 'Desde RD$1,450' : 'RD$1,450',
-      pildoraTallas: conPres ? 'height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.22); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center' : 'display: none',
-      puntosColor: conPres ? 'display: inline-flex; gap: 4px; align-items: center' : 'display: none',
+      textoPrecio: 'RD$1,450',
+      pildoraTallas: 'display: none',
+      puntosColor: 'display: none',
       llegaVista: ver(paso === 8, 'margin: 2px 0 0; font-size: 14px; font-weight: 700; opacity: .9'),
       pregunta: t[0], ayuda: t[1],
+      preguntaPres: p[0], ayudaPres: p[1],
+      pTallas: paso >= 12 ? 'height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.22); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center' : 'display: none',
+      pColores: paso >= 13 ? 'display: inline-flex; gap: 4px; align-items: center' : 'display: none',
+      bloque11: ver(paso === 11, 'margin-top: 14px'),
+      bloque12: ver(paso === 12, 'margin-top: 14px'),
+      bloque13: ver(paso === 13 || paso === 14, 'margin-top: 14px'),
+      resumenInventario: ver(paso === 14, 'margin-top: 16px'),
       entradaNombre: ver(paso === 3 || paso === 4, 'margin-top: 16px'),
       textoNombre: paso === 4 ? '' : 'display: none',
       entradaPrecio: ver(paso === 5 || paso === 6, 'margin-top: 16px'),
@@ -286,14 +364,14 @@ class Component extends DCLogic {
       chipVarias: paso === 6 ? 'margin-top: 10px' : 'display: none',
       entradaStock: ver(paso === 7, 'margin-top: 14px'),
       entradaEncargo: ver(paso === 8, 'margin-top: 14px'),
-      entradaResumen: ver(paso === 11, 'margin-top: 14px'),
-      textoPrecioReel: paso === 12 ? 'Desde RD$1,450' : 'RD$1,450',
-      verPresentaciones: paso === 12 ? 'margin-top: 10px; height: 40px; padding: 0 16px 0 10px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.7); background: rgba(16,54,42,.35); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800' : 'display: none',
-      pieSinFoto: ver(paso === 1, 'display: flex'),
-      pieSeguir: ver((paso >= 2 && paso <= 8) || paso === 11, 'display: flex'),
-      piePublicar: ver(paso === 9 || paso === 12, 'display: flex; flex-direction: column; gap: 4px'),
+      textoPrecioReel: paso === 15 ? 'Desde RD$1,450' : 'RD$1,450',
+      verPresentaciones: paso === 15 ? 'margin-top: 10px; height: 40px; padding: 0 16px 0 10px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.7); background: rgba(16,54,42,.35); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800' : 'display: none',
+      textoSeguir: 'Seguir',
+      pieSinFoto: ver(paso === 1, 'display: flex; gap: 10px'),
+      pieSeguir: ver((paso >= 2 && paso <= 8) || (paso >= 11 && paso <= 14), 'display: flex; gap: 10px'),
+      piePublicar: ver(paso === 9 || paso === 15, 'display: flex; flex-direction: column; gap: 4px'),
       pieCelebra: ver(paso === 10, 'display: flex; flex-direction: column; gap: 10px'),
-      seguir: () => this.setState({ paso: Math.min(10, paso + 1) }),
+      seguir: () => this.setState({ paso: Math.min(15, paso + 1) }),
       atras: () => this.setState({ paso: Math.max(1, paso - 1) }),
       reiniciar: () => this.setState({ paso: 1 })
     };

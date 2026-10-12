@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Presentaciones: otra hoja encima</title>
+<title>Inventario: otra hoja encima</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -37,82 +37,43 @@ body{margin:0}
   <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(16,54,42,.5)"></div>
 
   <!-- La hoja «Presentaciones», encima -->
-  <section role="dialog" aria-label="Presentaciones" style="position: absolute; left: 0; right: 0; top: 118px; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 34px rgba(16,54,42,.28)">
+  <section role="dialog" aria-label="Inventario" style="position: absolute; left: 0; right: 0; top: 118px; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 34px rgba(16,54,42,.28)">
     <div aria-hidden="true" style="position: absolute; left: 50%; top: 8px; width: 40px; height: 5px; margin-left: -20px; border-radius: 999px; background: #e7dcc8"></div>
   </section>
-  <div style="position: absolute; left: 16px; right: 16px; top: 134px; display: flex; align-items: center; gap: 10px">
-    <button type="button" class="circ" aria-label="Atrás" onClick="{{atras}}" style="{{estiloAtras}}">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
-    </button>
-    <h2 class="disp" style="margin: 0; flex: 1; text-align: center; font-size: 22px">Presentaciones</h2>
+  <div style="position: absolute; left: 20px; right: 16px; top: 134px; display: flex; align-items: center; gap: 10px">
+    <h2 class="disp" style="margin: 0; flex: 1; font-size: 22px">Inventario</h2>
     <button type="button" class="circ" aria-label="Cerrar">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
     </button>
   </div>
-  <div style="position: absolute; left: 20px; right: 20px; top: 188px">
-    <div role="progressbar" aria-label="Paso" aria-valuemin="1" aria-valuemax="2" aria-valuenow="{{pasoNum}}" style="display: flex; gap: 4px">
-      <span style="flex: 1; height: 4px; border-radius: 999px; background: #174b3a"></span>
-      <span style="{{barra2}}"></span>
-    </div>
-    <p class="sec" style="margin: 6px 0 0; font-weight: 700">{{textoPaso}}</p>
-  </div>
+  <p class="sec" style="position: absolute; left: 20px; right: 20px; top: 188px; margin: 0; font-size: 14px">Cuántas tienes de cada una. Al despachar, baja solito.</p>
 
-  <!-- Paso 1 de 2: qué cambia, valores y fotos de color (todo en una hoja que scrollea) -->
-  <div style="{{vistaDefine}}">
-    <p class="et">¿En qué cambia?</p>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px">
-      <button type="button" class="ch on" aria-pressed="true">Talla</button>
-      <button type="button" class="ch on" aria-pressed="true">Color</button>
-      <button type="button" class="ch" aria-pressed="false">Tamaño</button>
-      <button type="button" class="ch" aria-pressed="false">Material</button>
-      <button type="button" class="ch" aria-pressed="false">+ Otra</button>
-    </div>
-    <p class="sec" style="margin: 6px 2px 0; font-size: 13px">Hasta 2. Para la mayoría basta con talla y color.</p>
-    <p class="et" style="margin-top: 14px">Tallas</p>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px">
-      <button type="button" class="ch" aria-pressed="false">XS</button>
-      <button type="button" class="ch on" aria-pressed="true">S</button>
-      <button type="button" class="ch on" aria-pressed="true">M</button>
-      <button type="button" class="ch on" aria-pressed="true">L</button>
-      <button type="button" class="ch" aria-pressed="false">XL</button>
-      <button type="button" class="ch" aria-pressed="false" style="border-color: #174b3a">XS a XL</button>
-    </div>
-    <p class="et" style="margin-top: 14px">Colores</p>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px">
-      <button type="button" class="ch on" aria-pressed="true"><span style="width: 16px; height: 16px; border-radius: 999px; background: #efe6d6; border: 1.5px solid #c9bda7; display: inline-block"></span>Crema</button>
-      <button type="button" class="ch on" aria-pressed="true"><span style="width: 16px; height: 16px; border-radius: 999px; background: #2f4a3c; display: inline-block"></span>Bosque</button>
-      <button type="button" class="ch" aria-pressed="false"><span style="width: 16px; height: 16px; border-radius: 999px; background: #f5c9d6; display: inline-block"></span>Rosa</button>
-      <button type="button" class="ch" aria-pressed="false"><span style="width: 16px; height: 16px; border-radius: 999px; background: #1d1d1d; display: inline-block"></span>Negro</button>
-      <button type="button" class="ch" aria-pressed="false">+ Otro</button>
-    </div>
-    <p class="et" style="margin-top: 14px">Foto de cada color · opcional</p>
-    <div style="display: flex; gap: 10px">
-      <button type="button" style="flex: 1; min-width: 0; border: 1.5px dashed #9c8b6e; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; gap: 10px; text-align: left"><span style="width: 44px; height: 54px; border-radius: 10px; overflow: hidden; background: #f3ead9; flex-shrink: 0; display: block"><img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: 30% 40%"></img></span><span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">Crema</span><span class="sec" style="font-size: 12px">Foto 1</span></span></button>
-      <button type="button" style="flex: 1; min-width: 0; border: 1.5px dashed #9c8b6e; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; gap: 10px; text-align: left"><span style="width: 44px; height: 54px; border-radius: 10px; overflow: hidden; background: #f3ead9; flex-shrink: 0; display: block"><img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: 85% 40%"></img></span><span style="min-width: 0"><span style="display: block; font-size: 14px; font-weight: 800">Bosque</span><span class="sec" style="font-size: 12px">Elegir foto</span></span></button>
-    </div>
-  </div>
-
-  <!-- Paso 2 de 2: cuántos de cada una -->
+  <!-- Inventario: cuántas tienes de cada una (hoja encima de la hoja principal) -->
   <div style="{{vistaCuantos}}">
-    <div class="fila" style="height: 56px">
-      <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">6 presentaciones · 21 en total</span><span class="sec" style="font-size: 13px">Talla S · M · L · Color Crema · Bosque</span></span>
-      <button type="button" style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; font-size: 13px; font-weight: 800">Cambiar</button>
-    </div>
     <div class="fila" style="margin-top: 8px">
       <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
-      <button type="button" role="switch" aria-checked="false" aria-label="Es por encargo" class="sw" style="background: #e7dcc8"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
+      <button type="button" role="switch" aria-checked="{{encargoOn}}" aria-label="Es por encargo" class="sw" style="{{swEncargo}}"><span style="{{perillaEncargo}}"></span></button>
+    </div>
+    <div style="{{plazo}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px">
+        <span class="ch" style="height: 40px; padding: 0 12px; font-size: 14px">3 a 5 días</span>
+        <span class="ch on" style="height: 40px; padding: 0 12px; font-size: 14px">1 a 2 semanas</span>
+        <span class="ch" style="height: 40px; padding: 0 12px; font-size: 14px">1 mes</span>
+        <span class="ch" style="height: 40px; padding: 0 12px; font-size: 14px">Otro</span>
+      </div>
     </div>
     <div class="fila" style="margin-top: 8px; height: 56px">
       <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">Cada una tiene su precio</span><span class="sec" style="font-size: 13px">Todas valen lo mismo</span></span>
       <button type="button" role="switch" aria-checked="false" aria-label="Cada una tiene su precio" class="sw" style="background: #e7dcc8"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
     </div>
+    <div style="{{bloqueStock}}">
     <div class="fila" style="margin-top: 8px">
       <span style="flex: 1; font-size: 16px; font-weight: 800">Poner a todas</span>
       <button type="button" class="rd" aria-label="Quitar uno">−</button>
       <span class="disp" style="min-width: 24px; text-align: center; font-size: 18px">2</span>
       <button type="button" class="rdp" aria-label="Agregar uno">+</button>
     </div>
-    <div style="margin-top: 10px; height: 232px; overflow: auto; display: flex; flex-direction: column; gap: 10px">
+    <div style="margin-top: 10px; height: 250px; overflow: auto; display: flex; flex-direction: column; gap: 10px">
       <div style="background: #fff; border: 1px solid #efe4d2; border-radius: 18px; overflow: hidden; flex-shrink: 0">
         <div style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 8px; background: #f3ead9"><span style="width: 18px; height: 18px; border-radius: 999px; background: #efe6d6; border: 1.5px solid #c9bda7; display: inline-block"></span><span style="font-size: 14px; font-weight: 800; flex: 1">Crema</span><span class="sec" style="font-size: 13px">12 en total</span></div>
         <div style="height: 46px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #efe4d2"><span style="width: 28px; font-size: 16px; font-weight: 800">S</span><span style="flex: 1"></span><button type="button" class="rd" aria-label="Quitar uno">−</button><span class="disp" style="min-width: 28px; text-align: center; font-size: 18px">4</span><button type="button" class="rdp" aria-label="Agregar uno">+</button></div>
@@ -125,10 +86,13 @@ body{margin:0}
         <div style="height: 46px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #efe4d2"><span style="width: 28px; font-size: 16px; font-weight: 800">M</span><span style="flex: 1"></span><button type="button" class="rd" aria-label="Quitar uno">−</button><span class="disp" style="min-width: 28px; text-align: center; font-size: 18px">4</span><button type="button" class="rdp" aria-label="Agregar uno">+</button></div>
       </div>
     </div>
+    </div>
+    <p style="{{notaEncargo}}">No tienes que llevar la cuenta de cuántas hay: se avisa de «Llega en 1 a 2 semanas».</p>
   </div>
 
-  <!-- Pie de la hoja «Presentaciones»: un solo botón -->
-  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px">
+  <!-- Pie de la hoja «Inventario»: ‹ atrás abajo a la izquierda + botón principal -->
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; display: flex; gap: 10px">
+    <button type="button" aria-label="Atrás" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
     <button type="button" class="btn" onClick="{{seguir}}">{{textoSeguir}}</button>
   </div>
 
@@ -165,16 +129,18 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state || {};
     const paso = s.paso ?? (this.props.paso ?? 1);
-    // 1 Paso 1 de 2 (qué cambia, valores, fotos) · 2 Paso 2 de 2 (cuántos de cada una) · 3 detalle de una presentación
+    // 1 Inventario (cantidades) · 2 Inventario con «por encargo» · 3 detalle de una presentación (hoja inferior)
     const ver = (b, estilo) => b ? (estilo || '') : 'display: none';
+    const enc = paso === 2;
     return {
-      pasoNum: paso === 1 ? 1 : 2,
-      barra2: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (paso === 1 ? '#e7dcc8' : '#174b3a'),
-      textoPaso: paso === 1 ? 'Paso 1 de 2' : 'Paso 2 de 2',
-      estiloAtras: paso === 1 ? 'opacity: .35' : '',
-      vistaDefine: ver(paso === 1, 'position: absolute; left: 20px; right: 20px; top: 232px'),
-      vistaCuantos: ver(paso >= 2, 'position: absolute; left: 20px; right: 20px; top: 232px'),
-      textoSeguir: paso === 1 ? 'Seguir' : 'Listo · 21 en total',
+      encargoOn: enc ? 'true' : 'false',
+      swEncargo: 'background: ' + (enc ? '#174b3a' : '#e7dcc8'),
+      perillaEncargo: 'position: absolute; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff; ' + (enc ? 'right: 2px' : 'left: 2px'),
+      plazo: ver(enc),
+      bloqueStock: ver(!enc),
+      notaEncargo: enc ? 'margin: 14px 2px 0; font-size: 14px; color: #4f6a5e' : 'display: none',
+      vistaCuantos: 'position: absolute; left: 20px; right: 20px; top: 222px',
+      textoSeguir: 'Listo · ' + (enc ? 'por encargo' : '21 en total'),
       sombra: ver(paso === 3, 'position: absolute; inset: 0; background: rgba(16,54,42,.45)'),
       hojaDetalle: ver(paso === 3, 'position: absolute; left: 0; right: 0; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; padding: 10px 20px 20px; box-shadow: 0 -8px 30px rgba(16,54,42,.2)'),
       seguir: () => this.setState({ paso: Math.min(3, paso + 1) }),
