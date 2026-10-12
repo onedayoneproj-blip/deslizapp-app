@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { dinero } from "@/lib/tienda/carrito";
 import { modoOpiniones } from "@/lib/tienda/tema";
-import { detallesDe, lineaCorta, mostrarDetalle, type AbanicoColeccion } from "@/lib/tienda/catalogo";
+import { detallesDe, lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
 import {
   accionCorazon,
   agotadoPara,
@@ -41,7 +41,6 @@ export function Reel({
   abrirFicha,
   registrarBurst,
   pausado = false,
-  coleccion = null,
   conVistaEnfocada = true,
 }: {
   p: ProductoPublico;
@@ -68,7 +67,6 @@ export function Reel({
   /** Una hoja o el perfil están encima del reel: sus fotos no avanzan solas. */
   pausado?: boolean;
   /** La colección del producto: va arriba a la derecha como el abanico de «Colecciones», con su carátula al frente. */
-  coleccion?: AbanicoColeccion | null;
   /** Ver la foto en grande (toque, pellizco, teclado y botón). La vista previa del panel la apaga. */
   conVistaEnfocada?: boolean;
 }) {
@@ -265,18 +263,8 @@ export function Reel({
           </>
         )}
         <div className="shade ov" />
-        {(coleccion || enPedido) && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "") + (conVistaEnfocada && p.medios.some((m) => m.tipo === "foto") ? " con-expandir" : "")}>
+        {enPedido && <div className={"topmeta ov" + (p.medios.length > 1 ? " con-historias" : "") + (conVistaEnfocada && p.medios.some((m) => m.tipo === "foto") ? " con-expandir" : "")}>
           <span>{enPedido && <span className="inbadge">En tu pedido</span>}</span>
-          {coleccion && (
-            <span className="hcov reel-coleccion" role="img" aria-label={"Colección " + coleccion.nombre} data-coleccion={coleccion.nombre}>
-              {coleccion.portadas.map((src, n) => (
-                <span key={n} className={"hc " + ["hc-f", "hc-i", "hc-d"][n]}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img loading="lazy" src={src} alt="" />
-                </span>
-              ))}
-            </span>
-          )}
         </div>}
         <div className="cap ov">
           <button
