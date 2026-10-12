@@ -70,7 +70,7 @@ import { CAMPOS_POR_RUBRO, OPCIONES_TIPICAS, rubrosDeTienda, type Detalles, type
 import type { FotosPorValor, OpcionProducto, Producto } from "@/lib/types";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, useAvisarAlSalir } from "../hoja";
+import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamara } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
@@ -467,12 +467,12 @@ function Historia({
   const botonAtras = <BotonAtras alTocar={atras} apagado={pasoAnterior(paso, servicio, variantes) === null} />;
   const pie = (contenido: ReactNode, aviso?: ReactNode) => (
     <HojaFijoAbajo>
-      {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones.
-          Arriba deja lo justo del lienzo (6 px en «Así se ve», 10 en las preguntas) para no tapar lo último de la pantalla. */}
-      <div className={clases("pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pb-[max(1.5rem,var(--safe-abajo))]", paso === "vista" ? "pt-1.5" : "pt-2.5")} data-pie-historia="">
+      {/* Sin recuadro: los botones flotan sobre un desenfoque progresivo (PieFlotante). Arriba deja lo justo del lienzo
+          (6 px en «Así se ve», 10 en las preguntas); un aviso va completo encima de los botones, en su propia píldora. */}
+      <PieFlotante className={clases("flex flex-col gap-2.5", paso === "vista" ? "pt-1.5" : "pt-2.5")} data-pie-historia="">
         {aviso}
         {contenido}
-      </div>
+      </PieFlotante>
     </HojaFijoAbajo>
   );
 
@@ -662,7 +662,7 @@ function Historia({
             </div>
             <Boton jerarquia="terciario" className="h-9!" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
           </div>,
-          llenoPlan && !sinFoto ? <p role="status" className="text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
+          llenoPlan && !sinFoto ? <p role="status" className="rounded-radio-m bg-fondo/90 px-3 py-1.5 text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
         )}
       {paso === "listo" &&
         hecho &&

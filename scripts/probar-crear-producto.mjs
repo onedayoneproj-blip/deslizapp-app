@@ -88,14 +88,20 @@ async function tarjeta(page, nombre, clave = "tarjeta") {
   ok(Math.abs(r.h - 372) < 1 && Math.abs(r.w - r.util) < 1 && Math.abs(r.x - 20) < 1 && r.cubre !== false && (top === undefined || Math.abs(top - r.y) < 1),
     `${nombre}: tarjeta ${Math.round(r.w)}×${Math.round(r.h)} de margen a margen, en y=${Math.round(r.y)}${top === undefined ? "" : " (el mismo lugar)"}${r.cubre ? ", foto en cover" : ""}`);
 }
-/** La barra de abajo es sólida (el fondo de la hoja, sin transparencia) y ocupa todo el ancho: nada asoma por ella ni a sus lados. */
+/** El pie flota sin recuadro: su fondo es transparente y detrás lleva el borde difuminado invertido (de lado a lado, 24 px por encima). */
 async function pieOpaco(page, nombre) {
   const r = await page.locator("[data-pie-historia]").evaluate((e) => {
     const c = getComputedStyle(e);
+    const borde = e.parentElement.querySelector(".hoja-borde-abajo");
     const b = e.getBoundingClientRect();
-    return { fondo: c.backgroundColor, ancho: b.width, hoja: e.closest("[data-hoja-panel]").getBoundingClientRect().width };
+    const d = borde?.getBoundingClientRect();
+    return {
+      fondo: c.backgroundColor, capas: borde ? borde.children.length : 0, ancho: d?.width ?? 0, hoja: e.closest("[data-hoja-panel]").getBoundingClientRect().width,
+      encima: d ? b.top - d.top : 0, abajo: d ? Math.abs(d.bottom - b.bottom) : 99,
+    };
   });
-  ok(/^rgb\(/.test(r.fondo) && Math.abs(r.ancho - r.hoja) < 1, `${nombre}: la barra de abajo es sólida y de lado a lado (${r.fondo})`);
+  ok(r.fondo === "rgba(0, 0, 0, 0)" && r.capas === 5 && Math.abs(r.ancho - r.hoja) < 1 && Math.abs(r.encima - 24) < 1 && r.abajo < 1,
+    `${nombre}: el pie flota sin recuadro, con el desenfoque de lado a lado y 24 px por encima (${Math.round(r.encima)} px)`);
 }
 /** Al final del contenido, nada queda detrás de la barra fija de abajo. */
 async function nadaDetrasDelPie(page, sel, nombre) {
