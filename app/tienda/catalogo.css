@@ -1938,14 +1938,11 @@ html.catalogo-html,
   color: var(--ink);
 }
 :where(.catalogo-publico) .pname {
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: 28px;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
   margin: 14px 0 2px;
-}
-:where(.catalogo-publico) .pname em {
-  font-style: italic;
-  color: var(--accent);
 }
 :where(.catalogo-publico) .pbio {
   margin: 0;
