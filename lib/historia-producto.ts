@@ -2,7 +2,8 @@
 // pasos, sus textos, «¿Cuándo llega?» y la celebración. Sin React: se prueba en tests/historia-producto.test.mjs.
 import { esEjeColor } from "./colores";
 import { PRODUCTOS_SUGERIDOS_PARA_PUBLICAR } from "./config";
-import { entreLos } from "./presentaciones";
+import { claveVariante, entreLos } from "./presentaciones";
+import type { Producto } from "./types";
 
 /**
  * Los momentos de la historia. «listo» es la celebración: no lleva barra propia. Con presentaciones (ronda 3, Bloque 2), lo que
@@ -120,3 +121,22 @@ export function lineaArranque(cuentan: number, sugeridos: number = PRODUCTOS_SUG
 
 /** El titular a mano de la celebración (la única Caveat de esa pantalla). */
 export const tituloCelebracion = (visible: boolean) => (visible ? "¡Ya está en tu catálogo!" : "¡Quedó guardado!");
+
+/**
+ * Las presentaciones quitadas a mano (en su detalle del Inventario) siguen quitadas aunque cambien otros valores. Solo vuelven las
+ * de un valor que se vuelve a poner a propósito (se quitó y se elige otra vez): sacarlo y ponerlo trae sus combinaciones de nuevo.
+ */
+export function quitadasTrasCambiar(quitadas: string[], eje: string, antes: string[], despues: string[]): string[] {
+  const vuelven = despues.filter((v) => !antes.includes(v));
+  if (vuelven.length === 0) return quitadas;
+  return quitadas.filter((k) => !vuelven.some((v) => k.split("|").includes(claveVariante({ [eje]: v }))));
+}
+
+/**
+ * La lista de productos de la tienda con los que se acaban de crear en esta historia, aunque la consulta todavía no los traiga
+ * (refresca después de guardar): así el límite del plan cuenta el recién publicado al tocar «Agregar otro».
+ */
+export function conLosCreados(productos: Producto[], creados: Producto[]): Producto[] {
+  const nuevos = creados.filter((c) => !productos.some((p) => p.id === c.id));
+  return nuevos.length === 0 ? productos : [...productos, ...nuevos];
+}

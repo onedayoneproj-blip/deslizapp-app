@@ -14,6 +14,7 @@ import { formatearPesos } from "@/lib/formato";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
+  conLosCreados,
   lineaArranque,
   lineaCelebracion,
   ordenDePreguntas,
@@ -22,6 +23,7 @@ import {
   pasoSiguiente,
   pasosDeHistoria,
   puedeSeguir,
+  quitadasTrasCambiar,
   SIN_FOTO,
   textosDeEje,
   textosDelPaso,
@@ -94,7 +96,10 @@ export function HistoriaProducto() {
   const [abierta, setAbierta] = useState(true);
   const cerrar = useCallback(() => setAbierta(false), []);
   const alSalir = useCallback(() => router.push("/catalogo", { scroll: false }), [router]);
-  const { data: productos, error, reintentar } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  const { data: consultados, error, reintentar } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
+  // Los creados en esta historia cuentan ya, aunque la consulta aún no los traiga: el límite del plan no se salta con «Agregar otro».
+  const [creados, setCreados] = useState<Producto[]>([]);
+  const productos = useMemo(() => (consultados ? conLosCreados(consultados, creados) : undefined), [consultados, creados]);
   const [paso, setPaso] = useState<PasoHistoria>("foto");
   // «Agregar otro» empieza una historia nueva (otro borrador) en la misma hoja.
   const [vuelta, setVuelta] = useState(0);
@@ -134,7 +139,7 @@ export function HistoriaProducto() {
       ) : (
         <Historia
           key={`${tiendaId}:${vuelta}`} paso={paso} alCambiarPaso={setPaso} servicio={servicio} productos={productos} ranuraCatalogo={ranuraCatalogo}
-          variantes={variantes} alCambiarVariantes={setVariantes}
+          variantes={variantes} alCambiarVariantes={setVariantes} alCrear={(p) => setCreados((l) => [...l, p])}
           alOtro={() => { setVuelta((v) => v + 1); setPaso("foto"); setVariantes(null); }}
         />
       )}
@@ -153,7 +158,9 @@ function Historia({
   ranuraCatalogo,
   variantes,
   alCambiarVariantes,
+  alCrear,
 }: {
+  alCrear: (p: Producto) => void;
   ranuraCatalogo: HTMLElement | null;
   variantes: number | null;
   alCambiarVariantes: (n: number | null) => void;
@@ -293,8 +300,9 @@ function Historia({
     alCambiarVariantes(nuevos.length);
   };
   const ponerValores = (nombreEje: string, valores: string[]) => {
+    const antes = ejes.find((e) => e.nombre === nombreEje)?.valores ?? [];
     setEjes((l) => l.map((e) => (e.nombre === nombreEje ? { ...e, valores } : e)));
-    setQuitadas([]);
+    setQuitadas((q) => quitadasTrasCambiar(q, nombreEje, antes, valores));
   };
   /** Quitar un valor que ya tiene cantidades pregunta antes: esas unidades se pierden. */
   const alternarValorDe = (eje: EjeHistoria, valor: string) => {
@@ -340,6 +348,7 @@ function Historia({
     );
     setGuardando(false);
     if (!r) return;
+    alCrear(r.producto);
     if (variosTipos) guardarCatalogoAlCrear(tienda.id, tipo);
     // Lo que dice la celebración ya es el aviso de siempre; solo se avisa aparte lo que trae algo más (taller, ficha).
     if (!r.comun) toast(r.mensaje);

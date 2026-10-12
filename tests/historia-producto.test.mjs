@@ -98,3 +98,21 @@ test("la pregunta de cada cosa", () => {
   assert.equal(H.textosDeEje("Material", false).titulo, "¿Qué materiales hay?");
   assert.equal(H.textosDeEje("Tamaño", true).ayuda, "Toca los que vendes.");
 });
+
+test("las presentaciones quitadas siguen quitadas al cambiar otros valores; vuelven solo si se reintroduce su valor", () => {
+  const quitadas = ["Color=Negro|Talla=S", "Color=Rojo|Talla=M"];
+  // Sumar Azul no trae de vuelta ninguna.
+  assert.deepEqual(H.quitadasTrasCambiar(quitadas, "Color", ["Negro", "Rojo"], ["Negro", "Rojo", "Azul"]), quitadas);
+  // Quitar un valor tampoco.
+  assert.deepEqual(H.quitadasTrasCambiar(quitadas, "Talla", ["S", "M", "L"], ["S", "M"]), quitadas);
+  // Rojo se había quitado del eje y se elige otra vez: vuelven sus combinaciones.
+  assert.deepEqual(H.quitadasTrasCambiar(quitadas, "Color", ["Negro"], ["Negro", "Rojo"]), ["Color=Negro|Talla=S"]);
+});
+
+test("el plan cuenta el producto recién creado aunque la consulta todavía no lo traiga", () => {
+  const p = (id, activo = true) => ({ id, activo });
+  assert.deepEqual(H.conLosCreados([p("a"), p("b")], []).map((x) => x.id), ["a", "b"]);
+  assert.deepEqual(H.conLosCreados([p("a")], [p("n")]).map((x) => x.id), ["a", "n"]);
+  // Cuando la consulta ya lo trae, no se repite.
+  assert.deepEqual(H.conLosCreados([p("a"), p("n")], [p("n")]).map((x) => x.id), ["a", "n"]);
+});

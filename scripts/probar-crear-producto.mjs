@@ -633,6 +633,78 @@ console.log("\n=== Pantalla baja (360×640): la tarjeta no se encoge; el conteni
   await ctx.close();
 }
 
+console.log("\n=== Plan con un solo lugar libre: publicar y «Agregar otro» no deja publicar otro (Codex P1) ===");
+{
+  const unoLibre = demoCon((d) => {
+    d.tiendas.find((x) => x.id === MICHEL).limiteProductos = d.productos.filter((p) => p.tiendaId === MICHEL && p.activo && !p.eliminadoEn).length + 1;
+  });
+  const { ctx, page, errores } = await pagina(390, MICHEL, unoLibre);
+  await abrir(page);
+  await subirFoto(page, "#a87");
+  await seguir(page);
+  await escribir(page, "Oud último lugar");
+  await seguir(page);
+  await escribir(page, "1500");
+  await seguir(page);
+  await seguir(page);
+  ok(await boton(page, "Publicar").isEnabled(), "Con un lugar libre, «Publicar» está");
+  await boton(page, "Publicar").tap();
+  await page.locator("[data-celebracion]").waitFor();
+  // Enseguida, sin esperar a que la lista se refresque.
+  await boton(page, "Agregar otro").tap();
+  await subirFoto(page, "#7a8");
+  await seguir(page);
+  await escribir(page, "Oud de más");
+  await seguir(page);
+  await escribir(page, "1600");
+  await seguir(page);
+  await seguir(page);
+  ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-catalogo-lleno]").isVisible()), "El nuevo borrador ya cuenta el recién publicado: «Publicar» apagado y «Tu catálogo está lleno»");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
+console.log("\n=== Una presentación quitada sigue quitada al sumar otro color (Codex P2) ===");
+{
+  const { ctx, page, errores } = await pagina(390, LINO);
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, "Bolso quitadas");
+  await seguir(page);
+  await escribir(page, "800");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await seguir(page);
+  const inv = page.locator("[data-inventario-historia]");
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  await inv.locator('[data-fila-inventario="Negro"] button').first().tap();
+  const det = page.locator("[data-hoja-presentacion]");
+  await det.waitFor();
+  await page.waitForTimeout(400);
+  await det.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.waitForTimeout(500);
+  ok((await inv.locator("[data-fila-inventario]").count()) === 1, "Quitar Negro en su detalle la saca del Inventario");
+  await boton(page, "Listo · 1 en total").tap();
+  await page.waitForTimeout(500);
+  await page.getByRole("checkbox", { name: "Azul", exact: true }).tap();
+  await page.waitForTimeout(200);
+  ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("2 presentaciones · 1 en total"), "Sumar Azul no la trae de vuelta (Blanco y Azul)");
+  await page.getByRole("button", { name: "Editar", exact: true }).tap();
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  ok((await inv.locator('[data-fila-inventario="Negro"]').count()) === 0, "…y en el Inventario no está Negro");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
 console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
 {
   const { ctx, page, errores } = await pagina(390, MICHEL);
