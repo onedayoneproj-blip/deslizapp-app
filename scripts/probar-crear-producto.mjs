@@ -159,9 +159,11 @@ for (const ancho of ANCHOS) {
       ok(tit.y + tit.height <= bar.y && Math.abs(x.y + x.height / 2 - (bar.y + bar.height / 2)) < 2 && x.x >= bar.x + bar.width, "…fila 1 el título; fila 2 las barras y la ✕");
       const t = await page.locator("[data-marco-foto]").boundingBox();
       ok(Math.abs(t.y - 126) < 1.5, `…el contenido empieza en y=${Math.round(t.y)} (126)`);
-      const atras = await boton(page, "Atrás").boundingBox();
-      const pieTop = await page.locator("[data-pie-historia]").boundingBox();
-      ok(atras.width === 52 && atras.y >= pieTop.y && (await boton(page, "Atrás").isDisabled()), "«Atrás» abajo (52 px), apagado en la primera pregunta");
+      // Primer paso: sin «‹» (se quita, no se apaga) y «Seguir sin foto» ocupa el pie, centrado.
+      const hojaCaja = await page.locator("[data-hoja-panel]").boundingBox();
+      const sinFoto = await boton(page, "Seguir sin foto").boundingBox();
+      ok((await boton(page, "Atrás").count()) === 0, "Primer paso: no hay «Atrás» (se quita, no se apaga)");
+      ok(Math.abs(sinFoto.x + sinFoto.width / 2 - (hojaCaja.x + hojaCaja.width / 2)) < 1 && Math.abs(sinFoto.width - (hojaCaja.width - 40)) < 1, "…y «Seguir sin foto» queda centrado en el pie, de margen a margen");
       ok((await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Atrás" }).count()) === 0, "…y no hay ‹ en la cabecera");
     }
     ok((await boton(page, "Tomar foto").count()) === 0 && (await boton(page, "Elegir de la galería").count()) === 0 && (await page.locator("[data-entrada-camara]").count()) === 0, "Sin «Tomar foto» ni «Elegir de la galería», y sin la entrada con capture");
@@ -177,7 +179,10 @@ for (const ancho of ANCHOS) {
       await entrada.evaluate((e) => { window.__clicEntrada = 0; e.addEventListener("click", () => window.__clicEntrada++); });
       await marco.tap();
       ok((await page.evaluate(() => window.__clicEntrada)) === 1, "Tocar el recuadro abre el selector (click en [data-entrada-medios])");
+      await marco.blur();
+      await page.waitForTimeout(400); // que termine el gesto de «tocable» (escala) antes de medir el marco
     }
+    await nadaDetrasDelPie(page, "[data-con-foto]", "Paso 1 sin foto");
     await tarjeta(page, "Paso 1 sin foto, el marco");
     ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano, al final");
     ok((await page.getByText("así se verá").count()) === 0, "En el paso 1 no sale «así se verá»");
@@ -201,6 +206,12 @@ for (const ancho of ANCHOS) {
       const tira = await page.getByText("Hasta 10. Mantén presionado para ordenar.").boundingBox();
       ok(fin.y > tira.y && (await page.locator("[data-hueco-retoque]").count()) === 1, "…«Con foto se vende más.» al final, con sitio debajo para el retoque");
     }
+    {
+      const seg = await boton(page, "Seguir").boundingBox();
+      const hojaCaja = await page.locator("[data-hoja-panel]").boundingBox();
+      ok((await boton(page, "Atrás").count()) === 0 && Math.abs(seg.x + seg.width / 2 - (hojaCaja.x + hojaCaja.width / 2)) < 1, "Con fotos, el primer paso tampoco tiene «Atrás» y «Seguir» queda centrado");
+    }
+    await nadaDetrasDelPie(page, "[data-hueco-retoque]", "Paso 1 con fotos");
     await tarjeta(page, "Paso 1 con una foto horizontal");
     await captura(page, "1-foto", ancho);
     await seguir(page);

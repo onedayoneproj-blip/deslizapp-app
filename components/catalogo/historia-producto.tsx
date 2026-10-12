@@ -631,8 +631,8 @@ function Historia({
 
       {paso === "foto" &&
         pie(
+          // Primer paso: sin «‹» (no hay a dónde volver); el botón principal ocupa todo el pie y queda centrado.
           <div className="flex items-center gap-2.5">
-            {botonAtras}
             {medios.length === 0 ? (
               <Boton jerarquia="terciario" tamano="grande" className="flex-1" onClick={seguir}>Seguir sin foto</Boton>
             ) : (

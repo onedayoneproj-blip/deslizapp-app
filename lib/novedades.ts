@@ -26,6 +26,7 @@ const TODAS: Novedad[] = [
     cambios: [
       "Al crear un producto, toca el recuadro de la foto y tu teléfono te deja elegir: fototeca, tomar foto o archivo.",
       "La hoja sube un poco para que cada paso quepa sin desplazarte.",
+      "En la primera pantalla, «Seguir» queda centrado: ya no hay «‹» que no lleva a ningún lado.",
     ],
   },
   {
