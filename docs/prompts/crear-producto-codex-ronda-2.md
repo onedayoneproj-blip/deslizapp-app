@@ -8,6 +8,7 @@ Antes de empezar: haz merge de `main` en la rama (hay cambios del catálogo, de 
 
 - **Fila 1:** solo el selector de catálogo (p. ej. «De todo ▾» / «Ropa ▾»), con aire. Sigue recordando el último catálogo usado por tienda y se oculta si la tienda tiene un solo catálogo (en ese caso la fila 1 no existe).
 - **Fila 2:** botón «atrás» (‹) a la izquierda, las **barras tipo historia** en el centro y la ✕ a la derecha.
+- **«Atrás» tiene un solo lugar fijo: arriba, en la fila 2 de la cabecera, en TODOS los pasos** (los dos flujos, «Así se ve en tu catálogo» incluido). Hoy en unos pasos está abajo junto a «Seguir» y en otros arriba: quita el ‹ de la barra inferior, que queda solo con el botón principal a todo el ancho («Seguir», «Listo · N en total», «Publicar» + «Guardar sin publicar»). En el primer paso, sin paso anterior, el ‹ se ve desactivado en el mismo sitio (no desaparece, para que nada salte).
 - Quita el título «Nuevo producto» de la cabecera si no cabe sin apretar (la pregunta de cada paso ya dice dónde estás). Nada se monta ni se recorta a 360, 390 y 430 px.
 
 ## 2. Paso de la foto
