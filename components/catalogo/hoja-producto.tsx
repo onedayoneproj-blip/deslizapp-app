@@ -40,6 +40,7 @@ import { FilaPlegable, HojaComoSeVe, TarjetaReelVistaPrevia } from "./hoja-produ
 import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
+import { FlujoPresentacionesHistoria } from "./flujo-presentaciones-historia";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
@@ -254,8 +255,8 @@ function FormularioProducto({
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
   const [momento, setMomento] = useState(1);
   const tituloHistoriaRef = useRef<HTMLHeadingElement>(null);
-  const [presentacionesAbiertas, setPresentacionesAbiertas] = useState(false);
-  const [momentoAntesDeVariantes, setMomentoAntesDeVariantes] = useState(3);
+  const [historiaVariantes, setHistoriaVariantes] = useState(false);
+  const [progresoVariantes, setProgresoVariantes] = useState({ actual: 1, total: 7 });
   const [catalogoListo, setCatalogoListo] = useState(false);
 
   // La última selección vive en este dispositivo y separada por tienda. Si el navegador la bloquea, la hoja sigue usando el catálogo abierto.
@@ -588,6 +589,7 @@ function FormularioProducto({
     if (momento === 1) { setMomento(2); return; }
     if (momento === 2 && !nombre.trim()) { toast("Ponle nombre para seguir."); return; }
     if (momento === 3 && !Number(precio)) { toast("Escribe el precio para seguir."); return; }
+    if (momento === 3 && presentaciones.opciones.length > 0) { setHistoriaVariantes(true); return; }
     if (momento === 4) {
       if (porEncargo) { setMomento(5); return; }
       if (!stockTocado && (!tieneOpciones || resumenPres.enTotal === 0)) { toast("Elige cuántas tienes o marca por encargo."); return; }
@@ -599,17 +601,24 @@ function FormularioProducto({
     }
     setMomento((m) => Math.min(6, m + 1));
   };
-  const volverHistoria = () => setMomento((m) => Math.max(1, m - 1));
+  const volverHistoria = () => {
+    if (momento === 6 && presentaciones.opciones.length > 0) {
+      setProgresoVariantes({ actual: presentaciones.opciones.length + 2, total: presentaciones.opciones.length + 5 });
+      setHistoriaVariantes(true);
+      return;
+    }
+    setMomento((m) => Math.max(1, m - 1));
+  };
 
   if (modoHistoria && !producto) {
     const pasoActual = porEncargo ? momento : momento;
     const pregunta = pasoActual === 1 ? "Empieza por la foto" : pasoActual === 2 ? "¿Cómo se llama?" : pasoActual === 3 ? "¿Cuánto cuesta?" : pasoActual === 4 ? "¿Cuántos tienes ahora?" : pasoActual === 5 ? "¿Cuándo llega?" : "Así se ve en tu catálogo";
     const foto = medios.find((m) => m.tipo === "foto");
     const avanzar = avanzarHistoria;
-    const etapas = porEncargo ? 6 : 5;
-    const barraActual = momento === 6 ? etapas : momento;
+    const etapas = historiaVariantes ? progresoVariantes.total : presentaciones.opciones.length ? presentaciones.opciones.length + 5 : porEncargo ? 6 : 5;
+    const barraActual = historiaVariantes ? Math.min(etapas, progresoVariantes.actual + 3) : momento === 6 ? etapas : momento;
     return (
-      <div className="-mt-2 flex min-h-full flex-col" data-historia-crear="" data-paso={momento}>
+      <div className="-mt-2 flex min-h-full flex-col" data-historia-crear="" data-paso={historiaVariantes ? `variantes-${progresoVariantes.actual}` : momento}>
         <HojaFijoArriba>
           <div className="flex min-h-11 items-center justify-between gap-2">
             <span className="font-display text-titulo-seccion text-texto">Nuevo producto</span>
@@ -617,10 +626,32 @@ function FormularioProducto({
           </div>
           {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
           <div className="mt-2 flex gap-1.5" aria-label={`Momento ${barraActual} de ${etapas}`}>
-            {Array.from({ length: etapas }, (_, i) => <span key={i} role="progressbar" aria-label={`Momento ${i + 1}`} aria-valuemin={0} aria-valuemax={1} aria-valuenow={i < barraActual ? 1 : 0} className={`h-[3px] flex-1 rounded-full ${i < barraActual ? "bg-accion" : "bg-borde-pastilla"}`} />)}
+          {Array.from({ length: etapas }, (_, i) => <span key={i} role="progressbar" aria-label={`Momento ${i + 1}`} aria-valuemin={0} aria-valuemax={1} aria-valuenow={i < barraActual ? 1 : 0} className={`h-[3px] flex-1 rounded-full ${i < barraActual ? "bg-accion" : "bg-borde-pastilla"}`} />)}
           </div>
         </HojaFijoArriba>
 
+        <FlujoPresentacionesHistoria
+          key={tipo}
+          activa={historiaVariantes}
+          rubro={tipo}
+          nombre={nombre}
+          precioProducto={Number(precio) || 0}
+          fotoPortada={foto?.url ?? null}
+          estado={presentaciones}
+          stockSimple={stockSimple}
+          porEncargo={porEncargo}
+          encargoTexto={encargoTexto}
+          fotos={medios.flatMap((m) => m.tipo === "foto" ? [{ id: m.id, url: m.url }] : [])}
+          agregarFoto={agregarFotoDeColor}
+          alCambiar={cambiarPresentaciones}
+          alCambiarEncargo={(valor) => { setPorEncargo(valor); if (valor) setStockValor(0); }}
+          alCambiarPlazo={setEncargoTexto}
+          alAtras={() => { setHistoriaVariantes(false); setMomento(3); }}
+          alListo={() => { setHistoriaVariantes(false); setMomento(6); }}
+          avisar={toast}
+          alEtapa={(actual, total) => setProgresoVariantes((anterior) => anterior.actual === actual && anterior.total === total ? anterior : { actual, total })}
+        />
+        {!historiaVariantes && <>
         <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto pb-4" key={momento} data-momento-historia={momento}>
           {momento === 1 && <div className="w-full max-w-[350px]">
             <div className="relative w-full" data-tarjeta-historia="foto"><SeccionMedios modoHistoria medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} className="[&_[data-foto-principal]]:h-[372px] [&_[data-foto-principal]]:aspect-auto [&_[data-foto-vacia]]:h-[372px] [&_[data-foto-vacia]]:aspect-auto" /><div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-radio-l bg-gradient-to-t from-black/75 via-transparent to-transparent"/><span aria-hidden="true" className="pointer-events-none absolute left-4 top-3 font-mano text-mano text-white">así se verá</span><div aria-hidden="true" className="pointer-events-none absolute inset-x-4 bottom-4 text-white"><p className="font-display text-destacado">{nombre || "Nombre del producto"}</p><p className="text-secundario font-extrabold">{Number(precio) ? formatearPesos(Number(precio)) : "RD$ —"}</p></div></div>
@@ -644,7 +675,7 @@ function FormularioProducto({
             {momento < 6 && <><h2 ref={momento === 1 || momento === 4 ? tituloHistoriaRef : undefined} className="font-display text-titulo-seccion leading-tight text-texto outline-none" tabIndex={-1}>{pregunta}</h2><p className="mt-1 text-cuerpo text-texto-secundario">{momento === 1 ? "Una buena foto abre la historia." : momento === 2 ? "Que tus clientas sepan qué buscar." : momento === 3 ? "Un precio claro ayuda a decidir." : momento === 4 ? "Al despachar, baja solito." : "Cuéntales cuándo lo tendrán."}</p></>}
             {momento === 1 && <><input className="sr-only" type="file" accept="image/*" capture="environment" aria-label="Tomar foto" data-camara-historia onChange={(e) => { const f = e.target.files?.[0]; if (f) void agregarFotoDeColor(f); e.target.value = ""; }} /><div className="mt-3 grid grid-cols-2 gap-3"><Boton anchoCompleto jerarquia="principal" onClick={() => document.querySelector<HTMLInputElement>("[data-camara-historia]")?.click()}>Tomar foto</Boton><Boton anchoCompleto jerarquia="secundario" onClick={() => document.querySelector<HTMLInputElement>("[data-entrada-medios]")?.click()}>Elegir de la galería</Boton></div><p className="mt-2 text-center text-secundario text-texto-secundario">Sin foto se vende menos. Puedes agregarla luego.</p></>}
             {momento === 2 && <Campo alto="historia" etiqueta="Nombre del producto" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="El nombre de tu producto" maxLength={120} />}
-            {momento === 3 && <div className="mt-3 flex flex-col gap-3"><Campo alto="precio-historia" etiqueta="Precio (RD$)" autoFocus prefijo="RD$" inputMode="numeric" enterKeyHint="done" precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" /><button type="button" onClick={() => { setMomentoAntesDeVariantes(3); setPresentacionesAbiertas(true); }} className="tocable min-h-11 self-start rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Tiene tallas o colores</button></div>}
+            {momento === 3 && <div className="mt-3 flex flex-col gap-3"><Campo alto="precio-historia" etiqueta="Precio (RD$)" autoFocus prefijo="RD$" inputMode="numeric" enterKeyHint="done" precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" /><button type="button" onClick={() => setHistoriaVariantes(true)} className="tocable min-h-11 self-start rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Tiene tallas o colores</button></div>}
             {momento === 4 && <div className="mt-5 flex flex-col items-center gap-4"><Cantidad valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar una unidad" etiquetaAgregar="Agregar una unidad" className="[&>button]:size-14 [&>span]:min-w-20 [&>span]:font-display [&>span]:text-[44px]" /><button type="button" aria-pressed={porEncargo} onClick={() => { setPorEncargo(!porEncargo); if (!porEncargo) setStockValor(0); }} className={`tocable min-h-12 w-full rounded-full border px-4 text-secundario font-bold ${porEncargo ? "border-accion bg-superficie-hundida" : "border-borde-pastilla bg-superficie"}`}>Es por encargo, no llevo stock</button></div>}
             {momento === 5 && <div className="mt-3 flex flex-col gap-3"><GrupoOpciones etiqueta="Cuándo llega" valor={["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? encargoTexto : encargoTexto && encargoTexto !== "__otro" ? "__otro" : null} alCambiar={(v) => setEncargoTexto(v === "__otro" ? "__otro" : v)} opciones={[{ id: "3 a 5 días", texto: "3 a 5 días" }, { id: "1 a 2 semanas", texto: "1 a 2 semanas" }, { id: "1 mes", texto: "1 mes" }, { id: "__otro", texto: "Otro" }]} /><Campo alto="historia" etiqueta="Otro plazo" autoFocus={encargoTexto === "__otro" || (!!encargoTexto && !["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto))} value={encargoTexto === "__otro" || ["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? "" : encargoTexto} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Escríbelo en hasta 40 letras" maxLength={40} /></div>}
             {momento === 6 && <div className="mt-3 flex flex-col gap-3"><p className="text-secundario text-texto-secundario">Hazlo brillar · opcional</p><FilaPlegable id="historia-descripcion" titulo="Descripción" detalle={descripcion ? "Lista" : "Opcional"} abierta={!!plegadas.descripcion} alAlternar={() => alternar("descripcion")}><SeccionDescripcion sinTitulo valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} /></FilaPlegable><FilaPlegable id="historia-coleccion" titulo="Colección" detalle={coleccionElegida ?? "Opcional"} abierta={!!plegadas.coleccion} alAlternar={() => setEligiendoColeccion(true)}><Boton jerarquia="secundario" onClick={() => setEligiendoColeccion(true)}>Elegir colección</Boton></FilaPlegable><FilaPlegable id="historia-ficha" titulo="Ficha técnica" detalle={fichaVisible(null, ficha) ? "Lista" : "Opcional"} abierta={!!plegadas.ficha} alAlternar={() => alternar("ficha")}><SeccionFichaTecnica sinTitulo actual={null} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} /></FilaPlegable>{tienda && conDetalles && <FilaPlegable id="historia-detalles" titulo="Detalles" detalle={Object.keys(detalles).length ? "Listos" : "Opcional"} abierta={!!plegadas.detalles} alAlternar={() => alternar("detalles")}><SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} /></FilaPlegable>}<Boton jerarquia="secundario" anchoCompleto onClick={() => setViendo(true)}>Ver reel del catálogo</Boton></div>}
@@ -656,10 +687,10 @@ function FormularioProducto({
             {momento < 6 ? <Boton anchoCompleto tamano="grande" onClick={avanzar}>Seguir</Boton> : <div className="flex w-full flex-col gap-2"><Boton anchoCompleto tamano="grande" jerarquia="resalte" cargando={guardando} deshabilitado={sinCatalogo || !listo || preparando || bloqueaVisible} onClick={() => void guardar("reposicion", null, "correccion_inventario", null, true, false)}>Publicar</Boton><Boton anchoCompleto jerarquia="terciario" deshabilitado={sinCatalogo || guardando || preparando} onClick={() => void guardar("reposicion", null, "correccion_inventario", null, true, true)}>Guardar sin publicar</Boton>{bloqueaVisible && <p className="text-center text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>}</div>}
           </div>
         </HojaFijoAbajo>
+        </>}
         {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
         <HojaColeccion abierta={eligiendoColeccion} alCerrar={() => setEligiendoColeccion(false)} colecciones={colecciones} elegida={coleccionElegida} alElegir={(n, nueva) => { setNuevaColeccion(nueva ? n : null); setCategoria(nueva ? categoria : n); setEligiendoColeccion(false); }} />
         <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible datos={datosVista} />
-        <SeccionPresentaciones mostrarResumen={false} abierta={presentacionesAbiertas} alAlternar={(abierta) => { setPresentacionesAbiertas(abierta); if (!abierta) setMomento(momentoAntesDeVariantes); else setMomentoAntesDeVariantes(momento); }} rubro={tipo} precioProducto={Number(precio) || 0} estado={presentaciones} alCambiar={cambiarPresentaciones} stockSimple={stockSimple} publicado={false} fotos={medios.flatMap((m) => m.tipo === "foto" ? [{ id: m.id, url: m.url }] : [])} agregarFoto={agregarFotoDeColor} sinPermiso={sinCatalogo} porque={porque} avisar={toast} deshabilitado={guardando} tienePedidos={tienePedidosVariante} />
         <BienvenidaRetoque datos={bienvenida?.datos ?? null} alCancelar={() => { bienvenida?.resolver(false); setBienvenida(null); }} alConfirmar={() => { marcarBienvenidaVista(tiendaId); bienvenida?.resolver(true); setBienvenida(null); }} />
         <ConfirmacionInventario inventario={inventario} />
       </div>

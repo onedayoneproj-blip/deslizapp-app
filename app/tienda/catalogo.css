@@ -9207,6 +9207,8 @@ html.catalogo-html,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* La historia del panel reduce el reel comprador a 350 px: conserva visible el texto del CTA en ese marco. */
+.catalogo-publico[data-vista-previa-reel] .pres-btn > span:last-child { flex-shrink: 0; }
 .catalogo-publico .pres-btn.elegida {
   background: #fff;
   color: var(--ink);

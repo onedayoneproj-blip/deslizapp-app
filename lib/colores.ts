@@ -7,6 +7,7 @@ const COLORES: Record<string, string> = {
   arena: "#e8d9c4",
   beige: "#e6d5b8",
   crema: "#f3e9d2",
+  bosque: "#2f4a3c",
   nude: "#e3c3a8",
   gris: "#9a9a9a",
   plateado: "#c9ccd1",

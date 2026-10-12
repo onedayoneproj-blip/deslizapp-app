@@ -37,6 +37,7 @@ const ok = (cond, msg) => {
 async function abrir(browser) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
+  await page.route("**/api/version", (route) => route.abort());
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript((alto) => {
@@ -143,6 +144,36 @@ try {
     await page.waitForTimeout(400);
     ok((await page.evaluate(() => window.__vt)) === 0, "Buscador: con el teclado abierto, cambiar de filtro no inicia transición de vista");
     ok(errores.length === 0, `Buscador: sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
+  // ---- Historia de variantes: eje y valor propios también conservan el foco.
+  {
+    const { ctx, page, errores } = await abrir(navegador);
+    await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
+    await page.goto(URL + "/catalogo/nuevo");
+    await page.waitForSelector('[role="dialog"] [data-historia-crear]');
+    await page.locator('[role="dialog"] [data-entrada-medios]').setInputFiles(join(process.cwd(), "public/catalogos/esencias-michel/fotos/yara-rosa.jpg"));
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.fill('[role="dialog"] input[placeholder="El nombre de tu producto"]', "Prueba de variantes");
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escribe el precio"]');
+    await page.fill('[role="dialog"] input[placeholder="Escribe el precio"]', "1200");
+    await page.getByRole("button", { name: "Tiene tallas o colores" }).click();
+    await page.waitForSelector('[data-presentaciones-historia][data-etapa="ejes"]');
+    const color = page.getByRole("checkbox", { name: "Color", exact: true });
+    if (await color.getAttribute("aria-checked") === "true") await color.click();
+    await page.getByRole("button", { name: "+ Otra", exact: true }).click();
+    await page.waitForSelector('[data-presentaciones-historia] input[placeholder="Escribe qué cambia"]');
+    await probarCampo(page, '[data-presentaciones-historia] input[placeholder="Escribe qué cambia"]', "Variantes · Atributo propio", "Tela", { dentroDeHoja: true });
+    await page.getByRole("button", { name: "Agregar", exact: true }).click();
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await page.waitForSelector('[data-presentaciones-historia][data-etapa="valores"]');
+    await page.getByRole("radio", { name: "+ Otro", exact: true }).click();
+    await page.waitForSelector('[data-presentaciones-historia] input[aria-label="Otro talla"]');
+    await probarCampo(page, '[data-presentaciones-historia] input[aria-label="Otro talla"]', "Variantes · Valor propio", "XXL", { dentroDeHoja: true });
+    ok(errores.length === 0, `Variantes en historia: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 
@@ -499,10 +530,20 @@ try {
     await page.waitForSelector('a[href="/catalogo/nuevo"]');
     await page.waitForTimeout(900);
     await page.tap('a[href="/catalogo/nuevo"]');
+    await page.waitForSelector('[role="dialog"] [data-historia-crear]');
+    await page.tap('[role="dialog"] button:has-text("Seguir")'); // foto opcional
     await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.fill('[role="dialog"] input[placeholder="El nombre de tu producto"]', "Producto para probar colección");
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escribe el precio"]');
+    await page.fill('[role="dialog"] input[placeholder="Escribe el precio"]', "850");
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.tap('[role="dialog"] button[aria-label="Agregar una unidad"]');
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] [data-reel-reducido]');
     await page.waitForTimeout(700);
-    // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
-    await page.tap('[role="dialog"] button:has-text("Sin colección")');
+    // La colección se elige desde la fila plegable del resumen de historia.
+    await page.getByRole("button", { name: "Colección Opcional" }).click();
     await page.waitForSelector('[role="dialog"] button:has-text("Agregar colección")');
     await page.tap('[role="dialog"] button:has-text("Agregar colección")');
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Para él"]');
@@ -587,7 +628,7 @@ try {
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL);
-    await page.getByRole('button', { name: 'Minimizar', exact: true }).click();
+    await page.getByRole('button', { name: 'Minimizar la guía', exact: true }).click();
     await page.getByRole('button', { name: /Desplegar Deja tu tienda lista/ }).click();
     await page.getByRole('group', { name: 'Capítulos de preparación' }).getByRole('button', { name: /^Capítulo 2 ·/ }).click();
     await page.getByRole('button', { name: /^Cuéntales quién eres ·/ }).click();

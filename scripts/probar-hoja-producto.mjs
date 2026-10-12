@@ -1,5 +1,4 @@
-// Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo: foto grande, Nombre y Precio, tarjeta de
-// «Presentaciones» y stock, «Más opciones» plegadas, botones «Vista previa» + «Publicar» al final, editar, Ayudante. Nunca toca Supabase.
+// Regresión del editor de producto y smoke de la historia actual de creación. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=docs/capturas/hoja-producto-rediseno] node scripts/probar-hoja-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -57,7 +56,8 @@ const bajar = (page) => page.locator("[data-hoja-contenido]").evaluate((e) => e.
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
 
-  console.log("• Producto vacío: foto grande, «Publicar» apagado hasta tener foto, nombre y precio");
+  if (process.env.LEGACY_CREATE_FLOW === "1") {
+  console.log("• Flujo anterior de creación (solo comparación histórica)");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await page.goto(`${URL}/catalogo/nuevo`);
@@ -159,6 +159,30 @@ for (const ancho of ANCHOS) {
     const p = d.productos.find((x) => x.nombre === "Aros dorados");
     ok(p && p.precio === 1850 && p.fotos.length === 3 && p.porEncargo && p.encargoTexto === "Llega en 8 días" && p.detalles.descripcion.startsWith("Aros dorados"), "Publicar guarda lo mismo de siempre");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
+    await ctx.close();
+  }
+
+  }
+
+  console.log("• Crear producto: «Tiene tallas o colores» entra en la historia integrada");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await page.goto(`${URL}/catalogo/nuevo`);
+    await page.locator("[data-historia-crear]").waitFor();
+    await page.locator("[data-entrada-medios]").setInputFiles(join(process.cwd(), "public/catalogos/esencias-michel/fotos/yara-rosa.jpg"));
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await page.getByPlaceholder("El nombre de tu producto").fill("Aros dorados");
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await page.getByPlaceholder("Escribe el precio").fill("1850");
+    await page.getByRole("button", { name: "Tiene tallas o colores" }).click();
+    await page.locator('[data-presentaciones-historia][data-etapa="ejes"]').waitFor();
+    ok(await page.getByRole("checkbox", { name: "Talla", exact: true }).getAttribute("aria-checked") === "true", "La ropa propone Talla en el paso integrado");
+    ok(await page.getByRole("checkbox", { name: "Color", exact: true }).getAttribute("aria-checked") === "true", "La ropa propone Color en el paso integrado");
+    ok(!(await page.getByText("Paso 2 de 2", { exact: true }).count()), "La creación no abre el flujo anterior separado");
+    await page.getByRole("button", { name: "Atrás", exact: true }).click();
+    await page.locator('[data-momento-historia="3"]').waitFor();
+    ok(await page.getByPlaceholder("Escribe el precio").inputValue() === "1,850", "Atrás vuelve al precio y conserva el borrador");
+    ok(errores.length === 0, `Creación: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 

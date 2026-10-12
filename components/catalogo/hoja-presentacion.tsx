@@ -24,6 +24,7 @@ export function HojaPresentacion({
   alCompletar,
   alElegirFoto,
   alQuitar,
+  mostrarQuitar = true,
 }: {
   abierta: boolean;
   presentacion: Presentacion | null;
@@ -36,6 +37,8 @@ export function HojaPresentacion({
   alCompletar: (valores: Record<string, string>) => void;
   alElegirFoto: (valor: string, id: string | null) => void;
   alQuitar: () => Promise<{ con: boolean; hacer: () => void } | null>;
+  /** Ocultar Quitar en el flujo nuevo, donde la variante se conserva y se oculta desde su switch. */
+  mostrarQuitar?: boolean;
 }) {
   // Se recuerda la última presentación para que la hoja no se vacíe mientras sale.
   const [ultima, setUltima] = useState<Presentacion | null>(null);
@@ -171,7 +174,7 @@ export function HojaPresentacion({
           <Boton jerarquia="terciario" onClick={() => alCambiar({ activa: !p.activa })}>
             {p.activa ? "Ocultar esta presentación" : "Mostrar de nuevo"}
           </Boton>
-          <Boton
+          {mostrarQuitar && <Boton
             jerarquia="terciario"
             tono="peligro"
             cargando={comprobando}
@@ -183,7 +186,7 @@ export function HojaPresentacion({
             }}
           >
             Quitar
-          </Boton>
+          </Boton>}
         </div>
       </div>
       <Alerta
