@@ -929,6 +929,83 @@ console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, t
   await ctx.close();
 }
 
+console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; quitar todas y elegir otra pregunta (auditoría completa) ===");
+{
+  const { ctx, page, errores } = await pagina(390, LINO);
+  const inv = page.locator("[data-inventario-historia]");
+  const alerta = page.getByRole("alertdialog");
+  const det = page.locator("[data-hoja-presentacion]");
+  const detalle = async (fila) => {
+    await inv.locator(`[data-fila-inventario="${fila}"] button`).first().tap();
+    await det.waitFor();
+    await page.waitForTimeout(400);
+  };
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, "Sin resucitar");
+  await seguir(page);
+  await escribir(page, "800");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await seguir(page);
+  for (const c of ["Negro", "Blanco", "Rojo"]) await page.getByRole("checkbox", { name: c, exact: true }).tap();
+  await seguir(page);
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  // Rojo quitada, Blanco oculta, nada en total (sumar Talla no tendrá nada que avisar).
+  await detalle("Rojo");
+  await det.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await alerta.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.waitForTimeout(500);
+  await detalle("Blanco");
+  await det.getByRole("button", { name: "Ocultar esta presentación" }).tap();
+  await det.getByRole("button", { name: "Listo", exact: true }).tap();
+  await page.waitForTimeout(500);
+  await page.getByRole("dialog", { name: "Inventario" }).getByRole("button", { name: "Cerrar", exact: true }).first().tap();
+  await page.waitForTimeout(600);
+  await boton(page, "Atrás").tap();
+  ok((await paso(page)) === "cambia", "De vuelta en «¿En qué cambia?»");
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await page.waitForTimeout(300);
+  ok(!(await alerta.isVisible()), "Sumar Talla sin cantidades ni precios: no pregunta");
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "S", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "M", exact: true }).tap();
+  await seguir(page);
+  await seguir(page);
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  const filas = await inv.locator("[data-fila-inventario]").evaluateAll((l) => l.map((e) => [e.getAttribute("data-fila-inventario"), e.innerText.includes("Oculta")]));
+  ok(filas.length === 4 && !filas.some(([n]) => n.startsWith("Rojo")), `Rojo (quitada) no vuelve en ninguna talla (${filas.map(([n]) => n).join(", ")})`);
+  ok(filas.filter(([n]) => n.startsWith("Blanco")).every(([, o]) => o) && filas.filter(([n]) => n.startsWith("Negro")).every(([, o]) => !o), "Blanco (oculta) sigue oculta en S y M; Negro, a la vista");
+  await inv.locator('[data-fila-inventario="Negro · S"]').getByRole("button", { name: /^Agregar uno/ }).tap();
+  await page.getByRole("button", { name: /^Listo · / }).last().tap();
+  await page.waitForTimeout(500);
+  // Quitar todas las cosas y elegir otra distinta: lo puesto se repartiría de nuevo, así que pregunta.
+  await boton(page, "Atrás").tap();
+  await boton(page, "Atrás").tap();
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await page.waitForTimeout(300);
+  await page.getByRole("checkbox", { name: "Material", exact: true }).tap();
+  ok((await alerta.isVisible()) && (await alerta.innerText()).includes("La 1 que pusiste en el Inventario vuelve a 0"), "Sin cosas, elegir Material con 1 en el Inventario pregunta antes");
+  await alerta.getByRole("button", { name: "Cancelar" }).tap();
+  await page.waitForTimeout(300);
+  // Volver a elegir la misma (Talla) no pierde nada: S sigue con su 1.
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await page.waitForTimeout(300);
+  ok(!(await alerta.isVisible()), "Volver a elegir Talla: no pregunta");
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "S", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "M", exact: true }).tap();
+  await page.waitForTimeout(300);
+  ok((await page.locator("[data-resumen-inventario]").innerText()).includes("1 en total"), "…y al elegir S y M otra vez, S conserva su 1");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
 console.log("\n=== Por encargo con todas las presentaciones ocultas: «Listo» espera una a la vista (Codex P2, 4.ª revisión) ===");
 {
   const { ctx, page, errores } = await pagina(390, LINO);

@@ -2,8 +2,8 @@
 // pasos, sus textos, «¿Cuándo llega?» y la celebración. Sin React: se prueba en tests/historia-producto.test.mjs.
 import { esEjeColor } from "./colores";
 import { PRODUCTOS_SUGERIDOS_PARA_PUBLICAR } from "./config";
-import { claveVariante, entreLos, type Presentacion } from "./presentaciones";
-import type { Producto } from "./types";
+import { claveVariante, crearTodas, entreLos, type Presentacion } from "./presentaciones";
+import type { OpcionProducto, Producto } from "./types";
 
 /**
  * Los momentos de la historia. «listo» es la celebración: no lleva barra propia. Con presentaciones (ronda 3, Bloque 2), lo que
@@ -122,6 +122,36 @@ export function lineaArranque(cuentan: number, sugeridos: number = PRODUCTOS_SUG
 /** El titular a mano de la celebración (la única Caveat de esa pantalla). */
 export const tituloCelebracion = (visible: boolean) => (visible ? "¡Ya está en tu catálogo!" : "¡Quedó guardado!");
 
+/** Las partes de una clave («Color=Negro|Talla=S» → las dos). */
+const partesDe = (clave: string) => clave.split("|");
+/** ¿`valores` contiene todo lo de `clave`? («Talla=M» está en Negro · M y en Blanco · M.) */
+const contiene = (valores: Record<string, string>, clave: string) => {
+  const suyas = partesDe(claveVariante(valores));
+  return partesDe(clave).every((x) => suyas.includes(x));
+};
+
+/**
+ * ¿Está quitada? Una clave quitada vale para toda presentación que la contenga: al sumar una cosa (Talla → Talla × Color), la M
+ * quitada sigue quitada en cada color, en vez de volver.
+ */
+export const estaQuitada = (quitadas: string[], valores: Record<string, string>) => quitadas.some((k) => contiene(valores, k));
+
+/**
+ * Todas las presentaciones del borrador (`crearTodas`) y, las nuevas, ocultas si vienen de una que estaba oculta antes de sumar
+ * una cosa (S oculta → Negro · S y Blanco · S ocultas): sumar una cosa no vuelve a la vista lo que se escondió.
+ */
+export function crearConHerencia(opciones: OpcionProducto[], borrador: Presentacion[]): Presentacion[] {
+  const exactas = new Set(borrador.map((p) => claveVariante(p.valores)));
+  const ocultas = borrador.filter((p) => !p.activa).map((p) => claveVariante(p.valores));
+  return crearTodas(opciones, borrador).map((p) => (!exactas.has(claveVariante(p.valores)) && ocultas.some((k) => contiene(p.valores, k)) ? { ...p, activa: false } : p));
+}
+
+/**
+ * Al sumar una cosa se reparte de nuevo (las cantidades y los precios vuelven a 0), pero lo escondido sigue escondido: quedan
+ * solo las ocultas, sin cantidad ni precio, para que `crearConHerencia` esconda las nuevas que salen de ellas.
+ */
+export const borradorAlSumarEje = (pres: Presentacion[]): Presentacion[] => pres.filter((p) => !p.activa).map((p) => ({ ...p, stock: 0, precio: null }));
+
 /**
  * Las presentaciones quitadas a mano (en su detalle del Inventario) siguen quitadas aunque cambien otros valores. Solo vuelven las
  * de un valor que se vuelve a poner a propósito (se quitó y se elige otra vez): sacarlo y ponerlo trae sus combinaciones de nuevo.
@@ -170,8 +200,7 @@ export function juntarPorEjes(pres: Presentacion[], quedan: string[]): Presentac
  * nueva sigue quitada solo si TODAS las que la forman estaban quitadas (si una sigue, la junta vive).
  */
 export function quitarEje(todas: Presentacion[], quitadas: string[], quedan: string[]): { pres: Presentacion[]; quitadas: string[] } {
-  const fuera = new Set(quitadas);
-  const vivas = todas.filter((p) => !fuera.has(claveVariante(p.valores)));
+  const vivas = todas.filter((p) => !estaQuitada(quitadas, p.valores));
   const pres = juntarPorEjes(vivas, quedan);
   const conVivas = new Set(pres.map((p) => claveVariante(p.valores)));
   const nuevasQuitadas = [...new Set(juntarPorEjes(todas, quedan).map((p) => claveVariante(p.valores)))].filter((k) => !conVivas.has(k));

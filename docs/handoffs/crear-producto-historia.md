@@ -110,12 +110,16 @@ Después, a pedido de Planning, una auditoría de **todas** las transiciones de 
 | Reintroducir valor | 0 | ninguno | sin foto | vuelven | auditoría + unitaria |
 | Sumar valor | se conservan; lo nuevo en 0 | se conservan | se conservan | siguen quitadas | Codex P2 + unitaria |
 | Quitar cosa | se suman | solo si todas iguales | la del color se guarda pero no se usa | junta quitada solo si todas | auditoría + unitarias |
-| Sumar cosa | pregunta y vuelven a 0 | pregunta y se quitan | se conservan (por color) | se limpian | auditoría |
+| Sumar cosa | pregunta y vuelven a 0 | pregunta y se quitan | se conservan (por color) | siguen quitadas en cada combinación; las ocultas, ocultas | auditoría completa + unitaria |
+| Quitar todas y elegir otra | pregunta y vuelven a 0 (la misma: se conservan) | igual | — | siguen quitadas | auditoría completa |
 | Quitar todas y volver | pasan al stock del producto | — | — | se limpian | auditoría (‹ y teléfono) |
 | Por encargo on/off | escondidas, no perdidas | se conservan | se conservan | se conservan | auditoría |
 | ✕ del Inventario / atrás-adelante | se conservan | se conservan | se conservan | se conservan | auditoría + bloque principal |
 | «Agregar otro» | historia limpia | — | — | — | auditoría |
 | Quitar presentación y tocar valores/cosas | — | — | — | ver filas de arriba | auditoría + Codex P2 |
+| Atajos de valores («Única», «XS a XL») | pregunta como quitar valor | pregunta | se va | como quitar valor | Codex P2 (5.ª) |
+
+Auditoría completa (Planning, tras la 5.ª revisión): rutas revisadas — atajos, alternar valor, quitar y ocultar en el detalle, cambiar valores del primer eje, «Poner a todas» (solo las visibles), precio propio y «Cada una tiene su precio» apagado (vuelven al precio del producto con aviso), encargo on/off, atrás y volver a cambiar, sumar y quitar cosas, quitar todas y elegir otra. Hallazgos corregidos: sumar una cosa resucitaba lo quitado y mostraba lo oculto; quitar todas las cosas y elegir otra distinta perdía las cantidades sin aviso; guardar ahora vuelve a exigir el Inventario completo. Regla: las ocultas no cuentan unidades.
 
 ## Decisiones fuera del encargo (o donde había que elegir)
 

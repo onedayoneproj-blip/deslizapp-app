@@ -14,7 +14,10 @@ import { formatearPesos } from "@/lib/formato";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
+  borradorAlSumarEje,
   conLosCreados,
+  crearConHerencia,
+  estaQuitada,
   inventarioCompleto,
   lineaArranque,
   loQueSePierde,
@@ -43,7 +46,6 @@ import {
   atajosDe,
   claveVariante,
   COSAS_QUE_CAMBIAN,
-  crearTodas,
   ejeDeFoto,
   errorDeEjes,
   errorDeNombrePropio,
@@ -207,7 +209,7 @@ function Historia({
   const [inventarioAbierto, setInventarioAbierto] = useState(false);
   const [inventarioListo, setInventarioListo] = useState(false);
   const [quitarValor, setQuitarValor] = useState<{ eje: string; valores: string[]; quitados: string[]; texto: string } | null>(null);
-  const [sumarEje, setSumarEje] = useState<{ nuevos: EjeHistoria[]; nombre: string; texto: string } | null>(null);
+  const [sumarEje, setSumarEje] = useState<{ nuevos: EjeHistoria[]; nombre: string; texto: string; borrador: Presentacion[] } | null>(null);
   const [fotoDe, setFotoDe] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<Detalles>({});
   const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
@@ -228,7 +230,7 @@ function Historia({
     ? SIN_PRESENTACIONES
     : {
         opciones: opcionesFinales,
-        pres: crearTodas(opcionesFinales, presBorrador).filter((p) => !quitadas.includes(claveVariante(p.valores))),
+        pres: crearConHerencia(opcionesFinales, presBorrador).filter((p) => !estaQuitada(quitadas, p.valores)),
         fotosColor: Object.fromEntries(Object.entries(fotosColor).filter(([v]) => opcionesFinales.some((o) => esEjeColor(o.nombre) && o.valores.includes(v)))),
       };
   const tieneOpciones = presentaciones.opciones.length > 0 && presentaciones.pres.length > 0;
@@ -317,21 +319,25 @@ function Historia({
     const entra = nuevos.find((e) => !ejes.some((x) => x.nombre === e.nombre));
     if (sale && nuevos.length > 0) {
       // Dejar de cambiar por una cosa no pierde lo puesto en el Inventario: se suma en lo que queda (las quitadas siguen fuera).
-      const todas = crearTodas(presentaciones.opciones, presBorrador);
+      const todas = crearConHerencia(presentaciones.opciones, presBorrador);
       const r = quitarEje(todas.length > 0 ? todas : presBorrador, quitadas, quedan);
       setPresBorrador(r.pres);
       setQuitadas(r.quitadas);
     }
-    if (entra && ejes.length > 0 && tieneOpciones) {
-      // Sumar una cosa reparte de nuevo: lo puesto vuelve a 0. Si había algo, se pregunta antes.
-      const unidades = totalDelBorrador(presentaciones.pres);
-      const precios = presentaciones.pres.filter((p) => p.precio !== null).length;
+    // Lo que había para repartir: el Inventario de ahora o, si se quitaron todas las cosas y se elige otra, lo que quedó guardado.
+    const previas = ejes.length > 0 ? (tieneOpciones ? presentaciones.pres : []) : presBorrador;
+    const ejesPrevios = Object.keys(previas[0]?.valores ?? {});
+    const mismos = ejesPrevios.length === quedan.length && quedan.every((n) => ejesPrevios.includes(n));
+    if (entra && previas.length > 0 && !mismos) {
+      // Sumar una cosa reparte de nuevo: lo puesto vuelve a 0 (lo quitado sigue quitado y lo oculto, oculto). Si había algo, se pregunta antes.
+      const unidades = totalDelBorrador(previas);
+      const precios = previas.filter((p) => p.precio !== null).length;
+      const borrador = borradorAlSumarEje(previas);
       if (unidades > 0 || precios > 0) {
-        const texto = `${unidades > 0 ? `Las ${unidades} que pusiste en el Inventario vuelven a 0` : "Los precios propios se quitan"} para ponerlas por ${quedan.map((n) => n.toLocaleLowerCase("es")).join(" y ")}.`;
-        return setSumarEje({ nuevos, nombre: entra.nombre, texto });
+        const texto = `${unidades === 1 ? "La 1 que pusiste en el Inventario vuelve a 0" : unidades > 0 ? `Las ${unidades} que pusiste en el Inventario vuelven a 0` : "Los precios propios se quitan"} para ponerlas por ${quedan.map((n) => n.toLocaleLowerCase("es")).join(" y ")}.`;
+        return setSumarEje({ nuevos, nombre: entra.nombre, texto, borrador });
       }
-      setPresBorrador([]);
-      setQuitadas([]);
+      setPresBorrador(borrador);
     }
     aplicarEjes(nuevos);
   };
@@ -383,6 +389,11 @@ function Historia({
     if (guardando || !tienda) return;
     if (sinCatalogo) {
       toast(porque);
+      return;
+    }
+    // Con presentaciones, nunca se guarda sin una a la vista (ni sin cantidades o plazo), aunque algo se colara hasta aquí.
+    if (conVariantes && !inventarioLleno) {
+      setInventarioAbierto(true);
       return;
     }
     const visible = publicar && !llenoPlan;
@@ -677,8 +688,7 @@ function Historia({
           alConfirmar: () => {
             const q = sumarEje!;
             setSumarEje(null);
-            setPresBorrador([]);
-            setQuitadas([]);
+            setPresBorrador(q.borrador);
             aplicarEjes(q.nuevos);
           },
         }}

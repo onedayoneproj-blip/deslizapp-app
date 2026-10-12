@@ -163,3 +163,23 @@ test("el Inventario está completo solo con alguna presentación a la vista y al
   assert.equal(H.inventarioCompleto([p(0), p(0, false)], true, "  "), false, "por encargo sin plazo");
   assert.equal(H.inventarioCompleto([p(0), p(0, false)], true, "Llega en 1 mes"), true, "por encargo con una a la vista y plazo");
 });
+
+test("sumar una cosa: lo quitado sigue quitado y lo oculto sigue oculto (en cada combinación nueva)", () => {
+  const p = (talla, stock, precio = null, activa = true) => ({ valores: { Talla: talla }, stock, precio, activa });
+  // Talla S, M, L con M quitada y L oculta → se suma Color.
+  const borrador = H.borradorAlSumarEje([p("S", 4, 1200), p("L", 2, null, false)]);
+  assert.deepEqual(borrador, [p("L", 0, null, false)], "solo queda lo oculto, sin cantidad ni precio");
+  const opciones = [{ nombre: "Color", valores: ["Negro", "Blanco"] }, { nombre: "Talla", valores: ["S", "M", "L"] }];
+  const todas = H.crearConHerencia(opciones, borrador).filter((x) => !H.estaQuitada(["Talla=M"], x.valores));
+  const clave = (x) => `${x.valores.Color}·${x.valores.Talla}`;
+  assert.deepEqual(todas.map(clave), ["Negro·S", "Negro·L", "Blanco·S", "Blanco·L"], "M no vuelve en ningún color");
+  assert.deepEqual(todas.filter((x) => !x.activa).map(clave), ["Negro·L", "Blanco·L"], "L sigue oculta en cada color");
+  assert.ok(todas.every((x) => x.stock === 0 && x.precio === null), "se reparte de nuevo: todo en 0");
+  // Una clave exacta del borrador manda sobre la herencia (mostrar Negro · L en su detalle la deja a la vista).
+  const conNegroL = [...borrador, { valores: { Color: "Negro", Talla: "L" }, stock: 1, precio: null, activa: true }];
+  assert.equal(H.crearConHerencia(opciones, conNegroL).find((x) => clave(x) === "Negro·L").activa, true);
+  // Una clave quitada completa sigue valiendo solo para ella.
+  assert.equal(H.estaQuitada(["Color=Negro|Talla=S"], { Color: "Negro", Talla: "S" }), true);
+  assert.equal(H.estaQuitada(["Color=Negro|Talla=S"], { Color: "Blanco", Talla: "S" }), false);
+  assert.equal(H.estaQuitada(["Color=Negro|Talla=S"], { Talla: "S" }), false);
+});
