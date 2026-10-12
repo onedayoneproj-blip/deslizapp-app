@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Hoja } from "../hoja";
 import { IconoChevronAbajo, IconoChevronDerecha } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
@@ -67,4 +67,32 @@ export function HojaComoSeVe({ abierta, alCerrar, datos, visible }: { abierta: b
       </div>
     </Hoja>
   );
+}
+
+/** Reel real del comprador en un marco de 350 × 440, reducido desde sus 390 × 488 sin recorte. */
+export function TarjetaReelVistaPrevia({ datos }: { datos: () => DatosVistaPrevia | null }) {
+  const marco = useRef<HTMLIFrameElement>(null);
+  const ultimos = useRef(datos);
+  const [escala, setEscala] = useState(350 / 390);
+  useEffect(() => {
+    ultimos.current = datos;
+  });
+  useEffect(() => {
+    const ajustar = () => setEscala(Math.min(350, Math.max(0, window.innerWidth - 40)) / 390);
+    ajustar();
+    window.addEventListener("resize", ajustar);
+    return () => window.removeEventListener("resize", ajustar);
+  }, []);
+  useEffect(() => {
+    const alMensaje = (e: MessageEvent) => {
+      if (e.origin !== location.origin || e.source !== marco.current?.contentWindow || e.data?.tipo !== `${MENSAJE_VISTA_PREVIA}-listo`) return;
+      const d = ultimos.current();
+      if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: d }, location.origin);
+    };
+    window.addEventListener("message", alMensaje);
+    return () => window.removeEventListener("message", alMensaje);
+  }, []);
+  return <div className="relative mx-auto h-[440px] w-full max-w-[350px] overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-reducido="">
+    <iframe ref={marco} src="/vista-previa-catalogo" title="Así se verá en el catálogo" onLoad={() => { const d = ultimos.current(); if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: d }, location.origin); }} className="absolute left-0 top-0 h-[488px] w-[390px] origin-top-left border-0" style={{ transform: `scale(${escala})` }} />
+  </div>;
 }

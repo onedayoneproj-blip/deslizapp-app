@@ -7,7 +7,7 @@ import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
 import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib/rubros";
-import { CATALOGO_GENERAL, contarPorCatalogo, leerCatalogoActivo, rubroInicialDeProducto } from "@/lib/catalogo-activo";
+import { CATALOGO_GENERAL, contarPorCatalogo, leerCatalogoActivo, guardarCatalogoActivo, rubroInicialDeProducto } from "@/lib/catalogo-activo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
@@ -21,7 +21,7 @@ import { ListaEsperaProducto } from "./hoja-espera";
 import { flushSync } from "react-dom";
 import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoAbajo, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
@@ -36,12 +36,14 @@ import { conEntregadas, MAX_MEDIOS, mediosIniciales, mediosParaGuardar, SeccionM
 import { useTaller } from "./taller";
 import { claveVariante, ejeDeFoto, presentacionesDe, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
 import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
-import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
+import { FilaPlegable, HojaComoSeVe, TarjetaReelVistaPrevia } from "./hoja-producto-filas";
 import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
+import { enlaceCatalogo } from "@/lib/enlace-catalogo";
+import { copiarTexto } from "@/lib/portapapeles";
 import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
 
 import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
@@ -50,15 +52,17 @@ import { ControlInventario, ConfirmacionInventario, HistorialInventario, Inventa
  * Hoja de producto sobre el Catálogo. Sin `productoId` crea; con `productoId` edita.
  * Al cerrar vuelve a /catalogo sin perder la búsqueda ni el filtro (los guarda el layout).
  */
-export function HojaProducto({ productoId, desdeVistaPrevia = false }: { productoId?: string; desdeVistaPrevia?: boolean }) {
+export function HojaProducto({ productoId, desdeVistaPrevia = false, modoHistoria = false }: { productoId?: string; desdeVistaPrevia?: boolean; modoHistoria?: boolean }) {
   const router = useRouter();
   const historial = useHistorialInventario();
   const { getProducto, getProductos } = useData();
-  const { tiendaId } = useTiendaActiva();
+  const { tiendaId, tienda } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
   const cerrar = useCallback(() => setAbierta(false), []);
   const eliminado = useRef(false);
   const [retirando, setRetirando] = useState(false);
+  const [historiaCreada, setHistoriaCreada] = useState<{ nombre: string; foto: string | null; indice: number; publicado: boolean; catalogoPublicado: boolean } | null>(null);
+  const [reinicioHistoria, setReinicioHistoria] = useState(0);
   const alSalir = useCallback(() => router.push(!eliminado.current && desdeVistaPrevia && productoId ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }), [router, desdeVistaPrevia, productoId]);
 
 
@@ -97,11 +101,19 @@ export function HojaProducto({ productoId, desdeVistaPrevia = false }: { product
   if (!productos) return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoCargando titulo="productos" /></Hoja>;
 
   return (
-    <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} altura="grande"
+    <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} tituloOculto={modoHistoria && !editando} altura="grande"
       fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta={`Volver a ${tituloFicha}`} /><span aria-hidden="true">{tituloFicha}</span></div> : undefined}>
       <div className={historial.abierto ? "hidden" : "contents"}>
-        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}`} producto={producto ?? null} productos={productos} alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} historialAbierto={historial.abierto} />
+        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}:${reinicioHistoria}`} producto={producto ?? null} productos={productos} modoHistoria={modoHistoria && !editando} alTerminar={(p) => p && modoHistoria && !editando ? setHistoriaCreada(p) : cerrar()} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} historialAbierto={historial.abierto} />
       </div>
+      {historiaCreada && <CelebracionProducto datos={historiaCreada} alAgregarOtro={() => { setHistoriaCreada(null); setReinicioHistoria((n) => n + 1); }} alCompartir={() => {
+        const enlace = enlaceCatalogo(tienda?.urlCatalogo);
+        if (!enlace || !tienda) return;
+        if (typeof navigator.share === "function") void navigator.share({ title: tienda.nombre, url: enlace.href }).catch(() => {});
+        else void copiarTexto(enlace.href);
+        setHistoriaCreada(null);
+        cerrar();
+      }} />}
       {productoId && historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
     </Hoja>
   );
@@ -204,6 +216,7 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
 function FormularioProducto({
   producto,
   productos,
+  modoHistoria = false,
   alTerminar,
   alEliminar,
   alIniciarEliminacion,
@@ -212,7 +225,8 @@ function FormularioProducto({
 }: {
   producto: Producto | null;
   productos: Producto[];
-  alTerminar: () => void;
+  modoHistoria?: boolean;
+  alTerminar: (p?: { nombre: string; foto: string | null; indice: number; publicado: boolean; catalogoPublicado: boolean }) => void;
   alEliminar: () => void;
   alIniciarEliminacion: () => void;
   alVerHistorial: (boton: HTMLButtonElement) => void;
@@ -231,12 +245,34 @@ function FormularioProducto({
   const taller = useTaller(producto, toast);
   // Tipo de producto (docs/prompts/tipo-de-producto.md): solo con más de un rubro. Un producto nuevo sale con el catálogo que se estaba viendo.
   const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
+  const idsTipos = tipos.join("|");
   const variosTipos = tipos.length > 1;
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
   // Se calcula en cada vuelta (no se congela): la tienda puede llegar después del primer pintado.
   const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id)) : rubro;
   const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
+  const [momento, setMomento] = useState(1);
+  const tituloHistoriaRef = useRef<HTMLHeadingElement>(null);
+  const [presentacionesAbiertas, setPresentacionesAbiertas] = useState(false);
+  const [momentoAntesDeVariantes, setMomentoAntesDeVariantes] = useState(3);
+  const [catalogoListo, setCatalogoListo] = useState(false);
+
+  // La última selección vive en este dispositivo y separada por tienda. Si el navegador la bloquea, la hoja sigue usando el catálogo abierto.
+  useEffect(() => {
+    if (!tienda) return;
+    try {
+      const recordado = leerCatalogoActivo(tienda.id);
+      if (recordado && idsTipos.split("|").includes(recordado)) queueMicrotask(() => setTipo(recordado as Rubro));
+    } catch { /* La preferencia es opcional. */ }
+    queueMicrotask(() => setCatalogoListo(true));
+  }, [tienda, idsTipos]);
+  useEffect(() => {
+    if (tienda && tipo && catalogoListo) guardarCatalogoActivo(tienda.id, tipo);
+  }, [tienda, tipo, catalogoListo]);
+  useEffect(() => {
+    if (modoHistoria && [1, 4, 6].includes(momento)) tituloHistoriaRef.current?.focus({ preventScroll: true });
+  }, [momento, modoHistoria]);
 
   const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
   const [nombre, setNombre] = useState(producto?.nombre ?? "");
@@ -361,13 +397,15 @@ function FormularioProducto({
   const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
   const varia = tieneOpciones && preciosVarian(borradorPres, Number(precio) || 0);
   // «Publicar» / «Guardar cambios» espera a tener foto, nombre y precio (la misma regla de siempre; antes avisaba al tocar).
-  const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
+  const listo = puedePublicar({ nombre, precio, fotos: modoHistoria ? 1 : mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
 
   const guardar = async (
     motivo: MotivoAjusteInventario = "reposicion",
     nota: string | null = null,
     motivoVariantes: MotivoAjusteInventario = "correccion_inventario",
     notaVariantes: string | null = null,
+    permitirSinFoto = false,
+    guardarOculto = false,
   ): Promise<boolean> => {
     if (guardando || inventario.guardando || inventario.incierto) return false;
     const precioNumero = Number(precio);
@@ -380,7 +418,7 @@ function FormularioProducto({
       toast("Espera a que el video termine de prepararse.");
       return false;
     }
-    if (mediosParaGuardar(medios).every((m) => m.tipo !== "foto")) {
+    if (!permitirSinFoto && mediosParaGuardar(medios).every((m) => m.tipo !== "foto")) {
       toast("Falta la foto. El producto es la estrella.");
       return false;
     }
@@ -419,7 +457,7 @@ function FormularioProducto({
       const b = base.get(claveVariante(p.valores));
       // Las que ya existían conservan su stock aquí: su cambio va después como ajuste con motivo.
       // Una oculta no admite ajuste aparte (la base solo ajusta activas): su stock va directo en el guardado.
-      return { valores: p.valores, stock: b && p.activa ? b.stock : (p.stock ?? 0), precio: p.precio, activa: p.activa };
+      return { valores: p.valores, stock: porEncargo ? 0 : b && p.activa ? b.stock : (p.stock ?? 0), precio: p.precio, activa: p.activa };
     });
     // Fotos nuevas marcadas «Retocar esta foto» (en el orden de las fotos que se guardan).
     const marcadasPorFoto = conEntregadas(medios, entregadas).flatMap((m) => (m.tipo === "foto" ? [!!m.retocar && !taller.guardada(m.url)] : []));
@@ -471,8 +509,8 @@ function FormularioProducto({
         const creado = await crearProducto(
           tiendaId,
           {
-            nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: tieneOpciones ? 0 : stock, categoria: coleccion,
-            activo: activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
+          nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, stock: porEncargo ? 0 : tieneOpciones ? 0 : stock, categoria: coleccion,
+          activo: !guardarOculto && activo && !bloqueaVisible, destacado: false, likes: 0, ...catalogo,
           },
           { retoques: 0, ...(tieneOpciones ? { opciones, variantes } : {}) },
         );
@@ -480,7 +518,7 @@ function FormularioProducto({
         const falloFicha = await guardarLaFicha(creado);
         const mensaje = falloFicha ?? (activo && !bloqueaVisible ? "Publicado. Ya se está deslizando." : "Guardado como oculto. Nadie lo ve hasta que lo prendas.");
         toast(await mandarAlTaller(creado, mensaje));
-        alTerminar();
+        alTerminar(modoHistoria ? { nombre: nombre.trim(), foto: fotos[0] ?? null, indice: productos.length + 1, publicado: !guardarOculto && activo && !bloqueaVisible, catalogoPublicado: tienda?.catalogoEstado === "publicado" && Boolean(enlaceCatalogo(tienda.urlCatalogo)) } : undefined);
         return true;
       }
       const bien = await inventario.guardar(
@@ -545,6 +583,88 @@ function FormularioProducto({
     else if (producto) inventario.pedirGuardar(guardar);
     else void guardar();
   };
+
+  const avanzarHistoria = () => {
+    if (momento === 1) { setMomento(2); return; }
+    if (momento === 2 && !nombre.trim()) { toast("Ponle nombre para seguir."); return; }
+    if (momento === 3 && !Number(precio)) { toast("Escribe el precio para seguir."); return; }
+    if (momento === 4) {
+      if (porEncargo) { setMomento(5); return; }
+      if (!stockTocado && (!tieneOpciones || resumenPres.enTotal === 0)) { toast("Elige cuántas tienes o marca por encargo."); return; }
+      setMomento(6); return;
+    }
+    if (momento === 5) {
+      if (!encargoTexto.trim()) { toast("Dinos cuándo llega para seguir."); return; }
+      setMomento(6); return;
+    }
+    setMomento((m) => Math.min(6, m + 1));
+  };
+  const volverHistoria = () => setMomento((m) => Math.max(1, m - 1));
+
+  if (modoHistoria && !producto) {
+    const pasoActual = porEncargo ? momento : momento;
+    const pregunta = pasoActual === 1 ? "Empieza por la foto" : pasoActual === 2 ? "¿Cómo se llama?" : pasoActual === 3 ? "¿Cuánto cuesta?" : pasoActual === 4 ? "¿Cuántos tienes ahora?" : pasoActual === 5 ? "¿Cuándo llega?" : "Así se ve en tu catálogo";
+    const foto = medios.find((m) => m.tipo === "foto");
+    const avanzar = avanzarHistoria;
+    const etapas = porEncargo ? 6 : 5;
+    const barraActual = momento === 6 ? etapas : momento;
+    return (
+      <div className="-mt-2 flex min-h-full flex-col" data-historia-crear="" data-paso={momento}>
+        <HojaFijoArriba>
+          <div className="flex min-h-11 items-center justify-between gap-2">
+            <span className="font-display text-titulo-seccion text-texto">Nuevo producto</span>
+            {variosTipos && tienda && <SelectorCatalogo tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="hoja" textoOtra="Vendo otra cosa también" alCambiar={(r) => { if (r !== CATALOGO_GENERAL) setTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando} sinPermiso={sinCatalogo ? () => toast(porque) : undefined} />}
+          </div>
+          {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
+          <div className="mt-2 flex gap-1.5" aria-label={`Momento ${barraActual} de ${etapas}`}>
+            {Array.from({ length: etapas }, (_, i) => <span key={i} role="progressbar" aria-label={`Momento ${i + 1}`} aria-valuemin={0} aria-valuemax={1} aria-valuenow={i < barraActual ? 1 : 0} className={`h-[3px] flex-1 rounded-full ${i < barraActual ? "bg-accion" : "bg-borde-pastilla"}`} />)}
+          </div>
+        </HojaFijoArriba>
+
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto pb-4" key={momento} data-momento-historia={momento}>
+          {momento === 1 && <div className="w-full max-w-[350px]">
+            <div className="relative w-full" data-tarjeta-historia="foto"><SeccionMedios modoHistoria medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} className="[&_[data-foto-principal]]:h-[372px] [&_[data-foto-principal]]:aspect-auto [&_[data-foto-vacia]]:h-[372px] [&_[data-foto-vacia]]:aspect-auto" /><div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-radio-l bg-gradient-to-t from-black/75 via-transparent to-transparent"/><span aria-hidden="true" className="pointer-events-none absolute left-4 top-3 font-mano text-mano text-white">así se verá</span><div aria-hidden="true" className="pointer-events-none absolute inset-x-4 bottom-4 text-white"><p className="font-display text-destacado">{nombre || "Nombre del producto"}</p><p className="text-secundario font-extrabold">{Number(precio) ? formatearPesos(Number(precio)) : "RD$ —"}</p></div></div>
+          </div>}
+
+          {momento >= 2 && momento <= 4 && <div className="w-full max-w-[350px]" data-tarjeta-historia="">
+            <div className="relative h-[372px] w-full overflow-hidden rounded-radio-l bg-superficie-hundida">
+              {foto ? <Foto src={foto.url} alt="" className="size-full object-cover" sizes="350px" /> : <div className="grid size-full place-items-center text-texto-secundario"><span>Tu foto aparecerá aquí</span></div>}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
+              <span className="absolute left-4 top-3 font-mano text-[22px] text-white">así se verá</span>
+              <div className="absolute inset-x-4 bottom-4 text-white"><p className="font-display text-[25px] leading-tight">{nombre || "Nombre del producto"}</p><p className="mt-1 text-destacado">{Number(precio) ? formatearPesos(Number(precio)) : "RD$ —"}</p></div>
+            </div>
+          </div>}
+          {momento === 6 && <div className="w-full max-w-[350px]" data-tarjeta-historia="catalogo">
+            <h2 ref={tituloHistoriaRef} tabIndex={-1} className="sr-only">Así se ve en tu catálogo</h2>
+            <p className="mb-1 font-mano text-[26px] text-resalte">Así se ve en tu catálogo</p>
+            <TarjetaReelVistaPrevia datos={datosVista} />
+          </div>}
+
+          <div className="w-full max-w-[350px] pt-1">
+            {momento < 6 && <><h2 ref={momento === 1 || momento === 4 ? tituloHistoriaRef : undefined} className="font-display text-titulo-seccion leading-tight text-texto outline-none" tabIndex={-1}>{pregunta}</h2><p className="mt-1 text-cuerpo text-texto-secundario">{momento === 1 ? "Una buena foto abre la historia." : momento === 2 ? "Que tus clientas sepan qué buscar." : momento === 3 ? "Un precio claro ayuda a decidir." : momento === 4 ? "Al despachar, baja solito." : "Cuéntales cuándo lo tendrán."}</p></>}
+            {momento === 1 && <><input className="sr-only" type="file" accept="image/*" capture="environment" aria-label="Tomar foto" data-camara-historia onChange={(e) => { const f = e.target.files?.[0]; if (f) void agregarFotoDeColor(f); e.target.value = ""; }} /><div className="mt-3 grid grid-cols-2 gap-3"><Boton anchoCompleto jerarquia="principal" onClick={() => document.querySelector<HTMLInputElement>("[data-camara-historia]")?.click()}>Tomar foto</Boton><Boton anchoCompleto jerarquia="secundario" onClick={() => document.querySelector<HTMLInputElement>("[data-entrada-medios]")?.click()}>Elegir de la galería</Boton></div><p className="mt-2 text-center text-secundario text-texto-secundario">Sin foto se vende menos. Puedes agregarla luego.</p></>}
+            {momento === 2 && <Campo alto="historia" etiqueta="Nombre del producto" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="El nombre de tu producto" maxLength={120} />}
+            {momento === 3 && <div className="mt-3 flex flex-col gap-3"><Campo alto="precio-historia" etiqueta="Precio (RD$)" autoFocus prefijo="RD$" inputMode="numeric" enterKeyHint="done" precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" /><button type="button" onClick={() => { setMomentoAntesDeVariantes(3); setPresentacionesAbiertas(true); }} className="tocable min-h-11 self-start rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Tiene tallas o colores</button></div>}
+            {momento === 4 && <div className="mt-5 flex flex-col items-center gap-4"><Cantidad valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar una unidad" etiquetaAgregar="Agregar una unidad" className="[&>button]:size-14 [&>span]:min-w-20 [&>span]:font-display [&>span]:text-[44px]" /><button type="button" aria-pressed={porEncargo} onClick={() => { setPorEncargo(!porEncargo); if (!porEncargo) setStockValor(0); }} className={`tocable min-h-12 w-full rounded-full border px-4 text-secundario font-bold ${porEncargo ? "border-accion bg-superficie-hundida" : "border-borde-pastilla bg-superficie"}`}>Es por encargo, no llevo stock</button></div>}
+            {momento === 5 && <div className="mt-3 flex flex-col gap-3"><GrupoOpciones etiqueta="Cuándo llega" valor={["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? encargoTexto : encargoTexto && encargoTexto !== "__otro" ? "__otro" : null} alCambiar={(v) => setEncargoTexto(v === "__otro" ? "__otro" : v)} opciones={[{ id: "3 a 5 días", texto: "3 a 5 días" }, { id: "1 a 2 semanas", texto: "1 a 2 semanas" }, { id: "1 mes", texto: "1 mes" }, { id: "__otro", texto: "Otro" }]} /><Campo alto="historia" etiqueta="Otro plazo" autoFocus={encargoTexto === "__otro" || (!!encargoTexto && !["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto))} value={encargoTexto === "__otro" || ["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? "" : encargoTexto} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Escríbelo en hasta 40 letras" maxLength={40} /></div>}
+            {momento === 6 && <div className="mt-3 flex flex-col gap-3"><p className="text-secundario text-texto-secundario">Hazlo brillar · opcional</p><FilaPlegable id="historia-descripcion" titulo="Descripción" detalle={descripcion ? "Lista" : "Opcional"} abierta={!!plegadas.descripcion} alAlternar={() => alternar("descripcion")}><SeccionDescripcion sinTitulo valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} /></FilaPlegable><FilaPlegable id="historia-coleccion" titulo="Colección" detalle={coleccionElegida ?? "Opcional"} abierta={!!plegadas.coleccion} alAlternar={() => setEligiendoColeccion(true)}><Boton jerarquia="secundario" onClick={() => setEligiendoColeccion(true)}>Elegir colección</Boton></FilaPlegable><FilaPlegable id="historia-ficha" titulo="Ficha técnica" detalle={fichaVisible(null, ficha) ? "Lista" : "Opcional"} abierta={!!plegadas.ficha} alAlternar={() => alternar("ficha")}><SeccionFichaTecnica sinTitulo actual={null} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} /></FilaPlegable>{tienda && conDetalles && <FilaPlegable id="historia-detalles" titulo="Detalles" detalle={Object.keys(detalles).length ? "Listos" : "Opcional"} abierta={!!plegadas.detalles} alAlternar={() => alternar("detalles")}><SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} /></FilaPlegable>}<Boton jerarquia="secundario" anchoCompleto onClick={() => setViendo(true)}>Ver reel del catálogo</Boton></div>}
+          </div>
+        </div>
+        <HojaFijoAbajo>
+          <div className="pointer-events-auto flex items-center gap-3 border-t border-linea bg-fondo px-5 pt-3 pb-[max(12px,var(--safe-abajo))]">
+            <button type="button" aria-label="Atrás" onClick={volverHistoria} disabled={momento === 1} className="tocable grid size-14 shrink-0 place-items-center rounded-full border border-borde-pastilla bg-superficie text-titulo-seccion disabled:opacity-40">‹</button>
+            {momento < 6 ? <Boton anchoCompleto tamano="grande" onClick={avanzar}>Seguir</Boton> : <div className="flex w-full flex-col gap-2"><Boton anchoCompleto tamano="grande" jerarquia="resalte" cargando={guardando} deshabilitado={sinCatalogo || !listo || preparando || bloqueaVisible} onClick={() => void guardar("reposicion", null, "correccion_inventario", null, true, false)}>Publicar</Boton><Boton anchoCompleto jerarquia="terciario" deshabilitado={sinCatalogo || guardando || preparando} onClick={() => void guardar("reposicion", null, "correccion_inventario", null, true, true)}>Guardar sin publicar</Boton>{bloqueaVisible && <p className="text-center text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>}</div>}
+          </div>
+        </HojaFijoAbajo>
+        {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
+        <HojaColeccion abierta={eligiendoColeccion} alCerrar={() => setEligiendoColeccion(false)} colecciones={colecciones} elegida={coleccionElegida} alElegir={(n, nueva) => { setNuevaColeccion(nueva ? n : null); setCategoria(nueva ? categoria : n); setEligiendoColeccion(false); }} />
+        <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible datos={datosVista} />
+        <SeccionPresentaciones mostrarResumen={false} abierta={presentacionesAbiertas} alAlternar={(abierta) => { setPresentacionesAbiertas(abierta); if (!abierta) setMomento(momentoAntesDeVariantes); else setMomentoAntesDeVariantes(momento); }} rubro={tipo} precioProducto={Number(precio) || 0} estado={presentaciones} alCambiar={cambiarPresentaciones} stockSimple={stockSimple} publicado={false} fotos={medios.flatMap((m) => m.tipo === "foto" ? [{ id: m.id, url: m.url }] : [])} agregarFoto={agregarFotoDeColor} sinPermiso={sinCatalogo} porque={porque} avisar={toast} deshabilitado={guardando} tienePedidos={tienePedidosVariante} />
+        <BienvenidaRetoque datos={bienvenida?.datos ?? null} alCancelar={() => { bienvenida?.resolver(false); setBienvenida(null); }} alConfirmar={() => { marcarBienvenidaVista(tiendaId); bienvenida?.resolver(true); setBienvenida(null); }} />
+        <ConfirmacionInventario inventario={inventario} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -730,6 +850,28 @@ function FormularioProducto({
       />
     </div>
   );
+}
+
+function CelebracionProducto({ datos, alAgregarOtro, alCompartir }: { datos: { nombre: string; foto: string | null; indice: number; publicado: boolean; catalogoPublicado: boolean }; alAgregarOtro: () => void; alCompartir: () => void }) {
+  return <Hoja abierta alCerrar={alAgregarOtro} titulo="¡Ya está en tu catálogo!" altura="grande">
+    <div className="flex min-h-full flex-col items-center justify-center px-2 pb-5 text-center">
+      <div className="relative mb-6 h-[290px] w-[230px]">
+        <span aria-hidden="true" className="absolute -left-3 top-8 size-3.5 rotate-12 rounded-[4px] bg-resalte" />
+        <span aria-hidden="true" className="absolute -right-3 top-2 size-3 rounded-full bg-rosa-suave" />
+        <span aria-hidden="true" className="absolute -right-5 bottom-14 h-1.5 w-4 -rotate-12 rounded-full bg-accion" />
+        <div className="size-full -rotate-3 overflow-hidden rounded-radio-l bg-superficie-hundida shadow-lg">
+          {datos.foto ? <Foto src={datos.foto} alt={`Foto de ${datos.nombre}`} className="size-full object-cover" sizes="230px" /> : <div className="grid size-full place-items-center text-texto-secundario">Sin foto</div>}
+        </div>
+      </div>
+      <h2 className="font-mano text-[40px] leading-none text-resalte">¡Ya está en tu catálogo!</h2>
+      <p className="mt-3 text-cuerpo text-texto-secundario">{datos.nombre} {datos.publicado ? "ya se puede deslizar." : "ya está guardado, oculto del catálogo."}</p>
+      {datos.indice < 5 && <p className="mt-1 text-secundario text-texto-secundario">Van {datos.indice} de 5 para arrancar.</p>}
+      <div className="mt-8 flex w-full flex-col gap-3">
+        <Boton anchoCompleto tamano="grande" onClick={alAgregarOtro}>Agregar otro</Boton>
+        {datos.catalogoPublicado && <Boton anchoCompleto tamano="grande" jerarquia="secundario" onClick={alCompartir}>Compartir mi catálogo</Boton>}
+      </div>
+    </div>
+  </Hoja>;
 }
 
 const SIN_COLECCION = "\u0000sin-coleccion";

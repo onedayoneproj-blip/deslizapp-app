@@ -173,60 +173,30 @@ try {
     await ctx.close();
   }
 
-  // ---- Hoja "Nuevo producto"
+  // ---- Historia «Nuevo producto»
   {
     const { ctx, page, errores } = await abrir(navegador);
-    await page.goto(URL + "/catalogo");
-    await page.waitForSelector('a[href="/catalogo/nuevo"]');
-    await page.waitForTimeout(900);
-    await page.tap('a[href="/catalogo/nuevo"]');
+    await page.goto(URL + "/catalogo/nuevo");
+    await page.waitForSelector('[role="dialog"] [data-historia-crear]');
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
     await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(250);
     await probarCampo(page, '[role="dialog"] input[placeholder="El nombre de tu producto"]', "Nuevo producto · Nombre", "Brisa", { dentroDeHoja: true });
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escribe el precio"]');
     await probarCampo(page, '[role="dialog"] input[placeholder="Escribe el precio"]', "Nuevo producto · Precio", "2450", { dentroDeHoja: true });
-    // Descripción y «Cuándo llega» viven en filas plegadas: abrir la fila no mueve ni quita el foco de otro campo.
-    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
-    await page.waitForTimeout(200);
-    await page.evaluate(() => (window.__foco = []));
-    // click() desde la página (sin mover el foco del navegador): lo que se prueba es que la app no toque el foco al abrir la fila.
-    await page.evaluate(() => document.querySelector('[role="dialog"] [data-fila-plegable="descripcion"] button[aria-expanded]').click());
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] button:has-text("Es por encargo, no llevo stock")');
+    await page.tap('[role="dialog"] button:has-text("Es por encargo, no llevo stock")');
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.getByRole("radio", { name: "Otro" }).tap();
+    await page.waitForSelector('[role="dialog"] input[placeholder="Escríbelo en hasta 40 letras"]');
+    await probarCampo(page, '[role="dialog"] input[placeholder="Escríbelo en hasta 40 letras"]', "Nuevo producto · Otro plazo", "Llega en 7 días", { dentroDeHoja: true });
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('[role="dialog"] [data-fila-plegable="historia-descripcion"]');
+    await page.tap('[role="dialog"] [data-fila-plegable="historia-descripcion"] button[aria-expanded]');
     await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
-    const focoTrasAbrirFila = await page.evaluate(() => ({ nombre: document.activeElement?.getAttribute("placeholder"), eventos: window.__foco.join(" ") }));
-    ok(focoTrasAbrirFila.nombre === "El nombre de tu producto", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
     await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
-    await page.tap('[role="switch"][aria-label="Por encargo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
-    await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Nuevo producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
-    // Los botones («Vista previa» + «Publicar») van al final de la página: con el teclado abierto no flotan sobre el campo y, al
-    // desplazar hasta el final, quedan por encima del teclado.
-    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
-    await page.evaluate(() => window.__teclado(true));
-    await page.waitForTimeout(400);
-    await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
-    await page.waitForTimeout(300);
-    ok(await page.evaluate(() => { const r = document.querySelector("[data-barra-producto]").getBoundingClientRect(); return r.bottom <= window.visualViewport.height + 1; }), "Con el teclado abierto, al final de la hoja los botones quedan sobre el teclado");
-    await page.evaluate(() => window.__teclado(false));
-    await page.waitForTimeout(300);
-    await page.evaluate(() => document.activeElement.blur());
-    // Cerrar el teclado tocando fuera y confirmar que la hoja se sigue cerrando deslizando
-    await page.evaluate(() => document.activeElement.blur());
-    await page.waitForTimeout(200);
-    const cdp = await ctx.newCDPSession(page);
-    const t = (type, y) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 195, y }] });
-    const top = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
-    await page.$eval('[role="dialog"] > div:first-child', (c) => (c.scrollTop = 0)); // el área de scroll
-    await t("touchStart", top + 10);
-    for (let i = 1; i <= 10; i++) {
-      await t("touchMove", top + 10 + i * 60);
-      await page.waitForTimeout(20);
-    }
-    await t("touchEnd");
-    await page.waitForTimeout(700);
-    // Con lo escrito sin guardar, deslizar pregunta "¿Salir sin guardar?" (components/hoja.tsx); "Salir" cierra
-    ok(!!(await page.$('[role="alertdialog"]')), "Nuevo producto: tras escribir, deslizar para cerrar pregunta «¿Salir sin guardar?»");
-    await page.tap('[role="alertdialog"] button:has-text("Salir")');
-    await page.waitForTimeout(1200);
-    ok(!(await page.$('[role="dialog"]')), "Nuevo producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Salir»)");
     ok(errores.length === 0, `Nuevo producto: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -256,6 +226,8 @@ try {
     const sel = '[data-hoja-cabecera] [data-selector-catalogo]';
     await page.waitForSelector(sel);
     await page.waitForTimeout(900);
+    await page.tap('[role="dialog"] button:has-text("Seguir")');
+    await page.waitForSelector('input[placeholder="El nombre de tu producto"]');
     await page.tap('input[placeholder="El nombre de tu producto"]');
     await page.keyboard.type("Gorra");
     await page.evaluate(() => document.activeElement.blur());

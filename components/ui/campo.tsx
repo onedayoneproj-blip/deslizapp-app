@@ -21,6 +21,7 @@ export function Campo({
   className,
   precio,
   prefijo,
+  alto = "normal",
   icono: Icono,
   ...input
 }: Omit<ComponentProps<"input">, "className"> & {
@@ -28,6 +29,8 @@ export function Campo({
   icono?: ComponentType<{ tamano?: number; strokeWidth?: number }>;
   /** Texto fijo dentro del campo, antes de lo que se escribe ("RD$"). Mismo tamaño que el valor, en gris. */
   prefijo?: ReactNode;
+  /** Tamaños puntuales del lienzo aprobado de crear producto; el campo normal mantiene el alto del sistema. */
+  alto?: "normal" | "historia" | "precio-historia";
   etiqueta: ReactNode;
   ayuda?: ReactNode;
   error?: ReactNode;
@@ -40,7 +43,8 @@ export function Campo({
   const idNota = `${idCampo}-nota`;
   const nota = error ?? ayuda;
   const estilo = clases(
-    "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo font-normal text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
+    alto === "normal" ? "h-(--alto-campo) text-cuerpo font-normal" : alto === "historia" ? "h-14 text-[20px] font-display font-bold" : "h-16 text-[32px] font-display font-bold",
+    "w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
     prefijo || Icono ? "pl-13" : null,
     FOCO_CAMPO,
     error ? "border-peligro" : "border-borde-campo focus:border-accion",
@@ -52,7 +56,7 @@ export function Campo({
       </label>
       <div className="relative">
         {prefijo && (
-          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-cuerpo text-texto-secundario">
+          <span aria-hidden="true" className={clases("pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-texto-secundario", alto === "precio-historia" ? "text-[18px] font-bold" : "text-cuerpo")}>
             {prefijo}
           </span>
         )}

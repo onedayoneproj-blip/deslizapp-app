@@ -71,11 +71,15 @@ export function SeccionMedios({
   alCambiar,
   taller,
   avisar,
+  className,
+  modoHistoria = false,
 }: {
   medios: MedioBorrador[];
   alCambiar: (cambio: (medios: MedioBorrador[]) => MedioBorrador[]) => void;
   taller: Taller;
   avisar: (mensaje: string) => void;
+  className?: string;
+  modoHistoria?: boolean;
 }) {
   // Si el taller entrega una foto con la ficha abierta, el borrador toma la retocada.
   const ultimaEntregada = taller.entregadas[0]?.id;
@@ -179,7 +183,7 @@ export function SeccionMedios({
     });
 
   return (
-    <section aria-label={VIDEO_PERMITIDO ? "Fotos y video" : "Fotos"} className="flex flex-col gap-2">
+    <section aria-label={VIDEO_PERMITIDO ? "Fotos y video" : "Fotos"} className={`flex flex-col gap-2 ${className ?? ""}`}>
       <input
         ref={entrada}
         type="file"
@@ -218,7 +222,7 @@ export function SeccionMedios({
               </span>
             )}
           </button>
-          <TiraMedios
+          {(!modoHistoria || medios.length > 1) && <TiraMedios
             elementos={medios.map((m) =>
               m.tipo === "foto"
                 ? { id: m.id, tipo: "foto", imagen: m.url, taller: tallerDeMiniatura(taller.estado(m.url)) }
@@ -231,7 +235,7 @@ export function SeccionMedios({
             alAgregar={() => entrada.current?.click()}
             bloqueo={bloqueo}
             nota={preparando ? "Lo dejamos liviano para que cargue rápido." : `Hasta ${MAX_MEDIOS}. Mantén presionado para ordenar.`}
-          />
+          />}
         </>
       ) : (
         <button

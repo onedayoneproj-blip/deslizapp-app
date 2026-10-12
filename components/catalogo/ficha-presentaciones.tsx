@@ -35,6 +35,7 @@ export function SeccionPresentaciones({
   avisar,
   deshabilitado,
   tienePedidos,
+  mostrarResumen = true,
 }: {
   /** La hoja de presentaciones: la maneja la ficha para que el Precio («Desde…») también pueda abrirla. */
   abierta: boolean;
@@ -56,11 +57,13 @@ export function SeccionPresentaciones({
   deshabilitado?: boolean;
   /** ¿Esta presentación (por id de variante) ya tiene pedidos? */
   tienePedidos: (varianteId: string) => Promise<boolean>;
+  mostrarResumen?: boolean;
 }) {
   const { opciones, pres } = estado;
   const tiene = pres.length > 0 && opciones.length > 0;
   return (
-    <div data-presentaciones="" data-cosas-que-cambian="" className="border-t border-linea">
+    <div data-presentaciones="" data-cosas-que-cambian="" className={mostrarResumen ? "border-t border-linea" : "contents"}>
+      {mostrarResumen && (
       <button
         type="button"
         disabled={deshabilitado}
@@ -81,6 +84,7 @@ export function SeccionPresentaciones({
         </span>
         <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
       </button>
+      )}
       <FlujoPresentaciones
         abierta={abierta}
         alCerrar={() => alAlternar(false)}
