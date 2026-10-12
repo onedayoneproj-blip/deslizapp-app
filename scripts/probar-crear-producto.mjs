@@ -403,6 +403,16 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Accesorios/ }).tap();
     await page.waitForTimeout(300);
     ok((await page.locator('[data-opcional="Detalles"]').count()) === 0, "En Accesorios no sale la pastilla «Detalles»");
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Ropa/ }).tap();
+    await page.waitForTimeout(300);
+    await page.locator('[data-opcional="Detalles"]').tap();
+    ok(await page.getByRole("button", { name: "Corte: Holgado" }).isVisible(), "De vuelta en Ropa, el «Corte» sigue ahí");
+    await page.getByRole("button", { name: "Listo", exact: true }).last().tap();
+    await page.waitForTimeout(500);
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Accesorios/ }).tap();
+    await page.waitForTimeout(300);
     await boton(page, "Publicar").tap();
     await page.locator("[data-celebracion]").waitFor();
     {

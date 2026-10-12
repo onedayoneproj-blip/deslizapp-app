@@ -17,6 +17,7 @@ import {
   borradorAlSumarEje,
   conLosCreados,
   crearConHerencia,
+  detallesParaGuardar,
   estaQuitada,
   inventarioCompleto,
   lineaArranque,
@@ -244,9 +245,8 @@ function Historia({
   const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
   // Los Detalles se validan con el rubro principal de la tienda: solo se ofrecen si el producto va en ese catálogo.
   const conDetalles = tienda != null && tipo === tienda.rubro && CAMPOS_POR_RUBRO[tienda.rubro].length > 0;
-  // Lo que se guarda: los Detalles del rubro solo si el producto va en ese catálogo (si se cambia a otro, quedan en el borrador por si
-  // vuelve, pero no se guardan ni salen en la vista previa); la descripción, siempre.
-  const detallesFinales: Detalles = conDetalles ? detalles : descripcion.trim() ? { descripcion } : {};
+  // Lo que se guarda (y ve la vista previa): los Detalles del rubro solo en su catálogo; la descripción, siempre.
+  const detallesFinales = detallesParaGuardar(detalles, conDetalles);
   const fotos = mediosParaGuardar(medios).filter((m) => m.tipo === "foto");
   const portada = fotos[0]?.url ?? null;
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");

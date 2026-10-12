@@ -3,6 +3,7 @@
 import { esEjeColor } from "./colores";
 import { PRODUCTOS_SUGERIDOS_PARA_PUBLICAR } from "./config";
 import { claveVariante, crearTodas, entreLos, type Presentacion } from "./presentaciones";
+import type { Detalles } from "./rubros";
 import type { OpcionProducto, Producto } from "./types";
 
 /**
@@ -234,4 +235,14 @@ export function inventarioCompleto(pres: Presentacion[], porEncargo: boolean, en
   const visibles = pres.filter((p) => p.activa);
   if (visibles.length === 0) return false;
   return porEncargo ? encargoTexto.trim().length > 0 : visibles.some((p) => (p.stock ?? 0) > 0);
+}
+
+/**
+ * Los Detalles que se guardan: los campos del rubro solo si el producto va en el catálogo de ese rubro (`conDetalles`); en otro
+ * catálogo, solo la descripción (que es de todos). El borrador los conserva: si se vuelve al catálogo, reaparecen.
+ */
+export function detallesParaGuardar(detalles: Detalles, conDetalles: boolean): Detalles {
+  if (conDetalles) return detalles;
+  const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
+  return descripcion.trim() ? { descripcion } : {};
 }

@@ -183,3 +183,10 @@ test("sumar una cosa: lo quitado sigue quitado y lo oculto sigue oculto (en cada
   assert.equal(H.estaQuitada(["Color=Negro|Talla=S"], { Color: "Blanco", Talla: "S" }), false);
   assert.equal(H.estaQuitada(["Color=Negro|Talla=S"], { Talla: "S" }), false);
 });
+
+test("los Detalles del rubro solo se guardan en su catálogo; la descripción, siempre", () => {
+  const d = { descripcion: "Fresca", corte: "Holgado", para: "ella" };
+  assert.deepEqual(H.detallesParaGuardar(d, true), d, "en el catálogo de su rubro, todo");
+  assert.deepEqual(H.detallesParaGuardar(d, false), { descripcion: "Fresca" }, "en otro catálogo, solo la descripción");
+  assert.deepEqual(H.detallesParaGuardar({ corte: "Holgado", descripcion: "  " }, false), {}, "sin descripción, nada");
+});
