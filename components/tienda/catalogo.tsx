@@ -21,7 +21,7 @@ import {
   CatalogoNoDisponible,
 } from "@/lib/data/errores";
 import { temaDeTienda } from "@/lib/tienda/tema";
-import { portada, coleccionesDe, mostrarDetalle, catalogosDe, catalogoFiltrado, filtroVigente, pestanaDelFeed } from "@/lib/tienda/catalogo";
+import { portada, coleccionesDe, mostrarDetalle, usuarioDeTienda, catalogosDe, catalogoFiltrado, filtroVigente, pestanaDelFeed } from "@/lib/tienda/catalogo";
 import { buscarConPrecio, avisoSinPrecio, CHIPS_PERFUME, tiposDelCatalogo, tiposEnConsulta } from "@/lib/tienda/busqueda";
 import { NOMBRE_PRODUCTO, NOMBRE_TIPO, type Rubro } from "@/lib/rubros";
 import { normalizarTelefonoDO } from "@/lib/telefono";
@@ -1013,16 +1013,7 @@ export function Catalogo({
             </div>
           </div>
         </div>
-        <h1 className="pname">
-          {t.nombreVendedora && t.nombre.endsWith(t.nombreVendedora) ? (
-            <>
-              {t.nombre.slice(0, -t.nombreVendedora.length)}
-              <em>{t.nombreVendedora}</em>
-            </>
-          ) : (
-            t.nombre
-          )}
-        </h1>
+        <h1 className="pname">{usuarioDeTienda(t)}</h1>
         <p className="pbio">{t.descripcion}</p>
         <div className="pbtns">
           <a

@@ -501,10 +501,6 @@ html.catalogo-html,
 .catalogo-publico.view-grid .hdr::before {
   display: none;
 }
-/* El nombre ya lo da el título grande del perfil (h1): el de la cabecera se oculta del todo (también para lectores de pantalla). */
-.catalogo-publico.view-grid .hdr .logo {
-  display: none;
-}
 .catalogo-publico.view-grid .hback,
 .catalogo-publico.view-grid .hig {
   position: fixed;

@@ -23,7 +23,7 @@ export type Novedad = {
 const TODAS: Novedad[] = [
   {
     version: "0.67.0", fecha: "2026-10-12", titulo: "Tu perfil, más despejado.",
-    cambios: ["En el perfil de tu tienda, el nombre sube con el scroll y se va.", "«Atrás» e Instagram flotan en círculos claros para tenerlos a mano.", "Las pestañas de tus catálogos pasan a su lado, sin taparse."],
+    cambios: ["En el perfil, arriba va el nombre de tu tienda y abajo tu usuario de Instagram.", "«Atrás» e Instagram flotan en círculos claros para tenerlos a mano.", "Las pestañas de tus catálogos pasan a su lado, sin taparse."],
   },
   {
     version: "0.66.0", fecha: "2026-10-11", titulo: "Tu catálogo, más limpio.",

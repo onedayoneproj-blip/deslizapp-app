@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { CatalogoPublico, ProductoPublico } from "@/lib/types";
 import { dinero } from "@/lib/tienda/carrito";
 import { modoOpiniones } from "@/lib/tienda/tema";
-import { detallesDe, lineaCorta, mostrarDetalle } from "@/lib/tienda/catalogo";
+import { detallesDe, lineaCorta, mostrarDetalle, usuarioDeTienda } from "@/lib/tienda/catalogo";
 import {
   accionCorazon,
   agotadoPara,
@@ -274,7 +274,7 @@ export function Reel({
             aria-label={"Ver el perfil de " + t.nombre}
           >
             <span className="av" aria-hidden="true" />
-            {t.instagram?.split("/").filter(Boolean).at(-1) ?? t.nombre}
+            {usuarioDeTienda(t)}
           </button>
           <h2>{p.nombre}</h2>
           <div className="pr">
