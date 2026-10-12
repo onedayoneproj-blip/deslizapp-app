@@ -723,6 +723,46 @@ console.log("\n=== Una presentación quitada sigue quitada al sumar otro color (
   await ctx.close();
 }
 
+console.log("\n=== Dejar de cambiar por Color suma lo puesto en las tallas (Codex P2, 3.ª revisión) ===");
+{
+  const { ctx, page, errores } = await pagina(390, LINO);
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, "Medias sumadas");
+  await seguir(page);
+  await escribir(page, "300");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "S", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "M", exact: true }).tap();
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await seguir(page);
+  const inv = page.locator("[data-inventario-historia]");
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  await page.getByRole("button", { name: "Agregar uno de Negro · S" }).tap();
+  await boton(page, "Listo · 9 en total").tap();
+  await page.waitForTimeout(500);
+  await boton(page, "Atrás").tap();
+  await boton(page, "Atrás").tap();
+  ok((await paso(page)) === "cambia", "De vuelta en «¿En qué cambia?»");
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  await seguir(page);
+  ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("2 presentaciones · 9 en total"), "Sin Color, las tallas suman lo puesto: «2 presentaciones · 9 en total»");
+  await page.getByRole("button", { name: "Editar", exact: true }).tap();
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  ok((await inv.locator('[data-fila-inventario="S"]').innerText()).trim().split(/\s+/).includes("5") && (await inv.locator('[data-fila-inventario="M"]').innerText()).trim().split(/\s+/).includes("4"), "S = 3 + 2 y M = 2 + 2");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
 console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
 {
   const { ctx, page, errores } = await pagina(390, MICHEL);

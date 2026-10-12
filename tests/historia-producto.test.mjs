@@ -116,3 +116,15 @@ test("el plan cuenta el producto recién creado aunque la consulta todavía no l
   // Cuando la consulta ya lo trae, no se repite.
   assert.deepEqual(H.conLosCreados([p("a"), p("n")], [p("n")]).map((x) => x.id), ["a", "n"]);
 });
+
+test("dejar de cambiar por una cosa suma las cantidades en lo que queda", () => {
+  const p = (color, talla, stock, precio = null, activa = true) => ({ valores: { Color: color, Talla: talla }, stock, precio, activa });
+  const r = H.juntarPorEjes([p("Negro", "S", 2), p("Blanco", "S", 3), p("Negro", "M", 1, 1200), p("Blanco", "M", 4, 1300), p("Rojo", "S", 9, null, false)], ["Talla"]);
+  const s = r.find((x) => x.valores.Talla === "S");
+  const m = r.find((x) => x.valores.Talla === "M");
+  assert.deepEqual(s.valores, { Talla: "S" });
+  assert.equal(s.stock, 5, "las ocultas no suman");
+  assert.equal(m.stock, 5);
+  assert.equal(m.precio, null, "precios distintos: vuelve al del producto");
+  assert.equal(H.juntarPorEjes([p("Negro", "L", 1, 900), p("Blanco", "L", 1, 900)], ["Talla"])[0].precio, 900, "si valían lo mismo, sigue");
+});

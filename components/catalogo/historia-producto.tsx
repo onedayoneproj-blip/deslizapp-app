@@ -15,6 +15,7 @@ import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
   conLosCreados,
+  juntarPorEjes,
   lineaArranque,
   lineaCelebracion,
   ordenDePreguntas,
@@ -294,6 +295,12 @@ function Historia({
     irA("cambia");
   };
   const cambiarEjes = (nuevos: EjeHistoria[]) => {
+    // Dejar de cambiar por una cosa no pierde lo puesto en el Inventario: se suma en lo que queda.
+    const quedan = nuevos.map((e) => e.nombre);
+    if (nuevos.length > 0 && ejes.some((e) => !quedan.includes(e.nombre))) {
+      setPresBorrador(juntarPorEjes(presentaciones.pres.length > 0 ? presentaciones.pres : presBorrador, quedan));
+      setQuitadas([]);
+    }
     setEjes(nuevos);
     alCambiarVariantes(nuevos.length);
   };

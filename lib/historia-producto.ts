@@ -2,7 +2,7 @@
 // pasos, sus textos, «¿Cuándo llega?» y la celebración. Sin React: se prueba en tests/historia-producto.test.mjs.
 import { esEjeColor } from "./colores";
 import { PRODUCTOS_SUGERIDOS_PARA_PUBLICAR } from "./config";
-import { claveVariante, entreLos } from "./presentaciones";
+import { claveVariante, entreLos, type Presentacion } from "./presentaciones";
 import type { Producto } from "./types";
 
 /**
@@ -139,4 +139,28 @@ export function quitadasTrasCambiar(quitadas: string[], eje: string, antes: stri
 export function conLosCreados(productos: Producto[], creados: Producto[]): Producto[] {
   const nuevos = creados.filter((c) => !productos.some((p) => p.id === c.id));
   return nuevos.length === 0 ? productos : [...productos, ...nuevos];
+}
+
+/**
+ * Al dejar de cambiar por una cosa (de Color × Talla a solo Talla), las cantidades no se pierden: se suman en las presentaciones
+ * que quedan (S = Negro·S + Blanco·S). Un precio propio sigue solo si todas las que se juntan valían lo mismo; las ocultas no suman.
+ */
+export function juntarPorEjes(pres: Presentacion[], quedan: string[]): Presentacion[] {
+  const grupos = new Map<string, Presentacion[]>();
+  for (const p of pres) {
+    const valores = Object.fromEntries(quedan.flatMap((e) => (p.valores[e] !== undefined ? [[e, p.valores[e]]] : [])));
+    if (Object.keys(valores).length !== quedan.length) continue;
+    const k = claveVariante(valores);
+    grupos.set(k, [...(grupos.get(k) ?? []), { ...p, valores }]);
+  }
+  return [...grupos.values()].map((g) => {
+    const activas = g.filter((p) => p.activa);
+    const precios = new Set(g.map((p) => p.precio));
+    return {
+      valores: g[0]!.valores,
+      stock: activas.reduce((t, p) => t + (p.stock ?? 0), 0),
+      precio: precios.size === 1 ? g[0]!.precio : null,
+      activa: activas.length > 0,
+    };
+  });
 }
