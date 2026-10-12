@@ -1,5 +1,4 @@
-// Pestañas del feed según colecciones y catálogos, hoja «Catálogos», estado vacío de Colecciones y cabecera del perfil con
-// desenfoque progresivo. Solo fixtures Demo locales (Lino & Algodón modificada): no usa Supabase ni datos reales.
+// Pestañas del feed según colecciones y catálogos, hoja «Catálogos», estado vacío de Colecciones y cabecera flotante del perfil. Solo fixtures Demo locales (Lino & Algodón modificada): no usa Supabase ni datos reales.
 // Con la app corriendo: URL=http://localhost:3220 node scripts/probar-catalogo-cabecera.mjs
 import '../tests/cargar-ts.mjs';
 import assert from 'node:assert/strict';
@@ -103,19 +102,62 @@ try{
       ok(await page.locator('#colTab .hcov').count()===0,`${width}: sin colecciones en el activo, el abanico no reserva espacio`);
       ok(errors.length===0,`${width}: sin errores (vacío)`);await ctx.close();
     }
-    // Perfil: cabecera con desenfoque progresivo (4 capas) y velo del fondo de la tienda.
+    // Perfil: la cabecera con el nombre se va con el scroll; «atrás» e Instagram son botones flotantes que no tocan el borde.
     {
       const {ctx,page,errors}=await abrir(width,'varias-colecciones');
-      await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();
-      await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
-      const capas=await page.locator('.hdr-borde').evaluate(e=>[getComputedStyle(e).display,...[...e.children].map(c=>getComputedStyle(c).backdropFilter||getComputedStyle(c).webkitBackdropFilter)]);
-      ok(capas[0]==='block'&&capas.slice(1,5).join(',')==='blur(1px),blur(2px),blur(4px),blur(8px)',`${width}: perfil con desenfoque de 1, 2, 4 y 8 px`);
-      const velo=await page.locator('.hdr-borde-color').evaluate(e=>getComputedStyle(e).backgroundImage);
-      ok(/gradient/.test(velo),`${width}: velo del fondo de la tienda`);
-      ok(await page.locator('.hdr-borde').evaluate(e=>getComputedStyle(e).pointerEvents==='none'),`${width}: el desenfoque no tapa toques`);
-      ok(await page.locator('.hdr-borde > *').evaluateAll(l=>l.every(e=>e.getBoundingClientRect().top>0.5)),`${width}: ninguna capa de la cabecera toca el borde de arriba (barra de estado de Safari)`);
+      
+      await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();await espera(page,500);
       await page.screenshot({path:`${OUT}/${width}-perfil.png`});
+      const caja=sel=>page.locator(sel).evaluate(e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,w:r.width,h:r.height}});
+      const back0=await caja('#backBtn');
+      const logo0=await caja('.hdr .logo');
+      ok(logo0.w>0&&logo0.top>=20,`${width}: el nombre de la tienda sigue en la cabecera, separado del borde (${Math.round(logo0.top)} px)`);
+      ok(await page.getByRole('heading',{level:1}).count()===1&&(await page.getByRole('heading',{level:1}).innerText()).trim()==='Lino & Algodón',`${width}: un solo h1; sin Instagram muestra el nombre`);
+      ok(await page.locator('.profile').evaluate(e=>e.getBoundingClientRect().top)<1&&await page.locator('.profile .bigav').evaluate(e=>e.getBoundingClientRect().top)>=back0.top+back0.h,`${width}: el avatar queda debajo de la cabecera y de los botones, sin hueco raro`);
+      ok(await page.locator('.hdr').evaluate(e=>getComputedStyle(e).position==='absolute'),`${width}: la cabecera del perfil no es fija`);
+      ok(back0.w>=44&&back0.h>=44,`${width}: «atrás» mide al menos 44 px`);
+      ok(await page.locator('#backBtn').evaluate(e=>{const c=getComputedStyle(e);return c.backgroundColor==='rgb(255, 255, 255)'&&(c.backdropFilter||'none')==='none'&&c.boxShadow!=='none'&&c.borderRadius==='50%'}),`${width}: «atrás» es un círculo claro sólido, sin cristal y con sombra`);
+      ok(await page.locator('.profile').evaluate((e,t)=>Math.abs(parseFloat(getComputedStyle(e).paddingTop)-(t+66))<1,back0.top),`${width}: el contenido del perfil empieza 66 px bajo los botones (sigue su separación, también con zona segura)`);
+      await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
+      await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
+      const back1=await caja('#backBtn');
+      ok((await caja('.hdr .logo')).top+(await caja('.hdr .logo')).h<0,`${width}: el nombre de la cabecera se va con el scroll`);
+      ok(await page.locator('.pname').evaluate(e=>e.getBoundingClientRect().bottom<0),`${width}: el título del perfil se va con el scroll`);
+      ok(Math.abs(back1.top-back0.top)<1,`${width}: «atrás» queda fijo`);
+      // Nada fijo con fondo, desenfoque o contenido empieza en y=0 (Safari iOS 26 tiñe la barra de estado).
+      const fijos=await page.evaluate(()=>[...document.querySelectorAll('.catalogo-publico *')].filter(e=>{const c=getComputedStyle(e);if(c.position!=='fixed'||c.display==='none'||c.visibility==='hidden'||e.hidden)return false;const r=e.getBoundingClientRect();if(!r.width||!r.height)return false;return c.backgroundColor!=='rgba(0, 0, 0, 0)'||c.backgroundImage!=='none'||(c.backdropFilter&&c.backdropFilter!=='none')||e.children.length>0||e.textContent.trim()!==''}).map(e=>({s:e.id||e.className,t:e.getBoundingClientRect().top})));
+      console.log('   fijos:',JSON.stringify(fijos));
+      ok(fijos.every(f=>f.t>0.5),`${width}: ningún elemento fijo toca el borde de arriba`);
+      ok(back1.top>=8,`${width}: «atrás» separado del borde (${back1.top}px)`);
+      // Las pestañas «Todo · Ropa…» no pasan bajo los botones flotantes: su primera y última pestaña quedan entre ellos.
+      const pest=await page.evaluate(()=>{const t=[...document.querySelectorAll('.gt-tab > span')];if(!t.length)return null;const a=t[0].getBoundingClientRect(),z=t[t.length-1].getBoundingClientRect(),b=document.querySelector('#backBtn').getBoundingClientRect();return {izq:a.left,der:z.right,backDer:b.right,ancho:innerWidth}});
+      if(pest){ok(pest.izq>=pest.backDer+8,`${width}: la primera pestaña queda a la derecha de «atrás» (${Math.round(pest.izq)} ≥ ${Math.round(pest.backDer)+8})`);ok(pest.der<=pest.ancho-68||await page.locator('.gridtabs-tabs').evaluate(e=>e.scrollWidth>e.clientWidth),`${width}: la última pestaña no queda bajo el botón de la derecha o se desliza`);}
+      const ig=page.locator('#igBtn');
+      if(await ig.count()){const i=await caja('#igBtn');ok(i.w>=44&&i.h>=44&&i.top>0.5&&Math.abs(i.top-back1.top)<1,`${width}: Instagram flotante, 44 px, a la altura de «atrás»`);}
+      await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
+      // Volver a los reels: sin cabecera fija con fondo, la barra de estado queda transparente.
+      await page.evaluate(()=>window.scrollTo(0,0));
+      await page.locator('#backBtn').click();await page.locator('.catalogo-publico.view-reels').waitFor();await espera(page,600);
+      await page.screenshot({path:`${OUT}/${width}-reels-tras-volver.png`});
+      const fijosReels=await page.evaluate(()=>[...document.querySelectorAll('.catalogo-publico *')].filter(e=>{const c=getComputedStyle(e);if(c.position!=='fixed'||c.display==='none'||c.visibility==='hidden'||e.hidden)return false;const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.top<0.5&&(c.backgroundColor!=='rgba(0, 0, 0, 0)'||c.backgroundImage!=='none'||(c.backdropFilter&&c.backdropFilter!=='none'))}).map(e=>e.id||e.className));
+      ok(fijosReels.length===0,`${width}: tras volver a los reels no hay capas fijas en y=0 (${fijosReels.join(',')})`);
+      ok(await page.locator('.hdr').evaluate(e=>{const c=getComputedStyle(e);return c.position==='fixed'&&parseFloat(c.top)>0}),`${width}: la cabecera de los reels sigue fija y separada del borde`);
       ok(errors.length===0,`${width}: sin errores (perfil)`);await ctx.close();
+    }
+    // Esencias Michel (con Instagram): el h1 del perfil es el usuario, igual que junto al avatar del reel, sin «@»; el nombre queda en la cabecera.
+    {
+      const db=construirDesdeSeed();
+      const ctx=await browser.newContext({viewport:{width,height:844},hasTouch:true,isMobile:true,serviceWorkers:'block'});
+      await ctx.addInitScript(({db})=>{localStorage.setItem('deslizapp-demo-v5',JSON.stringify(db));localStorage.setItem('dz-coach-esencias-michel','1');localStorage.setItem('deslizapp-version-vista','9.9.9');},{db});
+      const page=await ctx.newPage();page.setDefaultTimeout(15000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+      await page.goto(URL+'/tienda/esencias-michel?demo');await page.locator('#reels .reel.on').waitFor();await espera(page,400);
+      const usuario=(await page.locator('.reel.on .who').innerText()).trim();
+      await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();await espera(page,500);
+      const h1=(await page.getByRole('heading',{level:1}).innerText()).trim();
+      ok(usuario.length>0&&!usuario.startsWith('@')&&h1===usuario,`${width}: Michel, el título del perfil es el usuario del reel («${h1}»)`);
+      ok(await page.locator('.hdr .logo').evaluate(e=>e.getBoundingClientRect().width>0)&&(await page.locator('.hdr .logo').innerText()+await page.locator('.hdr .logo img').count())!=='',`${width}: Michel, el nombre sigue arriba en la cabecera`);
+      await page.screenshot({path:`${OUT}/${width}-perfil-michel.png`});
+      ok(errors.length===0,`${width}: sin errores (perfil Michel)`);await ctx.close();
     }
   }
 }finally{await browser.close();}
