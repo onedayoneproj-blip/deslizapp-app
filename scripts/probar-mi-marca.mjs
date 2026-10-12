@@ -3,6 +3,7 @@
 // Tema claro, 390 px (y 360 donde se indica). Michel demo empieza SIN marca; Luna demo la trae lista.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] node scripts/probar-mi-marca.mjs
 import { createRequire } from "node:module";
+import { abrirHistoria, hastaPublicar, nombreYPrecio } from "./historia-crear-producto.mjs";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -75,13 +76,11 @@ async function abrirMarca(page) {
 }
 /** Un producto nuevo con una foto sin retocar (los del seed ya traen la primera foto retocada). Devuelve su id. */
 async function primerProducto(page) {
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Producto de prueba");
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("400");
+  await abrirHistoria(page, URL);
   await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, 1));
   await page.getByRole("button", { name: /^(Portada|Foto) 1 de/ }).first().waitFor();
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
-  await page.waitForURL(`${URL}/catalogo`);
+  await nombreYPrecio(page, "Producto de prueba", "400");
+  await hastaPublicar(page);
   return (await db(page)).productos.find((p) => p.nombre === "Producto de prueba").id;
 }
 async function abrirFoto(page, i) {
@@ -186,9 +185,7 @@ await caso("2. Completar Mi marca: palabras, referencias en vivo, tope de 6, gua
 await caso("3. Interruptor «Retocar esta foto» con la marca no lista: apagado, deshabilitado, con motivo y camino; con la marca lista funciona", async () => {
   const c = await pagina(MICHEL);
   const { page } = c;
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Con marca pendiente");
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("500");
+  await abrirHistoria(page, URL);
   await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, 1));
   await page.getByRole("button", { name: /^(Portada|Foto) 1 de/ }).first().waitFor();
   await abrirFoto(page, 1);
@@ -262,16 +259,15 @@ await caso("4. Bienvenida (Luna, marca lista): primera vez antes de reservar; ca
 await caso("5. Bienvenida al guardar un producto con una foto marcada: antes de reservar; cancelar no guarda; confirmar guarda y reserva", async () => {
   const c = await pagina(LUNA);
   const { page } = c;
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Producto marcado");
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("600");
+  await abrirHistoria(page, URL);
   await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, 1));
   await page.getByRole("button", { name: /^(Portada|Foto) 1 de/ }).first().waitFor();
   await abrirFoto(page, 1);
   await switchRetoque(page).click();
   await dialogoFoto(page).getByRole("button", { name: "Cerrar" }).first().click().catch(() => page.keyboard.press("Escape"));
   await esperar(page, 400);
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await nombreYPrecio(page, "Producto marcado", "600");
+  await hastaPublicar(page, { esperar: false });
   const bv = page.getByRole("dialog", { name: "Retoque con tu marca" });
   await bv.waitFor();
   let dd = await db(page).catch(() => ({}));
@@ -283,23 +279,21 @@ await caso("5. Bienvenida al guardar un producto con una foto marcada: antes de 
   await page.getByRole("button", { name: "Publicar", exact: true }).click();
   await bv.waitFor();
   await bv.getByRole("button", { name: "Retocar foto", exact: true }).click();
-  await page.waitForURL(`${URL}/catalogo`);
+  await page.locator("[data-celebracion]").waitFor();
   dd = await db(page);
   const p = dd.productos.find((x) => x.nombre === "Producto marcado");
   ok(!!p && dd.trabajosRetoque.filter((t) => t.productoId === p.id && t.estado === "pendiente").length === 1, "confirmar guarda el producto y reserva la foto");
   ok(dd.tiendas.find((t) => t.id === LUNA).creditosRetoque === 100, "sin cobrar");
   // Un producto más con foto marcada: la bienvenida ya no sale.
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Segundo marcado");
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("700");
+  await abrirHistoria(page, URL);
   await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, 1, 1));
   await page.getByRole("button", { name: /^(Portada|Foto) 1 de/ }).first().waitFor();
   await abrirFoto(page, 1);
   await switchRetoque(page).click();
   await dialogoFoto(page).getByRole("button", { name: "Cerrar" }).first().click().catch(() => page.keyboard.press("Escape"));
   await esperar(page, 400);
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
-  await page.waitForURL(`${URL}/catalogo`);
+  await nombreYPrecio(page, "Segundo marcado", "700");
+  await hastaPublicar(page);
   dd = await db(page);
   ok(dd.trabajosRetoque.filter((t) => t.estado === "pendiente").length === 2, "la segunda vez guarda y reserva sin bienvenida");
   return c;

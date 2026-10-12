@@ -57,8 +57,8 @@ export function textosDelPaso(paso: PasoHistoria, porEncargo = false): { titulo:
   }
 }
 
-/** La línea del paso de la foto cuando todavía no hay ninguna. */
-export const SIN_FOTO = "Sin foto se vende menos. Puedes agregarla luego.";
+/** El remate a mano del paso de la foto cuando todavía no hay ninguna (sin regañar: se puede seguir sin ella). */
+export const SIN_FOTO = "Con foto se vende más.";
 
 /** Las opciones rápidas de «¿Cuándo llega?». Se guardan como «Llega en …» (es lo que ve quien compra, hasta 40 letras). */
 export const OPCIONES_CUANDO_LLEGA = ["3 a 5 días", "1 a 2 semanas", "1 mes"] as const;

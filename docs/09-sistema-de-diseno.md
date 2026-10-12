@@ -138,6 +138,8 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 **Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, con el número en `destacado` entre ellos. **−** en `superficie-hundida` con icono `texto`; **+** en relleno `accion` con icono `sobre-accion`, porque agregar es seguir adelante. Al llegar al mínimo o al límite del stock, ese botón se deshabilita (40 %). No son círculos.
 
+**Cantidad grande** (`<Cantidad grande>`, 11 oct 2026): el contador protagonista de una pregunta («¿Cuántos tienes ahora?» al crear producto). Botones cuadrados de 56 px con `radio-m` (mismos colores: − hundido, + `accion`) y el número en Fredoka `cifra` entre ellos. Solo cuando el número ES la pantalla; en filas y tarjetas sigue la de 36 px.
+
 **Fila "Agregar …"** (Agregar cupón, Agregar producto): fila tocable con un **círculo relleno `accion` de 24 px con un + en `sobre-accion`** y el texto en `destacado`. El círculo relleno es lo que la distingue de un texto suelto.
 
 **Cupón aplicado:** dentro de un pedido el cupón es una fila más de la lista, no el ticket. Sin cupón: la fila "Agregar cupón" (círculo + ). Con cupón: fila con icono de etiqueta de precio en `accion-suave`, título "Cupón", subtítulo "AHHH · 15 %" y chevron; toda la fila abre el selector, donde el cupón aplicado aparece marcado: tocarlo otra vez lo **quita** y tocar otro lo **cambia**. Sin botones "Cambiar" ni "Quitar". El monto descontado va en los totales ("Descuento · AHHH −RD$270"). El ticket grande es para la pantalla de Promos, no para el pedido.
@@ -201,7 +203,9 @@ Las hojas suben desde abajo, con esquinas `radio-xl`, agarradera arriba, título
 - **Automática** (la normal): mide lo que mide su contenido, hasta el 92 % de la pantalla, y si no cabe hace scroll dentro. Para detalles, selecciones, acciones y formularios cortos.
 - **Completa:** ocupa toda la pantalla aunque el contenido sea corto. **Solo** cuando hay teclado (escribir hace saltar la altura) o una lista que crece mientras se usa (buscar cliente, elegir productos).
 
-Nunca una hoja completa con un hueco vacío abajo si no tiene teclado. Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?".
+Nunca una hoja completa con un hueco vacío abajo si no tiene teclado.
+
+**Hoja como historia** (crear producto, 11 oct 2026): hoja `grande` con el título solo para lectores de pantalla (`tituloOculto`) y, en la fila de la ✕, las **barras de historia** (`juntoACerrar`): una por momento, 4 px, píldora, llenas las hechas y la actual en `accion`, el resto `borde-pastilla`, con `role="progressbar"`. Cada pantalla trae su título visible como encabezado. Abajo, fijo, «Atrás» (círculo secundario de 52 px) y la acción del paso. Toda vista previa de una foto de producto en esa hoja es **4:5 con `object-fit: cover`**, la proporción del reel del catálogo. Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?".
 
 ## 10. Tarjetas
 

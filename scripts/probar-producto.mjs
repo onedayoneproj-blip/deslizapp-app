@@ -75,6 +75,11 @@ async function pagina(ancho, tema, tienda) {
 
 const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "{}");
 const hoja = (page) => page.locator('[role="dialog"]').last();
+/** Crear producto es una historia: un botón del pie («Seguir», «Atrás») y una pausa corta. */
+const historia = async (page, boton) => {
+  await page.getByRole("button", { name: boton, exact: true }).click();
+  await page.waitForTimeout(200);
+};
 const sinDesborde = async (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 const capturar = async (page, nombre, ancho, tema) => {
   if (CAPTURAS && ancho === 390) await page.screenshot({ path: join(CAPTURAS, `${nombre}-${tema}.png`) });
@@ -213,10 +218,17 @@ const ESCENARIOS = {
 
   /** 2. Ropa: Talla (XS a XL) y Color (2) → 10 presentaciones; stock a tres; el total suma; quitar un color → 5. */
   async ropa(page, ancho, tema) {
+    // Crear es una historia: foto, nombre, precio y ahí «Tiene tallas o colores» abre el mismo flujo de presentaciones.
     await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa de prueba");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await page.locator("[data-historia-producto]").waitFor();
+    const a = await archivosDePrueba(page);
+    await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);
+    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+    await historia(page, "Seguir");
+    await page.locator("[data-campo-paso]").fill("Blusa de prueba");
+    await historia(page, "Seguir");
+    await page.locator("[data-campo-paso]").fill("1200");
+    await page.locator("[data-chip-presentaciones] button").click();
     await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
     await elegirValores(page, "Colores", ["Negro", "Blanco"]);
@@ -230,11 +242,12 @@ const ESCENARIOS = {
     for (let i = 0; i < 3; i++) await talla("L").getByRole("button", { name: "Agregar uno de Blanco" }).click();
     await hoja(page).getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
     await page.waitForTimeout(600);
-    ok((await page.locator("[data-tarjeta-stock]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
-    ok(await sinDesborde(page), "Formulario de ropa sin desborde");
+    await historia(page, "Seguir");
+    ok((await page.locator("[data-historia-producto]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
+    ok(await sinDesborde(page), "Historia de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
-    // Quitar el color Blanco: «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    // Quitar el color Blanco: «Cambiar» (o el chip) → «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
+    await page.getByRole("button", { name: "Cambiar", exact: true }).click();
     await hoja(page).getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
     await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
     await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
@@ -243,11 +256,9 @@ const ESCENARIOS = {
     await hoja(page).getByRole("button", { name: /^Listo ·/ }).click();
     await page.waitForTimeout(600);
     // Publicar: producto y variantes en una sola llamada.
-    const a = await archivosDePrueba(page);
-    await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);
-    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+    await historia(page, "Seguir");
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await page.locator("[data-celebracion]").waitFor();
     const d = await db(page);
     const blusa = d.productos.find((p) => p.nombre === "Blusa de prueba");
     const suyas = d.variantes.filter((v) => v.productoId === blusa?.id);
@@ -258,7 +269,7 @@ const ESCENARIOS = {
   /** 3. Medios: 2 fotos; un video elegido NO se agrega (VIDEO_PERMITIDO apagado); portada y orden; un video que ya existe se ve y se quita. */
   async medios(page, ancho, tema) {
     await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
+    await page.locator("[data-historia-producto]").waitFor();
     const a = await archivosDePrueba(page);
     const entrada = page.locator("[data-entrada-medios]");
     ok(((await entrada.getAttribute("accept")) ?? "") === "image/*", "El selector de archivos acepta solo imágenes");
@@ -281,10 +292,14 @@ const ESCENARIOS = {
     await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
     ok(true, "Quitar deja 1 elemento");
     ok(await sinDesborde(page), "Tira de medios sin desborde");
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Foto de prueba");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("900");
+    await historia(page, "Seguir");
+    await page.locator("[data-campo-paso]").fill("Foto de prueba");
+    await historia(page, "Seguir");
+    await page.locator("[data-campo-paso]").fill("900");
+    await historia(page, "Seguir");
+    await historia(page, "Seguir");
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await page.locator("[data-celebracion]").waitFor();
     const nuevo = (await db(page)).productos.find((p) => p.nombre === "Foto de prueba");
     ok(nuevo && nuevo.medios.length === 1 && nuevo.fotos.length === 1, "Publicar guarda solo la foto");
     // Un producto que ya trae un video: se ve en la ficha, se abre y se puede quitar.

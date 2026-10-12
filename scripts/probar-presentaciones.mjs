@@ -60,23 +60,35 @@ const foto = (page, color) =>
     return l.toDataURL("image/png").split(",")[1];
   }, color);
 
-/** Un producto nuevo con foto, nombre y precio, en la hoja. */
+/**
+ * Un producto nuevo con foto, nombre y precio. Crear es una historia (docs/prompts/crear-producto-historia.md): queda en la
+ * pregunta del precio, donde «Tiene tallas o colores» abre el mismo flujo de presentaciones de siempre (producto nuevo).
+ */
 async function nuevo(page, nombre = "Aros de luna", precio = "950") {
   await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill(nombre);
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill(precio);
+  await page.locator("[data-historia-producto]").waitFor();
   const b = await foto(page, "#c8a2c8");
   await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
-  await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+  await page.locator("[data-tarjeta-asi-se-vera] img").waitFor();
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.locator("[data-campo-paso]").fill(nombre);
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.locator("[data-campo-paso]").fill(precio);
 }
+const enHistoria = async (page) => (await page.locator("[data-historia-producto]").count()) > 0;
+/** En la historia: avanza o vuelve una pregunta. */
+const pasoHistoria = async (page, boton) => {
+  await page.getByRole("button", { name: boton, exact: true }).click();
+  await page.waitForTimeout(200);
+};
 const editar = async (page, id) => {
   await page.goto(`${URL}/catalogo/${id}/editar`);
   await page.locator("[data-cosas-que-cambian]").waitFor();
   await page.waitForTimeout(500);
 };
 const abrirFlujo = async (page) => {
-  await page.getByRole("button", { name: /^Presentaciones/ }).click();
+  if (await enHistoria(page)) await page.locator("[data-chip-presentaciones] button").click();
+  else await page.getByRole("button", { name: /^Presentaciones/ }).click();
   await hoja(page).locator("[data-paso]").waitFor();
   await page.waitForTimeout(450);
 };
@@ -117,8 +129,24 @@ const sumar = async (page, etiqueta, n, dentro) => {
   const ambito = dentro ? hoja(page).locator(dentro) : hoja(page);
   for (let i = 0; i < n; i++) await ambito.getByRole("button", { name: etiqueta, exact: true }).click();
 };
-const tarjetaStock = (page) => page.locator("[data-tarjeta-stock]").innerText();
+/** El resumen de stock y presentaciones: la tarjeta de la hoja de producto o, en la historia, el chip y la pregunta del stock (ida y vuelta). */
+const tarjetaStock = async (page) => {
+  if (!(await enHistoria(page))) return page.locator("[data-tarjeta-stock]").innerText();
+  const chip = await page.locator("[data-chip-presentaciones]").innerText();
+  await pasoHistoria(page, "Seguir");
+  const stock = await page.locator("[data-historia-producto]").innerText();
+  await pasoHistoria(page, "Atrás");
+  return `${chip}\n${stock}`;
+};
 const guardarCambios = async (page) => {
+  if (await enHistoria(page)) {
+    // Historia: del precio al stock, a «Así se ve» y Publicar; la celebración cierra la historia.
+    await pasoHistoria(page, "Seguir");
+    await pasoHistoria(page, "Seguir");
+    await page.getByRole("button", { name: "Publicar", exact: true }).click();
+    await page.locator("[data-celebracion]").waitFor();
+    return;
+  }
   await page.getByRole("button", { name: /^(Guardar cambios|Publicar)$/ }).click();
   await page.waitForFunction(() => !/\/(editar|nuevo)$/.test(location.pathname) && !document.querySelector("[data-barra-producto]"), null, { timeout: 15000 });
   await page.waitForTimeout(600);
@@ -193,7 +221,7 @@ for (const ancho of ANCHOS) {
     ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Listo · 4 en total»");
     await listo(page);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "La hoja: «4 presentaciones · 4 en total»");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await abrirFlujo(page);
     ok((await paso(page)) === "cuantas", "5 · Con presentaciones, abre directo en «Cuántas tienes»");
     ok((await hoja(page).innerText()).includes("Cambiar qué cambia"), "…con el resumen y el enlace «Cambiar qué cambia»");
     await captura(page, "07-editar-paso2", ancho);
@@ -208,7 +236,7 @@ for (const ancho of ANCHOS) {
     ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4, "15 · Se publicó con 4 presentaciones y su stock");
     await editar(page, p.id);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "15 · Reabrir lo muestra igual");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await abrirFlujo(page);
     await hoja(page).getByRole("button", { name: "Cerrar", exact: true }).click();
     await page.waitForTimeout(500);
     ok(!(await page.getByText("¿Salir sin guardar?").count()), "15 · Cerrar el flujo sin cambios no pregunta nada");
@@ -366,7 +394,7 @@ for (const ancho of ANCHOS) {
     ok((await pasoTexto(page)).includes("Vainilla") && (await pasoTexto(page)).includes("Coco") && (await pasoTexto(page)).includes("Foto de cada aroma"), "8 · Las filas y «Foto de cada aroma»");
     await listo(page);
     ok((await page.getByRole("button", { name: /Agregar presentación|Cambiar qué varía/ }).count()) === 0 && (await page.getByText(/Cambiar qué varía|Agregar presentación/).count()) === 0, "10 · «Agregar presentación» y «Cambiar qué varía» ya no existen");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await abrirFlujo(page);
     ok((await hoja(page).getByText(/Cambiar qué varía|Agregar presentación|Todas/).count()) === 0 || (await hoja(page).getByRole("radio", { name: "Todas" }).count()) === 0, "10 · Ni filtros «Todas / …» ni filas de stock repetidas");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
@@ -466,7 +494,9 @@ for (const ancho of ANCHOS) {
     await siguiente(page);
     await sumar(page, "Agregar uno de Plateado", 2);
     await listo(page);
-    await page.getByRole("button", { name: "Vista previa", exact: true }).click();
+    // En la historia, el reel real va en «Así se ve en tu catálogo», solo (sin la cabecera del catálogo).
+    await pasoHistoria(page, "Seguir");
+    await pasoHistoria(page, "Seguir");
     const marco = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
     await marco.locator("article.reel").waitFor({ timeout: 15000 });
     await page.waitForTimeout(1200);
@@ -475,15 +505,13 @@ for (const ancho of ANCHOS) {
     ok((await reel.locator(".pr strong").innerText()).includes("950"), "…el precio");
     ok((await reel.locator(".pres-btn:not(.en-panel)").innerText()).includes("Ver presentaciones"), "…y «Ver presentaciones ›»");
     // Las pestañas siguen la regla del catálogo: un borrador sin colección ni otros catálogos no lleva pestañas.
-    ok((await marco.locator("header.hdr").count()) === 1 && (await marco.locator(".htabs").count()) <= 1, "…con la cabecera de la tienda (y sus pestañas si las tiene)");
+    ok((await marco.locator("header.hdr").count()) === 0, "…solo el reel, sin la cabecera del catálogo");
     ok((await reel.locator(".act.like").count()) === 1, "…y los botones de comprar a la vista");
     await marco.locator(".act.like").click();
     ok((await marco.getByText("Así lo verá tu cliente").count()) === 1, "Comprar solo avisa «Así lo verá tu cliente»");
     ok(((await db(page)).pedidos ?? []).length === ((await db(page)).pedidos ?? []).length, "No se escribió nada");
     await captura(page, "22-como-se-ve-reel", ancho);
-    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
-    await page.waitForTimeout(500);
-    ok(await page.getByRole("button", { name: "Publicar", exact: true }).isVisible(), "La X vuelve a la hoja de producto");
+    ok(await page.getByRole("button", { name: "Publicar", exact: true }).isVisible(), "Debajo del reel sigue «Publicar»");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

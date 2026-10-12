@@ -1,0 +1,17 @@
+/* El reel solo, llenando su marco 4:5 (paso «Así se ve en tu catálogo» de crear producto). No cambia catalogo.css. */
+html.catalogo-html,
+html.catalogo-html body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.catalogo-publico.reel-solo {
+  min-height: 100vh;
+}
+.catalogo-publico.reel-solo .reel {
+  margin: 0;
+}
+/* La sombra de arriba es para la cabecera del catálogo, que aquí no está. */
+.catalogo-publico.reel-solo .reel::before {
+  display: none;
+}

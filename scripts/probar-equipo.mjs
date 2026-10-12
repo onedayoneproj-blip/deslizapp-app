@@ -196,9 +196,10 @@ await page.goto(URL + "/catalogo");
 await page.waitForSelector('a[href="/catalogo/nuevo"]');
 ok((await page.locator('button[data-sin-permiso]:has-text("Producto")').count()) === 0, "«+ Producto» encendido");
 await page.locator('a[href="/catalogo/nuevo"]').tap();
-await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+// Crear producto es una historia: empieza por la foto (docs/prompts/crear-producto-historia.md).
+await page.waitForSelector('[role="dialog"] [data-historia-producto]');
 await esperar(600);
-ok((await hoja().locator("[data-sin-permiso]").count()) === 0, "la ficha nueva no muestra el aviso de permiso");
+ok((await hoja().locator("[data-sin-permiso]").count()) === 0, "crear producto no muestra el aviso de permiso");
 // Una foto nueva: en su hoja, el interruptor «Retocar esta foto» queda apagado con el porqué.
 const png = await page.evaluate(() => {
   const c = document.createElement("canvas");

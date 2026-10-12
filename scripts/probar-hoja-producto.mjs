@@ -1,5 +1,6 @@
-// Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo: foto grande, Nombre y Precio, tarjeta de
-// «Presentaciones» y stock, «Más opciones» plegadas, botones «Vista previa» + «Publicar» al final, editar, Ayudante. Nunca toca Supabase.
+// Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo, ahora solo para EDITAR (crear es una historia,
+// scripts/probar-crear-producto.mjs): foto grande, Nombre y Precio, tarjeta de «Presentaciones» y stock, «Más opciones» plegadas,
+// botones «Vista previa» + «Guardar cambios» al final, Ayudante. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=docs/capturas/hoja-producto-rediseno] node scripts/probar-hoja-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -22,6 +23,7 @@ const MICHEL = "a1000000-0000-4000-8000-000000000001";
 const LINO = "a1000000-0000-4000-8000-000000000003";
 const OUD_MICHEL = "a3000000-0000-4000-8000-000000000019";
 const PANTALON = "a3000000-0000-4000-8000-000000000018";
+const SOMBRERO = "a3000000-0000-4000-8000-000000000025";
 
 const ok = (cond, msg) => {
   console.log((cond ? "  ✅ " : "  ❌ ") + msg);
@@ -57,23 +59,20 @@ const bajar = (page) => page.locator("[data-hoja-contenido]").evaluate((e) => e.
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
 
-  console.log("• Producto vacío: foto grande, «Publicar» apagado hasta tener foto, nombre y precio");
+  // Crear producto es una historia (scripts/probar-crear-producto.mjs); la hoja queda para editar y se prueba aquí, igual que antes.
+  console.log("• Editar sin presentaciones: foto grande, campos, «Más opciones», botones al final, vista previa y guardar");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
-    await page.goto(`${URL}/catalogo/nuevo`);
+    await page.goto(`${URL}/catalogo/${SOMBRERO}/editar`);
     await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
-    ok((await page.locator("[data-foto-vacia]").count()) === 1 && (await page.getByText("Agrega la primera foto").isVisible()), "Sin fotos: espacio amplio con «Agrega la primera foto»");
-    const caja = await page.locator("[data-foto-vacia]").boundingBox();
-    ok(Math.abs(caja.width - caja.height) < 2 && caja.width > ancho - 60, "…cuadrado a todo el ancho (nunca círculo)");
-    const publicar = page.getByRole("button", { name: "Publicar", exact: true });
-    ok(await publicar.isDisabled(), "«Publicar» está apagado al empezar");
-    ok(await page.getByRole("button", { name: "Vista previa", exact: true }).isEnabled(), "«Vista previa» sí está prendido");
+    const guardar = page.getByRole("button", { name: "Guardar cambios", exact: true });
+    const caja = await page.locator("[data-foto-principal]").boundingBox();
+    ok(Math.abs(caja.width - caja.height) < 2 && caja.width > ancho - 60, "La foto principal es un cuadrado a todo el ancho (nunca círculo)");
+    ok(await page.getByRole("button", { name: "Vista previa", exact: true }).isEnabled(), "«Vista previa» prendido");
     await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Aros dorados");
     await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1850");
-    ok(await publicar.isDisabled(), "Con nombre y precio, sin foto, sigue apagado");
     ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).inputValue()) === "1,850", "El precio se ve con coma de miles (1,850)");
     ok((await page.getByRole("textbox", { name: "Nombre", exact: true }).getAttribute("placeholder")) === "El nombre de tu producto" && (await page.getByRole("textbox", { name: "Precio (RD$)" }).getAttribute("placeholder")) === "Escribe el precio", "Los ejemplos son invitaciones, sin «Ej:»");
-    ok((await page.getByText("O un video corto.").count()) === 0 && (await page.getByText("Foto o video").count()) === 0, "Con el video apagado no se habla de video al agregar fotos");
     {
       // Escribir y borrar en el medio: el cursor no salta al final.
       const precio = page.getByRole("textbox", { name: "Precio (RD$)" });
@@ -92,22 +91,17 @@ for (const ancho of ANCHOS) {
       ok(JSON.stringify(nombre) === JSON.stringify(precio) && precio.letra === "16px" && precio.peso === "400", `Nombre y Precio: mismo alto, letra, peso y borde (${JSON.stringify(precio)})`);
       ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).evaluate((e) => getComputedStyle(e, "::placeholder").fontSize)) === "16px", "El ejemplo del precio es del tamaño normal de un campo");
     }
-    {
-      const b = await publicar.evaluate((e) => { const c = getComputedStyle(e); return { op: c.opacity, fondo: c.backgroundColor }; });
-      ok(b.op === "1" && !/rgba|\/ /.test(b.fondo), `«Publicar» apagado es opaco (fondo ${b.fondo})`);
-    }
     ok(await sinDesborde(page), "Sin desborde horizontal");
-    await captura(page, "1-vacio", ancho);
+    await captura(page, "1-editar", ancho);
     for (const n of ["Descripción", "Ficha técnica", "Colección", "Por encargo", "Visible en el catálogo"]) ok((await page.getByText(n, { exact: true }).count()) >= 1, `«Más opciones» tiene la fila ${n}`);
     ok((await page.locator("[data-fila-plegable] textarea").count()) === 0, "Lo opcional viene plegado");
     ok((await page.locator("[data-tarjeta-stock] [data-encargo]").getByText("Por encargo", { exact: true }).count()) === 1, "«Por encargo» está en la tarjeta del stock");
     ok((await page.getByText(/llevo la cuenta|llevas la cuenta/i).count()) === 0, "No hay «No llevo la cuenta»");
     ok((await page.locator('[data-fila-plegable="descripcion"], [data-fila-plegable="ficha"]').evaluateAll((l) => new Set(l.map((e) => e.parentElement)).size)) === 1, "Descripción y Ficha técnica comparten un grupo");
     ok((await page.locator('[data-fila-plegable="descripcion"]').evaluate((e) => !e.parentElement.textContent.includes("Colección"))), "Colección y Visible van en otro grupo");
-    const A = [await png(page, "#c33"), await png(page, "#3a6"), await png(page, "#36c")];
+    const A = [await png(page, "#c33"), await png(page, "#3a6")];
     await page.locator("[data-entrada-medios]").setInputFiles(A.map((b, i) => ({ name: `f${i}.png`, mimeType: "image/png", buffer: Buffer.from(b, "base64") })));
     await page.getByRole("button", { name: /^Foto 3 de 3/ }).waitFor();
-    ok(await publicar.isEnabled(), "Con foto, nombre y precio, «Publicar» se prende");
     ok((await page.locator("[data-foto-principal]").innerText()).includes("1 / 3"), "La foto principal lleva su contador «1 / 3»");
     await page.getByRole("button", { name: /^Foto 2 de 3/ }).click();
     await page.getByRole("button", { name: "Hacer portada", exact: true }).waitFor();
@@ -130,15 +124,13 @@ for (const ancho of ANCHOS) {
     // Por encargo
     await page.getByRole("switch", { name: "Por encargo" }).click();
     await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
-    // Vista previa
     // Los botones van al final de la página (como en pedido nuevo): uno sobre otro, del mismo ancho y alto, sin flotar.
     await bajar(page);
     await page.waitForTimeout(300);
     const barra = page.locator("[data-barra-producto]");
-    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Vista previa", exact: true }).boundingBox(), page.getByRole("button", { name: "Publicar", exact: true }).boundingBox()]);
-    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.height - b2.height) < 1.5 && b1.y < b2.y && Math.abs(b1.x - b2.x) < 1, "«Vista previa» arriba y «Publicar» debajo, del mismo ancho y alto");
+    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Vista previa", exact: true }).boundingBox(), guardar.boundingBox()]);
+    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.height - b2.height) < 1.5 && b1.y < b2.y && Math.abs(b1.x - b2.x) < 1, "«Vista previa» arriba y «Guardar cambios» debajo, del mismo ancho y alto");
     ok(await barra.evaluate((e) => { for (let n = e; n && !n.hasAttribute("data-hoja-contenido"); n = n.parentElement) { const p = getComputedStyle(n).position; if (p === "fixed" || p === "sticky") return false; } return true; }), "…los botones no flotan: van dentro de la página");
-    ok((await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight)) < 2 && b2.y + b2.height <= 844, "…al desplazar hasta el final se ven completos");
     ok((await page.getByRole("button", { name: "Vista previa", exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor)) !== "rgba(0, 0, 0, 0)", "…«Vista previa» es opaco");
     await captura(page, "botones-al-final", ancho);
     // Vista previa: el reel real del catálogo del comprador, con el borrador
@@ -148,16 +140,16 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(1000);
     const reel = visor.locator("article.reel");
     const vista = (await reel.innerText()).replace(/\s+/g, " ");
-    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Solo tengo 1") && vista.includes("Aros dorados con baño de oro"), "«Vista previa» es el reel del catálogo: nombre, precio, «Solo tengo 1» (con 1 en stock, como en el catálogo) y descripción");
+    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Aros dorados con baño de oro"), "«Vista previa» es el reel del catálogo: nombre, precio y descripción del borrador");
     ok((await visor.locator("header.hdr").count()) === 1 && (await reel.locator(".act.like").count()) === 1 && (await reel.locator("button.elipsis").count()) === 1, "…con su cabecera, los botones de comprar y el «…» de la descripción");
     await captura(page, "como-se-ve", ancho);
     await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
     await page.waitForTimeout(700);
-    await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await guardar.click();
+    await page.waitForURL(`${URL}/catalogo/${SOMBRERO}`);
     const d = JSON.parse(await page.evaluate(() => localStorage.getItem("deslizapp-demo-v5")));
-    const p = d.productos.find((x) => x.nombre === "Aros dorados");
-    ok(p && p.precio === 1850 && p.fotos.length === 3 && p.porEncargo && p.encargoTexto === "Llega en 8 días" && p.detalles.descripcion.startsWith("Aros dorados"), "Publicar guarda lo mismo de siempre");
+    const p = d.productos.find((x) => x.id === SOMBRERO);
+    ok(p && p.nombre === "Aros dorados" && p.precio === 1850 && p.fotos.length === 3 && p.porEncargo && p.encargoTexto === "Llega en 8 días" && p.detalles.descripcion.startsWith("Aros dorados"), "«Guardar cambios» guarda lo mismo de siempre (guardado compartido con crear)");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }

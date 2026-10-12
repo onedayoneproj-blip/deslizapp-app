@@ -560,7 +560,7 @@ try {
     await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
     await page.waitForTimeout(700);
     // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
-    await page.tap('[role="dialog"] button:has-text("Sin colección")');
+    await page.tap('[role="dialog"] li button:has-text("Colección")');
     await page.waitForSelector('[role="dialog"] button:has-text("Agregar colección")');
     await page.tap('[role="dialog"] button:has-text("Agregar colección")');
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Para él"]');

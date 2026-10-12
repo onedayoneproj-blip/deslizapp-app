@@ -274,7 +274,11 @@ function Historia({
   return (
     <div ref={raiz} className="flex flex-col gap-5" data-historia-producto="" data-paso={paso}>
       {(paso === "foto" || paso === "nombre" || paso === "precio" || paso === "stock") && (
-        <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} />
+        <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} nota={paso !== "foto"} />
+      )}
+      {paso === "foto" && !portada && (
+        // El momento de voz del paso 1 (su única Caveat): junto al marco, sin regañar.
+        <p className="-mt-2 text-center font-mano text-mano text-atencion-texto" data-con-foto="">{SIN_FOTO}</p>
       )}
 
       {paso === "foto" && (
@@ -284,10 +288,7 @@ function Historia({
             medios={medios} alCambiar={setMedios} taller={taller} avisar={toast}
             historia={{
               pieSinFotos: (
-                <>
-                  <p className="text-center text-secundario text-texto-secundario">{SIN_FOTO}</p>
-                  <Boton jerarquia="terciario" anchoCompleto onClick={seguir}>Seguir sin foto</Boton>
-                </>
+                <Boton jerarquia="terciario" anchoCompleto onClick={seguir}>Seguir sin foto</Boton>
               ),
             }}
           />
@@ -487,29 +488,36 @@ function Historia({
   );
 }
 
-/** La tarjeta «así se verá»: la portada a lo ancho y, con el velo del catálogo, el nombre y el precio mientras se escriben. */
-function TarjetaAsiSeVera({ portada, nombre, precio }: { portada: string | null; nombre: string; precio: string | null }) {
+/**
+ * La tarjeta «así se verá»: la portada con la proporción del reel del catálogo (4:5, la foto cubre el marco como `.media img`) y,
+ * con el velo, el nombre y el precio mientras se escriben. Su tamaño sale del ancho y del alto de la pantalla (`dvh`, que el
+ * teclado del iPhone no cambia): nunca cambia al abrir el teclado, y deja sitio al campo y a «Seguir» (360×640 incluido).
+ */
+function TarjetaAsiSeVera({ portada, nombre, precio, nota }: { portada: string | null; nombre: string; precio: string | null; nota: boolean }) {
   const n = nombre.trim();
   return (
     <div
-      className={clases("relative h-52 w-full shrink-0 overflow-hidden rounded-radio-l", portada ? "bg-superficie-hundida" : "border-2 border-dashed border-borde-campo bg-superficie")}
+      className={clases(
+        "relative aspect-[4/5] w-[max(9rem,min(62%,calc((100dvh-27.5rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l",
+        portada ? "bg-superficie-hundida" : "border-2 border-dashed border-borde-campo bg-superficie",
+      )}
       data-tarjeta-asi-se-vera="" aria-label={`Así se verá: ${n || "sin nombre"}${precio ? `, ${precio}` : ""}`} role="img"
     >
       {portada ? (
         <>
-          <Foto src={portada} alt="" className="h-full w-full" sizes="(max-width: 480px) 100vw, 440px" />
+          <Foto src={portada} alt="" className="absolute inset-0" sizes="(max-width: 480px) 62vw, 280px" />
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-velo to-transparent" />
-          <span aria-hidden="true" className="absolute top-2 left-3.5 font-mano text-mano text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]">así se verá</span>
+          {nota && <span aria-hidden="true" className="absolute top-2 left-3 font-mano text-mano text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]">así se verá</span>}
         </>
       ) : (
         <div aria-hidden="true" className="flex h-full flex-col items-center justify-center gap-2 text-texto-secundario">
-          <IconoCamara tamano={40} strokeWidth={1.8} />
+          <IconoCamara tamano={36} strokeWidth={1.8} />
           <span className="text-secundario">Tu foto va aquí</span>
         </div>
       )}
       {(n || precio) && (
-        <div aria-hidden="true" className={clases("absolute inset-x-3.5 bottom-3", portada ? "text-papel" : "text-texto")}>
-          {n && <p className="truncate font-display text-titulo-hoja">{n}</p>}
+        <div aria-hidden="true" className={clases("absolute inset-x-3 bottom-3", portada ? "text-papel" : "text-texto")}>
+          {n && <p className="line-clamp-2 font-display text-titulo-seccion break-words">{n}</p>}
           {precio && <p className="text-cuerpo font-extrabold tabular-nums" data-precio-tarjeta="">{precio}</p>}
         </div>
       )}
@@ -555,9 +563,10 @@ function HojaOpcional({ abierta, titulo, grande = false, alCerrar, children }: {
 }
 
 /**
- * El reel real del comprador con el borrador (el mismo de «Vista previa»: `/vista-previa-catalogo` en un iframe del mismo sitio,
- * con `components/tienda/reel.tsx`, su CSS y el tema de la tienda), de unos 440 px de alto. Se le vuelve a mandar el borrador
- * cuando cambia (al volver de un opcional).
+ * El reel real del comprador con el borrador, solo (sin la cabecera ni las pestañas del catálogo): `/vista-previa-reel` en un
+ * iframe del mismo sitio, con `components/tienda/reel.tsx`, su CSS y el tema de la tienda. El marco es 4:5, como el reel: hasta
+ * 352×440 y, en pantallas más bajas, lo que deja ver los opcionales sobre «Publicar» sin desplazar (`dvh`). Se le vuelve a mandar
+ * el borrador cuando cambia (al volver de un opcional).
  */
 function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const marco = useRef<HTMLIFrameElement>(null);
@@ -585,8 +594,8 @@ function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const clave = JSON.stringify(d && "producto" in d ? d.producto : null);
   useEffect(mandar, [clave]);
   return (
-    <div className="relative h-[440px] w-full overflow-hidden rounded-radio-l bg-black" data-reel-historia="">
-      <iframe ref={marco} src="/vista-previa-catalogo" title="Así lo verá tu cliente" className="size-full border-0" />
+    <div className="relative aspect-[4/5] w-[max(12rem,min(100%,22rem,calc((100dvh-27rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l bg-black" data-reel-historia="">
+      <iframe ref={marco} src="/vista-previa-reel" title="Así lo verá tu cliente" className="absolute inset-0 size-full border-0" />
     </div>
   );
 }
@@ -621,14 +630,14 @@ function Celebracion({ producto, visible, cuentan, alOtro, compartir }: { produc
   const arranque = visible ? lineaArranque(cuentan) : null;
   return (
     <div className="mov-aparece flex flex-col items-center gap-5 pt-4 text-center" data-celebracion="">
-      <div aria-hidden="true" className="relative size-56">
-        <span className="absolute -top-2 left-2 size-10 rounded-full bg-marca-rosa" />
-        <span className="absolute top-6 -right-3 size-7 rounded-radio-s bg-resalte rotate-12" />
-        <span className="absolute -bottom-1 -left-4 size-8 rounded-radio-s bg-accion-suave -rotate-12" />
-        <span className="absolute right-4 -bottom-4 size-5 rounded-full bg-accion" />
-        <div className="absolute inset-4 -rotate-4 overflow-hidden rounded-radio-l bg-superficie-hundida shadow-flotante">
+      <div aria-hidden="true" className="relative aspect-[4/5] w-48">
+        <span className="absolute -top-4 -left-5 size-10 rounded-full bg-marca-rosa" />
+        <span className="absolute top-8 -right-6 size-7 rotate-12 rounded-radio-s bg-resalte" />
+        <span className="absolute bottom-6 -left-7 size-8 -rotate-12 rounded-radio-s bg-accion-suave" />
+        <span className="absolute -right-3 -bottom-3 size-5 rounded-full bg-accion" />
+        <div className="absolute inset-0 -rotate-4 overflow-hidden rounded-radio-l bg-superficie-hundida shadow-flotante" data-foto-celebracion="">
           {foto ? (
-            <Foto src={foto} alt="" className="h-full w-full" sizes="200px" />
+            <Foto src={foto} alt="" className="absolute inset-0" sizes="200px" />
           ) : (
             <div className="grid h-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>
           )}

@@ -34,8 +34,8 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 
 /** `demo`: una base de la demo armada aquí (desde la semilla), que se pone una sola vez al abrir. */
-async function pagina(ancho, tienda, demo = null) {
-  const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+async function pagina(ancho, tienda, demo = null, alto = 844) {
+  const ctx = await navegador.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
@@ -59,15 +59,35 @@ function demoCon(cambio) {
   cambio(d);
   return d;
 }
-const png = (page, color) =>
-  page.evaluate((c) => {
+/** Una foto de prueba (cuadrada, horizontal o vertical). */
+const png = (page, color, ancho = 600, alto = 600) =>
+  page.evaluate(({ c, w, h }) => {
     const l = document.createElement("canvas");
-    l.width = l.height = 600;
+    l.width = w;
+    l.height = h;
     const x = l.getContext("2d");
     x.fillStyle = c;
-    x.fillRect(0, 0, 600, 600);
+    x.fillRect(0, 0, w, h);
     return l.toDataURL("image/png").split(",")[1];
-  }, color);
+  }, { c: color, w: ancho, h: alto });
+/** La vista previa es 4:5 (la del reel) y la foto la cubre entera, sin barras a los lados. */
+async function proporcion(page, sel, nombre) {
+  const r = await page.locator(sel).evaluate((el) => {
+    const caja = el.getBoundingClientRect();
+    const img = el.querySelector("img");
+    const i = img?.getBoundingClientRect();
+    return { w: caja.width, h: caja.height, cubre: img ? getComputedStyle(img).objectFit === "cover" && Math.abs(i.width - caja.width) < 6 && Math.abs(i.height - caja.height) < 6 : null };
+  });
+  ok(Math.abs(r.w / r.h - 0.8) <= 0.01 && r.cubre !== false, `${nombre}: 4:5 (${Math.round(r.w)}×${Math.round(r.h)})${r.cubre ? ", la foto lo cubre" : ""}`);
+}
+/** Al final del contenido, nada queda detrás de la barra fija de abajo. */
+async function nadaDetrasDelPie(page, sel, nombre) {
+  await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
+  await page.waitForTimeout(150);
+  const abajo = await page.locator(sel).last().evaluate((e) => e.getBoundingClientRect().bottom);
+  const pie = await page.locator("[data-pie-historia]").evaluate((e) => e.getBoundingClientRect().top);
+  ok(abajo <= pie, `${nombre}: al bajar, queda por encima de la barra de abajo (${Math.round(abajo)} ≤ ${Math.round(pie)})`);
+}
 
 const H = "[data-historia-producto]";
 const paso = (page) => page.locator(H).getAttribute("data-paso");
@@ -87,8 +107,8 @@ async function abrir(page) {
   await page.waitForSelector(H, { timeout: 60000 });
   await page.waitForTimeout(500);
 }
-async function subirFoto(page, color = "#c8a2c8") {
-  const b = await png(page, color);
+async function subirFoto(page, color = "#c8a2c8", ancho = 600, alto = 600) {
+  const b = await png(page, color, ancho, alto);
   await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
   await page.locator("[data-tarjeta-asi-se-vera] img").waitFor();
 }
@@ -107,10 +127,14 @@ for (const ancho of ANCHOS) {
     ok((await barras(page)) === "1" && (await page.locator("[data-barras-historia] span").count()) === 5, "Cinco barras, la primera llena (aria-valuenow 1)");
     ok((await page.locator("[data-tarjeta-asi-se-vera]").count()) === 1 && (await page.getByText("Tu foto va aquí").isVisible()), "Sin foto: la tarjeta es un marco con la cámara");
     ok(await boton(page, "Tomar foto").isVisible() && await boton(page, "Elegir de la galería").isVisible(), "«Tomar foto» y «Elegir de la galería»");
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 1 sin foto, el marco");
+    ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano junto al marco");
+    ok((await page.getByText("así se verá").count()) === 0, "En el paso 1 no sale «así se verá»");
     ok((await page.locator("[data-entrada-camara]").getAttribute("capture")) === "environment", "«Tomar foto» abre la cámara (capture)");
     await captura(page, "1-foto-vacia", ancho);
-    await subirFoto(page);
+    await subirFoto(page, "#c8a2c8", 900, 500);
     ok(await page.getByText("Portada").first().isVisible(), "Con foto: la tira con la portada");
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 1 con una foto horizontal");
     await captura(page, "1-foto", ancho);
     await seguir(page);
     ok((await paso(page)) === "nombre" && (await barras(page)) === "2", "Paso 2: ¿Cómo se llama? (barra 2)");
@@ -118,6 +142,7 @@ for (const ancho of ANCHOS) {
     ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado sin nombre");
     await escribir(page, "Hoodie Deslizapp");
     ok((await page.locator("[data-tarjeta-asi-se-vera]").innerText()).includes("Hoodie Deslizapp"), "El nombre aparece en la tarjeta mientras se escribe");
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 2");
     await captura(page, "2-nombre", ancho);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
@@ -125,6 +150,7 @@ for (const ancho of ANCHOS) {
     await escribir(page, "1450");
     ok((await page.locator("[data-precio-tarjeta]").innerText()) === "RD$1,450", "El precio aparece en la tarjeta");
     ok(await page.locator("[data-chip-presentaciones]").getByText("Tiene tallas o colores").isVisible(), "Chip «Tiene tallas o colores»");
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
@@ -136,15 +162,26 @@ for (const ancho of ANCHOS) {
     await mas.tap();
     await mas.tap();
     ok((await page.locator("[data-contador-stock]").innerText()).includes("3"), "Contador en 3");
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 4");
     await captura(page, "4-stock", ancho);
     await seguir(page);
     ok((await paso(page)) === "vista" && (await barras(page)) === "5", "Paso 5: Así se ve en tu catálogo");
     const marco = page.frameLocator("[data-reel-historia] iframe");
-    await marco.locator("[data-vista-previa-reel] .reel").first().waitFor({ timeout: 20000 });
-    ok((await marco.locator("[data-vista-previa-reel]").innerText()).includes("Hoodie Deslizapp"), "El reel real del comprador con el borrador");
-    const alto = (await page.locator("[data-reel-historia]").boundingBox()).height;
-    ok(Math.abs(alto - 440) < 2, "…de 440 px de alto");
+    await marco.locator("[data-reel-solo] .reel").first().waitFor({ timeout: 20000 });
+    ok((await marco.locator("[data-reel-solo]").innerText()).includes("Hoodie Deslizapp"), "El reel real del comprador con el borrador");
+    ok((await marco.locator(".hdr, .htabs").count()) === 0, "…solo el reel: sin cabecera ni pestañas del catálogo");
+    await proporcion(page, "[data-reel-historia]", "Paso 5, el marco del reel");
+    const marcoCaja = await page.locator("[data-reel-historia]").boundingBox();
+    const reelCaja = await marco.locator(".reel").first().boundingBox();
+    ok(Math.abs(reelCaja.width - marcoCaja.width) < 2 && Math.abs(reelCaja.height - marcoCaja.height) < 2, "…y el reel llena el marco (sin barras)");
+    ok(marcoCaja.height >= 360, `…grande: ${Math.round(marcoCaja.height)} px de alto (hasta 440)`);
+    // En reposo (sin desplazar), en un teléfono de 844 px de alto, las pastillas no quedan detrás de «Publicar».
+    const ultima = await page.locator("[data-opcional]").last().evaluate((e) => e.getBoundingClientRect().bottom);
+    const techo = await page.locator("[data-pie-historia]").evaluate((e) => e.getBoundingClientRect().top);
+    ok(ultima <= techo, `…y sin desplazar, los opcionales quedan por encima de «Publicar» (${Math.round(ultima)} ≤ ${Math.round(techo)})`);
     ok(await boton(page, "Publicar").isEnabled() && await boton(page, "Guardar sin publicar").isVisible(), "«Publicar» y «Guardar sin publicar»");
+    await nadaDetrasDelPie(page, "[data-opcional]", "Paso 5, las pastillas opcionales");
+    await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
     // Un opcional: Descripción. Al cerrar, la pastilla muestra que está hecha.
     await page.locator('[data-opcional="Descripción"]').tap();
     await page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]').waitFor();
@@ -178,7 +215,7 @@ for (const ancho of ANCHOS) {
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrir(page);
-    ok(await page.getByText("Sin foto se vende menos. Puedes agregarla luego.").isVisible(), "Línea «Sin foto se vende menos…»");
+    ok(await page.getByText("Con foto se vende más.").isVisible() && await boton(page, "Seguir sin foto").isVisible(), "Sin foto se puede seguir («Seguir sin foto»)");
     await boton(page, "Seguir sin foto").tap();
     await page.waitForTimeout(150);
     await escribir(page, "Gorra sin foto");
@@ -210,8 +247,10 @@ for (const ancho of ANCHOS) {
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrir(page);
-    await subirFoto(page, "#7aa");
+    await subirFoto(page, "#7aa", 500, 900);
     await seguir(page);
+    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 2 con una foto vertical");
+    await nadaDetrasDelPie(page, "[data-catalogo-historia] button", "Paso 2, las pastillas de catálogo");
     ok(await page.getByText("¿En qué catálogo va?").isVisible(), "«¿En qué catálogo va?» debajo del nombre");
     ok((await page.getByRole("radio", { name: "Ropa" }).getAttribute("aria-checked")) === "true", "…preseleccionado el catálogo abierto (Ropa)");
     await escribir(page, "Aretes por encargo");
@@ -324,6 +363,28 @@ for (const ancho of ANCHOS) {
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
+}
+
+console.log("\n=== Pantalla baja (360×640): la tarjeta, el campo y «Seguir» caben sin desplazar ===");
+{
+  const { ctx, page, errores } = await pagina(360, MICHEL, null, 640);
+  await abrir(page);
+  await subirFoto(page, "#9b7");
+  await seguir(page);
+  const visibles = async (nombre) => {
+    const t = await page.locator("[data-tarjeta-asi-se-vera]").boundingBox();
+    const c = await page.locator("[data-campo-paso]").boundingBox();
+    const pie = await page.locator("[data-pie-historia]").boundingBox();
+    ok(t.y >= 0 && t.y + t.height <= c.y && c.y + c.height <= pie.y, `${nombre}: tarjeta (${Math.round(t.height)} px), campo y «Seguir» a la vista`);
+  };
+  await visibles("Nombre");
+  await proporcion(page, "[data-tarjeta-asi-se-vera]", "Nombre a 360×640");
+  await escribir(page, "Oud bajo");
+  await seguir(page);
+  await visibles("Precio");
+  await captura(page, "3-precio-pantalla-baja", 360);
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
 }
 
 await navegador.close();
