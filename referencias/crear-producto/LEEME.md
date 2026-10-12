@@ -16,3 +16,6 @@ Medidas del lienzo (390×844, márgenes laterales de 20 px, la tarjeta ocupa de 
 - «Así se ve en tu catálogo»: tarjeta de **350×440 px** (≈ 4:5), que es el reel real **reducido en proporción** (escala del reel de 390×488), nunca recortado ni con el contenido desbordado.
 - Barra de avance, botones inferiores (‹ redondo + Seguir), tipografías y espacios: los del lienzo.
 La proporción 4:5 «para todas las tarjetas» del 11 oct fue un error de Planning: ya no aplica a los pasos de preguntas.
+
+## Capturas renderizadas (12 oct 2026)
+`capturas/b1…b6.png` (un producto) y `capturas/v1…v6.png` (varias presentaciones), 390×844, y `prototipo-crear-producto.pdf` con ellas y las medidas. En BV la tarjeta «así se verá» mide 350×212 (en B, 350×372).
