@@ -1,5 +1,6 @@
 // Flujo de creación como una historia. Demo, anchos 360/390/430 px.
 // URL=http://localhost:3000 [CAPTURAS=docs/capturas/crear-producto-codex] node scripts/probar-crear-producto.mjs
+import { nuevoHastaPrecio } from "./recorrido-historia-producto.mjs";
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -15,6 +16,24 @@ const ok = (condition, message) => { console.log(`${condition ? "✅" : "❌"} $
 const browser = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 const captura = async (page, nombre) => { if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, nombre), fullPage: false }); };
 const silenciarAvisoDeOtroDespliegue = (page) => page.route("**/api/version", (route) => route.abort());
+const medirProductoReal = async (page) => {
+  const marco = page.locator("[data-reel-reducido]");
+  const iframe = page.frameLocator("[data-reel-reducido] iframe");
+  await iframe.locator("article.reel .media").waitFor();
+  const foto = await iframe.locator("article.reel .media").evaluate((e) => {
+    const r = e.getBoundingClientRect();
+    const carrusel = e.querySelector(".carrusel")?.getBoundingClientRect();
+    const rect = (selector) => { const el = e.closest("article").querySelector(selector); if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height }; };
+    return { x: r.x, y: r.y, w: r.width, h: r.height, carrusel: carrusel && { w: carrusel.width, h: carrusel.height }, nombre: rect(".cap h2"), precio: rect(".pr"), controles: rect(".acts") };
+  });
+  const box = await marco.boundingBox();
+  const escala = box.width / 390;
+  ok(foto.w === 390 && Math.abs(foto.h - 440 * 390 / 350) < 0.1 && foto.x === 0 && foto.y === 0, "B5: el Reel y su foto ocupan todo el viewport del iframe (viewport con el aspecto del marco, origen 0/0)");
+  ok(Math.abs(foto.w * escala - box.width) <= 1 && Math.abs(foto.h * escala - box.height) <= 0.1, "B5: tamaño efectivo de producto coincide con el marco, sin miniatura interior");
+  ok(await iframe.locator("header.hdr").count() === 0, "B5: solo el Reel de producto, sin cabecera del catálogo");
+  for (const [nombre, r] of Object.entries({ nombre: foto.nombre, precio: foto.precio, controles: foto.controles })) ok(r && r.x >= 0 && r.y >= 0 && r.x + r.w <= 391 && r.y + r.h <= 491, `B5: ${nombre} queda superpuesto dentro del producto`);
+  console.log(`📐 B5 producto efectivo ${JSON.stringify({ ancho: box.width, alto: foto.h * escala, marcoAlto: box.height, escala, ...foto })}`);
+};
 const medir = async (page, paso) => {
   if (![390, 393].includes(page.viewportSize().width)) return;
   const m = await page.evaluate(() => {
@@ -43,6 +62,8 @@ for (const width of [360, 390, 393, 430]) {
   await page.locator("[data-historia-crear]").waitFor();
   await page.locator("[data-entrada-medios]").setInputFiles(join(process.cwd(), "public/catalogos/esencias-michel/fotos/yara-rosa.jpg"));
   await page.waitForSelector("[data-foto-principal]");
+  await page.waitForFunction(() => Math.round(document.querySelector("[data-foto-principal]").getBoundingClientRect().top) === 100, null, { timeout: 5000 }); // termina la entrada de la hoja antes de medir
+  ok(await page.locator("[data-foto-principal]").evaluate((e) => Math.round(e.getBoundingClientRect().top)) === 100, `${width}px: tarjeta de foto empieza a 100px`);
   ok(await page.locator("[data-foto-principal]").evaluate((e) => Math.round(e.getBoundingClientRect().height)) === 372, `${width}px: tarjeta de foto mide 372px`);
   ok(await page.getByRole("button", { name: "Seguir" }).isVisible(), `${width}px: controles fijos de la historia`);
   if ([390, 393].includes(width)) await medir(page, `${width}-foto`);
@@ -74,9 +95,10 @@ for (const width of [360, 390, 393, 430]) {
   await page.getByRole("button", { name: "Seguir" }).click();
   await page.locator("[data-reel-reducido]").waitFor();
   const reelBox = await page.locator("[data-reel-reducido]").boundingBox();
-  ok(Math.round(reelBox.width) === Math.min(350, width - 40) && Math.round(reelBox.height) === 440, `${width}px: reel real dentro de marco de 440px`);
+  ok(Math.round(reelBox.width) === Math.min(350, width - 40) && Math.round(reelBox.height) === Math.round(440 * Math.min(350, width - 40) / 350), `${width}px: reel real dentro de marco de 440px`);
   ok(await page.locator("[data-reel-reducido] iframe").getAttribute("src") === "/vista-previa-catalogo", `${width}px: vista usa el reel del catálogo`);
   await page.waitForFunction(() => document.querySelector("[data-reel-reducido] iframe")?.contentDocument?.body?.innerText.includes("Vestido de prueba"), { timeout: 10000 });
+  await medirProductoReal(page);
   if ([390, 393].includes(width)) await medir(page, `${width}-vista`);
   const publicar = await page.getByRole("button", { name: "Publicar", exact: true }).boundingBox();
   ok(Math.round(publicar.width) === width - 40, `${width}px: Publicar ocupa el ancho útil completo`);
@@ -237,28 +259,38 @@ for (const width of [390, 393]) {
   const botonListo = page.getByRole("button", { name: /^Listo ·/ });
   ok(await botonListo.isDisabled(), `${width}px: stock en cero bloquea la vista previa`);
   await medir(page, "variantes-stock");
+  ok(await page.locator("[data-tarjeta-variantes]").count() === 0, `${width}px: cantidades usa el resumen de la referencia sin tarjeta de foto`);
   ok(await page.locator("[data-total-presentaciones]").innerText() === "6 presentaciones · 0 en total", `${width}px: se crean las 6 combinaciones de dos atributos`);
-  await page.getByRole("button", { name: "Poner a todas" }).click();
-  await page.getByRole("button", { name: "Agregar una unidad a todas" }).click();
-  await page.getByRole("button", { name: "Aplicar", exact: true }).click();
+  await page.getByRole("button", { name: "Agregar uno a todas", exact: true }).click();
+  await page.getByRole("button", { name: "Agregar uno a todas", exact: true }).click();
   ok((await page.locator("[data-total-presentaciones]").innerText()).endsWith("12 en total"), `${width}px: Poner a todas aplica la misma cantidad y suma los grupos`);
   const stockObjetivo = [["Crema · S", 4], ["Crema · M", 5], ["Crema · L", 3], ["Bosque · S", 3], ["Bosque · M", 4], ["Bosque · L", 2]];
   for (const [variante, objetivo] of stockObjetivo) {
-    for (let n = 2; n < objetivo; n++) await page.getByRole("button", { name: `Agregar uno de ${variante}`, exact: true }).click();
+    for (let n = 2; n < objetivo; n++) await page.locator(`[aria-label="Color ${variante.split(" · ")[0]}"]`).getByRole("button", { name: `Agregar uno de ${variante.split(" · ")[1]}`, exact: true }).click();
   }
-  ok((await page.locator('[aria-label="Color Crema"] [data-total-grupo]').innerText()) === "12 en total", `${width}px: la suma del grupo Crema cuadra`);
+  ok((await page.locator('[aria-label="Color Crema"] [data-grupo-total]').innerText()) === "· 12", `${width}px: la suma del grupo Crema cuadra`);
   ok(!(await page.getByText("Agotada", { exact: true }).count()), `${width}px: producto en creación sin estado Agotada`);
   if (width === 390) {
+    await page.locator("[data-presentaciones-historia]").evaluate((e) => { e.scrollTo(0, 0); e.closest("[data-hoja-contenido]").scrollTo(0, 0); });
     await medir(page, "variantes-stock-repartido");
     await captura(page, "v4-stock-390.png");
-    await page.getByRole("button", { name: "Detalle", exact: true }).first().click();
+    await page.getByRole("button", { name: "Abrir S", exact: true }).first().click();
     await page.locator("[data-hoja-presentacion]").waitFor();
     await page.getByRole("radio", { name: "Uno propio", exact: true }).click();
     await page.getByLabel("Precio de esta presentación, en pesos").fill("1650");
     await captura(page, "v5-detalle-presentacion-390.png");
     await page.getByRole("button", { name: "Ocultar esta presentación", exact: true }).click();
     await page.getByRole("button", { name: "Listo", exact: true }).last().click();
-    ok((await page.locator('[aria-label="Color Crema"] [data-total-grupo]').innerText()) === "8 en total", "Ocultar una presentación la excluye de la suma de stock activa");
+    ok((await page.locator('[aria-label="Color Crema"] [data-grupo-total]').innerText()) === "· 8", "Ocultar una presentación la excluye de la suma de stock activa");
+    const precios = page.getByRole("switch", { name: "Cada una tiene su precio", exact: true });
+    ok(await precios.getAttribute("aria-checked") === "true", "Precio propio desde el detalle enciende el interruptor de precios");
+    await page.locator("input[data-precio-fila]").first().fill("1750");
+    await precios.click();
+    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    ok((await page.locator("input[data-precio-fila]").first().inputValue()).replaceAll(",", "") === "1750", "Cancelar la unificación conserva el precio propio");
+    await precios.click();
+    await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
+    ok(await page.locator("input[data-precio-fila]").count() === 0 && await precios.getAttribute("aria-checked") === "false", "Confirmar unifica precios y cierra los campos por fila");
   }
   await page.getByRole("button", { name: /^Listo ·/ }).click();
   await page.locator("[data-momento-historia='6']").waitFor();
@@ -298,6 +330,7 @@ for (const width of [390, 393]) {
   await page.getByRole("button", { name: "Seguir", exact: true }).click();
   await page.getByRole("button", { name: "Es por encargo, no llevo stock", exact: true }).click();
   await page.getByRole("radio", { name: "Otro", exact: true }).click();
+  ok(await page.getByRole("button", { name: "Listo · 0 en total", exact: true }).isDisabled(), "Por encargo: elegir Otro sin escribir plazo bloquea la revisión");
   await page.getByPlaceholder("Escríbelo en hasta 40 letras").fill("Llega en 7 días");
   await page.getByRole("button", { name: "Listo · 0 en total", exact: true }).click();
   await page.locator("[data-momento-historia='6']").waitFor();
@@ -313,6 +346,54 @@ for (const width of [390, 393]) {
   await context.close();
 }
 
+// Plan lleno: el aviso vive en el pie fijo, Publicar se bloquea y el alta se guarda oculta.
+for (const width of [360, 390, 393, 430]) {
+  const height = width === 360 ? 640 : width === 393 ? 852 : 844;
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await silenciarAvisoDeOtroDespliegue(page);
+  await page.addInitScript(() => { localStorage.setItem("deslizapp-version-vista", "9.9.9"); localStorage.setItem("deslizapp-modo-v1", "demo"); localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"); });
+  await page.goto(`${URL}/catalogo`);
+  await page.locator('a[href="/catalogo/nuevo"]').waitFor();
+  await nuevoHastaPrecio(page, URL, "Semilla del caso plan lleno", "100", null);
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.getByRole("button", { name: "Agregar una unidad", exact: true }).click();
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.getByRole("button", { name: "Guardar sin publicar", exact: true }).click();
+  await page.getByText("Semilla del caso plan lleno ya está guardado, oculto del catálogo.", { exact: true }).waitFor();
+  const visiblesAntes = await page.evaluate(() => {
+    const k = "deslizapp-demo-v5";
+    const d = JSON.parse(localStorage.getItem(k));
+    const semilla = d.productos.find((p) => p.nombre === "Semilla del caso plan lleno");
+    const t = d.tiendas.find((t) => t.id === semilla.tiendaId);
+    const n = d.productos.filter((p) => p.tiendaId === t.id && p.activo).length;
+    t.limiteProductos = n;
+    localStorage.setItem(k, JSON.stringify(d));
+    return n;
+  });
+  await page.goto(`${URL}/catalogo/nuevo`);
+  await page.locator("[data-historia-crear]").waitFor();
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.getByPlaceholder("El nombre de tu producto").fill("Oculto por catálogo lleno");
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.getByPlaceholder("Escribe el precio").fill("950");
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  await page.getByRole("button", { name: "Agregar una unidad", exact: true }).click();
+  await page.getByRole("button", { name: "Seguir", exact: true }).click();
+  const publicar = page.getByRole("button", { name: "Publicar", exact: true });
+  ok(await publicar.isDisabled(), `${width}px: catálogo lleno bloquea Publicar`);
+  const aviso = page.getByText("Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.", { exact: true });
+  const texto = await aviso.boundingBox();
+  const boton = await publicar.boundingBox();
+  ok(texto.y >= 0 && texto.y + texto.height <= boton.y && boton.width === width - 40, `${width}px: aviso completo encima de Publicar y dentro del pie fijo`);
+  if (width === 390) await captura(page, "b5-catalogo-lleno-390.png");
+  await page.getByRole("button", { name: "Guardar sin publicar", exact: true }).click();
+  await page.getByText("Oculto por catálogo lleno ya está guardado, oculto del catálogo.", { exact: true }).waitFor();
+  const datos = await page.evaluate(() => JSON.parse(localStorage.getItem("deslizapp-demo-v5")));
+  const p = datos.productos.find((p) => p.nombre === "Oculto por catálogo lleno");
+  ok(p && !p.activo && p.stock === 2 && datos.productos.filter((x) => x.tiendaId === p.tiendaId && x.activo).length === visiblesAntes, `${width}px: guarda oculto sin superar el plan ni perder cantidades`);
+  await context.close();
+}
 // Se permite guardar sin foto; queda oculto y no exige publicar.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });

@@ -13,7 +13,9 @@ import { colorDePortada } from "./medios";
  * Lo que el panel le manda a esta vista (mismo sitio, por `postMessage`): un producto (el borrador de la hoja de producto) o
  * todos los productos de la tienda («Ver cómo queda» del catálogo; vacío = el «pronto» del catálogo publicado sin productos).
  */
-export type DatosVistaPrevia = { tienda: CatalogoPublico["tienda"] } & ({ producto: ProductoPublico } | { productos: ProductoPublico[] });
+export type DatosVistaPrevia = { encuadre?: "producto"; tienda: CatalogoPublico["tienda"] } & ({ producto: ProductoPublico } | { productos: ProductoPublico[] });
+// El encuadre B5 usa el mismo Reel con el aspecto exacto del marco aprobado, sin una miniatura interior.
+export const ALTO_REEL_PRODUCTO = 440 * 390 / 350;
 export const MENSAJE_VISTA_PREVIA = "deslizapp-vista-previa";
 export const AVISO_VISTA_PREVIA = "Así lo verá tu cliente";
 
@@ -47,6 +49,8 @@ export function VistaPreviaReel() {
   }, []);
   useEffect(() => () => { if (aviso.current) clearTimeout(aviso.current); }, []);
 
+  const soloProducto = datos?.encuadre === "producto";
+
   // El tamaño del reel, como en el catálogo (components/tienda/catalogo.tsx): sale del ancho y alto de la pantalla.
   useLayoutEffect(() => {
     if (!datos) return;
@@ -58,6 +62,11 @@ export function VistaPreviaReel() {
       if (!el) return;
       const vw = html.clientWidth;
       const vh = window.innerHeight;
+      if (soloProducto) {
+        for (const [k, v] of Object.entries({ "--W": "390px", "--H": `${ALTO_REEL_PRODUCTO}px`, "--pt": "0px", "--pb": "0px", "--vh": `${ALTO_REEL_PRODUCTO}px`, "--run": "0px" })) el.style.setProperty(k, v);
+        window.scrollTo(0, 0);
+        return;
+      }
       const tabs = el.querySelector<HTMLElement>(".htabs");
       const tb = 24 + (tabs?.offsetTop ?? 40) + (tabs?.offsetHeight ?? 30);
       const peek = vh < 700 ? 36 : 52;
@@ -88,7 +97,7 @@ export function VistaPreviaReel() {
       html.classList.remove("catalogo-html");
       html.style.overflow = "";
     };
-  }, [datos !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [datos !== null, soloProducto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lista = !datos ? [] : "productos" in datos ? datos.productos : [datos.producto];
   const [activo, setActivo] = useState<string | null>(null);
@@ -147,8 +156,8 @@ export function VistaPreviaReel() {
     "--iso": `url("${t.fotoPerfilUrl ?? t.logoUrl ?? ""}")`,
   } as CSSProperties;
   return (
-    <div className={"catalogo-publico view-reels" + (tinteOscuro ? " tint-dark" : "")} ref={root} style={estilo} data-vista-previa-reel="">
-      <header className="hdr">
+    <div className={"catalogo-publico view-reels" + (tinteOscuro ? " tint-dark" : "")} ref={root} style={estilo} data-vista-previa-reel="" data-encuadre-producto={soloProducto || undefined}>
+      {!soloProducto && <header className="hdr">
         <button className="hback" aria-label="Volver" onClick={() => avisar()}><Icono nombre="back" /></button>
         <button className="logo" aria-label={t.nombre + ", ir al perfil"} onClick={() => avisar()}>
           {tema.cabecera ? (
@@ -180,9 +189,9 @@ export function VistaPreviaReel() {
             </button>
           </nav>
         )}
-      </header>
+      </header>}
       <main className="reels" id="reels" aria-label="Productos">
-        {fotoPortada && (
+        {!soloProducto && fotoPortada && (
           <div className="glow" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={fotoPortada} alt="" />

@@ -1,65 +1,74 @@
 # Handoff — Crear producto (historia)
 
-Rama `codex/crear-producto-historia`, PR #114 contra `main`, en borrador y sin fusionar. El encargo partió de `main`; no se tomó contenido de `feat/crear-producto-historia`.
+PR [#114](https://github.com/onedayoneproj-blip/deslizapp-app/pull/114), rama `codex/crear-producto-historia`, contra `main`, **en borrador y sin fusionar**. Se partió de main; no se copió la rama de PR #112. Rige `docs/prompts/crear-producto-codex.md`, con las precisiones posteriores de Lewis y Planning.
 
-## Hecho
+## Alcance construido
 
-- `/catalogo/nuevo` conserva la historia de producto simple y añade el segundo lienzo dentro de la misma hoja. «Tiene tallas o colores» abre preguntas integradas: atributos (máximo dos), valores por atributo, fotos opcionales de color, stock agrupado y revisión en el reel.
-- El stock agrupa por Color cuando es uno de los atributos y pone tallas como filas. Se conservan los orígenes al cambiar de un stock simple, los avisos de reparto, «Ponerlas todas», los subtotales por grupo y el detalle existente para precio propio, foto y ocultar.
-- Se reutilizan `cambiarEjes`, `opciones_validas`, `guardar_variantes` y la única ruta de guardado de `hoja-producto.tsx`. La edición continúa por `/catalogo/[id]/editar` y conserva `SeccionPresentaciones` / `FlujoPresentaciones`.
-- La tarjeta de la historia muestra «Desde RD$…», tallas y puntos de color. El reel real conserva «Ver presentaciones»; una regla acotada a `data-vista-previa-reel` evita que el escalado a 350 px trunque el rótulo. Por encargo guarda stock cero y plazo; al crear no se muestra «Agotada».
-- Capturas `b1–b6` y `v1–v6` en `docs/capturas/crear-producto-codex/`. Las seis capturas `v` son 390×844 y se generaron con una foto real de prueba. `scripts/probar-crear-producto.mjs` incluye 360, 390, 393 y 430 px y verifica dos atributos, fotos, reparto, detalle, guardado por encargo y producto sin foto.
-- `docs/04-pantallas.md`, `lib/novedades.ts` (0.66.0) y este handoff están actualizados. Sin migraciones ni cambios a Supabase.
+- Los dos lienzos funcionan dentro de `/catalogo/nuevo`: foto → nombre → precio → stock/encargo → revisión → celebración; «Tiene tallas o colores» integra atributos (máximo dos), valores, fotos opcionales de color, cantidades y revisión. Una sola barra de avance y pie fijo dentro de los márgenes.
+- Las preguntas arrancan a **100 px**, como pidió Planning: tarjeta simple 350×372; tarjeta de atributos/valores 350×212. Textos y campos ajustados al lienzo; sin etiquetas visibles redundantes. El catálogo se elige en la cabecera y recuerda el último usado por tienda.
+- Fotos múltiples conservan editor de producción: foto redondeada, contador activo/total, miniaturas con Portada, Agregar foto, selección de miniatura, quitar y reordenar. El contador de fotos se mantiene; no vuelve el progreso global de productos.
+- Cantidades sigue la última captura de Lewis: sin tarjeta de foto; resumen con chips, número de presentaciones y total, Cambiar qué cambia; interruptor Cada una tiene su precio y explicación; Poner a todas siempre visible con −/cantidad/+; grupos plegables con punto de color, nombre y subtotal y filas amplias. Los botones inferiores siguen siendo los de la historia, dentro de los márgenes. Se evita un segundo scroll dentro de la lista.
+- Precio por fila reutiliza `PrecioFila` del editor existente; apagar precios propios confirma y unifica solo al aceptar. El detalle conserva la hoja existente para precio propio, foto y ocultar. Cambiar ejes conserva la lógica de reparto y confirma pérdidas; el atributo personalizado permanece al volver a las preguntas.
+- Reutiliza `cambiarEjes`, `opciones_validas`, `guardar_variantes` y el guardado único de `hoja-producto.tsx`. Máximo 12 valores por atributo y 144 variantes, agrupación por el primer atributo (Color primero cuando corresponde), suma por grupo y Poner a todas. `/catalogo/[id]/editar` mantiene su hoja y recorrido actuales.
+- Encargo guarda stock cero, incluidas variantes, y plazo de entrega; Otro vacío no permite avanzar ni guarda el marcador interno. Se conserva el plazo propio al alternar encargo. El alta no muestra Agotada; stock cero sin encargo bloquea la revisión. Se permite guardar/publicar sin foto, respetando la visibilidad y límites existentes. Compartir en celebración requiere catálogo publicado.
+- Sin nuevas dependencias, migraciones ni cambios a Supabase. Novedades 0.66.0 actualizadas en cuatro líneas.
 
-## Precisiones de Lewis: fotos y B5
+## B5: producto real y tamaño efectivo
 
-- En fotos múltiples se conserva la imagen redondeada, contador activo/total arriba a la derecha, miniaturas con «Portada» y «Agregar foto». En el alta, tocar una miniatura cambia la imagen sin abrir la hoja; tocar la imagen grande conserva quitar y reordenar. El contador de fotos permanece independiente de la barra de avance y no reaparece «n/n productos».
-- B5 muestra «así se ve en tu catálogo», reel real 350×440, pastillas «+ Descripción», «+ Colección», «+ Ficha técnica» y Detalles cuando corresponde. Cada pastilla abre su hoja sobre el borrador. Publicar naranja ocupa todo el ancho entre márgenes; Guardar sin publicar va debajo. Sin filas plegables ni botón redundante de reel en el alta.
-- Los pies de ambas historias mantienen «Seguir» dentro de los márgenes, junto a «Atrás». La cabecera de B5 reúne atrás y catálogo junto al cierre, y mantiene la barra de avance. Así caben el reel y las pastillas a 390×844; en pantallas más cortas se desplaza el contenido. Las preguntas anteriores y la edición conservan su distribución.
-- Capturas adicionales: `b1-fotos-multiples-390.png`, `b1-fotos-multiples-activa-390.png` y `b5-pastillas-390.png`.
+B5 usa el componente comprador `Reel`, con tema de tienda, foto, nombre, precio y controles superpuestos. Solo esta tarjeta envía `encuadre: producto`; la vista general del catálogo y la edición conservan su encuadre. Los cambios en `components/tienda/vista-previa-reel.tsx` y `app/tienda/catalogo.css` son los necesarios para retirar cabecera, márgenes y escalado interno de la página en esta modalidad, con CSS limitado a `data-encuadre-producto`.
+
+El prototipo pedía renderizar a 390×488 y escalar a 350×440, dos relaciones ligeramente diferentes (488×350/390 = 437.95). La precisión posterior pide llenar el marco con el producto. Se usa **390×490.286 y una escala uniforme 350/390**, conservando proporciones y obteniendo **350×440**. Medición real del carrusel: 390×490.281 CSS px; resultado efectivo 350×439.996 dentro del marco 350×440 (redondeo del navegador). Posición interior x=0/y=0; sin cabecera. Se comprueban nombre, precio y controles dentro del producto, además del iframe. A 360 px, el ancho útil es 320 y el alto proporcional 402.28; a 390 y 393 se limita a 350×440.
+
+Se conservan «así se ve en tu catálogo», Hazlo brillar · opcional, pastillas de Descripción/Colección/Ficha técnica y Detalles cuando corresponde, con sus hojas. Publicar naranja ocupa el ancho útil; Guardar sin publicar queda debajo. No hay filas plegables sustitutivas ni botón redundante para abrir el reel.
 
 ## Lienzo vs construido
 
-Playwright midió ambas historias con Chromium a 390×844 y 393×852. En la historia simple, la tarjeta de foto fija y las preguntas mantienen la misma geometría. En presentaciones, los cuatro pasos mantienen la misma geometría; los valores opcionales se muestran dentro del área de contenido.
+Medidas CSS tomadas con Playwright después de la entrada de la hoja; top/alto en px. El top 100 de la última revisión sustituye el 104 del HTML original. En 393 px las tarjetas se limitan a 350 de ancho; márgenes útiles mínimos 20. Las pantallas cortas desplazan contenido y conservan el pie sólido.
 
-| Historia simple | Lienzo | Construido 390×844 | Construido 393×852 |
+| Paso / elemento | Lienzo o precisión vigente | 390×844 | 393×852 |
 |---|---|---|---|
-| Tarjeta de foto/pregunta | 350×372; título debajo | top 160/alto 372; título top 548/alto 25 | top 160/alto 372; título top 548/alto 25 |
-| Campo de nombre | Debajo de la pregunta | top 627/alto 56 | top 627/alto 56 |
-| Campo de precio | Campo alto de historia | top 639/alto 64 | top 639/alto 64 |
-| Control de stock | Contador centrado | top 621/alto 56 | top 621/alto 56 |
-| Reel de revisión | Reel escalado dentro de la hoja | tarjeta top 104/alto 472; reel top 136/alto 440; botón top 732/alto 52 | tarjeta top 104/alto 472; reel top 136/alto 440; botón top 740/alto 52 |
+| B1 foto | Tarjeta fija 350×372, top 100 | 100/372; título 488/29 | 100/372; título 488/29 |
+| B2 nombre | Misma tarjeta; pregunta y campo debajo | tarjeta 100/372; título 488/29; campo 554/56 | Igual |
+| B3 precio | Misma tarjeta; campo alto | tarjeta 100/372; título 488/29; campo 552/64 | Igual |
+| B4 stock | Misma tarjeta; contador | tarjeta 100/372; título 488/29; contador 560/56 | Igual |
+| B5 / V6 revisión | Reel real 350×440 llenando marco | rótulo+marco 100/472; reel 132/440 | Igual |
+| Publicar | Naranja de margen a margen | 732/52, ancho 350 | 740/52, ancho 353 |
+| V1 atributos | Tarjeta 350×212; hasta dos | tarjeta 100/212; título 328/29 | Igual |
+| V2 tallas | Misma tarjeta y pregunta; opciones | tarjeta 100/212; título 328/29; campo solo con Otro | Igual |
+| V3 colores | Misma tarjeta; fotos opcionales | tarjeta 100/212; título 328/29; fotos por color | Igual |
+| V4 cantidades | Nueva referencia sin foto | título 100/29; resumen, switch, Poner a todas y grupos | Igual |
+| V5 detalle | Hoja inferior existente | Precio propio/foto/ocultar; datos conservados | Igual |
+| Barra de avance | Una sola barra, 3 px | 74/3 | 74/3 |
+| Pie de preguntas / variantes | Atrás + Seguir/Listo | 776/56 | 784/56 |
 
-La rama de presentaciones se midió con la tabla siguiente:
+Capturas de todos los momentos B1–B6 y V1–V6, fotos múltiples, precio con teclado 360×640 y catálogo lleno en [índice de capturas](../capturas/crear-producto-codex/README.md). Comparativas: lienzo/HEAD revisado 3bcd309/construcción para B5 y preguntas; HEAD/construcción para fotos y cantidades. La captura de cantidades adjunta en la conversación se reproduce con Dorado/Plateado × Pequeño/Mediano; no se presenta una imagen reconstruida como el original de Lewis.
 
-| Paso | Lienzo | Construido 390×844 | Construido 393×852 |
-|---|---|---|---|
-| ¿En qué cambia? | Tarjeta 350×212; título y pastillas debajo | tarjeta top 160/alto 212; título top 388/alto 25 | tarjeta top 160/alto 212; título top 388/alto 25 |
-| Valores de Talla | Misma tarjeta; tallas y «+ Otro» | tarjeta top 160/212; título 388/25; sin campo hasta «+ Otro» | tarjeta top 160/212; título 388/25; sin campo hasta «+ Otro» |
-| Valores de Color | Misma tarjeta; valores y fotos opcionales | tarjeta top 160/212; título 388/25; fotos en botones por color | tarjeta top 160/212; título 388/25; fotos en botones por color |
-| Stock agrupado | Misma tarjeta; grupo por color, filas de talla, «Poner a todas» | tarjeta top 160/212; título 388/25; controles −/+ por fila | tarjeta top 160/212; título 388/25; controles −/+ por fila |
-| Barra de avance | Fija en cabecera, trazo de 3 px | top 151/alto 3 en los cuatro pasos | top 151/alto 3 en los cuatro pasos |
-| Pie fijo | Atrás + Seguir/Listo, controles ≥44 px | top 776/alto 56 | top 784/alto 56 |
-| Reel de revisión | 390×488 escalado a 350×440 px | iframe 350×440; sin recorte | iframe 350×440; sin recorte |
+## Verificación completada
 
-## Verificación
+Los recorridos de navegador usan Demo local y el build de producción servido a 3100, sin escribir datos reales ni simular el guardado. Chromium ya instalado; sin instalar navegadores. Ejemplo: `CHROMIUM_PATH=/usr/bin/chromium URL=http://localhost:3100 npm run probar:presentaciones`.
 
-- `npm run tipos`: pasa.
-- `npm run lint`: pasa sin errores; quedan 33 avisos de lint en otros archivos del repositorio.
-- `npm test`: 77/77 pruebas pasan.
-- `npx next build --webpack`: pasa.
-- `npm run build` con Turbopack no pudo completarse en este contenedor: tras permitir la descarga de fuentes, Turbopack falla al abrir el puerto de su proceso auxiliar (`Operation not permitted`). El build Webpack terminó correctamente.
-- `scripts/probar-crear-producto.mjs`: termina correctamente en Chromium instalado, 360/390/393/430 px; incluye geometría, selección de miniaturas/contador, agregar/quitar/reordenar fotos, hojas desde las pastillas y conservación del borrador, botones dentro de márgenes, «Poner a todas», suma de grupo, «Ver presentaciones», stock cero por encargo y «Agotada» ausente.
-- `npm run probar:hoja-producto`: pasa en 390 y 360 px; prueba la historia integrada y la ruta de edición.
-- `npm run probar:producto`: no pasa completo (12 fallos en «ropa» y «medios», 360/390/430 px y ambos temas); esos escenarios intentan crear con los antiguos campos `Nombre` / `Precio`. Perfume, encargo y pedidos pasan en la misma corrida.
-- `npm run probar:teclado`: pasa completo con Chromium; incluye escritura en eje/valor propio, precio por presentación, nombre, precio, plazo, descripción en su hoja grande (visible sobre el teclado simulado, sin mover la hoja ni perder foco), colección y regresiones de teclado en otras hojas.
-- `npm run probar:presentaciones` completo todavía usa el alta anterior (`Nombre` / `Precio`) y falla al encontrar esos campos que ya no existen en la historia. Su regresión de edición filtrada (`SOLO=1b,5,6,7a,7b,11,12,13`) sí pasa en 390 y 360 px: conserva stock, cambios de ejes, precio propio, fotos y ocultar.
-- El test de servicio, catálogo lleno y Safari/iPhone físico no se completó en esta verificación. El flujo de creación mantiene el tipo de producto actual; no añade selector de servicio.
+| Comprobación | Resultado |
+|---|---|
+| `npm test` | 77/77; cero fallos, omitidos o cancelados |
+| `npm run tipos` | Pasa; el build también completa TypeScript |
+| `npm run lint` | 0 errores; 33 avisos preexistentes |
+| `npx next build --webpack` | Completo, exit 0 |
+| `scripts/probar-crear-producto.mjs` | Completo: 360/390/393/430; geometría, tamaño real B5, fotos y contador, pastillas/hojas, reparto/sumas, precios propios con confirmar/cancelar, detalle, stock cero/plazo, Otro vacío bloqueado, sin foto, aviso de salida y guardado |
+| `npm run probar:producto` | **Completa sin filtros**: 42 combinaciones (7 escenarios × 3 anchos × 2 temas); ropa, medios, perfume, encargo y pedidos; verificaciones del guardado conservadas |
+| `npm run probar:presentaciones` | **Completa sin filtros**, 390 y 360; creación y edición; conservación/reparto, ejes propios, precios, fotos, ocultar, pedidos, 12 valores/144 variantes, vista previa |
+| `npm run probar:hoja-producto` | Completa en 390 y 360: alta integrada y regresiones del editor |
+| `npm run probar:teclado` | Completa: historia, ejes/valores propios, precio de variante y hojas opcionales, foco y teclado simulado |
+| Catálogo lleno | Completo en 360/390/393/430: Publicar bloqueado, aviso íntegro encima del botón dentro del pie, guardar oculto conserva stock y no supera el plan |
 
-## Chromium
+Se adaptaron las suites completas al recorrido real mediante `scripts/recorrido-historia-producto.mjs`; se conservaron sus verificaciones de datos y regresiones de edición. Se cancela `/api/version` en los tests para evitar una notificación de versión ajena al caso. Los antiguos fallos por buscar el formulario de alta anterior están resueltos. `scripts/capturar-comparativas-crear-producto.mjs` regenera las comparativas contra 3bcd309.
 
-Se usó `/usr/bin/chromium` (Chromium 154.0.8037.57), ya instalado. En el sandbox, su arranque normal falla al crear/bindear recursos de Crashpad (`setsockopt: Operation not permitted`, termina con `SIGTRAP`). Al lanzarlo con permisos de ejecución ampliados y `--no-sandbox`, Chromium/Playwright abre y pasa los recorridos. No se ejecutó `playwright install`.
+## Chromium y límites reales
 
-## Revisión pendiente
+- `/usr/bin/chromium`, 154.0.8037.57. Su arranque en sandbox falla por recursos de Crashpad/bind (`setsockopt: Operation not permitted`, SIGTRAP). Con ejecución ampliada y `--no-sandbox` abre y completa las suites. No se ejecutó `playwright install`.
+- `npm run build` (Turbopack) se volvió a intentar: exit 1, no completado. Falla al crear el proceso auxiliar de CSS/PostCSS y abrir su puerto: `Operation not permitted`. No se declara aprobado; `npx next build --webpack` sí completa.
+- Safari/iPhone físico y login Google de Vercel preview no se verificaron en esta corrida; teclado comprobado por simulación en Chromium. Estas capturas son Demo local, no una prueba del OAuth de preview.
+- No se completó un caso de creación de servicio; la historia mantiene el tipo actual y no incorpora un selector nuevo. Planning y Lewis deben revisar las capturas y el alcance antes de cualquier fusión.
 
-Planning debe revisar el alcance completo y el check «Revisión» de GitHub. El PR sigue en borrador; no fusionar.
+## Revisión de GitHub
+
+El resultado y enlace de «Revisión» del commit entregado se registran en la descripción del PR #114. PR permanece en borrador contra main y sin fusionar.

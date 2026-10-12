@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Hoja } from "../hoja";
 import { IconoChevronAbajo, IconoChevronDerecha } from "../iconos";
-import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
+import { ALTO_REEL_PRODUCTO, MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 
 /**
  * Una fila de «Más opciones» que se pliega: muestra su valor cerrada y, al tocarla, se abre en el mismo lugar. Abrir y cerrar es
@@ -69,7 +69,7 @@ export function HojaComoSeVe({ abierta, alCerrar, datos, visible }: { abierta: b
   );
 }
 
-/** Reel real del comprador en un marco de 350 × 440, reducido desde sus 390 × 488 sin recorte. */
+/** Reel real: viewport a 390 px de ancho y aspecto 350/440, reducido uniformemente hasta llenar el marco. */
 export function TarjetaReelVistaPrevia({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const marco = useRef<HTMLIFrameElement>(null);
   const ultimos = useRef(datos);
@@ -87,12 +87,12 @@ export function TarjetaReelVistaPrevia({ datos }: { datos: () => DatosVistaPrevi
     const alMensaje = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== marco.current?.contentWindow || e.data?.tipo !== `${MENSAJE_VISTA_PREVIA}-listo`) return;
       const d = ultimos.current();
-      if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: d }, location.origin);
+      if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: { ...d, encuadre: "producto" } }, location.origin);
     };
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
   }, []);
-  return <div className="relative mx-auto h-[440px] w-full max-w-[350px] overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-reducido="">
-    <iframe ref={marco} src="/vista-previa-catalogo" title="Así se verá en el catálogo" onLoad={() => { const d = ultimos.current(); if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: d }, location.origin); }} className="absolute left-0 top-0 h-[488px] w-[390px] origin-top-left border-0" style={{ transform: `scale(${escala})` }} />
+  return <div className="relative mx-auto aspect-[350/440] w-full max-w-[350px] overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-reducido="">
+    <iframe ref={marco} src="/vista-previa-catalogo" title="Así se verá en el catálogo" onLoad={() => { const d = ultimos.current(); if (d) marco.current?.contentWindow?.postMessage({ tipo: MENSAJE_VISTA_PREVIA, datos: { ...d, encuadre: "producto" } }, location.origin); }} className="absolute left-0 top-0 w-[390px] origin-top-left border-0" style={{ height: ALTO_REEL_PRODUCTO, transform: `scale(${escala})` }} />
   </div>;
 }

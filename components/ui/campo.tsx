@@ -15,6 +15,7 @@ const FOCO_CAMPO = "outline-none";
  */
 export function Campo({
   etiqueta,
+  etiquetaOculta = false,
   ayuda,
   error,
   id,
@@ -32,6 +33,8 @@ export function Campo({
   /** Tamaños puntuales del lienzo aprobado de crear producto; el campo normal mantiene el alto del sistema. */
   alto?: "normal" | "historia" | "precio-historia";
   etiqueta: ReactNode;
+  /** En la historia, la pregunta visible ya rotula el campo. Mantiene el nombre accesible. */
+  etiquetaOculta?: boolean;
   ayuda?: ReactNode;
   error?: ReactNode;
   className?: string;
@@ -51,7 +54,7 @@ export function Campo({
   );
   return (
     <div className={clases("flex min-w-0 flex-col gap-1.5", className)}>
-      <label htmlFor={idCampo} className="text-secundario font-extrabold text-texto">
+      <label htmlFor={idCampo} className={etiquetaOculta ? "sr-only" : "text-secundario font-extrabold text-texto"}>
         {etiqueta}
       </label>
       <div className="relative">

@@ -1,6 +1,7 @@
 // Prueba del producto en el panel (docs/prompts/producto-panel.md §6), en la demo: Detalles de un perfume, opciones y stock por
 // variante, fotos y video, Por encargo, + Pedido con variante y "Ya llegó". A 360, 390 y 430, claro y oscuro. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390] [TEMAS=claro] [SOLO=pedido,ropa] [CAPTURAS=docs/capturas/producto-panel] node scripts/probar-producto.mjs
+import { nuevoHastaPrecio, completarNombrePrecio, abrirRama, vaciarEjes, irAValores, volverAEjes, elegirEjeValores, irACantidades, publicarHistoria, rama } from "./recorrido-historia-producto.mjs";
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -40,6 +41,7 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 async function pagina(ancho, tema, tienda) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
+  await page.route("**/api/version", (route) => route.abort());
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript(
@@ -91,23 +93,6 @@ async function escribirEtiqueta(page, rotulo, valores) {
     await caja.press("Enter");
   }
 }
-/** Marca los valores de una cosa que cambia en la hoja abierta: la píldora si es sugerida; si no, con «+ Otro …». */
-async function elegirValores(page, rotulo, valores) {
-  const cosa = { Colores: "Color", Tallas: "Talla", Tamaños: "Tamaño" }[rotulo] ?? rotulo;
-  const seccion = hoja(page).locator(`[data-eje="${cosa}"]`);
-  for (const v of valores) {
-    const pildora = seccion.getByRole("checkbox", { name: v, exact: true });
-    if (await pildora.count()) {
-      await pildora.click();
-      continue;
-    }
-    const caja = seccion.getByRole("textbox", { name: /^Otr[oa] / });
-    if (!(await caja.isVisible().catch(() => false))) await seccion.getByRole("button", { name: /^\+ Otr[oa] / }).click();
-    await caja.fill(v);
-    await caja.press("Enter");
-  }
-}
-
 /** "+ Pedido": crea un cliente nuevo y lo elige. */
 async function nuevoCliente(page, nombre, telefono) {
   await page.getByRole("button", { name: "Elegir cliente" }).click();
@@ -213,52 +198,44 @@ const ESCENARIOS = {
 
   /** 2. Ropa: Talla (XS a XL) y Color (2) → 10 presentaciones; stock a tres; el total suma; quitar un color → 5. */
   async ropa(page, ancho, tema) {
-    await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Blusa de prueba");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1200");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
-    await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
-    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
-    await elegirValores(page, "Colores", ["Negro", "Blanco"]);
-    ok(await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
-    await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).click();
-    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 10, "Hay 10 filas de stock (agrupadas por talla)");
-    const talla = (t) => hoja(page).locator(`section[aria-label="Talla ${t}"]`);
-    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    await talla("M").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    for (let i = 0; i < 3; i++) await talla("L").getByRole("button", { name: "Agregar uno de Blanco" }).click();
-    await hoja(page).getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
-    await page.waitForTimeout(600);
-    ok((await page.locator("[data-tarjeta-stock]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
-    ok(await sinDesborde(page), "Formulario de ropa sin desborde");
-    await capturar(page, "formulario-ropa", ancho, tema);
-    // Quitar el color Blanco: «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
-    await hoja(page).getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
-    await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
-    await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
+    await nuevoHastaPrecio(page, URL, "Blusa de prueba", "1200");
+    await abrirRama(page);
+    await vaciarEjes(page);
+    await elegirEjeValores(page, "Talla", ["XS", "S", "M", "L", "XL"]);
+    await elegirEjeValores(page, "Color", ["Negro", "Blanco"]);
+    await irACantidades(page);
+    ok(await rama(page).locator("li[data-variante-stock]").count() === 10, "5 tallas × 2 colores generan 10 presentaciones agrupadas por Color");
+    const color = (c) => rama(page).locator(`section[aria-label="Color ${c}"]`);
+    await color("Negro").getByRole("button", { name: "Agregar uno de S", exact: true }).click();
+    await color("Negro").getByRole("button", { name: "Agregar uno de S", exact: true }).click();
+    await color("Negro").getByRole("button", { name: "Agregar uno de M", exact: true }).click();
+    for (let i = 0; i < 3; i++) await color("Blanco").getByRole("button", { name: "Agregar uno de L", exact: true }).click();
+    ok((await rama(page).locator("[data-resumen-presentaciones]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma las 6 unidades");
+    await page.getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
+    await page.locator("[data-reel-reducido]").waitFor();
+    ok(await sinDesborde(page), "Historia de ropa sin desborde");
+    await capturar(page, "historia-ropa", ancho, tema);
+    // Quitar Blanco conserva la confirmación por las 3 unidades que saldrán del borrador.
+    await page.getByRole("button", { name: "Atrás", exact: true }).click();
+    await irAValores(page, "Color");
+    await rama(page).getByRole("checkbox", { name: "Blanco", exact: true }).click();
+    await volverAEjes(page);
+    await irACantidades(page);
     await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
-    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 5, "Al quitar un color quedan 5");
-    await hoja(page).getByRole("button", { name: /^Listo ·/ }).click();
-    await page.waitForTimeout(600);
-    // Publicar: producto y variantes en una sola llamada.
-    const a = await archivosDePrueba(page);
-    await page.locator("[data-entrada-medios]").setInputFiles([{ name: "blusa.png", mimeType: "image/png", buffer: Buffer.from(a.rojo, "base64") }]);
-    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
-    await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    ok(await rama(page).locator("li[data-variante-stock]").count() === 5, "Al quitar un color quedan 5 variantes");
+    await page.getByRole("button", { name: /^Listo ·/ }).click();
+    await publicarHistoria(page);
     const d = await db(page);
     const blusa = d.productos.find((p) => p.nombre === "Blusa de prueba");
     const suyas = d.variantes.filter((v) => v.productoId === blusa?.id);
-    ok(blusa && suyas.length === 5 && blusa.opciones.map((o) => o.nombre).join() === "Talla,Color", "Publicar crea la blusa con sus 5 variantes");
-    ok(blusa.stock === 3 && suyas.find((v) => v.valores.Talla === "S").stock === 2, "…y su stock por variante (3 en total)");
+    ok(blusa && suyas.length === 5 && blusa.opciones.map((o) => o.nombre).join() === "Color,Talla", "Publicar guarda los dos ejes en el orden de agrupación y las 5 variantes");
+    ok(blusa.stock === 3 && suyas.find((v) => v.valores.Talla === "S").stock === 2, "Conserva el stock 2 + 1 de Negro tras quitar Blanco");
   },
 
   /** 3. Medios: 2 fotos; un video elegido NO se agrega (VIDEO_PERMITIDO apagado); portada y orden; un video que ya existe se ve y se quita. */
   async medios(page, ancho, tema) {
     await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
+    await page.locator("[data-historia-crear]").waitFor();
     const a = await archivosDePrueba(page);
     const entrada = page.locator("[data-entrada-medios]");
     ok(((await entrada.getAttribute("accept")) ?? "") === "image/*", "El selector de archivos acepta solo imágenes");
@@ -271,20 +248,23 @@ const ESCENARIOS = {
     await page.waitForTimeout(800);
     ok((await page.locator('[aria-label^="Video "]').count()) === 0 && (await page.getByRole("button", { name: /^Foto 2 de 2/ }).count()) === 1, "Un video elegido no se agrega ni deja nada raro");
     await capturar(page, "medios-solo-fotos", ancho, tema);
-    const imagenes = async () => page.locator('[aria-label="Fotos y video"] li img').evaluateAll((l) => l.map((i) => i.getAttribute("src")));
+    const imagenes = async () => page.locator('[role="list"][aria-label="Fotos"] img').evaluateAll((l) => l.map((i) => i.getAttribute("src")));
     const antes = await imagenes();
     await page.getByRole("button", { name: /^Foto 2 de 2/ }).click();
+    await page.getByRole("button", { name: "Foto principal: ver opciones", exact: true }).click();
     await page.getByRole("button", { name: "Hacer portada", exact: true }).click();
     ok((await imagenes())[0] === antes[1], "Hacer portada pone la segunda foto primero");
     await page.getByRole("button", { name: /^Foto 2 de 2/ }).click();
+    await page.getByRole("button", { name: "Foto principal: ver opciones", exact: true }).click();
     await page.getByRole("button", { name: "Quitar foto", exact: true }).click();
-    await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+    await page.locator("[data-contador-fotos]").getByText("1 / 1", { exact: true }).waitFor();
     ok(true, "Quitar deja 1 elemento");
     ok(await sinDesborde(page), "Tira de medios sin desborde");
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Foto de prueba");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("900");
-    await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await completarNombrePrecio(page, "Foto de prueba", "900");
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await page.getByRole("button", { name: "Agregar una unidad", exact: true }).click();
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await publicarHistoria(page);
     const nuevo = (await db(page)).productos.find((p) => p.nombre === "Foto de prueba");
     ok(nuevo && nuevo.medios.length === 1 && nuevo.fotos.length === 1, "Publicar guarda solo la foto");
     // Un producto que ya trae un video: se ve en la ficha, se abre y se puede quitar.

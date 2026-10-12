@@ -598,7 +598,7 @@ function FormularioProducto({
       setMomento(6); return;
     }
     if (momento === 5) {
-      if (!encargoTexto.trim()) { toast("Dinos cuándo llega para seguir."); return; }
+      if (!encargoTexto.trim() || encargoTexto === "__otro") { toast("Dinos cuándo llega para seguir."); return; }
       setMomento(6); return;
     }
     setMomento((m) => Math.min(6, m + 1));
@@ -620,14 +620,14 @@ function FormularioProducto({
     const etapas = historiaVariantes ? progresoVariantes.total : presentaciones.opciones.length ? presentaciones.opciones.length + 5 : porEncargo ? 6 : 5;
     const barraActual = historiaVariantes ? Math.min(etapas, progresoVariantes.actual + 3) : momento === 6 ? etapas : momento;
     return (
-      <div className="-mt-2 flex min-h-full flex-col" data-historia-crear="" data-paso={historiaVariantes ? `variantes-${progresoVariantes.actual}` : momento}>
+      <div className="-mt-3 flex min-h-full flex-col" data-historia-crear="" data-paso={historiaVariantes ? `variantes-${progresoVariantes.actual}` : momento}>
         <HojaFijoArriba>
-          <div className={`flex min-h-11 items-center justify-between gap-2 ${momento === 6 && !historiaVariantes ? "-mt-14 mr-14" : ""}`}>
-            <div className="flex items-center gap-2">{momento === 6 && !historiaVariantes && <BotonVolver onClick={volverHistoria} etiqueta="Atrás" />}{(momento !== 6 || historiaVariantes) && <span className="font-display text-titulo-seccion text-texto">Nuevo producto</span>}</div>
+          <div className="-mt-14 mr-14 flex min-h-11 items-start justify-between gap-2 [&_[data-selector-catalogo]]:items-start [&_[data-selector-catalogo]]:text-[16px] [&_[data-selector-catalogo]]:leading-5">
+            <div className="flex items-center gap-2">{momento === 6 && !historiaVariantes && <BotonVolver onClick={volverHistoria} etiqueta="Atrás" />}{(momento !== 6 || historiaVariantes) && <span className="font-display text-[16px] leading-5 text-texto">Nuevo producto</span>}</div>
             {variosTipos && tienda && <SelectorCatalogo tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="hoja" textoOtra="Vendo otra cosa también" alCambiar={(r) => { if (r !== CATALOGO_GENERAL) setTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando} sinPermiso={sinCatalogo ? () => toast(porque) : undefined} />}
           </div>
           {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
-          <div className="mt-2 flex gap-1.5" aria-label={`Momento ${barraActual} de ${etapas}`}>
+          <div className="pointer-events-none relative -top-[21px] -ml-1 mr-[42px] mt-2 flex gap-1.5" aria-label={`Momento ${barraActual} de ${etapas}`}>
           {Array.from({ length: etapas }, (_, i) => <span key={i} role="progressbar" aria-label={`Momento ${i + 1}`} aria-valuemin={0} aria-valuemax={1} aria-valuenow={i < barraActual ? 1 : 0} className={`h-[3px] flex-1 rounded-full ${i < barraActual ? "bg-accion" : "bg-borde-pastilla"}`} />)}
           </div>
         </HojaFijoArriba>
@@ -661,10 +661,10 @@ function FormularioProducto({
 
           {momento >= 2 && momento <= 4 && <div className="w-full max-w-[350px]" data-tarjeta-historia="">
             <div className="relative h-[372px] w-full overflow-hidden rounded-radio-l bg-superficie-hundida">
-              {foto ? <Foto src={foto.url} alt="" className="size-full object-cover" sizes="350px" /> : <div className="grid size-full place-items-center text-texto-secundario"><span>Tu foto aparecerá aquí</span></div>}
+              {foto ? <Foto src={foto.url} alt="" className="size-full object-cover" sizes="350px" /> : <div className="grid size-full place-items-center text-texto-secundario"><span>Tu foto va aquí</span></div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
               <span className="absolute left-4 top-3 font-mano text-[22px] text-white">así se verá</span>
-              <div className="absolute inset-x-4 bottom-4 text-white"><p className="font-display text-[25px] leading-tight">{nombre || "Nombre del producto"}</p><p className="mt-1 text-destacado">{Number(precio) ? formatearPesos(Number(precio)) : "RD$ —"}</p></div>
+              <div className="absolute inset-x-4 bottom-4 text-white"><p className="font-display text-[26px] leading-[1.1]">{nombre || "Nombre del producto"}</p><p className="mt-1 text-destacado">{Number(precio) ? formatearPesos(Number(precio)) : "RD$ —"}</p></div>
             </div>
           </div>}
           {momento === 6 && <div className="w-full max-w-[350px]" data-tarjeta-historia="catalogo">
@@ -674,10 +674,10 @@ function FormularioProducto({
           </div>}
 
           <div className={`w-full max-w-[350px] ${momento === 6 ? "" : "pt-1"}`}>
-            {momento < 6 && <><h2 ref={momento === 1 || momento === 4 ? tituloHistoriaRef : undefined} className="font-display text-titulo-seccion leading-tight text-texto outline-none" tabIndex={-1}>{pregunta}</h2><p className="mt-1 text-cuerpo text-texto-secundario">{momento === 1 ? "Una buena foto abre la historia." : momento === 2 ? "Que tus clientas sepan qué buscar." : momento === 3 ? "Un precio claro ayuda a decidir." : momento === 4 ? "Al despachar, baja solito." : "Cuéntales cuándo lo tendrán."}</p></>}
+            {momento < 6 && <><h2 ref={momento === 1 || momento === 4 ? tituloHistoriaRef : undefined} className="font-display text-[26px] leading-[1.1] text-texto outline-none" tabIndex={-1}>{pregunta}</h2><p className="mt-1 text-[15px] leading-[1.3] text-texto-secundario">{momento === 1 ? "La primera será la portada. Puedes sumar más después." : momento === 2 ? "Como lo dirías en WhatsApp." : momento === 3 ? "Si cambia por talla o color, lo ajustas aquí." : momento === 4 ? "Al despachar, baja solito." : "Cuéntales cuándo lo tendrán."}</p></>}
             {momento === 1 && <><input className="sr-only" type="file" accept="image/*" capture="environment" aria-label="Tomar foto" data-camara-historia onChange={(e) => { const f = e.target.files?.[0]; if (f) void agregarFotoDeColor(f); e.target.value = ""; }} /><div className="mt-3 grid grid-cols-2 gap-3"><Boton anchoCompleto jerarquia="principal" onClick={() => document.querySelector<HTMLInputElement>("[data-camara-historia]")?.click()}>Tomar foto</Boton><Boton anchoCompleto jerarquia="secundario" onClick={() => document.querySelector<HTMLInputElement>("[data-entrada-medios]")?.click()}>Elegir de la galería</Boton></div><p className="mt-2 text-center text-secundario text-texto-secundario">Sin foto se vende menos. Puedes agregarla luego.</p></>}
-            {momento === 2 && <Campo alto="historia" etiqueta="Nombre del producto" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="El nombre de tu producto" maxLength={120} />}
-            {momento === 3 && <div className="mt-3 flex flex-col gap-3"><Campo alto="precio-historia" etiqueta="Precio (RD$)" autoFocus prefijo="RD$" inputMode="numeric" enterKeyHint="done" precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" /><button type="button" onClick={() => setHistoriaVariantes(true)} className="tocable min-h-11 self-start rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Tiene tallas o colores</button></div>}
+            {momento === 2 && <Campo alto="historia" etiquetaOculta className="mt-3.5" etiqueta="Nombre del producto" autoFocus value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="El nombre de tu producto" maxLength={120} />}
+            {momento === 3 && <div className="mt-3 flex flex-col gap-3"><Campo alto="precio-historia" etiquetaOculta etiqueta="Precio (RD$)" autoFocus prefijo="RD$" inputMode="numeric" enterKeyHint="done" precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" /><button type="button" onClick={() => setHistoriaVariantes(true)} className="tocable min-h-11 self-start rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Tiene tallas o colores</button></div>}
             {momento === 4 && <div className="mt-5 flex flex-col items-center gap-4"><Cantidad valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar una unidad" etiquetaAgregar="Agregar una unidad" className="[&>button]:size-14 [&>span]:min-w-20 [&>span]:font-display [&>span]:text-[44px]" /><button type="button" aria-pressed={porEncargo} onClick={() => { setPorEncargo(!porEncargo); if (!porEncargo) setStockValor(0); }} className={`tocable min-h-12 w-full rounded-full border px-4 text-secundario font-bold ${porEncargo ? "border-accion bg-superficie-hundida" : "border-borde-pastilla bg-superficie"}`}>Es por encargo, no llevo stock</button></div>}
             {momento === 5 && <div className="mt-3 flex flex-col gap-3"><GrupoOpciones etiqueta="Cuándo llega" valor={["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? encargoTexto : encargoTexto && encargoTexto !== "__otro" ? "__otro" : null} alCambiar={(v) => setEncargoTexto(v === "__otro" ? "__otro" : v)} opciones={[{ id: "3 a 5 días", texto: "3 a 5 días" }, { id: "1 a 2 semanas", texto: "1 a 2 semanas" }, { id: "1 mes", texto: "1 mes" }, { id: "__otro", texto: "Otro" }]} /><Campo alto="historia" etiqueta="Otro plazo" autoFocus={encargoTexto === "__otro" || (!!encargoTexto && !["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto))} value={encargoTexto === "__otro" || ["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? "" : encargoTexto} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Escríbelo en hasta 40 letras" maxLength={40} /></div>}
             {momento === 6 && <div className="flex flex-col gap-2" data-opcionales-historia>

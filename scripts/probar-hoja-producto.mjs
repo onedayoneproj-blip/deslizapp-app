@@ -31,6 +31,7 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 async function pagina(ancho, tienda) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
+  await page.route("**/api/version", (route) => route.abort());
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript((t) => {

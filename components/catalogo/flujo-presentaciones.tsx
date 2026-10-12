@@ -149,7 +149,7 @@ const ejesFinales = (ejes: EjeBorrador[], rubro: Rubro): OpcionProducto[] =>
  * El campo de precio de una fila (con «Cada una tiene su precio» encendido). Arranca con el precio del producto; «siguiente» del
  * teclado pasa al próximo precio de la lista (el foco sale del mismo gesto, así iOS no cierra el teclado) y en el último, «Listo».
  */
-function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: string; precioProducto: number; precio: number; alCambiar: (p: number | null) => void }) {
+export function PrecioFila({ texto, precioProducto, precio, alCambiar }: { texto: string; precioProducto: number; precio: number; alCambiar: (p: number | null) => void }) {
   const [escrito, setEscrito] = useState(String(precio));
   // Si el precio cambia desde otro lado (el detalle de la fila), el campo lo sigue; lo que se está escribiendo no se pisa.
   const [precioAntes, setPrecioAntes] = useState(precio);

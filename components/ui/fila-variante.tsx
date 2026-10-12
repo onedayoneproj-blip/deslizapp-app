@@ -14,6 +14,7 @@ import { clases, FOCO } from "./comunes";
  */
 export function FilaVariante({
   texto,
+  identificador,
   color,
   stock,
   alCambiar,
@@ -26,6 +27,7 @@ export function FilaVariante({
   debajo,
 }: {
   texto: string;
+  identificador?: string;
   /** Hex del color de la variante (si un eje es Color y el nombre se conoce). */
   color?: string | null;
   stock: number;
@@ -51,7 +53,7 @@ export function FilaVariante({
     </>
   );
   return (
-    <li className={clases("flex min-h-15 flex-wrap items-center gap-x-3 border-t border-linea px-4 first:border-t-0", atenuada && "opacity-70")}>
+    <li data-variante-stock={identificador} className={clases("flex min-h-15 flex-wrap items-center gap-x-3 border-t border-linea px-4 first:border-t-0", atenuada && "opacity-70")}>
       {color && <span aria-hidden="true" className="size-5 shrink-0 rounded-full border border-linea" style={{ background: color }} />}
       {alAbrir ? (
         <button type="button" onClick={alAbrir} aria-disabled={deshabilitadoAbrir || undefined} aria-label={`Abrir ${texto}`} className={clases("tocable flex min-h-15 min-w-0 flex-1 flex-col items-start justify-center py-2 text-left", FOCO)}>

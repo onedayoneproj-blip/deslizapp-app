@@ -2,6 +2,7 @@
 // informe de QA (docs/qa/presentaciones-escenarios.md) uno por uno, el reparto del stock, «Vista previa» con el reel real y el perfume de
 // Michel con «Tamaño». A 390 y 360, tema claro. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [SOLO=1,1b,4] [CAPTURAS=docs/capturas/presentaciones-por-pasos] node scripts/probar-presentaciones.mjs
+import { enHistoria, nuevoHastaPrecio, abrirRama, volverAEjes, vaciarEjes, quitarEje, irAValores, elegirEjeValores, irACantidades, publicarHistoria, rama } from "./recorrido-historia-producto.mjs";
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -37,6 +38,7 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 async function pagina(ancho, tienda) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
+  await page.route("**/api/version", (route) => route.abort());
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript((t) => {
@@ -50,25 +52,9 @@ const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.g
 const hoja = (page) => page.locator('[role="dialog"]').last();
 const sinDesborde = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
 const captura = async (page, nombre, ancho) => CAPTURAS && (await page.screenshot({ path: join(CAPTURAS, `${nombre}-${ancho}.png`) }));
-const foto = (page, color) =>
-  page.evaluate((c) => {
-    const l = document.createElement("canvas");
-    l.width = l.height = 600;
-    const x = l.getContext("2d");
-    x.fillStyle = c;
-    x.fillRect(0, 0, 600, 600);
-    return l.toDataURL("image/png").split(",")[1];
-  }, color);
-
 /** Un producto nuevo con foto, nombre y precio, en la hoja. */
 async function nuevo(page, nombre = "Aros de luna", precio = "950") {
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill(nombre);
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill(precio);
-  const b = await foto(page, "#c8a2c8");
-  await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
-  await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
+  await nuevoHastaPrecio(page, URL, nombre, precio);
 }
 const editar = async (page, id) => {
   await page.goto(`${URL}/catalogo/${id}/editar`);
@@ -76,22 +62,26 @@ const editar = async (page, id) => {
   await page.waitForTimeout(500);
 };
 const abrirFlujo = async (page) => {
+  if (await enHistoria(page)) return abrirRama(page);
   await page.getByRole("button", { name: /^Presentaciones/ }).click();
   await hoja(page).locator("[data-paso]").waitFor();
   await page.waitForTimeout(450);
 };
 const paso = async (page) => (await hoja(page).locator("[data-paso]").getAttribute("data-paso"));
 const siguiente = async (page) => {
+  if (await enHistoria(page)) return irACantidades(page);
   await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
   await page.waitForTimeout(300);
 };
-const pasoTexto = async (page) => (await hoja(page).locator("[data-paso]").innerText()).replace(/\s+/g, " ");
+const pasoTexto = async (page) => (await (await enHistoria(page) ? rama(page) : hoja(page).locator("[data-paso]")).innerText()).replace(/\s+/g, " ");
 const listo = async (page) => {
+  if (await enHistoria(page)) { await page.getByRole("button", { name: /^Listo ·/ }).click(); await page.locator("[data-reel-reducido]").waitFor(); return; }
   await hoja(page).getByRole("button", { name: /^Listo ·/ }).click();
   await page.waitForTimeout(700);
 };
 /** Elige una cosa (si no está) y marca sus valores (sugeridos como píldoras; propios con «+ Otro …»). */
 async function elegirCosa(page, cosa, valores) {
+  if (await enHistoria(page)) return elegirEjeValores(page, cosa, valores);
   const h = hoja(page);
   if (!(await h.locator(`[data-eje="${cosa}"]`).count())) await h.getByRole("button", { name: cosa, exact: true }).click();
   const seccion = h.locator(`[data-eje="${cosa}"]`);
@@ -108,17 +98,18 @@ async function elegirCosa(page, cosa, valores) {
   }
 }
 const vaciarCosas = async (page) => {
+  if (await enHistoria(page)) return vaciarEjes(page);
   const b = hoja(page).getByRole("button", { name: /^Quitar \S+$/ });
   while (await b.count()) await b.first().click();
 };
-const quitarCosa = (page, cosa) => hoja(page).getByRole("button", { name: `Quitar ${cosa}`, exact: true }).click();
-const filasTexto = async (page) => (await hoja(page).locator("[data-paso=cuantas] li").allInnerTexts()).map((t) => t.replace(/\s+/g, " ").trim());
+const quitarCosa = async (page, cosa) => await enHistoria(page) ? quitarEje(page, cosa) : hoja(page).getByRole("button", { name: `Quitar ${cosa}`, exact: true }).click();
 const sumar = async (page, etiqueta, n, dentro) => {
   const ambito = dentro ? hoja(page).locator(dentro) : hoja(page);
   for (let i = 0; i < n; i++) await ambito.getByRole("button", { name: etiqueta, exact: true }).click();
 };
 const tarjetaStock = (page) => page.locator("[data-tarjeta-stock]").innerText();
 const guardarCambios = async (page) => {
+  if (await enHistoria(page)) { await publicarHistoria(page); await page.goto(`${URL}/catalogo`); return; }
   await page.getByRole("button", { name: /^(Guardar cambios|Publicar)$/ }).click();
   await page.waitForFunction(() => !/\/(editar|nuevo)$/.test(location.pathname) && !document.querySelector("[data-barra-producto]"), null, { timeout: 15000 });
   await page.waitForTimeout(600);
@@ -134,78 +125,59 @@ for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
 
   if (quiere("2")) {
-    console.log("• 2 · Crear con 1 cosa (Color × 3): la hoja avisa qué falta, y «Agotada» no sale en un producto nuevo");
+    console.log("• 2 · Crear Color × 3: valida valores y stock, conserva contador y resumen");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page);
-    await captura(page, "00-hoja-sin-presentaciones", ancho);
     await abrirFlujo(page);
-    ok((await paso(page)) === "que-cambia", "Sin presentaciones abre en el paso 1 «Qué cambia»");
-    ok((await hoja(page).innerText()).includes("Paso 1 de 2"), "Dice «Paso 1 de 2»");
-    const sig = hoja(page).getByRole("button", { name: /^Siguiente/ });
-    ok(await sig.isDisabled(), "«Siguiente» está apagado al empezar (Talla viene elegida y vacía)");
-    ok((await hoja(page).locator("[data-pista]").innerText()).includes("Elige al menos un valor de Talla"), "…y dice qué falta: «Elige al menos un valor de Talla.»");
-    await captura(page, "01-paso1-apagado", ancho);
+    ok(await rama(page).getAttribute("data-etapa") === "ejes", "La rama integrada empieza eligiendo atributos");
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    await page.getByRole("button", { name: "Seguir", exact: true }).click();
+    ok(await rama(page).getAttribute("data-etapa") === "valores", "No avanza sin elegir valores de Talla");
+    await volverAEjes(page);
     await quitarCosa(page, "Talla");
     await elegirCosa(page, "Color", ["Plateado", "Blanco", "Dorado"]);
-    ok((await sig.innerText()).includes("3 presentaciones") && (await sig.isEnabled()), "«Siguiente · 3 presentaciones» se prende");
-    await captura(page, "02-paso1-color", ancho);
     await siguiente(page);
-    ok((await paso(page)) === "cuantas", "Pasa al paso 2 «Cuántas tienes»");
-    const t = await pasoTexto(page);
-    ok(t.includes("Poner a todas") && t.includes("Dorado") && t.includes("Plateado") && t.includes("Blanco") && !t.includes("Agotad"), "Una fila por color, «Poner a todas» y ni rastro de «Agotada»");
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 0 en total/ }).isEnabled()), "«Listo · 0 en total» (producto nuevo sin reparto)");
-    {
-      const at = await hoja(page).getByRole("button", { name: "Atrás", exact: true }).boundingBox();
-      const li = await hoja(page).getByRole("button", { name: /^Listo ·/ }).boundingBox();
-      ok(at && li && Math.abs(at.width - li.width) <= 1 && Math.abs(at.height - li.height) <= 1, "«Atrás» y «Listo» miden lo mismo (mitad y mitad)");
-    }
-    await captura(page, "03-paso2-una-cosa", ancho);
+    ok(await rama(page).locator("section[aria-label^='Color ']").count() === 3, "Una presentación por color");
+    ok(!((await pasoTexto(page)).includes("Agotad")), "Alta sin estado Agotada");
+    ok(await page.getByRole("button", { name: /^Listo · 0 en total/ }).isDisabled(), "Stock cero bloquea la revisión sin encargo");
+    const at = await page.getByRole("button", { name: "Atrás", exact: true }).boundingBox();
+    const li = await page.getByRole("button", { name: /^Listo ·/ }).boundingBox();
+    ok(at.width >= 44 && li.height >= 44 && li.x + li.width <= ancho - 19, "Botones de historia dentro de los márgenes y área de toque ≥44");
     await sumar(page, "Agregar uno a todas", 2);
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 6 en total/ }).count()) === 1, "«Poner a todas» pone 2 en cada una: «Listo · 6 en total»");
+    ok((await rama(page).locator("[data-resumen-presentaciones]").innerText()).includes("3 presentaciones · 6 en total"), "El resumen cuenta 3 presentaciones y 6 unidades");
+    await captura(page, "03-cantidades-una-cosa", ancho);
     await listo(page);
-    const tarjeta = await tarjetaStock(page);
-    ok(tarjeta.includes("Color · 3") && tarjeta.includes("3 presentaciones · 6 en total"), "La hoja de producto resume: «Color · 3» y «3 presentaciones · 6 en total»");
-    ok(!tarjeta.includes("Agotad") && (await page.getByRole("button", { name: "Agregar presentación" }).count()) === 0, "…sin «Agotada» ni «Agregar presentación»");
-    await captura(page, "04-hoja-resumen", ancho);
-    ok(await sinDesborde(page), "Sin desborde horizontal");
-    ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
+    await guardarCambios(page);
+    const { p, variantes } = await productoDe(page, "Aros de luna");
+    ok(p.stock === 6 && variantes.length === 3 && variantes.every((v) => v.stock === 2), "Se guardan las 3 presentaciones y el reparto 2/2/2");
+    ok(await sinDesborde(page) && errores.length === 0, "Sin desborde ni errores de página");
     await ctx.close();
   }
 
   if (quiere("3") || quiere("15")) {
-    console.log("• 3 y 15 · Crear con 2 cosas (Color × Tamaño), agrupadas por la primera; publicar, cerrar y reabrir");
+    console.log("• 3, 9 y 15 · Dos atributos, máximo dos, grupos, conservación y publicación");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Aros dobles");
     await abrirFlujo(page);
     await quitarCosa(page, "Talla");
     await elegirCosa(page, "Color", ["Plateado", "Blanco"]);
     await elegirCosa(page, "Tamaño", ["Pequeño", "Grande"]);
-    ok((await hoja(page).innerText()).includes("Ya elegiste 2: es el máximo. Quita una para elegir otra."), "9 · La 3.ª se apaga y dice que se quita una para elegir otra");
-    ok((await hoja(page).getByRole("button", { name: "Material", exact: true }).isDisabled()), "9 · Las tarjetas sin elegir quedan apagadas");
-    await captura(page, "05-paso1-dos-cosas", ancho);
+    ok(await rama(page).getByRole("checkbox", { name: "Material", exact: true }).isDisabled(), "9 · Con dos atributos, un tercero queda apagado");
     await siguiente(page);
-    ok((await hoja(page).locator("section[aria-label^='Color ']").count()) === 2, "Paso 2: un grupo por color (Plateado, Blanco)");
-    const filas = await filasTexto(page);
-    ok(filas.filter((f) => /^(Pequeño|Grande)\b/.test(f)).length === 4, "…con sus 2 tamaños cada uno (4 filas)");
+    ok(await rama(page).locator("section[aria-label^='Color ']").count() === 2 && await rama(page).locator("li[data-variante-stock]").count() === 4, "Dos grupos de color con dos tamaños cada uno");
     await sumar(page, "Agregar uno de Pequeño", 3, "section[aria-label='Color Plateado']");
     await sumar(page, "Agregar uno de Grande", 1, "section[aria-label='Color Blanco']");
-    await captura(page, "06-paso2-dos-cosas", ancho);
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Listo · 4 en total»");
-    await listo(page);
-    ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "La hoja: «4 presentaciones · 4 en total»");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
-    ok((await paso(page)) === "cuantas", "5 · Con presentaciones, abre directo en «Cuántas tienes»");
-    ok((await hoja(page).innerText()).includes("Cambiar qué cambia"), "…con el resumen y el enlace «Cambiar qué cambia»");
-    await captura(page, "07-editar-paso2", ancho);
-    await hoja(page).getByRole("button", { name: "Cambiar qué cambia" }).click();
-    ok((await paso(page)) === "que-cambia" && (await hoja(page).locator('[data-eje="Color"] [aria-checked="true"]').count()) === 2, "El enlace lleva al paso 1 con lo elegido");
-    await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
-    ok((await paso(page)) === "cuantas", "Siguiente sin cambiar nada vuelve al paso 2 sin perder lo puesto");
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "…y el stock sigue ahí (4)");
+    ok((await rama(page).locator("[data-resumen-presentaciones]").innerText()).includes("4 presentaciones · 4 en total"), "El total de ambos grupos suma 4");
+    await page.getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
+    await irAValores(page, "Color");
+    ok(await rama(page).locator('[data-eje="Color"] [aria-checked="true"]').count() === 2, "Cambiar qué cambia conserva valores elegidos");
+    await volverAEjes(page);
+    await siguiente(page);
+    ok(await page.getByRole("button", { name: /^Listo · 4 en total/ }).isEnabled(), "Volver sin cambiar ejes conserva las 4 unidades");
     await listo(page);
     await guardarCambios(page);
     const { p, variantes } = await productoDe(page, "Aros dobles");
-    ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4, "15 · Se publicó con 4 presentaciones y su stock");
+    ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4, "15 · Publicación conserva combinaciones y stock");
     await editar(page, p.id);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "15 · Reabrir lo muestra igual");
     await page.getByRole("button", { name: /^Presentaciones/ }).click();
@@ -343,31 +315,23 @@ for (const ancho of ANCHOS) {
   }
 
   if (quiere("8") || quiere("10")) {
-    console.log("• 8 y 10 · Cosa propia (Aroma) y adiós a «Agregar presentación» y «Cambiar qué varía»");
+    console.log("• 8 y 10 · Atributo propio Aroma y detalle de sus presentaciones");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Vela");
     await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
-    await hoja(page).getByRole("button", { name: "+ Otra cosa" }).click();
-    await hoja(page).getByRole("textbox", { name: "¿Qué otra cosa cambia?" }).fill("Aroma");
-    await hoja(page).getByRole("textbox", { name: "¿Qué otra cosa cambia?" }).press("Enter");
-    const caja = await hoja(page).locator('[data-eje="Aroma"]').boundingBox();
-    const dentro = await hoja(page).boundingBox();
-    ok(caja && dentro && caja.y < dentro.y + 500, "8 · La cosa propia nace arriba, a la vista (no al final de la lista)");
-    await hoja(page).locator('[data-eje="Aroma"]').getByRole("button", { name: "Agregar", exact: true }).click();
-    const e = hoja(page).getByRole("textbox", { name: "Agregar a Aromas" });
-    await e.fill("Vainilla");
-    await e.press("Enter");
-    await e.fill("Coco");
-    await e.press("Enter");
-    ok((await hoja(page).getByRole("button", { name: /^Siguiente · 2 presentaciones/ }).count()) === 1, "8 · Con Vainilla y Coco: «Siguiente · 2 presentaciones»");
-    await captura(page, "16-cosa-propia", ancho);
+    await vaciarCosas(page);
+    await elegirCosa(page, "Aroma", ["Vainilla", "Coco"]);
+    ok(await rama(page).getByRole("checkbox", { name: "Aroma", exact: true }).getAttribute("aria-checked") === "true", "La cosa propia queda elegida");
     await siguiente(page);
-    ok((await pasoTexto(page)).includes("Vainilla") && (await pasoTexto(page)).includes("Coco") && (await pasoTexto(page)).includes("Foto de cada aroma"), "8 · Las filas y «Foto de cada aroma»");
+    ok((await pasoTexto(page)).includes("Vainilla") && (await pasoTexto(page)).includes("Coco"), "Genera ambas presentaciones propias");
+    await sumar(page, "Agregar uno a todas", 1);
+    await rama(page).getByRole("button", { name: "Abrir Vainilla", exact: true }).click();
+    ok((await hoja(page).innerText()).includes("Foto"), "La presentación propia conserva el selector de foto");
+    await hoja(page).getByRole("button", { name: "Cerrar", exact: true }).click();
+    ok(await page.getByRole("button", { name: /Agregar presentación|Cambiar qué varía/ }).count() === 0 && await page.getByRole("radio", { name: "Todas", exact: true }).count() === 0, "10 · Sin controles anteriores ni filtros duplicados");
     await listo(page);
-    ok((await page.getByRole("button", { name: /Agregar presentación|Cambiar qué varía/ }).count()) === 0 && (await page.getByText(/Cambiar qué varía|Agregar presentación/).count()) === 0, "10 · «Agregar presentación» y «Cambiar qué varía» ya no existen");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
-    ok((await hoja(page).getByText(/Cambiar qué varía|Agregar presentación|Todas/).count()) === 0 || (await hoja(page).getByRole("radio", { name: "Todas" }).count()) === 0, "10 · Ni filtros «Todas / …» ni filas de stock repetidas");
+    await guardarCambios(page);
+    ok((await productoDe(page, "Vela")).variantes.length === 2, "Guarda Aroma con sus dos valores");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -430,7 +394,7 @@ for (const ancho of ANCHOS) {
   }
 
   if (quiere("14")) {
-    console.log("• 14 · Límites: 12 valores por cosa y 144 presentaciones");
+    console.log("• 14 · 12 valores por atributo y 144 presentaciones");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Camisa XXL");
     await abrirFlujo(page);
@@ -438,26 +402,27 @@ for (const ancho of ANCHOS) {
     const doce = Array.from({ length: 12 }, (_, i) => `V${i + 1}`);
     await elegirCosa(page, "Color", doce);
     await elegirCosa(page, "Tamaño", doce);
-    const sig = hoja(page).getByRole("button", { name: /^Siguiente/ });
-    ok((await sig.innerText()).includes("144 presentaciones") && (await sig.isEnabled()), "12 × 12: «Siguiente · 144 presentaciones»");
-    ok(await hoja(page).locator('[data-eje="Color"]').getByRole("button", { name: /^\+ Otro color/ }).isDisabled(), "Con 12 valores, «+ Otro color» se queda (apagado) para que la hoja no se mueva");
-    await captura(page, "20-144", ancho);
+    await irAValores(page, "Color");
+    ok(await rama(page).getByRole("radio", { name: "+ Otro", exact: true }).isDisabled(), "El valor 13 se bloquea conservando su control");
+    await volverAEjes(page);
     await siguiente(page);
-    ok((await hoja(page).locator("section[aria-label^='Color ']").count()) === 12, "Paso 2: 12 grupos (los demás plegados: solo el primero abierto)");
-    ok((await hoja(page).locator("section[aria-label='Color V1'] li").count()) === 12 && (await hoja(page).locator("section[aria-label='Color V2'] li").count()) === 0, "…solo el primero muestra sus 12 filas");
-    await hoja(page).getByRole("button", { name: /^V2/ }).first().click();
-    ok((await hoja(page).locator("section[aria-label='Color V2'] li").count()) === 12, "Tocar un grupo lo abre");
-    await captura(page, "21-144-paso2", ancho);
+    ok(await rama(page).locator("section[aria-label^='Color ']").count() === 12, "12 grupos de color");
+    ok(await rama(page).locator("section[aria-label='Color V1'] li").count() === 12 && await rama(page).locator("section[aria-label='Color V2'] li").count() === 0, "Con 144 variantes solo el primer grupo inicia abierto");
+    await rama(page).locator("section[aria-label='Color V2'] button[aria-expanded]").click();
+    ok(await rama(page).locator("section[aria-label='Color V2'] li").count() === 12, "El grupo plegado se abre");
+    await sumar(page, "Agregar uno a todas", 1);
+    ok((await pasoTexto(page)).includes("144 presentaciones · 144 en total"), "12 × 12 crea 144 combinaciones sin perder ninguna");
+    await captura(page, "21-144-cantidades", ancho);
     await listo(page);
     await guardarCambios(page);
     const g = await productoDe(page, "Camisa XXL");
-    ok(g.variantes.length === 144, "Se guardan las 144");
+    ok(g.variantes.length === 144 && g.p.stock === 144, "Se guardan las 144 con sus cantidades");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
 
   if (quiere("16")) {
-    console.log("• 16 · «Vista previa» es el reel real del catálogo del comprador");
+    console.log("• 16 · B5 encuadra el Reel real del producto y no escribe pedidos");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Aros de luna", "950");
     await abrirFlujo(page);
@@ -466,24 +431,23 @@ for (const ancho of ANCHOS) {
     await siguiente(page);
     await sumar(page, "Agregar uno de Plateado", 2);
     await listo(page);
-    await page.getByRole("button", { name: "Vista previa", exact: true }).click();
-    const marco = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
-    await marco.locator("article.reel").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(1200);
+    const marco = page.frameLocator('[data-reel-reducido] iframe');
     const reel = marco.locator("article.reel");
-    ok((await reel.locator("h2").innerText()) === "Aros de luna", "El reel lleva el nombre del borrador");
-    ok((await reel.locator(".pr strong").innerText()).includes("950"), "…el precio");
-    ok((await reel.locator(".pres-btn:not(.en-panel)").innerText()).includes("Ver presentaciones"), "…y «Ver presentaciones ›»");
-    // Las pestañas siguen la regla del catálogo: un borrador sin colección ni otros catálogos no lleva pestañas.
-    ok((await marco.locator("header.hdr").count()) === 1 && (await marco.locator(".htabs").count()) <= 1, "…con la cabecera de la tienda (y sus pestañas si las tiene)");
-    ok((await reel.locator(".act.like").count()) === 1, "…y los botones de comprar a la vista");
-    await marco.locator(".act.like").click();
-    ok((await marco.getByText("Así lo verá tu cliente").count()) === 1, "Comprar solo avisa «Así lo verá tu cliente»");
-    ok(((await db(page)).pedidos ?? []).length === ((await db(page)).pedidos ?? []).length, "No se escribió nada");
-    await captura(page, "22-como-se-ve-reel", ancho);
-    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
-    await page.waitForTimeout(500);
-    ok(await page.getByRole("button", { name: "Publicar", exact: true }).isVisible(), "La X vuelve a la hoja de producto");
+    await reel.waitFor();
+    ok(await reel.locator("h2").innerText() === "Aros de luna", "Nombre real del borrador");
+    ok((await reel.locator(".pr strong").innerText()).includes("950"), "Precio real");
+    ok((await reel.locator(".pres-btn:not(.en-panel)").innerText()).includes("Ver presentaciones"), "Control Ver presentaciones");
+    const rect = await reel.evaluate((e) => ({ w: e.getBoundingClientRect().width, h: e.getBoundingClientRect().height }));
+    ok(rect.w === 390 && Math.abs(rect.h - 440 * 390 / 350) < 0.1 && await marco.locator("header.hdr").count() === 0, "El producto llena el viewport proporcional al marco dentro del iframe, sin cabecera del catálogo");
+    ok(await reel.locator(".act.like").count() === 1, "Controles de comprar superpuestos");
+    const pedidos = ((await db(page)).pedidos ?? []).length;
+    await reel.locator(".act.like").click();
+    await marco.getByText("Así lo verá tu cliente", { exact: true }).waitFor();
+    ok(((await db(page)).pedidos ?? []).length === pedidos, "Comprar solo avisa y no escribe pedidos");
+    await captura(page, "22-B5-reel-real", ancho);
+    await page.getByRole("button", { name: "Atrás", exact: true }).click();
+    await listo(page);
+    ok(await page.getByRole("button", { name: "Publicar", exact: true }).isVisible(), "Volver y revisar conserva el borrador");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -493,13 +457,13 @@ for (const ancho of ANCHOS) {
     const { ctx, page, errores } = await pagina(ancho, MICHEL);
     await nuevo(page, "Perfume nuevo", "2800");
     await abrirFlujo(page);
-    ok((await hoja(page).locator('[data-eje="Tamaño"]').count()) === 1, "Un perfume arranca con «Tamaño» elegido");
-    await hoja(page).locator('[data-eje="Tamaño"]').getByRole("checkbox", { name: "30 ml" }).waitFor();
+    ok(await rama(page).getByRole("checkbox", { name: "Tamaño", exact: true }).getAttribute("aria-checked") === "true", "Un perfume arranca con Tamaño elegido");
     await elegirCosa(page, "Tamaño", ["30 ml", "50 ml", "100 ml"]);
     await captura(page, "23-perfume-paso1", ancho);
     await siguiente(page);
     const t = await pasoTexto(page);
-    ok(t.includes("30 ml") && t.includes("50 ml") && t.includes("100 ml"), "Paso 2: 30, 50 y 100 ml");
+    ok(t.includes("30 ml") && t.includes("50 ml") && t.includes("100 ml"), "Cantidades: 30, 50 y 100 ml");
+    await sumar(page, "Agregar uno a todas", 1);
     await listo(page);
     await editar(page, OUD);
     ok((await tarjetaStock(page)).includes("Tamaño · 3"), "El Majestic Oud existente se ve «Tamaño · 3»");

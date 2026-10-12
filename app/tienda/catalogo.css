@@ -9860,3 +9860,9 @@ html.catalogo-html,
 .catalogo-publico .aviso-llegada input:focus {
   border-color: var(--accent);
 }
+
+/* B5 del alta: el reel del producto llena el iframe; la vista del catálogo completo mantiene su cabecera. */
+.catalogo-publico[data-encuadre-producto] { width: 390px; height: var(--H); overflow: hidden; }
+.catalogo-publico[data-encuadre-producto] .reels { padding: 0; }
+.catalogo-publico[data-encuadre-producto] .reel { width: 390px; height: var(--H); margin: 0; }
+.catalogo-publico[data-encuadre-producto] .reel::before { display: none; }

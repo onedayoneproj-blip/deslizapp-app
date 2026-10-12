@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { formatearPesos } from "@/lib/formato";
 import {
   alternarValor, atajosDe, cambiarEjes, claveVariante, colorDe, combinaciones,
-  ejeDeFoto, errorDeEjes, errorDeNombrePropio, estadoDeReparto, listaDeCosas, MAX_EJES, MAX_PRESENTACIONES, MAX_VALORES,
-  ponerATodas, ponerTodasEn, podarFotosColor, precioDe, repartoCuadra, resumenDe, textoCombinacion,
+  ejeDeFoto, errorDeEjes, errorDeNombrePropio, estadoDeReparto, listaDeCosas, MAX_EJES, MAX_PRESENTACIONES, MAX_VALORES, mismosEjes,
+  ponerATodas, ponerTodasEn, podarFotosColor, precioDe, repartoCuadra, resumenDe, textoCombinacion, tienePreciosPropios, unificarPrecios,
   valoresSugeridos, valoresVisibles, type EstadoPresentaciones, type Origen, type Presentacion,
 } from "@/lib/presentaciones";
 import { colorPorNombre } from "@/lib/colores";
@@ -13,8 +13,11 @@ import { OPCIONES_TIPICAS, type Rubro } from "@/lib/rubros";
 import type { OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
 import { HojaFijoAbajo } from "../hoja";
-import { Boton, Campo, Cantidad, GrupoOpciones, Opcion } from "../ui";
+import { Alerta, Boton, Campo, Cantidad, Etiqueta, FilaLista, FilaVariante, GrupoOpciones, Interruptor, ListaAgrupada, Opcion } from "../ui";
 import { HojaFotoColor, HojaPresentacion, type FotoBorrador } from "./hoja-presentacion";
+
+import { PrecioFila } from "./flujo-presentaciones";
+import { IconoChevronAbajo, IconoChevronArriba } from "../iconos";
 
 type Etapa = "ejes" | "valores" | "stock";
 type Detalle = { tipo: "variante"; clave: string } | { tipo: "fotos" } | null;
@@ -51,8 +54,12 @@ export function FlujoPresentacionesHistoria({
   const [indice, setIndice] = useState(0);
   const [origenes, setOrigenes] = useState<Origen[]>([]);
   const [detalle, setDetalle] = useState<Detalle>(null);
-  const [mostrarPoner, setMostrarPoner] = useState(false);
-  const [cantidadTodas, setCantidadTodas] = useState(1);
+  const [cantidadTodas, setCantidadTodas] = useState(0);
+  const [precios, setPrecios] = useState(() => tienePreciosPropios(estado.pres, precioProducto));
+  const [confirmacionEjes, setConfirmacionEjes] = useState<{ texto: string; aplicar: () => void } | null>(null);
+  const [unificando, setUnificando] = useState(false);
+  const [gruposCerrados, setGruposCerrados] = useState<string[] | null>(null);
+  const unificar = () => { alCambiar({ ...estado, pres: unificarPrecios(estado.pres) }); setPrecios(false); setUnificando(false); };
   const [otroAbierto, setOtroAbierto] = useState(false);
   const [otroTexto, setOtroTexto] = useState("");
   const titulo = useRef<HTMLHeadingElement>(null);
@@ -94,12 +101,18 @@ export function FlujoPresentacionesHistoria({
     if (error) { avisar(error); return; }
     if (combinaciones(nuevas).length > MAX_PRESENTACIONES) { avisar(`Hasta ${MAX_PRESENTACIONES} presentaciones.`); return; }
     try {
+      if (mismosEjes(nuevas, estado.opciones)) { setEtapa("stock"); return; }
       const cambio = cambiarEjes(estado.opciones, estado.pres, nuevas, estado.opciones.length ? null : stockSimple);
+      const aplicar = () => {
       setOrigenes(cambio.origenes);
+      setGruposCerrados(null);
       const antesParaFotos = estado.opciones.length ? estado.opciones : nuevas;
       const siguiente = { opciones: cambio.opciones, pres: cambio.presentaciones, fotosColor: podarFotosColor(estado.fotosColor, antesParaFotos, cambio.opciones) };
       alCambiar(siguiente);
       setEtapa("stock");
+      };
+      if (cambio.confirmar) setConfirmacionEjes({ texto: cambio.confirmar, aplicar });
+      else aplicar();
     } catch (e) {
       avisar(e instanceof Error ? e.message : "Revisa los valores de las presentaciones.");
     }
@@ -109,9 +122,10 @@ export function FlujoPresentacionesHistoria({
   };
   const presActivas = estado.pres.filter((p) => p.activa);
   const totalStock = presActivas.reduce((n, p) => n + (p.stock ?? 0), 0);
+  const valorTodas = presActivas.length && presActivas.every((p) => p.stock === presActivas[0]?.stock) ? (presActivas[0]?.stock ?? 0) : cantidadTodas;
   const pendientes = !repartoCuadra(origenes, estado.pres);
   const reparto = estadoDeReparto(origenes, estado.pres);
-  const permitirListo = porEncargo ? !!encargoTexto.trim() : totalStock > 0 && !pendientes;
+  const permitirListo = porEncargo ? !!encargoTexto.trim() && encargoTexto !== "__otro" : totalStock > 0 && !pendientes;
   const irAtras = () => {
     if (detalle) { setDetalle(null); return; }
     if (etapa === "ejes") { alAtras(); return; }
@@ -129,7 +143,7 @@ export function FlujoPresentacionesHistoria({
       return;
     }
     if (porEncargo) {
-      if (!encargoTexto.trim()) { avisar("Dinos cuándo llega para seguir."); return; }
+      if (!encargoTexto.trim() || encargoTexto === "__otro") { avisar("Dinos cuándo llega para seguir."); return; }
     } else {
       if (pendientes) { avisar("Reparte todo el stock para seguir."); return; }
       if (totalStock === 0) { avisar("Elige cuántas tienes o marca por encargo."); return; }
@@ -139,17 +153,17 @@ export function FlujoPresentacionesHistoria({
 
   if (!activa) return null;
   const plural = (eje: string) => /[aeiouáéíóú]$/i.test(eje) ? `${eje.toLocaleLowerCase("es")}s` : `${eje.toLocaleLowerCase("es")}es`;
-  const pregunta = etapa === "ejes" ? "¿En qué cambia?" : etapa === "stock" ? (porEncargo ? "¿Cuándo llega?" : "¿Cuántos tienes de cada una?") : (() => {
+  const pregunta = etapa === "ejes" ? "¿En qué cambia?" : etapa === "stock" ? (porEncargo ? "¿Cuándo llega?" : "Cuántas tienes") : (() => {
     const eje = ejes[indice] ?? "opción";
     const esColor = /^(color|colores)$/i.test(eje);
-    return `${indice ? "¿Y qué" : "¿Qué"} ${esColor ? "colores" : plural(eje)} hay?`;
+    return indice && esColor ? "¿Y qué colores?" : `¿Qué ${esColor ? "colores" : plural(eje)} hay?`;
   })();
   const ayuda = etapa === "ejes" ? "Elige lo que cambia entre una y otra." : etapa === "stock" ? (porEncargo ? "Cuéntales cuándo lo tendrán." : "Cada vez que despachas, baja solito.") : /^(color|colores)$/i.test(ejes[indice] ?? "") ? "Puedes poner una foto para cada uno." : "Toca las que vendes.";
 
   return <>
     <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto pb-4" data-presentaciones-historia data-etapa={etapa} data-paso-variantes={pasoInterno} key={`${etapa}:${indice}`}>
       <div className="w-full max-w-[350px]">
-        <div className="relative h-[212px] w-full overflow-hidden rounded-radio-l bg-superficie-hundida" data-tarjeta-variantes="">
+        {etapa !== "stock" && <div className="relative h-[212px] w-full overflow-hidden rounded-radio-l bg-superficie-hundida" data-tarjeta-variantes="">
           {fotoPortada ? <Foto src={fotoPortada} alt="" className="size-full object-cover object-[50%_30%]" sizes="350px" /> : <div className="grid size-full place-items-center text-texto-secundario">Tu foto aparecerá aquí</div>}
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
           <span className="absolute left-3.5 top-2 font-mano text-[22px] text-white">así se verá</span>
@@ -161,14 +175,14 @@ export function FlujoPresentacionesHistoria({
               {nombreColor && <span className="flex items-center">{nombreColor.valores.slice(0, 5).map((v, i) => <span key={v} aria-label={v} className={`size-[18px] rounded-full border-[1.5px] border-white ${i ? "-ml-1.5" : ""}`} style={{ background: colorPorNombre(v) ?? "#9c8b6e" }} />)}</span>}
             </div>
           </div>
-        </div>
-        <div className="mt-4">
-          <h2 ref={titulo} tabIndex={-1} className="font-display text-titulo-seccion leading-tight text-texto outline-none">{pregunta}</h2>
-          <p className="mt-1 text-cuerpo text-texto-secundario">{ayuda}</p>
+        </div>}
+        <div className={etapa === "stock" ? "" : "mt-4"}>
+          <h2 ref={titulo} tabIndex={-1} className="font-display text-[26px] leading-[1.1] text-texto outline-none">{pregunta}</h2>
+          {(etapa !== "stock" || porEncargo) && <p className="mt-1 text-[15px] leading-[1.3] text-texto-secundario">{ayuda}</p>}
         </div>
 
         {etapa === "ejes" && <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Qué cambia">
-          {sugeridas.map((eje) => <Opcion key={eje} casilla elegida={ejes.includes(eje)} deshabilitada={!ejes.includes(eje) && ejes.length >= MAX_EJES} onClick={() => elegirEje(eje)}>{eje}</Opcion>)}
+          {[...sugeridas, ...ejes.filter((e) => !sugeridas.includes(e))].map((eje) => <Opcion key={eje} casilla elegida={ejes.includes(eje)} deshabilitada={!ejes.includes(eje) && ejes.length >= MAX_EJES} onClick={() => elegirEje(eje)}>{eje}</Opcion>)}
           {!otroAbierto && <button type="button" disabled={ejes.length >= MAX_EJES} onClick={() => setOtroAbierto(true)} className="tocable inline-flex h-(--alto-control) shrink-0 items-center rounded-full border-[1.5px] border-dashed border-borde-pastilla bg-superficie px-4 text-cuerpo font-extrabold text-texto disabled:opacity-40">+ Otra</button>}
           {otroAbierto && <div className="mt-2 w-full"><Campo etiqueta="Qué otra cosa cambia" placeholder="Escribe qué cambia" maxLength={20} value={otroTexto} onChange={(e) => setOtroTexto(e.target.value)} />
             <Boton tamano="compacto" deshabilitado={!otroTexto.trim()} onClick={() => { const n = otroTexto.trim(); const error = errorDeNombrePropio(n, ejes, sugeridas); if (error) { avisar(error); return; } if (!n || ejes.length >= MAX_EJES) return; setEjes((a) => [...a, n]); setValores((v) => ({ ...v, [n]: v[n] ?? [] })); setOtroTexto(""); setOtroAbierto(false); }}>Agregar</Boton></div>}
@@ -181,7 +195,7 @@ export function FlujoPresentacionesHistoria({
           const actuales = valores[eje] ?? [];
           const sugeridosDeEje = /^(color|colores)$/i.test(eje) ? ["Crema", "Bosque", "Rosa", "Negro"] : valoresSugeridos(eje, rubro);
           const atajos = atajosDe(eje, rubro);
-          return <div className="mt-4 flex flex-col gap-3">
+          return <div className="mt-4 flex flex-col gap-3" data-eje={eje}>
             <div className="flex flex-wrap gap-2" role="group" aria-label={`Valores de ${eje}`}>
               {valoresVisibles(sugeridosDeEje, actuales).map((v) => <Opcion key={v} casilla elegida={actuales.includes(v)} deshabilitada={!actuales.includes(v) && actuales.length >= MAX_VALORES} onClick={() => importeValores(eje, alternarValor(actuales, v))}>
                 {esColor && <span aria-hidden="true" className="mr-1.5 inline-block size-3.5 rounded-full border border-linea align-[-2px]" style={{ background: colorPorNombre(v) ?? "transparent" }} />}{v}
@@ -210,36 +224,45 @@ export function FlujoPresentacionesHistoria({
           <GrupoOpciones etiqueta="Cuándo llega" valor={["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto) ? encargoTexto : null} alCambiar={(v) => alCambiarPlazo(v)} opciones={[{ id: "3 a 5 días", texto: "3 a 5 días" }, { id: "1 a 2 semanas", texto: "1 a 2 semanas" }, { id: "1 mes", texto: "1 mes" }, { id: "__otro", texto: "Otro" }]} />
           {(!["3 a 5 días", "1 a 2 semanas", "1 mes"].includes(encargoTexto)) && <Campo etiqueta="Otro plazo" autoFocus={encargoTexto === "__otro" || !!encargoTexto} maxLength={40} placeholder="Escríbelo en hasta 40 letras" value={encargoTexto === "__otro" ? "" : encargoTexto} onChange={(e) => alCambiarPlazo(e.target.value)} />}
         </div> : <div className="mt-3 flex flex-col gap-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-secundario font-extrabold text-texto-secundario">Mismo precio · {formatearPesos(precioProducto)}</span>
-            {estado.pres.length > 1 && <Boton jerarquia="secundario" tamano="compacto" onClick={() => setMostrarPoner((v) => !v)}>{mostrarPoner ? "Aplicar a todas" : "Poner a todas"}</Boton>}
+          <div className="flex items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie p-4" data-resumen-presentaciones>
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <div className="flex flex-wrap gap-1.5">{estado.opciones.map((o) => <Etiqueta key={o.nombre} tono="exito">{o.nombre} · {o.valores.length}</Etiqueta>)}</div>
+              <span className="text-secundario text-texto-secundario" data-total-presentaciones>{presActivas.length} presentaciones · {totalStock} en total</span>
+            </div>
+            <Boton jerarquia="terciario" tamano="compacto" onClick={() => { setEtapa("ejes"); setIndice(0); }}>Cambiar qué cambia</Boton>
           </div>
-          {mostrarPoner && <div className="flex items-center justify-between rounded-radio-m bg-superficie p-2"><span className="text-secundario text-texto-secundario">Unidades por presentación</span><Cantidad valor={cantidadTodas} max={2147483647} alCambiar={setCantidadTodas} etiquetaQuitar="Quitar una unidad a todas" etiquetaAgregar="Agregar una unidad a todas" /><Boton tamano="compacto" onClick={() => { alCambiar({ ...estado, pres: ponerATodas(estado.pres, cantidadTodas) }); setMostrarPoner(false); }}>Aplicar</Boton></div>}
+          <ListaAgrupada etiqueta="Precios de las presentaciones"><FilaLista titulo="Cada una tiene su precio" detalle={precios ? "Cambia solo las que valen distinto." : "Todas valen lo mismo."} accion={<Interruptor encendido={precios} alCambiar={(encender) => { if (encender) setPrecios(true); else if (tienePreciosPropios(estado.pres, precioProducto)) setUnificando(true); else unificar(); }} etiqueta="Cada una tiene su precio" />} /></ListaAgrupada>
+          <div className="flex items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie p-3 pl-4" data-poner-todas>
+            <span className="text-destacado text-texto">Poner a todas</span>
+            <Cantidad valor={valorTodas} max={2147483647} alCambiar={(v) => { setCantidadTodas(v); alCambiar({ ...estado, pres: ponerATodas(estado.pres, v) }); }} etiquetaQuitar="Quitar uno a todas" etiquetaAgregar="Agregar uno a todas" />
+          </div>
           {reparto.some((r) => r.faltan !== 0) && <div role="status" className="flex flex-col gap-2 rounded-radio-m bg-atencion-suave p-3 text-secundario font-bold text-atencion-texto">
             {reparto.filter((r) => r.faltan !== 0).map(({ origen, faltan }) => {
               const fila = estado.pres.find((p) => origen.filas.includes(claveVariante(p.valores)) && p.activa);
               return <div key={origen.id} className="flex flex-wrap items-center justify-between gap-2"><span>{origen.titulo ? `Tenías ${origen.total} de ${origen.titulo}.` : `Tenías ${origen.total}.`} {faltan > 0 ? `Faltan ${faltan} por repartir.` : `Te pasaste por ${Math.abs(faltan)}.`}</span>{fila && <Boton jerarquia="secundario" tamano="compacto" onClick={() => alCambiar({ ...estado, pres: ponerTodasEn(estado.pres, origen, claveVariante(fila.valores)) })}>Ponerlas todas en {textoCombinacion(estado.opciones, fila.valores)}</Boton>}</div>;
             })}
           </div>}
-          <div className="max-h-[262px] overflow-y-auto pr-0.5" data-grupos-stock="">
+          <div className="flex flex-col gap-3" data-grupos-stock>
             {(estado.opciones[0]?.valores ?? []).map((grupo) => {
               const filas = estado.pres.filter((p) => p.valores[estado.opciones[0]!.nombre] === grupo);
               const suma = filas.filter((p) => p.activa).reduce((n, p) => n + (p.stock ?? 0), 0);
               const hex = colorDe([estado.opciones[0]!], { [estado.opciones[0]!.nombre]: grupo });
-              return <section key={grupo} className="mb-2.5 overflow-hidden rounded-radio-m border border-linea bg-superficie" aria-label={`${estado.opciones[0]!.nombre} ${grupo}`}>
-                <div className="flex h-9 items-center gap-2 bg-superficie-hundida px-3.5"><span className="size-4 shrink-0 rounded-full border border-linea" style={hex ? { background: hex } : undefined}/><span className="min-w-0 flex-1 truncate text-secundario font-extrabold">{grupo}</span><span className="text-etiqueta text-texto-secundario" data-total-grupo>{suma} en total</span></div>
-                {filas.map((p) => {
+              const cerrados = gruposCerrados ?? (estado.pres.length > 24 ? estado.opciones[0]!.valores.slice(1) : []);
+              const abierta = !cerrados.includes(grupo);
+              return <section key={grupo} aria-label={`${estado.opciones[0]!.nombre} ${grupo}`}>
+                <button type="button" aria-expanded={abierta} aria-controls={`stock-${encodeURIComponent(grupo)}`} onClick={() => setGruposCerrados(cerrados.includes(grupo) ? cerrados.filter((v) => v !== grupo) : [...cerrados, grupo])} className="tocable flex min-h-11 w-full items-center gap-2 px-1 text-left text-destacado font-extrabold text-texto">
+                  {hex && <span aria-hidden="true" className="size-4 shrink-0 rounded-full border border-linea" style={{ background: hex }} />}
+                  <span>{grupo}</span><span className="flex-1 text-secundario text-texto-secundario" data-grupo-total>· {suma}</span>{abierta ? <IconoChevronArriba tamano={18} /> : <IconoChevronAbajo tamano={18} />}
+                </button>
+                {abierta && <div id={`stock-${encodeURIComponent(grupo)}`}><ListaAgrupada etiqueta={`${grupo}: cuántas tienes`}>{filas.map((p) => {
                   const clave = claveVariante(p.valores);
-                  const etiqueta = textoCombinacion(estado.opciones.slice(1), Object.fromEntries(estado.opciones.slice(1).map((o) => [o.nombre, p.valores[o.nombre] ?? ""])));
-                  return <div key={clave} className="flex h-[46px] items-center gap-2.5 border-t border-linea px-3">
-                    <span className="w-7 truncate text-destacado font-extrabold text-texto">{etiqueta || grupo}</span><button type="button" onClick={() => setDetalle({ tipo: "variante", clave })} className="min-w-0 flex-1 truncate text-left text-etiqueta text-texto-secundario">{p.precio !== null ? `${formatearPesos(precioDe(p, precioProducto))} · propio` : "Detalle"}</button>
-                    <Cantidad valor={p.stock ?? 0} max={2147483647} alCambiar={(v) => cambiarUna(clave, { stock: v })} etiquetaQuitar={`Quitar uno de ${textoCombinacion(estado.opciones, p.valores)}`} etiquetaAgregar={`Agregar uno de ${textoCombinacion(estado.opciones, p.valores)}`} className="[&>button]:size-9 [&>span]:min-w-6 [&>span]:text-destacado" />
-                  </div>;
-                })}
+                  const texto = estado.opciones.slice(1).map((o) => p.valores[o.nombre]).join(" · ") || grupo;
+                  return <FilaVariante key={clave} identificador={clave} texto={texto} stock={p.stock ?? 0} alCambiar={(v) => cambiarUna(clave, { stock: v })} estado={p.activa ? null : "Oculta"} atenuada={!p.activa} deshabilitado={!p.activa} alAbrir={() => setDetalle({ tipo: "variante", clave })} detalle={!precios && p.precio !== null ? `${formatearPesos(precioDe(p, precioProducto))} · propio` : null} debajo={precios && p.activa ? <PrecioFila texto={textoCombinacion(estado.opciones, p.valores)} precioProducto={precioProducto} precio={precioDe(p, precioProducto)} alCambiar={(v) => cambiarUna(clave, { precio: v })} /> : null} />;
+                })}</ListaAgrupada></div>}
               </section>;
             })}
           </div>
-          <p className="px-1 text-secundario text-texto-secundario" data-total-presentaciones>{presActivas.length} presentaciones · {totalStock} en total</p>
+          <p className="px-1 text-secundario text-texto-secundario">Toca una para ponerle precio propio, foto u ocultarla.</p>
           <button type="button" aria-pressed={false} onClick={() => { alCambiarEncargo(true); alCambiarPlazo(encargoTexto || "3 a 5 días"); alCambiar({ ...estado, pres: estado.pres.map((p) => ({ ...p, stock: 0 })) }); }} className="tocable min-h-12 rounded-full border border-borde-pastilla bg-superficie px-4 text-secundario font-bold">Es por encargo, no llevo stock</button>
         </div>)}
       </div>
@@ -252,7 +275,9 @@ export function FlujoPresentacionesHistoria({
       </div>
     </HojaFijoAbajo>
 
-    <HojaPresentacion abierta={detalle?.tipo === "variante"} presentacion={detallePres} opciones={estado.opciones} precioProducto={precioProducto} fotos={fotos} fotosColor={estado.fotosColor} alCerrar={() => setDetalle(null)} alCambiar={(c) => detallePres && cambiarUna(claveVariante(detallePres.valores), c)} alCompletar={() => {}} alElegirFoto={(v, id) => alCambiar({ ...estado, fotosColor: id ? { ...estado.fotosColor, [v]: id } : Object.fromEntries(Object.entries(estado.fotosColor).filter(([x]) => x !== v)) })} alQuitar={async () => null} mostrarQuitar={false} />
+    <Alerta abierta={confirmacionEjes !== null} titulo="¿Cambiar las presentaciones?" descripcion={confirmacionEjes?.texto} alCancelar={() => setConfirmacionEjes(null)} accion={{ texto: "Sí, cambiar", tono: "peligro", alConfirmar: () => { const c = confirmacionEjes; setConfirmacionEjes(null); c?.aplicar(); } }} />
+    <Alerta abierta={unificando} titulo="¿Todas al mismo precio?" descripcion={`Todas vuelven al precio del producto: ${formatearPesos(precioProducto)}.`} alCancelar={() => setUnificando(false)} accion={{ texto: "Sí, cambiar", tono: "peligro", alConfirmar: unificar }} />
+    <HojaPresentacion abierta={detalle?.tipo === "variante"} presentacion={detallePres} opciones={estado.opciones} precioProducto={precioProducto} fotos={fotos} fotosColor={estado.fotosColor} alCerrar={() => setDetalle(null)} alCambiar={(c) => { if (c.precio !== undefined && c.precio !== null) setPrecios(true); if (detallePres) cambiarUna(claveVariante(detallePres.valores), c); }} alCompletar={() => {}} alElegirFoto={(v, id) => alCambiar({ ...estado, fotosColor: id ? { ...estado.fotosColor, [v]: id } : Object.fromEntries(Object.entries(estado.fotosColor).filter(([x]) => x !== v)) })} alQuitar={async () => null} mostrarQuitar={false} />
     <HojaFotoColor abierta={detalle?.tipo === "fotos"} eje={etapa === "valores" ? { nombre: ejes[indice] ?? "Color", valores: valores[ejes[indice] ?? ""] ?? [] } : colorFotos} pres={estado.pres} fotos={fotos} fotosColor={estado.fotosColor} agregarFoto={agregarFoto} alCerrar={() => setDetalle(null)} alElegir={(v, id) => alCambiar({ ...estado, fotosColor: id ? { ...estado.fotosColor, [v]: id } : Object.fromEntries(Object.entries(estado.fotosColor).filter(([x]) => x !== v)) })} />
   </>;
 }
