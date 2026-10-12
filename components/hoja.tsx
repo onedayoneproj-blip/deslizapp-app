@@ -262,7 +262,7 @@ function HojaMontada({
   const [textosAviso, setTextosAviso] = useState<TextosAviso>({});
   const avisar = useCallback((cambios: boolean, textos?: TextosAviso) => {
     avisoDeHijo.current = cambios;
-    if (cambios) textosDeHijo.current = textos ?? {};
+    textosDeHijo.current = cambios ? (textos ?? {}) : {};
   }, []);
   const miTurno = useRef(Symbol("hoja"));
   const entradaDeHistorial = useRef(false);

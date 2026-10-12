@@ -68,7 +68,7 @@ export function HojaRegistrarSolicitud({
       altura="grande"
       avisarAlSalir={hayCambios}
       avisoTitulo="¿Salir sin registrar?"
-      avisoTexto="Lo que anotaste se va a perder."
+      avisoTexto="Lo que anotaste se va a perder. El pedido sigue esperando en Por registrar."
       alVolverInterno={() => {
         if (vista !== "cliente") return false;
         setVista("pedido");
