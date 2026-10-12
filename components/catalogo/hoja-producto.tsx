@@ -300,7 +300,7 @@ function FormularioProducto({
     nombre, precio, stock: producto ? null : stock, presentaciones, detalles, ficha: ficha.tipo === "nueva" ? ficha.foto.slice(-40) : ficha.tipo, categoria, tipoElegido, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
   });
   const [firmaInicial] = useState(firma);
-  useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto);
+  useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto, producto ? { titulo: "¿Descartar los cambios?", texto: "Lo que cambiaste no se va a guardar." } : undefined);
 
   const colecciones = useMemo(() => {
     const todas = new Set(productos.map((p) => p.categoria).filter((c): c is string => Boolean(c)));

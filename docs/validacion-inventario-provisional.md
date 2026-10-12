@@ -108,7 +108,7 @@ escrituras directas de stock ni al ajuste inmediato anterior.
    exige nota. Confirmar: un solo ajuste, sin pedido/venta nuevos.
 5. Editar: cambiar solo nombre/precio y guardar, sin registro de ajuste; después
    cambiar nombre y cantidad, guardar y revisar ambos cambios e historial.
-6. Probar X/Atrás/Escape con cambios y Seguir aquí/Salir; ir a Editar o Crear pedido
+6. Probar X/Atrás/Escape con cambios y Quedarme/Descartar y salir; ir a Editar o Crear pedido
    con borrador también pregunta. No cambia stock hasta confirmar el guardado.
 7. Revisar stock cero (− deshabilitado), sin control (sin controles), teclado de
    nota y nombres largos; repetir con Reducir movimiento activado en iPhone.

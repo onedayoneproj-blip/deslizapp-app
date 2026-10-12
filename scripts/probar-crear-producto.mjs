@@ -504,6 +504,25 @@ for (const ancho of ANCHOS) {
     await boton(page, "Listo · 13 en total").tap();
     await page.waitForTimeout(600);
     ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("6 presentaciones · 13 en total"), "De vuelta: «Inventario · 6 presentaciones · 13 en total» con «Editar»");
+    // Aviso al salir (docs/prompts/aviso-al-salir.md): cerrar «Inventario» con ✕ no pierde nada y no avisa; la hoja principal sí,
+    // y cuenta solo lo que se pierde de verdad (fotos subidas y presentaciones armadas).
+    await page.getByRole("button", { name: "Editar", exact: true }).tap();
+    await page.waitForTimeout(500);
+    await page.locator("[data-hoja-cabecera]").last().getByRole("button", { name: "Cerrar" }).tap();
+    await page.waitForTimeout(500);
+    ok((await page.getByRole("alertdialog").count()) === 0 && (await page.locator("[data-hoja-panel]").count()) === 1, "Cerrar «Inventario» con ✕ no avisa y conserva lo puesto");
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("6 presentaciones · 13 en total"), "…y las cantidades siguen ahí");
+    await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).tap();
+    await page.getByRole("alertdialog").waitFor();
+    const aviso = page.getByRole("alertdialog");
+    ok((await aviso.innerText()).replace(/\s+/g, " ").includes("¿Salir sin guardar? Lo que escribiste se va a perder. La foto que subiste se va a descartar. Se van a perder las 6 presentaciones y sus cantidades."), "Salir con foto y presentaciones: el aviso nombra la foto y las 6 presentaciones");
+    ok((await aviso.getByRole("button").allInnerTexts()).join("|") === "Quedarme|Descartar y salir", "…con los botones «Quedarme» y «Descartar y salir»");
+    ok(await page.evaluate(() => document.activeElement?.textContent === "Quedarme"), "…y el foco entra en «Quedarme»");
+    await page.waitForTimeout(500);
+    await captura(page, "aviso-fotos-y-presentaciones", ancho);
+    await aviso.getByRole("button", { name: "Quedarme" }).tap();
+    await page.waitForTimeout(300);
+    ok((await page.getByRole("alertdialog").count()) === 0 && (await page.locator(H).count()) === 1, "«Quedarme» cierra el aviso y la historia sigue");
     await page.locator("[data-hoja-contenido]").first().evaluate((e) => e.scrollTo(0, e.scrollHeight));
     await captura(page, "p4-resumen", ancho);
     // Quitar un valor con cantidades pregunta; las que siguen conservan lo suyo.

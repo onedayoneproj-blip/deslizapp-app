@@ -217,7 +217,7 @@ ok((await interruptor.getAttribute("aria-disabled")) === "true", "«Retocar esta
 ok((await hoja().innerText()).includes(PORQUE), "con el porqué");
 await page.goto(URL + "/catalogo");
 await esperar(800);
-if ((await page.locator('[role="alertdialog"]').count()) > 0) await page.locator('[role="alertdialog"] button:has-text("Salir")').tap();
+if ((await page.locator('[role="alertdialog"]').count()) > 0) await page.locator('[role="alertdialog"] button:has-text("Descartar y salir")').tap();
 await abrirMenu();
 await page.locator('button:has-text("Mi marca")').first().tap();
 await page.waitForSelector('[role="dialog"] [data-sin-permiso]');

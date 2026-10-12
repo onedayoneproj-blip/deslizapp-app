@@ -56,6 +56,7 @@ El anuncio puede lucirse; la app acompaña a una persona que vende de pie y con 
 - **El dato manda, la voz remata.** El número, el nombre y la acción van claros; la gracia va en una línea aparte (Caveat o texto secundario), no dentro del dato.
 - **Una frase con voz por pantalla** (estado vacío, confirmación, remate de una hoja), no una por cada texto.
 - **Botones: el verbo claro.** "Despachar pedido", "Enviar pedido", "Cancelar". La voz no va en los botones principales (docs/09: para descartar siempre "Cancelar").
+- **Avisos al salir: «Quedarme» / «Descartar y salir».** El botón principal nombra lo que se conserva y el otro, lo que se pierde. Nunca «Seguir aquí» / «Salir».
 - **Errores: qué pasó y qué hacer, con calma.** Sin culpar y sin dramatismo.
 - **El remate suele ser el beneficio que la persona siente:** no se vuelve a perder, se actualiza solo, ya está hecho.
 

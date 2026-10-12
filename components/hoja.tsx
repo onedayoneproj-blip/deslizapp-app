@@ -108,7 +108,9 @@ function liberarFondo() {
 /** Marca de la entrada de historial de una hoja apilada. Conserva el estado de Next (`__NA`…) para no confundir al router. */
 const estadoDeHoja = () => ({ ...(window.history.state ?? {}), deslizappHoja: true });
 
-type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean) => void; confirmarSalida: (accion: () => void) => void };
+type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean, textos?: TextosAviso) => void; confirmarSalida: (accion: () => void) => void };
+/** Textos del aviso que puede poner el contenido de la hoja (lo que solo él sabe: cuántas fotos o presentaciones se pierden). */
+export type TextosAviso = { titulo?: string; texto?: string };
 const ContextoHoja = createContext<Ranuras | null>(null);
 
 /** Contenido que se queda fijo debajo del título de la hoja (buscador, pastillas…). Se pinta en la cabecera. */
@@ -125,14 +127,16 @@ export function HojaFijoAbajo({ children }: { children: ReactNode }) {
 
 /**
  * El contenido de una hoja avisa si hay cambios sin guardar: mientras `cambios` sea true, cerrar la hoja pide confirmación.
- * Para formularios cuyo estado vive dentro de la hoja.
+ * Para formularios cuyo estado vive dentro de la hoja. `textos` (opcional) cambia el título o el texto del aviso para este contenido.
  */
-export function useAvisarAlSalir(cambios: boolean) {
+export function useAvisarAlSalir(cambios: boolean, textos?: TextosAviso) {
   const avisar = useContext(ContextoHoja)?.avisar;
+  const titulo = textos?.titulo;
+  const texto = textos?.texto;
   useEffect(() => {
-    avisar?.(cambios);
+    avisar?.(cambios, { titulo, texto });
     return () => avisar?.(false);
-  }, [avisar, cambios]);
+  }, [avisar, cambios, titulo, texto]);
 }
 
 /** Reutiliza el aviso de cambios sin guardar antes de salir hacia otro formulario. */
@@ -186,6 +190,9 @@ type Props = {
   /** Textos del aviso al salir. */
   avisoTitulo?: string;
   avisoTexto?: string;
+  /** Botón principal del aviso (lo que se conserva) y el secundario (lo que se pierde). */
+  avisoQuedarme?: string;
+  avisoDescartar?: string;
   children: ReactNode;
 };
 
@@ -228,6 +235,8 @@ function HojaMontada({
   alVolverInterno,
   avisoTitulo = "¿Salir sin guardar?",
   avisoTexto = "Lo que escribiste se va a perder.",
+  avisoQuedarme = "Quedarme",
+  avisoDescartar = "Descartar y salir",
   children,
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
@@ -249,8 +258,11 @@ function HojaMontada({
   useEffect(() => {
     avisandoRef.current = avisando;
   }, [avisando]);
-  const avisar = useCallback((cambios: boolean) => {
+  const textosDeHijo = useRef<TextosAviso>({});
+  const [textosAviso, setTextosAviso] = useState<TextosAviso>({});
+  const avisar = useCallback((cambios: boolean, textos?: TextosAviso) => {
     avisoDeHijo.current = cambios;
+    if (cambios) textosDeHijo.current = textos ?? {};
   }, []);
   const miTurno = useRef(Symbol("hoja"));
   const entradaDeHistorial = useRef(false);
@@ -362,6 +374,7 @@ function HojaMontada({
     accionAlSalir.current = null;
     if (avisoDeProp.current || avisoDeHijo.current) {
       rebotar();
+      setTextosAviso(textosDeHijo.current);
       setAvisando(true);
       return false;
     }
@@ -373,6 +386,7 @@ function HojaMontada({
     if (avisoDeProp.current || avisoDeHijo.current) {
       accionAlSalir.current = accion;
       rebotar();
+      setTextosAviso(textosDeHijo.current);
       setAvisando(true);
     } else accion();
   }, [rebotar]);
@@ -588,7 +602,7 @@ function HojaMontada({
     const alTeclear = (e: KeyboardEvent) => {
       if (PILA_DE_HOJAS[PILA_DE_HOJAS.length - 1] !== turno) return;
       if (avisandoRef.current) {
-        // El diálogo de "¿Salir sin guardar?" manda: Escape = "Seguir aquí"; Tab no sale de él
+        // El diálogo de "¿Salir sin guardar?" manda: Escape = "Quedarme"; Tab no sale de él
         if (e.key === "Escape") {
           e.stopPropagation();
           seguirRef.current();
@@ -863,17 +877,17 @@ function HojaMontada({
             className="mov-aparece w-full max-w-[340px] rounded-radio-xl bg-superficie p-5 text-texto shadow-hoja"
           >
             <h3 id={idAviso} className="font-display text-titulo-hoja">
-              {avisoTitulo}
+              {textosAviso.titulo ?? avisoTitulo}
             </h3>
             <p id={idAvisoTexto} className="mt-1.5 text-cuerpo text-texto-secundario">
-              {avisoTexto}
+              {textosAviso.texto ?? avisoTexto}
             </p>
             <div className="mt-4 flex flex-col gap-2">
               <Boton ref={seguirAqui} anchoCompleto onClick={seguirAqui_}>
-                Seguir aquí
+                {avisoQuedarme}
               </Boton>
-              <Boton jerarquia="secundario" anchoCompleto onClick={salirDeVerdad}>
-                Salir
+              <Boton jerarquia="terciario" tono="peligro" anchoCompleto onClick={salirDeVerdad}>
+                {avisoDescartar}
               </Boton>
             </div>
           </div>

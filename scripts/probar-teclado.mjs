@@ -220,12 +220,12 @@ try {
     }
     await t("touchEnd");
     await page.waitForTimeout(700);
-    // Con lo escrito sin guardar, deslizar pregunta "¿Salir sin guardar?" (components/hoja.tsx); "Salir" cierra
+    // Con lo escrito sin guardar, deslizar pregunta "¿Salir sin guardar?" (components/hoja.tsx); "Descartar y salir" cierra
     ok(!!(await page.$('[role="alertdialog"]')), "Editar producto: tras escribir, deslizar para cerrar pregunta «¿Salir sin guardar?»");
-    await page.tap('[role="alertdialog"] button:has-text("Salir")');
+    await page.tap('[role="alertdialog"] button:has-text("Descartar y salir")');
     await page.waitForTimeout(1200);
     // Al salir de editar se vuelve a la vista previa del producto (otra hoja): la de editar ya no está.
-    ok(!(await page.$('[role="dialog"] input[placeholder="El nombre de tu producto"]')), "Editar producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Salir»)");
+    ok(!(await page.$('[role="dialog"] input[placeholder="El nombre de tu producto"]')), "Editar producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Descartar y salir»)");
     ok(errores.length === 0, `Editar producto: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -445,7 +445,7 @@ try {
     // El selector compartido ahora protege también este borrador: comprueba el aviso antes de descartarlo.
     await page.getByRole("alertdialog").waitFor();
     ok(await page.getByRole("alertdialog").isVisible(), "Crear cliente: Volver protege los cambios sin guardar");
-    await page.getByRole("alertdialog").getByRole("button", { name: "Salir", exact: true }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Descartar y salir", exact: true }).click();
     await page.waitForSelector('[role="dialog"] input[type="search"]');
     await page.tap('[role="dialog"] button[aria-label="Volver"]'); // del buscador al pedido
     await page.waitForSelector('[role="dialog"] button[aria-label="Elegir cliente"]');
