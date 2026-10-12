@@ -11,7 +11,7 @@ PR [#114](https://github.com/onedayoneproj-blip/deslizapp-app/pull/114), rama `c
 - Precio por fila reutiliza `PrecioFila` del editor existente; apagar precios propios confirma y unifica solo al aceptar. El detalle conserva la hoja existente para precio propio, foto y ocultar. Cambiar ejes conserva la lógica de reparto y confirma pérdidas; el atributo personalizado permanece al volver a las preguntas.
 - Reutiliza `cambiarEjes`, `opciones_validas`, `guardar_variantes` y el guardado único de `hoja-producto.tsx`. Máximo 12 valores por atributo y 144 variantes, agrupación por el primer atributo (Color primero cuando corresponde), suma por grupo y Poner a todas. `/catalogo/[id]/editar` mantiene su hoja y recorrido actuales.
 - Encargo guarda stock cero, incluidas variantes, y plazo de entrega; Otro vacío no permite avanzar ni guarda el marcador interno. Se conserva el plazo propio al alternar encargo. El alta no muestra Agotada; stock cero sin encargo bloquea la revisión. Se permite guardar/publicar sin foto, respetando la visibilidad y límites existentes. Compartir en celebración requiere catálogo publicado.
-- Sin nuevas dependencias, migraciones ni cambios a Supabase. Novedades 0.66.0 actualizadas en cuatro líneas.
+- Sin nuevas dependencias, migraciones ni cambios a Supabase. Se incorporó main (cc9e1d9) a esta rama para resolver el conflicto de novedades que impedía ejecutar Revisión, conservando los cambios publicados de catálogo/perfil. Novedades 0.68.0 actualizadas en cuatro líneas.
 
 ## B5: producto real y tamaño efectivo
 
@@ -51,7 +51,7 @@ Los recorridos de navegador usan Demo local y el build de producción servido a 
 |---|---|
 | `npm test` | 77/77; cero fallos, omitidos o cancelados |
 | `npm run tipos` | Pasa; el build también completa TypeScript |
-| `npm run lint` | 0 errores; 33 avisos preexistentes |
+| `npm run lint` | 0 errores; 35 avisos existentes tras incorporar main (33 antes de actualizar la base) |
 | `npx next build --webpack` | Completo, exit 0 |
 | `scripts/probar-crear-producto.mjs` | Completo: 360/390/393/430; geometría, tamaño real B5, fotos y contador, pastillas/hojas, reparto/sumas, precios propios con confirmar/cancelar, detalle, stock cero/plazo, Otro vacío bloqueado, sin foto, aviso de salida y guardado |
 | `npm run probar:producto` | **Completa sin filtros**: 42 combinaciones (7 escenarios × 3 anchos × 2 temas); ropa, medios, perfume, encargo y pedidos; verificaciones del guardado conservadas |
@@ -60,7 +60,7 @@ Los recorridos de navegador usan Demo local y el build de producción servido a 
 | `npm run probar:teclado` | Completa: historia, ejes/valores propios, precio de variante y hojas opcionales, foco y teclado simulado |
 | Catálogo lleno | Completo en 360/390/393/430: Publicar bloqueado, aviso íntegro encima del botón dentro del pie, guardar oculto conserva stock y no supera el plan |
 
-Se adaptaron las suites completas al recorrido real mediante `scripts/recorrido-historia-producto.mjs`; se conservaron sus verificaciones de datos y regresiones de edición. Se cancela `/api/version` en los tests para evitar una notificación de versión ajena al caso. Los antiguos fallos por buscar el formulario de alta anterior están resueltos. `scripts/capturar-comparativas-crear-producto.mjs` regenera las comparativas contra 3bcd309.
+Tras incorporar main se repitieron build Webpack, tipos (incluidos en build), lint, npm test y la historia completa; se regeneraron las capturas con el Reel actual. Se adaptaron las suites completas al recorrido real mediante `scripts/recorrido-historia-producto.mjs`; se conservaron sus verificaciones de datos y regresiones de edición. Se cancela `/api/version` en los tests para evitar una notificación de versión ajena al caso. Los antiguos fallos por buscar el formulario de alta anterior están resueltos. `scripts/capturar-comparativas-crear-producto.mjs` regenera las comparativas contra 3bcd309.
 
 ## Chromium y límites reales
 

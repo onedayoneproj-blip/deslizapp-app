@@ -22,8 +22,16 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.66.0", fecha: "2026-10-12", titulo: "Tu producto, paso a paso.",
+    version: "0.68.0", fecha: "2026-10-12", titulo: "Tu producto, paso a paso.",
     cambios: ["Elige foto, nombre, precio y stock en una historia corta.", "Reparte tallas o colores por grupos, con sus cantidades y precios.", "Elige entre tus fotos sin perder el contador ni la portada.", "Antes de publicar, mira tu producto en el reel y agrega sus detalles."],
+  },
+  {
+    version: "0.67.0", fecha: "2026-10-12", titulo: "Tu perfil, más despejado.",
+    cambios: ["En el perfil, arriba va el nombre de tu tienda y abajo tu usuario de Instagram.", "«Atrás» e Instagram flotan en círculos claros para tenerlos a mano.", "Las pestañas de tus catálogos pasan a su lado, sin taparse."],
+  },
+  {
+    version: "0.66.0", fecha: "2026-10-11", titulo: "Tu catálogo, más limpio.",
+    cambios: ["Quitamos el abanico que se veía arriba a la derecha de cada producto.", "Tus colecciones siguen arriba, en «Colecciones»."],
   },
   {
     version: "0.65.0", fecha: "2026-10-11", titulo: "Tu catálogo, más en orden.",
@@ -43,7 +51,7 @@ const TODAS: Novedad[] = [
   },
   {
     version: "0.61.0", fecha: "2026-10-11", titulo: "Tus fotos, como una historia.",
-    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos.", "Arriba a la derecha de cada producto se ve la colección a la que pertenece."],
+    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos."],
   },
   {
     version: "0.60.0", fecha: "2026-10-11", titulo: "Tu guía, más ligera.",

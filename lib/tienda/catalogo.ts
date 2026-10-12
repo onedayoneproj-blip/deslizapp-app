@@ -1,5 +1,8 @@
 import { CAMPOS_POR_RUBRO, NOMBRE_VALOR, OCASIONES_NOCHE, OCASIONES_DIA, rubrosDeTienda, tipoDeProducto, type Rubro } from "../rubros";
 import type { CatalogoPublico, ProductoPublico } from "../types";
+/** Nombre corto con el que se ve una tienda junto al avatar: el usuario de Instagram (sin «@») o, sin Instagram, su nombre. */
+export const usuarioDeTienda = (t: { instagram?: string | null; nombre: string }) =>
+  t.instagram?.split("/").filter(Boolean).at(-1) ?? t.nombre;
 export const portada = (p: ProductoPublico) =>
   p.medios[0]?.tipo === "video"
     ? (p.medios[0].portada ?? "")
