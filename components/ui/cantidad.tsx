@@ -13,8 +13,8 @@ export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado, grande =
       disabled={deshabilitado}
       className={clases(
         "tocable relative grid shrink-0 place-items-center disabled:opacity-40",
-        grande ? "size-14 rounded-radio-m" : "size-(--alto-compacto) rounded-radio-s after:absolute after:-inset-1 after:content-['']",
-        tipo === "mas" ? "bg-accion text-sobre-accion" : "bg-superficie-hundida text-texto",
+        grande ? "size-14 rounded-full" : "size-(--alto-compacto) rounded-radio-s after:absolute after:-inset-1 after:content-['']",
+        tipo === "mas" ? "bg-accion text-sobre-accion" : grande ? "border-[1.5px] border-borde-pastilla bg-superficie text-texto" : "bg-superficie-hundida text-texto",
         FOCO,
       )}
     >
@@ -26,8 +26,8 @@ export function BotonCantidad({ tipo, etiqueta, onClick, deshabilitado, grande =
 /**
  * Cantidad (− 1 +) de un producto (docs/09 §6): dos botones cuadrados y el número en `destacado` entre ellos. El − se apaga en
  * `min` y el + en `max` (el stock). `etiquetaQuitar` / `etiquetaAgregar` dicen a qué producto se refiere ("Quitar uno de X").
- * `grande`: el contador protagonista de una pantalla («¿Cuántos tienes ahora?» al crear producto): botones de 56 px (`radio-m`)
- * y el número en Fredoka `cifra`.
+ * `grande`: el contador protagonista de una pantalla («¿Cuántos tienes ahora?» al crear producto, como el lienzo): botones
+ * redondos de 56 px (− con contorno `borde-pastilla`, + `accion`) y el número en Fredoka de 44.
  */
 export function Cantidad({
   valor,
@@ -55,9 +55,9 @@ export function Cantidad({
   className?: string;
 }) {
   return (
-    <div className={clases("flex shrink-0 items-center", grande ? "gap-4" : "gap-1", className)}>
+    <div className={clases("flex shrink-0 items-center", grande ? "gap-5" : "gap-1", className)}>
       <BotonCantidad grande={grande} tipo="menos" etiqueta={etiquetaQuitar} onClick={() => alCambiar(Math.max(min, valor - paso))} deshabilitado={deshabilitado || valor <= min} />
-      <span className={grande ? "min-w-20 text-center font-display text-cifra tabular-nums" : "min-w-7 text-center text-destacado tabular-nums"} aria-live="polite">
+      <span className={grande ? "min-w-20 text-center font-display text-[2.75rem] leading-none tabular-nums" : "min-w-7 text-center text-destacado tabular-nums"} aria-live="polite">
         {valor}
       </span>
       <BotonCantidad grande={grande} tipo="mas" etiqueta={etiquetaAgregar} onClick={() => alCambiar(max === undefined ? valor + paso : Math.min(max, valor + paso))} deshabilitado={deshabilitado || (max !== undefined && valor >= max)} />

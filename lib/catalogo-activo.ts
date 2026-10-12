@@ -32,6 +32,26 @@ export function guardarCatalogoActivo(tiendaId: string, rubro: CatalogoPanel) {
   }
 }
 
+const claveCrear = (tiendaId: string) => `deslizapp-catalogo-crear:${tiendaId}`;
+
+/** El último catálogo en el que se creó un producto en esta tienda (localStorage), si sigue siendo de la tienda; null si no. */
+export function leerCatalogoAlCrear(tiendaId: string, tipos: readonly Rubro[]): Rubro | null {
+  try {
+    const v = localStorage.getItem(claveCrear(tiendaId));
+    return esRubro(v) && tipos.includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function guardarCatalogoAlCrear(tiendaId: string, rubro: Rubro) {
+  try {
+    localStorage.setItem(claveCrear(tiendaId), rubro);
+  } catch {
+    // sin almacenamiento: la próxima vez sale con el catálogo que se estaba viendo
+  }
+}
+
 /** Sin preferencia, General en tiendas multirrubro; preferencias válidas y tiendas de un rubro se conservan. */
 export const catalogoInicial = (t: TiendaRubros, ultimo: CatalogoPanel | null): CatalogoPanel => {
   if ((ultimo === null || ultimo === CATALOGO_GENERAL) && rubrosDeTienda(t).length > 1) return CATALOGO_GENERAL;

@@ -162,6 +162,8 @@ type Props = {
   fijoArriba?: ReactNode;
   /** Solo con `tituloOculto`: lo que va en la fila de la X, a su izquierda (las barras de una historia). */
   juntoACerrar?: ReactNode;
+  /** La X sin círculo de fondo (la historia de crear producto, como su lienzo). */
+  cerrarSutil?: boolean;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
   decoracionAbajo?: ReactNode;
   /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
@@ -209,6 +211,7 @@ function HojaMontada({
   altura = "auto",
   fijoArriba,
   juntoACerrar,
+  cerrarSutil = false,
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
@@ -812,7 +815,7 @@ function HojaMontada({
               {titulo}
             </h2>
             {tituloOculto && juntoACerrar && <div className="min-w-0 flex-1">{juntoACerrar}</div>}
-            <BotonCerrar onClick={cerrar} />
+            <BotonCerrar onClick={cerrar} sutil={cerrarSutil} />
           </div>
           {/* Zona fija bajo el título: forma parte de la cabecera (y de su desenfoque) */}
           {fijoArriba && <div className="mt-3">{fijoArriba}</div>}
@@ -860,9 +863,9 @@ function HojaMontada({
 
 const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function BotonCerrar({ onClick }: { onClick: () => void }) {
+export function BotonCerrar({ onClick, sutil = false }: { onClick: () => void; sutil?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto">
+    <button type="button" onClick={onClick} aria-label="Cerrar" className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-texto ${sutil ? "bg-transparent" : "bg-superficie-hundida"}`}>
       <IconoCerrar tamano={20} />
     </button>
   );

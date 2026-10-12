@@ -31,11 +31,14 @@ export function barrasLlenas(paso: PasoHistoria, servicio = false): number {
   return paso === "listo" ? pasos.length : pasos.indexOf(paso) + 1;
 }
 
-/** ¿Se puede seguir? La foto no es obligatoria (se puede agregar luego); el nombre y el precio, sí. */
-export function puedeSeguir(paso: PasoHistoria, d: { nombre: string; precio: string; porEncargo: boolean; encargoTexto: string }): boolean {
+/**
+ * ¿Se puede seguir? La foto no es obligatoria (se puede agregar luego); el nombre y el precio, sí. En «¿Cuántos tienes ahora?»
+ * hace falta al menos 1 (o «Es por encargo» con cuándo llega): así la vista previa nunca dice «Agotado» mientras se crea.
+ */
+export function puedeSeguir(paso: PasoHistoria, d: { nombre: string; precio: string; porEncargo: boolean; encargoTexto: string; stock?: number }): boolean {
   if (paso === "nombre") return d.nombre.trim().length > 0;
   if (paso === "precio") return Number(d.precio) > 0;
-  if (paso === "stock") return !d.porEncargo || d.encargoTexto.trim().length > 0;
+  if (paso === "stock") return d.porEncargo ? d.encargoTexto.trim().length > 0 : (d.stock ?? 1) > 0;
   return true;
 }
 
@@ -43,7 +46,7 @@ export function puedeSeguir(paso: PasoHistoria, d: { nombre: string; precio: str
 export function textosDelPaso(paso: PasoHistoria, porEncargo = false): { titulo: string; ayuda: string } {
   switch (paso) {
     case "foto":
-      return { titulo: "Empieza por la foto", ayuda: "La primera es la portada. Puedes sumar más." };
+      return { titulo: "Empieza por la foto", ayuda: "La primera será la portada. Puedes sumar más después." };
     case "nombre":
       return { titulo: "¿Cómo se llama?", ayuda: "Como lo dirías en WhatsApp." };
     case "precio":
@@ -51,7 +54,7 @@ export function textosDelPaso(paso: PasoHistoria, porEncargo = false): { titulo:
     case "stock":
       return porEncargo ? { titulo: "¿Cuándo llega?", ayuda: "Se puede pedir aunque no haya." } : { titulo: "¿Cuántos tienes ahora?", ayuda: "Al despachar, baja solito." };
     case "vista":
-      return { titulo: "Así se ve en tu catálogo", ayuda: "Lo demás es opcional." };
+      return { titulo: "así se ve en tu catálogo", ayuda: "" };
     case "listo":
       return { titulo: "¡Ya está en tu catálogo!", ayuda: "" };
   }
@@ -69,9 +72,10 @@ export function opcionDeCuandoLlega(texto: string): (typeof OPCIONES_CUANDO_LLEG
 }
 
 /** La línea bajo el titular de la celebración. */
-export function lineaCelebracion(nombre: string, visible: boolean): string {
+export function lineaCelebracion(nombre: string, visible: boolean, arranque: string | null = null): string {
   const n = nombre.trim();
-  return visible ? `${n} ya se puede deslizar.` : `${n} quedó guardado sin publicar. Lo prendes cuando quieras.`;
+  if (!visible) return `${n} quedó guardado sin publicar. Lo prendes cuando quieras.`;
+  return arranque ? `${n} ya se puede deslizar. ${arranque}` : `${n} ya se puede deslizar.`;
 }
 
 /** «Van N de 5 para arrancar.» (la guía de Inicio): solo mientras le falten. null si ya llegó o si todavía no cuenta ninguno. */

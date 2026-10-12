@@ -37,6 +37,8 @@ test("qué deja seguir: la foto es opcional; nombre, precio y cuándo llega (por
   assert.equal(H.puedeSeguir("precio", { ...d, precio: "0" }), false);
   assert.equal(H.puedeSeguir("precio", { ...d, precio: "1450" }), true);
   assert.equal(H.puedeSeguir("stock", d), true);
+  assert.equal(H.puedeSeguir("stock", { ...d, stock: 0 }), false, "con 0 y sin encargo no sigue (la vista previa diría «Agotado»)");
+  assert.equal(H.puedeSeguir("stock", { ...d, stock: 3 }), true);
   assert.equal(H.puedeSeguir("stock", { ...d, porEncargo: true }), false);
   assert.equal(H.puedeSeguir("stock", { ...d, porEncargo: true, encargoTexto: "Llega en 1 mes" }), true);
 });
@@ -46,6 +48,9 @@ test("por encargo, el paso de stock pregunta cuándo llega", () => {
   assert.equal(H.textosDelPaso("stock", true).titulo, "¿Cuándo llega?");
   // Sin exclamaciones fuera de la celebración (docs/11).
   for (const p of ["foto", "nombre", "precio", "stock", "vista"]) assert.ok(!H.textosDelPaso(p).titulo.includes("!"));
+  // Los textos del lienzo (referencias/crear-producto/historia.dc.html).
+  assert.deepEqual(H.textosDelPaso("foto"), { titulo: "Empieza por la foto", ayuda: "La primera será la portada. Puedes sumar más después." });
+  assert.equal(H.textosDelPaso("vista").titulo, "así se ve en tu catálogo");
 });
 
 test("«¿Cuándo llega?»: las opciones rápidas se guardan como «Llega en …» y se reconocen al volver", () => {
@@ -61,6 +66,7 @@ test("«¿Cuándo llega?»: las opciones rápidas se guardan como «Llega en …
 test("la celebración", () => {
   assert.equal(H.tituloCelebracion(true), "¡Ya está en tu catálogo!");
   assert.equal(H.lineaCelebracion(" Hoodie ", true), "Hoodie ya se puede deslizar.");
+  assert.equal(H.lineaCelebracion("Hoodie", true, H.lineaArranque(1)), "Hoodie ya se puede deslizar. Van 1 de 5 para arrancar.");
   assert.match(H.lineaCelebracion("Hoodie", false), /sin publicar/);
   assert.equal(H.lineaArranque(1), "Van 1 de 5 para arrancar.");
   assert.equal(H.lineaArranque(4), "Van 4 de 5 para arrancar.");

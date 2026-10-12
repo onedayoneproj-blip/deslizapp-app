@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { leerCatalogoActivo, nombreCatalogoPanel, rubroInicialDeProducto } from "@/lib/catalogo-activo";
+import { CATALOGO_GENERAL, contarPorCatalogo, guardarCatalogoAlCrear, leerCatalogoActivo, leerCatalogoAlCrear, rubroInicialDeProducto } from "@/lib/catalogo-activo";
 import { vistaCatalogo } from "@/lib/catalogo-estado";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { usePermisos } from "@/lib/data/permisos";
@@ -36,12 +36,12 @@ import { CAMPOS_POR_RUBRO, rubrosDeTienda, type Detalles, type Rubro } from "@/l
 import type { FotosPorValor, Producto } from "@/lib/types";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, useAvisarAlSalir } from "../hoja";
+import { Hoja, HojaFijoAbajo, HojaFijoArriba, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { IconoCamara, IconoCheck, IconoEtiqueta, IconoMas, IconoReloj } from "../iconos";
+import { IconoCamara, IconoReloj } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { useToast } from "../toast";
-import { Boton, Campo, Cantidad, GrupoOpciones, Opcion } from "../ui";
+import { Boton, Campo, Cantidad, Chip, GrupoOpciones } from "../ui";
 import { clases, FOCO } from "../ui/comunes";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { agregarFotoAlBorrador, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
@@ -51,6 +51,7 @@ import { useGuardarProducto } from "./guardar-producto";
 import { HojaColeccion } from "./hoja-producto";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import { HojaPublicarCatalogo } from "./hoja-publicar-catalogo";
+import { SelectorCatalogo } from "./selector-catalogo";
 import { useTaller } from "./taller";
 
 const SIN_PRESENTACIONES: EstadoPresentaciones = { opciones: [], pres: [], fotosColor: {} };
@@ -77,7 +78,7 @@ export function HistoriaProducto() {
   const pasos = pasosDeHistoria(servicio);
   const llenas = barrasLlenas(paso, servicio);
   const barras = (
-    <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex items-center gap-1.5" data-barras-historia="">
+    <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex items-center gap-1" data-barras-historia="">
       {pasos.map((p, i) => (
         <span key={p} className={clases("h-1 flex-1 rounded-full", i < llenas ? "bg-accion" : "bg-borde-pastilla")} />
       ))}
@@ -85,7 +86,7 @@ export function HistoriaProducto() {
   );
   return (
     <Hoja
-      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" tituloOculto altura="grande" juntoACerrar={barras}
+      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" tituloOculto altura="grande" juntoACerrar={barras} cerrarSutil
       alVolverInterno={() => {
         // Atrás del teléfono: vuelve una pregunta sin perder nada; en la primera (o ya guardado) cierra como siempre.
         const antes = pasoAnterior(paso, servicio);
@@ -137,7 +138,12 @@ function Historia({
   const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
   const variosTipos = tipos.length > 1;
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
-  const tipoBase: Rubro = tienda ? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id)) : rubro;
+  // Sale con el último catálogo en el que se creó (por tienda); si no hay, el que se estaba viendo en Catálogo.
+  const tipoBase: Rubro = tienda ? (leerCatalogoAlCrear(tienda.id, tipos) ?? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id))) : rubro;
+  const elegirTipo = (r: Rubro) => {
+    setTipo(r);
+    if (tienda) guardarCatalogoAlCrear(tienda.id, r);
+  };
   const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
@@ -187,7 +193,7 @@ function Historia({
     if (campo) campo.focus();
     else raiz.current?.querySelector<HTMLElement>("[data-titulo-paso]")?.focus();
   };
-  const listoParaSeguir = puedeSeguir(paso, { nombre, precio, porEncargo, encargoTexto });
+  const listoParaSeguir = puedeSeguir(paso, { nombre, precio, porEncargo, encargoTexto, stock: tieneOpciones ? resumenPres.enTotal : stock });
   const seguir = () => {
     if (!listoParaSeguir) return;
     irA(pasoSiguiente(paso, servicio));
@@ -238,6 +244,7 @@ function Historia({
     );
     setGuardando(false);
     if (!r) return;
+    if (variosTipos) guardarCatalogoAlCrear(tienda.id, tipo);
     // Lo que dice la celebración ya es el aviso de siempre; solo se avisa aparte lo que trae algo más (taller, ficha).
     if (!r.comun) toast(r.mensaje);
     const otros = productos.filter((p) => p.id !== r.producto.id);
@@ -269,34 +276,48 @@ function Historia({
 
   const textos = textosDelPaso(paso, porEncargo);
   const precioTarjeta = varia && resumenPres.desde !== null ? `Desde ${formatearPesos(resumenPres.desde)}` : Number(precio) > 0 ? formatearPesos(Number(precio)) : null;
+  const pregunta = paso === "foto" || paso === "nombre" || paso === "precio" || paso === "stock";
+  // La pregunta y su línea de ayuda, como el lienzo: Fredoka 28 y 15 px, 20 px debajo de la tarjeta.
   const encabezado = (
-    <div className="flex flex-col gap-1">
-      <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-titulo-hoja text-texto outline-none">{textos.titulo}</h2>
-      <p className="text-secundario text-texto-secundario">{textos.ayuda}</p>
+    <div className="mt-5">
+      <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.75rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
+      <p className="mt-1.5 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
     </div>
+  );
+  const pie = (contenido: ReactNode, aviso?: ReactNode) => (
+    <HojaFijoAbajo>
+      {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones. */}
+      <div className="pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pt-3 pb-[max(1.75rem,calc(var(--safe-abajo)+0.75rem))]" data-pie-historia="">
+        {aviso}
+        {contenido}
+      </div>
+    </HojaFijoAbajo>
   );
 
   return (
-    <div ref={raiz} className="flex flex-col gap-5" data-historia-producto="" data-paso={paso}>
-      {(paso === "foto" || paso === "nombre" || paso === "precio" || paso === "stock") && (
-        <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} nota={paso !== "foto"} />
+    <div ref={raiz} className="flex flex-col" data-historia-producto="" data-paso={paso}>
+      {variosTipos && paso !== "listo" && tienda && (
+        // El catálogo no es una pregunta: va en la cabecera, debajo de las barras, y recuerda el último usado (por tienda).
+        <HojaFijoArriba>
+          <SelectorCatalogo
+            tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="hoja" textoOtra="Vendo otra cosa también"
+            alCambiar={(r) => { if (r !== CATALOGO_GENERAL) elegirTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
+            sinPermiso={sinCatalogo ? () => toast(porque) : undefined}
+          />
+        </HojaFijoArriba>
       )}
-      {paso === "foto" && !portada && (
-        // El momento de voz del paso 1 (su única Caveat): junto al marco, sin regañar.
-        <p className="-mt-2 text-center font-mano text-mano text-atencion-texto" data-con-foto="">{SIN_FOTO}</p>
-      )}
+
+      {pregunta && <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} nota={paso !== "foto"} />}
 
       {paso === "foto" && (
         <>
           {encabezado}
-          <SeccionMedios
-            medios={medios} alCambiar={setMedios} taller={taller} avisar={toast}
-            historia={{
-              pieSinFotos: (
-                <Boton jerarquia="terciario" anchoCompleto onClick={seguir}>Seguir sin foto</Boton>
-              ),
-            }}
-          />
+          <div className="mt-5">
+            <SeccionMedios
+              medios={medios} alCambiar={setMedios} taller={taller} avisar={toast}
+              historia={{ pieSinFotos: <Boton jerarquia="terciario" anchoCompleto onClick={seguir}>Seguir sin foto</Boton> }}
+            />
+          </div>
         </>
       )}
 
@@ -304,21 +325,9 @@ function Historia({
         <>
           {encabezado}
           <Campo
-            etiqueta="Nombre del producto" icono={IconoEtiqueta} value={nombre} onChange={(e) => setNombre(e.target.value)}
+            className="mt-4" grande etiqueta="Nombre del producto" value={nombre} onChange={(e) => setNombre(e.target.value)}
             placeholder="El nombre de tu producto" maxLength={120} enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
           />
-          {variosTipos && (
-            <div className="flex flex-col gap-2" data-catalogo-historia="">
-              <GrupoOpciones
-                titulo="¿En qué catálogo va?" valor={tipo}
-                alCambiar={(id) => (sinCatalogo ? toast(porque) : setTipo(id))}
-                opciones={tipos.map((r) => ({ id: r, texto: nombreCatalogoPanel(r) }))}
-              />
-              <Boton jerarquia="terciario" className="self-start" icono={<IconoMas tamano={18} />} onClick={() => (sinCatalogo ? toast(porque) : setVendiendoOtra(true))}>
-                Vendo otra cosa también
-              </Boton>
-            </div>
-          )}
         </>
       )}
 
@@ -326,65 +335,71 @@ function Historia({
         <>
           {encabezado}
           {varia && resumenPres.desde !== null ? (
-            <p className="text-destacado text-texto" data-precio-desde="">Varía por presentación · desde {formatearPesos(resumenPres.desde)}</p>
+            <p className="mt-4 text-destacado text-texto" data-precio-desde="">Varía por presentación · desde {formatearPesos(resumenPres.desde)}</p>
           ) : (
             <Campo
-              etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
+              className="mt-4" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
               precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" data-campo-paso=""
             />
           )}
-          <PastillasPresentaciones presentaciones={presentaciones} alAbrir={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))} />
+          <div className="mt-3 flex" data-chip-presentaciones="">
+            <Chip hecho={tieneOpciones} onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>
+              {tieneOpciones ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
+            </Chip>
+          </div>
         </>
       )}
 
       {paso === "stock" && (
         <>
           {encabezado}
-          {porEncargo ? (
-            <div className="flex flex-col gap-3" data-cuando-llega="">
-              <GrupoOpciones
-                etiqueta="¿Cuándo llega?"
-                valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
-                alCambiar={(id) => {
-                  if (id === "otro") {
-                    // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
-                    flushSync(() => setEncargoOtro(true));
-                    raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]")?.focus();
-                    return;
-                  }
-                  setEncargoOtro(false);
-                  setEncargoTexto(textoCuandoLlega(id));
-                }}
-                opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
-              />
-              {otroAbierto && (
-                <Campo
-                  etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
-                  placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
+          <div className="mt-[18px]">
+            {porEncargo ? (
+              <div className="flex flex-col gap-3" data-cuando-llega="">
+                <GrupoOpciones
+                  etiqueta="¿Cuándo llega?"
+                  valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
+                  alCambiar={(id) => {
+                    if (id === "otro") {
+                      // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
+                      flushSync(() => setEncargoOtro(true));
+                      raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]")?.focus();
+                      return;
+                    }
+                    setEncargoOtro(false);
+                    setEncargoTexto(textoCuandoLlega(id));
+                  }}
+                  opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
                 />
-              )}
-            </div>
-          ) : tieneOpciones ? (
-            <div className="flex items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie p-4">
-              <p className="text-destacado text-texto">{resumenPres.total} {resumenPres.total === 1 ? "presentación" : "presentaciones"} · {resumenPres.enTotal} en total</p>
-              <Boton jerarquia="secundario" tamano="compacto" onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>Cambiar</Boton>
-            </div>
-          ) : (
-            <div className="flex justify-center py-2" data-contador-stock="">
-              <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
-            </div>
-          )}
-          <div className="flex justify-center">
-            <Opcion casilla elegida={porEncargo} onClick={() => elegirEncargo(!porEncargo)}>Es por encargo, no llevo stock</Opcion>
+                {otroAbierto && (
+                  <Campo
+                    etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
+                    placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
+                  />
+                )}
+              </div>
+            ) : tieneOpciones ? (
+              <div className="flex items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie p-4">
+                <p className="text-destacado text-texto">{resumenPres.total} {resumenPres.total === 1 ? "presentación" : "presentaciones"} · {resumenPres.enTotal} en total</p>
+                <Boton jerarquia="secundario" tamano="compacto" onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>Cambiar</Boton>
+              </div>
+            ) : (
+              <div className="flex justify-center" data-contador-stock="">
+                <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
+              </div>
+            )}
+          </div>
+          <div className="mt-3.5 flex justify-center">
+            <Chip sinIcono elegido={porEncargo} onClick={() => elegirEncargo(!porEncargo)}>Es por encargo, no llevo stock</Chip>
           </div>
         </>
       )}
 
       {paso === "vista" && (
         <>
-          {encabezado}
+          <h2 tabIndex={-1} data-titulo-paso="" className="-mt-1 font-mano text-[1.625rem] leading-tight text-atencion-texto outline-none">{textos.titulo}</h2>
           <ReelEnVivo datos={datosVista} />
-          <section aria-labelledby="titulo-brillar" className="flex flex-col gap-2">
+          <section aria-labelledby="titulo-brillar" className="mt-3.5 flex flex-col gap-2">
             <h3 id="titulo-brillar" className="text-secundario font-extrabold text-texto-secundario">Hazlo brillar · opcional</h3>
             <div className="flex flex-wrap gap-2" data-opcionales="">
               <PastillaOpcional texto="Descripción" hecha={descripcion.trim().length > 0} detalle={resumenDescripcion(descripcion)} alTocar={() => setOpcional("descripcion")} />
@@ -393,47 +408,39 @@ function Historia({
               {conDetalles && <PastillaOpcional texto="Detalles" hecha={tieneDetallesPorRubro(detalles)} alTocar={() => setOpcional("detalles")} />}
             </div>
           </section>
-          {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
+          {sinCatalogo && <p className="mt-4 rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
         </>
       )}
 
-      {paso === "listo" && hecho && (
-        <Celebracion
-          producto={hecho.producto} visible={hecho.visible} cuentan={hecho.cuentan} alOtro={alOtro}
-          compartir={tienda ? <CompartirCatalogo tiendaNombre={tienda.nombre} alPublicar={() => (esDuena ? setPublicando(true) : toast(porque))} /> : null}
-        />
-      )}
+      {paso === "listo" && hecho && <Celebracion producto={hecho.producto} visible={hecho.visible} cuentan={hecho.cuentan} />}
 
-      {paso !== "listo" && paso !== "foto" && (
-        <HojaFijoAbajo>
-          {/* Barra sólida (fondo de la hoja): el contenido pasa por detrás sin asomar; el aviso de catálogo lleno va encima, completo. */}
-          <div className="pointer-events-auto flex flex-col gap-1 border-t border-linea bg-fondo px-4 pt-3 pb-[max(0.75rem,var(--safe-abajo))]" data-pie-historia="">
-            {paso === "vista" && llenoPlan && (
-              <p role="status" className="pb-1 text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
-            )}
-            <div className="flex items-center gap-3">
-              <button type="button" aria-label="Atrás" onClick={atras} className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion", FOCO)} data-atras-historia="">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-              </button>
-              {paso === "vista" ? (
-                <Boton jerarquia="resalte" tamano="grande" className="flex-1" cargando={guardando} deshabilitado={llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}>Publicar</Boton>
-              ) : (
-                <Boton tamano="grande" className="flex-1" deshabilitado={!listoParaSeguir} onClick={seguir}>Seguir</Boton>
-              )}
-            </div>
-            {paso === "vista" && (
-              <Boton jerarquia="terciario" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
-            )}
-          </div>
-        </HojaFijoAbajo>
-      )}
-      {paso === "foto" && medios.length > 0 && (
-        <HojaFijoAbajo>
-          <div className="pointer-events-auto border-t border-linea bg-fondo px-4 pt-3 pb-[max(0.75rem,var(--safe-abajo))]" data-pie-historia="">
-            <Boton tamano="grande" anchoCompleto onClick={seguir}>Seguir</Boton>
-          </div>
-        </HojaFijoAbajo>
-      )}
+      {(paso === "nombre" || paso === "precio" || paso === "stock") &&
+        pie(
+          <div className="flex items-center gap-2.5">
+            <button type="button" aria-label="Atrás" onClick={atras} className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion", FOCO)} data-atras-historia="">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            </button>
+            <Boton tamano="grande" className="flex-1" deshabilitado={!listoParaSeguir} onClick={seguir}>Seguir</Boton>
+          </div>,
+        )}
+      {paso === "foto" && medios.length > 0 && pie(<Boton tamano="grande" anchoCompleto onClick={seguir}>Seguir</Boton>)}
+      {paso === "vista" &&
+        pie(
+          // Como el lienzo: «Publicar» (la llamada emocional) a lo ancho y «Guardar sin publicar» debajo. Atrás: el del teléfono.
+          <div className="flex flex-col gap-1">
+            <Boton jerarquia="resalte" tamano="grande" anchoCompleto cargando={guardando} deshabilitado={llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}>Publicar</Boton>
+            <Boton jerarquia="terciario" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
+          </div>,
+          llenoPlan ? <p role="status" className="text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
+        )}
+      {paso === "listo" &&
+        hecho &&
+        pie(
+          <div className="flex flex-col gap-2.5">
+            <Boton tamano="grande" anchoCompleto onClick={alOtro}>Agregar otro</Boton>
+            {tienda && <CompartirCatalogo tiendaNombre={tienda.nombre} alPublicar={() => (esDuena ? setPublicando(true) : toast(porque))} />}
+          </div>,
+        )}
 
       {guardado.bienvenidaRetoque}
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
@@ -497,50 +504,37 @@ function Historia({
 }
 
 /**
- * La tarjeta «así se verá»: la portada con la proporción del reel del catálogo (4:5, la foto cubre el marco como `.media img`) y,
- * con el velo, el nombre y el precio mientras se escriben. Su tamaño sale del ancho y del alto de la pantalla (`dvh`, que el
- * teclado del iPhone no cambia): nunca cambia al abrir el teclado, y deja sitio al campo y a «Seguir» (360×640 incluido).
+ * La tarjeta «así se verá» de las preguntas, como el lienzo: 372 px de alto, de margen a margen, la misma y en el mismo lugar en
+ * los cuatro pasos (no se encoge con el teclado ni con la pantalla: lo demás se desplaza). La portada la cubre (`cover`); encima, el
+ * velo del catálogo con el nombre y el precio mientras se escriben, y «así se verá» a mano desde la segunda pregunta.
  */
 function TarjetaAsiSeVera({ portada, nombre, precio, nota }: { portada: string | null; nombre: string; precio: string | null; nota: boolean }) {
   const n = nombre.trim();
   return (
     <div
-      className={clases(
-        "relative aspect-[4/5] w-[max(9rem,min(62%,calc((100dvh-27.5rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l",
-        portada ? "bg-superficie-hundida" : "border-2 border-dashed border-borde-campo bg-superficie",
-      )}
+      className="relative h-[372px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida"
       data-tarjeta-asi-se-vera="" aria-label={`Así se verá: ${n || "sin nombre"}${precio ? `, ${precio}` : ""}`} role="img"
     >
       {portada ? (
         <>
-          <Foto src={portada} alt="" className="absolute inset-0" sizes="(max-width: 480px) 62vw, 280px" />
-          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-velo to-transparent" />
-          {nota && <span aria-hidden="true" className="absolute top-2 left-3 font-mano text-mano text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]">así se verá</span>}
+          <Foto src={portada} alt="" className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" />
+          <div aria-hidden="true" className="absolute inset-x-0 top-1/2 bottom-0 bg-linear-to-t from-velo to-transparent" />
+          {nota && <span aria-hidden="true" className="absolute top-2.5 left-3.5 font-mano text-mano text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]">así se verá</span>}
         </>
       ) : (
-        <div aria-hidden="true" className="flex h-full flex-col items-center justify-center gap-2 text-texto-secundario">
-          <IconoCamara tamano={36} strokeWidth={1.8} />
-          <span className="text-secundario">Tu foto va aquí</span>
+        <div aria-hidden="true" className="absolute inset-3.5 flex flex-col items-center justify-center gap-2 rounded-radio-m border-2 border-dashed border-borde-campo text-texto-secundario">
+          <IconoCamara tamano={44} strokeWidth={1.8} />
+          <span className="text-secundario font-bold">Tu foto va aquí</span>
+          {/* El momento de voz del paso de la foto, dentro del marco: sin regañar (se puede seguir sin ella). */}
+          <span className="font-mano text-mano text-atencion-texto" data-con-foto="">{SIN_FOTO}</span>
         </div>
       )}
       {(n || precio) && (
-        <div aria-hidden="true" className={clases("absolute inset-x-3 bottom-3", portada ? "text-papel" : "text-texto")}>
-          {n && <p className="line-clamp-2 font-display text-titulo-seccion break-words">{n}</p>}
-          {precio && <p className="text-cuerpo font-extrabold tabular-nums" data-precio-tarjeta="">{precio}</p>}
+        <div aria-hidden="true" className={clases("absolute inset-x-4 bottom-3.5", portada ? "text-papel" : "text-texto")}>
+          {n && <p className="line-clamp-2 font-display text-titulo-hoja break-words">{n}</p>}
+          {precio && <p className="mt-0.5 text-cuerpo font-extrabold tabular-nums" data-precio-tarjeta="">{precio}</p>}
         </div>
       )}
-    </div>
-  );
-}
-
-/** «Tiene tallas o colores»: abre el flujo de presentaciones de hoy (PR 1). Con presentaciones, muestra lo que cambia. */
-function PastillasPresentaciones({ presentaciones, alAbrir }: { presentaciones: EstadoPresentaciones; alAbrir: () => void }) {
-  const tiene = presentaciones.opciones.length > 0 && presentaciones.pres.length > 0;
-  return (
-    <div className="flex flex-wrap items-center gap-2" data-chip-presentaciones="">
-      <Boton jerarquia="secundario" tamano="compacto" icono={tiene ? <IconoCheck tamano={16} /> : <IconoMas tamano={16} />} onClick={alAbrir}>
-        {tiene ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
-      </Boton>
     </div>
   );
 }
@@ -548,13 +542,9 @@ function PastillasPresentaciones({ presentaciones, alAbrir }: { presentaciones: 
 /** Una pastilla de «Hazlo brillar»: abre su hoja; hecha, lleva el check y dice qué tiene. */
 function PastillaOpcional({ texto, hecha, detalle, alTocar }: { texto: string; hecha: boolean; detalle?: string | null; alTocar: () => void }) {
   return (
-    <Boton
-      jerarquia="secundario" tamano="compacto" icono={hecha ? <IconoCheck tamano={16} /> : <IconoMas tamano={16} />} onClick={alTocar}
-      aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}
-      className={hecha ? "border-accion-suave bg-accion-suave text-texto" : undefined}
-    >
+    <Chip hecho={hecha} onClick={alTocar} aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}>
       {texto}
-    </Boton>
+    </Chip>
   );
 }
 
@@ -572,12 +562,15 @@ function HojaOpcional({ abierta, titulo, grande = false, alCerrar, children }: {
 
 /**
  * El reel real del comprador con el borrador, solo (sin la cabecera ni las pestañas del catálogo): `/vista-previa-reel` en un
- * iframe del mismo sitio, con `components/tienda/reel.tsx`, su CSS y el tema de la tienda. El marco es 4:5, como el reel: hasta
- * 352×440 y, en pantallas más bajas, lo que deja ver los opcionales sobre «Publicar» sin desplazar (`dvh`). Se le vuelve a mandar
- * el borrador cuando cambia (al volver de un opcional).
+ * iframe del mismo sitio, con `components/tienda/reel.tsx`, su CSS y el tema de la tienda. Como el lienzo, se arma a su tamaño de
+ * siempre (390×488) y se REDUCE en proporción al ancho de la tarjeta (350×438 a 390 px), sin recortar ni reacomodar su contenido.
+ * Se le vuelve a mandar el borrador cuando cambia (al volver de un opcional).
  */
+const REEL_W = 390;
+const REEL_H = 488;
 function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const marco = useRef<HTMLIFrameElement>(null);
+  const caja = useRef<HTMLDivElement>(null);
   const listo = useRef(false);
   const ultimos = useRef(datos);
   useEffect(() => {
@@ -597,13 +590,27 @@ function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
   }, []);
-  // El borrador cambia con los opcionales: se manda de nuevo (la vista previa reemplaza lo que tenía).
+  // La escala sale del ancho de la tarjeta (no del teclado ni del alto): se escribe directo en el estilo, sin estado de React.
+  useEffect(() => {
+    const el = caja.current;
+    if (!el) return;
+    const ajustar = () => {
+      if (marco.current) marco.current.style.transform = `scale(${el.clientWidth / REEL_W})`;
+    };
+    ajustar();
+    const obs = new ResizeObserver(ajustar);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
   const d = datos();
   const clave = JSON.stringify(d && "producto" in d ? d.producto : null);
   useEffect(mandar, [clave]);
   return (
-    <div className="relative aspect-[4/5] w-[max(17rem,min(100%,22rem,calc((100dvh-27rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l bg-black" data-reel-historia="">
-      <iframe ref={marco} src="/vista-previa-reel" title="Así lo verá tu cliente" className="absolute inset-0 size-full border-0" />
+    <div ref={caja} className="relative mt-1 aspect-[390/488] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-historia="">
+      <iframe
+        ref={marco} src="/vista-previa-reel" title="Así lo verá tu cliente" className="absolute top-0 left-0 origin-top-left border-0"
+        style={{ width: REEL_W, height: REEL_H }}
+      />
     </div>
   );
 }
@@ -632,34 +639,29 @@ function CompartirCatalogo({ tiendaNombre, alPublicar }: { tiendaNombre: string;
   return <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={alPublicar}>Compartir mi catálogo</Boton>;
 }
 
-/** La celebración: el titular a mano, la foto con una ligera inclinación y unas formas de marca quietas. Sin confeti. */
-function Celebracion({ producto, visible, cuentan, alOtro, compartir }: { producto: Producto; visible: boolean; cuentan: number; alOtro: () => void; compartir: ReactNode }) {
+/** La celebración, como el lienzo: la portada inclinada con unas formas de marca quietas, el titular a mano y una línea. Sin confeti. */
+function Celebracion({ producto, visible, cuentan }: { producto: Producto; visible: boolean; cuentan: number }) {
   const foto = producto.medios.find((m) => m.tipo === "foto")?.url ?? producto.fotos[0] ?? null;
   const arranque = visible ? lineaArranque(cuentan) : null;
   return (
-    <div className="mov-aparece flex flex-col items-center gap-5 pt-4 text-center" data-celebracion="">
-      <div aria-hidden="true" className="relative aspect-[4/5] w-48">
-        <span className="absolute -top-4 -left-5 size-10 rounded-full bg-marca-rosa" />
-        <span className="absolute top-8 -right-6 size-7 rotate-12 rounded-radio-s bg-resalte" />
-        <span className="absolute bottom-6 -left-7 size-8 -rotate-12 rounded-radio-s bg-accion-suave" />
-        <span className="absolute -right-3 -bottom-3 size-5 rounded-full bg-accion" />
+    <div className="mov-aparece flex flex-col items-center pt-10 text-center" data-celebracion="">
+      <div aria-hidden="true" className="relative h-[290px] w-[230px]">
+        <span className="absolute top-[30px] -left-[18px] size-3.5 rotate-[20deg] rounded-[4px] bg-resalte" />
+        <span className="absolute top-1.5 -right-3.5 size-3 rounded-full bg-marca-rosa" />
+        <span className="absolute -right-[22px] bottom-[60px] h-1.5 w-4 -rotate-[30deg] rounded-full bg-accion" />
+        <span className="absolute bottom-5 -left-2.5 size-2.5 rounded-full bg-resalte" />
         <div className="absolute inset-0 -rotate-4 overflow-hidden rounded-radio-l bg-superficie-hundida shadow-flotante" data-foto-celebracion="">
           {foto ? (
-            <Foto src={foto} alt="" className="absolute inset-0" sizes="200px" />
+            <Foto src={foto} alt="" className="absolute inset-0" sizes="230px" />
           ) : (
             <div className="grid h-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>
           )}
         </div>
       </div>
-      <h2 tabIndex={-1} data-titulo-paso="" className="font-mano text-mano-celebracion text-atencion-texto outline-none">{tituloCelebracion(visible)}</h2>
-      <div className="flex flex-col gap-1">
-        <p className="text-cuerpo text-texto">{lineaCelebracion(producto.nombre, visible)}</p>
-        {arranque && <p className="text-secundario text-texto-secundario" data-arranque="">{arranque}</p>}
-      </div>
-      <div className="flex w-full flex-col gap-3">
-        <Boton tamano="grande" anchoCompleto onClick={alOtro}>Agregar otro</Boton>
-        {compartir}
-      </div>
+      <h2 tabIndex={-1} data-titulo-paso="" className="mt-7 font-mano text-[2.5rem] leading-none text-atencion-texto outline-none">{tituloCelebracion(visible)}</h2>
+      <p className="mt-2.5 text-cuerpo text-texto-secundario" data-linea-celebracion="">
+        {lineaCelebracion(producto.nombre, visible, arranque)}
+      </p>
     </div>
   );
 }
