@@ -379,7 +379,7 @@ for (const ancho of ANCHOS) {
     await ctx.close();
   }
 
-  console.log("• «Tiene tallas o colores» abre el flujo de presentaciones de hoy y vuelve a la historia");
+  console.log("• Presentaciones como historia: ¿en qué cambia? → tallas → colores (7 barras) y la hoja «Inventario» encima");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrir(page);
@@ -389,26 +389,133 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await escribir(page, "900");
     await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
-    const flujo = page.getByRole("dialog").last();
-    await flujo.getByRole("button", { name: "XS a XL", exact: true }).tap();
-    await flujo.getByRole("button", { name: "Siguiente · 5 presentaciones", exact: true }).tap();
-    await flujo.getByRole("button", { name: "Agregar uno a todas", exact: true }).tap();
-    await flujo.getByRole("button", { name: /^Listo ·/ }).tap();
-    await page.waitForTimeout(700);
-    ok((await paso(page)) === "precio" && (await page.locator("[data-chip-presentaciones]").innerText()).includes("Talla · 5"), "De vuelta en el precio, el chip dice «Talla · 5»");
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "cambia" && (await titulo(page)) === "¿En qué cambia?", "«Tiene tallas o colores» lleva a «¿En qué cambia?»");
+    ok((await page.locator("[data-barras-historia] span").count()) === 7 && (await barras(page)) === "4", "…con 7 barras en vez de 5 (la 4.ª llena)");
+    {
+      const t = await page.locator("[data-tarjeta-presentaciones]").boundingBox();
+      ok(Math.abs(t.height - 212) < 1 && Math.abs(t.width - (ancho - 40)) < 1 && Math.abs(t.y - 180) < 1.5, `Tarjeta «así se verá» de ${Math.round(t.width)}×${Math.round(t.height)} en y=${Math.round(t.y)}`);
+      ok((await page.locator("[data-tarjeta-presentaciones]").getAttribute("aria-label")).includes("Desde RD$900"), "…con «Desde RD$900»");
+    }
+    const qc = page.locator("[data-que-cambia]");
+    ok((await qc.getByRole("checkbox", { name: "Talla", exact: true }).getAttribute("aria-checked")) === "true" && (await qc.getByRole("checkbox", { name: "Color", exact: true }).getAttribute("aria-checked")) === "true", "Ropa arranca con Talla y Color elegidas");
+    await captura(page, "p1-que-cambia", ancho);
     await seguir(page);
-    ok((await page.locator(H).innerText()).includes("5 presentaciones · 5 en total"), "El paso de stock resume las presentaciones (5 en total)");
-    // Por encargo no lleva stock: tampoco las presentaciones.
+    ok((await titulo(page)) === "¿Qué tallas hay?" && (await barras(page)) === "5", "«¿Qué tallas hay?» (barra 5)");
+    ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado sin tallas");
+    await boton(page, "XS a XL").tap();
+    ok((await page.locator("[data-pildora-eje]").innerText()) === "Talla XS · S · M · L · XL", "«XS a XL» las elige y la tarjeta dice «Talla XS · S · M · L · XL»");
+    await page.getByRole("checkbox", { name: "XS", exact: true }).tap();
+    await page.getByRole("checkbox", { name: "XL", exact: true }).tap();
+    await captura(page, "p2-tallas", ancho);
+    await seguir(page);
+    ok((await titulo(page)) === "¿Y qué colores?" && (await barras(page)) === "6", "«¿Y qué colores?» (barra 6)");
+    await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+    await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+    ok((await page.locator("[data-puntos-color] span").count()) === 2, "La tarjeta suma los puntos de color");
+    ok((await page.locator("[data-foto-cada-color] button").count()) === 2 && (await page.locator("[data-foto-cada-color] button").first().isEnabled()), "«Foto de cada color · opcional» con una tarjeta por color");
+    await page.locator("[data-foto-cada-color] button").first().tap();
+    await page.getByRole("dialog", { name: "Foto de Negro" }).getByRole("radio").first().tap();
+    await page.getByRole("dialog", { name: "Foto de Negro" }).getByRole("button", { name: "Listo", exact: true }).tap();
+    await page.waitForTimeout(600);
+    ok((await page.locator("[data-foto-cada-color] button").first().innerText()).includes("Foto 1"), "Negro queda con la foto 1");
+    await captura(page, "p3-colores", ancho);
+    await seguir(page);
+    const inv = page.locator("[data-inventario-historia]");
+    await inv.waitFor();
+    await page.waitForTimeout(500);
+    {
+      const hojas = await page.locator("[data-hoja-panel]").evaluateAll((l) => l.map((e) => Math.round(e.getBoundingClientRect().y)));
+      ok(hojas.length === 2 && hojas[0] === 78 && hojas[1] === 118, `«Inventario» es otra hoja encima (y=${hojas.join(", ")})`);
+    }
+    ok((await inv.locator("[data-grupo-inventario]").count()) === 2 && (await inv.locator("[data-fila-inventario]").count()) === 6, "Un grupo por color (Negro, Blanco) con una fila por talla");
+    ok(await boton(page, "Listo · 0 en total").isDisabled(), "«Listo · 0 en total» apagado: con 0 no se llega a «Así se ve»");
+    await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+    await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+    await page.getByRole("button", { name: "Agregar uno de Negro · M" }).tap();
+    ok((await inv.locator('[data-grupo-inventario="Negro"] [data-grupo-total]').innerText()) === "7 en total", "«Poner a todas» y el + de una fila: Negro, 7 en total");
+    ok(await boton(page, "Listo · 13 en total").isEnabled(), "«Listo · 13 en total»");
+    await captura(page, "i1-inventario", ancho);
+    // Por encargo dentro del Inventario: sin cantidades y con su plazo.
     await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+    ok((await inv.locator("[data-fila-inventario]").count()) === 0 && await boton(page, "Listo · por encargo").isDisabled(), "Por encargo: sin cantidades y «Listo · por encargo» espera el plazo");
     await page.getByRole("radio", { name: "1 mes" }).tap();
+    ok((await inv.locator("[data-nota-encargo]").innerText()).includes("«Llega en 1 mes»") && await boton(page, "Listo · por encargo").isEnabled(), "…«Llega en 1 mes» y se prende");
+    await captura(page, "i2-por-encargo", ancho);
+    await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+    ok(await boton(page, "Listo · 13 en total").isEnabled(), "Al apagarlo vuelven las cantidades (13)");
+    // El detalle de una presentación (hoja inferior): precio propio.
+    await inv.locator('[data-fila-inventario="Blanco · S"] button').first().tap();
+    const det = page.locator("[data-hoja-presentacion]");
+    await det.waitFor();
+    await page.waitForTimeout(400);
+    await det.getByRole("radio", { name: "Uno propio" }).tap();
+    await det.locator("input").tap();
+    await page.keyboard.type("1100");
+    await captura(page, "i3-detalle", ancho);
+    ok((await det.getByRole("button", { name: "Atrás" }).count()) === 1, "El detalle lleva «‹» junto a «Listo»");
+    await det.getByRole("button", { name: "Listo", exact: true }).tap();
+    await page.waitForTimeout(600);
+    ok((await inv.locator('[data-fila-inventario="Blanco · S"]').innerText()).includes("RD$1,100"), "La fila muestra su precio propio");
+    await boton(page, "Listo · 13 en total").tap();
+    await page.waitForTimeout(600);
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("6 presentaciones · 13 en total"), "De vuelta: «Inventario · 6 presentaciones · 13 en total» con «Editar»");
+    await page.locator("[data-hoja-contenido]").first().evaluate((e) => e.scrollTo(0, e.scrollHeight));
+    await captura(page, "p4-resumen", ancho);
+    // Quitar un valor con cantidades pregunta; las que siguen conservan lo suyo.
+    await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+    await page.getByRole("alertdialog").waitFor();
+    ok((await page.getByRole("alertdialog").innerText()).includes("Sus 6 en el inventario se pierden."), "Quitar Blanco (con 6) pregunta antes");
+    await page.getByRole("alertdialog").getByRole("button", { name: "Cancelar" }).tap();
+    await page.waitForTimeout(300);
+    await page.getByRole("checkbox", { name: "Rojo", exact: true }).tap();
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("9 presentaciones · 13 en total"), "Sumar Rojo: las nuevas empiezan en 0 y lo demás se conserva (9 · 13)");
+    await page.getByRole("checkbox", { name: "Rojo", exact: true }).tap();
+    await seguir(page);
+    ok((await paso(page)) === "vista" && (await barras(page)) === "7", "«Seguir» sigue a «Así se ve» (barra 7)");
+    const marco = page.frameLocator("[data-reel-historia] iframe");
+    await marco.locator("[data-reel-solo] .reel").first().waitFor({ timeout: 20000 });
+    await page.waitForTimeout(800);
+    ok((await marco.locator("[data-reel-solo]").innerText()).includes("Ver presentaciones"), "El reel con «Ver presentaciones»");
+    await captura(page, "p5-asi-se-ve", ancho);
+    await boton(page, "Atrás").tap();
+    ok((await paso(page)) === "eje2", "«‹» vuelve a los colores");
     await seguir(page);
     await boton(page, "Publicar").tap();
     await page.locator("[data-celebracion]").waitFor();
     const d = await db(page);
     const p = d.productos.find((x) => x.nombre === "Camiseta tallas");
     const suyas = d.variantes.filter((v) => v.productoId === p?.id);
-    ok(p && suyas.length === 5 && p.opciones[0].nombre === "Talla", "Publicado con sus 5 presentaciones");
-    ok(p.porEncargo && p.encargoTexto === "Llega en 1 mes" && suyas.every((v) => v.stock === 0), "Por encargo: las presentaciones se guardan sin stock (0)");
+    ok(p && suyas.length === 6 && p.opciones.map((o) => o.nombre).join(",") === "Color,Talla", "Publicado con 6 presentaciones (Color, Talla)");
+    ok(suyas.filter((v) => v.stock === 2).length === 5 && suyas.some((v) => v.stock === 3) && suyas.some((v) => v.precio === 1100), "…con sus cantidades y el precio propio");
+    ok(p.fotosPorValor?.Color?.Negro, "…y la foto de Negro");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  console.log("• Presentaciones sin fotos: «Foto de cada color» apagada con su pista; volver de «¿En qué cambia?» sin nada deja un solo stock");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrir(page);
+    await boton(page, "Seguir sin foto").tap();
+    await escribir(page, "Gorra colores");
+    await seguir(page);
+    await escribir(page, "500");
+    await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+    await page.waitForTimeout(150);
+    await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+    await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+    ok((await page.locator("[data-barras-historia] span").count()) === 7 && await boton(page, "Seguir").isDisabled(), "Sin nada elegido: «Seguir» apagado");
+    await boton(page, "Atrás").tap();
+    ok((await paso(page)) === "precio" && (await page.locator("[data-barras-historia] span").count()) === 5, "«‹» sin nada elegido vuelve al precio con 5 barras (un solo stock)");
+    await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+    await page.waitForTimeout(150);
+    ok((await page.locator("[data-que-cambia] [aria-checked=true]").count()) === 2, "Al volver, arranca otra vez con lo típico (Talla y Color)");
+    await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+    ok((await page.locator("[data-barras-historia] span").count()) === 6, "Con una sola cosa: 6 barras");
+    await seguir(page);
+    await page.getByRole("checkbox", { name: "Azul", exact: true }).tap();
+    ok(await page.locator("[data-foto-cada-color] button").first().isDisabled() && (await page.locator("[data-pista-foto-color]").isVisible()), "Sin fotos subidas, «Foto de cada color» apagada con su pista");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }

@@ -218,7 +218,7 @@ const ESCENARIOS = {
 
   /** 2. Ropa: Talla (XS a XL) y Color (2) → 10 presentaciones; stock a tres; el total suma; quitar un color → 5. */
   async ropa(page, ancho, tema) {
-    // Crear es una historia: foto, nombre, precio y ahí «Tiene tallas o colores» abre el mismo flujo de presentaciones.
+    // Crear es una historia: foto, nombre, precio y ahí «Tiene tallas o colores» sigue con las presentaciones como historia.
     await page.goto(`${URL}/catalogo/nuevo`);
     await page.locator("[data-historia-producto]").waitFor();
     const a = await archivosDePrueba(page);
@@ -228,33 +228,33 @@ const ESCENARIOS = {
     await page.locator("[data-campo-paso]").fill("Blusa de prueba");
     await historia(page, "Seguir");
     await page.locator("[data-campo-paso]").fill("1200");
+    // Presentaciones como historia (ronda 3): ¿en qué cambia? → tallas → colores, y las cantidades en la hoja «Inventario».
     await page.locator("[data-chip-presentaciones] button").click();
-    await hoja(page).getByRole("button", { name: "XS a XL", exact: true }).click();
-    await hoja(page).getByRole("button", { name: "Color", exact: true }).click();
-    await elegirValores(page, "Colores", ["Negro", "Blanco"]);
-    ok(await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).isEnabled(), "El botón dice que salen 10 presentaciones");
-    await hoja(page).getByRole("button", { name: "Siguiente · 10 presentaciones", exact: true }).click();
-    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 10, "Hay 10 filas de stock (agrupadas por talla)");
-    const talla = (t) => hoja(page).locator(`section[aria-label="Talla ${t}"]`);
-    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    await talla("S").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    await talla("M").getByRole("button", { name: "Agregar uno de Negro" }).click();
-    for (let i = 0; i < 3; i++) await talla("L").getByRole("button", { name: "Agregar uno de Blanco" }).click();
-    await hoja(page).getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
-    await page.waitForTimeout(600);
+    await page.locator("[data-que-cambia]").waitFor();
     await historia(page, "Seguir");
-    ok((await page.locator("[data-historia-producto]").innerText()).includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
+    await page.getByRole("button", { name: "XS a XL", exact: true }).click();
+    await historia(page, "Seguir");
+    for (const c of ["Negro", "Blanco"]) await page.getByRole("checkbox", { name: c, exact: true }).click();
+    await historia(page, "Seguir");
+    const inv = page.locator("[data-inventario-historia]");
+    await inv.waitFor();
+    await page.waitForTimeout(450);
+    ok((await inv.locator("[data-fila-inventario]").count()) === 10, "Hay 10 filas de stock (agrupadas por color)");
+    const mas = (n) => inv.getByRole("button", { name: `Agregar uno de ${n}`, exact: true });
+    await mas("Negro · S").click();
+    await mas("Negro · S").click();
+    await mas("Negro · M").click();
+    for (let i = 0; i < 3; i++) await mas("Blanco · L").click();
+    await page.getByRole("button", { name: "Listo · 6 en total", exact: true }).click();
+    await page.waitForTimeout(600);
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("10 presentaciones · 6 en total"), "El total suma (6 en total)");
     ok(await sinDesborde(page), "Historia de ropa sin desborde");
     await capturar(page, "formulario-ropa", ancho, tema);
-    // Quitar el color Blanco: «Cambiar» (o el chip) → «Cambiar qué cambia» → fuera Blanco (se van sus 5 presentaciones).
-    await page.getByRole("button", { name: "Cambiar", exact: true }).click();
-    await hoja(page).getByRole("button", { name: "Cambiar qué cambia", exact: true }).click();
-    await hoja(page).locator('[data-eje="Color"]').getByRole("checkbox", { name: "Blanco", exact: true }).click();
-    await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
-    await page.getByRole("button", { name: "Sí, cambiar", exact: true }).click();
-    ok((await hoja(page).locator("[data-paso=cuantas] section li").count()) === 5, "Al quitar un color quedan 5");
-    await hoja(page).getByRole("button", { name: /^Listo ·/ }).click();
-    await page.waitForTimeout(600);
+    // Quitar el color Blanco (con 3 en el inventario): pregunta y se van sus 5 presentaciones.
+    await page.getByRole("checkbox", { name: "Blanco", exact: true }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Quitar", exact: true }).click();
+    await page.waitForTimeout(400);
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("5 presentaciones · 3 en total"), "Al quitar un color quedan 5");
     // Publicar: producto y variantes en una sola llamada.
     await historia(page, "Seguir");
     await page.getByRole("button", { name: "Publicar", exact: true }).click();
@@ -262,7 +262,7 @@ const ESCENARIOS = {
     const d = await db(page);
     const blusa = d.productos.find((p) => p.nombre === "Blusa de prueba");
     const suyas = d.variantes.filter((v) => v.productoId === blusa?.id);
-    ok(blusa && suyas.length === 5 && blusa.opciones.map((o) => o.nombre).join() === "Talla,Color", "Publicar crea la blusa con sus 5 variantes");
+    ok(blusa && suyas.length === 5 && blusa.opciones.map((o) => o.nombre).join() === "Color,Talla", "Publicar crea la blusa con sus 5 variantes (el color primero)");
     ok(blusa.stock === 3 && suyas.find((v) => v.valores.Talla === "S").stock === 2, "…y su stock por variante (3 en total)");
   },
 

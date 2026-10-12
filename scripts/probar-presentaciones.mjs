@@ -124,7 +124,6 @@ const vaciarCosas = async (page) => {
   while (await b.count()) await b.first().click();
 };
 const quitarCosa = (page, cosa) => hoja(page).getByRole("button", { name: `Quitar ${cosa}`, exact: true }).click();
-const filasTexto = async (page) => (await hoja(page).locator("[data-paso=cuantas] li").allInnerTexts()).map((t) => t.replace(/\s+/g, " ").trim());
 const sumar = async (page, etiqueta, n, dentro) => {
   const ambito = dentro ? hoja(page).locator(dentro) : hoja(page);
   for (let i = 0; i < n; i++) await ambito.getByRole("button", { name: etiqueta, exact: true }).click();
@@ -158,43 +157,100 @@ const productoDe = async (page, nombre) => {
 };
 const quiere = (id) => !SOLO || SOLO.includes(id);
 
+// ---- Crear con presentaciones es parte de la historia (ronda 3, prototipo v4): «¿En qué cambia?», una pantalla por cosa y la hoja
+// «Inventario» encima. Editar sigue con el flujo de dos pasos de siempre (los casos de editar no cambian).
+const esColor = (c) => /^colou?r(es)?$/i.test(c);
+/** Desde el precio: «Tiene tallas o colores» y deja elegidas exactamente estas cosas (las propias, con «+ Otra»). */
+async function cosasHistoria(page, cosas) {
+  await page.locator("[data-chip-presentaciones] button").click();
+  const qc = page.locator("[data-que-cambia]");
+  await qc.waitFor();
+  for (const c of await qc.getByRole("checkbox").all()) {
+    if ((await c.getAttribute("aria-checked")) === "true" && !cosas.includes((await c.innerText()).trim())) await c.click();
+  }
+  for (const n of cosas) {
+    const c = qc.getByRole("checkbox", { name: n, exact: true });
+    if (await c.count()) {
+      if ((await c.getAttribute("aria-checked")) !== "true") await c.click();
+      continue;
+    }
+    await qc.getByRole("button", { name: "+ Otra", exact: true }).click();
+    const campo = page.getByRole("textbox", { name: "¿Qué otra cosa cambia?" });
+    await campo.fill(n);
+    await campo.press("Enter");
+  }
+}
+/** En la pantalla de una cosa: marca sus valores (los sugeridos se tocan; los demás, con «+ Otro» / «+ Otra»). */
+async function valoresHistoria(page, cosa, valores) {
+  const s = page.locator(`[data-valores-eje="${cosa}"]`);
+  await s.waitFor();
+  for (const v of valores) {
+    const pildora = s.getByRole("checkbox", { name: v, exact: true });
+    if (await pildora.count()) {
+      if ((await pildora.getAttribute("aria-checked")) !== "true") await pildora.click();
+      continue;
+    }
+    await s.getByRole("button", { name: /^\+ Otr[oa]$/ }).click();
+    await page.keyboard.type(v);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(60);
+  }
+}
+const inventario = (page) => page.locator("[data-inventario-historia]");
+/** Crea por la historia con estas cosas ([cosa, valores]) y deja abierto el Inventario. */
+async function nuevoConPresentaciones(page, nombre, precio, cosas) {
+  await nuevo(page, nombre, precio);
+  await cosasHistoria(page, cosas.map((c) => c[0]));
+  await pasoHistoria(page, "Seguir");
+  for (const [cosa, valores] of [...cosas.filter((c) => !esColor(c[0])), ...cosas.filter((c) => esColor(c[0]))]) {
+    await valoresHistoria(page, cosa, valores);
+    await pasoHistoria(page, "Seguir");
+  }
+  await inventario(page).waitFor();
+  await page.waitForTimeout(450);
+}
+const listoInventario = async (page) => {
+  await page.getByRole("button", { name: /^Listo · / }).click();
+  await page.waitForTimeout(600);
+};
+/** Desde la última pantalla de valores (Inventario listo): «Así se ve» y «Publicar»; espera la celebración. */
+const publicarHistoria = async (page) => {
+  await pasoHistoria(page, "Seguir");
+  await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await page.locator("[data-celebracion]").waitFor();
+};
+
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
 
   if (quiere("2")) {
-    console.log("• 2 · Crear con 1 cosa (Color × 3): la hoja avisa qué falta, y «Agotada» no sale en un producto nuevo");
+    console.log("• 2 · Crear con 1 cosa (Color × 3) en la historia: dice qué falta, el Inventario y «Agotada» no sale en un producto nuevo");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page);
     await captura(page, "00-hoja-sin-presentaciones", ancho);
-    await abrirFlujo(page);
-    ok((await paso(page)) === "que-cambia", "Sin presentaciones abre en el paso 1 «Qué cambia»");
-    ok((await hoja(page).innerText()).includes("Paso 1 de 2"), "Dice «Paso 1 de 2»");
-    const sig = hoja(page).getByRole("button", { name: /^Siguiente/ });
-    ok(await sig.isDisabled(), "«Siguiente» está apagado al empezar (Talla viene elegida y vacía)");
-    ok((await hoja(page).locator("[data-pista]").innerText()).includes("Elige al menos un valor de Talla"), "…y dice qué falta: «Elige al menos un valor de Talla.»");
+    await cosasHistoria(page, ["Color"]);
+    ok((await page.locator("[data-barras-historia] span").count()) === 6, "Con una cosa: seis barras (con dos, siete)");
+    await pasoHistoria(page, "Seguir");
+    ok((await page.locator("[data-titulo-paso]").innerText()) === "¿Qué colores hay?", "Pregunta «¿Qué colores hay?»");
+    ok(await page.getByRole("button", { name: "Seguir", exact: true }).isDisabled(), "«Seguir» apagado sin colores");
     await captura(page, "01-paso1-apagado", ancho);
-    await quitarCosa(page, "Talla");
-    await elegirCosa(page, "Color", ["Plateado", "Blanco", "Dorado"]);
-    ok((await sig.innerText()).includes("3 presentaciones") && (await sig.isEnabled()), "«Siguiente · 3 presentaciones» se prende");
+    await valoresHistoria(page, "Color", ["Plateado", "Blanco", "Dorado"]);
+    ok((await page.locator("[data-puntos-color] span").count()) === 3, "La tarjeta «así se verá» suma un punto por color");
     await captura(page, "02-paso1-color", ancho);
-    await siguiente(page);
-    ok((await paso(page)) === "cuantas", "Pasa al paso 2 «Cuántas tienes»");
-    const t = await pasoTexto(page);
-    ok(t.includes("Poner a todas") && t.includes("Dorado") && t.includes("Plateado") && t.includes("Blanco") && !t.includes("Agotad"), "Una fila por color, «Poner a todas» y ni rastro de «Agotada»");
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 0 en total/ }).isEnabled()), "«Listo · 0 en total» (producto nuevo sin reparto)");
-    {
-      const at = await hoja(page).getByRole("button", { name: "Atrás", exact: true }).boundingBox();
-      const li = await hoja(page).getByRole("button", { name: /^Listo ·/ }).boundingBox();
-      ok(at && li && Math.abs(at.width - li.width) <= 1 && Math.abs(at.height - li.height) <= 1, "«Atrás» y «Listo» miden lo mismo (mitad y mitad)");
-    }
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    const t = (await inventario(page).innerText()).replace(/\s+/g, " ");
+    ok(t.includes("Poner a todas") && t.includes("Dorado") && t.includes("Plateado") && t.includes("Blanco") && !t.includes("Agotad"), "Inventario: una fila por color, «Poner a todas» y ni rastro de «Agotada»");
+    ok(await page.getByRole("button", { name: /^Listo · 0 en total/ }).isDisabled(), "«Listo · 0 en total» apagado: no se llega a «Así se ve» con 0");
     await captura(page, "03-paso2-una-cosa", ancho);
     await sumar(page, "Agregar uno a todas", 2);
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 6 en total/ }).count()) === 1, "«Poner a todas» pone 2 en cada una: «Listo · 6 en total»");
-    await listo(page);
-    const tarjeta = await tarjetaStock(page);
-    ok(tarjeta.includes("Color · 3") && tarjeta.includes("3 presentaciones · 6 en total"), "La hoja de producto resume: «Color · 3» y «3 presentaciones · 6 en total»");
-    ok(!tarjeta.includes("Agotad") && (await page.getByRole("button", { name: "Agregar presentación" }).count()) === 0, "…sin «Agotada» ni «Agregar presentación»");
+    ok((await page.getByRole("button", { name: /^Listo · 6 en total/ }).count()) === 1, "«Poner a todas» pone 2 en cada una: «Listo · 6 en total»");
+    await listoInventario(page);
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("3 presentaciones · 6 en total"), "La pantalla de colores resume «3 presentaciones · 6 en total» con «Editar»");
     await captura(page, "04-hoja-resumen", ancho);
+    await publicarHistoria(page);
+    const { variantes } = await productoDe(page, "Aros de luna");
+    ok(variantes.length === 3 && variantes.every((v) => v.stock === 2), "Publicado con 3 presentaciones de 2 cada una");
     ok(await sinDesborde(page), "Sin desborde horizontal");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
@@ -204,36 +260,43 @@ for (const ancho of ANCHOS) {
     console.log("• 3 y 15 · Crear con 2 cosas (Color × Tamaño), agrupadas por la primera; publicar, cerrar y reabrir");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Aros dobles");
-    await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
-    await elegirCosa(page, "Color", ["Plateado", "Blanco"]);
-    await elegirCosa(page, "Tamaño", ["Pequeño", "Grande"]);
-    ok((await hoja(page).innerText()).includes("Ya elegiste 2: es el máximo. Quita una para elegir otra."), "9 · La 3.ª se apaga y dice que se quita una para elegir otra");
-    ok((await hoja(page).getByRole("button", { name: "Material", exact: true }).isDisabled()), "9 · Las tarjetas sin elegir quedan apagadas");
+    await cosasHistoria(page, ["Color", "Tamaño"]);
+    await page.locator("[data-que-cambia]").getByRole("checkbox", { name: "Material", exact: true }).click();
+    ok((await page.getByText("Ya elegiste 2: quita una para elegir otra.").count()) === 1 && (await page.locator("[data-que-cambia] [aria-checked=true]").count()) === 2, "9 · Con 2 elegidas, la 3.ª no entra y lo explica");
+    ok((await page.locator("[data-barras-historia] span").count()) === 7, "Siete barras");
     await captura(page, "05-paso1-dos-cosas", ancho);
-    await siguiente(page);
-    ok((await hoja(page).locator("section[aria-label^='Color ']").count()) === 2, "Paso 2: un grupo por color (Plateado, Blanco)");
-    const filas = await filasTexto(page);
-    ok(filas.filter((f) => /^(Pequeño|Grande)\b/.test(f)).length === 4, "…con sus 2 tamaños cada uno (4 filas)");
-    await sumar(page, "Agregar uno de Pequeño", 3, "section[aria-label='Color Plateado']");
-    await sumar(page, "Agregar uno de Grande", 1, "section[aria-label='Color Blanco']");
+    await pasoHistoria(page, "Seguir");
+    ok((await page.locator("[data-titulo-paso]").innerText()) === "¿Qué tamaños hay?", "Primero la otra cosa («¿Qué tamaños hay?»)…");
+    await valoresHistoria(page, "Tamaño", ["Pequeño", "Grande"]);
+    await pasoHistoria(page, "Seguir");
+    ok((await page.locator("[data-titulo-paso]").innerText()) === "¿Y qué colores?", "…y el color al final («¿Y qué colores?»)");
+    await valoresHistoria(page, "Color", ["Plateado", "Blanco"]);
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    ok((await inventario(page).locator("[data-grupo-inventario]").count()) === 2, "Inventario: un grupo por color (Plateado, Blanco)");
+    ok((await inventario(page).locator("[data-fila-inventario]").count()) === 4, "…con sus 2 tamaños cada uno (4 filas)");
+    await sumar(page, "Agregar uno de Plateado · Pequeño", 3);
+    await sumar(page, "Agregar uno de Blanco · Grande", 1);
     await captura(page, "06-paso2-dos-cosas", ancho);
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Listo · 4 en total»");
-    await listo(page);
-    ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "La hoja: «4 presentaciones · 4 en total»");
-    await abrirFlujo(page);
-    ok((await paso(page)) === "cuantas", "5 · Con presentaciones, abre directo en «Cuántas tienes»");
-    ok((await hoja(page).innerText()).includes("Cambiar qué cambia"), "…con el resumen y el enlace «Cambiar qué cambia»");
-    await captura(page, "07-editar-paso2", ancho);
-    await hoja(page).getByRole("button", { name: "Cambiar qué cambia" }).click();
-    ok((await paso(page)) === "que-cambia" && (await hoja(page).locator('[data-eje="Color"] [aria-checked="true"]').count()) === 2, "El enlace lleva al paso 1 con lo elegido");
-    await hoja(page).getByRole("button", { name: /^Siguiente/ }).click();
-    ok((await paso(page)) === "cuantas", "Siguiente sin cambiar nada vuelve al paso 2 sin perder lo puesto");
-    ok((await hoja(page).getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "…y el stock sigue ahí (4)");
-    await listo(page);
-    await guardarCambios(page);
+    ok((await page.getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Listo · 4 en total»");
+    // El atrás del teléfono cierra primero la hoja de encima, sin perder nada; «Seguir» la vuelve a abrir.
+    await page.goBack();
+    await page.waitForTimeout(700);
+    ok((await inventario(page).count()) === 0 || !(await inventario(page).isVisible()), "Atrás del teléfono cierra el Inventario primero");
+    ok((await page.locator("[data-historia-producto]").getAttribute("data-paso")) === "eje2" && (await page.locator("[data-resumen-inventario]").count()) === 0, "…y queda en la pantalla de colores, sin resumen (no se tocó «Listo»)");
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    await page.waitForTimeout(400);
+    ok((await page.getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Seguir» lo vuelve a abrir con lo puesto (4)");
+    await listoInventario(page);
+    ok((await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ").includes("4 presentaciones · 4 en total"), "Resumen: «4 presentaciones · 4 en total»");
+    await page.getByRole("button", { name: "Editar", exact: true }).click();
+    await inventario(page).waitFor();
+    ok((await page.getByRole("button", { name: /^Listo · 4 en total/ }).count()) === 1, "«Editar» reabre el Inventario");
+    await listoInventario(page);
+    await publicarHistoria(page);
     const { p, variantes } = await productoDe(page, "Aros dobles");
-    ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4, "15 · Se publicó con 4 presentaciones y su stock");
+    ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4 && p.opciones[0].nombre === "Color", "15 · Se publicó con 4 presentaciones, su stock y el color primero");
     await editar(page, p.id);
     ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "15 · Reabrir lo muestra igual");
     await abrirFlujo(page);
@@ -247,15 +310,11 @@ for (const ancho of ANCHOS) {
   if (quiere("4")) {
     console.log("• 4 · Agregar una 2.ª cosa a un producto con stock: el stock de cada valor se reparte y «Listo» espera");
     const { ctx, page, errores } = await pagina(ancho, LINO);
-    await nuevo(page, "Pulsera trenzada");
-    await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
-    await elegirCosa(page, "Color", ["Plateado", "Blanco", "Dorado"]);
-    await siguiente(page);
+    await nuevoConPresentaciones(page, "Pulsera trenzada", "950", [["Color", ["Plateado", "Blanco", "Dorado"]]]);
     await sumar(page, "Agregar uno de Plateado", 5);
     await sumar(page, "Agregar uno de Blanco", 3);
-    await listo(page);
-    await guardarCambios(page);
+    await listoInventario(page);
+    await publicarHistoria(page);
     const { p } = await productoDe(page, "Pulsera trenzada");
     await editar(page, p.id);
     await abrirFlujo(page);
@@ -374,25 +433,20 @@ for (const ancho of ANCHOS) {
     console.log("• 8 y 10 · Cosa propia (Aroma) y adiós a «Agregar presentación» y «Cambiar qué varía»");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Vela");
-    await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
-    await hoja(page).getByRole("button", { name: "+ Otra cosa" }).click();
-    await hoja(page).getByRole("textbox", { name: "¿Qué otra cosa cambia?" }).fill("Aroma");
-    await hoja(page).getByRole("textbox", { name: "¿Qué otra cosa cambia?" }).press("Enter");
-    const caja = await hoja(page).locator('[data-eje="Aroma"]').boundingBox();
-    const dentro = await hoja(page).boundingBox();
-    ok(caja && dentro && caja.y < dentro.y + 500, "8 · La cosa propia nace arriba, a la vista (no al final de la lista)");
-    await hoja(page).locator('[data-eje="Aroma"]').getByRole("button", { name: "Agregar", exact: true }).click();
-    const e = hoja(page).getByRole("textbox", { name: "Agregar a Aromas" });
-    await e.fill("Vainilla");
-    await e.press("Enter");
-    await e.fill("Coco");
-    await e.press("Enter");
-    ok((await hoja(page).getByRole("button", { name: /^Siguiente · 2 presentaciones/ }).count()) === 1, "8 · Con Vainilla y Coco: «Siguiente · 2 presentaciones»");
+    await cosasHistoria(page, ["Aroma"]);
+    ok((await page.locator("[data-que-cambia]").getByRole("checkbox", { name: "Aroma", exact: true }).getAttribute("aria-checked")) === "true", "8 · La cosa propia queda elegida, a la vista");
+    await pasoHistoria(page, "Seguir");
+    ok((await page.locator("[data-titulo-paso]").innerText()) === "¿Qué aromas hay?", "8 · «¿Qué aromas hay?»");
+    await valoresHistoria(page, "Aroma", ["Vainilla", "Coco"]);
     await captura(page, "16-cosa-propia", ancho);
-    await siguiente(page);
-    ok((await pasoTexto(page)).includes("Vainilla") && (await pasoTexto(page)).includes("Coco") && (await pasoTexto(page)).includes("Foto de cada aroma"), "8 · Las filas y «Foto de cada aroma»");
-    await listo(page);
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    ok((await inventario(page).innerText()).includes("Vainilla") && (await inventario(page).innerText()).includes("Coco"), "8 · El Inventario con Vainilla y Coco");
+    await sumar(page, "Agregar uno a todas", 1);
+    await listoInventario(page);
+    await publicarHistoria(page);
+    const { p: vela } = await productoDe(page, "Vela");
+    await editar(page, vela.id);
     ok((await page.getByRole("button", { name: /Agregar presentación|Cambiar qué varía/ }).count()) === 0 && (await page.getByText(/Cambiar qué varía|Agregar presentación/).count()) === 0, "10 · «Agregar presentación» y «Cambiar qué varía» ya no existen");
     await abrirFlujo(page);
     ok((await hoja(page).getByText(/Cambiar qué varía|Agregar presentación|Todas/).count()) === 0 || (await hoja(page).getByRole("radio", { name: "Todas" }).count()) === 0, "10 · Ni filtros «Todas / …» ni filas de stock repetidas");
@@ -461,25 +515,23 @@ for (const ancho of ANCHOS) {
     console.log("• 14 · Límites: 12 valores por cosa y 144 presentaciones");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await nuevo(page, "Camisa XXL");
-    await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
     const doce = Array.from({ length: 12 }, (_, i) => `V${i + 1}`);
-    await elegirCosa(page, "Color", doce);
-    await elegirCosa(page, "Tamaño", doce);
-    const sig = hoja(page).getByRole("button", { name: /^Siguiente/ });
-    ok((await sig.innerText()).includes("144 presentaciones") && (await sig.isEnabled()), "12 × 12: «Siguiente · 144 presentaciones»");
-    ok(await hoja(page).locator('[data-eje="Color"]').getByRole("button", { name: /^\+ Otro color/ }).isDisabled(), "Con 12 valores, «+ Otro color» se queda (apagado) para que la hoja no se mueva");
+    await cosasHistoria(page, ["Color", "Tamaño"]);
+    await pasoHistoria(page, "Seguir");
+    await valoresHistoria(page, "Tamaño", doce);
+    await pasoHistoria(page, "Seguir");
+    await valoresHistoria(page, "Color", doce);
+    ok(await page.locator('[data-valores-eje="Color"]').getByRole("button", { name: "+ Otro", exact: true }).isDisabled(), "Con 12 valores, «+ Otro» se queda (apagado)");
+    ok(await page.getByRole("button", { name: "Seguir", exact: true }).isEnabled(), "12 × 12 = 144: se puede seguir");
     await captura(page, "20-144", ancho);
-    await siguiente(page);
-    ok((await hoja(page).locator("section[aria-label^='Color ']").count()) === 12, "Paso 2: 12 grupos (los demás plegados: solo el primero abierto)");
-    ok((await hoja(page).locator("section[aria-label='Color V1'] li").count()) === 12 && (await hoja(page).locator("section[aria-label='Color V2'] li").count()) === 0, "…solo el primero muestra sus 12 filas");
-    await hoja(page).getByRole("button", { name: /^V2/ }).first().click();
-    ok((await hoja(page).locator("section[aria-label='Color V2'] li").count()) === 12, "Tocar un grupo lo abre");
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    ok((await inventario(page).locator("[data-grupo-inventario]").count()) === 12 && (await inventario(page).locator("[data-fila-inventario]").count()) === 144, "Inventario: 12 grupos con sus 144 filas");
     await captura(page, "21-144-paso2", ancho);
-    // Crear no deja seguir con 0 en total (la vista previa diría «Agotado»): una de cada.
+    // No se llega a «Así se ve» con 0 en total (la vista previa diría «Agotado»): una de cada.
     await sumar(page, "Agregar uno a todas", 1);
-    await listo(page);
-    await guardarCambios(page);
+    await listoInventario(page);
+    await publicarHistoria(page);
     const g = await productoDe(page, "Camisa XXL");
     ok(g.variantes.length === 144, "Se guardan las 144");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
@@ -489,15 +541,10 @@ for (const ancho of ANCHOS) {
   if (quiere("16")) {
     console.log("• 16 · «Vista previa» es el reel real del catálogo del comprador");
     const { ctx, page, errores } = await pagina(ancho, LINO);
-    await nuevo(page, "Aros de luna", "950");
-    await abrirFlujo(page);
-    await quitarCosa(page, "Talla");
-    await elegirCosa(page, "Color", ["Plateado", "Dorado"]);
-    await siguiente(page);
+    await nuevoConPresentaciones(page, "Aros de luna", "950", [["Color", ["Plateado", "Dorado"]]]);
     await sumar(page, "Agregar uno de Plateado", 2);
-    await listo(page);
+    await listoInventario(page);
     // En la historia, el reel real va en «Así se ve en tu catálogo», solo (sin la cabecera del catálogo).
-    await pasoHistoria(page, "Seguir");
     await pasoHistoria(page, "Seguir");
     const marco = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
     await marco.locator("article.reel").waitFor({ timeout: 15000 });
@@ -522,15 +569,17 @@ for (const ancho of ANCHOS) {
     console.log("• 17 · Perfume de Michel: Tamaño en ml sigue funcionando");
     const { ctx, page, errores } = await pagina(ancho, MICHEL);
     await nuevo(page, "Perfume nuevo", "2800");
-    await abrirFlujo(page);
-    ok((await hoja(page).locator('[data-eje="Tamaño"]').count()) === 1, "Un perfume arranca con «Tamaño» elegido");
-    await hoja(page).locator('[data-eje="Tamaño"]').getByRole("checkbox", { name: "30 ml" }).waitFor();
-    await elegirCosa(page, "Tamaño", ["30 ml", "50 ml", "100 ml"]);
+    await page.locator("[data-chip-presentaciones] button").click();
+    await page.locator("[data-que-cambia]").waitFor();
+    ok((await page.locator("[data-que-cambia]").getByRole("checkbox", { name: "Tamaño", exact: true }).getAttribute("aria-checked")) === "true", "Un perfume arranca con «Tamaño» elegido");
+    await pasoHistoria(page, "Seguir");
+    await page.locator('[data-valores-eje="Tamaño"]').getByRole("checkbox", { name: "30 ml" }).waitFor();
+    await valoresHistoria(page, "Tamaño", ["30 ml", "50 ml", "100 ml"]);
     await captura(page, "23-perfume-paso1", ancho);
-    await siguiente(page);
-    const t = await pasoTexto(page);
-    ok(t.includes("30 ml") && t.includes("50 ml") && t.includes("100 ml"), "Paso 2: 30, 50 y 100 ml");
-    await listo(page);
+    await pasoHistoria(page, "Seguir");
+    await inventario(page).waitFor();
+    const t = await inventario(page).innerText();
+    ok(t.includes("30 ml") && t.includes("50 ml") && t.includes("100 ml"), "Inventario: 30, 50 y 100 ml");
     await editar(page, OUD);
     ok((await tarjetaStock(page)).includes("Tamaño · 3"), "El Majestic Oud existente se ve «Tamaño · 3»");
     await abrirFlujo(page);

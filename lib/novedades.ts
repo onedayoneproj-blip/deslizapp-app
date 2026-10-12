@@ -26,6 +26,7 @@ const TODAS: Novedad[] = [
     cambios: [
       "Una pregunta a la vez: la foto, cómo se llama, cuánto cuesta y cuántos tienes. Mientras respondes, ves cómo va quedando.",
       "Al final lo ves como en tu catálogo, lo publicas y lo celebras.",
+      "¿Tallas o colores? Eliges cuáles hay y las cantidades van en «Inventario».",
       "¿Sin foto? Se guarda oculto como borrador y lo publicas cuando la agregues.",
     ],
   },

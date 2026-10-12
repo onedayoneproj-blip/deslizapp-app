@@ -71,6 +71,33 @@ Lewis se quedó con #112. Hecho sobre la rama (merge de `main` primero; la noved
 - Abajo, el pie respeta la zona segura del iPhone (`max(24 px, safe-area)`).
 - A 390×844, al elegir «¿Cuándo llega?» el contenido se desplaza 6 px (las píldoras quedan justo sobre la barra).
 
+## Ronda 3 · Bloque 2: presentaciones como historia + «Inventario» (12 oct)
+
+Visto bueno de Planning al Bloque 1. Hecho:
+
+- **Pasos** (`lib/historia-producto.ts`): con presentaciones, `foto → nombre → precio → cambia → eje1 → eje2 → vista` (7 barras; 6 con una sola cosa), sin paso de stock. `ordenDePreguntas` pone el color al final y `ordenParaGuardar`, primero (el Inventario agrupa por color con una fila por talla). `textosDeEje`: «¿Qué tallas hay?», «¿Y qué colores?», «¿Qué materiales hay?». Pruebas en `tests/historia-producto.test.mjs`.
+- **Pantallas** (`historia-producto.tsx`): `TarjetaPresentaciones` 350×212, `QueCambia`, `ValoresDeEje` (sugeridos + «+ Otro» + atajos), `FotoDeCadaColor` y `HojaFotoDeColor` (elige entre las fotos del producto con `SelectorFotos`, ahora exportado), resumen «Inventario · … · Editar».
+- **Hoja «Inventario»** (`inventario-historia.tsx`): `HojaInventarioHistoria` (encima, `hueco={118}`), `CuandoLlega` (compartido con el paso de stock), detalle con la `HojaPresentacion` de siempre (`atras`: «‹» + «Listo», `Cantidad redonda`, elecciones rosas). Las cantidades usan `crearTodas`, `ponerATodas`, `resumenDe`, `unificarPrecios` de `lib/presentaciones.ts`; el guardado es `useGuardarProducto` (sin cambios). El `FlujoPresentaciones` de dos pasos ya no se usa al crear; editar sigue igual.
+- **Reglas:** cerrar sin «Listo» conserva y «Seguir» reabre; nunca a «Así se ve» con 0 (salvo por encargo con plazo); cambiar valores conserva lo que sigue, lo nuevo en 0 y quitar con cantidades pregunta; «Foto de cada color» sin fotos apagada con pista; atrás del teléfono cierra primero la hoja de encima; máx. 2 cosas, 12 valores, 144.
+- Nuevos o ampliados: `Eleccion` (`deshabilitada`, `accion`), `FilaInterruptor` (`detalle`), `Cantidad redonda`, `Hoja` (`hueco`), `BotonAtras` en `boton-atras-historia.tsx`. `lib/colores.ts` suma «Rosado» y «Bosque».
+
+### Lienzo vs construido, Bloque 2 (390×844; a 393×852 igual con 3 px más de ancho; `medidas-presentaciones-*.json`)
+
+| Pieza | Lienzo | Construido |
+|---|---|---|
+| Barras | 7 (5 sin presentaciones) | 7; 4.ª llena en P1, 5.ª en P2, 6.ª en P3/P4, 7.ª en P5 |
+| Tarjeta P1–P4 | 350×212 en y=180 | 350×212 en y=180 (353 a 393) |
+| Pregunta P1–P3 | y≈406, Fredoka 26 | y=406 |
+| «‹» + Seguir | y=768 | y=768 (776 a 852) |
+| P4 | desplazado 150, resumen «6 presentaciones · 21 en total · Editar» | igual (64 px de alto, «Editar» secundario) |
+| Hoja «Inventario» | borde y=118, título Fredoka 22 en y=134, ✕ 44 | borde y=118, título (24) y ✕ en y≈141–149 (cabecera de siempre: 7 px más abajo) |
+| Filas Inventario | encargo y≈230 (52), precios (56), «Poner a todas» (52), grupo con cabecera 36 y filas 46 | 227 / 287 / 351; cabecera 36, filas 46, − + de 34 |
+| Pie Inventario | «‹» + «Listo · 21 en total» / «Listo · por encargo» | igual |
+| I3 detalle | hoja inferior desde y≈348 | desde y≈201: la `HojaPresentacion` de siempre (lleva también «Quitar» y el rótulo del precio) |
+| P5 | reel con «Desde RD$…» y «Ver presentaciones» | el reel real: «RD$1,450 · 2 colores · 3 tallas» y «Ver presentaciones ›» |
+
+**Diferencias y por qué:** los colores sugeridos son los de siempre (11, de `valoresSugeridos`), así que la pantalla de colores es más larga que la del lienzo (Crema/Bosque se escriben con «+ Otro»); con 2 cosas elegidas las demás se ven igual que en el lienzo y tocarlas explica el máximo (en vez de apagarlas); el detalle reutiliza la hoja de editar (más alta, con «Quitar»); el reel dice el precio como el catálogo (si todas valen lo mismo, sin «Desde»). Con una sola cosa son 6 barras.
+
 ## Decisiones fuera del encargo (o donde había que elegir)
 
 - **Seguir sin foto:** se puede; desde la ronda 3, sin foto solo se guarda oculto (regla de Lewis), también al editar.
@@ -96,5 +123,4 @@ Capturas: [docs/capturas/crear-producto/](../capturas/crear-producto/).
 
 ## Pendiente
 
-- PR 2: varias presentaciones dentro de la historia (sección 4 del encargo).
 - Ronda siguiente: tarjeta «¿Quieres que Deslizapp retoque estas fotos?» en el paso de fotos (sección 7, falta diseño).
