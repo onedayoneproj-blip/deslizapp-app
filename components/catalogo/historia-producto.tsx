@@ -15,6 +15,7 @@ import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
   conLosCreados,
+  inventarioCompleto,
   lineaArranque,
   loQueSePierde,
   lineaCelebracion,
@@ -265,7 +266,7 @@ function Historia({
   const ejeDelPaso = paso === "eje1" ? preguntasEjes[0] : paso === "eje2" ? preguntasEjes[1] : undefined;
   const ultimoEje = ejeDelPaso !== undefined && ejeDelPaso === preguntasEjes[preguntasEjes.length - 1];
   const errorEjes = ultimoEje ? errorDeEjes(opcionesFinales) : null;
-  const inventarioCompleto = presentaciones.pres.some((p) => p.activa) && (porEncargo ? encargoTexto.trim().length > 0 : resumenPres.enTotal > 0);
+  const inventarioLleno = inventarioCompleto(presentaciones.pres, porEncargo, encargoTexto);
   const listoParaSeguir =
     paso === "cambia" ? ejes.length > 0
     : ejeDelPaso ? ejeDelPaso.valores.length > 0 && errorEjes === null
@@ -273,7 +274,7 @@ function Historia({
   const seguir = () => {
     if (!listoParaSeguir) return;
     // Desde la última pantalla de valores: el Inventario (otra hoja encima) hasta que quede listo; después, «Así se ve».
-    if (ultimoEje && (!inventarioListo || !inventarioCompleto)) return setInventarioAbierto(true);
+    if (ultimoEje && (!inventarioListo || !inventarioLleno)) return setInventarioAbierto(true);
     irA(pasoSiguiente(paso, servicio, variantes));
   };
   const atras = (): boolean => {

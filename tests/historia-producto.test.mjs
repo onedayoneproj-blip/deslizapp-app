@@ -151,3 +151,15 @@ test("lo que se pierde al quitar un valor, y su aviso", () => {
   assert.equal(H.textoPerdida({ unidades: 0, precios: 2 }), "Se pierden sus 2 precios propios.");
   assert.equal(H.totalDelBorrador(pres), 3);
 });
+
+test("el Inventario está completo solo con alguna presentación a la vista y algo en total (o su plazo, por encargo)", () => {
+  const p = (stock, activa = true) => ({ valores: { Color: String(Math.random()) }, stock, precio: null, activa });
+  assert.equal(H.inventarioCompleto([], false, ""), false, "sin presentaciones");
+  assert.equal(H.inventarioCompleto([], true, "Llega en 1 mes"), false, "sin presentaciones, aunque haya plazo");
+  assert.equal(H.inventarioCompleto([p(0), p(0)], false, ""), false, "todo en 0");
+  assert.equal(H.inventarioCompleto([p(3, false), p(0)], false, ""), false, "lo que hay está oculto");
+  assert.equal(H.inventarioCompleto([p(0), p(2)], false, ""), true);
+  assert.equal(H.inventarioCompleto([p(0, false), p(0, false)], true, "Llega en 1 mes"), false, "por encargo con todas ocultas");
+  assert.equal(H.inventarioCompleto([p(0), p(0, false)], true, "  "), false, "por encargo sin plazo");
+  assert.equal(H.inventarioCompleto([p(0), p(0, false)], true, "Llega en 1 mes"), true, "por encargo con una a la vista y plazo");
+});

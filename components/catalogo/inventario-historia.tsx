@@ -4,7 +4,7 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { flushSync } from "react-dom";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import { formatearPesos } from "@/lib/formato";
-import { OPCIONES_CUANDO_LLEGA, opcionDeCuandoLlega, textoCuandoLlega } from "@/lib/historia-producto";
+import { inventarioCompleto, OPCIONES_CUANDO_LLEGA, opcionDeCuandoLlega, textoCuandoLlega } from "@/lib/historia-producto";
 import {
   claveVariante,
   precioDe,
@@ -114,7 +114,7 @@ export function HojaInventarioHistoria({
   const enLista = detalle ? pres.find((p) => claveVariante(p.valores) === detalle) ?? null : null;
   // Siempre hace falta al menos una presentación a la vista (si no, no hay nada que elegir en el catálogo); además, cantidades o el plazo.
   const hayVisibles = pres.some((p) => p.activa);
-  const listo = hayVisibles && (porEncargo ? encargoTexto.trim().length > 0 : resumen.enTotal > 0);
+  const listo = inventarioCompleto(pres, porEncargo, encargoTexto);
 
   const cambiarPrecios = (encender: boolean) => {
     setPrecios(encender);

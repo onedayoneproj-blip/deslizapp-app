@@ -195,3 +195,14 @@ export function textoPerdida({ unidades, precios }: { unidades: number; precios:
 
 /** El total de unidades del borrador (las visibles): al volver a un solo stock, es lo que queda en el producto. */
 export const totalDelBorrador = (pres: Presentacion[]) => pres.filter((p) => p.activa).reduce((t, p) => t + (p.stock ?? 0), 0);
+
+/**
+ * ¿El Inventario está completo? Siempre hace falta al menos una presentación a la vista (si no, no hay nada que elegir en el
+ * catálogo) y, además, algo en total entre las visibles o, por encargo, su plazo. Lo usan «Listo» del Inventario y el «Seguir» de
+ * la última pantalla de valores (nunca se llega a «Así se ve» con 0, con todas ocultas o sin plazo).
+ */
+export function inventarioCompleto(pres: Presentacion[], porEncargo: boolean, encargoTexto: string): boolean {
+  const visibles = pres.filter((p) => p.activa);
+  if (visibles.length === 0) return false;
+  return porEncargo ? encargoTexto.trim().length > 0 : visibles.some((p) => (p.stock ?? 0) > 0);
+}
