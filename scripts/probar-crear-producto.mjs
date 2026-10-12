@@ -80,6 +80,15 @@ async function proporcion(page, sel, nombre) {
   });
   ok(Math.abs(r.w / r.h - 0.8) <= 0.01 && r.cubre !== false, `${nombre}: 4:5 (${Math.round(r.w)}×${Math.round(r.h)})${r.cubre ? ", la foto lo cubre" : ""}`);
 }
+/** La barra de abajo es sólida (el fondo de la hoja, sin transparencia) y ocupa todo el ancho: nada asoma por ella ni a sus lados. */
+async function pieOpaco(page, nombre) {
+  const r = await page.locator("[data-pie-historia]").evaluate((e) => {
+    const c = getComputedStyle(e);
+    const b = e.getBoundingClientRect();
+    return { fondo: c.backgroundColor, ancho: b.width, hoja: e.closest("[data-hoja-panel]").getBoundingClientRect().width };
+  });
+  ok(/^rgb\(/.test(r.fondo) && Math.abs(r.ancho - r.hoja) < 1, `${nombre}: la barra de abajo es sólida y de lado a lado (${r.fondo})`);
+}
 /** Al final del contenido, nada queda detrás de la barra fija de abajo. */
 async function nadaDetrasDelPie(page, sel, nombre) {
   await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
@@ -181,6 +190,7 @@ for (const ancho of ANCHOS) {
     ok(ultima <= techo, `…y sin desplazar, los opcionales quedan por encima de «Publicar» (${Math.round(ultima)} ≤ ${Math.round(techo)})`);
     ok(await boton(page, "Publicar").isEnabled() && await boton(page, "Guardar sin publicar").isVisible(), "«Publicar» y «Guardar sin publicar»");
     await nadaDetrasDelPie(page, "[data-opcional]", "Paso 5, las pastillas opcionales");
+    await pieOpaco(page, "Paso 5");
     await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
     // Un opcional: Descripción. Al cerrar, la pastilla muestra que está hecha.
     await page.locator('[data-opcional="Descripción"]').tap();
@@ -267,7 +277,12 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(100);
     ok((await enfocado(page)) === "campo", "«Otro» abre el campo con el foco");
     await escribir(page, "Llega el viernes");
+    // Apagar y volver a prender el encargo no esconde lo escrito en «Otro».
+    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    ok((await page.getByRole("radio", { name: "Otro" }).getAttribute("aria-checked")) === "true" && (await page.locator("[data-campo-paso]").inputValue()) === "Llega el viernes", "Al volver a prender el encargo, «Otro» sigue elegido con lo escrito");
     await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
+    ok((await page.locator("[data-campo-paso]").count()) === 0, "Una opción rápida cierra el campo de «Otro»");
     await captura(page, "4-cuando-llega", ancho);
     await seguir(page);
     await boton(page, "Publicar").tap();
@@ -291,17 +306,23 @@ for (const ancho of ANCHOS) {
     const flujo = page.getByRole("dialog").last();
     await flujo.getByRole("button", { name: "XS a XL", exact: true }).tap();
     await flujo.getByRole("button", { name: "Siguiente · 5 presentaciones", exact: true }).tap();
+    await flujo.getByRole("button", { name: "Agregar uno a todas", exact: true }).tap();
     await flujo.getByRole("button", { name: /^Listo ·/ }).tap();
     await page.waitForTimeout(700);
     ok((await paso(page)) === "precio" && (await page.locator("[data-chip-presentaciones]").innerText()).includes("Talla · 5"), "De vuelta en el precio, el chip dice «Talla · 5»");
     await seguir(page);
-    ok((await page.locator(H).innerText()).includes("5 presentaciones"), "El paso de stock resume las presentaciones");
+    ok((await page.locator(H).innerText()).includes("5 presentaciones · 5 en total"), "El paso de stock resume las presentaciones (5 en total)");
+    // Por encargo no lleva stock: tampoco las presentaciones.
+    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("radio", { name: "1 mes" }).tap();
     await seguir(page);
     await boton(page, "Publicar").tap();
     await page.locator("[data-celebracion]").waitFor();
     const d = await db(page);
     const p = d.productos.find((x) => x.nombre === "Camiseta tallas");
-    ok(p && d.variantes.filter((v) => v.productoId === p.id).length === 5 && p.opciones[0].nombre === "Talla", "Publicado con sus 5 presentaciones");
+    const suyas = d.variantes.filter((v) => v.productoId === p?.id);
+    ok(p && suyas.length === 5 && p.opciones[0].nombre === "Talla", "Publicado con sus 5 presentaciones");
+    ok(p.porEncargo && p.encargoTexto === "Llega en 1 mes" && suyas.every((v) => v.stock === 0), "Por encargo: las presentaciones se guardan sin stock (0)");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -323,6 +344,14 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await seguir(page);
     ok(await boton(page, "Publicar").isDisabled() && await page.locator("[data-catalogo-lleno]").isVisible(), "Lleno: «Publicar» apagado con «Tu catálogo está lleno…»");
+    {
+      const aviso = await page.locator("[data-catalogo-lleno]").boundingBox();
+      const pub = await boton(page, "Publicar").boundingBox();
+      const dentro = await page.locator("[data-pie-historia] [data-catalogo-lleno]").count();
+      ok(dentro === 1 && aviso.y + aviso.height <= pub.y && aviso.y >= 0, "…el aviso va completo en la barra, encima de «Publicar»");
+    }
+    await pieOpaco(page, "Lleno");
+    await nadaDetrasDelPie(page, "[data-opcional]", "Lleno, las pastillas opcionales");
     ok((await page.locator('[data-opcional="Detalles"]').count()) === 1, "Perfumes: la pastilla «Detalles»");
     await captura(page, "5-catalogo-lleno", ancho);
     await boton(page, "Guardar sin publicar").tap();
@@ -363,6 +392,29 @@ for (const ancho of ANCHOS) {
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
+}
+
+console.log("\n=== Pantalla baja (360×640) con el catálogo lleno: barra sólida, aviso completo y nada tapado ===");
+{
+  const lleno = demoCon((d) => {
+    d.tiendas.find((x) => x.id === MICHEL).limiteProductos = d.productos.filter((p) => p.tiendaId === MICHEL && p.activo && !p.eliminadoEn).length;
+  });
+  const { ctx, page, errores } = await pagina(360, MICHEL, lleno, 640);
+  await abrir(page);
+  await subirFoto(page, "#d9a");
+  await seguir(page);
+  await escribir(page, "Oud bajo lleno");
+  await seguir(page);
+  await escribir(page, "2500");
+  await seguir(page);
+  await seguir(page);
+  ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-pie-historia] [data-catalogo-lleno]").isVisible()), "360×640 lleno: «Publicar» apagado y el aviso en la barra");
+  await pieOpaco(page, "360×640 lleno");
+  await nadaDetrasDelPie(page, "[data-opcional]", "360×640 lleno, las pastillas opcionales");
+  await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
+  await captura(page, "5-catalogo-lleno-pantalla-baja", 360);
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
 }
 
 console.log("\n=== Pantalla baja (360×640): la tarjeta, el campo y «Seguir» caben sin desplazar ===");

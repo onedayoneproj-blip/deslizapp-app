@@ -17,6 +17,11 @@ Encargo: [docs/prompts/crear-producto-historia.md](../prompts/crear-producto-his
 4. La tarjeta «así se verá» es 4:5 con la foto en `cover` en los pasos 1–4 (también con fotos horizontales y verticales) y su tamaño sale de `dvh`, así el teclado no la cambia; a 360×640 caben la tarjeta, el campo y «Seguir». La foto de la celebración también es 4:5.
 5. La tarjeta de retoque del paso de fotos (sección 7 del encargo) queda para otra ronda: `SeccionMedios` en modo historia deja sitio debajo de la tira, sin cambiar la marca por foto de hoy.
 
+## Después de abrir el PR (#112)
+
+- Planning: la barra de abajo ahora es sólida (fondo de la hoja, de lado a lado, `linea` arriba) y el aviso de catálogo lleno va completo dentro de ella, encima de «Publicar»; comprobado a 360, 390, 430 y 360×640. El reel del paso 5 no baja de 272×340 (a 360×640 se desplaza en vez de apretar su texto).
+- Codex: «Otro» de «¿Cuándo llega?» se conserva al apagar y volver a prender el encargo; por encargo, las presentaciones también se guardan con stock 0.
+
 ## Decisiones fuera del encargo (o donde había que elegir)
 
 - **Seguir sin foto:** se puede, y también publicar sin foto (la base lo acepta). Al editar, «Guardar cambios» sigue pidiendo foto como siempre.

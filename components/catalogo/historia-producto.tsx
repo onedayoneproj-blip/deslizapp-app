@@ -206,10 +206,15 @@ function Historia({
     setStockValor(v);
     setStockTocado(true);
   };
-  const elegirEncargo = (activo: boolean) => {
-    setPorEncargo(activo);
-    if (!activo) setEncargoOtro(false);
-  };
+  const elegirEncargo = (activo: boolean) => setPorEncargo(activo);
+  // «Otro» sigue abierto mientras el texto no sea una de las opciones rápidas (también al apagar y volver a prender el encargo).
+  const otroAbierto = encargoOtro || (encargoTexto.trim() !== "" && opcionDeCuandoLlega(encargoTexto) === null);
+  /** Por encargo no se lleva stock: tampoco en las presentaciones (si no, el catálogo las vería disponibles). */
+  const presentacionesFinales: EstadoPresentaciones = !tieneOpciones
+    ? SIN_PRESENTACIONES
+    : porEncargo
+      ? { ...presentaciones, pres: presentaciones.pres.map((p) => ({ ...p, stock: 0 })) }
+      : presentaciones;
   /** Al pasar a presentaciones con el flujo de hoy: el total vuelve al stock si se quitan (como en la hoja de producto). */
   const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
     if (nuevo.pres.length === 0 && tieneOpciones) setStockValor(resumenPres.enTotal);
@@ -226,7 +231,7 @@ function Historia({
     setGuardando(true);
     const r = await guardado.crear(
       {
-        nombre, precio, medios, stock: porEncargo ? 0 : stock, presentaciones: tieneOpciones ? presentaciones : SIN_PRESENTACIONES, detalles, ficha,
+        nombre, precio, medios, stock: porEncargo ? 0 : stock, presentaciones: presentacionesFinales, detalles, ficha,
         coleccion: coleccionElegida, porEncargo: !servicio && porEncargo, encargoTexto, rubro: variosTipos ? tipo : null, activo: visible,
       },
       { sinFoto: true },
@@ -256,7 +261,7 @@ function Historia({
       tienda: tiendaPublicaDe(tienda),
       producto: productoPublicoDeBorrador({
         nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? presentaciones.opciones : [],
-        presentaciones: tieneOpciones ? presentaciones.pres : [], stock: porEncargo ? 0 : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo,
+        presentaciones: presentacionesFinales.pres, stock: porEncargo ? 0 : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo,
         fotosPorValor, fichaUrl: fichaVisible(null, ficha) && ficha.tipo === "nueva" ? ficha.foto : null,
       }),
     };
@@ -339,7 +344,7 @@ function Historia({
             <div className="flex flex-col gap-3" data-cuando-llega="">
               <GrupoOpciones
                 etiqueta="¿Cuándo llega?"
-                valor={encargoOtro ? "otro" : opcionDeCuandoLlega(encargoTexto)}
+                valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
                 alCambiar={(id) => {
                   if (id === "otro") {
                     // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
@@ -352,7 +357,7 @@ function Historia({
                 }}
                 opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
               />
-              {encargoOtro && (
+              {otroAbierto && (
                 <Campo
                   etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
                   placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
@@ -388,7 +393,6 @@ function Historia({
               {conDetalles && <PastillaOpcional texto="Detalles" hecha={tieneDetallesPorRubro(detalles)} alTocar={() => setOpcional("detalles")} />}
             </div>
           </section>
-          {llenoPlan && <p className="text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>}
           {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
         </>
       )}
@@ -402,15 +406,19 @@ function Historia({
 
       {paso !== "listo" && paso !== "foto" && (
         <HojaFijoAbajo>
-          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))] flex flex-col gap-1" data-pie-historia="">
+          {/* Barra sólida (fondo de la hoja): el contenido pasa por detrás sin asomar; el aviso de catálogo lleno va encima, completo. */}
+          <div className="pointer-events-auto flex flex-col gap-1 border-t border-linea bg-fondo px-4 pt-3 pb-[max(0.75rem,var(--safe-abajo))]" data-pie-historia="">
+            {paso === "vista" && llenoPlan && (
+              <p role="status" className="pb-1 text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
+            )}
             <div className="flex items-center gap-3">
-              <button type="button" aria-label="Atrás" onClick={atras} className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion shadow-flotante", FOCO)} data-atras-historia="">
+              <button type="button" aria-label="Atrás" onClick={atras} className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion", FOCO)} data-atras-historia="">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
               </button>
               {paso === "vista" ? (
-                <Boton jerarquia="resalte" tamano="grande" className="flex-1 shadow-flotante" cargando={guardando} deshabilitado={llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}>Publicar</Boton>
+                <Boton jerarquia="resalte" tamano="grande" className="flex-1" cargando={guardando} deshabilitado={llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}>Publicar</Boton>
               ) : (
-                <Boton tamano="grande" className="flex-1 shadow-flotante" deshabilitado={!listoParaSeguir} onClick={seguir}>Seguir</Boton>
+                <Boton tamano="grande" className="flex-1" deshabilitado={!listoParaSeguir} onClick={seguir}>Seguir</Boton>
               )}
             </div>
             {paso === "vista" && (
@@ -421,8 +429,8 @@ function Historia({
       )}
       {paso === "foto" && medios.length > 0 && (
         <HojaFijoAbajo>
-          <div className="pointer-events-auto mx-4 mb-[max(0.75rem,var(--safe-abajo))]" data-pie-historia="">
-            <Boton tamano="grande" anchoCompleto className="shadow-flotante" onClick={seguir}>Seguir</Boton>
+          <div className="pointer-events-auto border-t border-linea bg-fondo px-4 pt-3 pb-[max(0.75rem,var(--safe-abajo))]" data-pie-historia="">
+            <Boton tamano="grande" anchoCompleto onClick={seguir}>Seguir</Boton>
           </div>
         </HojaFijoAbajo>
       )}
@@ -594,7 +602,7 @@ function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const clave = JSON.stringify(d && "producto" in d ? d.producto : null);
   useEffect(mandar, [clave]);
   return (
-    <div className="relative aspect-[4/5] w-[max(12rem,min(100%,22rem,calc((100dvh-27rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l bg-black" data-reel-historia="">
+    <div className="relative aspect-[4/5] w-[max(17rem,min(100%,22rem,calc((100dvh-27rem)*0.8)))] shrink-0 self-center overflow-hidden rounded-radio-l bg-black" data-reel-historia="">
       <iframe ref={marco} src="/vista-previa-reel" title="Así lo verá tu cliente" className="absolute inset-0 size-full border-0" />
     </div>
   );
