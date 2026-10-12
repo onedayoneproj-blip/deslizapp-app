@@ -21,6 +21,8 @@ body{margin:0}
 .pb .btn2{height:52px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;font-size:17px;font-weight:800;width:100%}
 .pb .chip{height:36px;padding:0 14px;border-radius:999px;border:1px solid #e7dcc8;background:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
 .pb .circ{width:44px;height:44px;border:0;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pb .fila{height:52px;border:1px solid #efe4d2;border-radius:16px;background:#fff;padding:0 14px;display:flex;align-items:center;gap:10px}
+.pb .sw{width:51px;height:31px;border-radius:999px;border:0;position:relative;flex-shrink:0;padding:0}
 @keyframes pop{0%{opacity:0;transform:scale(.4) translateY(14px)}70%{opacity:1;transform:scale(1.08) translateY(-2px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 .pb .a1{animation:pop .55s .05s both,flota 3.2s 1s ease-in-out infinite}
@@ -33,14 +35,25 @@ body{margin:0}
 </helmet>
 <div class="pb" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a; line-height: 1.3">
 
+  <!-- Detrás: el panel de la tienda, atenuado. Crear producto es una HOJA encima. -->
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: #fff9ee">
+    <div style="position: absolute; left: 20px; top: 60px; width: 150px; height: 14px; border-radius: 999px; background: #e7dcc8"></div>
+    <div style="position: absolute; right: 20px; top: 60px; width: 70px; height: 14px; border-radius: 999px; background: #e7dcc8"></div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(16,54,42,.45)"></div>
+
+  <section aria-label="Nuevo producto" style="position: absolute; left: 0; right: 0; top: 78px; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; box-shadow: 0 -8px 30px rgba(16,54,42,.18)">
+    <div aria-hidden="true" style="position: absolute; left: 50%; top: 8px; width: 40px; height: 5px; margin-left: -20px; border-radius: 999px; background: #e7dcc8"></div>
+  </section>
+
   <!-- Cabecera fila 1: solo el selector de catálogo (recuerda el último usado; se oculta con un solo catálogo) -->
-  <div style="position: absolute; left: 20px; right: 20px; top: 44px; height: 28px; display: flex; align-items: center">
+  <div style="position: absolute; left: 20px; right: 20px; top: 98px; height: 28px; display: flex; align-items: center">
     <button type="button" aria-label="Catálogo: Ropa" class="disp" style="border: 0; background: transparent; padding: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 6px">Ropa
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
     </button>
   </div>
-  <!-- Cabecera fila 2: ‹ atrás (lugar fijo) · barras de historia · ✕ -->
-  <div style="position: absolute; left: 16px; right: 16px; top: 76px; display: flex; align-items: center; gap: 10px">
+  <!-- Fila 2: ‹ atrás (lugar fijo) · barras de historia · ✕ -->
+  <div style="position: absolute; left: 16px; right: 16px; top: 128px; display: flex; align-items: center; gap: 10px">
     <button type="button" class="circ" aria-label="Atrás" onClick="{{atras}}" style="{{estiloAtras}}">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
     </button>
@@ -65,9 +78,9 @@ body{margin:0}
       <span style="{{pildoraFotos}}">1/3</span>
     </div>
     <div style="{{bloqueSinFoto}}">
-      <h1 class="disp" style="margin: 20px 0 0; font-size: 28px; line-height: 1.1">Empieza por la foto</h1>
-      <p class="sec" style="margin: 6px 0 0; font-size: 15px">La primera será la portada. Puedes sumar más después.</p>
-      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px">
+      <h1 class="disp" style="margin: 18px 0 0; font-size: 26px; line-height: 1.1">Empieza por la foto</h1>
+      <p class="sec" style="margin: 4px 0 0; font-size: 15px">La primera será la portada. Puedes sumar más después.</p>
+      <div style="margin-top: 14px; display: flex; gap: 10px">
         <button type="button" class="btn" onClick="{{seguir}}">Tomar foto</button>
         <button type="button" class="btn2" onClick="{{seguir}}">Elegir de la galería</button>
       </div>
@@ -81,12 +94,12 @@ body{margin:0}
       </div>
       <p class="sec" style="margin: 8px 2px 0">Hasta 10. Mantén presionado para ordenar.</p>
     </div>
-    <!-- Al final de la pantalla, siempre: la frase en Caveat. Debajo irá (ronda futura) la sección para pedir a Deslizapp que retoque la foto. -->
-    <p class="mano" style="margin: 16px 0 0; font-size: 26px; color: #a8410f; text-align: center; line-height: 1.1">Con foto se vende más.</p>
+    <!-- Al final de la pantalla, siempre: la frase en Caveat. Debajo irá (ronda futura) pedir a Deslizapp que retoque la foto. -->
+    <p class="mano" style="margin: 12px 0 0; font-size: 26px; color: #a8410f; text-align: center; line-height: 1.1">Con foto se vende más.</p>
     <div style="{{huecoRetoque}}">Aquí irá: «Pedir a Deslizapp que retoque tu foto» (ronda futura)</div>
   </div>
 
-  <!-- Pasos 3 a 8: preguntas con la tarjeta «así se verá» -->
+  <!-- Pasos 3 a 8 y 11: preguntas con la tarjeta «así se verá» -->
   <div style="{{vistaPreguntas}}">
     <div style="position: relative; height: 372px; border-radius: 22px; overflow: hidden; background: #f3ead9">
       <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Vista previa del producto" style="width: 100%; height: 100%; object-fit: cover"></img>
@@ -94,13 +107,17 @@ body{margin:0}
       <span class="mano" style="position: absolute; left: 14px; top: 10px; font-size: 22px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.35)">así se verá</span>
       <div style="position: absolute; left: 16px; right: 16px; bottom: 14px; color: #fff">
         <p class="disp" style="{{nombreVista}}">Hoodie Deslizapp</p>
-        <p style="{{precioVista}}">RD$1,450</p>
+        <div style="{{precioVista}}">
+          <span style="font-size: 16px; font-weight: 800">{{textoPrecio}}</span>
+          <span style="{{pildoraTallas}}">Talla S · M · L</span>
+          <span style="{{puntosColor}}"><span style="width: 18px; height: 18px; border-radius: 999px; background: #efe6d6; border: 1.5px solid #c9bda7; display: inline-block"></span><span style="width: 18px; height: 18px; border-radius: 999px; background: #2f4a3c; border: 1.5px solid rgba(255,255,255,.7); display: inline-block"></span></span>
+        </div>
         <p style="{{llegaVista}}">Llega en 1 a 2 semanas</p>
       </div>
     </div>
-    <div style="margin-top: 20px">
-      <h1 class="disp" style="margin: 0; font-size: 28px; line-height: 1.1">{{pregunta}}</h1>
-      <p class="sec" style="margin: 6px 0 0; font-size: 15px">{{ayuda}}</p>
+    <div style="margin-top: 18px">
+      <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 1.1">{{pregunta}}</h1>
+      <p class="sec" style="margin: 5px 0 0; font-size: 15px">{{ayuda}}</p>
     </div>
 
     <div style="{{entradaNombre}}">
@@ -116,7 +133,7 @@ body{margin:0}
         <span style="{{pistaPrecio}}">Escribe tu precio</span>
       </div>
       <button type="button" class="chip" style="{{chipVarias}}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Tiene tallas o colores
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Tiene tallas o colores
       </button>
     </div>
 
@@ -126,48 +143,61 @@ body{margin:0}
         <span class="disp" style="min-width: 80px; text-align: center; font-size: 44px">12</span>
         <button type="button" aria-label="Agregar uno" style="width: 56px; height: 56px; border-radius: 999px; border: 0; background: #174b3a; color: #fff9ee; font-size: 26px; font-weight: 800">+</button>
       </div>
-      <div style="margin-top: 12px; height: 52px; border: 1px solid #efe4d2; border-radius: 16px; background: #fff; padding: 0 14px; display: flex; align-items: center; gap: 10px">
+      <div class="fila" style="margin-top: 10px">
         <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
-        <span role="switch" aria-checked="false" aria-label="Es por encargo" style="width: 51px; height: 31px; border-radius: 999px; background: #e7dcc8; position: relative; flex-shrink: 0"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></span>
+        <button type="button" role="switch" aria-checked="false" aria-label="Es por encargo" class="sw" style="background: #e7dcc8"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
       </div>
     </div>
 
     <div style="{{entradaEncargo}}">
-      <div style="height: 52px; border: 1px solid #efe4d2; border-radius: 16px; background: #fff; padding: 0 14px; display: flex; align-items: center; gap: 10px">
+      <div class="fila">
         <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
-        <span role="switch" aria-checked="true" aria-label="Es por encargo" style="width: 51px; height: 31px; border-radius: 999px; background: #174b3a; position: relative; flex-shrink: 0"><span style="position: absolute; right: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></span>
+        <button type="button" role="switch" aria-checked="true" aria-label="Es por encargo" class="sw" style="background: #174b3a"><span style="position: absolute; right: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
       </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px">
-        <span class="chip" style="height: 44px; padding: 0 16px; font-size: 15px">3 a 5 días</span>
-        <span class="chip" style="height: 44px; padding: 0 16px; font-size: 15px; background: #f5c9d6; border: 2px solid #f5c9d6">1 a 2 semanas</span>
-        <span class="chip" style="height: 44px; padding: 0 16px; font-size: 15px">1 mes</span>
-        <span class="chip" style="height: 44px; padding: 0 16px; font-size: 15px">Otro</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+        <span class="chip" style="height: 40px; padding: 0 12px; font-size: 14px">3 a 5 días</span>
+        <span class="chip" style="height: 40px; padding: 0 12px; font-size: 14px; background: #f5c9d6; border: 2px solid #f5c9d6">1 a 2 semanas</span>
+        <span class="chip" style="height: 40px; padding: 0 12px; font-size: 14px">1 mes</span>
+        <span class="chip" style="height: 40px; padding: 0 12px; font-size: 14px">Otro</span>
+      </div>
+    </div>
+
+    <!-- Con varias presentaciones: el resumen de lo que se armó en la hoja «Presentaciones» -->
+    <div style="{{entradaResumen}}">
+      <div class="fila" style="height: 64px">
+        <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 16px; font-weight: 800">6 presentaciones</span><span class="sec" style="font-size: 13px">21 en total · Talla y Color</span></span>
+        <button type="button" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; font-size: 14px; font-weight: 800">Cambiar</button>
+      </div>
+      <div class="fila" style="margin-top: 10px">
+        <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
+        <button type="button" role="switch" aria-checked="false" aria-label="Es por encargo" class="sw" style="background: #e7dcc8"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></button>
       </div>
     </div>
   </div>
 
-  <!-- Paso 9: así se ve en tu catálogo -->
+  <!-- Paso 9 y 12: así se ve en tu catálogo -->
   <div style="{{vistaListo}}">
     <span class="mano" style="font-size: 26px; color: #a8410f">así se ve en tu catálogo</span>
     <div style="position: relative; height: 440px; border-radius: 22px; overflow: hidden; margin-top: 2px; background: #f3ead9">
       <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie Deslizapp en el catálogo" style="width: 100%; height: 100%; object-fit: cover"></img>
       <div style="position: absolute; inset: 55% 0 0 0; background: linear-gradient(to top, rgba(16,54,42,.72), rgba(16,54,42,0))"></div>
       <div style="position: absolute; left: 6px; top: 8px; right: 6px; display: flex; gap: 3px"><span style="flex: 1; height: 2.5px; border-radius: 999px; background: #fff"></span><span style="flex: 1; height: 2.5px; border-radius: 999px; background: rgba(255,255,255,.45)"></span></div>
-      <div style="position: absolute; right: 10px; bottom: 20px; display: flex; flex-direction: column; gap: 16px; color: #fff; align-items: center">
+      <div style="position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 16px; color: #fff; align-items: center">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-8.6-8.8C2.3 8.1 4.3 5 7.4 5c2 0 3.3 1 4.6 2.6C13.3 6 14.6 5 16.6 5c3.1 0 5.1 3.1 4 6.2C19 15.6 12 20 12 20z"></path></svg>
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.7A8 8 0 1 1 21 12z"></path></svg>
-        <span style="width: 44px; height: 44px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 11.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5z"></path><path d="M9 8V7a3 3 0 0 1 6 0v1"></path></svg></span>
       </div>
-      <div style="position: absolute; left: 16px; bottom: 18px; color: #fff">
-        <p class="disp" style="margin: 0; font-size: 26px">Hoodie Deslizapp</p>
-        <p style="margin: 2px 0 0; font-size: 17px; font-weight: 800">RD$1,450</p>
+      <div style="position: absolute; left: 16px; right: 70px; bottom: 16px; color: #fff">
+        <p class="disp" style="margin: 0; font-size: 24px">Hoodie Deslizapp</p>
+        <p style="margin: 2px 0 0; font-size: 16px; font-weight: 800">{{textoPrecioReel}}</p>
+        <span style="{{verPresentaciones}}">Ver presentaciones</span>
       </div>
+      <span style="position: absolute; right: 10px; bottom: 16px; width: 44px; height: 44px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 11.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5z"></path><path d="M9 8V7a3 3 0 0 1 6 0v1"></path></svg></span>
     </div>
     <p style="margin: 12px 0 6px; font-size: 14px; font-weight: 800; color: #4f6a5e">Hazlo brillar · opcional</p>
-    <div style="display: flex; flex-wrap: wrap; gap: 6px">
-      <button type="button" class="chip" style="height: 34px">+ Descripción</button>
-      <button type="button" class="chip" style="height: 34px">+ Colección</button>
-      <button type="button" class="chip" style="height: 34px">+ Ficha técnica</button>
+    <div style="display: flex; gap: 6px">
+      <button type="button" class="chip" style="height: 34px; padding: 0 12px; font-size: 13px">+ Descripción</button>
+      <button type="button" class="chip" style="height: 34px; padding: 0 12px; font-size: 13px">+ Colección</button>
+      <button type="button" class="chip" style="height: 34px; padding: 0 12px; font-size: 13px">+ Ficha técnica</button>
     </div>
   </div>
 
@@ -188,7 +218,7 @@ body{margin:0}
   </div>
 
   <!-- Pie: un solo botón principal. Atrás vive solo arriba. -->
-  <div style="position: absolute; left: 20px; right: 20px; bottom: 28px; display: flex; flex-direction: column; gap: 10px">
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 24px; display: flex; flex-direction: column; gap: 10px">
     <div style="{{pieSinFoto}}">
       <button type="button" onClick="{{seguir}}" style="height: 44px; border: 0; background: transparent; font-size: 16px; font-weight: 800; width: 100%">Seguir sin foto</button>
     </div>
@@ -206,13 +236,14 @@ body{margin:0}
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":10,"default":1},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":12,"default":1},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const s = this.state || {};
     const paso = s.paso ?? (this.props.paso ?? 1);
-    // 1 foto vacía · 2 con fotos · 3 nombre vacío · 4 nombre · 5 precio vacío · 6 precio · 7 stock · 8 cuándo llega · 9 así se ve · 10 celebración
-    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5][paso - 1];
+    // 1 foto vacía · 2 con fotos · 3 nombre vacío · 4 nombre · 5 precio vacío · 6 precio · 7 stock · 8 cuándo llega
+    // 9 así se ve · 10 celebración · 11 cuántos tienes (con presentaciones) · 12 así se ve (con presentaciones)
+    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 4, 5][paso - 1];
     const ver = (b, estilo) => b ? (estilo || '') : 'display: none';
     const textos = {
       3: ['¿Cómo se llama?', 'Como lo dirías en WhatsApp.'],
@@ -220,26 +251,30 @@ class Component extends DCLogic {
       5: ['¿Cuánto cuesta?', 'Si cambia por talla o color, lo ajustas aquí.'],
       6: ['¿Cuánto cuesta?', 'Si cambia por talla o color, lo ajustas aquí.'],
       7: ['¿Cuántos tienes ahora?', 'Al despachar, baja solito.'],
-      8: ['¿Cuándo llega?', 'Se puede pedir aunque no haya.']
+      8: ['¿Cuándo llega?', 'Se puede pedir aunque no haya.'],
+      11: ['¿Cuántos tienes ahora?', 'Al despachar, baja solito.']
     };
     const t = textos[paso] || ['', ''];
-    const sinFotoEstado = paso === 1;
+    const conPres = paso === 11;
     return {
       pasoNum: momento,
       barras: [1, 2, 3, 4, 5].map((i) => ({ estilo: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (i <= momento ? '#174b3a' : '#e7dcc8') })),
       estiloAtras: paso === 1 ? 'opacity: .35' : (paso === 10 ? 'visibility: hidden' : ''),
-      vistaFoto: ver(paso <= 2, 'position: absolute; left: 20px; right: 20px; top: 128px'),
-      vistaPreguntas: ver(paso >= 3 && paso <= 8, 'position: absolute; left: 20px; right: 20px; top: 128px'),
-      vistaListo: ver(paso === 9, 'position: absolute; left: 20px; right: 20px; top: 124px'),
-      vistaCelebra: ver(paso === 10, 'position: absolute; left: 20px; right: 20px; top: 160px'),
-      sinFoto: ver(sinFotoEstado, 'position: absolute; inset: 14px; border: 2px dashed #9c8b6e; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px'),
+      vistaFoto: ver(paso <= 2, 'position: absolute; left: 20px; right: 20px; top: 180px'),
+      vistaPreguntas: ver((paso >= 3 && paso <= 8) || paso === 11, 'position: absolute; left: 20px; right: 20px; top: 180px'),
+      vistaListo: ver(paso === 9 || paso === 12, 'position: absolute; left: 20px; right: 20px; top: 176px'),
+      vistaCelebra: ver(paso === 10, 'position: absolute; left: 20px; right: 20px; top: 200px'),
+      sinFoto: ver(paso === 1, 'position: absolute; inset: 14px; border: 2px dashed #9c8b6e; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px'),
       fotoGrande: ver(paso === 2, 'width: 100%; height: 100%; object-fit: cover'),
       pildoraFotos: ver(paso === 2, 'position: absolute; right: 12px; top: 12px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(16,54,42,.62); color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center'),
       bloqueSinFoto: ver(paso === 1),
       bloqueConFotos: ver(paso === 2),
-      huecoRetoque: ver(paso === 2, 'margin-top: 12px; border: 1.5px dashed #c9bda7; border-radius: 16px; padding: 12px 14px; font-size: 13px; color: #8a8a7a; text-align: center'),
+      huecoRetoque: ver(paso === 2, 'margin-top: 10px; border: 1.5px dashed #c9bda7; border-radius: 14px; padding: 8px 12px; font-size: 12px; color: #8a8a7a; text-align: center'),
       nombreVista: ver(paso >= 4, 'margin: 0; font-size: 24px'),
-      precioVista: ver(paso >= 6 && paso !== 8 || paso === 8, 'margin: 2px 0 0; font-size: 16px; font-weight: 800'),
+      precioVista: ver(paso >= 6, 'display: flex; align-items: center; gap: 10px; margin-top: 2px; flex-wrap: wrap'),
+      textoPrecio: conPres ? 'Desde RD$1,450' : 'RD$1,450',
+      pildoraTallas: conPres ? 'height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.22); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center' : 'display: none',
+      puntosColor: conPres ? 'display: inline-flex; gap: 4px; align-items: center' : 'display: none',
       llegaVista: ver(paso === 8, 'margin: 2px 0 0; font-size: 14px; font-weight: 700; opacity: .9'),
       pregunta: t[0], ayuda: t[1],
       entradaNombre: ver(paso === 3 || paso === 4, 'margin-top: 16px'),
@@ -247,13 +282,16 @@ class Component extends DCLogic {
       entradaPrecio: ver(paso === 5 || paso === 6, 'margin-top: 16px'),
       cifraPrecio: paso === 6 ? 'font-size: 32px' : 'display: none',
       pistaPrecio: paso === 5 ? 'font-size: 18px; font-weight: 600; color: #8a8a7a' : 'display: none',
-      cursorPrecio: paso === 5 ? 'width: 2px; height: 28px; background: #174b3a; margin-left: 0' : 'display: none',
-      chipVarias: paso === 6 ? 'margin-top: 12px' : 'display: none',
-      entradaStock: ver(paso === 7, 'margin-top: 16px'),
-      entradaEncargo: ver(paso === 8, 'margin-top: 16px'),
+      cursorPrecio: paso === 5 ? 'width: 2px; height: 28px; background: #174b3a' : 'display: none',
+      chipVarias: paso === 6 ? 'margin-top: 10px' : 'display: none',
+      entradaStock: ver(paso === 7, 'margin-top: 14px'),
+      entradaEncargo: ver(paso === 8, 'margin-top: 14px'),
+      entradaResumen: ver(paso === 11, 'margin-top: 14px'),
+      textoPrecioReel: paso === 12 ? 'Desde RD$1,450' : 'RD$1,450',
+      verPresentaciones: paso === 12 ? 'margin-top: 10px; height: 40px; padding: 0 16px 0 10px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.7); background: rgba(16,54,42,.35); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800' : 'display: none',
       pieSinFoto: ver(paso === 1, 'display: flex'),
-      pieSeguir: ver(paso >= 2 && paso <= 8, 'display: flex'),
-      piePublicar: ver(paso === 9, 'display: flex; flex-direction: column; gap: 4px'),
+      pieSeguir: ver((paso >= 2 && paso <= 8) || paso === 11, 'display: flex'),
+      piePublicar: ver(paso === 9 || paso === 12, 'display: flex; flex-direction: column; gap: 4px'),
       pieCelebra: ver(paso === 10, 'display: flex; flex-direction: column; gap: 10px'),
       seguir: () => this.setState({ paso: Math.min(10, paso + 1) }),
       atras: () => this.setState({ paso: Math.max(1, paso - 1) }),

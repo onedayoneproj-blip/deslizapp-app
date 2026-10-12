@@ -4,7 +4,7 @@ Encargo de Planning, 12 oct 2026. Lewis probó en su iPhone las dos versiones y 
 
 Antes de empezar: haz merge de `main` en la rama (hay cambios del catálogo, de novedades y de pruebas desde que abriste el PR).
 
-**El prototipo se actualizó con todos estos cambios (v2): `referencias/crear-producto/capturas/b1…b10.png`, `v1…v6.png` y `prototipo-crear-producto.pdf` manda. Si algo de abajo choca con las capturas v2, mandan las capturas v2 y avísalo en el PR.**
+**El prototipo se actualizó con todos estos cambios (v3, lienzo de Claude Design versión 15): `referencias/crear-producto/capturas/b1…b12.png` y `v1…v3.png` y el LEEME de esa carpeta mandan. Si algo de abajo choca con las capturas v2, mandan las capturas v2 y avísalo en el PR.**
 
 ## 1. Cabecera de la hoja (se ve apiñada)
 
@@ -45,6 +45,14 @@ Antes de empezar: haz merge de `main` en la rama (hay cambios del catálogo, de 
 ## Entrega
 
 Capturas a 390×844 de cada pantalla tocada en `docs/capturas/crear-producto-codex/` (reemplaza las viejas), con fotos reales de prueba. Tabla «antes / después» en la descripción del PR. «Revisión» en verde. No fusionar: Planning revisa y Lewis prueba en su iPhone.
+
+## 7. Cambio de estructura (Lewis, 12 oct): crear producto es una hoja, y las presentaciones van en OTRA hoja encima
+
+- **La hoja «Nuevo producto» es una hoja**, no pantalla completa: sobre el panel atenuado, esquinas superiores redondeadas (28), agarradera, borde superior en y≈78 (como el prototipo v3). Lo demás de la cabecera, como en la sección 1.
+- **Quita el recorrido de varias presentaciones como pasos de historia dentro de la misma hoja** (los pasos v1–v6 de tu PR). Al tocar «Tiene tallas o colores» **sube otra hoja encima**, «Presentaciones» (prototipo `v1…v3`): cabecera ‹ · título · ✕ y «Paso 1 de 2 / Paso 2 de 2». Paso 1: «¿En qué cambia?», «Tallas», «Colores» y «Foto de cada color · opcional» en una sola hoja que scrollea («Seguir»). Paso 2: resumen con «Cambiar», interruptor «Es por encargo», interruptor «Cada una tiene su precio», **«Poner a todas» como fila propia con − N +** (como ya la tienes), grupos por color con filas por talla, «Listo · N en total». El detalle de una presentación (hoja inferior que ya tienes: Stock, Precio, Foto, Listo, Ocultar) queda como tercer nivel sobre «Presentaciones».
+- Al cerrar «Presentaciones» se vuelve a «Nuevo producto» en «¿Cuántos tienes ahora?» con el resumen «6 presentaciones · 21 en total» + «Cambiar» y el interruptor «Es por encargo»; luego «Así se ve» (con «Desde RD$…», píldora de tallas, puntos de color y «Ver presentaciones»).
+- Mantén `opciones_validas`, `guardar_variantes`, límites (2 ejes, 12 valores, 144 combinaciones), reasignación advertida al cambiar el primer eje, stock cero con plazo en productos por encargo. «Atrás» sigue siendo solo el ‹ de arriba de cada hoja; el gesto/botón del sistema cierra la hoja de encima primero.
+- Las hojas apiladas respetan las reglas de `HANDOFF.md` (gestos de hojas, teclado en iPhone, `protegerAtras`).
 
 ## Fuera de esta ronda (no lo hagas aquí)
 
