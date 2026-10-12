@@ -14,6 +14,9 @@ const { DatosInvalidos } = await import("../lib/data/errores.ts");
 const LINO = "a1000000-0000-4000-8000-000000000003";
 const MICHEL = "a1000000-0000-4000-8000-000000000001";
 const cat = (slug) => catalogoPublicoDeDB(construirDesdeSeed(), slug, new Date());
+// Reloj fijo para los casos comparados con un fixture: el orden depende de las fechas del seed, que corren con «ahora».
+const AHORA_FIJO = Date.parse("2026-10-08T12:00:00Z");
+const catFija = (slug) => catalogoPublicoDeDB(construirDesdeSeed(AHORA_FIJO), slug, new Date(AHORA_FIJO));
 const base = (extra = {}) => ({ nombre: "Prueba", precio: 100, fotos: [], fotoRetocada: false, categoria: null, activo: true, destacado: false, stock: 1, likes: 0, ...extra });
 
 test("rubrosDeTienda: el principal primero y sin repetir; sin rubros, solo el principal", () => {
@@ -100,7 +103,7 @@ test("el catálogo público trae los rubros de la tienda y el tipo ya resuelto d
 
 test("búsqueda con un solo rubro: idéntica a la de antes (comparada con un caso fijo de main)", () => {
   const esperado = JSON.parse(readFileSync(new URL("./fixtures/busqueda-michel.json", import.meta.url), "utf8"));
-  const c = cat("esencias-michel");
+  const c = catFija("esencias-michel");
   assert.equal(tiposDelCatalogo(c).length, 1);
   for (const [q, slugs] of Object.entries(esperado)) assert.deepEqual(buscarCatalogo(c, q).map((p) => p.slug), slugs, `«${q}»`);
 });
