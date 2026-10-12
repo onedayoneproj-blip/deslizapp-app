@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import "./cargar-ts.mjs";
+
+// Reloj fijo: el seed corre sus fechas según «ahora» (construirDesdeSeed), y el orden de Michel depende de ellas.
+const AHORA_FIJO = Date.parse("2026-10-08T12:00:00Z");
 const { buscarCatalogo, buscarConPrecio, leerPrecio, etiquetaPrecio } = await import("../lib/tienda/busqueda.ts");
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const { catalogoPublicoDeDB } = await import("../lib/data/catalogo.ts");
@@ -129,13 +132,13 @@ test("sin precio en la consulta todo sigue igual (orden: relevancia y luego prec
 
 test("Esencias Michel: la búsqueda por palabras no cambia", () => {
   const base = JSON.parse(readFileSync(new URL("./fixtures/michel-busqueda-base.json", import.meta.url), "utf8"));
-  const m = catalogoPublicoDeDB(construirDesdeSeed(), "esencias-michel", new Date("2026-10-08T12:00:00Z"));
+  const m = catalogoPublicoDeDB(construirDesdeSeed(AHORA_FIJO), "esencias-michel", new Date(AHORA_FIJO));
   assert.ok(Object.keys(base).length >= 15);
   for (const [q, esperado] of Object.entries(base)) assert.deepEqual(buscarCatalogo(m, q).map((p) => p.id), esperado, q);
 });
 
 test("Michel: «Menos de RD$2,000» (la idea de búsqueda) sigue dando perfumes bajo ese tope", () => {
-  const m = catalogoPublicoDeDB(construirDesdeSeed(), "esencias-michel", new Date("2026-10-08T12:00:00Z"));
+  const m = catalogoPublicoDeDB(construirDesdeSeed(AHORA_FIJO), "esencias-michel", new Date(AHORA_FIJO));
   const r = buscarCatalogo(m, "Menos de RD$2,000");
   assert.ok(r.length > 0);
   assert.ok(r.every((p) => [p.precioPromo ?? p.precio, ...p.variantes.map((v) => v.precioPromo ?? v.precio)].some((x) => x <= 2000))); // «Majestic Oud» entra por su tamaño más barato
