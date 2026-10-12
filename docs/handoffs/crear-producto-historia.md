@@ -98,6 +98,25 @@ Visto bueno de Planning al Bloque 1. Hecho:
 
 **Diferencias y por qué:** los colores sugeridos son los de siempre (11, de `valoresSugeridos`), así que la pantalla de colores es más larga que la del lienzo (Crema/Bosque se escriben con «+ Otro»); con 2 cosas elegidas las demás se ven igual que en el lienzo y tocarlas explica el máximo (en vez de apagarlas); el detalle reutiliza la hoja de editar (más alta, con «Quitar»); el reel dice el precio como el catálogo (si todas valen lo mismo, sin «Desde»). Con una sola cosa son 6 barras.
 
+## Revisiones de Codex y auditoría de transiciones (12 oct)
+
+Codex revisó 5b87125, efd9713 y f063507; todo lo válido quedó corregido con pruebas: el plan cuenta el recién publicado al tocar «Agregar otro» (`conLosCreados`), las quitadas no vuelven por cambios ajenos (`quitadasTrasCambiar`), quitar un valor descarta sus cantidades, precios y foto, el último catálogo se guarda solo al crear, y quitar una cosa suma las cantidades en lo que queda (`juntarPorEjes`, `quitarEje`).
+
+Después, a pedido de Planning, una auditoría de **todas** las transiciones de las presentaciones en la historia (resultado en `docs/04-pantallas.md`, «Transiciones»):
+
+| Transición | Cantidades | Precio propio | Foto del color | Quitadas a mano | Prueba |
+|---|---|---|---|---|---|
+| Quitar valor | pregunta y se pierden | pregunta y se pierden | se va | quedan registradas | auditoría |
+| Reintroducir valor | 0 | ninguno | sin foto | vuelven | auditoría + unitaria |
+| Sumar valor | se conservan; lo nuevo en 0 | se conservan | se conservan | siguen quitadas | Codex P2 + unitaria |
+| Quitar cosa | se suman | solo si todas iguales | la del color se guarda pero no se usa | junta quitada solo si todas | auditoría + unitarias |
+| Sumar cosa | pregunta y vuelven a 0 | pregunta y se quitan | se conservan (por color) | se limpian | auditoría |
+| Quitar todas y volver | pasan al stock del producto | — | — | se limpian | auditoría (‹ y teléfono) |
+| Por encargo on/off | escondidas, no perdidas | se conservan | se conservan | se conservan | auditoría |
+| ✕ del Inventario / atrás-adelante | se conservan | se conservan | se conservan | se conservan | auditoría + bloque principal |
+| «Agregar otro» | historia limpia | — | — | — | auditoría |
+| Quitar presentación y tocar valores/cosas | — | — | — | ver filas de arriba | auditoría + Codex P2 |
+
 ## Decisiones fuera del encargo (o donde había que elegir)
 
 - **Seguir sin foto:** se puede; desde la ronda 3, sin foto solo se guarda oculto (regla de Lewis), también al editar.

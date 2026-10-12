@@ -471,7 +471,7 @@ for (const ancho of ANCHOS) {
     // Quitar un valor con cantidades pregunta; las que siguen conservan lo suyo.
     await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
     await page.getByRole("alertdialog").waitFor();
-    ok((await page.getByRole("alertdialog").innerText()).includes("Sus 6 en el inventario se pierden."), "Quitar Blanco (con 6) pregunta antes");
+    ok((await page.getByRole("alertdialog").innerText()).includes("Se pierden 6 unidades del inventario y su precio propio."), "Quitar Blanco (con 6 y un precio propio) pregunta antes");
     await page.getByRole("alertdialog").getByRole("button", { name: "Cancelar" }).tap();
     await page.waitForTimeout(300);
     await page.getByRole("checkbox", { name: "Rojo", exact: true }).tap();
@@ -759,6 +759,198 @@ console.log("\n=== Dejar de cambiar por Color suma lo puesto en las tallas (Code
   await inv.waitFor();
   await page.waitForTimeout(400);
   ok((await inv.locator('[data-fila-inventario="S"]').innerText()).trim().split(/\s+/).includes("5") && (await inv.locator('[data-fila-inventario="M"]').innerText()).trim().split(/\s+/).includes("4"), "S = 3 + 2 y M = 2 + 2");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
+console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, tras la 3.ª revisión de Codex) ===");
+{
+  const { ctx, page, errores } = await pagina(390, LINO);
+  const inv = page.locator("[data-inventario-historia]");
+  const resumen = async () => (await page.locator("[data-resumen-inventario]").innerText()).replace(/\s+/g, " ");
+  const alerta = page.getByRole("alertdialog");
+  const numero = async (fila) => (await inv.locator(`[data-fila-inventario="${fila}"]`).innerText()).trim().split(/\s+/).pop();
+  const abrirInventario = async () => {
+    await page.getByRole("button", { name: "Editar", exact: true }).tap();
+    await inv.waitFor();
+    await page.waitForTimeout(400);
+  };
+  const listoInv = async () => {
+    await page.getByRole("button", { name: /^Listo · / }).last().tap();
+    await page.waitForTimeout(500);
+  };
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, "Auditoría");
+  await seguir(page);
+  await escribir(page, "1000");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "S", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "M", exact: true }).tap();
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  // Foto del color Negro.
+  await page.locator("[data-foto-cada-color] button").first().tap();
+  await page.getByRole("dialog", { name: "Foto de Negro" }).getByRole("radio").first().tap();
+  await page.getByRole("dialog", { name: "Foto de Negro" }).getByRole("button", { name: "Listo", exact: true }).tap();
+  await page.waitForTimeout(500);
+  await seguir(page);
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  // ✕ del Inventario sin «Listo» conserva; «Seguir» lo reabre igual.
+  await page.getByRole("dialog", { name: "Inventario" }).getByRole("button", { name: "Cerrar", exact: true }).first().tap();
+  await page.waitForTimeout(600);
+  await seguir(page);
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  ok(await boton(page, "Listo · 4 en total").isEnabled(), "✕ y «Seguir»: el Inventario vuelve con lo puesto (4)");
+  // Precio propio en Blanco · S y quitar Negro · M.
+  await inv.locator('[data-fila-inventario="Blanco · S"] button').first().tap();
+  let det = page.locator("[data-hoja-presentacion]");
+  await det.waitFor();
+  await page.waitForTimeout(400);
+  await det.getByRole("radio", { name: "Uno propio" }).tap();
+  await det.locator("input").tap();
+  await page.keyboard.type("1500");
+  await det.getByRole("button", { name: "Listo", exact: true }).tap();
+  await page.waitForTimeout(500);
+  await inv.locator('[data-fila-inventario="Negro · M"] button').first().tap();
+  await det.waitFor();
+  await page.waitForTimeout(400);
+  await det.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await alerta.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.waitForTimeout(500);
+  await listoInv();
+  ok((await resumen()).includes("3 presentaciones · 3 en total"), "Precio propio en Blanco · S y Negro · M quitada: «3 presentaciones · 3 en total»");
+
+  // Quitar un valor con cantidades y precio propio pregunta; cancelar no cambia nada.
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  ok((await alerta.innerText()).includes("Se pierden 2 unidades del inventario y su precio propio."), "Quitar Blanco avisa de sus 2 unidades y su precio propio");
+  await alerta.getByRole("button", { name: "Cancelar" }).tap();
+  await page.waitForTimeout(300);
+  ok((await page.getByRole("checkbox", { name: "Blanco", exact: true }).getAttribute("aria-checked")) === "true" && (await resumen()).includes("3 en total"), "…y cancelar lo deja como estaba");
+
+  // Por encargo con cantidades: quitar un valor sigue preguntando (las cantidades están escondidas, no perdidas).
+  await abrirInventario();
+  await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).last().tap();
+  await page.getByRole("radio", { name: "1 mes" }).last().tap();
+  await listoInv();
+  ok((await resumen()).includes("por encargo"), "Por encargo: el resumen dice «por encargo»");
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  ok((await alerta.innerText()).includes("Se pierde 1 unidad del inventario."), "Por encargo, quitar Negro igual avisa de su unidad");
+  await alerta.getByRole("button", { name: "Cancelar" }).tap();
+  await page.waitForTimeout(300);
+  await abrirInventario();
+  await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).last().tap();
+  ok(await boton(page, "Listo · 3 en total").isEnabled(), "Al apagar el encargo, las cantidades siguen (3)");
+  await listoInv();
+
+  // Quitar Negro (confirmado): su foto y su cantidad se van; al volver a elegirlo empieza en 0, sin foto, y vuelve Negro · M.
+  ok((await page.locator("[data-foto-cada-color] button").first().innerText()).includes("Foto 1"), "Negro tenía la foto 1");
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await alerta.getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.waitForTimeout(300);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.waitForTimeout(300);
+  ok((await page.locator("[data-foto-cada-color] button", { hasText: "Negro" }).innerText()).includes("Elegir foto"), "Negro vuelve sin foto");
+  await abrirInventario();
+  ok((await numero("Negro · S")) === "0" && (await numero("Negro · M")) === "0" && (await numero("Blanco · S")) === "1", "Negro vuelve en 0 (S y M, la quitada también) y Blanco conserva lo suyo");
+  await listoInv();
+
+  // Quitar una cosa (Color): se suma por talla; el precio propio solo sigue si todas valían lo mismo.
+  await boton(page, "Atrás").tap();
+  await boton(page, "Atrás").tap();
+  ok((await paso(page)) === "cambia", "De vuelta en «¿En qué cambia?»");
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  ok((await page.locator("[data-barras-historia] span").count()) === 6, "Sin Color: 6 barras");
+  await seguir(page);
+  ok((await resumen()).includes("2 presentaciones · 2 en total"), "Las tallas suman lo puesto: «2 presentaciones · 2 en total»");
+  await abrirInventario();
+  ok(!(await inv.locator('[data-fila-inventario="S"]').innerText()).includes("RD$1,500"), "S junta Negro (sin precio propio) y Blanco (1,500): vuelve al precio del producto");
+  await listoInv();
+
+  // Sumar una cosa con cantidades pregunta: cancelar deja todo; confirmar reparte de nuevo (todo a 0).
+  await boton(page, "Atrás").tap();
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  ok((await alerta.innerText()).includes("Las 2 que pusiste en el Inventario vuelven a 0"), "Sumar Color con cantidades pregunta antes");
+  await alerta.getByRole("button", { name: "Cancelar" }).tap();
+  await page.waitForTimeout(300);
+  ok((await page.getByRole("checkbox", { name: "Color", exact: true }).getAttribute("aria-checked")) === "false", "…cancelar no lo suma");
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  await alerta.getByRole("button", { name: "Sumar", exact: true }).tap();
+  await page.waitForTimeout(300);
+  ok((await page.locator("[data-barras-historia] span").count()) === 7, "Confirmado: 7 barras otra vez");
+  await seguir(page);
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Rojo", exact: true }).tap();
+  await seguir(page);
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  ok(await boton(page, "Listo · 0 en total").isDisabled(), "Repartido de nuevo: todo en 0 y «Listo» apagado");
+  await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  await listoInv();
+  await seguir(page);
+  ok((await paso(page)) === "vista", "Con algo en total, «Seguir» llega a «Así se ve»");
+  await boton(page, "Publicar").tap();
+  await page.locator("[data-celebracion]").waitFor();
+  {
+    const d = await db(page);
+    const p = d.productos.find((x) => x.nombre === "Auditoría");
+    const suyas = d.variantes.filter((v) => v.productoId === p?.id);
+    ok(p && suyas.length === 2 && suyas.every((v) => v.stock === 1 && v.precio === null) && p.opciones.map((o) => o.nombre).join() === "Color,Talla", "Publicado: Rojo · S y Rojo · M con 1 cada una, sin precios viejos");
+  }
+  // «Agregar otro» con presentaciones: una historia limpia.
+  await boton(page, "Agregar otro").tap();
+  await page.waitForTimeout(300);
+  ok((await page.locator("[data-barras-historia] span").count()) === 5 && (await paso(page)) === "foto", "«Agregar otro» vuelve a 5 barras y a la foto");
+  await subirFoto(page, "#975");
+  await seguir(page);
+  await escribir(page, "Otro limpio");
+  await seguir(page);
+  await escribir(page, "500");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await seguir(page);
+  ok((await page.locator("[data-valores-eje] [aria-checked=true]").count()) === 0, "…y sin nada del producto anterior");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
+console.log("\n=== Sin ninguna cosa, volver deja un solo stock con lo que había en el Inventario (con «‹» y con el atrás del teléfono) ===");
+for (const conTelefono of [false, true]) {
+  const { ctx, page, errores } = await pagina(390, LINO);
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, conTelefono ? "Un stock teléfono" : "Un stock");
+  await seguir(page);
+  await escribir(page, "700");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await seguir(page);
+  await page.locator("[data-inventario-historia]").waitFor();
+  await page.waitForTimeout(400);
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno a todas" }).tap();
+  await page.getByRole("button", { name: /^Listo · / }).tap();
+  await page.waitForTimeout(500);
+  await boton(page, "Atrás").tap();
+  await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
+  if (conTelefono) {
+    await page.goBack();
+    await page.waitForTimeout(600);
+  } else await boton(page, "Atrás").tap();
+  ok((await paso(page)) === "precio" && (await page.locator("[data-barras-historia] span").count()) === 5, `${conTelefono ? "Atrás del teléfono" : "«‹»"}: sin cosas, vuelve al precio con 5 barras`);
+  await seguir(page);
+  ok((await page.locator("[data-contador-stock]").innerText()).includes("6"), "…y el stock es lo que había en el Inventario (6)");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
 }

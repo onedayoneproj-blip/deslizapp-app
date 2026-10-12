@@ -164,3 +164,34 @@ export function juntarPorEjes(pres: Presentacion[], quedan: string[]): Presentac
     };
   });
 }
+
+/**
+ * Dejar de cambiar por una cosa con presentaciones quitadas a mano: se juntan las que quedan (`juntarPorEjes`) y una presentación
+ * nueva sigue quitada solo si TODAS las que la forman estaban quitadas (si una sigue, la junta vive).
+ */
+export function quitarEje(todas: Presentacion[], quitadas: string[], quedan: string[]): { pres: Presentacion[]; quitadas: string[] } {
+  const fuera = new Set(quitadas);
+  const vivas = todas.filter((p) => !fuera.has(claveVariante(p.valores)));
+  const pres = juntarPorEjes(vivas, quedan);
+  const conVivas = new Set(pres.map((p) => claveVariante(p.valores)));
+  const nuevasQuitadas = [...new Set(juntarPorEjes(todas, quedan).map((p) => claveVariante(p.valores)))].filter((k) => !conVivas.has(k));
+  return { pres, quitadas: nuevasQuitadas };
+}
+
+/** Lo que se pierde al quitar un valor: unidades (de las visibles) y precios propios. */
+export function loQueSePierde(pres: Presentacion[], eje: string, valor: string): { unidades: number; precios: number } {
+  const suyas = pres.filter((p) => p.valores[eje] === valor);
+  return { unidades: suyas.filter((p) => p.activa).reduce((t, p) => t + (p.stock ?? 0), 0), precios: suyas.filter((p) => p.precio !== null).length };
+}
+
+/** El aviso de lo que se pierde: «Se pierden 6 unidades del inventario.» / «Se pierde su precio propio.» / los dos juntos. */
+export function textoPerdida({ unidades, precios }: { unidades: number; precios: number }): string {
+  const u = unidades === 1 ? "1 unidad del inventario" : `${unidades} unidades del inventario`;
+  const p = precios === 1 ? "su precio propio" : `sus ${precios} precios propios`;
+  if (unidades > 0 && precios > 0) return `Se pierden ${u} y ${p}.`;
+  if (unidades > 0) return `${unidades === 1 ? "Se pierde" : "Se pierden"} ${u}.`;
+  return `${precios === 1 ? "Se pierde" : "Se pierden"} ${p}.`;
+}
+
+/** El total de unidades del borrador (las visibles): al volver a un solo stock, es lo que queda en el producto. */
+export const totalDelBorrador = (pres: Presentacion[]) => pres.filter((p) => p.activa).reduce((t, p) => t + (p.stock ?? 0), 0);

@@ -128,3 +128,26 @@ test("dejar de cambiar por una cosa suma las cantidades en lo que queda", () => 
   assert.equal(m.precio, null, "precios distintos: vuelve al del producto");
   assert.equal(H.juntarPorEjes([p("Negro", "L", 1, 900), p("Blanco", "L", 1, 900)], ["Talla"])[0].precio, 900, "si valían lo mismo, sigue");
 });
+
+test("quitar una cosa con presentaciones quitadas: la junta sigue quitada solo si todas lo estaban", () => {
+  const p = (color, talla, stock) => ({ valores: { Color: color, Talla: talla }, stock, precio: null, activa: true });
+  const todas = [p("Negro", "S", 1), p("Blanco", "S", 2), p("Negro", "M", 3), p("Blanco", "M", 4)];
+  const r1 = H.quitarEje(todas, ["Color=Negro|Talla=S"], ["Talla"]);
+  assert.deepEqual(r1.quitadas, []);
+  assert.equal(r1.pres.find((x) => x.valores.Talla === "S").stock, 2, "la quitada no suma");
+  const r2 = H.quitarEje(todas, ["Color=Negro|Talla=S", "Color=Blanco|Talla=S"], ["Talla"]);
+  assert.deepEqual(r2.quitadas, ["Talla=S"]);
+  assert.deepEqual(r2.pres.map((x) => x.valores.Talla), ["M"]);
+});
+
+test("lo que se pierde al quitar un valor, y su aviso", () => {
+  const p = (color, stock, precio = null, activa = true) => ({ valores: { Color: color }, stock, precio, activa });
+  const pres = [p("Negro", 3, 1200), p("Negro", 2, null, false), p("Blanco", 0, 900)];
+  assert.deepEqual(H.loQueSePierde(pres, "Color", "Negro"), { unidades: 3, precios: 1 });
+  assert.deepEqual(H.loQueSePierde(pres, "Color", "Blanco"), { unidades: 0, precios: 1 });
+  assert.equal(H.textoPerdida({ unidades: 6, precios: 0 }), "Se pierden 6 unidades del inventario.");
+  assert.equal(H.textoPerdida({ unidades: 1, precios: 0 }), "Se pierde 1 unidad del inventario.");
+  assert.equal(H.textoPerdida({ unidades: 3, precios: 1 }), "Se pierden 3 unidades del inventario y su precio propio.");
+  assert.equal(H.textoPerdida({ unidades: 0, precios: 2 }), "Se pierden sus 2 precios propios.");
+  assert.equal(H.totalDelBorrador(pres), 3);
+});

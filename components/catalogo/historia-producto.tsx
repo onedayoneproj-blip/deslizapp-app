@@ -15,8 +15,8 @@ import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
   conLosCreados,
-  juntarPorEjes,
   lineaArranque,
+  loQueSePierde,
   lineaCelebracion,
   ordenDePreguntas,
   ordenParaGuardar,
@@ -25,10 +25,13 @@ import {
   pasosDeHistoria,
   puedeSeguir,
   quitadasTrasCambiar,
+  quitarEje,
   SIN_FOTO,
   textosDeEje,
   textosDelPaso,
+  textoPerdida,
   tituloCelebracion,
+  totalDelBorrador,
   type PasoHistoria,
 } from "@/lib/historia-producto";
 import { pastillasDeOpciones, resumenDescripcion } from "@/lib/hoja-producto";
@@ -108,6 +111,7 @@ export function HistoriaProducto() {
   const servicio = false;
   // Con presentaciones («Tiene tallas o colores»): cuántas cosas cambian (0 mientras no se elige ninguna). null = sin presentaciones.
   const [variantes, setVariantes] = useState<number | null>(null);
+  const atrasDeLaHistoria = useRef<(() => boolean) | null>(null);
   const pasos = pasosDeHistoria(servicio, variantes);
   const llenas = barrasLlenas(paso, servicio, variantes);
   // Con varios catálogos, el selector va a la derecha de «Nuevo producto» (lo pinta la historia por portal).
@@ -123,15 +127,8 @@ export function HistoriaProducto() {
     <Hoja
       abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" altura="grande"
       historia={{ avance: barras, alLadoDelTitulo: <span ref={setRanuraCatalogo} className="contents" /> }}
-      alVolverInterno={() => {
-        // Atrás del teléfono: vuelve una pregunta sin perder nada; en la primera (o ya guardado) cierra como siempre.
-        const antes = pasoAnterior(paso, servicio, variantes);
-        if (!antes) return false;
-        // Volver de «¿En qué cambia?» sin haber elegido nada deja el producto sin presentaciones.
-        if (paso === "cambia" && variantes === 0) setVariantes(null);
-        setPaso(antes);
-        return true;
-      }}
+      // Atrás del teléfono: lo mismo que «‹» (vuelve una pregunta sin perder nada); en la primera (o ya guardado) cierra como siempre.
+      alVolverInterno={() => atrasDeLaHistoria.current?.() ?? false}
     >
       {error ? (
         <CuerpoConError alCerrar={alSalir} alReintentar={reintentar} textoVolver="Volver al catálogo" />
@@ -140,7 +137,7 @@ export function HistoriaProducto() {
       ) : (
         <Historia
           key={`${tiendaId}:${vuelta}`} paso={paso} alCambiarPaso={setPaso} servicio={servicio} productos={productos} ranuraCatalogo={ranuraCatalogo}
-          variantes={variantes} alCambiarVariantes={setVariantes} alCrear={(p) => setCreados((l) => [...l, p])}
+          variantes={variantes} alCambiarVariantes={setVariantes} alCrear={(p) => setCreados((l) => [...l, p])} atrasRef={atrasDeLaHistoria}
           alOtro={() => { setVuelta((v) => v + 1); setPaso("foto"); setVariantes(null); }}
         />
       )}
@@ -160,8 +157,11 @@ function Historia({
   variantes,
   alCambiarVariantes,
   alCrear,
+  atrasRef,
 }: {
   alCrear: (p: Producto) => void;
+  /** Donde la historia deja su «atrás» para el del teléfono (la hoja lo llama). */
+  atrasRef: React.MutableRefObject<(() => boolean) | null>;
   ranuraCatalogo: HTMLElement | null;
   variantes: number | null;
   alCambiarVariantes: (n: number | null) => void;
@@ -205,7 +205,8 @@ function Historia({
   const [fotosColor, setFotosColor] = useState<Record<string, string>>({});
   const [inventarioAbierto, setInventarioAbierto] = useState(false);
   const [inventarioListo, setInventarioListo] = useState(false);
-  const [quitarValor, setQuitarValor] = useState<{ eje: string; valor: string; unidades: number } | null>(null);
+  const [quitarValor, setQuitarValor] = useState<{ eje: string; valor: string; texto: string } | null>(null);
+  const [sumarEje, setSumarEje] = useState<{ nuevos: EjeHistoria[]; nombre: string; texto: string } | null>(null);
   const [fotoDe, setFotoDe] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<Detalles>({});
   const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
@@ -275,15 +276,26 @@ function Historia({
     if (ultimoEje && (!inventarioListo || !inventarioCompleto)) return setInventarioAbierto(true);
     irA(pasoSiguiente(paso, servicio, variantes));
   };
-  const atras = () => {
+  const atras = (): boolean => {
     const a = pasoAnterior(paso, servicio, variantes);
-    if (!a) return;
+    if (!a) return false;
     if (paso === "cambia" && ejes.length === 0) {
-      // Sin nada que cambie, el producto vuelve a un solo stock.
-      flushSync(() => alCambiarVariantes(null));
+      // Sin nada que cambie, el producto vuelve a un solo stock: lo que había en el Inventario queda como su stock.
+      const total = totalDelBorrador(presBorrador);
+      flushSync(() => {
+        alCambiarVariantes(null);
+        if (total > 0) setStock(total);
+        setPresBorrador([]);
+        setQuitadas([]);
+        setInventarioListo(false);
+      });
     }
     irA(a);
+    return true;
   };
+  useEffect(() => {
+    atrasRef.current = atras;
+  });
   /** «Tiene tallas o colores»: siete barras en el mismo toque y «¿En qué cambia?» (con lo típico del catálogo ya elegido). */
   const abrirVariantes = () => {
     if (sinCatalogo) return toast(porque);
@@ -294,15 +306,33 @@ function Historia({
     });
     irA("cambia");
   };
-  const cambiarEjes = (nuevos: EjeHistoria[]) => {
-    // Dejar de cambiar por una cosa no pierde lo puesto en el Inventario: se suma en lo que queda.
-    const quedan = nuevos.map((e) => e.nombre);
-    if (nuevos.length > 0 && ejes.some((e) => !quedan.includes(e.nombre))) {
-      setPresBorrador(juntarPorEjes(presentaciones.pres.length > 0 ? presentaciones.pres : presBorrador, quedan));
-      setQuitadas([]);
-    }
+  const aplicarEjes = (nuevos: EjeHistoria[]) => {
     setEjes(nuevos);
     alCambiarVariantes(nuevos.length);
+  };
+  const cambiarEjes = (nuevos: EjeHistoria[]) => {
+    const quedan = nuevos.map((e) => e.nombre);
+    const sale = ejes.some((e) => !quedan.includes(e.nombre));
+    const entra = nuevos.find((e) => !ejes.some((x) => x.nombre === e.nombre));
+    if (sale && nuevos.length > 0) {
+      // Dejar de cambiar por una cosa no pierde lo puesto en el Inventario: se suma en lo que queda (las quitadas siguen fuera).
+      const todas = crearTodas(presentaciones.opciones, presBorrador);
+      const r = quitarEje(todas.length > 0 ? todas : presBorrador, quitadas, quedan);
+      setPresBorrador(r.pres);
+      setQuitadas(r.quitadas);
+    }
+    if (entra && ejes.length > 0 && tieneOpciones) {
+      // Sumar una cosa reparte de nuevo: lo puesto vuelve a 0. Si había algo, se pregunta antes.
+      const unidades = totalDelBorrador(presentaciones.pres);
+      const precios = presentaciones.pres.filter((p) => p.precio !== null).length;
+      if (unidades > 0 || precios > 0) {
+        const texto = `${unidades > 0 ? `Las ${unidades} que pusiste en el Inventario vuelven a 0` : "Los precios propios se quitan"} para ponerlas por ${quedan.map((n) => n.toLocaleLowerCase("es")).join(" y ")}.`;
+        return setSumarEje({ nuevos, nombre: entra.nombre, texto });
+      }
+      setPresBorrador([]);
+      setQuitadas([]);
+    }
+    aplicarEjes(nuevos);
   };
   const ponerValores = (nombreEje: string, valores: string[]) => {
     const antes = ejes.find((e) => e.nombre === nombreEje)?.valores ?? [];
@@ -310,13 +340,18 @@ function Historia({
     setQuitadas((q) => quitadasTrasCambiar(q, nombreEje, antes, valores));
     // Lo de un valor quitado se pierde de verdad (cantidades y precios): si se vuelve a elegir, empieza en 0.
     const fuera = antes.filter((v) => !valores.includes(v));
-    if (fuera.length > 0) setPresBorrador((l) => l.filter((p) => !fuera.includes(p.valores[nombreEje] ?? "")));
+    if (fuera.length > 0) {
+      setPresBorrador((l) => l.filter((p) => !fuera.includes(p.valores[nombreEje] ?? "")));
+      // La foto de un color quitado también se va: si se vuelve a elegir, se elige otra vez.
+      if (esEjeColor(nombreEje)) setFotosColor((f) => Object.fromEntries(Object.entries(f).filter(([v]) => !fuera.includes(v))));
+    }
   };
   /** Quitar un valor que ya tiene cantidades pregunta antes: esas unidades se pierden. */
   const alternarValorDe = (eje: EjeHistoria, valor: string) => {
-    if (eje.valores.includes(valor) && !porEncargo) {
-      const unidades = presentaciones.pres.filter((p) => p.valores[eje.nombre] === valor).reduce((t, p) => t + (p.stock ?? 0), 0);
-      if (unidades > 0) return setQuitarValor({ eje: eje.nombre, valor, unidades });
+    if (eje.valores.includes(valor)) {
+      // Con cantidades (aunque estén escondidas por encargo) o precios propios, se pregunta: se pierden.
+      const pierde = loQueSePierde(presentaciones.pres, eje.nombre, valor);
+      if (pierde.unidades > 0 || pierde.precios > 0) return setQuitarValor({ eje: eje.nombre, valor, texto: textoPerdida(pierde) });
     }
     ponerValores(eje.nombre, alternarValor(eje.valores, valor));
   };
@@ -629,9 +664,25 @@ function Historia({
         alSubir={(archivo) => agregarFotoAlBorrador(archivo, medios, setMedios, toast)}
       />
       <Alerta
+        abierta={sumarEje !== null}
+        titulo={`¿Sumar ${sumarEje?.nombre ?? ""}?`}
+        descripcion={sumarEje?.texto ?? ""}
+        alCancelar={() => setSumarEje(null)}
+        accion={{
+          texto: "Sumar", tono: "peligro",
+          alConfirmar: () => {
+            const q = sumarEje!;
+            setSumarEje(null);
+            setPresBorrador([]);
+            setQuitadas([]);
+            aplicarEjes(q.nuevos);
+          },
+        }}
+      />
+      <Alerta
         abierta={quitarValor !== null}
         titulo={`¿Quitar ${quitarValor?.valor ?? ""}?`}
-        descripcion={quitarValor ? `Sus ${quitarValor.unidades} en el inventario se pierden.` : ""}
+        descripcion={quitarValor?.texto ?? ""}
         alCancelar={() => setQuitarValor(null)}
         accion={{
           texto: "Quitar", tono: "peligro",
