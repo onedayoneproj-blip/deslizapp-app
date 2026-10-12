@@ -627,7 +627,7 @@ function FormularioProducto({
             {variosTipos && tienda && <SelectorCatalogo tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="hoja" textoOtra="Vendo otra cosa también" alCambiar={(r) => { if (r !== CATALOGO_GENERAL) setTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando} sinPermiso={sinCatalogo ? () => toast(porque) : undefined} />}
           </div>
           {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
-          <div className="pointer-events-none relative -top-[21px] -ml-1 mr-[42px] mt-2 flex gap-1.5" aria-label={`Momento ${barraActual} de ${etapas}`}>
+          <div className={`pointer-events-none relative -top-[21px] mt-2 flex gap-1.5 ${momento === 6 && !historiaVariantes ? "mx-[52px]" : "-ml-1 mr-[42px]"}`} aria-label={`Momento ${barraActual} de ${etapas}`}>
           {Array.from({ length: etapas }, (_, i) => <span key={i} role="progressbar" aria-label={`Momento ${i + 1}`} aria-valuemin={0} aria-valuemax={1} aria-valuenow={i < barraActual ? 1 : 0} className={`h-[3px] flex-1 rounded-full ${i < barraActual ? "bg-accion" : "bg-borde-pastilla"}`} />)}
           </div>
         </HojaFijoArriba>

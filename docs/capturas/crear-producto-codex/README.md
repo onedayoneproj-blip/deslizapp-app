@@ -2,6 +2,12 @@
 
 Última revisión de Planning/Lewis, comparada con HEAD `3bcd309`. Capturas de navegador Demo a 390×844 CSS px (PNG a 2×); teclado 360×640. Las fotos son archivos reales de prueba. Las comparativas incluyen etiquetas de origen.
 
+## B5 — barra separada de Atrás y cerrar
+
+Verificado con `scripts/probar-b5-barra.mjs`: una barra a top 74, 8 px libres frente a ambos botones; contenido top 100 y Reel top 131.5 (132 redondeado), sin desplazamiento.
+
+[360 px](b5-barra-separada-360.png) · [390 px](b5-barra-separada-390.png) · [393 px](b5-barra-separada-393.png) · [430 px](b5-barra-separada-430.png).
+
 ## Comparativas
 
 | Caso | Comparativa | Construido |

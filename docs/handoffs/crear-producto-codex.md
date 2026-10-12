@@ -72,3 +72,18 @@ Tras incorporar main se repitieron build Webpack, tipos (incluidos en build), li
 ## Revisión de GitHub
 
 El resultado y enlace de «Revisión» del commit entregado se registran en la descripción del PR #114. PR permanece en borrador contra main y sin fusionar.
+
+## Corrección B5 — barra separada de Atrás y cerrar
+
+La barra única de B5 conserva top 74/alto 3 y ahora ocupa el espacio entre los botones, con 8 px libres a cada lado. Se ajustan solo sus márgenes horizontales en la revisión (producto simple y presentaciones); el contenido conserva top 100 y el Reel top 131.5 CSS px (132 redondeado en la tabla anterior), con el mismo tamaño. No cambia la posición de Publicar.
+
+`CHROMIUM_PATH=/usr/bin/chromium URL=http://localhost:3100 node scripts/probar-b5-barra.mjs` completó los cuatro anchos; verifica barra única, separación mínima, posición y tamaño del contenido/Reel y posición/ancho de Publicar. Build Webpack completo con tipos y lint de los archivos afectados sin errores ni avisos. Esta corrección no repite las suites funcionales completas de la entrega anterior.
+
+| Viewport | Barra x/ancho | Separación Atrás/cerrar | Contenido top | Reel top/tamaño | Publicar top |
+|---|---|---|---|---|---|
+| 360×640 | 72/216 | 8/8 | 100 | 131.5; 320×402.281 | 528 |
+| 390×844 | 72/246 | 8/8 | 100 | 131.5; 350×440 | 732 |
+| 393×852 | 72/249 | 8/8 | 100 | 131.5; 350×440 | 740 |
+| 430×844 | 72/286 | 8/8 | 100 | 131.5; 350×440 | 732 |
+
+Captura corregida: [B5 a 390 px](../capturas/crear-producto-codex/b5-barra-separada-390.png). También se entregan 360/393/430 en el índice de capturas. El PR #114 continúa en borrador y sin fusionar.
