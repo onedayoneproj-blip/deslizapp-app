@@ -248,7 +248,7 @@ export function FlujoPresentacionesHistoria({
     <HojaFijoAbajo>
       <div className="pointer-events-auto flex items-center gap-3 border-t border-linea bg-fondo px-5 pt-3 pb-[max(12px,var(--safe-abajo))]">
         <button type="button" aria-label="Atrás" onClick={irAtras} className="tocable grid size-14 shrink-0 place-items-center rounded-full border border-borde-pastilla bg-superficie text-titulo-seccion">‹</button>
-        <Boton anchoCompleto tamano="grande" onClick={seguir} deshabilitado={etapa === "stock" && !permitirListo}>{etapa === "stock" ? `Listo · ${porEncargo ? 0 : totalStock} en total` : "Seguir"}</Boton>
+        <Boton anchoCompleto tamano="grande" className="min-w-0 flex-1" onClick={seguir} deshabilitado={etapa === "stock" && !permitirListo}>{etapa === "stock" ? `Listo · ${porEncargo ? 0 : totalStock} en total` : "Seguir"}</Boton>
       </div>
     </HojaFijoAbajo>
 

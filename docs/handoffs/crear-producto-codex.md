@@ -11,6 +11,13 @@ Rama `codex/crear-producto-historia`, PR #114 contra `main`, en borrador y sin f
 - Capturas `b1–b6` y `v1–v6` en `docs/capturas/crear-producto-codex/`. Las seis capturas `v` son 390×844 y se generaron con una foto real de prueba. `scripts/probar-crear-producto.mjs` incluye 360, 390, 393 y 430 px y verifica dos atributos, fotos, reparto, detalle, guardado por encargo y producto sin foto.
 - `docs/04-pantallas.md`, `lib/novedades.ts` (0.66.0) y este handoff están actualizados. Sin migraciones ni cambios a Supabase.
 
+## Precisiones de Lewis: fotos y B5
+
+- En fotos múltiples se conserva la imagen redondeada, contador activo/total arriba a la derecha, miniaturas con «Portada» y «Agregar foto». En el alta, tocar una miniatura cambia la imagen sin abrir la hoja; tocar la imagen grande conserva quitar y reordenar. El contador de fotos permanece independiente de la barra de avance y no reaparece «n/n productos».
+- B5 muestra «así se ve en tu catálogo», reel real 350×440, pastillas «+ Descripción», «+ Colección», «+ Ficha técnica» y Detalles cuando corresponde. Cada pastilla abre su hoja sobre el borrador. Publicar naranja ocupa todo el ancho entre márgenes; Guardar sin publicar va debajo. Sin filas plegables ni botón redundante de reel en el alta.
+- Los pies de ambas historias mantienen «Seguir» dentro de los márgenes, junto a «Atrás». La cabecera de B5 reúne atrás y catálogo junto al cierre, y mantiene la barra de avance. Así caben el reel y las pastillas a 390×844; en pantallas más cortas se desplaza el contenido. Las preguntas anteriores y la edición conservan su distribución.
+- Capturas adicionales: `b1-fotos-multiples-390.png`, `b1-fotos-multiples-activa-390.png` y `b5-pastillas-390.png`.
+
 ## Lienzo vs construido
 
 Playwright midió ambas historias con Chromium a 390×844 y 393×852. En la historia simple, la tarjeta de foto fija y las preguntas mantienen la misma geometría. En presentaciones, los cuatro pasos mantienen la misma geometría; los valores opcionales se muestran dentro del área de contenido.
@@ -21,7 +28,7 @@ Playwright midió ambas historias con Chromium a 390×844 y 393×852. En la hist
 | Campo de nombre | Debajo de la pregunta | top 627/alto 56 | top 627/alto 56 |
 | Campo de precio | Campo alto de historia | top 639/alto 64 | top 639/alto 64 |
 | Control de stock | Contador centrado | top 621/alto 56 | top 621/alto 56 |
-| Reel de revisión | Reel escalado dentro de la hoja | tarjeta top 160/alto 483; botón top 752/alto 56 | tarjeta top 160/alto 483; botón top 760/alto 56 |
+| Reel de revisión | Reel escalado dentro de la hoja | tarjeta top 104/alto 472; reel top 136/alto 440; botón top 732/alto 52 | tarjeta top 104/alto 472; reel top 136/alto 440; botón top 740/alto 52 |
 
 La rama de presentaciones se midió con la tabla siguiente:
 
@@ -42,10 +49,10 @@ La rama de presentaciones se midió con la tabla siguiente:
 - `npm test`: 77/77 pruebas pasan.
 - `npx next build --webpack`: pasa.
 - `npm run build` con Turbopack no pudo completarse en este contenedor: tras permitir la descarga de fuentes, Turbopack falla al abrir el puerto de su proceso auxiliar (`Operation not permitted`). El build Webpack terminó correctamente.
-- `scripts/probar-crear-producto.mjs`: termina correctamente en Chromium instalado, 360/390/393/430 px; incluye geometría, «Poner a todas», suma de grupo, «Ver presentaciones», stock cero por encargo y «Agotada» ausente.
+- `scripts/probar-crear-producto.mjs`: termina correctamente en Chromium instalado, 360/390/393/430 px; incluye geometría, selección de miniaturas/contador, agregar/quitar/reordenar fotos, hojas desde las pastillas y conservación del borrador, botones dentro de márgenes, «Poner a todas», suma de grupo, «Ver presentaciones», stock cero por encargo y «Agotada» ausente.
 - `npm run probar:hoja-producto`: pasa en 390 y 360 px; prueba la historia integrada y la ruta de edición.
 - `npm run probar:producto`: no pasa completo (12 fallos en «ropa» y «medios», 360/390/430 px y ambos temas); esos escenarios intentan crear con los antiguos campos `Nombre` / `Precio`. Perfume, encargo y pedidos pasan en la misma corrida.
-- `npm run probar:teclado`: pasa completo con Chromium; incluye escritura en eje/valor propio, precio por presentación, nombre, precio, plazo, descripción, colección y regresiones de teclado en otras hojas.
+- `npm run probar:teclado`: pasa completo con Chromium; incluye escritura en eje/valor propio, precio por presentación, nombre, precio, plazo, descripción en su hoja grande (visible sobre el teclado simulado, sin mover la hoja ni perder foco), colección y regresiones de teclado en otras hojas.
 - `npm run probar:presentaciones` completo todavía usa el alta anterior (`Nombre` / `Precio`) y falla al encontrar esos campos que ya no existen en la historia. Su regresión de edición filtrada (`SOLO=1b,5,6,7a,7b,11,12,13`) sí pasa en 390 y 360 px: conserva stock, cambios de ejes, precio propio, fotos y ocultar.
 - El test de servicio, catálogo lleno y Safari/iPhone físico no se completó en esta verificación. El flujo de creación mantiene el tipo de producto actual; no añade selector de servicio.
 

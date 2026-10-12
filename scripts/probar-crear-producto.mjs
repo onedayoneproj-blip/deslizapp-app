@@ -46,6 +46,8 @@ for (const width of [360, 390, 393, 430]) {
   ok(await page.locator("[data-foto-principal]").evaluate((e) => Math.round(e.getBoundingClientRect().height)) === 372, `${width}px: tarjeta de foto mide 372px`);
   ok(await page.getByRole("button", { name: "Seguir" }).isVisible(), `${width}px: controles fijos de la historia`);
   if ([390, 393].includes(width)) await medir(page, `${width}-foto`);
+  const seguirFoto = await page.getByRole("button", { name: "Seguir", exact: true }).boundingBox();
+  ok(seguirFoto.x + seguirFoto.width <= width - 19, `${width}px: Seguir queda dentro del margen derecho`);
   if (width === 390) await captura(page, "b1-foto-390.png");
   await page.getByRole("button", { name: "Seguir" }).click();
   await page.getByPlaceholder("El nombre de tu producto").fill("Vestido de prueba");
@@ -76,7 +78,26 @@ for (const width of [360, 390, 393, 430]) {
   ok(await page.locator("[data-reel-reducido] iframe").getAttribute("src") === "/vista-previa-catalogo", `${width}px: vista usa el reel del catálogo`);
   await page.waitForFunction(() => document.querySelector("[data-reel-reducido] iframe")?.contentDocument?.body?.innerText.includes("Vestido de prueba"), { timeout: 10000 });
   if ([390, 393].includes(width)) await medir(page, `${width}-vista`);
-  if (width === 390) await captura(page, "b5-vista-catalogo-390.png");
+  const publicar = await page.getByRole("button", { name: "Publicar", exact: true }).boundingBox();
+  ok(Math.round(publicar.width) === width - 40, `${width}px: Publicar ocupa el ancho útil completo`);
+  ok(await page.getByRole("button", { name: "Ver reel del catálogo", exact: true }).count() === 0, `${width}px: sin botón redundante de reel`);
+  ok(await page.locator("[data-momento-historia] [data-fila-plegable]").count() === 0, `${width}px: opcionales como pastillas, sin filas plegables`);
+  if (width === 390) {
+    await captura(page, "b5-vista-catalogo-390.png");
+    await captura(page, "b5-pastillas-390.png");
+    await page.getByRole("button", { name: "+ Descripción", exact: true }).click();
+    await page.getByRole("textbox", { name: "Descripción", exact: true }).fill("Descripción añadida desde la vista previa");
+    await page.getByRole("button", { name: "Listo", exact: true }).click();
+    await page.getByRole("button", { name: "+ Descripción", exact: true }).click();
+    ok(await page.getByRole("textbox", { name: "Descripción", exact: true }).inputValue() === "Descripción añadida desde la vista previa", "La hoja de descripción conserva el borrador al reabrir");
+    await page.getByRole("button", { name: "Listo", exact: true }).click();
+    await page.getByRole("button", { name: "+ Colección", exact: true }).click();
+    await page.getByRole("button", { name: "Agregar colección", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
+    await page.getByRole("button", { name: "+ Ficha técnica", exact: true }).click();
+    await page.getByRole("button", { name: "Listo", exact: true }).click();
+    await page.getByRole("heading", { name: "Ficha técnica", exact: true, level: 2 }).waitFor({ state: "hidden" });
+  }
   ok(!(await page.getByText("Agotado", { exact: true }).count()), `${width}px: la creación no muestra el sello Agotado`);
   ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}px: no hay desborde horizontal`);
   if ([390, 393].includes(width)) {
@@ -92,6 +113,43 @@ for (const width of [360, 390, 393, 430]) {
   }
   await context.close();
   if (errors.length) throw new Error(`${width}px: errores de página: ${errors.join(" | ")}`);
+}
+// Fotos múltiples: selección sin hoja, contador, agregar, ordenar y quitar.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await silenciarAvisoDeOtroDespliegue(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("deslizapp-version-vista", "9.9.9");
+    localStorage.setItem("deslizapp-modo-v1", "demo");
+    localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003");
+  });
+  await page.goto(`${URL}/catalogo/nuevo`);
+  await page.locator("[data-historia-crear]").waitFor();
+  const foto = (nombre) => join(process.cwd(), "public/catalogos/esencias-michel/fotos", nombre);
+  await page.locator("[data-entrada-medios]").setInputFiles([foto("yara-rosa.jpg"), foto("oxana.webp"), foto("asad-bourbon.jpg")]);
+  await page.locator("[data-contador-fotos]").getByText("1 / 3", { exact: true }).waitFor();
+  await page.getByText("Portada", { exact: true }).waitFor();
+  await captura(page, "b1-fotos-multiples-390.png");
+  const primera = await page.locator("[data-foto-principal] img").getAttribute("src");
+  await page.getByRole("button", { name: "Foto 3 de 3", exact: true }).click();
+  ok((await page.locator("[data-contador-fotos]").innerText()).trim() === "3 / 3", "Miniatura cambia el contador a 3 / 3");
+  ok(await page.locator("[data-foto-principal] img").getAttribute("src") !== primera, "Miniatura cambia la imagen principal");
+  ok(await page.getByRole("button", { name: "Quitar foto", exact: true }).count() === 0, "Seleccionar miniatura no abre otra hoja");
+  await captura(page, "b1-fotos-multiples-activa-390.png");
+  await page.getByRole("button", { name: "Foto principal: ver opciones", exact: true }).click();
+  await page.getByRole("button", { name: "Mover a la izquierda", exact: true }).click();
+  await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
+  ok((await page.locator("[data-contador-fotos]").innerText()).trim() === "2 / 3", "Reordenar conserva la foto activa y actualiza su posición");
+  await page.getByRole("button", { name: "Foto principal: ver opciones", exact: true }).click();
+  await page.getByRole("button", { name: "Quitar foto", exact: true }).click();
+  await page.locator("[data-contador-fotos]").getByText("1 / 2", { exact: true }).waitFor();
+  const archivo = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Agregar foto", exact: true }).click();
+  await (await archivo).setFiles(foto("asad-bourbon.jpg"));
+  await page.locator("[data-contador-fotos]").getByText("1 / 3", { exact: true }).waitFor();
+  console.log("✅ Fotos: seleccionar, reordenar, quitar y agregar conservan el contador y la portada");
+  await context.close();
 }
 // «Por encargo»: plazo Otro, preview real, atrás y volver conservan el texto.
 {
@@ -152,6 +210,8 @@ for (const width of [390, 393]) {
   ok(await page.getByRole("checkbox", { name: "Color" }).getAttribute("aria-checked") === "true", `${width}px: Color preseleccionado en el paso de atributos`);
   const box = await page.locator("[data-tarjeta-variantes]").boundingBox();
   ok(Math.round(box.width) === 350 && Math.round(box.height) === 212, `${width}px: tarjeta de variantes mide 350×212`);
+  const seguirVariantes = await page.getByRole("button", { name: "Seguir", exact: true }).boundingBox();
+  ok(seguirVariantes.x + seguirVariantes.width <= width - 19, `${width}px: Seguir de variantes queda dentro del margen derecho`);
   await medir(page, "variantes-atributos");
   if (width === 390) await captura(page, "v1-atributos-390.png");
   await page.getByRole("button", { name: "Seguir", exact: true }).click();

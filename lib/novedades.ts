@@ -23,7 +23,7 @@ export type Novedad = {
 const TODAS: Novedad[] = [
   {
     version: "0.66.0", fecha: "2026-10-12", titulo: "Tu producto, paso a paso.",
-    cambios: ["Elige foto, nombre, precio y stock en una historia corta.", "Agrega tallas o colores, reparte existencias y asigna fotos opcionales.", "Antes de publicar, mira el reel; también puedes guardarlo oculto."],
+    cambios: ["Elige foto, nombre, precio y stock en una historia corta.", "Agrega tallas o colores, reparte existencias y asigna fotos opcionales.", "Elige entre tus fotos sin perder el contador ni la portada.", "Antes de publicar, mira el reel y agrega detalles desde sus pastillas."],
   },
   {
     version: "0.65.0", fecha: "2026-10-11", titulo: "Tu catálogo, más en orden.",

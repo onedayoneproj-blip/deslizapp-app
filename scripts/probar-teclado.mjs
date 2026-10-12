@@ -224,8 +224,7 @@ try {
     await page.waitForSelector('[role="dialog"] input[placeholder="Escríbelo en hasta 40 letras"]');
     await probarCampo(page, '[role="dialog"] input[placeholder="Escríbelo en hasta 40 letras"]', "Nuevo producto · Otro plazo", "Llega en 7 días", { dentroDeHoja: true });
     await page.tap('[role="dialog"] button:has-text("Seguir")');
-    await page.waitForSelector('[role="dialog"] [data-fila-plegable="historia-descripcion"]');
-    await page.tap('[role="dialog"] [data-fila-plegable="historia-descripcion"] button[aria-expanded]');
+    await page.getByRole("button", { name: "+ Descripción", exact: true }).click();
     await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
     await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Nuevo producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true });
     ok(errores.length === 0, `Nuevo producto: sin errores de página (${JSON.stringify(errores)})`);
@@ -543,7 +542,7 @@ try {
     await page.waitForSelector('[role="dialog"] [data-reel-reducido]');
     await page.waitForTimeout(700);
     // La colección se elige desde la fila plegable del resumen de historia.
-    await page.getByRole("button", { name: "Colección Opcional" }).click();
+    await page.getByRole("button", { name: "+ Colección", exact: true }).click();
     await page.waitForSelector('[role="dialog"] button:has-text("Agregar colección")');
     await page.tap('[role="dialog"] button:has-text("Agregar colección")');
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Para él"]');

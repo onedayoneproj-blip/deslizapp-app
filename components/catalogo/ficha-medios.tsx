@@ -212,7 +212,7 @@ export function SeccionMedios({
             ) : (
               <span className="grid h-full place-items-center text-secundario text-texto-secundario">Preparando el video…</span>
             )}
-            <span aria-hidden="true" className="absolute top-3 right-3 rounded-full bg-accion px-2.5 py-1 text-etiqueta text-sobre-accion tabular-nums">
+            <span aria-hidden="true" data-contador-fotos className="absolute top-3 right-3 z-10 rounded-full bg-accion px-2.5 py-1 text-etiqueta text-sobre-accion tabular-nums">
               {contadorMedios(medios.indexOf(principal) + 1, medios.length)}
             </span>
             {principal.tipo === "video" && principal.url && (
@@ -229,8 +229,8 @@ export function SeccionMedios({
                 : { id: m.id, tipo: "video", imagen: m.portada, duracionS: m.duracionS, progreso: m.progreso ?? null },
             )}
             seleccionado={principal.id}
-            // Tocar una miniatura la pone en grande y abre sus acciones (como siempre).
-            alTocar={(id) => { setVista(id); setAbierto(id); }}
+            // En la historia, la miniatura selecciona; tocar la imagen grande abre sus acciones.
+            alTocar={(id) => { setVista(id); if (!modoHistoria) setAbierto(id); }}
             alMover={mover}
             alAgregar={() => entrada.current?.click()}
             bloqueo={bloqueo}
