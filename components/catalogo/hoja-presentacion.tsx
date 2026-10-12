@@ -28,7 +28,10 @@ export function HojaPresentacion({
   alElegirFoto,
   alQuitar,
   atras = false,
+  sinStock = false,
 }: {
+  /** Por encargo (historia de crear producto): no se lleva stock, así que no sale su tarjeta (se guardaría en 0). */
+  sinStock?: boolean;
   /** En la historia de crear producto: «‹» junto a «Listo», como en todas sus hojas. */
   atras?: boolean;
   abierta: boolean;
@@ -84,13 +87,13 @@ export function HojaPresentacion({
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo={<span className="flex items-center gap-2.5">{color && <span aria-hidden="true" className="size-6 rounded-full border border-linea" style={{ background: color }} />}{texto}</span>} altura="auto">
       <div className="flex flex-col gap-4" data-hoja-presentacion="">
-        <Tarjeta className="flex items-center justify-between gap-3 p-4">
+        {!sinStock && <Tarjeta className="flex items-center justify-between gap-3 p-4" data-stock-presentacion="">
           <div>
             <p className="text-destacado text-texto">Stock</p>
             <p className="text-secundario text-texto-secundario">Al despachar, baja solito.</p>
           </div>
           <Cantidad redonda={atras} valor={p.stock ?? 0} max={2147483647} alCambiar={(v) => alCambiar({ stock: v })} etiquetaQuitar={`Quitar uno de ${texto}`} etiquetaAgregar={`Agregar uno de ${texto}`} />
-        </Tarjeta>
+        </Tarjeta>}
 
         <Tarjeta className="flex flex-col gap-3 p-4">
           <div className="flex items-baseline justify-between gap-3">

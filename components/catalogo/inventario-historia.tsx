@@ -213,6 +213,7 @@ export function HojaInventarioHistoria({
 
       <HojaPresentacion
         atras
+        sinStock={porEncargo}
         abierta={enLista !== null}
         presentacion={enLista}
         opciones={opciones}

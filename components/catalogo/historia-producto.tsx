@@ -42,6 +42,7 @@ import { pastillasDeOpciones, resumenDescripcion } from "@/lib/hoja-producto";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { copiarTexto } from "@/lib/portapapeles";
 import {
+  agregarValor,
   alternarValor,
   atajosDe,
   claveVariante,
@@ -915,7 +916,11 @@ function ValoresDeEje({ eje, rubro, alAlternar, alPoner }: { eje: EjeHistoria; r
   const [otro, setOtro] = useState<string | null>(null);
   const caja = useRef<HTMLDivElement>(null);
   const agregar = () => {
-    if (otro?.trim()) alPoner(alternarValor(eje.valores, otro));
+    // Solo suma: escribir uno que ya está («Negro», «negro ») no lo quita.
+    if (otro?.trim()) {
+      const valores = agregarValor(eje.valores, otro);
+      if (valores !== eje.valores) alPoner(valores);
+    }
     setOtro(null);
   };
   return (

@@ -273,6 +273,8 @@ en el prototipo); precios de producto, cantidades y nombres, en Figtree.
     - Sumar un valor: lo que sigue conserva lo suyo; lo nuevo, en 0. Las presentaciones quitadas a mano siguen quitadas.
     - Quitar una cosa (Color × Talla → Talla): se suman las cantidades en lo que queda; el precio propio sigue solo si todas valían lo mismo; queda quitada solo si todas las que se juntan lo estaban.
     - Sumar una cosa (Talla → Talla × Color): con cantidades o precios, pregunta («Las N que pusiste en el Inventario vuelven a 0…»); confirmado, se reparte de nuevo. Lo quitado sigue quitado y lo oculto sigue oculto en cada combinación nueva (M quitada → sin M en ningún color; `estaQuitada`, `crearConHerencia`). Lo mismo si se quitan todas las cosas y se elige otra distinta (elegir otra vez la misma no pierde nada).
+    - «+ Otro» solo suma: escribir uno que ya está («negro» con Negro elegido) no hace nada (`agregarValor`).
+    - Por encargo, el Inventario no muestra filas; el detalle de una presentación, si se abre, no lleva la tarjeta de stock (`sinStock`).
     - Las presentaciones ocultas no cuentan unidades (no se venden): no suman al juntar ni al total, y quitarlas no avisa por unidades.
     - Guardar con presentaciones exige el Inventario completo también al tocar «Publicar» / «Guardar sin publicar» (si algo se colara, abre el Inventario).
     - Quitar todas las cosas y volver al precio («‹» o el atrás del teléfono): un solo stock con el total que había en el Inventario.

@@ -951,6 +951,12 @@ console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; q
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
   for (const c of ["Negro", "Blanco", "Rojo"]) await page.getByRole("checkbox", { name: c, exact: true }).tap();
+  // «+ Otro» con uno que ya está (Codex P3, 6.ª revisión): no lo quita ni pregunta.
+  await page.getByRole("button", { name: "+ Otro", exact: true }).tap();
+  await page.keyboard.type(" negro ");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  ok((await page.getByRole("checkbox", { name: "Negro", exact: true }).getAttribute("aria-checked")) === "true" && (await page.locator("[data-valores-eje] [aria-checked=true]").count()) === 3 && !(await alerta.isVisible()), "«+ Otro» con « negro »: Negro sigue elegido, sin duplicado ni aviso");
   await seguir(page);
   await inv.waitFor();
   await page.waitForTimeout(400);
