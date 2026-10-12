@@ -126,6 +126,29 @@ export function HojaFijoAbajo({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Pie flotante sin recuadro (historia de crear producto): los botones flotan siempre a la vista y detrás de ellos
+ * el contenido se difumina con el borde de la cabecera invertido (`.hoja-borde-abajo`, más fuerte abajo, nada arriba).
+ * La zona difuminada mide el pie + 24 px por encima, para que la transición empiece antes de los botones.
+ * Va dentro de <HojaFijoAbajo>; los hijos reciben toques (el resto del pie no).
+ */
+export function PieFlotante({ children, className, ...datos }: { children: ReactNode; className?: string; [dato: `data-${string}`]: string }) {
+  return (
+    <div className="pointer-events-none relative">
+      <div className="hoja-borde-abajo pointer-events-none absolute inset-x-0 -top-6 bottom-0" aria-hidden="true">
+        <div className="hoja-borde-desenfoque" />
+        <div className="hoja-borde-desenfoque" />
+        <div className="hoja-borde-desenfoque" />
+        <div className="hoja-borde-desenfoque" />
+        <div className="hoja-borde-color" />
+      </div>
+      <div className={`pointer-events-auto relative px-5 pb-[max(1.5rem,var(--safe-abajo))] ${className ?? ""}`} {...datos}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
  * El contenido de una hoja avisa si hay cambios sin guardar: mientras `cambios` sea true, cerrar la hoja pide confirmación.
  * Para formularios cuyo estado vive dentro de la hoja. `textos` (opcional) cambia el título o el texto del aviso para este contenido.
  */

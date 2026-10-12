@@ -17,7 +17,7 @@ import {
   type Presentacion,
 } from "@/lib/presentaciones";
 import type { OpcionProducto } from "@/lib/types";
-import { Hoja, HojaFijoAbajo } from "../hoja";
+import { Hoja, HojaFijoAbajo, PieFlotante } from "../hoja";
 import { IconoReloj } from "../iconos";
 import { Boton, Campo, Cantidad, FilaInterruptor, GrupoEleccion } from "../ui";
 import { clases, FOCO } from "../ui/comunes";
@@ -198,17 +198,19 @@ export function HojaInventarioHistoria({
       </div>
 
       <HojaFijoAbajo>
-        {!hayVisibles && (
-          <p role="status" className="pointer-events-auto bg-fondo px-5 pt-2.5 text-center text-secundario font-bold text-atencion-texto" data-sin-visibles="">
-            Deja al menos una presentación a la vista.
-          </p>
-        )}
-        <div className="pointer-events-auto flex items-center gap-2.5 bg-fondo px-5 pt-2.5 pb-[max(1.5rem,var(--safe-abajo))]" data-pie-inventario="">
-          <BotonAtras alTocar={alCerrar} />
-          <Boton tamano="grande" className="flex-1" deshabilitado={!listo} onClick={alListo}>
-            {`Listo · ${textoInventario(resumen.enTotal, porEncargo)}`}
-          </Boton>
-        </div>
+        <PieFlotante className="flex flex-col gap-2.5 pt-2.5" data-pie-inventario="">
+          {!hayVisibles && (
+            <p role="status" className="rounded-radio-m bg-fondo/90 px-3 py-1.5 text-center text-secundario font-bold text-atencion-texto" data-sin-visibles="">
+              Deja al menos una presentación a la vista.
+            </p>
+          )}
+          <div className="flex items-center gap-2.5">
+            <BotonAtras alTocar={alCerrar} />
+            <Boton tamano="grande" className="flex-1" deshabilitado={!listo} onClick={alListo}>
+              {`Listo · ${textoInventario(resumen.enTotal, porEncargo)}`}
+            </Boton>
+          </div>
+        </PieFlotante>
       </HojaFijoAbajo>
 
       <HojaPresentacion

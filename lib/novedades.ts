@@ -22,6 +22,12 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.70.0", fecha: "2026-10-12", titulo: "Los botones, siempre a mano.",
+    cambios: [
+      "Al crear un producto, «Seguir» y «Publicar» flotan abajo, sin recuadro, mientras el contenido se difumina detrás.",
+    ],
+  },
+  {
     version: "0.69.0", fecha: "2026-10-12", titulo: "Al salir, tú decides qué se queda.",
     cambios: [
       "Si sales de un formulario con cambios, los botones ahora dicen «Quedarme» y «Descartar y salir».",

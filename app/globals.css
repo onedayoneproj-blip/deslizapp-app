@@ -263,7 +263,8 @@
    La opacidad va en cada capa y no en el contenedor: un contenedor con opacidad < 1 corta el
    desenfoque de sus hijas (backdrop root).
    -------------------------------------------------------------------------- */
-.hoja-borde > * {
+.hoja-borde > *,
+.hoja-borde-abajo > * {
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -274,13 +275,15 @@
    (~95 px: queda igual que siempre, con las franjas repartidas a lo alto), y como mucho 128 px si la
    zona es alta (cabecera + buscador + pastillas). Nunca menos de ~48 px. Por encima de la rampa: 8 px
    de desenfoque y el crema a 0.94. Los % se resuelven donde se usa la variable (en cada degradado). */
-.hoja-borde {
+.hoja-borde,
+.hoja-borde-abajo {
   --rampa: min(100%, 128px);
 }
-.hoja-borde > .hoja-borde-color {
+.hoja-borde > .hoja-borde-color,
+.hoja-borde-abajo > .hoja-borde-color {
   /* Translúcido: se alcanzan a ver matices del contenido detrás. 0.94 arriba, 0.82 a media rampa, 0 abajo. */
   background: linear-gradient(
-    to top,
+    var(--dir, to top),
     color-mix(in srgb, var(--fondo) 0%, transparent) 0%,
     color-mix(in srgb, var(--fondo) 82%, transparent) calc(var(--rampa) * 0.45),
     color-mix(in srgb, var(--fondo) 94%, transparent) var(--rampa),
@@ -288,31 +291,44 @@
   );
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-  .hoja-borde > .hoja-borde-desenfoque {
+  .hoja-borde > .hoja-borde-desenfoque,
+  .hoja-borde-abajo > .hoja-borde-desenfoque {
     -webkit-backdrop-filter: blur(var(--desenfoque));
     backdrop-filter: blur(var(--desenfoque));
-    -webkit-mask-image: linear-gradient(to top, var(--franja));
-    mask-image: linear-gradient(to top, var(--franja));
+    -webkit-mask-image: linear-gradient(var(--dir, to top), var(--franja));
+    mask-image: linear-gradient(var(--dir, to top), var(--franja));
   }
 }
 /* De abajo hacia arriba, cada capa entra donde la anterior se va (fracciones de la rampa). */
-.hoja-borde > :nth-child(1) {
+.hoja-borde > :nth-child(1),
+.hoja-borde-abajo > :nth-child(1) {
   --desenfoque: 1px;
   --franja: transparent 0%, #000 calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), transparent calc(var(--rampa) * 0.5);
 }
-.hoja-borde > :nth-child(2) {
+.hoja-borde > :nth-child(2),
+.hoja-borde-abajo > :nth-child(2) {
   --desenfoque: 2px;
   --franja: transparent calc(var(--rampa) * 0.125), #000 calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625),
     transparent calc(var(--rampa) * 0.75);
 }
-.hoja-borde > :nth-child(3) {
+.hoja-borde > :nth-child(3),
+.hoja-borde-abajo > :nth-child(3) {
   --desenfoque: 4px;
   --franja: transparent calc(var(--rampa) * 0.375), #000 calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875),
     transparent var(--rampa);
 }
-.hoja-borde > :nth-child(4) {
+.hoja-borde > :nth-child(4),
+.hoja-borde-abajo > :nth-child(4) {
   --desenfoque: 8px;
   --franja: transparent calc(var(--rampa) * 0.625), #000 calc(var(--rampa) * 0.875), #000 100%;
+}
+/* Variante invertida (pie flotante de la historia de crear producto): misma rampa, pero el desenfoque mayor y el
+   crema 0.94 quedan ABAJO y arriba no hay nada. Siempre encendido (no depende del scroll). */
+.hoja-borde-abajo {
+  --dir: to bottom;
+}
+.hoja-borde-abajo > * {
+  opacity: 1;
 }
 /* Zona fija de abajo de las hojas: con el teclado abierto se oculta (en iPhone quedaría detrás del
    teclado o flotando a media pantalla). Vuelve al cerrarlo. */
@@ -332,6 +348,9 @@
     bottom: 16px;
     background: var(--fondo);
     border-bottom: 1px solid var(--linea);
+  }
+  .hoja-borde-abajo > .hoja-borde-color {
+    background: var(--fondo);
   }
 }
 
