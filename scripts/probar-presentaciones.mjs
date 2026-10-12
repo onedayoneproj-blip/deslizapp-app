@@ -69,7 +69,7 @@ async function nuevo(page, nombre = "Aros de luna", precio = "950") {
   await page.locator("[data-historia-producto]").waitFor();
   const b = await foto(page, "#c8a2c8");
   await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
-  await page.locator("[data-tarjeta-asi-se-vera] img").waitFor();
+  await page.locator("[data-marco-foto] img").waitFor();
   await page.getByRole("button", { name: "Seguir", exact: true }).click();
   await page.locator("[data-campo-paso]").fill(nombre);
   await page.getByRole("button", { name: "Seguir", exact: true }).click();

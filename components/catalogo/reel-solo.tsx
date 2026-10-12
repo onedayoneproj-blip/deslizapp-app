@@ -79,7 +79,7 @@ export function ReelSolo() {
     ...(foto ? {} : { "--tint": "#f3ead9" }),
   } as CSSProperties;
   return (
-    <div ref={root} className={"catalogo-publico view-reels reel-solo" + (tinteOscuro ? " tint-dark" : "")} style={estilo} data-reel-solo="">
+    <div ref={root} className={"catalogo-publico view-reels reel-solo" + (tinteOscuro ? " tint-dark" : "") + (foto ? "" : " sin-foto")} style={estilo} data-reel-solo="">
       <main className="reels" id="reels" aria-label="Así lo verá tu cliente">
         <Reel
           p={producto.p} t={t} i={0} activo anterior={false} siguiente={false} cantidadPedido={0} seleccionado={() => false}

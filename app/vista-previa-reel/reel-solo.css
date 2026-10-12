@@ -29,3 +29,6 @@ html.catalogo-html body {
   pointer-events: none;
   z-index: 5;
 }
+.catalogo-publico.reel-solo.sin-foto .media {
+  background: #f3ead9;
+}

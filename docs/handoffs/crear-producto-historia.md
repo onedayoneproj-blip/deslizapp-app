@@ -35,9 +35,45 @@ Lewis probó el preview y pidió que se vea **exactamente** como el lienzo (`ref
 
 Lo que difiere del lienzo y por qué: «Seguir sin foto» (terciario) y «Con foto se vende más.» dentro del marco del paso 1 (decisión del encargo y pedido anterior de Planning); con varios catálogos, el selector acorta las barras; el pie respeta la zona segura del iPhone (`max(28 px, safe-area)`).
 
+## Ronda 3 · Bloque 1 (12 oct, prototipo v4; `docs/prompts/crear-producto-ronda-3.md`)
+
+Lewis se quedó con #112. Hecho sobre la rama (merge de `main` primero; la novedad pasa a 0.68.0):
+
+- **Hoja, no pantalla completa:** `Hoja` cambia `pantallaCompleta`/`juntoACerrar`/`cerrarSutil` por la prop `historia` (`avance`, `alLadoDelTitulo`): borde en y=78 (`max(78px, barra de estado + 20)`), `radio-xl`, agarradera; fila 1 «Nuevo producto» + selector a la derecha (Fredoka 18), fila 2 barras + ✕ con círculo. Contenido en y=180.
+- **«Atrás» abajo** a la izquierda del botón principal en todos los pasos (apagado en la foto, oculto en la celebración) y en las hojas de los opcionales junto a «Listo».
+- **Foto:** «Tomar foto» y «Elegir de la galería» en una fila; con fotos, portada grande con «1/N», tira, «Hasta 10…», «Con foto se vende más.» al final y un hueco debajo para el retoque.
+- **Preguntas:** títulos de 26 px; nombre sin texto de ejemplo; «Escribe tu precio»; el chip de presentaciones solo con precio; «Llega en …» en la tarjeta.
+- **Por encargo:** `FilaInterruptor` (nueva, `components/ui/interruptor.tsx`) y `GrupoEleccion` (nuevo, `components/ui/eleccion.tsx`: píldoras que quedan en `marca-rosa`, 40 px) para «¿Cuándo llega?».
+- **Celebración animada:** 3 corazones y 2 burbujas con `cel-vivo` (docs/08, excepción nueva); quieta con movimiento reducido.
+- **Sin foto:** «Publicar» apagado con «Agrega una foto para publicar · Volver a la foto»; el reel dice «Sin foto» (fondo del hueco de la foto); «Guardar sin publicar» lo deja oculto. `validar` y `puedePublicar` aceptan sin foto solo si queda oculto (también al editar). Etiqueta «Sin foto» en la tarjeta del panel. Pruebas: `tests/hoja-producto.test.mjs` y `tests/plan-catalogo.test.mjs` (los ocultos no cuentan para el plan; `resumenDelPlan` no cambió).
+
+### Lienzo vs construido (390×844 y 393×852; medidas en `docs/capturas/crear-producto/fidelidad/medidas-*.json`)
+
+| Pieza | Lienzo 390×844 | Construido 390×844 | Construido 393×852 |
+|---|---|---|---|
+| Borde de la hoja | y=78, radio 28, agarradera 40×5 | y=78, radio 28, agarradera 40×5 | y=78 |
+| Fila 1 (título / selector) | y=98, alto 28; Fredoka 20 / 18 | título y=100 (24 de alto, centrado en 98–126) | igual |
+| Fila 2 (barras + ✕) | y=128; barras 4 px; ✕ 44 en x=330 | barras centro y=150; ✕ 44 en (330,128) | ✕ en (333,128) |
+| Contenido | y=180 | y=180 | y=180 |
+| Marco / tarjeta | 350×372 | 350×372 | 353×372 |
+| Pregunta | y=570, Fredoka 26 | y=570, 26 px | y=570 |
+| «‹» + principal | 52 px en y=768 | 52 px en y=768 | y=776 (24 del borde) |
+| Reel «así se ve» | 350×440 en y=212 | 350×438 en y=213 (390×488 × 0,897) | 353×442 |
+| Celebración, titular | y≈520, Caveat 40 | y=520 | y=520 |
+
+**Lo que difiere del lienzo y por qué:**
+- Interruptor apagado en `borde-campo` (lienzo `#e7dcc8`): el del sistema de diseño, por contraste (3:1).
+- En b2 el «‹» se ve encendido; el encargo dice «apagado en el primer paso»: va apagado en todo el paso de la foto.
+- La burbuja blanca dice «¿Tienes en M?» solo si el producto tiene presentaciones (la del medio); si no, «¿Todavía hay?».
+- Con un rubro con Detalles (Ropa en la demo), «Hazlo brillar» lleva una cuarta píldora y la fila se desliza.
+- Miniaturas de 76 px con 8 px entre ellas (`TiraMedios` del sistema; lienzo 74/10).
+- El hueco del retoque queda vacío (sin el texto de aviso del lienzo, que es una nota de diseño).
+- Abajo, el pie respeta la zona segura del iPhone (`max(24 px, safe-area)`).
+- A 390×844, al elegir «¿Cuándo llega?» el contenido se desplaza 6 px (las píldoras quedan justo sobre la barra).
+
 ## Decisiones fuera del encargo (o donde había que elegir)
 
-- **Seguir sin foto:** se puede, y también publicar sin foto (la base lo acepta). Al editar, «Guardar cambios» sigue pidiendo foto como siempre.
+- **Seguir sin foto:** se puede; desde la ronda 3, sin foto solo se guarda oculto (regla de Lewis), también al editar.
 - **Catálogo:** en el mismo paso del nombre (pastillas `Opcion` + «Vendo otra cosa también»), no en un paso propio.
 - **Campos:** el nombre y el precio usan el `Campo` de siempre (docs/09: todos los campos se ven iguales), no uno más grande.
 - **Tarjeta «así se verá»:** nombre en Fredoka del panel, no la letra del tema de la tienda (esas fuentes solo se cargan en el catálogo); el reel del paso 5 sí lleva la del tema.

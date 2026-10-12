@@ -183,6 +183,15 @@ las clases `onb-*` de `app/globals.css`. Solo en las 4 historias de bienvenida y
   tiene el foco** (`:has(input:focus)` → `animation-play-state: paused`). Las burbujas no son ancestro de ningún campo y la tarjeta del
   capítulo 1 (que contiene el campo del nombre) no se anima nunca.
 
+### Excepción: celebración de crear producto (prototipo v4, 12 oct 2026)
+
+`Celebracion` en `components/catalogo/historia-producto.tsx`, clase `cel-vivo` en `app/globals.css` (capturas `b10`). Solo en la
+pantalla final de crear producto: alrededor de la portada, tres corazones de «Lo quiero» y dos burbujas de mensaje tipo WhatsApp
+aparecen una tras otra (`cel-pop`, 550 ms con `--curva-salida`, 200 ms entre una y otra: se pasan apenas y vuelven) y después flotan
+9 px arriba y abajo (`cel-flota`, ciclos de 3,2 a 3,8 s, desfasados). Solo `transform` y `opacity`, decorativos, sin toques; los
+botones responden desde el primer momento. Con movimiento reducido no se mueve nada y todo se ve en su lugar. La portada y el titular
+no se animan. La excepción se limita a esta pantalla.
+
 ### Inventario: historial como vista interna
 
 Ficha ↔ historial de ajustes cambia directamente dentro de la misma Hoja, sin

@@ -76,7 +76,7 @@ const png = (page, color, ancho = 600, alto = 600) =>
  */
 const TOP_TARJETA = new Map();
 async function tarjeta(page, nombre, clave = "tarjeta") {
-  const r = await page.locator("[data-tarjeta-asi-se-vera]").evaluate((el) => {
+  const r = await page.locator("[data-tarjeta-asi-se-vera], [data-marco-foto]").evaluate((el) => {
     const caja = el.getBoundingClientRect();
     const hoja = el.closest("[data-hoja-panel]").getBoundingClientRect();
     const img = el.querySelector("img");
@@ -127,7 +127,7 @@ async function abrir(page) {
 async function subirFoto(page, color = "#c8a2c8", ancho = 600, alto = 600) {
   const b = await png(page, color, ancho, alto);
   await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
-  await page.locator("[data-tarjeta-asi-se-vera] img").waitFor();
+  await page.locator("[data-marco-foto] img").waitFor();
 }
 /** Escribe en el campo enfocado (como el teclado: el foco ya lo puso la historia). */
 const escribir = (page, texto) => page.keyboard.type(texto);
@@ -142,15 +142,41 @@ for (const ancho of ANCHOS) {
     await abrir(page);
     ok((await paso(page)) === "foto" && (await titulo(page)) === "Empieza por la foto", "Empieza por la foto");
     ok((await barras(page)) === "1" && (await page.locator("[data-barras-historia] span").count()) === 5, "Cinco barras, la primera llena (aria-valuenow 1)");
-    ok((await page.locator("[data-tarjeta-asi-se-vera]").count()) === 1 && (await page.getByText("Tu foto va aquí").isVisible()), "Sin foto: la tarjeta es un marco con la cámara");
+    ok((await page.locator("[data-marco-foto]").count()) === 1 && (await page.getByText("Tu foto va aquí").isVisible()), "Sin foto: el marco punteado con la cámara");
+    {
+      // Prototipo v4: una HOJA (borde en y=78 a 844 de alto) con agarradera; fila 1 «Nuevo producto», fila 2 barras + ✕.
+      const hoja = await page.locator("[data-hoja-panel]").boundingBox();
+      const tit = await page.locator("[data-hoja-cabecera] h2").boundingBox();
+      const bar = await page.locator("[data-barras-historia]").boundingBox();
+      const x = await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).boundingBox();
+      ok(Math.abs(hoja.y - 78) < 1 && (await page.locator("[data-hoja-cabecera] h2").innerText()) === "Nuevo producto", `Es una hoja con su hueco arriba (borde en y=${Math.round(hoja.y)}) y «Nuevo producto» visible`);
+      ok(tit.y + tit.height <= bar.y && Math.abs(x.y + x.height / 2 - (bar.y + bar.height / 2)) < 2 && x.x >= bar.x + bar.width, "…fila 1 el título; fila 2 las barras y la ✕");
+      const t = await page.locator("[data-marco-foto]").boundingBox();
+      ok(Math.abs(t.y - 180) < 1.5, `…el contenido empieza en y=${Math.round(t.y)} (180)`);
+      const atras = await boton(page, "Atrás").boundingBox();
+      const pieTop = await page.locator("[data-pie-historia]").boundingBox();
+      ok(atras.width === 52 && atras.y >= pieTop.y && (await boton(page, "Atrás").isDisabled()), "«Atrás» abajo (52 px), apagado en la primera pregunta");
+      ok((await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Atrás" }).count()) === 0, "…y no hay ‹ en la cabecera");
+    }
     ok(await boton(page, "Tomar foto").isVisible() && await boton(page, "Elegir de la galería").isVisible(), "«Tomar foto» y «Elegir de la galería»");
+    {
+      const a = await boton(page, "Tomar foto").boundingBox();
+      const b = await boton(page, "Elegir de la galería").boundingBox();
+      ok(Math.abs(a.y - b.y) < 1 && a.x + a.width <= b.x, "…en una fila");
+    }
     await tarjeta(page, "Paso 1 sin foto, el marco");
-    ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano junto al marco");
+    ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano, al final");
     ok((await page.getByText("así se verá").count()) === 0, "En el paso 1 no sale «así se verá»");
     ok((await page.locator("[data-entrada-camara]").getAttribute("capture")) === "environment", "«Tomar foto» abre la cámara (capture)");
     await captura(page, "1-foto-vacia", ancho);
     await subirFoto(page, "#c8a2c8", 900, 500);
     ok(await page.getByText("Portada").first().isVisible(), "Con foto: la tira con la portada");
+    ok((await page.locator("[data-titulo-paso]").count()) === 0 && (await boton(page, "Tomar foto").count()) === 0, "…sin el título ni los botones de antes");
+    {
+      const fin = await page.locator("[data-con-foto]").boundingBox();
+      const tira = await page.getByText("Hasta 10. Mantén presionado para ordenar.").boundingBox();
+      ok(fin.y > tira.y && (await page.locator("[data-hueco-retoque]").count()) === 1, "…«Con foto se vende más.» al final, con sitio debajo para el retoque");
+    }
     await tarjeta(page, "Paso 1 con una foto horizontal");
     await captura(page, "1-foto", ancho);
     await seguir(page);
@@ -164,9 +190,11 @@ for (const ancho of ANCHOS) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
     ok((await paso(page)) === "precio" && (await enfocado(page)) === "campo", "Enter lleva al precio con el foco en su campo");
+    ok((await page.locator("[data-chip-presentaciones]").count()) === 0 && (await page.locator("[data-precio-tarjeta]").count()) === 0, "Sin precio: ni el chip ni el precio en la tarjeta (nada antes de tiempo)");
+    ok((await page.locator("[data-titulo-paso]").evaluate((e) => getComputedStyle(e).fontSize)) === "26px", "Títulos de pregunta a 26 px");
     await escribir(page, "1450");
     ok((await page.locator("[data-precio-tarjeta]").innerText()) === "RD$1,450", "El precio aparece en la tarjeta");
-    ok(await page.locator("[data-chip-presentaciones]").getByText("Tiene tallas o colores").isVisible(), "Chip «Tiene tallas o colores»");
+    ok(await page.locator("[data-chip-presentaciones]").getByText("Tiene tallas o colores").isVisible(), "Chip «Tiene tallas o colores» (con precio)");
     await tarjeta(page, "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
@@ -235,6 +263,9 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-celebracion]").waitFor();
     ok((await paso(page)) === "listo", "Celebración");
     ok(await page.getByText("¡Ya está en tu catálogo!").isVisible() && await page.getByText("Hoodie Deslizapp ya se puede deslizar.").isVisible(), "«¡Ya está en tu catálogo!» y la línea con el nombre");
+    ok((await page.locator("[data-celebracion] .cel-vivo").count()) === 5 && (await page.locator("[data-burbuja]").count()) === 2 && (await page.getByText("¡Lo quiero!").isVisible()), "Corazones y burbujas de mensaje alrededor de la foto");
+    ok((await page.locator("[data-celebracion] .cel-vivo").first().evaluate((e) => getComputedStyle(e).animationName)).includes("cel-pop"), "…animados (pop y flotar)");
+    ok((await boton(page, "Atrás").count()) === 0, "En la celebración no hay «Atrás»");
     const p = await productoCreado(page, "Hoodie Deslizapp");
     ok(p && p.activo && p.precio === 1450 && p.stock === 3 && p.medios.length === 1 && p.detalles.descripcion === "Algodón grueso, para el frío." && p.categoria, "Guardado visible con foto, precio, stock 3, descripción y colección");
     await captura(page, "6-celebracion", ancho);
@@ -268,12 +299,28 @@ for (const ancho of ANCHOS) {
     ok((await page.locator('[data-precio=""]').inputValue()) === "800", "El precio sigue ahí");
     await seguir(page);
     await seguir(page);
+    // Regla de Lewis: sin foto no se publica; se guarda como borrador oculto.
+    ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-falta-foto]").innerText()).includes("Agrega una foto para publicar"), "Sin foto: «Publicar» apagado con «Agrega una foto para publicar · Volver a la foto»");
+    ok(await page.frameLocator("[data-reel-historia] iframe").locator("[data-reel-sin-foto]").isVisible(), "…el reel dice «Sin foto»");
+    await captura(page, "5-sin-foto", ancho);
+    await boton(page, "Volver a la foto").tap();
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "foto", "«Volver a la foto» regresa al primer paso");
+    await boton(page, "Seguir sin foto").tap();
+    await seguir(page);
+    await seguir(page);
+    await seguir(page);
+    ok(await boton(page, "Guardar sin publicar").isEnabled(), "«Guardar sin publicar» sigue activo");
     await boton(page, "Guardar sin publicar").tap();
     await page.locator("[data-celebracion]").waitFor();
     ok(await page.getByText("¡Quedó guardado!").isVisible(), "Sin publicar: «¡Quedó guardado!»");
     const p = await productoCreado(page, "Gorra sin foto");
     ok(p && !p.activo && p.medios.length === 0 && p.precio === 800, "Guardado oculto y sin foto");
     await captura(page, "6-guardado-sin-publicar", ancho);
+    await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar", exact: true }).tap();
+    await page.waitForURL(`${URL}/catalogo`);
+    await page.getByRole("link", { name: /^Gorra sin foto/ }).first().waitFor({ timeout: 15000 }).catch(() => {});
+    ok((await page.getByRole("link", { name: /^Gorra sin foto.*Sin foto/ }).count()) === 1, "En el panel, el borrador oculto sin foto dice «Sin foto»");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -285,11 +332,12 @@ for (const ancho of ANCHOS) {
     await subirFoto(page, "#7aa", 500, 900);
     const SEL = "[data-hoja-cabecera] [data-selector-catalogo]";
     ok((await page.getByText("¿En qué catálogo va?").count()) === 0, "El catálogo no es una pregunta");
-    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Ropa"), "Está en la cabecera, junto a las barras, con el catálogo abierto (Ropa)");
+    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Ropa"), "Está en la cabecera con el catálogo abierto (Ropa)");
     {
       const sel = await page.locator(SEL).boundingBox();
       const bar = await page.locator("[data-barras-historia]").boundingBox();
-      ok(Math.abs(sel.y + sel.height / 2 - (bar.y + bar.height / 2)) < 4 && sel.x + sel.width <= bar.x, "…en la misma fila, a la izquierda de las barras");
+      const tit = await page.locator("[data-hoja-cabecera] h2").boundingBox();
+      ok(Math.abs(sel.y + sel.height / 2 - (tit.y + tit.height / 2)) < 3 && sel.x > tit.x + tit.width && sel.y + sel.height / 2 < bar.y, "…en la fila del título, a su derecha");
     }
     await page.locator(SEL).tap();
     await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Accesorios/ }).tap();
@@ -301,7 +349,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await escribir(page, "650");
     await seguir(page);
-    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
     await page.waitForTimeout(100);
     ok((await titulo(page)) === "¿Cuándo llega?" && (await page.locator("[data-contador-stock]").count()) === 0, "Por encargo: «¿Cuándo llega?» y sin contador");
     ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado hasta elegir cuándo");
@@ -310,8 +358,8 @@ for (const ancho of ANCHOS) {
     ok((await enfocado(page)) === "campo", "«Otro» abre el campo con el foco");
     await escribir(page, "Llega el viernes");
     // Apagar y volver a prender el encargo no esconde lo escrito en «Otro».
-    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
-    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
     ok((await page.getByRole("radio", { name: "Otro" }).getAttribute("aria-checked")) === "true" && (await page.locator("[data-campo-paso]").inputValue()) === "Llega el viernes", "Al volver a prender el encargo, «Otro» sigue elegido con lo escrito");
     await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
     ok((await page.locator("[data-campo-paso]").count()) === 0, "Una opción rápida cierra el campo de «Otro»");
@@ -351,7 +399,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     ok((await page.locator(H).innerText()).includes("5 presentaciones · 5 en total"), "El paso de stock resume las presentaciones (5 en total)");
     // Por encargo no lleva stock: tampoco las presentaciones.
-    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
     await page.getByRole("radio", { name: "1 mes" }).tap();
     await seguir(page);
     await boton(page, "Publicar").tap();
@@ -474,6 +522,26 @@ console.log("\n=== Pantalla baja (360×640): la tarjeta no se encoge; el conteni
   await seguir(page);
   await aLaVista("Precio");
   await captura(page, "3-precio-pantalla-baja", 360);
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
+console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
+{
+  const { ctx, page, errores } = await pagina(390, MICHEL);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await abrir(page);
+  await subirFoto(page, "#8a6");
+  await seguir(page);
+  await escribir(page, "Oud quieto");
+  await seguir(page);
+  await escribir(page, "1200");
+  await seguir(page);
+  await seguir(page);
+  await boton(page, "Publicar").tap();
+  await page.locator("[data-celebracion]").waitFor();
+  const nombres = await page.locator("[data-celebracion] .cel-vivo").evaluateAll((l) => l.map((e) => getComputedStyle(e).animationName));
+  ok(nombres.length === 5 && nombres.every((n) => n === "none") && (await page.getByText("¡Lo quiero!").isVisible()), "Sin animación: corazones y burbujas en su lugar");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
 }

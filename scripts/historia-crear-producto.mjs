@@ -14,10 +14,28 @@ export async function tocarHistoria(page, boton) {
   await page.waitForTimeout(200);
 }
 
-/** Desde el paso de la foto (con o sin fotos): escribe el nombre y el precio; queda en «¿Cuánto cuesta?». */
-export async function nombreYPrecio(page, nombre, precio) {
-  const sinFoto = page.getByRole("button", { name: "Seguir sin foto", exact: true });
-  await tocarHistoria(page, (await sinFoto.count()) ? "Seguir sin foto" : "Seguir");
+/** Una foto de prueba (sin foto no se publica: regla de Lewis). */
+export async function fotoDePrueba(page) {
+  const b = await page.evaluate(() => {
+    const l = document.createElement("canvas");
+    l.width = l.height = 400;
+    const x = l.getContext("2d");
+    x.fillStyle = "#c97b4a";
+    x.fillRect(0, 0, 400, 400);
+    return l.toDataURL("image/png").split(",")[1];
+  });
+  await page.locator("[data-entrada-medios]").setInputFiles([{ name: "f.png", mimeType: "image/png", buffer: Buffer.from(b, "base64") }]);
+  await page.locator("[data-marco-foto] img").waitFor();
+}
+
+/**
+ * Desde el paso de la foto: escribe el nombre y el precio; queda en «¿Cuánto cuesta?». Si todavía no hay foto, sube una de prueba
+ * (sin foto, «Publicar» queda apagado); con `sinFoto`, sigue sin ella (solo se podrá guardar sin publicar).
+ */
+export async function nombreYPrecio(page, nombre, precio, { sinFoto = false } = {}) {
+  const vacia = (await page.getByRole("button", { name: "Seguir sin foto", exact: true }).count()) > 0;
+  if (vacia && !sinFoto) await fotoDePrueba(page);
+  await tocarHistoria(page, vacia && sinFoto ? "Seguir sin foto" : "Seguir");
   await page.locator("[data-campo-paso]").fill(nombre);
   await tocarHistoria(page, "Seguir");
   await page.locator("[data-campo-paso]").fill(precio);

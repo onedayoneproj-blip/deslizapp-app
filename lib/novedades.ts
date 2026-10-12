@@ -25,8 +25,8 @@ const TODAS: Novedad[] = [
     version: "0.68.0", fecha: "2026-10-12", titulo: "Crear un producto, como contar una historia.",
     cambios: [
       "Una pregunta a la vez: la foto, cómo se llama, cuánto cuesta y cuántos tienes. Mientras respondes, ves cómo va quedando.",
-      "Al final lo ves como en tu catálogo y lo publicas de una.",
-      "¿Por encargo? Eliges cuándo llega con un toque. Editar sigue igual que siempre.",
+      "Al final lo ves como en tu catálogo, lo publicas y lo celebras.",
+      "¿Sin foto? Se guarda oculto como borrador y lo publicas cuando la agregues.",
     ],
   },
   {

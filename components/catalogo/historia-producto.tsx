@@ -624,7 +624,7 @@ function BotonAtras({ alTocar, apagado = false }: { alTocar: () => void; apagado
 /** Una pastilla de «Hazlo brillar»: abre su hoja; hecha, lleva el check y dice qué tiene. */
 function PastillaOpcional({ texto, hecha, detalle, alTocar }: { texto: string; hecha: boolean; detalle?: string | null; alTocar: () => void }) {
   return (
-    <Chip hecho={hecha} onClick={alTocar} className="h-[34px]! px-3! text-[0.8125rem]!" aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}>
+    <Chip hecho={hecha} onClick={alTocar} className="h-[34px]! gap-1! px-2.5! text-[0.8125rem]!" aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}>
       {texto}
     </Chip>
   );
