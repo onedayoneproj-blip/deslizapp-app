@@ -19,7 +19,7 @@ Antes de empezar: haz merge de `main` en la rama (hay cambios del catálogo, de 
 
 - **Sin precio no se ve precio:** nada de «RD$ —» ni marcadores; el precio aparece en la tarjeta solo cuando la persona lo escribe (como en el prototipo y en la versión de Claude).
 - **Sin nombre no se ve nombre:** ni la tarjeta ni el campo muestran «Nombre del producto» como texto puesto. El campo empieza vacío con el cursor (la etiqueta puede quedar oculta visualmente o arriba en pequeño, como el lienzo) y el nombre aparece en la tarjeta mientras se escribe.
-- **El texto del campo del nombre es demasiado grande:** usa el tamaño del lienzo (20 px, peso 700, campo de 56 px de alto).
+- **Paso del precio: el texto «Escribe tu precio» es demasiado grande.** El texto de ayuda dentro del campo vacío va pequeño y en color secundario (Figtree ~18 px, como «RD$»), no al tamaño de la cifra. Cuando se escribe, la cifra usa el tamaño del lienzo: «RD$» 18 px y el número en Fredoka 32 px, campo de 64 px de alto.
 
 ## 4. ¿Cuántos tienes?
 
