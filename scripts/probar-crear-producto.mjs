@@ -375,6 +375,12 @@ for (const ancho of ANCHOS) {
     ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "«Agregar otro» sale con el último catálogo usado (Accesorios)");
     await abrir(page);
     ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "…y al volver a crear, también");
+    // Cambiarlo en un borrador que se abandona no cambia el de la próxima vez (solo cuenta lo creado).
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Ropa/ }).tap();
+    await page.waitForTimeout(300);
+    await abrir(page);
+    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "Un borrador abandonado en Ropa no cambia el recordado (Accesorios)");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -701,6 +707,18 @@ console.log("\n=== Una presentación quitada sigue quitada al sumar otro color (
   await inv.waitFor();
   await page.waitForTimeout(400);
   ok((await inv.locator('[data-fila-inventario="Negro"]').count()) === 0, "…y en el Inventario no está Negro");
+  // Quitar un valor con cantidades (confirmado) las pierde de verdad: si se vuelve a elegir, empieza en 0 (Codex P2).
+  await boton(page, "Listo · 1 en total").tap();
+  await page.waitForTimeout(500);
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Quitar", exact: true }).tap();
+  await page.waitForTimeout(300);
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await page.waitForTimeout(200);
+  await page.getByRole("button", { name: "Editar", exact: true }).tap();
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  ok((await inv.locator('[data-fila-inventario="Blanco"]').innerText()).trim().split(/\s+/).includes("0"), "Blanco quitado (con 1) y vuelto a elegir empieza en 0");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
 }

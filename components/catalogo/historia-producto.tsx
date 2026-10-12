@@ -186,10 +186,8 @@ function Historia({
   const [tipoElegido, setTipo] = useState<Rubro | null>(null);
   // Sale con el último catálogo en el que se creó (por tienda); si no hay, el que se estaba viendo en Catálogo.
   const tipoBase: Rubro = tienda ? (leerCatalogoAlCrear(tienda.id, tipos) ?? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id))) : rubro;
-  const elegirTipo = (r: Rubro) => {
-    setTipo(r);
-    if (tienda) guardarCatalogoAlCrear(tienda.id, r);
-  };
+  // El catálogo elegido se recuerda solo al crear de verdad (en `guardar`): un borrador abandonado no cambia el de la próxima vez.
+  const elegirTipo = (r: Rubro) => setTipo(r);
   const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
@@ -303,6 +301,9 @@ function Historia({
     const antes = ejes.find((e) => e.nombre === nombreEje)?.valores ?? [];
     setEjes((l) => l.map((e) => (e.nombre === nombreEje ? { ...e, valores } : e)));
     setQuitadas((q) => quitadasTrasCambiar(q, nombreEje, antes, valores));
+    // Lo de un valor quitado se pierde de verdad (cantidades y precios): si se vuelve a elegir, empieza en 0.
+    const fuera = antes.filter((v) => !valores.includes(v));
+    if (fuera.length > 0) setPresBorrador((l) => l.filter((p) => !fuera.includes(p.valores[nombreEje] ?? "")));
   };
   /** Quitar un valor que ya tiene cantidades pregunta antes: esas unidades se pierden. */
   const alternarValorDe = (eje: EjeHistoria, valor: string) => {
