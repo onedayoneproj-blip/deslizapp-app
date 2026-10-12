@@ -69,8 +69,10 @@ type Nivel = "media" | "grande";
 
 /** Altura máxima: toda la pantalla menos el tope de arriba (debajo de la barra de estado). */
 const ALTO_MAXIMO = "calc(100dvh - var(--hoja-tope))";
-/** Una hoja con hueco propio (la historia de crear producto: 78 px, como el lienzo), siempre debajo de la barra de estado. */
+/** Una hoja con hueco propio en px (el Inventario, 118), siempre debajo de la barra de estado. */
 const altoConHueco = (hueco: number) => `calc(100dvh - max(${hueco}px, calc(var(--safe-arriba) + 20px)))`;
+/** La historia de crear producto: como las hojas grandes de iOS, 10 px por debajo de la barra de estado (≈69 px en un iPhone con isla) y nunca a menos de 24 px. */
+const ALTO_HISTORIA = "calc(100dvh - max(calc(var(--safe-arriba) + 10px), 24px))";
 const ALTO_MEDIA = 0.6; // fracción de la pantalla visible en "expandible" a media altura
 /** Scroll (px) en el que el borde de desplazamiento bajo la cabecera pasa de invisible a completo. */
 const SCROLL_BORDE = 24;
@@ -192,12 +194,12 @@ type Props = {
   /**
    * Cabecera de historia (crear producto, prototipo v4): fila 1 con el título visible y `alLadoDelTitulo` a la derecha (el
    * selector de catálogo); fila 2 con `avance` (las barras) y la X. Con `altura="grande"`, la hoja deja arriba el hueco del lienzo
-   * (borde en y≈78 en un iPhone) con esquinas de `radio-xl` y su agarradera.
+   * (borde en y≈69 en un iPhone) con esquinas de `radio-xl` y su agarradera.
    */
   historia?: { avance: ReactNode; alLadoDelTitulo?: ReactNode };
   /**
    * Solo con `altura="grande"`: dónde empieza la hoja (px desde arriba, nunca sobre la barra de estado), con esquinas `radio-xl`.
-   * La historia de crear producto va en 78; la hoja que se abre encima de ella («Inventario»), 40 más abajo (118).
+   * La historia de crear producto usa su propio hueco (10 px bajo la barra de estado); la hoja que se abre encima de ella («Inventario»), 40 más abajo (118).
    */
   hueco?: number;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
@@ -263,7 +265,7 @@ function HojaMontada({
   children,
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
-  const hueco = altura === "grande" ? (huecoPedido ?? (historia ? 78 : undefined)) : undefined;
+  const hueco = altura === "grande" ? (huecoPedido ?? (historia ? ("historia" as const) : undefined)) : undefined;
   const idTitulo = useId();
   const idAviso = useId();
   const idAvisoTexto = useId();
@@ -814,7 +816,7 @@ function HojaMontada({
         className={`absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"}`}
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
-          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: hueco !== undefined ? altoConHueco(hueco) : ALTO_MAXIMO }),
+          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: hueco === "historia" ? ALTO_HISTORIA : hueco !== undefined ? altoConHueco(hueco) : ALTO_MAXIMO }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
@@ -828,7 +830,7 @@ function HojaMontada({
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className={`relative z-10 min-h-0 flex-1 isolate overscroll-contain ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"} px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)] [scroll-padding-bottom:calc(var(--fijo-abajo,0px)+var(--teclado,0px)+8px)]`}
+          className={`relative z-10 min-h-0 flex-1 isolate overscroll-contain ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"} px-5 pt-[calc(var(--cabecera,79px)+2px)] ${hueco === "historia" ? "pb-[calc(max(max(1.75rem,calc(var(--safe-abajo)+1rem)),var(--fijo-abajo,0px))+var(--teclado,0px))]" : "pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))]"} [scroll-padding-top:calc(var(--cabecera,79px)+8px)] [scroll-padding-bottom:calc(var(--fijo-abajo,0px)+var(--teclado,0px)+8px)]`}
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}

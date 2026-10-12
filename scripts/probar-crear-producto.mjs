@@ -148,36 +148,54 @@ for (const ancho of ANCHOS) {
     await abrir(page);
     ok((await paso(page)) === "foto" && (await titulo(page)) === "Empieza por la foto", "Empieza por la foto");
     ok((await barras(page)) === "1" && (await page.locator("[data-barras-historia] span").count()) === 5, "Cinco barras, la primera llena (aria-valuenow 1)");
-    ok((await page.locator("[data-marco-foto]").count()) === 1 && (await page.getByText("Tu foto va aquí").isVisible()), "Sin foto: el marco punteado con la cámara");
+    ok((await page.locator("[data-marco-foto]").count()) === 1 && (await page.getByText("Toca para agregar fotos").isVisible()), "Sin foto: el marco punteado con la cámara, que invita a tocar («Toca para agregar fotos»)");
     {
-      // Prototipo v4: una HOJA (borde en y=78 a 844 de alto) con agarradera; fila 1 «Nuevo producto», fila 2 barras + ✕.
+      // Una HOJA (borde en y=24 sin safe area: max(safe-arriba + 10, 24); ≈69 en un iPhone con isla, ver el bloque «sin scroll») con agarradera; fila 1 «Nuevo producto», fila 2 barras + ✕.
       const hoja = await page.locator("[data-hoja-panel]").boundingBox();
       const tit = await page.locator("[data-hoja-cabecera] h2").boundingBox();
       const bar = await page.locator("[data-barras-historia]").boundingBox();
       const x = await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).boundingBox();
-      ok(Math.abs(hoja.y - 78) < 1 && (await page.locator("[data-hoja-cabecera] h2").innerText()) === "Nuevo producto", `Es una hoja con su hueco arriba (borde en y=${Math.round(hoja.y)}) y «Nuevo producto» visible`);
+      ok(Math.abs(hoja.y - 24) < 1 && (await page.locator("[data-hoja-cabecera] h2").innerText()) === "Nuevo producto", `Es una hoja con su hueco arriba (borde en y=${Math.round(hoja.y)}) y «Nuevo producto» visible`);
       ok(tit.y + tit.height <= bar.y && Math.abs(x.y + x.height / 2 - (bar.y + bar.height / 2)) < 2 && x.x >= bar.x + bar.width, "…fila 1 el título; fila 2 las barras y la ✕");
       const t = await page.locator("[data-marco-foto]").boundingBox();
-      ok(Math.abs(t.y - 180) < 1.5, `…el contenido empieza en y=${Math.round(t.y)} (180)`);
+      ok(Math.abs(t.y - 126) < 1.5, `…el contenido empieza en y=${Math.round(t.y)} (126)`);
       const atras = await boton(page, "Atrás").boundingBox();
       const pieTop = await page.locator("[data-pie-historia]").boundingBox();
       ok(atras.width === 52 && atras.y >= pieTop.y && (await boton(page, "Atrás").isDisabled()), "«Atrás» abajo (52 px), apagado en la primera pregunta");
       ok((await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Atrás" }).count()) === 0, "…y no hay ‹ en la cabecera");
     }
-    ok(await boton(page, "Tomar foto").isVisible() && await boton(page, "Elegir de la galería").isVisible(), "«Tomar foto» y «Elegir de la galería»");
+    ok((await boton(page, "Tomar foto").count()) === 0 && (await boton(page, "Elegir de la galería").count()) === 0 && (await page.locator("[data-entrada-camara]").count()) === 0, "Sin «Tomar foto» ni «Elegir de la galería», y sin la entrada con capture");
     {
-      const a = await boton(page, "Tomar foto").boundingBox();
-      const b = await boton(page, "Elegir de la galería").boundingBox();
-      ok(Math.abs(a.y - b.y) < 1 && a.x + a.width <= b.x, "…en una fila");
+      // El recuadro es un botón accesible que dispara el input sin `capture` (en el teléfono, su menú: Fototeca / Tomar foto / Elegir archivo).
+      const marco = page.getByRole("button", { name: "Agregar fotos", exact: true });
+      const caja = await marco.boundingBox();
+      ok((await marco.count()) === 1 && (await marco.evaluate((e) => e.matches("[data-marco-foto]"))) && caja.width >= 44 && caja.height >= 44, "El recuadro es un botón «Agregar fotos»");
+      const clase = (await marco.getAttribute("class")) ?? "";
+      ok(clase.includes("focus-visible:outline-foco") && clase.includes("tocable"), "…con estado de foco y «tocable»");
+      const entrada = page.locator("[data-entrada-medios]");
+      ok((await entrada.getAttribute("capture")) === null && (await entrada.getAttribute("multiple")) !== null, "…el input es el de siempre: sin capture y con varias fotos");
+      await entrada.evaluate((e) => { window.__clicEntrada = 0; e.addEventListener("click", () => window.__clicEntrada++); });
+      await marco.tap();
+      ok((await page.evaluate(() => window.__clicEntrada)) === 1, "Tocar el recuadro abre el selector (click en [data-entrada-medios])");
     }
     await tarjeta(page, "Paso 1 sin foto, el marco");
     ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano, al final");
     ok((await page.getByText("así se verá").count()) === 0, "En el paso 1 no sale «así se verá»");
-    ok((await page.locator("[data-entrada-camara]").getAttribute("capture")) === "environment", "«Tomar foto» abre la cámara (capture)");
     await captura(page, "1-foto-vacia", ancho);
     await subirFoto(page, "#c8a2c8", 900, 500);
     ok(await page.getByText("Portada").first().isVisible(), "Con foto: la tira con la portada");
-    ok((await page.locator("[data-titulo-paso]").count()) === 0 && (await boton(page, "Tomar foto").count()) === 0, "…sin el título ni los botones de antes");
+    ok((await page.locator("[data-titulo-paso]").count()) === 0 && (await boton(page, "Agregar fotos").count()) === 0, "…sin el título ni el recuadro tocable de antes");
+    {
+      // Tocar la portada grande no abre el selector; «+ Agregar foto» de la tira sí.
+      await page.evaluate(() => { window.__clicEntrada = 0; });
+      await page.locator("[data-marco-foto]").tap();
+      await page.waitForTimeout(150);
+      ok((await page.evaluate(() => window.__clicEntrada)) === 0, "Tocar la portada no abre el selector");
+      const mas = page.getByRole("button", { name: /Agregar foto|Foto o video/ });
+      await page.waitForFunction(() => [...document.querySelectorAll("button")].some((b) => /Agregar foto|Foto o video/.test(b.textContent ?? "") && !b.disabled), null, { timeout: 15000 });
+      await mas.first().tap();
+      { const n = await page.evaluate(() => window.__clicEntrada); ok(n === 1, `«+ Agregar foto» de la tira abre el mismo input (clics: ${n})`); }
+    }
     {
       const fin = await page.locator("[data-con-foto]").boundingBox();
       const tira = await page.getByText("Hasta 10. Mantén presionado para ordenar.").boundingBox();
@@ -278,7 +296,7 @@ for (const ancho of ANCHOS) {
     // «Agregar otro» reinicia la historia.
     await boton(page, "Agregar otro").tap();
     await page.waitForTimeout(200);
-    ok((await paso(page)) === "foto" && (await page.getByText("Tu foto va aquí").isVisible()) && (await barras(page)) === "1", "«Agregar otro» empieza otra historia vacía");
+    ok((await paso(page)) === "foto" && (await page.getByText("Toca para agregar fotos").isVisible()) && (await barras(page)) === "1", "«Agregar otro» empieza otra historia vacía");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -444,7 +462,7 @@ for (const ancho of ANCHOS) {
     ok((await page.locator("[data-barras-historia] span").count()) === 7 && (await barras(page)) === "4", "…con 7 barras en vez de 5 (la 4.ª llena)");
     {
       const t = await page.locator("[data-tarjeta-presentaciones]").boundingBox();
-      ok(Math.abs(t.height - 212) < 1 && Math.abs(t.width - (ancho - 40)) < 1 && Math.abs(t.y - 180) < 1.5, `Tarjeta «así se verá» de ${Math.round(t.width)}×${Math.round(t.height)} en y=${Math.round(t.y)}`);
+      ok(Math.abs(t.height - 212) < 1 && Math.abs(t.width - (ancho - 40)) < 1 && Math.abs(t.y - 126) < 1.5, `Tarjeta «así se verá» de ${Math.round(t.width)}×${Math.round(t.height)} en y=${Math.round(t.y)}`);
       ok((await page.locator("[data-tarjeta-presentaciones]").getAttribute("aria-label")).includes("Desde RD$900"), "…con «Desde RD$900»");
     }
     const qc = page.locator("[data-que-cambia]");
@@ -476,7 +494,7 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(500);
     {
       const hojas = await page.locator("[data-hoja-panel]").evaluateAll((l) => l.map((e) => Math.round(e.getBoundingClientRect().y)));
-      ok(hojas.length === 2 && hojas[0] === 78 && hojas[1] === 118, `«Inventario» es otra hoja encima (y=${hojas.join(", ")})`);
+      ok(hojas.length === 2 && hojas[0] === 24 && hojas[1] === 118, `«Inventario» es otra hoja encima (y=${hojas.join(", ")})`);
     }
     ok((await inv.locator("[data-grupo-inventario]").count()) === 2 && (await inv.locator("[data-fila-inventario]").count()) === 6, "Un grupo por color (Negro, Blanco) con una fila por talla");
     ok(await boton(page, "Listo · 0 en total").isDisabled(), "«Listo · 0 en total» apagado: con 0 no se llega a «Así se ve»");
@@ -1162,6 +1180,47 @@ console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
   await page.locator("[data-celebracion]").waitFor();
   const nombres = await page.locator("[data-celebracion] .cel-vivo").evaluateAll((l) => l.map((e) => getComputedStyle(e).animationName));
   ok(nombres.length === 5 && nombres.every((n) => n === "none") && (await page.getByText("¡Lo quiero!").isVisible()), "Sin animación: corazones y burbujas en su lugar");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
+console.log("\n=== Sin scroll en los pasos de un producto sin presentaciones (390×844 y 393×852, safe-arriba 59 y safe-abajo 34) ===");
+for (const [an, al] of [[390, 844], [393, 852]]) {
+  const { ctx, page, errores } = await pagina(an, LINO, null, al);
+  await abrir(page);
+  await page.addStyleTag({ content: ":root{--safe-arriba:59px !important;--safe-abajo:34px !important}" });
+  await page.waitForTimeout(300);
+  /** Cuánto le falta a la hoja para no desplazarse (px); 0 = cabe. */
+  const falta = async (nombre) => {
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(() => {
+      const c = document.querySelector("[data-hoja-contenido]");
+      return { falta: c.scrollHeight - c.clientHeight, borde: Math.round(document.querySelector("[data-hoja-panel]").getBoundingClientRect().y) };
+    });
+    ok(r.borde === 69, `${an}×${al} · ${nombre}: la hoja empieza en y=${r.borde} (69)`);
+    ok(r.falta <= 0, `${an}×${al} · ${nombre}: no hace scroll${r.falta > 0 ? ` (le faltan ${r.falta} px)` : ""}`);
+  };
+  await falta("foto, sin fotos");
+  const b64 = await png(page, "#c8a2c8");
+  await page.locator("[data-entrada-medios]").setInputFiles([1, 2, 3].map((i) => ({ name: `f${i}.png`, mimeType: "image/png", buffer: Buffer.from(b64, "base64") })));
+  await page.locator("[data-marco-foto] img").waitFor();
+  await page.waitForTimeout(800);
+  await falta("foto, con 3 fotos");
+  await seguir(page);
+  await escribir(page, "Aretes por encargo");
+  await falta("nombre");
+  await seguir(page);
+  await escribir(page, "650");
+  await falta("precio");
+  await seguir(page);
+  await falta("cantidad");
+  await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+  await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
+  await falta("por encargo con plazo");
+  await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+  await page.getByRole("button", { name: "Agregar uno" }).tap();
+  await seguir(page);
+  await falta("«Así se ve», con foto");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
 }

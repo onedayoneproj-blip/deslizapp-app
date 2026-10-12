@@ -456,9 +456,9 @@ function Historia({
   const preguntaEjes = paso === "cambia" || paso === "eje1" || paso === "eje2";
   // Sin foto no se publica (regla de Lewis): se puede guardar como borrador oculto y agregarla después.
   const sinFoto = portada === null;
-  // La pregunta y su línea de ayuda, como el lienzo: Fredoka 26 y 15 px, 18 px debajo de la tarjeta.
+  // La pregunta y su línea de ayuda, como el lienzo: Fredoka 26 y 15 px, 12 px debajo de la tarjeta.
   const encabezado = (
-    <div className="mt-[18px]">
+    <div className="mt-3">
       <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
       <p className="mt-[5px] text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
     </div>
@@ -539,13 +539,13 @@ function Historia({
         <>
           <MarcoFoto portada={portada} total={fotos.length} />
           {medios.length === 0 && encabezado}
-          <div className={medios.length === 0 ? "mt-3.5" : "mt-3"}>
+          <div className={medios.length === 0 ? "mt-3.5" : "mt-2"}>
             <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} historia />
           </div>
           {/* El momento de voz de la foto, al final de la pantalla: sin regañar (se puede seguir sin ella). */}
-          <p className="mt-3 text-center font-mano text-[1.625rem] leading-[1.1] text-atencion-texto" data-con-foto="">{SIN_FOTO}</p>
+          <p className="mt-2 text-center font-mano text-[1.625rem] leading-[1.1] text-atencion-texto" data-con-foto="">{SIN_FOTO}</p>
           {/* Debajo irá «Pedir a Deslizapp que retoque tu foto» (ronda futura): se deja el sitio. */}
-          {medios.length > 0 && <div aria-hidden="true" className="mt-2.5 h-9" data-hueco-retoque="" />}
+          {medios.length > 0 && <div aria-hidden="true" className="mt-1 h-9" data-hueco-retoque="" />}
         </>
       )}
 
@@ -553,7 +553,7 @@ function Historia({
         <>
           {encabezado}
           <Campo
-            className="mt-4" grande etiqueta="Nombre del producto" value={nombre} onChange={(e) => setNombre(e.target.value)}
+            className="mt-3" grande etiqueta="Nombre del producto" value={nombre} onChange={(e) => setNombre(e.target.value)}
             maxLength={120} enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
           />
         </>
@@ -566,7 +566,7 @@ function Historia({
             <p className="mt-4 text-destacado text-texto" data-precio-desde="">Varía por presentación · desde {formatearPesos(resumenPres.desde)}</p>
           ) : (
             <Campo
-              className="mt-4" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
+              className="mt-3" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
               precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe tu precio" data-precio="" data-campo-paso=""
             />
           )}
@@ -591,10 +591,10 @@ function Historia({
             </div>
           ) : (
             <>
-              <div className="mt-3.5 flex justify-center" data-contador-stock="">
+              <div className="mt-2.5 flex justify-center" data-contador-stock="">
                 <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
               </div>
-              <div className="mt-2.5">
+              <div className="mt-1.5">
                 <FilaInterruptor texto="Es por encargo, no llevo stock" encendido={false} alCambiar={elegirEncargo} />
               </div>
             </>
@@ -606,7 +606,7 @@ function Historia({
         <>
           <h2 tabIndex={-1} data-titulo-paso="" className="-mt-1 font-mano text-[1.625rem] leading-tight text-atencion-texto outline-none">{textos.titulo}</h2>
           <ReelEnVivo datos={datosVista} />
-          <section aria-labelledby="titulo-brillar" className="mt-2.5 flex flex-col gap-1.5">
+          <section aria-labelledby="titulo-brillar" className="mt-1 flex flex-col gap-0.5">
             {sinFoto ? (
               <p id="titulo-brillar" className="text-secundario leading-[18px] font-extrabold text-atencion-texto" data-falta-foto="">
                 Agrega una foto para publicar ·{" "}
@@ -800,22 +800,35 @@ function TarjetaAsiSeVera({ portada, nombre, precio, llega }: { portada: string 
   );
 }
 
-/** El marco de la foto (paso 1), como el lienzo: sin fotos, el hueco punteado «Tu foto va aquí»; con fotos, la portada en grande y «1/N». */
+/**
+ * El marco de la foto (paso 1), como el lienzo: sin fotos, el hueco punteado «Toca para agregar fotos», que es un botón y abre el
+ * selector nativo del teléfono (Fototeca / Tomar foto / Elegir archivo); con fotos, la portada en grande y «1/N» (tocarla no abre nada).
+ */
 function MarcoFoto({ portada, total }: { portada: string | null; total: number }) {
+  const caja = "relative h-[372px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida";
+  if (portada) {
+    return (
+      <div className={caja} data-marco-foto="">
+        <Foto src={portada} alt="Portada del producto" className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" />
+        <span aria-hidden="true" className="absolute top-3 right-3 inline-flex h-[26px] items-center rounded-full bg-velo px-2.5 text-[0.8125rem] font-extrabold text-papel tabular-nums">1/{total}</span>
+      </div>
+    );
+  }
   return (
-    <div className="relative h-[372px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-marco-foto="">
-      {portada ? (
-        <>
-          <Foto src={portada} alt="Portada del producto" className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" />
-          <span aria-hidden="true" className="absolute top-3 right-3 inline-flex h-[26px] items-center rounded-full bg-velo px-2.5 text-[0.8125rem] font-extrabold text-papel tabular-nums">1/{total}</span>
-        </>
-      ) : (
-        <div aria-hidden="true" className="absolute inset-3.5 flex flex-col items-center justify-center gap-2 rounded-radio-m border-2 border-dashed border-borde-campo text-texto-secundario">
-          <IconoCamara tamano={44} strokeWidth={1.8} />
-          <span className="text-secundario font-bold">Tu foto va aquí</span>
-        </div>
-      )}
-    </div>
+    <button
+      type="button"
+      aria-label="Agregar fotos"
+      // El selector vive en la sección de fotos del mismo paso (hermana de este botón): sin `capture`, para que el teléfono ofrezca su menú.
+      onClick={(e) => e.currentTarget.parentElement?.querySelector<HTMLInputElement>("[data-entrada-medios]")?.click()}
+      className={clases(caja, "tocable block outline-none focus-visible:outline-3 focus-visible:outline-foco")}
+      data-marco-foto=""
+      data-marco-vacio=""
+    >
+      <span aria-hidden="true" className="absolute inset-3.5 flex flex-col items-center justify-center gap-2 rounded-radio-m border-2 border-dashed border-borde-campo text-texto-secundario">
+        <IconoCamara tamano={44} strokeWidth={1.8} />
+        <span className="text-secundario font-bold">Toca para agregar fotos</span>
+      </span>
+    </button>
   );
 }
 
@@ -1114,7 +1127,7 @@ function ReelEnVivo({ datos }: { datos: () => DatosVistaPrevia | null }) {
   const clave = JSON.stringify(d && "producto" in d ? d.producto : null);
   useEffect(mandar, [clave]);
   return (
-    <div ref={caja} className="relative mt-1 aspect-[390/488] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-historia="">
+    <div ref={caja} className="relative aspect-[390/488] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-reel-historia="">
       <iframe
         ref={marco} src="/vista-previa-reel" title="Así lo verá tu cliente" className="absolute top-0 left-0 origin-top-left border-0"
         style={{ width: REEL_W, height: REEL_H }}

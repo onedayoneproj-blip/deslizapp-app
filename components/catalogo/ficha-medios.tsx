@@ -102,8 +102,7 @@ export function SeccionMedios({
   taller: Taller;
   avisar: (mensaje: string) => void;
   /**
-   * La historia de crear producto: la foto en grande la pinta su marco. Aquí solo va la tira (con fotos) o, sin fotos, «Tomar
-   * foto» (cámara) y «Elegir de la galería» en una fila.
+   * La historia de crear producto: la foto en grande la pinta su marco (que, sin fotos, abre el selector). Aquí solo va la tira.
    */
   historia?: boolean;
 }) {
@@ -115,7 +114,6 @@ export function SeccionMedios({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ultimaEntregada]);
   const entrada = useRef<HTMLInputElement>(null);
-  const camara = useRef<HTMLInputElement>(null);
   const { tiendaId } = useTiendaActiva();
   const { abrirMiMarca } = usePanelUI();
   const [abierto, setAbierto] = useState<string | null>(null);
@@ -225,30 +223,6 @@ export function SeccionMedios({
           e.target.value = "";
         }}
       />
-      {historia && (
-        // «Tomar foto»: abre la cámara del teléfono (en una computadora, el selector de archivos de siempre).
-        <input
-          ref={camara}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden="true"
-          data-entrada-camara
-          onChange={(e) => {
-            elegir(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      )}
-      {historia && !principal && (
-        // En pantallas angostas el texto se acomoda en dos líneas antes que salirse del botón.
-        <div className="flex gap-2.5" data-sin-fotos-historia="">
-          <Boton tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => camara.current?.click()}>Tomar foto</Boton>
-          <Boton jerarquia="secundario" tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => entrada.current?.click()}>Elegir de la galería</Boton>
-        </div>
-      )}
       {principal ? (
         <>
           {!historia && <button

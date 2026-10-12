@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.71.0", fecha: "2026-10-12", titulo: "Tu foto, a un toque.",
+    cambios: [
+      "Al crear un producto, toca el recuadro de la foto y tu teléfono te deja elegir: fototeca, tomar foto o archivo.",
+      "La hoja sube un poco para que cada paso quepa sin desplazarte.",
+    ],
+  },
+  {
     version: "0.70.0", fecha: "2026-10-12", titulo: "Los botones, siempre a mano.",
     cambios: [
       "Al crear un producto, «Seguir» y «Publicar» flotan abajo, sin recuadro, mientras el contenido se difumina detrás.",
