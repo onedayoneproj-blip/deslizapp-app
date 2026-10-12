@@ -215,7 +215,7 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado.
 
 **Hoja como historia** (crear producto, prototipo v4 del 12 oct): hoja `grande` con la prop `historia` de `Hoja`: el borde superior en y=78 (`max(78px, barra de estado + 20)`), esquinas `radio-xl` y agarradera. Cabecera en dos filas: fila 1, el título visible (Fredoka 20) y a la derecha `alLadoDelTitulo` (el selector de catálogo compacto); fila 2, `avance` (las **barras de historia**: una por momento, 4 px, píldora, 4 px entre ellas, llenas las hechas y la actual en `accion`, el resto `borde-pastilla`, `role="progressbar"`) y la ✕ en su círculo. El contenido empieza en y=180. Cada pantalla trae su pregunta (Fredoka 26). Abajo, en una barra sólida, **«‹» redondo de 52 px a la izquierda** y la acción del paso; no hay ‹ en la cabecera. Medidas de las tarjetas: las del lienzo (`referencias/crear-producto/LEEME.md`): 350×372 en las preguntas, 350×212 en las de presentaciones y el reel de 390×488 reducido en proporción en «así se ve en tu catálogo». Una hoja que se abre encima de la historia («Inventario») usa `hueco={118}`: 40 px más abajo, con las mismas esquinas.
 
-Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?".
+Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?" y los botones **«Quedarme»** (principal) y **«Descartar y salir»** (terciario, tono peligro).
 
 ## 10. Tarjetas
 

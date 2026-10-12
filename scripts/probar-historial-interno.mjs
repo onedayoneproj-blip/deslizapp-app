@@ -38,7 +38,7 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  await page.getByRole('button',{name:'Volver a Editar producto',exact:true}).click();await page.waitForTimeout(150);
  ok(await campo.inputValue()==='Nombre pendiente'&&await campo.getAttribute('data-prueba-nodo')==='mismo'&&Math.abs(await scroll.evaluate(el=>el.scrollTop)-posEdicion)<=2,`${ancho}: edición conserva campos, nodo y scroll (${posEdicion})`);
  await inventario.getByRole('button',{name:'Descartar',exact:true}).click();ok(await campo.inputValue()==='Nombre pendiente'&&await page.getByRole('button',{name:'Guardar cambios',exact:true}).count()===1,`${ancho}: descartar cantidad conserva ficha y Guardar general`);
- await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.keyboard.press('Escape');await page.getByRole('alertdialog').waitFor();await page.getByRole('alertdialog').getByRole('button',{name:'Seguir aquí',exact:true}).click();
+ await inventario.getByRole('button',{name:'Ver historial',exact:true}).click();await page.keyboard.press('Escape');await page.getByRole('alertdialog').waitFor();await page.getByRole('alertdialog').getByRole('button',{name:'Quedarme',exact:true}).click();
  ok(await page.getByRole('heading',{name:'Historial de ajustes',exact:true}).count()===1,`${ancho}: Escape protege cambios reales y permite seguir en historial`);
  await page.getByRole('button',{name:'Volver a Editar producto',exact:true}).click();
  ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${ancho}: sin overflow${reducido?' · movimiento reducido':''}`);

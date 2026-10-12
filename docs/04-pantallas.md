@@ -148,9 +148,13 @@ botón de cerrar redondo. Además:
   siguen cerrándose con su ruta; el resto de las hojas de selección son vistas dentro de la misma hoja.)
 - **Aviso al salir:** con cambios sin guardar (`avisarAlSalir` de `Hoja`, o `useAvisarAlSalir(bool)` desde el formulario) cerrar
   (deslizar, fondo, Escape, X o atrás) no cierra: la hoja vuelve a su lugar con un rebote (sin rebote con movimiento reducido) y sale
-  un diálogo pequeño `role="alertdialog"`: **"¿Salir sin guardar?"** / "Lo que escribiste se va a perder." con **"Seguir aquí"**
-  (principal) y **"Salir"** (contorno). Solo "Salir" cierra; Escape dentro del diálogo = "Seguir aquí"; el foco entra al diálogo y no
-  sale con Tab. Guardar con éxito, cerrar desde el padre o cambiar de ruta nunca preguntan. Activo en: Registrar abono (monto o nota),
+  un diálogo pequeño `role="alertdialog"`: **"¿Salir sin guardar?"** / "Lo que escribiste se va a perder." con **"Quedarme"**
+  (principal) y **"Descartar y salir"** (terciario, tono peligro). Solo "Descartar y salir" cierra; Escape dentro del diálogo =
+  "Quedarme"; el foco entra al diálogo y no sale con Tab. Textos propios: crear producto suma «Las N fotos que subiste se van a
+  descartar.» y «Se van a perder las N presentaciones y sus cantidades.» (solo lo que se pierde de verdad); editar producto,
+  «¿Descartar los cambios?» / «Lo que cambiaste no se va a guardar.»; registrar un pedido, «¿Salir sin registrar?» / «Lo que anotaste
+  se va a perder.»; la hoja «Inventario» de crear producto no avisa (cerrarla conserva lo puesto). Props: `avisoTitulo`, `avisoTexto`,
+  `avisoQuedarme`, `avisoDescartar`; el contenido puede dar textos con `useAvisarAlSalir(cambios, { titulo, texto })`. Guardar con éxito, cerrar desde el padre o cambiar de ruta nunca preguntan. Activo en: Registrar abono (monto o nota),
   + Pedido / venta pasada / Editar pedido (cualquier cambio respecto a como se abrió), Cliente nuevo (algún campo lleno), nota del
   cliente (texto cambiado), producto y promo (cambios respecto al original). No en hojas de solo lectura ni de selección.
 - **Nunca en blanco:** las hojas de cliente y de pedido muestran, dentro de la misma hoja, un esqueleto mientras cargan y, si una
@@ -867,8 +871,8 @@ el campo de texto) tiene, de arriba abajo:
   La primera abre el mismo formulario nuevo (`?copiar=id&tipo=...`) con el tipo elegido desbloqueado.
   Copia nombre y porcentaje guardados, limpia campos incompatibles (código, producto, colección y
   límite de usos exclusivo de código), y empieza hoy sin vencimiento ni pausa, como la duplicación.
-  Con cambios sin guardar se usa «¿Salir sin guardar?»: «Seguir aquí» conserva el borrador;
-  «Salir» autoriza descartarlo para partir de los datos guardados. La creación usa la validación existente.
+  Con cambios sin guardar se usa «¿Salir sin guardar?»: «Quedarme» conserva el borrador;
+  «Descartar y salir» autoriza descartarlo para partir de los datos guardados. La creación usa la validación existente.
   No se copian usos, pedidos ni identidad. Cancelar no modifica la original.
   Tras guardar, si la original no terminó, se ofrecen «Terminar la anterior» y «Dejar ambas».
   Terminar requiere además la confirmación existente «Sí, terminar»; «Mejor no» conserva ambas.

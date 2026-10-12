@@ -256,7 +256,15 @@ function Historia({
   // Con algo escrito y sin guardar, cerrar pregunta (como la hoja de producto). Ya guardado, no.
   const firma = JSON.stringify({ medios: medios.length, nombre, precio, stock, porEncargo, encargoTexto, ejes, presBorrador, detalles, ficha: ficha.tipo, coleccionElegida, tipoElegido });
   const [firmaInicial] = useState(firma);
-  useAvisarAlSalir(paso !== "listo" && firma !== firmaInicial);
+  // El aviso cuenta solo lo que se pierde de verdad: las fotos subidas y las presentaciones armadas.
+  const nFotos = fotos.length;
+  const nPres = tieneOpciones ? presentaciones.pres.length : 0;
+  const textoAviso = [
+    "Lo que escribiste se va a perder.",
+    nFotos > 0 ? (nFotos === 1 ? "La foto que subiste se va a descartar." : `Las ${nFotos} fotos que subiste se van a descartar.`) : null,
+    nPres > 0 ? (nPres === 1 ? "Se va a perder la presentación y sus cantidades." : `Se van a perder las ${nPres} presentaciones y sus cantidades.`) : null,
+  ].filter(Boolean).join(" ");
+  useAvisarAlSalir(paso !== "listo" && firma !== firmaInicial, { texto: textoAviso });
 
   /** Cambia de pregunta en el mismo toque y pone el foco en su campo (o en su título): reglas de teclado del iPhone. */
   const irA = (p: PasoHistoria) => {

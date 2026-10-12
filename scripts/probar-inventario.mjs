@@ -109,7 +109,7 @@ try {
   ok((await registros(page)).length===4 && (await registros(page))[3].variacion===-2,"Disminuir desde edición confirma motivo y un único delta final");
   await page.locator('button[aria-label^="Aumentar stock"]').click();
   await page.goBack();await page.getByRole("alertdialog").waitFor();
-  await page.getByRole("alertdialog").getByRole("button",{name:"Seguir aquí",exact:true}).click();
+  await page.getByRole("alertdialog").getByRole("button",{name:"Quedarme",exact:true}).click();
   ok(await page.locator('section[aria-label="Inventario"]').count()===1,"Atrás del navegador respeta cambios pendientes");
   await page.getByRole("button",{name:"Descartar",exact:true}).click();
   await page.getByRole("button",{name:"Crear pedido",exact:true}).click();await page.waitForURL("**/pedidos/nuevo?producto=*");

@@ -68,7 +68,7 @@ export function HojaRegistrarSolicitud({
       altura="grande"
       avisarAlSalir={hayCambios}
       avisoTitulo="¿Salir sin registrar?"
-      avisoTexto="Lo que cambiaste aquí no se guarda. El pedido sigue esperando en Por registrar."
+      avisoTexto="Lo que anotaste se va a perder."
       alVolverInterno={() => {
         if (vista !== "cliente") return false;
         setVista("pedido");
@@ -558,7 +558,7 @@ function Formulario({
         descripcion="Sale de Por registrar y quien lo pidió verá que venció. No se puede deshacer."
         accion={{ texto: "No es un pedido", tono: "peligro", alConfirmar: confirmarDescarte }}
         alCancelar={() => setDescartar(false)}
-        textoCancelar="Seguir aquí"
+        textoCancelar="Quedarme"
       />
     </div>
       </div>

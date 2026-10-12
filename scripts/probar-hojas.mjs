@@ -3,9 +3,9 @@
 // Prueba las HOJAS APILADAS y el AVISO AL SALIR (components/hoja.tsx), en la demo:
 //   - una hoja sobre otra (Registrar abono sobre el detalle del pedido): deslizar, tocar el fondo, Escape, la X y "atrás" cierran
 //     SOLO la de arriba; la de abajo (y la dirección) no se mueven;
-//   - con cambios sin guardar (monto o nota) cerrar no cierra: sale "¿Salir sin guardar?"; "Seguir aquí" no cierra y conserva lo
-//     escrito; "Salir" cierra; sin cambios no pregunta;
-//   - el diálogo atrapa el foco y Escape equivale a "Seguir aquí";
+//   - con cambios sin guardar (monto o nota) cerrar no cierra: sale "¿Salir sin guardar?"; "Quedarme" no cierra y conserva lo
+//     escrito; "Descartar y salir" cierra; sin cambios no pregunta;
+//   - el diálogo atrapa el foco y Escape equivale a "Quedarme";
 //   - una hoja de ruta (Cliente nuevo) pregunta solo si hay algún campo lleno.
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -96,7 +96,7 @@ try {
     await ctx.close();
   }
 
-  // ---- 2. Con cambios: pregunta; "Seguir aquí" conserva; "Salir" cierra solo la de arriba
+  // ---- 2. Con cambios: pregunta; "Quedarme" conserva; "Descartar y salir" cierra solo la de arriba
   for (const gesto of ["deslizar", "fondo", "escape", "equis", "atras"]) {
     const { ctx, page, errores } = await abrir(navegador);
     await conAbono(page);
@@ -117,24 +117,24 @@ try {
     });
     ok(dentro, `[${gesto}] la hoja volvió a su lugar (no quedó a medio deslizar)`);
     ok(/Lo que escribiste se va a perder/.test(await page.locator('[role="alertdialog"]').innerText()), `[${gesto}] el diálogo dice qué se pierde`);
-    ok(await page.evaluate(() => document.activeElement?.textContent === "Seguir aquí"), `[${gesto}] el foco entra al diálogo ("Seguir aquí")`);
+    ok(await page.evaluate(() => document.activeElement?.textContent === "Quedarme"), `[${gesto}] el foco entra al diálogo ("Quedarme")`);
     // El foco no se escapa con Tab
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     ok(await page.evaluate(() => !!document.activeElement?.closest('[role="alertdialog"]')), `[${gesto}] Tab no saca el foco del diálogo`);
-    // "Seguir aquí"
-    await page.getByRole("button", { name: "Seguir aquí" }).click();
+    // "Quedarme"
+    await page.getByRole("button", { name: "Quedarme" }).click();
     await page.waitForTimeout(400);
-    ok((await avisos(page)) === 0 && (await hojas(page)) === 2, `[${gesto}] "Seguir aquí" no cierra nada`);
+    ok((await avisos(page)) === 0 && (await hojas(page)) === 2, `[${gesto}] "Quedarme" no cierra nada`);
     ok((await page.locator('input[aria-label^="Monto del abono"]').inputValue()) === "500", `[${gesto}] lo escrito se conserva`);
-    // Otra vez, y ahora "Salir"
+    // Otra vez, y ahora "Descartar y salir"
     if (gesto === "escape") {
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);
       ok((await avisos(page)) === 1, `[${gesto}] Escape vuelve a preguntar`);
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);
-      ok((await avisos(page)) === 0 && (await hojas(page)) === 2, `[${gesto}] Escape dentro del diálogo equivale a "Seguir aquí"`);
+      ok((await avisos(page)) === 0 && (await hojas(page)) === 2, `[${gesto}] Escape dentro del diálogo equivale a "Quedarme"`);
       await page.keyboard.press("Escape");
     } else if (gesto === "deslizar") await deslizar(ctx, page);
     else if (gesto === "fondo") await page.mouse.click(195, 8);
@@ -142,9 +142,9 @@ try {
     else await page.goBack();
     await page.waitForTimeout(500);
     ok((await avisos(page)) === 1, `[${gesto}] vuelve a preguntar`);
-    await page.getByRole("button", { name: "Salir" }).click();
+    await page.getByRole("button", { name: "Descartar y salir" }).click();
     await page.waitForTimeout(800);
-    ok((await hojas(page)) === 1 && (await avisos(page)) === 0, `[${gesto}] "Salir" cierra solo la de arriba (${await hojas(page)})`);
+    ok((await hojas(page)) === 1 && (await avisos(page)) === 0, `[${gesto}] "Descartar y salir" cierra solo la de arriba (${await hojas(page)})`);
     ok(ruta(page) === url, `[${gesto}] la dirección no cambió (${ruta(page)})`);
     // Si vuelve a abrir el abono, empieza limpio y sin aviso
     await page.getByRole("button", { name: "Registrar abono" }).click();
@@ -182,12 +182,12 @@ try {
     await page.locator('[role="dialog"] button[aria-label="Cerrar"]').click();
     await page.waitForTimeout(600);
     ok((await avisos(page)) === 1 && ruta(page) === "/clientes/nuevo", "Cliente nuevo con un nombre escrito: la X pregunta");
-    await page.getByRole("button", { name: "Seguir aquí" }).click();
-    ok((await page.inputValue('[role="dialog"] input[placeholder="Ej: Paola Jiménez"]')) === "Ana", "Cliente nuevo: «Seguir aquí» conserva lo escrito");
+    await page.getByRole("button", { name: "Quedarme" }).click();
+    ok((await page.inputValue('[role="dialog"] input[placeholder="Ej: Paola Jiménez"]')) === "Ana", "Cliente nuevo: «Quedarme» conserva lo escrito");
     await page.locator('[role="dialog"] button[aria-label="Cerrar"]').click();
-    await page.getByRole("button", { name: "Salir" }).click();
+    await page.getByRole("button", { name: "Descartar y salir" }).click();
     await page.waitForTimeout(900);
-    ok(ruta(page) === "/clientes", `Cliente nuevo: «Salir» cierra (${ruta(page)})`);
+    ok(ruta(page) === "/clientes", `Cliente nuevo: «Descartar y salir» cierra (${ruta(page)})`);
     ok(errores.length === 0, `Cliente nuevo: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
