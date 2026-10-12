@@ -206,7 +206,7 @@ function Historia({
   const [fotosColor, setFotosColor] = useState<Record<string, string>>({});
   const [inventarioAbierto, setInventarioAbierto] = useState(false);
   const [inventarioListo, setInventarioListo] = useState(false);
-  const [quitarValor, setQuitarValor] = useState<{ eje: string; valor: string; texto: string } | null>(null);
+  const [quitarValor, setQuitarValor] = useState<{ eje: string; valores: string[]; quitados: string[]; texto: string } | null>(null);
   const [sumarEje, setSumarEje] = useState<{ nuevos: EjeHistoria[]; nombre: string; texto: string } | null>(null);
   const [fotoDe, setFotoDe] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<Detalles>({});
@@ -348,14 +348,17 @@ function Historia({
     }
   };
   /** Quitar un valor que ya tiene cantidades pregunta antes: esas unidades se pierden. */
-  const alternarValorDe = (eje: EjeHistoria, valor: string) => {
-    if (eje.valores.includes(valor)) {
-      // Con cantidades (aunque estén escondidas por encargo) o precios propios, se pregunta: se pierden.
-      const pierde = loQueSePierde(presentaciones.pres, eje.nombre, valor);
-      if (pierde.unidades > 0 || pierde.precios > 0) return setQuitarValor({ eje: eje.nombre, valor, texto: textoPerdida(pierde) });
-    }
-    ponerValores(eje.nombre, alternarValor(eje.valores, valor));
+  /**
+   * Cambia los valores de una cosa (un toque o un atajo como «Única»): si alguno que se quita tiene cantidades (aunque estén
+   * escondidas por encargo) o precios propios, se pregunta antes, porque se pierden.
+   */
+  const ponerValoresConAviso = (eje: EjeHistoria, valores: string[]) => {
+    const quitados = eje.valores.filter((v) => !valores.includes(v));
+    const pierde = quitados.map((v) => loQueSePierde(presentaciones.pres, eje.nombre, v)).reduce((t, x) => ({ unidades: t.unidades + x.unidades, precios: t.precios + x.precios }), { unidades: 0, precios: 0 });
+    if (pierde.unidades > 0 || pierde.precios > 0) return setQuitarValor({ eje: eje.nombre, valores, quitados, texto: textoPerdida(pierde) });
+    ponerValores(eje.nombre, valores);
   };
+  const alternarValorDe = (eje: EjeHistoria, valor: string) => ponerValoresConAviso(eje, alternarValor(eje.valores, valor));
   const cambiarPres = (lista: Presentacion[]) => {
     const quedan = new Set(lista.map((p) => claveVariante(p.valores)));
     setQuitadas((q) => [...q, ...presentaciones.pres.map((p) => claveVariante(p.valores)).filter((k) => !quedan.has(k) && !q.includes(k))]);
@@ -488,7 +491,7 @@ function Historia({
             <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
             <p className="mt-1 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
           </div>
-          <ValoresDeEje key={ejeDelPaso.nombre} eje={ejeDelPaso} rubro={tipo} alAlternar={(v) => alternarValorDe(ejeDelPaso, v)} alPoner={(v) => ponerValores(ejeDelPaso.nombre, v)} />
+          <ValoresDeEje key={ejeDelPaso.nombre} eje={ejeDelPaso} rubro={tipo} alAlternar={(v) => alternarValorDe(ejeDelPaso, v)} alPoner={(v) => ponerValoresConAviso(ejeDelPaso, v)} />
           {esEjeColor(ejeDelPaso.nombre) && ejeDelPaso.valores.length > 0 && (
             <FotoDeCadaColor valores={ejeDelPaso.valores} fotos={fotosDelBorrador} fotosColor={fotosColor} alAbrir={setFotoDe} />
           )}
@@ -682,7 +685,7 @@ function Historia({
       />
       <Alerta
         abierta={quitarValor !== null}
-        titulo={`¿Quitar ${quitarValor?.valor ?? ""}?`}
+        titulo={`¿Quitar ${quitarValor?.quitados.join(", ") ?? ""}?`}
         descripcion={quitarValor?.texto ?? ""}
         alCancelar={() => setQuitarValor(null)}
         accion={{
@@ -690,8 +693,7 @@ function Historia({
           alConfirmar: () => {
             const q = quitarValor!;
             setQuitarValor(null);
-            const eje = ejes.find((e) => e.nombre === q.eje);
-            if (eje) ponerValores(eje.nombre, alternarValor(eje.valores, q.valor));
+            ponerValores(q.eje, q.valores);
           },
         }}
       />
@@ -1128,9 +1130,10 @@ function Corazon({ tamano, className, style }: { tamano: number; className: stri
   );
 }
 
-/** La pregunta de la burbuja blanca: con tallas, por una del medio («¿Tienes en M?», como el lienzo); si no, «¿Todavía hay?». */
+/** La pregunta de la burbuja blanca: con tallas, por la del medio («¿Tienes en M?», como el lienzo); si no, «¿Todavía hay?». */
 function preguntaDeCliente(producto: Producto): string {
-  const valores = producto.opciones[0]?.valores ?? [];
+  // El color se guarda primero: la talla se busca por nombre.
+  const valores = producto.opciones.find((o) => /^talla/i.test(o.nombre.trim()))?.valores ?? [];
   const valor = valores[Math.floor((valores.length - 1) / 2)];
   return valor ? `¿Tienes en ${valor}?` : "¿Todavía hay?";
 }

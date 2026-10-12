@@ -495,6 +495,7 @@ for (const ancho of ANCHOS) {
     ok(p && suyas.length === 6 && p.opciones.map((o) => o.nombre).join(",") === "Color,Talla", "Publicado con 6 presentaciones (Color, Talla)");
     ok(suyas.filter((v) => v.stock === 2).length === 5 && suyas.some((v) => v.stock === 3) && suyas.some((v) => v.precio === 1100), "…con sus cantidades y el precio propio");
     ok(p.fotosPorValor?.Color?.Negro, "…y la foto de Negro");
+    ok((await page.locator("[data-burbuja]").first().innerText()) === "¿Tienes en M?", "La burbuja pregunta por la talla del medio («¿Tienes en M?»), no por un color");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -873,6 +874,13 @@ console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, t
   await abrirInventario();
   ok(!(await inv.locator('[data-fila-inventario="S"]').innerText()).includes("RD$1,500"), "S junta Negro (sin precio propio) y Blanco (1,500): vuelve al precio del producto");
   await listoInv();
+
+  // Un atajo que quita valores con cantidades también pregunta (Codex P2, 5.ª revisión): «Única» quitaría S y M.
+  await boton(page, "Única").tap();
+  ok((await alerta.innerText()).includes("¿Quitar S, M?") && (await alerta.innerText()).includes("Se pierden 2 unidades del inventario."), "«Única» sobre S y M con cantidades pregunta «¿Quitar S, M?»");
+  await alerta.getByRole("button", { name: "Cancelar" }).tap();
+  await page.waitForTimeout(300);
+  ok((await resumen()).includes("2 presentaciones · 2 en total"), "…y cancelar deja S y M con lo suyo");
 
   // Sumar una cosa con cantidades pregunta: cancelar deja todo; confirmar reparte de nuevo (todo a 0).
   await boton(page, "Atrás").tap();
