@@ -2,6 +2,7 @@
 // Michel con uno solo, que no debe cambiar en nada. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=360,390] node scripts/probar-tipo-de-producto.mjs
 import { createRequire } from "node:module";
+import { abrirHistoria, hastaPublicar, nombreYPrecio } from "./historia-crear-producto.mjs";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -64,21 +65,19 @@ for (const ancho of ANCHOS) {
     await page.waitForSelector("[data-selector-catalogo]");
     ok((await valorDe(page, "h1 [data-selector-catalogo]")) === "Accesorios", "al volver abre el último catálogo que miró");
 
-    console.log("• producto nuevo: sale con el catálogo activo; el selector va fijo en la cabecera");
-    await page.goto(`${URL}/catalogo/nuevo`);
+    console.log("• producto nuevo (historia): sale con el catálogo activo; el selector va en la cabecera, junto a las barras");
+    await abrirHistoria(page, URL);
     await page.waitForSelector(H);
     ok((await valorDe(page, H)) === "Accesorios", "un producto nuevo sale con el catálogo activo (Accesorios)");
     ok((await page.locator("[data-hoja-cabecera] [data-selector-catalogo]").count()) === 1, "el selector está en la cabecera de la hoja");
     ok((await opcionesDe(page, H)).join() === "Ropa 2,Accesorios 2,Vendo otra cosa también", "trae los catálogos y «Vendo otra cosa también»");
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Gorra de prueba");
-    await page.getByRole("textbox", { name: /Precio/ }).fill("500");
     await elegir(page, H, "Ropa");
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "gorra.png", mimeType: "image/png", buffer: PNG }]);
     await page.getByRole("button", { name: /^Foto 1 de 1/ }).waitFor();
-    await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await nombreYPrecio(page, "Gorra de prueba", "500");
+    await hastaPublicar(page);
     const creado = (await db(page)).productos.find((p) => p.nombre === "Gorra de prueba");
-    ok(creado && creado.rubro === "ropa", "se guardó con el catálogo elegido en la hoja (Ropa)");
+    ok(creado && creado.rubro === "ropa", "se guardó con el catálogo elegido en la cabecera (Ropa)");
 
     console.log("• editar: cambiar el tipo con el selector");
     const sombrero = (await db(page)).productos.find((p) => p.nombre === "Sombrero de paja");
@@ -188,7 +187,8 @@ for (const ancho of ANCHOS) {
     ok((await page.locator("[data-selector-catalogo]").count()) === 0, "el Catálogo no tiene selector de catálogos");
     ok(/Tu catálogo/.test(await page.locator("h1").innerText()), "el título sigue siendo «Tu catálogo»");
     await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Seguir sin foto", exact: true }).tap();
+    await page.locator("[data-campo-paso]").waitFor();
     ok((await page.locator("[data-selector-catalogo]").count()) === 0, "el producto nuevo no tiene selector de catálogos");
     await page.goto(`${URL}/tienda/esencias-michel?demo`);
     await page.waitForSelector("button[aria-label^='Buscar']");

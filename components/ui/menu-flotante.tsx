@@ -28,7 +28,8 @@ export function MenuFlotante({
   accion?: { texto: string; alTocar: () => void };
   /** Nombre accesible del menú («Catálogo»). */
   etiqueta: string;
-  tamano: "pantalla" | "hoja";
+  /** «compacto»: en la cabecera de una historia (crear producto), a la derecha de su título: Fredoka de 18 y la flecha de 16. */
+  tamano: "pantalla" | "hoja" | "compacto";
   deshabilitado?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
@@ -37,7 +38,7 @@ export function MenuFlotante({
   const items = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
   const actual = opciones.find((o) => o.id === valor);
-  const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla" : "font-display text-titulo-seccion";
+  const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla" : tamano === "compacto" ? "font-display text-[1.125rem] leading-7" : "font-display text-titulo-seccion";
   const total = opciones.length + (accion ? 1 : 0);
 
   const cerrar = (devolverFoco = true) => {
@@ -105,7 +106,7 @@ export function MenuFlotante({
         className={`tocable inline-flex min-h-11 max-w-full items-center gap-1.5 text-left text-texto ${clase}`}
       >
         <span className="min-w-0 truncate">{actual?.texto}</span>
-        <IconoChevronAbajo tamano={tamano === "pantalla" ? 24 : 20} strokeWidth={2.4} className="shrink-0 text-texto-secundario" />
+        <IconoChevronAbajo tamano={tamano === "pantalla" ? 24 : tamano === "compacto" ? 16 : 20} strokeWidth={2.4} className={`shrink-0 ${tamano === "compacto" ? "text-texto" : "text-texto-secundario"}`} />
       </button>
       {abierto && pos && typeof document !== "undefined" && createPortal(
         // El portal burbuja eventos de React hacia la hoja: sus gestos de arrastre con puntero no deben verlos.

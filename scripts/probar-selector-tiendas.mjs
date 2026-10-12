@@ -3,6 +3,7 @@
 // sola tienda; y el círculo de cuenta del admin (/admin-demo) con «Ir a mi tienda». Tema claro; 390 px y, donde se indica, 360/430.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] node scripts/probar-selector-tiendas.mjs
 import { createRequire } from "node:module";
+import { abrirHistoria, cerrarHistoria, hastaPublicar, nombreYPrecio } from "./historia-crear-producto.mjs";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -129,14 +130,13 @@ await caso("3. Una sola tienda: sin lista; su tarjeta con Mi marca y la cuenta d
   for (const ancho of [360, 430]) {
     const c = await pagina(ancho);
     const { page } = c;
-    await page.goto(`${URL}/catalogo/nuevo`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Para guardar");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("100");
+    await abrirHistoria(page, URL);
     const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 300; c.height = 300; c.getContext("2d").fillRect(0, 0, 300, 300); return c.toDataURL("image/png").split(",")[1]; });
     await page.locator("[data-entrada-medios]").setInputFiles([{ name: "a.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") }]);
     await page.getByRole("button", { name: /^(Portada|Foto) 1 de/ }).first().waitFor();
-    await page.getByRole("button", { name: "Publicar", exact: true }).click();
-    await page.waitForURL(`${URL}/catalogo`);
+    await nombreYPrecio(page, "Para guardar", "100");
+    await hastaPublicar(page);
+    await cerrarHistoria(page, URL);
     // Se deja una sola tienda en lo guardado y se vuelve a cargar.
     await page.evaluate((k) => {
       const d = JSON.parse(localStorage.getItem(k));

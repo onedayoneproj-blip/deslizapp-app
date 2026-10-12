@@ -48,6 +48,30 @@ export function mediosParaGuardar(medios: MedioBorrador[]): Medio[] {
 }
 
 /**
+ * Una foto nueva elegida desde «Foto de cada color» (presentaciones): entra a las del producto y devuelve su id (null si no se pudo).
+ */
+export async function agregarFotoAlBorrador(
+  archivo: File,
+  medios: MedioBorrador[],
+  alCambiar: (cambio: (medios: MedioBorrador[]) => MedioBorrador[]) => void,
+  avisar: (mensaje: string) => void,
+): Promise<string | null> {
+  if (medios.length >= MAX_MEDIOS) {
+    avisar(`Ya tiene ${MAX_MEDIOS}. Quita uno para agregar otro.`);
+    return null;
+  }
+  try {
+    const url = await reducirFoto(archivo);
+    const id = nuevoId();
+    alCambiar((l) => (l.length >= MAX_MEDIOS ? l : [...l, { id, tipo: "foto", url, retocada: false }]));
+    return id;
+  } catch {
+    avisar("Esa foto no quiso cargar. Prueba con otra.");
+    return null;
+  }
+}
+
+/**
  * Una foto que el taller entregó mientras la ficha estaba abierta: en el borrador se cambia la original por la retocada, así
  * guardar no la vuelve atrás. Devuelve la misma lista si no hay nada que cambiar.
  */
@@ -71,11 +95,17 @@ export function SeccionMedios({
   alCambiar,
   taller,
   avisar,
+  historia,
 }: {
   medios: MedioBorrador[];
   alCambiar: (cambio: (medios: MedioBorrador[]) => MedioBorrador[]) => void;
   taller: Taller;
   avisar: (mensaje: string) => void;
+  /**
+   * La historia de crear producto: la foto en grande la pinta su marco. Aquí solo va la tira (con fotos) o, sin fotos, «Tomar
+   * foto» (cámara) y «Elegir de la galería» en una fila.
+   */
+  historia?: boolean;
 }) {
   // Si el taller entrega una foto con la ficha abierta, el borrador toma la retocada.
   const ultimaEntregada = taller.entregadas[0]?.id;
@@ -85,6 +115,7 @@ export function SeccionMedios({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ultimaEntregada]);
   const entrada = useRef<HTMLInputElement>(null);
+  const camara = useRef<HTMLInputElement>(null);
   const { tiendaId } = useTiendaActiva();
   const { abrirMiMarca } = usePanelUI();
   const [abierto, setAbierto] = useState<string | null>(null);
@@ -194,9 +225,33 @@ export function SeccionMedios({
           e.target.value = "";
         }}
       />
+      {historia && (
+        // «Tomar foto»: abre la cámara del teléfono (en una computadora, el selector de archivos de siempre).
+        <input
+          ref={camara}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          data-entrada-camara
+          onChange={(e) => {
+            elegir(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      )}
+      {historia && !principal && (
+        // En pantallas angostas el texto se acomoda en dos líneas antes que salirse del botón.
+        <div className="flex gap-2.5" data-sin-fotos-historia="">
+          <Boton tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => camara.current?.click()}>Tomar foto</Boton>
+          <Boton jerarquia="secundario" tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => entrada.current?.click()}>Elegir de la galería</Boton>
+        </div>
+      )}
       {principal ? (
         <>
-          <button
+          {!historia && <button
             type="button"
             aria-label="Foto principal: ver opciones"
             onClick={() => { if (!(principal.tipo === "video" && typeof principal.progreso === "number")) setAbierto(principal.id); }}
@@ -217,14 +272,14 @@ export function SeccionMedios({
                 {duracionCorta(principal.duracionS)}
               </span>
             )}
-          </button>
+          </button>}
           <TiraMedios
             elementos={medios.map((m) =>
               m.tipo === "foto"
                 ? { id: m.id, tipo: "foto", imagen: m.url, taller: tallerDeMiniatura(taller.estado(m.url)) }
                 : { id: m.id, tipo: "video", imagen: m.portada, duracionS: m.duracionS, progreso: m.progreso ?? null },
             )}
-            seleccionado={principal.id}
+            seleccionado={historia ? undefined : principal.id}
             // Tocar una miniatura la pone en grande y abre sus acciones (como siempre).
             alTocar={(id) => { setVista(id); setAbierto(id); }}
             alMover={mover}
@@ -233,7 +288,7 @@ export function SeccionMedios({
             nota={preparando ? "Lo dejamos liviano para que cargue rápido." : `Hasta ${MAX_MEDIOS}. Mantén presionado para ordenar.`}
           />
         </>
-      ) : (
+      ) : historia ? null : (
         <button
           type="button"
           onClick={() => entrada.current?.click()}

@@ -27,13 +27,13 @@ export function SelectorCatalogo({
   textoOtra: string;
   alCambiar: (r: CatalogoPanel) => void;
   alVenderOtra: () => void;
-  tamano: "pantalla" | "hoja";
+  tamano: "pantalla" | "hoja" | "compacto";
   deshabilitado?: boolean;
   sinPermiso?: () => void;
   vistaAgregada?: boolean;
 }) {
   if (sinPermiso) {
-    const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla text-texto" : "font-display text-titulo-seccion text-texto";
+    const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla text-texto" : tamano === "compacto" ? "font-display text-[1.125rem] leading-7 text-texto" : "font-display text-titulo-seccion text-texto";
     return (
       <button type="button" data-selector-catalogo="" onClick={sinPermiso} className={`tocable flex min-h-11 items-center text-left ${clase}`}>
         {nombreCatalogoPanel(valor)}

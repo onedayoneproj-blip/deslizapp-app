@@ -2,6 +2,7 @@
 // y píldora de la ficha, visor con zoom) y el panel (crear un producto con descripción y ficha, editar uno de Michel). Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=/tmp/capturas] node scripts/probar-ficha.mjs
 import { createRequire } from "node:module";
+import { nombreYPrecio, tocarHistoria } from "./historia-crear-producto.mjs";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -138,28 +139,39 @@ async function catalogo(ancho) {
 
 async function panel(ancho) {
   console.log(`\nPanel · ${ancho}`);
+  // Crear producto es una historia: la Descripción y la Ficha técnica son pastillas opcionales de «Así se ve en tu catálogo»,
+  // cada una con su hoja (docs/prompts/crear-producto-historia.md).
   const { ctx, page, errores } = await abrir(ancho, "/catalogo/nuevo", LINO_ID);
-  await page.waitForSelector('input[placeholder="El nombre de tu producto"]');
+  await page.waitForSelector("[data-historia-producto]");
   await page.waitForTimeout(900);
-  ok((await page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 0, "Un producto nuevo no pide Detalles");
+  await nombreYPrecio(page, "Oud de prueba", "2500");
+  await tocarHistoria(page, "Seguir");
+  await tocarHistoria(page, "Seguir");
+  ok((await page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 0, "Un producto nuevo no muestra la sección Detalles (es una pastilla opcional)");
   const desc = page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
-  ok((await desc.count()) === 0, "La Descripción viene plegada en «Más opciones»");
-  await page.locator('[data-fila-plegable="descripcion"] button[aria-expanded]').tap();
-  ok((await desc.count()) === 1, "Pide la Descripción");
+  ok((await desc.count()) === 0, "La Descripción es opcional: una pastilla");
+  await page.locator('[data-opcional="Descripción"]').tap();
+  await desc.waitFor();
+  ok((await desc.count()) === 1, "Pide la Descripción en su hoja");
   await desc.fill("Oud ahumado con vainilla. Dura todo el día.");
   ok((await page.getByText("43 / 600").count()) === 1, "El contador dice «43 / 600»");
   ok((await page.getByText("Lo que escribas aquí también lo usa la búsqueda de tu catálogo.").count()) === 1, "…y explica que la búsqueda la usa");
-  await page.locator('[data-fila-plegable="ficha"] button[aria-expanded]').tap();
-  ok((await page.getByText("Si tienes la foto de las especificaciones, súbela.").count()) === 1, "La tarjeta «Ficha técnica» invita a subirla");
+  await page.getByRole("dialog", { name: "Descripción" }).getByRole("button", { name: "Listo", exact: true }).tap();
+  await page.waitForTimeout(600);
+  ok((await page.locator('[data-opcional="Descripción"]').getAttribute("data-hecha")) !== null, "Al cerrar, la pastilla queda hecha");
+  await page.locator('[data-opcional="Ficha técnica"]').tap();
+  const fichaHoja = page.getByRole("dialog", { name: "Ficha técnica" });
+  await fichaHoja.waitFor();
+  ok((await fichaHoja.getByText("Si tienes la foto de las especificaciones, súbela.").count()) === 1, "La hoja «Ficha técnica» invita a subirla");
   await captura(page, "5-panel-sin-ficha", ancho);
-  await page.locator('input[type="file"]').last().setInputFiles({ name: "ficha.png", mimeType: "image/png", buffer: PNG });
-  await page.getByRole("button", { name: "Cambiar", exact: true }).waitFor();
-  ok((await page.getByRole("button", { name: "Quitar", exact: true }).count()) === 1, "Subida: miniatura con «Cambiar» y «Quitar»");
+  await fichaHoja.locator('input[type="file"]').setInputFiles({ name: "ficha.png", mimeType: "image/png", buffer: PNG });
+  await fichaHoja.getByRole("button", { name: "Cambiar", exact: true }).waitFor();
+  ok((await fichaHoja.getByRole("button", { name: "Quitar", exact: true }).count()) === 1, "Subida: miniatura con «Cambiar» y «Quitar»");
   await captura(page, "5-panel-ficha-subida", ancho);
-  await page.getByRole("button", { name: "Quitar", exact: true }).tap();
-  ok((await page.getByRole("button", { name: "Sí, quitar" }).count()) === 1, "«Quitar» pide una confirmación breve");
-  await page.getByRole("button", { name: "Mejor no" }).tap();
-  ok((await page.getByRole("button", { name: "Cambiar", exact: true }).count()) === 1, "«Mejor no» la deja como estaba");
+  await fichaHoja.getByRole("button", { name: "Quitar", exact: true }).tap();
+  ok((await fichaHoja.getByRole("button", { name: "Sí, quitar" }).count()) === 1, "«Quitar» pide una confirmación breve");
+  await fichaHoja.getByRole("button", { name: "Mejor no" }).tap();
+  ok((await fichaHoja.getByRole("button", { name: "Cambiar", exact: true }).count()) === 1, "«Mejor no» la deja como estaba");
   ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
   await ctx.close();
 

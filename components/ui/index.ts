@@ -8,6 +8,7 @@ export { BotonCantidad, Cantidad } from "./cantidad";
 export { BarraAbonado, BloqueDeuda, FechaDeuda, MontoDeuda } from "./bloque-deuda";
 export { Buscador, Campo, CampoMonto, CampoMultilinea, soloDigitos } from "./campo";
 export { CheckSeleccion } from "./check-seleccion";
+export { Chip } from "./chip";
 export { ControlSegmentado } from "./control-segmentado";
 export { Contador, Etiqueta, type TonoEtiqueta } from "./etiqueta";
 export { FilaAgregar } from "./fila-agregar";
@@ -23,7 +24,8 @@ export { MallaViva, MazoJugadas, TarjetaJugada, type CartaJugada } from "./tarje
 export { CuadriculaSeleccion, type ElementoCuadricula } from "./cuadricula-seleccion";
 export { ElegirMensaje, type MensajeElegible } from "./elegir-mensaje";
 export { HojaProximamente, TarjetaProximamente } from "./funcion-en-preparacion";
-export { Interruptor } from "./interruptor";
+export { FilaInterruptor, Interruptor } from "./interruptor";
+export { Eleccion, GrupoEleccion } from "./eleccion";
 export { EditorEtiquetas } from "./editor-etiquetas";
 export { TiraMedios, duracionCorta, type ElementoTira } from "./tira-medios";
 export { FilaVariante } from "./fila-variante";

@@ -22,8 +22,14 @@ export function Campo({
   precio,
   prefijo,
   icono: Icono,
+  grande = false,
   ...input
 }: Omit<ComponentProps<"input">, "className"> & {
+  /**
+   * La respuesta protagonista de una pregunta (crear producto, 12 oct 2026): el rótulo solo para lectores de pantalla, alto 56 y
+   * letra 20 en negrita; con `precio`, alto 64 y la cifra en Fredoka 32 con el `prefijo` en 18 negrita. Sin icono.
+   */
+  grande?: boolean;
   /** Glifo de `components/iconos.tsx` (el componente, ej. `IconoPersona`) a la izquierda (22 px, trazo 2, `texto-secundario`, a 18 px del borde; el texto empieza a 52 px). Decorativo: el rótulo se queda. Nunca junto a `prefijo`. */
   icono?: ComponentType<{ tamano?: number; strokeWidth?: number }>;
   /** Texto fijo dentro del campo, antes de lo que se escribe ("RD$"). Mismo tamaño que el valor, en gris. */
@@ -40,23 +46,26 @@ export function Campo({
   const idNota = `${idCampo}-nota`;
   const nota = error ?? ayuda;
   const estilo = clases(
-    "h-(--alto-campo) w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-cuerpo font-normal text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
-    prefijo || Icono ? "pl-13" : null,
+    "w-full min-w-0 rounded-radio-m border-2 bg-superficie px-3.5 text-texto placeholder:font-normal placeholder:text-texto-secundario disabled:opacity-40",
+    !grande && "h-(--alto-campo) text-cuerpo font-normal",
+    grande && !precio && "h-14 px-4 text-titulo-seccion font-bold placeholder:text-cuerpo",
+    grande && precio && "h-16 pl-16 font-display text-titulo-pantalla placeholder:font-sans placeholder:text-cuerpo",
+    !grande && (prefijo || Icono) ? "pl-13" : null,
     FOCO_CAMPO,
     error ? "border-peligro" : "border-borde-campo focus:border-accion",
   );
   return (
     <div className={clases("flex min-w-0 flex-col gap-1.5", className)}>
-      <label htmlFor={idCampo} className="text-secundario font-extrabold text-texto">
+      <label htmlFor={idCampo} className={grande ? "sr-only" : "text-secundario font-extrabold text-texto"}>
         {etiqueta}
       </label>
       <div className="relative">
         {prefijo && (
-          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-cuerpo text-texto-secundario">
+          <span aria-hidden="true" className={clases("pointer-events-none absolute inset-y-0 flex items-center text-texto-secundario", grande ? "left-4 text-destacado font-bold" : "left-3.5 text-cuerpo")}>
             {prefijo}
           </span>
         )}
-        {Icono && !prefijo && (
+        {Icono && !prefijo && !grande && (
           <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-4.5 flex items-center text-texto-secundario">
             <Icono tamano={22} strokeWidth={2} />
           </span>

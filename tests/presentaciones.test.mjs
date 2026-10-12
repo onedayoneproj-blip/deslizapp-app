@@ -473,3 +473,11 @@ test("precio por presentación: arranque del interruptor, «Desde» y apagar", (
   assert.equal(P.precioDeTexto("1,800", 950), 1800);
   assert.equal(P.precioDeTexto("123456789", 950), 1234567);
 });
+
+test("«+ Otro» solo suma: un valor que ya está (sin distinguir mayúsculas ni espacios) no se quita", () => {
+  const valores = ["Negro", "Blanco"];
+  assert.equal(P.agregarValor(valores, "Negro"), valores);
+  assert.equal(P.agregarValor(valores, "  negro "), valores);
+  assert.equal(P.agregarValor(valores, "   "), valores);
+  assert.deepEqual(P.agregarValor(valores, "  Verde   oliva "), ["Negro", "Blanco", "Verde oliva"]);
+});

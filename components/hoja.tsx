@@ -69,6 +69,8 @@ type Nivel = "media" | "grande";
 
 /** Altura máxima: toda la pantalla menos el tope de arriba (debajo de la barra de estado). */
 const ALTO_MAXIMO = "calc(100dvh - var(--hoja-tope))";
+/** Una hoja con hueco propio (la historia de crear producto: 78 px, como el lienzo), siempre debajo de la barra de estado. */
+const altoConHueco = (hueco: number) => `calc(100dvh - max(${hueco}px, calc(var(--safe-arriba) + 20px)))`;
 const ALTO_MEDIA = 0.6; // fracción de la pantalla visible en "expandible" a media altura
 /** Scroll (px) en el que el borde de desplazamiento bajo la cabecera pasa de invisible a completo. */
 const SCROLL_BORDE = 24;
@@ -160,6 +162,17 @@ type Props = {
   altura?: AlturaHoja;
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
   fijoArriba?: ReactNode;
+  /**
+   * Cabecera de historia (crear producto, prototipo v4): fila 1 con el título visible y `alLadoDelTitulo` a la derecha (el
+   * selector de catálogo); fila 2 con `avance` (las barras) y la X. Con `altura="grande"`, la hoja deja arriba el hueco del lienzo
+   * (borde en y≈78 en un iPhone) con esquinas de `radio-xl` y su agarradera.
+   */
+  historia?: { avance: ReactNode; alLadoDelTitulo?: ReactNode };
+  /**
+   * Solo con `altura="grande"`: dónde empieza la hoja (px desde arriba, nunca sobre la barra de estado), con esquinas `radio-xl`.
+   * La historia de crear producto va en 78; la hoja que se abre encima de ella («Inventario»), 40 más abajo (118).
+   */
+  hueco?: number;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
   decoracionAbajo?: ReactNode;
   /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
@@ -206,6 +219,8 @@ function HojaMontada({
   capaSuperior,
   altura = "auto",
   fijoArriba,
+  historia,
+  hueco: huecoPedido,
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
@@ -216,6 +231,7 @@ function HojaMontada({
   children,
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
+  const hueco = altura === "grande" ? (huecoPedido ?? (historia ? 78 : undefined)) : undefined;
   const idTitulo = useId();
   const idAviso = useId();
   const idAvisoTexto = useId();
@@ -758,10 +774,10 @@ function HojaMontada({
         aria-labelledby={idTitulo}
         tabIndex={-1}
         // Papel también por debajo del borde inferior (after): si se estira hacia arriba, no se ve un hueco.
-        className="absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col rounded-t-[30px] bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo"
+        className={`absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"}`}
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
-          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: ALTO_MAXIMO }),
+          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: hueco !== undefined ? altoConHueco(hueco) : ALTO_MAXIMO }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
@@ -775,7 +791,7 @@ function HojaMontada({
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="relative z-10 min-h-0 flex-1 isolate overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
+          className={`relative z-10 min-h-0 flex-1 isolate overscroll-contain ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"} px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)] [scroll-padding-bottom:calc(var(--fijo-abajo,0px)+var(--teclado,0px)+8px)]`}
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}
@@ -785,7 +801,7 @@ function HojaMontada({
         <div
           ref={borde}
           aria-hidden="true"
-          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
+          className={`hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"}`}
           style={{ visibility: "hidden" }}
         >
           <div className="hoja-borde-desenfoque" />
@@ -801,15 +817,29 @@ function HojaMontada({
           onPointerMove={alMoverPuntero}
           onPointerUp={alSoltarPuntero}
           onPointerCancel={alSoltarPuntero}
-          className="absolute inset-x-0 top-0 z-30 touch-none px-5 pt-2.5 pb-3"
+          className={`absolute inset-x-0 top-0 z-30 touch-none px-5 ${historia ? "pt-2 pb-1.5" : "pt-2.5 pb-3"}`}
         >
-          <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
-          <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
-            <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
-              {titulo}
-            </h2>
-            <BotonCerrar onClick={cerrar} />
-          </div>
+          <div className={`mx-auto h-[5px] cursor-grab rounded-full bg-borde-pastilla ${historia ? "w-10" : "mb-2 w-11"}`} />
+          {historia ? (
+            <>
+              {/* Fila 1 (28 px): el título y, a la derecha, lo que lo acompaña. Fila 2: el avance y la X (16 px del borde). */}
+              <div className="mt-[7px] flex h-7 items-center justify-between gap-3">
+                <h2 id={idTitulo} className="min-w-0 truncate font-display text-titulo-seccion text-texto">{titulo}</h2>
+                {historia.alLadoDelTitulo}
+              </div>
+              <div className="mt-0.5 -mr-1 flex items-center gap-2.5">
+                <div className="min-w-0 flex-1">{historia.avance}</div>
+                <BotonCerrar onClick={cerrar} />
+              </div>
+            </>
+          ) : (
+            <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
+              <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
+                {titulo}
+              </h2>
+              <BotonCerrar onClick={cerrar} />
+            </div>
+          )}
           {/* Zona fija bajo el título: forma parte de la cabecera (y de su desenfoque) */}
           {fijoArriba && <div className="mt-3">{fijoArriba}</div>}
           <div ref={setRanuraArriba} className="[&:not(:empty)]:mt-3" />

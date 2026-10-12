@@ -57,3 +57,11 @@ test("título y subtítulo del plan según el estado", () => {
   assert.equal(textosDelPlan({ estado: "casi", libres: 1 }).subtitulo, "Te queda 1 lugar. Libera los agotados o sube de plan.");
   assert.equal(textosDelPlan({ estado: "lleno", libres: 0 }).titulo, "Tu catálogo está lleno");
 });
+
+test("los borradores sin foto (ocultos) no cuentan para el límite del plan", () => {
+  const conBorradores = [...prods(19), { activo: false, fotos: [] }, { activo: false, fotos: [] }];
+  const r = resumenDelPlan(conBorradores, 20);
+  assert.equal(r.usados, 19);
+  assert.equal(r.estado, "casi");
+  assert.equal(r.libres, 1);
+});

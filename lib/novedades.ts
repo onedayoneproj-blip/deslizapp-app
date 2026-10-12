@@ -22,6 +22,15 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.68.0", fecha: "2026-10-12", titulo: "Crear un producto, como contar una historia.",
+    cambios: [
+      "Una pregunta a la vez: la foto, cómo se llama, cuánto cuesta y cuántos tienes. Mientras respondes, ves cómo va quedando.",
+      "Al final lo ves como en tu catálogo, lo publicas y lo celebras.",
+      "¿Tallas o colores? Eliges cuáles hay y las cantidades van en «Inventario».",
+      "¿Sin foto? Se guarda oculto como borrador y lo publicas cuando la agregues.",
+    ],
+  },
+  {
     version: "0.67.0", fecha: "2026-10-12", titulo: "Tu perfil, más despejado.",
     cambios: ["En el perfil, arriba va el nombre de tu tienda y abajo tu usuario de Instagram.", "«Atrás» e Instagram flotan en círculos claros para tenerlos a mano.", "Las pestañas de tus catálogos pasan a su lado, sin taparse."],
   },

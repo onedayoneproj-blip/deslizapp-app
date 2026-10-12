@@ -24,6 +24,7 @@ import {
   Campo,
   CampoMonto,
   Cantidad,
+  Chip,
   FilaAgregar,
   Contador,
   ControlSegmentado,
@@ -290,7 +291,20 @@ function Botones() {
         <Fila>
           <Cantidad valor={cantidadEj} max={4} alCambiar={setCantidadEj} />
           <Cantidad valor={4} max={4} alCambiar={() => {}} />
+          <Cantidad grande valor={cantidadEj} alCambiar={setCantidadEj} etiquetaQuitar="Quitar uno (grande)" etiquetaAgregar="Agregar uno (grande)" />
         </Fila>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>chip: lo opcional que abre algo (36 · contorno borde-pastilla) · hecho (check, accion-suave) · interruptor a la vista (aria-pressed)</Rotulo>
+        <Fila>
+          <Chip>Tiene tallas o colores</Chip>
+          <Chip hecho>Descripción</Chip>
+          <Chip sinIcono elegido={false}>Es por encargo, no llevo stock</Chip>
+        </Fila>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Rotulo>campo grande: la respuesta protagonista de una pregunta (56 · 20 negrita; precio 64 · Fredoka 32)</Rotulo>
+        <Campo grande etiqueta="Nombre del producto" placeholder="El nombre de tu producto" defaultValue="Hoodie Deslizapp" />
       </div>
       <div className="flex flex-col gap-2">
         <Rotulo>lado a lado (secundario izquierda, principal derecha) · bloquea el doble toque</Rotulo>

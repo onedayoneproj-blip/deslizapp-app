@@ -2,6 +2,7 @@
 // intención; al guardar el producto se manda cada foto marcada al taller. A 390 px, tema claro. Tienda: Luna Bisutería (100 créditos).
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] node scripts/probar-retoque-al-subir.mjs
 import { createRequire } from "node:module";
+import { abrirHistoria, hastaPublicar, nombreYPrecio } from "./historia-crear-producto.mjs";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 
@@ -44,13 +45,11 @@ async function pagina(creditos) {
 }
 /** La demo vive en memoria y solo escribe en localStorage al guardar algo: se guarda un producto para que exista la copia. */
 async function sembrar(page) {
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Base");
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("100");
+  await abrirHistoria(page, URL);
   await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, 1));
   await page.getByRole("button", { name: /^Portada|^Foto 1/ }).first().waitFor();
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
-  await page.waitForURL(`${URL}/catalogo`);
+  await nombreYPrecio(page, "Base", "100");
+  await hastaPublicar(page);
 }
 const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "{}");
 /** Cambia los créditos desde otra pestaña de la misma sesión (la demo se entera por el evento de storage, como en producción). */
@@ -79,11 +78,11 @@ async function archivos(page, n) {
   }), colores.slice(0, n));
   return b64.map((x, i) => ({ name: `foto${i}.png`, mimeType: "image/png", buffer: Buffer.from(x, "base64") }));
 }
-/** Abre «Nuevo producto» con nombre, precio y `n` fotos. */
+/** Abre la historia de crear producto con `n` fotos (el nombre y el precio se escriben al publicar: son pasos siguientes). */
+const nombres = new WeakMap();
 async function nuevo(page, nombre, n) {
-  await page.goto(`${URL}/catalogo/nuevo`);
-  await page.getByRole("textbox", { name: "Nombre", exact: true }).fill(nombre);
-  await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("500");
+  await abrirHistoria(page, URL);
+  nombres.set(page, nombre);
   if (n) {
     await page.locator("[data-entrada-medios]").setInputFiles(await archivos(page, n));
     await page.getByRole("button", { name: new RegExp(`^Foto ${n} de ${n}|^Foto ${n}`) }).first().waitFor();
@@ -101,9 +100,10 @@ const cerrarHoja = async (page) => {
 };
 /** Publica; si hay fotos marcadas y es la primera vez, la bienvenida del retoque sale antes de guardar: se confirma. */
 const publicar = async (page) => {
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await nombreYPrecio(page, nombres.get(page), "500");
+  await hastaPublicar(page, { esperar: false });
   await confirmarBienvenida(page);
-  await page.waitForURL(`${URL}/catalogo`);
+  await page.locator("[data-celebracion]").waitFor({ timeout: 15000 });
 };
 const confirmarBienvenida = async (page) => {
   const bv = page.getByRole("dialog", { name: "Retoque con tu marca" });
@@ -208,9 +208,7 @@ await caso("5. Si el pedido al taller falla, el producto queda guardado y se avi
   await cerrarHoja(page);
   // Entre marcar y guardar se acaban los créditos: el taller rechaza el pedido.
   await poner(c, 0);
-  await page.getByRole("button", { name: "Publicar", exact: true }).click();
-  await confirmarBienvenida(page);
-  await page.waitForURL(`${URL}/catalogo`);
+  await publicar(page);
   const d = await db(page);
   const p = d.productos.find((x) => x.nombre === "Falla el taller");
   ok(!!p, "el producto quedó guardado");

@@ -174,6 +174,13 @@ export function alternarValor(valores: string[], valor: string): string[] {
   return [...valores, limpio];
 }
 
+/** «+ Otro»: solo suma (nunca quita). Si ya está (sin distinguir mayúsculas ni espacios), o no cabe, queda igual. */
+export function agregarValor(valores: string[], valor: string): string[] {
+  const limpio = valor.trim().replace(/\s+/g, " ").slice(0, LARGO_VALOR);
+  if (!limpio || valores.length >= MAX_VALORES || valores.some((v) => mismo(v, limpio))) return valores;
+  return [...valores, limpio];
+}
+
 /** ¿Se puede elegir otra cosa que cambie? Hasta `MAX_EJES` por producto, las del catálogo y las propias juntas. */
 export const puedeElegirOtra = (cuantas: number) => cuantas < MAX_EJES;
 

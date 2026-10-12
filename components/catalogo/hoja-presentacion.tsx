@@ -7,9 +7,12 @@ import { colorPorNombre } from "@/lib/colores";
 import type { OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { Alerta, Boton, Campo, Cantidad, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
+import { Alerta, Boton, Campo, Cantidad, GrupoEleccion, GrupoOpciones, ListaAgrupada, Tarjeta } from "../ui";
+import { BotonAtras } from "./boton-atras-historia";
 
 export type FotoBorrador = { id: string; url: string };
+
+const OPCIONES_PRECIO = [{ id: "mismo", texto: "El mismo" }, { id: "propio", texto: "Uno propio" }];
 
 /** La hoja de UNA presentación (tablero «Hoja»): stock, precio (el mismo o uno propio), foto del color, ocultar y quitar. */
 export function HojaPresentacion({
@@ -24,7 +27,13 @@ export function HojaPresentacion({
   alCompletar,
   alElegirFoto,
   alQuitar,
+  atras = false,
+  sinStock = false,
 }: {
+  /** Por encargo (historia de crear producto): no se lleva stock, así que no sale su tarjeta (se guardaría en 0). */
+  sinStock?: boolean;
+  /** En la historia de crear producto: «‹» junto a «Listo», como en todas sus hojas. */
+  atras?: boolean;
   abierta: boolean;
   presentacion: Presentacion | null;
   opciones: OpcionProducto[];
@@ -67,36 +76,36 @@ export function HojaPresentacion({
   const foto = idFoto ? fotos.find((f) => f.id === idFoto) ?? null : null;
   const usan = eje && valorFoto ? cuantasUsan([p], eje.nombre, valorFoto) : 0;
   void usan;
+  const elegirPrecio = (v: string) => {
+    setPropio(v === "propio");
+    if (v === "mismo") {
+      setTextoPrecio("");
+      alCambiar({ precio: null });
+    }
+  };
   const conSin = opciones.some((o) => /^sin /i.test(p.valores[o.nombre] ?? ""));
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo={<span className="flex items-center gap-2.5">{color && <span aria-hidden="true" className="size-6 rounded-full border border-linea" style={{ background: color }} />}{texto}</span>} altura="auto">
       <div className="flex flex-col gap-4" data-hoja-presentacion="">
-        <Tarjeta className="flex items-center justify-between gap-3 p-4">
+        {!sinStock && <Tarjeta className="flex items-center justify-between gap-3 p-4" data-stock-presentacion="">
           <div>
             <p className="text-destacado text-texto">Stock</p>
             <p className="text-secundario text-texto-secundario">Al despachar, baja solito.</p>
           </div>
-          <Cantidad valor={p.stock ?? 0} max={2147483647} alCambiar={(v) => alCambiar({ stock: v })} etiquetaQuitar={`Quitar uno de ${texto}`} etiquetaAgregar={`Agregar uno de ${texto}`} />
-        </Tarjeta>
+          <Cantidad redonda={atras} valor={p.stock ?? 0} max={2147483647} alCambiar={(v) => alCambiar({ stock: v })} etiquetaQuitar={`Quitar uno de ${texto}`} etiquetaAgregar={`Agregar uno de ${texto}`} />
+        </Tarjeta>}
 
         <Tarjeta className="flex flex-col gap-3 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-destacado text-texto">Precio</p>
             <p className="text-secundario text-texto-secundario">El del producto: {formatearPesos(precioProducto)}</p>
           </div>
-          <GrupoOpciones
-            etiqueta="Precio de esta presentación"
-            compacta
-            valor={propio ? "propio" : "mismo"}
-            alCambiar={(v) => {
-              setPropio(v === "propio");
-              if (v === "mismo") {
-                setTextoPrecio("");
-                alCambiar({ precio: null });
-              }
-            }}
-            opciones={[{ id: "mismo", texto: "El mismo" }, { id: "propio", texto: "Uno propio" }]}
-          />
+          {atras ? (
+            // En la historia de crear producto, las elecciones del lienzo (rosa al elegirse).
+            <GrupoEleccion etiqueta="Precio de esta presentación" compacta valor={propio ? "propio" : "mismo"} alCambiar={elegirPrecio} opciones={OPCIONES_PRECIO} />
+          ) : (
+            <GrupoOpciones etiqueta="Precio de esta presentación" compacta valor={propio ? "propio" : "mismo"} alCambiar={elegirPrecio} opciones={OPCIONES_PRECIO} />
+          )}
           {propio && (
             <Campo
               etiqueta="Precio de esta presentación"
@@ -166,7 +175,14 @@ export function HojaPresentacion({
           </Tarjeta>
         )}
 
-        <Boton tamano="grande" anchoCompleto onClick={alCerrar}>Listo</Boton>
+        {atras ? (
+          <div className="flex items-center gap-2.5">
+            <BotonAtras alTocar={alCerrar} />
+            <Boton tamano="grande" className="flex-1" onClick={alCerrar}>Listo</Boton>
+          </div>
+        ) : (
+          <Boton tamano="grande" anchoCompleto onClick={alCerrar}>Listo</Boton>
+        )}
         <div className="flex items-center justify-between gap-3">
           <Boton jerarquia="terciario" onClick={() => alCambiar({ activa: !p.activa })}>
             {p.activa ? "Ocultar esta presentación" : "Mostrar de nuevo"}
@@ -198,7 +214,7 @@ export function HojaPresentacion({
 }
 
 /** Las fotos del producto para elegir una: cuadros con su número y, si otro valor ya la usa, cuál. */
-function SelectorFotos({
+export function SelectorFotos({
   fotos,
   elegida,
   usadas,

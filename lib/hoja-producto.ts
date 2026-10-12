@@ -2,11 +2,12 @@
 import type { OpcionProducto } from "./types";
 
 /**
- * «Publicar» / «Guardar cambios» se enciende con al menos una foto, nombre y un precio válido (mayor que cero). Es la misma
- * regla de siempre (antes se avisaba al tocar; ahora el botón espera), y un video que aún se prepara también lo apaga.
+ * «Publicar» / «Guardar cambios» se enciende con nombre, un precio válido (mayor que cero) y al menos una foto; sin foto, solo
+ * si el producto queda oculto (`oculto`: un borrador no cuenta para el plan ni se ve en el catálogo; regla de Lewis, 12 oct).
+ * Un video que aún se prepara también lo apaga.
  */
-export function puedePublicar(d: { nombre: string; precio: string; fotos: number; preparando?: boolean }): boolean {
-  return d.nombre.trim().length > 0 && Number(d.precio) > 0 && d.fotos > 0 && !d.preparando;
+export function puedePublicar(d: { nombre: string; precio: string; fotos: number; preparando?: boolean; oculto?: boolean }): boolean {
+  return d.nombre.trim().length > 0 && Number(d.precio) > 0 && (d.fotos > 0 || d.oculto === true) && !d.preparando;
 }
 
 /** Las pastillas de «Presentaciones»: «Color · 2», «Tamaño · 3». */
