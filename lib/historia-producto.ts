@@ -1,34 +1,64 @@
 // Crear producto «como una historia» (docs/prompts/crear-producto-historia.md): una pregunta por pantalla. Las reglas puras de los
 // pasos, sus textos, «¿Cuándo llega?» y la celebración. Sin React: se prueba en tests/historia-producto.test.mjs.
+import { esEjeColor } from "./colores";
 import { PRODUCTOS_SUGERIDOS_PARA_PUBLICAR } from "./config";
+import { entreLos } from "./presentaciones";
 
-/** Los momentos de la historia. «listo» es la celebración: no lleva barra propia. */
-export type PasoHistoria = "foto" | "nombre" | "precio" | "stock" | "vista" | "listo";
+/**
+ * Los momentos de la historia. «listo» es la celebración: no lleva barra propia. Con presentaciones (ronda 3, Bloque 2), lo que
+ * se elige va como historia: «cambia» (¿en qué cambia?) y un paso por cada cosa elegida («eje1», «eje2»); las cantidades van en la
+ * hoja «Inventario», así que no hay paso de stock.
+ */
+export type PasoHistoria = "foto" | "nombre" | "precio" | "stock" | "cambia" | "eje1" | "eje2" | "vista" | "listo";
 
-/** Los pasos con barra, en orden. Un servicio no lleva stock ni encargo: se salta «¿Cuántos tienes ahora?». */
-export function pasosDeHistoria(servicio = false): Exclude<PasoHistoria, "listo">[] {
+/**
+ * Los pasos con barra, en orden. Un servicio no lleva stock ni encargo: se salta «¿Cuántos tienes ahora?». `ejes`: null sin
+ * presentaciones; con ellas, cuántas cosas cambian (mientras no se elige ninguna se cuentan 2: siete barras, como el lienzo).
+ */
+export function pasosDeHistoria(servicio = false, ejes: number | null = null): Exclude<PasoHistoria, "listo">[] {
+  if (ejes !== null) return ["foto", "nombre", "precio", "cambia", ...(ejes === 1 ? (["eje1"] as const) : (["eje1", "eje2"] as const)), "vista"];
   return servicio ? ["foto", "nombre", "precio", "vista"] : ["foto", "nombre", "precio", "stock", "vista"];
 }
 
 /** El paso que sigue (después de «vista» viene la celebración, que se alcanza guardando). */
-export function pasoSiguiente(paso: PasoHistoria, servicio = false): PasoHistoria {
-  const pasos: PasoHistoria[] = [...pasosDeHistoria(servicio), "listo"];
+export function pasoSiguiente(paso: PasoHistoria, servicio = false, ejes: number | null = null): PasoHistoria {
+  const pasos: PasoHistoria[] = [...pasosDeHistoria(servicio, ejes), "listo"];
   const i = pasos.indexOf(paso);
   return pasos[Math.min(pasos.length - 1, i + 1)]!;
 }
 
 /** El paso de atrás («foto» no tiene; la celebración tampoco: ya se guardó). */
-export function pasoAnterior(paso: PasoHistoria, servicio = false): PasoHistoria | null {
+export function pasoAnterior(paso: PasoHistoria, servicio = false, ejes: number | null = null): PasoHistoria | null {
   if (paso === "listo") return null;
-  const pasos = pasosDeHistoria(servicio);
+  const pasos = pasosDeHistoria(servicio, ejes);
   const i = pasos.indexOf(paso);
   return i > 0 ? pasos[i - 1]! : null;
 }
 
 /** Cuántas barras van llenas: las de los pasos hechos y la del paso en que se está. En la celebración, todas. */
-export function barrasLlenas(paso: PasoHistoria, servicio = false): number {
-  const pasos = pasosDeHistoria(servicio);
+export function barrasLlenas(paso: PasoHistoria, servicio = false, ejes: number | null = null): number {
+  const pasos = pasosDeHistoria(servicio, ejes);
   return paso === "listo" ? pasos.length : pasos.indexOf(paso) + 1;
+}
+
+/**
+ * El orden de las preguntas de las cosas elegidas: el color va al final (su pantalla lleva la foto de cada color), lo demás en el
+ * orden en que se eligió. Así, Talla y Color: «¿Qué tallas hay?» → «¿Y qué colores?».
+ */
+export function ordenDePreguntas<T extends { nombre: string }>(ejes: T[]): T[] {
+  return [...ejes.filter((e) => !esEjeColor(e.nombre)), ...ejes.filter((e) => esEjeColor(e.nombre))];
+}
+
+/** Cómo se guardan las cosas: el color primero, para que el Inventario agrupe por color con una fila por talla (como el lienzo). */
+export function ordenParaGuardar<T extends { nombre: string }>(ejes: T[]): T[] {
+  return [...ejes.filter((e) => esEjeColor(e.nombre)), ...ejes.filter((e) => !esEjeColor(e.nombre))];
+}
+
+/** La pregunta de una cosa: «¿Qué tallas hay?» / «¿Y qué colores?» / «¿Qué materiales hay?», con su línea de ayuda. */
+export function textosDeEje(nombre: string, segunda: boolean): { titulo: string; ayuda: string } {
+  if (esEjeColor(nombre)) return { titulo: segunda ? "¿Y qué colores?" : "¿Qué colores hay?", ayuda: "Puedes poner una foto para cada uno." };
+  const [articulo, ...resto] = entreLos(nombre).split(" ");
+  return { titulo: `¿${segunda ? "Y q" : "Q"}ué ${resto.join(" ")} hay?`, ayuda: `Toca ${articulo} que vendes.` };
 }
 
 /**
@@ -53,6 +83,11 @@ export function textosDelPaso(paso: PasoHistoria, porEncargo = false): { titulo:
       return { titulo: "¿Cuánto cuesta?", ayuda: "Si cambia por talla o color, lo ajustas aquí." };
     case "stock":
       return porEncargo ? { titulo: "¿Cuándo llega?", ayuda: "Se puede pedir aunque no haya." } : { titulo: "¿Cuántos tienes ahora?", ayuda: "Al despachar, baja solito." };
+    case "cambia":
+      return { titulo: "¿En qué cambia?", ayuda: "Elige lo que cambia entre una y otra." };
+    case "eje1":
+    case "eje2":
+      return { titulo: "", ayuda: "" };
     case "vista":
       return { titulo: "así se ve en tu catálogo", ayuda: "" };
     case "listo":

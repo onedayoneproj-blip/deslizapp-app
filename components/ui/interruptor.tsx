@@ -54,12 +54,13 @@ export function Interruptor({
  * contorno `linea`, con el texto en `cuerpo` extra negrita a la izquierda y el `Interruptor` a la derecha. Toda la fila prende y
  * apaga (el texto es la etiqueta del interruptor).
  */
-export function FilaInterruptor({ texto, encendido, alCambiar }: { texto: string; encendido: boolean; alCambiar: (valor: boolean) => void }) {
+export function FilaInterruptor({ texto, detalle, encendido, alCambiar }: { texto: string; detalle?: string; encendido: boolean; alCambiar: (valor: boolean) => void }) {
   const id = useId();
   return (
-    <div className="flex h-13 items-center gap-2.5 rounded-radio-m border border-linea bg-superficie pr-3 pl-3.5" data-fila-interruptor="">
-      <label htmlFor={id} className="min-w-0 flex-1 text-cuerpo font-extrabold text-texto">
+    <div className={clases("flex items-center gap-2.5 rounded-radio-m border border-linea bg-superficie pr-3 pl-3.5", detalle ? "h-14" : "h-13")} data-fila-interruptor="">
+      <label htmlFor={id} className="flex min-w-0 flex-1 flex-col text-cuerpo font-extrabold text-texto">
         {texto}
+        {detalle && <span className="text-[0.8125rem] leading-4 font-normal text-texto-secundario">{detalle}</span>}
       </label>
       <Interruptor id={id} encendido={encendido} alCambiar={alCambiar} etiqueta={texto} />
     </div>

@@ -11,18 +11,19 @@ import { useData } from "@/lib/data/provider";
 import { enlaceCatalogo } from "@/lib/enlace-catalogo";
 import { fichaCambiada, fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
 import { formatearPesos } from "@/lib/formato";
+import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   barrasLlenas,
   lineaArranque,
   lineaCelebracion,
-  OPCIONES_CUANDO_LLEGA,
-  opcionDeCuandoLlega,
+  ordenDePreguntas,
+  ordenParaGuardar,
   pasoAnterior,
   pasoSiguiente,
   pasosDeHistoria,
   puedeSeguir,
   SIN_FOTO,
-  textoCuandoLlega,
+  textosDeEje,
   textosDelPaso,
   tituloCelebracion,
   type PasoHistoria,
@@ -30,25 +31,49 @@ import {
 import { pastillasDeOpciones, resumenDescripcion } from "@/lib/hoja-producto";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { copiarTexto } from "@/lib/portapapeles";
-import { ejeDeFoto, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
+import {
+  alternarValor,
+  atajosDe,
+  claveVariante,
+  COSAS_QUE_CAMBIAN,
+  crearTodas,
+  ejeDeFoto,
+  errorDeEjes,
+  errorDeNombrePropio,
+  LARGO_VALOR,
+  listaDeCosas,
+  MAX_EJES,
+  MAX_VALORES,
+  ordenarValores,
+  otroDe,
+  preciosVarian,
+  resumenDe,
+  textoPresentaciones,
+  valoresSugeridos,
+  valoresVisibles,
+  type EstadoPresentaciones,
+  type Presentacion,
+} from "@/lib/presentaciones";
 import { cuentaParaPublicar, enlaceAlPublicar, productosQueCuentan } from "@/lib/publicar-catalogo";
-import { CAMPOS_POR_RUBRO, rubrosDeTienda, type Detalles, type Rubro } from "@/lib/rubros";
-import type { FotosPorValor, Producto } from "@/lib/types";
+import { CAMPOS_POR_RUBRO, OPCIONES_TIPICAS, rubrosDeTienda, type Detalles, type Rubro } from "@/lib/rubros";
+import type { FotosPorValor, OpcionProducto, Producto } from "@/lib/types";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { Foto } from "../foto";
 import { Hoja, HojaFijoAbajo, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
-import { IconoCamara, IconoReloj } from "../iconos";
+import { IconoCamara } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { useToast } from "../toast";
-import { Boton, Campo, Cantidad, Chip, FilaInterruptor, GrupoEleccion } from "../ui";
+import { Alerta, Boton, Campo, Cantidad, Chip, Eleccion, FilaInterruptor } from "../ui";
 import { clases, FOCO } from "../ui/comunes";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { agregarFotoAlBorrador, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
 import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
-import { FlujoPresentaciones } from "./flujo-presentaciones";
+import { BotonAtras } from "./boton-atras-historia";
 import { useGuardarProducto } from "./guardar-producto";
 import { HojaColeccion } from "./hoja-producto";
+import { SelectorFotos, type FotoBorrador } from "./hoja-presentacion";
+import { CuandoLlega, HojaInventarioHistoria, textoInventario } from "./inventario-historia";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
 import { HojaPublicarCatalogo } from "./hoja-publicar-catalogo";
 import { SelectorCatalogo } from "./selector-catalogo";
@@ -75,8 +100,10 @@ export function HistoriaProducto() {
   const [vuelta, setVuelta] = useState(0);
   // Un producto nuevo siempre es «producto»: hoy no se crean servicios desde la app. Si llegan, se salta el stock.
   const servicio = false;
-  const pasos = pasosDeHistoria(servicio);
-  const llenas = barrasLlenas(paso, servicio);
+  // Con presentaciones («Tiene tallas o colores»): cuántas cosas cambian (0 mientras no se elige ninguna). null = sin presentaciones.
+  const [variantes, setVariantes] = useState<number | null>(null);
+  const pasos = pasosDeHistoria(servicio, variantes);
+  const llenas = barrasLlenas(paso, servicio, variantes);
   // Con varios catálogos, el selector va a la derecha de «Nuevo producto» (lo pinta la historia por portal).
   const [ranuraCatalogo, setRanuraCatalogo] = useState<HTMLSpanElement | null>(null);
   const barras = (
@@ -92,8 +119,10 @@ export function HistoriaProducto() {
       historia={{ avance: barras, alLadoDelTitulo: <span ref={setRanuraCatalogo} className="contents" /> }}
       alVolverInterno={() => {
         // Atrás del teléfono: vuelve una pregunta sin perder nada; en la primera (o ya guardado) cierra como siempre.
-        const antes = pasoAnterior(paso, servicio);
+        const antes = pasoAnterior(paso, servicio, variantes);
         if (!antes) return false;
+        // Volver de «¿En qué cambia?» sin haber elegido nada deja el producto sin presentaciones.
+        if (paso === "cambia" && variantes === 0) setVariantes(null);
         setPaso(antes);
         return true;
       }}
@@ -105,7 +134,8 @@ export function HistoriaProducto() {
       ) : (
         <Historia
           key={`${tiendaId}:${vuelta}`} paso={paso} alCambiarPaso={setPaso} servicio={servicio} productos={productos} ranuraCatalogo={ranuraCatalogo}
-          alOtro={() => { setVuelta((v) => v + 1); setPaso("foto"); }}
+          variantes={variantes} alCambiarVariantes={setVariantes}
+          alOtro={() => { setVuelta((v) => v + 1); setPaso("foto"); setVariantes(null); }}
         />
       )}
     </Hoja>
@@ -121,8 +151,12 @@ function Historia({
   productos,
   alOtro,
   ranuraCatalogo,
+  variantes,
+  alCambiarVariantes,
 }: {
   ranuraCatalogo: HTMLElement | null;
+  variantes: number | null;
+  alCambiarVariantes: (n: number | null) => void;
   paso: PasoHistoria;
   alCambiarPaso: (p: PasoHistoria) => void;
   servicio: boolean;
@@ -155,13 +189,18 @@ function Historia({
   const [medios, setMedios] = useState<MedioBorrador[]>([]);
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
-  const [stock, setStockValor] = useState(1);
-  const [stockTocado, setStockTocado] = useState(false);
+  const [stock, setStock] = useState(1);
   const [porEncargo, setPorEncargo] = useState(false);
   const [encargoTexto, setEncargoTexto] = useState("");
-  const [encargoOtro, setEncargoOtro] = useState(false);
-  const [presentaciones, setPresentaciones] = useState<EstadoPresentaciones>(SIN_PRESENTACIONES);
-  const [presAbierta, setPresAbierta] = useState(false);
+  // Presentaciones como historia: las cosas que cambian (en el orden en que se eligieron) con sus valores, y lo del Inventario.
+  const [ejes, setEjes] = useState<EjeHistoria[]>([]);
+  const [presBorrador, setPresBorrador] = useState<Presentacion[]>([]);
+  const [quitadas, setQuitadas] = useState<string[]>([]);
+  const [fotosColor, setFotosColor] = useState<Record<string, string>>({});
+  const [inventarioAbierto, setInventarioAbierto] = useState(false);
+  const [inventarioListo, setInventarioListo] = useState(false);
+  const [quitarValor, setQuitarValor] = useState<{ eje: string; valor: string; unidades: number } | null>(null);
+  const [fotoDe, setFotoDe] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<Detalles>({});
   const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
   const [categoria, setCategoria] = useState<string | null>(null);
@@ -171,7 +210,21 @@ function Historia({
   const [hecho, setHecho] = useState<{ producto: Producto; visible: boolean; cuentan: number } | null>(null);
   const [publicando, setPublicando] = useState(false);
 
+  const conVariantes = variantes !== null;
+  // Lo que se guarda: las cosas con valores (el color primero) y una presentación por combinación; las que ya tenían cantidad o
+  // precio la conservan, las nuevas empiezan en 0 y las quitadas en su detalle no vuelven.
+  const opcionesFinales: OpcionProducto[] = ordenParaGuardar(ejes)
+    .map((e) => ({ nombre: e.nombre, valores: e.propia ? e.valores : ordenarValores(valoresSugeridos(e.nombre, tipo), e.valores) }))
+    .filter((o) => o.valores.length > 0);
+  const presentaciones: EstadoPresentaciones = !conVariantes || opcionesFinales.length !== ejes.length || ejes.length === 0
+    ? SIN_PRESENTACIONES
+    : {
+        opciones: opcionesFinales,
+        pres: crearTodas(opcionesFinales, presBorrador).filter((p) => !quitadas.includes(claveVariante(p.valores))),
+        fotosColor: Object.fromEntries(Object.entries(fotosColor).filter(([v]) => opcionesFinales.some((o) => esEjeColor(o.nombre) && o.valores.includes(v)))),
+      };
   const tieneOpciones = presentaciones.opciones.length > 0 && presentaciones.pres.length > 0;
+  const preguntasEjes = ordenDePreguntas(ejes);
   const resumenPres = resumenDe(presentaciones.pres, Number(precio) || 0);
   const varia = tieneOpciones && preciosVarian(presentaciones.pres, Number(precio) || 0);
   const coleccionElegida = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
@@ -187,7 +240,7 @@ function Historia({
   const llenoPlan = tienda != null && resumenDelPlan(productos, tienda.limiteProductos).estado === "lleno";
 
   // Con algo escrito y sin guardar, cerrar pregunta (como la hoja de producto). Ya guardado, no.
-  const firma = JSON.stringify({ medios: medios.length, nombre, precio, stock, porEncargo, encargoTexto, presentaciones, detalles, ficha: ficha.tipo, coleccionElegida, tipoElegido });
+  const firma = JSON.stringify({ medios: medios.length, nombre, precio, stock, porEncargo, encargoTexto, ejes, presBorrador, detalles, ficha: ficha.tipo, coleccionElegida, tipoElegido });
   const [firmaInicial] = useState(firma);
   useAvisarAlSalir(paso !== "listo" && firma !== firmaInicial);
 
@@ -201,39 +254,75 @@ function Historia({
       campo.scrollIntoView({ block: "nearest" });
     } else raiz.current?.querySelector<HTMLElement>("[data-titulo-paso]")?.focus();
   };
-  const listoParaSeguir = puedeSeguir(paso, { nombre, precio, porEncargo, encargoTexto, stock: tieneOpciones ? resumenPres.enTotal : stock });
+  // La cosa de la pantalla en que se está (eje1 / eje2) y si es la última pantalla de valores (la que abre el Inventario).
+  const ejeDelPaso = paso === "eje1" ? preguntasEjes[0] : paso === "eje2" ? preguntasEjes[1] : undefined;
+  const ultimoEje = ejeDelPaso !== undefined && ejeDelPaso === preguntasEjes[preguntasEjes.length - 1];
+  const errorEjes = ultimoEje ? errorDeEjes(opcionesFinales) : null;
+  const inventarioCompleto = porEncargo ? encargoTexto.trim().length > 0 : resumenPres.enTotal > 0;
+  const listoParaSeguir =
+    paso === "cambia" ? ejes.length > 0
+    : ejeDelPaso ? ejeDelPaso.valores.length > 0 && errorEjes === null
+    : puedeSeguir(paso, { nombre, precio, porEncargo, encargoTexto, stock });
   const seguir = () => {
     if (!listoParaSeguir) return;
-    irA(pasoSiguiente(paso, servicio));
+    // Desde la última pantalla de valores: el Inventario (otra hoja encima) hasta que quede listo; después, «Así se ve».
+    if (ultimoEje && (!inventarioListo || !inventarioCompleto)) return setInventarioAbierto(true);
+    irA(pasoSiguiente(paso, servicio, variantes));
   };
   const atras = () => {
-    const a = pasoAnterior(paso, servicio);
-    if (a) irA(a);
+    const a = pasoAnterior(paso, servicio, variantes);
+    if (!a) return;
+    if (paso === "cambia" && ejes.length === 0) {
+      // Sin nada que cambie, el producto vuelve a un solo stock.
+      flushSync(() => alCambiarVariantes(null));
+    }
+    irA(a);
   };
+  /** «Tiene tallas o colores»: siete barras en el mismo toque y «¿En qué cambia?» (con lo típico del catálogo ya elegido). */
+  const abrirVariantes = () => {
+    if (sinCatalogo) return toast(porque);
+    const iniciales = ejes.length > 0 ? ejes : OPCIONES_TIPICAS[tipo].slice(0, MAX_EJES).map((nombre) => ({ nombre, valores: [], propia: false }));
+    flushSync(() => {
+      setEjes(iniciales);
+      alCambiarVariantes(iniciales.length);
+    });
+    irA("cambia");
+  };
+  const cambiarEjes = (nuevos: EjeHistoria[]) => {
+    setEjes(nuevos);
+    alCambiarVariantes(nuevos.length);
+  };
+  const ponerValores = (nombreEje: string, valores: string[]) => {
+    setEjes((l) => l.map((e) => (e.nombre === nombreEje ? { ...e, valores } : e)));
+    setQuitadas([]);
+  };
+  /** Quitar un valor que ya tiene cantidades pregunta antes: esas unidades se pierden. */
+  const alternarValorDe = (eje: EjeHistoria, valor: string) => {
+    if (eje.valores.includes(valor) && !porEncargo) {
+      const unidades = presentaciones.pres.filter((p) => p.valores[eje.nombre] === valor).reduce((t, p) => t + (p.stock ?? 0), 0);
+      if (unidades > 0) return setQuitarValor({ eje: eje.nombre, valor, unidades });
+    }
+    ponerValores(eje.nombre, alternarValor(eje.valores, valor));
+  };
+  const cambiarPres = (lista: Presentacion[]) => {
+    const quedan = new Set(lista.map((p) => claveVariante(p.valores)));
+    setQuitadas((q) => [...q, ...presentaciones.pres.map((p) => claveVariante(p.valores)).filter((k) => !quedan.has(k) && !q.includes(k))]);
+    setPresBorrador(lista);
+  };
+  const fotosDelBorrador = medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []));
   const alEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     seguir();
   };
 
-  const setStock = (v: number) => {
-    setStockValor(v);
-    setStockTocado(true);
-  };
   const elegirEncargo = (activo: boolean) => setPorEncargo(activo);
-  // «Otro» sigue abierto mientras el texto no sea una de las opciones rápidas (también al apagar y volver a prender el encargo).
-  const otroAbierto = encargoOtro || (encargoTexto.trim() !== "" && opcionDeCuandoLlega(encargoTexto) === null);
   /** Por encargo no se lleva stock: tampoco en las presentaciones (si no, el catálogo las vería disponibles). */
   const presentacionesFinales: EstadoPresentaciones = !tieneOpciones
     ? SIN_PRESENTACIONES
     : porEncargo
       ? { ...presentaciones, pres: presentaciones.pres.map((p) => ({ ...p, stock: 0 })) }
       : presentaciones;
-  /** Al pasar a presentaciones con el flujo de hoy: el total vuelve al stock si se quitan (como en la hoja de producto). */
-  const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
-    if (nuevo.pres.length === 0 && tieneOpciones) setStockValor(resumenPres.enTotal);
-    setPresentaciones(nuevo);
-  };
 
   const guardar = async (publicar: boolean) => {
     if (guardando || !tienda) return;
@@ -281,9 +370,11 @@ function Historia({
     };
   };
 
-  const textos = textosDelPaso(paso, porEncargo);
-  const precioTarjeta = varia && resumenPres.desde !== null ? `Desde ${formatearPesos(resumenPres.desde)}` : Number(precio) > 0 ? formatearPesos(Number(precio)) : null;
+  const textos = ejeDelPaso ? textosDeEje(ejeDelPaso.nombre, paso === "eje2") : textosDelPaso(paso, porEncargo);
+  const desde = tieneOpciones && resumenPres.desde !== null ? resumenPres.desde : Number(precio) || 0;
+  const precioTarjeta = (conVariantes || varia) && desde > 0 ? `Desde ${formatearPesos(desde)}` : Number(precio) > 0 ? formatearPesos(Number(precio)) : null;
   const pregunta = paso === "nombre" || paso === "precio" || paso === "stock";
+  const preguntaEjes = paso === "cambia" || paso === "eje1" || paso === "eje2";
   // Sin foto no se publica (regla de Lewis): se puede guardar como borrador oculto y agregarla después.
   const sinFoto = portada === null;
   // La pregunta y su línea de ayuda, como el lienzo: Fredoka 26 y 15 px, 18 px debajo de la tarjeta.
@@ -294,7 +385,7 @@ function Historia({
     </div>
   );
   /** «Atrás» va siempre abajo, a la izquierda del botón principal (apagado en la primera pregunta). */
-  const botonAtras = <BotonAtras alTocar={atras} apagado={pasoAnterior(paso, servicio) === null} />;
+  const botonAtras = <BotonAtras alTocar={atras} apagado={pasoAnterior(paso, servicio, variantes) === null} />;
   const pie = (contenido: ReactNode, aviso?: ReactNode) => (
     <HojaFijoAbajo>
       {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones.
@@ -324,6 +415,45 @@ function Historia({
           portada={portada} nombre={nombre} precio={precioTarjeta}
           llega={paso === "stock" && porEncargo && encargoTexto.trim() ? encargoTexto.trim() : null}
         />
+      )}
+
+      {preguntaEjes && <TarjetaPresentaciones portada={portada} nombre={nombre} precio={precioTarjeta} opciones={opcionesFinales} />}
+
+      {paso === "cambia" && (
+        <>
+          <div className="mt-3.5">
+            <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
+            <p className="mt-1 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
+          </div>
+          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} />
+        </>
+      )}
+
+      {ejeDelPaso && (
+        <>
+          <div className="mt-3.5">
+            <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
+            <p className="mt-1 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
+          </div>
+          <ValoresDeEje key={ejeDelPaso.nombre} eje={ejeDelPaso} rubro={tipo} alAlternar={(v) => alternarValorDe(ejeDelPaso, v)} alPoner={(v) => ponerValores(ejeDelPaso.nombre, v)} />
+          {esEjeColor(ejeDelPaso.nombre) && ejeDelPaso.valores.length > 0 && (
+            <FotoDeCadaColor valores={ejeDelPaso.valores} fotos={fotosDelBorrador} fotosColor={fotosColor} alAbrir={setFotoDe} />
+          )}
+          {ultimoEje && errorEjes && <p role="status" className="mt-3 text-secundario font-bold text-atencion-texto">{errorEjes}</p>}
+          {ultimoEje && inventarioListo && tieneOpciones && (
+            // Al cerrar el Inventario con «Listo», su resumen queda aquí; «Editar» lo vuelve a abrir.
+            <section aria-labelledby="titulo-inventario" className="mt-4" data-resumen-inventario="">
+              <p id="titulo-inventario" className="mx-0.5 mb-2 text-secundario font-extrabold text-texto-secundario">Inventario</p>
+              <div className="flex h-16 items-center gap-2.5 rounded-radio-m border border-linea bg-superficie pr-3 pl-3.5">
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-cuerpo font-extrabold text-texto">{textoPresentaciones(resumenPres.total)} · {textoInventario(resumenPres.enTotal, porEncargo)}</span>
+                  <span className="text-[0.8125rem] text-texto-secundario">Cantidades de cada {opcionesFinales.map((o) => o.nombre.toLocaleLowerCase("es")).reverse().join(" y ")}</span>
+                </span>
+                <Boton jerarquia="secundario" tamano="compacto" onClick={() => setInventarioAbierto(true)}>Editar</Boton>
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {paso === "foto" && (
@@ -362,9 +492,9 @@ function Historia({
             />
           )}
           {/* «Tiene tallas o colores» aparece cuando ya hay precio (nada antes de tiempo). */}
-          {(Number(precio) > 0 || tieneOpciones) && (
+          {(Number(precio) > 0 || conVariantes) && (
             <div className="mt-2.5 flex" data-chip-presentaciones="">
-              <Chip hecho={tieneOpciones} onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>
+              <Chip hecho={tieneOpciones} onClick={abrirVariantes}>
                 {tieneOpciones ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
               </Chip>
             </div>
@@ -376,43 +506,14 @@ function Historia({
         <>
           {encabezado}
           {porEncargo ? (
-            <div className="mt-3.5 flex flex-col gap-3" data-cuando-llega="">
+            <div className="mt-3.5 flex flex-col gap-3">
               <FilaInterruptor texto="Es por encargo, no llevo stock" encendido alCambiar={elegirEncargo} />
-              <GrupoEleccion
-                etiqueta="¿Cuándo llega?" compacta
-                valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
-                alCambiar={(id) => {
-                  if (id === "otro") {
-                    // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
-                    flushSync(() => setEncargoOtro(true));
-                    raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]")?.focus();
-                    return;
-                  }
-                  setEncargoOtro(false);
-                  setEncargoTexto(textoCuandoLlega(id));
-                }}
-                opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
-              />
-              {otroAbierto && (
-                <Campo
-                  etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
-                  placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
-                />
-              )}
+              <CuandoLlega texto={encargoTexto} alCambiar={setEncargoTexto} alEnter={alEnter} />
             </div>
           ) : (
             <>
-              <div className="mt-3.5">
-                {tieneOpciones ? (
-                  <div className="flex items-center justify-between gap-3 rounded-radio-m border border-linea bg-superficie p-4">
-                    <p className="text-destacado text-texto">{resumenPres.total} {resumenPres.total === 1 ? "presentación" : "presentaciones"} · {resumenPres.enTotal} en total</p>
-                    <Boton jerarquia="secundario" tamano="compacto" onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>Cambiar</Boton>
-                  </div>
-                ) : (
-                  <div className="flex justify-center" data-contador-stock="">
-                    <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
-                  </div>
-                )}
+              <div className="mt-3.5 flex justify-center" data-contador-stock="">
+                <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
               </div>
               <div className="mt-2.5">
                 <FilaInterruptor texto="Es por encargo, no llevo stock" encendido={false} alCambiar={elegirEncargo} />
@@ -460,7 +561,7 @@ function Historia({
             )}
           </div>,
         )}
-      {(paso === "nombre" || paso === "precio" || paso === "stock") &&
+      {(paso === "nombre" || paso === "precio" || paso === "stock" || preguntaEjes) &&
         pie(
           <div className="flex items-center gap-2.5">
             {botonAtras}
@@ -495,19 +596,36 @@ function Historia({
 
       {guardado.bienvenidaRetoque}
       {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
-      {!servicio && (
-        <FlujoPresentaciones
-          abierta={presAbierta} alCerrar={() => setPresAbierta(false)} rubro={tipo} precioProducto={Number(precio) || 0} estado={presentaciones}
-          stockSimple={stockTocado ? stock : null} publicado={false}
-          fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
-          agregarFoto={(archivo) => agregarFotoAlBorrador(archivo, medios, setMedios, toast)}
-          tienePedidos={async () => false} avisar={toast}
-          alConfirmar={(nuevo) => {
-            cambiarPresentaciones(nuevo);
-            setPresAbierta(false);
-          }}
+      {conVariantes && (
+        <HojaInventarioHistoria
+          abierta={inventarioAbierto} alCerrar={() => setInventarioAbierto(false)}
+          alListo={() => { setInventarioListo(true); setInventarioAbierto(false); }}
+          estado={presentaciones} alCambiarPres={cambiarPres}
+          alElegirFoto={(valor, id) => setFotosColor((f) => (id ? { ...f, [valor]: id } : Object.fromEntries(Object.entries(f).filter(([v]) => v !== valor))))}
+          precioProducto={Number(precio) || 0} porEncargo={porEncargo} encargoTexto={encargoTexto}
+          alCambiarEncargo={setPorEncargo} alCambiarEncargoTexto={setEncargoTexto} fotos={fotosDelBorrador} avisar={toast}
         />
       )}
+      <HojaFotoDeColor
+        valor={fotoDe} fotos={fotosDelBorrador} fotosColor={fotosColor} alCerrar={() => setFotoDe(null)}
+        alElegir={(valor, id) => setFotosColor((f) => (id ? { ...f, [valor]: id } : Object.fromEntries(Object.entries(f).filter(([v]) => v !== valor))))}
+        alSubir={(archivo) => agregarFotoAlBorrador(archivo, medios, setMedios, toast)}
+      />
+      <Alerta
+        abierta={quitarValor !== null}
+        titulo={`¿Quitar ${quitarValor?.valor ?? ""}?`}
+        descripcion={quitarValor ? `Sus ${quitarValor.unidades} en el inventario se pierden.` : ""}
+        alCancelar={() => setQuitarValor(null)}
+        accion={{
+          texto: "Quitar", tono: "peligro",
+          alConfirmar: () => {
+            const q = quitarValor!;
+            setQuitarValor(null);
+            const eje = ejes.find((e) => e.nombre === q.eje);
+            if (eje) ponerValores(eje.nombre, alternarValor(eje.valores, q.valor));
+          },
+        }}
+      />
       <HojaOpcional abierta={opcional === "descripcion"} titulo="Descripción" grande alCerrar={() => setOpcional(null)}>
         <SeccionDescripcion
           valor={descripcion}
@@ -608,16 +726,224 @@ function MarcoFoto({ portada, total }: { portada: string | null; total: number }
   );
 }
 
-/** «Atrás» de la historia: el círculo de 52 px abajo a la izquierda del botón principal (en todas las hojas de la historia). */
-function BotonAtras({ alTocar, apagado = false }: { alTocar: () => void; apagado?: boolean }) {
+type EjeHistoria = { nombre: string; valores: string[]; propia: boolean };
+
+/**
+ * La tarjeta «así se verá» de las pantallas de presentaciones (prototipo v4, b11–b14): 350×212, la foto en `cover`, el nombre, «Desde
+ * RD$…» y, a medida que se eligen, la píldora de la otra cosa («Talla S · M · L») y los puntos de color.
+ */
+function TarjetaPresentaciones({ portada, nombre, precio, opciones }: { portada: string | null; nombre: string; precio: string | null; opciones: OpcionProducto[] }) {
+  const n = nombre.trim();
+  const otra = opciones.find((o) => !esEjeColor(o.nombre));
+  const color = opciones.find((o) => esEjeColor(o.nombre));
   return (
-    <button
-      type="button" aria-label="Atrás" onClick={alTocar} disabled={apagado}
-      className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion disabled:opacity-35", FOCO)}
-      data-atras-historia=""
+    <div className="relative h-[212px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-tarjeta-presentaciones="" role="img"
+      aria-label={`Así se verá: ${[n || "sin nombre", precio, otra ? `${otra.nombre} ${otra.valores.join(", ")}` : null, color ? `${color.valores.join(", ")}` : null].filter(Boolean).join(", ")}`}
     >
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-    </button>
+      {portada ? (
+        <>
+          <Foto src={portada} alt="" className="absolute inset-0 [&_img]:object-[50%_30%]" sizes="(max-width: 480px) 100vw, 440px" />
+          <div aria-hidden="true" className="absolute inset-x-0 top-[40%] bottom-0 bg-linear-to-t from-velo to-transparent" />
+        </>
+      ) : (
+        <div aria-hidden="true" className="absolute inset-0 grid place-items-center text-texto-secundario"><IconoCamara tamano={36} strokeWidth={1.8} /></div>
+      )}
+      <span aria-hidden="true" className={clases("absolute top-2 left-3.5 font-mano text-mano", portada ? "text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]" : "text-texto-secundario")}>así se verá</span>
+      <div aria-hidden="true" className={clases("absolute inset-x-3.5 bottom-3", portada ? "text-papel" : "text-texto")}>
+        {n && <p className="truncate font-display text-[1.375rem] leading-tight">{n}</p>}
+        <div className="mt-0.5 flex flex-wrap items-center gap-2.5">
+          {precio && <span className="text-cuerpo font-extrabold tabular-nums" data-precio-tarjeta="">{precio}</span>}
+          {otra && otra.valores.length > 0 && (
+            <span className="inline-flex h-[22px] items-center rounded-full bg-white/20 px-2 text-etiqueta" data-pildora-eje="">{otra.nombre} {otra.valores.join(" · ")}</span>
+          )}
+          {color && color.valores.length > 0 && (
+            <span className="inline-flex items-center gap-1" data-puntos-color="">
+              {color.valores.slice(0, 6).map((v) => (
+                <span key={v} className="size-[18px] rounded-full border-[1.5px] border-white/70" style={{ background: colorPorNombre(v) ?? undefined }} />
+              ))}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** «¿En qué cambia?» (b11): lo típico del catálogo y otras cosas, hasta 2, y «+ Otra» para una propia. */
+function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void }) {
+  const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
+  const lista = [...new Set([...[...tipicas, ...otras].slice(0, 4), ...ejes.map((e) => e.nombre)])];
+  const [otra, setOtra] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  const llenos = ejes.length >= MAX_EJES;
+  // Con 2 elegidas las demás se ven igual (como el lienzo); tocarlas explica el máximo.
+  const lleno = () => avisar(`Ya elegiste ${MAX_EJES}: quita una para elegir otra.`);
+  const alternar = (nombre: string) => {
+    if (ejes.some((e) => e.nombre === nombre)) return alCambiar(ejes.filter((e) => e.nombre !== nombre));
+    if (llenos) return lleno();
+    alCambiar([...ejes, { nombre, valores: [], propia: !COSAS_QUE_CAMBIAN.some((c) => c === nombre) }]);
+  };
+  const listoOtra = () => {
+    const e = errorDeNombrePropio(otra ?? "", ejes.map((x) => x.nombre), [...tipicas, ...otras]);
+    if (e) return setError(e);
+    alCambiar([...ejes, { nombre: (otra ?? "").trim(), valores: [], propia: true }]);
+    setOtra(null);
+    setError(null);
+  };
+  return (
+    <div ref={caja} className="mt-3.5" data-que-cambia="">
+      <div role="group" aria-label="Lo que cambia" className="flex flex-wrap gap-2">
+        {lista.map((nombre) => {
+          const elegida = ejes.some((e) => e.nombre === nombre);
+          return <Eleccion key={nombre} casilla elegida={elegida} onClick={() => alternar(nombre)}>{nombre}</Eleccion>;
+        })}
+        {otra === null && (
+          <Eleccion
+            accion elegida={false}
+            onClick={() => {
+              if (llenos) return lleno();
+              flushSync(() => setOtra(""));
+              caja.current?.querySelector<HTMLInputElement>("input")?.focus();
+            }}
+          >
+            + Otra
+          </Eleccion>
+        )}
+      </div>
+      {otra !== null && (
+        <div className="mt-3 flex items-start gap-2">
+          <Campo
+            className="flex-1" etiqueta="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR} value={otra} error={error}
+            enterKeyHint="done" onChange={(e) => { setOtra(e.target.value); setError(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); listoOtra(); } }}
+          />
+          <Boton tamano="compacto" className="mt-7" deshabilitado={!otra.trim()} onClick={listoOtra}>Listo</Boton>
+        </div>
+      )}
+      <p className="mx-0.5 mt-2.5 text-[0.8125rem] text-texto-secundario">Hasta {MAX_EJES}. Para la mayoría basta con talla y color.</p>
+    </div>
+  );
+}
+
+/** Los valores de una cosa (b12, b13): los sugeridos y los propios para tocar, «+ Otra» para escribir uno y los atajos («XS a XL»). */
+function ValoresDeEje({ eje, rubro, alAlternar, alPoner }: { eje: EjeHistoria; rubro: Rubro; alAlternar: (v: string) => void; alPoner: (v: string[]) => void }) {
+  const sugeridos = eje.propia ? [] : valoresSugeridos(eje.nombre, rubro);
+  const atajos = atajosDe(eje.nombre, rubro).filter((a) => a.texto !== "30 · 50 · 100 ml" || rubro === "perfumes").filter((a) => a.texto !== "36 a 42");
+  const color = esEjeColor(eje.nombre);
+  const [otro, setOtro] = useState<string | null>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  const agregar = () => {
+    if (otro?.trim()) alPoner(alternarValor(eje.valores, otro));
+    setOtro(null);
+  };
+  return (
+    <div ref={caja} className="mt-3.5" data-valores-eje={eje.nombre}>
+      <div role="group" aria-label={eje.nombre} className="flex flex-wrap gap-2">
+        {valoresVisibles(sugeridos, eje.valores).map((v) => {
+          const elegida = eje.valores.includes(v);
+          const c = color ? colorPorNombre(v) : null;
+          return (
+            <Eleccion key={v} casilla elegida={elegida} deshabilitada={!elegida && eje.valores.length >= MAX_VALORES} onClick={() => alAlternar(v)}>
+              {c && <span aria-hidden="true" className="size-4 shrink-0 rounded-full border-[1.5px] border-borde-pastilla" style={{ background: c }} />}
+              {v}
+            </Eleccion>
+          );
+        })}
+        {otro === null ? (
+          <Eleccion
+            accion elegida={false} deshabilitada={eje.valores.length >= MAX_VALORES}
+            onClick={() => {
+              flushSync(() => setOtro(""));
+              caja.current?.querySelector<HTMLInputElement>("input")?.focus();
+            }}
+          >
+            + {otroDe(eje.nombre).split(" ")[0]}
+          </Eleccion>
+        ) : (
+          <input
+            type="text" enterKeyHint="done" autoComplete="off" aria-label={otroDe(eje.nombre)} placeholder="Escríbelo y toca Enter" maxLength={LARGO_VALOR}
+            value={otro} onChange={(e) => setOtro(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); agregar(); }
+              else if (e.key === "Escape") setOtro(null);
+            }}
+            onBlur={agregar}
+            className="h-(--alto-control) w-52 min-w-0 rounded-full border-2 border-accion bg-superficie px-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario"
+          />
+        )}
+      </div>
+      {atajos.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2" data-atajos="">
+          {atajos.map((a) => <Boton key={a.texto} jerarquia="secundario" tamano="compacto" onClick={() => alPoner(a.valores)}>{a.texto}</Boton>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** «Foto de cada color · opcional» (b13): una tarjeta punteada por color elegido; sin fotos subidas, apagadas con una pista. */
+function FotoDeCadaColor({ valores, fotos, fotosColor, alAbrir }: { valores: string[]; fotos: FotoBorrador[]; fotosColor: Record<string, string>; alAbrir: (valor: string) => void }) {
+  const sinFotos = fotos.length === 0;
+  return (
+    <section aria-labelledby="titulo-foto-color" className="mt-3.5" data-foto-cada-color="">
+      <p id="titulo-foto-color" className="mx-0.5 mb-2 text-secundario font-extrabold text-texto-secundario">Foto de cada color · opcional</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        {valores.map((v) => {
+          const i = fotos.findIndex((f) => f.id === fotosColor[v]);
+          const f = i >= 0 ? fotos[i]! : null;
+          return (
+            <button
+              key={v} type="button" disabled={sinFotos} onClick={() => alAbrir(v)} aria-label={`Foto de ${v}: ${f ? `foto ${i + 1}` : "elegir"}`}
+              className={clases("tocable flex min-w-0 items-center gap-2.5 rounded-radio-m border-[1.5px] border-dashed border-borde-campo bg-superficie p-2 text-left disabled:opacity-40", FOCO)}
+            >
+              <span aria-hidden="true" className="relative block h-[54px] w-11 shrink-0 overflow-hidden rounded-radio-s bg-superficie-hundida">
+                {(f ?? fotos[0]) && <Foto src={(f ?? fotos[0])!.url} alt="" className="size-full" sizes="44px" />}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-secundario font-extrabold text-texto">{v}</span>
+                <span className="text-etiqueta font-normal text-texto-secundario">{f ? `Foto ${i + 1}` : "Elegir foto"}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {sinFotos && <p className="mx-0.5 mt-2 text-[0.8125rem] text-texto-secundario" data-pista-foto-color="">Sube fotos en el primer paso para elegir la de cada color.</p>}
+    </section>
+  );
+}
+
+/** Elegir la foto de un color entre las del producto (o subir otra), con «‹» y «Listo» abajo como toda la historia. */
+function HojaFotoDeColor({
+  valor, fotos, fotosColor, alCerrar, alElegir, alSubir,
+}: {
+  valor: string | null;
+  fotos: FotoBorrador[];
+  fotosColor: Record<string, string>;
+  alCerrar: () => void;
+  alElegir: (valor: string, id: string | null) => void;
+  alSubir: (archivo: File) => Promise<string | null>;
+}) {
+  const [ultimo, setUltimo] = useState<string | null>(valor);
+  if (valor && valor !== ultimo) setUltimo(valor);
+  const v = valor ?? ultimo;
+  return (
+    <Hoja abierta={valor !== null} alCerrar={alCerrar} titulo={`Foto de ${v ?? ""}`} altura="auto">
+      {v && (
+        <div className="flex flex-col gap-4">
+          <p className="text-secundario text-texto-secundario">Tu cliente la ve al elegir {v}. Escoges entre las fotos del producto.</p>
+          <SelectorFotos
+            fotos={fotos} elegida={fotosColor[v] ?? null} usadas={Object.fromEntries(Object.entries(fotosColor).filter(([x]) => x !== v))}
+            alElegir={(id) => alElegir(v, id)} alQuitar={fotosColor[v] ? () => alElegir(v, null) : undefined}
+            alSubir={async (archivo) => { const id = await alSubir(archivo); if (id) alElegir(v, id); }}
+          />
+          <div className="flex items-center gap-2.5">
+            <BotonAtras alTocar={alCerrar} />
+            <Boton tamano="grande" className="flex-1" onClick={alCerrar}>Listo</Boton>
+          </div>
+        </div>
+      )}
+    </Hoja>
   );
 }
 

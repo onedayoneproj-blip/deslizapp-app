@@ -15,6 +15,8 @@ export function Eleccion({
   children,
   compacta = false,
   casilla = false,
+  deshabilitada = false,
+  accion = false,
   tabIndex,
   onKeyDown,
   refBoton,
@@ -25,6 +27,10 @@ export function Eleccion({
   compacta?: boolean;
   /** Se puede elegir más de una (role="checkbox"). */
   casilla?: boolean;
+  /** No se puede elegir (ya hay el máximo): 40 %, sin toque. */
+  deshabilitada?: boolean;
+  /** Con la misma forma, un botón que hace algo («+ Otra»): sin estado de elegido. */
+  accion?: boolean;
   tabIndex?: number;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   refBoton?: (el: HTMLButtonElement | null) => void;
@@ -33,13 +39,14 @@ export function Eleccion({
     <button
       ref={refBoton}
       type="button"
-      role={casilla ? "checkbox" : "radio"}
-      aria-checked={elegida}
+      role={accion ? undefined : casilla ? "checkbox" : "radio"}
+      aria-checked={accion ? undefined : elegida}
       tabIndex={tabIndex}
+      disabled={deshabilitada}
       onClick={onClick}
       onKeyDown={onKeyDown}
       className={clases(
-        "tocable relative inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 font-bold whitespace-nowrap text-texto",
+        "tocable relative inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 font-bold whitespace-nowrap text-texto disabled:opacity-40",
         compacta ? clases("h-10 px-3 text-secundario", TOQUE_44) : "h-(--alto-control) px-4 text-cuerpo",
         FOCO,
         elegida ? "border-marca-rosa bg-marca-rosa" : "border-borde-pastilla bg-superficie",

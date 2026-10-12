@@ -73,3 +73,28 @@ test("la celebración", () => {
   assert.equal(H.lineaArranque(5), null);
   assert.equal(H.lineaArranque(0), null);
 });
+
+test("con presentaciones: ¿en qué cambia?, una pregunta por cosa y sin paso de stock (7 barras con dos cosas)", () => {
+  assert.deepEqual(H.pasosDeHistoria(false, 0), ["foto", "nombre", "precio", "cambia", "eje1", "eje2", "vista"]);
+  assert.deepEqual(H.pasosDeHistoria(false, 2), ["foto", "nombre", "precio", "cambia", "eje1", "eje2", "vista"]);
+  assert.deepEqual(H.pasosDeHistoria(false, 1), ["foto", "nombre", "precio", "cambia", "eje1", "vista"]);
+  assert.equal(H.pasoSiguiente("eje1", false, 1), "vista");
+  assert.equal(H.pasoSiguiente("eje1", false, 2), "eje2");
+  assert.equal(H.pasoAnterior("vista", false, 2), "eje2");
+  assert.equal(H.pasoAnterior("cambia", false, 0), "precio");
+  assert.equal(H.barrasLlenas("cambia", false, 0), 4);
+  assert.equal(H.barrasLlenas("listo", false, 2), 7);
+});
+
+test("el color se pregunta al final y se guarda primero", () => {
+  const ejes = [{ nombre: "Color" }, { nombre: "Talla" }];
+  assert.deepEqual(H.ordenDePreguntas(ejes).map((e) => e.nombre), ["Talla", "Color"]);
+  assert.deepEqual(H.ordenParaGuardar([{ nombre: "Talla" }, { nombre: "Color" }]).map((e) => e.nombre), ["Color", "Talla"]);
+});
+
+test("la pregunta de cada cosa", () => {
+  assert.deepEqual(H.textosDeEje("Talla", false), { titulo: "¿Qué tallas hay?", ayuda: "Toca las que vendes." });
+  assert.deepEqual(H.textosDeEje("Color", true), { titulo: "¿Y qué colores?", ayuda: "Puedes poner una foto para cada uno." });
+  assert.equal(H.textosDeEje("Material", false).titulo, "¿Qué materiales hay?");
+  assert.equal(H.textosDeEje("Tamaño", true).ayuda, "Toca los que vendes.");
+});
