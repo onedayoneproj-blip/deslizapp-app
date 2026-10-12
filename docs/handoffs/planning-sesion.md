@@ -1,6 +1,6 @@
 # Relevo vigente de Planning
 
-Actualizado: 11 de octubre de 2026, comprobado contra GitHub. `main` está en `ecbd1bef4908ccf18cd9ad8fbf2499af0a2438ee` (squash de #101). Los PR #96, #100 y #101 están **fusionados** (10 oct); no hay PR de trabajo abierto. Notion releído y actualizado el 11 oct. Comprobar base, checks y HEAD de nuevo antes de revisar una entrega o integrar.
+Actualizado: 12 de octubre de 2026, comprobado contra GitHub. `main` está en `899e7bf` (squash de #110). Ver «Estado al 12 oct» abajo; las líneas «En curso (11 oct)» de más abajo son históricas salvo crear producto.
 
 ## Acuerdo vigente
 
@@ -31,6 +31,16 @@ El seguimiento de tareas está en Notion. No mantener una segunda tabla de estad
 - **Encargo preparado, sin confirmar que se haya lanzado:** [tienda oficial de merch de Deslizapp](../prompts/deslizapp-merch-publicacion.md) (tienda `deslizapp` ya creada por Planning; faltan medios en Storage y publicación). Sin precios aprobados ni compra; comprobar rama/PR antes de asumir estado.
 
 Notion se actualizó el 11 oct 2026 desde esta sesión (la tarea nueva, #96, #101 y «Eliminar contador de productos»). Las notas de «PR abierto, sin merge» dentro de las tareas y de `docs/17-onboarding.md` son históricas; conviene corregir ese documento en una pasada de documentación.
+
+## Estado al 12 oct 2026 (relevo)
+
+- **Fusionados el 11–12 oct con autorización de Lewis** (squash, «Revisión» verde y Codex sin hallazgos): #105 y #106 (instalar app y carrusel, ver arriba), #107, #108 (cabecera del catálogo y «Catálogos», `66a4faf`), #109 (barra de estado: `.hdr-borde` ya no toca y=0, `c7741df`), #113 (test de búsqueda por fecha fija, `41f0e61`), #111 (quitar el abanico de colección de cada reel, `6b5132a`) y #110 (perfil: nombre arriba que se va con el scroll, usuario de la tienda bajo el avatar, «atrás» e Instagram flotantes claros, `899e7bf`; Lewis lo probó en el iPhone: «se ve bien»).
+- **Crear producto «como una historia»:** el prototipo manda **exacto** (Lewis, 12 oct). Medidas en [referencias/crear-producto/LEEME.md](../../referencias/crear-producto/LEEME.md) y capturas del lienzo en `referencias/crear-producto/capturas/` (+ PDF). Única excepción: el catálogo se elige con el selector de la cabecera de la hoja (recuerda el último usado por tienda; se oculta con un solo catálogo). La regla «todas las tarjetas 4:5» del 11 oct fue un error y quedó anulada (tarjeta 350×372 en un producto, 350×212 en varias presentaciones, reel 350×440 escalado).
+  - **PR #112** (Claude Coding, Opus, sesión `session_014xgZYQxefxWFu1kMdUeuZN`, rama `feat/crear-producto-historia`): PR 1 de una presentación; **no fusionar solo** (el chip «Tiene tallas o colores» manda a la hoja vieja, es lo que Lewis sintió caótico). Pendiente: correcciones de fidelidad y PR 2 de varias presentaciones.
+  - **PR #114** (Codex, borrador, rama `codex/crear-producto-historia`): ambos flujos según [docs/prompts/crear-producto-codex.md](../prompts/crear-producto-codex.md). Lewis quiere comparar y quedarse con el mejor; el otro se cierra. Falta actualizar pruebas antiguas (`probar:producto`, `probar:presentaciones` sin filtro) y probar servicio, catálogo lleno e iPhone real.
+- **Pendiente de decisión de Lewis:** que el perfil de la tienda tenga su propia entrada de historial y dirección (`#perfil`): hoy no la tiene (no se comparte, «atrás» saca del catálogo). Lewis dijo «todavía no». El carrito y crear producto sí crean entrada de historial; el carrito no cambia la URL.
+- **Pendiente de validar por Lewis (iPhone/Android):** guía, carrusel/enfocada, instalar app, encabezado/«Catálogos», y #111 sin abanico en producción.
+- **Reglas recientes:** no fusionar sin tu confirmación cuando el cambio es visual y Lewis pidió probarlo; Codex revisa cada commit nuevo («@codex review»); cada cambio visible exige entrada en `lib/novedades.ts` de 2–4 líneas cortas y la spec en `docs/04-pantallas.md`.
 
 ## Projects
 
