@@ -244,6 +244,9 @@ function Historia({
   const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
   // Los Detalles se validan con el rubro principal de la tienda: solo se ofrecen si el producto va en ese catálogo.
   const conDetalles = tienda != null && tipo === tienda.rubro && CAMPOS_POR_RUBRO[tienda.rubro].length > 0;
+  // Lo que se guarda: los Detalles del rubro solo si el producto va en ese catálogo (si se cambia a otro, quedan en el borrador por si
+  // vuelve, pero no se guardan ni salen en la vista previa); la descripción, siempre.
+  const detallesFinales: Detalles = conDetalles ? detalles : descripcion.trim() ? { descripcion } : {};
   const fotos = mediosParaGuardar(medios).filter((m) => m.tipo === "foto");
   const portada = fotos[0]?.url ?? null;
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
@@ -401,7 +404,7 @@ function Historia({
     setGuardando(true);
     const r = await guardado.crear(
       {
-        nombre, precio, medios, stock: porEncargo ? 0 : stock, presentaciones: presentacionesFinales, detalles, ficha,
+        nombre, precio, medios, stock: porEncargo ? 0 : stock, presentaciones: presentacionesFinales, detalles: detallesFinales, ficha,
         coleccion: coleccionElegida, porEncargo: !servicio && porEncargo, encargoTexto, rubro: variosTipos ? tipo : null, activo: visible,
       },
     );
@@ -431,7 +434,7 @@ function Historia({
     return {
       tienda: tiendaPublicaDe(tienda),
       producto: productoPublicoDeBorrador({
-        nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? presentaciones.opciones : [],
+        nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles: detallesFinales, opciones: tieneOpciones ? presentaciones.opciones : [],
         presentaciones: presentacionesFinales.pres, stock: porEncargo ? 0 : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo,
         fotosPorValor, fichaUrl: fichaVisible(null, ficha) && ficha.tipo === "nueva" ? ficha.foto : null,
       }),

@@ -381,6 +381,34 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(300);
     await abrir(page);
     ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "Un borrador abandonado en Ropa no cambia el recordado (Accesorios)");
+    // Los Detalles de Ropa no se guardan en un producto que se pasa a Accesorios (Codex P2, 7.ª revisión).
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Ropa/ }).tap();
+    await page.waitForTimeout(300);
+    await subirFoto(page, "#a7a");
+    await seguir(page);
+    await escribir(page, "Blusa con corte");
+    await seguir(page);
+    await escribir(page, "900");
+    await seguir(page);
+    await seguir(page);
+    await page.locator('[data-opcional="Detalles"]').tap();
+    await page.getByRole("button", { name: /^Corte:/ }).tap();
+    await page.getByRole("textbox", { name: "Corte" }).fill("Holgado");
+    await page.getByRole("button", { name: "Listo", exact: true }).last().tap();
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: "Listo", exact: true }).last().tap();
+    await page.waitForTimeout(500);
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Accesorios/ }).tap();
+    await page.waitForTimeout(300);
+    ok((await page.locator('[data-opcional="Detalles"]').count()) === 0, "En Accesorios no sale la pastilla «Detalles»");
+    await boton(page, "Publicar").tap();
+    await page.locator("[data-celebracion]").waitFor();
+    {
+      const p = await productoCreado(page, "Blusa con corte");
+      ok(p && p.rubro === "accesorios" && !("corte" in (p.detalles ?? {})), `…y se guarda sin el «Corte» de Ropa (${JSON.stringify(p?.detalles)})`);
+    }
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
