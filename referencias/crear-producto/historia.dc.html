@@ -235,7 +235,8 @@ body{margin:0}
   <div style="{{vistaListo}}">
     <span class="mano" style="font-size: 26px; color: #a8410f">así se ve en tu catálogo</span>
     <div style="position: relative; height: 440px; border-radius: 22px; overflow: hidden; margin-top: 2px; background: #f3ead9">
-      <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie Deslizapp en el catálogo" style="width: 100%; height: 100%; object-fit: cover"></img>
+      <img src="/_blob/43d60a54fcf85c6c932e189f30df4a5a" alt="Hoodie Deslizapp en el catálogo" style="{{imgListo}}"></img>
+      <div style="{{sinFotoReel}}"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span class="sec" style="font-weight: 700">Sin foto</span></div>
       <div style="position: absolute; inset: 55% 0 0 0; background: linear-gradient(to top, rgba(16,54,42,.72), rgba(16,54,42,0))"></div>
       <div style="position: absolute; left: 6px; top: 8px; right: 6px; display: flex; gap: 3px"><span style="flex: 1; height: 2.5px; border-radius: 999px; background: #fff"></span><span style="flex: 1; height: 2.5px; border-radius: 999px; background: rgba(255,255,255,.45)"></span></div>
       <div style="position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 16px; color: #fff; align-items: center">
@@ -249,7 +250,7 @@ body{margin:0}
       </div>
       <span style="position: absolute; right: 10px; bottom: 16px; width: 44px; height: 44px; border-radius: 999px; background: #174b3a; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff9ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 11.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19.5z"></path><path d="M9 8V7a3 3 0 0 1 6 0v1"></path></svg></span>
     </div>
-    <p style="margin: 12px 0 6px; font-size: 14px; font-weight: 800; color: #4f6a5e">Hazlo brillar · opcional</p>
+    <p style="{{estiloEtiqueta}}">{{textoEtiqueta}}</p>
     <div style="display: flex; gap: 6px">
       <button type="button" class="chip" style="height: 34px; padding: 0 12px; font-size: 13px">+ Descripción</button>
       <button type="button" class="chip" style="height: 34px; padding: 0 12px; font-size: 13px">+ Colección</button>
@@ -286,8 +287,9 @@ body{margin:0}
     <div style="{{piePublicar}}">
       <div style="display: flex; gap: 10px">
         <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
-        <button type="button" onClick="{{seguir}}" style="flex: 1; height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800">Publicar</button>
+        <button type="button" onClick="{{seguir}}" style="{{estiloPublicar}}">Publicar</button>
       </div>
+
       <button type="button" onClick="{{seguir}}" style="height: 36px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Guardar sin publicar</button>
     </div>
     <div style="{{pieCelebra}}">
@@ -297,15 +299,15 @@ body{margin:0}
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":15,"default":1},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"int","min":1,"max":16,"default":1},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
     const s = this.state || {};
     const paso = s.paso ?? (this.props.paso ?? 1);
     // Un producto: 1 foto vacía · 2 con fotos · 3 nombre vacío · 4 nombre · 5 precio vacío · 6 precio · 7 stock · 8 cuándo llega · 9 así se ve · 10 celebración
     // Varias presentaciones (en la hoja principal, como historia): 11 ¿en qué cambia? · 12 ¿qué tallas? · 13 ¿y qué colores? · 14 ídem con el resumen del Inventario · 15 así se ve
-    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 4, 5, 6, 6, 7][paso - 1];
-    const conPres = paso >= 11;
+    const momento = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 4, 5, 6, 6, 7, 5][paso - 1];
+    const conPres = paso >= 11 && paso <= 15;
     const nBarras = conPres ? 7 : 5;
     const ver = (b, estilo) => b ? (estilo || '') : 'display: none';
     const textos = {
@@ -333,7 +335,7 @@ class Component extends DCLogic {
       vistaPreguntas: ver(paso >= 3 && paso <= 8, 'position: absolute; left: 20px; right: 20px; top: 180px'),
       vistaPres: ver(paso >= 11 && paso <= 14, 'position: absolute; left: 20px; right: 20px; top: 180px; bottom: 96px; overflow: hidden'),
       vistaPresInterior: paso === 14 ? 'margin-top: -150px' : '',
-      vistaListo: ver(paso === 9 || paso === 15, 'position: absolute; left: 20px; right: 20px; top: 176px'),
+      vistaListo: ver(paso === 9 || paso === 15 || paso === 16, 'position: absolute; left: 20px; right: 20px; top: 176px'),
       vistaCelebra: ver(paso === 10, 'position: absolute; left: 20px; right: 20px; top: 200px'),
       sinFoto: ver(paso === 1, 'position: absolute; inset: 14px; border: 2px dashed #9c8b6e; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px'),
       fotoGrande: ver(paso === 2, 'width: 100%; height: 100%; object-fit: cover'),
@@ -366,12 +368,17 @@ class Component extends DCLogic {
       entradaEncargo: ver(paso === 8, 'margin-top: 14px'),
       textoPrecioReel: paso === 15 ? 'Desde RD$1,450' : 'RD$1,450',
       verPresentaciones: paso === 15 ? 'margin-top: 10px; height: 40px; padding: 0 16px 0 10px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.7); background: rgba(16,54,42,.35); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800' : 'display: none',
+      imgListo: paso === 16 ? 'display: none' : 'width: 100%; height: 100%; object-fit: cover',
+      sinFotoReel: paso === 16 ? 'position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px' : 'display: none',
+      estiloPublicar: paso === 16 ? 'flex: 1; height: 52px; border: 0; border-radius: 999px; background: #efe4d2; color: #8a8a7a; font-size: 17px; font-weight: 800' : 'flex: 1; height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800',
+      estiloEtiqueta: 'margin: 12px 0 6px; font-size: 14px; font-weight: 800; color: ' + (paso === 16 ? '#a8410f' : '#4f6a5e'),
+      textoEtiqueta: paso === 16 ? 'Agrega una foto para publicar · Volver a la foto' : 'Hazlo brillar · opcional',
       textoSeguir: 'Seguir',
       pieSinFoto: ver(paso === 1, 'display: flex; gap: 10px'),
       pieSeguir: ver((paso >= 2 && paso <= 8) || (paso >= 11 && paso <= 14), 'display: flex; gap: 10px'),
-      piePublicar: ver(paso === 9 || paso === 15, 'display: flex; flex-direction: column; gap: 4px'),
+      piePublicar: ver(paso === 9 || paso === 15 || paso === 16, 'display: flex; flex-direction: column; gap: 4px'),
       pieCelebra: ver(paso === 10, 'display: flex; flex-direction: column; gap: 10px'),
-      seguir: () => this.setState({ paso: Math.min(15, paso + 1) }),
+      seguir: () => this.setState({ paso: Math.min(16, paso + 1) }),
       atras: () => this.setState({ paso: Math.max(1, paso - 1) }),
       reiniciar: () => this.setState({ paso: 1 })
     };
