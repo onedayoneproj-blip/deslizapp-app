@@ -109,15 +109,17 @@ try{
       await page.locator('.reel.on .who').click();await page.locator('.catalogo-publico.view-grid').waitFor();await espera(page,500);
       await page.screenshot({path:`${OUT}/${width}-perfil.png`});
       const caja=sel=>page.locator(sel).evaluate(e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,w:r.width,h:r.height}});
-      const hdr0=await caja('.hdr .logo'),back0=await caja('#backBtn');
+      const back0=await caja('#backBtn');
+      ok(await page.locator('.hdr .logo').evaluate(e=>getComputedStyle(e).display==='none')&&await page.getByRole('heading',{level:1}).count()===1,`${width}: el nombre pequeño de la cabecera no se muestra y queda un solo título (h1)`);
+      ok(await page.locator('.hdr').evaluate(e=>e.getBoundingClientRect().height<1),`${width}: la cabecera no deja hueco`);
       ok(await page.locator('.hdr-borde').count()===0,`${width}: el perfil ya no lleva desenfoque ni velo de cabecera`);
       ok(await page.locator('.hdr').evaluate(e=>getComputedStyle(e).position==='absolute'),`${width}: la cabecera del perfil no es fija`);
       ok(back0.w>=44&&back0.h>=44,`${width}: «atrás» mide al menos 44 px`);
       ok(await page.locator('#backBtn').evaluate(e=>{const c=getComputedStyle(e);return c.backgroundColor==='rgb(255, 255, 255)'&&(c.backdropFilter||'none')==='none'&&c.boxShadow!=='none'&&c.borderRadius==='50%'}),`${width}: «atrás» es un círculo claro sólido, sin cristal y con sombra`);
       await page.evaluate(()=>window.scrollTo(0,400));await espera(page,300);
       await page.screenshot({path:`${OUT}/${width}-perfil-deslizado.png`});
-      const hdr1=await caja('.hdr .logo'),back1=await caja('#backBtn');
-      ok(hdr1.top<hdr0.top-300&&hdr1.top+hdr1.h<0,`${width}: el nombre de la cabecera se va con el scroll`);
+      const back1=await caja('#backBtn');
+      ok(await page.locator('.pname').evaluate(e=>e.getBoundingClientRect().bottom<0),`${width}: el nombre grande del perfil se va con el scroll`);
       ok(Math.abs(back1.top-back0.top)<1,`${width}: «atrás» queda fijo`);
       // Nada fijo con fondo, desenfoque o contenido empieza en y=0 (Safari iOS 26 tiñe la barra de estado).
       const fijos=await page.evaluate(()=>[...document.querySelectorAll('.catalogo-publico *')].filter(e=>{const c=getComputedStyle(e);if(c.position!=='fixed'||c.display==='none'||c.visibility==='hidden'||e.hidden)return false;const r=e.getBoundingClientRect();if(!r.width||!r.height)return false;return c.backgroundColor!=='rgba(0, 0, 0, 0)'||c.backgroundImage!=='none'||(c.backdropFilter&&c.backdropFilter!=='none')||e.children.length>0||e.textContent.trim()!==''}).map(e=>({s:e.id||e.className,t:e.getBoundingClientRect().top})));
