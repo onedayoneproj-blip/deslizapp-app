@@ -153,7 +153,7 @@ botón de cerrar redondo. Además:
   "Quedarme"; el foco entra al diálogo y no sale con Tab. Textos propios: crear producto suma «Las N fotos que subiste se van a
   descartar.» y «Se van a perder las N presentaciones y sus cantidades.» (solo lo que se pierde de verdad); editar producto,
   «¿Descartar los cambios?» / «Lo que cambiaste no se va a guardar.»; registrar un pedido, «¿Salir sin registrar?» / «Lo que anotaste
-  se va a perder.»; la hoja «Inventario» de crear producto no avisa (cerrarla conserva lo puesto). Props: `avisoTitulo`, `avisoTexto`,
+  se va a perder. El pedido sigue esperando en Por registrar.»; la hoja «Inventario» de crear producto no avisa (cerrarla conserva lo puesto). Props: `avisoTitulo`, `avisoTexto`,
   `avisoQuedarme`, `avisoDescartar`; el contenido puede dar textos con `useAvisarAlSalir(cambios, { titulo, texto })`. Guardar con éxito, cerrar desde el padre o cambiar de ruta nunca preguntan. Activo en: Registrar abono (monto o nota),
   + Pedido / venta pasada / Editar pedido (cualquier cambio respecto a como se abrió), Cliente nuevo (algún campo lleno), nota del
   cliente (texto cambiado), producto y promo (cambios respecto al original). No en hojas de solo lectura ni de selección.
