@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { flushSync } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { CATALOGO_GENERAL, contarPorCatalogo, guardarCatalogoAlCrear, leerCatalogoActivo, leerCatalogoAlCrear, rubroInicialDeProducto } from "@/lib/catalogo-activo";
 import { vistaCatalogo } from "@/lib/catalogo-estado";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -36,7 +36,7 @@ import { CAMPOS_POR_RUBRO, rubrosDeTienda, type Detalles, type Rubro } from "@/l
 import type { FotosPorValor, Producto } from "@/lib/types";
 import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, HojaFijoArriba, useAvisarAlSalir } from "../hoja";
+import { Hoja, HojaFijoAbajo, useAvisarAlSalir } from "../hoja";
 import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamara, IconoReloj } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
@@ -77,16 +77,21 @@ export function HistoriaProducto() {
   const servicio = false;
   const pasos = pasosDeHistoria(servicio);
   const llenas = barrasLlenas(paso, servicio);
+  // Con varios catálogos, el selector va en la fila de las barras, a su izquierda (lo pinta la historia por portal).
+  const [ranuraCatalogo, setRanuraCatalogo] = useState<HTMLSpanElement | null>(null);
   const barras = (
-    <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex items-center gap-1" data-barras-historia="">
+    <div className="flex min-w-0 items-center gap-3">
+      <span ref={setRanuraCatalogo} className="contents" />
+      <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex min-w-0 flex-1 items-center gap-1" data-barras-historia="">
       {pasos.map((p, i) => (
         <span key={p} className={clases("h-1 flex-1 rounded-full", i < llenas ? "bg-accion" : "bg-borde-pastilla")} />
       ))}
+      </div>
     </div>
   );
   return (
     <Hoja
-      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" tituloOculto altura="grande" juntoACerrar={barras} cerrarSutil
+      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" tituloOculto altura="grande" juntoACerrar={barras} cerrarSutil pantallaCompleta
       alVolverInterno={() => {
         // Atrás del teléfono: vuelve una pregunta sin perder nada; en la primera (o ya guardado) cierra como siempre.
         const antes = pasoAnterior(paso, servicio);
@@ -101,7 +106,7 @@ export function HistoriaProducto() {
         <CuerpoCargando titulo="productos" />
       ) : (
         <Historia
-          key={`${tiendaId}:${vuelta}`} paso={paso} alCambiarPaso={setPaso} servicio={servicio} productos={productos}
+          key={`${tiendaId}:${vuelta}`} paso={paso} alCambiarPaso={setPaso} servicio={servicio} productos={productos} ranuraCatalogo={ranuraCatalogo}
           alOtro={() => { setVuelta((v) => v + 1); setPaso("foto"); }}
         />
       )}
@@ -117,7 +122,9 @@ function Historia({
   servicio,
   productos,
   alOtro,
+  ranuraCatalogo,
 }: {
+  ranuraCatalogo: HTMLElement | null;
   paso: PasoHistoria;
   alCambiarPaso: (p: PasoHistoria) => void;
   servicio: boolean;
@@ -190,8 +197,11 @@ function Historia({
   const irA = (p: PasoHistoria) => {
     flushSync(() => alCambiarPaso(p));
     const campo = raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]");
-    if (campo) campo.focus();
-    else raiz.current?.querySelector<HTMLElement>("[data-titulo-paso]")?.focus();
+    if (campo) {
+      campo.focus();
+      // En pantallas cortas, el campo queda a la vista sobre la barra de abajo (la hoja la cuenta en su scroll-padding).
+      campo.scrollIntoView({ block: "nearest" });
+    } else raiz.current?.querySelector<HTMLElement>("[data-titulo-paso]")?.focus();
   };
   const listoParaSeguir = puedeSeguir(paso, { nombre, precio, porEncargo, encargoTexto, stock: tieneOpciones ? resumenPres.enTotal : stock });
   const seguir = () => {
@@ -287,7 +297,7 @@ function Historia({
   const pie = (contenido: ReactNode, aviso?: ReactNode) => (
     <HojaFijoAbajo>
       {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones. */}
-      <div className="pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pt-3 pb-[max(1.75rem,calc(var(--safe-abajo)+0.75rem))]" data-pie-historia="">
+      <div className="pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pt-3 pb-[max(1.75rem,var(--safe-abajo))]" data-pie-historia="">
         {aviso}
         {contenido}
       </div>
@@ -296,16 +306,16 @@ function Historia({
 
   return (
     <div ref={raiz} className="flex flex-col" data-historia-producto="" data-paso={paso}>
-      {variosTipos && paso !== "listo" && tienda && (
-        // El catálogo no es una pregunta: va en la cabecera, debajo de las barras, y recuerda el último usado (por tienda).
-        <HojaFijoArriba>
+      {variosTipos && paso !== "listo" && tienda && ranuraCatalogo &&
+        // El catálogo no es una pregunta: va en la cabecera, junto a las barras, y recuerda el último usado (por tienda).
+        createPortal(
           <SelectorCatalogo
-            tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="hoja" textoOtra="Vendo otra cosa también"
+            tipos={tipos} valor={tipo} conteo={contarPorCatalogo(productos, tienda)} tamano="compacto" textoOtra="Vendo otra cosa también"
             alCambiar={(r) => { if (r !== CATALOGO_GENERAL) elegirTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
             sinPermiso={sinCatalogo ? () => toast(porque) : undefined}
-          />
-        </HojaFijoArriba>
-      )}
+          />,
+          ranuraCatalogo,
+        )}
 
       {pregunta && <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} nota={paso !== "foto"} />}
 

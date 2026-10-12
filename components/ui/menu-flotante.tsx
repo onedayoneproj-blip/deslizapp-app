@@ -28,7 +28,8 @@ export function MenuFlotante({
   accion?: { texto: string; alTocar: () => void };
   /** Nombre accesible del menú («Catálogo»). */
   etiqueta: string;
-  tamano: "pantalla" | "hoja";
+  /** «compacto»: en la fila de las barras de una historia (crear producto), letra `secundario` en negrita. */
+  tamano: "pantalla" | "hoja" | "compacto";
   deshabilitado?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
@@ -37,7 +38,7 @@ export function MenuFlotante({
   const items = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
   const actual = opciones.find((o) => o.id === valor);
-  const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla" : "font-display text-titulo-seccion";
+  const clase = tamano === "pantalla" ? "font-display text-titulo-pantalla" : tamano === "compacto" ? "text-secundario font-extrabold" : "font-display text-titulo-seccion";
   const total = opciones.length + (accion ? 1 : 0);
 
   const cerrar = (devolverFoco = true) => {

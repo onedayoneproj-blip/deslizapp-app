@@ -244,7 +244,7 @@ export function SeccionMedios({
       )}
       {historia && !principal && (
         <div className="flex flex-col gap-3" data-sin-fotos-historia="">
-          <Boton tamano="grande" anchoCompleto icono={<IconoCamara tamano={20} />} onClick={() => camara.current?.click()}>Tomar foto</Boton>
+          <Boton tamano="grande" anchoCompleto onClick={() => camara.current?.click()}>Tomar foto</Boton>
           <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={() => entrada.current?.click()}>Elegir de la galería</Boton>
           {historia.pieSinFotos}
         </div>

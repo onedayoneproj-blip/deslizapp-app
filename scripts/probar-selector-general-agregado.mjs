@@ -93,15 +93,16 @@ for (const ancho of [360, 390]) {
   await cambiarTienda(tiendaBase.nombre);
   ok((await nombreActivo()) === "General", "A conserva su preferencia independiente en una segunda vuelta");
 
-  // Crear producto es una historia: el catálogo se elige con pastillas en «¿Cómo se llama?».
+  // Crear producto es una historia; el catálogo va en la cabecera de la hoja, junto a las barras.
   await page.goto(`${URL}/catalogo/nuevo`);
-  await page.waitForSelector("[data-historia-producto]");
-  await page.getByRole("button", { name: "Seguir sin foto", exact: true }).click();
-  await page.waitForSelector("[data-catalogo-historia]");
-  const radios = page.locator("[data-catalogo-historia] [role=radio]");
-  ok((await radios.filter({ has: page.locator("xpath=self::*[@aria-checked='true']") }).innerText()).trim() === "Ropa", "crear desde la vista General usa el rubro principal real");
-  const opcionesHoja = (await radios.allInnerTexts()).map((s) => s.replace(/\s+/g, " ").trim());
+  const selectorHoja = "[data-hoja-cabecera] [data-selector-catalogo]";
+  await page.waitForSelector(selectorHoja);
+  ok((await nombreActivo(selectorHoja)) === "Ropa", "crear desde la vista General usa el rubro principal real");
+  await page.locator(selectorHoja).tap();
+  await page.waitForSelector(MENU);
+  const opcionesHoja = (await page.locator(`${MENU} button`).allInnerTexts()).map((s) => s.replace(/\s+/g, " ").trim());
   ok(!opcionesHoja.some((s) => /^General\b/.test(s)) && opcionesHoja.some((s) => /^De todo\b/.test(s)), "crear muestra De todo como rubro y no ofrece la vista agregada");
+  await page.keyboard.press("Escape");
 
   await page.setViewportSize({ width: ancho, height: 260 });
   await page.goto(`${URL}/catalogo`);

@@ -124,6 +124,8 @@ Todos son píldora, letra extrabold, sin subrayado.
 
 Todos los campos de una hoja o pantalla (nombre, precio, descripción, «Otra cosa», valores propios, «Cuándo llega») son el mismo `Campo`/`CampoMultilinea`: misma altura (`--alto-campo`, 50), `radio-m`, contorno de 2 px `borde-campo`, rótulo `secundario` extrabold arriba, y el valor y el ejemplo en `cuerpo` (16) de peso regular. **El ejemplo (placeholder) va en gris suave (`texto-secundario`), tamaño normal y peso regular; nunca en tipografía display ni más grande que el valor.** Si un campo debe destacar (el precio), se hace con algo sutil: el prefijo `RD$` dentro del campo (`prefijo="RD$"`), no con otro tamaño ni otra altura. Un campo suelto no se mete dentro de una tarjeta de filas (recuadro dentro de recuadro): va fuera, entre las demás filas del formulario. `CampoMonto` (cifra grande) es solo para el monto protagonista de una hoja de cobro, no para formularios de producto.
 
+**Excepción: la respuesta protagonista de una pregunta** (`<Campo grande>`, crear producto, 12 oct 2026, como su lienzo): alto 56 con la letra a 20 en negrita y el rótulo solo para lectores de pantalla; con `precio`, alto 64 con `RD$` en 18 negrita y la cifra en Fredoka 32. Solo en una pantalla de una sola pregunta; en formularios, el campo de siempre.
+
 **Icono a la izquierda (todos los campos de texto).** `Campo` lleva la prop `icono` (un glifo de `components/iconos.tsx`): 22 px, trazo 2, redondeado, color `texto-secundario`, a 18 px del borde izquierdo; el texto empieza a 52 px (`pl-13`). Es decorativo (`aria-hidden`): el rótulo de arriba se queda y el icono nunca lo reemplaza. No cambia la altura (50) ni el foco. El buscador usa la misma medida con la lupa. Sin icono: campos de varias líneas (`CampoMultilinea`), campos con `prefijo` (RD$, el prefijo ya ocupa ese lugar), `CampoMonto`, y campos donde ningún glifo aporte (no se inventan iconos decorativos). Tabla: nombre de persona → persona; WhatsApp/teléfono → WhatsApp; nombre de producto, colección, promo, código o cupón → etiqueta; cantidad, límite, mililitros → #; fecha → calendario; «Cuándo llega» → reloj; enlace → cadena; correo → sobre; nota o línea de texto editable → lápiz; buscar → lupa.
 
 ## 6. Elegir: pastillas, opciones y controles
@@ -138,7 +140,9 @@ Hay tres maneras de elegir y cada una se ve distinta, para no confundirla con un
 
 **Cantidad (− 1 +):** dos botones **cuadrados** de 36 px con `radio-s` (10), como la miniatura de la foto que tienen al lado, con el número en `destacado` entre ellos. **−** en `superficie-hundida` con icono `texto`; **+** en relleno `accion` con icono `sobre-accion`, porque agregar es seguir adelante. Al llegar al mínimo o al límite del stock, ese botón se deshabilita (40 %). No son círculos.
 
-**Cantidad grande** (`<Cantidad grande>`, 11 oct 2026): el contador protagonista de una pregunta («¿Cuántos tienes ahora?» al crear producto). Botones cuadrados de 56 px con `radio-m` (mismos colores: − hundido, + `accion`) y el número en Fredoka `cifra` entre ellos. Solo cuando el número ES la pantalla; en filas y tarjetas sigue la de 36 px.
+**Cantidad grande** (`<Cantidad grande>`, 12 oct 2026, como el lienzo de crear producto): el contador protagonista de una pregunta («¿Cuántos tienes ahora?»). Botones **redondos** de 56 px (− con contorno `borde-pastilla` sobre `superficie`, + relleno `accion`) y el número en Fredoka de 44 entre ellos. Solo cuando el número ES la pantalla; en filas y tarjetas sigue la de 36 px.
+
+**Chip** (`Chip`, `components/ui/chip.tsx`, 12 oct 2026): un botón chico de 36 px (toque 44), contorno `borde-pastilla`, relleno `superficie`, letra `secundario` en negrita y un «+» delante, para lo opcional que abre algo («+ Tiene tallas o colores», «+ Descripción»). Hecho: check y relleno `accion-suave`. Con `aria-pressed` es un interruptor a la vista («Es por encargo, no llevo stock»). No es un filtro ni el botón principal.
 
 **Fila "Agregar …"** (Agregar cupón, Agregar producto): fila tocable con un **círculo relleno `accion` de 24 px con un + en `sobre-accion`** y el texto en `destacado`. El círculo relleno es lo que la distingue de un texto suelto.
 
@@ -205,7 +209,9 @@ Las hojas suben desde abajo, con esquinas `radio-xl`, agarradera arriba, título
 
 Nunca una hoja completa con un hueco vacío abajo si no tiene teclado.
 
-**Hoja como historia** (crear producto, 11 oct 2026): hoja `grande` con el título solo para lectores de pantalla (`tituloOculto`) y, en la fila de la ✕, las **barras de historia** (`juntoACerrar`): una por momento, 4 px, píldora, llenas las hechas y la actual en `accion`, el resto `borde-pastilla`, con `role="progressbar"`. Cada pantalla trae su título visible como encabezado. Abajo, fijo, «Atrás» (círculo secundario de 52 px) y la acción del paso. Toda vista previa de una foto de producto en esa hoja es **4:5 con `object-fit: cover`**, la proporción del reel del catálogo. Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?".
+**Hoja como historia** (crear producto; desde el 12 oct manda el lienzo): hoja `grande` con `pantallaCompleta` (sin hueco arriba, sin esquinas ni agarradera; la cabecera deja libre la barra de estado), el título solo para lectores de pantalla y, en la fila de la ✕ (sin círculo, `cerrarSutil`), las **barras de historia** (`juntoACerrar`): una por momento, 4 px, píldora, 4 px entre ellas, llenas las hechas y la actual en `accion`, el resto `borde-pastilla`, con `role="progressbar"`. Cada pantalla trae su título visible (Fredoka 28) como encabezado. Abajo, en una barra sólida, «‹» redondo de 52 px y la acción del paso a lo ancho. Las medidas de las tarjetas son las del lienzo (`referencias/crear-producto/LEEME.md`): 350×372 en las preguntas y el reel de 390×488 reducido en proporción en «así se ve en tu catálogo».
+
+Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?".
 
 ## 10. Tarjetas
 

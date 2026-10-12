@@ -70,15 +70,23 @@ const png = (page, color, ancho = 600, alto = 600) =>
     x.fillRect(0, 0, w, h);
     return l.toDataURL("image/png").split(",")[1];
   }, { c: color, w: ancho, h: alto });
-/** La vista previa es 4:5 (la del reel) y la foto la cubre entera, sin barras a los lados. */
-async function proporcion(page, sel, nombre) {
-  const r = await page.locator(sel).evaluate((el) => {
+/**
+ * La tarjeta «así se verá» del lienzo: 372 px de alto, de margen a margen (20 px a cada lado, el ancho del título y del campo),
+ * siempre en el mismo lugar, y la foto la cubre (`cover`). Devuelve dónde empieza, para comparar entre pasos.
+ */
+const TOP_TARJETA = new Map();
+async function tarjeta(page, nombre, clave = "tarjeta") {
+  const r = await page.locator("[data-tarjeta-asi-se-vera]").evaluate((el) => {
     const caja = el.getBoundingClientRect();
+    const hoja = el.closest("[data-hoja-panel]").getBoundingClientRect();
     const img = el.querySelector("img");
     const i = img?.getBoundingClientRect();
-    return { w: caja.width, h: caja.height, cubre: img ? getComputedStyle(img).objectFit === "cover" && Math.abs(i.width - caja.width) < 6 && Math.abs(i.height - caja.height) < 6 : null };
+    return { x: caja.x - hoja.x, y: caja.y, w: caja.width, h: caja.height, util: hoja.width - 40, cubre: img ? getComputedStyle(img).objectFit === "cover" && Math.abs(i.width - caja.width) < 2 && Math.abs(i.height - caja.height) < 2 : null };
   });
-  ok(Math.abs(r.w / r.h - 0.8) <= 0.01 && r.cubre !== false, `${nombre}: 4:5 (${Math.round(r.w)}×${Math.round(r.h)})${r.cubre ? ", la foto lo cubre" : ""}`);
+  const top = TOP_TARJETA.get(clave);
+  if (top === undefined) TOP_TARJETA.set(clave, r.y);
+  ok(Math.abs(r.h - 372) < 1 && Math.abs(r.w - r.util) < 1 && Math.abs(r.x - 20) < 1 && r.cubre !== false && (top === undefined || Math.abs(top - r.y) < 1),
+    `${nombre}: tarjeta ${Math.round(r.w)}×${Math.round(r.h)} de margen a margen, en y=${Math.round(r.y)}${top === undefined ? "" : " (el mismo lugar)"}${r.cubre ? ", foto en cover" : ""}`);
 }
 /** La barra de abajo es sólida (el fondo de la hoja, sin transparencia) y ocupa todo el ancho: nada asoma por ella ni a sus lados. */
 async function pieOpaco(page, nombre) {
@@ -136,14 +144,14 @@ for (const ancho of ANCHOS) {
     ok((await barras(page)) === "1" && (await page.locator("[data-barras-historia] span").count()) === 5, "Cinco barras, la primera llena (aria-valuenow 1)");
     ok((await page.locator("[data-tarjeta-asi-se-vera]").count()) === 1 && (await page.getByText("Tu foto va aquí").isVisible()), "Sin foto: la tarjeta es un marco con la cámara");
     ok(await boton(page, "Tomar foto").isVisible() && await boton(page, "Elegir de la galería").isVisible(), "«Tomar foto» y «Elegir de la galería»");
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 1 sin foto, el marco");
+    await tarjeta(page, "Paso 1 sin foto, el marco");
     ok((await page.locator("[data-con-foto]").innerText()) === "Con foto se vende más." && (await page.locator("[data-con-foto]").evaluate((e) => getComputedStyle(e).fontFamily)).includes("Caveat"), "«Con foto se vende más.» a mano junto al marco");
     ok((await page.getByText("así se verá").count()) === 0, "En el paso 1 no sale «así se verá»");
     ok((await page.locator("[data-entrada-camara]").getAttribute("capture")) === "environment", "«Tomar foto» abre la cámara (capture)");
     await captura(page, "1-foto-vacia", ancho);
     await subirFoto(page, "#c8a2c8", 900, 500);
     ok(await page.getByText("Portada").first().isVisible(), "Con foto: la tira con la portada");
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 1 con una foto horizontal");
+    await tarjeta(page, "Paso 1 con una foto horizontal");
     await captura(page, "1-foto", ancho);
     await seguir(page);
     ok((await paso(page)) === "nombre" && (await barras(page)) === "2", "Paso 2: ¿Cómo se llama? (barra 2)");
@@ -151,7 +159,7 @@ for (const ancho of ANCHOS) {
     ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado sin nombre");
     await escribir(page, "Hoodie Deslizapp");
     ok((await page.locator("[data-tarjeta-asi-se-vera]").innerText()).includes("Hoodie Deslizapp"), "El nombre aparece en la tarjeta mientras se escribe");
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 2");
+    await tarjeta(page, "Paso 2");
     await captura(page, "2-nombre", ancho);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
@@ -159,7 +167,7 @@ for (const ancho of ANCHOS) {
     await escribir(page, "1450");
     ok((await page.locator("[data-precio-tarjeta]").innerText()) === "RD$1,450", "El precio aparece en la tarjeta");
     ok(await page.locator("[data-chip-presentaciones]").getByText("Tiene tallas o colores").isVisible(), "Chip «Tiene tallas o colores»");
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 3");
+    await tarjeta(page, "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
@@ -171,7 +179,13 @@ for (const ancho of ANCHOS) {
     await mas.tap();
     await mas.tap();
     ok((await page.locator("[data-contador-stock]").innerText()).includes("3"), "Contador en 3");
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 4");
+    {
+      const menos = page.locator("[data-contador-stock]").getByRole("button", { name: "Quitar uno" });
+      for (let i = 0; i < 3; i++) await menos.tap();
+      ok(await boton(page, "Seguir").isDisabled(), "Con 0 (y sin «por encargo») no se sigue: la vista previa nunca dice «Agotado»");
+      for (let i = 0; i < 3; i++) await mas.tap();
+    }
+    await tarjeta(page, "Paso 4");
     await captura(page, "4-stock", ancho);
     await seguir(page);
     ok((await paso(page)) === "vista" && (await barras(page)) === "5", "Paso 5: Así se ve en tu catálogo");
@@ -179,15 +193,26 @@ for (const ancho of ANCHOS) {
     await marco.locator("[data-reel-solo] .reel").first().waitFor({ timeout: 20000 });
     ok((await marco.locator("[data-reel-solo]").innerText()).includes("Hoodie Deslizapp"), "El reel real del comprador con el borrador");
     ok((await marco.locator(".hdr, .htabs").count()) === 0, "…solo el reel: sin cabecera ni pestañas del catálogo");
-    await proporcion(page, "[data-reel-historia]", "Paso 5, el marco del reel");
-    const marcoCaja = await page.locator("[data-reel-historia]").boundingBox();
-    const reelCaja = await marco.locator(".reel").first().boundingBox();
-    ok(Math.abs(reelCaja.width - marcoCaja.width) < 2 && Math.abs(reelCaja.height - marcoCaja.height) < 2, "…y el reel llena el marco (sin barras)");
-    ok(marcoCaja.height >= 360, `…grande: ${Math.round(marcoCaja.height)} px de alto (hasta 440)`);
+    {
+      // El reel se arma a 390×488 (su tamaño de siempre) y se reduce en proporción al ancho de la tarjeta, sin recortarse.
+      const marcoCaja = await page.locator("[data-reel-historia]").boundingBox();
+      const iframe = await page.locator("[data-reel-historia] iframe").boundingBox();
+      const dentro = await marco.locator(".reel").first().evaluate((e) => ({ w: e.offsetWidth, h: e.offsetHeight }));
+      const util = ancho - 40;
+      ok(Math.abs(marcoCaja.width - util) < 1 && Math.abs(marcoCaja.height - (util * 488) / 390) < 1.5, `…tarjeta del reel ${Math.round(marcoCaja.width)}×${Math.round(marcoCaja.height)} (proporción 390:488)`);
+      ok(dentro.w === 390 && dentro.h === 488 && Math.abs(iframe.width - marcoCaja.width) < 1 && Math.abs(iframe.height - marcoCaja.height) < 1.5, "…el reel real a 390×488, reducido en proporción al marco");
+      const fuera = await marco.locator("[data-reel-solo] .reel").first().evaluate((r) => {
+        const b = r.getBoundingClientRect();
+        // Lo de dentro de `.media` (la foto con su zoom lento) ya lo recorta el reel, como en el catálogo.
+        return [...r.querySelectorAll("*")].filter((e) => !e.closest(".media")).filter((e) => { const x = e.getBoundingClientRect(); return x.width > 0 && x.height > 0 && getComputedStyle(e).visibility !== "hidden" && (x.top < b.top - 1 || x.bottom > b.bottom + 1); }).length;
+      });
+      ok(fuera === 0, `…nada del reel se sale ni se corta (${fuera})`);
+    }
     // En reposo (sin desplazar), en un teléfono de 844 px de alto, las pastillas no quedan detrás de «Publicar».
     const ultima = await page.locator("[data-opcional]").last().evaluate((e) => e.getBoundingClientRect().bottom);
     const techo = await page.locator("[data-pie-historia]").evaluate((e) => e.getBoundingClientRect().top);
-    ok(ultima <= techo, `…y sin desplazar, los opcionales quedan por encima de «Publicar» (${Math.round(ultima)} ≤ ${Math.round(techo)})`);
+    // Al ancho del lienzo (390) cabe todo sin desplazar; más ancho, el reel crece y se desplaza (lo prueba nadaDetrasDelPie).
+    if (ancho <= 393) ok(ultima <= techo, `…y sin desplazar, los opcionales quedan por encima de «Publicar» (${Math.round(ultima)} ≤ ${Math.round(techo)})`);
     ok(await boton(page, "Publicar").isEnabled() && await boton(page, "Guardar sin publicar").isVisible(), "«Publicar» y «Guardar sin publicar»");
     await nadaDetrasDelPie(page, "[data-opcional]", "Paso 5, las pastillas opcionales");
     await pieOpaco(page, "Paso 5");
@@ -258,18 +283,25 @@ for (const ancho of ANCHOS) {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrir(page);
     await subirFoto(page, "#7aa", 500, 900);
+    const SEL = "[data-hoja-cabecera] [data-selector-catalogo]";
+    ok((await page.getByText("¿En qué catálogo va?").count()) === 0, "El catálogo no es una pregunta");
+    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Ropa"), "Está en la cabecera, junto a las barras, con el catálogo abierto (Ropa)");
+    {
+      const sel = await page.locator(SEL).boundingBox();
+      const bar = await page.locator("[data-barras-historia]").boundingBox();
+      ok(Math.abs(sel.y + sel.height / 2 - (bar.y + bar.height / 2)) < 4 && sel.x + sel.width <= bar.x, "…en la misma fila, a la izquierda de las barras");
+    }
+    await page.locator(SEL).tap();
+    await page.locator("[data-menu-flotante]").getByRole("menuitemradio", { name: /^Accesorios/ }).tap();
+    await page.waitForTimeout(300);
     await seguir(page);
-    await proporcion(page, "[data-tarjeta-asi-se-vera]", "Paso 2 con una foto vertical");
-    await nadaDetrasDelPie(page, "[data-catalogo-historia] button", "Paso 2, las pastillas de catálogo");
-    ok(await page.getByText("¿En qué catálogo va?").isVisible(), "«¿En qué catálogo va?» debajo del nombre");
-    ok((await page.getByRole("radio", { name: "Ropa" }).getAttribute("aria-checked")) === "true", "…preseleccionado el catálogo abierto (Ropa)");
+    await tarjeta(page, "Paso 2 con una foto vertical", "vertical");
     await escribir(page, "Aretes por encargo");
-    await page.getByRole("radio", { name: "Accesorios" }).tap();
     await captura(page, "2-nombre-catalogos", ancho);
     await seguir(page);
     await escribir(page, "650");
     await seguir(page);
-    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
     await page.waitForTimeout(100);
     ok((await titulo(page)) === "¿Cuándo llega?" && (await page.locator("[data-contador-stock]").count()) === 0, "Por encargo: «¿Cuándo llega?» y sin contador");
     ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado hasta elegir cuándo");
@@ -278,8 +310,8 @@ for (const ancho of ANCHOS) {
     ok((await enfocado(page)) === "campo", "«Otro» abre el campo con el foco");
     await escribir(page, "Llega el viernes");
     // Apagar y volver a prender el encargo no esconde lo escrito en «Otro».
-    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
-    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
     ok((await page.getByRole("radio", { name: "Otro" }).getAttribute("aria-checked")) === "true" && (await page.locator("[data-campo-paso]").inputValue()) === "Llega el viernes", "Al volver a prender el encargo, «Otro» sigue elegido con lo escrito");
     await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
     ok((await page.locator("[data-campo-paso]").count()) === 0, "Una opción rápida cierra el campo de «Otro»");
@@ -289,6 +321,12 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-celebracion]").waitFor();
     const p = await productoCreado(page, "Aretes por encargo");
     ok(p && p.rubro === "accesorios" && p.porEncargo && p.encargoTexto === "Llega en 1 a 2 semanas" && p.stock === 0, "Guardado en Accesorios, por encargo, «Llega en 1 a 2 semanas», sin stock");
+    // Recuerda el último catálogo usado (por tienda): «Agregar otro» y una visita nueva salen en Accesorios.
+    await boton(page, "Agregar otro").tap();
+    await page.waitForTimeout(300);
+    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "«Agregar otro» sale con el último catálogo usado (Accesorios)");
+    await abrir(page);
+    ok(((await page.locator(SEL).getAttribute("aria-label")) ?? "").includes("Accesorios"), "…y al volver a crear, también");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -313,7 +351,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     ok((await page.locator(H).innerText()).includes("5 presentaciones · 5 en total"), "El paso de stock resume las presentaciones (5 en total)");
     // Por encargo no lleva stock: tampoco las presentaciones.
-    await page.getByRole("checkbox", { name: "Es por encargo, no llevo stock" }).tap();
+    await page.getByRole("button", { name: "Es por encargo, no llevo stock" }).tap();
     await page.getByRole("radio", { name: "1 mes" }).tap();
     await seguir(page);
     await boton(page, "Publicar").tap();
@@ -378,7 +416,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await boton(page, "Publicar").tap();
     await page.locator("[data-celebracion]").waitFor();
-    ok((await page.locator("[data-arranque]").innerText()) === "Van 2 de 5 para arrancar.", "«Van 2 de 5 para arrancar.»");
+    ok((await page.locator("[data-linea-celebracion]").innerText()) === "Oud nuevo ya se puede deslizar. Van 2 de 5 para arrancar.", "«Oud nuevo ya se puede deslizar. Van 2 de 5 para arrancar.» (una línea, como el lienzo)");
 
     // Salir con cambios: la ✕ avisa.
     await boton(page, "Agregar otro").tap();
@@ -417,23 +455,24 @@ console.log("\n=== Pantalla baja (360×640) con el catálogo lleno: barra sólid
   await ctx.close();
 }
 
-console.log("\n=== Pantalla baja (360×640): la tarjeta, el campo y «Seguir» caben sin desplazar ===");
+console.log("\n=== Pantalla baja (360×640): la tarjeta no se encoge; el contenido se desplaza y el campo queda a la vista ===");
 {
   const { ctx, page, errores } = await pagina(360, MICHEL, null, 640);
   await abrir(page);
   await subirFoto(page, "#9b7");
   await seguir(page);
-  const visibles = async (nombre) => {
-    const t = await page.locator("[data-tarjeta-asi-se-vera]").boundingBox();
+  await tarjeta(page, "Nombre a 360×640", "baja");
+  const aLaVista = async (nombre) => {
+    // Sin tocar nada: al llegar al paso, la hoja ya desplazó el campo enfocado sobre la barra de abajo.
+    await page.waitForTimeout(200);
     const c = await page.locator("[data-campo-paso]").boundingBox();
     const pie = await page.locator("[data-pie-historia]").boundingBox();
-    ok(t.y >= 0 && t.y + t.height <= c.y && c.y + c.height <= pie.y, `${nombre}: tarjeta (${Math.round(t.height)} px), campo y «Seguir» a la vista`);
+    ok(c.y >= 0 && c.y + c.height <= pie.y, `${nombre}: al llegar, el campo enfocado queda sobre «Seguir»`);
   };
-  await visibles("Nombre");
-  await proporcion(page, "[data-tarjeta-asi-se-vera]", "Nombre a 360×640");
+  await aLaVista("Nombre");
   await escribir(page, "Oud bajo");
   await seguir(page);
-  await visibles("Precio");
+  await aLaVista("Precio");
   await captura(page, "3-precio-pantalla-baja", 360);
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();

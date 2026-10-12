@@ -22,6 +22,19 @@ Encargo: [docs/prompts/crear-producto-historia.md](../prompts/crear-producto-his
 - Planning: la barra de abajo ahora es sólida (fondo de la hoja, de lado a lado, `linea` arriba) y el aviso de catálogo lleno va completo dentro de ella, encima de «Publicar»; comprobado a 360, 390, 430 y 360×640. El reel del paso 5 no baja de 272×340 (a 360×640 se desplaza en vez de apretar su texto).
 - Codex: «Otro» de «¿Cuándo llega?» se conserva al apagar y volver a prender el encargo; por encargo, las presentaciones también se guardan con stock 0.
 
+## Bloque 1: fidelidad al prototipo (12 oct, Lewis vía Planning)
+
+Lewis probó el preview y pidió que se vea **exactamente** como el lienzo (`referencias/crear-producto/capturas/b1…b6`), con una excepción: el catálogo en la cabecera. La regla «todo 4:5» del 11 oct quedó anulada. Hecho:
+
+- Hoja a pantalla completa (`pantallaCompleta`, ✕ sin círculo), barras de 4 px separadas 4 px; el selector de catálogo (compacto) en la fila de las barras, a la izquierda; recuerda el último catálogo en el que se creó por tienda (`leerCatalogoAlCrear` / `guardarCatalogoAlCrear`).
+- Tarjeta de las preguntas 350×372 de margen a margen, igual y en el mismo lugar en los 4 pasos; no se encoge (en pantallas cortas se desplaza y el campo enfocado queda sobre la barra: la `Hoja` suma `scroll-padding-bottom`).
+- Título Fredoka 28, ayuda 15, `Campo grande` (56 / precio 64 con cifra de 32), `Cantidad grande` redonda (56, número de 44), `Chip` para «Tiene tallas o colores», «Es por encargo» y los opcionales. Textos exactos del lienzo.
+- «así se ve en tu catálogo»: el reel real armado a 390×488 y reducido en proporción (350×438 a 390 px), sin salirse ni cortarse. «Publicar» a lo ancho y «Guardar sin publicar» debajo, como el lienzo (sin «‹»: atrás es el del teléfono).
+- Con 0 unidades (y sin «por encargo») no se sigue: la vista previa no dice «Agotado» al crear.
+- Celebración 230×290 con las formas del lienzo y una sola línea «… ya se puede deslizar. Van N de 5 para arrancar.»; los botones en la barra.
+
+Lo que difiere del lienzo y por qué: «Seguir sin foto» (terciario) y «Con foto se vende más.» dentro del marco del paso 1 (decisión del encargo y pedido anterior de Planning); con varios catálogos, el selector acorta las barras; el pie respeta la zona segura del iPhone (`max(28 px, safe-area)`).
+
 ## Decisiones fuera del encargo (o donde había que elegir)
 
 - **Seguir sin foto:** se puede, y también publicar sin foto (la base lo acepta). Al editar, «Guardar cambios» sigue pidiendo foto como siempre.

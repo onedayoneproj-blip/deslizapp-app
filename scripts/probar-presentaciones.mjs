@@ -476,6 +476,8 @@ for (const ancho of ANCHOS) {
     await hoja(page).getByRole("button", { name: /^V2/ }).first().click();
     ok((await hoja(page).locator("section[aria-label='Color V2'] li").count()) === 12, "Tocar un grupo lo abre");
     await captura(page, "21-144-paso2", ancho);
+    // Crear no deja seguir con 0 en total (la vista previa diría «Agotado»): una de cada.
+    await sumar(page, "Agregar uno a todas", 1);
     await listo(page);
     await guardarCambios(page);
     const g = await productoDe(page, "Camisa XXL");

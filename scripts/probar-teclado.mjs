@@ -253,7 +253,7 @@ try {
     await page.tap(precio);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(200);
-    await page.tap('[role="dialog"] [role="checkbox"]:has-text("Es por encargo")');
+    await page.tap('[role="dialog"] button[aria-pressed]:has-text("Es por encargo")');
     await page.tap('[role="dialog"] [role="radio"]:has-text("Otro")');
     await page.waitForTimeout(150);
     const cuando = '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]';

@@ -164,6 +164,12 @@ type Props = {
   juntoACerrar?: ReactNode;
   /** La X sin círculo de fondo (la historia de crear producto, como su lienzo). */
   cerrarSutil?: boolean;
+  /**
+   * Solo con `altura="grande"`: ocupa la pantalla entera, sin el hueco de arriba, sin esquinas redondeadas ni agarradera (la
+   * historia de crear producto, como su lienzo). La cabecera deja libre la barra de estado (`--safe-arriba`). Se sigue cerrando
+   * con la X, Atrás, Escape o arrastrando la cabecera.
+   */
+  pantallaCompleta?: boolean;
   /** Capa decorativa fija al pie, detrás del contenido desplazable y sin capturar toques. */
   decoracionAbajo?: ReactNode;
   /** Efecto decorativo sobre el contenido, siempre bajo el borde y la cabecera. */
@@ -212,6 +218,7 @@ function HojaMontada({
   fijoArriba,
   juntoACerrar,
   cerrarSutil = false,
+  pantallaCompleta = false,
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
@@ -223,6 +230,7 @@ function HojaMontada({
   alDesmontar,
 }: Props & { alDesmontar: () => void }) {
   const idTitulo = useId();
+  const completa = pantallaCompleta && altura === "grande";
   const idAviso = useId();
   const idAvisoTexto = useId();
   // Aviso al salir: lo pide la prop o el contenido (`useAvisarAlSalir`); se lee al cerrar, sin volver a pintar.
@@ -764,10 +772,10 @@ function HojaMontada({
         aria-labelledby={idTitulo}
         tabIndex={-1}
         // Papel también por debajo del borde inferior (after): si se estira hacia arriba, no se ve un hueco.
-        className="absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col rounded-t-[30px] bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo"
+        className={`absolute inset-x-0 bottom-0 mx-auto isolate flex max-w-[480px] flex-col bg-fondo outline-none after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-40 after:bg-fondo ${completa ? "" : "rounded-t-[30px]"}`}
         style={{
           // dvh (no el alto del teclado): el teclado no cambia el tamaño de la hoja.
-          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: ALTO_MAXIMO }),
+          ...(altura === "auto" ? { maxHeight: ALTO_MAXIMO } : { height: completa ? "100dvh" : ALTO_MAXIMO }),
           transform: "translate3d(0, 100%, 0)",
         }}
       >
@@ -781,7 +789,7 @@ function HojaMontada({
           onWheel={(e) => {
             if (expandibleEnMedia && e.deltaY > 0) irA("grande");
           }}
-          className="relative z-10 min-h-0 flex-1 isolate overscroll-contain rounded-t-[30px] px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)]"
+          className={`relative z-10 min-h-0 flex-1 isolate overscroll-contain ${completa ? "" : "rounded-t-[30px]"} px-5 pt-[calc(var(--cabecera,79px)+2px)] pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))] [scroll-padding-top:calc(var(--cabecera,79px)+8px)] [scroll-padding-bottom:calc(var(--fijo-abajo,0px)+var(--teclado,0px)+8px)]`}
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
           {children}
@@ -791,7 +799,7 @@ function HojaMontada({
         <div
           ref={borde}
           aria-hidden="true"
-          className="hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] rounded-t-[30px]"
+          className={`hoja-borde pointer-events-none absolute inset-x-0 top-0 z-20 h-[calc(var(--cabecera,79px)+16px)] ${completa ? "" : "rounded-t-[30px]"}`}
           style={{ visibility: "hidden" }}
         >
           <div className="hoja-borde-desenfoque" />
@@ -807,9 +815,9 @@ function HojaMontada({
           onPointerMove={alMoverPuntero}
           onPointerUp={alSoltarPuntero}
           onPointerCancel={alSoltarPuntero}
-          className="absolute inset-x-0 top-0 z-30 touch-none px-5 pt-2.5 pb-3"
+          className={`absolute inset-x-0 top-0 z-30 touch-none px-5 ${completa ? "pt-[max(0.75rem,calc(var(--safe-arriba)+0.375rem))] pb-1" : "pt-2.5 pb-3"}`}
         >
-          <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />
+          {!completa && <div className="mx-auto mb-2 h-[5px] w-11 cursor-grab rounded-full bg-borde-pastilla" />}
           <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
             <h2 id={idTitulo} className={tituloOculto ? "sr-only" : "min-w-0 font-display text-titulo-hoja text-texto"}>
               {titulo}
