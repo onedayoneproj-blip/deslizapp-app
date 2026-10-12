@@ -1233,3 +1233,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .ins-anim .ins-no-reducido { display: none; }
   .ins-anim .ins-solo-reducido { display: grid; }
 }
+
+/* Celebración de crear producto (docs/08, excepción «Celebración de crear producto»; prototipo v4, b10): los corazones de «Lo
+   quiero» y las burbujas de mensaje aparecen con un pop escalonado (200 ms entre una y otra) y después flotan apenas alrededor de
+   la foto. Solo transform y opacity, decorativas y sin toques; con movimiento reducido no se mueve nada y todo se ve en su lugar. */
+@keyframes cel-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateY(14px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cel-flota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.cel-vivo {
+  animation:
+    cel-pop 550ms var(--curva-salida) calc(var(--d, 0) * 200ms + 50ms) both,
+    cel-flota var(--ciclo, 3.4s) ease-in-out calc(var(--d, 0) * 200ms + 1s) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cel-vivo {
+    animation: none;
+  }
+}

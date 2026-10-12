@@ -210,10 +210,12 @@ function TarjetaProducto({ producto: p, promos, alHistoria, prioridad = false, a
       : pres.agotadas > 0
         ? [{ texto: `${pres.agotadas} ${pres.agotadas === 1 ? "agotada" : "agotadas"}`, tono: "atencion" }, { texto: `${pres.enTotal} en total`, tono: "neutro" }]
         : [{ texto: "Hay de todas", tono: "exito" }];
+  // Un borrador guardado sin foto (oculto: sin foto no se publica) lo dice en su tarjeta.
+  const sinFoto = !p.activo && !p.fotos[0];
   const etiqueta = precio.porcentaje ? { texto: `−${precio.porcentaje}%`, clase: "bg-mandarina text-bosque-oscuro" } : null;
   // Nombre accesible = el texto visible de la tarjeta en el mismo orden (WCAG 2.5.3: nombre, precio, stock y después las
   // etiquetas de la foto), separado por comas para que se lea con pausas, y al final la acción.
-  const nombreAccesible = [p.nombre, pres && desde != null ? `Desde ${formatearPesos(desde)}, ${textoPresentaciones(pres.total)}` : formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", ...(pres ? etiquetasPres.map((e) => e.texto) : [stock.texto]), !p.activo ? "Oculto del catálogo" : "", etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `${p.likes} ${p.likes === 1 ? "like" : "likes"}`]
+  const nombreAccesible = [p.nombre, pres && desde != null ? `Desde ${formatearPesos(desde)}, ${textoPresentaciones(pres.total)}` : formatearPesos(precio.precio), precio.precioAntes ? formatearPesos(precio.precioAntes) : "", ...(pres ? etiquetasPres.map((e) => e.texto) : [stock.texto]), sinFoto ? "Sin foto" : "", !p.activo ? "Oculto del catálogo" : "", etiqueta?.texto ?? "", p.fotoRetocada ? "Retocada ✦" : "", `${p.likes} ${p.likes === 1 ? "like" : "likes"}`]
     .filter(Boolean)
     .join(",") + ". Ver producto";
 
@@ -254,7 +256,7 @@ function TarjetaProducto({ producto: p, promos, alHistoria, prioridad = false, a
           </>
         )}
       </p>
-      <div className="mt-1 flex flex-col items-start gap-1">{(pres ? etiquetasPres : [stock]).map((e) => <Etiqueta key={e.texto} tono={e.tono} className="h-auto min-h-(--alto-etiqueta) max-w-full py-1 whitespace-normal">{e.texto}</Etiqueta>)}{!p.activo && <span className="text-etiqueta text-texto-secundario">Oculto del catálogo</span>}</div>
+      <div className="mt-1 flex flex-col items-start gap-1">{(pres ? etiquetasPres : [stock]).map((e) => <Etiqueta key={e.texto} tono={e.tono} className="h-auto min-h-(--alto-etiqueta) max-w-full py-1 whitespace-normal">{e.texto}</Etiqueta>)}{sinFoto && <span data-sin-foto=""><Etiqueta tono="atencion">Sin foto</Etiqueta></span>}{!p.activo && <span className="text-etiqueta text-texto-secundario">Oculto del catálogo</span>}</div>
         </div>
         <div className="order-1 relative aspect-[4/5] overflow-hidden rounded-[20px] bg-arena">
         {p.fotos[0] ? (

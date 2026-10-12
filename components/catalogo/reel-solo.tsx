@@ -75,16 +75,28 @@ export function ReelSolo() {
     "--pb": "0px",
     "--vh": "100vh",
     "--run": "0px",
+    // Sin foto, el fondo del reel es el hueco de la foto del panel (b16), no un gris.
+    ...(foto ? {} : { "--tint": "#f3ead9" }),
   } as CSSProperties;
   return (
     <div ref={root} className={"catalogo-publico view-reels reel-solo" + (tinteOscuro ? " tint-dark" : "")} style={estilo} data-reel-solo="">
       <main className="reels" id="reels" aria-label="Así lo verá tu cliente">
         <Reel
           p={producto.p} t={t} i={0} activo anterior={false} siguiente={false} cantidadPedido={0} seleccionado={() => false}
-          elegir={avisar} eleccion={null} abrirPresentaciones={avisar} abrirFicha={avisar} registrarBurst={() => {}} coleccion={null}
+          elegir={avisar} eleccion={null} abrirPresentaciones={avisar} abrirFicha={avisar} registrarBurst={() => {}}
           perfil={avisar} opiniones={avisar} avisar={avisar} compartir={avisar} conVistaEnfocada={false}
         />
       </main>
+      {!foto && (
+        // Sin foto (un borrador): el marco lo dice en el centro, como el lienzo; el nombre y el precio siguen abajo.
+        <div className="reel-solo-sin-foto" aria-hidden="true" data-reel-sin-foto="">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" />
+            <circle cx="12" cy="13" r="3.5" />
+          </svg>
+          <span>Sin foto</span>
+        </div>
+      )}
       {toast && <div className="dztoast on" role="status">{toast}</div>}
     </div>
   );

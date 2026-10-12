@@ -61,8 +61,11 @@ export function useGuardarProducto(producto: Producto | null, taller: Taller) {
   // La bienvenida del retoque, antes de guardar un producto con fotos marcadas por primera vez en esta tienda.
   const [bienvenida, setBienvenida] = useState<{ datos: DatosBienvenida; resolver: (ok: boolean) => void } | null>(null);
 
-  /** Las reglas de siempre: nombre y precio, sin videos a medio preparar y con foto (salvo que quien llama permita seguir sin ella). */
-  const validar = (d: { nombre: string; precio: string; medios: MedioBorrador[]; sinFoto?: boolean }): boolean => {
+  /**
+   * Las reglas de siempre: nombre y precio y sin videos a medio preparar. La foto (regla de Lewis, 12 oct): un producto visible
+   * la necesita; uno que queda oculto (un borrador) se puede guardar sin ella.
+   */
+  const validar = (d: { nombre: string; precio: string; medios: MedioBorrador[]; oculto: boolean }): boolean => {
     if (!d.nombre.trim() || !Number(d.precio)) {
       toast("Ponle nombre y precio. Lo demás lo hacemos nosotros.");
       return false;
@@ -71,8 +74,8 @@ export function useGuardarProducto(producto: Producto | null, taller: Taller) {
       toast("Espera a que el video termine de prepararse.");
       return false;
     }
-    if (!d.sinFoto && mediosParaGuardar(d.medios).every((m) => m.tipo !== "foto")) {
-      toast("Falta la foto. El producto es la estrella.");
+    if (!d.oculto && mediosParaGuardar(d.medios).every((m) => m.tipo !== "foto")) {
+      toast("Agrega una foto para publicar. Sin foto, se guarda oculto.");
       return false;
     }
     return true;
@@ -161,8 +164,8 @@ export function useGuardarProducto(producto: Producto | null, taller: Taller) {
    * cada color, la ficha técnica y el taller. Devuelve el producto y el aviso de cómo quedó; null si no se guardó (ya avisó).
    * `comun` dice si el aviso es el de siempre (publicado u oculto) o trae algo más (taller, ficha).
    */
-  const crear = async (b: BorradorNuevoProducto, opciones: { sinFoto?: boolean } = {}): Promise<{ producto: Producto; mensaje: string; comun: boolean } | null> => {
-    if (!validar({ nombre: b.nombre, precio: b.precio, medios: b.medios, sinFoto: opciones.sinFoto })) return null;
+  const crear = async (b: BorradorNuevoProducto): Promise<{ producto: Producto; mensaje: string; comun: boolean } | null> => {
+    if (!validar({ nombre: b.nombre, precio: b.precio, medios: b.medios, oculto: !b.activo })) return null;
     if (!(await pasarBienvenida(b.medios))) return null;
     const entregadas = taller.entregadas;
     const final = mediosParaGuardar(conEntregadas(b.medios, entregadas));

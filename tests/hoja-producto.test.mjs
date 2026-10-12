@@ -14,6 +14,13 @@ test("«Publicar» pide foto, nombre y un precio mayor que cero", () => {
   assert.equal(H.puedePublicar({ ...ok, preparando: true }), false);
 });
 
+test("sin foto solo se guarda oculto (regla de Lewis)", () => {
+  const sinFoto = { nombre: "Aros dorados", precio: "1850", fotos: 0 };
+  assert.equal(H.puedePublicar({ ...sinFoto, oculto: false }), false);
+  assert.equal(H.puedePublicar({ ...sinFoto, oculto: true }), true);
+  assert.equal(H.puedePublicar({ ...sinFoto, oculto: true, nombre: "" }), false);
+});
+
 test("las pastillas de «Presentaciones»", () => {
   assert.deepEqual(H.pastillasDeOpciones([{ nombre: "Color", valores: ["Negro", "Arena"] }, { nombre: "Tamaño", valores: ["S", "M", "L"] }]), ["Color · 2", "Tamaño · 3"]);
   assert.deepEqual(H.pastillasDeOpciones([]), []);

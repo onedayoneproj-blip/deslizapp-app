@@ -339,8 +339,9 @@ function FormularioProducto({
   const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
   const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
   const varia = tieneOpciones && preciosVarian(borradorPres, Number(precio) || 0);
-  // «Publicar» / «Guardar cambios» espera a tener foto, nombre y precio (la misma regla de siempre; antes avisaba al tocar).
-  const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando });
+  // «Publicar» / «Guardar cambios» espera a tener nombre y precio, y foto si va a quedar visible (sin foto, solo oculto).
+  const quedaVisible = activo && !bloqueaVisible;
+  const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando, oculto: !quedaVisible });
 
   const guardar = async (
     motivo: MotivoAjusteInventario = "reposicion",
@@ -363,7 +364,7 @@ function FormularioProducto({
       return true;
     }
     const precioNumero = Number(precio);
-    if (!guardadoComun.validar({ nombre, precio, medios })) return false;
+    if (!guardadoComun.validar({ nombre, precio, medios, oculto: !quedaVisible })) return false;
     if (!(await guardadoComun.pasarBienvenida(medios))) return false;
     setGuardando(true);
     const entregadas = await guardadoComun.entregadasAlGuardar();

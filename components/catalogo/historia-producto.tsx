@@ -41,7 +41,7 @@ import { CuerpoCargando, CuerpoConError } from "../hoja-estado";
 import { IconoCamara, IconoReloj } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { useToast } from "../toast";
-import { Boton, Campo, Cantidad, Chip, GrupoOpciones } from "../ui";
+import { Boton, Campo, Cantidad, Chip, FilaInterruptor, GrupoEleccion } from "../ui";
 import { clases, FOCO } from "../ui/comunes";
 import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
 import { agregarFotoAlBorrador, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
@@ -77,21 +77,19 @@ export function HistoriaProducto() {
   const servicio = false;
   const pasos = pasosDeHistoria(servicio);
   const llenas = barrasLlenas(paso, servicio);
-  // Con varios catálogos, el selector va en la fila de las barras, a su izquierda (lo pinta la historia por portal).
+  // Con varios catálogos, el selector va a la derecha de «Nuevo producto» (lo pinta la historia por portal).
   const [ranuraCatalogo, setRanuraCatalogo] = useState<HTMLSpanElement | null>(null);
   const barras = (
-    <div className="flex min-w-0 items-center gap-3">
-      <span ref={setRanuraCatalogo} className="contents" />
-      <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex min-w-0 flex-1 items-center gap-1" data-barras-historia="">
+    <div role="progressbar" aria-label="Avance" aria-valuemin={1} aria-valuemax={pasos.length} aria-valuenow={llenas} className="flex min-w-0 items-center gap-1" data-barras-historia="">
       {pasos.map((p, i) => (
         <span key={p} className={clases("h-1 flex-1 rounded-full", i < llenas ? "bg-accion" : "bg-borde-pastilla")} />
       ))}
-      </div>
     </div>
   );
   return (
     <Hoja
-      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" tituloOculto altura="grande" juntoACerrar={barras} cerrarSutil pantallaCompleta
+      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" altura="grande"
+      historia={{ avance: barras, alLadoDelTitulo: <span ref={setRanuraCatalogo} className="contents" /> }}
       alVolverInterno={() => {
         // Atrás del teléfono: vuelve una pregunta sin perder nada; en la primera (o ya guardado) cierra como siempre.
         const antes = pasoAnterior(paso, servicio);
@@ -250,7 +248,6 @@ function Historia({
         nombre, precio, medios, stock: porEncargo ? 0 : stock, presentaciones: presentacionesFinales, detalles, ficha,
         coleccion: coleccionElegida, porEncargo: !servicio && porEncargo, encargoTexto, rubro: variosTipos ? tipo : null, activo: visible,
       },
-      { sinFoto: true },
     );
     setGuardando(false);
     if (!r) return;
@@ -286,18 +283,23 @@ function Historia({
 
   const textos = textosDelPaso(paso, porEncargo);
   const precioTarjeta = varia && resumenPres.desde !== null ? `Desde ${formatearPesos(resumenPres.desde)}` : Number(precio) > 0 ? formatearPesos(Number(precio)) : null;
-  const pregunta = paso === "foto" || paso === "nombre" || paso === "precio" || paso === "stock";
-  // La pregunta y su línea de ayuda, como el lienzo: Fredoka 28 y 15 px, 20 px debajo de la tarjeta.
+  const pregunta = paso === "nombre" || paso === "precio" || paso === "stock";
+  // Sin foto no se publica (regla de Lewis): se puede guardar como borrador oculto y agregarla después.
+  const sinFoto = portada === null;
+  // La pregunta y su línea de ayuda, como el lienzo: Fredoka 26 y 15 px, 18 px debajo de la tarjeta.
   const encabezado = (
-    <div className="mt-5">
-      <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.75rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
-      <p className="mt-1.5 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
+    <div className="mt-[18px]">
+      <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
+      <p className="mt-[5px] text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
     </div>
   );
+  /** «Atrás» va siempre abajo, a la izquierda del botón principal (apagado en la primera pregunta). */
+  const botonAtras = <BotonAtras alTocar={atras} apagado={pasoAnterior(paso, servicio) === null} />;
   const pie = (contenido: ReactNode, aviso?: ReactNode) => (
     <HojaFijoAbajo>
-      {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones. */}
-      <div className="pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pt-3 pb-[max(1.75rem,var(--safe-abajo))]" data-pie-historia="">
+      {/* Barra sólida con el fondo de la hoja: el contenido pasa por detrás sin asomar; un aviso va completo encima de los botones.
+          Arriba deja lo justo del lienzo (6 px en «Así se ve», 10 en las preguntas) para no tapar lo último de la pantalla. */}
+      <div className={clases("pointer-events-auto flex flex-col gap-2.5 bg-fondo px-5 pb-[max(1.5rem,var(--safe-abajo))]", paso === "vista" ? "pt-1.5" : "pt-2.5")} data-pie-historia="">
         {aviso}
         {contenido}
       </div>
@@ -317,17 +319,24 @@ function Historia({
           ranuraCatalogo,
         )}
 
-      {pregunta && <TarjetaAsiSeVera portada={portada} nombre={nombre} precio={precioTarjeta} nota={paso !== "foto"} />}
+      {pregunta && (
+        <TarjetaAsiSeVera
+          portada={portada} nombre={nombre} precio={precioTarjeta}
+          llega={paso === "stock" && porEncargo && encargoTexto.trim() ? encargoTexto.trim() : null}
+        />
+      )}
 
       {paso === "foto" && (
         <>
-          {encabezado}
-          <div className="mt-5">
-            <SeccionMedios
-              medios={medios} alCambiar={setMedios} taller={taller} avisar={toast}
-              historia={{ pieSinFotos: <Boton jerarquia="terciario" anchoCompleto onClick={seguir}>Seguir sin foto</Boton> }}
-            />
+          <MarcoFoto portada={portada} total={fotos.length} />
+          {medios.length === 0 && encabezado}
+          <div className={medios.length === 0 ? "mt-3.5" : "mt-3"}>
+            <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} historia />
           </div>
+          {/* El momento de voz de la foto, al final de la pantalla: sin regañar (se puede seguir sin ella). */}
+          <p className="mt-3 text-center font-mano text-[1.625rem] leading-[1.1] text-atencion-texto" data-con-foto="">{SIN_FOTO}</p>
+          {/* Debajo irá «Pedir a Deslizapp que retoque tu foto» (ronda futura): se deja el sitio. */}
+          {medios.length > 0 && <div aria-hidden="true" className="mt-2.5 h-9" data-hueco-retoque="" />}
         </>
       )}
 
@@ -336,7 +345,7 @@ function Historia({
           {encabezado}
           <Campo
             className="mt-4" grande etiqueta="Nombre del producto" value={nombre} onChange={(e) => setNombre(e.target.value)}
-            placeholder="El nombre de tu producto" maxLength={120} enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
+            maxLength={120} enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
           />
         </>
       )}
@@ -349,59 +358,67 @@ function Historia({
           ) : (
             <Campo
               className="mt-4" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
-              precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe el precio" data-precio="" data-campo-paso=""
+              precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe tu precio" data-precio="" data-campo-paso=""
             />
           )}
-          <div className="mt-3 flex" data-chip-presentaciones="">
-            <Chip hecho={tieneOpciones} onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>
-              {tieneOpciones ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
-            </Chip>
-          </div>
+          {/* «Tiene tallas o colores» aparece cuando ya hay precio (nada antes de tiempo). */}
+          {(Number(precio) > 0 || tieneOpciones) && (
+            <div className="mt-2.5 flex" data-chip-presentaciones="">
+              <Chip hecho={tieneOpciones} onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>
+                {tieneOpciones ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
+              </Chip>
+            </div>
+          )}
         </>
       )}
 
       {paso === "stock" && (
         <>
           {encabezado}
-          <div className="mt-[18px]">
-            {porEncargo ? (
-              <div className="flex flex-col gap-3" data-cuando-llega="">
-                <GrupoOpciones
-                  etiqueta="¿Cuándo llega?"
-                  valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
-                  alCambiar={(id) => {
-                    if (id === "otro") {
-                      // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
-                      flushSync(() => setEncargoOtro(true));
-                      raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]")?.focus();
-                      return;
-                    }
-                    setEncargoOtro(false);
-                    setEncargoTexto(textoCuandoLlega(id));
-                  }}
-                  opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
+          {porEncargo ? (
+            <div className="mt-3.5 flex flex-col gap-3" data-cuando-llega="">
+              <FilaInterruptor texto="Es por encargo, no llevo stock" encendido alCambiar={elegirEncargo} />
+              <GrupoEleccion
+                etiqueta="¿Cuándo llega?" compacta
+                valor={otroAbierto ? "otro" : opcionDeCuandoLlega(encargoTexto)}
+                alCambiar={(id) => {
+                  if (id === "otro") {
+                    // «Otro» abre el campo y le pone el foco en el mismo toque (teclado del iPhone).
+                    flushSync(() => setEncargoOtro(true));
+                    raiz.current?.querySelector<HTMLInputElement>("[data-campo-paso]")?.focus();
+                    return;
+                  }
+                  setEncargoOtro(false);
+                  setEncargoTexto(textoCuandoLlega(id));
+                }}
+                opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
+              />
+              {otroAbierto && (
+                <Campo
+                  etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
+                  placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
                 />
-                {otroAbierto && (
-                  <Campo
-                    etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)}
-                    placeholder="Llega en 7 a 10 días" enterKeyHint="next" onKeyDown={alEnter} data-campo-paso=""
-                  />
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="mt-3.5">
+                {tieneOpciones ? (
+                  <div className="flex items-center justify-between gap-3 rounded-radio-m border border-linea bg-superficie p-4">
+                    <p className="text-destacado text-texto">{resumenPres.total} {resumenPres.total === 1 ? "presentación" : "presentaciones"} · {resumenPres.enTotal} en total</p>
+                    <Boton jerarquia="secundario" tamano="compacto" onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>Cambiar</Boton>
+                  </div>
+                ) : (
+                  <div className="flex justify-center" data-contador-stock="">
+                    <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
+                  </div>
                 )}
               </div>
-            ) : tieneOpciones ? (
-              <div className="flex items-center justify-between gap-3 rounded-radio-l border border-linea bg-superficie p-4">
-                <p className="text-destacado text-texto">{resumenPres.total} {resumenPres.total === 1 ? "presentación" : "presentaciones"} · {resumenPres.enTotal} en total</p>
-                <Boton jerarquia="secundario" tamano="compacto" onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}>Cambiar</Boton>
+              <div className="mt-2.5">
+                <FilaInterruptor texto="Es por encargo, no llevo stock" encendido={false} alCambiar={elegirEncargo} />
               </div>
-            ) : (
-              <div className="flex justify-center" data-contador-stock="">
-                <Cantidad grande valor={stock} max={2147483647} alCambiar={setStock} etiquetaQuitar="Quitar uno" etiquetaAgregar="Agregar uno" />
-              </div>
-            )}
-          </div>
-          <div className="mt-3.5 flex justify-center">
-            <Chip sinIcono elegido={porEncargo} onClick={() => elegirEncargo(!porEncargo)}>Es por encargo, no llevo stock</Chip>
-          </div>
+            </>
+          )}
         </>
       )}
 
@@ -409,9 +426,17 @@ function Historia({
         <>
           <h2 tabIndex={-1} data-titulo-paso="" className="-mt-1 font-mano text-[1.625rem] leading-tight text-atencion-texto outline-none">{textos.titulo}</h2>
           <ReelEnVivo datos={datosVista} />
-          <section aria-labelledby="titulo-brillar" className="mt-3.5 flex flex-col gap-2">
-            <h3 id="titulo-brillar" className="text-secundario font-extrabold text-texto-secundario">Hazlo brillar · opcional</h3>
-            <div className="flex flex-wrap gap-2" data-opcionales="">
+          <section aria-labelledby="titulo-brillar" className="mt-2.5 flex flex-col gap-1.5">
+            {sinFoto ? (
+              <p id="titulo-brillar" className="text-secundario leading-[18px] font-extrabold text-atencion-texto" data-falta-foto="">
+                Agrega una foto para publicar ·{" "}
+                <button type="button" className={clases("tocable font-extrabold underline-offset-2 hover:underline", FOCO)} onClick={() => irA("foto")}>Volver a la foto</button>
+              </p>
+            ) : (
+              <h3 id="titulo-brillar" className="text-secundario leading-[18px] font-extrabold text-texto-secundario">Hazlo brillar · opcional</h3>
+            )}
+            {/* En una fila, como el lienzo; si no caben (con «Detalles»), se desliza. */}
+            <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-opcionales="">
               <PastillaOpcional texto="Descripción" hecha={descripcion.trim().length > 0} detalle={resumenDescripcion(descripcion)} alTocar={() => setOpcional("descripcion")} />
               <PastillaOpcional texto="Colección" hecha={coleccionElegida !== null} detalle={coleccionElegida} alTocar={() => setOpcional("coleccion")} />
               <PastillaOpcional texto="Ficha técnica" hecha={fichaCambiada(ficha)} alTocar={() => setOpcional("ficha")} />
@@ -424,24 +449,40 @@ function Historia({
 
       {paso === "listo" && hecho && <Celebracion producto={hecho.producto} visible={hecho.visible} cuentan={hecho.cuentan} />}
 
+      {paso === "foto" &&
+        pie(
+          <div className="flex items-center gap-2.5">
+            {botonAtras}
+            {medios.length === 0 ? (
+              <Boton jerarquia="terciario" tamano="grande" className="flex-1" onClick={seguir}>Seguir sin foto</Boton>
+            ) : (
+              <Boton tamano="grande" className="flex-1" onClick={seguir}>Seguir</Boton>
+            )}
+          </div>,
+        )}
       {(paso === "nombre" || paso === "precio" || paso === "stock") &&
         pie(
           <div className="flex items-center gap-2.5">
-            <button type="button" aria-label="Atrás" onClick={atras} className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion", FOCO)} data-atras-historia="">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-            </button>
+            {botonAtras}
             <Boton tamano="grande" className="flex-1" deshabilitado={!listoParaSeguir} onClick={seguir}>Seguir</Boton>
           </div>,
         )}
-      {paso === "foto" && medios.length > 0 && pie(<Boton tamano="grande" anchoCompleto onClick={seguir}>Seguir</Boton>)}
       {paso === "vista" &&
         pie(
-          // Como el lienzo: «Publicar» (la llamada emocional) a lo ancho y «Guardar sin publicar» debajo. Atrás: el del teléfono.
+          // Como el lienzo: ‹ y «Publicar» (la llamada emocional) en una fila, y «Guardar sin publicar» debajo.
           <div className="flex flex-col gap-1">
-            <Boton jerarquia="resalte" tamano="grande" anchoCompleto cargando={guardando} deshabilitado={llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}>Publicar</Boton>
-            <Boton jerarquia="terciario" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
+            <div className="flex items-center gap-2.5">
+              {botonAtras}
+              <Boton
+                jerarquia="resalte" tamano="grande" className="flex-1" cargando={guardando}
+                deshabilitado={sinFoto || llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}
+              >
+                Publicar
+              </Boton>
+            </div>
+            <Boton jerarquia="terciario" className="h-9!" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
           </div>,
-          llenoPlan ? <p role="status" className="text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
+          llenoPlan && !sinFoto ? <p role="status" className="text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
         )}
       {paso === "listo" &&
         hecho &&
@@ -515,44 +556,75 @@ function Historia({
 
 /**
  * La tarjeta «así se verá» de las preguntas, como el lienzo: 372 px de alto, de margen a margen, la misma y en el mismo lugar en
- * los cuatro pasos (no se encoge con el teclado ni con la pantalla: lo demás se desplaza). La portada la cubre (`cover`); encima, el
- * velo del catálogo con el nombre y el precio mientras se escriben, y «así se verá» a mano desde la segunda pregunta.
+ * los tres pasos (no se encoge con el teclado ni con la pantalla: lo demás se desplaza). La portada la cubre (`cover`); encima, el
+ * velo del catálogo con el nombre, el precio y «Llega en …» a medida que se responden (nada antes de tiempo).
  */
-function TarjetaAsiSeVera({ portada, nombre, precio, nota }: { portada: string | null; nombre: string; precio: string | null; nota: boolean }) {
+function TarjetaAsiSeVera({ portada, nombre, precio, llega }: { portada: string | null; nombre: string; precio: string | null; llega: string | null }) {
   const n = nombre.trim();
   return (
     <div
       className="relative h-[372px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida"
-      data-tarjeta-asi-se-vera="" aria-label={`Así se verá: ${n || "sin nombre"}${precio ? `, ${precio}` : ""}`} role="img"
+      data-tarjeta-asi-se-vera="" aria-label={`Así se verá: ${n || "sin nombre"}${precio ? `, ${precio}` : ""}${llega ? `, ${llega}` : ""}`} role="img"
     >
       {portada ? (
         <>
           <Foto src={portada} alt="" className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" />
           <div aria-hidden="true" className="absolute inset-x-0 top-1/2 bottom-0 bg-linear-to-t from-velo to-transparent" />
-          {nota && <span aria-hidden="true" className="absolute top-2.5 left-3.5 font-mano text-mano text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]">así se verá</span>}
         </>
       ) : (
-        <div aria-hidden="true" className="absolute inset-3.5 flex flex-col items-center justify-center gap-2 rounded-radio-m border-2 border-dashed border-borde-campo text-texto-secundario">
+        <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-texto-secundario">
           <IconoCamara tamano={44} strokeWidth={1.8} />
-          <span className="text-secundario font-bold">Tu foto va aquí</span>
-          {/* El momento de voz del paso de la foto, dentro del marco: sin regañar (se puede seguir sin ella). */}
-          <span className="font-mano text-mano text-atencion-texto" data-con-foto="">{SIN_FOTO}</span>
+          <span className="text-secundario font-bold">Sin foto</span>
         </div>
       )}
+      <span aria-hidden="true" className={clases("absolute top-2.5 left-3.5 font-mano text-mano", portada ? "text-papel [text-shadow:0_1px_4px_rgb(0_0_0/0.35)]" : "text-texto-secundario")}>así se verá</span>
       {(n || precio) && (
         <div aria-hidden="true" className={clases("absolute inset-x-4 bottom-3.5", portada ? "text-papel" : "text-texto")}>
           {n && <p className="line-clamp-2 font-display text-titulo-hoja break-words">{n}</p>}
           {precio && <p className="mt-0.5 text-cuerpo font-extrabold tabular-nums" data-precio-tarjeta="">{precio}</p>}
+          {llega && <p className="mt-0.5 text-secundario font-bold opacity-90" data-llega-tarjeta="">{llega}</p>}
         </div>
       )}
     </div>
   );
 }
 
+/** El marco de la foto (paso 1), como el lienzo: sin fotos, el hueco punteado «Tu foto va aquí»; con fotos, la portada en grande y «1/N». */
+function MarcoFoto({ portada, total }: { portada: string | null; total: number }) {
+  return (
+    <div className="relative h-[372px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-marco-foto="">
+      {portada ? (
+        <>
+          <Foto src={portada} alt="Portada del producto" className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" />
+          <span aria-hidden="true" className="absolute top-3 right-3 inline-flex h-[26px] items-center rounded-full bg-velo px-2.5 text-[0.8125rem] font-extrabold text-papel tabular-nums">1/{total}</span>
+        </>
+      ) : (
+        <div aria-hidden="true" className="absolute inset-3.5 flex flex-col items-center justify-center gap-2 rounded-radio-m border-2 border-dashed border-borde-campo text-texto-secundario">
+          <IconoCamara tamano={44} strokeWidth={1.8} />
+          <span className="text-secundario font-bold">Tu foto va aquí</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** «Atrás» de la historia: el círculo de 52 px abajo a la izquierda del botón principal (en todas las hojas de la historia). */
+function BotonAtras({ alTocar, apagado = false }: { alTocar: () => void; apagado?: boolean }) {
+  return (
+    <button
+      type="button" aria-label="Atrás" onClick={alTocar} disabled={apagado}
+      className={clases("tocable grid size-(--alto-boton-grande) shrink-0 place-items-center rounded-full border-[1.5px] border-accion bg-superficie text-accion disabled:opacity-35", FOCO)}
+      data-atras-historia=""
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+    </button>
+  );
+}
+
 /** Una pastilla de «Hazlo brillar»: abre su hoja; hecha, lleva el check y dice qué tiene. */
 function PastillaOpcional({ texto, hecha, detalle, alTocar }: { texto: string; hecha: boolean; detalle?: string | null; alTocar: () => void }) {
   return (
-    <Chip hecho={hecha} onClick={alTocar} aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}>
+    <Chip hecho={hecha} onClick={alTocar} className="h-[34px]! px-3! text-[0.8125rem]!" aria-label={hecha ? `${texto}: ${detalle ?? "lista"}. Cambiar` : `Agregar ${texto.toLowerCase()}`} data-opcional={texto} data-hecha={hecha ? "" : undefined}>
       {texto}
     </Chip>
   );
@@ -564,7 +636,10 @@ function HojaOpcional({ abierta, titulo, grande = false, alCerrar, children }: {
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo={titulo} altura={grande ? "grande" : "auto"}>
       <div className="flex flex-col gap-4">
         {children}
-        <Boton tamano="grande" anchoCompleto onClick={alCerrar}>Listo</Boton>
+        <div className="flex items-center gap-2.5">
+          <BotonAtras alTocar={alCerrar} />
+          <Boton tamano="grande" className="flex-1" onClick={alCerrar}>Listo</Boton>
+        </div>
       </div>
     </Hoja>
   );
@@ -649,17 +724,36 @@ function CompartirCatalogo({ tiendaNombre, alPublicar }: { tiendaNombre: string;
   return <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={alPublicar}>Compartir mi catálogo</Boton>;
 }
 
-/** La celebración, como el lienzo: la portada inclinada con unas formas de marca quietas, el titular a mano y una línea. Sin confeti. */
+/** El corazón de «Lo quiero» del catálogo (relleno), para la celebración. */
+function Corazon({ tamano, className, style }: { tamano: number; className: string; style: React.CSSProperties }) {
+  return (
+    <svg aria-hidden="true" width={tamano} height={tamano} viewBox="0 0 24 24" fill="currentColor" className={clases("absolute", className)} style={style}>
+      <path d="M12 20s-7-4.4-8.6-8.8C2.3 8.1 4.3 5 7.4 5c2 0 3.3 1 4.6 2.6C13.3 6 14.6 5 16.6 5c3.1 0 5.1 3.1 4 6.2C19 15.6 12 20 12 20z" />
+    </svg>
+  );
+}
+
+/** La pregunta de la burbuja blanca: con tallas, por una del medio («¿Tienes en M?», como el lienzo); si no, «¿Todavía hay?». */
+function preguntaDeCliente(producto: Producto): string {
+  const valores = producto.opciones[0]?.valores ?? [];
+  const valor = valores[Math.floor((valores.length - 1) / 2)];
+  return valor ? `¿Tienes en ${valor}?` : "¿Todavía hay?";
+}
+
+/**
+ * La celebración, como el lienzo (b10): la portada inclinada y, alrededor, los corazones de «Lo quiero» y dos burbujas de mensaje
+ * (una pregunta y «¡Lo quiero!») que aparecen una tras otra y flotan apenas (`cel-vivo`, docs/08). Un solo titular a mano y una línea.
+ */
 function Celebracion({ producto, visible, cuentan }: { producto: Producto; visible: boolean; cuentan: number }) {
   const foto = producto.medios.find((m) => m.tipo === "foto")?.url ?? producto.fotos[0] ?? null;
   const arranque = visible ? lineaArranque(cuentan) : null;
+  const burbuja = "cel-vivo absolute rounded-[14px] px-3 py-2 text-secundario font-extrabold whitespace-nowrap text-texto shadow-[0_4px_12px_-4px_rgb(16_54_42/0.35)]";
   return (
-    <div className="mov-aparece flex flex-col items-center pt-10 text-center" data-celebracion="">
+    <div className="flex flex-col items-center pt-5 text-center" data-celebracion="">
       <div aria-hidden="true" className="relative h-[290px] w-[230px]">
-        <span className="absolute top-[30px] -left-[18px] size-3.5 rotate-[20deg] rounded-[4px] bg-resalte" />
-        <span className="absolute top-1.5 -right-3.5 size-3 rounded-full bg-marca-rosa" />
-        <span className="absolute -right-[22px] bottom-[60px] h-1.5 w-4 -rotate-[30deg] rounded-full bg-accion" />
-        <span className="absolute bottom-5 -left-2.5 size-2.5 rounded-full bg-resalte" />
+        <Corazon tamano={34} className="cel-vivo -left-[30px] top-1.5 text-resalte" style={{ "--d": 0, "--ciclo": "3.2s" } as React.CSSProperties} />
+        <Corazon tamano={26} className="cel-vivo -right-6 top-[70px] text-[var(--jugada-rosa)]" style={{ "--d": 2, "--ciclo": "3.4s" } as React.CSSProperties} />
+        <Corazon tamano={22} className="cel-vivo -left-4 bottom-9 text-marca-rosa-fija" style={{ "--d": 4, "--ciclo": "3.3s" } as React.CSSProperties} />
         <div className="absolute inset-0 -rotate-4 overflow-hidden rounded-radio-l bg-superficie-hundida shadow-flotante" data-foto-celebracion="">
           {foto ? (
             <Foto src={foto} alt="" className="absolute inset-0" sizes="230px" />
@@ -667,8 +761,14 @@ function Celebracion({ producto, visible, cuentan }: { producto: Producto; visib
             <div className="grid h-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>
           )}
         </div>
+        <span className={clases(burbuja, "-top-1.5 -right-[34px] rounded-bl-[3px] bg-superficie")} style={{ "--d": 1, "--ciclo": "3.6s" } as React.CSSProperties} data-burbuja="">
+          {preguntaDeCliente(producto)}
+        </span>
+        <span className={clases(burbuja, "bottom-1.5 -left-[38px] rounded-br-[3px] bg-chat-burbuja")} style={{ "--d": 3, "--ciclo": "3.8s" } as React.CSSProperties} data-burbuja="">
+          ¡Lo quiero!
+        </span>
       </div>
-      <h2 tabIndex={-1} data-titulo-paso="" className="mt-7 font-mano text-[2.5rem] leading-none text-atencion-texto outline-none">{tituloCelebracion(visible)}</h2>
+      <h2 tabIndex={-1} data-titulo-paso="" className="mt-[30px] font-mano text-[2.5rem] leading-none text-atencion-texto outline-none">{tituloCelebracion(visible)}</h2>
       <p className="mt-2.5 text-cuerpo text-texto-secundario" data-linea-celebracion="">
         {lineaCelebracion(producto.nombre, visible, arranque)}
       </p>

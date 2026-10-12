@@ -24,7 +24,8 @@ export { MallaViva, MazoJugadas, TarjetaJugada, type CartaJugada } from "./tarje
 export { CuadriculaSeleccion, type ElementoCuadricula } from "./cuadricula-seleccion";
 export { ElegirMensaje, type MensajeElegible } from "./elegir-mensaje";
 export { HojaProximamente, TarjetaProximamente } from "./funcion-en-preparacion";
-export { Interruptor } from "./interruptor";
+export { FilaInterruptor, Interruptor } from "./interruptor";
+export { Eleccion, GrupoEleccion } from "./eleccion";
 export { EditorEtiquetas } from "./editor-etiquetas";
 export { TiraMedios, duracionCorta, type ElementoTira } from "./tira-medios";
 export { FilaVariante } from "./fila-variante";

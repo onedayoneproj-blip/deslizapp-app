@@ -1,7 +1,7 @@
 "use client";
 
 import { TEXTO_SIN_PERMISO } from "@/lib/equipo";
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CREDITOS_POR_RETOQUE, VIDEO_PERMITIDO, esVideoAgregable, tiposDeMedioElegibles } from "@/lib/config";
 import { ErrorClaro } from "@/lib/data/errores";
 import { nuevoId } from "@/lib/data/db";
@@ -102,10 +102,10 @@ export function SeccionMedios({
   taller: Taller;
   avisar: (mensaje: string) => void;
   /**
-   * La historia de crear producto: la foto en grande la pinta su tarjeta «así se verá». Aquí solo va la tira (con fotos) o, sin
-   * fotos, «Tomar foto» (cámara) y «Elegir de la galería», con `pieSinFotos` debajo.
+   * La historia de crear producto: la foto en grande la pinta su marco. Aquí solo va la tira (con fotos) o, sin fotos, «Tomar
+   * foto» (cámara) y «Elegir de la galería» en una fila.
    */
-  historia?: { pieSinFotos: ReactNode };
+  historia?: boolean;
 }) {
   // Si el taller entrega una foto con la ficha abierta, el borrador toma la retocada.
   const ultimaEntregada = taller.entregadas[0]?.id;
@@ -243,10 +243,10 @@ export function SeccionMedios({
         />
       )}
       {historia && !principal && (
-        <div className="flex flex-col gap-3" data-sin-fotos-historia="">
-          <Boton tamano="grande" anchoCompleto onClick={() => camara.current?.click()}>Tomar foto</Boton>
-          <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={() => entrada.current?.click()}>Elegir de la galería</Boton>
-          {historia.pieSinFotos}
+        // En pantallas angostas el texto se acomoda en dos líneas antes que salirse del botón.
+        <div className="flex gap-2.5" data-sin-fotos-historia="">
+          <Boton tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => camara.current?.click()}>Tomar foto</Boton>
+          <Boton jerarquia="secundario" tamano="grande" className="min-w-0 flex-1 px-1! leading-tight whitespace-normal!" onClick={() => entrada.current?.click()}>Elegir de la galería</Boton>
         </div>
       )}
       {principal ? (
