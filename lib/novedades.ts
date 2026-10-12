@@ -22,12 +22,20 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
-    version: "0.66.0", fecha: "2026-10-11", titulo: "Crear un producto, como contar una historia.",
+    version: "0.68.0", fecha: "2026-10-12", titulo: "Crear un producto, como contar una historia.",
     cambios: [
       "Una pregunta a la vez: la foto, cómo se llama, cuánto cuesta y cuántos tienes. Mientras respondes, ves cómo va quedando.",
       "Al final lo ves como en tu catálogo y lo publicas de una.",
       "¿Por encargo? Eliges cuándo llega con un toque. Editar sigue igual que siempre.",
     ],
+  },
+  {
+    version: "0.67.0", fecha: "2026-10-12", titulo: "Tu perfil, más despejado.",
+    cambios: ["En el perfil, arriba va el nombre de tu tienda y abajo tu usuario de Instagram.", "«Atrás» e Instagram flotan en círculos claros para tenerlos a mano.", "Las pestañas de tus catálogos pasan a su lado, sin taparse."],
+  },
+  {
+    version: "0.66.0", fecha: "2026-10-11", titulo: "Tu catálogo, más limpio.",
+    cambios: ["Quitamos el abanico que se veía arriba a la derecha de cada producto.", "Tus colecciones siguen arriba, en «Colecciones»."],
   },
   {
     version: "0.65.0", fecha: "2026-10-11", titulo: "Tu catálogo, más en orden.",
@@ -47,7 +55,7 @@ const TODAS: Novedad[] = [
   },
   {
     version: "0.61.0", fecha: "2026-10-11", titulo: "Tus fotos, como una historia.",
-    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos.", "Arriba a la derecha de cada producto se ve la colección a la que pertenece."],
+    cambios: ["En tu catálogo, las fotos de cada producto pasan solas, como una historia.", "Tus clientes tocan una foto para verla en grande y la acercan con dos dedos."],
   },
   {
     version: "0.60.0", fecha: "2026-10-11", titulo: "Tu guía, más ligera.",
