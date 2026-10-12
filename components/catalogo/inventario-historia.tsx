@@ -112,7 +112,9 @@ export function HojaInventarioHistoria({
     ? primero.valores.map((v) => ({ valor: v, filas: pres.filter((p) => p.valores[primero.nombre] === v) })).filter((g) => g.filas.length > 0)
     : [{ valor: "", filas: pres }];
   const enLista = detalle ? pres.find((p) => claveVariante(p.valores) === detalle) ?? null : null;
-  const listo = porEncargo ? encargoTexto.trim().length > 0 : resumen.enTotal > 0;
+  // Siempre hace falta al menos una presentación a la vista (si no, no hay nada que elegir en el catálogo); además, cantidades o el plazo.
+  const hayVisibles = pres.some((p) => p.activa);
+  const listo = hayVisibles && (porEncargo ? encargoTexto.trim().length > 0 : resumen.enTotal > 0);
 
   const cambiarPrecios = (encender: boolean) => {
     setPrecios(encender);
@@ -196,6 +198,11 @@ export function HojaInventarioHistoria({
       </div>
 
       <HojaFijoAbajo>
+        {!hayVisibles && (
+          <p role="status" className="pointer-events-auto bg-fondo px-5 pt-2.5 text-center text-secundario font-bold text-atencion-texto" data-sin-visibles="">
+            Deja al menos una presentación a la vista.
+          </p>
+        )}
         <div className="pointer-events-auto flex items-center gap-2.5 bg-fondo px-5 pt-2.5 pb-[max(1.5rem,var(--safe-abajo))]" data-pie-inventario="">
           <BotonAtras alTocar={alCerrar} />
           <Boton tamano="grande" className="flex-1" deshabilitado={!listo} onClick={alListo}>

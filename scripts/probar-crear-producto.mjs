@@ -921,6 +921,43 @@ console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, t
   await ctx.close();
 }
 
+console.log("\n=== Por encargo con todas las presentaciones ocultas: «Listo» espera una a la vista (Codex P2, 4.ª revisión) ===");
+{
+  const { ctx, page, errores } = await pagina(390, LINO);
+  await abrir(page);
+  await subirFoto(page, "#579");
+  await seguir(page);
+  await escribir(page, "Ocultas encargo");
+  await seguir(page);
+  await escribir(page, "600");
+  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await page.waitForTimeout(150);
+  await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+  await seguir(page);
+  await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+  await page.getByRole("checkbox", { name: "Blanco", exact: true }).tap();
+  await seguir(page);
+  const inv = page.locator("[data-inventario-historia]");
+  await inv.waitFor();
+  await page.waitForTimeout(400);
+  // Ocultar las dos (en su detalle) y después prender el encargo con plazo.
+  for (const c of ["Negro", "Blanco"]) {
+    await inv.locator(`[data-fila-inventario="${c}"] button`).first().tap();
+    const det = page.locator("[data-hoja-presentacion]");
+    await det.waitFor();
+    await page.waitForTimeout(400);
+    await det.getByRole("button", { name: "Ocultar esta presentación" }).tap();
+    await det.getByRole("button", { name: "Listo", exact: true }).tap();
+    await page.waitForTimeout(500);
+  }
+  await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).last().tap();
+  await page.getByRole("radio", { name: "1 mes" }).last().tap();
+  await page.waitForTimeout(200);
+  ok(await boton(page, "Listo · por encargo").isDisabled() && (await page.locator("[data-sin-visibles]").isVisible()), "Con todas ocultas: «Listo» apagado y «Deja al menos una presentación a la vista.»");
+  ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+  await ctx.close();
+}
+
 console.log("\n=== Sin ninguna cosa, volver deja un solo stock con lo que había en el Inventario (con «‹» y con el atrás del teléfono) ===");
 for (const conTelefono of [false, true]) {
   const { ctx, page, errores } = await pagina(390, LINO);

@@ -265,7 +265,7 @@ function Historia({
   const ejeDelPaso = paso === "eje1" ? preguntasEjes[0] : paso === "eje2" ? preguntasEjes[1] : undefined;
   const ultimoEje = ejeDelPaso !== undefined && ejeDelPaso === preguntasEjes[preguntasEjes.length - 1];
   const errorEjes = ultimoEje ? errorDeEjes(opcionesFinales) : null;
-  const inventarioCompleto = porEncargo ? encargoTexto.trim().length > 0 : resumenPres.enTotal > 0;
+  const inventarioCompleto = presentaciones.pres.some((p) => p.activa) && (porEncargo ? encargoTexto.trim().length > 0 : resumenPres.enTotal > 0);
   const listoParaSeguir =
     paso === "cambia" ? ejes.length > 0
     : ejeDelPaso ? ejeDelPaso.valores.length > 0 && errorEjes === null
