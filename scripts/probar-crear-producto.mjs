@@ -504,6 +504,18 @@ for (const ancho of ANCHOS) {
     ok((await inv.locator('[data-grupo-inventario="Negro"] [data-grupo-total]').innerText()) === "7 en total", "«Poner a todas» y el + de una fila: Negro, 7 en total");
     ok(await boton(page, "Listo · 13 en total").isEnabled(), "«Listo · 13 en total»");
     await captura(page, "i1-inventario", ancho);
+    // El pie flota: con la lista larga, a mitad y al final del scroll (lo último queda por encima de los botones).
+    if (CAPTURAS) {
+      const cont = page.locator('[data-hoja-contenido]').last();
+      await cont.evaluate((e) => e.scrollTo(0, (e.scrollHeight - e.clientHeight) / 2));
+      await page.waitForTimeout(200);
+      await captura(page, "i1-inventario-medio", ancho);
+      await cont.evaluate((e) => e.scrollTo(0, e.scrollHeight));
+      await page.waitForTimeout(200);
+      await captura(page, "i1-inventario-final", ancho);
+      await cont.evaluate((e) => e.scrollTo(0, 0));
+      await page.waitForTimeout(200);
+    }
     // Por encargo dentro del Inventario: sin cantidades y con su plazo.
     await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
     ok((await inv.locator("[data-fila-inventario]").count()) === 0 && await boton(page, "Listo · por encargo").isDisabled(), "Por encargo: sin cantidades y «Listo · por encargo» espera el plazo");
@@ -696,6 +708,52 @@ console.log("\n=== Pantalla baja (360×640) con el catálogo lleno: barra sólid
   await captura(page, "5-catalogo-lleno-pantalla-baja", 360);
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
+}
+
+/** Contraste WCAG del texto de un elemento sobre lo que realmente hay detrás: se oculta el texto, se fotografía su caja (sin las esquinas redondeadas) y se toma el píxel más desfavorable. */
+async function contraste(page, selector) {
+  const caja = await page.locator(selector).first().boundingBox();
+  const color = await page.locator(selector).first().evaluate((e) => getComputedStyle(e).color);
+  await page.locator(selector).first().evaluate((e) => { e.dataset.colorPrevio = e.style.color; e.style.setProperty("color", "transparent", "important"); e.querySelectorAll("*").forEach((h) => h.style.setProperty("color", "transparent", "important")); });
+  const foto = (await page.screenshot({ clip: { x: caja.x + 16, y: caja.y, width: caja.width - 32, height: caja.height } })).toString("base64");
+  await page.locator(selector).first().evaluate((e) => { e.style.color = e.dataset.colorPrevio; e.querySelectorAll("*").forEach((h) => h.style.removeProperty("color")); e.style.removeProperty("color"); });
+  return page.evaluate(async ([b64, color]) => {
+    const lum = ([r, g, bl]) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(bl); };
+    const img = await createImageBitmap(await (await fetch("data:image/png;base64," + b64)).blob());
+    const c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
+    const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    let minimo = Infinity, maximo = -Infinity;
+    for (let i = 0; i < d.length; i += 4) { const l = lum([d[i], d[i + 1], d[i + 2]]); minimo = Math.min(minimo, l); maximo = Math.max(maximo, l); }
+    const t = lum(color.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number));
+    const razon = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    return { peor: razon(t, maximo) < razon(t, minimo) ? razon(t, maximo) : razon(t, minimo), color };
+  }, [foto, color]);
+}
+
+console.log("\n=== Pie flotante sobre contenido oscuro (360×640): legibilidad y contraste ===");
+{
+  const lleno = demoCon((d) => {
+    d.tiendas.find((x) => x.id === MICHEL).limiteProductos = d.productos.filter((p) => p.tiendaId === MICHEL && p.activo && !p.eliminadoEn).length;
+  });
+  for (const [nombre, demo, sel] of [["guardar", null, "[data-pie-historia] button:has-text('Guardar sin publicar')"], ["aviso", lleno, "[data-pie-historia] [data-catalogo-lleno]"]]) {
+    const { ctx, page } = await pagina(360, MICHEL, demo, 640);
+    await abrir(page);
+    await subirFoto(page, "#000000");
+    await seguir(page);
+    await escribir(page, "Oud oscuro");
+    await seguir(page);
+    await escribir(page, "2500");
+    await seguir(page);
+    await seguir(page);
+    await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+    await captura(page, `5-asi-se-ve-foto-oscura-${nombre}`, 360);
+    const r = await contraste(page, sel);
+    console.log(`  Contraste de «${nombre}» sobre foto negra: ${r.peor.toFixed(2)}:1 (texto ${r.color})`);
+    ok(r.peor >= 4.5, `«${nombre}» se lee sobre contenido oscuro (AA, ${r.peor.toFixed(2)}:1)`);
+    await ctx.close();
+  }
 }
 
 console.log("\n=== Pantalla baja (360×640): la tarjeta no se encoge; el contenido se desplaza y el campo queda a la vista ===");

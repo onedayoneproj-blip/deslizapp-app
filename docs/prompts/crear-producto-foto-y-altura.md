@@ -21,6 +21,9 @@ Hoy, en el paso de la foto, sin fotos hay dos botones: «Tomar foto» (input con
   Si un paso no cabe sin romper el diseño, no lo fuerces: dímelo con el dato.
 - Respeta el resto: agarradera, esquinas 28, cabecera, pie flotante (#117), y que la barra de estado de Safari no cambie de color (nada fijo toca y=0).
 
+## 3. Sin «‹» en el primer paso (Lewis, añadido después)
+En el paso de la foto (el primero), el «‹» del pie no se muestra apagado: se **quita**, y «Seguir sin foto» / «Seguir» queda **centrado**. Desde el segundo paso, «‹» vuelve a la izquierda como hoy. Al pasar del paso 1 al 2, cambio instantáneo (o solo transform/opacity). Nada del paso 1 queda debajo del pie.
+
 ## Pruebas
 Tipos, lint, `npm test`, build; `probar-crear-producto` (360/390/430, 360×640, movimiento reducido): tocar el recuadro dispara el input sin `capture` (comprueba `click` en `[data-entrada-medios]` y que no existe `[data-entrada-camara]` en la historia); aserción «sin scroll» en los pasos de arriba a 390×844 con safe-areas simulados. `probar-presentaciones`. Capturas 390×844 de cada paso medido en `docs/capturas/crear-producto/foto-y-altura/`. `docs/04-pantallas.md` al día. `lib/novedades.ts`: 1–2 líneas cortas en la versión siguiente.
 
