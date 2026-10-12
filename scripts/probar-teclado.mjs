@@ -213,9 +213,10 @@ try {
     const t = (type, y) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 195, y }] });
     const top = await page.$eval('[role="dialog"]', (d) => Math.round(d.getBoundingClientRect().top));
     await page.$eval('[role="dialog"] > div:first-child', (c) => (c.scrollTop = 0)); // el área de scroll
-    await t("touchStart", top + 10);
+    // Empieza a 90 px del borde (ya en el contenido, arriba del todo): a 10 px puede quedar debajo del aviso «Hay una versión nueva».
+    await t("touchStart", top + 90);
     for (let i = 1; i <= 10; i++) {
-      await t("touchMove", top + 10 + i * 60);
+      await t("touchMove", top + 90 + i * 60);
       await page.waitForTimeout(20);
     }
     await t("touchEnd");
