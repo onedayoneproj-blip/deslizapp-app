@@ -18,18 +18,29 @@ body{margin:0}
 .pv .mano{font-family:'Caveat',cursive;font-weight:700}
 .pv .sec{font-size:14px;color:#4f6a5e}
 .pv .btn{height:52px;border:0;border-radius:999px;background:#174b3a;color:#fff9ee;font-size:17px;font-weight:800;width:100%}
+.pv .circ{width:44px;height:44px;border:0;border-radius:999px;background:#f3ead9;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pv .btn2{height:52px;border:1.5px solid #174b3a;border-radius:999px;background:#fff;font-size:17px;font-weight:800;width:100%}
 </style>
 </helmet>
 <div class="pv" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fff9ee; font-family: 'Figtree', sans-serif; color: #174b3a; line-height: 1.3">
 
-  <div style="position: absolute; left: 16px; right: 8px; top: 52px; display: flex; align-items: center; gap: 10px">
+  <!-- Cabecera fila 1: solo el selector de catálogo -->
+  <div style="position: absolute; left: 20px; right: 20px; top: 44px; height: 28px; display: flex; align-items: center">
+    <button type="button" aria-label="Catálogo: Ropa" class="disp" style="border: 0; background: transparent; padding: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 6px">Ropa
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+  </div>
+  <!-- Fila 2: ‹ atrás (lugar fijo) · barras de historia · ✕ -->
+  <div style="position: absolute; left: 16px; right: 16px; top: 76px; display: flex; align-items: center; gap: 10px">
+    <button type="button" class="circ" aria-label="Atrás" onClick="{{atras}}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
     <div role="progressbar" aria-label="Avance" aria-valuemin="1" aria-valuemax="7" aria-valuenow="{{pasoNum}}" style="flex: 1; display: flex; gap: 4px">
       <sc-for list="{{barras}}" as="b" hint-placeholder-count="7">
         <span style="{{b.estilo}}"></span>
       </sc-for>
     </div>
-    <button type="button" aria-label="Cerrar" style="width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center">
+    <button type="button" class="circ" aria-label="Cerrar">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
     </button>
   </div>
@@ -95,11 +106,15 @@ body{margin:0}
     </div>
 
     <div style="{{bloque4}}">
+      <div style="height: 52px; border: 1px solid #efe4d2; border-radius: 16px; background: #fff; padding: 0 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
+        <span style="flex: 1; font-size: 16px; font-weight: 800">Es por encargo, no llevo stock</span>
+        <span role="switch" aria-checked="false" aria-label="Es por encargo" style="width: 51px; height: 31px; border-radius: 999px; background: #e7dcc8; position: relative; flex-shrink: 0"><span style="position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 999px; background: #fff"></span></span>
+      </div>
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
         <span style="font-size: 14px; font-weight: 800; color: #4f6a5e">Mismo precio · RD$1,450</span>
         <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; font-size: 13px; font-weight: 800">Poner a todas</button>
       </div>
-      <div style="height: 262px; overflow: auto; display: flex; flex-direction: column; gap: 10px">
+      <div style="height: 190px; overflow: auto; display: flex; flex-direction: column; gap: 10px">
         <sc-for list="{{grupos}}" as="g" hint-placeholder-count="2">
           <div style="background: #fff; border: 1px solid #efe4d2; border-radius: 18px; overflow: hidden">
             <div style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 8px; background: #f3ead9">
@@ -156,14 +171,11 @@ body{margin:0}
 
   <div style="position: absolute; left: 20px; right: 20px; bottom: 28px; display: flex; flex-direction: column; gap: 10px">
     <div style="{{pieSeguir}}">
-      <button type="button" aria-label="Atrás" onClick="{{atras}}" style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #174b3a; background: #fff; display: flex; align-items: center; justify-content: center">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
-      </button>
       <button type="button" class="btn" onClick="{{seguir}}">{{textoSeguir}}</button>
     </div>
     <div style="{{piePublicar}}">
       <button type="button" onClick="{{seguir}}" style="height: 52px; border: 0; border-radius: 999px; background: #ff834f; color: #10362a; font-size: 17px; font-weight: 800; width: 100%">Publicar</button>
-      <button type="button" style="height: 44px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Guardar sin publicar</button>
+      <button type="button" style="height: 36px; border: 0; background: transparent; font-size: 16px; font-weight: 800">Guardar sin publicar</button>
     </div>
   </div>
 </div>
@@ -200,8 +212,8 @@ class Component extends DCLogic {
     return {
       pasoNum: Math.min(7, paso + 3),
       barras: [1, 2, 3, 4, 5, 6, 7].map((i) => ({ estilo: 'flex: 1; height: 4px; border-radius: 999px; background: ' + (i <= paso + 3 ? '#174b3a' : '#e7dcc8') })),
-      vistaPreguntas: ver(filaVista, 'position: absolute; left: 20px; right: 20px; top: 100px'),
-      vistaListo: ver(paso === 6, 'position: absolute; left: 20px; right: 20px; top: 100px'),
+      vistaPreguntas: ver(filaVista, 'position: absolute; left: 20px; right: 20px; top: 128px'),
+      vistaListo: ver(paso === 6, 'position: absolute; left: 20px; right: 20px; top: 124px'),
       pregunta: t[0], ayuda: t[1],
       chipsTalla: ver(paso >= 3 && tallasSel.length > 0, 'height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(255,255,255,.22); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center'),
       textoTallas: 'Talla ' + tallasSel.join(' · '),
@@ -218,7 +230,7 @@ class Component extends DCLogic {
       grupos,
       sombra: ver(paso === 5, 'position: absolute; inset: 0; background: rgba(16,54,42,.45)'),
       hoja: ver(paso === 5, 'position: absolute; left: 0; right: 0; bottom: 0; background: #fff9ee; border-radius: 28px 28px 0 0; padding: 10px 20px 28px; box-shadow: 0 -8px 30px rgba(16,54,42,.16)'),
-      pieSeguir: ver(paso <= 4, 'display: flex; gap: 10px'),
+      pieSeguir: ver(paso <= 4, 'display: flex'),
       piePublicar: ver(paso === 6, 'display: flex; flex-direction: column; gap: 4px'),
       textoSeguir: paso === 4 ? 'Listo · ' + total + ' en total' : (paso === 1 ? 'Seguir' : 'Seguir'),
       seguir: () => this.setState({ paso: Math.min(6, paso + 1) }),

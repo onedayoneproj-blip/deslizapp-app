@@ -4,6 +4,8 @@ Encargo de Planning, 12 oct 2026. Lewis probó en su iPhone las dos versiones y 
 
 Antes de empezar: haz merge de `main` en la rama (hay cambios del catálogo, de novedades y de pruebas desde que abriste el PR).
 
+**El prototipo se actualizó con todos estos cambios (v2): `referencias/crear-producto/capturas/b1…b10.png`, `v1…v6.png` y `prototipo-crear-producto.pdf` manda. Si algo de abajo choca con las capturas v2, mandan las capturas v2 y avísalo en el PR.**
+
 ## 1. Cabecera de la hoja (se ve apiñada)
 
 - **Fila 1:** solo el selector de catálogo (p. ej. «De todo ▾» / «Ropa ▾»), con aire. Sigue recordando el último catálogo usado por tienda y se oculta si la tienda tiene un solo catálogo (en ese caso la fila 1 no existe).

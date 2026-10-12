@@ -19,3 +19,13 @@ La proporción 4:5 «para todas las tarjetas» del 11 oct fue un error de Planni
 
 ## Capturas renderizadas (12 oct 2026)
 `capturas/b1…b6.png` (un producto) y `capturas/v1…v6.png` (varias presentaciones), 390×844, y `prototipo-crear-producto.pdf` con ellas y las medidas. En BV la tarjeta «así se verá» mide 350×212 (en B, 350×372).
+
+## Prototipo v2 (12 oct 2026) — manda sobre todo lo anterior
+`historia.dc.html` y `historia-presentaciones.dc.html` se actualizaron con los ajustes de Lewis; las capturas `capturas/b1…b10.png` (un producto) y `v1…v6.png` (varias presentaciones) y el PDF son la referencia visual vigente.
+- **Cabecera en dos filas:** fila 1 solo el selector de catálogo (recuerda el último usado por tienda; se oculta con un solo catálogo); fila 2 ‹ atrás · barras de historia · ✕. Sin título «Nuevo producto». El contenido empieza en y=128.
+- **«Atrás» solo arriba**, en todos los pasos (apagado en el primero, oculto en la celebración). La barra inferior lleva un solo botón principal («Seguir», «Listo · N en total», «Publicar» + «Guardar sin publicar», «Agregar otro» + «Compartir mi catálogo»). Se aparta del prototipo anterior, donde ‹ estaba abajo.
+- **Foto:** con fotos puestas desaparecen título y botones; «Con foto se vende más.» (Caveat) va al final de la pantalla; debajo irá la sección para pedir el retoque (ronda futura, hoy hueco punteado).
+- **Nada antes de tiempo:** ni nombre ni precio en la tarjeta hasta que se escriben; campo del precio vacío con «Escribe tu precio» pequeño y gris.
+- **«Es por encargo»** es un interruptor (en varias presentaciones, encima de «Poner a todas»).
+- **Celebración animada** con corazones de «Lo quiero» y burbujas de mensaje tipo WhatsApp (transform/opacity; quieta con movimiento reducido).
+- Medidas: tarjeta 350×372 (un producto) y 350×212 (varias), reel 350×440 (top 124), pie a 28 px, botones 52.
