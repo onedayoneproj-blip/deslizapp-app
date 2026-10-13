@@ -1,6 +1,6 @@
 # Relevo vigente de Planning
 
-Actualizado: 12 de octubre de 2026, comprobado contra GitHub. `main` está en `899e7bf` (squash de #110). Ver «Estado al 12 oct» abajo; las líneas «En curso (11 oct)» de más abajo son históricas salvo crear producto.
+Actualizado: 13 de octubre de 2026, comprobado contra GitHub. `main` está en `aa5dc92` (squash de #120). Ver «Estado al 13 oct» y «Estado al 12 oct» abajo; las líneas «En curso (11 oct)» de más abajo son históricas salvo crear producto.
 
 ## Acuerdo vigente
 
@@ -41,6 +41,14 @@ Notion se actualizó el 11 oct 2026 desde esta sesión (la tarea nueva, #96, #10
 - **Pendiente de decisión de Lewis:** que el perfil de la tienda tenga su propia entrada de historial y dirección (`#perfil`): hoy no la tiene (no se comparte, «atrás» saca del catálogo). Lewis dijo «todavía no». El carrito y crear producto sí crean entrada de historial; el carrito no cambia la URL.
 - **Pendiente de validar por Lewis (iPhone/Android):** guía, carrusel/enfocada, instalar app, encabezado/«Catálogos», y #111 sin abanico en producción.
 - **Reglas recientes:** no fusionar sin tu confirmación cuando el cambio es visual y Lewis pidió probarlo; Codex revisa cada commit nuevo («@codex review»); cada cambio visible exige entrada en `lib/novedades.ts` de 2–4 líneas cortas y la spec en `docs/04-pantallas.md`.
+
+## Estado al 13 oct 2026 (relevo, comprobado contra GitHub)
+
+- `main` en `aa5dc92` (#120). Fusionados desde el 12 oct: #112 (crear producto como una historia, `5e14fc0`), #115 y #116 (aviso al salir: «Quedarme» / «Descartar y salir»), #117 y #118 (pie flotante con desenfoque progresivo), #119 (la foto se elige tocando el recuadro; la hoja cabe sin scroll), #120 («¿Viene en varias opciones?» en el paso del precio) y #121 (solo documento: [inventario de cabeceras de hoja](inventario-cabeceras-de-hoja.md), **pendiente**: no se ejecuta ningún lote hasta que Lewis lo pida; D4 y D7 sin confirmar).
+- **Abierto:** [PR #122](https://github.com/onedayoneproj-blip/deslizapp-app/pull/122), crear producto: ✕ a la izquierda y «Publicar ⌄» ([encargo](../prompts/crear-producto-cerrar-y-publicar.md)). Comprobar estado, revisión y si Lewis lo probó antes de fusionar.
+- Siguen abiertos como antecedentes: #45 (excluido), #43, #23 y #2 (ver «Fuera de la cola activa»). #114 (Codex) ya no está abierto.
+- Ya en `main` desde antes (no relanzar): bloquear video (#64), gestos y scroll de las hojas del catálogo (#65, #66), tipo de producto (#67), selector de catálogos (#68, #71, #72), catálogo por catálogo (#69), presentaciones «qué cambia» (#70, #73), publicar mi catálogo (#74).
+- Fallos de regresión conocidos que ya fallaban en `main` en las sesiones de Coding (sin causa investigada): `probar-retoque-al-subir` (TimeoutError), `probar-catalogo-react`, `-pulido`, `-errores`, `espera-catalogo` y `visibilidad-catalogo` (entorno: video sin códec, layout, panel).
 
 ## Projects
 
