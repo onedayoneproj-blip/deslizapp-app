@@ -179,13 +179,16 @@ async function panel(ancho) {
   const m = await abrir(ancho, "/catalogo", MICHEL_ID);
   await m.page.waitForSelector('a[href^="/catalogo/"]');
   await m.page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000019/editar");
-  await m.page.waitForSelector('[data-fila-plegable="descripcion"]');
+  await m.page.waitForSelector("[data-editar-producto] li");
   await m.page.waitForTimeout(700);
-  await m.page.locator('[data-fila-plegable="descripcion"] button[aria-expanded]').tap();
-  await m.page.locator('[data-fila-plegable="ficha"] button[aria-expanded]').tap();
-  ok((await m.page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 1, "Michel: su producto con Detalles los sigue mostrando");
-  ok((await m.page.locator('textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]').inputValue()).startsWith("Oud"), "…y la descripción que ya tenía");
-  ok((await m.page.getByRole("button", { name: "Cambiar", exact: true }).count()) === 1, "…y su ficha de muestra");
+  // Editar es un resumen: cada opcional es una fila con su valor y abre su pantalla encima.
+  const filaM = (t) => m.page.locator("[data-editar-producto] li button").filter({ hasText: new RegExp(`^${t}`) }).first();
+  ok((await filaM("Detalles").count()) === 1, "Michel: su producto con Detalles los sigue mostrando");
+  ok((await filaM("Descripción").innerText()).includes("Oud"), "…y la descripción que ya tenía");
+  ok((await filaM("Ficha técnica").innerText()).includes("Subida"), "…y su ficha de muestra");
+  await filaM("Ficha técnica").tap();
+  await m.page.waitForTimeout(600);
+  ok((await m.page.locator("[data-hoja-panel]").last().getByRole("button", { name: "Cambiar", exact: true }).count()) === 1, "La ficha se cambia en su pantalla");
   await captura(m.page, "6-michel-editar", ancho);
   ok(m.errores.length === 0, "Michel: sin errores de página");
   await m.ctx.close();

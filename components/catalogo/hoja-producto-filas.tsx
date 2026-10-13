@@ -1,38 +1,8 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { Hoja } from "../hoja";
-import { IconoChevronAbajo, IconoChevronDerecha } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
-
-/**
- * Una fila de «Más opciones» que se pliega: muestra su valor cerrada y, al tocarla, se abre en el mismo lugar. Abrir y cerrar es
- * instantáneo (nada de animar la altura) y no toca el foco de ningún campo.
- */
-export function FilaPlegable({ id, titulo, detalle, abierta, alAlternar, children }: { id: string; titulo: string; detalle?: ReactNode; abierta: boolean; alAlternar: () => void; children: ReactNode }) {
-  return (
-    <li className="border-t border-linea first:border-t-0" data-fila-plegable={id}>
-      <button
-        type="button"
-        aria-expanded={abierta}
-        aria-controls={`fila-${id}`}
-        onClick={alAlternar}
-        className="tocable flex min-h-15 w-full items-center gap-3 px-4 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco"
-      >
-        <span className="flex min-w-0 flex-1 flex-col py-2">
-          <span className="truncate text-destacado text-texto">{titulo}</span>
-          {detalle && <span className="truncate text-secundario text-texto-secundario">{detalle}</span>}
-        </span>
-        {abierta ? <IconoChevronAbajo tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" /> : <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />}
-      </button>
-      {abierta && (
-        <div id={`fila-${id}`} className="px-4 pb-4">
-          {children}
-        </div>
-      )}
-    </li>
-  );
-}
 
 /**
  * «Vista previa»: el reel real del catálogo del comprador (`components/tienda/reel.tsx`, con su CSS, el tema de la tienda y su

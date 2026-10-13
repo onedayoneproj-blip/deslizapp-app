@@ -95,6 +95,20 @@ const capturar = async (page, nombre, ancho, tema) => {
 };
 /** Abre una fila de Detalles por su nombre. */
 const fila = (page, nombre) => page.getByRole("button", { name: new RegExp(`^${nombre}: `) });
+/** Editar es un resumen: una fila abre su pantalla encima (Detalles, Fotos, Por encargo…). */
+const filaResumen = (page, titulo) => page.locator("[data-editar-producto] li button").filter({ hasText: new RegExp(`^${titulo}`) }).first();
+async function abrirPaso(page, titulo) {
+  await filaResumen(page, titulo).waitFor();
+  await page.waitForTimeout(400);
+  await filaResumen(page, titulo).click();
+  await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 2);
+  await page.waitForTimeout(400);
+}
+async function listoPaso(page) {
+  await page.locator("[data-pie-paso]").getByRole("button", { name: "Listo", exact: true }).click();
+  await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+  await page.waitForTimeout(400);
+}
 /** El botón "Agregar" (o la caja) del editor de etiquetas rotulado `rotulo` en la hoja abierta. */
 async function escribirEtiqueta(page, rotulo, valores) {
   const grupo = hoja(page).locator(`xpath=.//p[normalize-space()="${rotulo}"]/..`);
@@ -104,6 +118,9 @@ async function escribirEtiqueta(page, rotulo, valores) {
     await caja.fill(v);
     await caja.press("Enter");
   }
+  // Al salir del campo se cierra (y sus sugerencias): se suelta antes de tocar el siguiente grupo, que se mueve al cerrarse.
+  await page.getByRole("textbox", { name: `Agregar a ${rotulo}`, exact: true }).evaluate((e) => e.blur()).catch(() => {});
+  await page.waitForTimeout(200);
 }
 /** Marca los valores de una cosa que cambia en la hoja abierta: la píldora si es sugerida; si no, con «+ Otro …». */
 async function elegirValores(page, rotulo, valores) {
@@ -120,6 +137,9 @@ async function elegirValores(page, rotulo, valores) {
     await caja.fill(v);
     await caja.press("Enter");
   }
+  // Al salir del campo se cierra (y sus sugerencias): se suelta antes de tocar el siguiente grupo, que se mueve al cerrarse.
+  await page.getByRole("textbox", { name: `Agregar a ${rotulo}`, exact: true }).evaluate((e) => e.blur()).catch(() => {});
+  await page.waitForTimeout(200);
 }
 
 /** "+ Pedido": crea un cliente nuevo y lo elige. */
@@ -182,6 +202,7 @@ const ESCENARIOS = {
   /** 1. Perfume: Marca, Tamaño, Ideal para y Notas; guardar; volver a abrir y que estén. */
   async perfume(page, ancho, tema) {
     await page.goto(`${URL}/catalogo/${MAJESTIC}/editar`);
+    await abrirPaso(page, "Detalles");
     await fila(page, "Marca").click();
     await page.getByRole("textbox", { name: "Marca", exact: true }).fill("Maison Prueba");
     await page.getByRole("button", { name: "Listo", exact: true }).click();
@@ -207,8 +228,9 @@ const ESCENARIOS = {
     await escribirEtiqueta(page, "Fondo", ["Vainilla", "Ámbar"]);
     await capturar(page, "notas", ancho, tema);
     await page.getByRole("button", { name: "Listo", exact: true }).click();
-    await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
-    await page.waitForTimeout(400);
+    await page.waitForFunction(() => document.querySelectorAll("[data-pantalla-interna]").length === 0);
+    await page.waitForTimeout(300);
+    await listoPaso(page);
     ok(await sinDesborde(page), "Formulario de perfume sin desborde");
     await capturar(page, "formulario-perfume", ancho, tema);
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
@@ -218,6 +240,7 @@ const ESCENARIOS = {
     ok(["Oficina", "Verano", "Citas"].every((o) => d.ocasiones.includes(o)), "Se guarda Ideal para");
     ok(d.notas_salida.join() === "Bergamota,Pimienta rosa" && d.notas_corazon.join() === "Jazmín" && d.notas_fondo.join() === "Vainilla,Ámbar", "Se guardan las notas en su orden");
     await page.goto(`${URL}/catalogo/${MAJESTIC}/editar`);
+    await abrirPaso(page, "Detalles");
     ok((await fila(page, "Marca").getAttribute("aria-label")).includes("Maison Prueba"), "Al volver a abrir, Marca está");
     if (process.env.VERBOSO) console.log(await page.getByRole("list", { name: "Detalles del producto" }).getByRole("button").evaluateAll((b) => b.map((x) => x.getAttribute("aria-label"))), JSON.stringify((await db(page)).productos.find((p) => p.id === MAJESTIC).detalles));
     const tamano = await fila(page, "Tamaño").getAttribute("aria-label");
@@ -319,8 +342,8 @@ const ESCENARIOS = {
       localStorage.setItem(k, JSON.stringify(d));
     }, [CLAVE, CAMISA, a.video]);
     await page.goto(`${URL}/catalogo/${CAMISA}/editar`);
-    await page.waitForTimeout(1500);
-        const n = await page.locator('[aria-label^="Video "]').count();
+    await abrirPaso(page, "Fotos");
+    const n = await page.locator('[aria-label^="Video "]').count();
     ok(n === 1, "Un video que ya existe se sigue viendo en la ficha");
     await page.locator('[aria-label^="Video "]').first().click();
     await hoja(page).locator("video").waitFor();
@@ -333,8 +356,13 @@ const ESCENARIOS = {
   /** 4. Por encargo: encender, escribir el tiempo, guardar. */
   async encargo(page) {
     await page.goto(`${URL}/catalogo/${MAJESTIC}/editar`);
-    await page.getByRole("switch", { name: "Por encargo" }).click();
+    await page.locator("[data-editar-producto]").waitFor();
+    await page.waitForTimeout(400);
+    await page.getByRole("switch", { name: "Es por encargo" }).click();
+    await abrirPaso(page, "Es por encargo");
+    await page.getByRole("radio", { name: "Otro", exact: true }).click();
     await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
+    await listoPaso(page);
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo/${MAJESTIC}`);
     const p = (await db(page)).productos.find((x) => x.id === MAJESTIC);
@@ -345,7 +373,9 @@ const ESCENARIOS = {
   async pedido(page, ancho, tema) {
     // La camisa de la demo viene con "Por encargo": se apaga para ver lo agotado apagado.
     await page.goto(`${URL}/catalogo/${CAMISA}/editar`);
-    await page.getByRole("switch", { name: "Por encargo" }).click();
+    await page.locator("[data-editar-producto]").waitFor();
+    await page.waitForTimeout(400);
+    await page.getByRole("switch", { name: "Es por encargo" }).click();
     await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
     await page.waitForURL(`${URL}/catalogo/${CAMISA}`);
     ok((await db(page)).productos.find((p) => p.id === CAMISA).porEncargo === false, "Por encargo apagado en la camisa");

@@ -9,8 +9,7 @@ import { MOTIVOS_INVENTARIO } from "@/lib/data/inventario";
 import type { CambiosProducto, MotivoAjusteInventario, Producto } from "@/lib/types";
 import { Hoja } from "../hoja";
 import { Chip, GrupoOpciones } from "../controles";
-import { IconoMas, IconoMenos } from "../iconos";
-import { Boton, Cantidad, FilaLista, ListaAgrupada } from "../ui";
+import { Boton, FilaLista, ListaAgrupada } from "../ui";
 
 /** Un solo borrador para ambos recorridos: tocar cantidades nunca llama a la fuente. */
 export function useInventarioPendiente(producto: Producto | null, alConfirmado?: () => void) {
@@ -134,86 +133,6 @@ export function useHistorialInventario() {
     return true;
   };
   return { abierto, visitado, abrir, volver };
-}
-
-export function ControlInventario({ inventario, nombre, alGuardar, alVerHistorial, guardarBloqueado = false }: {
-  inventario: Borrador; nombre: string; alGuardar: () => void;
-  alVerHistorial: (boton: HTMLButtonElement) => void; guardarBloqueado?: boolean;
-}) {
-  const i = inventario;
-  const delta = (i.propuesta ?? 0) - (i.base ?? 0);
-  return <section aria-label="Inventario" className="rounded-[18px] border-[1.5px] border-borde bg-white p-4 text-bosque">
-    <p className="text-[13px] font-bold text-suave">Inventario</p>
-    {i.base === null ? <><p className="mt-1 font-display text-[27px] leading-tight tabular-nums">0 <span className="text-base">unidades</span></p><p role="status" data-sin-cantidad="" className="mt-1 text-sm text-suave">Este producto no tiene su cantidad guardada. Se ve como 0.</p></> : <>
-      <p className="mt-1 text-sm text-suave">Stock actual: {i.base}</p>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p aria-live="polite" className="min-w-0 break-all font-display text-[27px] leading-tight tabular-nums">{i.propuesta} <span className="text-base">{i.propuesta === 1 ? "unidad" : "unidades"}</span></p>
-        <div className="flex shrink-0 gap-2">
-          <button type="button" disabled={i.propuesta === 0 || i.guardando || i.incierto} onClick={() => i.cambiar(-1)} aria-label={`Disminuir stock de ${nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-arena disabled:opacity-45"><IconoMenos tamano={20}/></button>
-          <button type="button" disabled={i.guardando || i.incierto || i.propuesta === 2147483647} onClick={() => i.cambiar(1)} aria-label={`Aumentar stock de ${nombre}`} className="tocable grid h-11 w-11 place-items-center rounded-[14px] bg-bosque text-papel disabled:opacity-45"><IconoMas tamano={20}/></button>
-        </div>
-      </div>
-      {i.pendiente && <>
-        <p className="mt-2 text-sm font-bold">{delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}</p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" disabled={i.guardando || i.incierto || guardarBloqueado} onClick={alGuardar} className="tocable min-h-12 rounded-full bg-bosque px-3 py-2 text-sm font-extrabold text-papel disabled:opacity-55">{i.guardando ? "Guardando…" : "Guardar cambios"}</button>
-          <button type="button" disabled={i.guardando || i.incierto} onClick={i.recuperar} className="tocable min-h-12 rounded-full border-[1.5px] border-bosque bg-white px-3 py-2 text-sm font-extrabold disabled:opacity-55">Descartar</button>
-        </div>
-      </>}
-    </>}
-    <button type="button" onClick={e => alVerHistorial(e.currentTarget)} disabled={i.guardando} className="tocable mt-4 flex min-h-14 w-full items-center justify-between gap-3 rounded-[18px] border-[1.5px] border-borde bg-white px-4 py-3 text-left text-base text-suave disabled:opacity-55">
-      <span>Ver historial</span>
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0"><path d="M9 6l6 6-6 6" /></svg>
-    </button>
-  </section>;
-}
-
-/**
- * Inventario de la vista previa del producto: una lista agrupada con "En stock" (Cantidad − / +) y "Historial". Si un producto viejo no
- * trae cantidad, se ve como 0 con un aviso corto. Los cambios son un borrador: aparecen "Guardar" y "Descartar" ENCIMA de la lista.
- */
-export function InventarioVistaPrevia({ inventario: i, nombre, alGuardar, alVerHistorial, soloLectura = false }: { inventario: Borrador; nombre: string; alGuardar: () => void; alVerHistorial: (boton: HTMLButtonElement) => void; /** El nivel de la cuenta no incluye catálogo: el stock se ve y no se ajusta. */ soloLectura?: boolean }) {
-  const delta = (i.propuesta ?? 0) - (i.base ?? 0);
-  const ocupado = i.guardando || i.incierto;
-  return (
-    <section aria-label="Inventario" className="flex flex-col gap-3">
-      {i.pendiente && (
-        <div className="flex flex-col gap-3">
-          <p role="status" className="text-secundario text-texto-secundario">
-            {delta > 0 ? "Añadirás" : "Retirarás"} {Math.abs(delta)} {Math.abs(delta) === 1 ? "unidad" : "unidades"}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Boton jerarquia="secundario" deshabilitado={ocupado} onClick={i.recuperar}>
-              Descartar
-            </Boton>
-            <Boton cargando={i.guardando} deshabilitado={i.incierto} onClick={alGuardar}>
-              Guardar cambios
-            </Boton>
-          </div>
-        </div>
-      )}
-      <ListaAgrupada etiqueta="Stock e historial">
-        {i.base === null || i.propuesta === null ? (
-          <FilaLista titulo="En stock" detalle={<span data-sin-cantidad="">Sin cantidad guardada: se ve como 0</span>} fin={<span className="text-secundario font-normal text-texto-secundario">0</span>} />
-        ) : (
-          <FilaLista
-            titulo="En stock"
-            accion={
-              <Cantidad
-                valor={i.propuesta}
-                max={2147483647}
-                deshabilitado={ocupado || soloLectura}
-                alCambiar={(valor) => i.cambiar(valor - (i.propuesta ?? 0))}
-                etiquetaQuitar={`Disminuir stock de ${nombre}`}
-                etiquetaAgregar={`Aumentar stock de ${nombre}`}
-              />
-            }
-          />
-        )}
-        <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
-      </ListaAgrupada>
-    </section>
-  );
 }
 
 export function ConfirmacionInventario({ inventario }: { inventario: Borrador }) {

@@ -150,8 +150,8 @@ ok(await toast(PORQUE), "al tocarlo explica por qué");
 await page.locator("main ul li a").first().tap();
 await page.waitForSelector('[role="dialog"]');
 await esperar(800);
-const editar = hoja().locator('button:has-text("Editar")');
-ok(await editar.isDisabled(), "«Editar» del producto, apagado");
+const editar = hoja().locator("button[data-boton-editar]");
+ok((await editar.getAttribute("aria-disabled")) === "true", "«Editar» del producto, apagado");
 ok((await hoja().locator("[data-sin-permiso]").innerText()).includes("quien administra la tienda"), "con su porqué debajo");
 ok(await hoja().locator('button:has-text("Crear pedido")').isEnabled(), "pero «Crear pedido» sí (ventas)");
 // Todo lo que cambia el catálogo está apagado para el Ayudante, con el mismo porqué.
@@ -160,10 +160,13 @@ ok((await visible.getAttribute("aria-disabled")) === "true", "el interruptor «V
 const antes = await page.evaluate(() => localStorage.getItem("deslizapp-demo-v5") ?? [...Object.keys(localStorage)].filter((k) => k.startsWith("deslizapp-demo")).map((k) => localStorage.getItem(k)).join("|"));
 await visible.click({ force: true });
 ok(await toast(PORQUE), "tocarlo explica por qué");
-const menos = hoja().getByRole("button", { name: /^Disminuir stock de/ });
+// El stock va plegado: abrirlo se puede (es solo mirar), los − / + están apagados.
+await hoja().locator("[data-stock-plegable] button[aria-expanded]").tap();
+await esperar(300);
+const menos = hoja().getByRole("button", { name: /^Disminuir stock de/ }).first();
 if ((await menos.count()) > 0) {
   ok(await menos.isDisabled(), "el ajuste de stock (−), apagado");
-  ok(await hoja().getByRole("button", { name: /^Aumentar stock de/ }).isDisabled(), "el ajuste de stock (+), apagado");
+  ok(await hoja().getByRole("button", { name: /^Aumentar stock de/ }).first().isDisabled(), "el ajuste de stock (+), apagado");
 }
 const despues = await page.evaluate(() => [...Object.keys(localStorage)].filter((k) => k.startsWith("deslizapp-demo")).map((k) => localStorage.getItem(k)).join("|"));
 ok(despues === antes || antes.includes(despues) || despues.includes(antes), "tocar los controles apagados no cambió los datos de la demo");

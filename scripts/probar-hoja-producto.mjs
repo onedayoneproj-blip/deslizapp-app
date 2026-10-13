@@ -1,7 +1,6 @@
-// Hoja de producto rediseñada (docs/prompts/hoja-producto-rediseno.md), en la demo, ahora solo para EDITAR (crear es una historia,
-// scripts/probar-crear-producto.mjs): foto grande, Nombre y Precio, tarjeta de «Presentaciones» y stock, «Más opciones» plegadas,
-// botones «Vista previa» + «Guardar cambios» al final, Ayudante. Nunca toca Supabase.
-//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=390,360] [CAPTURAS=docs/capturas/hoja-producto-rediseno] node scripts/probar-hoja-producto.mjs
+// Editar producto como resumen y «Ver producto» (docs/prompts/editar-producto-2-resumen.md), en la demo. Nunca toca Supabase.
+// Reemplaza a la prueba del formulario de antes: los mismos casos, con la hoja resumen y las pantallas de la historia encima.
+//   URL=http://localhost:3000 [CHROMIUM_PATH=…] [ANCHOS=360,390,430] [CAPTURAS=docs/capturas/editar-producto] node scripts/probar-hoja-producto.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -15,15 +14,21 @@ try {
   playwright = require(join(execSync("npm root -g").toString().trim(), "playwright"));
 }
 const URL = (process.env.URL ?? "http://localhost:3000").replace(/\/$/, "");
-const ANCHOS = (process.env.ANCHOS ?? "390,360").split(",").map(Number);
+const ANCHOS = (process.env.ANCHOS ?? "360,390,430").split(",").map(Number);
 const CAPTURAS = process.env.CAPTURAS ?? null;
-if (CAPTURAS) mkdirSync(CAPTURAS, { recursive: true });
+if (CAPTURAS) for (const d of ["resumen", "ver-producto"]) mkdirSync(join(CAPTURAS, d), { recursive: true });
 
 const MICHEL = "a1000000-0000-4000-8000-000000000001";
 const LINO = "a1000000-0000-4000-8000-000000000003";
-const OUD_MICHEL = "a3000000-0000-4000-8000-000000000019";
+const KURT = "a3000000-0000-4000-8000-000000000002";
+const URBAN = "a3000000-0000-4000-8000-000000000008";
+const CAMISA = "a3000000-0000-4000-8000-000000000017";
 const PANTALON = "a3000000-0000-4000-8000-000000000018";
+const OUD = "a3000000-0000-4000-8000-000000000019";
+const CINTURON = "a3000000-0000-4000-8000-000000000024";
 const SOMBRERO = "a3000000-0000-4000-8000-000000000025";
+const CLAVE = "deslizapp-demo-v5";
+const PORQUE = "Esto lo hace quien administra la tienda.";
 
 const ok = (cond, msg) => {
   console.log((cond ? "  ✅ " : "  ❌ ") + msg);
@@ -31,196 +36,455 @@ const ok = (cond, msg) => {
 };
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 
-async function pagina(ancho, tienda) {
-  const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+async function pagina(ancho, tienda, { reducido = false, cambiar } = {}) {
+  const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, reducedMotion: reducido ? "reduce" : "no-preference" });
   const page = await ctx.newPage();
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
   await page.addInitScript((t) => {
+    if (sessionStorage.getItem("prueba-inicial")) return;
+    sessionStorage.setItem("prueba-inicial", "1");
+    localStorage.clear();
     localStorage.setItem("deslizapp-version-vista", "9.9.9");
     localStorage.setItem("deslizapp-modo-v1", "demo");
     localStorage.setItem("deslizapp-sesion-v1", t);
   }, tienda);
+  if (cambiar) {
+    // Prepara la demo (servicio, catálogo lleno…) y vuelve a cargar con ella.
+    // La demo se guarda en localStorage al primer cambio: se prende y apaga un interruptor para que exista.
+    await abrirVista(page, SOMBRERO);
+    const sw = page.getByRole("switch", { name: "Visible en el catálogo" });
+    await sw.click();
+    await esperar(page, 700);
+    await sw.click();
+    await page.waitForFunction((k) => localStorage.getItem(k) !== null, CLAVE, { timeout: 20000 });
+    await esperar(page, 700);
+    await page.evaluate(([k, f]) => {
+      const db = JSON.parse(localStorage.getItem(k));
+      new Function("db", f)(db);
+      localStorage.setItem(k, JSON.stringify(db));
+    }, [CLAVE, cambiar]);
+  }
   return { ctx, page, errores };
 }
-const captura = async (page, nombre, ancho) => CAPTURAS && (await page.screenshot({ path: join(CAPTURAS, `${nombre}-${ancho}.png`) }));
+const db = async (page) => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), CLAVE)) ?? "{}");
+const producto = async (page, id) => (await db(page)).productos?.find((p) => p.id === id);
+const ajustes = async (page, id) => ((await db(page)).ajustes_inventario ?? (await db(page)).ajustesInventario ?? []).filter((a) => a.productoId === id || a.producto_id === id);
+const captura = async (page, nombre, ancho) => CAPTURAS && ancho === 390 && (await page.screenshot({ path: join(CAPTURAS, `${nombre}-${ancho}.png`) }));
 const sinDesborde = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
-const png = (page, color) =>
-  page.evaluate((c) => {
-    const l = document.createElement("canvas");
-    l.width = l.height = 600;
-    const x = l.getContext("2d");
-    x.fillStyle = c;
-    x.fillRect(0, 0, 600, 600);
-    return l.toDataURL("image/png").split(",")[1];
-  }, color);
-const bajar = (page) => page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
+const paneles = (page) => page.locator("[data-hoja-panel]");
+const arriba = (page) => paneles(page).last();
+const esperar = (page, ms = 450) => page.waitForTimeout(ms);
+/** Una fila del resumen por su título. */
+const fila = (page, titulo) => page.locator("[data-editar-producto] li button").filter({ hasText: new RegExp(`^${titulo}`) }).first();
+const guardar = (page) => page.locator("[data-pie-editar]").getByRole("button", { name: "Guardar cambios", exact: true });
+const listo = (page) => arriba(page).locator("[data-pie-paso]").getByRole("button", { name: "Listo", exact: true });
+const toast = (page, texto) => page.waitForSelector(`text=${texto}`, { timeout: 5000 }).then(() => true, () => false);
+async function abrirEditar(page, id) {
+  await page.goto(`${URL}/catalogo/${id}/editar`);
+  await page.locator("[data-editar-producto]").waitFor({ timeout: 20000 });
+  await esperar(page, 600);
+}
+async function abrirVista(page, id) {
+  await page.goto(`${URL}/catalogo/${id}`);
+  await page.locator("[data-vista-producto]").waitFor({ timeout: 20000 });
+  await esperar(page, 700);
+}
+async function tocarFila(page, titulo) {
+  await fila(page, titulo).click();
+  await esperar(page, 500);
+}
+async function mirarComo(page, nombre) {
+  await page.goto(URL + "/catalogo");
+  await page.waitForSelector('header button[aria-haspopup="dialog"]');
+  await esperar(page, 900);
+  await page.locator('header button[aria-haspopup="dialog"]').first().tap();
+  await page.waitForSelector("[data-tienda-activa]");
+  await esperar(page, 400);
+  await page.locator(`[data-mirar-como] [role="radio"]:has-text("${nombre}")`).tap();
+  await esperar(page, 500);
+  await page.keyboard.press("Escape");
+  await esperar(page, 500);
+}
 
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px ===`);
 
-  // Crear producto es una historia (scripts/probar-crear-producto.mjs); la hoja queda para editar y se prueba aquí, igual que antes.
-  console.log("• Editar sin presentaciones: foto grande, campos, «Más opciones», botones al final, vista previa y guardar");
+  console.log("• El resumen: cabecera, tarjeta, grupos en orden y «Guardar cambios» apagado sin cambios");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
-    await page.goto(`${URL}/catalogo/${SOMBRERO}/editar`);
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).waitFor();
-    const guardar = page.getByRole("button", { name: "Guardar cambios", exact: true });
-    const caja = await page.locator("[data-foto-principal]").boundingBox();
-    ok(Math.abs(caja.width - caja.height) < 2 && caja.width > ancho - 60, "La foto principal es un cuadrado a todo el ancho (nunca círculo)");
-    ok(await page.getByRole("button", { name: "Vista previa", exact: true }).isEnabled(), "«Vista previa» prendido");
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).fill("Aros dorados");
-    await page.getByRole("textbox", { name: "Precio (RD$)" }).fill("1850");
-    ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).inputValue()) === "1,850", "El precio se ve con coma de miles (1,850)");
-    ok((await page.getByRole("textbox", { name: "Nombre", exact: true }).getAttribute("placeholder")) === "El nombre de tu producto" && (await page.getByRole("textbox", { name: "Precio (RD$)" }).getAttribute("placeholder")) === "Escribe el precio", "Los ejemplos son invitaciones, sin «Ej:»");
-    {
-      // Escribir y borrar en el medio: el cursor no salta al final.
-      const precio = page.getByRole("textbox", { name: "Precio (RD$)" });
-      await precio.fill("");
-      await precio.pressSequentially("12500");
-      ok((await precio.inputValue()) === "12,500", "Escribir 12500 da 12,500");
-      await precio.evaluate((e) => e.setSelectionRange(2, 2)); // 12|,500
-      await precio.press("Backspace");
-      ok((await precio.inputValue()) === "1,500" && (await precio.evaluate((e) => e.selectionStart)) === 1, "Borrar en el medio deja el cursor junto al dígito (1|,500)");
-      await precio.fill("1850");
+    await abrirEditar(page, PANTALON);
+    const cab = page.locator("[data-hoja-cabecera]").last();
+    const [x, titulo] = [await cab.getByRole("button", { name: "Cerrar" }).boundingBox(), await cab.getByRole("heading", { name: "Editar producto" }).boundingBox()];
+    ok(x.x < titulo.x && x.width >= 44, "✕ a la izquierda (44 px) y «Editar producto» a su lado");
+    ok(await cab.getByRole("heading", { name: "Editar producto" }).evaluate((e) => e.scrollWidth <= e.clientWidth + 1), "«Editar producto» no se trunca");
+    ok((await cab.locator("[data-barras-historia]").count()) === 0, "Sin barras de avance");
+    ok((await page.getByText("así se ve en tu catálogo", { exact: true }).count()) === 1, "«así se ve en tu catálogo» arriba");
+    const tarjeta = page.locator("[data-tarjeta-resumen]");
+    ok((await tarjeta.innerText()).includes("Visible") && (await tarjeta.innerText()).includes("1 / 4") && (await tarjeta.innerText()).includes("Desde RD$"), "La tarjeta: «Visible», «1 / 4» y «Desde RD$…»");
+    const grupos = await page.locator("[data-editar-producto] section h3").allInnerTexts();
+    ok(JSON.stringify(grupos) === JSON.stringify(["Lo básico", "Presentaciones y stock", "Hazlo brillar · opcional", "En tu catálogo"]), `Los cuatro grupos en orden (${grupos.join(" / ")})`);
+    ok((await fila(page, "Presentaciones").innerText()).includes("Talla y color · 12"), "Presentaciones: «Talla y color · 12»");
+    ok((await fila(page, "Stock").innerText()).includes("31 en total"), "Stock: «31 en total»");
+    if (ancho === 390) {
+      const precio = await fila(page, "Precio").boundingBox();
+      const pie = await page.locator("[data-pie-editar]").boundingBox();
+      ok(precio.y + precio.height <= pie.y, "A 390×844 el primer grupo se ve entero sin desplazar");
     }
-    {
-      // Todos los campos se ven iguales (docs/09): mismo alto, letra y peso; el ejemplo en gris, tamaño normal.
-      const estilo = (n) => page.getByRole("textbox", { name: n, exact: true }).evaluate((e) => { const c = getComputedStyle(e); const p = e.getBoundingClientRect(); return { alto: Math.round(p.height), letra: c.fontSize, peso: c.fontWeight, familia: c.fontFamily, borde: c.borderTopWidth + c.borderTopLeftRadius }; });
-      const [nombre, precio] = [await estilo("Nombre"), await estilo("Precio (RD$)")];
-      ok(JSON.stringify(nombre) === JSON.stringify(precio) && precio.letra === "16px" && precio.peso === "400", `Nombre y Precio: mismo alto, letra, peso y borde (${JSON.stringify(precio)})`);
-      ok((await page.getByRole("textbox", { name: "Precio (RD$)" }).evaluate((e) => getComputedStyle(e, "::placeholder").fontSize)) === "16px", "El ejemplo del precio es del tamaño normal de un campo");
-    }
+    ok(await guardar(page).isDisabled(), "«Guardar cambios» apagado sin cambios");
     ok(await sinDesborde(page), "Sin desborde horizontal");
-    await captura(page, "1-editar", ancho);
-    for (const n of ["Descripción", "Ficha técnica", "Colección", "Por encargo", "Visible en el catálogo"]) ok((await page.getByText(n, { exact: true }).count()) >= 1, `«Más opciones» tiene la fila ${n}`);
-    ok((await page.locator("[data-fila-plegable] textarea").count()) === 0, "Lo opcional viene plegado");
-    ok((await page.locator("[data-tarjeta-stock] [data-encargo]").getByText("Por encargo", { exact: true }).count()) === 1, "«Por encargo» está en la tarjeta del stock");
-    ok((await page.getByText(/llevo la cuenta|llevas la cuenta/i).count()) === 0, "No hay «No llevo la cuenta»");
-    ok((await page.locator('[data-fila-plegable="descripcion"], [data-fila-plegable="ficha"]').evaluateAll((l) => new Set(l.map((e) => e.parentElement)).size)) === 1, "Descripción y Ficha técnica comparten un grupo");
-    ok((await page.locator('[data-fila-plegable="descripcion"]').evaluate((e) => !e.parentElement.textContent.includes("Colección"))), "Colección y Visible van en otro grupo");
-    const A = [await png(page, "#c33"), await png(page, "#3a6")];
-    await page.locator("[data-entrada-medios]").setInputFiles(A.map((b, i) => ({ name: `f${i}.png`, mimeType: "image/png", buffer: Buffer.from(b, "base64") })));
-    await page.getByRole("button", { name: /^Foto 3 de 3/ }).waitFor();
-    ok((await page.locator("[data-foto-principal]").innerText()).includes("1 / 3"), "La foto principal lleva su contador «1 / 3»");
-    await page.getByRole("button", { name: /^Foto 2 de 3/ }).click();
-    await page.getByRole("button", { name: "Hacer portada", exact: true }).waitFor();
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(500);
-    ok((await page.locator("[data-foto-principal]").innerText()).includes("2 / 3"), "Tocar una miniatura la pone en grande («2 / 3»)");
-    // Fila plegable: instantánea y sin tocar el foco
-    await page.getByRole("textbox", { name: "Nombre", exact: true }).focus();
-    const fila = page.locator('[data-fila-plegable="descripcion"] button[aria-expanded]');
-    await bajar(page);
-    await fila.click();
-    ok((await fila.getAttribute("aria-expanded")) === "true" && (await page.locator("[data-fila-plegable] textarea").count()) === 1, "Tocar «Descripción» la abre al instante");
-    const area = page.locator("[data-fila-plegable] textarea");
-    const texto = "Aros dorados con baño de oro. Livianos y cómodos para todo el día.";
-    await area.fill(texto);
-    ok((await page.getByText(`${texto.length} / 600`).count()) === 1 && (await page.getByText("Lo que escribas aquí también lo usa la búsqueda de tu catálogo.").count()) === 1, "Descripción: contador «N / 600» y la línea de la búsqueda");
-    await captura(page, "3-opcional-abierto", ancho);
-    await fila.click();
-    ok((await page.locator('[data-fila-plegable="descripcion"]').innerText()).includes("Aros dorados con baño de oro"), "Cerrada, la fila muestra su valor");
-    // Por encargo
-    await page.getByRole("switch", { name: "Por encargo" }).click();
-    await page.getByRole("textbox", { name: "Cuándo llega" }).fill("Llega en 8 días");
-    // Los botones van al final de la página (como en pedido nuevo): uno sobre otro, del mismo ancho y alto, sin flotar.
-    await bajar(page);
-    await page.waitForTimeout(300);
-    const barra = page.locator("[data-barra-producto]");
-    const [b1, b2] = await Promise.all([page.getByRole("button", { name: "Vista previa", exact: true }).boundingBox(), guardar.boundingBox()]);
-    ok(Math.abs(b1.width - b2.width) < 1.5 && Math.abs(b1.height - b2.height) < 1.5 && b1.y < b2.y && Math.abs(b1.x - b2.x) < 1, "«Vista previa» arriba y «Guardar cambios» debajo, del mismo ancho y alto");
-    ok(await barra.evaluate((e) => { for (let n = e; n && !n.hasAttribute("data-hoja-contenido"); n = n.parentElement) { const p = getComputedStyle(n).position; if (p === "fixed" || p === "sticky") return false; } return true; }), "…los botones no flotan: van dentro de la página");
-    ok((await page.getByRole("button", { name: "Vista previa", exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor)) !== "rgba(0, 0, 0, 0)", "…«Vista previa» es opaco");
-    await captura(page, "botones-al-final", ancho);
-    // Vista previa: el reel real del catálogo del comprador, con el borrador
-    await page.getByRole("button", { name: "Vista previa", exact: true }).click();
-    const visor = page.frameLocator('iframe[title="Así lo verá tu cliente"]');
-    await visor.locator("article.reel").waitFor({ timeout: 15000 });
-    await page.waitForTimeout(1000);
-    const reel = visor.locator("article.reel");
-    const vista = (await reel.innerText()).replace(/\s+/g, " ");
-    ok((await reel.locator("h2").innerText()) === "Aros dorados" && vista.includes("1,850") && vista.includes("Aros dorados con baño de oro"), "«Vista previa» es el reel del catálogo: nombre, precio y descripción del borrador");
-    ok((await visor.locator("header.hdr").count()) === 1 && (await reel.locator(".act.like").count()) === 1 && (await reel.locator("button.elipsis").count()) === 1, "…con su cabecera, los botones de comprar y el «…» de la descripción");
-    await captura(page, "como-se-ve", ancho);
-    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
-    await page.waitForTimeout(700);
-    await guardar.click();
-    await page.waitForURL(`${URL}/catalogo/${SOMBRERO}`);
-    const d = JSON.parse(await page.evaluate(() => localStorage.getItem("deslizapp-demo-v5")));
-    const p = d.productos.find((x) => x.id === SOMBRERO);
-    ok(p && p.nombre === "Aros dorados" && p.precio === 1850 && p.fotos.length === 3 && p.porEncargo && p.encargoTexto === "Llega en 8 días" && p.detalles.descripcion.startsWith("Aros dorados"), "«Guardar cambios» guarda lo mismo de siempre (guardado compartido con crear)");
-    ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
+    await captura(page, "resumen/1-arriba", ancho);
+    await page.locator("[data-hoja-contenido]").last().evaluate((e) => e.scrollTo(0, e.scrollHeight));
+    await esperar(page, 400);
+    ok(await page.getByRole("button", { name: "Eliminar producto" }).isVisible(), "Al final, «Eliminar producto»");
+    await captura(page, "resumen/2-desplazada", ancho);
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
 
-  console.log("• Con presentaciones: la fila es solo el resumen y abre el flujo en «Cuántas tienes»");
+  console.log("• Cambiar solo el precio: dos toques y «Guardar cambios»; ✕ con cambios en el paso descarta solo ese cambio");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
-    await page.goto(`${URL}/catalogo/${PANTALON}/editar`);
-    await page.locator("[data-cosas-que-cambian]").waitFor();
-    await page.waitForTimeout(700);
-    await captura(page, "2-listo", ancho);
-    const tarjeta = await page.locator("[data-tarjeta-stock]").innerText();
-    ok(/Talla · \d+/.test(tarjeta) && /Color · \d+/.test(tarjeta), `«Presentaciones» resume en pastillas (${tarjeta.split("\n").slice(0, 4).join(" | ")})`);
-    ok(/\d+ presentaciones · \d+ en total/.test(tarjeta), "«En stock»: «N presentaciones · M en total»");
-    { const i = (t) => tarjeta.indexOf(t); ok(i("Precio") >= 0 && i("Precio") < i("En stock") && i("En stock") < i("Por encargo") && i("Por encargo") < i("Presentaciones"), "Orden de la tarjeta: Precio, En stock, Por encargo, Presentaciones"); }
-    ok((await page.getByRole("list", { name: "Presentaciones del producto" }).count()) === 0, "La hoja de producto no lista las filas: solo resume");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
-    await page.locator("[data-paso=cuantas]").waitFor();
-    ok((await page.locator('[role="dialog"]').last().innerText()).includes("Cuántas tienes"), "Tocar la fila abre el flujo directo en «Cuántas tienes»");
-    await page.getByRole("button", { name: "Cerrar", exact: true }).last().click();
-    await page.waitForTimeout(600);
-    ok(await page.getByRole("button", { name: "Eliminar producto" }).count() === 1, "Editar conserva «Eliminar producto»");
-    ok(await page.getByRole("button", { name: "Guardar cambios", exact: true }).isEnabled(), "«Guardar cambios» está prendido en un producto que ya está completo");
-    ok(await sinDesborde(page), "Sin desborde horizontal");
-    ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
+    await abrirEditar(page, SOMBRERO);
+    await tocarFila(page, "Precio");
+    ok((await paneles(page).count()) === 2, "Se abre ENCIMA (dos hojas)");
+    const campo = arriba(page).getByRole("textbox", { name: "Precio (RD$)" });
+    ok(await campo.evaluate((e) => document.activeElement === e), "El campo del precio queda enfocado en el mismo toque");
+    ok((await arriba(page).locator("[data-tarjeta-asi-se-vera]").count()) === 1, "Con su tarjeta «así se verá»");
+    await campo.fill("1650");
+    ok((await arriba(page).getByText(/^Antes: RD\$/).count()) === 1, "La ayuda dice el valor de antes («Antes: RD$…»)");
+    await captura(page, "resumen/3-precio", ancho);
+    // ✕ con algo escrito: el aviso de siempre; «Descartar y salir» no toca el resumen.
+    await arriba(page).getByRole("button", { name: "Cerrar" }).click();
+    await page.getByRole("alertdialog").waitFor();
+    ok((await page.getByRole("alertdialog").innerText()).includes("¿Salir sin guardar?"), "✕ con cambios en el paso: «¿Salir sin guardar?»");
+    await page.getByRole("button", { name: "Descartar y salir" }).click();
+    await esperar(page, 600);
+    ok((await paneles(page).count()) === 1 && (await guardar(page).isDisabled()), "Descartar deja el resumen como estaba");
+    await tocarFila(page, "Precio");
+    await arriba(page).getByRole("textbox", { name: "Precio (RD$)" }).fill("1650");
+    await listo(page).click();
+    await esperar(page, 600);
+    ok((await fila(page, "Precio").innerText()).includes("RD$1,650"), "«Listo» pone el precio nuevo en la fila");
+    ok((await producto(page, SOMBRERO))?.precio !== 1650, "…y todavía no se guardó");
+    ok(await guardar(page).isEnabled(), "«Guardar cambios» se enciende");
+    await guardar(page).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+    await page.waitForURL((u) => !u.pathname.endsWith("/editar"), { timeout: 8000 });
+    ok((await producto(page, SOMBRERO)).precio === 1650, "El precio quedó guardado (RD$1,650)");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
 
-  console.log("• Sin presentaciones al editar: control de stock, historial y lista de espera de siempre");
+  console.log("• Stock sin presentaciones: bajar pide motivo ahí mismo; subir es reposición; el historial lo muestra");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirEditar(page, SOMBRERO);
+    const antes = (await producto(page, SOMBRERO))?.stock ?? 9;
+    await tocarFila(page, "Stock");
+    const menos = arriba(page).getByRole("button", { name: /^Disminuir stock de/ });
+    await menos.click();
+    await menos.click();
+    const motivo = arriba(page).locator("[data-motivo-bajada]");
+    ok((await motivo.innerText()).includes("Bajaste 2. ¿Qué pasó?") && (await motivo.innerText()).includes("No cuenta como venta"), "«Bajaste 2. ¿Qué pasó?» con los motivos");
+    ok(await listo(page).isDisabled(), "«Listo» no deja salir sin motivo");
+    await arriba(page).getByRole("radio", { name: "Otro" }).click();
+    ok(await listo(page).isDisabled(), "«Otro» pide la nota");
+    await arriba(page).getByRole("textbox", { name: "Cuéntanos el motivo" }).fill("Se mojaron dos");
+    await listo(page).click();
+    await esperar(page, 600);
+    ok((await fila(page, "Stock").innerText()).includes(`${antes - 2} en total`), `La fila dice ${antes - 2} en total`);
+    await guardar(page).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado sin otra pregunta (el motivo ya se dio)");
+    await esperar(page, 900);
+    const tras = await producto(page, SOMBRERO);
+    const regs = await ajustes(page, SOMBRERO);
+    ok(tras.stock === antes - 2 && regs.some((a) => a.variacion === -2 && a.motivo === "otro" && a.nota === "Se mojaron dos"), "Ajuste −2 con motivo «otro» y su nota");
+    await abrirEditar(page, SOMBRERO);
+    await tocarFila(page, "Stock");
+    await arriba(page).getByRole("button", { name: /^Aumentar stock de/ }).click();
+    ok((await arriba(page).locator("[data-motivo-bajada]").count()) === 0, "Subir no pregunta");
+    await listo(page).click();
+    await esperar(page, 500);
+    await guardar(page).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+    await esperar(page, 900);
+    ok((await ajustes(page, SOMBRERO)).some((a) => a.variacion === 1 && a.motivo === "reposicion"), "Subir guarda una reposición");
+    await abrirEditar(page, SOMBRERO);
+    await fila(page, "Historial de ajustes").click();
+    await esperar(page, 600);
+    const cab = page.locator("[data-hoja-cabecera]").last();
+    ok((await cab.getByRole("heading").innerText()) === "Historial de ajustes" && (await cab.getByRole("button", { name: "Volver" }).count()) === 1, "Historial: pantalla interna con «‹»");
+    ok((await page.getByText("Se mojaron dos").count()) >= 1, "…con el ajuste y su nota");
+    ok(!(await page.locator("[data-pie-editar]").isVisible()), "…sin «Guardar cambios» a la vista");
+    await page.goBack();
+    await esperar(page, 600);
+    ok((await page.locator("[data-editar-producto]").isVisible()) && (await paneles(page).count()) === 1, "Atrás del teléfono vuelve al resumen sin cerrar");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  console.log("• Stock con presentaciones: el Inventario, «antes N» y el motivo debajo de su grupo; el detalle es pantalla interna");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirEditar(page, PANTALON);
+    const base = (await db(page)).producto_variantes ?? (await db(page)).variantes;
+    await tocarFila(page, "Stock");
+    ok((await arriba(page).locator("[data-hoja-cabecera] h2").innerText()) === "Inventario" && (await arriba(page).locator("[data-total-inventario]").innerText()).includes("31 en total"), "«Inventario · 31 en total»");
+    const negro = arriba(page).locator('[data-grupo-inventario="Negro"]');
+    ok((await negro.count()) === 1, "Un grupo por color");
+    await negro.getByRole("button", { name: /^Quitar uno de S · Negro/ }).click();
+    ok((await negro.locator("[data-antes]").innerText()).startsWith("antes "), "La fila que bajó dice «antes N»");
+    ok((await negro.locator("[data-motivo-bajada]").innerText()).includes("Bajaste 1 en S · Negro. ¿Qué pasó?"), "«Bajaste 1 en S · Negro. ¿Qué pasó?» debajo de su grupo");
+    ok(await listo(page).isDisabled(), "«Listo» espera el motivo");
+    await arriba(page).getByRole("radio", { name: "Daño" }).click();
+    await captura(page, "resumen/4-stock-bajando-con-motivo", ancho);
+    // El detalle de una presentación: pantalla interna, nunca una tercera hoja.
+    await negro.getByRole("button", { name: /^M · Negro/ }).click();
+    await esperar(page, 500);
+    ok((await paneles(page).count()) === 2, "El detalle de una presentación no abre una tercera hoja");
+    ok((await arriba(page).locator("[data-pantalla-interna] [data-hoja-presentacion]").count()) === 1 && (await arriba(page).locator("[data-hoja-cabecera] [data-volver-interna]").count()) === 1, "…es una pantalla interna con «‹»");
+    await page.goBack();
+    await esperar(page, 500);
+    ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-inventario-editar]").isVisible()), "Atrás vuelve al Inventario (sin cerrarlo)");
+    await listo(page).click();
+    await esperar(page, 600);
+    await guardar(page).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+    await esperar(page, 900);
+    const regs = await ajustes(page, PANTALON);
+    ok(regs.some((a) => a.variacion === -1 && a.motivo === "dano"), "Ajuste −1 de la presentación con motivo «Daño»");
+    void base;
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  console.log("• Presentaciones: el flujo encima; bajar una cantidad ahí pide motivo al guardar; quitar una con unidades");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirEditar(page, CAMISA);
+    await tocarFila(page, "Presentaciones");
+    ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-paso-presentaciones]").count()) === 1, "Presentaciones abre el flujo encima");
+    const cab = arriba(page).locator("[data-hoja-cabecera]");
+    const [x, t] = [await cab.getByRole("button", { name: "Cerrar" }).boundingBox(), await cab.getByRole("heading").boundingBox()];
+    ok(x.x < t.x, "…con la ✕ a la izquierda");
+    await arriba(page).locator("[data-paso='cuantas'] button[aria-label^='Quitar uno de ']:not([disabled])").first().click();
+    // Una presentación: su detalle es una pantalla interna; «Quitar» pregunta con la Alerta (no cuenta como hoja).
+    await arriba(page).locator("[data-paso='cuantas'] button[aria-label^='Abrir ']").last().click();
+    await esperar(page, 500);
+    ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-pantalla-interna]").count()) === 1, "El detalle es una pantalla interna (dos hojas)");
+    const quitada = (await arriba(page).locator("[data-hoja-cabecera] h2").innerText()).trim();
+    await arriba(page).getByRole("button", { name: "Quitar", exact: true }).click();
+    await page.getByRole("alertdialog").waitFor();
+    ok((await paneles(page).count()) === 2, `Quitar ${quitada} pregunta con la alerta (no es otra hoja)`);
+    await page.getByRole("alertdialog").getByRole("button").last().click();
+    await esperar(page, 500);
+    ok((await arriba(page).locator("[data-pantalla-interna]").count()) === 0, "…y vuelve a «Cuántas tienes»");
+    await arriba(page).getByRole("button", { name: /^Listo ·/ }).click();
+    await esperar(page, 600);
+    ok((await paneles(page).count()) === 1, "«Listo» vuelve al resumen");
+    await guardar(page).click();
+    await page.getByRole("heading", { name: "¿Por qué baja el stock?" }).waitFor({ timeout: 5000 });
+    ok(true, "Bajar en el flujo pide el motivo al guardar, como antes");
+    await arriba(page).getByRole("radio", { name: "Pérdida" }).click();
+    await arriba(page).getByRole("button", { name: "Guardar ajuste" }).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+    await esperar(page, 900);
+    ok((await ajustes(page, CAMISA)).some((a) => a.variacion === -1 && a.motivo === "perdida"), "Ajuste −1 con motivo «Pérdida»");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  console.log("• Por encargo, Fotos (sin foto → solo oculto) y la foto como pantalla interna");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirEditar(page, CINTURON);
+    await page.getByRole("switch", { name: "Es por encargo" }).click();
+    ok((await fila(page, "Es por encargo").innerText()).includes("Se puede pedir aunque no haya."), "Encendido, dice «Se puede pedir aunque no haya.»");
+    await tocarFila(page, "Es por encargo");
+    await arriba(page).getByRole("radio", { name: "1 a 2 semanas" }).click();
+    await listo(page).click();
+    await esperar(page, 500);
+    ok((await fila(page, "Es por encargo").innerText()).includes("Llega en 1 a 2 semanas"), "«Llega en 1 a 2 semanas»");
+    await tocarFila(page, "Fotos");
+    ok((await arriba(page).locator("[data-marco-foto]").count()) === 1, "Fotos: la pantalla de la foto de la historia");
+    await arriba(page).getByRole("button", { name: /^Foto 1 de|^Portada/ }).first().click();
+    await esperar(page, 500);
+    ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-pantalla-interna]").count()) === 1, "El detalle de la foto es una pantalla interna");
+    await arriba(page).getByRole("button", { name: "Quitar foto" }).click();
+    await esperar(page, 500);
+    await listo(page).click();
+    await esperar(page, 500);
+    ok((await page.locator("[data-falta-foto]").count()) === 1 && (await guardar(page).isDisabled()), "Sin foto y visible: el aviso y «Guardar cambios» apagado");
+    await page.getByRole("switch", { name: "Visible en el catálogo" }).click();
+    ok(await guardar(page).isEnabled(), "Oculto, sin foto, sí se guarda");
+    await guardar(page).click();
+    ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+    await esperar(page, 900);
+    const p = await producto(page, CINTURON);
+    ok(p.porEncargo === true && (p.encargoTexto ?? p.encargo_texto) === "Llega en 1 a 2 semanas" && p.activo === false && p.fotos.length === 0, "Por encargo, oculto y sin foto");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  console.log("• ✕ y atrás con cambios en el resumen; entrar desde la vista y volver; eliminar sin historial");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirVista(page, CINTURON);
+    await page.locator("button[data-boton-editar]").click();
+    await page.waitForURL(/\/editar$/);
+    await page.locator("[data-editar-producto] li").first().waitFor();
+    await esperar(page, 600);
+    await tocarFila(page, "Nombre");
+    await arriba(page).getByRole("textbox", { name: "Nombre del producto" }).fill("Cinturón trenzado");
+    await listo(page).click();
+    await esperar(page, 500);
+    await page.locator("[data-hoja-cabecera]").last().getByRole("button", { name: "Cerrar" }).click();
+    ok((await page.getByRole("alertdialog").innerText()).includes("¿Descartar los cambios?"), "✕ con cambios: «¿Descartar los cambios?»");
+    await page.getByRole("button", { name: "Quedarme" }).click();
+    await esperar(page, 400);
+    await page.goBack();
+    await esperar(page, 500);
+    ok((await page.getByRole("alertdialog").count()) === 1, "Atrás del teléfono también pregunta");
+    await page.getByRole("button", { name: "Descartar y salir" }).click();
+    await page.waitForURL(new RegExp(`/catalogo/${CINTURON}$`), { timeout: 8000 });
+    ok(true, "Descartar vuelve a la vista del producto (se entró desde ahí)");
+    ok((await producto(page, CINTURON))?.nombre !== "Cinturón trenzado", "…sin guardar el nombre");
+    await abrirEditar(page, CINTURON);
+    await page.locator("[data-hoja-contenido]").last().evaluate((e) => e.scrollTo(0, e.scrollHeight));
+    await page.getByRole("button", { name: "Eliminar producto" }).click();
+    await page.getByRole("button", { name: "Sí, eliminar producto" }).waitFor({ timeout: 6000 });
+    ok((await paneles(page).count()) === 2, "La confirmación de eliminar va encima (dos hojas)");
+    await page.getByRole("button", { name: "Sí, eliminar producto" }).click();
+    await page.waitForURL((u) => u.pathname === "/catalogo", { timeout: 8000 });
+    ok(true, "Eliminar sin historial vuelve a /catalogo");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
+
+  if (ancho === 390) {
+    console.log("• Servicio: sin stock ni encargo");
+    {
+      const { ctx, page } = await pagina(ancho, LINO, { cambiar: `db.productos.find((p) => p.id === "${SOMBRERO}").tipo = "servicio";` });
+      await abrirEditar(page, SOMBRERO);
+      ok((await fila(page, "Stock").count()) === 0 && (await page.getByRole("switch", { name: "Es por encargo" }).count()) === 0, "Un servicio no lleva Stock ni Es por encargo");
+      ok((await fila(page, "Presentaciones").count()) === 1, "…sí Presentaciones");
+      await ctx.close();
+    }
+
+    console.log("• Catálogo lleno: un oculto no se vuelve visible");
+    {
+      const { ctx, page } = await pagina(ancho, LINO, {
+        cambiar: `const p = db.productos.find((x) => x.id === "${SOMBRERO}"); p.activo = false; const t = db.tiendas.find((x) => x.id === "${LINO}"); const n = db.productos.filter((x) => (x.tiendaId ?? x.tienda_id) === "${LINO}" && x.activo && !(x.eliminadoEn ?? x.eliminado_en)).length; if ("limiteProductos" in t) t.limiteProductos = n; else t.limite_productos = n;`,
+      });
+      await abrirEditar(page, SOMBRERO);
+      const sw = page.getByRole("switch", { name: "Visible en el catálogo" });
+      ok((await sw.getAttribute("aria-disabled")) === "true" && (await sw.getAttribute("aria-checked")) === "false", "«Visible» apagado y bloqueado");
+      await sw.click({ force: true });
+      ok(await toast(page, "Tu catálogo está lleno"), "Tocarlo avisa «Tu catálogo está lleno»");
+      await ctx.close();
+    }
+
+    console.log("• Sin permiso (Ayudante): todo se ve y nada se cambia");
+    {
+      const { ctx, page } = await pagina(ancho, MICHEL);
+      await mirarComo(page, "Ayudante");
+      await abrirEditar(page, KURT);
+      await fila(page, "Nombre").click();
+      ok(await toast(page, PORQUE), "Tocar una fila explica por qué");
+      ok((await paneles(page).count()) === 1, "…y no abre nada");
+      ok(await guardar(page).isDisabled() && (await page.locator("[data-editar-producto] [data-sin-permiso]").count()) === 1, "«Guardar cambios» apagado, con el porqué");
+      await captura(page, "resumen/5-sin-permiso", ancho);
+      await abrirVista(page, KURT);
+      const editar = page.locator("button[data-boton-editar]");
+      ok((await editar.getAttribute("aria-disabled")) === "true", "Ver producto: «Editar» apagado");
+      await editar.click({ force: true });
+      ok(await toast(page, PORQUE), "…y tocarlo explica por qué");
+      await ctx.close();
+    }
+
+    console.log("• Movimiento reducido: abrir y cerrar un paso funciona igual");
+    {
+      const { ctx, page, errores } = await pagina(ancho, LINO, { reducido: true });
+      await abrirEditar(page, SOMBRERO);
+      await tocarFila(page, "Nombre");
+      ok((await paneles(page).count()) === 2, "El paso se abre");
+      await listo(page).click();
+      await esperar(page, 300);
+      ok((await paneles(page).count()) === 1, "«Listo» lo cierra");
+      ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+      await ctx.close();
+    }
+  }
+
+  console.log("• Ver producto: cabecera, carrusel, espera, stock plegable, «A tu historia»");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrirVista(page, PANTALON);
+    const cab = page.locator("[data-hoja-cabecera]").last();
+    const [x, t, e] = [await cab.getByRole("button", { name: "Cerrar" }).boundingBox(), await cab.getByRole("heading").boundingBox(), await cab.locator("button[data-boton-editar]").boundingBox()];
+    ok(x.x < t.x && t.x < e.x && e.height >= 44, "✕ · nombre · «Editar» (píldora de 44 px)");
+    ok(await cab.getByRole("heading").evaluate((h) => getComputedStyle(h).textOverflow === "ellipsis"), "El nombre se corta con elipsis");
+    ok((await page.locator("[data-barras-vista] span").count()) === 4, "Cuatro barras para cuatro fotos");
+    await page.locator("[data-carrusel-vista]").evaluate((c) => c.scrollTo({ left: c.clientWidth, behavior: "instant" }));
+    await esperar(page, 400);
+    ok((await page.locator("[data-barras-vista] span.bg-papel").count()) === 2, "Deslizar llena la barra de la segunda foto");
+    ok((await page.locator("[data-presentaciones-vista]").innerText()).includes("3 colores"), "Las presentaciones: colores como puntos y tallas");
+    ok((await page.locator("[data-franja-espera]").count()) === 0, "Sin lista de espera, sin franja");
+    ok((await page.locator("[data-stock-plegable]").getAttribute("data-abierto")) === null, "El stock empieza cerrado");
+    await captura(page, "ver-producto/1-cerrado", ancho);
+    // Más de 3 presentaciones: abrir el stock lleva al Inventario de editar.
+    await page.locator("[data-stock-plegable] button[aria-expanded]").click();
+    await page.waitForURL(/\/editar\?abrir=stock$/, { timeout: 8000 });
+    await page.locator("[data-inventario-editar]").waitFor({ timeout: 8000 });
+    ok((await paneles(page).count()) === 2, "Más de 3 presentaciones: abrir el stock lleva al Inventario");
+    await abrirVista(page, CAMISA);
+    ok((await page.locator("[data-franja-espera]").innerText()).includes("1 persona lo espera"), "Con lista de espera: «1 persona lo espera»");
+    await page.locator("[data-franja-espera]").click();
+    await esperar(page, 500);
+    ok((await page.locator("[data-hoja-cabecera]").last().getByRole("heading").innerText()) === "Lista de espera", "Abre la lista como pantalla interna");
+    await page.locator("[data-hoja-cabecera]").last().getByRole("button", { name: "Volver" }).click();
+    await esperar(page, 400);
+    await page.locator("[data-a-tu-historia]").click();
+    await page.getByRole("heading", { name: "Tu historia" }).waitFor({ timeout: 6000 });
+    ok((await paneles(page).count()) === 2, "«A tu historia» abre «Tu historia» encima");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
   {
     const { ctx, page, errores } = await pagina(ancho, MICHEL);
-    await page.goto(`${URL}/catalogo/${OUD_MICHEL}/editar`);
-    await page.locator('[data-fila-plegable="descripcion"]').waitFor();
-    await page.waitForTimeout(700);
-    ok((await page.getByRole("heading", { name: "Detalles", exact: true }).count()) === 1, "El producto de Michel conserva sus Detalles");
-    // Un producto de Michel sin presentaciones: el control de stock y el historial de siempre dentro de la tarjeta.
-    await page.goto(`${URL}/catalogo`);
-    await page.waitForSelector('main ul li a[href^="/catalogo/"]');
-    const ids = await page.$$eval('main ul li a[href^="/catalogo/"]', (a) => a.map((x) => x.getAttribute("href")));
-    let visto = false;
-    for (const h of ids.slice(0, 12)) {
-      await page.goto(`${URL}${h}/editar`);
-      await page.locator("[data-tarjeta-stock]").waitFor();
-      await page.waitForTimeout(400);
-      if ((await page.locator('section[aria-label="Inventario"]').count()) === 1) { visto = true; break; }
-    }
-    ok(visto && (await page.locator("[data-tarjeta-stock] section[aria-label=\"Inventario\"]").count()) === 1, "Sin presentaciones: el control de stock de siempre va dentro de la tarjeta");
-    ok((await page.getByRole("button", { name: /Ver historial/ }).count()) >= 1, "…con su historial de ajustes");
-    ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
-    await ctx.close();
-  }
-
-  console.log("• Ayudante: lo ve apagado y dice por qué");
-  {
-    const { ctx, page } = await pagina(ancho, LINO);
-    await page.goto(`${URL}/catalogo`);
-    await page.waitForSelector('header button[aria-haspopup="dialog"]');
-    await page.waitForTimeout(900);
-    await page.locator('header button[aria-haspopup="dialog"]').first().tap();
-    await page.waitForSelector("[data-tienda-activa]");
-    await page.waitForTimeout(500);
-    await page.locator('[data-mirar-como] [role="radio"]:has-text("Ayudante")').tap();
-    await page.waitForTimeout(500);
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(500);
-    await page.goto(`${URL}/catalogo/${PANTALON}/editar`);
-    await page.waitForSelector("[data-sin-permiso]");
-    ok(await page.getByRole("button", { name: "Guardar cambios", exact: true }).isDisabled(), "Ayudante: «Guardar cambios» apagado");
-    ok((await page.locator("[data-sin-permiso]").first().innerText()).includes("Esto lo hace quien administra la tienda."), "…con «Esto lo hace quien administra la tienda.»");
+    await abrirVista(page, KURT);
+    const panel = arriba(page);
+    const alto = (await panel.boundingBox()).height;
+    await page.locator("[data-stock-plegable] button[aria-expanded]").click();
+    await esperar(page, 300);
+    const alto2 = (await panel.boundingBox()).height;
+    ok(alto2 > alto, `Al abrir el stock la hoja crece (${Math.round(alto)} → ${Math.round(alto2)})`);
+    const hueco = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); return c.scrollHeight - c.clientHeight; });
+    ok(hueco <= 1 || alto2 >= 844 - 80, "Sin espacio vacío debajo (mide su contenido)");
+    const antes = (await producto(page, KURT))?.stock ?? 1;
+    await page.getByRole("button", { name: /^Disminuir stock de/ }).click();
+    await captura(page, "ver-producto/2-stock-abierto", ancho);
+    await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+    await page.getByText("¿Por qué baja el stock?").waitFor();
+    ok((await paneles(page).count()) === 2, "Bajar pide motivo en su hoja");
+    await arriba(page).getByText("Corrección de inventario", { exact: true }).click();
+    await page.getByRole("button", { name: "Guardar ajuste" }).click();
+    ok(await toast(page, "Ajuste guardado. No cuenta como venta."), "Ajuste guardado");
+    await esperar(page, 600);
+    ok((await producto(page, KURT)).stock === antes - 1, "El stock bajó uno");
+    await abrirVista(page, KURT);
+    ok((await page.locator("[data-stock-plegable]").getAttribute("data-abierto")) === null, "Al volver a abrir, el stock empieza cerrado otra vez");
+    await abrirVista(page, OUD);
+    await page.locator("[data-stock-plegable] button[aria-expanded]").click();
+    await esperar(page, 300);
+    ok((await page.locator("[data-fila-stock]").count()) === 3, "Hasta 3 presentaciones: una fila − / + por cada una");
+    await abrirVista(page, URBAN);
+    ok((await page.locator("[data-franja-espera]").innerText()).includes("2 personas lo esperan"), "«2 personas lo esperan»");
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
 }
+
 await navegador.close();
-console.log("\nTodo bien.");
+console.log("\nListo.");

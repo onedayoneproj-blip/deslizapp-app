@@ -3,7 +3,9 @@
 import { use } from "react";
 import { HojaProducto } from "@/components/catalogo/hoja-producto";
 
-export default function EditarProductoPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditarProductoPage({ params, searchParams }: PageProps<"/catalogo/[id]/editar">) {
   const { id } = use(params);
-  return <HojaProducto productoId={id} desdeVistaPrevia />;
+  // «Ver producto» con más de 3 presentaciones lleva al Inventario: ?abrir=stock.
+  const { abrir } = use(searchParams);
+  return <HojaProducto productoId={id} desdeVistaPrevia abrirStock={abrir === "stock"} />;
 }

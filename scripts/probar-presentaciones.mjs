@@ -92,12 +92,12 @@ const pasoHistoria = async (page, boton) => {
 };
 const editar = async (page, id) => {
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.locator("[data-cosas-que-cambian]").waitFor();
+  await page.locator("[data-editar-producto] li").first().waitFor();
   await page.waitForTimeout(500);
 };
 const abrirFlujo = async (page) => {
   if (await enHistoria(page)) await abrirTipicas(page);
-  else await page.getByRole("button", { name: /^Presentaciones/ }).click();
+  else await page.locator("[data-editar-producto] li button").filter({ hasText: /^Presentaciones/ }).first().click();
   await hoja(page).locator("[data-paso]").waitFor();
   await page.waitForTimeout(450);
 };
@@ -139,7 +139,8 @@ const sumar = async (page, etiqueta, n, dentro) => {
 };
 /** El resumen de stock y presentaciones: la tarjeta de la hoja de producto o, en la historia, el chip y la pregunta del stock (ida y vuelta). */
 const tarjetaStock = async (page) => {
-  if (!(await enHistoria(page))) return page.locator("[data-tarjeta-stock]").innerText();
+  // Editar es un resumen: las filas Presentaciones («Talla y color · 9») y Stock («8 en total»).
+  if (!(await enHistoria(page))) return (await page.locator("[data-editar-producto] section").filter({ hasText: /^Presentaciones/ }).innerText()).replace(/\s+/g, " ");
   const chip = await page.locator("[data-chip-presentaciones]").innerText();
   await pasoHistoria(page, "Seguir");
   const stock = await page.locator("[data-historia-producto]").innerText();
@@ -307,7 +308,7 @@ for (const ancho of ANCHOS) {
     const { p, variantes } = await productoDe(page, "Aros dobles");
     ok(p && variantes.length === 4 && variantes.filter((v) => v.stock === 3).length === 1 && p.stock === 4 && p.opciones[0].nombre === "Color", "15 · Se publicó con 4 presentaciones, su stock y el color primero");
     await editar(page, p.id);
-    ok((await tarjetaStock(page)).includes("4 presentaciones · 4 en total"), "15 · Reabrir lo muestra igual");
+    ok((await tarjetaStock(page)).includes("Color y tamaño · 4") && (await tarjetaStock(page)).includes("4 en total"), "15 · Reabrir lo muestra igual («Color y tamaño · 4», «4 en total»)");
     await abrirFlujo(page);
     await hoja(page).getByRole("button", { name: "Cerrar", exact: true }).click();
     await page.waitForTimeout(500);
@@ -350,7 +351,7 @@ for (const ancho of ANCHOS) {
     ok(await hoja(page).getByRole("button", { name: /^Listo · 8 en total/ }).isEnabled(), "Cuadra: «Listo · 8 en total» se prende");
     await captura(page, "10-reparte-cuadra", ancho);
     await listo(page);
-    ok((await tarjetaStock(page)).includes("Color · 3") && (await tarjetaStock(page)).includes("Talla · 3") && (await tarjetaStock(page)).includes("9 presentaciones · 8 en total"), "La hoja: «Color · 3», «Talla · 3», «9 presentaciones · 8 en total»");
+    ok((await tarjetaStock(page)).includes("Color y talla · 9") && (await tarjetaStock(page)).includes("8 en total"), "El resumen: «Color y talla · 9» y «8 en total»");
     await guardarCambios(page);
     const g = await productoDe(page, "Pulsera trenzada");
     ok(g.variantes.filter((v) => v.activa).length === 9 && g.p.stock === 8 && g.variantes.every((v) => !Object.values(v.valores).some((x) => /^Sin /.test(x))), "Guardado: 9 combinaciones, 8 unidades y ningún «Sin talla»");
@@ -362,7 +363,7 @@ for (const ancho of ANCHOS) {
     console.log("• 1 y 1b · Stock simple → presentaciones: lo que había se reparte y nada se pierde en silencio");
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await editar(page, CINTURON);
-    ok((await tarjetaStock(page)).includes("Inventario") || (await tarjetaStock(page)).includes("14"), "1 · Un producto sin presentaciones sigue con su stock de siempre (14)");
+    ok((await tarjetaStock(page)).includes("14 en total") && (await tarjetaStock(page)).includes("Presentaciones Agregar"), "1 · Un producto sin presentaciones sigue con su stock de siempre (14)");
     await abrirFlujo(page);
     await vaciarCosas(page);
     await elegirCosa(page, "Color", ["Negro", "Beige", "Marrón"]);
@@ -433,7 +434,7 @@ for (const ancho of ANCHOS) {
     await hoja(page).getByRole("button", { name: "Volver a un solo stock" }).click();
     await page.getByRole("button", { name: "Sí, cambiar" }).click();
     await page.waitForTimeout(600);
-    ok((await page.getByRole("button", { name: /^Presentaciones/ }).innerText()).includes("Talla, color, tamaño"), "7b · Vuelve el stock simple y la fila invita a crear presentaciones");
+    ok((await tarjetaStock(page)).includes("Presentaciones Agregar"), "7b · Vuelve el stock simple y la fila invita a crear presentaciones («Agregar»)");
     ok(errores.length === 0, `Sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
