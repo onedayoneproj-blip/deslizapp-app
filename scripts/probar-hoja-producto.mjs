@@ -384,6 +384,37 @@ for (const ancho of ANCHOS) {
       await ctx.close();
     }
 
+    console.log("• Cambiar un color quita su foto; los demás colores la conservan (regla de Lewis)");
+    {
+      const { ctx, page, errores } = await pagina(ancho, LINO);
+      await abrirEditar(page, PANTALON);
+      await tocarFila(page, "Presentaciones");
+      await arriba(page).getByRole("button", { name: "Cambiar qué cambia" }).click();
+      await esperar(page, 300);
+      const color = arriba(page).locator('[data-eje="Color"]');
+      await color.getByRole("checkbox", { name: "Negro", exact: true }).click();
+      await color.getByRole("checkbox", { name: "Blanco", exact: true }).click();
+      await arriba(page).getByRole("button", { name: /^Siguiente/ }).click();
+      await esperar(page, 400);
+      if (await page.getByRole("button", { name: "Sí, cambiar" }).count()) await page.getByRole("button", { name: "Sí, cambiar" }).click();
+      await esperar(page, 300);
+      await arriba(page).getByRole("button", { name: /^Listo ·/ }).click();
+      await esperar(page, 600);
+      await guardar(page).click();
+      await esperar(page, 600);
+      if (await page.getByRole("heading", { name: "¿Por qué baja el stock?" }).count()) {
+        await arriba(page).getByRole("radio", { name: "Corrección de inventario" }).click();
+        await arriba(page).getByRole("button", { name: "Guardar ajuste" }).click();
+      }
+      ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
+      await esperar(page, 900);
+      const fpv = (await producto(page, PANTALON)).fotosPorValor?.Color ?? {};
+      ok(!("Negro" in fpv) && !("Blanco" in fpv), `El color que cambió (Negro → Blanco) no se queda con la foto vieja (${JSON.stringify(fpv)})`);
+      ok(fpv.Arena?.endsWith("arena.svg") && fpv.Verde?.endsWith("verde.svg"), "Arena y Verde conservan su foto");
+      ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+      await ctx.close();
+    }
+
     console.log("• «Compartir» sin foto: avisa en vez de abrir una hoja que no puede hacer la imagen");
     {
       const { ctx, page } = await pagina(ancho, LINO, { cambiar: `const p = db.productos.find((x) => x.id === "${CINTURON}"); p.fotos = []; p.medios = [];` });
