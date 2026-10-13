@@ -32,8 +32,8 @@ await page.addInitScript((tienda) => {
   localStorage.setItem("deslizapp-sesion-v1", tienda);
 }, MICHEL);
 await page.goto(`${URL}/catalogo`);
-await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
-await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
+await page.waitForSelector('[aria-label^="Compartir"][aria-label$="en tu estado"]');
+await page.locator('[aria-label^="Compartir"][aria-label$="en tu estado"]').first().click();
 await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
 
 const GRUPO_DE = { ultimas: "Básicos", nuevo: "Básicos", aaah: "Marca", "te-amo": "Temporadas", halloween: "Temporadas", "mas-vendido": "Básicos" };

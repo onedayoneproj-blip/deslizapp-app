@@ -448,16 +448,20 @@ export function FlujoPresentaciones({
       alCerrar={alCerrar}
       titulo={nombreHoja}
       altura="grande"
-      avisarAlSalir={cambios}
-      fijoArriba={
-        <div data-paso-presentaciones={paso} className="flex flex-col gap-2">
-          <p className="text-secundario font-extrabold text-texto-secundario">Paso {paso} de 2</p>
-          <div aria-hidden="true" className="flex gap-1.5">
+      // Se abre encima de «Editar producto» (máximo dos hojas): la cabecera de sus pasos (✕ a la izquierda), 40 px más abajo, y lo
+      // que hoy sería una tercera hoja (una presentación, la foto de cada color) es una pantalla interna con «‹».
+      hueco={118}
+      anidarHojas
+      historia={{
+        alLadoDelTitulo: <span className="ml-auto shrink-0 text-secundario text-texto-secundario">Paso {paso} de 2</span>,
+        avance: (
+          <div data-paso-presentaciones={paso} aria-hidden="true" className="flex gap-1.5">
             <i className="h-1 flex-1 rounded-full bg-accion" />
             <i className={clases("h-1 flex-1 rounded-full", paso === 2 ? "bg-accion" : "bg-linea")} />
           </div>
-        </div>
-      }
+        ),
+      }}
+      avisarAlSalir={cambios}
     >
       {paso === 1 ? (
         <div className="flex flex-col gap-5 pb-24" data-paso="que-cambia">

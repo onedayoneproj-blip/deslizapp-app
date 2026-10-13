@@ -27,8 +27,6 @@ test("las pastillas de «Presentaciones»", () => {
 });
 
 test("el stock con presentaciones", () => {
-  assert.equal(H.resumenStockPresentaciones(6, 18), "6 presentaciones · 18 en total");
-  assert.equal(H.resumenStockPresentaciones(1, 3), "1 presentación · 3 en total");
 });
 
 test("el resumen de la descripción corta en una palabra entera", () => {
@@ -70,4 +68,18 @@ test("vista previa: el borrador se ve como el catálogo lo lee (precio, presenta
   assert.equal(con.variantes[1].disponibilidad, "agotado");
   assert.equal(con.disponibilidad, "hay", "con 5 en una, el producto no está agotado");
   assert.equal(V.productoPublicoDeBorrador({ ...base, opciones: [color], presentaciones: pres.map((p) => ({ ...p, stock: 0 })) }).disponibilidad, "agotado");
+});
+
+test("Editar: los resúmenes de las filas y la pregunta del motivo al bajar stock", () => {
+  assert.equal(H.resumenPresentaciones([], 0), "Agregar");
+  assert.equal(H.resumenPresentaciones([{ nombre: "Talla", valores: ["S", "M"] }, { nombre: "Color", valores: ["Blanco", "Arena", "Negro"] }], 6), "Talla y color · 6");
+  assert.equal(H.resumenPresentaciones([{ nombre: "Tamaño", valores: ["30 ml"] }], 1), "Tamaño · 1");
+  assert.equal(H.resumenStock(14), "14 en total");
+  assert.equal(H.resumenStock(null), "0 en total");
+  assert.equal(H.preguntaBajada([]), null);
+  assert.equal(H.preguntaBajada([{ donde: "Blanco · M", unidades: 2 }]), "Bajaste 2 en Blanco · M. ¿Qué pasó?");
+  assert.equal(H.preguntaBajada([{ donde: null, unidades: 1 }]), "Bajaste 1. ¿Qué pasó?");
+  assert.equal(H.preguntaBajada([{ donde: "Blanco · M", unidades: 2 }, { donde: "Arena · S", unidades: 1 }, { donde: "L", unidades: 0 }]), "Bajaste 3 en 2 presentaciones. ¿Qué pasó?");
+  assert.equal(H.ayudaConAntes("RD$1,450", "RD$1,650", "x"), "Antes: RD$1,450.");
+  assert.equal(H.ayudaConAntes("RD$1,450", "RD$1,450", "x"), "x");
 });

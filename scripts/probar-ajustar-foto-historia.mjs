@@ -66,8 +66,8 @@ async function abrirHoja(forma, ancho, alto, { sinFiltro = false } = {}) {
   const jpeg = Buffer.from((await fotoDePrueba(page, ancho, alto)).split(",")[1], "base64");
   await page.route(/\/(seed\/productos|catalogos\/esencias-michel\/fotos)\/[^?]*\.(svg|jpg|webp|png)/, (r) => r.fulfill({ status: 200, contentType: "image/jpeg", body: jpeg }));
   await page.goto(`${URL}/catalogo`);
-  await page.waitForSelector('[aria-label^="Agregar"][aria-label$="a historia"]');
-  await page.locator('[aria-label^="Agregar"][aria-label$="a historia"]').first().click();
+  await page.waitForSelector('[aria-label^="Compartir"][aria-label$="en tu estado"]');
+  await page.locator('[aria-label^="Compartir"][aria-label$="en tu estado"]').first().click();
   await page.getByRole("button", { name: "Vista previa" }).waitFor();
   await page.waitForSelector(`img[alt^="Vista previa"]`, { timeout: 20000 });
   return { ctx, page, errores };

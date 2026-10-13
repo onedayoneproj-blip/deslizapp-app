@@ -8,6 +8,16 @@ import { execSync } from "node:child_process";
 import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
+
+/** Editar es un resumen: las fotos viven en la pantalla «Fotos», que se abre encima desde su fila. */
+async function abrirFotosEditar(page) {
+  await page.locator("[data-editar-producto] li").first().waitFor();
+  await page.waitForTimeout(400);
+  await page.locator("[data-editar-producto] li button").filter({ hasText: /^Fotos/ }).first().click();
+  await page.locator('[data-paso-editar="fotos"]').waitFor();
+  await page.waitForTimeout(400);
+}
+
 let playwright;
 try {
   playwright = require("playwright");
@@ -109,7 +119,7 @@ await caso("1. Sin marca: el menú dice qué falta y «Retocar» de una foto gua
   await esperar(page);
   const id = await primerProducto(page);
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.waitForSelector("[data-entrada-medios]");
+  await abrirFotosEditar(page);
   await abrirFoto(page, 1);
   const d = dialogoFoto(page);
   if (process.env.VERBOSO) console.log(JSON.stringify(await d.innerText()));
@@ -218,7 +228,7 @@ await caso("4. Bienvenida (Luna, marca lista): primera vez antes de reservar; ca
   const { page } = c;
   const id = await primerProducto(page);
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.waitForSelector("[data-entrada-medios]");
+  await abrirFotosEditar(page);
   await esperar(page, 500);
   await abrirFoto(page, 1);
   const d = dialogoFoto(page);
@@ -304,7 +314,7 @@ await caso("6. Movimiento reducido: la bienvenida muestra el resultado directo (
   const { page } = c;
   const id = await primerProducto(page);
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.waitForSelector("[data-entrada-medios]");
+  await abrirFotosEditar(page);
   await esperar(page, 500);
   await abrirFoto(page, 1);
   await dialogoFoto(page).getByRole("button", { name: "Retocar", exact: true }).click();
@@ -331,7 +341,7 @@ await caso("7. Con movimiento normal la escena corre una vez y solo anima transf
   const { page } = c;
   const id = await primerProducto(page);
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.waitForSelector("[data-entrada-medios]");
+  await abrirFotosEditar(page);
   await esperar(page, 500);
   await abrirFoto(page, 1);
   await dialogoFoto(page).getByRole("button", { name: "Retocar", exact: true }).click();
@@ -356,7 +366,7 @@ await caso("8. Admin demo (Trabajo › Fotos): «Su marca», sin marca lo dice, 
   const { page } = c;
   const id = await primerProducto(page);
   await page.goto(`${URL}/catalogo/${id}/editar`);
-  await page.waitForSelector("[data-entrada-medios]");
+  await abrirFotosEditar(page);
   await esperar(page, 500);
   await abrirFoto(page, 1);
   await dialogoFoto(page).getByRole("button", { name: "Retocar", exact: true }).click();

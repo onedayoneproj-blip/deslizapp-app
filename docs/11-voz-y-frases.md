@@ -81,6 +81,17 @@ Son ejemplos redactados con las reglas de arriba. Si una se aprueba y se usa, qu
 | Publicar más tarde (reloj junto a «Publicar») | «¿Publicar más tarde?» · «Se guarda oculto. Lo encuentras en Catálogo > Ocultos para publicarlo cuando quieras.» · «Guardar para después» (también el principal cuando no se puede publicar) |
 | Foto subida | "Sube la foto del celular, nosotros le ponemos la luz." (ya existe) |
 
+### Editar y ver producto (13 oct 2026)
+- «así se ve en tu catálogo» (tarjeta del resumen) · «Guardar cambios» · «Listo».
+- «¿Cuántos tienes ahora?» / «Cuéntalos como están hoy en tu casa o tu tienda.»
+- «Bajaste 2 en Blanco · M. ¿Qué pasó?» · «Bajaste 3 en 2 presentaciones. ¿Qué pasó?» · «No cuenta como venta. Queda en el historial.»
+- «Antes: RD$1,450.» (ayuda de un paso cuando el valor cambió) · «Antes: 9.» (stock).
+- «Cada presentación tiene su precio: se cambia en Presentaciones.» (precio que varía).
+- «Agregar» (fila sin valor) · «Talla y color · 6» · «14 en total».
+- «3 personas lo esperan» / «1 persona lo espera» (franja de Ver producto).
+- «Compartir» (píldora de la foto y de la tarjeta del Catálogo) · «Súbelo a tu estado» (título de la hoja que antes era «Tu historia»).
+- «Cambiaste el stock. Guárdalo para que cuente.» (Ver producto, stock de presentaciones sin guardar).
+
 ## 5. Cómo se usa
 
 1. Antes de escribir un texto de la app, mira §2 y §3.

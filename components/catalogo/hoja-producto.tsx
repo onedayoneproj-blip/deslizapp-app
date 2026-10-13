@@ -2,111 +2,116 @@
 
 import { usePermisos } from "@/lib/data/permisos";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal, flushSync } from "react-dom";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { mensajeDeError } from "@/lib/data/errores";
 import { useData } from "@/lib/data/provider";
-import { rubrosDeTienda, tipoDeProducto, type Detalles, type Rubro } from "@/lib/rubros";
-import { CATALOGO_GENERAL, contarPorCatalogo, leerCatalogoActivo, rubroInicialDeProducto } from "@/lib/catalogo-activo";
-import { SelectorCatalogo } from "./selector-catalogo";
-import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
-import type { FotosPorValor, MotivoAjusteInventario, Producto } from "@/lib/types";
-import { textoEspera } from "@/lib/avisos";
+import { colorPorNombre, esEjeColor } from "@/lib/colores";
+import { textoCombinacion } from "@/lib/presentaciones";
+import type { MotivoAjusteInventario, Producto, Variante } from "@/lib/types";
 import { ListaEsperaProducto } from "./hoja-espera";
-import { flushSync } from "react-dom";
-import { BotonVolver } from "../selector-busqueda";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoArriba, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
 import { formatearPesos } from "@/lib/formato";
-import { IconoChevronDerecha, IconoEtiqueta, IconoReloj } from "../iconos";
+import { IconoChevronAbajo, IconoChevronArriba, IconoChevronDerecha, IconoEtiqueta, IconoHistoria, IconoReloj } from "../iconos";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
-import { precioConPromo } from "@/lib/promos";
+import { precioConPromo, type PrecioConPromo } from "@/lib/promos";
+import { textoPersonasLoEsperan } from "@/lib/hoja-producto";
 import { Boton, Campo, Cantidad, Etiqueta, FilaAgregar, FilaLista, GrupoOpciones, Interruptor, ListaAgrupada, useToastUI } from "../ui";
-import { agregarFotoAlBorrador, conEntregadas, mediosIniciales, mediosParaGuardar, SeccionMedios, type MedioBorrador } from "./ficha-medios";
-import { useTaller } from "./taller";
-import { claveVariante, ejeDeFoto, presentacionesDe, preciosVarian, resumenDe, type EstadoPresentaciones } from "@/lib/presentaciones";
-import { puedePublicar, resumenDescripcion, resumenEncargo, resumenStockPresentaciones } from "@/lib/hoja-producto";
-import { FilaPlegable, HojaComoSeVe } from "./hoja-producto-filas";
-import type { DatosVistaPrevia } from "../tienda/vista-previa-reel";
-import { productoPublicoDeBorrador, tiendaPublicaDe } from "@/lib/vista-previa-producto";
-import { HojaMotivoVariantes, SeccionPresentaciones } from "./ficha-presentaciones";
-import { useGuardarProducto, variantesParaGuardar } from "./guardar-producto";
-import { SeccionDetalles, sugerenciasDeDetalles } from "./ficha-detalles";
-import { fichaVisible, tieneDetallesPorRubro, type BorradorFicha } from "@/lib/ficha-tecnica";
-import { SeccionDescripcion, SeccionFichaTecnica } from "./ficha-tecnica";
+import { clases, FOCO } from "../ui/comunes";
+import { EditarProducto } from "./editar-producto";
+import { HojaMotivoVariantes } from "./ficha-presentaciones";
+import { HojaHistoria } from "./hoja-historia";
+import { ConfirmacionInventario, HistorialInventario, useHistorialInventario, useInventarioPendiente } from "./inventario-producto";
 
-import { ControlInventario, ConfirmacionInventario, HistorialInventario, InventarioVistaPrevia, useInventarioPendiente, useHistorialInventario } from "./inventario-producto";
+/** Las pantallas internas de una hoja de producto: el historial de ajustes o la lista de espera. */
+function usePantallaInterna() {
+  const historial = useHistorialInventario();
+  const [vista, setVista] = useState<"historial" | "espera">("historial");
+  const ver = (boton: HTMLButtonElement, v: "historial" | "espera") => {
+    flushSync(() => setVista(v));
+    historial.abrir(boton);
+  };
+  return { ...historial, vista, ver, titulo: vista === "espera" ? "Lista de espera" : "Historial de ajustes" };
+}
 
 /**
- * Hoja de producto sobre el Catálogo. Sin `productoId` crea; con `productoId` edita.
- * Al cerrar vuelve a /catalogo sin perder la búsqueda ni el filtro (los guarda el layout).
+ * Editar producto (docs/prompts/editar-producto-2-resumen.md): la hoja grande con la cabecera de la historia sin barras (✕, «Editar
+ * producto» y el selector de catálogo) y el resumen (`EditarProducto`). Al cerrar vuelve a la vista del producto si se entró desde
+ * ahí, o a /catalogo sin perder la búsqueda ni el filtro (los guarda el layout). Crear es la historia (`historia-producto.tsx`).
  */
-export function HojaProducto({ productoId, desdeVistaPrevia = false }: { productoId?: string; desdeVistaPrevia?: boolean }) {
+export function HojaProducto({ productoId, desdeVistaPrevia = false, abrirStock = false }: { productoId: string; desdeVistaPrevia?: boolean; abrirStock?: boolean }) {
   const router = useRouter();
-  const historial = useHistorialInventario();
+  const interna = usePantallaInterna();
   const { getProducto, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
   const cerrar = useCallback(() => setAbierta(false), []);
   const eliminado = useRef(false);
   const [retirando, setRetirando] = useState(false);
-  const alSalir = useCallback(() => router.push(!eliminado.current && desdeVistaPrevia && productoId ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }), [router, desdeVistaPrevia, productoId]);
+  const [ranuraCatalogo, setRanuraCatalogo] = useState<HTMLSpanElement | null>(null);
+  const alSalir = useCallback(() => router.push(!eliminado.current && desdeVistaPrevia ? `/catalogo/${productoId}` : "/catalogo", { scroll: false }), [router, desdeVistaPrevia, productoId]);
 
-
-  const { data: producto, cargando, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId ?? "nuevo"}`, () =>
-    productoId ? getProducto(tiendaId, productoId) : Promise.resolve(null),
-  );
+  const { data: producto, cargando, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: productos, error: errorProductos, reintentar: reintentarProductos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
 
-  const editando = Boolean(productoId);
-  const tituloFicha = editando ? "Editar producto" : "Nuevo producto";
-  const titulo = historial.abierto ? "Historial de ajustes" : tituloFicha;
+  const hoja = (contenido: ReactNode, conRanura = false) => (
+    <Hoja
+      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras altura="grande" alVolverInterno={interna.volver}
+      titulo={interna.abierto ? interna.titulo : "Editar producto"}
+      historia={{ alLadoDelTitulo: conRanura ? <span ref={setRanuraCatalogo} className="flex min-w-0 flex-1 justify-end" /> : undefined, volver: interna.abierto ? interna.volver : undefined }}
+    >
+      {contenido}
+    </Hoja>
+  );
 
-  // Editar: esperar a tener el producto (y avisar si no es de esta tienda).
-  if (editando && producto === undefined && cargando) {
-    return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoCargando titulo="producto" /></Hoja>;
-  }
-  if (editando && error) {
-    return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoConError alCerrar={alSalir} alReintentar={reintentar} textoVolver="Volver al catálogo" /></Hoja>;
-  }
-  if (errorProductos) {
-    return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoConError alCerrar={alSalir} alReintentar={reintentarProductos} textoVolver={desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"} /></Hoja>;
-  }
-  if (editando && (!producto || (producto.eliminadoEn && !retirando))) {
-    return (
-      <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}>
-        <div className="py-6 text-center">
-          <p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p>
-          {!producto?.eliminadoEn && <p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p>}
-          <button type="button" onClick={() => { eliminado.current = Boolean(producto?.eliminadoEn); cerrar(); }} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
-            {!producto?.eliminadoEn && desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"}
-          </button>
-        </div>
-      </Hoja>
+  // Esperar a tener el producto (y avisar si no es de esta tienda).
+  if (producto === undefined && cargando) return hoja(<CuerpoCargando titulo="producto" />);
+  if (error) return hoja(<CuerpoConError alCerrar={alSalir} alReintentar={reintentar} textoVolver="Volver al catálogo" />);
+  if (errorProductos) return hoja(<CuerpoConError alCerrar={alSalir} alReintentar={reintentarProductos} textoVolver={desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"} />);
+  if (!producto || (producto.eliminadoEn && !retirando)) {
+    return hoja(
+      <div className="py-6 text-center">
+        <p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p>
+        {!producto?.eliminadoEn && <p className="mt-1 text-suave">Quizá es de otra tienda. Los productos no se mezclan.</p>}
+        <button type="button" onClick={() => { eliminado.current = Boolean(producto?.eliminadoEn); cerrar(); }} className="mt-5 h-12 w-full rounded-full bg-bosque font-extrabold text-papel">
+          {!producto?.eliminadoEn && desdeVistaPrevia ? "Volver al producto" : "Volver al catálogo"}
+        </button>
+      </div>,
     );
   }
-  if (!productos) return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo={titulo}><CuerpoCargando titulo="productos" /></Hoja>;
+  if (!productos) return hoja(<CuerpoCargando titulo="productos" />);
 
-  return (
-    <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={titulo} altura="grande"
-      fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta={`Volver a ${tituloFicha}`} /><span aria-hidden="true">{tituloFicha}</span></div> : undefined}>
-      <div className={historial.abierto ? "hidden" : "contents"}>
-        <FormularioProducto key={`${tiendaId}:${producto?.id ?? "nuevo"}`} producto={producto ?? null} productos={productos} alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)} alVerHistorial={historial.abrir} historialAbierto={historial.abierto} />
+  return hoja(
+    <>
+      <div className={interna.abierto ? "hidden" : "contents"}>
+        <EditarProducto
+          key={`${tiendaId}:${producto.id}`} producto={producto} productos={productos} ranuraCatalogo={ranuraCatalogo} internaAbierta={interna.abierto} abrirStock={abrirStock}
+          alTerminar={cerrar} alEliminar={() => { eliminado.current = true; cerrar(); }} alIniciarEliminacion={() => setRetirando(true)}
+          alVerHistorial={(b) => interna.ver(b, "historial")} alVerEspera={(b) => interna.ver(b, "espera")}
+        />
       </div>
-      {productoId && historial.visitado && <div className={historial.abierto ? "" : "hidden"}><HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/></div>}
-    </Hoja>
+      {interna.visitado && (
+        <div className={interna.abierto ? "" : "hidden"}>
+          {interna.vista === "espera" ? <ListaEsperaProducto key={`${tiendaId}:${productoId}`} producto={producto} /> : <HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId} />}
+        </div>
+      )}
+    </>,
+    true,
   );
 }
 
-/** Lectura compacta; el inventario mantiene un borrador independiente. */
+/**
+ * Ver producto (referencia `referencias/editar-producto/Vista-A.dc.html`): la cabecera con ✕, el nombre y «Editar»; la vista previa
+ * grande con todas las fotos; la lista de espera si hay; Visible, el Stock plegable y el Historial. Mide lo que mide su contenido.
+ */
 export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const router = useRouter();
-  const historial = useHistorialInventario();
-  const [vistaInterna, setVistaInterna] = useState<"historial" | "espera">("historial");
-  const verInterna = (boton: HTMLButtonElement, vista: "historial" | "espera") => { flushSync(() => setVistaInterna(vista)); historial.abrir(boton); };
+  const interna = usePantallaInterna();
   const { getProducto, getPromos, getProductos } = useData();
   const { tiendaId } = useTiendaActiva();
   const [abierta, setAbierta] = useState(true);
@@ -114,19 +119,93 @@ export function HojaVistaProducto({ productoId }: { productoId: string }) {
   const cerrar = useCallback(() => setAbierta(false), []);
   const alSalir = useCallback(() => router.push(destino.current, { scroll: false }), [router]);
   const navegar = (ruta: string) => { destino.current = ruta; setAbierta(false); };
+  const [ranura, setRanura] = useState<HTMLSpanElement | null>(null);
   const { data: producto, error, reintentar } = useConsulta(`producto:${tiendaId}:${productoId}`, () => getProducto(tiendaId, productoId));
   const { data: promos, error: errorPromos, reintentar: reintentarPromos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const lista = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId), true);
-  return <Hoja abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={historial.volver} titulo={historial.abierto ? (vistaInterna === "espera" ? "Lista de espera" : "Historial de ajustes") : producto?.nombre ?? "Producto"} altura="auto"
-    fijoArriba={historial.abierto ? <div data-volver-historial className="flex items-center gap-2 text-sm font-extrabold text-bosque"><BotonVolver onClick={historial.volver} etiqueta="Volver a la vista previa del producto"/><span aria-hidden="true">{producto?.nombre ?? "Producto"}</span></div> : undefined}>
-    <div className={historial.abierto ? "hidden" : "contents"}>
-    {error || errorPromos ? <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo"/> : producto === undefined || promos === undefined ? <CuerpoCargando titulo="producto"/> : !producto || producto.eliminadoEn ? <div className="py-6 text-center"><p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p><button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button></div> : <ContenidoVistaProducto key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} productos={lista.data} cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} alVerHistorial={boton => verInterna(boton, "historial")} alVerEspera={boton => verInterna(boton, "espera")}/>}
-    </div>
-    {historial.visitado && <div className={historial.abierto ? "" : "hidden"}>{vistaInterna === "espera" && producto ? <ListaEsperaProducto key={`${tiendaId}:${productoId}`} producto={producto}/> : <HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId}/>}</div>}
-  </Hoja>;
+  return (
+    <Hoja
+      abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras alVolverInterno={interna.volver} altura="auto"
+      titulo={interna.abierto ? interna.titulo : producto?.nombre ?? "Producto"}
+      historia={{ tituloElipsis: true, alLadoDelTitulo: <span ref={setRanura} className="flex shrink-0 justify-end" />, volver: interna.abierto ? interna.volver : undefined }}
+    >
+      <div className={interna.abierto ? "hidden" : "contents"}>
+        {error || errorPromos ? (
+          <CuerpoConError alCerrar={cerrar} alReintentar={() => { reintentar(); reintentarPromos(); }} textoVolver="Volver al catálogo" />
+        ) : producto === undefined || promos === undefined ? (
+          <CuerpoCargando titulo="producto" />
+        ) : !producto || producto.eliminadoEn ? (
+          <div className="py-6 text-center">
+            <p className="font-display text-xl">{producto?.eliminadoEn ? "Producto eliminado. Su historial se conserva." : "Este producto no vive aquí."}</p>
+            <button type="button" onClick={cerrar} className="tocable mt-4 min-h-11 font-bold">Volver al catálogo</button>
+          </div>
+        ) : (
+          <ContenidoVistaProducto
+            key={`${tiendaId}:${productoId}`} producto={producto} precio={precioConPromo(producto, promos)} promos={promos} productos={lista.data}
+            cargandoProductos={lista.cargando || lista.error} alNavegar={navegar} ranuraEditar={interna.abierto ? null : ranura} internaAbierta={interna.abierto}
+            alVerHistorial={(b) => interna.ver(b, "historial")} alVerEspera={(b) => interna.ver(b, "espera")}
+          />
+        )}
+      </div>
+      {interna.visitado && (
+        <div className={interna.abierto ? "" : "hidden"}>
+          {interna.vista === "espera" && producto ? <ListaEsperaProducto key={`${tiendaId}:${productoId}`} producto={producto} /> : <HistorialInventario key={`${tiendaId}:${productoId}`} productoId={productoId} />}
+        </div>
+      )}
+    </Hoja>
+  );
 }
 
-function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera }: { productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: ReturnType<typeof precioConPromo>; alNavegar: (ruta: string) => void; alVerEspera: (boton: HTMLButtonElement) => void; alVerHistorial: (boton: HTMLButtonElement) => void }) {
+/** Con más presentaciones que estas, abrir el Stock lleva al Inventario de editar. */
+const MAX_STOCK_EN_VISTA = 3;
+
+/**
+ * El borrador del stock de las presentaciones en la vista (hasta 3): tocar − / + no llama a la fuente; «Guardar cambios» ajusta cada
+ * una con su motivo (subir es reposición; bajar pide motivo), con las mismas llamadas que editar.
+ */
+function useStockPresentaciones(producto: Producto) {
+  const { ajustarStock } = useData();
+  const { tiendaId } = useTiendaActiva();
+  const activas = (producto.variantes ?? []).filter((v) => v.activa);
+  const [propuesta, setPropuesta] = useState<Record<string, number>>({});
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Cada ajuste se confirma por separado: si uno falla después de otro que sí entró, el que entró pasa a ser la base de esa
+  // presentación (hasta que llegue la relectura del producto), así que reintentar nunca lo aplica dos veces.
+  const [confirmados, setConfirmados] = useState<{ de: Producto; stock: Record<string, number> }>({ de: producto, stock: {} });
+  const yaConfirmado = confirmados.de === producto ? confirmados.stock : {};
+  const base = (v: Variante) => yaConfirmado[v.id] ?? v.stock;
+  const valor = (v: Variante) => propuesta[v.id] ?? base(v) ?? 0;
+  const cambiadas = activas.filter((v) => base(v) !== null && valor(v) !== base(v));
+  const bajan = cambiadas.reduce((t, v) => t + Math.max(0, (base(v) ?? 0) - valor(v)), 0);
+  const guardar = async (motivo: MotivoAjusteInventario, nota: string | null) => {
+    if (guardando) return false;
+    setGuardando(true);
+    setError(null);
+    try {
+      for (const v of cambiadas) {
+        const quiere = valor(v);
+        const delta = quiere - (base(v) ?? 0);
+        await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivo, delta > 0 ? null : nota, v.id);
+        setConfirmados((c) => ({ de: producto, stock: { ...(c.de === producto ? c.stock : {}), [v.id]: quiere } }));
+      }
+      setPropuesta({});
+      return true;
+    } catch (e) {
+      setError(mensajeDeError(e, "No pudimos guardar el ajuste. Revisa el producto y su historial antes de repetirlo."));
+      return false;
+    } finally {
+      setGuardando(false);
+    }
+  };
+  return { activas, valor, pendiente: cambiadas.length > 0, bajan, guardando, error, poner: (id: string, n: number) => setPropuesta((p) => ({ ...p, [id]: n })), descartar: () => setPropuesta({}), guardar };
+}
+
+function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera, ranuraEditar, internaAbierta }: {
+  productos: Producto[] | undefined; cargandoProductos: boolean; producto: Producto; precio: PrecioConPromo; promos: Parameters<typeof HojaHistoria>[0]["promos"];
+  alNavegar: (ruta: string) => void; alVerEspera: (boton: HTMLButtonElement) => void; alVerHistorial: (boton: HTMLButtonElement) => void;
+  ranuraEditar: HTMLElement | null; internaAbierta: boolean;
+}) {
   const toast = useToast();
   const { actualizarProducto } = useData();
   const { puede, porque } = usePermisos();
@@ -152,467 +231,230 @@ function ContenidoVistaProducto({ producto, precio, productos, cargandoProductos
     finally { enviandoVisible.current = false; setGuardandoVisible(false); }
   };
   const inventario = useInventarioPendiente(producto);
-  useAvisarAlSalir(inventario.pendiente || inventario.incierto);
+  const variantes = useStockPresentaciones(producto);
+  const [motivoVariantes, setMotivoVariantes] = useState(false);
+  // Cada bajada pide su motivo desde cero: la hoja se vuelve a montar al abrirse (no hereda el motivo del ajuste anterior).
+  const [vueltaMotivo, setVueltaMotivo] = useState(0);
+  const pendiente = inventario.pendiente || variantes.pendiente;
+  const guardandoStock = inventario.guardando || variantes.guardando;
+  useAvisarAlSalir(pendiente || inventario.incierto);
   const confirmarSalida = useConfirmarSalida();
   const navegar = (ruta: string) => confirmarSalida(() => alNavegar(ruta));
-  const activas = (producto.variantes ?? []).filter((v) => v.activa);
-  return <div className="flex flex-col gap-4 text-texto">
-    <div className="flex items-start gap-4">
-      <div className="size-30 shrink-0 overflow-hidden rounded-radio-m bg-superficie-hundida">
-        {producto.fotos[0] ? <Foto src={producto.fotos[0]} alt={`Foto de ${producto.nombre}`} className="h-full w-full" sizes="120px"/> : <div className="grid h-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="flex flex-wrap items-baseline gap-x-2 text-destacado"><span>{formatearPesos(precio.precio)}</span>{precio.precioAntes && <span className="text-secundario font-normal text-texto-secundario line-through">{formatearPesos(precio.precioAntes)}</span>}</p>
-        {producto.categoria && <p className="break-words text-secundario text-texto-secundario">{producto.categoria}</p>}
-        {producto.stock === 0 && <Etiqueta tono="fuerte" className="mt-1 self-start">Agotado</Etiqueta>}
-      </div>
-    </div>
-    <ListaAgrupada>
-      <FilaLista titulo="Visible en el catálogo" detalle={visible ? "Visible" : "Oculto del catálogo"}
-        accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={v => void cambiarVisible(v)} deshabilitado={sinCatalogo || guardandoVisible || inventario.guardando || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={sinCatalogo ? () => toast(porque) : bloqueaVisible && !guardandoVisible ? avisarLleno : undefined}/>}/>
-      {!espera.error && !espera.cargando && (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) > 0 && <FilaLista titulo={textoEspera(espera.resumen!.personasPorProducto.get(producto.id)!)} onClick={e => alVerEspera(e.currentTarget)}/>}
-    </ListaAgrupada>
-    {espera.error ? <ListaAgrupada><FilaLista titulo="No pudimos leer la lista de espera" onClick={() => espera.reintentar()} fin={<span>Reintentar</span>}/></ListaAgrupada> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
-    {activas.length > 0 ? (
-      // Con opciones, el stock es por combinación: se cambia en la ficha.
-      <ListaAgrupada etiqueta="Stock e historial">
-        <FilaLista titulo="Stock" detalle={`${activas.length} ${activas.length === 1 ? "presentación" : "presentaciones"}`} fin={<span className="text-secundario font-normal text-texto-secundario">{producto.stock ?? 0} en total</span>} onClick={sinCatalogo ? () => toast(porque) : () => navegar(`/catalogo/${producto.id}/editar`)} />
-        <FilaLista titulo="Historial" onClick={(e) => alVerHistorial(e.currentTarget)} />
-      </ListaAgrupada>
-    ) : (
-      <InventarioVistaPrevia inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial} soloLectura={sinCatalogo}
-        alGuardar={() => inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; })}/>
-    )}
-    {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
-    {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
-    {/* Con cambios de stock sin guardar, "Guardar cambios" es el único botón principal a la vista */}
-    {!inventario.pendiente && <div className="grid grid-cols-2 gap-3">
-      <Boton jerarquia="secundario" tamano="grande" deshabilitado={inventario.guardando || sinCatalogo} onClick={() => navegar(`/catalogo/${producto.id}/editar`)}>Editar</Boton>
-      <Boton tamano="grande" deshabilitado={inventario.guardando} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
-    </div>}
-    {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">{porque}</p>}
-    <ConfirmacionInventario inventario={inventario}/>
-  </div>;
-}
-
-function FormularioProducto({
-  producto,
-  productos,
-  alTerminar,
-  alEliminar,
-  alIniciarEliminacion,
-  alVerHistorial,
-  historialAbierto,
-}: {
-  producto: Producto | null;
-  productos: Producto[];
-  alTerminar: () => void;
-  alEliminar: () => void;
-  alIniciarEliminacion: () => void;
-  alVerHistorial: (boton: HTMLButtonElement) => void;
-  historialAbierto: boolean;
-}) {
-  const { guardarVariantes, ajustarStock, getProducto, getPedidos } = useData();
-  // Crear y editar productos es del grupo «catalogo» (Editor en adelante). La base lo exige igual.
-  const { puede, porque } = usePermisos();
-  const sinCatalogo = !puede("catalogo");
-  const inventario = useInventarioPendiente(producto, alTerminar);
-  const { tiendaId, tienda } = useTiendaActiva();
-  const { abrirInventario } = usePanelUI();
-  const toast = useToast();
-  const { mostrarToast: mostrarToastUI } = useToastUI();
-  const rubro = tienda?.rubro ?? "general";
-  const taller = useTaller(producto, toast);
-  // Tipo de producto (docs/prompts/tipo-de-producto.md): solo con más de un rubro. Un producto nuevo sale con el catálogo que se estaba viendo.
-  const tipos = tienda ? rubrosDeTienda(tienda) : [rubro];
-  const variosTipos = tipos.length > 1;
-  const [tipoElegido, setTipo] = useState<Rubro | null>(null);
-  // Se calcula en cada vuelta (no se congela): la tienda puede llegar después del primer pintado.
-  const tipoBase: Rubro = producto && tienda ? tipoDeProducto(producto, tienda) : tienda ? rubroInicialDeProducto(tienda, leerCatalogoActivo(tienda.id)) : rubro;
-  const tipo: Rubro = tipoElegido && tipos.includes(tipoElegido) ? tipoElegido : tipos.includes(tipoBase) ? tipoBase : rubro;
-  const [vendiendoOtra, setVendiendoOtra] = useState(false);
-
-  const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
-  const [nombre, setNombre] = useState(producto?.nombre ?? "");
-  const [presAbierta, setPresAbierta] = useState(false);
-  const [precio, setPrecio] = useState(producto ? String(producto.precio) : "");
-  const [stock, setStockValor] = useState<number>(producto ? (producto.stock ?? 0) : 1);
-  // Un producto nuevo arranca con 1; solo si el dueño lo tocó cuenta como stock que repartir al crear presentaciones.
-  const [stockTocado, setStockTocado] = useState(false);
-  const setStock = (v: number) => {
-    setStockValor(v);
-    setStockTocado(true);
-  };
-  // Las presentaciones (tallas, colores, tamaños): se editan aquí y se guardan con el producto.
-  const base = useMemo(() => new Map((producto?.variantes ?? []).map((v) => [claveVariante(v.valores), v])), [producto]);
-  const [presentaciones, setPresentaciones] = useState<EstadoPresentaciones>(() => {
-    const opciones = producto?.opciones ?? [];
-    const pres = presentacionesDe(producto);
-    // La foto de cada valor del eje que la lleva, como id de la foto en el borrador (así sobrevive a que la foto se suba al guardar).
-    const eje = ejeDeFoto(opciones);
-    const guardadas = eje ? (producto?.fotosPorValor?.[eje.nombre] ?? {}) : {};
-    const fotosColor: Record<string, string> = {};
-    for (const [valor, url] of Object.entries(guardadas)) {
-      const m = medios.find((x) => x.tipo === "foto" && x.url === url);
-      if (m) fotosColor[valor] = m.id;
+  // El stock siempre empieza cerrado (Lewis, 13 oct): no se recuerda el último estado.
+  const [stockAbierto, setStockAbierto] = useState(false);
+  const [enHistoria, setEnHistoria] = useState(false);
+  const activas = variantes.activas;
+  const conPresentaciones = activas.length > 0;
+  const personas = !espera.error && !espera.cargando ? (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) : 0;
+  // Mientras se guarda el stock no se sale a editar: el ajuste en camino podría entrar después de descartar el borrador.
+  const editar = () => (sinCatalogo ? toast(porque) : guardandoStock ? undefined : navegar(`/catalogo/${producto.id}/editar`));
+  const abrirStock = () => {
+    // Con más de 3 presentaciones, el stock se cambia en el Inventario de editar.
+    if (conPresentaciones && activas.length > MAX_STOCK_EN_VISTA && !stockAbierto) {
+      if (sinCatalogo) return toast(porque);
+      if (guardandoStock) return;
+      return navegar(`/catalogo/${producto.id}/editar?abrir=stock`);
     }
-    return { opciones, pres: pres.length > 0 ? pres : [], fotosColor };
-  });
-  const { opciones, pres: borradorPres, fotosColor } = presentaciones;
-  const [detalles, setDetalles] = useState<Detalles>(producto?.detalles ?? {});
-  // Los Detalles por rubro solo se piden en un producto que ya los tiene (Esencias Michel); uno nuevo lleva solo la descripción.
-  const [conDetalles] = useState(() => tieneDetallesPorRubro(producto?.detalles));
-  const [ficha, setFicha] = useState<BorradorFicha>({ tipo: "igual" });
-  const descripcion = typeof detalles.descripcion === "string" ? detalles.descripcion : "";
-  const ponerDescripcion = (texto: string) =>
-    setDetalles((d) => {
-      const { descripcion: _viejo, ...resto } = d;
-      void _viejo;
-      return texto.trim() ? { ...resto, descripcion: texto } : resto;
-    });
-  const [categoria, setCategoria] = useState<string | null>(producto?.categoria ?? null);
-  const [nuevaColeccion, setNuevaColeccion] = useState<string | null>(null);
-  const [eligiendoColeccion, setEligiendoColeccion] = useState(false);
-  const [visibilidad, setVisibilidad] = useState({ base: producto?.activo ?? true, valor: producto?.activo ?? true });
-  const cambioVisible = visibilidad.valor !== visibilidad.base;
-  const activo = cambioVisible ? visibilidad.valor : (producto?.activo ?? visibilidad.valor);
-  const [porEncargo, setPorEncargo] = useState(producto?.porEncargo ?? false);
-  const [encargoTexto, setEncargoTexto] = useState(producto?.encargoTexto ?? "");
-  const [guardando, setGuardando] = useState(false);
-  const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
-  const alternar = (id: string) => setPlegadas((p) => ({ ...p, [id]: !p[id] }));
-  const [viendo, setViendo] = useState(false);
-  const [eliminando, setEliminando] = useState(false);
-  const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
-  const guardadoComun = useGuardarProducto(producto, taller);
-
-  const tieneOpciones = opciones.length > 0 && borradorPres.length > 0;
-  // Lo que baja en variantes que ya existían pide motivo (como el stock del producto); lo que sube es reposición.
-  const bajadas = borradorPres.reduce((s, p) => {
-    const b = base.get(claveVariante(p.valores));
-    const quiere = p.stock ?? 0;
-    return b && b.stock !== null && quiere < b.stock ? s + (b.stock - quiere) : s;
-  }, 0);
-
-  // Con cambios respecto a como se abrió y sin guardar, cerrar la hoja pregunta.
-  const firma = JSON.stringify({
-    medios: medios.map((m) => [m.tipo, m.tipo === "foto" ? m.url.slice(-40) : m.url?.slice(-40), m.tipo === "foto" ? !!m.retocar : null]),
-    nombre, precio, stock: producto ? null : stock, presentaciones, detalles, ficha: ficha.tipo === "nueva" ? ficha.foto.slice(-40) : ficha.tipo, categoria, tipoElegido, nuevaColeccion, activo: visibilidad.valor, porEncargo, encargoTexto,
-  });
-  const [firmaInicial] = useState(firma);
-  useAvisarAlSalir(firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto, producto ? { titulo: "¿Descartar los cambios?", texto: "Lo que cambiaste no se va a guardar." } : undefined);
-
-  const colecciones = useMemo(() => {
-    const todas = new Set(productos.map((p) => p.categoria).filter((c): c is string => Boolean(c)));
-    return [...todas].sort((a, b) => a.localeCompare(b, "es"));
-  }, [productos]);
-  const sugerencias = useMemo(() => sugerenciasDeDetalles(productos.filter((p) => p.id !== producto?.id).map((p) => p.detalles)), [productos, producto?.id]);
-
-  const coleccionElegida = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
-
-  // El plan cuenta solo los visibles. Con el plan lleno no se puede mostrar otro producto: uno nuevo se guarda oculto y
-  // uno oculto no se vuelve visible hasta hacer espacio.
-  const llenoPlan = tienda != null && resumenDelPlan(productos, tienda.limiteProductos).estado === "lleno";
-  const bloqueaVisible = llenoPlan && !(producto?.activo ?? false);
-  const cambiarVisible = (valor: boolean) => {
-    if (valor && bloqueaVisible) return;
-    setVisibilidad({ base: producto?.activo ?? true, valor });
+    setStockAbierto((a) => !a);
   };
-  const avisarLleno = () =>
-    mostrarToastUI("Tu catálogo está lleno", { accion: { texto: "Hacer espacio", alTocar: () => abrirInventario("espacio") } });
-
-  /** El stock simple que se reparte al crear presentaciones: el guardado del producto, o lo que puso el dueño en uno nuevo. */
-  const stockSimple = producto ? producto.stock : stockTocado ? stock : null;
-  const cambiarPresentaciones = (nuevo: EstadoPresentaciones) => {
-    // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta (ya se repartió el guardado).
-    if (nuevo.pres.length > 0 && !tieneOpciones && inventario.pendiente) inventario.recuperar();
-    // Al volver a un solo stock en un producto nuevo, el total de las presentaciones pasa a su stock.
-    if (nuevo.pres.length === 0 && tieneOpciones && !producto) setStockValor(resumenDe(borradorPres, Number(precio) || 0).enTotal);
-    setPresentaciones(nuevo);
-  };
-
-  /** Una foto nueva elegida desde «Foto de cada color»: entra a las del producto y devuelve su id. */
-  const agregarFotoDeColor = (archivo: File) => agregarFotoAlBorrador(archivo, medios, setMedios, toast);
-  /** ¿Esta presentación ya salió en algún pedido? Entonces quitarla solo la oculta. */
-  const tienePedidosVariante = async (varianteId: string) => (await getPedidos(tiendaId)).some((p) => p.items.some((i) => i.varianteId === varianteId));
-
-  const preparando = medios.some((m) => m.tipo === "video" && typeof m.progreso === "number");
-  const resumenPres = resumenDe(borradorPres, Number(precio) || 0);
-  const varia = tieneOpciones && preciosVarian(borradorPres, Number(precio) || 0);
-  // «Publicar» / «Guardar cambios» espera a tener nombre y precio, y foto si va a quedar visible (sin foto, solo oculto).
-  const quedaVisible = activo && !bloqueaVisible;
-  const listo = puedePublicar({ nombre, precio, fotos: mediosParaGuardar(medios).filter((m) => m.tipo === "foto").length, preparando, oculto: !quedaVisible });
-
-  const guardar = async (
-    motivo: MotivoAjusteInventario = "reposicion",
-    nota: string | null = null,
-    motivoVariantes: MotivoAjusteInventario = "correccion_inventario",
-    notaVariantes: string | null = null,
-  ): Promise<boolean> => {
-    if (guardando || inventario.guardando || inventario.incierto) return false;
-    const coleccion = nuevaColeccion !== null ? nuevaColeccion.trim() || null : categoria;
-    if (!producto) {
-      // Crear: el mismo guardado que la historia de crear producto (components/catalogo/guardar-producto.tsx).
-      setGuardando(true);
-      const r = await guardadoComun.crear({
-        nombre, precio, medios, stock, presentaciones: tieneOpciones ? presentaciones : { opciones: [], pres: [], fotosColor: {} }, detalles, ficha, coleccion,
-        porEncargo, encargoTexto, rubro: variosTipos ? tipo : null, activo: activo && !bloqueaVisible,
-      });
-      if (!r) { setGuardando(false); return false; }
-      toast(r.mensaje);
-      alTerminar();
-      return true;
+  const guardarStock = () => {
+    if (variantes.pendiente) {
+      if (variantes.bajan > 0) { setVueltaMotivo((v) => v + 1); return setMotivoVariantes(true); }
+      void variantes.guardar("reposicion", null).then((bien) => bien && toast("Ajuste guardado. No cuenta como venta."));
+      return;
     }
-    const precioNumero = Number(precio);
-    if (!guardadoComun.validar({ nombre, precio, medios, oculto: !quedaVisible })) return false;
-    if (!(await guardadoComun.pasarBienvenida(medios))) return false;
-    setGuardando(true);
-    const entregadas = await guardadoComun.entregadasAlGuardar();
-    const final = mediosParaGuardar(conEntregadas(medios, entregadas));
-    const fotos = final.flatMap((m) => (m.tipo === "foto" ? [m.url] : []));
-    const primera = final.find((m) => m.tipo === "foto");
-    const fotoRetocada = primera?.tipo === "foto" ? primera.retocada : false;
-    // Con un solo rubro no se manda nada (todo igual que antes); con varios, el tipo va explícito.
-    const catalogo = {
-      medios: final, detalles, porEncargo, encargoTexto: porEncargo ? encargoTexto.trim() || null : (producto.encargoTexto ?? null),
-      ...(variosTipos && tipo !== (tienda ? tipoDeProducto(producto, tienda) : tipo) ? { rubro: tipo } : {}),
-    };
-    const variantes = variantesParaGuardar(presentaciones, base);
-    try {
-      const bien = await inventario.guardar(
-        { nombre: nombre.trim(), precio: precioNumero, fotos, fotoRetocada, categoria: coleccion, ...(cambioVisible ? { activo: activo && !bloqueaVisible } : {}), ...catalogo },
-        false, motivo, nota,
-      );
-      if (!bien) { setGuardando(false); return false; }
-      const efectivas = tieneOpciones ? borradorPres : [];
-      const antes = [...base.keys()].sort().join(",");
-      const ahora = efectivas.map((p) => claveVariante(p.valores)).sort().join(",");
-      const otroPrecioOEstado = efectivas.some((p) => {
-        const b = base.get(claveVariante(p.valores));
-        return b && (b.precio !== p.precio || b.activa !== p.activa);
-      });
-      if (JSON.stringify(tieneOpciones ? opciones : []) !== JSON.stringify(producto.opciones) || (tieneOpciones ? antes !== ahora : producto.opciones.length > 0) || otroPrecioOEstado) {
-        await guardarVariantes(tiendaId, producto.id, tieneOpciones ? opciones : [], tieneOpciones ? variantes : []);
-      }
-      for (const p of efectivas) {
-        const b = base.get(claveVariante(p.valores));
-        const quiere = p.stock ?? 0;
-        if (!b || !p.activa || b.stock === null || quiere === b.stock) continue;
-        const delta = quiere - b.stock;
-        await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivoVariantes, delta > 0 ? null : notaVariantes, b.id);
-      }
-      const releido = guardadoComun.hayMarcadas(medios, entregadas) ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
-      await guardadoComun.guardarFotosDeColor(medios, entregadas, tieneOpciones ? presentaciones : { opciones: [], pres: [], fotosColor: {} }, producto);
-      const falloFicha = await guardadoComun.guardarLaFicha(ficha, producto);
-      toast(await guardadoComun.mandarAlTaller(medios, entregadas, releido, falloFicha ?? "Guardado. El catálogo ya se enteró."));
-      inventario.finalizar(alTerminar);
-      return true;
-    } catch (e) {
-      toast(mensajeDeError(e, "No se pudo guardar. Inténtalo otra vez."));
-      setGuardando(false);
-      return false;
-    }
+    inventario.pedirGuardar(async (motivo, nota) => { const bien = await inventario.guardar({}, false, motivo, nota); if (bien) toast("Ajuste guardado. No cuenta como venta."); return bien; });
   };
-
-  /** El borrador como lo vería quien compra: lo que «Vista previa» le manda al reel (solo se arma al abrirse). */
-  const datosVista = (): DatosVistaPrevia | null => {
-    if (!tienda) return null;
-    const medioDeId = new Map(medios.flatMap((m) => (m.tipo === "foto" ? [[m.id, m.url] as const] : [])));
-    const ejeFoto = ejeDeFoto(tieneOpciones ? opciones : []);
-    const fotosPorValor: FotosPorValor = {};
-    if (ejeFoto) {
-      for (const [valor, id] of Object.entries(fotosColor)) {
-        const url = medioDeId.get(id);
-        if (url && ejeFoto.valores.includes(valor)) (fotosPorValor[ejeFoto.nombre] ??= {})[valor] = url;
-      }
-    }
-    const fichaUrl = fichaVisible(producto?.fichaUrl, ficha) ? (ficha.tipo === "nueva" ? ficha.foto : (producto?.fichaUrl ?? null)) : null;
-    return {
-      tienda: tiendaPublicaDe(tienda),
-      producto: productoPublicoDeBorrador({
-        nombre, precio: Number(precio) || 0, medios: mediosParaGuardar(medios), detalles, opciones: tieneOpciones ? opciones : [], presentaciones: tieneOpciones ? borradorPres : [],
-        stock: producto && !tieneOpciones && inventario.propuesta !== null ? inventario.propuesta : stock, porEncargo, encargoTexto, categoria: coleccionElegida, rubro: tipo, fotosPorValor, fichaUrl,
-      }),
-    };
-  };
-
-  const alGuardar = () => {
-    if (producto && tieneOpciones && bajadas > 0) setPidiendoMotivo(true);
-    else if (producto) inventario.pedirGuardar(guardar);
-    else void guardar();
-  };
+  const totalStock = conPresentaciones ? activas.reduce((t, v) => t + variantes.valor(v), 0) : (inventario.propuesta ?? 0);
+  const detalleStock = conPresentaciones ? `${activas.length === 1 ? "1 presentación" : `${activas.length} presentaciones`} · ${totalStock} en total` : `${totalStock} en total`;
 
   return (
-    <div className="flex flex-col gap-5">
-      {variosTipos && !historialAbierto && (
-        <HojaFijoArriba>
-          <SelectorCatalogo
-            tipos={tipos} valor={tipo} conteo={tienda ? contarPorCatalogo(productos, tienda) : undefined} tamano="hoja" textoOtra="Vendo otra cosa también"
-            alCambiar={(r) => { if (r !== CATALOGO_GENERAL) setTipo(r); }} alVenderOtra={() => setVendiendoOtra(true)} deshabilitado={guardando}
-            sinPermiso={sinCatalogo ? () => toast(porque) : undefined}
-          />
-        </HojaFijoArriba>
+    <div className="flex flex-col gap-3 text-texto" data-vista-producto="">
+      {ranuraEditar && !internaAbierta && createPortal(
+        <button
+          // Botón Secundario (docs/09 §5, Lewis 13 oct): contorno `accion`, relleno `superficie`. Apagado, color sólido (nunca opacidad);
+          // sin permiso sigue respondiendo para explicar por qué.
+          type="button" onClick={editar} aria-disabled={sinCatalogo || guardandoStock}
+          className={clases(
+            "tocable inline-flex h-11 shrink-0 items-center rounded-full border-[1.5px] px-4 text-cuerpo font-extrabold", FOCO,
+            sinCatalogo || guardandoStock ? "border-linea bg-superficie-hundida text-texto-secundario" : "border-accion bg-superficie text-accion",
+          )}
+          data-boton-editar=""
+        >
+          Editar
+        </button>,
+        ranuraEditar,
       )}
-      {vendiendoOtra && tienda && <HojaLoQueVendes tienda={tienda} alCerrar={() => setVendiendoOtra(false)} />}
-      <SeccionMedios medios={medios} alCambiar={setMedios} taller={taller} avisar={toast} />
-      {guardadoComun.bienvenidaRetoque}
 
-      <Campo
-        etiqueta="Nombre" icono={IconoEtiqueta}
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        placeholder="El nombre de tu producto"
-        maxLength={120}
-      />
-      {/* El precio es un campo como el nombre: el «RD$» va dentro, sin otro tamaño de letra. Si varía por presentación, es una fila de la tarjeta. */}
-      {!(varia && resumenPres.desde !== null) && (
-        <Campo
-          etiqueta="Precio"
-          aria-label="Precio (RD$)"
-          prefijo="RD$"
-          inputMode="numeric"
-          enterKeyHint="done"
-          precio={{ digitos: precio, alCambiar: setPrecio }}
-          placeholder="Escribe el precio"
-          data-precio=""
-        />
+      <VistaPrevia producto={producto} precio={precio} alCompartir={tienda ? () => (producto.fotos[0] ? setEnHistoria(true) : toast("Ponle una foto primero.")) : undefined} />
+
+      {personas > 0 && (
+        <button type="button" onClick={(e) => alVerEspera(e.currentTarget)} className={clases("tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l bg-atencion-suave px-4 text-left text-atencion-texto", FOCO)} data-franja-espera="">
+          <IconoReloj tamano={22} className="shrink-0" />
+          <span className="min-w-0 flex-1 text-destacado font-extrabold">{textoPersonasLoEsperan(personas)}</span>
+          <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0" />
+        </button>
       )}
-      {/* Precio, stock, por encargo y presentaciones (de último): una sola tarjeta */}
-      <div className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-tarjeta-stock="">
-        {varia && resumenPres.desde !== null ? (
-          <button
-            type="button"
-            disabled={guardando}
-            onClick={() => (sinCatalogo ? toast(porque) : setPresAbierta(true))}
-            data-precio-desde=""
-            className="tocable flex min-h-15 w-full items-center gap-3 px-4 py-2 text-left outline-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-foco disabled:opacity-60"
-          >
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-destacado text-texto">Precio</span>
-              <span className="text-secundario text-texto-secundario">Varía por presentación</span>
-            </span>
-            <span className="text-secundario text-texto-secundario">Desde {formatearPesos(resumenPres.desde)}</span>
-            <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />
-          </button>
-        ) : null}
-        {tieneOpciones ? (
-          <div className="flex min-h-15 items-center justify-between gap-3 border-t border-linea px-4 py-2 first:border-t-0">
-            <span className="text-destacado text-texto">En stock</span>
-            <span className="text-secundario text-texto-secundario">{resumenStockPresentaciones(resumenPres.total, resumenPres.enTotal)}</span>
-          </div>
-        ) : (
-          <div className="border-t border-linea p-4 first:border-t-0">
-            {producto ? (
-              <ControlInventario inventario={inventario} nombre={producto.nombre} alVerHistorial={alVerHistorial}
-                alGuardar={() => inventario.pedirGuardar(guardar)} guardarBloqueado={guardando || preparando}/>
-            ) : (
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-destacado text-texto">En stock</p>
-                  <p className="text-secundario text-texto-secundario">Al despachar, baja solito.</p>
-                </div>
-                <Cantidad valor={stock} max={2147483647} alCambiar={setStock} />
-              </div>
-            )}
-          </div>
-        )}
-        {(producto?.tipo ?? "producto") === "producto" && (
-          <div className="border-t border-linea" data-encargo="">
-            <ul>
-              <FilaLista titulo="Por encargo" detalle={resumenEncargo(porEncargo, encargoTexto)} accion={<Interruptor encendido={porEncargo} alCambiar={setPorEncargo} etiqueta="Por encargo" />} />
-            </ul>
-            {porEncargo && (
-              <div className="px-4 pb-4">
-                <Campo etiqueta="Cuándo llega" icono={IconoReloj} value={encargoTexto} maxLength={40} onChange={(e) => setEncargoTexto(e.target.value)} placeholder="Llega en 7 a 10 días" />
-              </div>
-            )}
-          </div>
-        )}
-        {(producto?.tipo ?? "producto") === "producto" && (
-          <SeccionPresentaciones
-            abierta={presAbierta}
-            alAlternar={setPresAbierta}
-            rubro={tipo}
-            precioProducto={Number(precio) || 0}
-            estado={presentaciones}
-            alCambiar={cambiarPresentaciones}
-            stockSimple={stockSimple}
-            publicado={Boolean(producto)}
-            fotos={medios.flatMap((m) => (m.tipo === "foto" ? [{ id: m.id, url: m.url }] : []))}
-            agregarFoto={agregarFotoDeColor}
-            sinPermiso={sinCatalogo}
-            porque={porque}
-            avisar={toast}
-            deshabilitado={guardando}
-            tienePedidos={tienePedidosVariante}
-          />
-        )}
-      </div>
+      {espera.error ? <ListaAgrupada><FilaLista titulo="No pudimos leer la lista de espera" onClick={() => espera.reintentar()} fin={<span>Reintentar</span>} /></ListaAgrupada> : espera.cargando && <p role="status" className="text-secundario text-texto-secundario">Actualizando personas en espera…</p>}
 
-      {/* Más opciones: plegadas, cada una muestra su valor */}
-      <p className="-mb-2 px-1 text-secundario font-extrabold tracking-wide text-texto-secundario uppercase">Más opciones</p>
-      <ListaAgrupada etiqueta="Descripción y ficha técnica" className="-mt-1">
-        <FilaPlegable id="descripcion" titulo="Descripción" detalle={resumenDescripcion(descripcion) ?? "Opcional"} abierta={!!plegadas.descripcion} alAlternar={() => alternar("descripcion")}>
-          <SeccionDescripcion sinTitulo valor={descripcion} alCambiar={ponerDescripcion} deshabilitado={sinCatalogo} alTocarBloqueado={() => toast(porque)} />
-        </FilaPlegable>
-        <FilaPlegable id="ficha" titulo="Ficha técnica" detalle={fichaVisible(producto?.fichaUrl, ficha) ? "Subida" : "Opcional"} abierta={!!plegadas.ficha} alAlternar={() => alternar("ficha")}>
-          <SeccionFichaTecnica sinTitulo actual={producto?.fichaUrl} borrador={ficha} alCambiar={setFicha} sinPermiso={sinCatalogo} porque={porque} avisar={toast} />
-        </FilaPlegable>
-      </ListaAgrupada>
-      <ListaAgrupada etiqueta="Colección y visibilidad">
-        <FilaLista titulo="Colección" fin={<span className="text-secundario font-normal text-texto-secundario">{coleccionElegida ?? "Sin colección"}</span>} onClick={() => setEligiendoColeccion(true)} />
+      <ListaAgrupada>
         <FilaLista
-          titulo="Visible en el catálogo"
-          detalle={activo && !bloqueaVisible ? "Visible" : "Oculto del catálogo"}
-          accion={<Interruptor encendido={activo && !bloqueaVisible} alCambiar={cambiarVisible} etiqueta="Visible en el catálogo" deshabilitado={bloqueaVisible} alTocarBloqueado={producto ? avisarLleno : undefined} />}
+          titulo="Visible en el catálogo" detalle={visible ? (producto.stock === 0 ? "Se ve como «Agotado»" : "Visible") : "Oculto del catálogo"}
+          accion={<Interruptor encendido={visible} etiqueta="Visible en el catálogo" alCambiar={(v) => void cambiarVisible(v)} deshabilitado={sinCatalogo || guardandoVisible || guardandoStock || cargandoProductos || !tienda || bloqueaVisible} alTocarBloqueado={sinCatalogo ? () => toast(porque) : bloqueaVisible && !guardandoVisible ? avisarLleno : undefined} />}
         />
       </ListaAgrupada>
 
-      {/* Sin la tienda todavía no se sabe el rubro: Detalles espera para no mostrar los campos de otro. */}
-      {tienda && conDetalles && <SeccionDetalles rubro={rubro} detalles={detalles} alCambiar={setDetalles} sugerencias={sugerencias} />}
-      {bloqueaVisible && !producto && (
-        <p className="-mt-3 px-1 text-secundario text-texto-secundario">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p>
+      <section aria-label="Stock" className="overflow-hidden rounded-radio-l border border-linea bg-superficie" data-stock-plegable="" data-abierto={stockAbierto ? "" : undefined}>
+        <button type="button" aria-expanded={stockAbierto} onClick={abrirStock} className={clases("tocable flex min-h-15 w-full items-center gap-3 px-4 text-left", FOCO)}>
+          <span className="flex min-w-0 flex-1 flex-col py-2">
+            <span className="text-destacado text-texto">Stock</span>
+            <span className="truncate text-secundario text-texto-secundario" data-detalle-stock="">{detalleStock}</span>
+          </span>
+          {conPresentaciones && activas.length > MAX_STOCK_EN_VISTA ? <IconoChevronDerecha tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" /> : stockAbierto ? <IconoChevronArriba tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" /> : <IconoChevronAbajo tamano={20} strokeWidth={2.2} className="shrink-0 text-texto-secundario" />}
+        </button>
+        {stockAbierto && (
+          <ul className="border-t border-linea" data-filas-stock="">
+            {conPresentaciones ? (
+              activas.map((v) => {
+                const nombre = textoCombinacion(producto.opciones, v.valores);
+                const eje = producto.opciones.find((o) => esEjeColor(o.nombre));
+                const c = eje ? colorPorNombre(v.valores[eje.nombre] ?? "") : null;
+                return (
+                  <li key={v.id} className="flex min-h-13 items-center gap-2.5 border-t border-linea pr-3 pl-4 first:border-t-0" data-fila-stock={nombre}>
+                    {c && <span aria-hidden="true" className="size-3 shrink-0 rounded-full border border-borde-pastilla" style={{ background: c }} />}
+                    <span className="min-w-0 flex-1 truncate text-cuerpo font-extrabold">{nombre}</span>
+                    <Cantidad redonda valor={variantes.valor(v)} max={2147483647} deshabilitado={sinCatalogo || variantes.guardando || v.stock === null} alCambiar={(n) => variantes.poner(v.id, n)} etiquetaQuitar={`Disminuir stock de ${nombre}`} etiquetaAgregar={`Aumentar stock de ${nombre}`} />
+                  </li>
+                );
+              })
+            ) : inventario.base === null || inventario.propuesta === null ? (
+              <li className="px-4 py-3 text-secundario text-texto-secundario" data-sin-cantidad="">Sin cantidad guardada: se ve como 0</li>
+            ) : (
+              <li className="flex min-h-13 items-center gap-2.5 pr-3 pl-4">
+                <span className="min-w-0 flex-1 text-cuerpo font-extrabold">En stock</span>
+                <Cantidad
+                  redonda valor={inventario.propuesta} max={2147483647} deshabilitado={sinCatalogo || inventario.guardando || inventario.incierto}
+                  alCambiar={(n) => inventario.cambiar(n - (inventario.propuesta ?? 0))} etiquetaQuitar={`Disminuir stock de ${producto.nombre}`} etiquetaAgregar={`Aumentar stock de ${producto.nombre}`}
+                />
+              </li>
+            )}
+          </ul>
+        )}
+      </section>
+
+      <ListaAgrupada>
+        <FilaLista titulo="Historial de ajustes" onClick={(e) => alVerHistorial(e.currentTarget)} />
+      </ListaAgrupada>
+
+      {(inventario.error || variantes.error) && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error ?? variantes.error}</p>}
+      {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 text-secundario font-extrabold text-accion underline">Revisar producto e historial</button>}
+      {sinCatalogo && <p className="text-center text-secundario text-texto-secundario" data-sin-permiso="">{porque}</p>}
+
+      {/* En el historial o la lista de espera el pie no se ve, pero sigue ocupando su lugar (el desplazamiento al volver es el mismo). */}
+      {(
+        <HojaFijoAbajo>
+          <div className={internaAbierta ? "invisible" : undefined}>
+          <PieFlotante className="pt-2.5" data-pie-vista="">
+            {/* Con cambios de stock sin guardar, «Guardar cambios» es el único botón principal a la vista. */}
+            {pendiente ? (
+              <div className="flex flex-col gap-2">
+                <p role="status" className="text-center text-secundario text-texto-secundario">{textoAjuste(conPresentaciones ? null : (inventario.propuesta ?? 0) - (inventario.base ?? 0))}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Boton jerarquia="secundario" tamano="grande" deshabilitado={guardandoStock || inventario.incierto} onClick={() => { inventario.recuperar(); variantes.descartar(); }}>Descartar</Boton>
+                  <Boton tamano="grande" cargando={guardandoStock} deshabilitado={inventario.incierto} onClick={guardarStock}>Guardar cambios</Boton>
+                </div>
+              </div>
+            ) : (
+              <Boton tamano="grande" anchoCompleto deshabilitado={guardandoStock} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
+            )}
+          </PieFlotante>
+          </div>
+        </HojaFijoAbajo>
       )}
-      <HojaColeccion
-        abierta={eligiendoColeccion}
-        alCerrar={() => setEligiendoColeccion(false)}
-        colecciones={colecciones}
-        elegida={coleccionElegida}
-        alElegir={(nombre, esNueva) => {
-          setNuevaColeccion(esNueva ? nombre : null);
-          setCategoria(esNueva ? categoria : nombre);
-          setEligiendoColeccion(false);
+      <ConfirmacionInventario inventario={inventario} />
+      <HojaMotivoVariantes
+        key={vueltaMotivo} abierta={motivoVariantes} unidades={variantes.bajan} guardando={variantes.guardando} error={variantes.error} alCerrar={() => setMotivoVariantes(false)}
+        alConfirmar={async (motivo, nota) => {
+          const bien = await variantes.guardar(motivo, nota);
+          if (bien) { setMotivoVariantes(false); toast("Ajuste guardado. No cuenta como venta."); }
         }}
       />
+      {enHistoria && tienda && <HojaHistoria producto={producto} promos={promos} tienda={tienda} alCerrar={() => setEnHistoria(false)} />}
+    </div>
+  );
+}
 
-      {sinCatalogo && <p className="rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
-      {!historialAbierto && (
-        // Al final de la página, como en las demás hojas de registro (pedido nuevo): dos botones grandes del mismo ancho.
-        <div className="flex flex-col gap-3" data-barra-producto="">
-          <Boton jerarquia="secundario" tamano="grande" anchoCompleto onClick={() => setViendo(true)}>Vista previa</Boton>
-          {(!producto || !inventario.pendiente || tieneOpciones) && (
-            <Boton tamano="grande" anchoCompleto cargando={guardando || inventario.guardando} deshabilitado={inventario.incierto || preparando || sinCatalogo || !listo} onClick={alGuardar}>
-              {producto ? "Guardar cambios" : "Publicar"}
-            </Boton>
-          )}
+const textoAjuste = (delta: number | null) =>
+  delta === null ? "Cambiaste el stock. Guárdalo para que cuente." : `${delta > 0 ? "Añadirás" : "Retirarás"} ${Math.abs(delta)} ${Math.abs(delta) === 1 ? "unidad" : "unidades"}`;
+
+/**
+ * La vista previa grande de «Ver producto»: «Compartir» arriba a la derecha (abre «Súbelo a tu estado»), todas las fotos en un carrusel que se desliza, con las barras tipo historia del catálogo
+ * arriba (la de la foto que se ve, llena) y, sobre un degradado, el precio (con la promo tachada), «Agotado» y las presentaciones
+ * (los colores como puntos, las tallas como pastillas). Sin foto, la inicial como siempre.
+ */
+function VistaPrevia({ producto, precio, alCompartir }: { producto: Producto; precio: PrecioConPromo; alCompartir?: () => void }) {
+  const fotos = producto.medios.length > 0 ? producto.medios.flatMap((m) => (m.tipo === "foto" ? [m.url] : m.portada ? [m.portada] : [])) : producto.fotos;
+  const [indice, setIndice] = useState(0);
+  const color = producto.opciones.find((o) => esEjeColor(o.nombre));
+  const otras = producto.opciones.filter((o) => !esEjeColor(o.nombre));
+  const conFoto = fotos.length > 0;
+  return (
+    <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-vista-previa-producto="">
+      {conFoto ? (
+        <div
+          className="flex size-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="group" aria-roledescription="carrusel" aria-label={`Fotos de ${producto.nombre}`} data-carrusel-vista=""
+          onScroll={(e) => setIndice(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
+        >
+          {fotos.map((u, i) => (
+            <div key={`${u}-${i}`} className="relative size-full shrink-0 snap-center">
+              <Foto src={u} alt={`Foto ${i + 1} de ${producto.nombre}`} className="absolute inset-0" sizes="(max-width: 480px) 100vw, 440px" prioridad={i === 0} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid size-full place-items-center font-display text-titulo-pantalla text-texto-secundario">{producto.nombre[0]}</div>
+      )}
+      {fotos.length > 1 && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-2.5 flex gap-1" data-barras-vista="">
+          {fotos.map((u, i) => <span key={`${u}-${i}`} className={clases("h-[3px] flex-1 rounded-full", i <= indice ? "bg-papel" : "bg-papel/40")} />)}
         </div>
       )}
-      <HojaComoSeVe abierta={viendo} alCerrar={() => setViendo(false)} visible={activo && !bloqueaVisible} datos={datosVista} />
-      {inventario.error && <p role="alert" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{inventario.error}</p>}
-      {inventario.incierto && <button type="button" disabled={inventario.guardando} onClick={() => void inventario.revisar()} className="tocable min-h-11 font-bold underline">Revisar producto e historial</button>}
-      {producto && <Boton jerarquia="terciario" tono="peligro" anchoCompleto deshabilitado={sinCatalogo || guardando || inventario.guardando || preparando} onClick={() => setEliminando(true)}>Eliminar producto</Boton>}
-      {producto && <ConfirmacionEliminarProducto producto={producto} abierta={eliminando} pendiente={firma !== firmaInicial || cambioVisible || inventario.pendiente || inventario.incierto} alCerrar={() => setEliminando(false)} alEliminar={alEliminar} alIniciar={alIniciarEliminacion} alOcultar={() => { setVisibilidad({ base: false, valor: false }); setEliminando(false); }}/>}
-      <ConfirmacionInventario inventario={inventario}/>
-      <HojaMotivoVariantes
-        abierta={pidiendoMotivo}
-        unidades={bajadas}
-        guardando={guardando}
-        alCerrar={() => setPidiendoMotivo(false)}
-        alConfirmar={async (motivo, nota) => {
-          const bien = await guardar("reposicion", null, motivo, nota);
-          if (bien) setPidiendoMotivo(false);
-        }}
-      />
+      {alCompartir && (
+        // «Compartir» (Lewis, 13 oct): la misma píldora de vidrio de la tarjeta del Catálogo, arriba a la derecha bajo las barras.
+        <button
+          type="button" onClick={alCompartir} aria-label={`Compartir ${producto.nombre} en tu estado`} data-compartir-vista=""
+          className={clases("tocable absolute top-4 right-2 z-10 flex min-h-11 items-center text-white", FOCO)}
+        >
+          <span aria-hidden="true" className="flex h-8 items-center gap-1.5 rounded-full bg-black/45 pr-3 pl-2.5 text-[12px] leading-none font-bold backdrop-blur-sm">
+            <IconoHistoria tamano={16} className="shrink-0" />
+            Compartir
+          </span>
+        </button>
+      )}
+      {conFoto && <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[45%] bottom-0 bg-linear-to-t from-velo to-transparent" />}
+      <div className={clases("pointer-events-none absolute inset-x-4 bottom-3.5 flex flex-col gap-1.5", conFoto ? "text-papel" : "text-texto")}>
+        <div className="flex items-end justify-between gap-3">
+          <p className="flex flex-wrap items-baseline gap-x-2 font-display text-titulo-hoja tabular-nums" data-precio-vista="">
+            <span>{formatearPesos(precio.precio)}</span>
+            {precio.precioAntes && <span className="text-secundario font-normal line-through opacity-80">{formatearPesos(precio.precioAntes)}</span>}
+          </p>
+          {producto.stock === 0 && <Etiqueta tono="fuerte">Agotado</Etiqueta>}
+        </div>
+        {(color || otras.length > 0) && (
+          <div className="flex flex-wrap items-center gap-2" data-presentaciones-vista="">
+            {color && (
+              <span className="inline-flex items-center gap-1.5">
+                {color.valores.slice(0, 6).map((v) => <span key={v} aria-hidden="true" className="size-[18px] rounded-full border-[1.5px] border-white/70" style={{ background: colorPorNombre(v) ?? undefined }} />)}
+                <span className="text-secundario font-extrabold">{color.valores.length === 1 ? `1 ${color.nombre.toLocaleLowerCase("es")}` : `${color.valores.length} colores`}</span>
+              </span>
+            )}
+            {otras.flatMap((o) => o.valores.slice(0, 5).map((v) => (
+              <span key={`${o.nombre}-${v}`} className={clases("inline-flex h-[22px] items-center rounded-full px-2 text-etiqueta", conFoto ? "bg-white/20" : "bg-superficie")}>{v}</span>
+            )))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -673,7 +515,7 @@ export function HojaColeccion({
 }
 
 /** Misma Hoja apilada y botones de peligro del panel; el borrador permanece montado. */
-function ConfirmacionEliminarProducto({ producto, abierta, pendiente, alCerrar, alEliminar, alIniciar, alOcultar }: { producto: Producto; abierta: boolean; pendiente: boolean; alCerrar: () => void; alEliminar: () => void; alIniciar: () => void; alOcultar: () => void }) {
+export function ConfirmacionEliminarProducto({ producto, abierta, pendiente, alCerrar, alEliminar, alIniciar, alOcultar }: { producto: Producto; abierta: boolean; pendiente: boolean; alCerrar: () => void; alEliminar: () => void; alIniciar: () => void; alOcultar: () => void }) {
   const { tiendaId } = useTiendaActiva();
   const { revisarEliminacionProducto, eliminarProducto, actualizarProducto, refrescar } = useData();
   const revision = useConsulta(`eliminar-producto:${tiendaId}:${producto.id}:${abierta}`, () => abierta ? revisarEliminacionProducto(tiendaId, producto.id) : Promise.resolve(null), true);

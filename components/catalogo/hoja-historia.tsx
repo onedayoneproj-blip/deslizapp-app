@@ -20,7 +20,7 @@ import { Aviso, Boton, ControlSegmentado, Interruptor } from "../ui";
 type Clave = { entradaBase: unknown; ajuste: unknown };
 const sinAbortar = (e: unknown) => !(e instanceof DOMException && e.name === "AbortError");
 
-/** «Tu historia»: vista previa de la imagen (1080×1920, hecha en el teléfono), tres interruptores y «Compartir». Solo lectura: no escribe en la base. */
+/** «Súbelo a tu estado» (antes «Tu historia»): vista previa de la imagen (1080×1920, hecha en el teléfono), tres interruptores y «Compartir». Solo lectura: no escribe en la base. */
 export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto: Producto; promos: Promo[]; tienda: Tienda; alCerrar: () => void }) {
   const toast = useToast();
   const [opciones, setOpciones] = useState<OpcionesHistoria>(OPCIONES_INICIALES);
@@ -118,7 +118,7 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
 
   return (
     <>
-      <Hoja abierta alCerrar={alCerrar} titulo="Tu historia" altura="auto">
+      <Hoja abierta alCerrar={alCerrar} titulo="Súbelo a tu estado" altura="auto">
         <div className="flex flex-col gap-4">
           {/* Tocar la vista previa abre «Ajustar foto»; la píldora «Ajustar» de la esquina superior lo deja ver */}
           <button

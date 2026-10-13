@@ -196,7 +196,20 @@ type Props = {
    * (el selector de catálogo); fila 2 con `avance` (las barras) a todo el ancho. Con `altura="grande"`, la hoja deja arriba el hueco del lienzo
    * (borde en y≈69 en un iPhone) con esquinas de `radio-xl` y su agarradera.
    */
-  historia?: { avance: ReactNode; alLadoDelTitulo?: ReactNode };
+  historia?: {
+    /** Las barras de avance (fila 2). Sin ellas, la cabecera es una sola fila (editar producto, sus pasos y la vista del producto). */
+    avance?: ReactNode;
+    alLadoDelTitulo?: ReactNode;
+    /** El título se corta con elipsis (el nombre de un producto); por defecto no se corta. */
+    tituloElipsis?: boolean;
+    /** En una pantalla interna: la izquierda muestra «‹» (vuelve a la pantalla anterior de la misma hoja) en lugar de la ✕. */
+    volver?: () => void;
+  };
+  /**
+   * Hoja apilada que no abre otra encima (máximo dos hojas): toda `Hoja` que se abra dentro de su contenido se pinta como pantalla
+   * interna de esta (su título en la cabecera, «‹» a la izquierda y el atrás del teléfono vuelve), no como una tercera hoja.
+   */
+  anidarHojas?: boolean;
   /**
    * Solo con `altura="grande"`: dónde empieza la hoja (px desde arriba, nunca sobre la barra de estado), con esquinas `radio-xl`.
    * La historia de crear producto usa su propio hueco (10 px bajo la barra de estado); la hoja que se abre encima de ella («Inventario»), 40 más abajo (118).
@@ -223,7 +236,52 @@ type Props = {
 
 const sinSuscripcion = () => () => {};
 
+/** Pantallas internas de una hoja con `anidarHojas`: la de arriba es la que se ve. */
+type Interna = { id: symbol; titulo: { current: ReactNode }; cerrar: { current: () => void } };
+type Anidar = { ranura: HTMLDivElement | null; pila: Interna[]; registrar: (i: Interna) => () => void };
+const ContextoAnidar = createContext<Anidar | null>(null);
+
 export function Hoja(props: Props) {
+  const anidar = useContext(ContextoAnidar);
+  return anidar ? <HojaInterna {...props} anidar={anidar} /> : <HojaRaiz {...props} />;
+}
+
+/**
+ * Una `Hoja` abierta dentro de una hoja con `anidarHojas`: su contenido ocupa el lugar del de esa hoja (como el historial de
+ * ajustes) y la cabecera de la de abajo muestra su título con «‹». Cerrarla vuelve a la pantalla anterior. Sin animación de entrada.
+ */
+function HojaInterna({ abierta, alCerrar, alSalir, titulo, fijoArriba, children, anidar }: Props & { anidar: Anidar }) {
+  const [id] = useState(() => Symbol("interna"));
+  const tituloRef = useRef(titulo);
+  const cerrarRef = useRef(alCerrar);
+  const alSalirRef = useRef(alSalir);
+  useLayoutEffect(() => {
+    tituloRef.current = titulo;
+    cerrarRef.current = alCerrar;
+    alSalirRef.current = alSalir;
+  });
+  const yo = useMemo<Interna>(() => ({ id, titulo: tituloRef, cerrar: cerrarRef }), [id]);
+  const { registrar } = anidar;
+  useLayoutEffect(() => {
+    if (!abierta) return;
+    const quitar = registrar(yo);
+    return () => {
+      quitar();
+      window.setTimeout(() => alSalirRef.current?.(), 0);
+    };
+  }, [abierta, registrar, yo]);
+  if (!abierta || !anidar.ranura) return null;
+  const arriba = anidar.pila[anidar.pila.length - 1]?.id === id;
+  return createPortal(
+    <div className={arriba ? "flex flex-col gap-3" : "hidden"} data-pantalla-interna="">
+      {fijoArriba}
+      {children}
+    </div>,
+    anidar.ranura,
+  );
+}
+
+function HojaRaiz(props: Props) {
   // Queda montada mientras dura la animación de salida.
   const [montada, setMontada] = useState(props.abierta);
   if (props.abierta && !montada) setMontada(true);
@@ -252,6 +310,7 @@ function HojaMontada({
   altura = "auto",
   fijoArriba,
   historia,
+  anidarHojas = false,
   hueco: huecoPedido,
   decoracionAbajo,
   decoracionEncima,
@@ -299,6 +358,31 @@ function HojaMontada({
   // Ranuras para lo fijo (en estado para que los portales se pinten apenas existen).
   const [ranuraArriba, setRanuraArriba] = useState<HTMLDivElement | null>(null);
   const [ranuraAbajo, setRanuraAbajo] = useState<HTMLDivElement | null>(null);
+  // Pantallas internas (`anidarHojas`): la pila, dónde se pintan y desde dónde se abrió cada una (scroll y foco al volver).
+  const [ranuraInterna, setRanuraInterna] = useState<HTMLDivElement | null>(null);
+  const [pila, setPila] = useState<Interna[]>([]);
+  const pilaRef = useRef<Interna[]>([]);
+  const origenes = useRef(new Map<symbol, { scroll: number; foco: HTMLElement | null }>());
+  const registrar = useCallback((i: Interna) => {
+    const c = contenido.current;
+    origenes.current.set(i.id, { scroll: c?.scrollTop ?? 0, foco: document.activeElement as HTMLElement | null });
+    pilaRef.current = [...pilaRef.current, i];
+    setPila(pilaRef.current);
+    if (c) c.scrollTop = 0;
+    // El foco va a «‹» (un botón: no abre teclado), en el mismo cuadro en que aparece.
+    requestAnimationFrame(() => cabecera.current?.querySelector<HTMLElement>("[data-volver-interna]")?.focus({ preventScroll: true }));
+    return () => {
+      pilaRef.current = pilaRef.current.filter((x) => x !== i);
+      setPila(pilaRef.current);
+      const o = origenes.current.get(i.id);
+      origenes.current.delete(i.id);
+      requestAnimationFrame(() => {
+        if (contenido.current && o) contenido.current.scrollTop = o.scroll;
+        if (o?.foco && document.contains(o.foco)) o.foco.focus({ preventScroll: true });
+      });
+    };
+  }, []);
+  const anidar = useMemo<Anidar>(() => ({ ranura: ranuraInterna, pila, registrar }), [ranuraInterna, pila, registrar]);
 
   const [nivel, setNivelEstado] = useState<Nivel>(altura === "expandible" ? "media" : "grande");
 
@@ -394,8 +478,27 @@ function HojaMontada({
    * Cierre iniciado desde la hoja (X, Escape, fondo, deslizar, atrás). Con cambios sin guardar no cierra: rebota y pregunta.
    * Devuelve true si cerró.
    */
+  // `historia.volver` (pantalla interna propia): Escape y deslizar vuelven a la anterior en lugar de cerrar.
+  const volverHistoriaRef = useRef(historia?.volver);
+  useLayoutEffect(() => {
+    volverHistoriaRef.current = historia?.volver;
+  }, [historia?.volver]);
   const cerrar = useCallback((): boolean => {
     if (saliendo.current) return true;
+    // Con una pantalla interna abierta, cerrar (Escape) vuelve a la anterior.
+    const interna = pilaRef.current[pilaRef.current.length - 1];
+    if (interna) {
+      interna.cerrar.current();
+      // Si se llegó deslizando, la hoja ya bajó: vuelve a su lugar.
+      rebotar();
+      return false;
+    }
+    // Una pantalla interna propia (historial, lista de espera: `historia.volver`) también vuelve con Escape, como con atrás.
+    if (volverHistoriaRef.current) {
+      volverHistoriaRef.current();
+      rebotar();
+      return false;
+    }
     accionAlSalir.current = null;
     if (avisoDeProp.current || avisoDeHijo.current) {
       rebotar();
@@ -612,7 +715,9 @@ function HojaMontada({
         return;
       }
       if (!entrada) return;
-      if (volverInternoRef.current?.()) {
+      const interna = pilaRef.current[pilaRef.current.length - 1];
+      if (interna || volverInternoRef.current?.()) {
+        interna?.cerrar.current();
         window.history.pushState(estadoDeHoja(), "");
         return;
       }
@@ -833,7 +938,14 @@ function HojaMontada({
           className={`relative z-10 min-h-0 flex-1 isolate overscroll-contain ${hueco !== undefined ? "rounded-t-radio-xl" : "rounded-t-[30px]"} px-5 pt-[calc(var(--cabecera,79px)+2px)] ${hueco === "historia" ? "pb-[calc(max(max(1.75rem,calc(var(--safe-abajo)+1rem)),var(--fijo-abajo,0px))+var(--teclado,0px))]" : "pb-[calc(max(1.75rem,calc(var(--safe-abajo)+1rem))+var(--teclado,0px)+var(--fijo-abajo,0px))]"} [scroll-padding-top:calc(var(--cabecera,79px)+8px)] [scroll-padding-bottom:calc(var(--fijo-abajo,0px)+var(--teclado,0px)+8px)]`}
           style={{ overflowY: expandibleEnMedia ? "hidden" : "auto", touchAction: expandibleEnMedia ? "none" : "pan-y" }}
         >
-          {children}
+          {anidarHojas ? (
+            <ContextoAnidar.Provider value={anidar}>
+              <div className={pila.length > 0 ? "hidden" : "contents"}>{children}</div>
+              <div ref={setRanuraInterna} className="contents" />
+            </ContextoAnidar.Provider>
+          ) : (
+            children
+          )}
         </div>
         {decoracionEncima && <div data-hoja-decoracion aria-hidden="true" className="pointer-events-none absolute inset-0 z-[15] overflow-hidden rounded-t-[30px]">{decoracionEncima}</div>}
         {/* Borde de desplazamiento: 4 capas de desenfoque + degradado, detrás de la cabecera */}
@@ -862,13 +974,22 @@ function HojaMontada({
           {historia ? (
             <>
               {/* Fila 1 (44 px): la X a la izquierda (regla de Apple para hojas que confirman algo), el título y, a la derecha,
-                  lo que lo acompaña (se acorta con elipsis; el título no). Fila 2: el avance a todo el ancho. */}
+                  lo que lo acompaña (se acorta con elipsis; el título no). Fila 2: el avance a todo el ancho. En una pantalla
+                  interna, «‹» en lugar de la X y el título de esa pantalla; lo de la derecha no se muestra. */}
               <div className="mt-0.5 -ml-1 flex h-11 items-center gap-2">
-                <BotonCerrar onClick={cerrar} />
-                <h2 id={idTitulo} className="shrink-0 font-display text-titulo-seccion text-texto">{titulo}</h2>
-                {historia.alLadoDelTitulo}
+                {pila.length > 0 || historia.volver ? (
+                  <span data-volver-historial="" className="contents">
+                    <BotonVolverCabecera onClick={() => (pila.length > 0 ? pila[pila.length - 1]!.cerrar.current() : historia.volver?.())} />
+                  </span>
+                ) : (
+                  <BotonCerrar onClick={cerrar} />
+                )}
+                <h2 id={idTitulo} className={`font-display text-titulo-seccion text-texto ${pila.length > 0 || historia.tituloElipsis ? "min-w-0 flex-1 truncate" : "shrink-0"}`}>
+                  {pila.length > 0 ? pila[pila.length - 1]!.titulo.current : titulo}
+                </h2>
+                {pila.length === 0 && !historia.volver && historia.alLadoDelTitulo}
               </div>
-              <div className="mt-1.5">{historia.avance}</div>
+              {historia.avance && pila.length === 0 && <div className="mt-1.5">{historia.avance}</div>}
             </>
           ) : (
             <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>
@@ -888,7 +1009,7 @@ function HojaMontada({
           </div>
         )}
         {/* Zona fija de abajo (píldora de resumen…): se oculta mientras el teclado está abierto */}
-        <div ref={setRanuraAbajo} className="hoja-abajo pointer-events-none absolute inset-x-0 bottom-0 z-30" />
+        <div ref={setRanuraAbajo} className={`hoja-abajo pointer-events-none absolute inset-x-0 bottom-0 z-30 ${pila.length > 0 ? "hidden" : ""}`} />
       </div>
       {avisando && (
         <div className="absolute inset-0 z-10 grid place-items-center bg-velo px-6">
@@ -923,6 +1044,15 @@ function HojaMontada({
 }
 
 const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** «‹» de la cabecera: vuelve a la pantalla anterior de la misma hoja (mismo tamaño y fondo que la ✕). */
+export function BotonVolverCabecera({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-label="Volver" data-volver-interna="" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-superficie-hundida text-texto">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+    </button>
+  );
+}
 
 export function BotonCerrar({ onClick }: { onClick: () => void }) {
   return (

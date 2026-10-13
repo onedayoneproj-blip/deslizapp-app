@@ -7,6 +7,16 @@ import { execSync } from "node:child_process";
 import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
+
+/** Editar es un resumen: las fotos viven en la pantalla «Fotos», que se abre encima desde su fila. */
+async function abrirFotosEditar(page) {
+  await page.locator("[data-editar-producto] li").first().waitFor();
+  await page.waitForTimeout(400);
+  await page.locator("[data-editar-producto] li button").filter({ hasText: /^Fotos/ }).first().click();
+  await page.locator('[data-paso-editar="fotos"]').waitFor();
+  await page.waitForTimeout(400);
+}
+
 let playwright;
 try {
   playwright = require("playwright");
@@ -95,7 +105,10 @@ const abrirFoto = async (page, i) => {
 };
 const interruptor = (page) => hoja(page).getByRole("switch", { name: "Retocar esta foto", exact: true });
 const cerrarHoja = async (page) => {
-  await hoja(page).getByRole("button", { name: "Cerrar" }).first().click().catch(() => page.keyboard.press("Escape"));
+  // Una pantalla interna (la foto dentro de «Fotos» al editar) vuelve con «‹»; una hoja se cierra con la ✕.
+  const volver = hoja(page).locator("[data-hoja-cabecera] [data-volver-interna]");
+  if (await volver.count()) await volver.click();
+  else await hoja(page).getByRole("button", { name: "Cerrar" }).first().click().catch(() => page.keyboard.press("Escape"));
   await page.waitForTimeout(350);
 };
 /** Publica; si hay fotos marcadas y es la primera vez, la bienvenida del retoque sale antes de guardar: se confirma. */
@@ -216,6 +229,7 @@ await caso("5. Si el pedido al taller falla, el producto queda guardado y se avi
   await page.getByText(/No pudimos mandar la foto al taller/).first().waitFor({ timeout: 4000 });
   ok(true, "aviso «No pudimos mandar la foto al taller…»");
   await page.goto(`${URL}/catalogo/${p.id}/editar`);
+  await abrirFotosEditar(page);
   await abrirFoto(page, 1);
   ok(await hoja(page).getByRole("button", { name: "Retocar", exact: true }).count() === 1, "la foto guardada conserva su botón «Retocar»");
   ok(await hoja(page).getByRole("switch").count() === 0, "y no hay interruptor en una foto ya guardada");
@@ -227,6 +241,7 @@ await caso("6. Video: sin interruptor; foto guardada: botón «Retocar» de siem
   const { page } = c;
   const base = (await db(page)).productos.find((p) => p.nombre === "Base");
   await page.goto(`${URL}/catalogo/${base.id}/editar`);
+  await abrirFotosEditar(page);
   await abrirFoto(page, 1);
   ok(await hoja(page).getByRole("switch").count() === 0, "foto ya guardada: sin interruptor");
   ok(await hoja(page).getByRole("button", { name: "Retocar", exact: true }).count() === 1, "…con su botón «Retocar»");
@@ -266,6 +281,7 @@ await caso("6. Video: sin interruptor; foto guardada: botón «Retocar» de siem
     localStorage.setItem(k, JSON.stringify(d));
   }, [CLAVE, base.id, video]);
   await page.goto(`${URL}/catalogo/${base.id}/editar`);
+  await abrirFotosEditar(page);
   const existente = page.locator('[aria-label^="Video "]').first();
   await existente.waitFor({ timeout: 20000 });
   await existente.click();
