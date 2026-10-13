@@ -5,8 +5,13 @@ import {writeFileSync}from'node:fs';
 // NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (en el entorno o en .env.local). Si falta esa capacidad se salta con
 // aviso; con ella corre siempre (todas las escrituras se interceptan). Las pruebas automáticas del entorno de Claude Code no
 // la tienen a propósito: no tocan datos de tiendas reales.
-import {existsSync} from 'node:fs';
-if(!(process.env.NEXT_PUBLIC_SUPABASE_URL||existsSync('.env.local'))){console.log('⏭ SALTADA: lee el catálogo real de Esencias Michel (solo lectura) y la app necesita las variables NEXT_PUBLIC_SUPABASE_* (ni en el entorno ni en .env.local).');process.exit(0);}
+import {existsSync,readFileSync} from 'node:fs';
+import '../tests/cargar-ts.mjs';
+// Mismas dos variables y la misma regla que lib/supabase/config.ts (`supabaseConfigurado`), del entorno o de .env.local.
+const {supabaseConfigurado}=await import('../lib/data/modo.ts');
+const delArchivo=Object.fromEntries((existsSync('.env.local')?readFileSync('.env.local','utf8').split('\n'):[]).map(l=>l.match(/^\s*([A-Z_]+)\s*=\s*"?([^"#\s]*)"?/)).filter(Boolean).map(m=>[m[1],m[2]]));
+const variable=n=>process.env[n]??delArchivo[n]??'';
+if(!supabaseConfigurado(variable('NEXT_PUBLIC_SUPABASE_URL'),variable('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'))){console.log('⏭ SALTADA: lee el catálogo real de Esencias Michel (solo lectura) y la app necesita NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY válidas (en el entorno o en .env.local). También necesita conexión a Supabase.');process.exit(0);}
 const b=await navegador();const resultados=[];
 try{for(const caso of ['sin-red','limite']){
  const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});

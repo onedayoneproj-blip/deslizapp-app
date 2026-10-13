@@ -29,7 +29,7 @@ No las corras en paralelo con otras corridas pesadas: con la máquina cargada, `
 
 ## Tabla
 
-Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
+Lo que **necesita el entorno** además de Chromium: ninguna necesita internet, salvo `catalogo-errores` (se salta si no hay variables válidas de Supabase; con ellas necesita conexión a Supabase, porque deja pasar las lecturas reales).
 
 | Script | Qué comprueba | Modo | Notas del entorno |
 |---|---|---|---|
@@ -42,7 +42,7 @@ Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
 | boton-historia | «Agregar a historia» | A | |
 | carrusel-historias | Barras del carrusel y vista enfocada | A | |
 | catalogo-cabecera | Pestañas del feed, hoja Catálogos, cabecera | A | |
-| catalogo-errores | Errores de pedido (sin red, límite) | A | **Se salta** si la app no tiene las variables `NEXT_PUBLIC_SUPABASE_*` (ni en el entorno ni en `.env.local`): lee el catálogo real de Esencias Michel (solo lectura). Con ellas corre siempre |
+| catalogo-errores | Errores de pedido (sin red, límite) | A | **Se salta** si no hay `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` válidas (entorno o `.env.local`; misma regla que la app): lee el catálogo real de Esencias Michel (solo lectura). Con ellas corre siempre |
 | catalogo-por-tipo | Catálogo del comprador por tipo | A | |
 | catalogo-presentaciones | Presentaciones en el catálogo del cliente | A | |
 | catalogo-pulido | Tarjetas del panel: píldora de likes, stock, 360/390/430 claro y oscuro | A | contraste en oscuro: aviso, ver abajo |
@@ -103,7 +103,7 @@ Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
 | teclado | «Minimizar» no existía | El botón se llama «Minimizar la guía» | Actualizado |
 | admin-trabajo | Buscaba «Pedirlo» | La tarjeta ya no ofrece «Pedirlo» (`docs/04-pantallas.md`) | Comprueba que no está y escribe el estado `solicitado` como lo hacía `pedirCatalogo` |
 | catalogo-react | Agotaba el tiempo esperando reproducir el video | El Chromium de Playwright no trae H.264 y el video de prueba es H.264 | Se salta solo reproducir, sonido y pausa si `canPlayType` no lo soporta; hash, carrusel y «en línea y en bucle» sí se comprueban |
-| catalogo-errores | Agotaba el tiempo esperando `#r-delilah` | Necesita Supabase real (lectura del catálogo de Esencias Michel) | Se salta si faltan las variables `NEXT_PUBLIC_SUPABASE_*`; con ellas corre siempre |
+| catalogo-errores | Agotaba el tiempo esperando `#r-delilah` | Necesita Supabase real (lectura del catálogo de Esencias Michel) | Se salta si faltan las dos variables `NEXT_PUBLIC_SUPABASE_*`; con ellas (y conexión) corre siempre |
 | proxima-jugada | Lanzaba un error | La función está apagada a propósito | Se salta con mensaje (sale con 0) |
 | catalogo-react, ficha | — | WebKit no está instalado aquí (ya se avisaba y se seguía); `ficha` falló una vez bajo carga | Sin cambio |
 | admin-tiendas | «Define PLAYWRIGHT_MODULE» | Entorno | Documentado |
