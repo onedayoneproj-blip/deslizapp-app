@@ -53,7 +53,7 @@ El sistema de diseño completo vive también como un artifact de Claude (no acce
 
 ## Estado vigente y memoria compartida
 
-**Piloto de gestión en Notion operativo desde el 10 de octubre de 2026:** consultar [su estado y evidencia](piloto-notion.md). Notion es el backlog vigente; prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub. Esta sesión con acceso es Planning principal; Lewis pasa manualmente los encargos a Coding.
+**Piloto de gestión en Notion operativo desde el 10 de octubre de 2026:** consultar [su estado y evidencia](piloto-notion.md). Notion es el backlog vigente; prompts, especificaciones, decisiones técnicas y pruebas permanecen en GitHub. Esta sesión con acceso es Planning principal. Desde el 13 oct 2026 Planning lanza y orquesta las sesiones de Coding ([regla](forma-de-trabajo.md#antes-de-lanzar-una-sesión)).
 
 - **Tareas y bugs:** [Deslizapp · Piloto en Notion](https://app.notion.com/p/02d8b53220c147b7b2ca22b79e5d6e7d). [Guía de gestión](gestion-del-proyecto.md), con tabla, tablero y roadmap. Las Issues anteriores y Project #2 se conservan como antecedentes; no mantener seguimiento duplicado.
 - **Coordinación de sesiones:** [docs/handoffs/planning-sesion.md](handoffs/planning-sesion.md). Leerlo antes de lanzar una tarea y contrastar la Issue, PR y HEAD con GitHub; no duplicar aquí el backlog.

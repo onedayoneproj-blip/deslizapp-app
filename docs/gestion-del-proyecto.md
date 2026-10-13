@@ -1,6 +1,6 @@
 # Seguimiento de Deslizapp
 
-**Notion es el backlog del piloto desde el 10 de octubre de 2026.** [Estado y evidencia](piloto-notion.md). Esta sesión es Planning principal; Lewis pasa manualmente los encargos a Coding. Registrar tareas no inicia Coding ni autoriza merges.
+**Notion es el backlog del piloto desde el 10 de octubre de 2026.** [Estado y evidencia](piloto-notion.md). Esta sesión es Planning principal; desde el 13 oct 2026 lanza y orquesta las sesiones de Coding cuando Lewis aprueba un encargo ([regla](forma-de-trabajo.md#antes-de-lanzar-una-sesión)). Registrar tareas no inicia Coding ni autoriza merges.
 
 ## Accesos directos para Lewis
 
@@ -27,7 +27,7 @@ La base accesible se reutilizó sin duplicarla y permanece privada. Lewis ya edi
 
 - **Notion:** tareas, bugs, decisiones de producto en discusión, prioridades, responsables, dependencias, siguiente acción y enlaces a la evidencia.
 - **Documento de función en GitHub:** comportamiento y decisiones aprobadas necesarias para construir.
-- **Prompt en GitHub:** encargo completo para Coding; Lewis lo pasa manualmente.
+- **Prompt en GitHub:** encargo completo para Coding; Planning lanza la sesión con el prompt corto (o se lo da a Lewis si no tiene herramientas).
 - **PR/handoff/validación:** implementación, pruebas y límites; comprobar HEAD actual.
 - **Relevo:** coordinación y enlaces, sin una segunda tabla de estados.
 
