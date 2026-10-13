@@ -19,7 +19,8 @@ Lienzo de Claude Design: [Editar producto · rediseño](https://claude.ai/artifa
 - Vista previa grande: carrusel de las fotos con las barras tipo historia arriba, como el catálogo; abajo, sobre un degradado, precio (con promo, tachado), «Agotado» si aplica y las presentaciones (colores como puntos, tallas como pastillas).
 - «N personas lo esperan» (franja de atención) solo si hay lista de espera; abre la lista.
 - Orden: **Visible en el catálogo** → **Stock, plegable** («Stock · 3 presentaciones · 0 en total»; abierto, − / + por presentación; sin presentaciones, un solo − / +; con más de 3, abrirlo lleva al Inventario) → **Historial de ajustes**, fila aparte debajo del stock.
-- Stock empieza cerrado y se recuerda abierto/cerrado (decisión de Planning; Lewis puede cambiarla).
+- **Stock siempre empieza cerrado** (Lewis, 13 oct; no se recuerda el último estado).
+- **La hoja mide lo que mide su contenido** (altura `auto`) y **crece al abrir el stock**; si no cabe, hace scroll.
 - Pie: **«A tu historia»** (abre la hoja «Tu historia» de siempre) y **«Crear pedido»**, mitad y mitad.
 
 Datos de muestra: «Camisa de lino», 6 presentaciones; las fotos son manchas de color. Los textos nuevos («Antes: …», «¿Qué pasó?», «Cuéntalos como están hoy en tu casa o tu tienda.») son propuesta: se revisan con `docs/11-voz-y-frases.md`.
