@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {writeFileSync,readFileSync,mkdirSync,existsSync,unlinkSync,rmdirSync} from 'node:fs';
 import {navegador,URL} from './navegador-catalogo.mjs';
 const {construirDesdeSeed}=await import('../lib/data/db.ts');
-const d=construirDesdeSeed(),t=d.tiendas[0],p=d.productos.find(p=>p.tiendaId===t.id);d.promos=[];p.stock=3;p.activo=true;d.avisos=[{id:'fallo-aviso',tiendaId:t.id,productoId:p.id,varianteId:null,telefono:'18095550142',nombre:'Fixture',creadoEn:new Date().toISOString(),avisadoEn:null,dispositivo:'fixture-fallo'}];
+// El teléfono no es de ningún cliente de la demo: con uno que coincide, la lista muestra el nombre del cliente y no el del aviso (ver probar-espera-catalogo).
+const d=construirDesdeSeed(),t=d.tiendas[0],p=d.productos.find(p=>p.tiendaId===t.id);d.promos=[];p.stock=3;p.activo=true;d.avisos=[{id:'fallo-aviso',tiendaId:t.id,productoId:p.id,varianteId:null,telefono:'18095550999',nombre:'Fixture',creadoEn:new Date().toISOString(),avisadoEn:null,dispositivo:'fixture-fallo'}];
 const dir='app/prueba-espera';assert(!existsSync(dir));mkdirSync(dir);writeFileSync(dir+'/page.tsx',readFileSync(new globalThis.URL('../tests/fixtures/espera-page.txt',import.meta.url)));
 const browser=await navegador(),results=[];
 try{for(const width of [360,390,430]){

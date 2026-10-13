@@ -63,7 +63,7 @@ try{
  await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.getByRole('radio',{name:'Otro',exact:true}).click();
  await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).fill('Nota conservada');await page.getByRole('button',{name:'Guardar ajuste',exact:true}).click();await page.locator('[role="dialog"]').last().getByRole('alert').waitFor();
  ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v5'))===antes,'Error de validación conserva motivo y no guarda ficha ni stock');
- await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.getByRole('heading',{name:'Ajustar inventario',exact:true}).waitFor({state:'detached'});await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Salir',exact:true}).click();await page.waitForURL(URL+href);
+ await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.getByRole('heading',{name:'Ajustar inventario',exact:true}).waitFor({state:'detached'});await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Descartar y salir',exact:true}).click();await page.waitForURL(URL+href);
  ok((await auditar()).length===3,'Cancelar edición fallida no altera el historial');
  await page.locator('section[aria-label="Inventario"]').waitFor();
  await page.evaluate(async()=>{
@@ -74,17 +74,17 @@ try{
   const ajenos=await d.getAjustesInventario('otra-tienda',id);if(ajenos.ajustes.length)throw Error('Historial cruzó tiendas');
  });
  await page.getByRole('button',{name:'Historial',exact:true}).click();
- const historial=page.getByRole('region',{name:'Ajustes de inventario'});
- await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').count()===10,'Historial carga inicialmente diez filas e identifica al actor');
+ const historial=page.getByRole('region',{name:'Historial de ajustes'});
+ await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').filter({hasText:'· Michel'}).count()===10,'Historial carga inicialmente diez filas e identifica al actor');
  await page.evaluate(()=>{
-  const el=document.querySelector('section[aria-label="Ajustes de inventario"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.getAjustesInventario)f=f.return;
+  const el=document.querySelector('section[aria-label="Historial de ajustes"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.getAjustesInventario)f=f.return;
   window.__datosHistorial=f.memoizedProps.value;window.__leerHistorial=window.__datosHistorial.getAjustesInventario;
   window.__datosHistorial.getAjustesInventario=async()=>{throw Error('Lectura de historial fallida (doble)');};
  });
  await historial.getByRole('button',{name:'Ver más ajustes'}).click();await historial.getByRole('button',{name:'Reintentar historial'}).waitFor();
  ok(await historial.getByRole('alert').count()===1,'Historial muestra error y reintento tras fallar la lectura');
  await page.evaluate(()=>{window.__datosHistorial.getAjustesInventario=window.__leerHistorial;});
- await historial.getByRole('button',{name:'Reintentar historial'}).click();await page.waitForFunction(()=>document.querySelectorAll('section[aria-label="Ajustes de inventario"] li').length===12);
+ await historial.getByRole('button',{name:'Reintentar historial'}).click();await page.waitForFunction(()=>document.querySelectorAll('section[aria-label="Historial de ajustes"] li').length===12);
  ok(await historial.locator('li').count()===12,'Ver más/reintentar recupera todas las filas; otra tienda no las ve');
 
 }finally{await browser.close();}

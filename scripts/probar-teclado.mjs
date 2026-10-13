@@ -649,7 +649,7 @@ try {
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL);
-    await page.getByRole('button', { name: 'Minimizar', exact: true }).click();
+    await page.getByRole('button', { name: 'Minimizar la guía', exact: true }).click();
     await page.getByRole('button', { name: /Desplegar Deja tu tienda lista/ }).click();
     await page.getByRole('group', { name: 'Capítulos de preparación' }).getByRole('button', { name: /^Capítulo 2 ·/ }).click();
     await page.getByRole('button', { name: /^Cuéntales quién eres ·/ }).click();

@@ -148,7 +148,7 @@ for (const ancho of [390, 360]) {
     const s = await abrir(ancho, "/tienda/esencias-michel?demo");
     await s.page.locator("#colTab").click();
     await s.page.waitForSelector("#coBg");
-    await scrollPropio("Colecciones", s, "#coBg", "#coBg", "#coGrid");
+    await scrollPropio("Colecciones", s, "#coBg", "#coBg .coscroll", "#coGrid");
     await s.ctx.close();
   }
   {
