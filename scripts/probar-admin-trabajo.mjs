@@ -148,9 +148,10 @@ try {
       if (await bienvenida.waitFor({ timeout: 2000 }).then(() => true, () => false)) {
         await bienvenida.getByRole("button", { name: "Retocar foto", exact: true }).click();
         await page.waitForTimeout(600);
-        await page.getByRole("button", { name: /^Foto 1 de/ }).click();
+        // Al editar, la bienvenida es una pantalla interna de «Fotos»: al confirmarla se vuelve sola al detalle de la foto.
+        if (!(await retoque.isVisible())) await page.getByRole("button", { name: /^Foto 1 de/ }).click();
       }
-      await page.getByText("En el taller", { exact: true }).first().waitFor();
+      await page.locator("[data-pantalla-interna]").getByText(/^En el taller/).first().waitFor();
       ok(await retoque.getByText("Beta", { exact: true }).isVisible(), "«Beta» también en «En el taller»");
       ok(await retoque.getByText("Tu foto está en proceso, con tu marca como guía. Reservamos 5 créditos; se cobran cuando esté lista.", { exact: true }).isVisible(), "el taller explica el proceso y la reserva");
       ok(await retoque.getByText("Hecho con criterio de marca.", { exact: true }).isVisible(), "y remata en Caveat");
