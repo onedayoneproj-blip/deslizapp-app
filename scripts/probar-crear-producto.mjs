@@ -243,7 +243,14 @@ for (const ancho of ANCHOS) {
     await tarjeta(page, "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(500);
+    ok((await paso(page)) === "precio" && (await enfocado(page)) !== "campo", "Enter con precio y sin opciones NO avanza: cierra el teclado");
+    {
+      const pie = await page.locator("[data-pie-historia]").boundingBox();
+      const pastillas = await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div").boundingBox();
+      ok(pastillas.y >= 0 && pastillas.y + pastillas.height <= pie.y + 1, "…y la pregunta con sus pastillas queda a la vista, por encima del pie flotante");
+    }
+    await seguir(page);
     ok((await paso(page)) === "stock" && (await titulo(page)) === "¿Cuántos tienes ahora?", "Paso 4: ¿Cuántos tienes ahora?");
     ok((await enfocado(page)) === "titulo", "…sin campo, el foco va al título");
     const mas = page.locator("[data-contador-stock]").getByRole("button", { name: "Agregar uno" });

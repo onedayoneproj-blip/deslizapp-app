@@ -395,6 +395,21 @@ function Historia({
     seguir();
   };
 
+  /**
+   * Enter en el precio: con precio y sin opciones elegidas NO avanza (en el iPhone el teclado tapa la pregunta): cierra el teclado y
+   * deja «¿Viene en varias opciones?» a la vista sobre el pie flotante. «Seguir» sí avanza. Con opciones elegidas, avanza como siempre.
+   */
+  const preguntaPendiente = Number(precio) > 0 && !tieneOpciones;
+  const alEnterPrecio = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter" || !preguntaPendiente) return alEnter(e);
+    e.preventDefault();
+    e.currentTarget.blur();
+    const mostrar = () => raiz.current?.querySelector<HTMLElement>("[data-chip-presentaciones]")?.scrollIntoView({ block: "nearest" });
+    mostrar();
+    // El teclado tarda en bajar: se vuelve a poner a la vista cuando el área visible ya creció.
+    setTimeout(mostrar, 350);
+  };
+
   const elegirEncargo = (activo: boolean) => setPorEncargo(activo);
   /** Por encargo no se lleva stock: tampoco en las presentaciones (si no, el catálogo las vería disponibles). */
   const presentacionesFinales: EstadoPresentaciones = !tieneOpciones
@@ -572,7 +587,7 @@ function Historia({
             <p className="mt-4 text-destacado text-texto" data-precio-desde="">Varía por presentación · desde {formatearPesos(resumenPres.desde)}</p>
           ) : (
             <Campo
-              className="mt-3" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint="next" onKeyDown={alEnter}
+              className="mt-3" grande etiqueta="Precio" aria-label="Precio (RD$)" prefijo="RD$" inputMode="numeric" enterKeyHint={preguntaPendiente ? "done" : "next"} onKeyDown={alEnterPrecio}
               precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe tu precio" data-precio="" data-campo-paso=""
             />
           )}
