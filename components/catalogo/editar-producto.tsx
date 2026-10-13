@@ -124,7 +124,9 @@ export function EditarProducto({
   const [vendiendoOtra, setVendiendoOtra] = useState(false);
 
   // ---- El borrador ----
-  const [medios, setMedios] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
+  // Un solo borrador inicial: la foto de cada color guarda el id de su medio, así que los dos tienen que salir del mismo arreglo.
+  const [mediosDelProducto] = useState<MedioBorrador[]>(() => mediosIniciales(producto));
+  const [medios, setMedios] = useState<MedioBorrador[]>(mediosDelProducto);
   const [nombre, setNombre] = useState(producto.nombre);
   const [precio, setPrecio] = useState(String(producto.precio));
   const base = useMemo(() => new Map((producto.variantes ?? []).map((v) => [claveVariante(v.valores), v])), [producto]);
@@ -133,10 +135,9 @@ export function EditarProducto({
     // La foto de cada valor del eje que la lleva, como id de la foto en el borrador (así sobrevive a que la foto se suba al guardar).
     const eje = ejeDeFoto(opciones);
     const guardadas = eje ? (producto.fotosPorValor?.[eje.nombre] ?? {}) : {};
-    const iniciales = mediosIniciales(producto);
     const fotosColor: Record<string, string> = {};
     for (const [valor, url] of Object.entries(guardadas)) {
-      const m = iniciales.find((x) => x.tipo === "foto" && x.url === url);
+      const m = mediosDelProducto.find((x) => x.tipo === "foto" && x.url === url);
       if (m) fotosColor[valor] = m.id;
     }
     return { opciones, pres: presentacionesDe(producto), fotosColor };

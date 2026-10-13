@@ -478,12 +478,22 @@ function HojaMontada({
    * Cierre iniciado desde la hoja (X, Escape, fondo, deslizar, atrás). Con cambios sin guardar no cierra: rebota y pregunta.
    * Devuelve true si cerró.
    */
+  // `historia.volver` (pantalla interna propia): Escape y deslizar vuelven a la anterior en lugar de cerrar.
+  const volverHistoriaRef = useRef(historia?.volver);
+  useLayoutEffect(() => {
+    volverHistoriaRef.current = historia?.volver;
+  }, [historia?.volver]);
   const cerrar = useCallback((): boolean => {
     if (saliendo.current) return true;
     // Con una pantalla interna abierta, cerrar (Escape) vuelve a la anterior.
     const interna = pilaRef.current[pilaRef.current.length - 1];
     if (interna) {
       interna.cerrar.current();
+      return false;
+    }
+    // Una pantalla interna propia (historial, lista de espera: `historia.volver`) también vuelve con Escape, como con atrás.
+    if (volverHistoriaRef.current) {
+      volverHistoriaRef.current();
       return false;
     }
     accionAlSalir.current = null;

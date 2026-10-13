@@ -254,6 +254,9 @@ for (const ancho of ANCHOS) {
     await esperar(page, 900);
     const regs = await ajustes(page, PANTALON);
     ok(regs.some((a) => a.variacion === -1 && a.motivo === "dano"), "Ajuste −1 de la presentación con motivo «Daño»");
+    // Guardar algo que no son las fotos no toca la foto de cada color (revisión de Codex en #125).
+    const fpv = (await producto(page, PANTALON)).fotosPorValor ?? {};
+    ok(Object.keys(fpv.Color ?? {}).length === 3 && fpv.Color.Negro?.endsWith("pantalon-de-algodon-negro.svg"), `La foto de cada color se conserva (${JSON.stringify(fpv)})`);
     void base;
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();

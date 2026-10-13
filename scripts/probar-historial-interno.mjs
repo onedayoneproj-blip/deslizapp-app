@@ -39,9 +39,10 @@ try{for(const [ancho,reducido] of [[360,false],[390,false],[430,false],[390,true
  await cab().getByRole('button',{name:'Volver',exact:true}).click();await page.waitForTimeout(150);
  ok(Math.abs(await scroll.evaluate(el=>el.scrollTop)-posEdicion)<=1,`${ancho}: volver conserva el desplazamiento de editar`);
  ok((await filaEd('Nombre').innerText()).includes('Nombre pendiente'),`${ancho}: el borrador sigue`);
- await filaEd('Historial de ajustes').click();await page.keyboard.press('Escape');await page.getByRole('alertdialog').waitFor();await page.getByRole('alertdialog').getByRole('button',{name:'Quedarme',exact:true}).click();
- ok(await cab().getByRole('heading').innerText()==='Historial de ajustes',`${ancho}: Escape protege cambios reales y permite seguir en historial`);
- await cab().getByRole('button',{name:'Volver',exact:true}).click();
+ await filaEd('Historial de ajustes').click();await page.keyboard.press('Escape');await page.waitForTimeout(300);
+ ok(await page.getByRole('alertdialog').count()===0&&await page.locator('[data-editar-producto]').isVisible(),`${ancho}: Escape en el historial vuelve a editar (como atrás), sin cerrar`);
+ await page.keyboard.press('Escape');await page.getByRole('alertdialog').waitFor();await page.getByRole('alertdialog').getByRole('button',{name:'Quedarme',exact:true}).click();
+ ok(await page.locator('[data-editar-producto]').isVisible(),`${ancho}: Escape en editar protege los cambios`);
  ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${ancho}: sin overflow${reducido?' · movimiento reducido':''}`);
  ok(errores.length===0,`${ancho}: sin errores de página`);await ctx.close();
 }}finally{await browser.close();}
