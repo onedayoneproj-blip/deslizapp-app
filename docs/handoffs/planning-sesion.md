@@ -1,6 +1,14 @@
 # Relevo vigente de Planning
 
-Actualizado: 13 de octubre de 2026, comprobado contra GitHub. `main` está en `aa5dc92` (squash de #120). Ver «Estado al 13 oct» y «Estado al 12 oct» abajo; las líneas «En curso (11 oct)» de más abajo son históricas salvo crear producto.
+Actualizado: 13 de octubre de 2026 (tarde), comprobado contra GitHub. `main` en `22fc9af` (squash de #122) más este commit de documentos. Ver «Estado al 13 oct (tarde)» primero; «Estado al 13 oct» y «Estado al 12 oct» son anteriores. Las líneas «En curso (11 oct)» son históricas.
+
+## Estado al 13 oct 2026 (tarde)
+
+- **#122 fusionado** por orden de Lewis (`22fc9af`). Su último commit cambió «Publicar ⌄» por el **reloj «Publicar más tarde»** (abre la alerta «¿Publicar más tarde?» → «Guardar para después», que guarda oculto); el encargo `crear-producto-cerrar-y-publicar.md` y la descripción del PR siguen hablando de la flecha, que es histórica.
+- **Lewis validó en su iPhone, en producción**, todo crear producto (#115–#122), la guía, el carrusel con la vista enfocada, instalar la app, la cabecera de «Catálogos» y el reel sin abanico. Sus tareas de Notion están Terminadas.
+- **Siguiente encargo: editar producto como resumen** (opción A, aprobada por Lewis; decisión en `docs/04-pantallas.md`, diseño en `referencias/editar-producto/`). Dos PR en orden: [PR 1](../prompts/editar-producto-1-pasos-compartidos.md) (sacar los pasos de la historia a piezas compartidas, sin cambio visible; Sonnet; Coding fusiona si todo pasa) y después [PR 2](../prompts/editar-producto-2-resumen.md) (la hoja resumen; **Opus aprobado por Lewis**; PR abierto con preview hasta que Lewis lo pruebe). Tarea: [Editar producto con el lenguaje de la historia](https://app.notion.com/p/3f8ed62010cb8148b479c11e0403a76c). Ninguna sesión lanzada todavía: Lewis pega el prompt.
+- **Cabeceras de hoja:** siguen pendientes D4 y D7. La D7 hay que replantearla: ya no hay «Publicar ⌄» con quien compartir el menú «⋯». El PR 2 de editar elimina la pila «Editar → Flujo → Presentación» (máximo dos hojas).
+- Abiertos como antecedentes, sin cambio: #45 (excluido), #43, #23 y #2.
 
 ## Acuerdo vigente
 
