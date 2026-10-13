@@ -55,9 +55,14 @@ Cada tarea activa de Notion registra: función, responsable/sesión si se conoce
 
 El rebase reduce divergencias; no garantiza compatibilidad funcional. Separar ramas no basta para declarar tareas independientes. No lanzar trabajo dependiente anticipadamente solo para ganar paralelismo.
 
-## Aviso al terminar (regla permanente, Lewis, 11 oct 2026)
+## Avisos a Planning (regla permanente, Lewis, 11 oct 2026; ampliada el 13 oct)
 
-Toda sesión que Planning cree o a la que encargue trabajo **debe avisar a Planning siempre que termine** (y si queda bloqueada o está por agotarse): mensaje al padre (`send_message` a `@parent`, o a la sesión de Planning que la creó) con estado, PR, HEAD, resultado de «Revisión», pruebas hechas y no hechas, decisiones fuera del encargo y pendientes. Todo encargo o prompt que Planning entregue incluye esta instrucción. Planning, al recibir el aviso, comprueba el PR y los checks en GitHub, la preview en Vercel, y actualiza Notion y el relevo antes de contarle a Lewis.
+Toda sesión que Planning cree o a la que encargue trabajo **le escribe a Planning** (`send_message` a `@parent`, o a la sesión de Planning que la creó; su identificador va en el prompt):
+- **Siempre que termine**, con estado, PR, HEAD, URL de la preview si la hay, resultado de «Revisión» y de Codex, pruebas hechas y no hechas, decisiones fuera del encargo y pendientes.
+- **Durante el trabajo, sin esperar al final**, cuando haya algo que Planning necesite saber: una duda o una decisión que el encargo no cubre (pregunta antes de decidir si cambia lo que ve Lewis, datos o contratos), un hallazgo que afecte a otra tarea o a otra sesión, un fallo que no es suyo, un cambio de plan, o un PR abierto o actualizado.
+- **Si queda bloqueada o está por agotarse el contexto**, con un checkpoint (qué está guardado y dónde, HEAD, siguiente paso).
+
+Mensajes cortos y concretos; no narrar cada paso. Todo encargo o prompt que Planning entregue incluye esta instrucción. Planning, al recibir el aviso, comprueba el PR y los checks en GitHub, la preview en Vercel, y actualiza Notion y el relevo antes de contarle a Lewis.
 
 ## Modelo de las sesiones (regla permanente, Lewis, 11 oct 2026)
 
