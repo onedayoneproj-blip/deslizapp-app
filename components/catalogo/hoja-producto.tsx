@@ -244,11 +244,13 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
   const activas = variantes.activas;
   const conPresentaciones = activas.length > 0;
   const personas = !espera.error && !espera.cargando ? (espera.resumen?.personasPorProducto.get(producto.id) ?? 0) : 0;
-  const editar = () => (sinCatalogo ? toast(porque) : navegar(`/catalogo/${producto.id}/editar`));
+  // Mientras se guarda el stock no se sale a editar: el ajuste en camino podría entrar después de descartar el borrador.
+  const editar = () => (sinCatalogo ? toast(porque) : guardandoStock ? undefined : navegar(`/catalogo/${producto.id}/editar`));
   const abrirStock = () => {
     // Con más de 3 presentaciones, el stock se cambia en el Inventario de editar.
     if (conPresentaciones && activas.length > MAX_STOCK_EN_VISTA && !stockAbierto) {
       if (sinCatalogo) return toast(porque);
+      if (guardandoStock) return;
       return navegar(`/catalogo/${producto.id}/editar?abrir=stock`);
     }
     setStockAbierto((a) => !a);

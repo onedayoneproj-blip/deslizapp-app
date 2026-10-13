@@ -118,4 +118,16 @@ try{
  ok(await hojaMotivo.locator('[data-error-motivo]').isVisible()&&(await ajustesOud()).length===antesOud+2,'Si la bajada falla, el error se ve en la hoja del motivo y no se guarda nada');
  await hojaMotivo.getByRole('button',{name:'Guardar ajuste'}).click();await hojaMotivo.waitFor({state:'detached'});
  ok((await ajustesOud()).length===antesOud+3,'Reintentar desde la misma hoja guarda la bajada');
+ // Lo mismo en el Inventario de editar: si falla el segundo ajuste, reintentar no repite el primero (revisión de Codex en #125).
+ await page.goto(URL+'/catalogo/a3000000-0000-4000-8000-000000000019/editar?abrir=stock');await page.locator('[data-inventario-editar]').waitFor();await page.waitForTimeout(500);
+ const antesEd=(await ajustesOud()).length;
+ await page.evaluate(()=>{const el=document.querySelector('[data-hoja-panel]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.ajustarStock)f=f.return;const d=f.memoizedProps.value;const orig=d.ajustarStock;let n=0;d.ajustarStock=async(...a)=>{if(++n===2){d.ajustarStock=orig;throw Error('Falla el segundo ajuste (doble de prueba)');}return orig(...a);};});
+ await page.locator('[data-inventario-editar] button[aria-label^="Agregar uno de"]').nth(0).click();await page.locator('[data-inventario-editar] button[aria-label^="Agregar uno de"]').nth(1).click();
+ await page.locator('[data-hoja-panel]').last().getByRole('button',{name:'Listo',exact:true}).click();await page.waitForTimeout(600);
+ const guardarEd=page.getByRole('button',{name:'Guardar cambios',exact:true});
+ await guardarEd.click();await page.waitForFunction(n=>JSON.parse(localStorage.getItem('deslizapp-demo-v5')).ajustesInventario.filter(a=>a.productoId==='a3000000-0000-4000-8000-000000000019').length===n,antesEd+1);await page.waitForTimeout(800);
+ ok((await ajustesOud()).length===antesEd+1&&page.url().endsWith('/editar?abrir=stock'),'Editar: si falla el segundo ajuste, el primero ya quedó y la hoja sigue abierta');
+ await guardarEd.click();await page.waitForURL(u=>!u.pathname.endsWith('/editar'),{timeout:8000});await page.waitForTimeout(500);
+ const nuevosEd=(await ajustesOud()).slice(antesEd);
+ ok(nuevosEd.length===2&&new Set(nuevosEd.map(a=>a.varianteId)).size===2&&nuevosEd.every(a=>a.variacion===1),'Editar: reintentar aplica solo el que faltaba, sin repetir');
 }finally{await browser.close();}

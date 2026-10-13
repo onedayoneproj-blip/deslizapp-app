@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { CATALOGO_GENERAL, contarPorCatalogo } from "@/lib/catalogo-activo";
 import { esEjeColor, colorPorNombre } from "@/lib/colores";
@@ -166,6 +166,9 @@ export function EditarProducto({
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [pidiendoMotivo, setPidiendoMotivo] = useState(false);
+  // El stock que ya entró de cada presentación (por id), hasta que llegue el producto releído: si un ajuste falla después de
+  // que otro entró, reintentar aplica solo lo que faltaba (como `useStockPresentaciones` en Ver producto).
+  const confirmadosRef = useRef<{ de: Producto; stock: Map<string, number> }>({ de: producto, stock: new Map() });
 
   // ---- Las hojas de encima ----
   const [paso, setPaso] = useState<Paso | null>(abrirStock && producto.tipo !== "servicio" ? "stock" : null);
@@ -265,12 +268,17 @@ export function EditarProducto({
       if (JSON.stringify(tieneOpciones ? opciones : []) !== JSON.stringify(producto.opciones) || (tieneOpciones ? antes !== ahora : producto.opciones.length > 0) || otroPrecioOEstado) {
         await guardarVariantes(tiendaId, producto.id, tieneOpciones ? opciones : [], tieneOpciones ? variantes : []);
       }
+      if (confirmadosRef.current.de !== producto) confirmadosRef.current = { de: producto, stock: new Map() };
+      const confirmados = confirmadosRef.current.stock;
       for (const p of efectivas) {
         const b = base.get(claveVariante(p.valores));
         const quiere = p.stock ?? 0;
-        if (!b || !p.activa || b.stock === null || quiere === b.stock) continue;
-        const delta = quiere - b.stock;
+        if (!b || !p.activa || b.stock === null) continue;
+        const actual = confirmados.get(b.id) ?? b.stock;
+        if (quiere === actual) continue;
+        const delta = quiere - actual;
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : (deVariantes?.motivo ?? "correccion_inventario"), delta > 0 ? null : (deVariantes?.nota ?? null), b.id);
+        confirmados.set(b.id, quiere);
       }
       const releido = guardadoComun.hayMarcadas(medios, entregadas) ? await getProducto(tiendaId, producto.id).catch(() => null) : null;
       await guardadoComun.guardarFotosDeColor(medios, entregadas, tieneOpciones ? presentaciones : SIN_PRESENTACIONES, producto);
