@@ -247,6 +247,18 @@ for (const ancho of ANCHOS) {
     await page.goBack();
     await esperar(page, 500);
     ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-inventario-editar]").isVisible()), "Atrás vuelve al Inventario (sin cerrarlo)");
+    // Deslizar hacia abajo desde la cabecera con una pantalla interna abierta: vuelve a la anterior y la hoja queda en su lugar.
+    await negro.getByRole("button", { name: /^M · Negro/ }).click();
+    await esperar(page, 500);
+    const antesDeslizar = (await arriba(page).boundingBox()).y;
+    const cdp = await page.context().newCDPSession(page);
+    const toque = (type, y) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y }] });
+    await toque("touchStart", antesDeslizar + 30);
+    for (let i = 1; i <= 8; i++) { await toque("touchMove", antesDeslizar + 30 + i * 50); await page.waitForTimeout(16); }
+    await toque("touchEnd");
+    await esperar(page, 900);
+    ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-pantalla-interna]").count()) === 0, "Deslizar con una pantalla interna vuelve al Inventario (no cierra la hoja)");
+    ok(Math.abs((await arriba(page).boundingBox()).y - antesDeslizar) < 2, "…y la hoja vuelve a su lugar");
     await listo(page).click();
     await esperar(page, 600);
     await guardar(page).click();
@@ -380,7 +392,7 @@ for (const ancho of ANCHOS) {
       const { ctx, page } = await pagina(ancho, LINO, { cambiar: `db.productos.find((p) => p.id === "${SOMBRERO}").tipo = "servicio";` });
       await abrirEditar(page, SOMBRERO);
       ok((await fila(page, "Stock").count()) === 0 && (await page.getByRole("switch", { name: "Es por encargo" }).count()) === 0, "Un servicio no lleva Stock ni Es por encargo");
-      ok((await fila(page, "Presentaciones").count()) === 1, "…sí Presentaciones");
+      ok((await fila(page, "Presentaciones").count()) === 0, "…ni Presentaciones (la base rechaza variantes de un servicio)");
       await ctx.close();
     }
 

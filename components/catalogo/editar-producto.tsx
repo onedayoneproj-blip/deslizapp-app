@@ -322,19 +322,20 @@ export function EditarProducto({
         <FilaLista titulo="Precio" fin={valor(textoPrecio ?? "Sin precio")} onClick={() => abrir("precio")} />
       </Grupo>
 
-      <Grupo titulo={servicio ? "Presentaciones" : "Presentaciones y stock"}>
+      {/* Un servicio no lleva presentaciones, stock ni encargo (como antes; la base rechaza variantes de un servicio). */}
+      {!servicio && (
+      <Grupo titulo="Presentaciones y stock">
         <FilaLista titulo="Presentaciones" fin={valor(resumenPresentaciones(tieneOpciones ? opciones : [], tieneOpciones ? resumenPres.total : 0))} onClick={() => (sinCatalogo ? toast(porque) : !ocupado && setPresAbierta(true))} />
-        {!servicio && (
-          <>
+        <>
             <FilaLista titulo="Stock" fin={valor(resumenStock(totalStock))} onClick={() => abrir("stock")} />
             <FilaLista
               titulo="Es por encargo" detalle={porEncargo ? resumenEncargo(true, encargoTexto) : undefined}
               onClick={porEncargo ? () => abrir("encargo") : undefined}
               accion={<Interruptor encendido={porEncargo} etiqueta="Es por encargo" alCambiar={setPorEncargo} deshabilitado={sinCatalogo || ocupado} alTocarBloqueado={sinCatalogo ? () => toast(porque) : undefined} />}
             />
-          </>
-        )}
+        </>
       </Grupo>
+      )}
 
       <Grupo titulo="Hazlo brillar · opcional">
         <FilaLista titulo="Descripción" fin={valor(resumenDescripcion(descripcion, 22) ?? "Agregar")} onClick={() => abrir("descripcion")} />

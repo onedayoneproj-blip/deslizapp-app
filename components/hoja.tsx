@@ -489,11 +489,14 @@ function HojaMontada({
     const interna = pilaRef.current[pilaRef.current.length - 1];
     if (interna) {
       interna.cerrar.current();
+      // Si se llegó deslizando, la hoja ya bajó: vuelve a su lugar.
+      rebotar();
       return false;
     }
     // Una pantalla interna propia (historial, lista de espera: `historia.volver`) también vuelve con Escape, como con atrás.
     if (volverHistoriaRef.current) {
       volverHistoriaRef.current();
+      rebotar();
       return false;
     }
     accionAlSalir.current = null;
