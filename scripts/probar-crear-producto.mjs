@@ -34,6 +34,15 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 
 /** `demo`: una base de la demo armada aquí (desde la semilla), que se pone una sola vez al abrir. */
+/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
+async function abrirTipicas(page) {
+  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
+  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
+  await pastillas.first().click();
+  await page.waitForTimeout(150);
+  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+}
+
 async function pagina(ancho, tienda, demo = null, alto = 844) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
@@ -225,11 +234,12 @@ for (const ancho of ANCHOS) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(150);
     ok((await paso(page)) === "precio" && (await enfocado(page)) === "campo", "Enter lleva al precio con el foco en su campo");
-    ok((await page.locator("[data-chip-presentaciones]").count()) === 0 && (await page.locator("[data-precio-tarjeta]").count()) === 0, "Sin precio: ni el chip ni el precio en la tarjeta (nada antes de tiempo)");
+    ok((await page.locator("[data-chip-presentaciones]").count()) === 0 && (await page.getByText("¿Viene en varias opciones?").count()) === 0 && (await page.locator("[data-precio-tarjeta]").count()) === 0, "Sin precio: ni la pregunta de opciones ni el precio en la tarjeta (nada antes de tiempo)");
     ok((await page.locator("[data-titulo-paso]").evaluate((e) => getComputedStyle(e).fontSize)) === "26px", "Títulos de pregunta a 26 px");
     await escribir(page, "1450");
     ok((await page.locator("[data-precio-tarjeta]").innerText()) === "RD$1,450", "El precio aparece en la tarjeta");
-    ok(await page.locator("[data-chip-presentaciones]").getByText("Tiene tallas o colores").isVisible(), "Chip «Tiene tallas o colores» (con precio)");
+    ok(await page.getByRole("heading", { name: "¿Viene en varias opciones?" }).isVisible() && (await page.getByText("Tiene tallas o colores").count()) === 0, "Con precio: la pregunta «¿Viene en varias opciones?» y ya no la pastilla suelta");
+    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Talla|Color|Otra", "…con las típicas de Ropa y «Otra»");
     await tarjeta(page, "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
@@ -467,7 +477,7 @@ for (const ancho of ANCHOS) {
     await escribir(page, "Camiseta tallas");
     await seguir(page);
     await escribir(page, "900");
-    await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+    await abrirTipicas(page);
     await page.waitForTimeout(150);
     ok((await paso(page)) === "cambia" && (await titulo(page)) === "¿En qué cambia?", "«Tiene tallas o colores» lleva a «¿En qué cambia?»");
     ok((await page.locator("[data-barras-historia] span").count()) === 7 && (await barras(page)) === "4", "…con 7 barras en vez de 5 (la 4.ª llena)");
@@ -612,14 +622,14 @@ for (const ancho of ANCHOS) {
     await escribir(page, "Gorra colores");
     await seguir(page);
     await escribir(page, "500");
-    await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+    await abrirTipicas(page);
     await page.waitForTimeout(150);
     await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
     await page.getByRole("checkbox", { name: "Color", exact: true }).tap();
     ok((await page.locator("[data-barras-historia] span").count()) === 7 && await boton(page, "Seguir").isDisabled(), "Sin nada elegido: «Seguir» apagado");
     await boton(page, "Atrás").tap();
     ok((await paso(page)) === "precio" && (await page.locator("[data-barras-historia] span").count()) === 5, "«‹» sin nada elegido vuelve al precio con 5 barras (un solo stock)");
-    await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+    await abrirTipicas(page);
     await page.waitForTimeout(150);
     ok((await page.locator("[data-que-cambia] [aria-checked=true]").count()) === 2, "Al volver, arranca otra vez con lo típico (Talla y Color)");
     await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
@@ -830,7 +840,7 @@ console.log("\n=== Una presentación quitada sigue quitada al sumar otro color (
   await escribir(page, "Bolso quitadas");
   await seguir(page);
   await escribir(page, "800");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
@@ -883,7 +893,7 @@ console.log("\n=== Dejar de cambiar por Color suma lo puesto en las tallas (Code
   await escribir(page, "Medias sumadas");
   await seguir(page);
   await escribir(page, "300");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await seguir(page);
   await page.getByRole("checkbox", { name: "S", exact: true }).tap();
@@ -936,7 +946,7 @@ console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, t
   await escribir(page, "Auditoría");
   await seguir(page);
   await escribir(page, "1000");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await seguir(page);
   await page.getByRole("checkbox", { name: "S", exact: true }).tap();
@@ -1071,7 +1081,7 @@ console.log("\n=== Auditoría de transiciones de las presentaciones (Planning, t
   await escribir(page, "Otro limpio");
   await seguir(page);
   await escribir(page, "500");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await seguir(page);
   ok((await page.locator("[data-valores-eje] [aria-checked=true]").count()) === 0, "…y sin nada del producto anterior");
@@ -1096,7 +1106,7 @@ console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; q
   await escribir(page, "Sin resucitar");
   await seguir(page);
   await escribir(page, "800");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
@@ -1171,7 +1181,7 @@ console.log("\n=== Por encargo con todas las presentaciones ocultas: «Listo» e
   await escribir(page, "Ocultas encargo");
   await seguir(page);
   await escribir(page, "600");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
@@ -1208,7 +1218,7 @@ for (const conTelefono of [false, true]) {
   await escribir(page, conTelefono ? "Un stock teléfono" : "Un stock");
   await seguir(page);
   await escribir(page, "700");
-  await page.locator("[data-chip-presentaciones]").getByRole("button").tap();
+  await abrirTipicas(page);
   await page.waitForTimeout(150);
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
@@ -1253,6 +1263,95 @@ console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
   await ctx.close();
 }
 
+for (const ancho of ANCHOS) {
+  console.log(`\n=== ${ancho}px · Pregunta «¿Viene en varias opciones?» ===`);
+
+  console.log("• «¿Viene en varias opciones?»: una pastilla = solo esa cosa marcada; «Otra» = nada marcado y el campo listo; «Cambiar» al volver");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrir(page);
+    await subirFoto(page, "#579");
+    await seguir(page);
+    await escribir(page, "Camiseta opciones");
+    await seguir(page);
+    await captura(page, "ropa-precio-vacio", ancho);
+    await escribir(page, "900");
+    const pregunta = page.locator("[data-pregunta-opciones]");
+    ok(await pregunta.isVisible() && (await pregunta.evaluate((e) => getComputedStyle(e).fontSize)) === "20px", "La pregunta se ve, en tamaño de subtítulo de sección (20 px, no los 26 del título)");
+    await captura(page, "pregunta-opciones-precio", ancho);
+    await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Talla", exact: true }).tap();
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "cambia" && (await page.locator("[data-barras-historia] span").count()) === 6, "«Talla» abre «¿En qué cambia?» en el mismo toque, con 6 barras (la regla de siempre: 6 si solo cambia una cosa)");
+    const qc = page.locator("[data-que-cambia]");
+    const marcada = (n) => qc.getByRole("checkbox", { name: n, exact: true }).getAttribute("aria-checked");
+    ok((await marcada("Talla")) === "true" && (await marcada("Color")) === "false", "…con solo Talla marcada");
+    await qc.getByRole("checkbox", { name: "Color", exact: true }).tap();
+    ok((await page.locator("[data-barras-historia] span").count()) === 7, "…y con Color también marcada, 7 barras");
+    await qc.getByRole("checkbox", { name: "Color", exact: true }).tap();
+    await boton(page, "Atrás").tap();
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "precio" && (await page.locator("[data-pregunta-opciones]").count()) === 1 && (await page.locator("[data-resumen-opciones]").count()) === 0, "«‹» con la cosa elegida pero sin valores vuelve al precio con la pregunta (sin presentaciones)");
+    await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Otra", exact: true }).tap();
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await marcada("Color")) === "false", "«Otra» abre «¿En qué cambia?» sin nada marcado");
+    ok((await page.evaluate(() => document.activeElement?.tagName)) === "INPUT" && await page.getByLabel("¿Qué otra cosa cambia?").isVisible(), "…con el campo de «+ Otra» listo y enfocado");
+    await escribir(page, "Aroma");
+    await boton(page, "Listo").tap();
+    await seguir(page);
+    await boton(page, "Seguir").waitFor();
+    await page.getByRole("button", { name: "Atrás" }).first().tap();
+    ok(errores.length === 0, "Sin errores en la consola");
+    await ctx.close();
+  }
+
+  console.log("• Otro catálogo (perfumes): la pregunta trae lo típico de ese catálogo");
+  {
+    const { ctx, page, errores } = await pagina(ancho, MICHEL);
+    await abrir(page);
+    await subirFoto(page, "#8a6");
+    await seguir(page);
+    await escribir(page, "Oud opciones");
+    await seguir(page);
+    await captura(page, "perfumes-precio-vacio", ancho);
+    await escribir(page, "1200");
+    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Tamaño|Otra", "Perfumes: «Tamaño» y «Otra»");
+    await captura(page, "perfumes-precio", ancho);
+    ok(errores.length === 0, "Sin errores en la consola");
+    await ctx.close();
+  }
+
+  console.log("• Con presentaciones ya armadas, al volver al precio: resumen con «Cambiar»");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrir(page);
+    await subirFoto(page, "#579");
+    await seguir(page);
+    await escribir(page, "Camiseta resumen");
+    await seguir(page);
+    await escribir(page, "900");
+    await abrirTipicas(page);
+    await seguir(page);
+    await boton(page, "XS a XL").tap();
+    await seguir(page);
+    await page.getByRole("checkbox", { name: "Negro", exact: true }).tap();
+    await seguir(page);
+    await page.waitForTimeout(300);
+    // El Inventario (hoja encima): se cierra con «‹» y se vuelve al precio paso a paso.
+    for (let i = 0; i < 4 && (await paso(page)) !== "precio"; i++) {
+      await page.getByRole("button", { name: "Atrás" }).last().tap();
+      await page.waitForTimeout(250);
+    }
+    ok((await paso(page)) === "precio" && (await page.locator("[data-resumen-opciones]").innerText()).includes("Talla · Color") && (await page.locator("[data-resumen-opciones]").getByRole("button", { name: "Cambiar" }).isVisible()), "Con presentaciones elegidas: «Talla · Color» con «Cambiar» en lugar de las pastillas");
+    ok((await page.locator("[data-pregunta-opciones]").count()) === 0, "…y sin la pregunta");
+    await captura(page, "pregunta-opciones-resumen", ancho);
+    await page.locator("[data-resumen-opciones]").getByRole("button", { name: "Cambiar" }).tap();
+    await page.waitForTimeout(150);
+    ok((await paso(page)) === "cambia", "«Cambiar» vuelve a «¿En qué cambia?»");
+    ok(errores.length === 0, "Sin errores en la consola");
+    await ctx.close();
+  }
+}
+
 console.log("\n=== Sin scroll en los pasos de un producto sin presentaciones (390×844 y 393×852, safe-arriba 59 y safe-abajo 34) ===");
 for (const [an, al] of [[390, 844], [393, 852]]) {
   const { ctx, page, errores } = await pagina(an, LINO, null, al);
@@ -1260,13 +1359,14 @@ for (const [an, al] of [[390, 844], [393, 852]]) {
   await page.addStyleTag({ content: ":root{--safe-arriba:59px !important;--safe-abajo:34px !important}" });
   await page.waitForTimeout(300);
   /** Cuánto le falta a la hoja para no desplazarse (px); 0 = cabe. */
-  const falta = async (nombre) => {
+  const falta = async (nombre, soloInformar = false) => {
     await page.waitForTimeout(300);
     const r = await page.evaluate(() => {
       const c = document.querySelector("[data-hoja-contenido]");
       return { falta: c.scrollHeight - c.clientHeight, borde: Math.round(document.querySelector("[data-hoja-panel]").getBoundingClientRect().y) };
     });
     ok(r.borde === 69, `${an}×${al} · ${nombre}: la hoja empieza en y=${r.borde} (69)`);
+    if (soloInformar) return console.log(`  ℹ️  ${an}×${al} · ${nombre}: ${r.falta > 0 ? `hace scroll, le faltan ${r.falta} px` : "no hace scroll"} (se informa, no se exige)`);
     ok(r.falta <= 0, `${an}×${al} · ${nombre}: no hace scroll${r.falta > 0 ? ` (le faltan ${r.falta} px)` : ""}`);
   };
   await falta("foto, sin fotos");
@@ -1279,8 +1379,10 @@ for (const [an, al] of [[390, 844], [393, 852]]) {
   await escribir(page, "Aretes por encargo");
   await falta("nombre");
   await seguir(page);
+  await falta("precio, sin escribir el precio");
   await escribir(page, "650");
-  await falta("precio");
+  // Con precio aparece «¿Viene en varias opciones?» y el paso ya no cabe en 390×844 (encargo: no se fuerza, se informa cuánto falta).
+  await falta("precio, con la pregunta de opciones", true);
   await seguir(page);
   await falta("cantidad");
   await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();

@@ -22,6 +22,12 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.72.0", fecha: "2026-10-13", titulo: "¿Viene en varias opciones?",
+    cambios: [
+      "Al crear un producto, después del precio te preguntamos si viene en tallas, colores u otra cosa: toca y listo.",
+    ],
+  },
+  {
     version: "0.71.0", fecha: "2026-10-12", titulo: "Tu foto, a un toque.",
     cambios: [
       "Al crear un producto, toca el recuadro de la foto y tu teléfono te deja elegir: fototeca, tomar foto o archivo.",

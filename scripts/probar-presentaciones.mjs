@@ -34,6 +34,15 @@ const ok = (cond, msg) => {
 };
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 
+/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
+async function abrirTipicas(page) {
+  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
+  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
+  await pastillas.first().click();
+  await page.waitForTimeout(150);
+  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+}
+
 async function pagina(ancho, tienda) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
@@ -87,7 +96,7 @@ const editar = async (page, id) => {
   await page.waitForTimeout(500);
 };
 const abrirFlujo = async (page) => {
-  if (await enHistoria(page)) await page.locator("[data-chip-presentaciones] button").click();
+  if (await enHistoria(page)) await abrirTipicas(page);
   else await page.getByRole("button", { name: /^Presentaciones/ }).click();
   await hoja(page).locator("[data-paso]").waitFor();
   await page.waitForTimeout(450);
@@ -162,7 +171,7 @@ const quiere = (id) => !SOLO || SOLO.includes(id);
 const esColor = (c) => /^colou?r(es)?$/i.test(c);
 /** Desde el precio: «Tiene tallas o colores» y deja elegidas exactamente estas cosas (las propias, con «+ Otra»). */
 async function cosasHistoria(page, cosas) {
-  await page.locator("[data-chip-presentaciones] button").click();
+  await abrirTipicas(page);
   const qc = page.locator("[data-que-cambia]");
   await qc.waitFor();
   for (const c of await qc.getByRole("checkbox").all()) {
@@ -569,7 +578,7 @@ for (const ancho of ANCHOS) {
     console.log("• 17 · Perfume de Michel: Tamaño en ml sigue funcionando");
     const { ctx, page, errores } = await pagina(ancho, MICHEL);
     await nuevo(page, "Perfume nuevo", "2800");
-    await page.locator("[data-chip-presentaciones] button").click();
+    await abrirTipicas(page);
     await page.locator("[data-que-cambia]").waitFor();
     ok((await page.locator("[data-que-cambia]").getByRole("checkbox", { name: "Tamaño", exact: true }).getAttribute("aria-checked")) === "true", "Un perfume arranca con «Tamaño» elegido");
     await pasoHistoria(page, "Seguir");

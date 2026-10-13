@@ -39,7 +39,7 @@ import {
   totalDelBorrador,
   type PasoHistoria,
 } from "@/lib/historia-producto";
-import { pastillasDeOpciones, resumenDescripcion } from "@/lib/hoja-producto";
+import { resumenDescripcion } from "@/lib/hoja-producto";
 import { resumenDelPlan } from "@/lib/plan-catalogo";
 import { copiarTexto } from "@/lib/portapapeles";
 import {
@@ -205,6 +205,8 @@ function Historia({
   const [encargoTexto, setEncargoTexto] = useState("");
   // Presentaciones como historia: las cosas que cambian (en el orden en que se eligieron) con sus valores, y lo del Inventario.
   const [ejes, setEjes] = useState<EjeHistoria[]>([]);
+  /** «Otra» en la pregunta del precio: «¿En qué cambia?» abre con el campo de «+ Otra» listo. */
+  const [abrirOtra, setAbrirOtra] = useState(false);
   const [presBorrador, setPresBorrador] = useState<Presentacion[]>([]);
   const [quitadas, setQuitadas] = useState<string[]>([]);
   const [fotosColor, setFotosColor] = useState<Record<string, string>>({});
@@ -311,12 +313,16 @@ function Historia({
   useEffect(() => {
     atrasRef.current = atras;
   });
-  /** «Tiene tallas o colores»: siete barras en el mismo toque y «¿En qué cambia?» (con lo típico del catálogo ya elegido). */
-  const abrirVariantes = () => {
+  /**
+   * «¿Viene en varias opciones?»: siete barras en el mismo toque y «¿En qué cambia?». Con el nombre de una pastilla, solo esa cosa
+   * ya marcada; con `null` («Otra»), nada marcado y el campo de «+ Otra» listo. Sin argumento (el resumen «Cambiar»), lo que ya había.
+   */
+  const abrirVariantes = (cosa?: string | null) => {
     if (sinCatalogo) return toast(porque);
-    const iniciales = ejes.length > 0 ? ejes : OPCIONES_TIPICAS[tipo].slice(0, MAX_EJES).map((nombre) => ({ nombre, valores: [], propia: false }));
+    const iniciales: EjeHistoria[] = cosa === undefined ? ejes : cosa === null ? [] : [{ nombre: cosa, valores: [], propia: false }];
     flushSync(() => {
       setEjes(iniciales);
+      setAbrirOtra(cosa === null);
       alCambiarVariantes(iniciales.length);
     });
     irA("cambia");
@@ -504,7 +510,7 @@ function Historia({
             <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
             <p className="mt-1 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
           </div>
-          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} />
+          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} empezarEnOtra={abrirOtra} />
         </>
       )}
 
@@ -570,12 +576,25 @@ function Historia({
               precio={{ digitos: precio, alCambiar: setPrecio }} placeholder="Escribe tu precio" data-precio="" data-campo-paso=""
             />
           )}
-          {/* «Tiene tallas o colores» aparece cuando ya hay precio (nada antes de tiempo). */}
+          {/* «¿Viene en varias opciones?» aparece cuando ya hay precio (nada antes de tiempo). */}
           {(Number(precio) > 0 || conVariantes) && (
-            <div className="mt-2.5 flex" data-chip-presentaciones="">
-              <Chip hecho={tieneOpciones} onClick={abrirVariantes}>
-                {tieneOpciones ? pastillasDeOpciones(presentaciones.opciones).join(" · ") : "Tiene tallas o colores"}
-              </Chip>
+            <div className="mt-4" data-chip-presentaciones="">
+              {tieneOpciones ? (
+                <div className="flex items-center justify-between gap-3" data-resumen-opciones="">
+                  <p className="text-destacado text-texto">{ejes.map((e) => e.nombre).join(" · ")}</p>
+                  <Chip hecho onClick={() => abrirVariantes()}>Cambiar</Chip>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-titulo-seccion text-texto" data-pregunta-opciones="">¿Viene en varias opciones?</h2>
+                  <div role="group" aria-label="¿Viene en varias opciones?" className="mt-2.5 flex flex-wrap gap-2">
+                    {OPCIONES_TIPICAS[tipo].slice(0, MAX_EJES).map((cosa) => (
+                      <Eleccion key={cosa} accion elegida={false} onClick={() => abrirVariantes(cosa)}>{cosa}</Eleccion>
+                    ))}
+                    <Eleccion accion elegida={false} onClick={() => abrirVariantes(null)}>Otra</Eleccion>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </>
@@ -876,10 +895,10 @@ function TarjetaPresentaciones({ portada, nombre, precio, opciones }: { portada:
 }
 
 /** «¿En qué cambia?» (b11): lo típico del catálogo y otras cosas, hasta 2, y «+ Otra» para una propia. */
-function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void }) {
+function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = false }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void; empezarEnOtra?: boolean }) {
   const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
   const lista = [...new Set([...[...tipicas, ...otras].slice(0, 4), ...ejes.map((e) => e.nombre)])];
-  const [otra, setOtra] = useState<string | null>(null);
+  const [otra, setOtra] = useState<string | null>(empezarEnOtra ? "" : null);
   const [error, setError] = useState<string | null>(null);
   const caja = useRef<HTMLDivElement>(null);
   const llenos = ejes.length >= MAX_EJES;
@@ -920,7 +939,7 @@ function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ejes: Eje
       {otra !== null && (
         <div className="mt-3 flex items-start gap-2">
           <Campo
-            className="flex-1" etiqueta="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR} value={otra} error={error}
+            className="flex-1" etiqueta="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR} value={otra} error={error} data-campo-paso=""
             enterKeyHint="done" onChange={(e) => { setOtra(e.target.value); setError(null); }}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); listoOtra(); } }}
           />
