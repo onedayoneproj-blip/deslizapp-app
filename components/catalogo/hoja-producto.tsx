@@ -170,17 +170,24 @@ function useStockPresentaciones(producto: Producto) {
   const [propuesta, setPropuesta] = useState<Record<string, number>>({});
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const valor = (v: Variante) => propuesta[v.id] ?? v.stock ?? 0;
-  const cambiadas = activas.filter((v) => v.stock !== null && valor(v) !== v.stock);
-  const bajan = cambiadas.reduce((t, v) => t + Math.max(0, (v.stock ?? 0) - valor(v)), 0);
+  // Cada ajuste se confirma por separado: si uno falla después de otro que sí entró, el que entró pasa a ser la base de esa
+  // presentación (hasta que llegue la relectura del producto), así que reintentar nunca lo aplica dos veces.
+  const [confirmados, setConfirmados] = useState<{ de: Producto; stock: Record<string, number> }>({ de: producto, stock: {} });
+  const yaConfirmado = confirmados.de === producto ? confirmados.stock : {};
+  const base = (v: Variante) => yaConfirmado[v.id] ?? v.stock;
+  const valor = (v: Variante) => propuesta[v.id] ?? base(v) ?? 0;
+  const cambiadas = activas.filter((v) => base(v) !== null && valor(v) !== base(v));
+  const bajan = cambiadas.reduce((t, v) => t + Math.max(0, (base(v) ?? 0) - valor(v)), 0);
   const guardar = async (motivo: MotivoAjusteInventario, nota: string | null) => {
     if (guardando) return false;
     setGuardando(true);
     setError(null);
     try {
       for (const v of cambiadas) {
-        const delta = valor(v) - (v.stock ?? 0);
+        const quiere = valor(v);
+        const delta = quiere - (base(v) ?? 0);
         await ajustarStock(tiendaId, producto.id, delta, delta > 0 ? "reposicion" : motivo, delta > 0 ? null : nota, v.id);
+        setConfirmados((c) => ({ de: producto, stock: { ...(c.de === producto ? c.stock : {}), [v.id]: quiere } }));
       }
       setPropuesta({});
       return true;
@@ -270,7 +277,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
         ranuraEditar,
       )}
 
-      <VistaPrevia producto={producto} precio={precio} alCompartir={tienda ? () => setEnHistoria(true) : undefined} />
+      <VistaPrevia producto={producto} precio={precio} alCompartir={tienda ? () => (producto.fotos[0] ? setEnHistoria(true) : toast("Ponle una foto primero.")) : undefined} />
 
       {personas > 0 && (
         <button type="button" onClick={(e) => alVerEspera(e.currentTarget)} className={clases("tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l bg-atencion-suave px-4 text-left text-atencion-texto", FOCO)} data-franja-espera="">

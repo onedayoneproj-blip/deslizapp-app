@@ -94,4 +94,18 @@ try{
  await historial.getByRole('button',{name:'Reintentar historial'}).click();await page.waitForFunction(()=>document.querySelectorAll('section[aria-label="Historial de ajustes"] li').length===12);
  ok(await historial.locator('li').count()===12,'Ver más/reintentar recupera todas las filas; otra tienda no las ve');
 
+ // Ver producto con presentaciones (Majestic Oud, 3 tamaños): si el segundo ajuste falla después de que el primero entró,
+ // reintentar no repite el primero (revisión de Codex en #125).
+ await page.goto(URL+'/catalogo/a3000000-0000-4000-8000-000000000019');await page.locator('[data-stock-plegable]').waitFor();await page.waitForTimeout(400);await abrirStock();
+ const filasOud=page.locator('[data-fila-stock]');const ajustesOud=async()=>(await auditar()).filter(a=>a.productoId==='a3000000-0000-4000-8000-000000000019');const antesOud=(await ajustesOud()).length;
+ await page.evaluate(()=>{const el=document.querySelector('[data-hoja-panel]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.ajustarStock)f=f.return;const d=f.memoizedProps.value;const orig=d.ajustarStock;let n=0;d.ajustarStock=async(...a)=>{if(++n===2){d.ajustarStock=orig;throw Error('Falla el segundo ajuste (doble de prueba)');}return orig(...a);};});
+ await filasOud.nth(0).locator('button[aria-label^="Aumentar stock"]').click();await filasOud.nth(1).locator('button[aria-label^="Aumentar stock"]').click();
+ await page.locator('[data-pie-vista]').getByRole('button',{name:'Guardar cambios',exact:true}).click();
+ await page.getByRole('alert').filter({hasText:/No pudimos|doble de prueba/}).first().waitFor();
+ ok((await ajustesOud()).length===antesOud+1,'Si falla el segundo ajuste, el primero ya quedó (uno solo)');
+ // En la demo el producto se relee al instante; con Supabase la relectura tarda y el reintento podía salir con la base vieja.
+ await page.locator('[data-pie-vista]').getByRole('button',{name:'Guardar cambios',exact:true}).click();
+ await page.waitForFunction(n=>JSON.parse(localStorage.getItem('deslizapp-demo-v5')).ajustesInventario.filter(a=>a.productoId==='a3000000-0000-4000-8000-000000000019').length===n,antesOud+2);await page.waitForTimeout(500);
+ const nuevos=(await ajustesOud()).slice(antesOud);
+ ok(nuevos.length===2&&new Set(nuevos.map(a=>a.varianteId)).size===2&&nuevos.every(a=>a.variacion===1),'Reintentar aplica solo el que faltaba: un +1 por presentación, sin repetir');
 }finally{await browser.close();}

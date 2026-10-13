@@ -403,6 +403,8 @@ export function EditarProducto({
         alConfirmar={(nuevo) => {
           // Al pasar a presentaciones, el stock vive en cada una: un ajuste suelto del producto se descarta (ya se repartió el guardado).
           if (nuevo.pres.length > 0 && !tieneOpciones && inventario.pendiente) inventario.recuperar();
+          // El motivo del Inventario explicaba otras cantidades: si el flujo cambia el stock, se vuelve a pedir al guardar.
+          if (JSON.stringify(nuevo.pres.map((p) => [claveVariante(p.valores), p.stock])) !== JSON.stringify(borradorPres.map((p) => [claveVariante(p.valores), p.stock]))) setMotivoVariantes(null);
           setPresentaciones(nuevo);
           setPresAbierta(false);
         }}

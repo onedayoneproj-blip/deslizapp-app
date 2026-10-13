@@ -266,6 +266,12 @@ for (const ancho of ANCHOS) {
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrirEditar(page, CAMISA);
+    // Primero un motivo en el Inventario: si después el flujo cambia las cantidades, ese motivo ya no vale (revisión de Codex en #125).
+    await tocarFila(page, "Stock");
+    await arriba(page).locator("[data-inventario-editar] button[aria-label^='Quitar uno de ']:not([disabled])").first().click();
+    await arriba(page).getByRole("radio", { name: "Daño" }).click();
+    await listo(page).click();
+    await esperar(page, 500);
     await tocarFila(page, "Presentaciones");
     ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-paso-presentaciones]").count()) === 1, "Presentaciones abre el flujo encima");
     const cab = arriba(page).locator("[data-hoja-cabecera]");
@@ -295,7 +301,8 @@ for (const ancho of ANCHOS) {
     await arriba(page).getByRole("button", { name: "Guardar ajuste" }).click();
     ok(await toast(page, "Guardado. El catálogo ya se enteró."), "Guardado");
     await esperar(page, 900);
-    ok((await ajustes(page, CAMISA)).some((a) => a.variacion === -1 && a.motivo === "perdida"), "Ajuste −1 con motivo «Pérdida»");
+    const regsCamisa = await ajustes(page, CAMISA);
+    ok(regsCamisa.some((a) => a.variacion < 0 && a.motivo === "perdida") && !regsCamisa.some((a) => a.motivo === "dano"), "Las bajadas se guardan con el motivo nuevo («Pérdida»), no con el del Inventario que el flujo dejó viejo");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
@@ -374,6 +381,16 @@ for (const ancho of ANCHOS) {
       await abrirEditar(page, SOMBRERO);
       ok((await fila(page, "Stock").count()) === 0 && (await page.getByRole("switch", { name: "Es por encargo" }).count()) === 0, "Un servicio no lleva Stock ni Es por encargo");
       ok((await fila(page, "Presentaciones").count()) === 1, "…sí Presentaciones");
+      await ctx.close();
+    }
+
+    console.log("• «Compartir» sin foto: avisa en vez de abrir una hoja que no puede hacer la imagen");
+    {
+      const { ctx, page } = await pagina(ancho, LINO, { cambiar: `const p = db.productos.find((x) => x.id === "${CINTURON}"); p.fotos = []; p.medios = [];` });
+      await abrirVista(page, CINTURON);
+      await page.locator("[data-compartir-vista]").click();
+      ok(await toast(page, "Ponle una foto primero."), "Sin foto, «Compartir» dice «Ponle una foto primero.»");
+      ok((await paneles(page).count()) === 1, "…y no abre «Súbelo a tu estado»");
       await ctx.close();
     }
 
