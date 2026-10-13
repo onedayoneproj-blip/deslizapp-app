@@ -7,6 +7,11 @@ Encargo de Planning (13 oct 2026), puesto **Coding**, solo inventario: este docu
 - Los botones principales (Guardar, Publicar, Registrar, Seguir) **se quedan abajo** (teclado y pulgar).
 - Hoy la ✕ está siempre a la derecha, salvo en la historia de crear producto, que se cambia aparte (`docs/prompts/crear-producto-cerrar-y-publicar.md`).
 
+> **Decidido por Lewis, 13 oct** (vía Planning, mensaje sobre #121):
+> - **D1.** Los detalles con acciones siguen la lógica de Apple: ✕ a la izquierda; a la derecha, la acción principal **en texto** («Editar») y, si hay más acciones, un **«⋯» con menú**. Las destructivas (Borrar, Cancelar pedido…) van **siempre dentro del «⋯», en rojo**. Detalle de promo: «✕ Promo   Editar ⋯». Si un título largo no cabe a 360 px, **elipsis; no se sacrifican acciones**. Ver «Detalles con acciones de cabecera».
+> - **Pilas: máximo dos hojas.** La tercera se convierte en una **pantalla interna** de la segunda (como `alVolverInterno`); en la pantalla interna la izquierda de la cabecera muestra **«<»** (vuelve a la pantalla anterior de la misma hoja) en lugar de la ✕. Ver §1 y el lote 8.
+> - Siguen sin empezar los lotes de código.
+
 ## Cómo se hizo (y qué no se pudo comprobar)
 
 - Base: `main` en `f1d0820`. Se leyó el código de cada hoja; **no se ejecutó la app ni se midió nada en pantalla**.
@@ -33,7 +38,7 @@ Ancho útil de la cabecera = 360 − 2 × 20 (`px-5`, `:859`) = **320 px**. Sepa
 | ✕ + 1 acción de icono (44 px) | 320 − 88 − 24 = **208 px** | ~16 |
 | ✕ + 1 acción de texto («Editar», compacto, **~72 px: dudoso, no medido**) | ≈ **180 px** | ~14 |
 | ✕ + 2 acciones de icono | 320 − 132 − 36 = **152 px** | ~12 |
-| ✕ + ⋯ + «Editar» | ≈ 124 px | ~10 → no cabe |
+| ✕ + «Editar» + «⋯» (D1, detalles) | 320 − 44 − 72 − 44 − 36 ≈ **124 px** | ~10 → **elipsis** (decidido: no se quitan acciones) |
 
 Los caracteres suponen ~12–13 px por carácter en Fredoka 24 px (**dudoso, no medido**). A 390 px hay 30 px más; a 430, 70 px más. Con título que no cabe, hoy la cabecera crece a dos líneas; no hay `truncate`, salvo el `<span class="block truncate">` del nombre en `hoja-cliente.tsx:71-79`.
 
@@ -42,7 +47,7 @@ Los caracteres suponen ~12–13 px por carácter en Fredoka 24 px (**dudoso, no 
 - **R1 · Izquierda** si la hoja avisa al salir (`avisarAlSalir` / `useAvisarAlSalir`) o si su botón principal escribe en el servidor, envía o confirma algo irreversible.
 - **R2 · Derecha** si es solo lectura, un selector/elección (incluido «Listo» o «Usar este» que solo aplica a un borrador del padre y no avisa), un menú o una navegación con vistas internas.
 - **R3 · Estados** de carga y de error con «Reintentar» siguen la posición de la hoja real, para que la ✕ no salte cuando llegan los datos (`components/hoja-estado.tsx:6-8` dice que es la misma hoja). Un mensaje final sin acción de guardar («no vive aquí», «terminada») va a la derecha.
-- **R4 · Cabecera**: solo sube **Editar / Compartir / ⋯**. Nunca el botón principal; nunca un «Borrar» suelto (si hace falta, dentro de ⋯). Un detalle con «Editar» en cabecera lleva ✕ a la izquierda para equilibrar. **Esto último es una decisión que Lewis/Planning confirman** (la regla dicha cubre «confirman o guardan»; un detalle no guarda).
+- **R4 · Cabecera** (D1, decidido por Lewis, 13 oct): ✕ izquierda; a la derecha la acción principal en texto («Editar») y, si hay más, «⋯» con menú. Nunca sube el botón principal de abajo (Guardar, Publicar, Registrar, Confirmar, Despachar…). Las destructivas van siempre dentro del «⋯», en rojo. El título lleva elipsis si no cabe. 
 
 Abreviaturas de la tabla: **A** = `altura="auto"`, **G** = `"grande"`. «Aviso» = avisa al salir con cambios. «Cab.» = acciones que tendría la cabecera (0, 1 o 2) y qué hay de espacio.
 
@@ -83,11 +88,11 @@ Rutas relativas a `components/` salvo que se indique. Número de línea = donde 
 |---|---|---|---|---|---|---|---|
 | 18 | `pedidos/hoja-pedido-nuevo.tsx:52` «Editar pedido» (pedido cancelado o ajeno) | Mensaje final | No | «Volver a pedidos» | — | 0 | **Derecha** (R3, mensaje final) |
 | 19 | `:67` «Nuevo pedido» / «Editar pedido #N» (G) | Formulario que guarda («Guardar pedido / venta / cambios», `:500`) | **Sí** (`useAvisarAlSalir`, `:186`) | Vistas internas cliente / productos / descuento con «‹» **dentro del cuerpo** (`selector-cliente.tsx:269`, `selector-descuento.tsx:139`) | **Sin `protegerAtras` ni `alVolverInterno`**: «atrás» del teléfono sale de toda la ruta (dudoso si es intencional) | 0 · 264 | **Izquierda** |
-| 20 | `pedidos/hoja-pedido.tsx:76` «Pedido #N» (A) | Detalle por estado | No | «Editar pedido» (secundario, `:207`, usado en `:362,:381,:386`), «Cancelar pedido» (terciario peligro, `:212`), «Eliminar pedido» (cancelado, `:392`), tarjeta de factura (`:349`), descuento como vista interna (`:218`) | Sin `protegerAtras` ni `alVolverInterno` (dudoso) | 1 («Editar») ± ⋯ | **Izquierda + «Editar»** (R4, decisión). «Pedido #1234» (12 car.) cabe junto a «Editar» (~180 px) **justo**. Confirmar / Despachar se quedan abajo. Cancelar / Eliminar solo irían a ⋯ en un lote posterior |
+| 20 | `pedidos/hoja-pedido.tsx:76` «Pedido #N» (A) | Detalle por estado | No | «Editar pedido» (secundario, `:207`, usado en `:362,:381,:386`), «Cancelar pedido» (terciario peligro, `:212`), «Eliminar pedido» (cancelado, `:392`), tarjeta de factura (`:349`), descuento como vista interna (`:218`) | Sin `protegerAtras` ni `alVolverInterno` (dudoso) | 2 («Editar» + ⋯) | **Izquierda + «Editar» + «⋯»** (D1). «Cancelar pedido» (y «Eliminar pedido» si está cancelado) dentro del «⋯». Confirmar / Despachar / Reabrir se quedan abajo. Ver tabla de detalles |
 | 21 | `pedidos/hoja-despachado.tsx:65` «Pedido despachado» | Celebración / solo lectura | No | «Avisarle a {nombre}» (`:172`) y «Volver a pedidos» (`:184`) | `tituloOculto`, `capaSuperior` (camión que cruza `-left-15` sobre la cabecera, `:71-80`), `decoracionAbajo` | 0 · ✕ sola | **Derecha** (no mover: el camión pasa por la cabecera; dudoso cómo se vería con ✕ a la izquierda) |
 | 22 | `pedidos/acciones-factura.tsx:100` «Factura #N» (A) | Solo lectura (vista previa) + descargas | No | «PDF» e «Imagen» (`:116, :119`, son lo principal de la hoja). «Compartir» está en la tarjeta del pedido (`:96`), no en la hoja | — | 0 (1 posible: compartir) | **Derecha** |
 | 23 | `equipo/hoja-equipo.tsx:35` «Tu equipo» (G) | Gestión: lista + formularios de invitación inline | No | «Invitar por enlace / por correo» (`:98`), por fila aprobar / cancelar enlace (`:257`), «Compartir» (`:289`), «Listo» (`:304`) | — | 0 · 264 | **Derecha** |
-| 24 | `credito/hoja-detalle-abono.tsx:59` «Abono» (A) | Detalle | No | «Editar abono» (secundario, `:73`), «Borrar abono» (terciario peligro, `:76`) | Abre `HojaAbono` encima **sin cerrarse** (`:93`) | 1 («Editar») ± ⋯ | **Izquierda + «Editar»** (R4, decisión). «Abono» (6) cabe sobrado |
+| 24 | `credito/hoja-detalle-abono.tsx:59` «Abono» (A) | Detalle | No | «Editar abono» (secundario, `:73`), «Borrar abono» (terciario peligro, `:76`) | Abre `HojaAbono` encima **sin cerrarse** (`:93`) | 2 («Editar» + ⋯) | **Izquierda + «Editar» + «⋯»** (D1). «Borrar abono» dentro del «⋯», en rojo. «Abono» cabe sobrado. Su «Editar abono» pasa a pantalla interna (lote 8) |
 | 25 | `credito/hoja-abono.tsx:55` «Registrar abono» / «Editar abono» (A) | Formulario («Guardar abono / cambios», `:234`) | **Sí** (`useAvisarAlSalir`, `:114`) | — | — | 0 · 264 | **Izquierda** |
 
 ### Clientes
@@ -98,7 +103,7 @@ Rutas relativas a `components/` salvo que se indique. Número de línea = donde 
 | 27 | `clientes/hoja-resumen-clientes.tsx:117` título dinámico: «Tus clientes», «Tu próxima jugada», «{Grupo} · n», nombre (G) | Navegación entre vistas (lectura); sus acciones abren la hoja 26 | No | Filtrar cierra y filtra (`:109`) | `fijoArriba` con `BotonVolver` (`:119-122`), `decoracionEncima` (barrido), **título con cruce animado** (`CruceTexto`, `:114`); **no usa `alVolverInterno` ni `protegerAtras`**: maneja su propio historial (`:101-107`) | 0 · 264 | **Derecha**, no tocar (el cruce de títulos asume el título a la izquierda; dudoso) |
 | 28 | `clientes/hoja-cliente-editar.tsx:19` «Editar cliente» (A) | Formulario («Guardar cambios», `:129`) | **Sí** (`:53`) | «Borrar contacto» (terciario peligro, `:136`); avatar y nota | — | 0 (⋯ opcional con Borrar) | **Izquierda** |
 | 29 | `:141` «Borrar contacto» (A) | Confirmación (peligro) | No | «Cancelar» (`:181`) | Se apila sobre la 28 (§1) | 0 · 264 | **Izquierda** |
-| 30 | `clientes/hoja-cliente.tsx:71` nombre del cliente (A) | Detalle | No | «Editar» (secundario compacto, `:127`), «Escribir» (WhatsApp, `:124`); avatar y nota abren Editar | Título `block truncate` (`:76`) | 1 («Editar») | **Izquierda + «Editar»** (R4, decisión). Con ~180 px un nombre largo se trunca antes que hoy (264 px) |
+| 30 | `clientes/hoja-cliente.tsx:71` nombre del cliente (A) | Detalle | No | «Editar» (secundario compacto, `:127`), «Escribir» (WhatsApp, `:124`); avatar y nota abren Editar | Título `block truncate` (`:76`) | 1 («Editar»; sin ⋯) | **Izquierda + «Editar»** (D1). El nombre del cliente ya trunca (`:76`): con ~180 px la elipsis llega antes que hoy |
 | 31 | `clientes/hoja-cliente-nuevo.tsx:24` «Cliente nuevo» (A) | Formulario («Guardar cliente», `:95`) | **Sí** (`:50`) | — | — | 0 · 264 | **Izquierda** |
 | 32 | `clientes/avatar-y-nota.tsx:219` «Su avatar» (A) | Selector («Usar este», `:279`; devuelve al formulario padre, no guarda) | No | — | Se apila (28, 31) | 0 · 264 | **Derecha** (R2) |
 
@@ -112,7 +117,7 @@ Rutas relativas a `components/` salvo que se indique. Número de línea = donde 
 | 36 | `:95` «Editar promo» / «Nueva promo» (G) | Formulario («Guardar cambios» / «Crear promo», `:506`) | **Sí** (`useAvisarAlSalir`, `:139`; `useConfirmarSalida`, `:130`) | «Terminar promo» (texto rojo, `:512`, solo editando, con confirmación inline `ConfirmarFinPromo`, `:524`) | Hoja de ruta (`cerrar` = router) | 0 (⋯ opcional con Terminar) | **Izquierda** |
 | 37 | `:302` «Nah, ah… así no.» (A) | Confirmación (cambiar de tipo → crear otra promo) | No | «Sí, crear otra promo» / «Me quedo con esta» | `alSalir` usa `confirmarSalida` (`:304-308`); apilada sobre la 36 | 0 · 264 | **Izquierda** (dudoso: también se lee como elección) |
 | 38 | `promos/hoja-compartir.tsx:33` (cargando / error), `:42` (final), `:56` «Compartir promo» (G) | Formulario que envía («Enviar», `:158`); campo de mensaje | No | «Editar mensaje» / «Listo» (`:145`), «Exportar como imagen · PDF» (`:166`) | Hoja de ruta (`router.back` / `replace`, `:25-28`) | 0 (1 posible: Exportar) | **Izquierda** (`:33` por R3; `:42` derecha por ser final) |
-| 39 | `promos/hoja-detalle-promo.tsx:39` «Detalle de promo» (G) | Detalle | No | «Editar promo» (`:103`) y «Compartir promo» (`:104`), o «Duplicar promo» si terminó (`:101`); botones de ancho completo al final | Navega por ruta (`router.push`, `:49`) | **2** (Compartir + Editar) | **Izquierda + acción(es)** (R4, decisión). Con 2 iconos quedan 152 px y «Detalle de promo» (16 car.) **no cabe en una línea**: o 1 acción («Editar»), o título corto («Promo») |
+| 39 | `promos/hoja-detalle-promo.tsx:39` «Detalle de promo» (G) | Detalle | No | «Editar promo» (`:103`) y «Compartir promo» (`:104`), o «Duplicar promo» si terminó (`:101`); botones de ancho completo al final | Navega por ruta (`router.push`, `:49`) | 2 («Editar» + ⋯) | **«✕ Promo   Editar ⋯»** (D1). «Compartir promo» va dentro del «⋯». El título pasa de «Detalle de promo» a «Promo» (así lo escribió Planning; hoy el título es `:39`). Si aun así no cabe, elipsis |
 
 ### Marca, pedido del catálogo
 
@@ -152,7 +157,7 @@ Rutas relativas a `components/` salvo que se indique. Número de línea = donde 
 | 66 | `:1072` «Descripción» / «Ficha técnica» / «Detalles» (A o G, `HojaOpcional`) | Formularios al borrador (‹ + Listo) | No (el aviso lo da la historia) | — | Se apila sobre la 64 | 0 · 264 | **Derecha** |
 | 67 | `catalogo/hoja-producto.tsx:70, :73, :76, :91` (cargando / error con reintentar) y `:80` (no vive aquí / eliminado) | Estados de la hoja 68 | No | «Volver al catálogo» | `protegerAtras`, `alSalir`; el título sigue a la 68 | 0 | **Izquierda** (`:70/:73/:76/:91`, R3) · **Derecha** (`:80`, final) |
 | 68 | `:94` «Nuevo producto» / «Editar producto» / «Historial de ajustes» (G) | Formulario que guarda («Publicar» / «Guardar cambios», `:595`) | **Sí** (`useAvisarAlSalir`, `:303`, con textos propios) | «Vista previa» (secundario, `:592`), «Eliminar producto» (terciario peligro, `:603`), «Más opciones» (sección plegable, `:553`), «Historial» | `protegerAtras`, `alVolverInterno` (`historial.volver`), `fijoArriba` con «‹» al ver el historial (`:95`); el título cambia a «Historial de ajustes» | 1–2 (⋯ con Vista previa / Eliminar) | **Izquierda**. Cuando se vea el historial la ✕ debería seguir a la izquierda. El ⋯ llega en otro lote (`components/ui/menu-flotante.tsx` existe pero es un selector con chevron, no un ⋯) |
-| 69 | `:120` nombre del producto (A, `HojaVistaProducto`) | Detalle | **Sí**, solo con stock sin guardar (`useAvisarAlSalir`, `:155`) | «Editar» (secundario, `:190`) y «Crear pedido» (principal, `:191`) en una fila de 2; interruptor «Visible»; stock y historial | `protegerAtras`, `alVolverInterno`, `fijoArriba` con «‹» (`:121`). **Título = nombre del producto, longitud libre** | 1 («Editar») | **Izquierda + «Editar»** (R4, decisión). «Editar» tiene que pasar por el mismo `confirmarSalida` (`:156-157`) que el botón de hoy |
+| 69 | `:120` nombre del producto (A, `HojaVistaProducto`) | Detalle | **Sí**, solo con stock sin guardar (`useAvisarAlSalir`, `:155`) | «Editar» (secundario, `:190`) y «Crear pedido» (principal, `:191`) en una fila de 2; interruptor «Visible»; stock y historial | `protegerAtras`, `alVolverInterno`, `fijoArriba` con «‹» (`:121`). **Título = nombre del producto, longitud libre** | 1 («Editar»; sin ⋯) | **Izquierda + «Editar»** (D1). «Editar» tiene que pasar por el mismo `confirmarSalida` (`:156-157`) que el botón de hoy. El título es el nombre del producto: elipsis |
 | 70 | `:650` «Colección» (A) | Selector (+ «Agregar colección») | No | Campo de nombre con `autoFocus` | Se apila sobre 68 / 64 | 0 · 264 | **Derecha** |
 | 71 | `:712` «¿Eliminar producto?» (A) | Confirmación (peligro) | No | «Cancelar», «Ocultar producto» | `alSalir`; se apila sobre la 68 | 0 · 264 | **Izquierda** |
 
@@ -164,6 +169,25 @@ Rutas relativas a `components/` salvo que se indique. Número de línea = donde 
 | 73 | `panel/menu-tienda.tsx:173` «Tu tienda» / «Tus tiendas» (A) | Menú / selector (Mi marca, Tu equipo, instalar, cambiar de tienda) | No | «Cerrar sesión» al final | Cierra y abre otra hoja (`cerrar(); abrirMiMarca()`, `:191`), no se apila | 0 · 264 | **Derecha** |
 
 **Resumen del reparto:** izquierda = 28 filas (5, 6, 10, 11, 13, 16, 19, 25, 26, 28, 29, 31, 33, 36, 37, 38, 40, 43, 44, 51, 52, 53, 55, 56, 59, 63, 68, 71) más los estados de 67 y, si se acepta «✕ izquierda + Editar», 20, 24, 30, 39 y 69; derecha = el resto (hojas de lectura, selección, menú o con vistas internas). Con acción de cabecera: 20, 24, 30, 39, 69 (y 68 con ⋯ más adelante).
+
+## Detalles con acciones de cabecera (D1, decidido por Lewis, 13 oct)
+
+Regla: ✕ izquierda · derecha = acción principal en texto + «⋯» si hay más · destructivas solo dentro del «⋯», en rojo · título con elipsis. «Principal» = la que subiría a la cabecera; **no** es el botón principal de abajo.
+
+| Detalle (sitio) | Acciones que hay hoy (archivo:línea) | Principal en cabecera | Iría al «⋯» | Se queda abajo |
+|---|---|---|---|---|
+| **Pedido** 20 (`pedidos/hoja-pedido.tsx:76`) | «Confirmar pedido» (`:359`, estado nuevo) · «Despachar pedido» (`:377`, por despachar) · «Editar pedido» (`:209`, usado en nuevo, por despachar y despachado, `:362,:381,:386`) · «Cancelar pedido» (`:214`, terciario peligro) · «Reabrir pedido» (`:390`, cancelado) · «Eliminar pedido» (`:393`, cancelado) · factura: descargar / compartir en `AccionesFactura` (`:349`) · descuento: fila que abre una vista interna (`:218, :323`) | **«Editar»** (no existe en cancelado: `:206`) | **«Cancelar pedido»** (rojo) y, en cancelado, **«Eliminar pedido»** (rojo) | Confirmar / Despachar / Reabrir; la tarjeta de factura |
+| **Abono** 24 (`credito/hoja-detalle-abono.tsx:59`) | «Editar abono» (`:74`, secundario) · «Borrar abono» (`:77`, terciario peligro, con `Alerta` `:84-90`) | **«Editar»** | **«Borrar abono»** (rojo) | — (la hoja queda sin botones abajo) |
+| **Cliente** 30 (`clientes/hoja-cliente.tsx:71`) | «Editar» (`:127`, secundario compacto; también lo abren el avatar y la nota, `:108-114`) · «Escribir» (WhatsApp, `:124`) · «Borrar contacto» vive dentro de «Editar cliente» (`hoja-cliente-editar.tsx:136`), no aquí | **«Editar»** | Nada (sin «⋯»). «Borrar contacto» sigue dentro de la hoja de edición | «Escribir» (acción de contenido) |
+| **Promo** 39 (`promos/hoja-detalle-promo.tsx:39`) | «Editar promo» (`:103`) · «Compartir promo» (`:104`) · «Duplicar promo» (`:101`, solo si terminó; entonces no hay Editar ni Compartir) | **«Editar»** (si terminó: **«Duplicar»**, sin «⋯») | **«Compartir promo»** (no es destructiva, pero es la secundaria) | — |
+| **Vista de producto** 69 (`catalogo/hoja-producto.tsx:120`) | «Editar» (`:190`, secundario) · «Crear pedido» (`:191`, principal de abajo) · interruptor «Visible en el catálogo» (`:171`) · stock y «Historial» (`:~176-184`, filas) · vista interna del historial / lista de espera (`:120-121`) | **«Editar»** | Nada (sin «⋯») | «Crear pedido»; interruptor y stock (son contenido) |
+
+Notas:
+
+- «Editar» debe seguir el camino de hoy: en el producto, `navegar` → `confirmarSalida` (`hoja-producto.tsx:156-157`); en el pedido, `Boton href` (`hoja-pedido.tsx:207-210`). Los «⋯» llaman a las mismas funciones que los botones actuales (`cancelar`, `setConfirmandoEliminar`, `setBorrando`), con sus `Alerta`.
+- **Espacio:** con «Editar» + «⋯» quedan ≈124 px (~10 car.): «Pedido #1234» (12), «Abono» (5) y «Promo» (5) caben salvo pedidos de más de 4 cifras; el nombre de cliente o producto lleva elipsis. La hoja base hoy no trunca (`hoja.tsx:876`): la elipsis es cambio nuevo en el `<h2>` (solo en cabeceras con acción, o en todas, a decidir en el lote 0).
+- **No existe** ningún «⋯» en el repo: `components/ui/menu-flotante.tsx` es un selector con chevron y opciones tipo radio (`menuitemradio`), no un menú de acciones. Hace falta un componente nuevo (con `aria-haspopup="menu"`, Escape, tocar fuera y foco), que ya pide `docs/prompts/crear-producto-cerrar-y-publicar.md` para «Publicar ⌄»; conviene compartirlo.
+- En el pedido cancelado la cabecera quedaría con «⋯» solo (Eliminar), sin «Editar» (`hoja-pedido.tsx:206`).
 
 ## 1. Hojas apiladas y cómo se ve su cabecera
 
@@ -192,6 +216,22 @@ No se apilan (se cierran antes de abrir la otra): el menú de tienda 73 → Mi m
 
 **Lo que significa la migración para una pila:** hoy todas las ✕ están en la misma esquina; con la regla, una pila puede mezclar esquinas (p. ej. 27 der → 26 izq → 14 der). No es un fallo, pero conviene que Lewis lo vea en el teléfono antes de generalizar.
 
+### Decidido por Lewis, 13 oct: máximo dos hojas
+
+La tercera hoja se convierte en **pantalla interna** de la segunda. En la pantalla interna, la izquierda de la cabecera muestra «<» (vuelve a la pantalla anterior de la misma hoja) en lugar de la ✕; la ✕ solo está en la pantalla de entrada de cada hoja.
+
+| Pila de tres de hoy | Pasa a | Archivos |
+|---|---|---|
+| Cliente 30 → Editar cliente 28 → **Su avatar 32** (`hoja-cliente-editar.tsx:133`) | 30 → 28 con «Su avatar» como pantalla interna de 28 | `clientes/hoja-cliente-editar.tsx`, `clientes/avatar-y-nota.tsx` (`HojaAvatar` pasa de `<Hoja>` a vista) y, por coherencia, `clientes/hoja-cliente-nuevo.tsx:99` (usa la misma pieza, aunque es una pila de dos) |
+| Resumen clientes 27 → Escribir 26 → **Elegir mensaje 14** | 27 → 26 con «Elige el mensaje» como pantalla interna de 26 | `ui/elegir-mensaje.tsx` (hoy trae su botón y su `<Hoja>`, `:48`), `clientes/hoja-escribir-jugada.tsx`; la misma pieza la usan `credito/cuenta-cliente.tsx:67` y la guía `app/diseno/guia.tsx:389` (pilas de dos: pueden seguir como hoja o pasar a vista) |
+| Pedido 20 → Abono 24 → **Editar abono 25** (`hoja-detalle-abono.tsx:93`) | 20 → 24 con el formulario de abono como pantalla interna de 24 | `credito/hoja-detalle-abono.tsx`, `credito/hoja-abono.tsx` (hoy `<Hoja>` + contenido, `:55`); `credito/pago-del-pedido.tsx:209, :220` y `credito/cuenta-cliente.tsx:78` usan `HojaAbono` aparte (registrar un abono nuevo: esas siguen siendo hoja) |
+
+**Otras pilas de tres que Planning no nombró y siguen siendo tres** (hay que decidirlas; no las toco):
+
+- **Borrar contacto 29** sobre Editar cliente 28 sobre Cliente 30 (`hoja-cliente-editar.tsx:141`): es la misma pila que la del avatar; si solo el avatar pasa a interna, la tercera hoja sigue ahí.
+- **Editar producto 68 → Flujo de presentaciones 59 → Presentación 57 / Foto de cada color 58** (`ficha-presentaciones.tsx:84`, `flujo-presentaciones.tsx:649, :680`).
+- **Historia 64 → Inventario 48 → Presentación 57** (`historia-producto.tsx:679`, `inventario-historia.tsx:216`).
+
 ## 2. Riesgos
 
 1. **Gesto de cerrar.** La cabecera completa es zona de arrastre (`hoja.tsx:744`). Un botón nuevo dentro de ella arrastraría la hoja con el dedo igual que la ✕ de hoy; con ratón se ignoran los botones (`:786`), así que ahí no hay cambio. Las zonas táctiles deben ser ≥ 44 px (la ✕ lo es: `:930`). Prueba: `npm run probar:hojas-gestos`.
@@ -205,6 +245,16 @@ No se apilan (se cierran antes de abrir la otra): el menú de tienda 73 → Mi m
 9. **Estados que cambian de posición.** Si una hoja cambia de «lectura» a «guarda» según permisos (40 en `soloMirar`) o según la vista interna (8, 54), la ✕ saltaría de lado. Por eso se recomienda un lado fijo por hoja, no por vista.
 10. **Hoja sin uso.** La 56 (`HojaPedirCatalogo`) no se usa en ningún sitio que encontré; conviene confirmar antes de migrarla.
 11. **Prueba en iPhone.** Safari/PWA no se puede probar en este entorno; cada lote necesita que Lewis lo vea en el teléfono (`docs/00-contexto-del-proyecto.md`, «Cuando no se pueda probar algo»).
+
+12. **Pantallas internas (lote 8).** Todas son riesgos nuevos del cambio decidido:
+    - **Historial.** `alVolverInterno` (`hoja.tsx:615-618`) consume «atrás» y vuelve a guardar la entrada de historial, pero solo existe cuando la hoja tiene entrada (apilada o `protegerAtras`, `:601`). Las tres hojas que reciben la pantalla interna (28, 26, 24) están apiladas, así que la tienen; hay que comprobar que «<» y «atrás» del teléfono hagan lo mismo (como en `registrar-solicitud.tsx:72-76`) y que, al cerrar desde la pantalla interna, no queden entradas de más.
+    - **Gesto de cerrar.** Deslizar hacia abajo o tocar el velo en la pantalla interna cierra **toda** la hoja (`hoja.tsx:717-727`, `:806`), no vuelve una pantalla: es lo esperable, pero distinto de «<». Con cambios sin guardar el aviso de salida salta igual.
+    - **Foco.** Al entrar a la pantalla interna el foco debe ir a «<» o a su primer campo en el mismo toque (`flushSync` + `focus()`, `HANDOFF.md:43-45`); al volver, al botón que la abrió y con el scroll restaurado (patrón de `registrar-solicitud.tsx:322-345`). `ElegirMensaje` y el avatar hoy devuelven el foco por el efecto de cierre de `<Hoja>` (`hoja.tsx:688`), que dejaría de aplicar.
+    - **`protegerAtras`.** Las hojas base de las pilas (30, 27, 20) son de ruta o con entrada propia; la pantalla interna no debe añadir `protegerAtras` (duplicaría entradas). Hoja 24, 26 y 28 no lo tienen y no lo necesitan mientras estén apiladas, pero si algún día se abren solas, «atrás» las cerraría de golpe sin pasar por la pantalla interna.
+    - **Cambios sin guardar al cruzar pantallas.** El estado de los formularios debe vivir en la hoja padre, no en la vista interna: el avatar elegido vive hoy en `Formulario` de `hoja-cliente-editar.tsx` (`:133`) y `Selector` se remonta con `key={abierta}` (`avatar-y-nota.tsx:222`); el tipo de mensaje y el texto editado de «Escribir» (`hoja-escribir-jugada.tsx`) y el borrador del abono (`hoja-abono.tsx`) hay que conservarlos al ir y volver. «<» **no** debe disparar el aviso «¿Salir sin guardar?» (volver no descarta nada); sí debe dispararlo ✕/velo/Escape/atrás sobre la hoja entera (`useAvisarAlSalir` en 25, 28, 31).
+    - **Altura.** 28, 24 y 25 son `altura="auto"`: cambiar a una pantalla de otro alto hace que la hoja salte de tamaño (el avatar trae una rejilla de emojis, `selector-emoji.tsx:26`). La regla de `HANDOFF.md:43` pide hoja completa cuando hay campos; hay que decidir si la hoja con pantalla interna pasa a `grande` o se fija al alto de la mayor de sus pantallas.
+    - **Cabecera.** Hay que añadir a `hoja.tsx` el modo «pantalla interna» (título de la pantalla + «<» en vez de ✕, sin acción de cabecera o con la suya) sin romper `tituloOculto`, `historia` ni `fijoArriba` (que hoy ya sirve de «‹» en el cuerpo en 27, 47, 54, 68, 69).
+    - **Pruebas.** `probar-hojas.mjs` (clic en `aria-label="Cerrar"`, p. ej. `:82, :108, :141`) y los scripts que abren avatar, mensajes y abonos (`probar-teclado.mjs`, `probar-pedido-catalogo-panel.mjs`; el resto, dudoso) deberán cubrir «<».
 
 ## 3. Orden de migración sugerido (de menor a mayor riesgo)
 
@@ -220,14 +270,23 @@ Cada lote debe poder fusionarse solo. El conteo es de archivos de código que se
 | 5 · Con vistas internas | `pedidos/hoja-pedido-nuevo.tsx` (19 y 18), `catalogo/flujo-presentaciones.tsx` (59) | **2** | 18, 19, 59 | Tienen «‹» en el cuerpo y carecen de `alVolverInterno` (19) o un paso 2 que se gestiona abajo (59): arreglar eso no es parte de la ✕ |
 | 6 · Detalles con «Editar» | `credito/hoja-detalle-abono.tsx`, `clientes/hoja-cliente.tsx`, `pedidos/hoja-pedido.tsx`, `promos/hoja-detalle-promo.tsx` | **4** | 20, 24, 30, 39 | Necesitan la ranura de acción (lote 0), la decisión R4 y cuidar el título largo |
 | 7 · Producto | `catalogo/hoja-producto.tsx` (9 usos: 67, 68, 69, 71; 70 no cambia; 69 con «Editar» y aviso por stock; 68 con ⋯ después) | **1** | 67, 68, 69, 71 | La hoja más usada, con `protegerAtras`, `alVolverInterno`, historial interno y el aviso a medida. Va al final |
+| 8 · Pantallas internas (decidido por Lewis, 13 oct) — **después de las cabeceras** | Máximo dos hojas: avatar dentro de «Editar cliente»; «Elige el mensaje» dentro de «Escribir»; formulario de abono dentro de «Abono». Modo «pantalla interna» con «<» en `hoja.tsx` (si no está ya en el lote 0). Archivos: `clientes/hoja-cliente-editar.tsx`, `clientes/avatar-y-nota.tsx`, `clientes/hoja-cliente-nuevo.tsx`, `ui/elegir-mensaje.tsx`, `clientes/hoja-escribir-jugada.tsx`, `credito/cuenta-cliente.tsx`, `app/diseno/guia.tsx`, `credito/hoja-detalle-abono.tsx`, `credito/hoja-abono.tsx`, `credito/pago-del-pedido.tsx` (+ `components/hoja.tsx`) | **10** (+ `hoja.tsx`) | 14, 25, 26, 28, 32, 24 | Cambia la navegación, no solo la cabecera; depende de los lotes 3 y 6 (las mismas hojas) y deja sin resolver las otras tres pilas de tres |
 | — · Sin cambio | Quedan a la derecha: 1–4, 7–9, 12, 14, 15, 17, 21–23, 27, 32, 34, 35, 41, 42, 45–50, 54, 57, 58, 60–62, 65, 66, 70, 72, 73 | 0 | — | No hay que tocarlas |
 
-Total de código tocado si se hace todo: **28 archivos** (1 + 4 + 6 + 4 + 6 + 2 + 4 + 1), más los 3 de apoyo del lote 0 y `lib/novedades.ts` en cada lote que cambie algo visible.
+Total de código tocado si se hace todo: **28 archivos** en los lotes 0–7 (1 + 4 + 6 + 4 + 6 + 2 + 4 + 1) más **10** del lote 8 (algunos repiten archivos de los lotes 3 y 6: `hoja-cliente-editar`, `hoja-cliente-nuevo`, `hoja-escribir-jugada`, `hoja-abono`, `hoja-detalle-abono`, `hoja.tsx`), más los 3 de apoyo del lote 0 y `lib/novedades.ts` en cada lote que cambie algo visible.
 
-## Decisiones que quedan para Lewis / Planning
+## Decisiones
 
-- **D1.** ¿Un detalle con «Editar» (20, 24, 30, 39, 69) lleva ✕ a la izquierda? La regla dicha cubre «confirman o guardan»; esto lo extiende a «hojas con acción de cabecera».
-- **D2.** ¿«Compartir» (22, 49, 62) sube a la cabecera? Hoy es lo principal de esas hojas y se quedaría abajo.
+**Decididas por Lewis, 13 oct:**
+
+- **D1.** Detalles con acciones: ✕ izquierda; «Editar» en texto a la derecha; «⋯» con menú para el resto; destructivas dentro del «⋯», en rojo; elipsis en vez de sacrificar acciones (ver «Detalles con acciones de cabecera»).
+- **Máximo dos hojas apiladas**, con pantallas internas y «<» (lote 8).
+
+**Siguen abiertas:**
+
+- **D2.** ¿«Compartir» (22, 49, 62) sube a la cabecera? Hoy es lo principal de esas hojas y se quedaría abajo. (En el detalle de promo ya se resolvió: va al «⋯».)
 - **D3.** ¿Las hojas que solo aplican a un borrador (32, 46, 57, 58, 60, 65, 66, 48) cuentan como «elección» (derecha)? Aquí se tomó que sí cuando no avisan al salir.
-- **D4.** Pilas de tres con esquinas mezcladas (§1).
-- **D5.** Hojas con vistas internas (8, 19, 20, 27, 54): ¿«‹» en cabecera como Apple, o se queda en el cuerpo? No entra en este encargo, pero afecta al lado de la ✕.
+- **D4.** Las otras tres pilas de tres (Borrar contacto, Flujo de presentaciones, Inventario de la historia): ¿también pantallas internas?
+- **D5.** Hojas con vistas internas (8, 19, 20, 27, 54): ¿«<» en la cabecera como en el lote 8, o se queda en el cuerpo? Afecta al lado de la ✕ y encajaría con la decisión de las pantallas internas.
+- **D6.** ¿La elipsis del título es para todas las hojas o solo para las que llevan acciones en la cabecera?
+- **D7.** ¿El «⋯» se comparte con el menú de «Publicar ⌄» de crear producto (un solo componente)?
