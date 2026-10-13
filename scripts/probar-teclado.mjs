@@ -253,6 +253,9 @@ try {
     await probarCampo(page, precio, "Historia · Precio", "2450", { dentroDeHoja: true });
     await page.tap(precio);
     await page.keyboard.press("Enter");
+    await page.waitForTimeout(500);
+    ok(await page.locator("[data-pregunta-opciones]").isVisible() && !(await enfocado(precio)), "Historia · Precio: Enter con precio no avanza, cierra el teclado y deja la pregunta de opciones a la vista");
+    await page.tap('[data-pie-historia] button:has-text("Seguir")');
     await page.waitForTimeout(200);
     await page.tap('[role="dialog"] [role="switch"][aria-label="Es por encargo, no llevo stock"]');
     await page.tap('[role="dialog"] [role="radio"]:has-text("Otro")');

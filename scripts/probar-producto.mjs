@@ -37,6 +37,15 @@ const ok = (cond, msg) => {
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 
 /** Un contexto nuevo (demo limpia) en la tienda dada, con el tema y el ancho. `abiertos` junta lo que abre window.open. */
+/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
+async function abrirTipicas(page) {
+  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
+  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
+  await pastillas.first().click();
+  await page.waitForTimeout(150);
+  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+}
+
 async function pagina(ancho, tema, tienda) {
   const ctx = await navegador.newContext({ viewport: { width: ancho, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
@@ -229,7 +238,7 @@ const ESCENARIOS = {
     await historia(page, "Seguir");
     await page.locator("[data-campo-paso]").fill("1200");
     // Presentaciones como historia (ronda 3): ¿en qué cambia? → tallas → colores, y las cantidades en la hoja «Inventario».
-    await page.locator("[data-chip-presentaciones] button").click();
+    await abrirTipicas(page);
     await page.locator("[data-que-cambia]").waitFor();
     await historia(page, "Seguir");
     await page.getByRole("button", { name: "XS a XL", exact: true }).click();
