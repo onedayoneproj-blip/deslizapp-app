@@ -33,6 +33,7 @@ Si una sola sesión hace los dos puestos, que sea explícita sobre cuál está h
 - **Revisión automática:** cada PR y push a `main` corre el check «Revisión» (tipos con `npm run tipos`, `npm test`, `npm run lint`; sin build ni Playwright). Un PR en rojo no se fusiona. Los minutos de Actions son limitados: no lanzar corridas de más. Detalle en `HANDOFF.md`.
 - **Pruebas antes de abrir un PR:** `npm run lint`, `npm run build`, `npm test` y los `scripts/probar-*.mjs` que tocan lo cambiado. `probar-proximamente` falla también en `main`; no es tuyo.
 - **Cuando no se pueda probar algo** (por ejemplo, Safari de iPhone, que el entorno de Claude Code no tiene), el PR lo dice con claridad; Lewis lo prueba en el teléfono.
+- **El teléfono de Lewis (13 oct 2026):** iPhone 15 Pro con iOS 27 (pantalla de 393×852 con isla; las pruebas emulan 393×852 con safe 59/34). Prueba sobre todo con la app instalada (PWA); Safari cuando el cambio lo pide. **No tiene Android a mano:** lo de Android se prueba solo en emulación y el PR lo dice. Cada PR con cambio visible termina con **«Qué probar en tu iPhone»**: 3 a 6 pasos concretos (dónde entrar, qué tocar, qué debería pasar), en la app instalada salvo que diga Safari.
 
 ## Dónde está cada cosa
 
