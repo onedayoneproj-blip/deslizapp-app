@@ -1305,8 +1305,14 @@ for (const ancho of ANCHOS) {
     await escribir(page, "Aroma");
     await boton(page, "Listo").tap();
     await seguir(page);
-    await boton(page, "Seguir").waitFor();
-    await page.getByRole("button", { name: "Atrás" }).first().tap();
+    ok((await paso(page)) === "eje1", "«Listo» con «Aroma» y «Seguir» llevan a sus valores");
+    await boton(page, "Atrás").tap();
+    await page.waitForTimeout(200);
+    ok((await paso(page)) === "cambia" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Al volver de los valores, el campo de «+ Otra» NO se reabre (la «Otra» de la pregunta se usó una vez)");
+    await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+    ok((await qc.getByRole("checkbox", { name: "Aroma", exact: true }).getAttribute("aria-checked")) === "true", "…con Aroma y Talla elegidas (el máximo)");
+    await qc.getByRole("button", { name: "+ Otra" }).tap();
+    ok((await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0 && (await qc.getByRole("checkbox", { checked: true }).count()) === 2, "Con 2 elegidas no se puede abrir «+ Otra» ni añadir una tercera");
     ok(errores.length === 0, "Sin errores en la consola");
     await ctx.close();
   }

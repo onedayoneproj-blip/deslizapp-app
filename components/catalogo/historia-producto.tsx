@@ -525,7 +525,7 @@ function Historia({
             <h2 tabIndex={-1} data-titulo-paso="" className="font-display text-[1.625rem] leading-[1.1] text-texto outline-none">{textos.titulo}</h2>
             <p className="mt-1 text-[0.9375rem] text-texto-secundario">{textos.ayuda}</p>
           </div>
-          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} empezarEnOtra={abrirOtra} />
+          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} empezarEnOtra={abrirOtra} alUsarOtra={() => setAbrirOtra(false)} />
         </>
       )}
 
@@ -910,12 +910,16 @@ function TarjetaPresentaciones({ portada, nombre, precio, opciones }: { portada:
 }
 
 /** «¿En qué cambia?» (b11): lo típico del catálogo y otras cosas, hasta 2, y «+ Otra» para una propia. */
-function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = false }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void; empezarEnOtra?: boolean }) {
+function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = false, alUsarOtra }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void; empezarEnOtra?: boolean; alUsarOtra?: () => void }) {
   const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
   const lista = [...new Set([...[...tipicas, ...otras].slice(0, 4), ...ejes.map((e) => e.nombre)])];
   const [otra, setOtra] = useState<string | null>(empezarEnOtra ? "" : null);
   const [error, setError] = useState<string | null>(null);
   const caja = useRef<HTMLDivElement>(null);
+  // «Otra» de la pregunta del precio vale para ESTA apertura: se consume al montar (si no, volver desde los valores reabriría el campo).
+  useEffect(() => {
+    if (empezarEnOtra) alUsarOtra?.();
+  }, [empezarEnOtra, alUsarOtra]);
   const llenos = ejes.length >= MAX_EJES;
   // Con 2 elegidas las demás se ven igual (como el lienzo); tocarlas explica el máximo.
   const lleno = () => avisar(`Ya elegiste ${MAX_EJES}: quita una para elegir otra.`);
@@ -925,6 +929,7 @@ function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = false }: { 
     alCambiar([...ejes, { nombre, valores: [], propia: !COSAS_QUE_CAMBIAN.some((c) => c === nombre) }]);
   };
   const listoOtra = () => {
+    if (llenos) return lleno();
     const e = errorDeNombrePropio(otra ?? "", ejes.map((x) => x.nombre), [...tipicas, ...otras]);
     if (e) return setError(e);
     alCambiar([...ejes, { nombre: (otra ?? "").trim(), valores: [], propia: true }]);
