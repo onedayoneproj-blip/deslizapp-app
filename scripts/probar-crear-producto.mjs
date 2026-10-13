@@ -1285,6 +1285,7 @@ for (const ancho of ANCHOS) {
     await escribir(page, "900");
     const pregunta = page.locator("[data-pregunta-opciones]");
     ok(await pregunta.isVisible() && (await pregunta.evaluate((e) => getComputedStyle(e).fontSize)) === "20px", "La pregunta se ve, en tamaño de subtítulo de sección (20 px, no los 26 del título)");
+    ok((await pregunta.evaluate((e) => getComputedStyle(e).fontFamily)).includes("Fredoka"), "…y en Fredoka (la fuente de títulos, font-display)");
     await captura(page, "pregunta-opciones-precio", ancho);
     await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Talla", exact: true }).tap();
     await page.waitForTimeout(150);

@@ -603,7 +603,7 @@ function Historia({
                 </div>
               ) : (
                 <>
-                  <h2 className="text-titulo-seccion text-texto" data-pregunta-opciones="">¿Viene en varias opciones?</h2>
+                  <h2 className="font-display text-titulo-seccion text-texto" data-pregunta-opciones="">¿Viene en varias opciones?</h2>
                   <div role="group" aria-label="¿Viene en varias opciones?" className="mt-2.5 flex flex-wrap gap-2">
                     {OPCIONES_TIPICAS[tipo].slice(0, MAX_EJES).map((cosa) => (
                       <Eleccion key={cosa} accion elegida={false} onClick={() => abrirVariantes(cosa)}>{cosa}</Eleccion>
