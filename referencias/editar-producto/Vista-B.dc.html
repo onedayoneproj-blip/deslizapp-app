@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ver producto · compacta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&amp;family=Figtree:wght@400;600;800&amp;family=Fredoka:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Figtree,system-ui,sans-serif;color:#174b3a}
+a{color:#174b3a}a:hover{color:#0f3428}
+button{font:inherit;color:inherit}
+.grupo{background:#ffffff;border:1px solid #efe4d2;border-radius:22px;overflow:hidden;display:flex;flex-direction:column}
+.fila{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;text-align:left;width:100%;cursor:pointer}
+.fila + .fila{border-top:1px solid #efe4d2}
+.t{font-size:17px;font-weight:800;flex:1;display:flex;flex-direction:column}
+.t small{font-size:14px;font-weight:400;color:#4f6a5e}
+.v{font-size:14px;color:#4f6a5e}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;background:#7f948a;overflow:hidden">
+  <div style="position:absolute;left:0;right:0;top:69px;bottom:0;background:#fff9ee;border-radius:28px 28px 0 0;display:flex;flex-direction:column">
+    <div style="width:40px;height:5px;border-radius:999px;background:#e7dcc8;margin:8px auto 0"></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 10px">
+      <button aria-label="Cerrar" style="width:44px;height:44px;border-radius:999px;border:0;background:#f3ead9;display:grid;place-items:center;cursor:pointer;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174b3a" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <h1 style="margin:0;font-family:Fredoka,sans-serif;font-size:20px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lo Covel</h1>
+      <button style="border:0;background:transparent;font-size:17px;font-weight:800;min-height:44px;padding:0 4px;cursor:pointer">Editar</button>
+    </div>
+    <div style="padding:0 20px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;gap:14px">
+        <div style="width:160px;height:200px;border-radius:16px;flex-shrink:0;position:relative;overflow:hidden;background:linear-gradient(160deg,#e9a9b8 0%,#e8c3b0 45%,#cdb79a 100%)">
+          <div style="position:absolute;left:18px;top:34px;width:48px;height:96px;border-radius:12px;background:#1f4d3c;transform:rotate(-8deg)"></div>
+          <div style="position:absolute;left:62px;top:22px;width:48px;height:96px;border-radius:12px;background:#f2c6d2;transform:rotate(6deg)"></div>
+          <div style="position:absolute;left:100px;top:62px;width:48px;height:96px;border-radius:12px;background:#f6ecdc;transform:rotate(-4deg)"></div>
+          <div style="position:absolute;bottom:8px;right:8px;background:rgba(16,54,42,.55);color:#fff9ee;font-size:12px;font-weight:800;padding:3px 8px;border-radius:999px">4 fotos</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
+          <p style="margin:0;font-family:Fredoka,sans-serif;font-size:28px;font-weight:600">RD$650</p>
+          <span style="align-self:flex-start;background:#ffe3d6;color:#a8410f;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px">Agotado</span>
+          <p style="margin:4px 0 0;font-size:14px;color:#4f6a5e">3 presentaciones<br>0 en total</p>
+        </div>
+      </div>
+      <button style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:22px;border:0;background:#dcebe2;text-align:left;cursor:pointer">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1f6b47" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="3 2.2"/><path d="M12 8.5v7M8.5 12h7"/></svg>
+        <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:800">Compártelo en tu estado</span><span style="font-size:14px;color:#1f6b47">WhatsApp o Instagram, con el enlace</span></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f6b47" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      <div class="grupo">
+        <button class="fila" aria-pressed="true"><span class="t">Visible en el catálogo</span>
+          <span style="width:51px;height:31px;border-radius:999px;background:#174b3a;position:relative;flex-shrink:0"><span style="position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:999px;background:#fff9ee"></span></span></button>
+        <button class="fila"><span class="t">Stock</span><span class="v">0 en total</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="fila"><span class="t">Historial</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f6a5e" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:24px 20px 34px;background:linear-gradient(180deg,rgba(255,249,238,0) 0%,#fff9ee 45%)">
+      <button style="width:100%;height:52px;border-radius:999px;border:0;background:#174b3a;color:#fff9ee;font-size:17px;font-weight:800;cursor:pointer">Crear pedido</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
