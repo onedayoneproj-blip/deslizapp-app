@@ -221,7 +221,9 @@ Nunca una hoja completa con un hueco vacío abajo si no tiene teclado.
 
 **Pantalla interna y `anidarHojas`** (máximo dos hojas): una hoja con la prop `anidarHojas` (opt-in: hoy solo las hojas de un paso de editar y el flujo de presentaciones) no deja abrir una tercera: toda `Hoja` que se abra dentro de su contenido se pinta en su lugar como **pantalla interna**. La cabecera muestra «‹» en lugar de la ✕ y el título de esa pantalla; el atrás del teléfono y Escape vuelven a la anterior; al volver se recuperan el desplazamiento y el foco del botón que la abrió. Sin animación ni remontar nada: el contenido de abajo queda montado y oculto, y el foco va a «‹» (un botón, no abre teclado). Con `historia.volver`, una hoja también muestra «‹» para sus propias pantallas internas (historial de ajustes, lista de espera). Las demás hojas no cambian.
 
-**Cabecera con acción** (Ver producto): `historia` con `tituloElipsis` (el nombre se corta con elipsis) y, a la derecha, una píldora de texto («Editar», 44 px, mismo fondo que la ✕).
+**Cabecera con acción** (Ver producto): `historia` con `tituloElipsis` (el nombre se corta con elipsis) y, a la derecha, el botón **Secundario** («Editar», 44 px: contorno 1.5 px `accion`, relleno `superficie`).
+
+**Cierre bloqueado (`bloquearCierre` / `useBloquearCierre`)**, opt-in (13 oct 2026): mientras se guarda algo que no se puede deshacer (el stock en Ver producto y sus hojas de motivo), la hoja no se cierra ni pregunta: la ✕, el atrás del teléfono, tocar el fondo, deslizar y Escape no hacen nada; si se deslizó, la hoja rebota a su lugar. Las pantallas internas siguen volviendo. Al terminar de guardar, todo vuelve a funcionar. Las demás hojas no cambian.
 
 Una hoja sobre otra es válida (máximo dos), y solo la de arriba responde a gestos. Si hay cambios sin guardar, cerrar pide confirmación con la alerta "¿Salir sin guardar?" y los botones **«Quedarme»** (principal) y **«Descartar y salir»** (terciario, tono peligro).
 

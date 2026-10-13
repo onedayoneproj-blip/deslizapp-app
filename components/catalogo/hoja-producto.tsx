@@ -12,7 +12,7 @@ import { textoCombinacion } from "@/lib/presentaciones";
 import type { MotivoAjusteInventario, Producto, Variante } from "@/lib/types";
 import { ListaEsperaProducto } from "./hoja-espera";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir, useBloquearCierre, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
@@ -238,6 +238,8 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
   const pendiente = inventario.pendiente || variantes.pendiente;
   const guardandoStock = inventario.guardando || variantes.guardando;
   useAvisarAlSalir(pendiente || inventario.incierto);
+  // Mientras se guarda el stock la hoja no se cierra (Lewis, 13 oct): el ajuste en camino entraría después de «descartar».
+  useBloquearCierre(guardandoStock);
   const confirmarSalida = useConfirmarSalida();
   const navegar = (ruta: string) => confirmarSalida(() => alNavegar(ruta));
   // El stock siempre empieza cerrado (Lewis, 13 oct): no se recuerda el último estado.

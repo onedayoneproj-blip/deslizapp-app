@@ -137,7 +137,7 @@ export function useHistorialInventario() {
 
 export function ConfirmacionInventario({ inventario }: { inventario: Borrador }) {
   const i = inventario;
-  return <Hoja abierta={i.confirmar} alCerrar={i.cerrarConfirmacion} alSalir={i.alSalirConfirmacion} titulo="Ajustar inventario" altura="grande">
+  return <Hoja abierta={i.confirmar} alCerrar={i.cerrarConfirmacion} alSalir={i.alSalirConfirmacion} titulo="Ajustar inventario" altura="grande" bloquearCierre={i.guardando}>
     <div className="flex flex-col gap-4 text-bosque">
       <div><h2 className="font-display text-[23px]">¿Por qué baja el stock?</h2><p className="mt-1 text-sm text-suave">Retirarás {(i.base ?? 0) - (i.propuesta ?? 0)} {(i.base ?? 0) - (i.propuesta ?? 0) === 1 ? "unidad" : "unidades"}. Se guardará como ajuste, no como venta.</p></div>
       <GrupoOpciones etiqueta="Motivo del ajuste">{(["dano","perdida","correccion_inventario","otro"] as const).map(m => <Chip key={m} elegido={i.motivo === m} tono="opcion" onClick={() => i.setMotivo(m)}>{MOTIVOS_INVENTARIO[m]}</Chip>)}</GrupoOpciones>

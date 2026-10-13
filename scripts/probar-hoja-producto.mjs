@@ -580,6 +580,69 @@ for (const ancho of ANCHOS) {
       ok(await toast(page, "Ajuste guardado. No cuenta como venta."), `Bajada ${vez} guardada`);
       await esperar(page, 700);
     }
+    // Mientras se guarda el stock, la hoja no se cierra ni pregunta (Lewis, 13 oct): ✕, Escape, fondo, deslizar y atrás.
+    const lento = () => page.evaluate(() => {
+      const el = document.querySelector("[data-hoja-panel]");
+      let f = el[Object.keys(el).find((k) => k.startsWith("__reactFiber$"))];
+      while (f && !f.memoizedProps?.value?.ajustarStock) f = f.return;
+      const d = f.memoizedProps.value;
+      const orig = d.ajustarStock;
+      const lenta = async (...a) => { await new Promise((r) => setTimeout(r, 2500)); return orig(...a); };
+      d.ajustarStock = lenta;
+      window.__restaurarAjuste = () => { if (d.ajustarStock === lenta) d.ajustarStock = orig; };
+    });
+    const restaurar = () => page.evaluate(() => window.__restaurarAjuste?.());
+    {
+      // Subir (sin hoja de motivo): la vista misma queda bloqueada.
+      await lento();
+      await page.locator("[data-fila-stock]").first().getByRole("button", { name: /^Aumentar stock de/ }).click();
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+      await page.locator('[data-pie-vista] button[aria-busy="true"]').waitFor({ timeout: 2000 });
+      await page.keyboard.press("Escape");
+      await arriba(page).locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).click();
+      await page.mouse.click(5, 5);
+      await esperar(page, 300);
+      ok((await paneles(page).count()) === 1 && (await page.getByRole("alertdialog").count()) === 0, "Guardando: Escape, ✕ y el fondo no cierran ni preguntan");
+      const y0 = (await arriba(page).boundingBox()).y;
+      const cdp = await page.context().newCDPSession(page);
+      const toque = (type, yy) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y: yy }] });
+      await toque("touchStart", y0 + 30);
+      for (let i = 1; i <= 8; i++) { await toque("touchMove", y0 + 30 + i * 50); await page.waitForTimeout(16); }
+      await toque("touchEnd");
+      await esperar(page, 700);
+      ok((await paneles(page).count()) === 1 && Math.abs((await arriba(page).boundingBox()).y - y0) < 2 && (await page.getByRole("alertdialog").count()) === 0, "Guardando: deslizar no cierra; la hoja rebota a su lugar");
+      ok(await toast(page, "Ajuste guardado. No cuenta como venta."), "…y el ajuste se guarda");
+      await restaurar();
+      await esperar(page, 500);
+    }
+    {
+      // Bajar: la hoja del motivo también queda bloqueada mientras guarda, y el atrás del teléfono no cierra nada.
+      // (Vista recién abierta: tras guardar, la capa de datos se renueva y el doble lento quedaría en la vieja.)
+      await abrirVista(page, OUD);
+      await page.locator("[data-stock-plegable] button[aria-expanded]").click();
+      await esperar(page, 500);
+      await lento();
+      await page.locator("[data-fila-stock]").first().getByRole("button", { name: /^Disminuir stock de/ }).click();
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+      await page.getByText("¿Por qué baja el stock?").waitFor();
+      await arriba(page).getByText("Daño", { exact: true }).click();
+      await page.getByRole("button", { name: "Guardar ajuste" }).click();
+      await page.getByRole("button", { name: "Guardar ajuste" }).and(page.locator('[aria-busy="true"]')).waitFor({ timeout: 2000 });
+      await page.keyboard.press("Escape");
+      await esperar(page, 150);
+      await arriba(page).getByRole("button", { name: "Cerrar" }).click();
+      await esperar(page, 150);
+      await page.goBack();
+      await esperar(page, 400);
+      ok((await paneles(page).count()) === 2 && (await page.getByRole("alertdialog").count()) === 0, "Guardando el motivo: Escape, ✕ y atrás no cierran ninguna hoja");
+      ok(await toast(page, "Ajuste guardado. No cuenta como venta."), "…y al terminar se guarda");
+      await restaurar();
+      await esperar(page, 600);
+      ok((await paneles(page).count()) === 1, "La hoja del motivo se cierra sola al guardar");
+      await arriba(page).locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).click();
+      await esperar(page, 600);
+      ok((await paneles(page).count()) === 0, "Terminado el guardado, la ✕ vuelve a cerrar");
+    }
     await abrirVista(page, URBAN);
     ok((await page.locator("[data-franja-espera]").innerText()).includes("2 personas lo esperan"), "«2 personas lo esperan»");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
