@@ -14,14 +14,15 @@ Lienzo de Claude Design: [Editar producto · rediseño](https://claude.ai/artifa
 - `B-historia.dc.html`: opción B (la historia llena, barras para saltar, «⋯» para lo propio de editar). **Descartada** el 13 oct: obliga a meter editar dentro del componente de crear y arriesga crear, que Lewis ya validó.
 
 ## Ver producto (13 oct 2026, Lewis eligió la Vista A y la ajustó)
-`Vista-A.dc.html` (390×1000) manda; `Vista-B.dc.html` (compacta) queda descartada. Es la hoja que se abre al tocar un producto en Catálogo (`HojaVistaProducto`).
+`Vista-A.dc.html` (al abrir, stock cerrado) y `Vista-A-abierto.dc.html` (stock abierto, la hoja crece) mandan; `Vista-B.dc.html` (compacta) queda descartada. Es la hoja que se abre al tocar un producto en Catálogo (`HojaVistaProducto`).
 - Cabecera: ✕ a la izquierda, el nombre del producto (elipsis) y **«Editar» como botón píldora** (estilo iOS, mismo fondo que la ✕) a la derecha.
 - Vista previa grande: carrusel de las fotos con las barras tipo historia arriba, como el catálogo; abajo, sobre un degradado, precio (con promo, tachado), «Agotado» si aplica y las presentaciones (colores como puntos, tallas como pastillas).
 - «N personas lo esperan» (franja de atención) solo si hay lista de espera; abre la lista.
 - Orden: **Visible en el catálogo** → **Stock, plegable** («Stock · 3 presentaciones · 0 en total»; abierto, − / + por presentación; sin presentaciones, un solo − / +; con más de 3, abrirlo lleva al Inventario) → **Historial de ajustes**, fila aparte debajo del stock.
 - **Stock siempre empieza cerrado** (Lewis, 13 oct; no se recuerda el último estado).
 - **La hoja mide lo que mide su contenido** (altura `auto`) y **crece al abrir el stock**; si no cabe, hace scroll.
-- Pie: **«A tu historia»** (abre la hoja «Tu historia» de siempre) y **«Crear pedido»**, mitad y mitad.
+- **«Compartir»**: píldora oscura arriba a la derecha de la foto (bajo las barras), con el ícono de historia; abre la hoja de siempre, que pasa a titularse **«Súbelo a tu estado»**. La píldora de las tarjetas del Catálogo también pasa a decir «Compartir» (Lewis, 13 oct).
+- Pie: solo **«Crear pedido»**, a todo el ancho.
 
 Datos de muestra: «Camisa de lino», 6 presentaciones; las fotos son manchas de color. Los textos nuevos («Antes: …», «¿Qué pasó?», «Cuéntalos como están hoy en tu casa o tu tienda.») son propuesta: se revisan con `docs/11-voz-y-frases.md`.
 
