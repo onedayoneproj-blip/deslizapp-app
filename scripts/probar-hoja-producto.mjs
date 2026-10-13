@@ -505,6 +505,12 @@ for (const ancho of ANCHOS) {
     const [x, t, e] = [await cab.getByRole("button", { name: "Cerrar" }).boundingBox(), await cab.getByRole("heading").boundingBox(), await cab.locator("button[data-boton-editar]").boundingBox()];
     ok(x.x < t.x && t.x < e.x && e.height >= 44, "✕ · nombre · «Editar» (píldora de 44 px)");
     ok(await cab.getByRole("heading").evaluate((h) => getComputedStyle(h).textOverflow === "ellipsis"), "El nombre se corta con elipsis");
+    // «Editar» es un botón Secundario (contorno `accion`, relleno `superficie`) y su texto contrasta al menos 4.5:1 (Lewis 13 oct).
+    const estilo = await cab.locator("button[data-boton-editar]").evaluate((b) => { const c = getComputedStyle(b); return { borde: b.className.includes("border-[1.5px]") ? "1.5px" : c.borderTopWidth, colorBorde: c.borderTopColor, texto: c.color, fondo: c.backgroundColor }; });
+    const lum = (c) => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const [l1, l2] = [lum(estilo.texto), lum(estilo.fondo)].sort((a, b) => b - a);
+    const contraste = (l1 + 0.05) / (l2 + 0.05);
+    ok(estilo.borde === "1.5px" && estilo.colorBorde === estilo.texto && contraste >= 4.5, `«Editar»: contorno 1.5 px del color del texto y contraste ${contraste.toFixed(1)}:1`);
     ok((await page.locator("[data-barras-vista] span").count()) === 4, "Cuatro barras para cuatro fotos");
     await page.locator("[data-carrusel-vista]").evaluate((c) => c.scrollTo({ left: c.clientWidth, behavior: "instant" }));
     await esperar(page, 400);

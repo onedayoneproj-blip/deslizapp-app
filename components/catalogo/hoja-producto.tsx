@@ -272,8 +272,13 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
     <div className="flex flex-col gap-3 text-texto" data-vista-producto="">
       {ranuraEditar && !internaAbierta && createPortal(
         <button
+          // Botón Secundario (docs/09 §5, Lewis 13 oct): contorno `accion`, relleno `superficie`. Apagado, color sólido (nunca opacidad);
+          // sin permiso sigue respondiendo para explicar por qué.
           type="button" onClick={editar} aria-disabled={sinCatalogo || guardandoStock}
-          className={clases("tocable inline-flex h-11 shrink-0 items-center rounded-full bg-superficie-hundida px-4 text-cuerpo font-extrabold text-texto", FOCO, (sinCatalogo || guardandoStock) && "opacity-40")}
+          className={clases(
+            "tocable inline-flex h-11 shrink-0 items-center rounded-full border-[1.5px] px-4 text-cuerpo font-extrabold", FOCO,
+            sinCatalogo || guardandoStock ? "border-linea bg-superficie-hundida text-texto-secundario" : "border-accion bg-superficie text-accion",
+          )}
           data-boton-editar=""
         >
           Editar
