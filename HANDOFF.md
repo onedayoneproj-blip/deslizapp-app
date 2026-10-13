@@ -97,5 +97,6 @@ Cada PR y cada push a `main` corre el check **«Revisión»** (`.github/workflow
 
 - Un PR con «Revisión» en rojo **no se fusiona**.
 - Los tipos `PageProps`/`LayoutProps` los genera `next typegen`; correr `tsc` solo, sin generarlos, da errores falsos. Usa `npm run tipos`.
+- Las pruebas de navegador (`scripts/probar-*.mjs`) no corren en «Revisión»: cómo correrlas, qué necesita cada una del entorno y por qué algunas se saltan, en [docs/pruebas-del-navegador.md](docs/pruebas-del-navegador.md).
 - Los minutos de GitHub Actions son limitados: no lances corridas de más (el flujo cancela las viejas de la misma rama).
 

@@ -268,11 +268,13 @@ for (const ancho of ANCHOS) {
     const cab = arriba(page).locator("[data-hoja-cabecera]");
     const [x, t] = [await cab.getByRole("button", { name: "Cerrar" }).boundingBox(), await cab.getByRole("heading").boundingBox()];
     ok(x.x < t.x, "…con la ✕ a la izquierda");
+    await captura(page, "resumen/6-presentaciones", ancho);
     await arriba(page).locator("[data-paso='cuantas'] button[aria-label^='Quitar uno de ']:not([disabled])").first().click();
     // Una presentación: su detalle es una pantalla interna; «Quitar» pregunta con la Alerta (no cuenta como hoja).
     await arriba(page).locator("[data-paso='cuantas'] button[aria-label^='Abrir ']").last().click();
     await esperar(page, 500);
     ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-pantalla-interna]").count()) === 1, "El detalle es una pantalla interna (dos hojas)");
+    await captura(page, "resumen/7-presentacion-pantalla-interna", ancho);
     const quitada = (await arriba(page).locator("[data-hoja-cabecera] h2").innerText()).trim();
     await arriba(page).getByRole("button", { name: "Quitar", exact: true }).click();
     await page.getByRole("alertdialog").waitFor();

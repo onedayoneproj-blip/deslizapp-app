@@ -267,11 +267,31 @@ await caso("6. Video: sin interruptor; foto guardada: botón «Retocar» de siem
         setTimeout(() => { clearInterval(id); rec.stop(); }, 2000);
       }),
   );
+<<<<<<< HEAD
   await page.locator("[data-entrada-medios]").setInputFiles([{ name: "corto.webm", mimeType: "video/webm", buffer: Buffer.from(video, "base64") }]);
   const tira = page.locator("[data-paso-editar=\"fotos\"]");
   await tira.getByRole("button", { name: /^Video/ }).first().waitFor({ timeout: 20000 });
   await page.getByText("Lo dejamos liviano para que cargue rápido.").waitFor({ state: "detached", timeout: 40000 });
   await tira.getByRole("button", { name: /^Video/ }).first().click();
+=======
+  // Desde el 7 oct 2026 no se pueden agregar videos (VIDEO_PERMITIDO = false, lib/config.ts): el selector solo acepta imágenes y un video elegido no se agrega.
+  const entrada = page.locator("[data-entrada-medios]");
+  ok(((await entrada.getAttribute("accept")) ?? "") === "image/*", "el selector de archivos acepta solo imágenes (video apagado)");
+  await entrada.setInputFiles([{ name: "corto.webm", mimeType: "video/webm", buffer: Buffer.from(video, "base64") }]);
+  await page.waitForTimeout(800);
+  ok((await page.locator('[aria-label^="Video "]').count()) === 0 && (await page.getByRole("button", { name: /^Foto 1 de 1/ }).count()) === 1, "un video elegido no se agrega");
+  // Un video que ya existe se sigue viendo y se abre; no tiene interruptor de retoque.
+  await page.evaluate(([k, id, v]) => {
+    const d = JSON.parse(localStorage.getItem(k));
+    const p = d.productos.find((x) => x.id === id);
+    p.medios = [...p.medios, { tipo: "video", url: `data:video/webm;base64,${v}`, portada: null, duracionS: 3 }];
+    localStorage.setItem(k, JSON.stringify(d));
+  }, [CLAVE, base.id, video]);
+  await page.goto(`${URL}/catalogo/${base.id}/editar`);
+  const existente = page.locator('[aria-label^="Video "]').first();
+  await existente.waitFor({ timeout: 20000 });
+  await existente.click();
+>>>>>>> origin/main
   await page.getByRole("dialog", { name: "Video" }).waitFor();
   await page.waitForTimeout(350);
   ok(await page.getByRole("dialog", { name: "Video" }).count() === 1 && await hoja(page).locator("video").count() > 0 || (await hoja(page).innerText()).toLowerCase().includes("video"), "se abre la hoja del video");

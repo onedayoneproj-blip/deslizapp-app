@@ -8,6 +8,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import "../tests/cargar-ts.mjs";
 
 /** Editar es un resumen: las fotos viven en la pantalla «Fotos», que se abre encima desde su fila. */
 async function abrirFotosEditar(page) {
@@ -76,8 +77,18 @@ try {
   {
     const { ctx, page, errores, supabase, db, tiendaActiva } = await pagina({ tienda: LINO });
     await page.goto(`${BASE}/catalogo`);
-    await page.getByRole("button", { name: /Pedirlo/ }).click();
-    await page.getByRole("button", { name: "Sí, pedirlo" }).click();
+    // La tarjeta del panel ya no ofrece «Pedirlo» (docs/04-pantallas.md, Catálogo): el pedido entra por el mismo cambio de estado
+    // que hacía `pedirCatalogo` (sin → solicitado), escrito aquí a mano en la demo.
+    await page.waitForSelector("main");
+    ok((await page.getByRole("button", { name: /Pedirlo/ }).count()) === 0, "la tarjeta del panel ya no ofrece «Pedirlo»");
+    const { construirDesdeSeed } = await import("../lib/data/db.ts");
+    await page.evaluate(([k, id, semilla]) => {
+      const d = JSON.parse(localStorage.getItem(k) ?? "null") ?? semilla; // la demo escribe su base en la primera acción
+      const t = d.tiendas.find((x) => x.id === id);
+      t.catalogoEstado = "solicitado";
+      t.catalogoSolicitadoEn = new Date().toISOString();
+      localStorage.setItem(k, JSON.stringify(d));
+    }, [CLAVE, LINO, construirDesdeSeed()]);
     await page.waitForFunction((k) => JSON.parse(localStorage.getItem(k) ?? "{}").tiendas?.some((t) => t.catalogoEstado === "solicitado"), CLAVE);
 
     await page.goto(`${BASE}/admin-demo/trabajo?tienda=${LINO}`);

@@ -149,14 +149,21 @@ try {
       await carr.evaluate((el) => el.scrollTo({ left: el.clientWidth * 2, behavior: "instant" }));
       const video = p.locator("#r-mayar video");
       await p.evaluate(() => document.getElementById("r-mayar").scrollIntoView({block:"start"}));
-      await p.waitForFunction(() => {
-        const v = document.querySelector("#r-mayar video");
-        return v && !v.paused && v.muted && v.currentTime > 0;
-      });
+      // En el reel hay un <video>: estas propiedades no necesitan decodificar nada.
       aprobar(
         await video.evaluate((v) => v.playsInline && v.loop),
         "Video en línea y en bucle",
       );
+      // El video de prueba es H.264 (avc1); el Chromium de Playwright sin códecs propietarios no lo reproduce.
+      // Solo se salta la parte que necesita reproducir; el hash y el carrusel de arriba sí se comprueban.
+      if (!(await p.evaluate(() => !!document.createElement("video").canPlayType('video/mp4; codecs="avc1.42E01E"')))) {
+        console.log("⏭ Saltada la parte de video (reproducir, sonido, pausa): este navegador no reproduce H.264");
+        return;
+      }
+      await p.waitForFunction(() => {
+        const v = document.querySelector("#r-mayar video");
+        return v && !v.paused && v.muted && v.currentTime > 0;
+      });
       await p.locator("#r-mayar .sonido").click();
       aprobar(await video.evaluate((v) => !v.muted), "Activar sonido");
       await p.evaluate(() =>

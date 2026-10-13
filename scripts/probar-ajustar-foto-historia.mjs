@@ -52,7 +52,7 @@ const fotoDePrueba = (page, ancho, alto) =>
   }, [ancho, alto]);
 
 async function abrirHoja(forma, ancho, alto, { sinFiltro = false } = {}) {
-  const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, serviceWorkers: "block" });
   const page = await ctx.newPage();
   const errores = [];
   page.on("pageerror", (e) => errores.push(e.message));
