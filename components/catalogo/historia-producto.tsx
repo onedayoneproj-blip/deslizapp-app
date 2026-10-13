@@ -690,12 +690,12 @@ function Historia({
         )}
       {paso === "vista" &&
         pie(
-          // ‹ y «Publicar ⌄» en una fila; «Guardar sin publicar» vive en el menú del chevron. Si no se puede publicar
-          // (sin foto, catálogo lleno, sin permiso), el principal es «Guardar sin publicar» y no hay chevron.
+          // ‹ y «Publicar │ 🕒» en una fila; el reloj («Publicar más tarde») pide confirmar y guarda oculto. Si no se puede publicar
+          // (sin foto, catálogo lleno, sin permiso), el principal es «Guardar para después» (sin reloj y sin confirmación).
           <div className="flex items-center gap-2.5">
             {botonAtras}
             {sinFoto || llenoPlan || sinCatalogo ? (
-              <Boton tamano="grande" className="flex-1" cargando={guardando} deshabilitado={sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
+              <Boton tamano="grande" className="flex-1" cargando={guardando} deshabilitado={sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar para después</Boton>
             ) : (
               <BotonPublicar
                 cargando={guardando} deshabilitado={preparando} cierreRef={cierreMenuPublicar}

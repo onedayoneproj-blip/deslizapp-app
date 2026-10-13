@@ -78,7 +78,7 @@ Son ejemplos redactados con las reglas de arriba. Si una se aprueba y se usa, qu
 | Función que aún no sale | Caveat "Muy pronto" · "Algo se está cocinando" · "Ya casi, ya casi." |
 | Cuando alguien tarda en pagar | "Un recordatorio amable no le hace daño a nadie." |
 | Error de conexión | "Se nos cortó la señal. Intenta otra vez." |
-| Guardar sin publicar (menú de «Publicar ⌄») | «Guardar sin publicar» · «Queda oculto en tu catálogo» |
+| Publicar más tarde (reloj junto a «Publicar») | «¿Publicar más tarde?» · «Se guarda oculto. Lo encuentras en Catálogo > Ocultos para publicarlo cuando quieras.» · «Guardar para después» (también el principal cuando no se puede publicar) |
 | Foto subida | "Sube la foto del celular, nosotros le ponemos la luz." (ya existe) |
 
 ## 5. Cómo se usa

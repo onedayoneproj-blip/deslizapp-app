@@ -107,16 +107,16 @@ function Contenido({
             {descripcion}
           </p>
         )}
-        {/* wrap-reverse: si no caben lado a lado, la acción queda arriba */}
+        {/* wrap-reverse: si no caben lado a lado, la acción queda arriba. Ningún botón se hace más angosto que su texto. */}
         <div className="mt-2 flex flex-wrap-reverse gap-3">
-          <Boton jerarquia="secundario" data-cancelar onClick={alCancelar} className="min-w-28 flex-1">
+          <Boton jerarquia="secundario" data-cancelar onClick={alCancelar} className="min-w-[max(7rem,max-content)] flex-1">
             {textoCancelar}
           </Boton>
           <Boton
             jerarquia={accion.tono === "peligro" ? "peligro" : "principal"}
             relleno={accion.tono === "peligro"}
             onClick={accion.alConfirmar}
-            className="min-w-28 flex-1"
+            className="min-w-[max(7rem,max-content)] flex-1"
           >
             {accion.texto}
           </Boton>

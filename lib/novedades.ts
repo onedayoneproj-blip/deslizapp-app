@@ -25,7 +25,7 @@ const TODAS: Novedad[] = [
     version: "0.73.0", fecha: "2026-10-13", titulo: "Publicar, con más espacio.",
     cambios: [
       "Al crear un producto, la ✕ ahora está a la izquierda y las barras ocupan todo el ancho.",
-      "«Guardar sin publicar» pasó al menú de «Publicar ⌄»: tu producto se ve completo, sin nada tapado.",
+      "Si no quieres publicar ya, toca el reloj junto a «Publicar»: se guarda oculto y lo publicas cuando quieras.",
     ],
   },
   {
