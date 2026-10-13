@@ -1,10 +1,12 @@
 // Lecturas reales; TODAS las escrituras RPC se interceptan. WhatsApp también se intercepta, nunca se envía.
 import { navegador, URL } from './navegador-catalogo.mjs';
 import {writeFileSync}from'node:fs';
-// Esta prueba LEE (solo lectura) el catálogo real de Esencias Michel desde Supabase y la app tiene que estar compilada con las
-// variables NEXT_PUBLIC_SUPABASE_*. Las reglas del proyecto piden no tocar datos de tiendas reales en las pruebas automáticas, así que
-// por defecto se salta; la corre una persona con LECTURA_REAL=1 (todas las escrituras igual se interceptan).
-if(!process.env.LECTURA_REAL){console.log('⏭ SALTADA: lee el catálogo real de Esencias Michel (solo lectura) y necesita la app con las variables de Supabase. Corre con LECTURA_REAL=1 si lo quieres.');process.exit(0);}
+// Esta prueba LEE (solo lectura) el catálogo real de Esencias Michel desde Supabase, así que la app tiene que estar compilada con
+// NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (en el entorno o en .env.local). Si falta esa capacidad se salta con
+// aviso; con ella corre siempre (todas las escrituras se interceptan). Las pruebas automáticas del entorno de Claude Code no
+// la tienen a propósito: no tocan datos de tiendas reales.
+import {existsSync} from 'node:fs';
+if(!(process.env.NEXT_PUBLIC_SUPABASE_URL||existsSync('.env.local'))){console.log('⏭ SALTADA: lee el catálogo real de Esencias Michel (solo lectura) y la app necesita las variables NEXT_PUBLIC_SUPABASE_* (ni en el entorno ni en .env.local).');process.exit(0);}
 const b=await navegador();const resultados=[];
 try{for(const caso of ['sin-red','limite']){
  const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});

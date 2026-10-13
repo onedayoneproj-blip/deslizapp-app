@@ -42,7 +42,7 @@ Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
 | boton-historia | «Agregar a historia» | A | |
 | carrusel-historias | Barras del carrusel y vista enfocada | A | |
 | catalogo-cabecera | Pestañas del feed, hoja Catálogos, cabecera | A | |
-| catalogo-errores | Errores de pedido (sin red, límite) | A | **Se salta** salvo `LECTURA_REAL=1`: lee el catálogo real de Esencias Michel y necesita variables de Supabase |
+| catalogo-errores | Errores de pedido (sin red, límite) | A | **Se salta** si la app no tiene las variables `NEXT_PUBLIC_SUPABASE_*` (ni en el entorno ni en `.env.local`): lee el catálogo real de Esencias Michel (solo lectura). Con ellas corre siempre |
 | catalogo-por-tipo | Catálogo del comprador por tipo | A | |
 | catalogo-presentaciones | Presentaciones en el catálogo del cliente | A | |
 | catalogo-pulido | Tarjetas del panel: píldora de likes, stock, 360/390/430 claro y oscuro | A | contraste en oscuro: aviso, ver abajo |
@@ -91,7 +91,7 @@ Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
 |---|---|---|---|
 | catalogo-pulido, espera-catalogo | Fallaba al medir la cifra «bajo el círculo» | La píldora de likes pasó a ser una sola píldora horizontal (corazón + cifra) | Comprueban la píldora: corazón a la izquierda, misma fila, dentro de la foto, borde y contraste |
 | catalogo-pulido | `11 en stock · queda 1 de M` no aparecía | Con presentaciones la tarjeta dice «Hay de todas» / «N agotadas» | Espera «Hay de todas» |
-| catalogo-pulido (oscuro) | — | **Bug de la app** (`vista-catalogo.tsx`): en `data-theme="dark"` la cifra es `text-texto` claro sobre `bg-marca-papel` fijo (contraste 1,13). El modo oscuro aún no está activo para usuarias, así que no es visible hoy | Se imprime `⚠` en vez de fallar; `ESTRICTO=1` lo vuelve fallo. Quitar el aviso al corregir la app |
+| catalogo-pulido (oscuro) | — | **Bug de la app** (`vista-catalogo.tsx`): en `data-theme="dark"` la cifra es `text-texto` claro sobre `bg-marca-papel` fijo (contraste 1,13). El modo oscuro aún no está activo para usuarias, así que no es visible hoy | Se imprime `⚠` en vez de fallar y `resultados.json` guarda `contrast: false`; `ESTRICTO=1` lo vuelve fallo. Quitar el aviso al corregir la app |
 | espera-catalogo | `Persona c` no aparecía | La lista de espera muestra el nombre del cliente si el teléfono coincide (aquí, Carolina Peña) | Espera el nombre del cliente y «Persona d» |
 | espera-fallos | Agotaba el tiempo con el botón «Reintentar marcar como avisado a Fixture» | Igual: el teléfono coincidía con un cliente de la demo | Usa un teléfono sin cliente |
 | visibilidad-catalogo, espera-fallos, ver-como-transporte, pedido-catalogo-transporte | Tiempo agotado / «This page couldn't load» | Sin cambio de código: necesitan los modos B/C, no `next start` | Documentado arriba |
@@ -103,7 +103,7 @@ Lo que **necesita el entorno** además de Chromium: ninguna necesita internet.
 | teclado | «Minimizar» no existía | El botón se llama «Minimizar la guía» | Actualizado |
 | admin-trabajo | Buscaba «Pedirlo» | La tarjeta ya no ofrece «Pedirlo» (`docs/04-pantallas.md`) | Comprueba que no está y escribe el estado `solicitado` como lo hacía `pedirCatalogo` |
 | catalogo-react | Agotaba el tiempo esperando reproducir el video | El Chromium de Playwright no trae H.264 y el video de prueba es H.264 | Se salta solo reproducir, sonido y pausa si `canPlayType` no lo soporta; hash, carrusel y «en línea y en bucle» sí se comprueban |
-| catalogo-errores | Agotaba el tiempo esperando `#r-delilah` | Necesita Supabase real (lectura del catálogo de Esencias Michel) | Se salta salvo `LECTURA_REAL=1` |
+| catalogo-errores | Agotaba el tiempo esperando `#r-delilah` | Necesita Supabase real (lectura del catálogo de Esencias Michel) | Se salta si faltan las variables `NEXT_PUBLIC_SUPABASE_*`; con ellas corre siempre |
 | proxima-jugada | Lanzaba un error | La función está apagada a propósito | Se salta con mensaje (sale con 0) |
 | catalogo-react, ficha | — | WebKit no está instalado aquí (ya se avisaba y se seguía); `ficha` falló una vez bajo carga | Sin cambio |
 | admin-tiendas | «Define PLAYWRIGHT_MODULE» | Entorno | Documentado |
