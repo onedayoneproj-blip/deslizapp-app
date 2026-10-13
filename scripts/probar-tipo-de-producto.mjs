@@ -52,9 +52,9 @@ for (const ancho of ANCHOS) {
     await page.goto(`${URL}/catalogo`);
     await page.waitForSelector("[data-selector-catalogo]");
     ok(await sinDesborde(page), "el Catálogo no desborda");
-    ok((await page.locator("h1 [data-selector-catalogo]").getAttribute("aria-label")) === "Catálogo: Ropa. Cambiar", "el título es el selector: «Catálogo: Ropa. Cambiar»");
+    ok((await page.locator("h1 [data-selector-catalogo]").getAttribute("aria-label")) === "Catálogo: General. Cambiar", "sin preferencia guardada abre «General»; el título es el selector: «Catálogo: General. Cambiar»");
     const opciones = await opcionesDe(page, "h1 [data-selector-catalogo]");
-    ok(opciones.join() === "Ropa 2,Accesorios 2,Lo que vendes", "ofrece Ropa · 2, Accesorios · 2 y «Lo que vendes…» (sin «Todo»)");
+    ok(opciones.join() === "General 4,Ropa 2,Accesorios 2,Lo que vendes", "ofrece General · 4, Ropa · 2, Accesorios · 2 y «Lo que vendes…» (sin «Todo»)");
     ok(/Tus catálogos viven aquí/.test(await page.locator("body").innerText()), "el subtítulo habla de los catálogos");
     await elegir(page, "h1 [data-selector-catalogo]", "Accesorios");
     await page.waitForTimeout(500);

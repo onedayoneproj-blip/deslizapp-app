@@ -147,6 +147,12 @@ try {
         "Carrusel horizontal",
       );
       await carr.evaluate((el) => el.scrollTo({ left: el.clientWidth * 2, behavior: "instant" }));
+      // El video de prueba es H.264 (avc1); el Chromium de Playwright sin códecs propietarios no lo reproduce.
+      // Solo se salta la parte que necesita reproducir; el hash y el carrusel de arriba sí se comprueban.
+      if (!(await p.evaluate(() => !!document.createElement("video").canPlayType('video/mp4; codecs="avc1.42E01E"')))) {
+        console.log("⏭ Saltada la parte de video (reproducir, sonido, pausa): este navegador no reproduce H.264");
+        return;
+      }
       const video = p.locator("#r-mayar video");
       await p.evaluate(() => document.getElementById("r-mayar").scrollIntoView({block:"start"}));
       await p.waitForFunction(() => {

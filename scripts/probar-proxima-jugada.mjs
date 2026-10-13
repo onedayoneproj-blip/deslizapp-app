@@ -34,7 +34,7 @@ try {
     await page.goto(base+'/clientes');
     await page.getByRole('button',{name:/clientes:.*Ver detalle/}).click();
     await page.getByRole('heading',{name:'Tus clientes'}).waitFor();
-    if(await page.getByRole('button',{name:/^Próximamente/}).count()) throw new Error('Tu próxima jugada está apagada (lib/funciones.ts). Enciéndela y compila, o usa scripts/probar-proximamente.mjs.');
+    if(await page.getByRole('button',{name:/^Próximamente/}).count()){console.log('⏭ SALTADA: «Tu próxima jugada» está apagada (FUNCIONES.proximaJugada en lib/funciones.ts), así que no hay nada que probar. Con la función apagada corre scripts/probar-proximamente.mjs; para esta, enciéndela y compila.');await browser.close();process.exit(0);}
 
     // La tarjeta va arriba, antes de la dona
     const tarjeta=page.getByRole('button',{name:/^Tu próxima jugada/});
