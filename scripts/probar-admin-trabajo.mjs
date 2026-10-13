@@ -9,6 +9,16 @@ import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+/** Editar es un resumen: las fotos viven en la pantalla «Fotos», que se abre encima desde su fila. */
+async function abrirFotosEditar(page) {
+  await page.locator("[data-editar-producto] li").first().waitFor();
+  await page.waitForTimeout(400);
+  await page.locator("[data-editar-producto] li button").filter({ hasText: /^Fotos/ }).first().click();
+  await page.locator('[data-paso-editar="fotos"]').waitFor();
+  await page.waitForTimeout(400);
+}
+
+
 const modulo = process.env.PLAYWRIGHT_MODULE;
 if (!modulo) throw new Error("Define PLAYWRIGHT_MODULE con la ruta al módulo Playwright del entorno.");
 const playwright = await import(pathToFileURL(modulo).href);
@@ -114,6 +124,7 @@ try {
     const { ctx, page, errores, supabase, db } = await pagina({ tienda: LUNA });
     const pedir = async (producto) => {
       await page.goto(`${BASE}/catalogo/${producto}/editar`);
+  await abrirFotosEditar(page);
       await page.getByRole("button", { name: /^Foto 1 de/ }).click();
       const retoque = page.getByRole("list", { name: "Retoque" });
       await retoque.getByText("Retocar foto").waitFor();
@@ -177,12 +188,14 @@ try {
     await page.getByText("El taller está vacío.").waitFor();
 
     await page.goto(`${BASE}/catalogo/${TOBILLERA}/editar`);
+  await abrirFotosEditar(page);
     await page.getByText("Tu foto salió del taller.").waitFor();
     ok(true, "la tienda ve la tostada «Tu foto salió del taller.»");
     await page.getByRole("button", { name: /^Foto 1 de/ }).click();
     ok(await page.getByRole("list", { name: "Retoque" }).getByText("Retocada por el equipo").isVisible() && (await page.getByRole("list", { name: "Retoque" }).getByText("Beta", { exact: true }).isVisible()), "«Beta» también en la foto entregada");
     await capturar(page, "panel-foto-entregada-beta");
     await page.goto(`${BASE}/catalogo/${ANILLO}/editar`);
+  await abrirFotosEditar(page);
     await page.getByRole("button", { name: /devuelta por el taller/ }).click();
     ok(await page.getByText("«Tiene muy poca luz.»").waitFor({ timeout: 10000 }).then(() => true, () => false), "la tienda ve el motivo");
     ok(await page.getByRole("button", { name: "Subir otra" }).isVisible(), "y puede subir otra");

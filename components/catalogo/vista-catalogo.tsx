@@ -224,14 +224,13 @@ function TarjetaProducto({ producto: p, promos, alHistoria, prioridad = false, a
     <button
       type="button"
       onClick={alHistoria}
-      aria-label={`Agregar ${p.nombre} a historia`}
+      aria-label={`Compartir ${p.nombre} en tu estado`}
       className="tocable absolute top-0.5 right-0.5 z-10 flex min-h-11 items-center justify-end text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco"
     >
-      {/* Píldora de vidrio con el ícono y el texto; en tarjetas angostas (2 columnas) el texto se acorta a «Historia» */}
+      {/* Píldora de vidrio con el ícono y «Compartir» (Lewis, 13 oct: el mismo texto en todos los anchos) */}
       <span aria-hidden="true" className="flex h-8 items-center gap-1.5 rounded-full bg-black/45 pl-2.5 pr-3 text-[12px] font-bold leading-none backdrop-blur-sm">
         <IconoHistoria tamano={16} className="shrink-0" />
-        <span className="@[200px]:hidden">Historia</span>
-        <span className="hidden @[200px]:inline">Agregar a historia</span>
+        <span>Compartir</span>
       </span>
     </button>
     <Link

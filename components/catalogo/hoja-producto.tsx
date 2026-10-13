@@ -270,7 +270,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
         ranuraEditar,
       )}
 
-      <VistaPrevia producto={producto} precio={precio} />
+      <VistaPrevia producto={producto} precio={precio} alCompartir={tienda ? () => setEnHistoria(true) : undefined} />
 
       {personas > 0 && (
         <button type="button" onClick={(e) => alVerEspera(e.currentTarget)} className={clases("tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l bg-atencion-suave px-4 text-left text-atencion-texto", FOCO)} data-franja-espera="">
@@ -349,12 +349,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <Boton jerarquia="secundario" tamano="grande" onClick={() => tienda && setEnHistoria(true)} data-a-tu-historia="">
-                  <IconoHistoria tamano={20} /> A tu historia
-                </Boton>
-                <Boton tamano="grande" deshabilitado={guardandoStock} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
-              </div>
+              <Boton tamano="grande" anchoCompleto deshabilitado={guardandoStock} onClick={() => navegar(`/pedidos/nuevo?producto=${encodeURIComponent(producto.id)}`)}>Crear pedido</Boton>
             )}
           </PieFlotante>
           </div>
@@ -377,11 +372,11 @@ const textoAjuste = (delta: number | null) =>
   delta === null ? "Cambiaste el stock. Guárdalo para que cuente." : `${delta > 0 ? "Añadirás" : "Retirarás"} ${Math.abs(delta)} ${Math.abs(delta) === 1 ? "unidad" : "unidades"}`;
 
 /**
- * La vista previa grande de «Ver producto»: todas las fotos en un carrusel que se desliza, con las barras tipo historia del catálogo
+ * La vista previa grande de «Ver producto»: «Compartir» arriba a la derecha (abre «Súbelo a tu estado»), todas las fotos en un carrusel que se desliza, con las barras tipo historia del catálogo
  * arriba (la de la foto que se ve, llena) y, sobre un degradado, el precio (con la promo tachada), «Agotado» y las presentaciones
  * (los colores como puntos, las tallas como pastillas). Sin foto, la inicial como siempre.
  */
-function VistaPrevia({ producto, precio }: { producto: Producto; precio: PrecioConPromo }) {
+function VistaPrevia({ producto, precio, alCompartir }: { producto: Producto; precio: PrecioConPromo; alCompartir?: () => void }) {
   const fotos = producto.medios.length > 0 ? producto.medios.flatMap((m) => (m.tipo === "foto" ? [m.url] : m.portada ? [m.portada] : [])) : producto.fotos;
   const [indice, setIndice] = useState(0);
   const color = producto.opciones.find((o) => esEjeColor(o.nombre));
@@ -408,6 +403,18 @@ function VistaPrevia({ producto, precio }: { producto: Producto; precio: PrecioC
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-2.5 flex gap-1" data-barras-vista="">
           {fotos.map((u, i) => <span key={`${u}-${i}`} className={clases("h-[3px] flex-1 rounded-full", i <= indice ? "bg-papel" : "bg-papel/40")} />)}
         </div>
+      )}
+      {alCompartir && (
+        // «Compartir» (Lewis, 13 oct): la misma píldora de vidrio de la tarjeta del Catálogo, arriba a la derecha bajo las barras.
+        <button
+          type="button" onClick={alCompartir} aria-label={`Compartir ${producto.nombre} en tu estado`} data-compartir-vista=""
+          className={clases("tocable absolute top-4 right-2 z-10 flex min-h-11 items-center text-white", FOCO)}
+        >
+          <span aria-hidden="true" className="flex h-8 items-center gap-1.5 rounded-full bg-black/45 pr-3 pl-2.5 text-[12px] leading-none font-bold backdrop-blur-sm">
+            <IconoHistoria tamano={16} className="shrink-0" />
+            Compartir
+          </span>
+        </button>
       )}
       {conFoto && <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[45%] bottom-0 bg-linear-to-t from-velo to-transparent" />}
       <div className={clases("pointer-events-none absolute inset-x-4 bottom-3.5 flex flex-col gap-1.5", conFoto ? "text-papel" : "text-texto")}>

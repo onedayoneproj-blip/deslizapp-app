@@ -1,4 +1,4 @@
-// Botón «Agregar a historia» en Catálogo y vista previa tocable de «Tu historia» (PR #81), en la demo a 360 y 390. Nunca toca Supabase.
+// Botón «Compartir» en Catálogo y vista previa tocable de «Súbelo a tu estado» (PR #81), en la demo a 360 y 390. Nunca toca Supabase.
 //   URL=http://localhost:3000 [CHROMIUM_PATH=…] [CAPTURAS=docs/capturas/boton-historia] node scripts/probar-boton-historia.mjs
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -34,17 +34,17 @@ for (const ancho of [360, 390]) {
     localStorage.setItem("deslizapp-sesion-v1", tienda);
   }, MICHEL);
   await page.goto(`${URL}/catalogo`);
-  const botones = page.locator('[aria-label^="Agregar"][aria-label$="a historia"]');
+  const botones = page.locator('[aria-label^="Compartir"][aria-label$="en tu estado"]');
   await botones.first().waitFor();
-  ok((await botones.count()) > 1, `${await botones.count()} botones «Agregar a historia»`);
+  ok((await botones.count()) > 1, `${await botones.count()} botones «Compartir»`);
   const caja = await botones.first().boundingBox();
   const tarjeta = await botones.first().locator("xpath=..").boundingBox();
   ok(caja.height >= 44, `toque de ${Math.round(caja.height)} px de alto`);
   ok(caja.width <= tarjeta.width * 0.8, `la píldora (${Math.round(caja.width)} px) ocupa menos del 80 % de la tarjeta (${Math.round(tarjeta.width)} px)`);
   const texto = await botones.first().innerText();
   console.log("  texto visible:", JSON.stringify(texto.trim()), `· tarjeta ${Math.round(tarjeta.width)} px`);
-  ok(texto.trim() === "Historia", "en tarjetas de 2 columnas dice «Historia» (nunca «A historia»)");
-  ok(await botones.first().evaluate((b) => { const t = b.querySelector("span span:not(.hidden)"); return t.scrollWidth <= t.clientWidth + 1 && b.getBoundingClientRect().right <= b.parentElement.getBoundingClientRect().right + 1; }), "el texto no se corta");
+  ok(texto.trim() === "Compartir", "dice «Compartir» en todos los anchos");
+  ok(await botones.first().evaluate((b) => { const t = b.querySelector("span span"); return t.scrollWidth <= t.clientWidth + 1 && b.getBoundingClientRect().right <= b.parentElement.getBoundingClientRect().right + 1; }), "el texto no se corta");
   ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "sin desborde horizontal");
   if (CAPTURAS) await page.screenshot({ path: join(CAPTURAS, `${ancho}-1-catalogo.png`) });
   await botones.first().click();

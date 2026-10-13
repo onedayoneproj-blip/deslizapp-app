@@ -173,39 +173,62 @@ try {
     await ctx.close();
   }
 
-  // ---- Hoja "Nuevo producto"
+  // ---- Editar producto (resumen, docs/prompts/editar-producto-2-resumen.md): cada fila abre ENCIMA su pantalla; el campo recibe el
+  // foco en el mismo toque que la abre y aguanta el teclado (Parade, sin presentaciones).
   {
-    // Crear producto es una historia (bloque de abajo); la hoja de producto queda para editar y se prueba ahí (Parade, sin presentaciones).
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000003/editar");
-    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.waitForSelector("[data-editar-producto] li");
     await page.waitForTimeout(700);
-    await probarCampo(page, '[role="dialog"] input[placeholder="El nombre de tu producto"]', "Editar producto · Nombre", "Brisa", { dentroDeHoja: true, reemplazar: true });
-    await probarCampo(page, '[role="dialog"] input[placeholder="Escribe el precio"]', "Editar producto · Precio", "2450", { dentroDeHoja: true, reemplazar: true });
-    // Descripción y «Cuándo llega» viven en filas plegadas: abrir la fila no mueve ni quita el foco de otro campo.
-    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
-    await page.waitForTimeout(200);
-    await page.evaluate(() => (window.__foco = []));
-    // click() desde la página (sin mover el foco del navegador): lo que se prueba es que la app no toque el foco al abrir la fila.
-    await page.evaluate(() => document.querySelector('[role="dialog"] [data-fila-plegable="descripcion"] button[aria-expanded]').click());
-    await page.waitForSelector('[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]');
-    const focoTrasAbrirFila = await page.evaluate(() => ({ nombre: document.activeElement?.getAttribute("placeholder"), eventos: window.__foco.join(" ") }));
-    ok(focoTrasAbrirFila.nombre === "El nombre de tu producto", `Abrir una fila no le quita el foco al campo enfocado (${focoTrasAbrirFila.eventos || "sin cambios"})`);
-    await probarCampo(page, '[role="dialog"] textarea[placeholder="Cuéntalo como se lo dirías a una clienta."]', "Editar producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true, reemplazar: true });
-    await page.tap('[role="switch"][aria-label="Por encargo"]');
-    await page.waitForSelector('[role="dialog"] input[placeholder="Llega en 7 a 10 días"]');
-    await probarCampo(page, '[role="dialog"] input[placeholder="Llega en 7 a 10 días"]', "Editar producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true });
-    // Los botones («Vista previa» + «Publicar») van al final de la página: con el teclado abierto no flotan sobre el campo y, al
-    // desplazar hasta el final, quedan por encima del teclado.
-    await page.tap('[role="dialog"] input[placeholder="El nombre de tu producto"]');
-    await page.evaluate(() => window.__teclado(true));
-    await page.waitForTimeout(400);
-    await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
+    const fila = (t) => page.locator("[data-editar-producto] li button").filter({ hasText: new RegExp(`^${t}`) }).first();
+    const enfocado = (sel) => page.evaluate((s) => document.activeElement === document.querySelector(s), sel);
+    const listo = async () => {
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.tap("[data-pie-paso] button");
+      await page.waitForFunction(() => document.querySelectorAll('[role="dialog"]').length === 1);
+      await page.waitForTimeout(400);
+    };
+    const nombre = '[data-paso-editar="nombre"] input[data-campo-paso]';
+    await fila("Nombre").tap();
+    await page.waitForSelector(nombre);
+    ok(await enfocado(nombre), "Editar · Nombre: el campo tiene el foco en el mismo toque que abre su pantalla");
+    await page.waitForTimeout(500);
+    await probarCampo(page, nombre, "Editar producto · Nombre", "Brisa", { dentroDeHoja: true, reemplazar: true });
+    await listo();
+    const precio = '[data-paso-editar="precio"] input[data-campo-paso]';
+    await fila("Precio").tap();
+    await page.waitForSelector(precio);
+    ok(await enfocado(precio), "Editar · Precio: el campo tiene el foco en el mismo toque");
+    await page.waitForTimeout(500);
+    await probarCampo(page, precio, "Editar producto · Precio", "2450", { dentroDeHoja: true, reemplazar: true });
+    await listo();
+    await fila("Descripción").tap();
+    const descripcion = '[data-paso-editar="descripcion"] textarea';
+    await page.waitForSelector(descripcion);
+    await page.waitForTimeout(500);
+    await probarCampo(page, descripcion, "Editar producto · Descripción", "Oud ahumado con vainilla.", { dentroDeHoja: true, reemplazar: true });
+    await listo();
+    await page.tap('[role="switch"][aria-label="Es por encargo"]');
     await page.waitForTimeout(300);
-    ok(await page.evaluate(() => { const r = document.querySelector("[data-barra-producto]").getBoundingClientRect(); return r.bottom <= window.visualViewport.height + 1; }), "Con el teclado abierto, al final de la hoja los botones quedan sobre el teclado");
-    await page.evaluate(() => window.__teclado(false));
-    await page.waitForTimeout(300);
-    await page.evaluate(() => document.activeElement.blur());
+    await fila("Es por encargo").tap();
+    await page.waitForSelector('[data-paso-editar="encargo"] [role="radio"]');
+    await page.waitForTimeout(500);
+    await page.getByRole("radio", { name: "Otro", exact: true }).tap();
+    const cuando = '[data-paso-editar="encargo"] input[placeholder="Llega en 7 a 10 días"]';
+    await page.waitForSelector(cuando);
+    ok(await enfocado(cuando), "Editar · Cuándo llega: «Otro» abre el campo con el foco en el mismo toque");
+    await probarCampo(page, cuando, "Editar producto · Cuándo llega", "Llega en 7 días", { dentroDeHoja: true, reemplazar: true });
+    await listo();
+    // Stock: bajar pide el motivo ahí mismo; «Otro» abre la nota (la hoja de encima es grande: no cambia de alto con el teclado).
+    await fila("Stock").tap();
+    await page.waitForSelector('[data-paso-editar="stock"] [data-contador-stock]');
+    await page.waitForTimeout(500);
+    await page.locator('[data-paso-editar="stock"] button[aria-label^="Disminuir stock"]').tap();
+    await page.getByRole("radio", { name: "Otro", exact: true }).tap();
+    const nota = '[data-paso-editar="stock"] [data-motivo-bajada] textarea';
+    await page.waitForSelector(nota);
+    await probarCampo(page, nota, "Editar producto · Motivo del ajuste (Otro)", "Se mojó una", { dentroDeHoja: true, reemplazar: true });
+    await listo();
     // Cerrar el teclado tocando fuera y confirmar que la hoja se sigue cerrando deslizando
     await page.evaluate(() => document.activeElement.blur());
     await page.waitForTimeout(200);
@@ -226,7 +249,7 @@ try {
     await page.tap('[role="alertdialog"] button:has-text("Descartar y salir")');
     await page.waitForTimeout(1200);
     // Al salir de editar se vuelve a la vista previa del producto (otra hoja): la de editar ya no está.
-    ok(!(await page.$('[role="dialog"] input[placeholder="El nombre de tu producto"]')), "Editar producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Descartar y salir»)");
+    ok(!(await page.$("[data-editar-producto]")), "Editar producto: tras escribir y cerrar el teclado, la hoja se sigue cerrando deslizando (con «Descartar y salir»)");
     ok(errores.length === 0, `Editar producto: sin errores de página (${JSON.stringify(errores)})`);
     await ctx.close();
   }
@@ -293,9 +316,8 @@ try {
     const sel = '[data-hoja-cabecera] [data-selector-catalogo]';
     await page.waitForSelector(sel);
     await page.waitForTimeout(900);
-    await page.tap('input[placeholder="El nombre de tu producto"]');
-    await page.keyboard.type(" grande");
-    await page.evaluate(() => document.activeElement.blur());
+    // Con un cambio sin guardar en el resumen (editar ya no tiene campos a la vista: se abren encima).
+    await page.tap('[role="switch"][aria-label="Es por encargo"]');
     const antes = await page.locator('[role="dialog"]').first().boundingBox();
     await page.tap(sel);
     await page.waitForTimeout(500);
@@ -320,8 +342,9 @@ try {
     const { ctx, page, errores } = await abrir(navegador);
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
-    await page.waitForSelector("[data-cosas-que-cambian]");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await page.waitForSelector("[data-editar-producto] li");
+    await page.waitForTimeout(500);
+    await page.locator("[data-editar-producto] li button").filter({ hasText: /^Presentaciones/ }).first().click();
     await page.waitForSelector("[data-paso=cuantas]");
     await page.waitForTimeout(900);
     // Precio propio (hoja de una presentación)
@@ -367,8 +390,9 @@ try {
     const { ctx, page, errores } = await abrir(navegador);
     await page.addInitScript(() => localStorage.setItem("deslizapp-sesion-v1", "a1000000-0000-4000-8000-000000000003"));
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000018/editar");
-    await page.waitForSelector("[data-cosas-que-cambian]");
-    await page.getByRole("button", { name: /^Presentaciones/ }).click();
+    await page.waitForSelector("[data-editar-producto] li");
+    await page.waitForTimeout(500);
+    await page.locator("[data-editar-producto] li button").filter({ hasText: /^Presentaciones/ }).first().click();
     await page.waitForSelector("[data-paso=cuantas]");
     await page.waitForTimeout(900);
     const interruptor = page.getByRole("switch", { name: "Cada una tiene su precio" });
@@ -409,10 +433,11 @@ try {
     ok(Boolean(href), "Catálogo: hay un producto con stock controlado para probar la hoja de ajuste");
     if (href) {
       await page.goto(URL + href);
-      await page.waitForSelector('[role="dialog"] section[aria-label="Inventario"]');
+      await page.waitForSelector('[role="dialog"] [data-stock-plegable]');
       await page.waitForTimeout(500);
-      await page.tap('[role="dialog"] button[aria-label^="Disminuir stock"]');
-      await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
+      await page.tap("[data-stock-plegable] button[aria-expanded]");
+      await page.tap('[role="dialog"] [data-stock-plegable] button[aria-label^="Disminuir stock"]');
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios", exact: true }).click();
       await page.getByRole("radio", { name: "Otro", exact: true }).click();
       await page.waitForSelector('[role="dialog"] textarea');
       await probarCampo(page, '[role="dialog"] textarea', "Ajuste de inventario · Motivo", "Conteo corregido");
@@ -561,10 +586,10 @@ try {
   {
     const { ctx, page, errores } = await abrir(navegador);
     await page.goto(URL + "/catalogo/a3000000-0000-4000-8000-000000000003/editar");
-    await page.waitForSelector('[role="dialog"] input[placeholder="El nombre de tu producto"]');
+    await page.waitForSelector("[data-editar-producto] li");
     await page.waitForTimeout(700);
     // La colección se elige en una hoja apilada: fila "Colección" → "Agregar colección" → nombre
-    await page.tap('[role="dialog"] li button:has-text("Colección")');
+    await page.tap('[data-editar-producto] li button:has-text("Colección")');
     await page.waitForSelector('[role="dialog"] button:has-text("Agregar colección")');
     await page.tap('[role="dialog"] button:has-text("Agregar colección")');
     await page.waitForSelector('[role="dialog"] input[placeholder="Ej: Para él"]');

@@ -417,7 +417,7 @@ for (const ancho of ANCHOS) {
     }
   }
 
-  console.log("• Ver producto: cabecera, carrusel, espera, stock plegable, «A tu historia»");
+  console.log("• Ver producto: cabecera, carrusel, espera, stock plegable, «Compartir»");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrirVista(page, PANTALON);
@@ -445,9 +445,13 @@ for (const ancho of ANCHOS) {
     ok((await page.locator("[data-hoja-cabecera]").last().getByRole("heading").innerText()) === "Lista de espera", "Abre la lista como pantalla interna");
     await page.locator("[data-hoja-cabecera]").last().getByRole("button", { name: "Volver" }).click();
     await esperar(page, 400);
-    await page.locator("[data-a-tu-historia]").click();
-    await page.getByRole("heading", { name: "Tu historia" }).waitFor({ timeout: 6000 });
-    ok((await paneles(page).count()) === 2, "«A tu historia» abre «Tu historia» encima");
+    ok((await page.locator("[data-pie-vista]").getByRole("button").count()) === 1, "El pie solo lleva «Crear pedido»");
+    const compartir = await page.locator("[data-compartir-vista]").boundingBox();
+    const foto = await page.locator("[data-vista-previa-producto]").boundingBox();
+    ok(compartir.height >= 44 && compartir.x + compartir.width > foto.x + foto.width - 20 && compartir.y < foto.y + 70, "«Compartir»: píldora arriba a la derecha de la foto (44 px de toque)");
+    await page.locator("[data-compartir-vista]").click();
+    await page.getByRole("heading", { name: "Súbelo a tu estado" }).waitFor({ timeout: 6000 });
+    ok((await paneles(page).count()) === 2, "«Compartir» abre «Súbelo a tu estado» encima");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
     await ctx.close();
   }
