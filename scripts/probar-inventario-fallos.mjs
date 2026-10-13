@@ -118,6 +118,15 @@ try{
  ok(await hojaMotivo.locator('[data-error-motivo]').isVisible()&&(await ajustesOud()).length===antesOud+2,'Si la bajada falla, el error se ve en la hoja del motivo y no se guarda nada');
  await hojaMotivo.getByRole('button',{name:'Guardar ajuste'}).click();await hojaMotivo.waitFor({state:'detached'});
  ok((await ajustesOud()).length===antesOud+3,'Reintentar desde la misma hoja guarda la bajada');
+ // Falla, se cierra la hoja del motivo y se descarta: el aviso de error se va con el borrador (revisión de Codex en #125).
+ await page.evaluate(()=>{const el=document.querySelector('[data-hoja-panel]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.ajustarStock)f=f.return;const d=f.memoizedProps.value;const orig=d.ajustarStock;d.ajustarStock=async()=>{d.ajustarStock=orig;throw Error('Falla la bajada (doble de prueba)');};});
+ await filasOud.nth(0).locator('button[aria-label^="Disminuir stock"]').click();
+ await page.locator('[data-pie-vista]').getByRole('button',{name:'Guardar cambios',exact:true}).click();
+ await hojaMotivo.waitFor();await hojaMotivo.getByText('Daño',{exact:true}).click();await hojaMotivo.getByRole('button',{name:'Guardar ajuste'}).click();
+ await hojaMotivo.locator('[data-error-motivo]').waitFor();
+ await hojaMotivo.getByRole('button',{name:'Cerrar'}).click();await hojaMotivo.waitFor({state:'detached'});
+ await page.locator('[data-pie-vista]').getByRole('button',{name:'Descartar',exact:true}).click();await page.waitForTimeout(400);
+ ok(await page.getByRole('alert').filter({hasText:/doble de prueba|No pudimos/}).count()===0&&(await ajustesOud()).length===antesOud+3,'Descartar después de un fallo quita el aviso de error');
  // Lo mismo en el Inventario de editar: si falla el segundo ajuste, reintentar no repite el primero (revisión de Codex en #125).
  await page.goto(URL+'/catalogo/a3000000-0000-4000-8000-000000000019/editar?abrir=stock');await page.locator('[data-inventario-editar]').waitFor();await page.waitForTimeout(500);
  const antesEd=(await ajustesOud()).length;

@@ -198,7 +198,7 @@ function useStockPresentaciones(producto: Producto) {
       setGuardando(false);
     }
   };
-  return { activas, valor, pendiente: cambiadas.length > 0, bajan, guardando, error, poner: (id: string, n: number) => setPropuesta((p) => ({ ...p, [id]: n })), descartar: () => setPropuesta({}), guardar };
+  return { activas, valor, pendiente: cambiadas.length > 0, bajan, guardando, error, poner: (id: string, n: number) => setPropuesta((p) => ({ ...p, [id]: n })), descartar: () => { setPropuesta({}); setError(null); }, guardar };
 }
 
 function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera, ranuraEditar, internaAbierta }: {
