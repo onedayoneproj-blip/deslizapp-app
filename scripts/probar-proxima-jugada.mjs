@@ -5,6 +5,10 @@
 // Recorre Tu próxima jugada a 360, 390 y 430 (430 con reducir movimiento): la tarjeta arriba de Tus clientes, la entrada a la
 // galería, el barrido al elegir una jugada, "Escribirle a…" con saludo, código y productos, el envío (código personal + registro)
 // y la lista con "Le escribiste hoy" al final.
+import '../tests/cargar-ts.mjs';
+// Se salta solo si la función está apagada en lib/funciones.ts (ahí corre probar-proximamente); encendida, no hay salto posible.
+const { FUNCIONES } = await import('../lib/funciones.ts');
+if (!FUNCIONES.proximaJugada) { console.log('⏭ SALTADA: «Tu próxima jugada» está apagada (FUNCIONES.proximaJugada en lib/funciones.ts), así que no hay nada que probar. Con la función apagada corre scripts/probar-proximamente.mjs; para esta, enciéndela y compila.'); process.exit(0); }
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
@@ -34,7 +38,7 @@ try {
     await page.goto(base+'/clientes');
     await page.getByRole('button',{name:/clientes:.*Ver detalle/}).click();
     await page.getByRole('heading',{name:'Tus clientes'}).waitFor();
-    if(await page.getByRole('button',{name:/^Próximamente/}).count()){console.log('⏭ SALTADA: «Tu próxima jugada» está apagada (FUNCIONES.proximaJugada en lib/funciones.ts), así que no hay nada que probar. Con la función apagada corre scripts/probar-proximamente.mjs; para esta, enciéndela y compila.');await browser.close();process.exit(0);}
+    if(await page.getByRole('button',{name:/^Próximamente/}).count()) throw new Error('Tu próxima jugada muestra «Próximamente» con la función encendida (lib/funciones.ts): es un fallo, no una función apagada.');
 
     // La tarjeta va arriba, antes de la dona
     const tarjeta=page.getByRole('button',{name:/^Tu próxima jugada/});
