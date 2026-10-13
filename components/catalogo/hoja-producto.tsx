@@ -392,7 +392,7 @@ function VistaPrevia({ producto, precio, alCompartir }: { producto: Producto; pr
   const otras = producto.opciones.filter((o) => !esEjeColor(o.nombre));
   const conFoto = fotos.length > 0;
   return (
-    <div className="relative h-[300px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-vista-previa-producto="">
+    <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-vista-previa-producto="">
       {conFoto ? (
         <div
           className="flex size-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"

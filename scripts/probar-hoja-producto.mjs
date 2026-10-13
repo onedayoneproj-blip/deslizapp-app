@@ -510,6 +510,12 @@ for (const ancho of ANCHOS) {
     await esperar(page, 400);
     ok((await page.locator("[data-barras-vista] span.bg-papel").count()) === 2, "Deslizar llena la barra de la segunda foto");
     ok((await page.locator("[data-presentaciones-vista]").innerText()).includes("3 colores"), "Las presentaciones: colores como puntos y tallas");
+    {
+      const foto = await page.locator("[data-vista-previa-producto]").boundingBox();
+      const barras = await page.locator("[data-barras-vista]").boundingBox();
+      const pres = await page.locator("[data-presentaciones-vista]").boundingBox();
+      ok(barras.y >= foto.y && barras.y < foto.y + 20 && pres.y + pres.height <= foto.y + foto.height + 1 && pres.y > foto.y + foto.height / 2, "Con 4:5, las barras siguen arriba y el precio y las presentaciones abajo, dentro de la foto");
+    }
     ok((await page.locator("[data-franja-espera]").count()) === 0, "Sin lista de espera, sin franja");
     ok((await page.locator("[data-stock-plegable]").getAttribute("data-abierto")) === null, "El stock empieza cerrado");
     await captura(page, "ver-producto/1-cerrado", ancho);
@@ -529,6 +535,8 @@ for (const ancho of ANCHOS) {
     const compartir = await page.locator("[data-compartir-vista]").boundingBox();
     const foto = await page.locator("[data-vista-previa-producto]").boundingBox();
     ok(compartir.height >= 44 && compartir.x + compartir.width > foto.x + foto.width - 20 && compartir.y < foto.y + 70, "«Compartir»: píldora arriba a la derecha de la foto (44 px de toque)");
+    // La vista previa tiene la proporción de los posts del feed del catálogo (4:5, Lewis 13 oct).
+    ok(Math.abs(foto.height / foto.width - 5 / 4) < 0.01, `La vista previa es 4:5 (${Math.round(foto.width)}×${Math.round(foto.height)})`);
     await page.locator("[data-compartir-vista]").click();
     await page.getByRole("heading", { name: "Súbelo a tu estado" }).waitFor({ timeout: 6000 });
     ok((await paneles(page).count()) === 2, "«Compartir» abre «Súbelo a tu estado» encima");
@@ -543,9 +551,18 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-stock-plegable] button[aria-expanded]").click();
     await esperar(page, 300);
     const alto2 = (await panel.boundingBox()).height;
-    ok(alto2 > alto, `Al abrir el stock la hoja crece (${Math.round(alto)} → ${Math.round(alto2)})`);
-    const hueco = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); return c.scrollHeight - c.clientHeight; });
-    ok(hueco <= 1 || alto2 >= 844 - 80, "Sin espacio vacío debajo (mide su contenido)");
+    // Con la foto 4:5 la hoja puede llegar a su alto máximo antes de abrir el stock: entonces no crece, desplaza.
+    const desplaza = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); return c.scrollHeight - c.clientHeight; });
+    ok(alto2 > alto || (alto2 >= alto - 1 && desplaza > 1), `Al abrir el stock la hoja crece o desplaza (${Math.round(alto)} → ${Math.round(alto2)}, desplaza ${desplaza})`);
+    ok(desplaza > 1 || alto2 < 844 - 80, "Si no cabe, el contenido desplaza");
+    // Al final del desplazamiento, la fila del stock y el historial quedan por encima del pie «Crear pedido».
+    await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); c.scrollTo({ top: c.scrollHeight, behavior: "instant" }); });
+    await esperar(page, 300);
+    const pie = await page.locator("[data-pie-vista]").boundingBox();
+    const ultima = await page.locator("[data-filas-stock] li").last().boundingBox();
+    const historial = await page.getByRole("button", { name: "Historial de ajustes" }).boundingBox();
+    ok(ultima.y + ultima.height <= pie.y + 1 && historial.y + historial.height <= pie.y + 1, "El pie no tapa el stock ni el historial");
+    await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); c.scrollTo({ top: 0, behavior: "instant" }); });
     const antes = (await producto(page, KURT))?.stock ?? 1;
     await page.getByRole("button", { name: /^Disminuir stock de/ }).click();
     await captura(page, "ver-producto/2-stock-abierto", ancho);
