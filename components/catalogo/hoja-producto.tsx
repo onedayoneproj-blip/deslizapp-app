@@ -233,6 +233,8 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
   const inventario = useInventarioPendiente(producto);
   const variantes = useStockPresentaciones(producto);
   const [motivoVariantes, setMotivoVariantes] = useState(false);
+  // Cada bajada pide su motivo desde cero: la hoja se vuelve a montar al abrirse (no hereda el motivo del ajuste anterior).
+  const [vueltaMotivo, setVueltaMotivo] = useState(0);
   const pendiente = inventario.pendiente || variantes.pendiente;
   const guardandoStock = inventario.guardando || variantes.guardando;
   useAvisarAlSalir(pendiente || inventario.incierto);
@@ -257,7 +259,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
   };
   const guardarStock = () => {
     if (variantes.pendiente) {
-      if (variantes.bajan > 0) return setMotivoVariantes(true);
+      if (variantes.bajan > 0) { setVueltaMotivo((v) => v + 1); return setMotivoVariantes(true); }
       void variantes.guardar("reposicion", null).then((bien) => bien && toast("Ajuste guardado. No cuenta como venta."));
       return;
     }
@@ -366,7 +368,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
       )}
       <ConfirmacionInventario inventario={inventario} />
       <HojaMotivoVariantes
-        abierta={motivoVariantes} unidades={variantes.bajan} guardando={variantes.guardando} error={variantes.error} alCerrar={() => setMotivoVariantes(false)}
+        key={vueltaMotivo} abierta={motivoVariantes} unidades={variantes.bajan} guardando={variantes.guardando} error={variantes.error} alCerrar={() => setMotivoVariantes(false)}
         alConfirmar={async (motivo, nota) => {
           const bien = await variantes.guardar(motivo, nota);
           if (bien) { setMotivoVariantes(false); toast("Ajuste guardado. No cuenta como venta."); }

@@ -580,6 +580,17 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-stock-plegable] button[aria-expanded]").click();
     await esperar(page, 300);
     ok((await page.locator("[data-fila-stock]").count()) === 3, "Hasta 3 presentaciones: una fila − / + por cada una");
+    // Dos bajadas seguidas: la segunda pide su motivo desde cero (revisión de Codex en #125).
+    for (const vez of [1, 2]) {
+      await page.locator("[data-fila-stock]").first().getByRole("button", { name: /^Disminuir stock de/ }).click();
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+      await page.getByText("¿Por qué baja el stock?").waitFor();
+      if (vez === 2) ok(await arriba(page).getByRole("button", { name: "Guardar ajuste" }).isDisabled(), "La segunda bajada no hereda el motivo de la primera");
+      await arriba(page).getByText("Daño", { exact: true }).click();
+      await page.getByRole("button", { name: "Guardar ajuste" }).click();
+      ok(await toast(page, "Ajuste guardado. No cuenta como venta."), `Bajada ${vez} guardada`);
+      await esperar(page, 700);
+    }
     await abrirVista(page, URBAN);
     ok((await page.locator("[data-franja-espera]").innerText()).includes("2 personas lo esperan"), "«2 personas lo esperan»");
     ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
