@@ -119,6 +119,8 @@ async function nadaDetrasDelPie(page, sel, nombre) {
   const abajo = await page.locator(sel).last().evaluate((e) => e.getBoundingClientRect().bottom);
   const pie = await page.locator("[data-pie-historia]").evaluate((e) => e.getBoundingClientRect().top);
   ok(abajo <= pie, `${nombre}: al bajar, queda por encima de la barra de abajo (${Math.round(abajo)} ≤ ${Math.round(pie)})`);
+  // El desenfoque del pie empieza 24 px sobre los botones: ≥ 16 px de aire entre el contenido y donde empieza.
+  ok(abajo <= pie - 24 - 16, `${nombre}: ≥ 16 px de aire hasta donde empieza el desenfoque (${Math.round(pie - 24 - abajo)} px)`);
 }
 
 const H = "[data-historia-producto]";
@@ -130,6 +132,13 @@ const enfocado = (page) => page.evaluate(() => {
   return a ? (a.hasAttribute("data-campo-paso") ? "campo" : a.hasAttribute("data-titulo-paso") ? "titulo" : a.tagName) : null;
 });
 const boton = (page, nombre) => page.getByRole("button", { name: nombre, exact: true });
+/** «Guardar sin publicar»: si se puede publicar vive en el menú del chevron de «Publicar ⌄»; si no, es el botón principal. */
+const guardarSinPublicar = async (page) => {
+  if (await boton(page, "Más opciones para guardar").count()) {
+    await boton(page, "Más opciones para guardar").tap();
+    await page.getByRole("menuitem", { name: /^Guardar sin publicar/ }).tap();
+  } else await boton(page, "Guardar sin publicar").tap();
+};
 const seguir = async (page) => {
   await boton(page, "Seguir").tap();
   await page.waitForTimeout(150);
@@ -159,15 +168,19 @@ for (const ancho of ANCHOS) {
     ok((await barras(page)) === "1" && (await page.locator("[data-barras-historia] span").count()) === 5, "Cinco barras, la primera llena (aria-valuenow 1)");
     ok((await page.locator("[data-marco-foto]").count()) === 1 && (await page.getByText("Toca para agregar fotos").isVisible()), "Sin foto: el marco punteado con la cámara, que invita a tocar («Toca para agregar fotos»)");
     {
-      // Una HOJA (borde en y=24 sin safe area: max(safe-arriba + 10, 24); ≈69 en un iPhone con isla, ver el bloque «sin scroll») con agarradera; fila 1 «Nuevo producto», fila 2 barras + ✕.
+      // Una HOJA (borde en y=24 sin safe area: max(safe-arriba + 10, 24); ≈69 en un iPhone con isla, ver el bloque «sin scroll») con agarradera; fila 1 ✕ + «Nuevo producto» (+ selector a la derecha), fila 2 las barras a todo el ancho.
       const hoja = await page.locator("[data-hoja-panel]").boundingBox();
       const tit = await page.locator("[data-hoja-cabecera] h2").boundingBox();
       const bar = await page.locator("[data-barras-historia]").boundingBox();
       const x = await page.locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).boundingBox();
       ok(Math.abs(hoja.y - 24) < 1 && (await page.locator("[data-hoja-cabecera] h2").innerText()) === "Nuevo producto", `Es una hoja con su hueco arriba (borde en y=${Math.round(hoja.y)}) y «Nuevo producto» visible`);
-      ok(tit.y + tit.height <= bar.y && Math.abs(x.y + x.height / 2 - (bar.y + bar.height / 2)) < 2 && x.x >= bar.x + bar.width, "…fila 1 el título; fila 2 las barras y la ✕");
+      const cab = await page.locator("[data-hoja-cabecera]").boundingBox();
+      ok(x.x + x.width <= tit.x && Math.abs(x.y + x.height / 2 - (tit.y + tit.height / 2)) < 2 && x.y + x.height <= bar.y && x.width >= 44 && x.height >= 44, "…fila 1 la ✕ a la izquierda y el título; fila 2 las barras");
+      ok(Math.abs(bar.x - cab.x - 20) < 1 && Math.abs(bar.x + bar.width - (cab.x + cab.width - 20)) < 1, "…las barras a todo el ancho (20 px de margen)");
+      ok(tit.x - (x.x + x.width) >= 8 - 0.5, "…la ✕ y el título no chocan (≥ 8 px)");
+      ok((await page.locator("[data-hoja-cabecera] button, [data-hoja-cabecera] h2").first().evaluate((e) => e.getAttribute("aria-label"))) === "Cerrar", "…la ✕ es lo primero de la cabecera en el orden de foco");
       const t = await page.locator("[data-marco-foto]").boundingBox();
-      ok(Math.abs(t.y - 126) < 1.5, `…el contenido empieza en y=${Math.round(t.y)} (126)`);
+      ok(t.y <= 126.5, `…el contenido empieza en y=${Math.round(t.y)} (≤ 126: la cabecera no crece)`);
       // Primer paso: sin «‹» (se quita, no se apaga) y «Seguir sin foto» ocupa el pie, centrado.
       const hojaCaja = await page.locator("[data-hoja-panel]").boundingBox();
       const sinFoto = await boton(page, "Seguir sin foto").boundingBox();
@@ -293,7 +306,34 @@ for (const ancho of ANCHOS) {
     const techo = await page.locator("[data-pie-historia]").evaluate((e) => e.getBoundingClientRect().top);
     // Al ancho del lienzo (390) cabe todo sin desplazar; más ancho, el reel crece y se desplaza (lo prueba nadaDetrasDelPie).
     if (ancho <= 393) ok(ultima <= techo, `…y sin desplazar, los opcionales quedan por encima de «Publicar» (${Math.round(ultima)} ≤ ${Math.round(techo)})`);
-    ok(await boton(page, "Publicar").isEnabled() && await boton(page, "Guardar sin publicar").isVisible(), "«Publicar» y «Guardar sin publicar»");
+    ok(await boton(page, "Publicar").isEnabled() && await boton(page, "Más opciones para guardar").isEnabled() && (await boton(page, "Guardar sin publicar").count()) === 0, "«Publicar ⌄»: sin la línea «Guardar sin publicar» debajo");
+    {
+      const g = await page.locator("[data-boton-publicar]").boundingBox();
+      const pie = await page.locator("[data-pie-historia]").boundingBox();
+      const chev = await boton(page, "Más opciones para guardar").boundingBox();
+      ok(chev.width >= 44 && chev.height >= 44 && g.y + g.height <= pie.y + pie.height, "…el chevron mide ≥ 44 px y el pie es de una sola fila");
+      await boton(page, "Más opciones para guardar").tap();
+      const op = page.getByRole("menuitem", { name: /^Guardar sin publicar/ });
+      await op.waitFor();
+      ok((await page.locator("[data-menu-publicar]").innerText()).includes("Queda oculto en tu catálogo"), "El menú: «Guardar sin publicar» y «Queda oculto en tu catálogo»");
+      ok(await boton(page, "Más opciones para guardar").getAttribute("aria-expanded") === "true" && await op.evaluate((e) => e === document.activeElement), "…el foco entra a la opción");
+      const m = await page.locator("[data-menu-publicar]").boundingBox();
+      ok(m.y + m.height <= g.y && m.x >= 0 && m.x + m.width <= ancho, "…el menú queda encima del botón y dentro de la pantalla");
+      await captura(page, "menu-abierto", ancho);
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+      ok((await page.locator("[data-menu-publicar]").count()) === 0 && await boton(page, "Más opciones para guardar").evaluate((e) => e === document.activeElement) && (await paso(page)) === "vista", "Escape cierra el menú y devuelve el foco al chevron (la historia sigue)");
+      await boton(page, "Más opciones para guardar").tap();
+      await page.locator("[data-menu-publicar]").waitFor();
+      await page.mouse.click(ancho / 2, 120);
+      await page.waitForTimeout(100);
+      ok((await page.locator("[data-menu-publicar]").count()) === 0 && (await paso(page)) === "vista", "Tocar fuera cierra el menú");
+      await boton(page, "Más opciones para guardar").tap();
+      await page.locator("[data-menu-publicar]").waitFor();
+      await page.goBack();
+      await page.waitForTimeout(200);
+      ok((await page.locator("[data-menu-publicar]").count()) === 0 && (await paso(page)) === "vista", "«Atrás» del teléfono cierra el menú sin salir del paso");
+    }
     await nadaDetrasDelPie(page, "[data-opcional]", "Paso 5, las pastillas opcionales");
     await pieOpaco(page, "Paso 5");
     await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
@@ -352,7 +392,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await seguir(page);
     // Regla de Lewis: sin foto no se publica; se guarda como borrador oculto.
-    ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-falta-foto]").innerText()).includes("Agrega una foto para publicar"), "Sin foto: «Publicar» apagado con «Agrega una foto para publicar · Volver a la foto»");
+    ok((await boton(page, "Publicar").count()) === 0 && (await boton(page, "Más opciones para guardar").count()) === 0 && (await page.locator("[data-falta-foto]").innerText()).includes("Agrega una foto para publicar"), "Sin foto: sin «Publicar ⌄»; el principal es «Guardar sin publicar» con «Agrega una foto para publicar · Volver a la foto»");
     ok(await page.frameLocator("[data-reel-historia] iframe").locator("[data-reel-sin-foto]").isVisible(), "…el reel dice «Sin foto»");
     await captura(page, "5-sin-foto", ancho);
     await boton(page, "Volver a la foto").tap();
@@ -363,7 +403,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await seguir(page);
     ok(await boton(page, "Guardar sin publicar").isEnabled(), "«Guardar sin publicar» sigue activo");
-    await boton(page, "Guardar sin publicar").tap();
+    await guardarSinPublicar(page);
     await page.locator("[data-celebracion]").waitFor();
     ok(await page.getByText("¡Quedó guardado!").isVisible(), "Sin publicar: «¡Quedó guardado!»");
     const p = await productoCreado(page, "Gorra sin foto");
@@ -490,7 +530,7 @@ for (const ancho of ANCHOS) {
     ok((await page.locator("[data-barras-historia] span").count()) === 7 && (await barras(page)) === "4", "…con 7 barras en vez de 5 (la 4.ª llena)");
     {
       const t = await page.locator("[data-tarjeta-presentaciones]").boundingBox();
-      ok(Math.abs(t.height - 212) < 1 && Math.abs(t.width - (ancho - 40)) < 1 && Math.abs(t.y - 126) < 1.5, `Tarjeta «así se verá» de ${Math.round(t.width)}×${Math.round(t.height)} en y=${Math.round(t.y)}`);
+      ok(Math.abs(t.height - 212) < 1 && Math.abs(t.width - (ancho - 40)) < 1 && t.y <= 126.5, `Tarjeta «así se verá» de ${Math.round(t.width)}×${Math.round(t.height)} en y=${Math.round(t.y)}`);
       ok((await page.locator("[data-tarjeta-presentaciones]").getAttribute("aria-label")).includes("Desde RD$900"), "…con «Desde RD$900»");
     }
     const qc = page.locator("[data-que-cambia]");
@@ -664,18 +704,18 @@ for (const ancho of ANCHOS) {
     await escribir(page, "2500");
     await seguir(page);
     await seguir(page);
-    ok(await boton(page, "Publicar").isDisabled() && await page.locator("[data-catalogo-lleno]").isVisible(), "Lleno: «Publicar» apagado con «Tu catálogo está lleno…»");
+    ok((await boton(page, "Publicar").count()) === 0 && await boton(page, "Guardar sin publicar").isEnabled() && await page.locator("[data-catalogo-lleno]").isVisible(), "Lleno: el principal es «Guardar sin publicar», con «Tu catálogo está lleno…»");
     {
       const aviso = await page.locator("[data-catalogo-lleno]").boundingBox();
-      const pub = await boton(page, "Publicar").boundingBox();
+      const pub = await boton(page, "Guardar sin publicar").boundingBox();
       const dentro = await page.locator("[data-pie-historia] [data-catalogo-lleno]").count();
-      ok(dentro === 1 && aviso.y + aviso.height <= pub.y && aviso.y >= 0, "…el aviso va completo en la barra, encima de «Publicar»");
+      ok(dentro === 1 && aviso.y + aviso.height <= pub.y && aviso.y >= 0, "…el aviso va completo en la barra, encima del botón principal");
     }
     await pieOpaco(page, "Lleno");
     await nadaDetrasDelPie(page, "[data-opcional]", "Lleno, las pastillas opcionales");
     ok((await page.locator('[data-opcional="Detalles"]').count()) === 1, "Perfumes: la pastilla «Detalles»");
     await captura(page, "5-catalogo-lleno", ancho);
-    await boton(page, "Guardar sin publicar").tap();
+    await guardarSinPublicar(page);
     await page.locator("[data-celebracion]").waitFor();
     ok((await productoCreado(page, "Oud lleno"))?.activo === false, "Se guardó oculto");
 
@@ -729,7 +769,7 @@ console.log("\n=== Pantalla baja (360×640) con el catálogo lleno: barra sólid
   await escribir(page, "2500");
   await seguir(page);
   await seguir(page);
-  ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-pie-historia] [data-catalogo-lleno]").isVisible()), "360×640 lleno: «Publicar» apagado y el aviso en la barra");
+  ok((await boton(page, "Publicar").count()) === 0 && await boton(page, "Guardar sin publicar").isEnabled() && (await page.locator("[data-pie-historia] [data-catalogo-lleno]").isVisible()), "360×640 lleno: el principal es «Guardar sin publicar» y el aviso va en la barra");
   await pieOpaco(page, "360×640 lleno");
   await nadaDetrasDelPie(page, "[data-opcional]", "360×640 lleno, las pastillas opcionales");
   await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
@@ -764,7 +804,7 @@ console.log("\n=== Pie flotante sobre contenido oscuro (360×640): legibilidad y
   const lleno = demoCon((d) => {
     d.tiendas.find((x) => x.id === MICHEL).limiteProductos = d.productos.filter((p) => p.tiendaId === MICHEL && p.activo && !p.eliminadoEn).length;
   });
-  for (const [nombre, demo, sel] of [["guardar", null, "[data-pie-historia] button:has-text('Guardar sin publicar')"], ["aviso", lleno, "[data-pie-historia] [data-catalogo-lleno]"]]) {
+  for (const [nombre, demo, sel] of [["publicar", null, "[data-pie-historia] [data-publicar]"], ["guardar", lleno, "[data-pie-historia] button:has-text('Guardar sin publicar')"], ["aviso", lleno, "[data-pie-historia] [data-catalogo-lleno]"]]) {
     const { ctx, page } = await pagina(360, MICHEL, demo, 640);
     await abrir(page);
     await subirFoto(page, "#000000");
@@ -777,7 +817,16 @@ console.log("\n=== Pie flotante sobre contenido oscuro (360×640): legibilidad y
     await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, 0));
     await page.waitForTimeout(300);
     await captura(page, `5-asi-se-ve-foto-oscura-${nombre}`, 360);
-    const r = await contraste(page, sel);
+    // «Guardar sin publicar» como principal lleva su propio relleno: se mide su texto contra ese relleno, no contra lo de atrás.
+    const r = nombre === "guardar"
+      ? await page.locator(sel).first().evaluate((e) => {
+          const lum = ([r, g, b]) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+          const n = (c) => c.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number);
+          const c = getComputedStyle(e);
+          const [a, b] = [lum(n(c.color)), lum(n(c.backgroundColor))];
+          return { peor: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), color: c.color };
+        })
+      : await contraste(page, sel);
     console.log(`  Contraste de «${nombre}» sobre foto negra: ${r.peor.toFixed(2)}:1 (texto ${r.color})`);
     ok(r.peor >= 4.5, `«${nombre}» se lee sobre contenido oscuro (AA, ${r.peor.toFixed(2)}:1)`);
     await ctx.close();
@@ -833,7 +882,7 @@ console.log("\n=== Plan con un solo lugar libre: publicar y «Agregar otro» no 
   await escribir(page, "1600");
   await seguir(page);
   await seguir(page);
-  ok(await boton(page, "Publicar").isDisabled() && (await page.locator("[data-catalogo-lleno]").isVisible()), "El nuevo borrador ya cuenta el recién publicado: «Publicar» apagado y «Tu catálogo está lleno»");
+  ok((await boton(page, "Publicar").count()) === 0 && (await page.locator("[data-catalogo-lleno]").isVisible()), "El nuevo borrador ya cuenta el recién publicado: sin «Publicar» y «Tu catálogo está lleno»");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
 }
@@ -1447,6 +1496,54 @@ for (const [an, al] of [[390, 844], [393, 852]]) {
   await falta("«Así se ve», con foto");
   ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
   await ctx.close();
+}
+
+
+console.log("\n=== «Así se ve» (Publicar ⌄): aire bajo el reel y sobre el desenfoque del pie — PWA instalada (390×844, 393×852; safe 59/34) y Safari (390×664, safe-abajo 0) ===");
+for (const [an, al, modo] of [[390, 844, "instalada"], [393, 852, "instalada"], [390, 664, "Safari"]]) {
+  for (const caso of ["con foto", "por encargo", "sin foto"]) {
+    const { ctx, page, errores } = await pagina(an, LINO, null, al);
+    await abrir(page);
+    await page.addStyleTag({ content: `:root{--safe-arriba:${modo === "Safari" ? 0 : 59}px !important;--safe-abajo:${modo === "Safari" ? 0 : 34}px !important}` });
+    if (caso !== "sin foto") {
+      await subirFoto(page, "#c8a2c8");
+      await seguir(page);
+    } else {
+      await boton(page, "Seguir sin foto").tap();
+      await page.waitForTimeout(150);
+    }
+    await escribir(page, "Aretes de prueba");
+    await seguir(page);
+    await escribir(page, "650");
+    await seguir(page);
+    if (caso === "por encargo") {
+      await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
+      await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
+    } else await boton(page, "Agregar uno").tap();
+    await seguir(page);
+    await page.waitForTimeout(500);
+    ok((await paso(page)) === "vista", `${modo} ${an}×${al} · ${caso}: «Así se ve»`);
+    const medir = () => page.evaluate(() => {
+      const c = document.querySelector("[data-hoja-contenido]");
+      const r = (s) => document.querySelector(s)?.getBoundingClientRect();
+      const reel = r("[data-reel-historia]"), brillar = r("#titulo-brillar"), pie = r("[data-pie-historia]");
+      const ult = [...document.querySelectorAll("[data-opcional]")].reduce((m, e) => Math.max(m, e.getBoundingClientRect().bottom), 0);
+      return { scroll: c.scrollHeight - c.clientHeight, entreReelYBrillar: brillar.top - reel.bottom, aireAlDesenfoque: pie.top - 24 - ult };
+    });
+    const m0 = await medir();
+    console.log(`  ℹ️  ${modo} ${an}×${al} · ${caso}: scroll ${m0.scroll} px, reel→«Hazlo brillar» ${Math.round(m0.entreReelYBrillar)} px, pastillas→desenfoque ${Math.round(m0.aireAlDesenfoque)} px (en reposo)`);
+    ok(m0.entreReelYBrillar >= 16, `${modo} ${an}×${al} · ${caso}: ≥ 16 px de aire entre la tarjeta y «Hazlo brillar»`);
+    if (modo === "instalada") ok(m0.scroll <= 0 && m0.aireAlDesenfoque >= 16, `${modo} ${an}×${al} · ${caso}: sin scroll y ≥ 16 px de aire entre las pastillas y el desenfoque`);
+    else {
+      await page.locator("[data-hoja-contenido]").evaluate((e) => e.scrollTo(0, e.scrollHeight));
+      await page.waitForTimeout(200);
+      const m1 = await medir();
+      ok(m1.aireAlDesenfoque >= 16, `${modo} ${an}×${al} · ${caso}: al bajar del todo, ≥ 16 px de aire sobre el desenfoque (${Math.round(m1.aireAlDesenfoque)} px)`);
+    }
+    await captura(page, `asi-se-ve-${modo}-${caso.replace(/ /g, "-")}`, an);
+    ok(errores.length === 0, `Sin errores (${errores.join(" | ")})`);
+    await ctx.close();
+  }
 }
 
 await navegador.close();

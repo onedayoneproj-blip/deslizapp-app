@@ -1206,6 +1206,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 @keyframes menu-flotante-entra { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes menu-flotante-velo { from { opacity: 0; } to { opacity: 1; } }
 .menu-flotante { transform-origin: top left; animation: menu-flotante-entra var(--mov-rapida) var(--curva-salida) both; }
+.menu-flotante-arriba { transform-origin: bottom right; animation-name: menu-flotante-entra-arriba; }
+@keyframes menu-flotante-entra-arriba { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
 .menu-flotante-velo { animation: menu-flotante-velo var(--mov-rapida) var(--curva-salida) both; }
 @media (prefers-reduced-motion: reduce) {
   .menu-flotante { animation-name: menu-flotante-velo; }

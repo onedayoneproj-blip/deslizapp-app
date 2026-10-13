@@ -86,6 +86,7 @@ import { HojaColeccion } from "./hoja-producto";
 import { SelectorFotos, type FotoBorrador } from "./hoja-presentacion";
 import { CuandoLlega, HojaInventarioHistoria, textoInventario } from "./inventario-historia";
 import { HojaLoQueVendes } from "./hoja-lo-que-vendes";
+import { BotonPublicar } from "./boton-publicar";
 import { HojaPublicarCatalogo } from "./hoja-publicar-catalogo";
 import { SelectorCatalogo } from "./selector-catalogo";
 import { useTaller } from "./taller";
@@ -131,7 +132,7 @@ export function HistoriaProducto() {
   return (
     <Hoja
       abierta={abierta} alCerrar={cerrar} alSalir={alSalir} protegerAtras titulo="Nuevo producto" altura="grande"
-      historia={{ avance: barras, alLadoDelTitulo: <span ref={setRanuraCatalogo} className="contents" /> }}
+      historia={{ avance: barras, alLadoDelTitulo: <span ref={setRanuraCatalogo} className="flex min-w-0 flex-1 justify-end" /> }}
       // Atrás del teléfono: lo mismo que «‹» (vuelve una pregunta sin perder nada); en la primera (o ya guardado) cierra como siempre.
       alVolverInterno={() => atrasDeLaHistoria.current?.() ?? false}
     >
@@ -293,7 +294,9 @@ function Historia({
     if (ultimoEje && (!inventarioListo || !inventarioLleno)) return setInventarioAbierto(true);
     irA(pasoSiguiente(paso, servicio, variantes));
   };
+  const cierreMenuPublicar = useRef<(() => boolean) | null>(null);
   const atras = (): boolean => {
+    if (cierreMenuPublicar.current?.()) return true;
     const a = pasoAnterior(paso, servicio, variantes);
     if (!a) return false;
     if (paso === "cambia" && !ejes.some((e) => e.valores.length > 0)) {
@@ -642,7 +645,7 @@ function Historia({
         <>
           <h2 tabIndex={-1} data-titulo-paso="" className="-mt-1 font-mano text-[1.625rem] leading-tight text-atencion-texto outline-none">{textos.titulo}</h2>
           <ReelEnVivo datos={datosVista} />
-          <section aria-labelledby="titulo-brillar" className="mt-1 flex flex-col gap-0.5">
+          <section aria-labelledby="titulo-brillar" className="mt-5 flex flex-col gap-0.5">
             {sinFoto ? (
               <p id="titulo-brillar" className="text-secundario leading-[18px] font-extrabold text-atencion-texto" data-falta-foto="">
                 Agrega una foto para publicar ·{" "}
@@ -660,6 +663,8 @@ function Historia({
             </div>
           </section>
           {sinCatalogo && <p className="mt-4 rounded-radio-m bg-atencion-suave p-3 text-center text-secundario font-bold text-atencion-texto" data-sin-permiso="">{porque}</p>}
+          {/* Al final del desplazamiento, ≥ 16 px de aire hasta donde empieza el desenfoque del pie (24 px sobre los botones). */}
+          <div aria-hidden="true" className="h-7 shrink-0" />
         </>
       )}
 
@@ -685,18 +690,18 @@ function Historia({
         )}
       {paso === "vista" &&
         pie(
-          // Como el lienzo: ‹ y «Publicar» (la llamada emocional) en una fila, y «Guardar sin publicar» debajo.
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2.5">
-              {botonAtras}
-              <Boton
-                jerarquia="resalte" tamano="grande" className="flex-1" cargando={guardando}
-                deshabilitado={sinFoto || llenoPlan || sinCatalogo || preparando} onClick={() => guardar(true)}
-              >
-                Publicar
-              </Boton>
-            </div>
-            <Boton jerarquia="terciario" className="h-9!" anchoCompleto deshabilitado={guardando || sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
+          // ‹ y «Publicar ⌄» en una fila; «Guardar sin publicar» vive en el menú del chevron. Si no se puede publicar
+          // (sin foto, catálogo lleno, sin permiso), el principal es «Guardar sin publicar» y no hay chevron.
+          <div className="flex items-center gap-2.5">
+            {botonAtras}
+            {sinFoto || llenoPlan || sinCatalogo ? (
+              <Boton tamano="grande" className="flex-1" cargando={guardando} deshabilitado={sinCatalogo || preparando} onClick={() => guardar(false)}>Guardar sin publicar</Boton>
+            ) : (
+              <BotonPublicar
+                cargando={guardando} deshabilitado={preparando} cierreRef={cierreMenuPublicar}
+                alPublicar={() => guardar(true)} alGuardar={() => guardar(false)}
+              />
+            )}
           </div>,
           llenoPlan && !sinFoto ? <p role="status" className="rounded-radio-m bg-fondo/90 px-3 py-1.5 text-center text-secundario text-texto-secundario" data-catalogo-lleno="">Tu catálogo está lleno. Lo guardamos oculto hasta que hagas espacio.</p> : undefined,
         )}

@@ -192,8 +192,8 @@ type Props = {
   /** Contenido fijo debajo del título (también se puede poner desde adentro con <HojaFijoArriba>). */
   fijoArriba?: ReactNode;
   /**
-   * Cabecera de historia (crear producto, prototipo v4): fila 1 con el título visible y `alLadoDelTitulo` a la derecha (el
-   * selector de catálogo); fila 2 con `avance` (las barras) y la X. Con `altura="grande"`, la hoja deja arriba el hueco del lienzo
+   * Cabecera de historia (crear producto, prototipo v4): fila 1 con la X a la izquierda, el título visible y `alLadoDelTitulo` a la derecha
+   * (el selector de catálogo); fila 2 con `avance` (las barras) a todo el ancho. Con `altura="grande"`, la hoja deja arriba el hueco del lienzo
    * (borde en y≈69 en un iPhone) con esquinas de `radio-xl` y su agarradera.
    */
   historia?: { avance: ReactNode; alLadoDelTitulo?: ReactNode };
@@ -861,15 +861,14 @@ function HojaMontada({
           <div className={`mx-auto h-[5px] cursor-grab rounded-full bg-borde-pastilla ${historia ? "w-10" : "mb-2 w-11"}`} />
           {historia ? (
             <>
-              {/* Fila 1 (28 px): el título y, a la derecha, lo que lo acompaña. Fila 2: el avance y la X (16 px del borde). */}
-              <div className="mt-[7px] flex h-7 items-center justify-between gap-3">
-                <h2 id={idTitulo} className="min-w-0 truncate font-display text-titulo-seccion text-texto">{titulo}</h2>
+              {/* Fila 1 (44 px): la X a la izquierda (regla de Apple para hojas que confirman algo), el título y, a la derecha,
+                  lo que lo acompaña (se acorta con elipsis; el título no). Fila 2: el avance a todo el ancho. */}
+              <div className="mt-0.5 -ml-1 flex h-11 items-center gap-2">
+                <BotonCerrar onClick={cerrar} />
+                <h2 id={idTitulo} className="shrink-0 font-display text-titulo-seccion text-texto">{titulo}</h2>
                 {historia.alLadoDelTitulo}
               </div>
-              <div className="mt-0.5 -mr-1 flex items-center gap-2.5">
-                <div className="min-w-0 flex-1">{historia.avance}</div>
-                <BotonCerrar onClick={cerrar} />
-              </div>
+              <div className="mt-1.5">{historia.avance}</div>
             </>
           ) : (
             <div className={tituloOculto ? "flex items-center justify-end gap-3" : "flex items-center justify-between gap-3"}>

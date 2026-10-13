@@ -48,7 +48,12 @@ export async function nombreYPrecio(page, nombre, precio, { sinFoto = false } = 
 export async function hastaPublicar(page, { publicar = true, esperar = true } = {}) {
   await tocarHistoria(page, "Seguir");
   await tocarHistoria(page, "Seguir");
-  await page.getByRole("button", { name: publicar ? "Publicar" : "Guardar sin publicar", exact: true }).click();
+  if (publicar) await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  else if (await page.getByRole("button", { name: "Más opciones para guardar", exact: true }).count()) {
+    // Con «Publicar ⌄», «Guardar sin publicar» vive en el menú del chevron.
+    await page.getByRole("button", { name: "Más opciones para guardar", exact: true }).click();
+    await page.getByRole("menuitem", { name: /^Guardar sin publicar/ }).click();
+  } else await page.getByRole("button", { name: "Guardar sin publicar", exact: true }).click();
   if (esperar) await page.locator("[data-celebracion]").waitFor({ timeout: 15000 });
 }
 
