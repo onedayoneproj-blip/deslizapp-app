@@ -1317,6 +1317,45 @@ for (const ancho of ANCHOS) {
     await ctx.close();
   }
 
+  console.log("• Volver al precio con cosas elegidas pero sin valores: la pregunta vuelve y «Seguir» va a «¿Cuántos tienes?» con 5 barras");
+  for (const ruta of ["típica y «‹»", "«Otra», Aroma, valores y «‹» dos veces", "quitar todas las cosas y «‹»"]) {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrir(page);
+    await subirFoto(page, "#579");
+    await seguir(page);
+    await escribir(page, "Camiseta ruta");
+    await seguir(page);
+    await escribir(page, "900");
+    const qc = page.locator("[data-que-cambia]");
+    const pastilla = (n) => page.locator("[data-chip-presentaciones]").getByRole("button", { name: n, exact: true });
+    if (ruta.startsWith("típica")) {
+      await pastilla("Talla").tap();
+      await page.waitForTimeout(150);
+      await boton(page, "Atrás").tap();
+    } else if (ruta.startsWith("«Otra»")) {
+      await pastilla("Otra").tap();
+      await page.waitForTimeout(150);
+      await escribir(page, "Aroma");
+      await boton(page, "Listo").tap();
+      await seguir(page);
+      ok((await paso(page)) === "eje1", `${ruta}: llega a los valores`);
+      await boton(page, "Atrás").tap();
+      await page.waitForTimeout(150);
+      await boton(page, "Atrás").tap();
+    } else {
+      await pastilla("Talla").tap();
+      await page.waitForTimeout(150);
+      await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+      await boton(page, "Atrás").tap();
+    }
+    await page.waitForTimeout(200);
+    ok((await paso(page)) === "precio" && (await page.locator("[data-pregunta-opciones]").count()) === 1 && (await page.locator("[data-resumen-opciones]").count()) === 0 && (await page.locator("[data-barras-historia] span").count()) === 5, `${ruta}: vuelve al precio con la pregunta sin elegir y 5 barras`);
+    await seguir(page);
+    ok((await paso(page)) === "stock" && (await titulo(page)) === "¿Cuántos tienes ahora?" && (await barras(page)) === "4" && (await page.locator("[data-barras-historia] span").count()) === 5, `${ruta}: «Seguir» va a «¿Cuántos tienes?» (barra 4 de 5)`);
+    ok(errores.length === 0, "Sin errores en la consola");
+    await ctx.close();
+  }
+
   console.log("• Otro catálogo (perfumes): la pregunta trae lo típico de ese catálogo");
   {
     const { ctx, page, errores } = await pagina(ancho, MICHEL);

@@ -296,11 +296,13 @@ function Historia({
   const atras = (): boolean => {
     const a = pasoAnterior(paso, servicio, variantes);
     if (!a) return false;
-    if (paso === "cambia" && ejes.length === 0) {
-      // Sin nada que cambie, el producto vuelve a un solo stock: lo que había en el Inventario queda como su stock.
+    if (paso === "cambia" && !ejes.some((e) => e.valores.length > 0)) {
+      // Sin nada que cambie (o con cosas elegidas pero ningún valor), el producto vuelve a un solo stock y a cinco barras: lo que se ve
+      // en el precio coincide con lo que hace «Seguir». Lo que había en el Inventario queda como su stock.
       const total = totalDelBorrador(presBorrador);
       flushSync(() => {
         alCambiarVariantes(null);
+        setEjes([]);
         if (total > 0) setStock(total);
         setPresBorrador([]);
         setQuitadas([]);
@@ -399,7 +401,7 @@ function Historia({
    * Enter en el precio: con precio y sin opciones elegidas NO avanza (en el iPhone el teclado tapa la pregunta): cierra el teclado y
    * deja «¿Viene en varias opciones?» a la vista sobre el pie flotante. «Seguir» sí avanza. Con opciones elegidas, avanza como siempre.
    */
-  const preguntaPendiente = Number(precio) > 0 && !tieneOpciones;
+  const preguntaPendiente = Number(precio) > 0 && !(conVariantes && ejes.length > 0);
   const alEnterPrecio = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== "Enter" || !preguntaPendiente) return alEnter(e);
     e.preventDefault();
@@ -594,7 +596,7 @@ function Historia({
           {/* «¿Viene en varias opciones?» aparece cuando ya hay precio (nada antes de tiempo). */}
           {(Number(precio) > 0 || conVariantes) && (
             <div className="mt-4" data-chip-presentaciones="">
-              {tieneOpciones ? (
+              {conVariantes && ejes.length > 0 ? (
                 <div className="flex items-center justify-between gap-3" data-resumen-opciones="">
                   <p className="text-destacado text-texto">{ejes.map((e) => e.nombre).join(" · ")}</p>
                   <Chip hecho onClick={() => abrirVariantes()}>Cambiar</Chip>
