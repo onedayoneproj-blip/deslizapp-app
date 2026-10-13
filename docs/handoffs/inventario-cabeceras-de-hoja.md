@@ -1,5 +1,7 @@
 # Inventario · cabeceras de hoja (✕ a la izquierda o a la derecha)
 
+**ESTADO: pendiente. No se ejecuta ningún lote hasta que Lewis lo pida.**
+
 Encargo de Planning (13 oct 2026), puesto **Coding**, solo inventario: este documento no toca código. Lewis quiere acercar `components/hoja.tsx` a la lógica de Apple (iOS 26):
 
 - Hojas que **confirman o guardan** algo → ✕ a la **izquierda**; a la derecha puede haber una acción de cabecera (Editar, Compartir, ⋯).
@@ -9,8 +11,10 @@ Encargo de Planning (13 oct 2026), puesto **Coding**, solo inventario: este docu
 
 > **Decidido por Lewis, 13 oct** (vía Planning, mensaje sobre #121):
 > - **D1.** Los detalles con acciones siguen la lógica de Apple: ✕ a la izquierda; a la derecha, la acción principal **en texto** («Editar») y, si hay más acciones, un **«⋯» con menú**. Las destructivas (Borrar, Cancelar pedido…) van **siempre dentro del «⋯», en rojo**. Detalle de promo: «✕ Promo   Editar ⋯». Si un título largo no cabe a 360 px, **elipsis; no se sacrifican acciones**. Ver «Detalles con acciones de cabecera».
-> - **Pilas: máximo dos hojas.** La tercera se convierte en una **pantalla interna** de la segunda (como `alVolverInterno`); en la pantalla interna la izquierda de la cabecera muestra **«<»** (vuelve a la pantalla anterior de la misma hoja) en lugar de la ✕. Ver §1 y el lote 8.
-> - Siguen sin empezar los lotes de código.
+> - **Pilas: máximo dos hojas.** La tercera se convierte en una **pantalla interna** de la segunda (como `alVolverInterno`); en la pantalla interna la izquierda de la cabecera muestra **«<»** (vuelve a la pantalla anterior de la misma hoja) en lugar de la ✕. Ver §1 y los lotes 3 y 6.
+> - **D6.** La elipsis del título vale para **todas** las hojas.
+> - **Regla de lotes** (Planning la llamó «D3»; no confundir con la D3 de borradores, ahora D8): cuando un archivo cae en dos lotes, los dos cambios se hacen **juntos en el primer lote donde aparece**. Ningún archivo se toca dos veces.
+> - **Recomendación de Planning, pendiente de confirmar con Lewis:** D4 (Borrar contacto pasa a aviso de confirmación; Editar producto → Flujo → Presentación e Historia → Inventario → Presentación quedan como excepción documentada hasta probar crear producto en el iPhone) y D7 (un solo componente de menú «⋯», compartido con «Publicar ⌄»).
 
 ## Cómo se hizo (y qué no se pudo comprobar)
 
@@ -226,7 +230,7 @@ La tercera hoja se convierte en **pantalla interna** de la segunda. En la pantal
 | Resumen clientes 27 → Escribir 26 → **Elegir mensaje 14** | 27 → 26 con «Elige el mensaje» como pantalla interna de 26 | `ui/elegir-mensaje.tsx` (hoy trae su botón y su `<Hoja>`, `:48`), `clientes/hoja-escribir-jugada.tsx`; la misma pieza la usan `credito/cuenta-cliente.tsx:67` y la guía `app/diseno/guia.tsx:389` (pilas de dos: pueden seguir como hoja o pasar a vista) |
 | Pedido 20 → Abono 24 → **Editar abono 25** (`hoja-detalle-abono.tsx:93`) | 20 → 24 con el formulario de abono como pantalla interna de 24 | `credito/hoja-detalle-abono.tsx`, `credito/hoja-abono.tsx` (hoy `<Hoja>` + contenido, `:55`); `credito/pago-del-pedido.tsx:209, :220` y `credito/cuenta-cliente.tsx:78` usan `HojaAbono` aparte (registrar un abono nuevo: esas siguen siendo hoja) |
 
-**Otras pilas de tres que Planning no nombró y siguen siendo tres** (hay que decidirlas; no las toco):
+**Otras pilas de tres** (recomendación de Planning D4, pendiente de confirmar con Lewis: la primera pasa a aviso de confirmación; las otras dos quedan como excepción documentada hasta probar crear producto en el iPhone):
 
 - **Borrar contacto 29** sobre Editar cliente 28 sobre Cliente 30 (`hoja-cliente-editar.tsx:141`): es la misma pila que la del avatar; si solo el avatar pasa a interna, la tercera hoja sigue ahí.
 - **Editar producto 68 → Flujo de presentaciones 59 → Presentación 57 / Foto de cada color 58** (`ficha-presentaciones.tsx:84`, `flujo-presentaciones.tsx:649, :680`).
@@ -246,7 +250,7 @@ La tercera hoja se convierte en **pantalla interna** de la segunda. En la pantal
 10. **Hoja sin uso.** La 56 (`HojaPedirCatalogo`) no se usa en ningún sitio que encontré; conviene confirmar antes de migrarla.
 11. **Prueba en iPhone.** Safari/PWA no se puede probar en este entorno; cada lote necesita que Lewis lo vea en el teléfono (`docs/00-contexto-del-proyecto.md`, «Cuando no se pueda probar algo»).
 
-12. **Pantallas internas (lote 8).** Todas son riesgos nuevos del cambio decidido:
+12. **Pantallas internas (lotes 3 y 6).** Todas son riesgos nuevos del cambio decidido:
     - **Historial.** `alVolverInterno` (`hoja.tsx:615-618`) consume «atrás» y vuelve a guardar la entrada de historial, pero solo existe cuando la hoja tiene entrada (apilada o `protegerAtras`, `:601`). Las tres hojas que reciben la pantalla interna (28, 26, 24) están apiladas, así que la tienen; hay que comprobar que «<» y «atrás» del teléfono hagan lo mismo (como en `registrar-solicitud.tsx:72-76`) y que, al cerrar desde la pantalla interna, no queden entradas de más.
     - **Gesto de cerrar.** Deslizar hacia abajo o tocar el velo en la pantalla interna cierra **toda** la hoja (`hoja.tsx:717-727`, `:806`), no vuelve una pantalla: es lo esperable, pero distinto de «<». Con cambios sin guardar el aviso de salida salta igual.
     - **Foco.** Al entrar a la pantalla interna el foco debe ir a «<» o a su primer campo en el mismo toque (`flushSync` + `focus()`, `HANDOFF.md:43-45`); al volver, al botón que la abrió y con el scroll restaurado (patrón de `registrar-solicitud.tsx:322-345`). `ElegirMensaje` y el avatar hoy devuelven el foco por el efecto de cierre de `<Hoja>` (`hoja.tsx:688`), que dejaría de aplicar.
@@ -262,31 +266,34 @@ Cada lote debe poder fusionarse solo. El conteo es de archivos de código que se
 
 | Lote | Qué | Archivos de código | Hojas (#) | Por qué en ese orden |
 |---|---|---|---|---|
-| 0 · Base | `components/hoja.tsx`: prop `cerrar?: "izquierda" \| "derecha"` (por defecto derecha: **no cambia nada visible**), DOM reordenado para la izquierda, ranura de acción (`HojaAccionCabecera` por portal, como `HojaFijoArriba`) y `tituloOculto` con ✕ a la izquierda. Apoyo: `docs/09-sistema-de-diseno.md`, `app/diseno/guia.tsx` (demo), `scripts/probar-hojas.mjs` | **1** (+ 3 de apoyo) | — | Sin cambio visible; se prueba con la guía `/diseno` |
+| 0 · Base | `components/hoja.tsx`: prop `cerrar?: "izquierda" \| "derecha"` (por defecto derecha: **no cambia nada visible**), DOM reordenado para la izquierda, ranura de acción (`HojaAccionCabecera` por portal, como `HojaFijoArriba`) `tituloOculto` con ✕ a la izquierda, elipsis en el título de todas las hojas (D6) y el modo «pantalla interna» con «<» en lugar de la ✕ (para los lotes 3 y 6). Apoyo: `docs/09-sistema-de-diseno.md`, `app/diseno/guia.tsx` (demo), `scripts/probar-hojas.mjs` | **1** (+ 3 de apoyo) | — | Sin cambio visible; se prueba con la guía `/diseno` |
 | 1 · Admin | Formularios del panel interno: `admin/ficha-tienda.tsx`, `admin/trabajo-fotos.tsx`, `admin/pantalla-trabajo.tsx`, `admin/pantalla-personalizar.tsx` (solo las hojas 5 y 6; el resto sigue a la derecha) | **4** | 5, 6, 10, 11, 13 | Lo ve solo el equipo de Deslizapp; lugar barato para validar el patrón |
 | 2 · Confirmaciones del catálogo | `catalogo/hoja-publicar-catalogo.tsx`, `bienvenida-retoque.tsx`, `hoja-revisar-catalogo.tsx`, `inventario-producto.tsx`, `ficha-presentaciones.tsx`, `hoja-pedir-catalogo.tsx` (sin uso: se puede omitir) | **6** | 44, 51, 52, 53, 56, 63 | Hojas pequeñas, sin campos ni vistas internas, con botones abajo |
-| 3 · Clientes y crédito | `clientes/hoja-cliente-nuevo.tsx`, `clientes/hoja-cliente-editar.tsx` (28 y 29), `credito/hoja-abono.tsx`, `clientes/hoja-escribir-jugada.tsx` | **4** | 25, 26, 28, 29, 31 | Formularios con aviso ya probados; hojas `auto` con campos (usar `probar:teclado`). Cuidado: 28 y 29 se apilan |
+| 3 · Clientes (cabecera + pantallas internas) | `clientes/hoja-cliente-nuevo.tsx`, `clientes/hoja-cliente-editar.tsx` (28 y 29), `clientes/avatar-y-nota.tsx` (avatar pasa a pantalla interna), `clientes/hoja-escribir-jugada.tsx`, `ui/elegir-mensaje.tsx` (pasa a pantalla interna), `credito/cuenta-cliente.tsx` (usa `ElegirMensaje`, `:67`), `app/diseno/guia.tsx` (usa `ElegirMensaje`, `:389`). Cabecera y pantalla interna van juntas en cada archivo | **7** | 14, 26, 28, 29, 31, 32 | Formularios con aviso ya probados; hojas `auto` con campos (`probar:teclado`); 28 y 29 se apilan. Borrar contacto (29) pasa a aviso de confirmación (recomendación D4, pendiente) |
 | 4 · Promos, marca, perfil y registrar | `promos/hoja-promo.tsx`, `promos/hoja-compartir.tsx`, `marca-tienda/hoja-mi-marca.tsx`, `catalogo/hoja-lo-que-vendes.tsx`, `inicio/checklist-tienda.tsx`, `pedido-catalogo/registrar-solicitud.tsx` | **6** | 33, 36–38, 40, 43, 55, 16 | Hojas de ruta, avisos y estados R3; `registrar-solicitud` tiene `alVolverInterno` |
 | 5 · Con vistas internas | `pedidos/hoja-pedido-nuevo.tsx` (19 y 18), `catalogo/flujo-presentaciones.tsx` (59) | **2** | 18, 19, 59 | Tienen «‹» en el cuerpo y carecen de `alVolverInterno` (19) o un paso 2 que se gestiona abajo (59): arreglar eso no es parte de la ✕ |
-| 6 · Detalles con «Editar» | `credito/hoja-detalle-abono.tsx`, `clientes/hoja-cliente.tsx`, `pedidos/hoja-pedido.tsx`, `promos/hoja-detalle-promo.tsx` | **4** | 20, 24, 30, 39 | Necesitan la ranura de acción (lote 0), la decisión R4 y cuidar el título largo |
+| 6 · Abono y detalles con «Editar» (cabecera + pantalla interna) | `credito/hoja-detalle-abono.tsx`, `credito/hoja-abono.tsx` (pasa a pantalla interna de «Abono»), `credito/pago-del-pedido.tsx` (`:209, :220`), `clientes/hoja-cliente.tsx`, `pedidos/hoja-pedido.tsx`, `promos/hoja-detalle-promo.tsx` | **6** | 20, 24, 25, 30, 39 | Necesitan la ranura de acción y el «⋯» (lote 0) y el título con elipsis. La hoja 25 se mueve aquí desde el lote 3 para que `hoja-abono.tsx` se toque una sola vez |
 | 7 · Producto | `catalogo/hoja-producto.tsx` (9 usos: 67, 68, 69, 71; 70 no cambia; 69 con «Editar» y aviso por stock; 68 con ⋯ después) | **1** | 67, 68, 69, 71 | La hoja más usada, con `protegerAtras`, `alVolverInterno`, historial interno y el aviso a medida. Va al final |
-| 8 · Pantallas internas (decidido por Lewis, 13 oct) — **después de las cabeceras** | Máximo dos hojas: avatar dentro de «Editar cliente»; «Elige el mensaje» dentro de «Escribir»; formulario de abono dentro de «Abono». Modo «pantalla interna» con «<» en `hoja.tsx` (si no está ya en el lote 0). Archivos: `clientes/hoja-cliente-editar.tsx`, `clientes/avatar-y-nota.tsx`, `clientes/hoja-cliente-nuevo.tsx`, `ui/elegir-mensaje.tsx`, `clientes/hoja-escribir-jugada.tsx`, `credito/cuenta-cliente.tsx`, `app/diseno/guia.tsx`, `credito/hoja-detalle-abono.tsx`, `credito/hoja-abono.tsx`, `credito/pago-del-pedido.tsx` (+ `components/hoja.tsx`) | **10** (+ `hoja.tsx`) | 14, 25, 26, 28, 32, 24 | Cambia la navegación, no solo la cabecera; depende de los lotes 3 y 6 (las mismas hojas) y deja sin resolver las otras tres pilas de tres |
 | — · Sin cambio | Quedan a la derecha: 1–4, 7–9, 12, 14, 15, 17, 21–23, 27, 32, 34, 35, 41, 42, 45–50, 54, 57, 58, 60–62, 65, 66, 70, 72, 73 | 0 | — | No hay que tocarlas |
 
-Total de código tocado si se hace todo: **28 archivos** en los lotes 0–7 (1 + 4 + 6 + 4 + 6 + 2 + 4 + 1) más **10** del lote 8 (algunos repiten archivos de los lotes 3 y 6: `hoja-cliente-editar`, `hoja-cliente-nuevo`, `hoja-escribir-jugada`, `hoja-abono`, `hoja-detalle-abono`, `hoja.tsx`), más los 3 de apoyo del lote 0 y `lib/novedades.ts` en cada lote que cambie algo visible.
+Total de código tocado si se hace todo: **33 archivos**, ninguno repetido (1 + 4 + 6 + 7 + 6 + 2 + 6 + 1), más los 3 de apoyo del lote 0 y `lib/novedades.ts` en cada lote que cambie algo visible. Los 6 archivos que antes caían en dos lotes (`hoja.tsx`, `hoja-cliente-editar`, `hoja-cliente-nuevo`, `hoja-escribir-jugada`, `hoja-abono`, `hoja-detalle-abono`) se hacen de una vez en el lote donde aparecen primero. El orden pedido antes («pantallas internas después de las cabeceras») queda sustituido por esta regla.
 
 ## Decisiones
 
 **Decididas por Lewis, 13 oct:**
 
 - **D1.** Detalles con acciones: ✕ izquierda; «Editar» en texto a la derecha; «⋯» con menú para el resto; destructivas dentro del «⋯», en rojo; elipsis en vez de sacrificar acciones (ver «Detalles con acciones de cabecera»).
-- **Máximo dos hojas apiladas**, con pantallas internas y «<» (lote 8).
+- **Máximo dos hojas apiladas**, con pantallas internas y «<» (lotes 3 y 6).
+- **D6.** Elipsis en el título de todas las hojas.
+- **Regla de lotes.** Un archivo que cae en dos lotes se cambia entero en el primero donde aparece.
+
+**Recomendación de Planning, pendiente de confirmar con Lewis:**
+
+- **D4.** «Borrar contacto» (29) pasa de hoja a aviso de confirmación (`Alerta`), con lo que la pila Cliente → Editar → Borrar deja de ser de tres. «Editar producto → Flujo de presentaciones → Presentación / Foto de cada color» e «Historia → Inventario → Presentación» quedan como **excepción documentada** (tres hojas) hasta probar crear producto en el iPhone.
+- **D7.** Un solo componente de menú «⋯», compartido con «Publicar ⌄» de crear producto.
 
 **Siguen abiertas:**
 
 - **D2.** ¿«Compartir» (22, 49, 62) sube a la cabecera? Hoy es lo principal de esas hojas y se quedaría abajo. (En el detalle de promo ya se resolvió: va al «⋯».)
-- **D3.** ¿Las hojas que solo aplican a un borrador (32, 46, 57, 58, 60, 65, 66, 48) cuentan como «elección» (derecha)? Aquí se tomó que sí cuando no avisan al salir.
-- **D4.** Las otras tres pilas de tres (Borrar contacto, Flujo de presentaciones, Inventario de la historia): ¿también pantallas internas?
-- **D5.** Hojas con vistas internas (8, 19, 20, 27, 54): ¿«<» en la cabecera como en el lote 8, o se queda en el cuerpo? Afecta al lado de la ✕ y encajaría con la decisión de las pantallas internas.
-- **D6.** ¿La elipsis del título es para todas las hojas o solo para las que llevan acciones en la cabecera?
-- **D7.** ¿El «⋯» se comparte con el menú de «Publicar ⌄» de crear producto (un solo componente)?
+- **D5.** Hojas con vistas internas (8, 19, 20, 27, 54): ¿«<» en la cabecera como en las pantallas internas de los lotes 3 y 6, o se queda en el cuerpo? Afecta al lado de la ✕.
+- **D8** (antes D3). ¿Las hojas que solo aplican a un borrador (32, 46, 57, 58, 60, 65, 66, 48) cuentan como «elección» (derecha)? Aquí se tomó que sí cuando no avisan al salir.
