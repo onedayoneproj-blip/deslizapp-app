@@ -61,7 +61,6 @@ try{
  // Error de ajuste en edición: nombre, stock y nota deben conservarse en el borrador.
  await page.locator('button[data-boton-editar]').click();await page.waitForURL('**/editar');await page.locator('[data-editar-producto] li').first().waitFor();await page.waitForTimeout(400);
  const antes=await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v5'));
-<<<<<<< HEAD
  const filaEd=t=>page.locator('[data-editar-producto] li button').filter({hasText:new RegExp('^'+t)}).first();
  const listoPaso=async()=>{await page.locator('[data-pie-paso]').getByRole('button',{name:'Listo',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('[role="dialog"]').length===1);};
  await simular('validacion');
@@ -72,13 +71,6 @@ try{
  await filaEd('Stock').click();await page.waitForTimeout(400);
  ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&(await filaEd('Nombre').innerText()).includes('No guardar parcialmente')&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v5'))===antes,'Error de validación conserva nombre, stock y motivo, y no guarda ficha ni stock');
  await listoPaso();await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Descartar y salir',exact:true}).click();await page.waitForURL(URL+href);
-=======
- await simular('validacion');await page.getByRole('textbox',{name:'Nombre',exact:true}).fill('No guardar parcialmente');await page.locator('button[aria-label^="Disminuir stock"]').click();
- await page.getByRole('button',{name:'Guardar cambios',exact:true}).click();await page.getByRole('radio',{name:'Otro',exact:true}).click();
- await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).fill('Nota conservada');await page.getByRole('button',{name:'Guardar ajuste',exact:true}).click();await page.locator('[role="dialog"]').last().getByRole('alert').waitFor();
- ok(await page.getByRole('textbox',{name:'Cuéntanos el motivo'}).inputValue()==='Nota conservada'&&await page.evaluate(()=>localStorage.getItem('deslizapp-demo-v5'))===antes,'Error de validación conserva motivo y no guarda ficha ni stock');
- await page.getByRole('button',{name:'Cancelar',exact:true}).click();await page.getByRole('heading',{name:'Ajustar inventario',exact:true}).waitFor({state:'detached'});await page.keyboard.press('Escape');await page.getByRole('alertdialog').getByRole('button',{name:'Descartar y salir',exact:true}).click();await page.waitForURL(URL+href);
->>>>>>> origin/main
  ok((await auditar()).length===3,'Cancelar edición fallida no altera el historial');
  await page.locator('[data-stock-plegable]').waitFor();
  await page.evaluate(async()=>{
@@ -88,15 +80,9 @@ try{
   for(let n=0;n<9;n++){const p=await d.getProducto(d.tiendaActivaId,id);await d.guardarProductoConInventario(d.tiendaActivaId,id,{}, {id:crypto.randomUUID(),stockBase:p.stock,stockPropuesto:p.stock+1,motivo:'reposicion',nota:null},false);}
   const ajenos=await d.getAjustesInventario('otra-tienda',id);if(ajenos.ajustes.length)throw Error('Historial cruzó tiendas');
  });
-<<<<<<< HEAD
  await page.getByRole('button',{name:/^Historial de ajustes/}).click();
  const historial=page.getByRole('region',{name:'Historial de ajustes'});
- await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').filter({hasNotText:'Ver más ajustes'}).count()===10,'Historial carga inicialmente diez filas e identifica al actor');
-=======
- await page.getByRole('button',{name:'Historial',exact:true}).click();
- const historial=page.getByRole('region',{name:'Historial de ajustes'});
  await historial.getByRole('button',{name:'Ver más ajustes'}).waitFor();ok(await historial.locator('li').filter({hasText:'· Michel'}).count()===10,'Historial carga inicialmente diez filas e identifica al actor');
->>>>>>> origin/main
  await page.evaluate(()=>{
   const el=document.querySelector('section[aria-label="Historial de ajustes"]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.getAjustesInventario)f=f.return;
   window.__datosHistorial=f.memoizedProps.value;window.__leerHistorial=window.__datosHistorial.getAjustesInventario;
