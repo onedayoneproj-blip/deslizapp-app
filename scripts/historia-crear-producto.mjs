@@ -42,13 +42,18 @@ export async function nombreYPrecio(page, nombre, precio, { sinFoto = false } = 
 }
 
 /**
- * Desde el precio: el stock, «Así se ve en tu catálogo» y «Publicar» (o «Guardar sin publicar»). Con `esperar`, espera la
+ * Desde el precio: el stock, «Así se ve en tu catálogo» y «Publicar» (o «Guardar para después»). Con `esperar`, espera la
  * celebración (lo que en la hoja era volver a /catalogo).
  */
 export async function hastaPublicar(page, { publicar = true, esperar = true } = {}) {
   await tocarHistoria(page, "Seguir");
   await tocarHistoria(page, "Seguir");
-  await page.getByRole("button", { name: publicar ? "Publicar" : "Guardar sin publicar", exact: true }).click();
+  if (publicar) await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  else if (await page.getByRole("button", { name: "Publicar más tarde", exact: true }).count()) {
+    // Con «Publicar │ 🕒», el reloj abre la alerta «¿Publicar más tarde?» y «Guardar para después» guarda oculto.
+    await page.getByRole("button", { name: "Publicar más tarde", exact: true }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Guardar para después", exact: true }).click();
+  } else await page.getByRole("button", { name: "Guardar para después", exact: true }).click();
   if (esperar) await page.locator("[data-celebracion]").waitFor({ timeout: 15000 });
 }
 
