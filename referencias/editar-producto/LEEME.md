@@ -14,7 +14,7 @@ Lienzo de Claude Design: [Editar producto · rediseño](https://claude.ai/artifa
 - `B-historia.dc.html`: opción B (la historia llena, barras para saltar, «⋯» para lo propio de editar). **Descartada** el 13 oct: obliga a meter editar dentro del componente de crear y arriesga crear, que Lewis ya validó.
 
 ## Ver producto (13 oct 2026, Lewis eligió la Vista A y la ajustó)
-`Vista-A.dc.html` (390×1000) manda; `Vista-B.dc.html` (compacta) queda descartada. Es la hoja que se abre al tocar un producto en Catálogo (`HojaVistaProducto`).
+`Vista-A.dc.html` (al abrir, stock cerrado) y `Vista-A-abierto.dc.html` (stock abierto, la hoja crece) mandan; `Vista-B.dc.html` (compacta) queda descartada. Es la hoja que se abre al tocar un producto en Catálogo (`HojaVistaProducto`).
 - Cabecera: ✕ a la izquierda, el nombre del producto (elipsis) y **«Editar» como botón píldora** (estilo iOS, mismo fondo que la ✕) a la derecha.
 - Vista previa grande: carrusel de las fotos con las barras tipo historia arriba, como el catálogo; abajo, sobre un degradado, precio (con promo, tachado), «Agotado» si aplica y las presentaciones (colores como puntos, tallas como pastillas).
 - «N personas lo esperan» (franja de atención) solo si hay lista de espera; abre la lista.
