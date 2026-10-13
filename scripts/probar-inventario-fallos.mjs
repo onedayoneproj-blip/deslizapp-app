@@ -108,4 +108,14 @@ try{
  await page.waitForFunction(n=>JSON.parse(localStorage.getItem('deslizapp-demo-v5')).ajustesInventario.filter(a=>a.productoId==='a3000000-0000-4000-8000-000000000019').length===n,antesOud+2);await page.waitForTimeout(500);
  const nuevos=(await ajustesOud()).slice(antesOud);
  ok(nuevos.length===2&&new Set(nuevos.map(a=>a.varianteId)).size===2&&nuevos.every(a=>a.variacion===1),'Reintentar aplica solo el que faltaba: un +1 por presentación, sin repetir');
+ // Una bajada que falla al guardar: el error se ve dentro de «¿Por qué baja el stock?», no detrás (revisión de Codex en #125).
+ await page.evaluate(()=>{const el=document.querySelector('[data-hoja-panel]');let f=el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))];while(f&&!f.memoizedProps?.value?.ajustarStock)f=f.return;const d=f.memoizedProps.value;const orig=d.ajustarStock;d.ajustarStock=async()=>{d.ajustarStock=orig;throw Error('Falla la bajada (doble de prueba)');};});
+ await filasOud.nth(0).locator('button[aria-label^="Disminuir stock"]').click();
+ await page.locator('[data-pie-vista]').getByRole('button',{name:'Guardar cambios',exact:true}).click();
+ const hojaMotivo=page.locator('[data-hoja-panel]').filter({hasText:'¿Por qué baja el stock?'});await hojaMotivo.waitFor();
+ await hojaMotivo.getByText('Daño',{exact:true}).click();await hojaMotivo.getByRole('button',{name:'Guardar ajuste'}).click();
+ await hojaMotivo.locator('[data-error-motivo]').waitFor();
+ ok(await hojaMotivo.locator('[data-error-motivo]').isVisible()&&(await ajustesOud()).length===antesOud+2,'Si la bajada falla, el error se ve en la hoja del motivo y no se guarda nada');
+ await hojaMotivo.getByRole('button',{name:'Guardar ajuste'}).click();await hojaMotivo.waitFor({state:'detached'});
+ ok((await ajustesOud()).length===antesOud+3,'Reintentar desde la misma hoja guarda la bajada');
 }finally{await browser.close();}

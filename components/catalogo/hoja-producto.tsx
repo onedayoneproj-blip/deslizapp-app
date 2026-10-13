@@ -364,7 +364,7 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
       )}
       <ConfirmacionInventario inventario={inventario} />
       <HojaMotivoVariantes
-        abierta={motivoVariantes} unidades={variantes.bajan} guardando={variantes.guardando} alCerrar={() => setMotivoVariantes(false)}
+        abierta={motivoVariantes} unidades={variantes.bajan} guardando={variantes.guardando} error={variantes.error} alCerrar={() => setMotivoVariantes(false)}
         alConfirmar={async (motivo, nota) => {
           const bien = await variantes.guardar(motivo, nota);
           if (bien) { setMotivoVariantes(false); toast("Ajuste guardado. No cuenta como venta."); }

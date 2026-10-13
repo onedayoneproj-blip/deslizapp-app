@@ -18,11 +18,14 @@ export function HojaMotivoVariantes({
   guardando,
   alCerrar,
   alConfirmar,
+  error,
 }: {
   abierta: boolean;
   unidades: number;
   guardando: boolean;
   alCerrar: () => void;
+  /** Si guardar falló: se ve dentro de esta hoja, no detrás de ella. */
+  error?: string | null;
   alConfirmar: (motivo: MotivoAjusteInventario, nota: string | null) => void;
 }) {
   const [motivo, setMotivo] = useState<MotivoAjusteInventario | null>(null);
@@ -41,6 +44,7 @@ export function HojaMotivoVariantes({
           opciones={(["dano", "perdida", "correccion_inventario", "otro"] as const).map((m) => ({ id: m, texto: MOTIVOS_INVENTARIO[m] }))}
         />
         {motivo === "otro" && <CampoMultilinea etiqueta="Cuéntanos el motivo" maxLength={200} filas={3} value={nota} onChange={(e) => setNota(e.target.value)} />}
+        {error && <p role="alert" data-error-motivo="" className="rounded-radio-m bg-atencion-suave p-4 text-secundario text-texto">{error}</p>}
         <Boton tamano="grande" anchoCompleto cargando={guardando} deshabilitado={!listo} onClick={() => motivo && alConfirmar(motivo, motivo === "otro" ? nota.trim() : null)}>
           Guardar ajuste
         </Boton>

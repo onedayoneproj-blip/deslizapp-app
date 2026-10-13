@@ -259,6 +259,21 @@ for (const ancho of ANCHOS) {
     await esperar(page, 900);
     ok((await paneles(page).count()) === 2 && (await arriba(page).locator("[data-pantalla-interna]").count()) === 0, "Deslizar con una pantalla interna vuelve al Inventario (no cierra la hoja)");
     ok(Math.abs((await arriba(page).boundingBox()).y - antesDeslizar) < 2, "…y la hoja vuelve a su lugar");
+    // Cambiar solo la nota de «Otro» también cuenta como cambio: la ✕ avisa (revisión de Codex en #125).
+    await arriba(page).getByRole("radio", { name: "Otro" }).click();
+    await arriba(page).getByRole("textbox", { name: "Cuéntanos el motivo" }).fill("Nota uno");
+    await listo(page).click();
+    await esperar(page, 600);
+    await tocarFila(page, "Stock");
+    await arriba(page).getByRole("textbox", { name: "Cuéntanos el motivo" }).fill("Nota dos");
+    await arriba(page).getByRole("button", { name: "Cerrar" }).click();
+    await page.getByRole("alertdialog").waitFor();
+    ok((await page.getByRole("alertdialog").innerText()).includes("¿Salir sin guardar?"), "Cambiar solo la nota y tocar ✕: «¿Salir sin guardar?»");
+    await page.getByRole("button", { name: "Descartar y salir" }).click();
+    await esperar(page, 600);
+    await tocarFila(page, "Stock");
+    ok((await arriba(page).getByRole("textbox", { name: "Cuéntanos el motivo" }).inputValue()) === "Nota uno", "Descartar deja la nota de antes");
+    await arriba(page).getByRole("radio", { name: "Daño" }).click();
     await listo(page).click();
     await esperar(page, 600);
     await guardar(page).click();

@@ -658,7 +658,7 @@ function PantallaInventario({ estado, base, precioProducto, fotos, motivo: motiv
   const [motivo, setMotivo] = useState<MotivoAjusteInventario | null>(motivoInicial?.motivo ?? null);
   const [nota, setNota] = useState(motivoInicial?.nota ?? "");
   const [detalle, setDetalle] = useState<string | null>(null);
-  useAvisarAlSalir(pres !== estado.pres || fotosColor !== estado.fotosColor || motivo !== (motivoInicial?.motivo ?? null));
+  useAvisarAlSalir(pres !== estado.pres || fotosColor !== estado.fotosColor || motivo !== (motivoInicial?.motivo ?? null) || nota !== (motivoInicial?.nota ?? ""));
   // Un grupo por color si lo hay (como la referencia), si no por la primera cosa; una fila por la otra.
   const primero = opciones.find((o) => esEjeColor(o.nombre)) ?? opciones[0];
   const segundo = opciones.find((o) => o !== primero);
