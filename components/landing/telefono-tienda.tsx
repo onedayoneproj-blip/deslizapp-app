@@ -21,7 +21,7 @@ import { HojaRegistrarSolicitud } from "../pedido-catalogo/registrar-solicitud";
 import { EresLaTienda } from "../pedido-catalogo/tienda-en-pedido";
 import { PedidoComprador } from "../tienda/pedido-comprador";
 import { Bloqueo, ChatWhatsApp } from "./whatsapp";
-import { cajaDelTexto, esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePasoDeLaLanding } from "./telefono-iframe";
+import { esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePasoDeLaLanding } from "./telefono-iframe";
 
 type Pantalla = "bloqueo" | "chat" | "pedido" | "panel";
 type Estado = { pantalla: Pantalla; aviso: boolean; eres: boolean; registrar: boolean; hojaPedido: boolean; montaje: number };
@@ -54,7 +54,6 @@ async function prepararBase(paso: number) {
 }
 
 const pedidoId = () => leerDemo().db.pedidos[0]?.id ?? null;
-const tituloHoja = (texto: string | RegExp) => porTexto('[role="dialog"] h2', texto);
 
 export function TelefonoTienda() {
   const [datos] = useState(() => {
@@ -76,42 +75,36 @@ export function TelefonoTienda() {
     if (!animar || destino !== desde + 1 || destino <= P.aviso - 1) return fijo();
     if (destino === P.aviso) setEstado((e) => ({ ...e, aviso: true }));
     else if (destino === P.chat) {
-      tocar(document.querySelector("[data-aviso]"));
-      await esperar(320);
+      await tocar(document.querySelector("[data-aviso]"));
       if (vigente()) setEstado((e) => ({ ...e, pantalla: "chat" }));
     } else if (destino === P.eres) {
-      tocar(document.querySelector("[data-vista-previa]"));
-      await esperar(320);
+      await tocar(document.querySelector("[data-vista-previa]"));
       if (!vigente()) return;
       setEstado((e) => ({ ...e, pantalla: "pedido" }));
       await esperar(800);
       if (!vigente()) return;
-      tocar(document.querySelector(".pvest-tienda button"));
-      await esperar(260);
+      await tocar(document.querySelector(".pvest-tienda button"));
       if (vigente()) setEstado((e) => ({ ...e, eres: true }));
     } else if (destino === P.registrar) {
-      tocar(porTexto('[role="dialog"] button', /Entrar con Google/));
-      await esperar(420);
+      await tocar(porTexto('[role="dialog"] button', /Entrar con Google/));
       if (!vigente()) return;
       setEstado((e) => ({ ...e, eres: false, registrar: true }));
       await esperar(900);
       if (!vigente()) return;
       await tocarYPulsar(document.querySelector('[aria-label="Elegir quién te escribió"]'));
-      await esperar(650);
+      await esperar(450);
       if (!vigente()) return;
       await tocarYPulsar(porTexto('[role="dialog"] button', /^A?\s*Ana/));
-      await esperar(600);
+      await esperar(450);
       if (!vigente()) return;
       await tocarYPulsar(porTexto('[role="dialog"] button', "Registrar pedido"));
     } else if (destino === P.pedidos) {
-      tocar(porTexto('[role="dialog"] button', /Ver pedido/));
+      await tocar(porTexto('[role="dialog"] button', /Ver pedido/));
       // Si «registrar» se vio sin animación, el pedido aún no está registrado.
       if (!pedidoId()) await prepararBase(destino);
-      await esperar(300);
       if (vigente()) setEstado((e) => ({ ...e, registrar: false, pantalla: "panel" }));
     } else if (destino === P.confirmar) {
-      tocar(document.querySelector('a[href^="/pedidos/"]'));
-      await esperar(300);
+      await tocar(document.querySelector('a[href^="/pedidos/"]'));
       if (!vigente()) return;
       setEstado((e) => ({ ...e, hojaPedido: true }));
       await esperar(900);
@@ -122,31 +115,8 @@ export function TelefonoTienda() {
     } else await fijo();
   });
 
-  useAnclas((id) => {
-    if (id === "bloqueo" || id === "aviso" || id === "chat") return { el: document.querySelector(`[data-ancla="${id}"]`), w: id === "bloqueo" ? 60 : id === "aviso" ? 24 : 34 };
-    // Justo a la derecha del texto del título.
-    const derecha = (el: Element | null, w = 26) => {
-      const caja = cajaDelTexto(el);
-      return { el, caja, w, dx: caja ? caja.width / 2 + w / 2 + 8 : 0 };
-    };
-    if (id === "eres-tienda") return derecha(tituloHoja("¿Eres la tienda?"));
-    if (id === "registrar") return derecha(tituloHoja("Pedido del catálogo"));
-    if (id === "hoja-pedido") return derecha(tituloHoja(/^Pedido #/));
-    if (id === "pedidos") {
-      const tarjeta = document.querySelector('a[href^="/pedidos/"]');
-      return { el: tarjeta, w: 26, dx: tarjeta ? tarjeta.getBoundingClientRect().width / 2 - 40 : 0 };
-    }
-    if (id === "despachar") {
-      const boton = porTexto('[role="dialog"] button', /Despachar pedido/);
-      if (boton) return { el: boton, w: 26, dx: -boton.getBoundingClientRect().width / 2 + 40 };
-      // Ya despachado: la hoja de celebración, sobre su título.
-      const titulo = tituloHoja("Pedido despachado");
-      const caja = cajaDelTexto(titulo);
-      if (titulo && caja) return { el: titulo, caja, w: 34, dx: -caja.width / 2 - 26 };
-      return derecha(tituloHoja(/^Pedido #/), 30);
-    }
-    return null;
-  });
+  // Adonde llega el ♥ que cruza desde el teléfono de Ana (paso «cambio»).
+  useAnclas((id) => (id === "bloqueo" ? { el: document.querySelector('[data-ancla="bloqueo"]'), w: 60 } : null));
 
   const id = pedidoId();
   return (

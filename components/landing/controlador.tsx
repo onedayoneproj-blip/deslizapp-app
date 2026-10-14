@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { CAPITULOS, MENSAJE_LISTO, MENSAJE_PASO, PASOS, estadoPaso, type IdAncla, type IdTelefono } from "@/lib/landing/pasos";
+import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
-/** El ♥ mide esto sin escalar (landing.css .lt-hilo); su escala sale del tamaño del ancla. */
+/** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
 const BASE_HILO = 100;
-const VIAJE_HILO = 750;
-const dos = (n: number) => String(n).padStart(2, "0");
+/** Cuánto se queda el ♥ después del pulso antes de irse (más en «Despachar», que se vuelve check). */
+const QUEDA = 650;
+const QUEDA_CHECK = 1300;
+const VIAJE = 700;
 
-type Punto = { x: number; y: number; w: number };
+type Punto = { x: number; y: number };
 
 /**
  * La demo por pasos (referencias/landing/ajustes-lewis-2.md §3). Cada paso es una sección de la página con scroll-snap: al
@@ -33,81 +35,88 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       tienda: e.querySelector<HTMLIFrameElement>('iframe[data-telefono="tienda"]'),
     };
     const hilo = e.querySelector<HTMLElement>("[data-hilo]");
+    const pulso = e.querySelector<HTMLElement>("[data-hilo-pulso]");
     const burbujas = [...e.querySelectorAll<HTMLElement>("[data-burbuja]")];
-    const capitulo = e.querySelector<HTMLElement>("[data-capitulo]");
+    const capitulos = [...e.querySelectorAll<HTMLElement>("[data-indice-capitulo]")];
     let activo = -1;
     let raf = 0;
+    let irse = 0;
     let posicion: Punto | null = null;
 
     const mandar = (telefono: IdTelefono, paso: number, animar: boolean) => {
       marcos[telefono]?.contentWindow?.postMessage({ tipo: MENSAJE_PASO, paso, animar }, location.origin);
     };
 
-    /** Dónde está un ancla del ♥, en px del escenario. */
-    const ancla = (telefono: IdTelefono, id: IdAncla): Punto | null => {
+    /** Un punto de un teléfono (px de su página de 393 de ancho) en px del escenario. */
+    const enEscenario = (telefono: IdTelefono, x: number, y: number): Punto | null => {
       const marco = marcos[telefono];
-      let r = null;
-      try {
-        r = marco?.contentWindow?.__dzAncla?.(id) ?? null;
-      } catch {
-        r = null;
-      }
-      if (!marco || !r) return null;
+      if (!marco) return null;
       const caja = marco.getBoundingClientRect();
       const base = e.getBoundingClientRect();
       const esc = caja.width / 393;
-      return { x: caja.left - base.left + r.x * esc, y: caja.top - base.top + r.y * esc, w: r.w * esc };
+      return { x: caja.left - base.left + x * esc, y: caja.top - base.top + y * esc };
     };
-    const poner = (p: Punto) => {
+    /** Dónde está un ancla de un viaje, en px del escenario. */
+    const ancla = (telefono: IdTelefono, id: IdAncla): Punto | null => {
+      let r = null;
+      try {
+        r = marcos[telefono]?.contentWindow?.__dzAncla?.(id) ?? null;
+      } catch {
+        r = null;
+      }
+      return r ? enEscenario(telefono, r.x, r.y) : null;
+    };
+    const tamano = () => Math.min(58, Math.max(38, Math.min(e.clientWidth, e.clientHeight) * 0.07));
+    const poner = (p: Punto, escala = 1) => {
       posicion = p;
-      if (hilo) hilo.style.transform = `translate(${(p.x - BASE_HILO / 2).toFixed(1)}px, ${(p.y - BASE_HILO / 2).toFixed(1)}px) scale(${(p.w / BASE_HILO).toFixed(3)})`;
+      const t = tamano() * escala;
+      if (hilo) hilo.style.transform = `translate(${(p.x - BASE_HILO / 2).toFixed(1)}px, ${(p.y - BASE_HILO / 2).toFixed(1)}px) scale(${(t / BASE_HILO).toFixed(3)})`;
+    };
+    const esconder = () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(irse);
+      if (hilo) hilo.dataset.visible = "no";
+      posicion = null;
     };
 
-    /** Lleva el ♥ al ancla del paso: espera, viaja en un arco y después la sigue mientras el teléfono termina de moverse. */
-    const moverHilo = (i: number, desde: number, animar: boolean) => {
+    /** Lleva el ♥ desde donde está (o desde un poco más abajo, si no estaba) hasta `destino`, en `ms`, con un arco suave. */
+    const llevar = (destino: () => Punto | null, ms: number, alLlegar: () => void, desde?: Punto | null) => {
       cancelAnimationFrame(raf);
-      const paso = PASOS[i]!;
-      if (!hilo) return;
-      hilo.dataset.visible = paso.ancla ? "si" : "no";
-      if (!paso.ancla) return;
-      const destino = () => ancla(paso.telefono, paso.ancla!);
-      const nace = animar && i === desde + 1 && paso.naceEn;
+      window.clearTimeout(irse);
+      const b0 = destino();
+      if (!hilo || !b0) return;
+      const t0 = tamano();
+      const origen = desde ?? (hilo.dataset.visible === "si" && posicion ? posicion : { x: b0.x + t0 * 0.7, y: b0.y + t0 * 1.6 });
+      hilo.dataset.visible = "si";
       const inicio = performance.now();
-      const espera = animar ? paso.esperaHilo : 0;
-      const fin = inicio + (animar ? paso.duracion + 900 : 600);
-      let origen: Punto | null = null;
-      if (nace) hilo.dataset.visible = "no";
       const cuadro = (ahora: number) => {
-        const b = destino();
-        if (ahora < inicio + espera) {
-          // Todavía no sale: si nace aquí, espera escondido sobre el «aaah» real.
-          if (nace) {
-            const n = ancla(paso.telefono, paso.naceEn!);
-            if (n) poner(n);
-          }
-        } else if (b) {
-          if (!origen) {
-            if (nace) {
-              hilo.dataset.visible = "si";
-              origen = ancla(paso.telefono, paso.naceEn!) ?? posicion ?? b;
-            } else origen = posicion ?? b;
-          }
-          const t = animar ? Math.min(1, (ahora - inicio - espera) / VIAJE_HILO) : 1;
-          const k = t * t * (3 - 2 * t);
-          const distancia = Math.hypot(b.x - origen.x, b.y - origen.y);
-          const arco = Math.sin(Math.PI * k) * Math.min(120, distancia * 0.25);
-          const recto = origen.w + (b.w - origen.w) * k;
-          const grande = Math.min(e.clientWidth, e.clientHeight) * 0.2;
-          poner({
-            x: origen.x + (b.x - origen.x) * k,
-            y: origen.y + (b.y - origen.y) * k - arco,
-            w: distancia > 40 ? recto + Math.max(0, grande - recto) * Math.sin(Math.PI * k) : recto,
-          });
-        }
-        if (ahora < fin) raf = requestAnimationFrame(cuadro);
+        const b = destino() ?? b0;
+        const t = Math.min(1, (ahora - inicio) / ms);
+        const k = t * t * (3 - 2 * t);
+        const arco = Math.sin(Math.PI * k) * Math.min(90, Math.hypot(b.x - origen.x, b.y - origen.y) * 0.2);
+        poner({ x: origen.x + (b.x - origen.x) * k, y: origen.y + (b.y - origen.y) * k - arco }, 1 + 0.25 * Math.sin(Math.PI * k));
+        if (t < 1) raf = requestAnimationFrame(cuadro);
+        else alLlegar();
       };
       raf = requestAnimationFrame(cuadro);
     };
+
+    /** Un toque: el ♥ llega, hace el pulso (un círculo que se abre) y se va. En «Despachar», se vuelve check. */
+    const toque = (p: Punto) => {
+      llevar(() => p, DEDO_LLEGA - 40, () => {
+        e.dataset.toques = String(Number(e.dataset.toques ?? 0) + 1);
+        const check = PASOS[activo]?.id === "despachar";
+        if (check) e.dataset.check = "si";
+        pulso?.animate([{ opacity: 0.9, transform: "scale(.6)" }, { opacity: 0, transform: "scale(2.4)" }], { duration: 560, easing: "cubic-bezier(.2,.8,.2,1)" });
+        irse = window.setTimeout(esconder, check ? QUEDA_CHECK : QUEDA);
+      });
+    };
+    /** Un viaje: el ♥ lleva el pedido hasta `destino` y se desvanece al llegar. */
+    const viaje = (destino: () => Punto | null, desde?: Punto | null) =>
+      llevar(destino, VIAJE, () => {
+        e.dataset.viajes = String(Number(e.dataset.viajes ?? 0) + 1);
+        esconder();
+      }, desde);
 
     // El teléfono de la tienda se carga cuando hace falta (o un momento después de abrir), no al primer pintado.
     const cargarTienda = () => {
@@ -130,15 +139,26 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         bolsa: String(est.bolsa),
         total: String(est.total),
         codigo: est.codigoVisible ? "si" : "no",
-        check: paso.id === "despachar" ? "si" : "no",
-        suma: est.bolsa >= 2 ? "si" : "no",
+        check: "no",
+        capitulo: String(paso.capitulo),
       });
-      if (capitulo) capitulo.textContent = `${dos(paso.capitulo)} / ${dos(CAPITULOS)}`;
+      capitulos.forEach((c) => {
+        const n = Number(c.dataset.indiceCapitulo);
+        c.dataset.estado = n === paso.capitulo ? "actual" : n < paso.capitulo ? "visto" : "falta";
+        if (n === paso.capitulo) c.setAttribute("aria-current", "step");
+        else c.removeAttribute("aria-current");
+      });
       burbujas.forEach((b, j) => (b.dataset.estado = j === i ? "actual" : j === i - 1 ? "pasada" : j < i ? "lejos" : "futura"));
       if (i >= 4) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
-      moverHilo(i, desde, animar);
+      // El ♥ solo aparece cuando hace algo: con cada toque que avisa un teléfono, o en el viaje de un teléfono al otro.
+      esconder();
+      if (animar && paso.dedo === "viaje" && paso.viaje && i === desde + 1) {
+        const { desde: [td, ad], hasta: [th, ah] } = paso.viaje;
+        const salida = ancla(td, ad);
+        irse = window.setTimeout(() => viaje(() => ancla(th, ah), salida), 450);
+      }
     };
     const espera = window.setTimeout(cargarTienda, 2500);
 
@@ -146,11 +166,20 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const alMensaje = (ev: MessageEvent) => {
       if (ev.origin !== location.origin || ev.data?.tipo !== MENSAJE_LISTO) return;
       const telefono = (Object.keys(marcos) as IdTelefono[]).find((k) => marcos[k]?.contentWindow === ev.source);
-      if (telefono && activo >= 0) {
-        mandar(telefono, activo, false);
-        moverHilo(activo, activo, false);
-      }
+      if (telefono && activo >= 0) mandar(telefono, activo, false);
     };
+    // Un teléfono va a tocar algo, o lleva el pedido a un sitio: el ♥ va hasta ahí. Con movimiento reducido, no hay ♥.
+    const alDedo = (ev: MessageEvent) => {
+      const d = ev.data as MensajeDedo | undefined;
+      if (ev.origin !== location.origin || (d?.tipo !== MENSAJE_TOQUE && d?.tipo !== MENSAJE_VIAJE) || reducido.matches) return;
+      const telefono = (Object.keys(marcos) as IdTelefono[]).find((k) => marcos[k]?.contentWindow === ev.source);
+      if (!telefono || telefono !== PASOS[activo]?.telefono) return;
+      const p = enEscenario(telefono, d.x, d.y);
+      if (!p) return;
+      if (d.tipo === MENSAJE_TOQUE) toque(p);
+      else viaje(() => p);
+    };
+    window.addEventListener("message", alDedo);
     window.addEventListener("message", alMensaje);
 
     // El paso activo: la sección que ocupa la pantalla. Un deslizamiento fuerte no se salta pasos: scroll-snap-stop lo frena
@@ -178,14 +207,14 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       { threshold: 0.55 },
     );
     secciones.forEach((x) => obs.observe(x));
-    const alCambiarTamano = () => activo >= 0 && moverHilo(activo, activo, false);
-    window.addEventListener("resize", alCambiarTamano);
+    window.addEventListener("resize", esconder);
     return () => {
       obs.disconnect();
       window.clearTimeout(espera);
-      cancelAnimationFrame(raf);
+      esconder();
       window.removeEventListener("message", alMensaje);
-      window.removeEventListener("resize", alCambiarTamano);
+      window.removeEventListener("message", alDedo);
+      window.removeEventListener("resize", esconder);
       document.removeEventListener("click", alClic, true);
       raiz.removeAttribute("data-landing-js");
     };
@@ -204,7 +233,9 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-total="0"
         data-codigo="no"
         data-check="no"
-        data-suma="no"
+        data-capitulo="1"
+        data-toques="0"
+        data-viajes="0"
       >
         {children}
       </div>

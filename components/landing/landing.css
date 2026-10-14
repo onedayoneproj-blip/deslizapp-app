@@ -95,7 +95,7 @@
 
 /* ---- Los teléfonos: el mockup del iPhone con su proporción, escalado entero al alto disponible ---- */
 .lt-escenario {
-  --alto-burbujas: 128px;
+  --alto-burbujas: 166px;
 }
 .lt-zona {
   position: absolute;
@@ -247,36 +247,21 @@
 }
 .lt-escenario[data-check="si"] .lt-hilo-verde {
   opacity: 0;
-  transition-delay: 900ms;
 }
 .lt-escenario[data-check="si"] .lt-hilo-check {
   opacity: 1;
   transform: none;
-  transition-delay: 900ms;
 }
-.lt-hilo-suma {
+/* El pulso del toque: un círculo que se abre desde el ♥ (lo anima el controlador). */
+.lt-hilo-pulso {
   position: absolute;
-  right: -10%;
-  top: -12%;
-  display: grid;
-  place-items: center;
-  width: 44%;
-  height: 44%;
+  inset: 0;
   border-radius: 50%;
-  background: var(--marca-mandarina);
-  color: var(--marca-bosque);
-  font-weight: 800;
-  font-size: 30px;
-  line-height: 1;
+  border: 6px solid var(--marca-mandarina);
   opacity: 0;
-  transform: scale(0.4);
-  transition:
-    opacity 300ms ease 700ms,
-    transform 380ms var(--curva) 700ms;
 }
-.lt-escenario[data-suma="si"]:not([data-check="si"]) .lt-hilo-suma {
-  opacity: 1;
-  transform: none;
+.lt-escenario[data-lado="tienda"] .lt-hilo-pulso {
+  border-color: var(--marca-papel);
 }
 
 /* ---- Desenfoque progresivo arriba y abajo (usa .hoja-borde de app/globals.css) ---- */
@@ -293,7 +278,7 @@
   height: calc(var(--alto-arriba) + 28px);
 }
 
-/* ---- Arriba: el contador de capítulo y «Saltar» ---- */
+/* ---- Arriba: «Saltar» ---- */
 .lt-arriba {
   position: absolute;
   z-index: 6;
@@ -303,18 +288,7 @@
   height: 40px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-.lt-capitulo {
-  font-weight: 800;
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  color: var(--marca-bosque);
-  font-variant-numeric: tabular-nums;
-  transition: color 600ms ease;
-}
-.lt-escenario[data-lado="tienda"] .lt-capitulo {
-  color: var(--marca-papel);
+  justify-content: flex-end;
 }
 .lt-saltar {
   display: inline-flex;
@@ -332,6 +306,68 @@
   backdrop-filter: blur(10px);
 }
 
+/* ---- El índice del recorrido, al borde derecho: puntos en el teléfono (solo el actual dice su palabra), lista en escritorio ---- */
+.lt-indice {
+  position: absolute;
+  z-index: 6;
+  right: max(4px, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--marca-bosque);
+  transition: color 600ms ease;
+}
+.lt-escenario[data-lado="tienda"] .lt-indice {
+  color: var(--marca-papel);
+}
+.lt-indice ol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lt-indice-capitulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 28px;
+  min-height: 34px;
+  padding: 6px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.lt-indice-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  opacity: 0.55;
+  transition:
+    height 420ms var(--curva),
+    opacity 300ms ease,
+    background-color 300ms ease;
+}
+.lt-indice-capitulo[data-estado="visto"] .lt-indice-punto {
+  background: currentColor;
+  opacity: 0.45;
+}
+.lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
+  height: 22px;
+  background: currentColor;
+  opacity: 1;
+}
+/* En el teléfono, la palabra del capítulo actual va en vertical, debajo de su barrita: no ocupa ancho. */
+.lt-indice-nombre {
+  display: none;
+  writing-mode: vertical-rl;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.lt-indice-capitulo[data-estado="actual"] .lt-indice-nombre {
+  display: block;
+}
+
 /* ---- Las burbujas de chat: abajo, suben como un mensaje nuevo; la anterior sube y se va ---- */
 .lt-burbujas {
   position: absolute;
@@ -346,8 +382,8 @@
   position: absolute;
   left: 0;
   bottom: 10px;
-  max-width: min(340px, 92%);
-  padding: 10px 14px 6px;
+  max-width: min(420px, 94%);
+  padding: 13px 18px 8px;
   border-radius: 18px 18px 18px 4px;
   background: #ffffff;
   color: #111b21;
@@ -398,8 +434,8 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-stretch: 115%;
-  font-size: 1.2rem;
-  line-height: 1.15;
+  font-size: 1.5rem;
+  line-height: 1.12;
   color: var(--marca-bosque);
 }
 .lt-remate {
@@ -407,9 +443,9 @@
 }
 .lt-burbuja-hora {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   text-align: right;
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(17, 27, 33, 0.45);
 }
 .lt-burbuja-checks {
@@ -418,10 +454,10 @@
 
 @media (max-height: 700px) {
   .lt-escenario {
-    --alto-burbujas: 112px;
+    --alto-burbujas: 150px;
   }
   .lt-burbuja-texto {
-    font-size: 1.05rem;
+    font-size: 1.3rem;
   }
 }
 
@@ -458,6 +494,34 @@
   }
   .lt-burbuja-texto {
     font-size: 2rem;
+  }
+  .lt-indice {
+    right: 32px;
+  }
+  .lt-indice ol {
+    align-items: stretch;
+    gap: 2px;
+  }
+  .lt-indice-capitulo {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    width: auto;
+    min-height: 40px;
+    padding: 0 6px;
+  }
+  .lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
+    height: 8px;
+    width: 22px;
+  }
+  .lt-indice-nombre {
+    display: block;
+    writing-mode: horizontal-tb;
+    font-size: 0.9375rem;
+    opacity: 0.6;
+  }
+  .lt-indice-capitulo[data-estado="actual"] .lt-indice-nombre {
+    opacity: 1;
   }
 }
 

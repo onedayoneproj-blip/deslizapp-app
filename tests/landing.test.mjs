@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
 const demo = await import("../lib/landing/pedido-demo.ts");
-const { PASOS, CAPITULOS, estadoPaso, indicePaso } = await import("../lib/landing/pasos.ts");
+const { PASOS, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, indicePaso, primerPasoDe } = await import("../lib/landing/pasos.ts");
 const dbDemo = await import("../lib/landing/db-demo.ts");
 const enlaces = await import("../lib/landing/enlaces.ts");
 const { codigoPedidoValido } = await import("../lib/tienda/imagen-pedido.ts");
@@ -42,12 +42,13 @@ test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulo
   assert.ok(PASOS.slice(0, primeroTienda).every((p) => p.lado === "compras" && p.telefono === "compradora"));
   assert.ok(PASOS.slice(primeroTienda).every((p) => p.lado === "tienda" && p.telefono === "tienda"));
   assert.deepEqual([...new Set(PASOS.map((p) => p.capitulo))], Array.from({ length: CAPITULOS }, (_, i) => i + 1));
+  // El índice: una palabra por capítulo y cada una lleva a su primer paso.
+  assert.deepEqual([...CAPITULOS_NOMBRES], ["Elige", "Envía", "Sigue", "Te llega", "Registra", "Despacha"]);
+  assert.deepEqual(CAPITULOS_NOMBRES.map((_, i) => PASOS[primerPasoDe(i + 1)].id), ["intro", "bolsa", "seguimiento", "cambio", "eres-tienda", "confirmar"]);
   for (const p of PASOS) assert.ok(p.burbuja.texto.trim() && p.duracion > 0, p.id);
-  // El ♥ nace en el «aaah» del termo y desde ahí siempre tiene dónde estar.
-  const nace = PASOS.findIndex((p) => p.naceEn);
-  assert.equal(PASOS[nace].id, "aaah-termo");
-  assert.ok(PASOS.slice(0, nace).every((p) => p.ancla === null));
-  assert.ok(PASOS.slice(nace).every((p) => p.ancla !== null));
+  // El ♥ es el dedo: no se ve en los pasos sin toque ni viaje; el único viaje cruza de un teléfono al otro.
+  assert.deepEqual(PASOS.filter((p) => p.dedo === "no").map((p) => p.id), ["intro", "hola", "pasa", "aviso"]);
+  assert.deepEqual(PASOS.filter((p) => p.dedo === "viaje").map((p) => [p.id, p.viaje.desde[0], p.viaje.hasta[0]]), [["cambio", "compradora", "tienda"]]);
 });
 
 test("la bolsa cuenta con los pasos y retrocede igual", () => {

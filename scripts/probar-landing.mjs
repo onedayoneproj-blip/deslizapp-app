@@ -1,16 +1,18 @@
 // Uso: con la app corriendo (npm run dev o npm start), `node scripts/probar-landing.mjs [url]`.
-// La landing de deslizapp.com por pasos (referencias/landing/ajustes-lewis-2.md) a 360×640, 390×844, 430×932 y 1440×900:
-// avanzar paso a paso (la bienvenida con el logo antes del teléfono; burbuja completa y sin desenfoque, que no tapa el ♥; estado del
-// teléfono: bolsa, total y código; el mockup entero y la página llenando su pantalla; el ♥ sobre su ancla; el fondo de cada persona), retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
+// La landing de deslizapp.com por pasos (referencias/landing/ajustes-lewis-2.md y -3.md) a 360×640, 393×852, 430×932 y 1440×900:
+// avanzar paso a paso (la bienvenida con el logo antes del teléfono; burbuja completa y sin desenfoque, que no tapa la pantalla;
+// estado del teléfono: bolsa, total y código; el mockup entero y la página llenando su pantalla; el reel y la bolsa como en la app;
+// el ♥ como dedo: en cada toque y en el viaje, oculto en los demás; el índice; el fondo de cada persona), el índice lleva a cada
+// capítulo, retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
 // movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por paso
-// (390×844 y 1440×900) en docs/capturas/landing/.
+// (393×852 y 1440×900) en docs/capturas/landing/.
 import { createRequire } from "node:module";
 import { mkdirSync } from "node:fs";
 import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require("playwright");
-const { PASOS, estadoPaso } = await import("../lib/landing/pasos.ts");
+const { PASOS, CAPITULOS_NOMBRES, estadoPaso, primerPasoDe } = await import("../lib/landing/pasos.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 
 const base = process.argv[2] ?? "http://localhost:3000";
@@ -40,20 +42,12 @@ const medir = (pagina, i) =>
       const mockup = telefono.querySelector(".lt-mockup");
       const hueco = telefono.querySelector(".lt-hueco").getBoundingClientRect();
       const pagina = telefono.querySelector("iframe").getBoundingClientRect();
-      const hilo = e.querySelector("[data-hilo]");
-      const h = hilo.getBoundingClientRect();
       const b = burbuja.getBoundingClientRect();
       const intro = e.querySelector(".lt-intro");
-      let distancia = null;
-      if (paso.ancla) {
-        const marco = e.querySelector(`iframe[data-telefono="${paso.telefono}"]`);
-        const r = marco.contentWindow.__dzAncla?.(paso.ancla);
-        if (r) {
-          const caja = marco.getBoundingClientRect();
-          const esc = caja.width / 393;
-          distancia = Math.hypot(h.left + h.width / 2 - (caja.left + r.x * esc), h.top + h.height / 2 - (caja.top + r.y * esc));
-        }
-      }
+      const indice = [...e.querySelectorAll("[data-indice-capitulo]")];
+      const actual = indice.filter((c) => c.dataset.estado === "actual").map((c) => Number(c.dataset.indiceCapitulo));
+      const vistos = indice.filter((c) => c.dataset.estado === "visto").map((c) => Number(c.dataset.indiceCapitulo));
+      const ind = e.querySelector(".lt-indice").getBoundingClientRect();
       return {
         nitida,
         burbujaVisible: Number(getComputedStyle(burbuja).opacity) > 0.99,
@@ -62,10 +56,14 @@ const medir = (pagina, i) =>
         llena: Math.abs(pagina.width - hueco.width) < 1.5 && Math.abs(pagina.height - hueco.height) < 1.5,
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
         introVisible: Number(getComputedStyle(intro).opacity) > 0.99 && intro.querySelector("svg") !== null,
-        tapaHilo: !(b.bottom <= h.top + h.height * 0.2 || b.top >= h.bottom - h.height * 0.2 || b.right <= h.left || b.left >= h.right),
+        // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
+        tapaPantalla: !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
+        // El índice no tapa el teléfono ni lo empuja.
+        indiceTapa: ind.left < tel.right - 1 && ind.right > tel.left && ind.top < tel.bottom && ind.bottom > tel.top,
+        capituloActual: actual,
+        capitulosVistos: vistos,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
-        distancia,
-        hiloVisible: hilo.dataset.visible === "si",
+        hiloVisible: e.querySelector("[data-hilo]").dataset.visible === "si",
         fondoTienda: Number(getComputedStyle(e.querySelector(".lt-fondo-tienda")).opacity),
       };
     },
@@ -74,7 +72,7 @@ const medir = (pagina, i) =>
 
 for (const [ancho, alto] of [
   [360, 640],
-  [390, 844],
+  [393, 852],
   [430, 932],
   [1440, 900],
 ]) {
@@ -84,6 +82,8 @@ for (const [ancho, alto] of [
   const errores = [];
   pagina.on("pageerror", (e) => errores.push(e.message));
   await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  // (el indicador de `next dev` no es de la página: fuera de las capturas)
+  await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await pagina.waitForTimeout(1200);
   ok(await pagina.locator(".lt-escenario").isVisible(), "se ve la demo por pasos");
   // Lo que se mueve dentro de los teléfonos (el reel) no arrastra la página.
@@ -92,25 +92,58 @@ for (const [ancho, alto] of [
   // Hacia delante, paso a paso.
   for (let i = 0; i < PASOS.length; i++) {
     const paso = PASOS[i];
+    const antes = await datos(pagina);
     if (i > 0) await irAlPaso(pagina, i);
-    await pagina.waitForTimeout(paso.duracion + 1400);
+    // Mientras dura el paso: ¿se ve el ♥ en algún momento?
+    let vioHilo = false;
+    for (const fin = Date.now() + paso.duracion + 1400; Date.now() < fin; ) {
+      vioHilo ||= await pagina.evaluate(() => document.querySelector("[data-hilo]").dataset.visible === "si");
+      await pagina.waitForTimeout(80);
+    }
     const d = await datos(pagina);
     const esperado = estadoPaso(i);
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
-    ok(m.burbujaVisible && m.nitida, `${paso.id}: la burbuja está completa y sin desenfoque`);
+    ok(m.burbujaVisible && m.nitida && !(m.telefonoVisible && m.tapaPantalla), `${paso.id}: la burbuja está completa, sin desenfoque y sin tapar la pantalla`);
+    ok(m.capituloActual.join() === String(paso.capitulo) && m.capitulosVistos.join() === Array.from({ length: paso.capitulo - 1 }, (_, k) => k + 1).join() && !m.indiceTapa, `${paso.id}: el índice marca «${CAPITULOS_NOMBRES[paso.capitulo - 1]}» (y los anteriores como vistos) sin tapar el teléfono`);
     if (paso.id === "intro") ok(m.introVisible && !m.telefonoVisible, "intro: el logo de Deslizapp, todavía sin teléfono");
     else ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
-    if (paso.ancla) {
-      ok(m.hiloVisible && m.distancia !== null && m.distancia < 4, `${paso.id}: el ♥ está sobre «${paso.ancla}» (a ${m.distancia?.toFixed(1)} px)`);
-      ok(!m.tapaHilo, `${paso.id}: la burbuja no tapa el ♥`);
+    // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.
+    const toques = Number(d.toques) - Number(antes.toques);
+    const viajes = Number(d.viajes) - Number(antes.viajes);
+    if (paso.dedo === "no" || i === 0) ok(!vioHilo && toques === 0 && viajes === 0, `${paso.id}: sin toque ni viaje, el ♥ no se ve`);
+    else if (paso.dedo === "toque") ok(vioHilo && toques > 0, `${paso.id}: el ♥ marca ${toques} toque(s)`);
+    else ok(vioHilo && viajes === 1, `${paso.id}: el ♥ cruza al otro teléfono y se va`);
+    ok(!m.hiloVisible, `${paso.id}: al terminar, el ♥ ya no está`);
+    if (paso.id === "pasa") {
+      // El reel mide y queda como en el catálogo real; la bolsa, junto a «Compartir» (ajustes-lewis-3.md §1).
+      const r = await pagina.evaluate(() => {
+        const doc = document.querySelector('iframe[data-telefono="compradora"]').contentDocument;
+        const caja = (el) => el.getBoundingClientRect();
+        const reel = caja(doc.querySelector(".reel.on"));
+        const compartir = caja([...doc.querySelectorAll(".reel.on button")].find((b) => /Compartir/.test(b.textContent)));
+        const bolsa = caja(doc.querySelector("#bagDock button"));
+        const ancho = doc.documentElement.clientWidth;
+        return { alto: reel.height, ancho, arriba: reel.top, margen: parseFloat(doc.documentElement.style.scrollPaddingTop), hueco: bolsa.top - compartir.bottom, abajo: reel.bottom - bolsa.bottom };
+      });
+      ok(Math.abs(r.alto - Math.min(r.ancho * 1.25, 760)) < 1.5 && Math.abs(r.arriba - r.margen) < 1.5, `pasa: la tarjeta del reel mide como en la app (${Math.round(r.alto)} px) y queda bajo la cabecera`);
+      ok(r.hueco >= 0 && r.hueco <= 24 && r.abajo >= 0 && r.abajo <= 20, `pasa: la bolsa queda junto a «Compartir» (a ${Math.round(r.hueco)} px), al pie de la tarjeta`);
     }
     ok(paso.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo de ${paso.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
-    if (capturas && (ancho === 390 || ancho === 1440)) {
+    if (capturas && (ancho === 393 || ancho === 1440)) {
       mkdirSync("docs/capturas/landing", { recursive: true });
       await pagina.screenshot({ path: `docs/capturas/landing/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}.png` });
     }
   }
+  // El índice: tocar un capítulo lleva a su primer paso (y vuelta al primero).
+  for (const c of [4, 1]) {
+    await pagina.locator(`[data-indice-capitulo="${c}"]`).click();
+    await pagina.waitForTimeout(1600);
+    const dc = await datos(pagina);
+    ok(dc.paso === PASOS[primerPasoDe(c)].id, `el índice: «${CAPITULOS_NOMBRES[c - 1]}» lleva a «${dc.paso}»`);
+  }
+  await irAlPaso(pagina, PASOS.length - 1);
+  await pagina.waitForTimeout(1500);
   // El teléfono de la bolsa: el contador real dice 2 y la tienda registró el pedido en su panel.
   const contador = await pagina.evaluate(() => document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector("#bagDock .cnt")?.textContent);
   ok(contador === "2", `la bolsa real del catálogo cuenta ${contador}`);
@@ -141,7 +174,7 @@ for (const [ancho, alto] of [
   const cta = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
-  if (capturas && (ancho === 390 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
+  if (capturas && (ancho === 393 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
   // «Entrar» (en el cierre): la pantalla de entrada de siempre.
   await pagina.locator('[data-cta="entrar"]').click();
   await pagina.waitForURL("**/entrar");
@@ -160,6 +193,14 @@ console.log("\nMovimiento reducido");
   await pagina.waitForTimeout(400);
   const m = await medir(pagina, 1);
   ok(m.burbujaVisible && m.nitida, "cada paso muestra su estado final al instante (burbuja completa sin animación)");
+  // Sin ♥: llega al «aaah» del termo en su estado final, sin toques.
+  for (let i = 2; i <= PASOS.findIndex((p) => p.id === "aaah-termo"); i++) {
+    await irAlPaso(pagina, i);
+    await pagina.waitForTimeout(500);
+  }
+  await pagina.waitForTimeout(1500);
+  const dr = await datos(pagina);
+  ok(dr.toques === "0" && dr.viajes === "0" && !(await medir(pagina, Number(dr.indice))).hiloVisible && dr.bolsa === "1", `con movimiento reducido no hay ♥ y el paso queda en su estado final (${dr.paso}, bolsa ${dr.bolsa}, toques ${dr.toques})`);
   if (process.env.CAPTURAS === "1") await pagina.screenshot({ path: "docs/capturas/landing/movimiento-reducido-390.png" });
   await contexto.close();
 }

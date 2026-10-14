@@ -2,7 +2,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { Isotipo, Logotipo } from "../marca";
-import { CAPITULOS, PASOS, type Paso } from "@/lib/landing/pasos";
+import { CAPITULOS_NOMBRES, PASOS, primerPasoDe, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
 import { KEY_MODO } from "@/lib/data/modo";
@@ -48,9 +48,6 @@ export function Landing() {
           </div>
 
           <div className="lt-arriba">
-            <span className="lt-capitulo" data-capitulo aria-hidden="true">
-              01 / {String(CAPITULOS).padStart(2, "0")}
-            </span>
             <a href="#cierre" className="lt-saltar tocable" data-saltar>
               Saltar
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -58,6 +55,8 @@ export function Landing() {
               </svg>
             </a>
           </div>
+
+          <Indice />
 
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
@@ -153,7 +152,7 @@ function Secciones() {
   return (
     <div className="lt-pasos" aria-hidden="true">
       {PASOS.map((p, i) => (
-        <div key={p.id} className="lt-paso" data-paso-seccion={i} />
+        <div key={p.id} id={`paso-${p.id}`} className="lt-paso" data-paso-seccion={i} />
       ))}
     </div>
   );
@@ -186,7 +185,28 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
   );
 }
 
-/** El ♥ que viaja por encima de los teléfonos: rosa con Ana, verde con la tienda y un check al despachar. */
+/**
+ * El índice del recorrido, al borde derecho (referencias/landing/ajustes-lewis-3.md §4): cuánto falta. En el teléfono, un punto por
+ * capítulo y la palabra solo del actual; en escritorio, todas. Cada uno lleva a su primer paso. El controlador marca el estado.
+ */
+function Indice() {
+  return (
+    <nav className="lt-indice" aria-label="Recorrido de la demo">
+      <ol>
+        {CAPITULOS_NOMBRES.map((nombre, i) => (
+          <li key={nombre}>
+            <a href={`#paso-${PASOS[primerPasoDe(i + 1)]!.id}`} className="lt-indice-capitulo" data-indice-capitulo={i + 1} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined}>
+              <span className="lt-indice-punto" aria-hidden="true" />
+              <span className="lt-indice-nombre">{nombre}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+/** El ♥, el dedo de la demo: aparece para cada toque (rosa con Ana, verde con la tienda, un check al despachar) y se va. */
 function Hilo() {
   const trazo = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
   return (
@@ -202,8 +222,8 @@ function Hilo() {
           <circle cx="12" cy="12" r="10.5" fill="var(--marca-bosque)" stroke="var(--marca-papel)" strokeWidth="1.4" />
           <path d="M7.4 12.3l3.1 3.1 6.1-6.6" fill="none" stroke="var(--marca-papel)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="lt-hilo-suma">2</span>
       </span>
+      <span className="lt-hilo-pulso" data-hilo-pulso />
     </div>
   );
 }

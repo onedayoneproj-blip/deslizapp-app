@@ -1,12 +1,22 @@
 "use client";
 // Lo común de los dos teléfonos de la demo (app/demo-landing/*), que viven en iframes de la landing, como «Así se ve»
-// (components/tienda/vista-previa-reel.tsx). La landing les manda el paso por postMessage y les pregunta dónde está cada ancla
-// del ♥ (window.__dzAncla). Ninguno escribe nada ni usa la red: los datos son lib/landing/db-demo.ts en memoria.
+// (components/tienda/vista-previa-reel.tsx). La landing les manda el paso por postMessage; ellos le avisan antes de cada toque
+// para que el ♥ vaya hasta ahí (el dedo de la demo) y le dicen dónde están las anclas de un viaje (window.__dzAncla). Ninguno escribe nada ni usa la red: los datos son lib/landing/db-demo.ts en memoria.
 
 import { useEffect, useRef } from "react";
-import { MENSAJE_LISTO, MENSAJE_PASO, type IdAncla, type MensajePaso } from "@/lib/landing/pasos";
+import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, type IdAncla, type MensajeDedo, type MensajePaso } from "@/lib/landing/pasos";
 
 export type Rect = { x: number; y: number; w: number };
+
+// El historial de un iframe es el de la página que lo contiene: las hojas reales (components/hoja.tsx) guardan una entrada al
+// abrirse y hacen history.back() al cerrarse, y eso deshacía un salto de la landing (el índice, «Saltar») o su «Atrás». Dentro de
+// la landing, los teléfonos no tocan el historial: pushState no guarda nada y back solo avisa con su popstate, como el navegador.
+if (typeof window !== "undefined" && window.parent !== window) {
+  history.pushState = () => {};
+  history.back = () => {
+    setTimeout(() => window.dispatchEvent(new PopStateEvent("popstate", { state: history.state })), 0);
+  };
+}
 
 declare global {
   interface Window {
@@ -63,46 +73,57 @@ export function useAnclas(buscar: (id: IdAncla) => { el: Element | null; w?: num
 
 export const esperar = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/** Dibuja un toque del dedo sobre un elemento (solo ilustración; no lo pulsa). */
-export function tocar(el: Element | null | undefined) {
-  if (!el) return;
+const centro = (el: Element) => {
   const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+};
+const enLaLanding = () => window.parent !== window;
+const avisar = (tipo: MensajeDedo["tipo"], el: Element) => window.parent.postMessage({ tipo, ...centro(el) } satisfies MensajeDedo, location.origin);
+
+/**
+ * Un toque de la demo sobre un elemento (solo ilustración; no lo pulsa). En la landing, el ♥ de la página es el dedo: se le avisa,
+ * va hasta el elemento y hace el pulso; se resuelve cuando llega, para que el componente reaccione justo entonces. Sola (`?paso=N`),
+ * dibuja un círculo aquí mismo.
+ */
+export async function tocar(el: Element | null | undefined) {
+  if (!el) return;
+  if (enLaLanding()) {
+    avisar(MENSAJE_TOQUE, el);
+    await esperar(DEDO_LLEGA);
+    return;
+  }
+  const { x, y } = centro(el);
   const punto = document.createElement("span");
   punto.setAttribute("aria-hidden", "true");
   Object.assign(punto.style, {
     position: "fixed",
-    left: `${r.left + r.width / 2 - 26}px`,
-    top: `${r.top + r.height / 2 - 26}px`,
+    left: `${x - 26}px`,
+    top: `${y - 26}px`,
     width: "52px",
     height: "52px",
     borderRadius: "50%",
-    background: "rgba(255,249,238,.55)",
     border: "3px solid #ff834f",
-    boxShadow: "0 0 0 6px rgba(255,131,79,.25)",
     zIndex: "2147483647",
     pointerEvents: "none",
   });
   document.body.appendChild(punto);
   void punto
-    .animate(
-      [
-        { opacity: 0, transform: "scale(1.6)" },
-        { opacity: 1, transform: "scale(1)", offset: 0.35 },
-        { opacity: 1, transform: "scale(.9)", offset: 0.7 },
-        { opacity: 0, transform: "scale(.9)" },
-      ],
-      { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)" },
-    )
+    .animate([{ opacity: 1, transform: "scale(.6)" }, { opacity: 0, transform: "scale(1.4)" }], { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)" })
     .finished.catch(() => {})
     .finally(() => punto.remove());
 }
 
-/** Toca y pulsa de verdad un botón de la app (el like real, «Registrar pedido»…). */
-export async function tocarYPulsar(el: Element | null | undefined, antes = 260) {
+/** Toca y pulsa de verdad un botón de la app (el like real, «Registrar pedido»…) cuando llega el ♥. */
+export async function tocarYPulsar(el: Element | null | undefined, despues = 120) {
   if (!el) return;
-  tocar(el);
-  await esperar(antes);
+  await tocar(el);
+  await esperar(despues);
   (el as HTMLElement).click();
+}
+
+/** El ♥ lleva el pedido hasta este elemento y se desvanece al llegar. */
+export function viajar(el: Element | null | undefined) {
+  if (el && enLaLanding()) avisar(MENSAJE_VIAJE, el);
 }
 
 /** La caja del TEXTO de un elemento (un título ocupa todo el ancho; su texto, no). */

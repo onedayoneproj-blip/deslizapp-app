@@ -19,14 +19,16 @@ import { BarraPedido, BotonPedido } from "../tienda/bolsa";
 import { HojaPedido } from "../tienda/hojas-compra";
 import { PedidoComprador } from "../tienda/pedido-comprador";
 import { ChatWhatsApp } from "./whatsapp";
-import { cajaDelTexto, esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePasoDeLaLanding } from "./telefono-iframe";
+import { cajaDelTexto, esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePasoDeLaLanding, viajar } from "./telefono-iframe";
 
 type Pantalla = "catalogo" | "chat" | "pedido";
 
-// Con scrollTo del iframe y no scrollIntoView: scrollIntoView también movería la página de la landing que lo contiene.
+// Con scrollTo del iframe y no scrollIntoView: scrollIntoView también movería la página de la landing que lo contiene. El reel
+// queda donde lo deja el catálogo (scroll-padding-top, bajo la cabecera): así la bolsa (--bagT) cae junto a «Compartir».
 const irAlReel = (slug: string, suave: boolean) => {
   const reel = document.getElementById("r-" + slug);
-  if (reel) window.scrollTo({ top: reel.getBoundingClientRect().top + window.scrollY, behavior: suave ? "smooth" : "auto" });
+  const margen = parseFloat(document.documentElement.style.scrollPaddingTop) || 0;
+  if (reel) window.scrollTo({ top: reel.getBoundingClientRect().top + window.scrollY - margen, behavior: suave ? "smooth" : "auto" });
 };
 type Estado = { actual: string; carrito: string[]; hoja: boolean; pantalla: Pantalla; enviado: boolean };
 
@@ -148,23 +150,24 @@ export function TelefonoCompradora() {
         await volarPedido();
         if (vigente()) setBar(false);
       } else if (destino === P.bolsa) {
-        await tocarYPulsar(document.querySelector("#bagDock button"), 280);
+        await tocarYPulsar(document.querySelector("#bagDock button"));
         if (!vigente()) return;
         flushSync(() => setEstado((e) => ({ ...e, hoja: true })));
         transformarPedido();
       } else if (destino === P.whatsapp) {
-        tocar(porTexto("#orBg button", /Enviar por WhatsApp/));
-        await esperar(380);
+        await tocar(porTexto("#orBg button", /Enviar por WhatsApp/));
         if (!vigente()) return;
         setEstado((e) => ({ ...e, hoja: false, pantalla: "chat", enviado: false }));
         await esperar(520);
         if (!vigente()) return;
-        tocar(document.querySelector("[data-enviar-wa]"));
-        await esperar(260);
-        if (vigente()) setEstado((e) => ({ ...e, enviado: true }));
+        await tocar(document.querySelector("[data-enviar-wa]"));
+        if (!vigente()) return;
+        setEstado((e) => ({ ...e, enviado: true }));
+        // El pedido sale de la bolsa y llega al chat: el ♥ lo lleva hasta la vista previa y se va.
+        await esperar(380);
+        if (vigente()) viajar(document.querySelector('[data-ancla="chat"]'));
       } else if (destino === P.seguimiento) {
-        tocar(document.querySelector("[data-vista-previa]"));
-        await esperar(320);
+        await tocar(document.querySelector("[data-vista-previa]"));
         if (vigente()) setEstado((e) => ({ ...e, pantalla: "pedido" }));
       } else fijo();
       return;
@@ -174,10 +177,10 @@ export function TelefonoCompradora() {
       setEstado((e) => ({ ...e, actual: "gorra" }));
       irAlReel("gorra", true);
     } else if (desde === P.termo) {
-      await tocarYPulsar(like("termo"), 120);
+      await tocarYPulsar(like("termo"));
       setBar(false);
     } else if (desde === P.tote) {
-      await tocarYPulsar(like("tote"), 120);
+      await tocarYPulsar(like("tote"));
       setBar(false);
       await esperar(250);
       if (!vigente()) return;
@@ -187,15 +190,8 @@ export function TelefonoCompradora() {
     else fijo();
   });
 
+  // De aquí sale el ♥ que cruza al teléfono de la tienda (paso «cambio»).
   useAnclas((id) => {
-    if (id === "burst-termo") return { el: document.querySelector("#r-termo .burst"), w: 130 };
-    if (id === "bolsa") return { el: document.querySelector("#bagDock button .cnt") ?? document.querySelector("#bagDock button"), w: 30 };
-    if (id === "tu-pedido") {
-      const h = document.querySelector("#orBg .wawho h2");
-      const caja = cajaDelTexto(h);
-      return { el: h, caja, w: 26, dx: caja ? caja.width / 2 + 22 : 0 };
-    }
-    if (id === "chat") return { el: document.querySelector('[data-ancla="chat"]'), w: 34 };
     if (id === "seguimiento") {
       const h = document.querySelector("#pvest-titulo");
       const caja = cajaDelTexto(h);
