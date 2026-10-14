@@ -161,8 +161,9 @@ for (const ancho of [390, 360]) {
   }
   {
     const s = await abrir(ancho, "/tienda/esencias-michel?demo#planes");
-    await s.page.waitForSelector("#plBg .sheet");
-    await recorrido("Planes", s, "#plBg .sheet", "#plBg .sbody");
+    await s.page.waitForSelector("#feed, .reel, main", { state: "attached" });
+    ok((await s.page.locator("#plBg").count()) === 0 && !(await s.page.getByText("Ver planes").count()), "Planes: #planes ya no abre nada");
+    ok(!s.errores.length, "Planes: #planes deja el catálogo normal, sin errores");
     await s.ctx.close();
   }
   {
