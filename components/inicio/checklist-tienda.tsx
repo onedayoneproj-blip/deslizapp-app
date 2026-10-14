@@ -16,6 +16,7 @@ import { productosPublicosDe, tiendaPublicaDe } from "@/lib/vista-previa-product
 import { HojaComoSeVe } from "../catalogo/hoja-producto-filas";
 import { HojaPublicarCatalogo } from "../catalogo/hoja-publicar-catalogo";
 import { useRouter } from "next/navigation";
+import { URL_BASE_CATALOGO } from "@/lib/config";
 import { useToast } from "../toast";
 import { HojaInstalarApp } from "../pwa/hoja-instalar-app";
 
@@ -165,7 +166,7 @@ function Checklist() {
     {hoja === "perfil" && <Perfil alCerrar={() => setHoja(null)} />}
     <HojaInstalarApp abierta={hoja === "instalar"} alCerrar={() => setHoja(null)} plataformaInicial={plataforma} />
     <HojaComoSeVe abierta={hoja === "vista"} alCerrar={() => setHoja(null)} visible datos={() => ({ tienda: tiendaPublicaDe(tienda), productos: productosPublicosDe(consulta.data?.productos ?? [], tienda.rubro) })} />
-    <HojaPublicarCatalogo abierta={hoja === "publicar"} alCerrar={() => setHoja(null)} enlace={`${typeof window === "undefined" ? "https://deslizapp.com" : window.location.origin}${enlace}`} productos={cantidad} alAgregarMas={() => { setHoja(null); router.push("/catalogo/nuevo"); }} alConfirmar={async () => {
+    <HojaPublicarCatalogo abierta={hoja === "publicar"} alCerrar={() => setHoja(null)} enlace={`${URL_BASE_CATALOGO}${enlace}`} productos={cantidad} alAgregarMas={() => { setHoja(null); router.push("/catalogo/nuevo"); }} alConfirmar={async () => {
       try { await datos.publicarMiCatalogo(tiendaId); setHoja(null); toast("Tu catálogo ya está en línea."); }
       catch(e) { toast(mensajeDeError(e, "No pudimos publicar. Inténtalo otra vez.")); }
     }} />
