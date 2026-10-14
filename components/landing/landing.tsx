@@ -1,47 +1,35 @@
+/* eslint-disable @next/next/no-img-element -- Capturas estáticas de la versión sin JavaScript: tamaño fijo, sin optimizador. */
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
-import { CAPITULOS, CRUCE, ESCENAS, anclaEn, en, fotoDe, HILO_APARECE, type Escena } from "@/lib/landing/escenas";
+import { CAPITULOS, PASOS, type Paso } from "@/lib/landing/pasos";
+import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
 import { KEY_MODO } from "@/lib/data/modo";
-import { DemoScroll } from "./controlador";
-import { Hilo } from "./hilo";
-import { PANTALLAS_DE, PantallasCompradora, PantallasTienda } from "./pantallas";
-import { entre, pista } from "./pista";
-import { Telefono } from "./telefono";
+import { DemoPasos } from "./controlador";
 import "./landing.css";
 
-// Antes de pintar: con JavaScript se usa el escenario animado (si no, la versión en pasos), y quien ya eligió «Ver demo» no
-// ve la landing mientras su panel de prueba abre (lib/data/sesion.ts lo decide en el navegador).
+// Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos), y quien ya eligió «Ver demo»
+// no ve la landing mientras su panel de prueba abre (lib/data/sesion.ts lo decide en el navegador).
 const ANTES_DE_PINTAR = `(function(){var r=document.documentElement;r.setAttribute("data-landing-js","");try{if(localStorage.getItem(${JSON.stringify(KEY_MODO)})==="demo")r.setAttribute("data-dz-demo","")}catch(e){}})();`;
 
-const dos = (n: number) => String(n).padStart(2, "0");
-
-/** La landing de deslizapp.com para quien no tiene sesión (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-1.md). */
+/** La landing de deslizapp.com para quien no tiene sesión (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {
-  const capitulos = Array.from({ length: CAPITULOS }, (_, i) => {
-    const escenas = ESCENAS.filter((e) => e.capitulo === i + 1);
-    return { n: i + 1, desde: en(escenas[0]!.id, 0), hasta: en(escenas[escenas.length - 1]!.id, 1) };
-  });
   return (
     <div className="landing" id="arriba">
       <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />
       <main>
-        <DemoScroll>
+        <DemoPasos pasos={<Secciones />}>
           {/* Fondo a pantalla completa: rosa de la compradora, verde de la tienda, y formas que asoman abajo */}
           <div className="lt-fondo" aria-hidden="true">
-            <div className="lt-fondo-tienda pista" style={pista({ entra: CRUCE.fondo })} />
+            <div className="lt-fondo-tienda" />
             <span className="lt-forma lt-forma-a" />
             <span className="lt-forma lt-forma-b" />
           </div>
 
           <div className="lt-zona">
-            <Telefono className="lt-tel-compradora pista desenfoca" style={pista({ sale: CRUCE.sale, x1: "-75%", s1: -0.18 })}>
-              <PantallasCompradora />
-            </Telefono>
-            <Telefono className="lt-tel-tienda pista" style={pista({ entra: CRUCE.entra, x0: "75%", s0: -0.18 })}>
-              <PantallasTienda />
-            </Telefono>
+            <Telefono id="compradora" src="/demo-landing/compradora" />
+            <Telefono id="tienda" src="/demo-landing/tienda" diferido />
           </div>
           <Hilo />
 
@@ -60,12 +48,8 @@ export function Landing() {
           </div>
 
           <div className="lt-arriba">
-            <span className="lt-capitulo" aria-hidden="true">
-              {capitulos.map((c, i) => (
-                <span key={c.n} className="pista" style={i === 0 ? pista({ sale: [c.hasta, c.hasta + 0.04] }) : entre(c.desde, i < capitulos.length - 1 ? c.hasta : 1e4)}>
-                  {dos(c.n)} / {dos(CAPITULOS)}
-                </span>
-              ))}
+            <span className="lt-capitulo" data-capitulo aria-hidden="true">
+              01 / {String(CAPITULOS).padStart(2, "0")}
             </span>
             <a href="#cierre" className="lt-saltar tocable" data-saltar>
               Saltar
@@ -75,16 +59,15 @@ export function Landing() {
             </a>
           </div>
 
-          <div className="lt-tarjeta" aria-hidden="true">
-            {ESCENAS.map((e, i) => (
-              <div key={e.id} className="lt-leyenda" data-leyenda={e.id}>
-                <LeyendaAnimada escena={e} primera={i === 0} ultima={i === ESCENAS.length - 1} />
-              </div>
+          {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
+          <div className="lt-burbujas" aria-live="polite">
+            {PASOS.map((p, i) => (
+              <Burbuja key={p.id} paso={p} indice={i} />
             ))}
           </div>
-        </DemoScroll>
+        </DemoPasos>
 
-        {/* Sin JavaScript o con movimiento reducido: la misma historia en pasos. Con animación queda para lectores de pantalla. */}
+        {/* Sin JavaScript: la misma historia en pasos, con una captura de cada uno. */}
         <section className="landing-pasos" aria-labelledby="pasos-titulo">
           <div className="mx-auto flex max-w-[560px] items-center justify-between px-4 pt-[calc(16px+env(safe-area-inset-top))]">
             <span className="flex items-center gap-1.5 text-texto">
@@ -99,22 +82,15 @@ export function Landing() {
             <h2 id="pasos-titulo" className="font-display text-titulo-pantalla">
               Un pedido, de principio a fin
             </h2>
-            <ol className="mt-6 flex flex-col gap-12">
-              {ESCENAS.map((e) => {
-                const p = fotoDe(e);
-                const { telefono, pantallas } = PANTALLAS_DE[e.id];
-                const ancla = p >= HILO_APARECE[1] ? anclaEn(p) : null;
-                return (
-                  <li key={e.id} className="flex flex-col gap-4" data-paso={e.id} data-lado={e.lado}>
-                    <Leyenda escena={e} />
-                    <Telefono className={`lt-tel-${telefono}`} style={{ "--p": p, ...(ancla ? { [`--ancla-${ancla}`]: 1 } : {}) } as CSSProperties}>
-                      {pantallas.map((Pantalla, j) => (
-                        <Pantalla key={j} />
-                      ))}
-                    </Telefono>
-                  </li>
-                );
-              })}
+            <ol className="mt-6 flex flex-col gap-10">
+              {PASOS.map((p) => (
+                <li key={p.id} className="flex flex-col gap-4" data-paso={p.id}>
+                  <p className="lt-burbuja-quieta" data-de={p.burbuja.de}>
+                    <b>{p.burbuja.texto}</b> {p.burbuja.remate && <span className="lt-remate">{p.burbuja.remate}</span>}
+                  </p>
+                  <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />
+                </li>
+              ))}
             </ol>
           </div>
         </section>
@@ -158,66 +134,90 @@ export function Landing() {
           <a href="#arriba" className="tocable mt-2 flex h-11 items-center text-[14px] font-bold text-texto-secundario underline underline-offset-4">
             Ver la demo otra vez
           </a>
+          <footer className="mt-10 flex justify-center gap-5 pb-[env(safe-area-inset-bottom)] text-[13px] text-texto-secundario">
+            <Link href="/privacidad" className="tocable flex items-center underline">
+              Privacidad
+            </Link>
+            <Link href="/terminos" className="tocable flex items-center underline">
+              Términos
+            </Link>
+          </footer>
         </section>
       </main>
-
-      <footer className="flex justify-center gap-5 px-4 pb-[calc(24px+env(safe-area-inset-bottom))] text-[13px] text-texto-secundario">
-        <Link href="/privacidad" className="tocable flex items-center underline">
-          Privacidad
-        </Link>
-        <Link href="/terminos" className="tocable flex items-center underline">
-          Términos
-        </Link>
-      </footer>
     </div>
   );
 }
 
-/** La tarjeta de una escena en la demo animada: el titular entra palabra por palabra, de borroso a nítido. */
-function LeyendaAnimada({ escena: e, primera, ultima }: { escena: Escena; primera: boolean; ultima: boolean }) {
-  const inicio = en(e.id, 0);
-  const fin = en(e.id, 1);
-  const sale: [number, number] | undefined = ultima ? undefined : [fin - 0.12, fin];
-  let k = 0;
-  // La primera escena ya está escrita al llegar; las demás escriben sus palabras al empezar.
-  const palabra = (texto: string, clase = "") => {
-    const a = primera ? -1 : inicio + 0.04 + k * 0.03;
-    k++;
-    return (
-      <span key={`${texto}-${k}`}>
-        <span className={`palabra ${clase}`} style={pista({ entra: [a, a + 0.12], sale })}>
-          {texto}
-        </span>{" "}
-      </span>
-    );
-  };
-  const titulo = e.titulo.split(" ").map((w) => palabra(w));
-  const remate = e.remate.split(" ").map((w) => palabra(w, "lt-remate"));
-  const apoyo = primera ? -1 : inicio + 0.08 + k * 0.03;
+/** Las secciones vacías que dan los pasos al scroll (una pantalla cada una, con snap). */
+function Secciones() {
   return (
-    <>
-      <p className="lt-titular">
-        {titulo}
-        <br />
-        {remate}
-      </p>
-      <p className="lt-apoyo palabra" style={pista({ entra: [apoyo, apoyo + 0.14], sale })}>
-        {e.apoyo}
-      </p>
-    </>
+    <div className="lt-pasos" aria-hidden="true">
+      {PASOS.map((p, i) => (
+        <div key={p.id} className="lt-paso" data-paso-seccion={i} />
+      ))}
+    </div>
   );
 }
 
-function Leyenda({ escena: e }: { escena: Escena }) {
+/** Un teléfono de la demo: la página real (app/demo-landing) en un iframe, a 393×852 y escalada. No es tocable. */
+function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; src: string; diferido?: boolean }) {
   return (
-    <div className="lt-tarjeta-quieta">
-      <span className="lt-lado" data-lado={e.lado}>
-        {e.lado === "compras" ? "Compras" : "Vendes"}
+    <div className={`lt-telefono lt-tel-${id}`} aria-hidden="true">
+      <span className="lt-isla" />
+      <div className="lt-pantalla">
+        <iframe data-telefono={id} {...(diferido ? { "data-src": src } : { src })} title="" tabIndex={-1} inert loading="eager" />
+      </div>
+    </div>
+  );
+}
+
+/** El ♥ que viaja por encima de los teléfonos: rosa con Ana, verde con la tienda y un check al despachar. */
+function Hilo() {
+  const trazo = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
+  return (
+    <div className="lt-hilo" data-hilo data-visible="no" aria-hidden="true">
+      <span className="lt-hilo-dentro">
+        <svg viewBox="0 0 24 24" className="lt-hilo-rosa">
+          <path d={trazo} fill="var(--marca-rosa-fija)" stroke="var(--marca-bosque)" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+        <svg viewBox="0 0 24 24" className="lt-hilo-verde">
+          <path d={trazo} fill="var(--marca-bosque)" stroke="var(--marca-papel)" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+        <svg viewBox="0 0 24 24" className="lt-hilo-check">
+          <circle cx="12" cy="12" r="10.5" fill="var(--marca-bosque)" stroke="var(--marca-papel)" strokeWidth="1.4" />
+          <path d="M7.4 12.3l3.1 3.1 6.1-6.6" fill="none" stroke="var(--marca-papel)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="lt-hilo-suma">2</span>
       </span>
-      <h3 className="lt-titular">
-        {e.titulo} <span className="lt-remate">{e.remate}</span>
-      </h3>
-      <p className="lt-apoyo">{e.apoyo}</p>
+    </div>
+  );
+}
+
+/** Una burbuja de chat: el texto entra palabra por palabra, de borroso a nítido. */
+function Burbuja({ paso, indice }: { paso: Paso; indice: number }) {
+  let k = 0;
+  const palabras = (texto: string, clase?: string): ReactNode[] =>
+    texto.split(" ").map((w) => (
+      <span key={k}>
+        <span className={`palabra${clase ? " " + clase : ""}`} style={{ "--i": k++ } as CSSProperties}>
+          {w}
+        </span>{" "}
+      </span>
+    ));
+  return (
+    <div className="lt-burbuja" data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-de={paso.burbuja.de}>
+      <p className="lt-burbuja-texto">
+        {palabras(paso.burbuja.texto)}
+        {paso.burbuja.remate && (
+          <>
+            <br />
+            {palabras(paso.burbuja.remate, "lt-remate")}
+          </>
+        )}
+      </p>
+      <span className="lt-burbuja-hora" aria-hidden="true">
+        {HORA_DEMO} <span className="lt-burbuja-checks">✓✓</span>
+      </span>
     </div>
   );
 }

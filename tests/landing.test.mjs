@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
 const demo = await import("../lib/landing/pedido-demo.ts");
-const { ESCENAS, DURACION, en, escenaEn, estadoDemo, fotoDe, agregadoEn, HILO, hiloEn, anclaEn, HILO_APARECE, CAPITULOS } = await import("../lib/landing/escenas.ts");
+const { PASOS, CAPITULOS, estadoPaso, indicePaso } = await import("../lib/landing/pasos.ts");
+const dbDemo = await import("../lib/landing/db-demo.ts");
 const enlaces = await import("../lib/landing/enlaces.ts");
 const { codigoPedidoValido } = await import("../lib/tienda/imagen-pedido.ts");
 
@@ -32,49 +33,47 @@ test("lo que ve la compradora usa estadoComprador", () => {
   assert.equal(demo.VISTA_PREVIA_DEMO.descripcion, "2 productos · RD$1,500");
 });
 
-test("las escenas siguen el guion y cubren todo el recorrido", () => {
+test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulos", () => {
   assert.deepEqual(
-    ESCENAS.map((e) => e.id),
-    ["bienvenida", "explorar", "revisar", "whatsapp-comprador", "seguimiento", "cambio", "notificacion", "whatsapp-tienda", "acceso", "gestion", "cierre"],
+    PASOS.map((p) => p.id),
+    ["hola", "pasa", "aaah-termo", "aaah-tote", "bolsa", "whatsapp", "seguimiento", "cambio", "aviso", "chat-tienda", "eres-tienda", "registrar", "pedidos", "confirmar", "despachar"],
   );
-  assert.ok(DURACION > 10);
-  for (const e of ESCENAS) {
-    assert.equal(escenaEn(en(e.id, 0.5)).id, e.id);
-    assert.equal(escenaEn(fotoDe(e)).id, e.id, `la foto de ${e.id} cae en su escena`);
-  }
-  assert.equal(escenaEn(DURACION + 5).id, "cierre");
+  const primeroTienda = PASOS.findIndex((p) => p.telefono === "tienda");
+  assert.ok(PASOS.slice(0, primeroTienda).every((p) => p.lado === "compras" && p.telefono === "compradora"));
+  assert.ok(PASOS.slice(primeroTienda).every((p) => p.lado === "tienda" && p.telefono === "tienda"));
+  assert.deepEqual([...new Set(PASOS.map((p) => p.capitulo))], Array.from({ length: CAPITULOS }, (_, i) => i + 1));
+  for (const p of PASOS) assert.ok(p.burbuja.texto.trim() && p.duracion > 0, p.id);
+  // El ♥ nace en el «aaah» del termo y desde ahí siempre tiene dónde estar.
+  const nace = PASOS.findIndex((p) => p.naceEn);
+  assert.equal(PASOS[nace].id, "aaah-termo");
+  assert.ok(PASOS.slice(0, nace).every((p) => p.ancla === null));
+  assert.ok(PASOS.slice(nace).every((p) => p.ancla !== null));
 });
 
-test("la bolsa cuenta con el scroll y retrocede igual", () => {
-  assert.equal(estadoDemo(0).bolsa, 0);
-  assert.equal(estadoDemo(agregadoEn(0) - 0.001).bolsa, 0);
-  assert.equal(estadoDemo(agregadoEn(0)).bolsa, 1);
-  assert.equal(estadoDemo(agregadoEn(0)).total, 950);
-  assert.equal(estadoDemo(agregadoEn(1)).total, 1500);
-  assert.equal(estadoDemo(en("revisar", 0)).bolsa, 2, "antes de revisar ya están los dos");
-  assert.equal(estadoDemo(en("cierre", 1)).bolsa, 2);
-  assert.equal(estadoDemo(en("revisar", 0.5)).codigoVisible, false);
-  assert.equal(estadoDemo(en("seguimiento", 0.5)).codigoVisible, true);
-  assert.equal(estadoDemo(en("seguimiento", 0.5)).lado, "compras");
-  assert.equal(estadoDemo(en("gestion", 0.5)).lado, "tienda");
-  assert.equal(estadoDemo(en("cierre", 0.5)).capitulo, CAPITULOS);
+test("la bolsa cuenta con los pasos y retrocede igual", () => {
+  assert.equal(estadoPaso(0).bolsa, 0);
+  assert.equal(estadoPaso(indicePaso("pasa")).bolsa, 0, "la gorra pasa sin like");
+  assert.equal(estadoPaso(indicePaso("aaah-termo")).total, 950);
+  assert.equal(estadoPaso(indicePaso("aaah-tote")).total, 1500);
+  assert.equal(estadoPaso(PASOS.length - 1).bolsa, 2);
+  assert.equal(estadoPaso(indicePaso("bolsa")).codigoVisible, false);
+  assert.equal(estadoPaso(indicePaso("whatsapp")).codigoVisible, true);
 });
 
-test("el ♥ descansa en orden y viaja entre anclas sin saltos", () => {
-  for (let i = 0; i < HILO.length; i++) {
-    assert.ok(HILO[i].desde <= HILO[i].hasta, HILO[i].ancla);
-    if (i) assert.ok(HILO[i - 1].hasta < HILO[i].desde, `${HILO[i - 1].ancla} → ${HILO[i].ancla}`);
-  }
-  assert.deepEqual(hiloEn(HILO[1].desde), { de: "bolsa", a: "bolsa", t: 0 });
-  const mitad = (HILO[1].hasta + HILO[2].desde) / 2;
-  const h = hiloEn(mitad);
-  assert.equal(h.de, "bolsa");
-  assert.equal(h.a, "tu-pedido");
-  assert.ok(Math.abs(h.t - 0.5) < 1e-9);
-  assert.equal(anclaEn(en("cierre", 0.9)), "despachar");
-  assert.ok(HILO_APARECE[0] < HILO[0].desde, "aparece con el «Lo quiero» del termo");
-  // Cruza de un teléfono al otro en el cambio de persona.
-  assert.equal(hiloEn(en("cambio", 0.6)).a, "notificacion");
+test("la base de la demo: La Vuelta con sus 3 productos y la solicitud del pedido, sin tocar el seed", () => {
+  const db = dbDemo.dbBase();
+  assert.deepEqual(db.tiendas.map((t) => t.nombre), ["La Vuelta"]);
+  const c = dbDemo.catalogoDemo(db);
+  assert.deepEqual(c.productos.map((p) => p.slug), ["gorra", "termo", "tote"]);
+  const v = dbDemo.vistaSolicitudDemo(db);
+  assert.equal(v.codigo, demo.CODIGO_DEMO);
+  assert.equal(v.total, 1500);
+  assert.equal(v.estado, "enviado");
+  const r = dbDemo.dbRegistrada();
+  assert.equal(r.db.pedidos.length, 1);
+  assert.equal(r.db.pedidos[0].estado, "nuevo");
+  assert.equal(r.db.pedidos[0].total, 1500);
+  assert.equal(r.pedidoId, dbDemo.dbRegistrada().pedidoId, "el pedido registrado es siempre el mismo");
 });
 
 test("los CTA van a destinos reales", () => {

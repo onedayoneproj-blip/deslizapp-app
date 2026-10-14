@@ -1,0 +1,60 @@
+/* Los teléfonos de la demo de la landing (app/demo-landing/*, dentro de iframes): pantallas apiladas que entran y salen.
+   No cambia catalogo.css ni el panel. Con movimiento reducido, sin transición. */
+html,
+body {
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.dz-pantalla {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  transform: translateX(104%);
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-pantalla[data-visible] {
+  transform: none;
+}
+[data-telefono="tienda"] .dz-pantalla {
+  z-index: auto;
+}
+.dz-bloqueo {
+  background:
+    radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.45), transparent 60%),
+    radial-gradient(90% 60% at 90% 90%, rgba(245, 201, 214, 0.5), transparent 60%),
+    #174b3a;
+}
+.dz-aviso {
+  opacity: 0;
+  transform: translateY(-40%);
+  transition:
+    opacity 300ms ease,
+    transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-aviso[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+.dz-globo {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 260ms ease,
+    transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-globo[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+.dz-borrador-vacio {
+  color: rgba(0, 0, 0, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dz-pantalla,
+  .dz-aviso,
+  .dz-globo {
+    transition: none;
+  }
+}
