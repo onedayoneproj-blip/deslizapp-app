@@ -11,7 +11,7 @@ Este encargo **la corrige en lo que no coincide con la app** (Planning lo compro
 
 Las tres imágenes de producto están en `referencias/landing/`: `gorra-verde.png`, `termo-rosado.png` y `tote-crema-verde.png`. Son PNG 1254×1254 con fondo transparente. Cópialas a `public/` en el tamaño y el formato que necesite la página (WebP o AVIF), sin perder la transparencia.
 
-El video de referencia no está disponible y no hace falta: las pantallas de comprador y de tienda se basan en **las pantallas reales de la app** (catálogo `components/tienda/`, pedido del comprador `components/tienda/pedido-comprador.tsx`, «¿Eres la tienda?» `components/pedido-catalogo/tienda-en-pedido.tsx`, panel de Pedidos). Las vuelves a dibujar como componentes animables. No incrustes la app real.
+El video de referencia no está disponible y no hace falta: las pantallas de comprador y de tienda se basan en **las pantallas reales de la app** (catálogo `components/tienda/`, pedido del comprador `components/tienda/pedido-comprador.tsx`, «¿Eres la tienda?» `components/pedido-catalogo/tienda-en-pedido.tsx`, panel de Pedidos). ~~Las vuelves a dibujar como componentes animables. No incrustes la app real.~~ **Corregido (ronda 2):** se usan los componentes reales con datos de ejemplo; ver `referencias/landing/ajustes-lewis-2.md`.
 
 ## Decisiones de Lewis y Planning (14 oct)
 1. **Dónde vive:** en **`deslizapp.com/`** para quien **no** tiene sesión.
