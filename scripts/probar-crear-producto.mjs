@@ -441,9 +441,12 @@ for (const ancho of ANCHOS) {
     await page.waitForTimeout(100);
     ok((await titulo(page)) === "¿Cuándo llega?" && (await page.locator("[data-contador-stock]").count()) === 0, "Por encargo: «¿Cuándo llega?» y sin contador");
     ok(await boton(page, "Seguir").isDisabled(), "…«Seguir» apagado hasta elegir cuándo");
+    ok(!(await page.getByRole("textbox", { name: "Cuándo llega" }).isVisible()), "«Otro» sin tocar: el campo no se ve");
     await page.getByRole("radio", { name: "Otro" }).tap();
+    // Sin esperas: el foco queda en el input que ya existía, en el mismo toque (lo que hace subir el teclado del iPhone).
+    ok((await page.evaluate(() => document.activeElement?.getAttribute("placeholder"))) === "Llega en 7 a 10 días", "«Otro»: el foco queda en el input justo después del toque, sin esperas");
     await page.waitForTimeout(100);
-    ok((await enfocado(page)) === "campo", "«Otro» abre el campo con el foco");
+    ok((await enfocado(page)) === "campo" && await page.getByRole("textbox", { name: "Cuándo llega" }).isVisible(), "«Otro» abre el campo con el foco");
     await escribir(page, "Llega el viernes");
     // Apagar y volver a prender el encargo no esconde lo escrito en «Otro».
     await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
