@@ -34,13 +34,13 @@ const ok = (cond, msg) => {
 };
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 
-/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
+/** Pregunta «¿Viene en varias opciones?»: toca «Sí» y marca las típicas del catálogo (lo que antes salía marcado de entrada). */
 async function abrirTipicas(page) {
-  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
-  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
-  await pastillas.first().click();
+  await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Sí", exact: true }).click();
   await page.waitForTimeout(150);
-  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+  const nombres = (await page.locator("[data-que-cambia] [role=checkbox]").allInnerTexts()).map((t) => t.trim());
+  const tipicas = nombres[0] === "Talla" ? ["Talla", "Color"] : nombres.slice(0, 1);
+  for (const n of tipicas) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
 }
 
 async function pagina(ancho, tienda) {
@@ -184,8 +184,8 @@ async function cosasHistoria(page, cosas) {
       if ((await c.getAttribute("aria-checked")) !== "true") await c.click();
       continue;
     }
-    await qc.getByRole("button", { name: "+ Otra", exact: true }).click();
-    const campo = page.getByRole("textbox", { name: "¿Qué otra cosa cambia?" });
+    const campo = qc.getByRole("textbox", { name: "¿Qué otra cosa cambia?" });
+    await campo.click();
     await campo.fill(n);
     await campo.press("Enter");
   }
@@ -200,7 +200,7 @@ async function valoresHistoria(page, cosa, valores) {
       if ((await pildora.getAttribute("aria-checked")) !== "true") await pildora.click();
       continue;
     }
-    await s.getByRole("button", { name: /^\+ Otr[oa]$/ }).click();
+    await s.getByRole("textbox", { name: /^Otr[oa] / }).click();
     await page.keyboard.type(v);
     await page.keyboard.press("Enter");
     await page.waitForTimeout(60);
@@ -531,7 +531,7 @@ for (const ancho of ANCHOS) {
     await valoresHistoria(page, "Tamaño", doce);
     await pasoHistoria(page, "Seguir");
     await valoresHistoria(page, "Color", doce);
-    ok(await page.locator('[data-valores-eje="Color"]').getByRole("button", { name: "+ Otro", exact: true }).isDisabled(), "Con 12 valores, «+ Otro» se queda (apagado)");
+    ok(await page.locator('[data-valores-eje="Color"]').getByRole("textbox", { name: "Otro color" }).isDisabled(), "Con 12 valores, «+ Otro» se queda (apagado)");
     ok(await page.getByRole("button", { name: "Seguir", exact: true }).isEnabled(), "12 × 12 = 144: se puede seguir");
     await captura(page, "20-144", ancho);
     await pasoHistoria(page, "Seguir");

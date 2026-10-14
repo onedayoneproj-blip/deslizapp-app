@@ -5,7 +5,7 @@ import { IconoCheck } from "../iconos";
 import { clases, FOCO } from "./comunes";
 
 /** Check en círculo `accion` de la opción elegida. */
-function CheckCirculo() {
+export function CheckCirculo() {
   return (
     <span aria-hidden="true" className="mov-pop-aparece grid size-5 shrink-0 place-items-center rounded-full bg-accion text-sobre-accion">
       <IconoCheck tamano={13} strokeWidth={3} />

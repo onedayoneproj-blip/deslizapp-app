@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
-import { flushSync } from "react-dom";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import { formatearPesos } from "@/lib/formato";
 import { inventarioCompleto, OPCIONES_CUANDO_LLEGA, opcionDeCuandoLlega, textoCuandoLlega } from "@/lib/historia-producto";
@@ -26,7 +25,8 @@ import { HojaPresentacion, type FotoBorrador } from "./hoja-presentacion";
 
 /**
  * «¿Cuándo llega?» de un producto por encargo (prototipo v4, b8 e I2): «3 a 5 días», «1 a 2 semanas», «1 mes» (se guardan
- * «Llega en …») y «Otro», que abre el campo con el foco en el mismo toque. «Otro» sigue abierto mientras el texto no sea una de
+ * «Llega en …») y «Otro», que abre el campo. El campo ya está montado (sin altura mientras no se usa): el foco se pone en el mismo toque sobre un
+ * input que ya existe, que es lo que hace subir el teclado del iPhone. «Otro» sigue abierto mientras el texto no sea una de
  * las opciones rápidas (también al apagar y volver a prender el encargo).
  */
 export function CuandoLlega({ texto, alCambiar, alEnter }: { texto: string; alCambiar: (t: string) => void; alEnter?: (e: KeyboardEvent<HTMLInputElement>) => void }) {
@@ -40,8 +40,8 @@ export function CuandoLlega({ texto, alCambiar, alEnter }: { texto: string; alCa
         valor={otroAbierto ? "otro" : opcionDeCuandoLlega(texto)}
         alCambiar={(id) => {
           if (id === "otro") {
-            flushSync(() => setOtro(true));
             caja.current?.querySelector<HTMLInputElement>("input")?.focus();
+            setOtro(true);
             return;
           }
           setOtro(false);
@@ -49,12 +49,12 @@ export function CuandoLlega({ texto, alCambiar, alEnter }: { texto: string; alCa
         }}
         opciones={[...OPCIONES_CUANDO_LLEGA.map((o) => ({ id: o as string, texto: o })), { id: "otro", texto: "Otro" }]}
       />
-      {otroAbierto && (
+      <div className={otroAbierto ? undefined : "-mt-3 h-0 overflow-hidden opacity-0"} aria-hidden={otroAbierto ? undefined : true}>
         <Campo
           etiqueta="Cuándo llega" icono={IconoReloj} value={texto} maxLength={40} onChange={(e) => alCambiar(e.target.value)}
-          placeholder="Llega en 7 a 10 días" enterKeyHint="done" onKeyDown={alEnter} data-campo-paso=""
+          placeholder="Llega en 7 a 10 días" enterKeyHint="done" onKeyDown={alEnter} data-campo-paso={otroAbierto ? "" : undefined} tabIndex={otroAbierto ? undefined : -1}
         />
-      )}
+      </div>
     </div>
   );
 }

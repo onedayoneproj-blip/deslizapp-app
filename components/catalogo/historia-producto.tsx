@@ -197,8 +197,6 @@ function Historia({
   const [encargoTexto, setEncargoTexto] = useState("");
   // Presentaciones como historia: las cosas que cambian (en el orden en que se eligieron) con sus valores, y lo del Inventario.
   const [ejes, setEjes] = useState<EjeHistoria[]>([]);
-  /** «Otra» en la pregunta del precio: «¿En qué cambia?» abre con el campo de «+ Otra» listo. */
-  const [abrirOtra, setAbrirOtra] = useState(false);
   const [presBorrador, setPresBorrador] = useState<Presentacion[]>([]);
   const [quitadas, setQuitadas] = useState<string[]>([]);
   const [fotosColor, setFotosColor] = useState<Record<string, string>>({});
@@ -310,18 +308,18 @@ function Historia({
     atrasRef.current = atras;
   });
   /**
-   * «¿Viene en varias opciones?»: siete barras en el mismo toque y «¿En qué cambia?». Con el nombre de una pastilla, solo esa cosa
-   * ya marcada; con `null` («Otra»), nada marcado y el campo de «+ Otra» listo. Sin argumento (el resumen «Cambiar»), lo que ya había.
+   * «¿Viene en varias opciones?» → «Sí» (o «Cambiar» en el resumen): siete barras en el mismo toque y «¿En qué cambia?» con lo que
+   * ya había (nada, la primera vez).
    */
-  const abrirVariantes = (cosa?: string | null) => {
+  const abrirVariantes = () => {
     if (sinCatalogo) return toast(porque);
-    const iniciales: EjeHistoria[] = cosa === undefined ? ejes : cosa === null ? [] : [{ nombre: cosa, valores: [], propia: false }];
-    flushSync(() => {
-      setEjes(iniciales);
-      setAbrirOtra(cosa === null);
-      alCambiarVariantes(iniciales.length);
-    });
+    flushSync(() => alCambiarVariantes(ejes.length));
     irA("cambia");
+  };
+  /** «No»: sigue al stock igual que «Seguir»; sin precio, dice qué falta. */
+  const sinOpciones = () => {
+    if (!listoParaSeguir) return toast("Escribe el precio para seguir.");
+    seguir();
   };
   const aplicarEjes = (nuevos: EjeHistoria[]) => {
     setEjes(nuevos);
@@ -511,7 +509,7 @@ function Historia({
       {paso === "cambia" && (
         <>
           <EncabezadoPaso titulo={textos.titulo} ayuda={textos.ayuda} separacion="mt-3.5" ayudaArriba="mt-1" />
-          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} empezarEnOtra={abrirOtra} alUsarOtra={() => setAbrirOtra(false)} />
+          <QueCambia rubro={tipo} ejes={ejes} alCambiar={cambiarEjes} avisar={toast} />
         </>
       )}
 
@@ -559,10 +557,10 @@ function Historia({
               {conVariantes && ejes.length > 0 ? (
                 <div className="flex items-center justify-between gap-3" data-resumen-opciones="">
                   <p className="text-destacado text-texto">{ejes.map((e) => e.nombre).join(" · ")}</p>
-                  <Chip hecho onClick={() => abrirVariantes()}>Cambiar</Chip>
+                  <Chip hecho onClick={abrirVariantes}>Cambiar</Chip>
                 </div>
               ) : (
-                <PreguntaOpciones rubro={tipo} alElegir={abrirVariantes} />
+                <PreguntaOpciones alSi={abrirVariantes} alNo={sinOpciones} />
               )}
             </div>
           )}
