@@ -98,7 +98,8 @@
    (si no cabe, el teléfono se achica un poco). */
 .lt-escenario {
   --alto-burbujas: 166px;
-  --ancho-indice: 96px;
+  /* el índice ya no lleva palabras: el teléfono recupera ese ancho */
+  --ancho-indice: 16px;
 }
 .lt-zona {
   position: absolute;
@@ -143,23 +144,57 @@
   border-radius: 15.5% / 7%;
   background: var(--marca-bosque);
 }
-/* La bienvenida: sin teléfono todavía, solo el logo. El teléfono entra en el paso siguiente. */
+/* La portada: el video de Lewis a pantalla completa (sin teléfono todavía), el logo arriba y la burbuja de «desliza». Un degradado
+   suave arriba y abajo para que se lean. El teléfono entra en el paso siguiente. */
 .lt-intro {
   position: absolute;
-  inset: var(--alto-arriba) 16px calc(var(--alto-burbujas) + var(--alto-abajo)) var(--ancho-indice);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--marca-bosque);
+  inset: 0;
+  z-index: 0;
+  background: var(--marca-rosa-fija);
   transition:
     opacity 500ms ease,
     transform 600ms var(--curva);
 }
+.lt-intro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(255, 249, 238, 0.7), transparent 18%),
+    linear-gradient(to top, rgba(16, 54, 42, 0.45), transparent 32%);
+}
+/* En el teléfono, el video llena la pantalla sobre la columna de la burbuja: así el texto del final («Comprar sin tanta
+   vuelta…», a la derecha) se lee entero y la burbuja no lo tapa. */
+.lt-portada-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--alto-burbujas) - var(--alto-abajo) + 12px);
+  object-fit: cover;
+  object-position: 60% 78%;
+  pointer-events: none;
+}
+/* Si iOS no la deja reproducir sola, queda el póster: sin botón de play. */
+.lt-portada-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+.lt-portada-logo {
+  position: absolute;
+  z-index: 1;
+  top: calc(16px + env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--marca-bosque);
+}
 .lt-escenario:not([data-paso="intro"]) .lt-intro {
   opacity: 0;
-  transform: translateY(-40px) scale(0.92);
+  transform: scale(1.04);
+  pointer-events: none;
 }
 .lt-escenario[data-paso="intro"] .lt-tel-compradora {
   transform: translateY(70%) scale(0.9);
@@ -277,10 +312,15 @@
   z-index: 4;
   pointer-events: none;
   --borde: 1;
+  transition: opacity 400ms ease;
 }
 .lt-borde-arriba {
   top: 0;
   height: calc(var(--alto-arriba) + 28px);
+}
+/* En la portada no: el logo va sobre el video, con su degradado. */
+.lt-escenario[data-paso="intro"] .lt-borde-arriba {
+  opacity: 0;
 }
 
 /* ---- Arriba: «Saltar» ---- */
@@ -311,64 +351,55 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El índice del recorrido, a la izquierda y en horizontal: en el teléfono, puntos y la palabra solo del capítulo actual;
-   en escritorio, la lista completa (ajustes-lewis-3.md §4 y las correcciones de Lewis) ---- */
+/* ---- El índice del recorrido, a la izquierda: solo rayas (ajustes-lewis-6.md). La actual, más larga y marcada; las vistas, algo
+   más que las que faltan. No sale en la portada. ---- */
 .lt-indice {
   position: absolute;
   z-index: 6;
-  left: max(8px, env(safe-area-inset-left));
+  left: max(4px, env(safe-area-inset-left));
   /* centrado en el alto del teléfono, sin bajar a las burbujas */
-  top: calc(var(--alto-arriba) + (100% - var(--alto-arriba) - var(--alto-burbujas) - var(--alto-abajo)) / 2);
+  top: calc(
+    var(--alto-arriba) +
+      (100% - var(--alto-arriba) - var(--alto-burbujas) - var(--alto-abajo)) / 2
+  );
   transform: translateY(-50%);
   color: var(--marca-bosque);
-  transition: color 600ms ease;
+  transition:
+    color 600ms ease,
+    opacity 400ms ease;
 }
 .lt-escenario[data-lado="tienda"] .lt-indice {
   color: var(--marca-papel);
 }
-.lt-indice ol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.lt-escenario[data-paso="intro"] .lt-indice {
+  opacity: 0;
+  visibility: hidden;
 }
 .lt-indice-capitulo {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  min-width: 28px;
-  padding: 0 2px;
+  width: 30px;
+  height: 44px;
+  padding-left: 4px;
   -webkit-tap-highlight-color: transparent;
 }
-.lt-indice-punto {
-  flex: none;
-  width: 8px;
-  height: 8px;
+.lt-indice-raya {
+  width: 10px;
+  height: 3px;
   border-radius: 999px;
-  border: 1.5px solid currentColor;
-  opacity: 0.55;
+  background: currentColor;
+  opacity: 0.3;
   transition:
     width 420ms var(--curva),
-    opacity 300ms ease,
-    background-color 300ms ease;
+    opacity 300ms ease;
 }
-.lt-indice-capitulo[data-estado="visto"] .lt-indice-punto {
-  background: currentColor;
-  opacity: 0.45;
+.lt-indice-capitulo[data-estado="visto"] .lt-indice-raya {
+  opacity: 0.55;
 }
-.lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
-  width: 14px;
-  background: currentColor;
+.lt-indice-capitulo[data-estado="actual"] .lt-indice-raya {
+  width: 22px;
+  height: 4px;
   opacity: 1;
-}
-.lt-indice-nombre {
-  display: none;
-  font-weight: 800;
-  font-size: 0.71875rem;
-  white-space: nowrap;
-}
-.lt-indice-capitulo[data-estado="actual"] .lt-indice-nombre {
-  display: block;
 }
 
 /* ---- Las burbujas: mensajes enviados de WhatsApp en iOS (modo oscuro), a la derecha, apiladas como un chat
@@ -395,7 +426,9 @@
   border-radius: 18px;
   background: var(--wa-enviado);
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    system-ui, sans-serif;
   font-weight: 400;
   /* el tamaño que Lewis dio por bueno (4a5be8a) */
   font-size: 1.5rem;
@@ -469,14 +502,6 @@
     top: calc(var(--alto-arriba) + 8px);
     bottom: 32px;
   }
-  /* El logo, donde después aparece el teléfono; la burbuja, a su izquierda como en los demás pasos. */
-  .lt-intro {
-    left: 50%;
-    right: auto;
-    width: min(46vw, 560px);
-    top: calc(var(--alto-arriba) + 8px);
-    bottom: 32px;
-  }
   .lt-burbujas {
     left: 200px;
     right: calc(50% + 40px);
@@ -489,25 +514,37 @@
     font-size: 2rem;
   }
   .lt-indice {
-    left: 32px;
-  }
-  .lt-indice ol {
-    gap: 2px;
+    left: 24px;
   }
   .lt-indice-capitulo {
-    gap: 12px;
-    min-height: 40px;
+    width: 48px;
   }
-  .lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
-    width: 22px;
+  .lt-indice-capitulo[data-estado="actual"] .lt-indice-raya {
+    width: 32px;
   }
-  .lt-indice-nombre {
-    display: block;
-    font-size: 0.9375rem;
-    opacity: 0.6;
+  /* La portada en escritorio: una columna 9:16 donde después aparece el teléfono, sobre el rosa de la marca (el video trae su
+     texto a la derecha: así no se recorta). */
+  .lt-intro {
+    background: transparent;
   }
-  .lt-indice-capitulo[data-estado="actual"] .lt-indice-nombre {
-    opacity: 1;
+  .lt-intro::after {
+    display: none;
+  }
+  .lt-portada-video {
+    left: 50%;
+    top: calc(var(--alto-arriba) + 8px);
+    bottom: 32px;
+    width: auto;
+    height: calc(100% - var(--alto-arriba) - 40px);
+    aspect-ratio: 9 / 16;
+    margin-left: calc(min(46vw, 560px) / 2);
+    transform: translateX(-50%);
+    border-radius: 28px;
+    box-shadow: 0 30px 60px -28px rgba(16, 54, 42, 0.6);
+  }
+  .lt-portada-logo {
+    top: 18px;
+    left: 24px;
   }
 }
 
@@ -527,7 +564,9 @@
   border-radius: 18px 18px 4px 18px;
   background: #364933;
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    system-ui, sans-serif;
   font-size: 1.3rem;
   line-height: 1.22;
 }

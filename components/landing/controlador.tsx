@@ -10,7 +10,7 @@ const BASE_HILO = 100;
  * Cuánto se queda el ♥ después del pulso: se va enseguida (el componente real reacciona entonces y en un like su burst es el
  * corazón: no se ven dos a la vez, ajustes-lewis-5.md). En «Despachar» se queda un momento, vuelto check.
  */
-const QUEDA = 40;
+const QUEDA = 0;
 const QUEDA_CHECK = 1300;
 const VIAJE = 700;
 
@@ -50,6 +50,15 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
      * Las burbujas como un chat (ajustes-lewis-4.md): la del paso abajo; las anteriores, encima, subidas lo que ocupan las de
      * abajo (--sube). La que ya no cabe en la columna se va; las siguientes esperan pequeñas abajo a la derecha.
      */
+    // El video de la portada: suena nunca (muted) y solo corre en la portada; con movimiento reducido o ahorro de datos, el póster.
+    // Si el navegador no deja reproducirlo solo, se queda el póster.
+    const video = e.querySelector<HTMLVideoElement>("[data-portada]");
+    const ahorroDeDatos = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+    const portada = (i: number) => {
+      if (!video) return;
+      if (PASOS[i]?.id === "intro" && !reducido.matches && !ahorroDeDatos()) void video.play().catch(() => {});
+      else video.pause();
+    };
     const columna = e.querySelector<HTMLElement>(".lt-burbujas");
     const apilar = (i: number) => {
       // (la columna menos los 4 px con que la burbuja se separa de su borde de abajo: landing.css .lt-burbuja)
@@ -174,6 +183,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         else c.removeAttribute("aria-current");
       });
       apilar(i);
+      portada(i);
       if (i >= 4) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);

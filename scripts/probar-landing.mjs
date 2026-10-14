@@ -7,7 +7,7 @@
 // movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por paso
 // (393×852 y 1440×900) en docs/capturas/landing/.
 import { createRequire } from "node:module";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, statSync } from "node:fs";
 import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
@@ -70,6 +70,9 @@ const medir = (pagina, i) =>
         // El índice no tapa el teléfono ni lo empuja.
         indiceTapa: Number(getComputedStyle(telefono).opacity) > 0.99 && cruza(ind, tel),
         capituloActual: actual,
+        indiceVisible: getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && Number(getComputedStyle(e.querySelector(".lt-indice")).opacity) > 0.5,
+        rayas: indice.map((c) => [c.querySelector(".lt-indice-raya")?.getBoundingClientRect().width ?? 0, c.getAttribute("aria-label"), c.getBoundingClientRect().height]),
+        burbujasVistas: vistas.length,
         capitulosVistos: vistos,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
         hiloVisible: e.querySelector("[data-hilo]").dataset.visible === "si",
@@ -125,8 +128,24 @@ for (const [ancho, alto] of [
     ok(!m.indiceTapa && m.indiceIzquierda && !m.burbujasCruzan, `${paso.id}: el índice (a la izquierda) y las burbujas no se cruzan con el mockup`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
-    if (paso.id === "intro") ok(m.introVisible && !m.telefonoVisible, "intro: el logo de Deslizapp, todavía sin teléfono");
-    else ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
+    if (paso.id === "intro") {
+      ok(m.introVisible && !m.telefonoVisible, "intro: la portada con el logo, todavía sin teléfono");
+      ok(!m.indiceVisible && m.burbujasVistas === 1, "intro: sin indicador y con una sola burbuja");
+      const v = await pagina.evaluate(() => {
+        const video = document.querySelector("[data-portada]");
+        return { muted: video.muted, playsinline: video.playsInline, poster: video.getAttribute("poster"), fuentes: [...video.querySelectorAll("source")].map((x) => x.getAttribute("src")) };
+      });
+      const pesos = v.fuentes.map((f) => statSync(`public${f}`).size);
+      ok(v.muted && v.playsinline && v.poster && pesos.length >= 1 && pesos.every((b) => b < 2.5e6), `intro: el video de la portada va sin sonido, con playsinline y póster, y pesa menos de 2.5 MB (${pesos.map((b) => (b / 1e6).toFixed(2)).join(" y ")} MB)`);
+    } else {
+      // El índice: 6 rayas (la actual, la más larga), cada una con su nombre para el lector de pantalla y 44 px de toque.
+      const anchos = m.rayas.map((r) => r[0]);
+      ok(
+        m.indiceVisible && m.rayas.length === 6 && anchos[paso.capitulo - 1] === Math.max(...anchos) && anchos.filter((a) => a === Math.max(...anchos)).length === 1 && m.rayas.every((r, k) => r[1] === CAPITULOS_NOMBRES[k] && r[2] >= 44),
+        `${paso.id}: el indicador tiene 6 rayas y la larga es la de «${CAPITULOS_NOMBRES[paso.capitulo - 1]}»`,
+      );
+      ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
+    }
     // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.
     const toques = Number(d.toques) - Number(antes.toques);
     const viajes = Number(d.viajes) - Number(antes.viajes);
@@ -228,6 +247,7 @@ console.log("\nMovimiento reducido");
   const pagina = await contexto.newPage();
   await pagina.goto(base + "/", { waitUntil: "networkidle" });
   await pagina.waitForTimeout(1200);
+  ok(await pagina.evaluate(() => document.querySelector("[data-portada]").paused), "en la portada, el video no se reproduce (queda el póster)");
   await irAlPaso(pagina, 1);
   await pagina.waitForTimeout(400);
   const m = await medir(pagina, 1);

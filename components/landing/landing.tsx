@@ -28,10 +28,17 @@ export function Landing() {
             <span className="lt-forma lt-forma-b" />
           </div>
 
-          {/* Antes del teléfono: el logo y la bienvenida */}
+          {/* La portada, antes del teléfono: el video de Lewis (ya trae su texto), el logo y una sola burbuja que invita a deslizar
+              (ajustes-lewis-6.md). Lo reproduce el controlador, salvo con movimiento reducido o ahorro de datos: entonces, el póster. */}
           <div className="lt-intro" aria-hidden="true">
-            <Isotipo tamano={96} />
-            <Logotipo className="text-[54px] min-[900px]:text-[72px]" />
+            <video className="lt-portada-video" data-portada muted loop playsInline preload="metadata" poster="/landing/portada.webp" tabIndex={-1}>
+              <source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"' />
+              <source src="/landing/portada.mp4" type="video/mp4" />
+            </video>
+            <span className="lt-portada-logo">
+              <Isotipo tamano={28} />
+              <Logotipo className="text-[24px]" />
+            </span>
           </div>
 
           <div className="lt-zona">
@@ -188,8 +195,9 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * El índice del recorrido, al borde derecho (referencias/landing/ajustes-lewis-3.md §4): cuánto falta. En el teléfono, un punto por
- * capítulo y la palabra solo del actual; en escritorio, todas. Cada uno lleva a su primer paso. El controlador marca el estado.
+ * El índice del recorrido, a la izquierda (ajustes-lewis-6.md): solo rayas, una por capítulo y la actual más larga. Cada una lleva
+ * a su primer paso, con 44 px de toque y el nombre del capítulo para el lector de pantalla. No sale en la portada. El controlador
+ * marca el estado.
  */
 function Indice() {
   return (
@@ -197,9 +205,15 @@ function Indice() {
       <ol>
         {CAPITULOS_NOMBRES.map((nombre, i) => (
           <li key={nombre}>
-            <a href={`#paso-${PASOS[primerPasoDe(i + 1)]!.id}`} className="lt-indice-capitulo" data-indice-capitulo={i + 1} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined}>
-              <span className="lt-indice-punto" aria-hidden="true" />
-              <span className="lt-indice-nombre">{nombre}</span>
+            <a
+              href={`#paso-${PASOS[primerPasoDe(i + 1)]!.id}`}
+              className="lt-indice-capitulo"
+              data-indice-capitulo={i + 1}
+              data-estado={i === 0 ? "actual" : "falta"}
+              aria-current={i === 0 ? "step" : undefined}
+              aria-label={nombre}
+            >
+              <span className="lt-indice-raya" aria-hidden="true" />
             </a>
           </li>
         ))}

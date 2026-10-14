@@ -117,7 +117,7 @@ export async function tocar(el: Element | null | undefined) {
  * Toca y pulsa de verdad un botón de la app (el like real, «Registrar pedido»…) cuando llega el ♥. Espera a que el ♥ se vaya: en
  * un like, el corazón que se ve después es el del burst real.
  */
-export async function tocarYPulsar(el: Element | null | undefined, despues = 280) {
+export async function tocarYPulsar(el: Element | null | undefined, despues = 360) {
   if (!el) return;
   await tocar(el);
   await esperar(despues);
