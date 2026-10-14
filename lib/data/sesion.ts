@@ -199,20 +199,24 @@ export function salirDeLaDemo() {
 
 /**
  * Cerrar sesión (real) o salir de la demo (sus datos se quedan guardados): vuelve a la entrada. En `/`, al cerrar una sesión
- * real se recarga cuando ya no hay cookie: el servidor pinta entonces la landing (el panel con sesión se eligió en el servidor
- * y, sin recargar, mostraría la entrada vieja).
+ * real se recarga cuando Supabase confirma el cierre y ya no hay cookie: el servidor pinta entonces la landing (el panel con
+ * sesión se eligió en el servidor y, sin recargar, mostraría la entrada). Una sesión que se cierra sola (SIGNED_OUT) sigue
+ * mostrando la entrada con su aviso, como en cualquier ruta (components/landing/inicio-publico.tsx: con aviso, entrada).
  */
 export async function salir() {
   const eraReal = estado?.tipo !== "demo";
   guardarModo(null);
   poner({ tipo: "entrada", aviso: null });
   if (eraReal && HAY_SUPABASE) {
+    let cerrada = false;
     try {
-      await createClient().auth.signOut();
+      const { error } = await createClient().auth.signOut();
+      cerrada = !error;
     } catch {
-      // Sin conexión: la sesión local igual se borra.
+      // Sin conexión: la sesión local igual se borra (si no, se queda en la entrada; no se recarga).
     }
-    if (window.location.pathname === "/") window.location.replace("/");
+    // Solo con la sesión cerrada de verdad (sin cookie): si no, el servidor vería la sesión y volvería al panel.
+    if (cerrada && !hayCookieDeSesion() && window.location.pathname === "/") window.location.replace("/");
   }
 }
 
