@@ -39,7 +39,7 @@ async function abrirTipicas(page) {
   await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Sí", exact: true }).click();
   await page.waitForTimeout(150);
   const nombres = (await page.locator("[data-que-cambia] [role=checkbox]").allInnerTexts()).map((t) => t.trim());
-  const tipicas = nombres.includes("Talla") ? ["Talla", "Color"] : nombres.slice(0, 1);
+  const tipicas = nombres[0] === "Talla" ? ["Talla", "Color"] : nombres.slice(0, 1);
   for (const n of tipicas) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
 }
 
