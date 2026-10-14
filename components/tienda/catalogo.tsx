@@ -215,6 +215,11 @@ export function Catalogo({
       void catalogoFoto;
       history.replaceState(resto, "", location.href);
     }
+    if (history.state?.catalogoVista === "planes") {
+      const { catalogoVista, ...resto } = history.state;
+      void catalogoVista;
+      history.replaceState(resto, "", location.href);
+    }
   }, []);
   useEffect(() => {
     const pop = () => {
@@ -223,6 +228,12 @@ export function Catalogo({
         trasCerrar.current = null;
         accion();
         return;
+      }
+      // La vista «planes» ya no existe: una entrada de historial vieja que la guarde se limpia.
+      if (history.state?.catalogoVista === "planes") {
+        const { catalogoVista, ...resto } = history.state;
+        void catalogoVista;
+        history.replaceState(resto, "", location.href);
       }
       setVista(
         history.state?.catalogoVista ??
