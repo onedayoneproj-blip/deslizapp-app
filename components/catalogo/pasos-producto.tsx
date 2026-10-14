@@ -22,7 +22,7 @@ import { OPCIONES_TIPICAS, type Rubro } from "@/lib/rubros";
 import type { OpcionProducto } from "@/lib/types";
 import { Foto } from "../foto";
 import { Hoja } from "../hoja";
-import { IconoCamara } from "../iconos";
+import { IconoCamara, IconoCheck } from "../iconos";
 import { MENSAJE_VISTA_PREVIA, type DatosVistaPrevia } from "../tienda/vista-previa-reel";
 import { Boton, Campo, Cantidad, Chip, Eleccion, FilaInterruptor } from "../ui";
 import { clases, FOCO } from "../ui/comunes";
@@ -148,16 +148,12 @@ export function TarjetaPresentaciones({ portada, nombre, precio, opciones }: { p
 }
 
 /** «¿En qué cambia?» (b11): lo típico del catálogo y otras cosas, hasta 2, y «+ Otra» para una propia. */
-export function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = false, alUsarOtra }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void; empezarEnOtra?: boolean; alUsarOtra?: () => void }) {
+export function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void }) {
   const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
   const lista = [...new Set([...[...tipicas, ...otras].slice(0, 4), ...ejes.map((e) => e.nombre)])];
-  const [otra, setOtra] = useState<string | null>(empezarEnOtra ? "" : null);
+  const [otra, setOtra] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const caja = useRef<HTMLDivElement>(null);
-  // «Otra» de la pregunta del precio vale para ESTA apertura: se consume al montar (si no, volver desde los valores reabriría el campo).
-  useEffect(() => {
-    if (empezarEnOtra) alUsarOtra?.();
-  }, [empezarEnOtra, alUsarOtra]);
   const llenos = ejes.length >= MAX_EJES;
   // Con 2 elegidas las demás se ven igual (como el lienzo); tocarlas explica el máximo.
   const lleno = () => avisar(`Ya elegiste ${MAX_EJES}: quita una para elegir otra.`);
@@ -181,7 +177,7 @@ export function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = fals
           const elegida = ejes.some((e) => e.nombre === nombre);
           return <Eleccion key={nombre} casilla elegida={elegida} onClick={() => alternar(nombre)}>{nombre}</Eleccion>;
         })}
-        {otra === null && (
+        {otra === null ? (
           <Eleccion
             accion elegida={false}
             onClick={() => {
@@ -192,18 +188,33 @@ export function QueCambia({ rubro, ejes, alCambiar, avisar, empezarEnOtra = fals
           >
             + Otra
           </Eleccion>
+        ) : (
+          <span className="relative inline-flex h-(--alto-control) w-52 min-w-0 items-center">
+            <input
+              type="text" enterKeyHint="done" autoComplete="off" aria-label="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR}
+              value={otra} data-campo-paso="" aria-invalid={error ? true : undefined}
+              onChange={(e) => { setOtra(e.target.value); setError(null); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); listoOtra(); }
+                else if (e.key === "Escape") { setOtra(null); setError(null); }
+              }}
+              onBlur={(e) => {
+                // Tocar el ✓ no es perder el campo: lo confirma el propio botón.
+                if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.hasAttribute("data-confirmar-otra")) return;
+                if (!otra.trim()) { setOtra(null); setError(null); }
+              }}
+              className={clases("h-full w-full min-w-0 rounded-full border-2 bg-superficie pr-11 pl-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario", error ? "border-peligro" : "border-accion")}
+            />
+            <button
+              type="button" aria-label="Agregar" data-confirmar-otra="" disabled={!otra.trim()} onMouseDown={(e) => e.preventDefault()} onClick={listoOtra}
+              className={clases("tocable absolute right-1 grid size-8 place-items-center rounded-full bg-accion text-sobre-accion disabled:opacity-40", FOCO)}
+            >
+              <IconoCheck tamano={16} strokeWidth={3} />
+            </button>
+          </span>
         )}
       </div>
-      {otra !== null && (
-        <div className="mt-3 flex items-start gap-2">
-          <Campo
-            className="flex-1" etiqueta="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR} value={otra} error={error} data-campo-paso=""
-            enterKeyHint="done" onChange={(e) => { setOtra(e.target.value); setError(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); listoOtra(); } }}
-          />
-          <Boton tamano="compacto" className="mt-7" deshabilitado={!otra.trim()} onClick={listoOtra}>Listo</Boton>
-        </div>
-      )}
+      {error && <p role="alert" className="mx-0.5 mt-2 text-[0.8125rem] text-peligro">{error}</p>}
       <p className="mx-0.5 mt-2.5 text-[0.8125rem] text-texto-secundario">Hasta {MAX_EJES}. Para la mayoría basta con talla y color.</p>
     </div>
   );
@@ -478,16 +489,14 @@ export function PasoPrecio({ titulo, ayuda, precio, alCambiar, variaDesde, enter
   );
 }
 
-/** «¿Viene en varias opciones?»: las cosas típicas del catálogo y «Otra» (`null`). Pieza aparte del paso del precio. */
-export function PreguntaOpciones({ rubro, alElegir }: { rubro: Rubro; alElegir: (cosa: string | null) => void }) {
+/** «¿Viene en varias opciones?»: Sí (abre «¿En qué cambia?» sin nada marcado) o No (sigue). Pieza aparte del paso del precio. */
+export function PreguntaOpciones({ alSi, alNo }: { alSi: () => void; alNo: () => void }) {
   return (
     <>
       <h2 className="font-display text-titulo-seccion text-texto" data-pregunta-opciones="">¿Viene en varias opciones?</h2>
       <div role="group" aria-label="¿Viene en varias opciones?" className="mt-2.5 flex flex-wrap gap-2">
-        {OPCIONES_TIPICAS[rubro].slice(0, MAX_EJES).map((cosa) => (
-          <Eleccion key={cosa} accion elegida={false} onClick={() => alElegir(cosa)}>{cosa}</Eleccion>
-        ))}
-        <Eleccion accion elegida={false} onClick={() => alElegir(null)}>Otra</Eleccion>
+        <Eleccion accion elegida={false} onClick={alSi}>Sí</Eleccion>
+        <Eleccion accion elegida={false} onClick={alNo}>No</Eleccion>
       </div>
     </>
   );

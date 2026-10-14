@@ -34,13 +34,11 @@ const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? {
 const { construirDesdeSeed } = await import("../lib/data/db.ts");
 
 /** `demo`: una base de la demo armada aquí (desde la semilla), que se pone una sola vez al abrir. */
-/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
-async function abrirTipicas(page) {
-  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
-  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
-  await pastillas.first().click();
+/** Pregunta «¿Viene en varias opciones?»: toca «Sí» y marca las típicas del catálogo en «¿En qué cambia?» (lo que antes salía marcado de entrada). */
+async function abrirTipicas(page, nombres = ["Talla", "Color"]) {
+  await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Sí", exact: true }).click();
   await page.waitForTimeout(150);
-  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+  for (const n of nombres) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
 }
 
 async function pagina(ancho, tienda, demo = null, alto = 844) {
@@ -252,7 +250,7 @@ for (const ancho of ANCHOS) {
     await escribir(page, "1450");
     ok((await page.locator("[data-precio-tarjeta]").innerText()) === "RD$1,450", "El precio aparece en la tarjeta");
     ok(await page.getByRole("heading", { name: "¿Viene en varias opciones?" }).isVisible() && (await page.getByText("Tiene tallas o colores").count()) === 0, "Con precio: la pregunta «¿Viene en varias opciones?» y ya no la pastilla suelta");
-    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Talla|Color|Otra", "…con las típicas de Ropa y «Otra»");
+    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Sí|No", "…con «Sí» y «No»");
     await tarjeta(page, "Paso 3");
     await captura(page, "3-precio", ancho);
     await page.keyboard.press("Enter");
@@ -1320,7 +1318,7 @@ console.log("\n=== Movimiento reducido: la celebración se ve quieta ===");
 for (const ancho of ANCHOS) {
   console.log(`\n=== ${ancho}px · Pregunta «¿Viene en varias opciones?» ===`);
 
-  console.log("• «¿Viene en varias opciones?»: una pastilla = solo esa cosa marcada; «Otra» = nada marcado y el campo listo; «Cambiar» al volver");
+  console.log("• «¿Viene en varias opciones?»: «Sí» = nada marcado; «+ Otra» se vuelve campo; «Cambiar» al volver");
   {
     const { ctx, page, errores } = await pagina(ancho, LINO);
     await abrir(page);
@@ -1334,33 +1332,69 @@ for (const ancho of ANCHOS) {
     ok(await pregunta.isVisible() && (await pregunta.evaluate((e) => getComputedStyle(e).fontSize)) === "20px", "La pregunta se ve, en tamaño de subtítulo de sección (20 px, no los 26 del título)");
     ok((await pregunta.evaluate((e) => getComputedStyle(e).fontFamily)).includes("Fredoka"), "…y en Fredoka (la fuente de títulos, font-display)");
     await captura(page, "pregunta-opciones-precio", ancho);
-    await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Talla", exact: true }).tap();
+    const sino = page.locator("[data-chip-presentaciones]");
+    ok((await sino.getByRole("button", { name: "Sí", exact: true }).isVisible()) && (await sino.getByRole("button", { name: "No", exact: true }).isVisible()), "«Sí» y «No» a la vista");
+    await sino.getByRole("button", { name: "Sí", exact: true }).tap();
     await page.waitForTimeout(150);
-    ok((await paso(page)) === "cambia" && (await page.locator("[data-barras-historia] span").count()) === 6, "«Talla» abre «¿En qué cambia?» en el mismo toque, con 6 barras (la regla de siempre: 6 si solo cambia una cosa)");
     const qc = page.locator("[data-que-cambia]");
     const marcada = (n) => qc.getByRole("checkbox", { name: n, exact: true }).getAttribute("aria-checked");
-    ok((await marcada("Talla")) === "true" && (await marcada("Color")) === "false", "…con solo Talla marcada");
+    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await marcada("Color")) === "false" && (await qc.getByRole("checkbox", { checked: true }).count()) === 0, "«Sí» abre «¿En qué cambia?» sin nada marcado");
+    await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+    ok((await page.locator("[data-barras-historia] span").count()) === 6, "…con Talla marcada, 6 barras (la regla de siempre: 6 si solo cambia una cosa)");
+    ok((await qc.getByRole("checkbox", { name: "Talla", exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor)) !== (await qc.getByRole("checkbox", { name: "Color", exact: true }).evaluate((e) => getComputedStyle(e).backgroundColor)) && (await qc.getByRole("checkbox", { name: "Talla", exact: true }).locator("svg").count()) === 1 && (await qc.getByRole("checkbox", { name: "Color", exact: true }).locator("svg").count()) === 0, "Elegida muestra el check y el relleno verde; sin elegir, nada");
     await qc.getByRole("checkbox", { name: "Color", exact: true }).tap();
     ok((await page.locator("[data-barras-historia] span").count()) === 7, "…y con Color también marcada, 7 barras");
     await qc.getByRole("checkbox", { name: "Color", exact: true }).tap();
     await boton(page, "Atrás").tap();
     await page.waitForTimeout(150);
     ok((await paso(page)) === "precio" && (await page.locator("[data-pregunta-opciones]").count()) === 1 && (await page.locator("[data-resumen-opciones]").count()) === 0, "«‹» con la cosa elegida pero sin valores vuelve al precio con la pregunta (sin presentaciones)");
-    await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Otra", exact: true }).tap();
+    await sino.getByRole("button", { name: "Sí", exact: true }).tap();
     await page.waitForTimeout(150);
-    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await marcada("Color")) === "false", "«Otra» abre «¿En qué cambia?» sin nada marcado");
-    ok((await page.evaluate(() => document.activeElement?.tagName)) === "INPUT" && await page.getByLabel("¿Qué otra cosa cambia?").isVisible(), "…con el campo de «+ Otra» listo y enfocado");
-    await escribir(page, "Aroma");
-    await boton(page, "Listo").tap();
+    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Volver a tocar «Sí»: «¿En qué cambia?» sin nada marcado y «+ Otra» cerrado");
+    {
+      const fila = qc.locator('[role="group"]');
+      const antes = await qc.getByRole("button", { name: "+ Otra" }).boundingBox();
+      await qc.getByRole("button", { name: "+ Otra" }).tap();
+      const campo = page.getByLabel("¿Qué otra cosa cambia?");
+      ok(await campo.isVisible() && (await page.evaluate(() => document.activeElement?.tagName)) === "INPUT", "«+ Otra» se vuelve campo con el foco dentro");
+      const dentro = await campo.boundingBox();
+      ok(Math.abs(dentro.y - antes.y) < 2 && (await campo.evaluate((e) => getComputedStyle(e).borderRadius)).length > 0 && Math.abs(dentro.height - antes.height) < 2, "…en el mismo sitio de la fila y con la misma altura");
+      ok((await fila.getByRole("button", { name: "+ Otra" }).count()) === 0, "…y la píldora «+ Otra» ya no está");
+      await captura(page, "otra-abierta", ancho);
+      await campo.evaluate((e) => e.blur());
+      await page.waitForTimeout(100);
+      ok((await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0 && (await qc.getByRole("button", { name: "+ Otra" }).count()) === 1, "Vacío y sin foco, vuelve a ser «+ Otra»");
+      await qc.getByRole("button", { name: "+ Otra" }).tap();
+    }
+    await page.keyboard.type("Aroma");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(100);
+    ok((await marcada("Aroma")) === "true" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Enter agrega «Aroma» (elegida) y cierra el campo");
     await seguir(page);
-    ok((await paso(page)) === "eje1", "«Listo» con «Aroma» y «Seguir» llevan a sus valores");
+    ok((await paso(page)) === "eje1", "«Seguir» lleva a sus valores");
     await boton(page, "Atrás").tap();
     await page.waitForTimeout(200);
-    ok((await paso(page)) === "cambia" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Al volver de los valores, el campo de «+ Otra» NO se reabre (la «Otra» de la pregunta se usó una vez)");
+    ok((await paso(page)) === "cambia" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Al volver de los valores, el campo de «+ Otra» sigue cerrado");
     await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
     ok((await qc.getByRole("checkbox", { name: "Aroma", exact: true }).getAttribute("aria-checked")) === "true", "…con Aroma y Talla elegidas (el máximo)");
     await qc.getByRole("button", { name: "+ Otra" }).tap();
     ok((await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0 && (await qc.getByRole("checkbox", { checked: true }).count()) === 2, "Con 2 elegidas no se puede abrir «+ Otra» ni añadir una tercera");
+    ok(errores.length === 0, "Sin errores en la consola");
+    await ctx.close();
+  }
+
+  console.log("• «No»: avanza al stock sin presentaciones");
+  {
+    const { ctx, page, errores } = await pagina(ancho, LINO);
+    await abrir(page);
+    await subirFoto(page, "#579");
+    await seguir(page);
+    await escribir(page, "Camiseta no");
+    await seguir(page);
+    await escribir(page, "900");
+    await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "No", exact: true }).tap();
+    await page.waitForTimeout(200);
+    ok((await paso(page)) === "stock" && (await titulo(page)) === "¿Cuántos tienes ahora?" && (await page.locator("[data-barras-historia] span").count()) === 5, "«No» avanza a «¿Cuántos tienes?» (5 barras), como «Seguir»");
     ok(errores.length === 0, "Sin errores en la consola");
     await ctx.close();
   }
@@ -1376,23 +1410,27 @@ for (const ancho of ANCHOS) {
     await escribir(page, "900");
     const qc = page.locator("[data-que-cambia]");
     const pastilla = (n) => page.locator("[data-chip-presentaciones]").getByRole("button", { name: n, exact: true });
-    if (ruta.startsWith("típica")) {
-      await pastilla("Talla").tap();
+    const sinMarcar = async () => {
+      await pastilla("Sí").tap();
       await page.waitForTimeout(150);
+      await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
+    };
+    if (ruta.startsWith("típica")) {
+      await sinMarcar();
       await boton(page, "Atrás").tap();
     } else if (ruta.startsWith("«Otra»")) {
-      await pastilla("Otra").tap();
+      await pastilla("Sí").tap();
       await page.waitForTimeout(150);
-      await escribir(page, "Aroma");
-      await boton(page, "Listo").tap();
+      await qc.getByRole("button", { name: "+ Otra" }).tap();
+      await page.keyboard.type("Aroma");
+      await page.keyboard.press("Enter");
       await seguir(page);
       ok((await paso(page)) === "eje1", `${ruta}: llega a los valores`);
       await boton(page, "Atrás").tap();
       await page.waitForTimeout(150);
       await boton(page, "Atrás").tap();
     } else {
-      await pastilla("Talla").tap();
-      await page.waitForTimeout(150);
+      await sinMarcar();
       await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
       await boton(page, "Atrás").tap();
     }
@@ -1414,7 +1452,7 @@ for (const ancho of ANCHOS) {
     await seguir(page);
     await captura(page, "perfumes-precio-vacio", ancho);
     await escribir(page, "1200");
-    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Tamaño|Otra", "Perfumes: «Tamaño» y «Otra»");
+    ok((await page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button").allInnerTexts()).join("|") === "Sí|No", "Perfumes: también «Sí» y «No» (lo típico de cada catálogo sale al tocar «Sí»)");
     await captura(page, "perfumes-precio", ancho);
     ok(errores.length === 0, "Sin errores en la consola");
     await ctx.close();

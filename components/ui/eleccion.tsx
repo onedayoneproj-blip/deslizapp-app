@@ -2,12 +2,13 @@
 
 import type { ReactNode } from "react";
 import { clases, FOCO, TOQUE_44 } from "./comunes";
-import { useRadiogrupo } from "./opcion";
+import { CheckCirculo, useRadiogrupo } from "./opcion";
 
 /**
- * Elección de una historia (crear producto, prototipo v4): una píldora que se elige con un toque y queda en `marca-rosa`, sin
- * check (las respuestas de «¿Cuándo llega?», y en presentaciones las tallas y los colores). Contorno de 2 px `borde-pastilla` y
- * relleno `superficie`; elegida, relleno y contorno `marca-rosa`. 44 px (`compacta`: 40, toque 44). Va dentro de `GrupoEleccion`.
+ * Elección de una historia (crear producto, prototipo v4): una píldora que se elige con un toque (las respuestas de «¿Cuándo
+ * llega?», y en presentaciones las tallas y los colores). Contorno de 2 px `borde-pastilla` y relleno `superficie`; elegida, verde
+ * como en toda la app: relleno y contorno `accion-suave` y el check en círculo a la izquierda (el de `Opcion`; en `compacta`, solo el
+ * color, para que la fila quepa a 360 px). 44 px (`compacta`: 40, toque 44). Va dentro de `GrupoEleccion`.
  */
 export function Eleccion({
   elegida,
@@ -49,9 +50,10 @@ export function Eleccion({
         "tocable relative inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 font-bold whitespace-nowrap text-texto disabled:opacity-40",
         compacta ? clases("h-10 px-3 text-secundario", TOQUE_44) : "h-(--alto-control) px-4 text-cuerpo",
         FOCO,
-        elegida ? "border-marca-rosa bg-marca-rosa" : "border-borde-pastilla bg-superficie",
+        elegida ? "border-accion-suave bg-accion-suave" : "border-borde-pastilla bg-superficie",
       )}
     >
+      {elegida && !accion && !compacta && <CheckCirculo />}
       {children}
     </button>
   );

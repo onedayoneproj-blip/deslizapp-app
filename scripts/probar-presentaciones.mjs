@@ -34,13 +34,13 @@ const ok = (cond, msg) => {
 };
 const navegador = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 
-/** Pregunta «¿Viene en varias opciones?»: toca la primera típica y marca las demás típicas (lo que antes salía marcado de entrada). */
+/** Pregunta «¿Viene en varias opciones?»: toca «Sí» y marca las típicas del catálogo (lo que antes salía marcado de entrada). */
 async function abrirTipicas(page) {
-  const pastillas = page.locator("[data-chip-presentaciones] [data-pregunta-opciones] + div button");
-  const nombres = (await pastillas.allInnerTexts()).map((t) => t.trim()).filter((t) => t !== "Otra");
-  await pastillas.first().click();
+  await page.locator("[data-chip-presentaciones]").getByRole("button", { name: "Sí", exact: true }).click();
   await page.waitForTimeout(150);
-  for (const n of nombres.slice(1)) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
+  const nombres = (await page.locator("[data-que-cambia] [role=checkbox]").allInnerTexts()).map((t) => t.trim());
+  const tipicas = nombres.includes("Talla") ? ["Talla", "Color"] : nombres.slice(0, 1);
+  for (const n of tipicas) await page.locator("[data-que-cambia]").getByRole("checkbox", { name: n, exact: true }).click();
 }
 
 async function pagina(ancho, tienda) {
