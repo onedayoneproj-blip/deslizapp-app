@@ -45,7 +45,6 @@ import { HojaPresentaciones } from "./hoja-presentaciones";
 import { VisorFicha } from "./visor-ficha";
 import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
 import { Coach, Historias, ArteFinal } from "./historias";
-import { Planes } from "./planes";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
 import { MarcaDeslizapp } from "./artes-deslizapp";
 const abrirWhatsApp = (telefono: string, texto: string) => {
@@ -67,7 +66,6 @@ type Vista =
   | "presentaciones"
   | "ficha"
   | "historia"
-  | "planes"
   | null;
 export function Catalogo({
   slug,
@@ -192,8 +190,7 @@ export function Catalogo({
         if (!entrada.current) {
           entrada.current = true;
           const hash = decodeURIComponent(location.hash.slice(1));
-          if (hash.startsWith("planes")) setVista("planes");
-          else if (hash === "como-funciona") setVista("historia");
+          if (hash === "como-funciona") setVista("historia");
           else if (!hash && datos.productos.length > 0 && !vioCoach(slug)) setVista("coach");
         }
       })
@@ -218,6 +215,11 @@ export function Catalogo({
       void catalogoFoto;
       history.replaceState(resto, "", location.href);
     }
+    if (history.state?.catalogoVista === "planes") {
+      const { catalogoVista, ...resto } = history.state;
+      void catalogoVista;
+      history.replaceState(resto, "", location.href);
+    }
   }, []);
   useEffect(() => {
     const pop = () => {
@@ -227,13 +229,15 @@ export function Catalogo({
         accion();
         return;
       }
+      // La vista «planes» ya no existe: una entrada de historial vieja que la guarde se limpia.
+      if (history.state?.catalogoVista === "planes") {
+        const { catalogoVista, ...resto } = history.state;
+        void catalogoVista;
+        history.replaceState(resto, "", location.href);
+      }
       setVista(
         history.state?.catalogoVista ??
-          (location.hash.startsWith("#planes")
-            ? "planes"
-            : location.hash === "#como-funciona"
-              ? "historia"
-              : null),
+          (location.hash === "#como-funciona" ? "historia" : null),
       );
     };
     window.addEventListener("popstate", pop);
@@ -1490,21 +1494,7 @@ export function Catalogo({
       {vista === "historia" && secciones?.como_funciona !== false && (
         <Historias
           cerrar={cerrar}
-          planes={() => abrir("planes", "#planes")}
           contacto={contacto}
-        />
-      )}
-      {vista === "planes" && (
-        <Planes
-          cerrar={cerrar}
-          tienda={t.nombre}
-          inicial={
-            typeof window !== "undefined"
-              ? (new URLSearchParams(location.hash.split("?")[1] ?? "").get(
-                  "plan",
-                ) ?? "pro")
-              : "pro"
-          }
         />
       )}
       {toast && (

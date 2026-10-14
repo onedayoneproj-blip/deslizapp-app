@@ -3652,9 +3652,6 @@ export function ArteHistoria({
           <a className={"swa"} href={contacto}>
             {"Escríbenos por WhatsApp"}
           </a>
-          <button className={"splans"} data-plans={true}>
-            {"Ver planes"}
-          </button>
           <button className={"sagain"} data-sagain={true}>
             {"Ver otra vez"}
           </button>

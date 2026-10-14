@@ -126,7 +126,6 @@ html.catalogo-html,
 :where(.catalogo-publico) #cmBg,
 :where(.catalogo-publico) #orBg,
 :where(.catalogo-publico) #ptOv,
-:where(.catalogo-publico) #plBg,
 :where(.catalogo-publico) #story,
 :where(.catalogo-publico) #coach,
 :where(.catalogo-publico) #pvBg {
@@ -2553,8 +2552,7 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .made :focus-visible,
 :where(.catalogo-publico) .ir :focus-visible,
-:where(.catalogo-publico) .story :focus-visible,
-:where(.catalogo-publico) .plpage :focus-visible {
+:where(.catalogo-publico) .story :focus-visible {
   outline: 2px solid var(--dz-coral);
   outline-offset: 2px;
 }
@@ -3068,9 +3066,7 @@ html.catalogo-html,
   animation: sbar var(--sdur, 3.8s) linear forwards;
 }
 :where(.catalogo-publico) .story.paused .sbars span.run i,
-:where(.catalogo-publico) .story.paused .slide.on *,
-:where(.catalogo-publico) .pls.paused .sbars span.run i,
-:where(.catalogo-publico) .pls.paused .slide.on * {
+:where(.catalogo-publico) .story.paused .slide.on * {
   animation-play-state: paused !important;
 }
 @keyframes sbar {
@@ -3251,10 +3247,6 @@ html.catalogo-html,
   background: var(--dz-coral);
   color: var(--dz-cream);
   box-shadow: 0 14px 28px -14px rgba(23, 75, 58, 0.9);
-}
-:where(.catalogo-publico) .scta .splans {
-  background: var(--dz-cream);
-  color: var(--dz-ink);
 }
 :where(.catalogo-publico) .scta .sagain {
   background: none;
@@ -3714,15 +3706,11 @@ html.catalogo-html,
   }
   :where(.catalogo-publico) .slide.on > h3,
   :where(.catalogo-publico) .slide.on > p,
-  :where(.catalogo-publico) .slide.on .scta,
-  :where(.catalogo-publico) .slide.on > .plskip {
+  :where(.catalogo-publico) .slide.on .scta {
     animation: irup 0.5s ease-out both;
   }
   :where(.catalogo-publico) .slide.on > p {
     animation-delay: 0.12s;
-  }
-  :where(.catalogo-publico) .slide.on > .plskip {
-    animation-delay: 0.24s;
   }
   :where(.catalogo-publico) .slide.on .scta {
     animation-delay: 0.24s;
@@ -4096,8 +4084,7 @@ html.catalogo-html,
 }
 /* Estilo de cristal, igual que la hoja del pedido */
 :where(.catalogo-publico) #cmBg .sheet,
-:where(.catalogo-publico) #ptOv .sheet,
-:where(.catalogo-publico) #plBg .sheet {
+:where(.catalogo-publico) #ptOv .sheet {
   position: relative;
   height: 74%;
   max-height: 74%;
@@ -4114,14 +4101,12 @@ html.catalogo-html,
   height: auto;
 }
 :where(.catalogo-publico) #cmBg .sheet.full,
-:where(.catalogo-publico) #ptOv .sheet.full,
-:where(.catalogo-publico) #plBg .sheet.full {
+:where(.catalogo-publico) #ptOv .sheet.full {
   height: 100%;
   max-height: 100%;
 }
 :where(.catalogo-publico) #cmBg .grab,
-:where(.catalogo-publico) #ptOv .grab,
-:where(.catalogo-publico) #plBg .grab {
+:where(.catalogo-publico) #ptOv .grab {
   position: absolute;
   left: 50%;
   top: 0;
@@ -4135,8 +4120,7 @@ html.catalogo-html,
   z-index: 2;
 }
 :where(.catalogo-publico) #cmBg .grab::before,
-:where(.catalogo-publico) #ptOv .grab::before,
-:where(.catalogo-publico) #plBg .grab::before {
+:where(.catalogo-publico) #ptOv .grab::before {
   content: "";
   width: 38px;
   height: 5px;
@@ -4144,22 +4128,19 @@ html.catalogo-html,
   background: rgba(0, 0, 0, 0.22);
 }
 :where(.catalogo-publico) #cmBg .shead,
-:where(.catalogo-publico) #ptOv .shead,
-:where(.catalogo-publico) #plBg .shead {
+:where(.catalogo-publico) #ptOv .shead {
   padding: 20px 56px 12px 18px;
   justify-content: flex-start;
   background: rgba(247, 248, 250, calc(0.3 + 0.6 * var(--p)));
   border-bottom: 1px solid rgba(0, 0, 0, calc(0.05 + 0.04 * var(--p)));
 }
 :where(.catalogo-publico) #cmBg .shead h2,
-:where(.catalogo-publico) #ptOv .shead h2,
-:where(.catalogo-publico) #plBg .shead h2 {
+:where(.catalogo-publico) #ptOv .shead h2 {
   font-size: 16px;
   text-align: left;
 }
 :where(.catalogo-publico) #cmBg .shead .x,
-:where(.catalogo-publico) #ptOv .shead .x,
-:where(.catalogo-publico) #plBg .shead .x {
+:where(.catalogo-publico) #ptOv .shead .x {
   top: 14px;
   right: 12px;
   width: 34px;
@@ -4173,15 +4154,13 @@ html.catalogo-html,
   display: grid;
   place-items: center;
 }
-:where(.catalogo-publico) #cmBg .sfoot,
-:where(.catalogo-publico) #plBg .sfoot {
+:where(.catalogo-publico) #cmBg .sfoot {
   background: rgba(247, 248, 250, calc(0.3 + 0.6 * var(--p)));
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding-bottom: max(12px, calc(env(safe-area-inset-bottom) * var(--p)));
 }
 :where(.catalogo-publico) #cmBg .sheet.full .shead,
-:where(.catalogo-publico) #ptOv .sheet.full .shead,
-:where(.catalogo-publico) #plBg .sheet.full .shead {
+:where(.catalogo-publico) #ptOv .sheet.full .shead {
   padding-top: max(20px, calc(env(safe-area-inset-top) + 12px));
 }
 :where(.catalogo-publico) .sheet.dragging {
@@ -4318,99 +4297,8 @@ html.catalogo-html,
   color: var(--muted);
   margin: 12px 0 0;
 }
-/* ---------- Deslizapp: página de planes + calculadora ---------- */
-:where(.catalogo-publico) #plBg {
-  z-index: 80;
-}
 :where(.catalogo-publico) #ptOv {
   z-index: 90;
-}
-:where(.catalogo-publico) .plpage {
-  height: 100%;
-  max-width: 560px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-:where(.catalogo-publico) .plbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  padding-top: max(8px, env(safe-area-inset-top));
-  background: rgba(255, 249, 238, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(16, 54, 42, 0.08);
-}
-:where(.catalogo-publico) .plbar .x {
-  width: 40px;
-  height: 40px;
-  border: 0;
-  background: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: var(--dz-ink);
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-:where(.catalogo-publico) .plbar .x:hover {
-  background: rgba(16, 54, 42, 0.06);
-}
-:where(.catalogo-publico) .plbar .x svg {
-  width: 22px;
-  height: 22px;
-}
-:where(.catalogo-publico) .plbar h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  flex: 1;
-}
-:where(.catalogo-publico) .plbar .plw .dzword {
-  height: 22px;
-  color: var(--dz-coral);
-  display: block;
-  margin-right: 6px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :where(.catalogo-publico) #plBg:not([hidden]) .plnext svg {
-    animation: plbob 1.6s ease-in-out infinite;
-  }
-}
-@keyframes plbob {
-  0%,
-  100% {
-    transform: none;
-  }
-  50% {
-    transform: translateY(5px);
-  }
-}
-:where(.catalogo-publico) .plhero {
-  margin: 2px 2px 18px;
-}
-:where(.catalogo-publico) .plhero h3 {
-  margin: 0;
-  font-size: 28px;
-  line-height: 1.08;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-:where(.catalogo-publico) .plhero h3 em {
-  font-style: normal;
-  color: var(--dz-coral);
-}
-:where(.catalogo-publico) .plhero p {
-  margin: 8px 0 0;
-  font-size: 15.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: rgba(16, 54, 42, 0.68);
 }
 :where(.catalogo-publico) .calc {
   background: #fff;
@@ -4690,18 +4578,6 @@ html.catalogo-html,
   text-underline-offset: 2px;
   cursor: pointer;
 }
-:where(.catalogo-publico) .plsec {
-  margin: 22px 2px 10px;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-:where(.catalogo-publico) .ptable {
-  background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(16, 54, 42, 0.06);
-  overflow: hidden;
-}
 :where(.catalogo-publico) .prow {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -4749,35 +4625,6 @@ html.catalogo-html,
 :where(.catalogo-publico) .prow[aria-pressed="true"] {
   background: rgba(23, 75, 58, 0.1);
   box-shadow: inset 4px 0 0 var(--dz-coral);
-}
-:where(.catalogo-publico) .plinc {
-  margin: 0;
-  padding: 14px 16px;
-  list-style: none;
-  background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(16, 54, 42, 0.06);
-  display: grid;
-  gap: 8px;
-}
-:where(.catalogo-publico) .plinc li {
-  position: relative;
-  padding-left: 26px;
-  font-size: 14.5px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-:where(.catalogo-publico) .plinc li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--dz-coral)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-    center/14px no-repeat;
 }
 :where(.catalogo-publico) .road {
   list-style: none;
@@ -4883,13 +4730,6 @@ html.catalogo-html,
   font-weight: 800;
   color: rgba(16, 54, 42, 0.78);
 }
-:where(.catalogo-publico) .plsub {
-  margin: -4px 2px 10px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: rgba(16, 54, 42, 0.58);
-  line-height: 1.4;
-}
 :where(.catalogo-publico) .terms {
   background: #fff;
   border-radius: 18px;
@@ -4937,7 +4777,6 @@ html.catalogo-html,
   line-height: 1.45;
   color: rgba(16, 54, 42, 0.7);
 }
-:where(.catalogo-publico) .plbar .sh,
 :where(.catalogo-publico) .stop .sh {
   width: 40px;
   height: 40px;
@@ -4950,13 +4789,6 @@ html.catalogo-html,
   flex: none;
   color: inherit;
 }
-:where(.catalogo-publico) .plbar .sh {
-  color: var(--dz-ink);
-}
-:where(.catalogo-publico) .plbar .sh:hover {
-  background: rgba(16, 54, 42, 0.06);
-}
-:where(.catalogo-publico) .plbar .sh svg,
 :where(.catalogo-publico) .stop .sh svg {
   width: 21px;
   height: 21px;
@@ -5000,435 +4832,10 @@ html.catalogo-html,
     transform: translate(-50%, 12px);
   }
 }
-:where(.catalogo-publico) .plnote {
-  margin: 14px 2px 0;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.45;
-  color: rgba(16, 54, 42, 0.58);
-}
-:where(.catalogo-publico) .plfoot {
-  flex: none;
-}
-/* ---------- Planes: hoja con tabla ---------- */
-:where(.catalogo-publico) #plBg .sheet {
-  height: 86%;
-  max-height: 86%;
-  color: var(--dz-ink);
-  font-family: var(--dz-font);
-}
-:where(.catalogo-publico) #plBg .plshare {
-  position: absolute;
-  top: 14px;
-  right: 54px;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.07);
-  color: #3b4a54;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-:where(.catalogo-publico) #plBg .plshare svg {
-  width: 17px;
-  height: 17px;
-}
-:where(.catalogo-publico) #plBg .sbody {
-  padding: 12px 12px 18px;
-}
-:where(.catalogo-publico) .plintro {
-  margin: 2px 4px 12px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: rgba(16, 54, 42, 0.7);
-}
-:where(.catalogo-publico) .ptab {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;
-  background: #fff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px -22px rgba(16, 54, 42, 0.5);
-}
-:where(.catalogo-publico) .ptab col.l {
-  width: 31%;
-}
-:where(.catalogo-publico) .ptab th,
-:where(.catalogo-publico) .ptab td {
-  padding: 10px 6px;
-  text-align: center;
-  font-size: 12.5px;
-  line-height: 1.25;
-  border-top: 1px solid rgba(16, 54, 42, 0.07);
-}
-:where(.catalogo-publico) .ptab thead th {
-  border-top: 0;
-  padding: 12px 4px 10px;
-  vertical-align: top;
-}
-:where(.catalogo-publico) .ptab tbody th {
-  text-align: left;
-  padding-left: 12px;
-  font-weight: 700;
-  color: rgba(16, 54, 42, 0.62);
-  font-size: 12px;
-}
-:where(.catalogo-publico) .ptab td {
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-:where(.catalogo-publico) .ptab td small {
-  display: block;
-  font-weight: 600;
-  font-size: 10.5px;
-  color: rgba(16, 54, 42, 0.55);
-  margin-top: 1px;
-}
-:where(.catalogo-publico) .ptab .pc {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  color: var(--dz-ink);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 100%;
-}
-:where(.catalogo-publico) .ptab .pc b {
-  font-size: 15px;
-  font-weight: 800;
-}
-:where(.catalogo-publico) .ptab .pc .pm {
-  font-size: 13.5px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  margin-top: 4px;
-  line-height: 1.1;
-}
-:where(.catalogo-publico) .ptab .pc .pm.q {
-  font-size: 12.5px;
-}
-:where(.catalogo-publico) .ptab .pc .ps {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(16, 54, 42, 0.6);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-}
-:where(.catalogo-publico) .ptab .pc small {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(16, 54, 42, 0.5);
-}
-:where(.catalogo-publico) .ptab .pc i {
-  font-style: normal;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--dz-coral);
-  color: #fff;
-  border-radius: 999px;
-  padding: 2px 7px;
-  visibility: hidden;
-}
-:where(.catalogo-publico) .ptab .hot .pc i {
-  visibility: visible;
-}
-:where(.catalogo-publico) .ptab .on {
-  background: color-mix(in srgb, var(--dz-coral) 9%, #fff);
-}
-:where(.catalogo-publico) .ptab thead .on {
-  box-shadow: inset 0 3px 0 var(--dz-coral);
-}
-:where(.catalogo-publico) .ptab .ok {
-  color: var(--dz-coral);
-  font-size: 15px;
-}
-:where(.catalogo-publico) .ptab .no {
-  color: rgba(16, 54, 42, 0.3);
-}
-:where(.catalogo-publico) .plnotes {
-  list-style: none;
-  margin: 14px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-:where(.catalogo-publico) .plnotes li {
-  background: #fff;
-  border-radius: 16px;
-  padding: 11px 13px;
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.42;
-  color: rgba(16, 54, 42, 0.78);
-}
-:where(.catalogo-publico) .plnotes b {
-  color: var(--dz-ink);
-}
-:where(.catalogo-publico) .plcred {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 9px;
-}
-:where(.catalogo-publico) .plcred span {
-  background: color-mix(in srgb, var(--dz-coral) 9%, #fff);
-  border-radius: 12px;
-  padding: 8px 4px;
-  text-align: center;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: rgba(16, 54, 42, 0.6);
-}
-:where(.catalogo-publico) .plcred span b {
-  display: block;
-  font-size: 15px;
-  color: var(--dz-ink);
-}
-:where(.catalogo-publico) .plhow {
-  margin-top: 12px;
-  background: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-}
-:where(.catalogo-publico) .plhow > summary {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 13px 14px;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-}
-:where(.catalogo-publico) .plhow > summary::-webkit-details-marker {
-  display: none;
-}
-:where(.catalogo-publico) .plhow > summary::after {
-  content: "";
-  width: 9px;
-  height: 9px;
-  border-right: 2.5px solid var(--dz-coral);
-  border-bottom: 2.5px solid var(--dz-coral);
-  transform: rotate(45deg) translate(-2px, -2px);
-  transition: transform 0.2s;
-}
-:where(.catalogo-publico) .plhow[open] > summary::after {
-  transform: rotate(225deg) translate(-2px, -2px);
-}
-:where(.catalogo-publico) .plhow .terms {
-  border-radius: 0;
-  border: 0;
-  border-top: 1px solid rgba(16, 54, 42, 0.07);
-}
-:where(.catalogo-publico) .plsoon2 {
-  margin: 14px 4px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(16, 54, 42, 0.6);
-}
-:where(.catalogo-publico) .plsoon2 span {
-  display: inline-block;
-  margin-right: 6px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: var(--dz-ink);
-  color: var(--dz-cream);
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-:where(.catalogo-publico) #plBg #plWa {
-  width: 100%;
-}
-/* ---------- Planes como historia (igual que "Cómo funciona") ---------- */
-:where(.catalogo-publico) .pls {
-  --sdur: 4200ms;
-  background: radial-gradient(
-    120% 80% at 50% 0%,
-    #22604b 0%,
-    var(--dz-ink) 55%,
-    #0d3327 100%
-  );
-  color: var(--dz-cream);
-  font-family: var(--dz-font);
-  user-select: none;
-  -webkit-user-select: none;
-}
-:where(.catalogo-publico) .pls .pin {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 14px 12px;
-}
-:where(.catalogo-publico) .pls .stop .brand .dzword {
-  height: 26px;
-}
-:where(.catalogo-publico) .pls .sbtns {
-  display: flex;
-  align-items: center;
-}
-:where(.catalogo-publico) .pls .stop .sh {
-  color: var(--dz-cream);
-}
 :where(.catalogo-publico) .sbars span.hold i {
   transform: scaleX(1);
 }
-:where(.catalogo-publico) .pslide.on {
-  pointer-events: none;
-}
-:where(.catalogo-publico) .pls .plskip {
-  pointer-events: auto;
-  position: relative;
-  z-index: 2;
-  margin-top: 18px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255, 249, 238, 0.14);
-  color: var(--dz-cream);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  padding: 12px 20px;
-  cursor: pointer;
-}
 /* pasos donde se interactúa: sin avance automático, con desplazamiento propio si hace falta */
-:where(.catalogo-publico) .pslide.work {
-  justify-content: flex-start;
-  align-items: stretch;
-  text-align: left;
-  gap: 0;
-  padding: 6px 2px 14px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  user-select: text;
-  -webkit-user-select: text;
-}
-:where(.catalogo-publico) .pslide.work::-webkit-scrollbar {
-  display: none;
-}
-:where(.catalogo-publico) .pslide.work.on {
-  pointer-events: auto;
-}
-:where(.catalogo-publico) .pslide.work > h3 {
-  margin: 6px 2px 4px;
-  font-size: clamp(26px, 7.6vw, 32px);
-  text-align: left;
-}
-:where(.catalogo-publico) .pslide.work > p.plsub2 {
-  margin: 0 2px 12px;
-  font-size: 14px;
-  max-width: none;
-  opacity: 0.75;
-}
-:where(.catalogo-publico) .pls.work .tapL,
-:where(.catalogo-publico) .pls.work .tapR,
-:where(.catalogo-publico) .pls.work .plhint {
-  display: none;
-}
-:where(.catalogo-publico) .pls .calc,
-:where(.catalogo-publico) .pls .plcard,
-:where(.catalogo-publico) .pls .terms {
-  color: var(--dz-ink);
-  flex: none;
-}
-:where(.catalogo-publico) .plcard {
-  background: var(--dz-cream);
-  border-radius: 24px;
-  padding: 14px 12px 4px;
-}
-:where(.catalogo-publico) .pls .plnote {
-  margin: 12px 4px 0;
-  color: rgba(255, 249, 238, 0.7);
-  max-width: none;
-  font-size: 13px;
-  opacity: 1;
-}
-:where(.catalogo-publico) .plsoon {
-  margin: 16px 4px 0 !important;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 14px !important;
-  opacity: 0.85 !important;
-  max-width: none !important;
-}
-:where(.catalogo-publico) .plsoon span {
-  align-self: flex-start;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  background: var(--dz-coral);
-  color: #fff;
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-:where(.catalogo-publico) .pls .plfoot {
-  margin: 0 10px calc(10px + env(safe-area-inset-bottom, 0px));
-  background: var(--dz-cream);
-  color: var(--dz-ink);
-  border-radius: 26px;
-  padding: 10px 10px 10px;
-  box-shadow: 0 -10px 40px -16px rgba(0, 0, 0, 0.6);
-}
-:where(.catalogo-publico) .pls:not(.work) .plfoot {
-  display: none;
-}
-:where(.catalogo-publico) .plnav {
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-:where(.catalogo-publico) .plnav button {
-  height: 40px;
-  border: 0;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-:where(.catalogo-publico) .plback {
-  background: rgba(16, 54, 42, 0.07);
-  color: var(--dz-ink);
-  font-size: 22px !important;
-  line-height: 1;
-}
-:where(.catalogo-publico) .plfwd {
-  background: var(--dz-ink);
-  color: var(--dz-cream);
-  padding: 0 16px;
-  font-size: 14px;
-}
-:where(.catalogo-publico) .plnav .plsum {
-  margin: 0;
-  text-align: center;
-  font-size: 12.5px;
-  line-height: 1.25;
-}
-:where(.catalogo-publico) .pls #plWa {
-  border-radius: 999px;
-}
 /* ilustraciones nuevas */
 :where(.catalogo-publico) .a7 .lnk {
   position: absolute;
@@ -5854,45 +5261,7 @@ html.catalogo-html,
   --tx: 4px;
   --ty: 84px;
 }
-
-:where(.catalogo-publico) .plsum {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(16, 54, 42, 0.62);
-  margin: 0 0 6px;
-  font-variant-numeric: tabular-nums;
-}
-:where(.catalogo-publico) #plWa {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: var(--dz-ink);
-  color: var(--dz-cream);
-  border-radius: 999px;
-  font-family: var(--dz-font);
-  font-size: 16.5px;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: none;
-  padding: 14px 18px 12px;
-  text-decoration: none;
-  box-shadow: 0 12px 24px -14px rgba(16, 54, 42, 0.7);
-}
-:where(.catalogo-publico) #plWa:hover {
-  background: #123f31;
-}
-:where(.catalogo-publico) #plWa svg {
-  width: 20px;
-  height: 20px;
-  color: #25d366;
-  margin-top: -2px;
-}
 @media (prefers-reduced-motion: no-preference) {
-  :where(.catalogo-publico) #plBg:not([hidden]) .plpage {
-    animation: plIn 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
-  }
   @keyframes plIn {
     from {
       transform: translateY(28px);
@@ -5913,11 +5282,6 @@ html.catalogo-html,
     100% {
       transform: none;
     }
-  }
-}
-@media (max-width: 360px) {
-  :where(.catalogo-publico) .plhero h3 {
-    font-size: 25px;
   }
 }
 :where(.catalogo-publico) .none {
@@ -6883,7 +6247,7 @@ html.catalogo-html,
     }
   }
   /* fondo oscuro de las hojas: aparece y se va suave */
-  :where(.catalogo-publico) .sheet-bg:not(#plBg) {
+  :where(.catalogo-publico) .sheet-bg {
     animation: tFadeIn 0.22s ease-out;
   }
   :where(.catalogo-publico) .sheet-bg.leaving {
@@ -6892,9 +6256,6 @@ html.catalogo-html,
   }
   :where(.catalogo-publico) .sheet-bg.leaving .sheet {
     animation: tSheetDown 0.22s ease-in forwards;
-  }
-  :where(.catalogo-publico) #plBg.leaving .plpage {
-    animation: tSheetDown 0.24s ease-in forwards;
   }
   /* guía "¿cómo se usa?" */
   :where(.catalogo-publico) .coach:not([hidden]) {
@@ -6949,9 +6310,6 @@ html.catalogo-html,
 :where(.catalogo-publico) .stop .brand .dzword {
   height: 25px;
 }
-:where(.catalogo-publico) .plbar .plw .dzword {
-  height: 22px;
-}
 :where(.catalogo-publico) .topmeta.dzmeta .dzword {
   height: 14px;
   margin-top: -1px;
@@ -6963,8 +6321,6 @@ html.catalogo-html,
 /* Titulares con la letra redonda de la marca */
 :where(.catalogo-publico) .slide > h3,
 :where(.catalogo-publico) .ir .cap h2,
-:where(.catalogo-publico) #plBg #plTitle,
-:where(.catalogo-publico) .ptab .pc b,
 :where(.catalogo-publico) .made .mrow button,
 :where(.catalogo-publico) .made .mrow a,
 :where(.catalogo-publico) .irbtns button,
@@ -7035,25 +6391,6 @@ html.catalogo-html,
   --dzib: #f5c9d6;
   --dzif: var(--dz-blue);
 }
-:where(.catalogo-publico) .story .splans {
-  background: var(--dz-cream);
-  color: var(--dz-blue);
-}
-/* Planes */
-:where(.catalogo-publico) #plBg {
-  --dz-coral: var(--dz-blue);
-  --dz-coral-d: #0f3a2c;
-  --dz-coral-l: #3e7a63;
-}
-:where(.catalogo-publico) #plBg #plWa {
-  background: var(--dz-blue);
-}
-:where(.catalogo-publico) .ptab .pc i {
-  background: #ff834f;
-}
-:where(.catalogo-publico) .plsoon2 span {
-  background: #ff834f;
-}
 /* Lema debajo del logo en las historias */
 :where(.catalogo-publico) .stop {
   align-items: flex-start;
@@ -7078,8 +6415,6 @@ html.catalogo-html,
 :where(.catalogo-publico) .story .scta .swa,
 :where(.catalogo-publico) .a7 .dl,
 :where(.catalogo-publico) .a10 .pl,
-:where(.catalogo-publico) .ptab .pc i,
-:where(.catalogo-publico) .plsoon2 span,
 :where(.catalogo-publico) .irbtns .iwa {
   color: #10362a;
 }
@@ -7315,13 +6650,6 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .story {
   background-image: none;
-}
-/* Planes: la columna elegida en rosa */
-:where(.catalogo-publico) .ptab .on {
-  background: #fceaf0;
-}
-:where(.catalogo-publico) .ptab thead .on {
-  box-shadow: inset 0 3px 0 #ff834f;
 }
 
 /* =====================================================================

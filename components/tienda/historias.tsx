@@ -11,11 +11,9 @@ import { Icono } from "./iconos";
 export { ArteFinal };
 export function Historias({
   cerrar,
-  planes,
   contacto,
 }: {
   cerrar: () => void;
-  planes: () => void;
   contacto: string;
 }) {
   const [indice, setIndice] = useState(0);
@@ -70,7 +68,6 @@ export function Historias({
           className="slides"
           onClick={(e) => {
             const target = e.target as HTMLElement;
-            if (target.closest("[data-plans]")) planes();
             if (target.closest("[data-sagain]")) setIndice(0);
           }}
         >

@@ -56,7 +56,6 @@ const estados = process.env.ESTADOS ? process.env.ESTADOS.split(",") : [
   "agotado",
   "coach",
   "como-funciona",
-  "planes",
   "final",
 ];
 const resultados = [];
@@ -123,15 +122,15 @@ async function preparar(p, react, estado) {
       document.getElementById("r-oxana").scrollIntoView({ block: "start" }),
     );
   if (estado === "coach") await p.locator("#helpBtn").click();
-  if (estado === "como-funciona" || estado === "planes") {
+  if (estado === "como-funciona") {
     await p.goto(
       URL +
         (react
           ? "/tienda/esencias-michel?demo"
           : "/catalogos/esencias-michel.html") +
-        (estado === "planes" ? "#planes" : "#como-funciona"),
+        "#como-funciona",
     );
-    await p.waitForSelector(estado === "planes" ? "#plBg" : "#story");
+    await p.waitForSelector("#story");
     await p.addStyleTag({
       content:
         "*,*::before,*::after{animation:none!important;transition:none!important}",
