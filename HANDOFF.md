@@ -65,6 +65,8 @@ números, avisos y cargas usan los componentes base (`tocable`, `Numero`,
 
 **Excepción concreta de movimiento para el carrusel del catálogo (11 oct 2026):** las barras tipo historia llenan su segmento activo con una animación de `transform: scaleX()` (5 s, lineal; pausada con `animation-play-state`) y la vista enfocada de fotos entra y sale con `opacity` y `transform` (`--mov-normal`/`--mov-rapida`, `--curva-*`); el zoom y los gestos de esa vista siguen al dedo con `transform`. Con movimiento reducido no hay avance automático ni animación de entrada o salida. Ver `docs/04-pantallas.md` (catálogo público).
 
+**Excepción concreta de movimiento para la landing de deslizapp.com (14 oct 2026, `docs/prompts/landing-demo-scroll.md`):** en `/` sin sesión, la demo de un pedido avanza y retrocede con el scroll de la página. Un solo `requestAnimationFrame` escribe el progreso en `--p` y cada elemento cruza ese valor con su ventana de `lib/landing/escenas.ts` (solo `transform` y `opacity`, sin renders de React por cuadro). Nada se mueve solo: sin scroll, la escena queda quieta. Con movimiento reducido o sin JavaScript se ve la misma historia en pasos estáticos. Prueba: `node scripts/probar-landing.mjs`.
+
 **Regresión de historial detectada al validar las animaciones:** al cerrar los borradores,
 el guard de Strict Mode impedía retirar su entrada también en producción. Ese guard
 solo corresponde a desarrollo. La salida vuelve a consumir la entrada de la hoja

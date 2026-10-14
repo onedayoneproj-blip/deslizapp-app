@@ -81,6 +81,10 @@
   transform: translate(calc((1 - var(--in)) * var(--x0) + var(--out) * var(--x1)), calc((1 - var(--in)) * var(--y0) + var(--out) * var(--y1)))
     scale(calc(1 + (1 - var(--in)) * var(--s0) + var(--out) * var(--s1)));
 }
+/* Las hojas salen bajando, sin desvanecerse (como en la app). */
+.lt-hoja.pista {
+  opacity: var(--in);
+}
 /* Se desplaza sin desvanecerse (las tarjetas del feed). */
 .mueve {
   transform: translate(calc((1 - var(--in)) * var(--x0) + var(--out) * var(--x1)), calc((1 - var(--in)) * var(--y0) + var(--out) * var(--y1)));

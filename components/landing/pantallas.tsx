@@ -452,8 +452,8 @@ export function PantallaPedidoConfirmado() {
 export function PantallaPedidoTienda() {
   return (
     <>
-      <PaginaPedido escena="acceso" tienda confirmado={false} entra={ventana("acceso", 0, 0.14)} sale={ventana("gestion", 0.48, 0.54)} />
-      <Velo entra={ventana("acceso", 0.3, 0.42)} sale={ventana("gestion", 0.48, 0.54)} />
+      <PaginaPedido escena="acceso" tienda confirmado={false} entra={ventana("acceso", 0, 0.14)} sale={ventana("gestion", 0.54, 0.58)} />
+      <Velo entra={ventana("acceso", 0.3, 0.42)} sale={ventana("gestion", 0.47, 0.52)} />
       <div className="lt-hoja lt-hoja-compacta pista" style={pista({ entra: ventana("acceso", 0.3, 0.44), y0: "100%", sale: ventana("gestion", 0, 0.1), y1: "100%" })}>
         <div className="mx-auto mt-2 h-[5px] w-10 rounded-full bg-borde-pastilla" />
         <div className="flex items-center justify-between px-5 pt-3">
@@ -565,7 +565,7 @@ export function PantallaGestion() {
   return (
     <>
       {/* Panel › Pedidos */}
-      <Capa style={pista({ entra: v(0.46, 0.54), sale: ventana("cierre", 0, 0.25) })} className="bg-fondo text-texto">
+      <Capa style={pista({ entra: v(0.5, 0.57), x0: "100%", sale: ventana("cierre", 0, 0.25) })} className="bg-fondo text-texto">
         <div className="flex items-center gap-2.5 px-5 pt-[60px]">
           <AvatarTienda tamano={40} />
           <div className="leading-tight">
@@ -645,8 +645,10 @@ export function PantallaGestion() {
           </li>
         </ul>
         <div className="relative px-5 pt-3 pb-9">
-          <span className="presiona pista flex h-[54px] items-center justify-center rounded-full bg-accion text-[16px] font-extrabold text-sobre-accion" style={pista({ entra: v(0.8, 0.83), sale: [confirma - 0.02, confirma] })}>
-            Confirmar pedido
+          <span className="pista block" style={pista({ sale: [confirma - 0.02, confirma] })}>
+            <span className="presiona flex h-[54px] items-center justify-center rounded-full bg-accion text-[16px] font-extrabold text-sobre-accion" style={pista({ entra: v(0.8, 0.83), sale: v(0.83, 0.85) })}>
+              Confirmar pedido
+            </span>
           </span>
           <span className="pista absolute inset-x-5 top-3 flex h-[54px] items-center justify-center rounded-full bg-resalte text-[16px] font-extrabold text-sobre-resalte" style={pista({ entra: [confirma, confirma + 0.02] })}>
             Despachar pedido
@@ -656,7 +658,7 @@ export function PantallaGestion() {
       </div>
 
       {/* «Pedido del catálogo» (registrar-solicitud.tsx): la tienda lo registra */}
-      <div className="lt-hoja lt-hoja-grande pista" style={pista({ entra: v(0.04, 0.14), y0: "100%", sale: v(0.46, 0.54), y1: "100%" })}>
+      <div className="lt-hoja lt-hoja-grande pista" style={pista({ entra: v(0.04, 0.14), y0: "100%", sale: v(0.47, 0.52), y1: "100%" })}>
         <div className="mx-auto mt-2 h-[5px] w-10 rounded-full bg-borde-pastilla" />
         <div className="flex items-center justify-between px-5 pt-3">
           <h3 className="font-display text-[24px]">Pedido del catálogo</h3>

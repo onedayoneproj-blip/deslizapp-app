@@ -40,7 +40,7 @@ export const ESCENAS: Escena[] = [
   { id: "revisar", pantallas: 1.6, lado: "compras", titulo: "Tu pedido,", remate: "con todo en su sitio.", apoyo: "Productos, cantidades y total antes de enviarlo.", foto: 0.6 },
   { id: "whatsapp-comprador", pantallas: 1.7, lado: "compras", titulo: "Del catálogo a WhatsApp.", remate: "Con las fotos incluidas.", apoyo: "El mensaje sale armado, con el total y el enlace del pedido.", foto: 0.7 },
   { id: "seguimiento", pantallas: 1.4, lado: "compras", titulo: "Abre el enlace", remate: "y mira cómo va.", apoyo: "El pedido se queda ahí, con su estado.", foto: 0.6 },
-  { id: "cambio", pantallas: 0.9, lado: null, titulo: "Ahora te toca a ti,", remate: "como tienda.", apoyo: "El mismo pedido, del otro lado.", foto: 0.85 },
+  { id: "cambio", pantallas: 0.9, lado: null, titulo: "Ahora te toca a ti,", remate: "como tienda.", apoyo: "El mismo pedido, del otro lado.", foto: 0.76 },
   { id: "notificacion", pantallas: 1, lado: "tienda", titulo: "Te escribe por WhatsApp.", remate: "Como siempre.", apoyo: "Lo que cambia es lo que trae el mensaje.", foto: 0.55 },
   { id: "whatsapp-tienda", pantallas: 1.1, lado: "tienda", titulo: "Mismo pedido.", remate: "Sin «¿cuál era?».", apoyo: "Productos, total y el enlace, en un solo mensaje.", foto: 0.6 },
   { id: "acceso", pantallas: 1.4, lado: "tienda", titulo: "¿Eres la tienda?", remate: "Entra con tu cuenta.", apoyo: "Solo la cuenta de la tienda puede gestionar el pedido.", foto: 0.55 },
