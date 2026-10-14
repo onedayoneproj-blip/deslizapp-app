@@ -94,15 +94,19 @@
 }
 
 /* ---- Los teléfonos: el mockup del iPhone con su proporción, escalado entero al alto disponible ---- */
+/* Abajo, el espacio de las burbujas; a la izquierda, el del índice: ni las burbujas ni el índice se montan sobre el teléfono
+   (si no cabe, el teléfono se achica un poco). */
 .lt-escenario {
-  --alto-burbujas: 166px;
+  --alto-burbujas: 132px;
+  --ancho-indice: 96px;
 }
 .lt-zona {
   position: absolute;
-  left: 16px;
+  left: var(--ancho-indice);
   right: 16px;
   top: var(--alto-arriba);
-  bottom: calc(var(--alto-burbujas) + var(--alto-abajo));
+  /* aire entre el teléfono y las burbujas */
+  bottom: calc(var(--alto-burbujas) + var(--alto-abajo) + 10px);
   container-type: size;
 }
 .lt-telefono {
@@ -142,7 +146,7 @@
 /* La bienvenida: sin teléfono todavía, solo el logo. El teléfono entra en el paso siguiente. */
 .lt-intro {
   position: absolute;
-  inset: var(--alto-arriba) 16px calc(var(--alto-burbujas) + var(--alto-abajo));
+  inset: var(--alto-arriba) 16px calc(var(--alto-burbujas) + var(--alto-abajo)) var(--ancho-indice);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -222,36 +226,40 @@
   opacity: 0;
   transform: scale(0.4);
 }
-.lt-hilo-dentro > svg {
+.lt-hilo-corazon,
+.lt-hilo-check {
   position: absolute;
   inset: 0;
+  transition:
+    opacity 300ms ease,
+    transform 300ms var(--curva);
+}
+.lt-hilo-corazon > svg,
+.lt-hilo-check {
+  display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
-  transition:
-    opacity 400ms ease,
-    transform 400ms var(--curva);
 }
-.lt-hilo-verde,
-.lt-hilo-check {
-  opacity: 0;
+/* El like del reel: relleno y trazo mandarina (el mismo valor que --dzf-mandarina del catálogo, que sale de la marca). */
+.lt-hilo-corazon {
+  color: var(--marca-mandarina);
 }
-.lt-escenario[data-lado="tienda"] .lt-hilo-rosa {
-  opacity: 0;
-}
-.lt-escenario[data-lado="tienda"] .lt-hilo-verde {
-  opacity: 1;
+.lt-hilo-corazon path {
+  fill: currentColor;
 }
 .lt-hilo-check {
+  opacity: 0;
   transform: scale(0.5);
 }
-.lt-escenario[data-check="si"] .lt-hilo-verde {
+.lt-escenario[data-check="si"] .lt-hilo-corazon {
   opacity: 0;
 }
 .lt-escenario[data-check="si"] .lt-hilo-check {
   opacity: 1;
   transform: none;
 }
+
 /* El pulso del toque: un círculo que se abre desde el ♥ (lo anima el controlador). */
 .lt-hilo-pulso {
   position: absolute;
@@ -259,9 +267,6 @@
   border-radius: 50%;
   border: 6px solid var(--marca-mandarina);
   opacity: 0;
-}
-.lt-escenario[data-lado="tienda"] .lt-hilo-pulso {
-  border-color: var(--marca-papel);
 }
 
 /* ---- Desenfoque progresivo arriba y abajo (usa .hoja-borde de app/globals.css) ---- */
@@ -306,12 +311,14 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El índice del recorrido, al borde derecho: puntos en el teléfono (solo el actual dice su palabra), lista en escritorio ---- */
+/* ---- El índice del recorrido, a la izquierda y en horizontal: en el teléfono, puntos y la palabra solo del capítulo actual;
+   en escritorio, la lista completa (ajustes-lewis-3.md §4 y las correcciones de Lewis) ---- */
 .lt-indice {
   position: absolute;
   z-index: 6;
-  right: max(4px, env(safe-area-inset-right));
-  top: 50%;
+  left: max(8px, env(safe-area-inset-left));
+  /* centrado en el alto del teléfono, sin bajar a las burbujas */
+  top: calc(var(--alto-arriba) + (100% - var(--alto-arriba) - var(--alto-burbujas) - var(--alto-abajo)) / 2);
   transform: translateY(-50%);
   color: var(--marca-bosque);
   transition: color 600ms ease;
@@ -322,27 +329,26 @@
 .lt-indice ol {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
 .lt-indice-capitulo {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  width: 28px;
   min-height: 34px;
-  padding: 6px 0;
+  min-width: 28px;
+  padding: 0 2px;
   -webkit-tap-highlight-color: transparent;
 }
 .lt-indice-punto {
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 999px;
   border: 1.5px solid currentColor;
   opacity: 0.55;
   transition:
-    height 420ms var(--curva),
+    width 420ms var(--curva),
     opacity 300ms ease,
     background-color 300ms ease;
 }
@@ -351,24 +357,23 @@
   opacity: 0.45;
 }
 .lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
-  height: 22px;
+  width: 14px;
   background: currentColor;
   opacity: 1;
 }
-/* En el teléfono, la palabra del capítulo actual va en vertical, debajo de su barrita: no ocupa ancho. */
 .lt-indice-nombre {
   display: none;
-  writing-mode: vertical-rl;
   font-weight: 800;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-size: 0.71875rem;
   white-space: nowrap;
 }
 .lt-indice-capitulo[data-estado="actual"] .lt-indice-nombre {
   display: block;
 }
 
-/* ---- Las burbujas de chat: abajo, suben como un mensaje nuevo; la anterior sube y se va ---- */
+/* ---- Las burbujas: mensajes enviados de WhatsApp en iOS (modo oscuro), a la derecha, apiladas como un chat
+   (ajustes-lewis-4.md). La nueva nace pequeña abajo a la derecha y crece a su sitio con un rebote; las anteriores suben
+   (el controlador calcula --sube) y la que no cabe se va. Al volver un paso, lo mismo al revés. ---- */
 .lt-burbujas {
   position: absolute;
   z-index: 5;
@@ -377,94 +382,84 @@
   bottom: var(--alto-abajo);
   height: var(--alto-burbujas);
   pointer-events: none;
+  /* Lo que sube más allá de la columna no se ve: nunca sobre el teléfono (a los lados y abajo, aire para el rebote) */
+  clip-path: inset(0 -24px -24px -24px);
 }
 .lt-burbuja {
+  --wa-enviado: #364933;
   position: absolute;
-  left: 0;
-  bottom: 10px;
-  max-width: min(420px, 94%);
-  padding: 13px 18px 8px;
-  border-radius: 18px 18px 18px 4px;
-  background: #ffffff;
-  color: #111b21;
-  box-shadow: 0 10px 30px -12px rgba(16, 54, 42, 0.45);
-  opacity: 0;
-  transform: translateY(110%);
-  transform-origin: 0 100%;
+  right: 6px;
+  bottom: 4px;
+  max-width: min(78%, 330px);
+  padding: 6px 9px 7px 12px;
+  border-radius: 18px;
+  background: var(--wa-enviado);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.3;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  transform-origin: 100% 100%;
+  transform: translateY(var(--sube, 0px)) scale(var(--escala, 1));
   transition:
-    transform var(--mov) var(--curva),
-    opacity 300ms ease;
+    transform 320ms cubic-bezier(0.34, 1.45, 0.64, 1),
+    opacity 220ms ease;
 }
-/* La cola de la burbuja (como en WhatsApp) */
-.lt-burbuja::before {
+/* La cola, abajo a la derecha */
+.lt-burbuja::after {
   content: "";
   position: absolute;
-  left: -6px;
+  right: -5px;
   bottom: 0;
-  width: 12px;
-  height: 14px;
+  width: 14px;
+  height: 16px;
   background: inherit;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  clip-path: path("M0 0 C1 9 4 13 14 16 L0 16 Z");
 }
-.lt-burbuja[data-de="compradora"],
-.lt-burbuja[data-de="tienda"] {
-  left: auto;
-  right: 0;
-  border-radius: 18px 18px 4px 18px;
-  background: #d9fdd3;
-  transform-origin: 100% 100%;
+/* Como en WhatsApp, solo el último mensaje lleva cola. */
+.lt-burbuja:not([data-estado="actual"])::after {
+  opacity: 0;
 }
-.lt-burbuja[data-de="compradora"]::before,
-.lt-burbuja[data-de="tienda"]::before {
-  left: auto;
-  right: -6px;
-  clip-path: polygon(0 0, 100% 100%, 0 100%);
+.lt-burbuja[data-estado="futura"] {
+  --escala: 0.3;
+  opacity: 0;
 }
-.lt-burbuja[data-estado="actual"] {
-  opacity: 1;
-  transform: none;
-  transition-delay: 120ms;
-}
-.lt-burbuja[data-estado="pasada"],
 .lt-burbuja[data-estado="lejos"] {
   opacity: 0;
-  transform: translateY(-60%) scale(0.94);
 }
-.lt-burbuja-texto {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-stretch: 115%;
-  font-size: 1.5rem;
-  line-height: 1.12;
-  color: var(--marca-bosque);
-}
-.lt-remate {
-  color: var(--atencion-texto);
+.lt-burbuja-hueco {
+  display: inline-block;
+  width: 74px;
 }
 .lt-burbuja-hora {
-  display: block;
-  margin-top: 3px;
-  text-align: right;
-  font-size: 13px;
-  color: rgba(17, 27, 33, 0.45);
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.62);
+  font-variant-numeric: tabular-nums;
 }
 .lt-burbuja-checks {
   color: #53bdeb;
+  letter-spacing: -0.2em;
 }
 
 @media (max-height: 700px) {
   .lt-escenario {
-    --alto-burbujas: 150px;
+    --alto-burbujas: 112px;
   }
-  .lt-burbuja-texto {
-    font-size: 1.3rem;
+  .lt-burbuja {
+    font-size: 15px;
   }
 }
 
-/* ---- Escritorio: la burbuja al lado del teléfono, abajo ---- */
+/* ---- Escritorio: la columna de burbujas a la izquierda del teléfono; el índice, lista completa ---- */
 @media (min-width: 900px) {
   .lt-escenario {
     --alto-burbujas: 0px;
+    --ancho-indice: 0px;
   }
   .lt-zona {
     left: 50%;
@@ -482,41 +477,31 @@
     bottom: 32px;
   }
   .lt-burbujas {
-    left: auto;
-    right: calc(50% + 32px);
-    width: min(36vw, 440px);
-    bottom: 22%;
-    height: auto;
+    left: 200px;
+    right: calc(50% + 40px);
+    bottom: 20%;
+    height: 42%;
   }
   .lt-burbuja {
-    max-width: 100%;
-    padding: 16px 20px 8px;
-  }
-  .lt-burbuja-texto {
-    font-size: 2rem;
+    max-width: min(86%, 420px);
+    padding: 8px 11px 9px 14px;
+    font-size: 19px;
   }
   .lt-indice {
-    right: 32px;
+    left: 32px;
   }
   .lt-indice ol {
-    align-items: stretch;
     gap: 2px;
   }
   .lt-indice-capitulo {
-    flex-direction: row;
-    justify-content: flex-start;
     gap: 12px;
-    width: auto;
     min-height: 40px;
-    padding: 0 6px;
   }
   .lt-indice-capitulo[data-estado="actual"] .lt-indice-punto {
-    height: 8px;
     width: 22px;
   }
   .lt-indice-nombre {
     display: block;
-    writing-mode: horizontal-tb;
     font-size: 0.9375rem;
     opacity: 0.6;
   }
@@ -535,17 +520,15 @@
 
 /* ---- Versión en pasos (sin JavaScript) ---- */
 .lt-burbuja-quieta {
-  align-self: flex-start;
+  align-self: flex-end;
   max-width: 340px;
-  padding: 10px 14px;
-  border-radius: 18px 18px 18px 4px;
-  background: #ffffff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.3rem;
-  line-height: 1.15;
-  color: var(--marca-bosque);
-  box-shadow: var(--sombra-flotante);
+  padding: 7px 12px 8px;
+  border-radius: 18px 18px 4px 18px;
+  background: #364933;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
 }
 .lt-captura {
   width: min(300px, 100%);

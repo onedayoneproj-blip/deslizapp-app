@@ -34,7 +34,15 @@ export function dbBase(ahora: Date = new Date()): DB {
     instagram: null,
     // El catálogo pide un WhatsApp para «Enviar»; en la demo nunca se abre (el chat se dibuja).
     whatsapp: "18090000000",
-    personalizacion: {},
+    // Lo que dice la tienda al agregar (la personalización real de mensajes; el segundo de la app habla de perfumes).
+    personalizacion: {
+      mensajes: {
+        al_agregar: [
+          "¡Ay, qué buena elección! ¿Le agregas otro? Uno pa’ ti y otro pa’ regalar 😉",
+          "Tu pedido se ve precioso 💕 Dale una vueltita más, que todavía hay cositas lindas esperándote.",
+        ],
+      },
+    },
     onboarding: {},
     rubro: "general",
     rubros: ["general"],

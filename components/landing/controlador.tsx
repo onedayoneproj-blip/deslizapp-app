@@ -6,8 +6,11 @@ import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
 const BASE_HILO = 100;
-/** Cuánto se queda el ♥ después del pulso antes de irse (más en «Despachar», que se vuelve check). */
-const QUEDA = 650;
+/**
+ * Cuánto se queda el ♥ después del pulso: se va enseguida (el componente real reacciona entonces y en un like su burst es el
+ * corazón: no se ven dos a la vez, ajustes-lewis-5.md). En «Despachar» se queda un momento, vuelto check.
+ */
+const QUEDA = 40;
 const QUEDA_CHECK = 1300;
 const VIAJE = 700;
 
@@ -42,6 +45,28 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let raf = 0;
     let irse = 0;
     let posicion: Punto | null = null;
+
+    /**
+     * Las burbujas como un chat (ajustes-lewis-4.md): la del paso abajo; las anteriores, encima, subidas lo que ocupan las de
+     * abajo (--sube). La que ya no cabe en la columna se va; las siguientes esperan pequeñas abajo a la derecha.
+     */
+    const columna = e.querySelector<HTMLElement>(".lt-burbujas");
+    const apilar = (i: number) => {
+      // (la columna menos los 4 px con que la burbuja se separa de su borde de abajo: landing.css .lt-burbuja)
+      const alto = (columna?.clientHeight ?? 0) - 4;
+      let y = 0;
+      for (const b of burbujas.slice(i + 1)) {
+        b.dataset.estado = "futura";
+        b.style.removeProperty("--sube");
+      }
+      for (let j = i; j >= 0; j--) {
+        const b = burbujas[j]!;
+        const h = b.offsetHeight;
+        b.style.setProperty("--sube", `${-y}px`);
+        b.dataset.estado = j === i ? "actual" : y + h <= alto ? "pasada" : "lejos";
+        y += h + 6;
+      }
+    };
 
     const mandar = (telefono: IdTelefono, paso: number, animar: boolean) => {
       marcos[telefono]?.contentWindow?.postMessage({ tipo: MENSAJE_PASO, paso, animar }, location.origin);
@@ -148,7 +173,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         if (n === paso.capitulo) c.setAttribute("aria-current", "step");
         else c.removeAttribute("aria-current");
       });
-      burbujas.forEach((b, j) => (b.dataset.estado = j === i ? "actual" : j === i - 1 ? "pasada" : j < i ? "lejos" : "futura"));
+      apilar(i);
       if (i >= 4) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);

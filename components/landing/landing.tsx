@@ -6,6 +6,7 @@ import { CAPITULOS_NOMBRES, PASOS, primerPasoDe, type Paso } from "@/lib/landing
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
 import { KEY_MODO } from "@/lib/data/modo";
+import { Icono } from "../tienda/iconos";
 import { DemoPasos } from "./controlador";
 import "./landing.css";
 
@@ -84,8 +85,9 @@ export function Landing() {
             <ol className="mt-6 flex flex-col gap-10">
               {PASOS.map((p) => (
                 <li key={p.id} className="flex flex-col gap-4" data-paso={p.id}>
-                  <p className="lt-burbuja-quieta" data-de={p.burbuja.de}>
-                    <b>{p.burbuja.texto}</b> {p.burbuja.remate && <span className="lt-remate">{p.burbuja.remate}</span>}
+                  <p className="lt-burbuja-quieta">
+                    {p.burbuja.texto}
+                    {p.burbuja.remate && ` ${p.burbuja.remate}`}
                   </p>
                   {p.id !== "intro" && <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />}
                 </li>
@@ -206,18 +208,17 @@ function Indice() {
   );
 }
 
-/** El ♥, el dedo de la demo: aparece para cada toque (rosa con Ana, verde con la tienda, un check al despachar) y se va. */
+/**
+ * El ♥, el dedo de la demo: aparece para cada toque y se va. Es el corazón del reel (Icono «heart» del catálogo), en mandarina
+ * como el like de la app (ajustes-lewis-5.md); al despachar se vuelve un check.
+ */
 function Hilo() {
-  const trazo = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
   return (
     <div className="lt-hilo" data-hilo data-visible="no" aria-hidden="true">
       <span className="lt-hilo-dentro">
-        <svg viewBox="0 0 24 24" className="lt-hilo-rosa">
-          <path d={trazo} fill="var(--marca-rosa-fija)" stroke="var(--marca-bosque)" strokeWidth="1.6" strokeLinejoin="round" />
-        </svg>
-        <svg viewBox="0 0 24 24" className="lt-hilo-verde">
-          <path d={trazo} fill="var(--marca-bosque)" stroke="var(--marca-papel)" strokeWidth="1.6" strokeLinejoin="round" />
-        </svg>
+        <span className="lt-hilo-corazon">
+          <Icono nombre="heart" />
+        </span>
         <svg viewBox="0 0 24 24" className="lt-hilo-check">
           <circle cx="12" cy="12" r="10.5" fill="var(--marca-bosque)" stroke="var(--marca-papel)" strokeWidth="1.4" />
           <path d="M7.4 12.3l3.1 3.1 6.1-6.6" fill="none" stroke="var(--marca-papel)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -228,18 +229,17 @@ function Hilo() {
   );
 }
 
-/** Una burbuja de chat de WhatsApp: sube desde abajo, como un mensaje nuevo. */
+/**
+ * Una burbuja de la demo: un mensaje enviado de WhatsApp en iOS (ajustes-lewis-4.md), con el remate como segunda frase y la hora
+ * con el doble check dentro, en la última línea (el hueco reserva su sitio).
+ */
 function Burbuja({ paso, indice }: { paso: Paso; indice: number }) {
   return (
-    <div className="lt-burbuja" data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-de={paso.burbuja.de}>
+    <div className="lt-burbuja" data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"}>
       <p className="lt-burbuja-texto">
         {paso.burbuja.texto}
-        {paso.burbuja.remate && (
-          <>
-            <br />
-            <span className="lt-remate">{paso.burbuja.remate}</span>
-          </>
-        )}
+        {paso.burbuja.remate && ` ${paso.burbuja.remate}`}
+        <span className="lt-burbuja-hueco" aria-hidden="true" />
       </p>
       <span className="lt-burbuja-hora" aria-hidden="true">
         {HORA_DEMO} <span className="lt-burbuja-checks">✓✓</span>

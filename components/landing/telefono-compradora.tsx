@@ -121,7 +121,8 @@ export function TelefonoCompradora() {
     paso.current = destino;
     const fijo = () => {
       const e = estadoEn(destino);
-      setBar(false);
+      // Tras un «aaah», la barra del pedido (con el mensaje de la tienda) sigue a la vista, como en la app.
+      setBar(destino === P.termo || destino === P.tote);
       flushSync(() => setEstado(e));
       irAlReel(e.actual, false);
     };
@@ -134,22 +135,24 @@ export function TelefonoCompradora() {
       } else if (destino === P.termo) {
         await esperar(250);
         if (!vigente()) return;
+        // El like real hace lo de la app: ♥ relleno, burst con «aaah», «EN TU PEDIDO», el globito de la bolsa y la barra del
+        // pedido con el mensaje de la tienda. La barra se queda a la vista hasta el paso siguiente.
         await tocarYPulsar(like("termo"));
-        await esperar(1100);
-        if (!vigente()) return;
-        await volarPedido();
-        if (vigente()) setBar(false);
       } else if (destino === P.tote) {
+        // Como la app: la barra vuela a la bolsa y se cierra.
+        await volarPedido();
+        if (!vigente()) return;
+        setBar(false);
         setEstado((e) => ({ ...e, actual: "tote" }));
         irAlReel("tote", true);
         await esperar(650);
         if (!vigente()) return;
         await tocarYPulsar(like("tote"));
-        await esperar(900);
-        if (!vigente()) return;
-        await volarPedido();
-        if (vigente()) setBar(false);
       } else if (destino === P.bolsa) {
+        // Como la app: la barra vuela a la bolsa y se cierra.
+        await volarPedido();
+        if (!vigente()) return;
+        setBar(false);
         await tocarYPulsar(document.querySelector("#bagDock button"));
         if (!vigente()) return;
         flushSync(() => setEstado((e) => ({ ...e, hoja: true })));
@@ -186,7 +189,11 @@ export function TelefonoCompradora() {
       if (!vigente()) return;
       setEstado((e) => ({ ...e, actual: "termo" }));
       irAlReel("termo", true);
-    } else if (desde === P.bolsa) setEstado((e) => ({ ...e, hoja: false }));
+      setBar(true);
+    } else if (desde === P.bolsa) {
+      setEstado((e) => ({ ...e, hoja: false }));
+      setBar(true);
+    }
     else fijo();
   });
 

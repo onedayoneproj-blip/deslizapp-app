@@ -44,8 +44,8 @@ export type Paso = {
   /** Rosa (compradora) o verde (tienda), a pantalla completa. */
   lado: Lado;
   telefono: IdTelefono;
-  /** La burbuja de chat del paso: de Deslizapp (izquierda, blanca) o de una persona (derecha, verde). */
-  burbuja: { de: "deslizapp" | "compradora" | "tienda"; texto: string; remate?: string };
+  /** La burbuja del paso (un mensaje enviado de WhatsApp): el texto y, si hay, su segunda frase. */
+  burbuja: { texto: string; remate?: string };
   dedo: Dedo;
   /** Solo con dedo «viaje»: de qué ancla de qué teléfono sale el ♥ y a cuál llega. */
   viaje?: { desde: [IdTelefono, IdAncla]; hasta: [IdTelefono, IdAncla] };
@@ -62,22 +62,22 @@ export const DEDO_LLEGA = 480;
 
 export const PASOS: Paso[] = [
   // Antes del teléfono: el logo y la bienvenida (el teléfono entra en el paso siguiente).
-  { id: "intro", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Hola, bienvenido a Deslizapp.", remate: "Desliza y mira cómo funciona." }, dedo: "no", duracion: 600 },
-  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Este es el catálogo de La Vuelta.", remate: "Así lo ve Ana, que va a comprar." }, dedo: "no", duracion: 700 },
-  { id: "pasa", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Lo que no te gusta,", remate: "pasa." }, dedo: "no", duracion: 900 },
-  { id: "aaah-termo", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Lo que te gusta: dale aaah.", remate: "Va directo a tu pedido." }, dedo: "toque", duracion: 2400 },
-  { id: "aaah-tote", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Uno más.", remate: `Tu pedido ya suma ${pesos(TOTAL_DEMO)}.` }, dedo: "toque", duracion: 2600 },
-  { id: "bolsa", capitulo: 2, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Tu pedido,", remate: "con todo en su sitio." }, dedo: "toque", duracion: 1300 },
-  { id: "whatsapp", capitulo: 2, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Lo envías por WhatsApp.", remate: "Le llega con fotos y el enlace." }, dedo: "toque", duracion: 2900 },
-  { id: "seguimiento", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Abre el enlace", remate: "y mira cómo va." }, dedo: "toque", duracion: 1500 },
-  { id: "cambio", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Ahora te toca a ti,", remate: "como tienda." }, dedo: "viaje", viaje: { desde: ["compradora", "seguimiento"], hasta: ["tienda", "bloqueo"] }, duracion: 1700 },
-  { id: "aviso", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Te piden allá.", remate: "Te llega aquí." }, dedo: "no", duracion: 1000 },
-  { id: "chat-tienda", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Fotos, total y enlace.", remate: "Sin «¿cuál era?»." }, dedo: "toque", duracion: 1500 },
-  { id: "eres-tienda", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "¿Eres la tienda?", remate: "Entra con tu cuenta." }, dedo: "toque", duracion: 2500 },
-  { id: "registrar", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Te llega organizado.", remate: "Lo registras en un toque." }, dedo: "toque", duracion: 4600 },
-  { id: "pedidos", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Queda en Pedidos,", remate: "como nuevo." }, dedo: "toque", duracion: 1400 },
-  { id: "confirmar", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Lo confirmas", remate: "cuando lo tengas listo." }, dedo: "toque", duracion: 2500 },
-  { id: "despachar", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { de: "deslizapp", texto: "Despachado.", remate: "El stock se actualizó solito." }, dedo: "toque", duracion: 2000 },
+  { id: "intro", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Hola, bienvenido a Deslizapp.", remate: "Desliza y mira cómo funciona." }, dedo: "no", duracion: 600 },
+  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Este es el catálogo de La Vuelta.", remate: "Así lo ve Ana, que va a comprar." }, dedo: "no", duracion: 700 },
+  { id: "pasa", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que no te gusta,", remate: "pasa." }, dedo: "no", duracion: 900 },
+  { id: "aaah-termo", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que te gusta: dale aaah.", remate: "Va directo a tu pedido." }, dedo: "toque", duracion: 2400 },
+  { id: "aaah-tote", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Uno más.", remate: `Tu pedido ya suma ${pesos(TOTAL_DEMO)}.` }, dedo: "toque", duracion: 2600 },
+  { id: "bolsa", capitulo: 2, lado: "compras", telefono: "compradora", burbuja: { texto: "Tu pedido,", remate: "con todo en su sitio." }, dedo: "toque", duracion: 1300 },
+  { id: "whatsapp", capitulo: 2, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo envías por WhatsApp.", remate: "Le llega con fotos y el enlace." }, dedo: "toque", duracion: 2900 },
+  { id: "seguimiento", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Abre el enlace", remate: "y mira cómo va." }, dedo: "toque", duracion: 1500 },
+  { id: "cambio", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { texto: "Ahora te toca a ti,", remate: "como tienda." }, dedo: "viaje", viaje: { desde: ["compradora", "seguimiento"], hasta: ["tienda", "bloqueo"] }, duracion: 1700 },
+  { id: "aviso", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { texto: "Te piden allá.", remate: "Te llega aquí." }, dedo: "no", duracion: 1000 },
+  { id: "chat-tienda", capitulo: 4, lado: "tienda", telefono: "tienda", burbuja: { texto: "Fotos, total y enlace.", remate: "Sin «¿cuál era?»." }, dedo: "toque", duracion: 1500 },
+  { id: "eres-tienda", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { texto: "¿Eres la tienda?", remate: "Entra con tu cuenta." }, dedo: "toque", duracion: 2500 },
+  { id: "registrar", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { texto: "Te llega organizado.", remate: "Lo registras en un toque." }, dedo: "toque", duracion: 4600 },
+  { id: "pedidos", capitulo: 5, lado: "tienda", telefono: "tienda", burbuja: { texto: "Queda en Pedidos,", remate: "como nuevo." }, dedo: "toque", duracion: 1400 },
+  { id: "confirmar", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Lo confirmas", remate: "cuando lo tengas listo." }, dedo: "toque", duracion: 2500 },
+  { id: "despachar", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Despachado.", remate: "El stock se actualizó solito." }, dedo: "toque", duracion: 2000 },
 ];
 
 export const indicePaso = (id: IdPaso) => PASOS.findIndex((p) => p.id === id);

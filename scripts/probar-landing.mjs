@@ -48,7 +48,16 @@ const medir = (pagina, i) =>
       const actual = indice.filter((c) => c.dataset.estado === "actual").map((c) => Number(c.dataset.indiceCapitulo));
       const vistos = indice.filter((c) => c.dataset.estado === "visto").map((c) => Number(c.dataset.indiceCapitulo));
       const ind = e.querySelector(".lt-indice").getBoundingClientRect();
+      const cruza = (a, c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1;
+      // Las burbujas a la vista (la del paso y las de antes que caben) y su escala (la del paso termina en 1).
+      const vistas = [...e.querySelectorAll("[data-burbuja]")].filter((x) => Number(getComputedStyle(x).opacity) > 0.05);
+      const escala = new DOMMatrix(getComputedStyle(burbuja).transform).a;
+      const corazon = getComputedStyle(e.querySelector(".lt-hilo-corazon path")).fill;
       return {
+        burbujasCruzan: telefono && Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => cruza(x.getBoundingClientRect(), tel)),
+        escalaBurbuja: escala,
+        corazon,
+        indiceIzquierda: ind.right <= tel.left + 1 || Number(getComputedStyle(telefono).opacity) < 0.99,
         nitida,
         burbujaVisible: Number(getComputedStyle(burbuja).opacity) > 0.99,
         proporcion: tel.width / tel.height,
@@ -59,7 +68,7 @@ const medir = (pagina, i) =>
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
         tapaPantalla: !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // El índice no tapa el teléfono ni lo empuja.
-        indiceTapa: ind.left < tel.right - 1 && ind.right > tel.left && ind.top < tel.bottom && ind.bottom > tel.top,
+        indiceTapa: Number(getComputedStyle(telefono).opacity) > 0.99 && cruza(ind, tel),
         capituloActual: actual,
         capitulosVistos: vistos,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
@@ -96,16 +105,26 @@ for (const [ancho, alto] of [
     if (i > 0) await irAlPaso(pagina, i);
     // Mientras dura el paso: ¿se ve el ♥ en algún momento?
     let vioHilo = false;
+    let dosCorazones = false;
     for (const fin = Date.now() + paso.duracion + 1400; Date.now() < fin; ) {
-      vioHilo ||= await pagina.evaluate(() => document.querySelector("[data-hilo]").dataset.visible === "si");
-      await pagina.waitForTimeout(80);
+      const v = await pagina.evaluate(() => {
+        const hilo = Number(getComputedStyle(document.querySelector(".lt-hilo-dentro")).opacity) > 0.05;
+        const burst = document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".burst.go");
+        return { hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
+      });
+      vioHilo ||= v.hilo;
+      dosCorazones ||= v.dos;
+      await pagina.waitForTimeout(60);
     }
     const d = await datos(pagina);
     const esperado = estadoPaso(i);
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
     ok(m.burbujaVisible && m.nitida && !(m.telefonoVisible && m.tapaPantalla), `${paso.id}: la burbuja está completa, sin desenfoque y sin tapar la pantalla`);
-    ok(m.capituloActual.join() === String(paso.capitulo) && m.capitulosVistos.join() === Array.from({ length: paso.capitulo - 1 }, (_, k) => k + 1).join() && !m.indiceTapa, `${paso.id}: el índice marca «${CAPITULOS_NOMBRES[paso.capitulo - 1]}» (y los anteriores como vistos) sin tapar el teléfono`);
+    ok(m.capituloActual.join() === String(paso.capitulo) && m.capitulosVistos.join() === Array.from({ length: paso.capitulo - 1 }, (_, k) => k + 1).join(), `${paso.id}: el índice marca «${CAPITULOS_NOMBRES[paso.capitulo - 1]}» (y los anteriores como vistos)`);
+    ok(!m.indiceTapa && m.indiceIzquierda && !m.burbujasCruzan, `${paso.id}: el índice (a la izquierda) y las burbujas no se cruzan con el mockup`);
+    ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
+    ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
     if (paso.id === "intro") ok(m.introVisible && !m.telefonoVisible, "intro: el logo de Deslizapp, todavía sin teléfono");
     else ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
     // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.
@@ -115,6 +134,25 @@ for (const [ancho, alto] of [
     else if (paso.dedo === "toque") ok(vioHilo && toques > 0, `${paso.id}: el ♥ marca ${toques} toque(s)`);
     else ok(vioHilo && viajes === 1, `${paso.id}: el ♥ cruza al otro teléfono y se va`);
     ok(!m.hiloVisible, `${paso.id}: al terminar, el ♥ ya no está`);
+    if (paso.id === "aaah-termo" || paso.id === "aaah-tote") {
+      // El like real, como en la app (ajustes-lewis-5.md): burst, «EN TU PEDIDO», el globito de la bolsa, el mensaje de la tienda y
+      // la barra «Enviar». Y nunca dos corazones a la vez (el del dedo ya se fue cuando sale el del burst).
+      const slug = paso.id === "aaah-termo" ? "termo" : "tote";
+      const like = await pagina.evaluate((slug) => {
+        const doc = document.querySelector('iframe[data-telefono="compradora"]').contentDocument;
+        const r = doc.querySelector(`#r-${slug}`);
+        return {
+          lleno: r.querySelector("[data-like]")?.getAttribute("aria-pressed") === "true",
+          burst: !!r.querySelector(".burst.go"),
+          sello: /en tu pedido/i.test(r.querySelector(".inbadge")?.textContent ?? ""),
+          globito: doc.querySelector("#bagDock .cnt")?.textContent?.trim(),
+          barra: !!doc.querySelector("#cartbar") && /Enviar/.test(doc.querySelector("#cartbar").textContent),
+          mensaje: /buena elección|se ve precioso/i.test(doc.querySelector("#cartbar")?.textContent ?? ""),
+        };
+      }, slug);
+      ok(like.lleno && like.burst && like.sello && like.globito === String(estadoPaso(i).bolsa) && like.barra && like.mensaje, `${paso.id}: el like real — ♥ relleno, burst, «EN TU PEDIDO», globito ${like.globito}, mensaje de la tienda y barra «Enviar»`);
+      ok(!dosCorazones, `${paso.id}: no se ven dos corazones a la vez`);
+    }
     if (paso.id === "pasa") {
       // El reel mide y queda como en el catálogo real; la bolsa, junto a «Compartir» (ajustes-lewis-3.md §1).
       const r = await pagina.evaluate(() => {
@@ -153,7 +191,8 @@ for (const [ancho, alto] of [
   await pagina.waitForTimeout(1600);
   const atras = await datos(pagina);
   const ma = await medir(pagina, PASOS.length - 2);
-  ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible, `al subir, vuelve a «${atras.paso}» con su burbuja completa`);
+  const quitada = await pagina.evaluate((n) => { const b = document.querySelector(`[data-burbuja="${n}"]`); return b.dataset.estado === "futura" && Number(getComputedStyle(b).opacity) < 0.05; }, PASOS.length - 1);
+  ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible && quitada, `al subir, vuelve a «${atras.paso}» con su burbuja completa y la del paso de después se quita`);
 
   // Un deslizamiento fuerte no se salta pasos (scroll-snap-stop: always).
   await irAlPaso(pagina, 0);
