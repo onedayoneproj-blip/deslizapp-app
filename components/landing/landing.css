@@ -1,6 +1,7 @@
 /* Landing de deslizapp.com (components/landing). La demo avanza con el scroll: components/landing/controlador.tsx escribe
    el progreso en --p (en unidades de lib/landing/escenas.ts) y cada elemento cruza --p con su ventana (components/landing/pista.ts).
-   Solo transform y opacity. Excepción de movimiento aprobada para esta página (docs/08-movimiento.md). */
+   transform y opacity; además, el desenfoque de las palabras al entrar y del teléfono que sale (referencias/landing/ajustes-lewis-1.md).
+   Excepción de movimiento aprobada para esta página (HANDOFF.md). */
 
 @property --p {
   syntax: "<number>";
@@ -72,7 +73,9 @@
 .pista,
 .mueve,
 .presiona,
-.llena {
+.presiona-suma,
+.llena,
+.palabra {
   --in: clamp(0, (var(--p) - var(--ea)) / (var(--eb) - var(--ea)), 1);
   --out: clamp(0, (var(--p) - var(--sa)) / (var(--sb) - var(--sa)), 1);
 }
@@ -85,6 +88,10 @@
 .lt-hoja.pista {
   opacity: var(--in);
 }
+/* El teléfono de la compradora sale hacia atrás, desenfocándose. */
+.desenfoca {
+  filter: blur(calc(var(--out) * 8px));
+}
 /* Se desplaza sin desvanecerse (las tarjetas del feed). */
 .mueve {
   transform: translate(calc((1 - var(--in)) * var(--x0) + var(--out) * var(--x1)), calc((1 - var(--in)) * var(--y0) + var(--out) * var(--y1)));
@@ -93,27 +100,30 @@
 .presiona {
   transform: scale(calc(1 - 0.07 * var(--in) * (1 - var(--out))));
 }
+/* El ♥ late cuando se le suma el segundo producto. */
+.presiona-suma {
+  transform: scale(calc(1 + 0.35 * var(--in) * (1 - var(--out))));
+}
 /* Una barra que se llena. */
 .llena {
   transform: scaleX(var(--in));
   transform-origin: left center;
 }
+/* Las palabras del titular: de borroso a nítido, como el video de referencia. */
+.palabra {
+  display: inline-block;
+  opacity: calc(var(--in) * (1 - var(--out)));
+  filter: blur(calc((1 - var(--in)) * 12px + var(--out) * 8px));
+  transform: translateY(calc((1 - var(--in)) * 8px - var(--out) * 6px));
+}
+.lt-apoyo.palabra {
+  display: block;
+}
 
 /* ---- Página ---- */
 .landing {
-  --alto-cabecera: calc(60px + env(safe-area-inset-top));
   background: var(--fondo);
   color: var(--texto);
-}
-.landing-cabecera {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: var(--alto-cabecera);
-  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
-  background: color-mix(in srgb, var(--fondo) 92%, transparent);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
 }
 
 /* Sin JavaScript o con movimiento reducido se ve la versión en pasos; con JavaScript, el escenario animado. */
@@ -158,104 +168,70 @@
 /* El recorrido: tantas pantallas de scroll como diga la tabla de escenas. */
 .landing-demo {
   position: relative;
-  height: calc(var(--duracion) * var(--escala-scroll) * 100svh + 100svh - var(--alto-cabecera));
+  height: calc(var(--duracion) * var(--escala-scroll) * 100svh + 100svh);
 }
 .lt-escenario {
+  --alto-arriba: calc(58px + env(safe-area-inset-top));
+  --alto-tarjeta: 150px;
   position: sticky;
-  top: var(--alto-cabecera);
-  height: calc(100dvh - var(--alto-cabecera));
-  display: flex;
-  flex-direction: column;
-  padding: 0 max(16px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  top: 0;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Fondo: rosa (compradora) que pasa a verde Bosque (tienda), con dos formas suaves abajo. */
+.lt-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--marca-rosa-fija);
   overflow: hidden;
 }
-/* Fondo del lado de la tienda (verde menta) */
 .lt-fondo-tienda {
   position: absolute;
   inset: 0;
-  background: var(--accion-suave);
+  background: var(--marca-bosque);
 }
-.lt-leyendas {
-  position: relative;
-  flex: none;
-  height: 118px;
+.lt-forma {
+  position: absolute;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
 }
-.lt-leyenda {
+.lt-forma-a {
+  width: 70vmax;
+  height: 46vmax;
+  left: -24vmax;
+  bottom: -30vmax;
+  background: var(--marca-mandarina);
+  opacity: 0.9;
+}
+.lt-forma-b {
+  width: 56vmax;
+  height: 40vmax;
+  right: -26vmax;
+  bottom: -24vmax;
+  background: var(--marca-papel);
+  opacity: 0.55;
+}
+
+/* La zona del teléfono: proporción real (393×852), escalado entero al alto disponible. */
+.lt-zona {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: var(--alto-arriba);
+  bottom: calc(var(--alto-tarjeta) + env(safe-area-inset-bottom));
+  container-type: size;
+}
+.lt-zona .lt-telefono {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 12px;
+  margin: auto;
+  width: min(100cqw, 100cqh * 393 / 852);
+  height: min(100cqh, 100cqw * 852 / 393);
 }
-.lt-lado {
-  display: inline-block;
-  align-self: flex-start;
-  margin-bottom: 6px;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.lt-lado[data-lado="compras"] {
-  background: var(--marca-rosa-fija);
-  color: var(--marca-bosque);
-}
-.lt-lado[data-lado="tienda"] {
-  background: var(--marca-bosque);
-  color: var(--marca-papel);
-}
-.lt-titular {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-stretch: 115%;
-  font-size: 1.5rem;
-  line-height: 1.12;
-}
-.lt-remate {
-  color: var(--atencion-texto);
-}
-.lt-apoyo {
-  margin-top: 4px;
-  font-size: 0.9375rem;
-  line-height: 1.3;
-  color: var(--texto-secundario);
-}
-@media (max-height: 680px) {
-  .lt-leyendas {
-    height: 112px;
-  }
-  .lt-titular {
-    font-size: 1.25rem;
-  }
-  .lt-apoyo {
-    font-size: 0.875rem;
-  }
-}
-.lt-zona {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  justify-content: center;
-}
-.lt-progreso {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--linea);
-  overflow: hidden;
-}
-.lt-progreso > i {
-  display: block;
-  height: 100%;
-  background: var(--accion);
-  transform-origin: left center;
-  transform: scaleX(calc(var(--p) / var(--duracion)));
+.lt-tel-tienda {
+  z-index: 1;
 }
 
 /* ---- Teléfono ---- */
@@ -263,24 +239,29 @@
   position: relative;
   container-type: size;
   width: 100%;
-  max-width: 430px;
-  height: 100%;
-  border: 5px solid var(--marca-bosque);
-  border-radius: 34px;
+  aspect-ratio: 393 / 852;
+  border-radius: 13.5cqw;
   overflow: hidden;
   background: var(--marca-bosque);
-  box-shadow: 0 24px 50px -24px rgba(16, 54, 42, 0.55);
+  box-shadow:
+    0 0 0 3px var(--marca-bosque),
+    0 30px 60px -28px rgba(16, 54, 42, 0.7);
   pointer-events: none;
   user-select: none;
 }
-/* Dentro se dibuja a 393 px (iPhone 15 Pro) y se escala al ancho real: tan(atan2()) da la proporción sin JavaScript. */
+.lt-tel-tienda.lt-telefono {
+  box-shadow:
+    0 0 0 3px var(--marca-papel),
+    0 30px 60px -28px rgba(0, 0, 0, 0.6);
+}
+/* Dentro se dibuja a 393×852 px (iPhone 15 Pro) y se escala al ancho real: tan(atan2()) da la proporción sin JavaScript. */
 .lt-pantalla {
   --esc: tan(atan2(100cqw, 393px));
   position: absolute;
   top: 0;
   left: 0;
   width: 393px;
-  height: calc(100cqh / var(--esc));
+  height: 852px;
   transform: scale(var(--esc));
   transform-origin: 0 0;
   overflow: hidden;
@@ -334,11 +315,63 @@
   pointer-events: none;
 }
 
+/* ---- El ♥ ---- */
+.lt-ancla {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+.lt-ancla-quieto {
+  position: absolute;
+  inset: 0;
+}
+.lt-hilo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 100px;
+  height: 100px;
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 6px 12px rgba(16, 54, 42, 0.35));
+}
+.lt-hilo-dentro,
+.lt-corazon {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.lt-corazon-capa {
+  position: absolute;
+  inset: 0;
+}
+.lt-corazon {
+  container-type: size;
+}
+.lt-corazon-cuenta {
+  position: absolute;
+  right: -10%;
+  top: -12%;
+  display: grid;
+  place-items: center;
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  background: var(--marca-mandarina);
+  color: var(--marca-bosque);
+  font-weight: 800;
+  font-size: 30cqh;
+  line-height: 1;
+}
+
 /* Catálogo */
 .lt-producto {
   position: absolute;
   left: 50%;
-  top: 46%;
+  top: 44%;
   width: 82%;
   height: auto;
   transform: translate(-50%, -58%);
@@ -352,12 +385,12 @@
   position: absolute;
   left: 16px;
   right: 92px;
-  bottom: 112px;
+  bottom: 118px;
 }
 .lt-reel-acts {
   position: absolute;
   right: 12px;
-  bottom: 120px;
+  bottom: 128px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -379,36 +412,36 @@
 }
 .lt-burst {
   position: absolute;
-  inset: 0;
+  inset: 0 0 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   pointer-events: none;
 }
 .lt-burst-corazon {
   width: 120px;
   height: 120px;
-  color: var(--marca-mandarina);
+  color: var(--marca-rosa-fija);
   filter: drop-shadow(0 10px 20px rgba(16, 54, 42, 0.35));
 }
 .lt-burst-corazon svg {
   width: 100%;
   height: 100%;
   fill: currentColor;
-  stroke: var(--marca-papel);
+  stroke: var(--marca-bosque);
 }
 .lt-barra {
   position: absolute;
   left: 10px;
   right: 10px;
-  bottom: 26px;
+  bottom: 28px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 8px 10px 10px;
-  border-radius: 22px;
+  padding: 9px 8px 9px 9px;
+  border-radius: 28px;
   background: var(--superficie);
   color: var(--texto);
   box-shadow: var(--sombra-flotante);
@@ -420,7 +453,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  top: 120px;
+  top: 150px;
   display: flex;
   flex-direction: column;
   border-radius: 28px 28px 0 0;
@@ -433,14 +466,13 @@
   top: auto;
 }
 .lt-hoja-grande {
-  top: 56px;
+  top: 70px;
 }
 .lt-resalta {
   border-radius: 6px;
   background: var(--atencion-suave);
   padding: 0 4px;
 }
-
 .lt-bloqueo {
   background:
     radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.45), transparent 60%),
@@ -448,48 +480,193 @@
     var(--marca-bosque);
 }
 
-/* ---- Escritorio: frases a la izquierda, teléfono a la derecha ---- */
-@media (min-width: 900px) {
+/* ---- Desenfoque progresivo arriba y abajo (usa .hoja-borde de app/globals.css) ---- */
+.lt-borde {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  pointer-events: none;
+  --borde: 1;
+}
+.lt-borde-arriba {
+  top: 0;
+  height: calc(var(--alto-arriba) + 24px);
+}
+.lt-borde-abajo {
+  bottom: 0;
+  height: calc(var(--alto-tarjeta) + env(safe-area-inset-bottom) + 24px);
+  --dir: to bottom;
+}
+
+/* ---- Arriba: el contador de capítulo y «Saltar» ---- */
+.lt-arriba {
+  position: absolute;
+  z-index: 6;
+  top: calc(10px + env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lt-capitulo {
+  position: relative;
+  width: 74px;
+  height: 20px;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--marca-bosque);
+  font-variant-numeric: tabular-nums;
+}
+.lt-escenario[data-lado="tienda"] .lt-capitulo {
+  color: var(--marca-papel);
+}
+.lt-capitulo > span {
+  position: absolute;
+  inset: 0;
+}
+.lt-saltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px 0 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--marca-papel) 88%, transparent);
+  color: var(--marca-bosque);
+  font-weight: 800;
+  font-size: 0.9375rem;
+  box-shadow: var(--sombra-flotante);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ---- Abajo: la tarjeta con el texto de cada paso ---- */
+.lt-tarjeta {
+  position: absolute;
+  z-index: 5;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  height: calc(var(--alto-tarjeta) - 22px);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--marca-papel) 94%, transparent);
+  box-shadow: var(--sombra-flotante);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+.lt-leyenda {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 18px;
+}
+.lt-titular {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 115%;
+  font-size: 1.4rem;
+  line-height: 1.1;
+  color: var(--marca-bosque);
+}
+.lt-remate {
+  color: var(--atencion-texto);
+}
+.lt-apoyo {
+  margin-top: 6px;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  color: var(--texto-secundario);
+}
+@media (max-height: 700px) {
   .lt-escenario {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(32px, 6vw, 96px);
-    padding-bottom: 24px;
-    padding-top: 24px;
-  }
-  .lt-leyendas {
-    width: min(440px, 40vw);
-    height: 280px;
-  }
-  .lt-leyenda {
-    justify-content: center;
-    padding: 0;
+    --alto-tarjeta: 128px;
   }
   .lt-titular {
-    font-size: 2.6rem;
+    font-size: 1.2rem;
+  }
+  .lt-apoyo {
+    font-size: 0.875rem;
+  }
+}
+
+/* ---- Escritorio: el teléfono al centro y la tarjeta a su izquierda ---- */
+@media (min-width: 900px) {
+  .lt-escenario {
+    --alto-tarjeta: 24px;
+  }
+  .lt-zona {
+    left: 50%;
+    right: auto;
+    width: min(46vw, 560px);
+    top: calc(var(--alto-arriba) + 8px);
+    bottom: 32px;
+  }
+  .lt-tarjeta {
+    left: auto;
+    right: calc(50% + 24px);
+    bottom: 50%;
+    transform: translateY(50%);
+    width: min(36vw, 460px);
+    height: 240px;
+  }
+  .lt-leyenda {
+    padding: 24px 30px;
+  }
+  .lt-titular {
+    font-size: 2.3rem;
   }
   .lt-apoyo {
     margin-top: 12px;
-    font-size: 1.125rem;
-  }
-  .lt-zona {
-    flex: none;
-    height: min(100%, 860px);
-    aspect-ratio: 393 / 820;
-  }
-  .lt-progreso {
-    top: 0;
+    font-size: 1.0625rem;
   }
 }
 
 /* ---- Versión en pasos ---- */
 .landing-pasos .lt-telefono {
-  height: min(640px, 82svh);
+  width: min(320px, 100%);
   margin-inline: auto;
 }
-@media (min-width: 900px) {
-  .landing-pasos .lt-telefono {
-    width: 340px;
-  }
+.landing-pasos [data-lado="tienda"] .lt-telefono {
+  box-shadow:
+    0 0 0 3px var(--marca-bosque),
+    0 30px 60px -28px rgba(16, 54, 42, 0.7);
+}
+.lt-tarjeta-quieta .lt-titular {
+  font-size: 1.5rem;
+}
+.lt-lado {
+  display: inline-block;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lt-lado[data-lado="compras"] {
+  background: var(--marca-rosa-fija);
+  color: var(--marca-bosque);
+}
+.lt-lado[data-lado="tienda"] {
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+}
+
+/* ---- Cierre ---- */
+.lt-cierre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 64px 16px 48px;
+  text-align: center;
 }

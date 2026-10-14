@@ -1,7 +1,8 @@
 // Uso: con la app corriendo (npm run dev o npm start), `node scripts/probar-landing.mjs [url]`.
 // La landing de deslizapp.com (docs/prompts/landing-demo-scroll.md) a 360×640, 390×844, 430×932 y 1440×900:
-// el scroll avanza y retrocede la demo (escena, bolsa, total, código), «Saltar demo», «Entrar», los dos CTA,
-// movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por
+// el scroll avanza y retrocede la demo (escena, bolsa, total, código), el teléfono con su proporción real, el ♥ sobre su
+// ancla, el fondo de cada persona, «Saltar», «Entrar», los dos CTA, movimiento reducido, sin JavaScript y que el modo demo
+// sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por
 // escena (390×844 y 1440×900) en docs/capturas/landing/.
 import { createRequire } from "node:module";
 import { mkdirSync } from "node:fs";
@@ -9,7 +10,7 @@ import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require("playwright");
-const { ESCENAS, DURACION, en, fotoDe, estadoDemo } = await import("../lib/landing/escenas.ts");
+const { ESCENAS, DURACION, en, fotoDe, estadoDemo, hiloEn, HILO_APARECE } = await import("../lib/landing/escenas.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 const { CODIGO_DEMO } = await import("../lib/landing/pedido-demo.ts");
 
@@ -39,8 +40,30 @@ async function irA(pagina, p) {
 
 const leer = (pagina) => pagina.evaluate(() => ({ ...document.querySelector(".lt-escenario").dataset, p: Number(getComputedStyle(document.querySelector(".lt-escenario")).getPropertyValue("--p")) }));
 
-/** Opacidad real de la leyenda de una escena (la que se lee en pantalla). */
-const opacidadLeyenda = (pagina, id) => pagina.evaluate((id) => Number(getComputedStyle(document.querySelector(`[data-leyenda="${id}"]`)).opacity), id);
+/** Opacidad real de la última palabra de la tarjeta de una escena (la que se lee en pantalla). */
+const opacidadLeyenda = (pagina, id) =>
+  pagina.evaluate((id) => {
+    const palabras = document.querySelectorAll(`[data-leyenda="${id}"] .palabra`);
+    return Number(getComputedStyle(palabras[palabras.length - 1]).opacity);
+  }, id);
+
+/** El teléfono visible: proporción 393×852 y dentro de la pantalla. Y dónde está el ♥ respecto de su ancla. */
+const medir = (pagina, ancla) =>
+  pagina.evaluate((ancla) => {
+    const e = document.querySelector(".lt-escenario");
+    const tels = [...e.querySelectorAll(".lt-telefono")].filter((t) => Number(getComputedStyle(t).opacity) > 0.9);
+    const t = tels[tels.length - 1]?.getBoundingClientRect();
+    const hilo = e.querySelector("[data-hilo]");
+    const h = hilo.getBoundingClientRect();
+    const a = ancla ? e.querySelector(`[data-ancla="${ancla}"]`)?.getBoundingClientRect() : null;
+    return {
+      proporcion: t ? t.width / t.height : 0,
+      dentro: t ? t.top >= 0 && t.left >= 0 && t.bottom <= innerHeight && t.right <= innerWidth : false,
+      hiloVisible: Number(getComputedStyle(hilo.firstElementChild).opacity),
+      distancia: a ? Math.hypot(h.left + h.width / 2 - (a.left + a.width / 2), h.top + h.height / 2 - (a.top + a.height / 2)) : 0,
+      fondoTienda: Number(getComputedStyle(e.querySelector(".lt-fondo-tienda")).opacity),
+    };
+  }, ancla);
 
 for (const [ancho, alto] of [
   [360, 640],
@@ -68,6 +91,12 @@ for (const [ancho, alto] of [
       `${e.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`,
     );
     ok((await opacidadLeyenda(pagina, e.id)) > 0.95, `${e.id}: su frase se lee`);
+    const h = hiloEn(p);
+    const quieto = h.t === 0 && p >= HILO_APARECE[1];
+    const m = await medir(pagina, quieto ? h.de : null);
+    ok(Math.abs(m.proporcion - 393 / 852) < 0.01 && m.dentro, `${e.id}: el teléfono mide 393×852 y cabe (${m.proporcion.toFixed(3)})`);
+    if (quieto) ok(m.hiloVisible > 0.9 && m.distancia < 3, `${e.id}: el ♥ está sobre «${h.de}» (a ${m.distancia.toFixed(1)} px)`);
+    ok(e.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${e.id}: fondo de ${e.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
     if (capturas && (ancho === 390 || ancho === 1440)) {
       mkdirSync("docs/capturas/landing", { recursive: true });
       await pagina.screenshot({ path: `docs/capturas/landing/${String(ESCENAS.indexOf(e) + 1).padStart(2, "0")}-${e.id}-${ancho}.png` });
@@ -76,7 +105,7 @@ for (const [ancho, alto] of [
   // Atrás: la bolsa vuelve a bajar y la escena retrocede.
   await irA(pagina, en("explorar", 0.5));
   const atras = await leer(pagina);
-  ok(atras.escena === "explorar" && Number(atras.bolsa) < 3, `al subir, vuelve a explorar con la bolsa en ${atras.bolsa}`);
+  ok(atras.escena === "explorar" && Number(atras.bolsa) < 2, `al subir, vuelve a explorar con la bolsa en ${atras.bolsa}`);
   await irA(pagina, 0);
   const inicio = await leer(pagina);
   ok(inicio.escena === "bienvenida" && inicio.bolsa === "0", "arriba del todo: bienvenida y bolsa vacía");
@@ -92,18 +121,17 @@ for (const [ancho, alto] of [
 
   // Saltar demo y los CTA.
   await pagina.evaluate(() => window.scrollTo(0, 0));
-  await pagina.getByRole("link", { name: "Saltar demo" }).click();
+  await pagina.locator("[data-saltar]").click();
   await pagina.waitForTimeout(400);
-  ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; }), "«Saltar demo» lleva al cierre");
+  ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; }), "«Saltar» lleva al cierre");
   ok((await pagina.getByRole("link", { name: "Quiero vender" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Quiero vender» abre WhatsApp con el texto");
   ok((await pagina.getByRole("link", { name: "Ver un catálogo de ejemplo" }).getAttribute("href")) === ENLACE_CATALOGO_EJEMPLO, "«Ver un catálogo de ejemplo» va a la Tienda de ensayo");
   const cierre = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
   ok(cierre && cierre.x >= 0 && cierre.x + cierre.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
 
-  // «Entrar»: la pantalla de entrada de siempre.
-  await pagina.evaluate(() => window.scrollTo(0, 0));
-  await pagina.getByRole("link", { name: "Entrar", exact: true }).click();
+  // «Entrar» (en el cierre): la pantalla de entrada de siempre.
+  await pagina.locator('[data-cta="entrar"]').click();
   await pagina.waitForURL("**/entrar");
   ok(await pagina.getByRole("button", { name: /Entrar con Google/ }).isVisible(), "«Entrar» abre la entrada con Google");
   ok(await pagina.getByRole("button", { name: "Ver demo" }).isVisible(), "y sigue el «Ver demo»");
