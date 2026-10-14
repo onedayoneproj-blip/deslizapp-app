@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { flushSync } from "react-dom";
 import { colorPorNombre, esEjeColor } from "@/lib/colores";
 import {
   agregarValor,
@@ -147,13 +146,66 @@ export function TarjetaPresentaciones({ portada, nombre, precio, opciones }: { p
   );
 }
 
+/**
+ * «+ Otra» como píldora que ES el campo: un solo `<input>` siempre montado, con la forma de `Eleccion`. En reposo muestra «+ Otra» como
+ * texto de relleno; al tocarlo, el toque cae directo sobre el input y el teclado del iPhone sube solo (un `focus()` sobre un input
+ * creado después del toque no abre el teclado en Safari de iOS). Con texto o con el foco se ensancha y muestra el ✓ para confirmar.
+ * `alListo` devuelve si se agregó (si no, el campo se queda con su error).
+ */
+function CampoOtra({ etiqueta, rotulo, placeholder, valor, alCambiar, alListo, alDejar, alCancelar, alTocarBloqueado, bloqueado = false, invalido = false }: {
+  etiqueta: string; rotulo: string; placeholder: string; valor: string; alCambiar: (v: string) => void; alListo: () => boolean;
+  /** Al perder el foco. */
+  alDejar?: () => void; alCancelar?: () => void;
+  /** Se tocó estando `bloqueado` (ya hay el máximo): explicar. Sin esto, `bloqueado` apaga el campo. */
+  alTocarBloqueado?: () => void; bloqueado?: boolean; invalido?: boolean;
+}) {
+  const [foco, setFoco] = useState(false);
+  const entrada = useRef<HTMLInputElement>(null);
+  const abierto = foco || valor !== "";
+  return (
+    <span className={clases("relative inline-flex h-(--alto-control) shrink-0 items-center", abierto ? "w-52 max-w-full" : "w-24")}>
+      <input
+        ref={entrada} type="text" enterKeyHint="done" autoComplete="off" aria-label={etiqueta} placeholder={abierto ? placeholder : rotulo} maxLength={LARGO_VALOR}
+        value={valor} aria-invalid={invalido ? true : undefined} disabled={bloqueado && !alTocarBloqueado}
+        onFocus={() => {
+          if (bloqueado) { entrada.current?.blur(); return alTocarBloqueado?.(); }
+          setFoco(true);
+        }}
+        onBlur={(e) => {
+          setFoco(false);
+          // Tocar el ✓ no es perder el campo: lo confirma el propio botón.
+          if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.hasAttribute("data-confirmar-otra")) return;
+          alDejar?.();
+        }}
+        onChange={(e) => alCambiar(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); if (alListo()) entrada.current?.blur(); }
+          else if (e.key === "Escape") { alCancelar?.(); entrada.current?.blur(); }
+        }}
+        className={clases(
+          "h-full w-full min-w-0 rounded-full border-2 bg-superficie text-cuerpo text-texto outline-none disabled:opacity-40",
+          abierto ? clases("pr-11 pl-4", invalido ? "border-peligro" : "border-accion", "placeholder:text-texto-secundario") : "border-borde-pastilla px-2 text-center font-bold placeholder:font-bold placeholder:text-texto",
+        )}
+      />
+      {abierto && (
+        <button
+          type="button" aria-label="Agregar" data-confirmar-otra="" disabled={!valor.trim()} onMouseDown={(e) => e.preventDefault()}
+          onClick={() => { if (alListo()) entrada.current?.blur(); }}
+          className={clases("tocable absolute right-1 grid size-8 place-items-center rounded-full bg-accion text-sobre-accion disabled:opacity-40", FOCO)}
+        >
+          <IconoCheck tamano={16} strokeWidth={3} />
+        </button>
+      )}
+    </span>
+  );
+}
+
 /** «¿En qué cambia?» (b11): lo típico del catálogo y otras cosas, hasta 2, y «+ Otra» para una propia. */
 export function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ejes: EjeHistoria[]; alCambiar: (e: EjeHistoria[]) => void; avisar: (m: string) => void }) {
   const { tipicas, otras } = listaDeCosas(OPCIONES_TIPICAS[rubro]);
   const lista = [...new Set([...[...tipicas, ...otras].slice(0, 4), ...ejes.map((e) => e.nombre)])];
-  const [otra, setOtra] = useState<string | null>(null);
+  const [otra, setOtra] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const caja = useRef<HTMLDivElement>(null);
   const llenos = ejes.length >= MAX_EJES;
   // Con 2 elegidas las demás se ven igual (como el lienzo); tocarlas explica el máximo.
   const lleno = () => avisar(`Ya elegiste ${MAX_EJES}: quita una para elegir otra.`);
@@ -163,56 +215,32 @@ export function QueCambia({ rubro, ejes, alCambiar, avisar }: { rubro: Rubro; ej
     alCambiar([...ejes, { nombre, valores: [], propia: !COSAS_QUE_CAMBIAN.some((c) => c === nombre) }]);
   };
   const listoOtra = () => {
-    if (llenos) return lleno();
-    const e = errorDeNombrePropio(otra ?? "", ejes.map((x) => x.nombre), [...tipicas, ...otras]);
-    if (e) return setError(e);
-    alCambiar([...ejes, { nombre: (otra ?? "").trim(), valores: [], propia: true }]);
-    setOtra(null);
+    if (llenos) {
+      lleno();
+      return false;
+    }
+    const e = errorDeNombrePropio(otra, ejes.map((x) => x.nombre), [...tipicas, ...otras]);
+    if (e) {
+      setError(e);
+      return false;
+    }
+    alCambiar([...ejes, { nombre: otra.trim(), valores: [], propia: true }]);
+    setOtra("");
     setError(null);
+    return true;
   };
   return (
-    <div ref={caja} className="mt-3.5" data-que-cambia="">
+    <div className="mt-3.5" data-que-cambia="">
       <div role="group" aria-label="Lo que cambia" className="flex flex-wrap gap-2">
         {lista.map((nombre) => {
           const elegida = ejes.some((e) => e.nombre === nombre);
           return <Eleccion key={nombre} casilla elegida={elegida} onClick={() => alternar(nombre)}>{nombre}</Eleccion>;
         })}
-        {otra === null ? (
-          <Eleccion
-            accion elegida={false}
-            onClick={() => {
-              if (llenos) return lleno();
-              flushSync(() => setOtra(""));
-              caja.current?.querySelector<HTMLInputElement>("input")?.focus();
-            }}
-          >
-            + Otra
-          </Eleccion>
-        ) : (
-          <span className="relative inline-flex h-(--alto-control) w-52 min-w-0 items-center">
-            <input
-              type="text" enterKeyHint="done" autoComplete="off" aria-label="¿Qué otra cosa cambia?" placeholder="Por ejemplo: Aroma" maxLength={LARGO_VALOR}
-              value={otra} data-campo-paso="" aria-invalid={error ? true : undefined}
-              onChange={(e) => { setOtra(e.target.value); setError(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); listoOtra(); }
-                else if (e.key === "Escape") { setOtra(null); setError(null); }
-              }}
-              onBlur={(e) => {
-                // Tocar el ✓ no es perder el campo: lo confirma el propio botón.
-                if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.hasAttribute("data-confirmar-otra")) return;
-                if (!otra.trim()) { setOtra(null); setError(null); }
-              }}
-              className={clases("h-full w-full min-w-0 rounded-full border-2 bg-superficie pr-11 pl-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario", error ? "border-peligro" : "border-accion")}
-            />
-            <button
-              type="button" aria-label="Agregar" data-confirmar-otra="" disabled={!otra.trim()} onMouseDown={(e) => e.preventDefault()} onClick={listoOtra}
-              className={clases("tocable absolute right-1 grid size-8 place-items-center rounded-full bg-accion text-sobre-accion disabled:opacity-40", FOCO)}
-            >
-              <IconoCheck tamano={16} strokeWidth={3} />
-            </button>
-          </span>
-        )}
+        <CampoOtra
+          etiqueta="¿Qué otra cosa cambia?" rotulo="+ Otra" placeholder="Por ejemplo: Aroma" valor={otra} invalido={!!error} bloqueado={llenos} alTocarBloqueado={lleno}
+          alCambiar={(v) => { setOtra(v); setError(null); }} alListo={listoOtra}
+          alDejar={() => { if (!otra.trim()) { setOtra(""); setError(null); } }} alCancelar={() => { setOtra(""); setError(null); }}
+        />
       </div>
       {error && <p role="alert" className="mx-0.5 mt-2 text-[0.8125rem] text-peligro">{error}</p>}
       <p className="mx-0.5 mt-2.5 text-[0.8125rem] text-texto-secundario">Hasta {MAX_EJES}. Para la mayoría basta con talla y color.</p>
@@ -225,18 +253,18 @@ export function ValoresDeEje({ eje, rubro, alAlternar, alPoner }: { eje: EjeHist
   const sugeridos = eje.propia ? [] : valoresSugeridos(eje.nombre, rubro);
   const atajos = atajosDe(eje.nombre, rubro).filter((a) => a.texto !== "30 · 50 · 100 ml" || rubro === "perfumes").filter((a) => a.texto !== "36 a 42");
   const color = esEjeColor(eje.nombre);
-  const [otro, setOtro] = useState<string | null>(null);
-  const caja = useRef<HTMLDivElement>(null);
+  const [otro, setOtro] = useState("");
   const agregar = () => {
     // Solo suma: escribir uno que ya está («Negro», «negro ») no lo quita.
-    if (otro?.trim()) {
+    if (otro.trim()) {
       const valores = agregarValor(eje.valores, otro);
       if (valores !== eje.valores) alPoner(valores);
     }
-    setOtro(null);
+    setOtro("");
+    return true;
   };
   return (
-    <div ref={caja} className="mt-3.5" data-valores-eje={eje.nombre}>
+    <div className="mt-3.5" data-valores-eje={eje.nombre}>
       <div role="group" aria-label={eje.nombre} className="flex flex-wrap gap-2">
         {valoresVisibles(sugeridos, eje.valores).map((v) => {
           const elegida = eje.valores.includes(v);
@@ -248,28 +276,10 @@ export function ValoresDeEje({ eje, rubro, alAlternar, alPoner }: { eje: EjeHist
             </Eleccion>
           );
         })}
-        {otro === null ? (
-          <Eleccion
-            accion elegida={false} deshabilitada={eje.valores.length >= MAX_VALORES}
-            onClick={() => {
-              flushSync(() => setOtro(""));
-              caja.current?.querySelector<HTMLInputElement>("input")?.focus();
-            }}
-          >
-            + {otroDe(eje.nombre).split(" ")[0]}
-          </Eleccion>
-        ) : (
-          <input
-            type="text" enterKeyHint="done" autoComplete="off" aria-label={otroDe(eje.nombre)} placeholder="Escríbelo y toca Enter" maxLength={LARGO_VALOR}
-            value={otro} onChange={(e) => setOtro(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); agregar(); }
-              else if (e.key === "Escape") setOtro(null);
-            }}
-            onBlur={agregar}
-            className="h-(--alto-control) w-52 min-w-0 rounded-full border-2 border-accion bg-superficie px-4 text-cuerpo text-texto outline-none placeholder:text-texto-secundario"
-          />
-        )}
+        <CampoOtra
+          etiqueta={otroDe(eje.nombre)} rotulo={`+ ${otroDe(eje.nombre).split(" ")[0]}`} placeholder="Escríbelo y toca Enter" valor={otro}
+          bloqueado={eje.valores.length >= MAX_VALORES} alCambiar={setOtro} alListo={agregar} alDejar={agregar} alCancelar={() => setOtro("")}
+        />
       </div>
       {atajos.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2" data-atajos="">

@@ -7,8 +7,7 @@ import { CheckCirculo, useRadiogrupo } from "./opcion";
 /**
  * Elección de una historia (crear producto, prototipo v4): una píldora que se elige con un toque (las respuestas de «¿Cuándo
  * llega?», y en presentaciones las tallas y los colores). Contorno de 2 px `borde-pastilla` y relleno `superficie`; elegida, verde
- * como en toda la app: relleno y contorno `accion-suave` y el check en círculo a la izquierda (el de `Opcion`; en `compacta`, solo el
- * color, para que la fila quepa a 360 px). 44 px (`compacta`: 40, toque 44). Va dentro de `GrupoEleccion`.
+ * como en toda la app: relleno y contorno `accion-suave` y el check en círculo a la izquierda (el de `Opcion`, también en `compacta`). 44 px (`compacta`: 40, toque 44). Va dentro de `GrupoEleccion`.
  */
 export function Eleccion({
   elegida,
@@ -53,7 +52,7 @@ export function Eleccion({
         elegida ? "border-accion-suave bg-accion-suave" : "border-borde-pastilla bg-superficie",
       )}
     >
-      {elegida && !accion && !compacta && <CheckCirculo />}
+      {elegida && !accion && <CheckCirculo />}
       {children}
     </button>
   );

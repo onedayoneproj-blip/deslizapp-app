@@ -1164,7 +1164,7 @@ console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; q
   await seguir(page);
   for (const c of ["Negro", "Blanco", "Rojo"]) await page.getByRole("checkbox", { name: c, exact: true }).tap();
   // «+ Otro» con uno que ya está (Codex P3, 6.ª revisión): no lo quita ni pregunta.
-  await page.getByRole("button", { name: "+ Otro", exact: true }).tap();
+  await page.getByRole("textbox", { name: "Otro color" }).tap();
   await page.keyboard.type(" negro ");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
@@ -1350,35 +1350,36 @@ for (const ancho of ANCHOS) {
     ok((await paso(page)) === "precio" && (await page.locator("[data-pregunta-opciones]").count()) === 1 && (await page.locator("[data-resumen-opciones]").count()) === 0, "«‹» con la cosa elegida pero sin valores vuelve al precio con la pregunta (sin presentaciones)");
     await sino.getByRole("button", { name: "Sí", exact: true }).tap();
     await page.waitForTimeout(150);
-    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Volver a tocar «Sí»: «¿En qué cambia?» sin nada marcado y «+ Otra» cerrado");
+    ok((await paso(page)) === "cambia" && (await marcada("Talla")) === "false" && (await page.getByLabel("¿Qué otra cosa cambia?").getAttribute("placeholder")) === "+ Otra", "Volver a tocar «Sí»: «¿En qué cambia?» sin nada marcado y «+ Otra» cerrado");
     {
-      const fila = qc.locator('[role="group"]');
-      const antes = await qc.getByRole("button", { name: "+ Otra" }).boundingBox();
-      await qc.getByRole("button", { name: "+ Otra" }).tap();
       const campo = page.getByLabel("¿Qué otra cosa cambia?");
-      ok(await campo.isVisible() && (await page.evaluate(() => document.activeElement?.tagName)) === "INPUT", "«+ Otra» se vuelve campo con el foco dentro");
+      const antes = await campo.boundingBox();
+      ok((await campo.getAttribute("placeholder")) === "+ Otra", "«+ Otra» en reposo: la píldora es el campo (placeholder «+ Otra»)");
+      // El toque cae sobre un input que ya existe: el foco (y el teclado del iPhone) llegan en el mismo gesto, sin esperas ni `focus()` de código.
+      await campo.tap();
+      ok((await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))) === "¿Qué otra cosa cambia?", "«+ Otra»: el foco queda en el input justo después del toque, sin esperas (abre el teclado)");
+      ok((await campo.getAttribute("placeholder")) === "Por ejemplo: Aroma", "…y muestra «Por ejemplo: Aroma»");
       const dentro = await campo.boundingBox();
-      ok(Math.abs(dentro.y - antes.y) < 2 && (await campo.evaluate((e) => getComputedStyle(e).borderRadius)).length > 0 && Math.abs(dentro.height - antes.height) < 2, "…en el mismo sitio de la fila y con la misma altura");
-      ok((await fila.getByRole("button", { name: "+ Otra" }).count()) === 0, "…y la píldora «+ Otra» ya no está");
+      ok(Math.abs(dentro.y - antes.y) < 2 && Math.abs(dentro.height - antes.height) < 2, "…en el mismo sitio de la fila y con la misma altura");
       await captura(page, "otra-abierta", ancho);
       await campo.evaluate((e) => e.blur());
       await page.waitForTimeout(100);
-      ok((await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0 && (await qc.getByRole("button", { name: "+ Otra" }).count()) === 1, "Vacío y sin foco, vuelve a ser «+ Otra»");
-      await qc.getByRole("button", { name: "+ Otra" }).tap();
+      ok((await campo.getAttribute("placeholder")) === "+ Otra" && (await page.getByRole("button", { name: "Agregar", exact: true }).count()) === 0, "Vacío y sin foco, vuelve a ser «+ Otra»");
+      await campo.tap();
     }
     await page.keyboard.type("Aroma");
     await page.keyboard.press("Enter");
     await page.waitForTimeout(100);
-    ok((await marcada("Aroma")) === "true" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Enter agrega «Aroma» (elegida) y cierra el campo");
+    ok((await marcada("Aroma")) === "true" && (await page.getByLabel("¿Qué otra cosa cambia?").inputValue()) === "", "Enter agrega «Aroma» (elegida) y cierra el campo");
     await seguir(page);
     ok((await paso(page)) === "eje1", "«Seguir» lleva a sus valores");
     await boton(page, "Atrás").tap();
     await page.waitForTimeout(200);
-    ok((await paso(page)) === "cambia" && (await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0, "Al volver de los valores, el campo de «+ Otra» sigue cerrado");
+    ok((await paso(page)) === "cambia" && (await page.getByLabel("¿Qué otra cosa cambia?").getAttribute("placeholder")) === "+ Otra", "Al volver de los valores, el campo de «+ Otra» sigue cerrado");
     await qc.getByRole("checkbox", { name: "Talla", exact: true }).tap();
     ok((await qc.getByRole("checkbox", { name: "Aroma", exact: true }).getAttribute("aria-checked")) === "true", "…con Aroma y Talla elegidas (el máximo)");
-    await qc.getByRole("button", { name: "+ Otra" }).tap();
-    ok((await page.getByLabel("¿Qué otra cosa cambia?").count()) === 0 && (await qc.getByRole("checkbox", { checked: true }).count()) === 2, "Con 2 elegidas no se puede abrir «+ Otra» ni añadir una tercera");
+    await page.getByLabel("¿Qué otra cosa cambia?").tap();
+    ok((await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))) !== "¿Qué otra cosa cambia?" && (await qc.getByRole("checkbox", { checked: true }).count()) === 2, "Con 2 elegidas no se puede abrir «+ Otra» ni añadir una tercera");
     ok(errores.length === 0, "Sin errores en la consola");
     await ctx.close();
   }
@@ -1421,7 +1422,7 @@ for (const ancho of ANCHOS) {
     } else if (ruta.startsWith("«Otra»")) {
       await pastilla("Sí").tap();
       await page.waitForTimeout(150);
-      await qc.getByRole("button", { name: "+ Otra" }).tap();
+      await page.getByLabel("¿Qué otra cosa cambia?").tap();
       await page.keyboard.type("Aroma");
       await page.keyboard.press("Enter");
       await seguir(page);
@@ -1525,7 +1526,8 @@ for (const [an, al] of [[390, 844], [393, 852]]) {
   await falta("cantidad");
   await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
   await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
-  await falta("por encargo con plazo");
+  // Con el check en las Elecciones compactas, «Otro» baja a una 2.ª fila al elegir «1 a 2 semanas» a 390 px: se informa mientras Planning decide.
+  await falta("por encargo con plazo", true);
   await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
   await page.getByRole("button", { name: "Agregar uno" }).tap();
   await seguir(page);
