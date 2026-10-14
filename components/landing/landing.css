@@ -1,0 +1,491 @@
+/* Landing de deslizapp.com (components/landing). La demo avanza con el scroll: components/landing/controlador.tsx escribe
+   el progreso en --p (en unidades de lib/landing/escenas.ts) y cada elemento cruza --p con su ventana (components/landing/pista.ts).
+   Solo transform y opacity. Excepción de movimiento aprobada para esta página (docs/08-movimiento.md). */
+
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --ea {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: -100;
+}
+@property --eb {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: -99;
+}
+@property --sa {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 100000;
+}
+@property --sb {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 100001;
+}
+@property --x0 {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --y0 {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --x1 {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --y1 {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --s0 {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --s1 {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --in {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --out {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* Entra y sale: --in va de 0 a 1 en [--ea, --eb]; --out, de 0 a 1 en [--sa, --sb]. */
+.pista,
+.mueve,
+.presiona,
+.llena {
+  --in: clamp(0, (var(--p) - var(--ea)) / (var(--eb) - var(--ea)), 1);
+  --out: clamp(0, (var(--p) - var(--sa)) / (var(--sb) - var(--sa)), 1);
+}
+.pista {
+  opacity: calc(var(--in) * (1 - var(--out)));
+  transform: translate(calc((1 - var(--in)) * var(--x0) + var(--out) * var(--x1)), calc((1 - var(--in)) * var(--y0) + var(--out) * var(--y1)))
+    scale(calc(1 + (1 - var(--in)) * var(--s0) + var(--out) * var(--s1)));
+}
+/* Se desplaza sin desvanecerse (las tarjetas del feed). */
+.mueve {
+  transform: translate(calc((1 - var(--in)) * var(--x0) + var(--out) * var(--x1)), calc((1 - var(--in)) * var(--y0) + var(--out) * var(--y1)));
+}
+/* Un botón que se hunde con el toque y vuelve. */
+.presiona {
+  transform: scale(calc(1 - 0.07 * var(--in) * (1 - var(--out))));
+}
+/* Una barra que se llena. */
+.llena {
+  transform: scaleX(var(--in));
+  transform-origin: left center;
+}
+
+/* ---- Página ---- */
+.landing {
+  --alto-cabecera: calc(60px + env(safe-area-inset-top));
+  background: var(--fondo);
+  color: var(--texto);
+}
+.landing-cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--alto-cabecera);
+  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--fondo) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Sin JavaScript o con movimiento reducido se ve la versión en pasos; con JavaScript, el escenario animado. */
+.landing-demo {
+  display: none;
+}
+:root[data-landing-js] .landing-demo {
+  display: block;
+}
+:root[data-landing-js] .landing-pasos {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+:root[data-landing-js] .landing-pasos .lt-telefono {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-landing-js] .landing-demo {
+    display: none;
+  }
+  :root[data-landing-js] .landing-pasos {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+  :root[data-landing-js] .landing-pasos .lt-telefono {
+    display: block;
+  }
+}
+/* En modo demo (eligió «Ver demo» antes) la landing no se muestra: abre su panel de prueba. */
+:root[data-dz-demo] .landing {
+  visibility: hidden;
+}
+
+/* El recorrido: tantas pantallas de scroll como diga la tabla de escenas. */
+.landing-demo {
+  position: relative;
+  height: calc(var(--duracion) * var(--escala-scroll) * 100svh + 100svh - var(--alto-cabecera));
+}
+.lt-escenario {
+  position: sticky;
+  top: var(--alto-cabecera);
+  height: calc(100dvh - var(--alto-cabecera));
+  display: flex;
+  flex-direction: column;
+  padding: 0 max(16px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: hidden;
+}
+/* Fondo del lado de la tienda (verde menta) */
+.lt-fondo-tienda {
+  position: absolute;
+  inset: 0;
+  background: var(--accion-suave);
+}
+.lt-leyendas {
+  position: relative;
+  flex: none;
+  height: 118px;
+}
+.lt-leyenda {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 12px;
+}
+.lt-lado {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lt-lado[data-lado="compras"] {
+  background: var(--marca-rosa-fija);
+  color: var(--marca-bosque);
+}
+.lt-lado[data-lado="tienda"] {
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+}
+.lt-titular {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 115%;
+  font-size: 1.5rem;
+  line-height: 1.12;
+}
+.lt-remate {
+  color: var(--atencion-texto);
+}
+.lt-apoyo {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  color: var(--texto-secundario);
+}
+@media (max-height: 680px) {
+  .lt-leyendas {
+    height: 112px;
+  }
+  .lt-titular {
+    font-size: 1.25rem;
+  }
+  .lt-apoyo {
+    font-size: 0.875rem;
+  }
+}
+.lt-zona {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+}
+.lt-progreso {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--linea);
+  overflow: hidden;
+}
+.lt-progreso > i {
+  display: block;
+  height: 100%;
+  background: var(--accion);
+  transform-origin: left center;
+  transform: scaleX(calc(var(--p) / var(--duracion)));
+}
+
+/* ---- Teléfono ---- */
+.lt-telefono {
+  position: relative;
+  container-type: size;
+  width: 100%;
+  max-width: 430px;
+  height: 100%;
+  border: 5px solid var(--marca-bosque);
+  border-radius: 34px;
+  overflow: hidden;
+  background: var(--marca-bosque);
+  box-shadow: 0 24px 50px -24px rgba(16, 54, 42, 0.55);
+  pointer-events: none;
+  user-select: none;
+}
+/* Dentro se dibuja a 393 px (iPhone 15 Pro) y se escala al ancho real: tan(atan2()) da la proporción sin JavaScript. */
+.lt-pantalla {
+  --esc: tan(atan2(100cqw, 393px));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 393px;
+  height: calc(100cqh / var(--esc));
+  transform: scale(var(--esc));
+  transform-origin: 0 0;
+  overflow: hidden;
+  /* Pantalla apagada entre escenas */
+  background: var(--marca-bosque);
+  color: var(--texto);
+  font-size: 16px;
+  line-height: 1.35;
+}
+.lt-capa {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.lt-estado {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 0;
+}
+.lt-isla {
+  width: 118px;
+  height: 34px;
+  border-radius: 20px;
+  background: #000;
+}
+.lt-icono {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+}
+.lt-icono > svg {
+  width: 100%;
+  height: 100%;
+}
+.lt-toque {
+  position: absolute;
+  z-index: 6;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 249, 238, 0.55);
+  border: 3px solid var(--marca-mandarina);
+  box-shadow: 0 0 0 6px rgba(255, 131, 79, 0.25);
+  pointer-events: none;
+}
+
+/* Catálogo */
+.lt-producto {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 82%;
+  height: auto;
+  transform: translate(-50%, -58%);
+  filter: drop-shadow(0 26px 30px rgba(16, 54, 42, 0.28));
+}
+.lt-producto-pedido {
+  top: 44%;
+  width: 72%;
+}
+.lt-reel-cap {
+  position: absolute;
+  left: 16px;
+  right: 92px;
+  bottom: 112px;
+}
+.lt-reel-acts {
+  position: absolute;
+  right: 12px;
+  bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lt-accion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(16, 54, 42, 0.35);
+}
+.lt-icono-lleno {
+  color: var(--marca-mandarina);
+}
+.lt-icono-lleno svg {
+  fill: currentColor;
+}
+.lt-burst {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+}
+.lt-burst-corazon {
+  width: 120px;
+  height: 120px;
+  color: var(--marca-mandarina);
+  filter: drop-shadow(0 10px 20px rgba(16, 54, 42, 0.35));
+}
+.lt-burst-corazon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: var(--marca-papel);
+}
+.lt-barra {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 26px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 10px 10px;
+  border-radius: 22px;
+  background: var(--superficie);
+  color: var(--texto);
+  box-shadow: var(--sombra-flotante);
+}
+
+/* Hojas (las de la app suben desde abajo) */
+.lt-hoja {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+  background: var(--fondo);
+  color: var(--texto);
+  box-shadow: var(--sombra-hoja);
+  overflow: hidden;
+}
+.lt-hoja-compacta {
+  top: auto;
+}
+.lt-hoja-grande {
+  top: 56px;
+}
+.lt-resalta {
+  border-radius: 6px;
+  background: var(--atencion-suave);
+  padding: 0 4px;
+}
+
+.lt-bloqueo {
+  background:
+    radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.45), transparent 60%),
+    radial-gradient(90% 60% at 90% 90%, rgba(245, 201, 214, 0.5), transparent 60%),
+    var(--marca-bosque);
+}
+
+/* ---- Escritorio: frases a la izquierda, teléfono a la derecha ---- */
+@media (min-width: 900px) {
+  .lt-escenario {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(32px, 6vw, 96px);
+    padding-bottom: 24px;
+    padding-top: 24px;
+  }
+  .lt-leyendas {
+    width: min(440px, 40vw);
+    height: 280px;
+  }
+  .lt-leyenda {
+    justify-content: center;
+    padding: 0;
+  }
+  .lt-titular {
+    font-size: 2.6rem;
+  }
+  .lt-apoyo {
+    margin-top: 12px;
+    font-size: 1.125rem;
+  }
+  .lt-zona {
+    flex: none;
+    height: min(100%, 860px);
+    aspect-ratio: 393 / 820;
+  }
+  .lt-progreso {
+    top: 0;
+  }
+}
+
+/* ---- Versión en pasos ---- */
+.landing-pasos .lt-telefono {
+  height: min(640px, 82svh);
+  margin-inline: auto;
+}
+@media (min-width: 900px) {
+  .landing-pasos .lt-telefono {
+    width: 340px;
+  }
+}
