@@ -144,8 +144,8 @@
   border-radius: 15.5% / 7%;
   background: var(--marca-bosque);
 }
-/* La portada: el video de Lewis a pantalla completa (sin teléfono todavía), el logo arriba y la burbuja de «desliza». Un degradado
-   suave arriba y abajo para que se lean. El teléfono entra en el paso siguiente. */
+/* La portada (ajustes-lewis-6.md y -7.md): el video de Lewis a pantalla completa; a los 0.7 s sube el icono de la app y asoma
+   el teléfono bloqueado, cortado por el borde de abajo. Al primer deslizamiento sube a su sitio y se desbloquea. */
 .lt-intro {
   position: absolute;
   inset: 0;
@@ -160,45 +160,160 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(to bottom, rgba(255, 249, 238, 0.7), transparent 18%),
-    linear-gradient(to top, rgba(16, 54, 42, 0.45), transparent 32%);
+  background: linear-gradient(to bottom, rgba(16, 54, 42, 0.35), transparent 30%);
 }
-/* En el teléfono, el video llena la pantalla sobre la columna de la burbuja: así el texto del final («Comprar sin tanta
-   vuelta…», a la derecha) se lee entero y la burbuja no lo tapa. */
+.lt-portada-caja {
+  display: contents;
+}
 .lt-portada-video {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  height: calc(100% - var(--alto-burbujas) - var(--alto-abajo) + 12px);
+  height: 100%;
   object-fit: cover;
-  object-position: 60% 78%;
+  object-position: 60% 50%;
   pointer-events: none;
+  transition: opacity 600ms ease;
+}
+/* Cuando asoma el teléfono, tapa la parte de abajo del video: el video baja un poco para que el teléfono se lea. */
+.lt-escenario[data-entrada="telefono"] .lt-portada-video {
+  opacity: 0.55;
 }
 /* Si iOS no la deja reproducir sola, queda el póster: sin botón de play. */
 .lt-portada-video::-webkit-media-controls-start-playback-button {
   display: none !important;
   -webkit-appearance: none;
 }
-.lt-portada-logo {
+/* El icono de la app, como en la pantalla de inicio de iOS: el squircle y el nombre debajo, en blanco. */
+.lt-portada-icono {
   position: absolute;
   z-index: 1;
-  top: calc(16px + env(safe-area-inset-top));
-  left: max(16px, env(safe-area-inset-left));
+  left: 50%;
+  top: calc(var(--alto-arriba) + 4px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: var(--marca-bosque);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translate(-50%, 28px) scale(0.85);
+  transition:
+    opacity 380ms ease,
+    transform 520ms cubic-bezier(0.32, 1.35, 0.5, 1);
+}
+.lt-portada-icono img {
+  width: 72px;
+  height: 72px;
+  border-radius: 22.5%;
+  box-shadow: 0 10px 24px -8px rgba(16, 54, 42, 0.55);
+}
+.lt-escenario[data-entrada="icono"] .lt-portada-icono,
+.lt-escenario[data-entrada="telefono"] .lt-portada-icono {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 .lt-escenario:not([data-paso="intro"]) .lt-intro {
   opacity: 0;
   transform: scale(1.04);
   pointer-events: none;
 }
+/* El teléfono de Ana en la portada: escondido abajo hasta que le toca, y luego asomando (cortado por el borde de abajo). Al
+   deslizar sube a su sitio con un resorte. */
+.lt-tel-compradora {
+  --asoma: 46%;
+}
 .lt-escenario[data-paso="intro"] .lt-tel-compradora {
-  transform: translateY(70%) scale(0.9);
+  transform: translateY(calc(var(--asoma) + 60%));
   opacity: 0;
+}
+.lt-escenario[data-paso="intro"][data-entrada="telefono"] .lt-tel-compradora {
+  transform: translateY(var(--asoma));
+  opacity: 1;
+}
+.lt-escenario[data-paso="hola"] .lt-tel-compradora {
+  transition:
+    transform 620ms cubic-bezier(0.3, 1.18, 0.5, 1),
+    opacity 400ms ease;
+}
+/* La pantalla de bloqueo: encima de la página, en el hueco del mockup (las medidas, en % de ese hueco). */
+.lt-bloqueo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, system-ui, sans-serif;
+  text-align: center;
+  background:
+    radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.55), transparent 60%),
+    radial-gradient(90% 60% at 90% 90%, rgba(23, 75, 58, 0.55), transparent 60%),
+    var(--marca-rosa-fija);
+  transition:
+    transform 520ms cubic-bezier(0.3, 1, 0.5, 1),
+    opacity 420ms ease;
+}
+.lt-bloqueo-fecha {
+  margin-top: 15cqh;
+  font-size: 5cqw;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.lt-bloqueo-hora {
+  font-size: 24cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+/* La invitación y la barrita van más arriba que en un iPhone: el teléfono asoma cortado y tienen que verse. */
+.lt-bloqueo-desliza {
+  margin-top: auto;
+  margin-bottom: 3cqh;
+  font-size: 5.6cqw;
+  font-weight: 600;
+  opacity: 0.95;
+}
+.lt-bloqueo-barra {
+  width: 36cqw;
+  height: 1.4cqw;
+  margin-bottom: 26cqh;
+  border-radius: 999px;
+  background: #ffffff;
+  animation: lt-barra 1.8s ease-in-out infinite;
+}
+@keyframes lt-barra {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(-1.6cqh);
+    opacity: 1;
+  }
+}
+.lt-escenario:not([data-paso="intro"]) .lt-bloqueo {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+/* El desbloqueo: la página entra como una app que se abre en iOS (más pequeña, borrosa y transparente, hasta su tamaño). */
+.lt-tel-compradora .lt-pantalla > iframe {
+  transform-origin: 50% 50%;
+  transition:
+    transform 560ms cubic-bezier(0.3, 1.12, 0.5, 1),
+    opacity 420ms ease,
+    filter 420ms ease;
+}
+.lt-escenario[data-paso="intro"] .lt-tel-compradora .lt-pantalla > iframe {
+  transform: scale(0.88);
+  opacity: 0;
+  filter: blur(8px);
 }
 .lt-tel-tienda {
   transform: translateX(75%) scale(0.82);
@@ -351,17 +466,15 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El índice del recorrido, a la izquierda: solo rayas (ajustes-lewis-6.md). La actual, más larga y marcada; las vistas, algo
-   más que las que faltan. No sale en la portada. ---- */
+/* ---- El indicador, a la izquierda (ajustes-lewis-7.md §1): una raya gruesa por paso y, entre ellas, finas por cada toque o fase,
+   que se llenan mientras el paso avanza. Cabe en unos 65 % del alto, sin bajar a las burbujas. No sale en la portada. ---- */
 .lt-indice {
   position: absolute;
   z-index: 6;
-  left: max(4px, env(safe-area-inset-left));
-  /* centrado en el alto del teléfono, sin bajar a las burbujas */
-  top: calc(
-    var(--alto-arriba) +
-      (100% - var(--alto-arriba) - var(--alto-burbujas) - var(--alto-abajo)) / 2
-  );
+  left: max(6px, env(safe-area-inset-left));
+  /* En el teléfono baja también junto a la columna de las burbujas, que le deja su sitio (.lt-burbujas, left). */
+  top: calc(var(--alto-arriba) + (100% - var(--alto-arriba) - var(--alto-abajo)) / 2);
+  height: min(68%, calc(100% - var(--alto-arriba) - var(--alto-abajo) - 16px));
   transform: translateY(-50%);
   color: var(--marca-bosque);
   transition:
@@ -375,31 +488,54 @@
   opacity: 0;
   visibility: hidden;
 }
-.lt-indice-capitulo {
+.lt-indice-rayas {
   display: flex;
-  align-items: center;
-  width: 30px;
-  height: 44px;
-  padding-left: 4px;
-  -webkit-tap-highlight-color: transparent;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  height: 100%;
 }
-.lt-indice-raya {
-  width: 10px;
-  height: 3px;
+.lt-raya-gruesa {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 12px;
+  height: 4px;
   border-radius: 999px;
   background: currentColor;
-  opacity: 0.3;
+  opacity: 0.35;
+  -webkit-tap-highlight-color: transparent;
   transition:
     width 420ms var(--curva),
     opacity 300ms ease;
 }
-.lt-indice-capitulo[data-estado="visto"] .lt-indice-raya {
-  opacity: 0.55;
+/* El área de toque: 24 px de alto (y más ancha que la raya), aunque la raya sea fina */
+.lt-raya-gruesa::before {
+  content: "";
+  position: absolute;
+  inset: -10px -14px -10px -6px;
 }
-.lt-indice-capitulo[data-estado="actual"] .lt-indice-raya {
-  width: 22px;
-  height: 4px;
+.lt-raya-gruesa[data-estado="visto"] {
+  opacity: 0.7;
+}
+.lt-raya-gruesa[data-estado="actual"] {
+  width: 26px;
   opacity: 1;
+}
+.lt-raya-fina {
+  display: block;
+  flex: none;
+  width: 6px;
+  height: 2px;
+  margin-left: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.22;
+  pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.lt-raya-fina[data-llena="si"] {
+  opacity: 0.85;
 }
 
 /* ---- Las burbujas: mensajes enviados de WhatsApp en iOS (modo oscuro), a la derecha, apiladas como un chat
@@ -408,7 +544,8 @@
 .lt-burbujas {
   position: absolute;
   z-index: 5;
-  left: max(14px, env(safe-area-inset-left));
+  /* a la izquierda queda el indicador */
+  left: max(48px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
   bottom: var(--alto-abajo);
   height: var(--alto-burbujas);
@@ -481,6 +618,9 @@
 }
 
 @media (max-height: 700px) {
+  .lt-tel-compradora {
+    --asoma: 54%;
+  }
   .lt-escenario {
     --alto-burbujas: 150px;
   }
@@ -514,37 +654,45 @@
     font-size: 2rem;
   }
   .lt-indice {
-    left: 24px;
+    left: 28px;
   }
-  .lt-indice-capitulo {
-    width: 48px;
+  .lt-raya-gruesa[data-estado="actual"] {
+    width: 34px;
   }
-  .lt-indice-capitulo[data-estado="actual"] .lt-indice-raya {
-    width: 32px;
-  }
-  /* La portada en escritorio: una columna 9:16 donde después aparece el teléfono, sobre el rosa de la marca (el video trae su
-     texto a la derecha: así no se recorta). */
+  /* La portada en escritorio: el video en una columna 9:16 a la izquierda, sobre el rosa de la marca (su texto se lee entero), y
+     el teléfono asomando a la derecha, donde va a estar, con el icono encima. */
   .lt-intro {
     background: transparent;
   }
   .lt-intro::after {
     display: none;
   }
-  .lt-portada-video {
-    left: 50%;
+  .lt-portada-video,
+  .lt-escenario[data-entrada="telefono"] .lt-portada-video {
+    left: 25%;
     top: calc(var(--alto-arriba) + 8px);
     bottom: 32px;
     width: auto;
     height: calc(100% - var(--alto-arriba) - 40px);
     aspect-ratio: 9 / 16;
-    margin-left: calc(min(46vw, 560px) / 2);
     transform: translateX(-50%);
+    opacity: 1;
     border-radius: 28px;
     box-shadow: 0 30px 60px -28px rgba(16, 54, 42, 0.6);
   }
-  .lt-portada-logo {
-    top: 18px;
-    left: 24px;
+  .lt-portada-icono {
+    left: calc(50% + min(46vw, 560px) / 2);
+    top: calc(var(--alto-arriba) + 20px);
+  }
+  .lt-portada-icono img {
+    width: 112px;
+    height: 112px;
+  }
+  .lt-portada-icono {
+    font-size: 17px;
+  }
+  .lt-tel-compradora {
+    --asoma: 24%;
   }
 }
 

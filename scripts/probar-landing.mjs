@@ -12,7 +12,7 @@ import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require("playwright");
-const { PASOS, CAPITULOS_NOMBRES, estadoPaso, primerPasoDe } = await import("../lib/landing/pasos.ts");
+const { PASOS, estadoPaso } = await import("../lib/landing/pasos.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 
 const base = process.argv[2] ?? "http://localhost:3000";
@@ -35,23 +35,30 @@ const medir = (pagina, i) =>
   pagina.evaluate(
     ({ i, paso }) => {
       const e = document.querySelector(".lt-escenario");
+      // (la portada no tiene burbuja: invita a deslizar su pantalla de bloqueo)
       const burbuja = e.querySelector(`[data-burbuja="${i}"]`);
-      const nitida = getComputedStyle(burbuja).filter === "none" && [...burbuja.querySelectorAll("*")].every((x) => getComputedStyle(x).filter === "none");
+      const nitida = !burbuja || (getComputedStyle(burbuja).filter === "none" && [...burbuja.querySelectorAll("*")].every((x) => getComputedStyle(x).filter === "none"));
       const telefono = e.querySelector(`.lt-tel-${paso.telefono}`);
       const tel = telefono.getBoundingClientRect();
       const mockup = telefono.querySelector(".lt-mockup");
       const hueco = telefono.querySelector(".lt-hueco").getBoundingClientRect();
       const pagina = telefono.querySelector("iframe").getBoundingClientRect();
-      const b = burbuja.getBoundingClientRect();
+      const b = burbuja?.getBoundingClientRect() ?? new DOMRect();
       const intro = e.querySelector(".lt-intro");
-      const indice = [...e.querySelectorAll("[data-indice-capitulo]")];
-      const actual = indice.filter((c) => c.dataset.estado === "actual").map((c) => Number(c.dataset.indiceCapitulo));
-      const vistos = indice.filter((c) => c.dataset.estado === "visto").map((c) => Number(c.dataset.indiceCapitulo));
+      const gruesas = [...e.querySelectorAll("[data-raya-paso]")];
+      const finas = [...e.querySelectorAll("[data-raya-fina]")];
       const ind = e.querySelector(".lt-indice").getBoundingClientRect();
+      // El área de toque de cada gruesa: 24 px de alto (11 px arriba y abajo de su centro siguen siendo ella).
+      const toca = (g) => {
+        const r = g.getBoundingClientRect();
+        const x = r.left + 4;
+        const y = r.top + r.height / 2;
+        return [y - 11, y + 11].every((yy) => document.elementFromPoint(x, yy)?.closest("[data-raya-paso]") === g);
+      };
       const cruza = (a, c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1;
       // Las burbujas a la vista (la del paso y las de antes que caben) y su escala (la del paso termina en 1).
       const vistas = [...e.querySelectorAll("[data-burbuja]")].filter((x) => Number(getComputedStyle(x).opacity) > 0.05);
-      const escala = new DOMMatrix(getComputedStyle(burbuja).transform).a;
+      const escala = burbuja ? new DOMMatrix(getComputedStyle(burbuja).transform).a : 1;
       const corazon = getComputedStyle(e.querySelector(".lt-hilo-corazon path")).fill;
       return {
         burbujasCruzan: telefono && Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => cruza(x.getBoundingClientRect(), tel)),
@@ -59,21 +66,28 @@ const medir = (pagina, i) =>
         corazon,
         indiceIzquierda: ind.right <= tel.left + 1 || Number(getComputedStyle(telefono).opacity) < 0.99,
         nitida,
-        burbujaVisible: Number(getComputedStyle(burbuja).opacity) > 0.99,
+        burbujaVisible: !burbuja || Number(getComputedStyle(burbuja).opacity) > 0.99,
         proporcion: tel.width / tel.height,
         proporcionMockup: mockup.naturalWidth / mockup.naturalHeight,
         llena: Math.abs(pagina.width - hueco.width) < 1.5 && Math.abs(pagina.height - hueco.height) < 1.5,
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
-        introVisible: Number(getComputedStyle(intro).opacity) > 0.99 && intro.querySelector("svg") !== null,
+        introVisible: Number(getComputedStyle(intro).opacity) > 0.99,
+        icono: Number(getComputedStyle(e.querySelector(".lt-portada-icono")).opacity) > 0.99,
+        bloqueo: Number(getComputedStyle(e.querySelector("[data-bloqueo]")).opacity),
+        cortado: tel.bottom > innerHeight + 4,
+        zoom: new DOMMatrix(getComputedStyle(telefono.querySelector("iframe")).transform).a,
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
-        tapaPantalla: !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
+        tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // El índice no tapa el teléfono ni lo empuja.
-        indiceTapa: Number(getComputedStyle(telefono).opacity) > 0.99 && cruza(ind, tel),
-        capituloActual: actual,
+        indiceTapa: Number(getComputedStyle(telefono).opacity) > 0.99 && getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && cruza(ind, tel),
         indiceVisible: getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && Number(getComputedStyle(e.querySelector(".lt-indice")).opacity) > 0.5,
-        rayas: indice.map((c) => [c.querySelector(".lt-indice-raya")?.getBoundingClientRect().width ?? 0, c.getAttribute("aria-label"), c.getBoundingClientRect().height]),
+        gruesas: gruesas.map((g) => g.dataset.estado),
+        etiquetas: gruesas.every((g) => g.getAttribute("aria-label")),
+        finas: finas.map((f) => [Number(f.dataset.rayaFina), f.dataset.llena]),
+        tocables: gruesas.slice(1).every(toca),
+        finasNoTocables: finas.every((f) => getComputedStyle(f).pointerEvents === "none"),
+        altoIndice: ind.height,
         burbujasVistas: vistas.length,
-        capitulosVistos: vistos,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
         hiloVisible: e.querySelector("[data-hilo]").dataset.visible === "si",
         fondoTienda: Number(getComputedStyle(e.querySelector(".lt-fondo-tienda")).opacity),
@@ -99,7 +113,10 @@ for (const [ancho, alto] of [
   await pagina.waitForTimeout(1200);
   ok(await pagina.locator(".lt-escenario").isVisible(), "se ve la demo por pasos");
   // Lo que se mueve dentro de los teléfonos (el reel) no arrastra la página.
-  ok((await pagina.evaluate(() => scrollY)) === 0 && (await datos(pagina)).paso === PASOS[0].id, "al abrir, empieza arriba, en la bienvenida");
+  ok((await pagina.evaluate(() => scrollY)) === 0 && (await datos(pagina)).paso === PASOS[0].id, "al abrir, empieza arriba, en la portada");
+  // El video de la portada arranca solo, sin tocar nada (ajustes-lewis-7.md §2).
+  await pagina.waitForTimeout(1500);
+  ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "el video de la portada se reproduce solo");
 
   // Hacia delante, paso a paso.
   for (let i = 0; i < PASOS.length; i++) {
@@ -109,12 +126,15 @@ for (const [ancho, alto] of [
     // Mientras dura el paso: ¿se ve el ♥ en algún momento?
     let vioHilo = false;
     let dosCorazones = false;
+    let menosFinas = Infinity;
     for (const fin = Date.now() + paso.duracion + 1400; Date.now() < fin; ) {
-      const v = await pagina.evaluate(() => {
+      const v = await pagina.evaluate((i) => {
         const hilo = Number(getComputedStyle(document.querySelector(".lt-hilo-dentro")).opacity) > 0.05;
         const burst = document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".burst.go");
-        return { hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
-      });
+        const llenas = [...document.querySelectorAll(`[data-raya-fina="${i}"][data-llena="si"]`)].length;
+        return { llenas, hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
+      }, i);
+      menosFinas = Math.min(menosFinas, v.llenas);
       vioHilo ||= v.hilo;
       dosCorazones ||= v.dos;
       await pagina.waitForTimeout(60);
@@ -124,13 +144,20 @@ for (const [ancho, alto] of [
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
     ok(m.burbujaVisible && m.nitida && !(m.telefonoVisible && m.tapaPantalla), `${paso.id}: la burbuja está completa, sin desenfoque y sin tapar la pantalla`);
-    ok(m.capituloActual.join() === String(paso.capitulo) && m.capitulosVistos.join() === Array.from({ length: paso.capitulo - 1 }, (_, k) => k + 1).join(), `${paso.id}: el índice marca «${CAPITULOS_NOMBRES[paso.capitulo - 1]}» (y los anteriores como vistos)`);
+    // El indicador: una gruesa por paso (la del paso, marcada) y una fina por toque o fase; las del paso, llenas al terminar y
+    // llenándose durante él (al llegar, todavía vacías); las de antes, llenas; las de después, vacías.
+    const finasEsperadas = PASOS.reduce((n, p) => n + p.fases, 0);
+    ok(
+      m.gruesas.length === PASOS.length && m.gruesas.every((g, j) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
+      `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
+    );
+    if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
     ok(!m.indiceTapa && m.indiceIzquierda && !m.burbujasCruzan, `${paso.id}: el índice (a la izquierda) y las burbujas no se cruzan con el mockup`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
     if (paso.id === "intro") {
-      ok(m.introVisible && !m.telefonoVisible, "intro: la portada con el logo, todavía sin teléfono");
-      ok(!m.indiceVisible && m.burbujasVistas === 1, "intro: sin indicador y con una sola burbuja");
+      ok(m.introVisible && m.icono && m.telefonoVisible && m.bloqueo > 0.99 && m.cortado && m.zoom < 0.95, "intro: el icono y el teléfono bloqueado asomando, cortado abajo");
+      ok(!m.indiceVisible && m.burbujasVistas === 0, "intro: sin indicador ni burbujas");
       const v = await pagina.evaluate(() => {
         const video = document.querySelector("[data-portada]");
         return { muted: video.muted, playsinline: video.playsInline, poster: video.getAttribute("poster"), fuentes: [...video.querySelectorAll("source")].map((x) => x.getAttribute("src")) };
@@ -138,19 +165,15 @@ for (const [ancho, alto] of [
       const pesos = v.fuentes.map((f) => statSync(`public${f}`).size);
       ok(v.muted && v.playsinline && v.poster && pesos.length >= 1 && pesos.every((b) => b < 2.5e6), `intro: el video de la portada va sin sonido, con playsinline y póster, y pesa menos de 2.5 MB (${pesos.map((b) => (b / 1e6).toFixed(2)).join(" y ")} MB)`);
     } else {
-      // El índice: 6 rayas (la actual, la más larga), cada una con su nombre para el lector de pantalla y 44 px de toque.
-      const anchos = m.rayas.map((r) => r[0]);
-      ok(
-        m.indiceVisible && m.rayas.length === 6 && anchos[paso.capitulo - 1] === Math.max(...anchos) && anchos.filter((a) => a === Math.max(...anchos)).length === 1 && m.rayas.every((r, k) => r[1] === CAPITULOS_NOMBRES[k] && r[2] >= 44),
-        `${paso.id}: el indicador tiene 6 rayas y la larga es la de «${CAPITULOS_NOMBRES[paso.capitulo - 1]}»`,
-      );
+      ok(m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice <= alto * 0.7, `${paso.id}: el indicador cabe (${Math.round(m.altoIndice)} px, ≤ 70 % del alto); las gruesas se tocan en 24 px y las finas no`);
+      if (paso.id === "hola") ok(m.bloqueo < 0.01 && Math.abs(m.zoom - 1) < 0.01, "hola: al deslizar se desbloquea y el catálogo queda a su tamaño");
       ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
     }
     // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.
     const toques = Number(d.toques) - Number(antes.toques);
     const viajes = Number(d.viajes) - Number(antes.viajes);
     if (paso.dedo === "no" || i === 0) ok(!vioHilo && toques === 0 && viajes === 0, `${paso.id}: sin toque ni viaje, el ♥ no se ve`);
-    else if (paso.dedo === "toque") ok(vioHilo && toques > 0, `${paso.id}: el ♥ marca ${toques} toque(s)`);
+    else if (paso.dedo === "toque") ok(vioHilo && toques === paso.fases, `${paso.id}: el ♥ marca ${toques} toque(s), uno por raya fina (${paso.fases})`);
     else ok(vioHilo && viajes === 1, `${paso.id}: el ♥ cruza al otro teléfono y se va`);
     ok(!m.hiloVisible, `${paso.id}: al terminar, el ♥ ya no está`);
     if (paso.id === "aaah-termo" || paso.id === "aaah-tote") {
@@ -192,13 +215,18 @@ for (const [ancho, alto] of [
       await pagina.screenshot({ path: `docs/capturas/landing/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}.png` });
     }
   }
-  // El índice: tocar un capítulo lleva a su primer paso (y vuelta al primero).
-  for (const c of [4, 1]) {
-    await pagina.locator(`[data-indice-capitulo="${c}"]`).click();
+  // El indicador: tocar una gruesa lleva a su paso.
+  for (const j of [PASOS.findIndex((p) => p.id === "cambio"), 1]) {
+    await pagina.locator(`[data-raya-paso="${j}"]`).click();
     await pagina.waitForTimeout(1600);
     const dc = await datos(pagina);
-    ok(dc.paso === PASOS[primerPasoDe(c)].id, `el índice: «${CAPITULOS_NOMBRES[c - 1]}» lleva a «${dc.paso}»`);
+    ok(dc.paso === PASOS[j].id, `el indicador: la raya de «${PASOS[j].id}» lleva a «${dc.paso}»`);
   }
+  // Al volver a la portada desde el primer paso, el teléfono se bloquea otra vez.
+  await irAlPaso(pagina, 0);
+  await pagina.waitForTimeout(1500);
+  const mb = await medir(pagina, 0);
+  ok(mb.bloqueo > 0.99 && mb.zoom < 0.95 && mb.cortado, "al volver a la portada, se bloquea y vuelve a asomar");
   await irAlPaso(pagina, PASOS.length - 1);
   await pagina.waitForTimeout(1500);
   // El teléfono de la bolsa: el contador real dice 2 y la tienda registró el pedido en su panel.
@@ -261,6 +289,21 @@ console.log("\nMovimiento reducido");
   const dr = await datos(pagina);
   ok(dr.toques === "0" && dr.viajes === "0" && !(await medir(pagina, Number(dr.indice))).hiloVisible && dr.bolsa === "1", `con movimiento reducido no hay ♥ y el paso queda en su estado final (${dr.paso}, bolsa ${dr.bolsa}, toques ${dr.toques})`);
   if (process.env.CAPTURAS === "1") await pagina.screenshot({ path: "docs/capturas/landing/movimiento-reducido-390.png" });
+  await contexto.close();
+}
+
+console.log("\nEl video de la portada en el HTML del servidor y en un iPhone");
+{
+  // React no escribe `muted` en el HTML del servidor; sin él, Safari en iOS no reproduce solo (ajustes-lewis-7.md §2).
+  const html = await (await fetch(base + "/")).text();
+  const etiqueta = html.match(/<video[^>]*data-portada[^>]*>/)?.[0] ?? "";
+  ok(/\smuted[\s>]/.test(etiqueta) && /\splaysinline[\s>]/.test(etiqueta), "el <video> sale del servidor con `muted` y `playsinline` literales");
+  // (aquí no hay WebKit: Chromium con la emulación de iPhone)
+  const contexto = await nav.newContext({ ...playwright.devices["iPhone 13"] });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  await pagina.waitForTimeout(2000);
+  ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "con la emulación de iPhone, el video arranca solo");
   await contexto.close();
 }
 

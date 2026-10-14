@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element -- Capturas estáticas de la versión sin JavaScript: tamaño fijo, sin optimizador. */
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { Isotipo, Logotipo } from "../marca";
-import { CAPITULOS_NOMBRES, PASOS, primerPasoDe, type Paso } from "@/lib/landing/pasos";
+import { PASOS, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
 import { KEY_MODO } from "@/lib/data/modo";
@@ -13,6 +13,10 @@ import "./landing.css";
 // Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos), y quien ya eligió «Ver demo»
 // no ve la landing mientras su panel de prueba abre (lib/data/sesion.ts lo decide en el navegador).
 const ANTES_DE_PINTAR = `(function(){var r=document.documentElement;r.setAttribute("data-landing-js","");try{if(localStorage.getItem(${JSON.stringify(KEY_MODO)})==="demo")r.setAttribute("data-dz-demo","")}catch(e){}})();`;
+
+// El video de la portada con sus atributos literales en el HTML del servidor: React no escribe `muted`, y sin él Safari en iOS no
+// lo reproduce solo (ajustes-lewis-7.md §2).
+const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline loop preload="metadata" poster="/landing/portada.webp" tabindex="-1" disablepictureinpicture><source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"'><source src="/landing/portada.mp4" type="video/mp4"></video>`;
 
 /** La landing de deslizapp.com para quien no tiene sesión (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {
@@ -28,16 +32,13 @@ export function Landing() {
             <span className="lt-forma lt-forma-b" />
           </div>
 
-          {/* La portada, antes del teléfono: el video de Lewis (ya trae su texto), el logo y una sola burbuja que invita a deslizar
-              (ajustes-lewis-6.md). Lo reproduce el controlador, salvo con movimiento reducido o ahorro de datos: entonces, el póster. */}
+          {/* La portada (ajustes-lewis-6.md y -7.md): el video de Lewis de fondo, luego sube el icono de la app y asoma el teléfono
+              bloqueado. El controlador reproduce el video, salvo con movimiento reducido o ahorro de datos: entonces, el póster. */}
           <div className="lt-intro" aria-hidden="true">
-            <video className="lt-portada-video" data-portada muted loop playsInline preload="metadata" poster="/landing/portada.webp" tabIndex={-1}>
-              <source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"' />
-              <source src="/landing/portada.mp4" type="video/mp4" />
-            </video>
-            <span className="lt-portada-logo">
-              <Isotipo tamano={28} />
-              <Logotipo className="text-[24px]" />
+            <div className="lt-portada-caja" dangerouslySetInnerHTML={{ __html: VIDEO_PORTADA }} />
+            <span className="lt-portada-icono">
+              <img src="/icons/apple-touch-icon.png" alt="" width={180} height={180} />
+              <span>Deslizapp</span>
             </span>
           </div>
 
@@ -68,8 +69,8 @@ export function Landing() {
 
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
-            {PASOS.map((p, i) => (
-              <Burbuja key={p.id} paso={p} indice={i} />
+            {PASOS.map((p, i) => p.burbuja && (
+              <Burbuja key={p.id} burbuja={p.burbuja} indice={i} />
             ))}
           </div>
         </DemoPasos>
@@ -92,10 +93,12 @@ export function Landing() {
             <ol className="mt-6 flex flex-col gap-10">
               {PASOS.map((p) => (
                 <li key={p.id} className="flex flex-col gap-4" data-paso={p.id}>
-                  <p className="lt-burbuja-quieta">
-                    {p.burbuja.texto}
-                    {p.burbuja.remate && ` ${p.burbuja.remate}`}
-                  </p>
+                  {p.burbuja && (
+                    <p className="lt-burbuja-quieta">
+                      {p.burbuja.texto}
+                      {p.burbuja.remate && ` ${p.burbuja.remate}`}
+                    </p>
+                  )}
                   {p.id !== "intro" && <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />}
                 </li>
               ))}
@@ -188,6 +191,7 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
         <div className="lt-pantalla">
           <iframe data-telefono={id} {...(diferido ? { "data-src": src } : { src })} title="" tabIndex={-1} inert loading="eager" />
         </div>
+        {id === "compradora" && <PantallaBloqueo />}
       </div>
       <img src={m.src} alt="" className="lt-mockup" width={m.ancho} height={m.alto} decoding="async" />
     </div>
@@ -195,30 +199,39 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * El índice del recorrido, a la izquierda (ajustes-lewis-6.md): solo rayas, una por capítulo y la actual más larga. Cada una lleva
- * a su primer paso, con 44 px de toque y el nombre del capítulo para el lector de pantalla. No sale en la portada. El controlador
- * marca el estado.
+ * El indicador, a la izquierda (ajustes-lewis-7.md §1): una raya gruesa por paso (cada vez que hay que deslizar) y, entre dos
+ * gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts). Las finas se llenan mientras el paso avanza.
+ * Solo las gruesas se tocan (llevan a su paso). No sale en la portada. El controlador marca el estado.
  */
 function Indice() {
   return (
     <nav className="lt-indice" aria-label="Recorrido de la demo">
-      <ol>
-        {CAPITULOS_NOMBRES.map((nombre, i) => (
-          <li key={nombre}>
-            <a
-              href={`#paso-${PASOS[primerPasoDe(i + 1)]!.id}`}
-              className="lt-indice-capitulo"
-              data-indice-capitulo={i + 1}
-              data-estado={i === 0 ? "actual" : "falta"}
-              aria-current={i === 0 ? "step" : undefined}
-              aria-label={nombre}
-            >
-              <span className="lt-indice-raya" aria-hidden="true" />
-            </a>
-          </li>
+      <div className="lt-indice-rayas">
+        {PASOS.map((p, i) => (
+          <Fragment key={p.id}>
+            <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : "Portada"} />
+            {Array.from({ length: p.fases }, (_, k) => (
+              <span key={k} className="lt-raya-fina" data-raya-fina={i} data-llena="no" aria-hidden="true" />
+            ))}
+          </Fragment>
         ))}
-      </ol>
+      </div>
     </nav>
+  );
+}
+
+/**
+ * La pantalla de bloqueo del teléfono de Ana en la portada (ajustes-lewis-7.md §3): la hora, la fecha y «Desliza y mira» sobre el
+ * rosa de la marca, con la barrita de inicio. Al primer deslizamiento sube y se va, y el catálogo entra como una app que se abre.
+ */
+function PantallaBloqueo() {
+  return (
+    <div className="lt-bloqueo" data-bloqueo>
+      <p className="lt-bloqueo-fecha">martes, 14 de octubre</p>
+      <p className="lt-bloqueo-hora">3:41</p>
+      <p className="lt-bloqueo-desliza">Desliza y mira</p>
+      <span className="lt-bloqueo-barra" />
+    </div>
   );
 }
 
@@ -247,12 +260,12 @@ function Hilo() {
  * Una burbuja de la demo: un mensaje enviado de WhatsApp en iOS (ajustes-lewis-4.md), con el remate como segunda frase y la hora
  * con el doble check dentro, en la última línea (el hueco reserva su sitio).
  */
-function Burbuja({ paso, indice }: { paso: Paso; indice: number }) {
+function Burbuja({ burbuja, indice }: { burbuja: NonNullable<Paso["burbuja"]>; indice: number }) {
   return (
-    <div className="lt-burbuja" data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"}>
+    <div className="lt-burbuja" data-burbuja={indice} data-estado="futura">
       <p className="lt-burbuja-texto">
-        {paso.burbuja.texto}
-        {paso.burbuja.remate && ` ${paso.burbuja.remate}`}
+        {burbuja.texto}
+        {burbuja.remate && ` ${burbuja.remate}`}
         <span className="lt-burbuja-hueco" aria-hidden="true" />
       </p>
       <span className="lt-burbuja-hora" aria-hidden="true">

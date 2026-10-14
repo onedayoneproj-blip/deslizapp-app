@@ -45,7 +45,10 @@ test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulo
   // El índice: una palabra por capítulo y cada una lleva a su primer paso.
   assert.deepEqual([...CAPITULOS_NOMBRES], ["Elige", "Envía", "Sigue", "Te llega", "Registra", "Despacha"]);
   assert.deepEqual(CAPITULOS_NOMBRES.map((_, i) => PASOS[primerPasoDe(i + 1)].id), ["intro", "bolsa", "seguimiento", "cambio", "eres-tienda", "confirmar"]);
-  for (const p of PASOS) assert.ok(p.burbuja.texto.trim() && p.duracion > 0, p.id);
+  // La portada no lleva burbuja (invita a deslizar su pantalla de bloqueo); los demás pasos, sí.
+  for (const p of PASOS) assert.ok((p.id === "intro" ? p.burbuja === null : p.burbuja?.texto.trim()) && p.duracion > 0 && p.fases >= 0, p.id);
+  // Las rayas finas del indicador: una por toque en los pasos de toques (probar-landing comprueba los toques reales).
+  assert.ok(PASOS.filter((p) => p.dedo === "toque").every((p) => p.fases > 0));
   // El ♥ es el dedo: no se ve en los pasos sin toque ni viaje; el único viaje cruza de un teléfono al otro.
   assert.deepEqual(PASOS.filter((p) => p.dedo === "no").map((p) => p.id), ["intro", "hola", "pasa", "aviso"]);
   assert.deepEqual(PASOS.filter((p) => p.dedo === "viaje").map((p) => [p.id, p.viaje.desde[0], p.viaje.hasta[0]]), [["cambio", "compradora", "tienda"]]);

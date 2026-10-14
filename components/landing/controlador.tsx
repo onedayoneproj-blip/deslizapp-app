@@ -39,9 +39,12 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     };
     const hilo = e.querySelector<HTMLElement>("[data-hilo]");
     const pulso = e.querySelector<HTMLElement>("[data-hilo-pulso]");
-    const burbujas = [...e.querySelectorAll<HTMLElement>("[data-burbuja]")];
-    const capitulos = [...e.querySelectorAll<HTMLElement>("[data-indice-capitulo]")];
+    // (por índice de paso: la portada no tiene burbuja)
+    const burbujas = PASOS.map((_, i) => e.querySelector<HTMLElement>(`[data-burbuja="${i}"]`));
+    const gruesas = [...e.querySelectorAll<HTMLElement>("[data-raya-paso]")];
+    const finas = [...e.querySelectorAll<HTMLElement>("[data-raya-fina]")];
     let activo = -1;
+    let llenar = 0;
     let raf = 0;
     let irse = 0;
     let posicion: Punto | null = null;
@@ -50,14 +53,57 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
      * Las burbujas como un chat (ajustes-lewis-4.md): la del paso abajo; las anteriores, encima, subidas lo que ocupan las de
      * abajo (--sube). La que ya no cabe en la columna se va; las siguientes esperan pequeñas abajo a la derecha.
      */
-    // El video de la portada: suena nunca (muted) y solo corre en la portada; con movimiento reducido o ahorro de datos, el póster.
-    // Si el navegador no deja reproducirlo solo, se queda el póster.
+    // El video de la portada (ajustes-lewis-7.md §2): sin sonido y solo mientras se ve la portada; con movimiento reducido o ahorro
+    // de datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes de play() (el atributo `muted` ya viene
+    // en el HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador no dejó, en el primer gesto.
     const video = e.querySelector<HTMLVideoElement>("[data-portada]");
     const ahorroDeDatos = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
-    const portada = (i: number) => {
+    const puedeCorrer = () => PASOS[activo]?.id === "intro" && !reducido.matches && !ahorroDeDatos();
+    const reproducir = () => {
+      if (!video || !puedeCorrer()) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      if (video.paused) void video.play().catch(() => {});
+    };
+    const portada = () => {
       if (!video) return;
-      if (PASOS[i]?.id === "intro" && !reducido.matches && !ahorroDeDatos()) void video.play().catch(() => {});
+      if (puedeCorrer()) reproducir();
       else video.pause();
+    };
+    const gestos = ["pointerdown", "touchstart", "scroll"] as const;
+    const alPrimerGesto = () => reproducir();
+    video?.addEventListener("loadeddata", reproducir);
+    video?.addEventListener("canplay", reproducir);
+    gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true, once: true }));
+
+    // La entrada de la portada: a los 0.7 s sube el icono y enseguida asoma el teléfono bloqueado (landing.css, data-entrada).
+    const entrada = [
+      window.setTimeout(() => (e.dataset.entrada = "icono"), reducido.matches ? 0 : 700),
+      window.setTimeout(() => (e.dataset.entrada = "telefono"), reducido.matches ? 0 : 950),
+    ];
+
+    /**
+     * El indicador (ajustes-lewis-7.md §1): la gruesa del paso, marcada al llegar; sus finas se llenan una a una con cada toque o
+     * viaje del paso (o al acabar su tiempo, si no tiene toques). Los pasos de antes, llenos; los de después, vacíos.
+     */
+    const finasDe = (i: number) => finas.filter((f) => f.dataset.rayaFina === String(i));
+    const marcarIndice = (i: number, animar: boolean) => {
+      window.clearTimeout(llenar);
+      gruesas.forEach((g, j) => {
+        g.dataset.estado = j === i ? "actual" : j < i ? "visto" : "falta";
+        if (j === i) g.setAttribute("aria-current", "step");
+        else g.removeAttribute("aria-current");
+      });
+      finas.forEach((f) => {
+        const j = Number(f.dataset.rayaFina);
+        f.dataset.llena = j < i || (j === i && !animar) ? "si" : "no";
+      });
+      // Por si algún toque no llegó (o el paso no tiene toques): al acabar su tiempo, el paso queda completo.
+      if (animar) llenar = window.setTimeout(() => finasDe(i).forEach((f) => (f.dataset.llena = "si")), PASOS[i]!.duracion + 300);
+    };
+    const llenarUna = () => {
+      const f = finasDe(activo).find((x) => x.dataset.llena === "no");
+      if (f) f.dataset.llena = "si";
     };
     const columna = e.querySelector<HTMLElement>(".lt-burbujas");
     const apilar = (i: number) => {
@@ -65,11 +111,13 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       const alto = (columna?.clientHeight ?? 0) - 4;
       let y = 0;
       for (const b of burbujas.slice(i + 1)) {
+        if (!b) continue;
         b.dataset.estado = "futura";
         b.style.removeProperty("--sube");
       }
       for (let j = i; j >= 0; j--) {
-        const b = burbujas[j]!;
+        const b = burbujas[j];
+        if (!b) continue;
         const h = b.offsetHeight;
         b.style.setProperty("--sube", `${-y}px`);
         b.dataset.estado = j === i ? "actual" : y + h <= alto ? "pasada" : "lejos";
@@ -139,6 +187,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const toque = (p: Punto) => {
       llevar(() => p, DEDO_LLEGA - 40, () => {
         e.dataset.toques = String(Number(e.dataset.toques ?? 0) + 1);
+        llenarUna();
         const check = PASOS[activo]?.id === "despachar";
         if (check) e.dataset.check = "si";
         pulso?.animate([{ opacity: 0.9, transform: "scale(.6)" }, { opacity: 0, transform: "scale(2.4)" }], { duration: 560, easing: "cubic-bezier(.2,.8,.2,1)" });
@@ -149,6 +198,8 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const viaje = (destino: () => Punto | null, desde?: Punto | null) =>
       llevar(destino, VIAJE, () => {
         e.dataset.viajes = String(Number(e.dataset.viajes ?? 0) + 1);
+        // (en un paso de viaje, el viaje es su fase; en uno de toques, sus rayas son los toques)
+        if (PASOS[activo]?.dedo === "viaje") llenarUna();
         esconder();
       }, desde);
 
@@ -176,14 +227,9 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         check: "no",
         capitulo: String(paso.capitulo),
       });
-      capitulos.forEach((c) => {
-        const n = Number(c.dataset.indiceCapitulo);
-        c.dataset.estado = n === paso.capitulo ? "actual" : n < paso.capitulo ? "visto" : "falta";
-        if (n === paso.capitulo) c.setAttribute("aria-current", "step");
-        else c.removeAttribute("aria-current");
-      });
+      marcarIndice(i, animar);
       apilar(i);
-      portada(i);
+      portada();
       if (i >= 4) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
@@ -246,6 +292,11 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     return () => {
       obs.disconnect();
       window.clearTimeout(espera);
+      window.clearTimeout(llenar);
+      entrada.forEach((t) => window.clearTimeout(t));
+      video?.removeEventListener("loadeddata", reproducir);
+      video?.removeEventListener("canplay", reproducir);
+      gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));
       esconder();
       window.removeEventListener("message", alMensaje);
       window.removeEventListener("message", alDedo);
@@ -268,6 +319,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-total="0"
         data-codigo="no"
         data-check="no"
+        data-entrada="no"
         data-capitulo="1"
         data-toques="0"
         data-viajes="0"
