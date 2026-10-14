@@ -32,7 +32,7 @@ export function HojaMotivoVariantes({
   const [nota, setNota] = useState("");
   const listo = motivo !== null && (motivo !== "otro" || nota.trim().length > 0);
   return (
-    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="¿Por qué baja el stock?" altura="grande">
+    <Hoja abierta={abierta} alCerrar={alCerrar} titulo="¿Por qué baja el stock?" altura="grande" bloquearCierre={guardando}>
       <div className="flex flex-col gap-4">
         <p className="text-secundario text-texto-secundario">
           Retirarás {unidades} {unidades === 1 ? "unidad" : "unidades"}. Se guarda como ajuste, no como venta.

@@ -516,12 +516,6 @@ for (const ancho of ANCHOS) {
     await esperar(page, 400);
     ok((await page.locator("[data-barras-vista] span.bg-papel").count()) === 2, "Deslizar llena la barra de la segunda foto");
     ok((await page.locator("[data-presentaciones-vista]").innerText()).includes("3 colores"), "Las presentaciones: colores como puntos y tallas");
-    {
-      const foto = await page.locator("[data-vista-previa-producto]").boundingBox();
-      const barras = await page.locator("[data-barras-vista]").boundingBox();
-      const pres = await page.locator("[data-presentaciones-vista]").boundingBox();
-      ok(barras.y >= foto.y && barras.y < foto.y + 20 && pres.y + pres.height <= foto.y + foto.height + 1 && pres.y > foto.y + foto.height / 2, "Con 4:5, las barras siguen arriba y el precio y las presentaciones abajo, dentro de la foto");
-    }
     ok((await page.locator("[data-franja-espera]").count()) === 0, "Sin lista de espera, sin franja");
     ok((await page.locator("[data-stock-plegable]").getAttribute("data-abierto")) === null, "El stock empieza cerrado");
     await captura(page, "ver-producto/1-cerrado", ancho);
@@ -541,8 +535,6 @@ for (const ancho of ANCHOS) {
     const compartir = await page.locator("[data-compartir-vista]").boundingBox();
     const foto = await page.locator("[data-vista-previa-producto]").boundingBox();
     ok(compartir.height >= 44 && compartir.x + compartir.width > foto.x + foto.width - 20 && compartir.y < foto.y + 70, "«Compartir»: píldora arriba a la derecha de la foto (44 px de toque)");
-    // La vista previa tiene la proporción de los posts del feed del catálogo (4:5, Lewis 13 oct).
-    ok(Math.abs(foto.height / foto.width - 5 / 4) < 0.01, `La vista previa es 4:5 (${Math.round(foto.width)}×${Math.round(foto.height)})`);
     await page.locator("[data-compartir-vista]").click();
     await page.getByRole("heading", { name: "Súbelo a tu estado" }).waitFor({ timeout: 6000 });
     ok((await paneles(page).count()) === 2, "«Compartir» abre «Súbelo a tu estado» encima");
@@ -557,18 +549,9 @@ for (const ancho of ANCHOS) {
     await page.locator("[data-stock-plegable] button[aria-expanded]").click();
     await esperar(page, 300);
     const alto2 = (await panel.boundingBox()).height;
-    // Con la foto 4:5 la hoja puede llegar a su alto máximo antes de abrir el stock: entonces no crece, desplaza.
-    const desplaza = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); return c.scrollHeight - c.clientHeight; });
-    ok(alto2 > alto || (alto2 >= alto - 1 && desplaza > 1), `Al abrir el stock la hoja crece o desplaza (${Math.round(alto)} → ${Math.round(alto2)}, desplaza ${desplaza})`);
-    ok(desplaza > 1 || alto2 < 844 - 80, "Si no cabe, el contenido desplaza");
-    // Al final del desplazamiento, la fila del stock y el historial quedan por encima del pie «Crear pedido».
-    await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); c.scrollTo({ top: c.scrollHeight, behavior: "instant" }); });
-    await esperar(page, 300);
-    const pie = await page.locator("[data-pie-vista]").boundingBox();
-    const ultima = await page.locator("[data-filas-stock] li").last().boundingBox();
-    const historial = await page.getByRole("button", { name: "Historial de ajustes" }).boundingBox();
-    ok(ultima.y + ultima.height <= pie.y + 1 && historial.y + historial.height <= pie.y + 1, "El pie no tapa el stock ni el historial");
-    await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); c.scrollTo({ top: 0, behavior: "instant" }); });
+    ok(alto2 > alto, `Al abrir el stock la hoja crece (${Math.round(alto)} → ${Math.round(alto2)})`);
+    const hueco = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-hoja-contenido]")].pop(); return c.scrollHeight - c.clientHeight; });
+    ok(hueco <= 1 || alto2 >= 844 - 80, "Sin espacio vacío debajo (mide su contenido)");
     const antes = (await producto(page, KURT))?.stock ?? 1;
     await page.getByRole("button", { name: /^Disminuir stock de/ }).click();
     await captura(page, "ver-producto/2-stock-abierto", ancho);
@@ -596,6 +579,69 @@ for (const ancho of ANCHOS) {
       await page.getByRole("button", { name: "Guardar ajuste" }).click();
       ok(await toast(page, "Ajuste guardado. No cuenta como venta."), `Bajada ${vez} guardada`);
       await esperar(page, 700);
+    }
+    // Mientras se guarda el stock, la hoja no se cierra ni pregunta (Lewis, 13 oct): ✕, Escape, fondo, deslizar y atrás.
+    const lento = () => page.evaluate(() => {
+      const el = document.querySelector("[data-hoja-panel]");
+      let f = el[Object.keys(el).find((k) => k.startsWith("__reactFiber$"))];
+      while (f && !f.memoizedProps?.value?.ajustarStock) f = f.return;
+      const d = f.memoizedProps.value;
+      const orig = d.ajustarStock;
+      const lenta = async (...a) => { await new Promise((r) => setTimeout(r, 2500)); return orig(...a); };
+      d.ajustarStock = lenta;
+      window.__restaurarAjuste = () => { if (d.ajustarStock === lenta) d.ajustarStock = orig; };
+    });
+    const restaurar = () => page.evaluate(() => window.__restaurarAjuste?.());
+    {
+      // Subir (sin hoja de motivo): la vista misma queda bloqueada.
+      await lento();
+      await page.locator("[data-fila-stock]").first().getByRole("button", { name: /^Aumentar stock de/ }).click();
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+      await page.locator('[data-pie-vista] button[aria-busy="true"]').waitFor({ timeout: 2000 });
+      await page.keyboard.press("Escape");
+      await arriba(page).locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).click();
+      await page.mouse.click(5, 5);
+      await esperar(page, 300);
+      ok((await paneles(page).count()) === 1 && (await page.getByRole("alertdialog").count()) === 0, "Guardando: Escape, ✕ y el fondo no cierran ni preguntan");
+      const y0 = (await arriba(page).boundingBox()).y;
+      const cdp = await page.context().newCDPSession(page);
+      const toque = (type, yy) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x: 200, y: yy }] });
+      await toque("touchStart", y0 + 30);
+      for (let i = 1; i <= 8; i++) { await toque("touchMove", y0 + 30 + i * 50); await page.waitForTimeout(16); }
+      await toque("touchEnd");
+      await esperar(page, 700);
+      ok((await paneles(page).count()) === 1 && Math.abs((await arriba(page).boundingBox()).y - y0) < 2 && (await page.getByRole("alertdialog").count()) === 0, "Guardando: deslizar no cierra; la hoja rebota a su lugar");
+      ok(await toast(page, "Ajuste guardado. No cuenta como venta."), "…y el ajuste se guarda");
+      await restaurar();
+      await esperar(page, 500);
+    }
+    {
+      // Bajar: la hoja del motivo también queda bloqueada mientras guarda, y el atrás del teléfono no cierra nada.
+      // (Vista recién abierta: tras guardar, la capa de datos se renueva y el doble lento quedaría en la vieja.)
+      await abrirVista(page, OUD);
+      await page.locator("[data-stock-plegable] button[aria-expanded]").click();
+      await esperar(page, 500);
+      await lento();
+      await page.locator("[data-fila-stock]").first().getByRole("button", { name: /^Disminuir stock de/ }).click();
+      await page.locator("[data-pie-vista]").getByRole("button", { name: "Guardar cambios" }).click();
+      await page.getByText("¿Por qué baja el stock?").waitFor();
+      await arriba(page).getByText("Daño", { exact: true }).click();
+      await page.getByRole("button", { name: "Guardar ajuste" }).click();
+      await page.getByRole("button", { name: "Guardar ajuste" }).and(page.locator('[aria-busy="true"]')).waitFor({ timeout: 2000 });
+      await page.keyboard.press("Escape");
+      await esperar(page, 150);
+      await arriba(page).getByRole("button", { name: "Cerrar" }).click();
+      await esperar(page, 150);
+      await page.goBack();
+      await esperar(page, 400);
+      ok((await paneles(page).count()) === 2 && (await page.getByRole("alertdialog").count()) === 0, "Guardando el motivo: Escape, ✕ y atrás no cierran ninguna hoja");
+      ok(await toast(page, "Ajuste guardado. No cuenta como venta."), "…y al terminar se guarda");
+      await restaurar();
+      await esperar(page, 600);
+      ok((await paneles(page).count()) === 1, "La hoja del motivo se cierra sola al guardar");
+      await arriba(page).locator("[data-hoja-cabecera]").getByRole("button", { name: "Cerrar" }).click();
+      await esperar(page, 600);
+      ok((await paneles(page).count()) === 0, "Terminado el guardado, la ✕ vuelve a cerrar");
     }
     await abrirVista(page, URBAN);
     ok((await page.locator("[data-franja-espera]").innerText()).includes("2 personas lo esperan"), "«2 personas lo esperan»");

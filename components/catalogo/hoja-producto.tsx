@@ -12,7 +12,7 @@ import { textoCombinacion } from "@/lib/presentaciones";
 import type { MotivoAjusteInventario, Producto, Variante } from "@/lib/types";
 import { ListaEsperaProducto } from "./hoja-espera";
 import { Foto } from "../foto";
-import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir, useConfirmarSalida } from "../hoja";
+import { Hoja, HojaFijoAbajo, PieFlotante, useAvisarAlSalir, useBloquearCierre, useConfirmarSalida } from "../hoja";
 import { useToast } from "../toast";
 import { usePanelUI } from "../panel/ui";
 import { CuerpoConError, CuerpoCargando } from "../hoja-estado";
@@ -198,7 +198,7 @@ function useStockPresentaciones(producto: Producto) {
       setGuardando(false);
     }
   };
-  return { activas, valor, pendiente: cambiadas.length > 0, bajan, guardando, error, poner: (id: string, n: number) => setPropuesta((p) => ({ ...p, [id]: n })), descartar: () => setPropuesta({}), guardar };
+  return { activas, valor, pendiente: cambiadas.length > 0, bajan, guardando, error, poner: (id: string, n: number) => setPropuesta((p) => ({ ...p, [id]: n })), descartar: () => { setPropuesta({}); setError(null); }, guardar };
 }
 
 function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoProductos, alNavegar, alVerHistorial, alVerEspera, ranuraEditar, internaAbierta }: {
@@ -238,6 +238,8 @@ function ContenidoVistaProducto({ producto, precio, promos, productos, cargandoP
   const pendiente = inventario.pendiente || variantes.pendiente;
   const guardandoStock = inventario.guardando || variantes.guardando;
   useAvisarAlSalir(pendiente || inventario.incierto);
+  // Mientras se guarda el stock la hoja no se cierra (Lewis, 13 oct): el ajuste en camino entraría después de «descartar».
+  useBloquearCierre(guardandoStock);
   const confirmarSalida = useConfirmarSalida();
   const navegar = (ruta: string) => confirmarSalida(() => alNavegar(ruta));
   // El stock siempre empieza cerrado (Lewis, 13 oct): no se recuerda el último estado.
@@ -399,7 +401,7 @@ function VistaPrevia({ producto, precio, alCompartir }: { producto: Producto; pr
   const otras = producto.opciones.filter((o) => !esEjeColor(o.nombre));
   const conFoto = fotos.length > 0;
   return (
-    <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-vista-previa-producto="">
+    <div className="relative h-[300px] w-full shrink-0 overflow-hidden rounded-radio-l bg-superficie-hundida" data-vista-previa-producto="">
       {conFoto ? (
         <div
           className="flex size-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"

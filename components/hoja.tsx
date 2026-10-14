@@ -110,7 +110,7 @@ function liberarFondo() {
 /** Marca de la entrada de historial de una hoja apilada. Conserva el estado de Next (`__NA`…) para no confundir al router. */
 const estadoDeHoja = () => ({ ...(window.history.state ?? {}), deslizappHoja: true });
 
-type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean, textos?: TextosAviso) => void; confirmarSalida: (accion: () => void) => void };
+type Ranuras = { arriba: HTMLDivElement | null; abajo: HTMLDivElement | null; irArriba: () => void; avisar: (cambios: boolean, textos?: TextosAviso) => void; bloquear: (bloqueada: boolean) => void; confirmarSalida: (accion: () => void) => void };
 /** Textos del aviso que puede poner el contenido de la hoja (lo que solo él sabe: cuántas fotos o presentaciones se pierden). */
 export type TextosAviso = { titulo?: string; texto?: string };
 const ContextoHoja = createContext<Ranuras | null>(null);
@@ -162,6 +162,18 @@ export function useAvisarAlSalir(cambios: boolean, textos?: TextosAviso) {
     avisar?.(cambios, { titulo, texto });
     return () => avisar?.(false);
   }, [avisar, cambios, titulo, texto]);
+}
+
+/**
+ * El contenido de una hoja impide cerrarla mientras `bloqueada` sea true (ej. mientras se guarda): ✕, atrás, fondo, deslizar y
+ * Escape no cierran ni preguntan; al deslizar, la hoja rebota a su lugar. Opt-in, como `bloquearCierre`.
+ */
+export function useBloquearCierre(bloqueada: boolean) {
+  const bloquear = useContext(ContextoHoja)?.bloquear;
+  useEffect(() => {
+    bloquear?.(bloqueada);
+    return () => bloquear?.(false);
+  }, [bloquear, bloqueada]);
 }
 
 /** Reutiliza el aviso de cambios sin guardar antes de salir hacia otro formulario. */
@@ -221,6 +233,8 @@ type Props = {
   decoracionEncima?: ReactNode;
   /** Hay cambios sin guardar: cerrar pide confirmación (ver el comentario de arriba). También se puede avisar con `useAvisarAlSalir`. */
   avisarAlSalir?: boolean;
+  /** Mientras sea true, la hoja no se cierra (ni pregunta): ✕, atrás, fondo, deslizar y Escape no hacen nada. También con `useBloquearCierre`. */
+  bloquearCierre?: boolean;
   /** Hojas de ruta que consumen su entrada antes de navegar mediante alSalir. */
   protegerAtras?: boolean;
   /** Regresa a una vista interna sin cerrar ni descartar el borrador; true consume Atrás. */
@@ -315,6 +329,7 @@ function HojaMontada({
   decoracionAbajo,
   decoracionEncima,
   avisarAlSalir = false,
+  bloquearCierre = false,
   protegerAtras = false,
   alVolverInterno,
   avisoTitulo = "¿Salir sin guardar?",
@@ -347,6 +362,15 @@ function HojaMontada({
   const avisar = useCallback((cambios: boolean, textos?: TextosAviso) => {
     avisoDeHijo.current = cambios;
     textosDeHijo.current = cambios ? (textos ?? {}) : {};
+  }, []);
+  // Cierre bloqueado (ej. mientras se guarda): lo pide la prop o el contenido (`useBloquearCierre`); se lee al cerrar.
+  const bloqueoDeProp = useRef(bloquearCierre);
+  const bloqueoDeHijo = useRef(false);
+  useEffect(() => {
+    bloqueoDeProp.current = bloquearCierre;
+  }, [bloquearCierre]);
+  const bloquear = useCallback((bloqueada: boolean) => {
+    bloqueoDeHijo.current = bloqueada;
   }, []);
   const miTurno = useRef(Symbol("hoja"));
   const entradaDeHistorial = useRef(false);
@@ -499,6 +523,11 @@ function HojaMontada({
       rebotar();
       return false;
     }
+    // Cierre bloqueado (se está guardando): no cierra ni pregunta; si se llegó deslizando, vuelve a su lugar.
+    if (bloqueoDeProp.current || bloqueoDeHijo.current) {
+      rebotar();
+      return false;
+    }
     accionAlSalir.current = null;
     if (avisoDeProp.current || avisoDeHijo.current) {
       rebotar();
@@ -559,7 +588,7 @@ function HojaMontada({
   const irArriba = useCallback(() => {
     if (contenido.current) contenido.current.scrollTop = 0;
   }, []);
-  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba, avisar, confirmarSalida }), [ranuraArriba, ranuraAbajo, irArriba, avisar, confirmarSalida]);
+  const ranuras = useMemo<Ranuras>(() => ({ arriba: ranuraArriba, abajo: ranuraAbajo, irArriba, avisar, bloquear, confirmarSalida }), [ranuraArriba, ranuraAbajo, irArriba, avisar, bloquear, confirmarSalida]);
 
   /** Borde de desplazamiento: invisible arriba del todo, completo a los SCROLL_BORDE px. */
   const alDesplazar = () => {
