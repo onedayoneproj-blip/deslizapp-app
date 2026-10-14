@@ -1172,6 +1172,7 @@ console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; q
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);
   ok((await page.getByRole("checkbox", { name: "Rosa", exact: true }).count()) === 0 && (await page.getByRole("textbox", { name: "Otro color" }).inputValue()) === "", "Escape en «+ Otro» descarta lo escrito: «Rosa» no se agrega");
+  ok((await page.getByRole("alertdialog").count()) === 0 && (await page.locator("[data-hoja-panel]").count()) === 1, "…y Escape no cierra la hoja ni abre «salir sin guardar»");
   // «+ Otro» con uno que ya está (Codex P3, 6.ª revisión): no lo quita ni pregunta.
   await page.getByRole("textbox", { name: "Otro color" }).tap();
   await page.keyboard.type(" negro ");
@@ -1374,6 +1375,11 @@ for (const ancho of ANCHOS) {
       await campo.evaluate((e) => e.blur());
       await page.waitForTimeout(100);
       ok((await campo.getAttribute("placeholder")) === "+ Otra" && (await page.getByRole("button", { name: "Agregar", exact: true }).count()) === 0, "Vacío y sin foco, vuelve a ser «+ Otra»");
+      await campo.tap();
+      await page.keyboard.type("Xyz");
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(150);
+      ok((await campo.inputValue()) === "" && (await page.getByRole("alertdialog").count()) === 0 && (await page.locator("[data-que-cambia]").count()) === 1, "Escape en «+ Otra» descarta lo escrito y no abre «salir sin guardar»");
       await campo.tap();
     }
     await page.keyboard.type("Aroma");

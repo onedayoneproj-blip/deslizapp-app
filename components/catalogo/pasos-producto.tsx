@@ -183,7 +183,7 @@ function CampoOtra({ etiqueta, rotulo, placeholder, valor, alCambiar, alListo, a
         onChange={(e) => alCambiar(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") { e.preventDefault(); if (alListo()) entrada.current?.blur(); }
-          else if (e.key === "Escape") { cancelando.current = true; alCancelar?.(); entrada.current?.blur(); }
+          else if (e.key === "Escape") { e.stopPropagation(); cancelando.current = true; alCancelar?.(); entrada.current?.blur(); }
         }}
         className={clases(
           "h-full w-full min-w-0 rounded-full border-2 bg-superficie text-cuerpo text-texto outline-none disabled:opacity-40",
