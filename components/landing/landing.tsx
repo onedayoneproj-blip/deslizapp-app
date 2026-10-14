@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Capturas estáticas de la versión sin JavaScript: tamaño fijo, sin optimizador. */
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { CAPITULOS, PASOS, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
@@ -27,20 +27,20 @@ export function Landing() {
             <span className="lt-forma lt-forma-b" />
           </div>
 
+          {/* Antes del teléfono: el logo y la bienvenida */}
+          <div className="lt-intro" aria-hidden="true">
+            <Isotipo tamano={96} />
+            <Logotipo className="text-[54px] min-[900px]:text-[72px]" />
+          </div>
+
           <div className="lt-zona">
             <Telefono id="compradora" src="/demo-landing/compradora" />
             <Telefono id="tienda" src="/demo-landing/tienda" diferido />
           </div>
           <Hilo />
 
-          {/* Desenfoque progresivo arriba y abajo (el patrón de components/hoja.tsx) */}
+          {/* Desenfoque progresivo arriba (el patrón de components/hoja.tsx) */}
           <div className="lt-borde lt-borde-arriba hoja-borde" aria-hidden="true">
-            <i className="hoja-borde-desenfoque" />
-            <i className="hoja-borde-desenfoque" />
-            <i className="hoja-borde-desenfoque" />
-            <i className="hoja-borde-desenfoque" />
-          </div>
-          <div className="lt-borde lt-borde-abajo hoja-borde-abajo" aria-hidden="true">
             <i className="hoja-borde-desenfoque" />
             <i className="hoja-borde-desenfoque" />
             <i className="hoja-borde-desenfoque" />
@@ -88,7 +88,7 @@ export function Landing() {
                   <p className="lt-burbuja-quieta" data-de={p.burbuja.de}>
                     <b>{p.burbuja.texto}</b> {p.burbuja.remate && <span className="lt-remate">{p.burbuja.remate}</span>}
                   </p>
-                  <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />
+                  {p.id !== "intro" && <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />}
                 </li>
               ))}
             </ol>
@@ -159,14 +159,29 @@ function Secciones() {
   );
 }
 
-/** Un teléfono de la demo: la página real (app/demo-landing) en un iframe, a 393×852 y escalada. No es tocable. */
+/** Los mockups (public/landing/mockup-*.webp): tamaño de la imagen y dónde está la pantalla (en %, unos px más grande: el marco la tapa). */
+const MOCKUPS = {
+  compradora: { src: "/landing/mockup-titanio.webp", ancho: 640, alto: 1325, x: 6.094, y: 2.113, w: 87.969, h: 95.774 },
+  tienda: { src: "/landing/mockup-negro.webp", ancho: 640, alto: 1350, x: 5.313, y: 1.926, w: 89.688, h: 96.148 },
+} as const;
+
+/**
+ * Un teléfono de la demo: la página real (app/demo-landing) en un iframe de 393 px de ancho y el alto del hueco del mockup, escalada
+ * a ese hueco.
+ * No es tocable: el gesto es de la página.
+ */
 function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; src: string; diferido?: boolean }) {
+  const m = MOCKUPS[id];
+  const alto = Math.round((393 * m.h * m.alto) / (m.w * m.ancho));
+  const estilo = { "--m-ratio": m.ancho / m.alto, "--m-x": `${m.x}%`, "--m-y": `${m.y}%`, "--m-w": `${m.w}%`, "--m-h": `${m.h}%`, "--m-alto": `${alto}px` } as CSSProperties;
   return (
-    <div className={`lt-telefono lt-tel-${id}`} aria-hidden="true">
-      <span className="lt-isla" />
-      <div className="lt-pantalla">
-        <iframe data-telefono={id} {...(diferido ? { "data-src": src } : { src })} title="" tabIndex={-1} inert loading="eager" />
+    <div className={`lt-telefono lt-tel-${id}`} style={estilo} aria-hidden="true">
+      <div className="lt-hueco">
+        <div className="lt-pantalla">
+          <iframe data-telefono={id} {...(diferido ? { "data-src": src } : { src })} title="" tabIndex={-1} inert loading="eager" />
+        </div>
       </div>
+      <img src={m.src} alt="" className="lt-mockup" width={m.ancho} height={m.alto} decoding="async" />
     </div>
   );
 }
@@ -193,25 +208,16 @@ function Hilo() {
   );
 }
 
-/** Una burbuja de chat: el texto entra palabra por palabra, de borroso a nítido. */
+/** Una burbuja de chat de WhatsApp: sube desde abajo, como un mensaje nuevo. */
 function Burbuja({ paso, indice }: { paso: Paso; indice: number }) {
-  let k = 0;
-  const palabras = (texto: string, clase?: string): ReactNode[] =>
-    texto.split(" ").map((w) => (
-      <span key={k}>
-        <span className={`palabra${clase ? " " + clase : ""}`} style={{ "--i": k++ } as CSSProperties}>
-          {w}
-        </span>{" "}
-      </span>
-    ));
   return (
     <div className="lt-burbuja" data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-de={paso.burbuja.de}>
       <p className="lt-burbuja-texto">
-        {palabras(paso.burbuja.texto)}
+        {paso.burbuja.texto}
         {paso.burbuja.remate && (
           <>
             <br />
-            {palabras(paso.burbuja.remate, "lt-remate")}
+            <span className="lt-remate">{paso.burbuja.remate}</span>
           </>
         )}
       </p>

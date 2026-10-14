@@ -6,6 +6,7 @@
 import { TOTAL_DEMO, pesos, totalHasta } from "./pedido-demo";
 
 export type IdPaso =
+  | "intro"
   | "hola"
   | "pasa"
   | "aaah-termo"
@@ -61,7 +62,9 @@ export type Paso = {
 export const CAPITULOS = 6;
 
 export const PASOS: Paso[] = [
-  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Hola, esto es Deslizapp.", remate: "Desliza y mira cómo funciona." }, ancla: null, duracion: 600, esperaHilo: 0 },
+  // Antes del teléfono: el logo y la bienvenida (el teléfono entra en el paso siguiente).
+  { id: "intro", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Hola, bienvenido a Deslizapp.", remate: "Desliza y mira cómo funciona." }, ancla: null, duracion: 600, esperaHilo: 0 },
+  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Este es el catálogo de La Vuelta.", remate: "Así lo ve Ana, que va a comprar." }, ancla: null, duracion: 700, esperaHilo: 0 },
   { id: "pasa", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Lo que no te gusta,", remate: "pasa." }, ancla: null, duracion: 900, esperaHilo: 0 },
   { id: "aaah-termo", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Lo que te gusta: dale aaah.", remate: "Va directo a tu pedido." }, ancla: "bolsa", naceEn: "burst-termo", duracion: 1900, esperaHilo: 900 },
   { id: "aaah-tote", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { de: "deslizapp", texto: "Uno más.", remate: `Tu pedido ya suma ${pesos(TOTAL_DEMO)}.` }, ancla: "bolsa", duracion: 1900, esperaHilo: 0 },

@@ -6,6 +6,14 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
 }
+/* En la landing, la pantalla del iPhone llega hasta arriba (detrás de la isla) y en un iframe no hay zona segura: lo de arriba
+   del catálogo y del pedido se baja como en un iPhone de verdad. */
+.catalogo-publico {
+  --hdrT: 58px;
+}
+.catalogo-publico .pvbars {
+  padding-top: 54px;
+}
 .dz-pantalla {
   position: fixed;
   inset: 0;
@@ -57,4 +65,8 @@ body {
   .dz-globo {
     transition: none;
   }
+}
+/* El indicador de `next dev` no es parte del teléfono (en producción no existe). */
+nextjs-portal {
+  display: none;
 }

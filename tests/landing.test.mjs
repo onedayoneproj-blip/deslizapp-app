@@ -36,7 +36,7 @@ test("lo que ve la compradora usa estadoComprador", () => {
 test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulos", () => {
   assert.deepEqual(
     PASOS.map((p) => p.id),
-    ["hola", "pasa", "aaah-termo", "aaah-tote", "bolsa", "whatsapp", "seguimiento", "cambio", "aviso", "chat-tienda", "eres-tienda", "registrar", "pedidos", "confirmar", "despachar"],
+    ["intro", "hola", "pasa", "aaah-termo", "aaah-tote", "bolsa", "whatsapp", "seguimiento", "cambio", "aviso", "chat-tienda", "eres-tienda", "registrar", "pedidos", "confirmar", "despachar"],
   );
   const primeroTienda = PASOS.findIndex((p) => p.telefono === "tienda");
   assert.ok(PASOS.slice(0, primeroTienda).every((p) => p.lado === "compras" && p.telefono === "compradora"));

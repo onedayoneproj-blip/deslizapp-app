@@ -14,7 +14,8 @@ const base = process.argv[2] ?? "http://localhost:3000";
 const nav = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 mkdirSync("public/landing/pasos", { recursive: true });
 for (const [telefono, indices] of [
-  ["compradora", PASOS.map((p, i) => (p.telefono === "compradora" ? i : -1)).filter((i) => i >= 0)],
+  // «intro» no tiene captura: es el logo, sin teléfono.
+  ["compradora", PASOS.map((p, i) => (p.telefono === "compradora" && p.id !== "intro" ? i : -1)).filter((i) => i >= 0)],
   ["tienda", PASOS.map((p, i) => (p.telefono === "tienda" ? i : -1)).filter((i) => i >= 0)],
 ]) {
   const pagina = await nav.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 1, reducedMotion: "reduce" });

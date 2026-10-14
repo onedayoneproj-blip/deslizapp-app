@@ -41,9 +41,12 @@ function estadoEn(paso: number, montaje: number): Estado {
   return { pantalla, aviso: paso >= P.aviso, eres: paso === P.eres, registrar: paso === P.registrar, hojaPedido: paso >= P.confirmar, montaje };
 }
 
-/** La base en memoria como queda al terminar ese paso (para llegar sin animación). */
+/**
+ * La base en memoria para llegar a ese paso sin animación. En «registrar» todavía sin registrar: la hoja enseña el formulario (si
+ * no, diría «Este pedido ya está registrado»).
+ */
 async function prepararBase(paso: number) {
-  if (paso < P.registrar) return usarDemoEnMemoria(dbBase(), TIENDA_ID_DEMO);
+  if (paso <= P.registrar) return usarDemoEnMemoria(dbBase(), TIENDA_ID_DEMO);
   const { db, pedidoId } = dbRegistrada();
   usarDemoEnMemoria(db, TIENDA_ID_DEMO);
   if (paso >= P.confirmar) await fuenteDemo.confirmarPedido(TIENDA_ID_DEMO, pedidoId);
@@ -102,6 +105,8 @@ export function TelefonoTienda() {
       await tocarYPulsar(porTexto('[role="dialog"] button', "Registrar pedido"));
     } else if (destino === P.pedidos) {
       tocar(porTexto('[role="dialog"] button', /Ver pedido/));
+      // Si «registrar» se vio sin animación, el pedido aún no está registrado.
+      if (!pedidoId()) await prepararBase(destino);
       await esperar(300);
       if (vigente()) setEstado((e) => ({ ...e, registrar: false, pantalla: "panel" }));
     } else if (destino === P.confirmar) {

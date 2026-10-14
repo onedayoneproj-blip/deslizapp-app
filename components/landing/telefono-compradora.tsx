@@ -23,8 +23,10 @@ import { cajaDelTexto, esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePas
 
 type Pantalla = "catalogo" | "chat" | "pedido";
 
+// Con scrollTo del iframe y no scrollIntoView: scrollIntoView también movería la página de la landing que lo contiene.
 const irAlReel = (slug: string, suave: boolean) => {
-  document.getElementById("r-" + slug)?.scrollIntoView({ block: "start", behavior: suave ? "smooth" : "auto" });
+  const reel = document.getElementById("r-" + slug);
+  if (reel) window.scrollTo({ top: reel.getBoundingClientRect().top + window.scrollY, behavior: suave ? "smooth" : "auto" });
 };
 type Estado = { actual: string; carrito: string[]; hoja: boolean; pantalla: Pantalla; enviado: boolean };
 

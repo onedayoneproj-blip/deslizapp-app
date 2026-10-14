@@ -1,7 +1,7 @@
 // Uso: con la app corriendo (npm run dev o npm start), `node scripts/probar-landing.mjs [url]`.
 // La landing de deslizapp.com por pasos (referencias/landing/ajustes-lewis-2.md) a 360×640, 390×844, 430×932 y 1440×900:
-// avanzar paso a paso (burbuja completa y nítida, estado del teléfono: bolsa, total y código; el teléfono 393×852; el ♥ sobre su
-// ancla; el fondo de cada persona), retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
+// avanzar paso a paso (la bienvenida con el logo antes del teléfono; burbuja completa y sin desenfoque, que no tapa el ♥; estado del
+// teléfono: bolsa, total y código; el mockup entero y la página llenando su pantalla; el ♥ sobre su ancla; el fondo de cada persona), retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
 // movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por paso
 // (390×844 y 1440×900) en docs/capturas/landing/.
 import { createRequire } from "node:module";
@@ -34,10 +34,16 @@ const medir = (pagina, i) =>
     ({ i, paso }) => {
       const e = document.querySelector(".lt-escenario");
       const burbuja = e.querySelector(`[data-burbuja="${i}"]`);
-      const palabras = [...burbuja.querySelectorAll(".palabra")];
-      const nitida = palabras.every((p) => Number(getComputedStyle(p).opacity) > 0.99 && getComputedStyle(p).filter === "none");
-      const tel = e.querySelector(`.lt-tel-${paso.telefono}`).getBoundingClientRect();
+      const nitida = getComputedStyle(burbuja).filter === "none" && [...burbuja.querySelectorAll("*")].every((x) => getComputedStyle(x).filter === "none");
+      const telefono = e.querySelector(`.lt-tel-${paso.telefono}`);
+      const tel = telefono.getBoundingClientRect();
+      const mockup = telefono.querySelector(".lt-mockup");
+      const hueco = telefono.querySelector(".lt-hueco").getBoundingClientRect();
+      const pagina = telefono.querySelector("iframe").getBoundingClientRect();
       const hilo = e.querySelector("[data-hilo]");
+      const h = hilo.getBoundingClientRect();
+      const b = burbuja.getBoundingClientRect();
+      const intro = e.querySelector(".lt-intro");
       let distancia = null;
       if (paso.ancla) {
         const marco = e.querySelector(`iframe[data-telefono="${paso.telefono}"]`);
@@ -45,7 +51,6 @@ const medir = (pagina, i) =>
         if (r) {
           const caja = marco.getBoundingClientRect();
           const esc = caja.width / 393;
-          const h = hilo.getBoundingClientRect();
           distancia = Math.hypot(h.left + h.width / 2 - (caja.left + r.x * esc), h.top + h.height / 2 - (caja.top + r.y * esc));
         }
       }
@@ -53,6 +58,11 @@ const medir = (pagina, i) =>
         nitida,
         burbujaVisible: Number(getComputedStyle(burbuja).opacity) > 0.99,
         proporcion: tel.width / tel.height,
+        proporcionMockup: mockup.naturalWidth / mockup.naturalHeight,
+        llena: Math.abs(pagina.width - hueco.width) < 1.5 && Math.abs(pagina.height - hueco.height) < 1.5,
+        telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
+        introVisible: Number(getComputedStyle(intro).opacity) > 0.99 && intro.querySelector("svg") !== null,
+        tapaHilo: !(b.bottom <= h.top + h.height * 0.2 || b.top >= h.bottom - h.height * 0.2 || b.right <= h.left || b.left >= h.right),
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
         distancia,
         hiloVisible: hilo.dataset.visible === "si",
@@ -76,6 +86,8 @@ for (const [ancho, alto] of [
   await pagina.goto(base + "/", { waitUntil: "networkidle" });
   await pagina.waitForTimeout(1200);
   ok(await pagina.locator(".lt-escenario").isVisible(), "se ve la demo por pasos");
+  // Lo que se mueve dentro de los teléfonos (el reel) no arrastra la página.
+  ok((await pagina.evaluate(() => scrollY)) === 0 && (await datos(pagina)).paso === PASOS[0].id, "al abrir, empieza arriba, en la bienvenida");
 
   // Hacia delante, paso a paso.
   for (let i = 0; i < PASOS.length; i++) {
@@ -86,9 +98,13 @@ for (const [ancho, alto] of [
     const esperado = estadoPaso(i);
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
-    ok(m.burbujaVisible && m.nitida, `${paso.id}: la burbuja está completa y nítida`);
-    ok(Math.abs(m.proporcion - 393 / 852) < 0.01 && m.dentro, `${paso.id}: el teléfono mide 393×852 y cabe (${m.proporcion.toFixed(3)})`);
-    if (paso.ancla) ok(m.hiloVisible && m.distancia !== null && m.distancia < 4, `${paso.id}: el ♥ está sobre «${paso.ancla}» (a ${m.distancia?.toFixed(1)} px)`);
+    ok(m.burbujaVisible && m.nitida, `${paso.id}: la burbuja está completa y sin desenfoque`);
+    if (paso.id === "intro") ok(m.introVisible && !m.telefonoVisible, "intro: el logo de Deslizapp, todavía sin teléfono");
+    else ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
+    if (paso.ancla) {
+      ok(m.hiloVisible && m.distancia !== null && m.distancia < 4, `${paso.id}: el ♥ está sobre «${paso.ancla}» (a ${m.distancia?.toFixed(1)} px)`);
+      ok(!m.tapaHilo, `${paso.id}: la burbuja no tapa el ♥`);
+    }
     ok(paso.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo de ${paso.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
     if (capturas && (ancho === 390 || ancho === 1440)) {
       mkdirSync("docs/capturas/landing", { recursive: true });
@@ -104,7 +120,7 @@ for (const [ancho, alto] of [
   await pagina.waitForTimeout(1600);
   const atras = await datos(pagina);
   const ma = await medir(pagina, PASOS.length - 2);
-  ok(atras.paso === PASOS[PASOS.length - 2].id && ma.nitida, `al subir, vuelve a «${atras.paso}» con su burbuja completa`);
+  ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible, `al subir, vuelve a «${atras.paso}» con su burbuja completa`);
 
   // Un deslizamiento fuerte no se salta pasos (scroll-snap-stop: always).
   await irAlPaso(pagina, 0);
@@ -125,7 +141,7 @@ for (const [ancho, alto] of [
   const cta = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
-  if (capturas && (ancho === 390 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/16-cierre-${ancho}.png` });
+  if (capturas && (ancho === 390 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
   // «Entrar» (en el cierre): la pantalla de entrada de siempre.
   await pagina.locator('[data-cta="entrar"]').click();
   await pagina.waitForURL("**/entrar");
@@ -180,7 +196,7 @@ console.log("\nLos teléfonos de la demo no guardan nada");
   // Las fuentes de «Mi marca» (Google Fonts) las pide la hoja real de despacho para el comprobante: no son datos.
   pagina.on("request", (r) => r.url().startsWith("http") && !r.url().startsWith(base) && !/fonts\.(googleapis|gstatic)\.com/.test(r.url()) && red.push(r.url()));
   await pagina.goto(base + "/demo-landing/tienda", { waitUntil: "networkidle" });
-  for (let i = 7; i < PASOS.length; i++) {
+  for (let i = PASOS.findIndex((p) => p.telefono === "tienda"); i < PASOS.length; i++) {
     await pagina.evaluate((i) => window.postMessage({ tipo: "dz-landing-paso", paso: i, animar: true }, location.origin), i);
     await pagina.waitForTimeout(PASOS[i].duracion + 1200);
   }

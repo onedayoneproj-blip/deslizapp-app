@@ -93,39 +93,75 @@
   opacity: 0.5;
 }
 
-/* ---- Los teléfonos: proporción real (393×852), escalados enteros al alto disponible ---- */
+/* ---- Los teléfonos: el mockup del iPhone con su proporción, escalado entero al alto disponible ---- */
+.lt-escenario {
+  --alto-burbujas: 128px;
+}
 .lt-zona {
   position: absolute;
   left: 16px;
   right: 16px;
   top: var(--alto-arriba);
-  bottom: var(--alto-abajo);
+  bottom: calc(var(--alto-burbujas) + var(--alto-abajo));
   container-type: size;
 }
 .lt-telefono {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: min(100cqw, 100cqh * 393 / 852);
-  height: min(100cqh, 100cqw * 852 / 393);
-  container-type: size;
-  border-radius: 13.5cqw;
-  overflow: hidden;
-  background: var(--marca-bosque);
-  box-shadow:
-    0 0 0 3px var(--marca-bosque),
-    0 30px 60px -28px rgba(16, 54, 42, 0.7);
+  width: min(100cqw, 100cqh * var(--m-ratio));
+  height: min(100cqh, 100cqw / var(--m-ratio));
   pointer-events: none;
   user-select: none;
+  filter: drop-shadow(0 24px 30px rgba(16, 54, 42, 0.35));
   transition:
     transform 700ms var(--curva),
     opacity 600ms ease,
     filter 600ms ease;
 }
+/* La imagen del iPhone va encima: su pantalla es transparente y deja ver la página. */
+.lt-mockup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.lt-hueco {
+  position: absolute;
+  left: var(--m-x);
+  top: var(--m-y);
+  width: var(--m-w);
+  height: var(--m-h);
+  container-type: size;
+  overflow: hidden;
+  /* Las esquinas de la pantalla del mockup: sin esto, el rectángulo asoma fuera del marco. */
+  border-radius: 15.5% / 7%;
+  background: var(--marca-bosque);
+}
+/* La bienvenida: sin teléfono todavía, solo el logo. El teléfono entra en el paso siguiente. */
+.lt-intro {
+  position: absolute;
+  inset: var(--alto-arriba) 16px calc(var(--alto-burbujas) + var(--alto-abajo));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--marca-bosque);
+  transition:
+    opacity 500ms ease,
+    transform 600ms var(--curva);
+}
+.lt-escenario:not([data-paso="intro"]) .lt-intro {
+  opacity: 0;
+  transform: translateY(-40px) scale(0.92);
+}
+.lt-escenario[data-paso="intro"] .lt-tel-compradora {
+  transform: translateY(70%) scale(0.9);
+  opacity: 0;
+}
 .lt-tel-tienda {
-  box-shadow:
-    0 0 0 3px var(--marca-papel),
-    0 30px 60px -28px rgba(0, 0, 0, 0.6);
   transform: translateX(75%) scale(0.82);
   opacity: 0;
 }
@@ -140,14 +176,14 @@
   opacity: 1;
   transition-delay: 250ms;
 }
-/* Dentro, la página real a 393×852 px (iPhone 15 Pro), escalada al ancho: tan(atan2()) da la proporción sin JavaScript. */
+/* Dentro, la página real a 393 px de ancho (iPhone 15 Pro) y el alto del hueco, escalada a su ancho: tan(atan2()) da la proporción sin JavaScript. */
 .lt-pantalla {
   --esc: tan(atan2(100cqw, 393px));
   position: absolute;
   top: 0;
   left: 0;
   width: 393px;
-  height: 852px;
+  height: var(--m-alto);
   transform: scale(var(--esc));
   transform-origin: 0 0;
   overflow: hidden;
@@ -156,22 +192,9 @@
 .lt-pantalla > iframe {
   display: block;
   width: 393px;
-  height: 852px;
+  height: var(--m-alto);
   border: 0;
   pointer-events: none;
-}
-
-/* La isla del iPhone, encima de la página */
-.lt-isla {
-  position: absolute;
-  z-index: 2;
-  top: 2.6cqw;
-  left: 50%;
-  width: 30cqw;
-  height: 8.6cqw;
-  margin-left: -15cqw;
-  border-radius: 99px;
-  background: #000;
 }
 
 /* ---- El ♥ ---- */
@@ -269,11 +292,6 @@
   top: 0;
   height: calc(var(--alto-arriba) + 28px);
 }
-.lt-borde-abajo {
-  bottom: 0;
-  height: calc(var(--alto-abajo) + 90px);
-  --dir: to bottom;
-}
 
 /* ---- Arriba: el contador de capítulo y «Saltar» ---- */
 .lt-arriba {
@@ -314,31 +332,32 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- Las burbujas de chat: al centro, suben como en un chat ---- */
+/* ---- Las burbujas de chat: abajo, suben como un mensaje nuevo; la anterior sube y se va ---- */
 .lt-burbujas {
   position: absolute;
   z-index: 5;
   left: max(14px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
-  top: 56%;
+  bottom: var(--alto-abajo);
+  height: var(--alto-burbujas);
   pointer-events: none;
 }
 .lt-burbuja {
   position: absolute;
   left: 0;
-  top: 0;
-  max-width: min(320px, 86%);
+  bottom: 10px;
+  max-width: min(340px, 92%);
   padding: 10px 14px 6px;
   border-radius: 18px 18px 18px 4px;
   background: #ffffff;
   color: #111b21;
   box-shadow: 0 10px 30px -12px rgba(16, 54, 42, 0.45);
   opacity: 0;
-  transform: translateY(40px) scale(0.96);
+  transform: translateY(110%);
   transform-origin: 0 100%;
   transition:
     transform var(--mov) var(--curva),
-    opacity var(--mov) ease;
+    opacity 300ms ease;
 }
 /* La cola de la burbuja (como en WhatsApp) */
 .lt-burbuja::before {
@@ -368,42 +387,23 @@
 .lt-burbuja[data-estado="actual"] {
   opacity: 1;
   transform: none;
+  transition-delay: 120ms;
 }
-.lt-burbuja[data-estado="pasada"] {
-  opacity: 0;
-  transform: translateY(-105%) scale(0.94);
-}
+.lt-burbuja[data-estado="pasada"],
 .lt-burbuja[data-estado="lejos"] {
   opacity: 0;
-  transform: translateY(-160%) scale(0.9);
+  transform: translateY(-60%) scale(0.94);
 }
 .lt-burbuja-texto {
   font-family: var(--font-display);
   font-weight: 700;
   font-stretch: 115%;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   line-height: 1.15;
   color: var(--marca-bosque);
 }
 .lt-remate {
   color: var(--atencion-texto);
-}
-/* Las palabras: de borroso a nítido, una tras otra (el video de referencia) */
-.palabra {
-  display: inline-block;
-  opacity: 0;
-  filter: blur(10px);
-  transform: translateY(6px);
-  transition:
-    opacity 380ms ease,
-    filter 420ms ease,
-    transform 420ms var(--curva);
-}
-.lt-burbuja[data-estado="actual"] .palabra {
-  opacity: 1;
-  filter: none;
-  transform: none;
-  transition-delay: calc(180ms + var(--i) * 70ms);
 }
 .lt-burbuja-hora {
   display: block;
@@ -417,14 +417,28 @@
 }
 
 @media (max-height: 700px) {
+  .lt-escenario {
+    --alto-burbujas: 112px;
+  }
   .lt-burbuja-texto {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
   }
 }
 
-/* ---- Escritorio: la burbuja al lado del teléfono ---- */
+/* ---- Escritorio: la burbuja al lado del teléfono, abajo ---- */
 @media (min-width: 900px) {
+  .lt-escenario {
+    --alto-burbujas: 0px;
+  }
   .lt-zona {
+    left: 50%;
+    right: auto;
+    width: min(46vw, 560px);
+    top: calc(var(--alto-arriba) + 8px);
+    bottom: 32px;
+  }
+  /* El logo, donde después aparece el teléfono; la burbuja, a su izquierda como en los demás pasos. */
+  .lt-intro {
     left: 50%;
     right: auto;
     width: min(46vw, 560px);
@@ -435,7 +449,8 @@
     left: auto;
     right: calc(50% + 32px);
     width: min(36vw, 440px);
-    top: 46%;
+    bottom: 22%;
+    height: auto;
   }
   .lt-burbuja {
     max-width: 100%;
@@ -451,9 +466,6 @@
   .lt-escenario,
   .lt-escenario * {
     transition: none !important;
-  }
-  .palabra {
-    filter: none;
   }
 }
 
