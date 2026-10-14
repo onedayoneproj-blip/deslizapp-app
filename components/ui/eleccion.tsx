@@ -46,8 +46,8 @@ export function Eleccion({
       onClick={onClick}
       onKeyDown={onKeyDown}
       className={clases(
-        "tocable relative inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 font-bold whitespace-nowrap text-texto disabled:opacity-40",
-        compacta ? clases("h-10 px-3 text-secundario", TOQUE_44) : "h-(--alto-control) px-4 text-cuerpo",
+        "tocable relative inline-flex shrink-0 items-center rounded-full border-2 font-bold whitespace-nowrap text-texto disabled:opacity-40",
+        compacta ? clases("h-10 gap-1 px-2 text-secundario", TOQUE_44) : "h-(--alto-control) gap-1.5 px-4 text-cuerpo",
         FOCO,
         elegida ? "border-accion-suave bg-accion-suave" : "border-borde-pastilla bg-superficie",
       )}

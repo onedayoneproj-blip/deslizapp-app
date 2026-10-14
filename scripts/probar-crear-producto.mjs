@@ -1529,8 +1529,7 @@ for (const [an, al] of [[390, 844], [393, 852]]) {
   await falta("cantidad");
   await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
   await page.getByRole("radio", { name: "1 a 2 semanas" }).tap();
-  // Con el check en las Elecciones compactas, «Otro» baja a una 2.ª fila al elegir «1 a 2 semanas» a 390 px: se informa mientras Planning decide.
-  await falta("por encargo con plazo", true);
+  await falta("por encargo con plazo");
   await page.getByRole("switch", { name: "Es por encargo, no llevo stock" }).tap();
   await page.getByRole("button", { name: "Agregar uno" }).tap();
   await seguir(page);
