@@ -1166,6 +1166,12 @@ console.log("\n=== Sumar una cosa no resucita lo quitado ni muestra lo oculto; q
   await page.getByRole("checkbox", { name: "Talla", exact: true }).tap();
   await seguir(page);
   for (const c of ["Negro", "Blanco", "Rojo"]) await page.getByRole("checkbox", { name: c, exact: true }).tap();
+  // Escape cancela «+ Otro»: lo escrito no se agrega (Codex P2, #127).
+  await page.getByRole("textbox", { name: "Otro color" }).tap();
+  await page.keyboard.type("Rosa");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+  ok((await page.getByRole("checkbox", { name: "Rosa", exact: true }).count()) === 0 && (await page.getByRole("textbox", { name: "Otro color" }).inputValue()) === "", "Escape en «+ Otro» descarta lo escrito: «Rosa» no se agrega");
   // «+ Otro» con uno que ya está (Codex P3, 6.ª revisión): no lo quita ni pregunta.
   await page.getByRole("textbox", { name: "Otro color" }).tap();
   await page.keyboard.type(" negro ");

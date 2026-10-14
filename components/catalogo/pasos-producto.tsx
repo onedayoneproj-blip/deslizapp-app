@@ -161,6 +161,8 @@ function CampoOtra({ etiqueta, rotulo, placeholder, valor, alCambiar, alListo, a
 }) {
   const [foco, setFoco] = useState(false);
   const entrada = useRef<HTMLInputElement>(null);
+  // Escape cancela: el blur que sigue no debe confirmar lo escrito (el estado aún no se vació).
+  const cancelando = useRef(false);
   const abierto = foco || valor !== "";
   return (
     <span className={clases("relative inline-flex h-(--alto-control) shrink-0 items-center", abierto ? "w-52 max-w-full" : "w-24")}>
@@ -175,12 +177,13 @@ function CampoOtra({ etiqueta, rotulo, placeholder, valor, alCambiar, alListo, a
           setFoco(false);
           // Tocar el ✓ no es perder el campo: lo confirma el propio botón.
           if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.hasAttribute("data-confirmar-otra")) return;
+          if (cancelando.current) { cancelando.current = false; return; }
           alDejar?.();
         }}
         onChange={(e) => alCambiar(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") { e.preventDefault(); if (alListo()) entrada.current?.blur(); }
-          else if (e.key === "Escape") { alCancelar?.(); entrada.current?.blur(); }
+          else if (e.key === "Escape") { cancelando.current = true; alCancelar?.(); entrada.current?.blur(); }
         }}
         className={clases(
           "h-full w-full min-w-0 rounded-full border-2 bg-superficie text-cuerpo text-texto outline-none disabled:opacity-40",
