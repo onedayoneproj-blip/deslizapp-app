@@ -197,7 +197,11 @@ export function salirDeLaDemo() {
   poner({ tipo: "entrada", aviso: null });
 }
 
-/** Cerrar sesión (real) o salir de la demo (sus datos se quedan guardados): vuelve a la entrada. */
+/**
+ * Cerrar sesión (real) o salir de la demo (sus datos se quedan guardados): vuelve a la entrada. En `/`, al cerrar una sesión
+ * real se recarga cuando ya no hay cookie: el servidor pinta entonces la landing (el panel con sesión se eligió en el servidor
+ * y, sin recargar, mostraría la entrada vieja).
+ */
 export async function salir() {
   const eraReal = estado?.tipo !== "demo";
   guardarModo(null);
@@ -208,6 +212,7 @@ export async function salir() {
     } catch {
       // Sin conexión: la sesión local igual se borra.
     }
+    if (window.location.pathname === "/") window.location.replace("/");
   }
 }
 
