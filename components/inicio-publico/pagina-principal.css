@@ -13,7 +13,10 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  /* La altura que se ve de verdad (con o sin las barras de Safari): el feed llena hasta abajo y los botones quedan pegados al
+     borde de abajo, sin hueco verde debajo. */
   min-height: 100svh;
+  min-height: 100dvh;
   overflow: hidden;
   padding: calc(84px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom))
     max(20px, env(safe-area-inset-left));
@@ -30,19 +33,22 @@
   overflow: hidden;
   pointer-events: none;
 }
+/* Columnas anchas (fotos grandes, que se lean): la del centro entera y las de los lados recortadas, unas 2.3 a la vista. */
 .ini-columnas {
+  --col: min(46vw, 230px);
   position: absolute;
-  left: -44px;
-  right: -44px;
+  left: 50%;
   top: -12%;
+  width: calc(3 * var(--col) + 20px);
   height: 130%;
+  margin-left: calc(-1.5 * var(--col) - 10px);
   display: flex;
   gap: 10px;
   transform: rotate(-7deg);
 }
 .ini-columna {
-  flex: 1;
-  min-width: 0;
+  flex: none;
+  width: var(--col);
   margin-top: var(--desfase);
 }
 /* En el teléfono, tres columnas; en escritorio, seis. */
@@ -120,9 +126,16 @@
   z-index: -1;
   left: -100vw;
   right: -100vw;
-  top: -150px;
+  /* Empieza a oscurecer justo encima del lema (las fotos se ven hasta su primera línea) y es sólido a la altura de la descripción. */
+  top: -24px;
   bottom: -100vh;
-  background: linear-gradient(180deg, rgba(23, 75, 58, 0), rgba(23, 75, 58, 0.78) 80px, var(--marca-bosque) 150px);
+  background: linear-gradient(
+    180deg,
+    rgba(23, 75, 58, 0),
+    rgba(23, 75, 58, 0.62) 70px,
+    rgba(23, 75, 58, 0.9) 150px,
+    var(--marca-bosque) 210px
+  );
   pointer-events: none;
 }
 /* Fredoka 700 con trazo, como la portada de /conoce: dos líneas por frase y ninguna se parte. */
@@ -346,9 +359,16 @@
     padding-left: max(6vw, 40px);
   }
   .ini-columnas {
+    --col: 260px;
     left: -60px;
     right: -60px;
+    width: auto;
+    margin-left: 0;
     gap: 16px;
+  }
+  .ini-columna {
+    flex: 1;
+    width: auto;
   }
   .ini-columna:nth-child(n + 4) {
     display: block;

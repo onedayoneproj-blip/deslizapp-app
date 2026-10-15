@@ -47,7 +47,7 @@ export function PaginaPrincipal({ fotos }: { fotos: FotoInicio[] }) {
               <div className="ini-tira">
                 {[...columna(fotos, k), ...columna(fotos, k)].map((f, i) => (
                   <div key={i} className="ini-foto" data-foto-inicio={f.src}>
-                    <Image src={f.src} alt="" fill sizes="(min-width: 900px) 260px, 160px" quality={70} loading={i < 3 ? "eager" : "lazy"} />
+                    <Image src={f.src} alt="" fill sizes="(min-width: 900px) 260px, 230px" quality={70} loading={i < 3 ? "eager" : "lazy"} />
                   </div>
                 ))}
               </div>
