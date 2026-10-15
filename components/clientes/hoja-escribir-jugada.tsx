@@ -149,9 +149,15 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
       } catch (e) {
         console.warn("No se pudo registrar el envío de la jugada.", e);
       }
+      if (modoDatos === "demo") {
+        setEnviando(false);
+        alCerrar();
+        mostrarToast("Envío simulado. En la demo nadie lo recibe.");
+        return;
+      }
       fueAWhatsApp.current = true;
       // Después de esperar, iPhone bloquea las ventanas nuevas: se abre en la misma
-      if (modoDatos !== "demo") window.location.assign(enlaceWhatsAppCliente(cliente.telefono, final));
+      window.location.assign(enlaceWhatsAppCliente(cliente.telefono, final));
       setEnviando(false);
     } catch (e) {
       setEnviando(false);

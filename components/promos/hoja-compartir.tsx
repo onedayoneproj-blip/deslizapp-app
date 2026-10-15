@@ -60,6 +60,7 @@ export function HojaCompartir({ promoId, desde }: { promoId: string; desde?: "de
 }
 
 function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: Promo; tienda: Tienda; producto?: Producto; productosDeColeccion: number }) {
+  const { modo } = useData();
   const toast = useToast();
   const estado = estadoPromo(promo);
   const [mensaje, setMensaje] = useState(() => mensajePromo(promo, estado, tienda, producto));
@@ -96,6 +97,7 @@ function Contenido({ promo, tienda, producto, productosDeColeccion }: { promo: P
   // OJO: la API del navegador se llama de inmediato (dentro del toque), sin await antes.
   const enviar = () => {
     if (vacio) return;
+    if (modo === "demo") { toast("Envío simulado. En la demo nadie lo recibe."); return; }
     if (typeof navigator.share !== "function") {
       // Escritorio: sin menú de compartir, se copia el mensaje
       void copiarTexto(mensaje, campoMensaje.current).then((ok) => toast(ok ? "Mensaje copiado" : "No pudimos copiarlo. Inténtalo de nuevo."));

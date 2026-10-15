@@ -39,10 +39,10 @@ export function guardarArchivo(blob: Blob, nombre: string) {
  * descarga directa de un blob no siempre funciona, usa la hoja de compartir con el archivo (mismo recurso que "Compartir").
  * Devuelve false si la persona cerró la hoja de compartir sin elegir nada.
  */
-export async function descargarArchivo(blob: Blob, nombre: string): Promise<boolean> {
+export async function descargarArchivo(blob: Blob, nombre: string, permitirCompartir = true): Promise<boolean> {
   const enIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const instalada = window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  if (enIos && instalada && typeof navigator.share === "function") {
+  if (permitirCompartir && enIos && instalada && typeof navigator.share === "function") {
     const archivo = new File([blob], nombre, { type: blob.type });
     if (navigator.canShare?.({ files: [archivo] })) {
       try {

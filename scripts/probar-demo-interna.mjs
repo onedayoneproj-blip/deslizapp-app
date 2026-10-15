@@ -27,6 +27,11 @@ try {
  // Fixtures de otras suites importan explícitamente el almacén interno.
  cambiar("lib/data/demo-interna.ts", s => s + '\nexport const { fuenteDemo, leerDemo, suscribirDemo, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } = demoInterna;\n');
  for (const ruta of ["tests/fixtures/espera-page.txt", "tests/fixtures/visibilidad-page.txt"]) cambiar(ruta, s => s.replaceAll('@/lib/data/demo"', '@/lib/data/demo-interna"'));
+ if (suites.includes("probar-salidas-demo.mjs")) {
+   mkdirSync(join(copia, "app/fixture-salidas-demo"), { recursive: true });
+   cpSync(join(copia, "tests/fixtures/salidas-demo-page.txt"), join(copia, "app/fixture-salidas-demo/page.tsx"));
+   cambiar("lib/funciones.ts", s => s.replace("proximaJugada: false", "proximaJugada: true")); // solo la copia de pruebas
+ }
  const env = { ...process.env, DEMO_INTERNAL_AUTH_USER_ID: "lewis-auth-fixture", NEXT_PUBLIC_SUPABASE_URL: "", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "", URL: url, BASE_URL: url };
  for (const key of Object.keys(env)) if (/TOKEN|SECRET|PASSWORD|CREDENTIAL/i.test(key)) delete env[key];
  servidor = spawn(process.execPath, [join(copia, "node_modules/next/dist/bin/next"), "dev", "--webpack", "-p", String(puerto)], { cwd: copia, env, stdio: ["ignore", "pipe", "pipe"] });

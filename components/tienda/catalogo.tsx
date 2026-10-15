@@ -458,7 +458,7 @@ export function Catalogo({
       ? `Mira este ${nombres.singular}: ${p.nombre} a ${dinero(p.precioPromo ?? p.precio)}`
       : `Mira los ${nombres.plural} de ${t.nombre}`;
     try {
-      if (navigator.share) {
+      if (!demo && navigator.share) {
         await navigator.share({
           title: p ? p.nombre + " · " + t.nombre : t.nombre,
           text,

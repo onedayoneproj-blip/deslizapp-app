@@ -209,7 +209,7 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
             <Boton jerarquia="terciario" anchoCompleto onClick={() => {
               setDondeAbierta(false);
               // En la app instalada en iPhone la descarga directa no siempre anda: descargarArchivo usa la hoja de compartir
-              if (imagen) void descargarArchivo(imagen.blob, nombreArchivo).then((ok) => ok && toast("Imagen guardada."));
+              if (imagen) void descargarArchivo(imagen.blob, nombreArchivo, modo !== "demo").then((ok) => ok && toast("Imagen guardada."));
             }}>
               Guardar la imagen
             </Boton>

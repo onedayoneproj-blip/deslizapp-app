@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { EnlaceTiendaNueva } from "@/lib/admin/tipos";
-import { useAdmin } from "@/lib/data/admin/provider";
+import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import { textoVence, urlUnirse } from "@/lib/equipo";
 import { Boton, Campo, Etiqueta, Tarjeta } from "@/components/ui";
 import { EstadoAdmin } from "./estado";
@@ -33,6 +33,7 @@ export function PantallaMas() {
 }
 
 function Invitaciones() {
+  const demo = useAdminDemo();
   const fuente = useAdmin();
   const [lista, setLista] = useState<EnlaceTiendaNueva[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +86,7 @@ function Invitaciones() {
   };
   const compartir = async () => {
     if (!url) return;
+    if (demo) { setAviso("Invitación simulada. En la demo nadie la recibe."); return; }
     const texto = `Te invito a abrir tu tienda en Deslizapp. Entra con tu cuenta de Google desde este enlace (sirve una vez): ${url}`;
     if (typeof navigator.share === "function") {
       try {

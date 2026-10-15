@@ -1,0 +1,22 @@
+"use client";
+import { descargarArchivo } from "@/lib/portapapeles";
+import { useState } from "react";
+import { ProveedorDemo } from "@/lib/data/provider";
+import { ProveedorToast } from "@/components/ui";
+import { ToastProvider } from "@/components/toast";
+import { HojaEscribirJugada } from "@/components/clientes/hoja-escribir-jugada";
+import { useTiendaActiva, useConsulta } from "@/lib/data/consulta";
+import { useData } from "@/lib/data/provider";
+export default function Fixture() {
+  return <ProveedorDemo interna cargando={<p>Cargando fixture</p>}><ToastProvider><ProveedorToast><Contenido /></ProveedorToast></ToastProvider></ProveedorDemo>;
+}
+function Contenido() {
+  const [abierta, setAbierta] = useState(false);
+  const { tiendaId, tienda } = useTiendaActiva();
+  const { getClientes } = useData();
+  const { data } = useConsulta("clientes-fixture", () => getClientes(tiendaId));
+  const cliente = data?.find(c => c.telefono);
+  return <main><button onClick={() => void descargarArchivo(new Blob(["fixture"]), "demo.txt", false)}>Descarga demo</button><button onClick={() => void descargarArchivo(new Blob(["fixture"]), "cuenta.txt", true)}>Descarga normal</button><button disabled={!tienda || !cliente} onClick={() => setAbierta(true)}>Abrir envío simulado</button>
+    {abierta && cliente && tienda && <HojaEscribirJugada jugada="volver" cliente={{ ...cliente, telefono: cliente.telefono! }} tiendaId={tiendaId} tienda={tienda.nombre} vendedora="Demo" urlCatalogo={tienda.urlCatalogo} alCerrar={() => setAbierta(false)} />}
+  </main>;
+}

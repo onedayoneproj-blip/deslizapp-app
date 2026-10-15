@@ -51,7 +51,7 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     if (!factura || trabajando) return;
     setTrabajando("png");
     try {
-      terminar(await descargarArchivo(factura.blob, `${nombreArchivo}.png`));
+      terminar(await descargarArchivo(factura.blob, `${nombreArchivo}.png`, modo !== "demo"));
     } finally {
       setTrabajando(null);
     }
@@ -62,7 +62,7 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
     setTrabajando("pdf");
     try {
       const pdf = await pdfDeJpeg(await factura.jpegParaPdf());
-      terminar(await descargarArchivo(pdf, `${nombreArchivo}.pdf`));
+      terminar(await descargarArchivo(pdf, `${nombreArchivo}.pdf`, modo !== "demo"));
     } catch {
       toast("No pudimos armar el PDF. Inténtalo otra vez.");
     } finally {
