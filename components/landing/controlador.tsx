@@ -64,6 +64,12 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (!video || !puedeCorrer()) return;
       video.muted = true;
       video.defaultMuted = true;
+      // Las fuentes no llevan src en el HTML: ni el precargador del navegador descarga video antes de leer las preferencias.
+      const pendientes = video.querySelectorAll<HTMLSourceElement>("source[data-src]:not([src])");
+      if (pendientes.length) {
+        pendientes.forEach((fuente) => { fuente.src = fuente.dataset.src!; });
+        video.load();
+      }
       if (video.paused)
         void video.play().catch((err: unknown) => {
           // El navegador no deja reproducirlo solo (iOS en ahorro de energía…): queda el póster y todo entra ya.

@@ -551,11 +551,29 @@ console.log("\nLa primera vuelta del video: un gesto antes, y el tope de 10 s");
   await contexto.close();
 }
 
+console.log("\nAhorro de datos: póster sin descargar video");
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 }, serviceWorkers: "block" });
+  await contexto.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true }));
+  const pagina = await contexto.newPage();
+  const descargas = [];
+  pagina.on("request", (r) => { if (/\/landing\/portada-v2\.(webm|mp4)/.test(r.url())) descargas.push(r.url()); });
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  await pagina.waitForTimeout(1800);
+  const p = await portadaVisible(pagina);
+  ok(p.icono && p.lema && p.telefono && p.desliza && !p.corre, "con ahorro de datos, póster y portada completa desde el principio");
+  ok(descargas.length === 0, `con ahorro de datos no se solicita ningún video (${descargas.length})`);
+  await contexto.close();
+}
+
 console.log("\nMovimiento reducido");
 {
   const contexto = await nav.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const pagina = await contexto.newPage();
+  const descargas = [];
+  pagina.on("request", (r) => { if (/\/landing\/portada-v2\.(webm|mp4)/.test(r.url())) descargas.push(r.url()); });
   await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  ok(descargas.length === 0, "con movimiento reducido tampoco se solicita el video");
   await pagina.waitForTimeout(1200);
   ok(await pagina.evaluate(() => document.querySelector("[data-portada]").paused), "en la portada, el video no se reproduce (queda el póster)");
   {

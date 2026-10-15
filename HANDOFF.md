@@ -77,6 +77,8 @@ La mezcla de color del velo se aplica en la capa decorativa de `Hoja`, bajo el b
 y la cabecera, para conservar el contraste del texto.
 
 
+**Actualización de la portada de `/conoce` (15 oct 2026, [encargo](docs/prompts/video-v2-y-entrar.md), [spec](docs/04-pantallas.md#página-principal-y-demo-pública-15-oct-2026)):** sustituye el video anterior por `public/landing/portada-v2.*`. La primera vuelta se ve limpia, solo con «Saltar»; después sigue en bucle y entra el contenido. Un gesto lo revela al momento; tope de 10 s. Con movimiento reducido o ahorro de datos solo se sirve el póster, sin solicitar video. `/` y `/entrar` comparten la página principal y sus avisos, también tras un cierre de sesión en el navegador.
+
 ## Importante sobre esta versión de Next.js
 
 Este proyecto usa **Next.js 16** (App Router), que tiene cambios respecto a

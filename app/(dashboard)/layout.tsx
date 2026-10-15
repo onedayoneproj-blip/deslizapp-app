@@ -5,7 +5,6 @@ import { AvisoRed } from "@/components/panel/aviso-red";
 import { Encabezado } from "@/components/panel/encabezado";
 import { NavInferior } from "@/components/panel/nav-inferior";
 import { PantallaCarga } from "@/components/panel/pantalla-carga";
-import { PantallaEntrada } from "@/components/panel/pantalla-entrada";
 import { PanelUIProvider } from "@/components/panel/ui";
 import { InicioPublico } from "@/components/landing/inicio-publico";
 import { PaginaPrincipal } from "@/components/inicio-publico/pagina-principal";
@@ -45,7 +44,9 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
     }
   }
   if (id) return <RecuperarVerComo sesionId={id} tiendaId={tiendaId} />;
-  return <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}><DashboardUI>{children}</DashboardUI></DataProvider>;
+  // La sesión puede cerrarse en el navegador después de esta comprobación del servidor.
+  const publico = await EntradaPublica();
+  return <DataProvider cargando={<PantallaCarga />} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }
 
 /**
@@ -54,12 +55,16 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
  * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
  */
 async function SinSesion({ children }: { children: ReactNode }) {
+  const publico = await EntradaPublica();
+  return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
+}
+
+async function EntradaPublica() {
   // Solo `/` y `/entrar` llevan la página principal: en el resto (/pedidos, /catalogo…) no se leen sus fotos ni se manda su
   // árbol. Si se llega a una de las dos navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide.
   const ruta = (await headers()).get(CABECERA_RUTA);
   const principal = ruta === "/" || ruta === "/entrar" ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
-  const publico = <InicioPublico principal={principal} />;
-  return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
+  return <InicioPublico principal={principal} />;
 }
 
 function DashboardUI({ children }: { children: ReactNode }) {
