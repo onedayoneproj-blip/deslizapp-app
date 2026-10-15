@@ -1420,7 +1420,7 @@ export function Catalogo({
       )}
       {vista === "ficha" && producto?.fichaUrl && <VisorFicha p={producto} cerrar={cerrar} />}
       {vista === "opiniones" && producto && (
-        <HojaOpiniones demo={demo} t={t} p={producto} cerrar={cerrar} />
+        <HojaOpiniones demo={demo} avisar={avisar} t={t} p={producto} cerrar={cerrar} />
       )}
       {vista === "aviso" && producto && (
         <HojaAviso

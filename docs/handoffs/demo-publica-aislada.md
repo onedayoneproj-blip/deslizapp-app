@@ -18,7 +18,7 @@ Sin herramienta de mensajes entre sesiones, este documento sirve como relevo a P
 
 ## Evidencia automatizada del 15 oct
 
-PR [#134](https://github.com/onedayoneproj-blip/deslizapp-app/pull/134). `npm test`: **632/632**, cero saltos. Tipos y build de producción aprobados. Lint completo sin errores (40 advertencias); revisión de los archivos posteriores también sin errores. La suite `probar-inicio` pasa después de esperar el efecto real de theme-color, en lugar de medir antes de la hidratación en el equipo cargado; no cambia el diseño.
+PR [#134](https://github.com/onedayoneproj-blip/deslizapp-app/pull/134). `npm test`: **633/633**, cero saltos. Tipos y build de producción aprobados. Lint completo sin errores (40 advertencias); revisión de los archivos posteriores también sin errores. La suite `probar-inicio` pasa después de esperar el efecto real de theme-color, en lugar de medir antes de la hidratación en el equipo cargado; no cambia el diseño.
 
 `probar-demo-publica`: recorridos completos en **360/393/430**, cero llamadas a Supabase/WhatsApp ni al compartir nativo, y ocho entradas internas cerradas con cookie falsificada más API 403. Incluye crear y editar producto, catálogo/perfil con recarga, pedido DEMO sin query, cliente, registro, confirmación, despacho, persistencia, resumen y reinicio. [Resultados](../capturas/demo-publica-aislada/resultados.json) y [captura de 393 px](../capturas/demo-publica-aislada/catalogo-393.png). Las imágenes de producto, comprador, pedido y resumen están en la misma carpeta.
 
@@ -29,3 +29,7 @@ La comprobación de Auth autorizada y otra cuenta es un fixture de transporte de
 Los tres hallazgos sobre `a325494` se atendieron: la limpieza de la cookie interna es de mejor esfuerzo y no bloquea entrar/salir de la demo sin red; promociones, catálogo comprador e invitaciones del admin simulan compartir; el envío local de una jugada cierra su hoja y confirma directamente, sin esperar regresar de WhatsApp. Las descargas demo evitan también el compartir nativo de PWA, manteniendo la descarga local y el comportamiento real por defecto.
 
 Se añadió `tests/demo-sesion-sin-red.test.mjs` y la suite `probar-salidas-demo.mjs` para esos caminos, incluida una PWA de iPhone simulada. Su página de fixture solo se crea en la copia temporal; la función de jugadas se habilita únicamente allí para probar el registro local. La función sigue apagada en el producto. El PR registra la repetición de checks, revisión y URLs del HEAD corregido.
+
+La revisión siguiente añadió dos confirmaciones: «Enviar lista» de reposición informa del envío simulado; la pregunta del catálogo limpia/cierra su hoja y confirma sin abrir WhatsApp. Ambos recorridos se incluyen en `probar-salidas-demo.mjs`.
+
+Límite de regresión: `probar-landing.mjs` no queda aprobado. La ejecución estable pasó comprobaciones a 360/393 px, detectó «aaah-termo: no se ven dos corazones a la vez» y terminó por timeout de `networkidle` al abrir 430 px. No se ha determinado si el fallo es previo; las rutas y componentes de `/conoce` y su demo en memoria no tienen cambios respecto de main. No se declara cobertura verde de esa suite. Se entrega PR en borrador para revisión y validación, sin merge.

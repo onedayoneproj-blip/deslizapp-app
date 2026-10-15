@@ -81,7 +81,10 @@ export function VistaPorReponer({
   };
 
   const enviar = async () => {
-    if (modoDatos === "demo") return;
+    if (modoDatos === "demo") {
+      mostrarToast("Envío simulado. En la demo nadie lo recibe.");
+      return;
+    }
     if (hayShare) {
       try {
         await navigator.share({ text: texto });
