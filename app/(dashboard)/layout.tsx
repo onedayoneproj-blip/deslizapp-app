@@ -18,8 +18,17 @@ import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { ToastProvider } from "@/components/toast";
 import { ProveedorToast } from "@/components/ui";
 
+// Los enlaces viejos a un paso de la landing, que antes vivía en `/` (`/#paso-…`, `/#cierre`, `/#demo`), llegan a /conoce. Va antes
+// de pintar y para todos, con sesión o sin ella: el hash no llega al servidor.
+const ENLACES_VIEJOS = `(function(){if(location.pathname==="/"&&/^#(paso-|cierre$|demo$)/.test(location.hash))location.replace("/conoce"+location.hash)})();`;
+
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
-  return <DashboardAutorizado>{children}</DashboardAutorizado>;
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: ENLACES_VIEJOS }} />
+      <DashboardAutorizado>{children}</DashboardAutorizado>
+    </>
+  );
 }
 
 async function DashboardAutorizado({ children }: { children: ReactNode }) {

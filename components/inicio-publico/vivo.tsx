@@ -26,7 +26,7 @@ const REDUCIDO = "(prefers-reduced-motion: reduce)";
  * Lo «vivo» de la página principal: cada 3.5 s, alternando, un corazón mandarina con «aaah» sobre una foto del feed al azar y
  * una burbuja de WhatsApp (la de la landing) que crece desde abajo y se va. Todo con transform y opacity (pagina-principal.css).
  * Se pausa con la pestaña oculta (también las columnas). Con movimiento reducido, nada se mueve: una sola burbuja fija.
- * También: el theme-color en verde y los enlaces viejos a un paso de la landing (`/#paso-…`) van a /conoce.
+ * También pone el theme-color en verde.
  */
 export function Vivo({ productos }: { productos: string[] }) {
   const raiz = useRef<HTMLSpanElement>(null);
@@ -34,11 +34,6 @@ export function Vivo({ productos }: { productos: string[] }) {
   const [burbuja, setBurbuja] = useState<{ i: number; n: number; saliendo: boolean } | null>(null);
   const [corazon, setCorazon] = useState<{ foto: HTMLElement; n: number } | null>(null);
   const [reducido, setReducido] = useState(false);
-
-  // Los enlaces viejos a la landing, que antes estaba en `/`: llegan a su paso en /conoce.
-  useEffect(() => {
-    if (/^#(paso-|cierre$|demo$)/.test(location.hash)) location.replace(`/conoce${location.hash}`);
-  }, []);
 
   // La barra de Safari y el rebote del scroll en verde Bosque; al salir, lo que había.
   useEffect(() => {
@@ -68,12 +63,16 @@ export function Vivo({ productos }: { productos: string[] }) {
     const latido = () => {
       // Una foto con el centro a la vista y lejos del texto (debajo de él en el teléfono, a su lado en escritorio).
       const texto = ini.querySelector(".ini-texto")?.getBoundingClientRect();
-      const fotos = [...ini.querySelectorAll<HTMLElement>(".ini-foto")].filter((f) => {
+      const lejosDelTexto = (c: { x: number; y: number }, margen: number) => !texto || c.x > texto.right + margen || c.y < texto.top - margen;
+      const conCentro = [...ini.querySelectorAll<HTMLElement>(".ini-foto")].map((f) => {
         const r = f.getBoundingClientRect();
-        const c = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        return c.y > 110 && c.y < innerHeight - 80 && c.x > 50 && c.x < innerWidth - 50 && (!texto || c.x > texto.right + 40 || c.y < texto.top - 90);
+        return { f, c: { x: r.left + r.width / 2, y: r.top + r.height / 2 } };
       });
-      const foto = fotos[Math.floor(Math.random() * fotos.length)];
+      const enPantalla = conCentro.filter(({ c }) => c.y > 0 && c.y < innerHeight && c.x > 0 && c.x < innerWidth && lejosDelTexto(c, 20));
+      // Mejor una bien a la vista; si en ese momento no hay, cualquiera con el centro en pantalla y fuera del texto.
+      const bien = enPantalla.filter(({ c }) => c.y > 110 && c.y < innerHeight - 80 && c.x > 50 && c.x < innerWidth - 50 && lejosDelTexto(c, 70));
+      const opciones = bien.length ? bien : enPantalla;
+      const foto = opciones[Math.floor(Math.random() * opciones.length)]?.f;
       // Va dentro de la foto: sube con ella.
       if (foto) setCorazon({ foto, n: ++n });
     };

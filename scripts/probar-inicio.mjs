@@ -193,6 +193,12 @@ console.log("\nCon sesión (la demo elegida) y enlaces viejos");
   await pagina.goto(base + "/#paso-hola", { waitUntil: "networkidle" });
   await pagina.waitForURL("**/conoce#paso-hola").catch(() => {});
   ok(new URL(pagina.url()).pathname === "/conoce" && new URL(pagina.url()).hash === "#paso-hola", `un enlace viejo a un paso (/#paso-hola) llega a /conoce#paso-hola (${pagina.url()})`);
+  // Con sesión (la demo), igual.
+  await pagina.evaluate(() => localStorage.setItem("deslizapp-modo-v1", "demo"));
+  await pagina.goto(base + "/#cierre", { waitUntil: "networkidle" });
+  await pagina.waitForURL("**/conoce#cierre").catch(() => {});
+  ok(new URL(pagina.url()).pathname === "/conoce", `con sesión, un enlace viejo (/#cierre) también llega a /conoce (${pagina.url()})`);
+  await pagina.evaluate(() => localStorage.removeItem("deslizapp-modo-v1"));
   await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   await pagina.locator('[data-cta="entrar"]').evaluate((a) => a.click());
   await pagina.waitForURL("**/entrar");
