@@ -98,7 +98,7 @@ function Checklist() {
   };
   if (!tienda || !consulta.data || consulta.error) return null; // Inicio permanece disponible ante error.
   const cantidad = productosParaChecklist(consulta.data.productos, tiendaId);
-  const enlace = `/tienda/${tienda.slug}${datos.modo === "demo" ? "?demo" : ""}`;
+  const enlace = `/tienda/${tienda.slug}${datos.modo === "demo" ? `?demo=${datos.demoInterna ? "interna" : ""}` : ""}`;
   const actuar = (i: number) => {
     seleccionarCapituloChecklist(seleccionado);
     setError(null);

@@ -124,7 +124,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
   const letra = LETRAS.find((l) => l.display === tema.fuentes.display);
   const sucio = hayCambios(borrador);
   const errores = sucio ? problemas(datos.personalizacion, borrador) : [];
-  const enlaceCatalogo = `/tienda/${datos.slug}${demo ? "?demo" : ""}`;
+  const enlaceCatalogo = `/tienda/${datos.slug}${demo ? "?demo=interna" : ""}`;
 
   const guardar = async () => {
     if (enCurso.current || !sucio || errores.length) return;
