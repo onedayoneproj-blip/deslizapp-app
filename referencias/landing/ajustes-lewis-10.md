@@ -18,7 +18,7 @@ Si choca con rondas anteriores, **manda esto**.
   - encima, una línea de contexto en Figtree 800 de 16 px, **en minúscula normal (sentence case, no mayúsculas)**: «Desliza. Encuentra. Escribe.»;
   - el lema en Fredoka 700 al 104 % de ancho, **43/45 px**, con un trazo del mismo color de 1.4 px para engrosarlo (`-webkit-text-stroke` con `paint-order: stroke fill`) y sombra de 3 px de Bosque más un halo suave;
   - **cada frase en dos líneas, cuatro en total y ninguna más** (`white-space: nowrap`; comprueba que no se parta a 360 de ancho): «Comprar sin / tanta **vuelta.**» (crema, con «vuelta.» en mandarina `#ff834f`) y «Vender con / **más orden.**» (todo en rosa `#f5c9d6`);
-  - tres rayitas mandarina (destello) al lado de «vuelta.»;
+  - tres rayitas mandarina (destello) **pegadas a «vuelta.»**: van dentro de la misma línea, justo después del punto, como un carácter más, no en una posición fija que se separe de la palabra según el ancho de la pantalla;
   - debajo, una línea descriptiva en Figtree 600 de 17/23 px, crema con sombra: «Mira cómo lo que te gusta llega a la tienda con todo en su sitio.»;
   - **contraste:** el degradado de arriba sube a 0.86 de Bosque y baja a 0 hacia el 56 % del alto. El texto crema sobre eso supera 7:1. Compruébalo con el video en movimiento, no solo con un fotograma.
 - **El teléfono asoma por abajo** (unos 300 px de ancho, empieza hacia el 54 % del alto y queda cortado por el borde). Su pantalla de bloqueo lleva:
