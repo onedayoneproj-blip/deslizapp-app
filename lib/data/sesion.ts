@@ -241,5 +241,5 @@ export async function elegirTiendaPorDefecto(tiendaId: string) {
 export async function salirDemoInterna() {
   await fetch("/api/demo-interna", { method: "DELETE" });
   salirDeLaDemo();
-  window.location.assign("/entrar");
+  window.location.assign("/");
 }

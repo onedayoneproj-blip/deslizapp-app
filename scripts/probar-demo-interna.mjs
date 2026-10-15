@@ -5,10 +5,12 @@ import { cpSync, mkdtempSync, readFileSync, writeFileSync, symlinkSync, rmSync, 
 import { tmpdir } from "node:os";
 import { join, basename } from "node:path";
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 const origen = process.cwd(), copia = mkdtempSync(join(tmpdir(), "deslizapp-interna-"));
 const suites = process.argv.slice(2);
 if (!suites.length) throw new Error("Indica suites internas: probar-selector-tiendas.mjs probar-equipo.mjs …");
-const puerto = Number(process.env.PUERTO_INTERNO ?? 3301), url = `http://localhost:${puerto}`;
+const puertoLibre = async () => { const s = createServer(); await new Promise(r => s.listen(0, "127.0.0.1", r)); const puerto = s.address().port; await new Promise(r => s.close(r)); return puerto; };
+const puerto = process.env.PUERTO_INTERNO ? Number(process.env.PUERTO_INTERNO) : await puertoLibre(), url = `http://localhost:${puerto}`;
 const cambiar = (p, f) => { const ruta = join(copia, p); writeFileSync(ruta, f(readFileSync(ruta, "utf8"))); };
 const ejecutar = (cmd, args, env) => new Promise((resolve, reject) => { const p = spawn(cmd, args, { cwd: copia, env, stdio: "inherit" }); p.on("error", reject); p.on("exit", code => code === 0 ? resolve() : reject(new Error(`${cmd} ${args.join(" ")}: ${code}`))); });
 let servidor;
@@ -31,6 +33,9 @@ try {
  const log = [];
  servidor.stdout.on("data", b => log.push(String(b))); servidor.stderr.on("data", b => log.push(String(b)));
  for (let i = 0; ; i++) { if (servidor.exitCode !== null) throw new Error("Servidor de fixtures terminó: " + log.join("")); if (i > 120) throw new Error("Servidor de fixtures no listo\n" + log.slice(-5).join("")); try { if ((await fetch(url + "/entrar")).ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
+ for (const ruta of ["/catalogo", "/admin-demo", "/unirse/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "/pedidos", "/tienda/esencias-michel?demo"]) {
+   await fetch(url + ruta);
+ }
  for (const suite of suites) { console.log(`\nSuite interna con Auth fixture: ${suite}`); await ejecutar(process.execPath, [join("scripts", suite)], env); }
  console.log("✓ Suites internas, sin cuentas ni servicios reales.");
 } finally {

@@ -41,8 +41,14 @@ export function HojaCuentaAdmin({
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu cuenta" altura="auto">
       {miTienda && (
         <Link
-          href="/"
-          onClick={alCerrar}
+          href={demo ? "/demo-interna" : "/"}
+          onClick={async e => {
+            if (!demo) { alCerrar(); return; }
+            e.preventDefault();
+            const r = await fetch("/api/demo-interna", { method: "POST" });
+            alCerrar();
+            window.location.assign(r.ok ? "/" : "/demo-interna");
+          }}
           aria-label={`Ir a mi tienda, ${miTienda.nombre}`}
           className="tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l border-[1.5px] border-linea bg-superficie px-3.5 py-2.5 text-left"
         >

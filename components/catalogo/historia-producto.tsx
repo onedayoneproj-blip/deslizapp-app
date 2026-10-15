@@ -741,6 +741,7 @@ function Historia({
 
 /** «Compartir mi catálogo»: publicado, comparte el enlace; sin publicar, abre la hoja de publicar de hoy. */
 function CompartirCatalogo({ tiendaNombre, alPublicar }: { tiendaNombre: string; alPublicar: () => void }) {
+  const { modo } = useData();
   const { tienda } = useTiendaActiva();
   const toast = useToast();
   if (!tienda) return null;
@@ -749,7 +750,7 @@ function CompartirCatalogo({ tiendaNombre, alPublicar }: { tiendaNombre: string;
   if (vista === "publicado" || vista === "recien") {
     const compartir = () => {
       if (!enlace) return;
-      if (typeof navigator.share === "function") {
+      if (modo !== "demo" && typeof navigator.share === "function") {
         navigator.share({ title: tiendaNombre, url: enlace.href }).catch(() => {
           // Cerrar la hoja de compartir sin elegir nada no es un error.
         });

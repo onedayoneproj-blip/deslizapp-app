@@ -1,4 +1,5 @@
 "use client";
+import { useData } from "@/lib/data/provider";
 
 import { useEffect, useMemo, useState } from "react";
 import { copiarTexto, descargarArchivo, guardarArchivo } from "@/lib/portapapeles";
@@ -12,6 +13,7 @@ import { Aviso, Boton, TarjetaDocumento } from "../ui";
 import { etiquetaDePago } from "./comunes";
 
 export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido: PedidoConItems; cliente: Cliente | null; tienda: Tienda; productos: Producto[] }) {
+  const { modo } = useData();
   const toast = useToast();
   const [factura, setFactura] = useState<ImagenFactura | null>(null);
   const [preparando, setPreparando] = useState(true);
@@ -71,7 +73,7 @@ export function AccionesFactura({ pedido, cliente, tienda, productos }: { pedido
   const compartir = () => {
     if (!factura) return;
     const archivo = new File([factura.blob], `${nombreArchivo}.png`, { type: "image/png" });
-    if (typeof navigator.share !== "function" || !navigator.canShare?.({ files: [archivo] })) {
+    if (modo === "demo" || typeof navigator.share !== "function" || !navigator.canShare?.({ files: [archivo] })) {
       guardarArchivo(factura.blob, `${nombreArchivo}.png`);
       void copiarTexto(caption).then((ok) => toast(ok ? "Imagen guardada y texto copiado para compartir." : "Imagen guardada; no pudimos copiar el texto."));
       return;

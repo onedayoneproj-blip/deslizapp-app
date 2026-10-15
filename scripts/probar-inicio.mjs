@@ -84,6 +84,7 @@ for (const [ancho, alto] of [
   await pagina.goto(base + "/", { waitUntil: "networkidle" });
   await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await pagina.waitForTimeout(800);
+  await pagina.waitForFunction(() => { const t = document.querySelector('meta[name="theme-color"]')?.content?.toLowerCase(); return t === "#174b3a" || t === "rgb(23, 75, 58)"; });
   const m = await medir(pagina);
   ok(m.visible && (await pagina.locator(".lt-escenario").count()) === 0, "/ sin sesión muestra la página principal (no la landing)");
   ok(Math.abs(m.lineas - 4) < 0.05 && m.cabe && /Comprar sin\s*tanta vuelta\.\s*Vender con\s*más orden\./.test(m.lema ?? ""), `el lema en cuatro líneas, sin partirse (${m.lineas.toFixed(2)})`);

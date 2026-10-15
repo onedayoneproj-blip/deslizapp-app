@@ -1,4 +1,5 @@
 "use client";
+import { useData } from "@/lib/data/provider";
 
 import { useEffect, useMemo, useState } from "react";
 import { ENCUADRE_INICIAL, difuminadoPorDefecto, type AjusteFoto, type Medida } from "@/lib/encuadre-historia";
@@ -22,6 +23,7 @@ const sinAbortar = (e: unknown) => !(e instanceof DOMException && e.name === "Ab
 
 /** «Súbelo a tu estado» (antes «Tu historia»): vista previa de la imagen (1080×1920, hecha en el teléfono), tres interruptores y «Compartir». Solo lectura: no escribe en la base. */
 export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto: Producto; promos: Promo[]; tienda: Tienda; alCerrar: () => void }) {
+  const { modo } = useData();
   const toast = useToast();
   const [opciones, setOpciones] = useState<OpcionesHistoria>(OPCIONES_INICIALES);
   /** Cada imagen guarda con qué opciones se hizo (`para`): si cambian, ya no vale y no se puede compartir hasta que salga la nueva. */
@@ -103,7 +105,7 @@ export function HojaHistoria({ producto, promos, tienda, alCerrar }: { producto:
   const enviar = (texto: string | undefined, copiarEnlace: boolean) => {
     if (!imagen) return;
     const archivo = new File([imagen.blob], nombreArchivo, { type: imagen.blob.type });
-    const puede = typeof navigator.share === "function" && navigator.canShare?.({ files: [archivo] });
+    const puede = modo !== "demo" && typeof navigator.share === "function" && navigator.canShare?.({ files: [archivo] });
     if (!puede) {
       guardarArchivo(imagen.blob, nombreArchivo);
       if (enlace) void copiarTexto(enlace).then((ok) => toast(ok ? "Imagen guardada y enlace copiado." : "Imagen guardada; no pudimos copiar el enlace."));

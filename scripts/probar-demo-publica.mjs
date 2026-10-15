@@ -13,6 +13,13 @@ const leer = p => p.locator("body").innerText();
 try {
 for (const ancho of (process.env.ANCHOS ?? "360,393,430").split(",").map(Number)) {
  const ctx = await b.newContext({ viewport: { width: ancho, height: 852 }, isMobile: true, hasTouch: true, serviceWorkers: "block" });
+ const salidas = [];
+ await ctx.exposeBinding("__registrarSalidaDemo", (_origen, salida) => salidas.push(salida));
+ await ctx.addInitScript(() => {
+  window.__salidasDemo = [];
+  Object.defineProperty(navigator, "share", { configurable: true, value: () => { window.__salidasDemo.push("native-share"); void window.__registrarSalidaDemo("native-share"); return Promise.resolve(); } });
+  window.open = (url) => { window.__salidasDemo.push(String(url)); void window.__registrarSalidaDemo(String(url)); return null; };
+ });
  const p = await ctx.newPage(); p.setDefaultTimeout(30000); p.setDefaultNavigationTimeout(120000);
  const errores = [], prohibidas = [], solicitudes = [];
  p.on("pageerror", e => errores.push(e.message));
@@ -33,6 +40,7 @@ for (const ancho of (process.env.ANCHOS ?? "360,393,430").split(",").map(Number)
   const imagen = p.locator('img[src*="demo%2Fdeslizapp"],img[src*="/demo/deslizapp/"]').first(); await imagen.waitFor();
   await p.waitForFunction(() => [...document.images].some(i => /demo.*deslizapp/.test(i.src) && i.naturalWidth > 0));
   await p.screenshot({ path: `${capturas}/catalogo-${ancho}.png` });
+  await boton(p, "Compartir").first().click();
   await p.locator("[data-abrir-menu-tienda]").click();
   const menu = p.getByRole("dialog").last();
   assert.doesNotMatch(await menu.innerText(), /Laboratorio|Admin de la demo|Simular|Mirar la app como|Esencias Michel|Lino/);
@@ -54,7 +62,10 @@ for (const ancho of (process.env.ANCHOS ?? "360,393,430").split(",").map(Number)
   const href = await link.getAttribute("href"); assert.match(href, /\/tienda\/deslizapp-ejemplo\?demo/); assert.ok(href.startsWith(URL));
   await p.goto(href); await p.locator("#r-lo-e-tickel").waitFor();
   if (await p.locator("#coach").isVisible()) { await boton(p, "Saltar").click(); await p.locator("#coach").waitFor({ state: "hidden" }); }
-  // Perfil y vuelta por los controles reales del catálogo.
+  // Perfil, recarga y enlaces directos conservan la copia.
+  await p.locator("#logo").click(); await p.locator(".view-grid").waitFor();
+  assert.ok(p.url().includes("deslizapp-ejemplo"));
+  await p.reload(); await p.locator("#r-lo-e-tickel").waitFor();
   await p.screenshot({ path: `${capturas}/comprador-${ancho}.png` });
   await p.locator("#r-lo-e-tickel .acts [data-like]").click();
   await p.locator("#bagDock button").click(); await p.locator("#sheetSend").click();
@@ -67,7 +78,9 @@ for (const ancho of (process.env.ANCHOS ?? "360,393,430").split(",").map(Number)
   await p.getByRole("button", { name: /^Ana de Ejemplo/ }).click();
   await boton(p, "Registrar pedido").click(); await p.getByText("Registrado.", { exact: true }).waitFor();
   d = await datos(p); const registrado = d.solicitudes.find(x => x.codigo === s.codigo).pedidoId; assert.ok(registrado);
-  await p.goto(`${URL}/pedidos/${registrado}`); await boton(p, "Confirmar pedido").click();
+  await p.goto(`${URL}/pedidos/${registrado}`);
+  await p.locator('a[href*="wa.me"]').first().click();
+  await boton(p, "Confirmar pedido").click();
   await boton(p, "Despachar pedido").click();
   await p.waitForFunction(({k,id}) => JSON.parse(localStorage.getItem(k)).pedidos.find(x=>x.id===id)?.estado === "despachado", {k:clave,id:registrado});
   await p.screenshot({ path: `${capturas}/pedido-${ancho}.png` });
@@ -79,7 +92,7 @@ for (const ancho of (process.env.ANCHOS ?? "360,393,430").split(",").map(Number)
   assert.equal(await p.evaluate(() => localStorage.getItem("deslizapp-demo-v5")), "fixture-anterior-intacto");
   assert.equal(await p.evaluate(() => localStorage.getItem("deslizapp-sesion-v1")), "a1000000-0000-4000-8000-000000000003");
   assert.equal((await datos(p)).solicitudes.length, 0);
-  assert.equal(errores.length, 0, errores.join("; ")); assert.deepEqual(prohibidas, []);
+  assert.equal(errores.length, 0, errores.join("; ")); assert.deepEqual(prohibidas, []); assert.deepEqual(salidas, []);
   assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   resultados.push({ ancho, paso: true, solicitudes: solicitudes.length, prohibidas }); console.log("✓ demo pública", ancho);
  } catch (e) {

@@ -315,7 +315,7 @@ export function PedidoComprador({
                     className="pvgo pvsh"
                     onClick={async () => {
                       try {
-                        if (navigator.share)
+                        if (!demo && navigator.share)
                           await navigator.share({
                             title: "Tu pedido con " + s.tienda.nombre,
                             url: location.href,
