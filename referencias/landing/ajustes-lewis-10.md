@@ -19,10 +19,9 @@ Si choca con rondas anteriores, **manda esto**.
   - fecha («martes, 14 de octubre») y hora grande («3:41»), en blanco;
   - **un aviso** tipo iOS: tarjeta crema translúcida con la miniatura del termo, «**Brisa** · ahora» y «Llegó el termo rosado. Desliza y míralo.».
   - Ya no lleva el «Desliza y mira» dentro de la pantalla.
-- **Botón «Desliza y mira»**, centrado, a 34 px del borde de abajo y por encima del teléfono:
-  - una píldora de 52 px con fondo `rgba(16,54,42,0.55)` y desenfoque;
-  - dentro, a la izquierda, un círculo mandarina `#ff834f` de 44 px con una flecha hacia arriba en `#10362a`, y a la derecha el texto en Fredoka 600 de 18 px, crema.
-  - Al tocarlo hace lo mismo que deslizar (empieza el desbloqueo). Mientras se espera, la flecha da un saltito suave hacia arriba, salvo con movimiento reducido.
+- **Indicación «Desliza y mira»**, centrada, a unos 30 px del borde de abajo y por encima del teléfono. Va **en vertical**: arriba, un círculo mandarina `#ff834f` de 48 px con una flecha hacia arriba en `#10362a`; debajo, el texto en Fredoka 600 de 18 px, crema y con sombra suave.
+  - **Sin píldora ni fondo detrás.** Lewis lo vio como un deslizador horizontal tipo «slide to unlock», y tiene que leerse como «desliza hacia arriba».
+  - Al tocar el círculo hace lo mismo que deslizar (empieza el desbloqueo). Mientras se espera, el círculo y la flecha dan un saltito suave hacia arriba, salvo con movimiento reducido.
 - El desbloqueo con el dedo, el icono que viaja a la esquina y el resto de la ronda 8 no cambian.
 
 ## Cierre
