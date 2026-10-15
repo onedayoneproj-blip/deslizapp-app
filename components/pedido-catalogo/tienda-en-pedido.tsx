@@ -216,7 +216,7 @@ function enSafariDeIphone(): boolean {
 }
 
 /** EresLaTienda (tablero): hoja compacta para entrar con Google y volver a este mismo pedido. */
-function EresLaTienda({
+export function EresLaTienda({
   codigo,
   demo,
   aviso,

@@ -1,11 +1,15 @@
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { CABECERA_RUTA } from "@/lib/inicio/ruta";
 import { AvisoRed } from "@/components/panel/aviso-red";
 import { Encabezado } from "@/components/panel/encabezado";
 import { NavInferior } from "@/components/panel/nav-inferior";
 import { PantallaCarga } from "@/components/panel/pantalla-carga";
 import { PantallaEntrada } from "@/components/panel/pantalla-entrada";
 import { PanelUIProvider } from "@/components/panel/ui";
+import { InicioPublico } from "@/components/landing/inicio-publico";
+import { PaginaPrincipal } from "@/components/inicio-publico/pagina-principal";
+import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { RecuperarVerComo } from "@/components/admin/recuperar-ver-como";
 import { COOKIE_RECUPERAR_VER_COMO, COOKIE_TIENDA_VER_COMO, COOKIE_VER_COMO } from "@/lib/admin/ver-como";
 import type { SesionVerComo } from "@/lib/admin/tipos";
@@ -25,10 +29,10 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
   const id = jar.get(COOKIE_VER_COMO)?.value;
   const tiendaId = jar.get(COOKIE_TIENDA_VER_COMO)?.value;
   if (recuperacion) return <RecuperarVerComo sesionId={recuperacion} tiendaId={tiendaId} />;
-  if (!HAY_SUPABASE) return <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}><DashboardUI>{children}</DashboardUI></DataProvider>;
+  if (!HAY_SUPABASE) return <SinSesion>{children}</SinSesion>;
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
-  if (!claims?.claims?.sub) return <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}><DashboardUI>{children}</DashboardUI></DataProvider>;
+  if (!claims?.claims?.sub) return <SinSesion>{children}</SinSesion>;
   const { data: esAdmin, error: errorAdmin } = await supabase.rpc("soy_admin");
   if (errorAdmin) return <RecuperarVerComo sesionId={id} tiendaId={tiendaId} />;
   if (esAdmin === true) {
@@ -42,6 +46,20 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
   }
   if (id) return <RecuperarVerComo sesionId={id} tiendaId={tiendaId} />;
   return <DataProvider cargando={<PantallaCarga />} entrada={<PantallaEntrada />}><DashboardUI>{children}</DashboardUI></DataProvider>;
+}
+
+/**
+ * Sin sesión en el servidor: en `/` se ve la página principal (pintada aquí, con las fotos de la tienda Deslizapp) y en el resto
+ * la entrada de siempre. Si el navegador tiene la demo o una sesión, el DataProvider abre el panel igual que antes
+ * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
+ */
+async function SinSesion({ children }: { children: ReactNode }) {
+  // Solo `/` lleva la página principal: en el resto (/entrar, /pedidos…) no se leen sus fotos ni se manda su árbol. Si se llega a
+  // `/` navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide al servidor.
+  const enRaiz = (await headers()).get(CABECERA_RUTA) === "/";
+  const principal = enRaiz ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
+  const publico = <InicioPublico principal={principal} />;
+  return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }
 
 function DashboardUI({ children }: { children: ReactNode }) {

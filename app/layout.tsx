@@ -43,8 +43,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`}>
+    // suppressHydrationWarning: <html> se marca antes de pintar (data-landing-js en la landing, components/landing/landing.tsx; data-dz-demo en la página principal, components/inicio-publico).
+    <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
+        {/* Los enlaces viejos a un paso de la landing, que antes vivía en `/` (`/#paso-…`, `/#cierre`, `/#demo`), llegan a /conoce.
+            Antes de pintar y para todos, con sesión o sin ella (el hash no llega al servidor). Aquí, en el layout raíz, que no se
+            vuelve a montar al navegar. */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){if(location.pathname==="/"&&/^#(paso-|cierre$|demo$)/.test(location.hash))location.replace("/conoce"+location.hash)})();` }} />
         {/* Guarda `beforeinstallprompt` y `appinstalled` desde el primer momento; components/pwa/instalar-pwa.tsx los lee. */}
         <script dangerouslySetInnerHTML={{ __html: "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});window.addEventListener('appinstalled',function(){window.__bip=null;window.__apinst=true;});" }} />
       </head>
