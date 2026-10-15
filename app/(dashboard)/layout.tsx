@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { CABECERA_RUTA } from "@/lib/inicio/ruta";
 import { AvisoRed } from "@/components/panel/aviso-red";
 import { Encabezado } from "@/components/panel/encabezado";
 import { NavInferior } from "@/components/panel/nav-inferior";
@@ -7,7 +8,8 @@ import { PantallaCarga } from "@/components/panel/pantalla-carga";
 import { PantallaEntrada } from "@/components/panel/pantalla-entrada";
 import { PanelUIProvider } from "@/components/panel/ui";
 import { InicioPublico } from "@/components/landing/inicio-publico";
-import { Landing } from "@/components/landing/landing";
+import { PaginaPrincipal } from "@/components/inicio-publico/pagina-principal";
+import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { RecuperarVerComo } from "@/components/admin/recuperar-ver-como";
 import { COOKIE_RECUPERAR_VER_COMO, COOKIE_TIENDA_VER_COMO, COOKIE_VER_COMO } from "@/lib/admin/ver-como";
 import type { SesionVerComo } from "@/lib/admin/tipos";
@@ -47,11 +49,16 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
 }
 
 /**
- * Sin sesión en el servidor: en `/` se ve la landing (pintada aquí, se entiende sin JavaScript) y en el resto la entrada de
- * siempre. Si el navegador tiene la demo o una sesión, el DataProvider abre el panel igual que antes (components/landing/inicio-publico.tsx).
+ * Sin sesión en el servidor: en `/` se ve la página principal (pintada aquí, con las fotos de la tienda Deslizapp) y en el resto
+ * la entrada de siempre. Si el navegador tiene la demo o una sesión, el DataProvider abre el panel igual que antes
+ * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
  */
-function SinSesion({ children }: { children: ReactNode }) {
-  const publico = <InicioPublico landing={<Landing />} />;
+async function SinSesion({ children }: { children: ReactNode }) {
+  // Solo `/` lleva la página principal: en el resto (/entrar, /pedidos…) no se leen sus fotos ni se manda su árbol. Si se llega a
+  // `/` navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide al servidor.
+  const enRaiz = (await headers()).get(CABECERA_RUTA) === "/";
+  const principal = enRaiz ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
+  const publico = <InicioPublico principal={principal} />;
   return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }
 

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
 const demo = await import("../lib/landing/pedido-demo.ts");
-const { PASOS, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, indicePaso, primerPasoDe } = await import("../lib/landing/pasos.ts");
+const { PASOS, MAX_ICONOS_BURBUJA, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, indicePaso, primerPasoDe } = await import("../lib/landing/pasos.ts");
 const dbDemo = await import("../lib/landing/db-demo.ts");
 const enlaces = await import("../lib/landing/enlaces.ts");
 const { codigoPedidoValido } = await import("../lib/tienda/imagen-pedido.ts");
@@ -54,6 +54,20 @@ test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulo
   assert.deepEqual(PASOS.filter((p) => p.dedo === "viaje").map((p) => [p.id, p.viaje.desde[0], p.viaje.hasta[0]]), [["cambio", "compradora", "tienda"]]);
 });
 
+test("los iconos de las burbujas: cada palabra marcada sale en su texto, y como mucho dos por burbuja", () => {
+  const permitidos = new Set(["clientes", "bolsa", "pedidos", "catalogo", "whatsapp", "corazon", "enlace", "camion", "moneda", "etiqueta"]);
+  for (const p of PASOS) {
+    const iconos = Object.entries(p.burbuja?.iconos ?? {});
+    assert.ok(iconos.length <= MAX_ICONOS_BURBUJA, `${p.id}: ${iconos.length} iconos`);
+    const texto = [p.burbuja?.texto, p.burbuja?.remate].filter(Boolean).join(" ");
+    for (const [palabra, icono] of iconos) {
+      assert.ok(texto.includes(palabra), `${p.id}: «${palabra}» no está en «${texto}»`);
+      assert.ok(permitidos.has(icono), `${p.id}: icono ${icono}`);
+    }
+  }
+  assert.ok(PASOS.some((p) => Object.keys(p.burbuja?.iconos ?? {}).length > 0));
+});
+
 test("la bolsa cuenta con los pasos y retrocede igual", () => {
   assert.equal(estadoPaso(0).bolsa, 0);
   assert.equal(estadoPaso(indicePaso("pasa")).bolsa, 0, "la gorra pasa sin like");
@@ -82,7 +96,7 @@ test("la base de la demo: Tu Tienda con sus 3 productos y la solicitud del pedid
 
 test("los CTA van a destinos reales", () => {
   assert.equal(enlaces.ENLACE_CATALOGO_EJEMPLO, "/tienda/tienda-de-ensayo");
-  assert.ok(enlaces.ENLACE_QUIERO_VENDER.startsWith("https://wa.me/18297898061?text="));
-  assert.equal(decodeURIComponent(enlaces.ENLACE_QUIERO_VENDER.split("text=")[1]), enlaces.TEXTO_QUIERO_VENDER);
+  assert.equal(enlaces.ENLACE_QUIERO_VENDER, "https://instagram.com/deslizapp");
+  assert.equal(enlaces.RUTA_CONOCE, "/conoce");
   assert.equal(enlaces.RUTA_ENTRAR, "/entrar");
 });

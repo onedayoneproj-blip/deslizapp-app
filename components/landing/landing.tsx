@@ -2,23 +2,23 @@
 import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
-import { PASOS, type Paso } from "@/lib/landing/pasos";
+import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
-import { KEY_MODO } from "@/lib/data/modo";
 import { Icono } from "../tienda/iconos";
+import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
 import { DemoPasos } from "./controlador";
 import "./landing.css";
 
-// Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos), y quien ya eligió «Ver demo»
-// no ve la landing mientras su panel de prueba abre (lib/data/sesion.ts lo decide en el navegador).
-const ANTES_DE_PINTAR = `(function(){var r=document.documentElement;r.setAttribute("data-landing-js","");try{if(localStorage.getItem(${JSON.stringify(KEY_MODO)})==="demo")r.setAttribute("data-dz-demo","")}catch(e){}})();`;
+// Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos). La landing vive en /conoce y
+// se ve siempre, con sesión, sin ella o en la demo.
+const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
 
 // El video de la portada con sus atributos literales en el HTML del servidor: React no escribe `muted`, y sin él Safari en iOS no
 // lo reproduce solo (ajustes-lewis-7.md §2).
 const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline loop preload="metadata" poster="/landing/portada.webp" tabindex="-1" disablepictureinpicture><source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"'><source src="/landing/portada.mp4" type="video/mp4"></video>`;
 
-/** La landing de deslizapp.com para quien no tiene sesión (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
+/** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {
   return (
     <div className="landing" id="arriba">
@@ -65,8 +65,10 @@ export function Landing() {
 
           {/* El icono de la app: sube en la portada y, al desbloquear, viaja a la esquina de arriba a la izquierda; desde ahí lleva
               de vuelta a la portada (ajustes-lewis-8.md §7). */}
+          {/* Rosado con quien compra (la portada y compras) y verde con la tienda: se funden al cambiar de persona (ajustes-lewis-12.md §1). */}
           <a href="#paso-intro" className="lt-icono" aria-label="Volver al principio" data-icono>
-            <img src="/icons/apple-touch-icon.png" alt="" width={180} height={180} />
+            <img src="/landing/icono-rosa.webp" alt="" width={180} height={180} className="lt-icono-rosa" />
+            <img src="/landing/icono-verde.webp" alt="" width={180} height={180} className="lt-icono-verde" />
           </a>
 
           <div className="lt-zona">
@@ -146,7 +148,7 @@ export function Landing() {
         {/* El cierre (ajustes-lewis-10.md): fondo Bosque, las tres fotos en abanico con el ♥ y «Despachado», el lema y la hoja crema. */}
         <section id="cierre" className="lt-cierre" aria-labelledby="cierre-titulo">
           <div className="lt-cierre-arriba">
-            <img src="/icons/apple-touch-icon.png" alt="Deslizapp" width={40} height={40} className="lt-cierre-icono" />
+            <img src="/landing/icono-verde.webp" alt="Deslizapp" width={40} height={40} className="lt-cierre-icono" />
             <a href="#arriba" className="lt-cierre-otra tocable" data-cta="otra-vez">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" />
@@ -181,9 +183,7 @@ export function Landing() {
           </h2>
           <div className="lt-cierre-hoja">
             <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" data-cta="vender" className="lt-cierre-vender tocable">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z" />
-              </svg>
+              <IconoInstagram tamano={22} strokeWidth={2.2} />
               Quiero vender
             </a>
             <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
@@ -318,11 +318,42 @@ function Hilo() {
   );
 }
 
-/** El texto con sus palabras clave en color de marca (`resalta` en lib/landing/pasos.ts). */
-function conResaltes(texto: string, claves: string[]): ReactNode[] {
-  if (!claves.length) return [texto];
-  const patron = new RegExp(`(${claves.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`);
-  return texto.split(patron).map((trozo, k) => (claves.includes(trozo) ? <b key={k} className="lt-resalte">{trozo}</b> : trozo));
+const ICONOS_BURBUJA: Record<IconoBurbuja, (p: { tamano?: number; strokeWidth?: number }) => ReactNode> = {
+  clientes: IconoClientes,
+  bolsa: IconoBolsa,
+  pedidos: IconoPedidos,
+  catalogo: IconoCatalogo,
+  whatsapp: IconoWhatsApp,
+  corazon: IconoCorazon,
+  enlace: IconoEnlace,
+  camion: IconoCamion,
+  moneda: IconoMoneda,
+  etiqueta: IconoEtiqueta,
+};
+
+/**
+ * El texto con sus palabras clave en color de marca (`resalta` en lib/landing/pasos.ts) y, delante de las que lo llevan, el icono
+ * de la app que las nombra (`iconos`), en el color de los resaltes y pegado a la palabra. Los iconos son decoración (aria-hidden).
+ */
+function conResaltes(texto: string, claves: string[], iconos: Record<string, IconoBurbuja> = {}): ReactNode[] {
+  const todas = [...new Set([...claves, ...Object.keys(iconos)])].sort((a, b) => b.length - a.length);
+  if (!todas.length) return [texto];
+  const patron = new RegExp(`(${todas.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`);
+  return texto.split(patron).map((trozo, k) => {
+    if (!todas.includes(trozo)) return trozo;
+    const palabra = claves.includes(trozo) ? <b className="lt-resalte">{trozo}</b> : trozo;
+    const icono = iconos[trozo];
+    if (!icono) return <Fragment key={k}>{palabra}</Fragment>;
+    const Dibujo = ICONOS_BURBUJA[icono];
+    return (
+      <span key={k} className="lt-con-icono">
+        <span className="lt-icono-burbuja" data-icono-burbuja={icono} aria-hidden="true">
+          <Dibujo strokeWidth={2.2} />
+        </span>
+        {palabra}
+      </span>
+    );
+  });
 }
 
 /**
@@ -334,7 +365,7 @@ function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja
   return (
     <div className="lt-burbuja" data-burbuja={indice} data-estado="futura" data-lado={lado}>
       <p className="lt-burbuja-texto">
-        {conResaltes(texto, burbuja.resalta ?? [])}
+        {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
         <span className="lt-burbuja-hueco" aria-hidden="true" />
       </p>
       <span className="lt-burbuja-hora" aria-hidden="true">

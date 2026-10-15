@@ -9,7 +9,7 @@ const { indicePaso, PASOS } = await import("../lib/landing/pasos.ts");
 const base = process.argv[2] ?? "http://localhost:3000";
 const nav = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 const pagina = await nav.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-await pagina.goto(base + "/", { waitUntil: "networkidle" });
+await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
 await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
 await pagina.waitForTimeout(1500);
 // Paso a paso hasta «Uno más» (el ♥ en la bolsa con su «2»).
