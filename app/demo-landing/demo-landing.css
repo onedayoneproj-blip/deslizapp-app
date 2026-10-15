@@ -11,8 +11,17 @@ body {
 .catalogo-publico {
   --hdrT: 58px;
 }
+/* Los avisos de la app (components/toast.tsx) usan la zona segura, que en un iframe es 0: bajan debajo de la isla. */
+[data-avisos] {
+  top: 58px !important;
+}
 .catalogo-publico .pvbars {
   padding-top: 54px;
+}
+/* El velo de las hojas reales, más claro en los teléfonos de la demo: con el de la app (Bosque al 50 %), la franja de arriba de
+   una hoja se confundía con el fondo verde de la landing y parecía que la pantalla no llegaba al marco (ajustes-lewis-8.md §6). */
+html:root {
+  --velo: rgba(16, 54, 42, 0.22);
 }
 .dz-pantalla {
   position: fixed;
@@ -31,6 +40,7 @@ body {
 .dz-bloqueo {
   background:
     radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.45), transparent 60%),
+    radial-gradient(90% 55% at 85% 6%, rgba(245, 201, 214, 0.4), transparent 60%),
     radial-gradient(90% 60% at 90% 90%, rgba(245, 201, 214, 0.5), transparent 60%),
     #174b3a;
 }

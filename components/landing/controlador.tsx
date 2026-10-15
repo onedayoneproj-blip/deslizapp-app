@@ -53,12 +53,13 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
      * Las burbujas como un chat (ajustes-lewis-4.md): la del paso abajo; las anteriores, encima, subidas lo que ocupan las de
      * abajo (--sube). La que ya no cabe en la columna se va; las siguientes esperan pequeñas abajo a la derecha.
      */
-    // El video de la portada (ajustes-lewis-7.md §2): sin sonido y solo mientras se ve la portada; con movimiento reducido o ahorro
-    // de datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes de play() (el atributo `muted` ya viene
-    // en el HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador no dejó, en el primer gesto.
+    // El video de la portada (ajustes-lewis-7.md §2 y -8.md §3): sin sonido y en bucle sin parar nunca (solo se pausa con la pestaña
+    // oculta); con movimiento reducido o ahorro de datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes
+    // de play() (el atributo `muted` ya viene en el HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador
+    // no dejó, en el primer gesto.
     const video = e.querySelector<HTMLVideoElement>("[data-portada]");
     const ahorroDeDatos = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
-    const puedeCorrer = () => PASOS[activo]?.id === "intro" && !reducido.matches && !ahorroDeDatos();
+    const puedeCorrer = () => !document.hidden && !reducido.matches && !ahorroDeDatos();
     const reproducir = () => {
       if (!video || !puedeCorrer()) return;
       video.muted = true;
@@ -72,6 +73,44 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     };
     const gestos = ["pointerdown", "touchstart", "scroll"] as const;
     const alPrimerGesto = () => reproducir();
+    document.addEventListener("visibilitychange", portada);
+
+    // La barra de Safari y el rebote del scroll con el color del capítulo (ajustes-lewis-8.md §8): theme-color y el fondo de html y
+    // body, rosa en compras, verde en tienda y el del cierre al llegar a él. Al salir de la landing, se devuelve lo que había.
+    const tema = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const temaAntes = tema?.content ?? null;
+    const fondosAntes = [raiz.style.background, document.body.style.background];
+    const cierre = document.getElementById("cierre");
+    let enCierre = false;
+    const pintarFondo = () => {
+      const lado = PASOS[activo]?.lado ?? "compras";
+      const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(lado === "tienda" ? "--marca-bosque" : "--marca-rosa-fija").trim();
+      if (!color || color === "rgba(0, 0, 0, 0)") return;
+      if (tema) tema.content = color;
+      raiz.style.background = color;
+      document.body.style.background = color;
+    };
+    const obsCierre = new IntersectionObserver(([en]) => {
+      enCierre = Boolean(en?.isIntersecting);
+      pintarFondo();
+    }, { threshold: 0.5 });
+    if (cierre) obsCierre.observe(cierre);
+
+    // El desbloqueo sigue al dedo (ajustes-lewis-8.md §5): --u es lo que va del scroll entre la portada y el primer paso, de 0 a 1.
+    // El scroll-snap de la página hace el resto: si se suelta antes de la mitad vuelve con su resorte, y si no, se completa.
+    let rafU = 0;
+    const medirU = () => {
+      rafU = 0;
+      const a = secciones[0]?.offsetTop ?? 0;
+      const b = secciones[1]?.offsetTop ?? a + innerHeight;
+      const u = Math.min(1, Math.max(0, (scrollY - a) / Math.max(1, b - a)));
+      e.style.setProperty("--u", u.toFixed(4));
+      e.dataset.arrastre = u > 0.001 && u < 0.999 ? "si" : "no";
+    };
+    const alDeslizar = () => {
+      if (!rafU) rafU = requestAnimationFrame(medirU);
+    };
+    window.addEventListener("scroll", alDeslizar, { passive: true });
     video?.addEventListener("loadeddata", reproducir);
     video?.addEventListener("canplay", reproducir);
     gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true, once: true }));
@@ -107,8 +146,9 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     };
     const columna = e.querySelector<HTMLElement>(".lt-burbujas");
     const apilar = (i: number) => {
-      // (la columna menos los 4 px con que la burbuja se separa de su borde de abajo: landing.css .lt-burbuja)
-      const alto = (columna?.clientHeight ?? 0) - 4;
+      // (la columna menos los 4 px con que la burbuja se separa de su borde de abajo y lo que el teléfono se monta sobre ella:
+      // landing.css .lt-burbuja y --monta; ninguna letra queda bajo el teléfono)
+      const alto = (columna?.clientHeight ?? 0) - 4 - (parseFloat(getComputedStyle(e).getPropertyValue("--monta")) || 0);
       let y = 0;
       for (const b of burbujas.slice(i + 1)) {
         if (!b) continue;
@@ -229,7 +269,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       });
       marcarIndice(i, animar);
       apilar(i);
-      portada();
+      pintarFondo();
       if (i >= 4) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
@@ -288,6 +328,8 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       { threshold: 0.55 },
     );
     secciones.forEach((x) => obs.observe(x));
+    medirU();
+    portada();
     window.addEventListener("resize", esconder);
     return () => {
       obs.disconnect();
@@ -297,6 +339,12 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       video?.removeEventListener("loadeddata", reproducir);
       video?.removeEventListener("canplay", reproducir);
       gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));
+      document.removeEventListener("visibilitychange", portada);
+      window.removeEventListener("scroll", alDeslizar);
+      cancelAnimationFrame(rafU);
+      obsCierre.disconnect();
+      if (tema && temaAntes !== null) tema.content = temaAntes;
+      [raiz.style.background, document.body.style.background] = fondosAntes;
       esconder();
       window.removeEventListener("message", alMensaje);
       window.removeEventListener("message", alDedo);

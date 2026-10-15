@@ -27,6 +27,23 @@ const ok = (cond, msg) => {
   }
 };
 
+/** Si la página de un teléfono llena la pantalla del mockup: los píxeles de arriba (junto a la isla y en las esquinas) no son del
+ *  color de fondo de la landing. */
+const sharp = require("sharp");
+const hex = (c) => (c.startsWith("#") ? [1, 3, 5].map((k) => parseInt(c.slice(k, k + 2), 16)) : c.match(/\d+/g).slice(0, 3).map(Number));
+async function cubrePantalla(pagina, telefono, fondo) {
+  const r = await pagina.evaluate((t) => { const h = document.querySelector(`.lt-tel-${t} .lt-hueco`).getBoundingClientRect(); return { x: h.left, y: h.top, w: h.width, h: h.height }; }, telefono);
+  const puntos = [[0.22, 8], [0.78, 8], [0.14, r.h * 0.035], [0.86, r.h * 0.035]].map(([fx, dy]) => [Math.round(r.x + fx * r.w), Math.round(r.y + dy)]);
+  const png = await pagina.screenshot();
+  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+  const ref = hex(fondo);
+  const malos = puntos.filter(([x, y]) => {
+    const k = (y * info.width + x) * info.channels;
+    return Math.hypot(data[k] - ref[0], data[k + 1] - ref[1], data[k + 2] - ref[2]) < 40;
+  });
+  return { ok: malos.length === 0, detalle: malos.map((p) => p.join(",")).join(" ") };
+}
+
 const irAlPaso = (pagina, i) => pagina.evaluate((i) => document.querySelector(`[data-paso-seccion="${i}"]`).scrollIntoView({ behavior: "instant" }), i);
 const datos = (pagina) => pagina.evaluate(() => ({ ...document.querySelector(".lt-escenario").dataset }));
 
@@ -72,7 +89,19 @@ const medir = (pagina, i) =>
         llena: Math.abs(pagina.width - hueco.width) < 1.5 && Math.abs(pagina.height - hueco.height) < 1.5,
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
         introVisible: Number(getComputedStyle(intro).opacity) > 0.99,
-        icono: Number(getComputedStyle(e.querySelector(".lt-portada-icono")).opacity) > 0.99,
+        icono: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.99,
+        iconoCaja: (() => { const r = e.querySelector(".lt-icono").getBoundingClientRect(); return { left: r.left, top: r.top, w: r.width, bottom: r.bottom }; })(),
+        lema: (() => { const l = e.querySelector(".lt-lema"); return { visible: Number(getComputedStyle(l).opacity) > 0.99, texto: l.textContent, top: l.getBoundingClientRect().top }; })(),
+        rayasFinas: [...e.querySelectorAll("[data-raya-paso], [data-raya-fina]")].every((x) => x.getBoundingClientRect().height <= 2.01),
+        fredoka: !burbuja || /fredoka/i.test(getComputedStyle(burbuja).fontFamily),
+        resaltes: burbuja ? burbuja.querySelectorAll(".lt-resalte").length : 0,
+        telefonoEncima: Number(getComputedStyle(e.querySelector(".lt-zona")).zIndex) > Number(getComputedStyle(e.querySelector(".lt-burbujas")).zIndex),
+        // Lo que se monta bajo el teléfono es el borde de la burbuja, nunca sus letras.
+        letrasBajoTelefono: Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => { const t = x.querySelector(".lt-burbuja-texto").getBoundingClientRect(); return t.top < tel.bottom - 1 && t.right > tel.left && t.left < tel.right; }),
+        tema: document.querySelector('meta[name="theme-color"]')?.content,
+        rosa: getComputedStyle(e).getPropertyValue("--marca-rosa-fija").trim(),
+        bosque: getComputedStyle(e).getPropertyValue("--marca-bosque").trim(),
+        video: (() => { const v = document.querySelector("[data-portada]"); return { corre: !v.paused, t: v.currentTime }; })(),
         bloqueo: Number(getComputedStyle(e.querySelector("[data-bloqueo]")).opacity),
         cortado: tel.bottom > innerHeight + 4,
         zoom: new DOMMatrix(getComputedStyle(telefono.querySelector("iframe")).transform).a,
@@ -117,6 +146,24 @@ for (const [ancho, alto] of [
   // El video de la portada arranca solo, sin tocar nada (ajustes-lewis-7.md §2).
   await pagina.waitForTimeout(1500);
   ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "el video de la portada se reproduce solo");
+  // El desbloqueo sigue al dedo: a mitad de gesto queda a mitad; al soltar antes de la mitad vuelve y pasada la mitad se completa
+  // (el scroll-snap hace de resorte). Para fijar la mitad, el snap se apaga un momento.
+  {
+    const mitad = async (f) => {
+      await pagina.evaluate((f) => { document.documentElement.style.scrollSnapType = "none"; const h = document.querySelector('[data-paso-seccion="1"]').offsetTop; window.scrollTo({ top: h * f, behavior: "instant" }); }, f);
+      await pagina.waitForTimeout(250);
+      const a = await pagina.evaluate(() => ({ u: Number(getComputedStyle(document.querySelector(".lt-escenario")).getPropertyValue("--u")), bloqueo: Number(getComputedStyle(document.querySelector("[data-bloqueo]")).opacity) }));
+      await pagina.evaluate(() => { document.documentElement.style.scrollSnapType = ""; window.scrollBy(0, 0); });
+      await pagina.waitForTimeout(1400);
+      return { a, d: await datos(pagina), y: await pagina.evaluate(() => scrollY) };
+    };
+    const corto = await mitad(0.35);
+    ok(Math.abs(corto.a.u - 0.35) < 0.03 && corto.a.bloqueo > 0.2 && corto.a.bloqueo < 0.8 && corto.y < 5 && corto.d.paso === "intro", `a mitad de gesto (u ${corto.a.u.toFixed(2)}) el desbloqueo va a mitad, y al soltar antes de la mitad vuelve`);
+    const largo = await mitad(0.65);
+    ok(Math.abs(largo.a.u - 0.65) < 0.03 && largo.d.paso === "hola", `pasada la mitad (u ${largo.a.u.toFixed(2)}), al soltar se completa`);
+    await irAlPaso(pagina, 0);
+    await pagina.waitForTimeout(1500);
+  }
 
   // Hacia delante, paso a paso.
   for (let i = 0; i < PASOS.length; i++) {
@@ -152,11 +199,16 @@ for (const [ancho, alto] of [
       `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
-    ok(!m.indiceTapa && m.indiceIzquierda && !m.burbujasCruzan, `${paso.id}: el índice (a la izquierda) y las burbujas no se cruzan con el mockup`);
+    ok(!m.indiceTapa && m.indiceIzquierda && !m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el índice (a la izquierda) no se cruza con el mockup; el teléfono va por encima de las burbujas y no tapa sus letras`);
+    ok(m.rayasFinas, `${paso.id}: las rayas del indicador son de 2 px o menos`);
+    if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
+    const temaEsperado = paso.lado === "tienda" ? m.bosque : m.rosa;
+    ok(m.tema && m.tema.toLowerCase() === temaEsperado.toLowerCase(), `${paso.id}: theme-color del capítulo (${m.tema})`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
     if (paso.id === "intro") {
       ok(m.introVisible && m.icono && m.telefonoVisible && m.bloqueo > 0.99 && m.cortado && m.zoom < 0.95, "intro: el icono y el teléfono bloqueado asomando, cortado abajo");
+      ok(m.lema.visible && /Comprar sin tanta vuelta\.\s*Vender con más orden\./.test(m.lema.texto) && m.lema.top >= m.iconoCaja.bottom, "intro: el lema bajo el icono");
       ok(!m.indiceVisible && m.burbujasVistas === 0, "intro: sin indicador ni burbujas");
       const v = await pagina.evaluate(() => {
         const video = document.querySelector("[data-portada]");
@@ -167,6 +219,13 @@ for (const [ancho, alto] of [
     } else {
       ok(m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice <= alto * 0.7, `${paso.id}: el indicador cabe (${Math.round(m.altoIndice)} px, ≤ 70 % del alto); las gruesas se tocan en 24 px y las finas no`);
       if (paso.id === "hola") ok(m.bloqueo < 0.01 && Math.abs(m.zoom - 1) < 0.01, "hola: al deslizar se desbloquea y el catálogo queda a su tamaño");
+      ok(m.iconoCaja.left < 40 && m.iconoCaja.top < 40 && m.iconoCaja.w >= 36 && m.iconoCaja.w <= 44, `${paso.id}: el icono, arriba a la izquierda (${Math.round(m.iconoCaja.w)} px)`);
+      if (paso.id === "pasa") ok(m.video.corre && m.video.t > 0, "pasa: el video sigue reproduciéndose fuera de la portada");
+      // La página del teléfono cubre la pantalla del mockup entera (ajustes-lewis-8.md §6): junto a la isla y en las esquinas de
+      // arriba, el color no es el del fondo de la landing.
+      const fondo = paso.lado === "tienda" ? m.bosque : m.rosa;
+      const cubre = await cubrePantalla(pagina, paso.telefono, fondo);
+      ok(cubre.ok, `${paso.id}: la página llena la pantalla del mockup (arriba, junto a la isla y en las esquinas)${cubre.ok ? "" : ` (${cubre.detalle})`}`);
       ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
     }
     // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.

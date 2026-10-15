@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Capturas estáticas de la versión sin JavaScript: tamaño fijo, sin optimizador. */
 import Link from "next/link";
-import { Fragment, type CSSProperties } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PASOS, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
@@ -36,11 +36,19 @@ export function Landing() {
               bloqueado. El controlador reproduce el video, salvo con movimiento reducido o ahorro de datos: entonces, el póster. */}
           <div className="lt-intro" aria-hidden="true">
             <div className="lt-portada-caja" dangerouslySetInnerHTML={{ __html: VIDEO_PORTADA }} />
-            <span className="lt-portada-icono">
-              <img src="/icons/apple-touch-icon.png" alt="" width={180} height={180} />
-              <span>Deslizapp</span>
-            </span>
+            {/* El lema de la campaña, bajo el icono (ajustes-lewis-8.md §4) */}
+            <p className="lt-lema">
+              Comprar sin tanta <b className="lt-lema-vuelta">vuelta.</b>
+              <br />
+              Vender con <b className="lt-lema-orden">más orden.</b>
+            </p>
           </div>
+
+          {/* El icono de la app: sube en la portada y, al desbloquear, viaja a la esquina de arriba a la izquierda; desde ahí lleva
+              de vuelta a la portada (ajustes-lewis-8.md §7). */}
+          <a href="#paso-intro" className="lt-icono" aria-label="Volver al principio" data-icono>
+            <img src="/icons/apple-touch-icon.png" alt="" width={180} height={180} />
+          </a>
 
           <div className="lt-zona">
             <Telefono id="compradora" src="/demo-landing/compradora" />
@@ -70,7 +78,7 @@ export function Landing() {
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
             {PASOS.map((p, i) => p.burbuja && (
-              <Burbuja key={p.id} burbuja={p.burbuja} indice={i} />
+              <Burbuja key={p.id} burbuja={p.burbuja} lado={p.lado} indice={i} />
             ))}
           </div>
         </DemoPasos>
@@ -256,21 +264,32 @@ function Hilo() {
   );
 }
 
+/** El texto con sus palabras clave en color de marca (`resalta` en lib/landing/pasos.ts). */
+function conResaltes(texto: string, claves: string[]): ReactNode[] {
+  if (!claves.length) return [texto];
+  const patron = new RegExp(`(${claves.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`);
+  return texto.split(patron).map((trozo, k) => (claves.includes(trozo) ? <b key={k} className="lt-resalte">{trozo}</b> : trozo));
+}
+
 /**
- * Una burbuja de la demo: un mensaje enviado de WhatsApp en iOS (ajustes-lewis-4.md), con el remate como segunda frase y la hora
- * con el doble check dentro, en la última línea (el hueco reserva su sitio).
+ * Una burbuja de la demo: un mensaje enviado de WhatsApp (ajustes-lewis-4.md y -8.md): verde claro, Fredoka, las palabras clave
+ * en color de marca, la hora con el doble check dentro (el hueco reserva su sitio) y la cola de una pieza con la burbuja.
  */
-function Burbuja({ burbuja, indice }: { burbuja: NonNullable<Paso["burbuja"]>; indice: number }) {
+function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number }) {
+  const texto = [burbuja.texto, burbuja.remate].filter(Boolean).join(" ");
   return (
-    <div className="lt-burbuja" data-burbuja={indice} data-estado="futura">
+    <div className="lt-burbuja" data-burbuja={indice} data-estado="futura" data-lado={lado}>
       <p className="lt-burbuja-texto">
-        {burbuja.texto}
-        {burbuja.remate && ` ${burbuja.remate}`}
+        {conResaltes(texto, burbuja.resalta ?? [])}
         <span className="lt-burbuja-hueco" aria-hidden="true" />
       </p>
       <span className="lt-burbuja-hora" aria-hidden="true">
         {HORA_DEMO} <span className="lt-burbuja-checks">✓✓</span>
       </span>
+      {/* La cola: sale de la esquina de abajo con una curva continua y se afina hacia fuera (r8-cola-burbuja-referencia.webp) */}
+      <svg className="lt-burbuja-cola" viewBox="0 0 34 22" aria-hidden="true">
+        <path d="M18 0V9C18 15 20.8 19.6 30 22C22 22.8 16.6 21.6 13.2 19.4C9.4 21.2 4.6 22 0 22V0Z" />
+      </svg>
     </div>
   );
 }
