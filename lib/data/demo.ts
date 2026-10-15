@@ -93,6 +93,8 @@ export type EstadoDemo = {
 
 let estado: EstadoDemo | null = null;
 const oyentes = new Set<() => void>();
+/** La demo de la landing (app/demo-landing): solo en memoria, nunca lee ni escribe localStorage. */
+let soloMemoria = false;
 
 function leerLocal(clave: string): string | null {
   try {
@@ -132,6 +134,7 @@ function emitir() {
 }
 
 function persistir(e: EstadoDemo) {
+  if (soloMemoria) return;
   try {
     localStorage.setItem(KEY, JSON.stringify(e.db));
     localStorage.setItem(KEY_SESION, e.tiendaActivaId);
@@ -149,6 +152,7 @@ function escribir(cambio: (db: DB) => DB) {
 
 /** Si otra pestaña cambia la demo, esta se entera. */
 function alCambiarOtraPestana(evento: StorageEvent) {
+  if (soloMemoria) return;
   if (evento.key !== null && evento.key !== KEY && evento.key !== KEY_SESION) return;
   estado = cargarInicial((estado?.version ?? 0) + 1);
   emitir();
@@ -840,7 +844,7 @@ const fuenteDemoBase: FuenteDatos = {
   /** Borra lo guardado y vuelve al seed. Se queda en la misma tienda si sigue existiendo. */
   async reiniciarDemo(): Promise<void> {
     try {
-      localStorage.removeItem(KEY);
+      if (!soloMemoria) localStorage.removeItem(KEY);
     } catch {
       // Nada que borrar.
     }
@@ -869,6 +873,16 @@ export function escribirDemoDesdeAdmin(cambio: (db: DB) => DB) {
 export function leerDemoGuardada(): DB {
   estado = cargarInicial((estado?.version ?? 0) + 1);
   return structuredClone(estado.db);
+}
+
+/**
+ * Solo para la landing (app/demo-landing, en su propio iframe): la demo pasa a vivir en memoria con esta base. Desde aquí no se
+ * lee ni se escribe localStorage, así que la demo del panel de este navegador no se toca.
+ */
+export function usarDemoEnMemoria(db: DB, tiendaActivaId: string) {
+  soloMemoria = true;
+  estado = { db, tiendaActivaId, version: (estado?.version ?? 0) + 1 };
+  emitir();
 }
 
 export function cambiarTiendaActivaDemo(tiendaId: string) {

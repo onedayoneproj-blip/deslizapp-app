@@ -31,12 +31,18 @@ export function PedidoComprador({
   inicial,
   inicialCatalogo = null,
   errorInicial = false,
+  ilustracion = false,
 }: {
   codigo: string;
   demo: boolean;
   inicial: VistaSolicitud | null;
   inicialCatalogo?: CatalogoPublico | null;
   errorInicial?: boolean;
+  /**
+   * La landing (app/demo-landing) la muestra con datos de ejemplo: no lee nada (ni al abrir ni cada 45 s), no comprueba la
+   * sesión de la tienda ni escucha el teclado. Se ve igual.
+   */
+  ilustracion?: boolean;
 }) {
   const [s, setS] = useState(inicial);
   const [catalogo, setCatalogo] = useState(inicialCatalogo);
@@ -51,6 +57,7 @@ export function PedidoComprador({
   const held = useRef(false);
   const [catalogoAnterior, setCatalogoAnterior] = useState<string | null>(null);
   useEffect(() => {
+    if (ilustracion) return;
     let valido = true;
     if (demo || intentoLectura > 0)
       fuentePublica(demo)
@@ -77,12 +84,12 @@ export function PedidoComprador({
       valido = false;
       if (hold.current) clearTimeout(hold.current);
     };
-  }, [codigo, demo, intentoLectura]);
+  }, [codigo, demo, intentoLectura, ilustracion]);
   // El estado cambia cuando la tienda lo registra o lo despacha: se vuelve a leer al volver a la pestaña, al recuperar el foco
   // y, mientras se ve la página, cada 45 s (sin Realtime ni anillo). Lo ya final (cancelado o vencido) no se sigue leyendo.
   const estadoActual = s?.estado;
   useEffect(() => {
-    if (estadoActual && FINALES.has(estadoActual)) return;
+    if (ilustracion || (estadoActual && FINALES.has(estadoActual))) return;
     let vivo = true;
     let ultima = Date.now();
     const releer = () => {
@@ -104,16 +111,16 @@ export function PedidoComprador({
       document.removeEventListener("visibilitychange", releer);
       window.removeEventListener("focus", releer);
     };
-  }, [codigo, demo, estadoActual]);
+  }, [codigo, demo, estadoActual, ilustracion]);
 
   // ¿Es la tienda? Solo con sesión (o en la demo, si lo pide): la vista de la tienda se monta encima, sin frenar al comprador.
   const [tienda, setTienda] = useState<"no" | "comprobar" | "entrar">("no");
   useEffect(() => {
-    if (demo) return;
+    if (demo || ilustracion) return;
     const params = new URLSearchParams(location.search);
     if (params.get("registrar") === "1" || params.has("error_login")) queueMicrotask(() => setTienda("entrar"));
     else if (hayCookieDeSesion()) queueMicrotask(() => setTienda("comprobar"));
-  }, [demo]);
+  }, [demo, ilustracion]);
 
   const enlace = s
     ? `/tienda/${s.tienda.slug}${demo ? "?demo" : ""}`
@@ -123,6 +130,7 @@ export function PedidoComprador({
     else history.back();
   };
   useEffect(() => {
+    if (ilustracion) return;
     const tecla = (e: KeyboardEvent) => {
       // Con la hoja de la tienda abierta, las teclas son de la hoja.
       if (document.querySelector('[role="dialog"]')) return;
@@ -140,7 +148,7 @@ export function PedidoComprador({
     };
     document.addEventListener("keydown", tecla);
     return () => document.removeEventListener("keydown", tecla);
-  }, [enlace, s]);
+  }, [enlace, s, ilustracion]);
   const paso = (d: number) =>
     setI((i) => (i + d + (s?.items.length ?? 1)) % (s?.items.length ?? 1));
   const gesto = (d: number) => ({

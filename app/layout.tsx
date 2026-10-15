@@ -43,7 +43,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`}>
+    // suppressHydrationWarning: la landing marca <html> antes de pintar (data-landing-js, data-dz-demo; components/landing/landing.tsx).
+    <html lang="es" className={`${fredoka.variable} ${figtree.variable} ${caveat.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         {/* Guarda `beforeinstallprompt` y `appinstalled` desde el primer momento; components/pwa/instalar-pwa.tsx los lee. */}
         <script dangerouslySetInnerHTML={{ __html: "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});window.addEventListener('appinstalled',function(){window.__bip=null;window.__apinst=true;});" }} />

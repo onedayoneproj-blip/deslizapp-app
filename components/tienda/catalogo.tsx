@@ -47,6 +47,7 @@ import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tie
 import { Coach, Historias, ArteFinal } from "./historias";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
 import { MarcaDeslizapp } from "./artes-deslizapp";
+import { BarraPedido, BotonPedido } from "./bolsa";
 const abrirWhatsApp = (telefono: string, texto: string) => {
   window.location.assign(
     "https://wa.me/" +
@@ -969,23 +970,7 @@ export function Catalogo({
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={d<0?"M6 15l6-6 6 6":"M6 9l6 6 6-6"}/></svg>
         </button>)}
       </div>}
-      <div
-        className={
-          "acts" + (actual === "fin" || actual === "deslizapp" ? " off" : "")
-        }
-        id="bagDock"
-      >
-        <button
-          className="act send"
-          data-order
-          aria-label="Ver mi pedido"
-          onClick={() => abrir("pedido")}
-        >
-          <Icono nombre="bag" />
-          <span>Pedido</span>
-          <i className="cnt">{cart.length || ""}</i>
-        </button>
-      </div>
+      <BotonPedido cantidad={cart.length} oculto={actual === "fin" || actual === "deslizapp"} abrir={() => abrir("pedido")} />
       <section
         className="profile"
         id="profile"
@@ -1164,57 +1149,17 @@ export function Catalogo({
         </footer>
       </section>
       {bar && cart.length > 0 && (
-        <div className="cartbar in" id="cartbar">
-          {secciones?.chat !== false && (
-            <div className="chat">
-              <span className="av" aria-hidden="true" />
-              <div className="bubble">
-                <span className="who2">{t.nombreVendedora ?? t.nombre}</span>
-                <p>
-                  {(Array.isArray(mensajes?.al_agregar)
-                    ? mensajes.al_agregar[
-                        Math.min(
-                          cart.length - 1,
-                          mensajes.al_agregar.length - 1,
-                        )
-                      ]
-                    : null) ??
-                    (cart.length === 1
-                      ? "¡Ay, qué buena elección! ¿Le agregas otro? Uno pa’ ti y otro pa’ regalar 😉"
-                      : cart.length === 2
-                        ? "Tu pedido se ve precioso 💕 Dale una vueltita más, que todavía hay perfumes lindos esperándote."
-                        : "¡Mi amor, tienes un gustazo! 😍 Si viste otro que te gustó, agrégalo y me lo mandas todo en un solo mensaje.")}
-                </p>
-                <button
-                  className="bclose"
-                  aria-label="Cerrar mensaje"
-                  onClick={() => setBar(false)}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="inner">
-            <button className="sum" onClick={() => abrir("pedido")}>
-              <b>
-                {cart.length}{" "}
-                {cart.length === 1 ? (variosCatalogos ? "producto" : nombres.singular) : nombreLista} ·{" "}
-                {dinero(total)}
-              </b>
-              <small>Ver o cambiar mi pedido</small>
-            </button>
-            <button
-              className="btn primary"
-              id="barSend"
-              disabled={enviando}
-              onClick={() => void enviar()}
-            >
-              <Icono nombre="wa" />
-              Enviar
-            </button>
-          </div>
-        </div>
+        <BarraPedido
+          t={t}
+          cantidad={cart.length}
+          total={total}
+          nombre={{ singular: variosCatalogos ? "producto" : nombres.singular, lista: nombreLista }}
+          conChat={secciones?.chat !== false}
+          enviando={enviando}
+          abrir={() => abrir("pedido")}
+          enviar={() => void enviar()}
+          cerrarChat={() => setBar(false)}
+        />
       )}
       {vista === "colecciones" && (
         <DialogoCatalogo

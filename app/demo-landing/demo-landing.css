@@ -1,0 +1,91 @@
+/* Los teléfonos de la demo de la landing (app/demo-landing/*, dentro de iframes): pantallas apiladas que entran y salen.
+   No cambia catalogo.css ni el panel. Con movimiento reducido, sin transición. */
+html,
+body {
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+/* En la landing, la pantalla del iPhone llega hasta arriba (detrás de la isla) y en un iframe no hay zona segura: lo de arriba
+   del catálogo y del pedido se baja como en un iPhone de verdad. */
+.catalogo-publico {
+  --hdrT: 58px;
+}
+/* Los avisos de la app (components/toast.tsx) usan la zona segura, que en un iframe es 0: bajan debajo de la isla. */
+[data-avisos] {
+  top: 58px !important;
+}
+.catalogo-publico .pvbars {
+  padding-top: 54px;
+}
+/* El velo de las hojas reales, más claro en los teléfonos de la demo: con el de la app (Bosque al 50 %), la franja de arriba de
+   una hoja se confundía con el fondo verde de la landing y parecía que la pantalla no llegaba al marco (ajustes-lewis-8.md §6). */
+html:root {
+  --velo: rgba(16, 54, 42, 0.22);
+  /* Las hojas llegan hasta el borde de arriba de la pantalla, como en un iPhone (ajustes-lewis-8.md §6 y la captura r9): en un
+     iframe no hay zona segura, y el margen de la app (--hoja-tope) dejaba ver junto a la isla lo que hay detrás. */
+  --hoja-tope: 0px;
+}
+/* …y las hojas altas guardan el sitio de la isla con su propio color, para que su cabecera no quede debajo de ella. */
+[data-hoja-panel]:not([data-altura="auto"]) {
+  border-top: 46px solid var(--fondo);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.dz-pantalla {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  transform: translateX(104%);
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-pantalla[data-visible] {
+  transform: none;
+}
+[data-telefono="tienda"] .dz-pantalla {
+  z-index: auto;
+}
+.dz-bloqueo {
+  background:
+    radial-gradient(120% 70% at 20% 10%, rgba(255, 131, 79, 0.45), transparent 60%),
+    radial-gradient(90% 55% at 85% 6%, rgba(245, 201, 214, 0.4), transparent 60%),
+    radial-gradient(90% 60% at 90% 90%, rgba(245, 201, 214, 0.5), transparent 60%),
+    #174b3a;
+}
+.dz-aviso {
+  opacity: 0;
+  transform: translateY(-40%);
+  transition:
+    opacity 300ms ease,
+    transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-aviso[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+.dz-globo {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 260ms ease,
+    transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-globo[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+.dz-borrador-vacio {
+  color: rgba(0, 0, 0, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dz-pantalla,
+  .dz-aviso,
+  .dz-globo {
+    transition: none;
+  }
+}
+/* El indicador de `next dev` no es parte del teléfono (en producción no existe). */
+nextjs-portal {
+  display: none;
+}
