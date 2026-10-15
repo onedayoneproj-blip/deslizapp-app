@@ -11,9 +11,16 @@ Las fuentes del diseño están en `referencias/landing/diseno-r10/`: `portada.dc
 Si choca con rondas anteriores, **manda esto**.
 
 ## Portada
-- **Video a todo color.** Quita el oscurecido general (el «video al 55 %»). Solo dos degradados de lectura, Bosque `rgba(16,54,42,…)`: uno arriba de 0.55 a 0 hasta el 34 % del alto, y otro abajo de 0 a 0.7 desde el 50 %. El video no se ve gris.
+- **Video a todo color.** Quita el oscurecido general (el «video al 55 %»). Solo dos degradados de lectura, Bosque `rgba(16,54,42,…)`: uno arriba de 0.86 a 0 hasta el 56 % del alto (ver el lema), y otro abajo de 0 a 0.7 desde el 50 %. El video no se ve gris.
 - **Arriba a la derecha, «Saltar»** en píldora translúcida: fondo `rgba(255,249,238,0.14)`, texto crema, 44 px de alto y doble chevrón.
-- **Icono de la app** (84 px, radio 19 px, sombra suave) centrado hacia el 16 % del alto. Debajo, el lema en Fredoka 700 al 115 % de ancho, 31/35 px, crema con sombra suave: «Comprar sin tanta **vuelta**. / Vender con **más orden**.», con «vuelta» en `#ff834f` y «más orden» en `#f5c9d6`.
+- **Icono de la app** pequeño (52 px, radio 12 px) arriba a la izquierda, a la altura de «Saltar». Es el mismo que viaja a esa esquina durante la demo.
+- **El lema, grande y con peso**, alineado a la izquierda (referencia de estilo, no de texto: `referencia-estilo-lema.png`):
+  - encima, una línea de contexto en Figtree 800 de 12 px, mayúsculas con 2.6 px de espaciado: «DESLIZA. ENCUENTRA. ESCRIBE.»;
+  - el lema en Fredoka 700 al 125 % de ancho, **41/42 px**, con un trazo del mismo color de 1.4 px para engrosarlo (`-webkit-text-stroke` con `paint-order: stroke fill`) y sombra de 3 px de Bosque más un halo suave;
+  - en cuatro líneas: «Comprar sin tanta» (crema), «**vuelta.**» (mandarina `#ff834f`), «Vender con más» y «**orden.**» (rosa `#f5c9d6`);
+  - tres rayitas mandarina (destello) al lado de «vuelta.»;
+  - debajo, una línea descriptiva en Figtree 600 de 17/23 px, crema con sombra: «Mira cómo lo que te gusta llega a la tienda con todo en su sitio.»;
+  - **contraste:** el degradado de arriba sube a 0.86 de Bosque y baja a 0 hacia el 56 % del alto. El texto crema sobre eso supera 7:1. Compruébalo con el video en movimiento, no solo con un fotograma.
 - **El teléfono asoma por abajo** (unos 300 px de ancho, empieza hacia el 54 % del alto y queda cortado por el borde). Su pantalla de bloqueo lleva:
   - de fondo, la foto del termo desenfocada (blur unos 14 px) con un velo Bosque al 18 %;
   - fecha («martes, 14 de octubre») y hora grande («3:41»), en blanco;
