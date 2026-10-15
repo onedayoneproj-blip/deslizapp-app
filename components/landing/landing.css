@@ -208,13 +208,24 @@
     transform 520ms cubic-bezier(0.32, 1.25, 0.5, 1);
 }
 .lt-icono img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  transition: opacity 300ms ease;
   border-radius: 23%;
   box-shadow:
     0 12px 26px -10px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+/* Rosado con quien compra, verde con la tienda (la regla de marca de docs/09): se funden al cambiar de persona y, al volver, al
+   revés. Con movimiento reducido, cambia sin transición. */
+.lt-icono-verde {
+  opacity: 0;
+}
+.lt-escenario[data-lado="tienda"] .lt-icono-verde {
+  opacity: 1;
 }
 /* El área de toque: 44 px */
 .lt-icono::before {
@@ -792,6 +803,27 @@
   text-decoration-color: var(--marca-mandarina);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
+}
+/* El icono de la app delante de la palabra que nombra (ajustes-lewis-12.md §2): en línea, de 0.9 em y en el color de los resaltes,
+   sin separarse de la palabra. */
+.lt-con-icono {
+  white-space: nowrap;
+}
+.lt-icono-burbuja {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.16em;
+  vertical-align: -0.1em;
+  color: var(--atencion-texto);
+}
+.lt-icono-burbuja svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.lt-burbuja[data-lado="tienda"] .lt-icono-burbuja {
+  color: var(--marca-bosque);
 }
 /* La cola, de una pieza con la burbuja: entra 18 px en ella (cubre toda la esquina redondeada, sin muesca) y se afina hacia
    fuera, abajo a la derecha. */
