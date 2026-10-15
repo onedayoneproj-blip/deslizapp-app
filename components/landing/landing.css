@@ -166,8 +166,13 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transition: opacity 500ms ease;
   /* el de abajo (el de arriba va con el texto: .lt-portada-texto::before) */
   background: linear-gradient(180deg, rgba(16, 54, 42, 0) 56%, rgba(16, 54, 42, 0.35) 78%, rgba(16, 54, 42, 0.7) 100%);
+}
+/* La primera vuelta del video, limpia: sin el degradado de abajo hasta que entra la portada. */
+.lt-escenario[data-entrada="no"] .lt-intro::after {
+  opacity: 0;
 }
 .lt-portada-caja {
   display: contents;

@@ -181,13 +181,27 @@
 .ini-google:disabled {
   opacity: 0.8;
 }
+/* El aviso de la entrada, en una tarjeta crema encima de los botones */
 .ini-aviso {
   border-radius: 18px;
-  padding: 10px 14px;
-  background: rgba(255, 249, 238, 0.12);
+  padding: 12px 16px;
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
   font-weight: 700;
   font-size: 14.5px;
   line-height: 1.35;
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.55);
+}
+/* «Probar la app con datos de prueba»: un enlace pequeño debajo de los botones */
+.ini-demo {
+  align-self: center;
+  min-height: 32px;
+  padding: 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-menta);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .ini-botones {
   display: flex;

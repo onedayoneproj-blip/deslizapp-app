@@ -124,7 +124,7 @@ for (const [ancho, alto] of [
   await contexto.close();
 }
 
-console.log("\n«Iniciar sesión» hace lo mismo que «Entrar con Google» de /entrar");
+console.log("\n«Iniciar sesión», en / y en /entrar: el mismo flujo de Google de siempre");
 {
   const flujo = async (ruta, boton) => {
     const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
@@ -145,23 +145,55 @@ console.log("\n«Iniciar sesión» hace lo mismo que «Entrar con Google» de /e
     return { proveedor: u?.searchParams.get("provider") ?? null, vuelta: u ? new URL(u.searchParams.get("redirect_to") ?? "x:").pathname : null, aviso, modo };
   };
   const inicio = await flujo("/", "Iniciar sesión");
-  const entrar = await flujo("/entrar", "Entrar con Google");
-  ok(JSON.stringify(inicio) === JSON.stringify(entrar), `el mismo flujo (${JSON.stringify(inicio)})`);
+  const entrar = await flujo("/entrar", "Iniciar sesión");
+  ok(JSON.stringify(inicio) === JSON.stringify(entrar), `el mismo flujo en / y en /entrar (${JSON.stringify(inicio)})`);
+  // Sin Supabase, el aviso de siempre (lib/data/sesion.ts); con Supabase, a Google.
+  if (!SUPABASE_URL) ok(inicio.aviso === "El acceso con Google todavía no está activado. Mientras tanto, puedes ver la demo." && inicio.modo === null, "sin Supabase, el aviso de siempre, en la tarjeta");
   if (SUPABASE_URL) ok(inicio.proveedor === "google" && inicio.vuelta === "/auth/callback", "sale a Google y vuelve por /auth/callback");
 }
 
-console.log("\nSolo / lleva la página principal");
+console.log("\n/entrar: el diseño de la página principal, con sus avisos y la demo");
 {
-  // En el resto de rutas del panel sin sesión no se leen sus fotos ni se manda su árbol.
-  const html = await (await fetch(base + "/entrar")).text();
-  ok(!html.includes('class="ini"') && !html.includes("data-foto-inicio"), "/entrar no trae la página principal en su HTML");
-  // Llegando a / navegando dentro del panel (sin recargar el layout), se pide al servidor y se ve.
   const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
   const pagina = await contexto.newPage();
   await pagina.goto(base + "/entrar", { waitUntil: "networkidle" });
+  ok((await pagina.locator(".ini").isVisible()) && (await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).isVisible()) && (await pagina.locator(".ini-foto").count()) > 0, "/entrar muestra la página principal (feed, lema y botones)");
+  ok(!(await pagina.getByText("Tu tienda, en tu bolsillo").isVisible().catch(() => false)), "y ya no la pantalla vieja");
+  await pagina.goto(base + "/entrar?error_login=1", { waitUntil: "networkidle" });
+  await pagina.locator("[data-aviso-entrada]").waitFor({ timeout: 10000 }).catch(() => {});
+  const aviso = await pagina.locator("[data-aviso-entrada]").textContent().catch(() => null);
+  const caja = await pagina.evaluate(() => { const a = document.querySelector("[data-aviso-entrada]")?.getBoundingClientRect(); const g = document.querySelector('[data-cta="iniciar-sesion"]').getBoundingClientRect(); return a ? { encima: a.bottom <= g.top + 1, fondo: getComputedStyle(document.querySelector("[data-aviso-entrada]")).backgroundColor } : null; });
+  ok(aviso === "No se pudo entrar con Google. Inténtalo otra vez." && caja?.encima && caja.fondo === "rgb(255, 249, 238)", `con ?error_login=1, el aviso de siempre en una tarjeta crema encima de los botones («${aviso}»)`);
+  if (capturas) {
+    await pagina.evaluate(() => document.querySelectorAll(".ini-tira").forEach((t) => (t.style.animationPlayState = "paused")));
+    await pagina.screenshot({ path: "docs/capturas/inicio/entrar-aviso-393.png" });
+  }
+  // «Probar la app con datos de prueba»: el «Ver demo» de siempre.
+  await pagina.getByRole("button", { name: "Probar la app con datos de prueba" }).click();
+  await pagina.getByRole("navigation", { name: "Secciones" }).waitFor({ timeout: 15000 }).catch(() => {});
+  ok(await pagina.getByRole("navigation", { name: "Secciones" }).isVisible(), "«Probar la app con datos de prueba» abre la demo, como «Ver demo»");
+  await contexto.close();
+}
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  ok(await pagina.getByRole("button", { name: "Probar la app con datos de prueba" }).isVisible(), "en / también está «Probar la app con datos de prueba»");
+  await contexto.close();
+}
+
+console.log("\nSolo / y /entrar llevan la página principal");
+{
+  // En el resto de rutas del panel sin sesión no se leen sus fotos ni se manda su árbol.
+  const html = await (await fetch(base + "/pedidos")).text();
+  ok(!html.includes('class="ini"') && !html.includes("data-foto-inicio"), "/pedidos no trae la página principal en su HTML");
+  // Llegando a / navegando dentro del panel (sin recargar el layout), se pide al servidor y se ve.
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/pedidos", { waitUntil: "networkidle" });
   await pagina.evaluate(() => window.next?.router?.push("/"));
   await pagina.locator(".ini-foto").first().waitFor({ timeout: 15000 }).catch(() => {});
-  ok(new URL(pagina.url()).pathname === "/" && (await pagina.locator(".ini-foto").count()) > 0, "de /entrar a / sin recargar, se ve la página principal");
+  ok(new URL(pagina.url()).pathname === "/" && (await pagina.locator(".ini-foto").count()) > 0, "de /pedidos a / sin recargar, se ve la página principal");
   await contexto.close();
 }
 
@@ -216,8 +248,9 @@ console.log("\nCon sesión (la demo elegida) y enlaces viejos");
   await pagina.evaluate(() => localStorage.removeItem("deslizapp-modo-v1"));
   await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   await pagina.locator('[data-cta="entrar"]').evaluate((a) => a.click());
-  await pagina.waitForURL("**/entrar");
-  ok(await pagina.getByRole("button", { name: /Entrar con Google/ }).isVisible(), "«Entrar» de /conoce lleva a /entrar");
+  await pagina.waitForURL((u) => new URL(u).pathname === "/");
+  await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor({ timeout: 15000 }).catch(() => {});
+  ok(await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).isVisible(), "«Entrar» de /conoce lleva a / (la página principal)");
   await contexto.close();
 }
 

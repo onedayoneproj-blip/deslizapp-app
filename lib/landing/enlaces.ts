@@ -11,7 +11,7 @@ export const RUTA_CONOCE = "/conoce";
 /** Catálogo de ejemplo: la Tienda de ensayo (slug comprobado en Supabase el 14 oct 2026). */
 export const ENLACE_CATALOGO_EJEMPLO = "/tienda/tienda-de-ensayo";
 
-/** La pantalla de entrada de siempre («Entrar con Google» / «Ver demo»). */
-export const RUTA_ENTRAR = "/entrar";
+/** «Entrar» de /conoce: la página principal, con su «Iniciar sesión» (sin sesión) o el panel (con sesión). */
+export const RUTA_ENTRAR = "/";
 
 export const URL_SITIO = "https://deslizapp.com";

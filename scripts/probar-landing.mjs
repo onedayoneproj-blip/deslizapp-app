@@ -27,6 +27,23 @@ const ok = (cond, msg) => {
   }
 };
 
+/** Qué se ve de la portada de /conoce (el icono, el lema, el teléfono bloqueado y «Desliza y mira»). */
+const portadaVisible = (pagina) =>
+  pagina.evaluate(() => {
+    const op = (sel) => Number(getComputedStyle(document.querySelector(sel)).opacity);
+    const v = document.querySelector("[data-portada]");
+    return {
+      entrada: document.querySelector(".lt-escenario").dataset.entrada,
+      icono: op(".lt-icono") > 0.99,
+      lema: op(".lt-portada-texto") > 0.99,
+      telefono: op(".lt-tel-compradora") > 0.99,
+      desliza: op(".lt-desliza") > 0.99,
+      saltar: op("[data-saltar]") > 0.99,
+      loop: v.loop,
+      corre: !v.paused,
+    };
+  });
+
 /** Si la página de un teléfono llena la pantalla del mockup: los píxeles de arriba (junto a la isla y en las esquinas) no son del
  *  color de fondo de la landing. */
 const sharp = require("sharp");
@@ -216,6 +233,16 @@ for (const [ancho, alto] of [
   // El video de la portada arranca solo, sin tocar nada (ajustes-lewis-7.md §2).
   await pagina.waitForTimeout(1500);
   ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "el video de la portada se reproduce solo");
+  // La primera vuelta del video, sola y limpia (docs/prompts/video-v2-y-entrar.md): solo «Saltar» encima.
+  {
+    const visto = await portadaVisible(pagina);
+    ok(visto.entrada === "no" && !visto.icono && !visto.lema && !visto.telefono && !visto.desliza && visto.saltar && !visto.loop, `en la primera vuelta del video, solo «Saltar» (${JSON.stringify(visto)})`);
+    // Al llegar al final de esa vuelta entra todo, y el video sigue en bucle.
+    await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); v.currentTime = Math.max(0, v.duration - 0.15); });
+    await pagina.waitForTimeout(1600);
+    const despues = await portadaVisible(pagina);
+    ok(despues.entrada === "telefono" && despues.icono && despues.lema && despues.telefono && despues.desliza && despues.loop && despues.corre, `al terminar la primera vuelta entran el icono, el lema, el teléfono y «Desliza y mira», y el video sigue en bucle`);
+  }
   // El desbloqueo sigue al dedo: a mitad de gesto queda a mitad; al soltar antes de la mitad vuelve y pasada la mitad se completa
   // (el scroll-snap hace de resorte). Para fijar la mitad, el snap se apaga un momento.
   {
@@ -486,11 +513,41 @@ for (const [ancho, alto] of [
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
   if (capturas && (ancho === 393 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
-  // «Entrar» (en el cierre): la pantalla de entrada de siempre.
+  // «Entrar» (en el cierre): la página principal, con su «Iniciar sesión».
   await pagina.locator('[data-cta="entrar"]').click();
-  await pagina.waitForURL("**/entrar");
-  ok(await pagina.getByRole("button", { name: /Entrar con Google/ }).isVisible(), "«Entrar» abre la entrada con Google");
-  ok(await pagina.getByRole("button", { name: "Ver demo" }).isVisible(), "y sigue el «Ver demo»");
+  await pagina.waitForURL((u) => new URL(u).pathname === "/");
+  await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor({ timeout: 15000 }).catch(() => {});
+  ok(await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).isVisible(), "«Entrar» lleva a la página principal, con «Iniciar sesión»");
+  ok(await pagina.getByRole("button", { name: "Probar la app con datos de prueba" }).isVisible(), "y el enlace a la demo («Probar la app con datos de prueba»)");
+  await contexto.close();
+}
+
+console.log("\nLa primera vuelta del video: un gesto antes, y el tope de 10 s");
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  await pagina.waitForTimeout(1500);
+  const antes = await portadaVisible(pagina);
+  await pagina.mouse.wheel(0, 60);
+  await pagina.waitForTimeout(700);
+  const despues = await portadaVisible(pagina);
+  ok(antes.entrada === "no" && despues.icono && despues.lema && despues.telefono, "si se desliza antes de que termine la vuelta, todo entra al momento");
+  await contexto.close();
+}
+{
+  // Un video que no llega a terminar (aquí, la red no responde): a los 10 s entra todo igual. (Si el video falla del todo, el
+  // navegador lo dice y todo entra al momento, como con movimiento reducido.)
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  await contexto.route(/\/landing\/portada-v2\.(webm|mp4)/, (r) => new Promise((ok) => setTimeout(() => r.abort().catch(() => {}).finally(ok), 15000)));
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/conoce", { waitUntil: "domcontentloaded" });
+  await pagina.waitForTimeout(6000);
+  const a6 = await portadaVisible(pagina);
+  // (los 10 s cuentan desde que la página arranca; luego, la transición de entrada)
+  await pagina.waitForTimeout(6500);
+  const a12 = await portadaVisible(pagina);
+  ok(a6.entrada === "no" && a12.entrada === "telefono" && a12.icono && a12.telefono, `sin final de la vuelta, el tope de 10 s hace entrar todo (a los 6 s: ${a6.entrada}; a los 12.5 s: ${a12.entrada})`);
   await contexto.close();
 }
 
@@ -501,6 +558,10 @@ console.log("\nMovimiento reducido");
   await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   await pagina.waitForTimeout(1200);
   ok(await pagina.evaluate(() => document.querySelector("[data-portada]").paused), "en la portada, el video no se reproduce (queda el póster)");
+  {
+    const visto = await portadaVisible(pagina);
+    ok(visto.icono && visto.lema && visto.telefono && visto.desliza, "y todo se ve desde el principio");
+  }
   await irAlPaso(pagina, 1);
   await pagina.waitForTimeout(400);
   const m = await medir(pagina, 1);

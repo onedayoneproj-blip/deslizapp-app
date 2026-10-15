@@ -9,24 +9,25 @@ import { PantallaEntrada } from "../panel/pantalla-entrada";
 /**
  * Lo que ve quien no tiene sesión en el panel (va en los dos huecos del DataProvider: `cargando` y `entrada`, para que React
  * no la vuelva a montar al leer la sesión):
- * - En `/`, la página principal (`principal`, pintada en el servidor; components/inicio-publico). Quien ya eligió «Ver demo»
- *   pasa directo a su panel de prueba, como antes. La landing con la demo está en /conoce.
- * - La pantalla de entrada de siempre en `/entrar`, en cualquier otra ruta del panel, cuando la vuelta de Google trae un
- *   aviso (`/?error_login=1`), con la cuenta sin tienda o si no se pudo comprobar la sesión.
+ * - En `/` y en `/entrar`, la página principal (`principal`, pintada en el servidor; components/inicio-publico), con los avisos
+ *   de la entrada (`?error_login=1`, «Tu sesión se cerró…») en su tarjeta (docs/prompts/video-v2-y-entrar.md). Quien ya eligió
+ *   «Ver demo» pasa directo a su panel de prueba, como antes. La landing con la demo está en /conoce.
+ * - La pantalla de entrada de siempre en cualquier otra ruta del panel, con la cuenta sin tienda o si no se pudo comprobar la
+ *   sesión.
  * - Comprobando una sesión (cookie de Supabase), la pantalla de carga.
  */
 export function InicioPublico({ principal }: { principal: ReactNode | null }) {
   const sesion = useSesion();
   const ruta = usePathname();
-  const enRaiz = ruta === "/";
-  // Aún sin leer la sesión (servidor y primer render): en `/` va la página principal; en el resto, la carga de siempre.
-  const verPrincipal = enRaiz && (sesion === null || (sesion.tipo === "entrada" && !sesion.aviso));
+  const conPrincipal = ruta === "/" || ruta === "/entrar";
+  // Aún sin leer la sesión (servidor y primer render): en `/` y `/entrar` va la página principal; en el resto, la carga de siempre.
+  const verPrincipal = conPrincipal && (sesion === null || sesion.tipo === "entrada");
   if (verPrincipal) return principal ? <PrincipalVisible confirmada={sesion !== null}>{principal}</PrincipalVisible> : <PedirPrincipal />;
   if (!sesion || sesion.tipo === "cargando" || sesion.tipo === "demo" || sesion.tipo === "lista") return <PantallaCarga />;
   return <PantallaEntrada />;
 }
 
-/** Se llegó a `/` navegando dentro del panel: el servidor no mandó la página principal (solo la manda en `/`). Se le pide. */
+/** Se llegó a `/` o `/entrar` navegando dentro del panel: el servidor no mandó la página principal (solo la manda ahí). Se le pide. */
 function PedirPrincipal() {
   const router = useRouter();
   useEffect(() => router.refresh(), [router]);

@@ -15,8 +15,9 @@ import "./landing.css";
 const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
 
 // El video de la portada con sus atributos literales en el HTML del servidor: React no escribe `muted`, y sin él Safari en iOS no
-// lo reproduce solo (ajustes-lewis-7.md §2).
-const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline loop preload="metadata" poster="/landing/portada.webp" tabindex="-1" disablepictureinpicture><source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"'><source src="/landing/portada.mp4" type="video/mp4"></video>`;
+// lo reproduce solo (ajustes-lewis-7.md §2). Sin `loop`: la primera vuelta termina y entonces entra la portada; el controlador lo
+// pone en bucle (docs/prompts/video-v2-y-entrar.md).
+const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline preload="auto" poster="/landing/portada-v2.webp" tabindex="-1" disablepictureinpicture><source src="/landing/portada-v2.webm" type='video/webm; codecs="av01.0.05M.08"'><source src="/landing/portada-v2.mp4" type="video/mp4"></video>`;
 
 /** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {

@@ -54,10 +54,10 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
  * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
  */
 async function SinSesion({ children }: { children: ReactNode }) {
-  // Solo `/` lleva la página principal: en el resto (/entrar, /pedidos…) no se leen sus fotos ni se manda su árbol. Si se llega a
-  // `/` navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide al servidor.
-  const enRaiz = (await headers()).get(CABECERA_RUTA) === "/";
-  const principal = enRaiz ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
+  // Solo `/` y `/entrar` llevan la página principal: en el resto (/pedidos, /catalogo…) no se leen sus fotos ni se manda su
+  // árbol. Si se llega a una de las dos navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide.
+  const ruta = (await headers()).get(CABECERA_RUTA);
+  const principal = ruta === "/" || ruta === "/entrar" ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
   const publico = <InicioPublico principal={principal} />;
   return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }

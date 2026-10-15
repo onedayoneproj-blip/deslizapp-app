@@ -5,7 +5,7 @@ import { KEY_MODO } from "@/lib/data/modo";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE } from "@/lib/landing/enlaces";
 import { IconoInstagram, IconoReels } from "../iconos";
-import { BotonGoogle } from "./boton-google";
+import { BotonGoogle, EnlaceDemo } from "./boton-google";
 import { Vivo } from "./vivo";
 import "./pagina-principal.css";
 
@@ -88,6 +88,7 @@ export function PaginaPrincipal({ fotos }: { fotos: FotoInicio[] }) {
             Quiero vender
           </a>
         </div>
+        <EnlaceDemo />
       </main>
 
       <Vivo productos={[...new Set(fotos.map((f) => f.nombre))]} />
