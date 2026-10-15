@@ -162,6 +162,9 @@ const medir = (pagina, i) =>
         })() : null,
         // El doble check: los dos trazos completos (stroke-dashoffset 0) y azules #53bdeb.
         checks: burbuja ? [...burbuja.querySelectorAll(".lt-check")].map((c) => ({ largo: c.getTotalLength(), offset: parseFloat(getComputedStyle(c).strokeDashoffset), color: getComputedStyle(c).stroke })) : null,
+        // El icono de la app de arriba a la izquierda: rosado o verde (ajustes-lewis-12.md §1), y los iconos de la burbuja (§2).
+        iconoApp: Number(getComputedStyle(e.querySelector(".lt-icono-verde")).opacity) > 0.99 ? "verde" : Number(getComputedStyle(e.querySelector(".lt-icono-rosa")).opacity) > 0.99 ? "rosa" : "a medias",
+        iconosBurbuja: burbuja ? [...burbuja.querySelectorAll(".lt-icono-burbuja")].map((x) => ({ icono: x.dataset.iconoBurbuja, oculto: x.getAttribute("aria-hidden") === "true" && x.querySelector("svg")?.getAttribute("aria-hidden") === "true", ancho: x.getBoundingClientRect().width })) : [],
         // Cuánto se monta el borde de abajo del teléfono sobre la burbuja actual (px), cuando la burbuja va debajo (en el escritorio va al lado).
         montaje: burbuja && Number(getComputedStyle(telefono).opacity) > 0.99 && b.top > tel.top + tel.height / 2 ? tel.bottom - b.top : null,
         tema: document.querySelector('meta[name="theme-color"]')?.content,
@@ -282,6 +285,12 @@ for (const [ancho, alto] of [
       `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
+    // (el fundido dura 300 ms: al medir ya terminó)
+    ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa"), `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
+    if (paso.burbuja) {
+      const esperados = Object.values(paso.burbuja.iconos ?? {});
+      ok(m.iconosBurbuja.length === esperados.length && m.iconosBurbuja.length <= 2 && m.iconosBurbuja.every((x) => x.oculto && x.ancho > 10) && esperados.every((x) => m.iconosBurbuja.some((y) => y.icono === x)), `${paso.id}: la burbuja lleva sus ${esperados.length} icono(s) de la app (${m.iconosBurbuja.map((x) => x.icono).join(", ") || "ninguno"}), con aria-hidden`);
+    }
     if (m.aire) ok(Math.abs(m.aire.arriba - m.aire.abajo) <= 2, `${paso.id}: la burbuja, simétrica: ${m.aire.arriba.toFixed(1)} px de aire arriba y ${m.aire.abajo.toFixed(1)} abajo (±2)`);
     if (m.checks) ok(m.checks.length === 2 && m.checks.every((c) => c.largo > 5 && c.offset === 0 && c.color === "rgb(83, 189, 235)"), `${paso.id}: el doble check, los dos trazos completos y azules`);
     if (m.montaje !== null) ok(m.montaje >= 16 && m.montaje <= 24, `${paso.id}: el teléfono se monta ${m.montaje.toFixed(1)} px sobre la burbuja (16–24)`);
@@ -405,6 +414,20 @@ for (const [ancho, alto] of [
     const dc = await datos(pagina);
     ok(dc.paso === PASOS[j].id, `el indicador: la raya de «${PASOS[j].id}» lleva a «${dc.paso}»`);
   }
+  // Al retroceder desde «cambio», el icono de la app vuelve al rosado.
+  {
+    const cambio = PASOS.findIndex((p) => p.id === "cambio");
+    // (desde la portada: un salto largo; uno de 2 o 3 pasos lo frena el controlador, como a un deslizamiento fuerte)
+    await irAlPaso(pagina, 0);
+    await pagina.waitForTimeout(1500);
+    await irAlPaso(pagina, cambio);
+    await pagina.waitForTimeout(1600);
+    const en = (await medir(pagina, cambio)).iconoApp;
+    await irAlPaso(pagina, cambio - 1);
+    await pagina.waitForTimeout(1600);
+    const antes = (await medir(pagina, cambio - 1)).iconoApp;
+    ok(en === "verde" && antes === "rosa", `el icono de la app pasa a verde en «cambio» y, al retroceder, vuelve al rosado (${en} → ${antes})`);
+  }
   // Al volver a la portada desde el primer paso, el teléfono se bloquea otra vez.
   await irAlPaso(pagina, 0);
   await pagina.waitForTimeout(1500);
@@ -448,12 +471,14 @@ for (const [ancho, alto] of [
       enlaces: ["vender", "catalogo", "entrar"].every((k) => visible(c.querySelector(`[data-cta="${k}"]`))),
       otraVez: c.querySelector('[data-cta="otra-vez"]')?.getAttribute("href"),
       corazon: visible(c.querySelector("[data-corazon-cierre]")) && /Despachado/.test(c.textContent),
+      iconoVerde: c.querySelector(".lt-cierre-icono")?.getAttribute("src") === "/landing/icono-verde.webp",
       fondo: getComputedStyle(c).backgroundColor,
       bosque: getComputedStyle(document.documentElement).getPropertyValue("--marca-bosque").trim(),
       tema: document.querySelector('meta[name="theme-color"]')?.content,
       sinSubtitulo: !/Un catálogo para comprar\. Una app para lo que pasa después\./.test(c.textContent),
     };
   });
+  ok(cierre.iconoVerde, "en el cierre, el icono de la app es el verde");
   ok(cierre.fotos === 3 && cierre.corazon, "el cierre lleva las tres fotos en abanico con el ♥ y «Despachado»");
   ok(cierre.enlaces && cierre.otraVez === "#arriba" && cierre.sinSubtitulo, "el cierre lleva «Quiero vender», «Ver un catálogo de ejemplo», «Entrar» y «Ver la demo otra vez», sin el subtítulo de antes");
   ok(cierre.fondo === "rgb(23, 75, 58)" && cierre.tema?.replace(/\s/g, "") === cierre.fondo.replace(/\s/g, ""), `el cierre va en verde Bosque, con el theme-color igual (${cierre.tema})`);
