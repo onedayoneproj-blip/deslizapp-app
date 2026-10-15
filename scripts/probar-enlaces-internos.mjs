@@ -1,8 +1,8 @@
 // Copia temporal con Auth autorizado; conserva las reglas de origen/query de producción.
 import "../tests/cargar-ts.mjs";
 import assert from "node:assert/strict";
-import { construirDesdeSeed } from "../lib/data/db.ts";
 import { navegador, URL } from "./navegador-catalogo.mjs";
+const { construirDesdeSeed } = await import("../lib/data/db.ts");
 const d = construirDesdeSeed(), id = "a1000000-0000-4000-8000-000000000001";
 const tienda = d.tiendas.find(t => t.id === id);
 tienda.onboarding = {}; tienda.catalogoEstado = "sin";
