@@ -1,4 +1,4 @@
-// La base de la demo de la landing: «La Vuelta», sus tres productos, Ana como clienta y la solicitud del pedido (termo + tote,
+// La base de la demo de la landing: «Tu Tienda», sus tres productos, Ana como clienta y la solicitud del pedido (termo + tote,
 // código CODIGO_DEMO). La usan los teléfonos de app/demo-landing con los componentes reales, en memoria (lib/data/demo.ts
 // usarDemoEnMemoria): sin red y sin escribir en el navegador. Los datos salen de lib/landing/pedido-demo.ts.
 
@@ -8,7 +8,7 @@ import type { CatalogoPublico, Cliente, Producto, Tienda, VistaSolicitud } from 
 import { CODIGO_DEMO, COMPRADORA_DEMO, PEDIDO_DEMO, PRODUCTOS_DEMO, TIENDA_DEMO } from "./pedido-demo";
 
 export const TIENDA_ID_DEMO = "b1000000-0000-4000-8000-00000000a001";
-export const SLUG_DEMO = "la-vuelta";
+export const SLUG_DEMO = "tu-tienda";
 const USUARIO_ID = "b2000000-0000-4000-8000-00000000a001";
 const CLIENTA_ID = "b4000000-0000-4000-8000-00000000a001";
 const SOLICITUD_ID = "b5000000-0000-4000-8000-00000000a001";
@@ -66,7 +66,7 @@ export function dbBase(ahora: Date = new Date()): DB {
     likes: [38, 52, 41][i] ?? 30,
     orden: i + 1,
     opiniones: [],
-    detalles: { descripcion: "Edición La Vuelta. Hecho para el día a día." },
+    detalles: { descripcion: "Hecho para el día a día." },
     opciones: [],
     fotosPorValor: {},
     fichaUrl: null,
@@ -80,7 +80,7 @@ export function dbBase(ahora: Date = new Date()): DB {
   let db: DB = {
     ...semilla,
     tiendas: [tienda],
-    usuarios: [{ id: USUARIO_ID, tiendaId: TIENDA_ID_DEMO, email: "lavuelta@ejemplo.com", nombre: "La Vuelta", rol: "dueno" }],
+    usuarios: [{ id: USUARIO_ID, tiendaId: TIENDA_ID_DEMO, email: "tutienda@ejemplo.com", nombre: TIENDA_DEMO.nombre, rol: "dueno" }],
     productos,
     pedidos: [],
     pedidoItems: [],

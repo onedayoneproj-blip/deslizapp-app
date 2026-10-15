@@ -44,6 +44,55 @@ async function cubrePantalla(pagina, telefono, fondo) {
   return { ok: malos.length === 0, detalle: malos.map((p) => p.join(",")).join(" ") };
 }
 
+/**
+ * El contraste del texto de la portada sobre el video, fotograma a fotograma (ajustes-lewis-10.md): con el video parado en cada
+ * momento y las letras transparentes (el degradado sigue), el 95 % más oscuro del fondo de cada línea frente a su color. Devuelve el
+ * peor caso de cada color.
+ */
+const luminancia = (r, g, b) => [r, g, b].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }).reduce((a, c, k) => a + c * [0.2126, 0.7152, 0.0722][k], 0);
+async function contrastePortada(pagina) {
+  const cajas = await pagina.evaluate(() => {
+    const out = [];
+    const rango = document.createRange();
+    const texto = document.querySelector(".lt-portada-texto");
+    const nodos = [];
+    const tw = document.createTreeWalker(texto, NodeFilter.SHOW_TEXT);
+    while (tw.nextNode()) nodos.push(tw.currentNode);
+    for (const n of nodos) {
+      if (!n.textContent.trim()) continue;
+      rango.selectNodeContents(n);
+      const color = n.parentElement.closest(".lt-lema-vuelta") ? "mandarina" : n.parentElement.closest(".lt-lema-orden") ? "rosa" : "crema";
+      for (const c of rango.getClientRects()) out.push({ color, x: c.left, y: c.top, w: c.width, h: c.height });
+    }
+    const st = document.createElement("style");
+    st.id = "sin-letras";
+    st.textContent = ".lt-portada-texto, .lt-portada-texto * { color: transparent !important; text-shadow: none !important; -webkit-text-stroke: 0 !important } .lt-destello { visibility: hidden }";
+    document.head.appendChild(st);
+    return out;
+  });
+  const color = { crema: luminancia(255, 249, 238), rosa: luminancia(245, 201, 214), mandarina: luminancia(255, 131, 79) };
+  const peor = { crema: 99, rosa: 99, mandarina: 99 };
+  const duracion = await pagina.evaluate(() => document.querySelector("[data-portada]").duration);
+  for (let t = 0; t < duracion; t += 1) {
+    await pagina.evaluate((t) => new Promise((ok) => { const v = document.querySelector("[data-portada]"); v.pause(); v.onseeked = () => ok(); v.currentTime = t; }), t);
+    await pagina.waitForTimeout(60);
+    const { data, info } = await sharp(await pagina.screenshot()).raw().toBuffer({ resolveWithObject: true });
+    for (const c of cajas) {
+      const ls = [];
+      for (let y = Math.max(0, Math.floor(c.y)); y < Math.min(info.height, c.y + c.h); y += 2)
+        for (let x = Math.max(0, Math.floor(c.x)); x < Math.min(info.width, c.x + c.w); x += 2) {
+          const k = (y * info.width + x) * info.channels;
+          ls.push(luminancia(data[k], data[k + 1], data[k + 2]));
+        }
+      ls.sort((a, b) => a - b);
+      const fondo = ls[Math.floor(ls.length * 0.95)] ?? 0;
+      peor[c.color] = Math.min(peor[c.color], (color[c.color] + 0.05) / (fondo + 0.05));
+    }
+  }
+  await pagina.evaluate(() => { document.getElementById("sin-letras")?.remove(); void document.querySelector("[data-portada]").play().catch(() => {}); });
+  return peor;
+}
+
 const irAlPaso = (pagina, i) => pagina.evaluate((i) => document.querySelector(`[data-paso-seccion="${i}"]`).scrollIntoView({ behavior: "instant" }), i);
 const datos = (pagina) => pagina.evaluate(() => ({ ...document.querySelector(".lt-escenario").dataset }));
 
@@ -101,6 +150,18 @@ const medir = (pagina, i) =>
         telefonoEncima: Number(getComputedStyle(e.querySelector(".lt-zona")).zIndex) > Number(getComputedStyle(e.querySelector(".lt-burbujas")).zIndex),
         // Lo que se monta bajo el teléfono es el borde de la burbuja, nunca sus letras.
         letrasBajoTelefono: Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => { const t = x.querySelector(".lt-burbuja-texto").getBoundingClientRect(); return t.top < tel.bottom - 1 && t.right > tel.left && t.left < tel.right; }),
+        // El aire de la burbuja (ajustes-lewis-11.md §1): arriba, el que se ve (del borde del teléfono, o del de la burbuja si va al
+        // lado, al texto); abajo, de lo último (la última línea o la hora, si bajó a su propia línea) al borde de la burbuja.
+        aire: burbuja ? (() => {
+          const rango = document.createRange();
+          rango.selectNodeContents(burbuja.querySelector(".lt-burbuja-texto"));
+          const lineas = [...rango.getClientRects()].filter((x) => x.width > 1 && x.height > 1);
+          const hora = burbuja.querySelector(".lt-burbuja-hora").getBoundingClientRect();
+          const borde = b.top > tel.top + tel.height / 2 && b.top < tel.bottom && Number(getComputedStyle(telefono).opacity) > 0.99 ? tel.bottom : b.top;
+          return { arriba: Math.min(...lineas.map((x) => x.top)) - borde, abajo: b.bottom - Math.max(hora.bottom, ...lineas.map((x) => x.bottom)) };
+        })() : null,
+        // El doble check: los dos trazos completos (stroke-dashoffset 0) y azules #53bdeb.
+        checks: burbuja ? [...burbuja.querySelectorAll(".lt-check")].map((c) => ({ largo: c.getTotalLength(), offset: parseFloat(getComputedStyle(c).strokeDashoffset), color: getComputedStyle(c).stroke })) : null,
         // Cuánto se monta el borde de abajo del teléfono sobre la burbuja actual (px), cuando la burbuja va debajo (en el escritorio va al lado).
         montaje: burbuja && Number(getComputedStyle(telefono).opacity) > 0.99 && b.top > tel.top + tel.height / 2 ? tel.bottom - b.top : null,
         tema: document.querySelector('meta[name="theme-color"]')?.content,
@@ -170,8 +231,24 @@ for (const [ancho, alto] of [
     await irAlPaso(pagina, 0);
     await pagina.waitForTimeout(1500);
   }
+  // «Desliza y mira»: visible, sin píldora, y al tocarlo arranca el desbloqueo (hace lo mismo que deslizar).
+  {
+    const b = await pagina.evaluate(() => {
+      const el = document.querySelector("[data-desliza]");
+      const r = el.getBoundingClientRect();
+      const circulo = getComputedStyle(el.querySelector(".lt-desliza-circulo")).backgroundColor;
+      return { visible: Number(getComputedStyle(el).opacity) > 0.99, centro: r.left + r.width / 2, abajo: innerHeight - r.bottom, fondo: getComputedStyle(el).backgroundColor, circulo, texto: el.textContent.trim() };
+    });
+    ok(b.visible && Math.abs(b.centro - ancho / 2) < 2 && b.abajo >= 10 && b.abajo <= 40 && b.fondo === "rgba(0, 0, 0, 0)" && b.circulo === "rgb(255, 131, 79)" && b.texto === "Desliza y mira", `«Desliza y mira» centrado abajo (a ${Math.round(b.abajo)} px), con el círculo mandarina y sin píldora`);
+    await pagina.locator("[data-desliza]").click();
+    await pagina.waitForTimeout(1600);
+    ok((await datos(pagina)).paso === "hola", "tocar «Desliza y mira» desbloquea el teléfono, como deslizar");
+    await irAlPaso(pagina, 0);
+    await pagina.waitForTimeout(1500);
+  }
 
   // Hacia delante, paso a paso.
+  const textos = [];
   for (let i = 0; i < PASOS.length; i++) {
     const paso = PASOS[i];
     const antes = await datos(pagina);
@@ -205,17 +282,46 @@ for (const [ancho, alto] of [
       `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
+    if (m.aire) ok(Math.abs(m.aire.arriba - m.aire.abajo) <= 2, `${paso.id}: la burbuja, simétrica: ${m.aire.arriba.toFixed(1)} px de aire arriba y ${m.aire.abajo.toFixed(1)} abajo (±2)`);
+    if (m.checks) ok(m.checks.length === 2 && m.checks.every((c) => c.largo > 5 && c.offset === 0 && c.color === "rgb(83, 189, 235)"), `${paso.id}: el doble check, los dos trazos completos y azules`);
     if (m.montaje !== null) ok(m.montaje >= 16 && m.montaje <= 24, `${paso.id}: el teléfono se monta ${m.montaje.toFixed(1)} px sobre la burbuja (16–24)`);
     ok(!m.indiceTapa && m.indiceIzquierda && !m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el índice (a la izquierda) no se cruza con el mockup; el teléfono va por encima de las burbujas y no tapa sus letras`);
     ok(m.rayasFinas, `${paso.id}: las rayas del indicador son de 2 px o menos`);
     if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
-    const temaEsperado = paso.lado === "tienda" ? m.bosque : m.rosa;
+    // (la portada va en verde: su degradado de arriba es Bosque)
+    const temaEsperado = paso.lado === "tienda" || i === 0 ? m.bosque : m.rosa;
     ok(m.tema && m.tema.toLowerCase() === temaEsperado.toLowerCase(), `${paso.id}: theme-color del capítulo (${m.tema})`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
     if (paso.id === "intro") {
       ok(m.introVisible && m.icono && m.telefonoVisible && m.bloqueo > 0.99 && m.cortado && m.zoom < 0.95, "intro: el icono y el teléfono bloqueado asomando, cortado abajo");
-      ok(m.lema.visible && /Comprar sin tanta vuelta\.\s*Vender con más orden\./.test(m.lema.texto) && m.lema.top >= m.iconoCaja.bottom, "intro: el lema bajo el icono");
+      ok(m.lema.visible && /Comprar sin\s*tanta vuelta\.\s*Vender con\s*más orden\./.test(m.lema.texto) && m.lema.top >= m.iconoCaja.bottom, "intro: el lema bajo el icono");
+      const p = await pagina.evaluate(() => {
+        const lema = document.querySelector(".lt-lema");
+        const vuelta = document.createRange();
+        vuelta.selectNodeContents(document.querySelector(".lt-lema-vuelta").firstChild);
+        const v = vuelta.getBoundingClientRect();
+        const d = document.querySelector(".lt-destello").getBoundingClientRect();
+        const video = document.querySelector("[data-portada]");
+        const aviso = document.querySelector("[data-aviso-bloqueo]");
+        return {
+          lineas: lema.getBoundingClientRect().height / parseFloat(getComputedStyle(lema).lineHeight),
+          cabe: lema.scrollWidth <= lema.clientWidth,
+          destello: d.left - v.right,
+          mismaLinea: d.top < v.bottom && d.bottom > v.top,
+          video: Number(getComputedStyle(video).opacity) === 1 && getComputedStyle(video).filter === "none",
+          aviso: aviso.textContent,
+          contexto: document.querySelector(".lt-contexto").textContent,
+          descripcion: document.querySelector(".lt-descripcion").textContent,
+        };
+      });
+      ok(Math.abs(p.lineas - 4) < 0.05 && p.cabe, `intro: el lema en cuatro líneas, sin partirse (${p.lineas.toFixed(2)})`);
+      ok(p.destello >= 0 && p.destello < 6 && p.mismaLinea, `intro: el destello va pegado a «vuelta.» (a ${p.destello.toFixed(1)} px, en su línea)`);
+      ok(p.contexto === "Desliza. Encuentra. Escribe." && /llega a Tu Tienda con todo en su sitio/.test(p.descripcion), "intro: la línea de contexto (sentence case) y la descripción con Tu Tienda");
+      ok(p.video, "intro: el video a todo color, sin oscurecido general");
+      ok(/Tu Tienda/.test(p.aviso) && /ahora/.test(p.aviso) && /Llegó el termo rosado\. Desliza y míralo\./.test(p.aviso), "intro: la pantalla de bloqueo lleva el aviso de Tu Tienda");
+      const c = await contrastePortada(pagina);
+      ok(c.crema >= 7 && c.rosa >= 4.5 && c.mandarina >= 3, `intro: contraste sobre el video en movimiento, en el peor fotograma: crema ${c.crema.toFixed(1)}:1 (≥7), rosa ${c.rosa.toFixed(1)}:1 (≥4.5), mandarina ${c.mandarina.toFixed(1)}:1 (≥3, texto grande)`);
       ok(!m.indiceVisible && m.burbujasVistas === 0, "intro: sin indicador ni burbujas");
       const v = await pagina.evaluate(() => {
         const video = document.querySelector("[data-portada]");
@@ -278,11 +384,19 @@ for (const [ancho, alto] of [
       ok(Math.abs(r.alto - Math.min(r.ancho * 1.25, 760)) < 1.5 && Math.abs(r.arriba - r.margen) < 1.5, `pasa: la tarjeta del reel mide como en la app (${Math.round(r.alto)} px) y queda bajo la cabecera`);
       ok(r.hueco >= 0 && r.hueco <= 24 && r.abajo >= 0 && r.abajo <= 20, `pasa: la bolsa queda junto a «Compartir» (a ${Math.round(r.hueco)} px), al pie de la tarjeta`);
     }
+    textos.push(await pagina.evaluate(() => [document, ...[...document.querySelectorAll("iframe")].map((f) => f.contentDocument)].map((d) => d?.body?.innerText ?? "").join("\n")));
     ok(paso.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo de ${paso.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
     if (capturas && (ancho === 393 || ancho === 1440)) {
       mkdirSync("docs/capturas/landing", { recursive: true });
+      // (Chromium sin pantalla pinta un video en marcha por encima de lo que tiene delante: en la captura de la portada, parado)
+      if (i === 0) await pagina.evaluate(() => document.querySelector("[data-portada]").pause());
       await pagina.screenshot({ path: `docs/capturas/landing/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}.png` });
+      if (i === 0) await pagina.evaluate(() => void document.querySelector("[data-portada]").play().catch(() => {}));
     }
+  }
+  {
+    const todo = textos.join("\n");
+    ok(!/La Vuelta|la-vuelta|Brisa|Vuelta Store/.test(todo) && /Tu Tienda/.test(todo), "la tienda de la demo es «Tu Tienda»: ni «La Vuelta», ni «Brisa», ni «Vuelta Store» en la landing ni en los teléfonos");
   }
   // El indicador: tocar una gruesa (de las que se ven, cerca de la del paso) lleva a su paso.
   for (const j of [PASOS.length - 3, PASOS.length - 5]) {
@@ -326,6 +440,23 @@ for (const [ancho, alto] of [
   ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; }), "«Saltar» lleva al cierre");
   ok((await pagina.getByRole("link", { name: "Quiero vender" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Quiero vender» abre WhatsApp con el texto");
   ok((await pagina.getByRole("link", { name: "Ver un catálogo de ejemplo" }).getAttribute("href")) === ENLACE_CATALOGO_EJEMPLO, "«Ver un catálogo de ejemplo» va a la Tienda de ensayo");
+  const cierre = await pagina.evaluate(() => {
+    const c = document.getElementById("cierre");
+    const visible = (el) => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility === "visible"; };
+    return {
+      fotos: [...c.querySelectorAll(".lt-abanico-foto")].filter((f) => visible(f) && f.complete && f.naturalWidth > 0).length,
+      enlaces: ["vender", "catalogo", "entrar"].every((k) => visible(c.querySelector(`[data-cta="${k}"]`))),
+      otraVez: c.querySelector('[data-cta="otra-vez"]')?.getAttribute("href"),
+      corazon: visible(c.querySelector("[data-corazon-cierre]")) && /Despachado/.test(c.textContent),
+      fondo: getComputedStyle(c).backgroundColor,
+      bosque: getComputedStyle(document.documentElement).getPropertyValue("--marca-bosque").trim(),
+      tema: document.querySelector('meta[name="theme-color"]')?.content,
+      sinSubtitulo: !/Un catálogo para comprar\. Una app para lo que pasa después\./.test(c.textContent),
+    };
+  });
+  ok(cierre.fotos === 3 && cierre.corazon, "el cierre lleva las tres fotos en abanico con el ♥ y «Despachado»");
+  ok(cierre.enlaces && cierre.otraVez === "#arriba" && cierre.sinSubtitulo, "el cierre lleva «Quiero vender», «Ver un catálogo de ejemplo», «Entrar» y «Ver la demo otra vez», sin el subtítulo de antes");
+  ok(cierre.fondo === "rgb(23, 75, 58)" && cierre.tema?.replace(/\s/g, "") === cierre.fondo.replace(/\s/g, ""), `el cierre va en verde Bosque, con el theme-color igual (${cierre.tema})`);
   const cta = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
@@ -349,6 +480,7 @@ console.log("\nMovimiento reducido");
   await pagina.waitForTimeout(400);
   const m = await medir(pagina, 1);
   ok(m.burbujaVisible && m.nitida, "cada paso muestra su estado final al instante (burbuja completa sin animación)");
+  ok(m.checks?.length === 2 && m.checks.every((c) => c.offset === 0 && c.color === "rgb(83, 189, 235)"), "con movimiento reducido, el doble check ya está completo y azul");
   // Sin ♥: llega al «aaah» del termo en su estado final, sin toques.
   for (let i = 2; i <= PASOS.findIndex((p) => p.id === "aaah-termo"); i++) {
     await irAlPaso(pagina, i);

@@ -19,7 +19,7 @@ test("el pedido de la demo: la gorra pasa sin like; termo y tote, RD$1,500, con 
 
 test("el mensaje de WhatsApp sale de mensajePedido, con los productos, el total y el enlace", () => {
   const m = demo.MENSAJE_DEMO;
-  assert.match(m, /^¡Hola La Vuelta! Vi tu catálogo y quiero:/);
+  assert.match(m, /^¡Hola Tu Tienda! Vi tu catálogo y quiero:/);
   for (const p of demo.PEDIDO_DEMO) assert.ok(m.includes(`• ${p.nombre} (${demo.pesos(p.precio)})`), p.nombre);
   assert.ok(!m.includes("Gorra verde"), "la gorra no va en el pedido");
   assert.ok(m.includes("Total: RD$1,500"));
@@ -27,7 +27,7 @@ test("el mensaje de WhatsApp sale de mensajePedido, con los productos, el total 
 });
 
 test("lo que ve la compradora usa estadoComprador", () => {
-  assert.equal(demo.ESTADO_ENVIADO.titulo, "Le llegó a La Vuelta");
+  assert.equal(demo.ESTADO_ENVIADO.titulo, "Le llegó a Tu Tienda");
   assert.equal(demo.ESTADO_ENVIADO.linea, "2 productos · te responde por WhatsApp");
   assert.equal(demo.ESTADO_DESPACHADO.titulo, "Va en camino");
   assert.equal(demo.VISTA_PREVIA_DEMO.descripcion, "2 productos · RD$1,500");
@@ -64,9 +64,9 @@ test("la bolsa cuenta con los pasos y retrocede igual", () => {
   assert.equal(estadoPaso(indicePaso("whatsapp")).codigoVisible, true);
 });
 
-test("la base de la demo: La Vuelta con sus 3 productos y la solicitud del pedido, sin tocar el seed", () => {
+test("la base de la demo: Tu Tienda con sus 3 productos y la solicitud del pedido, sin tocar el seed", () => {
   const db = dbDemo.dbBase();
-  assert.deepEqual(db.tiendas.map((t) => t.nombre), ["La Vuelta"]);
+  assert.deepEqual(db.tiendas.map((t) => t.nombre), ["Tu Tienda"]);
   const c = dbDemo.catalogoDemo(db);
   assert.deepEqual(c.productos.map((p) => p.slug), ["gorra", "termo", "tote"]);
   const v = dbDemo.vistaSolicitudDemo(db);

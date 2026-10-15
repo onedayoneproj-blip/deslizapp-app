@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PASOS, type Paso } from "@/lib/landing/pasos";
-import { HORA_DEMO } from "@/lib/landing/pedido-demo";
+import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
 import { KEY_MODO } from "@/lib/data/modo";
 import { Icono } from "../tienda/iconos";
@@ -32,16 +32,35 @@ export function Landing() {
             <span className="lt-forma lt-forma-b" />
           </div>
 
-          {/* La portada (ajustes-lewis-6.md y -7.md): el video de Lewis de fondo, luego sube el icono de la app y asoma el teléfono
-              bloqueado. El controlador reproduce el video, salvo con movimiento reducido o ahorro de datos: entonces, el póster. */}
+          {/* La portada (ajustes-lewis-10.md): el video de Lewis a todo color, el lema grande a la izquierda y el teléfono bloqueado
+              asomando por abajo. El controlador reproduce el video, salvo con movimiento reducido o ahorro de datos: entonces, el
+              póster. */}
           <div className="lt-intro" aria-hidden="true">
             <div className="lt-portada-caja" dangerouslySetInnerHTML={{ __html: VIDEO_PORTADA }} />
-            {/* El lema de la campaña, bajo el icono (ajustes-lewis-8.md §4) */}
-            <p className="lt-lema">
-              Comprar sin tanta <b className="lt-lema-vuelta">vuelta.</b>
-              <br />
-              Vender con <b className="lt-lema-orden">más orden.</b>
-            </p>
+            <div className="lt-portada-texto">
+              <p className="lt-contexto">Desliza. Encuentra. Escribe.</p>
+              {/* Cada frase en dos líneas, cuatro en total (sin partir): el destello va pegado a «vuelta.», como un carácter más */}
+              <p className="lt-lema">
+                Comprar sin
+                <br />
+                tanta{" "}
+                <b className="lt-lema-vuelta">
+                  vuelta.
+                  <svg className="lt-destello" viewBox="0 0 40 46" aria-hidden="true">
+                    <path d="M6 14L16 3M4 26h17M7 38l11 9" />
+                  </svg>
+                </b>
+                <br />
+                <b className="lt-lema-orden">
+                  Vender con
+                  <br />
+                  más orden.
+                </b>
+              </p>
+              <p className="lt-descripcion">
+                Mira cómo lo que te gusta llega a <b>{TIENDA_DEMO.nombre}</b> con todo en su sitio.
+              </p>
+            </div>
           </div>
 
           {/* El icono de la app: sube en la portada y, al desbloquear, viaja a la esquina de arriba a la izquierda; desde ahí lleva
@@ -72,6 +91,16 @@ export function Landing() {
               </svg>
             </a>
           </div>
+
+          {/* «Desliza y mira» (ajustes-lewis-10.md): hacia arriba, sin píldora. Tocarlo hace lo mismo que deslizar. */}
+          <button type="button" className="lt-desliza" data-desliza>
+            <span className="lt-desliza-circulo" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5M6 11l6-6 6 6" />
+              </svg>
+            </span>
+            <span className="lt-desliza-texto">Desliza y mira</span>
+          </button>
 
           <Indice />
 
@@ -114,53 +143,68 @@ export function Landing() {
           </div>
         </section>
 
+        {/* El cierre (ajustes-lewis-10.md): fondo Bosque, las tres fotos en abanico con el ♥ y «Despachado», el lema y la hoja crema. */}
         <section id="cierre" className="lt-cierre" aria-labelledby="cierre-titulo">
-          <span className="flex items-center gap-1.5 text-texto">
-            <Isotipo tamano={30} />
-            <Logotipo className="text-[26px]" />
-          </span>
-          <h2 id="cierre-titulo" className="mt-8 font-display text-[34px] leading-[1.1] min-[900px]:text-[46px]">
-            Comprar sin tanta vuelta.
-            <br />
-            <span className="text-atencion-texto">Vender con más orden.</span>
-          </h2>
-          <p className="mt-3 text-[16px] text-texto-secundario">Un catálogo para comprar. Una app para lo que pasa después.</p>
-          <div className="mt-8 flex w-full flex-col gap-3 min-[600px]:max-w-[420px]">
-            <a
-              href={ENLACE_QUIERO_VENDER}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cta="vender"
-              className="tocable flex h-[54px] items-center justify-center rounded-full bg-accion px-6 text-[16px] font-extrabold text-sobre-accion"
-            >
-              Quiero vender
-            </a>
-            <a
-              href={ENLACE_CATALOGO_EJEMPLO}
-              data-cta="catalogo"
-              className="tocable flex h-[54px] items-center justify-center rounded-full border-[1.5px] border-accion px-6 text-[16px] font-extrabold text-texto"
-            >
-              Ver un catálogo de ejemplo
+          <div className="lt-cierre-arriba">
+            <img src="/icons/apple-touch-icon.png" alt="Deslizapp" width={40} height={40} className="lt-cierre-icono" />
+            <a href="#arriba" className="lt-cierre-otra tocable" data-cta="otra-vez">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" />
+              </svg>
+              Ver la demo otra vez
             </a>
           </div>
-          <p className="mt-4 text-[14px] text-texto-secundario">Las tiendas entran por invitación. Escríbenos y te contamos.</p>
-          <p className="mt-6 text-[15px] text-texto-secundario">
-            ¿Ya tienes tienda?{" "}
-            <Link href={RUTA_ENTRAR} data-cta="entrar" className="tocable inline-flex h-11 items-center font-extrabold text-texto underline underline-offset-4">
-              Entrar
-            </Link>
-          </p>
-          <a href="#arriba" className="tocable mt-2 flex h-11 items-center text-[14px] font-bold text-texto-secundario underline underline-offset-4">
-            Ver la demo otra vez
-          </a>
-          <footer className="mt-10 flex justify-center gap-5 pb-[env(safe-area-inset-bottom)] text-[13px] text-texto-secundario">
-            <Link href="/privacidad" className="tocable flex items-center underline">
-              Privacidad
-            </Link>
-            <Link href="/terminos" className="tocable flex items-center underline">
-              Términos
-            </Link>
-          </footer>
+          <div className="lt-abanico" aria-hidden="true">
+            <img src="/landing/feed-gorra.webp" alt="" width={720} height={900} className="lt-abanico-foto lt-abanico-gorra" decoding="async" loading="lazy" />
+            <img src="/landing/feed-tote.webp" alt="" width={720} height={900} className="lt-abanico-foto lt-abanico-tote" decoding="async" loading="lazy" />
+            <img src="/landing/feed-termo.webp" alt="" width={720} height={900} className="lt-abanico-foto lt-abanico-termo" decoding="async" loading="lazy" />
+            <span className="lt-abanico-corazon" data-corazon-cierre>
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" />
+              </svg>
+            </span>
+            <span className="lt-abanico-etiqueta">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+              Despachado
+            </span>
+          </div>
+          <h2 id="cierre-titulo" className="lt-cierre-lema">
+            Comprar sin
+            <br />
+            tanta <span className="lt-lema-vuelta">vuelta</span>.
+            <br />
+            Vender con
+            <br />
+            <span className="lt-lema-orden">más orden</span>.
+          </h2>
+          <div className="lt-cierre-hoja">
+            <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" data-cta="vender" className="lt-cierre-vender tocable">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z" />
+              </svg>
+              Quiero vender
+            </a>
+            <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
+            <a href={ENLACE_CATALOGO_EJEMPLO} data-cta="catalogo" className="lt-cierre-catalogo tocable">
+              Ver un catálogo de ejemplo
+            </a>
+            <p className="lt-cierre-entrar">
+              ¿Ya tienes tienda?
+              <Link href={RUTA_ENTRAR} data-cta="entrar" className="tocable">
+                Entrar
+              </Link>
+            </p>
+            <footer className="lt-cierre-pie">
+              <Link href="/privacidad" className="tocable">
+                Privacidad
+              </Link>
+              <Link href="/terminos" className="tocable">
+                Términos
+              </Link>
+            </footer>
+          </div>
         </section>
       </main>
     </div>
@@ -230,16 +274,25 @@ function Indice() {
 }
 
 /**
- * La pantalla de bloqueo del teléfono de Ana en la portada (ajustes-lewis-7.md §3): la hora, la fecha y «Desliza y mira» sobre el
- * rosa de la marca, con la barrita de inicio. Al primer deslizamiento sube y se va, y el catálogo entra como una app que se abre.
+ * La pantalla de bloqueo del teléfono de Ana en la portada (ajustes-lewis-10.md): la foto del termo desenfocada de fondo, la fecha,
+ * la hora y un aviso de Tu Tienda como los de iOS. Al primer deslizamiento sube y se va, y el catálogo entra como una app que se abre.
  */
 function PantallaBloqueo() {
   return (
     <div className="lt-bloqueo" data-bloqueo>
+      <img src="/landing/feed-termo.webp" alt="" className="lt-bloqueo-foto" decoding="async" />
       <p className="lt-bloqueo-fecha">martes, 14 de octubre</p>
       <p className="lt-bloqueo-hora">3:41</p>
-      <p className="lt-bloqueo-desliza">Desliza y mira</p>
-      <span className="lt-bloqueo-barra" />
+      <div className="lt-bloqueo-aviso" data-aviso-bloqueo>
+        <img src="/landing/feed-termo.webp" alt="" decoding="async" />
+        <div>
+          <p className="lt-bloqueo-aviso-cabeza">
+            <b>{TIENDA_DEMO.nombre}</b>
+            <span>ahora</span>
+          </p>
+          <p>Llegó el termo rosado. Desliza y míralo.</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -285,7 +338,11 @@ function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja
         <span className="lt-burbuja-hueco" aria-hidden="true" />
       </p>
       <span className="lt-burbuja-hora" aria-hidden="true">
-        {HORA_DEMO} <span className="lt-burbuja-checks">✓✓</span>
+        {HORA_DEMO}
+        <svg className="lt-burbuja-checks" viewBox="0 0 18 11">
+          <path className="lt-check lt-check-1" pathLength={1} d="M1 5.4l3.8 4L11.2 1.4" />
+          <path className="lt-check lt-check-2" pathLength={1} d="M7 7.6l1.8 1.8L15.2 1.4" />
+        </svg>
       </span>
       {/* La cola: sale de la esquina de abajo con una curva continua y se afina hacia fuera (r8-cola-burbuja-referencia.webp) */}
       <svg className="lt-burbuja-cola" viewBox="0 0 34 22" aria-hidden="true">

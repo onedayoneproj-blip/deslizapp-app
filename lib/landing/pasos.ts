@@ -68,7 +68,7 @@ export const DEDO_LLEGA = 480;
 export const PASOS: Paso[] = [
   // La portada: el video, el icono y el teléfono bloqueado asomando (al deslizar, se desbloquea y entra el catálogo).
   { id: "intro", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: null, dedo: "no", fases: 0, duracion: 600 },
-  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Este es el catálogo de La Vuelta.", remate: "Así lo ve Ana, que va a comprar.", resalta: ["La Vuelta"] }, dedo: "no", fases: 1, duracion: 700 },
+  { id: "hola", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Entra al catálogo de Tu Tienda.", remate: "Así lo ve quien compra.", resalta: ["Tu Tienda"] }, dedo: "no", fases: 1, duracion: 700 },
   { id: "pasa", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que no te gusta,", remate: "pasa.", resalta: ["pasa"] }, dedo: "no", fases: 1, duracion: 900 },
   { id: "aaah-termo", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que te gusta: dale aaah.", remate: "Va directo a tu pedido.", resalta: ["aaah"] }, dedo: "toque", fases: 1, duracion: 2400 },
   { id: "aaah-tote", capitulo: 1, lado: "compras", telefono: "compradora", burbuja: { texto: "Uno más.", remate: `Tu pedido ya suma ${pesos(TOTAL_DEMO)}.`, resalta: [pesos(TOTAL_DEMO)] }, dedo: "toque", fases: 1, duracion: 2600 },

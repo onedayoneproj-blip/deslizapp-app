@@ -74,15 +74,16 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     document.addEventListener("visibilitychange", portada);
 
     // La barra de Safari y el rebote del scroll con el color del capítulo (ajustes-lewis-8.md §8): theme-color y el fondo de html y
-    // body, rosa en compras, verde en tienda y el del cierre al llegar a él. Al salir de la landing, se devuelve lo que había.
+    // body: verde en la portada (su degradado de arriba es Bosque) y en la tienda, rosa en compras, y el del cierre al llegar a él.
+    // Al salir de la landing, se devuelve lo que había.
     const tema = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     const temaAntes = tema?.content ?? null;
     const fondosAntes = [raiz.style.background, document.body.style.background];
     const cierre = document.getElementById("cierre");
     let enCierre = false;
     const pintarFondo = () => {
-      const lado = PASOS[activo]?.lado ?? "compras";
-      const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(lado === "tienda" ? "--marca-bosque" : "--marca-rosa-fija").trim();
+      const verde = activo <= 0 || PASOS[activo]?.lado === "tienda";
+      const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(verde ? "--marca-bosque" : "--marca-rosa-fija").trim();
       if (!color || color === "rgba(0, 0, 0, 0)") return;
       if (tema) tema.content = color;
       raiz.style.background = color;
@@ -314,6 +315,10 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if ((ev.target as Element | null)?.closest?.('a[href^="#"]')) saltando = Date.now();
     };
     document.addEventListener("click", alClic, true);
+    // «Desliza y mira»: tocarlo hace lo mismo que deslizar (el desbloqueo sigue al scroll).
+    const desliza = e.querySelector<HTMLElement>("[data-desliza]");
+    const alDesliza = () => secciones[1]?.scrollIntoView({ behavior: reducido.matches ? "instant" : "smooth" });
+    desliza?.addEventListener("click", alDesliza);
     const obs = new IntersectionObserver(
       (entradas) => {
         for (const en of entradas) {
@@ -352,6 +357,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.removeEventListener("message", alDedo);
       window.removeEventListener("resize", esconder);
       document.removeEventListener("click", alClic, true);
+      desliza?.removeEventListener("click", alDesliza);
       raiz.removeAttribute("data-landing-js");
     };
   }, []);

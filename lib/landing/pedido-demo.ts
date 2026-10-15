@@ -20,11 +20,11 @@ export type ProductoDemo = {
   enPedido: boolean;
 };
 
-export const TIENDA_DEMO = { nombre: "La Vuelta", inicial: "V" };
+export const TIENDA_DEMO = { nombre: "Tu Tienda", inicial: "TT" };
 export const COMPRADORA_DEMO = { nombre: "Ana", inicial: "A" };
 
 /** Mismo formato que los códigos reales (lib/tienda/imagen-pedido.ts `codigoPedidoValido`): 10 caracteres sin 0, 1, I ni O. */
-export const CODIGO_DEMO = "LV4K7Q2MZA";
+export const CODIGO_DEMO = "TT4K7Q2MZA";
 /** Número del pedido en el panel de la tienda (los pedidos se numeran por tienda). */
 export const NUMERO_PEDIDO_DEMO = 27;
 /** Dominio que se ve en el mensaje. Es ilustrativo: en la landing no es un enlace. */
