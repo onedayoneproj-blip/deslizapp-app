@@ -82,7 +82,7 @@ test("la base de la demo: Tu Tienda con sus 3 productos y la solicitud del pedid
 
 test("los CTA van a destinos reales", () => {
   assert.equal(enlaces.ENLACE_CATALOGO_EJEMPLO, "/tienda/tienda-de-ensayo");
-  assert.ok(enlaces.ENLACE_QUIERO_VENDER.startsWith("https://wa.me/18297898061?text="));
-  assert.equal(decodeURIComponent(enlaces.ENLACE_QUIERO_VENDER.split("text=")[1]), enlaces.TEXTO_QUIERO_VENDER);
+  assert.equal(enlaces.ENLACE_QUIERO_VENDER, "https://instagram.com/deslizapp");
+  assert.equal(enlaces.RUTA_CONOCE, "/conoce");
   assert.equal(enlaces.RUTA_ENTRAR, "/entrar");
 });

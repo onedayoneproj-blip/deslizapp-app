@@ -1,0 +1,385 @@
+/* La página principal de deslizapp.com sin sesión (components/inicio-publico, docs/prompts/pagina-principal-y-conoce.md): fondo
+   Bosque con el feed de la tienda en columnas que suben sin parar, y abajo el lema y los botones. Excepción de movimiento aprobada
+   para esta página (HANDOFF.md): las columnas, el corazón «aaah» y las burbujas se mueven solos; con movimiento reducido, quietos. */
+
+/* Quien ya eligió «Ver demo» no la ve mientras su panel de prueba abre. */
+:root[data-dz-demo] .ini {
+  visibility: hidden;
+}
+
+.ini {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: calc(84px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+  font-family: var(--font-sans);
+}
+
+/* ---- El feed de fondo: tres columnas giradas que suben, cada una a su velocidad ---- */
+.ini-feed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ini-columnas {
+  position: absolute;
+  left: -44px;
+  right: -44px;
+  top: -12%;
+  height: 130%;
+  display: flex;
+  gap: 10px;
+  transform: rotate(-7deg);
+}
+.ini-columna {
+  flex: 1;
+  min-width: 0;
+  margin-top: var(--desfase);
+}
+/* En el teléfono, tres columnas; en escritorio, seis. */
+.ini-columna:nth-child(n + 4) {
+  display: none;
+}
+.ini-tira {
+  animation: ini-sube var(--vuelta) linear infinite;
+  will-change: transform;
+}
+.ini[data-oculta="si"] .ini-tira {
+  animation-play-state: paused;
+}
+@keyframes ini-sube {
+  to {
+    transform: translateY(-50%);
+  }
+}
+.ini-foto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 249, 238, 0.06);
+}
+.ini-foto img {
+  object-fit: cover;
+}
+
+/* Lectura: suave arriba (el logo) y, detrás del texto, el degradado que se vuelve sólido (va con el texto: .ini-texto::before). */
+.ini-velo {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 24%;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(23, 75, 58, 0.55), rgba(23, 75, 58, 0));
+  pointer-events: none;
+}
+
+/* ---- Arriba: solo el logo ---- */
+.ini-arriba {
+  position: absolute;
+  z-index: 3;
+  top: calc(14px + env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-stretch: 115%;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--marca-papel);
+}
+.ini-arriba img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+/* ---- Abajo: el lema, la descripción y los botones ---- */
+.ini-texto {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+}
+.ini-texto::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -100vw;
+  right: -100vw;
+  top: -150px;
+  bottom: -100vh;
+  background: linear-gradient(180deg, rgba(23, 75, 58, 0), rgba(23, 75, 58, 0.78) 80px, var(--marca-bosque) 150px);
+  pointer-events: none;
+}
+/* Fredoka 700 con trazo, como la portada de /conoce: dos líneas por frase y ninguna se parte. */
+.ini-lema {
+  margin: 0 0 4px;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-weight: 700;
+  font-size: min(40px, 11vw);
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  -webkit-text-stroke: 1.2px currentColor;
+  paint-order: stroke fill;
+  color: var(--marca-papel);
+}
+.ini-lema-vuelta {
+  color: var(--marca-mandarina);
+}
+.ini-lema-orden {
+  color: var(--marca-rosa-fija);
+}
+.ini-descripcion {
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--color-menta);
+}
+.ini-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
+  font-weight: 800;
+  font-size: 17px;
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.55);
+}
+.ini-google:disabled {
+  opacity: 0.8;
+}
+.ini-aviso {
+  border-radius: 18px;
+  padding: 10px 14px;
+  background: rgba(255, 249, 238, 0.12);
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.ini-botones {
+  display: flex;
+  gap: 10px;
+}
+.ini-botones > a {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.ini-como {
+  background: var(--marca-mandarina);
+  color: var(--color-bosque-oscuro);
+}
+.ini-vender {
+  border: 2px solid rgba(255, 249, 238, 0.7);
+  color: var(--marca-papel);
+}
+
+/* ---- Lo vivo: el corazón «aaah» sobre una foto y la burbuja de WhatsApp sobre el lema ---- */
+/* Dentro de la foto (sube con ella), en su centro */
+.ini-latido {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation: ini-latido 1200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ini-latido svg {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  margin-top: -40px;
+  fill: var(--marca-mandarina);
+  filter: drop-shadow(0 6px 14px rgba(16, 54, 42, 0.45));
+}
+.ini-latido b {
+  margin-top: -6px;
+  font-family: var(--font-display);
+  font-stretch: 115%;
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--marca-papel);
+  text-shadow: 0 2px 10px rgba(16, 54, 42, 0.6);
+}
+@keyframes ini-latido {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  34% {
+    transform: scale(0.95);
+  }
+  44%,
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(1.06);
+  }
+}
+.ini-burbuja-sitio {
+  position: relative;
+  height: 0;
+}
+/* La burbuja de la landing (mensaje enviado de WhatsApp): verde claro, Fredoka, la cola de una pieza y el doble check azul. */
+.ini-burbuja {
+  --wa-enviado: #d9fdd3;
+  position: absolute;
+  left: 2px;
+  bottom: 18px;
+  max-width: calc(100% - 24px);
+  padding: 10px 14px 8px;
+  border-radius: 18px;
+  background: var(--wa-enviado);
+  color: var(--marca-bosque);
+  box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-display);
+  font-stretch: 110%;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 21px;
+  transform-origin: 100% 100%;
+  animation: ini-burbuja-entra 340ms cubic-bezier(0.34, 1.45, 0.64, 1) both;
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+}
+.ini-burbuja[data-saliendo="si"] {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+@keyframes ini-burbuja-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+.ini-burbuja p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ini-burbuja b {
+  font-weight: 700;
+}
+.ini-burbuja-icono {
+  flex: none;
+  display: flex;
+  width: 16px;
+  height: 16px;
+}
+.ini-burbuja-icono svg {
+  width: 100%;
+  height: 100%;
+}
+.ini-burbuja-hora {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  font-family: var(--font-sans);
+  font-stretch: normal;
+  font-size: 11px;
+  color: var(--color-suave);
+}
+.ini-checks {
+  width: 16px;
+  height: 10px;
+  overflow: visible;
+  fill: none;
+  stroke: #53bdeb;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ini-burbuja-cola {
+  position: absolute;
+  right: -12px;
+  bottom: 0;
+  width: 26px;
+  height: 17px;
+  overflow: visible;
+  fill: var(--wa-enviado);
+}
+
+/* ---- Escritorio: las columnas llenan el fondo y el texto queda a la izquierda ---- */
+@media (min-width: 900px) {
+  .ini {
+    justify-content: center;
+    padding-left: max(6vw, 40px);
+  }
+  .ini-columnas {
+    left: -60px;
+    right: -60px;
+    gap: 16px;
+  }
+  .ini-columna:nth-child(n + 4) {
+    display: block;
+  }
+  .ini-foto {
+    margin-bottom: 16px;
+  }
+  .ini-texto::before {
+    left: calc(-1 * max(6vw, 40px));
+    right: -22vw;
+    top: -100vh;
+    bottom: -100vh;
+    background: linear-gradient(90deg, var(--marca-bosque) calc(100% - 22vw), rgba(23, 75, 58, 0.7) calc(100% - 11vw), rgba(23, 75, 58, 0));
+  }
+  .ini-lema {
+    font-size: 54px;
+  }
+  .ini-descripcion {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
+
+/* ---- Movimiento reducido: todo quieto (las columnas sin moverse, sin corazones y una sola burbuja fija) ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ini-tira,
+  .ini-burbuja,
+  .ini-latido {
+    animation: none;
+  }
+  .ini-burbuja {
+    transition: none;
+  }
+}

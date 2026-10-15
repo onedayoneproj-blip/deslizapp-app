@@ -4,9 +4,21 @@ import type { NextConfig } from "next";
 // y lo devuelve /api/version: si no coinciden, hay una versión nueva publicada.
 const ID_DESPLIEGUE = process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`;
 
+// Las fotos públicas de Supabase Storage (el feed de la página principal pasa por next/image).
+const HOST_SUPABASE = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return "*.supabase.co";
+  }
+})();
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_ID_DESPLIEGUE: ID_DESPLIEGUE,
+  },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: HOST_SUPABASE, pathname: "/storage/v1/object/public/**" }],
   },
   async headers() {
     return [

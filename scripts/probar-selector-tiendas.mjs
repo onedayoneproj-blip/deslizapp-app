@@ -203,8 +203,8 @@ await caso("5. Admin de la demo: «Salir de la demo» no toca Supabase y vuelve 
   await esperar(page, 800);
   const modo = await page.evaluate(() => localStorage.getItem("deslizapp-modo-v1"));
   ok(modo === null, "la demo se olvida (vuelve la entrada)");
-  // En / sin sesión está la landing (components/landing), con «Entrar» hacia la entrada de siempre.
-  ok((await page.getByRole("link", { name: "Entrar", exact: true }).count()) > 0 && (await page.locator("header button[aria-haspopup=dialog]").count()) === 0, "se ve la landing, no el panel");
+  // En / sin sesión está la página principal (components/inicio-publico), con «Iniciar sesión».
+  ok((await page.getByRole("button", { name: "Iniciar sesión", exact: true }).count()) > 0 && (await page.locator("header button[aria-haspopup=dialog]").count()) === 0, "se ve la página principal, no el panel");
   ok(c.peticiones() === 0, "cero peticiones a Supabase");
   return c;
 });

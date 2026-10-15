@@ -203,7 +203,7 @@ for (const [ancho, alto] of [
   const pagina = await contexto.newPage();
   const errores = [];
   pagina.on("pageerror", (e) => errores.push(e.message));
-  await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   // (el indicador de `next dev` no es de la página: fuera de las capturas)
   await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await pagina.waitForTimeout(1200);
@@ -438,7 +438,7 @@ for (const [ancho, alto] of [
   await pagina.locator("[data-saltar]").click();
   await pagina.waitForTimeout(800);
   ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; }), "«Saltar» lleva al cierre");
-  ok((await pagina.getByRole("link", { name: "Quiero vender" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Quiero vender» abre WhatsApp con el texto");
+  ok((await pagina.getByRole("link", { name: "Quiero vender" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Quiero vender» abre el Instagram de Deslizapp");
   ok((await pagina.getByRole("link", { name: "Ver un catálogo de ejemplo" }).getAttribute("href")) === ENLACE_CATALOGO_EJEMPLO, "«Ver un catálogo de ejemplo» va a la Tienda de ensayo");
   const cierre = await pagina.evaluate(() => {
     const c = document.getElementById("cierre");
@@ -473,7 +473,7 @@ console.log("\nMovimiento reducido");
 {
   const contexto = await nav.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const pagina = await contexto.newPage();
-  await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   await pagina.waitForTimeout(1200);
   ok(await pagina.evaluate(() => document.querySelector("[data-portada]").paused), "en la portada, el video no se reproduce (queda el póster)");
   await irAlPaso(pagina, 1);
@@ -496,13 +496,13 @@ console.log("\nMovimiento reducido");
 console.log("\nEl video de la portada en el HTML del servidor y en un iPhone");
 {
   // React no escribe `muted` en el HTML del servidor; sin él, Safari en iOS no reproduce solo (ajustes-lewis-7.md §2).
-  const html = await (await fetch(base + "/")).text();
+  const html = await (await fetch(base + "/conoce")).text();
   const etiqueta = html.match(/<video[^>]*data-portada[^>]*>/)?.[0] ?? "";
   ok(/\smuted[\s>]/.test(etiqueta) && /\splaysinline[\s>]/.test(etiqueta), "el <video> sale del servidor con `muted` y `playsinline` literales");
   // (aquí no hay WebKit: Chromium con la emulación de iPhone)
   const contexto = await nav.newContext({ ...playwright.devices["iPhone 13"] });
   const pagina = await contexto.newPage();
-  await pagina.goto(base + "/", { waitUntil: "networkidle" });
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
   await pagina.waitForTimeout(2000);
   ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "con la emulación de iPhone, el video arranca solo");
   await contexto.close();
@@ -512,7 +512,7 @@ console.log("\nSin JavaScript");
 {
   const contexto = await nav.newContext({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false });
   const pagina = await contexto.newPage();
-  await pagina.goto(base + "/");
+  await pagina.goto(base + "/conoce");
   ok(await pagina.getByRole("heading", { name: "Un pedido, de principio a fin" }).isVisible(), "se entiende la propuesta (pasos con capturas)");
   ok((await pagina.locator(".landing-pasos [data-paso]").count()) === PASOS.length, "un paso por cada uno de la demo");
   ok(await pagina.getByRole("link", { name: "Quiero vender" }).isVisible(), "y se llega a los CTA");
@@ -528,7 +528,10 @@ console.log("\nCon el modo demo elegido, / abre el panel como antes");
   await pagina.goto(base + "/", { waitUntil: "networkidle" });
   await pagina.getByRole("navigation", { name: "Secciones" }).waitFor({ timeout: 15000 }).catch(() => {});
   ok(await pagina.getByRole("navigation", { name: "Secciones" }).isVisible(), "se ve el panel (barra de secciones)");
-  ok(!(await pagina.locator(".landing").isVisible()), "y no la landing");
+  ok(!(await pagina.locator(".ini").isVisible()), "y no la página principal");
+  // /conoce se ve siempre, también con la demo elegida.
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  ok(await pagina.locator(".lt-escenario").isVisible(), "/conoce muestra la landing también con la demo elegida");
   await contexto.close();
 }
 

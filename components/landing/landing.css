@@ -22,10 +22,6 @@
 :root[data-landing-js]:has(.landing-demo) {
   scroll-snap-type: y mandatory;
 }
-/* En modo demo (eligió «Ver demo» antes) la landing no se muestra: abre su panel de prueba. */
-:root[data-dz-demo] .landing {
-  visibility: hidden;
-}
 
 .landing-demo {
   position: relative;

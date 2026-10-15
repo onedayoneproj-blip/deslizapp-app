@@ -7,7 +7,8 @@ import { PantallaCarga } from "@/components/panel/pantalla-carga";
 import { PantallaEntrada } from "@/components/panel/pantalla-entrada";
 import { PanelUIProvider } from "@/components/panel/ui";
 import { InicioPublico } from "@/components/landing/inicio-publico";
-import { Landing } from "@/components/landing/landing";
+import { PaginaPrincipal } from "@/components/inicio-publico/pagina-principal";
+import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { RecuperarVerComo } from "@/components/admin/recuperar-ver-como";
 import { COOKIE_RECUPERAR_VER_COMO, COOKIE_TIENDA_VER_COMO, COOKIE_VER_COMO } from "@/lib/admin/ver-como";
 import type { SesionVerComo } from "@/lib/admin/tipos";
@@ -47,11 +48,13 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
 }
 
 /**
- * Sin sesión en el servidor: en `/` se ve la landing (pintada aquí, se entiende sin JavaScript) y en el resto la entrada de
- * siempre. Si el navegador tiene la demo o una sesión, el DataProvider abre el panel igual que antes (components/landing/inicio-publico.tsx).
+ * Sin sesión en el servidor: en `/` se ve la página principal (pintada aquí, con las fotos de la tienda Deslizapp) y en el resto
+ * la entrada de siempre. Si el navegador tiene la demo o una sesión, el DataProvider abre el panel igual que antes
+ * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
  */
-function SinSesion({ children }: { children: ReactNode }) {
-  const publico = <InicioPublico landing={<Landing />} />;
+async function SinSesion({ children }: { children: ReactNode }) {
+  const { fotos } = await fotosInicio();
+  const publico = <InicioPublico principal={<PaginaPrincipal fotos={fotos} />} />;
   return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }
 

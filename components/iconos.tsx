@@ -393,3 +393,21 @@ export const IconoBolsa = (p: Props) => (
     <path d="M9 10V7a3 3 0 0 1 6 0v3" />
   </Icono>
 );
+
+/** Instagram: el cuadrado redondeado con el lente y el punto. */
+export const IconoInstagram = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" />
+  </Icono>
+);
+
+/** Reels: el cuadrado redondeado con su franja de arriba, dos rayas en diagonal y el play. */
+export const IconoReels = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <path d="M3 8.5h18M8.5 3l2.5 5.5M14 3l2.5 5.5" />
+    <path d="M10.5 12.2v5.1l4.3-2.55z" fill="currentColor" />
+  </Icono>
+);

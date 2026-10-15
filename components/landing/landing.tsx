@@ -5,20 +5,20 @@ import { Isotipo, Logotipo } from "../marca";
 import { PASOS, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
-import { KEY_MODO } from "@/lib/data/modo";
 import { Icono } from "../tienda/iconos";
+import { IconoInstagram } from "../iconos";
 import { DemoPasos } from "./controlador";
 import "./landing.css";
 
-// Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos), y quien ya eligió «Ver demo»
-// no ve la landing mientras su panel de prueba abre (lib/data/sesion.ts lo decide en el navegador).
-const ANTES_DE_PINTAR = `(function(){var r=document.documentElement;r.setAttribute("data-landing-js","");try{if(localStorage.getItem(${JSON.stringify(KEY_MODO)})==="demo")r.setAttribute("data-dz-demo","")}catch(e){}})();`;
+// Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos). La landing vive en /conoce y
+// se ve siempre, con sesión, sin ella o en la demo.
+const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
 
 // El video de la portada con sus atributos literales en el HTML del servidor: React no escribe `muted`, y sin él Safari en iOS no
 // lo reproduce solo (ajustes-lewis-7.md §2).
 const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline loop preload="metadata" poster="/landing/portada.webp" tabindex="-1" disablepictureinpicture><source src="/landing/portada.webm" type='video/webm; codecs="av01.0.05M.08"'><source src="/landing/portada.mp4" type="video/mp4"></video>`;
 
-/** La landing de deslizapp.com para quien no tiene sesión (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
+/** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {
   return (
     <div className="landing" id="arriba">
@@ -181,9 +181,7 @@ export function Landing() {
           </h2>
           <div className="lt-cierre-hoja">
             <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" data-cta="vender" className="lt-cierre-vender tocable">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z" />
-              </svg>
+              <IconoInstagram tamano={22} strokeWidth={2.2} />
               Quiero vender
             </a>
             <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
