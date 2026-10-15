@@ -99,6 +99,7 @@
 .lt-escenario {
   --alto-burbujas: 166px;
   --monta: 12px;
+  --bajo-telefono: 6px;
   /* el índice ya no lleva palabras: el teléfono recupera ese ancho */
   --ancho-indice: 16px;
 }
@@ -591,18 +592,21 @@
   bottom: var(--alto-abajo);
   height: var(--alto-burbujas);
   pointer-events: none;
-  /* Lo que sube más allá de la columna no se ve (a los lados y abajo, aire para el rebote y la cola) */
-  clip-path: inset(0 -24px -24px -24px);
+  /* Lo que sube más allá de la columna no se ve (arriba, lo que monta el teléfono; a los lados y abajo, aire para el rebote y
+     la cola) */
+  clip-path: inset(calc(-1 * var(--bajo-telefono)) -24px -24px -24px);
   filter: drop-shadow(0 1px 1px rgba(16, 54, 42, 0.18));
 }
+/* La burbuja del paso va arriba de su columna, con su borde bajo el teléfono (--bajo-telefono más --monta: unos 18 px). Su
+   relleno de arriba es mayor que eso, así que ninguna letra queda debajo. Las anteriores suben por detrás del teléfono y se van. */
 .lt-burbuja {
   /* el verde claro de los mensajes enviados de WhatsApp, con el texto oscuro de la marca */
   --wa-enviado: #d9fdd3;
   position: absolute;
   right: 16px;
-  bottom: 4px;
+  top: calc(-1 * var(--bajo-telefono));
   max-width: min(94%, 440px);
-  padding: 11px 14px 9px 18px;
+  padding: calc(var(--monta) + var(--bajo-telefono) + 12px) 14px 9px 18px;
   border-radius: 18px;
   background: var(--wa-enviado);
   color: var(--marca-bosque);

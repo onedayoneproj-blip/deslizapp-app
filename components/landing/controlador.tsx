@@ -51,10 +51,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let irse = 0;
     let posicion: Punto | null = null;
 
-    /**
-     * Las burbujas como un chat (ajustes-lewis-4.md): la del paso abajo; las anteriores, encima, subidas lo que ocupan las de
-     * abajo (--sube). La que ya no cabe en la columna se va; las siguientes esperan pequeñas abajo a la derecha.
-     */
     // El video de la portada (ajustes-lewis-7.md §2 y -8.md §3): sin sonido y en bucle sin parar nunca (solo se pausa con la pestaña
     // oculta); con movimiento reducido o ahorro de datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes
     // de play() (el atributo `muted` ya viene en el HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador
@@ -150,24 +146,24 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       const f = finasDe(activo).find((x) => x.dataset.llena === "no");
       if (f) f.dataset.llena = "si";
     };
-    const columna = e.querySelector<HTMLElement>(".lt-burbujas");
+    /**
+     * Las burbujas como un chat (ajustes-lewis-4.md y -8.md): la del paso arriba de su columna, con el borde bajo el teléfono; las
+     * anteriores suben lo que ocupan (--sube) por detrás del teléfono y se van; las siguientes esperan pequeñas abajo a la derecha.
+     */
     const apilar = (i: number) => {
-      // (la columna menos los 4 px con que la burbuja se separa de su borde de abajo y lo que el teléfono se monta sobre ella:
-      // landing.css .lt-burbuja y --monta; ninguna letra queda bajo el teléfono)
-      const alto = (columna?.clientHeight ?? 0) - 4 - (parseFloat(getComputedStyle(e).getPropertyValue("--monta")) || 0);
       let y = 0;
       for (const b of burbujas.slice(i + 1)) {
         if (!b) continue;
         b.dataset.estado = "futura";
         b.style.removeProperty("--sube");
       }
+      // La del paso, arriba de la columna (con el borde bajo el teléfono); las de antes suben por detrás del teléfono y se van.
       for (let j = i; j >= 0; j--) {
         const b = burbujas[j];
         if (!b) continue;
-        const h = b.offsetHeight;
+        if (j < i) y += b.offsetHeight + 6;
         b.style.setProperty("--sube", `${-y}px`);
-        b.dataset.estado = j === i ? "actual" : y + h <= alto ? "pasada" : "lejos";
-        y += h + 6;
+        b.dataset.estado = j === i ? "actual" : "lejos";
       }
     };
 

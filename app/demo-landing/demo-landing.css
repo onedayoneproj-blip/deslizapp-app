@@ -22,6 +22,15 @@ body {
    una hoja se confundía con el fondo verde de la landing y parecía que la pantalla no llegaba al marco (ajustes-lewis-8.md §6). */
 html:root {
   --velo: rgba(16, 54, 42, 0.22);
+  /* Las hojas llegan hasta el borde de arriba de la pantalla, como en un iPhone (ajustes-lewis-8.md §6 y la captura r9): en un
+     iframe no hay zona segura, y el margen de la app (--hoja-tope) dejaba ver junto a la isla lo que hay detrás. */
+  --hoja-tope: 0px;
+}
+/* …y las hojas altas guardan el sitio de la isla con su propio color, para que su cabecera no quede debajo de ella. */
+[data-hoja-panel]:not([data-altura="auto"]) {
+  border-top: 46px solid var(--fondo);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 .dz-pantalla {
   position: fixed;
