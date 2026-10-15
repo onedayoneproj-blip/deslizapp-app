@@ -1,7 +1,10 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
+import { CABECERA_RUTA } from "@/lib/inicio/ruta";
 
 export async function proxy(request: NextRequest) {
+  // La ruta, para el layout del panel: solo en `/` lee las fotos de la página principal (app/(dashboard)/layout.tsx).
+  request.headers.set(CABECERA_RUTA, request.nextUrl.pathname);
   return await updateSession(request);
 }
 

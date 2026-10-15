@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { CABECERA_RUTA } from "@/lib/inicio/ruta";
 import { AvisoRed } from "@/components/panel/aviso-red";
 import { Encabezado } from "@/components/panel/encabezado";
 import { NavInferior } from "@/components/panel/nav-inferior";
@@ -18,17 +19,8 @@ import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { ToastProvider } from "@/components/toast";
 import { ProveedorToast } from "@/components/ui";
 
-// Los enlaces viejos a un paso de la landing, que antes vivía en `/` (`/#paso-…`, `/#cierre`, `/#demo`), llegan a /conoce. Va antes
-// de pintar y para todos, con sesión o sin ella: el hash no llega al servidor.
-const ENLACES_VIEJOS = `(function(){if(location.pathname==="/"&&/^#(paso-|cierre$|demo$)/.test(location.hash))location.replace("/conoce"+location.hash)})();`;
-
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
-  return (
-    <>
-      <script dangerouslySetInnerHTML={{ __html: ENLACES_VIEJOS }} />
-      <DashboardAutorizado>{children}</DashboardAutorizado>
-    </>
-  );
+  return <DashboardAutorizado>{children}</DashboardAutorizado>;
 }
 
 async function DashboardAutorizado({ children }: { children: ReactNode }) {
@@ -62,8 +54,11 @@ async function DashboardAutorizado({ children }: { children: ReactNode }) {
  * (components/landing/inicio-publico.tsx). La landing con la demo vive en /conoce (app/conoce).
  */
 async function SinSesion({ children }: { children: ReactNode }) {
-  const { fotos } = await fotosInicio();
-  const publico = <InicioPublico principal={<PaginaPrincipal fotos={fotos} />} />;
+  // Solo `/` lleva la página principal: en el resto (/entrar, /pedidos…) no se leen sus fotos ni se manda su árbol. Si se llega a
+  // `/` navegando dentro del panel (el layout no se vuelve a pintar), InicioPublico la pide al servidor.
+  const enRaiz = (await headers()).get(CABECERA_RUTA) === "/";
+  const principal = enRaiz ? <PaginaPrincipal fotos={(await fotosInicio()).fotos} /> : null;
+  const publico = <InicioPublico principal={principal} />;
   return <DataProvider cargando={publico} entrada={publico}><DashboardUI>{children}</DashboardUI></DataProvider>;
 }
 

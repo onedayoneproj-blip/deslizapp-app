@@ -150,6 +150,21 @@ console.log("\n«Iniciar sesión» hace lo mismo que «Entrar con Google» de /e
   if (SUPABASE_URL) ok(inicio.proveedor === "google" && inicio.vuelta === "/auth/callback", "sale a Google y vuelve por /auth/callback");
 }
 
+console.log("\nSolo / lleva la página principal");
+{
+  // En el resto de rutas del panel sin sesión no se leen sus fotos ni se manda su árbol.
+  const html = await (await fetch(base + "/entrar")).text();
+  ok(!html.includes('class="ini"') && !html.includes("data-foto-inicio"), "/entrar no trae la página principal en su HTML");
+  // Llegando a / navegando dentro del panel (sin recargar el layout), se pide al servidor y se ve.
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/entrar", { waitUntil: "networkidle" });
+  await pagina.evaluate(() => window.next?.router?.push("/"));
+  await pagina.locator(".ini-foto").first().waitFor({ timeout: 15000 }).catch(() => {});
+  ok(new URL(pagina.url()).pathname === "/" && (await pagina.locator(".ini-foto").count()) > 0, "de /entrar a / sin recargar, se ve la página principal");
+  await contexto.close();
+}
+
 console.log("\nMovimiento reducido: nada se mueve");
 {
   const contexto = await nav.newContext({ viewport: { width: 393, height: 852 }, reducedMotion: "reduce" });

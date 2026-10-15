@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSesion } from "@/lib/data/provider";
 import { PantallaCarga } from "../panel/pantalla-carga";
 import { PantallaEntrada } from "../panel/pantalla-entrada";
@@ -15,15 +15,22 @@ import { PantallaEntrada } from "../panel/pantalla-entrada";
  *   aviso (`/?error_login=1`), con la cuenta sin tienda o si no se pudo comprobar la sesión.
  * - Comprobando una sesión (cookie de Supabase), la pantalla de carga.
  */
-export function InicioPublico({ principal }: { principal: ReactNode }) {
+export function InicioPublico({ principal }: { principal: ReactNode | null }) {
   const sesion = useSesion();
   const ruta = usePathname();
   const enRaiz = ruta === "/";
   // Aún sin leer la sesión (servidor y primer render): en `/` va la página principal; en el resto, la carga de siempre.
   const verPrincipal = enRaiz && (sesion === null || (sesion.tipo === "entrada" && !sesion.aviso));
-  if (verPrincipal) return <PrincipalVisible confirmada={sesion !== null}>{principal}</PrincipalVisible>;
+  if (verPrincipal) return principal ? <PrincipalVisible confirmada={sesion !== null}>{principal}</PrincipalVisible> : <PedirPrincipal />;
   if (!sesion || sesion.tipo === "cargando" || sesion.tipo === "demo" || sesion.tipo === "lista") return <PantallaCarga />;
   return <PantallaEntrada />;
+}
+
+/** Se llegó a `/` navegando dentro del panel: el servidor no mandó la página principal (solo la manda en `/`). Se le pide. */
+function PedirPrincipal() {
+  const router = useRouter();
+  useEffect(() => router.refresh(), [router]);
+  return <PantallaCarga />;
 }
 
 function PrincipalVisible({ confirmada, children }: { confirmada: boolean; children: ReactNode }) {
