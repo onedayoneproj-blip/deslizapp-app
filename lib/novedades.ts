@@ -22,6 +22,13 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.76.0", fecha: "2026-10-15", titulo: "Tu catálogo tiene casa propia.",
+    cambios: [
+      "El enlace de tu catálogo ahora empieza con deslizapp.com.",
+      "Compártelo como siempre: tus clientes llegan a tu misma tienda.",
+    ],
+  },
+  {
     version: "0.75.0", fecha: "2026-10-14", titulo: "Opciones, sin enredos.",
     cambios: [
       "Al crear un producto, «¿Viene en varias opciones?» ahora se responde con Sí o No.",
