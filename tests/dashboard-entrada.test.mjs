@@ -9,10 +9,11 @@ const require = createRequire(import.meta.url);
 const modulo = (source) => `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
 const fixture = modulo(`
   export const COOKIE_DEMO_INTERNA = "demo-interna";
-  export async function exigirDemoInterna() {}
+  export async function puedeUsarDemoInterna() { return globalThis.__entrada.internaAutorizada === true; }
+  export function redirect(url) { throw new Error("redirect:" + url); }
   export const CABECERA_RUTA = "x-dz-ruta", HAY_SUPABASE = true;
   export const COOKIE_RECUPERAR_VER_COMO = "recuperacion", COOKIE_VER_COMO = "ver-como", COOKIE_TIENDA_VER_COMO = "tienda";
-  export async function cookies() { return { get: () => undefined }; }
+  export async function cookies() { return { get: name => name === "demo-interna" && globalThis.__entrada.interna ? { value: "1" } : undefined }; }
   export async function headers() { return new Headers({ "x-dz-ruta": globalThis.__entrada.ruta }); }
   export async function createClient() { return {
     auth: { getClaims: async () => ({ data: globalThis.__entrada.autenticada ? { claims: { sub: "usuario-fixture" } } : null }) },
@@ -22,10 +23,22 @@ const fixture = modulo(`
   ${["AvisoRed", "Encabezado", "NavInferior", "PantallaCarga", "PantallaEntrada", "PanelUIProvider", "InicioPublico", "PaginaPrincipal", "RecuperarVerComo", "DataProvider", "ProveedorSoloMirar", "ProveedorDemo", "LimiteDemo", "ToastProvider", "ProveedorToast"].map((name) => `export function ${name}() { return null; }`).join("\n")}
 `);
 const source = readFileSync(new URL("../app/(dashboard)/layout.tsx", import.meta.url), "utf8")
-  .replace(/from "(?:@\/[^\"]+|next\/headers)"/g, `from ${JSON.stringify(fixture)}`);
+  .replace(/from "(?:@\/[^\"]+|next\/(?:headers|navigation))"/g, `from ${JSON.stringify(fixture)}`);
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.ReactJSX } }).outputText
   .replace('"react/jsx-runtime"', JSON.stringify(new URL(require.resolve("react/jsx-runtime"), "file:").href));
 const { default: Layout } = await import(modulo(compiled));
+
+test("el layout recupera una selección interna caducada y mantiene el proveedor interno solo con identidad autorizada", async () => {
+  try {
+    globalThis.__entrada = { interna: true, internaAutorizada: false, ruta: "/entrar", lecturas: 0 };
+    let tree = Layout({ children: "panel-fixture" });
+    await assert.rejects(() => tree.type(tree.props), /redirect:\/api\/demo-interna/);
+    assert.equal(globalThis.__entrada.lecturas, 0);
+    globalThis.__entrada.internaAutorizada = true;
+    tree = await tree.type(tree.props);
+    assert.equal(tree.type.name, "ProveedorDemo"); assert.equal(tree.props.interna, true);
+  } finally { delete globalThis.__entrada; }
+});
 
 test("el layout prepara la misma entrada pública con y sin sesión del servidor, incluso para SIGNED_OUT posterior", async () => {
   for (const autenticada of [false, true]) {
