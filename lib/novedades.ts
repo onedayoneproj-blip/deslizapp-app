@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.77.0", fecha: "2026-10-15", titulo: "Entra, sin tanta vuelta.",
+    cambios: [
+      "La demo estrena video: míralo completo o desliza cuando quieras.",
+      "«Entrar» te lleva a la página principal, con tus avisos a la vista.",
+      "También puedes probar la app con datos de prueba desde ahí.",
+    ],
+  },
+  {
     version: "0.76.0", fecha: "2026-10-15", titulo: "Tu catálogo tiene casa propia.",
     cambios: [
       "El enlace de tu catálogo ahora empieza con deslizapp.com.",

@@ -7,6 +7,15 @@ pantalla y con qué datos; donde el prototipo trae cosas que no entran en esta
 entrega (compra de créditos, planes "Básico 40 / Pro 100", descuentos en RD$,
 campo "Marca o línea"), manda lo que dice aquí.
 
+## Página principal y demo pública (15 oct 2026)
+
+**Estado:** implementado en [#133](https://github.com/onedayoneproj-blip/deslizapp-app/pull/133), pendiente de integración y de Safari/PWA físico. Encargo: [video de portada y entrada](prompts/video-v2-y-entrar.md).
+
+- Sin sesión, `/` y `/entrar` comparten la página principal, sus fotos, «Iniciar sesión» y el enlace pequeño «Probar la app con datos de prueba». Los avisos de entrada conservan su texto en una tarjeta crema encima de los botones. También ocurre si la sesión se cierra en el navegador después de que el servidor autorizara el panel. Las fotos solo se leen para estas dos rutas; las demás rutas conservan su entrada y los estados de cuenta sin tienda/error.
+- `/conoce` muestra primero el video `portada-v2` completo, sin sonido y solo con «Saltar» encima. Al final sigue en bucle y entran icono/lema y, 250 ms después, teléfono/«Desliza y mira». Un gesto anticipado muestra todo al momento; a los 10 s entra aunque el video no responda.
+- Con movimiento reducido o ahorro de datos no se solicitan archivos de video: solo póster y portada completa. El HTML entrega fuentes sin `src`; el controlador las activa después de comprobar las preferencias. Si el autoplay falla, entra todo sin esperar.
+- «Entrar» desde `/conoce` lleva a `/`. Los contratos de Google, `dz_volver` e invitaciones se conservan. Pruebas: `probar-landing`, `probar-inicio` y `tests/dashboard-entrada.test.mjs` (Auth simulado).
+
 ## Reglas generales
 
 **Diseño:** pensado primero para celular (ancho 360–430 px). En computadora,

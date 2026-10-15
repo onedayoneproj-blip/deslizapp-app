@@ -12,6 +12,8 @@ const BASE_HILO = 100;
  */
 const QUEDA = 0;
 const QUEDA_CHECK = 1300;
+/** Si la primera vuelta del video no termina (no carga, no arranca…), a los 10 s entra la portada igual. */
+const TOPE_PRIMERA_VUELTA = 10000;
 const VIAJE = 700;
 
 type Punto = { x: number; y: number };
@@ -51,10 +53,10 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let irse = 0;
     let posicion: Punto | null = null;
 
-    // El video de la portada (ajustes-lewis-7.md §2 y -8.md §3): sin sonido y en bucle sin parar nunca (solo se pausa con la pestaña
-    // oculta); con movimiento reducido o ahorro de datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes
-    // de play() (el atributo `muted` ya viene en el HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador
-    // no dejó, en el primer gesto.
+    // El video de la portada (ajustes-lewis-7.md §2, -8.md §3 y docs/prompts/video-v2-y-entrar.md): sin sonido; la primera vuelta
+    // se ve entera y luego sigue en bucle sin parar nunca (solo se pausa con la pestaña oculta); con movimiento reducido o ahorro de
+    // datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes de play() (el atributo `muted` ya viene en el
+    // HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador no dejó, en el primer gesto.
     const video = e.querySelector<HTMLVideoElement>("[data-portada]");
     const ahorroDeDatos = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
     const puedeCorrer = () => !document.hidden && !reducido.matches && !ahorroDeDatos();
@@ -62,7 +64,17 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (!video || !puedeCorrer()) return;
       video.muted = true;
       video.defaultMuted = true;
-      if (video.paused) void video.play().catch(() => {});
+      // Las fuentes no llevan src en el HTML: ni el precargador del navegador descarga video antes de leer las preferencias.
+      const pendientes = video.querySelectorAll<HTMLSourceElement>("source[data-src]:not([src])");
+      if (pendientes.length) {
+        pendientes.forEach((fuente) => { fuente.src = fuente.dataset.src!; });
+        video.load();
+      }
+      if (video.paused)
+        void video.play().catch((err: unknown) => {
+          // El navegador no deja reproducirlo solo (iOS en ahorro de energía…): queda el póster y todo entra ya.
+          if (err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "NotSupportedError")) entrar(true);
+        });
     };
     const portada = () => {
       if (!video) return;
@@ -114,11 +126,45 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     video?.addEventListener("canplay", reproducir);
     gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true, once: true }));
 
-    // La entrada de la portada: a los 0.7 s sube el icono y enseguida asoma el teléfono bloqueado (landing.css, data-entrada).
-    const entrada = [
-      window.setTimeout(() => (e.dataset.entrada = "icono"), reducido.matches ? 0 : 700),
-      window.setTimeout(() => (e.dataset.entrada = "telefono"), reducido.matches ? 0 : 950),
-    ];
+    // La entrada de la portada (docs/prompts/video-v2-y-entrar.md): la primera vuelta del video se ve sola y limpia, solo con
+    // «Saltar». Al terminarla entran el icono y el lema y enseguida el teléfono bloqueado y «Desliza y mira» (landing.css,
+    // data-entrada), y el video sigue en bucle. Entra todo ya si la persona desliza o toca antes, si no hay video (movimiento
+    // reducido, ahorro de datos, autoplay bloqueado) o si se abre más abajo; y, como tope, a los 10 s.
+    const entrada: number[] = [];
+    let entrado = false;
+    const entrar = (ya: boolean) => {
+      if (entrado) return;
+      entrado = true;
+      window.clearTimeout(tope);
+      if (video) video.loop = true;
+      if (ya) {
+        e.dataset.entrada = "telefono";
+        return;
+      }
+      e.dataset.entrada = "icono";
+      entrada.push(window.setTimeout(() => (e.dataset.entrada = "telefono"), 250));
+    };
+    const tope = window.setTimeout(() => entrar(false), TOPE_PRIMERA_VUELTA);
+    // Justo antes del final se pone en bucle, para que la vuelta siguiente empiece sin corte; si aun así llega `ended`, se sigue.
+    const alAvanzar = () => {
+      if (video && video.duration && video.currentTime >= video.duration - 0.3) entrar(false);
+    };
+    const alTerminar = () => {
+      entrar(false);
+      reproducir();
+    };
+    const alGestoEntrar = () => entrar(true);
+    const gestosEntrar = ["pointerdown", "touchstart", "wheel", "keydown"] as const;
+    const alDeslizarEntrar = () => {
+      if (scrollY > 2) entrar(true);
+    };
+    if (!video || reducido.matches || ahorroDeDatos() || scrollY > 2 || location.hash) entrar(true);
+    else {
+      video.addEventListener("timeupdate", alAvanzar);
+      video.addEventListener("ended", alTerminar);
+      gestosEntrar.forEach((g) => window.addEventListener(g, alGestoEntrar, { passive: true }));
+      window.addEventListener("scroll", alDeslizarEntrar, { passive: true });
+    }
 
     /**
      * El indicador (ajustes-lewis-7.md §1): la gruesa del paso, marcada al llegar; sus finas se llenan una a una con cada toque o
@@ -343,6 +389,11 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.clearTimeout(espera);
       window.clearTimeout(llenar);
       entrada.forEach((t) => window.clearTimeout(t));
+      window.clearTimeout(tope);
+      video?.removeEventListener("timeupdate", alAvanzar);
+      video?.removeEventListener("ended", alTerminar);
+      gestosEntrar.forEach((g) => window.removeEventListener(g, alGestoEntrar));
+      window.removeEventListener("scroll", alDeslizarEntrar);
       video?.removeEventListener("loadeddata", reproducir);
       video?.removeEventListener("canplay", reproducir);
       gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));

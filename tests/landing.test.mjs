@@ -98,5 +98,5 @@ test("los CTA van a destinos reales", () => {
   assert.equal(enlaces.ENLACE_CATALOGO_EJEMPLO, "/tienda/tienda-de-ensayo");
   assert.equal(enlaces.ENLACE_QUIERO_VENDER, "https://instagram.com/deslizapp");
   assert.equal(enlaces.RUTA_CONOCE, "/conoce");
-  assert.equal(enlaces.RUTA_ENTRAR, "/entrar");
+  assert.equal(enlaces.RUTA_ENTRAR, "/");
 });
