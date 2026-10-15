@@ -1,6 +1,15 @@
 # Relevo vigente de Planning
 
-Actualizado: 13 de octubre de 2026 (tarde), comprobado contra GitHub. `main` en `22fc9af` (squash de #122) más este commit de documentos. Ver «Estado al 13 oct (tarde)» primero; «Estado al 13 oct» y «Estado al 12 oct» son anteriores. Las líneas «En curso (11 oct)» son históricas.
+Actualizado: 15 de octubre de 2026, comprobado contra GitHub. Código de main en `2d70ff3` (squash de #133), más este relevo documental. Leer primero «Estado al 15 oct»; los estados del 13 oct y anteriores son históricos y sus «siguientes» no constituyen encargos activos sin contrastarlos con GitHub.
+
+## Estado al 15 oct 2026
+
+- **#129 fusionado** por autorización de Lewis: `9ec39d184f4fbbbeb7919ca80df5807ea87ec1df`. Dominio canónico deslizapp.com y Novedades 0.76.0. CI verde, Codex sobre HEAD `d8948c4` sin hallazgos; hilos resueltos. La migración 20261014140044 ya estaba aplicada: Planning no la reaplicó ni modificó.
+- **#133 fusionado** después de #129: `2d70ff37c126ccbb1047daef1fd82b7d1a93d7ac`. Video v2 de /conoce y entrada compartida de / y /entrar; Novedades 0.77.0. HEAD previo al merge `e06684ec6839bf77d4441679e4828efa825554d2`: [Revisión verde](https://github.com/onedayoneproj-blip/deslizapp-app/actions/runs/38764715694), preview READY, [Codex sin nuevos hallazgos](https://github.com/onedayoneproj-blip/deslizapp-app/pull/133#issuecomment-6196468899), cero hilos pendientes. Entrega y evidencias en [#133](https://github.com/onedayoneproj-blip/deslizapp-app/pull/133).
+- **Actualización de #133:** se reprodujo el rebase de sus dos commits no merge mediante la API de objetos Git porque el ejecutor local no conectaba al proxy. La base del squash de #129 tiene el árbol de `d8948c4`; el HEAD actualizado conserva exactamente el árbol validado de `0ad6615`: `0dfeb367a86b1eb0f14e41ad668bce737d429bb3`. Publicado con lease contra el HEAD previo. Planning no editó la implementación.
+- **Verificación y límites:** Coding reportó build y navegador aprobados para ese mismo contenido, 624 pruebas en #133 y paridad de migraciones 66/66. Planning comprobó checks, revisiones y árboles en GitHub. Safari/PWA de iPhone físico y OAuth real no se verificaron en esta ronda. Al escribir este relevo, el despliegue de producción de #133 seguía en curso; comprobar su estado antes de declararlo publicado.
+- **Herramientas y seguimiento:** esta sesión no tiene herramientas claude-code-remote para crear o retomar sesiones. Los prompts los pasa Lewis a Coding. La búsqueda de tareas específicas de #129/#133 en Notion no devolvió coincidencias; no se creó seguimiento duplicado ni se marcaron tareas ajenas como terminadas.
+- **Soft Era / María:** por petición explícita de Lewis, se restauraron descripción, foto de perfil, colores y personalización del respaldo en la tienda nueva, conservando cuenta, WhatsApp y onboarding. Sus dos productos «Relojes» se compararon completos antes/después y quedaron idénticos. Auditoría en registro_admin, acción restaurar_marca_desde_respaldo. Después Lewis autorizó el mismo acceso «ilimitado» de las otras tiendas: plan custom con límite efectivo 100000; no existe aún el valor verdaderamente sin límite en el esquema actual. Se usó admin_cambiar_plan, con registro y comprobación de que solo cambiaron plan/límite. El respaldo original sigue conservado.
 
 ## Estado al 13 oct 2026 (tarde)
 
