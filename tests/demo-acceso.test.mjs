@@ -22,6 +22,20 @@ const api = await import(modulo(compilar("../app/api/demo-interna/route.ts", s =
 const google = { id: "lewis-fixture", identities: [{ provider: "google" }] };
 const preparar = usuario => globalThis.__demoAuth = { usuario, cookies: [], lecturas: 0, error: null };
 
+test("selección interna caducada: recupera /entrar sin cerrar Google; una identidad válida conserva su selección", async () => {
+ const previo = process.env.DEMO_INTERNAL_AUTH_USER_ID;
+ try {
+  process.env.DEMO_INTERNAL_AUTH_USER_ID = "lewis-fixture";
+  for (const usuario of [null, { ...google, id: "otra" }, google]) {
+   preparar(usuario);
+   const r = await api.GET(new Request("https://demo.test/api/demo-interna"));
+   assert.equal(r.status, 303); assert.equal(r.headers.get("location"), "https://demo.test/entrar");
+   assert.equal(r.headers.get("cache-control"), "no-store");
+   assert.deepEqual(globalThis.__demoAuth.cookies, usuario === google ? [] : [["delete", "deslizapp-demo-interna"]]);
+  }
+ } finally { if (previo === undefined) delete process.env.DEMO_INTERNAL_AUTH_USER_ID; else process.env.DEMO_INTERNAL_AUTH_USER_ID = previo; delete globalThis.__demoAuth; }
+});
+
 test("guard real: visitante, otra cuenta, metadata falsificada, error Auth y configuración ausente quedan cerrados", async () => {
  const previo = process.env.DEMO_INTERNAL_AUTH_USER_ID;
  try {

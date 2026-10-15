@@ -104,7 +104,9 @@ const ctx = await b.newContext({ serviceWorkers: "block" });
 await ctx.addCookies([{ name: "deslizapp-demo-interna", value: "1", url: URL }]);
 const p = await ctx.newPage();
 for (const ruta of ["/admin-demo", "/admin-demo/trabajo", "/admin-demo/tiendas/fixture/catalogo", "/prueba", "/demo-interna", "/unirse/demo", "/tienda/esencias-michel?demo=interna", "/pedido/INTERNA-PRUEBA"]) {
- const r = await p.goto(URL + ruta, { timeout: 120000 }); assert.equal(r.status(), 404, ruta); assert.doesNotMatch(await leer(p), /Laboratorio de datos|Admin de la demo/);
+ const r = await p.goto(URL + ruta, { timeout: 120000 });
+ assert.ok(r.status() === 404 || (ruta === "/prueba" && new globalThis.URL(p.url()).pathname === "/entrar"), ruta);
+ assert.doesNotMatch(await leer(p), /Laboratorio de datos|Admin de la demo/);
 }
 const respuesta = await ctx.request.post(`${URL}/api/demo-interna`, { headers: { origin: URL } }); assert.equal(respuesta.status(), 403);
 await ctx.close(); console.log("✓ rutas internas cerradas con cookie falsificada");

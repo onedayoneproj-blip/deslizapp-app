@@ -1,4 +1,5 @@
-import { COOKIE_DEMO_INTERNA, exigirDemoInterna } from "@/lib/demo/acceso-servidor";
+import { COOKIE_DEMO_INTERNA, puedeUsarDemoInterna } from "@/lib/demo/acceso-servidor";
+import { redirect } from "next/navigation";
 import { LimiteDemo } from "@/components/panel/limite-demo";
 import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
@@ -27,7 +28,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
 async function DashboardAutorizado({ children }: { children: ReactNode }) {
   const jar = await cookies();
   if (jar.get(COOKIE_DEMO_INTERNA)?.value) {
-    await exigirDemoInterna();
+    if (!await puedeUsarDemoInterna()) redirect("/api/demo-interna");
     return <ProveedorDemo interna cargando={<PantallaCarga />}><DashboardUI>{children}</DashboardUI></ProveedorDemo>;
   }
   const recuperacion = jar.get(COOKIE_RECUPERAR_VER_COMO)?.value;

@@ -19,6 +19,7 @@ try {
  symlinkSync(join(origen, "node_modules"), join(copia, "node_modules"), "dir");
  mkdirSync(join(copia, "lib/demo"), { recursive: true });
  writeFileSync(join(copia, "lib/demo/auth-fixture-local.ts"), 'export async function createClient(){return {auth:{getUser:async()=>({data:{user:{id:"lewis-auth-fixture",identities:[{provider:"google"}]}},error:null})}}}\n');
+ if (suites.includes("probar-recuperacion-demo.mjs")) cambiar("lib/demo/auth-fixture-local.ts", s => s.replace('user:{id:"lewis-auth-fixture",identities:[{provider:"google"}]}', 'user:null'));
  cambiar("lib/demo/acceso-servidor.ts", s => s.replace('"../supabase/server"', '"./auth-fixture-local"').replace('import { HAY_SUPABASE } from "../supabase/config";', 'const HAY_SUPABASE = true;'));
  cambiar("lib/data/provider.tsx", s => s.replace('if (sesion.tipo === "demo") return <ProveedorDemo ', 'if (sesion.tipo === "demo") return <ProveedorDemo interna '));
  cambiar("lib/data/publica.ts", s => s.replace('if (demo && interna)', 'if (demo)').replace('interna ? (await import("./demo-interna")).demoInterna : await import("./demo")', '(await import("./demo-interna")).demoInterna'));
@@ -38,7 +39,7 @@ try {
  const log = [];
  servidor.stdout.on("data", b => log.push(String(b))); servidor.stderr.on("data", b => log.push(String(b)));
  for (let i = 0; ; i++) { if (servidor.exitCode !== null) throw new Error("Servidor de fixtures terminó: " + log.join("")); if (i > 120) throw new Error("Servidor de fixtures no listo\n" + log.slice(-5).join("")); try { if ((await fetch(url + "/entrar")).ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
- for (const ruta of ["/catalogo", "/admin-demo", "/unirse/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "/pedidos", "/tienda/esencias-michel?demo"]) {
+ for (const ruta of suites.includes("probar-recuperacion-demo.mjs") ? ["/api/demo-interna"] : ["/catalogo", "/admin-demo", "/unirse/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "/pedidos", "/tienda/esencias-michel?demo"]) {
    await fetch(url + ruta);
  }
  for (const suite of suites) { console.log(`\nSuite interna con Auth fixture: ${suite}`); await ejecutar(process.execPath, [join("scripts", suite)], env); }
