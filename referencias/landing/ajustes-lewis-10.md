@@ -16,8 +16,8 @@ Si choca con rondas anteriores, **manda esto**.
 - **Icono de la app** pequeño (52 px, radio 12 px) arriba a la izquierda, a la altura de «Saltar». Es el mismo que viaja a esa esquina durante la demo.
 - **El lema, grande y con peso**, alineado a la izquierda (referencia de estilo, no de texto: `referencia-estilo-lema.png`):
   - encima, una línea de contexto en Figtree 800 de 12 px, mayúsculas con 2.6 px de espaciado: «DESLIZA. ENCUENTRA. ESCRIBE.»;
-  - el lema en Fredoka 700 al 125 % de ancho, **41/42 px**, con un trazo del mismo color de 1.4 px para engrosarlo (`-webkit-text-stroke` con `paint-order: stroke fill`) y sombra de 3 px de Bosque más un halo suave;
-  - en cuatro líneas: «Comprar sin tanta» (crema), «**vuelta.**» (mandarina `#ff834f`), «Vender con más» y «**orden.**» (rosa `#f5c9d6`);
+  - el lema en Fredoka 700 al 112 % de ancho, **38/41 px**, con un trazo del mismo color de 1.4 px para engrosarlo (`-webkit-text-stroke` con `paint-order: stroke fill`) y sombra de 3 px de Bosque más un halo suave;
+  - **cada frase en dos líneas, cuatro en total y ninguna más** (`white-space: nowrap`; comprueba que no se parta a 360 de ancho): «Comprar sin / tanta **vuelta.**» (crema, con «vuelta.» en mandarina `#ff834f`) y «Vender con / **más orden.**» (todo en rosa `#f5c9d6`);
   - tres rayitas mandarina (destello) al lado de «vuelta.»;
   - debajo, una línea descriptiva en Figtree 600 de 17/23 px, crema con sombra: «Mira cómo lo que te gusta llega a la tienda con todo en su sitio.»;
   - **contraste:** el degradado de arriba sube a 0.86 de Bosque y baja a 0 hacia el 56 % del alto. El texto crema sobre eso supera 7:1. Compruébalo con el video en movimiento, no solo con un fotograma.
