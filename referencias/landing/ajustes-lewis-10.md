@@ -59,7 +59,7 @@ Decisión final de Lewis (15 oct): la tienda de la demo se llama **Vuelta Store*
 - `probar-landing`:
   - la portada sin oscurecido general;
   - el botón «Desliza y mira» visible y tocable (al tocarlo arranca el desbloqueo);
-  - el aviso de «Brisa» en la pantalla de bloqueo;
+  - el aviso de «Vuelta Store» en la pantalla de bloqueo;
   - el cierre con las tres fotos y los tres enlaces;
-  - ni una mención a «La Vuelta» ni a «Brisa».
+  - ni una mención a «La Vuelta» ni a «Brisa» (solo «Vuelta Store»).
 - Capturas de la portada y del cierre a 393×852 en el PR, al lado de las del diseño.
