@@ -12,9 +12,8 @@ export type ProductoDemo = {
   nombre: string;
   precio: number;
   cantidad: number;
-  /** Foto grande (WebP con transparencia, 720 px) y miniatura (160 px), en public/landing. */
+  /** La foto del feed (WebP 720×900, 4:5 como la tarjeta del reel, con su fondo), en public/landing. Las miniaturas la recortan. */
   foto: string;
-  mini: string;
   /** Fondo de la tarjeta del feed (tokens de marca). */
   fondo: string;
   /** ¿Ana le da «Lo quiero»? La gorra pasa sin like: así se ve que elige. */
@@ -33,9 +32,9 @@ export const ORIGEN_DEMO = "https://deslizapp.com";
 export const HORA_DEMO = "3:42 p. m.";
 
 export const PRODUCTOS_DEMO: ProductoDemo[] = [
-  { id: "gorra", nombre: "Gorra verde", precio: 650, cantidad: 1, foto: "/landing/gorra-verde.webp", mini: "/landing/gorra-verde-mini.webp", fondo: "var(--marca-rosa-fija)", enPedido: false },
-  { id: "termo", nombre: "Termo rosado", precio: 950, cantidad: 1, foto: "/landing/termo-rosado.webp", mini: "/landing/termo-rosado-mini.webp", fondo: "var(--accion-suave)", enPedido: true },
-  { id: "tote", nombre: "Tote bag crema y verde", precio: 550, cantidad: 1, foto: "/landing/tote-crema-verde.webp", mini: "/landing/tote-crema-verde-mini.webp", fondo: "var(--superficie-hundida)", enPedido: true },
+  { id: "gorra", nombre: "Gorra verde", precio: 650, cantidad: 1, foto: "/landing/feed-gorra.webp", fondo: "var(--marca-rosa-fija)", enPedido: false },
+  { id: "termo", nombre: "Termo rosado", precio: 950, cantidad: 1, foto: "/landing/feed-termo.webp", fondo: "var(--accion-suave)", enPedido: true },
+  { id: "tote", nombre: "Tote bag crema y verde", precio: 550, cantidad: 1, foto: "/landing/feed-tote.webp", fondo: "var(--superficie-hundida)", enPedido: true },
 ];
 
 /** Lo que termina en el pedido (en el orden en que Ana les da «Lo quiero»). */

@@ -65,13 +65,16 @@ const medir = (pagina, i) =>
       const gruesas = [...e.querySelectorAll("[data-raya-paso]")];
       const finas = [...e.querySelectorAll("[data-raya-fina]")];
       const ind = e.querySelector(".lt-indice").getBoundingClientRect();
-      // El área de toque de cada gruesa: 24 px de alto (11 px arriba y abajo de su centro siguen siendo ella).
+      // El área de toque de cada gruesa a la vista: unos 20 px de alto (8 px arriba y abajo de su centro siguen siendo ella), sin
+      // pisar la vecina. (Las que la regla deja fuera de su ventana no se tocan.)
       const toca = (g) => {
         const r = g.getBoundingClientRect();
         const x = r.left + 4;
         const y = r.top + r.height / 2;
-        return [y - 11, y + 11].every((yy) => document.elementFromPoint(x, yy)?.closest("[data-raya-paso]") === g);
+        return [y - 8, y, y + 8].every((yy) => document.elementFromPoint(x, yy)?.closest("[data-raya-paso]") === g);
       };
+      const enVentana = (g) => { const r = g.getBoundingClientRect(); return r.top > ind.top + ind.height * 0.25 && r.bottom < ind.bottom - ind.height * 0.25; };
+      const actualRaya = gruesas.find((g) => g.dataset.estado === "actual")?.getBoundingClientRect();
       const cruza = (a, c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1;
       // Las burbujas a la vista (la del paso y las de antes que caben) y su escala (la del paso termina en 1).
       const vistas = [...e.querySelectorAll("[data-burbuja]")].filter((x) => Number(getComputedStyle(x).opacity) > 0.05);
@@ -110,10 +113,11 @@ const medir = (pagina, i) =>
         // El índice no tapa el teléfono ni lo empuja.
         indiceTapa: Number(getComputedStyle(telefono).opacity) > 0.99 && getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && cruza(ind, tel),
         indiceVisible: getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && Number(getComputedStyle(e.querySelector(".lt-indice")).opacity) > 0.5,
-        gruesas: gruesas.map((g) => g.dataset.estado),
+        gruesas: gruesas.map((g) => [Number(g.dataset.rayaPaso), g.dataset.estado]),
+        centrada: actualRaya ? Math.abs(actualRaya.top + actualRaya.height / 2 - (ind.top + ind.height / 2)) : null,
         etiquetas: gruesas.every((g) => g.getAttribute("aria-label")),
         finas: finas.map((f) => [Number(f.dataset.rayaFina), f.dataset.llena]),
-        tocables: gruesas.slice(1).every(toca),
+        tocables: gruesas.filter(enVentana).length >= 1 && gruesas.filter(enVentana).every(toca),
         finasNoTocables: finas.every((f) => getComputedStyle(f).pointerEvents === "none"),
         altoIndice: ind.height,
         burbujasVistas: vistas.length,
@@ -195,7 +199,7 @@ for (const [ancho, alto] of [
     // llenándose durante él (al llegar, todavía vacías); las de antes, llenas; las de después, vacías.
     const finasEsperadas = PASOS.reduce((n, p) => n + p.fases, 0);
     ok(
-      m.gruesas.length === PASOS.length && m.gruesas.every((g, j) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
+      m.gruesas.length === PASOS.length - 1 && m.gruesas.every(([j, g]) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
       `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
@@ -217,7 +221,10 @@ for (const [ancho, alto] of [
       const pesos = v.fuentes.map((f) => statSync(`public${f}`).size);
       ok(v.muted && v.playsinline && v.poster && pesos.length >= 1 && pesos.every((b) => b < 2.5e6), `intro: el video de la portada va sin sonido, con playsinline y póster, y pesa menos de 2.5 MB (${pesos.map((b) => (b / 1e6).toFixed(2)).join(" y ")} MB)`);
     } else {
-      ok(m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice <= alto * 0.7, `${paso.id}: el indicador cabe (${Math.round(m.altoIndice)} px, ≤ 70 % del alto); las gruesas se tocan en 24 px y las finas no`);
+      ok(
+        m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice >= alto * 0.24 && m.altoIndice <= alto * 0.31 && m.centrada !== null && m.centrada < 3,
+        `${paso.id}: el indicador es una regla corta (${Math.round(m.altoIndice)} px, 25–30 % del alto) con la raya del paso en el centro; las gruesas a la vista se tocan sin solaparse y las finas no`,
+      );
       if (paso.id === "hola") ok(m.bloqueo < 0.01 && Math.abs(m.zoom - 1) < 0.01, "hola: al deslizar se desbloquea y el catálogo queda a su tamaño");
       ok(m.iconoCaja.left < 40 && m.iconoCaja.top < 40 && m.iconoCaja.w >= 36 && m.iconoCaja.w <= 44, `${paso.id}: el icono, arriba a la izquierda (${Math.round(m.iconoCaja.w)} px)`);
       if (paso.id === "pasa") ok(m.video.corre && m.video.t > 0, "pasa: el video sigue reproduciéndose fuera de la portada");
@@ -274,8 +281,8 @@ for (const [ancho, alto] of [
       await pagina.screenshot({ path: `docs/capturas/landing/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}.png` });
     }
   }
-  // El indicador: tocar una gruesa lleva a su paso.
-  for (const j of [PASOS.findIndex((p) => p.id === "cambio"), 1]) {
+  // El indicador: tocar una gruesa (de las que se ven, cerca de la del paso) lleva a su paso.
+  for (const j of [PASOS.length - 3, PASOS.length - 5]) {
     await pagina.locator(`[data-raya-paso="${j}"]`).click();
     await pagina.waitForTimeout(1600);
     const dc = await datos(pagina);

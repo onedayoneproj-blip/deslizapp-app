@@ -43,6 +43,8 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const burbujas = PASOS.map((_, i) => e.querySelector<HTMLElement>(`[data-burbuja="${i}"]`));
     const gruesas = [...e.querySelectorAll<HTMLElement>("[data-raya-paso]")];
     const finas = [...e.querySelectorAll<HTMLElement>("[data-raya-fina]")];
+    const reglaCaja = e.querySelector<HTMLElement>(".lt-indice");
+    const regla = e.querySelector<HTMLElement>(".lt-indice-rayas");
     let activo = -1;
     let llenar = 0;
     let raf = 0;
@@ -128,11 +130,15 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const finasDe = (i: number) => finas.filter((f) => f.dataset.rayaFina === String(i));
     const marcarIndice = (i: number, animar: boolean) => {
       window.clearTimeout(llenar);
-      gruesas.forEach((g, j) => {
+      gruesas.forEach((g) => {
+        const j = Number(g.dataset.rayaPaso);
         g.dataset.estado = j === i ? "actual" : j < i ? "visto" : "falta";
         if (j === i) g.setAttribute("aria-current", "step");
         else g.removeAttribute("aria-current");
       });
+      // La regla se desplaza para dejar la raya del paso en su centro.
+      const actual = gruesas.find((g) => Number(g.dataset.rayaPaso) === i);
+      if (actual && reglaCaja && regla) regla.style.setProperty("--regla", `${(reglaCaja.clientHeight / 2 - (actual.offsetTop + actual.offsetHeight / 2)).toFixed(1)}px`);
       finas.forEach((f) => {
         const j = Number(f.dataset.rayaFina);
         f.dataset.llena = j < i || (j === i && !animar) ? "si" : "no";

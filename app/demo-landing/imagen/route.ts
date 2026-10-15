@@ -8,7 +8,8 @@ import { vistaSolicitudDemo } from "@/lib/landing/db-demo";
 export const runtime = "nodejs";
 export const dynamic = "force-static";
 
-const FOTOS: Record<string, string> = { termo: "termo-rosado.png", tote: "tote-crema-verde.png" };
+// Las fotos del feed (referencias/landing/feed-*.png), recortadas al cuadrado centrado.
+const FOTOS: Record<string, string> = { termo: "feed-termo.jpg", tote: "feed-tote.jpg" };
 
 export async function GET() {
   const pedido = vistaSolicitudDemo();
@@ -17,7 +18,7 @@ export async function GET() {
       const archivo = Object.entries(FOTOS).find(([id]) => i.foto?.includes(id))?.[1];
       if (!archivo) return null;
       const b = await readFile(join(process.cwd(), "lib/landing/fotos", archivo));
-      return `data:image/png;base64,${b.toString("base64")}`;
+      return `data:image/jpeg;base64,${b.toString("base64")}`;
     }),
   );
   return renderImagenPedido(pedido, fotos);

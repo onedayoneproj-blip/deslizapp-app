@@ -207,9 +207,10 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * El indicador, a la izquierda (ajustes-lewis-7.md §1): una raya gruesa por paso (cada vez que hay que deslizar) y, entre dos
- * gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts). Las finas se llenan mientras el paso avanza.
- * Solo las gruesas se tocan (llevan a su paso). No sale en la portada. El controlador marca el estado.
+ * El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una raya gruesa por paso de la demo (cada vez que hay que
+ * deslizar; la portada no es uno) y, entre dos gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts).
+ * Las finas se llenan mientras el paso avanza. Es una regla corta (un 27 % del alto) que se desplaza para dejar la raya del paso en
+ * el centro. Solo las gruesas se tocan (llevan a su paso). No sale en la portada. El controlador marca el estado y la desplaza.
  */
 function Indice() {
   return (
@@ -217,7 +218,7 @@ function Indice() {
       <div className="lt-indice-rayas">
         {PASOS.map((p, i) => (
           <Fragment key={p.id}>
-            <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : "Portada"} />
+            {i > 0 && <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={[p.burbuja?.texto, p.burbuja?.remate].filter(Boolean).join(" ")} />}
             {Array.from({ length: p.fases }, (_, k) => (
               <span key={k} className="lt-raya-fina" data-raya-fina={i} data-llena="no" aria-hidden="true" />
             ))}

@@ -498,17 +498,22 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El indicador, a la izquierda (ajustes-lewis-7.md §1): una raya gruesa por paso y, entre ellas, finas por cada toque o fase,
-   que se llenan mientras el paso avanza. Cabe en unos 65 % del alto, sin bajar a las burbujas. No sale en la portada. ---- */
+/* ---- El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una regla corta, un 27 % del alto, centrada en vertical.
+   Las rayas van con aire entre ellas y la regla se desplaza para dejar la del paso en el centro; arriba y abajo se desvanece.
+   No sale en la portada. ---- */
 .lt-indice {
   position: absolute;
   z-index: 8;
   left: max(6px, env(safe-area-inset-left));
-  /* En el teléfono baja también junto a la columna de las burbujas, que le deja su sitio (.lt-burbujas, left). */
-  top: calc(var(--alto-arriba) + (100% - var(--alto-arriba) - var(--alto-abajo)) / 2);
-  height: min(68%, calc(100% - var(--alto-arriba) - var(--alto-abajo) - 16px));
+  top: 50%;
+  height: 27%;
+  /* lo justo para las rayas (la actual mide 30 px): la caja no pisa el teléfono */
+  width: 38px;
   transform: translateY(-50%);
+  overflow: hidden;
   color: var(--marca-bosque);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
   transition:
     color 600ms ease,
     opacity 400ms ease;
@@ -523,9 +528,11 @@
 .lt-indice-rayas {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: flex-start;
-  height: 100%;
+  gap: 9px;
+  padding-left: 4px;
+  transform: translateY(var(--regla, 0px));
+  transition: transform 420ms var(--curva);
 }
 /* Como las marcas del reloj de iOS: trazos muy finos con las puntas redondeadas (ajustes-lewis-8.md §1). La gruesa se nota por
    más larga y más opaca, no por más ancha; la actual, más larga y sólida. */
@@ -543,11 +550,11 @@
     width 420ms var(--curva),
     opacity 300ms ease;
 }
-/* El área de toque: 24 px de alto (y más ancha que la raya), aunque la raya sea fina */
+/* El área de toque: unos 20 px de alto (y más ancha que la raya), sin pisar la de la gruesa vecina */
 .lt-raya-gruesa::before {
   content: "";
   position: absolute;
-  inset: -11px -14px -11px -6px;
+  inset: -9px -14px -9px -6px;
 }
 .lt-raya-gruesa[data-estado="visto"] {
   opacity: 0.75;
@@ -579,8 +586,7 @@
   position: absolute;
   /* debajo del teléfono: la burbuja puede quedar con el borde bajo él (ajustes-lewis-8.md §2) */
   z-index: 4;
-  /* a la izquierda queda el indicador */
-  left: max(48px, env(safe-area-inset-left));
+  left: max(14px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
   bottom: var(--alto-abajo);
   height: var(--alto-burbujas);
