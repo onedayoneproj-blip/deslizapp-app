@@ -4,7 +4,7 @@ import "./cargar-ts.mjs";
 const memoria = new Map();
 globalThis.localStorage = { getItem: (k) => memoria.get(k) ?? null, setItem: (k, v) => memoria.set(k, v), removeItem: (k) => memoria.delete(k) };
 const C = await import("../lib/cuenta.ts");
-const { fuenteDemo, cambiarTiendaActivaDemo, leerDemo } = await import("../lib/data/demo.ts");
+const { fuenteDemo, cambiarTiendaActivaDemo, leerDemo } = (await import("../lib/data/demo-interna.ts")).demoInterna;
 const { crearFuenteSupabase } = await import("../lib/data/supabase.ts");
 
 test("las tiendas se ordenan con la activa primero y después por nombre, sin importar tildes ni mayúsculas", () => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CUENTA_DEMO, RUTA_PANEL, type CuentaVista } from "@/lib/cuenta";
-import { salir, salirDeLaDemo } from "@/lib/data/sesion";
+import { salir, salirDemoInterna } from "@/lib/data/sesion";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha } from "../iconos";
 import { FilaCuenta } from "../panel/cuenta";
@@ -34,8 +34,7 @@ export function HojaCuentaAdmin({
     alCerrar();
     // La entrada está en `/`: después de cerrar la sesión se va ahí (sin dejar el admin a medio cargar).
     if (demo) {
-      salirDeLaDemo();
-      window.location.href = RUTA_PANEL;
+      void salirDemoInterna();
     } else void salir().finally(() => window.location.href = RUTA_PANEL);
   };
   return (

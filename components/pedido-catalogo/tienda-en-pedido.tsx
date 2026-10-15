@@ -10,7 +10,8 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { createClient } from "@/lib/supabase/client";
 import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { aUsuario, type FilaUsuario } from "@/lib/data/filas";
-import { cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } from "@/lib/data/demo";
+import * as demoPublica from "@/lib/data/demo";
+import { demoInterna } from "@/lib/data/demo-interna";
 import { esErrorDeRed } from "@/lib/data/errores";
 import { ProveedorDemo, ProveedorReal } from "@/lib/data/provider";
 import { fuentePublica } from "@/lib/data/publica";
@@ -67,18 +68,21 @@ async function leerSesionDeLaTienda(codigo: string): Promise<Sesion> {
 export function TiendaEnPedido({
   codigo,
   demo,
+  interna = false,
   pedirEntrar,
   alCerrar,
   alCambiarEstado,
 }: {
   codigo: string;
   demo: boolean;
+  interna?: boolean;
   /** Lo pidió con «¿Eres la tienda?»: sin sesión se ofrece entrar. Si no, se comprueba en silencio y solo aparece si es la tienda. */
   pedirEntrar: boolean;
   alCerrar: () => void;
   /** El estado público cambió (registrado o descartado). */
   alCambiarEstado: (nueva: VistaSolicitud) => void;
 }) {
+  const { cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } = interna ? demoInterna : demoPublica;
   const router = useRouter();
   const [fase, setFase] = useState<Fase>({ tipo: "comprobando" });
   const [intento, setIntento] = useState(0);
@@ -129,17 +133,17 @@ export function TiendaEnPedido({
     };
     // alCerrar cambia en cada render del padre; la comprobación es una por intento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codigo, demo, intento, pedirEntrar]);
+  }, [codigo, demo, interna, intento, pedirEntrar]);
 
   const releerPublico = () => {
-    fuentePublica(demo)
+    fuentePublica(demo, interna)
       .then((f) => f.verSolicitud(codigo))
       .then((v) => v && alCambiarEstado(v))
       .catch(() => {});
   };
   const verPedido = (pedidoId: string) => {
     // El panel abre en el modo de esta vista: la demo (si se vio como la tienda demo) o la cuenta real.
-    if (demo) verDemo();
+    if (demo && !interna) void verDemo();
     router.push(`/pedidos/${pedidoId}`);
   };
 
@@ -194,7 +198,7 @@ export function TiendaEnPedido({
     <ToastProvider>
       <ProveedorToast>
         {fase.tipo === "demo" ? (
-          <ProveedorDemo cargando={null}>{hoja}</ProveedorDemo>
+          <ProveedorDemo interna={interna} cargando={null}>{hoja}</ProveedorDemo>
         ) : (
           <ProveedorReal usuario={fase.usuario}>{hoja}</ProveedorReal>
         )}

@@ -45,7 +45,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
   tiendaId: string; vendedora: string; tienda: string; urlCatalogo: string | null;
   alCerrar: () => void;
 }) {
-  const { getPromos, getProductos, getPedidos, crearCodigoCliente, registrarEnvioJugada } = useData();
+  const { modo: modoDatos, getPromos, getProductos, getPedidos, crearCodigoCliente, registrarEnvioJugada } = useData();
   const { mostrarToast } = useToastUI();
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -151,7 +151,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
       }
       fueAWhatsApp.current = true;
       // Después de esperar, iPhone bloquea las ventanas nuevas: se abre en la misma
-      window.location.assign(enlaceWhatsAppCliente(cliente.telefono, final));
+      if (modoDatos !== "demo") window.location.assign(enlaceWhatsAppCliente(cliente.telefono, final));
       setEnviando(false);
     } catch (e) {
       setEnviando(false);

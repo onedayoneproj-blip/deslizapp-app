@@ -17,7 +17,7 @@ import { FUNCIONES } from "../funciones";
 import { cuentaDelCliente, cuentasDeTienda, editarAbonoDemo, quitarAbonoDemo, registrarAbonoDemo } from "./creditos";
 import { clienteDeTienda, clientesDeTienda, insertarCliente, modificarCliente, modificarNotaCliente } from "./clientes";
 import { eliminarClienteDeDB } from "./eliminar-cliente";
-import { construirDesdeSeed, esDB, migrar, nuevoId, type DB } from "./db";
+import { esDB, migrar, nuevoId, type DB } from "./db";
 import { conPermisosDeLaDemo, aprobarEnDB, cambiarNivelEnDB, cancelarEnlaceEnDB, crearEnlaceEnDB, equipoEnDB, invitarCorreoEnDB, permisoDemo, quitarEnDB, rechazarEnDB } from "./equipo-demo";
 import type { DatosAbonoNuevo, DatosPago, ExtraNuevoProducto, FuenteDatos } from "./fuente";
 import {
@@ -75,9 +75,7 @@ import {
   type DatosMarca,
 } from "./tiendas";
 
-// Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
-const KEY = "deslizapp-demo-v5";
-const KEY_SESION = "deslizapp-sesion-v1";
+import { construirDemoPublica } from "./demo-publica";
 
 export type EstadoDemo = {
   db: DB;
@@ -86,6 +84,11 @@ export type EstadoDemo = {
   /** Sube con cada cambio; las consultas lo usan para volver a leer. */
   version: number;
 };
+
+export function crearAlmacenDemo(configuracion: { clave: string; construir: () => DB; publica?: boolean }) {
+// Subir la versión cuando cambie la forma de los datos: lo guardado con la forma vieja se ignora.
+const KEY = configuracion.clave;
+const KEY_SESION = configuracion.publica ? configuracion.clave + "-tienda" : "deslizapp-sesion-v1";
 
 // ---------------------------------------------------------------------------
 // Almacén (fuera de React, para poder leerlo con useSyncExternalStore)
@@ -110,12 +113,13 @@ function cargarInicial(version = 0): EstadoDemo {
   if (guardado) {
     try {
       const parseado: unknown = JSON.parse(guardado);
-      if (esDB(parseado)) db = migrar(parseado);
+      if (esDB(parseado) && (!configuracion.publica || (parseado.tiendas.length === 1 && parseado.tiendas[0].id === "demo-publica-deslizapp"))) db = migrar(parseado);
     } catch {
       // Guardado corrupto: se vuelve al seed.
     }
   }
-  db ??= construirDesdeSeed();
+  db ??= configuracion.construir();
+  normalizarEnlaces(db);
   return { db, tiendaActivaId: tiendaValida(db, leerLocal(KEY_SESION)), version };
 }
 
@@ -124,7 +128,7 @@ function tiendaValida(db: DB, id: string | null): string {
   return listarTiendas(db)[0]?.id ?? "";
 }
 
-export function leerDemo(): EstadoDemo {
+function leerDemo(): EstadoDemo {
   estado ??= cargarInicial();
   return estado;
 }
@@ -133,7 +137,17 @@ function emitir() {
   for (const oyente of oyentes) oyente();
 }
 
+function tiendaConEnlaceDemo(t: Tienda): Tienda {
+  if (soloMemoria || (!t.urlCatalogo && t.catalogoEstado !== "publicado")) return t;
+  return { ...t, urlCatalogo: `https://deslizapp.com/tienda/${t.slug}?demo=${configuracion.publica ? "" : "interna"}` };
+}
+
+function normalizarEnlaces(db: DB) {
+  if (!soloMemoria && configuracion.publica) db.tiendas.forEach(t => { t.urlCatalogo = `https://deslizapp.com/tienda/${t.slug}?demo`; });
+}
+
 function persistir(e: EstadoDemo) {
+  normalizarEnlaces(e.db);
   if (soloMemoria) return;
   try {
     localStorage.setItem(KEY, JSON.stringify(e.db));
@@ -158,7 +172,7 @@ function alCambiarOtraPestana(evento: StorageEvent) {
   emitir();
 }
 
-export function suscribirDemo(oyente: () => void) {
+function suscribirDemo(oyente: () => void) {
   if (oyentes.size === 0) window.addEventListener("storage", alCambiarOtraPestana);
   oyentes.add(oyente);
   return () => {
@@ -176,10 +190,11 @@ const ahora = () => new Date().toISOString();
 const fuenteDemoBase: FuenteDatos = {
   // Tiendas
   async getTiendas(): Promise<Tienda[]> {
-    return listarTiendas(leerDemo().db);
+    return listarTiendas(leerDemo().db).map(tiendaConEnlaceDemo);
   },
   async getTienda(tiendaId: string): Promise<Tienda | null> {
-    return buscarTienda(leerDemo().db, tiendaId);
+    const t = buscarTienda(leerDemo().db, tiendaId);
+    return t ? tiendaConEnlaceDemo(t) : null;
   },
   async getDueno(tiendaId: string): Promise<Usuario | null> {
     return buscarDueno(leerDemo().db, tiendaId);
@@ -809,6 +824,11 @@ const fuenteDemoBase: FuenteDatos = {
     escribir((db) => {
       const r = crearSolicitudEnDB(db, slug, items, codigoPromo, dispositivo, nuevoId, new Date());
       creada = r.creada;
+      if (!soloMemoria) {
+        const codigo = (configuracion.publica ? "DEMO-" : "INTERNA-") + creada.codigo;
+        r.db.solicitudes = r.db.solicitudes.map(s => s.codigo === creada.codigo ? { ...s, codigo } : s);
+        creada = { ...creada, codigo };
+      }
       return r.db;
     });
     return creada;
@@ -844,12 +864,17 @@ const fuenteDemoBase: FuenteDatos = {
   /** Borra lo guardado y vuelve al seed. Se queda en la misma tienda si sigue existiendo. */
   async reiniciarDemo(): Promise<void> {
     try {
-      if (!soloMemoria) localStorage.removeItem(KEY);
+      if (!soloMemoria) {
+        localStorage.removeItem(KEY);
+        if (configuracion.publica) {
+          for (const k of Object.keys(localStorage)) if (k.includes("deslizapp-ejemplo") || k.includes("demo-publica")) localStorage.removeItem(k);
+        }
+      }
     } catch {
       // Nada que borrar.
     }
     const actual = leerDemo();
-    const db = construirDesdeSeed();
+    const db = configuracion.construir();
     estado = { db, tiendaActivaId: tiendaValida(db, actual.tiendaActivaId), version: actual.version + 1 };
     persistir(estado);
     emitir();
@@ -857,20 +882,20 @@ const fuenteDemoBase: FuenteDatos = {
 };
 
 /** La fuente de la demo con los permisos por nivel de la base (lib/data/equipo-demo.ts). */
-export const fuenteDemo: FuenteDatos = conPermisosDeLaDemo(fuenteDemoBase, () => leerDemo().db);
+const fuenteDemo: FuenteDatos = conPermisosDeLaDemo(fuenteDemoBase, () => leerDemo().db);
 
 /**
  * Solo para el admin demo (/admin-demo), en el mismo navegador: aplica un cambio a la base de la demo del panel (catálogo,
  * fotos entregadas, créditos, personalización) para que la tienda lo vea al volver. Vuelve a leer lo guardado antes de
  * escribir, por si el panel cambió en otra pestaña. Nunca toca Supabase.
  */
-export function escribirDemoDesdeAdmin(cambio: (db: DB) => DB) {
+function escribirDemoDesdeAdmin(cambio: (db: DB) => DB) {
   estado = cargarInicial((estado?.version ?? 0) + 1);
   escribir(cambio);
 }
 
 /** La base de la demo del panel tal como está guardada ahora (para que el admin demo parta de ella). */
-export function leerDemoGuardada(): DB {
+function leerDemoGuardada(): DB {
   estado = cargarInicial((estado?.version ?? 0) + 1);
   return structuredClone(estado.db);
 }
@@ -879,13 +904,13 @@ export function leerDemoGuardada(): DB {
  * Solo para la landing (app/demo-landing, en su propio iframe): la demo pasa a vivir en memoria con esta base. Desde aquí no se
  * lee ni se escribe localStorage, así que la demo del panel de este navegador no se toca.
  */
-export function usarDemoEnMemoria(db: DB, tiendaActivaId: string) {
+function usarDemoEnMemoria(db: DB, tiendaActivaId: string) {
   soloMemoria = true;
   estado = { db, tiendaActivaId, version: (estado?.version ?? 0) + 1 };
   emitir();
 }
 
-export function cambiarTiendaActivaDemo(tiendaId: string) {
+function cambiarTiendaActivaDemo(tiendaId: string) {
   const actual = leerDemo();
   if (!actual.db.tiendas.some((t) => t.id === tiendaId) || actual.tiendaActivaId === tiendaId) return;
   estado = { ...actual, tiendaActivaId: tiendaId, version: actual.version + 1 };
@@ -894,6 +919,11 @@ export function cambiarTiendaActivaDemo(tiendaId: string) {
 }
 
 /** Demo: de qué tienda (de este navegador) es la solicitud de ese código, para "Ver como la tienda". null si no está aquí. */
-export function tiendaDeSolicitudDemo(codigo: string): string | null {
+function tiendaDeSolicitudDemo(codigo: string): string | null {
   return leerDemo().db.solicitudes.find((s) => s.codigo === codigo.trim().toUpperCase())?.tiendaId ?? null;
 }
+
+return { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo };
+}
+
+export const { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } = crearAlmacenDemo({ clave: "deslizapp-publica-v1", construir: construirDemoPublica, publica: true });

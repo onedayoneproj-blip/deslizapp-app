@@ -47,7 +47,7 @@ export function VistaPorReponer({
   alTerminar: () => void;
 }) {
   const { tiendaId } = useTiendaActiva();
-  const { reponerStock } = useData();
+  const { reponerStock, modo: modoDatos } = useData();
   // Sumar al stock es del grupo «catalogo»; la lista para el proveedor (copiar, compartir) es de todos.
   const { puede, porque } = usePermisos();
   const sinCatalogo = !puede("catalogo");
@@ -81,6 +81,7 @@ export function VistaPorReponer({
   };
 
   const enviar = async () => {
+    if (modoDatos === "demo") return;
     if (hayShare) {
       try {
         await navigator.share({ text: texto });

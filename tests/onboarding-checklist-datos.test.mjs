@@ -4,7 +4,7 @@ import { test } from 'node:test';
 const memoria=new Map();globalThis.localStorage={getItem:k=>memoria.get(k)??null,setItem:(k,v)=>memoria.set(k,v),removeItem:k=>memoria.delete(k)};
 const {construirDesdeSeed}=await import('../lib/data/db.ts');
 const {conPermisosDeLaDemo}=await import('../lib/data/equipo-demo.ts');
-const {fuenteDemo}=await import('../lib/data/demo.ts');
+const {fuenteDemo}=(await import('../lib/data/demo-interna.ts')).demoInterna;
 const {crearFuenteSupabase}=await import('../lib/data/supabase.ts');
 const {soloMirar, SoloMirar}=await import('../lib/data/solo-mirar.ts');
 test('demo persiste marca una sola vez y solo modifica la tienda elegida',async()=>{

@@ -132,7 +132,9 @@ export async function comprobarSesion(aviso: string | null = null) {
   }
 }
 
-export function verDemo() {
+export async function verDemo() {
+  // El endpoint solo borra una cookie local; nunca cierra Google.
+  await fetch("/api/demo-interna", { method: "DELETE" });
   guardarModo("demo");
   poner({ tipo: "demo" });
 }
@@ -193,6 +195,7 @@ export async function entrarConGoogle(volverA?: string): Promise<string | null> 
 
 /** Salir de la demo sin tocar Supabase (para /admin-demo, donde la sesión de la app no está cargada): olvida el modo y vuelve a la entrada. */
 export function salirDeLaDemo() {
+  void fetch("/api/demo-interna", { method: "DELETE" });
   guardarModo(null);
   poner({ tipo: "entrada", aviso: null });
 }
@@ -205,6 +208,7 @@ export function salirDeLaDemo() {
  */
 export async function salir() {
   const eraReal = estado?.tipo !== "demo";
+  if (!eraReal) await fetch("/api/demo-interna", { method: "DELETE" });
   guardarModo(null);
   poner({ tipo: "entrada", aviso: null });
   if (eraReal && HAY_SUPABASE) {
@@ -231,4 +235,11 @@ export async function elegirTiendaPorDefecto(tiendaId: string) {
   const r = await supabase.from("usuarios").update({ tienda_id: tiendaId }).eq("id", data.claims.sub).select("tienda_id").maybeSingle();
   if (r.error) throw traducirErrorSupabase(r.error);
   if (r.data?.tienda_id !== tiendaId) throw new Error("no_se_cambio");
+}
+
+/** El sandbox no depende del modo de sesión del panel real. Salir conserva Google y su tienda. */
+export async function salirDemoInterna() {
+  await fetch("/api/demo-interna", { method: "DELETE" });
+  salirDeLaDemo();
+  window.location.assign("/entrar");
 }

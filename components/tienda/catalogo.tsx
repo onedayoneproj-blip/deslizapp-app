@@ -71,11 +71,13 @@ type Vista =
 export function Catalogo({
   slug,
   demo,
+  interna = false,
   inicial,
   errorInicial,
 }: {
   slug: string;
   demo: boolean;
+  interna?: boolean;
   inicial: CatalogoPublico | null;
   errorInicial?: string;
 }) {
@@ -167,7 +169,7 @@ export function Catalogo({
     let activa = true;
     let cancelar: (() => void) | undefined;
     if (demo)
-      observarFuentePublicaDemo().then((fn) => {
+      observarFuentePublicaDemo(interna).then((fn) => {
         if (activa) cancelar = fn;
         else fn();
       });
@@ -175,10 +177,10 @@ export function Catalogo({
       activa = false;
       cancelar?.();
     };
-  }, [demo]);
+  }, [demo, interna]);
   useEffect(() => {
     let vigente = true;
-    fuentePublica(demo)
+    fuentePublica(demo, interna)
       .then(async (f) => {
         fuente.current = f;
         const datos =
@@ -208,7 +210,7 @@ export function Catalogo({
     return () => {
       vigente = false;
     };
-  }, [slug, demo, inicial, intento]);
+  }, [slug, demo, interna, inicial, intento]);
   // Una marca de la vista enfocada que sobrevivió a una recarga (o a iOS descartando la pestaña) ya no tiene vista abierta.
   useEffect(() => {
     if (history.state?.catalogoFoto) {
@@ -528,7 +530,7 @@ export function Catalogo({
       cart.some((l) => l.productoId === p.id && l.varianteId !== varianteId);
     if (teniaProducto !== tieneProducto)
       fuente.current
-        ?.registrarAaah(slug, p.slug, dispositivo(), tieneProducto)
+        ?.registrarAaah(slug, p.slug, dispositivo(demo ? (interna ? "interna" : "deslizapp-ejemplo") : undefined), tieneProducto)
         .then(likes=>{if(typeof likes === "number")setC(datos=>datos?.tienda.slug===slug ? {...datos,productos:datos.productos.map(x=>x.id===p.id?{...x,likes}:x)} : datos);})
         .catch(() => {
           /* El pedido local sigue disponible aunque falle el contador. */
@@ -539,7 +541,7 @@ export function Catalogo({
     envio.current = true;
     setEnviando(true);
     try {
-      const f = fuente.current ?? (await fuentePublica(demo));
+      const f = fuente.current ?? (await fuentePublica(demo, interna));
       const creada = await f.crearSolicitudPedido(
         slug,
         cart.map((l) => ({
@@ -548,7 +550,7 @@ export function Catalogo({
           cantidad: l.cantidad,
         })),
         null,
-        dispositivo(),
+        dispositivo(demo ? (interna ? "interna" : "deslizapp-ejemplo") : undefined),
       );
       const confirmadas = cart.map((l) => {
         const item = creada.items.find(
@@ -557,6 +559,11 @@ export function Catalogo({
         return item ? { ...l, ...item } : l;
       });
       guardar(confirmadas);
+      if (demo) {
+        guardar([]);
+        location.assign(`/pedido/${creada.codigo}?demo=${interna ? "interna" : ""}`);
+        return;
+      }
       abrirWhatsApp(
         t.whatsapp,
         mensajePedido(t, creada.items, creada.total, {
@@ -590,6 +597,7 @@ export function Catalogo({
         }
       } else if (e instanceof DemasiadosIntentos)
         avisar("Un momentito. Intenta enviar de nuevo más tarde.");
+      else if (demo) avisar("No se pudo preparar el pedido de prueba. Inténtalo otra vez.");
       else abrirWhatsApp(t.whatsapp, mensajePedido(t, cart, total));
     } finally {
       envio.current = false;
@@ -663,6 +671,13 @@ export function Catalogo({
         (vista === "colecciones" || vista === "catalogos" ? " co-open" : "") +
         (secciones?.como_funciona === false ? " sin-historia" : "")
       }
+      onClickCapture={e => {
+        if (!demo) return;
+        const enlace = (e.target as Element).closest?.("a[href]");
+        if (enlace && /^(https?:\/\/(?:wa\.me|api\.whatsapp\.com)|whatsapp:|mailto:|tel:)/i.test(enlace.getAttribute("href") ?? "")) {
+          e.preventDefault(); e.stopPropagation(); avisar("Mensaje simulado. En la demo nadie lo recibe.");
+        }
+      }}
       ref={root}
       style={estilo}
     >
@@ -1405,7 +1420,7 @@ export function Catalogo({
       )}
       {vista === "ficha" && producto?.fichaUrl && <VisorFicha p={producto} cerrar={cerrar} />}
       {vista === "opiniones" && producto && (
-        <HojaOpiniones t={t} p={producto} cerrar={cerrar} />
+        <HojaOpiniones demo={demo} t={t} p={producto} cerrar={cerrar} />
       )}
       {vista === "aviso" && producto && (
         <HojaAviso
@@ -1422,7 +1437,7 @@ export function Catalogo({
               elegido?.varianteId ?? null,
               telefono.replace(/\D/g, ""),
               null,
-              dispositivo(),
+              dispositivo(demo ? (interna ? "interna" : "deslizapp-ejemplo") : undefined),
             );
             avisar("Listo. Te aviso cuando llegue.");
             cerrar();

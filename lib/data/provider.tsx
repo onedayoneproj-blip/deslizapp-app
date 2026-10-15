@@ -9,11 +9,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Usuario } from "../types";
 import { createClient } from "../supabase/client";
-import { cambiarTiendaActivaDemo, fuenteDemo, leerDemo, suscribirDemo } from "./demo";
+import * as demoPublica from "./demo";
+import { demoInterna } from "./demo-interna";
 import { mensajeDeError } from "./errores";
 import type { FuenteDatos } from "./fuente";
 import type { Modo } from "./modo";
-import { elegirTiendaPorDefecto, leerSesion, salir, suscribirSesion, type EstadoSesion } from "./sesion";
+import { elegirTiendaPorDefecto, leerSesion, salir, salirDemoInterna, suscribirSesion, type EstadoSesion } from "./sesion";
 import { CUENTA_DEMO, KEY_AVISO_TRAS_CAMBIO, RUTA_PANEL, type CuentaVista } from "../cuenta";
 import { crearFuenteSupabase } from "./supabase";
 import { soloMirar } from "./solo-mirar";
@@ -24,6 +25,7 @@ import { navegarVerComo } from "../admin/navegacion-ver-como";
 
 export type DataContexto = FuenteDatos & {
   modo: Modo;
+  demoInterna?: boolean;
   /** Identificador opaco para preferencias locales; null en Ver como. */
   usuarioId: string | null;
   /** Ver como: la capa de datos bloquea escrituras; no revoca permisos SQL del dueño. */
@@ -74,25 +76,27 @@ export function DataProvider({ children, cargando, entrada }: { children: ReactN
   return entrada;
 }
 
-export function ProveedorDemo({ children, cargando }: { children: ReactNode; cargando: ReactNode }) {
+export function ProveedorDemo({ children, cargando, interna = false }: { children: ReactNode; cargando: ReactNode; interna?: boolean }) {
+  const { cambiarTiendaActivaDemo, fuenteDemo, leerDemo, suscribirDemo } = interna ? demoInterna : demoPublica;
   const e = useSyncExternalStore(suscribirDemo, leerDemo, nadaEnServidor);
   const valor = useMemo<DataContexto | null>(
     () =>
       e && {
         ...fuenteDemo,
         modo: "demo",
-        usuarioId: "demo",
+        demoInterna: interna,
+        usuarioId: interna ? "demo-interna" : "demo-publica",
         soloMirar: false,
         tiendaActivaId: e.tiendaActivaId,
         cambiarTiendaActiva: cambiarTiendaActivaDemo,
         cuenta: CUENTA_DEMO,
         version: e.version,
-        salir,
+        salir: interna ? salirDemoInterna : salir,
         errorLectura: null,
         avisarErrorLectura: nada,
         refrescar: nada,
       },
-    [e],
+    [e, interna, fuenteDemo, cambiarTiendaActivaDemo],
   );
   if (!valor) return cargando;
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

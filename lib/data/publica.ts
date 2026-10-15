@@ -28,12 +28,13 @@ export function fuentePublicaReal(): FuentePublica {
     () => {},
   );
 }
-export async function fuentePublica(demo: boolean): Promise<FuentePublica> {
+export async function fuentePublica(demo: boolean, interna = false): Promise<FuentePublica> {
+  if (demo && interna) return (await import("./demo-interna")).demoInterna.fuenteDemo;
   if (demo) return (await import("./demo")).fuenteDemo;
   return fuentePublicaReal();
 }
 
-export async function observarFuentePublicaDemo(): Promise<() => void> {
-  const { suscribirDemo } = await import("./demo");
+export async function observarFuentePublicaDemo(interna = false): Promise<() => void> {
+  const { suscribirDemo } = interna ? (await import("./demo-interna")).demoInterna : await import("./demo");
   return suscribirDemo(() => {});
 }

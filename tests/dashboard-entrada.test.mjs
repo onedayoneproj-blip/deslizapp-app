@@ -8,6 +8,8 @@ import ts from "typescript";
 const require = createRequire(import.meta.url);
 const modulo = (source) => `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
 const fixture = modulo(`
+  export const COOKIE_DEMO_INTERNA = "demo-interna";
+  export async function exigirDemoInterna() {}
   export const CABECERA_RUTA = "x-dz-ruta", HAY_SUPABASE = true;
   export const COOKIE_RECUPERAR_VER_COMO = "recuperacion", COOKIE_VER_COMO = "ver-como", COOKIE_TIENDA_VER_COMO = "tienda";
   export async function cookies() { return { get: () => undefined }; }
@@ -17,7 +19,7 @@ const fixture = modulo(`
     rpc: async () => ({ data: false, error: null }),
   }; }
   export async function fotosInicio() { globalThis.__entrada.lecturas++; return { fotos: [{ src: "/foto-fixture.webp" }] }; }
-  ${["AvisoRed", "Encabezado", "NavInferior", "PantallaCarga", "PantallaEntrada", "PanelUIProvider", "InicioPublico", "PaginaPrincipal", "RecuperarVerComo", "DataProvider", "ProveedorSoloMirar", "ToastProvider", "ProveedorToast"].map((name) => `export function ${name}() { return null; }`).join("\n")}
+  ${["AvisoRed", "Encabezado", "NavInferior", "PantallaCarga", "PantallaEntrada", "PanelUIProvider", "InicioPublico", "PaginaPrincipal", "RecuperarVerComo", "DataProvider", "ProveedorSoloMirar", "ProveedorDemo", "LimiteDemo", "ToastProvider", "ProveedorToast"].map((name) => `export function ${name}() { return null; }`).join("\n")}
 `);
 const source = readFileSync(new URL("../app/(dashboard)/layout.tsx", import.meta.url), "utf8")
   .replace(/from "(?:@\/[^\"]+|next\/headers)"/g, `from ${JSON.stringify(fixture)}`);

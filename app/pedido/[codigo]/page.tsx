@@ -1,3 +1,4 @@
+import { exigirDemoInterna } from "@/lib/demo/acceso-servidor";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -24,7 +25,11 @@ export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { codigo } = await params;
-  const s = "demo" in (await searchParams) ? null : (await leer(codigo)).solicitud;
+  const consulta = await searchParams;
+  const interna = consulta.demo === "interna" || codigo.toUpperCase().startsWith("INTERNA-");
+  if (interna) await exigirDemoInterna();
+  const demo = interna || codigo.toUpperCase().startsWith("DEMO-") || "demo" in consulta;
+  const s = demo ? null : (await leer(codigo)).solicitud;
   if (!s)
     return {
       title: "Tu pedido · Deslizapp",
@@ -49,7 +54,10 @@ export async function generateMetadata({
 }
 export default async function Pagina({ params, searchParams }: Props) {
   const { codigo } = await params;
-  const demo = "demo" in (await searchParams);
+  const consulta = await searchParams;
+  const interna = consulta.demo === "interna" || codigo.toUpperCase().startsWith("INTERNA-");
+  if (interna) await exigirDemoInterna();
+  const demo = interna || codigo.toUpperCase().startsWith("DEMO-") || "demo" in consulta;
   const resultado = demo ? null : await leer(codigo);
   const s = resultado?.solicitud ?? null;
   const catalogo = s ? await fuentePublicaReal().catalogoPublico(s.tienda.slug).catch(()=>null) : null;
@@ -57,6 +65,7 @@ export default async function Pagina({ params, searchParams }: Props) {
     <PedidoComprador
       codigo={codigo}
       demo={demo}
+      interna={interna}
       inicial={s}
       errorInicial={resultado?.error ?? false}
       inicialCatalogo={catalogo}

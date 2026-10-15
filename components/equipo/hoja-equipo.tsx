@@ -261,6 +261,7 @@ function FilaEnlace({ tiendaId, enlace, nombreTienda }: { tiendaId: string; enla
 }
 
 function CompartirEnlace({ codigo, nombreTienda }: { codigo: string; nombreTienda: string }) {
+  const { modo } = useData();
   const toast = useToast();
   const url = urlUnirse(window.location.origin, codigo);
   const texto = mensajeInvitacion(nombreTienda, url);
@@ -273,6 +274,7 @@ function CompartirEnlace({ codigo, nombreTienda }: { codigo: string; nombreTiend
     }
   };
   const compartir = async () => {
+    if (modo === "demo") { toast("Invitación simulada. En la demo nadie la recibe."); return; }
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ text: texto });

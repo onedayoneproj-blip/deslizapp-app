@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { CUENTA_DEMO, inicialesDeCuenta, type CuentaVista } from "@/lib/cuenta";
-import { leerDemo, suscribirDemo } from "@/lib/data/demo";
+import { demoInterna } from "@/lib/data/demo-interna";
+const { leerDemo, suscribirDemo } = demoInterna;
 import { FotoCuenta } from "@/components/panel/cuenta";
 import { BarraPestanas, type Seccion } from "@/components/panel/nav-inferior";
 import { HojaCuentaAdmin, type MiTienda } from "./hoja-cuenta";

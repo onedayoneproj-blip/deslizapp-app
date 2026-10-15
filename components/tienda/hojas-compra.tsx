@@ -143,10 +143,12 @@ export function HojaPedido({
   );
 }
 export function HojaOpiniones({
+  demo = false,
   t,
   p,
   cerrar,
 }: {
+  demo?: boolean;
   t: CatalogoPublico["tienda"];
   p: ProductoPublico;
   cerrar: () => void;
@@ -155,7 +157,7 @@ export function HojaOpiniones({
   const mostrar = modoOpiniones(t.personalizacion.secciones) === "si";
   const opiniones = mostrar ? p.opiniones : [];
   const preguntar = () => {
-    if (!t.whatsapp) return;
+    if (demo || !t.whatsapp) return;
     location.href =
       "https://wa.me/" +
       t.whatsapp.replace(/\D/g, "") +
