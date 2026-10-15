@@ -9,12 +9,21 @@ campo "Marca o línea"), manda lo que dice aquí.
 
 ## Página principal y demo pública (15 oct 2026)
 
-**Estado:** implementado en [#133](https://github.com/onedayoneproj-blip/deslizapp-app/pull/133), pendiente de integración y de Safari/PWA físico. Encargo: [video de portada y entrada](prompts/video-v2-y-entrar.md).
+**Estado:** implementado en [#133](https://github.com/onedayoneproj-blip/deslizapp-app/pull/133), fusionado en main; pendiente de Safari/PWA físico. Encargo: [video de portada y entrada](prompts/video-v2-y-entrar.md).
 
 - Sin sesión, `/` y `/entrar` comparten la página principal, sus fotos, «Iniciar sesión» y el enlace pequeño «Probar la app con datos de prueba». Los avisos de entrada conservan su texto en una tarjeta crema encima de los botones. También ocurre si la sesión se cierra en el navegador después de que el servidor autorizara el panel. Las fotos solo se leen para estas dos rutas; las demás rutas conservan su entrada y los estados de cuenta sin tienda/error.
 - `/conoce` muestra primero el video `portada-v2` completo, sin sonido y solo con «Saltar» encima. Al final sigue en bucle y entran icono/lema y, 250 ms después, teléfono/«Desliza y mira». Un gesto anticipado muestra todo al momento; a los 10 s entra aunque el video no responda.
 - Con movimiento reducido o ahorro de datos no se solicitan archivos de video: solo póster y portada completa. El HTML entrega fuentes sin `src`; el controlador las activa después de comprobar las preferencias. Si el autoplay falla, entra todo sin esperar.
 - «Entrar» desde `/conoce` lleva a `/`. Los contratos de Google, `dz_volver` e invitaciones se conservan. Pruebas: `probar-landing`, `probar-inicio` y `tests/dashboard-entrada.test.mjs` (Auth simulado).
+
+## Decisión: demo pública de merchandising aislada (15 oct 2026)
+
+**Estado:** aprobada por Lewis, pendiente de implementación. [Encargo](prompts/demo-publica-deslizapp-aislada.md) y [tarea vigente](https://app.notion.com/p/3faed62010cb814eb341c1e406b8d554).
+
+- «Probar la app con datos de prueba» usará una copia aislada del perfil y los catálogos públicos de Deslizapp con fotos de merchandising y actividad comercial inventada. La tienda `deslizapp` es un negocio real de Lewis y sus datos/medios no se modifican ni se usan como destino de operaciones de la demo.
+- La demo pública permite probar la app de un dueño, sin mostrar el admin de Deslizapp, laboratorio, otras tiendas de fixtures ni controles técnicos internos. La experiencia interna se conserva exclusivamente para la identidad Google de Lewis indicada en la tarea privada; comprobarla en servidor, no con un flag demo. No altera los permisos vigentes del admin real.
+- Snapshot visual público y datos ficticios propios, con IDs, almacenamiento, enlaces, pedidos y carrito separados. Probar, reiniciar y compartir no generan mensajes, cobros o escrituras reales. La demo pública, el entorno interno y la demo en memoria de /conoce no contaminan su estado entre sí.
+- **Pendiente de aclaración:** Lewis mencionó retirar una opción del perfil público. Confirmar si se refiere solo a las herramientas internas o también al acceso a la demo. Hasta entonces conservar el acceso existente en / y /entrar; no añadir/retirar otro CTA comercial ni modificar el diseño de inicio o la compra real.
 
 ## Reglas generales
 
