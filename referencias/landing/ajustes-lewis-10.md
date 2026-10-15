@@ -24,7 +24,7 @@ Si choca con rondas anteriores, **manda esto**.
 - **El teléfono asoma por abajo** (unos 300 px de ancho, empieza hacia el 54 % del alto y queda cortado por el borde). Su pantalla de bloqueo lleva:
   - de fondo, la foto del termo desenfocada (blur unos 14 px) con un velo Bosque al 18 %;
   - fecha («martes, 14 de octubre») y hora grande («3:41»), en blanco;
-  - **un aviso** tipo iOS: tarjeta crema translúcida con la miniatura del termo, «**Brisa** · ahora» y «Llegó el termo rosado. Desliza y míralo.».
+  - **un aviso** tipo iOS: tarjeta crema translúcida con la miniatura del termo, «**Vuelta Store** · ahora» y «Llegó el termo rosado. Desliza y míralo.».
   - Ya no lleva el «Desliza y mira» dentro de la pantalla.
 - **Indicación «Desliza y mira»**, centrada, a unos 30 px del borde de abajo y por encima del teléfono. Va **en vertical**: arriba, un círculo mandarina `#ff834f` de 48 px con una flecha hacia arriba en `#10362a`; debajo, el texto en Fredoka 600 de 18 px, crema y con sombra suave.
   - **Sin píldora ni fondo detrás.** Lewis lo vio como un deslizador horizontal tipo «slide to unlock», y tiene que leerse como «desliza hacia arriba».
@@ -47,12 +47,13 @@ Si choca con rondas anteriores, **manda esto**.
   4. Al pie: «¿Ya tienes tienda? **Entrar**» y, debajo, «Privacidad · Términos» en pequeño.
 - Se quitan el subtítulo «Un catálogo para comprar. Una app para lo que pasa después.» y el bloque crema actual.
 
-## Nombre de la tienda de la demo: «Brisa»
-Lewis no quiere «La Vuelta», que puede sonar callejero y choca con el lema «sin tanta vuelta». La tienda de la demo pasa a llamarse **Brisa** en todo:
-- los datos de `db-demo` y `pedido-demo`;
-- la cabecera del catálogo, los mensajes de WhatsApp y la imagen del pedido;
-- el seguimiento, «¿Eres la tienda?», las burbujas, los textos de `PASOS` y el OG.
-Busca «La Vuelta» y «la-vuelta» en todo el código de la landing, sus pruebas y sus capturas, y que no quede ninguno.
+## Nombre de la tienda de la demo: «Vuelta Store»
+Decisión final de Lewis (15 oct): la tienda de la demo se llama **Vuelta Store**. Sustituye a «La Vuela»/«La Vuelta» y también a «Brisa», que era una propuesta que ya no aplica. En todo:
+- los datos de `db-demo` y `pedido-demo` (nombre visible «Vuelta Store»; el slug o código interno que haga falta, `vuelta-store`);
+- la cabecera del catálogo, el avatar o las iniciales («VS»), los mensajes de WhatsApp y la imagen del pedido;
+- el seguimiento, «¿Eres la tienda?», las burbujas, los textos de `PASOS`, el aviso de la pantalla de bloqueo y el OG.
+- Busca «La Vuelta», «la-vuelta» y «Brisa» en el código de la landing, sus pruebas y sus capturas, y que no quede ninguno.
+- Cuidado con la cabecera del reel, que pone el nombre de la tienda en una tipografía serif: comprueba que «Vuelta Store» cabe sin partirse ni tapar la lupa y la ayuda a 360 de ancho.
 
 ## Pruebas
 - `probar-landing`:
@@ -60,5 +61,5 @@ Busca «La Vuelta» y «la-vuelta» en todo el código de la landing, sus prueba
   - el botón «Desliza y mira» visible y tocable (al tocarlo arranca el desbloqueo);
   - el aviso de «Brisa» en la pantalla de bloqueo;
   - el cierre con las tres fotos y los tres enlaces;
-  - ni una mención a «La Vuelta».
+  - ni una mención a «La Vuelta» ni a «Brisa».
 - Capturas de la portada y del cierre a 393×852 en el PR, al lado de las del diseño.
