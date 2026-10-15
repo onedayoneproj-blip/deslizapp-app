@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { enlaceAlPublicar } from "@/lib/publicar-catalogo";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Avatar, Boton, Campo, ControlSegmentado, Contador, Etiqueta, Tarjeta } from "@/components/ui";
 import { Hoja } from "@/components/hoja";
@@ -29,7 +30,8 @@ const EN_TRABAJO = new Set(GRUPOS.map((g) => g.estado));
 const mayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** El enlace propuesto para «Mandar a revisar»: el que ya tiene, o su catálogo en Deslizapp (siempre https). */
-function enlacePropuesto(t: TiendaAdmin) {
+function enlacePropuesto(t: TiendaAdmin, demo: boolean) {
+  if (demo) return enlaceAlPublicar(t.slug, undefined, { modo: "demo", demoInterna: true });
   if (t.urlCatalogo) return t.urlCatalogo;
   if (typeof window === "undefined") return "";
   return `https://${window.location.host}/tienda/${t.slug}`;
@@ -132,6 +134,7 @@ function TarjetaCatalogo({
 
 function Catalogos({ tiendas, resaltar, refrescar }: { tiendas: TiendaAdmin[]; resaltar: string | null; refrescar: () => Promise<TiendaAdmin[] | null> }) {
   const fuente = useAdmin();
+  const demo = useAdminDemo();
   const enCurso = useRef<string | null>(null);
   const [ocupada, setOcupada] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ texto: string; error: boolean } | null>(null);
@@ -178,7 +181,7 @@ function Catalogos({ tiendas, resaltar, refrescar }: { tiendas: TiendaAdmin[]; r
     );
   const abrirRevisar = (t: TiendaAdmin) => {
     setRevisar(t);
-    setEnlace(enlacePropuesto(t));
+    setEnlace(enlacePropuesto(t, demo));
     setErrorEnlace(null);
   };
   const confirmarRevisar = async () => {

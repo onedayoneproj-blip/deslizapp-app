@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { enlaceAlPublicar } from "@/lib/publicar-catalogo";
 import { useCallback, useEffect, useRef, useState, type PointerEvent as EventoPuntero } from "react";
 import { Boton, BotonIcono, Campo, CampoMultilinea, ControlSegmentado, Etiqueta, FilaLista, Interruptor, ListaAgrupada } from "@/components/ui";
 import { Hoja } from "@/components/hoja";
@@ -124,7 +125,7 @@ export function PantallaPersonalizar({ tiendaId }: { tiendaId: string }) {
   const letra = LETRAS.find((l) => l.display === tema.fuentes.display);
   const sucio = hayCambios(borrador);
   const errores = sucio ? problemas(datos.personalizacion, borrador) : [];
-  const enlaceCatalogo = `/tienda/${datos.slug}${demo ? "?demo=interna" : ""}`;
+  const enlaceCatalogo = enlaceAlPublicar(datos.slug, "", { modo: demo ? "demo" : "real", demoInterna: demo });
 
   const guardar = async () => {
     if (enCurso.current || !sucio || errores.length) return;

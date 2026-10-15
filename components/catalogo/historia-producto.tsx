@@ -168,7 +168,7 @@ function Historia({
   productos: Producto[];
   alOtro: () => void;
 }) {
-  const { publicarMiCatalogo } = useData();
+  const { publicarMiCatalogo, modo, demoInterna } = useData();
   const { puede, porque, esDuena } = usePermisos();
   const sinCatalogo = !puede("catalogo");
   const { tienda } = useTiendaActiva();
@@ -722,7 +722,7 @@ function Historia({
       />
       {tienda && (
         <HojaPublicarCatalogo
-          abierta={publicando} alCerrar={() => setPublicando(false)} enlace={enlaceAlPublicar(tienda.slug)} productos={productosQueCuentan(productos)}
+          abierta={publicando} alCerrar={() => setPublicando(false)} enlace={enlaceAlPublicar(tienda.slug, undefined, { modo, demoInterna })} productos={productosQueCuentan(productos)}
           alAgregarMas={() => { setPublicando(false); alOtro(); }}
           alConfirmar={async () => {
             try {

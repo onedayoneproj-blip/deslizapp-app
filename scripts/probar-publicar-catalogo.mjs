@@ -89,7 +89,7 @@ for (const ancho of [390, 360]) {
   const hoja = page.getByRole("dialog");
   const t = await hoja.innerText();
   ok(await hoja.getByRole("heading", { name: "¿Publicamos tu catálogo?" }).count() === 1, "con 5: la hoja de siempre, sin la confirmación suave");
-  ok(t.includes("Tus clientes lo verán en este enlace") && t.includes("deslizapp.com/tienda/lino-y-algodon"), "la hoja dice el enlace que tendrá");
+  ok(t.includes("Tus clientes lo verán en este enlace") && t.includes("/tienda/lino-y-algodon?demo=interna"), "la hoja dice el enlace interno que tendrá");
   ok(["Armas y municiones", "Drogas ilegales", "Contenido sexual explícito", "Productos falsificados", "Documentos falsos", "Medicamentos con receta", "Animales vivos"].every((x) => t.includes(x)), "la hoja lista lo que no se puede vender");
   ok(t.includes("Al publicar aceptas los Términos"), "la hoja dice que se aceptan los Términos");
   await page.screenshot({ path: `${OUT}/hoja-publicar-${ancho}.png` });
@@ -101,7 +101,7 @@ for (const ancho of [390, 360]) {
   await page.screenshot({ path: `${OUT}/recien-${ancho}.png` });
   await page.waitForTimeout(6500);
   ok(await tarjeta(page).getByText("En línea").count() === 1, "después: «En línea»");
-  ok((await tarjeta(page).innerText()).includes("deslizapp.com/tienda/lino-y-algodon"), "muestra el enlace");
+  ok((await tarjeta(page).innerText()).includes("/tienda/lino-y-algodon?demo=interna"), "muestra el enlace interno");
   await page.screenshot({ path: `${OUT}/en-linea-${ancho}.png` });
   ok(await tarjeta(page).getByRole("button", { name: "Compartir" }).count() === 1, "hay «Compartir»");
   await page.context().close();

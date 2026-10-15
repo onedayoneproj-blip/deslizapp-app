@@ -16,6 +16,17 @@ test("http, otros esquemas, vacíos y basura se tratan como sin enlace", () => {
   }
 });
 
+test("demo local en desarrollo acepta su propio origen HTTP sin aceptar catálogos HTTP reales o externos", () => {
+  const previo = globalThis.window;
+  try {
+    globalThis.window = { location: { origin: "http://localhost:3000" } };
+    assert.equal(enlaceCatalogo("http://localhost:3000/tienda/fixture?demo=interna")?.href, "http://localhost:3000/tienda/fixture?demo=interna");
+    assert.equal(enlaceCatalogo("http://localhost:3000/tienda/deslizapp-ejemplo?demo=")?.dominio, "Demo de Deslizapp");
+    assert.equal(enlaceCatalogo("http://localhost:3000/tienda/real"), null);
+    assert.equal(enlaceCatalogo("http://otro.test/tienda/fixture?demo=interna"), null);
+  } finally { if (previo === undefined) delete globalThis.window; else globalThis.window = previo; }
+});
+
 test("mensaje y enlace de WhatsApp", () => {
   assert.equal(mensajeCatalogo("Esencias Michel", "https://a.com/x"), "Mira el catálogo de Esencias Michel: https://a.com/x");
   const u = urlWhatsAppCatalogo("Luna & Co", "https://a.com/x?y=1&z=2");

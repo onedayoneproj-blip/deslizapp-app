@@ -22,9 +22,8 @@ try {
  if (suites.includes("probar-recuperacion-demo.mjs")) cambiar("lib/demo/auth-fixture-local.ts", s => s.replace('user:{id:"lewis-auth-fixture",identities:[{provider:"google"}]}', 'user:null'));
  cambiar("lib/demo/acceso-servidor.ts", s => s.replace('"../supabase/server"', '"./auth-fixture-local"').replace('import { HAY_SUPABASE } from "../supabase/config";', 'const HAY_SUPABASE = true;'));
  cambiar("lib/data/provider.tsx", s => s.replace('if (sesion.tipo === "demo") return <ProveedorDemo ', 'if (sesion.tipo === "demo") return <ProveedorDemo interna '));
- if (!suites.includes("probar-enlaces-internos.mjs")) cambiar("lib/data/publica.ts", s => s.replace('if (demo && interna)', 'if (demo)').replace('interna ? (await import("./demo-interna")).demoInterna : await import("./demo")', '(await import("./demo-interna")).demoInterna'));
- cambiar("components/pedido-catalogo/tienda-en-pedido.tsx", s => s.replace('interna = false', 'interna = true'));
- if (!suites.includes("probar-enlaces-internos.mjs")) for (const ruta of ["app/tienda/[slug]/page.tsx", "app/pedido/[codigo]/page.tsx"]) cambiar(ruta, s => s.replaceAll('consulta.demo === "interna"', '"demo" in consulta'));
+ // Adaptar las URLs de las suites antiguas, conservando intactas las rutas y fuentes de producción.
+ for (const suite of suites) if (suite !== "probar-enlaces-internos.mjs") cambiar(join("scripts", suite), s => s.replace(/([?&])demo(?![=\w])/g, "$1demo=interna"));
  // Fixtures de otras suites importan explícitamente el almacén interno.
  cambiar("lib/data/demo-interna.ts", s => s + '\nexport const { fuenteDemo, leerDemo, suscribirDemo, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } = demoInterna;\n');
  for (const ruta of ["tests/fixtures/espera-page.txt", "tests/fixtures/visibilidad-page.txt"]) cambiar(ruta, s => s.replaceAll('@/lib/data/demo"', '@/lib/data/demo-interna"'));
@@ -39,7 +38,7 @@ try {
  const log = [];
  servidor.stdout.on("data", b => log.push(String(b))); servidor.stderr.on("data", b => log.push(String(b)));
  for (let i = 0; ; i++) { if (servidor.exitCode !== null) throw new Error("Servidor de fixtures terminó: " + log.join("")); if (i > 120) throw new Error("Servidor de fixtures no listo\n" + log.slice(-5).join("")); try { if ((await fetch(url + "/entrar")).ok) break; } catch {} await new Promise(r => setTimeout(r, 500)); }
- for (const ruta of suites.includes("probar-recuperacion-demo.mjs") ? ["/api/demo-interna"] : ["/catalogo", "/admin-demo", "/unirse/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "/pedidos", "/tienda/esencias-michel?demo"]) {
+ for (const ruta of suites.includes("probar-recuperacion-demo.mjs") ? ["/api/demo-interna"] : ["/catalogo", "/admin-demo", "/unirse/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "/pedidos", "/tienda/esencias-michel?demo=interna"]) {
    await fetch(url + ruta);
  }
  for (const suite of suites) { console.log(`\nSuite interna con Auth fixture: ${suite}`); await ejecutar(process.execPath, [join("scripts", suite)], env); }

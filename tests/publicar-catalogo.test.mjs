@@ -42,6 +42,17 @@ test("el enlace que tendrá el catálogo", () => {
   assert.equal(P.enlaceAlPublicar("tienda-de-ensayo"), "https://deslizapp.com/tienda/tienda-de-ensayo");
 });
 
+test("publicar en demo conserva origen y fuente; el catálogo real conserva su dominio", () => {
+  const previo = globalThis.window;
+  try {
+    globalThis.window = { location: { origin: "https://preview.test" } };
+    assert.equal(P.enlaceAlPublicar("fixture", undefined, { modo: "demo", demoInterna: true }), "https://preview.test/tienda/fixture?demo=interna");
+    assert.equal(P.enlaceAlPublicar("deslizapp-ejemplo", undefined, { modo: "demo" }), "https://preview.test/tienda/deslizapp-ejemplo?demo=");
+    assert.equal(P.enlaceAlPublicar("fixture", "", { modo: "demo", demoInterna: true }), "/tienda/fixture?demo=interna");
+    assert.equal(P.enlaceAlPublicar("real", "https://dominio.test", { modo: "real" }), "https://dominio.test/tienda/real");
+  } finally { if (previo === undefined) delete globalThis.window; else globalThis.window = previo; }
+});
+
 test("la lista de lo que no se puede vender está completa y en un solo lugar", () => {
   assert.equal(X.PRODUCTOS_PROHIBIDOS.length, 7);
   for (const t of ["Armas y municiones", "Drogas ilegales", "Contenido sexual explícito", "Productos falsificados", "Documentos falsos", "Medicamentos con receta", "Animales vivos"]) {
