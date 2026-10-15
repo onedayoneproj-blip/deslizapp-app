@@ -39,7 +39,7 @@ test("título de la confirmación: vacío, singular y plural", () => {
 });
 
 test("el enlace que tendrá el catálogo", () => {
-  assert.equal(P.enlaceAlPublicar("tienda-de-ensayo"), "https://deslizapp-app.vercel.app/tienda/tienda-de-ensayo");
+  assert.equal(P.enlaceAlPublicar("tienda-de-ensayo"), "https://deslizapp.com/tienda/tienda-de-ensayo");
 });
 
 test("la lista de lo que no se puede vender está completa y en un solo lugar", () => {
@@ -77,7 +77,7 @@ test("demo: publica aunque esté vacío, con el enlace estándar", () => {
   assert.equal(T.publicarMiCatalogoEnDB(conProductos(0), LINO, AHORA).tienda.catalogoEstado, "publicado", "vacío también");
   const r = T.publicarMiCatalogoEnDB(conProductos(5), LINO, AHORA);
   assert.equal(r.tienda.catalogoEstado, "publicado");
-  assert.equal(r.tienda.urlCatalogo, "https://deslizapp-app.vercel.app/tienda/lino-y-algodon");
+  assert.equal(r.tienda.urlCatalogo, "https://deslizapp.com/tienda/lino-y-algodon");
   assert.equal(r.tienda.catalogoPublicadoEn, AHORA);
   // Otra vez: no cambia nada.
   assert.equal(T.publicarMiCatalogoEnDB(r.db, LINO, "2026-10-09T00:00:00.000Z").tienda.catalogoPublicadoEn, AHORA);

@@ -74,7 +74,7 @@ test("los interruptores deciden qué sale", () => {
 });
 
 test("enlace directo al producto con ?ref=historia", () => {
-  assert.equal(H.enlaceProductoHistoria("https://deslizapp-app.vercel.app/tienda/esencias-michel", "majestic-oud"), "https://deslizapp-app.vercel.app/tienda/esencias-michel?ref=historia#p/majestic-oud");
+  assert.equal(H.enlaceProductoHistoria("https://deslizapp.com/tienda/esencias-michel", "majestic-oud"), "https://deslizapp.com/tienda/esencias-michel?ref=historia#p/majestic-oud");
   assert.equal(H.enlaceProductoHistoria("https://a.com/c?x=1", "s"), "https://a.com/c?x=1&ref=historia#p/s");
   assert.equal(H.enlaceProductoHistoria("http://a.com", "s"), null);
   assert.equal(H.enlaceProductoHistoria(null, "s"), null);
@@ -95,7 +95,7 @@ test("el catálogo abre solo si está publicado, activo y con enlace", () => {
 });
 
 test("dirección en líneas: dominio completo y ruta aparte, sin https", () => {
-  assert.deepEqual(H.direccionEnLineas("https://deslizapp-app.vercel.app/tienda/esencias-michel"), { dominio: "deslizapp-app.vercel.app", ruta: "/tienda/esencias-michel" });
+  assert.deepEqual(H.direccionEnLineas("https://deslizapp.com/tienda/esencias-michel"), { dominio: "deslizapp.com", ruta: "/tienda/esencias-michel" });
   assert.deepEqual(H.direccionEnLineas("https://www.esenciasmichel.com/"), { dominio: "esenciasmichel.com", ruta: null });
   assert.equal(H.direccionEnLineas("http://x.com"), null);
   assert.equal(H.direccionEnLineas(null), null);

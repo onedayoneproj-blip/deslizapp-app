@@ -41,7 +41,9 @@ do $$ declare t uuid := 'c2000000-0000-4000-8000-000000000001'; ok text; malo te
     'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/'||t||'/logo/l.webp',
     'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/retoques/'||t||'/trabajo-1.jpg',
     'https://deslizapp-app.vercel.app/catalogos/esencias-michel/fotos/she.webp',
-    'https://deslizapp-app.vercel.app/ensayo/producto-uno.svg'] loop
+    'https://deslizapp-app.vercel.app/ensayo/producto-uno.svg',
+    'https://deslizapp.com/catalogos/esencias-michel/fotos/she.webp',
+    'https://deslizapp.com/ensayo/producto-uno.svg'] loop
     perform pg_temp.comprobar(public.medio_url_valida(ok, t), 'debía valer: '||ok);
   end loop;
   foreach malo in array array[
@@ -59,6 +61,8 @@ do $$ declare t uuid := 'c2000000-0000-4000-8000-000000000001'; ok text; malo te
     'https://euihaeyfdlpvmbtfzvnt.supabase.co/storage/v1/object/public/productos/'||t||'/a b.webp',
     'https://deslizapp-app.vercel.app/tienda/esencias-michel',
     'https://deslizapp-app.vercel.app.malo.example/ensayo/a.svg',
+    'https://deslizapp.com.malo.example/ensayo/a.svg',
+    'https://deslizapp.com/tienda/esencias-michel',
     'https://deslizapp-app.vercel.app/ensayo/../api/x',
     'https://deslizapp-app.vercel.app/ensayo/'||repeat('a', 2048),
     ''] loop

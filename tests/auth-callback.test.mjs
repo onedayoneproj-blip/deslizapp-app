@@ -15,7 +15,7 @@ let source = readFileSync(new URL("../app/auth/callback/route.ts", import.meta.u
   .replace('"@/lib/supabase/config"', JSON.stringify(moduleURL('export const HAY_SUPABASE=true;')))
   .replace('"@/lib/supabase/server"', JSON.stringify(auth));
 const { GET } = await import(moduleURL(ts.transpileModule(source, { compilerOptions: { target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext } }).outputText));
-for (const origin of ["https://preview-onedayone.vercel.app", "https://deslizapp-app.vercel.app"]) {
+for (const origin of ["https://preview-onedayone.vercel.app", "https://deslizapp-app.vercel.app", "https://deslizapp.com"]) {
   test(`handler conserva destino elegido, error y login del panel: ${origin}`, async () => {
     globalThis.__authCallbackError = false; globalThis.__authCallbackSession = true;
     for(const codigo of ["PRUEBAAA23","PRUEBAB234"]){

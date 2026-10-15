@@ -92,7 +92,7 @@ reset role;
 update public.productos set activo=true where id='af100000-0000-4000-8000-000000000006';
 set local role authenticated;
 select pg_temp.como('ad100000-0000-4000-8000-00000000000d');
-select pg_temp.comprobar((select catalogo_estado||'|'||url_catalogo from public.publicar_mi_catalogo('ae100000-0000-4000-8000-000000000001'))='publicado|https://deslizapp-app.vercel.app/tienda/publica-fixture','publica con 3 y deja el enlace estándar');
+select pg_temp.comprobar((select catalogo_estado||'|'||url_catalogo from public.publicar_mi_catalogo('ae100000-0000-4000-8000-000000000001'))='publicado|https://deslizapp.com/tienda/publica-fixture','publica con 3 y deja el enlace estándar');
 reset role;
 select pg_temp.comprobar((select catalogo_publicado_en is not null from public.tiendas where id='ae100000-0000-4000-8000-000000000001'),'guarda el primer momento publicado');
 create temp table t_primera as select catalogo_publicado_en p from public.tiendas where id='ae100000-0000-4000-8000-000000000001';

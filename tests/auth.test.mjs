@@ -47,7 +47,7 @@ test("vuelta después de Google: solo /pedido/CODIGO; nada externo ni raro", asy
 
 test("OAuth preserva dominio y cada código sin depender de una cookie compartida", async () => {
   const { callbackGoogle, destinoGoogle } = await import("../lib/auth/canje.ts");
-  for (const origin of ["https://deslizapp-preview-onedayone.vercel.app", "https://deslizapp-app.vercel.app"])
+  for (const origin of ["https://deslizapp-preview-onedayone.vercel.app", "https://deslizapp-app.vercel.app", "https://deslizapp.com"])
     for (const codigo of ["PRUEBAAA23", "PRUEBAB234"]) {
       const retorno = `/pedido/${codigo}`;
       const url = new URL(callbackGoogle(origin, retorno));

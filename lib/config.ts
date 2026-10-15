@@ -93,4 +93,4 @@ export const PRODUCTOS_SUGERIDOS_PARA_PUBLICAR = 5;
  * (`publicar_mi_catalogo`, constante `v_base`); la app solo la usa para MOSTRAR el enlace antes de publicar. tests/publicar-catalogo.test.mjs
  * comprueba que las dos coinciden.
  */
-export const URL_BASE_CATALOGO = "https://deslizapp-app.vercel.app";
+export const URL_BASE_CATALOGO = "https://deslizapp.com";
