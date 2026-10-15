@@ -1,0 +1,65 @@
+# Landing · ronda 10: nuevo diseño de la portada y del cierre (15 oct 2026)
+
+Lewis eligió en el lienzo de diseño (https://claude.ai/artifact/F6iDkiTg9CJp3kW8NKLzKJ):
+- la **Portada A**, con el botón «Desliza y mira» y el «Saltar» de la Portada C;
+- el **Cierre A**.
+
+Las fuentes del diseño están en `referencias/landing/diseno-r10/`: `portada.dc.html` y `cierre.dc.html`, a 390×844.
+- **Son referencia visual: no se copian como código.** Constrúyelo con los componentes y tokens de la app (`app/globals.css`, la regla de `docs/09`).
+- Las imágenes del diseño apuntan a `/_blob/…` del lienzo: usa las de la app (`public/landing/`, `public/icons/apple-touch-icon.png` y las fotos `feed-*`).
+
+Si choca con rondas anteriores, **manda esto**.
+
+## Portada
+- **Video a todo color.** Quita el oscurecido general (el «video al 55 %»). Solo dos degradados de lectura, Bosque `rgba(16,54,42,…)`: uno arriba de 0.86 a 0 hasta el 56 % del alto (ver el lema), y otro abajo de 0 a 0.7 desde el 50 %. El video no se ve gris.
+- **Arriba a la derecha, «Saltar»** en píldora translúcida: fondo `rgba(255,249,238,0.14)`, texto crema, 44 px de alto y doble chevrón.
+- **Icono de la app** pequeño (52 px, radio 12 px) arriba a la izquierda, a la altura de «Saltar». Es el mismo que viaja a esa esquina durante la demo.
+- **El lema, grande y con peso**, alineado a la izquierda (referencia de estilo, no de texto: `referencia-estilo-lema.png`):
+  - encima, una línea de contexto en Figtree 800 de 16 px, **en minúscula normal (sentence case, no mayúsculas)**: «Desliza. Encuentra. Escribe.»;
+  - el lema en Fredoka 700 al 104 % de ancho, **43/45 px**, con un trazo del mismo color de 1.4 px para engrosarlo (`-webkit-text-stroke` con `paint-order: stroke fill`) y sombra de 3 px de Bosque más un halo suave;
+  - **cada frase en dos líneas, cuatro en total y ninguna más** (`white-space: nowrap`; comprueba que no se parta a 360 de ancho): «Comprar sin / tanta **vuelta.**» (crema, con «vuelta.» en mandarina `#ff834f`) y «Vender con / **más orden.**» (todo en rosa `#f5c9d6`);
+  - tres rayitas mandarina (destello) **pegadas a «vuelta.»**: van dentro de la misma línea, justo después del punto, como un carácter más, no en una posición fija que se separe de la palabra según el ancho de la pantalla;
+  - debajo, una línea descriptiva en Figtree 600 de 17/23 px, crema con sombra: «Mira cómo lo que te gusta llega a **Tu Tienda** con todo en su sitio.»;
+  - **contraste:** el degradado de arriba sube a 0.86 de Bosque y baja a 0 hacia el 56 % del alto. El texto crema sobre eso supera 7:1. Compruébalo con el video en movimiento, no solo con un fotograma.
+- **El teléfono asoma por abajo** (unos 300 px de ancho, empieza hacia el 54 % del alto y queda cortado por el borde). Su pantalla de bloqueo lleva:
+  - de fondo, la foto del termo desenfocada (blur unos 14 px) con un velo Bosque al 18 %;
+  - fecha («martes, 14 de octubre») y hora grande («3:41»), en blanco;
+  - **un aviso** tipo iOS: tarjeta crema translúcida con la miniatura del termo, «**Tu Tienda** · ahora» y «Llegó el termo rosado. Desliza y míralo.».
+  - Ya no lleva el «Desliza y mira» dentro de la pantalla.
+- **Indicación «Desliza y mira»**, centrada, a unos 30 px del borde de abajo y por encima del teléfono. Va **en vertical**: arriba, un círculo mandarina `#ff834f` de 48 px con una flecha hacia arriba en `#10362a`; debajo, el texto en Fredoka 600 de 18 px, crema y con sombra suave.
+  - **Sin píldora ni fondo detrás.** Lewis lo vio como un deslizador horizontal tipo «slide to unlock», y tiene que leerse como «desliza hacia arriba».
+  - Al tocar el círculo hace lo mismo que deslizar (empieza el desbloqueo). Mientras se espera, el círculo y la flecha dan un saltito suave hacia arriba, salvo con movimiento reducido.
+- El desbloqueo con el dedo, el icono que viaja a la esquina y el resto de la ronda 8 no cambian.
+
+## Cierre
+- **Fondo Verde Bosque** `#174b3a` a pantalla completa, con el theme-color de Safari igual.
+- **Arriba:** a la izquierda, el icono pequeño (40 px). A la derecha, «Ver la demo otra vez» en píldora translúcida (`rgba(255,249,238,0.12)`, texto crema, con icono de repetir).
+- **Las tres fotos en abanico:**
+  - la gorra a la izquierda (girada −9°) y el tote a la derecha (girado +9°), de 128×160;
+  - el termo al centro, de 150×188, con borde crema de 3 px y por delante.
+  - Sobre la esquina de abajo del termo, el **corazón mandarina** (círculo de 52 px) y debajo una etiqueta crema «✓ Despachado».
+  - Es el cierre del hilo del ♥: el corazón del dedo puede aterrizar aquí.
+- **El lema** grande en crema, Fredoka 32/36, con «vuelta» en mandarina y «más orden» en rosa.
+- **Abajo, una hoja crema** (`#fff9ee`, esquinas de arriba de 28 px, alto de unos 330 px) con:
+  1. **«Quiero vender»**: botón mandarina `#ff834f` de 56 px, texto `#10362a` en 800 y el icono de burbuja de chat. Abre WhatsApp como ahora.
+  2. Debajo, en 14 px `#4f6a5e`: «Las tiendas entran por invitación. Escríbenos.».
+  3. **«Ver un catálogo de ejemplo»**: botón con contorno Bosque de 2 px y 52 px de alto.
+  4. Al pie: «¿Ya tienes tienda? **Entrar**» y, debajo, «Privacidad · Términos» en pequeño.
+- Se quitan el subtítulo «Un catálogo para comprar. Una app para lo que pasa después.» y el bloque crema actual.
+
+## Nombre de la tienda de la demo: «Tu Tienda»
+Decisión final de Lewis (15 oct): la tienda de la demo se llama **Tu Tienda**, con las dos iniciales en mayúscula. Anula todo lo anterior: «La Vuelta», «Brisa» y «Vuelta Store».
+- Nombre visible «Tu Tienda»; iniciales del avatar «TT»; el slug o código interno que haga falta, `tu-tienda`.
+- Va en todo: los datos de `db-demo` y `pedido-demo`, la cabecera del catálogo, los mensajes de WhatsApp, la imagen del pedido, el seguimiento, «¿Eres la tienda?», las burbujas, los textos de `PASOS`, el aviso de la pantalla de bloqueo y el OG.
+- Busca «La Vuelta», «la-vuelta», «Brisa» y «Vuelta Store» en el código de la landing, sus pruebas y sus capturas, y que no quede ninguno.
+- Ojo con las frases donde antes el nombre sonaba a nombre propio: con «Tu Tienda» pueden leerse raro («Este es el catálogo de Tu Tienda», «Así lo ve Ana, que va a comprar»). Revisa cada texto de `PASOS` y avisa de los que no suenen bien.
+- La cabecera del reel pone el nombre en tipografía serif: comprueba que «Tu Tienda» cabe sin partirse a 360 de ancho.
+
+## Pruebas
+- `probar-landing`:
+  - la portada sin oscurecido general;
+  - el botón «Desliza y mira» visible y tocable (al tocarlo arranca el desbloqueo);
+  - el aviso de «Tu Tienda» en la pantalla de bloqueo;
+  - el cierre con las tres fotos y los tres enlaces;
+  - ni una mención a «La Vuelta», «Brisa» ni «Vuelta Store» (solo «Tu Tienda»).
+- Capturas de la portada y del cierre a 393×852 en el PR, al lado de las del diseño.
