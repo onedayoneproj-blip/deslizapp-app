@@ -42,11 +42,11 @@ Ocultar enlaces no basta: protege las rutas internas y sus subrutas, APIs/cargas
 
 La comprobación de identidad de la entrada interna puede usar Auth; el sandbox interno sigue operando sobre datos ficticios separados. No mezcles su fuente con tiendas reales.
 
-## 4. Punto pendiente: ubicación de un acceso público
+## 4. Acceso público conservado — aclaración de Lewis
 
-Planning preguntó a Lewis si al decir «esa opción no debe aparecer en el perfil público» se refiere solo al admin/herramientas internas o también al acceso a la demo.
+Lewis confirmó: «Solo las herramientas internas». Se conserva «Probar la app con datos de prueba» y sus accesos públicos existentes; no retirar ese enlace del perfil público ni de / o /entrar.
 
-Hasta recibir la aclaración: conserva el acceso existente a probar la app en / y /entrar; retira los accesos internos de la demo pública como ya pidió expresamente. No agregues ni retires otro CTA del perfil comercial por interpretación. No elimines «Cómo funciona», el perfil o la compra real de merchandising. Consulta la respuesta más reciente en la tarea de Notion antes de cerrar este punto.
+La retirada afecta únicamente al admin demo, laboratorio, otras tiendas de fixtures y controles técnicos internos descritos arriba. No elimina la demo, «Cómo funciona», el perfil ni la compra real de merchandising. La demo pública sigue disponible sin Google; la identidad verificada de Lewis se exige solo para las herramientas internas.
 
 ## 5. Comprobaciones y entrega
 
