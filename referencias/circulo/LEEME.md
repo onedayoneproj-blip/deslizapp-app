@@ -10,3 +10,9 @@ Aprobado por Lewis el 16 oct 2026 en el lienzo [Círculo Deslizapp · aro](https
 `panel-con-aro.dc.html` muestra el panel con el aro y la tarjeta del Círculo en el menú de la tienda. Ahí el ajuste «Aro» trae otras combinaciones de colores, que son anteriores a la decisión. La tarjeta verde del menú sí está aprobada: «eres del Círculo Deslizapp», «Fundadora desde …», el 30 % con su fecha de fin, los beneficios y «El aro es tuyo para siempre».
 
 Son archivos de Claude Design: sirven para leer medidas y colores, **no se copia su HTML**.
+
+## Animaciones del aro (aprobadas por Lewis, 16 oct 2026)
+Del lienzo [Círculo Deslizapp · animaciones del aro](https://claude.ai/artifact/Nx3kYyCfoWaAoC9N8GPhs5), también privado. Se eligieron dos:
+- **A · Salen desde el centro** (`animacion-a-salen.dc.html`): para donde el movimiento **no** debe seguir. Los aros salen de detrás de la foto uno tras otro, de dentro hacia fuera (mandarina, rosa y verde), con un pequeño rebote; al final salta el sello del corazón. Dura ~1,4 s y se queda quieto.
+- **C · Ondas que no paran** (`animacion-c-ondas.dc.html`): para donde el movimiento **sí** es continuo. Hace la entrada de A y después, desde el centro, siguen saliendo ondas (una mandarina, una rosa y una verde, cada 0,8 s) que crecen hasta ~1,45 veces y se desvanecen por fuera, en un ciclo de 2,4 s.
+- Se descartaron B (colores que se intercambian), D (latido) y E (se dibujan).
