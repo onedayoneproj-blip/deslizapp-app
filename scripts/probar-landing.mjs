@@ -658,6 +658,28 @@ console.log("\nLos teléfonos de la demo no guardan nada");
   await contexto.close();
 }
 
+console.log("\nEl teléfono de la tienda no muestra las novedades de la app");
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  // Quien ya usó la app en este navegador: versión vista vieja y claves de sesión/demo.
+  await contexto.addInitScript(() => {
+    localStorage.setItem("deslizapp-version-vista", "0.1.0");
+    localStorage.setItem("deslizapp-demo-prueba", "{}");
+  });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/demo-landing/tienda", { waitUntil: "networkidle" });
+  const iPedidos = PASOS.findIndex((p) => p.id === "pedidos");
+  for (let i = PASOS.findIndex((p) => p.telefono === "tienda"); i <= iPedidos; i++) {
+    await pagina.evaluate((i) => window.postMessage({ tipo: "dz-landing-paso", paso: i, animar: true }, location.origin), i);
+    await pagina.waitForTimeout(PASOS[i].duracion + 1200);
+  }
+  const cuerpo = await pagina.evaluate(() => document.body.innerText);
+  ok(!/lo nuevo|VERSIÓN \d/i.test(cuerpo), "sin la pantalla de novedades en el teléfono de la tienda");
+  ok(/Pedidos/.test(cuerpo), "y llega al paso de Pedidos");
+  ok((await pagina.evaluate(() => localStorage.getItem("deslizapp-version-vista"))) === "0.1.0", "sin tocar deslizapp-version-vista");
+  await contexto.close();
+}
+
 await nav.close();
 console.log(fallos ? `\n${fallos} fallos` : "\nTodo bien");
 process.exit(fallos ? 1 : 0);

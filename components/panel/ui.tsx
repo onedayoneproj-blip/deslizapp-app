@@ -58,7 +58,9 @@ function novedadesPendientes(): Novedad[] {
 }
 
 /** Estado de interfaz compartido por todo el panel: Plan y créditos, Mi marca y la pantalla de novedades. */
-export function PanelUIProvider({ children }: { children: ReactNode }) {
+export function PanelUIProvider({ children, sinNovedades = false }: { children: ReactNode;
+  /** Para las demos incrustadas (landing): nunca muestra las novedades automáticas ni toca `deslizapp-version-vista`. */
+  sinNovedades?: boolean }) {
   const { avisosPendientes } = useData();
   const { tiendaId } = useTiendaActiva();
   const { modo, usuarioId } = useData();
@@ -84,16 +86,17 @@ export function PanelUIProvider({ children }: { children: ReactNode }) {
   const [marcaAbierta, setMarcaAbierta] = useState(false);
   const [campoMarca, setCampoMarca] = useState<CampoMarca | undefined>(undefined);
   // Este proveedor solo se monta en el navegador (dentro de DataProvider), así que puede leer localStorage.
-  const [novedades, setNovedades] = useState<Novedad[]>(novedadesPendientes);
+  const [novedades, setNovedades] = useState<Novedad[]>(() => sinNovedades ? [] : novedadesPendientes());
 
   useEffect(() => {
+    if (sinNovedades) return;
     // Se marca como vista al mostrarla (o al entrar por primera vez): sale una sola vez.
     try {
       localStorage.setItem(KEY_VERSION_VISTA, VERSION_ACTUAL);
     } catch {
       // Sin almacenamiento, en el peor caso se vuelve a ver.
     }
-  }, []);
+  }, [sinNovedades]);
 
   const abrirPlan = useCallback(() => setPlanAbierto(true), []);
   const cerrarPlan = useCallback(() => setPlanAbierto(false), []);

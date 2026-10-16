@@ -124,7 +124,7 @@ export function TelefonoTienda() {
       <ProveedorDemo cargando={null}>
         <ToastProvider>
           <ProveedorToast>
-            <PanelUIProvider>
+            <PanelUIProvider sinNovedades>
               <div key={estado.montaje}>
                 <div className="dz-pantalla" data-visible={estado.pantalla === "panel" ? "" : undefined}>
                   {estado.pantalla === "panel" && (
