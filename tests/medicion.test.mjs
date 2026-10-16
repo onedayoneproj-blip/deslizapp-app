@@ -33,8 +33,9 @@ test("origen: un referer del propio sitio no cuenta", () => {
 });
 
 test("la lista de eventos coincide con la de la función SQL", () => {
-  const migracion = readdirSync(new URL("../supabase/migrations/", import.meta.url)).find((f) => f.includes("eventos_publicos"));
-  const sql = readFileSync(new URL(`../supabase/migrations/${migracion}`, import.meta.url), "utf8");
+  // La lista vigente es la de la última migración que redefine registrar_evento_publico.
+  const migraciones = readdirSync(new URL("../supabase/migrations/", import.meta.url)).filter((f) => f.includes("eventos_publicos")).sort();
+  const sql = migraciones.map((f) => readFileSync(new URL(`../supabase/migrations/${f}`, import.meta.url), "utf8")).filter((t) => t.includes("p_evento <> all")).at(-1);
   const lista = sql.match(/p_evento <> all \(array\[([\s\S]*?)\]\)/)[1].match(/'([a-z_]+)'/g).map((x) => x.slice(1, -1));
   assert.deepEqual([...lista].sort(), [...EVENTOS].sort());
   assert.ok(esEvento("inicio_visto"));

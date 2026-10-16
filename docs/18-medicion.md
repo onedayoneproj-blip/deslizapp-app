@@ -11,10 +11,13 @@ Encargo: `docs/prompts/medicion-landing.md`. Cuántas personas llegan a la pági
 ## Cómo funciona
 
 1. El navegador llama a `registrarEvento(evento, datos?)` (`lib/medicion/registrar-evento.ts`). Usa `navigator.sendBeacon` a `/api/evento` (o `fetch` con `keepalive`), no espera respuesta y falla en silencio. No manda nada en desarrollo, con `navigator.webdriver` (pruebas), en la demo interna, en la demo de la landing, en `/admin` ni en `?demo`.
-2. `app/api/evento/route.ts` valida el evento contra la lista y llama a `registrar_evento_publico` en Supabase con la llave pública. Siempre responde 204.
+2. `app/api/evento/route.ts` lee el cuerpo con tope (2 KB), comprueba el `Origin` (el mismo host o el de producción; sin `Origin`, deja pasar, por `sendBeacon`), valida el evento contra la lista, responde 204 y **después** (con `after`) llama a `registrar_evento_publico` en Supabase con la llave pública y un tiempo máximo de 2 s.
 3. `registrar_evento_publico` (security definer) valida otra vez, limpia los textos y guarda en `eventos_publicos`. La tabla no tiene políticas: nadie la lee ni escribe desde el cliente.
-4. **Ritmo:** como máximo 600 eventos por minuto en total (sin IP no se puede limitar por visitante); pasado eso, se descartan en silencio.
-5. **Textos:** la ruta se recorta a 120 caracteres; `paso` (hasta 40, `[a-z0-9_-]`) y `tienda_slug` (hasta 60, `[a-z0-9-]`) que no cumplan se guardan vacíos; un origen raro pasa a `otro`; un evento fuera de la lista se rechaza (`22023`).
+4. **Ritmo:** como máximo 120 eventos por minuto **por tipo de evento** (`conoce_paso`, 600, porque una sola visita completa manda hasta 18), contados en `eventos_publicos_ritmo` (una fila por minuto y evento, sin `count(*)` en cada inserción). Pasado el tope, se descarta en silencio. **Sin IP no hay límite por visitante**: un abusador puede agotar el cupo de un tipo de evento, pero no el de los demás.
+5. **Textos:**
+   - `ruta`: lista blanca en minúsculas, sin `?consulta`, `#hash` ni barra final: `/`, `/conoce`, `/privacidad`, `/terminos`, `/tienda/<slug>` (solo si esa tienda tiene el catálogo publicado; si no, `/tienda/*`) y `/pedido/*` (el código no se guarda). Todo lo demás se guarda como `otra`.
+   - `tienda_slug`: solo se guarda si es una tienda con catálogo publicado (`activa` o `en_prueba`, como `tienda_publica`); si no, vacío.
+   - `paso` (hasta 40, `[a-z0-9_-]`) que no cumpla se guarda vacío; un origen raro pasa a `otro`; un evento fuera de la lista se rechaza (`22023`).
 
 ## Eventos
 
@@ -41,8 +44,8 @@ Solo admin: `select * from admin_eventos_publicos(desde, hasta)` (fechas opciona
 
 ## Visitas: Vercel Web Analytics
 
-`@vercel/analytics` (versión fijada) en `app/layout.tsx` mediante `components/medicion/analitica.tsx`. `beforeSend` descarta todo lo que no sea `/`, `/conoce`, `/tienda/*`, `/pedido/*`, `/privacidad` y `/terminos`, y reemplaza el código de pedido por `*`. Activarlo en el proyecto de Vercel (Analytics → Enable) lo hace Lewis o Planning. **Límite:** `/` también es el panel con sesión iniciada (misma URL), así que las visitas de Vercel a `/` incluyen a las tiendas que abren su panel; para la página principal sin sesión, el número limpio es `inicio_visto`.
+`@vercel/analytics` (versión fijada) en `app/layout.tsx` mediante `components/medicion/analitica.tsx`. `beforeSend` descarta todo lo que no sea `/`, `/conoce`, `/tienda/*`, `/pedido/*`, `/privacidad` y `/terminos`; descarta también la demo (la misma regla que `registrarEvento`: `/tienda/deslizapp-ejemplo`, `?demo`, la demo interna y quien eligió «Ver demo»); quita la `?consulta` y el `#hash` de la URL y reemplaza el código de pedido por `*`. Activarlo en el proyecto de Vercel (Analytics → Enable) lo hace Lewis o Planning. **Límite:** `/` también es el panel con sesión iniciada (misma URL), así que las visitas de Vercel a `/` incluyen a las tiendas que abren su panel; para la página principal sin sesión, el número limpio es `inicio_visto`.
 
 ## Retención
 
-No hay borrado automático todavía. Son filas pequeñas y sin datos personales; si crece, se decide después.
+`select purgar_eventos_publicos(180)` (solo admin) borra los eventos de más de 180 días (el parámetro, mínimo 1, por defecto 180), borra los contadores de ritmo de más de un día y devuelve cuántos eventos borró. Se llama a mano; todavía no hay cron.

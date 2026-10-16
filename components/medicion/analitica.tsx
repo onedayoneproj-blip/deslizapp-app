@@ -1,18 +1,19 @@
 "use client";
 
 import { Analytics, type BeforeSend } from "@vercel/analytics/next";
+import { enDemo } from "@/lib/medicion/registrar-evento";
 
 /** Solo cuentan las rutas públicas (docs/18-medicion.md): `/`, `/conoce`, `/tienda/*`, `/pedido/*`, `/privacidad` y `/terminos`. */
 const RUTAS_PUBLICAS = /^\/(?:conoce|privacidad|terminos|tienda\/[^/]+|pedido\/[^/]+)?\/?$/;
 
 const soloPublicas: BeforeSend = (evento) => {
   try {
-    const { pathname, search } = new URL(evento.url);
-    if (!RUTAS_PUBLICAS.test(pathname)) return null;
-    // Ni la demo interna ni las vistas de prueba cuentan.
-    if (new URLSearchParams(search).has("demo")) return null;
-    // Un código de pedido no sale del navegador.
-    return { ...evento, url: evento.url.replace(/\/pedido\/[^/?#]+/, "/pedido/*") };
+    const url = new URL(evento.url);
+    if (!RUTAS_PUBLICAS.test(url.pathname)) return null;
+    // La demo no cuenta (la misma regla que registrarEvento). Mira la página actual: `beforeSend` corre en el navegador.
+    if (enDemo()) return null;
+    // Sin ?consulta ni #hash (utm, códigos…), y un código de pedido no sale del navegador.
+    return { ...evento, url: url.origin + url.pathname.replace(/^\/pedido\/[^/]+/, "/pedido/*") };
   } catch {
     return null;
   }

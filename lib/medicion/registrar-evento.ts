@@ -28,13 +28,19 @@ function origenDeLaVisita(): Origen {
   return origen;
 }
 
+/** ¿Es la demo? Ni la demo interna, ni la de la landing, ni el catálogo de demostración, ni `?demo`, ni quien eligió «Ver demo» (data-dz-demo) cuentan. */
+export function enDemo(): boolean {
+  const { pathname, search } = location;
+  if (pathname === "/tienda/deslizapp-ejemplo") return true;
+  if (pathname.startsWith("/demo-interna") || pathname.startsWith("/demo-landing")) return true;
+  if (document.documentElement.hasAttribute("data-dz-demo")) return true;
+  return new URLSearchParams(search).has("demo");
+}
+
 function noMedir(): boolean {
   if (process.env.NODE_ENV !== "production") return true;
   if (navigator.webdriver) return true; // Playwright y compañía
-  const { pathname, search } = location;
-  if (pathname === "/tienda/deslizapp-ejemplo") return true; // el catálogo de demostración
-  if (pathname.startsWith("/demo-interna") || pathname.startsWith("/demo-landing") || pathname.startsWith("/admin")) return true;
-  return new URLSearchParams(search).has("demo");
+  return location.pathname.startsWith("/admin") || enDemo();
 }
 
 export function registrarEvento(evento: Evento, datos?: DatosEvento): void {

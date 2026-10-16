@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, type ComponentProps } from "react";
+import { useEffect, useRef, type ComponentProps, type MouseEventHandler } from "react";
 import type { Evento } from "@/lib/medicion/eventos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
@@ -24,8 +24,12 @@ export function MedirPortada({ modo, activo }: { modo: "pagina" | "reel"; activo
 }
 
 /** Un enlace de la portada que cuenta su toque. Con `target`, es un <a>; sin él, un <Link> de Next. */
-export function EnlaceMedido({ evento, href, ...resto }: { evento: Evento; href: string } & Omit<ComponentProps<"a">, "href">) {
-  const alTocar = () => registrarEvento(evento);
+export function EnlaceMedido({ evento, href, onClick, ...resto }: { evento: Evento; href: string } & Omit<ComponentProps<"a">, "href">) {
+  // Primero el onClick de quien lo usa; después, la medición.
+  const alTocar: MouseEventHandler<HTMLAnchorElement> = (e) => {
+    onClick?.(e);
+    registrarEvento(evento);
+  };
   if (resto.target) return <a href={href} onClick={alTocar} {...resto} />;
   return <Link href={href} onClick={alTocar} {...resto} />;
 }
