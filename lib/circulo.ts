@@ -8,8 +8,8 @@ export const hoyCirculo = (ahora: Date = new Date()): string => hoyLocal(ahora);
 /** El descuento de las fundadoras sobre su plan (docs/14: 30 % menos el primer año, solo pagando anual). */
 export const DESCUENTO_CIRCULO = 30;
 
-/** El texto del sello de /planes: «-30%» (el número sale de DESCUENTO_CIRCULO, no se escribe a mano en la página). */
-export const textoSelloCirculo = `-${DESCUENTO_CIRCULO}%`;
+/** «-30%», como lo escribe la nota a mano de /planes (el número sale de DESCUENTO_CIRCULO, no se escribe a mano en la página). */
+export const textoMenosCirculo = `-${DESCUENTO_CIRCULO}%`;
 
 /** Fechas "AAAA-MM-DD" (sin hora): se leen y se muestran en UTC para que el día no se corra. */
 const mesAnio = new Intl.DateTimeFormat("es-DO", { timeZone: "UTC", month: "long", year: "numeric" });

@@ -42,3 +42,9 @@ test("el día es el de Santo Domingo, el mismo para el panel y el admin", () => 
   assert.equal(hoyCirculo(new Date("2026-10-17T02:00:00Z")), "2026-10-16");
   assert.equal(hoyCirculo(new Date("2026-10-17T05:00:00Z")), "2026-10-17");
 });
+
+test("el «-30%» de la nota a mano de /planes sale de la constante del Círculo", async () => {
+  const { textoMenosCirculo, DESCUENTO_CIRCULO: d } = await import("../lib/circulo.ts");
+  assert.equal(textoMenosCirculo, `-${d}%`);
+  assert.equal(textoMenosCirculo, "-30%");
+});

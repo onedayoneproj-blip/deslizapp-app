@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
-import { DESCUENTO_CIRCULO, montoAnualCirculo } from "@/lib/circulo";
+import { montoAnualCirculo } from "@/lib/circulo";
 import { limitesDe, pesos, precioDe, type PlanPublico } from "@/lib/planes/planes";
-import { SelloCirculo } from "./sello-circulo";
+import { SelloCorazon } from "../panel/logo-tienda";
+import { NotaDescuento } from "./nota-descuento";
 import { IconoBarras, IconoCasa, IconoCatalogo, IconoChispa, IconoClientes, IconoFlechaArriba } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
@@ -52,9 +53,9 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
 
   return (
     <>
-      {/* El sello va montado en la esquina de arriba a la derecha del selector, solo en «Anual»; arriba queda aire para él. */}
+      {/* La nota a mano del -30 % va arriba a la derecha del selector, solo en «Anual», con una flecha hacia el botón «Anual». */}
       <div className="pl-selector-caja">
-        {anual && <SelloCirculo />}
+        {anual && <NotaDescuento />}
       <div className="pl-selector" role="group" aria-label="Forma de pago">
         <button type="button" aria-pressed={!anual} onClick={() => setAnual(false)} className="tocable" data-forma="mensual">
           Mensual
@@ -91,14 +92,6 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
                 <span>{periodo}</span>
               </div>
               {nota && <span className="pl-nota">{nota}</span>}
-              {/* La cinta de las primeras tiendas (el Círculo): solo en «Anual», con el monto de ese plan sacado de su precio mensual. */}
-              {anual && p.precioMensual != null && (
-                <div className="pl-cinta" data-cinta="circulo">
-                  <span className="pl-cinta-titulo">Primeras tiendas · {DESCUENTO_CIRCULO} % menos</span>
-                  <span className="pl-cinta-monto">{pesos(montoAnualCirculo(p.precioMensual))} el primer año</span>
-                  <span className="pl-cinta-nota">por invitación</span>
-                </div>
-              )}
               {p.idealPara && <p className="pl-ideal">{p.idealPara}</p>}
               <ul>
                 {limitesDe(p).map((l) => {
@@ -114,6 +107,15 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
               <button type="button" className="pl-probar tocable" onClick={() => void probar()} disabled={entrando} data-cta="probar">
                 {entrando ? "Abriendo Google…" : `Probar ${DIAS_DE_PRUEBA} días gratis`}
               </button>
+              {/* Al pie, solo en «Anual»: el sello del corazón del Círculo y el precio del primer año de las primeras tiendas, de este plan. */}
+              {anual && p.precioMensual != null && (
+                <div className="pl-pie-circulo" data-pie-circulo="">
+                  <SelloCorazon tamano={22} borde={2} filo={1.5} />
+                  <span>
+                    Primeras tiendas: <b>{pesos(montoAnualCirculo(p.precioMensual))}</b> el primer año · por invitación
+                  </span>
+                </div>
+              )}
             </article>
           );
         })}

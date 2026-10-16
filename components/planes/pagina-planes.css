@@ -116,50 +116,67 @@ html:has(.pl) body {
   color: var(--color-menta);
 }
 
-/* La caja del selector: el sello se monta sobre su esquina de arriba a la derecha (a medias sobre el borde redondeado, nunca sobre «Anual»
-   ni «2 meses gratis»), así que arriba queda aire para él (--s = su tamaño; en pantallas anchas el centro va 36 px a la derecha y 14 px arriba de la esquina). */
+/* La caja del selector: la nota a mano del -30 % va encima de su esquina de arriba a la derecha (solo en «Anual»); arriba queda aire para
+   ella y para la flecha, siempre (también en «Mensual», para que la página no salte al cambiar). */
 .pl-selector-caja {
-  --s: 100px;
   position: relative;
   align-self: flex-start;
-  margin-top: calc(var(--s) * 0.63 + 6px);
+  margin-top: 46px;
 }
-.pl-sello {
+/* «primeras tiendas: -30%» a mano, girada -6° (a 340 y 360 queda alineada a la derecha, encima del selector). */
+.pl-nota-mano {
   position: absolute;
-  z-index: 2;
-  width: var(--s);
-  height: var(--s);
-  top: calc(-14px - var(--s) / 2);
-  left: calc(100% + 36px - var(--s) / 2);
+  right: -6px;
+  top: -40px;
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--marca-rosa-fija);
+  white-space: nowrap;
+  transform: rotate(-6deg);
   pointer-events: none;
-  animation: pl-sello-pop 0.5s cubic-bezier(0.3, 1.4, 0.6, 1) both;
+  animation: pl-nota-entra 0.25s ease-out both;
 }
-@keyframes pl-sello-pop {
-  0% {
-    transform: scale(0) rotate(-40deg);
+.pl-nota-mano-menos {
+  color: var(--marca-mandarina);
+}
+/* La flecha baja hacia el botón «Anual»; se dibuja con stroke-dashoffset (pathLength 1). */
+.pl-flecha {
+  position: absolute;
+  right: 30px;
+  top: -20px;
+  pointer-events: none;
+}
+.pl-flecha path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: pl-flecha-dibuja 0.28s ease-out 0.12s both;
+}
+.pl-flecha .pl-flecha-punta {
+  animation-duration: 0.12s;
+  animation-delay: 0.38s;
+}
+@keyframes pl-nota-entra {
+  from {
+    opacity: 0;
   }
-  65% {
-    transform: scale(1.15) rotate(6deg);
-  }
-  100% {
-    transform: scale(1) rotate(0);
+  to {
+    opacity: 1;
   }
 }
-/* Teléfonos angostos: el selector casi llena el ancho, así que el sello no cabe a su derecha. Se sube y se mete 14 px hacia dentro:
-   su centro queda justo encima de la esquina, y solo el borde de abajo de la estrella pisa el selector (por fuera de las palabras). */
-@media (max-width: 380px) {
-  .pl-selector-caja {
-    --s: 88px;
-    margin-top: calc(var(--s) * 0.5 + 34px);
-  }
-  .pl-sello {
-    top: calc(-29px - var(--s) / 2);
-    left: calc(100% - 14px - var(--s) / 2);
+@keyframes pl-flecha-dibuja {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pl-sello {
+  .pl-nota-mano {
     animation: none;
+  }
+  .pl-flecha path {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }
 .pl-selector {
@@ -224,38 +241,22 @@ html:has(.pl) body {
   border: 2px solid var(--marca-bosque);
   border-radius: 50%;
 }
-/* La cinta de las primeras tiendas (solo en «Anual»): el borde son los tres aros del Círculo, de dentro hacia fuera mandarina, rosa y
-   verde. Va dentro de la tarjeta, debajo del precio: no toca ni empuja la etiqueta «Para tienda que crece». Los aros son sombras
-   (no ocupan lugar), así que el margen les deja sitio. */
-.pl-cinta {
+/* Al pie de cada tarjeta, solo en «Anual»: una línea fina (bosque al 12 %), 12 px de aire, el sello del corazón y el precio del primer año. */
+.pl-pie-circulo {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 8px 8px 6px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: var(--marca-papel);
-  box-shadow:
-    0 0 0 2px var(--marca-mandarina),
-    0 0 0 4px var(--marca-rosa-fija),
-    0 0 0 6px var(--marca-bosque);
-  color: var(--marca-bosque);
-}
-.pl-cinta-titulo {
-  font-weight: 800;
-  font-size: 13px;
-  line-height: 1.25;
-}
-.pl-cinta-monto {
-  font-family: var(--font-display);
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 75, 58, 0.12);
   font-weight: 700;
-  font-size: 18px;
-  line-height: 1.15;
+  font-size: 14px;
+  line-height: 1.3;
 }
-.pl-cinta-nota {
-  font-weight: 700;
-  font-size: 12px;
-  color: #4f6a5e;
+.pl-pie-circulo > span {
+  min-width: 0;
+}
+.pl-pie-circulo b {
+  color: #c24e18;
 }
 .pl-etiqueta {
   position: absolute;

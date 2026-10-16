@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Tienda } from "@/lib/types";
 import { iniciales } from "@/lib/formato";
 import { Foto } from "../foto";
@@ -24,6 +25,27 @@ function Avatar({ tienda, tamano }: Props & { tamano: number }) {
   return (
     <span style={{ ...estilo, fontSize: tamano < 56 ? 14 : Math.round(tamano * 0.3) }} className="grid shrink-0 place-items-center rounded-full bg-rosa font-extrabold text-bosque" aria-hidden="true">
       {iniciales(tienda.nombre)}
+    </span>
+  );
+}
+
+/** El corazón del «aaah» (el mismo trazado del icono `heart` del catálogo). */
+const CORAZON = "M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z";
+
+/**
+ * El sello del Círculo: círculo verde con el corazón rosa y borde crema (referencias/circulo/LEEME.md). Lo usa el aro del avatar (donde
+ * lo coloca `.aro-c-sello`) y la línea de cada plan en /planes (con `filo`: un anillo mandarina por fuera).
+ */
+export function SelloCorazon({ tamano, borde, filo = 0, className, style }: { tamano: number; borde: number; filo?: number; className?: string; style?: CSSProperties }) {
+  return (
+    <span
+      className={className}
+      style={{ width: tamano, height: tamano, background: BOSQUE, border: `${borde}px solid ${PAPEL}`, boxSizing: "border-box", borderRadius: "50%", display: "grid", placeItems: "center", boxShadow: filo ? `0 0 0 ${filo}px ${MANDARINA}` : undefined, ...style }}
+      aria-hidden="true"
+    >
+      <svg width={tamano * 0.6} height={tamano * 0.6} viewBox="0 0 24 24" fill={ROSA} stroke="none">
+        <path d={CORAZON} />
+      </svg>
     </span>
   );
 }
@@ -58,15 +80,7 @@ function AvatarConAro({ tienda, tamano, animacion }: Props & { tamano: number; a
       <span className="aro-c-foto" style={{ inset: 3 * aro, padding: borde, background: PAPEL }}>
         <Avatar tienda={tienda} tamano={interior} />
       </span>
-      <span
-        className="aro-c-sello"
-        style={{ width: sello, height: sello, left: centro - sello / 2, top: centro - sello / 2, background: BOSQUE, border: `${grande ? 2 : 1.5}px solid ${PAPEL}` }}
-        aria-hidden="true"
-      >
-        <svg width={sello * 0.6} height={sello * 0.6} viewBox="0 0 24 24" fill={ROSA} stroke="none">
-          <path d="M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z" />
-        </svg>
-      </span>
+      <SelloCorazon className="aro-c-sello" tamano={sello} borde={grande ? 2 : 1.5} style={{ left: centro - sello / 2, top: centro - sello / 2 }} />
     </>
   );
   const estilo = { width: tamano, height: tamano };
