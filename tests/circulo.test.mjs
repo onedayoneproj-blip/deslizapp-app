@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
-const { descuentoVigente, textoDesde, textoDescuento, conDescuentoCirculo } = await import("../lib/circulo.ts");
+const { descuentoVigente, textoDesde, textoDescuento, montoAnualCirculo, montoSugeridoCobro } = await import("../lib/circulo.ts");
 const c = { desde: "2026-10-16", descuentoHasta: "2027-10-16" };
 
 test("el descuento está vigente hasta su fecha (inclusive) y no más", () => {
@@ -15,29 +15,26 @@ test("el descuento está vigente hasta su fecha (inclusive) y no más", () => {
 
 test("los textos de la tarjeta", () => {
   assert.equal(textoDesde(c), "Fundadora desde octubre 2026");
-  assert.equal(textoDescuento(c, "2026-10-20"), "menos en tu plan hasta el 16 oct 2027");
+  assert.equal(textoDescuento(c, "2026-10-20"), "menos en tu primer año anual, hasta el 16 oct 2027");
   assert.match(textoDescuento(c, "2028-01-01"), /terminó el 16 oct 2027\. El aro sigue siendo tuyo/);
 });
 
-test("el 30 % se aplica al precio del plan", () => {
-  assert.equal(conDescuentoCirculo(999), 699);
-  assert.equal(conDescuentoCirculo(499), 349);
+test("el 30 % es solo pagando anual: round(12 × precio mensual × 0,7)", () => {
+  assert.equal(montoAnualCirculo(499), 4192);
+  assert.equal(montoAnualCirculo(999), 8392);
+  assert.equal(montoAnualCirculo(1499), 12592);
+  // Siempre del precio mensual que se le pase (viene de la base): si cambia, cambia el monto.
+  assert.equal(montoAnualCirculo(1099), Math.round(12 * 1099 * 0.7));
 });
 
-const { montoMensualSugerido, NOTA_ANUAL_CIRCULO, hoyCirculo } = await import("../lib/circulo.ts");
-
-test("el 30 % se aplica solo después de la prueba y solo al mensual", () => {
-  // En prueba (prueba_hasta hoy o futura): precio normal y la nota.
-  const enPrueba = montoMensualSugerido(999, c, "2026-11-15", "2026-10-20");
-  assert.deepEqual(enPrueba, { monto: 999, conDescuento: false, nota: "El 30 % empieza al terminar la prueba." });
-  assert.equal(montoMensualSugerido(999, c, "2026-10-20", "2026-10-20").conDescuento, false, "el último día de prueba todavía es prueba");
-  // Prueba terminada: 30 % menos.
-  assert.deepEqual(montoMensualSugerido(999, c, "2026-11-15", "2026-11-16"), { monto: 699, conDescuento: true, nota: null });
-  assert.equal(montoMensualSugerido(999, c, null, "2026-11-16").monto, 699);
-  // Descuento vencido o sin Círculo: precio normal.
-  assert.equal(montoMensualSugerido(999, c, null, "2027-10-17").monto, 999);
-  assert.equal(montoMensualSugerido(999, null, null, "2026-11-16").monto, 999);
-  assert.match(NOTA_ANUAL_CIRCULO, /no se combina con el anual/);
+test("Cobros: el Círculo vigente aplica el 30 % solo al cobro anual; el mensual va a precio normal", () => {
+  assert.equal(montoSugeridoCobro(999, 12, c, "2026-11-16"), 8392);
+  assert.equal(montoSugeridoCobro(999, 1, c, "2026-11-16"), 999, "mensual: sin descuento");
+  assert.equal(montoSugeridoCobro(999, 3, c, "2026-11-16"), 2997, "varios meses: sin descuento");
+  // Descuento vencido o sin Círculo: en anual no hay monto del Círculo (va el precio anual normal del plan).
+  assert.equal(montoSugeridoCobro(999, 12, c, "2027-10-17"), null);
+  assert.equal(montoSugeridoCobro(999, 12, null, "2026-11-16"), null);
+  assert.equal(montoSugeridoCobro(999, 1, null, "2026-11-16"), 999);
 });
 
 test("el día es el de Santo Domingo, el mismo para el panel y el admin", () => {

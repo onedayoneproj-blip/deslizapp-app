@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
-import { limitesDe, precioDe, type PlanPublico } from "@/lib/planes/planes";
+import { montoAnualCirculo } from "@/lib/circulo";
+import { limitesDe, pesos, precioDe, type PlanPublico } from "@/lib/planes/planes";
 import { IconoBarras, IconoCasa, IconoCatalogo, IconoChispa, IconoClientes, IconoFlechaArriba } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
@@ -85,6 +86,14 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
                 <span>{periodo}</span>
               </div>
               {nota && <span className="pl-nota">{nota}</span>}
+              {/* La cinta de las primeras tiendas (el Círculo): solo en «Anual», con el monto de ese plan sacado de su precio mensual. */}
+              {anual && p.precioMensual != null && (
+                <div className="pl-cinta" data-cinta="circulo">
+                  <span className="pl-cinta-titulo">Primeras tiendas · 30 % menos</span>
+                  <span className="pl-cinta-monto">{pesos(montoAnualCirculo(p.precioMensual))} el primer año</span>
+                  <span className="pl-cinta-nota">por invitación</span>
+                </div>
+              )}
               {p.idealPara && <p className="pl-ideal">{p.idealPara}</p>}
               <ul>
                 {limitesDe(p).map((l) => {

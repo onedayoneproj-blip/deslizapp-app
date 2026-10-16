@@ -180,6 +180,39 @@ html:has(.pl) body {
   border: 2px solid var(--marca-bosque);
   border-radius: 50%;
 }
+/* La cinta de las primeras tiendas (solo en «Anual»): el borde son los tres aros del Círculo, de dentro hacia fuera mandarina, rosa y
+   verde. Va dentro de la tarjeta, debajo del precio: no toca ni empuja la etiqueta «Para tienda que crece». Los aros son sombras
+   (no ocupan lugar), así que el margen les deja sitio. */
+.pl-cinta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 8px 8px 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--marca-papel);
+  box-shadow:
+    0 0 0 2px var(--marca-mandarina),
+    0 0 0 4px var(--marca-rosa-fija),
+    0 0 0 6px var(--marca-bosque);
+  color: var(--marca-bosque);
+}
+.pl-cinta-titulo {
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.25;
+}
+.pl-cinta-monto {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.15;
+}
+.pl-cinta-nota {
+  font-weight: 700;
+  font-size: 12px;
+  color: #4f6a5e;
+}
 .pl-etiqueta {
   position: absolute;
   top: -12px;
@@ -302,109 +335,6 @@ html:has(.pl) body {
   line-height: 1.3;
 }
 
-/* La tarjeta del Círculo Deslizapp: crema dentro de la página verde (referencias/circulo/tarjeta-planes.dc.html). Sobre crema, las tres
-   ondas del aro llevan su color de marca. */
-.pl-circulo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-top: 10px;
-  padding: 0 18px 22px;
-  border-radius: 28px;
-  background: var(--marca-papel);
-  color: var(--marca-bosque);
-}
-/* El aro de 120 px con 28 de aire por todos lados: las ondas llegan a ~1,45 veces y no deben recortarse ni tocar el texto. */
-.pl-circulo-aro {
-  padding: 28px;
-  margin-bottom: -6px;
-}
-.pl-circulo-sobre {
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-.pl-circulo h2 {
-  margin: 8px 0 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 34px;
-  line-height: 1.05;
-}
-/* Mandarina oscuro (#C24E18): 4,5:1 sobre el papel, y es texto grande. */
-.pl-circulo .pl-circulo-mano {
-  margin: 8px 0 0;
-  font-family: var(--font-mano);
-  font-weight: 700;
-  font-size: 27px;
-  line-height: 1.05;
-  color: #c24e18;
-}
-.pl-circulo-cupon {
-  align-self: stretch;
-  margin-top: 18px;
-  text-align: left;
-}
-
-.pl-circulo-beneficios {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-self: stretch;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-}
-.pl-circulo-beneficios li {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.pl-circulo-icono {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: #fbe4eb;
-}
-.pl-circulo-beneficios b {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 1.15;
-}
-.pl-circulo-beneficios li > span:last-child > span {
-  display: block;
-  margin-top: 2px;
-  font-size: 14.5px;
-  color: #4f6a5e;
-}
-.pl-circulo-boton {
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  margin-top: 20px;
-  border-radius: 999px;
-  background: var(--marca-bosque);
-  color: var(--marca-papel);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 20px;
-}
-.pl-circulo-nota {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #4f6a5e;
-}
-
 .pl-botones {
   display: flex;
   gap: 10px;
@@ -458,21 +388,5 @@ html:has(.pl) body {
   }
   .pl-feed::after {
     background: linear-gradient(180deg, rgba(23, 75, 58, 0.75), rgba(23, 75, 58, 0.92));
-  }
-}
-
-/* El cupón (TicketPromo) tiene medidas fijas: su texto más largo («Después de tu prueba») pide ~290 px de ancho. En teléfonos
-   angostos se achican los márgenes de la tarjeta y de la página para que nada se trunque (a 360: 296 px; a 340: 300 px). */
-@media (max-width: 400px) {
-  .pl-circulo {
-    padding-inline: 12px;
-  }
-}
-@media (max-width: 359px) {
-  .pl-main {
-    padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
-  }
-  .pl-circulo {
-    padding-inline: 8px;
   }
 }

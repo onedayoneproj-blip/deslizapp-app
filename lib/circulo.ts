@@ -5,7 +5,7 @@ import type { CirculoTienda } from "./types";
 /** El día de hoy en Santo Domingo ("AAAA-MM-DD"): el mismo para la tarjeta del panel y la del admin. */
 export const hoyCirculo = (ahora: Date = new Date()): string => hoyLocal(ahora);
 
-/** El descuento de las fundadoras sobre su plan (docs/14: 30 % menos el primer año). */
+/** El descuento de las fundadoras sobre su plan (docs/14: 30 % menos el primer año, solo pagando anual). */
 export const DESCUENTO_CIRCULO = 30;
 
 /** Fechas "AAAA-MM-DD" (sin hora): se leen y se muestran en UTC para que el día no se corra. */
@@ -25,26 +25,22 @@ export const textoDesde = (c: CirculoTienda): string => `Fundadora desde ${mesAn
 export function textoDescuento(c: CirculoTienda, hoy: string): string {
   if (!c.descuentoHasta) return "Tu descuento ya terminó. El aro sigue siendo tuyo.";
   const fecha = diaMesAnio.format(aFecha(c.descuentoHasta)).replace(/\./g, "").replace(/ de /g, " ");
-  return descuentoVigente(c, hoy) ? `menos en tu plan hasta el ${fecha}` : `Tu descuento terminó el ${fecha}. El aro sigue siendo tuyo.`;
+  return descuentoVigente(c, hoy) ? `menos en tu primer año anual, hasta el ${fecha}` : `Tu descuento terminó el ${fecha}. El aro sigue siendo tuyo.`;
 }
-
-/** Precio sugerido con el 30 % aplicado, redondeado al peso. */
-export const conDescuentoCirculo = (precio: number): number => Math.round((precio * (100 - DESCUENTO_CIRCULO)) / 100);
 
 /**
- * El monto mensual sugerido de una tienda del Círculo (docs/14): el 30 % empieza al terminar la prueba (mientras `pruebaHasta` sea
- * hoy o futuro, va el precio normal) y solo vale para el pago mensual; en anual va el precio normal (el descuento de fundadora no se
- * combina con el anual).
+ * El monto del primer año anual del Círculo (docs/14, opción B de Lewis): 12 × el precio mensual × 0,7, redondeado al peso
+ * (Inicial 4,192 · Negocio 8,392 · Pro 12,592). Siempre del precio mensual de la base, nunca escrito en el código. No se suma a los
+ * 2 meses gratis del anual normal. Es la única fórmula: la usan Cobros, la ficha del admin y la cinta de /planes.
  */
-export function montoMensualSugerido(
-  precio: number,
-  circulo: CirculoTienda | null | undefined,
-  pruebaHasta: string | null,
-  hoy: string,
-): { monto: number; conDescuento: boolean; nota: string | null } {
-  if (!descuentoVigente(circulo, hoy)) return { monto: precio, conDescuento: false, nota: null };
-  if (pruebaHasta && pruebaHasta.slice(0, 10) >= hoy) return { monto: precio, conDescuento: false, nota: "El 30 % empieza al terminar la prueba." };
-  return { monto: conDescuentoCirculo(precio), conDescuento: true, nota: null };
-}
+export const montoAnualCirculo = (precioMensual: number): number => Math.round(12 * precioMensual * ((100 - DESCUENTO_CIRCULO) / 100));
 
-export const NOTA_ANUAL_CIRCULO = "Si paga al año, va el precio normal: el descuento de fundadora no se combina con el anual.";
+/**
+ * El monto sugerido de un cobro de una tienda del Círculo (Cobros, docs/14): solo en un cobro **anual** (`meses` = 12) y mientras
+ * `descuentoHasta` sea futuro, va `montoAnualCirculo`; en un cobro mensual, el precio normal. En anual sin Círculo vigente devuelve
+ * `null`: el monto es el precio anual normal del plan (`planes.precio_anual`), que este módulo no conoce.
+ */
+export function montoSugeridoCobro(precioMensual: number, meses: number, circulo: CirculoTienda | null | undefined, hoy: string): number | null {
+  if (meses === 12) return descuentoVigente(circulo, hoy) ? montoAnualCirculo(precioMensual) : null;
+  return precioMensual * meses;
+}

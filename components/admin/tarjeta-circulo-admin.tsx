@@ -5,7 +5,7 @@ import { Boton, Etiqueta, Tarjeta } from "@/components/ui";
 import { Hoja } from "@/components/hoja";
 import { useAdmin } from "@/lib/data/admin/provider";
 import { sumarMeses } from "@/lib/admin/reglas";
-import { DESCUENTO_CIRCULO, hoyCirculo, montoMensualSugerido, NOTA_ANUAL_CIRCULO } from "@/lib/circulo";
+import { DESCUENTO_CIRCULO, hoyCirculo, montoSugeridoCobro } from "@/lib/circulo";
 import type { CirculoTienda } from "@/lib/types";
 
 const fecha = (v: string) => new Intl.DateTimeFormat("es-DO", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }).format(new Date(v.slice(0, 10) + "T00:00:00Z"));
@@ -66,7 +66,8 @@ export function TarjetaCirculoAdmin({ tiendaId, precioMensual, pruebaHasta }: { 
   };
 
   if (circulo === undefined) return null;
-  const sugerido = precioMensual !== null ? montoMensualSugerido(precioMensual, circulo, pruebaHasta, hoy) : null;
+  // El 30 % es solo pagando anual (docs/14): el mensual va a precio normal y el anual del Círculo es 12 × el mensual × 0,7.
+  const anualCirculo = precioMensual !== null ? montoSugeridoCobro(precioMensual, 12, circulo, hoy) : null;
   return (
     <Tarjeta className="mt-3" data-circulo-admin="">
       <div className="flex items-start justify-between gap-2">
@@ -78,13 +79,18 @@ export function TarjetaCirculoAdmin({ tiendaId, precioMensual, pruebaHasta }: { 
           <p className="mt-2 text-secundario text-texto-secundario">
             Desde {fecha(circulo.desde)} · {circulo.descuentoHasta ? `${DESCUENTO_CIRCULO} % menos hasta ${fecha(circulo.descuentoHasta)}` : "sin descuento"}. Todas las tiendas de su titular llevan el aro.
           </p>
-          {sugerido && precioMensual !== null && (
+          {precioMensual !== null && (
             <div className="mt-1 text-secundario" data-monto-sugerido="">
               <p>
-                Monto sugerido: <strong>{monto(sugerido.monto)}</strong> al mes{sugerido.conDescuento ? ` (${monto(precioMensual)} con el ${DESCUENTO_CIRCULO} % menos)` : ""}.
-                {sugerido.nota ? ` ${sugerido.nota}` : ""}
+                Monto sugerido: <strong>{monto(precioMensual)}</strong> si paga mes a mes (precio normal).
               </p>
-              <p className="text-texto-secundario">{NOTA_ANUAL_CIRCULO}</p>
+              {anualCirculo !== null && (
+                <p data-monto-anual-circulo="">
+                  Si paga el año: <strong>{monto(anualCirculo)}</strong> el primer año ({DESCUENTO_CIRCULO} % menos que 12 meses
+                  a {monto(precioMensual)}).
+                </p>
+              )}
+              <p className="text-texto-secundario">El descuento de fundadora solo aplica pagando anual y no se suma a los 2 meses gratis.</p>
             </div>
           )}
         </>
