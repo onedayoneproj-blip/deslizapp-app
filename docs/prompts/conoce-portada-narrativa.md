@@ -1,8 +1,8 @@
 # «Cómo funciona»: portada narrativa, el viaje desde Instagram y el cambio de lado
 
-Encargo de Planning, 16 oct 2026. **Borrador: no lanzar hasta que Lewis apruebe el diseño final.** Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa). Va después de `medicion-landing.md`.
+Encargo de Planning, 16 oct 2026. Diseño aprobado por Lewis el 16 oct 2026. **Se lanza cuando la medición (PR #138) lleve unos días en producción**, para tener números del «antes». Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa). Va después de `medicion-landing.md`.
 
-**Diseño:** lienzo [Cómo funciona · pantallas nuevas](https://claude.ai/artifact/YVuiHFNWVwrbFYyGFTtQDP). Cuando Lewis lo apruebe, se copia a `referencias/landing/` y se enlaza aquí. **No copies su HTML.**
+**Diseño:** lienzo [Cómo funciona · pantallas nuevas](https://claude.ai/artifact/YVuiHFNWVwrbFYyGFTtQDP). Copia en `referencias/landing/conoce-narrativa/`. **No copies su HTML.**
 
 ## Decisión de Lewis (16 oct 2026)
 - Las pantallas nuevas **sustituyen la portada actual** de `/conoce` (el paso `intro`, con el video y el teléfono bloqueado).

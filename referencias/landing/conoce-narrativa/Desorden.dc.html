@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Multiplícalo por todos tus chats</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F3EAD9; color: #174B3A; font-family: Figtree, system-ui, sans-serif">
+  <span style="position: absolute; left: 22px; top: 26px; font-family: Caveat, cursive; font-weight: 700; font-size: 28px; color: #C24E18">y no es una…</span>
+
+  <div style="position: absolute; left: 60px; top: 74px; width: 270px; height: 520px; border-radius: 42px; border: 9px solid #1D1D1F; box-sizing: border-box; background: #FFFFFF; overflow: hidden; display: flex; flex-direction: column">
+    <div style="padding: 30px 14px 8px; font-weight: 800; font-size: 18px">Chats</div>
+    <sc-for list="{{chats}}" as="c" hint-placeholder-count="7">
+      <div style="padding: 8px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F1ECE3">
+        <span style="width: 34px; height: 34px; border-radius: 50%; background: {{c.color}}; flex: none; display: block"></span>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span style="font-weight: 800; font-size: 12.5px">{{c.nombre}}</span>
+          <span style="font-size: 11.5px; color: #5D766A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.texto}}</span>
+        </div>
+        <span style="min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #25A35A; color: #FFFFFF; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{c.n}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: absolute; right: 22px; top: 470px; transform: rotate(4deg); width: 150px; border-radius: 6px; padding: 12px; background: #FFF6C9; box-shadow: 0 10px 20px -12px rgba(0,0,0,.45); font-family: Caveat, cursive; font-weight: 700; font-size: 19px; line-height: 1.15; color: #3C3A33">
+    Ana: termo negro<br>Luis: ¿2 gorras?<br>Carla: abonó 500<br><span style="text-decoration: line-through">Pedro: tote</span> ¿o era Juan?
+  </div>
+
+  <div style="position: absolute; left: 18px; right: 18px; bottom: 34px; border-radius: 24px 24px 6px 24px; padding: 16px 18px 10px; background: #D9FDD3; box-shadow: 0 10px 24px -14px rgba(23,75,58,.5)">
+    <p style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 600; font-size: 25px; line-height: 1.12">Ahora multiplícalo por <span style="color: #C24E18">todos tus chats</span>.</p>
+    <p style="margin: 6px 0 0; font-size: 15px; line-height: 1.35; font-weight: 600">Precios repetidos, notas sueltas y pedidos que se pierden.</p>
+    <span style="display: block; text-align: right; font-size: 11.5px; color: #5D766A">9:42 p. m. ✓✓</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      chats: [
+        { nombre: 'Ana', texto: '¿Precio? 👀', n: '3', color: '#F5C9D6' },
+        { nombre: 'Luis', texto: '📷 Foto', n: '5', color: '#CFE8DA' },
+        { nombre: 'Carla', texto: '¿Todavía hay?', n: '2', color: '#FFD9C4' },
+        { nombre: 'Pedro', texto: '¿En qué va mi pedido?', n: '4', color: '#E7DCC8' },
+        { nombre: 'Mari', texto: '¿Precio de la gorra?', n: '1', color: '#F5C9D6' },
+        { nombre: 'Juan', texto: '📷 Foto', n: '6', color: '#CFE8DA' },
+        { nombre: 'Rosa', texto: 'Holaa, ¿precio?', n: '2', color: '#FFD9C4' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

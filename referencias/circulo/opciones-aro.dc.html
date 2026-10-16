@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Varios aros en el avatar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFF9EE; color: #174B3A; font-family: Figtree, system-ui, sans-serif; padding: 40px 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 16px; align-content: start">
+  <sc-for list="{{opciones}}" as="o" hint-placeholder-count="6">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+      <span style="width: 120px; height: 120px; display: block; position: relative">
+        <span style="position: absolute; inset: {{o.hueco}}; border-radius: 50%; box-shadow: {{o.aros}}; display: block"></span>
+        <span style="position: absolute; inset: {{o.hueco}}; display: flex; border-radius: 50%; border: 4px solid #FFF9EE; box-sizing: border-box; background: #E7DCC8; align-items: center; justify-content: center; font-weight: 800; font-size: 26px">TT</span>
+        <span style="position: absolute; right: 5px; bottom: 5px; width: 34px; height: 34px; border-radius: 50%; background: {{o.circulo}}; border: 3px solid #FFF9EE; box-sizing: border-box; display: flex; align-items: center; justify-content: center" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="{{o.corazon}}"><path d="M12 20.3s-7.3-4.4-9.2-8.9C1.3 7.9 3.4 4.6 6.8 4.6c2.1 0 3.5 1.1 5.2 3 1.7-1.9 3.1-3 5.2-3 3.4 0 5.5 3.3 4 6.8-1.9 4.5-9.2 8.9-9.2 8.9z"></path></svg></span>
+      </span>
+      <span style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 18px">{{o.letra}}</span>
+      <span style="font-size: 13px; line-height: 1.35">{{o.texto}}</span>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = '#FFF9EE', V = '#174B3A', M = '#FF834F', R = '#F5C9D6';
+    return {
+      opciones: [
+        { letra: '1', hueco: '14px', aros: `0 0 0 4px ${M}, 0 0 0 7px ${P}, 0 0 0 11px ${V}`, circulo: V, corazon: M, texto: 'Dos aros, mandarina y verde; círculo verde' },
+        { letra: '2', hueco: '14px', aros: `0 0 0 4px ${R}, 0 0 0 7px ${P}, 0 0 0 11px ${M}`, circulo: M, corazon: P, texto: 'Dos aros, rosa y mandarina; círculo mandarina' },
+        { letra: '3', hueco: '16px', aros: `0 0 0 3px ${M}, 0 0 0 6px ${P}, 0 0 0 9px ${R}, 0 0 0 12px ${P}, 0 0 0 15px ${V}`, circulo: V, corazon: R, texto: 'Tres aros: mandarina, rosa y verde; círculo verde' },
+        { letra: '4', hueco: '14px', aros: `0 0 0 3px ${V}, 0 0 0 6px ${P}, 0 0 0 9px ${V}, 0 0 0 12px ${P}, 0 0 0 15px ${V}`, circulo: M, corazon: P, texto: 'Aros finos verdes, como ondas; círculo mandarina' },
+        { letra: '5', hueco: '14px', aros: `0 0 0 4px ${M}, 0 0 0 8px ${R}, 0 0 0 12px ${V}`, circulo: P, corazon: M, texto: 'Aros pegados: mandarina, rosa y verde; círculo crema' },
+        { letra: '6', hueco: '14px', aros: `0 0 0 4px ${M}, 0 0 0 8px ${R}, 0 0 0 12px ${V}`, circulo: V, corazon: R, texto: 'Aros pegados; círculo verde con corazón rosa' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

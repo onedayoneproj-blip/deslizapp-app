@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Planes de Deslizapp</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{opacity:.9}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1900px; box-sizing: border-box; background: #174B3A; color: #FFF9EE; font-family: Figtree, system-ui, sans-serif; position: relative; overflow: hidden">
+  <div style="position: absolute; left: 50%; top: -60px; width: 520px; margin-left: -260px; display: flex; gap: 10px; transform: rotate(-7deg)" aria-hidden="true">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; margin-top: -40px">
+      <img src="/_blob/bdf26c684c5a12ae906f56a59adbcf83" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+      <img src="/_blob/57ae51e42841bcb9ad423d63934eaa63" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; margin-top: 30px">
+      <img src="/_blob/21351b2cacaa0a161f1fe18a24121df3" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+      <img src="/_blob/4134372b474f460fe11b92ccd378dcec" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; margin-top: -10px">
+      <img src="/_blob/6158b50e7650e9c5c98a85a8ebfb5b8e" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+      <img src="/_blob/35a000a9a3aaeee47c90a8b25ca7be1c" alt="" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px">
+    </div>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; top: 0; height: 520px; background: linear-gradient(180deg, rgba(23,75,58,.55), rgba(23,75,58,0) 22%, rgba(23,75,58,0) 40%, #174B3A 92%)" aria-hidden="true"></div>
+
+  <div style="position: relative; padding: 18px 20px 0; display: flex; align-items: center; justify-content: space-between">
+    <a href="#" style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: Fredoka, sans-serif; font-stretch: 115%; font-weight: 700; font-size: 24px"><img src="/_blob/88df7144f6a0cfd58166bd5332340907" alt="" style="width: 36px; height: 36px; border-radius: 9px">deslizapp</a>
+    <a href="#" style="height: 40px; padding: 0 16px; border-radius: 999px; background: rgba(255,249,238,.16); display: flex; align-items: center; text-decoration: none; font-weight: 800; font-size: 14px">Iniciar sesión</a>
+  </div>
+
+  <div style="position: relative; padding: 300px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <span style="font-family: Caveat, cursive; font-weight: 700; font-size: 26px; color: #F5C9D6">planes</span>
+    <h1 style="margin: -6px 0 0; font-family: Fredoka, sans-serif; font-stretch: 104%; font-weight: 700; font-size: 40px; line-height: 1.05; letter-spacing: -.5px">Paga por lo que<br>vendes, <span style="color: #FF834F">no por</span><br><span style="color: #F5C9D6">lo que guardas.</span></h1>
+    <p style="margin: 0; font-weight: 600; font-size: 16px; line-height: 22px; color: #CFE8DA">Solo cuentan los productos publicados. Agotados, ocultos y borradores no ocupan cupo.</p>
+
+    <div style="margin-top: 10px; align-self: flex-start; display: flex; padding: 4px; border-radius: 999px; background: rgba(255,249,238,.12)" role="group" aria-label="Forma de pago">
+      <button type="button" onClick="{{verMensual}}" aria-pressed="{{mensual}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: {{fondoMensual}}; color: {{tintaMensual}}; font-family: Figtree, sans-serif; font-weight: 800; font-size: 14.5px; cursor: pointer">Mensual</button>
+      <button type="button" onClick="{{verAnual}}" aria-pressed="{{anual}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: {{fondoAnual}}; color: {{tintaAnual}}; font-family: Figtree, sans-serif; font-weight: 800; font-size: 14.5px; cursor: pointer">Anual · 2 meses gratis</button>
+    </div>
+  </div>
+
+  <div style="position: relative; padding: 18px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <sc-for list="{{planes}}" as="p" hint-placeholder-count="3">
+      <article style="position: relative; border-radius: 26px; padding: 20px; background: {{p.fondo}}; color: #174B3A; border: {{p.borde}}; display: flex; flex-direction: column; gap: 12px">
+        <sc-if value="{{p.destacado}}" hint-placeholder-val="{{false}}">
+          <span style="position: absolute; top: -12px; right: 18px; height: 26px; padding: 0 12px; border-radius: 999px; background: #FF834F; color: #10362A; display: flex; align-items: center; font-weight: 800; font-size: 12.5px">Para tienda que crece</span>
+        </sc-if>
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <h2 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 26px">{{p.nombre}}</h2>
+          <span style="font-size: 13.5px; font-weight: 700; opacity: .7">{{p.para}}</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 6px">
+          <span style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 38px; letter-spacing: -.5px">{{p.precio}}</span>
+          <span style="font-weight: 700; font-size: 15px; opacity: .7">{{p.periodo}}</span>
+        </div>
+        <span style="margin-top: -8px; font-size: 13.5px; font-weight: 600; opacity: .7">{{p.nota}}</span>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{p.incluye}}" as="i" hint-placeholder-count="3">
+            <li style="display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.35; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#174B3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>{{i}}</li>
+          </sc-for>
+        </ul>
+        <a href="#" style="margin-top: 4px; height: 52px; border-radius: 999px; background: {{p.botonFondo}}; color: {{p.botonTinta}}; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 800; font-size: 16px">Probar 30 días gratis</a>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="position: relative; padding: 22px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h3 style="margin: 0; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 22px">Todos los planes traen</h3>
+    <ul style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <li style="border-radius: 16px; padding: 12px; background: rgba(255,249,238,.08); font-size: 14px; font-weight: 700; line-height: 1.3">Tu catálogo que se desliza</li>
+      <li style="border-radius: 16px; padding: 12px; background: rgba(255,249,238,.08); font-size: 14px; font-weight: 700; line-height: 1.3">Pedidos por WhatsApp</li>
+      <li style="border-radius: 16px; padding: 12px; background: rgba(255,249,238,.08); font-size: 14px; font-weight: 700; line-height: 1.3">Panel de pedidos y existencias</li>
+      <li style="border-radius: 16px; padding: 12px; background: rgba(255,249,238,.08); font-size: 14px; font-weight: 700; line-height: 1.3">Clientes, abonos y lo pendiente</li>
+    </ul>
+  </div>
+
+  <div style="position: relative; margin: 22px 20px 0; border-radius: 24px; padding: 18px; background: #F5C9D6; color: #174B3A; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-family: Caveat, cursive; font-weight: 700; font-size: 22px">¿eres de las primeras?</span>
+    <span style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 22px; line-height: 1.1">30 % menos todo el primer año</span>
+    <span style="font-size: 14.5px; line-height: 1.4; font-weight: 600">Para las tiendas fundadoras, después de los 30 días de prueba. Con fecha de vencimiento clara.</span>
+  </div>
+
+  <div style="position: relative; padding: 24px 20px 34px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; gap: 10px">
+      <a href="#" style="flex: 1; height: 50px; border-radius: 999px; background: #FF834F; color: #10362A; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 800; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M10 9v6l5-3z"></path></svg>Cómo funciona</a>
+      <a href="#" style="flex: 1; height: 50px; border-radius: 999px; border: 2px solid rgba(255,249,238,.7); box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 800; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor"></circle></svg>Quiero vender</a>
+    </div>
+    <span style="text-align: center; font-size: 12.5px; color: #CFE8DA">Precios en pesos dominicanos. Puedes cambiar de plan cuando quieras.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { anual: false }; }
+  renderVals() {
+    const anual = this.state.anual;
+    const base = [
+      { nombre: 'Inicial', para: 'Vendes por tu cuenta', mes: 'RD$499', ano: 'RD$4,990', equivale: 'Sale a RD$416 al mes', incluye: ['30 productos publicados', '1 tienda', '1 persona'], destacado: false },
+      { nombre: 'Negocio', para: 'Tu tienda crece', mes: 'RD$999', ano: 'RD$9,990', equivale: 'Sale a RD$833 al mes', incluye: ['150 productos publicados', 'Hasta 3 tiendas', 'Hasta 5 personas en tu equipo'], destacado: true },
+      { nombre: 'Pro', para: 'Mucho movimiento', mes: 'RD$1,499', ano: 'RD$14,990', equivale: 'Sale a RD$1,249 al mes', incluye: ['Productos y equipo sin tope práctico', 'Varias tiendas'], destacado: false }
+    ];
+    return {
+      mensual: !anual, anual,
+      verMensual: () => this.setState({ anual: false }),
+      verAnual: () => this.setState({ anual: true }),
+      fondoMensual: anual ? 'transparent' : '#FFF9EE', tintaMensual: anual ? '#FFF9EE' : '#174B3A',
+      fondoAnual: anual ? '#FFF9EE' : 'transparent', tintaAnual: anual ? '#174B3A' : '#FFF9EE',
+      planes: base.map((p) => ({
+        ...p,
+        precio: anual ? p.ano : p.mes,
+        periodo: anual ? '/año' : '/mes',
+        nota: anual ? p.equivale + ' · 10 meses por 12' : 'Menos de lo que deja una venta',
+        fondo: p.destacado ? '#FFF9EE' : '#E7F2EA',
+        borde: p.destacado ? '3px solid #FF834F' : '0',
+        botonFondo: p.destacado ? '#FF834F' : '#174B3A',
+        botonTinta: p.destacado ? '#10362A' : '#FFF9EE'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
