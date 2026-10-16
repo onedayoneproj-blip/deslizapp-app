@@ -22,6 +22,14 @@ export type Novedad = {
 
 const TODAS: Novedad[] = [
   {
+    version: "0.79.0", fecha: "2026-10-16", titulo: "El final del catálogo ya es un reel.",
+    cambios: [
+      "«Ya estás al día» cierra tu catálogo con tus colores, tu letra y tus fotos.",
+      "Quien compra ve «Sigue viendo» y, si eligió algo, pide por WhatsApp ahí mismo.",
+      "Después del final, «Hecho con Deslizapp» llega como un chat.",
+    ],
+  },
+  {
     version: "0.78.0", fecha: "2026-10-15", titulo: "Prueba con tu próximo aaah.",
     cambios: [
       "La demo trae el merch de Deslizapp, con datos de prueba propios.",

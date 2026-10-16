@@ -7,7 +7,7 @@ const css = readFileSync("app/tienda/catalogo.css", "utf8");
 const reglas = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, sel, cuerpo]) => ({ sel: sel.trim(), cuerpo }));
 
 // Selectores del catálogo del comprador que dibujan la foto de un producto.
-const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".coitem .cc img", ".coitem .cc", ".finimgs img", ".hl img", ".hl .hl-carta", ".a8 .res img"];
+const FOTOS_DE_PRODUCTO = [".sritem img", ".hcov img", ".coitem .cc img", ".coitem .cc", ".rf-mini img", ".hl img", ".hl .hl-carta", ".a8 .res img"];
 
 test("ninguna foto de producto del catálogo del comprador es circular", () => {
   for (const f of FOTOS_DE_PRODUCTO) {
@@ -40,9 +40,6 @@ test("superposición: se separa con recorte transparente (máscara), nunca con b
   const hcov = reglas.filter((x) => x.sel.includes(".hcov"));
   for (const x of hcov) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, `${x.sel} no lleva borde`);
   assert.ok(hcov.some((x) => /mask-image/.test(x.cuerpo)), "las cartas de atrás del abanico llevan máscara");
-  const fin = reglas.filter((x) => x.sel.includes(".finimgs img"));
-  for (const x of fin) assert.doesNotMatch(x.cuerpo, /border:\s*[0-9.]+px solid/, "las fotos apiladas no llevan borde");
-  assert.ok(fin.some((x) => /mask-image/.test(x.cuerpo)), "las fotos apiladas llevan máscara");
   assert.doesNotMatch(css, /\.cnt\s*\{[^}]*box-shadow:\s*0 0 0 2px/, "el contador no lleva aro");
 });
 

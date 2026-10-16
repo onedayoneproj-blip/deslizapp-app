@@ -44,7 +44,8 @@ import { HojaPedido, HojaOpiniones, HojaAviso } from "./hojas-compra";
 import { HojaPresentaciones } from "./hoja-presentaciones";
 import { VisorFicha } from "./visor-ficha";
 import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
-import { Coach, Historias, ArteFinal } from "./historias";
+import { Coach, Historias } from "./historias";
+import { ReelFin, ReelDeslizapp, type SigueViendo } from "./finales-reel";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
 import { MarcaDeslizapp } from "./artes-deslizapp";
 import { BarraPedido, BotonPedido } from "./bolsa";
@@ -663,6 +664,23 @@ export function Catalogo({
       }
     });
   };
+  // «Sigue viendo» en el final: lo mismo que muestra la pestaña de la cabecera, sin lo que ya se está viendo (hasta 4).
+  const seguirViendo: SigueViendo[] =
+    pestana === "colecciones"
+      ? cols
+          .filter((x) => x.id !== filtro && x.productos.length > 0)
+          .slice(0, 4)
+          .map((x) => ({ id: x.id, nombre: x.nombre, foto: portada(x.productos[0]) }))
+      : pestana === "catalogos"
+        ? [
+            ...(activo !== null ? [{ rubro: null as Rubro | null, nombre: "Todo", productos: c.productos }] : []),
+            ...catalogos
+              .filter((x) => x.rubro !== activo)
+              .map((x) => ({ rubro: x.rubro as Rubro | null, nombre: NOMBRE_TIPO[x.rubro], productos: catalogoFiltrado(c, x.rubro).productos })),
+          ]
+            .slice(0, 4)
+            .map((x) => ({ id: x.rubro ?? "todo", nombre: x.nombre, foto: portada(x.productos[0]) }))
+        : [];
   return (
     <div
       className={
@@ -884,88 +902,52 @@ export function Catalogo({
         {!lista.length && cv.productos.length > 0 && (
           <p className="empty">Aaah… todavía no hay productos aquí.</p>
         )}
-        <article
-          className={
-            "reel fin" +
-            (actual === "fin"
+        <ReelFin
+          clase={
+            actual === "fin"
               ? " on"
               : actual === "deslizapp"
                 ? " prev"
                 : index === lista.length - 1
                   ? " next"
-                  : "")
+                  : ""
           }
-          id="r-fin"
-          data-id="fin"
-        >
-          <div className="media">
-            <div className="finbox">
-              <div className="bigav">
-                <span aria-hidden="true" />
-              </div>
-              {/* Catálogo publicado sin productos todavía (se puede publicar vacío): se ve como un «pronto», no roto. */}
-              {cv.productos.length === 0 ? (
-                <h2 data-catalogo-pronto="">{textoCatalogoPronto(t.nombre)}</h2>
-              ) : (
-                <h2>
-                  ¡Ya viste{" "}
-                  {filtro === "all"
-                    ? "todos mis " + nombreLista
-                    : "esta colección"}
-                  !
-                </h2>
-              )}
-              {cv.productos.length === 0 ? (
-                <p>{SUBTEXTO_CATALOGO_PRONTO}</p>
-              ) : cart.length > 0 ? (
-                <>
-                  <p>
-                    Elegiste {cart.length}{" "}
-                    {cart.length === 1 ? (variosCatalogos ? "producto" : nombres.singular) : nombreLista} ·{" "}
-                    <b>{dinero(total)}</b>
-                  </p>
-                  <div className="finimgs">
-                    {cart
-                      .slice(0, 5)
-                      .map(
-                        (l) =>
-                          l.foto && (
-                            <img
-                              key={l.productoId + (l.varianteId ?? "")}
-                              src={l.foto}
-                              alt=""
-                            />
-                          ),
-                      )}
-                  </div>
-                  <button
-                    className="btn primary"
-                    onClick={() => void enviar()}
-                    disabled={enviando}
-                  >
-                    Enviar mi pedido a {t.nombreVendedora ?? t.nombre}
-                  </button>
-                  <button className="btn soft" onClick={() => abrir("pedido")}>
-                    Ver o cambiar mi pedido
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p>
-                    Dale ♥ a los que te gustaron y me mandas tu pedido por
-                    WhatsApp.
-                  </p>
-                  <button
-                    className="btn soft"
-                    onClick={() => go(lista[0]?.slug ?? "")}
-                  >
-                    Volver al primero
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </article>
+          principal={tema.colores.accent!}
+          acento={tema.colores.heart!}
+          usuario={usuarioDeTienda(t)}
+          perfil={showPerfil}
+          nombreTienda={t.nombre}
+          vacio={cv.productos.length === 0}
+          titulo={cv.productos.length === 0 ? textoCatalogoPronto(t.nombre) : "Ya estás al día"}
+          subtitulo={
+            cv.productos.length === 0
+              ? SUBTEXTO_CATALOGO_PRONTO
+              : filtro === "all"
+                ? lista.length === 1
+                  ? "Viste lo único que hay en " + t.nombre
+                  : `Viste los ${lista.length} ${nombreLista} de ${t.nombre}`
+                : "Viste toda la colección " + (cols.find((x) => x.id === filtro)?.nombre ?? "")
+          }
+          fotos={(cart.some((l) => l.foto) ? cart.map((l) => l.foto) : lista.map((p) => portada(p))).filter((f): f is string => !!f).slice(0, 4)}
+          sigue={seguirViendo}
+          elegirSigue={(id) => (pestana === "colecciones" ? seleccionarFiltro(id) : elegirCatalogo(id === "todo" ? null : (id as Rubro)))}
+          etiquetaSigue="Sigue viendo"
+          pedido={
+            cart.length > 0
+              ? {
+                  cantidad: cart.length,
+                  total: dinero(total),
+                  etiqueta: cart.length === 1 ? "Pedir el producto por WhatsApp" : `Pedir los ${cart.length} por WhatsApp`,
+                  fotos: cart.map((l) => l.foto).filter((f): f is string => !!f),
+                  enviando,
+                  enviar: () => void enviar(),
+                  ver: () => abrir("pedido"),
+                }
+              : null
+          }
+          sinPedido="Dale ♥ a los que te gustaron y me mandas tu pedido por WhatsApp."
+          volver={() => go(lista[0]?.slug ?? "")}
+        />
         <div
           data-id="deslizapp"
           className="contenedor-reel-final"
@@ -977,7 +959,7 @@ export function Catalogo({
               abrir("historia", "#como-funciona");
           }}
         >
-          <ArteFinal contacto={contacto} activo={actual === "deslizapp"} />
+          <ReelDeslizapp contacto={contacto} activo={actual === "deslizapp"} />
         </div>
       </main>
       {!perfil && <div className="navbtns">
