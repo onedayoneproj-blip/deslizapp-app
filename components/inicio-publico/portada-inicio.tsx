@@ -39,10 +39,13 @@ export function PortadaInicio({
       {!reel && <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />}
       <FeedFondo fotos={fotos} reel={reel} />
 
-      <header className="ini-arriba">
-        {/* eslint-disable-next-line @next/next/no-img-element -- icono pequeño de la app, sin optimizador */}
-        <img src="/icons/apple-touch-icon.png" alt="" width={36} height={36} />
-        <span>deslizapp</span>
+      <header className={"ini-arriba" + (reel ? "" : " ini-arriba-planes")}>
+        {/* El icono y la palabra van juntos en un solo elemento: así, con «Planes» como tercer hijo, el logo no se separa. */}
+        <span className="ini-logo">
+          {/* eslint-disable-next-line @next/next/no-img-element -- icono pequeño de la app, sin optimizador */}
+          <img src="/icons/apple-touch-icon.png" alt="" width={36} height={36} />
+          <span>deslizapp</span>
+        </span>
         {!reel && (
           <Link href={RUTA_PLANES} className="ini-planes tocable">
             Planes

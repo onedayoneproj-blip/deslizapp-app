@@ -470,7 +470,14 @@
 }
 
 /* El enlace pequeño «Planes» de la cabecera (a la derecha del logo) */
-.ini-arriba {
+/* El icono y «deslizapp» van juntos. Solo en la página principal, donde hay un «Planes» a la derecha, la cabecera ocupa todo el ancho
+   (el logo a la izquierda y «Planes» a la derecha); dentro de un catálogo (el reel) queda como siempre. */
+.ini-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ini-arriba-planes {
   right: max(20px, env(safe-area-inset-right));
   justify-content: space-between;
 }

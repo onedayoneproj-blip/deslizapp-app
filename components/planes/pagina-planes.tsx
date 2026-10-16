@@ -45,7 +45,7 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
           <br />
           <span className="pl-rosa">lo que guardas.</span>
         </h1>
-        <p className="pl-sub">Solo cuentan los productos publicados. Agotados, ocultos y borradores no ocupan cupo.</p>
+        <p className="pl-sub">Cuentan los productos que tienes visibles en tu catálogo. Los que ocultas no ocupan cupo.</p>
 
         <ListaPlanes planes={planes} />
 
