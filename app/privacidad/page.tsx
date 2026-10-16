@@ -19,6 +19,12 @@ const secciones: SeccionLegal[] = [
     ],
   },
   {
+    titulo: "Visitas y uso de las páginas públicas",
+    parrafos: [
+      "En la página principal, en «Cómo funciona» y en los catálogos contamos visitas y toques en botones para saber qué funciona. Es un conteo anónimo: no usamos cookies, no guardamos tu IP ni tu teléfono, y no podemos saber quién eres ni reconocerte en otra visita.",
+    ],
+  },
+  {
     titulo: "Para qué los usamos",
     parrafos: [
       "Únicamente para iniciar tu sesión, identificar a qué tienda perteneces y mostrarte y guardar la información de tu tienda. No vendemos datos ni los usamos para publicidad.",
@@ -56,5 +62,5 @@ const secciones: SeccionLegal[] = [
 ];
 
 export default function Privacidad() {
-  return <PaginaLegal titulo="Política de privacidad" actualizada="29 de septiembre de 2026" secciones={secciones} />;
+  return <PaginaLegal titulo="Política de privacidad" actualizada="16 de octubre de 2026" secciones={secciones} />;
 }

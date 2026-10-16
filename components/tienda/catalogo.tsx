@@ -45,6 +45,7 @@ import { HojaPresentaciones } from "./hoja-presentaciones";
 import { VisorFicha } from "./visor-ficha";
 import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
 import { Coach, Historias } from "./historias";
+import { registrarEvento } from "@/lib/medicion/registrar-evento";
 import { ReelFin, ReelDeslizapp, type SigueViendo } from "./finales-reel";
 import { MOSTRAR_FIN_CATALOGO } from "@/lib/tienda/final-catalogo";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
@@ -194,6 +195,8 @@ export function Catalogo({
         setCart(leerCarrito(slug, datos.productos));
         if (!entrada.current) {
           entrada.current = true;
+          // Medición (docs/18-medicion.md): una vez por visita, y no en la demo.
+          if (!demo) registrarEvento("catalogo_visto", { tiendaSlug: slug });
           const hash = decodeURIComponent(location.hash.slice(1));
           if (hash === "como-funciona") setVista("historia");
           else if (!hash && datos.productos.length > 0 && !vioCoach(slug)) setVista("coach");

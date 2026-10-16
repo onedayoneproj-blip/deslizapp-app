@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { registrarEvento } from "@/lib/medicion/registrar-evento";
 import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
@@ -101,8 +102,14 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       raiz.style.background = color;
       document.body.style.background = color;
     };
+    let finalVisto = false;
     const obsCierre = new IntersectionObserver(([en]) => {
       enCierre = Boolean(en?.isIntersecting);
+      // Medición (docs/18-medicion.md): llegó al final, una vez por visita.
+      if (enCierre && !finalVisto) {
+        finalVisto = true;
+        registrarEvento("conoce_final");
+      }
       pintarFondo();
     }, { threshold: 0.5 });
     if (cierre) obsCierre.observe(cierre);
@@ -298,10 +305,16 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (m && !m.getAttribute("src")) m.setAttribute("src", m.dataset.src ?? "");
     };
 
+    const pasosVistos = new Set<string>();
     const activar = (i: number) => {
       if (i === activo) return;
       const desde = activo;
       activo = i;
+      // Medición: cada paso se cuenta una vez por visita, aunque se vuelva a él.
+      if (PASOS[i] && !pasosVistos.has(PASOS[i].id)) {
+        pasosVistos.add(PASOS[i].id);
+        registrarEvento("conoce_paso", { paso: PASOS[i].id });
+      }
       const animar = !reducido.matches && desde >= 0;
       const paso = PASOS[i]!;
       const est = estadoPaso(i);
@@ -361,6 +374,13 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if ((ev.target as Element | null)?.closest?.('a[href^="#"]')) saltando = Date.now();
     };
     document.addEventListener("click", alClic, true);
+    // Medición: los botones del final («Ver la demo otra vez», vender, catálogo de ejemplo y entrar).
+    const EVENTO_CIERRE = { "otra-vez": "conoce_cta_otra_vez", vender: "conoce_cta_vender", catalogo: "conoce_cta_catalogo", entrar: "conoce_cta_entrar" } as const;
+    const alClicCierre = (ev: MouseEvent) => {
+      const cta = (ev.target as Element | null)?.closest?.<HTMLElement>("#cierre [data-cta]")?.dataset.cta;
+      if (cta && cta in EVENTO_CIERRE) registrarEvento(EVENTO_CIERRE[cta as keyof typeof EVENTO_CIERRE]);
+    };
+    document.addEventListener("click", alClicCierre, true);
     // «Desliza y mira»: tocarlo hace lo mismo que deslizar (el desbloqueo sigue al scroll).
     const desliza = e.querySelector<HTMLElement>("[data-desliza]");
     const alDesliza = () => secciones[1]?.scrollIntoView({ behavior: reducido.matches ? "instant" : "smooth" });
@@ -408,6 +428,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.removeEventListener("message", alDedo);
       window.removeEventListener("resize", esconder);
       document.removeEventListener("click", alClic, true);
+      document.removeEventListener("click", alClicCierre, true);
       desliza?.removeEventListener("click", alDesliza);
       raiz.removeAttribute("data-landing-js");
     };

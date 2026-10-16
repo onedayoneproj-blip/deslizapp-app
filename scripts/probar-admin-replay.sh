@@ -54,3 +54,4 @@ psql_local < scripts/probar-catalogo-react-db.sql
 psql_local < scripts/probar-pedido-catalogo-panel-db.sql
 PANEL_REPLAY_CONTAINER="$ADMIN_REPLAY_CONTAINER" python3 scripts/probar-pedido-catalogo-concurrencia.py
 psql_local < scripts/probar-pedido-catalogo-disponibilidad-db.sql
+psql_local < scripts/probar-eventos-publicos-db.sql
