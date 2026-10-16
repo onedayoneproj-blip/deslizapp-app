@@ -15,10 +15,11 @@ const ICONO_LIMITE = { productos: IconoCatalogo, tiendas: IconoCasa, personas: I
  * La insignia de cada plan, a la izquierda del nombre (40 px): Inicial empieza (flecha que sube), Negocio crece (barras), Pro llega
  * más lejos (chispa). Un plan nuevo sin insignia aquí sale sin ella.
  */
-const INSIGNIA_PLAN: Record<string, { Icono: typeof IconoBarras; fondo: string }> = {
-  inicial: { Icono: IconoFlechaArriba, fondo: "#FBE4EB" },
-  negocio: { Icono: IconoBarras, fondo: "#FFD9C6" },
-  pro: { Icono: IconoChispa, fondo: "#F5C9D6" },
+const INSIGNIA_PLAN: Record<string, { Icono: typeof IconoBarras; fondo: string; tinta: string; borde: string }> = {
+  // Colores de marca sólidos; cada insignia pasa 3:1 contra el fondo de su tarjeta (el borde Bosque de 2 px lo da donde el relleno solo no llega).
+  inicial: { Icono: IconoFlechaArriba, fondo: "#F5C9D6", tinta: "#174B3A", borde: "#174B3A" },
+  negocio: { Icono: IconoBarras, fondo: "#FF834F", tinta: "#174B3A", borde: "#174B3A" },
+  pro: { Icono: IconoChispa, fondo: "#174B3A", tinta: "#F5C9D6", borde: "#174B3A" },
 };
 
 /** El selector Mensual / Anual y las tarjetas de cada plan. «Probar 30 días gratis» lleva a Google y, de ahí, al onboarding. */
@@ -70,7 +71,7 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
               {p.destacado && <span className="pl-etiqueta">Para tienda que crece</span>}
               <div className="pl-cabeza">
                 {INSIGNIA_PLAN[p.id] && (
-                  <span className="pl-insignia" style={{ background: INSIGNIA_PLAN[p.id]!.fondo }} data-insignia={p.id} aria-hidden="true">
+                  <span className="pl-insignia" style={{ background: INSIGNIA_PLAN[p.id]!.fondo, color: INSIGNIA_PLAN[p.id]!.tinta, borderColor: INSIGNIA_PLAN[p.id]!.borde }} data-insignia={p.id} aria-hidden="true">
                     {(() => {
                       const Icono = INSIGNIA_PLAN[p.id]!.Icono;
                       return <Icono tamano={22} />;

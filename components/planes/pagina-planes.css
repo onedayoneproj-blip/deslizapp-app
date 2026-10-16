@@ -176,8 +176,9 @@ html:has(.pl) body {
   place-items: center;
   width: 40px;
   height: 40px;
+  box-sizing: border-box;
+  border: 2px solid var(--marca-bosque);
   border-radius: 50%;
-  color: var(--marca-bosque);
 }
 .pl-etiqueta {
   position: absolute;
@@ -313,18 +314,23 @@ html:has(.pl) body {
   background: var(--marca-rosa-fija);
   color: var(--marca-bosque);
 }
-.pl-fundadoras-sobre {
-  margin-top: 4px;
+/* El avatar con ondas: 96 px y 28 de aire por todos lados (las ondas llegan a ~1,45 veces y no deben tocar el texto). */
+.pl-fundadoras-aro {
+  padding: 28px;
+  margin: -14px 0 -10px;
+}
+.pl-fundadoras .pl-fundadoras-mano {
   font-family: var(--font-mano);
   font-weight: 700;
-  font-size: 22px;
+  font-size: 33px;
+  line-height: 1.02;
 }
 .pl-fundadoras h2 {
-  margin: 0;
+  margin: 4px 0 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
-  line-height: 1.1;
+  font-size: 20px;
+  line-height: 1.15;
 }
 .pl-fundadoras p {
   margin: 0;
@@ -332,10 +338,7 @@ html:has(.pl) body {
   font-size: 14.5px;
   line-height: 1.4;
 }
-.pl-fundadoras .pl-fundadoras-entras {
-  font-size: 13px;
-  opacity: 0.8;
-}
+
 .pl-beneficios {
   display: flex;
   flex-direction: column;

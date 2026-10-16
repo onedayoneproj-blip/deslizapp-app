@@ -10,7 +10,7 @@ import { ListaPlanes } from "./lista-planes";
 import "./pagina-planes.css";
 
 const INCLUYE = [
-  { Icono: IconoInstagram, texto: "Tu catálogo que se desliza, listo para tu Instagram" },
+  { Icono: IconoInstagram, texto: "Tu catálogo en el link de tu bio" },
   { Icono: IconoWhatsApp, texto: "Pedidos por WhatsApp" },
   { Icono: IconoPedidos, texto: "Panel de pedidos y existencias" },
   { Icono: IconoClientes, texto: "Clientes, abonos y lo pendiente" },
@@ -75,10 +75,12 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
         </section>
 
         <aside className="pl-fundadoras" data-fundadoras>
-          <LogoTienda tienda={TIENDA_EJEMPLO} tamano={96} />
-          <span className="pl-fundadoras-sobre">¿eres de las primeras?</span>
-          <h2>Como los Close Friends de Instagram, pero con beneficios.</h2>
-          <p className="pl-fundadoras-entras">Entras al Círculo Deslizapp.</p>
+          {/* Aire alrededor: las ondas crecen hasta ~1,45 veces y no se recortan ni empujan el texto. */}
+          <div className="pl-fundadoras-aro">
+            <LogoTienda tienda={TIENDA_EJEMPLO} tamano={96} animacion="ondas" />
+          </div>
+          <p className="pl-fundadoras-mano">Como los Close Friends de Instagram, pero con beneficios.</p>
+          <h2>Eres de las primeras tiendas: entras al Círculo Deslizapp.</h2>
           <ul className="pl-beneficios">
             {BENEFICIOS_CIRCULO.map(({ Icono, texto }) => (
               <li key={texto}>
