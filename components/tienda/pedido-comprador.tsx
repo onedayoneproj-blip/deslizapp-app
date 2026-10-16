@@ -28,6 +28,7 @@ const FINALES = new Set(["cancelado", "vencido"]);
 export function PedidoComprador({
   codigo,
   demo,
+  interna = false,
   inicial,
   inicialCatalogo = null,
   errorInicial = false,
@@ -35,6 +36,7 @@ export function PedidoComprador({
 }: {
   codigo: string;
   demo: boolean;
+  interna?: boolean;
   inicial: VistaSolicitud | null;
   inicialCatalogo?: CatalogoPublico | null;
   errorInicial?: boolean;
@@ -60,14 +62,14 @@ export function PedidoComprador({
     if (ilustracion) return;
     let valido = true;
     if (demo || intentoLectura > 0)
-      fuentePublica(demo)
+      fuentePublica(demo, interna)
         .then((f) => f.verSolicitud(codigo))
         .then((s) => {
           if (valido) {
             setS(s);
             setCargando(false);
             setFalloLectura(false);
-            if(s) fuentePublica(demo).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
+            if(s) fuentePublica(demo, interna).then(f=>f.catalogoPublico(s.tienda.slug)).then(c=>{if(valido)setCatalogo(c);}).catch(()=>{});
           }
         })
         .catch(() => {
@@ -84,7 +86,7 @@ export function PedidoComprador({
       valido = false;
       if (hold.current) clearTimeout(hold.current);
     };
-  }, [codigo, demo, intentoLectura, ilustracion]);
+  }, [codigo, demo, interna, intentoLectura, ilustracion]);
   // El estado cambia cuando la tienda lo registra o lo despacha: se vuelve a leer al volver a la pestaña, al recuperar el foco
   // y, mientras se ve la página, cada 45 s (sin Realtime ni anillo). Lo ya final (cancelado o vencido) no se sigue leyendo.
   const estadoActual = s?.estado;
@@ -95,7 +97,7 @@ export function PedidoComprador({
     const releer = () => {
       if (document.visibilityState !== "visible" || Date.now() - ultima < 5_000) return;
       ultima = Date.now();
-      fuentePublica(demo)
+      fuentePublica(demo, interna)
         .then((f) => f.verSolicitud(codigo))
         .then((nueva) => {
           if (vivo && nueva) setS(nueva);
@@ -111,7 +113,7 @@ export function PedidoComprador({
       document.removeEventListener("visibilitychange", releer);
       window.removeEventListener("focus", releer);
     };
-  }, [codigo, demo, estadoActual, ilustracion]);
+  }, [codigo, demo, interna, estadoActual, ilustracion]);
 
   // ¿Es la tienda? Solo con sesión (o en la demo, si lo pide): la vista de la tienda se monta encima, sin frenar al comprador.
   const [tienda, setTienda] = useState<"no" | "comprobar" | "entrar">("no");
@@ -123,7 +125,7 @@ export function PedidoComprador({
   }, [demo, ilustracion]);
 
   const enlace = s
-    ? `/tienda/${s.tienda.slug}${demo ? "?demo" : ""}`
+    ? `/tienda/${s.tienda.slug}${demo ? `?demo=${interna ? "interna" : ""}` : ""}`
     : catalogoAnterior;
   const volver = () => {
     if (enlace) location.href = enlace;
@@ -180,7 +182,7 @@ export function PedidoComprador({
     setPreparando(true);
     setError("");
     try {
-      await descargarRecibo(s, tipo, tema ?? undefined);
+      await descargarRecibo(s, tipo, tema ?? undefined, !demo);
     } catch {
       setError("No pudimos preparar el recibo. Inténtalo otra vez.");
     } finally {
@@ -296,7 +298,7 @@ export function PedidoComprador({
                       e.preventDefault();
                       try {
                         const c = await (
-                          await fuentePublica(demo)
+                          await fuentePublica(demo, interna)
                         ).catalogoPublico(s.tienda.slug);
                         const p = c.productos.find(
                           (p) => p.id === item.productoId,
@@ -313,7 +315,7 @@ export function PedidoComprador({
                     className="pvgo pvsh"
                     onClick={async () => {
                       try {
-                        if (navigator.share)
+                        if (!demo && navigator.share)
                           await navigator.share({
                             title: "Tu pedido con " + s.tienda.nombre,
                             url: location.href,
@@ -392,6 +394,7 @@ export function PedidoComprador({
         <TiendaEnPedido
           codigo={s.codigo}
           demo={demo}
+          interna={interna}
           pedirEntrar={tienda === "entrar"}
           alCerrar={() => setTienda("no")}
           alCambiarEstado={(nueva) => setS(nueva)}

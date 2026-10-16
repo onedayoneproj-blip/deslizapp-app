@@ -1,3 +1,6 @@
+import { COOKIE_DEMO_INTERNA, puedeUsarDemoInterna } from "@/lib/demo/acceso-servidor";
+import { redirect } from "next/navigation";
+import { LimiteDemo } from "@/components/panel/limite-demo";
 import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { CABECERA_RUTA } from "@/lib/inicio/ruta";
@@ -12,7 +15,7 @@ import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { RecuperarVerComo } from "@/components/admin/recuperar-ver-como";
 import { COOKIE_RECUPERAR_VER_COMO, COOKIE_TIENDA_VER_COMO, COOKIE_VER_COMO } from "@/lib/admin/ver-como";
 import type { SesionVerComo } from "@/lib/admin/tipos";
-import { DataProvider, ProveedorSoloMirar } from "@/lib/data/provider";
+import { DataProvider, ProveedorDemo, ProveedorSoloMirar } from "@/lib/data/provider";
 import { createClient } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/supabase/config";
 import { ToastProvider } from "@/components/toast";
@@ -24,6 +27,10 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
 
 async function DashboardAutorizado({ children }: { children: ReactNode }) {
   const jar = await cookies();
+  if (jar.get(COOKIE_DEMO_INTERNA)?.value) {
+    if (!await puedeUsarDemoInterna()) redirect("/api/demo-interna");
+    return <ProveedorDemo interna cargando={<PantallaCarga />}><DashboardUI>{children}</DashboardUI></ProveedorDemo>;
+  }
   const recuperacion = jar.get(COOKIE_RECUPERAR_VER_COMO)?.value;
   const id = jar.get(COOKIE_VER_COMO)?.value;
   const tiendaId = jar.get(COOKIE_TIENDA_VER_COMO)?.value;
@@ -71,14 +78,14 @@ function DashboardUI({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
       <ProveedorToast>
-        <PanelUIProvider>
+        <LimiteDemo><PanelUIProvider>
           <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-fondo min-[481px]:shadow-[0_0_40px_rgba(23,75,58,0.08)]">
             <Encabezado />
             <main className="flex-1 pb-[calc(var(--nav-abajo)+32px)]">{children}</main>
           </div>
           <NavInferior />
           <AvisoRed />
-        </PanelUIProvider>
+        </PanelUIProvider></LimiteDemo>
       </ProveedorToast>
     </ToastProvider>
   );

@@ -310,7 +310,7 @@ export function pdfFromJpeg(
   return new Blob(parts, { type: "application/pdf" });
 }
 
-export async function descargarRecibo(o: VistaSolicitud, tipo: "png" | "pdf", tema?: TemaCatalogo) {
+export async function descargarRecibo(o: VistaSolicitud, tipo: "png" | "pdf", tema?: TemaCatalogo, permitirCompartir = true) {
   const c = await invoiceCanvas(o, tema);
   const imagen = await new Promise<Blob>((resolve, reject) =>
     c.toBlob(
@@ -332,7 +332,7 @@ export async function descargarRecibo(o: VistaSolicitud, tipo: "png" | "pdf", te
     type: blob.type,
   });
   if (
-    navigator.canShare?.({ files: [file] }) &&
+    permitirCompartir && navigator.canShare?.({ files: [file] }) &&
     matchMedia("(pointer:coarse)").matches
   ) {
     try {

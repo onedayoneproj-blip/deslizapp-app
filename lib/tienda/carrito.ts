@@ -121,12 +121,13 @@ export function leerCarrito(
   }
 }
 let dispositivoMemoria: string | null = null;
-export function dispositivo(): string {
-  let id = leer("dz-dispositivo");
+export function dispositivo(namespace?: string): string {
+  const clave = namespace ? `dz-dispositivo-${namespace}` : "dz-dispositivo";
+  let id = leer(clave);
   if (!id) {
     id = dispositivoMemoria ?? crypto.randomUUID();
     dispositivoMemoria = id;
-    guardarLocal("dz-dispositivo", id);
+    guardarLocal(clave, id);
   }
   return id;
 }

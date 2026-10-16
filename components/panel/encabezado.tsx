@@ -19,7 +19,7 @@ import { usePanelUI } from "./ui";
  */
 export function Encabezado() {
   const { tienda } = useTiendaActiva();
-  const { getTiendas } = useData();
+  const { getTiendas, modo, demoInterna } = useData();
   const { data: tiendas } = useConsulta("tiendas", getTiendas);
   const accion = accionEncabezado(tiendas?.length ?? 1);
   useAvisoTrasCambio();
@@ -47,7 +47,7 @@ export function Encabezado() {
               <IconoChevronAbajo tamano={16} className="shrink-0 text-suave" />
             </span>
             <span className="block truncate text-[12.5px] text-suave">
-              {tienda ? NOMBRE_PLAN[tienda.plan] : ""} · <span className="font-display">deslizapp</span>
+              {modo === "demo" ? (demoInterna ? "Pruebas internas" : "Datos de prueba") : tienda ? NOMBRE_PLAN[tienda.plan] : ""} · <span className="font-display">deslizapp</span>
             </span>
           </span>
         </button>

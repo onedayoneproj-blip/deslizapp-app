@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CUENTA_DEMO, RUTA_PANEL, type CuentaVista } from "@/lib/cuenta";
-import { salir, salirDeLaDemo } from "@/lib/data/sesion";
+import { salir, salirDemoInterna } from "@/lib/data/sesion";
 import { Hoja } from "../hoja";
 import { IconoChevronDerecha } from "../iconos";
 import { FilaCuenta } from "../panel/cuenta";
@@ -34,16 +34,21 @@ export function HojaCuentaAdmin({
     alCerrar();
     // La entrada está en `/`: después de cerrar la sesión se va ahí (sin dejar el admin a medio cargar).
     if (demo) {
-      salirDeLaDemo();
-      window.location.href = RUTA_PANEL;
+      void salirDemoInterna();
     } else void salir().finally(() => window.location.href = RUTA_PANEL);
   };
   return (
     <Hoja abierta={abierta} alCerrar={alCerrar} titulo="Tu cuenta" altura="auto">
       {miTienda && (
         <Link
-          href="/"
-          onClick={alCerrar}
+          href={demo ? "/demo-interna" : "/"}
+          onClick={async e => {
+            if (!demo) { alCerrar(); return; }
+            e.preventDefault();
+            const r = await fetch("/api/demo-interna", { method: "POST" });
+            alCerrar();
+            window.location.assign(r.ok ? "/" : "/demo-interna");
+          }}
           aria-label={`Ir a mi tienda, ${miTienda.nombre}`}
           className="tocable flex min-h-14 w-full items-center gap-3 rounded-radio-l border-[1.5px] border-linea bg-superficie px-3.5 py-2.5 text-left"
         >

@@ -132,7 +132,13 @@ export async function comprobarSesion(aviso: string | null = null) {
   }
 }
 
-export function verDemo() {
+async function limpiarSeleccionDemoInterna() {
+  try { await fetch("/api/demo-interna", { method: "DELETE" }); }
+  catch { /* Sin red, entrar/salir de la demo local sigue funcionando. No se toca Auth. */ }
+}
+
+export async function verDemo() {
+  await limpiarSeleccionDemoInterna();
   guardarModo("demo");
   poner({ tipo: "demo" });
 }
@@ -205,6 +211,7 @@ export function salirDeLaDemo() {
  */
 export async function salir() {
   const eraReal = estado?.tipo !== "demo";
+  if (!eraReal) await limpiarSeleccionDemoInterna();
   guardarModo(null);
   poner({ tipo: "entrada", aviso: null });
   if (eraReal && HAY_SUPABASE) {
@@ -231,4 +238,11 @@ export async function elegirTiendaPorDefecto(tiendaId: string) {
   const r = await supabase.from("usuarios").update({ tienda_id: tiendaId }).eq("id", data.claims.sub).select("tienda_id").maybeSingle();
   if (r.error) throw traducirErrorSupabase(r.error);
   if (r.data?.tienda_id !== tiendaId) throw new Error("no_se_cambio");
+}
+
+/** El sandbox no depende del modo de sesión del panel real. Salir conserva Google y su tienda. */
+export async function salirDemoInterna() {
+  await limpiarSeleccionDemoInterna();
+  salirDeLaDemo();
+  window.location.assign("/");
 }

@@ -1,0 +1,356 @@
+{
+  "capturadoEn": "2026-10-15",
+  "fuente": "https://deslizapp.com/tienda/deslizapp",
+  "perfil": {
+    "nombre": "Deslizapp",
+    "logoUrl": "/demo/deslizapp/00.jpg",
+    "fotoPerfilUrl": null,
+    "marcaColorPrincipal": "#F6C2D3",
+    "marcaColorAcento": "#0E4D38",
+    "marcaEstilo": "divertida",
+    "descripcion": "Un gustico de Deslizapp para llevar contigo. Libretas, ropa y accesorios con frases que se sienten como tú.",
+    "rubro": "general",
+    "rubros": [
+      "general",
+      "ropa",
+      "accesorios",
+      "hogar"
+    ],
+    "personalizacion": {
+      "tema": {
+        "colores": {
+          "bg": "#FFF9EE",
+          "ink": "#174B3A",
+          "sunk": "#F5C9D6",
+          "heart": "#FF834F",
+          "accent": "#174B3A",
+          "surface": "#FFFFFF"
+        },
+        "fuentes": {
+          "body": "Figtree",
+          "display": "Fredoka"
+        }
+      }
+    }
+  },
+  "productos": [
+    {
+      "slug": "lo-hoddie",
+      "nombre": "Lo’ Hoddie",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/01.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/02.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/03.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "ropa",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Verde",
+            "Beige"
+          ]
+        },
+        {
+          "nombre": "Talla",
+          "valores": [
+            "S",
+            "M",
+            "L"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "lo-covel",
+      "nombre": "Lo Covel",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/04.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/05.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/06.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/07.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Rosado",
+            "Verde",
+            "Beige"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "lo-e-tickel",
+      "nombre": "Lo E’tickel",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/08.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/09.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": []
+    },
+    {
+      "slug": "el-librito",
+      "nombre": "El Librito",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/10.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/11.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/12.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/13.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Rosado",
+            "Verde",
+            "Beige"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "la-botella",
+      "nombre": "La Botella",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/14.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/15.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/16.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Verde",
+            "Beige"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "el-llavaro",
+      "nombre": "El Llavero",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/17.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/18.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/19.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/20.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Rosado",
+            "Verde",
+            "Naranja"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "la-gorrita",
+      "nombre": "La Gorrita",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/21.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/22.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/23.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Rosado",
+            "Verde"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "deslibag",
+      "nombre": "El Bolsito",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/24.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/25.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/26.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "accesorios",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Verde",
+            "Beige"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "deslizhirt",
+      "nombre": "El Poloché",
+      "medios": [
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/27.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/28.jpg",
+          "retocada": false
+        },
+        {
+          "tipo": "foto",
+          "url": "/demo/deslizapp/29.jpg",
+          "retocada": false
+        }
+      ],
+      "rubro": "ropa",
+      "detalles": {},
+      "categoria": null,
+      "opciones": [
+        {
+          "nombre": "Color",
+          "valores": [
+            "Verde",
+            "Beige"
+          ]
+        },
+        {
+          "nombre": "Talla",
+          "valores": [
+            "S",
+            "M",
+            "L"
+          ]
+        }
+      ]
+    }
+  ]
+}

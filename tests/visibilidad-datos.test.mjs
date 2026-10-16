@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 const memoria=new Map();globalThis.localStorage={getItem:k=>memoria.get(k)??null,setItem:(k,v)=>memoria.set(k,v),removeItem:k=>memoria.delete(k)};
 const {construirDesdeSeed}=await import("../lib/data/db.ts");
-const {fuenteDemo}=await import("../lib/data/demo.ts");
+const {fuenteDemo}=(await import("../lib/data/demo-interna.ts")).demoInterna;
 const {crearFuenteSupabase}=await import("../lib/data/supabase.ts");
 const {filaCambiosProducto}=await import("../lib/data/filas.ts");
 test("ocultar/mostrar conserva cantidades, likes e historiales en demo y separa tiendas",async()=>{

@@ -1,3 +1,4 @@
+import { exigirDemoInterna } from "@/lib/demo/acceso-servidor";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { fuentePublicaReal } from "@/lib/data/publica";
@@ -20,7 +21,10 @@ export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const demo = "demo" in (await searchParams);
+  const consulta = await searchParams;
+  const interna = consulta.demo === "interna";
+  if (interna) await exigirDemoInterna();
+  const demo = interna || slug === "deslizapp-ejemplo" || "demo" in consulta;
   const c = demo ? null : await leer(slug);
   if (!c)
     return {
@@ -49,12 +53,16 @@ export async function generateMetadata({
 }
 export default async function Pagina({ params, searchParams }: Props) {
   const { slug } = await params;
-  const demo = "demo" in (await searchParams);
+  const consulta = await searchParams;
+  const interna = consulta.demo === "interna";
+  if (interna) await exigirDemoInterna();
+  const demo = interna || slug === "deslizapp-ejemplo" || "demo" in consulta;
   const c = demo ? null : await leer(slug);
   return (
     <Catalogo
       slug={slug}
       demo={demo}
+      interna={interna}
       inicial={c}
       errorInicial={
         !demo && !c ? "Este catálogo se está tomando un descanso." : undefined

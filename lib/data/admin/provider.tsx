@@ -3,7 +3,8 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { FuenteAdmin } from "./fuente-admin";
 import { crearFuenteAdminDemoCompartida } from "./demo-compartida";
-import { escribirDemoDesdeAdmin, leerDemoGuardada } from "../demo";
+import { demoInterna } from "../demo-interna";
+const { escribirDemoDesdeAdmin, leerDemoGuardada } = demoInterna;
 import { crearFuenteAdminSupabase } from "./supabase";
 import { createClient } from "@/lib/supabase/client";
 

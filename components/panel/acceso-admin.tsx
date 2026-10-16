@@ -12,7 +12,7 @@ import { IconoChispa } from "../iconos";
  * En la demo, el enlace lleva al admin de la demo (/admin-demo), que solo usa datos de este navegador.
  */
 function usePuedeAdministrar(): "real" | "demo" | null {
-  const { modo, soloMirar } = useData();
+  const { modo, soloMirar, demoInterna } = useData();
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
     if (modo !== "real" || soloMirar) return;
@@ -28,7 +28,7 @@ function usePuedeAdministrar(): "real" | "demo" | null {
     };
   }, [modo, soloMirar]);
   if (soloMirar) return null;
-  if (modo === "demo") return "demo";
+  if (modo === "demo") return demoInterna ? "demo" : null;
   return modo === "real" && admin ? "real" : null;
 }
 

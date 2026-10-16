@@ -25,8 +25,10 @@ export function tituloConfirmarPublicar(n: number): string {
 }
 
 /** El enlace que tendrá el catálogo al publicarse (la base lo pone igual). */
-export function enlaceAlPublicar(slug: string, base: string = URL_BASE_CATALOGO): string {
-  return `${base}/tienda/${slug}`;
+export function enlaceAlPublicar(slug: string, base: string = URL_BASE_CATALOGO, fuente?: { modo: "demo" | "real"; demoInterna?: boolean }): string {
+  const demo = fuente?.modo === "demo";
+  const origen = demo && base !== "" && typeof window !== "undefined" ? window.location.origin : base;
+  return `${origen}/tienda/${slug}${demo ? `?demo=${fuente.demoInterna ? "interna" : ""}` : ""}`;
 }
 
 /** El catálogo publicado sin productos todavía (también en «Ver cómo queda»): un «pronto», nunca algo roto. */

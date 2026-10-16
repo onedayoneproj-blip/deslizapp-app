@@ -106,7 +106,9 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
   const n = resumenEspera(avisos, tiendaId).personas;
   const urlCatalogo = catalogoParaAviso(tienda?.urlCatalogo ?? null);
 
+  const { modo: modoDatos } = useData();
   const avisar = (a: AvisoLlegada) => {
+    if (modoDatos === "demo") { void marcar(a.id); mostrarToast("Aviso simulado. En la demo nadie lo recibe."); return; }
     const texto = mensajeYaLlego({ nombre: a.nombre, producto: producto.nombre, variante: varianteDe(a.varianteId), urlCatalogo, slug: producto.slug });
     // Sin "noopener" en las opciones para poder saber si se abrió (con él window.open siempre da null); se corta igual.
     const ventana = window.open(enlaceAviso(a.telefono, texto), "_blank");
@@ -121,6 +123,7 @@ function ContenidoYaLlego({ producto, avisos, modo = "llego" }: { producto: Prod
 
   // Mensaje libre: abre el chat sin texto de «Ya llegó» y no marca nada como avisado.
   const escribir = (a: AvisoLlegada) => {
+    if (modoDatos === "demo") { mostrarToast("Mensaje simulado. En la demo nadie lo recibe."); return; }
     const ventana = window.open(enlaceChat(a.telefono), "_blank");
     if (!ventana) mostrarToast("No se pudo abrir WhatsApp. Inténtalo otra vez.");
     else ventana.opener = null;

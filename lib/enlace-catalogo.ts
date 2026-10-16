@@ -14,7 +14,14 @@ export function enlaceCatalogo(url: string | null | undefined): EnlaceCatalogo |
   if (!url) return null;
   try {
     const u = new URL(url.trim());
-    if (u.protocol !== "https:" || !u.hostname.includes(".") || u.username || u.password) return null;
+    const demo = u.pathname === "/tienda/deslizapp-ejemplo" || (u.pathname.startsWith("/tienda/") && u.searchParams.get("demo") === "interna");
+    const demoLocal = demo && (u.protocol === "http:" || u.protocol === "https:") && typeof window !== "undefined" && u.origin === window.location.origin;
+    if ((!demoLocal && (u.protocol !== "https:" || !u.hostname.includes("."))) || u.username || u.password) return null;
+    if (demo) {
+      if (u.pathname === "/tienda/deslizapp-ejemplo") u.searchParams.set("demo", "");
+      const local = new URL(u.pathname + u.search + u.hash, typeof window === "undefined" ? "https://deslizapp.com" : window.location.origin);
+      return { href: local.href, dominio: "Demo de Deslizapp", resto: u.pathname + u.search };
+    }
     const resto = `${u.pathname === "/" ? "" : u.pathname}${u.search}${u.hash}`;
     return { href: u.href, dominio: u.hostname.replace(/^www\./, ""), resto };
   } catch {

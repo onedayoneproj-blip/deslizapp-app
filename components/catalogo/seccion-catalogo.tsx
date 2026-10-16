@@ -49,7 +49,7 @@ const REFRESCO_MS = 60_000;
  * las RPC, la celebración de "recién publicado" y la actualización en vivo (el equipo cambia el estado desde fuera de la app).
  */
 export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
-  const { pedirCambiosCatalogo, publicarCatalogo, publicarMiCatalogo, getProductos, releerTienda } = useData();
+  const { modo, demoInterna, pedirCambiosCatalogo, publicarCatalogo, publicarMiCatalogo, getProductos, releerTienda } = useData();
   const router = useRouter();
   const { abrirMiMarca, abrirPlan } = usePanelUI();
   const toast = useToast();
@@ -134,7 +134,7 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
   const compartir = () => {
     const enlace = enlaceCatalogo(tienda.urlCatalogo);
     if (!enlace) return;
-    if (typeof navigator.share === "function") {
+    if (modo !== "demo" && typeof navigator.share === "function") {
       navigator.share({ title: tienda.nombre, url: enlace.href }).catch(() => {
         // Cerrar la hoja de compartir sin elegir nada no es un error.
       });
@@ -169,7 +169,7 @@ export function SeccionCatalogo({ tienda }: { tienda: Tienda }) {
       <HojaPublicarCatalogo
         abierta={publicar}
         alCerrar={() => setPublicar(false)}
-        enlace={enlaceAlPublicar(tienda.slug)}
+        enlace={enlaceAlPublicar(tienda.slug, undefined, { modo, demoInterna })}
         productos={cuantos}
         alAgregarMas={() => {
           setPublicar(false);

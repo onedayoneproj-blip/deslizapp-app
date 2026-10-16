@@ -1,0 +1,20 @@
+[
+  {
+    "ancho": 360,
+    "paso": true,
+    "solicitudes": 606,
+    "prohibidas": []
+  },
+  {
+    "ancho": 393,
+    "paso": true,
+    "solicitudes": 598,
+    "prohibidas": []
+  },
+  {
+    "ancho": 430,
+    "paso": true,
+    "solicitudes": 591,
+    "prohibidas": []
+  }
+]

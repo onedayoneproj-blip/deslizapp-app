@@ -45,7 +45,7 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
   tiendaId: string; vendedora: string; tienda: string; urlCatalogo: string | null;
   alCerrar: () => void;
 }) {
-  const { getPromos, getProductos, getPedidos, crearCodigoCliente, registrarEnvioJugada } = useData();
+  const { modo: modoDatos, getPromos, getProductos, getPedidos, crearCodigoCliente, registrarEnvioJugada } = useData();
   const { mostrarToast } = useToastUI();
   const { data: promos } = useConsulta(`promos:${tiendaId}`, () => getPromos(tiendaId));
   const { data: productos } = useConsulta(`productos:${tiendaId}`, () => getProductos(tiendaId));
@@ -148,6 +148,12 @@ export function HojaEscribirJugada({ jugada, cliente, tiendaId, vendedora, tiend
         await registrarEnvioJugada(tiendaId, { clienteId: cliente.id, jugada, tipo: modo, promoId, productoIds: modo === "productos" ? elegidos : [] });
       } catch (e) {
         console.warn("No se pudo registrar el envío de la jugada.", e);
+      }
+      if (modoDatos === "demo") {
+        setEnviando(false);
+        alCerrar();
+        mostrarToast("Envío simulado. En la demo nadie lo recibe.");
+        return;
       }
       fueAWhatsApp.current = true;
       // Después de esperar, iPhone bloquea las ventanas nuevas: se abre en la misma

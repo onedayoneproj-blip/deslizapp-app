@@ -39,7 +39,7 @@ const NOMBRE_ESTADO_CATALOGO = {
  * sesión» y la versión. En la demo, además, la sección «Modo demo». Aquí irá «Crear otra tienda» (PR de grupos de tiendas).
  */
 export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: () => void }) {
-  const { modo, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, getEquipo, salirDeTienda, mirarDemoComo, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
+  const { modo, demoInterna, soloMirar, tiendaActivaId, cuenta, getTiendas, getMarcaRetoque, getEquipo, salirDeTienda, mirarDemoComo, cambiarTiendaActiva, simularPedidoCatalogo, simularAvanceCatalogo, reiniciarDemo, salir } = useData();
   const { permiso, esDuena } = usePermisos();
   // Solo la dueña lee su equipo (la base no se lo da a nadie más): para la marca de «esperan tu visto bueno».
   const { data: equipo } = useConsulta(`equipo:${tiendaActivaId}:${esDuena && !soloMirar}`, () =>
@@ -282,7 +282,8 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
       <AccesoAdmin alAbrir={cerrar} />
       <HojaInstalarApp abierta={hojaInstalar} alCerrar={cerrarHojaInstalar} plataformaInicial={esIos ? "ios" : "android"} />
 
-      {demo && (
+      {demo && !demoInterna && <div className="mt-4"><AccionDemo icono={<IconoReiniciar tamano={20} />} titulo={confirmarReinicio ? "¿Seguro? Toca otra vez para reiniciar" : "Reiniciar datos de prueba"} detalle="Todo vuelve a como estaba. Como si nada." onClick={reiniciar} alerta={confirmarReinicio} /></div>}
+      {demo && demoInterna && (
         <>
           <div className="mt-6 flex items-baseline gap-2">
             <h2 className="text-xs font-bold tracking-wider text-suave uppercase">Modo demo</h2>
