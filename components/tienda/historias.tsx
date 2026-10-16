@@ -4,11 +4,9 @@ import {
   ArteHistoria,
   HISTORIAS,
   MarcaDeslizapp,
-  ArteFinal,
 } from "./artes-deslizapp";
 import { DialogoCatalogo } from "./dialogo";
 import { Icono } from "./iconos";
-export { ArteFinal };
 export function Historias({
   cerrar,
   contacto,

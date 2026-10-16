@@ -28,7 +28,7 @@ const REDUCIDO = "(prefers-reduced-motion: reduce)";
  * Se pausa con la pestaña oculta (también las columnas). Con movimiento reducido, nada se mueve: una sola burbuja fija.
  * También pone el theme-color en verde.
  */
-export function Vivo({ productos }: { productos: string[] }) {
+export function Vivo({ productos, activo = true, enPagina = true }: { productos: string[]; activo?: boolean; enPagina?: boolean }) {
   const raiz = useRef<HTMLSpanElement>(null);
   const [sitio, setSitio] = useState<HTMLElement | null>(null);
   const [burbuja, setBurbuja] = useState<{ i: number; n: number; saliendo: boolean } | null>(null);
@@ -37,6 +37,8 @@ export function Vivo({ productos }: { productos: string[] }) {
 
   // La barra de Safari y el rebote del scroll en verde Bosque; al salir, lo que había.
   useEffect(() => {
+    // Solo la página principal pinta la barra y el fondo del documento; dentro de un catálogo no se tocan.
+    if (!enPagina) return;
     const tema = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     const antes = tema?.content ?? null;
     const fondos = [document.documentElement.style.background, document.body.style.background];
@@ -48,11 +50,13 @@ export function Vivo({ productos }: { productos: string[] }) {
       if (tema && antes !== null) tema.content = antes;
       [document.documentElement.style.background, document.body.style.background] = fondos;
     };
-  }, []);
+  }, [enPagina]);
 
   useEffect(() => {
     const ini = raiz.current?.closest<HTMLElement>("[data-ini]");
     if (!ini) return;
+    // Dentro de un catálogo, lo vivo solo corre mientras el reel está a la vista.
+    if (!activo) return;
     setSitio(ini.querySelector<HTMLElement>("[data-burbuja-sitio]"));
     const media = window.matchMedia(REDUCIDO);
     let tic = 0;
@@ -119,7 +123,7 @@ export function Vivo({ productos }: { productos: string[] }) {
       document.removeEventListener("visibilitychange", visibilidad);
       media.removeEventListener("change", arrancar);
     };
-  }, []);
+  }, [activo]);
 
   // Carlos le da aaah a otro producto de la tienda cada vez que sale.
   const producto = productos.length ? productos[(burbuja?.n ?? 0) % productos.length]! : "La Gorrita";
@@ -127,7 +131,8 @@ export function Vivo({ productos }: { productos: string[] }) {
 
   return (
     <span ref={raiz} className="ini-vivo">
-      {corazon &&
+      {activo &&
+        corazon &&
         !reducido &&
         createPortal(
           <span key={corazon.n} className="ini-latido" aria-hidden="true" onAnimationEnd={() => setCorazon(null)}>
@@ -138,7 +143,8 @@ export function Vivo({ productos }: { productos: string[] }) {
           </span>,
           corazon.foto,
         )}
-      {sitio &&
+      {activo &&
+        sitio &&
         m &&
         burbuja &&
         createPortal(

@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import { textoSobre, TEXTO_OSCURO } from "@/lib/marca";
+import type { FotoInicio } from "@/lib/inicio/fotos";
+import { PortadaInicio } from "@/components/inicio-publico/portada-inicio";
 import { Icono } from "./iconos";
 
 export type SigueViendo = { id: string; nombre: string; foto: string };
@@ -166,14 +168,11 @@ const FlechaArriba = () => (
 );
 
 /**
- * «Hecho con Deslizapp»: el último reel, con la marca de Deslizapp (no la de la tienda).
- * Una conversación de WhatsApp entre Deslizapp y quien compra; con el reel `activo` las burbujas aparecen una tras otra.
+ * El último reel: la página principal de deslizapp.com dentro del catálogo (components/inicio-publico/portada-inicio.tsx), con
+ * las fotos y los nombres de los productos del catálogo que se está viendo. Ocupa la pantalla completa; sus columnas y lo vivo
+ * solo se mueven con el reel `activo`.
  */
-export function ReelDeslizapp({ contacto, activo }: { contacto: string; activo: boolean }) {
-  const burbujas = [
-    { clase: "rd-b rd-in", texto: "¿Te gustó comprar deslizando? 👀", hora: "10:43" },
-    { clase: "rd-b rd-in", texto: "Tus clientes ya saben usarla: deslizan, le dan ♥ y te escriben.", hora: "10:43" },
-  ];
+export function ReelDeslizapp({ activo, fotos }: { activo: boolean; fotos: FotoInicio[] }) {
   return (
     <article
       className={"reel rd" + (activo ? " on" : "")}
@@ -182,53 +181,7 @@ export function ReelDeslizapp({ contacto, activo }: { contacto: string; activo: 
       aria-label="Deslizapp: catálogos como este para tu tienda"
     >
       <div className="media">
-        <span className="rd-forma rd-verde" aria-hidden="true" />
-        <span className="rd-forma rd-rosa" aria-hidden="true" />
-        <div className="rd-sombra" aria-hidden="true" />
-        <div className="rd-chat">
-          {burbujas.map((b, i) => (
-            <div key={i} className={b.clase} style={{ "--d": `${0.5 + i * 0.9}s` } as CSSProperties}>
-              <p>{b.texto}</p>
-              <span>{b.hora}</span>
-            </div>
-          ))}
-          <div className="rd-b rd-yo" style={{ "--d": "2.3s" } as CSSProperties}>
-            <p>¡Quiero la mía!</p>
-            <span>
-              10:44
-              <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M1 6l3 3 6-7M6 9l1 1 6-8" />
-              </svg>
-            </span>
-          </div>
-          <div className="rd-b rd-puntos" style={{ "--d": "3.3s" } as CSSProperties} role="img" aria-label="Deslizapp está escribiendo">
-            <i />
-            <i />
-            <i />
-          </div>
-        </div>
-        <div className="cap ov rd-pie">
-          <span className="who">
-            <span className="av rd-av" aria-hidden="true" />
-            @deslizapp <small>· hecho con</small>
-          </span>
-          <h2>
-            Ese <em>aaah</em> ya tiene nombre.
-          </h2>
-          <p>Y tu tienda puede tener el suyo.</p>
-          <div className="rd-botones">
-            <button type="button" className="rd-como" data-vv="">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              ¿Cómo funciona?
-            </button>
-            <a className="rd-wa" href={contacto}>
-              <Icono nombre="wa" />
-              Escríbenos
-            </a>
-          </div>
-        </div>
+        <PortadaInicio fotos={fotos} modo="reel" activo={activo} />
       </div>
     </article>
   );

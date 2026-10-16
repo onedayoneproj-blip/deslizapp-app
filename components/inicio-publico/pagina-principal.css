@@ -417,3 +417,54 @@
     transition: none;
   }
 }
+
+/* ---- Dentro de un catálogo: el último reel (components/tienda/finales-reel.tsx) ---- */
+/* Llena el reel (que mide la pantalla) y se ve siempre como en el teléfono, también en una ventana ancha. */
+.ini-reel {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  height: 100%;
+}
+/* Las columnas solo suben con el reel a la vista. */
+.ini-reel[data-activo="no"] .ini-tira {
+  animation-play-state: paused;
+}
+@media (min-width: 900px) {
+  .ini-reel {
+    justify-content: flex-end;
+    padding-left: max(20px, env(safe-area-inset-left));
+  }
+  .ini-reel .ini-columnas {
+    --col: min(46%, 230px);
+    left: 50%;
+    right: auto;
+    width: calc(3 * var(--col) + 20px);
+    margin-left: calc(-1.5 * var(--col) - 10px);
+    gap: 10px;
+  }
+  .ini-reel .ini-columna {
+    flex: none;
+    width: var(--col);
+  }
+  .ini-reel .ini-columna:nth-child(n + 4) {
+    display: none;
+  }
+  .ini-reel .ini-foto {
+    margin-bottom: 10px;
+  }
+  .ini-reel .ini-texto::before {
+    left: -100vw;
+    right: -100vw;
+    top: -24px;
+    bottom: -100vh;
+    background: linear-gradient(180deg, rgba(23, 75, 58, 0), rgba(23, 75, 58, 0.62) 70px, rgba(23, 75, 58, 0.9) 150px, var(--marca-bosque) 210px);
+  }
+  .ini-reel .ini-lema {
+    font-size: min(40px, 11vw);
+  }
+  .ini-reel .ini-descripcion {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}

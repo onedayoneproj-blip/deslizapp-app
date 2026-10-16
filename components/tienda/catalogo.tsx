@@ -46,6 +46,7 @@ import { VisorFicha } from "./visor-ficha";
 import { desde, tienePresentaciones, varianteDe, type Eleccion } from "@/lib/tienda/presentaciones";
 import { Coach, Historias } from "./historias";
 import { ReelFin, ReelDeslizapp, type SigueViendo } from "./finales-reel";
+import { MOSTRAR_FIN_CATALOGO } from "@/lib/tienda/final-catalogo";
 import { transformarPedido, volarPedido } from "@/lib/tienda/movimiento";
 import { MarcaDeslizapp } from "./artes-deslizapp";
 import { BarraPedido, BotonPedido } from "./bolsa";
@@ -431,11 +432,13 @@ export function Catalogo({
       requestAnimationFrame(() => document.getElementById("r-" + primero.slug)?.scrollIntoView({ block: "start" }));
     }
   };
+  // Después del último producto: «fin» (si está encendido) y el reel de Deslizapp.
+  const finales = MOSTRAR_FIN_CATALOGO ? 2 : 1;
   const index =
     actual === "fin"
       ? lista.length
       : actual === "deslizapp"
-        ? lista.length + 1
+        ? lista.length + finales - 1
         : lista.findIndex((p) => p.slug === actual);
   const producto = c.productos.find((p) => p.slug === elegido?.slug);
   const total = cart.reduce((s, l) => s + l.precioUnitario * l.cantidad, 0);
@@ -668,6 +671,10 @@ export function Catalogo({
       }
     });
   };
+  // El reel de Deslizapp lleva las fotos y los nombres de lo que se está viendo (la lista visible; si está vacía, el catálogo).
+  const fotosFinal = (lista.length ? lista : cv.productos)
+    .map((p) => ({ src: portada(p), nombre: p.nombre }))
+    .filter((f): f is { src: string; nombre: string } => !!f.src);
   // «Sigue viendo» en el final: lo mismo que muestra la pestaña de la cabecera, sin lo que ya se está viendo (hasta 4).
   const seguirViendo: SigueViendo[] =
     pestana === "colecciones"
@@ -703,7 +710,7 @@ export function Catalogo({
       ref={root}
       style={estilo}
     >
-      <header className="hdr">
+      <header className={"hdr" + (actual === "deslizapp" ? " hdr-fuera" : "")}>
         <button
           className="hback"
           id="backBtn"
@@ -906,68 +913,60 @@ export function Catalogo({
         {!lista.length && cv.productos.length > 0 && (
           <p className="empty">Aaah… todavía no hay productos aquí.</p>
         )}
-        <ReelFin
-          clase={
-            actual === "fin"
-              ? " on"
-              : actual === "deslizapp"
-                ? " prev"
-                : index === lista.length - 1
-                  ? " next"
-                  : ""
-          }
-          principal={tema.colores.accent!}
-          acento={tema.colores.heart!}
-          usuario={usuarioDeTienda(t)}
-          perfil={showPerfil}
-          nombreTienda={t.nombre}
-          vacio={cv.productos.length === 0}
-          titulo={cv.productos.length === 0 ? textoCatalogoPronto(t.nombre) : "Ya estás al día"}
-          subtitulo={
-            cv.productos.length === 0
-              ? SUBTEXTO_CATALOGO_PRONTO
-              : filtro === "all"
-                ? lista.length === 1
-                  ? "Viste lo único que hay en " + t.nombre
-                  : `Viste los ${lista.length} ${nombreLista} de ${t.nombre}`
-                : "Viste toda la colección " + (cols.find((x) => x.id === filtro)?.nombre ?? "")
-          }
-          fotos={(cart.some((l) => l.foto) ? cart.map((l) => l.foto) : lista.map((p) => portada(p))).filter((f): f is string => !!f).slice(0, 4)}
-          sigue={seguirViendo}
-          elegirSigue={(id) => (pestana === "colecciones" ? seleccionarFiltro(id) : elegirCatalogo(id === "todo" ? null : (id as Rubro)))}
-          etiquetaSigue="Sigue viendo"
-          pedido={
-            cart.length > 0
-              ? {
-                  cantidad: cart.length,
-                  total: dinero(total),
-                  etiqueta: cart.length === 1 ? "Pedir el producto por WhatsApp" : `Pedir los ${cart.length} por WhatsApp`,
-                  fotos: cart.map((l) => l.foto).filter((f): f is string => !!f),
-                  enviando,
-                  enviar: () => void enviar(),
-                  ver: () => abrir("pedido"),
-                }
-              : null
-          }
-          sinPedido="Dale ♥ a los que te gustaron y me mandas tu pedido por WhatsApp."
-          volver={() => go(lista[0]?.slug ?? "")}
-        />
-        <div
-          data-id="deslizapp"
-          className="contenedor-reel-final"
-          onClick={(e) => {
-            if (
-              secciones?.como_funciona !== false &&
-              (e.target as HTMLElement).closest("[data-vv]")
-            )
-              abrir("historia", "#como-funciona");
-          }}
-        >
-          <ReelDeslizapp contacto={contacto} activo={actual === "deslizapp"} />
+        {MOSTRAR_FIN_CATALOGO && (
+          <ReelFin
+            clase={
+              actual === "fin"
+                ? " on"
+                : actual === "deslizapp"
+                  ? " prev"
+                  : index === lista.length - 1
+                    ? " next"
+                    : ""
+            }
+            principal={tema.colores.accent!}
+            acento={tema.colores.heart!}
+            usuario={usuarioDeTienda(t)}
+            perfil={showPerfil}
+            nombreTienda={t.nombre}
+            vacio={cv.productos.length === 0}
+            titulo={cv.productos.length === 0 ? textoCatalogoPronto(t.nombre) : "Ya estás al día"}
+            subtitulo={
+              cv.productos.length === 0
+                ? SUBTEXTO_CATALOGO_PRONTO
+                : filtro === "all"
+                  ? lista.length === 1
+                    ? "Viste lo único que hay en " + t.nombre
+                    : `Viste los ${lista.length} ${nombreLista} de ${t.nombre}`
+                  : "Viste toda la colección " + (cols.find((x) => x.id === filtro)?.nombre ?? "")
+            }
+            fotos={(cart.some((l) => l.foto) ? cart.map((l) => l.foto) : lista.map((p) => portada(p))).filter((f): f is string => !!f).slice(0, 4)}
+            sigue={seguirViendo}
+            elegirSigue={(id) => (pestana === "colecciones" ? seleccionarFiltro(id) : elegirCatalogo(id === "todo" ? null : (id as Rubro)))}
+            etiquetaSigue="Sigue viendo"
+            pedido={
+              cart.length > 0
+                ? {
+                    cantidad: cart.length,
+                    total: dinero(total),
+                    etiqueta: cart.length === 1 ? "Pedir el producto por WhatsApp" : `Pedir los ${cart.length} por WhatsApp`,
+                    fotos: cart.map((l) => l.foto).filter((f): f is string => !!f),
+                    enviando,
+                    enviar: () => void enviar(),
+                    ver: () => abrir("pedido"),
+                  }
+                : null
+            }
+            sinPedido="Dale ♥ a los que te gustaron y me mandas tu pedido por WhatsApp."
+            volver={() => go(lista[0]?.slug ?? "")}
+          />
+        )}
+        <div data-id="deslizapp" className="contenedor-reel-final">
+          <ReelDeslizapp activo={actual === "deslizapp"} fotos={fotosFinal} />
         </div>
       </main>
       {!perfil && <div className="navbtns">
-        {[-1,1].map(d=><button key={d} aria-label={nombres.singular+(d<0?" anterior":" siguiente")} disabled={d<0?index<=0:index>=lista.length+1} onClick={()=>window.dispatchEvent(new KeyboardEvent("keydown",{key:d<0?"ArrowUp":"ArrowDown"}))}>
+        {[-1,1].map(d=><button key={d} aria-label={nombres.singular+(d<0?" anterior":" siguiente")} disabled={d<0?index<=0:index>=lista.length+finales-1} onClick={()=>window.dispatchEvent(new KeyboardEvent("keydown",{key:d<0?"ArrowUp":"ArrowDown"}))}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={d<0?"M6 15l6-6 6 6":"M6 9l6 6 6-6"}/></svg>
         </button>)}
       </div>}
