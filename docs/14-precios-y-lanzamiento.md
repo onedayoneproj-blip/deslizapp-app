@@ -8,7 +8,7 @@
 > | Negocio | RD$999 | RD$9,990 | 150 publicaciones activas compartidas · hasta 3 tiendas · 5 usuarios | Tienda en crecimiento |
 > | Pro | RD$1,499 | RD$14,990 | Límites altos con uso razonable · varias tiendas | Operación con más movimiento |
 >
-> - Solo cuentan los productos publicados y activos: agotados, ocultos y borradores no consumen cupo. Las tiendas de una cuenta comparten el límite.
+> - Solo cuentan los productos publicados y activos: agotados, ocultos y borradores no consumen cupo. Las tiendas de una cuenta comparten el límite. **Hoy el código todavía no lo hace así** (16 oct 2026): el cupo cuenta los productos activos y no eliminados, también los agotados visibles. La regla llega con las suscripciones. Hasta entonces, `/planes` y las preguntas frecuentes solo dicen que los ocultos no cuentan.
 > - El plan más bajo conserva lo esencial: catálogo, pedido por WhatsApp, panel de pedidos y clientes. Los planes se diferencian por volumen, tiendas, usuarios y herramientas avanzadas.
 > - **Fundadoras (Lewis, 16 oct 2026): 30 % menos el primer año, solo pagando anual** (cambio de Lewis del 16 oct 2026, opción B). Se paga **12 veces el precio mensual menos el 30 %**, redondeado al peso, en un solo pago después de los 30 días de prueba. Sin descuentos de por vida. No se suma a los 2 meses gratis del anual: el ahorro total es 30 % frente a pagar mes a mes, unos 13 puntos más que el anual normal. Pagando mes a mes, la fundadora paga el precio normal.
 >   | Plan | Mes a mes ×12 | Anual normal | Anual del Círculo, primer año |
