@@ -302,79 +302,137 @@ html:has(.pl) body {
   line-height: 1.3;
 }
 
-.pl-fundadoras {
+/* La tarjeta del Círculo Deslizapp: crema dentro de la página verde (referencias/circulo/tarjeta-planes.dc.html). Sobre crema, las tres
+   ondas del aro llevan su color de marca. */
+.pl-circulo {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
   margin-top: 10px;
-  padding: 18px;
-  border-radius: 24px;
-  background: var(--marca-rosa-fija);
+  padding: 0 18px 22px;
+  border-radius: 28px;
+  background: var(--marca-papel);
   color: var(--marca-bosque);
-  /* Sobre el fondo rosa, la onda rosa del aro no se vería: va crema (solo en esta tarjeta; el aro fijo no cambia). */
-  --aro-onda-rosa: #fff9ee;
 }
-/* El avatar con ondas: 96 px y 28 de aire por todos lados (las ondas llegan a ~1,45 veces y no deben tocar el texto). */
-.pl-fundadoras-aro {
+/* El aro de 120 px con 28 de aire por todos lados: las ondas llegan a ~1,45 veces y no deben recortarse ni tocar el texto. */
+.pl-circulo-aro {
   padding: 28px;
-  margin: -14px 0 -10px;
+  margin-bottom: -6px;
 }
-.pl-fundadoras .pl-fundadoras-mano {
-  font-family: var(--font-mano);
+.pl-circulo-sobre {
   font-weight: 700;
-  font-size: 33px;
-  line-height: 1.02;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
-.pl-fundadoras h2 {
-  margin: 4px 0 0;
+.pl-circulo h2 {
+  margin: 8px 0 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 20px;
-  line-height: 1.15;
+  font-size: 34px;
+  line-height: 1.05;
 }
-.pl-fundadoras p {
-  margin: 0;
+/* Mandarina oscuro (#C24E18): 4,5:1 sobre el papel, y es texto grande. */
+.pl-circulo .pl-circulo-mano {
+  margin: 8px 0 0;
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 27px;
+  line-height: 1.05;
+  color: #c24e18;
+}
+.pl-circulo-descuento {
+  position: relative;
+  align-self: stretch;
+  margin-top: 18px;
+  padding: 16px 14px 14px;
+  border-radius: 22px;
+  background: var(--marca-rosa-fija);
+  text-align: left;
+}
+.pl-circulo-etiqueta {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+}
+.pl-circulo-descuento > span {
+  display: block;
+}
+.pl-circulo-treinta {
+  /* ~49 px en un teléfono de 393; baja con el ancho para que «30 % menos» no desborde ni toque la etiqueta de arriba a la derecha
+     (el texto mide ~5,3 veces su tamaño; 136 px = márgenes de la página y de la tarjeta + la etiqueta). */
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(34px, calc((100vw - 136px) / 5.3), 50px);
+  line-height: 1;
+}
+.pl-circulo-plan {
+  margin-top: 4px;
+  font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14.5px;
-  line-height: 1.4;
+  font-size: 17px;
 }
-
-.pl-beneficios {
+.pl-circulo-prueba {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: #4f6a5e;
+}
+.pl-circulo-beneficios {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   align-self: stretch;
-  margin: 8px 0 0;
+  margin: 18px 0 0;
   padding: 0;
   list-style: none;
   text-align: left;
 }
-.pl-beneficios li {
+.pl-circulo-beneficios li {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 14.5px;
-  line-height: 1.35;
+  align-items: center;
+  gap: 14px;
 }
-.pl-beneficios svg {
+.pl-circulo-icono {
   flex: none;
-  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #fbe4eb;
 }
-.pl-fundadoras-boton {
+.pl-circulo-beneficios b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.15;
+}
+.pl-circulo-beneficios li > span:last-child > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 14.5px;
+  color: #4f6a5e;
+}
+.pl-circulo-boton {
   align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 46px;
-  margin-top: 8px;
+  height: 56px;
+  margin-top: 20px;
   border-radius: 999px;
   background: var(--marca-bosque);
   color: var(--marca-papel);
-  font-weight: 800;
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+}
+.pl-circulo-nota {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #4f6a5e;
 }
 
 .pl-botones {

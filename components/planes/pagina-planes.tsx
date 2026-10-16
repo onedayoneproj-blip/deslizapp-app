@@ -16,13 +16,12 @@ const INCLUYE = [
   { Icono: IconoClientes, texto: "Clientes, abonos y lo pendiente" },
 ];
 
-/** Lo que trae el Círculo Deslizapp (docs/14). Sin icono de regalo en la app, «créditos y merch» usa la bolsa. */
+/** Los cuatro beneficios del Círculo Deslizapp (docs/14, referencias/circulo/tarjeta-planes.dc.html). */
 const BENEFICIOS_CIRCULO = [
-  { Icono: IconoEtiqueta, texto: "30 % menos todo el primer año (después de la prueba)" },
-  { Icono: IconoChispa, texto: "Pruebas las funciones nuevas antes que nadie" },
-  { Icono: IconoBolsa, texto: "Créditos de bienvenida y regalos de merch" },
-  { Icono: IconoWhatsApp, texto: "Hablas directo con Lewis" },
-  { Icono: IconoCorazon, texto: "El aro es tuyo para siempre" },
+  { Icono: IconoChispa, titulo: "Estrena las funciones", bajada: "Pruébalas antes que nadie." },
+  { Icono: IconoBolsa, titulo: "Tu bienvenida viene con extras", bajada: "Créditos y regalos de merch." },
+  { Icono: IconoWhatsApp, titulo: "Habla directo con Lewis", bajada: "Una conversación, sin tanta vuelta." },
+  { Icono: IconoCorazon, titulo: "Tu aro se queda contigo", bajada: "El sello del Círculo es tuyo para siempre." },
 ];
 
 /** El avatar de ejemplo con el aro del Círculo (el mismo de LogoTienda, opción 6). */
@@ -74,24 +73,44 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
           </ul>
         </section>
 
-        <aside className="pl-fundadoras" data-fundadoras>
+        <aside className="pl-circulo" data-fundadoras aria-labelledby="pl-circulo-t">
           {/* Aire alrededor: las ondas crecen hasta ~1,45 veces y no se recortan ni empujan el texto. */}
-          <div className="pl-fundadoras-aro">
-            <LogoTienda tienda={TIENDA_EJEMPLO} tamano={96} animacion="ondas" />
+          <div className="pl-circulo-aro">
+            <LogoTienda tienda={TIENDA_EJEMPLO} tamano={120} animacion="ondas" />
           </div>
-          <p className="pl-fundadoras-mano">Como los Close Friends de Instagram, pero con beneficios.</p>
-          <h2>Eres de las primeras tiendas: entras al Círculo Deslizapp.</h2>
-          <ul className="pl-beneficios">
-            {BENEFICIOS_CIRCULO.map(({ Icono, texto }) => (
-              <li key={texto}>
-                <Icono tamano={20} />
-                {texto}
+          <span className="pl-circulo-sobre">Para las primeras tiendas</span>
+          <h2 id="pl-circulo-t">
+            Llegaste primero.
+            <br />
+            Te toca más.
+          </h2>
+          <p className="pl-circulo-mano">Como los Close Friends de Instagram, pero con beneficios.</p>
+
+          <div className="pl-circulo-descuento">
+            <IconoEtiqueta tamano={24} className="pl-circulo-etiqueta" />
+            <span className="pl-circulo-treinta">30 % menos</span>
+            <span className="pl-circulo-plan">en tu plan durante el primer año</span>
+            <span className="pl-circulo-prueba">Después de tu prueba.</span>
+          </div>
+
+          <ul className="pl-circulo-beneficios">
+            {BENEFICIOS_CIRCULO.map(({ Icono, titulo, bajada }) => (
+              <li key={titulo}>
+                <span className="pl-circulo-icono" aria-hidden="true">
+                  <Icono tamano={24} />
+                </span>
+                <span>
+                  <b>{titulo}</b>
+                  <span>{bajada}</span>
+                </span>
               </li>
             ))}
           </ul>
-          <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" className="pl-fundadoras-boton tocable">
-            Quiero vender
+
+          <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" className="pl-circulo-boton tocable">
+            Quiero ser parte
           </a>
+          <span className="pl-circulo-nota">Por invitación, mientras haya lugar.</span>
         </aside>
 
         <div className="pl-botones">
