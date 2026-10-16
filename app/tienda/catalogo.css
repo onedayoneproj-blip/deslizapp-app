@@ -9159,7 +9159,7 @@ html.catalogo-html,
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(var(--rf-sombra), 0.35),
+    rgba(0, 0, 0, 0.35),
     transparent 22%,
     transparent 55%,
     rgba(var(--rf-sombra), 0.55)
@@ -9633,4 +9633,24 @@ html.catalogo-html,
     font-size: 14.5px;
     line-height: 1.35;
   }
+}
+
+/* Los dos finales ocupan la pantalla completa: al llegar no se asoma el reel de arriba ni el de abajo.
+   El margen negativo anula el relleno de scroll (`--sp`), así que el reel queda pegado al borde de arriba. */
+:where(.catalogo-publico) .reel.fin,
+:where(.catalogo-publico) .contenedor-reel-final .reel.rd {
+  height: var(--vh);
+  width: min(100vw, max(var(--W), calc(var(--vh) * 0.5)));
+  scroll-margin-top: calc(var(--sp) * -1);
+}
+:where(.catalogo-publico) .reel.fin .media,
+:where(.catalogo-publico) .reel.rd .media {
+  border-radius: 0;
+}
+/* La cabecera (logo y pestañas) queda encima del reel, así que el contenido arranca debajo de ella. */
+:where(.catalogo-publico) .reel.fin .media,
+:where(.catalogo-publico) .reel.rd .media {
+  padding-top: calc(var(--hb, 100px) + 12px);
+  /* Abajo, como el pie de un reel de producto pero libre de la barra del iPhone. */
+  padding-bottom: max(38px, calc(env(safe-area-inset-bottom, 0px) + 10px));
 }

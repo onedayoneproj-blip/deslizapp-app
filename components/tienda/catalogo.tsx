@@ -278,6 +278,8 @@ export function Catalogo({
       const vars = {
         "--W": W + "px",
         "--H": H + "px",
+        "--sp": pt + "px",
+        "--hb": tb + "px",
         "--pt": pt + 72 + "px",
         "--pb": pb + 160 + "px",
         "--vh": vh + "px",
@@ -303,7 +305,9 @@ export function Catalogo({
         let best = "",
           d = Infinity;
         for (const reel of reels) {
-          const dist = Math.abs(reel.getBoundingClientRect().top - pt);
+          // Los dos finales ocupan la pantalla completa: su «posición de reposo» es el borde de arriba.
+          const final = reel.dataset.id === "fin" || reel.dataset.id === "deslizapp";
+          const dist = Math.abs(reel.getBoundingClientRect().top - (final ? 0 : pt));
           if (dist < d) {
             d = dist;
             best = reel.dataset.id ?? "";
