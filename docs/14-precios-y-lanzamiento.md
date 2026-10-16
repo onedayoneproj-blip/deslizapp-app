@@ -66,8 +66,8 @@ Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras ti
 | Fase | Cuándo | Quiénes | Condiciones |
 |---|---|---|---|
 | 1. Fundadoras | Meses 1 y 2 | 5 a 10 tiendas que elige Lewis | 30 días gratis **contados desde que se publica el catálogo**. Después, **RD$590 al mes durante 12 meses**. A cambio dan opinión y dejan mostrar su catálogo |
-| 2. Invitación | Meses 3 y 4 | Quien llegue por invitación | 14 días gratis, o un mes gratis si la invita otra tienda. RD$790 |
-| 3. Abierto | Del mes 5 | Cualquiera | 14 días gratis, precios completos y anual disponible |
+| 2. Invitación | Meses 3 y 4 | Quien llegue por invitación | 30 días gratis (16 oct 2026: antes 14). RD$790 |
+| 3. Abierto | Del mes 5 | Cualquiera | 30 días gratis (16 oct 2026: antes 14), precios completos y anual disponible |
 
 - **El precio de fundadora** se maneja con un plan aparte, **«Fundadora»**: igual al Básico, a RD$590, con `se_ofrece = false` y asignado a mano. A los 12 meses se pasa la tienda a Básico; se anota la fecha en la nota de la tienda.
 - **La prueba** usa `prueba_hasta` y los 5 días de gracia que ya existen. Aviso 3 días antes del fin, con «Ya pagó» y el WhatsApp. Pocos créditos durante la prueba (20).
