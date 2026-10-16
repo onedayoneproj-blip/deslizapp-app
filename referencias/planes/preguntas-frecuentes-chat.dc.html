@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Preguntas frecuentes con respuestas rápidas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;500;600;700;800&amp;family=Caveat:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.chat{border-radius:26px;overflow:hidden;background:#EFEAE2;color:#174B3A}
+.barra{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#FFF9EE;border-bottom:1px solid #E7DCC8}
+.cuerpo{padding:14px 12px 16px;display:flex;flex-direction:column;gap:6px}
+.env{align-self:flex-end;max-width:84%;border:0;border-radius:18px 18px 4px 18px;background:#D9FDD3;color:#174B3A;padding:9px 12px 7px 14px;font-family:Fredoka,sans-serif;font-weight:500;font-size:16.5px;line-height:1.22;text-align:left;cursor:pointer;box-shadow:0 1px 1px rgba(16,54,42,.16);display:flex;flex-direction:column;gap:2px}
+.env .meta{align-self:flex-end;display:flex;align-items:center;gap:3px;font-family:Figtree,sans-serif;font-size:10.5px;color:#4F6A5E}
+.env.abierta{background:#C4F2BC}
+.rec{align-self:flex-start;max-width:86%;border-radius:18px 18px 18px 4px;background:#FFFFFF;padding:9px 12px;font-size:15px;line-height:1.42;box-shadow:0 1px 1px rgba(16,54,42,.12);margin-bottom:6px;animation:entra .28s cubic-bezier(.34,1.45,.64,1) both;transform-origin:0 100%}
+.escribe{align-self:flex-start;border-radius:18px 18px 18px 4px;background:#FFFFFF;padding:12px 14px;display:flex;gap:4px;margin-bottom:6px;box-shadow:0 1px 1px rgba(16,54,42,.12)}
+.escribe i{width:7px;height:7px;border-radius:50%;background:#9AB0A5;display:block;animation:pt 1s infinite}
+.escribe i:nth-child(2){animation-delay:.15s}.escribe i:nth-child(3){animation-delay:.3s}
+@keyframes pt{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+@keyframes entra{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.pista{align-self:center;border-radius:10px;background:#FFF5D6;color:#5B4A1A;font-size:12.5px;font-weight:600;padding:6px 12px;margin-bottom:6px;text-align:center}
+.conf{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#FF834F;color:#174B3A;font-family:Figtree,sans-serif;font-size:10.5px;font-weight:800;vertical-align:middle}
+.chip{border:1.5px solid #174B3A;background:#FFF9EE;color:#174B3A;border-radius:999px;padding:8px 12px;font-family:Fredoka,sans-serif;font-weight:500;font-size:15px;cursor:pointer;text-align:left}
+@media (prefers-reduced-motion: reduce){.rec,.escribe i{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; box-sizing: border-box; background: #174B3A; padding: 26px 14px 30px; font-family: Figtree, system-ui, sans-serif; color: #FFF9EE">
+  <span style="margin-left: 4px; font-family: Caveat, cursive; font-weight: 700; font-size: 24px; color: #F5C9D6">¿dudas?</span>
+  <h2 style="margin: 0 4px 14px; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 28px">Pregúntanos</h2>
+  <div class="chat">
+      <div class="barra">
+        <span style="width: 40px; height: 40px; border-radius: 50%; background: #174B3A; display: flex; align-items: center; justify-content: center; flex: none"><span style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 18px; color: #F5C9D6">d</span></span>
+        <span style="flex: 1; display: flex; flex-direction: column"><b style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 17px">Deslizapp</b><span style="font-size: 12px; color: #4F6A5E">Preguntas frecuentes</span></span>
+      </div>
+      <div class="cuerpo">
+        <div class="rec">¡Hola! 👋 ¿Qué quieres saber? Toca una pregunta.</div>
+        <sc-for list="{{hilo}}" as="m" hint-placeholder-count="2">
+          <span class="env" style="cursor: default"><span>{{m.q}}</span><span class="meta">10:45 <svg width="16" height="10" viewBox="0 0 16 10" fill="none" stroke="#3B9BD8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 5.5l3 3L10 1.5"></path><path d="M6.5 8.5L14.5 1.5"></path></svg></span></span>
+          <sc-if value="{{m.escribiendo}}" hint-placeholder-val="{{false}}"><span class="escribe"><i></i><i></i><i></i></span></sc-if>
+          <sc-if value="{{m.ver}}" hint-placeholder-val="{{true}}"><div class="rec">{{m.r}}</div></sc-if>
+        </sc-for>
+      </div>
+      <div style="padding: 10px 12px 14px; background: #FFF9EE; border-top: 1px solid #E7DCC8; display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{quedan}}" as="p" hint-placeholder-count="7">
+          <button type="button" class="chip" onClick="{{p.tocar}}">{{p.q}}</button>
+        </sc-for>
+      </div>
+  </div>
+  <div style="margin-top: 14px; border-radius: 20px; background: #FFF9EE; color: #174B3A; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#174B3A" stroke-width="2" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"></path></svg>
+    <span style="flex: 1; font-weight: 700; font-size: 15px; line-height: 1.3">¿Otra pregunta? Escríbenos por WhatsApp.</span>
+    <span style="height: 40px; padding: 0 14px; border-radius: 999px; background: #174B3A; color: #FFF9EE; display: flex; align-items: center; font-weight: 800; font-size: 14px">Escribir</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { hechas: [], escribiendo: -1 }; }
+  renderVals() {
+    const L = [{"q": "¿Necesito tarjeta para probar?", "r": "No 🙌 Los 30 días de prueba son gratis y no te pedimos tarjeta. Si te quedas, pagas por transferencia.", "c": false}, {"q": "¿Qué pasa cuando terminan los 30 días?", "r": "Te avisamos 3 días antes. Eliges tu plan, transfieres y nos mandas la captura, y tu tienda sigue igual. Si no pagas, tienes unos días de margen antes de que el catálogo se pause. No se borra nada.", "c": true}, {"q": "¿Qué cuenta como producto publicado?", "r": "Solo lo que tus clientes ven en el catálogo. Agotados, ocultos y borradores no ocupan cupo.", "c": false}, {"q": "¿Mis clientes tienen que descargar algo?", "r": "Nada. Tocan el link de tu bio o de tus estados y el catálogo se abre ahí mismo, también dentro de Instagram.", "c": false}, {"q": "¿Cobran comisión por cada venta?", "r": "No. El pedido te llega por WhatsApp y el pago lo arreglas tú con tu cliente, como siempre.", "c": true}, {"q": "¿Puedo cambiar de plan?", "r": "Claro. Si subes, pagas solo la diferencia por los días que quedan. Si bajas, el cambio se aplica cuando renuevas.", "c": false}, {"q": "¿Cómo funciona el pago anual?", "r": "Pagas 10 meses y te llevas 12. El precio queda fijo todo el año y te avisamos 30 días antes de renovar.", "c": false}, {"q": "¿Qué es el Círculo Deslizapp?", "r": "El grupo de las primeras tiendas 💚 Entran por invitación: 30 % menos el primer año, funciones antes que nadie, regalos y el aro en su tienda para siempre.", "c": false}, {"q": "¿Quién sube los productos?", "r": "Tú, desde el teléfono: foto, precio y listo. Nosotros te ayudamos a dejar lista tu marca: colores, frases y portada.", "c": false}];
+    const { hechas, escribiendo } = this.state;
+    return {
+      hilo: hechas.map(i => ({ ...L[i], escribiendo: escribiendo === i, ver: escribiendo !== i })),
+      quedan: L.map((p, i) => ({ ...p, i })).filter(p => !hechas.includes(p.i)).map(p => ({ ...p,
+        tocar: () => { this.setState({ hechas: [...hechas, p.i], escribiendo: p.i }); setTimeout(() => { if (this.state.escribiendo === p.i) this.setState({ escribiendo: -1 }); }, 650); } }))
+    };
+  }
+}
+</script>
+</body>
+</html>
