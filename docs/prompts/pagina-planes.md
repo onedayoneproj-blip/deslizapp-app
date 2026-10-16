@@ -39,7 +39,7 @@ Migración nueva, siguiendo las reglas de `AGENTS.md`. Pregunta a Planning antes
 
 ## 3. Círculo Deslizapp
 Decisión completa en `docs/14` («Círculo Deslizapp», 16 oct). En este encargo:
-- **Base:** en la suscripción, `circulo_desde` (fecha) y `circulo_descuento_hasta` (fecha). Si ya existe una tabla de suscripciones, añádelo ahí; si no, en la tienda, y explícalo. El admin puede marcar y desmarcar una tienda como del Círculo. En Cobros, el monto sugerido aplica el 30 % mientras `circulo_descuento_hasta` sea futuro.
+- **Base:** el Círculo va con el titular. Se guarda en su suscripción: `circulo_desde` (fecha) y `circulo_descuento_hasta` (fecha). Todas las tiendas de esa suscripción, también las que cree después, muestran el aro. Si todavía no existe la tabla de suscripciones (`docs/prompts/suscripciones-y-varias-tiendas.md`), pregúntale a Planning antes de ponerlo en la tienda. El admin puede marcar y desmarcar una tienda como del Círculo. En Cobros, el monto sugerido aplica el 30 % mientras `circulo_descuento_hasta` sea futuro.
 - **El aro:** en el avatar de la tienda del panel, según el diseño del lienzo (cuando esté aprobado). Se ve mientras la tienda tenga `circulo_desde`, aunque ya no tenga descuento.
 - **En `/planes`:** la tarjeta de fundadoras explica el Círculo con el aro y sus beneficios, y su botón abre «Quiero vender». No promete cupos con números inventados.
 
