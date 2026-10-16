@@ -8995,6 +8995,11 @@ html.catalogo-html,
 :where(.catalogo-publico) .reel.rd:not(.on) .media {
   opacity: 0.6;
 }
+/* El pedido, si lo hay, queda arriba a la derecha del reel de Deslizapp (no tapa sus botones). */
+:where(.catalogo-publico) #bagDock.en-final {
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(var(--bagR, 6px) + 8px);
+}
 /* El último reel trae su propia cabecera («deslizapp»): la del catálogo se aparta mientras está a la vista. */
 :where(.catalogo-publico) .hdr.hdr-fuera {
   opacity: 0;

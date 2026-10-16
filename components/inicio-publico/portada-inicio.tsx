@@ -24,6 +24,24 @@ const COLUMNAS = [
 /** Fotos por columna (antes de duplicarla para el bucle): de sobra para llenar el alto, también en escritorio. */
 const FOTOS_POR_COLUMNA = 9;
 
+const HOST_SUPABASE = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return "";
+  }
+})();
+/** ¿Puede pasar por el optimizador de imágenes? Rutas propias y las fotos públicas de Supabase (next.config.ts); el resto, tal cual. */
+function optimizable(src: string): boolean {
+  if (src.startsWith("/")) return !src.startsWith("//");
+  try {
+    const u = new URL(src);
+    return u.protocol === "https:" && u.hostname === HOST_SUPABASE && u.pathname.startsWith("/storage/v1/object/public/");
+  } catch {
+    return false;
+  }
+}
+
 /** Cada columna empieza en otra foto, para que no se vean en fila. */
 function columna(fotos: FotoInicio[], k: number): FotoInicio[] {
   return Array.from({ length: FOTOS_POR_COLUMNA }, (_, i) => fotos[(i + k * 2) % fotos.length]!);
@@ -48,6 +66,9 @@ export function PortadaInicio({
   activo?: boolean;
 }) {
   const reel = modo === "reel";
+  // Dentro del catálogo ya hay un <main> y un <h1> (el nombre de la tienda): aquí van un <div> y un <h2>.
+  const Texto = reel ? "div" : "main";
+  const Lema = reel ? "h2" : "h1";
   return (
     <div className={"ini" + (reel ? " ini-reel" : "")} data-ini data-activo={activo ? "si" : "no"}>
       {!reel && <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />}
@@ -60,7 +81,6 @@ export function PortadaInicio({
                 <div className="ini-tira">
                   {[...columna(fotos, k), ...columna(fotos, k)].map((f, i) => (
                     <div key={i} className="ini-foto" data-foto-inicio={f.src}>
-                      {/* En el catálogo las fotos ya vienen de su dueño (cualquier origen): sin optimizador. */}
                       <Image
                         src={f.src}
                         alt=""
@@ -68,7 +88,7 @@ export function PortadaInicio({
                         sizes="(min-width: 900px) 260px, 230px"
                         quality={70}
                         loading={!reel && i < 3 ? "eager" : "lazy"}
-                        unoptimized={reel}
+                        unoptimized={!optimizable(f.src)}
                       />
                     </div>
                   ))}
@@ -86,9 +106,9 @@ export function PortadaInicio({
         <span>deslizapp</span>
       </header>
 
-      <main className="ini-texto">
+      <Texto className="ini-texto">
         <div className="ini-burbuja-sitio" data-burbuja-sitio aria-hidden="true" />
-        <h1 className="ini-lema">
+        <Lema className="ini-lema">
           Comprar sin
           <br />
           tanta <span className="ini-lema-vuelta">vuelta.</span>
@@ -98,7 +118,7 @@ export function PortadaInicio({
             <br />
             más orden.
           </span>
-        </h1>
+        </Lema>
         <p className="ini-descripcion">Tu catálogo para vender por WhatsApp, y una app para todo lo que pasa después.</p>
         <BotonGoogle />
         <div className="ini-botones">
@@ -113,7 +133,7 @@ export function PortadaInicio({
         </div>
         {/* Desde un catálogo no hay panel debajo que se abra solo: tras elegir la demo se va a `/`. */}
         <EnlaceDemo alTerminar={reel ? () => window.location.assign("/") : undefined} />
-      </main>
+      </Texto>
 
       <Vivo productos={[...new Set(fotos.map((f) => f.nombre))]} activo={activo} enPagina={!reel} />
     </div>

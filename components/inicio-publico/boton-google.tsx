@@ -45,7 +45,8 @@ export function EnlaceDemo({ alTerminar }: { alTerminar?: () => void }) {
     <button
       type="button"
       className="ini-demo tocable"
-      onClick={() => void verDemo().then(alTerminar)}
+      // Si algo falla al elegir la demo, el botón sigue usable.
+      onClick={() => void verDemo().then(alTerminar).catch(() => {})}
       data-cta="demo"
     >
       Probar la app con datos de prueba

@@ -35,6 +35,13 @@ async function bajarHasta(page, id) {
   return false;
 }
 
+async function agregarUno(page) {
+  await page.locator(".reel.on .act.like").click();
+  await page.waitForTimeout(600);
+  const agregar = page.locator(".pres-agregar");
+  if (await agregar.isVisible().catch(() => false)) { await agregar.click(); await page.waitForTimeout(900); }
+}
+
 console.log(`\n=== finales del catálogo (${CON_FIN ? "con «Ya estás al día»" : "sin «Ya estás al día»: apagado"}) ===`);
 let { page, errs } = await abrir();
 const productos = await page.locator("#reels .reel:not(.fin):not(.rd)").count();
@@ -58,11 +65,15 @@ if (CON_FIN) {
   ok(await bajarHasta(page, "r-deslizapp"), "último producto → reel de Deslizapp, con las flechas");
 }
 await page.waitForTimeout(600);
+ok((await page.locator("#bagDock").evaluate((e) => getComputedStyle(e).opacity)) === "0", "sin pedido, el botón del pedido no se ve en el reel de Deslizapp");
+ok((await page.locator("#reels main, #reels h1").count()) === 0, "sin <main> ni <h1> anidados dentro del catálogo");
+ok((await page.locator(".hdr").getAttribute("inert")) !== null, "la cabecera apartada no se puede enfocar (inert)");
 const caja = await page.locator("#r-deslizapp").boundingBox();
 ok(Math.abs(caja.y) < 2 && Math.abs(caja.height - 852) < 2, `el reel de Deslizapp ocupa la pantalla completa (${Math.round(caja.height)}px, arriba en ${Math.round(caja.y)})`);
 ok((await page.locator(".hdr").evaluate((e) => getComputedStyle(e).opacity)) === "0", "la cabecera del catálogo se aparta");
 const fotos = await page.locator("#r-deslizapp [data-foto-inicio]").evaluateAll((l) => [...new Set(l.map((e) => e.dataset.fotoInicio))]);
 ok(fotos.length >= 2 && fotos.every((f) => f.startsWith("/demo/deslizapp/")), `las columnas llevan las fotos del catálogo (${fotos.length} distintas)`);
+ok((await page.locator('#r-deslizapp img[src*="/_next/image"]').count()) > 0, "las fotos del reel pasan por el optimizador de imágenes");
 for (const [txt, sel] of [["Iniciar sesión", "[data-cta=iniciar-sesion]"], ["Cómo funciona", "[data-cta=como-funciona]"], ["Quiero vender", "[data-cta=vender]"], ["Probar la app con datos de prueba", "[data-cta=demo]"]])
   ok((await page.locator(`#r-deslizapp ${sel}`).innerText().catch(() => "")).includes(txt), `«${txt}» a la vista`);
 ok((await page.locator("#r-deslizapp .ini-lema").innerText()).includes("tanta vuelta"), "el lema de la página inicial");
@@ -78,6 +89,21 @@ await page.locator("#r-deslizapp [data-cta=demo]").click();
 await page.waitForURL(`${URL}/`, { timeout: 15000 }).catch(() => {});
 ok(new globalThis.URL(page.url()).pathname === "/", "«Probar la app…» lleva a «/» (la demo), no se queda en el catálogo");
 ok(errs.length === 0, "sin errores de página " + errs.join("|"));
+
+// Con pedido, el botón del pedido sí se ve en el reel de Deslizapp, sin tapar sus botones.
+({ page, errs } = await abrir());
+await agregarUno(page);
+await bajarHasta(page, CON_FIN ? "r-fin" : "r-deslizapp");
+if (CON_FIN) await bajarHasta(page, "r-deslizapp");
+await page.waitForTimeout(800);
+const bolsa = await page.locator("#bagDock .act").boundingBox();
+ok((await page.locator("#bagDock").evaluate((e) => getComputedStyle(e).opacity)) === "1" && !!bolsa, "con pedido, el botón del pedido se ve en el reel de Deslizapp");
+const cajas = await page.locator("#r-deslizapp .ini-google, #r-deslizapp .ini-botones, #r-deslizapp .ini-lema, #r-deslizapp .ini-arriba").evaluateAll((l) => l.map((e) => e.getBoundingClientRect().toJSON()));
+const choca = cajas.some((c) => bolsa.x < c.right && bolsa.x + bolsa.width > c.left && bolsa.y < c.bottom && bolsa.y + bolsa.height > c.top);
+ok(!choca, "y no tapa el lema, el logo ni los botones");
+await page.locator("#bagDock .act").click();
+await page.waitForTimeout(800);
+ok(await page.evaluate(() => !!history.state?.catalogoVista), "tocarlo abre el pedido");
 
 ({ page, errs } = await abrir({ reducedMotion: "reduce" }));
 await bajarHasta(page, "r-deslizapp");

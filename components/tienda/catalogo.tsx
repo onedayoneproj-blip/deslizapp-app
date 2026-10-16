@@ -433,7 +433,9 @@ export function Catalogo({
     }
   };
   // Después del último producto: «fin» (si está encendido) y el reel de Deslizapp.
-  const finales = MOSTRAR_FIN_CATALOGO ? 2 : 1;
+  // Un catálogo publicado sin productos conserva su «pronto» (en el reel «fin») aunque el resto del final esté apagado.
+  const verFin = MOSTRAR_FIN_CATALOGO || cv.productos.length === 0;
+  const finales = verFin ? 2 : 1;
   const index =
     actual === "fin"
       ? lista.length
@@ -710,7 +712,7 @@ export function Catalogo({
       ref={root}
       style={estilo}
     >
-      <header className={"hdr" + (actual === "deslizapp" ? " hdr-fuera" : "")}>
+      <header className={"hdr" + (actual === "deslizapp" ? " hdr-fuera" : "")} inert={actual === "deslizapp"}>
         <button
           className="hback"
           id="backBtn"
@@ -913,7 +915,7 @@ export function Catalogo({
         {!lista.length && cv.productos.length > 0 && (
           <p className="empty">Aaah… todavía no hay productos aquí.</p>
         )}
-        {MOSTRAR_FIN_CATALOGO && (
+        {verFin && (
           <ReelFin
             clase={
               actual === "fin"
@@ -970,7 +972,7 @@ export function Catalogo({
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={d<0?"M6 15l6-6 6 6":"M6 9l6 6 6-6"}/></svg>
         </button>)}
       </div>}
-      <BotonPedido cantidad={cart.length} oculto={actual === "fin" || actual === "deslizapp"} abrir={() => abrir("pedido")} />
+      <BotonPedido cantidad={cart.length} oculto={actual === "fin" || (actual === "deslizapp" && cart.length === 0)} enFinal={actual === "deslizapp"} abrir={() => abrir("pedido")} />
       <section
         className="profile"
         id="profile"
