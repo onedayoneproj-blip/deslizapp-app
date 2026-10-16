@@ -9,10 +9,12 @@ export const CREDITOS_POR_RETOQUE = 5;
 export const CREDITOS_RETOQUE_MENSUALES = 100;
 
 /** Límite de productos por plan. `custom` usa el número pactado en `tiendas.limite_productos`. */
-export const LIMITE_PRODUCTOS_POR_PLAN: Record<Exclude<Plan, "custom">, number> = {
+export const LIMITE_PRODUCTOS_POR_PLAN: Record<Exclude<Plan, "custom" | "pro">, number> = {
   p20: 20,
   p60: 60,
   p100: 100,
+  inicial: 30,
+  negocio: 150,
 };
 
 /** Nombre visible del plan. */
@@ -21,6 +23,9 @@ export const NOMBRE_PLAN: Record<Plan, string> = {
   p60: "Plan 60",
   p100: "Plan 100",
   custom: "Plan a medida",
+  inicial: "Inicial",
+  negocio: "Negocio",
+  pro: "Pro",
 };
 
 /** "Ojo con el stock" del Resumen: productos con stock contado menor o igual a esto (0 = agotado). */

@@ -1,0 +1,450 @@
+/* /planes (components/planes, docs/prompts/pagina-planes.md): el estilo de la página principal (fondo Bosque y el feed en columnas
+   de ../inicio-publico/pagina-principal.css), con la página corriendo hacia abajo en vez de llenar una pantalla. */
+/* El documento entero en Bosque desde el primer pintado (barra de estado, rebote del scroll): como la página principal, que lo pone
+   con JS (vivo.tsx). Aquí no hace falta esperar al JS: :has() lo resuelve en CSS. El theme-color va en app/planes/page.tsx. */
+html:has(.pl),
+html:has(.pl) body {
+  background: var(--marca-bosque);
+}
+
+.pl {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+  font-family: var(--font-sans);
+}
+/* El feed ocupa solo lo de arriba y se funde con el fondo */
+.pl-feed {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 560px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pl-feed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(23, 75, 58, 0) 40%, var(--marca-bosque) 92%);
+}
+.pl-feed .ini-feed {
+  position: absolute;
+  inset: 0;
+}
+.pl-feed .ini-velo {
+  height: 40%;
+}
+
+.pl-arriba {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(14px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+}
+.pl-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-stretch: 115%;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--marca-papel);
+}
+.pl-logo img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+.pl-entrar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255, 249, 238, 0.16);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.pl-main {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 230px max(20px, env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+.pl-sobre {
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--marca-rosa-fija);
+}
+.pl-titulo {
+  margin: -6px 0 0;
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-weight: 700;
+  font-size: min(40px, 11vw);
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  -webkit-text-stroke: 1.2px currentColor;
+  paint-order: stroke fill;
+}
+.pl-mandarina {
+  color: var(--marca-mandarina);
+}
+.pl-rosa {
+  color: var(--marca-rosa-fija);
+}
+.pl-sub {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--color-menta);
+}
+
+/* La caja del selector: la nota a mano del -30 % va encima de su esquina de arriba a la derecha ; arriba queda aire para ella y para la flecha. */
+.pl-selector-caja {
+  position: relative;
+  align-self: flex-start;
+  margin-top: 46px;
+}
+/* «primeras tiendas: -30%» a mano, girada -6° (a 340 y 360 queda alineada a la derecha, encima del selector). */
+.pl-nota-mano {
+  position: absolute;
+  right: -6px;
+  top: -40px;
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--marca-rosa-fija);
+  white-space: nowrap;
+  transform: rotate(-6deg);
+  pointer-events: none;
+  opacity: 0;
+}
+.pl-nota-mano[data-vista="si"] {
+  animation: pl-nota-entra 0.25s ease-out both;
+}
+.pl-nota-mano-menos {
+  color: var(--marca-mandarina);
+}
+/* La flecha baja hacia el botón «Anual»; se dibuja con stroke-dashoffset (pathLength 1). */
+.pl-flecha {
+  position: absolute;
+  right: 30px;
+  top: -20px;
+  pointer-events: none;
+}
+.pl-flecha path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.pl-flecha[data-vista="si"] path {
+  animation: pl-flecha-dibuja 0.28s ease-out 0.12s both;
+}
+.pl-flecha[data-vista="si"] .pl-flecha-punta {
+  animation-duration: 0.12s;
+  animation-delay: 0.38s;
+}
+@keyframes pl-nota-entra {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pl-flecha-dibuja {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* Movimiento reducido: la nota y la flecha se ven completas desde el principio, sin animación. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-nota-mano,
+  .pl-nota-mano[data-vista] {
+    animation: none;
+    opacity: 1;
+  }
+  .pl-flecha path,
+  .pl-flecha[data-vista] path,
+  .pl-flecha[data-vista] .pl-flecha-punta {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+.pl-selector {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 249, 238, 0.12);
+}
+.pl-selector button {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--marca-papel);
+  font-weight: 800;
+  font-size: 14.5px;
+}
+.pl-selector button[aria-pressed="true"] {
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
+}
+
+.pl-planes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+.pl-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 26px;
+  background: #e7f2ea;
+  color: var(--marca-bosque);
+}
+.pl-plan[data-destacado="si"] {
+  background: var(--marca-papel);
+  outline: 3px solid var(--marca-mandarina);
+}
+.pl-plan h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+}
+.pl-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pl-insignia {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  border: 2px solid var(--marca-bosque);
+  border-radius: 50%;
+}
+/* Al pie de cada tarjeta, siempre (es un precio anual): una línea fina (bosque al 12 %), 12 px de aire, el sello del corazón y el precio del primer año. */
+.pl-pie-circulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 75, 58, 0.12);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.pl-pie-circulo > span:last-child {
+  min-width: 0;
+}
+/* El sello alineado con la primera línea del texto (22 px de alto contra una línea de ~18 px). */
+.pl-pie-circulo > span:first-child {
+  margin-top: -2px;
+}
+.pl-pie-circulo b {
+  color: #c24e18;
+}
+.pl-etiqueta {
+  position: absolute;
+  top: -12px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--marca-mandarina);
+  color: var(--color-bosque-oscuro);
+  font-weight: 800;
+  font-size: 12.5px;
+}
+.pl-precio {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.pl-precio b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 38px;
+  letter-spacing: -0.5px;
+}
+.pl-precio span {
+  font-weight: 700;
+  font-size: 15px;
+  opacity: 0.7;
+}
+.pl-nota {
+  margin-top: -8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  opacity: 0.7;
+}
+.pl-ideal {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: 0.8;
+}
+.pl-plan ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pl-plan li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.pl-plan li svg {
+  flex: none;
+  margin-top: 1px;
+}
+.pl-probar {
+  height: 52px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+  font-weight: 800;
+  font-size: 16px;
+}
+.pl-plan[data-destacado="si"] .pl-probar {
+  background: var(--marca-mandarina);
+  color: var(--color-bosque-oscuro);
+}
+.pl-probar:disabled {
+  opacity: 0.8;
+}
+.pl-vacio {
+  margin: 10px 0 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
+  font-weight: 700;
+}
+
+.pl-incluye {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+}
+.pl-incluye h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+}
+.pl-incluye ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pl-incluye li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 249, 238, 0.08);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.pl-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.pl-botones > a {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.pl-como {
+  background: var(--marca-mandarina);
+  color: var(--color-bosque-oscuro);
+}
+.pl-vender {
+  border: 2px solid rgba(255, 249, 238, 0.7);
+  color: var(--marca-papel);
+}
+.pl-pie {
+  margin: 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--color-menta);
+}
+
+@media (min-width: 900px) {
+  .pl-main {
+    padding-top: 120px;
+  }
+  .pl-planes {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .pl-plan {
+    flex: 1;
+  }
+  .pl-titulo {
+    font-size: 54px;
+  }
+  .pl-main {
+    max-width: 1000px;
+  }
+  .pl-feed {
+    height: 100%;
+  }
+  .pl-feed::after {
+    background: linear-gradient(180deg, rgba(23, 75, 58, 0.75), rgba(23, 75, 58, 0.92));
+  }
+}

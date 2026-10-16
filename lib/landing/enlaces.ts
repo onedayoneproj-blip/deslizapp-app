@@ -15,3 +15,6 @@ export const ENLACE_CATALOGO_EJEMPLO = "/tienda/tienda-de-ensayo";
 export const RUTA_ENTRAR = "/";
 
 export const URL_SITIO = "https://deslizapp.com";
+
+/** La página pública de planes y precios (docs/prompts/pagina-planes.md). */
+export const RUTA_PLANES = "/planes";

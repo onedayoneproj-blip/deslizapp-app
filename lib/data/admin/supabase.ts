@@ -161,8 +161,11 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
         p_orden: d.orden,
         p_destacado: d.destacado,
       }),
+    // Pro («sin límite») no se puede asignar hasta que existan las suscripciones (docs/14): evita `limite_invalido` y un tope inventado.
     cambiarPlan: (tiendaId, planId, limite) =>
-      rpc("admin_cambiar_plan", {
+      planId === "pro"
+        ? Promise.reject(new ErrorAdmin("plan_no_disponible", "Pro está disponible con suscripciones; usa Plan a medida."))
+        : rpc("admin_cambiar_plan", {
         p_tienda_id: tiendaId,
         p_plan_id: planId,
         p_limite: limite ?? null,
@@ -192,6 +195,10 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
         p_funcion: funcion,
         p_encendida: encendida,
       }),
+    circuloTienda: (tiendaId) => rpc("admin_circulo_tienda", { p_tienda_id: tiendaId }),
+    marcarCirculo: async (tiendaId, marcar, descuentoHasta) => {
+      await rpc("admin_marcar_circulo", { p_tienda_id: tiendaId, p_marcar: marcar, p_descuento_hasta: descuentoHasta ?? null });
+    },
     salud: () => rpc("admin_salud"),
     registro: (filtro = "todo", antesDe) =>
       rpc("admin_registro", { p_filtro: filtro, p_antes_de: antesDe ?? null }),

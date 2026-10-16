@@ -24,6 +24,7 @@ import type {
   TrabajoRetoque,
   EnlaceTiendaNueva,
 } from "../../admin/tipos";
+import type { CirculoTienda } from "../../types";
 
 /** Sin pantallas: contrato para las partes 2–4. Montos enteros RD$, fechas civiles de Santo Domingo. */
 export interface FuenteAdmin {
@@ -128,6 +129,10 @@ export interface FuenteAdmin {
     creadoPor: string | null;
     creadoEn: string;
   }>;
+  /** Círculo Deslizapp (docs/14): el de esta tienda (el de su titular), o null si no es del Círculo. */
+  circuloTienda(tiendaId: string): Promise<CirculoTienda | null>;
+  /** Marca o desmarca a la tienda (a su titular). `descuentoHasta` (AAAA-MM-DD) es dónde acaba el 30 %; null = sin descuento (el aro se queda). */
+  marcarCirculo(tiendaId: string, marcar: boolean, descuentoHasta?: string | null): Promise<void>;
   salud(): Promise<SaludAdmin>;
   registro(
     filtro?: FiltroRegistro,

@@ -87,9 +87,28 @@ test("real: getTiendas pide solo las tiendas de la cuenta (mis_tiendas) y descar
   };
   const fuente = crearFuenteSupabase(cliente, () => {});
   const tiendas = await fuente.getTiendas();
-  assert.deepEqual(llamadas, [["rpc", "mis_tiendas"], ["in", "id", ["t1", "t2"]]]);
+  assert.deepEqual(llamadas, [["rpc", "mis_tiendas"], ["in", "id", ["t1", "t2"]], ["rpc", "circulo_de_mis_tiendas"]]);
   assert.deepEqual(tiendas.map((t) => t.id), ["t1"], "la eliminada no sale");
   // Sin tiendas no consulta nada más.
   const vacio = crearFuenteSupabase({ rpc: () => Promise.resolve({ data: [], error: null }), from: () => assert.fail("no debería consultar") }, () => {});
   assert.deepEqual(await vacio.getTiendas(), []);
+});
+
+test("real: la tienda del Círculo trae su aro (circulo_de_mis_tiendas); si esa lectura falla, sale sin aro", async () => {
+  const fila = (id) => ({ id, slug: id, nombre: id, estado: "activa", plan: "negocio", limite_productos: 150, creditos_retoque: 10, creditos_retoque_mensuales: 100, creado_en: new Date().toISOString(), logo_url: null });
+  const armar = (circulo) => {
+    const cliente = {
+      rpc: (nombre) => Promise.resolve(nombre === "mis_tiendas" ? { data: ["t1", "t2"], error: null } : circulo),
+      from: () => {
+        const q = { select: () => q, in: () => q, order: () => Promise.resolve({ data: [fila("t1"), fila("t2")], error: null }) };
+        return q;
+      },
+    };
+    return crearFuenteSupabase(cliente, () => {});
+  };
+  const con = await armar({ data: [{ tienda_id: "t1", desde: "2026-10-16", descuento_hasta: "2027-10-16" }], error: null }).getTiendas();
+  assert.deepEqual(con[0].circulo, { desde: "2026-10-16", descuentoHasta: "2027-10-16" });
+  assert.equal(con[1].circulo, null);
+  const sin = await armar({ data: null, error: { message: "no existe" } }).getTiendas();
+  assert.ok(sin.every((t) => t.circulo === null));
 });

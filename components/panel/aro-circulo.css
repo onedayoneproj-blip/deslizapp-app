@@ -1,0 +1,127 @@
+/* El aro del Círculo Deslizapp con movimiento (docs/prompts/animacion-aro-circulo.md, referencias/circulo/animacion-c-ondas.dc.html).
+   Solo transform y opacity. Cada aro es su propio círculo, para animarlo solo; las ondas son capas absolutas que crecen por fuera
+   del avatar sin recortarse ni empujar nada (el sitio que lo usa deja aire alrededor). */
+
+.aro-c {
+  position: relative;
+  display: block;
+  flex: none;
+  border-radius: 50%;
+}
+.aro-c-anillo,
+.aro-c-onda {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border-style: solid;
+}
+.aro-c-foto {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+/* Los colores de las ondas; el sitio que lo usa puede cambiar uno con su variable (la onda rosa sobre un fondo rosa: --aro-onda-rosa). */
+.aro-c-onda[data-onda="mandarina"] {
+  border-color: var(--aro-onda-mandarina, #ff834f);
+}
+.aro-c-onda[data-onda="rosa"] {
+  border-color: var(--aro-onda-rosa, #f5c9d6);
+}
+.aro-c-onda[data-onda="bosque"] {
+  border-color: var(--aro-onda-bosque, #174b3a);
+}
+.aro-c-sello {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+@keyframes aro-c-sale {
+  0% {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes aro-c-pop-sello {
+  0% {
+    transform: scale(0) rotate(-35deg);
+  }
+  65% {
+    transform: scale(1.25) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes aro-c-onda {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* Entrada: los aros salen desde el centro uno tras otro (de dentro hacia fuera) y al final salta el sello. */
+.aro-c[data-animacion="entrada"] .aro-c-anillo,
+.aro-c[data-animacion="ondas"] .aro-c-anillo {
+  animation: aro-c-sale 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.aro-c[data-animacion] .aro-c-anillo[data-aro="1"] {
+  animation-delay: 0.1s;
+}
+.aro-c[data-animacion] .aro-c-anillo[data-aro="2"] {
+  animation-delay: 0.3s;
+}
+.aro-c[data-animacion] .aro-c-anillo[data-aro="3"] {
+  animation-delay: 0.5s;
+}
+.aro-c[data-animacion="entrada"] .aro-c-sello,
+.aro-c[data-animacion="ondas"] .aro-c-sello {
+  animation: aro-c-pop-sello 0.5s ease-out 0.9s both;
+}
+
+/* Ondas: después de la entrada, tres ondas en bucle (mandarina, rosa, verde) cada 0,8 s; ciclo de 2,4 s. */
+.aro-c:not([data-animacion="ondas"]) .aro-c-onda {
+  display: none;
+}
+.aro-c[data-animacion="ondas"] .aro-c-onda {
+  animation: aro-c-onda 2.4s cubic-bezier(0.25, 0.6, 0.4, 1) infinite both;
+  animation-delay: calc(1.2s + var(--retraso, 0s));
+}
+
+/* Fuera de pantalla se pausa todo (aro-animado.tsx pone data-en-pantalla). */
+.aro-c[data-en-pantalla="no"] .aro-c-anillo,
+.aro-c[data-en-pantalla="no"] .aro-c-onda,
+.aro-c[data-en-pantalla="no"] .aro-c-sello {
+  animation-play-state: paused;
+}
+
+/* Movimiento reducido: nada se mueve y se ve el aro terminado. */
+@media (prefers-reduced-motion: reduce) {
+  .aro-c[data-animacion] .aro-c-anillo,
+  .aro-c[data-animacion] .aro-c-sello {
+    animation: none;
+  }
+  .aro-c[data-animacion] .aro-c-onda {
+    display: none;
+  }
+}

@@ -4,7 +4,7 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
-import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR } from "@/lib/landing/enlaces";
+import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
 import { DemoPasos } from "./controlador";
@@ -191,6 +191,9 @@ export function Landing() {
             <a href={ENLACE_CATALOGO_EJEMPLO} data-cta="catalogo" className="lt-cierre-catalogo tocable">
               Ver un catálogo de ejemplo
             </a>
+            <Link href={RUTA_PLANES} data-cta="planes" className="lt-cierre-catalogo tocable">
+              Ver los planes
+            </Link>
             <p className="lt-cierre-entrar">
               ¿Ya tienes tienda?
               <Link href={RUTA_ENTRAR} data-cta="entrar" className="tocable">

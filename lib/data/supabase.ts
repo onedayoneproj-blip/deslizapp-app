@@ -13,7 +13,7 @@ import { conPago, cuentaDeCliente, cuentasPorCobrar } from "../credito";
 import { comprimirParaSubir } from "../imagen";
 import { validarPromo } from "../promos";
 import { normalizarTelefonoDO } from "../telefono";
-import type { Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo } from "../types";
+import type { CirculoTienda, Cliente, ClienteConResumen, EventoAaah, AjusteInventario, Medio, MotivoAjusteInventario, PedidoConItems, Promo, Tienda } from "../types";
 import { BUCKET, BUCKET_MARCA, FIRMA_SEGUNDOS, rutaReferencia, esBlobUrl, esDataUrl, MAX_BYTES_VIDEO, problemaDeArchivo, rutaFoto, rutaLogo, rutasParaBorrar, rutaVideo, tipoDeDataUrl, TIPOS_VIDEO } from "./almacen";
 import { limpiarAvatar, limpiarDatosCliente, limpiarNota } from "./clientes";
 import type { MarcaRetoque } from "../marca-retoque";
@@ -63,7 +63,7 @@ import {
   aProducto,
   aEnvioJugada,
   aPromo,
-  aTienda,
+  aTienda as aTiendaBase,
   aUsuario,
   filaCambiosProducto,
   filaClienteNuevo,
@@ -290,6 +290,21 @@ function columnasAvatar(datos: { avatarEmoji?: string | null; avatarColor?: stri
 export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => void): FuenteDatos & { olvidar(): void } {
   const enVuelo = new Map<string, Promise<unknown>>();
 
+  // Círculo Deslizapp (docs/14): lo da circulo_de_mis_tiendas() (el del titular de cada tienda mía). Si la lectura falla, las tiendas
+  // salen sin aro: nunca bloquea el panel.
+  const circulos = new Map<string, CirculoTienda>();
+  const cargarCirculos = async () => {
+    try {
+      const { data, error } = await supabase.rpc("circulo_de_mis_tiendas");
+      if (error || !Array.isArray(data)) return;
+      circulos.clear();
+      for (const r of data as { tienda_id: string; desde: string; descuento_hasta: string | null }[]) if (typeof r?.tienda_id === "string") circulos.set(r.tienda_id, { desde: r.desde, descuentoHasta: r.descuento_hasta });
+    } catch {
+      /* sin aro */
+    }
+  };
+  const aTienda = (f: FilaTienda): Tienda => ({ ...aTiendaBase(f), circulo: circulos.get(f.id) ?? null });
+
   /** Una lectura: si ya hay una igual en camino (o ya resuelta desde el último cambio), se reutiliza. */
   function leer<T>(clave: string, consulta: () => Promise<T>): Promise<T> {
     const previa = enVuelo.get(clave) as Promise<T> | undefined;
@@ -363,7 +378,7 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     });
 
   const tiendaCruda = async (tiendaId: string) => {
-    const f = await dato<FilaTienda>(supabase.from("tiendas").select("*").eq("id", tiendaId).maybeSingle());
+    const [f] = await Promise.all([dato<FilaTienda>(supabase.from("tiendas").select("*").eq("id", tiendaId).maybeSingle()), cargarCirculos()]);
     return f ? aTienda(f) : null;
   };
 
@@ -459,7 +474,8 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
       leer("tiendas", async () => {
         const ids = ((await dato<string[]>(supabase.rpc("mis_tiendas"))) ?? []).filter((x) => typeof x === "string");
         if (ids.length === 0) return [];
-        const filas = (await dato<FilaTienda[]>(supabase.from("tiendas").select("*").in("id", ids).order("nombre"))) ?? [];
+        const [filasLeidas] = await Promise.all([dato<FilaTienda[]>(supabase.from("tiendas").select("*").in("id", ids).order("nombre")), cargarCirculos()]);
+        const filas = filasLeidas ?? [];
         return filas.filter((f) => f.estado !== "eliminada").map((f) => aTienda(f));
       }),
     getTienda: (tiendaId) => leer(`tienda:${tiendaId}`, () => tiendaCruda(tiendaId)),

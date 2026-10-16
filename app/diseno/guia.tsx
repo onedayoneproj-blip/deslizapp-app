@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { LogoTienda } from "@/components/panel/logo-tienda";
 import tokens from "@/referencias/sistema-de-diseno/tokens.json";
 import { CARTAS_JUGADAS, lineaJugada } from "@/lib/proxima-jugada";
 import {
+  IconoBarras,
   IconoBuscar,
   IconoCamion,
   IconoCheck,
@@ -649,6 +651,12 @@ function EtiquetasYAvatares() {
         <Avatar nombre="Marleny Peña" tamano="grande" solo repite />
         <Avatar nombre="Esencias Michel" tipo="tienda" tamano="grande" solo />
       </Fila>
+      {/* El aro del Círculo Deslizapp (referencias/circulo, opción 6): avatar de la tienda en el panel y en la tarjeta del menú. */}
+      <Fila>
+        <LogoTienda tienda={{ nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: "2027-10-16" } }} tamano={42} />
+        <LogoTienda tienda={{ nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: null } }} tamano={44} />
+        <LogoTienda tienda={{ nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: "2027-10-16" } }} tamano={80} />
+      </Fila>
     </Seccion>
   );
 }
@@ -804,6 +812,7 @@ function Iconos() {
     ["Despachar", <IconoCamion key="d" tamano={20} strokeWidth={2.2} />],
     ["Abono", <IconoMoneda key="m" tamano={20} strokeWidth={2.2} />],
     ["Abrir", <IconoChevronDerecha key="a" tamano={20} strokeWidth={2.2} />],
+    ["Crecer", <IconoBarras key="g" tamano={20} strokeWidth={2.2} />],
   ];
   return (
     <Seccion numero="15" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">

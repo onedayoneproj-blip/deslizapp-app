@@ -1046,6 +1046,21 @@ export function crearFuenteAdminDemo(
         anotar(id, "funcion_tienda", { funcion, encendida });
         return f;
       }),
+    circuloTienda: (id) =>
+      leer(() => {
+        tienda(id);
+        return e.circulos?.[id] ?? null;
+      }),
+    marcarCirculo: (id, marcar, descuentoHasta) =>
+      mutar(() => {
+        tienda(id);
+        if (descuentoHasta != null && !/^\d{4}-\d{2}-\d{2}$/.test(descuentoHasta)) error("fecha_invalida");
+        e.circulos ??= {};
+        if (marcar) e.circulos[id] = { desde: e.circulos[id]?.desde ?? hoy(), descuentoHasta: descuentoHasta ?? null };
+        else delete e.circulos[id];
+        anotar(id, marcar ? "circulo_marcar" : "circulo_quitar", { descuento_hasta: descuentoHasta ?? null });
+        return undefined;
+      }),
     salud: () =>
       leer(() => ({
         almacenamiento: {

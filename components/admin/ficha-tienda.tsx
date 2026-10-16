@@ -8,6 +8,7 @@ import { Hoja } from "@/components/hoja";
 import { useAdmin, useAdminDemo } from "@/lib/data/admin/provider";
 import type { FichaTiendaAdmin } from "@/lib/admin/tipos";
 import { EstadoAdmin } from "./estado";
+import { TarjetaCirculoAdmin } from "./tarjeta-circulo-admin";
 import { IconoChevronDerecha, IconoEnlaceExterno, IconoNumeral, IconoPersona, IconoSobre, IconoWhatsApp } from "@/components/iconos";
 import { enlaceWhatsAppAdmin, mensajeGeneralTienda } from "@/lib/admin/mensajes";
 import { navegarVerComo } from "@/lib/admin/navegacion-ver-como";
@@ -102,6 +103,8 @@ export function FichaTienda({ tiendaId }: { tiendaId: string }) {
         <p className="mt-1 text-secundario text-texto-secundario">Último pago: {ficha.cuenta.ultimoPago ? fecha(ficha.cuenta.ultimoPago.creadoEn) : "sin registrar"}{ficha.cuenta.pagadoHasta ? ` · pagado hasta ${fecha(ficha.cuenta.pagadoHasta)}` : ""}.</p>
         <div className="mt-3 flex flex-wrap gap-2"><Boton deshabilitado>Registrar pago · Muy pronto</Boton><Boton jerarquia="secundario" deshabilitado>Cambiar plan · Muy pronto</Boton></div>
       </Tarjeta>
+
+      <TarjetaCirculoAdmin tiendaId={tiendaId} precioMensual={ficha.cuenta.precioMensual} pruebaHasta={ficha.cuenta.pruebaHasta} />
 
       <Tarjeta className="mt-3">
         <div className="flex items-center justify-between"><h2 className="font-display text-titulo-hoja font-bold">Cómo le va</h2><span className="text-secundario text-texto-secundario">últimos 30 días</span></div>
