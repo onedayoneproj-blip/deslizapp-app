@@ -53,9 +53,9 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
 
   return (
     <>
-      {/* La nota a mano del -30 % va arriba a la derecha del selector, solo en «Anual», con una flecha hacia el botón «Anual». */}
+      {/* La nota a mano del -30 % va arriba a la derecha del selector, siempre, con una flecha hacia el botón «Anual»; se anima una vez al entrar en pantalla. */}
       <div className="pl-selector-caja">
-        {anual && <NotaDescuento />}
+        <NotaDescuento />
       <div className="pl-selector" role="group" aria-label="Forma de pago">
         <button type="button" aria-pressed={!anual} onClick={() => setAnual(false)} className="tocable" data-forma="mensual">
           Mensual
@@ -107,8 +107,8 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
               <button type="button" className="pl-probar tocable" onClick={() => void probar()} disabled={entrando} data-cta="probar">
                 {entrando ? "Abriendo Google…" : `Probar ${DIAS_DE_PRUEBA} días gratis`}
               </button>
-              {/* Al pie, solo en «Anual»: el sello del corazón del Círculo y el precio del primer año de las primeras tiendas, de este plan. */}
-              {anual && p.precioMensual != null && (
+              {/* Al pie, siempre (es un precio anual y vale con cualquier opción del selector): el sello del corazón del Círculo y el precio del primer año de las primeras tiendas, de este plan. */}
+              {p.precioMensual != null && (
                 <div className="pl-pie-circulo" data-pie-circulo="">
                   <SelloCorazon tamano={22} borde={2} filo={1.5} />
                   <span>

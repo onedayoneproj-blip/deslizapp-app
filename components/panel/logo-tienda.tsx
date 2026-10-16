@@ -40,7 +40,8 @@ export function SelloCorazon({ tamano, borde, filo = 0, className, style }: { ta
   return (
     <span
       className={className}
-      style={{ width: tamano, height: tamano, background: BOSQUE, border: `${borde}px solid ${PAPEL}`, boxSizing: "border-box", borderRadius: "50%", display: "grid", placeItems: "center", boxShadow: filo ? `0 0 0 ${filo}px ${MANDARINA}` : undefined, ...style }}
+      // flex: none + minWidth/minHeight + aspect-ratio: dentro de una fila flex con texto de varias líneas no se encoge a óvalo.
+      style={{ width: tamano, height: tamano, minWidth: tamano, minHeight: tamano, flex: "none", aspectRatio: "1 / 1", background: BOSQUE, border: `${borde}px solid ${PAPEL}`, boxSizing: "border-box", borderRadius: "50%", display: "grid", placeItems: "center", boxShadow: filo ? `0 0 0 ${filo}px ${MANDARINA}` : undefined, ...style }}
       aria-hidden="true"
     >
       <svg width={tamano * 0.6} height={tamano * 0.6} viewBox="0 0 24 24" fill={ROSA} stroke="none">
