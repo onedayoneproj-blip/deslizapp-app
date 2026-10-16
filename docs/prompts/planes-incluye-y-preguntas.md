@@ -40,6 +40,7 @@ Encargo de Planning, 16 oct 2026. Lewis aprobó las dos piezas y sus textos el 1
 - **Al final:** «¿Otra pregunta? Escríbenos por Instagram.» con el botón al `ENLACE_QUIERO_VENDER`. Es Instagram y no WhatsApp: el número de Lewis es personal.
 - **Textos:** los del tablero E2. Lewis confirmó las dos respuestas pendientes el 16 oct 2026, con este cambio:
   - **«¿Cobran comisión por cada venta?»:** «No. Hoy el pedido te llega por WhatsApp y el pago lo arreglas tú con tu cliente, así que no cobramos nada por venta.» Va así porque, si algún día hay pasarela de pagos, podría haber comisión: no se promete «nunca».
+  - **«¿Qué cuenta como producto publicado?»:** la respuesta tiene que decir solo lo que cuenta hoy el código (lo mismo que el texto de `/planes` tras #139). Mientras el cupo cuente los agotados visibles, no digas que los agotados no ocupan cupo. La regla de `docs/14` llega con suscripciones.
   - **«¿Qué pasa cuando terminan los 30 días?»:** queda como en el tablero, «No se borra nada» incluido.
   - **«¿Qué es el Círculo Deslizapp?»:** «El grupo de las primeras tiendas 💚 Entran por invitación y, pagando el año, tienen 30 % menos el primer año, funciones antes que nadie, regalos y el aro en su tienda para siempre.»
   - Las preguntas viven en un archivo de datos (`lib/planes/preguntas.ts`), no repartidas por el componente.
