@@ -11,3 +11,7 @@ Son archivos del formato de Claude Design (`<x-dc>`). Las imágenes `/_blob/…`
 Descartadas en la misma ronda: B (chat de la tienda), C (destacadas con avance automático), 1 (publicación patrocinada) y 2 (sticker «Agrega la tuya»). También las versiones de A y 3 como pantallas aparte, que Lewis vio como un salto brusco desde los reels.
 
 Encargo: [docs/prompts/finales-catalogo-reel.md](../../docs/prompts/finales-catalogo-reel.md).
+
+## Cambio del 16 oct 2026 (Lewis, después de probar el PR #136)
+- **«Ya estás al día» queda apagado** detrás de un interruptor. Al llegar a ese reel la gente volvía arriba y nunca veía el de Deslizapp, que es el que convierte visitantes en tiendas. Se activará cuando haya base de clientes. El diseño aprobado se conserva aquí.
+- **El reel de Deslizapp pasa a ser la página inicial de deslizapp.com** (`components/inicio-publico/pagina-principal.tsx`), con las fotos del catálogo en el que está la persona. Sustituye a `hecho-con-deslizapp.dc.html`, que queda como antecedente.
