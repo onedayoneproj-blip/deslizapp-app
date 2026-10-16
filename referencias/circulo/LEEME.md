@@ -28,3 +28,5 @@ Del lienzo [Círculo Deslizapp · animaciones del aro](https://claude.ai/artifac
 7. El botón «Quiero ser parte» y debajo «Por invitación, mientras haya lugar.».
 
 La nota de abajo cambió respecto a la idea de Lewis («Al crear tu tienda, entras al Círculo.») porque `docs/14` dice que se entra por invitación de Lewis y con cupo.
+
+**Cambio del 16 oct 2026 (Lewis):** esta tarjeta sale de `/planes` y pasa a la pantalla de bienvenida dentro de la app (`docs/prompts/circulo-bienvenida.md`). En `/planes` queda solo una cinta con los colores del Círculo en cada plan cuando se elige «Anual».

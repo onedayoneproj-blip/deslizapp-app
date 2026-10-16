@@ -21,7 +21,7 @@ Encargo de Planning, 16 oct 2026. Lewis aprobó las dos piezas y sus textos el 1
 - Si un componente real necesita datos de la base o del contexto del panel, pásale datos de ejemplo por propiedades. No hagas una copia dibujada. Si hace falta tocar un componente del panel, que sea con propiedades opcionales y sin cambiar cómo se ve allí.
 
 ## 2. Preguntas frecuentes en chat (opción E2)
-- **Dónde:** después de la tarjeta del Círculo y antes de los botones de abajo. Lleva «¿dudas?» a mano y el título «Pregúntanos».
+- **Dónde:** después de «Todos los planes traen» y antes de los botones de abajo. La tarjeta del Círculo ya no está en `/planes`. Lleva «¿dudas?» a mano y el título «Pregúntanos».
 - **Un chat:** arriba, una barra con el icono de la app, «Deslizapp» y «Preguntas frecuentes». Empieza con un mensaje recibido: «¡Hola! 👋 ¿Qué quieres saber? Toca una pregunta.».
 - **Las preguntas, como respuestas rápidas abajo:**
   - Al tocar una, sale como mensaje enviado.
@@ -41,6 +41,7 @@ Encargo de Planning, 16 oct 2026. Lewis aprobó las dos piezas y sus textos el 1
 - **Textos:** los del tablero E2. Lewis confirmó las dos respuestas pendientes el 16 oct 2026, con este cambio:
   - **«¿Cobran comisión por cada venta?»:** «No. Hoy el pedido te llega por WhatsApp y el pago lo arreglas tú con tu cliente, así que no cobramos nada por venta.» Va así porque, si algún día hay pasarela de pagos, podría haber comisión: no se promete «nunca».
   - **«¿Qué pasa cuando terminan los 30 días?»:** queda como en el tablero, «No se borra nada» incluido.
+  - **«¿Qué es el Círculo Deslizapp?»:** «El grupo de las primeras tiendas 💚 Entran por invitación y, pagando el año, tienen 30 % menos el primer año, funciones antes que nadie, regalos y el aro en su tienda para siempre.»
   - Las preguntas viven en un archivo de datos (`lib/planes/preguntas.ts`), no repartidas por el componente.
 
 ## Pruebas

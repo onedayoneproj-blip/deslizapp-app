@@ -1,5 +1,7 @@
 # Animación del aro del Círculo Deslizapp
 
+> **Sustituido el 16 oct 2026 por `docs/prompts/circulo-bienvenida.md`.** Lewis sacó la tarjeta del Círculo de `/planes` y la llevó a una bienvenida dentro de la app. No lances este encargo; se guarda como antecedente.
+
 Encargo de Planning, 16 oct 2026. Aprobado por Lewis el 16 oct 2026. **Va después de que se fusione el PR #139** (página de planes y aro del Círculo), porque anima lo que ese PR crea. Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa).
 
 **Diseño:** lienzo [Círculo Deslizapp · animaciones del aro](https://claude.ai/artifact/Nx3kYyCfoWaAoC9N8GPhs5). Copias de las dos elegidas y sus tiempos en `referencias/circulo/` (`LEEME.md`, `animacion-a-salen.dc.html` y `animacion-c-ondas.dc.html`). **No copies su HTML.**
