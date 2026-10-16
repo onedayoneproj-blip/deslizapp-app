@@ -468,3 +468,22 @@
     line-height: 22px;
   }
 }
+
+/* El enlace pequeño «Planes» de la cabecera (a la derecha del logo) */
+.ini-arriba {
+  right: max(20px, env(safe-area-inset-right));
+  justify-content: space-between;
+}
+.ini-planes {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255, 249, 238, 0.16);
+  font-family: var(--font-sans);
+  font-stretch: 100%;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--marca-papel);
+}
