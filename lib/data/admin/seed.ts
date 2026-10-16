@@ -37,6 +37,8 @@ export type EstadoAdminDemo = {
     fin: string | null;
   }[];
   pospuestos: { adminId: string; clave: string; hasta: string }[];
+  /** Círculo Deslizapp por tienda (docs/14). Opcional: el estado guardado antes de existir no lo trae. */
+  circulos?: Record<string, { desde: string; descuentoHasta: string | null }>;
   funciones: {
     tiendaId: string;
     funcion: string;

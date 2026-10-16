@@ -192,6 +192,11 @@ export function crearFuenteAdminSupabase(cliente: SupabaseClient): FuenteAdmin {
         p_funcion: funcion,
         p_encendida: encendida,
       }),
+    circuloTienda: (tiendaId) => rpc("admin_circulo_tienda", { p_tienda_id: tiendaId }),
+    marcarCirculo: async (tiendaId, marcar, descuentoHasta) => {
+      await rpc("admin_marcar_circulo", { p_tienda_id: tiendaId, p_marcar: marcar, p_descuento_hasta: descuentoHasta ?? null });
+      return rpc("admin_circulo_tienda", { p_tienda_id: tiendaId });
+    },
     salud: () => rpc("admin_salud"),
     registro: (filtro = "todo", antesDe) =>
       rpc("admin_registro", { p_filtro: filtro, p_antes_de: antesDe ?? null }),
