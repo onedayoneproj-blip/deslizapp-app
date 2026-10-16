@@ -7,7 +7,7 @@ Encargo de Planning, 16 oct 2026. Aprobado por Lewis el 16 oct 2026. **Va despu�
 ## Qué animación va en cada sitio
 | Sitio | Animación | Cuándo |
 |---|---|---|
-| Tarjeta de fundadoras en `/planes` | **C · ondas** | En bucle mientras la tarjeta está a la vista. |
+| Tarjeta de fundadoras en `/planes` | **C · ondas** | En bucle mientras la tarjeta está a la vista. **Ya va en el PR #139**, junto con la propiedad `animacion` de `LogoTienda`; aquí solo se reutiliza. |
 | Tarjeta verde del Círculo en el menú de la tienda | **C · ondas** | En bucle mientras el menú está abierto. |
 | Avatar del encabezado del panel (`LogoTienda`) | **A · salen desde el centro** | Una sola vez: la primera vez que esa tienda abre el panel en ese dispositivo después de entrar al Círculo. Guárdalo por tienda en `localStorage` (con try/catch); si falla, el aro se ve quieto. Después el aro queda quieto. |
 
