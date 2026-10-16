@@ -116,10 +116,54 @@ html:has(.pl) body {
   color: var(--color-menta);
 }
 
-.pl-selector {
+/* La caja del selector: el sello se monta sobre su esquina de arriba a la derecha (a medias sobre el borde redondeado, nunca sobre «Anual»
+   ni «2 meses gratis»), así que arriba queda aire para él (--s = su tamaño; en pantallas anchas el centro va 36 px a la derecha y 14 px arriba de la esquina). */
+.pl-selector-caja {
+  --s: 100px;
+  position: relative;
   align-self: flex-start;
+  margin-top: calc(var(--s) * 0.63 + 6px);
+}
+.pl-sello {
+  position: absolute;
+  z-index: 2;
+  width: var(--s);
+  height: var(--s);
+  top: calc(-14px - var(--s) / 2);
+  left: calc(100% + 36px - var(--s) / 2);
+  pointer-events: none;
+  animation: pl-sello-pop 0.5s cubic-bezier(0.3, 1.4, 0.6, 1) both;
+}
+@keyframes pl-sello-pop {
+  0% {
+    transform: scale(0) rotate(-40deg);
+  }
+  65% {
+    transform: scale(1.15) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+/* Teléfonos angostos: el selector casi llena el ancho, así que el sello no cabe a su derecha. Se sube y se mete 14 px hacia dentro:
+   su centro queda justo encima de la esquina, y solo el borde de abajo de la estrella pisa el selector (por fuera de las palabras). */
+@media (max-width: 380px) {
+  .pl-selector-caja {
+    --s: 88px;
+    margin-top: calc(var(--s) * 0.5 + 34px);
+  }
+  .pl-sello {
+    top: calc(-29px - var(--s) / 2);
+    left: calc(100% - 14px - var(--s) / 2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-sello {
+    animation: none;
+  }
+}
+.pl-selector {
   display: flex;
-  margin-top: 10px;
   padding: 4px;
   border-radius: 999px;
   background: rgba(255, 249, 238, 0.12);

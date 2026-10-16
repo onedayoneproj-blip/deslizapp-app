@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
-import { montoAnualCirculo } from "@/lib/circulo";
+import { DESCUENTO_CIRCULO, montoAnualCirculo } from "@/lib/circulo";
 import { limitesDe, pesos, precioDe, type PlanPublico } from "@/lib/planes/planes";
+import { SelloCirculo } from "./sello-circulo";
 import { IconoBarras, IconoCasa, IconoCatalogo, IconoChispa, IconoClientes, IconoFlechaArriba } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
@@ -51,6 +52,9 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
 
   return (
     <>
+      {/* El sello va montado en la esquina de arriba a la derecha del selector, solo en «Anual»; arriba queda aire para él. */}
+      <div className="pl-selector-caja">
+        {anual && <SelloCirculo />}
       <div className="pl-selector" role="group" aria-label="Forma de pago">
         <button type="button" aria-pressed={!anual} onClick={() => setAnual(false)} className="tocable" data-forma="mensual">
           Mensual
@@ -58,6 +62,7 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
         <button type="button" aria-pressed={anual} onClick={() => setAnual(true)} className="tocable" data-forma="anual">
           Anual · 2 meses gratis
         </button>
+      </div>
       </div>
       {aviso && (
         <p role="alert" className="ini-aviso">
@@ -89,7 +94,7 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
               {/* La cinta de las primeras tiendas (el Círculo): solo en «Anual», con el monto de ese plan sacado de su precio mensual. */}
               {anual && p.precioMensual != null && (
                 <div className="pl-cinta" data-cinta="circulo">
-                  <span className="pl-cinta-titulo">Primeras tiendas · 30 % menos</span>
+                  <span className="pl-cinta-titulo">Primeras tiendas · {DESCUENTO_CIRCULO} % menos</span>
                   <span className="pl-cinta-monto">{pesos(montoAnualCirculo(p.precioMensual))} el primer año</span>
                   <span className="pl-cinta-nota">por invitación</span>
                 </div>
