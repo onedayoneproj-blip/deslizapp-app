@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
-const { descuentoVigente, textoDesde, textoDescuento, montoAnualCirculo, montoSugeridoCobro } = await import("../lib/circulo.ts");
+const { descuentoVigente, textoDesde, textoDescuento, montoAnualCirculo, montoSugeridoCobro, hoyCirculo } = await import("../lib/circulo.ts");
 const c = { desde: "2026-10-16", descuentoHasta: "2027-10-16" };
 
 test("el descuento está vigente hasta su fecha (inclusive) y no más", () => {
