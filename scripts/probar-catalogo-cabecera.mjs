@@ -83,11 +83,11 @@ try{
       // «Novedades» vuelve a «Todo».
       await page.locator('.htab[data-tab="new"]').click();await espera(page,400);
       ok((await tab.innerText()).trim()==='Catálogos'&&await page.locator('.htab[data-tab="new"]').getAttribute('aria-pressed')==='true',`${width}: «Novedades» vuelve a todo`);
-      // Desde el final del feed, elegir un catálogo lleva a su primer producto.
-      await page.locator('#reels .reel.fin').evaluate(e=>e.scrollIntoView({block:'start'}));await page.locator('#reels .reel.fin.on').waitFor();await espera(page,300);
+      // Desde el final del feed (el reel de Deslizapp; «Ya estás al día» está apagado), elegir un catálogo lleva a su primer producto.
+      await page.locator('#r-deslizapp').evaluate(e=>e.scrollIntoView({block:'start'}));await page.locator('#r-deslizapp.on').waitFor();await espera(page,300);
       await tab.click();await hoja.waitFor();await espera(page,300);
       await hoja.locator('.coitem').nth(1).click();await hoja.waitFor({state:'detached'});await espera(page,700);
-      ok(await page.locator('#reels .reel.fin.on').count()===0&&await page.locator('#reels .reel.on[data-id]').count()===1,`${width}: desde el final, elegir un catálogo lleva a su primer producto`);
+      ok(await page.locator('#r-deslizapp.on').count()===0&&await page.locator('#reels .reel.on[data-id]').count()===1,`${width}: desde el final, elegir un catálogo lleva a su primer producto`);
       ok(errors.length===0,`${width}: sin errores (catálogos)`);await ctx.close();
     }
     // Colecciones solo en otro catálogo: estado vacío en la hoja y abanico sin hueco.

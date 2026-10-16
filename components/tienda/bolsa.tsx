@@ -8,9 +8,10 @@ import { dinero } from "@/lib/tienda/carrito";
 import { Icono } from "./iconos";
 
 /** El botón «Pedido» del catálogo, con cuántos productos lleva. */
-export function BotonPedido({ cantidad, oculto, abrir }: { cantidad: number; oculto: boolean; abrir: () => void }) {
+/** `enFinal`: sobre el reel de Deslizapp (pantalla completa) va arriba a la derecha, para no tapar sus botones. */
+export function BotonPedido({ cantidad, oculto, enFinal = false, abrir }: { cantidad: number; oculto: boolean; enFinal?: boolean; abrir: () => void }) {
   return (
-    <div className={"acts" + (oculto ? " off" : "")} id="bagDock">
+    <div className={"acts" + (oculto ? " off" : "") + (enFinal ? " en-final" : "")} id="bagDock">
       <button className="act send" data-order aria-label="Ver mi pedido" onClick={abrir}>
         <Icono nombre="bag" />
         <span>Pedido</span>

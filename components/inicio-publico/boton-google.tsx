@@ -40,9 +40,15 @@ export function BotonGoogle() {
 }
 
 /** «Ver demo» de siempre, ahora como enlace pequeño: la app con datos de prueba (lib/data/sesion.ts). */
-export function EnlaceDemo() {
+export function EnlaceDemo({ alTerminar }: { alTerminar?: () => void }) {
   return (
-    <button type="button" className="ini-demo tocable" onClick={verDemo} data-cta="demo">
+    <button
+      type="button"
+      className="ini-demo tocable"
+      // Si algo falla al elegir la demo, el botón sigue usable.
+      onClick={() => void verDemo().then(alTerminar).catch(() => {})}
+      data-cta="demo"
+    >
       Probar la app con datos de prueba
     </button>
   );

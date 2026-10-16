@@ -1578,78 +1578,6 @@ html.catalogo-html,
 .catalogo-publico.view-reels .hbag {
   display: none;
 }
-/* Reel de cierre: "ya viste todo" */
-:where(.catalogo-publico) .reel.fin .media {
-  cursor: default;
-  background: radial-gradient(
-    120% 90% at 20% 0%,
-    #fff 0%,
-    var(--accent-soft) 55%,
-    #ebc6d3 100%
-  );
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-:where(.catalogo-publico) .reel.fin:not(.on) .media {
-  opacity: 0.6;
-}
-:where(.catalogo-publico) .finbox {
-  width: 100%;
-  max-width: 340px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  color: var(--ink);
-}
-:where(.catalogo-publico) .finbox .bigav {
-  width: 74px;
-  height: 74px;
-}
-:where(.catalogo-publico) .finbox h2 {
-  margin: 4px 0 0;
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: clamp(28px, 8vw, 36px);
-  line-height: 1.02;
-}
-:where(.catalogo-publico) .finbox p {
-  margin: 0;
-  font-size: 14.5px;
-  color: var(--ink2);
-}
-:where(.catalogo-publico) .finimgs {
-  display: flex;
-  margin: 4px 0 6px;
-  filter: drop-shadow(0 4px 6px rgba(42, 26, 34, 0.28));
-}
-:where(.catalogo-publico) .finimgs img {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  object-fit: cover;
-}
-:where(.catalogo-publico) .finimgs img + img {
-  margin-left: -14px;
-}
-/* La foto de atrás deja un recorte transparente (3 px) donde la tapa la siguiente; sin borde blanco. */
-:where(.catalogo-publico) .finimgs img:not(:last-child) {
-  -webkit-mask-image: linear-gradient(#000, #000),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Crect x='35' y='-3' width='58' height='58' rx='17'/%3E%3C/svg%3E");
-  mask-image: linear-gradient(#000, #000),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52' viewBox='0 0 52 52'%3E%3Crect x='35' y='-3' width='58' height='58' rx='17'/%3E%3C/svg%3E");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-:where(.catalogo-publico) .finbox .btn {
-  width: 100%;
-}
 @media (min-width: 900px) {
   :where(.catalogo-publico) .acts {
     right: -80px;
@@ -2560,186 +2488,6 @@ html.catalogo-html,
 :where(.catalogo-publico) .story :focus-visible {
   outline-color: var(--dz-cream);
 }
-
-/* ---------- Reel final de Deslizapp (splash animado) ---------- */
-:where(.catalogo-publico) .ir .irm {
-  background: radial-gradient(
-    120% 90% at 18% 8%,
-    var(--dz-coral-l) 0%,
-    var(--dz-coral) 48%,
-    var(--dz-coral-d) 100%
-  );
-  cursor: default;
-  font-family: var(--dz-font);
-}
-:where(.catalogo-publico) .ir .irm::after {
-  display: none;
-}
-:where(.catalogo-publico) .reel.ir:not(.on) .irm {
-  opacity: 0.55;
-}
-:where(.catalogo-publico) .ir .shade {
-  background: linear-gradient(
-    to bottom,
-    rgba(16, 54, 42, 0.2) 0%,
-    rgba(16, 54, 42, 0) 20%,
-    rgba(16, 54, 42, 0) 48%,
-    rgba(16, 54, 42, 0.6) 100%
-  );
-}
-:where(.catalogo-publico) .irbg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-:where(.catalogo-publico) .irbg i {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-}
-:where(.catalogo-publico) .irbg i:nth-child(1) {
-  width: 55%;
-  height: 45%;
-  left: -10%;
-  top: 6%;
-  background: #ffb39e;
-  opacity: 0.55;
-}
-:where(.catalogo-publico) .irbg i:nth-child(2) {
-  width: 50%;
-  height: 40%;
-  right: -12%;
-  top: 32%;
-  background: var(--dz-cream);
-  opacity: 0.26;
-}
-:where(.catalogo-publico) .irbg i:nth-child(3) {
-  width: 62%;
-  height: 45%;
-  left: 18%;
-  bottom: -18%;
-  background: #c73a25;
-  opacity: 0.5;
-}
-:where(.catalogo-publico) .irlogo {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 16%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  color: var(--dz-cream);
-  text-align: center;
-  pointer-events: none;
-}
-:where(.catalogo-publico) .irlogo .dzword {
-  width: min(72%, 290px);
-  height: auto;
-  filter: drop-shadow(0 12px 22px rgba(16, 54, 42, 0.25));
-}
-:where(.catalogo-publico) .irapp {
-  display: block;
-  width: 78px;
-  height: 78px;
-  margin-top: -4px;
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.16));
-}
-:where(.catalogo-publico) .irapp .dziso {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-:where(.catalogo-publico) .irrot {
-  position: relative;
-  height: 24px;
-  width: 100%;
-  font-size: 16.5px;
-  font-weight: 600;
-  line-height: 24px;
-  color: var(--dz-cream);
-}
-:where(.catalogo-publico) .irrot span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  opacity: 0;
-}
-:where(.catalogo-publico) .irrot span:first-child {
-  opacity: 1;
-}
-:where(.catalogo-publico) .irfloat {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  color: var(--dz-cream);
-}
-:where(.catalogo-publico) .irfloat .f {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  opacity: 0;
-}
-:where(.catalogo-publico) .irfloat svg {
-  width: 100%;
-  height: 100%;
-}
-:where(.catalogo-publico) .irfloat .h {
-  width: 30px;
-  height: 30px;
-  right: 9%;
-  top: 56%;
-  color: var(--dz-cream);
-}
-:where(.catalogo-publico) .irfloat .h2 {
-  right: 18%;
-  width: 22px;
-  height: 22px;
-}
-:where(.catalogo-publico) .irfloat .h3 {
-  right: 5%;
-  width: 18px;
-  height: 18px;
-}
-:where(.catalogo-publico) .irfloat .fsend {
-  width: 30px;
-  height: 30px;
-  left: 8%;
-  top: 58%;
-  color: var(--dz-ink);
-}
-:where(.catalogo-publico) .irfloat .fcom {
-  width: 32px;
-  height: 32px;
-  left: 10%;
-  top: 9%;
-  opacity: 0.9;
-}
-:where(.catalogo-publico) .irfloat .fwa {
-  width: 40px;
-  height: 40px;
-  right: 6%;
-  top: 6%;
-  color: #25d366;
-  background: var(--dz-cream);
-  border-radius: 50%;
-  padding: 8px;
-  box-shadow: 0 10px 22px -10px rgba(16, 54, 42, 0.55);
-}
-:where(.catalogo-publico) .irfloat .fx2 {
-  right: 5%;
-  top: 50%;
-  font-family: var(--dz-font);
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1;
-  background: var(--dz-ink);
-  color: var(--dz-cream);
-  border-radius: 10px;
-  padding: 5px 8px 3px;
-}
 :where(.catalogo-publico) .topmeta.dzmeta {
   justify-content: flex-start;
   gap: 7px;
@@ -2752,126 +2500,6 @@ html.catalogo-html,
   height: 15px;
   color: #fff;
   margin-top: -2px;
-}
-:where(.catalogo-publico) .ir .cap {
-  right: 14px;
-  font-family: var(--dz-font);
-  text-shadow: none;
-}
-:where(.catalogo-publico) .ir .who {
-  font-family: var(--dz-font);
-  font-size: 14px;
-  font-weight: 800;
-  cursor: default;
-}
-:where(.catalogo-publico) .ir .who .av.irav {
-  background: none;
-  border: 1.5px solid var(--dz-cream);
-  overflow: hidden;
-  --dzib: var(--dz-ink);
-  --dzif: var(--dz-coral);
-}
-:where(.catalogo-publico) .ir .cap h2 {
-  font-family: var(--dz-font);
-  font-weight: 800;
-  font-size: clamp(25px, 6.8vw, 31px);
-  line-height: 1.04;
-  letter-spacing: -0.01em;
-  margin: 10px 0 2px;
-  text-wrap: balance;
-}
-:where(.catalogo-publico) .ir .cap .txt {
-  margin-top: 2px;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--dz-cream);
-}
-:where(.catalogo-publico) .irbtns {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-:where(.catalogo-publico) .irbtns button,
-:where(.catalogo-publico) .irbtns a {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 0;
-  border-radius: 999px;
-  padding: 11px 18px 9px;
-  font-family: var(--dz-font);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.2;
-  cursor: pointer;
-  text-decoration: none;
-}
-:where(.catalogo-publico) .irbtns svg {
-  width: 17px;
-  height: 17px;
-  margin-top: -2px;
-}
-:where(.catalogo-publico) .irbtns .ihow {
-  background: var(--dz-cream);
-  color: var(--dz-ink);
-}
-:where(.catalogo-publico) .irbtns .iwa {
-  background: var(--dz-ink);
-  color: var(--dz-cream);
-}
-:where(.catalogo-publico) .irbtns .iwa svg {
-  color: #25d366;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :where(.catalogo-publico) .reel.ir.on .irrot {
-    animation: irup 0.6s ease-out 1.1s both;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irrot span {
-    animation: irrot 9s ease-in-out 1.1s infinite;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irrot span:nth-child(2) {
-    animation-delay: 4.1s;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irrot span:nth-child(3) {
-    animation-delay: 7.1s;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irbg i {
-    animation: irblob 9s ease-in-out infinite alternate;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irbg i:nth-child(2) {
-    animation-duration: 11s;
-    animation-direction: alternate-reverse;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irbg i:nth-child(3) {
-    animation-duration: 13s;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .h {
-    animation: irheart 3.2s ease-out 1.4s infinite;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .h2 {
-    animation-delay: 2.3s;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .h3 {
-    animation-delay: 3.2s;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .fx2 {
-    animation: irx2 3.2s ease-in-out 1.4s infinite;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .fsend {
-    animation: irsend 4.4s ease-in-out 2s infinite;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .fcom {
-    animation: irbob 3.6s ease-in-out 1.2s infinite both;
-  }
-  :where(.catalogo-publico) .reel.ir.on .irfloat .fwa {
-    animation: irwa 4.4s ease-in-out 2s infinite;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  :where(.catalogo-publico) .irfloat .f {
-    opacity: 0.9;
-  }
 }
 @keyframes irpop {
   from {
@@ -3139,10 +2767,6 @@ html.catalogo-html,
   font-style: normal;
   color: var(--dz-coral);
 }
-:where(.catalogo-publico) .ir .cap h2 em {
-  font-style: normal;
-  color: var(--dz-peach, inherit);
-}
 :where(.catalogo-publico) .slide > h3.igt em {
   padding: 0.02em 0.2em 0.06em;
   border-radius: 0.26em;
@@ -3275,9 +2899,6 @@ html.catalogo-html,
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-}
-:where(.catalogo-publico) .ir .deco {
-  inset: 0;
 }
 :where(.catalogo-publico) .slide > :not(.deco) {
   position: relative;
@@ -6314,10 +5935,6 @@ html.catalogo-html,
   height: 14px;
   margin-top: -1px;
 }
-:where(.catalogo-publico) .irlogo .dzword {
-  width: min(74%, 280px);
-  filter: drop-shadow(0 12px 22px rgba(6, 30, 22, 0.35));
-}
 /* Titulares con la letra redonda de la marca */
 :where(.catalogo-publico) .slide > h3,
 :where(.catalogo-publico) .ir .cap h2,
@@ -6346,31 +5963,6 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .made .sig {
   color: var(--dz-blue);
-}
-/* Reel final: cobalto con durazno y naranja */
-:where(.catalogo-publico) .irbg i:nth-child(1) {
-  background: #f5c9d6;
-}
-:where(.catalogo-publico) .irbg i:nth-child(2) {
-  background: #ff834f;
-}
-:where(.catalogo-publico) .irbg i:nth-child(3) {
-  background: #0f3a2c;
-}
-:where(.catalogo-publico) .irfloat .h {
-  color: #f5c9d6;
-}
-:where(.catalogo-publico) .ir .who .av.irav {
-  --dzib: #f5c9d6;
-  --dzif: var(--dz-blue);
-}
-:where(.catalogo-publico) .irbtns .ihow {
-  background: var(--dz-cream);
-  color: var(--dz-blue);
-}
-:where(.catalogo-publico) .irbtns .iwa {
-  background: #ff834f;
-  color: #fff;
 }
 /* Historias: fondo cobalto, títulos con durazno y el naranja en botones */
 :where(.catalogo-publico) .story {
@@ -6501,53 +6093,6 @@ html.catalogo-html,
   :is(.a7 .rcpt, .a10 .bub2) {
   color: #174b3a;
 }
-/* Reel final en mandarina, con texto verde (como "Tu pulgar tiene buen gusto") */
-:where(.catalogo-publico) .ir {
-  --dz-cream: #174b3a;
-  --dz-ink: #fff9ee;
-  --dz-coral-l: #ffa27c;
-  --dz-coral: #ff834f;
-  --dz-coral-d: #f26d38;
-}
-:where(.catalogo-publico) .ir .shade {
-  background: none;
-}
-:where(.catalogo-publico) .ir .cap {
-  color: #174b3a;
-}
-:where(.catalogo-publico) .ir .cap h2 em {
-  color: #fff9ee;
-}
-:where(.catalogo-publico) .ir .topmeta.dzmeta {
-  color: #174b3a;
-}
-:where(.catalogo-publico) .ir .topmeta.dzmeta .dzword {
-  color: #174b3a;
-}
-:where(.catalogo-publico) .ir .irbtns .ihow {
-  background: #fff9ee;
-  color: #174b3a;
-}
-:where(.catalogo-publico) .ir .irbtns .iwa {
-  background: #174b3a;
-  color: #fff9ee;
-}
-:where(.catalogo-publico) .ir .irfloat .fwa {
-  background: #fff9ee;
-}
-:where(.catalogo-publico) .ir .irfloat .h {
-  color: #fff9ee;
-}
-:where(.catalogo-publico) .irlogo .dzword {
-  filter: none;
-}
-:where(.catalogo-publico) .ir .who {
-  color: #174b3a;
-}
-:where(.catalogo-publico) .ir .irfloat .fx2 {
-  background: #174b3a;
-  color: #fff9ee;
-}
 /* Patrones: colores según el fondo de cada historia */
 :where(.catalogo-publico) .deco {
   display: block;
@@ -6580,11 +6125,6 @@ html.catalogo-html,
   --bandbg: #174b3a;
   --bandfg: #ff834f;
 }
-:where(.catalogo-publico) .ir .deco {
-  --d1: #fff9ee;
-  --d2: #174b3a;
-  --d3: #f5c9d6;
-}
 :where(.catalogo-publico) .slide[data-bg="crema"] .deco .c1 {
   color: #efa9be;
 }
@@ -6607,46 +6147,6 @@ html.catalogo-html,
 }
 :where(.catalogo-publico) .story .slide > h3.igt em {
   color: var(--hlfg);
-}
-:where(.catalogo-publico) .ir .cap h2 em {
-  color: #fff9ee;
-}
-:where(.catalogo-publico) .irapp {
-  --dzib: #f5c9d6;
-  --dzif: #174b3a;
-}
-/* Portada del reel: colores sólidos, sin degradados */
-:where(.catalogo-publico) .ir .irm {
-  background: #ff834f;
-}
-:where(.catalogo-publico) .irbg i {
-  filter: none;
-  opacity: 1 !important;
-  border-radius: 26%;
-}
-:where(.catalogo-publico) .irbg i:nth-child(1) {
-  width: 30%;
-  height: auto;
-  aspect-ratio: 1;
-  left: auto;
-  right: -12%;
-  top: -9%;
-  background: #174b3a !important;
-  transform: rotate(14deg);
-}
-:where(.catalogo-publico) .irbg i:nth-child(2) {
-  width: 30%;
-  height: auto;
-  aspect-ratio: 1;
-  left: auto;
-  right: -11%;
-  top: auto;
-  bottom: -8%;
-  background: #f5c9d6 !important;
-  transform: rotate(-12deg);
-}
-:where(.catalogo-publico) .irbg i:nth-child(3) {
-  display: none;
 }
 :where(.catalogo-publico) .story {
   background-image: none;
@@ -9181,4 +8681,333 @@ html.catalogo-html,
 .catalogo-publico .aviso-sheet input:focus,
 .catalogo-publico .aviso-llegada input:focus {
   border-color: var(--accent);
+}
+
+/* ---------- Finales del catálogo como reels: «Ya estás al día» (marca de la tienda) y «Hecho con Deslizapp» ---------- */
+/* Sin columna de acciones: el contenido va en el pie (`.cap`), con el mismo margen que un reel de producto. */
+:where(.catalogo-publico) .rf .media {
+  cursor: default;
+  background: var(--rf-p);
+  color: var(--rf-fg);
+  container: rf / size;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 14px;
+}
+/* Lo de en medio se reparte el espacio que deja el pie; lo que no cabe se esconde (ver @container). */
+:where(.catalogo-publico) .rf-medio {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  overflow: hidden;
+}
+:where(.catalogo-publico) .rf-fondo {
+  position: absolute;
+  inset: -40px;
+  display: grid;
+  grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+  filter: blur(22px) saturate(1.1);
+  transform: scale(1.08);
+  pointer-events: none;
+}
+:where(.catalogo-publico) .rf-fondo img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+:where(.catalogo-publico) .rf-velo {
+  position: absolute;
+  inset: 0;
+  background: var(--rf-velo);
+}
+:where(.catalogo-publico) .rf-sombra {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35),
+    transparent 22%,
+    transparent 55%,
+    rgba(var(--rf-sombra), 0.55)
+  );
+}
+:where(.catalogo-publico) .rf-centro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+:where(.catalogo-publico) .rf-anillo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(from 210deg, var(--rf-a), #fff, var(--rf-a));
+}
+:where(.catalogo-publico) .rf-anillo > span {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--rf-p);
+  display: grid;
+  place-items: center;
+}
+:where(.catalogo-publico) .rf-anillo svg {
+  width: 44px;
+  height: 44px;
+}
+:where(.catalogo-publico) .rf-centro h2 {
+  margin: 18px 0 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(32px, 10.2vw, 40px);
+  line-height: 1;
+  text-wrap: balance;
+  text-shadow: 0 2px 10px rgba(var(--rf-sombra), 0.25);
+}
+:where(.catalogo-publico) .rf-centro p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  opacity: 0.9;
+  text-wrap: balance;
+}
+:where(.catalogo-publico) .rf-sigue {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:where(.catalogo-publico) .rf-etiqueta {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+:where(.catalogo-publico) .rf-sigue > div {
+  display: flex;
+  gap: 12px;
+}
+:where(.catalogo-publico) .rf-sigue button {
+  width: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+:where(.catalogo-publico) .rf-historia {
+  width: 58px;
+  height: 58px;
+  padding: 2.5px;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, var(--rf-a), #fff, var(--rf-a));
+}
+:where(.catalogo-publico) .rf-historia > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2.5px solid var(--rf-p);
+  overflow: hidden;
+}
+:where(.catalogo-publico) .rf-historia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+:where(.catalogo-publico) .rf-nombre {
+  max-width: 64px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:where(.catalogo-publico) .rf-pie {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: inherit;
+  text-shadow: 0 1px 3px rgba(var(--rf-sombra), 0.35);
+}
+:where(.catalogo-publico) .rf .who {
+  color: inherit;
+  align-self: flex-start;
+  font-weight: 800;
+  font-size: 14.5px;
+}
+:where(.catalogo-publico) .rf-pie h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.05;
+}
+:where(.catalogo-publico) .rf-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+:where(.catalogo-publico) .rf-mini img {
+  width: 44px;
+  height: 54px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid #fff;
+}
+:where(.catalogo-publico) .rf-mini b {
+  margin-left: 6px;
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+:where(.catalogo-publico) .rf-pedir {
+  margin-top: 4px;
+  height: 50px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--rf-fg);
+  color: var(--rf-p);
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: 15.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-shadow: none;
+}
+:where(.catalogo-publico) .rf-pedir svg {
+  width: 20px;
+  height: 20px;
+}
+:where(.catalogo-publico) .rf-pedir:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+:where(.catalogo-publico) .rf-aviso {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+:where(.catalogo-publico) .rf-enlaces {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+:where(.catalogo-publico) .rf-enlaces button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+}
+:where(.catalogo-publico) .rf-enlaces svg {
+  width: 15px;
+  height: 15px;
+}
+:where(.catalogo-publico) .rf:not(.on) .media {
+  opacity: 0.6;
+}
+:where(.catalogo-publico) .rf .rf-pedir:focus-visible,
+:where(.catalogo-publico) .rf button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+/* Catálogo publicado sin productos: el «pronto» queda en el centro, sin fila ni botones. */
+:where(.catalogo-publico) .rf h2[data-catalogo-pronto] {
+  font-size: clamp(28px, 8.4vw, 34px);
+}
+/* Ajuste a la pantalla (cabe en 360×640, donde el reel mide ~450 de alto; las medidas son del interior, sin el relleno): primero se esconde «Sigue viendo»
+   y después se reduce el anillo. Con pedido el pie es más alto, así que cada paso llega antes. */
+@container rf (max-height: 450px) {
+  .rf-sigue {
+    display: none;
+  }
+}
+@container rf (max-height: 580px) {
+  :where(.catalogo-publico) .rf-con .rf-sigue {
+    display: none;
+  }
+}
+@container rf (max-height: 440px) {
+  :where(.catalogo-publico) .rf-con .rf-anillo {
+    width: 72px;
+    height: 72px;
+  }
+  :where(.catalogo-publico) .rf-con .rf-anillo > span {
+    width: 66px;
+    height: 66px;
+  }
+  :where(.catalogo-publico) .rf-con .rf-anillo svg {
+    width: 34px;
+    height: 34px;
+  }
+  :where(.catalogo-publico) .rf-con .rf-centro h2 {
+    margin-top: 12px;
+  }
+}
+
+/* Los dos finales ocupan la pantalla completa: al llegar no se asoma el reel de arriba ni el de abajo.
+   El margen negativo anula el relleno de scroll (`--sp`), así que el reel queda pegado al borde de arriba. */
+:where(.catalogo-publico) .reel.fin,
+:where(.catalogo-publico) .contenedor-reel-final .reel.rd {
+  height: var(--vh);
+  width: min(100vw, max(var(--W), calc(var(--vh) * 0.5)));
+  scroll-margin-top: calc(var(--sp) * -1);
+}
+:where(.catalogo-publico) .reel.fin .media,
+:where(.catalogo-publico) .reel.rd .media {
+  border-radius: 0;
+}
+:where(.catalogo-publico) .reel.rd .media {
+  cursor: default;
+  background: #174b3a;
+}
+:where(.catalogo-publico) .reel.rd:not(.on) .media {
+  opacity: 0.6;
+}
+/* El pedido, si lo hay, queda arriba a la derecha del reel de Deslizapp (no tapa sus botones). */
+:where(.catalogo-publico) #bagDock.en-final {
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(var(--bagR, 6px) + 8px);
+}
+/* El último reel trae su propia cabecera («deslizapp»): la del catálogo se aparta mientras está a la vista. */
+:where(.catalogo-publico) .hdr.hdr-fuera {
+  opacity: 0;
+  pointer-events: none;
+}
+/* La cabecera (logo y pestañas) queda encima del reel, así que el contenido arranca debajo de ella. */
+:where(.catalogo-publico) .reel.fin .media {
+  padding-top: calc(var(--hb, 100px) + 12px);
+  /* Abajo, como el pie de un reel de producto pero libre de la barra del iPhone. */
+  padding-bottom: max(38px, calc(env(safe-area-inset-bottom, 0px) + 10px));
 }
