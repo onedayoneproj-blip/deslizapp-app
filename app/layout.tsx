@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Figtree, Fredoka } from "next/font/google";
+import { Analitica } from "@/components/medicion/analitica";
 import { AvisoVersion } from "@/components/pwa/aviso-version";
 import { CapturaInstalacion } from "@/components/pwa/instalar-pwa";
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <AvisoVersion />
         <CapturaInstalacion />
+        <Analitica />
       </body>
     </html>
   );

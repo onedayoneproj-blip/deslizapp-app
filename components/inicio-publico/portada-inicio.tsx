@@ -1,11 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import { KEY_MODO } from "@/lib/data/modo";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE } from "@/lib/landing/enlaces";
 import { IconoInstagram, IconoReels } from "../iconos";
 import { BotonGoogle, EnlaceDemo } from "./boton-google";
+import { MedirPortada, EnlaceMedido } from "./medicion";
 import { Vivo } from "./vivo";
 import "./pagina-principal.css";
 
@@ -120,21 +120,29 @@ export function PortadaInicio({
           </span>
         </Lema>
         <p className="ini-descripcion">Tu catálogo para vender por WhatsApp, y una app para todo lo que pasa después.</p>
-        <BotonGoogle />
+        <BotonGoogle evento={reel ? "catalogo_cta_iniciar_sesion" : "cta_iniciar_sesion"} />
         <div className="ini-botones">
-          <Link href={RUTA_CONOCE} className="ini-como tocable" data-cta="como-funciona">
+          <EnlaceMedido evento={reel ? "catalogo_cta_como_funciona" : "cta_como_funciona"} href={RUTA_CONOCE} className="ini-como tocable" data-cta="como-funciona">
             <IconoReels tamano={20} strokeWidth={2.2} />
             Cómo funciona
-          </Link>
-          <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" className="ini-vender tocable" data-cta="vender">
+          </EnlaceMedido>
+          <EnlaceMedido
+            evento={reel ? "catalogo_cta_quiero_vender" : "cta_quiero_vender"}
+            href={ENLACE_QUIERO_VENDER}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ini-vender tocable"
+            data-cta="vender"
+          >
             <IconoInstagram tamano={18} strokeWidth={2.2} />
             Quiero vender
-          </a>
+          </EnlaceMedido>
         </div>
         {/* Desde un catálogo no hay panel debajo que se abra solo: tras elegir la demo se va a `/`. */}
-        <EnlaceDemo alTerminar={reel ? () => window.location.assign("/") : undefined} />
+        <EnlaceDemo evento={reel ? "catalogo_cta_demo" : "cta_demo"} alTerminar={reel ? () => window.location.assign("/") : undefined} />
       </Texto>
 
+      <MedirPortada modo={modo} activo={activo} />
       <Vivo productos={[...new Set(fotos.map((f) => f.nombre))]} activo={activo} enPagina={!reel} />
     </div>
   );
