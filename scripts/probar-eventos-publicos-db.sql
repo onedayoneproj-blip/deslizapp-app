@@ -60,6 +60,13 @@ begin
     if not public.registrar_evento_publico('cta_demo', '/') then raise exception 'cortó antes de los 120 (%)', i; end if;
   end loop;
   if public.registrar_evento_publico('cta_demo', '/') then raise exception 'no limitó cta_demo a 120'; end if;
+  -- El contador sigue sumando aunque se pase del tope, y lo que se pasa no se inserta.
+  perform public.registrar_evento_publico('cta_demo', '/');
+  perform public.registrar_evento_publico('cta_demo', '/');
+  select total into n from public.eventos_publicos_ritmo where evento = 'cta_demo' order by minuto desc limit 1;
+  if n <> 123 then raise exception 'el contador dejó de sumar tras el tope: %', n; end if;
+  select count(*) into n from public.eventos_publicos where evento = 'cta_demo';
+  if n <> 120 then raise exception 'se insertaron eventos pasados del tope: %', n; end if;
   if not public.registrar_evento_publico('cta_quiero_vender', '/') then raise exception 'cta_demo agotó el cupo de otro evento'; end if;
   for i in 1..599 loop
     if not public.registrar_evento_publico('conoce_paso', '/conoce', 'directo', 'hola') then raise exception 'conoce_paso cortó antes de los 600 (%)', i; end if;
@@ -78,6 +85,10 @@ begin
   exception when insufficient_privilege then null; end;
   begin perform public.admin_eventos_publicos(); raise exception 'anon llamó a la lectura de admin';
   exception when insufficient_privilege then null; end;
+  begin perform public.admin_eventos_descartados(); raise exception 'anon llamó a descartados';
+  exception when insufficient_privilege then null; end;
+  begin perform public.tope_evento_publico('cta_demo'); raise exception 'anon llamó a tope';
+  exception when insufficient_privilege then null; end;
   begin perform public.purgar_eventos_publicos(); raise exception 'anon llamó a purgar';
   exception when insufficient_privilege then null; end;
   begin perform 1 from public.eventos_publicos_ritmo limit 1; raise exception 'anon leyó los contadores';
@@ -90,6 +101,8 @@ begin
   begin perform 1 from public.eventos_publicos limit 1; raise exception 'authenticated leyó la tabla';
   exception when insufficient_privilege then null; end;
   begin perform * from public.admin_eventos_publicos(); raise exception 'un no-admin leyó los conteos';
+  exception when sqlstate '42501' then null; end;
+  begin perform * from public.admin_eventos_descartados(); raise exception 'un no-admin leyó los descartados';
   exception when sqlstate '42501' then null; end;
   begin perform public.purgar_eventos_publicos(); raise exception 'un no-admin purgó';
   exception when sqlstate '42501' then null; end;

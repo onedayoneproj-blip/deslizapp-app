@@ -4,6 +4,7 @@
 --     Sin IP no hay límite por visitante: esto solo evita que un abusador ahogue a todos los demás tipos de evento.
 --  2. `ruta` ya no es texto libre: lista blanca de patrones, en minúsculas; lo que no encaje se guarda como «otra».
 --  3. `tienda_slug` solo se guarda si es una tienda con catálogo publicado (las mismas que tienda_publica); si no, null.
+--     El contador sigue sumando aunque se pase del tope; admin_eventos_descartados muestra cuántos sobraron por minuto y evento.
 --  4. purgar_eventos_publicos(p_dias): borra eventos viejos. Solo admin, a mano (sin cron todavía).
 
 create table public.eventos_publicos_ritmo (
@@ -15,12 +16,18 @@ create table public.eventos_publicos_ritmo (
 alter table public.eventos_publicos_ritmo enable row level security;
 revoke all on table public.eventos_publicos_ritmo from public, anon, authenticated;
 
+-- El tope por minuto de cada evento, en un solo sitio: lo usan registrar_evento_publico y admin_eventos_descartados.
+create function public.tope_evento_publico(p_evento text) returns integer
+language sql immutable set search_path = ''
+as $$ select case when p_evento = 'conoce_paso' then 600 else 120 end $$;
+revoke execute on function public.tope_evento_publico(text) from public, anon, authenticated;
+
 create or replace function public.registrar_evento_publico(
   p_evento text, p_ruta text, p_origen text default 'otro', p_paso text default null, p_tienda_slug text default null
 ) returns boolean
 language plpgsql security definer set search_path = ''
 as $$
-declare v_ruta text; v_origen text; v_paso text; v_slug text; v_total integer; v_tope integer;
+declare v_ruta text; v_origen text; v_paso text; v_slug text; v_total integer;
 begin
   if p_evento is null or p_evento <> all (array[
     'inicio_visto', 'cta_iniciar_sesion', 'cta_como_funciona', 'cta_quiero_vender', 'cta_demo',
@@ -31,13 +38,13 @@ begin
     raise exception 'evento_invalido' using errcode = '22023';
   end if;
 
-  -- Ritmo: 120 por minuto por cada evento (conoce_paso, 600: una sola visita completa manda hasta 18). Pasado el tope, se descarta en silencio.
+  -- Ritmo: 120 por minuto por cada evento (conoce_paso, 600: una sola visita completa manda hasta 18). El contador sigue sumando aunque
+  -- se pase del tope (así se sabe cuántos se descartaron: admin_eventos_descartados); lo que se pasa no se inserta en eventos_publicos.
   insert into public.eventos_publicos_ritmo as r (minuto, evento, total)
   values (date_trunc('minute', now()), p_evento, 1)
   on conflict (minuto, evento) do update set total = r.total + 1
   returning r.total into v_total;
-  v_tope := case when p_evento = 'conoce_paso' then 600 else 120 end;
-  if v_total > v_tope then
+  if v_total > public.tope_evento_publico(p_evento) then
     return false;
   end if;
 
@@ -69,7 +76,26 @@ begin
   return true;
 end $$;
 
--- Retención: borra los eventos de más de p_dias días (mínimo 1; por defecto, 180) y los contadores de ritmo de más de un día.
+-- Eventos descartados por pasarse del tope: por minuto (hora de Santo Domingo) y evento, cuántos llegaron, el tope y cuántos sobraron
+-- (llegaron - tope, solo si es positivo). Solo admin. Los contadores se conservan 30 días como máximo (lo que borra purgar_eventos_publicos).
+create function public.admin_eventos_descartados(p_desde date default null, p_hasta date default null)
+returns table (minuto timestamp, evento text, llegaron integer, tope integer, descartados integer)
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if not public.soy_admin() then raise exception 'no_admin' using errcode = '42501'; end if;
+  return query
+    select (r.minuto at time zone 'America/Santo_Domingo'), r.evento, r.total, public.tope_evento_publico(r.evento), r.total - public.tope_evento_publico(r.evento)
+    from public.eventos_publicos_ritmo r
+    where r.total > public.tope_evento_publico(r.evento)
+      and (r.minuto at time zone 'America/Santo_Domingo')::date between coalesce(p_desde, (now() at time zone 'America/Santo_Domingo')::date - 30)
+        and coalesce(p_hasta, (now() at time zone 'America/Santo_Domingo')::date)
+    order by r.minuto desc, r.evento;
+end $$;
+revoke execute on function public.admin_eventos_descartados(date, date) from public, anon;
+grant execute on function public.admin_eventos_descartados(date, date) to authenticated;
+
+-- Retención: borra los eventos de más de p_dias días (mínimo 1; por defecto, 180) y los contadores de ritmo de más de 30 días (o de p_dias, si es menor).
 -- Devuelve cuántos eventos borró. Solo admin; se llama a mano.
 create function public.purgar_eventos_publicos(p_dias integer default 180) returns bigint
 language plpgsql security definer set search_path = ''
@@ -80,7 +106,7 @@ begin
   if p_dias is null or p_dias < 1 then raise exception 'dias_invalidos' using errcode = '22023'; end if;
   delete from public.eventos_publicos where creado_en < now() - make_interval(days => p_dias);
   get diagnostics v_borrados = row_count;
-  delete from public.eventos_publicos_ritmo where minuto < now() - interval '1 day';
+  delete from public.eventos_publicos_ritmo where minuto < now() - make_interval(days => least(p_dias, 30));
   return v_borrados;
 end $$;
 revoke execute on function public.purgar_eventos_publicos(integer) from public, anon;
