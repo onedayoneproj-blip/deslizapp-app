@@ -13,14 +13,13 @@ Encargo: `docs/prompts/medicion-landing.md`. Cuántas personas llegan a la pági
 1. El navegador llama a `registrarEvento(evento, datos?)` (`lib/medicion/registrar-evento.ts`). Usa `navigator.sendBeacon` a `/api/evento` (o `fetch` con `keepalive`), no espera respuesta y falla en silencio. No manda nada en desarrollo, con `navigator.webdriver` (pruebas), en la demo interna, en la demo de la landing, en `/admin` ni en `?demo`.
 2. `app/api/evento/route.ts` lee el cuerpo con tope (2 KB), comprueba el `Origin` (el mismo host o el de producción; sin `Origin`, deja pasar, por `sendBeacon`), valida el evento contra la lista, responde 204 y **después** (con `after`) llama a `registrar_evento_publico` en Supabase con la llave pública y un tiempo máximo de 2 s.
 3. `registrar_evento_publico` (security definer) valida otra vez, limpia los textos y guarda en `eventos_publicos`. La tabla no tiene políticas: nadie la lee ni escribe desde el cliente.
-4. **Ritmo (vigente):** como máximo 600 eventos por minuto en total; pasado eso, se descartan en silencio. Sin IP no hay límite por visitante.
-5. **Textos (vigente):** la ruta pierde `?consulta` y `#hash`, un código de pedido se guarda como `/pedido/*` y se recorta a 120; `paso` (hasta 40, `[a-z0-9_-]`) y `tienda_slug` (hasta 60, `[a-z0-9-]`) que no cumplan se guardan vacíos; un origen raro pasa a `otro`; un evento fuera de la lista se rechaza (`22023`).
+4. **Ritmo:** como máximo 120 eventos por minuto **por tipo de evento** (`conoce_paso`, 600, porque una sola visita completa manda hasta 18), contados en `eventos_publicos_ritmo` (una fila por minuto y evento, sin `count(*)` en cada inserción). Pasado el tope, el evento no se inserta en `eventos_publicos`, **pero el contador sigue sumando**: `select * from admin_eventos_descartados(desde, hasta)` (solo admin) da, por minuto y evento, cuántos llegaron, el tope y cuántos se descartaron (`llegaron - tope`, solo si es positivo; los contadores se conservan hasta 30 días). **Sin IP no hay límite por visitante**: un abusador puede agotar el cupo de un tipo de evento, pero no el de los demás. El tope vive en `tope_evento_publico()`.
+5. **Textos:**
+   - `ruta`: lista blanca en minúsculas, sin `?consulta`, `#hash` ni barra final: `/`, `/conoce`, `/privacidad`, `/terminos`, `/tienda/<slug>` (solo si esa tienda tiene el catálogo publicado; si no, `/tienda/*`) y `/pedido/*` (el código no se guarda). Todo lo demás se guarda como `otra`.
+   - `tienda_slug`: solo se guarda si es una tienda con catálogo publicado (`activa` o `en_prueba`, como `tienda_publica`); si no, vacío.
+   - `paso` (hasta 40, `[a-z0-9_-]`) que no cumpla se guarda vacío; un origen raro pasa a `otro`; un evento fuera de la lista se rechaza (`22023`).
 
-> **Pendiente de aplicar** (`supabase/pendientes/eventos_publicos_limites.sql`; el código funciona igual con la función actual): `apply_migration` expiró varias veces el 16 oct 2026 y se reintentará en un PR aparte. Cuando se aplique, cambia así:
-> - **Ritmo por evento:** 120 por minuto por tipo de evento (`conoce_paso`, 600, porque una sola visita completa manda hasta 18), contados en `eventos_publicos_ritmo` (una fila por minuto y evento, sin `count(*)` en cada inserción). Pasado el tope, el evento no se inserta en `eventos_publicos`, **pero el contador sigue sumando**: `select * from admin_eventos_descartados(desde, hasta)` (solo admin) da, por minuto y evento, cuántos llegaron, el tope y cuántos se descartaron (los contadores se conservan hasta 30 días). Sin IP no hay límite por visitante: un abusador puede agotar el cupo de un tipo de evento, pero no el de los demás.
-> - **`ruta`:** lista blanca en minúsculas, sin `?consulta`, `#hash` ni barra final: `/`, `/conoce`, `/privacidad`, `/terminos`, `/tienda/<slug>` (solo si esa tienda tiene el catálogo publicado; si no, `/tienda/*`) y `/pedido/*`. Todo lo demás se guarda como `otra`.
-> - **`tienda_slug`:** solo se guarda si es una tienda con catálogo publicado (`activa` o `en_prueba`, como `tienda_publica`); si no, vacío.
-> - **Retención:** `purgar_eventos_publicos(p_dias)`.
+> **Nota de aplicación:** la migración `20261016145000_eventos_publicos_limites` se aplicó desde el editor SQL de Supabase (16 oct 2026) porque `apply_migration` expiraba por un fallo de la herramienta; la versión se anotó en el historial a mano.
 
 ## Eventos
 
@@ -51,4 +50,4 @@ Solo admin: `select * from admin_eventos_publicos(desde, hasta)` (fechas opciona
 
 ## Retención
 
-Hoy no hay borrado automático ni función de purga: son filas pequeñas y sin datos personales. **Pendiente de aplicar** (ver arriba): `select purgar_eventos_publicos(180)` (solo admin) borrará los eventos de más de 180 días (el parámetro, mínimo 1, por defecto 180) y los contadores de ritmo de más de 30 días (o de `p_dias`, si es menor), y devolverá cuántos eventos borró. Se llamará a mano; todavía no hay cron.
+`select purgar_eventos_publicos(180)` (solo admin) borra los eventos de más de 180 días (el parámetro, mínimo 1, por defecto 180) y los contadores de ritmo de más de 30 días (o de `p_dias`, si es menor), y devuelve cuántos eventos borró. Se llama a mano; todavía no hay cron.

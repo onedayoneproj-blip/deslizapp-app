@@ -1,5 +1,3 @@
--- PENDIENTE DE APLICAR (apply_migration expiró el 16 oct 2026). Al aplicarla: moverla a supabase/migrations/ con la versión que asigne Supabase
--- y mover probar-eventos_publicos_limites.sql encima de scripts/probar-eventos-publicos-db.sql. Nada del código de la app depende de ella.
 -- Medición, endurecimiento (revisión de Planning al PR #138; docs/18-medicion.md). No edita la migración anterior: la reemplaza por una
 -- función nueva con el mismo nombre y firma (los permisos se conservan) y añade la retención.
 --  1. Límite por tipo de evento y por minuto (antes, un tope global que un solo cliente podía agotar), con contadores por minuto.
