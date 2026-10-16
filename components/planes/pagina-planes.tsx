@@ -2,8 +2,10 @@ import Link from "next/link";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE } from "@/lib/landing/enlaces";
 import type { PlanPublico } from "@/lib/planes/planes";
-import { IconoBolsa, IconoChispa, IconoClientes, IconoCorazon, IconoEtiqueta, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
+import { IconoBolsa, IconoChispa, IconoClientes, IconoCorazon, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
 import { LogoTienda } from "../panel/logo-tienda";
+import { TicketPromo } from "../promos/ticket-promo";
+import type { DatosCupon } from "@/lib/cupon";
 import { FeedFondo } from "../inicio-publico/feed-fondo";
 import "../inicio-publico/pagina-principal.css";
 import { ListaPlanes } from "./lista-planes";
@@ -25,6 +27,21 @@ const BENEFICIOS_CIRCULO = [
 ];
 
 /** El avatar de ejemplo con el aro del Círculo (el mismo de LogoTienda, opción 6). */
+/**
+ * El 30 % de las fundadoras como el cupón de la app. `porcentaje` lleva un espacio fino sin corte al final para que TicketPromo,
+ * que le pega el «%», muestre «30 %» sin tocar el componente.
+ */
+const CUPON_CIRCULO: DatosCupon = {
+  porcentaje: "30\u00a0",
+  bajoPorcentaje: "DE DESCUENTO",
+  tipo: "Círculo Deslizapp",
+  titulo: "En tu plan",
+  esCodigo: false,
+  detalle: "Todo el primer año",
+  fechas: "Después de tu prueba",
+  aviso: null,
+};
+
 const TIENDA_EJEMPLO = { nombre: "Tu tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: null } };
 
 /**
@@ -86,11 +103,9 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
           </h2>
           <p className="pl-circulo-mano">Como los Close Friends de Instagram, pero con beneficios.</p>
 
-          <div className="pl-circulo-descuento">
-            <IconoEtiqueta tamano={24} className="pl-circulo-etiqueta" />
-            <span className="pl-circulo-treinta">30 % menos</span>
-            <span className="pl-circulo-plan">en tu plan durante el primer año</span>
-            <span className="pl-circulo-prueba">Después de tu prueba.</span>
+          {/* El cupón de la app (TicketPromo, igual que las promos del panel), sin código: no hay nada que canjear. Sin sombra. */}
+          <div className="pl-circulo-cupon" data-cupon-circulo="">
+            <TicketPromo d={CUPON_CIRCULO} apagado={false} />
           </div>
 
           <ul className="pl-circulo-beneficios">
