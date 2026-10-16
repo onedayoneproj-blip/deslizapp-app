@@ -1,5 +1,18 @@
 # 14 · Precios y lanzamiento
 
+> **Propuesta vigente para probar (Lewis, 16 oct 2026):** [`referencias/planes/estrategia-y-validacion-oct-2026.pdf`](../referencias/planes/estrategia-y-validacion-oct-2026.pdf) sustituye la tabla de planes del §2, el anual del §3 y la oferta de fundadoras del §4. Son hipótesis por validar, no tarifa definitiva:
+>
+> | Plan | Al mes | Al año (10 por 12) | Límites tentativos | Ideal para |
+> |---|---|---|---|---|
+> | Inicial | RD$499 | RD$4,990 | 30 publicaciones activas · 1 tienda · 1 usuario | Quien vende por su cuenta |
+> | Negocio | RD$999 | RD$9,990 | 150 publicaciones activas compartidas · hasta 3 tiendas · 5 usuarios | Tienda en crecimiento |
+> | Pro | RD$1,499 | RD$14,990 | Límites altos con uso razonable · varias tiendas | Operación con más movimiento |
+>
+> - Solo cuentan los productos publicados y activos: agotados, ocultos y borradores no consumen cupo. Las tiendas de una cuenta comparten el límite.
+> - El plan más bajo conserva lo esencial: catálogo, pedido por WhatsApp, panel de pedidos y clientes. Los planes se diferencian por volumen, tiendas, usuarios y herramientas avanzadas.
+> - Fundadoras: 30 días de prueba y después 30 % de descuento el primer año (alternativa: precio fijo 12 meses). Sin descuentos de por vida. El 30 % no se combina con el anual sin calcular el margen.
+> - Pendiente de decidir: créditos de retoque por plan y precio del servicio de marca. Lo que sigue abajo queda como antecedente del 6 oct.
+
 Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras tiendas. **Los precios viven en la base (`planes`), no en el código**: Lewis los crea y los cambia desde `/admin` (docs/13 §9). Este documento dice qué crear y cómo se cobra; si algo no se confirma con las primeras tiendas, se cambia aquí y en el admin.
 
 ## 1. Sin montaje
