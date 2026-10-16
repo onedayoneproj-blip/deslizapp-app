@@ -78,7 +78,7 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
           <LogoTienda tienda={TIENDA_EJEMPLO} tamano={96} />
           <span className="pl-fundadoras-sobre">¿eres de las primeras?</span>
           <h2>Entras al Círculo Deslizapp</h2>
-          <p>Como los Mejores amigos de Instagram, pero con beneficios.</p>
+          <p>Como los Close Friends de Instagram, pero con beneficios.</p>
           <ul className="pl-beneficios">
             {BENEFICIOS_CIRCULO.map(({ Icono, texto }) => (
               <li key={texto}>
