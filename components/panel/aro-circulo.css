@@ -23,6 +23,16 @@
   box-sizing: border-box;
   border-radius: 50%;
 }
+/* Los colores de las ondas; el sitio que lo usa puede cambiar uno con su variable (la onda rosa sobre un fondo rosa: --aro-onda-rosa). */
+.aro-c-onda[data-onda="mandarina"] {
+  border-color: var(--aro-onda-mandarina, #ff834f);
+}
+.aro-c-onda[data-onda="rosa"] {
+  border-color: var(--aro-onda-rosa, #f5c9d6);
+}
+.aro-c-onda[data-onda="bosque"] {
+  border-color: var(--aro-onda-bosque, #174b3a);
+}
 .aro-c-sello {
   position: absolute;
   display: grid;

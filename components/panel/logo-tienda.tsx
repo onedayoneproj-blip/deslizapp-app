@@ -48,8 +48,8 @@ function AvatarConAro({ tienda, tamano, animacion }: Props & { tamano: number; a
   const dentro = (
     <>
       {/* Las ondas, debajo de los aros fijos: nacen del aro mandarina. */}
-      {([["#FF834F", 0], ["#F5C9D6", 0.8], ["#174B3A", 1.6]] as const).map(([color, retraso]) => (
-        <span key={color} className="aro-c-onda" style={{ inset: 2 * aro, borderWidth: aro, borderColor: color, ["--retraso" as string]: `${retraso}s` }} aria-hidden="true" />
+      {([["mandarina", 0], ["rosa", 0.8], ["bosque", 1.6]] as const).map(([color, retraso]) => (
+        <span key={color} className="aro-c-onda" data-onda={color} style={{ inset: 2 * aro, borderWidth: aro, ["--retraso" as string]: `${retraso}s` }} aria-hidden="true" />
       ))}
       {/* Verde por fuera, rosa en medio, mandarina por dentro; cada uno es su propio círculo. */}
       <span className="aro-c-anillo" data-aro="3" style={{ inset: 0, borderWidth: aro, borderColor: BOSQUE }} aria-hidden="true" />

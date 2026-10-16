@@ -313,6 +313,8 @@ html:has(.pl) body {
   border-radius: 24px;
   background: var(--marca-rosa-fija);
   color: var(--marca-bosque);
+  /* Sobre el fondo rosa, la onda rosa del aro no se vería: va crema (solo en esta tarjeta; el aro fijo no cambia). */
+  --aro-onda-rosa: #fff9ee;
 }
 /* El avatar con ondas: 96 px y 28 de aire por todos lados (las ondas llegan a ~1,45 veces y no deben tocar el texto). */
 .pl-fundadoras-aro {

@@ -35,7 +35,9 @@ test("el aro quieto (animacion «ninguna») no recibe data-animacion: ninguna re
 test("las ondas: tres, cada 0,8 s, ciclo de 2,4 s, hasta ~1,45 veces, y se pausan fuera de pantalla", () => {
   assert.match(css, /animation: aro-c-onda 2\.4s/);
   assert.match(css, /transform: scale\(1\.45\)/);
-  assert.equal([...tsx.matchAll(/\["#[0-9A-Fa-f]{6}", [0-9.]+\]/g)].length, 3);
+  assert.equal([...tsx.matchAll(/\["(mandarina|rosa|bosque)", [0-9.]+\]/g)].length, 3);
+  // El color de cada onda sale de una variable que el sitio puede cambiar.
+  assert.match(css, /data-onda="rosa"\][^}]*var\(--aro-onda-rosa, #f5c9d6\)/);
   assert.match(tsx, /0\.8/);
   assert.match(css, /data-en-pantalla="no"[\s\S]*animation-play-state: paused/);
 });
