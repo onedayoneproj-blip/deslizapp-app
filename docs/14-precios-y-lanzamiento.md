@@ -11,14 +11,12 @@
 > - Solo cuentan los productos publicados y activos: agotados, ocultos y borradores no consumen cupo. Las tiendas de una cuenta comparten el límite.
 > - El plan más bajo conserva lo esencial: catálogo, pedido por WhatsApp, panel de pedidos y clientes. Los planes se diferencian por volumen, tiendas, usuarios y herramientas avanzadas.
 > - **Fundadoras (Lewis, 16 oct 2026): 30 % menos durante todo el primer año**, después de los 30 días de prueba. Sin descuentos de por vida. El 30 % no se combina con el anual sin calcular el margen.
-> - **Círculo Deslizapp (idea de Lewis, 16 oct 2026):** el plan o grupo de las fundadoras, con el concepto de «Mejores amigos» de Instagram y un aro con los colores de Deslizapp. Preguntas abiertas para definirlo:
->   1. ¿Es un plan aparte (con su precio, 30 % menos que cuál: Inicial, Negocio o el que elija) o una marca encima del plan que cada tienda elija?
->   2. ¿Quién entra y hasta cuándo? Por ejemplo, las primeras N tiendas, solo por invitación, o hasta una fecha.
->   3. ¿Dónde se ve el aro? En el avatar de la tienda en su catálogo (lo ven los compradores), en su panel o en la página de planes.
->   4. Además del 30 %, ¿qué incluye? Por ejemplo, un canal directo con Lewis, probar funciones antes, créditos extra o aparecer como caso de éxito.
->   5. Al terminar el primer año, ¿conservan el aro aunque pierdan el descuento?
-> - **Prueba gratis de 30 días para todos los planes** (Lewis, 16 oct 2026; sustituye los 14 días de las fases 2 y 3).
-> - **Página pública de planes** (Lewis, 16 oct 2026): opción A del lienzo [Planes de Deslizapp · página](https://claude.ai/artifact/HLYkbe8yyF8Z8qfA2Sn75o), con el diseño de la página principal. Los precios se leen de la tabla `planes` (hay que crear Inicial, Negocio y Pro, y dejar de ofrecer p20/p60/p100).
+> - **Círculo Deslizapp (aprobado por Lewis, 16 oct 2026):** el grupo de las tiendas fundadoras, con el concepto de «Mejores amigos» de Instagram.
+>   - **Es una marca encima del plan, no un plan aparte:** la tienda elige Inicial, Negocio o Pro y el Círculo aplica el 30 % menos sobre ese plan durante el primer año. En la base, una marca en la suscripción con su fecha de alta y de fin del descuento. El descuento se aplica al confirmar el cobro en Cobros. Sustituye al plan «Fundadora» del 6 oct.
+>   - **Quién entra:** cupo limitado (orientativo, unas 20 tiendas), solo por invitación de Lewis y hasta la apertura al público. Si algún día se muestra «quedan N lugares», con el número real.
+>   - **El aro:** con los colores de Deslizapp, alrededor del avatar de la tienda **en su panel**. No se muestra a los compradores.
+>   - **Incluye:** 30 % menos todo el primer año; créditos de bienvenida (un regalo único; la cantidad se fija cuando se mida el costo del retoque); probar funciones antes; regalos de merch; marca y personalización listas sin costo; canal directo con Lewis; votar la siguiente función; salir como caso de éxito si quieren. No se prometen extras mensuales de límites.
+>   - **Al terminar el año:** pierden el descuento y conservan el aro para siempre («Fundadora desde 2026») y el acceso anticipado.
 > - Pendiente de decidir: créditos de retoque por plan y precio del servicio de marca. Lo que sigue abajo queda como antecedente del 6 oct.
 
 Decisiones de Lewis del 6 de octubre de 2026, para probarlas con las primeras tiendas. **Los precios viven en la base (`planes`), no en el código**: Lewis los crea y los cambia desde `/admin` (docs/13 §9). Este documento dice qué crear y cómo se cobra; si algo no se confirma con las primeras tiendas, se cambia aquí y en el admin.

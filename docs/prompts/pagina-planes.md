@@ -1,6 +1,6 @@
 # Página pública de planes y planes nuevos en la base
 
-Encargo de Planning, 16 oct 2026. **Borrador: faltan respuestas de Lewis sobre el Círculo Deslizapp (al final). No lanzar todavía.** Tu puesto es **Coding**.
+Encargo de Planning, 16 oct 2026. **Borrador: falta aprobar el diseño del aro del Círculo. No lanzar todavía.** Tu puesto es **Coding**.
 
 **Diseño aprobado:** opción A del lienzo [Planes de Deslizapp · página](https://claude.ai/artifact/HLYkbe8yyF8Z8qfA2Sn75o), con el estilo de la página principal. Se copia a `referencias/planes/` antes de lanzar. **No copies su HTML.**
 
@@ -37,8 +37,11 @@ Migración nueva, siguiendo las reglas de `AGENTS.md`. Pregunta a Planning antes
 - **Abajo:** los botones «Cómo funciona» y «Quiero vender», como en la página principal, y «Precios en pesos dominicanos».
 - **Enlace a `/planes`:** desde la página principal (un enlace pequeño «Planes» en la cabecera) y desde el final de «Cómo funciona».
 
-## 3. Círculo Deslizapp (pendiente de definir con Lewis)
-Idea de Lewis: el **plan de fundadoras** se llama **Círculo Deslizapp** y usa el concepto de «Mejores amigos» de Instagram: un aro como el de esa función, pero con los colores de Deslizapp, que marca a las tiendas del círculo. **Beneficio confirmado: 30 % menos durante todo el primer año.** Antes de construirlo, Planning resuelve con Lewis las preguntas de `docs/14` («Círculo Deslizapp: preguntas abiertas»).
+## 3. Círculo Deslizapp
+Decisión completa en `docs/14` («Círculo Deslizapp», 16 oct). En este encargo:
+- **Base:** en la suscripción, `circulo_desde` (fecha) y `circulo_descuento_hasta` (fecha). Si ya existe una tabla de suscripciones, añádelo ahí; si no, en la tienda, y explícalo. El admin puede marcar y desmarcar una tienda como del Círculo. En Cobros, el monto sugerido aplica el 30 % mientras `circulo_descuento_hasta` sea futuro.
+- **El aro:** en el avatar de la tienda del panel, según el diseño del lienzo (cuando esté aprobado). Se ve mientras la tienda tenga `circulo_desde`, aunque ya no tenga descuento.
+- **En `/planes`:** la tarjeta de fundadoras explica el Círculo con el aro y sus beneficios, y su botón abre «Quiero vender». No promete cupos con números inventados.
 
 ## Pruebas
 - Tipos, lint, `npm test` y build.
