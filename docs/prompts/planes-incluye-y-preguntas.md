@@ -1,6 +1,6 @@
 # /planes: «Todos los planes traen» con vista previa y preguntas frecuentes en chat
 
-Encargo de Planning, 16 oct 2026. Lewis aprobó la idea de las dos piezas el 16 oct 2026; dos respuestas esperan su confirmación (ver abajo). **Va después de que se fusione el PR #139**, porque cambia la misma página. Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa).
+Encargo de Planning, 16 oct 2026. Lewis aprobó las dos piezas y sus textos el 16 oct 2026. **Va después de que se fusione el PR #139**, porque cambia la misma página. Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa).
 
 **Diseño:** lienzo [Planes de Deslizapp · página](https://claude.ai/artifact/HLYkbe8yyF8Z8qfA2Sn75o), tableros D y E2. Hay copias en `referencias/planes/`: `incluye-con-vista-previa.dc.html` y `preguntas-frecuentes-chat.dc.html`. Son prototipos: **no copies su HTML ni sus dibujos.** Cada vista previa se hace con los componentes reales de la app (lo pidió Lewis).
 
@@ -38,8 +38,9 @@ Encargo de Planning, 16 oct 2026. Lewis aprobó la idea de las dos piezas el 16 
   - Todas las preguntas con sus respuestas están también en el HTML: datos estructurados `FAQPage` y una lista oculta a la vista pero legible por lectores de pantalla. Así Google y quien no toque nada las tienen.
 - **Movimiento reducido:** sin «escribiendo…» ni rebote; la respuesta aparece directamente.
 - **Al final:** «¿Otra pregunta? Escríbenos por Instagram.» con el botón al `ENLACE_QUIERO_VENDER`. Es Instagram y no WhatsApp: el número de Lewis es personal.
-- **Textos:** los del tablero E2, con estas dos excepciones:
-  - **«¿Qué pasa cuando terminan los 30 días?» y «¿Cobran comisión por cada venta?» no se publican hasta que Lewis confirme sus respuestas.** Planning te avisará. Mientras tanto, déjalas fuera de la lista.
+- **Textos:** los del tablero E2. Lewis confirmó las dos respuestas pendientes el 16 oct 2026, con este cambio:
+  - **«¿Cobran comisión por cada venta?»:** «No. Hoy el pedido te llega por WhatsApp y el pago lo arreglas tú con tu cliente, así que no cobramos nada por venta.» Va así porque, si algún día hay pasarela de pagos, podría haber comisión: no se promete «nunca».
+  - **«¿Qué pasa cuando terminan los 30 días?»:** queda como en el tablero, «No se borra nada» incluido.
   - Las preguntas viven en un archivo de datos (`lib/planes/preguntas.ts`), no repartidas por el componente.
 
 ## Pruebas
