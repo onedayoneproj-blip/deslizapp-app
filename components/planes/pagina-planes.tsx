@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE } from "@/lib/landing/enlaces";
 import type { PlanPublico } from "@/lib/planes/planes";
-import { IconoBolsa, IconoCatalogo, IconoChispa, IconoClientes, IconoCorazon, IconoEtiqueta, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
+import { IconoBolsa, IconoChispa, IconoClientes, IconoCorazon, IconoEtiqueta, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
 import { LogoTienda } from "../panel/logo-tienda";
 import { FeedFondo } from "../inicio-publico/feed-fondo";
 import "../inicio-publico/pagina-principal.css";
@@ -10,7 +10,7 @@ import { ListaPlanes } from "./lista-planes";
 import "./pagina-planes.css";
 
 const INCLUYE = [
-  { Icono: IconoCatalogo, texto: "Tu catálogo que se desliza" },
+  { Icono: IconoInstagram, texto: "Tu catálogo que se desliza, listo para tu Instagram" },
   { Icono: IconoWhatsApp, texto: "Pedidos por WhatsApp" },
   { Icono: IconoPedidos, texto: "Panel de pedidos y existencias" },
   { Icono: IconoClientes, texto: "Clientes, abonos y lo pendiente" },
@@ -77,8 +77,8 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
         <aside className="pl-fundadoras" data-fundadoras>
           <LogoTienda tienda={TIENDA_EJEMPLO} tamano={96} />
           <span className="pl-fundadoras-sobre">¿eres de las primeras?</span>
-          <h2>Entras al Círculo Deslizapp</h2>
-          <p>Como los Close Friends de Instagram, pero con beneficios.</p>
+          <h2>Como los Close Friends de Instagram, pero con beneficios.</h2>
+          <p className="pl-fundadoras-entras">Entras al Círculo Deslizapp.</p>
           <ul className="pl-beneficios">
             {BENEFICIOS_CIRCULO.map(({ Icono, texto }) => (
               <li key={texto}>

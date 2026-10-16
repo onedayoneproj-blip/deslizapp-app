@@ -5,6 +5,7 @@ import { LogoTienda } from "@/components/panel/logo-tienda";
 import tokens from "@/referencias/sistema-de-diseno/tokens.json";
 import { CARTAS_JUGADAS, lineaJugada } from "@/lib/proxima-jugada";
 import {
+  IconoBarras,
   IconoBuscar,
   IconoCamion,
   IconoCheck,
@@ -811,6 +812,7 @@ function Iconos() {
     ["Despachar", <IconoCamion key="d" tamano={20} strokeWidth={2.2} />],
     ["Abono", <IconoMoneda key="m" tamano={20} strokeWidth={2.2} />],
     ["Abrir", <IconoChevronDerecha key="a" tamano={20} strokeWidth={2.2} />],
+    ["Crecer", <IconoBarras key="g" tamano={20} strokeWidth={2.2} />],
   ];
   return (
     <Seccion numero="15" titulo="Iconos" nota="Trazo 2.2, puntas redondeadas. 20 px normal, 24 en la barra, 16 en etiquetas.">

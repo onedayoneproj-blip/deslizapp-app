@@ -165,6 +165,20 @@ html:has(.pl) body {
   font-weight: 700;
   font-size: 26px;
 }
+.pl-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pl-insignia {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--marca-bosque);
+}
 .pl-etiqueta {
   position: absolute;
   top: -12px;
@@ -317,6 +331,10 @@ html:has(.pl) body {
   font-weight: 600;
   font-size: 14.5px;
   line-height: 1.4;
+}
+.pl-fundadoras .pl-fundadoras-entras {
+  font-size: 13px;
+  opacity: 0.8;
 }
 .pl-beneficios {
   display: flex;

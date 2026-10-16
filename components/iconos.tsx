@@ -146,6 +146,15 @@ export const IconoFlechaArriba = (p: Props) => (
   </Icono>
 );
 
+/** Tres barras que van subiendo (crecer): la insignia del plan Negocio en /planes. */
+export const IconoBarras = (p: Props) => (
+  <Icono {...p}>
+    <path d="M6 20v-5" />
+    <path d="M12 20V10" />
+    <path d="M18 20V4" />
+  </Icono>
+);
+
 export const IconoChevronAbajo = (p: Props) => (
   <Icono {...p}>
     <path d="m6 9 6 6 6-6" />

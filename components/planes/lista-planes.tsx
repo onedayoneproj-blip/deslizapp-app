@@ -3,13 +3,23 @@
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
 import { limitesDe, precioDe, type PlanPublico } from "@/lib/planes/planes";
-import { IconoCasa, IconoCatalogo, IconoClientes } from "../iconos";
+import { IconoBarras, IconoCasa, IconoCatalogo, IconoChispa, IconoClientes, IconoFlechaArriba } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
 const DIAS_DE_PRUEBA = 30;
 
 /** El icono de cada límite, los mismos de la app: Catálogo (productos), Casa (tiendas) y Clientes (el de «Tu equipo»). */
 const ICONO_LIMITE = { productos: IconoCatalogo, tiendas: IconoCasa, personas: IconoClientes } as const;
+
+/**
+ * La insignia de cada plan, a la izquierda del nombre (40 px): Inicial empieza (flecha que sube), Negocio crece (barras), Pro llega
+ * más lejos (chispa). Un plan nuevo sin insignia aquí sale sin ella.
+ */
+const INSIGNIA_PLAN: Record<string, { Icono: typeof IconoBarras; fondo: string }> = {
+  inicial: { Icono: IconoFlechaArriba, fondo: "#FBE4EB" },
+  negocio: { Icono: IconoBarras, fondo: "#FFD9C6" },
+  pro: { Icono: IconoChispa, fondo: "#F5C9D6" },
+};
 
 /** El selector Mensual / Anual y las tarjetas de cada plan. «Probar 30 días gratis» lleva a Google y, de ahí, al onboarding. */
 export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
@@ -58,7 +68,17 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
           return (
             <article key={p.id} className="pl-plan" data-destacado={p.destacado ? "si" : "no"} data-plan={p.id}>
               {p.destacado && <span className="pl-etiqueta">Para tienda que crece</span>}
-              <h2>{p.nombre}</h2>
+              <div className="pl-cabeza">
+                {INSIGNIA_PLAN[p.id] && (
+                  <span className="pl-insignia" style={{ background: INSIGNIA_PLAN[p.id]!.fondo }} data-insignia={p.id} aria-hidden="true">
+                    {(() => {
+                      const Icono = INSIGNIA_PLAN[p.id]!.Icono;
+                      return <Icono tamano={22} />;
+                    })()}
+                  </span>
+                )}
+                <h2>{p.nombre}</h2>
+              </div>
               <div className="pl-precio">
                 <b data-precio>{precio}</b>
                 <span>{periodo}</span>
