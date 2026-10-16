@@ -1,6 +1,6 @@
 # Medición de la página principal, «Cómo funciona» y los catálogos
 
-Encargo de Planning, 16 oct 2026. **Borrador: no lanzar hasta que Lewis lo apruebe.** Tu puesto es **Coding** (Sonnet). Parte de `main` actualizado.
+Encargo de Planning, 16 oct 2026. Aprobado por Lewis el 16 oct 2026. Tu puesto es **Coding** (Sonnet). Parte de `main` actualizado.
 
 ## Para qué
 Saber cuánta gente llega, de dónde viene y en qué paso se va, antes y después de cambiar la portada de «Cómo funciona» (`docs/prompts/conoce-portada-narrativa.md`). Por eso este encargo va **primero**: así hay al menos una semana de números del «antes».
