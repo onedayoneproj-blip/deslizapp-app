@@ -4,6 +4,9 @@ import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { URL_SITIO } from "@/lib/landing/enlaces";
 import { planesPublicos } from "@/lib/planes/servidor";
 
+// Next lee esta constante al compilar: tiene que ser un número escrito aquí (5 minutos, como en lib/planes/servidor.ts).
+export const revalidate = 300;
+
 const titulo = "Planes · deslizapp";
 const descripcion = "Paga por lo que vendes, no por lo que guardas. Elige tu plan y prueba 30 días gratis.";
 

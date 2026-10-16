@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Boton, Etiqueta, Tarjeta } from "@/components/ui";
 import { Hoja } from "@/components/hoja";
 import { useAdmin } from "@/lib/data/admin/provider";
-import { sumarMeses, diaRD } from "@/lib/admin/reglas";
-import { conDescuentoCirculo, DESCUENTO_CIRCULO, descuentoVigente } from "@/lib/circulo";
+import { sumarMeses } from "@/lib/admin/reglas";
+import { DESCUENTO_CIRCULO, hoyCirculo, montoMensualSugerido, NOTA_ANUAL_CIRCULO } from "@/lib/circulo";
 import type { CirculoTienda } from "@/lib/types";
 
 const fecha = (v: string) => new Intl.DateTimeFormat("es-DO", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }).format(new Date(v.slice(0, 10) + "T00:00:00Z"));
@@ -22,18 +22,23 @@ export function TarjetaCirculoAdmin({ tiendaId, precioMensual, pruebaHasta }: { 
   const [hasta, setHasta] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
-  const [hoy] = useState(() => diaRD(Date.now()));
+  const [hoy] = useState(() => hoyCirculo());
 
-  const leer = useCallback(async () => {
+  // `avisar`: decir que la lectura falló. Tras guardar no se dice (la escritura ya salió bien).
+  const leer = useCallback(async (avisar = true) => {
     try {
       setCirculo(await admin.circuloTienda(tiendaId));
+      return true;
     } catch {
-      setCirculo(null);
-      setAviso("No pudimos leer el Círculo de esta tienda.");
+      if (avisar) {
+        setCirculo(null);
+        setAviso("No pudimos leer el Círculo de esta tienda.");
+      }
+      return false;
     }
   }, [admin, tiendaId]);
   useEffect(() => {
-    const id = window.setTimeout(() => void leer(), 0);
+    const id = window.setTimeout(() => void leer(true), 0);
     return () => window.clearTimeout(id);
   }, [leer]);
 
@@ -47,17 +52,21 @@ export function TarjetaCirculoAdmin({ tiendaId, precioMensual, pruebaHasta }: { 
     setOcupado(true);
     setAviso(null);
     try {
-      setCirculo(await admin.marcarCirculo(tiendaId, marcar, fin));
-      setAbierta(false);
+      await admin.marcarCirculo(tiendaId, marcar, fin);
     } catch {
       setAviso("No se pudo guardar. Inténtalo otra vez.");
-    } finally {
       setOcupado(false);
+      return;
     }
+    // Guardado: se vuelve a leer; si solo falla la lectura, no se muestra error.
+    setAbierta(false);
+    setAviso("Guardado.");
+    if (await leer(false)) setAviso(null);
+    setOcupado(false);
   };
 
   if (circulo === undefined) return null;
-  const vigente = descuentoVigente(circulo, hoy);
+  const sugerido = precioMensual !== null ? montoMensualSugerido(precioMensual, circulo, pruebaHasta, hoy) : null;
   return (
     <Tarjeta className="mt-3" data-circulo-admin="">
       <div className="flex items-start justify-between gap-2">
@@ -69,10 +78,14 @@ export function TarjetaCirculoAdmin({ tiendaId, precioMensual, pruebaHasta }: { 
           <p className="mt-2 text-secundario text-texto-secundario">
             Desde {fecha(circulo.desde)} · {circulo.descuentoHasta ? `${DESCUENTO_CIRCULO} % menos hasta ${fecha(circulo.descuentoHasta)}` : "sin descuento"}. Todas las tiendas de su titular llevan el aro.
           </p>
-          {precioMensual !== null && (
-            <p className="mt-1 text-secundario" data-monto-sugerido="">
-              Monto sugerido: <strong>{monto(vigente ? conDescuentoCirculo(precioMensual) : precioMensual)}</strong> al mes{vigente ? ` (${monto(precioMensual)} con el ${DESCUENTO_CIRCULO} % menos)` : ""}.
-            </p>
+          {sugerido && precioMensual !== null && (
+            <div className="mt-1 text-secundario" data-monto-sugerido="">
+              <p>
+                Monto sugerido: <strong>{monto(sugerido.monto)}</strong> al mes{sugerido.conDescuento ? ` (${monto(precioMensual)} con el ${DESCUENTO_CIRCULO} % menos)` : ""}.
+                {sugerido.nota ? ` ${sugerido.nota}` : ""}
+              </p>
+              <p className="text-texto-secundario">{NOTA_ANUAL_CIRCULO}</p>
+            </div>
           )}
         </>
       ) : (

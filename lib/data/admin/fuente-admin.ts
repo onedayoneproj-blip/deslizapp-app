@@ -132,7 +132,7 @@ export interface FuenteAdmin {
   /** Círculo Deslizapp (docs/14): el de esta tienda (el de su titular), o null si no es del Círculo. */
   circuloTienda(tiendaId: string): Promise<CirculoTienda | null>;
   /** Marca o desmarca a la tienda (a su titular). `descuentoHasta` (AAAA-MM-DD) es dónde acaba el 30 %; null = sin descuento (el aro se queda). */
-  marcarCirculo(tiendaId: string, marcar: boolean, descuentoHasta?: string | null): Promise<CirculoTienda | null>;
+  marcarCirculo(tiendaId: string, marcar: boolean, descuentoHasta?: string | null): Promise<void>;
   salud(): Promise<SaludAdmin>;
   registro(
     filtro?: FiltroRegistro,

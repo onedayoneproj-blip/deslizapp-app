@@ -1,6 +1,6 @@
 // Lee en el servidor los planes que se ofrecen (tabla `planes`, se_ofrece = true), con la llave pública. Se revalidan cada 5 minutos.
 import { createClient } from "@supabase/supabase-js";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import { SUPABASE_LLAVE, SUPABASE_URL } from "../supabase/config";
 import { COLUMNAS_PLAN_PUBLICO, planDesdeFila, planesMostrables, type FilaPlanPublico, type PlanPublico } from "./planes";
 
@@ -19,11 +19,15 @@ export async function leerPlanesDeLaBase(): Promise<PlanPublico[]> {
 
 const planesEnCache = unstable_cache(leerPlanesDeLaBase, ["planes-publicos"], { revalidate: SEGUNDOS_REVALIDAR_PLANES, tags: ["planes"] });
 
-/** Los planes de la página. Si la base no responde, lista vacía (la página lo dice; nunca precios inventados). */
+/**
+ * Los planes de la página. Si la base no responde, lista vacía (la página lo dice; nunca precios inventados) y esa respuesta no se
+ * guarda: `unstable_cache` no guarda los errores y `noStore()` saca de la caché la página de esa vez, así el siguiente intento vuelve a leer.
+ */
 export async function planesPublicos(): Promise<PlanPublico[]> {
   try {
     return await planesEnCache();
   } catch {
+    noStore();
     return [];
   }
 }

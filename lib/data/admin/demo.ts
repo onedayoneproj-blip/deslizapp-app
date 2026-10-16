@@ -1059,7 +1059,7 @@ export function crearFuenteAdminDemo(
         if (marcar) e.circulos[id] = { desde: e.circulos[id]?.desde ?? hoy(), descuentoHasta: descuentoHasta ?? null };
         else delete e.circulos[id];
         anotar(id, marcar ? "circulo_marcar" : "circulo_quitar", { descuento_hasta: descuentoHasta ?? null });
-        return e.circulos[id] ?? null;
+        return undefined;
       }),
     salud: () =>
       leer(() => ({

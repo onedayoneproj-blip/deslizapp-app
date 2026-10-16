@@ -21,7 +21,7 @@ import { AccesoAdmin } from "./acceso-admin";
 import { FilaCuenta } from "./cuenta";
 import { LogoTienda } from "./logo-tienda";
 import { TarjetaCirculo } from "./tarjeta-circulo";
-import { hoyLocal } from "@/lib/promos";
+import { hoyCirculo } from "@/lib/circulo";
 import { usePanelUI } from "./ui";
 import { HojaInstalarApp, useMarcarInstalada } from "../pwa/hoja-instalar-app";
 import { useAppInstalada, useEsIos, useInstalarPwa } from "../pwa/instalar-pwa";
@@ -256,7 +256,7 @@ export function MenuTienda({ abierto, alCerrar }: { abierto: boolean; alCerrar: 
         </div>
       )}
 
-      {activa?.circulo && <TarjetaCirculo tienda={activa} hoy={hoyLocal()} />}
+      {activa?.circulo && <TarjetaCirculo tienda={activa} hoy={hoyCirculo()} />}
 
       {otras.length > 0 && (
         <ul className="mt-2 space-y-2" aria-label="Tus otras tiendas">

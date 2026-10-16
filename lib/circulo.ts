@@ -1,5 +1,9 @@
 // Círculo Deslizapp (docs/14, referencias/circulo): las fundadoras. Puro: tests/circulo.test.mjs.
+import { hoyLocal } from "./promos";
 import type { CirculoTienda } from "./types";
+
+/** El día de hoy en Santo Domingo ("AAAA-MM-DD"): el mismo para la tarjeta del panel y la del admin. */
+export const hoyCirculo = (ahora: Date = new Date()): string => hoyLocal(ahora);
 
 /** El descuento de las fundadoras sobre su plan (docs/14: 30 % menos el primer año). */
 export const DESCUENTO_CIRCULO = 30;
@@ -26,3 +30,21 @@ export function textoDescuento(c: CirculoTienda, hoy: string): string {
 
 /** Precio sugerido con el 30 % aplicado, redondeado al peso. */
 export const conDescuentoCirculo = (precio: number): number => Math.round((precio * (100 - DESCUENTO_CIRCULO)) / 100);
+
+/**
+ * El monto mensual sugerido de una tienda del Círculo (docs/14): el 30 % empieza al terminar la prueba (mientras `pruebaHasta` sea
+ * hoy o futuro, va el precio normal) y solo vale para el pago mensual; en anual va el precio normal (el descuento de fundadora no se
+ * combina con el anual).
+ */
+export function montoMensualSugerido(
+  precio: number,
+  circulo: CirculoTienda | null | undefined,
+  pruebaHasta: string | null,
+  hoy: string,
+): { monto: number; conDescuento: boolean; nota: string | null } {
+  if (!descuentoVigente(circulo, hoy)) return { monto: precio, conDescuento: false, nota: null };
+  if (pruebaHasta && pruebaHasta.slice(0, 10) >= hoy) return { monto: precio, conDescuento: false, nota: "El 30 % empieza al terminar la prueba." };
+  return { monto: conDescuentoCirculo(precio), conDescuento: true, nota: null };
+}
+
+export const NOTA_ANUAL_CIRCULO = "Si paga al año, va el precio normal: el descuento de fundadora no se combina con el anual.";
