@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>A en reel · Ya estás al día</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&amp;family=Manrope:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{opacity:.85}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{principal}}; color: #FFFFFF; font-family: Manrope, system-ui, sans-serif">
+  <div style="position: absolute; inset: -40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); filter: blur(22px) saturate(1.1); transform: scale(1.08)">
+    <img src="/_blob/7f3c75c19a3edd4b3df781c99532e33e" alt="" style="width: 100%; height: 100%; object-fit: cover">
+    <img src="/_blob/a8fd519c59470069a7d0714b6adb740d" alt="" style="width: 100%; height: 100%; object-fit: cover">
+    <img src="/_blob/128c4813ebad83ba5080973229e643c5" alt="" style="width: 100%; height: 100%; object-fit: cover">
+    <img src="/_blob/7f3c75c19a3edd4b3df781c99532e33e" alt="" style="width: 100%; height: 100%; object-fit: cover">
+  </div>
+  <div style="position: absolute; inset: 0; background: {{velo}}"></div>
+  <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,.35), transparent 22%, transparent 55%, rgba(0,0,0,.55))"></div>
+
+  <div style="position: absolute; left: 0; right: 0; top: 0; padding: 62px 18px 0; display: flex; flex-direction: column; align-items: center; gap: 12px">
+    <div style="width: 100%; display: flex; align-items: center; justify-content: space-between">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+      <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; font-size: 26px">Tu Tienda</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4M12 16.8v.2"></path></svg>
+    </div>
+    <div style="display: flex; gap: 22px; font-weight: 800; font-size: 16px"><span>Novedades</span><span style="opacity: .6">Catálogos</span></div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; top: 190px; display: flex; flex-direction: column; align-items: center; text-align: center">
+    <div style="width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(from 210deg, {{acento}}, #FFFFFF, {{acento}}); display: flex; align-items: center; justify-content: center">
+      <div style="width: 88px; height: 88px; border-radius: 50%; background: {{principal}}; display: flex; align-items: center; justify-content: center">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg>
+      </div>
+    </div>
+    <h2 style="margin: 18px 0 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; font-size: 40px; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,.25)">Ya estás al día</h2>
+    <p style="margin: 8px 0 0; font-size: 15px; opacity: .9">Viste los 9 productos de Tu Tienda</p>
+  </div>
+
+  <div style="position: absolute; left: 16px; right: 16px; top: 440px; display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .85">Sigue viendo</span>
+    <div style="display: flex; gap: 12px">
+      <sc-for list="{{destacadas}}" as="d" hint-placeholder-count="4">
+        <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; width: 58px">
+          <span style="width: 58px; height: 58px; border-radius: 50%; padding: 2.5px; box-sizing: border-box; background: conic-gradient(from 200deg, {{acento}}, #FFFFFF, {{acento}}); display: block"><span style="display: block; width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid {{principal}}; box-sizing: border-box; overflow: hidden"><img src="{{d.foto}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></span></span>
+          <span style="font-size: 12px; font-weight: 700">{{d.nombre}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+
+  <div style="position: absolute; left: 16px; right: 16px; bottom: 38px; display: flex; flex-direction: column; gap: 8px; text-shadow: 0 1px 3px rgba(0,0,0,.35)">
+    <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14.5px"><span style="width: 30px; height: 30px; border-radius: 50%; background: {{principal}}; border: 2px solid #FFFFFF; box-sizing: border-box; display: block"></span>@tutienda</span>
+    <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; font-size: 28px; line-height: 1.05">Te gustaron 3</span>
+    <div style="display: flex; align-items: center; gap: 6px">
+      <img src="/_blob/7f3c75c19a3edd4b3df781c99532e33e" alt="Gorra" style="width: 44px; height: 54px; border-radius: 10px; object-fit: cover; border: 2px solid #FFFFFF; box-sizing: border-box">
+      <img src="/_blob/a8fd519c59470069a7d0714b6adb740d" alt="Termo" style="width: 44px; height: 54px; border-radius: 10px; object-fit: cover; border: 2px solid #FFFFFF; box-sizing: border-box">
+      <img src="/_blob/128c4813ebad83ba5080973229e643c5" alt="Tote" style="width: 44px; height: 54px; border-radius: 10px; object-fit: cover; border: 2px solid #FFFFFF; box-sizing: border-box">
+      <b style="margin-left: 6px; font-weight: 800; font-size: 16px">RD$3,850</b>
+    </div>
+    <button type="button" style="margin-top: 4px; height: 50px; border: 0; border-radius: 999px; background: #FFFFFF; color: {{principal}}; font-family: Manrope, system-ui, sans-serif; font-weight: 800; font-size: 15.5px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-shadow: none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.6a8.4 8.4 0 0 1-12.4 7.4L3.5 20.5l1.6-4.5A8.4 8.4 0 1 1 20.5 11.6z"></path></svg>
+      Pedir los 3 por WhatsApp
+    </button>
+    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700">
+      <a href="#" style="text-decoration: none">Ver o cambiar mi pedido</a>
+      <a href="#" style="text-decoration: none; display: flex; align-items: center; gap: 5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>Volver al primero</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"principal":{"editor":"color","default":"#6B2E4A","options":["#6B2E4A","#174B3A","#1F3A68","#B4532A"],"section":"Marca de la tienda"},"acento":{"editor":"color","default":"#E2A84B","options":["#E2A84B","#FF834F","#F5C9D6","#7FC8A9"],"section":"Marca de la tienda"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const principal = this.props.principal ?? '#6B2E4A';
+    const acento = this.props.acento ?? '#E2A84B';
+    const h = (i) => parseInt(principal.slice(i, i + 2), 16);
+    return {
+      principal, acento,
+      velo: `rgba(${h(1)}, ${h(3)}, ${h(5)}, 0.62)`,
+      destacadas: [
+        { nombre: 'Gorras', foto: '/_blob/7f3c75c19a3edd4b3df781c99532e33e' },
+        { nombre: 'Termos', foto: '/_blob/a8fd519c59470069a7d0714b6adb740d' },
+        { nombre: 'Totes', foto: '/_blob/128c4813ebad83ba5080973229e643c5' },
+        { nombre: 'Todo', foto: '/_blob/dac79d138a1af2342c1e039942e30af4' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
