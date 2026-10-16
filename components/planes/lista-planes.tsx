@@ -3,17 +3,13 @@
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
 import { limitesDe, precioDe, type PlanPublico } from "@/lib/planes/planes";
+import { IconoCasa, IconoCatalogo, IconoClientes } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
 
 const DIAS_DE_PRUEBA = 30;
 
-function IconoVisto() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M5 12.5l4.2 4.2L19 7" />
-    </svg>
-  );
-}
+/** El icono de cada límite, los mismos de la app: Catálogo (productos), Casa (tiendas) y Clientes (el de «Tu equipo»). */
+const ICONO_LIMITE = { productos: IconoCatalogo, tiendas: IconoCasa, personas: IconoClientes } as const;
 
 /** El selector Mensual / Anual y las tarjetas de cada plan. «Probar 30 días gratis» lleva a Google y, de ahí, al onboarding. */
 export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
@@ -70,12 +66,15 @@ export function ListaPlanes({ planes }: { planes: PlanPublico[] }) {
               {nota && <span className="pl-nota">{nota}</span>}
               {p.idealPara && <p className="pl-ideal">{p.idealPara}</p>}
               <ul>
-                {limitesDe(p).map((t) => (
-                  <li key={t}>
-                    <IconoVisto />
-                    {t}
-                  </li>
-                ))}
+                {limitesDe(p).map((l) => {
+                  const Icono = ICONO_LIMITE[l.clave];
+                  return (
+                    <li key={l.clave} data-limite={l.clave}>
+                      <Icono tamano={20} />
+                      {l.texto}
+                    </li>
+                  );
+                })}
               </ul>
               <button type="button" className="pl-probar tocable" onClick={() => void probar()} disabled={entrando} data-cta="probar">
                 {entrando ? "Abriendo Google…" : `Probar ${DIAS_DE_PRUEBA} días gratis`}

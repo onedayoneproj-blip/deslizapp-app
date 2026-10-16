@@ -61,11 +61,13 @@ export function precioDe(p: PlanPublico, anual: boolean): { precio: string; peri
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
-/** Los límites con ✓ de la tarjeta, en el mismo orden para todos los planes. */
-export function limitesDe(p: PlanPublico): string[] {
+export type LimitePlan = { clave: "productos" | "tiendas" | "personas"; texto: string };
+
+/** Los límites de la tarjeta, en el mismo orden para todos los planes (cada uno lleva su icono en la página). */
+export function limitesDe(p: PlanPublico): LimitePlan[] {
   return [
-    p.limiteProductos == null ? "Productos publicados sin límite" : `${plural(p.limiteProductos, "producto publicado", "productos publicados")}`,
-    p.limiteTiendas == null ? "Todas las tiendas que quieras" : p.limiteTiendas === 1 ? "1 tienda" : `Hasta ${p.limiteTiendas} tiendas`,
-    p.limitePersonas == null ? "Equipo sin límite" : p.limitePersonas === 1 ? "1 persona" : `Hasta ${p.limitePersonas} personas en tu equipo`,
+    { clave: "productos", texto: p.limiteProductos == null ? "Productos publicados sin límite" : plural(p.limiteProductos, "producto publicado", "productos publicados") },
+    { clave: "tiendas", texto: p.limiteTiendas == null ? "Todas las tiendas que quieras" : p.limiteTiendas === 1 ? "1 tienda" : `Hasta ${p.limiteTiendas} tiendas` },
+    { clave: "personas", texto: p.limitePersonas == null ? "Equipo sin límite" : p.limitePersonas === 1 ? "1 persona" : `Hasta ${p.limitePersonas} personas en tu equipo` },
   ];
 }

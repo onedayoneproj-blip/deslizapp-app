@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { PaginaPlanes } from "@/components/planes/pagina-planes";
 import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { URL_SITIO } from "@/lib/landing/enlaces";
@@ -9,6 +9,9 @@ export const revalidate = 300;
 
 const titulo = "Planes · deslizapp";
 const descripcion = "Paga por lo que vendes, no por lo que guardas. Elige tu plan y prueba 30 días gratis.";
+
+// La barra de estado en Bosque desde el primer pintado, como la página principal.
+export const viewport: Viewport = { themeColor: "#174B3A" };
 
 export const metadata: Metadata = {
   metadataBase: new URL(URL_SITIO),

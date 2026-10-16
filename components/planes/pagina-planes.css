@@ -1,5 +1,12 @@
 /* /planes (components/planes, docs/prompts/pagina-planes.md): el estilo de la página principal (fondo Bosque y el feed en columnas
    de ../inicio-publico/pagina-principal.css), con la página corriendo hacia abajo en vez de llenar una pantalla. */
+/* El documento entero en Bosque desde el primer pintado (barra de estado, rebote del scroll): como la página principal, que lo pone
+   con JS (vivo.tsx). Aquí no hace falta esperar al JS: :has() lo resuelve en CSS. El theme-color va en app/planes/page.tsx. */
+html:has(.pl),
+html:has(.pl) body {
+  background: var(--marca-bosque);
+}
+
 .pl {
   position: relative;
   isolation: isolate;
@@ -268,6 +275,10 @@
   list-style: none;
 }
 .pl-incluye li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   padding: 12px;
   border-radius: 16px;
   background: rgba(255, 249, 238, 0.08);
@@ -279,6 +290,8 @@
 .pl-fundadoras {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 6px;
   margin-top: 10px;
   padding: 18px;
@@ -287,6 +300,7 @@
   color: var(--marca-bosque);
 }
 .pl-fundadoras-sobre {
+  margin-top: 4px;
   font-family: var(--font-mano);
   font-weight: 700;
   font-size: 22px;
@@ -304,7 +318,30 @@
   font-size: 14.5px;
   line-height: 1.4;
 }
+.pl-beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.pl-beneficios li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.pl-beneficios svg {
+  flex: none;
+  margin-top: 1px;
+}
 .pl-fundadoras-boton {
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
