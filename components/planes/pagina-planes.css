@@ -411,20 +411,19 @@ html:has(.pl) body {
   color: var(--marca-bosque);
   scroll-snap-align: center;
 }
-/* La vista previa (250 px): piezas reales de la app con datos de ejemplo. Lo que no cabe se recorta, como una pantalla. */
+/* La vista previa (376 px: una pantalla de teléfono de 200×352 con aire alrededor): piezas reales de la app con datos de ejemplo. Lo que no cabe se recorta, como una pantalla. */
 .pl-vista {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 250px;
-  padding: 16px;
+  height: 376px;
+  padding: 12px;
   overflow: hidden;
   pointer-events: none;
   user-select: none;
 }
 .pl-vista[data-vista="bio"] {
-  align-items: flex-start;
   background: #fbe4eb;
 }
 .pl-vista[data-vista="whatsapp"] {
@@ -436,25 +435,8 @@ html:has(.pl) body {
 .pl-vista[data-vista="clientes"] {
   background: #e7f2ea;
 }
-.pl-vp-perfil {
-  width: 224px;
-  margin-top: -6px;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 10px 24px rgba(23, 75, 58, 0.14);
-}
-/* El toque de quien abre el enlace: un pulso suave (sin movimiento reducido, quieto). */
-.pl-vp-perfil .pt-enlace {
-  animation: pl-toque 1.6s ease-in-out infinite;
-}
-@keyframes pl-toque {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.95);
-  }
+.pl-vp-bio {
+  width: 200px;
 }
 .pl-vp-chat {
   display: flex;
@@ -467,7 +449,7 @@ html:has(.pl) body {
 .pl-vp-chat .bc {
   --aire: 7px;
   max-width: 100%;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.22;
 }
 .pl-vp-chat .bc[data-bc="enviado"] {
@@ -482,13 +464,13 @@ html:has(.pl) body {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
-/* Las piezas del panel están hechas para una pantalla de teléfono: aquí se ven al 88 % para que los nombres no se corten. */
+/* Las piezas del panel están hechas para una pantalla de teléfono: aquí se ven al 95 % para que los nombres no se corten. */
 .pl-vp-panel {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  zoom: 0.88;
+  zoom: 0.95;
 }
 .pl-tj-pie {
   display: flex;
@@ -725,8 +707,7 @@ html:has(.pl) body {
 /* Movimiento reducido: sin rebote al llegar, sin puntos que saltan ni pulso en el enlace. */
 @media (prefers-reduced-motion: reduce) {
   .pl-chat-fila .bc,
-  .pl-chat-escribe i,
-  .pl-vp-perfil .pt-enlace {
+  .pl-chat-escribe i {
     animation: none;
   }
   .pl-puntos span {

@@ -5,13 +5,13 @@ import { BurbujaChat } from "../chat/burbuja-chat";
 import { DetalleStock } from "../catalogo/detalle-stock";
 import { MiniaturaProducto } from "../catalogo/miniatura-producto";
 import { FilaCliente } from "../clientes/fila-cliente";
-import { PerfilTienda } from "../landing/perfil-tienda";
+import { PerfilACatalogo } from "../landing/perfil-a-catalogo";
 import { TarjetaPedido } from "../pedidos/tarjeta-pedido";
 import { FilaLista, ListaAgrupada } from "../ui";
 
 /**
  * La vista previa de cada tarjeta de «Todos los planes traen» (docs/prompts/planes-incluye-y-preguntas.md §1): las piezas reales de
- * la app (el perfil de «Cómo funciona», las burbujas y el mensaje del catálogo, la tarjeta de pedido, la fila de existencias y la de
+ * la app (el perfil y el navegador de «Cómo funciona» en una animación, las burbujas y el mensaje del catálogo, la tarjeta de pedido, la fila de existencias y la de
  * cliente) con datos de ejemplo y sin acciones. Es decoración: el texto de abajo de cada tarjeta dice lo mismo, así que quien la monta
  * la esconde a los lectores de pantalla. Va en el servidor: lo único que se manda al navegador es el HTML.
  */
@@ -19,8 +19,8 @@ export function VistaPrevia({ id, ahora }: { id: IdIncluye; ahora: number }) {
   switch (id) {
     case "bio":
       return (
-        <div className="pl-vp-perfil">
-          <PerfilTienda />
+        <div className="pl-vp-bio">
+          <PerfilACatalogo />
         </div>
       );
     case "whatsapp":

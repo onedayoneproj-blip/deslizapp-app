@@ -1,0 +1,102 @@
+/* La hoja del navegador (components/landing/navegador-instagram.tsx). Todo en cqw y con tamaños fijos: nada se estira. */
+.nv {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #15181c;
+  color: #f3f5f7;
+  font-family: var(--font-sans);
+}
+.nv-arriba {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2cqw;
+  padding: 8.5cqw 3.5cqw 2cqw;
+}
+.nv-boton {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 9.5cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+}
+.nv-boton svg {
+  width: 4.8cqw;
+  height: 4.8cqw;
+}
+.nv-mas {
+  font-weight: 800;
+  font-size: 3.6cqw;
+  line-height: 1;
+}
+.nv-url {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6cqw;
+  min-width: 0;
+  line-height: 1;
+}
+.nv-url b {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  font-weight: 700;
+  font-size: 3.5cqw;
+  white-space: nowrap;
+}
+.nv-url b svg {
+  flex: none;
+  width: 3cqw;
+  height: 3cqw;
+}
+.nv-url > span {
+  color: #8b949d;
+  font-size: 2.9cqw;
+}
+.nv-progreso {
+  position: relative;
+  flex: none;
+  height: 0.7cqw;
+  background: #2b3036;
+}
+.nv-progreso i {
+  position: absolute;
+  inset: 0;
+  background: #29a3e6;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.nv-cuerpo {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+.nv-abajo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  height: 13cqw;
+  padding: 0 2cqw 2.5cqw;
+  color: #e9edf0;
+}
+.nv-abajo svg {
+  flex: none;
+  width: 5.4cqw;
+  height: 5.4cqw;
+}
+.nv-abajo .nv-quieto {
+  color: #59616a;
+}
