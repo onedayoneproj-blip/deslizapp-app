@@ -33,25 +33,33 @@ test("lo que ve la compradora usa estadoComprador", () => {
   assert.equal(demo.VISTA_PREVIA_DEMO.descripcion, "2 productos · RD$1,500");
 });
 
-test("los pasos siguen el guion: compradora, luego tienda, y todos los capítulos", () => {
+test("los pasos siguen el guion: el dolor, el enlace, la compradora, el cambio de lado, la tienda, y todos los capítulos", () => {
   assert.deepEqual(
     PASOS.map((p) => p.id),
-    ["intro", "hola", "pasa", "aaah-termo", "aaah-tote", "bolsa", "whatsapp", "seguimiento", "cambio", "aviso", "chat-tienda", "eres-tienda", "registrar", "pedidos", "confirmar", "despachar"],
+    ["dolor-dm", "dolor-chats", "post", "perfil", "navegador", "hola", "pasa", "aaah-termo", "aaah-tote", "bolsa", "whatsapp", "seguimiento", "cambio-lado", "cambio", "aviso", "chat-tienda", "eres-tienda", "registrar", "pedidos", "confirmar", "despachar"],
   );
   const primeroTienda = PASOS.findIndex((p) => p.telefono === "tienda");
-  assert.ok(PASOS.slice(0, primeroTienda).every((p) => p.lado === "compras" && p.telefono === "compradora"));
+  assert.equal(PASOS[primeroTienda].id, "cambio-lado", "el cambio de lado abre la tienda");
+  assert.ok(PASOS.slice(0, primeroTienda).every((p) => p.telefono === "compradora"));
   assert.ok(PASOS.slice(primeroTienda).every((p) => p.lado === "tienda" && p.telefono === "tienda"));
+  // Las dos pantallas del dolor son neutras (arena); el color de la marca entra con el post; desde ahí, rosa hasta el cambio de lado.
+  assert.deepEqual(PASOS.slice(0, 2).map((p) => [p.id, p.lado]), [["dolor-dm", "antes"], ["dolor-chats", "antes"]]);
+  assert.ok(PASOS.slice(2, primeroTienda).every((p) => p.lado === "compras"));
+  // Las pantallas nuevas llevan `escena` (no son páginas de la app); las de siempre, no.
+  assert.deepEqual(PASOS.filter((p) => p.escena).map((p) => [p.id, p.escena]), ["dolor-dm", "dolor-chats", "post", "perfil", "navegador", "cambio-lado"].map((id) => [id, id]));
   assert.deepEqual([...new Set(PASOS.map((p) => p.capitulo))], Array.from({ length: CAPITULOS }, (_, i) => i + 1));
   // El índice: una palabra por capítulo y cada una lleva a su primer paso.
-  assert.deepEqual([...CAPITULOS_NOMBRES], ["Elige", "Envía", "Sigue", "Te llega", "Registra", "Despacha"]);
-  assert.deepEqual(CAPITULOS_NOMBRES.map((_, i) => PASOS[primerPasoDe(i + 1)].id), ["intro", "bolsa", "seguimiento", "cambio", "eres-tienda", "confirmar"]);
-  // La portada no lleva burbuja (invita a deslizar su pantalla de bloqueo); los demás pasos, sí.
-  for (const p of PASOS) assert.ok((p.id === "intro" ? p.burbuja === null : p.burbuja?.texto.trim()) && p.duracion > 0 && p.fases >= 0, p.id);
+  assert.deepEqual([...CAPITULOS_NOMBRES], ["Antes", "Enlace", "Elige", "Envía", "Sigue", "Te llega", "Registra", "Despacha"]);
+  assert.deepEqual(CAPITULOS_NOMBRES.map((_, i) => PASOS[primerPasoDe(i + 1)].id), ["dolor-dm", "post", "hola", "bolsa", "seguimiento", "cambio-lado", "eres-tienda", "confirmar"]);
+  // El cambio de lado no lleva burbuja (su texto va en la propia pantalla); los demás pasos, sí.
+  for (const p of PASOS) assert.ok((p.id === "cambio-lado" ? p.burbuja === null : p.burbuja?.texto.trim()) && p.duracion > 0 && p.fases >= 0, p.id);
   // Las rayas finas del indicador: una por toque en los pasos de toques (probar-landing comprueba los toques reales).
   assert.ok(PASOS.filter((p) => p.dedo === "toque").every((p) => p.fases > 0));
-  // El ♥ es el dedo: no se ve en los pasos sin toque ni viaje; el único viaje cruza de un teléfono al otro.
-  assert.deepEqual(PASOS.filter((p) => p.dedo === "no").map((p) => p.id), ["intro", "hola", "pasa", "aviso"]);
-  assert.deepEqual(PASOS.filter((p) => p.dedo === "viaje").map((p) => [p.id, p.viaje.desde[0], p.viaje.hasta[0]]), [["cambio", "compradora", "tienda"]]);
+  // El ♥ es el dedo: no se ve en los pasos sin toque ni viaje. Ningún paso lo lleva ya de un teléfono al otro (el cambio de lado es una
+  // pantalla propia entre los dos), pero el controlador sigue sabiendo hacerlo.
+  assert.deepEqual(PASOS.filter((p) => p.dedo === "no").map((p) => p.id), ["dolor-dm", "dolor-chats", "post", "navegador", "hola", "pasa", "cambio-lado", "cambio", "aviso"]);
+  assert.deepEqual(PASOS.filter((p) => p.dedo === "viaje"), []);
+  assert.equal(PASOS.find((p) => p.dedo === "toque" && p.escena)?.id, "perfil", "el toque en el enlace del perfil");
 });
 
 test("los iconos de las burbujas: cada palabra marcada sale en su texto, y como mucho dos por burbuja", () => {
@@ -70,6 +78,7 @@ test("los iconos de las burbujas: cada palabra marcada sale en su texto, y como 
 
 test("la bolsa cuenta con los pasos y retrocede igual", () => {
   assert.equal(estadoPaso(0).bolsa, 0);
+  assert.equal(estadoPaso(indicePaso("navegador")).bolsa, 0, "la bolsa empieza vacía al abrir el catálogo");
   assert.equal(estadoPaso(indicePaso("pasa")).bolsa, 0, "la gorra pasa sin like");
   assert.equal(estadoPaso(indicePaso("aaah-termo")).total, 950);
   assert.equal(estadoPaso(indicePaso("aaah-tote")).total, 1500);

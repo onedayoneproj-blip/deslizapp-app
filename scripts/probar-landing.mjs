@@ -1,13 +1,14 @@
 // Uso: con la app corriendo (npm run dev o npm start), `node scripts/probar-landing.mjs [url]`.
-// La landing de deslizapp.com por pasos (referencias/landing/ajustes-lewis-2.md y -3.md) a 360×640, 393×852, 430×932 y 1440×900:
-// avanzar paso a paso (la bienvenida con el logo antes del teléfono; burbuja completa y sin desenfoque, que no tapa la pantalla;
+// La landing de deslizapp.com por pasos (referencias/landing/ajustes-lewis-2.md y -3.md, docs/prompts/conoce-portada-narrativa.md) a
+// 360×640, 393×852, 430×932 y 1440×900: avanzar paso a paso (el dolor de quien vende, el post, el perfil y el navegador de Instagram
+// antes del catálogo, y el cambio de lado entre quien compra y la tienda; burbuja completa y sin desenfoque, que no tapa la pantalla;
 // estado del teléfono: bolsa, total y código; el mockup entero y la página llenando su pantalla; el reel y la bolsa como en la app;
 // el ♥ como dedo: en cada toque y en el viaje, oculto en los demás; el índice; el fondo de cada persona), el índice lleva a cada
 // capítulo, retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
-// movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura por paso
-// (393×852 y 1440×900) en docs/capturas/landing/.
+// movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura de cada pantalla
+// nueva (360×640, 393×852 y 1440×900) en docs/capturas/conoce-portada-narrativa/.
 import { createRequire } from "node:module";
-import { mkdirSync, statSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
@@ -17,6 +18,7 @@ const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/l
 
 const base = process.argv[2] ?? "http://localhost:3000";
 const capturas = process.env.CAPTURAS === "1";
+const CARPETA_CAPTURAS = "docs/capturas/conoce-portada-narrativa";
 const nav = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 let fallos = 0;
 const ok = (cond, msg) => {
@@ -26,23 +28,6 @@ const ok = (cond, msg) => {
     console.log("  ✗", msg);
   }
 };
-
-/** Qué se ve de la portada de /conoce (el icono, el lema, el teléfono bloqueado y «Desliza y mira»). */
-const portadaVisible = (pagina) =>
-  pagina.evaluate(() => {
-    const op = (sel) => Number(getComputedStyle(document.querySelector(sel)).opacity);
-    const v = document.querySelector("[data-portada]");
-    return {
-      entrada: document.querySelector(".lt-escenario").dataset.entrada,
-      icono: op(".lt-icono") > 0.99,
-      lema: op(".lt-portada-texto") > 0.99,
-      telefono: op(".lt-tel-compradora") > 0.99,
-      desliza: op(".lt-desliza") > 0.99,
-      saltar: op("[data-saltar]") > 0.99,
-      loop: v.loop,
-      corre: !v.paused,
-    };
-  });
 
 /** Si la página de un teléfono llena la pantalla del mockup: los píxeles de arriba (junto a la isla y en las esquinas) no son del
  *  color de fondo de la landing. */
@@ -61,55 +46,6 @@ async function cubrePantalla(pagina, telefono, fondo) {
   return { ok: malos.length === 0, detalle: malos.map((p) => p.join(",")).join(" ") };
 }
 
-/**
- * El contraste del texto de la portada sobre el video, fotograma a fotograma (ajustes-lewis-10.md): con el video parado en cada
- * momento y las letras transparentes (el degradado sigue), el 95 % más oscuro del fondo de cada línea frente a su color. Devuelve el
- * peor caso de cada color.
- */
-const luminancia = (r, g, b) => [r, g, b].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }).reduce((a, c, k) => a + c * [0.2126, 0.7152, 0.0722][k], 0);
-async function contrastePortada(pagina) {
-  const cajas = await pagina.evaluate(() => {
-    const out = [];
-    const rango = document.createRange();
-    const texto = document.querySelector(".lt-portada-texto");
-    const nodos = [];
-    const tw = document.createTreeWalker(texto, NodeFilter.SHOW_TEXT);
-    while (tw.nextNode()) nodos.push(tw.currentNode);
-    for (const n of nodos) {
-      if (!n.textContent.trim()) continue;
-      rango.selectNodeContents(n);
-      const color = n.parentElement.closest(".lt-lema-vuelta") ? "mandarina" : n.parentElement.closest(".lt-lema-orden") ? "rosa" : "crema";
-      for (const c of rango.getClientRects()) out.push({ color, x: c.left, y: c.top, w: c.width, h: c.height });
-    }
-    const st = document.createElement("style");
-    st.id = "sin-letras";
-    st.textContent = ".lt-portada-texto, .lt-portada-texto * { color: transparent !important; text-shadow: none !important; -webkit-text-stroke: 0 !important } .lt-destello { visibility: hidden }";
-    document.head.appendChild(st);
-    return out;
-  });
-  const color = { crema: luminancia(255, 249, 238), rosa: luminancia(245, 201, 214), mandarina: luminancia(255, 131, 79) };
-  const peor = { crema: 99, rosa: 99, mandarina: 99 };
-  const duracion = await pagina.evaluate(() => document.querySelector("[data-portada]").duration);
-  for (let t = 0; t < duracion; t += 1) {
-    await pagina.evaluate((t) => new Promise((ok) => { const v = document.querySelector("[data-portada]"); v.pause(); v.onseeked = () => ok(); v.currentTime = t; }), t);
-    await pagina.waitForTimeout(60);
-    const { data, info } = await sharp(await pagina.screenshot()).raw().toBuffer({ resolveWithObject: true });
-    for (const c of cajas) {
-      const ls = [];
-      for (let y = Math.max(0, Math.floor(c.y)); y < Math.min(info.height, c.y + c.h); y += 2)
-        for (let x = Math.max(0, Math.floor(c.x)); x < Math.min(info.width, c.x + c.w); x += 2) {
-          const k = (y * info.width + x) * info.channels;
-          ls.push(luminancia(data[k], data[k + 1], data[k + 2]));
-        }
-      ls.sort((a, b) => a - b);
-      const fondo = ls[Math.floor(ls.length * 0.95)] ?? 0;
-      peor[c.color] = Math.min(peor[c.color], (color[c.color] + 0.05) / (fondo + 0.05));
-    }
-  }
-  await pagina.evaluate(() => { document.getElementById("sin-letras")?.remove(); void document.querySelector("[data-portada]").play().catch(() => {}); });
-  return peor;
-}
-
 const irAlPaso = (pagina, i) => pagina.evaluate((i) => document.querySelector(`[data-paso-seccion="${i}"]`).scrollIntoView({ behavior: "instant" }), i);
 const datos = (pagina) => pagina.evaluate(() => ({ ...document.querySelector(".lt-escenario").dataset }));
 
@@ -118,7 +54,7 @@ const medir = (pagina, i) =>
   pagina.evaluate(
     ({ i, paso }) => {
       const e = document.querySelector(".lt-escenario");
-      // (la portada no tiene burbuja: invita a deslizar su pantalla de bloqueo)
+      // (`cambio-lado` no tiene burbuja)
       const burbuja = e.querySelector(`[data-burbuja="${i}"]`);
       const nitida = !burbuja || (getComputedStyle(burbuja).filter === "none" && [...burbuja.querySelectorAll("*")].every((x) => getComputedStyle(x).filter === "none"));
       const telefono = e.querySelector(`.lt-tel-${paso.telefono}`);
@@ -127,7 +63,6 @@ const medir = (pagina, i) =>
       const hueco = telefono.querySelector(".lt-hueco").getBoundingClientRect();
       const pagina = telefono.querySelector("iframe").getBoundingClientRect();
       const b = burbuja?.getBoundingClientRect() ?? new DOMRect();
-      const intro = e.querySelector(".lt-intro");
       const gruesas = [...e.querySelectorAll("[data-raya-paso]")];
       const finas = [...e.querySelectorAll("[data-raya-fina]")];
       const ind = e.querySelector(".lt-indice").getBoundingClientRect();
@@ -157,10 +92,8 @@ const medir = (pagina, i) =>
         proporcionMockup: mockup.naturalWidth / mockup.naturalHeight,
         llena: Math.abs(pagina.width - hueco.width) < 1.5 && Math.abs(pagina.height - hueco.height) < 1.5,
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
-        introVisible: Number(getComputedStyle(intro).opacity) > 0.99,
         icono: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.99,
         iconoCaja: (() => { const r = e.querySelector(".lt-icono").getBoundingClientRect(); return { left: r.left, top: r.top, w: r.width, bottom: r.bottom }; })(),
-        lema: (() => { const l = e.querySelector(".lt-lema"); return { visible: Number(getComputedStyle(l).opacity) > 0.99, texto: l.textContent, top: l.getBoundingClientRect().top }; })(),
         rayasFinas: [...e.querySelectorAll("[data-raya-paso], [data-raya-fina]")].every((x) => x.getBoundingClientRect().height <= 2.01),
         fredoka: !burbuja || /fredoka/i.test(getComputedStyle(burbuja).fontFamily),
         resaltes: burbuja ? burbuja.querySelectorAll(".lt-resalte").length : 0,
@@ -187,10 +120,11 @@ const medir = (pagina, i) =>
         tema: document.querySelector('meta[name="theme-color"]')?.content,
         rosa: getComputedStyle(e).getPropertyValue("--marca-rosa-fija").trim(),
         bosque: getComputedStyle(e).getPropertyValue("--marca-bosque").trim(),
-        video: (() => { const v = document.querySelector("[data-portada]"); return { corre: !v.paused, t: v.currentTime }; })(),
-        bloqueo: Number(getComputedStyle(e.querySelector("[data-bloqueo]")).opacity),
-        cortado: tel.bottom > innerHeight + 4,
-        zoom: new DOMMatrix(getComputedStyle(telefono.querySelector("iframe")).transform).a,
+        arena: getComputedStyle(e).getPropertyValue("--color-arena").trim(),
+        iconoOculto: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) < 0.05,
+        fondoArena: Number(getComputedStyle(e.querySelector(".lt-fondo-arena")).opacity),
+        escenas: [...e.querySelectorAll("[data-escena]")].map((x) => [x.dataset.escena, Number(getComputedStyle(x).opacity)]),
+        cambioLado: (() => { const c = e.querySelector("[data-cambio-lado]"); const v = e.querySelector(".cl-icono-verde").getBoundingClientRect(); const r = e.querySelector(".cl-icono-rosa").getBoundingClientRect(); const visible = (x) => x.closest("[data-fase]") && Number(getComputedStyle(x).opacity) > 0.99; return { visible: Number(getComputedStyle(c).opacity) > 0.99, titulo: [...c.querySelectorAll(".cl-titulo .cl-frase")].filter(visible).map((x) => x.textContent).join(""), texto: [...c.querySelectorAll(".cl-texto .cl-frase")].filter(visible).map((x) => x.textContent).join(""), verde: v.width, rosa: r.width, verdeX: v.left + v.width / 2, rosaX: r.left + r.width / 2, cambio: e.dataset.cambio ?? null, lado: e.dataset.lado }; })(),
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
         tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // El índice no tapa el teléfono ni lo empuja.
@@ -229,52 +163,14 @@ for (const [ancho, alto] of [
   await pagina.waitForTimeout(1200);
   ok(await pagina.locator(".lt-escenario").isVisible(), "se ve la demo por pasos");
   // Lo que se mueve dentro de los teléfonos (el reel) no arrastra la página.
-  ok((await pagina.evaluate(() => scrollY)) === 0 && (await datos(pagina)).paso === PASOS[0].id, "al abrir, empieza arriba, en la portada");
-  // El video de la portada arranca solo, sin tocar nada (ajustes-lewis-7.md §2).
-  await pagina.waitForTimeout(1500);
-  ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "el video de la portada se reproduce solo");
-  // La primera vuelta del video, sola y limpia (docs/prompts/video-v2-y-entrar.md): solo «Saltar» encima.
+  ok((await pagina.evaluate(() => scrollY)) === 0 && (await datos(pagina)).paso === PASOS[0].id, "al abrir, empieza arriba, en el primer paso del dolor");
+  // La primera pantalla se ve completa sin hacer scroll (la crítica de que «se ve en blanco»): el mensaje directo, la burbuja y el
+  // índice, ya al abrir y con el fondo arena, sin esperar al video ni a deslizar.
   {
-    const visto = await portadaVisible(pagina);
-    ok(visto.entrada === "no" && !visto.icono && !visto.lema && !visto.telefono && !visto.desliza && visto.saltar && !visto.loop, `en la primera vuelta del video, solo «Saltar» (${JSON.stringify(visto)})`);
-    // Al llegar al final de esa vuelta entra todo, y el video sigue en bucle.
-    await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); v.currentTime = Math.max(0, v.duration - 0.15); });
-    await pagina.waitForTimeout(1600);
-    const despues = await portadaVisible(pagina);
-    ok(despues.entrada === "telefono" && despues.icono && despues.lema && despues.telefono && despues.desliza && despues.loop && despues.corre, `al terminar la primera vuelta entran el icono, el lema, el teléfono y «Desliza y mira», y el video sigue en bucle`);
-  }
-  // El desbloqueo sigue al dedo: a mitad de gesto queda a mitad; al soltar antes de la mitad vuelve y pasada la mitad se completa
-  // (el scroll-snap hace de resorte). Para fijar la mitad, el snap se apaga un momento.
-  {
-    const mitad = async (f) => {
-      await pagina.evaluate((f) => { document.documentElement.style.scrollSnapType = "none"; const h = document.querySelector('[data-paso-seccion="1"]').offsetTop; window.scrollTo({ top: h * f, behavior: "instant" }); }, f);
-      await pagina.waitForTimeout(250);
-      const a = await pagina.evaluate(() => ({ u: Number(getComputedStyle(document.querySelector(".lt-escenario")).getPropertyValue("--u")), bloqueo: Number(getComputedStyle(document.querySelector("[data-bloqueo]")).opacity) }));
-      await pagina.evaluate(() => { document.documentElement.style.scrollSnapType = ""; window.scrollBy(0, 0); });
-      await pagina.waitForTimeout(1400);
-      return { a, d: await datos(pagina), y: await pagina.evaluate(() => scrollY) };
-    };
-    const corto = await mitad(0.35);
-    ok(Math.abs(corto.a.u - 0.35) < 0.03 && corto.a.bloqueo > 0.2 && corto.a.bloqueo < 0.8 && corto.y < 5 && corto.d.paso === "intro", `a mitad de gesto (u ${corto.a.u.toFixed(2)}) el desbloqueo va a mitad, y al soltar antes de la mitad vuelve`);
-    const largo = await mitad(0.65);
-    ok(Math.abs(largo.a.u - 0.65) < 0.03 && largo.d.paso === "hola", `pasada la mitad (u ${largo.a.u.toFixed(2)}), al soltar se completa`);
-    await irAlPaso(pagina, 0);
-    await pagina.waitForTimeout(1500);
-  }
-  // «Desliza y mira»: visible, sin píldora, y al tocarlo arranca el desbloqueo (hace lo mismo que deslizar).
-  {
-    const b = await pagina.evaluate(() => {
-      const el = document.querySelector("[data-desliza]");
-      const r = el.getBoundingClientRect();
-      const circulo = getComputedStyle(el.querySelector(".lt-desliza-circulo")).backgroundColor;
-      return { visible: Number(getComputedStyle(el).opacity) > 0.99, centro: r.left + r.width / 2, abajo: innerHeight - r.bottom, fondo: getComputedStyle(el).backgroundColor, circulo, texto: el.textContent.trim() };
-    });
-    ok(b.visible && Math.abs(b.centro - ancho / 2) < 2 && b.abajo >= 10 && b.abajo <= 40 && b.fondo === "rgba(0, 0, 0, 0)" && b.circulo === "rgb(255, 131, 79)" && b.texto === "Desliza y mira", `«Desliza y mira» centrado abajo (a ${Math.round(b.abajo)} px), con el círculo mandarina y sin píldora`);
-    await pagina.locator("[data-desliza]").click();
-    await pagina.waitForTimeout(1600);
-    ok((await datos(pagina)).paso === "hola", "tocar «Desliza y mira» desbloquea el teléfono, como deslizar");
-    await irAlPaso(pagina, 0);
-    await pagina.waitForTimeout(1500);
+    const primera = await medir(pagina, 0);
+    const escena = primera.escenas.find(([id]) => id === "dolor-dm");
+    ok(escena && escena[1] > 0.99 && primera.burbujaVisible && primera.telefonoVisible && primera.indiceVisible && primera.fondoArena > 0.95 && primera.iconoOculto, "la primera pantalla ya está completa al abrir, sin hacer scroll: el mensaje directo, su burbuja, el índice y el fondo arena (sin el icono de la marca)");
+    ok(!(await pagina.evaluate(() => !!document.querySelector("video, [data-portada], [data-desliza], [data-bloqueo]"))), "ya no hay video de portada, «Desliza y mira» ni teléfono bloqueado");
   }
 
   // Hacia delante, paso a paso.
@@ -308,12 +204,13 @@ for (const [ancho, alto] of [
     // llenándose durante él (al llegar, todavía vacías); las de antes, llenas; las de después, vacías.
     const finasEsperadas = PASOS.reduce((n, p) => n + p.fases, 0);
     ok(
-      m.gruesas.length === PASOS.length - 1 && m.gruesas.every(([j, g]) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
+      m.gruesas.length === PASOS.length && m.gruesas.every(([j, g]) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
       `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
-    // (el fundido dura 300 ms: al medir ya terminó)
-    ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa"), `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
+    // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
+    if (paso.lado === "antes" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
+    else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
     if (paso.burbuja) {
       const esperados = Object.values(paso.burbuja.iconos ?? {});
       ok(m.iconosBurbuja.length === esperados.length && m.iconosBurbuja.length <= 2 && m.iconosBurbuja.every((x) => x.oculto && x.ancho > 10) && esperados.every((x) => m.iconosBurbuja.some((y) => y.icono === x)), `${paso.id}: la burbuja lleva sus ${esperados.length} icono(s) de la app (${m.iconosBurbuja.map((x) => x.icono).join(", ") || "ninguno"}), con aria-hidden`);
@@ -324,62 +221,38 @@ for (const [ancho, alto] of [
     ok(!m.indiceTapa && m.indiceIzquierda && !m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el índice (a la izquierda) no se cruza con el mockup; el teléfono va por encima de las burbujas y no tapa sus letras`);
     ok(m.rayasFinas, `${paso.id}: las rayas del indicador son de 2 px o menos`);
     if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
-    // (la portada va en verde: su degradado de arriba es Bosque)
-    const temaEsperado = paso.lado === "tienda" || i === 0 ? m.bosque : m.rosa;
+    const temaEsperado = paso.lado === "tienda" ? m.bosque : paso.lado === "antes" ? m.arena : m.rosa;
     ok(m.tema && m.tema.toLowerCase() === temaEsperado.toLowerCase(), `${paso.id}: theme-color del capítulo (${m.tema})`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
-    if (paso.id === "intro") {
-      ok(m.introVisible && m.icono && m.telefonoVisible && m.bloqueo > 0.99 && m.cortado && m.zoom < 0.95, "intro: el icono y el teléfono bloqueado asomando, cortado abajo");
-      ok(m.lema.visible && /Comprar sin\s*tanta vuelta\.\s*Vender con\s*más orden\./.test(m.lema.texto) && m.lema.top >= m.iconoCaja.bottom, "intro: el lema bajo el icono");
-      const p = await pagina.evaluate(() => {
-        const lema = document.querySelector(".lt-lema");
-        const vuelta = document.createRange();
-        vuelta.selectNodeContents(document.querySelector(".lt-lema-vuelta").firstChild);
-        const v = vuelta.getBoundingClientRect();
-        const d = document.querySelector(".lt-destello").getBoundingClientRect();
-        const video = document.querySelector("[data-portada]");
-        const aviso = document.querySelector("[data-aviso-bloqueo]");
-        return {
-          lineas: lema.getBoundingClientRect().height / parseFloat(getComputedStyle(lema).lineHeight),
-          cabe: lema.scrollWidth <= lema.clientWidth,
-          destello: d.left - v.right,
-          mismaLinea: d.top < v.bottom && d.bottom > v.top,
-          video: Number(getComputedStyle(video).opacity) === 1 && getComputedStyle(video).filter === "none",
-          aviso: aviso.textContent,
-          contexto: document.querySelector(".lt-contexto").textContent,
-          descripcion: document.querySelector(".lt-descripcion").textContent,
-        };
-      });
-      ok(Math.abs(p.lineas - 4) < 0.05 && p.cabe, `intro: el lema en cuatro líneas, sin partirse (${p.lineas.toFixed(2)})`);
-      ok(p.destello >= 0 && p.destello < 6 && p.mismaLinea, `intro: el destello va pegado a «vuelta.» (a ${p.destello.toFixed(1)} px, en su línea)`);
-      ok(p.contexto === "Desliza. Encuentra. Escribe." && /llega a Tu Tienda con todo en su sitio/.test(p.descripcion), "intro: la línea de contexto (sentence case) y la descripción con Tu Tienda");
-      ok(p.video, "intro: el video a todo color, sin oscurecido general");
-      ok(/Tu Tienda/.test(p.aviso) && /ahora/.test(p.aviso) && /Llegó el termo rosado\. Desliza y míralo\./.test(p.aviso), "intro: la pantalla de bloqueo lleva el aviso de Tu Tienda");
-      const c = await contrastePortada(pagina);
-      ok(c.crema >= 7 && c.rosa >= 4.5 && c.mandarina >= 3, `intro: contraste sobre el video en movimiento, en el peor fotograma: crema ${c.crema.toFixed(1)}:1 (≥7), rosa ${c.rosa.toFixed(1)}:1 (≥4.5), mandarina ${c.mandarina.toFixed(1)}:1 (≥3, texto grande)`);
-      ok(!m.indiceVisible && m.burbujasVistas === 0, "intro: sin indicador ni burbujas");
-      const v = await pagina.evaluate(() => {
-        const video = document.querySelector("[data-portada]");
-        return { muted: video.muted, playsinline: video.playsInline, poster: video.getAttribute("poster"), fuentes: [...video.querySelectorAll("source")].map((x) => x.getAttribute("src")) };
-      });
-      const pesos = v.fuentes.map((f) => statSync(`public${f}`).size);
-      ok(v.muted && v.playsinline && v.poster && pesos.length >= 1 && pesos.every((b) => b < 2.5e6), `intro: el video de la portada va sin sonido, con playsinline y póster, y pesa menos de 2.5 MB (${pesos.map((b) => (b / 1e6).toFixed(2)).join(" y ")} MB)`);
-    } else {
       ok(
         m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice >= alto * 0.24 && m.altoIndice <= alto * 0.31 && m.centrada !== null && m.centrada < 3,
         `${paso.id}: el indicador es una regla corta (${Math.round(m.altoIndice)} px, 25–30 % del alto) con la raya del paso en el centro; las gruesas a la vista se tocan sin solaparse y las finas no`,
       );
-      if (paso.id === "hola") ok(m.bloqueo < 0.01 && Math.abs(m.zoom - 1) < 0.01, "hola: al deslizar se desbloquea y el catálogo queda a su tamaño");
       ok(m.iconoCaja.left < 40 && m.iconoCaja.top < 40 && m.iconoCaja.w >= 36 && m.iconoCaja.w <= 44, `${paso.id}: el icono, arriba a la izquierda (${Math.round(m.iconoCaja.w)} px)`);
-      if (paso.id === "pasa") ok(m.video.corre && m.video.t > 0, "pasa: el video sigue reproduciéndose fuera de la portada");
       // La página del teléfono cubre la pantalla del mockup entera (ajustes-lewis-8.md §6): junto a la isla y en las esquinas de
       // arriba, el color no es el del fondo de la landing.
-      const fondo = paso.lado === "tienda" ? m.bosque : m.rosa;
-      const cubre = await cubrePantalla(pagina, paso.telefono, fondo);
-      ok(cubre.ok, `${paso.id}: la página llena la pantalla del mockup (arriba, junto a la isla y en las esquinas)${cubre.ok ? "" : ` (${cubre.detalle})`}`);
-      ok(!m.introVisible && m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
-    }
+      if (!paso.escena) {
+        const fondo = paso.lado === "tienda" ? m.bosque : m.rosa;
+        const cubre = await cubrePantalla(pagina, paso.telefono, fondo);
+        ok(cubre.ok, `${paso.id}: la página llena la pantalla del mockup (arriba, junto a la isla y en las esquinas)${cubre.ok ? "" : ` (${cubre.detalle})`}`);
+      }
+      if (paso.id !== "cambio-lado") ok(m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
+      // Las pantallas nuevas: se ve la suya y las demás no; el cambio de lado, sin teléfono y en su estado final.
+      if (paso.escena && paso.escena !== "cambio-lado") ok(m.escenas.every(([id, op]) => (id === paso.escena ? op > 0.99 : op < 0.05)), `${paso.id}: se ve su pantalla (${paso.escena}) y no las otras`);
+      else ok(m.escenas.every(([, op]) => op < 0.05), `${paso.id}: no se ve ninguna de las pantallas del teléfono`);
+      if (paso.id === "cambio-lado") {
+        const c = m.cambioLado;
+        ok(!m.telefonoVisible && c.visible, "cambio-lado: pantalla propia, sin teléfono");
+        ok(c.cambio === "despues" && c.lado === "tienda" && /Así lo ve Tu Tienda\./.test(c.titulo) && /El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas\./.test(c.texto), `cambio-lado: al terminar, «${c.titulo}» y su texto (${c.cambio}, lado ${c.lado})`);
+        ok(c.verde > c.rosa * 1.3 && c.verdeX < c.rosaX, `cambio-lado: el icono verde (la tienda) pasó a delante y grande (${Math.round(c.verde)} px) y el rosa (quien compra) a un lado y chico (${Math.round(c.rosa)} px)`);
+      }
+      if (paso.escena === "dolor-dm") ok(/precio de este/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)) && /Escríbeme al WhatsApp/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)), "dolor-dm: el mensaje directo trae «¿precio?» y la tienda contestando «escríbeme al WhatsApp»");
+      if (paso.escena === "navegador") {
+        // El catálogo real sigue dentro del navegador: el marco de Instagram encima y la página del teléfono debajo.
+        const n = await pagina.evaluate(() => { const nv = document.querySelector('[data-escena="navegador"] .nv-url b'); const marco = document.querySelector('[data-escena="navegador"] .nv-arriba').getBoundingClientRect(); const hueco = document.querySelector(".lt-tel-compradora .lt-hueco").getBoundingClientRect(); return { dominio: nv.textContent.trim(), cabe: marco.top >= hueco.top - 1 && marco.bottom < hueco.bottom, iframe: !!document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".reel") }; });
+        ok(n.dominio === "deslizapp.com/tutienda" && n.cabe && n.iframe, "navegador: la barra con deslizapp.com/tutienda sobre el catálogo real del teléfono");
+      }
     // El ♥ es el dedo: aparece en cada toque y en el viaje, y en los demás pasos no se ve. Al terminar el paso ya se fue.
     const toques = Number(d.toques) - Number(antes.toques);
     const viajes = Number(d.viajes) - Number(antes.viajes);
@@ -422,12 +295,9 @@ for (const [ancho, alto] of [
     }
     textos.push(await pagina.evaluate(() => [document, ...[...document.querySelectorAll("iframe")].map((f) => f.contentDocument)].map((d) => d?.body?.innerText ?? "").join("\n")));
     ok(paso.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo de ${paso.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
-    if (capturas && (ancho === 393 || ancho === 1440)) {
-      mkdirSync("docs/capturas/landing", { recursive: true });
-      // (Chromium sin pantalla pinta un video en marcha por encima de lo que tiene delante: en la captura de la portada, parado)
-      if (i === 0) await pagina.evaluate(() => document.querySelector("[data-portada]").pause());
-      await pagina.screenshot({ path: `docs/capturas/landing/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}.png` });
-      if (i === 0) await pagina.evaluate(() => void document.querySelector("[data-portada]").play().catch(() => {}));
+    if (capturas && paso.escena && [360, 393, 1440].includes(ancho)) {
+      mkdirSync(CARPETA_CAPTURAS, { recursive: true });
+      await pagina.screenshot({ path: `${CARPETA_CAPTURAS}/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}x${alto}.png` });
     }
   }
   {
@@ -441,25 +311,39 @@ for (const [ancho, alto] of [
     const dc = await datos(pagina);
     ok(dc.paso === PASOS[j].id, `el indicador: la raya de «${PASOS[j].id}» lleva a «${dc.paso}»`);
   }
-  // Al retroceder desde «cambio», el icono de la app vuelve al rosado.
+  // El cambio de lado (docs/prompts/conoce-portada-narrativa.md): al llegar, rosa y «Pidió en segundos.»; un momento después, los iconos se
+  // intercambian y todo pasa a verde. Al retroceder, el icono de la app vuelve al rosado.
   {
+    const lado = PASOS.findIndex((p) => p.id === "cambio-lado");
     const cambio = PASOS.findIndex((p) => p.id === "cambio");
-    // (desde la portada: un salto largo; uno de 2 o 3 pasos lo frena el controlador, como a un deslizamiento fuerte)
+    const seguimiento = PASOS.findIndex((p) => p.id === "seguimiento");
+    // (desde el principio: un salto largo; uno de 2 o 3 pasos lo frena el controlador, como a un deslizamiento fuerte)
     await irAlPaso(pagina, 0);
     await pagina.waitForTimeout(1500);
+    await irAlPaso(pagina, seguimiento);
+    await pagina.waitForTimeout(1600);
+    const rosaAntes = (await medir(pagina, seguimiento)).iconoApp;
+    await irAlPaso(pagina, lado);
+    await pagina.waitForTimeout(650);
+    const llega = (await medir(pagina, lado)).cambioLado;
+    const fondoLlega = (await medir(pagina, lado)).fondoTienda;
+    ok(llega.cambio === "antes" && llega.lado === "compras" && /Pidió en segundos\./.test(llega.titulo) && /le dio aaah y te mandó el pedido por WhatsApp/.test(llega.texto) && fondoLlega < 0.5, `cambio-lado: al llegar, rosa y «${llega.titulo}»`);
+    ok(llega.rosa > llega.verde * 1.3 && llega.rosaX > llega.verdeX, `cambio-lado: al llegar, el icono rosa (quien compra) va delante y grande (${Math.round(llega.rosa)} px) y el verde detrás y chico (${Math.round(llega.verde)} px)`);
+    await pagina.waitForTimeout(1800);
+    const fin = await medir(pagina, lado);
+    ok(fin.cambioLado.cambio === "despues" && /Así lo ve Tu Tienda\./.test(fin.cambioLado.titulo) && fin.fondoTienda > 0.95 && fin.tema?.toLowerCase() === fin.bosque.toLowerCase(), `cambio-lado: después, se intercambian los iconos y todo pasa a verde (${fin.cambioLado.titulo})`);
     await irAlPaso(pagina, cambio);
     await pagina.waitForTimeout(1600);
     const en = (await medir(pagina, cambio)).iconoApp;
-    await irAlPaso(pagina, cambio - 1);
+    await irAlPaso(pagina, lado);
     await pagina.waitForTimeout(1600);
-    const antes = (await medir(pagina, cambio - 1)).iconoApp;
-    ok(en === "verde" && antes === "rosa", `el icono de la app pasa a verde en «cambio» y, al retroceder, vuelve al rosado (${en} → ${antes})`);
+    const volviendo = await medir(pagina, lado);
+    ok(volviendo.cambioLado.cambio === "antes" || volviendo.cambioLado.lado === "tienda", "cambio-lado: al volver a él desde el paso siguiente, la pantalla se ve completa");
+    await irAlPaso(pagina, seguimiento);
+    await pagina.waitForTimeout(1600);
+    const antes = (await medir(pagina, seguimiento)).iconoApp;
+    ok(rosaAntes === "rosa" && en === "verde" && antes === "rosa", `el icono de la app pasa a verde en «cambio» y, al retroceder, vuelve al rosado (${rosaAntes} → ${en} → ${antes})`);
   }
-  // Al volver a la portada desde el primer paso, el teléfono se bloquea otra vez.
-  await irAlPaso(pagina, 0);
-  await pagina.waitForTimeout(1500);
-  const mb = await medir(pagina, 0);
-  ok(mb.bloqueo > 0.99 && mb.zoom < 0.95 && mb.cortado, "al volver a la portada, se bloquea y vuelve a asomar");
   await irAlPaso(pagina, PASOS.length - 1);
   await pagina.waitForTimeout(1500);
   // El teléfono de la bolsa: el contador real dice 2 y la tienda registró el pedido en su panel.
@@ -512,7 +396,6 @@ for (const [ancho, alto] of [
   const cta = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
-  if (capturas && (ancho === 393 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
   // «Entrar» (en el cierre): la página principal, con su «Iniciar sesión».
   await pagina.locator('[data-cta="entrar"]').click();
   await pagina.waitForURL((u) => new URL(u).pathname === "/");
@@ -522,63 +405,15 @@ for (const [ancho, alto] of [
   await contexto.close();
 }
 
-console.log("\nLa primera vuelta del video: un gesto antes, y el tope de 10 s");
-{
-  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
-  const pagina = await contexto.newPage();
-  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
-  await pagina.waitForTimeout(1500);
-  const antes = await portadaVisible(pagina);
-  await pagina.mouse.wheel(0, 60);
-  await pagina.waitForTimeout(700);
-  const despues = await portadaVisible(pagina);
-  ok(antes.entrada === "no" && despues.icono && despues.lema && despues.telefono, "si se desliza antes de que termine la vuelta, todo entra al momento");
-  await contexto.close();
-}
-{
-  // Un video que no llega a terminar (aquí, la red no responde): a los 10 s entra todo igual. (Si el video falla del todo, el
-  // navegador lo dice y todo entra al momento, como con movimiento reducido.)
-  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
-  await contexto.route(/\/landing\/portada-v2\.(webm|mp4)/, (r) => new Promise((ok) => setTimeout(() => r.abort().catch(() => {}).finally(ok), 15000)));
-  const pagina = await contexto.newPage();
-  await pagina.goto(base + "/conoce", { waitUntil: "domcontentloaded" });
-  await pagina.waitForTimeout(6000);
-  const a6 = await portadaVisible(pagina);
-  // (los 10 s cuentan desde que la página arranca; luego, la transición de entrada)
-  await pagina.waitForTimeout(6500);
-  const a12 = await portadaVisible(pagina);
-  ok(a6.entrada === "no" && a12.entrada === "telefono" && a12.icono && a12.telefono, `sin final de la vuelta, el tope de 10 s hace entrar todo (a los 6 s: ${a6.entrada}; a los 12.5 s: ${a12.entrada})`);
-  await contexto.close();
-}
-
-console.log("\nAhorro de datos: póster sin descargar video");
-{
-  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 }, serviceWorkers: "block" });
-  await contexto.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true }));
-  const pagina = await contexto.newPage();
-  const descargas = [];
-  pagina.on("request", (r) => { if (/\/landing\/portada-v2\.(webm|mp4)/.test(r.url())) descargas.push(r.url()); });
-  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
-  await pagina.waitForTimeout(1800);
-  const p = await portadaVisible(pagina);
-  ok(p.icono && p.lema && p.telefono && p.desliza && !p.corre, "con ahorro de datos, póster y portada completa desde el principio");
-  ok(descargas.length === 0, `con ahorro de datos no se solicita ningún video (${descargas.length})`);
-  await contexto.close();
-}
-
 console.log("\nMovimiento reducido");
 {
   const contexto = await nav.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const pagina = await contexto.newPage();
-  const descargas = [];
-  pagina.on("request", (r) => { if (/\/landing\/portada-v2\.(webm|mp4)/.test(r.url())) descargas.push(r.url()); });
   await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
-  ok(descargas.length === 0, "con movimiento reducido tampoco se solicita el video");
   await pagina.waitForTimeout(1200);
-  ok(await pagina.evaluate(() => document.querySelector("[data-portada]").paused), "en la portada, el video no se reproduce (queda el póster)");
   {
-    const visto = await portadaVisible(pagina);
-    ok(visto.icono && visto.lema && visto.telefono && visto.desliza, "y todo se ve desde el principio");
+    const primera = await medir(pagina, 0);
+    ok(primera.burbujaVisible && primera.escenas.find(([id]) => id === "dolor-dm")?.[1] > 0.99, "con movimiento reducido, la primera pantalla se ve completa desde el principio");
   }
   await irAlPaso(pagina, 1);
   await pagina.waitForTimeout(400);
@@ -593,22 +428,14 @@ console.log("\nMovimiento reducido");
   await pagina.waitForTimeout(1500);
   const dr = await datos(pagina);
   ok(dr.toques === "0" && dr.viajes === "0" && !(await medir(pagina, Number(dr.indice))).hiloVisible && dr.bolsa === "1", `con movimiento reducido no hay ♥ y el paso queda en su estado final (${dr.paso}, bolsa ${dr.bolsa}, toques ${dr.toques})`);
-  if (process.env.CAPTURAS === "1") await pagina.screenshot({ path: "docs/capturas/landing/movimiento-reducido-390.png" });
-  await contexto.close();
-}
-
-console.log("\nEl video de la portada en el HTML del servidor y en un iPhone");
-{
-  // React no escribe `muted` en el HTML del servidor; sin él, Safari en iOS no reproduce solo (ajustes-lewis-7.md §2).
-  const html = await (await fetch(base + "/conoce")).text();
-  const etiqueta = html.match(/<video[^>]*data-portada[^>]*>/)?.[0] ?? "";
-  ok(/\smuted[\s>]/.test(etiqueta) && /\splaysinline[\s>]/.test(etiqueta), "el <video> sale del servidor con `muted` y `playsinline` literales");
-  // (aquí no hay WebKit: Chromium con la emulación de iPhone)
-  const contexto = await nav.newContext({ ...playwright.devices["iPhone 13"] });
-  const pagina = await contexto.newPage();
-  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
-  await pagina.waitForTimeout(2000);
-  ok(await pagina.evaluate(() => { const v = document.querySelector("[data-portada]"); return !v.paused && v.currentTime > 0; }), "con la emulación de iPhone, el video arranca solo");
+  // El cambio de lado, sin animación: se ve el estado final (verde, «Así lo ve Tu Tienda.») nada más llegar.
+  await irAlPaso(pagina, 0);
+  await pagina.waitForTimeout(500);
+  const lado = PASOS.findIndex((p) => p.id === "cambio-lado");
+  await irAlPaso(pagina, lado);
+  await pagina.waitForTimeout(300);
+  const cl = await medir(pagina, lado);
+  ok(cl.cambioLado.cambio === null && cl.cambioLado.lado === "tienda" && /Así lo ve Tu Tienda\./.test(cl.cambioLado.titulo) && cl.fondoTienda > 0.95 && cl.cambioLado.verde > cl.cambioLado.rosa * 1.3, "con movimiento reducido, el cambio de lado se ve en su estado final, sin animación");
   await contexto.close();
 }
 
@@ -619,6 +446,11 @@ console.log("\nSin JavaScript");
   await pagina.goto(base + "/conoce");
   ok(await pagina.getByRole("heading", { name: "Un pedido, de principio a fin" }).isVisible(), "se entiende la propuesta (pasos con capturas)");
   ok((await pagina.locator(".landing-pasos [data-paso]").count()) === PASOS.length, "un paso por cada uno de la demo");
+  {
+    const texto = await pagina.locator(".landing-pasos").innerText();
+    ok(/Te escriben por Instagram/.test(texto) && /Tu cliente toca el enlace de tu perfil/.test(texto) && /Así lo ve Tu Tienda\./.test(texto), "y cuenta el dolor, el enlace del perfil y el cambio de lado con texto");
+    ok((await pagina.locator('.landing-pasos [data-paso="perfil"] .pt-enlace').innerText()).includes("deslizapp.com/tutienda"), "el perfil lleva el enlace deslizapp.com/tutienda");
+  }
   ok(await pagina.getByRole("link", { name: "Quiero vender" }).isVisible(), "y se llega a los CTA");
   ok(await pagina.getByRole("link", { name: "Entrar", exact: true }).isVisible(), "y a «Entrar»");
   await contexto.close();

@@ -1,0 +1,286 @@
+/* Las pantallas de la historia que no son la app (components/landing/escenas.tsx). Todo en cqw (1 % del ancho de la pantalla) y con
+   tamaños fijos o aspect-ratio: nada se estira. Cada capa cubre el hueco del teléfono de la compradora; el controlador pone
+   data-paso en el escenario y aquí se ve la que le toca (con un fundido corto). Los mensajes de las dos primeras entran uno a uno.
+   Sin movimiento (prefers-reduced-motion): todo en su estado final. */
+.esc-capas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.esc-capa {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 320ms ease,
+    visibility 0s linear 320ms;
+}
+.lt-escenario[data-paso="dolor-dm"] .esc-capa[data-escena="dolor-dm"],
+.lt-escenario[data-paso="dolor-chats"] .esc-capa[data-escena="dolor-chats"],
+.lt-escenario[data-paso="post"] .esc-capa[data-escena="post"],
+.lt-escenario[data-paso="perfil"] .esc-capa[data-escena="perfil"],
+.lt-escenario[data-paso="navegador"] .esc-capa[data-escena="navegador"] {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.esc {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: #1d1d1f;
+  font-family: var(--font-sans);
+}
+
+/* ---- El navegador: solo sus barras; el cuerpo deja ver el catálogo real del teléfono ---- */
+.esc-capa[data-marco] .nv {
+  background: transparent;
+}
+.esc-capa[data-marco] .nv-arriba,
+.esc-capa[data-marco] .nv-progreso,
+.esc-capa[data-marco] .nv-abajo {
+  background: #15181c;
+}
+.esc-capa[data-marco] .nv-cuerpo {
+  background: transparent;
+}
+
+/* ---- El mensaje directo ---- */
+.esc-dm-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+  flex: none;
+  padding: 13cqw 4.5cqw 3cqw;
+  border-bottom: 0.3cqw solid #ece6da;
+}
+.esc-dm-avatar {
+  flex: none;
+  width: 9cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--marca-rosa-fija);
+}
+.esc-dm-quien {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+  line-height: 1;
+}
+.esc-dm-quien b {
+  font-weight: 800;
+  font-size: 4cqw;
+}
+.esc-dm-quien span {
+  color: #6b7f75;
+  font-size: 3.1cqw;
+}
+.esc-dm-hilo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2cqw;
+  min-height: 0;
+  padding: 3.5cqw 3.5cqw 0;
+  font-size: 3.7cqw;
+  line-height: 1.35;
+}
+.esc-msg {
+  max-width: 80%;
+  border-radius: 4.8cqw;
+  padding: 2.4cqw 3.3cqw;
+}
+.esc-msg-ellos {
+  align-self: flex-start;
+  background: #efefef;
+}
+.esc-msg-yo {
+  align-self: flex-end;
+  background: #3f7bea;
+  color: #ffffff;
+}
+.esc-msg-foto {
+  align-self: flex-start;
+  padding: 1.2cqw;
+  background: #efefef;
+}
+.esc-msg-img {
+  width: 36cqw;
+  aspect-ratio: 4 / 5;
+  border-radius: 3.6cqw;
+}
+
+/* ---- La lista de chats ---- */
+.esc-chats-titulo {
+  flex: none;
+  padding: 13cqw 4.5cqw 2.5cqw;
+  font-weight: 800;
+  font-size: 5.6cqw;
+  line-height: 1;
+}
+.esc-chat {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3cqw;
+  padding: 2.4cqw 4.5cqw;
+  border-bottom: 0.3cqw solid #f1ece3;
+}
+.esc-chat-avatar {
+  flex: none;
+  width: 10.5cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.esc-chat-quien {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.8cqw;
+  min-width: 0;
+  line-height: 1.1;
+}
+.esc-chat-quien b {
+  font-weight: 800;
+  font-size: 3.9cqw;
+}
+.esc-chat-quien span {
+  overflow: hidden;
+  color: #5d766a;
+  font-size: 3.5cqw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.esc-chat-n {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 6cqw;
+  height: 6cqw;
+  box-sizing: border-box;
+  padding: 0 1.5cqw;
+  border-radius: 999px;
+  background: #25a35a;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 3.3cqw;
+}
+/* La nota de libreta, pegada encima abajo a la derecha */
+.esc-nota {
+  position: absolute;
+  right: 4cqw;
+  bottom: 6cqw;
+  width: 46cqw;
+  margin: 0;
+  padding: 3.4cqw;
+  transform: rotate(4deg);
+  border-radius: 1.6cqw;
+  background: #fff6c9;
+  box-shadow: 0 3cqw 6cqw -3.5cqw rgba(0, 0, 0, 0.45);
+  color: #3c3a33;
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 5.2cqw;
+  line-height: 1.15;
+}
+
+/* ---- El post de la tienda ---- */
+.esc-post-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 2.5cqw;
+  flex: none;
+  padding: 13cqw 3.5cqw 2.5cqw;
+  font-size: 3.8cqw;
+}
+.esc-post-avatar {
+  display: block;
+  flex: none;
+  width: 9cqw;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 0.6cqw;
+  border-radius: 50%;
+  background: conic-gradient(var(--marca-mandarina), var(--marca-rosa-fija), var(--marca-mandarina));
+}
+.esc-post-avatar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+  font-weight: 800;
+  font-size: 3cqw;
+}
+.esc-post-foto {
+  flex: none;
+  width: 100%;
+  aspect-ratio: 1;
+}
+.esc-post-acciones {
+  display: flex;
+  flex: none;
+  gap: 3.4cqw;
+  padding: 2.8cqw 3.5cqw;
+}
+.esc-post-acciones svg {
+  flex: none;
+  width: 6cqw;
+  height: 6cqw;
+}
+.esc-post-texto {
+  margin: 0;
+  padding: 0 3.5cqw;
+  font-size: 3.7cqw;
+  line-height: 1.4;
+}
+.esc-post-enlace {
+  color: var(--atencion-texto);
+}
+
+/* El sitio del toque en el enlace del perfil: el ♥ de la landing va hasta aquí (controlador.tsx). */
+.esc-objetivo {
+  position: absolute;
+  left: 30%;
+  top: 50%;
+  width: 1px;
+  height: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Los mensajes y los chats entran uno a uno al llegar al paso. */
+  .lt-escenario[data-paso="dolor-dm"] .esc-msg,
+  .lt-escenario[data-paso="dolor-chats"] .esc-chat,
+  .lt-escenario[data-paso="dolor-chats"] .esc-nota {
+    animation: esc-entra 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--n, 6) * 260ms + 250ms);
+  }
+  .lt-escenario[data-paso="dolor-chats"] .esc-chat {
+    animation-delay: calc(var(--n) * 90ms + 150ms);
+  }
+}
+@keyframes esc-entra {
+  from {
+    opacity: 0;
+    transform: translateY(2.5cqw);
+  }
+}
+
+/* Versión sin JavaScript: el catálogo dentro del navegador, recortado a su ancho */
+.esc-quieta-catalogo {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -14,9 +14,10 @@ const base = process.argv[2] ?? "http://localhost:3000";
 const nav = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 mkdirSync("public/landing/pasos", { recursive: true });
 for (const [telefono, indices] of [
-  // «intro» no tiene captura: es el logo, sin teléfono.
-  ["compradora", PASOS.map((p, i) => (p.telefono === "compradora" && p.id !== "intro" ? i : -1)).filter((i) => i >= 0)],
-  ["tienda", PASOS.map((p, i) => (p.telefono === "tienda" ? i : -1)).filter((i) => i >= 0)],
+  // Los pasos con `escena` (el dolor, el post, el perfil, el navegador y el cambio de lado) no son páginas de la app: no tienen
+  // captura (la versión sin JavaScript los dibuja con components/landing/escenas.tsx).
+  ["compradora", PASOS.map((p, i) => (p.telefono === "compradora" && !p.escena ? i : -1)).filter((i) => i >= 0)],
+  ["tienda", PASOS.map((p, i) => (p.telefono === "tienda" && !p.escena ? i : -1)).filter((i) => i >= 0)],
 ]) {
   const pagina = await nav.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
   await pagina.goto(`${base}/demo-landing/${telefono}`, { waitUntil: "networkidle" });
