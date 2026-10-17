@@ -11,7 +11,12 @@ export type { EstadoCatalogo };
 export type Plan = "p20" | "p60" | "p100" | "custom" | "inicial" | "negocio" | "pro";
 
 /** Círculo Deslizapp (docs/14): desde cuándo es de las fundadoras y hasta cuándo dura su 30 % (null si ya no tiene descuento). */
-export type CirculoTienda = { desde: string; descuentoHasta: string | null };
+export type CirculoTienda = {
+  desde: string;
+  descuentoHasta: string | null;
+  /** Quien lee es el titular del Círculo (tiene su propia fila en `circulo`), no un segundo dueño ni una colaboradora: solo él ve la bienvenida. */
+  titular?: boolean;
+};
 
 export type Tienda = {
   /** Presente mientras la tienda sea del Círculo: lleva el aro y la tarjeta del menú. Se queda aunque el descuento termine. */

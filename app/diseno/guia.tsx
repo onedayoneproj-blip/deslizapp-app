@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { PantallaBienvenidaCirculo } from "@/components/panel/bienvenida-circulo";
 import { LogoTienda } from "@/components/panel/logo-tienda";
 import tokens from "@/referencias/sistema-de-diseno/tokens.json";
 import { CARTAS_JUGADAS, lineaJugada } from "@/lib/proxima-jugada";
@@ -623,6 +624,8 @@ function Tarjetas() {
 // ---- 11. Etiquetas, contadores y avatares ----
 
 function EtiquetasYAvatares() {
+  const [bienvenida, setBienvenida] = useState(false);
+  const circulo = { nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: "2027-10-16" } };
   return (
     <Seccion numero="11" titulo="Etiquetas, contadores y avatares">
       <Fila>
@@ -657,6 +660,13 @@ function EtiquetasYAvatares() {
         <LogoTienda tienda={{ nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: null } }} tamano={44} />
         <LogoTienda tienda={{ nombre: "Tu Tienda", logoUrl: null, circulo: { desde: "2026-10-16", descuentoHasta: "2027-10-16" } }} tamano={80} />
       </Fila>
+      {/* La bienvenida del Círculo (docs/prompts/circulo-bienvenida.md): pantalla completa, aro con ondas, cupón y beneficios. */}
+      <Fila>
+        <Boton jerarquia="secundario" tamano="compacto" onClick={() => setBienvenida(true)} data-ver-bienvenida-circulo="">
+          Ver la bienvenida del Círculo
+        </Boton>
+      </Fila>
+      {bienvenida && <PantallaBienvenidaCirculo tienda={circulo} alEntrar={() => setBienvenida(false)} />}
     </Seccion>
   );
 }
