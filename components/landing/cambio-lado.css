@@ -1,0 +1,128 @@
+/* El cambio de lado (components/landing/cambio-lado.tsx): sin teléfono, entre `seguimiento` y `cambio`. El escenario lleva
+   data-cambio="antes" | "despues" mientras el paso está activo; el fondo (rosa → verde) es el de .lt-fondo según data-lado, que el
+   controlador cambia a la vez. Solo transform y opacity (y el color del texto). Sin data-cambio (llegada sin animación, movimiento
+   reducido), se ve el final. */
+.cl {
+  --tinta: var(--marca-papel);
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: calc(var(--alto-arriba) + 8px) 24px calc(var(--alto-abajo) + 16px);
+  color: var(--tinta);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 420ms ease,
+    color 600ms ease,
+    visibility 0s linear 420ms;
+}
+.lt-escenario[data-paso="cambio-lado"] .cl {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.lt-escenario[data-paso="cambio-lado"][data-cambio="antes"] .cl {
+  --tinta: var(--marca-bosque);
+}
+/* El texto: cada versión apilada en la misma celda; se ve la del momento. */
+.cl-antes,
+.cl-titulo,
+.cl-texto {
+  display: grid;
+  margin: 0;
+}
+.cl-frase {
+  grid-area: 1 / 1;
+  transition: opacity 420ms ease;
+}
+.cl-frase[data-fase="antes"] {
+  opacity: 0;
+}
+.lt-escenario[data-cambio="antes"] .cl-frase[data-fase="antes"] {
+  opacity: 1;
+}
+.lt-escenario[data-cambio="antes"] .cl-frase[data-fase="despues"] {
+  opacity: 0;
+}
+.cl-antes {
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: var(--atencion-texto);
+}
+.lt-escenario:not([data-cambio="antes"]) .cl-antes {
+  color: var(--marca-rosa-fija);
+}
+.cl-titulo {
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-weight: 700;
+  font-size: 2.4rem;
+  line-height: 1.05;
+}
+.cl-texto {
+  max-width: 330px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+/* Los dos iconos: tamaño y sitio por «quién va delante». Al principio, el rosa (quien compra) grande delante y el verde chico detrás
+   a su izquierda; al cambiar, se intercambian. */
+.cl-iconos {
+  position: relative;
+  width: min(300px, 78vw);
+  height: 140px;
+  margin-bottom: 12px;
+}
+.cl-icono {
+  position: absolute;
+  top: 50%;
+  border-radius: 28%;
+  box-shadow: 0 18px 30px -16px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Estado final (sin data-cambio): el verde grande delante, el rosa chico detrás a su derecha. */
+.cl-icono-verde {
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+}
+.cl-icono-rosa {
+  left: 82%;
+  width: 96px;
+  height: 96px;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+}
+.lt-escenario[data-cambio="antes"] .cl-icono-rosa {
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  z-index: 2;
+}
+.lt-escenario[data-cambio="antes"] .cl-icono-verde {
+  left: 18%;
+  width: 96px;
+  height: 96px;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl,
+  .cl * {
+    transition: none !important;
+  }
+}

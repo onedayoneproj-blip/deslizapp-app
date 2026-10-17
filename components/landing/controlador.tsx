@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
+import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
@@ -13,9 +13,11 @@ const BASE_HILO = 100;
  */
 const QUEDA = 0;
 const QUEDA_CHECK = 1300;
-/** Si la primera vuelta del video no termina (no carga, no arranca…), a los 10 s entra la portada igual. */
-const TOPE_PRIMERA_VUELTA = 10000;
 const VIAJE = 700;
+/** En el cambio de lado, cuánto se ve «Pidió en segundos.» (rosa) antes de que los iconos se intercambien y todo pase a verde. */
+const CAMBIO_LADO_MS = 900;
+/** Cuánto tarda en llegar el ♥ al enlace del perfil, ya con el paso a la vista. */
+const TOQUE_PERFIL_MS = 700;
 
 type Punto = { x: number; y: number };
 
@@ -42,7 +44,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     };
     const hilo = e.querySelector<HTMLElement>("[data-hilo]");
     const pulso = e.querySelector<HTMLElement>("[data-hilo-pulso]");
-    // (por índice de paso: la portada no tiene burbuja)
+    // (por índice de paso: `cambio-lado` no tiene burbuja)
     const burbujas = PASOS.map((_, i) => e.querySelector<HTMLElement>(`[data-burbuja="${i}"]`));
     const gruesas = [...e.querySelectorAll<HTMLElement>("[data-raya-paso]")];
     const finas = [...e.querySelectorAll<HTMLElement>("[data-raya-fina]")];
@@ -52,51 +54,22 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let llenar = 0;
     let raf = 0;
     let irse = 0;
+    let cambio = 0;
+    let toquePerfil = 0;
     let posicion: Punto | null = null;
 
-    // El video de la portada (ajustes-lewis-7.md §2, -8.md §3 y docs/prompts/video-v2-y-entrar.md): sin sonido; la primera vuelta
-    // se ve entera y luego sigue en bucle sin parar nunca (solo se pausa con la pestaña oculta); con movimiento reducido o ahorro de
-    // datos, el póster. Safari en iOS lo reproduce solo si está silenciado desde antes de play() (el atributo `muted` ya viene en el
-    // HTML: landing.tsx). Se intenta al cargar, en cuanto hay datos y, si el navegador no dejó, en el primer gesto.
-    const video = e.querySelector<HTMLVideoElement>("[data-portada]");
-    const ahorroDeDatos = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
-    const puedeCorrer = () => !document.hidden && !reducido.matches && !ahorroDeDatos();
-    const reproducir = () => {
-      if (!video || !puedeCorrer()) return;
-      video.muted = true;
-      video.defaultMuted = true;
-      // Las fuentes no llevan src en el HTML: ni el precargador del navegador descarga video antes de leer las preferencias.
-      const pendientes = video.querySelectorAll<HTMLSourceElement>("source[data-src]:not([src])");
-      if (pendientes.length) {
-        pendientes.forEach((fuente) => { fuente.src = fuente.dataset.src!; });
-        video.load();
-      }
-      if (video.paused)
-        void video.play().catch((err: unknown) => {
-          // El navegador no deja reproducirlo solo (iOS en ahorro de energía…): queda el póster y todo entra ya.
-          if (err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "NotSupportedError")) entrar(true);
-        });
-    };
-    const portada = () => {
-      if (!video) return;
-      if (puedeCorrer()) reproducir();
-      else video.pause();
-    };
-    const gestos = ["pointerdown", "touchstart", "scroll"] as const;
-    const alPrimerGesto = () => reproducir();
-    document.addEventListener("visibilitychange", portada);
-
     // La barra de Safari y el rebote del scroll con el color del capítulo (ajustes-lewis-8.md §8): theme-color y el fondo de html y
-    // body: verde en la portada (su degradado de arriba es Bosque) y en la tienda, rosa en compras, y el del cierre al llegar a él.
-    // Al salir de la landing, se devuelve lo que había.
+    // body: arena en el dolor de antes, rosa en compras, verde en la tienda, y el del cierre al llegar a él. Al salir de la landing,
+    // se devuelve lo que había.
     const tema = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     const temaAntes = tema?.content ?? null;
     const fondosAntes = [raiz.style.background, document.body.style.background];
     const cierre = document.getElementById("cierre");
     let enCierre = false;
     const pintarFondo = () => {
-      const verde = activo <= 0 || PASOS[activo]?.lado === "tienda";
-      const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(verde ? "--marca-bosque" : "--marca-rosa-fija").trim();
+      const lado = e.dataset.lado;
+      const variable = lado === "tienda" || lado === "inicio" ? "--marca-bosque" : lado === "antes" ? "--color-arena" : "--marca-rosa-fija";
+      const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(variable).trim();
       if (!color || color === "rgba(0, 0, 0, 0)") return;
       if (tema) tema.content = color;
       raiz.style.background = color;
@@ -113,65 +86,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       pintarFondo();
     }, { threshold: 0.5 });
     if (cierre) obsCierre.observe(cierre);
-
-    // El desbloqueo sigue al dedo (ajustes-lewis-8.md §5): --u es lo que va del scroll entre la portada y el primer paso, de 0 a 1.
-    // El scroll-snap de la página hace el resto: si se suelta antes de la mitad vuelve con su resorte, y si no, se completa.
-    let rafU = 0;
-    const medirU = () => {
-      rafU = 0;
-      const a = secciones[0]?.offsetTop ?? 0;
-      const b = secciones[1]?.offsetTop ?? a + innerHeight;
-      const u = Math.min(1, Math.max(0, (scrollY - a) / Math.max(1, b - a)));
-      e.style.setProperty("--u", u.toFixed(4));
-      e.dataset.arrastre = u > 0.001 && u < 0.999 ? "si" : "no";
-    };
-    const alDeslizar = () => {
-      if (!rafU) rafU = requestAnimationFrame(medirU);
-    };
-    window.addEventListener("scroll", alDeslizar, { passive: true });
-    video?.addEventListener("loadeddata", reproducir);
-    video?.addEventListener("canplay", reproducir);
-    gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true, once: true }));
-
-    // La entrada de la portada (docs/prompts/video-v2-y-entrar.md): la primera vuelta del video se ve sola y limpia, solo con
-    // «Saltar». Al terminarla entran el icono y el lema y enseguida el teléfono bloqueado y «Desliza y mira» (landing.css,
-    // data-entrada), y el video sigue en bucle. Entra todo ya si la persona desliza o toca antes, si no hay video (movimiento
-    // reducido, ahorro de datos, autoplay bloqueado) o si se abre más abajo; y, como tope, a los 10 s.
-    const entrada: number[] = [];
-    let entrado = false;
-    const entrar = (ya: boolean) => {
-      if (entrado) return;
-      entrado = true;
-      window.clearTimeout(tope);
-      if (video) video.loop = true;
-      if (ya) {
-        e.dataset.entrada = "telefono";
-        return;
-      }
-      e.dataset.entrada = "icono";
-      entrada.push(window.setTimeout(() => (e.dataset.entrada = "telefono"), 250));
-    };
-    const tope = window.setTimeout(() => entrar(false), TOPE_PRIMERA_VUELTA);
-    // Justo antes del final se pone en bucle, para que la vuelta siguiente empiece sin corte; si aun así llega `ended`, se sigue.
-    const alAvanzar = () => {
-      if (video && video.duration && video.currentTime >= video.duration - 0.3) entrar(false);
-    };
-    const alTerminar = () => {
-      entrar(false);
-      reproducir();
-    };
-    const alGestoEntrar = () => entrar(true);
-    const gestosEntrar = ["pointerdown", "touchstart", "wheel", "keydown"] as const;
-    const alDeslizarEntrar = () => {
-      if (scrollY > 2) entrar(true);
-    };
-    if (!video || reducido.matches || ahorroDeDatos() || scrollY > 2 || location.hash) entrar(true);
-    else {
-      video.addEventListener("timeupdate", alAvanzar);
-      video.addEventListener("ended", alTerminar);
-      gestosEntrar.forEach((g) => window.addEventListener(g, alGestoEntrar, { passive: true }));
-      window.addEventListener("scroll", alDeslizarEntrar, { passive: true });
-    }
 
     /**
      * El indicador (ajustes-lewis-7.md §1): la gruesa del paso, marcada al llegar; sus finas se llenan una a una con cada toque o
@@ -305,6 +219,9 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (m && !m.getAttribute("src")) m.setAttribute("src", m.dataset.src ?? "");
     };
 
+    // Las animaciones de entrada de las pantallas nuevas (escenas.css, separadores.css) solo corren al deslizar hasta el paso: al abrir la
+    // página, o con un enlace a un paso (el primer segundo y medio), el paso se ve completo al instante.
+    const montado = Date.now();
     const pasosVistos = new Set<string>();
     const activar = (i: number) => {
       if (i === activo) return;
@@ -329,14 +246,39 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         check: "no",
         capitulo: String(paso.capitulo),
       });
+      // El cambio de lado: llega rosa («Pidió en segundos.») y, un momento después, los iconos se intercambian y todo pasa a verde. Sin
+      // animación (al abrir, al volver, movimiento reducido), se ve el final.
+      e.dataset.anima = reducido.matches ? "no" : desde < 0 || Date.now() - montado < 1500 ? "entrada" : "si";
+      window.clearTimeout(cambio);
+      window.clearTimeout(toquePerfil);
+      delete e.dataset.cambio;
+      if (paso.escena === "cambio-lado" && animar) {
+        e.dataset.cambio = "antes";
+        e.dataset.lado = "compras";
+        cambio = window.setTimeout(() => {
+          e.dataset.cambio = "despues";
+          e.dataset.lado = "tienda";
+          pintarFondo();
+        }, CAMBIO_LADO_MS);
+      }
       marcarIndice(i, animar);
       apilar(i);
       pintarFondo();
-      if (i >= 4) cargarTienda();
+      if (i >= indicePaso("aaah-tote")) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
       // El ♥ solo aparece cuando hace algo: con cada toque que avisa un teléfono, o en el viaje de un teléfono al otro.
       esconder();
+      // El toque del perfil lo hace la propia landing (no hay página dentro del teléfono): el ♥ va al enlace.
+      if (animar && paso.escena === "perfil") {
+        toquePerfil = window.setTimeout(() => {
+          const objetivo = e.querySelector<HTMLElement>('[data-objetivo-toque="perfil"]');
+          if (!objetivo || activo !== i) return;
+          const r = objetivo.getBoundingClientRect();
+          const base = e.getBoundingClientRect();
+          toque({ x: r.left - base.left, y: r.top - base.top });
+        }, TOQUE_PERFIL_MS);
+      }
       if (animar && paso.dedo === "viaje" && paso.viaje && i === desde + 1) {
         const { desde: [td, ad], hasta: [th, ah] } = paso.viaje;
         const salida = ancla(td, ad);
@@ -381,10 +323,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (cta && cta in EVENTO_CIERRE) registrarEvento(EVENTO_CIERRE[cta as keyof typeof EVENTO_CIERRE]);
     };
     document.addEventListener("click", alClicCierre, true);
-    // «Desliza y mira»: tocarlo hace lo mismo que deslizar (el desbloqueo sigue al scroll).
-    const desliza = e.querySelector<HTMLElement>("[data-desliza]");
-    const alDesliza = () => secciones[1]?.scrollIntoView({ behavior: reducido.matches ? "instant" : "smooth" });
-    desliza?.addEventListener("click", alDesliza);
     const obs = new IntersectionObserver(
       (entradas) => {
         for (const en of entradas) {
@@ -401,25 +339,13 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       { threshold: 0.55 },
     );
     secciones.forEach((x) => obs.observe(x));
-    medirU();
-    portada();
     window.addEventListener("resize", esconder);
     return () => {
       obs.disconnect();
       window.clearTimeout(espera);
       window.clearTimeout(llenar);
-      entrada.forEach((t) => window.clearTimeout(t));
-      window.clearTimeout(tope);
-      video?.removeEventListener("timeupdate", alAvanzar);
-      video?.removeEventListener("ended", alTerminar);
-      gestosEntrar.forEach((g) => window.removeEventListener(g, alGestoEntrar));
-      window.removeEventListener("scroll", alDeslizarEntrar);
-      video?.removeEventListener("loadeddata", reproducir);
-      video?.removeEventListener("canplay", reproducir);
-      gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));
-      document.removeEventListener("visibilitychange", portada);
-      window.removeEventListener("scroll", alDeslizar);
-      cancelAnimationFrame(rafU);
+      window.clearTimeout(cambio);
+      window.clearTimeout(toquePerfil);
       obsCierre.disconnect();
       if (tema && temaAntes !== null) tema.content = temaAntes;
       [raiz.style.background, document.body.style.background] = fondosAntes;
@@ -429,7 +355,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.removeEventListener("resize", esconder);
       document.removeEventListener("click", alClic, true);
       document.removeEventListener("click", alClicCierre, true);
-      desliza?.removeEventListener("click", alDesliza);
       raiz.removeAttribute("data-landing-js");
     };
   }, []);
@@ -441,14 +366,14 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         className="lt-escenario"
         data-paso={PASOS[0]!.id}
         data-indice="0"
-        data-lado="compras"
+        data-lado={PASOS[0]!.lado}
         data-telefono="compradora"
         data-bolsa="0"
         data-total="0"
         data-codigo="no"
         data-check="no"
-        data-entrada="no"
         data-capitulo="1"
+        data-anima="entrada"
         data-toques="0"
         data-viajes="0"
       >

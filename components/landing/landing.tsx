@@ -4,22 +4,21 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PieContacto } from "../inicio-publico/pie-contacto";
 import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
-import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
+import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
 import { BurbujaChat } from "../chat/burbuja-chat";
 import { DemoPasos } from "./controlador";
+import { CambioLado } from "./cambio-lado";
+import { SeparadorQuieto, Separadores } from "./separadores";
+import { EscenaQuieta, Escenas } from "./escenas";
+import { TelefonoMockup } from "./telefono-mockup";
 import "./landing.css";
 
 // Antes de pintar: con JavaScript se usa la demo por pasos (si no, la versión en pasos estáticos). La landing vive en /conoce y
 // se ve siempre, con sesión, sin ella o en la demo.
 const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
-
-// El video de la portada con sus atributos literales en el HTML del servidor: React no escribe `muted`, y sin él Safari en iOS no
-// lo reproduce solo (ajustes-lewis-7.md §2). Sin `loop`: la primera vuelta termina y entonces entra la portada; el controlador lo
-// pone en bucle (docs/prompts/video-v2-y-entrar.md).
-const VIDEO_PORTADA = `<video class="lt-portada-video" data-portada muted playsinline webkit-playsinline preload="none" poster="/landing/portada-v2.webp" tabindex="-1" disablepictureinpicture><source data-src="/landing/portada-v2.webm" type='video/webm; codecs="av01.0.05M.08"'><source data-src="/landing/portada-v2.mp4" type="video/mp4"></video>`;
 
 /** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
 export function Landing() {
@@ -28,48 +27,18 @@ export function Landing() {
       <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />
       <main>
         <DemoPasos pasos={<Secciones />}>
-          {/* Fondo a pantalla completa: rosa de la compradora, verde de la tienda, y formas que asoman abajo */}
+          {/* Fondo a pantalla completa: arena en el dolor de antes, rosa de la compradora, verde de la tienda, y formas que asoman abajo */}
           <div className="lt-fondo" aria-hidden="true">
+            <div className="lt-fondo-arena" />
             <div className="lt-fondo-tienda" />
             <span className="lt-forma lt-forma-a" />
             <span className="lt-forma lt-forma-b" />
           </div>
 
-          {/* La portada (ajustes-lewis-10.md): el video de Lewis a todo color, el lema grande a la izquierda y el teléfono bloqueado
-              asomando por abajo. El controlador reproduce el video, salvo con movimiento reducido o ahorro de datos: entonces, el
-              póster. */}
-          <div className="lt-intro" aria-hidden="true">
-            <div className="lt-portada-caja" dangerouslySetInnerHTML={{ __html: VIDEO_PORTADA }} />
-            <div className="lt-portada-texto">
-              <p className="lt-contexto">Desliza. Encuentra. Escribe.</p>
-              {/* Cada frase en dos líneas, cuatro en total (sin partir): el destello va pegado a «vuelta.», como un carácter más */}
-              <p className="lt-lema">
-                Comprar sin
-                <br />
-                tanta{" "}
-                <b className="lt-lema-vuelta">
-                  vuelta.
-                  <svg className="lt-destello" viewBox="0 0 40 46" aria-hidden="true">
-                    <path d="M6 14L16 3M4 26h17M7 38l11 9" />
-                  </svg>
-                </b>
-                <br />
-                <b className="lt-lema-orden">
-                  Vender con
-                  <br />
-                  más orden.
-                </b>
-              </p>
-              <p className="lt-descripcion">
-                Mira cómo lo que te gusta llega a <b>{TIENDA_DEMO.nombre}</b> con todo en su sitio.
-              </p>
-            </div>
-          </div>
-
-          {/* El icono de la app: sube en la portada y, al desbloquear, viaja a la esquina de arriba a la izquierda; desde ahí lleva
-              de vuelta a la portada (ajustes-lewis-8.md §7). */}
+          {/* El icono de la app, arriba a la izquierda: lleva de vuelta al principio (ajustes-lewis-8.md §7). Sale cuando entra la marca
+              (el post) y no en las dos pantallas de dolor, que son neutras. */}
           {/* Rosado con quien compra (la portada y compras) y verde con la tienda: se funden al cambiar de persona (ajustes-lewis-12.md §1). */}
-          <a href="#paso-intro" className="lt-icono" aria-label="Volver al principio" data-icono>
+          <a href={`#paso-${PASOS[0]!.id}`} className="lt-icono" aria-label="Volver al principio" data-icono>
             <img src="/landing/icono-rosa.webp" alt="" width={180} height={180} className="lt-icono-rosa" />
             <img src="/landing/icono-verde.webp" alt="" width={180} height={180} className="lt-icono-verde" />
           </a>
@@ -79,6 +48,8 @@ export function Landing() {
             <Telefono id="tienda" src="/demo-landing/tienda" diferido />
           </div>
           <Hilo />
+          <CambioLado />
+          <Separadores />
 
           {/* Desenfoque progresivo arriba (el patrón de components/hoja.tsx) */}
           <div className="lt-borde lt-borde-arriba hoja-borde" aria-hidden="true">
@@ -96,16 +67,6 @@ export function Landing() {
               </svg>
             </a>
           </div>
-
-          {/* «Desliza y mira» (ajustes-lewis-10.md): hacia arriba, sin píldora. Tocarlo hace lo mismo que deslizar. */}
-          <button type="button" className="lt-desliza" data-desliza>
-            <span className="lt-desliza-circulo" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 19V5M6 11l6-6 6 6" />
-              </svg>
-            </span>
-            <span className="lt-desliza-texto">Desliza y mira</span>
-          </button>
 
           <Indice />
 
@@ -141,7 +102,21 @@ export function Landing() {
                       {p.burbuja.remate && ` ${p.burbuja.remate}`}
                     </p>
                   )}
-                  {p.id !== "intro" && <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />}
+                  {p.escena === "cambio-lado" ? (
+                    <div className="lt-cambio-quieto">
+                      <img src="/landing/icono-verde.webp" alt="" width={96} height={96} />
+                      <b>Así lo ve Tu Tienda.</b>
+                      <span>El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas.</span>
+                    </div>
+                  ) : p.escena === "bienvenida" || p.escena === "antes" || p.escena === "solucion" ? (
+                    <SeparadorQuieto id={p.escena} />
+                  ) : p.escena ? (
+                    <TelefonoMockup className="lt-captura-tm">
+                      <EscenaQuieta id={p.escena} />
+                    </TelefonoMockup>
+                  ) : (
+                    <img src={`/landing/pasos/${p.id}.webp`} alt="" width={393} height={852} loading="lazy" decoding="async" className="lt-captura" />
+                  )}
                 </li>
               ))}
             </ol>
@@ -250,7 +225,7 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
         <div className="lt-pantalla">
           <iframe data-telefono={id} {...(diferido ? { "data-src": src } : { src })} title="" tabIndex={-1} inert loading="eager" />
         </div>
-        {id === "compradora" && <PantallaBloqueo />}
+        {id === "compradora" && <Escenas />}
       </div>
       <img src={m.src} alt="" className="lt-mockup" width={m.ancho} height={m.alto} decoding="async" />
     </div>
@@ -259,9 +234,9 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 
 /**
  * El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una raya gruesa por paso de la demo (cada vez que hay que
- * deslizar; la portada no es uno) y, entre dos gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts).
+ * deslizar) y, entre dos gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts).
  * Las finas se llenan mientras el paso avanza. Es una regla corta (un 27 % del alto) que se desplaza para dejar la raya del paso en
- * el centro. Solo las gruesas se tocan (llevan a su paso). No sale en la portada. El controlador marca el estado y la desplaza.
+ * el centro. Solo las gruesas se tocan (llevan a su paso). El controlador marca el estado y la desplaza.
  */
 function Indice() {
   return (
@@ -269,7 +244,7 @@ function Indice() {
       <div className="lt-indice-rayas">
         {PASOS.map((p, i) => (
           <Fragment key={p.id}>
-            {i > 0 && <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={[p.burbuja?.texto, p.burbuja?.remate].filter(Boolean).join(" ")} />}
+            <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={etiquetaPaso(p)} />
             {Array.from({ length: p.fases }, (_, k) => (
               <span key={k} className="lt-raya-fina" data-raya-fina={i} data-llena="no" aria-hidden="true" />
             ))}
@@ -280,28 +255,10 @@ function Indice() {
   );
 }
 
-/**
- * La pantalla de bloqueo del teléfono de Ana en la portada (ajustes-lewis-10.md): la foto del termo desenfocada de fondo, la fecha,
- * la hora y un aviso de Tu Tienda como los de iOS. Al primer deslizamiento sube y se va, y el catálogo entra como una app que se abre.
- */
-function PantallaBloqueo() {
-  return (
-    <div className="lt-bloqueo" data-bloqueo>
-      <img src="/landing/feed-termo.webp" alt="" className="lt-bloqueo-foto" decoding="async" />
-      <p className="lt-bloqueo-fecha">martes, 14 de octubre</p>
-      <p className="lt-bloqueo-hora">3:41</p>
-      <div className="lt-bloqueo-aviso" data-aviso-bloqueo>
-        <img src="/landing/feed-termo.webp" alt="" decoding="async" />
-        <div>
-          <p className="lt-bloqueo-aviso-cabeza">
-            <b>{TIENDA_DEMO.nombre}</b>
-            <span>ahora</span>
-          </p>
-          <p>Llegó el termo rosado. Desliza y míralo.</p>
-        </div>
-      </div>
-    </div>
-  );
+const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
+/** Lo que lee un lector de pantalla de la raya de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
+function etiquetaPaso(p: Paso) {
+  return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
 }
 
 /**
@@ -370,7 +327,7 @@ function conResaltes(texto: string, claves: string[], iconos: Record<string, Ico
 function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number }) {
   const texto = [burbuja.texto, burbuja.remate].filter(Boolean).join(" ");
   return (
-    <BurbujaChat className="lt-burbuja" hora={HORA_DEMO} data-burbuja={indice} data-estado="futura" data-lado={lado}>
+    <BurbujaChat className="lt-burbuja" hora={HORA_DEMO} data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-lado={lado}>
       {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
     </BurbujaChat>
   );
