@@ -4,6 +4,7 @@ import { ENLACE_QUIERO_VENDER, RUTA_CONOCE, RUTA_PLANES } from "@/lib/landing/en
 import { IconoInstagram, IconoReels } from "../iconos";
 import { BotonGoogle, EnlaceDemo } from "./boton-google";
 import { MedirPortada, EnlaceMedido } from "./medicion";
+import { PieContacto } from "./pie-contacto";
 import { FeedFondo } from "./feed-fondo";
 import { Vivo } from "./vivo";
 import "./pagina-principal.css";
@@ -94,6 +95,8 @@ export function PortadaInicio({
         </div>
         {/* Desde un catálogo no hay panel debajo que se abra solo: tras elegir la demo se va a `/`. */}
         <EnlaceDemo evento={reel ? "catalogo_cta_demo" : "cta_demo"} alTerminar={reel ? () => window.location.assign("/") : undefined} />
+        {/* El pie de contacto solo en la página principal: en el último reel del catálogo ya va justo. */}
+        {!reel && <PieContacto eventoInstagram="cta_quiero_vender" />}
       </Texto>
 
       <MedirPortada modo={modo} activo={activo} />

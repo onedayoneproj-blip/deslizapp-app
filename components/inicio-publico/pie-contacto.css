@@ -1,0 +1,35 @@
+/* El pie de contacto (components/inicio-publico/pie-contacto.tsx): papel al 75 % sobre el verde Bosque, 13,5 px, centrado; a 360 puede pasar a dos líneas. */
+.pie-contacto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 8px;
+  margin: 0;
+  color: rgba(255, 249, 238, 0.75);
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.2;
+}
+.pie-contacto-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 12px;
+  color: inherit;
+}
+.pie-contacto-enlace svg {
+  flex: none;
+}
+.pie-contacto-enlace:focus-visible {
+  outline: 3px solid var(--marca-mandarina);
+  outline-offset: 1px;
+  color: var(--marca-papel);
+}
+@media (hover: hover) {
+  .pie-contacto-enlace:hover {
+    color: var(--marca-papel);
+  }
+}

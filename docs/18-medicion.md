@@ -25,6 +25,8 @@ Encargo: `docs/prompts/medicion-landing.md`. Cuántas personas llegan a la pági
 
 > **17 oct 2026:** el botón que decía «Quiero vender» ahora dice «Escríbenos» (mismo destino, el Instagram de Deslizapp, y mismo icono). Los eventos conservan su nombre (`cta_quiero_vender`, `catalogo_cta_quiero_vender`, `conoce_cta_vender`) para no romper los datos.
 
+> **17 oct 2026:** el pie de contacto (`@deslizapp` y `hola@deslizapp.com`) de `/`, `/planes` y el cierre de `/conoce`. El toque en su Instagram cuenta con el evento que ya existe para ese destino en esa página (`cta_quiero_vender` en `/`, `conoce_cta_vender` en `/conoce`; en `/planes` no hay medición de esos botones), así que se suma a «Escríbenos». El correo (`mailto:`) no se mide: ningún evento existente encaja y uno nuevo pide migración.
+
 ## Eventos
 
 | Evento | Cuándo |

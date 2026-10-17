@@ -5,6 +5,7 @@ import type { PlanPublico } from "@/lib/planes/planes";
 import { INCLUYE } from "@/lib/planes/incluye";
 import { faqPageJsonLd, PREGUNTAS_PLANES } from "@/lib/planes/preguntas";
 import { IconoClientes, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
+import { PieContacto } from "../inicio-publico/pie-contacto";
 import { FeedFondo } from "../inicio-publico/feed-fondo";
 import "../inicio-publico/pagina-principal.css";
 import { CarruselIncluye } from "./carrusel-incluye";
@@ -83,6 +84,7 @@ export function PaginaPlanes({ planes, fotos, ahora }: { planes: PlanPublico[]; 
           </a>
         </div>
         <p className="pl-pie">Precios en pesos dominicanos. Puedes cambiar de plan cuando quieras.</p>
+        <PieContacto />
       </main>
     </div>
   );
