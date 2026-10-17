@@ -488,7 +488,7 @@ for (const [ancho, alto] of [
   await pagina.locator("[data-saltar]").click();
   await pagina.waitForTimeout(800);
   ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; }), "«Saltar» lleva al cierre");
-  ok((await pagina.getByRole("link", { name: "Quiero vender" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Quiero vender» abre el Instagram de Deslizapp");
+  ok((await pagina.getByRole("link", { name: "Escríbenos" }).getAttribute("href")) === ENLACE_QUIERO_VENDER, "«Escríbenos» abre el Instagram de Deslizapp");
   ok((await pagina.getByRole("link", { name: "Ver un catálogo de ejemplo" }).getAttribute("href")) === ENLACE_CATALOGO_EJEMPLO, "«Ver un catálogo de ejemplo» va a la Tienda de ensayo");
   const cierre = await pagina.evaluate(() => {
     const c = document.getElementById("cierre");
@@ -507,9 +507,9 @@ for (const [ancho, alto] of [
   });
   ok(cierre.iconoVerde, "en el cierre, el icono de la app es el verde");
   ok(cierre.fotos === 3 && cierre.corazon, "el cierre lleva las tres fotos en abanico con el ♥ y «Despachado»");
-  ok(cierre.enlaces && cierre.otraVez === "#arriba" && cierre.sinSubtitulo, "el cierre lleva «Quiero vender», «Ver un catálogo de ejemplo», «Entrar» y «Ver la demo otra vez», sin el subtítulo de antes");
+  ok(cierre.enlaces && cierre.otraVez === "#arriba" && cierre.sinSubtitulo, "el cierre lleva «Escríbenos», «Ver un catálogo de ejemplo», «Entrar» y «Ver la demo otra vez», sin el subtítulo de antes");
   ok(cierre.fondo === "rgb(23, 75, 58)" && cierre.tema?.replace(/\s/g, "") === cierre.fondo.replace(/\s/g, ""), `el cierre va en verde Bosque, con el theme-color igual (${cierre.tema})`);
-  const cta = await pagina.getByRole("link", { name: "Quiero vender" }).boundingBox();
+  const cta = await pagina.getByRole("link", { name: "Escríbenos" }).boundingBox();
   ok(cta && cta.x >= 0 && cta.x + cta.width <= ancho, "los CTA caben en la pantalla");
   ok(errores.length === 0, `sin errores de la página${errores.length ? ": " + errores.join(" | ") : ""}`);
   if (capturas && (ancho === 393 || ancho === 1440)) await pagina.screenshot({ path: `docs/capturas/landing/${String(PASOS.length + 1).padStart(2, "0")}-cierre-${ancho}.png` });
@@ -619,7 +619,7 @@ console.log("\nSin JavaScript");
   await pagina.goto(base + "/conoce");
   ok(await pagina.getByRole("heading", { name: "Un pedido, de principio a fin" }).isVisible(), "se entiende la propuesta (pasos con capturas)");
   ok((await pagina.locator(".landing-pasos [data-paso]").count()) === PASOS.length, "un paso por cada uno de la demo");
-  ok(await pagina.getByRole("link", { name: "Quiero vender" }).isVisible(), "y se llega a los CTA");
+  ok(await pagina.getByRole("link", { name: "Escríbenos" }).isVisible(), "y se llega a los CTA");
   ok(await pagina.getByRole("link", { name: "Entrar", exact: true }).isVisible(), "y a «Entrar»");
   await contexto.close();
 }

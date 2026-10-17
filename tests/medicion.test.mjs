@@ -42,3 +42,9 @@ test("la lista de eventos coincide con la de la función SQL", () => {
   assert.ok(!esEvento("borrar_todo"));
   assert.ok(!esEvento(undefined));
 });
+
+test("«Ver planes»: el reel del catálogo y la cabecera de / cuentan sus toques con eventos propios, y el de «Iniciar sesión» del reel se conserva", () => {
+  for (const e of ["catalogo_cta_planes", "cta_planes"]) assert.equal(esEvento(e), true);
+  // Los datos anteriores al 17 oct 2026 lo usan: sigue en la lista.
+  assert.equal(esEvento("catalogo_cta_iniciar_sesion"), true);
+});

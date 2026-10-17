@@ -92,10 +92,31 @@ for (const [ancho, alto] of [
   const fotos = [...new Set(m.fotos.map(original))];
   if (esperadas) ok(esperadas.length >= 6 ? fotos.length === esperadas.length && fotos.every((f) => esperadas.includes(f)) : fotos.length >= 6, `las fotos son las de la tienda deslizapp (${fotos.length} de ${esperadas.length})`);
   else ok(fotos.length >= 3 && fotos.every((f) => f.startsWith("/landing/feed-")), `sin Supabase, las fotos de respaldo (${fotos.length})`);
-  ok(m.botones && m.google, "«Iniciar sesión» (con la G de Google), «Cómo funciona» y «Quiero vender» a la vista");
-  ok(m.vender.href === "https://instagram.com/deslizapp" && m.vender.target === "_blank" && m.como === "/conoce", "«Quiero vender» abre el Instagram y «Cómo funciona» lleva a /conoce");
+  ok(m.botones && m.google, "«Iniciar sesión» (con la G de Google), «Cómo funciona» y «Escríbenos» a la vista");
+  ok(m.vender.href === "https://instagram.com/deslizapp" && m.vender.target === "_blank" && m.como === "/conoce", "«Escríbenos» abre el Instagram y «Cómo funciona» lleva a /conoce");
   ok(m.tema === "#174b3a" || m.tema === "rgb(23, 75, 58)", `theme-color verde Bosque (${m.tema})`);
   ok(m.sinScroll, "sin scroll horizontal");
+  // El pie de contacto (Instagram y correo), en `/`.
+  const pie = await pagina.evaluate(() => {
+    const e = document.querySelector(".pie-contacto");
+    if (!e) return null;
+    const r = (x) => x.getBoundingClientRect();
+    const ig = e.querySelector('[data-cta="pie-instagram"]');
+    const co = e.querySelector('[data-cta="pie-correo"]');
+    const cs = getComputedStyle(e);
+    return {
+      instagram: { href: ig.getAttribute("href"), texto: ig.textContent.trim(), alto: r(ig).height, abre: ig.getAttribute("target"), rel: ig.getAttribute("rel") },
+      correo: { href: co.getAttribute("href"), texto: co.textContent.trim(), alto: r(co).height },
+      iconos: e.querySelectorAll("svg").length,
+      color: cs.color, tamano: cs.fontSize, lineas: Math.round(r(e).height / 44), dentro: r(e).bottom <= window.innerHeight + 1 && r(e).left >= 0 && r(e).right <= window.innerWidth,
+      sinSolape: r(e).top >= r(document.querySelector(".ini-demo")).bottom - 1,
+    };
+  });
+  ok(!!pie && pie.instagram.href === "https://instagram.com/deslizapp" && pie.instagram.texto === "@deslizapp" && pie.instagram.abre === "_blank" && /noopener/.test(pie.instagram.rel), "el pie: «@deslizapp» abre el Instagram de Deslizapp");
+  ok(!!pie && pie.correo.href === "mailto:hola@deslizapp.com" && pie.correo.texto === "hola@deslizapp.com", "el pie: «hola@deslizapp.com» es un mailto");
+  ok(!!pie && pie.instagram.alto >= 44 && pie.correo.alto >= 44 && pie.iconos === 2, "el pie: zonas táctiles de 44 px o más, con icono de Instagram y de correo");
+  ok(!!pie && pie.color === "rgba(255, 249, 238, 0.75)" && parseFloat(pie.tamano) >= 13 && parseFloat(pie.tamano) <= 14, `el pie: papel al 75 % y letra pequeña (${pie?.tamano})`);
+  ok(!!pie && pie.dentro && pie.sinSolape && pie.lineas <= (ancho <= 360 ? 2 : 1), `el pie cabe en la pantalla, debajo de la demo, en ${pie?.lineas} línea(s)`);
   // Lo vivo: las columnas suben, sale la burbuja y luego el corazón.
   const t0 = await transformes(pagina);
   let corazon = false;

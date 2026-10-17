@@ -21,18 +21,27 @@ Encargo: `docs/prompts/medicion-landing.md`. Cuántas personas llegan a la pági
 
 > **Nota de aplicación:** la migración `20261016145000_eventos_publicos_limites` se aplicó desde el editor SQL de Supabase (16 oct 2026) porque `apply_migration` expiraba por un fallo de la herramienta; la versión se anotó en el historial a mano.
 
+> **17 oct 2026:** la migración `20261017114521_eventos_publicos_planes` (aplicada con `apply_migration`) añade `catalogo_cta_planes` y `cta_planes` a la lista.
+
+> **17 oct 2026:** el botón que decía «Quiero vender» ahora dice «Escríbenos» (mismo destino, el Instagram de Deslizapp, y mismo icono). Los eventos conservan su nombre (`cta_quiero_vender`, `catalogo_cta_quiero_vender`, `conoce_cta_vender`) para no romper los datos.
+
+> **17 oct 2026:** el pie de contacto (`@deslizapp` y `hola@deslizapp.com`) de `/`, `/planes` y el cierre de `/conoce`. El pie no se mide (ni el Instagram ni el correo), para no mezclar sus toques con los del botón «Escríbenos»; medirlo pediría un evento nuevo y, con él, una migración.
+
 ## Eventos
 
 | Evento | Cuándo |
 |---|---|
 | `inicio_visto` | Se ve la página principal (`/`) sin sesión. |
 | `cta_iniciar_sesion`, `cta_como_funciona`, `cta_quiero_vender`, `cta_demo` | Toques de los botones de la página principal. |
+| `cta_planes` | Toque en el enlace «Planes» de la cabecera de la página principal. |
 | `conoce_paso` (`paso` = id del paso) | Un paso de `/conoce` llega a pantalla; una vez por paso y visita. El primero es `intro`. |
 | `conoce_final` | Se llega al cierre de `/conoce`; una vez por visita. |
 | `conoce_cta_vender`, `conoce_cta_catalogo`, `conoce_cta_entrar`, `conoce_cta_otra_vez` | Botones del cierre de `/conoce`. |
 | `catalogo_visto` (`tienda_slug`, `origen`) | Se abre un catálogo público real (no la demo); una vez por visita. |
 | `catalogo_reel_deslizapp` | El catálogo llega a su último reel (la portada de Deslizapp); una vez por visita. |
-| `catalogo_cta_iniciar_sesion`, `catalogo_cta_como_funciona`, `catalogo_cta_quiero_vender`, `catalogo_cta_demo` | Los mismos botones, tocados desde ese último reel. |
+| `catalogo_cta_como_funciona`, `catalogo_cta_quiero_vender`, `catalogo_cta_demo` | Los mismos botones, tocados desde ese último reel. |
+| `catalogo_cta_planes` | «Ver planes», el botón principal de ese último reel (desde el 17 oct 2026; antes era «Iniciar sesión»). |
+| `catalogo_cta_iniciar_sesion` | Ya no hay un botón así en el reel; sigue en la lista porque los datos anteriores al 17 oct 2026 lo usan. |
 
 Un evento nuevo pide una migración nueva (la lista vive en `registrar_evento_publico`) y actualizar `lib/medicion/eventos.ts`; `tests/medicion.test.mjs` comprueba que las dos listas coincidan.
 
