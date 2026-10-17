@@ -14,8 +14,8 @@ const BASE_HILO = 100;
 const QUEDA = 0;
 const QUEDA_CHECK = 1300;
 const VIAJE = 700;
-/** En el cambio de lado, cuánto se ve «Pidió en segundos.» (rosa) antes de que los iconos se intercambien y todo pase a verde. */
-const CAMBIO_LADO_MS = 900;
+/** En el cambio de lado, cuánto tarda el fondo de la landing en pasar de rosa a verde: la ola verde (cambio-lado.css) sube entre 1 y 2 s y ya lo tapa. */
+const CAMBIO_LADO_MS = 1900;
 
 type Punto = { x: number; y: number };
 
@@ -304,12 +304,12 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         capitulo: String(paso.capitulo),
         larga: burbujaLarga(paso) ? "si" : "no",
       });
-      // El cambio de lado: llega rosa («Pidió en segundos.») y, un momento después, los iconos se intercambian y todo pasa a verde. Sin
-      // animación (al abrir, al volver, movimiento reducido), se ve el final.
+      // El cambio de lado: llega rosa («Pidió en segundos.»); el teléfono gira, una ola verde sube y todo pasa a verde (cambio-lado.css, con
+      // data-anima="si"). Sin animación (al abrir, movimiento reducido), se ve el final.
       e.dataset.anima = reducido.matches ? "no" : desde < 0 || Date.now() - montado < 1500 ? "entrada" : "si";
       window.clearTimeout(cambio);
       delete e.dataset.cambio;
-      if (paso.escena === "cambio-lado" && animar) {
+      if (paso.escena === "cambio-lado" && animar && e.dataset.anima === "si") {
         e.dataset.cambio = "antes";
         e.dataset.lado = "compras";
         cambio = window.setTimeout(() => {

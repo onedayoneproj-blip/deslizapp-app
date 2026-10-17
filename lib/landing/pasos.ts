@@ -103,7 +103,7 @@ export const PASOS: Paso[] = [
   { id: "seguimiento", capitulo: 5, lado: "compras", telefono: "compradora", burbuja: { texto: "Con el enlace", remate: "ve cómo va su pedido.", resalta: ["cómo va"], iconos: { enlace: "enlace" } }, dedo: "toque", fases: 1, duracion: 1500 },
   // El cambio de lado: una pantalla propia, sin teléfono (components/landing/cambio-lado.tsx). Arranca rosa («Pidió en segundos.») y a los
   // CAMBIO_LADO_MS se vuelve verde («Así lo ve Tu Tienda.»); `lado` es el del final, el que se ve al llegar sin animación.
-  { id: "cambio-lado", capitulo: 6, lado: "tienda", telefono: "tienda", escena: "cambio-lado", burbuja: null, dedo: "no", fases: 1, duracion: 2400 },
+  { id: "cambio-lado", capitulo: 6, lado: "tienda", telefono: "tienda", escena: "cambio-lado", burbuja: null, dedo: "no", fases: 1, duracion: 3800 },
   { id: "aviso", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Te piden allá.", remate: "Te llega aquí.", resalta: ["Te llega aquí"] }, dedo: "no", fases: 1, duracion: 1000 },
   { id: "chat-tienda", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Fotos, total y enlace.", remate: "Sin «¿cuál era?».", resalta: ["¿cuál era?"], iconos: { total: "moneda", enlace: "enlace" } }, dedo: "toque", fases: 1, duracion: 1500 },
   // «¿Eres la tienda?» y «Registrar» en uno: el enlace del pedido, entrar con la cuenta y registrarlo (seis toques).

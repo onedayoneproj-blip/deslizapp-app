@@ -1,32 +1,55 @@
-/* eslint-disable @next/next/no-img-element -- los iconos de la app: imágenes estáticas de tamaño fijo, sin optimizador */
+/* eslint-disable @next/next/no-img-element -- la captura del catálogo: imagen estática de tamaño fijo, sin optimizador */
+import { TelefonoMockup } from "./telefono-mockup";
 import "./cambio-lado.css";
 
 /**
- * El cambio de lado de «Cómo funciona» (docs/prompts/conoce-portada-narrativa.md): una pantalla propia, sin teléfono, para pasar de quien
- * compra a la tienda. Los iconos de la app (rosa: quien compra; verde: la tienda) se intercambian de lugar y de tamaño, el fondo pasa
- * de rosa a verde y el texto de «Pidió en segundos.» a «Así lo ve Tu Tienda.». Cada texto lleva sus dos versiones apiladas y el
- * escenario decide cuál se ve (data-cambio: «antes» al llegar y «despues» un momento más tarde, controlador.tsx), así el cambio es un
- * fundido y el alto no salta. Sin movimiento reducido, solo se ve el final. Decoración + texto: el texto final se lee.
+ * El cambio de lado de «Cómo funciona»: una pantalla propia entre quien compra y la tienda. Arranca en rosa con el teléfono de quien
+ * compra (el catálogo) y «Pidió en segundos.»; al segundo, el teléfono gira 180° y por detrás aparece el panel de Tu Tienda con el aviso
+ * «Nuevo · Ana», mientras una ola verde sube y cubre el fondo; el texto viejo se desvanece y entra «Así lo ve Tu Tienda.» en papel sobre el
+ * verde. Todo son animaciones de CSS que arrancan al entrar al paso (cambio-lado.css) y se repiten limpias cada vez; sin animar (llegada
+ * directa, movimiento reducido) se ve el final. El controlador solo pasa el fondo de la landing de rosa a verde (data-lado) a mitad de la ola.
+ * Decoración + texto: el texto final se lee; los teléfonos son decoración.
  */
 export function CambioLado() {
   return (
     <div className="cl" data-cambio-lado>
-      <p className="cl-antes">
-        <span className="cl-frase" data-fase="antes">así lo vio quien compra</span>
-        <span className="cl-frase" data-fase="despues">y del otro lado…</span>
-      </p>
-      <div className="cl-iconos" aria-hidden="true">
-        <img src="/landing/icono-verde.webp" alt="" width={180} height={180} className="cl-icono cl-icono-verde" />
-        <img src="/landing/icono-rosa.webp" alt="" width={180} height={180} className="cl-icono cl-icono-rosa" />
+      <div className="cl-ola" aria-hidden="true" />
+      <div className="cl-escena" aria-hidden="true">
+        <div className="cl-carta">
+          <div className="cl-cara cl-frente">
+            <TelefonoMockup marco="titanio" className="cl-tm">
+              <img src="/landing/catalogo/termo.webp" alt="" width={393} height={852} className="cl-catalogo" decoding="async" />
+            </TelefonoMockup>
+          </div>
+          <div className="cl-cara cl-dorso">
+            <TelefonoMockup className="cl-tm">
+              <div className="cl-panel">
+                <b className="cl-panel-titulo">Pedidos</b>
+                <span className="cl-aviso">
+                  <span>🔔 Nuevo · Ana</span>
+                  <small>2 productos · RD$1,500</small>
+                </span>
+                <span className="cl-fila" />
+                <span className="cl-fila" />
+              </div>
+            </TelefonoMockup>
+          </div>
+        </div>
       </div>
-      <h2 className="cl-titulo">
-        <span className="cl-frase" data-fase="antes">Pidió en segundos.</span>
-        <span className="cl-frase" data-fase="despues">Así lo ve Tu Tienda.</span>
-      </h2>
-      <p className="cl-texto">
-        <span className="cl-frase" data-fase="antes">Eligió, le dio aaah y te mandó el pedido por WhatsApp.</span>
-        <span className="cl-frase" data-fase="despues">El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas.</span>
-      </p>
+      <div className="cl-textos">
+        <p className="cl-antes">
+          <span className="cl-frase" data-fase="antes">así lo vio quien compra</span>
+          <span className="cl-frase" data-fase="despues">y del otro lado…</span>
+        </p>
+        <h2 className="cl-titulo">
+          <span className="cl-frase" data-fase="antes">Pidió en segundos.</span>
+          <span className="cl-frase" data-fase="despues">Así lo ve Tu Tienda.</span>
+        </h2>
+        <p className="cl-texto">
+          <span className="cl-frase" data-fase="antes">Eligió, le dio aaah y te mandó el pedido por WhatsApp.</span>
+          <span className="cl-frase" data-fase="despues">El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas.</span>
+        </p>
+      </div>
     </div>
   );
 }

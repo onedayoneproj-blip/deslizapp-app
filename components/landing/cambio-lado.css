@@ -1,26 +1,25 @@
-/* El cambio de lado (components/landing/cambio-lado.tsx): sin teléfono, entre `seguimiento` y `cambio`. El escenario lleva
-   data-cambio="antes" | "despues" mientras el paso está activo; el fondo (rosa → verde) es el de .lt-fondo según data-lado, que el
-   controlador cambia a la vez. Solo transform y opacity (y el color del texto). Sin data-cambio (llegada sin animación, movimiento
-   reducido), se ve el final. */
+/* El cambio de lado (components/landing/cambio-lado.tsx), entre `seguimiento` y `aviso`. Estado de reposo = el FINAL (fondo y ola verdes, el
+   teléfono vuelto con el panel de la tienda, el texto nuevo): es lo que se ve al llegar sin animar y con movimiento reducido. Con
+   data-anima="si" (llegar deslizando, también al volver) arrancan las animaciones de abajo desde el principio; se repiten limpias porque
+   la regla deja de aplicar al salir del paso. Solo transform y opacity. El fondo de la landing pasa de rosa a verde (data-lado) a los
+   1,9 s, ya tapado por la ola (controlador.tsx CAMBIO_LADO_MS). Línea de tiempo: 1 s arranca el giro (1,2 s) y la ola (1 s); 1,6 s se va
+   el texto viejo; 2,4 s entra el nuevo, escalonado; 3,2 s el aviso da un pequeño rebote. */
 .cl {
-  --tinta: var(--marca-papel);
   position: absolute;
   inset: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding: calc(var(--alto-arriba) + 8px) 24px calc(var(--alto-abajo) + 16px);
-  color: var(--tinta);
+  gap: 14px;
+  padding: calc(var(--alto-arriba) + 4px) 24px calc(var(--alto-abajo) + 12px);
   text-align: center;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  overflow: hidden;
   transition:
     opacity 420ms ease,
-    color 600ms ease,
     visibility 0s linear 420ms;
 }
 .lt-escenario[data-paso="cambio-lado"] .cl {
@@ -28,10 +27,112 @@
   visibility: visible;
   transition-delay: 0s;
 }
-.lt-escenario[data-paso="cambio-lado"][data-cambio="antes"] .cl {
-  --tinta: var(--marca-bosque);
+
+/* La ola verde, por detrás del teléfono y del texto: cubre todo el fondo, con el borde de arriba curvo */
+.cl-ola {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 0;
+  bottom: 0;
+  background: var(--marca-bosque);
+  border-radius: 50% 50% 0 0 / 40px 40px 0 0;
 }
-/* El texto: cada versión apilada en la misma celda; se ve la del momento. */
+
+/* El teléfono: dos caras (catálogo de quien compra y panel de la tienda) en una carta que gira sobre su eje */
+.cl-escena {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  container-type: size;
+  perspective: 1000px;
+}
+.cl-carta {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  height: min(100cqh, 100cqw / 0.474, 460px);
+  aspect-ratio: 640 / 1350;
+  transform-style: preserve-3d;
+  transform: rotateY(180deg);
+}
+.cl-cara {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.cl-dorso {
+  transform: rotateY(180deg);
+}
+.cl-tm {
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.3));
+}
+.cl-catalogo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+/* El panel de Tu Tienda (decoración, en cqw del ancho de su pantalla) */
+.cl-panel {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 16cqw 6cqw 0;
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
+  text-align: left;
+}
+.cl-panel-titulo {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9cqw;
+  line-height: 1;
+}
+.cl-aviso {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5cqw;
+  margin-top: 6cqw;
+  padding: 4cqw;
+  border-radius: 4cqw;
+  background: #ffffff;
+  box-shadow: 0 1cqw 3cqw rgba(16, 54, 42, 0.12);
+  font-size: 5cqw;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.cl-aviso small {
+  font-size: 4.2cqw;
+  font-weight: 600;
+  color: #4f6a5e;
+}
+.cl-fila {
+  display: block;
+  height: 14cqw;
+  margin-top: 3.5cqw;
+  border-radius: 4cqw;
+  background: #e7f2ea;
+}
+
+/* El texto: cada versión apilada en la misma celda; en reposo se ve la nueva (papel sobre el verde). */
+.cl-textos {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
 .cl-antes,
 .cl-titulo,
 .cl-texto {
@@ -40,89 +141,126 @@
 }
 .cl-frase {
   grid-area: 1 / 1;
-  transition: opacity 420ms ease;
 }
 .cl-frase[data-fase="antes"] {
-  opacity: 0;
-}
-.lt-escenario[data-cambio="antes"] .cl-frase[data-fase="antes"] {
-  opacity: 1;
-}
-.lt-escenario[data-cambio="antes"] .cl-frase[data-fase="despues"] {
   opacity: 0;
 }
 .cl-antes {
   font-family: var(--font-mano);
   font-weight: 700;
-  font-size: 1.9rem;
+  font-size: 1.7rem;
   line-height: 1.1;
+}
+.cl-antes [data-fase="antes"] {
   color: var(--atencion-texto);
 }
-.lt-escenario:not([data-cambio="antes"]) .cl-antes {
+.cl-antes [data-fase="despues"] {
   color: var(--marca-rosa-fija);
 }
 .cl-titulo {
   font-family: var(--font-display);
   font-stretch: 108%;
   font-weight: 700;
-  font-size: 2.4rem;
+  font-size: 2.2rem;
   line-height: 1.05;
+}
+.cl-titulo [data-fase="antes"] {
+  color: var(--marca-bosque);
+}
+.cl-titulo [data-fase="despues"] {
+  color: var(--marca-papel);
 }
 .cl-texto {
   max-width: 330px;
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.4;
 }
-/* Los dos iconos: tamaño y sitio por «quién va delante». Al principio, el rosa (quien compra) grande delante y el verde chico detrás
-   a su izquierda; al cambiar, se intercambian. */
-.cl-iconos {
-  position: relative;
-  width: min(300px, 78vw);
-  height: 140px;
-  margin-bottom: 12px;
+.cl-texto [data-fase="antes"] {
+  color: var(--marca-bosque);
 }
-.cl-icono {
-  position: absolute;
-  top: 50%;
-  border-radius: 28%;
-  box-shadow: 0 18px 30px -16px rgba(0, 0, 0, 0.5);
-  transition:
-    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    left 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+.cl-texto [data-fase="despues"] {
+  color: #cfe8da;
 }
-/* Estado final (sin data-cambio): el verde grande delante, el rosa chico detrás a su derecha. */
-.cl-icono-verde {
-  left: 50%;
-  width: 140px;
-  height: 140px;
-  z-index: 2;
-  transform: translate(-50%, -50%);
+
+/* Pantallas bajas: el texto un poco menor, para que el teléfono tenga sitio */
+@media (max-height: 700px) {
+  .cl-antes {
+    font-size: 1.45rem;
+  }
+  .cl-titulo {
+    font-size: 1.85rem;
+  }
+  .cl-texto {
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
 }
-.cl-icono-rosa {
-  left: 82%;
-  width: 96px;
-  height: 96px;
-  z-index: 1;
-  transform: translate(-50%, -50%);
+
+/* Las animaciones: solo llegando deslizando al paso (data-anima="si") y sin movimiento reducido */
+@media (prefers-reduced-motion: no-preference) {
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-ola {
+    animation: cl-sube 1s cubic-bezier(0.6, 0, 0.3, 1) 1s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-carta {
+    animation: cl-gira 1.2s cubic-bezier(0.5, 0, 0.3, 1) 1s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-frase[data-fase="antes"] {
+    animation: cl-fuera 0.3s ease 1.6s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-frase[data-fase="despues"] {
+    animation: cl-dentro 0.5s ease 2.4s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-titulo .cl-frase[data-fase="despues"] {
+    animation-delay: 2.55s;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-texto .cl-frase[data-fase="despues"] {
+    animation-delay: 2.7s;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-aviso {
+    animation: cl-rebote 0.6s ease 3.2s both;
+  }
 }
-.lt-escenario[data-cambio="antes"] .cl-icono-rosa {
-  left: 50%;
-  width: 140px;
-  height: 140px;
-  z-index: 2;
+@keyframes cl-sube {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
 }
-.lt-escenario[data-cambio="antes"] .cl-icono-verde {
-  left: 18%;
-  width: 96px;
-  height: 96px;
-  z-index: 1;
+@keyframes cl-gira {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
 }
-@media (prefers-reduced-motion: reduce) {
-  .cl,
-  .cl * {
-    transition: none !important;
+@keyframes cl-fuera {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes cl-dentro {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cl-rebote {
+  0%,
+  100% {
+    transform: none;
+  }
+  40% {
+    transform: scale(1.06);
   }
 }

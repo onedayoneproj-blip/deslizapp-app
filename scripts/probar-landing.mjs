@@ -131,7 +131,33 @@ const medir = (pagina, i) =>
         fondoArena: Number(getComputedStyle(e.querySelector(".lt-fondo-arena")).opacity),
         separadores: [...e.querySelectorAll("[data-separador]")].map((x) => [x.dataset.separador, Number(getComputedStyle(x).opacity), x.textContent]),
         escenas: [...e.querySelectorAll("[data-escena]")].map((x) => [x.dataset.escena, Number(getComputedStyle(x).opacity)]),
-        cambioLado: (() => { const c = e.querySelector("[data-cambio-lado]"); const v = e.querySelector(".cl-icono-verde").getBoundingClientRect(); const r = e.querySelector(".cl-icono-rosa").getBoundingClientRect(); const visible = (x) => x.closest("[data-fase]") && Number(getComputedStyle(x).opacity) > 0.99; return { visible: Number(getComputedStyle(c).opacity) > 0.99, titulo: [...c.querySelectorAll(".cl-titulo .cl-frase")].filter(visible).map((x) => x.textContent).join(""), texto: [...c.querySelectorAll(".cl-texto .cl-frase")].filter(visible).map((x) => x.textContent).join(""), verde: v.width, rosa: r.width, verdeX: v.left + v.width / 2, rosaX: r.left + r.width / 2, cambio: e.dataset.cambio ?? null, lado: e.dataset.lado }; })(),
+        cambioLado: (() => {
+          const c = e.querySelector("[data-cambio-lado]");
+          const carta = c.querySelector(".cl-carta");
+          const ola = c.querySelector(".cl-ola");
+          const textos = c.querySelector(".cl-textos").getBoundingClientRect();
+          const cr = carta.getBoundingClientRect();
+          const visible = (x) => Number(getComputedStyle(x).opacity) > 0.99;
+          const dicho = (sel) => [...c.querySelectorAll(sel)].filter(visible).map((x) => x.textContent).join("");
+          return {
+            visible: Number(getComputedStyle(c).opacity) > 0.99,
+            mano: dicho(".cl-antes .cl-frase"),
+            titulo: dicho(".cl-titulo .cl-frase"),
+            texto: dicho(".cl-texto .cl-frase"),
+            // el giro del teléfono (m11 de la matriz: 1 = de frente, 0 = de canto, −1 = vuelto) y la ola verde (su desplazamiento vertical)
+            giro: new DOMMatrix(getComputedStyle(carta).transform).m11,
+            olaY: new DOMMatrix(getComputedStyle(ola).transform).m42,
+            olaAlto: ola.getBoundingClientRect().height,
+            caras: { frente: getComputedStyle(c.querySelector(".cl-frente")).backfaceVisibility, dorso: getComputedStyle(c.querySelector(".cl-dorso")).backfaceVisibility, preserve: getComputedStyle(carta).transformStyle },
+            panel: /Nuevo · Ana/.test(c.querySelector(".cl-dorso").textContent) && /RD\$1,500/.test(c.querySelector(".cl-dorso").textContent),
+            // nada se recorta: el teléfono y el texto caben en la pantalla y no se pisan
+            cabe: cr.top >= -1 && cr.bottom <= innerHeight + 1 && cr.left >= -1 && cr.right <= innerWidth + 1 && textos.bottom <= innerHeight + 1 && textos.left >= -1 && textos.right <= innerWidth + 1,
+            sinPisar: cr.bottom <= textos.top + 6,
+            fases: [...c.querySelectorAll(".cl-frase")].length,
+            cambio: e.dataset.cambio ?? null,
+            lado: e.dataset.lado,
+          };
+        })(),
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
         tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // La barra (segmentos y rótulo) no toca «Saltar», el icono, el teléfono ni las burbujas a la vista, y cabe en el ancho.
@@ -287,9 +313,11 @@ for (const [ancho, alto] of [
       }
       if (paso.id === "cambio-lado") {
         const c = m.cambioLado;
-        ok(!m.telefonoVisible && c.visible, "cambio-lado: pantalla propia, sin teléfono");
-        ok(c.cambio === "despues" && c.lado === "tienda" && /Así lo ve Tu Tienda\./.test(c.titulo) && /El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas\./.test(c.texto), `cambio-lado: al terminar, «${c.titulo}» y su texto (${c.cambio}, lado ${c.lado})`);
-        ok(c.verde > c.rosa * 1.3 && c.verdeX < c.rosaX, `cambio-lado: el icono verde (la tienda) pasó a delante y grande (${Math.round(c.verde)} px) y el rosa (quien compra) a un lado y chico (${Math.round(c.rosa)} px)`);
+        ok(!m.telefonoVisible && c.visible, "cambio-lado: pantalla propia, sin el teléfono de la demo");
+        ok(c.cambio === "despues" && c.lado === "tienda" && /Así lo ve Tu Tienda\./.test(c.titulo) && /El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas\./.test(c.texto) && /y del otro lado/.test(c.mano), `cambio-lado: al terminar, «${c.titulo}» y su texto (${c.cambio}, lado ${c.lado})`);
+        ok(c.giro < -0.99 && Math.abs(c.olaY) < 1 && c.panel, `cambio-lado: al terminar, el teléfono dio la vuelta (el panel de Tu Tienda con «Nuevo · Ana» a la vista) y la ola verde cubre el fondo (giro ${c.giro.toFixed(2)})`);
+        ok(c.caras.frente === "hidden" && c.caras.dorso === "hidden" && c.caras.preserve === "preserve-3d", "cambio-lado: las dos caras con backface-visibility hidden y el teléfono en 3D");
+        ok(c.cabe && c.sinPisar, `cambio-lado: el teléfono y el texto caben en la pantalla sin recortarse ni pisarse`);
       }
       if (paso.escena === "dolor-dm") ok(/precio de este/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)) && /Escríbeme al WhatsApp/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)), "dolor-dm: el mensaje directo trae «¿precio?» y la tienda contestando «escríbeme al WhatsApp»");
       if (paso.id === "enlace") {
@@ -399,18 +427,25 @@ for (const [ancho, alto] of [
     await pagina.waitForTimeout(650);
     const llega = (await medir(pagina, lado)).cambioLado;
     const fondoLlega = (await medir(pagina, lado)).fondoTienda;
-    ok(llega.cambio === "antes" && llega.lado === "compras" && /Pidió en segundos\./.test(llega.titulo) && /le dio aaah y te mandó el pedido por WhatsApp/.test(llega.texto) && fondoLlega < 0.5, `cambio-lado: al llegar, rosa y «${llega.titulo}»`);
-    ok(llega.rosa > llega.verde * 1.3 && llega.rosaX > llega.verdeX, `cambio-lado: al llegar, el icono rosa (quien compra) va delante y grande (${Math.round(llega.rosa)} px) y el verde detrás y chico (${Math.round(llega.verde)} px)`);
-    await pagina.waitForTimeout(1800);
+    ok(llega.cambio === "antes" && llega.lado === "compras" && /Pidió en segundos\./.test(llega.titulo) && /así lo vio quien compra/.test(llega.mano) && /le dio aaah y te mandó el pedido por WhatsApp/.test(llega.texto) && fondoLlega < 0.5, `cambio-lado: al llegar, rosa y «${llega.titulo}»`);
+    ok(llega.giro > 0.99 && llega.olaY > llega.olaAlto * 0.9 && llega.panel, `cambio-lado: al llegar, el teléfono de frente (catálogo de quien compra) y la ola verde todavía abajo (giro ${llega.giro.toFixed(2)})`);
+    // A la mitad del giro (~1,6 s después de llegar): el teléfono de canto y la ola a medio subir.
+    await pagina.waitForTimeout(1000);
+    const mitad = (await medir(pagina, lado)).cambioLado;
+    ok(Math.abs(mitad.giro) < 0.85 && mitad.olaY > 0 && mitad.olaY < mitad.olaAlto * 0.95, `cambio-lado: a la mitad, el teléfono gira (${mitad.giro.toFixed(2)}) y la ola sube (${Math.round(mitad.olaY)} de ${Math.round(mitad.olaAlto)} px)`);
+    await pagina.waitForTimeout(2900);
     const fin = await medir(pagina, lado);
-    ok(fin.cambioLado.cambio === "despues" && /Así lo ve Tu Tienda\./.test(fin.cambioLado.titulo) && fin.fondoTienda > 0.95 && fin.tema?.toLowerCase() === fin.bosque.toLowerCase(), `cambio-lado: después, se intercambian los iconos y todo pasa a verde (${fin.cambioLado.titulo})`);
+    ok(fin.cambioLado.cambio === "despues" && /Así lo ve Tu Tienda\./.test(fin.cambioLado.titulo) && fin.cambioLado.giro < -0.99 && Math.abs(fin.cambioLado.olaY) < 1 && fin.fondoTienda > 0.95 && fin.tema?.toLowerCase() === fin.bosque.toLowerCase(), `cambio-lado: después, el teléfono dio la vuelta, la ola cubre el fondo y todo pasa a verde (${fin.cambioLado.titulo})`);
     await irAlPaso(pagina, siguiente);
     await pagina.waitForTimeout(1600);
     const en = (await medir(pagina, siguiente)).iconoApp;
     await irAlPaso(pagina, lado);
-    await pagina.waitForTimeout(1600);
-    const volviendo = await medir(pagina, lado);
-    ok(volviendo.cambioLado.cambio === "antes" || volviendo.cambioLado.lado === "tienda", "cambio-lado: al volver a él desde el paso siguiente, la pantalla se ve completa");
+    await pagina.waitForTimeout(650);
+    const vuelve = (await medir(pagina, lado)).cambioLado;
+    ok(vuelve.cambio === "antes" && vuelve.giro > 0.99 && vuelve.olaY > vuelve.olaAlto * 0.9 && /Pidió en segundos\./.test(vuelve.titulo), "cambio-lado: al volver a él desde el paso siguiente se repite limpio (el teléfono de frente y la ola abajo, otra vez)");
+    await pagina.waitForTimeout(4200);
+    const vuelto = (await medir(pagina, lado)).cambioLado;
+    ok(vuelto.giro < -0.99 && Math.abs(vuelto.olaY) < 1 && /Así lo ve Tu Tienda\./.test(vuelto.titulo), "cambio-lado: y termina completo, sin quedarse a medias");
     await irAlPaso(pagina, seguimiento);
     await pagina.waitForTimeout(1600);
     const antes = (await medir(pagina, seguimiento)).iconoApp;
@@ -646,7 +681,7 @@ console.log("\nMovimiento reducido");
   await irAlPaso(pagina, lado);
   await pagina.waitForTimeout(300);
   const cl = await medir(pagina, lado);
-  ok(cl.cambioLado.cambio === null && cl.cambioLado.lado === "tienda" && /Así lo ve Tu Tienda\./.test(cl.cambioLado.titulo) && cl.fondoTienda > 0.95 && cl.cambioLado.verde > cl.cambioLado.rosa * 1.3, "con movimiento reducido, el cambio de lado se ve en su estado final, sin animación");
+  ok(cl.cambioLado.cambio === null && cl.cambioLado.lado === "tienda" && /Así lo ve Tu Tienda\./.test(cl.cambioLado.titulo) && cl.fondoTienda > 0.95 && cl.cambioLado.giro < -0.99 && Math.abs(cl.cambioLado.olaY) < 1 && cl.cambioLado.panel, "con movimiento reducido, el cambio de lado se ve en su estado final (fondo verde, panel de la tienda y texto nuevo), sin giro ni ola");
   await contexto.close();
 }
 
