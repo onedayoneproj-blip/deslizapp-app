@@ -1,0 +1,19 @@
+/* Entrada de la bienvenida del Círculo: sube y aparece, como las hojas (docs/08-movimiento.md). Solo transform y opacity. */
+@keyframes bienvenida-c-entra {
+  0% {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.bienvenida-c {
+  animation: bienvenida-c-entra 350ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bienvenida-c {
+    animation: none;
+  }
+}

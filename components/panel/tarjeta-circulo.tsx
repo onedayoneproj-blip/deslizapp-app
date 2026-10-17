@@ -13,7 +13,8 @@ export function TarjetaCirculo({ tienda, hoy }: { tienda: Tienda; hoy: string })
   return (
     <section aria-label="Círculo Deslizapp" data-tarjeta-circulo="" className="mt-3 flex flex-col gap-3 rounded-[24px] bg-marca-bosque p-4 text-marca-papel">
       <div className="flex items-center gap-3.5">
-        <LogoTienda tienda={tienda} tamano={68} />
+        {/* Las ondas salen hasta ~1,45 veces: el aro lleva aire alrededor (p-4 de la tarjeta) y se pausan fuera de pantalla. */}
+        <LogoTienda tienda={tienda} tamano={68} animacion="ondas" />
         <div className="flex min-w-0 flex-col">
           <span className="font-mano text-[22px] leading-none text-marca-rosa-fija">eres del</span>
           <span className="font-display text-[24px] font-bold leading-none">Círculo Deslizapp</span>
@@ -24,7 +25,7 @@ export function TarjetaCirculo({ tienda, hoy }: { tienda: Tienda; hoy: string })
         <li className="flex gap-2.5">
           {vigente ? (
             <>
-              <span className="font-extrabold text-marca-mandarina">{DESCUENTO_CIRCULO} %</span>
+              <span className="shrink-0 font-extrabold whitespace-nowrap text-marca-mandarina">{DESCUENTO_CIRCULO} %</span>
               {textoDescuento(c, hoy)}
             </>
           ) : (
