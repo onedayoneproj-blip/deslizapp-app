@@ -16,11 +16,11 @@ const ESPERA_MONTO_MS = 1950;
 const DURACION_MONTO_MS = 800;
 const PASOS = ["Recibido", "Confirmado", "Despachado"];
 
-/** Cuenta de 0 al total en 800 ms (ease-out cúbico) después de la espera; con movimiento reducido muestra el total de una vez. */
-function useMontoQueCuenta(total: number, activo: boolean) {
-  const [valor, setValor] = useState(() => (menosMovimiento() ? total : 0));
+/** Cuenta de 0 al total en 800 ms (ease-out cúbico) después de la espera; con movimiento reducido (o `sinConteo`) muestra el total de una vez. */
+function useMontoQueCuenta(total: number, activo: boolean, sinConteo: boolean) {
+  const [valor, setValor] = useState(() => (sinConteo || menosMovimiento() ? total : 0));
   useEffect(() => {
-    if (!activo || menosMovimiento()) return;
+    if (!activo || sinConteo || menosMovimiento()) return;
     let raf = 0;
     const t0 = performance.now();
     const paso = (t: number) => {
@@ -30,8 +30,8 @@ function useMontoQueCuenta(total: number, activo: boolean) {
     };
     raf = requestAnimationFrame(paso);
     return () => cancelAnimationFrame(raf);
-  }, [total, activo]);
-  return menosMovimiento() ? total : valor;
+  }, [total, activo, sinConteo]);
+  return sinConteo || menosMovimiento() ? total : valor;
 }
 
 /**
@@ -46,16 +46,19 @@ export function HojaDespachado({
   pedido,
   cliente,
   productos,
+  sinConteo = false,
 }: {
   abierta: boolean;
   alCerrar: () => void;
   pedido: PedidoConItems;
   cliente: Cliente | null;
   productos: Producto[];
+  /** La demo de la landing: el total sale directo en RD$1,500, sin contar desde 0. En el panel real no cambia. */
+  sinConteo?: boolean;
 }) {
   const router = useRouter();
   const porId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
-  const monto = useMontoQueCuenta(pedido.total, abierta);
+  const monto = useMontoQueCuenta(pedido.total, abierta, sinConteo);
   const primerNombre = cliente?.nombre.split(" ")[0] ?? "";
   const nombre = cliente?.nombre ?? "Cliente sin nombre";
   const visibles = pedido.items.length > 4 ? pedido.items.slice(0, 3) : pedido.items;

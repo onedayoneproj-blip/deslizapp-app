@@ -396,3 +396,29 @@
     transform: translate(-50%, -2cqw) scale(1);
   }
 }
+
+/* Una sola vez (la landing, paso `enlace`): la línea de tiempo corre cuando el paso llega (al volver a él, empieza de nuevo) y se queda en
+   el catálogo abierto. Fuera del paso no hay animaciones (vuelve a su reposo); dentro, una pasada. El teléfono ya se ve entero: no se
+   aleja y al final no se desvanece. */
+.lt-escenario:not([data-paso="enlace"]) .pc[data-una-vez],
+.lt-escenario:not([data-paso="enlace"]) .pc[data-una-vez] * {
+  animation: none;
+}
+.pc[data-una-vez] * {
+  animation-iteration-count: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pc[data-una-vez] {
+    animation-name: pc-telefono-una;
+    animation-iteration-count: 1;
+  }
+}
+@keyframes pc-telefono-una {
+  0% {
+    opacity: 0;
+  }
+  2.73%,
+  100% {
+    opacity: 1;
+  }
+}

@@ -223,9 +223,30 @@
   opacity: 1;
   transition-delay: 250ms;
 }
-/* Los separadores y el cambio de lado no llevan teléfono: el de la compradora se esconde (y vuelve en el paso siguiente). */
-.lt-escenario:is([data-paso="bienvenida"], [data-paso="antes"], [data-paso="solucion"]) .lt-tel-compradora {
+/* Los separadores y el cambio de lado no llevan teléfono: el de la compradora se esconde (y vuelve en el paso siguiente). Lo mismo en
+   `enlace`, que lleva el suyo (del perfil al catálogo). */
+.lt-escenario:is([data-paso="bienvenida"], [data-paso="antes"], [data-paso="solucion"], [data-paso="enlace"]) .lt-tel-compradora {
   opacity: 0;
+}
+/* Del perfil al catálogo (paso `enlace`): el teléfono de Instagram ocupa el sitio del de la compradora, con su misma medida. */
+.lt-enlace {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(100cqw, 100cqh * 640 / 1350);
+  height: fit-content;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  filter: drop-shadow(0 24px 30px rgba(16, 54, 42, 0.35));
+  transition:
+    opacity 420ms ease,
+    visibility 0s linear 420ms;
+}
+.lt-escenario[data-paso="enlace"] .lt-enlace {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 /* El cambio de lado no lleva teléfono: el de la compradora ya salió y el de la tienda espera fuera para entrar en el paso siguiente. */
 .lt-escenario[data-paso="cambio-lado"] .lt-tel-tienda {
@@ -542,6 +563,22 @@
   }
 }
 
+/* Una burbuja con mucho texto (lib/landing/pasos.ts burbujaLarga): letra menor y más sitio abajo (el teléfono se achica un poco). */
+.lt-burbuja[data-larga] {
+  font-size: 1.25rem;
+}
+.lt-escenario[data-larga="si"] {
+  --alto-burbujas: 214px;
+}
+@media (max-height: 700px) {
+  .lt-burbuja[data-larga] {
+    font-size: 1.05rem;
+  }
+  .lt-escenario[data-larga="si"] {
+    --alto-burbujas: 176px;
+  }
+}
+
 /* Pantallas muy angostas (320 px): letra de la burbuja un poco menor, para que las de cuatro líneas no pasen a cinco. */
 @media (max-width: 340px) {
   .lt-burbuja {
@@ -551,7 +588,8 @@
 
 /* ---- Escritorio: la columna de burbujas a la izquierda del teléfono; el índice, lista completa ---- */
 @media (min-width: 900px) {
-  .lt-escenario {
+  .lt-escenario,
+  .lt-escenario[data-larga="si"] {
     --alto-burbujas: 0px;
     --ancho-indice: 0px;
   }
@@ -573,6 +611,9 @@
     --aire: 12px;
     padding: var(--aire) 18px var(--aire) 20px;
     font-size: 2rem;
+  }
+  .lt-burbuja[data-larga] {
+    font-size: 1.6rem;
   }
   .lt-indice {
     left: 28px;
@@ -812,6 +853,13 @@
   border-radius: 999px;
   font-weight: 800;
   font-size: 16px;
+}
+/* El precio junto a «Ver los planes»: una línea pequeña, pegada al botón */
+.lt-cierre-desde {
+  margin: -6px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-suave);
 }
 .lt-cierre-entrar {
   display: flex;

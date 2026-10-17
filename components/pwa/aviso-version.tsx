@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Isotipo } from "../marca";
 
@@ -13,9 +14,12 @@ const CADA = 60_000;
  */
 export function AvisoVersion() {
   const [hayNueva, setHayNueva] = useState(false);
+  // Los teléfonos de la demo de /conoce son iframes (/demo-landing/…): la página que los contiene ya hace esto, y cada iframe
+  // multiplicaría las consultas a /api/version.
+  const enDemoDeLaLanding = usePathname()?.startsWith("/demo-landing") ?? false;
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    if (enDemoDeLaLanding || !("serviceWorker" in navigator)) return;
     if (process.env.NODE_ENV === "production") {
       navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => {
         // Sin service worker la app funciona igual, solo no se instala ni guarda imágenes.
@@ -24,9 +28,10 @@ export function AvisoVersion() {
       // En desarrollo, fuera cualquier service worker que haya quedado de una prueba.
       void navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => void r.unregister()));
     }
-  }, []);
+  }, [enDemoDeLaLanding]);
 
   useEffect(() => {
+    if (enDemoDeLaLanding) return;
     let vigente = true;
     const revisar = async () => {
       if (document.visibilityState !== "visible") return;
@@ -47,7 +52,7 @@ export function AvisoVersion() {
       clearInterval(intervalo);
       document.removeEventListener("visibilitychange", revisar);
     };
-  }, []);
+  }, [enDemoDeLaLanding]);
 
   const actualizar = async () => {
     try {
@@ -59,7 +64,7 @@ export function AvisoVersion() {
     window.location.reload();
   };
 
-  if (!hayNueva) return null;
+  if (enDemoDeLaLanding || !hayNueva) return null;
 
   return (
     <div

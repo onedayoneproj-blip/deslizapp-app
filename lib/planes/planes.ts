@@ -44,6 +44,9 @@ export function planDesdeFila(f: FilaPlanPublico): PlanPublico {
   };
 }
 
+/** Los días gratis con que empieza una tienda (/planes y el cierre de /conoce). */
+export const DIAS_DE_PRUEBA = 30;
+
 /** 1499 → "RD$1,499". */
 export const pesos = (n: number): string => "RD$" + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
@@ -70,4 +73,11 @@ export function limitesDe(p: PlanPublico): LimitePlan[] {
     { clave: "tiendas", texto: p.limiteTiendas == null ? "Todas las tiendas que quieras" : p.limiteTiendas === 1 ? "1 tienda" : `Hasta ${p.limiteTiendas} tiendas` },
     { clave: "personas", texto: p.limitePersonas == null ? "Equipo sin límite" : p.limitePersonas === 1 ? "1 persona" : `Hasta ${p.limitePersonas} personas en tu equipo` },
   ];
+}
+
+/** «Desde RD$499/mes · 30 días gratis»: el plan más barato que se ofrece. Sin planes, null (nunca un precio inventado). */
+export function lineaDesde(planes: PlanPublico[]): string | null {
+  const precios = planesMostrables(planes).map((p) => p.precioMensual!);
+  if (!precios.length) return null;
+  return `Desde ${pesos(Math.min(...precios))}/mes · ${DIAS_DE_PRUEBA} días gratis`;
 }

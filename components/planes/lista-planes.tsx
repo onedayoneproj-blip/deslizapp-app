@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { entrarConGoogle } from "@/lib/data/sesion";
 import { montoAnualCirculo } from "@/lib/circulo";
-import { limitesDe, pesos, precioDe, type PlanPublico } from "@/lib/planes/planes";
+import { DIAS_DE_PRUEBA, limitesDe, pesos, precioDe, type PlanPublico } from "@/lib/planes/planes";
 import { SelloCorazon } from "../panel/logo-tienda";
 import { NotaDescuento } from "./nota-descuento";
 import { IconoBarras, IconoCasa, IconoCatalogo, IconoChispa, IconoClientes, IconoFlechaArriba } from "../iconos";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-
-const DIAS_DE_PRUEBA = 30;
 
 /** El icono de cada límite, los mismos de la app: Catálogo (productos), Casa (tiendas) y Clientes (el de «Tu equipo»). */
 const ICONO_LIMITE = { productos: IconoCatalogo, tiendas: IconoCasa, personas: IconoClientes } as const;

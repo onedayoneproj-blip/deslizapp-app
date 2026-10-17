@@ -89,3 +89,19 @@ html:root {
 nextjs-portal {
   display: none;
 }
+
+/* El mensaje de la tienda al agregar («¡Ay, qué buena elección!…») va arriba, bajo la cabecera: abajo tapaba el nombre y la descripción del
+   producto. En la demo de la landing solo; el catálogo real lo deja abajo. */
+.catalogo-publico .cartbar .chat {
+  position: fixed;
+  top: 112px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+}
+
+/* Los avisos de la app («Confirmado. Pasa a Por despachar.») salen abajo, no arriba: arriba tapaban el encabezado «Pedidos». */
+[data-avisos] {
+  top: auto !important;
+  bottom: 34px !important;
+}

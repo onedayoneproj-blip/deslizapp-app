@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
+import { DEDO_LLEGA, burbujaLarga, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
@@ -16,8 +16,6 @@ const QUEDA_CHECK = 1300;
 const VIAJE = 700;
 /** En el cambio de lado, cuánto se ve «Pidió en segundos.» (rosa) antes de que los iconos se intercambien y todo pase a verde. */
 const CAMBIO_LADO_MS = 900;
-/** Cuánto tarda en llegar el ♥ al enlace del perfil, ya con el paso a la vista. */
-const TOQUE_PERFIL_MS = 700;
 
 type Punto = { x: number; y: number };
 
@@ -55,7 +53,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let raf = 0;
     let irse = 0;
     let cambio = 0;
-    let toquePerfil = 0;
     let posicion: Punto | null = null;
 
     // La barra de Safari y el rebote del scroll con el color del capítulo (ajustes-lewis-8.md §8): theme-color y el fondo de html y
@@ -245,12 +242,12 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         codigo: est.codigoVisible ? "si" : "no",
         check: "no",
         capitulo: String(paso.capitulo),
+        larga: burbujaLarga(paso) ? "si" : "no",
       });
       // El cambio de lado: llega rosa («Pidió en segundos.») y, un momento después, los iconos se intercambian y todo pasa a verde. Sin
       // animación (al abrir, al volver, movimiento reducido), se ve el final.
       e.dataset.anima = reducido.matches ? "no" : desde < 0 || Date.now() - montado < 1500 ? "entrada" : "si";
       window.clearTimeout(cambio);
-      window.clearTimeout(toquePerfil);
       delete e.dataset.cambio;
       if (paso.escena === "cambio-lado" && animar) {
         e.dataset.cambio = "antes";
@@ -264,21 +261,11 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       marcarIndice(i, animar);
       apilar(i);
       pintarFondo();
-      if (i >= indicePaso("aaah-tote")) cargarTienda();
+      if (i >= indicePaso("aaah")) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
       // El ♥ solo aparece cuando hace algo: con cada toque que avisa un teléfono, o en el viaje de un teléfono al otro.
       esconder();
-      // El toque del perfil lo hace la propia landing (no hay página dentro del teléfono): el ♥ va al enlace.
-      if (animar && paso.escena === "perfil") {
-        toquePerfil = window.setTimeout(() => {
-          const objetivo = e.querySelector<HTMLElement>('[data-objetivo-toque="perfil"]');
-          if (!objetivo || activo !== i) return;
-          const r = objetivo.getBoundingClientRect();
-          const base = e.getBoundingClientRect();
-          toque({ x: r.left - base.left, y: r.top - base.top });
-        }, TOQUE_PERFIL_MS);
-      }
       if (animar && paso.dedo === "viaje" && paso.viaje && i === desde + 1) {
         const { desde: [td, ad], hasta: [th, ah] } = paso.viaje;
         const salida = ancla(td, ad);
@@ -345,7 +332,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.clearTimeout(espera);
       window.clearTimeout(llenar);
       window.clearTimeout(cambio);
-      window.clearTimeout(toquePerfil);
       obsCierre.disconnect();
       if (tema && temaAntes !== null) tema.content = temaAntes;
       [raiz.style.background, document.body.style.background] = fondosAntes;
@@ -373,6 +359,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-codigo="no"
         data-check="no"
         data-capitulo="1"
+        data-larga="no"
         data-anima="entrada"
         data-toques="0"
         data-viajes="0"

@@ -3,8 +3,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PieContacto } from "../inicio-publico/pie-contacto";
-import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
-import { HORA_DEMO } from "@/lib/landing/pedido-demo";
+import { PASOS, burbujaLarga, horaDeBurbuja, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
@@ -13,6 +12,7 @@ import { DemoPasos } from "./controlador";
 import { CambioLado } from "./cambio-lado";
 import { SeparadorQuieto, Separadores } from "./separadores";
 import { EscenaQuieta, Escenas } from "./escenas";
+import { PerfilACatalogo } from "./perfil-a-catalogo";
 import { TelefonoMockup } from "./telefono-mockup";
 import "./landing.css";
 
@@ -21,7 +21,7 @@ import "./landing.css";
 const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
 
 /** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
-export function Landing() {
+export function Landing({ desde = null }: { /** «Desde RD$499/mes · 30 días gratis» (lib/planes/planes.ts `lineaDesde`); null si no hay planes. */ desde?: string | null }) {
   return (
     <div className="landing" id="arriba">
       <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />
@@ -46,6 +46,10 @@ export function Landing() {
           <div className="lt-zona">
             <Telefono id="compradora" src="/demo-landing/compradora" />
             <Telefono id="tienda" src="/demo-landing/tienda" diferido />
+            {/* Del perfil al catálogo (paso `enlace`): su propio teléfono, que corre una sola vez al llegar al paso */}
+            <div className="lt-enlace" aria-hidden="true">
+              <PerfilACatalogo unaVez />
+            </div>
           </div>
           <Hilo />
           <CambioLado />
@@ -73,7 +77,7 @@ export function Landing() {
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
             {PASOS.map((p, i) => p.burbuja && (
-              <Burbuja key={p.id} burbuja={p.burbuja} lado={p.lado} indice={i} />
+              <Burbuja key={p.id} burbuja={p.burbuja} lado={p.lado} indice={i} hora={horaDeBurbuja(p.id)} larga={burbujaLarga(p)} />
             ))}
           </div>
         </DemoPasos>
@@ -171,6 +175,7 @@ export function Landing() {
             <Link href={RUTA_PLANES} data-cta="planes" className="lt-cierre-catalogo tocable">
               Ver los planes
             </Link>
+            {desde && <p className="lt-cierre-desde">{desde}</p>}
             <p className="lt-cierre-entrar">
               ¿Ya tienes tienda?
               <Link href={RUTA_ENTRAR} data-cta="entrar" className="tocable">
@@ -255,7 +260,7 @@ function Indice() {
   );
 }
 
-const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
+const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a Deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
 /** Lo que lee un lector de pantalla de la raya de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
 function etiquetaPaso(p: Paso) {
   return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
@@ -324,10 +329,10 @@ function conResaltes(texto: string, claves: string[], iconos: Record<string, Ico
  * Una burbuja de la demo: un mensaje enviado de WhatsApp (ajustes-lewis-4.md y -8.md) con las palabras clave en color de marca. La
  * forma (verde claro, Fredoka, hora con el doble check y cola) es la de components/chat/burbuja-chat.tsx; aquí solo se apila y se anima.
  */
-function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number }) {
+function Burbuja({ burbuja, lado, indice, hora, larga }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number; hora: string; larga: boolean }) {
   const texto = [burbuja.texto, burbuja.remate].filter(Boolean).join(" ");
   return (
-    <BurbujaChat className="lt-burbuja" hora={HORA_DEMO} data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-lado={lado}>
+    <BurbujaChat className="lt-burbuja" hora={hora} data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-lado={lado} data-larga={larga ? "" : undefined}>
       {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
     </BurbujaChat>
   );

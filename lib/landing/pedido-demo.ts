@@ -29,7 +29,17 @@ export const CODIGO_DEMO = "TT4K7Q2MZA";
 export const NUMERO_PEDIDO_DEMO = 27;
 /** Dominio que se ve en el mensaje. Es ilustrativo: en la landing no es un enlace. */
 export const ORIGEN_DEMO = "https://deslizapp.com";
-export const HORA_DEMO = "3:42 p. m.";
+/** Un solo reloj para toda la historia: Ana envía el pedido a las 3:42 p. m. y todo lo demás (las burbujas, la pantalla bloqueada de la
+ *  tienda) cuenta minutos a partir de ahí. */
+export const MINUTO_PEDIDO = 15 * 60 + 42;
+/** «3:44» de la hora que está `min` minutos después del pedido (y antes, si es negativo). */
+export const relojDespues = (min: number) => {
+  const m = MINUTO_PEDIDO + min;
+  return `${((Math.floor(m / 60) + 11) % 12) + 1}:${String(m % 60).padStart(2, "0")}`;
+};
+/** «3:44 p. m.», como la hora de un mensaje de WhatsApp. */
+export const horaDespues = (min: number) => `${relojDespues(min)} ${Math.floor((MINUTO_PEDIDO + min) / 60) % 24 >= 12 ? "p. m." : "a. m."}`;
+export const HORA_DEMO = horaDespues(0);
 
 export const PRODUCTOS_DEMO: ProductoDemo[] = [
   { id: "gorra", nombre: "Gorra verde", precio: 650, cantidad: 1, foto: "/landing/feed-gorra.webp", fondo: "var(--marca-rosa-fija)", enPedido: false },

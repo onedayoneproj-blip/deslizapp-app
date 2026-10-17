@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { flushSync } from "react-dom";
-import { fuenteDemo, leerDemo, usarDemoEnMemoria } from "@/lib/data/demo";
+import { fijarRelojDemo, fuenteDemo, leerDemo, usarDemoEnMemoria } from "@/lib/data/demo";
 import { ProveedorDemo } from "@/lib/data/provider";
-import { TIENDA_ID_DEMO, catalogoDemo, dbBase, dbRegistrada, vistaSolicitudDemo } from "@/lib/landing/db-demo";
+import { TIENDA_ID_DEMO, ahoraDemo, catalogoDemo, dbBase, dbRegistrada, vistaSolicitudDemo } from "@/lib/landing/db-demo";
 import { CODIGO_DEMO } from "@/lib/landing/pedido-demo";
 import { indicePaso } from "@/lib/landing/pasos";
 import { Hoja } from "../hoja";
@@ -29,7 +29,6 @@ type Estado = { pantalla: Pantalla; aviso: boolean; eres: boolean; registrar: bo
 const P = {
   aviso: indicePaso("aviso"),
   chat: indicePaso("chat-tienda"),
-  eres: indicePaso("eres-tienda"),
   registrar: indicePaso("registrar"),
   pedidos: indicePaso("pedidos"),
   confirmar: indicePaso("confirmar"),
@@ -37,8 +36,8 @@ const P = {
 };
 
 function estadoEn(paso: number, montaje: number): Estado {
-  const pantalla: Pantalla = paso >= P.pedidos ? "panel" : paso >= P.eres ? "pedido" : paso >= P.chat ? "chat" : "bloqueo";
-  return { pantalla, aviso: paso >= P.aviso, eres: paso === P.eres, registrar: paso === P.registrar, hojaPedido: paso >= P.confirmar, montaje };
+  const pantalla: Pantalla = paso >= P.pedidos ? "panel" : paso >= P.registrar ? "pedido" : paso >= P.chat ? "chat" : "bloqueo";
+  return { pantalla, aviso: paso >= P.aviso, eres: false, registrar: paso === P.registrar, hojaPedido: paso >= P.confirmar, montaje };
 }
 
 /**
@@ -59,7 +58,11 @@ export function TelefonoTienda() {
   const [datos] = useState(() => {
     const db = dbBase();
     // Solo en el navegador (en el servidor no hay demo): desde aquí la demo de esta página vive en memoria.
-    if (typeof window !== "undefined") usarDemoEnMemoria(db, TIENDA_ID_DEMO);
+    if (typeof window !== "undefined") {
+      usarDemoEnMemoria(db, TIENDA_ID_DEMO);
+      // Un solo reloj: el pedido que registra la tienda lleva la hora del aviso (3:44 p. m.), no la del momento.
+      fijarRelojDemo(() => ahoraDemo().getTime());
+    }
     return { vista: vistaSolicitudDemo(db), c: catalogoDemo(db) };
   });
   const [estado, setEstado] = useState<Estado>(() => estadoEn(0, 0));
@@ -77,15 +80,18 @@ export function TelefonoTienda() {
     else if (destino === P.chat) {
       await tocar(document.querySelector("[data-aviso]"));
       if (vigente()) setEstado((e) => ({ ...e, pantalla: "chat" }));
-    } else if (destino === P.eres) {
+    } else if (destino === P.registrar) {
+      // «¿Eres la tienda?»: el enlace del pedido, entrar con la cuenta y registrarlo.
       await tocar(document.querySelector("[data-vista-previa]"));
       if (!vigente()) return;
       setEstado((e) => ({ ...e, pantalla: "pedido" }));
       await esperar(800);
       if (!vigente()) return;
       await tocar(document.querySelector(".pvest-tienda button"));
-      if (vigente()) setEstado((e) => ({ ...e, eres: true }));
-    } else if (destino === P.registrar) {
+      if (!vigente()) return;
+      setEstado((e) => ({ ...e, eres: true }));
+      await esperar(900);
+      if (!vigente()) return;
       await tocar(porTexto('[role="dialog"] button', /Entrar con Google/));
       if (!vigente()) return;
       setEstado((e) => ({ ...e, eres: false, registrar: true }));
@@ -115,7 +121,7 @@ export function TelefonoTienda() {
     } else await fijo();
   });
 
-  // Adonde llega el ♥ que cruza desde el teléfono de Ana (paso «cambio»).
+  // Adonde llega el ♥ que cruza desde el teléfono de Ana (ningún paso lo usa hoy: el cambio de lado es una pantalla propia).
   useAnclas((id) => (id === "bloqueo" ? { el: document.querySelector('[data-ancla="bloqueo"]'), w: 60 } : null));
 
   const id = pedidoId();
@@ -131,7 +137,7 @@ export function TelefonoTienda() {
                     <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-fondo pt-[44px]">
                       {/* Sin el encabezado del panel: mostraría el plan y los créditos, y la landing no habla de planes. */}
                       <main className="flex-1 pb-8">
-                        <VistaPedidos>{estado.hojaPedido && id && <HojaPedido pedidoId={id} />}</VistaPedidos>
+                        <VistaPedidos>{estado.hojaPedido && id && <HojaPedido pedidoId={id} sinConteo />}</VistaPedidos>
                       </main>
                     </div>
                   )}

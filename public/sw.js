@@ -59,8 +59,8 @@ async function redPrimero(request) {
   try {
     const respuesta = await fetch(request);
     // Las respuestas de navegación interna de Next (?_rsc=) no se guardan: cambian en cada visita.
-    const guardable = respuesta.ok && respuesta.type === "basic" && !new URL(request.url).searchParams.has("_rsc");
-    if (guardable) cache.put(request, respuesta.clone());
+    const guardable = respuesta.type === "basic" && !new URL(request.url).searchParams.has("_rsc");
+    if (guardable) guardar(cache, request, respuesta);
     return respuesta;
   } catch (error) {
     const guardada = await cache.match(request, { ignoreVary: true });
@@ -75,8 +75,15 @@ async function cachePrimero(request) {
   const guardada = await cache.match(request);
   if (guardada) return guardada;
   const respuesta = await fetch(request);
-  if (respuesta.ok) cache.put(request, respuesta.clone());
+  guardar(cache, request, respuesta);
   return respuesta;
+}
+
+// Solo se guarda una respuesta completa (200) a una petición sin Range: un 206 (video por partes) no se puede guardar y `cache.put`
+// falla. Si aun así falla (sin espacio, respuesta rara), se ignora: la página sigue con la respuesta de la red.
+function guardar(cache, request, respuesta) {
+  if (respuesta.status !== 200 || request.headers.has("range")) return;
+  cache.put(request, respuesta.clone()).catch(() => {});
 }
 
 function sinConexion() {

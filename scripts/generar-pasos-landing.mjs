@@ -14,7 +14,7 @@ const base = process.argv[2] ?? "http://localhost:3000";
 const nav = await playwright.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH, args: ["--no-sandbox"] } : {});
 mkdirSync("public/landing/pasos", { recursive: true });
 for (const [telefono, indices] of [
-  // Los pasos con `escena` (el dolor, el post, el perfil, el navegador y el cambio de lado) no son páginas de la app: no tienen
+  // Los pasos con `escena` (el dolor, el post, el perfil al catálogo y el cambio de lado) no son páginas de la app: no tienen
   // captura (la versión sin JavaScript los dibuja con components/landing/escenas.tsx).
   ["compradora", PASOS.map((p, i) => (p.telefono === "compradora" && !p.escena ? i : -1)).filter((i) => i >= 0)],
   ["tienda", PASOS.map((p, i) => (p.telefono === "tienda" && !p.escena ? i : -1)).filter((i) => i >= 0)],

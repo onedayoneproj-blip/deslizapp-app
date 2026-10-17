@@ -76,8 +76,8 @@ function Solucion() {
   return (
     <div className="sp sp-solucion" data-separador="solucion">
       <div className="sp-cruzadas">
-        <span className="sp-noti sp-tachada sp-sube" data-red="instagram" style={{ ...retraso(0.1), left: "-4%", top: "4%" }}>¿precio?</span>
-        <span className="sp-noti sp-tachada sp-sube" data-red="instagram" style={{ ...retraso(0.2), right: "-10%", top: "60%" }}>¿cuál era?</span>
+        <span className="sp-noti sp-tachada sp-sube" data-red="instagram" style={{ ...retraso(0.1), left: "-4%", top: 0 }}>¿precio?</span>
+        <span className="sp-noti sp-tachada sp-sube" data-red="instagram" style={{ ...retraso(0.2), right: "-10%", top: 182 }}>¿cuál era?</span>
         <img src="/landing/icono-rosa.webp" alt="" width={128} height={128} className="sp-icono sp-pop" style={retraso(0.6)} />
       </div>
       <span className="sp-mano sp-sube" style={retraso(1.1)}>ahora, con Deslizapp…</span>
@@ -86,7 +86,7 @@ function Solucion() {
         <br />
         resolvemos.
       </h2>
-      <p className="sp-texto sp-sube" style={retraso(1.7)}>Tu catálogo enseña fotos, precios y lo que queda. A ti te llega el pedido listo.</p>
+      <p className="sp-texto sp-sube" style={retraso(1.7)}>Tu catálogo enseña fotos, precios y lo que te queda en stock. A ti te llega el pedido listo.</p>
     </div>
   );
 }
@@ -96,7 +96,7 @@ export function SeparadorQuieto({ id }: { id: "bienvenida" | "antes" | "solucion
   const t = {
     bienvenida: { mano: "hola, esto es", titulo: "deslizapp", texto: "En un minuto te enseñamos cómo vender sin tanta vuelta." },
     antes: { mano: "antes de empezar…", titulo: "Seguro esto te suena.", texto: "Así se vende hoy por Instagram y WhatsApp." },
-    solucion: { mano: "ahora, con Deslizapp…", titulo: "Así lo resolvemos.", texto: "Tu catálogo enseña fotos, precios y lo que queda. A ti te llega el pedido listo." },
+    solucion: { mano: "ahora, con Deslizapp…", titulo: "Así lo resolvemos.", texto: "Tu catálogo enseña fotos, precios y lo que te queda en stock. A ti te llega el pedido listo." },
   }[id];
   return (
     <div className="sp-quieto" data-separador={id}>
