@@ -2,7 +2,7 @@
    en cqw. Reposa invisible: la animación la agrega quien lo usa. */
 .ba {
   position: absolute;
-  width: 28cqw;
+  width: calc(28cqw * var(--ba-k, 1));
   aspect-ratio: 1;
   color: var(--marca-mandarina);
   opacity: 0;
@@ -24,7 +24,7 @@
   transform: translateX(-50%);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 8.1cqw;
+  font-size: calc(8.1cqw * var(--ba-k, 1));
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--marca-papel);
@@ -36,9 +36,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 3.3cqw;
+  width: calc(3.3cqw * var(--ba-k, 1));
   aspect-ratio: 1;
-  margin: -1.65cqw 0 0 -1.65cqw;
+  margin: calc(-1.65cqw * var(--ba-k, 1)) 0 0 calc(-1.65cqw * var(--ba-k, 1));
   border-radius: 50%;
   background: var(--c);
   opacity: 0;

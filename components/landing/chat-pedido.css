@@ -9,7 +9,7 @@
   color: #111b21;
   font-family: var(--font-sans);
   /* el alto de lo que se ve del teléfono cortado por la vista previa, para pegar los mensajes abajo de eso */
-  --pie: 117cqw;
+  --pie: 144cqw;
 }
 .cw-fondo {
   position: absolute;

@@ -1,22 +1,24 @@
-/* Del perfil al catálogo (components/landing/perfil-a-catalogo.tsx). Una sola línea de tiempo de 12,5 s que se repite (1 s = 8 %):
-     0 – 1,9 s     el perfil; toque en el enlace hacia 1,5 s
+/* Del perfil al catálogo (components/landing/perfil-a-catalogo.tsx). Una sola línea de tiempo de 11 s que se repite:
+     0 – 0,3 s     el teléfono aparece con un fundido, ya en el estado inicial: el perfil, grande y cortado
+     1,5 s         toque en el enlace
      1,9 – 2,4 s   sube la hoja del navegador (blanca)
      2,4 – 3,6 s   barra de progreso y un instante en blanco
      3,7 s         carga el catálogo y se queda un segundo
-     4,7 – 5,5 s   el teléfono se aleja (zoom out) hasta verse entero
+     4,7 – 5,5 s   el teléfono se aleja y se centra hasta verse entero (escala y traslado a la vez)
      5,8 – 7,7 s   el catálogo pasa dos veces de un producto al siguiente, con el dedo
      8,3 – 9,2 s   toque en el ♥ del último producto: el «aaah» y el catálogo con su like
-     9,2 – 10,7 s  se queda un momento
-     10,7 – 11,4 s el teléfono vuelve al zoom de antes
-     11,4 – 12 s   baja la hoja y vuelve a empezar
+     9,2 – 10,7 s  se queda 1,5 s
+     10,7 – 11 s   fundido a 0 de todo el teléfono, y empieza de nuevo (nada se deshace a la vista)
    El estado de reposo de cada pieza es el FINAL de movimiento reducido (el catálogo dentro del navegador, quieto, en su primer
-   producto): las animaciones lo recorren desde el principio. Solo transform y opacity. Todo mide en cqw (1 % del ancho de la pantalla,
-   sale de .nv) y con un solo factor de escala: nada se estira. */
+   producto, grande y cortado): las animaciones lo recorren desde el principio. Solo transform y opacity. Todo mide en cqw (1 % del ancho
+   de la pantalla, sale de .nv) y con un solo factor de escala: nada se estira. */
 .pc {
-  --duracion: 12.5s;
-  /* cuánto se aleja el teléfono para verse entero en la vista previa */
-  --alejado: 0.5;
-  transform-origin: 50% 0;
+  --duracion: 11s;
+  /* Cómo se aleja: el teléfono (240 × 506 px) a 316 px de alto, con 12 px de aire arriba y abajo en una vista previa de 340 px. Escala y traslado a la
+     vez, con el origen en el centro: 316 / 506,25 = 0,6242, y el centro sube de 12 + 253 a 12 + 158 = 170 px, o sea 95 px. */
+  --alejado: 0.6242;
+  --sube-alejado: -95px;
+  transform-origin: 50% 50%;
 }
 .pc-hoja {
   position: absolute;
@@ -68,15 +70,16 @@
 }
 /* El «aaah» va al centro del producto (y 470 de 852 en la captura); el dedo, sobre el ♥ (a 356, 450). */
 .pc-aaah {
+  --ba-k: 1.4;
   left: 50%;
   top: 119.6cqw;
-  margin: -14cqw 0 0 -14cqw;
+  margin: -19.6cqw 0 0 -19.6cqw;
 }
 /* El círculo de toque de la landing: un anillo mandarina que se abre desde el sitio del toque. */
 .pc-toque,
 .pc-dedo {
   position: absolute;
-  width: 11cqw;
+  width: 15cqw;
   aspect-ratio: 1;
   border: 0.9cqw solid var(--marca-mandarina);
   border-radius: 50%;
@@ -87,7 +90,7 @@
 .pc-toque {
   left: 22%;
   top: 50%;
-  margin: -5.5cqw 0 0 -5.5cqw;
+  margin: -7.5cqw 0 0 -7.5cqw;
 }
 .pc-dedo {
   left: 0;
@@ -106,7 +109,7 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .pc {
-    animation: pc-zoom var(--duracion) infinite both;
+    animation: pc-telefono var(--duracion) infinite both;
   }
   .pc-hoja {
     animation-name: pc-hoja;
@@ -142,58 +145,64 @@
     animation-name: pc-aw;
   }
 }
-@keyframes pc-zoom {
-  0%,
-  37.6% {
+/* El teléfono entero: aparece con un fundido (0,3 s) ya en el estado inicial (perfil, grande y cortado), se aleja hasta verse completo y centrado en la
+   vista previa (escala y traslado a la vez, con el origen en el centro) y, tras el like, se va con un fundido a 0 (0,3 s) para volver a empezar:
+   nunca se deshace el zoom ni baja la hoja a la vista. */
+@keyframes pc-telefono {
+  0% {
+    opacity: 0;
     transform: none;
   }
-  44% {
-    transform: scale(var(--alejado));
-    animation-timing-function: linear;
+  2.73% {
+    opacity: 1;
+    transform: none;
   }
-  85.6% {
-    transform: scale(var(--alejado));
+  42.73% {
+    transform: none;
     animation-timing-function: ease-in-out;
   }
-  91.2%,
+  50% {
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
+  }
+  97.27% {
+    opacity: 1;
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
+  }
   100% {
-    transform: none;
+    opacity: 0;
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
   }
 }
 @keyframes pc-hoja {
   0%,
-  15.2% {
+  17.27% {
     transform: translateY(101%);
   }
-  19.2% {
+  21.82% {
     transform: none;
     animation-timing-function: ease-in-out;
   }
-  91.2% {
-    transform: none;
-  }
-  96%,
   100% {
-    transform: translateY(101%);
+    transform: none;
   }
 }
 @keyframes pc-progreso {
   0%,
-  19.2% {
+  21.82% {
     opacity: 1;
     transform: scaleX(0);
   }
-  21.6% {
+  24.55% {
     transform: scaleX(0.2);
   }
-  25.6% {
+  29.09% {
     transform: scaleX(0.85);
   }
-  27.2% {
+  30.91% {
     opacity: 1;
     transform: scaleX(1);
   }
-  28.8%,
+  32.73%,
   100% {
     opacity: 0;
     transform: scaleX(1);
@@ -201,123 +210,112 @@
 }
 @keyframes pc-catalogo {
   0%,
-  26.4% {
+  30% {
     opacity: 0;
   }
-  29.6%,
-  96% {
-    opacity: 1;
-  }
-  96.5%,
+  33.64%,
   100% {
-    opacity: 0;
+    opacity: 1;
   }
 }
 /* Un producto a la vez: 133,59 cqw por salto, con un respiro entre uno y otro. */
 @keyframes pc-tira {
   0%,
-  46.4% {
+  52.73% {
     transform: none;
   }
-  50.4%,
-  57.6% {
+  57.27%,
+  65.45% {
     transform: translateY(-133.59cqw);
   }
-  61.6%,
+  70%,
   100% {
     transform: translateY(-267.18cqw);
   }
 }
 @keyframes pc-final {
   0%,
-  71.2% {
+  80.91% {
     opacity: 0;
   }
-  73.6%,
-  96% {
-    opacity: 1;
-  }
-  96.5%,
+  83.64%,
   100% {
-    opacity: 0;
+    opacity: 1;
   }
 }
-/* El dedo: dos deslizamientos hacia arriba (con la tira) y un toque en el ♥. Posiciones en cqw de la pantalla (centro del dedo menos 5,5). */
+/* El dedo: dos deslizamientos hacia arriba (con la tira) y un toque en el ♥. Posiciones en cqw de la pantalla (centro del dedo menos 7,5). */
 @keyframes pc-dedo {
   0%,
-  43.2% {
+  49.09% {
     opacity: 0;
-    transform: translate(44.5cqw, 144.5cqw) scale(0.6);
+    transform: translate(42.5cqw, 142.5cqw) scale(0.6);
   }
-  45.6% {
+  51.82%,
+  52.73% {
     opacity: 1;
-    transform: translate(44.5cqw, 144.5cqw) scale(1);
+    transform: translate(42.5cqw, 142.5cqw) scale(1);
   }
-  46.4% {
+  57.27% {
     opacity: 1;
-    transform: translate(44.5cqw, 144.5cqw) scale(1);
+    transform: translate(42.5cqw, 92.5cqw) scale(1);
   }
-  50.4% {
-    opacity: 1;
-    transform: translate(44.5cqw, 94.5cqw) scale(1);
-  }
-  52%,
-  54.4% {
+  59.09%,
+  61.82% {
     opacity: 0;
-    transform: translate(44.5cqw, 94.5cqw) scale(0.7);
+    transform: translate(42.5cqw, 92.5cqw) scale(0.7);
   }
-  54.5% {
+  61.91% {
     opacity: 0;
-    transform: translate(44.5cqw, 144.5cqw) scale(0.6);
+    transform: translate(42.5cqw, 142.5cqw) scale(0.6);
   }
-  56.8%,
-  57.6% {
+  64.55%,
+  65.45% {
     opacity: 1;
-    transform: translate(44.5cqw, 144.5cqw) scale(1);
+    transform: translate(42.5cqw, 142.5cqw) scale(1);
   }
-  61.6% {
+  70% {
     opacity: 1;
-    transform: translate(44.5cqw, 94.5cqw) scale(1);
+    transform: translate(42.5cqw, 92.5cqw) scale(1);
   }
-  63.2%,
-  65.6% {
+  71.82%,
+  74.55% {
     opacity: 0;
-    transform: translate(44.5cqw, 94.5cqw) scale(0.7);
+    transform: translate(42.5cqw, 92.5cqw) scale(0.7);
   }
-  65.7% {
+  74.64% {
     opacity: 0;
-    transform: translate(85.1cqw, 109cqw) scale(0.5);
+    transform: translate(83.1cqw, 107cqw) scale(0.5);
   }
-  67.2% {
+  76.36% {
     opacity: 1;
-    transform: translate(85.1cqw, 109cqw) scale(0.9);
+    transform: translate(83.1cqw, 107cqw) scale(0.9);
   }
-  68% {
+  77.27% {
     opacity: 0.9;
-    transform: translate(85.1cqw, 109cqw) scale(1.1);
+    transform: translate(83.1cqw, 107cqw) scale(1.1);
   }
-  70.4%,
+  80%,
   100% {
     opacity: 0;
-    transform: translate(85.1cqw, 109cqw) scale(1.5);
+    transform: translate(83.1cqw, 107cqw) scale(1.5);
   }
 }
 /* El toque en el enlace del perfil (hacia 1,5 s). */
 @keyframes pc-toque {
   0%,
-  9.6% {
+  10.91% {
     opacity: 0;
     transform: scale(0.4);
   }
-  11.2% {
+  12.73% {
     opacity: 1;
     transform: scale(0.85);
   }
-  13.6% {
+  15.45% {
     opacity: 0.9;
     transform: scale(1.1);
   }
-  16.8%,
+  19.09%,
   100% {
     opacity: 0;
     transform: scale(1.6);
@@ -325,36 +323,37 @@
 }
 @keyframes pc-pulso {
   0%,
-  10.4%,
-  14.4%,
+  11.82%,
+  16.36%,
   100% {
     transform: scale(1);
   }
-  12% {
+  13.64% {
     transform: scale(0.94);
   }
 }
-/* El «aaah» del catálogo (dzBurst, dzPart y dzAw de app/tienda/catalogo.css) en la línea de tiempo del bucle: empieza a los 8,6 s y dura 1,1 s. */
+/* El «aaah» del catálogo (dzBurst, dzPart y dzAw de app/tienda/catalogo.css) en la línea de tiempo del bucle: empieza a los 8,6 s y dura 1,1 s. --ba-k lo agranda
+   para que se vea con el teléfono alejado. */
 @keyframes pc-burst {
   0%,
-  68.8% {
+  78.18% {
     opacity: 0;
     transform: scale(0.3);
   }
-  70% {
+  79.58% {
     opacity: 1;
     transform: scale(1.18);
   }
-  71.3% {
+  80.98% {
     transform: scale(0.94);
   }
-  72.5% {
+  82.38% {
     transform: scale(1);
   }
-  76% {
+  86.38% {
     opacity: 1;
   }
-  77.6%,
+  88.18%,
   100% {
     opacity: 0;
     transform: scale(1.06);
@@ -362,36 +361,36 @@
 }
 @keyframes pc-part {
   0%,
-  69.4% {
+  78.91% {
     opacity: 0;
-    transform: rotate(var(--a)) translateY(-4.6cqw) scale(1);
+    transform: rotate(var(--a)) translateY(calc(-4.6cqw * var(--ba-k, 1))) scale(1);
   }
-  71% {
+  80.61% {
     opacity: 1;
   }
-  75.4%,
+  85.73%,
   100% {
     opacity: 0;
-    transform: rotate(var(--a)) translateY(-22.4cqw) scale(0.35);
+    transform: rotate(var(--a)) translateY(calc(-22.4cqw * var(--ba-k, 1))) scale(0.35);
   }
 }
 @keyframes pc-aw {
   0%,
-  69.9% {
+  79.38% {
     opacity: 0;
     transform: translate(-50%, 2.5cqw) scale(0.6);
   }
-  72.3% {
+  81.38% {
     opacity: 1;
     transform: translate(-50%, 0) scale(1.08);
   }
-  73.9% {
+  82.78% {
     transform: translate(-50%, 0) scale(1);
   }
-  76% {
+  86.38% {
     opacity: 1;
   }
-  77.6%,
+  88.18%,
   100% {
     opacity: 0;
     transform: translate(-50%, -2cqw) scale(1);

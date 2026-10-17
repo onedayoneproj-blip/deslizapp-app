@@ -56,7 +56,7 @@ for (const { ancho, alto } of PANTALLAS) {
   const snap = await pagina.locator(".pl-carril").evaluate((e) => getComputedStyle(e).scrollSnapType);
   ok(/x/.test(snap) && /mandatory/.test(snap), `scroll-snap horizontal (${snap})`);
   const medidas = await pagina.evaluate(() => [...document.querySelectorAll(".pl-tj")].map((e) => ({ ancho: e.getBoundingClientRect().width, vista: e.querySelector(".pl-vista").getBoundingClientRect().height })));
-  ok(medidas.every((m) => m.ancho >= 280 && m.ancho <= 300 && m.vista === 280), `tarjetas de unos 300 px de ancho y vista de 280 px (${medidas.map((m) => Math.round(m.ancho)).join("/")})`);
+  ok(medidas.every((m) => m.ancho >= 280 && m.ancho <= 300 && m.vista === 340), `tarjetas de unos 300 px de ancho y vista de 340 px (${medidas.map((m) => Math.round(m.ancho)).join("/")})`);
   // La siguiente asoma: la segunda tarjeta empieza antes del borde de la pantalla.
   const asoma = await pagina.evaluate(() => document.querySelectorAll(".pl-tj")[1].getBoundingClientRect().left < window.innerWidth - 8);
   ok(asoma, "la tarjeta siguiente asoma por el borde");
@@ -102,7 +102,7 @@ for (const { ancho, alto } of PANTALLAS) {
   ok(forma.celdas.length === 6 && forma.celdas.every((c) => Math.abs(c - 0.75) < 0.02), `las fotos de la cuadrícula son 3:4, sin estirar (${forma.celdas.map((c) => c.toFixed(2)).join(", ")})`);
   ok(Math.abs(forma.pc - 640 / 1350) < 0.005, `el teléfono tiene la proporción del iPhone del mockup (${forma.pc.toFixed(3)} = ${Math.round(forma.ancho)}×${Math.round(forma.alto)})`);
   ok(forma.ancho >= 230 && forma.ancho <= 250, `y mide unos 230–250 px de ancho (${Math.round(forma.ancho)})`);
-  ok(forma.corte > 0.45 && forma.corte < 0.65, `el borde de abajo de la vista previa lo corta más o menos por la mitad (${Math.round(forma.corte * 100)} %)`);
+  ok(forma.corte > 0.55 && forma.corte < 0.75, `el borde de abajo de la vista previa corta el teléfono grande (se ve el ${Math.round(forma.corte * 100)} %)`);
   const imgs = await pagina.evaluate(() => [...document.querySelectorAll(".pl-vista img, .pc img")].map((i) => ({ r: i.naturalWidth / i.naturalHeight, w: i.getBoundingClientRect().width, h: i.getBoundingClientRect().height, fit: getComputedStyle(i).objectFit })).filter((i) => i.w > 0));
   ok(imgs.every((i) => i.fit === "cover" || Math.abs(i.w / i.h - i.r) < 0.02), "ninguna imagen de las vistas previas está deformada (cover o su proporción)");
   // Pausa fuera de pantalla: con la tarjeta del carrusel fuera de vista, las animaciones están en pausa.
@@ -137,14 +137,19 @@ for (const { ancho, alto } of PANTALLAS) {
         burst: op(".pc-aaah"),
         dedo: op(".pc-dedo"),
         escala: pc.width / 240,
+        opacidad: Number(getComputedStyle(document.querySelector(".pc")).opacity),
+        aireArriba: Math.round(pc.top - vista.top),
+        aireAbajo: Math.round(vista.bottom - pc.bottom),
+        centrado: Math.abs((pc.left + pc.right) / 2 - (vista.left + vista.right) / 2) < 2,
+        alto: Math.round(pc.height),
         entero: pc.bottom <= vista.bottom && pc.top >= vista.top - 1,
         productos: Math.round(((cuerpo.top + (57.25 / 100) * cuerpo.width - tira.top) / ((133.59 / 100) * cuerpo.width)) * 10) / 10,
       };
     });
   const momentos = [
-    ["1-perfil", 300], ["2-toque", 1500], ["3-sube-la-hoja", 2150], ["4-blanco-y-progreso", 3000], ["5-catalogo", 4200],
-    ["6-zoom-out", 5100], ["7-entero", 5600], ["8-primer-deslizar", 6050], ["9-segundo-deslizar", 7450], ["10-toque-en-el-corazon", 8500],
-    ["11-aaah", 9000], ["12-con-su-like", 10000], ["13-zoom-in", 11000], ["14-baja-la-hoja", 11700],
+    ["0-aparece", 150], ["1-perfil", 600], ["2-toque", 1500], ["3-sube-la-hoja", 2150], ["4-blanco-y-progreso", 3000], ["5-catalogo", 4200],
+    ["6-zoom-out", 5100], ["7-entero", 5700], ["8-primer-deslizar", 6050], ["9-segundo-deslizar", 7450], ["10-toque-en-el-corazon", 8500],
+    ["11-aaah", 9000], ["12-con-su-like", 10000], ["13-fundido-a-0", 10850],
   ];
   const e = {};
   for (const [nombre, ms] of momentos) {
@@ -153,24 +158,25 @@ for (const { ancho, alto } of PANTALLAS) {
     e[nombre] = await estado();
     if (capturas) await pagina.locator(".pl-tj").first().screenshot({ path: `${carpeta}/animacion-${nombre}-${ancho}.png` });
   }
-  ok(e["1-perfil"].hoja >= 99 && e["1-perfil"].toque === 0 && e["1-perfil"].escala === 1, "0,3 s: se ve el perfil (la hoja está abajo, fuera) y no hay toque");
+  ok(e["0-aparece"].opacidad > 0 && e["0-aparece"].opacidad < 1 && e["0-aparece"].hoja >= 99 && e["0-aparece"].escala === 1, "0,15 s: el teléfono reaparece con un fundido, ya en el estado inicial (perfil, grande y cortado, sin hoja)");
+  ok(e["1-perfil"].hoja >= 99 && e["1-perfil"].toque === 0 && e["1-perfil"].escala === 1 && e["1-perfil"].opacidad === 1, "0,6 s: se ve el perfil (la hoja está abajo, fuera) y no hay toque");
   ok(e["2-toque"].toque > 0.5 && e["2-toque"].hoja >= 99 && e["2-toque"].enVista, "1,5 s: el círculo de toque sobre el enlace (a la vista), con la hoja todavía abajo");
   ok(e["3-sube-la-hoja"].hoja > 0 && e["3-sube-la-hoja"].hoja < 99, `2,15 s: la hoja del navegador sube desde abajo (a ${e["3-sube-la-hoja"].hoja} %)`);
   ok(e["4-blanco-y-progreso"].hoja <= 1 && e["4-blanco-y-progreso"].progreso > 0.5 && e["4-blanco-y-progreso"].catalogo === 0, "3 s: la hoja arriba, la barra de progreso y el blanco antes del catálogo");
   ok(e["5-catalogo"].catalogo === 1 && e["5-catalogo"].progreso === 0 && e["5-catalogo"].escala === 1 && e["5-catalogo"].productos === 0, "4,2 s: carga el catálogo (primer producto), con el zoom de antes");
-  ok(e["6-zoom-out"].escala < 0.95 && e["6-zoom-out"].escala > 0.5, `5,1 s: el teléfono se aleja (escala ${e["6-zoom-out"].escala.toFixed(2)})`);
-  ok(Math.abs(e["7-entero"].escala - 0.5) < 0.01 && e["7-entero"].entero, `5,6 s: el teléfono se ve entero dentro de la vista previa, sin cortes (escala ${e["7-entero"].escala.toFixed(2)})`);
+  ok(e["6-zoom-out"].escala < 0.95 && e["6-zoom-out"].escala > 0.6, `5,1 s: el teléfono se aleja (escala ${e["6-zoom-out"].escala.toFixed(2)})`);
+  const z = e["7-entero"];
+  ok(z.entero && z.centrado && Math.abs(z.aireArriba - 12) <= 2 && Math.abs(z.aireAbajo - 12) <= 2 && Math.abs(z.alto - 316) <= 3, `5,7 s: el teléfono se ve entero y centrado, de ${z.alto} px de alto, con ${z.aireArriba} px de aire arriba y ${z.aireAbajo} px abajo`);
   ok(e["8-primer-deslizar"].dedo > 0.5 && e["8-primer-deslizar"].productos > 0 && e["8-primer-deslizar"].productos < 1, `6,05 s: primer deslizar hacia arriba, con el dedo (producto ${e["8-primer-deslizar"].productos})`);
   ok(e["9-segundo-deslizar"].dedo > 0.5 && e["9-segundo-deslizar"].productos > 1 && e["9-segundo-deslizar"].productos < 2, `7,45 s: segundo deslizar (producto ${e["9-segundo-deslizar"].productos})`);
   ok(e["10-toque-en-el-corazon"].dedo > 0.5 && e["10-toque-en-el-corazon"].productos === 2 && e["10-toque-en-el-corazon"].final === 0, "8,5 s: toque en el ♥ del último producto");
   ok(e["11-aaah"].burst > 0.5 && e["11-aaah"].final > 0, "9 s: el «aaah» y el catálogo pasa a su estado con like");
-  ok(e["12-con-su-like"].final === 1 && e["12-con-su-like"].burst === 0 && e["12-con-su-like"].escala < 0.51, "10 s: se queda un momento con el like puesto, todavía alejado");
-  ok(e["13-zoom-in"].escala > 0.5 && e["13-zoom-in"].escala < 1, `11 s: el teléfono vuelve al zoom de antes (escala ${e["13-zoom-in"].escala.toFixed(2)})`);
-  ok(e["14-baja-la-hoja"].hoja > 0 && e["14-baja-la-hoja"].escala === 1, "11,7 s: baja la hoja para empezar de nuevo");
+  ok(e["12-con-su-like"].final === 1 && e["12-con-su-like"].burst === 0 && Math.abs(e["12-con-su-like"].escala - 0.6242) < 0.01 && e["12-con-su-like"].entero, "10 s: se queda con el like puesto, con el teléfono entero");
+  ok(e["13-fundido-a-0"].opacidad < 0.6 && e["13-fundido-a-0"].opacidad > 0 && e["13-fundido-a-0"].escala < 0.7 && e["13-fundido-a-0"].hoja <= 1, `10,85 s: todo el teléfono se desvanece sin deshacer el zoom ni bajar la hoja (opacidad ${e["13-fundido-a-0"].opacidad.toFixed(2)})`);
   await congelar(6500);
   ok((await estado()).catalogo === 1, "a los 6,5 s sigue el catálogo");
   const total = await pagina.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".pc")).getPropertyValue("--duracion")));
-  ok(total >= 11 && total <= 13, `el bucle dura ${total} s (11–13 s)`);
+  ok(total >= 10.5 && total <= 13, `el bucle dura ${total} s (11–13 s)`);
 
   // ---- Las otras tres tarjetas animadas ----
   const aTarjeta = async (k) => {
@@ -367,9 +373,9 @@ console.log("\nMovimiento reducido");
     const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
     const pc = document.querySelector(".tm-pantalla").getBoundingClientRect();
     const op = (s) => getComputedStyle(document.querySelector(s)).opacity;
-    return { anim: document.querySelectorAll(".pc, .pc *").length && [...document.querySelectorAll(".pc, .pc *")].reduce((n, e) => n + e.getAnimations().length, 0), hoja: Math.round(hoja.top - pc.top), catalogo: op(".pc-catalogo"), final: op(".pc-final"), toque: op(".pc-toque"), burst: op(".pc-aaah"), ancho: document.querySelector(".pc").getBoundingClientRect().width };
+    return { anim: document.querySelectorAll(".pc, .pc *").length && [...document.querySelectorAll(".pc, .pc *")].reduce((n, e) => n + e.getAnimations().length, 0), hoja: Math.round(hoja.top - pc.top), catalogo: op(".pc-catalogo"), final: op(".pc-final"), toque: op(".pc-toque"), burst: op(".pc-aaah"), opacidad: getComputedStyle(document.querySelector(".pc")).opacity, ancho: document.querySelector(".pc").getBoundingClientRect().width };
   });
-  ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.catalogo === "1" && quieto.final === "0" && quieto.toque === "0" && quieto.burst === "0" && quieto.ancho === 240, "la primera tarjeta no se anima ni cambia el zoom: se ve el catálogo dentro del navegador, quieto");
+  ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.catalogo === "1" && quieto.final === "0" && quieto.toque === "0" && quieto.burst === "0" && quieto.ancho === 240 && quieto.opacidad === "1", "la primera tarjeta no se anima ni cambia el zoom: se ve el catálogo dentro del navegador, quieto");
   // Las otras tres, quietas y en su estado final.
   const finales = await pagina.evaluate(() => {
     const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
