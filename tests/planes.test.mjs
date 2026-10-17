@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
 
-const { planDesdeFila, pesos, precioDe, limitesDe, planesMostrables } = await import("../lib/planes/planes.ts");
+const { planDesdeFila, pesos, precioDe, limitesDe, planesMostrables, lineaDesde, DIAS_DE_PRUEBA } = await import("../lib/planes/planes.ts");
 
 const fila = (o) => ({ id: "x", nombre: "X", precio_mensual: 999, precio_anual: 9990, limite_productos: 150, limite_tiendas: 3, limite_personas: 5, destacado: false, ideal_para: null, ...o });
 
@@ -86,4 +86,12 @@ test("los datos de ejemplo de las vistas previas: un pedido que cuadra y cliente
   assert.deepEqual(clientes.map(({ cuenta }) => cuenta.fechaAcordada !== null), [true, true, false]);
   // Las fechas salen del día de Santo Domingo: a las 11 p. m. del 16 oct allí (3 a. m. del 17 en UTC), «dentro de 3 días» es el 19.
   assert.equal(ejemploClientes(Date.UTC(2026, 9, 17, 3))[0].cuenta.fechaAcordada, "2026-10-19");
+});
+
+test("el cierre de /conoce: «Desde» el plan más barato que se ofrece y los días gratis de /planes", () => {
+  assert.equal(DIAS_DE_PRUEBA, 30);
+  const planes = [fila({ id: "b", precio_mensual: 999 }), fila({ id: "a", precio_mensual: 499 }), fila({ id: "c", precio_mensual: 1499 })].map(planDesdeFila);
+  assert.equal(lineaDesde(planes), "Desde RD$499/mes · 30 días gratis");
+  assert.equal(lineaDesde(planes.slice(0, 1).concat(planDesdeFila(fila({ id: "z", precio_mensual: null, precio_anual: null })))), "Desde RD$999/mes · 30 días gratis", "un plan sin precio no cuenta");
+  assert.equal(lineaDesde([]), null, "sin planes no hay línea");
 });

@@ -185,7 +185,12 @@ function suscribirDemo(oyente: () => void) {
 // Operaciones (lo que ven las pantallas a través de useData)
 // ---------------------------------------------------------------------------
 
-const ahora = () => new Date().toISOString();
+// El reloj de las operaciones. Solo la demo de la landing lo fija (el «ahora» de su historia, lib/landing/db-demo.ts): en la demo interna es la hora real.
+let relojDemo: (() => number) | null = null;
+function fijarRelojDemo(reloj: (() => number) | null) {
+  relojDemo = reloj;
+}
+const ahora = () => new Date(relojDemo ? relojDemo() : Date.now()).toISOString();
 
 const fuenteDemoBase: FuenteDatos = {
   // Tiendas
@@ -923,7 +928,7 @@ function tiendaDeSolicitudDemo(codigo: string): string | null {
   return leerDemo().db.solicitudes.find((s) => s.codigo === codigo.trim().toUpperCase())?.tiendaId ?? null;
 }
 
-return { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo };
+return { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo, fijarRelojDemo };
 }
 
-export const { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo } = crearAlmacenDemo({ clave: "deslizapp-publica-v1", construir: construirDemoPublica, publica: true });
+export const { leerDemo, suscribirDemo, fuenteDemo, escribirDemoDesdeAdmin, leerDemoGuardada, usarDemoEnMemoria, cambiarTiendaActivaDemo, tiendaDeSolicitudDemo, fijarRelojDemo } = crearAlmacenDemo({ clave: "deslizapp-publica-v1", construir: construirDemoPublica, publica: true });

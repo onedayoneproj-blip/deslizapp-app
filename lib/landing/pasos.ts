@@ -3,7 +3,7 @@
 // qué hace el ♥, los capítulos del índice y cuánto dura la animación del paso. Los teléfonos (app/demo-landing) saben qué hacer en cada paso por su id.
 // Puro (sin React): lo prueban tests/landing.test.mjs y scripts/probar-landing.mjs.
 
-import { TOTAL_DEMO, pesos, totalHasta } from "./pedido-demo";
+import { TOTAL_DEMO, horaDespues, pesos, relojDespues, totalHasta } from "./pedido-demo";
 
 export type IdPaso =
   | "bienvenida"
@@ -12,20 +12,15 @@ export type IdPaso =
   | "dolor-chats"
   | "solucion"
   | "post"
-  | "perfil"
-  | "navegador"
+  | "enlace"
   | "hola"
-  | "pasa"
-  | "aaah-termo"
-  | "aaah-tote"
+  | "aaah"
   | "bolsa"
   | "whatsapp"
   | "seguimiento"
   | "cambio-lado"
-  | "cambio"
   | "aviso"
   | "chat-tienda"
-  | "eres-tienda"
   | "registrar"
   | "pedidos"
   | "confirmar"
@@ -59,17 +54,16 @@ export type Paso = {
   /** Arena (antes), rosa (compradora) o verde (tienda), a pantalla completa. */
   lado: Lado;
   telefono: IdTelefono;
-  /** Lo que no es la página real del teléfono (components/landing/escenas.tsx, separadores.tsx y cambio-lado.tsx): el dolor del vendedor, el
-   *  post, el perfil y el navegador de Instagram se dibujan sobre el teléfono de la compradora (el navegador solo pone su marco: el catálogo
-   *  real se ve dentro); `bienvenida`, `antes`, `solucion` y `cambio-lado` no llevan teléfono, son pantallas propias. scripts/generar-pasos-landing.mjs no les saca captura. */
-  escena?: "bienvenida" | "antes" | "solucion" | "dolor-dm" | "dolor-chats" | "post" | "perfil" | "navegador" | "cambio-lado";
+  /** Lo que no es la página real del teléfono (components/landing/escenas.tsx, separadores.tsx, cambio-lado.tsx y perfil-a-catalogo.tsx): el
+   *  dolor del vendedor y el post se dibujan sobre el teléfono de la compradora; `bienvenida`, `antes`, `solucion`, `enlace` (del perfil al
+   *  catálogo, una sola vez) y `cambio-lado` no llevan el teléfono de la demo, son pantallas propias. scripts/generar-pasos-landing.mjs no les saca captura. */
+  escena?: "bienvenida" | "antes" | "solucion" | "dolor-dm" | "dolor-chats" | "post" | "enlace" | "cambio-lado";
   /** La burbuja del paso (un mensaje enviado de WhatsApp): el texto y, si hay, su segunda frase. `resalta`: las palabras que van
    *  en color de marca (ajustes-lewis-8.md §2): en compras, el texto mandarina de la marca; en tienda, verde Bosque. `cambio-lado`
    *  no lleva burbuja: su texto va en la propia pantalla. `iconos`: qué palabras (tal cual salen en
    *  el texto) llevan delante el icono de la app que las nombra, en su color (ajustes-lewis-12.md §2); como mucho dos. */
   burbuja: { texto: string; remate?: string; resalta?: string[]; iconos?: Record<string, IconoBurbuja> } | null;
-  /** Las rayas finas del indicador (ajustes-lewis-7.md §1): una por toque del ♥, o una por fase con tiempo propio si el paso no
-   *  tiene toques. probar-landing comprueba que los toques reales coinciden. */
+  /** Los toques del ♥ de la demo en este paso (o fases con tiempo propio si no tiene): probar-landing comprueba que los toques reales coinciden. */
   fases: number;
   dedo: Dedo;
   /** Solo con dedo «viaje»: de qué ancla de qué teléfono sale el ♥ y a cuál llega. */
@@ -85,6 +79,9 @@ export const CAPITULOS = CAPITULOS_NOMBRES.length;
 /** Lo que tarda el ♥ en llegar al sitio de un toque; el teléfono espera esto antes de que el componente reaccione. */
 export const DEDO_LLEGA = 480;
 
+/** Lo que tarda «Del perfil al catálogo» (components/landing/perfil-a-catalogo.tsx) en llegar al catálogo abierto y dar su «aaah», una sola vez. */
+const ENLACE_MS = 10500;
+
 export const PASOS: Paso[] = [
   // La historia empieza en el dolor de quien vende (docs/prompts/conoce-portada-narrativa.md): dos pantallas neutras, y el color de la
   // marca entra con el post de la tienda. Del enlace del perfil al catálogo en el navegador de Instagram, y de ahí a la app.
@@ -96,27 +93,41 @@ export const PASOS: Paso[] = [
   { id: "dolor-chats", capitulo: 1, lado: "antes", telefono: "compradora", escena: "dolor-chats", burbuja: { texto: "Ahora multiplícalo por todos tus chats.", remate: "Precios repetidos, notas sueltas y pedidos perdidos.", resalta: ["todos tus chats"] }, dedo: "no", fases: 1, duracion: 2400 },
   { id: "solucion", capitulo: 2, lado: "compras", telefono: "compradora", escena: "solucion", burbuja: null, dedo: "no", fases: 1, duracion: 3600 },
   { id: "post", capitulo: 2, lado: "compras", telefono: "compradora", escena: "post", burbuja: { texto: "Tu Tienda publica como siempre.", remate: "La diferencia: el pedido se hace en su catálogo.", resalta: ["Tu Tienda"], iconos: { catálogo: "catalogo" } }, dedo: "no", fases: 1, duracion: 1200 },
-  { id: "perfil", capitulo: 2, lado: "compras", telefono: "compradora", escena: "perfil", burbuja: { texto: "Tu cliente toca el enlace de tu perfil.", remate: "También en tus estados de WhatsApp.", resalta: ["el enlace"], iconos: { "el enlace": "enlace", WhatsApp: "whatsapp" } }, dedo: "toque", fases: 1, duracion: 2200 },
-  { id: "navegador", capitulo: 2, lado: "compras", telefono: "compradora", escena: "navegador", burbuja: { texto: "Y se abre tu catálogo, sin salir de Instagram.", remate: "Sin descargar nada. Con precios a la vista.", resalta: ["tu catálogo"], iconos: { "tu catálogo": "catalogo" } }, dedo: "no", fases: 1, duracion: 1400 },
-  { id: "hola", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Ya estás dentro del catálogo de Tu Tienda.", remate: "Así lo ve quien compra.", resalta: ["Tu Tienda"], iconos: { catálogo: "catalogo", "Tu Tienda": "bolsa" } }, dedo: "no", fases: 1, duracion: 700 },
-  { id: "pasa", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que no te gusta,", remate: "pasa.", resalta: ["pasa"] }, dedo: "no", fases: 1, duracion: 900 },
-  { id: "aaah-termo", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que te gusta: dale aaah.", remate: "Va directo a tu pedido.", resalta: ["aaah"], iconos: { aaah: "corazon", "tu pedido": "pedidos" } }, dedo: "toque", fases: 1, duracion: 2400 },
-  { id: "aaah-tote", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Uno más.", remate: `Tu pedido ya suma ${pesos(TOTAL_DEMO)}.`, resalta: [pesos(TOTAL_DEMO)], iconos: { "Tu pedido": "pedidos", [pesos(TOTAL_DEMO)]: "moneda" } }, dedo: "toque", fases: 1, duracion: 2600 },
-  { id: "bolsa", capitulo: 4, lado: "compras", telefono: "compradora", burbuja: { texto: "Tu pedido,", remate: "con todo en su sitio.", resalta: ["en su sitio"], iconos: { "Tu pedido": "pedidos" } }, dedo: "toque", fases: 1, duracion: 1300 },
-  { id: "whatsapp", capitulo: 4, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo envías por WhatsApp.", remate: "Le llega con fotos y el enlace.", resalta: ["WhatsApp"], iconos: { WhatsApp: "whatsapp", enlace: "enlace" } }, dedo: "toque", fases: 2, duracion: 2900 },
-  { id: "seguimiento", capitulo: 5, lado: "compras", telefono: "compradora", burbuja: { texto: "Abre el enlace", remate: "y mira cómo va.", resalta: ["cómo va"], iconos: { enlace: "enlace" } }, dedo: "toque", fases: 1, duracion: 1500 },
+  { id: "enlace", capitulo: 2, lado: "compras", telefono: "compradora", escena: "enlace", burbuja: { texto: "Tu cliente toca el link de tu bio y tu catálogo se abre ahí mismo, dentro de Instagram.", remate: "Sin descargar nada. También desde tus estados.", resalta: ["link de tu bio", "tu catálogo"], iconos: { "link de tu bio": "enlace", "tu catálogo": "catalogo" } }, dedo: "no", fases: 1, duracion: ENLACE_MS },
+  // «hola» y «pasa» en uno: el catálogo se abre en la gorra y, un momento después, la pasa para llegar al termo.
+  { id: "hola", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Así lo ve tu cliente: desliza como en los Reels.", remate: "Lo que no le gusta, pasa.", resalta: ["pasa"] }, dedo: "no", fases: 1, duracion: 2400 },
+  // «aaah» del termo y del tote en uno: dos toques del ♥.
+  { id: "aaah", capitulo: 3, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo que le gusta: aaah.", remate: `Va directo a su pedido, que ya suma ${pesos(TOTAL_DEMO)}.`, resalta: ["aaah", pesos(TOTAL_DEMO)], iconos: { aaah: "corazon", [pesos(TOTAL_DEMO)]: "moneda" } }, dedo: "toque", fases: 2, duracion: 5200 },
+  { id: "bolsa", capitulo: 4, lado: "compras", telefono: "compradora", burbuja: { texto: "Su pedido,", remate: "con todo en su sitio.", resalta: ["en su sitio"], iconos: { "Su pedido": "pedidos" } }, dedo: "toque", fases: 1, duracion: 1300 },
+  { id: "whatsapp", capitulo: 4, lado: "compras", telefono: "compradora", burbuja: { texto: "Lo envía por WhatsApp.", remate: "A tu tienda le llega con fotos y el enlace.", resalta: ["WhatsApp"], iconos: { WhatsApp: "whatsapp", enlace: "enlace" } }, dedo: "toque", fases: 2, duracion: 2900 },
+  { id: "seguimiento", capitulo: 5, lado: "compras", telefono: "compradora", burbuja: { texto: "Con el enlace", remate: "ve cómo va su pedido.", resalta: ["cómo va"], iconos: { enlace: "enlace" } }, dedo: "toque", fases: 1, duracion: 1500 },
   // El cambio de lado: una pantalla propia, sin teléfono (components/landing/cambio-lado.tsx). Arranca rosa («Pidió en segundos.») y a los
   // CAMBIO_LADO_MS se vuelve verde («Así lo ve Tu Tienda.»); `lado` es el del final, el que se ve al llegar sin animación.
-  { id: "cambio-lado", capitulo: 6, lado: "tienda", telefono: "tienda", escena: "cambio-lado", burbuja: null, dedo: "no", fases: 1, duracion: 2000 },
-  { id: "cambio", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Ahora te toca a ti,", remate: "como tienda.", resalta: ["como tienda"], iconos: { "como tienda": "bolsa" } }, dedo: "no", fases: 1, duracion: 1000 },
+  { id: "cambio-lado", capitulo: 6, lado: "tienda", telefono: "tienda", escena: "cambio-lado", burbuja: null, dedo: "no", fases: 1, duracion: 3800 },
   { id: "aviso", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Te piden allá.", remate: "Te llega aquí.", resalta: ["Te llega aquí"] }, dedo: "no", fases: 1, duracion: 1000 },
   { id: "chat-tienda", capitulo: 6, lado: "tienda", telefono: "tienda", burbuja: { texto: "Fotos, total y enlace.", remate: "Sin «¿cuál era?».", resalta: ["¿cuál era?"], iconos: { total: "moneda", enlace: "enlace" } }, dedo: "toque", fases: 1, duracion: 1500 },
-  { id: "eres-tienda", capitulo: 7, lado: "tienda", telefono: "tienda", burbuja: { texto: "¿Eres la tienda?", remate: "Entra con tu cuenta.", resalta: ["tu cuenta"], iconos: { tienda: "bolsa" } }, dedo: "toque", fases: 2, duracion: 2500 },
-  { id: "registrar", capitulo: 7, lado: "tienda", telefono: "tienda", burbuja: { texto: "Te llega organizado.", remate: "Lo registras en un toque.", resalta: ["organizado"] }, dedo: "toque", fases: 4, duracion: 4600 },
+  // «¿Eres la tienda?» y «Registrar» en uno: el enlace del pedido, entrar con la cuenta y registrarlo (seis toques).
+  { id: "registrar", capitulo: 7, lado: "tienda", telefono: "tienda", burbuja: { texto: "Entras con tu cuenta y el pedido te llega organizado.", remate: "Lo registras en un toque.", resalta: ["tu cuenta", "organizado"] }, dedo: "toque", fases: 6, duracion: 7100 },
   { id: "pedidos", capitulo: 7, lado: "tienda", telefono: "tienda", burbuja: { texto: "Queda en Pedidos,", remate: "como nuevo.", resalta: ["Pedidos"], iconos: { Pedidos: "pedidos" } }, dedo: "toque", fases: 1, duracion: 1400 },
   { id: "confirmar", capitulo: 8, lado: "tienda", telefono: "tienda", burbuja: { texto: "Lo confirmas", remate: "cuando lo tengas listo.", resalta: ["listo"] }, dedo: "toque", fases: 2, duracion: 2500 },
   { id: "despachar", capitulo: 8, lado: "tienda", telefono: "tienda", burbuja: { texto: "Despachado.", remate: "El stock se actualizó solito.", resalta: ["solito"], iconos: { Despachado: "camion", stock: "etiqueta" } }, dedo: "toque", fases: 1, duracion: 2000 },
 ];
+
+/** ¿La burbuja trae tanto texto que necesita letra menor y más sitio (landing.css `data-larga`)? */
+export const burbujaLarga = (p: Paso) => (p.burbuja ? `${p.burbuja.texto} ${p.burbuja.remate ?? ""}`.length > 110 : false);
+
+/** Las burbujas cuentan la historia con un solo reloj (pedido-demo.ts): minuto a minuto, y la de `whatsapp` es la hora a la que Ana envía el
+ *  pedido. Los minutos que hay de la burbuja de un paso a esa hora. */
+export const minutosDeBurbuja = (id: IdPaso) => {
+  const con = PASOS.filter((p) => p.burbuja);
+  return con.findIndex((p) => p.id === id) - con.findIndex((p) => p.id === "whatsapp");
+};
+/** La hora de la burbuja de un paso («3:44 p. m.»). */
+export const horaDeBurbuja = (id: IdPaso) => horaDespues(minutosDeBurbuja(id));
+/** El reloj grande de la pantalla bloqueada de la tienda: la hora de la burbuja `aviso`, que es cuando le llega el aviso. */
+export const RELOJ_AVISO = relojDespues(minutosDeBurbuja("aviso"));
+/** Cuánto hace que Ana envió el pedido, en el aviso de la pantalla bloqueada. */
+export const HACE_AVISO = `hace ${minutosDeBurbuja("aviso")} min`;
 
 export const indicePaso = (id: IdPaso) => PASOS.findIndex((p) => p.id === id);
 /** El primer paso de un capítulo (1..CAPITULOS): adonde lleva tocarlo en el índice. */
@@ -125,7 +136,7 @@ export const primerPasoDe = (capitulo: number) => PASOS.findIndex((p) => p.capit
 /** Lo que tiene que estar a la vista en un paso (lo leen las pruebas y los atributos data-* de la página). */
 export function estadoPaso(i: number) {
   const p = PASOS[Math.max(0, Math.min(PASOS.length - 1, i))]!;
-  const bolsa = i >= indicePaso("aaah-tote") ? 2 : i >= indicePaso("aaah-termo") ? 1 : 0;
+  const bolsa = i >= indicePaso("aaah") ? 2 : 0;
   return { id: p.id, capitulo: p.capitulo, lado: p.lado, telefono: p.telefono, bolsa, total: totalHasta(bolsa), codigoVisible: i >= indicePaso("whatsapp") };
 }
 
@@ -137,3 +148,35 @@ export type MensajePaso = { tipo: typeof MENSAJE_PASO; paso: number; animar: boo
 export const MENSAJE_TOQUE = "dz-landing-toque";
 export const MENSAJE_VIAJE = "dz-landing-viaje";
 export type MensajeDedo = { tipo: typeof MENSAJE_TOQUE | typeof MENSAJE_VIAJE; x: number; y: number };
+
+// ---------------------------------------------------------------------------------------------------------------------------------------
+// El avance por capítulos: un segmento de la barra y un deslizamiento por capítulo. Dentro de un capítulo, los pasos avanzan solos (cuando
+// termina la animación de un paso y pasa el tiempo de leer su burbuja, sigue el siguiente). Puro: lo prueban tests/landing.test.mjs y
+// scripts/probar-landing.mjs.
+
+/** Cuánto se deja para leer la burbuja de un paso, una vez terminada su animación: 1,8 s más 0,04 s por carácter, con tope de 4 s. Un
+ *  paso sin burbuja (un separador, el cambio de lado) trae su texto en pantalla: 2 s. */
+export const lecturaMs = (p: Paso) => {
+  if (!p.burbuja) return 2000;
+  const letras = p.burbuja.texto.length + (p.burbuja.remate ? p.burbuja.remate.length + 1 : 0);
+  return Math.min(4000, Math.round(1800 + 40 * letras));
+};
+
+/** Los índices de los pasos de un capítulo (1..CAPITULOS), en orden. */
+export const pasosDeCapitulo = (capitulo: number) => PASOS.flatMap((p, i) => (p.capitulo === capitulo ? [i] : []));
+
+/**
+ * La línea de tiempo de un capítulo, en ms desde que empieza: `inicios[k]` es cuándo entra su paso k (el anterior termina su animación y su
+ * lectura) y `total`, cuándo termina la animación del último: el segmento de la barra se llena justo ahí y sale «Desliza ↑». El último
+ * paso no lleva tiempo de lectura (no hay siguiente paso que esperar).
+ */
+export function lineaDelCapitulo(capitulo: number): { pasos: number[]; inicios: number[]; total: number } {
+  const pasos = pasosDeCapitulo(capitulo);
+  const inicios: number[] = [];
+  let t = 0;
+  pasos.forEach((i, k) => {
+    inicios.push(t);
+    t += PASOS[i]!.duracion + (k < pasos.length - 1 ? lecturaMs(PASOS[i]!) : 0);
+  });
+  return { pasos, inicios, total: t };
+}

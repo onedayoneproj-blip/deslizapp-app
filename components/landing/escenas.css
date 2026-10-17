@@ -20,9 +20,7 @@
 }
 .lt-escenario[data-paso="dolor-dm"] .esc-capa[data-escena="dolor-dm"],
 .lt-escenario[data-paso="dolor-chats"] .esc-capa[data-escena="dolor-chats"],
-.lt-escenario[data-paso="post"] .esc-capa[data-escena="post"],
-.lt-escenario[data-paso="perfil"] .esc-capa[data-escena="perfil"],
-.lt-escenario[data-paso="navegador"] .esc-capa[data-escena="navegador"] {
+.lt-escenario[data-paso="post"] .esc-capa[data-escena="post"] {
   opacity: 1;
   visibility: visible;
   transition-delay: 0s;
@@ -37,19 +35,6 @@
   background: #ffffff;
   color: #1d1d1f;
   font-family: var(--font-sans);
-}
-
-/* ---- El navegador: solo sus barras; el cuerpo deja ver el catálogo real del teléfono ---- */
-.esc-capa[data-marco] .nv {
-  background: transparent;
-}
-.esc-capa[data-marco] .nv-arriba,
-.esc-capa[data-marco] .nv-progreso,
-.esc-capa[data-marco] .nv-abajo {
-  background: #15181c;
-}
-.esc-capa[data-marco] .nv-cuerpo {
-  background: transparent;
 }
 
 /* ---- El mensaje directo ---- */
@@ -250,15 +235,6 @@
   color: var(--atencion-texto);
 }
 
-/* El sitio del toque en el enlace del perfil: el ♥ de la landing va hasta aquí (controlador.tsx). */
-.esc-objetivo {
-  position: absolute;
-  left: 30%;
-  top: 50%;
-  width: 1px;
-  height: 1px;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   /* Los mensajes y los chats entran uno a uno al deslizar hasta el paso (data-anima="si"). Al abrir la página, o con un enlace a un
      paso, el controlador no los anima: se ve todo completo al instante, sin esperar. */
@@ -277,11 +253,4 @@
     opacity: 0;
     transform: translateY(2.5cqw);
   }
-}
-
-/* Versión sin JavaScript: el catálogo dentro del navegador, recortado a su ancho */
-.esc-quieta-catalogo {
-  display: block;
-  width: 100%;
-  height: auto;
 }

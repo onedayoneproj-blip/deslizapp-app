@@ -5,6 +5,8 @@
 import type { ReactNode } from "react";
 import { Icono } from "../tienda/iconos";
 import { COMPRADORA_DEMO, ENLACE_DEMO, HORA_DEMO, MENSAJE_DEMO, TIENDA_DEMO, VISTA_PREVIA_DEMO } from "@/lib/landing/pedido-demo";
+import { HACE_AVISO, RELOJ_AVISO } from "@/lib/landing/pasos";
+import "./bloqueo.css";
 
 export const IMAGEN_VISTA_PREVIA = "/demo-landing/imagen";
 
@@ -103,9 +105,9 @@ export function ChatWhatsApp({ sale, enviado }: { sale: boolean; enviado: boolea
 export function Bloqueo({ aviso, children }: { aviso: boolean; children?: ReactNode }) {
   return (
     <div className="dz-bloqueo relative h-full text-white">
-      <div className="flex flex-col items-center pt-[92px]">
-        <p className="text-[17px] font-semibold opacity-90">martes, 14 de octubre</p>
-        <p className="font-display text-[86px] leading-none">3:43</p>
+      {/* Sin fecha: la historia cuenta una sola hora (lib/landing/pasos.ts RELOJ_AVISO), la de la burbuja del aviso. */}
+      <div className="flex flex-col items-center pt-[104px]">
+        <p className="font-display text-[86px] leading-none">{RELOJ_AVISO}</p>
       </div>
       <span data-ancla="bloqueo" className="absolute top-[300px] left-1/2 -ml-[30px] size-[60px]" />
       <div className="dz-aviso mx-3 mt-8 rounded-[22px] bg-white/85 p-3.5 text-[#111b21] shadow-lg" data-visible={aviso ? "" : undefined} data-aviso>
@@ -121,7 +123,7 @@ export function Bloqueo({ aviso, children }: { aviso: boolean; children?: ReactN
                 {COMPRADORA_DEMO.nombre}
                 <span data-ancla="aviso" className="inline-block size-[24px]" />
               </b>
-              <span className="text-[13px] text-black/50">ahora</span>
+              <span className="text-[13px] text-black/50">{HACE_AVISO}</span>
             </p>
             <p className="line-clamp-3 text-[14px] leading-snug">{MENSAJE_DEMO.split("\n").slice(0, 3).join(" ")}</p>
           </div>

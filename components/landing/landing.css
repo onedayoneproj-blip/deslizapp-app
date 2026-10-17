@@ -45,7 +45,10 @@
   pointer-events: none;
 }
 .lt-paso {
-  height: 100svh;
+  /* Igual que el escenario (100dvh): con la barra de Safari plegada, la altura visible es mayor que 100svh y, por debajo del último paso,
+     asomaba el cierre. */
+  height: 100vh;
+  height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -160,8 +163,8 @@
   background: var(--marca-bosque);
 }
 /* El icono de la app (el de la pantalla de inicio de iOS): 40 px arriba a la izquierda, a la altura de «Saltar»; lleva de vuelta al
-   principio. No sale en las dos pantallas del dolor (neutras: la marca entra con el post) ni en el cambio de lado (que tiene los
-   suyos, grandes). */
+   principio. No sale en las pantallas del dolor ni en la bienvenida y la solución (neutras: la marca entra con el post). En el cambio de lado
+   sí: rosa al llegar y verde junto con la ola. */
 .lt-icono {
   position: absolute;
   z-index: 9;
@@ -171,7 +174,7 @@
   height: 40px;
   transition: opacity 380ms ease;
 }
-.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"], [data-paso="cambio-lado"]) .lt-icono {
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) .lt-icono {
   opacity: 0;
   pointer-events: none;
 }
@@ -223,14 +226,40 @@
   opacity: 1;
   transition-delay: 250ms;
 }
-/* Los separadores y el cambio de lado no llevan teléfono: el de la compradora se esconde (y vuelve en el paso siguiente). */
-.lt-escenario:is([data-paso="bienvenida"], [data-paso="antes"], [data-paso="solucion"]) .lt-tel-compradora {
+/* Los separadores y el cambio de lado no llevan teléfono: el de la compradora se esconde (y vuelve en el paso siguiente). Lo mismo en
+   `enlace`, que lleva el suyo (del perfil al catálogo). */
+.lt-escenario:is([data-paso="bienvenida"], [data-paso="antes"], [data-paso="solucion"], [data-paso="enlace"]) .lt-tel-compradora {
   opacity: 0;
+}
+/* Del perfil al catálogo (paso `enlace`): el teléfono de Instagram ocupa el sitio del de la compradora, con su misma medida. */
+.lt-enlace {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(100cqw, 100cqh * 640 / 1350);
+  height: fit-content;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  filter: drop-shadow(0 24px 30px rgba(16, 54, 42, 0.35));
+  transition:
+    opacity 420ms ease,
+    visibility 0s linear 420ms;
+}
+.lt-escenario[data-paso="enlace"] .lt-enlace {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 /* El cambio de lado no lleva teléfono: el de la compradora ya salió y el de la tienda espera fuera para entrar en el paso siguiente. */
 .lt-escenario[data-paso="cambio-lado"] .lt-tel-tienda {
   transform: translateX(75%) scale(0.82);
   opacity: 0;
+}
+/* En el cambio de lado el teléfono que gira (cambio-lado.css) ocupa el sitio del de quien compra y el de la tienda entra en `aviso` ya en su sitio:
+   los dos cambian al instante, sin deslizarse (es el mismo teléfono, vuelto). */
+.lt-escenario:is([data-paso="cambio-lado"], [data-paso="aviso"]) :is(.lt-tel-compradora, .lt-tel-tienda) {
+  transition: none;
 }
 /* Dentro, la página real a 393 px de ancho (iPhone 15 Pro) y el alto del hueco, escalada a su ancho: tan(atan2()) da la proporción sin JavaScript. */
 .lt-pantalla {
@@ -364,81 +393,203 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una regla corta, un 27 % del alto, centrada en vertical.
-   Las rayas van con aire entre ellas y la regla se desplaza para dejar la del paso en el centro; arriba y abajo se desvanece.
-   ---- */
-.lt-indice {
-  position: absolute;
-  z-index: 8;
-  left: max(6px, env(safe-area-inset-left));
-  top: 50%;
-  height: 27%;
-  /* lo justo para las rayas (la actual mide 30 px): la caja no pisa el teléfono */
-  width: 38px;
-  transform: translateY(-50%);
-  overflow: hidden;
+/* ---- El riel de avance (lienzo de Design «17 oct · Ronda 2», IndRiel): vertical, pegado al borde derecho y a media altura, con un segmento por
+   capítulo. Cada segmento mide 4 px de ancho y 22 px de alto, y el del capítulo actual, 44 (el cambio de alto es animado), con 6 px de separación.
+   El actual se llena de arriba abajo a lo largo de sus pasos (scaleY; --dur y --off los pone el controlador); el color es Bosque sobre arena y rosa,
+   y papel sobre Bosque, con el vacío al 20 %. Al lado del icono, el nombre del capítulo. ---- */
+.lt-riel,
+.lt-capitulo {
   color: var(--marca-bosque);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
   transition:
     color 600ms ease,
-    opacity 400ms ease;
+    transform 380ms var(--curva),
+    opacity 380ms ease;
 }
-.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-indice {
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) :is(.lt-riel, .lt-capitulo) {
   color: var(--marca-papel);
 }
-.lt-indice-rayas {
+.lt-riel {
+  position: absolute;
+  z-index: 8;
+  right: max(10px, env(safe-area-inset-right));
+  top: 50%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 9px;
-  padding-left: 4px;
-  transform: translateY(var(--regla, 0px));
-  transition: transform 420ms var(--curva);
+  gap: 6px;
+  transform: translateY(-50%);
 }
-/* Como las marcas del reloj de iOS: trazos muy finos con las puntas redondeadas (ajustes-lewis-8.md §1). La gruesa se nota por
-   más larga y más opaca, no por más ancha; la actual, más larga y sólida. */
-.lt-raya-gruesa {
+.lt-seg {
   position: relative;
   display: block;
-  flex: none;
-  width: 14px;
-  height: 1.5px;
-  border-radius: 999px;
-  background: currentColor;
-  opacity: 0.5;
+  width: 4px;
+  height: 22px;
+  border-radius: 99px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    width 420ms var(--curva),
-    opacity 300ms ease;
+  transition: height 300ms var(--curva);
 }
-/* El área de toque: unos 20 px de alto (y más ancha que la raya), sin pisar la de la gruesa vecina */
-.lt-raya-gruesa::before {
+.lt-seg[aria-current="step"] {
+  height: 44px;
+}
+/* El área de toque: más ancha que el segmento (unos 28 px), sin pisar a los vecinos */
+.lt-seg::before {
   content: "";
   position: absolute;
-  inset: -9px -14px -9px -6px;
+  inset: -3px -12px;
 }
-.lt-raya-gruesa[data-estado="visto"] {
-  opacity: 0.75;
-}
-.lt-raya-gruesa[data-estado="actual"] {
-  width: 30px;
-  height: 2px;
-  opacity: 1;
-}
-.lt-raya-fina {
-  display: block;
-  flex: none;
-  width: 7px;
-  height: 1px;
-  border-radius: 999px;
+.lt-seg i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: currentColor;
-  opacity: 0.25;
-  pointer-events: none;
-  transition: opacity 250ms ease;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
 }
-.lt-raya-fina[data-llena="si"] {
-  opacity: 0.85;
+.lt-seg[data-estado="lleno"] i {
+  transform: none;
+}
+/* Sin avance solo (movimiento reducido): el capítulo va lleno a la medida de los pasos que lleva vistos (--p) */
+.lt-seg[data-estado="parcial"] i {
+  transform: scaleY(var(--p, 1));
+}
+.lt-seg[data-estado="llenando"] i {
+  animation: lt-llena var(--dur, 2s) linear forwards;
+  animation-delay: calc(var(--off, 0ms) * -1);
+}
+/* Mantener pulsado pausa el avance (y el llenado) */
+.lt-escenario[data-pausa="si"] .lt-seg[data-estado="llenando"] i {
+  animation-play-state: paused;
+  opacity: 0.6;
+}
+@keyframes lt-llena {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+/* El nombre del capítulo, junto al icono de la app (a su derecha, en la misma línea); donde el icono no sale, se corre a su sitio */
+.lt-capitulo {
+  position: absolute;
+  z-index: 8;
+  top: calc(10px + env(safe-area-inset-top));
+  left: calc(max(16px, env(safe-area-inset-left)) + 50px);
+  height: 40px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) .lt-capitulo {
+  transform: translateX(-50px);
+}
+/* Nada del escenario se selecciona ni abre menús al mantener pulsado (pausa el avance) */
+.lt-escenario {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ---- «Desliza ↑»: una píldora grande, a media altura de la burbuja (el controlador pone --desliza-y); puede taparla, porque a esas alturas
+   ya se leyó. Aparece cuando termina el último paso del capítulo (o con un toque, y entonces salta) y se va en cuanto se desliza. En el último
+   capítulo es «Ver planes ↑»: mandarina, texto blanco, late suave, y es un enlace al cierre. ---- */
+.lt-desliza {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: var(--desliza-y, calc(100% - 150px));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px 0 24px;
+  border-radius: 999px;
+  background: var(--marca-papel);
+  color: var(--marca-bosque);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  white-space: nowrap;
+  box-shadow:
+    0 14px 30px -8px rgba(16, 54, 42, 0.5),
+    0 0 0 1.5px rgba(16, 54, 42, 0.1);
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  pointer-events: none;
+  transition:
+    opacity 260ms ease,
+    transform 260ms var(--curva);
+}
+.lt-escenario[data-desliza-ok="si"] .lt-desliza {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.lt-desliza-planes,
+.lt-escenario[data-fin="si"] .lt-desliza-desliza {
+  display: none;
+}
+.lt-escenario[data-fin="si"] .lt-desliza-planes {
+  display: inline;
+}
+.lt-escenario[data-fin="si"] .lt-desliza {
+  background: var(--marca-mandarina);
+  color: #fff;
+  box-shadow: 0 14px 30px -8px rgba(16, 54, 42, 0.55);
+}
+.lt-escenario[data-fin="si"][data-desliza-ok="si"] .lt-desliza {
+  pointer-events: auto;
+}
+.lt-desliza svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lt-escenario[data-desliza-ok="si"]:not([data-fin="si"]) .lt-desliza svg {
+    animation: lt-rebote 1.3s ease-in-out infinite;
+  }
+  /* El toque que enseña el gesto: la píldora salta */
+  .lt-escenario.lt-salta[data-desliza-ok="si"] .lt-desliza {
+    animation: lt-salta 0.5s ease-out;
+  }
+  .lt-escenario[data-fin="si"][data-desliza-ok="si"]:not(.lt-salta) .lt-desliza {
+    animation: lt-late 1.6s ease-in-out infinite;
+  }
+}
+@keyframes lt-rebote {
+  0%,
+  100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes lt-salta {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  30% {
+    transform: translate(-50%, -14px) scale(1.08);
+  }
+  60% {
+    transform: translate(-50%, 0) scale(0.97);
+  }
+}
+@keyframes lt-late {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50%, 0) scale(1.04);
+  }
 }
 
 /* ---- Las burbujas: mensajes enviados de WhatsApp en iOS (modo oscuro), a la derecha, apiladas como un chat
@@ -542,6 +693,22 @@
   }
 }
 
+/* Una burbuja con mucho texto (lib/landing/pasos.ts burbujaLarga): letra menor y más sitio abajo (el teléfono se achica un poco). */
+.lt-burbuja[data-larga] {
+  font-size: 1.25rem;
+}
+.lt-escenario[data-larga="si"] {
+  --alto-burbujas: 214px;
+}
+@media (max-height: 700px) {
+  .lt-burbuja[data-larga] {
+    font-size: 1.05rem;
+  }
+  .lt-escenario[data-larga="si"] {
+    --alto-burbujas: 176px;
+  }
+}
+
 /* Pantallas muy angostas (320 px): letra de la burbuja un poco menor, para que las de cuatro líneas no pasen a cinco. */
 @media (max-width: 340px) {
   .lt-burbuja {
@@ -551,7 +718,8 @@
 
 /* ---- Escritorio: la columna de burbujas a la izquierda del teléfono; el índice, lista completa ---- */
 @media (min-width: 900px) {
-  .lt-escenario {
+  .lt-escenario,
+  .lt-escenario[data-larga="si"] {
     --alto-burbujas: 0px;
     --ancho-indice: 0px;
   }
@@ -574,14 +742,23 @@
     padding: var(--aire) 18px var(--aire) 20px;
     font-size: 2rem;
   }
-  .lt-indice {
-    left: 28px;
+  .lt-burbuja[data-larga] {
+    font-size: 1.6rem;
   }
-  .lt-raya-gruesa[data-estado="actual"] {
-    width: 34px;
+  /* «Desliza» va centrado bajo la columna de la demo (la mitad derecha) y el riel, en el borde derecho de la pantalla. */
+  .lt-riel {
+    right: 24px;
+  }
+  .lt-desliza {
+    left: calc(50% + min(46vw, 560px) / 2);
+    top: auto;
+    bottom: calc(4px + env(safe-area-inset-bottom));
   }
   .lt-icono {
     left: 24px;
+  }
+  .lt-capitulo {
+    left: 74px;
   }
 }
 
@@ -812,6 +989,13 @@
   border-radius: 999px;
   font-weight: 800;
   font-size: 16px;
+}
+/* El precio junto a «Ver los planes»: una línea pequeña, pegada al botón */
+.lt-cierre-desde {
+  margin: -6px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-suave);
 }
 .lt-cierre-entrar {
   display: flex;

@@ -33,9 +33,8 @@ const irAlReel = (slug: string, suave: boolean) => {
 type Estado = { actual: string; carrito: string[]; hoja: boolean; pantalla: Pantalla; enviado: boolean };
 
 const P = {
-  pasa: indicePaso("pasa"),
-  termo: indicePaso("aaah-termo"),
-  tote: indicePaso("aaah-tote"),
+  hola: indicePaso("hola"),
+  aaah: indicePaso("aaah"),
   bolsa: indicePaso("bolsa"),
   whatsapp: indicePaso("whatsapp"),
   seguimiento: indicePaso("seguimiento"),
@@ -43,8 +42,8 @@ const P = {
 
 /** Cómo queda el teléfono de Ana al terminar un paso (para llegar sin animación: al abrir, al saltar o al volver). */
 function estadoEn(paso: number): Estado {
-  const actual = paso >= P.tote ? "tote" : paso >= P.pasa ? "termo" : "gorra";
-  const carrito = paso >= P.tote ? ["termo", "tote"] : paso >= P.termo ? ["termo"] : [];
+  const actual = paso >= P.aaah ? "tote" : paso >= P.hola ? "termo" : "gorra";
+  const carrito = paso >= P.aaah ? ["termo", "tote"] : [];
   const pantalla: Pantalla = paso >= P.seguimiento ? "pedido" : paso >= P.whatsapp ? "chat" : "catalogo";
   return { actual, carrito, hoja: paso === P.bolsa, pantalla, enviado: paso >= P.whatsapp };
 }
@@ -122,24 +121,30 @@ export function TelefonoCompradora() {
     const fijo = () => {
       const e = estadoEn(destino);
       // Tras un «aaah», la barra del pedido (con el mensaje de la tienda) sigue a la vista, como en la app.
-      setBar(destino === P.termo || destino === P.tote);
+      setBar(destino === P.aaah);
       flushSync(() => setEstado(e));
       irAlReel(e.actual, false);
     };
     if (!animar || Math.abs(destino - desde) !== 1) return fijo();
     if (destino > desde) {
       // Hacia delante: lo mismo que haría Ana, con los botones reales.
-      if (destino === P.pasa) {
+      if (destino === P.hola) {
+        // El catálogo se abre en la gorra y, un momento después, la pasa: llega al termo.
+        setEstado((e) => ({ ...e, actual: "gorra" }));
+        irAlReel("gorra", false);
+        await esperar(1100);
+        if (!vigente()) return;
         setEstado((e) => ({ ...e, actual: "termo" }));
         irAlReel("termo", true);
-      } else if (destino === P.termo) {
+      } else if (destino === P.aaah) {
         await esperar(250);
         if (!vigente()) return;
         // El like real hace lo de la app: ♥ relleno, burst con «aaah», «EN TU PEDIDO», el globito de la bolsa y la barra del
-        // pedido con el mensaje de la tienda. La barra se queda a la vista hasta el paso siguiente.
+        // pedido con el mensaje de la tienda.
         await tocarYPulsar(like("termo"));
-      } else if (destino === P.tote) {
-        // Como la app: la barra vuela a la bolsa y se cierra.
+        await esperar(1300);
+        if (!vigente()) return;
+        // Como la app: la barra vuela a la bolsa y se cierra; el catálogo pasa al producto siguiente y le da «aaah».
         await volarPedido();
         if (!vigente()) return;
         setBar(false);
@@ -176,25 +181,23 @@ export function TelefonoCompradora() {
       return;
     }
     // Hacia atrás: se deshace lo último, también con los botones reales cuando se puede.
-    if (desde === P.pasa) {
-      setEstado((e) => ({ ...e, actual: "gorra" }));
-      irAlReel("gorra", true);
-    } else if (desde === P.termo) {
-      await tocarYPulsar(like("termo"));
-      setBar(false);
-    } else if (desde === P.tote) {
+    if (desde === P.aaah) {
+      // Se deshace el «aaah» del tote y luego el del termo, con los mismos botones, y el catálogo vuelve al termo.
       await tocarYPulsar(like("tote"));
+      if (!vigente()) return;
       setBar(false);
       await esperar(250);
       if (!vigente()) return;
       setEstado((e) => ({ ...e, actual: "termo" }));
       irAlReel("termo", true);
-      setBar(true);
+      await esperar(650);
+      if (!vigente()) return;
+      await tocarYPulsar(like("termo"));
+      if (vigente()) setBar(false);
     } else if (desde === P.bolsa) {
       setEstado((e) => ({ ...e, hoja: false }));
       setBar(true);
-    }
-    else fijo();
+    } else fijo();
   });
 
   // De aquí sale el ♥ que cruza al teléfono de la tienda (paso «cambio»).

@@ -130,11 +130,11 @@
   align-items: center;
   padding-bottom: 40px;
 }
-/* La solución: dos notificaciones tachadas y, en medio, el icono rosa */
+/* La solución: dos notificaciones tachadas, una arriba y otra abajo del icono rosa (que no las tapa: se leen enteras) */
 .sp-cruzadas {
   position: relative;
   width: 220px;
-  height: 150px;
+  height: 222px;
 }
 .sp-tachada {
   color: #8a8073;
@@ -143,7 +143,7 @@
 .sp-cruzadas .sp-icono {
   position: absolute;
   left: 46px;
-  top: 10px;
+  top: 46px;
   width: 128px;
   height: 128px;
   box-shadow: 0 12px 30px rgba(23, 75, 58, 0.25);

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-import { DEDO_LLEGA, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
+import { CAPITULOS, CAPITULOS_NOMBRES, DEDO_LLEGA, burbujaLarga, lineaDelCapitulo, primerPasoDe, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
@@ -14,10 +14,8 @@ const BASE_HILO = 100;
 const QUEDA = 0;
 const QUEDA_CHECK = 1300;
 const VIAJE = 700;
-/** En el cambio de lado, cuánto se ve «Pidió en segundos.» (rosa) antes de que los iconos se intercambien y todo pase a verde. */
-const CAMBIO_LADO_MS = 900;
-/** Cuánto tarda en llegar el ♥ al enlace del perfil, ya con el paso a la vista. */
-const TOQUE_PERFIL_MS = 700;
+/** En el cambio de lado, cuánto tarda el fondo de la landing en pasar de rosa a verde: la ola verde (cambio-lado.css) sube entre 1 y 2 s y ya lo tapa. */
+const CAMBIO_LADO_MS = 1900;
 
 type Punto = { x: number; y: number };
 
@@ -46,16 +44,14 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const pulso = e.querySelector<HTMLElement>("[data-hilo-pulso]");
     // (por índice de paso: `cambio-lado` no tiene burbuja)
     const burbujas = PASOS.map((_, i) => e.querySelector<HTMLElement>(`[data-burbuja="${i}"]`));
-    const gruesas = [...e.querySelectorAll<HTMLElement>("[data-raya-paso]")];
-    const finas = [...e.querySelectorAll<HTMLElement>("[data-raya-fina]")];
-    const reglaCaja = e.querySelector<HTMLElement>(".lt-indice");
-    const regla = e.querySelector<HTMLElement>(".lt-indice-rayas");
+    const segmentos = [...e.querySelectorAll<HTMLElement>("[data-seg]")];
+    const nombreCapitulo = e.querySelector<HTMLElement>("[data-capitulo-nombre]");
     let activo = -1;
-    let llenar = 0;
+    let muestraDesliza = 0;
+    let yDesliza = 0;
     let raf = 0;
     let irse = 0;
     let cambio = 0;
-    let toquePerfil = 0;
     let posicion: Punto | null = null;
 
     // La barra de Safari y el rebote del scroll con el color del capítulo (ajustes-lewis-8.md §8): theme-color y el fondo de html y
@@ -78,6 +74,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let finalVisto = false;
     const obsCierre = new IntersectionObserver(([en]) => {
       enCierre = Boolean(en?.isIntersecting);
+      if (enCierre) e.dataset.deslizaOk = "no";
       // Medición (docs/18-medicion.md): llegó al final, una vez por visita.
       if (enCierre && !finalVisto) {
         finalVisto = true;
@@ -88,32 +85,131 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     if (cierre) obsCierre.observe(cierre);
 
     /**
-     * El indicador (ajustes-lewis-7.md §1): la gruesa del paso, marcada al llegar; sus finas se llenan una a una con cada toque o
-     * viaje del paso (o al acabar su tiempo, si no tiene toques). Los pasos de antes, llenos; los de después, vacíos.
+     * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por capítulo y un
+     * deslizamiento por capítulo. Dentro de un capítulo, los pasos avanzan solos: cuando termina la animación de un paso y pasa el tiempo
+     * de leer su burbuja (lineaDelCapitulo, lib/landing/pasos.ts), entra el siguiente. El segmento del capítulo se llena a lo largo de
+     * todos sus pasos (CSS: --dur es lo que dura el capítulo y --off lo que ya llevaba al entrar) y, cuando termina el último, aparece
+     * «Desliza ↑». Deslizar salta al primer paso del capítulo siguiente (hacia atrás, al inicio del capítulo); tocar la pantalla pausa o
+     * reanuda el avance. Con movimiento reducido no hay avance solo: cada paso pide su deslizamiento.
      */
-    const finasDe = (i: number) => finas.filter((f) => f.dataset.rayaFina === String(i));
-    const marcarIndice = (i: number, animar: boolean) => {
-      window.clearTimeout(llenar);
-      gruesas.forEach((g) => {
-        const j = Number(g.dataset.rayaPaso);
-        g.dataset.estado = j === i ? "actual" : j < i ? "visto" : "falta";
-        if (j === i) g.setAttribute("aria-current", "step");
+    const sinAuto = () => Boolean((window as unknown as { __dzSinAuto?: boolean }).__dzSinAuto);
+    let linea = lineaDelCapitulo(PASOS[0]!.capitulo);
+    let capActivo = 0;
+    let base = 0; // ms de la línea ya corridos cuando empezó el último tramo
+    let desdeT: number | null = null; // performance.now() de ese inicio (null: en pausa)
+    let avanza = 0;
+    let inicioCapEn = Date.now();
+    /** Entra el siguiente paso de un avance solo (lo asigna más abajo, donde están `activar` y las secciones). */
+    let mover: (i: number, forzar?: boolean, auto?: boolean) => void = () => {};
+    const corrido = () => base + (desdeT === null ? 0 : performance.now() - desdeT);
+    const posicionDesliza = () => {
+      const b = burbujas[activo];
+      const caja = e.getBoundingClientRect();
+      const r = b && Number(getComputedStyle(b).opacity) > 0.05 ? b.getBoundingClientRect() : null;
+      // A media altura de la burbuja del paso (o, sin burbuja, abajo): puede taparla, porque a esas alturas ya se leyó.
+      const y = r ? r.top - caja.top + r.height / 2 : caja.height - 96;
+      e.style.setProperty("--desliza-y", `${Math.round(y - 24)}px`);
+    };
+    const mostrarDesliza = () => {
+      if (enCierre) return;
+      posicionDesliza();
+      yDesliza = window.scrollY;
+      e.dataset.deslizaOk = "si";
+    };
+    const pintarSegmentos = (capitulo: number, desdeMs: number, anima: boolean, parcial = 1) => {
+      e.dataset.pausa = "no";
+      segmentos.forEach((g, j) => {
+        g.dataset.estado = j + 1 === capitulo ? "vacio" : j + 1 < capitulo ? "lleno" : "vacio";
+        if (j + 1 === capitulo) g.setAttribute("aria-current", "step");
         else g.removeAttribute("aria-current");
       });
-      // La regla se desplaza para dejar la raya del paso en su centro.
-      const actual = gruesas.find((g) => Number(g.dataset.rayaPaso) === i);
-      if (actual && reglaCaja && regla) regla.style.setProperty("--regla", `${(reglaCaja.clientHeight / 2 - (actual.offsetTop + actual.offsetHeight / 2)).toFixed(1)}px`);
-      finas.forEach((f) => {
-        const j = Number(f.dataset.rayaFina);
-        f.dataset.llena = j < i || (j === i && !animar) ? "si" : "no";
-      });
-      // Por si algún toque no llegó (o el paso no tiene toques): al acabar su tiempo, el paso queda completo.
-      if (animar) llenar = window.setTimeout(() => finasDe(i).forEach((f) => (f.dataset.llena = "si")), PASOS[i]!.duracion + 300);
+      const g = segmentos[capitulo - 1];
+      if (!g) return;
+      g.style.setProperty("--dur", `${linea.total}ms`);
+      g.style.setProperty("--off", `${Math.round(desdeMs)}ms`);
+      g.style.setProperty("--p", String(parcial));
+      void g.offsetWidth; // para que el llenado empiece de nuevo aunque ya estuviera llenándose
+      g.dataset.estado = anima ? "llenando" : "parcial";
     };
-    const llenarUna = () => {
-      const f = finasDe(activo).find((x) => x.dataset.llena === "no");
-      if (f) f.dataset.llena = "si";
+    /** Programa lo que sigue al paso k del capítulo: el avance solo al siguiente paso y, en el último, «Desliza ↑». */
+    const programar = (k: number) => {
+      window.clearTimeout(avanza);
+      window.clearTimeout(muestraDesliza);
+      e.dataset.deslizaOk = "no";
+      const ultimoDelCapitulo = k >= linea.pasos.length - 1;
+      if (reducido.matches) {
+        // Sin avance solo: cada paso pide su deslizamiento (y «Desliza» sale enseguida, sin rebote).
+        muestraDesliza = window.setTimeout(mostrarDesliza, 250);
+        return;
+      }
+      if (desdeT === null) return; // en pausa
+      const ya = corrido();
+      if (!ultimoDelCapitulo) {
+        if (!sinAuto()) avanza = window.setTimeout(() => mover(linea.pasos[k + 1]!, false, true), Math.max(0, linea.inicios[k + 1]! - ya));
+      } else {
+        // Al terminar el último paso del capítulo: «Desliza ↑» (en el último capítulo, «Ver planes ↑»).
+        muestraDesliza = window.setTimeout(mostrarDesliza, Math.max(0, linea.total - ya) + 150);
+      }
     };
+    /** Mantener pulsado pausa el avance (y el llenado del riel) y soltar lo reanuda, como en Reels; un toque corto enseña el gesto: «Desliza ↑»
+     *  aparece (si aún no estaba) y da un salto. */
+    const pausar = () => {
+      const k = linea.pasos.indexOf(activo);
+      if (k < 0 || desdeT === null || corrido() >= linea.total) return;
+      base = corrido();
+      desdeT = null;
+      window.clearTimeout(avanza);
+      window.clearTimeout(muestraDesliza);
+      e.dataset.pausa = "si";
+    };
+    const reanudar = () => {
+      if (e.dataset.pausa !== "si") return;
+      desdeT = performance.now();
+      e.dataset.pausa = "no";
+      programar(linea.pasos.indexOf(activo));
+    };
+    let retener = 0;
+    let sostenido = false;
+    const sobreControl = (ev: Event) => Boolean((ev.target as Element | null)?.closest?.("a, button"));
+    const alBajar = (ev: PointerEvent) => {
+      if (reducido.matches || enCierre || sobreControl(ev)) return;
+      sostenido = false;
+      window.clearTimeout(retener);
+      retener = window.setTimeout(() => {
+        sostenido = true;
+        pausar();
+      }, 380);
+    };
+    const alSoltar = () => {
+      window.clearTimeout(retener);
+      if (sostenido) reanudar();
+    };
+    const alToque = (ev: MouseEvent) => {
+      if (enCierre || sobreControl(ev)) return;
+      // (el clic que cierra una pulsación larga no es un toque)
+      if (sostenido) {
+        sostenido = false;
+        return;
+      }
+      if (e.dataset.deslizaOk !== "si") {
+        posicionDesliza();
+        yDesliza = window.scrollY;
+        e.dataset.deslizaOk = "si";
+      }
+      e.classList.remove("lt-salta");
+      void e.offsetWidth; // para que el salto empiece de nuevo en cada toque
+      e.classList.add("lt-salta");
+    };
+    e.addEventListener("pointerdown", alBajar);
+    e.addEventListener("pointerup", alSoltar);
+    e.addEventListener("pointercancel", alSoltar);
+    e.addEventListener("pointerleave", alSoltar);
+    e.addEventListener("click", alToque);
+    // «Desliza» se va en cuanto la persona desliza (antes de que cambie el paso).
+    const alDeslizar = () => {
+      if (e.dataset.deslizaOk === "si" && Math.abs(window.scrollY - yDesliza) > 10) e.dataset.deslizaOk = "no";
+    };
+    window.addEventListener("scroll", alDeslizar, { passive: true });
     /**
      * Las burbujas como un chat (ajustes-lewis-4.md y -8.md): la del paso arriba de su columna, con el borde bajo el teléfono; las
      * anteriores suben lo que ocupan (--sube) por detrás del teléfono y se van; las siguientes esperan pequeñas abajo a la derecha.
@@ -197,7 +293,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const toque = (p: Punto) => {
       llevar(() => p, DEDO_LLEGA - 40, () => {
         e.dataset.toques = String(Number(e.dataset.toques ?? 0) + 1);
-        llenarUna();
         const check = PASOS[activo]?.id === "despachar";
         if (check) e.dataset.check = "si";
         pulso?.animate([{ opacity: 0.9, transform: "scale(.6)" }, { opacity: 0, transform: "scale(2.4)" }], { duration: 560, easing: "cubic-bezier(.2,.8,.2,1)" });
@@ -208,8 +303,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const viaje = (destino: () => Punto | null, desde?: Punto | null) =>
       llevar(destino, VIAJE, () => {
         e.dataset.viajes = String(Number(e.dataset.viajes ?? 0) + 1);
-        // (en un paso de viaje, el viaje es su fase; en uno de toques, sus rayas son los toques)
-        if (PASOS[activo]?.dedo === "viaje") llenarUna();
         esconder();
       }, desde);
 
@@ -223,8 +316,8 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     // página, o con un enlace a un paso (el primer segundo y medio), el paso se ve completo al instante.
     const montado = Date.now();
     const pasosVistos = new Set<string>();
-    const activar = (i: number) => {
-      if (i === activo) return;
+    const activar = (i: number, forzar = false, auto = false) => {
+      if (i === activo && !forzar) return;
       const desde = activo;
       activo = i;
       // Medición: cada paso se cuenta una vez por visita, aunque se vuelva a él.
@@ -245,14 +338,15 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         codigo: est.codigoVisible ? "si" : "no",
         check: "no",
         capitulo: String(paso.capitulo),
+        larga: burbujaLarga(paso) ? "si" : "no",
+        fin: paso.capitulo === CAPITULOS ? "si" : "no",
       });
-      // El cambio de lado: llega rosa («Pidió en segundos.») y, un momento después, los iconos se intercambian y todo pasa a verde. Sin
-      // animación (al abrir, al volver, movimiento reducido), se ve el final.
+      // El cambio de lado: llega rosa («Pidió en segundos.»); el teléfono gira, una ola verde sube y todo pasa a verde (cambio-lado.css, con
+      // data-anima="si"). Sin animación (al abrir, movimiento reducido), se ve el final.
       e.dataset.anima = reducido.matches ? "no" : desde < 0 || Date.now() - montado < 1500 ? "entrada" : "si";
       window.clearTimeout(cambio);
-      window.clearTimeout(toquePerfil);
       delete e.dataset.cambio;
-      if (paso.escena === "cambio-lado" && animar) {
+      if (paso.escena === "cambio-lado" && animar && e.dataset.anima === "si") {
         e.dataset.cambio = "antes";
         e.dataset.lado = "compras";
         cambio = window.setTimeout(() => {
@@ -261,24 +355,30 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
           pintarFondo();
         }, CAMBIO_LADO_MS);
       }
-      marcarIndice(i, animar);
+      // La barra y el avance: al entrar a un capítulo (o a un paso por un enlace, o al reiniciar), el segmento empieza donde toca; con el
+      // avance solo dentro del capítulo, sigue llenándose sin interrupción.
+      const capitulo = paso.capitulo;
+      const cambioDeCapitulo = capitulo !== capActivo;
+      if (cambioDeCapitulo) {
+        capActivo = capitulo;
+        linea = lineaDelCapitulo(capitulo);
+        if (nombreCapitulo) nombreCapitulo.textContent = CAPITULOS_NOMBRES[capitulo - 1] ?? "";
+      }
+      const k = linea.pasos.indexOf(i);
+      if (cambioDeCapitulo || forzar) inicioCapEn = Date.now();
+      if (!auto || cambioDeCapitulo) {
+        base = reducido.matches ? 0 : linea.inicios[k] ?? 0;
+        desdeT = reducido.matches ? null : performance.now();
+        pintarSegmentos(capitulo, base, !reducido.matches, (k + 1) / linea.pasos.length);
+      }
+      programar(k);
       apilar(i);
       pintarFondo();
-      if (i >= indicePaso("aaah-tote")) cargarTienda();
+      if (i >= indicePaso("aaah")) cargarTienda();
       mandar("compradora", i, animar);
       mandar("tienda", i, animar);
       // El ♥ solo aparece cuando hace algo: con cada toque que avisa un teléfono, o en el viaje de un teléfono al otro.
       esconder();
-      // El toque del perfil lo hace la propia landing (no hay página dentro del teléfono): el ♥ va al enlace.
-      if (animar && paso.escena === "perfil") {
-        toquePerfil = window.setTimeout(() => {
-          const objetivo = e.querySelector<HTMLElement>('[data-objetivo-toque="perfil"]');
-          if (!objetivo || activo !== i) return;
-          const r = objetivo.getBoundingClientRect();
-          const base = e.getBoundingClientRect();
-          toque({ x: r.left - base.left, y: r.top - base.top });
-        }, TOQUE_PERFIL_MS);
-      }
       if (animar && paso.dedo === "viaje" && paso.viaje && i === desde + 1) {
         const { desde: [td, ad], hasta: [th, ah] } = paso.viaje;
         const salida = ancla(td, ad);
@@ -323,17 +423,45 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (cta && cta in EVENTO_CIERRE) registrarEvento(EVENTO_CIERRE[cta as keyof typeof EVENTO_CIERRE]);
     };
     document.addEventListener("click", alClicCierre, true);
+    mover = (i, forzar = false, auto = false) => {
+      activar(i, forzar, auto);
+      secciones[i]?.scrollIntoView({ behavior: "instant" });
+    };
+    // Los enlaces a un paso (#paso-…, también el de un segmento de la barra) activan ese paso.
+    const alHash = () => {
+      const i = PASOS.findIndex((p) => `#paso-${p.id}` === location.hash);
+      if (i >= 0 && i !== activo) activar(i);
+    };
+    window.addEventListener("hashchange", alHash);
     const obs = new IntersectionObserver(
       (entradas) => {
         for (const en of entradas) {
           if (!en.isIntersecting) continue;
           const i = Number((en.target as HTMLElement).dataset.pasoSeccion);
-          // Solo frena saltos cortos (2 o 3 pasos, lo que deja pasar un deslizamiento fuerte); los largos son a propósito (Inicio, Fin).
-          if (activo >= 0 && Math.abs(i - activo) > 1 && Math.abs(i - activo) <= 3 && Date.now() - saltando > 1500) {
-            const siguiente = activo + Math.sign(i - activo);
-            secciones[siguiente]?.scrollIntoView({ behavior: "instant" });
-            activar(siguiente);
-          } else activar(i);
+          if (i === activo) continue;
+          const enlace = Date.now() - saltando < 1500;
+          if (activo < 0 || enlace) {
+            activar(i);
+          } else if (reducido.matches) {
+            // Sin avance solo: un paso por deslizamiento (un deslizamiento fuerte no se salta pasos).
+            if (Math.abs(i - activo) > 1 && Math.abs(i - activo) <= 3) {
+              const siguiente = activo + Math.sign(i - activo);
+              secciones[siguiente]?.scrollIntoView({ behavior: "instant" });
+              activar(siguiente);
+            } else activar(i);
+          } else if (i > activo) {
+            // Deslizar hacia delante: al primer paso del capítulo siguiente (o, en el último capítulo, al cierre).
+            const siguiente = primerPasoDe(PASOS[activo]!.capitulo + 1);
+            if (siguiente >= 0) mover(siguiente);
+            else cierre?.scrollIntoView({ behavior: "instant" });
+          } else {
+            // Hacia atrás: al inicio del capítulo actual si ya va avanzado (o lleva un rato), y si no, al del anterior.
+            const capitulo = PASOS[activo]!.capitulo;
+            const inicio = primerPasoDe(capitulo);
+            const llevaRato = activo > inicio || Date.now() - inicioCapEn > 2500;
+            const destino = llevaRato || capitulo === 1 ? inicio : primerPasoDe(capitulo - 1);
+            mover(destino, destino === activo);
+          }
         }
       },
       { threshold: 0.55 },
@@ -343,9 +471,17 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     return () => {
       obs.disconnect();
       window.clearTimeout(espera);
-      window.clearTimeout(llenar);
+      window.clearTimeout(muestraDesliza);
+      window.clearTimeout(avanza);
+      window.clearTimeout(retener);
+      e.removeEventListener("pointerdown", alBajar);
+      e.removeEventListener("pointerup", alSoltar);
+      e.removeEventListener("pointercancel", alSoltar);
+      e.removeEventListener("pointerleave", alSoltar);
+      e.removeEventListener("click", alToque);
+      window.removeEventListener("hashchange", alHash);
+      window.removeEventListener("scroll", alDeslizar);
       window.clearTimeout(cambio);
-      window.clearTimeout(toquePerfil);
       obsCierre.disconnect();
       if (tema && temaAntes !== null) tema.content = temaAntes;
       [raiz.style.background, document.body.style.background] = fondosAntes;
@@ -373,6 +509,10 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-codigo="no"
         data-check="no"
         data-capitulo="1"
+        data-larga="no"
+        data-desliza-ok="no"
+        data-fin="no"
+        data-pausa="no"
         data-anima="entrada"
         data-toques="0"
         data-viajes="0"

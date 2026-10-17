@@ -396,3 +396,37 @@
     transform: translate(-50%, -2cqw) scale(1);
   }
 }
+
+/* Una sola vez (la landing, paso `enlace`): la línea de tiempo corre cuando el paso llega (al volver a él, empieza de nuevo) y se queda en
+   el catálogo abierto. Fuera del paso (o sin animar) no hay animaciones; dentro, con data-anima="si", una pasada. El teléfono ya se ve entero: no se
+   aleja y al final no se desvanece. */
+.lt-escenario:not([data-paso="enlace"][data-anima="si"]) .pc[data-una-vez],
+.lt-escenario:not([data-paso="enlace"][data-anima="si"]) .pc[data-una-vez] * {
+  animation: none;
+}
+/* Al llegar sin animar (abrir la página o un enlace al paso, en los primeros 1,5 s; movimiento reducido): se ve directo el final, el catálogo
+   abierto con su like, sin empezar la línea de tiempo. */
+.lt-escenario:not([data-anima="si"]) .pc[data-una-vez] .pc-tira {
+  transform: translateY(-267.18cqw);
+}
+.lt-escenario:not([data-anima="si"]) .pc[data-una-vez] .pc-final {
+  opacity: 1;
+}
+.pc[data-una-vez] * {
+  animation-iteration-count: 1;
+}
+.lt-escenario[data-paso="enlace"][data-anima="si"] .pc[data-una-vez] {
+  animation-name: pc-telefono-una;
+}
+.pc[data-una-vez] {
+  animation-iteration-count: 1;
+}
+@keyframes pc-telefono-una {
+  0% {
+    opacity: 0;
+  }
+  2.73%,
+  100% {
+    opacity: 1;
+  }
+}

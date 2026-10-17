@@ -27,7 +27,7 @@ const PASOS = ["Recibido", "Confirmado", "Despachado"];
 const PASO_DE = { nuevo: 0, por_despachar: 1, despachado: 2, cancelado: -1 } as const;
 
 /** Detalle de pedido sobre Pedidos. Al cerrar vuelve a /pedidos sin perder la pestaña (la guarda el layout). */
-export function HojaPedido({ pedidoId }: { pedidoId: string }) {
+export function HojaPedido({ pedidoId, sinConteo = false }: { pedidoId: string; /** La demo de la landing: el total de «Pedido despachado» sale directo, sin contar desde 0. */ sinConteo?: boolean }) {
   const router = useRouter();
   const { getPedido, getPedidos, getProductos, getClientes, getPromos } = useData();
   const { tiendaId } = useTiendaActiva();
@@ -68,7 +68,7 @@ export function HojaPedido({ pedidoId }: { pedidoId: string }) {
     );
   } else if (productos && clientes && promos && pedidos) {
     cuerpo = (
-      <Detalle pedido={pedido} productos={productos} promos={promos} pedidos={pedidos} alSalir={setSaliendo} alEliminado={cerrar} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
+      <Detalle pedido={pedido} productos={productos} promos={promos} pedidos={pedidos} alSalir={setSaliendo} alEliminado={cerrar} sinConteo={sinConteo} cliente={clientes.find((c) => c.id === pedido.clienteId) ?? null} />
     );
   }
 
@@ -87,6 +87,7 @@ function Detalle({
   cliente,
   alSalir,
   alEliminado,
+  sinConteo,
 }: {
   pedido: PedidoConItems;
   productos: Producto[];
@@ -95,6 +96,7 @@ function Detalle({
   cliente: Cliente | null;
   alSalir: (saliendo: boolean) => void;
   alEliminado: () => void;
+  sinConteo: boolean;
 }) {
   const { confirmarPedido, cancelarPedido, despacharPedido, volverPedidoARecibido, reabrirPedido, deshacerDespacho, aplicarCodigoPedido, eliminarPedido } = useData();
   const { tiendaId, tienda } = useTiendaActiva();
@@ -395,7 +397,7 @@ function Detalle({
         </div>
       )}
 
-      <HojaDespachado abierta={celebrando} alCerrar={() => setCelebrando(false)} pedido={pedido} cliente={cliente} productos={productos} />
+      <HojaDespachado abierta={celebrando} alCerrar={() => setCelebrando(false)} pedido={pedido} cliente={cliente} productos={productos} sinConteo={sinConteo} />
 
       <Alerta
         abierta={confirmando !== null}

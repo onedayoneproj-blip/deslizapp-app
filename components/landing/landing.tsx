@@ -2,17 +2,18 @@
 import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
+import { MOCKUPS, altoPagina } from "./mockups";
 import { PieContacto } from "../inicio-publico/pie-contacto";
-import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
-import { HORA_DEMO } from "@/lib/landing/pedido-demo";
+import { CAPITULOS_NOMBRES, PASOS, burbujaLarga, horaDeBurbuja, primerPasoDe, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
 import { BurbujaChat } from "../chat/burbuja-chat";
 import { DemoPasos } from "./controlador";
-import { CambioLado } from "./cambio-lado";
+import { CambioLado, GiroTelefono } from "./cambio-lado";
 import { SeparadorQuieto, Separadores } from "./separadores";
 import { EscenaQuieta, Escenas } from "./escenas";
+import { PerfilACatalogo } from "./perfil-a-catalogo";
 import { TelefonoMockup } from "./telefono-mockup";
 import "./landing.css";
 
@@ -21,7 +22,7 @@ import "./landing.css";
 const ANTES_DE_PINTAR = `document.documentElement.setAttribute("data-landing-js","");`;
 
 /** La landing de deslizapp.com/conoce (docs/prompts/landing-demo-scroll.md, referencias/landing/ajustes-lewis-2.md). */
-export function Landing() {
+export function Landing({ desde = null }: { /** «Desde RD$499/mes · 30 días gratis» (lib/planes/planes.ts `lineaDesde`); null si no hay planes. */ desde?: string | null }) {
   return (
     <div className="landing" id="arriba">
       <script dangerouslySetInnerHTML={{ __html: ANTES_DE_PINTAR }} />
@@ -46,6 +47,12 @@ export function Landing() {
           <div className="lt-zona">
             <Telefono id="compradora" src="/demo-landing/compradora" />
             <Telefono id="tienda" src="/demo-landing/tienda" diferido />
+            {/* El cambio de lado (paso `cambio-lado`): el teléfono que gira, con el tamaño y el sitio del de la tienda */}
+            <GiroTelefono />
+            {/* Del perfil al catálogo (paso `enlace`): su propio teléfono, que corre una sola vez al llegar al paso */}
+            <div className="lt-enlace" aria-hidden="true">
+              <PerfilACatalogo unaVez />
+            </div>
           </div>
           <Hilo />
           <CambioLado />
@@ -68,12 +75,13 @@ export function Landing() {
             </a>
           </div>
 
-          <Indice />
+          <Barra />
+          <Desliza />
 
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
             {PASOS.map((p, i) => p.burbuja && (
-              <Burbuja key={p.id} burbuja={p.burbuja} lado={p.lado} indice={i} />
+              <Burbuja key={p.id} burbuja={p.burbuja} lado={p.lado} indice={i} hora={horaDeBurbuja(p.id)} larga={burbujaLarga(p)} />
             ))}
           </div>
         </DemoPasos>
@@ -171,6 +179,7 @@ export function Landing() {
             <Link href={RUTA_PLANES} data-cta="planes" className="lt-cierre-catalogo tocable">
               Ver los planes
             </Link>
+            {desde && <p className="lt-cierre-desde">{desde}</p>}
             <p className="lt-cierre-entrar">
               ¿Ya tienes tienda?
               <Link href={RUTA_ENTRAR} data-cta="entrar" className="tocable">
@@ -204,12 +213,6 @@ function Secciones() {
   );
 }
 
-/** Los mockups (public/landing/mockup-*.webp): tamaño de la imagen y dónde está la pantalla (en %, unos px más grande: el marco la tapa). */
-const MOCKUPS = {
-  compradora: { src: "/landing/mockup-titanio.webp", ancho: 640, alto: 1325, x: 6.094, y: 2.113, w: 87.969, h: 95.774 },
-  tienda: { src: "/landing/mockup-negro.webp", ancho: 640, alto: 1350, x: 5.313, y: 1.926, w: 89.688, h: 96.148 },
-} as const;
-
 /**
  * Un teléfono de la demo: la página real (app/demo-landing) en un iframe de 393 px de ancho y el alto del hueco del mockup, escalada
  * a ese hueco.
@@ -217,7 +220,7 @@ const MOCKUPS = {
  */
 function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; src: string; diferido?: boolean }) {
   const m = MOCKUPS[id];
-  const alto = Math.round((393 * m.h * m.alto) / (m.w * m.ancho));
+  const alto = altoPagina(id);
   const estilo = { "--m-ratio": m.ancho / m.alto, "--m-x": `${m.x}%`, "--m-y": `${m.y}%`, "--m-w": `${m.w}%`, "--m-h": `${m.h}%`, "--m-alto": `${alto}px` } as CSSProperties;
   return (
     <div className={`lt-telefono lt-tel-${id}`} style={estilo} aria-hidden="true">
@@ -233,32 +236,44 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una raya gruesa por paso de la demo (cada vez que hay que
- * deslizar) y, entre dos gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts).
- * Las finas se llenan mientras el paso avanza. Es una regla corta (un 27 % del alto) que se desplaza para dejar la raya del paso en
- * el centro. Solo las gruesas se tocan (llevan a su paso). El controlador marca el estado y la desplaza.
+ * El riel de avance (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»; lienzo de Design «17 oct · Ronda 2», IndRiel): un riel
+ * vertical pegado al borde derecho, a media altura, con un segmento por capítulo (CAPITULOS_NOMBRES). El del capítulo actual es más alto y se llena
+ * de arriba abajo a lo largo de sus pasos (data-estado: lleno, llenando, parcial o vacío; controlador.tsx). Los segmentos son enlaces (llevan al
+ * primer paso de su capítulo) con un área de toque mayor que ellos. Al lado del icono de la app va el nombre del capítulo (.lt-capitulo).
+ * Para cambiarlo por otro indicador: esta pieza y su bloque de landing.css («El riel de avance»); el controlador solo marca data-seg.
  */
-function Indice() {
+function Barra() {
   return (
-    <nav className="lt-indice" aria-label="Recorrido de la demo">
-      <div className="lt-indice-rayas">
-        {PASOS.map((p, i) => (
-          <Fragment key={p.id}>
-            <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={etiquetaPaso(p)} />
-            {Array.from({ length: p.fases }, (_, k) => (
-              <span key={k} className="lt-raya-fina" data-raya-fina={i} data-llena="no" aria-hidden="true" />
-            ))}
-          </Fragment>
+    <>
+      <nav className="lt-riel" aria-label="Recorrido de la demo">
+        {CAPITULOS_NOMBRES.map((nombre, c) => (
+          <a key={nombre} href={`#paso-${PASOS[primerPasoDe(c + 1)]!.id}`} className="lt-seg" data-seg={c} data-estado={c === 0 ? "llenando" : "vacio"} aria-current={c === 0 ? "step" : undefined} aria-label={nombre}>
+            <i />
+          </a>
         ))}
-      </div>
-    </nav>
+      </nav>
+      <p className="lt-capitulo" data-capitulo-nombre aria-hidden="true">
+        {CAPITULOS_NOMBRES[PASOS[0]!.capitulo - 1]}
+      </p>
+    </>
   );
 }
 
-const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
-/** Lo que lee un lector de pantalla de la raya de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
-function etiquetaPaso(p: Paso) {
-  return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
+/**
+ * «Desliza ↑»: una píldora a media altura de la burbuja, que aparece cuando termina el último paso del capítulo (o con un toque) y se va en cuanto
+ * se desliza. En el último capítulo es «Ver planes ↑» (mandarina, late suave) y lleva al cierre, donde están los planes. Decoración (el cierre
+ * también se alcanza con «Saltar»).
+ */
+function Desliza() {
+  return (
+    <a href="#cierre" className="lt-desliza" tabIndex={-1} aria-hidden="true">
+      <span className="lt-desliza-desliza">Desliza</span>
+      <span className="lt-desliza-planes">Ver planes</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" />
+      </svg>
+    </a>
+  );
 }
 
 /**
@@ -324,10 +339,10 @@ function conResaltes(texto: string, claves: string[], iconos: Record<string, Ico
  * Una burbuja de la demo: un mensaje enviado de WhatsApp (ajustes-lewis-4.md y -8.md) con las palabras clave en color de marca. La
  * forma (verde claro, Fredoka, hora con el doble check y cola) es la de components/chat/burbuja-chat.tsx; aquí solo se apila y se anima.
  */
-function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number }) {
+function Burbuja({ burbuja, lado, indice, hora, larga }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number; hora: string; larga: boolean }) {
   const texto = [burbuja.texto, burbuja.remate].filter(Boolean).join(" ");
   return (
-    <BurbujaChat className="lt-burbuja" hora={HORA_DEMO} data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-lado={lado}>
+    <BurbujaChat className="lt-burbuja" hora={hora} data-burbuja={indice} data-estado={indice === 0 ? "actual" : "futura"} data-lado={lado} data-larga={larga ? "" : undefined}>
       {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
     </BurbujaChat>
   );

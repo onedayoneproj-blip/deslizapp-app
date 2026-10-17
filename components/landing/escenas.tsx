@@ -1,14 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Foto } from "../foto";
-import { NavegadorInstagram } from "./navegador-instagram";
 import { PerfilTienda } from "./perfil-tienda";
 import "./escenas.css";
 
 /**
  * Las pantallas de la historia de «Cómo funciona» que no son la app (docs/prompts/conoce-portada-narrativa.md): el dolor de quien vende
- * (un mensaje directo y la lista de chats), el post de la tienda, el perfil con su enlace y el marco del navegador de Instagram. Se
- * dibujan dentro del hueco del teléfono de la compradora (landing.tsx) y el controlador muestra una según el paso (data-escena); la
- * del navegador no cubre el teléfono: solo pone sus barras y deja ver el catálogo real. Redes sociales genéricas, sin logos ni la
+ * (un mensaje directo y la lista de chats) y el post de la tienda. Se dibujan dentro del hueco del teléfono de la compradora
+ * (landing.tsx) y el controlador muestra una según el paso (data-escena). Del perfil al catálogo se encarga `PerfilACatalogo`, que tiene
+ * su propio teléfono (paso `enlace`). Redes sociales genéricas, sin logos ni la
  * interfaz exacta de Instagram. Todo en cqw (1 % del ancho de la pantalla), igual que perfil-tienda y navegador-instagram. Son
  * decoración: se esconden a los lectores de pantalla y la burbuja de cada paso dice lo mismo.
  */
@@ -24,33 +23,21 @@ export function Escenas() {
       <Capa id="post">
         <PostDeLaTienda />
       </Capa>
-      <Capa id="perfil">
-        <PerfilTienda sobreEnlace={<span className="esc-objetivo" data-objetivo-toque="perfil" />} />
-      </Capa>
-      <Capa id="navegador" marco>
-        <NavegadorInstagram>{null}</NavegadorInstagram>
-      </Capa>
     </div>
   );
 }
 
-/** Una escena suelta, para la versión sin JavaScript (en el navegador, el catálogo es la captura del paso `hola`). */
-export function EscenaQuieta({ id }: { id: "dolor-dm" | "dolor-chats" | "post" | "perfil" | "navegador" }) {
+/** Una escena suelta, para la versión sin JavaScript (`enlace`: el perfil con su enlace, de donde parte la animación). */
+export function EscenaQuieta({ id }: { id: "dolor-dm" | "dolor-chats" | "post" | "enlace" }) {
   if (id === "dolor-dm") return <MensajeDirecto />;
   if (id === "dolor-chats") return <ListaDeChats />;
   if (id === "post") return <PostDeLaTienda />;
-  if (id === "perfil") return <PerfilTienda />;
-  return (
-    <NavegadorInstagram>
-      {/* eslint-disable-next-line @next/next/no-img-element -- captura estática de 393×852: tamaño fijo, sin optimizador */}
-      <img src="/landing/pasos/hola.webp" alt="" width={393} height={852} className="esc-quieta-catalogo" />
-    </NavegadorInstagram>
-  );
+  return <PerfilTienda />;
 }
 
-function Capa({ id, marco = false, children }: { id: string; marco?: boolean; children: ReactNode }) {
+function Capa({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <div className="esc-capa" data-escena={id} data-marco={marco ? "si" : undefined}>
+    <div className="esc-capa" data-escena={id}>
       {children}
     </div>
   );

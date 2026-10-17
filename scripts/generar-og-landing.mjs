@@ -13,7 +13,7 @@ await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
 await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
 await pagina.waitForTimeout(1500);
 // Paso a paso hasta «Uno más» (el ♥ en la bolsa con su «2»).
-for (let i = 1; i <= indicePaso("aaah-tote"); i++) {
+for (let i = 1; i <= indicePaso("aaah"); i++) {
   await pagina.evaluate((i) => document.querySelector(`[data-paso-seccion="${i}"]`).scrollIntoView({ behavior: "instant" }), i);
   await pagina.waitForTimeout(PASOS[i].duracion + 1400);
 }
