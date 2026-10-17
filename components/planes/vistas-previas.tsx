@@ -52,7 +52,7 @@ export function VistaPrevia({ id, ahora }: { id: IdIncluye; ahora: number }) {
         <div className="pl-vp-panel">
           <ListaAgrupada>
             {ejemploClientes(ahora).map(({ cliente, cuenta }) => (
-              <FilaCliente key={cliente.id} cliente={cliente} cuenta={cuenta} ahora={ahora} senalRepite />
+              <FilaCliente key={cliente.id} cliente={cliente} cuenta={cuenta} ahora={ahora} senalRepite soloVista />
             ))}
           </ListaAgrupada>
         </div>

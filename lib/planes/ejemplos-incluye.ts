@@ -2,7 +2,7 @@
 // clientes inventados, que las piezas reales del panel pintan sin base de datos ni sesión. Sin acciones ni nada guardado.
 // Puro: tests/planes.test.mjs.
 
-import type { CuentaPorCobrar } from "../credito";
+import { diaDeSantoDomingo, sumarDias, type CuentaPorCobrar } from "../credito";
 import type { ClienteConResumen, PedidoConItems } from "../types";
 
 /** El instante en que se arma la página (ms). Las fechas de los datos de ejemplo salen de aquí: «hace 2 horas», «vence en 3 días». */
@@ -11,8 +11,8 @@ export const instanteDeLaPagina = (): number => Date.now();
 const HORA = 60 * 60 * 1000;
 const DIA = 24 * HORA;
 
-/** «AAAA-MM-DD» de dentro de `dias` días (la fecha acordada de la deuda de ejemplo). */
-const diaDentroDe = (ahora: number, dias: number) => new Date(ahora + dias * DIA).toISOString().slice(0, 10);
+/** «AAAA-MM-DD» de dentro de `dias` días en Santo Domingo, como todas las fechas de deuda (la fecha acordada de la deuda de ejemplo). */
+const diaDentroDe = (ahora: number, dias: number) => sumarDias(diaDeSantoDomingo(ahora), dias);
 
 /** Tres clientas de ejemplo para la lista de Clientes: dos con un pedido en crédito (una al día con su fecha y otra atrasada, con abono) y una sin deuda. */
 export function ejemploClientes(ahora: number): { cliente: ClienteConResumen; cuenta: CuentaPorCobrar }[] {

@@ -82,6 +82,8 @@ for (const { ancho, alto } of PANTALLAS) {
   ok(contenido.pedido && contenido.existencias, "vista 3: una tarjeta de pedido y filas de existencias reales");
   ok(contenido.cliente && contenido.barra, "vista 4: la fila de un cliente con su abono y lo pendiente");
 
+  ok((await pagina.locator(".pl-vista a, .pl-vista button, .pl-vista input, .pl-vista [tabindex]").count()) === 0, "las vistas previas no tienen enlaces, botones ni nada que reciba foco");
+
   // ---- «Pregúntanos» ----
   const chat = pagina.locator(".pl-chat");
   await chat.scrollIntoViewIfNeeded();

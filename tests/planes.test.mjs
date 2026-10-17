@@ -84,4 +84,6 @@ test("los datos de ejemplo de las vistas previas: un pedido que cuadra y cliente
   assert.equal(clientes.length, 3);
   for (const { cuenta } of clientes) assert.equal(cuenta.abonado + cuenta.deuda, cuenta.totalPedidos);
   assert.deepEqual(clientes.map(({ cuenta }) => cuenta.fechaAcordada !== null), [true, true, false]);
+  // Las fechas salen del día de Santo Domingo: a las 11 p. m. del 16 oct allí (3 a. m. del 17 en UTC), «dentro de 3 días» es el 19.
+  assert.equal(ejemploClientes(Date.UTC(2026, 9, 17, 3))[0].cuenta.fechaAcordada, "2026-10-19");
 });

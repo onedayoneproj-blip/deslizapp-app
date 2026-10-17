@@ -11,10 +11,10 @@ import { TextoResaltado } from "./texto-resaltado";
 import { AvatarCliente } from "./avatar-cliente";
 
 /** Fila de un cliente (lista de Clientes y vistas internas de la hoja de resumen). Con `alAbrir` no navega por enlace: llama a esa función. */
-export function FilaCliente({ cliente: c, coincide = "nombre", consulta = "", cuenta, ahora, senalRepite, escribir, alAbrir }: { cliente: ClienteConResumen; coincide?: DondeCoincide; consulta?: string; cuenta?: CuentaPorCobrar; ahora: number; /** En el filtro "Repiten" no se muestra (ya lo dice el filtro). */ senalRepite: boolean; escribir?: { href: string; nombre: string }; alAbrir?: () => void }) {
+export function FilaCliente({ cliente: c, coincide = "nombre", consulta = "", cuenta, ahora, senalRepite, escribir, alAbrir, soloVista = false }: { cliente: ClienteConResumen; coincide?: DondeCoincide; consulta?: string; cuenta?: CuentaPorCobrar; ahora: number; /** En el filtro "Repiten" no se muestra (ya lo dice el filtro). */ senalRepite: boolean; escribir?: { href: string; nombre: string }; alAbrir?: () => void; /** Sin interacción: ni enlace ni botón (la fila se muestra con datos de ejemplo fuera del panel, como en /planes). */ soloVista?: boolean }) {
   return (
     <FilaLista
-      href={alAbrir ? undefined : `/clientes/${c.id}`}
+      href={alAbrir || soloVista ? undefined : `/clientes/${c.id}`}
       onClick={alAbrir}
       inicio={<AvatarCliente cliente={c} repite={c.repite && senalRepite} />}
       titulo={
