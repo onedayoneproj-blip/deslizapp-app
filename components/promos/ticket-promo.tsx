@@ -11,6 +11,7 @@ const mascara = (x: number, r: number) =>
 
 const MASCARA_NORMAL = mascara(116, 10);
 const MASCARA_COMPACTA = mascara(72, 7);
+const MASCARA_CLARA = mascara(104, 10);
 
 /** El diseño usa Fredoka normal; `.font-display` ensancha (font-stretch 115 %) y esta clase no la gana. */
 const SIN_ENSANCHAR = { fontStretch: "100%" } as const;
@@ -120,6 +121,30 @@ function Compacto({ d, apagado, c }: { d: DatosCupon; apagado: boolean; c: Cuerp
           {c.extra}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * El ticket claro de la bienvenida del Círculo (referencias/circulo/cupon-bienvenida.dc.html): la misma forma (muescas y línea
+ * punteada) en rosa muy claro, con solo el porcentaje y dos líneas. Colores fijos de la marca, también en modo oscuro. El porcentaje
+ * va en `mandarina-texto` (#E2662F da 2,8:1 sobre #FBE4EB; este da 3,9:1).
+ */
+export function TicketPromoClaro({ porcentaje, titulo, detalle }: { porcentaje: string; titulo: string; detalle: string }) {
+  return (
+    <div className="relative flex h-[104px] rounded-[18px] bg-[#FBE4EB] text-marca-bosque" style={{ WebkitMask: MASCARA_CLARA, mask: MASCARA_CLARA }}>
+      <div className="flex w-[104px] flex-none items-center justify-center">
+        <span style={SIN_ENSANCHAR} className="font-display text-[40px] leading-none font-bold text-mandarina-texto">
+          {porcentaje}%
+        </span>
+      </div>
+      <div aria-hidden="true" className="absolute top-4 bottom-4 left-[103px] border-l-2 border-dashed border-[rgba(194,78,24,.35)]" />
+      <div className="flex min-w-0 flex-1 flex-col justify-center py-0 pr-[18px] pl-[22px] text-left">
+        <b style={SIN_ENSANCHAR} className="font-display text-[21px] leading-[1.1] font-bold">
+          {titulo}
+        </b>
+        <span className="mt-[3px] text-[14px] font-semibold text-[#4F6A5E]">{detalle}</span>
+      </div>
     </div>
   );
 }

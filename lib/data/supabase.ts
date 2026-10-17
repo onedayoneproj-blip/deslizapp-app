@@ -297,8 +297,17 @@ export function crearFuenteSupabase(supabase: SupabaseClient, alCambiar: () => v
     try {
       const { data, error } = await supabase.rpc("circulo_de_mis_tiendas");
       if (error || !Array.isArray(data)) return;
+      // La política de `circulo` solo deja leer la fila propia: si existe, quien lee es el titular (un segundo dueño de la tienda
+      // también pasa por `rol = dueno`, pero el Círculo no es suyo). Si esta lectura falla, nadie es titular: sin bienvenida.
+      let titular = false;
+      try {
+        const uid = (await supabase.auth.getClaims()).data?.claims?.sub;
+        if (uid) titular = !!(await supabase.from("circulo").select("usuario_id").eq("usuario_id", uid).maybeSingle()).data;
+      } catch {
+        /* sin bienvenida */
+      }
       circulos.clear();
-      for (const r of data as { tienda_id: string; desde: string; descuento_hasta: string | null }[]) if (typeof r?.tienda_id === "string") circulos.set(r.tienda_id, { desde: r.desde, descuentoHasta: r.descuento_hasta });
+      for (const r of data as { tienda_id: string; desde: string; descuento_hasta: string | null }[]) if (typeof r?.tienda_id === "string") circulos.set(r.tienda_id, { desde: r.desde, descuentoHasta: r.descuento_hasta, titular });
     } catch {
       /* sin aro */
     }

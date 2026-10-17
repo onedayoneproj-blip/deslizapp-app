@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NOMBRE_PLAN } from "@/lib/config";
 import { accionEncabezado } from "@/lib/cuenta";
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
@@ -9,6 +9,7 @@ import { useData } from "@/lib/data/provider";
 import { Esqueleto } from "../esqueleto";
 import { IconoChevronAbajo, IconoCreditos } from "../iconos";
 import { Numero } from "../numero";
+import { BienvenidaCirculo } from "./bienvenida-circulo";
 import { LogoTienda } from "./logo-tienda";
 import { MenuTienda } from "./menu-tienda";
 import { usePanelUI } from "./ui";
@@ -26,6 +27,14 @@ export function Encabezado() {
   const { abrirPlan } = usePanelUI();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+  // Al cerrar la bienvenida del Círculo, el aro del avatar hace su entrada una vez (en memoria: al recargar queda quieto).
+  const [aroEntra, setAroEntra] = useState(false);
+  const alCerrarBienvenida = useCallback(() => setAroEntra(true), []);
+  useEffect(() => {
+    if (!aroEntra) return;
+    const t = window.setTimeout(() => setAroEntra(false), 2500);
+    return () => window.clearTimeout(t);
+  }, [aroEntra]);
 
   return (
     <>
@@ -40,7 +49,7 @@ export function Encabezado() {
           aria-label={tienda ? `${tienda.nombre},${NOMBRE_PLAN[tienda.plan]} · deslizapp. ${accion}` : accion}
           className="flex min-h-11 min-w-0 items-center gap-2.5 text-left"
         >
-          {tienda ? <LogoTienda tienda={tienda} tamano={42} /> : <Esqueleto className="h-[42px] w-[42px] rounded-full" />}
+          {tienda ? <LogoTienda tienda={tienda} tamano={42} animacion={aroEntra ? "entrada" : "ninguna"} /> : <Esqueleto className="h-[42px] w-[42px] rounded-full" />}
           <span className="min-w-0">
             <span className="flex items-center gap-1">
               <span className="truncate text-base leading-tight font-extrabold">{tienda?.nombre ?? " "}</span>
@@ -65,6 +74,7 @@ export function Encabezado() {
           </button>
         )}
       </header>
+      <BienvenidaCirculo alCerrar={alCerrarBienvenida} />
       <MenuTienda abierto={menuAbierto} alCerrar={cerrarMenu} />
     </>
   );

@@ -96,19 +96,24 @@ test("real: getTiendas pide solo las tiendas de la cuenta (mis_tiendas) y descar
 
 test("real: la tienda del Círculo trae su aro (circulo_de_mis_tiendas); si esa lectura falla, sale sin aro", async () => {
   const fila = (id) => ({ id, slug: id, nombre: id, estado: "activa", plan: "negocio", limite_productos: 150, creditos_retoque: 10, creditos_retoque_mensuales: 100, creado_en: new Date().toISOString(), logo_url: null });
-  const armar = (circulo) => {
+  const armar = (circulo, miFila = undefined) => {
     const cliente = {
+      auth: { getClaims: () => Promise.resolve({ data: { claims: { sub: "yo" } } }) },
       rpc: (nombre) => Promise.resolve(nombre === "mis_tiendas" ? { data: ["t1", "t2"], error: null } : circulo),
       from: () => {
-        const q = { select: () => q, in: () => q, order: () => Promise.resolve({ data: [fila("t1"), fila("t2")], error: null }) };
+        const q = { select: () => q, eq: () => q, maybeSingle: () => Promise.resolve({ data: miFila ?? null, error: null }), in: () => q, order: () => Promise.resolve({ data: [fila("t1"), fila("t2")], error: null }) };
         return q;
       },
     };
     return crearFuenteSupabase(cliente, () => {});
   };
   const con = await armar({ data: [{ tienda_id: "t1", desde: "2026-10-16", descuento_hasta: "2027-10-16" }], error: null }).getTiendas();
-  assert.deepEqual(con[0].circulo, { desde: "2026-10-16", descuentoHasta: "2027-10-16" });
+  // Sin fila propia en `circulo` (un segundo dueño, una colaboradora): el aro sí, pero no es el titular.
+  assert.deepEqual(con[0].circulo, { desde: "2026-10-16", descuentoHasta: "2027-10-16", titular: false });
   assert.equal(con[1].circulo, null);
+  // Con su propia fila, es el titular del Círculo.
+  const titular = await armar({ data: [{ tienda_id: "t1", desde: "2026-10-16", descuento_hasta: "2027-10-16" }], error: null }, { usuario_id: "yo" }).getTiendas();
+  assert.equal(titular[0].circulo.titular, true);
   const sin = await armar({ data: null, error: { message: "no existe" } }).getTiendas();
   assert.ok(sin.every((t) => t.circulo === null));
 });
