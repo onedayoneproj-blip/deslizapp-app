@@ -85,7 +85,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  padding: 16cqw 6cqw 0;
+  padding: 14cqw 6cqw 0;
   background: var(--marca-papel);
   color: var(--marca-bosque);
   text-align: left;
@@ -94,24 +94,24 @@
   display: block;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 9cqw;
+  font-size: 10cqw;
   line-height: 1;
 }
 .cl-aviso {
   display: flex;
   flex-direction: column;
   gap: 1.5cqw;
-  margin-top: 6cqw;
-  padding: 4cqw;
-  border-radius: 4cqw;
+  margin-top: 5cqw;
+  padding: 5cqw;
+  border-radius: 4.5cqw;
   background: #ffffff;
   box-shadow: 0 1cqw 3cqw rgba(16, 54, 42, 0.12);
-  font-size: 5cqw;
+  font-size: 6.4cqw;
   font-weight: 800;
   line-height: 1.2;
 }
 .cl-aviso small {
-  font-size: 4.2cqw;
+  font-size: 5cqw;
   font-weight: 600;
   color: #4f6a5e;
 }

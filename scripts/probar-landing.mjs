@@ -272,7 +272,7 @@ for (const [ancho, alto] of [
       if (ancho < 900 && m.desliza.burbujaCentroY !== null) ok(Math.abs(m.desliza.centroY - m.desliza.burbujaCentroY) <= 24, `${paso.id}: «Desliza ↑» va a media altura de la burbuja (${Math.round(m.desliza.centroY)} y ${Math.round(m.desliza.burbujaCentroY)})`);
     } else ok(!tarde && !m.desliza.visible, `${paso.id}: ${i === PASOS.length - 1 ? "el último paso no lleva «Desliza»" : "en medio de un capítulo no sale «Desliza» (el paso siguiente entra solo)"}`);
     // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
-    if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
+    if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
     else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
     if (paso.burbuja) {
       const esperados = Object.values(paso.burbuja.iconos ?? {});
@@ -426,7 +426,9 @@ for (const [ancho, alto] of [
     await irAlPaso(pagina, lado);
     await pagina.waitForTimeout(650);
     const llega = (await medir(pagina, lado)).cambioLado;
-    const fondoLlega = (await medir(pagina, lado)).fondoTienda;
+    const mLlega = await medir(pagina, lado);
+    const fondoLlega = mLlega.fondoTienda;
+    ok(mLlega.iconoApp === "rosa" && !mLlega.iconoOculto, `cambio-lado: al llegar, el icono de la app (${mLlega.iconoApp}) está junto al nombre del capítulo, en rosa`);
     ok(llega.cambio === "antes" && llega.lado === "compras" && /Pidió en segundos\./.test(llega.titulo) && /así lo vio quien compra/.test(llega.mano) && /le dio aaah y te mandó el pedido por WhatsApp/.test(llega.texto) && fondoLlega < 0.5, `cambio-lado: al llegar, rosa y «${llega.titulo}»`);
     ok(llega.giro > 0.99 && llega.olaY > llega.olaAlto * 0.9 && llega.panel, `cambio-lado: al llegar, el teléfono de frente (catálogo de quien compra) y la ola verde todavía abajo (giro ${llega.giro.toFixed(2)})`);
     // A la mitad del giro (~1,6 s después de llegar): el teléfono de canto y la ola a medio subir.
@@ -435,6 +437,7 @@ for (const [ancho, alto] of [
     ok(Math.abs(mitad.giro) < 0.85 && mitad.olaY > 0 && mitad.olaY < mitad.olaAlto * 0.95, `cambio-lado: a la mitad, el teléfono gira (${mitad.giro.toFixed(2)}) y la ola sube (${Math.round(mitad.olaY)} de ${Math.round(mitad.olaAlto)} px)`);
     await pagina.waitForTimeout(2900);
     const fin = await medir(pagina, lado);
+    ok(fin.iconoApp === "verde" && !fin.iconoOculto, `cambio-lado: al terminar, el icono pasó a verde junto con la ola (${fin.iconoApp})`);
     ok(fin.cambioLado.cambio === "despues" && /Así lo ve Tu Tienda\./.test(fin.cambioLado.titulo) && fin.cambioLado.giro < -0.99 && Math.abs(fin.cambioLado.olaY) < 1 && fin.fondoTienda > 0.95 && fin.tema?.toLowerCase() === fin.bosque.toLowerCase(), `cambio-lado: después, el teléfono dio la vuelta, la ola cubre el fondo y todo pasa a verde (${fin.cambioLado.titulo})`);
     await irAlPaso(pagina, siguiente);
     await pagina.waitForTimeout(1600);

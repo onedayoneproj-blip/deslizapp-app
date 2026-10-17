@@ -161,8 +161,8 @@
   background: var(--marca-bosque);
 }
 /* El icono de la app (el de la pantalla de inicio de iOS): 40 px arriba a la izquierda, a la altura de «Saltar»; lleva de vuelta al
-   principio. No sale en las dos pantallas del dolor (neutras: la marca entra con el post) ni en el cambio de lado (que tiene los
-   suyos, grandes). */
+   principio. No sale en las pantallas del dolor ni en la bienvenida y la solución (neutras: la marca entra con el post). En el cambio de lado
+   sí: rosa al llegar y verde junto con la ola. */
 .lt-icono {
   position: absolute;
   z-index: 9;
@@ -172,7 +172,7 @@
   height: 40px;
   transition: opacity 380ms ease;
 }
-.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"], [data-paso="cambio-lado"]) .lt-icono {
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) .lt-icono {
   opacity: 0;
   pointer-events: none;
 }
@@ -477,7 +477,7 @@
   line-height: 1;
   pointer-events: none;
 }
-.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"], [data-paso="cambio-lado"]) .lt-capitulo {
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) .lt-capitulo {
   transform: translateX(-50px);
 }
 
