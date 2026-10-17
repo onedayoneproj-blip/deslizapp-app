@@ -260,14 +260,15 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Los mensajes y los chats entran uno a uno al llegar al paso. */
-  .lt-escenario[data-paso="dolor-dm"] .esc-msg,
-  .lt-escenario[data-paso="dolor-chats"] .esc-chat,
-  .lt-escenario[data-paso="dolor-chats"] .esc-nota {
+  /* Los mensajes y los chats entran uno a uno al deslizar hasta el paso (data-anima="si"). Al abrir la página, o con un enlace a un
+     paso, el controlador no los anima: se ve todo completo al instante, sin esperar. */
+  .lt-escenario[data-anima="si"][data-paso="dolor-dm"] .esc-msg,
+  .lt-escenario[data-anima="si"][data-paso="dolor-chats"] .esc-chat,
+  .lt-escenario[data-anima="si"][data-paso="dolor-chats"] .esc-nota {
     animation: esc-entra 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
     animation-delay: calc(var(--n, 6) * 260ms + 250ms);
   }
-  .lt-escenario[data-paso="dolor-chats"] .esc-chat {
+  .lt-escenario[data-anima="si"][data-paso="dolor-chats"] .esc-chat {
     animation-delay: calc(var(--n) * 90ms + 150ms);
   }
 }

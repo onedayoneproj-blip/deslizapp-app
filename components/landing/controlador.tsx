@@ -219,6 +219,9 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       if (m && !m.getAttribute("src")) m.setAttribute("src", m.dataset.src ?? "");
     };
 
+    // Las animaciones de entrada de las pantallas nuevas (escenas.css, separadores.css) solo corren al deslizar hasta el paso: al abrir la
+    // página, o con un enlace a un paso (el primer segundo y medio), el paso se ve completo al instante.
+    const montado = Date.now();
     const pasosVistos = new Set<string>();
     const activar = (i: number) => {
       if (i === activo) return;
@@ -245,6 +248,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       });
       // El cambio de lado: llega rosa («Pidió en segundos.») y, un momento después, los iconos se intercambian y todo pasa a verde. Sin
       // animación (al abrir, al volver, movimiento reducido), se ve el final.
+      e.dataset.anima = reducido.matches ? "no" : desde < 0 || Date.now() - montado < 1500 ? "entrada" : "si";
       window.clearTimeout(cambio);
       window.clearTimeout(toquePerfil);
       delete e.dataset.cambio;
@@ -369,6 +373,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-codigo="no"
         data-check="no"
         data-capitulo="1"
+        data-anima="entrada"
         data-toques="0"
         data-viajes="0"
       >

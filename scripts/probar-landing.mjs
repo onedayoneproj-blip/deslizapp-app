@@ -87,6 +87,8 @@ const medir = (pagina, i) =>
       return {
         burbujasCruzan: telefono && Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => cruza(x.getBoundingClientRect(), tel)),
         escalaBurbuja: escala,
+        // La burbuja entera (con su hora y sus checks) cabe en su zona: ni el borde de abajo se corta (el recorte es el de .lt-burbujas).
+        burbujaEntera: burbuja ? b.bottom <= e.querySelector(".lt-burbujas").getBoundingClientRect().bottom + 1 && burbuja.querySelector(".bc-hora").getBoundingClientRect().bottom <= e.querySelector(".lt-burbujas").getBoundingClientRect().bottom && b.bottom <= innerHeight : true,
         corazon,
         indiceIzquierda: ind.right <= tel.left + 1 || Number(getComputedStyle(telefono).opacity) < 0.99,
         nitida,
@@ -219,6 +221,7 @@ for (const [ancho, alto] of [
       const esperados = Object.values(paso.burbuja.iconos ?? {});
       ok(m.iconosBurbuja.length === esperados.length && m.iconosBurbuja.length <= 2 && m.iconosBurbuja.every((x) => x.oculto && x.ancho > 10) && esperados.every((x) => m.iconosBurbuja.some((y) => y.icono === x)), `${paso.id}: la burbuja lleva sus ${esperados.length} icono(s) de la app (${m.iconosBurbuja.map((x) => x.icono).join(", ") || "ninguno"}), con aria-hidden`);
     }
+    ok(m.burbujaEntera, `${paso.id}: la burbuja se ve entera, con su hora y sus checks, dentro de su zona y de la pantalla`);
     if (m.aire) ok(Math.abs(m.aire.arriba - m.aire.abajo) <= 2, `${paso.id}: la burbuja, simétrica: ${m.aire.arriba.toFixed(1)} px de aire arriba y ${m.aire.abajo.toFixed(1)} abajo (±2)`);
     if (m.checks) ok(m.checks.length === 2 && m.checks.every((c) => c.largo > 5 && c.offset === 0 && c.color === "rgb(83, 189, 235)"), `${paso.id}: el doble check, los dos trazos completos y azules`);
     if (m.montaje !== null) ok(m.montaje >= 16 && m.montaje <= 24, `${paso.id}: el teléfono se monta ${m.montaje.toFixed(1)} px sobre la burbuja (16–24)`);
@@ -414,6 +417,25 @@ for (const [ancho, alto] of [
   await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor({ timeout: 15000 }).catch(() => {});
   ok(await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).isVisible(), "«Entrar» lleva a la página principal, con «Iniciar sesión»");
   ok(await pagina.getByRole("button", { name: "Probar la app con datos de prueba" }).isVisible(), "y el enlace a la demo («Probar la app con datos de prueba»)");
+  await contexto.close();
+}
+
+console.log("\nAl cargar directamente en un paso, se ve completo al instante");
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
+  for (const id of ["dolor-dm", "dolor-chats", "bienvenida", "antes", "solucion"]) {
+    const pagina = await contexto.newPage();
+    await pagina.goto(`${base}/conoce#paso-${id}`, { waitUntil: "domcontentloaded" });
+    await pagina.waitForTimeout(450);
+    const r = await pagina.evaluate((id) => {
+      const e = document.querySelector(".lt-escenario");
+      const op = (x) => Number(getComputedStyle(x).opacity);
+      const piezas = [...e.querySelectorAll(id === "dolor-dm" || id === "dolor-chats" ? `[data-escena="${id}"] :is(.esc-msg, .esc-chat, .esc-nota)` : `[data-separador="${id}"] :is(.sp-sube, .sp-pop)`)];
+      return { paso: e.dataset.paso, anima: e.dataset.anima, piezas: piezas.length, ocultas: piezas.filter((x) => op(x) < 0.95).length };
+    }, id);
+    ok(r.paso === id && r.piezas > 0 && r.ocultas === 0, `abrir /conoce#paso-${id}: se ve completo a los 450 ms, sin esperar a la animación (${r.ocultas} de ${r.piezas} piezas ocultas, anima ${r.anima})`);
+    await pagina.close();
+  }
   await contexto.close();
 }
 

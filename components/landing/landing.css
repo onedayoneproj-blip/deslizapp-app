@@ -542,6 +542,13 @@
   }
 }
 
+/* Pantallas muy angostas (320 px): letra de la burbuja un poco menor, para que las de cuatro líneas no pasen a cinco. */
+@media (max-width: 340px) {
+  .lt-burbuja {
+    font-size: 1.15rem;
+  }
+}
+
 /* ---- Escritorio: la columna de burbujas a la izquierda del teléfono; el índice, lista completa ---- */
 @media (min-width: 900px) {
   .lt-escenario {
