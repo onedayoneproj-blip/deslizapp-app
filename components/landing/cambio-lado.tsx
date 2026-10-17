@@ -1,41 +1,22 @@
-/* eslint-disable @next/next/no-img-element -- la captura del catálogo: imagen estática de tamaño fijo, sin optimizador */
+/* eslint-disable @next/next/no-img-element -- la captura del teléfono de quien compra: imagen estática de tamaño fijo, sin optimizador */
+import { Bloqueo } from "./whatsapp";
+import { altoPagina } from "./mockups";
 import { TelefonoMockup } from "./telefono-mockup";
 import "./cambio-lado.css";
 
 /**
- * El cambio de lado de «Cómo funciona»: una pantalla propia entre quien compra y la tienda. Arranca en rosa con el teléfono de quien
- * compra (el catálogo) y «Pidió en segundos.»; al segundo, el teléfono gira 180° y por detrás aparece el panel de Tu Tienda con el aviso
- * «Nuevo · Ana», mientras una ola verde sube y cubre el fondo; el texto viejo se desvanece y entra «Así lo ve Tu Tienda.» en papel sobre el
- * verde. Todo son animaciones de CSS que arrancan al entrar al paso (cambio-lado.css) y se repiten limpias cada vez; sin animar (llegada
- * directa, movimiento reducido) se ve el final. El controlador solo pasa el fondo de la landing de rosa a verde (data-lado) a mitad de la ola.
- * Decoración + texto: el texto final se lee; los teléfonos son decoración.
+ * El cambio de lado de «Cómo funciona», en dos piezas que cambio-lado.css anima juntas al llegar al paso `cambio-lado`:
+ * - `CambioLado`: la pantalla de fondo (la ola verde que sube y el texto, de «Pidió en segundos.» a «Así lo ve Tu Tienda.»).
+ * - `GiroTelefono`: el teléfono, una caja 3D que se levanta y gira 180°. Por delante lleva el teléfono de quien compra (la captura del paso
+ *   `seguimiento`) y, por detrás, la pantalla bloqueada de la tienda con el aviso de WhatsApp de Ana: la misma del paso `aviso`, que sigue
+ *   desde ahí sin volver a meter otro teléfono (el teléfono real de la tienda ocupa el sitio de este, en el mismo tamaño).
+ * Con data-anima="si" (llegar deslizando, también al volver) las animaciones arrancan desde el principio y se repiten limpias; sin animar
+ * (llegada directa, movimiento reducido) se ve el final. Decoración + texto: el texto final se lee.
  */
 export function CambioLado() {
   return (
     <div className="cl" data-cambio-lado>
       <div className="cl-ola" aria-hidden="true" />
-      <div className="cl-escena" aria-hidden="true">
-        <div className="cl-carta">
-          <div className="cl-cara cl-frente">
-            <TelefonoMockup marco="titanio" className="cl-tm">
-              <img src="/landing/catalogo/termo.webp" alt="" width={393} height={852} className="cl-catalogo" decoding="async" />
-            </TelefonoMockup>
-          </div>
-          <div className="cl-cara cl-dorso">
-            <TelefonoMockup className="cl-tm">
-              <div className="cl-panel">
-                <b className="cl-panel-titulo">Pedidos</b>
-                <span className="cl-aviso">
-                  <span>🔔 Nuevo · Ana</span>
-                  <small>2 productos · RD$1,500</small>
-                </span>
-                <span className="cl-fila" />
-                <span className="cl-fila" />
-              </div>
-            </TelefonoMockup>
-          </div>
-        </div>
-      </div>
       <div className="cl-textos">
         <p className="cl-antes">
           <span className="cl-frase" data-fase="antes">así lo vio quien compra</span>
@@ -49,6 +30,39 @@ export function CambioLado() {
           <span className="cl-frase" data-fase="antes">Eligió, le dio aaah y te mandó el pedido por WhatsApp.</span>
           <span className="cl-frase" data-fase="despues">El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas.</span>
         </p>
+      </div>
+    </div>
+  );
+}
+
+/** Dentro de `.lt-zona` (landing.tsx): ocupa el sitio y el tamaño del teléfono de la tienda, para que el paso siguiente continúe desde él. */
+export function GiroTelefono() {
+  return (
+    <div className="lg" aria-hidden="true">
+      <div className="lg-sombra" />
+      <div className="lg-cuerpo">
+        <div className="lg-cara lg-frente">
+          <TelefonoMockup marco="titanio" className="lg-tm">
+            <img src="/landing/pasos/seguimiento.webp" alt="" width={393} height={852} className="lg-captura" decoding="async" />
+            <span className="lg-brillo" />
+          </TelefonoMockup>
+        </div>
+        <div className="lg-cara lg-dorso">
+          <TelefonoMockup className="lg-tm">
+            <div className="lg-hueco">
+              <div className="lg-pantalla" style={{ height: altoPagina("tienda") }}>
+                <Bloqueo aviso />
+              </div>
+            </div>
+          </TelefonoMockup>
+        </div>
+        <div className="lg-canto lg-canto-d">
+          <i style={{ top: "28%" }} />
+        </div>
+        <div className="lg-canto lg-canto-i">
+          <i style={{ top: "20%" }} />
+          <i style={{ top: "32%" }} />
+        </div>
       </div>
     </div>
   );

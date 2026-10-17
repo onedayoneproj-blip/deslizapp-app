@@ -72,7 +72,7 @@ const medir = (pagina, i) =>
       const pagina = telefono.querySelector("iframe").getBoundingClientRect();
       const b = burbuja?.getBoundingClientRect() ?? new DOMRect();
       const segs = [...e.querySelectorAll("[data-seg]")];
-      const barraEl = e.querySelector(".lt-barra");
+      const barraEl = e.querySelector(".lt-riel");
       const barra = barraEl.getBoundingClientRect();
       const capituloEl = e.querySelector("[data-capitulo-nombre]");
       const capituloR = capituloEl.getBoundingClientRect();
@@ -100,7 +100,10 @@ const medir = (pagina, i) =>
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
         icono: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.99,
         iconoCaja: (() => { const r = e.querySelector(".lt-icono").getBoundingClientRect(); return { left: r.left, top: r.top, w: r.width, bottom: r.bottom }; })(),
-        segAlto: segs.every((x) => { const h = x.getBoundingClientRect().height; return h >= 2.99 && h <= 4.01; }),
+        // El riel: segmentos de 4 px de ancho; el del capítulo, de 44 px de alto, y los demás, de 22 (con el cambio de alto ya terminado), a 6 px.
+        segAncho: segs.every((x) => Math.abs(x.getBoundingClientRect().width - 4) < 0.6),
+        segAltos: segs.map((x) => Math.round(x.getBoundingClientRect().height)),
+        riel: { derecha: innerWidth - barra.right, centroY: barra.top + barra.height / 2, alto: barra.height },
         fredoka: !burbuja || /fredoka/i.test(getComputedStyle(burbuja).fontFamily),
         resaltes: burbuja ? burbuja.querySelectorAll(".lt-resalte").length : 0,
         telefonoEncima: Number(getComputedStyle(e.querySelector(".lt-zona")).zIndex) > Number(getComputedStyle(e.querySelector(".lt-burbujas")).zIndex),
@@ -133,10 +136,13 @@ const medir = (pagina, i) =>
         escenas: [...e.querySelectorAll("[data-escena]")].map((x) => [x.dataset.escena, Number(getComputedStyle(x).opacity)]),
         cambioLado: (() => {
           const c = e.querySelector("[data-cambio-lado]");
-          const carta = c.querySelector(".cl-carta");
+          const giroEl = e.querySelector(".lg");
+          const carta = giroEl.querySelector(".lg-cuerpo");
           const ola = c.querySelector(".cl-ola");
           const textos = c.querySelector(".cl-textos").getBoundingClientRect();
-          const cr = carta.getBoundingClientRect();
+          const dorso = giroEl.querySelector(".lg-dorso");
+          const frente = giroEl.querySelector(".lg-frente");
+          const cr = giroEl.getBoundingClientRect();
           const visible = (x) => Number(getComputedStyle(x).opacity) > 0.99;
           const dicho = (sel) => [...c.querySelectorAll(sel)].filter(visible).map((x) => x.textContent).join("");
           return {
@@ -148,11 +154,13 @@ const medir = (pagina, i) =>
             giro: new DOMMatrix(getComputedStyle(carta).transform).m11,
             olaY: new DOMMatrix(getComputedStyle(ola).transform).m42,
             olaAlto: ola.getBoundingClientRect().height,
-            caras: { frente: getComputedStyle(c.querySelector(".cl-frente")).backfaceVisibility, dorso: getComputedStyle(c.querySelector(".cl-dorso")).backfaceVisibility, preserve: getComputedStyle(carta).transformStyle },
-            panel: /Nuevo · Ana/.test(c.querySelector(".cl-dorso").textContent) && /RD\$1,500/.test(c.querySelector(".cl-dorso").textContent),
+            caras: { frente: getComputedStyle(frente).backfaceVisibility, dorso: getComputedStyle(dorso).backfaceVisibility, preserve: getComputedStyle(carta).transformStyle, perspectiva: getComputedStyle(giroEl).perspective, zFrente: new DOMMatrix(getComputedStyle(frente).transform).m43, zDorso: new DOMMatrix(getComputedStyle(dorso).transform).m43, cantos: [...giroEl.querySelectorAll(".lg-canto")].map((x) => Math.round(parseFloat(getComputedStyle(x).width))), botones: giroEl.querySelectorAll(".lg-canto i").length },
+            // el dorso es la pantalla bloqueada de la tienda (3:44 y el aviso de WhatsApp de Ana), no el panel de Pedidos
+            panel: /3:44/.test(dorso.textContent) && /Ana/.test(dorso.textContent) && !/Pedidos/.test(dorso.textContent),
+            rect: { x: cr.left, y: cr.top, w: cr.width, h: cr.height },
             // nada se recorta: el teléfono y el texto caben en la pantalla y no se pisan
             cabe: cr.top >= -1 && cr.bottom <= innerHeight + 1 && cr.left >= -1 && cr.right <= innerWidth + 1 && textos.bottom <= innerHeight + 1 && textos.left >= -1 && textos.right <= innerWidth + 1,
-            sinPisar: cr.bottom <= textos.top + 6,
+            sinPisar: !(cr.left < textos.right - 1 && cr.right > textos.left + 1 && cr.top < textos.bottom - 1 && cr.bottom > textos.top + 6),
             fases: [...c.querySelectorAll(".cl-frase")].length,
             cambio: e.dataset.cambio ?? null,
             lado: e.dataset.lado,
@@ -162,18 +170,18 @@ const medir = (pagina, i) =>
         tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // La barra (segmentos y rótulo) no toca «Saltar», el icono, el teléfono ni las burbujas a la vista, y cabe en el ancho.
         barraChoca: { saltar: cruza(barraTodo, saltarR), icono: cruza(barraTodo, iconoR), telefono: Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(barraTodo, tel), burbuja: vistas.some((x) => cruza(barraTodo, x.getBoundingClientRect())), enlace: Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(barraTodo, e.querySelector(".lt-enlace .tm").getBoundingClientRect()) },
-        barraDentro: barra.left >= -0.5 && barra.right <= innerWidth + 0.5 && capituloR.right <= innerWidth + 0.5,
-        huecoSeg: segs.length > 1 ? segs[1].getBoundingClientRect().left - segs[0].getBoundingClientRect().right : 0,
+        barraDentro: barra.left >= -0.5 && barra.right <= innerWidth + 0.5 && barra.top >= 0 && barra.bottom <= innerHeight && capituloR.right <= innerWidth + 0.5,
+        huecoSeg: segs.length > 1 ? segs[1].getBoundingClientRect().top - segs[0].getBoundingClientRect().bottom : 0,
         // El nombre del capítulo: junto al icono (misma línea, a su derecha o, donde el icono no sale, en su sitio), sin tocar «Saltar».
         capitulo: { texto: capituloEl.textContent.trim(), centroY: capituloR.top + capituloR.height / 2, izq: capituloR.left, der: capituloR.right, iconoVisible: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.5, iconoCentroY: iconoR.top + iconoR.height / 2, iconoDer: iconoR.right, bajoLaBarra: capituloR.top >= barra.bottom, tocaSaltar: cruza({ left: capituloR.left, right: capituloEl.scrollWidth + capituloR.left, top: capituloR.top, bottom: capituloR.bottom }, saltarR) },
         colorBarra: getComputedStyle(barraEl).color,
         // «Desliza ↑»: a la vista, dentro de la pantalla, sin tapar el teléfono ni las burbujas.
-        desliza: { alto: desR.height, fuente: parseFloat(getComputedStyle(desliza).fontSize), centroY: desR.top + desR.height / 2, sombra: getComputedStyle(desliza).boxShadow !== "none", visible: Number(getComputedStyle(desliza).opacity) > 0.99, atributo: e.dataset.deslizaOk, dentro: desR.left >= 0 && desR.right <= innerWidth && desR.bottom <= innerHeight, choca: Number(getComputedStyle(desliza).opacity) > 0.5 && (vistas.some((x) => cruza(desR, x.getBoundingClientRect())) || (Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(desR, tel)) || (Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(desR, e.querySelector(".lt-enlace .tm").getBoundingClientRect()))), burbujaCentroY: burbuja ? b.top + b.height / 2 : null, rebote: desliza.querySelector("svg").getAnimations().filter((a) => a.playState === "running").length },
+        desliza: { texto: [...desliza.querySelectorAll("span")].filter((x) => getComputedStyle(x).display !== "none").map((x) => x.textContent).join(""), fondo: getComputedStyle(desliza).backgroundColor, color: getComputedStyle(desliza).color, enlace: desliza.getAttribute("href"), clicable: getComputedStyle(desliza).pointerEvents !== "none", alto: desR.height, fuente: parseFloat(getComputedStyle(desliza).fontSize), centroY: desR.top + desR.height / 2, sombra: getComputedStyle(desliza).boxShadow !== "none", visible: Number(getComputedStyle(desliza).opacity) > 0.99, atributo: e.dataset.deslizaOk, dentro: desR.left >= 0 && desR.right <= innerWidth && desR.bottom <= innerHeight, choca: Number(getComputedStyle(desliza).opacity) > 0.5 && (vistas.some((x) => cruza(desR, x.getBoundingClientRect())) || (Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(desR, tel)) || (Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(desR, e.querySelector(".lt-enlace .tm").getBoundingClientRect()))), burbujaCentroY: burbuja ? b.top + b.height / 2 : null, rebote: desliza.querySelector("svg").getAnimations().filter((a) => a.playState === "running").length },
         // La solución: «¿precio?» y «¿cuál era?» no quedan detrás del icono.
         solucion: (() => { const s = e.querySelector(".sp-solucion"); const ic = s.querySelector(".sp-icono").getBoundingClientRect(); return [...s.querySelectorAll(".sp-tachada")].map((n) => cruza(n.getBoundingClientRect(), ic)); })(),
-        barraVisible: barra.width > 100 && Number(getComputedStyle(barraEl).opacity) > 0.5,
+        barraVisible: barra.height > 100 && Number(getComputedStyle(barraEl).opacity) > 0.5,
         segEstados: segs.map((g) => [Number(g.dataset.seg), g.dataset.estado]),
-        llenado: segs.map((g) => new DOMMatrix(getComputedStyle(g.querySelector("i")).transform).a),
+        llenado: segs.map((g) => new DOMMatrix(getComputedStyle(g.querySelector("i")).transform).d),
         etiquetas: segs.every((g) => g.getAttribute("aria-label")),
         burbujasVistas: vistas.length,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
@@ -233,7 +241,7 @@ for (const [ancho, alto] of [
       const v = await pagina.evaluate(({ cap }) => {
         const hilo = Number(getComputedStyle(document.querySelector(".lt-hilo-dentro")).opacity) > 0.05;
         const burst = document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".burst.go");
-        const llenado = new DOMMatrix(getComputedStyle(document.querySelector(`[data-seg="${cap}"] i`)).transform).a;
+        const llenado = new DOMMatrix(getComputedStyle(document.querySelector(`[data-seg="${cap}"] i`)).transform).d;
         return { llenado, desliza: document.querySelector(".lt-escenario").dataset.deslizaOk, hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
       }, { i, cap: paso.capitulo - 1 });
       primeraMuestra ??= v;
@@ -266,11 +274,12 @@ for (const [ancho, alto] of [
     }
     // «Desliza ↑»: solo al terminar el último paso de un capítulo (y no en el último de todos); al llegar no está.
     if (i > 0) ok(noAlLlegar, `${paso.id}: «Desliza» se va al llegar`);
-    if (ultimoDelCapitulo && i !== PASOS.length - 1) {
-      ok(!antesDeTiempo && m.desliza.visible && m.desliza.dentro, `${paso.id}: último paso del capítulo: al terminar su animación sale «Desliza ↑», dentro de la pantalla`);
-      ok(m.desliza.alto === 48 && m.desliza.fuente === 17 && m.desliza.sombra, `${paso.id}: «Desliza ↑» mide 48 px de alto, letra de 17 px, con sombra`);
+    if (ultimoDelCapitulo) {
+      ok(!antesDeTiempo && m.desliza.visible && m.desliza.dentro, `${paso.id}: último paso del capítulo: al terminar su animación sale «${paso.capitulo === CAPITULOS ? "Ver planes" : "Desliza"} ↑», dentro de la pantalla`);
+      ok(paso.capitulo === CAPITULOS ? m.desliza.texto === "Ver planes" && m.desliza.fondo === "rgb(255, 131, 79)" && m.desliza.color === "rgb(255, 255, 255)" && m.desliza.enlace === "#cierre" && m.desliza.clicable : m.desliza.texto === "Desliza" && !m.desliza.clicable, `${paso.id}: la píldora dice «${m.desliza.texto}»${paso.capitulo === CAPITULOS ? ", en mandarina con texto blanco y lleva al cierre" : ""}`);
+      ok(m.desliza.alto >= 47.9 && m.desliza.alto <= 50.1 && m.desliza.fuente === 17 && m.desliza.sombra, `${paso.id}: «Desliza ↑» mide 48 px de alto (50 al latir), letra de 17 px, con sombra`);
       if (ancho < 900 && m.desliza.burbujaCentroY !== null) ok(Math.abs(m.desliza.centroY - m.desliza.burbujaCentroY) <= 24, `${paso.id}: «Desliza ↑» va a media altura de la burbuja (${Math.round(m.desliza.centroY)} y ${Math.round(m.desliza.burbujaCentroY)})`);
-    } else ok(!tarde && !m.desliza.visible, `${paso.id}: ${i === PASOS.length - 1 ? "el último paso no lleva «Desliza»" : "en medio de un capítulo no sale «Desliza» (el paso siguiente entra solo)"}`);
+    } else ok(!tarde && !m.desliza.visible, `${paso.id}: en medio de un capítulo no sale «Desliza» (el paso siguiente entra solo)`);
     // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
     if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
     else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
@@ -283,8 +292,9 @@ for (const [ancho, alto] of [
     if (m.checks) ok(m.checks.length === 2 && m.checks.every((c) => c.largo > 5 && c.offset === 0 && c.color === "rgb(83, 189, 235)"), `${paso.id}: el doble check, los dos trazos completos y azules`);
     if (m.montaje !== null) ok(m.montaje >= 16 && m.montaje <= 24, `${paso.id}: el teléfono se monta ${m.montaje.toFixed(1)} px sobre la burbuja (16–24)`);
     ok(!m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el teléfono va por encima de las burbujas y no tapa sus letras`);
-    ok(m.segAlto && Math.abs(m.huecoSeg - 3) < 0.6, `${paso.id}: los segmentos miden 3–4 px de alto, con huecos de 3 px (${m.huecoSeg.toFixed(1)})`);
-    ok(!m.barraChoca.saltar && !m.barraChoca.icono && !m.barraChoca.telefono && !m.barraChoca.burbuja && !m.barraChoca.enlace && m.barraDentro, `${paso.id}: la barra y su rótulo no tocan «Saltar», el icono, el teléfono ni las burbujas, y caben en el ancho (${JSON.stringify(m.barraChoca)})`);
+    ok(m.segAncho && Math.abs(m.huecoSeg - 6) < 0.8 && m.segAltos.every((h, j) => Math.abs(h - (j === paso.capitulo - 1 ? 44 : 22)) <= 1), `${paso.id}: el riel: segmentos de 4 px de ancho, el del capítulo de 44 px de alto y los demás de 22, a 6 px (${m.segAltos.join(",")}, hueco ${m.huecoSeg.toFixed(1)})`);
+    ok(Math.abs(m.riel.centroY - alto / 2) < 6 && Math.abs(m.riel.derecha - (ancho >= 900 ? 24 : 10)) < 1, `${paso.id}: el riel va pegado al borde derecho (${Math.round(m.riel.derecha)} px) y a media altura (${Math.round(m.riel.centroY)} de ${alto})`);
+    ok(!m.barraChoca.saltar && !m.barraChoca.icono && !m.barraChoca.telefono && !m.barraChoca.burbuja && !m.barraChoca.enlace && m.barraDentro, `${paso.id}: el riel no toca «Saltar», el icono, el teléfono ni las burbujas, y caben en el ancho (${JSON.stringify(m.barraChoca)})`);
     { const [r, g] = m.colorBarra.match(/\d+/g).map(Number); ok(verde(paso) ? r > 200 : r < 80 && g < 120, `${paso.id}: el color de la barra se adapta al fondo (${m.colorBarra})`); }
     if (paso.id === "solucion") ok(m.solucion.length === 2 && m.solucion.every((c) => !c), "solucion: «¿precio?» y «¿cuál era?» no quedan detrás del icono");
     if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
@@ -315,8 +325,8 @@ for (const [ancho, alto] of [
         const c = m.cambioLado;
         ok(!m.telefonoVisible && c.visible, "cambio-lado: pantalla propia, sin el teléfono de la demo");
         ok(c.cambio === "despues" && c.lado === "tienda" && /Así lo ve Tu Tienda\./.test(c.titulo) && /El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas\./.test(c.texto) && /y del otro lado/.test(c.mano), `cambio-lado: al terminar, «${c.titulo}» y su texto (${c.cambio}, lado ${c.lado})`);
-        ok(c.giro < -0.99 && Math.abs(c.olaY) < 1 && c.panel, `cambio-lado: al terminar, el teléfono dio la vuelta (el panel de Tu Tienda con «Nuevo · Ana» a la vista) y la ola verde cubre el fondo (giro ${c.giro.toFixed(2)})`);
-        ok(c.caras.frente === "hidden" && c.caras.dorso === "hidden" && c.caras.preserve === "preserve-3d", "cambio-lado: las dos caras con backface-visibility hidden y el teléfono en 3D");
+        ok(c.giro < -0.99 && Math.abs(c.olaY) < 1 && c.panel, `cambio-lado: al terminar, el teléfono dio la vuelta (la pantalla bloqueada de la tienda con el aviso de Ana a la vista) y la ola verde cubre el fondo (giro ${c.giro.toFixed(2)})`);
+        ok(c.caras.frente === "hidden" && c.caras.dorso === "hidden" && c.caras.preserve === "preserve-3d" && c.caras.perspectiva === "900px" && Math.abs(Math.abs(c.caras.zFrente) - 7) < 0.1 && Math.abs(Math.abs(c.caras.zDorso) - 7) < 0.1 && c.caras.cantos.length === 2 && c.caras.cantos.every((w) => w === 14) && c.caras.botones === 3, "cambio-lado: una caja 3D: perspectiva de 900 px, las dos caras (translateZ 7 px) con backface-visibility hidden y dos cantos de 14 px con botones");
         ok(c.cabe && c.sinPisar, `cambio-lado: el teléfono y el texto caben en la pantalla sin recortarse ni pisarse`);
       }
       if (paso.escena === "dolor-dm") ok(/precio de este/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)) && /Escríbeme al WhatsApp/.test(await pagina.evaluate(() => document.querySelector('[data-escena="dolor-dm"]').textContent)), "dolor-dm: el mensaje directo trae «¿precio?» y la tienda contestando «escríbeme al WhatsApp»");
@@ -442,6 +452,10 @@ for (const [ancho, alto] of [
     await irAlPaso(pagina, siguiente);
     await pagina.waitForTimeout(1600);
     const en = (await medir(pagina, siguiente)).iconoApp;
+    // Es el mismo teléfono: el de la tienda, en `aviso`, ocupa el sitio y el tamaño del que acaba de girar (y no hay otro por el lado).
+    const real = await pagina.evaluate(() => { const r = document.querySelector(".lt-tel-tienda").getBoundingClientRect(); const g = document.querySelector(".lg"); return { x: r.left, y: r.top, w: r.width, h: r.height, giroVisible: getComputedStyle(g).visibility === "visible" && Number(getComputedStyle(g).opacity) > 0.5, aviso: /3:44/.test(document.querySelector('iframe[data-telefono="tienda"]').contentDocument.body.innerText) && /Ana/.test(document.querySelector('iframe[data-telefono="tienda"]').contentDocument.body.innerText) }; });
+    const g = fin.cambioLado.rect;
+    ok(Math.abs(real.x - g.x) < 1.5 && Math.abs(real.y - g.y) < 1.5 && Math.abs(real.w - g.w) < 1.5 && Math.abs(real.h - g.h) < 1.5 && !real.giroVisible && real.aviso, `cambio-lado → aviso: continúa con el mismo teléfono (mismo sitio y tamaño: ${Math.round(g.w)}×${Math.round(g.h)} y ${Math.round(real.w)}×${Math.round(real.h)}), con la pantalla bloqueada y el aviso de Ana ya a la vista`);
     await irAlPaso(pagina, lado);
     await pagina.waitForTimeout(650);
     const vuelve = (await medir(pagina, lado)).cambioLado;
@@ -552,15 +566,25 @@ console.log("\nAvance por capítulos (docs de Planning del 17 oct: un segmento y
   ok((await estado()).paso === "bienvenida", `«bienvenida» sigue a los ${Math.round((cap1.inicios[1] - 3000) / 100) / 10} s (se deja leer)`);
   await pagina.waitForTimeout(Math.max(0, t0 + cap1.inicios[1] + 900 - Date.now()));
   ok((await estado()).paso === "antes", "después de su animación y su lectura, entra «antes» solo");
-  // 2. Tocar la pantalla pausa el avance; volver a tocar lo reanuda.
+  // 2. Un toque corto enseña el gesto («Desliza ↑» aparece y salta) y NO pausa; mantener pulsado pausa el avance y soltar lo reanuda.
   await pagina.mouse.click(196, 400);
-  const pausado = await estado();
-  const sombra = await pagina.evaluate(() => document.querySelector('[data-seg="0"] i').getAnimations().map((a) => a.playState));
-  ok(pausado.pausa === "si" && sombra.every((x) => x === "paused"), "tocar la pantalla pausa el avance y el llenado de la barra");
+  await pagina.waitForTimeout(150);
+  const toque = await pagina.evaluate(() => { const e = document.querySelector(".lt-escenario"); const pill = e.querySelector(".lt-desliza"); return { pausa: e.dataset.pausa, desliza: e.dataset.deslizaOk, salta: pill.getAnimations().some((a) => a.animationName === "lt-salta"), visible: Number(getComputedStyle(pill).opacity) }; });
+  ok(toque.pausa === "no" && toque.desliza === "si" && toque.salta, "un toque corto no pausa: «Desliza ↑» aparece (aunque el paso no haya terminado) y da un salto");
+  await pagina.waitForTimeout(700);
+  const salto = await pagina.evaluate(() => { const pill = document.querySelector(".lt-desliza"); return pill.getAnimations().filter((a) => a.animationName === "lt-salta").length; });
+  ok(salto === 0, "y el salto dura medio segundo");
+  await pagina.mouse.move(196, 400);
+  await pagina.mouse.down();
+  await pagina.waitForTimeout(700);
+  const sostenido = await estado();
+  const llenando = await pagina.evaluate(() => document.querySelector('[data-seg="0"] i').getAnimations().map((a) => a.playState));
+  ok(sostenido.pausa === "si" && llenando.every((x) => x === "paused"), "mantener pulsado pausa el avance y el llenado del riel");
   await pagina.waitForTimeout(cap1.inicios[2] - cap1.inicios[1] + 1500);
   ok((await estado()).paso === "antes", "en pausa no avanza (pasó más de lo que dura el paso)");
-  await pagina.mouse.click(196, 400);
-  ok((await estado()).pausa === "no", "tocar otra vez lo reanuda");
+  await pagina.mouse.up();
+  await pagina.waitForTimeout(150);
+  ok((await estado()).pausa === "no", "al soltar, el avance se reanuda");
   await pagina.waitForTimeout(2500);
   // 3. Un deslizamiento hacia delante salta al primer paso del capítulo siguiente, aunque falten pasos del actual.
   await pagina.mouse.move(196, 400);
@@ -571,7 +595,7 @@ console.log("\nAvance por capítulos (docs de Planning del 17 oct: un segmento y
   await pagina.waitForTimeout(2800);
   await pagina.mouse.wheel(0, -852);
   await pagina.waitForTimeout(900);
-  const reinicia = await pagina.evaluate(() => ({ paso: document.querySelector(".lt-escenario").dataset.paso, vacio: new DOMMatrix(getComputedStyle(document.querySelector('[data-seg="1"] i')).transform).a < 0.2 }));
+  const reinicia = await pagina.evaluate(() => ({ paso: document.querySelector(".lt-escenario").dataset.paso, vacio: new DOMMatrix(getComputedStyle(document.querySelector('[data-seg="1"] i')).transform).d < 0.2 }));
   ok(reinicia.paso === PASOS[primerPasoDe(2)].id && reinicia.vacio, "hacia atrás, con un rato en el capítulo, vuelve al inicio del actual y su segmento empieza de nuevo");
   await pagina.mouse.wheel(0, -852);
   await pagina.waitForTimeout(1200);

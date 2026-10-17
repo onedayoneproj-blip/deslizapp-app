@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
+import { MOCKUPS, altoPagina } from "./mockups";
 import { PieContacto } from "../inicio-publico/pie-contacto";
 import { CAPITULOS_NOMBRES, PASOS, burbujaLarga, horaDeBurbuja, primerPasoDe, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
@@ -9,7 +10,7 @@ import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
 import { BurbujaChat } from "../chat/burbuja-chat";
 import { DemoPasos } from "./controlador";
-import { CambioLado } from "./cambio-lado";
+import { CambioLado, GiroTelefono } from "./cambio-lado";
 import { SeparadorQuieto, Separadores } from "./separadores";
 import { EscenaQuieta, Escenas } from "./escenas";
 import { PerfilACatalogo } from "./perfil-a-catalogo";
@@ -46,6 +47,8 @@ export function Landing({ desde = null }: { /** «Desde RD$499/mes · 30 días g
           <div className="lt-zona">
             <Telefono id="compradora" src="/demo-landing/compradora" />
             <Telefono id="tienda" src="/demo-landing/tienda" diferido />
+            {/* El cambio de lado (paso `cambio-lado`): el teléfono que gira, con el tamaño y el sitio del de la tienda */}
+            <GiroTelefono />
             {/* Del perfil al catálogo (paso `enlace`): su propio teléfono, que corre una sola vez al llegar al paso */}
             <div className="lt-enlace" aria-hidden="true">
               <PerfilACatalogo unaVez />
@@ -210,12 +213,6 @@ function Secciones() {
   );
 }
 
-/** Los mockups (public/landing/mockup-*.webp): tamaño de la imagen y dónde está la pantalla (en %, unos px más grande: el marco la tapa). */
-const MOCKUPS = {
-  compradora: { src: "/landing/mockup-titanio.webp", ancho: 640, alto: 1325, x: 6.094, y: 2.113, w: 87.969, h: 95.774 },
-  tienda: { src: "/landing/mockup-negro.webp", ancho: 640, alto: 1350, x: 5.313, y: 1.926, w: 89.688, h: 96.148 },
-} as const;
-
 /**
  * Un teléfono de la demo: la página real (app/demo-landing) en un iframe de 393 px de ancho y el alto del hueco del mockup, escalada
  * a ese hueco.
@@ -223,7 +220,7 @@ const MOCKUPS = {
  */
 function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; src: string; diferido?: boolean }) {
   const m = MOCKUPS[id];
-  const alto = Math.round((393 * m.h * m.alto) / (m.w * m.ancho));
+  const alto = altoPagina(id);
   const estilo = { "--m-ratio": m.ancho / m.alto, "--m-x": `${m.x}%`, "--m-y": `${m.y}%`, "--m-w": `${m.w}%`, "--m-h": `${m.h}%`, "--m-alto": `${alto}px` } as CSSProperties;
   return (
     <div className={`lt-telefono lt-tel-${id}`} style={estilo} aria-hidden="true">
@@ -239,22 +236,21 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por capítulo (CAPITULOS_NOMBRES)
- * y, al lado del icono de la app, el nombre del capítulo en el que va. El controlador llena el segmento del capítulo a lo largo de sus pasos
- * (data-estado: lleno, llenando, parcial o vacío) y cambia el nombre. Los segmentos son enlaces (llevan al primer paso de su capítulo) con
- * un área de toque más alta que ellos.
+ * El riel de avance (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»; lienzo de Design «17 oct · Ronda 2», IndRiel): un riel
+ * vertical pegado al borde derecho, a media altura, con un segmento por capítulo (CAPITULOS_NOMBRES). El del capítulo actual es más alto y se llena
+ * de arriba abajo a lo largo de sus pasos (data-estado: lleno, llenando, parcial o vacío; controlador.tsx). Los segmentos son enlaces (llevan al
+ * primer paso de su capítulo) con un área de toque mayor que ellos. Al lado del icono de la app va el nombre del capítulo (.lt-capitulo).
+ * Para cambiarlo por otro indicador: esta pieza y su bloque de landing.css («El riel de avance»); el controlador solo marca data-seg.
  */
 function Barra() {
   return (
     <>
-      <nav className="lt-barra" aria-label="Recorrido de la demo">
-        <div className="lt-barra-segs">
-          {CAPITULOS_NOMBRES.map((nombre, c) => (
-            <a key={nombre} href={`#paso-${PASOS[primerPasoDe(c + 1)]!.id}`} className="lt-seg" data-seg={c} data-estado={c === 0 ? "llenando" : "vacio"} aria-current={c === 0 ? "step" : undefined} aria-label={nombre}>
-              <i />
-            </a>
-          ))}
-        </div>
+      <nav className="lt-riel" aria-label="Recorrido de la demo">
+        {CAPITULOS_NOMBRES.map((nombre, c) => (
+          <a key={nombre} href={`#paso-${PASOS[primerPasoDe(c + 1)]!.id}`} className="lt-seg" data-seg={c} data-estado={c === 0 ? "llenando" : "vacio"} aria-current={c === 0 ? "step" : undefined} aria-label={nombre}>
+            <i />
+          </a>
+        ))}
       </nav>
       <p className="lt-capitulo" data-capitulo-nombre aria-hidden="true">
         {CAPITULOS_NOMBRES[PASOS[0]!.capitulo - 1]}
@@ -263,15 +259,20 @@ function Barra() {
   );
 }
 
-/** «Desliza ↑»: aparece abajo cuando termina la animación del paso y se va en cuanto se desliza (controlador.tsx). Decoración. */
+/**
+ * «Desliza ↑»: una píldora a media altura de la burbuja, que aparece cuando termina el último paso del capítulo (o con un toque) y se va en cuanto
+ * se desliza. En el último capítulo es «Ver planes ↑» (mandarina, late suave) y lleva al cierre, donde están los planes. Decoración (el cierre
+ * también se alcanza con «Saltar»).
+ */
 function Desliza() {
   return (
-    <div className="lt-desliza" aria-hidden="true">
-      Desliza
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+    <a href="#cierre" className="lt-desliza" tabIndex={-1} aria-hidden="true">
+      <span className="lt-desliza-desliza">Desliza</span>
+      <span className="lt-desliza-planes">Ver planes</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" />
       </svg>
-    </div>
+    </a>
   );
 }
 

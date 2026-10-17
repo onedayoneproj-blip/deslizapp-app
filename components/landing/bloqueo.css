@@ -1,0 +1,22 @@
+/* La pantalla bloqueada de la tienda (components/landing/whatsapp.tsx `Bloqueo`): la ve el teléfono de la tienda en la demo (app/demo-landing) y,
+   por detrás, el teléfono que gira en el cambio de lado (cambio-lado.tsx). El fondo es cálido (rosa → mandarina → vino) para que contraste con
+   el verde Bosque de la landing, y el aviso de WhatsApp llega ya a la vista. */
+.dz-bloqueo {
+  background: radial-gradient(120% 85% at 30% 15%, #f5c9d6, #e58a6b 50%, #5a2a2e 95%);
+}
+.dz-aviso {
+  opacity: 0;
+  transform: translateY(-40%);
+  transition:
+    opacity 300ms ease,
+    transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dz-aviso[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dz-aviso {
+    transition: none;
+  }
+}

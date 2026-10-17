@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Icono } from "../tienda/iconos";
 import { COMPRADORA_DEMO, ENLACE_DEMO, HORA_DEMO, MENSAJE_DEMO, TIENDA_DEMO, VISTA_PREVIA_DEMO } from "@/lib/landing/pedido-demo";
 import { HACE_AVISO, RELOJ_AVISO } from "@/lib/landing/pasos";
+import "./bloqueo.css";
 
 export const IMAGEN_VISTA_PREVIA = "/demo-landing/imagen";
 

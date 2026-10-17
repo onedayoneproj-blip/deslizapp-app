@@ -27,8 +27,7 @@
   position: relative;
 }
 .lt-escenario {
-  /* arriba, la barra de historias (3 px) y, debajo, el icono con el nombre del capítulo y «Saltar» */
-  --alto-arriba: calc(68px + env(safe-area-inset-top));
+  --alto-arriba: calc(58px + env(safe-area-inset-top));
   --alto-abajo: calc(20px + env(safe-area-inset-bottom));
   --mov: 520ms;
   --curva: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -167,7 +166,7 @@
   position: absolute;
   z-index: 9;
   left: max(16px, env(safe-area-inset-left));
-  top: calc(20px + env(safe-area-inset-top));
+  top: calc(10px + env(safe-area-inset-top));
   width: 40px;
   height: 40px;
   transition: opacity 380ms ease;
@@ -253,6 +252,11 @@
 .lt-escenario[data-paso="cambio-lado"] .lt-tel-tienda {
   transform: translateX(75%) scale(0.82);
   opacity: 0;
+}
+/* En el cambio de lado el teléfono que gira (cambio-lado.css) ocupa el sitio del de quien compra y el de la tienda entra en `aviso` ya en su sitio:
+   los dos cambian al instante, sin deslizarse (es el mismo teléfono, vuelto). */
+.lt-escenario:is([data-paso="cambio-lado"], [data-paso="aviso"]) :is(.lt-tel-compradora, .lt-tel-tienda) {
+  transition: none;
 }
 /* Dentro, la página real a 393 px de ancho (iPhone 15 Pro) y el alto del hueco, escalada a su ancho: tan(atan2()) da la proporción sin JavaScript. */
 .lt-pantalla {
@@ -362,7 +366,7 @@
 .lt-arriba {
   position: absolute;
   z-index: 8;
-  top: calc(20px + env(safe-area-inset-top));
+  top: calc(10px + env(safe-area-inset-top));
   left: max(16px, env(safe-area-inset-left));
   right: max(16px, env(safe-area-inset-right));
   height: 40px;
@@ -386,11 +390,11 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- La barra de historias, arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por capítulo, con huecos de
-   3 px. Los capítulos hechos, llenos; el actual se llena a lo largo de todos sus pasos (scaleX; --dur y --off los pone el controlador); los que
-   faltan, vacíos. Su color se adapta al fondo: oscuro sobre arena y rosa, claro sobre Bosque. Al lado del icono, el nombre del capítulo. Va a
-   todo el ancho, sobre «Saltar» y el icono (que bajan lo que ocupa); en escritorio, solo sobre la columna de la demo. ---- */
-.lt-barra,
+/* ---- El riel de avance (lienzo de Design «17 oct · Ronda 2», IndRiel): vertical, pegado al borde derecho y a media altura, con un segmento por
+   capítulo. Cada segmento mide 4 px de ancho y 22 px de alto, y el del capítulo actual, 44 (el cambio de alto es animado), con 6 px de separación.
+   El actual se llena de arriba abajo a lo largo de sus pasos (scaleY; --dur y --off los pone el controlador); el color es Bosque sobre arena y rosa,
+   y papel sobre Bosque, con el vacío al 20 %. Al lado del icono, el nombre del capítulo. ---- */
+.lt-riel,
 .lt-capitulo {
   color: var(--marca-bosque);
   transition:
@@ -398,64 +402,66 @@
     transform 380ms var(--curva),
     opacity 380ms ease;
 }
-.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) :is(.lt-barra, .lt-capitulo) {
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) :is(.lt-riel, .lt-capitulo) {
   color: var(--marca-papel);
 }
-.lt-barra {
+.lt-riel {
   position: absolute;
   z-index: 8;
-  top: calc(8px + env(safe-area-inset-top));
-  left: max(16px, env(safe-area-inset-left));
-  right: max(16px, env(safe-area-inset-right));
-}
-.lt-barra-segs {
+  right: max(10px, env(safe-area-inset-right));
+  top: 50%;
   display: flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: 6px;
+  transform: translateY(-50%);
 }
 .lt-seg {
   position: relative;
   display: block;
-  flex: 1 1 0;
-  min-width: 0;
-  height: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 28%, transparent);
+  width: 4px;
+  height: 22px;
+  border-radius: 99px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  transition: height 300ms var(--curva);
 }
-/* El área de toque: más alta que el segmento (unos 22 px), sin pisar el icono ni «Saltar» de debajo */
+.lt-seg[aria-current="step"] {
+  height: 44px;
+}
+/* El área de toque: más ancha que el segmento (unos 28 px), sin pisar a los vecinos */
 .lt-seg::before {
   content: "";
   position: absolute;
-  inset: -10px -1.5px -4px;
+  inset: -3px -12px;
 }
 .lt-seg i {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: currentColor;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
 }
 .lt-seg[data-estado="lleno"] i {
   transform: none;
 }
 /* Sin avance solo (movimiento reducido): el capítulo va lleno a la medida de los pasos que lleva vistos (--p) */
 .lt-seg[data-estado="parcial"] i {
-  transform: scaleX(var(--p, 1));
+  transform: scaleY(var(--p, 1));
 }
 .lt-seg[data-estado="llenando"] i {
   animation: lt-llena var(--dur, 2s) linear forwards;
   animation-delay: calc(var(--off, 0ms) * -1);
 }
-/* Tocar la pantalla pausa el avance (y el llenado) */
+/* Mantener pulsado pausa el avance (y el llenado) */
 .lt-escenario[data-pausa="si"] .lt-seg[data-estado="llenando"] i {
   animation-play-state: paused;
   opacity: 0.6;
 }
 @keyframes lt-llena {
   from {
-    transform: scaleX(0);
+    transform: scaleY(0);
   }
   to {
     transform: none;
@@ -465,7 +471,7 @@
 .lt-capitulo {
   position: absolute;
   z-index: 8;
-  top: calc(20px + env(safe-area-inset-top));
+  top: calc(10px + env(safe-area-inset-top));
   left: calc(max(16px, env(safe-area-inset-left)) + 50px);
   height: 40px;
   margin: 0;
@@ -480,9 +486,16 @@
 .lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) .lt-capitulo {
   transform: translateX(-50px);
 }
+/* Nada del escenario se selecciona ni abre menús al mantener pulsado (pausa el avance) */
+.lt-escenario {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 
 /* ---- «Desliza ↑»: una píldora grande, a media altura de la burbuja (el controlador pone --desliza-y); puede taparla, porque a esas alturas
-   ya se leyó. Aparece cuando termina el último paso del capítulo y se va en cuanto se desliza. ---- */
+   ya se leyó. Aparece cuando termina el último paso del capítulo (o con un toque, y entonces salta) y se va en cuanto se desliza. En el último
+   capítulo es «Ver planes ↑»: mandarina, texto blanco, late suave, y es un enlace al cierre. ---- */
 .lt-desliza {
   position: absolute;
   z-index: 8;
@@ -498,6 +511,7 @@
   color: var(--marca-bosque);
   font-weight: 800;
   font-size: 1.0625rem;
+  white-space: nowrap;
   box-shadow:
     0 14px 30px -8px rgba(16, 54, 42, 0.5),
     0 0 0 1.5px rgba(16, 54, 42, 0.1);
@@ -512,14 +526,36 @@
   opacity: 1;
   transform: translate(-50%, 0);
 }
+.lt-desliza-planes,
+.lt-escenario[data-fin="si"] .lt-desliza-desliza {
+  display: none;
+}
+.lt-escenario[data-fin="si"] .lt-desliza-planes {
+  display: inline;
+}
+.lt-escenario[data-fin="si"] .lt-desliza {
+  background: var(--marca-mandarina);
+  color: #fff;
+  box-shadow: 0 14px 30px -8px rgba(16, 54, 42, 0.55);
+}
+.lt-escenario[data-fin="si"][data-desliza-ok="si"] .lt-desliza {
+  pointer-events: auto;
+}
 .lt-desliza svg {
   display: block;
   width: 22px;
   height: 22px;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .lt-escenario[data-desliza-ok="si"] .lt-desliza svg {
+  .lt-escenario[data-desliza-ok="si"]:not([data-fin="si"]) .lt-desliza svg {
     animation: lt-rebote 1.3s ease-in-out infinite;
+  }
+  /* El toque que enseña el gesto: la píldora salta */
+  .lt-escenario.lt-salta[data-desliza-ok="si"] .lt-desliza {
+    animation: lt-salta 0.5s ease-out;
+  }
+  .lt-escenario[data-fin="si"][data-desliza-ok="si"]:not(.lt-salta) .lt-desliza {
+    animation: lt-late 1.6s ease-in-out infinite;
   }
 }
 @keyframes lt-rebote {
@@ -529,6 +565,27 @@
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+@keyframes lt-salta {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  30% {
+    transform: translate(-50%, -14px) scale(1.08);
+  }
+  60% {
+    transform: translate(-50%, 0) scale(0.97);
+  }
+}
+@keyframes lt-late {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50%, 0) scale(1.04);
   }
 }
 
@@ -685,25 +742,14 @@
   .lt-burbuja[data-larga] {
     font-size: 1.6rem;
   }
-  /* La barra y «Desliza» van sobre la columna de la demo (la mitad derecha); el icono y «Saltar», en las esquinas, como siempre. */
-  .lt-escenario {
-    --alto-arriba: calc(58px + env(safe-area-inset-top));
-    --alto-abajo: calc(20px + env(safe-area-inset-bottom));
-  }
-  .lt-barra {
-    left: 50%;
-    right: auto;
-    width: min(46vw, 560px);
+  /* «Desliza» va centrado bajo la columna de la demo (la mitad derecha) y el riel, en el borde derecho de la pantalla. */
+  .lt-riel {
+    right: 24px;
   }
   .lt-desliza {
     left: calc(50% + min(46vw, 560px) / 2);
     top: auto;
     bottom: calc(4px + env(safe-area-inset-bottom));
-  }
-  .lt-arriba,
-  .lt-icono,
-  .lt-capitulo {
-    top: calc(10px + env(safe-area-inset-top));
   }
   .lt-icono {
     left: 24px;

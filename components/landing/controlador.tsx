@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-import { CAPITULOS_NOMBRES, DEDO_LLEGA, burbujaLarga, lineaDelCapitulo, primerPasoDe, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
+import { CAPITULOS, CAPITULOS_NOMBRES, DEDO_LLEGA, burbujaLarga, lineaDelCapitulo, primerPasoDe, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
@@ -137,37 +137,73 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.clearTimeout(muestraDesliza);
       e.dataset.deslizaOk = "no";
       const ultimoDelCapitulo = k >= linea.pasos.length - 1;
-      const ultimoDeTodos = linea.pasos[k] === PASOS.length - 1;
       if (reducido.matches) {
         // Sin avance solo: cada paso pide su deslizamiento (y «Desliza» sale enseguida, sin rebote).
-        if (!ultimoDeTodos) muestraDesliza = window.setTimeout(mostrarDesliza, 250);
+        muestraDesliza = window.setTimeout(mostrarDesliza, 250);
         return;
       }
       if (desdeT === null) return; // en pausa
       const ya = corrido();
       if (!ultimoDelCapitulo) {
         if (!sinAuto()) avanza = window.setTimeout(() => mover(linea.pasos[k + 1]!, false, true), Math.max(0, linea.inicios[k + 1]! - ya));
-      } else if (!ultimoDeTodos) {
+      } else {
+        // Al terminar el último paso del capítulo: «Desliza ↑» (en el último capítulo, «Ver planes ↑»).
         muestraDesliza = window.setTimeout(mostrarDesliza, Math.max(0, linea.total - ya) + 150);
       }
     };
-    /** Tocar la pantalla: pausa el avance (y el llenado de la barra) o lo reanuda, como en las historias. */
-    const alToque = (ev: MouseEvent) => {
-      if (reducido.matches || enCierre || (ev.target as Element | null)?.closest?.("a, button")) return;
+    /** Mantener pulsado pausa el avance (y el llenado del riel) y soltar lo reanuda, como en Reels; un toque corto enseña el gesto: «Desliza ↑»
+     *  aparece (si aún no estaba) y da un salto. */
+    const pausar = () => {
       const k = linea.pasos.indexOf(activo);
-      if (k < 0 || corrido() >= linea.total) return;
-      if (desdeT !== null) {
-        base = corrido();
-        desdeT = null;
-        window.clearTimeout(avanza);
-        window.clearTimeout(muestraDesliza);
-        e.dataset.pausa = "si";
-      } else {
-        desdeT = performance.now();
-        e.dataset.pausa = "no";
-        programar(k);
-      }
+      if (k < 0 || desdeT === null || corrido() >= linea.total) return;
+      base = corrido();
+      desdeT = null;
+      window.clearTimeout(avanza);
+      window.clearTimeout(muestraDesliza);
+      e.dataset.pausa = "si";
     };
+    const reanudar = () => {
+      if (e.dataset.pausa !== "si") return;
+      desdeT = performance.now();
+      e.dataset.pausa = "no";
+      programar(linea.pasos.indexOf(activo));
+    };
+    let retener = 0;
+    let sostenido = false;
+    const sobreControl = (ev: Event) => Boolean((ev.target as Element | null)?.closest?.("a, button"));
+    const alBajar = (ev: PointerEvent) => {
+      if (reducido.matches || enCierre || sobreControl(ev)) return;
+      sostenido = false;
+      window.clearTimeout(retener);
+      retener = window.setTimeout(() => {
+        sostenido = true;
+        pausar();
+      }, 380);
+    };
+    const alSoltar = () => {
+      window.clearTimeout(retener);
+      if (sostenido) reanudar();
+    };
+    const alToque = (ev: MouseEvent) => {
+      if (enCierre || sobreControl(ev)) return;
+      // (el clic que cierra una pulsación larga no es un toque)
+      if (sostenido) {
+        sostenido = false;
+        return;
+      }
+      if (e.dataset.deslizaOk !== "si") {
+        posicionDesliza();
+        yDesliza = window.scrollY;
+        e.dataset.deslizaOk = "si";
+      }
+      e.classList.remove("lt-salta");
+      void e.offsetWidth; // para que el salto empiece de nuevo en cada toque
+      e.classList.add("lt-salta");
+    };
+    e.addEventListener("pointerdown", alBajar);
+    e.addEventListener("pointerup", alSoltar);
+    e.addEventListener("pointercancel", alSoltar);
+    e.addEventListener("pointerleave", alSoltar);
     e.addEventListener("click", alToque);
     // «Desliza» se va en cuanto la persona desliza (antes de que cambie el paso).
     const alDeslizar = () => {
@@ -303,6 +339,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         check: "no",
         capitulo: String(paso.capitulo),
         larga: burbujaLarga(paso) ? "si" : "no",
+        fin: paso.capitulo === CAPITULOS ? "si" : "no",
       });
       // El cambio de lado: llega rosa («Pidió en segundos.»); el teléfono gira, una ola verde sube y todo pasa a verde (cambio-lado.css, con
       // data-anima="si"). Sin animación (al abrir, movimiento reducido), se ve el final.
@@ -436,6 +473,11 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
       window.clearTimeout(espera);
       window.clearTimeout(muestraDesliza);
       window.clearTimeout(avanza);
+      window.clearTimeout(retener);
+      e.removeEventListener("pointerdown", alBajar);
+      e.removeEventListener("pointerup", alSoltar);
+      e.removeEventListener("pointercancel", alSoltar);
+      e.removeEventListener("pointerleave", alSoltar);
       e.removeEventListener("click", alToque);
       window.removeEventListener("hashchange", alHash);
       window.removeEventListener("scroll", alDeslizar);
@@ -469,6 +511,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-capitulo="1"
         data-larga="no"
         data-desliza-ok="no"
+        data-fin="no"
         data-pausa="no"
         data-anima="entrada"
         data-toques="0"

@@ -1,18 +1,19 @@
-/* El cambio de lado (components/landing/cambio-lado.tsx), entre `seguimiento` y `aviso`. Estado de reposo = el FINAL (fondo y ola verdes, el
-   teléfono vuelto con el panel de la tienda, el texto nuevo): es lo que se ve al llegar sin animar y con movimiento reducido. Con
-   data-anima="si" (llegar deslizando, también al volver) arrancan las animaciones de abajo desde el principio; se repiten limpias porque
-   la regla deja de aplicar al salir del paso. Solo transform y opacity. El fondo de la landing pasa de rosa a verde (data-lado) a los
-   1,9 s, ya tapado por la ola (controlador.tsx CAMBIO_LADO_MS). Línea de tiempo: 1 s arranca el giro (1,2 s) y la ola (1 s); 1,6 s se va
-   el texto viejo; 2,4 s entra el nuevo, escalonado; 3,2 s el aviso da un pequeño rebote. */
+/* El cambio de lado (components/landing/cambio-lado.tsx), entre `seguimiento` y `aviso`. Estado de reposo = el FINAL (ola y fondo verdes, el teléfono
+   vuelto con la pantalla bloqueada de la tienda, el texto nuevo): es lo que se ve al llegar sin animar y con movimiento reducido. Con
+   data-anima="si" (llegar deslizando, también al volver) arrancan las animaciones desde el principio; se repiten limpias porque la regla
+   deja de aplicar al salir del paso. Solo transform y opacity. Línea de tiempo: 0,9 s el teléfono se levanta y gira (1,5 s, con un brillo
+   que cruza la pantalla y la sombra del suelo que se encoge); 1 s sube la ola; 1,3 s se va el texto viejo; 2,3 s entra el nuevo,
+   escalonado; 2,4 s el aviso de WhatsApp entra con un pequeño rebote. El fondo de la landing pasa a verde a los 1,9 s (controlador.tsx
+   CAMBIO_LADO_MS), ya tapado por la ola. */
 .cl {
   position: absolute;
   inset: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  gap: 14px;
-  padding: calc(var(--alto-arriba) + 4px) 24px calc(var(--alto-abajo) + 12px);
+  padding: 0 24px var(--alto-abajo);
   text-align: center;
   opacity: 0;
   visibility: hidden;
@@ -27,6 +28,10 @@
   visibility: visible;
   transition-delay: 0s;
 }
+/* El paso siguiente (`aviso`) sigue con el mismo teléfono: la pantalla de fondo se va sin esperar */
+.lt-escenario:not([data-paso="cambio-lado"]) .cl {
+  transition: none;
+}
 
 /* La ola verde, por detrás del teléfono y del texto: cubre todo el fondo, con el borde de arriba curvo */
 .cl-ola {
@@ -39,95 +44,10 @@
   border-radius: 50% 50% 0 0 / 40px 40px 0 0;
 }
 
-/* El teléfono: dos caras (catálogo de quien compra y panel de la tienda) en una carta que gira sobre su eje */
-.cl-escena {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  container-type: size;
-  perspective: 1000px;
-}
-.cl-carta {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  height: min(100cqh, 100cqw / 0.474, 460px);
-  aspect-ratio: 640 / 1350;
-  transform-style: preserve-3d;
-  transform: rotateY(180deg);
-}
-.cl-cara {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-.cl-dorso {
-  transform: rotateY(180deg);
-}
-.cl-tm {
-  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.3));
-}
-.cl-catalogo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-}
-/* El panel de Tu Tienda (decoración, en cqw del ancho de su pantalla) */
-.cl-panel {
-  container-type: inline-size;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 14cqw 6cqw 0;
-  background: var(--marca-papel);
-  color: var(--marca-bosque);
-  text-align: left;
-}
-.cl-panel-titulo {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 10cqw;
-  line-height: 1;
-}
-.cl-aviso {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5cqw;
-  margin-top: 5cqw;
-  padding: 5cqw;
-  border-radius: 4.5cqw;
-  background: #ffffff;
-  box-shadow: 0 1cqw 3cqw rgba(16, 54, 42, 0.12);
-  font-size: 6.4cqw;
-  font-weight: 800;
-  line-height: 1.2;
-}
-.cl-aviso small {
-  font-size: 5cqw;
-  font-weight: 600;
-  color: #4f6a5e;
-}
-.cl-fila {
-  display: block;
-  height: 14cqw;
-  margin-top: 3.5cqw;
-  border-radius: 4cqw;
-  background: #e7f2ea;
-}
-
 /* El texto: cada versión apilada en la misma celda; en reposo se ve la nueva (papel sobre el verde). */
 .cl-textos {
   position: relative;
   z-index: 1;
-  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -148,7 +68,7 @@
 .cl-antes {
   font-family: var(--font-mano);
   font-weight: 700;
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   line-height: 1.1;
 }
 .cl-antes [data-fase="antes"] {
@@ -161,7 +81,7 @@
   font-family: var(--font-display);
   font-stretch: 108%;
   font-weight: 700;
-  font-size: 2.2rem;
+  font-size: 2rem;
   line-height: 1.05;
 }
 .cl-titulo [data-fase="antes"] {
@@ -173,8 +93,8 @@
 .cl-texto {
   max-width: 330px;
   font-weight: 600;
-  font-size: 1rem;
-  line-height: 1.4;
+  font-size: 0.95rem;
+  line-height: 1.3;
 }
 .cl-texto [data-fase="antes"] {
   color: var(--marca-bosque);
@@ -182,19 +102,153 @@
 .cl-texto [data-fase="despues"] {
   color: #cfe8da;
 }
-
-/* Pantallas bajas: el texto un poco menor, para que el teléfono tenga sitio */
+/* Pantallas bajas: el texto un poco menor (cabe en el sitio de las burbujas, bajo el teléfono) */
 @media (max-height: 700px) {
   .cl-antes {
-    font-size: 1.45rem;
+    font-size: 1.3rem;
   }
   .cl-titulo {
-    font-size: 1.85rem;
+    font-size: 1.6rem;
   }
   .cl-texto {
-    font-size: 0.9rem;
-    line-height: 1.3;
+    font-size: 0.85rem;
   }
+}
+
+/* Escritorio: el texto va en la columna de la izquierda (como las burbujas) y el teléfono, a la derecha */
+@media (min-width: 900px) {
+  .cl {
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0 calc(50% + 40px) 0 200px;
+    text-align: left;
+  }
+  .cl-textos {
+    align-items: flex-start;
+  }
+  .cl-titulo {
+    font-size: 2.6rem;
+  }
+  .cl-antes {
+    font-size: 1.9rem;
+  }
+  .cl-texto {
+    font-size: 1.1rem;
+  }
+}
+
+/* ---- El teléfono: una caja 3D con el tamaño y el sitio del teléfono de la tienda (el de `aviso`), dentro de .lt-zona ---- */
+.lg {
+  --ancho: min(100cqw, 100cqh * 640 / 1350);
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--ancho);
+  height: calc(var(--ancho) * 1350 / 640);
+  perspective: 900px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+.lt-escenario[data-paso="cambio-lado"] .lg {
+  opacity: 1;
+  visibility: visible;
+}
+.lg-cuerpo {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(180deg);
+  will-change: transform;
+}
+.lg-cara {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lg-frente {
+  transform: translateZ(7px);
+}
+.lg-dorso {
+  transform: rotateY(180deg) translateZ(7px);
+}
+.lg-tm {
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.3));
+}
+.lg-captura {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+/* Los dos cantos de 14 px, con degradado metálico y botones: giran ±90° y se sacan media anchura del teléfono */
+.lg-canto {
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: 50%;
+  width: 14px;
+  margin-left: -7px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #6d6d6d, #d9d9d9 35%, #8a8a8a 60%, #3c3c3c);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lg-canto-d {
+  transform: rotateY(90deg) translateZ(calc(var(--ancho) / 2));
+}
+.lg-canto-i {
+  transform: rotateY(-90deg) translateZ(calc(var(--ancho) / 2));
+}
+.lg-canto i {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  height: 7%;
+  border-radius: 3px;
+  background: #555;
+}
+/* Lo que hay en la pantalla de atrás: la pantalla bloqueada de la tienda (una página de 393 px de ancho, escalada a la pantalla del mockup,
+   como en los teléfonos de la demo: landing.css .lt-pantalla) */
+.lg-hueco {
+  container-type: size;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.lg-pantalla {
+  --esc: tan(atan2(100cqw, 393px));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 393px;
+  transform: scale(var(--esc));
+  transform-origin: 0 0;
+}
+/* El brillo diagonal que cruza la pantalla de delante mientras gira, y la sombra del suelo */
+.lg-brillo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.55) 48%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: -60% 0;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.lg-sombra {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: -3%;
+  height: 4%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  filter: blur(8px);
 }
 
 /* Las animaciones: solo llegando deslizando al paso (data-anima="si") y sin movimiento reducido */
@@ -202,23 +256,29 @@
   .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-ola {
     animation: cl-sube 1s cubic-bezier(0.6, 0, 0.3, 1) 1s both;
   }
-  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-carta {
-    animation: cl-gira 1.2s cubic-bezier(0.5, 0, 0.3, 1) 1s both;
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .lg-cuerpo {
+    animation: lg-gira 1.5s cubic-bezier(0.55, 0, 0.25, 1) 0.9s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .lg-brillo {
+    animation: lg-brilla 1.5s ease 0.9s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .lg-sombra {
+    animation: lg-sombra 1.5s cubic-bezier(0.55, 0, 0.25, 1) 0.9s both;
+  }
+  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .lg .dz-aviso {
+    animation: lg-aviso 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.2) 2.4s both;
   }
   .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-frase[data-fase="antes"] {
-    animation: cl-fuera 0.3s ease 1.6s both;
+    animation: cl-fuera 0.3s ease 1.3s both;
   }
   .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-frase[data-fase="despues"] {
-    animation: cl-dentro 0.5s ease 2.4s both;
+    animation: cl-dentro 0.5s ease 2.3s both;
   }
   .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-titulo .cl-frase[data-fase="despues"] {
-    animation-delay: 2.55s;
+    animation-delay: 2.45s;
   }
   .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-texto .cl-frase[data-fase="despues"] {
-    animation-delay: 2.7s;
-  }
-  .lt-escenario[data-paso="cambio-lado"][data-anima="si"] .cl-aviso {
-    animation: cl-rebote 0.6s ease 3.2s both;
+    animation-delay: 2.6s;
   }
 }
 @keyframes cl-sube {
@@ -229,12 +289,45 @@
     transform: none;
   }
 }
-@keyframes cl-gira {
+/* 0 %: de frente; 45 %: levantado y de canto (95°, un poco inclinado y más grande); 100 %: de espaldas */
+@keyframes lg-gira {
+  0% {
+    transform: translateY(0) rotateY(0deg) rotateX(0deg);
+  }
+  45% {
+    transform: translateY(-18px) rotateY(95deg) rotateX(6deg) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) rotateY(180deg) rotateX(0deg);
+  }
+}
+@keyframes lg-brilla {
   from {
-    transform: rotateY(0deg);
+    background-position: 120% 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
   }
   to {
-    transform: rotateY(180deg);
+    background-position: -60% 0;
+    opacity: 0;
+  }
+}
+@keyframes lg-sombra {
+  45% {
+    transform: scaleX(0.25);
+    opacity: 0.5;
+  }
+}
+@keyframes lg-aviso {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 @keyframes cl-fuera {
@@ -253,14 +346,5 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-@keyframes cl-rebote {
-  0%,
-  100% {
-    transform: none;
-  }
-  40% {
-    transform: scale(1.06);
   }
 }

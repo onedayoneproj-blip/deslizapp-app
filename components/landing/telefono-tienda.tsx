@@ -24,7 +24,7 @@ import { Bloqueo, ChatWhatsApp } from "./whatsapp";
 import { esperar, porTexto, tocar, tocarYPulsar, useAnclas, usePasoDeLaLanding } from "./telefono-iframe";
 
 type Pantalla = "bloqueo" | "chat" | "pedido" | "panel";
-type Estado = { pantalla: Pantalla; aviso: boolean; eres: boolean; registrar: boolean; hojaPedido: boolean; montaje: number };
+type Estado = { pantalla: Pantalla; eres: boolean; registrar: boolean; hojaPedido: boolean; montaje: number };
 
 const P = {
   aviso: indicePaso("aviso"),
@@ -37,7 +37,7 @@ const P = {
 
 function estadoEn(paso: number, montaje: number): Estado {
   const pantalla: Pantalla = paso >= P.pedidos ? "panel" : paso >= P.registrar ? "pedido" : paso >= P.chat ? "chat" : "bloqueo";
-  return { pantalla, aviso: paso >= P.aviso, eres: false, registrar: paso === P.registrar, hojaPedido: paso >= P.confirmar, montaje };
+  return { pantalla, eres: false, registrar: paso === P.registrar, hojaPedido: paso >= P.confirmar, montaje };
 }
 
 /**
@@ -75,9 +75,9 @@ export function TelefonoTienda() {
       await prepararBase(destino);
       if (vigente()) flushSync(() => setEstado((e) => estadoEn(destino, e.montaje + 1)));
     };
-    if (!animar || destino !== desde + 1 || destino <= P.aviso - 1) return fijo();
-    if (destino === P.aviso) setEstado((e) => ({ ...e, aviso: true }));
-    else if (destino === P.chat) {
+    if (!animar || destino !== desde + 1 || destino <= P.aviso) return fijo();
+    // `aviso`: la pantalla bloqueada ya está a la vista (la del teléfono que gira en el cambio de lado, cambio-lado.tsx): nada que animar.
+    if (destino === P.chat) {
       await tocar(document.querySelector("[data-aviso]"));
       if (vigente()) setEstado((e) => ({ ...e, pantalla: "chat" }));
     } else if (destino === P.registrar) {
@@ -153,7 +153,7 @@ export function TelefonoTienda() {
                   <ChatWhatsApp sale={false} enviado />
                 </div>
                 <div className="dz-pantalla" data-visible={estado.pantalla === "bloqueo" ? "" : undefined}>
-                  <Bloqueo aviso={estado.aviso} />
+                  <Bloqueo aviso />
                 </div>
               </div>
             </PanelUIProvider>
