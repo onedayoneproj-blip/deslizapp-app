@@ -3,7 +3,7 @@
 // 360×640, 393×852, 430×932 y 1440×900: avanzar paso a paso (el dolor de quien vende, el post, el perfil al catálogo en Instagram
 // antes del catálogo, y el cambio de lado entre quien compra y la tienda; burbuja completa y sin desenfoque, que no tapa la pantalla;
 // estado del teléfono: bolsa, total y código; el mockup entero y la página llenando su pantalla; el reel y la bolsa como en la app;
-// el ♥ como dedo: en cada toque y en el viaje, oculto en los demás; el índice; el fondo de cada persona), el índice lleva a cada
+// el ♥ como dedo: en cada toque y en el viaje, oculto en los demás; la barra de historias de arriba y «Desliza ↑»; el fondo de cada persona), la barra lleva a cada
 // capítulo, retroceder un paso, un deslizamiento fuerte no se salta pasos, «Saltar», los CTA y «Entrar»,
 // movimiento reducido, sin JavaScript y que el modo demo sigue abriendo el panel. Con CAPTURAS=1 guarda una captura de cada paso
 // (360×640 y 393×852, más 1440×900) en docs/capturas/conoce-recorte/ (docs/prompts/conoce-recorte-y-arreglos.md).
@@ -13,7 +13,7 @@ import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require("playwright");
-const { PASOS, estadoPaso } = await import("../lib/landing/pasos.ts");
+const { PASOS, CAPITULOS_NOMBRES, estadoPaso } = await import("../lib/landing/pasos.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 
 // Las pantallas sin teléfono (los separadores y el cambio de lado) y las que se dibujan dentro del de la compradora.
@@ -68,19 +68,16 @@ const medir = (pagina, i) =>
       const hueco = telefono.querySelector(".lt-hueco").getBoundingClientRect();
       const pagina = telefono.querySelector("iframe").getBoundingClientRect();
       const b = burbuja?.getBoundingClientRect() ?? new DOMRect();
-      const gruesas = [...e.querySelectorAll("[data-raya-paso]")];
-      const finas = [...e.querySelectorAll("[data-raya-fina]")];
-      const ind = e.querySelector(".lt-indice").getBoundingClientRect();
-      // El área de toque de cada gruesa a la vista: unos 20 px de alto (8 px arriba y abajo de su centro siguen siendo ella), sin
-      // pisar la vecina. (Las que la regla deja fuera de su ventana no se tocan.)
-      const toca = (g) => {
-        const r = g.getBoundingClientRect();
-        const x = r.left + 4;
-        const y = r.top + r.height / 2;
-        return [y - 8, y, y + 8].every((yy) => document.elementFromPoint(x, yy)?.closest("[data-raya-paso]") === g);
-      };
-      const enVentana = (g) => { const r = g.getBoundingClientRect(); return r.top > ind.top + ind.height * 0.25 && r.bottom < ind.bottom - ind.height * 0.25; };
-      const actualRaya = gruesas.find((g) => g.dataset.estado === "actual")?.getBoundingClientRect();
+      const segs = [...e.querySelectorAll("[data-seg]")];
+      const barraEl = e.querySelector(".lt-barra");
+      const barra = barraEl.getBoundingClientRect();
+      const rotuloR = e.querySelector("[data-barra-rotulo]").getBoundingClientRect();
+      // Toda la barra: los segmentos y su rótulo.
+      const barraTodo = { left: barra.left, right: barra.right, top: barra.top, bottom: rotuloR.bottom };
+      const saltarR = e.querySelector(".lt-saltar").getBoundingClientRect();
+      const iconoR = e.querySelector(".lt-icono").getBoundingClientRect();
+      const desliza = e.querySelector(".lt-desliza");
+      const desR = desliza.getBoundingClientRect();
       const cruza = (a, c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1;
       // Las burbujas a la vista (la del paso y las de antes que caben) y su escala (la del paso termina en 1).
       const vistas = [...e.querySelectorAll("[data-burbuja]")].filter((x) => Number(getComputedStyle(x).opacity) > 0.05);
@@ -92,7 +89,6 @@ const medir = (pagina, i) =>
         // La burbuja entera (con su hora y sus checks) cabe en su zona: ni el borde de abajo se corta (el recorte es el de .lt-burbujas).
         burbujaEntera: burbuja ? b.bottom <= e.querySelector(".lt-burbujas").getBoundingClientRect().bottom + 1 && burbuja.querySelector(".bc-hora").getBoundingClientRect().bottom <= e.querySelector(".lt-burbujas").getBoundingClientRect().bottom && b.bottom <= innerHeight : true,
         corazon,
-        indiceIzquierda: ind.right <= tel.left + 1 || Number(getComputedStyle(telEl).opacity) < 0.99,
         nitida,
         burbujaVisible: !burbuja || Number(getComputedStyle(burbuja).opacity) > 0.99,
         proporcion: tel.width / tel.height,
@@ -101,7 +97,7 @@ const medir = (pagina, i) =>
         telefonoVisible: Number(getComputedStyle(telefono).opacity) > 0.99,
         icono: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.99,
         iconoCaja: (() => { const r = e.querySelector(".lt-icono").getBoundingClientRect(); return { left: r.left, top: r.top, w: r.width, bottom: r.bottom }; })(),
-        rayasFinas: [...e.querySelectorAll("[data-raya-paso], [data-raya-fina]")].every((x) => x.getBoundingClientRect().height <= 2.01),
+        segAlto: segs.every((x) => { const h = x.getBoundingClientRect().height; return h >= 2.99 && h <= 4.01; }),
         fredoka: !burbuja || /fredoka/i.test(getComputedStyle(burbuja).fontFamily),
         resaltes: burbuja ? burbuja.querySelectorAll(".lt-resalte").length : 0,
         telefonoEncima: Number(getComputedStyle(e.querySelector(".lt-zona")).zIndex) > Number(getComputedStyle(e.querySelector(".lt-burbujas")).zIndex),
@@ -135,21 +131,21 @@ const medir = (pagina, i) =>
         cambioLado: (() => { const c = e.querySelector("[data-cambio-lado]"); const v = e.querySelector(".cl-icono-verde").getBoundingClientRect(); const r = e.querySelector(".cl-icono-rosa").getBoundingClientRect(); const visible = (x) => x.closest("[data-fase]") && Number(getComputedStyle(x).opacity) > 0.99; return { visible: Number(getComputedStyle(c).opacity) > 0.99, titulo: [...c.querySelectorAll(".cl-titulo .cl-frase")].filter(visible).map((x) => x.textContent).join(""), texto: [...c.querySelectorAll(".cl-texto .cl-frase")].filter(visible).map((x) => x.textContent).join(""), verde: v.width, rosa: r.width, verdeX: v.left + v.width / 2, rosaX: r.left + r.width / 2, cambio: e.dataset.cambio ?? null, lado: e.dataset.lado }; })(),
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
         tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
-        // El índice no tapa el teléfono ni lo empuja.
-        indiceTapa: Number(getComputedStyle(telEl).opacity) > 0.99 && getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && cruza(ind, tel),
-        // Las rayitas del índice no tocan ninguna burbuja a la vista ni el teléfono de la demo (ni el del perfil al catálogo).
-        indiceTapaBurbuja: getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && vistas.some((x) => cruza(ind, x.getBoundingClientRect())),
-        indiceTapaEnlace: Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(ind, e.querySelector(".lt-enlace .tm").getBoundingClientRect()),
+        // La barra (segmentos y rótulo) no toca «Saltar», el icono, el teléfono ni las burbujas a la vista, y cabe en el ancho.
+        barraChoca: { saltar: cruza(barraTodo, saltarR), icono: cruza(barraTodo, iconoR), telefono: Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(barraTodo, tel), burbuja: vistas.some((x) => cruza(barraTodo, x.getBoundingClientRect())), enlace: Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(barraTodo, e.querySelector(".lt-enlace .tm").getBoundingClientRect()) },
+        barraDentro: barra.left >= -0.5 && barra.right <= innerWidth + 0.5 && rotuloR.left >= -0.5 && rotuloR.right <= innerWidth + 0.5,
+        huecoSeg: segs.length > 1 ? segs[1].getBoundingClientRect().left - segs[0].getBoundingClientRect().right : 0,
+        rotulo: e.querySelector("[data-barra-rotulo]").textContent.trim(),
+        rotuloFuente: { px: parseFloat(getComputedStyle(e.querySelector("[data-barra-rotulo]")).fontSize), peso: getComputedStyle(e.querySelector("[data-barra-rotulo]")).fontWeight },
+        colorBarra: getComputedStyle(barraEl).color,
+        // «Desliza ↑»: a la vista, dentro de la pantalla, sin tapar el teléfono ni las burbujas.
+        desliza: { visible: Number(getComputedStyle(desliza).opacity) > 0.99, atributo: e.dataset.deslizaOk, dentro: desR.left >= 0 && desR.right <= innerWidth && desR.bottom <= innerHeight, choca: Number(getComputedStyle(desliza).opacity) > 0.5 && (vistas.some((x) => cruza(desR, x.getBoundingClientRect())) || (Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(desR, tel)) || (Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(desR, e.querySelector(".lt-enlace .tm").getBoundingClientRect()))), rebote: desliza.querySelector("svg").getAnimations().filter((a) => a.playState === "running").length },
         // La solución: «¿precio?» y «¿cuál era?» no quedan detrás del icono.
         solucion: (() => { const s = e.querySelector(".sp-solucion"); const ic = s.querySelector(".sp-icono").getBoundingClientRect(); return [...s.querySelectorAll(".sp-tachada")].map((n) => cruza(n.getBoundingClientRect(), ic)); })(),
-        indiceVisible: getComputedStyle(e.querySelector(".lt-indice")).visibility === "visible" && Number(getComputedStyle(e.querySelector(".lt-indice")).opacity) > 0.5,
-        gruesas: gruesas.map((g) => [Number(g.dataset.rayaPaso), g.dataset.estado]),
-        centrada: actualRaya ? Math.abs(actualRaya.top + actualRaya.height / 2 - (ind.top + ind.height / 2)) : null,
-        etiquetas: gruesas.every((g) => g.getAttribute("aria-label")),
-        finas: finas.map((f) => [Number(f.dataset.rayaFina), f.dataset.llena]),
-        tocables: gruesas.filter(enVentana).length >= 1 && gruesas.filter(enVentana).every(toca),
-        finasNoTocables: finas.every((f) => getComputedStyle(f).pointerEvents === "none"),
-        altoIndice: ind.height,
+        barraVisible: barra.width > 100 && Number(getComputedStyle(barraEl).opacity) > 0.5,
+        segEstados: segs.map((g) => [Number(g.dataset.seg), g.dataset.estado]),
+        llenado: segs.map((g) => new DOMMatrix(getComputedStyle(g.querySelector("i")).transform).a),
+        etiquetas: segs.every((g) => g.getAttribute("aria-label")),
         burbujasVistas: vistas.length,
         dentro: tel.top >= 0 && tel.left >= 0 && tel.bottom <= innerHeight + 1 && tel.right <= innerWidth + 1,
         hiloVisible: e.querySelector("[data-hilo]").dataset.visible === "si",
@@ -182,7 +178,7 @@ for (const [ancho, alto] of [
   {
     const primera = await medir(pagina, 0);
     const bienvenida = primera.separadores.find(([id]) => id === "bienvenida");
-    ok(bienvenida && bienvenida[1] > 0.99 && /deslizapp/.test(bienvenida[2]) && primera.indiceVisible && primera.fondoTienda > 0.95 && primera.iconoOculto && !primera.telefonoVisible, "la primera pantalla ya está completa al abrir, sin hacer scroll: la bienvenida con «deslizapp» sobre Bosque y el índice (sin el icono pequeño)");
+    ok(bienvenida && bienvenida[1] > 0.99 && /deslizapp/.test(bienvenida[2]) && primera.barraVisible && primera.fondoTienda > 0.95 && primera.iconoOculto && !primera.telefonoVisible, "la primera pantalla ya está completa al abrir, sin hacer scroll: la bienvenida con «deslizapp» sobre Bosque y el índice (sin el icono pequeño)");
     ok(!(await pagina.evaluate(() => !!document.querySelector("video, [data-portada], [data-desliza], [data-bloqueo]"))), "ya no hay video de portada, «Desliza y mira» ni teléfono bloqueado");
   }
 
@@ -195,15 +191,23 @@ for (const [ancho, alto] of [
     // Mientras dura el paso: ¿se ve el ♥ en algún momento?
     let vioHilo = false;
     let dosCorazones = false;
-    let menosFinas = Infinity;
+    let vioMedio = false;
+    let primeraMuestra = null;
+    let noAlLlegar = false;
+    let antesDeTiempo = false;
+    const t0 = Date.now();
     for (const fin = Date.now() + paso.duracion + 1400; Date.now() < fin; ) {
       const v = await pagina.evaluate((i) => {
         const hilo = Number(getComputedStyle(document.querySelector(".lt-hilo-dentro")).opacity) > 0.05;
         const burst = document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".burst.go");
-        const llenas = [...document.querySelectorAll(`[data-raya-fina="${i}"][data-llena="si"]`)].length;
-        return { llenas, hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
+        const llenado = new DOMMatrix(getComputedStyle(document.querySelector(`[data-seg="${i}"] i`)).transform).a;
+        return { llenado, desliza: document.querySelector(".lt-escenario").dataset.deslizaOk, hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
       }, i);
-      menosFinas = Math.min(menosFinas, v.llenas);
+      primeraMuestra ??= v;
+      const t = Date.now() - t0;
+      if (t < 500) noAlLlegar ||= v.desliza === "no";
+      if (t > 500 && t < paso.duracion - 400 && v.desliza === "si") antesDeTiempo = true;
+      vioMedio ||= v.llenado > 0.05 && v.llenado < 0.95;
       vioHilo ||= v.hilo;
       dosCorazones ||= v.dos;
       await pagina.waitForTimeout(60);
@@ -213,14 +217,18 @@ for (const [ancho, alto] of [
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
     ok(m.burbujaVisible && m.nitida && !(m.telefonoVisible && m.tapaPantalla && !m.telefonoEncima), `${paso.id}: la burbuja está completa, sin desenfoque y sin tapar la pantalla (lo que se monta queda debajo del teléfono)`);
-    // El indicador: una gruesa por paso (la del paso, marcada) y una fina por toque o fase; las del paso, llenas al terminar y
-    // llenándose durante él (al llegar, todavía vacías); las de antes, llenas; las de después, vacías.
-    const finasEsperadas = PASOS.reduce((n, p) => n + p.fases, 0);
+    // La barra de historias: un segmento por paso; los de antes, llenos; los de después, vacíos; el del paso se llena durante su duración (al
+    // llegar, vacío o casi) y al terminar está lleno. El rótulo dice el capítulo y la posición.
     ok(
-      m.gruesas.length === PASOS.length && m.gruesas.every(([j, g]) => g === (j === i ? "actual" : j < i ? "visto" : "falta")) && m.etiquetas && m.finas.length === finasEsperadas && m.finas.every(([j, ll]) => (j <= i ? ll === "si" : ll === "no")),
-      `${paso.id}: el indicador (${m.gruesas.length} gruesas, ${m.finas.length} finas) marca este paso y sus ${paso.fases} fina(s) llenas`,
+      m.segEstados.length === PASOS.length && m.etiquetas && m.segEstados.every(([j, g]) => g === (j === i ? "llenando" : j < i ? "lleno" : "vacio")) && m.llenado.every((f, j) => (j <= i ? f > 0.99 : f < 0.01)),
+      `${paso.id}: la barra de historias (${m.segEstados.length} segmentos) tiene llenos los de antes y este, y vacíos los de después`,
     );
-    if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
+    ok(m.rotulo === `${CAPITULOS_NOMBRES[paso.capitulo - 1]} · ${i + 1} de ${PASOS.length}`, `${paso.id}: el rótulo dice «${m.rotulo}»`);
+    ok(m.rotuloFuente.px === 12 && Number(m.rotuloFuente.peso) === 800, `${paso.id}: el rótulo va en 12 px y 800`);
+    if (i > 0 && primeraMuestra) ok(vioMedio && primeraMuestra.llenado < 0.25, `${paso.id}: su segmento se llena durante el paso (al llegar ${primeraMuestra.llenado.toFixed(2)}, y se vio a medias)`);
+    // «Desliza ↑»: al llegar no está; al terminar el paso aparece (menos en el último) y no tapa nada.
+    if (i > 0) ok(noAlLlegar && !antesDeTiempo, `${paso.id}: «Desliza» se va al llegar y no sale hasta que termina la animación del paso`);
+    ok(i === PASOS.length - 1 ? !m.desliza.visible : m.desliza.visible && m.desliza.dentro && !m.desliza.choca, `${paso.id}: ${i === PASOS.length - 1 ? "en el último paso no sale «Desliza»" : "al terminar el paso sale «Desliza ↑», dentro de la pantalla y sin tapar el teléfono ni la burbuja"}`);
     // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
     if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
     else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
@@ -232,20 +240,17 @@ for (const [ancho, alto] of [
     if (m.aire) ok(Math.abs(m.aire.arriba - m.aire.abajo) <= 2, `${paso.id}: la burbuja, simétrica: ${m.aire.arriba.toFixed(1)} px de aire arriba y ${m.aire.abajo.toFixed(1)} abajo (±2)`);
     if (m.checks) ok(m.checks.length === 2 && m.checks.every((c) => c.largo > 5 && c.offset === 0 && c.color === "rgb(83, 189, 235)"), `${paso.id}: el doble check, los dos trazos completos y azules`);
     if (m.montaje !== null) ok(m.montaje >= 16 && m.montaje <= 24, `${paso.id}: el teléfono se monta ${m.montaje.toFixed(1)} px sobre la burbuja (16–24)`);
-    ok(!m.indiceTapa && m.indiceIzquierda && !m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el índice (a la izquierda) no se cruza con el mockup; el teléfono va por encima de las burbujas y no tapa sus letras`);
-    ok(m.rayasFinas, `${paso.id}: las rayas del indicador son de 2 px o menos`);
-    ok(!m.indiceTapaBurbuja && !m.indiceTapaEnlace, `${paso.id}: las rayitas del índice no tocan ni se montan sobre las burbujas ni el teléfono`);
+    ok(!m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el teléfono va por encima de las burbujas y no tapa sus letras`);
+    ok(m.segAlto && Math.abs(m.huecoSeg - 3) < 0.6, `${paso.id}: los segmentos miden 3–4 px de alto, con huecos de 3 px (${m.huecoSeg.toFixed(1)})`);
+    ok(!m.barraChoca.saltar && !m.barraChoca.icono && !m.barraChoca.telefono && !m.barraChoca.burbuja && !m.barraChoca.enlace && m.barraDentro, `${paso.id}: la barra y su rótulo no tocan «Saltar», el icono, el teléfono ni las burbujas, y caben en el ancho (${JSON.stringify(m.barraChoca)})`);
+    { const [r, g] = m.colorBarra.match(/\d+/g).map(Number); ok(verde(paso) ? r > 200 : r < 80 && g < 120, `${paso.id}: el color de la barra se adapta al fondo (${m.colorBarra})`); }
     if (paso.id === "solucion") ok(m.solucion.length === 2 && m.solucion.every((c) => !c), "solucion: «¿precio?» y «¿cuál era?» no quedan detrás del icono");
     if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
     const temaEsperado = verde(paso) ? m.bosque : paso.lado === "antes" ? m.arena : m.rosa;
     ok(m.tema && m.tema.toLowerCase() === temaEsperado.toLowerCase(), `${paso.id}: theme-color del capítulo (${m.tema})`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
-      ok(
-        m.indiceVisible && m.tocables && m.finasNoTocables && m.altoIndice >= alto * 0.24 && m.altoIndice <= alto * 0.31 && m.centrada !== null && m.centrada < 3,
-        `${paso.id}: el indicador es una regla corta (${Math.round(m.altoIndice)} px, 25–30 % del alto) con la raya del paso en el centro; las gruesas a la vista se tocan sin solaparse y las finas no`,
-      );
-      ok(m.iconoCaja.left < 40 && m.iconoCaja.top < 40 && m.iconoCaja.w >= 36 && m.iconoCaja.w <= 44, `${paso.id}: el icono, arriba a la izquierda (${Math.round(m.iconoCaja.w)} px)`);
+      ok(m.iconoCaja.left < 40 && m.iconoCaja.top < 80 && m.iconoCaja.w >= 36 && m.iconoCaja.w <= 44, `${paso.id}: el icono, arriba a la izquierda (${Math.round(m.iconoCaja.w)} px)`);
       // La página del teléfono cubre la pantalla del mockup entera (ajustes-lewis-8.md §6): junto a la isla y en las esquinas de
       // arriba, el color no es el del fondo de la landing.
       if (!paso.escena) {
@@ -295,7 +300,7 @@ for (const [ancho, alto] of [
     const toques = Number(d.toques) - Number(antes.toques);
     const viajes = Number(d.viajes) - Number(antes.viajes);
     if (paso.dedo === "no" || i === 0) ok(!vioHilo && toques === 0 && viajes === 0, `${paso.id}: sin toque ni viaje, el ♥ no se ve`);
-    else if (paso.dedo === "toque") ok(vioHilo && toques === paso.fases, `${paso.id}: el ♥ marca ${toques} toque(s), uno por raya fina (${paso.fases})`);
+    else if (paso.dedo === "toque") ok(vioHilo && toques === paso.fases, `${paso.id}: el ♥ marca ${toques} toque(s), uno por toque previsto (${paso.fases})`);
     else ok(vioHilo && viajes === 1, `${paso.id}: el ♥ cruza al otro teléfono y se va`);
     ok(!m.hiloVisible, `${paso.id}: al terminar, el ♥ ya no está`);
     if (paso.id === "aaah") {
@@ -355,12 +360,12 @@ for (const [ancho, alto] of [
     const todo = textos.join("\n");
     ok(!/La Vuelta|la-vuelta|Brisa|Vuelta Store/.test(todo) && /Tu Tienda/.test(todo), "la tienda de la demo es «Tu Tienda»: ni «La Vuelta», ni «Brisa», ni «Vuelta Store» en la landing ni en los teléfonos");
   }
-  // El indicador: tocar una gruesa (de las que se ven, cerca de la del paso) lleva a su paso.
+  // La barra: tocar un segmento lleva a su paso.
   for (const j of [PASOS.length - 3, PASOS.length - 5]) {
-    await pagina.locator(`[data-raya-paso="${j}"]`).click();
+    await pagina.locator(`[data-seg="${j}"]`).click();
     await pagina.waitForTimeout(1600);
     const dc = await datos(pagina);
-    ok(dc.paso === PASOS[j].id, `el indicador: la raya de «${PASOS[j].id}» lleva a «${dc.paso}»`);
+    ok(dc.paso === PASOS[j].id, `la barra: el segmento de «${PASOS[j].id}» lleva a «${dc.paso}»`);
   }
   // El cambio de lado (docs/prompts/conoce-portada-narrativa.md): al llegar, rosa y «Pidió en segundos.»; un momento después, los iconos se
   // intercambian y todo pasa a verde. Al retroceder, el icono de la app vuelve al rosado.
@@ -407,6 +412,7 @@ for (const [ancho, alto] of [
   const atras = await datos(pagina);
   const ma = await medir(pagina, PASOS.length - 2);
   const quitada = await pagina.evaluate((n) => { const b = document.querySelector(`[data-burbuja="${n}"]`); return b.dataset.estado === "futura" && Number(getComputedStyle(b).opacity) < 0.05; }, PASOS.length - 1);
+  ok(ma.llenado[PASOS.length - 2] > 0.99 && ma.llenado[PASOS.length - 1] < 0.01, "al volver atrás, el segmento del paso al que vuelves se ve lleno (y el de después, vacío)");
   ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible && quitada, `al subir, vuelve a «${atras.paso}» con su burbuja completa y la del paso de después se quita`);
 
   // Volver de `aaah` a `hola` deshace los dos likes y el catálogo vuelve al termo, sin saltos.
@@ -523,6 +529,11 @@ console.log("\nMovimiento reducido");
   const m = await medir(pagina, iHola);
   ok(m.burbujaVisible && m.nitida, "cada paso muestra su estado final al instante (burbuja completa sin animación)");
   ok(m.checks?.length === 2 && m.checks.every((c) => c.offset === 0 && c.color === "rgb(83, 189, 235)"), "con movimiento reducido, el doble check ya está completo y azul");
+  await pagina.waitForTimeout(500);
+  {
+    const r = await medir(pagina, iHola);
+    ok(r.llenado[iHola] > 0.99 && r.segEstados[iHola][1] === "lleno" && r.desliza.visible && r.desliza.rebote === 0 && !r.desliza.choca, "con movimiento reducido, la barra salta a lleno, y «Desliza ↑» sale enseguida y sin rebote");
+  }
   // Sin ♥: llega al «aaah» en su estado final, sin toques.
   for (let i = iHola + 1; i <= PASOS.findIndex((p) => p.id === "aaah"); i++) {
     await irAlPaso(pagina, i);

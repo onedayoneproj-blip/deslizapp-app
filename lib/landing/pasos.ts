@@ -63,8 +63,7 @@ export type Paso = {
    *  no lleva burbuja: su texto va en la propia pantalla. `iconos`: qué palabras (tal cual salen en
    *  el texto) llevan delante el icono de la app que las nombra, en su color (ajustes-lewis-12.md §2); como mucho dos. */
   burbuja: { texto: string; remate?: string; resalta?: string[]; iconos?: Record<string, IconoBurbuja> } | null;
-  /** Las rayas finas del indicador (ajustes-lewis-7.md §1): una por toque del ♥, o una por fase con tiempo propio si el paso no
-   *  tiene toques. probar-landing comprueba que los toques reales coinciden. */
+  /** Los toques del ♥ de la demo en este paso (o fases con tiempo propio si no tiene): probar-landing comprueba que los toques reales coinciden. */
   fases: number;
   dedo: Dedo;
   /** Solo con dedo «viaje»: de qué ancla de qué teléfono sale el ♥ y a cuál llega. */

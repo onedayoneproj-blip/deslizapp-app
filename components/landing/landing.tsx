@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PieContacto } from "../inicio-publico/pie-contacto";
-import { PASOS, burbujaLarga, horaDeBurbuja, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
+import { CAPITULOS_NOMBRES, PASOS, burbujaLarga, horaDeBurbuja, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
@@ -72,7 +72,8 @@ export function Landing({ desde = null }: { /** «Desde RD$499/mes · 30 días g
             </a>
           </div>
 
-          <Indice />
+          <Barra />
+          <Desliza />
 
           {/* Las burbujas: Deslizapp le cuenta la demo a quien la ve, como en un chat */}
           <div className="lt-burbujas" aria-live="polite">
@@ -238,30 +239,41 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una raya gruesa por paso de la demo (cada vez que hay que
- * deslizar) y, entre dos gruesas, una fina por cada toque o fase del paso (`fases` en lib/landing/pasos.ts).
- * Las finas se llenan mientras el paso avanza. Es una regla corta (un 27 % del alto) que se desplaza para dejar la raya del paso en
- * el centro. Solo las gruesas se tocan (llevan a su paso). El controlador marca el estado y la desplaza.
+ * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por paso de la demo y, debajo,
+ * el capítulo y la posición («Elige · 9 de 19»). El controlador marca cada segmento (data-estado: lleno, llenando o vacío) y el rótulo. Los
+ * segmentos son enlaces (llevan a su paso) con un área de toque más alta que ellos.
  */
-function Indice() {
+function Barra() {
   return (
-    <nav className="lt-indice" aria-label="Recorrido de la demo">
-      <div className="lt-indice-rayas">
+    <nav className="lt-barra" aria-label="Recorrido de la demo">
+      <div className="lt-barra-segs">
         {PASOS.map((p, i) => (
-          <Fragment key={p.id}>
-            <a href={`#paso-${p.id}`} className="lt-raya-gruesa" data-raya-paso={i} data-estado={i === 0 ? "actual" : "falta"} aria-current={i === 0 ? "step" : undefined} aria-label={etiquetaPaso(p)} />
-            {Array.from({ length: p.fases }, (_, k) => (
-              <span key={k} className="lt-raya-fina" data-raya-fina={i} data-llena="no" aria-hidden="true" />
-            ))}
-          </Fragment>
+          <a key={p.id} href={`#paso-${p.id}`} className="lt-seg" data-seg={i} data-estado={i === 0 ? "llenando" : "vacio"} aria-current={i === 0 ? "step" : undefined} aria-label={etiquetaPaso(p)}>
+            <i />
+          </a>
         ))}
       </div>
+      <p className="lt-barra-rotulo" data-barra-rotulo aria-hidden="true">
+        {CAPITULOS_NOMBRES[PASOS[0]!.capitulo - 1]} · 1 de {PASOS.length}
+      </p>
     </nav>
   );
 }
 
+/** «Desliza ↑»: aparece abajo cuando termina la animación del paso y se va en cuanto se desliza (controlador.tsx). Decoración. */
+function Desliza() {
+  return (
+    <div className="lt-desliza" aria-hidden="true">
+      Desliza
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" />
+      </svg>
+    </div>
+  );
+}
+
 const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a Deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
-/** Lo que lee un lector de pantalla de la raya de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
+/** Lo que lee un lector de pantalla del segmento de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
 function etiquetaPaso(p: Paso) {
   return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
 }

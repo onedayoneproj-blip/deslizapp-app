@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { registrarEvento } from "@/lib/medicion/registrar-evento";
-import { DEDO_LLEGA, burbujaLarga, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
+import { CAPITULOS_NOMBRES, DEDO_LLEGA, burbujaLarga, MENSAJE_LISTO, MENSAJE_PASO, MENSAJE_TOQUE, MENSAJE_VIAJE, PASOS, estadoPaso, indicePaso, type IdAncla, type IdTelefono, type MensajeDedo } from "@/lib/landing/pasos";
 
 const REDUCIDO = "(prefers-reduced-motion: reduce)";
 /** El ♥ mide esto sin escalar (landing.css .lt-hilo). */
@@ -44,12 +44,11 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const pulso = e.querySelector<HTMLElement>("[data-hilo-pulso]");
     // (por índice de paso: `cambio-lado` no tiene burbuja)
     const burbujas = PASOS.map((_, i) => e.querySelector<HTMLElement>(`[data-burbuja="${i}"]`));
-    const gruesas = [...e.querySelectorAll<HTMLElement>("[data-raya-paso]")];
-    const finas = [...e.querySelectorAll<HTMLElement>("[data-raya-fina]")];
-    const reglaCaja = e.querySelector<HTMLElement>(".lt-indice");
-    const regla = e.querySelector<HTMLElement>(".lt-indice-rayas");
+    const segmentos = [...e.querySelectorAll<HTMLElement>("[data-seg]")];
+    const rotulo = e.querySelector<HTMLElement>("[data-barra-rotulo]");
     let activo = -1;
-    let llenar = 0;
+    let muestraDesliza = 0;
+    let yDesliza = 0;
     let raf = 0;
     let irse = 0;
     let cambio = 0;
@@ -75,6 +74,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let finalVisto = false;
     const obsCierre = new IntersectionObserver(([en]) => {
       enCierre = Boolean(en?.isIntersecting);
+      if (enCierre) e.dataset.deslizaOk = "no";
       // Medición (docs/18-medicion.md): llegó al final, una vez por visita.
       if (enCierre && !finalVisto) {
         finalVisto = true;
@@ -85,32 +85,37 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     if (cierre) obsCierre.observe(cierre);
 
     /**
-     * El indicador (ajustes-lewis-7.md §1): la gruesa del paso, marcada al llegar; sus finas se llenan una a una con cada toque o
-     * viaje del paso (o al acabar su tiempo, si no tiene toques). Los pasos de antes, llenos; los de después, vacíos.
+     * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por paso. Los de
+     * antes, llenos; los de después, vacíos; el del paso se llena durante su `duracion` (CSS, --dur) y, cuando termina, aparece abajo
+     * «Desliza ↑». Sin animar (movimiento reducido, saltos largos, al volver atrás) el segmento está lleno y «Desliza» sale enseguida.
+     * Nada se bloquea: deslizar antes de tiempo funciona igual, y «Desliza» se va en cuanto se desliza.
      */
-    const finasDe = (i: number) => finas.filter((f) => f.dataset.rayaFina === String(i));
-    const marcarIndice = (i: number, animar: boolean) => {
-      window.clearTimeout(llenar);
-      gruesas.forEach((g) => {
-        const j = Number(g.dataset.rayaPaso);
-        g.dataset.estado = j === i ? "actual" : j < i ? "visto" : "falta";
+    const marcarBarra = (i: number, anima: boolean) => {
+      window.clearTimeout(muestraDesliza);
+      e.dataset.deslizaOk = "no";
+      segmentos.forEach((g) => {
+        const j = Number(g.dataset.seg);
+        g.dataset.estado = j === i ? (anima ? "llenando" : "lleno") : j < i ? "lleno" : "vacio";
         if (j === i) g.setAttribute("aria-current", "step");
         else g.removeAttribute("aria-current");
       });
-      // La regla se desplaza para dejar la raya del paso en su centro.
-      const actual = gruesas.find((g) => Number(g.dataset.rayaPaso) === i);
-      if (actual && reglaCaja && regla) regla.style.setProperty("--regla", `${(reglaCaja.clientHeight / 2 - (actual.offsetTop + actual.offsetHeight / 2)).toFixed(1)}px`);
-      finas.forEach((f) => {
-        const j = Number(f.dataset.rayaFina);
-        f.dataset.llena = j < i || (j === i && !animar) ? "si" : "no";
-      });
-      // Por si algún toque no llegó (o el paso no tiene toques): al acabar su tiempo, el paso queda completo.
-      if (animar) llenar = window.setTimeout(() => finasDe(i).forEach((f) => (f.dataset.llena = "si")), PASOS[i]!.duracion + 300);
+      const paso = PASOS[i]!;
+      segmentos[i]?.style.setProperty("--dur", `${paso.duracion}ms`);
+      if (rotulo) rotulo.textContent = `${CAPITULOS_NOMBRES[paso.capitulo - 1]} · ${i + 1} de ${PASOS.length}`;
+      // En el último paso no hay nada más que deslizar (sigue el cierre, que tiene sus botones).
+      if (i < PASOS.length - 1) {
+        muestraDesliza = window.setTimeout(() => {
+          if (enCierre) return;
+          yDesliza = window.scrollY;
+          e.dataset.deslizaOk = "si";
+        }, anima ? paso.duracion + 150 : 250);
+      }
     };
-    const llenarUna = () => {
-      const f = finasDe(activo).find((x) => x.dataset.llena === "no");
-      if (f) f.dataset.llena = "si";
+    // «Desliza» se va en cuanto la persona desliza (antes de que cambie el paso).
+    const alDeslizar = () => {
+      if (e.dataset.deslizaOk === "si" && Math.abs(window.scrollY - yDesliza) > 10) e.dataset.deslizaOk = "no";
     };
+    window.addEventListener("scroll", alDeslizar, { passive: true });
     /**
      * Las burbujas como un chat (ajustes-lewis-4.md y -8.md): la del paso arriba de su columna, con el borde bajo el teléfono; las
      * anteriores suben lo que ocupan (--sube) por detrás del teléfono y se van; las siguientes esperan pequeñas abajo a la derecha.
@@ -194,7 +199,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const toque = (p: Punto) => {
       llevar(() => p, DEDO_LLEGA - 40, () => {
         e.dataset.toques = String(Number(e.dataset.toques ?? 0) + 1);
-        llenarUna();
         const check = PASOS[activo]?.id === "despachar";
         if (check) e.dataset.check = "si";
         pulso?.animate([{ opacity: 0.9, transform: "scale(.6)" }, { opacity: 0, transform: "scale(2.4)" }], { duration: 560, easing: "cubic-bezier(.2,.8,.2,1)" });
@@ -205,8 +209,6 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     const viaje = (destino: () => Punto | null, desde?: Punto | null) =>
       llevar(destino, VIAJE, () => {
         e.dataset.viajes = String(Number(e.dataset.viajes ?? 0) + 1);
-        // (en un paso de viaje, el viaje es su fase; en uno de toques, sus rayas son los toques)
-        if (PASOS[activo]?.dedo === "viaje") llenarUna();
         esconder();
       }, desde);
 
@@ -258,7 +260,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
           pintarFondo();
         }, CAMBIO_LADO_MS);
       }
-      marcarIndice(i, animar);
+      marcarBarra(i, !reducido.matches && ((desde < 0 && i === 0) || i === desde + 1));
       apilar(i);
       pintarFondo();
       if (i >= indicePaso("aaah")) cargarTienda();
@@ -330,7 +332,8 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     return () => {
       obs.disconnect();
       window.clearTimeout(espera);
-      window.clearTimeout(llenar);
+      window.clearTimeout(muestraDesliza);
+      window.removeEventListener("scroll", alDeslizar);
       window.clearTimeout(cambio);
       obsCierre.disconnect();
       if (tema && temaAntes !== null) tema.content = temaAntes;
@@ -360,6 +363,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
         data-check="no"
         data-capitulo="1"
         data-larga="no"
+        data-desliza-ok="no"
         data-anima="entrada"
         data-toques="0"
         data-viajes="0"

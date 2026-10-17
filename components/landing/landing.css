@@ -27,8 +27,9 @@
   position: relative;
 }
 .lt-escenario {
-  --alto-arriba: calc(58px + env(safe-area-inset-top));
-  --alto-abajo: calc(20px + env(safe-area-inset-bottom));
+  /* arriba, la barra de historias con su rótulo (30 px) y, debajo, el icono y «Saltar»; abajo, la franja de «Desliza ↑» */
+  --alto-arriba: calc(76px + env(safe-area-inset-top));
+  --alto-abajo: calc(40px + env(safe-area-inset-bottom));
   --mov: 520ms;
   --curva: cubic-bezier(0.2, 0.8, 0.2, 1);
   position: sticky;
@@ -166,7 +167,7 @@
   position: absolute;
   z-index: 9;
   left: max(16px, env(safe-area-inset-left));
-  top: calc(10px + env(safe-area-inset-top));
+  top: calc(30px + env(safe-area-inset-top));
   width: 40px;
   height: 40px;
   transition: opacity 380ms ease;
@@ -361,7 +362,7 @@
 .lt-arriba {
   position: absolute;
   z-index: 8;
-  top: calc(10px + env(safe-area-inset-top));
+  top: calc(30px + env(safe-area-inset-top));
   left: max(16px, env(safe-area-inset-left));
   right: max(16px, env(safe-area-inset-right));
   height: 40px;
@@ -385,81 +386,119 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- El indicador, a la izquierda (ajustes-lewis-7.md §1 y -8.md): una regla corta, un 27 % del alto, centrada en vertical.
-   Las rayas van con aire entre ellas y la regla se desplaza para dejar la del paso en el centro; arriba y abajo se desvanece.
-   ---- */
-.lt-indice {
+/* ---- La barra de historias, arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por paso, con huecos de 3 px.
+   Los hechos, llenos; el del paso se llena durante su `duracion` (scaleX, --dur lo pone el controlador); los que faltan, vacíos. Su color se
+   adapta al fondo: oscuro sobre arena y rosa, claro sobre Bosque. Debajo, el capítulo y la posición. Va a todo el ancho, sobre «Saltar» y el
+   icono (que bajan lo que ocupa); en escritorio, solo sobre la columna de la demo. ---- */
+.lt-barra {
   position: absolute;
   z-index: 8;
-  left: max(6px, env(safe-area-inset-left));
-  top: 50%;
-  height: 27%;
-  /* lo justo para las rayas (la actual mide 30 px): la caja no pisa el teléfono */
-  width: 38px;
-  transform: translateY(-50%);
-  overflow: hidden;
+  top: calc(8px + env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
   color: var(--marca-bosque);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
-  transition:
-    color 600ms ease,
-    opacity 400ms ease;
+  transition: color 600ms ease;
 }
-.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-indice {
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-barra {
   color: var(--marca-papel);
 }
-.lt-indice-rayas {
+.lt-barra-segs {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 9px;
-  padding-left: 4px;
-  transform: translateY(var(--regla, 0px));
-  transition: transform 420ms var(--curva);
+  gap: 3px;
 }
-/* Como las marcas del reloj de iOS: trazos muy finos con las puntas redondeadas (ajustes-lewis-8.md §1). La gruesa se nota por
-   más larga y más opaca, no por más ancha; la actual, más larga y sólida. */
-.lt-raya-gruesa {
+.lt-seg {
   position: relative;
   display: block;
-  flex: none;
-  width: 14px;
-  height: 1.5px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 3px;
   border-radius: 999px;
-  background: currentColor;
-  opacity: 0.5;
+  background: color-mix(in srgb, currentColor 28%, transparent);
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    width 420ms var(--curva),
-    opacity 300ms ease;
 }
-/* El área de toque: unos 20 px de alto (y más ancha que la raya), sin pisar la de la gruesa vecina */
-.lt-raya-gruesa::before {
+/* El área de toque: más alta que el segmento (unos 22 px), sin pisar el rótulo ni los botones de debajo */
+.lt-seg::before {
   content: "";
   position: absolute;
-  inset: -9px -14px -9px -6px;
+  inset: -10px -1.5px -4px;
 }
-.lt-raya-gruesa[data-estado="visto"] {
-  opacity: 0.75;
-}
-.lt-raya-gruesa[data-estado="actual"] {
-  width: 30px;
-  height: 2px;
-  opacity: 1;
-}
-.lt-raya-fina {
-  display: block;
-  flex: none;
-  width: 7px;
-  height: 1px;
-  border-radius: 999px;
+.lt-seg i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: currentColor;
-  opacity: 0.25;
-  pointer-events: none;
-  transition: opacity 250ms ease;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
 }
-.lt-raya-fina[data-llena="si"] {
+.lt-seg[data-estado="lleno"] i {
+  transform: none;
+}
+.lt-seg[data-estado="llenando"] i {
+  animation: lt-llena var(--dur, 2s) linear forwards;
+}
+@keyframes lt-llena {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: none;
+  }
+}
+.lt-barra-rotulo {
+  margin: 5px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  text-align: center;
   opacity: 0.85;
+}
+
+/* ---- «Desliza ↑»: abajo, centrado, en la franja libre bajo la burbuja. Aparece cuando termina el paso y se va en cuanto se desliza. ---- */
+.lt-desliza {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 12px 0 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--marca-papel) 88%, transparent);
+  color: var(--marca-bosque);
+  font-weight: 800;
+  font-size: 0.875rem;
+  box-shadow: var(--sombra-flotante);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  transition:
+    opacity 260ms ease,
+    transform 260ms var(--curva);
+}
+.lt-escenario[data-desliza-ok="si"] .lt-desliza {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.lt-desliza svg {
+  display: block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lt-escenario[data-desliza-ok="si"] .lt-desliza svg {
+    animation: lt-rebote 1.3s ease-in-out infinite;
+  }
+}
+@keyframes lt-rebote {
+  0%,
+  100% {
+    transform: translateY(1px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* ---- Las burbujas: mensajes enviados de WhatsApp en iOS (modo oscuro), a la derecha, apiladas como un chat
@@ -615,11 +654,23 @@
   .lt-burbuja[data-larga] {
     font-size: 1.6rem;
   }
-  .lt-indice {
-    left: 28px;
+  /* La barra y «Desliza» van sobre la columna de la demo (la mitad derecha); el icono y «Saltar», en las esquinas, como siempre. */
+  .lt-escenario {
+    --alto-arriba: calc(58px + env(safe-area-inset-top));
+    --alto-abajo: calc(20px + env(safe-area-inset-bottom));
   }
-  .lt-raya-gruesa[data-estado="actual"] {
-    width: 34px;
+  .lt-barra {
+    left: 50%;
+    right: auto;
+    width: min(46vw, 560px);
+  }
+  .lt-desliza {
+    left: calc(50% + min(46vw, 560px) / 2);
+    bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+  .lt-arriba,
+  .lt-icono {
+    top: calc(10px + env(safe-area-inset-top));
   }
   .lt-icono {
     left: 24px;
