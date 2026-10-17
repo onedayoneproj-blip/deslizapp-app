@@ -148,3 +148,35 @@ export type MensajePaso = { tipo: typeof MENSAJE_PASO; paso: number; animar: boo
 export const MENSAJE_TOQUE = "dz-landing-toque";
 export const MENSAJE_VIAJE = "dz-landing-viaje";
 export type MensajeDedo = { tipo: typeof MENSAJE_TOQUE | typeof MENSAJE_VIAJE; x: number; y: number };
+
+// ---------------------------------------------------------------------------------------------------------------------------------------
+// El avance por capítulos: un segmento de la barra y un deslizamiento por capítulo. Dentro de un capítulo, los pasos avanzan solos (cuando
+// termina la animación de un paso y pasa el tiempo de leer su burbuja, sigue el siguiente). Puro: lo prueban tests/landing.test.mjs y
+// scripts/probar-landing.mjs.
+
+/** Cuánto se deja para leer la burbuja de un paso, una vez terminada su animación: 1,8 s más 0,04 s por carácter, con tope de 4 s. Un
+ *  paso sin burbuja (un separador, el cambio de lado) trae su texto en pantalla: 2 s. */
+export const lecturaMs = (p: Paso) => {
+  if (!p.burbuja) return 2000;
+  const letras = p.burbuja.texto.length + (p.burbuja.remate ? p.burbuja.remate.length + 1 : 0);
+  return Math.min(4000, Math.round(1800 + 40 * letras));
+};
+
+/** Los índices de los pasos de un capítulo (1..CAPITULOS), en orden. */
+export const pasosDeCapitulo = (capitulo: number) => PASOS.flatMap((p, i) => (p.capitulo === capitulo ? [i] : []));
+
+/**
+ * La línea de tiempo de un capítulo, en ms desde que empieza: `inicios[k]` es cuándo entra su paso k (el anterior termina su animación y su
+ * lectura) y `total`, cuándo termina la animación del último: el segmento de la barra se llena justo ahí y sale «Desliza ↑». El último
+ * paso no lleva tiempo de lectura (no hay siguiente paso que esperar).
+ */
+export function lineaDelCapitulo(capitulo: number): { pasos: number[]; inicios: number[]; total: number } {
+  const pasos = pasosDeCapitulo(capitulo);
+  const inicios: number[] = [];
+  let t = 0;
+  pasos.forEach((i, k) => {
+    inicios.push(t);
+    t += PASOS[i]!.duracion + (k < pasos.length - 1 ? lecturaMs(PASOS[i]!) : 0);
+  });
+  return { pasos, inicios, total: t };
+}

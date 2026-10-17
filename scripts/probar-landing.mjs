@@ -13,7 +13,7 @@ import "../tests/cargar-ts.mjs";
 
 const require = createRequire(import.meta.url);
 const playwright = require("playwright");
-const { PASOS, CAPITULOS_NOMBRES, estadoPaso } = await import("../lib/landing/pasos.ts");
+const { PASOS, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, primerPasoDe, lineaDelCapitulo } = await import("../lib/landing/pasos.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 
 // Las pantallas sin teléfono (los separadores y el cambio de lado) y las que se dibujan dentro del de la compradora.
@@ -49,7 +49,10 @@ async function cubrePantalla(pagina, telefono, fondo) {
   return { ok: malos.length === 0, detalle: malos.map((p) => p.join(",")).join(" ") };
 }
 
-const irAlPaso = (pagina, i) => pagina.evaluate((i) => document.querySelector(`[data-paso-seccion="${i}"]`).scrollIntoView({ behavior: "instant" }), i);
+// Como un enlace a un paso (#paso-…): activa ese paso exacto, sin la regla de «un deslizamiento por capítulo».
+const irAlPaso = (pagina, i) => pagina.evaluate((id) => { const a = document.createElement("a"); a.href = `#paso-${id}`; document.body.append(a); a.click(); a.remove(); }, PASOS[i].id);
+// Estos recorridos miden cada paso por separado: sin el avance solo (window.__dzSinAuto lo apaga). El avance por capítulos tiene su propia sección.
+const sinAvance = (contexto) => contexto.addInitScript(() => { window.__dzSinAuto = true; });
 const datos = (pagina) => pagina.evaluate(() => ({ ...document.querySelector(".lt-escenario").dataset }));
 
 /** Todo lo que se comprueba de un paso, medido en la página. */
@@ -71,9 +74,9 @@ const medir = (pagina, i) =>
       const segs = [...e.querySelectorAll("[data-seg]")];
       const barraEl = e.querySelector(".lt-barra");
       const barra = barraEl.getBoundingClientRect();
-      const rotuloR = e.querySelector("[data-barra-rotulo]").getBoundingClientRect();
-      // Toda la barra: los segmentos y su rótulo.
-      const barraTodo = { left: barra.left, right: barra.right, top: barra.top, bottom: rotuloR.bottom };
+      const capituloEl = e.querySelector("[data-capitulo-nombre]");
+      const capituloR = capituloEl.getBoundingClientRect();
+      const barraTodo = { left: barra.left, right: barra.right, top: barra.top, bottom: barra.bottom };
       const saltarR = e.querySelector(".lt-saltar").getBoundingClientRect();
       const iconoR = e.querySelector(".lt-icono").getBoundingClientRect();
       const desliza = e.querySelector(".lt-desliza");
@@ -133,13 +136,13 @@ const medir = (pagina, i) =>
         tapaPantalla: !!burbuja && !(b.bottom <= hueco.top + 2 || b.top >= hueco.bottom - 2 || b.right <= hueco.left + 2 || b.left >= hueco.right - 2),
         // La barra (segmentos y rótulo) no toca «Saltar», el icono, el teléfono ni las burbujas a la vista, y cabe en el ancho.
         barraChoca: { saltar: cruza(barraTodo, saltarR), icono: cruza(barraTodo, iconoR), telefono: Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(barraTodo, tel), burbuja: vistas.some((x) => cruza(barraTodo, x.getBoundingClientRect())), enlace: Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(barraTodo, e.querySelector(".lt-enlace .tm").getBoundingClientRect()) },
-        barraDentro: barra.left >= -0.5 && barra.right <= innerWidth + 0.5 && rotuloR.left >= -0.5 && rotuloR.right <= innerWidth + 0.5,
+        barraDentro: barra.left >= -0.5 && barra.right <= innerWidth + 0.5 && capituloR.right <= innerWidth + 0.5,
         huecoSeg: segs.length > 1 ? segs[1].getBoundingClientRect().left - segs[0].getBoundingClientRect().right : 0,
-        rotulo: e.querySelector("[data-barra-rotulo]").textContent.trim(),
-        rotuloFuente: { px: parseFloat(getComputedStyle(e.querySelector("[data-barra-rotulo]")).fontSize), peso: getComputedStyle(e.querySelector("[data-barra-rotulo]")).fontWeight },
+        // El nombre del capítulo: junto al icono (misma línea, a su derecha o, donde el icono no sale, en su sitio), sin tocar «Saltar».
+        capitulo: { texto: capituloEl.textContent.trim(), centroY: capituloR.top + capituloR.height / 2, izq: capituloR.left, der: capituloR.right, iconoVisible: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) > 0.5, iconoCentroY: iconoR.top + iconoR.height / 2, iconoDer: iconoR.right, bajoLaBarra: capituloR.top >= barra.bottom, tocaSaltar: cruza({ left: capituloR.left, right: capituloEl.scrollWidth + capituloR.left, top: capituloR.top, bottom: capituloR.bottom }, saltarR) },
         colorBarra: getComputedStyle(barraEl).color,
         // «Desliza ↑»: a la vista, dentro de la pantalla, sin tapar el teléfono ni las burbujas.
-        desliza: { visible: Number(getComputedStyle(desliza).opacity) > 0.99, atributo: e.dataset.deslizaOk, dentro: desR.left >= 0 && desR.right <= innerWidth && desR.bottom <= innerHeight, choca: Number(getComputedStyle(desliza).opacity) > 0.5 && (vistas.some((x) => cruza(desR, x.getBoundingClientRect())) || (Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(desR, tel)) || (Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(desR, e.querySelector(".lt-enlace .tm").getBoundingClientRect()))), rebote: desliza.querySelector("svg").getAnimations().filter((a) => a.playState === "running").length },
+        desliza: { alto: desR.height, fuente: parseFloat(getComputedStyle(desliza).fontSize), centroY: desR.top + desR.height / 2, sombra: getComputedStyle(desliza).boxShadow !== "none", visible: Number(getComputedStyle(desliza).opacity) > 0.99, atributo: e.dataset.deslizaOk, dentro: desR.left >= 0 && desR.right <= innerWidth && desR.bottom <= innerHeight, choca: Number(getComputedStyle(desliza).opacity) > 0.5 && (vistas.some((x) => cruza(desR, x.getBoundingClientRect())) || (Number(getComputedStyle(telEl).opacity) > 0.5 && cruza(desR, tel)) || (Number(getComputedStyle(e.querySelector(".lt-enlace")).opacity) > 0.5 && cruza(desR, e.querySelector(".lt-enlace .tm").getBoundingClientRect()))), burbujaCentroY: burbuja ? b.top + b.height / 2 : null, rebote: desliza.querySelector("svg").getAnimations().filter((a) => a.playState === "running").length },
         // La solución: «¿precio?» y «¿cuál era?» no quedan detrás del icono.
         solucion: (() => { const s = e.querySelector(".sp-solucion"); const ic = s.querySelector(".sp-icono").getBoundingClientRect(); return [...s.querySelectorAll(".sp-tachada")].map((n) => cruza(n.getBoundingClientRect(), ic)); })(),
         barraVisible: barra.width > 100 && Number(getComputedStyle(barraEl).opacity) > 0.5,
@@ -163,6 +166,7 @@ for (const [ancho, alto] of [
 ]) {
   console.log(`\n${ancho}×${alto}`);
   const contexto = await nav.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 1 });
+  await sinAvance(contexto);
   const pagina = await contexto.newPage();
   const errores = [];
   pagina.on("pageerror", (e) => errores.push(e.message));
@@ -187,27 +191,30 @@ for (const [ancho, alto] of [
   for (let i = 0; i < PASOS.length; i++) {
     const paso = PASOS[i];
     const antes = await datos(pagina);
+    const linea = lineaDelCapitulo(paso.capitulo);
+    const k = linea.pasos.indexOf(i);
+    const ultimoDelCapitulo = k === linea.pasos.length - 1;
     if (i > 0) await irAlPaso(pagina, i);
     // Mientras dura el paso: ¿se ve el ♥ en algún momento?
     let vioHilo = false;
     let dosCorazones = false;
-    let vioMedio = false;
+    let tarde = false;
     let primeraMuestra = null;
     let noAlLlegar = false;
     let antesDeTiempo = false;
     const t0 = Date.now();
     for (const fin = Date.now() + paso.duracion + 1400; Date.now() < fin; ) {
-      const v = await pagina.evaluate((i) => {
+      const v = await pagina.evaluate(({ cap }) => {
         const hilo = Number(getComputedStyle(document.querySelector(".lt-hilo-dentro")).opacity) > 0.05;
         const burst = document.querySelector('iframe[data-telefono="compradora"]').contentDocument.querySelector(".burst.go");
-        const llenado = new DOMMatrix(getComputedStyle(document.querySelector(`[data-seg="${i}"] i`)).transform).a;
+        const llenado = new DOMMatrix(getComputedStyle(document.querySelector(`[data-seg="${cap}"] i`)).transform).a;
         return { llenado, desliza: document.querySelector(".lt-escenario").dataset.deslizaOk, hilo: document.querySelector("[data-hilo]").dataset.visible === "si", dos: hilo && !!burst && burst.getAnimations({ subtree: true }).some((a) => a.playState === "running") };
-      }, i);
+      }, { i, cap: paso.capitulo - 1 });
       primeraMuestra ??= v;
       const t = Date.now() - t0;
       if (t < 500) noAlLlegar ||= v.desliza === "no";
       if (t > 500 && t < paso.duracion - 400 && v.desliza === "si") antesDeTiempo = true;
-      vioMedio ||= v.llenado > 0.05 && v.llenado < 0.95;
+      if (t > 500) tarde ||= v.desliza === "si";
       vioHilo ||= v.hilo;
       dosCorazones ||= v.dos;
       await pagina.waitForTimeout(60);
@@ -217,18 +224,27 @@ for (const [ancho, alto] of [
     ok(d.paso === paso.id && Number(d.bolsa) === esperado.bolsa && Number(d.total) === esperado.total && (d.codigo === "si") === esperado.codigoVisible, `${paso.id}: bolsa ${d.bolsa}, total ${d.total}, código ${d.codigo}`);
     const m = await medir(pagina, i);
     ok(m.burbujaVisible && m.nitida && !(m.telefonoVisible && m.tapaPantalla && !m.telefonoEncima), `${paso.id}: la burbuja está completa, sin desenfoque y sin tapar la pantalla (lo que se monta queda debajo del teléfono)`);
-    // La barra de historias: un segmento por paso; los de antes, llenos; los de después, vacíos; el del paso se llena durante su duración (al
-    // llegar, vacío o casi) y al terminar está lleno. El rótulo dice el capítulo y la posición.
+    // La barra de historias: un segmento por capítulo; los de antes, llenos; los de después, vacíos; el del capítulo se llena a lo largo de sus
+    // pasos (al llegar al paso, por donde le toca; al terminar su animación, al menos hasta ahí).
+    const aqui = (linea.inicios[k] + paso.duracion) / linea.total;
+    const alLlegar = linea.inicios[k] / linea.total;
     ok(
-      m.segEstados.length === PASOS.length && m.etiquetas && m.segEstados.every(([j, g]) => g === (j === i ? "llenando" : j < i ? "lleno" : "vacio")) && m.llenado.every((f, j) => (j <= i ? f > 0.99 : f < 0.01)),
-      `${paso.id}: la barra de historias (${m.segEstados.length} segmentos) tiene llenos los de antes y este, y vacíos los de después`,
+      m.segEstados.length === CAPITULOS && m.etiquetas && m.segEstados.every(([j, g]) => g === (j === paso.capitulo - 1 ? "llenando" : j < paso.capitulo - 1 ? "lleno" : "vacio")) && m.llenado.every((f, j) => (j < paso.capitulo - 1 ? f > 0.99 : j > paso.capitulo - 1 ? f < 0.01 : f >= aqui - 0.08)),
+      `${paso.id}: la barra (${m.segEstados.length} segmentos, uno por capítulo) tiene llenos los de antes, vacíos los de después y el de «${CAPITULOS_NOMBRES[paso.capitulo - 1]}» lleno al menos hasta ${Math.round(aqui * 100)} %`,
     );
-    ok(m.rotulo === `${CAPITULOS_NOMBRES[paso.capitulo - 1]} · ${i + 1} de ${PASOS.length}`, `${paso.id}: el rótulo dice «${m.rotulo}»`);
-    ok(m.rotuloFuente.px === 12 && Number(m.rotuloFuente.peso) === 800, `${paso.id}: el rótulo va en 12 px y 800`);
-    if (i > 0 && primeraMuestra) ok(vioMedio && primeraMuestra.llenado < 0.25, `${paso.id}: su segmento se llena durante el paso (al llegar ${primeraMuestra.llenado.toFixed(2)}, y se vio a medias)`);
-    // «Desliza ↑»: al llegar no está; al terminar el paso aparece (menos en el último) y no tapa nada.
-    if (i > 0) ok(noAlLlegar && !antesDeTiempo, `${paso.id}: «Desliza» se va al llegar y no sale hasta que termina la animación del paso`);
-    ok(i === PASOS.length - 1 ? !m.desliza.visible : m.desliza.visible && m.desliza.dentro && !m.desliza.choca, `${paso.id}: ${i === PASOS.length - 1 ? "en el último paso no sale «Desliza»" : "al terminar el paso sale «Desliza ↑», dentro de la pantalla y sin tapar el teléfono ni la burbuja"}`);
+    if (primeraMuestra) ok(primeraMuestra.llenado <= alLlegar + 0.1, `${paso.id}: al llegar, el segmento del capítulo va por ${Math.round(alLlegar * 100)} % (${primeraMuestra.llenado.toFixed(2)})`);
+    // El nombre del capítulo, junto al icono de la app: en la misma línea, a su derecha (donde el icono no sale, en su sitio), no bajo la barra.
+    {
+      const c = m.capitulo;
+      ok(c.texto === CAPITULOS_NOMBRES[paso.capitulo - 1] && Math.abs(c.centroY - c.iconoCentroY) < 3 && (!c.iconoVisible || c.izq >= c.iconoDer) && !c.tocaSaltar, `${paso.id}: el capítulo («${c.texto}») va en la línea del icono, a su lado, sin tocar «Saltar»`);
+    }
+    // «Desliza ↑»: solo al terminar el último paso de un capítulo (y no en el último de todos); al llegar no está.
+    if (i > 0) ok(noAlLlegar, `${paso.id}: «Desliza» se va al llegar`);
+    if (ultimoDelCapitulo && i !== PASOS.length - 1) {
+      ok(!antesDeTiempo && m.desliza.visible && m.desliza.dentro, `${paso.id}: último paso del capítulo: al terminar su animación sale «Desliza ↑», dentro de la pantalla`);
+      ok(m.desliza.alto === 48 && m.desliza.fuente === 17 && m.desliza.sombra, `${paso.id}: «Desliza ↑» mide 48 px de alto, letra de 17 px, con sombra`);
+      if (ancho < 900 && m.desliza.burbujaCentroY !== null) ok(Math.abs(m.desliza.centroY - m.desliza.burbujaCentroY) <= 24, `${paso.id}: «Desliza ↑» va a media altura de la burbuja (${Math.round(m.desliza.centroY)} y ${Math.round(m.desliza.burbujaCentroY)})`);
+    } else ok(!tarde && !m.desliza.visible, `${paso.id}: ${i === PASOS.length - 1 ? "el último paso no lleva «Desliza»" : "en medio de un capítulo no sale «Desliza» (el paso siguiente entra solo)"}`);
     // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
     if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
     else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
@@ -361,11 +377,11 @@ for (const [ancho, alto] of [
     ok(!/La Vuelta|la-vuelta|Brisa|Vuelta Store/.test(todo) && /Tu Tienda/.test(todo), "la tienda de la demo es «Tu Tienda»: ni «La Vuelta», ni «Brisa», ni «Vuelta Store» en la landing ni en los teléfonos");
   }
   // La barra: tocar un segmento lleva a su paso.
-  for (const j of [PASOS.length - 3, PASOS.length - 5]) {
+  for (const j of [CAPITULOS - 2, CAPITULOS - 4]) {
     await pagina.locator(`[data-seg="${j}"]`).click();
     await pagina.waitForTimeout(1600);
     const dc = await datos(pagina);
-    ok(dc.paso === PASOS[j].id, `la barra: el segmento de «${PASOS[j].id}» lleva a «${dc.paso}»`);
+    ok(dc.paso === PASOS[primerPasoDe(j + 1)].id, `la barra: el segmento de «${CAPITULOS_NOMBRES[j]}» lleva a su primer paso («${dc.paso}»)`);
   }
   // El cambio de lado (docs/prompts/conoce-portada-narrativa.md): al llegar, rosa y «Pidió en segundos.»; un momento después, los iconos se
   // intercambian y todo pasa a verde. Al retroceder, el icono de la app vuelve al rosado.
@@ -412,7 +428,7 @@ for (const [ancho, alto] of [
   const atras = await datos(pagina);
   const ma = await medir(pagina, PASOS.length - 2);
   const quitada = await pagina.evaluate((n) => { const b = document.querySelector(`[data-burbuja="${n}"]`); return b.dataset.estado === "futura" && Number(getComputedStyle(b).opacity) < 0.05; }, PASOS.length - 1);
-  ok(ma.llenado[PASOS.length - 2] > 0.99 && ma.llenado[PASOS.length - 1] < 0.01, "al volver atrás, el segmento del paso al que vuelves se ve lleno (y el de después, vacío)");
+  ok(ma.segEstados[CAPITULOS - 1][1] === "llenando" && ma.llenado.slice(0, CAPITULOS - 1).every((f) => f > 0.99), "al volver atrás, los segmentos de los capítulos de antes siguen llenos y el del capítulo, llenándose");
   ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible && quitada, `al subir, vuelve a «${atras.paso}» con su burbuja completa y la del paso de después se quita`);
 
   // Volver de `aaah` a `hola` deshace los dos likes y el catálogo vuelve al termo, sin saltos.
@@ -441,7 +457,7 @@ for (const [ancho, alto] of [
   await pagina.mouse.wheel(0, alto * 3);
   await pagina.waitForTimeout(1600);
   const fuerte = await datos(pagina);
-  ok(fuerte.indice === "1", `un deslizamiento fuerte avanza un solo paso (llegó a ${fuerte.paso})`);
+  ok(fuerte.indice === String(primerPasoDe(2)), `un deslizamiento fuerte avanza un solo capítulo, al primer paso del siguiente (llegó a ${fuerte.paso})`);
 
   ok(await pagina.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "sin scroll horizontal");
   // Saltar y los CTA.
@@ -478,6 +494,87 @@ for (const [ancho, alto] of [
   await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).waitFor({ timeout: 15000 }).catch(() => {});
   ok(await pagina.getByRole("button", { name: "Iniciar sesión", exact: true }).isVisible(), "«Entrar» lleva a la página principal, con «Iniciar sesión»");
   ok(await pagina.getByRole("button", { name: "Probar la app con datos de prueba" }).isVisible(), "y el enlace a la demo («Probar la app con datos de prueba»)");
+  await contexto.close();
+}
+
+console.log("\nAvance por capítulos (docs de Planning del 17 oct: un segmento y un deslizamiento por capítulo)");
+{
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 }, hasTouch: false });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
+  await pagina.waitForTimeout(800);
+  const estado = () => pagina.evaluate(() => { const e = document.querySelector(".lt-escenario"); return { paso: e.dataset.paso, pausa: e.dataset.pausa, desliza: e.dataset.deslizaOk }; });
+  const cap1 = lineaDelCapitulo(1);
+  // 1. Dentro del capítulo, los pasos avanzan solos: al acabar la animación y el tiempo de leer, entra el siguiente (con los mismos tiempos de lineaDelCapitulo).
+  const t0 = Date.now();
+  ok((await estado()).paso === "bienvenida", "al abrir, el primer paso del primer capítulo");
+  // (el avance empezó al cargar, un poco antes de t0: los márgenes lo cubren)
+  await pagina.waitForTimeout(Math.max(0, t0 + cap1.inicios[1] - 3000 - Date.now()));
+  ok((await estado()).paso === "bienvenida", `«bienvenida» sigue a los ${Math.round((cap1.inicios[1] - 3000) / 100) / 10} s (se deja leer)`);
+  await pagina.waitForTimeout(Math.max(0, t0 + cap1.inicios[1] + 900 - Date.now()));
+  ok((await estado()).paso === "antes", "después de su animación y su lectura, entra «antes» solo");
+  // 2. Tocar la pantalla pausa el avance; volver a tocar lo reanuda.
+  await pagina.mouse.click(196, 400);
+  const pausado = await estado();
+  const sombra = await pagina.evaluate(() => document.querySelector('[data-seg="0"] i').getAnimations().map((a) => a.playState));
+  ok(pausado.pausa === "si" && sombra.every((x) => x === "paused"), "tocar la pantalla pausa el avance y el llenado de la barra");
+  await pagina.waitForTimeout(cap1.inicios[2] - cap1.inicios[1] + 1500);
+  ok((await estado()).paso === "antes", "en pausa no avanza (pasó más de lo que dura el paso)");
+  await pagina.mouse.click(196, 400);
+  ok((await estado()).pausa === "no", "tocar otra vez lo reanuda");
+  await pagina.waitForTimeout(2500);
+  // 3. Un deslizamiento hacia delante salta al primer paso del capítulo siguiente, aunque falten pasos del actual.
+  await pagina.mouse.move(196, 400);
+  await pagina.mouse.wheel(0, 852);
+  await pagina.waitForTimeout(1500);
+  ok((await estado()).paso === PASOS[primerPasoDe(2)].id, `deslizar salta al primer paso del capítulo siguiente («${(await estado()).paso}»)`);
+  // 4. Hacia atrás: con el capítulo apenas empezado, al inicio del anterior; si ya lleva un rato, reinicia el actual.
+  await pagina.waitForTimeout(2800);
+  await pagina.mouse.wheel(0, -852);
+  await pagina.waitForTimeout(900);
+  const reinicia = await pagina.evaluate(() => ({ paso: document.querySelector(".lt-escenario").dataset.paso, vacio: new DOMMatrix(getComputedStyle(document.querySelector('[data-seg="1"] i')).transform).a < 0.2 }));
+  ok(reinicia.paso === PASOS[primerPasoDe(2)].id && reinicia.vacio, "hacia atrás, con un rato en el capítulo, vuelve al inicio del actual y su segmento empieza de nuevo");
+  await pagina.mouse.wheel(0, -852);
+  await pagina.waitForTimeout(1200);
+  ok((await estado()).paso === PASOS[primerPasoDe(1)].id, `hacia atrás otra vez, recién vuelto, al inicio del capítulo anterior («${(await estado()).paso}»)`);
+  // 5. «Desliza ↑»: en el último paso del capítulo, al terminar; y se va en cuanto se desliza. (Capítulo «Sigue»: un solo paso.)
+  await irAlPaso(pagina, primerPasoDe(5));
+  await pagina.waitForTimeout(800);
+  ok((await estado()).desliza === "no", "al llegar al último paso del capítulo, «Desliza» todavía no está");
+  await pagina.waitForTimeout(lineaDelCapitulo(5).total + 600);
+  ok((await estado()).desliza === "si", "al terminar su animación, sale «Desliza ↑»");
+  await pagina.mouse.wheel(0, 852);
+  await pagina.waitForTimeout(500);
+  const despues = await estado();
+  ok(despues.desliza === "no" && despues.paso === PASOS[primerPasoDe(6)].id, `se va en cuanto se desliza y entra el capítulo siguiente («${despues.paso}»)`);
+  // 6. En el último capítulo, deslizar lleva al cierre.
+  await irAlPaso(pagina, primerPasoDe(CAPITULOS));
+  await pagina.waitForTimeout(1800);
+  await pagina.mouse.wheel(0, 852);
+  await pagina.waitForTimeout(1200);
+  ok(await pagina.locator("#cierre").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), "en el último capítulo, deslizar lleva al cierre");
+  // 7. El ancla de un paso (también a mitad de un capítulo) lo muestra, y el avance sigue desde ahí.
+  await pagina.goto(base + "/conoce#paso-aviso", { waitUntil: "networkidle" });
+  await pagina.waitForTimeout(800);
+  ok((await estado()).paso === "aviso", "la URL de un paso a mitad de capítulo (#paso-aviso) muestra ese paso");
+  const seguiria = lineaDelCapitulo(6).inicios[2] - lineaDelCapitulo(6).inicios[1] + 800;
+  await pagina.waitForTimeout(seguiria);
+  ok((await estado()).paso === "chat-tienda", "y desde ahí el avance sigue al paso siguiente del capítulo");
+  await contexto.close();
+}
+{
+  // Con movimiento reducido no hay avance solo: cada paso pide su deslizamiento.
+  const contexto = await nav.newContext({ viewport: { width: 393, height: 852 }, reducedMotion: "reduce" });
+  const pagina = await contexto.newPage();
+  await pagina.goto(base + "/conoce", { waitUntil: "networkidle" });
+  await pagina.waitForTimeout(800);
+  await pagina.waitForTimeout(lineaDelCapitulo(1).inicios[1] + 2500);
+  ok((await datos(pagina)).paso === "bienvenida", "con movimiento reducido, el paso no avanza solo");
+  await pagina.mouse.move(196, 400);
+  await pagina.mouse.wheel(0, 852);
+  await pagina.waitForTimeout(1200);
+  ok((await datos(pagina)).paso === "antes", "y cada deslizamiento avanza un paso, como antes");
   await contexto.close();
 }
 
@@ -532,7 +629,7 @@ console.log("\nMovimiento reducido");
   await pagina.waitForTimeout(500);
   {
     const r = await medir(pagina, iHola);
-    ok(r.llenado[iHola] > 0.99 && r.segEstados[iHola][1] === "lleno" && r.desliza.visible && r.desliza.rebote === 0 && !r.desliza.choca, "con movimiento reducido, la barra salta a lleno, y «Desliza ↑» sale enseguida y sin rebote");
+    ok(r.segEstados[PASOS[iHola].capitulo - 1][1] === "parcial" && r.desliza.visible && r.desliza.rebote === 0, "con movimiento reducido, la barra no se anima (el capítulo va lleno a la medida de sus pasos), y «Desliza ↑» sale enseguida y sin rebote");
   }
   // Sin ♥: llega al «aaah» en su estado final, sin toques.
   for (let i = iHola + 1; i <= PASOS.findIndex((p) => p.id === "aaah"); i++) {

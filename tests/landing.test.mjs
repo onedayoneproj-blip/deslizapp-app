@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import "./cargar-ts.mjs";
 
 const demo = await import("../lib/landing/pedido-demo.ts");
-const { PASOS, MAX_ICONOS_BURBUJA, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, indicePaso, primerPasoDe, horaDeBurbuja, RELOJ_AVISO, HACE_AVISO } = await import("../lib/landing/pasos.ts");
+const { PASOS, MAX_ICONOS_BURBUJA, CAPITULOS, CAPITULOS_NOMBRES, estadoPaso, indicePaso, primerPasoDe, horaDeBurbuja, RELOJ_AVISO, HACE_AVISO, lecturaMs, lineaDelCapitulo, pasosDeCapitulo } = await import("../lib/landing/pasos.ts");
 const dbDemo = await import("../lib/landing/db-demo.ts");
 const enlaces = await import("../lib/landing/enlaces.ts");
 const { codigoPedidoValido } = await import("../lib/tienda/imagen-pedido.ts");
@@ -150,4 +150,25 @@ test("el «ahora» de la demo es hoy a las 3:44 p. m. de República Dominicana, 
   assert.equal(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Santo_Domingo" }).format(ahora), "2026-10-16", "el día es el de allá (a las 3 UTC todavía es el 16)");
   assert.match(hora(ahora), /^3:44 p ?m$/);
   assert.match(hora(new Date(ahora.getTime() - 2 * 60_000)), /^3:42 p ?m$/);
+});
+
+test("el avance por capítulos: la lectura de cada burbuja y la línea de tiempo de cada capítulo", () => {
+  const paso = (id) => PASOS.find((p) => p.id === id);
+  // 1,8 s más 0,04 s por carácter (texto, un espacio y remate), con tope de 4 s; sin burbuja, 2 s.
+  assert.equal(lecturaMs(paso("bienvenida")), 2000);
+  const b = paso("aviso").burbuja;
+  assert.equal(lecturaMs(paso("aviso")), Math.round(1800 + 40 * (b.texto.length + 1 + b.remate.length)));
+  assert.equal(lecturaMs(paso("enlace")), 4000, "una burbuja larga tiene tope de 4 s");
+  for (const p of PASOS) assert.ok(lecturaMs(p) >= 1800 && lecturaMs(p) <= 4000, p.id);
+  // Cada capítulo: sus pasos en orden, el primero entra a 0 y el último no lleva lectura detrás.
+  assert.deepEqual(Array.from({ length: CAPITULOS }, (_, c) => pasosDeCapitulo(c + 1).length), [4, 3, 2, 2, 1, 3, 2, 2]);
+  assert.equal(pasosDeCapitulo(CAPITULOS).at(-1), PASOS.length - 1);
+  for (let c = 1; c <= CAPITULOS; c++) {
+    const l = lineaDelCapitulo(c);
+    assert.equal(l.inicios[0], 0);
+    assert.deepEqual(l.pasos, pasosDeCapitulo(c));
+    l.pasos.forEach((i, k) => k > 0 && assert.equal(l.inicios[k], l.inicios[k - 1] + PASOS[l.pasos[k - 1]].duracion + lecturaMs(PASOS[l.pasos[k - 1]]), `${PASOS[i].id} entra al acabar el anterior y su lectura`));
+    assert.equal(l.total, l.inicios.at(-1) + PASOS[l.pasos.at(-1)].duracion, "el segmento se llena justo cuando termina la animación del último paso");
+  }
+  assert.equal(lineaDelCapitulo(5).total, paso("seguimiento").duracion, "un capítulo de un solo paso: sin lectura");
 });

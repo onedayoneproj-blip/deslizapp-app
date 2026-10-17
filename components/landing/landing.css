@@ -27,9 +27,9 @@
   position: relative;
 }
 .lt-escenario {
-  /* arriba, la barra de historias con su rótulo (30 px) y, debajo, el icono y «Saltar»; abajo, la franja de «Desliza ↑» */
-  --alto-arriba: calc(76px + env(safe-area-inset-top));
-  --alto-abajo: calc(40px + env(safe-area-inset-bottom));
+  /* arriba, la barra de historias (3 px) y, debajo, el icono con el nombre del capítulo y «Saltar» */
+  --alto-arriba: calc(68px + env(safe-area-inset-top));
+  --alto-abajo: calc(20px + env(safe-area-inset-bottom));
   --mov: 520ms;
   --curva: cubic-bezier(0.2, 0.8, 0.2, 1);
   position: sticky;
@@ -167,7 +167,7 @@
   position: absolute;
   z-index: 9;
   left: max(16px, env(safe-area-inset-left));
-  top: calc(30px + env(safe-area-inset-top));
+  top: calc(20px + env(safe-area-inset-top));
   width: 40px;
   height: 40px;
   transition: opacity 380ms ease;
@@ -362,7 +362,7 @@
 .lt-arriba {
   position: absolute;
   z-index: 8;
-  top: calc(30px + env(safe-area-inset-top));
+  top: calc(20px + env(safe-area-inset-top));
   left: max(16px, env(safe-area-inset-left));
   right: max(16px, env(safe-area-inset-right));
   height: 40px;
@@ -386,21 +386,27 @@
   backdrop-filter: blur(10px);
 }
 
-/* ---- La barra de historias, arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por paso, con huecos de 3 px.
-   Los hechos, llenos; el del paso se llena durante su `duracion` (scaleX, --dur lo pone el controlador); los que faltan, vacíos. Su color se
-   adapta al fondo: oscuro sobre arena y rosa, claro sobre Bosque. Debajo, el capítulo y la posición. Va a todo el ancho, sobre «Saltar» y el
-   icono (que bajan lo que ocupa); en escritorio, solo sobre la columna de la demo. ---- */
+/* ---- La barra de historias, arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por capítulo, con huecos de
+   3 px. Los capítulos hechos, llenos; el actual se llena a lo largo de todos sus pasos (scaleX; --dur y --off los pone el controlador); los que
+   faltan, vacíos. Su color se adapta al fondo: oscuro sobre arena y rosa, claro sobre Bosque. Al lado del icono, el nombre del capítulo. Va a
+   todo el ancho, sobre «Saltar» y el icono (que bajan lo que ocupa); en escritorio, solo sobre la columna de la demo. ---- */
+.lt-barra,
+.lt-capitulo {
+  color: var(--marca-bosque);
+  transition:
+    color 600ms ease,
+    transform 380ms var(--curva),
+    opacity 380ms ease;
+}
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) :is(.lt-barra, .lt-capitulo) {
+  color: var(--marca-papel);
+}
 .lt-barra {
   position: absolute;
   z-index: 8;
   top: calc(8px + env(safe-area-inset-top));
   left: max(16px, env(safe-area-inset-left));
   right: max(16px, env(safe-area-inset-right));
-  color: var(--marca-bosque);
-  transition: color 600ms ease;
-}
-.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-barra {
-  color: var(--marca-papel);
 }
 .lt-barra-segs {
   display: flex;
@@ -417,7 +423,7 @@
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-/* El área de toque: más alta que el segmento (unos 22 px), sin pisar el rótulo ni los botones de debajo */
+/* El área de toque: más alta que el segmento (unos 22 px), sin pisar el icono ni «Saltar» de debajo */
 .lt-seg::before {
   content: "";
   position: absolute;
@@ -434,8 +440,18 @@
 .lt-seg[data-estado="lleno"] i {
   transform: none;
 }
+/* Sin avance solo (movimiento reducido): el capítulo va lleno a la medida de los pasos que lleva vistos (--p) */
+.lt-seg[data-estado="parcial"] i {
+  transform: scaleX(var(--p, 1));
+}
 .lt-seg[data-estado="llenando"] i {
   animation: lt-llena var(--dur, 2s) linear forwards;
+  animation-delay: calc(var(--off, 0ms) * -1);
+}
+/* Tocar la pantalla pausa el avance (y el llenado) */
+.lt-escenario[data-pausa="si"] .lt-seg[data-estado="llenando"] i {
+  animation-play-state: paused;
+  opacity: 0.6;
 }
 @keyframes lt-llena {
   from {
@@ -445,35 +461,48 @@
     transform: none;
   }
 }
-.lt-barra-rotulo {
-  margin: 5px 0 0;
-  font-size: 12px;
+/* El nombre del capítulo, junto al icono de la app (a su derecha, en la misma línea); donde el icono no sale, se corre a su sitio */
+.lt-capitulo {
+  position: absolute;
+  z-index: 8;
+  top: calc(20px + env(safe-area-inset-top));
+  left: calc(max(16px, env(safe-area-inset-left)) + 50px);
+  height: 40px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
   font-weight: 800;
-  line-height: 14px;
-  letter-spacing: 0.01em;
-  text-align: center;
-  opacity: 0.85;
+  font-size: 1.0625rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"], [data-paso="cambio-lado"]) .lt-capitulo {
+  transform: translateX(-50px);
 }
 
-/* ---- «Desliza ↑»: abajo, centrado, en la franja libre bajo la burbuja. Aparece cuando termina el paso y se va en cuanto se desliza. ---- */
+/* ---- «Desliza ↑»: una píldora grande, a media altura de la burbuja (el controlador pone --desliza-y); puede taparla, porque a esas alturas
+   ya se leyó. Aparece cuando termina el último paso del capítulo y se va en cuanto se desliza. ---- */
 .lt-desliza {
   position: absolute;
   z-index: 8;
   left: 50%;
-  bottom: calc(8px + env(safe-area-inset-bottom));
+  top: var(--desliza-y, calc(100% - 150px));
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 12px 0 14px;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px 0 24px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--marca-papel) 88%, transparent);
+  background: var(--marca-papel);
   color: var(--marca-bosque);
   font-weight: 800;
-  font-size: 0.875rem;
-  box-shadow: var(--sombra-flotante);
+  font-size: 1.0625rem;
+  box-shadow:
+    0 14px 30px -8px rgba(16, 54, 42, 0.5),
+    0 0 0 1.5px rgba(16, 54, 42, 0.1);
   opacity: 0;
-  transform: translate(-50%, 6px);
+  transform: translate(-50%, 8px);
   pointer-events: none;
   transition:
     opacity 260ms ease,
@@ -485,6 +514,8 @@
 }
 .lt-desliza svg {
   display: block;
+  width: 22px;
+  height: 22px;
 }
 @media (prefers-reduced-motion: no-preference) {
   .lt-escenario[data-desliza-ok="si"] .lt-desliza svg {
@@ -494,10 +525,10 @@
 @keyframes lt-rebote {
   0%,
   100% {
-    transform: translateY(1px);
+    transform: translateY(2px);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
   }
 }
 
@@ -666,14 +697,19 @@
   }
   .lt-desliza {
     left: calc(50% + min(46vw, 560px) / 2);
+    top: auto;
     bottom: calc(4px + env(safe-area-inset-bottom));
   }
   .lt-arriba,
-  .lt-icono {
+  .lt-icono,
+  .lt-capitulo {
     top: calc(10px + env(safe-area-inset-top));
   }
   .lt-icono {
     left: 24px;
+  }
+  .lt-capitulo {
+    left: 74px;
   }
 }
 

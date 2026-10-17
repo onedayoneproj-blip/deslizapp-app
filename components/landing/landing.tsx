@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
 import { PieContacto } from "../inicio-publico/pie-contacto";
-import { CAPITULOS_NOMBRES, PASOS, burbujaLarga, horaDeBurbuja, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
+import { CAPITULOS_NOMBRES, PASOS, burbujaLarga, horaDeBurbuja, primerPasoDe, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
@@ -239,24 +239,27 @@ function Telefono({ id, src, diferido = false }: { id: "compradora" | "tienda"; 
 }
 
 /**
- * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por paso de la demo y, debajo,
- * el capítulo y la posición («Elige · 9 de 19»). El controlador marca cada segmento (data-estado: lleno, llenando o vacío) y el rótulo. Los
- * segmentos son enlaces (llevan a su paso) con un área de toque más alta que ellos.
+ * La barra de historias de arriba (referencias/landing/conoce-narrativa/LEEME.md, «Cuándo deslizar»): un segmento por capítulo (CAPITULOS_NOMBRES)
+ * y, al lado del icono de la app, el nombre del capítulo en el que va. El controlador llena el segmento del capítulo a lo largo de sus pasos
+ * (data-estado: lleno, llenando, parcial o vacío) y cambia el nombre. Los segmentos son enlaces (llevan al primer paso de su capítulo) con
+ * un área de toque más alta que ellos.
  */
 function Barra() {
   return (
-    <nav className="lt-barra" aria-label="Recorrido de la demo">
-      <div className="lt-barra-segs">
-        {PASOS.map((p, i) => (
-          <a key={p.id} href={`#paso-${p.id}`} className="lt-seg" data-seg={i} data-estado={i === 0 ? "llenando" : "vacio"} aria-current={i === 0 ? "step" : undefined} aria-label={etiquetaPaso(p)}>
-            <i />
-          </a>
-        ))}
-      </div>
-      <p className="lt-barra-rotulo" data-barra-rotulo aria-hidden="true">
-        {CAPITULOS_NOMBRES[PASOS[0]!.capitulo - 1]} · 1 de {PASOS.length}
+    <>
+      <nav className="lt-barra" aria-label="Recorrido de la demo">
+        <div className="lt-barra-segs">
+          {CAPITULOS_NOMBRES.map((nombre, c) => (
+            <a key={nombre} href={`#paso-${PASOS[primerPasoDe(c + 1)]!.id}`} className="lt-seg" data-seg={c} data-estado={c === 0 ? "llenando" : "vacio"} aria-current={c === 0 ? "step" : undefined} aria-label={nombre}>
+              <i />
+            </a>
+          ))}
+        </div>
+      </nav>
+      <p className="lt-capitulo" data-capitulo-nombre aria-hidden="true">
+        {CAPITULOS_NOMBRES[PASOS[0]!.capitulo - 1]}
       </p>
-    </nav>
+    </>
   );
 }
 
@@ -270,12 +273,6 @@ function Desliza() {
       </svg>
     </div>
   );
-}
-
-const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a Deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
-/** Lo que lee un lector de pantalla del segmento de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
-function etiquetaPaso(p: Paso) {
-  return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
 }
 
 /**
