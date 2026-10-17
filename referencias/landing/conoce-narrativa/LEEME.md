@@ -24,3 +24,9 @@ Son pantallas sin teléfono que presentan cada tema, como `cambio-lado`. Están 
   - Debajo, «ahora, con Deslizapp…» a mano, **«Así lo resolvemos.»** y «Tu catálogo enseña fotos, precios y lo que queda. A ti te llega el pedido listo.».
   - Va antes de `post`.
 - `cambio-lado` se queda como está.
+
+## Cuándo deslizar: barra de historias + «Desliza ↑» (opción B + A, elegida por Lewis el 17 oct 2026)
+`avance-barra-y-desliza.dc.html`. Sustituye las rayitas del lateral.
+- **Arriba**, una barra fina con un segmento por paso, como las historias de Instagram. Los pasos hechos van llenos, el actual se llena durante su animación (su `duracion`) y los que faltan van vacíos. Debajo, el capítulo y la posición: «Elige · 7 de 19».
+- **Cuando el segmento se llena** (terminó la animación del paso), aparece abajo «Desliza» con una flecha hacia arriba que rebota. Se va en cuanto la persona desliza.
+- Deslizar antes de tiempo sigue funcionando: no se bloquea.

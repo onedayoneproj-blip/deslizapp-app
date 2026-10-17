@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>B + A · Barra arriba y «Desliza ↑» (recomendada)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes rebota{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes sacude{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hint{animation:entra .3s ease-out both}
+.hint svg{animation:rebota 1s ease-in-out infinite}
+.sacude{animation:sacude .3s ease-in-out}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: {{fondo}}; font-family: Figtree, system-ui, sans-serif; color: #174B3A">
+  <sc-if value="{{conBarra}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; left: 14px; right: 14px; top: 14px; display: flex; gap: 4px">
+      <sc-for list="{{segs}}" as="s" hint-placeholder-count="5">
+        <span style="flex: 1; height: 4px; border-radius: 99px; background: rgba(23,75,58,.18); overflow: hidden"><span style="display: block; height: 100%; width: {{s.w}}; background: #174B3A; border-radius: 99px"></span></span>
+      </sc-for>
+    </div>
+    <span style="position: absolute; left: 14px; top: 26px; font-size: 12px; font-weight: 800">{{capitulo}}</span>
+  </sc-if>
+  <sc-if value="{{conRayitas}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; left: 6px; top: 300px; display: flex; flex-direction: column; gap: 5px">
+      <sc-for list="{{segs}}" as="s" hint-placeholder-count="5"><span style="width: {{s.ancho}}; height: 2px; background: #174B3A; opacity: {{s.op}}"></span></sc-for>
+    </div>
+  </sc-if>
+
+  <div class="{{claseTel}}" onClick="{{tocaTel}}" style="position: absolute; left: 70px; top: 60px; width: 250px; height: 500px; border-radius: 40px; background: #111; padding: 10px; box-sizing: border-box">
+    <div style="width: 100%; height: 100%; border-radius: 31px; background: {{pantalla}}; position: relative; overflow: hidden">
+      <span style="position: absolute; left: 50%; top: 10px; width: 80px; height: 22px; margin-left: -40px; border-radius: 99px; background: #111"></span>
+      <span style="position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 22px">{{nombrePaso}}</span>
+      <sc-for list="{{piezas}}" as="p" hint-placeholder-count="2">
+        <span class="hint" style="position: absolute; left: 24px; right: 24px; top: {{p.top}}; padding: 12px; border-radius: 16px; background: #FFFFFF; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.12)">{{p.texto}}</span>
+      </sc-for>
+      <sc-if value="{{pausado}}" hint-placeholder-val="{{false}}"><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.25); color: #fff; font-weight: 800">❚❚ En pausa</span></sc-if>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 22px; right: 22px; top: 580px; border-radius: 18px; background: #D9FDD3; padding: 12px 14px; font-family: Fredoka, sans-serif; font-weight: 500; font-size: 17px; line-height: 1.25">{{burbuja}}</div>
+
+  <sc-if value="{{verHint}}" hint-placeholder-val="{{false}}">
+    <div class="hint" style="position: absolute; left: 0; right: 0; top: 690px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 800; font-size: 14px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#174B3A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 14l6-6 6 6"></path></svg>
+      Desliza
+    </div>
+  </sc-if>
+  <sc-if value="{{conBoton}}" hint-placeholder-val="{{false}}">
+    <button type="button" onClick="{{siguiente}}" style="position: absolute; left: 22px; right: 22px; top: 680px; height: 52px; border: 0; border-radius: 999px; background: {{fondoBoton}}; color: {{colorBoton}}; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 18px; cursor: pointer">Siguiente</button>
+  </sc-if>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 18px 16px; background: rgba(255,255,255,.85); border-top: 1px solid rgba(23,75,58,.12)">
+    <p style="margin: 0 0 8px; font-size: 12px; line-height: 1.35; color: #4F6A5E"><b style="color: #174B3A">B + A · Barra arriba y «Desliza ↑» (recomendada).</b> La barra muestra el avance y lo que dura cada paso, y al llenarse aparece «Desliza ↑».</p>
+    <div style="display: flex; gap: 8px">
+      <button type="button" onClick="{{deslizar}}" style="flex: 1; height: 36px; border: 1.5px solid #174B3A; border-radius: 999px; background: #fff; color: #174B3A; font-weight: 800; font-size: 13px; cursor: pointer">Simular deslizar ↑</button>
+      <button type="button" onClick="{{reiniciar}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #E7F2EA; color: #174B3A; font-weight: 800; font-size: 13px; cursor: pointer">Reiniciar</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { paso: 0, t: 0, pausado: false, sacude: 0 };
+    this.V = 'BA';
+    this.P = [
+      { n: 'Elige', cap: 'Elige', fondo: '#FBE4EB', pant: '#F5C9D6', b: 'Lo que le gusta: ♥ aaah.', piezas: ['♥ Termo rosado', '♥ Tote bag'], dur: 3600 },
+      { n: 'Envía', cap: 'Envía', fondo: '#FBE4EB', pant: '#D9FDD3', b: 'Lo envías por WhatsApp.', piezas: ['Pedido: 2 productos', 'Total RD$1,500'], dur: 3000 },
+      { n: 'Te llega', cap: 'Te llega', fondo: '#E7F2EA', pant: '#CFE8DA', b: 'Te pidieron allá. Te llega aquí.', piezas: ['🔔 Nuevo pedido de Ana', 'Lo registras en un toque'], dur: 3400 },
+      { n: 'Despacha', cap: 'Despacha', fondo: '#E7F2EA', pant: '#FFF9EE', b: 'Despachado. El stock se actualizó solito.', piezas: ['✓ Despachado', 'Stock: quedan 2'], dur: 3000 }
+    ];
+    this.espera = 0;
+    this.timer = setInterval(() => this.tic(), 100);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  tic() {
+    const s = this.state; const p = this.P[s.paso];
+    if (s.pausado) return;
+    if (s.t < p.dur) { this.setState({ t: Math.min(p.dur, s.t + 100) }); return; }
+    if (this.V === 'D' && s.paso < this.P.length - 1) {
+      this.espera += 100;
+      if (this.espera >= 1300) { this.espera = 0; this.setState({ paso: s.paso + 1, t: 0 }); }
+    }
+  }
+  ir() {
+    const s = this.state;
+    if (s.paso >= this.P.length - 1) return;
+    this.espera = 0;
+    this.setState({ paso: s.paso + 1, t: 0, pausado: false });
+  }
+  renderVals() {
+    const s = this.state; const p = this.P[s.paso]; const V = this.V;
+    const listo = s.t >= p.dur;
+    const frac = s.t / p.dur;
+    const piezas = p.piezas.filter((_, i) => frac >= (i + 1) * 0.4).map((texto, i) => ({ texto, top: (150 + i * 70) + 'px' }));
+    const segs = this.P.map((x, i) => ({ w: i < s.paso ? '100%' : i === s.paso ? Math.round(frac * 100) + '%' : '0%', ancho: i === s.paso ? '22px' : '12px', op: i <= s.paso ? 1 : .35 }));
+    const ultimo = s.paso === this.P.length - 1;
+    return {
+      fondo: p.fondo, pantalla: p.pant, nombrePaso: p.n, burbuja: p.b, piezas, segs, pausado: s.pausado,
+      capitulo: p.cap + ' · ' + (s.paso + 1) + ' de ' + this.P.length,
+      conBarra: V === 'B' || V === 'BA' || V === 'D',
+      conRayitas: V === 'A' || V === 'C' || V === 'E',
+      verHint: (V === 'A' || V === 'BA') && listo && !ultimo,
+      conBoton: V === 'C',
+      fondoBoton: listo && !ultimo ? '#174B3A' : '#D5DDD8', colorBoton: listo && !ultimo ? '#FFF9EE' : '#8A9A92',
+      claseTel: s.sacude % 2 ? 'sacude' : '',
+      tocaTel: () => { if (V === 'D') this.setState({ pausado: !s.pausado }); },
+      siguiente: () => { if (listo) this.ir(); },
+      deslizar: () => { if (V === 'E' && !listo) { this.setState({ sacude: s.sacude + 1 }); return; } this.ir(); },
+      reiniciar: () => { this.espera = 0; this.setState({ paso: 0, t: 0, pausado: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
