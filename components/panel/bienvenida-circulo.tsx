@@ -8,7 +8,7 @@ import type { DatosCupon } from "@/lib/cupon";
 import { useConsulta } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import type { Tienda } from "@/lib/types";
-import { IconoBolsa, IconoChat, IconoChispa, IconoCorazon } from "../iconos";
+import { IconoBolsa, IconoChispa, IconoCorazon, IconoWhatsApp } from "../iconos";
 import { TicketPromo } from "../promos/ticket-promo";
 import { LogoTienda } from "./logo-tienda";
 import "./bienvenida-circulo.css";
@@ -16,7 +16,7 @@ import "./bienvenida-circulo.css";
 const BENEFICIOS: { icono: ReactNode; titulo: string; texto: string }[] = [
   { icono: <IconoChispa tamano={24} />, titulo: "Estrena las funciones", texto: "Pruébalas antes que nadie." },
   { icono: <IconoBolsa tamano={24} />, titulo: "Tu bienvenida viene con extras", texto: "Créditos y regalos de merch." },
-  { icono: <IconoChat tamano={24} />, titulo: "Habla directo con Lewis", texto: "Una conversación, sin tanta vuelta." },
+  { icono: <IconoWhatsApp tamano={24} />, titulo: "Habla directo con Lewis", texto: "Una conversación, sin tanta vuelta." },
   { icono: <IconoCorazon tamano={24} />, titulo: "Tu aro se queda contigo", texto: "El sello del Círculo es tuyo para siempre." },
 ];
 
