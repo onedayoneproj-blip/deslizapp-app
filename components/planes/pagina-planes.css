@@ -411,19 +411,22 @@ html:has(.pl) body {
   color: var(--marca-bosque);
   scroll-snap-align: center;
 }
-/* La vista previa (376 px: una pantalla de teléfono de 200×352 con aire alrededor): piezas reales de la app con datos de ejemplo. Lo que no cabe se recorta, como una pantalla. */
+/* La vista previa (280 px): piezas reales de la app con datos de ejemplo. Lo que no cabe se recorta, como una pantalla. */
 .pl-vista {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 376px;
+  height: 280px;
   padding: 12px;
   overflow: hidden;
   pointer-events: none;
   user-select: none;
 }
+/* El teléfono entero (240×506) asoma desde arriba y el borde de abajo de la vista previa lo corta más o menos por la mitad. */
 .pl-vista[data-vista="bio"] {
+  align-items: flex-start;
+  padding-bottom: 0;
   background: #fbe4eb;
 }
 .pl-vista[data-vista="whatsapp"] {
@@ -436,7 +439,8 @@ html:has(.pl) body {
   background: #e7f2ea;
 }
 .pl-vp-bio {
-  width: 200px;
+  flex: none;
+  width: 240px;
 }
 .pl-vp-chat {
   display: flex;

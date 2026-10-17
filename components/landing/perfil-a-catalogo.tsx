@@ -15,7 +15,8 @@ const CAPTURA_CATALOGO = "/landing/pasos/hola.webp";
  * iframes ni video. Se pausa cuando no se ve (IntersectionObserver). Con movimiento reducido no se mueve: se ve el catálogo dentro
  * del navegador, quieto. Es decoración: quien la usa la esconde a los lectores de pantalla y dice lo mismo con texto.
  * Reutilizable: los pasos `perfil` y `navegador` de «Cómo funciona» (docs/prompts/conoce-portada-narrativa.md). Su ancho lo pone
- * quien la usa; su alto sale de la proporción de un teléfono.
+ * quien la usa; su alto sale de la proporción del iPhone del mockup (640×1350). Se puede recortar por abajo con un contenedor de overflow
+ * hidden: la parte de arriba (el perfil, la barra del navegador y el comienzo del catálogo) es lo que cuenta.
  */
 export function PerfilACatalogo({ className }: { className?: string }) {
   const caja = useRef<HTMLDivElement>(null);
@@ -33,14 +34,18 @@ export function PerfilACatalogo({ className }: { className?: string }) {
 
   return (
     <div ref={caja} className={className ? `pc ${className}` : "pc"} data-pausa="si">
-      <PerfilTienda sobreEnlace={<span className="pc-toque" />} />
-      <div className="pc-hoja">
-        <NavegadorInstagram>
-          {/* eslint-disable-next-line @next/next/no-img-element -- captura estática de 393×852: tamaño fijo, sin optimizador */}
-          <img className="pc-captura" src={CAPTURA_CATALOGO} alt="" width={393} height={852} decoding="async" />
-        </NavegadorInstagram>
+      {/* El teléfono de «Cómo funciona» (mockup-negro, 640×1350): su pantalla es el hueco y el marco con la isla va encima. */}
+      <div className="pc-pantalla">
+        <PerfilTienda sobreEnlace={<span className="pc-toque" />} />
+        <div className="pc-hoja">
+          <NavegadorInstagram>
+            {/* eslint-disable-next-line @next/next/no-img-element -- captura estática de 393×852: tamaño fijo, sin optimizador */}
+            <img className="pc-captura" src={CAPTURA_CATALOGO} alt="" width={393} height={852} decoding="async" />
+          </NavegadorInstagram>
+        </div>
       </div>
-      <span className="pc-isla" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- marco del teléfono: imagen estática, sin optimizador */}
+      <img className="pc-marco" src="/landing/mockup-negro.webp" alt="" width={640} height={1350} decoding="async" />
     </div>
   );
 }

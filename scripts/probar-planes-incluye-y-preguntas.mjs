@@ -56,7 +56,7 @@ for (const { ancho, alto } of PANTALLAS) {
   const snap = await pagina.locator(".pl-carril").evaluate((e) => getComputedStyle(e).scrollSnapType);
   ok(/x/.test(snap) && /mandatory/.test(snap), `scroll-snap horizontal (${snap})`);
   const medidas = await pagina.evaluate(() => [...document.querySelectorAll(".pl-tj")].map((e) => ({ ancho: e.getBoundingClientRect().width, vista: e.querySelector(".pl-vista").getBoundingClientRect().height })));
-  ok(medidas.every((m) => m.ancho >= 280 && m.ancho <= 300 && m.vista === 376), `tarjetas de unos 300 px de ancho y vista de 376 px (${medidas.map((m) => Math.round(m.ancho)).join("/")})`);
+  ok(medidas.every((m) => m.ancho >= 280 && m.ancho <= 300 && m.vista === 280), `tarjetas de unos 300 px de ancho y vista de 280 px (${medidas.map((m) => Math.round(m.ancho)).join("/")})`);
   // La siguiente asoma: la segunda tarjeta empieza antes del borde de la pantalla.
   const asoma = await pagina.evaluate(() => document.querySelectorAll(".pl-tj")[1].getBoundingClientRect().left < window.innerWidth - 8);
   ok(asoma, "la tarjeta siguiente asoma por el borde");
@@ -93,11 +93,14 @@ for (const { ancho, alto } of PANTALLAS) {
     const av = r(".pt-avatar");
     const celdas = [...document.querySelectorAll(".pt-foto")].map((e) => e.getBoundingClientRect());
     const pc = r(".pc");
-    return { avatar: av.width / av.height, celdas: celdas.map((c) => c.width / c.height), pc: pc.width / pc.height, ancho: pc.width };
+    const vista = r('[data-vista="bio"]');
+    return { avatar: av.width / av.height, celdas: celdas.map((c) => c.width / c.height), pc: pc.width / pc.height, ancho: pc.width, alto: pc.height, corte: (vista.bottom - pc.top) / pc.height };
   });
   ok(Math.abs(forma.avatar - 1) < 0.01, `el avatar es redondo, no ovalado (${forma.avatar.toFixed(3)})`);
   ok(forma.celdas.length === 6 && forma.celdas.every((c) => Math.abs(c - 0.75) < 0.02), `las fotos de la cuadrícula son 3:4, sin estirar (${forma.celdas.map((c) => c.toFixed(2)).join(", ")})`);
-  ok(forma.pc > 0.5 && forma.pc < 0.62, `la pantalla es vertical, de teléfono (${forma.pc.toFixed(2)} = ${Math.round(forma.ancho)}×${Math.round(forma.ancho / forma.pc)})`);
+  ok(Math.abs(forma.pc - 640 / 1350) < 0.005, `el teléfono tiene la proporción del iPhone del mockup (${forma.pc.toFixed(3)} = ${Math.round(forma.ancho)}×${Math.round(forma.alto)})`);
+  ok(forma.ancho >= 230 && forma.ancho <= 250, `y mide unos 230–250 px de ancho (${Math.round(forma.ancho)})`);
+  ok(forma.corte > 0.45 && forma.corte < 0.65, `el borde de abajo de la vista previa lo corta más o menos por la mitad (${Math.round(forma.corte * 100)} %)`);
   const imgs = await pagina.evaluate(() => [...document.querySelectorAll(".pl-vista img, .pc img")].map((i) => ({ r: i.naturalWidth / i.naturalHeight, w: i.getBoundingClientRect().width, h: i.getBoundingClientRect().height, fit: getComputedStyle(i).objectFit })).filter((i) => i.w > 0));
   ok(imgs.every((i) => i.fit === "cover" || Math.abs(i.w / i.h - i.r) < 0.02), "ninguna imagen de las vistas previas está deformada (cover o su proporción)");
   // Pausa fuera de pantalla: con la tarjeta del carrusel fuera de vista, las animaciones están en pausa.
@@ -115,8 +118,10 @@ for (const { ancho, alto } of PANTALLAS) {
     pagina.evaluate(() => {
       const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
       const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
-      const pc = document.querySelector(".pc").getBoundingClientRect();
-      return { hoja: Math.round(((hoja.top - pc.top) / pc.height) * 100), toque: op(".pc-toque"), captura: op(".pc-captura"), progreso: op(".nv-progreso i") };
+      const pc = document.querySelector(".pc-pantalla").getBoundingClientRect();
+      const vista = document.querySelector('[data-vista="bio"]').getBoundingClientRect();
+      const t = document.querySelector(".pc-toque").getBoundingClientRect();
+      return { enVista: t.bottom <= vista.bottom, hoja: Math.round(((hoja.top - pc.top) / pc.height) * 100), toque: op(".pc-toque"), captura: op(".pc-captura"), progreso: op(".nv-progreso i") };
     });
   const momentos = [["1-perfil", 300], ["2-toque", 1500], ["3-sube-la-hoja", 2150], ["4-blanco-y-progreso", 3000], ["5-catalogo", 4800]];
   const e = {};
@@ -127,7 +132,7 @@ for (const { ancho, alto } of PANTALLAS) {
     if (capturas) await pagina.locator(".pl-tj").first().screenshot({ path: `${carpeta}/animacion-${nombre}-${ancho}.png` });
   }
   ok(e["1-perfil"].hoja >= 99 && e["1-perfil"].toque === 0, "0,3 s: se ve el perfil (la hoja está abajo, fuera) y no hay toque");
-  ok(e["2-toque"].toque > 0.5 && e["2-toque"].hoja >= 99, "1,5 s: el círculo de toque sobre el enlace, con la hoja todavía abajo");
+  ok(e["2-toque"].toque > 0.5 && e["2-toque"].hoja >= 99 && e["2-toque"].enVista, "1,5 s: el círculo de toque sobre el enlace (a la vista), con la hoja todavía abajo");
   ok(e["3-sube-la-hoja"].hoja > 0 && e["3-sube-la-hoja"].hoja < 99, `2,15 s: la hoja del navegador sube desde abajo (a ${e["3-sube-la-hoja"].hoja} %)`);
   ok(e["4-blanco-y-progreso"].hoja <= 1 && e["4-blanco-y-progreso"].progreso > 0.5 && e["4-blanco-y-progreso"].captura === 0, "3 s: la hoja arriba, la barra de progreso y el blanco antes del catálogo");
   ok(e["5-catalogo"].captura === 1 && e["5-catalogo"].progreso === 0, "4,8 s: carga el catálogo");
@@ -222,7 +227,7 @@ console.log("\nMovimiento reducido");
   ok(anim === "none", `sin rebote al llegar (animación: ${anim})`);
   const quieto = await pagina.evaluate(() => {
     const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
-    const pc = document.querySelector(".pc").getBoundingClientRect();
+    const pc = document.querySelector(".pc-pantalla").getBoundingClientRect();
     return { anim: document.querySelector(".pc-hoja").getAnimations().length, hoja: Math.round(hoja.top - pc.top), captura: getComputedStyle(document.querySelector(".pc-captura")).opacity, toque: getComputedStyle(document.querySelector(".pc-toque")).opacity };
   });
   ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.captura === "1" && quieto.toque === "0", "la primera tarjeta no se anima: se ve el catálogo dentro del navegador, quieto");

@@ -11,30 +11,33 @@
   --duracion: 7.2s;
   position: relative;
   width: 100%;
-  aspect-ratio: 200 / 352;
-  overflow: hidden;
-  /* cqw no vale en el propio contenedor (mide el de más arriba): el borde y las esquinas van en px y en %, que no se estiran. */
-  border: 2px solid #23272c;
-  border-radius: 10% / 5.68%;
-  background: #0c1014;
-  container-type: inline-size;
+  /* La proporción del mockup del iPhone de «Cómo funciona» (public/landing/mockup-negro.webp, 640×1350). Un solo factor de escala. */
+  aspect-ratio: 640 / 1350;
   isolation: isolate;
+}
+/* La pantalla: el mismo hueco (en %) y las mismas esquinas que .lt-hueco de la landing. */
+.pc-pantalla {
+  position: absolute;
+  left: 5.313%;
+  top: 1.926%;
+  width: 89.688%;
+  height: 96.148%;
+  overflow: hidden;
+  border-radius: 15.5% / 7%;
+  background: #0c1014;
+}
+.pc-marco {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 .pc-hoja {
   position: absolute;
   inset: 0;
   z-index: 2;
-}
-.pc-isla {
-  position: absolute;
-  z-index: 3;
-  top: 2.4cqw;
-  left: 50%;
-  width: 22cqw;
-  height: 5.6cqw;
-  border-radius: 999px;
-  background: #000;
-  transform: translateX(-50%);
 }
 .pc-captura {
   display: block;
