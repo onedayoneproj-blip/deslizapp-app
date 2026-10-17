@@ -1,0 +1,398 @@
+/* Del perfil al catálogo (components/landing/perfil-a-catalogo.tsx). Una sola línea de tiempo de 11 s que se repite:
+     0 – 0,3 s     el teléfono aparece con un fundido, ya en el estado inicial: el perfil, grande y cortado
+     1,5 s         toque en el enlace
+     1,9 – 2,4 s   sube la hoja del navegador (blanca)
+     2,4 – 3,6 s   barra de progreso y un instante en blanco
+     3,7 s         carga el catálogo y se queda un segundo
+     4,7 – 5,5 s   el teléfono se aleja y se centra hasta verse entero (escala y traslado a la vez)
+     5,8 – 7,7 s   el catálogo pasa dos veces de un producto al siguiente, con el dedo
+     8,3 – 9,2 s   toque en el ♥ del último producto: el «aaah» y el catálogo con su like
+     9,2 – 10,7 s  se queda 1,5 s
+     10,7 – 11 s   fundido a 0 de todo el teléfono, y empieza de nuevo (nada se deshace a la vista)
+   El estado de reposo de cada pieza es el FINAL de movimiento reducido (el catálogo dentro del navegador, quieto, en su primer
+   producto, grande y cortado): las animaciones lo recorren desde el principio. Solo transform y opacity. Todo mide en cqw (1 % del ancho
+   de la pantalla, sale de .nv) y con un solo factor de escala: nada se estira. */
+.pc {
+  --duracion: 11s;
+  /* Cómo se aleja: el teléfono (240 × 506 px) a 316 px de alto, con 12 px de aire arriba y abajo en una vista previa de 340 px. Escala y traslado a la
+     vez, con el origen en el centro: 316 / 506,25 = 0,6242, y el centro sube de 12 + 253 a 12 + 158 = 170 px, o sea 95 px. */
+  --alejado: 0.6242;
+  --sube-alejado: -95px;
+  transform-origin: 50% 50%;
+}
+.pc-hoja {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+/* El catálogo: la cabecera quieta (y 0–225 de la captura) y, debajo, la tira de productos (y 225–750 de cada una, 133,59 cqw). */
+.pc-catalogo,
+.pc-final {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+}
+.pc-final {
+  height: auto;
+  opacity: 0;
+}
+.pc-tira {
+  position: absolute;
+  top: 57.25cqw;
+  left: 0;
+  width: 100%;
+}
+.pc-banda {
+  position: relative;
+  height: 133.59cqw;
+  overflow: hidden;
+}
+.pc-banda img {
+  position: absolute;
+  top: -57.25cqw;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pc-cabecera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 57.25cqw;
+  overflow: hidden;
+}
+.pc-cabecera img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* El «aaah» va al centro del producto (y 470 de 852 en la captura); el dedo, sobre el ♥ (a 356, 450). */
+.pc-aaah {
+  --ba-k: 1.4;
+  left: 50%;
+  top: 119.6cqw;
+  margin: -19.6cqw 0 0 -19.6cqw;
+}
+/* El círculo de toque de la landing: un anillo mandarina que se abre desde el sitio del toque. */
+.pc-toque,
+.pc-dedo {
+  position: absolute;
+  width: 15cqw;
+  aspect-ratio: 1;
+  border: 0.9cqw solid var(--marca-mandarina);
+  border-radius: 50%;
+  background: rgba(255, 131, 79, 0.28);
+  opacity: 0;
+  pointer-events: none;
+}
+.pc-toque {
+  left: 22%;
+  top: 50%;
+  margin: -7.5cqw 0 0 -7.5cqw;
+}
+.pc-dedo {
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+
+.pc * {
+  animation-duration: var(--duracion);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.pc[data-pausa="si"],
+.pc[data-pausa="si"] * {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pc {
+    animation: pc-telefono var(--duracion) infinite both;
+  }
+  .pc-hoja {
+    animation-name: pc-hoja;
+  }
+  .pc .nv-progreso i {
+    animation-name: pc-progreso;
+  }
+  .pc-catalogo {
+    animation-name: pc-catalogo;
+  }
+  .pc-tira {
+    animation-name: pc-tira;
+  }
+  .pc-final {
+    animation-name: pc-final;
+  }
+  .pc-toque {
+    animation-name: pc-toque;
+  }
+  .pc-dedo {
+    animation-name: pc-dedo;
+  }
+  .pc .pt-enlace {
+    animation-name: pc-pulso;
+  }
+  .pc-aaah {
+    animation-name: pc-burst;
+  }
+  .pc-aaah .ba-pp {
+    animation-name: pc-part;
+  }
+  .pc-aaah .ba-aw {
+    animation-name: pc-aw;
+  }
+}
+/* El teléfono entero: aparece con un fundido (0,3 s) ya en el estado inicial (perfil, grande y cortado), se aleja hasta verse completo y centrado en la
+   vista previa (escala y traslado a la vez, con el origen en el centro) y, tras el like, se va con un fundido a 0 (0,3 s) para volver a empezar:
+   nunca se deshace el zoom ni baja la hoja a la vista. */
+@keyframes pc-telefono {
+  0% {
+    opacity: 0;
+    transform: none;
+  }
+  2.73% {
+    opacity: 1;
+    transform: none;
+  }
+  42.73% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+  50% {
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
+  }
+  97.27% {
+    opacity: 1;
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--sube-alejado)) scale(var(--alejado));
+  }
+}
+@keyframes pc-hoja {
+  0%,
+  17.27% {
+    transform: translateY(101%);
+  }
+  21.82% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes pc-progreso {
+  0%,
+  21.82% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  24.55% {
+    transform: scaleX(0.2);
+  }
+  29.09% {
+    transform: scaleX(0.85);
+  }
+  30.91% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  32.73%,
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+@keyframes pc-catalogo {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  33.64%,
+  100% {
+    opacity: 1;
+  }
+}
+/* Un producto a la vez: 133,59 cqw por salto, con un respiro entre uno y otro. */
+@keyframes pc-tira {
+  0%,
+  52.73% {
+    transform: none;
+  }
+  57.27%,
+  65.45% {
+    transform: translateY(-133.59cqw);
+  }
+  70%,
+  100% {
+    transform: translateY(-267.18cqw);
+  }
+}
+@keyframes pc-final {
+  0%,
+  80.91% {
+    opacity: 0;
+  }
+  83.64%,
+  100% {
+    opacity: 1;
+  }
+}
+/* El dedo: dos deslizamientos hacia arriba (con la tira) y un toque en el ♥. Posiciones en cqw de la pantalla (centro del dedo menos 7,5). */
+@keyframes pc-dedo {
+  0%,
+  49.09% {
+    opacity: 0;
+    transform: translate(42.5cqw, 142.5cqw) scale(0.6);
+  }
+  51.82%,
+  52.73% {
+    opacity: 1;
+    transform: translate(42.5cqw, 142.5cqw) scale(1);
+  }
+  57.27% {
+    opacity: 1;
+    transform: translate(42.5cqw, 92.5cqw) scale(1);
+  }
+  59.09%,
+  61.82% {
+    opacity: 0;
+    transform: translate(42.5cqw, 92.5cqw) scale(0.7);
+  }
+  61.91% {
+    opacity: 0;
+    transform: translate(42.5cqw, 142.5cqw) scale(0.6);
+  }
+  64.55%,
+  65.45% {
+    opacity: 1;
+    transform: translate(42.5cqw, 142.5cqw) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(42.5cqw, 92.5cqw) scale(1);
+  }
+  71.82%,
+  74.55% {
+    opacity: 0;
+    transform: translate(42.5cqw, 92.5cqw) scale(0.7);
+  }
+  74.64% {
+    opacity: 0;
+    transform: translate(83.1cqw, 107cqw) scale(0.5);
+  }
+  76.36% {
+    opacity: 1;
+    transform: translate(83.1cqw, 107cqw) scale(0.9);
+  }
+  77.27% {
+    opacity: 0.9;
+    transform: translate(83.1cqw, 107cqw) scale(1.1);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: translate(83.1cqw, 107cqw) scale(1.5);
+  }
+}
+/* El toque en el enlace del perfil (hacia 1,5 s). */
+@keyframes pc-toque {
+  0%,
+  10.91% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  12.73% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  15.45% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  19.09%,
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@keyframes pc-pulso {
+  0%,
+  11.82%,
+  16.36%,
+  100% {
+    transform: scale(1);
+  }
+  13.64% {
+    transform: scale(0.94);
+  }
+}
+/* El «aaah» del catálogo (dzBurst, dzPart y dzAw de app/tienda/catalogo.css) en la línea de tiempo del bucle: empieza a los 8,6 s y dura 1,1 s. --ba-k lo agranda
+   para que se vea con el teléfono alejado. */
+@keyframes pc-burst {
+  0%,
+  78.18% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  79.58% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  80.98% {
+    transform: scale(0.94);
+  }
+  82.38% {
+    transform: scale(1);
+  }
+  86.38% {
+    opacity: 1;
+  }
+  88.18%,
+  100% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+@keyframes pc-part {
+  0%,
+  78.91% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(-4.6cqw * var(--ba-k, 1))) scale(1);
+  }
+  80.61% {
+    opacity: 1;
+  }
+  85.73%,
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(-22.4cqw * var(--ba-k, 1))) scale(0.35);
+  }
+}
+@keyframes pc-aw {
+  0%,
+  79.38% {
+    opacity: 0;
+    transform: translate(-50%, 2.5cqw) scale(0.6);
+  }
+  81.38% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.08);
+  }
+  82.78% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  86.38% {
+    opacity: 1;
+  }
+  88.18%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -2cqw) scale(1);
+  }
+}

@@ -166,19 +166,19 @@ const medir = (pagina, i) =>
         resaltes: burbuja ? burbuja.querySelectorAll(".lt-resalte").length : 0,
         telefonoEncima: Number(getComputedStyle(e.querySelector(".lt-zona")).zIndex) > Number(getComputedStyle(e.querySelector(".lt-burbujas")).zIndex),
         // Lo que se monta bajo el teléfono es el borde de la burbuja, nunca sus letras.
-        letrasBajoTelefono: Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => { const t = x.querySelector(".lt-burbuja-texto").getBoundingClientRect(); return t.top < tel.bottom - 1 && t.right > tel.left && t.left < tel.right; }),
+        letrasBajoTelefono: Number(getComputedStyle(telefono).opacity) > 0.99 && vistas.some((x) => { const t = x.querySelector(".bc-texto").getBoundingClientRect(); return t.top < tel.bottom - 1 && t.right > tel.left && t.left < tel.right; }),
         // El aire de la burbuja (ajustes-lewis-11.md §1): arriba, el que se ve (del borde del teléfono, o del de la burbuja si va al
         // lado, al texto); abajo, de lo último (la última línea o la hora, si bajó a su propia línea) al borde de la burbuja.
         aire: burbuja ? (() => {
           const rango = document.createRange();
-          rango.selectNodeContents(burbuja.querySelector(".lt-burbuja-texto"));
+          rango.selectNodeContents(burbuja.querySelector(".bc-texto"));
           const lineas = [...rango.getClientRects()].filter((x) => x.width > 1 && x.height > 1);
-          const hora = burbuja.querySelector(".lt-burbuja-hora").getBoundingClientRect();
+          const hora = burbuja.querySelector(".bc-hora").getBoundingClientRect();
           const borde = b.top > tel.top + tel.height / 2 && b.top < tel.bottom && Number(getComputedStyle(telefono).opacity) > 0.99 ? tel.bottom : b.top;
           return { arriba: Math.min(...lineas.map((x) => x.top)) - borde, abajo: b.bottom - Math.max(hora.bottom, ...lineas.map((x) => x.bottom)) };
         })() : null,
         // El doble check: los dos trazos completos (stroke-dashoffset 0) y azules #53bdeb.
-        checks: burbuja ? [...burbuja.querySelectorAll(".lt-check")].map((c) => ({ largo: c.getTotalLength(), offset: parseFloat(getComputedStyle(c).strokeDashoffset), color: getComputedStyle(c).stroke })) : null,
+        checks: burbuja ? [...burbuja.querySelectorAll(".bc-check")].map((c) => ({ largo: c.getTotalLength(), offset: parseFloat(getComputedStyle(c).strokeDashoffset), color: getComputedStyle(c).stroke })) : null,
         // El icono de la app de arriba a la izquierda: rosado o verde (ajustes-lewis-12.md §1), y los iconos de la burbuja (§2).
         iconoApp: Number(getComputedStyle(e.querySelector(".lt-icono-verde")).opacity) > 0.99 ? "verde" : Number(getComputedStyle(e.querySelector(".lt-icono-rosa")).opacity) > 0.99 ? "rosa" : "a medias",
         iconosBurbuja: burbuja ? [...burbuja.querySelectorAll(".lt-icono-burbuja")].map((x) => ({ icono: x.dataset.iconoBurbuja, oculto: x.getAttribute("aria-hidden") === "true" && x.querySelector("svg")?.getAttribute("aria-hidden") === "true", ancho: x.getBoundingClientRect().width })) : [],
@@ -644,8 +644,10 @@ console.log("\nLos teléfonos de la demo no guardan nada");
   const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
   const pagina = await contexto.newPage();
   const red = [];
-  // Las fuentes de «Mi marca» (Google Fonts) las pide la hoja real de despacho para el comprobante: no son datos.
-  pagina.on("request", (r) => r.url().startsWith("http") && !r.url().startsWith(base) && !/fonts\.(googleapis|gstatic)\.com/.test(r.url()) && red.push(r.url()));
+  // Las fuentes de «Mi marca» (Google Fonts) las pide la hoja real de despacho para el comprobante: no son datos. Tampoco el script
+  // de depuración de Vercel Analytics (va.vercel-scripts.com), que en modo dev carga el componente de medición: sus eventos de
+  // la demo los descarta `beforeSend` (components/medicion/analitica.tsx), así que no sale nada de la demo.
+  pagina.on("request", (r) => r.url().startsWith("http") && !r.url().startsWith(base) && !/fonts\.(googleapis|gstatic)\.com|va\.vercel-scripts\.com/.test(r.url()) && red.push(r.url()));
   await pagina.goto(base + "/demo-landing/tienda", { waitUntil: "networkidle" });
   for (let i = PASOS.findIndex((p) => p.telefono === "tienda"); i < PASOS.length; i++) {
     await pagina.evaluate((i) => window.postMessage({ tipo: "dz-landing-paso", paso: i, animar: true }, location.origin), i);

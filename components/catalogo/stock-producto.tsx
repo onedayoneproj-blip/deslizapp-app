@@ -1,26 +1,11 @@
 "use client";
 
 import { resumenEspera, textoEspera } from "@/lib/avisos";
-import { situacionVariantes } from "@/lib/inventario-catalogo";
 import type { AvisoLlegada, Producto } from "@/lib/types";
 import { usePanelUI } from "../panel/ui";
 import { IconoChevronDerecha } from "../iconos";
 import { Etiqueta } from "../ui";
-
-/** La segunda línea de un producto: con variantes, su situación corta ("L · Arena agotada · 11 en total"); si no, el stock. */
-export function DetalleStock({ producto: p }: { producto: Producto }) {
-  const s = situacionVariantes(p);
-  if (s) {
-    return (
-      <>
-        {s.resaltado && <b className="font-extrabold text-atencion-texto">{s.resaltado}</b>}
-        {s.resaltado ? " · " : ""}
-        {s.resto}
-      </>
-    );
-  }
-  return <>{p.stock === null ? "Sin cantidad guardada" : p.stock === 0 ? "Agotado" : p.stock === 1 ? "Queda 1" : `${p.stock} en stock`}</>;
-}
+export { DetalleStock } from "./detalle-stock";
 
 /**
  * "N esperan" (Etiqueta rosa): quienes pidieron "Avísame cuando llegue". Se toca y abre la tarjeta "Ya llegó" con un "Avisar"

@@ -1,0 +1,104 @@
+/* La burbuja de chat compartida (components/chat/burbuja-chat.tsx): la forma de las burbujas de «Cómo funciona» (antes en
+   landing.css como .lt-burbuja-*). Lo de colocarla y animarla es de quien la usa: la landing (landing.css) y el chat de /planes.
+   La base va en :where() para que cualquier regla del que la usa la pise sin pelear por orden. */
+:where(.bc) {
+  /* el verde claro de los mensajes enviados de WhatsApp, con el texto oscuro de la marca */
+  --wa-enviado: #d9fdd3;
+  --wa-recibido: #ffffff;
+  --aire: 12px;
+  --bc-fondo: var(--wa-enviado);
+  position: relative;
+  padding: var(--aire) 14px var(--aire) 18px;
+  border-radius: 18px;
+  background: var(--bc-fondo);
+  color: var(--marca-bosque);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 1.18;
+}
+:where(.bc[data-bc="recibido"]) {
+  --bc-fondo: var(--wa-recibido);
+  padding: var(--aire) 18px var(--aire) 14px;
+}
+/* La cola, de una pieza con la burbuja: entra 18 px en ella (cubre toda la esquina redondeada, sin muesca) y se afina hacia
+   fuera, abajo a la derecha (enviado) o a la izquierda (recibido, reflejada). */
+.bc-cola {
+  position: absolute;
+  right: -16px;
+  bottom: 0;
+  width: 34px;
+  height: 22px;
+  overflow: visible;
+  fill: var(--bc-fondo);
+  transition: opacity 200ms ease;
+}
+.bc[data-bc="recibido"] .bc-cola {
+  right: auto;
+  left: -16px;
+  transform: scaleX(-1);
+}
+/* Como en WhatsApp, solo el último mensaje de cada grupo lleva cola. */
+.bc[data-cola="no"] .bc-cola {
+  display: none;
+}
+/* El texto va por encima de la cola: la cola entra 18 px en la burbuja y, en la recibida (a la izquierda), se cruza con el comienzo
+   de la última línea. Es del color de la burbuja, así que solo se nota si tapa letras. */
+.bc-texto {
+  position: relative;
+  z-index: 1;
+}
+.bc-hueco {
+  display: inline-block;
+  width: 92px;
+}
+.bc[data-bc="recibido"] .bc-hueco {
+  width: 62px;
+}
+.bc-hora {
+  position: absolute;
+  right: 14px;
+  bottom: var(--aire);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgba(17, 27, 33, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+/* El doble check «leído» (ajustes-lewis-11.md §2): dos trazos SVG azules. El estado final (los dos completos) es el de la regla
+   base: quien anima la burbuja (la landing) solo lo recorre, y sin animación queda igual. */
+.bc-checks {
+  display: inline-block;
+  width: 18px;
+  height: 11px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  overflow: visible;
+  fill: none;
+  stroke: #53bdeb;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bc-check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+/* Los dos checks encimados (checks="grises-a-azules"): el azul va encima del gris y quien anima la burbuja le sube la opacity. */
+.bc-checks-par {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 11px;
+  margin-left: 2px;
+  vertical-align: -1px;
+}
+.bc-checks-par .bc-checks {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+.bc-gris {
+  stroke: #9aa5ab;
+}

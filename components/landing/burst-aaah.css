@@ -1,0 +1,48 @@
+/* El «aaah» (components/landing/burst-aaah.tsx): las medidas de `.burst` de app/tienda/catalogo.css (110 px en una pantalla de 393)
+   en cqw. Reposa invisible: la animación la agrega quien lo usa. */
+.ba {
+  position: absolute;
+  width: calc(28cqw * var(--ba-k, 1));
+  aspect-ratio: 1;
+  color: var(--marca-mandarina);
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 1.5cqw 4cqw rgba(16, 54, 42, 0.35));
+}
+.ba > svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ba-aw {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-top: 0.5cqw;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: calc(8.1cqw * var(--ba-k, 1));
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--marca-papel);
+  text-shadow: 0 0.5cqw 3cqw rgba(16, 54, 42, 0.5);
+  white-space: nowrap;
+  opacity: 0;
+}
+.ba-pp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(3.3cqw * var(--ba-k, 1));
+  aspect-ratio: 1;
+  margin: calc(-1.65cqw * var(--ba-k, 1)) 0 0 calc(-1.65cqw * var(--ba-k, 1));
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0;
+}
+.ba-pp.sq {
+  border-radius: 1cqw;
+}

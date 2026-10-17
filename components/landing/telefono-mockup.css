@@ -1,0 +1,27 @@
+/* El iPhone del mockup (components/landing/telefono-mockup.tsx). */
+.tm {
+  position: relative;
+  width: 100%;
+  /* La proporción del mockup (640×1350). */
+  aspect-ratio: 640 / 1350;
+  isolation: isolate;
+}
+/* La pantalla: el mismo hueco (en %) y las mismas esquinas que .lt-hueco de la landing. */
+.tm-pantalla {
+  position: absolute;
+  left: 5.313%;
+  top: 1.926%;
+  width: 89.688%;
+  height: 96.148%;
+  overflow: hidden;
+  border-radius: 15.5% / 7%;
+  background: #0c1014;
+}
+.tm-marco {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

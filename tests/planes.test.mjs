@@ -34,3 +34,56 @@ test("un plan sin precio no se muestra", () => {
   const ps = [planDesdeFila(fila({ id: "a" })), planDesdeFila(fila({ id: "b", precio_anual: null })), planDesdeFila(fila({ id: "c", precio_mensual: null }))];
   assert.deepEqual(planesMostrables(ps).map((p) => p.id), ["a"]);
 });
+
+// ---- «Todos los planes traen» y las preguntas frecuentes (docs/prompts/planes-incluye-y-preguntas.md) ----
+const { INCLUYE } = await import("../lib/planes/incluye.ts");
+const { PREGUNTAS_PLANES, faqPageJsonLd } = await import("../lib/planes/preguntas.ts");
+const { ejemploClientes, ejemploPedido } = await import("../lib/planes/ejemplos-incluye.ts");
+
+test("«Todos los planes traen»: las cuatro tarjetas, con su título y su línea", () => {
+  assert.deepEqual(INCLUYE.map((t) => t.id), ["bio", "whatsapp", "panel", "clientes"]);
+  assert.deepEqual(INCLUYE.map((t) => t.titulo), ["Tu catálogo en el link de tu bio", "Pedidos por WhatsApp", "Panel de pedidos y existencias", "Clientes, abonos y lo pendiente"]);
+  assert.ok(INCLUYE.every((t) => t.linea.endsWith(".")));
+});
+
+test("las preguntas frecuentes: ids únicos, todas con respuesta y las dos aprobadas por Lewis tal cual", () => {
+  assert.equal(new Set(PREGUNTAS_PLANES.map((p) => p.id)).size, PREGUNTAS_PLANES.length);
+  assert.ok(PREGUNTAS_PLANES.every((p) => p.pregunta.startsWith("¿") && p.pregunta.endsWith("?") && p.respuesta.length > 10));
+  const por = (id) => PREGUNTAS_PLANES.find((p) => p.id === id);
+  assert.equal(por("comision").respuesta, "No. Hoy el pedido te llega por WhatsApp y el pago lo arreglas tú con tu cliente, así que no cobramos nada por venta.");
+  assert.match(por("treinta-dias").respuesta, /No se borra nada\.$/);
+  assert.equal(por("circulo").respuesta, "El grupo de las primeras tiendas 💚 Entran por invitación y, pagando el año, tienen 30 % menos el primer año, funciones antes que nadie, regalos y el aro en su tienda para siempre.");
+});
+
+test("«¿Qué cuenta como producto publicado?» solo dice lo que cuenta hoy el código: no promete que los agotados no ocupan cupo", () => {
+  const r = PREGUNTAS_PLANES.find((p) => p.id === "publicado").respuesta;
+  assert.match(r, /visibles en tu catálogo/);
+  assert.match(r, /ocultas no ocupan cupo/);
+  assert.doesNotMatch(r, /agotad/i);
+  // Y no se promete «nunca» una comisión: si algún día hay pasarela de pagos, podría haberla.
+  assert.doesNotMatch(PREGUNTAS_PLANES.find((p) => p.id === "comision").respuesta, /nunca|jamás/i);
+});
+
+test("el FAQPage tiene las mismas preguntas y respuestas que el chat, en el mismo orden", () => {
+  const faq = faqPageJsonLd();
+  assert.equal(faq["@context"], "https://schema.org");
+  assert.equal(faq["@type"], "FAQPage");
+  assert.deepEqual(
+    faq.mainEntity.map((q) => [q["@type"], q.name, q.acceptedAnswer["@type"], q.acceptedAnswer.text]),
+    PREGUNTAS_PLANES.map((p) => ["Question", p.pregunta, "Answer", p.respuesta]),
+  );
+});
+
+test("los datos de ejemplo de las vistas previas: un pedido que cuadra y clientes con su deuda y su abono", () => {
+  const ahora = Date.UTC(2026, 9, 16, 15);
+  const { pedido, fotos } = ejemploPedido(ahora);
+  assert.equal(pedido.items.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0), pedido.total);
+  assert.ok(pedido.items.every((i) => fotos.get(i.productoId)?.fotos[0]));
+  assert.ok(Date.parse(pedido.creadoEn) < ahora);
+  const clientes = ejemploClientes(ahora);
+  assert.equal(clientes.length, 3);
+  for (const { cuenta } of clientes) assert.equal(cuenta.abonado + cuenta.deuda, cuenta.totalPedidos);
+  assert.deepEqual(clientes.map(({ cuenta }) => cuenta.fechaAcordada !== null), [true, true, false]);
+  // Las fechas salen del día de Santo Domingo: a las 11 p. m. del 16 oct allí (3 a. m. del 17 en UTC), «dentro de 3 días» es el 19.
+  assert.equal(ejemploClientes(Date.UTC(2026, 9, 17, 3))[0].cuenta.fechaAcordada, "2026-10-19");
+});

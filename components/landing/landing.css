@@ -771,21 +771,11 @@
    borde del teléfono al texto) y el de abajo son iguales, con una, dos o tres líneas (ajustes-lewis-11.md §1). Las anteriores
    suben por detrás del teléfono y se van. */
 .lt-burbuja {
-  /* el verde claro de los mensajes enviados de WhatsApp, con el texto oscuro de la marca */
-  --wa-enviado: #d9fdd3;
-  --aire: 12px;
   position: absolute;
   right: 16px;
   top: calc(-1 * var(--bajo-telefono));
   max-width: min(94%, 440px);
   padding: calc(var(--monta) + var(--bajo-telefono) + var(--aire)) 14px var(--aire) 18px;
-  border-radius: 18px;
-  background: var(--wa-enviado);
-  color: var(--marca-bosque);
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 1.6rem;
-  line-height: 1.18;
   transform-origin: 100% 100%;
   transform: translateY(var(--sube, 0px)) scale(var(--escala, 1));
   transition:
@@ -826,20 +816,10 @@
 .lt-burbuja[data-lado="tienda"] .lt-icono-burbuja {
   color: var(--marca-bosque);
 }
-/* La cola, de una pieza con la burbuja: entra 18 px en ella (cubre toda la esquina redondeada, sin muesca) y se afina hacia
-   fuera, abajo a la derecha. */
-.lt-burbuja-cola {
-  position: absolute;
-  right: -16px;
-  bottom: 0;
-  width: 34px;
-  height: 22px;
-  overflow: visible;
-  fill: var(--wa-enviado);
-  transition: opacity 200ms ease;
-}
-/* Como en WhatsApp, solo el último mensaje lleva cola. */
-.lt-burbuja:not([data-estado="actual"]) .lt-burbuja-cola {
+/* La forma de la burbuja (color, Fredoka, cola, hora y doble check) es la compartida de components/chat/burbuja-chat.css. Aquí, lo
+   que la landing le añade: como en WhatsApp, solo el último mensaje lleva cola; y al llegar, los dos trazos del check se dibujan
+   uno tras otro (ajustes-lewis-11.md §2). Sin la animación (movimiento reducido, otra burbuja) queda en su estado final. */
+.lt-burbuja:not([data-estado="actual"]) .bc-cola {
   opacity: 0;
 }
 .lt-burbuja[data-estado="futura"] {
@@ -849,45 +829,10 @@
 .lt-burbuja[data-estado="lejos"] {
   opacity: 0;
 }
-.lt-burbuja-hueco {
-  display: inline-block;
-  width: 92px;
-}
-.lt-burbuja-hora {
-  position: absolute;
-  right: 14px;
-  bottom: var(--aire);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1;
-  color: rgba(17, 27, 33, 0.5);
-  font-variant-numeric: tabular-nums;
-}
-/* El doble check «leído» (ajustes-lewis-11.md §2): dos trazos SVG azules que se dibujan uno tras otro al llegar la burbuja. El
-   estado final (los dos completos) es el de la regla base: la animación solo lo recorre, y sin ella (movimiento reducido, otra
-   burbuja) queda igual. */
-.lt-burbuja-checks {
-  display: inline-block;
-  width: 18px;
-  height: 11px;
-  margin-left: 2px;
-  vertical-align: -1px;
-  overflow: visible;
-  fill: none;
-  stroke: #53bdeb;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.lt-check {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-}
-.lt-burbuja[data-estado="actual"] .lt-check {
+.lt-burbuja[data-estado="actual"] .bc-check {
   animation: lt-trazo 150ms ease-out 260ms backwards;
 }
-.lt-burbuja[data-estado="actual"] .lt-check-2 {
+.lt-burbuja[data-estado="actual"] .bc-check-2 {
   animation-delay: 410ms;
 }
 @keyframes lt-trazo {
@@ -994,7 +939,7 @@
   .lt-escenario * {
     transition: none !important;
   }
-  .lt-check,
+  .bc-check,
   .lt-desliza-circulo {
     animation: none !important;
   }

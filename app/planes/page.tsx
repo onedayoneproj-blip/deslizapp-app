@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { PaginaPlanes } from "@/components/planes/pagina-planes";
 import { fotosInicio } from "@/lib/inicio/fotos-servidor";
 import { URL_SITIO } from "@/lib/landing/enlaces";
+import { instanteDeLaPagina } from "@/lib/planes/ejemplos-incluye";
 import { planesPublicos } from "@/lib/planes/servidor";
 
 // Next lee esta constante al compilar: tiene que ser un número escrito aquí (5 minutos, como en lib/planes/servidor.ts).
@@ -24,5 +25,5 @@ export const metadata: Metadata = {
 
 export default async function PlanesPage() {
   const [planes, { fotos }] = await Promise.all([planesPublicos(), fotosInicio()]);
-  return <PaginaPlanes planes={planes} fotos={fotos} />;
+  return <PaginaPlanes planes={planes} fotos={fotos} ahora={instanteDeLaPagina()} />;
 }

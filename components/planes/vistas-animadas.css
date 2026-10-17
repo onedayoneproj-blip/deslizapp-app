@@ -1,0 +1,423 @@
+/* Las vistas previas animadas de «Todos los planes traen» (components/planes/animada.tsx, abono-animado.tsx). Bucles de ~7 s con piezas reales;
+   solo transform y opacity (menos el ancho de la barra de abonos, que mide 6 px de alto); corren solo mientras su tarjeta se ve
+   (data-pausa) y, con movimiento reducido, se ve el estado final, quieto: ese es el de reposo de cada pieza. 1 s = 14,29 %. */
+.pl-an {
+  --duracion: 7s;
+  position: relative;
+  width: 100%;
+}
+.pl-an * {
+  animation-duration: var(--duracion);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.pl-an[data-pausa="si"],
+.pl-an[data-pausa="si"] * {
+  animation-play-state: paused;
+}
+
+/* El círculo de toque de la landing (un anillo mandarina que se abre), en el centro de su contenedor. */
+.pl-toque {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 3px solid var(--marca-mandarina);
+  border-radius: 50%;
+  background: rgba(255, 131, 79, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ---- WhatsApp: en el chat de la tienda, «escribiendo…», llega el pedido desde abajo, responde la tienda y los checks se ponen azules ----
+   El teléfono es el mismo de la primera tarjeta (240 px, cortado por el borde de abajo de la vista previa) y los mensajes van pegados a lo
+   que se ve. Sin tiempo muerto: el fondo y la cabecera del chat siempre están; los mensajes se van con un fundido de 0,3 s. */
+.pl-vista[data-vista="whatsapp"] {
+  align-items: flex-start;
+  padding-bottom: 0;
+  background: #e7f2ea;
+}
+.pl-wa {
+  flex: none;
+  width: 240px;
+}
+.pl-wa .cw {
+  /* cuánto sube el pedido cuando llega la respuesta (lo que ocupa la respuesta y su separación) */
+  --hueco: 12.6cqw;
+}
+.pl-wa .cw-respuesta .bc-gris {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl-wa .cw-estado-escribe {
+    animation-name: pl-wa-estado-escribe;
+  }
+  .pl-wa .cw-estado-linea {
+    animation-name: pl-wa-estado-linea;
+  }
+  .pl-wa .cw-escribe {
+    animation-name: pl-wa-escribe;
+  }
+  .pl-escribe i {
+    animation: pl-punto 1s infinite;
+  }
+  .pl-escribe i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .pl-escribe i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .pl-wa .cw-pedido {
+    animation-name: pl-wa-pedido;
+  }
+  .pl-wa .cw-respuesta {
+    animation-name: pl-wa-respuesta;
+  }
+  .pl-wa .cw-respuesta .bc-gris {
+    animation-name: pl-wa-gris;
+  }
+  .pl-wa .cw-respuesta .bc-leido {
+    animation-name: pl-wa-leido;
+  }
+}
+/* «escribiendo…» en la cabecera durante el primer 0,8 s. */
+@keyframes pl-wa-estado-escribe {
+  0%,
+  10.5% {
+    opacity: 1;
+  }
+  11.4%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-wa-estado-linea {
+  0%,
+  10.5% {
+    opacity: 0;
+  }
+  11.4%,
+  100% {
+    opacity: 1;
+  }
+}
+/* Los tres puntos abajo a la izquierda, donde va a llegar el pedido. */
+@keyframes pl-wa-escribe {
+  0% {
+    opacity: 0;
+  }
+  1.5%,
+  10.5% {
+    opacity: 1;
+  }
+  11.4%,
+  100% {
+    opacity: 0;
+  }
+}
+/* El pedido entra desde abajo con el rebote (0,8 s), se queda abajo hasta que responde la tienda y entonces sube un poco. Se va con un fundido de 0,3 s. */
+@keyframes pl-wa-pedido {
+  0%,
+  11.4% {
+    opacity: 0;
+    transform: translateY(calc(var(--hueco) + 10cqw)) scale(0.6);
+    animation-timing-function: cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+  17.1% {
+    opacity: 1;
+    transform: translateY(var(--hueco));
+    animation-timing-function: linear;
+  }
+  40% {
+    transform: translateY(var(--hueco));
+    animation-timing-function: ease-out;
+  }
+  45.7%,
+  92.9% {
+    opacity: 1;
+    transform: none;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* La tienda responde hacia los 2,8 s, con el mismo rebote. */
+@keyframes pl-wa-respuesta {
+  0%,
+  40% {
+    opacity: 0;
+    transform: scale(0.6);
+    animation-timing-function: cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+  47.1% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: linear;
+  }
+  92.9% {
+    opacity: 1;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* Los checks: grises al llegar, azules a los 3,5 s. */
+@keyframes pl-wa-gris {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  54.3%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-wa-leido {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  54.3%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes pl-punto {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* ---- Panel: entra un pedido nuevo, se despacha y bajan las existencias ---- */
+.pl-pn {
+  --alto-nuevo: 128px;
+  zoom: 0.78;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pl-pn-nuevo {
+  position: relative;
+}
+.pl-pn-resto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pl-pn-estados,
+.pl-pn-stock {
+  display: inline-grid;
+  justify-items: start;
+}
+.pl-pn-estados > span,
+.pl-pn-stock > span {
+  grid-area: 1 / 1;
+}
+.pl-pn-nuevo-estado,
+.pl-pn-antes {
+  opacity: 0;
+}
+.pl-pn-nuevo .pl-toque {
+  top: 38%;
+  left: 62%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl-pn {
+    animation-name: pl-pn;
+  }
+  .pl-pn-nuevo {
+    animation-name: pl-pn-entra;
+  }
+  .pl-pn-resto {
+    animation-name: pl-pn-baja;
+  }
+  .pl-pn-nuevo .pl-toque {
+    animation-name: pl-pn-toque;
+  }
+  .pl-pn-nuevo-estado {
+    animation-name: pl-pn-nuevo-sale;
+  }
+  .pl-pn-despachado {
+    animation-name: pl-pn-despachado-entra;
+  }
+  .pl-pn-antes {
+    animation-name: pl-pn-antes;
+  }
+  .pl-pn-despues {
+    animation-name: pl-pn-despues;
+  }
+}
+@keyframes pl-pn {
+  0% {
+    opacity: 0;
+  }
+  3%,
+  91.4% {
+    opacity: 1;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-entra {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  17.1%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Los dos de abajo bajan para hacerle lugar. */
+@keyframes pl-pn-baja {
+  0%,
+  10% {
+    transform: translateY(calc(-1 * var(--alto-nuevo)));
+  }
+  17.1%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes pl-pn-toque {
+  0%,
+  28% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  31% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  34.3% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  42.9%,
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+/* «Nuevo» (atención) pasa a «Despachado» (éxito), las etiquetas reales de la lista. */
+@keyframes pl-pn-nuevo-sale {
+  0%,
+  34.3% {
+    opacity: 1;
+  }
+  37.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-despachado-entra {
+  0%,
+  34.3% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  37.1%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Las existencias del termo bajan de 3 a 2 en stock. */
+@keyframes pl-pn-antes {
+  0%,
+  48.6% {
+    opacity: 1;
+  }
+  52.9%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-despues {
+  0%,
+  48.6% {
+    opacity: 0;
+    transform: translateY(40%) scale(0.85);
+  }
+  52.9% {
+    opacity: 1;
+    transform: translateY(-6%) scale(1.15);
+  }
+  55%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Clientes: un toque en «Anotar abono», se escribe RD$500 y la deuda baja (components/planes/abono-animado.tsx) ---- */
+.pl-ab {
+  zoom: 0.88;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  transition: opacity 350ms ease;
+}
+.pl-ab[data-oculto="si"] {
+  opacity: 0;
+}
+.pl-ab-zona {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
+}
+.pl-ab-boton {
+  position: relative;
+}
+.pl-ab [role="progressbar"] > div {
+  transition: width 600ms ease;
+}
+.pl-ab .pl-toque {
+  animation: pl-toque-una 900ms ease-out both;
+}
+@keyframes pl-toque-una {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  60% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-ab {
+    transition: none;
+  }
+  .pl-ab [role="progressbar"] > div {
+    transition: none;
+  }
+}

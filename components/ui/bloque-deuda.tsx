@@ -1,6 +1,7 @@
 import { diasParaPagar, textoFechaDeuda } from "@/lib/credito";
 import { formatearPesos } from "@/lib/formato";
 import { IconoCalendario, IconoReloj } from "../iconos";
+import { Numero } from "../numero";
 import { clases } from "./comunes";
 
 const atrasada = (fecha: string | null, ahora: number) => {
@@ -67,6 +68,7 @@ export function BloqueDeuda({
   prefijo = true,
   leyenda = false,
   separado = true,
+  animado = false,
   className,
 }: {
   saldo: number;
@@ -76,6 +78,8 @@ export function BloqueDeuda({
   prefijo?: boolean;
   leyenda?: boolean;
   separado?: boolean;
+  /** El monto avisa cuando cambia (Numero): para mostrar un abono que baja la deuda. En las pantallas del panel no se pasa. */
+  animado?: boolean;
   className?: string;
 }) {
   if (saldo <= 0) return null;
@@ -85,7 +89,7 @@ export function BloqueDeuda({
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="text-destacado whitespace-nowrap text-atencion-texto">
           {prefijo ? "Debe " : ""}
-          {formatearPesos(saldo)}
+          {animado ? <Numero valor={formatearPesos(saldo)} /> : formatearPesos(saldo)}
         </span>
         <FechaDeuda fecha={fecha} ahora={ahora} />
       </div>
