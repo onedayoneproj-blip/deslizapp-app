@@ -8,7 +8,11 @@ import { COMPRADORA_DEMO, ENLACE_DEMO, HORA_DEMO, MENSAJE_DEMO, TIENDA_DEMO, VIS
 
 export const IMAGEN_VISTA_PREVIA = "/demo-landing/imagen";
 
-function Globo({ sale, visible }: { sale: boolean; visible: boolean }) {
+/**
+ * El mensaje del pedido tal como llega a WhatsApp: la vista previa del enlace (miniatura, título y dominio) y el texto de mensajePedido.
+ * `diferida`: la miniatura carga cuando la pantalla que la usa está cerca (por ejemplo la vista previa de /planes); en la demo, no.
+ */
+export function Globo({ sale, visible, diferida = false }: { sale: boolean; visible: boolean; diferida?: boolean }) {
   const lineas = MENSAJE_DEMO.split("\n");
   return (
     <div
@@ -16,7 +20,7 @@ function Globo({ sale, visible }: { sale: boolean; visible: boolean }) {
       data-visible={visible ? "" : undefined}
     >
       <div className="relative overflow-hidden rounded-[10px] bg-black/5">
-        <img src={IMAGEN_VISTA_PREVIA} alt="" width={1200} height={630} className="block aspect-[1200/630] w-full bg-[#fff9ee] object-cover" />
+        <img src={IMAGEN_VISTA_PREVIA} alt="" width={1200} height={630} loading={diferida ? "lazy" : undefined} decoding={diferida ? "async" : undefined} className="block aspect-[1200/630] w-full bg-[#fff9ee] object-cover" />
         <span data-ancla="chat" className="absolute top-2 right-2 size-[34px]" />
         <div className="px-2.5 py-2" data-vista-previa>
           <p className="text-[13.5px] font-bold">{VISTA_PREVIA_DEMO.titulo}</p>

@@ -71,14 +71,16 @@ for (const { ancho, alto } of PANTALLAS) {
   }
   const contenido = await pagina.evaluate(() => ({
     perfil: !!document.querySelector('[data-vista="bio"] .pt-enlace')?.textContent?.includes("deslizapp.com/tutienda"),
-    mensaje: document.querySelector('[data-vista="whatsapp"] .bc[data-bc="enviado"]')?.textContent ?? "",
+    mensaje: document.querySelector('[data-vista="whatsapp"] .dz-globo')?.textContent ?? "",
+    miniatura: !!document.querySelector('[data-vista="whatsapp"] .dz-globo img[src="/demo-landing/imagen"]'),
     pedido: !!document.querySelector('[data-vista="panel"]')?.textContent?.includes("#27"),
     existencias: !!document.querySelector('[data-vista="panel"]')?.textContent?.match(/Queda|en stock/),
     cliente: !!document.querySelector('[data-vista="clientes"]')?.textContent?.includes("María P."),
     barra: !!document.querySelector('[data-vista="clientes"] [role="progressbar"]'),
   }));
   ok(contenido.perfil, "vista 1: el perfil con deslizapp.com/tutienda en la bio");
-  ok(/Total: RD\$1,500/.test(contenido.mensaje) && /Vi tu catálogo/.test(contenido.mensaje), "vista 2: el mensaje que arma el catálogo, en una burbuja enviada");
+  ok(/Total: RD\$1,500/.test(contenido.mensaje) && /Vi tu catálogo/.test(contenido.mensaje), "vista 2: el mensaje que arma el catálogo");
+  ok(contenido.miniatura && /Tu pedido con Tu Tienda/.test(contenido.mensaje) && /deslizapp\.com/.test(contenido.mensaje), "vista 2: con la vista previa del enlace (miniatura, título y dominio), como en «Cómo funciona»");
   ok(contenido.pedido && contenido.existencias, "vista 3: una tarjeta de pedido y filas de existencias reales");
   ok(contenido.cliente && contenido.barra, "vista 4: la fila de un cliente con su abono y lo pendiente");
 
@@ -113,17 +115,37 @@ for (const { ancho, alto } of PANTALLAS) {
   await pagina.waitForTimeout(500);
   ok((await pagina.locator(".pc").getAttribute("data-pausa")) === "no", "al volver a verse, corre");
 
-  const congelar = (ms) => pagina.evaluate((ms) => document.querySelectorAll(".pc *").forEach((e) => e.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; })), ms);
+  const congelar = (ms) => pagina.evaluate((ms) => document.querySelectorAll(".pc, .pc *").forEach((e) => e.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; })), ms);
   const estado = () =>
     pagina.evaluate(() => {
       const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
-      const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
-      const pc = document.querySelector(".pc-pantalla").getBoundingClientRect();
-      const vista = document.querySelector('[data-vista="bio"]').getBoundingClientRect();
-      const t = document.querySelector(".pc-toque").getBoundingClientRect();
-      return { enVista: t.bottom <= vista.bottom, hoja: Math.round(((hoja.top - pc.top) / pc.height) * 100), toque: op(".pc-toque"), captura: op(".pc-captura"), progreso: op(".nv-progreso i") };
+      const r = (s) => document.querySelector(s).getBoundingClientRect();
+      const hoja = r(".pc-hoja");
+      const pant = r(".pc-pantalla");
+      const vista = r('[data-vista="bio"]');
+      const pc = r(".pc");
+      const t = r(".pc-toque");
+      const tira = r(".pc-tira");
+      const cuerpo = r(".nv-cuerpo");
+      return {
+        enVista: t.bottom <= vista.bottom,
+        hoja: Math.round(((hoja.top - pant.top) / pant.height) * 100),
+        toque: op(".pc-toque"),
+        catalogo: op(".pc-catalogo"),
+        progreso: op(".nv-progreso i"),
+        final: op(".pc-final"),
+        burst: op(".pc-aaah"),
+        dedo: op(".pc-dedo"),
+        escala: pc.width / 240,
+        entero: pc.bottom <= vista.bottom && pc.top >= vista.top - 1,
+        productos: Math.round(((cuerpo.top + (57.25 / 100) * cuerpo.width - tira.top) / ((133.59 / 100) * cuerpo.width)) * 10) / 10,
+      };
     });
-  const momentos = [["1-perfil", 300], ["2-toque", 1500], ["3-sube-la-hoja", 2150], ["4-blanco-y-progreso", 3000], ["5-catalogo", 4800]];
+  const momentos = [
+    ["1-perfil", 300], ["2-toque", 1500], ["3-sube-la-hoja", 2150], ["4-blanco-y-progreso", 3000], ["5-catalogo", 4200],
+    ["6-zoom-out", 5100], ["7-entero", 5600], ["8-primer-deslizar", 6050], ["9-segundo-deslizar", 7450], ["10-toque-en-el-corazon", 8500],
+    ["11-aaah", 9000], ["12-con-su-like", 10000], ["13-zoom-in", 11000], ["14-baja-la-hoja", 11700],
+  ];
   const e = {};
   for (const [nombre, ms] of momentos) {
     await congelar(ms);
@@ -131,14 +153,25 @@ for (const { ancho, alto } of PANTALLAS) {
     e[nombre] = await estado();
     if (capturas) await pagina.locator(".pl-tj").first().screenshot({ path: `${carpeta}/animacion-${nombre}-${ancho}.png` });
   }
-  ok(e["1-perfil"].hoja >= 99 && e["1-perfil"].toque === 0, "0,3 s: se ve el perfil (la hoja está abajo, fuera) y no hay toque");
+  ok(e["1-perfil"].hoja >= 99 && e["1-perfil"].toque === 0 && e["1-perfil"].escala === 1, "0,3 s: se ve el perfil (la hoja está abajo, fuera) y no hay toque");
   ok(e["2-toque"].toque > 0.5 && e["2-toque"].hoja >= 99 && e["2-toque"].enVista, "1,5 s: el círculo de toque sobre el enlace (a la vista), con la hoja todavía abajo");
   ok(e["3-sube-la-hoja"].hoja > 0 && e["3-sube-la-hoja"].hoja < 99, `2,15 s: la hoja del navegador sube desde abajo (a ${e["3-sube-la-hoja"].hoja} %)`);
-  ok(e["4-blanco-y-progreso"].hoja <= 1 && e["4-blanco-y-progreso"].progreso > 0.5 && e["4-blanco-y-progreso"].captura === 0, "3 s: la hoja arriba, la barra de progreso y el blanco antes del catálogo");
-  ok(e["5-catalogo"].captura === 1 && e["5-catalogo"].progreso === 0, "4,8 s: carga el catálogo");
+  ok(e["4-blanco-y-progreso"].hoja <= 1 && e["4-blanco-y-progreso"].progreso > 0.5 && e["4-blanco-y-progreso"].catalogo === 0, "3 s: la hoja arriba, la barra de progreso y el blanco antes del catálogo");
+  ok(e["5-catalogo"].catalogo === 1 && e["5-catalogo"].progreso === 0 && e["5-catalogo"].escala === 1 && e["5-catalogo"].productos === 0, "4,2 s: carga el catálogo (primer producto), con el zoom de antes");
+  ok(e["6-zoom-out"].escala < 0.95 && e["6-zoom-out"].escala > 0.5, `5,1 s: el teléfono se aleja (escala ${e["6-zoom-out"].escala.toFixed(2)})`);
+  ok(Math.abs(e["7-entero"].escala - 0.5) < 0.01 && e["7-entero"].entero, `5,6 s: el teléfono se ve entero dentro de la vista previa, sin cortes (escala ${e["7-entero"].escala.toFixed(2)})`);
+  ok(e["8-primer-deslizar"].dedo > 0.5 && e["8-primer-deslizar"].productos > 0 && e["8-primer-deslizar"].productos < 1, `6,05 s: primer deslizar hacia arriba, con el dedo (producto ${e["8-primer-deslizar"].productos})`);
+  ok(e["9-segundo-deslizar"].dedo > 0.5 && e["9-segundo-deslizar"].productos > 1 && e["9-segundo-deslizar"].productos < 2, `7,45 s: segundo deslizar (producto ${e["9-segundo-deslizar"].productos})`);
+  ok(e["10-toque-en-el-corazon"].dedo > 0.5 && e["10-toque-en-el-corazon"].productos === 2 && e["10-toque-en-el-corazon"].final === 0, "8,5 s: toque en el ♥ del último producto");
+  ok(e["11-aaah"].burst > 0.5 && e["11-aaah"].final > 0, "9 s: el «aaah» y el catálogo pasa a su estado con like");
+  ok(e["12-con-su-like"].final === 1 && e["12-con-su-like"].burst === 0 && e["12-con-su-like"].escala < 0.51, "10 s: se queda un momento con el like puesto, todavía alejado");
+  ok(e["13-zoom-in"].escala > 0.5 && e["13-zoom-in"].escala < 1, `11 s: el teléfono vuelve al zoom de antes (escala ${e["13-zoom-in"].escala.toFixed(2)})`);
+  ok(e["14-baja-la-hoja"].hoja > 0 && e["14-baja-la-hoja"].escala === 1, "11,7 s: baja la hoja para empezar de nuevo");
   await congelar(6500);
-  ok((await estado()).captura === 1, "a los 6,5 s sigue el catálogo (se queda unos 3 s)");
-  await pagina.evaluate(() => document.querySelectorAll(".pc *").forEach((e) => e.getAnimations().forEach((a) => a.play())));
+  ok((await estado()).catalogo === 1, "a los 6,5 s sigue el catálogo");
+  const total = await pagina.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".pc")).getPropertyValue("--duracion")));
+  ok(total >= 11 && total <= 13, `el bucle dura ${total} s (11–13 s)`);
+
   // ---- «Pregúntanos» ----
   const chat = pagina.locator(".pl-chat");
   await chat.scrollIntoViewIfNeeded();
@@ -228,9 +261,10 @@ console.log("\nMovimiento reducido");
   const quieto = await pagina.evaluate(() => {
     const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
     const pc = document.querySelector(".pc-pantalla").getBoundingClientRect();
-    return { anim: document.querySelector(".pc-hoja").getAnimations().length, hoja: Math.round(hoja.top - pc.top), captura: getComputedStyle(document.querySelector(".pc-captura")).opacity, toque: getComputedStyle(document.querySelector(".pc-toque")).opacity };
+    const op = (s) => getComputedStyle(document.querySelector(s)).opacity;
+    return { anim: document.querySelectorAll(".pc, .pc *").length && [...document.querySelectorAll(".pc, .pc *")].reduce((n, e) => n + e.getAnimations().length, 0), hoja: Math.round(hoja.top - pc.top), catalogo: op(".pc-catalogo"), final: op(".pc-final"), toque: op(".pc-toque"), burst: op(".pc-aaah"), ancho: document.querySelector(".pc").getBoundingClientRect().width };
   });
-  ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.captura === "1" && quieto.toque === "0", "la primera tarjeta no se anima: se ve el catálogo dentro del navegador, quieto");
+  ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.catalogo === "1" && quieto.final === "0" && quieto.toque === "0" && quieto.burst === "0" && quieto.ancho === 240, "la primera tarjeta no se anima ni cambia el zoom: se ve el catálogo dentro del navegador, quieto");
   await contexto.close();
 }
 

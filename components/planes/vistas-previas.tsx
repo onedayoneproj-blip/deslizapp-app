@@ -1,11 +1,10 @@
-import { MENSAJE_DEMO, HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ejemploClientes, ejemploPedido, EJEMPLO_EXISTENCIAS } from "@/lib/planes/ejemplos-incluye";
 import type { IdIncluye } from "@/lib/planes/incluye";
-import { BurbujaChat } from "../chat/burbuja-chat";
 import { DetalleStock } from "../catalogo/detalle-stock";
 import { MiniaturaProducto } from "../catalogo/miniatura-producto";
 import { FilaCliente } from "../clientes/fila-cliente";
 import { PerfilACatalogo } from "../landing/perfil-a-catalogo";
+import { Globo } from "../landing/whatsapp";
 import { TarjetaPedido } from "../pedidos/tarjeta-pedido";
 import { FilaLista, ListaAgrupada } from "../ui";
 
@@ -26,12 +25,8 @@ export function VistaPrevia({ id, ahora }: { id: IdIncluye; ahora: number }) {
     case "whatsapp":
       return (
         <div className="pl-vp-chat">
-          <BurbujaChat lado="enviado" hora={HORA_DEMO}>
-            <span className="pl-vp-mensaje">{MENSAJE_DEMO}</span>
-          </BurbujaChat>
-          <BurbujaChat lado="recibido" hora={HORA_DEMO}>
-            ¡Listo! Te lo mando hoy 💚
-          </BurbujaChat>
+          {/* El mensaje real de «Cómo funciona» (components/landing/whatsapp.tsx): con la vista previa del enlace, la miniatura, el título y el dominio. */}
+          <Globo sale visible diferida />
         </div>
       );
     case "panel": {
