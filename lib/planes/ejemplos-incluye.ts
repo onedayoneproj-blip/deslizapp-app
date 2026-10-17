@@ -80,7 +80,37 @@ export function ejemploPedido(ahora: number): { pedido: PedidoConItems; cliente:
     fotos: new Map([
       ["termo", { fotos: ["/landing/feed-termo.webp"] }],
       ["tote", { fotos: ["/landing/feed-tote.webp"] }],
+      ["gorra", { fotos: ["/landing/feed-gorra.webp"] }],
     ]),
+  };
+}
+
+/** Un pedido anterior, ya despachado (para que el nuevo entre arriba de algo en la vista previa del panel). */
+export function ejemploPedidoAnterior(ahora: number): { pedido: PedidoConItems; cliente: { nombre: string; repite: boolean; avatarEmoji: string; avatarColor: "dorado" } } {
+  const items = [
+    { id: "j1", pedidoId: "ejemplo-anterior", productoId: "gorra", nombreProducto: "Gorra verde", cantidad: 1, precioUnitario: 650, varianteId: null, varianteTexto: null, porEncargo: false },
+    { id: "j2", pedidoId: "ejemplo-anterior", productoId: "tote", nombreProducto: "Tote bag crema y verde", cantidad: 1, precioUnitario: 550, varianteId: null, varianteTexto: null, porEncargo: false },
+  ];
+  return {
+    pedido: {
+      id: "ejemplo-anterior",
+      tiendaId: "ejemplo",
+      numero: 26,
+      clienteId: "ejemplo-luisa",
+      origen: "catalogo",
+      estado: "despachado",
+      total: 1200,
+      codigoPromo: null,
+      creadoEn: new Date(ahora - 26 * HORA).toISOString(),
+      despachadoEn: new Date(ahora - 22 * HORA).toISOString(),
+      pagoModo: "contado",
+      pagoFechaAcordada: null,
+      items,
+      pagado: 1200,
+      saldo: 0,
+      abonos: [],
+    },
+    cliente: { nombre: "Luisa T.", repite: true, avatarEmoji: "🍋", avatarColor: "dorado" },
   };
 }
 
@@ -89,3 +119,6 @@ export const EJEMPLO_EXISTENCIAS = [
   { id: "termo", nombre: "Termo rosado", fotos: ["/landing/feed-termo.webp"], activo: true, stock: 2 },
   { id: "tote", nombre: "Tote bag crema y verde", fotos: ["/landing/feed-tote.webp"], activo: true, stock: 14 },
 ];
+
+/** El abono de la vista previa de Clientes: la deuda de María P., cuánto lleva abonado y el abono que anota. */
+export const EJEMPLO_ABONO = { total: 3000, deuda: 1250, abono: 500 } as const;

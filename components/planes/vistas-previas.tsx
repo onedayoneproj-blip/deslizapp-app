@@ -1,12 +1,17 @@
-import { ejemploClientes, ejemploPedido, EJEMPLO_EXISTENCIAS } from "@/lib/planes/ejemplos-incluye";
+import { HORA_DEMO } from "@/lib/landing/pedido-demo";
+import { ejemploClientes, ejemploPedido, ejemploPedidoAnterior, EJEMPLO_EXISTENCIAS } from "@/lib/planes/ejemplos-incluye";
 import type { IdIncluye } from "@/lib/planes/incluye";
 import { DetalleStock } from "../catalogo/detalle-stock";
 import { MiniaturaProducto } from "../catalogo/miniatura-producto";
-import { FilaCliente } from "../clientes/fila-cliente";
+import { BurbujaChat } from "../chat/burbuja-chat";
 import { PerfilACatalogo } from "../landing/perfil-a-catalogo";
-import { Globo } from "../landing/whatsapp";
+import { TextoMensaje, VistaPreviaEnlace } from "../landing/whatsapp";
+import { ChipEstado } from "../pedidos/comunes";
 import { TarjetaPedido } from "../pedidos/tarjeta-pedido";
 import { FilaLista, ListaAgrupada } from "../ui";
+import { AbonoAnimado } from "./abono-animado";
+import { Animada } from "./animada";
+import "./vistas-animadas.css";
 
 /**
  * La vista previa de cada tarjeta de «Todos los planes traen» (docs/prompts/planes-incluye-y-preguntas.md §1): las piezas reales de
@@ -24,33 +29,71 @@ export function VistaPrevia({ id, ahora }: { id: IdIncluye; ahora: number }) {
       );
     case "whatsapp":
       return (
-        <div className="pl-vp-chat">
-          {/* El mensaje real de «Cómo funciona» (components/landing/whatsapp.tsx): con la vista previa del enlace, la miniatura, el título y el dominio. */}
-          <Globo sale visible diferida />
-        </div>
+        <Animada className="pl-wa">
+          {/* La tienda ve cómo llega el pedido: «escribiendo…», el mensaje con la vista previa del enlace (el de «Cómo funciona») y su respuesta. */}
+          <BurbujaChat lado="recibido" hora="" className="pl-escribe pl-wa-escribe">
+            <i />
+            <i />
+            <i />
+          </BurbujaChat>
+          <BurbujaChat lado="recibido" bloque hora={HORA_DEMO} className="pl-wa-pedido">
+            <VistaPreviaEnlace diferida compacta />
+            <TextoMensaje className="pt-1.5" />
+          </BurbujaChat>
+          <BurbujaChat lado="enviado" checks="grises-a-azules" hora={HORA_DEMO} className="pl-wa-respuesta">
+            ¡Listo! Te lo mando hoy 💚
+          </BurbujaChat>
+        </Animada>
       );
     case "panel": {
       const { pedido, cliente, fotos } = ejemploPedido(ahora);
+      const anterior = ejemploPedidoAnterior(ahora);
       return (
-        <div className="pl-vp-panel">
-          <TarjetaPedido ahora={ahora} pedido={pedido} cliente={cliente} productos={fotos} sinEnlace />
-          <ListaAgrupada>
-            {EJEMPLO_EXISTENCIAS.map((p) => (
-              <FilaLista key={p.id} inicio={<MiniaturaProducto producto={p} />} titulo={p.nombre} detalle={<DetalleStock producto={p} />} />
-            ))}
-          </ListaAgrupada>
-        </div>
+        <Animada className="pl-pn">
+          {/* Entra un pedido nuevo, se despacha y bajan las existencias. */}
+          <div className="pl-pn-nuevo">
+            <TarjetaPedido
+              ahora={ahora}
+              pedido={pedido}
+              cliente={cliente}
+              productos={fotos}
+              sinEnlace
+              etiqueta={
+                <span className="pl-pn-estados">
+                  <span className="pl-pn-nuevo-estado">
+                    <ChipEstado estado="nuevo" />
+                  </span>
+                  <span className="pl-pn-despachado">
+                    <ChipEstado estado="despachado" />
+                  </span>
+                </span>
+              }
+            />
+            <span className="pl-toque" />
+          </div>
+          <div className="pl-pn-resto">
+            <TarjetaPedido ahora={ahora} pedido={anterior.pedido} cliente={anterior.cliente} productos={fotos} sinEnlace etiqueta={<ChipEstado estado="despachado" />} />
+            <ListaAgrupada>
+              <FilaLista
+                inicio={<MiniaturaProducto producto={EJEMPLO_EXISTENCIAS[0]} />}
+                titulo={EJEMPLO_EXISTENCIAS[0].nombre}
+                detalle={
+                  <span className="pl-pn-stock">
+                    <span className="pl-pn-antes">
+                      <DetalleStock producto={{ activo: true, stock: 3 }} />
+                    </span>
+                    <span className="pl-pn-despues">
+                      <DetalleStock producto={{ activo: true, stock: 2 }} />
+                    </span>
+                  </span>
+                }
+              />
+            </ListaAgrupada>
+          </div>
+        </Animada>
       );
     }
     case "clientes":
-      return (
-        <div className="pl-vp-panel">
-          <ListaAgrupada>
-            {ejemploClientes(ahora).map(({ cliente, cuenta }) => (
-              <FilaCliente key={cliente.id} cliente={cliente} cuenta={cuenta} ahora={ahora} senalRepite soloVista />
-            ))}
-          </ListaAgrupada>
-        </div>
-      );
+      return <AbonoAnimado ahora={ahora} fecha={ejemploClientes(ahora)[0].cuenta.fechaAcordada} />;
   }
 }

@@ -1,0 +1,436 @@
+/* Las vistas previas animadas de «Todos los planes traen» (components/planes/animada.tsx, abono-animado.tsx). Bucles de ~7 s con piezas reales;
+   solo transform y opacity (menos el ancho de la barra de abonos, que mide 6 px de alto); corren solo mientras su tarjeta se ve
+   (data-pausa) y, con movimiento reducido, se ve el estado final, quieto: ese es el de reposo de cada pieza. 1 s = 14,29 %. */
+.pl-an {
+  --duracion: 7s;
+  position: relative;
+  width: 100%;
+}
+.pl-an * {
+  animation-duration: var(--duracion);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.pl-an[data-pausa="si"],
+.pl-an[data-pausa="si"] * {
+  animation-play-state: paused;
+}
+
+/* El círculo de toque de la landing (un anillo mandarina que se abre), en el centro de su contenedor. */
+.pl-toque {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 3px solid var(--marca-mandarina);
+  border-radius: 50%;
+  background: rgba(255, 131, 79, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ---- WhatsApp: «escribiendo…», llega el pedido con la vista previa del enlace, responde la tienda y los checks se ponen azules ---- */
+.pl-vista[data-vista="whatsapp"] {
+  align-items: flex-start;
+  padding: 0;
+  background: #efe5d3 url(/chat/patron-whatsapp.svg) 0 0 / 180px;
+}
+.pl-wa {
+  zoom: 0.64;
+  height: 100%;
+  padding: 14px 26px 0 24px;
+  color: #111b21;
+  filter: drop-shadow(0 1px 1px rgba(16, 54, 42, 0.14));
+}
+.pl-wa .bc {
+  --aire: 7px;
+  max-width: 88%;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 14.5px;
+  line-height: 1.38;
+  transform-origin: 0 100%;
+}
+.pl-wa .bc[data-bc="recibido"] {
+  margin-left: 6px;
+}
+.pl-wa-pedido {
+  padding: 6px 6px 10px;
+}
+.pl-wa-pedido .bc-hueco {
+  display: none;
+}
+.pl-wa-pedido .bc-hora {
+  display: none;
+}
+.pl-wa-respuesta {
+  position: absolute;
+  right: 32px;
+  bottom: 14px;
+  font-family: var(--font-display);
+  transform-origin: 100% 100%;
+}
+.pl-wa-escribe {
+  position: absolute;
+  left: 30px;
+  top: 14px;
+  z-index: 2;
+  opacity: 0;
+}
+/* «escribiendo…»: tres puntos que rebotan. */
+.pl-escribe {
+  padding: 13px 14px;
+}
+.pl-escribe .bc-texto {
+  display: flex;
+  gap: 4px;
+}
+.pl-escribe .bc-hueco,
+.pl-escribe .bc-hora {
+  display: none;
+}
+.pl-escribe i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9ab0a5;
+}
+.pl-wa-respuesta .bc-gris {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl-wa-escribe {
+    animation-name: pl-wa-escribe;
+  }
+  .pl-escribe i {
+    animation: pl-punto 1s infinite;
+  }
+  .pl-escribe i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .pl-escribe i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  .pl-wa-pedido {
+    animation-name: pl-wa-pedido;
+  }
+  .pl-wa-respuesta {
+    animation-name: pl-wa-respuesta;
+  }
+  .pl-wa-respuesta .bc-gris {
+    animation-name: pl-wa-gris;
+  }
+  .pl-wa-respuesta .bc-leido {
+    animation-name: pl-wa-leido;
+  }
+}
+@keyframes pl-wa-escribe {
+  0% {
+    opacity: 0;
+  }
+  4.3%,
+  20% {
+    opacity: 1;
+  }
+  21.4%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-wa-pedido {
+  0%,
+  21.4% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  27.1% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: linear;
+  }
+  91.4% {
+    opacity: 1;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes pl-wa-respuesta {
+  0%,
+  47.1% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  54.3% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: linear;
+  }
+  91.4% {
+    opacity: 1;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+/* Los checks: grises al llegar, azules cuando la clienta lo lee (4,4 s). */
+@keyframes pl-wa-gris {
+  0%,
+  62.9% {
+    opacity: 1;
+  }
+  67.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-wa-leido {
+  0%,
+  62.9% {
+    opacity: 0;
+  }
+  67.1%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes pl-punto {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* ---- Panel: entra un pedido nuevo, se despacha y bajan las existencias ---- */
+.pl-pn {
+  --alto-nuevo: 128px;
+  zoom: 0.78;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pl-pn-nuevo {
+  position: relative;
+}
+.pl-pn-resto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pl-pn-estados,
+.pl-pn-stock {
+  display: inline-grid;
+  justify-items: start;
+}
+.pl-pn-estados > span,
+.pl-pn-stock > span {
+  grid-area: 1 / 1;
+}
+.pl-pn-nuevo-estado,
+.pl-pn-antes {
+  opacity: 0;
+}
+.pl-pn-nuevo .pl-toque {
+  top: 38%;
+  left: 62%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pl-pn {
+    animation-name: pl-pn;
+  }
+  .pl-pn-nuevo {
+    animation-name: pl-pn-entra;
+  }
+  .pl-pn-resto {
+    animation-name: pl-pn-baja;
+  }
+  .pl-pn-nuevo .pl-toque {
+    animation-name: pl-pn-toque;
+  }
+  .pl-pn-nuevo-estado {
+    animation-name: pl-pn-nuevo-sale;
+  }
+  .pl-pn-despachado {
+    animation-name: pl-pn-despachado-entra;
+  }
+  .pl-pn-antes {
+    animation-name: pl-pn-antes;
+  }
+  .pl-pn-despues {
+    animation-name: pl-pn-despues;
+  }
+}
+@keyframes pl-pn {
+  0% {
+    opacity: 0;
+  }
+  3%,
+  91.4% {
+    opacity: 1;
+  }
+  97.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-entra {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  17.1%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Los dos de abajo bajan para hacerle lugar. */
+@keyframes pl-pn-baja {
+  0%,
+  10% {
+    transform: translateY(calc(-1 * var(--alto-nuevo)));
+  }
+  17.1%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes pl-pn-toque {
+  0%,
+  28% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  31% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  34.3% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  42.9%,
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+/* «Nuevo» (atención) pasa a «Despachado» (éxito), las etiquetas reales de la lista. */
+@keyframes pl-pn-nuevo-sale {
+  0%,
+  34.3% {
+    opacity: 1;
+  }
+  37.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-despachado-entra {
+  0%,
+  34.3% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  37.1%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Las existencias del termo bajan de 3 a 2 en stock. */
+@keyframes pl-pn-antes {
+  0%,
+  48.6% {
+    opacity: 1;
+  }
+  52.9%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pl-pn-despues {
+  0%,
+  48.6% {
+    opacity: 0;
+    transform: translateY(40%) scale(0.85);
+  }
+  52.9% {
+    opacity: 1;
+    transform: translateY(-6%) scale(1.15);
+  }
+  55%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Clientes: un toque en «Anotar abono», se escribe RD$500 y la deuda baja (components/planes/abono-animado.tsx) ---- */
+.pl-ab {
+  zoom: 0.88;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  transition: opacity 350ms ease;
+}
+.pl-ab[data-oculto="si"] {
+  opacity: 0;
+}
+.pl-ab-zona {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
+}
+.pl-ab-boton {
+  position: relative;
+}
+.pl-ab [role="progressbar"] > div {
+  transition: width 600ms ease;
+}
+.pl-ab .pl-toque {
+  animation: pl-toque-una 900ms ease-out both;
+}
+@keyframes pl-toque-una {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(0.85);
+  }
+  60% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-ab {
+    transition: none;
+  }
+  .pl-ab [role="progressbar"] > div {
+    transition: none;
+  }
+}

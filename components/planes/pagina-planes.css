@@ -439,25 +439,6 @@ html:has(.pl) body {
   flex: none;
   width: 240px;
 }
-/* El mensaje del pedido con la vista previa de su enlace, al 68 %: arriba la miniatura, el título y el dominio y, debajo, el mensaje; lo que
-   no cabe se corta abajo, como un chat que sigue. El fondo es el del chat real (public/chat/patron-whatsapp.svg). */
-.pl-vista[data-vista="whatsapp"] {
-  align-items: flex-start;
-  background: #efe5d3 url(/chat/patron-whatsapp.svg) 0 0 / 180px;
-}
-.pl-vp-chat {
-  width: 100%;
-  zoom: 0.68;
-  filter: drop-shadow(0 1px 1px rgba(16, 54, 42, 0.12));
-}
-/* Las piezas del panel están hechas para una pantalla de teléfono: aquí se ven al 95 % para que los nombres no se corten. */
-.pl-vp-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  zoom: 0.95;
-}
 .pl-tj-pie {
   display: flex;
   align-items: flex-start;

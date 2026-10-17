@@ -8,34 +8,48 @@ import { COMPRADORA_DEMO, ENLACE_DEMO, HORA_DEMO, MENSAJE_DEMO, TIENDA_DEMO, VIS
 
 export const IMAGEN_VISTA_PREVIA = "/demo-landing/imagen";
 
-/**
- * El mensaje del pedido tal como llega a WhatsApp: la vista previa del enlace (miniatura, título y dominio) y el texto de mensajePedido.
- * `diferida`: la miniatura carga cuando la pantalla que la usa está cerca (por ejemplo la vista previa de /planes); en la demo, no.
- */
-export function Globo({ sale, visible, diferida = false }: { sale: boolean; visible: boolean; diferida?: boolean }) {
-  const lineas = MENSAJE_DEMO.split("\n");
+/** La vista previa del enlace del pedido en WhatsApp: la miniatura, el título y el dominio. `ancla`: el sitio del ♥ de la demo. */
+export function VistaPreviaEnlace({ diferida = false, ancla = false, compacta = false }: { diferida?: boolean; ancla?: boolean; /** La miniatura más baja (3:1, recortada, sin deformar): para cuando el mensaje tiene que caber en poco alto. */ compacta?: boolean }) {
   return (
-    <div
-      className={`dz-globo relative w-[86%] rounded-[14px] p-1 text-[14.5px] leading-[1.38] text-[#111b21] shadow-[0_1px_1px_rgba(0,0,0,0.12)] ${sale ? "ml-auto rounded-tr-[4px] bg-[#d9fdd3]" : "rounded-tl-[4px] bg-white"}`}
-      data-visible={visible ? "" : undefined}
-    >
       <div className="relative overflow-hidden rounded-[10px] bg-black/5">
-        <img src={IMAGEN_VISTA_PREVIA} alt="" width={1200} height={630} loading={diferida ? "lazy" : undefined} decoding={diferida ? "async" : undefined} className="block aspect-[1200/630] w-full bg-[#fff9ee] object-cover" />
-        <span data-ancla="chat" className="absolute top-2 right-2 size-[34px]" />
+        <img src={IMAGEN_VISTA_PREVIA} alt="" width={1200} height={630} loading={diferida ? "lazy" : undefined} decoding={diferida ? "async" : undefined} className={`block ${compacta ? "aspect-[3/1]" : "aspect-[1200/630]"} w-full bg-[#fff9ee] object-cover`} />
+        {ancla && <span data-ancla="chat" className="absolute top-2 right-2 size-[34px]" />}
         <div className="px-2.5 py-2" data-vista-previa>
           <p className="text-[13.5px] font-bold">{VISTA_PREVIA_DEMO.titulo}</p>
           <p className="text-[12.5px] text-black/60">{VISTA_PREVIA_DEMO.descripcion}</p>
           <p className="text-[12px] text-black/45">{VISTA_PREVIA_DEMO.dominio}</p>
         </div>
       </div>
-      <p className="px-1.5 pt-1.5 whitespace-pre-line">
-        {lineas.map((l, i) => (
-          <span key={i}>
-            {l === ENLACE_DEMO ? <span className="break-all text-[#027eb5] underline">{l}</span> : l}
-            {i < lineas.length - 1 && "\n"}
-          </span>
-        ))}
-      </p>
+  );
+}
+
+/** El texto del mensaje del pedido (el de mensajePedido), con su enlace subrayado. */
+export function TextoMensaje({ className = "" }: { className?: string }) {
+  const lineas = MENSAJE_DEMO.split("\n");
+  return (
+    <p className={`whitespace-pre-line ${className}`}>
+      {lineas.map((l, i) => (
+        <span key={i}>
+          {l === ENLACE_DEMO ? <span className="break-all text-[#027eb5] underline">{l}</span> : l}
+          {i < lineas.length - 1 && "\n"}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/**
+ * El mensaje del pedido tal como llega a WhatsApp: la vista previa del enlace (miniatura, título y dominio) y el texto de mensajePedido.
+ * `diferida`: la miniatura carga cuando la pantalla que la usa está cerca (por ejemplo la vista previa de /planes); en la demo, no.
+ */
+export function Globo({ sale, visible, diferida = false }: { sale: boolean; visible: boolean; diferida?: boolean }) {
+  return (
+    <div
+      className={`dz-globo relative w-[86%] rounded-[14px] p-1 text-[14.5px] leading-[1.38] text-[#111b21] shadow-[0_1px_1px_rgba(0,0,0,0.12)] ${sale ? "ml-auto rounded-tr-[4px] bg-[#d9fdd3]" : "rounded-tl-[4px] bg-white"}`}
+      data-visible={visible ? "" : undefined}
+    >
+      <VistaPreviaEnlace diferida={diferida} ancla />
+      <TextoMensaje className="px-1.5 pt-1.5" />
       <p className="flex items-center justify-end gap-1 px-1.5 pb-0.5 text-[11px] text-black/45">
         {HORA_DEMO}
         {sale && <span className="text-[#53bdeb]">✓✓</span>}

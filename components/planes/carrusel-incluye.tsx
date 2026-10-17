@@ -50,7 +50,7 @@ export function CarruselIncluye({ tarjetas }: { tarjetas: TarjetaCarrusel[] }) {
       <ul ref={carril} className="pl-carril" tabIndex={0} aria-label="Todos los planes traen. Desliza para ver cada una.">
         {tarjetas.map((t, k) => (
           <li key={t.id} className="pl-tj" data-actual={k === actual ? "si" : "no"}>
-            <div className="pl-vista" data-vista={t.id} aria-hidden="true">
+            <div className="pl-vista" data-vista={t.id} aria-hidden="true" inert>
               {t.vista}
             </div>
             <div className="pl-tj-pie">

@@ -85,3 +85,20 @@
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
 }
+/* Los dos checks encimados (checks="grises-a-azules"): el azul va encima del gris y quien anima la burbuja le sube la opacity. */
+.bc-checks-par {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 11px;
+  margin-left: 2px;
+  vertical-align: -1px;
+}
+.bc-checks-par .bc-checks {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+.bc-gris {
+  stroke: #9aa5ab;
+}

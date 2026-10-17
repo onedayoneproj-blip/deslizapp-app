@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { BurstAaah } from "./burst-aaah";
+import { useEnPantalla } from "./en-pantalla";
 import { NavegadorInstagram } from "./navegador-instagram";
 import { PerfilTienda } from "./perfil-tienda";
 import "./perfil-a-catalogo.css";
@@ -19,7 +20,7 @@ const CUADRO_CON_LIKE = "/landing/pasos/aaah-tote.webp";
  * blanco; carga el catálogo; el teléfono se aleja hasta verse entero; el catálogo pasa de un producto al siguiente dos veces (con el
  * dedo) y, en el último, un toque en el ♥ con el «aaah» del catálogo; se queda un momento, el teléfono vuelve al zoom de antes y
  * empieza de nuevo (unos 12,5 s). Todo son animaciones de CSS (transform y opacity), sin iframes ni video. Se pausa cuando no se ve
- * (IntersectionObserver). Con movimiento reducido no se mueve: se ve el catálogo dentro del navegador, quieto. Es decoración: quien la
+ * (useEnPantalla). Con movimiento reducido no se mueve: se ve el catálogo dentro del navegador, quieto. Es decoración: quien la
  * usa la esconde a los lectores de pantalla y dice lo mismo con texto.
  * Reutilizable: los pasos `perfil` y `navegador` de «Cómo funciona» (docs/prompts/conoce-portada-narrativa.md). Su ancho lo pone
  * quien la usa; su alto sale de la proporción del iPhone del mockup (640×1350).
@@ -28,18 +29,11 @@ export function PerfilACatalogo({ className }: { className?: string }) {
   const caja = useRef<HTMLDivElement>(null);
 
   // Mientras no se ve, queda en pausa (y empieza desde el principio la primera vez que aparece).
-  useEffect(() => {
-    const el = caja.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const observador = new IntersectionObserver(([e]) => {
-      el.dataset.pausa = e?.isIntersecting ? "no" : "si";
-    }, { threshold: 0.5 });
-    observador.observe(el);
-    return () => observador.disconnect();
-  }, []);
+  // El teléfono va cortado por la vista previa (se ve poco más de la mitad): el umbral es menor que el de las otras tarjetas.
+  const visible = useEnPantalla(caja, 0.4);
 
   return (
-    <div ref={caja} className={className ? `pc ${className}` : "pc"} data-pausa="si">
+    <div ref={caja} className={className ? `pc ${className}` : "pc"} data-pausa={visible ? "no" : "si"}>
       {/* El teléfono de «Cómo funciona» (mockup-negro, 640×1350): su pantalla es el hueco y el marco con la isla va encima. */}
       <div className="pc-pantalla">
         <PerfilTienda sobreEnlace={<span className="pc-toque" />} />

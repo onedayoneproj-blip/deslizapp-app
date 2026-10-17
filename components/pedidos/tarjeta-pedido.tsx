@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { textoFechaDeudaAccesible } from "@/lib/credito";
 import type { ColorAvatar } from "@/lib/avatar-cliente";
 import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
@@ -11,7 +12,7 @@ import { EtiquetaPago } from "./comunes";
  * La tarjeta de un pedido en la lista de Pedidos. `sinEnlace`: la misma tarjeta sin llevar a ninguna parte (para mostrarla con datos
  * de ejemplo fuera del panel, como en /planes); en el panel no se pasa y es un enlace al pedido.
  */
-export function TarjetaPedido({ ahora, pedido: p, cliente, productos, sinEnlace = false }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }; productos: ReadonlyMap<string, Pick<Producto, "fotos">>; sinEnlace?: boolean }) {
+export function TarjetaPedido({ ahora, pedido: p, cliente, productos, sinEnlace = false, etiqueta }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }; productos: ReadonlyMap<string, Pick<Producto, "fotos">>; sinEnlace?: boolean; /** Otra cosa en el sitio de la etiqueta de pago (la vista previa animada de /planes muestra el estado del pedido); en el panel no se pasa. */ etiqueta?: ReactNode }) {
   const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
   const aCredito = p.pagoModo === "credito" && p.estado !== "cancelado";
   const conDeuda = aCredito && p.saldo > 0;
@@ -31,7 +32,7 @@ export function TarjetaPedido({ ahora, pedido: p, cliente, productos, sinEnlace 
           </span>
         </div>
         {/* Una sola etiqueta: en crédito saldado, "Pagado" en lugar de "A crédito" */}
-        {aCredito && p.saldo === 0 ? <Etiqueta tono="exito">Pagado</Etiqueta> : <EtiquetaPago pedido={p} />}
+        {etiqueta ?? (aCredito && p.saldo === 0 ? <Etiqueta tono="exito">Pagado</Etiqueta> : <EtiquetaPago pedido={p} />)}
       </div>
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">

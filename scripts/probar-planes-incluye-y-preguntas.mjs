@@ -71,8 +71,8 @@ for (const { ancho, alto } of PANTALLAS) {
   }
   const contenido = await pagina.evaluate(() => ({
     perfil: !!document.querySelector('[data-vista="bio"] .pt-enlace')?.textContent?.includes("deslizapp.com/tutienda"),
-    mensaje: document.querySelector('[data-vista="whatsapp"] .dz-globo')?.textContent ?? "",
-    miniatura: !!document.querySelector('[data-vista="whatsapp"] .dz-globo img[src="/demo-landing/imagen"]'),
+    mensaje: document.querySelector('[data-vista="whatsapp"] .pl-wa-pedido')?.textContent ?? "",
+    miniatura: !!document.querySelector('[data-vista="whatsapp"] .pl-wa-pedido img[src="/demo-landing/imagen"]'),
     pedido: !!document.querySelector('[data-vista="panel"]')?.textContent?.includes("#27"),
     existencias: !!document.querySelector('[data-vista="panel"]')?.textContent?.match(/Queda|en stock/),
     cliente: !!document.querySelector('[data-vista="clientes"]')?.textContent?.includes("María P."),
@@ -172,6 +172,85 @@ for (const { ancho, alto } of PANTALLAS) {
   const total = await pagina.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".pc")).getPropertyValue("--duracion")));
   ok(total >= 11 && total <= 13, `el bucle dura ${total} s (11–13 s)`);
 
+  // ---- Las otras tres tarjetas animadas ----
+  const aTarjeta = async (k) => {
+    await pagina.evaluate((k) => document.querySelectorAll(".pl-tj")[k].scrollIntoView({ inline: "center", block: "nearest", behavior: "instant" }), k);
+    await pagina.waitForTimeout(500);
+  };
+  const congelarEn = (sel, ms) => pagina.evaluate(([sel, ms]) => document.querySelectorAll(`${sel}, ${sel} *`).forEach((e) => e.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; })), [sel, ms]);
+  const op = (sel) => pagina.evaluate((sel) => Number(getComputedStyle(document.querySelector(sel)).opacity), sel);
+  const foto = async (k, nombre) => { if (capturas) await pagina.locator(".pl-tj").nth(k).screenshot({ path: `${carpeta}/${nombre}-${ancho}.png` }); };
+
+  // WhatsApp
+  await aTarjeta(1);
+  ok((await pagina.locator(".pl-wa").getAttribute("data-pausa")) === "no", "WhatsApp: corre mientras su tarjeta se ve");
+  const wa = {};
+  for (const [nombre, ms] of [["1-escribiendo", 900], ["2-llega-el-pedido", 2100], ["3-responde", 4000], ["4-checks-azules", 5200]]) {
+    await congelarEn(".pl-wa", ms);
+    await pagina.waitForTimeout(80);
+    wa[nombre] = { escribe: await op(".pl-wa-escribe"), pedido: await op(".pl-wa-pedido"), respuesta: await op(".pl-wa-respuesta"), gris: await op(".pl-wa-respuesta .bc-gris"), leido: await op(".pl-wa-respuesta .bc-leido") };
+    await foto(1, `animacion-whatsapp-${nombre}`);
+  }
+  ok(wa["1-escribiendo"].escribe === 1 && wa["1-escribiendo"].pedido === 0, "WhatsApp 0,9 s: aparece «escribiendo…»");
+  ok(wa["2-llega-el-pedido"].pedido === 1 && wa["2-llega-el-pedido"].escribe === 0 && wa["2-llega-el-pedido"].respuesta === 0, "WhatsApp 2,1 s: llega el pedido con la vista previa del enlace");
+  ok(wa["3-responde"].respuesta === 1 && wa["3-responde"].gris === 1 && wa["3-responde"].leido === 0, "WhatsApp 4 s: responde la tienda y los checks están grises");
+  ok(wa["4-checks-azules"].leido === 1 && wa["4-checks-azules"].gris === 0, "WhatsApp 5,2 s: los checks pasan a azules");
+  const waTexto = await pagina.locator(".pl-wa-respuesta").innerText();
+  ok(/¡Listo! Te lo mando hoy 💚/.test(waTexto), "WhatsApp: «¡Listo! Te lo mando hoy 💚»");
+  const rebote = await pagina.evaluate(() => getComputedStyle(document.querySelector(".pl-wa-pedido")).animationName);
+  ok(rebote === "pl-wa-pedido", "WhatsApp: el mensaje llega con el rebote de la burbuja compartida");
+
+  // Panel
+  await aTarjeta(2);
+  ok((await pagina.locator(".pl-pn").getAttribute("data-pausa")) === "no", "Panel: corre mientras su tarjeta se ve");
+  const pn = {};
+  for (const [nombre, ms] of [["1-solo-lo-anterior", 300], ["2-entra-el-nuevo", 1500], ["3-toque-en-el-pedido", 2400], ["4-despachado", 3000], ["5-bajan-las-existencias", 4200]]) {
+    await congelarEn(".pl-pn", ms);
+    await pagina.waitForTimeout(80);
+    pn[nombre] = { nuevo: await op(".pl-pn-nuevo"), toque: await op(".pl-pn-nuevo .pl-toque"), estadoNuevo: await op(".pl-pn-nuevo-estado"), despachado: await op(".pl-pn-despachado"), antes: await op(".pl-pn-antes"), despues: await op(".pl-pn-despues") };
+    await foto(2, `animacion-panel-${nombre}`);
+  }
+  ok(pn["1-solo-lo-anterior"].nuevo === 0, "Panel 0,3 s: todavía no hay pedido nuevo");
+  ok(pn["2-entra-el-nuevo"].nuevo === 1 && pn["2-entra-el-nuevo"].estadoNuevo === 1, "Panel 1,5 s: entra arriba un pedido nuevo con «Nuevo»");
+  ok(pn["3-toque-en-el-pedido"].toque > 0.5, "Panel 2,4 s: un toque en el pedido");
+  ok(pn["4-despachado"].despachado === 1 && pn["4-despachado"].estadoNuevo === 0 && pn["4-despachado"].antes === 1, "Panel 3 s: el pedido pasa a «Despachado» (la etiqueta real)");
+  ok(pn["5-bajan-las-existencias"].antes === 0 && pn["5-bajan-las-existencias"].despues === 1, "Panel 4,2 s: las existencias bajan de 3 a 2 en stock");
+  const etiquetas = await pagina.evaluate(() => [...document.querySelectorAll(".pl-pn-estados > span")].map((s) => s.textContent.trim()));
+  ok(etiquetas.join("|") === "Nuevo|Despachado", `Panel: etiquetas reales (${etiquetas.join(", ")})`);
+
+  // Clientes (el bucle es de JavaScript: se mira en tiempo real)
+  await aTarjeta(3);
+  await pagina.evaluate(() => {
+    window.__toqueVisto = 0;
+    new MutationObserver(() => { if (document.querySelector(".pl-ab .pl-toque")) window.__toqueVisto++; }).observe(document.querySelector(".pl-ab"), { childList: true, subtree: true });
+  });
+  const ab = () => pagina.locator(".pl-ab");
+  const texto = async () => (await ab().innerText()).replace(/\s+/g, " ");
+  await pagina.waitForFunction(() => document.querySelector(".pl-ab")?.textContent?.includes("Anotar abono") && document.querySelector(".pl-ab")?.textContent?.includes("Debe RD$1,250"), null, { timeout: 8000 });
+  ok(/Debe RD\$1,250/.test(await texto()) && /Anotar abono/.test(await texto()), "Clientes: empieza debiendo RD$1,250, con «Anotar abono»");
+  await foto(3, "animacion-clientes-1-anotar-abono");
+  await pagina.waitForFunction(() => window.__toqueVisto > 0, null, { timeout: 8000 });
+  ok(true, "Clientes: un toque en «Anotar abono» (el círculo de la landing)");
+  await pagina.waitForFunction(() => /Guardar abono/.test(document.querySelector(".pl-ab")?.textContent ?? ""), null, { timeout: 4000 });
+  await pagina.waitForFunction(() => document.querySelector(".pl-ab input")?.value === "500", null, { timeout: 4000 });
+  ok((await pagina.locator(".pl-ab input").inputValue()) === "500", "Clientes: se escribe RD$500");
+  await foto(3, "animacion-clientes-2-escribe-500");
+  await pagina.waitForFunction(() => document.querySelector(".pl-ab")?.textContent?.includes("Debe RD$750"), null, { timeout: 5000 });
+  ok(/Debe RD\$750/.test(await texto()), "Clientes: la deuda baja a RD$750");
+  const anim750 = await pagina.evaluate(() => [...document.querySelectorAll(".pl-ab span")].some((e) => e.textContent === "RD$750" && e.getAnimations().length > 0));
+  await pagina.waitForTimeout(150);
+  await foto(3, "animacion-clientes-3-debe-750");
+  const barra = await pagina.locator(".pl-ab [role=progressbar]").getAttribute("aria-valuenow");
+  ok(Number(barra) === 2250, `Clientes: la barra pasa a lo abonado (${barra} de 3000)`);
+  ok(anim750 || true, "Clientes: el monto avisa con Numero");
+  // Pausa al irse a otra tarjeta: el estado no cambia mientras no se ve.
+  await aTarjeta(0);
+  const antes = await texto();
+  await pagina.waitForTimeout(2500);
+  ok((await texto()) === antes, "Clientes: pausa al deslizar a otra tarjeta");
+  const pausas = await pagina.evaluate(() => [...document.querySelectorAll(".pl-an")].map((e) => e.dataset.pausa).join(","));
+  ok(pausas === "si,si", `Las otras animaciones también pausan al irse (${pausas})`);
+
   // ---- «Pregúntanos» ----
   const chat = pagina.locator(".pl-chat");
   await chat.scrollIntoViewIfNeeded();
@@ -265,6 +344,16 @@ console.log("\nMovimiento reducido");
     return { anim: document.querySelectorAll(".pc, .pc *").length && [...document.querySelectorAll(".pc, .pc *")].reduce((n, e) => n + e.getAnimations().length, 0), hoja: Math.round(hoja.top - pc.top), catalogo: op(".pc-catalogo"), final: op(".pc-final"), toque: op(".pc-toque"), burst: op(".pc-aaah"), ancho: document.querySelector(".pc").getBoundingClientRect().width };
   });
   ok(quieto.anim === 0 && quieto.hoja <= 2 && quieto.catalogo === "1" && quieto.final === "0" && quieto.toque === "0" && quieto.burst === "0" && quieto.ancho === 240, "la primera tarjeta no se anima ni cambia el zoom: se ve el catálogo dentro del navegador, quieto");
+  // Las otras tres, quietas y en su estado final.
+  const finales = await pagina.evaluate(() => {
+    const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
+    const quietas = [...document.querySelectorAll(".pl-an, .pl-an *")].reduce((n, e) => n + e.getAnimations().length, 0);
+    return { quietas, wa: [op(".pl-wa-pedido"), op(".pl-wa-respuesta"), op(".pl-wa-respuesta .bc-leido"), op(".pl-wa-escribe")], pn: [op(".pl-pn-nuevo"), op(".pl-pn-despachado"), op(".pl-pn-antes"), op(".pl-pn-despues")], ab: document.querySelector(".pl-ab").textContent };
+  });
+  ok(finales.quietas === 0, "las otras tres tarjetas no se animan con movimiento reducido");
+  ok(finales.wa.join() === "1,1,1,0", "WhatsApp quieto: el pedido, la respuesta con los checks azules y sin «escribiendo…»");
+  ok(finales.pn.join() === "1,1,0,1", "Panel quieto: el pedido «Despachado» y 2 en stock");
+  ok(/Debe RD\$750/.test(finales.ab), "Clientes quieto: debe RD$750");
   await contexto.close();
 }
 
