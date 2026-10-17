@@ -2,7 +2,7 @@
 
 import { INSTAGRAM_DESLIZAPP } from "../config";
 
-/** «Quiero vender» (la página principal y el cierre de /conoce): el Instagram de Deslizapp (docs/prompts/pagina-principal-y-conoce.md). */
+/** «Escríbenos» (la página principal y el cierre de /conoce): el Instagram de Deslizapp (docs/prompts/pagina-principal-y-conoce.md). */
 export const ENLACE_QUIERO_VENDER = `https://instagram.com/${INSTAGRAM_DESLIZAPP}`;
 
 /** «Cómo funciona»: la landing con la demo de un pedido. */

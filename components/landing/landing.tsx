@@ -186,7 +186,7 @@ export function Landing() {
           <div className="lt-cierre-hoja">
             <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" data-cta="vender" className="lt-cierre-vender tocable">
               <IconoInstagram tamano={22} strokeWidth={2.2} />
-              Quiero vender
+              Escríbenos
             </a>
             <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
             <a href={ENLACE_CATALOGO_EJEMPLO} data-cta="catalogo" className="lt-cierre-catalogo tocable">

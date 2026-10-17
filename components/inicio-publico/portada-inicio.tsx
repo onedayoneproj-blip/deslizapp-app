@@ -15,7 +15,7 @@ const ANTES_DE_PINTAR = `(function(){try{if(localStorage.getItem(${JSON.stringif
  * Todo lo que se ve de la página principal de deslizapp.com sin sesión (docs/prompts/pagina-principal-y-conoce.md,
  * referencias/inicio/inicio.dc.html): de fondo, el feed de fotos en tres columnas (seis en escritorio) que suben sin parar; un
  * corazón «aaah» y burbujas de pedido que aparecen en bucle (./vivo.tsx); abajo, el lema, «Iniciar sesión» con Google (en el reel del catálogo, «Ver planes»),
- * «Cómo funciona» (la landing, en /conoce), «Quiero vender» (el Instagram) y el enlace a la demo. Con movimiento reducido, todo quieto.
+ * «Cómo funciona» (la landing, en /conoce), «Escríbenos» (el Instagram) y el enlace a la demo. Con movimiento reducido, todo quieto.
  *
  * Lo usan `/` (`modo="pagina"`, con las fotos de la tienda Deslizapp) y el último reel de cada catálogo (`modo="reel"`, con las fotos
  * y los nombres de los productos de ese catálogo; las columnas y lo vivo solo se mueven con el reel `activo`).
@@ -89,7 +89,7 @@ export function PortadaInicio({
             data-cta="vender"
           >
             <IconoInstagram tamano={18} strokeWidth={2.2} />
-            Quiero vender
+            Escríbenos
           </EnlaceMedido>
         </div>
         {/* Desde un catálogo no hay panel debajo que se abra solo: tras elegir la demo se va a `/`. */}

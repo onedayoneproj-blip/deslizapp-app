@@ -79,7 +79,7 @@ export function PaginaPlanes({ planes, fotos, ahora }: { planes: PlanPublico[]; 
           </Link>
           <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" className="pl-vender tocable">
             <IconoInstagram tamano={18} strokeWidth={2.2} />
-            Quiero vender
+            Escríbenos
           </a>
         </div>
         <p className="pl-pie">Precios en pesos dominicanos. Puedes cambiar de plan cuando quieras.</p>

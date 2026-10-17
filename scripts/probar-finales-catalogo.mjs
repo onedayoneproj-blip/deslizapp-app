@@ -75,7 +75,7 @@ ok((await page.locator(".hdr").evaluate((e) => getComputedStyle(e).opacity)) ===
 const fotos = await page.locator("#r-deslizapp [data-foto-inicio]").evaluateAll((l) => [...new Set(l.map((e) => e.dataset.fotoInicio))]);
 ok(fotos.length >= 2 && fotos.every((f) => f.startsWith("/demo/deslizapp/")), `las columnas llevan las fotos del catálogo (${fotos.length} distintas)`);
 ok((await page.locator('#r-deslizapp img[src*="/_next/image"]').count()) > 0, "las fotos del reel pasan por el optimizador de imágenes");
-for (const [txt, sel] of [["Ver planes", "[data-cta=ver-planes]"], ["Cómo funciona", "[data-cta=como-funciona]"], ["Quiero vender", "[data-cta=vender]"], ["Probar la app con datos de prueba", "[data-cta=demo]"]])
+for (const [txt, sel] of [["Ver planes", "[data-cta=ver-planes]"], ["Cómo funciona", "[data-cta=como-funciona]"], ["Escríbenos", "[data-cta=vender]"], ["Probar la app con datos de prueba", "[data-cta=demo]"]])
   ok((await page.locator(`#r-deslizapp ${sel}`).innerText().catch(() => "")).includes(txt), `«${txt}» a la vista`);
 // «Ver planes» ocupa el lugar de «Iniciar sesión» (docs/prompts/reel-final-ver-planes.md): mismo tamaño y mismo botón principal, y lleva a /planes.
 ok((await page.locator("#r-deslizapp [data-cta=iniciar-sesion]").count()) === 0 && !/Iniciar sesión/.test(await page.locator("#r-deslizapp").innerText()), "el reel ya no tiene «Iniciar sesión»");

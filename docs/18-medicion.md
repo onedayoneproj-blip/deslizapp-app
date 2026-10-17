@@ -23,6 +23,8 @@ Encargo: `docs/prompts/medicion-landing.md`. Cuántas personas llegan a la pági
 
 > **17 oct 2026:** la migración `20261017114521_eventos_publicos_planes` (aplicada con `apply_migration`) añade `catalogo_cta_planes` y `cta_planes` a la lista.
 
+> **17 oct 2026:** el botón que decía «Quiero vender» ahora dice «Escríbenos» (mismo destino, el Instagram de Deslizapp, y mismo icono). Los eventos conservan su nombre (`cta_quiero_vender`, `catalogo_cta_quiero_vender`, `conoce_cta_vender`) para no romper los datos.
+
 ## Eventos
 
 | Evento | Cuándo |

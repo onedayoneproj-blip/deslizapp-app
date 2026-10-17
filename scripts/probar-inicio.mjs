@@ -92,8 +92,8 @@ for (const [ancho, alto] of [
   const fotos = [...new Set(m.fotos.map(original))];
   if (esperadas) ok(esperadas.length >= 6 ? fotos.length === esperadas.length && fotos.every((f) => esperadas.includes(f)) : fotos.length >= 6, `las fotos son las de la tienda deslizapp (${fotos.length} de ${esperadas.length})`);
   else ok(fotos.length >= 3 && fotos.every((f) => f.startsWith("/landing/feed-")), `sin Supabase, las fotos de respaldo (${fotos.length})`);
-  ok(m.botones && m.google, "«Iniciar sesión» (con la G de Google), «Cómo funciona» y «Quiero vender» a la vista");
-  ok(m.vender.href === "https://instagram.com/deslizapp" && m.vender.target === "_blank" && m.como === "/conoce", "«Quiero vender» abre el Instagram y «Cómo funciona» lleva a /conoce");
+  ok(m.botones && m.google, "«Iniciar sesión» (con la G de Google), «Cómo funciona» y «Escríbenos» a la vista");
+  ok(m.vender.href === "https://instagram.com/deslizapp" && m.vender.target === "_blank" && m.como === "/conoce", "«Escríbenos» abre el Instagram y «Cómo funciona» lleva a /conoce");
   ok(m.tema === "#174b3a" || m.tema === "rgb(23, 75, 58)", `theme-color verde Bosque (${m.tema})`);
   ok(m.sinScroll, "sin scroll horizontal");
   // Lo vivo: las columnas suben, sale la burbuja y luego el corazón.
