@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { DESCUENTO_CIRCULO } from "@/lib/circulo";
 import { almacenDelNavegador, debeMostrarBienvenida, marcarBienvenidaVista } from "@/lib/circulo-bienvenida";
 import type { DatosCupon } from "@/lib/cupon";
-import { useConsulta } from "@/lib/data/consulta";
+import { useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import type { Tienda } from "@/lib/types";
 import { IconoBolsa, IconoChispa, IconoCorazon, IconoWhatsApp } from "../iconos";
@@ -96,30 +96,23 @@ export function PantallaBienvenidaCirculo({ tienda, alEntrar }: { tienda: Pick<T
 }
 
 /**
- * Monta la bienvenida en el panel: la primera vez que la titular (dueña de una tienda del Círculo) lo abre en este dispositivo.
- * Las colaboradoras y quien mira como otra persona no la ven. `alCerrar` avisa al encabezado para que el aro haga su entrada.
+ * Monta la bienvenida en el panel: la primera vez que el titular del Círculo lo abre en este dispositivo, estando activa una tienda del
+ * Círculo (así el aro del encabezado puede hacer su entrada al cerrar). Un segundo dueño, las colaboradoras y quien mira como otra
+ * persona no la ven. `alCerrar` avisa al encabezado.
  */
 export function BienvenidaCirculo({ alCerrar }: { alCerrar: () => void }) {
-  const { usuarioId, soloMirar, getTiendas, getMiPermiso } = useData();
-  const { data: tiendas } = useConsulta("tiendas", getTiendas);
-  const delCirculo = (tiendas ?? []).filter((t) => t.circulo);
-  const claves = delCirculo.map((t) => t.id).join(",");
-  // La titular es la dueña de la tienda, no una colaboradora: la base dice el rol de cada una. Mirando como otra persona no se pregunta.
-  const { data: propias } = useConsulta(`circulo-titular:${claves}:${soloMirar}`, async () => {
-    if (soloMirar || delCirculo.length === 0) return [] as Tienda[];
-    const permisos = await Promise.all(delCirculo.map((t) => getMiPermiso(t.id).catch(() => null)));
-    return delCirculo.filter((_, i) => permisos[i]?.rol === "dueno");
-  });
+  const { usuarioId, soloMirar } = useData();
+  const { tienda } = useTiendaActiva();
   const [cerrada, setCerrada] = useState(false);
 
   // Los datos llegan después de montar (nunca en el servidor), así que leer el almacén aquí no desajusta la hidratación.
-  const tienda = propias?.[0];
-  const mostrar = !cerrada && !!tienda && debeMostrarBienvenida({ usuarioId, soloMirar, esTitularDelCirculo: true, almacen: almacenDelNavegador() });
+  const esTitular = tienda?.circulo?.titular === true;
+  const mostrar = !cerrada && !!tienda && debeMostrarBienvenida({ usuarioId, soloMirar, esTitularDelCirculo: esTitular, almacen: almacenDelNavegador() });
   const entrar = () => {
     if (usuarioId) marcarBienvenidaVista(almacenDelNavegador(), usuarioId);
     setCerrada(true);
     alCerrar();
   };
-  if (!mostrar || typeof document === "undefined") return null;
+  if (!mostrar || !tienda || typeof document === "undefined") return null;
   return createPortal(<PantallaBienvenidaCirculo tienda={tienda} alEntrar={entrar} />, document.body);
 }

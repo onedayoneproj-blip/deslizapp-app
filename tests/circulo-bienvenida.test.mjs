@@ -43,14 +43,15 @@ test("si localStorage falla, mejor no mostrarla que mostrarla cada vez", () => {
   assert.doesNotThrow(() => marcarBienvenidaVista(null, "u1"));
 });
 
-test("el componente decide por el rol de dueña de cada tienda del Círculo y marca al cerrar", () => {
+test("el titular real sale de la fila propia de `circulo` y la bienvenida espera a que la tienda activa sea del Círculo", () => {
   const tsx = leer("components/panel/bienvenida-circulo.tsx");
-  assert.match(tsx, /\.filter\(\(t\) => t\.circulo\)/);
-  assert.match(tsx, /permisos\[i\]\?\.rol === "dueno"/);
-  assert.match(tsx, /if \(soloMirar \|\| delCirculo\.length === 0\)/);
+  assert.match(tsx, /tienda\?\.circulo\?\.titular === true/);
+  assert.match(tsx, /useTiendaActiva\(\)/);
+  assert.doesNotMatch(tsx, /getMiPermiso|rol === "dueno"/);
   assert.match(tsx, /marcarBienvenidaVista\(almacenDelNavegador\(\), usuarioId\)/);
-  // Una sola pantalla por cuenta: una sola, con la primera tienda de la que es dueña.
-  assert.match(tsx, /propias\?\.\[0\]/);
+  const db = leer("lib/data/supabase.ts");
+  assert.match(db, /from\("circulo"\)\.select\("usuario_id"\)\.eq\("usuario_id", uid\)/);
+  assert.match(db, /descuentoHasta: r\.descuento_hasta, titular/);
 });
 
 test("contenido: aro de 120 con ondas, cupón con el 30 % de la constante y los cuatro beneficios", () => {
@@ -81,7 +82,7 @@ test("al cerrar, el aro del encabezado hace la entrada A solo en memoria: no se 
   assert.doesNotMatch(enc, /localStorage|sessionStorage/);
   // Lo único que se guarda es que la bienvenida ya se vio (antes de pedir la entrada): sin esa marca no hay bienvenida ni entrada.
   const tsx = leer("components/panel/bienvenida-circulo.tsx");
-  assert.ok(tsx.indexOf("marcarBienvenidaVista(almacenDelNavegador(), usuarioId)") < tsx.indexOf("alCerrar();"));
+  assert.ok(tsx.indexOf("marcarBienvenidaVista(almacenDelNavegador(), usuarioId)") < tsx.lastIndexOf("alCerrar();"));
 });
 
 test("la tarjeta verde del menú lleva las ondas en bucle y el texto del descuento", () => {
