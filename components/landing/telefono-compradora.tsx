@@ -181,7 +181,20 @@ export function TelefonoCompradora() {
       return;
     }
     // Hacia atrás: se deshace lo último, también con los botones reales cuando se puede.
-    if (desde === P.bolsa) {
+    if (desde === P.aaah) {
+      // Se deshace el «aaah» del tote y luego el del termo, con los mismos botones, y el catálogo vuelve al termo.
+      await tocarYPulsar(like("tote"));
+      if (!vigente()) return;
+      setBar(false);
+      await esperar(250);
+      if (!vigente()) return;
+      setEstado((e) => ({ ...e, actual: "termo" }));
+      irAlReel("termo", true);
+      await esperar(650);
+      if (!vigente()) return;
+      await tocarYPulsar(like("termo"));
+      if (vigente()) setBar(false);
+    } else if (desde === P.bolsa) {
       setEstado((e) => ({ ...e, hoja: false }));
       setBar(true);
     } else fijo();

@@ -409,6 +409,25 @@ for (const [ancho, alto] of [
   const quitada = await pagina.evaluate((n) => { const b = document.querySelector(`[data-burbuja="${n}"]`); return b.dataset.estado === "futura" && Number(getComputedStyle(b).opacity) < 0.05; }, PASOS.length - 1);
   ok(atras.paso === PASOS[PASOS.length - 2].id && ma.burbujaVisible && quitada, `al subir, vuelve a «${atras.paso}» con su burbuja completa y la del paso de después se quita`);
 
+  // Volver de `aaah` a `hola` deshace los dos likes y el catálogo vuelve al termo, sin saltos.
+  {
+    const iAaah = PASOS.findIndex((p) => p.id === "aaah");
+    await irAlPaso(pagina, 0);
+    await pagina.waitForTimeout(1500);
+    for (let j = 1; j <= iAaah; j++) {
+      await irAlPaso(pagina, j);
+      await pagina.waitForTimeout(j >= iAaah - 1 ? PASOS[j].duracion + 600 : 500);
+    }
+    await irAlPaso(pagina, iAaah - 1);
+    await pagina.waitForTimeout(3200);
+    const v = await pagina.evaluate(() => {
+      const doc = document.querySelector('iframe[data-telefono="compradora"]').contentDocument;
+      const lleno = (s) => doc.querySelector(`#r-${s} [data-like]`)?.getAttribute("aria-pressed") === "true";
+      return { paso: document.querySelector(".lt-escenario").dataset.paso, termo: lleno("termo"), tote: lleno("tote"), actual: doc.querySelector(".reel.on")?.id, globito: doc.querySelector("#bagDock .cnt")?.textContent?.trim() ?? "", barra: !!doc.querySelector("#cartbar") };
+    });
+    ok(v.paso === "hola" && !v.termo && !v.tote && v.actual === "r-termo" && !v.barra && (v.globito === "" || v.globito === "0"), `al volver de aaah a hola se deshacen los likes y el catálogo vuelve al termo (${JSON.stringify(v)})`);
+  }
+
   // Un deslizamiento fuerte no se salta pasos (scroll-snap-stop: always).
   await irAlPaso(pagina, 0);
   await pagina.waitForTimeout(1500);
@@ -459,9 +478,21 @@ for (const [ancho, alto] of [
 console.log("\nAl cargar directamente en un paso, se ve completo al instante");
 {
   const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });
-  for (const id of ["dolor-dm", "dolor-chats", "bienvenida", "antes", "solucion"]) {
+  for (const id of ["dolor-dm", "dolor-chats", "bienvenida", "antes", "solucion", "enlace"]) {
     const pagina = await contexto.newPage();
     await pagina.goto(`${base}/conoce#paso-${id}`, { waitUntil: "domcontentloaded" });
+    await pagina.waitForTimeout(id === "enlace" ? 1200 : 450);
+    if (id === "enlace") {
+      // Al entrar directo, el perfil al catálogo se ve en su final (catálogo abierto, con su like) y no empieza la línea de 11 s.
+      const r = await pagina.evaluate(() => {
+        const e = document.querySelector(".lt-escenario");
+        const pc = e.querySelector(".lt-enlace .pc");
+        return { paso: e.dataset.paso, anima: e.dataset.anima, final: Number(getComputedStyle(pc.querySelector(".pc-final")).opacity), corriendo: pc.getAnimations({ subtree: true }).filter((a) => a.playState === "running").length };
+      });
+      ok(r.paso === "enlace" && r.anima !== "si" && r.final > 0.99 && r.corriendo === 0, `abrir /conoce#paso-enlace: se ve el catálogo abierto al instante, sin animación (anima ${r.anima}, ${r.corriendo} animaciones)`);
+      await pagina.close();
+      continue;
+    }
     await pagina.waitForTimeout(450);
     const r = await pagina.evaluate((id) => {
       const e = document.querySelector(".lt-escenario");
