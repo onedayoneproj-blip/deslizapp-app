@@ -11,6 +11,7 @@ import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, Ic
 import { BurbujaChat } from "../chat/burbuja-chat";
 import { DemoPasos } from "./controlador";
 import { CambioLado } from "./cambio-lado";
+import { SeparadorQuieto, Separadores } from "./separadores";
 import { EscenaQuieta, Escenas } from "./escenas";
 import { TelefonoMockup } from "./telefono-mockup";
 import "./landing.css";
@@ -48,6 +49,7 @@ export function Landing() {
           </div>
           <Hilo />
           <CambioLado />
+          <Separadores />
 
           {/* Desenfoque progresivo arriba (el patrón de components/hoja.tsx) */}
           <div className="lt-borde lt-borde-arriba hoja-borde" aria-hidden="true">
@@ -106,6 +108,8 @@ export function Landing() {
                       <b>Así lo ve Tu Tienda.</b>
                       <span>El pedido te llega completo: qué quiere, cuánto y a quién se lo mandas.</span>
                     </div>
+                  ) : p.escena === "bienvenida" || p.escena === "antes" || p.escena === "solucion" ? (
+                    <SeparadorQuieto id={p.escena} />
                   ) : p.escena ? (
                     <TelefonoMockup className="lt-captura-tm">
                       <EscenaQuieta id={p.escena} />
@@ -251,9 +255,10 @@ function Indice() {
   );
 }
 
+const TITULOS_SEPARADOR: Partial<Record<Paso["id"], string>> = { bienvenida: "Bienvenida a deslizapp", antes: "Seguro esto te suena", solucion: "Así lo resolvemos", "cambio-lado": "Así lo ve Tu Tienda" };
 /** Lo que lee un lector de pantalla de la raya de un paso: su burbuja o, si no la lleva (el cambio de lado), el título de su pantalla. */
 function etiquetaPaso(p: Paso) {
-  return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : "Así lo ve Tu Tienda";
+  return p.burbuja ? [p.burbuja.texto, p.burbuja.remate].filter(Boolean).join(" ") : (TITULOS_SEPARADOR[p.id] ?? "");
 }
 
 /**

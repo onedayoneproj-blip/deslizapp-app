@@ -68,7 +68,7 @@ export function DemoPasos({ children, pasos }: { children: ReactNode; pasos: Rea
     let enCierre = false;
     const pintarFondo = () => {
       const lado = e.dataset.lado;
-      const variable = lado === "tienda" ? "--marca-bosque" : lado === "antes" ? "--color-arena" : "--marca-rosa-fija";
+      const variable = lado === "tienda" || lado === "inicio" ? "--marca-bosque" : lado === "antes" ? "--color-arena" : "--marca-rosa-fija";
       const color = enCierre && cierre ? getComputedStyle(cierre).backgroundColor : getComputedStyle(e).getPropertyValue(variable).trim();
       if (!color || color === "rgba(0, 0, 0, 0)") return;
       if (tema) tema.content = color;

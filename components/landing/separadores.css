@@ -1,0 +1,207 @@
+/* Los separadores (components/landing/separadores.tsx): bienvenida (Bosque), antes (arena) y solucion (rosa), sin teléfono. El fondo es
+   el de .lt-fondo según el lado del paso; aquí solo el contenido, que se ve cuando el paso es el suyo. Solo transform y opacity: al
+   entrar, el texto sube con fundido (.sp-sube), el icono hace un pop (.sp-pop) y las burbujas suben una a una (--d es el retraso).
+   Con movimiento reducido, el estado final, quieto. */
+.sp {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--alto-arriba) + 8px) 32px calc(var(--alto-abajo) + 16px);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 420ms ease,
+    visibility 0s linear 420ms;
+}
+.lt-escenario[data-paso="bienvenida"] .sp-bienvenida,
+.lt-escenario[data-paso="antes"] .sp-antes,
+.lt-escenario[data-paso="solucion"] .sp-solucion {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.sp-bienvenida {
+  color: var(--marca-papel);
+}
+.sp-antes {
+  justify-content: space-between;
+  color: #2e2a24;
+}
+.sp-solucion {
+  color: var(--marca-bosque);
+}
+
+.sp-icono {
+  display: block;
+  width: 132px;
+  height: 132px;
+  border-radius: 23%;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+.sp-mano {
+  font-family: var(--font-mano);
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+.sp-bienvenida .sp-mano {
+  margin-top: 28px;
+  color: var(--marca-rosa-fija);
+}
+.sp-antes .sp-mano {
+  color: #8a6a3a;
+}
+.sp-solucion .sp-mano {
+  margin-top: 30px;
+  color: var(--atencion-texto);
+}
+.sp-marca,
+.sp-titulo {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.05;
+}
+.sp-marca {
+  font-size: 3.25rem;
+  line-height: 1;
+}
+.sp-titulo {
+  font-size: 2.5rem;
+}
+.sp-texto {
+  max-width: 330px;
+  margin: 16px 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+.sp-bienvenida .sp-texto {
+  font-size: 1.125rem;
+  color: #cfe8da;
+}
+.sp-bienvenida .sp-texto b {
+  color: var(--marca-mandarina);
+}
+.sp-antes .sp-texto {
+  color: #5f5446;
+}
+.sp-solucion .sp-texto {
+  color: #4f6a5e;
+}
+
+/* Las notificaciones sueltas: las de Instagram, blancas; las de WhatsApp, verde claro, cada una con el icono de su red. */
+.sp-notis {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin-top: 32px;
+  margin-bottom: 28px;
+}
+.sp-noti {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(23, 75, 58, 0.12);
+  color: var(--marca-bosque);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.sp-noti[data-red="whatsapp"] {
+  background: #d9fdd3;
+}
+.sp-pie {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 40px;
+}
+/* La solución: dos notificaciones tachadas y, en medio, el icono rosa */
+.sp-cruzadas {
+  position: relative;
+  width: 220px;
+  height: 150px;
+}
+.sp-tachada {
+  color: #8a8073;
+  text-decoration: line-through;
+}
+.sp-cruzadas .sp-icono {
+  position: absolute;
+  left: 46px;
+  top: 10px;
+  width: 128px;
+  height: 128px;
+  box-shadow: 0 12px 30px rgba(23, 75, 58, 0.25);
+}
+
+@keyframes sp-sube {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes sp-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) rotate(3deg);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lt-escenario[data-paso="bienvenida"] .sp-bienvenida :is(.sp-sube, .sp-pop),
+  .lt-escenario[data-paso="antes"] .sp-antes .sp-sube,
+  .lt-escenario[data-paso="solucion"] .sp-solucion :is(.sp-sube, .sp-pop) {
+    animation: 500ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--d, 0s) both sp-sube;
+  }
+  .lt-escenario[data-paso="bienvenida"] .sp-bienvenida .sp-pop,
+  .lt-escenario[data-paso="solucion"] .sp-solucion .sp-pop {
+    animation: 600ms cubic-bezier(0.3, 1.4, 0.6, 1) var(--d, 0s) both sp-pop;
+  }
+}
+
+/* Versión sin JavaScript: cada uno como una tarjeta */
+.sp-quieto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 20px;
+  border-radius: 28px;
+  text-align: center;
+}
+.sp-quieto[data-separador="bienvenida"] {
+  background: var(--marca-bosque);
+  color: var(--marca-papel);
+}
+.sp-quieto[data-separador="antes"] {
+  background: var(--color-arena);
+  color: #2e2a24;
+}
+.sp-quieto[data-separador="solucion"] {
+  background: var(--marca-rosa-fija);
+  color: var(--marca-bosque);
+}
+.sp-quieto .sp-titulo {
+  margin: 0;
+}
+.sp-quieto .sp-texto {
+  margin: 8px 0 0;
+}

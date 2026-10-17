@@ -76,7 +76,7 @@
   opacity: 0;
   transition: opacity 700ms ease;
 }
-.lt-escenario[data-lado="tienda"] .lt-fondo-tienda {
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-fondo-tienda {
   opacity: 1;
 }
 .lt-forma {
@@ -84,7 +84,7 @@
   border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
   transition: opacity 700ms ease;
 }
-.lt-escenario[data-lado="antes"] :is(.lt-forma-a, .lt-forma-b) {
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"]) :is(.lt-forma-a, .lt-forma-b) {
   opacity: 0;
 }
 .lt-forma-a {
@@ -171,8 +171,7 @@
   height: 40px;
   transition: opacity 380ms ease;
 }
-.lt-escenario[data-lado="antes"] .lt-icono,
-.lt-escenario[data-paso="cambio-lado"] .lt-icono {
+.lt-escenario:is([data-lado="antes"], [data-lado="inicio"], [data-paso="solucion"], [data-paso="cambio-lado"]) .lt-icono {
   opacity: 0;
   pointer-events: none;
 }
@@ -223,6 +222,10 @@
   transform: none;
   opacity: 1;
   transition-delay: 250ms;
+}
+/* Los separadores y el cambio de lado no llevan teléfono: el de la compradora se esconde (y vuelve en el paso siguiente). */
+.lt-escenario:is([data-paso="bienvenida"], [data-paso="antes"], [data-paso="solucion"]) .lt-tel-compradora {
+  opacity: 0;
 }
 /* El cambio de lado no lleva teléfono: el de la compradora ya salió y el de la tienda espera fuera para entrar en el paso siguiente. */
 .lt-escenario[data-paso="cambio-lado"] .lt-tel-tienda {
@@ -381,7 +384,7 @@
     color 600ms ease,
     opacity 400ms ease;
 }
-.lt-escenario[data-lado="tienda"] .lt-indice {
+.lt-escenario:is([data-lado="tienda"], [data-lado="inicio"]) .lt-indice {
   color: var(--marca-papel);
 }
 .lt-indice-rayas {
@@ -583,7 +586,8 @@
   }
   .bc-check,
   .esc-capas *,
-  .cl * {
+  .cl *,
+  .sp * {
     animation: none !important;
   }
 }

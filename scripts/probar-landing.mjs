@@ -16,6 +16,9 @@ const playwright = require("playwright");
 const { PASOS, estadoPaso } = await import("../lib/landing/pasos.ts");
 const { ENLACE_QUIERO_VENDER, ENLACE_CATALOGO_EJEMPLO } = await import("../lib/landing/enlaces.ts");
 
+// Las pantallas sin teléfono (los separadores y el cambio de lado) y las que se dibujan dentro del de la compradora.
+const SIN_TELEFONO = ["bienvenida", "antes", "solucion", "cambio-lado"];
+const verde = (p) => p.lado === "tienda" || p.lado === "inicio";
 const base = process.argv[2] ?? "http://localhost:3000";
 const capturas = process.env.CAPTURAS === "1";
 const CARPETA_CAPTURAS = "docs/capturas/conoce-portada-narrativa";
@@ -123,6 +126,7 @@ const medir = (pagina, i) =>
         arena: getComputedStyle(e).getPropertyValue("--color-arena").trim(),
         iconoOculto: Number(getComputedStyle(e.querySelector(".lt-icono")).opacity) < 0.05,
         fondoArena: Number(getComputedStyle(e.querySelector(".lt-fondo-arena")).opacity),
+        separadores: [...e.querySelectorAll("[data-separador]")].map((x) => [x.dataset.separador, Number(getComputedStyle(x).opacity), x.textContent]),
         escenas: [...e.querySelectorAll("[data-escena]")].map((x) => [x.dataset.escena, Number(getComputedStyle(x).opacity)]),
         cambioLado: (() => { const c = e.querySelector("[data-cambio-lado]"); const v = e.querySelector(".cl-icono-verde").getBoundingClientRect(); const r = e.querySelector(".cl-icono-rosa").getBoundingClientRect(); const visible = (x) => x.closest("[data-fase]") && Number(getComputedStyle(x).opacity) > 0.99; return { visible: Number(getComputedStyle(c).opacity) > 0.99, titulo: [...c.querySelectorAll(".cl-titulo .cl-frase")].filter(visible).map((x) => x.textContent).join(""), texto: [...c.querySelectorAll(".cl-texto .cl-frase")].filter(visible).map((x) => x.textContent).join(""), verde: v.width, rosa: r.width, verdeX: v.left + v.width / 2, rosaX: r.left + r.width / 2, cambio: e.dataset.cambio ?? null, lado: e.dataset.lado }; })(),
         // La burbuja no tapa la pantalla del teléfono (2 px de margen por el redondeo).
@@ -168,8 +172,8 @@ for (const [ancho, alto] of [
   // índice, ya al abrir y con el fondo arena, sin esperar al video ni a deslizar.
   {
     const primera = await medir(pagina, 0);
-    const escena = primera.escenas.find(([id]) => id === "dolor-dm");
-    ok(escena && escena[1] > 0.99 && primera.burbujaVisible && primera.telefonoVisible && primera.indiceVisible && primera.fondoArena > 0.95 && primera.iconoOculto, "la primera pantalla ya está completa al abrir, sin hacer scroll: el mensaje directo, su burbuja, el índice y el fondo arena (sin el icono de la marca)");
+    const bienvenida = primera.separadores.find(([id]) => id === "bienvenida");
+    ok(bienvenida && bienvenida[1] > 0.99 && /deslizapp/.test(bienvenida[2]) && primera.indiceVisible && primera.fondoTienda > 0.95 && primera.iconoOculto && !primera.telefonoVisible, "la primera pantalla ya está completa al abrir, sin hacer scroll: la bienvenida con «deslizapp» sobre Bosque y el índice (sin el icono pequeño)");
     ok(!(await pagina.evaluate(() => !!document.querySelector("video, [data-portada], [data-desliza], [data-bloqueo]"))), "ya no hay video de portada, «Desliza y mira» ni teléfono bloqueado");
   }
 
@@ -209,7 +213,7 @@ for (const [ancho, alto] of [
     );
     if (i > 0 && paso.fases > 0) ok(menosFinas === 0, `${paso.id}: sus finas se llenan durante el paso (al llegar, vacías)`);
     // (el fundido dura 300 ms: al medir ya terminó) En las pantallas de dolor y en el cambio de lado, el icono pequeño no sale.
-    if (paso.lado === "antes" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
+    if (paso.lado === "antes" || paso.lado === "inicio" || paso.id === "solucion" || paso.id === "cambio-lado") ok(m.iconoOculto, `${paso.id}: el icono pequeño de la app no sale`);
     else ok(m.iconoApp === (paso.lado === "tienda" ? "verde" : "rosa") && !m.iconoOculto, `${paso.id}: el icono de la app es el ${paso.lado === "tienda" ? "verde" : "rosado"} (${m.iconoApp})`);
     if (paso.burbuja) {
       const esperados = Object.values(paso.burbuja.iconos ?? {});
@@ -221,7 +225,7 @@ for (const [ancho, alto] of [
     ok(!m.indiceTapa && m.indiceIzquierda && !m.letrasBajoTelefono && m.telefonoEncima, `${paso.id}: el índice (a la izquierda) no se cruza con el mockup; el teléfono va por encima de las burbujas y no tapa sus letras`);
     ok(m.rayasFinas, `${paso.id}: las rayas del indicador son de 2 px o menos`);
     if (paso.burbuja) ok(m.fredoka && m.resaltes === (paso.burbuja.resalta?.length ?? 0), `${paso.id}: la burbuja va en Fredoka con ${m.resaltes} palabra(s) en color de marca`);
-    const temaEsperado = paso.lado === "tienda" ? m.bosque : paso.lado === "antes" ? m.arena : m.rosa;
+    const temaEsperado = verde(paso) ? m.bosque : paso.lado === "antes" ? m.arena : m.rosa;
     ok(m.tema && m.tema.toLowerCase() === temaEsperado.toLowerCase(), `${paso.id}: theme-color del capítulo (${m.tema})`);
     ok(Math.abs(m.escalaBurbuja - 1) < 0.01, `${paso.id}: la burbuja del paso termina a escala 1`);
     ok(m.corazon === "rgb(255, 131, 79)", `${paso.id}: el ♥ es mandarina #ff834f (${m.corazon})`);
@@ -233,14 +237,21 @@ for (const [ancho, alto] of [
       // La página del teléfono cubre la pantalla del mockup entera (ajustes-lewis-8.md §6): junto a la isla y en las esquinas de
       // arriba, el color no es el del fondo de la landing.
       if (!paso.escena) {
-        const fondo = paso.lado === "tienda" ? m.bosque : m.rosa;
+        const fondo = verde(paso) ? m.bosque : m.rosa;
         const cubre = await cubrePantalla(pagina, paso.telefono, fondo);
         ok(cubre.ok, `${paso.id}: la página llena la pantalla del mockup (arriba, junto a la isla y en las esquinas)${cubre.ok ? "" : ` (${cubre.detalle})`}`);
       }
-      if (paso.id !== "cambio-lado") ok(m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
+      if (!SIN_TELEFONO.includes(paso.id)) ok(m.telefonoVisible && Math.abs(m.proporcion - m.proporcionMockup) < 0.01 && m.dentro && m.llena, `${paso.id}: el mockup entero, en pantalla, con la página llenando su pantalla (${m.proporcion.toFixed(3)})`);
       // Las pantallas nuevas: se ve la suya y las demás no; el cambio de lado, sin teléfono y en su estado final.
-      if (paso.escena && paso.escena !== "cambio-lado") ok(m.escenas.every(([id, op]) => (id === paso.escena ? op > 0.99 : op < 0.05)), `${paso.id}: se ve su pantalla (${paso.escena}) y no las otras`);
+      if (paso.escena && !SIN_TELEFONO.includes(paso.id)) ok(m.escenas.every(([id, op]) => (id === paso.escena ? op > 0.99 : op < 0.05)), `${paso.id}: se ve su pantalla (${paso.escena}) y no las otras`);
       else ok(m.escenas.every(([, op]) => op < 0.05), `${paso.id}: no se ve ninguna de las pantallas del teléfono`);
+      // Los separadores: se ve el suyo (y solo ese) sin teléfono, con su texto tal cual.
+      if (["bienvenida", "antes", "solucion"].includes(paso.id)) {
+        const TEXTOS = { bienvenida: ["hola, esto es", "deslizapp", "En un minuto te enseñamos cómo vender sin tanta vuelta."], antes: ["antes de empezar…", "Seguro esto", "te suena.", "Así se vende hoy por Instagram y WhatsApp.", "¿precio?", "¿lo tienes en negro?", "📷 foto", "¿y el envío?", "¿cuál era? 😅"], solucion: ["ahora, con Deslizapp…", "Así lo", "resolvemos.", "Tu catálogo enseña fotos, precios y lo que queda. A ti te llega el pedido listo.", "¿precio?", "¿cuál era?"] };
+        const mio = m.separadores.find(([id]) => id === paso.id);
+        ok(m.separadores.every(([id, op]) => (id === paso.id ? op > 0.99 : op < 0.05)) && !m.telefonoVisible, `${paso.id}: se ve su separador, solo, sin teléfono`);
+        ok(TEXTOS[paso.id].every((t) => mio[2].replace(/\s+/g, " ").includes(t.replace(/\s+/g, " ")) || mio[2].includes(t)), `${paso.id}: lleva sus textos tal cual`);
+      }
       if (paso.id === "cambio-lado") {
         const c = m.cambioLado;
         ok(!m.telefonoVisible && c.visible, "cambio-lado: pantalla propia, sin teléfono");
@@ -294,7 +305,8 @@ for (const [ancho, alto] of [
       ok(r.hueco >= 0 && r.hueco <= 24 && r.abajo >= 0 && r.abajo <= 20, `pasa: la bolsa queda junto a «Compartir» (a ${Math.round(r.hueco)} px), al pie de la tarjeta`);
     }
     textos.push(await pagina.evaluate(() => [document, ...[...document.querySelectorAll("iframe")].map((f) => f.contentDocument)].map((d) => d?.body?.innerText ?? "").join("\n")));
-    ok(paso.lado === "tienda" ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo de ${paso.lado === "tienda" ? "la tienda (verde)" : "la compradora (rosa)"}`);
+    ok(verde(paso) ? m.fondoTienda > 0.95 : m.fondoTienda < 0.05, `${paso.id}: fondo ${verde(paso) ? "Bosque (verde)" : paso.lado === "antes" ? "arena" : "rosa"}`);
+    if (paso.lado === "antes") ok(m.fondoArena > 0.95, `${paso.id}: el fondo arena, sin color de marca`);
     if (capturas && paso.escena && [360, 393, 1440].includes(ancho)) {
       mkdirSync(CARPETA_CAPTURAS, { recursive: true });
       await pagina.screenshot({ path: `${CARPETA_CAPTURAS}/${String(i + 1).padStart(2, "0")}-${paso.id}-${ancho}x${alto}.png` });
@@ -413,15 +425,17 @@ console.log("\nMovimiento reducido");
   await pagina.waitForTimeout(1200);
   {
     const primera = await medir(pagina, 0);
-    ok(primera.burbujaVisible && primera.escenas.find(([id]) => id === "dolor-dm")?.[1] > 0.99, "con movimiento reducido, la primera pantalla se ve completa desde el principio");
+    ok(primera.burbujaVisible && primera.separadores.find(([id]) => id === "bienvenida")?.[1] > 0.99, "con movimiento reducido, la primera pantalla se ve completa desde el principio");
   }
-  await irAlPaso(pagina, 1);
+  // (un salto largo, desde el principio, hasta el primer paso del catálogo)
+  const iHola = PASOS.findIndex((p) => p.id === "hola");
+  await irAlPaso(pagina, iHola);
   await pagina.waitForTimeout(400);
-  const m = await medir(pagina, 1);
+  const m = await medir(pagina, iHola);
   ok(m.burbujaVisible && m.nitida, "cada paso muestra su estado final al instante (burbuja completa sin animación)");
   ok(m.checks?.length === 2 && m.checks.every((c) => c.offset === 0 && c.color === "rgb(83, 189, 235)"), "con movimiento reducido, el doble check ya está completo y azul");
   // Sin ♥: llega al «aaah» del termo en su estado final, sin toques.
-  for (let i = 2; i <= PASOS.findIndex((p) => p.id === "aaah-termo"); i++) {
+  for (let i = iHola + 1; i <= PASOS.findIndex((p) => p.id === "aaah-termo"); i++) {
     await irAlPaso(pagina, i);
     await pagina.waitForTimeout(500);
   }
@@ -448,6 +462,7 @@ console.log("\nSin JavaScript");
   ok((await pagina.locator(".landing-pasos [data-paso]").count()) === PASOS.length, "un paso por cada uno de la demo");
   {
     const texto = await pagina.locator(".landing-pasos").innerText();
+    ok(/hola, esto es/.test(texto) && /Seguro esto te suena/.test(texto) && /Así lo resolvemos/.test(texto), "y presenta cada tema (bienvenida, «Seguro esto te suena» y «Así lo resolvemos»)");
     ok(/Te escriben por Instagram/.test(texto) && /Tu cliente toca el enlace de tu perfil/.test(texto) && /Así lo ve Tu Tienda\./.test(texto), "y cuenta el dolor, el enlace del perfil y el cambio de lado con texto");
     ok((await pagina.locator('.landing-pasos [data-paso="perfil"] .pt-enlace').innerText()).includes("deslizapp.com/tutienda"), "el perfil lleva el enlace deslizapp.com/tutienda");
   }

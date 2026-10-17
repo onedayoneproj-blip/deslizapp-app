@@ -6,8 +6,11 @@
 import { TOTAL_DEMO, pesos, totalHasta } from "./pedido-demo";
 
 export type IdPaso =
+  | "bienvenida"
+  | "antes"
   | "dolor-dm"
   | "dolor-chats"
+  | "solucion"
   | "post"
   | "perfil"
   | "navegador"
@@ -28,8 +31,9 @@ export type IdPaso =
   | "confirmar"
   | "despachar";
 
-/** «antes»: los dos pasos del dolor del vendedor, en tonos neutros (arena); el rosa de quien compra y el verde de la tienda llegan después. */
-export type Lado = "antes" | "compras" | "tienda";
+/** «inicio»: la bienvenida, en Bosque (sin el icono pequeño de la app). «antes»: el dolor del vendedor, en tonos neutros (arena); el rosa
+ *  de quien compra y el verde de la tienda llegan después. */
+export type Lado = "inicio" | "antes" | "compras" | "tienda";
 export type IdTelefono = "compradora" | "tienda";
 
 /** Las anclas de un viaje del ♥ entre teléfonos (cada teléfono sabe qué elemento real es: window.__dzAncla en app/demo-landing). */
@@ -55,10 +59,10 @@ export type Paso = {
   /** Arena (antes), rosa (compradora) o verde (tienda), a pantalla completa. */
   lado: Lado;
   telefono: IdTelefono;
-  /** Lo que no es la página real del teléfono (components/landing/escenas.tsx y cambio-lado.tsx): el dolor del vendedor, el post, el
-   *  perfil y el navegador de Instagram se dibujan sobre el teléfono de la compradora (el navegador solo pone su marco: el catálogo real
-   *  se ve dentro); `cambio-lado` no lleva teléfono, es una pantalla propia. scripts/generar-pasos-landing.mjs no les saca captura. */
-  escena?: "dolor-dm" | "dolor-chats" | "post" | "perfil" | "navegador" | "cambio-lado";
+  /** Lo que no es la página real del teléfono (components/landing/escenas.tsx, separadores.tsx y cambio-lado.tsx): el dolor del vendedor, el
+   *  post, el perfil y el navegador de Instagram se dibujan sobre el teléfono de la compradora (el navegador solo pone su marco: el catálogo
+   *  real se ve dentro); `bienvenida`, `antes`, `solucion` y `cambio-lado` no llevan teléfono, son pantallas propias. scripts/generar-pasos-landing.mjs no les saca captura. */
+  escena?: "bienvenida" | "antes" | "solucion" | "dolor-dm" | "dolor-chats" | "post" | "perfil" | "navegador" | "cambio-lado";
   /** La burbuja del paso (un mensaje enviado de WhatsApp): el texto y, si hay, su segunda frase. `resalta`: las palabras que van
    *  en color de marca (ajustes-lewis-8.md §2): en compras, el texto mandarina de la marca; en tienda, verde Bosque. `cambio-lado`
    *  no lleva burbuja: su texto va en la propia pantalla. `iconos`: qué palabras (tal cual salen en
@@ -84,8 +88,13 @@ export const DEDO_LLEGA = 480;
 export const PASOS: Paso[] = [
   // La historia empieza en el dolor de quien vende (docs/prompts/conoce-portada-narrativa.md): dos pantallas neutras, y el color de la
   // marca entra con el post de la tienda. Del enlace del perfil al catálogo en el navegador de Instagram, y de ahí a la app.
+  // Tres separadores sin teléfono presentan cada tema (referencias/landing/conoce-narrativa/LEEME.md): `bienvenida` (Bosque) y `antes` (arena)
+  // abren «Antes», y `solucion` (rosa) abre «Enlace». Sus textos van en la propia pantalla (separadores.tsx).
+  { id: "bienvenida", capitulo: 1, lado: "inicio", telefono: "compradora", escena: "bienvenida", burbuja: null, dedo: "no", fases: 1, duracion: 3600 },
+  { id: "antes", capitulo: 1, lado: "antes", telefono: "compradora", escena: "antes", burbuja: null, dedo: "no", fases: 1, duracion: 4000 },
   { id: "dolor-dm", capitulo: 1, lado: "antes", telefono: "compradora", escena: "dolor-dm", burbuja: { texto: "Te escriben por Instagram, mandan capturas y preguntan el precio.", remate: "Y tú: “escríbeme al WhatsApp”.", resalta: ["capturas"] }, dedo: "no", fases: 1, duracion: 2400 },
   { id: "dolor-chats", capitulo: 1, lado: "antes", telefono: "compradora", escena: "dolor-chats", burbuja: { texto: "Ahora multiplícalo por todos tus chats.", remate: "Precios repetidos, notas sueltas y pedidos que se pierden.", resalta: ["todos tus chats"] }, dedo: "no", fases: 1, duracion: 2400 },
+  { id: "solucion", capitulo: 2, lado: "compras", telefono: "compradora", escena: "solucion", burbuja: null, dedo: "no", fases: 1, duracion: 3600 },
   { id: "post", capitulo: 2, lado: "compras", telefono: "compradora", escena: "post", burbuja: { texto: "Tu Tienda publica como siempre.", remate: "La diferencia: el pedido se hace en su catálogo.", resalta: ["Tu Tienda"], iconos: { catálogo: "catalogo" } }, dedo: "no", fases: 1, duracion: 1200 },
   { id: "perfil", capitulo: 2, lado: "compras", telefono: "compradora", escena: "perfil", burbuja: { texto: "Tu cliente toca el enlace de tu perfil.", remate: "También funciona desde tus estados de WhatsApp.", resalta: ["el enlace"], iconos: { "el enlace": "enlace", WhatsApp: "whatsapp" } }, dedo: "toque", fases: 1, duracion: 2200 },
   { id: "navegador", capitulo: 2, lado: "compras", telefono: "compradora", escena: "navegador", burbuja: { texto: "Y se abre tu catálogo, sin salir de Instagram.", remate: "Sin descargar nada. Con precios a la vista.", resalta: ["tu catálogo"], iconos: { "tu catálogo": "catalogo" } }, dedo: "no", fases: 1, duracion: 1400 },
