@@ -4,12 +4,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { DESCUENTO_CIRCULO } from "@/lib/circulo";
 import { almacenDelNavegador, debeMostrarBienvenida, marcarBienvenidaVista } from "@/lib/circulo-bienvenida";
-import type { DatosCupon } from "@/lib/cupon";
 import { useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import type { Tienda } from "@/lib/types";
 import { IconoBolsa, IconoChispa, IconoCorazon, IconoWhatsApp } from "../iconos";
-import { TicketPromo } from "../promos/ticket-promo";
+import { TicketPromoClaro } from "../promos/ticket-promo";
 import { LogoTienda } from "./logo-tienda";
 import "./bienvenida-circulo.css";
 
@@ -19,18 +18,6 @@ const BENEFICIOS: { icono: ReactNode; titulo: string; texto: string }[] = [
   { icono: <IconoWhatsApp tamano={24} />, titulo: "Habla directo con Lewis", texto: "Una conversación, sin tanta vuelta." },
   { icono: <IconoCorazon tamano={24} />, titulo: "Tu aro se queda contigo", texto: "El sello del Círculo es tuyo para siempre." },
 ];
-
-/** El cupón de la bienvenida: el 30 % sale de DESCUENTO_CIRCULO, y no lleva precio (ese sale de la base, en /planes). */
-const CUPON: DatosCupon = {
-  porcentaje: String(DESCUENTO_CIRCULO),
-  bajoPorcentaje: "DE DESCUENTO",
-  tipo: "Círculo Deslizapp",
-  titulo: "En tu plan anual",
-  esCodigo: false,
-  detalle: "Tu primer año",
-  fechas: "Al pagar el año",
-  aviso: null,
-};
 
 // Colores de la marca fijos: la bienvenida es crema también en modo oscuro (referencias/circulo/tarjeta-planes.dc.html).
 const SIN_ENSANCHAR = { fontStretch: "100%" } as const;
@@ -69,7 +56,7 @@ export function PantallaBienvenidaCirculo({ tienda, alEntrar }: { tienda: Pick<T
         <p className="mt-2 font-mano text-[27px] leading-[1.05] font-bold text-mandarina-texto">Como los Close Friends de Instagram, pero con beneficios.</p>
 
         <div className="mt-5 w-full text-left">
-          <TicketPromo d={CUPON} apagado={false} />
+          <TicketPromoClaro porcentaje={String(DESCUENTO_CIRCULO)} titulo="Tu primer año" detalle="pagando anual" />
         </div>
 
         <ul className="mt-5 flex w-full flex-col gap-3 text-left">

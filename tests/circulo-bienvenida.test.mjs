@@ -57,8 +57,9 @@ test("el titular real sale de la fila propia de `circulo` y la bienvenida espera
 test("contenido: aro de 120 con ondas, cupón con el 30 % de la constante y los cuatro beneficios", () => {
   const tsx = leer("components/panel/bienvenida-circulo.tsx");
   assert.match(tsx, /tamano=\{120\} animacion="ondas"/);
-  assert.match(tsx, /porcentaje: String\(DESCUENTO_CIRCULO\)/);
-  for (const t of ["Eres del Círculo", "Llegaste primero.", "Te toca más.", "Como los Close Friends de Instagram, pero con beneficios.", "Entrar", "En tu plan anual", "Tu primer año", "Al pagar el año", "Habla directo con Lewis"]) assert.ok(tsx.includes(t), t);
+  assert.match(tsx, /<TicketPromoClaro porcentaje=\{String\(DESCUENTO_CIRCULO\)\} titulo="Tu primer año" detalle="pagando anual" \/>/);
+  for (const viejo of ["DE DESCUENTO", "En tu plan anual", "Al pagar el año"]) assert.ok(!tsx.includes(viejo), viejo);
+  for (const t of ["Eres del Círculo", "Llegaste primero.", "Te toca más.", "Como los Close Friends de Instagram, pero con beneficios.", "Entrar", "Tu primer año", "pagando anual", "Habla directo con Lewis"]) assert.ok(tsx.includes(t), t);
   assert.equal([...tsx.matchAll(/\{ icono: </g)].length, 4);
   // Nunca un precio escrito a mano.
   assert.doesNotMatch(tsx, /RD\$|\d,\d{3}/);
