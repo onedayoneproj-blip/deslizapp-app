@@ -1,11 +1,10 @@
-import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ejemploClientes, ejemploPedido, ejemploPedidoAnterior, EJEMPLO_EXISTENCIAS } from "@/lib/planes/ejemplos-incluye";
 import type { IdIncluye } from "@/lib/planes/incluye";
 import { DetalleStock } from "../catalogo/detalle-stock";
 import { MiniaturaProducto } from "../catalogo/miniatura-producto";
-import { BurbujaChat } from "../chat/burbuja-chat";
 import { PerfilACatalogo } from "../landing/perfil-a-catalogo";
-import { TextoMensaje, VistaPreviaEnlace } from "../landing/whatsapp";
+import { ChatPedido } from "../landing/chat-pedido";
+import { TelefonoMockup } from "../landing/telefono-mockup";
 import { ChipEstado } from "../pedidos/comunes";
 import { TarjetaPedido } from "../pedidos/tarjeta-pedido";
 import { FilaLista, ListaAgrupada } from "../ui";
@@ -29,20 +28,11 @@ export function VistaPrevia({ id, ahora }: { id: IdIncluye; ahora: number }) {
       );
     case "whatsapp":
       return (
-        <Animada className="pl-wa">
-          {/* La tienda ve cómo llega el pedido: «escribiendo…», el mensaje con la vista previa del enlace (el de «Cómo funciona») y su respuesta. */}
-          <BurbujaChat lado="recibido" hora="" className="pl-escribe pl-wa-escribe">
-            <i />
-            <i />
-            <i />
-          </BurbujaChat>
-          <BurbujaChat lado="recibido" bloque hora={HORA_DEMO} className="pl-wa-pedido">
-            <VistaPreviaEnlace diferida compacta />
-            <TextoMensaje className="pt-1.5" />
-          </BurbujaChat>
-          <BurbujaChat lado="enviado" checks="grises-a-azules" hora={HORA_DEMO} className="pl-wa-respuesta">
-            ¡Listo! Te lo mando hoy 💚
-          </BurbujaChat>
+        <Animada className="pl-wa" umbral={0.4}>
+          {/* El chat de la tienda, en el mismo teléfono de la primera tarjeta: «escribiendo…», llega el pedido con la vista previa del enlace y responde la tienda. */}
+          <TelefonoMockup>
+            <ChatPedido />
+          </TelefonoMockup>
         </Animada>
       );
     case "panel": {

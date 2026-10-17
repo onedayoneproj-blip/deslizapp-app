@@ -71,8 +71,8 @@ for (const { ancho, alto } of PANTALLAS) {
   }
   const contenido = await pagina.evaluate(() => ({
     perfil: !!document.querySelector('[data-vista="bio"] .pt-enlace')?.textContent?.includes("deslizapp.com/tutienda"),
-    mensaje: document.querySelector('[data-vista="whatsapp"] .pl-wa-pedido')?.textContent ?? "",
-    miniatura: !!document.querySelector('[data-vista="whatsapp"] .pl-wa-pedido img[src="/demo-landing/imagen"]'),
+    mensaje: document.querySelector('[data-vista="whatsapp"] .cw-pedido')?.textContent ?? "",
+    miniatura: !!document.querySelector('[data-vista="whatsapp"] .cw-pedido img[src="/demo-landing/imagen"]'),
     pedido: !!document.querySelector('[data-vista="panel"]')?.textContent?.includes("#27"),
     existencias: !!document.querySelector('[data-vista="panel"]')?.textContent?.match(/Queda|en stock/),
     cliente: !!document.querySelector('[data-vista="clientes"]')?.textContent?.includes("María P."),
@@ -121,7 +121,7 @@ for (const { ancho, alto } of PANTALLAS) {
       const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
       const r = (s) => document.querySelector(s).getBoundingClientRect();
       const hoja = r(".pc-hoja");
-      const pant = r(".pc-pantalla");
+      const pant = r(".tm-pantalla");
       const vista = r('[data-vista="bio"]');
       const pc = r(".pc");
       const t = r(".pc-toque");
@@ -185,20 +185,46 @@ for (const { ancho, alto } of PANTALLAS) {
   await aTarjeta(1);
   ok((await pagina.locator(".pl-wa").getAttribute("data-pausa")) === "no", "WhatsApp: corre mientras su tarjeta se ve");
   const wa = {};
-  for (const [nombre, ms] of [["1-escribiendo", 900], ["2-llega-el-pedido", 2100], ["3-responde", 4000], ["4-checks-azules", 5200]]) {
+  const estadoWa = () =>
+    pagina.evaluate(() => {
+      const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
+      const r = (s) => document.querySelector(s).getBoundingClientRect();
+      const vista = r('[data-vista="whatsapp"]');
+      const tel = r(".pl-wa .tm");
+      const ped = r(".cw-pedido");
+      const res = r(".cw-respuesta");
+      const cab = r(".cw-cabecera");
+      return {
+        escribe: op(".cw-escribe"), pedido: op(".cw-pedido"), respuesta: op(".cw-respuesta"), gris: op(".cw-respuesta .bc-gris"), leido: op(".cw-respuesta .bc-leido"),
+        estadoEscribe: op(".cw-estado-escribe"), estadoLinea: op(".cw-estado-linea"),
+        pedidoDentro: ped.bottom <= vista.bottom - 2 && ped.top >= cab.bottom, respuestaDentro: res.bottom <= vista.bottom - 2 && res.top >= cab.bottom,
+        sinSolape: res.top >= ped.bottom - 1,
+        ancho: tel.width, relacion: tel.width / tel.height,
+      };
+    });
+  for (const [nombre, ms] of [["1-escribiendo", 450], ["2-llega-el-pedido", 900], ["3-pedido-entero", 2200], ["4-responde", 3400], ["5-checks-azules", 4200], ["6-se-queda", 6000], ["7-fundido", 6700]]) {
     await congelarEn(".pl-wa", ms);
     await pagina.waitForTimeout(80);
-    wa[nombre] = { escribe: await op(".pl-wa-escribe"), pedido: await op(".pl-wa-pedido"), respuesta: await op(".pl-wa-respuesta"), gris: await op(".pl-wa-respuesta .bc-gris"), leido: await op(".pl-wa-respuesta .bc-leido") };
+    wa[nombre] = await estadoWa();
     await foto(1, `animacion-whatsapp-${nombre}`);
   }
-  ok(wa["1-escribiendo"].escribe === 1 && wa["1-escribiendo"].pedido === 0, "WhatsApp 0,9 s: aparece «escribiendo…»");
-  ok(wa["2-llega-el-pedido"].pedido === 1 && wa["2-llega-el-pedido"].escribe === 0 && wa["2-llega-el-pedido"].respuesta === 0, "WhatsApp 2,1 s: llega el pedido con la vista previa del enlace");
-  ok(wa["3-responde"].respuesta === 1 && wa["3-responde"].gris === 1 && wa["3-responde"].leido === 0, "WhatsApp 4 s: responde la tienda y los checks están grises");
-  ok(wa["4-checks-azules"].leido === 1 && wa["4-checks-azules"].gris === 0, "WhatsApp 5,2 s: los checks pasan a azules");
-  const waTexto = await pagina.locator(".pl-wa-respuesta").innerText();
-  ok(/¡Listo! Te lo mando hoy 💚/.test(waTexto), "WhatsApp: «¡Listo! Te lo mando hoy 💚»");
-  const rebote = await pagina.evaluate(() => getComputedStyle(document.querySelector(".pl-wa-pedido")).animationName);
-  ok(rebote === "pl-wa-pedido", "WhatsApp: el mensaje llega con el rebote de la burbuja compartida");
+  ok(wa["1-escribiendo"].escribe === 1 && wa["1-escribiendo"].estadoEscribe === 1 && wa["1-escribiendo"].pedido === 0, "WhatsApp 0,45 s: «escribiendo…» en la cabecera y los tres puntos abajo, donde va a llegar el pedido");
+  ok(wa["2-llega-el-pedido"].pedido > 0 && wa["2-llega-el-pedido"].estadoLinea === 1, "WhatsApp 0,9 s: el pedido está entrando (rebote) y la cabecera dice «en línea»");
+  ok(wa["3-pedido-entero"].pedido === 1 && wa["3-pedido-entero"].pedidoDentro && wa["3-pedido-entero"].respuesta === 0, "WhatsApp 2,2 s: el pedido entero, dentro de lo que se ve del teléfono");
+  ok(wa["4-responde"].respuesta === 1 && wa["4-responde"].gris === 1 && wa["4-responde"].leido === 0 && wa["4-responde"].pedidoDentro && wa["4-responde"].respuestaDentro && wa["4-responde"].sinSolape, "WhatsApp 3,4 s: responde la tienda; pedido y respuesta enteros y sin pisarse; checks grises");
+  ok(wa["5-checks-azules"].leido === 1 && wa["5-checks-azules"].gris === 0, "WhatsApp 4,2 s: los checks pasan a azules");
+  ok(wa["6-se-queda"].pedido === 1 && wa["6-se-queda"].respuesta === 1, "WhatsApp 6 s: se queda el chat completo");
+  ok(wa["7-fundido"].pedido < 1 && wa["7-fundido"].respuesta < 1, "WhatsApp 6,7 s: fundido corto antes de reiniciar (el fondo y la cabecera siguen)");
+  ok(Math.abs(wa["4-responde"].ancho - 240) < 1 && Math.abs(wa["4-responde"].relacion - 640 / 1350) < 0.005, `WhatsApp: el mismo teléfono de la primera tarjeta (${Math.round(wa["4-responde"].ancho)} px, proporción ${wa["4-responde"].relacion.toFixed(3)})`);
+  const letra = await pagina.evaluate(() => {
+    const px = (s) => parseFloat(getComputedStyle(document.querySelector(s)).fontSize);
+    return { chat: px(".cw-pedido .cw-texto"), perfil: px(".pt-bio") };
+  });
+  ok(letra.chat >= letra.perfil, `WhatsApp: la letra se lee como la del perfil (${letra.chat.toFixed(1)} px ≥ ${letra.perfil.toFixed(1)} px)`);
+  const waTexto = await pagina.locator(".cw").innerText();
+  ok(/¡Listo! Te lo mando hoy 💚/.test(waTexto) && /María P\./.test(waTexto) && /en línea/.test(waTexto) && /Total: RD\$1,500/.test(waTexto) && /2 productos · RD\$1,500/.test(waTexto) && /deslizapp\.com/.test(waTexto), "WhatsApp: cabecera con María P., el pedido con su vista previa compacta y el total, y la respuesta");
+  const rebote = await pagina.evaluate(() => getComputedStyle(document.querySelector(".cw-pedido")).animationName);
+  ok(rebote === "pl-wa-pedido", "WhatsApp: el pedido llega con el rebote de la burbuja compartida");
 
   // Panel
   await aTarjeta(2);
@@ -339,7 +365,7 @@ console.log("\nMovimiento reducido");
   ok(anim === "none", `sin rebote al llegar (animación: ${anim})`);
   const quieto = await pagina.evaluate(() => {
     const hoja = document.querySelector(".pc-hoja").getBoundingClientRect();
-    const pc = document.querySelector(".pc-pantalla").getBoundingClientRect();
+    const pc = document.querySelector(".tm-pantalla").getBoundingClientRect();
     const op = (s) => getComputedStyle(document.querySelector(s)).opacity;
     return { anim: document.querySelectorAll(".pc, .pc *").length && [...document.querySelectorAll(".pc, .pc *")].reduce((n, e) => n + e.getAnimations().length, 0), hoja: Math.round(hoja.top - pc.top), catalogo: op(".pc-catalogo"), final: op(".pc-final"), toque: op(".pc-toque"), burst: op(".pc-aaah"), ancho: document.querySelector(".pc").getBoundingClientRect().width };
   });
@@ -348,7 +374,7 @@ console.log("\nMovimiento reducido");
   const finales = await pagina.evaluate(() => {
     const op = (s) => Number(getComputedStyle(document.querySelector(s)).opacity);
     const quietas = [...document.querySelectorAll(".pl-an, .pl-an *")].reduce((n, e) => n + e.getAnimations().length, 0);
-    return { quietas, wa: [op(".pl-wa-pedido"), op(".pl-wa-respuesta"), op(".pl-wa-respuesta .bc-leido"), op(".pl-wa-escribe")], pn: [op(".pl-pn-nuevo"), op(".pl-pn-despachado"), op(".pl-pn-antes"), op(".pl-pn-despues")], ab: document.querySelector(".pl-ab").textContent };
+    return { quietas, wa: [op(".cw-pedido"), op(".cw-respuesta"), op(".cw-respuesta .bc-leido"), op(".cw-escribe")], pn: [op(".pl-pn-nuevo"), op(".pl-pn-despachado"), op(".pl-pn-antes"), op(".pl-pn-despues")], ab: document.querySelector(".pl-ab").textContent };
   });
   ok(finales.quietas === 0, "las otras tres tarjetas no se animan con movimiento reducido");
   ok(finales.wa.join() === "1,1,1,0", "WhatsApp quieto: el pedido, la respuesta con los checks azules y sin «escribiendo…»");

@@ -1,0 +1,229 @@
+/* El chat de la tienda con el pedido (components/landing/chat-pedido.tsx). Todo en cqw (1 % del ancho de la propia pantalla, sale de .cw):
+   se ve igual de grande a cualquier tamaño y, con un solo factor de escala, nada se estira. El estado de reposo es el final (el pedido, la
+   respuesta con los checks azules y «en línea»); quien lo anima parte de ahí. */
+.cw {
+  container-type: inline-size;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #111b21;
+  font-family: var(--font-sans);
+  /* el alto de lo que se ve del teléfono cortado por la vista previa, para pegar los mensajes abajo de eso */
+  --pie: 117cqw;
+}
+.cw-fondo {
+  position: absolute;
+  inset: 0;
+  background: #efe5d3 url(/chat/patron-whatsapp.svg) 0 0 / 70cqw;
+}
+.cw-cabecera {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2.4cqw;
+  padding: 13cqw 3cqw 2.4cqw;
+  background: #f6f5f3;
+  box-shadow: 0 0.3cqw 0 rgba(0, 0, 0, 0.06);
+}
+.cw-atras {
+  flex: none;
+  width: 5.4cqw;
+  height: 5.4cqw;
+  color: #027eb5;
+}
+.cw-avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 9cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #f5c9d6;
+  color: var(--marca-bosque);
+  font-family: var(--font-display);
+  font-size: 3.8cqw;
+  line-height: 1;
+}
+.cw-quien {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+  line-height: 1;
+}
+.cw-quien b {
+  font-size: 4.2cqw;
+  font-weight: 700;
+}
+.cw-estado {
+  position: relative;
+  display: grid;
+  font-size: 3cqw;
+  color: rgba(0, 0, 0, 0.5);
+}
+.cw-estado > span {
+  grid-area: 1 / 1;
+}
+.cw-estado-escribe {
+  color: #1daa61;
+  opacity: 0;
+}
+.cw-hoy {
+  position: absolute;
+  top: 29cqw;
+  left: 50%;
+  padding: 0.7cqw 3cqw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 700;
+  font-size: 2.9cqw;
+  line-height: 1.2;
+  transform: translateX(-50%);
+}
+/* Los mensajes, pegados abajo de lo que se ve, como en un chat de verdad. */
+.cw-col {
+  position: absolute;
+  top: 36cqw;
+  left: 5cqw;
+  right: 6cqw;
+  height: calc(var(--pie) - 36cqw);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2.4cqw;
+  filter: drop-shadow(0 0.25cqw 0.25cqw rgba(16, 54, 42, 0.16));
+}
+/* La burbuja compartida, a la escala de este teléfono (la base está en px). */
+.cw .bc {
+  --aire: 2cqw;
+  max-width: 88cqw;
+  padding: var(--aire) 3cqw var(--aire) 3.2cqw;
+  border-radius: 3.2cqw;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 4.3cqw;
+  line-height: 1.3;
+  transform-origin: 0 100%;
+}
+.cw .bc[data-bc="recibido"] {
+  align-self: flex-start;
+  margin-left: 3.6cqw;
+  padding: var(--aire) 3.2cqw var(--aire) 3cqw;
+  border-top-left-radius: 3.2cqw;
+}
+.cw .bc[data-bc="enviado"] {
+  align-self: flex-end;
+  transform-origin: 100% 100%;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+.cw .bc-cola {
+  width: 8cqw;
+  height: 5.2cqw;
+  right: -3.8cqw;
+}
+.cw .bc[data-bc="recibido"] .bc-cola {
+  right: auto;
+  left: -3.8cqw;
+}
+.cw .bc-hora {
+  right: 3cqw;
+  bottom: var(--aire);
+  font-size: 3cqw;
+}
+.cw .bc-hueco {
+  width: 24cqw;
+}
+.cw .bc[data-bc="recibido"] .bc-hueco {
+  width: 14cqw;
+}
+.cw .bc-checks,
+.cw .bc-checks-par {
+  width: 4.2cqw;
+  height: 2.6cqw;
+  margin-left: 0.4cqw;
+  vertical-align: -0.2cqw;
+}
+.cw .bc-checks-par .bc-checks {
+  margin: 0;
+}
+.cw-pedido .bc-hueco {
+  display: none;
+}
+.cw-pedido .bc-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8cqw;
+}
+/* La vista previa compacta del enlace, como la de WhatsApp: miniatura cuadrada a la izquierda y, al lado, título, descripción y dominio. */
+.cw-enlace {
+  display: flex;
+  align-items: stretch;
+  gap: 2cqw;
+  padding: 1.2cqw;
+  border-radius: 2.2cqw;
+  background: rgba(0, 0, 0, 0.05);
+}
+.cw-miniatura {
+  display: block;
+  flex: none;
+  width: 14.5cqw;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1.6cqw;
+  background: #fff9ee;
+}
+.cw-miniatura img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cw-enlace-texto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4cqw;
+  font-size: 3.4cqw;
+  line-height: 1.15;
+  color: rgba(0, 0, 0, 0.6);
+}
+.cw-enlace-texto b {
+  color: #111b21;
+  font-size: 3.7cqw;
+  font-weight: 700;
+}
+.cw-enlace-texto span:last-child {
+  color: rgba(0, 0, 0, 0.45);
+}
+.cw-texto {
+  display: flex;
+  flex-direction: column;
+}
+/* «escribiendo…»: los tres puntos, abajo a la izquierda, donde va a llegar el pedido. */
+.cw-escribe {
+  position: absolute;
+  left: 8.6cqw;
+  bottom: calc(100% - var(--pie));
+  z-index: 2;
+  opacity: 0;
+  padding: 3cqw 3.6cqw;
+}
+.cw-escribe .bc-texto {
+  display: flex;
+  gap: 1.1cqw;
+}
+.cw-escribe i {
+  display: block;
+  width: 1.9cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #9ab0a5;
+}
+.cw .bc-gris {
+  stroke: #9aa5ab;
+}

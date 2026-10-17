@@ -5,6 +5,7 @@ import { BurstAaah } from "./burst-aaah";
 import { useEnPantalla } from "./en-pantalla";
 import { NavegadorInstagram } from "./navegador-instagram";
 import { PerfilTienda } from "./perfil-tienda";
+import { TelefonoMockup } from "./telefono-mockup";
 import "./perfil-a-catalogo.css";
 
 // Los cuadros del catálogo de «Tu Tienda» (393×852): las capturas de los pasos de «Cómo funciona» (public/landing/pasos) y la del tercer
@@ -33,9 +34,7 @@ export function PerfilACatalogo({ className }: { className?: string }) {
   const visible = useEnPantalla(caja, 0.4);
 
   return (
-    <div ref={caja} className={className ? `pc ${className}` : "pc"} data-pausa={visible ? "no" : "si"}>
-      {/* El teléfono de «Cómo funciona» (mockup-negro, 640×1350): su pantalla es el hueco y el marco con la isla va encima. */}
-      <div className="pc-pantalla">
+    <TelefonoMockup ref={caja} className={className ? `pc ${className}` : "pc"} data-pausa={visible ? "no" : "si"}>
         <PerfilTienda sobreEnlace={<span className="pc-toque" />} />
         <div className="pc-hoja">
           <NavegadorInstagram>
@@ -56,8 +55,6 @@ export function PerfilACatalogo({ className }: { className?: string }) {
             <span className="pc-dedo" />
           </NavegadorInstagram>
         </div>
-      </div>
-      <img className="pc-marco" src="/landing/mockup-negro.webp" alt="" width={640} height={1350} decoding="async" />
-    </div>
+    </TelefonoMockup>
   );
 }

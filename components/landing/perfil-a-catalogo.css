@@ -16,31 +16,7 @@
   --duracion: 12.5s;
   /* cuánto se aleja el teléfono para verse entero en la vista previa */
   --alejado: 0.5;
-  position: relative;
-  width: 100%;
-  /* La proporción del mockup del iPhone de «Cómo funciona» (public/landing/mockup-negro.webp, 640×1350). Un solo factor de escala. */
-  aspect-ratio: 640 / 1350;
-  isolation: isolate;
   transform-origin: 50% 0;
-}
-/* La pantalla: el mismo hueco (en %) y las mismas esquinas que .lt-hueco de la landing. */
-.pc-pantalla {
-  position: absolute;
-  left: 5.313%;
-  top: 1.926%;
-  width: 89.688%;
-  height: 96.148%;
-  overflow: hidden;
-  border-radius: 15.5% / 7%;
-  background: #0c1014;
-}
-.pc-marco {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
 }
 .pc-hoja {
   position: absolute;
