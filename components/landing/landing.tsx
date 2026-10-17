@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Isotipo, Logotipo } from "../marca";
+import { PieContacto } from "../inicio-publico/pie-contacto";
 import { PASOS, type IconoBurbuja, type Paso } from "@/lib/landing/pasos";
 import { HORA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
@@ -157,9 +158,9 @@ export function Landing() {
           <div className="lt-cierre-hoja">
             <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" data-cta="vender" className="lt-cierre-vender tocable">
               <IconoInstagram tamano={22} strokeWidth={2.2} />
-              Quiero vender
+              Escríbenos
             </a>
-            <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
+            <p className="lt-cierre-nota">Las tiendas entran por invitación.</p>
             <a href={ENLACE_CATALOGO_EJEMPLO} data-cta="catalogo" className="lt-cierre-catalogo tocable">
               Ver un catálogo de ejemplo
             </a>
@@ -172,6 +173,7 @@ export function Landing() {
                 Entrar
               </Link>
             </p>
+            <PieContacto className="lt-cierre-contacto" />
             <footer className="lt-cierre-pie">
               <Link href="/privacidad" className="tocable">
                 Privacidad

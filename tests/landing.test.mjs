@@ -109,3 +109,11 @@ test("los CTA van a destinos reales", () => {
   assert.equal(enlaces.RUTA_CONOCE, "/conoce");
   assert.equal(enlaces.RUTA_ENTRAR, "/");
 });
+
+test("el pie de contacto: el Instagram sale de lib/config y el correo es una constante", async () => {
+  const { ENLACE_INSTAGRAM, ENLACE_QUIERO_VENDER, CORREO_CONTACTO } = await import("../lib/landing/enlaces.ts");
+  const { INSTAGRAM_DESLIZAPP } = await import("../lib/config.ts");
+  assert.equal(ENLACE_INSTAGRAM, `https://instagram.com/${INSTAGRAM_DESLIZAPP}`);
+  assert.equal(ENLACE_QUIERO_VENDER, ENLACE_INSTAGRAM);
+  assert.equal(CORREO_CONTACTO, "hola@deslizapp.com");
+});

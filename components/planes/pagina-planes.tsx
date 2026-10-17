@@ -5,6 +5,7 @@ import type { PlanPublico } from "@/lib/planes/planes";
 import { INCLUYE } from "@/lib/planes/incluye";
 import { faqPageJsonLd, PREGUNTAS_PLANES } from "@/lib/planes/preguntas";
 import { IconoClientes, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
+import { PieContacto } from "../inicio-publico/pie-contacto";
 import { FeedFondo } from "../inicio-publico/feed-fondo";
 import "../inicio-publico/pagina-principal.css";
 import { CarruselIncluye } from "./carrusel-incluye";
@@ -79,10 +80,11 @@ export function PaginaPlanes({ planes, fotos, ahora }: { planes: PlanPublico[]; 
           </Link>
           <a href={ENLACE_QUIERO_VENDER} target="_blank" rel="noopener noreferrer" className="pl-vender tocable">
             <IconoInstagram tamano={18} strokeWidth={2.2} />
-            Quiero vender
+            Escríbenos
           </a>
         </div>
         <p className="pl-pie">Precios en pesos dominicanos. Puedes cambiar de plan cuando quieras.</p>
+        <PieContacto />
       </main>
     </div>
   );

@@ -7,6 +7,7 @@ export const EVENTOS = [
   "cta_como_funciona",
   "cta_quiero_vender",
   "cta_demo",
+  "cta_planes",
   "conoce_paso",
   "conoce_final",
   "conoce_cta_vender",
@@ -19,6 +20,7 @@ export const EVENTOS = [
   "catalogo_cta_como_funciona",
   "catalogo_cta_quiero_vender",
   "catalogo_cta_demo",
+  "catalogo_cta_planes",
 ] as const;
 export type Evento = (typeof EVENTOS)[number];
 

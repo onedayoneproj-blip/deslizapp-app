@@ -819,6 +819,14 @@
   font-weight: 800;
   color: var(--marca-bosque);
 }
+/* El pie de contacto en la hoja crema del cierre: el color suave de Privacidad y Términos (el pie base es papel, para fondos verdes). */
+.pie-contacto.lt-cierre-contacto {
+  color: var(--color-suave);
+}
+.pie-contacto.lt-cierre-contacto .pie-contacto-enlace:focus-visible,
+.pie-contacto.lt-cierre-contacto .pie-contacto-enlace:hover {
+  color: var(--marca-bosque);
+}
 .lt-cierre-pie {
   display: flex;
   justify-content: center;
