@@ -640,6 +640,20 @@ console.log("\nAvance por capítulos (docs de Planning del 17 oct: un segmento y
   await contexto.close();
 }
 
+console.log("\nAlturas de iPhone (Safari con la barra de direcciones desplegada o plegada): en el último paso no asoma el cierre");
+for (const [ancho, alto, etiqueta] of [[390, 664, "barra desplegada"], [390, 750, "barra plegada"]]) {
+  const contexto = await nav.newContext({ viewport: { width: ancho, height: alto }, deviceScaleFactor: 2 });
+  await sinAvance(contexto);
+  const pagina = await contexto.newPage();
+  await pagina.goto(`${base}/conoce#paso-despachar`, { waitUntil: "networkidle" });
+  await pagina.addStyleTag({ content: "nextjs-portal{display:none!important}" });
+  await pagina.waitForTimeout(1500);
+  const r = await pagina.evaluate(() => ({ paso: document.querySelector(".lt-escenario").dataset.paso, escenario: document.querySelector(".lt-escenario").getBoundingClientRect().height, seccion: document.querySelector('[data-paso-seccion="18"]').getBoundingClientRect().height, cierreTop: document.getElementById("cierre").getBoundingClientRect().top, alto: innerHeight }));
+  ok(r.paso === "despachar" && Math.abs(r.escenario - r.alto) < 1 && Math.abs(r.seccion - r.alto) < 1 && r.cierreTop >= r.alto - 1, `${ancho}×${alto} (${etiqueta}): el último paso ocupa toda la pantalla (escenario ${Math.round(r.escenario)}, sección ${Math.round(r.seccion)}) y el cierre empieza abajo del todo (${Math.round(r.cierreTop)} de ${r.alto})`);
+  if (capturas) await pagina.screenshot({ path: `${CARPETA_CAPTURAS}/ultimo-paso-iphone-${ancho}x${alto}.png` });
+  await contexto.close();
+}
+
 console.log("\nAl cargar directamente en un paso, se ve completo al instante");
 {
   const contexto = await nav.newContext({ viewport: { width: 393, height: 852 } });

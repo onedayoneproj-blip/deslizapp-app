@@ -45,7 +45,10 @@
   pointer-events: none;
 }
 .lt-paso {
-  height: 100svh;
+  /* Igual que el escenario (100dvh): con la barra de Safari plegada, la altura visible es mayor que 100svh y, por debajo del último paso,
+     asomaba el cierre. */
+  height: 100vh;
+  height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
