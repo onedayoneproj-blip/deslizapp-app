@@ -30,3 +30,11 @@ Del lienzo [Círculo Deslizapp · animaciones del aro](https://claude.ai/artifac
 La nota de abajo cambió respecto a la idea de Lewis («Al crear tu tienda, entras al Círculo.») porque `docs/14` dice que se entra por invitación de Lewis y con cupo.
 
 **Cambio del 16 oct 2026 (Lewis):** esta tarjeta sale de `/planes` y pasa a la pantalla de bienvenida dentro de la app (`docs/prompts/circulo-bienvenida.md`). En `/planes` queda solo una cinta con los colores del Círculo en cada plan cuando se elige «Anual».
+
+## Cupón de la bienvenida (opción C, elegida por Lewis el 17 oct 2026)
+`cupon-bienvenida.dc.html`. Mismo formato de ticket que las promos (muescas y línea punteada), pero en rosa muy claro `#FBE4EB`, como los recuadros de los beneficios, y con menos texto:
+- talón: «30%» en Fredoka 700, unos 40 px, en mandarina;
+- cuerpo: «Tu primer año» (Fredoka 700, 21 px, bosque) y «pagando anual» (14 px, 600, `#4F6A5E`);
+- línea punteada en mandarina suave.
+
+Sin «DE DESCUENTO», «Círculo Deslizapp» ni «En tu plan anual».
