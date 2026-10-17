@@ -1,6 +1,6 @@
 # «Cómo funciona»: portada narrativa, el viaje desde Instagram y el cambio de lado
 
-Encargo de Planning, 16 oct 2026. Diseño aprobado por Lewis el 16 oct 2026. **Se lanza cuando la medición (PR #138) lleve unos días en producción**, para tener números del «antes». Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa). Va después de `medicion-landing.md`.
+Encargo de Planning, 16 oct 2026. Diseño aprobado por Lewis el 16 oct 2026. **Se lanza el 17 oct 2026**, sin esperar más números del «antes»: con el tráfico de estos días (unas 20 visitas a la portada) no darían una comparación útil. Tu puesto es **Coding** (Sonnet, salvo que Lewis diga otra cosa). Va después de `medicion-landing.md`.
 
 **Diseño:** lienzo [Cómo funciona · pantallas nuevas](https://claude.ai/artifact/YVuiHFNWVwrbFYyGFTtQDP). Copia en `referencias/landing/conoce-narrativa/`. **No copies su HTML.**
 
@@ -10,7 +10,7 @@ Encargo de Planning, 16 oct 2026. Diseño aprobado por Lewis el 16 oct 2026. **S
 - Después enseña de dónde sale el enlace del catálogo.
 - Al pasar del lado de quien compra al de la tienda, hay una pantalla propia con los dos iconos que se intercambian.
 
-**Reutiliza lo que ya existe en la landing:** el mockup real del teléfono, las burbujas de WhatsApp, el índice, los fondos rosa y verde, el controlador de pasos (`lib/landing/pasos.ts`, `components/landing/*`) y los teléfonos reales (`app/demo-landing`). Crea solo lo que falte.
+**Ya existen desde el PR #141 y se reutilizan:** `components/landing/perfil-tienda`, `navegador-instagram` y `perfil-a-catalogo` (el perfil, el toque en el enlace y el navegador de Instagram con el catálogo, según la grabación de Lewis en `referencias/planes/instagram-perfil-a-catalogo/`), y la burbuja compartida `components/chat/burbuja-chat`. **Reutiliza también lo que ya existe en la landing:** el mockup real del teléfono, las burbujas de WhatsApp, el índice, los fondos rosa y verde, el controlador de pasos (`lib/landing/pasos.ts`, `components/landing/*`) y los teléfonos reales (`app/demo-landing`). Crea solo lo que falte.
 
 ## Pasos nuevos, al principio de `PASOS`
 
