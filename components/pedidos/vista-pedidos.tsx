@@ -4,20 +4,15 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { useConsulta, useTiendaActiva } from "@/lib/data/consulta";
 import { useData } from "@/lib/data/provider";
 import { usePendientesPedidos } from "@/lib/data/pendientes-pedidos";
-import { textoFechaDeudaAccesible } from "@/lib/credito";
-import { formatearPesos, haceCuantoSinHora } from "@/lib/formato";
-import type { EstadoPedido, PedidoConItems, Producto } from "@/lib/types";
+import type { EstadoPedido } from "@/lib/types";
+import { TarjetaPedido } from "./tarjeta-pedido";
 import { EstadoVacio } from "../estado-vacio";
 import { Esqueleto } from "../esqueleto";
-import { Foto } from "../foto";
 import { BotonFlotante } from "../panel/boton-flotante";
 import { TituloPantalla } from "../panel/titulo-pantalla";
 import { BotonVerMas, useVerMas } from "../ver-mas";
-import { Aviso, Avatar, BloqueDeuda, Contador, Etiqueta, FilaPastillas, Tarjeta } from "../ui";
+import { Aviso, Contador, FilaPastillas, Tarjeta } from "../ui";
 import { IconoChevronDerecha } from "../iconos";
-import { EtiquetaPago } from "./comunes";
-import type { ColorAvatar } from "@/lib/avatar-cliente";
-import { recortePila } from "@/lib/recorte";
 
 type Pestana = EstadoPedido;
 
@@ -151,52 +146,6 @@ function RespaldoCatalogo({ cantidad, error, alReintentar }: { cantidad: number 
         </div>
         <IconoChevronDerecha tamano={20} className="shrink-0 text-texto-secundario" />
       </div>
-    </Tarjeta>
-  );
-}
-
-function TarjetaPedido({ ahora, pedido: p, cliente, productos }: { ahora: number; pedido: PedidoConItems; cliente?: { nombre: string; repite: boolean; avatarEmoji?: string | null; avatarColor?: ColorAvatar | null }; productos: Map<string, Producto> }) {
-  const unidades = p.items.reduce((suma, i) => suma + i.cantidad, 0);
-  const aCredito = p.pagoModo === "credito" && p.estado !== "cancelado";
-  const conDeuda = aCredito && p.saldo > 0;
-  const nombre = cliente?.nombre ?? "Cliente sin nombre";
-  return (
-    <Tarjeta
-      href={`/pedidos/${p.id}`}
-      etiqueta={`Pedido #${p.numero} de ${nombre}${cliente?.repite ? ", repite" : ""}${conDeuda ? `. Debe ${formatearPesos(p.saldo)}, ${textoFechaDeudaAccesible(p.pagoFechaAcordada, ahora)}` : ""}`}
-    >
-      {/* El cliente primero: avatar, nombre y "#N · Ayer"; a la derecha, la forma de pago (cada pestaña ya es un estado) */}
-      <div className="flex items-center gap-3">
-        <Avatar nombre={nombre} emoji={cliente?.avatarEmoji} color={cliente?.avatarColor} repite={cliente?.repite} vacio={!cliente} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-destacado text-texto">{nombre}</span>
-          <span className="truncate text-secundario text-texto-secundario">
-            #{p.numero} · {haceCuantoSinHora(p.creadoEn)}
-          </span>
-        </div>
-        {/* Una sola etiqueta: en crédito saldado, "Pagado" en lugar de "A crédito" */}
-        {aCredito && p.saldo === 0 ? <Etiqueta tono="exito">Pagado</Etiqueta> : <EtiquetaPago pedido={p} />}
-      </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex shrink-0 -space-x-2">
-            {p.items.slice(0, 3).map((i, n, todos) => {
-              const foto = productos.get(i.productoId)?.fotos[0];
-              return (
-                <span key={i.id} style={n < todos.length - 1 ? recortePila(36, 8, 10) : undefined} className="size-9 overflow-hidden rounded-radio-s bg-superficie-hundida">
-                  {foto ? <Foto src={foto} alt="" className="h-full w-full" sizes="36px" /> : null}
-                </span>
-              );
-            })}
-          </div>
-          <span className="min-w-0 truncate text-secundario text-texto-secundario">
-            {unidades} {unidades === 1 ? "producto" : "productos"}
-          </span>
-          {p.items.some((i) => i.porEncargo) && <Etiqueta tono="atencion">Por encargo</Etiqueta>}
-        </div>
-        <span className="shrink-0 font-display text-titulo-seccion">{formatearPesos(p.total)}</span>
-      </div>
-      {conDeuda && <BloqueDeuda saldo={p.saldo} total={p.total} fecha={p.pagoFechaAcordada} ahora={ahora} />}
     </Tarjeta>
   );
 }

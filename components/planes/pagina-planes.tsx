@@ -2,24 +2,29 @@ import Link from "next/link";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE } from "@/lib/landing/enlaces";
 import type { PlanPublico } from "@/lib/planes/planes";
+import { INCLUYE } from "@/lib/planes/incluye";
+import { faqPageJsonLd, PREGUNTAS_PLANES } from "@/lib/planes/preguntas";
 import { IconoClientes, IconoInstagram, IconoPedidos, IconoReels, IconoWhatsApp } from "../iconos";
 import { FeedFondo } from "../inicio-publico/feed-fondo";
 import "../inicio-publico/pagina-principal.css";
+import { CarruselIncluye } from "./carrusel-incluye";
 import { ListaPlanes } from "./lista-planes";
+import { PreguntasChat } from "./preguntas-chat";
+import { VistaPrevia } from "./vistas-previas";
 import "./pagina-planes.css";
 
-const INCLUYE = [
-  { Icono: IconoInstagram, texto: "Tu catálogo en el link de tu bio" },
-  { Icono: IconoWhatsApp, texto: "Pedidos por WhatsApp" },
-  { Icono: IconoPedidos, texto: "Panel de pedidos y existencias" },
-  { Icono: IconoClientes, texto: "Clientes, abonos y lo pendiente" },
-];
+/** El icono de cada tarjeta de «Todos los planes traen» (los mismos de antes, ahora junto a su vista previa). */
+const ICONO_INCLUYE = { bio: IconoInstagram, whatsapp: IconoWhatsApp, panel: IconoPedidos, clientes: IconoClientes } as const;
 
 /**
  * La página pública de planes (docs/prompts/pagina-planes.md, referencias/planes/pagina-planes.dc.html): el estilo de la página
  * principal (fondo Bosque con el feed en columnas). Los precios y los límites vienen de la tabla `planes`, nunca del código.
  */
-export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: FotoInicio[] }) {
+export function PaginaPlanes({ planes, fotos, ahora }: { planes: PlanPublico[]; fotos: FotoInicio[]; /** Cuándo se armó la página (ms): las fechas de los datos de ejemplo de las vistas previas salen de aquí. */ ahora: number }) {
+  const tarjetas = INCLUYE.map((t) => {
+    const Icono = ICONO_INCLUYE[t.id];
+    return { ...t, icono: <Icono tamano={22} />, vista: <VistaPrevia id={t.id} ahora={ahora} /> };
+  });
   return (
     <div className="pl" data-ini>
       <div className="pl-feed">
@@ -49,16 +54,22 @@ export function PaginaPlanes({ planes, fotos }: { planes: PlanPublico[]; fotos: 
 
         <ListaPlanes planes={planes} />
 
-        <section className="pl-incluye" aria-labelledby="pl-incluye-t">
-          <h2 id="pl-incluye-t">Todos los planes traen</h2>
-          <ul>
-            {INCLUYE.map(({ Icono, texto }) => (
-              <li key={texto}>
-                <Icono tamano={22} />
-                {texto}
-              </li>
+        <CarruselIncluye tarjetas={tarjetas} />
+
+        <section className="pl-dudas" aria-labelledby="pl-dudas-t">
+          <span className="pl-sobre">¿dudas?</span>
+          <h2 id="pl-dudas-t">Pregúntanos</h2>
+          <PreguntasChat />
+          {/* Las mismas preguntas con sus respuestas, para quien no toca nada: lectores de pantalla y buscadores. */}
+          <dl className="sr-only">
+            {PREGUNTAS_PLANES.map((p) => (
+              <div key={p.id}>
+                <dt>{p.pregunta}</dt>
+                <dd>{p.respuesta}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageJsonLd()).replace(/</g, "\\u003c") }} />
         </section>
 
         <div className="pl-botones">

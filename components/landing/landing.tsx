@@ -7,6 +7,7 @@ import { HORA_DEMO, TIENDA_DEMO } from "@/lib/landing/pedido-demo";
 import { ENLACE_CATALOGO_EJEMPLO, ENLACE_QUIERO_VENDER, RUTA_ENTRAR, RUTA_PLANES } from "@/lib/landing/enlaces";
 import { Icono } from "../tienda/iconos";
 import { IconoBolsa, IconoCamion, IconoCatalogo, IconoClientes, IconoCorazon, IconoEnlace, IconoEtiqueta, IconoInstagram, IconoMoneda, IconoPedidos, IconoWhatsApp } from "../iconos";
+import { BurbujaChat } from "../chat/burbuja-chat";
 import { DemoPasos } from "./controlador";
 import "./landing.css";
 
@@ -361,28 +362,14 @@ function conResaltes(texto: string, claves: string[], iconos: Record<string, Ico
 }
 
 /**
- * Una burbuja de la demo: un mensaje enviado de WhatsApp (ajustes-lewis-4.md y -8.md): verde claro, Fredoka, las palabras clave
- * en color de marca, la hora con el doble check dentro (el hueco reserva su sitio) y la cola de una pieza con la burbuja.
+ * Una burbuja de la demo: un mensaje enviado de WhatsApp (ajustes-lewis-4.md y -8.md) con las palabras clave en color de marca. La
+ * forma (verde claro, Fredoka, hora con el doble check y cola) es la de components/chat/burbuja-chat.tsx; aquí solo se apila y se anima.
  */
 function Burbuja({ burbuja, lado, indice }: { burbuja: NonNullable<Paso["burbuja"]>; lado: Paso["lado"]; indice: number }) {
   const texto = [burbuja.texto, burbuja.remate].filter(Boolean).join(" ");
   return (
-    <div className="lt-burbuja" data-burbuja={indice} data-estado="futura" data-lado={lado}>
-      <p className="lt-burbuja-texto">
-        {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
-        <span className="lt-burbuja-hueco" aria-hidden="true" />
-      </p>
-      <span className="lt-burbuja-hora" aria-hidden="true">
-        {HORA_DEMO}
-        <svg className="lt-burbuja-checks" viewBox="0 0 18 11">
-          <path className="lt-check lt-check-1" pathLength={1} d="M1 5.4l3.8 4L11.2 1.4" />
-          <path className="lt-check lt-check-2" pathLength={1} d="M7 7.6l1.8 1.8L15.2 1.4" />
-        </svg>
-      </span>
-      {/* La cola: sale de la esquina de abajo con una curva continua y se afina hacia fuera (r8-cola-burbuja-referencia.webp) */}
-      <svg className="lt-burbuja-cola" viewBox="0 0 34 22" aria-hidden="true">
-        <path d="M18 0V9C18 15 20.8 19.6 30 22C22 22.8 16.6 21.6 13.2 19.4C9.4 21.2 4.6 22 0 22V0Z" />
-      </svg>
-    </div>
+    <BurbujaChat className="lt-burbuja" hora={HORA_DEMO} data-burbuja={indice} data-estado="futura" data-lado={lado}>
+      {conResaltes(texto, burbuja.resalta ?? [], burbuja.iconos)}
+    </BurbujaChat>
   );
 }

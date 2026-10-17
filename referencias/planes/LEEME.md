@@ -13,3 +13,9 @@
 Sustituye al sello de estrella. Es la opción E del lienzo: `descuento-nota-a-mano.dc.html`.
 - **Junto al selector**, solo en «Anual»: «primeras tiendas: -30%» escrito a mano, en Caveat 700, unos 22 px, rosa `#F5C9D6`, con «-30%» en mandarina. Va girado unos -6°, arriba a la derecha del selector, con una flechita a mano que apunta al botón «Anual».
 - **En cada tarjeta, al pie** (después del botón, separado por una línea fina) y solo en «Anual»: el sello del corazón del Círculo (círculo verde con el corazón rosa y borde crema) y «Primeras tiendas: **RD$4,192** el primer año · por invitación», con el precio de cada plan. Sin caja.
+
+## «Todos los planes traen» con vista previa y preguntas en chat (16 oct 2026)
+Aprobados por Lewis en el lienzo (tableros D y E2). Encargo: `docs/prompts/planes-incluye-y-preguntas.md`. Los archivos son prototipos de diseño: **no se copia su HTML**.
+- `incluye-con-vista-previa.dc.html`: el carrusel de cuatro tarjetas. En la app, cada vista previa se arma con piezas reales (`components/planes/vistas-previas.tsx`) y datos de ejemplo (`lib/planes/ejemplos-incluye.ts`): el perfil (`components/landing/perfil-tienda.tsx`, la pantalla `perfil` de «Cómo funciona»), el mensaje del catálogo en las burbujas, `TarjetaPedido` y la fila de existencias, y `FilaCliente`. Los textos: `lib/planes/incluye.ts`.
+- `preguntas-frecuentes-chat.dc.html`: el chat con respuestas rápidas. Los textos viven en `lib/planes/preguntas.ts` (con los cambios de Lewis: la comisión dice «hoy», el cupo dice solo lo que cuenta el código, el Círculo dice «pagando el año»; y el cierre es por Instagram, no por WhatsApp). La burbuja es la de «Cómo funciona», ahora compartida: `components/chat/burbuja-chat.tsx` (enviada verde con la cola a la derecha; recibida blanca, reflejada).
+- Pruebas: `node scripts/probar-planes-incluye-y-preguntas.mjs` (con `CAPTURAS=1` guarda las de `docs/capturas/planes-incluye-y-preguntas/`) y `tests/planes.test.mjs`.
