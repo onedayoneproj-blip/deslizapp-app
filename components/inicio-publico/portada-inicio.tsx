@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { KEY_MODO } from "@/lib/data/modo";
 import type { FotoInicio } from "@/lib/inicio/fotos";
 import { ENLACE_QUIERO_VENDER, RUTA_CONOCE, RUTA_PLANES } from "@/lib/landing/enlaces";
@@ -15,7 +14,7 @@ const ANTES_DE_PINTAR = `(function(){try{if(localStorage.getItem(${JSON.stringif
 /**
  * Todo lo que se ve de la página principal de deslizapp.com sin sesión (docs/prompts/pagina-principal-y-conoce.md,
  * referencias/inicio/inicio.dc.html): de fondo, el feed de fotos en tres columnas (seis en escritorio) que suben sin parar; un
- * corazón «aaah» y burbujas de pedido que aparecen en bucle (./vivo.tsx); abajo, el lema, «Iniciar sesión» con Google,
+ * corazón «aaah» y burbujas de pedido que aparecen en bucle (./vivo.tsx); abajo, el lema, «Iniciar sesión» con Google (en el reel del catálogo, «Ver planes»),
  * «Cómo funciona» (la landing, en /conoce), «Quiero vender» (el Instagram) y el enlace a la demo. Con movimiento reducido, todo quieto.
  *
  * Lo usan `/` (`modo="pagina"`, con las fotos de la tienda Deslizapp) y el último reel de cada catálogo (`modo="reel"`, con las fotos
@@ -47,9 +46,9 @@ export function PortadaInicio({
           <span>deslizapp</span>
         </span>
         {!reel && (
-          <Link href={RUTA_PLANES} className="ini-planes tocable">
+          <EnlaceMedido evento="cta_planes" href={RUTA_PLANES} className="ini-planes tocable">
             Planes
-          </Link>
+          </EnlaceMedido>
         )}
       </header>
 
@@ -67,7 +66,15 @@ export function PortadaInicio({
           </span>
         </Lema>
         <p className="ini-descripcion">Tu catálogo para vender por WhatsApp, y una app para todo lo que pasa después.</p>
-        <BotonGoogle evento={reel ? "catalogo_cta_iniciar_sesion" : "cta_iniciar_sesion"} />
+        {/* Quien llega desde el catálogo de una tienda es una posible vendedora, no alguien con cuenta: en el reel, «Ver planes»
+            (con el mismo botón principal) en lugar de «Iniciar sesión». La página principal sigue con «Iniciar sesión». */}
+        {reel ? (
+          <EnlaceMedido evento="catalogo_cta_planes" href={RUTA_PLANES} className="ini-google tocable" data-cta="ver-planes">
+            Ver planes
+          </EnlaceMedido>
+        ) : (
+          <BotonGoogle evento="cta_iniciar_sesion" />
+        )}
         <div className="ini-botones">
           <EnlaceMedido evento={reel ? "catalogo_cta_como_funciona" : "cta_como_funciona"} href={RUTA_CONOCE} className="ini-como tocable" data-cta="como-funciona">
             <IconoReels tamano={20} strokeWidth={2.2} />

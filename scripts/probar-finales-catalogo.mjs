@@ -5,13 +5,14 @@
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 
 const require = createRequire(import.meta.url);
 let playwright;
 try { playwright = require("playwright"); } catch { playwright = require(join(execSync("npm root -g").toString().trim(), "playwright")); }
 const URL = (process.env.URL ?? "http://localhost:3000").replace(/\/$/, "");
 const CON_FIN = /MOSTRAR_FIN_CATALOGO\s*=\s*true/.test(readFileSync("lib/tienda/final-catalogo.ts", "utf8"));
+if (process.env.CAPTURAS === "1") mkdirSync("docs/capturas/reel-ver-planes", { recursive: true });
 let fallos = 0;
 const ok = (c, m) => { console.log((c ? "  ✅ " : "  ❌ ") + m); if (!c) fallos++; };
 
@@ -74,8 +75,13 @@ ok((await page.locator(".hdr").evaluate((e) => getComputedStyle(e).opacity)) ===
 const fotos = await page.locator("#r-deslizapp [data-foto-inicio]").evaluateAll((l) => [...new Set(l.map((e) => e.dataset.fotoInicio))]);
 ok(fotos.length >= 2 && fotos.every((f) => f.startsWith("/demo/deslizapp/")), `las columnas llevan las fotos del catálogo (${fotos.length} distintas)`);
 ok((await page.locator('#r-deslizapp img[src*="/_next/image"]').count()) > 0, "las fotos del reel pasan por el optimizador de imágenes");
-for (const [txt, sel] of [["Iniciar sesión", "[data-cta=iniciar-sesion]"], ["Cómo funciona", "[data-cta=como-funciona]"], ["Quiero vender", "[data-cta=vender]"], ["Probar la app con datos de prueba", "[data-cta=demo]"]])
+for (const [txt, sel] of [["Ver planes", "[data-cta=ver-planes]"], ["Cómo funciona", "[data-cta=como-funciona]"], ["Quiero vender", "[data-cta=vender]"], ["Probar la app con datos de prueba", "[data-cta=demo]"]])
   ok((await page.locator(`#r-deslizapp ${sel}`).innerText().catch(() => "")).includes(txt), `«${txt}» a la vista`);
+// «Ver planes» ocupa el lugar de «Iniciar sesión» (docs/prompts/reel-final-ver-planes.md): mismo tamaño y mismo botón principal, y lleva a /planes.
+ok((await page.locator("#r-deslizapp [data-cta=iniciar-sesion]").count()) === 0 && !/Iniciar sesión/.test(await page.locator("#r-deslizapp").innerText()), "el reel ya no tiene «Iniciar sesión»");
+const planes = await page.locator("#r-deslizapp [data-cta=ver-planes]").evaluate((e) => ({ href: e.getAttribute("href"), alto: e.getBoundingClientRect().height, fondo: getComputedStyle(e).backgroundColor, radio: getComputedStyle(e).borderRadius, anchoRel: e.getBoundingClientRect().width / e.parentElement.getBoundingClientRect().width }));
+ok(planes.href === "/planes" && planes.alto === 56 && planes.fondo === "rgb(255, 249, 238)" && planes.anchoRel > 0.99, `«Ver planes» lleva a /planes y es el botón principal de siempre (${planes.alto} px, ${planes.fondo})`);
+if (process.env.CAPTURAS === "1") await page.screenshot({ path: `docs/capturas/reel-ver-planes/ultimo-reel-393.png` });
 ok((await page.locator("#r-deslizapp .ini-lema").innerText()).includes("tanta vuelta"), "el lema de la página inicial");
 ok((await page.locator("#r-deslizapp .ini-tira").first().evaluate((e) => getComputedStyle(e).animationPlayState)) === "running", "con el reel activo, las columnas suben");
 ok(await page.locator("#r-deslizapp .ini-burbuja").first().waitFor({ timeout: 6000 }).then(() => true, () => false), "aparecen las burbujas");
@@ -84,6 +90,12 @@ await page.keyboard.press("ArrowUp");
 await page.waitForTimeout(1200);
 ok((await page.locator("#r-deslizapp .ini-tira").first().evaluate((e) => getComputedStyle(e).animationPlayState)) === "paused", "al salir del reel, las columnas se pausan");
 ok((await page.locator(".hdr").evaluate((e) => getComputedStyle(e).opacity)) === "1", "la cabecera vuelve");
+await bajarHasta(page, "r-deslizapp");
+await page.locator("#r-deslizapp [data-cta=ver-planes]").click();
+await page.waitForURL(`${URL}/planes`, { timeout: 15000 }).catch(() => {});
+ok(new globalThis.URL(page.url()).pathname === "/planes", "tocar «Ver planes» lleva a /planes");
+await page.goBack().catch(() => {});
+await page.waitForTimeout(1500);
 await bajarHasta(page, "r-deslizapp");
 await page.locator("#r-deslizapp [data-cta=demo]").click();
 await page.waitForURL(`${URL}/`, { timeout: 15000 }).catch(() => {});
@@ -109,6 +121,13 @@ ok(await page.evaluate(() => !!history.state?.catalogoVista), "tocarlo abre el p
 await bajarHasta(page, "r-deslizapp");
 ok((await page.locator("#r-deslizapp .ini-tira").first().evaluate((e) => getComputedStyle(e).animationName)) === "none", "con movimiento reducido, las columnas quietas");
 ok((await page.locator("#r-deslizapp .ini-latido").count()) === 0, "con movimiento reducido, sin corazones");
+// Capturas del último reel a 360 (a 393 se guardó arriba).
+if (process.env.CAPTURAS === "1") {
+  ({ page, errs } = await abrir({ viewport: { width: 360, height: 740 } }));
+  await bajarHasta(page, "r-deslizapp");
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `docs/capturas/reel-ver-planes/ultimo-reel-360.png` });
+}
 await b.close();
 console.log(fallos ? `\n${fallos} fallo(s)` : "\nTodo bien");
 process.exit(fallos ? 1 : 0);
