@@ -189,7 +189,7 @@ export function Landing() {
               <IconoInstagram tamano={22} strokeWidth={2.2} />
               Escríbenos
             </a>
-            <p className="lt-cierre-nota">Las tiendas entran por invitación. Escríbenos.</p>
+            <p className="lt-cierre-nota">Las tiendas entran por invitación.</p>
             <a href={ENLACE_CATALOGO_EJEMPLO} data-cta="catalogo" className="lt-cierre-catalogo tocable">
               Ver un catálogo de ejemplo
             </a>
@@ -202,7 +202,7 @@ export function Landing() {
                 Entrar
               </Link>
             </p>
-            <PieContacto eventoInstagram="conoce_cta_vender" className="lt-cierre-contacto" />
+            <PieContacto className="lt-cierre-contacto" />
             <footer className="lt-cierre-pie">
               <Link href="/privacidad" className="tocable">
                 Privacidad

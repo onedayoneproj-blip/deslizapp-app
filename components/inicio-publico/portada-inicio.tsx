@@ -96,7 +96,7 @@ export function PortadaInicio({
         {/* Desde un catálogo no hay panel debajo que se abra solo: tras elegir la demo se va a `/`. */}
         <EnlaceDemo evento={reel ? "catalogo_cta_demo" : "cta_demo"} alTerminar={reel ? () => window.location.assign("/") : undefined} />
         {/* El pie de contacto solo en la página principal: en el último reel del catálogo ya va justo. */}
-        {!reel && <PieContacto eventoInstagram="cta_quiero_vender" />}
+        {!reel && <PieContacto />}
       </Texto>
 
       <MedirPortada modo={modo} activo={activo} />
