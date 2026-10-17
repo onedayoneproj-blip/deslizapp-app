@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Separador · Bienvenida</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}70%{opacity:1;transform:scale(1.08) rotate(3deg)}100%{opacity:1;transform:none}}
+@keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.s{animation:sube .5s cubic-bezier(.2,.8,.3,1) both}
+.p{animation:pop .6s cubic-bezier(.3,1.4,.6,1) both}
+.burb{position:absolute;padding:9px 13px;border-radius:18px;font-family:Fredoka,sans-serif;font-weight:500;font-size:16px;box-shadow:0 2px 6px rgba(23,75,58,.12);display:flex;align-items:center;gap:7px;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.s,.p,.burb{animation:none!important}}
+
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #174B3A; color: #FFF9EE; font-family: Figtree, system-ui, sans-serif">
+  <button type="button" onClick="{{repetir}}" style="position: absolute; z-index: 5; right: 16px; top: 16px; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(255,255,255,.75); color: #174B3A; font-weight: 800; font-size: 13px; cursor: pointer">Repetir</button>
+  <sc-if value="{{vivo}}" hint-placeholder-val="{{true}}">
+  <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 32px; text-align: center">
+    <img class="p" src="./icono-verde.webp" alt="" width="132" height="132" style="border-radius: 30px; box-shadow: 0 12px 30px rgba(0,0,0,.25); animation-delay: .1s">
+    <span class="s" style="margin-top: 28px; font-family: Caveat, cursive; font-weight: 700; font-size: 30px; color: #F5C9D6; animation-delay: .6s">hola, esto es</span>
+    <span class="s" style="font-family: Fredoka, sans-serif; font-weight: 700; font-size: 52px; line-height: 1; animation-delay: .8s">deslizapp</span>
+    <p class="s" style="margin: 18px 0 0; font-size: 18px; line-height: 1.4; color: #CFE8DA; animation-delay: 1.2s">En un minuto te enseñamos cómo vender <b style="color: #FF834F">sin tanta vuelta</b>.</p>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { vivo: true }; }
+  renderVals() { return { vivo: this.state.vivo, repetir: () => { this.setState({ vivo: false }); setTimeout(() => this.setState({ vivo: true }), 60); } }; }
+}
+</script>
+</body>
+</html>

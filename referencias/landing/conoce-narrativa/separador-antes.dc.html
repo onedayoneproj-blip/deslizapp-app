@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Separador · Antes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,500..700&amp;family=Figtree:wght@400;600;700;800&amp;family=Caveat:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}70%{opacity:1;transform:scale(1.08) rotate(3deg)}100%{opacity:1;transform:none}}
+@keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.s{animation:sube .5s cubic-bezier(.2,.8,.3,1) both}
+.p{animation:pop .6s cubic-bezier(.3,1.4,.6,1) both}
+.burb{position:absolute;padding:9px 13px;border-radius:18px;font-family:Fredoka,sans-serif;font-weight:500;font-size:16px;box-shadow:0 2px 6px rgba(23,75,58,.12);display:flex;align-items:center;gap:7px;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.s,.p,.burb{animation:none!important}}
+
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #EFE6D8; color: #2E2A24; font-family: Figtree, system-ui, sans-serif">
+  <button type="button" onClick="{{repetir}}" style="position: absolute; z-index: 5; right: 16px; top: 16px; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(255,255,255,.75); color: #174B3A; font-weight: 800; font-size: 13px; cursor: pointer">Repetir</button>
+  <sc-if value="{{vivo}}" hint-placeholder-val="{{true}}">
+  <div style="position: absolute; left: 0; right: 0; top: 120px; height: 300px">
+    <span class="burb s" style="left: 34px; top: 10px; background: #FFFFFF; color: #174B3A; animation-delay: .5s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="4"></circle></svg> ¿precio?</span>
+    <span class="burb s" style="right: 30px; top: 70px; background: #D9FDD3; color: #174B3A; animation-delay: .9s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"></path></svg> ¿lo tienes en negro?</span>
+    <span class="burb s" style="left: 56px; top: 140px; background: #FFFFFF; color: #174B3A; animation-delay: 1.3s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="4"></circle></svg> 📷 foto</span>
+    <span class="burb s" style="right: 48px; top: 205px; background: #D9FDD3; color: #174B3A; animation-delay: 1.7s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"></path></svg> ¿y el envío?</span>
+    <span class="burb s" style="left: 92px; top: 262px; background: #FFFFFF; color: #174B3A; animation-delay: 2.1s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="4"></circle></svg> ¿cuál era? 😅</span>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 120px; padding: 0 32px; text-align: center">
+    <span class="s" style="display: block; font-family: Caveat, cursive; font-weight: 700; font-size: 30px; color: #8A6A3A; animation-delay: .1s">antes de empezar…</span>
+    <h2 class="s" style="margin: 4px 0 0; font-family: Fredoka, sans-serif; font-weight: 700; font-size: 40px; line-height: 1.05; animation-delay: .25s">Seguro esto<br>te suena.</h2>
+    <p class="s" style="margin: 14px 0 0; font-size: 17px; line-height: 1.4; color: #5F5446; animation-delay: 2.5s">Así se vende hoy por Instagram y WhatsApp.</p>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { vivo: true }; }
+  renderVals() { return { vivo: this.state.vivo, repetir: () => { this.setState({ vivo: false }); setTimeout(() => this.setState({ vivo: true }), 60); } }; }
+}
+</script>
+</body>
+</html>
